@@ -24,6 +24,7 @@ main > * {
   transition: 400ms ease-out opacity;
   max-width: 100%;
   height: auto;
+  transform: scaleX(-1);
 }
 
 main.loading::before {

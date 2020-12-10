@@ -547,7 +547,7 @@ async function predict(model) {
       const rmx = mx - rx; // and now we want the angle formed
       //const yaw = Math.atan2(lmx, rmx) - 0.75
 
-      const yaw = .5 - Math.atan(midPoint[2], -1 * midPoint[0]) / (2.0 * Math.PI); // this is from forehead to chin...
+      const yaw = 0.5 - Math.atan(midPoint[2], -1 * midPoint[0]) / (2.0 * Math.PI); // this is from forehead to chin...
       // if the chin is in front (z) of forehead, head tilting back
 
       const pitch = 0.5 - Math.asin(midPoint[1]) / Math.PI; // if either eye is lower than the other
@@ -577,22 +577,10 @@ async function predict(model) {
       const lipVerticalOpening = lipLowerMiddle[1] - lipUpperMiddle[1];
       prediction.mouthRange = lipVerticalOpening; // -1 -> 1
 
-      prediction.happiness = 0;
-      console.log(prediction, {
-        lmx,
-        rmx,
-        yaw
-      }, {
-        lookingRight,
-        eyeLeft,
-        eyeRight
-      }, {
-        leftEyeIris,
-        rightEyeIris
-      });
+      prediction.happiness = 0; //console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
     }
   } else {//console.log("No face in shot")
-  }
+    }
 
   return predictions;
 }
