@@ -480,7 +480,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 const main = document.querySelector("main");
 const video = document.querySelector("video");
 const image = document.querySelector("img");
-const feedback = document.getElementById("feedback"); // options
+const feedback = document.getElementById("feedback");
+const buttonInstrument = document.getElementById("button-instrument"); // options
 
 const ease = _maths.easeInCubic; // easeInSine
 
@@ -490,7 +491,11 @@ let camera;
 let photo;
 let audio; //
 
-const loadRandomInstrument = async () => await (0, _audio.loadInstrument)((0, _audio.randomInstrument)());
+const loadRandomInstrument = async () => {
+  const i = (0, _audio.randomInstrument)();
+  console.log("Loading random instrument", i);
+  await (0, _audio.loadInstrument)(i);
+};
 
 _visual.canvas.addEventListener('mousedown', loadRandomInstrument);
 
@@ -101195,11 +101200,8 @@ const stopAudio = () => {
     //oscillator.stop()
 
     oscillator.disconnect(); // analyser.disconnect()
-  } else {}
+  } else {} //console.error("stop audio",{playing})
 
-  console.error("stop audio", {
-    playing
-  });
 };
 
 exports.stopAudio = stopAudio;
