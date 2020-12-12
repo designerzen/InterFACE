@@ -1,1 +1,68 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Musical Face</title><base href="/MusicalFace/"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta name="description" content="Face synth"><meta name="theme-color" content="#E1477E"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Face synth"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="icon_24.31406aab.png" type="image/x-icon"><link rel="stylesheet" href="index.cf18b509.css" type="text/css"><script type="module" src="index.7d6195d7.js"></script></head><body> <header> <h1>Musical Face</h1> <h2>Simple instrument</h2> </header> <main> <img id="face" src="will.f4dda9da.png" width="640" height="480"> <video id="webcam" autoplay playsinline="" width="640" height="480"> <p>No Video available!</p> </video> <canvas width="640" height="480"></canvas> <p id="feedback">Loading...</p> <form id="controls"> <button class="person" id="person-a">Change instrument for this person</button> <button id="button-video">Mix things up!</button> <fieldset id="pwa"> <pwa-install></pwa-install> <pwa-update offlinetoastduration="0" swpath="pwabuilder-sw.js"></pwa-update> </fieldset> </form> </main>  <script type="module" src="index.ba245bd5.js"></script> <noscript> <p>This application requires javascript to work</p> </noscript> </body></html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Musical Face</title>
+	
+	<base href="/MusicalFace/">
+
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+	<!-- <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"> -->
+	
+	<meta name="description" content="Face synth">
+	<meta name="theme-color" content="#E1477E">
+  
+	<!-- These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-title" content="Face synth">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+	<!-- Imports an icon to represent the document. -->
+	<link rel="icon" href="/icon_24.96352509.png" type="image/x-icon">
+  
+	<!-- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA.
+	<link rel="manifest" href="manifest.json"> -->
+  	
+	<link rel="stylesheet" href="/index.675f2df7.css" type="text/css">
+
+	<script type="module" src="/index.6fdefeea.js"></script> 
+</head>
+
+<body> 
+	<header>
+		<h1>Musical Face</h1>
+		<h2>Simple instrument</h2>
+	</header>
+
+	<main> 
+		<img id="face" src="/will.c7165ea3.png" width="640" height="480"> 
+		
+		<video id="webcam" autoplay="" playsinline="" width="640" height="480">
+			<p>No Video available!</p>
+		</video> 
+		<canvas width="640" height="480"></canvas> 
+		<p id="feedback">Loading...</p> 
+
+		<form id="controls">
+
+			<button class="person" id="person-a">Change instrument for this person</button>
+
+			<button id="button-video">Mix things up!</button>
+			
+			<fieldset id="pwa">
+				<pwa-install></pwa-install>
+				<pwa-update offlinetoastduration="0" swpath="pwabuilder-sw.js"></pwa-update>
+			</fieldset>
+		</form>
+
+	</main> 
+
+	<!-- For more info on the pwa-update component click here https://github.com/pwa-builder/pwa-update -->
+	<script type="module" src="/index.f339b113.js"></script> 
+
+	<noscript>
+		<p>This application requires javascript to work</p>
+	</noscript>
+	 
+</body></html>
