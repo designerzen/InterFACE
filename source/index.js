@@ -18,8 +18,6 @@ import '@tensorflow/tfjs-backend-webgl'
 // require('@tensorflow/tfjs-backend-wasm')
 //import '@tensorflow/tfjs-backend-wasm'
 // You need to require the backend explicitly because facemesh itself does not
-
-import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
 import { 
 	audioContext,inputNode,
 	active, playing, 
@@ -30,11 +28,14 @@ import {
 	setupAudio, 
 	setShape, setFrequency, setAmplitude, 
 	record } from './audio'
-import {setupMIDI} from './midi'
-import {setupCamera, setupImage} from './visual'
+import { start, stop, getMode, setMode, setTimeBetween } from './timing.js'
+import { setupMIDI } from './midi'
+import { setupCamera, setupImage} from './visual'
 import { easeInSine, easeOutSine , easeInCubic, lerp,clamp, TAU} from "./maths"
 import { clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext, drawWaves, drawBars} from './visual'
-import Person from './person'
+import Person, {LIPS_RANGE} from './person'
+import {setupInterface} from './ui'
+// import from './person'
 
 const main = document.querySelector("main")
 const video = document.querySelector("video")
@@ -52,7 +53,7 @@ let instrument
 let camera
 let photo
 let audio 
-let midiChannel
+let midi
 
 const settings = {
 
@@ -69,6 +70,11 @@ const settings = {
     modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
     irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
 	*/
+}
+
+// realtime UI options
+const ui = {
+	metronome:true
 }
 
 function debounce(callback, wait) {
@@ -173,8 +179,8 @@ async function predict(model){
 
 
 			// and now we want the angle formed
-			//const yaw = Math.atan2(lmx, rmx) - 0.75
- 			const yaw = 0.5 - Math.atan( midPoint[2], -1 * midPoint[0] ) / ( 2.0 * Math.PI )
+			const yaw = -1 * (Math.atan2(lmx, rmx) - 0.75)
+ 			//const yaw = 0.5 - Math.atan( midPoint[2], -1 * midPoint[0] ) / ( 2.0 * Math.PI )
 		  
 			// this is from forehead to chin...
 			// if the chin is in front (z) of forehead, head tilting back
@@ -296,8 +302,9 @@ const getPerson = (index) => {
 	if (people[index] == undefined)
 	{
 		const options = { dots:'green', leftEyeIris:'blue', rightEyeIris:'blue' }
-		const person = new Person('person-a', audioContext, audio, options ) 
+		const person = new Person('person-'+['a','b','c'][index], audioContext, audio, options ) 
 		person.loadInstrument( randomInstrument() )
+		person.setMIDI( midi.outputs[0] )
 		people.push( person )
 		return person
 	} else{
@@ -306,6 +313,10 @@ const getPerson = (index) => {
 }
 
 // BEGIN ---------------------------------------
+
+const onFace = ()=>{
+
+}
 
 main.classList.add("loading")
 setFeedback("Initialising...<br> Please wait")
@@ -337,8 +348,27 @@ loadModel(settings).then( async update =>{
 		//playTrack(instrument.A0, 0)
 		setFeedback(instrumentName+" Samples available...<br>Instrument Sounds downloaded")
 		
-		await setupMIDI()
+		midi = await setupMIDI()
 		setFeedback("MIDI Available?<br>Stand By", 0)
+		
+		// midi device connected! huzzah!
+		midi.addListener("connected", (e) => {
+			console.log(e)
+			setFeedback("MIDI Device connected!")
+			// check outputs
+			if (midi.outputs.length > 0)
+			{
+				const person = getPerson(0)
+				person.setMIDI(midi.outputs[0])
+			}
+		})
+		
+		// Reacting when a device becomes unavailable
+		midi.addListener("disconnected", (e) => {
+			console.log(e)
+			setFeedback("Lost MIDI Device connection")
+		})
+
 		// console.log("Streamin", {video, photo, camera} )
 
 	}catch(error){
@@ -371,6 +401,18 @@ loadModel(settings).then( async update =>{
 	// turn up the amp
 	setAmplitude( 1 )
 
+	start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
+		
+		if (ui.metronome)
+		{
+			const person = getPerson(0).sing()
+			//console.log("Timing has occurred... sequence?", person)
+		}
+		
+	}, 2403 / 16 )
+
+	// LOOP ---------------------------------------
+
 	// FaceMesh.getUVCoords 
 	// this then runs the loop if set to true
 	update( inputElement === video, (predictions)=>{
@@ -400,12 +442,24 @@ loadModel(settings).then( async update =>{
 				return
 			}
 
-			const { yaw, pitch, lipPercentage } = person.update(prediction)
-
+			// first update the person
+			person.update(prediction)
+			// then redraw them
+			//const { yaw, pitch, lipPercentage } = 
+			person.draw(prediction)
+			
+			// then whenever you fancy it,
+			if (ui.metronome)
+			{
+				// we only want it on the beat
+			}else{
+				person.sing()
+			}
+			
 			// you want a tight curve
 			//setAmplitude( logAmp )
 			//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-			tickerTape += `<br>PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`
+			tickerTape += `<br>PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/LIPS_RANGE)}% - ${person.instrumentName}`
 
 		}else{
 
@@ -421,104 +475,24 @@ loadModel(settings).then( async update =>{
 			setFeedback(`Click your face to change instruments!`)
 		}else if (counter > 10000){
 			setFeedback(`OMG I can't believe you are still here!`)
-		}else{
+		}else if (tickerTape.length){
 			setFeedback(tickerTape)
 			// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+		}else{
+			setFeedback(`Look at me and open your mouth`)
 		}
 	} )
 })
 
+// now wire up the bits...
+
 canvas.addEventListener('mousedown',loadRandomInstrument )
 video.addEventListener('mousedown', loadRandomInstrument )
 	
-
-
 // input.addListener("noteon", "all", (event: InputEventNoteon) => {
 // 	...
 //   }) 
-WebMidi.enable( (err) => {
 
-	if (err) {
-		console.log("WebMidi could not be enabled.", err);
-	} else {
-		console.log("WebMidi enabled!");
-	}
-	// I / O change
-    console.log(WebMidi.inputs)
-	console.log(WebMidi.outputs)
-
-	// midi device connected! huzzah!
-	WebMidi.addListener("connected", function(e) {
-		console.log(e)
-	  })
-	  
-	  // Reacting when a device becomes unavailable
-	  WebMidi.addListener("disconnected", function(e) {
-		console.log(e)
-	  })
-	
-	  // Display the current time
-	  console.log(WebMidi.time)
-	  
-	// Retrieving an output port/device using its id, name or index
-	midiChannel = WebMidi.getOutputById("123456789");
-	midiChannel = WebMidi.getOutputByName("Axiom Pro 25 Ext Out");
-	midiChannel = WebMidi.outputs[0];
-
-	// if (midiChannel)
-	// {
-	// 	// Play a note on all channels of the selected output
-	// 	midiChannel.playNote("C3");
-
-	// 	// Play a note on channel 3
-	// 	midiChannel.playNote("Gb4", 3);
-
-	// 	// Play a chord on all available channels
-	// 	midiChannel.playNote(["C3", "D#3", "G3"]);
-
-	// 	// Play a chord on channel 7
-	// 	midiChannel.playNote(["C3", "D#3", "G3"], 7);
-
-	// 	// Play a note at full velocity on all channels)
-	// 	midiChannel.playNote("F#-1", "all", {velocity: 1});
-
-	// 	// Play a note on channel 16 in 2 seconds (relative time)
-	// 	midiChannel.playNote("F5", 16, {time: "+2000"});
-
-	// 	// Play a note on channel 1 at an absolute time in the future
-	// 	midiChannel.playNote("F5", 16, {time: WebMidi.time + 3000});
-
-	// 	// Play a note for a duration of 2 seconds (will send a note off message in 2 seconds). Also use
-	// 	// a low attack velocity
-	// 	midiChannel.playNote("Gb2", 10, {duration: 2000, velocity: 0.25});
-
-	// 	// Stop a playing note on all channels
-	// 	midiChannel.stopNote("C-1");
-
-	// 	// Stopping a playing note on channel 11
-	// 	midiChannel.stopNote("F3", 11);
-
-	// 	// Stop a playing note on channel 11 and use a high release velocity
-	// 	midiChannel.stopNote("G8", 11, {velocity: 0.9});
-
-	// 	// Stopping a playing note in 2.5 seconds
-	// 	midiChannel.stopNote("Bb2", 11, {time: "+2500"});
-
-	// 	// Send polyphonic aftertouch message to channel 8
-	// 	midiChannel.sendKeyAftertouch("C#3", 8, 0.25);
-
-	// 	// Send pitch bend (between -1 and 1) to channel 12
-	// 	midiChannel.sendPitchBend(-1, 12);
-
-	// 	// You can chain most method calls
-	// 	midiChannel.playNote("G5", 12)
-	// 		.sendPitchBend(-0.5, 12, {time: 400}) // After 400 ms.
-	// 		.sendPitchBend(0.5, 12, {time: 800})  // After 800 ms.
-	// 		.stopNote("G5", 12, {time: 1200});    // After 1.2 s.
-
-	// }
-	
-})
 // const {startRecording, stopRecording} = record()
 // startRecording(audio)
 
@@ -529,10 +503,3 @@ WebMidi.enable( (err) => {
 // })
 
 // Settings that the user can change
-
-// populate ui
-const uiOptions = FOLDERS.map( folder => `<option value="${folder}">${folder}</option>` ) 
-const uiSelect = `<select>${uiOptions.join('')}</select>`
-
-// add to dom
-document.documentElement.appendChild( document.createDocumentFragment(uiSelect) )

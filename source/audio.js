@@ -43,8 +43,8 @@ export const setupAudio = () => {
 	
 	delayNode = audioContext.createDelay(100)
 	feedbackNode = audioContext.createGain()
-	delayNode.delayTime.value = 0.01
-	feedbackNode.gain.value = 0.1
+	delayNode.delayTime.value = 0.1
+	feedbackNode.gain.value = 0.3
 
 	analyser = audioContext.createAnalyser()
 	analyser.minDecibels = -90

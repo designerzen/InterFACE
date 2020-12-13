@@ -201,21 +201,40 @@ button{
 	background-color: transparent;
 }
 
+// button that covers people
 button.person{
 	cursor:pointer;
 	position: absolute;	
 	z-index:202;
 	
 	border-radius: 100%;
-	border:2px solid red;
+	//border:2px solid white;
 
 	color:transparent;
 	opacity: 0;
 	transition: 400ms ease-in opacity, left 9ms linear, top 9ms linear;
 
 	&:hover, &:focus{
-		opacity: 0.8;
+		
 		outline: none;
+	}
+
+	&:hover{
+		opacity: 0.8;
+	}
+
+	svg{
+		width: 100%;
+		//height:auto;
+		fill:orange;
+		stroke-width: 3px;
+		stroke:purple;
+		//transform: scaleX(-1);
+		pointer-events: none;
+		circle{
+			stroke:black;
+			fill:white;
+		}
 	}
 }
 .active button.person{
@@ -224,15 +243,6 @@ button.person{
 	
 }
 
-button#button-video{
-	position: absolute;
-	top:0;
-	left:0;
-	width: 100%;
-	// right:0;
-	bottom:0;
-	z-index:-1;
-}
 
 button#person-a{
 	
@@ -252,6 +262,15 @@ button#person-b{
 	height:calc( 1px * var(--person-b-h,0) );
 }
 
+button#button-video{
+	position: absolute;
+	top:0;
+	left:0;
+	width: 100%;
+	// right:0;
+	bottom:0;
+	z-index:-1;
+}
 @keyframes Loading{
 	0%{
 		transform:translateX( 0 );

@@ -138,8 +138,8 @@
       this[globalName] = mainExports;
     }
   }
-})({"41ncd":[function(require,module,exports) {
-var HMR_HOST = null;var HMR_PORT = 6244;var HMR_ENV_HASH = "d751713988987e9331980363e24189ce";module.bundle.HMR_BUNDLE_ID = "9a7fb50ab835f84e64e57d8c6fdefeea";/* global HMR_HOST, HMR_PORT, HMR_ENV_HASH */
+})({"525pK":[function(require,module,exports) {
+var HMR_HOST = null;var HMR_PORT = 11939;var HMR_ENV_HASH = "d751713988987e9331980363e24189ce";module.bundle.HMR_BUNDLE_ID = "9a7fb50ab835f84e64e57d8c6fdefeea";/* global HMR_HOST, HMR_PORT, HMR_ENV_HASH */
 
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -454,9 +454,9 @@ var _tfjs = require("@tensorflow/tfjs");
 
 require("@tensorflow/tfjs-backend-webgl");
 
-var _webmidi = _interopRequireWildcard(require("webmidi"));
-
 var _audio = require("./audio");
+
+var _timing = require("./timing.js");
 
 var _midi = require("./midi");
 
@@ -464,9 +464,9 @@ var _visual = require("./visual");
 
 var _maths = require("./maths");
 
-var _person = _interopRequireDefault(require("./person"));
+var _person = _interopRequireWildcard(require("./person"));
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _ui = require("./ui");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -485,6 +485,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // require('@tensorflow/tfjs-backend-wasm')
 //import '@tensorflow/tfjs-backend-wasm'
 // You need to require the backend explicitly because facemesh itself does not
+// import from './person'
 const main = document.querySelector("main");
 const video = document.querySelector("video");
 const image = document.querySelector("img");
@@ -499,7 +500,7 @@ let instrument;
 let camera;
 let photo;
 let audio;
-let midiChannel;
+let midi;
 const settings = {
   // maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
   maxFaces: 1,
@@ -513,6 +514,10 @@ const settings = {
      irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
   */
 
+}; // realtime UI options
+
+const ui = {
+  metronome: true
 };
 
 function debounce(callback, wait) {
@@ -612,9 +617,9 @@ async function predict(model) {
       } = annotations; //drawPart(silhouette, 5, 'rgba(255,255,0,0.5)', true)
 
       prediction.lookingRight = lookingRight; // and now we want the angle formed
-      //const yaw = Math.atan2(lmx, rmx) - 0.75
 
-      const yaw = 0.5 - Math.atan(midPoint[2], -1 * midPoint[0]) / (2.0 * Math.PI); // this is from forehead to chin...
+      const yaw = -1 * (Math.atan2(lmx, rmx) - 0.75); //const yaw = 0.5 - Math.atan( midPoint[2], -1 * midPoint[0] ) / ( 2.0 * Math.PI )
+      // this is from forehead to chin...
       // if the chin is in front (z) of forehead, head tilting back
 
       const pitch = 0.5 - Math.asin(midPoint[1]) / Math.PI; // if either eye is lower than the other
@@ -714,8 +719,9 @@ const getPerson = index => {
       leftEyeIris: 'blue',
       rightEyeIris: 'blue'
     };
-    const person = new _person.default('person-a', _audio.audioContext, audio, options);
+    const person = new _person.default('person-' + ['a', 'b', 'c'][index], _audio.audioContext, audio, options);
     person.loadInstrument((0, _audio.randomInstrument)());
+    person.setMIDI(midi.outputs[0]);
     people.push(person);
     return person;
   } else {
@@ -723,6 +729,8 @@ const getPerson = index => {
   }
 }; // BEGIN ---------------------------------------
 
+
+const onFace = () => {};
 
 main.classList.add("loading");
 setFeedback("Initialising...<br> Please wait");
@@ -746,8 +754,23 @@ loadModel(settings).then(async update => {
     //playTrack(instrument.A0, 0)
 
     setFeedback(instrumentName + " Samples available...<br>Instrument Sounds downloaded");
-    await (0, _midi.setupMIDI)();
-    setFeedback("MIDI Available?<br>Stand By", 0); // console.log("Streamin", {video, photo, camera} )
+    midi = await (0, _midi.setupMIDI)();
+    setFeedback("MIDI Available?<br>Stand By", 0); // midi device connected! huzzah!
+
+    midi.addListener("connected", e => {
+      console.log(e);
+      setFeedback("MIDI Device connected!"); // check outputs
+
+      if (midi.outputs.length > 0) {
+        const person = getPerson(0);
+        person.setMIDI(midi.outputs[0]);
+      }
+    }); // Reacting when a device becomes unavailable
+
+    midi.addListener("disconnected", e => {
+      console.log(e);
+      setFeedback("Lost MIDI Device connection");
+    }); // console.log("Streamin", {video, photo, camera} )
   } catch (error) {
     console.error("Bummer", error);
     setFeedback("Something went wrong :(<br>" + error);
@@ -770,7 +793,21 @@ loadModel(settings).then(async update => {
   const playing = [];
   let counter = 0; // turn up the amp
 
-  (0, _audio.setAmplitude)(1); // FaceMesh.getUVCoords 
+  (0, _audio.setAmplitude)(1);
+  (0, _timing.start)(({
+    timePassed,
+    elapsed,
+    expected,
+    drift,
+    level,
+    intervals,
+    lag
+  }) => {
+    if (ui.metronome) {
+      const person = getPerson(0).sing(); //console.log("Timing has occurred... sequence?", person)
+    }
+  }, 2403 / 16); // LOOP ---------------------------------------
+  // FaceMesh.getUVCoords 
   // this then runs the loop if set to true
 
   update(inputElement === video, predictions => {
@@ -792,17 +829,23 @@ loadModel(settings).then(async update => {
         setFeedback("I need to see your face!");
         main.classList.toggle("active", false);
         return;
-      }
+      } // first update the person
 
-      const {
-        yaw,
-        pitch,
-        lipPercentage
-      } = person.update(prediction); // you want a tight curve
+
+      person.update(prediction); // then redraw them
+      //const { yaw, pitch, lipPercentage } = 
+
+      person.draw(prediction); // then whenever you fancy it,
+
+      if (ui.metronome) {// we only want it on the beat
+      } else {
+        person.sing();
+      } // you want a tight curve
       //setAmplitude( logAmp )
       //setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
 
-      tickerTape += `<br>PITCH:${Math.ceil(360 * prediction.pitch)} ROLL:${Math.ceil(360 * prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100 * lipPercentage)}% - ${person.instrumentName}`;
+
+      tickerTape += `<br>PITCH:${Math.ceil(360 * prediction.pitch)} ROLL:${Math.ceil(360 * prediction.roll)} YAW:${180 * prediction.yaw} MOUTH:${Math.ceil(100 * prediction.mouthRange / _person.LIPS_RANGE)}% - ${person.instrumentName}`;
     } else {} // Feedback text changes depending on time
 
 
@@ -814,81 +857,20 @@ loadModel(settings).then(async update => {
       setFeedback(`Click your face to change instruments!`);
     } else if (counter > 10000) {
       setFeedback(`OMG I can't believe you are still here!`);
-    } else {
+    } else if (tickerTape.length) {
       setFeedback(tickerTape); // setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+    } else {
+      setFeedback(`Look at me and open your mouth`);
     }
   });
-});
+}); // now wire up the bits...
 
 _visual.canvas.addEventListener('mousedown', loadRandomInstrument);
 
 video.addEventListener('mousedown', loadRandomInstrument); // input.addListener("noteon", "all", (event: InputEventNoteon) => {
 // 	...
 //   }) 
-
-_webmidi.default.enable(err => {
-  if (err) {
-    console.log("WebMidi could not be enabled.", err);
-  } else {
-    console.log("WebMidi enabled!");
-  } // I / O change
-
-
-  console.log(_webmidi.default.inputs);
-  console.log(_webmidi.default.outputs); // midi device connected! huzzah!
-
-  _webmidi.default.addListener("connected", function (e) {
-    console.log(e);
-  }); // Reacting when a device becomes unavailable
-
-
-  _webmidi.default.addListener("disconnected", function (e) {
-    console.log(e);
-  }); // Display the current time
-
-
-  console.log(_webmidi.default.time); // Retrieving an output port/device using its id, name or index
-
-  midiChannel = _webmidi.default.getOutputById("123456789");
-  midiChannel = _webmidi.default.getOutputByName("Axiom Pro 25 Ext Out");
-  midiChannel = _webmidi.default.outputs[0]; // if (midiChannel)
-  // {
-  // 	// Play a note on all channels of the selected output
-  // 	midiChannel.playNote("C3");
-  // 	// Play a note on channel 3
-  // 	midiChannel.playNote("Gb4", 3);
-  // 	// Play a chord on all available channels
-  // 	midiChannel.playNote(["C3", "D#3", "G3"]);
-  // 	// Play a chord on channel 7
-  // 	midiChannel.playNote(["C3", "D#3", "G3"], 7);
-  // 	// Play a note at full velocity on all channels)
-  // 	midiChannel.playNote("F#-1", "all", {velocity: 1});
-  // 	// Play a note on channel 16 in 2 seconds (relative time)
-  // 	midiChannel.playNote("F5", 16, {time: "+2000"});
-  // 	// Play a note on channel 1 at an absolute time in the future
-  // 	midiChannel.playNote("F5", 16, {time: WebMidi.time + 3000});
-  // 	// Play a note for a duration of 2 seconds (will send a note off message in 2 seconds). Also use
-  // 	// a low attack velocity
-  // 	midiChannel.playNote("Gb2", 10, {duration: 2000, velocity: 0.25});
-  // 	// Stop a playing note on all channels
-  // 	midiChannel.stopNote("C-1");
-  // 	// Stopping a playing note on channel 11
-  // 	midiChannel.stopNote("F3", 11);
-  // 	// Stop a playing note on channel 11 and use a high release velocity
-  // 	midiChannel.stopNote("G8", 11, {velocity: 0.9});
-  // 	// Stopping a playing note in 2.5 seconds
-  // 	midiChannel.stopNote("Bb2", 11, {time: "+2500"});
-  // 	// Send polyphonic aftertouch message to channel 8
-  // 	midiChannel.sendKeyAftertouch("C#3", 8, 0.25);
-  // 	// Send pitch bend (between -1 and 1) to channel 12
-  // 	midiChannel.sendPitchBend(-1, 12);
-  // 	// You can chain most method calls
-  // 	midiChannel.playNote("G5", 12)
-  // 		.sendPitchBend(-0.5, 12, {time: 400}) // After 400 ms.
-  // 		.sendPitchBend(0.5, 12, {time: 800})  // After 800 ms.
-  // 		.stopNote("G5", 12, {time: 1200});    // After 1.2 s.
-  // }
-}); // const {startRecording, stopRecording} = record()
+// const {startRecording, stopRecording} = record()
 // startRecording(audio)
 // stopRecording('audio/mp3;').then(recording=>{
 // 	// Creating audio url with reference  
@@ -896,15 +878,7 @@ _webmidi.default.enable(err => {
 // 	const audioSrc = window.URL.createObjectURL(recording)
 // })
 // Settings that the user can change
-// populate ui
-
-
-const uiOptions = _audio.FOLDERS.map(folder => `<option value="${folder}">${folder}</option>`);
-
-const uiSelect = `<select>${uiOptions.join('')}</select>`; // add to dom
-
-document.documentElement.appendChild(document.createDocumentFragment(uiSelect));
-},{"@tensorflow-models/face-landmarks-detection":"6c9Ev","@tensorflow/tfjs":"4KHha","@tensorflow/tfjs-backend-webgl":"5OadW","webmidi":"6NyeR","./audio":"5DhFk","./midi":"3ogrV","./visual":"1YNwa","./maths":"4YhKa","./person":"6qSdW"}],"6c9Ev":[function(require,module,exports) {
+},{"@tensorflow-models/face-landmarks-detection":"6c9Ev","@tensorflow/tfjs":"4KHha","@tensorflow/tfjs-backend-webgl":"5OadW","./audio":"5DhFk","./timing.js":"1N4am","./midi":"3ogrV","./visual":"1YNwa","./maths":"4YhKa","./person":"6qSdW","./ui":"4wuiq"}],"6c9Ev":[function(require,module,exports) {
 "use strict";
 /**
  * @license
@@ -101237,7 +101211,1056 @@ exports.version_webgl = version;
 exports.webgl = webgl;
 exports.webgl_util = webgl_util;
 
-},{"@tensorflow/tfjs-core":"55n2Y"}],"6NyeR":[function(require,module,exports) {
+},{"@tensorflow/tfjs-core":"55n2Y"}],"5DhFk":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.record = exports.loadInstrument = exports.loadInstrumentParts = exports.INSTRUMENT_NAMES = exports.playTrack = exports.setAmplitude = exports.setFrequency = exports.setShape = exports.playAudio = exports.stopAudio = exports.setupAudio = exports.inputNode = exports.active = exports.playing = exports.dataArray = exports.bufferLength = exports.audioContext = exports.randomInstrument = exports.FOLDERS = void 0;
+
+var _maths = require("./maths");
+
+var _instruments = _interopRequireDefault(require("./instruments"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const FOLDERS = _instruments.default.split("\n");
+
+exports.FOLDERS = FOLDERS;
+
+const randomInstrument = () => FOLDERS[Math.floor(Math.random() * FOLDERS.length)]; // import * as instrumentAccordian from "./FluidR3_GM/accordion-ogg"
+
+
+exports.randomInstrument = randomInstrument;
+let audioContext;
+exports.audioContext = audioContext;
+let mediaRecorder;
+let bufferLength;
+exports.bufferLength = bufferLength;
+let dataArray;
+exports.dataArray = dataArray;
+let oscillator;
+let gainNode;
+let delayNode;
+let feedbackNode;
+let analyser;
+let compressor;
+let destinationVolume = 0;
+let playing = false;
+exports.playing = playing;
+let active = false;
+exports.active = active;
+const inputNode = delayNode;
+exports.inputNode = inputNode;
+
+const setupAudio = () => {
+  // MIDI.Soundfont.accordion
+  // init // set up forked web audio context, for multiple browsers
+  // window. is needed otherwise Safari explodes
+  exports.audioContext = audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  gainNode = audioContext.createGain();
+  gainNode.gain.value = 0;
+  oscillator = audioContext.createOscillator();
+  oscillator.type = "sine"; // "sawtooth"
+
+  compressor = audioContext.createDynamicsCompressor();
+  delayNode = audioContext.createDelay(100);
+  feedbackNode = audioContext.createGain();
+  delayNode.delayTime.value = 0.1;
+  feedbackNode.gain.value = 0.3;
+  analyser = audioContext.createAnalyser();
+  analyser.minDecibels = -90;
+  analyser.maxDecibels = -10;
+  analyser.smoothingTimeConstant = 0.85; // for waves
+
+  analyser.fftSize = 2048;
+  exports.bufferLength = bufferLength = analyser.fftSize; // for bars
+
+  analyser.fftSize = 256;
+  exports.bufferLength = bufferLength = analyser.frequencyBinCount;
+  exports.dataArray = dataArray = new Uint8Array(bufferLength); //console.error("instrument",{oscillator, compressor, dataArray} )
+  //oscillator.type = e.currentTarget.id
+
+  oscillator.frequency.value = 261.63;
+  oscillator.connect(delayNode);
+  delayNode.connect(feedbackNode);
+  feedbackNode.connect(delayNode);
+  delayNode.connect(gainNode);
+  gainNode.connect(compressor);
+  compressor.connect(analyser); // oscillator.start()
+
+  analyser.connect(audioContext.destination);
+  return delayNode;
+};
+
+exports.setupAudio = setupAudio;
+
+const monitor = () => {
+  const result = requestAnimationFrame(monitor); // waves
+  //analyser.getByteTimeDomainData(dataArray)
+  // bsrs
+
+  analyser.getByteFrequencyData(dataArray);
+  return result;
+};
+
+const stopAudio = () => {
+  if (playing) {
+    exports.playing = playing = false; // you cannot restart an oscillator!
+    //oscillator.stop()
+
+    oscillator.disconnect(); // analyser.disconnect()
+
+    return true;
+  } else {
+    return false;
+  } //console.error("stop audio",{playing})
+
+};
+
+exports.stopAudio = stopAudio;
+
+const playAudio = () => {
+  if (playing) {
+    return false;
+  } else {
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    } // analyser.connect(audioContext.destination)
+
+
+    oscillator.connect(delayNode);
+    exports.playing = playing = true;
+    monitor();
+    return true;
+  } //console.error("start audio",{playing})
+
+
+  return oscillator;
+};
+
+exports.playAudio = playAudio;
+
+const setShape = shape => {
+  oscillator.type = shape;
+};
+
+exports.setShape = setShape;
+
+const setFrequency = frequency => {
+  oscillator.frequency.value = frequency;
+}; // smaller means slower
+
+
+exports.setFrequency = setFrequency;
+const rate = 0.1;
+
+const setVolume = () => {
+  //gainNode.gain.value = lerp( gain.gain.value, destinationVolume, 0.1 )
+  const newVolume = gainNode.gain.value + (destinationVolume - gainNode.gain.value) * rate; // gainNode.gain.setValueAtTime(destinationVolume, audioContext.currentTime)
+
+  gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime);
+
+  if (gainNode.gain.value === destinationVolume) {} else {
+    requestAnimationFrame(setVolume);
+  }
+};
+
+const setAmplitude = amplitude => {
+  // lerp towards
+  destinationVolume = amplitude;
+  setVolume(); //gainNode.gain.clearValues()
+  //gainNode.gain.setValueAtTime(amplitude, audioContext.currentTime)
+};
+
+exports.setAmplitude = setAmplitude;
+
+async function loadAudio(path) {
+  const response = await fetch(path);
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  return audioBuffer;
+} // create a buffer, plop in data, connect and play -> modify graph here if required
+// detune:0,,  playbackRate:1
+
+
+const playTrack = (audioBuffer, offset = 0, destination = delayNode, options = {
+  loop: false
+}) => {
+  const trackSource = audioContext.createBufferSource();
+  trackSource.buffer = audioBuffer; // loop through options nad add
+  // options
+
+  trackSource.loop = options.loop; // trackSource.detune = options.detune
+  //trackSource.playbackRate = options.playbackRate
+
+  trackSource.connect(destination); // trackSource.connect(audioContext.destination)
+  // console.error("Playing track", {audioBuffer,trackSource} )
+  // https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
+  // FIXME: when it has finished playing remove it...
+  // trackSource.addEventListener()
+
+  trackSource.onended = () => {
+    trackSource.disconnect();
+    exports.active = active = false;
+  };
+
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+
+  if (offset == 0) {
+    trackSource.start(); //offset = audioContext.currentTime
+  } else {
+    trackSource.start(0, audioContext.currentTime - offset);
+  }
+
+  exports.active = active = true;
+  return trackSource;
+}; // const track = await loadAudio()
+// const r = playTrack(track)
+
+
+exports.playTrack = playTrack;
+
+async function loadInstrumentPart(instrumentName, part) {
+  return new Promise((resolve, reject) => {
+    const path = `${instrumentName}/${part}`;
+    const audio = new Audio();
+    audio.addEventListener('canplaythrough', () => {
+      // available...
+      //console.log("Attempting to create audio", { audio, path})
+      resolve(audio);
+    });
+    audio.src = path;
+  });
+}
+
+const createInstrumentBanks = (fileTye = "mp3", dot = ".") => {
+  const BANKS = ["A", "Ab", "B", "Bb", "C", "D", "Db", "E", "Eb", "F", "G", "Gb"];
+  const bank = [];
+
+  for (let b = 0; b < BANKS.length; ++b) {
+    const key = BANKS[b]; // insert a 0 for A
+
+    if (key === "A") {
+      bank.push(`A0${dot}${fileTye}`);
+    }
+
+    for (let i = 1; i < 8; ++i) {
+      bank.push(`${key}${i}${dot}${fileTye}`);
+    } // add an extra one for C
+
+
+    if (key === "C") {
+      bank.push(`C8${dot}${fileTye}`);
+    }
+  }
+
+  return bank; // A0-7
+  // Ab1-7
+  // B0-7
+  // Bb1-Bb7
+  // C1-C8
+  // D1-7
+  // Db1-7
+  // E1-7
+  // Eb1-7
+  // F1-7
+  // G1-7
+  // Gb1-7
+};
+
+const INSTRUMENT_NAMES = createInstrumentBanks('', '');
+exports.INSTRUMENT_NAMES = INSTRUMENT_NAMES;
+
+const loadInstrumentParts = (instrumentName = "alto_sax-mp3", path = "./FluidR3_GM") => {
+  const instrumentPath = `${path}/${instrumentName}`;
+  const parts = createInstrumentBanks(); // console.error("parts",parts)
+  // array of buffers to pass to playTrack
+
+  const instruments = parts.map(part => loadAudio(`${instrumentPath}/${part}`)); //const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
+  // eg FluidR3_GM
+  // array of promises
+
+  return instruments;
+};
+
+exports.loadInstrumentParts = loadInstrumentParts;
+
+const loadInstrument = async (instrumentName = "alto_sax-mp3", path = "./FluidR3_GM", progressCallback) => {
+  const output = {
+    title: instrumentName
+  }; // progressCallback?
+
+  const parts = await Promise.all(loadInstrumentParts(instrumentName, path));
+  INSTRUMENT_NAMES.forEach((instrument, index) => {
+    output[instrument.split('.')[0]] = parts[index];
+  });
+  return output;
+}; // If audio data available then push  it to the chunk array 
+
+
+exports.loadInstrument = loadInstrument;
+
+const record = stream => {
+  let recording = false;
+  let dataArray;
+
+  const startRecording = stream => {
+    return new Promise((resolve, reject) => {
+      if (recording) {
+        return reject("already recording");
+      }
+
+      dataArray = [];
+      recording = true;
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = ev => {
+        dataArray.push(ev.data);
+        resolve(mediaRecorder);
+      }; // Convert the audio data in to blob  
+      // after stopping the recording 
+
+
+      mediaRecorder.start();
+    });
+  };
+
+  const stopRecording = (type = 'audio/mp3;') => {
+    return new Promise((resolve, reject) => {
+      if (!recording) {
+        return reject("Not recording");
+      }
+
+      mediaRecorder.onstop = event => {
+        // blob of type mp3 
+        const audioData = new Blob(dataArray, {
+          'type': type
+        }); // After fill up the chunk  
+        // array make it empty 
+
+        dataArray = [];
+        recording = false; // Pass the audio url to the 2nd video tag 
+
+        resolve(audioData);
+      };
+
+      mediaRecorder.stop();
+    });
+  };
+
+  return {
+    startRecording,
+    stopRecording
+  };
+};
+
+exports.record = record;
+},{"./maths":"4YhKa","./instruments":"nOq63"}],"4YhKa":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.easeOutSine = easeOutSine;
+exports.easeInOutSine = easeInOutSine;
+exports.easeInQuad = easeInQuad;
+exports.easeOutQuad = easeOutQuad;
+exports.easeInOutQuad = easeInOutQuad;
+exports.easeInCubic = easeInCubic;
+exports.easeOutCubic = easeOutCubic;
+exports.easeInOutCubic = easeInOutCubic;
+exports.easeInQuart = easeInQuart;
+exports.easeOutQuart = easeOutQuart;
+exports.easeInOutQuart = easeInOutQuart;
+exports.easeInQuint = easeInQuint;
+exports.easeOutQuint = easeOutQuint;
+exports.easeInOutQuint = easeInOutQuint;
+exports.easeInExpo = easeInExpo;
+exports.easeOutExpo = easeOutExpo;
+exports.easeInOutExpo = easeInOutExpo;
+exports.easeInCirc = easeInCirc;
+exports.easeOutCirc = easeOutCirc;
+exports.easeInOutCirc = easeInOutCirc;
+exports.easeInBack = easeInBack;
+exports.easeOutBack = easeOutBack;
+exports.easeInOutBack = easeInOutBack;
+exports.easeInElastic = easeInElastic;
+exports.easeOutElastic = easeOutElastic;
+exports.easeInOutElastic = easeInOutElastic;
+exports.easeOutBounce = easeOutBounce;
+exports.easeInBounce = easeInBounce;
+exports.easeInOutBounce = easeInOutBounce;
+exports.easeInSine = exports.linear = exports.clamp = exports.lerp = exports.TAU = void 0;
+const TAU = 2 * Math.PI;
+exports.TAU = TAU;
+
+const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
+
+exports.lerp = lerp;
+
+const clamp = (val, min, max) => val > max ? max : val < min ? min : val; // Based on https://gist.github.com/gre/1650294
+// No easing, no acceleration
+
+
+exports.clamp = clamp;
+
+const linear = t => t; // Slight acceleration from zero to full speed
+
+
+exports.linear = linear;
+
+const easeInSine = t => -1 * Math.cos(t * (Math.PI / 2)) + 1; // Slight deceleration at the end
+
+
+exports.easeInSine = easeInSine;
+
+function easeOutSine(t) {
+  return Math.sin(t * (Math.PI / 2));
+} // Slight acceleration at beginning and slight deceleration at end
+
+
+function easeInOutSine(t) {
+  return -0.5 * (Math.cos(Math.PI * t) - 1);
+} // Accelerating from zero velocity
+
+
+function easeInQuad(t) {
+  return t * t;
+} // Decelerating to zero velocity
+
+
+function easeOutQuad(t) {
+  return t * (2 - t);
+} // Acceleration until halfway, then deceleration
+
+
+function easeInOutQuad(t) {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+} // Accelerating from zero velocity
+
+
+function easeInCubic(t) {
+  return t * t * t;
+} // Decelerating to zero velocity
+
+
+function easeOutCubic(t) {
+  const t1 = t - 1;
+  return t1 * t1 * t1 + 1;
+} // Acceleration until halfway, then deceleration
+
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+} // Accelerating from zero velocity
+
+
+function easeInQuart(t) {
+  return t * t * t * t;
+} // Decelerating to zero velocity
+
+
+function easeOutQuart(t) {
+  const t1 = t - 1;
+  return 1 - t1 * t1 * t1 * t1;
+} // Acceleration until halfway, then deceleration
+
+
+function easeInOutQuart(t) {
+  const t1 = t - 1;
+  return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * t1 * t1 * t1 * t1;
+} // Accelerating from zero velocity
+
+
+function easeInQuint(t) {
+  return t * t * t * t * t;
+} // Decelerating to zero velocity
+
+
+function easeOutQuint(t) {
+  const t1 = t - 1;
+  return 1 + t1 * t1 * t1 * t1 * t1;
+} // Acceleration until halfway, then deceleration
+
+
+function easeInOutQuint(t) {
+  const t1 = t - 1;
+  return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * t1 * t1 * t1 * t1 * t1;
+} // Accelerate exponentially until finish
+
+
+function easeInExpo(t) {
+  if (t === 0) {
+    return 0;
+  }
+
+  return Math.pow(2, 10 * (t - 1));
+} // Initial exponential acceleration slowing to stop
+
+
+function easeOutExpo(t) {
+  if (t === 1) {
+    return 1;
+  }
+
+  return -Math.pow(2, -10 * t) + 1;
+} // Exponential acceleration and deceleration
+
+
+function easeInOutExpo(t) {
+  if (t === 0 || t === 1) {
+    return t;
+  }
+
+  const scaledTime = t * 2;
+  const scaledTime1 = scaledTime - 1;
+
+  if (scaledTime < 1) {
+    return 0.5 * Math.pow(2, 10 * scaledTime1);
+  }
+
+  return 0.5 * (-Math.pow(2, -10 * scaledTime1) + 2);
+} // Increasing velocity until stop
+
+
+function easeInCirc(t) {
+  const scaledTime = t / 1;
+  return -1 * (Math.sqrt(1 - scaledTime * t) - 1);
+} // Start fast, decreasing velocity until stop
+
+
+function easeOutCirc(t) {
+  const t1 = t - 1;
+  return Math.sqrt(1 - t1 * t1);
+} // Fast increase in velocity, fast decrease in velocity
+
+
+function easeInOutCirc(t) {
+  const scaledTime = t * 2;
+  const scaledTime1 = scaledTime - 2;
+
+  if (scaledTime < 1) {
+    return -0.5 * (Math.sqrt(1 - scaledTime * scaledTime) - 1);
+  }
+
+  return 0.5 * (Math.sqrt(1 - scaledTime1 * scaledTime1) + 1);
+} // Slow movement backwards then fast snap to finish
+
+
+function easeInBack(t, magnitude = 1.70158) {
+  return t * t * ((magnitude + 1) * t - magnitude);
+} // Fast snap to backwards point then slow resolve to finish
+
+
+function easeOutBack(t, magnitude = 1.70158) {
+  const scaledTime = t / 1 - 1;
+  return scaledTime * scaledTime * ((magnitude + 1) * scaledTime + magnitude) + 1;
+} // Slow movement backwards, fast snap to past finish, slow resolve to finish
+
+
+function easeInOutBack(t, magnitude = 1.70158) {
+  const scaledTime = t * 2;
+  const scaledTime2 = scaledTime - 2;
+  const s = magnitude * 1.525;
+
+  if (scaledTime < 1) {
+    return 0.5 * scaledTime * scaledTime * ((s + 1) * scaledTime - s);
+  }
+
+  return 0.5 * (scaledTime2 * scaledTime2 * ((s + 1) * scaledTime2 + s) + 2);
+} // Bounces slowly then quickly to finish
+
+
+function easeInElastic(t, magnitude = 0.7) {
+  if (t === 0 || t === 1) {
+    return t;
+  }
+
+  const scaledTime = t / 1;
+  const scaledTime1 = scaledTime - 1;
+  const p = 1 - magnitude;
+  const s = p / (2 * Math.PI) * Math.asin(1);
+  return -(Math.pow(2, 10 * scaledTime1) * Math.sin((scaledTime1 - s) * (2 * Math.PI) / p));
+} // Fast acceleration, bounces to zero
+
+
+function easeOutElastic(t, magnitude = 0.7) {
+  const p = 1 - magnitude;
+  const scaledTime = t * 2;
+
+  if (t === 0 || t === 1) {
+    return t;
+  }
+
+  const s = p / (2 * Math.PI) * Math.asin(1);
+  return Math.pow(2, -10 * scaledTime) * Math.sin((scaledTime - s) * (2 * Math.PI) / p) + 1;
+} // Slow start and end, two bounces sandwich a fast motion
+
+
+function easeInOutElastic(t, magnitude = 0.65) {
+  const p = 1 - magnitude;
+
+  if (t === 0 || t === 1) {
+    return t;
+  }
+
+  const scaledTime = t * 2;
+  const scaledTime1 = scaledTime - 1;
+  const s = p / (2 * Math.PI) * Math.asin(1);
+
+  if (scaledTime < 1) {
+    return -0.5 * (Math.pow(2, 10 * scaledTime1) * Math.sin((scaledTime1 - s) * (2 * Math.PI) / p));
+  }
+
+  return Math.pow(2, -10 * scaledTime1) * Math.sin((scaledTime1 - s) * (2 * Math.PI) / p) * 0.5 + 1;
+} // Bounce to completion
+
+
+function easeOutBounce(t) {
+  const scaledTime = t / 1;
+
+  if (scaledTime < 1 / 2.75) {
+    return 7.5625 * scaledTime * scaledTime;
+  } else if (scaledTime < 2 / 2.75) {
+    const scaledTime2 = scaledTime - 1.5 / 2.75;
+    return 7.5625 * scaledTime2 * scaledTime2 + 0.75;
+  } else if (scaledTime < 2.5 / 2.75) {
+    const scaledTime2 = scaledTime - 2.25 / 2.75;
+    return 7.5625 * scaledTime2 * scaledTime2 + 0.9375;
+  } else {
+    const scaledTime2 = scaledTime - 2.625 / 2.75;
+    return 7.5625 * scaledTime2 * scaledTime2 + 0.984375;
+  }
+} // Bounce increasing in velocity until completion
+
+
+function easeInBounce(t) {
+  return 1 - easeOutBounce(1 - t);
+} // Bounce in and bounce out
+
+
+function easeInOutBounce(t) {
+  if (t < 0.5) {
+    return easeInBounce(t * 2) * 0.5;
+  }
+
+  return easeOutBounce(t * 2 - 1) * 0.5 + 0.5;
+}
+},{}],"nOq63":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+const FOLDERS = `accordion-mp3
+acoustic_bass-mp3
+acoustic_grand_piano-mp3
+acoustic_guitar_nylon-mp3
+acoustic_guitar_steel-mp3
+agogo-mp3
+alto_sax-mp3
+applause-mp3
+bagpipe-mp3
+banjo-mp3
+baritone_sax-mp3
+bassoon-mp3
+bird_tweet-mp3
+blown_bottle-mp3
+brass_section-mp3
+breath_noise-mp3
+bright_acoustic_piano-mp3
+celesta-mp3
+cello-mp3
+choir_aahs-mp3
+church_organ-mp3
+clarinet-mp3
+clavinet-mp3
+contrabass-mp3
+distortion_guitar-mp3
+drawbar_organ-mp3
+dulcimer-mp3
+electric_bass_finger-mp3
+electric_bass_pick-mp3
+electric_grand_piano-mp3
+electric_guitar_clean-mp3
+electric_guitar_jazz-mp3
+electric_guitar_muted-mp3
+electric_piano_1-mp3
+electric_piano_2-mp3
+english_horn-mp3
+fiddle-mp3
+flute-mp3
+french_horn-mp3
+fretless_bass-mp3
+fx_1_rain-mp3
+fx_2_soundtrack-mp3
+fx_3_crystal-mp3
+fx_4_atmosphere-mp3
+fx_5_brightness-mp3
+fx_6_goblins-mp3
+fx_7_echoes-mp3
+fx_8_scifi-mp3
+glockenspiel-mp3
+guitar_fret_noise-mp3
+guitar_harmonics-mp3
+gunshot-mp3
+harmonica-mp3
+harpsichord-mp3
+helicopter-mp3
+honkytonk_piano-mp3
+kalimba-mp3
+koto-mp3
+lead_1_square-mp3
+lead_2_sawtooth-mp3
+lead_3_calliope-mp3
+lead_4_chiff-mp3
+lead_5_charang-mp3
+lead_6_voice-mp3
+lead_7_fifths-mp3
+lead_8_bass__lead-mp3
+marimba-mp3
+melodic_tom-mp3
+music_box-mp3
+muted_trumpet-mp3
+oboe-mp3
+ocarina-mp3
+orchestra_hit-mp3
+orchestral_harp-mp3
+overdriven_guitar-mp3
+pad_1_new_age-mp3
+pad_2_warm-mp3
+pad_3_polysynth-mp3
+pad_4_choir-mp3
+pad_5_bowed-mp3
+pad_6_metallic-mp3
+pad_7_halo-mp3
+pad_8_sweep-mp3
+pan_flute-mp3
+percussive_organ-mp3
+piccolo-mp3
+pizzicato_strings-mp3
+recorder-mp3
+reed_organ-mp3
+reverse_cymbal-mp3
+rock_organ-mp3
+seashore-mp3
+shakuhachi-mp3
+shamisen-mp3
+shanai-mp3
+sitar-mp3
+slap_bass_1-mp3
+slap_bass_2-mp3
+soprano_sax-mp3
+steel_drums-mp3
+string_ensemble_1-mp3
+string_ensemble_2-mp3
+synth_bass_1-mp3
+synth_bass_2-mp3
+synth_brass_1-mp3
+synth_brass_2-mp3
+synth_choir-mp3
+synth_drum-mp3
+synth_strings_1-mp3
+synth_strings_2-mp3
+taiko_drum-mp3
+tango_accordion-mp3
+telephone_ring-mp3
+tenor_sax-mp3
+timpani-mp3
+tinkle_bell-mp3
+tremolo_strings-mp3
+trombone-mp3
+trumpet-mp3
+tuba-mp3
+tubular_bells-mp3
+vibraphone-mp3
+viola-mp3
+violin-mp3
+voice_oohs-mp3
+whistle-mp3
+woodblock-mp3
+xylophone-mp3`;
+var _default = FOLDERS;
+exports.default = _default;
+},{}],"1N4am":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.stop = exports.start = exports.getMode = exports.setTimeBetween = exports.setMode = void 0;
+
+var _timingConstants = require("./timing.constants.js");
+
+// JS test combining an audio context currentTime
+// with a JS worker running in parallel
+const AudioContext = window.AudioContext || window.webkitAudioContext; // different timing options
+
+const mode = "requestframe"; // let mode = "setinterval"
+//let mode = "settimeout"
+
+const prefix = ""; //./
+// Load in the correct worker...timing.requestframe.worker.js
+
+let timingWorker = new Worker(`${prefix}timing.${mode}.worker.js`);
+let startTime = -1;
+let audioContext = null;
+let isRunning = false;
+
+const now = () => {
+  return audioContext.currentTime;
+};
+
+const elapsed = () => (now() - startTime) * 0.001;
+
+const setMode = newMode => {
+  // check to see if in array of acceptable types
+  mode = newMode;
+  timingWorker = new Worker(`${prefix}/timing.${mode}.worker.js`); // TODO: restart if running
+  // console.error("Changing mode",mode, timingWorker)
+
+  if (isRunning) {// 
+  }
+};
+
+exports.setMode = setMode;
+
+const setTimeBetween = time => {
+  interval = time; // if it is running, stop and restart it?
+  //interval = newInterval
+  // TODO
+  // FIXME
+  // timingWorker.postMessage({command:CMD_UPDATE, interval:newInterval, time:currentTime})
+};
+
+exports.setTimeBetween = setTimeBetween;
+
+const getMode = () => mode;
+
+exports.getMode = getMode;
+
+const start = (callback, interval = 200) => {
+  // lazily initialise a context
+  if (audioContext === null) {
+    audioContext = new AudioContext(); // on Safari macOS/iOS, the audioContext is suspended if it's not created
+    // in the event handler of a user action: we attempt to resume it.
+
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+  } // now hook into our worker bee and watch for timing changes
+
+
+  timingWorker.onmessage = e => {
+    const currentTime = now();
+    const data = e.data;
+
+    switch (data.event) {
+      case _timingConstants.EVENT_STARTING:
+        const time = data.time; // save start time
+
+        startTime = currentTime;
+        isRunning = true;
+        console.log("EVENT_STARTING", {
+          time,
+          startTime
+        });
+        break;
+
+      case _timingConstants.EVENT_TICK:
+        // How many ticks have occured yet
+        const intervals = data.intervals; // Expected time stamp
+
+        const expected = intervals * interval * 0.001; // How long has elapsed according to audio context
+
+        const elapsed = currentTime - startTime; // How long has elapsed according to our worker
+
+        const timePassed = data.time; // how much spill over the expected timestamp is there
+
+        const lag = timePassed % interval * 0.001; // should be 0 if the timer is working...
+
+        const drift = timePassed - elapsed; // deterministic intervals not neccessary
+
+        const level = Math.floor(timePassed / interval); // update offset?
+        // elapsed should === time
+        //console.log("EVENT_TICK", {timePassed, elapsed, drift, art})
+
+        callback && callback({
+          timePassed,
+          elapsed,
+          expected,
+          drift,
+          level,
+          intervals,
+          lag
+        }); // timingWorker.postMessage({command:CMD_UPDATE, time:currentTime, interval})
+
+        break;
+
+      default:
+        console.log("message: ", e);
+    }
+  }; // Error!
+
+
+  timingWorker.onerror = error => {
+    console.error("error...", {
+      error
+    });
+    timingWorker.postMessage({
+      error,
+      time: audioContext.currentTime
+    });
+  }; // send command to worker
+
+
+  timingWorker.postMessage({
+    command: _timingConstants.CMD_START,
+    time: audioContext.currentTime,
+    interval
+  });
+  console.log("Starting...", {
+    audioContext,
+    interval,
+    timingWorker
+  }); // methods that can be chained?
+
+  return {
+    currentTime: now(),
+    timingWorker,
+    mode
+  };
+};
+
+exports.start = start;
+
+const stop = () => {
+  const currentTime = now(); // cancel the thing thrugh the workers first
+  // cancel any scheduled quie noises
+
+  timingWorker.onmessage = e => {
+    switch (e.event) {
+      // Clean up
+      case _timingConstants.EVENT_STOPPING:
+        // destroy contexts and unsubscribe from events
+        isRunning = false;
+        audioContext = null;
+        break;
+    }
+  };
+
+  timingWorker.postMessage({
+    command: _timingConstants.CMD_STOP,
+    time: currentTime
+  });
+  return {
+    currentTime: now(),
+    timingWorker,
+    mode
+  };
+};
+
+exports.stop = stop;
+},{"./timing.constants.js":"2JMz6"}],"2JMz6":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.EVENT_TICK = exports.EVENT_STOPPING = exports.EVENT_STARTING = exports.EVENT_READY = exports.CMD_UPDATE = exports.CMD_STOP = exports.CMD_START = void 0;
+const CMD_START = "start";
+exports.CMD_START = CMD_START;
+const CMD_STOP = "stop";
+exports.CMD_STOP = CMD_STOP;
+const CMD_UPDATE = "update";
+exports.CMD_UPDATE = CMD_UPDATE;
+const EVENT_READY = "ready";
+exports.EVENT_READY = EVENT_READY;
+const EVENT_STARTING = "starting";
+exports.EVENT_STARTING = EVENT_STARTING;
+const EVENT_STOPPING = "stopping";
+exports.EVENT_STOPPING = EVENT_STOPPING;
+const EVENT_TICK = "tick";
+exports.EVENT_TICK = EVENT_TICK;
+},{}],"3ogrV":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setupMIDI = void 0;
+
+var _webmidi = _interopRequireWildcard(require("webmidi"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+const setupMIDI = () => new Promise((resolve, reject) => {
+  _webmidi.default.enable(err => {
+    if (err) {
+      console.log("WebMidi could not be enabled.", err);
+      reject("no MIDI");
+      return;
+    }
+
+    console.log("WebMidi enabled!"); // I / O change
+
+    console.log(_webmidi.default.inputs);
+    console.log(_webmidi.default.outputs);
+    resolve(_webmidi.default); // Display the current time
+    //   console.log(WebMidi.time)
+    // Retrieving an output port/device using its id, name or index
+    // midiChannel = WebMidi.getOutputById("123456789")
+    // midiChannel = WebMidi.getOutputByName("Axiom Pro 25 Ext Out")
+    // midiChannel = WebMidi.outputs[0]
+    // if (midiChannel)
+    // {
+    // 	// Play a note on all channels of the selected output
+    // 	midiChannel.playNote("C3");
+    // 	// Play a note on channel 3
+    // 	midiChannel.playNote("Gb4", 3);
+    // 	// Play a chord on all available channels
+    // 	midiChannel.playNote(["C3", "D#3", "G3"]);
+    // 	// Play a chord on channel 7
+    // 	midiChannel.playNote(["C3", "D#3", "G3"], 7);
+    // 	// Play a note at full velocity on all channels)
+    // 	midiChannel.playNote("F#-1", "all", {velocity: 1});
+    // 	// Play a note on channel 16 in 2 seconds (relative time)
+    // 	midiChannel.playNote("F5", 16, {time: "+2000"});
+    // 	// Play a note on channel 1 at an absolute time in the future
+    // 	midiChannel.playNote("F5", 16, {time: WebMidi.time + 3000});
+    // 	// Play a note for a duration of 2 seconds (will send a note off message in 2 seconds). Also use
+    // 	// a low attack velocity
+    // 	midiChannel.playNote("Gb2", 10, {duration: 2000, velocity: 0.25});
+    // 	// Stop a playing note on all channels
+    // 	midiChannel.stopNote("C-1");
+    // 	// Stopping a playing note on channel 11
+    // 	midiChannel.stopNote("F3", 11);
+    // 	// Stop a playing note on channel 11 and use a high release velocity
+    // 	midiChannel.stopNote("G8", 11, {velocity: 0.9});
+    // 	// Stopping a playing note in 2.5 seconds
+    // 	midiChannel.stopNote("Bb2", 11, {time: "+2500"});
+    // 	// Send polyphonic aftertouch message to channel 8
+    // 	midiChannel.sendKeyAftertouch("C#3", 8, 0.25);
+    // 	// Send pitch bend (between -1 and 1) to channel 12
+    // 	midiChannel.sendPitchBend(-1, 12);
+    // 	// You can chain most method calls
+    // 	midiChannel.playNote("G5", 12)
+    // 		.sendPitchBend(-0.5, 12, {time: 400}) // After 400 ms.
+    // 		.sendPitchBend(0.5, 12, {time: 800})  // After 800 ms.
+    // 		.stopNote("G5", 12, {time: 1200});    // After 1.2 s.
+    // }
+  });
+});
+
+exports.setupMIDI = setupMIDI;
+},{"webmidi":"6NyeR"}],"6NyeR":[function(require,module,exports) {
 var define;
 
 /*
@@ -102204,793 +103227,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     return wm;
   }) : "undefined" != typeof module && module.exports ? module.exports = wm : scope.WebMidi || (scope.WebMidi = wm);
 }(this);
-},{}],"5DhFk":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.record = exports.loadInstrument = exports.loadInstrumentParts = exports.INSTRUMENT_NAMES = exports.playTrack = exports.setAmplitude = exports.setFrequency = exports.setShape = exports.playAudio = exports.stopAudio = exports.setupAudio = exports.inputNode = exports.active = exports.playing = exports.dataArray = exports.bufferLength = exports.audioContext = exports.randomInstrument = exports.FOLDERS = void 0;
-
-var _maths = require("./maths");
-
-var _instruments = _interopRequireDefault(require("./instruments"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const FOLDERS = _instruments.default.split("\n");
-
-exports.FOLDERS = FOLDERS;
-
-const randomInstrument = () => FOLDERS[Math.floor(Math.random() * FOLDERS.length)]; // import * as instrumentAccordian from "./FluidR3_GM/accordion-ogg"
-
-
-exports.randomInstrument = randomInstrument;
-let audioContext;
-exports.audioContext = audioContext;
-let mediaRecorder;
-let bufferLength;
-exports.bufferLength = bufferLength;
-let dataArray;
-exports.dataArray = dataArray;
-let oscillator;
-let gainNode;
-let delayNode;
-let feedbackNode;
-let analyser;
-let compressor;
-let destinationVolume = 0;
-let playing = false;
-exports.playing = playing;
-let active = false;
-exports.active = active;
-const inputNode = delayNode;
-exports.inputNode = inputNode;
-
-const setupAudio = () => {
-  // MIDI.Soundfont.accordion
-  // init // set up forked web audio context, for multiple browsers
-  // window. is needed otherwise Safari explodes
-  exports.audioContext = audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode = audioContext.createGain();
-  gainNode.gain.value = 0;
-  oscillator = audioContext.createOscillator();
-  oscillator.type = "sine"; // "sawtooth"
-
-  compressor = audioContext.createDynamicsCompressor();
-  delayNode = audioContext.createDelay(100);
-  feedbackNode = audioContext.createGain();
-  delayNode.delayTime.value = 0.01;
-  feedbackNode.gain.value = 0.1;
-  analyser = audioContext.createAnalyser();
-  analyser.minDecibels = -90;
-  analyser.maxDecibels = -10;
-  analyser.smoothingTimeConstant = 0.85; // for waves
-
-  analyser.fftSize = 2048;
-  exports.bufferLength = bufferLength = analyser.fftSize; // for bars
-
-  analyser.fftSize = 256;
-  exports.bufferLength = bufferLength = analyser.frequencyBinCount;
-  exports.dataArray = dataArray = new Uint8Array(bufferLength); //console.error("instrument",{oscillator, compressor, dataArray} )
-  //oscillator.type = e.currentTarget.id
-
-  oscillator.frequency.value = 261.63;
-  oscillator.connect(delayNode);
-  delayNode.connect(feedbackNode);
-  feedbackNode.connect(delayNode);
-  delayNode.connect(gainNode);
-  gainNode.connect(compressor);
-  compressor.connect(analyser); // oscillator.start()
-
-  analyser.connect(audioContext.destination);
-  return delayNode;
-};
-
-exports.setupAudio = setupAudio;
-
-const monitor = () => {
-  const result = requestAnimationFrame(monitor); // waves
-  //analyser.getByteTimeDomainData(dataArray)
-  // bsrs
-
-  analyser.getByteFrequencyData(dataArray);
-  return result;
-};
-
-const stopAudio = () => {
-  if (playing) {
-    exports.playing = playing = false; // you cannot restart an oscillator!
-    //oscillator.stop()
-
-    oscillator.disconnect(); // analyser.disconnect()
-
-    return true;
-  } else {
-    return false;
-  } //console.error("stop audio",{playing})
-
-};
-
-exports.stopAudio = stopAudio;
-
-const playAudio = () => {
-  if (playing) {
-    return false;
-  } else {
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    } // analyser.connect(audioContext.destination)
-
-
-    oscillator.connect(delayNode);
-    exports.playing = playing = true;
-    monitor();
-    return true;
-  } //console.error("start audio",{playing})
-
-
-  return oscillator;
-};
-
-exports.playAudio = playAudio;
-
-const setShape = shape => {
-  oscillator.type = shape;
-};
-
-exports.setShape = setShape;
-
-const setFrequency = frequency => {
-  oscillator.frequency.value = frequency;
-}; // smaller means slower
-
-
-exports.setFrequency = setFrequency;
-const rate = 0.1;
-
-const setVolume = () => {
-  //gainNode.gain.value = lerp( gain.gain.value, destinationVolume, 0.1 )
-  const newVolume = gainNode.gain.value + (destinationVolume - gainNode.gain.value) * rate; // gainNode.gain.setValueAtTime(destinationVolume, audioContext.currentTime)
-
-  gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime);
-
-  if (gainNode.gain.value === destinationVolume) {} else {
-    requestAnimationFrame(setVolume);
-  }
-};
-
-const setAmplitude = amplitude => {
-  // lerp towards
-  destinationVolume = amplitude;
-  setVolume(); //gainNode.gain.clearValues()
-  //gainNode.gain.setValueAtTime(amplitude, audioContext.currentTime)
-};
-
-exports.setAmplitude = setAmplitude;
-
-async function loadAudio(path) {
-  const response = await fetch(path);
-  const arrayBuffer = await response.arrayBuffer();
-  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-  return audioBuffer;
-} // create a buffer, plop in data, connect and play -> modify graph here if required
-// detune:0,,  playbackRate:1
-
-
-const playTrack = (audioBuffer, offset = 0, destination = delayNode, options = {
-  loop: false
-}) => {
-  const trackSource = audioContext.createBufferSource();
-  trackSource.buffer = audioBuffer; // loop through options nad add
-  // options
-
-  trackSource.loop = options.loop; // trackSource.detune = options.detune
-  //trackSource.playbackRate = options.playbackRate
-
-  trackSource.connect(destination); // trackSource.connect(audioContext.destination)
-  // console.error("Playing track", {audioBuffer,trackSource} )
-  // https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
-  // FIXME: when it has finished playing remove it...
-  // trackSource.addEventListener()
-
-  trackSource.onended = () => {
-    trackSource.disconnect();
-    exports.active = active = false;
-  };
-
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-
-  if (offset == 0) {
-    trackSource.start(); //offset = audioContext.currentTime
-  } else {
-    trackSource.start(0, audioContext.currentTime - offset);
-  }
-
-  exports.active = active = true;
-  return trackSource;
-}; // const track = await loadAudio()
-// const r = playTrack(track)
-
-
-exports.playTrack = playTrack;
-
-async function loadInstrumentPart(instrumentName, part) {
-  return new Promise((resolve, reject) => {
-    const path = `${instrumentName}/${part}`;
-    const audio = new Audio();
-    audio.addEventListener('canplaythrough', () => {
-      // available...
-      //console.log("Attempting to create audio", { audio, path})
-      resolve(audio);
-    });
-    audio.src = path;
-  });
-}
-
-const createInstrumentBanks = (fileTye = "mp3", dot = ".") => {
-  const BANKS = ["A", "Ab", "B", "Bb", "C", "D", "Db", "E", "Eb", "F", "G", "Gb"];
-  const bank = [];
-
-  for (let b = 0; b < BANKS.length; ++b) {
-    const key = BANKS[b]; // insert a 0 for A
-
-    if (key === "A") {
-      bank.push(`A0${dot}${fileTye}`);
-    }
-
-    for (let i = 1; i < 8; ++i) {
-      bank.push(`${key}${i}${dot}${fileTye}`);
-    } // add an extra one for C
-
-
-    if (key === "C") {
-      bank.push(`C8${dot}${fileTye}`);
-    }
-  }
-
-  return bank; // A0-7
-  // Ab1-7
-  // B0-7
-  // Bb1-Bb7
-  // C1-C8
-  // D1-7
-  // Db1-7
-  // E1-7
-  // Eb1-7
-  // F1-7
-  // G1-7
-  // Gb1-7
-};
-
-const INSTRUMENT_NAMES = createInstrumentBanks('', '');
-exports.INSTRUMENT_NAMES = INSTRUMENT_NAMES;
-
-const loadInstrumentParts = (instrumentName = "alto_sax-mp3", path = "./FluidR3_GM") => {
-  const instrumentPath = `${path}/${instrumentName}`;
-  const parts = createInstrumentBanks(); // console.error("parts",parts)
-  // array of buffers to pass to playTrack
-
-  const instruments = parts.map(part => loadAudio(`${instrumentPath}/${part}`)); //const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
-  // eg FluidR3_GM
-  // array of promises
-
-  return instruments;
-};
-
-exports.loadInstrumentParts = loadInstrumentParts;
-
-const loadInstrument = async (instrumentName = "alto_sax-mp3", path = "./FluidR3_GM", progressCallback) => {
-  const output = {
-    title: instrumentName
-  }; // progressCallback?
-
-  const parts = await Promise.all(loadInstrumentParts(instrumentName, path));
-  INSTRUMENT_NAMES.forEach((instrument, index) => {
-    output[instrument.split('.')[0]] = parts[index];
-  });
-  return output;
-}; // If audio data available then push  it to the chunk array 
-
-
-exports.loadInstrument = loadInstrument;
-
-const record = stream => {
-  let recording = false;
-  let dataArray;
-
-  const startRecording = stream => {
-    return new Promise((resolve, reject) => {
-      if (recording) {
-        return reject("already recording");
-      }
-
-      dataArray = [];
-      recording = true;
-      mediaRecorder = new MediaRecorder(stream);
-
-      mediaRecorder.ondataavailable = ev => {
-        dataArray.push(ev.data);
-        resolve(mediaRecorder);
-      }; // Convert the audio data in to blob  
-      // after stopping the recording 
-
-
-      mediaRecorder.start();
-    });
-  };
-
-  const stopRecording = (type = 'audio/mp3;') => {
-    return new Promise((resolve, reject) => {
-      if (!recording) {
-        return reject("Not recording");
-      }
-
-      mediaRecorder.onstop = event => {
-        // blob of type mp3 
-        const audioData = new Blob(dataArray, {
-          'type': type
-        }); // After fill up the chunk  
-        // array make it empty 
-
-        dataArray = [];
-        recording = false; // Pass the audio url to the 2nd video tag 
-
-        resolve(audioData);
-      };
-
-      mediaRecorder.stop();
-    });
-  };
-
-  return {
-    startRecording,
-    stopRecording
-  };
-};
-
-exports.record = record;
-},{"./maths":"4YhKa","./instruments":"nOq63"}],"4YhKa":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.easeOutSine = easeOutSine;
-exports.easeInOutSine = easeInOutSine;
-exports.easeInQuad = easeInQuad;
-exports.easeOutQuad = easeOutQuad;
-exports.easeInOutQuad = easeInOutQuad;
-exports.easeInCubic = easeInCubic;
-exports.easeOutCubic = easeOutCubic;
-exports.easeInOutCubic = easeInOutCubic;
-exports.easeInQuart = easeInQuart;
-exports.easeOutQuart = easeOutQuart;
-exports.easeInOutQuart = easeInOutQuart;
-exports.easeInQuint = easeInQuint;
-exports.easeOutQuint = easeOutQuint;
-exports.easeInOutQuint = easeInOutQuint;
-exports.easeInExpo = easeInExpo;
-exports.easeOutExpo = easeOutExpo;
-exports.easeInOutExpo = easeInOutExpo;
-exports.easeInCirc = easeInCirc;
-exports.easeOutCirc = easeOutCirc;
-exports.easeInOutCirc = easeInOutCirc;
-exports.easeInBack = easeInBack;
-exports.easeOutBack = easeOutBack;
-exports.easeInOutBack = easeInOutBack;
-exports.easeInElastic = easeInElastic;
-exports.easeOutElastic = easeOutElastic;
-exports.easeInOutElastic = easeInOutElastic;
-exports.easeOutBounce = easeOutBounce;
-exports.easeInBounce = easeInBounce;
-exports.easeInOutBounce = easeInOutBounce;
-exports.easeInSine = exports.linear = exports.clamp = exports.lerp = exports.TAU = void 0;
-const TAU = 2 * Math.PI;
-exports.TAU = TAU;
-
-const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
-
-exports.lerp = lerp;
-
-const clamp = (val, min, max) => val > max ? max : val < min ? min : val; // Based on https://gist.github.com/gre/1650294
-// No easing, no acceleration
-
-
-exports.clamp = clamp;
-
-const linear = t => t; // Slight acceleration from zero to full speed
-
-
-exports.linear = linear;
-
-const easeInSine = t => -1 * Math.cos(t * (Math.PI / 2)) + 1; // Slight deceleration at the end
-
-
-exports.easeInSine = easeInSine;
-
-function easeOutSine(t) {
-  return Math.sin(t * (Math.PI / 2));
-} // Slight acceleration at beginning and slight deceleration at end
-
-
-function easeInOutSine(t) {
-  return -0.5 * (Math.cos(Math.PI * t) - 1);
-} // Accelerating from zero velocity
-
-
-function easeInQuad(t) {
-  return t * t;
-} // Decelerating to zero velocity
-
-
-function easeOutQuad(t) {
-  return t * (2 - t);
-} // Acceleration until halfway, then deceleration
-
-
-function easeInOutQuad(t) {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-} // Accelerating from zero velocity
-
-
-function easeInCubic(t) {
-  return t * t * t;
-} // Decelerating to zero velocity
-
-
-function easeOutCubic(t) {
-  const t1 = t - 1;
-  return t1 * t1 * t1 + 1;
-} // Acceleration until halfway, then deceleration
-
-
-function easeInOutCubic(t) {
-  return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-} // Accelerating from zero velocity
-
-
-function easeInQuart(t) {
-  return t * t * t * t;
-} // Decelerating to zero velocity
-
-
-function easeOutQuart(t) {
-  const t1 = t - 1;
-  return 1 - t1 * t1 * t1 * t1;
-} // Acceleration until halfway, then deceleration
-
-
-function easeInOutQuart(t) {
-  const t1 = t - 1;
-  return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * t1 * t1 * t1 * t1;
-} // Accelerating from zero velocity
-
-
-function easeInQuint(t) {
-  return t * t * t * t * t;
-} // Decelerating to zero velocity
-
-
-function easeOutQuint(t) {
-  const t1 = t - 1;
-  return 1 + t1 * t1 * t1 * t1 * t1;
-} // Acceleration until halfway, then deceleration
-
-
-function easeInOutQuint(t) {
-  const t1 = t - 1;
-  return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * t1 * t1 * t1 * t1 * t1;
-} // Accelerate exponentially until finish
-
-
-function easeInExpo(t) {
-  if (t === 0) {
-    return 0;
-  }
-
-  return Math.pow(2, 10 * (t - 1));
-} // Initial exponential acceleration slowing to stop
-
-
-function easeOutExpo(t) {
-  if (t === 1) {
-    return 1;
-  }
-
-  return -Math.pow(2, -10 * t) + 1;
-} // Exponential acceleration and deceleration
-
-
-function easeInOutExpo(t) {
-  if (t === 0 || t === 1) {
-    return t;
-  }
-
-  const scaledTime = t * 2;
-  const scaledTime1 = scaledTime - 1;
-
-  if (scaledTime < 1) {
-    return 0.5 * Math.pow(2, 10 * scaledTime1);
-  }
-
-  return 0.5 * (-Math.pow(2, -10 * scaledTime1) + 2);
-} // Increasing velocity until stop
-
-
-function easeInCirc(t) {
-  const scaledTime = t / 1;
-  return -1 * (Math.sqrt(1 - scaledTime * t) - 1);
-} // Start fast, decreasing velocity until stop
-
-
-function easeOutCirc(t) {
-  const t1 = t - 1;
-  return Math.sqrt(1 - t1 * t1);
-} // Fast increase in velocity, fast decrease in velocity
-
-
-function easeInOutCirc(t) {
-  const scaledTime = t * 2;
-  const scaledTime1 = scaledTime - 2;
-
-  if (scaledTime < 1) {
-    return -0.5 * (Math.sqrt(1 - scaledTime * scaledTime) - 1);
-  }
-
-  return 0.5 * (Math.sqrt(1 - scaledTime1 * scaledTime1) + 1);
-} // Slow movement backwards then fast snap to finish
-
-
-function easeInBack(t, magnitude = 1.70158) {
-  return t * t * ((magnitude + 1) * t - magnitude);
-} // Fast snap to backwards point then slow resolve to finish
-
-
-function easeOutBack(t, magnitude = 1.70158) {
-  const scaledTime = t / 1 - 1;
-  return scaledTime * scaledTime * ((magnitude + 1) * scaledTime + magnitude) + 1;
-} // Slow movement backwards, fast snap to past finish, slow resolve to finish
-
-
-function easeInOutBack(t, magnitude = 1.70158) {
-  const scaledTime = t * 2;
-  const scaledTime2 = scaledTime - 2;
-  const s = magnitude * 1.525;
-
-  if (scaledTime < 1) {
-    return 0.5 * scaledTime * scaledTime * ((s + 1) * scaledTime - s);
-  }
-
-  return 0.5 * (scaledTime2 * scaledTime2 * ((s + 1) * scaledTime2 + s) + 2);
-} // Bounces slowly then quickly to finish
-
-
-function easeInElastic(t, magnitude = 0.7) {
-  if (t === 0 || t === 1) {
-    return t;
-  }
-
-  const scaledTime = t / 1;
-  const scaledTime1 = scaledTime - 1;
-  const p = 1 - magnitude;
-  const s = p / (2 * Math.PI) * Math.asin(1);
-  return -(Math.pow(2, 10 * scaledTime1) * Math.sin((scaledTime1 - s) * (2 * Math.PI) / p));
-} // Fast acceleration, bounces to zero
-
-
-function easeOutElastic(t, magnitude = 0.7) {
-  const p = 1 - magnitude;
-  const scaledTime = t * 2;
-
-  if (t === 0 || t === 1) {
-    return t;
-  }
-
-  const s = p / (2 * Math.PI) * Math.asin(1);
-  return Math.pow(2, -10 * scaledTime) * Math.sin((scaledTime - s) * (2 * Math.PI) / p) + 1;
-} // Slow start and end, two bounces sandwich a fast motion
-
-
-function easeInOutElastic(t, magnitude = 0.65) {
-  const p = 1 - magnitude;
-
-  if (t === 0 || t === 1) {
-    return t;
-  }
-
-  const scaledTime = t * 2;
-  const scaledTime1 = scaledTime - 1;
-  const s = p / (2 * Math.PI) * Math.asin(1);
-
-  if (scaledTime < 1) {
-    return -0.5 * (Math.pow(2, 10 * scaledTime1) * Math.sin((scaledTime1 - s) * (2 * Math.PI) / p));
-  }
-
-  return Math.pow(2, -10 * scaledTime1) * Math.sin((scaledTime1 - s) * (2 * Math.PI) / p) * 0.5 + 1;
-} // Bounce to completion
-
-
-function easeOutBounce(t) {
-  const scaledTime = t / 1;
-
-  if (scaledTime < 1 / 2.75) {
-    return 7.5625 * scaledTime * scaledTime;
-  } else if (scaledTime < 2 / 2.75) {
-    const scaledTime2 = scaledTime - 1.5 / 2.75;
-    return 7.5625 * scaledTime2 * scaledTime2 + 0.75;
-  } else if (scaledTime < 2.5 / 2.75) {
-    const scaledTime2 = scaledTime - 2.25 / 2.75;
-    return 7.5625 * scaledTime2 * scaledTime2 + 0.9375;
-  } else {
-    const scaledTime2 = scaledTime - 2.625 / 2.75;
-    return 7.5625 * scaledTime2 * scaledTime2 + 0.984375;
-  }
-} // Bounce increasing in velocity until completion
-
-
-function easeInBounce(t) {
-  return 1 - easeOutBounce(1 - t);
-} // Bounce in and bounce out
-
-
-function easeInOutBounce(t) {
-  if (t < 0.5) {
-    return easeInBounce(t * 2) * 0.5;
-  }
-
-  return easeOutBounce(t * 2 - 1) * 0.5 + 0.5;
-}
-},{}],"nOq63":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-const FOLDERS = `accordion-mp3
-acoustic_bass-mp3
-acoustic_grand_piano-mp3
-acoustic_guitar_nylon-mp3
-acoustic_guitar_steel-mp3
-agogo-mp3
-alto_sax-mp3
-applause-mp3
-bagpipe-mp3
-banjo-mp3
-baritone_sax-mp3
-bassoon-mp3
-bird_tweet-mp3
-blown_bottle-mp3
-brass_section-mp3
-breath_noise-mp3
-bright_acoustic_piano-mp3
-celesta-mp3
-cello-mp3
-choir_aahs-mp3
-church_organ-mp3
-clarinet-mp3
-clavinet-mp3
-contrabass-mp3
-distortion_guitar-mp3
-drawbar_organ-mp3
-dulcimer-mp3
-electric_bass_finger-mp3
-electric_bass_pick-mp3
-electric_grand_piano-mp3
-electric_guitar_clean-mp3
-electric_guitar_jazz-mp3
-electric_guitar_muted-mp3
-electric_piano_1-mp3
-electric_piano_2-mp3
-english_horn-mp3
-fiddle-mp3
-flute-mp3
-french_horn-mp3
-fretless_bass-mp3
-fx_1_rain-mp3
-fx_2_soundtrack-mp3
-fx_3_crystal-mp3
-fx_4_atmosphere-mp3
-fx_5_brightness-mp3
-fx_6_goblins-mp3
-fx_7_echoes-mp3
-fx_8_scifi-mp3
-glockenspiel-mp3
-guitar_fret_noise-mp3
-guitar_harmonics-mp3
-gunshot-mp3
-harmonica-mp3
-harpsichord-mp3
-helicopter-mp3
-honkytonk_piano-mp3
-kalimba-mp3
-koto-mp3
-lead_1_square-mp3
-lead_2_sawtooth-mp3
-lead_3_calliope-mp3
-lead_4_chiff-mp3
-lead_5_charang-mp3
-lead_6_voice-mp3
-lead_7_fifths-mp3
-lead_8_bass__lead-mp3
-marimba-mp3
-melodic_tom-mp3
-music_box-mp3
-muted_trumpet-mp3
-oboe-mp3
-ocarina-mp3
-orchestra_hit-mp3
-orchestral_harp-mp3
-overdriven_guitar-mp3
-pad_1_new_age-mp3
-pad_2_warm-mp3
-pad_3_polysynth-mp3
-pad_4_choir-mp3
-pad_5_bowed-mp3
-pad_6_metallic-mp3
-pad_7_halo-mp3
-pad_8_sweep-mp3
-pan_flute-mp3
-percussive_organ-mp3
-piccolo-mp3
-pizzicato_strings-mp3
-recorder-mp3
-reed_organ-mp3
-reverse_cymbal-mp3
-rock_organ-mp3
-seashore-mp3
-shakuhachi-mp3
-shamisen-mp3
-shanai-mp3
-sitar-mp3
-slap_bass_1-mp3
-slap_bass_2-mp3
-soprano_sax-mp3
-steel_drums-mp3
-string_ensemble_1-mp3
-string_ensemble_2-mp3
-synth_bass_1-mp3
-synth_bass_2-mp3
-synth_brass_1-mp3
-synth_brass_2-mp3
-synth_choir-mp3
-synth_drum-mp3
-synth_strings_1-mp3
-synth_strings_2-mp3
-taiko_drum-mp3
-tango_accordion-mp3
-telephone_ring-mp3
-tenor_sax-mp3
-timpani-mp3
-tinkle_bell-mp3
-tremolo_strings-mp3
-trombone-mp3
-trumpet-mp3
-tuba-mp3
-tubular_bells-mp3
-vibraphone-mp3
-viola-mp3
-violin-mp3
-voice_oohs-mp3
-whistle-mp3
-woodblock-mp3
-xylophone-mp3`;
-var _default = FOLDERS;
-exports.default = _default;
-},{}],"3ogrV":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.setupMIDI = void 0;
-
-const setupMIDI = () => {};
-
-exports.setupMIDI = setupMIDI;
 },{}],"1YNwa":[function(require,module,exports) {
 "use strict";
 
@@ -103319,7 +103555,7 @@ exports.drawBars = drawBars;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
+exports.default = exports.LIPS_RANGE = void 0;
 
 var _audio = require("./audio");
 
@@ -103331,20 +103567,40 @@ var _visual = require("./visual");
 // options
 const ease = _maths.easeInCubic; // easeInSine
 
-const lipsRange = 40;
+const LIPS_RANGE = 40;
+exports.LIPS_RANGE = LIPS_RANGE;
 const DEFAULT_OPTIONS = _visual.DEFAULT_COLOURS;
 
 class Person {
   constructor(name, audioContext, destinationNode, options = {}) {
     this.name = name;
     this.counter = 0;
+    this.data = null;
+    this.audioContext = audioContext;
+    this.stereoNode = audioContext.createStereoPanner();
+    const delayNode = audioContext.createDelay(100);
+    const feedbackNode = audioContext.createGain();
+    delayNode.delayTime.value = 0.54;
+    feedbackNode.gain.value = 0.2;
     this.gainNode = audioContext.createGain();
     this.gainNode.gain.value = 0;
+    this.stereoNode.connect(this.gainNode);
+    this.stereoNode.connect(delayNode);
+    delayNode.connect(feedbackNode);
+    feedbackNode.connect(delayNode); //delayNode.connect(destinationNode)
+
+    delayNode.connect(this.gainNode);
     this.gainNode.connect(destinationNode);
     this.button = document.getElementById(name);
     this.button.addEventListener('click', event => {
       this.loadInstrument((0, _audio.randomInstrument)());
       event.preventDefault();
+    });
+    this.button.addEventListener('mouseover', event => {
+      this.isMouseOver = true;
+    });
+    this.button.addEventListener('mouseout', event => {
+      this.isMouseOver = false;
     });
     console.log("Created new person", this, "connecting to", destinationNode);
     this.options = Object.assign({}, _visual.DEFAULT_COLOURS, options);
@@ -103356,49 +103612,104 @@ class Person {
 
   update(prediction) {
     this.counter++;
+    this.data = prediction;
+  }
 
-    if (!prediction) {
-      return; // nothing to refresh
-    } // assumes screen has been previously cleared	
+  draw(prediction) {
+    if (!prediction && !this.prediction) {
+      // nothing to refresh so exit here
+      return;
+    } else if (!prediction) {
+      // refresh
+      prediction = this.prediction;
+    } // NB. assumes screen has been previously cleared	
     // drawBox( prediction )
 
 
     (0, _visual.drawPoints)(prediction, this.options.dots);
     (0, _visual.drawFace)(prediction, this.options); // drawBoundingBox( prediction.boundingBox )
-    // we only want this every frame or so
+
+    const {
+      bottomRight,
+      topLeft
+    } = prediction.boundingBox;
+    const boxWidth = bottomRight[0] - topLeft[0];
+    const boxHeight = bottomRight[1] - topLeft[1]; // we only want this every frame or so as this 
+    // is altering the DOM
 
     if (this.counter % 10 === 0) {
-      const {
-        bottomRight,
-        topLeft
-      } = prediction.boundingBox;
-      this.button.style.setProperty('--person-a-x', `calc(${topLeft[0]})`);
+      this.button.style.setProperty('--person-a-x', `${topLeft[0]}`);
       this.button.style.setProperty('--person-a-y', topLeft[1]);
-      this.button.style.setProperty('--person-a-w', bottomRight[0] - topLeft[0]);
-      this.button.style.setProperty('--person-a-h', bottomRight[1] - topLeft[1]);
-    } // we want to ignore the 0-5px range too as inconclusive!
+      this.button.style.setProperty('--person-a-w', boxWidth);
+      this.button.style.setProperty('--person-a-h', boxHeight);
+    } // draw silhoette if the user is interacting
 
 
-    const lipPercentage = prediction.mouthRange / lipsRange;
-    const yaw = Math.abs(prediction.yaw);
+    if (this.isMouseOver && this.counter % 2 === 0) {
+      const {
+        silhouette
+      } = prediction.annotations;
+      const offsetX = topLeft[0];
+      const offsetY = topLeft[1];
+
+      const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${coord[1] - offsetY}`;
+
+      const svgPaths = silhouette.map(part => `L${svgCoord(part)}`);
+      const circles = silhouette.map(part => {
+        const c = svgCoord(part);
+        return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`;
+      }); // for outline...+ ` Z`
+
+      const svgPath = `M${svgCoord(silhouette[0])} ` + svgPaths.join(" "); //  height="210" width="400"
+
+      const silhoetteShape = `<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
+				<path d="${svgPath}" />
+				${circles.join('')}
+			</svg>`; //console.log("SVG",silhouette, silhoetteShape)
+
+      this.button.innerHTML = silhoetteShape;
+    }
+  }
+
+  sing() {
+    if (!this.data) {
+      return;
+    }
+
+    const prediction = this.data; // we want to ignore the 0-5px range too as inconclusive!
+
+    const lipPercentage = (0, _maths.clamp)(prediction.mouthRange / LIPS_RANGE, 0, 1);
+    const yaw = prediction.yaw;
     const pitch = prediction.pitch; // Math.abs()
     // volume is an log of this
 
     const amp = (0, _maths.clamp)(lipPercentage, 0, 1); //- 0.1
 
-    const logAmp = ease(amp); // !active && active is updated by playback state
+    const logAmp = ease(amp); // console.log("Person", prediction.yaw , yaw)
+    // // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
+
+    this.stereoNode.pan.value = (0, _maths.clamp)(yaw, -1, 1); //this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
+    // !active && active is updated by playback state
 
     if (this.instrument && amp > 0.3) {
-      // play a note from the collectionlogAmp
-      const noteNumber = Math.floor(yaw * _audio.INSTRUMENT_NAMES.length);
-      const note = this.instrument[_audio.INSTRUMENT_NAMES[noteNumber]];
-      const track = (0, _audio.playTrack)(note, 0, this.gainNode); // send out some MIDI yum yum
+      this.gainNode.gain.value = logAmp; // only change the note if not active?
 
-      if (this.midiChannel) {
-        this.midiChannel.playNote(note);
+      if (_audio.active) {} // play a note from the collectionlogAmp
+
+
+      const noteNumber = Math.floor(lipPercentage * (_audio.INSTRUMENT_NAMES.length - 1));
+      const noteName = _audio.INSTRUMENT_NAMES[noteNumber];
+      const note = this.instrument[noteName]; // TODO: add velocity logAmp
+
+      const track = (0, _audio.playTrack)(note, 0, this.stereoNode); // send out some MIDI yum yum noteName && 
+
+      if (this.midi && this.midiChannel) {
+        // duration: 2000,
+        //console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
+        this.midi.playNote(noteName, this.midiChannel, {
+          velocity: amp
+        });
       }
-
-      this.gainNode.gain.value = logAmp;
     } else {
       this.gainNode.gain.value = 0;
     }
@@ -103414,13 +103725,37 @@ class Person {
     this.instrument = await (0, _audio.loadInstrument)(instrumentName);
   }
 
-  setMidi(midi) {
+  setMIDI(midi, channel = "all") {
+    this.midiChannel = channel;
     this.midi = midi;
   }
 
 }
 
 exports.default = Person;
-},{"./audio":"5DhFk","./maths":"4YhKa","./visual":"1YNwa"}]},{},["41ncd","6KIZ6"], "6KIZ6", "parcelRequiree3fa")
+},{"./audio":"5DhFk","./maths":"4YhKa","./visual":"1YNwa"}],"4wuiq":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setupInterface = void 0;
+
+var _audio = require("./audio");
+
+const setupInterface = () => {
+  // populate form elements
+  // populate ui
+  const uiOptions = _audio.FOLDERS.map(folder => `<option value="${folder}">${folder}</option>`);
+
+  const uiSelect = `<select>${uiOptions.join('')}</select>`; // metronome
+
+  const metronome = ''; // add to dom
+
+  document.documentElement.appendChild(document.createDocumentFragment(uiSelect));
+};
+
+exports.setupInterface = setupInterface;
+},{"./audio":"5DhFk"}]},{},["525pK","6KIZ6"], "6KIZ6", "parcelRequiree3fa")
 
 //# sourceMappingURL=index.6fdefeea.js.map

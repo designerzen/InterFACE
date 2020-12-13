@@ -158,27 +158,30 @@ button.person {
   position: absolute;
   z-index: 202;
   border-radius: 100%;
-  border: 2px solid red;
   color: transparent;
   opacity: 0;
   transition: 400ms ease-in opacity, left 9ms linear, top 9ms linear;
 }
 button.person:hover, button.person:focus {
-  opacity: 0.8;
   outline: none;
+}
+button.person:hover {
+  opacity: 0.8;
+}
+button.person svg {
+  width: 100%;
+  fill: orange;
+  stroke-width: 3px;
+  stroke: purple;
+  pointer-events: none;
+}
+button.person svg circle {
+  stroke: black;
+  fill: white;
 }
 
 .active button.person {
   display: block;
-}
-
-button#button-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  bottom: 0;
-  z-index: -1;
 }
 
 button#person-a {
@@ -193,6 +196,15 @@ button#person-b {
   top: calc( 1px *var(--person-b-y,0) );
   width: calc( 1px * var(--person-b-w,0) );
   height: calc( 1px * var(--person-b-h,0) );
+}
+
+button#button-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  z-index: -1;
 }
 
 @keyframes Loading {

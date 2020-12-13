@@ -6,6 +6,7 @@
   "license": "GPL2.0",
   "scripts": {
     "clean": "node clean.js",
+    "test": "parcel serve source/test.html",
     "start": "parcel serve source/index.html",
     "build": "parcel build source/index.html",
     "deploy": "node deploy.js",
