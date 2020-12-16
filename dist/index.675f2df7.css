@@ -77,6 +77,8 @@ main.loading #feedback {
 }
 
 main video, main canvas {
+  border-radius: 12px;
+  overflow: hidden;
   transform: scaleX(-1);
 }
 
@@ -125,8 +127,12 @@ main.active button {
   margin: auto;
   padding: 0;
   width: 100%;
+  pointer-events: none;
   overflow: hidden;
   position: relative;
+}
+#controls > * {
+  pointer-events: auto;
 }
 @media (orientation: landscape) {
   #controls {

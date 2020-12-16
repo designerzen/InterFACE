@@ -13,8 +13,8 @@ import {
 import { easeInSine, easeOutSine , easeInCubic, lerp,clamp, TAU} from "./maths"
 import { DEFAULT_COLOURS, clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext,drawWaves, drawBars} from './visual'
 
-// options
-const ease = easeInCubic // easeInSine
+// options easeInCubic // 
+const ease =easeInSine
 
 export const LIPS_RANGE = 40
 const DEFAULT_OPTIONS = DEFAULT_COLOURS
@@ -24,8 +24,10 @@ export default class Person{
 	constructor(name, audioContext, destinationNode, options={} ) {
 		this.name = name
 		this.counter = 0
+		this.instrumentLoading = false
 		this.data = null
 		this.audioContext = audioContext
+		this.active = false
 
 		this.stereoNode =  audioContext.createStereoPanner()
 
@@ -34,11 +36,8 @@ export default class Person{
 		delayNode.delayTime.value = 0.54
 		feedbackNode.gain.value = 0.2
 
-
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
-
-			
 
 		this.stereoNode.connect(this.gainNode)
 		this.stereoNode.connect(delayNode)
@@ -46,14 +45,19 @@ export default class Person{
 		delayNode.connect(feedbackNode)
 		feedbackNode.connect(delayNode)
 		//delayNode.connect(destinationNode)
-		 delayNode.connect(this.gainNode)
-
+		delayNode.connect(this.gainNode)
 
 		this.gainNode.connect(destinationNode)
 
 		this.button = document.getElementById(name)
 		this.button.addEventListener( 'click', event => {
-			this.loadInstrument( randomInstrument() )
+			if (this.instrumentLoading)
+			{
+
+			}else{
+				this.loadInstrument( randomInstrument() )
+			}
+			
 			event.preventDefault()
 		})
 		this.button.addEventListener( 'mouseover', event => {
@@ -86,6 +90,24 @@ export default class Person{
 			// refresh
 			prediction = this.prediction
 		}
+		
+		
+		let hue = 90
+		if (this.instrumentLoading )
+		{
+			hue += 120
+		}
+
+		// update colours...
+		this.options.dots = hue
+		this.options.mouth = `hsla(${(hue+30)%360},70%,50%,0.5)`
+		this.options.lipsUpperInner = `hsla(${(hue+50)%360},70%,50%,1)`
+		this.options.lipsLowerInner = `hsla(${(hue+50)%360},70%,50%,1)`
+		this.options.midwayBetweenEyes = `hsla(${(hue+270)%360},70%,50%,1)`
+		this.options.leftEyeLower0 = `hsla(${(hue+300)%360},70%,50%,0.8)`
+		this.options.rightEyeLower0 = `hsla(${(hue+300)%360},70%,50%,0.8)`
+		this.options.leftEyeIris = `hsla(${(hue+90)%360},70%,50%,1)`
+		this.options.rightEyeIris = `hsla(${(hue+90)%360},70%,50%,1)`
 
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
@@ -107,10 +129,18 @@ export default class Person{
 			this.button.style.setProperty('--person-a-h', boxHeight )			
 		}
 
-		// draw silhoette if the user is interacting
-		if (this.isMouseOver && this.counter%2 === 0)
+
+		// draw silhoette if the user is 
+		// if you want it to flicker...
+		// interacting&& this.counter%2 === 0)
+		if ( this.isMouseOver || this.instrumentLoading )
 		{	
 			const {silhouette} = prediction.annotations
+			// draw silhoette directly on the canvas or
+			// SVG shape in the button for hitarea?
+
+			drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
+/*
 			const offsetX = topLeft[0]
 			const offsetY = topLeft[1]
 			const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
@@ -129,12 +159,13 @@ export default class Person{
 			</svg>`
 			//console.log("SVG",silhouette, silhoetteShape)
 			this.button.innerHTML = silhoetteShape	
+			*/
 		}
 	}
 	
 	sing(){
 
-		if (!this.data)
+		if (!this.data || this.active)
 		{
 			return
 		}
@@ -144,6 +175,7 @@ export default class Person{
 		const lipPercentage = clamp( prediction.mouthRange / LIPS_RANGE, 0 , 1 )
 		const yaw = prediction.yaw
 		const pitch = prediction.pitch // Math.abs()
+		const roll = (prediction.roll + 1) / 2 // -1 => +1
 
 		// volume is an log of this
 		const amp = clamp(lipPercentage, 0, 1 ) //- 0.1
@@ -167,13 +199,19 @@ export default class Person{
 			}
 
 			// play a note from the collectionlogAmp
-			const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
+			const noteNumber = Math.floor( roll * (INSTRUMENT_NAMES.length-1) )
+			// const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
 			const noteName = INSTRUMENT_NAMES[noteNumber]
 			const note = this.instrument[ noteName ]
 			
 			// TODO: add velocity logAmp
-			const track = playTrack( note, 0, this.stereoNode )
-		
+			this.active = true
+			const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
+				console.log("Sample completed playback... request tock")
+				this.active = false
+			})
+			
+			
 			// send out some MIDI yum yum noteName && 
 			if (this.midi && this.midiChannel)
 			{
@@ -192,8 +230,11 @@ export default class Person{
 		}
 	}
 
+	// wee need loadiing events
 	async loadInstrument(instrumentName){
+		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
+		this.instrumentLoading = false
 	}
 
 	setMIDI(midi, channel="all"){

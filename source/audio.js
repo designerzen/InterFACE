@@ -19,6 +19,7 @@ let delayNode
 let feedbackNode
 let analyser
 let compressor
+let reverb
 let destinationVolume = 0
 export let playing = false
 export let active = false
@@ -27,9 +28,7 @@ export const inputNode = delayNode
 
 export const setupAudio = () => {
 
-	// MIDI.Soundfont.accordion
-	
-	// init // set up forked web audio context, for multiple browsers
+	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
 	audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
@@ -39,8 +38,29 @@ export const setupAudio = () => {
 	oscillator = audioContext.createOscillator()
 	oscillator.type = "sine" // "sawtooth"
 
+	// this should hopefully balance the outputs
 	compressor = audioContext.createDynamicsCompressor()
+	// compressor.threshold.setValueAtTime(-50, audioContext.currentTime)
+	// compressor.knee.setValueAtTime(40, audioContext.currentTime)
+	// compressor.ratio.setValueAtTime(12, audioContext.currentTime)
+	// compressor.attack.setValueAtTime(0, audioContext.currentTime)
+	// compressor.release.setValueAtTime(0.25, audioContext.currentTime)
 	
+	// var compressor = {
+	// 	threshold: [-100, 0],
+	// 	knee: [0, 40],
+	// 	ratio: [1, 20],
+	// 	attack: [0, 1],
+	// 	release: [0, 1]
+	//   }
+	compressor.threshold.value = -50
+	compressor.knee.value = 40
+	compressor.ratio.value = 12
+	compressor.attack.value = 0
+	compressor.release.value = 0.5
+
+	reverb = audioContext.createConvolver()
+	// reverb = audioContext.createConvolver(null, true)
 	delayNode = audioContext.createDelay(100)
 	feedbackNode = audioContext.createGain()
 	delayNode.delayTime.value = 0.1
@@ -73,6 +93,8 @@ export const setupAudio = () => {
 	feedbackNode.connect(delayNode)
 
 	delayNode.connect(gainNode)
+	// delayNode.connect(reverb)
+	// reverb.connect(gainNode)
 
 	gainNode.connect(compressor)
 	compressor.connect(analyser)
@@ -175,42 +197,50 @@ async function loadAudio(path) {
   // create a buffer, plop in data, connect and play -> modify graph here if required
   // detune:0,,  playbackRate:1
 export const playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
-	const trackSource = audioContext.createBufferSource()
-	trackSource.buffer = audioBuffer
 	
-	// loop through options nad add
-	// options
-	trackSource.loop = options.loop
-	// trackSource.detune = options.detune
-	//trackSource.playbackRate = options.playbackRate
+	return new Promise((resolve, reject)=>{
 
-	trackSource.connect(destination)
-	// trackSource.connect(audioContext.destination)
-	// console.error("Playing track", {audioBuffer,trackSource} )
-	
-	// https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
-	// FIXME: when it has finished playing remove it...
-	// trackSource.addEventListener()
-	trackSource.onended = () => {
-		trackSource.disconnect()
-		active = false
-	}
+		const trackSource = audioContext.createBufferSource()
+		trackSource.buffer = audioBuffer
+		
+		// loop through options nad add
+		// options
+		trackSource.loop = options.loop
+		// trackSource.detune = options.detune
+		//trackSource.playbackRate = options.playbackRate
 
-	if (audioContext.state === 'suspended') 
-	{
-		audioContext.resume()
-	}
-	
-	if (offset == 0) 
-	{
-	  trackSource.start()
-	  //offset = audioContext.currentTime
-	} else {
-	  trackSource.start(0, audioContext.currentTime - offset)
-	}
-	active = true
-	
-	return trackSource
+		trackSource.connect(destination)
+		// trackSource.connect(audioContext.destination)
+		// console.error("Playing track", {audioBuffer,trackSource} )
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
+		// FIXME: when it has finished playing remove it...
+		// trackSource.addEventListener()
+		trackSource.onended = () => {
+			trackSource.disconnect()
+			active = false
+			resolve()
+		}
+		trackSource.onerror = (error) => {
+			trackSource.disconnect()
+			active = false
+			reject(error)
+		}
+
+		if (audioContext.state === 'suspended') 
+		{
+			audioContext.resume()
+		}
+		
+		if (offset == 0) 
+		{
+			trackSource.start()
+		//offset = audioContext.currentTime
+		} else {
+			trackSource.start(0, audioContext.currentTime - offset)
+		}
+		active = true
+	})
 }
 
 // const track = await loadAudio()
@@ -356,3 +386,144 @@ export const record = (stream)=>{
 
 	return {startRecording,stopRecording}
 } 
+
+
+export const createKick = () => {
+
+    const osc = audioContext.createOscillator()
+    const osc2 = audioContext.createOscillator()
+    const gainOsc = audioContext.createGain()
+    const gainOsc2 = audioContext.createGain()
+
+    osc.type = "triangle"
+    osc2.type = "sine"
+
+	const kick = (attack=0.01,duration=0.5) => {
+		gainOsc.gain.setValueAtTime(1, audioContext.currentTime)
+		 gainOsc.gain.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
+	 
+		 gainOsc2.gain.setValueAtTime(1, audioContext.currentTime)
+		 gainOsc2.gain.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
+		
+		 osc.frequency.setValueAtTime(120, audioContext.currentTime)
+		 osc.frequency.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
+	 
+		 osc2.frequency.setValueAtTime(50, audioContext.currentTime)
+		 osc2.frequency.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
+		 
+		 try{
+			osc.start(audioContext.currentTime)
+			osc2.start(audioContext.currentTime)
+		 }catch(error)
+		 {
+
+		 }
+	 
+		//  osc.stop(audioContext.currentTime + duration)
+		//  osc2.stop(audioContext.currentTime + duration)
+	}
+ 
+    osc.connect(gainOsc)
+    osc2.connect(gainOsc2)
+    gainOsc.connect(gainNode)
+    gainOsc2.connect(gainNode)
+
+	return kick
+}
+
+
+export const createSnare = () => {
+
+    const osc3 = audioContext.createOscillator()
+    const gainOsc3 = audioContext.createGain()
+    const filterGain = audioContext.createGain()
+
+	const snare = () => {
+
+		const time = audioContext.currentTime
+		filterGain.gain.cancelScheduledValues(time)
+
+		filterGain.gain.setValueAtTime(1, time)
+		filterGain.gain.exponentialRampToValueAtTime(0.000000000001, time + 0.2)
+	
+		try{
+			osc3.start(time)
+			//osc3.stop(audioContext.currentTime + 0.2)
+		
+			node.start(time)
+			//node.stop(audioContext.currentTime + 0.2)	
+			
+			gainOsc3.gain.setValueAtTime(0, time)
+			gainOsc3.gain.exponentialRampToValueAtTime(0.01, time+ 0.1)
+				
+			filter.frequency.setValueAtTime(100, time)
+			filter.frequency.linearRampToValueAtTime(1000,time + 0.2)		
+		}catch(error){
+
+		}
+	}
+
+    osc3.type = "triangle"
+    osc3.frequency.value = 100
+    gainOsc3.gain.value = 0
+
+    osc3.connect(gainOsc3)
+    gainOsc3.connect(gainNode)
+
+    //gainNode.gain.value = 1
+
+	const node = audioContext.createBufferSource()
+	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
+    const data = buffer.getChannelData(0)
+
+    const filter = audioContext.createBiquadFilter()
+    filter.type = "highpass"
+   
+    for (var i = 0; i < 4096; i++) {
+        data[i] = Math.random()
+	}
+	
+    node.buffer = buffer
+    node.loop = true
+    node.connect(filter)
+    filter.connect(filterGain)
+	filterGain.connect(gainNode)
+	
+	return snare
+}
+
+
+function hihat() {
+
+    var gainOsc4 = audioContext.createGain();
+    var fundamental = 40;
+    var ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+
+    var bandpass = audioContext.createBiquadFilter();
+    bandpass.type = "bandpass";
+    bandpass.frequency.value = 10000;
+
+    var highpass = audioContext.createBiquadFilter();
+    highpass.type = "highpass";
+    highpass.frequency.value = 7000;
+
+
+    ratios.forEach(function(ratio) {
+
+        var osc4 = audioContext.createOscillator();
+        osc4.type = "square";
+        osc4.frequency.value = fundamental * ratio;
+        osc4.connect(bandpass);
+
+        osc4.start(audioContext.currentTime);
+        osc4.stop(audioContext.currentTime + 0.05);
+        
+    });
+
+    gainOsc4.gain.setValueAtTime(1, audioContext.currentTime);
+    gainOsc4.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+    
+    bandpass.connect(highpass)
+    highpass.connect(gainOsc4)
+    gainOsc4.connect(mixGain)
+}

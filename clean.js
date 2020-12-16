@@ -5,11 +5,13 @@ const directory = 'dist'
 
 console.log(`Cleaning ${directory}...`)
 const WHITELIST = [
-	"pwabuilder-sw.js",
-	"manifest.json",
+	"service-worker.js",
 	"timing.requestframe.worker.js",
 	"timing.setinterval.worker.js",
-	"timing.settimeout.worker.js"
+	"timing.settimeout.worker.js",
+	"browserconfig.xml",
+	"favicon.ico"
+	// "safari-pinned-tab.svg"
 
 ]
 
