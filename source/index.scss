@@ -99,6 +99,8 @@ main.loading{
 
 main{
 	video,canvas{
+		border-radius:12px;
+		overflow: hidden;
 		// scale to fit screen!
 		transform: scaleX(-1);
 		//transform:scale(0,-1);
@@ -161,6 +163,11 @@ main.active{
 	padding:0;
 	
 	width:100%;
+	pointer-events: none;
+
+	> *{
+		pointer-events: auto;
+	}
 
 	// we need media queries to complete
 	

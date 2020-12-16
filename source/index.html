@@ -2,18 +2,17 @@
 <html lang="en">
 
 <head>
-	
+
 	<meta charset="utf-8">
 	<title>Musical Face</title>
 	
 	<!-- <base href="/MusicalFace/"> -->
 
-	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-	<!-- <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"> -->
+	<!-- <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"> -->
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
 	
 	<meta name="description" content="Face synth">
-	<meta name="theme-color" content="#E1477E">
-  
+
 	<!-- These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-title" content="Face synth">
@@ -21,45 +20,55 @@
   
 	<!-- Imports an icon to represent the document. -->
 	<link rel="icon" href="assets/icons/icon_24.png" type="image/x-icon">
-  
-	<!-- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA.
-	<link rel="manifest" href="manifest.json"> -->
-  	
-	<link rel="stylesheet" href="index.scss" type="text/css">
+	<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+	<link rel="mask-icon" href="assets/icons/safari-pinned-tab.svg" color="#5bbad5">
+	
+	<meta name="msapplication-TileColor" content="#e4dede">
+	<meta name="theme-color" content="#e4dede">
 
-	<script type="module" src="index.js"></script> 
+	
+	<!-- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. -->
+	<link rel="manifest" href="manifest.webmanifest" rel=preload>
+  	
+	<link rel="stylesheet" href="index.scss" type="text/css" rel=preload>
+
+	<script type="module" src="index.js" rel=preload></script> 
 </head>
 
 <body> 
 	<header>
 		<h1>Musical Face</h1>
-		<h2>Simple instrument</h2>
+		<h2>a Simple Inter<strong>face</strong></h2>
 	</header>
 
 	<main> 
-		<img id="face" src="will.png" width="640" height="480"> 
+		<img id="face" src="assets/will.png" width="640" height="480"> 
 		
 		<video id="webcam" autoplay playsinline width="640" height="480">
 			<p>No Video available!</p>
 		</video> 
+
 		<canvas width="640" height="480"></canvas> 
-		<p id="feedback">Loading...</p> 
+
+		<p id="feedback">Loading interFACE, please wait</p> 
 
 		<form id="controls">
 
 			<button class="person" id="person-a">Change instrument for this person</button>
 
-			<button id="button-video">Mix things up!</button>
+			<button id="button-video">Begin!<button>
 			
 			<fieldset id="pwa">
-				<pwa-install></pwa-install>
-				<pwa-update offlineToastDuration="0" swpath="pwabuilder-sw.js"></pwa-update>
+				<!-- For more info on the pwa-update component click here https://github.com/pwa-builder/pwa-update -->
+	<pwa-install></pwa-install>
+				<pwa-update offlineToastDuration="0" swpath="service-worker.js"></pwa-update>
 			</fieldset>
 		</form>
 
 	</main> 
 
-	<!-- For more info on the pwa-update component click here https://github.com/pwa-builder/pwa-update -->
 	<script type="module" src="install.js"></script> 
 
 	<noscript>

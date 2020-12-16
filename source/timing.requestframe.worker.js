@@ -49,13 +49,13 @@ const loop = () => {
 const start = (interval=250)=>{
 
     gap = interval
-    startTime = performance.now()
-
+   
     // work out the next step from this step...
     nextInterval = startTime + interval
 
     if (!isRunning)
     {   
+         startTime = performance.now()
         isRunning = true
         postMessage({event:EVENT_STARTING, time:0, intervals})
     }

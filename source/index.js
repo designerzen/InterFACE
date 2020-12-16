@@ -25,14 +25,14 @@ import {
 	loadInstrument, INSTRUMENT_NAMES, randomInstrument, 
 	playTrack, playAudio, stopAudio, 
 	bufferLength,dataArray, 
-	setupAudio, 
+	setupAudio, createKick, createSnare,
 	setShape, setFrequency, setAmplitude, 
 	record } from './audio'
 import { start, stop, getMode, setMode, setTimeBetween } from './timing.js'
 import { setupMIDI } from './midi'
 import { setupCamera, setupImage} from './visual'
 import { easeInSine, easeOutSine , easeInCubic, lerp,clamp, TAU} from "./maths"
-import { clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext, drawWaves, drawBars} from './visual'
+import {updateCanvasSize, clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext, drawWaves, drawBars, drawQuantise} from './visual'
 import Person, {LIPS_RANGE} from './person'
 import {setupInterface} from './ui'
 // import from './person'
@@ -42,6 +42,7 @@ const video = document.querySelector("video")
 const image = document.querySelector("img")
 const feedback = document.getElementById("feedback")
 const buttonInstrument = document.getElementById("button-instrument")
+const buttonVideo = document.getElementById("button-video")
 
 // options
 const ease = easeInCubic // easeInSine
@@ -55,7 +56,15 @@ let photo
 let audio 
 let midi
 
-const settings = {
+let kick
+let snare
+
+// As each sample is 2403 ms long, we should try and do it 
+// as a factor of that, so perhaps bars would be better than BPM?
+let bars = 16
+let timePerBar =()=> 2403 / bars
+
+const SETTINGS = {
 
 	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
 	maxFaces:1,
@@ -74,8 +83,11 @@ const settings = {
 
 // realtime UI options
 const ui = {
-	metronome:true
+	metronome:true,
+	backingTrack:false
 }
+
+
 
 function debounce(callback, wait) {
 	let timerId
@@ -116,6 +128,27 @@ const loadRandomInstrument = async () => {
 	return i
 }
 
+const previousInstrument = async() => {
+	const person = people[0]
+	if (person)
+	{
+		const index = FOLDERS.indexOf(person.instrumentName)
+		const newIndex = index-1 < 0 ? 0 : index-1
+		await person.loadInstrument( FOLDERS[newIndex] )
+		setFeedback(`${FOLDERS[newIndex]} loaded!`)
+	}
+}
+const nextInstrument = async() => {
+	const person = people[0]
+	if (person)
+	{
+		const index = FOLDERS.indexOf(person.instrumentName)
+		const newIndex = index+1 >= FOLDERS.length ? 0 : index+1
+		await person.loadInstrument( FOLDERS[newIndex] )
+		setFeedback(`${FOLDERS[newIndex]} loaded!`)
+	}
+}
+
 async function predict(model){
 
 	// Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
@@ -150,6 +183,9 @@ async function predict(model){
 
 			// See keypoints.js
 
+			const topOfHead = 0
+			const bottomOfHead = 0
+
 			// There are three points on the face that we can compare against
 			const {leftEyeIris,rightEyeIris} = annotations
 			const {leftEyeLower0, rightEyeLower0, midwayBetweenEyes} = annotations
@@ -165,6 +201,8 @@ async function predict(model){
 			// the midpoint can be used to triangulate the yaw
 			const lx = leftEyeLower0[0][0] 
 			const rx = rightEyeLower0[0][0] 
+			const ly = leftEyeLower0[0][1] 
+			const ry = rightEyeLower0[0][1] 
 			const mx = midwayBetweenEyes[0][0] 
 
 			// lengths of the triangle
@@ -172,8 +210,6 @@ async function predict(model){
 			const rmx = mx - rx
 
 			const {rightCheek,leftCheek, silhouette} = annotations
-
-			//drawPart(silhouette, 5, 'rgba(255,255,0,0.5)', true)
 
 			prediction.lookingRight = lookingRight
 
@@ -187,7 +223,11 @@ async function predict(model){
 			const pitch = 0.5 - Math.asin( midPoint[1] ) / Math.PI
 
 			// if either eye is lower than the other
-			const roll = 1
+			const rollX = (lx - rx)
+			const rollY = (ly - ry)
+
+			const roll = Math.atan2(rollX, rollY) - Math.PI * 0.5
+			//console.log("roll",roll, {rollX,rollY} )
 			
 			// leaning head as if to look at own chest / sky
 			prediction.pitch = pitch
@@ -204,9 +244,17 @@ async function predict(model){
 			// central piece of the mouth
 			const lipUpperMiddle = lipsUpperInner[5]
 			const lipLowerMiddle = lipsLowerInner[5]
-			const lipVerticalOpening = lipLowerMiddle[1] - lipUpperMiddle[1]
 
+			// use hypotheneuse
+			const lipVerticalOpeningX = lipLowerMiddle[0] - lipUpperMiddle[0]
+			const lipVerticalOpeningY = lipLowerMiddle[1] - lipUpperMiddle[1]
+			
+			 const lipVerticalOpening = Math.sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
+			//const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
 			prediction.mouthRange = lipVerticalOpening
+
+			// this is the size of the mouth as a factor of the head size
+			prediction.mouthOpen = 1
 
 			// -1 -> 1
 			prediction.happiness = 0
@@ -253,6 +301,12 @@ async function loadModel(options) {
 
 		// draw data frame to canvas
 		canvasContext.drawImage(inputElement, 0, 0)
+
+		if (ui.metronome)
+		{
+			// show quantise
+			drawQuantise()
+		}
 
 		//console.log("Predictions narrowed down to", predictions)
 		if (predictions.length > 0)
@@ -304,7 +358,9 @@ const getPerson = (index) => {
 		const options = { dots:'green', leftEyeIris:'blue', rightEyeIris:'blue' }
 		const person = new Person('person-'+['a','b','c'][index], audioContext, audio, options ) 
 		person.loadInstrument( randomInstrument() )
-		person.setMIDI( midi.outputs[0] )
+		if (midi && midi.outputs && midi.outputs.length > 0) {
+			person.setMIDI( midi.outputs[0] )
+		}
 		people.push( person )
 		return person
 	} else{
@@ -318,177 +374,288 @@ const onFace = ()=>{
 
 }
 
+// start on click as things require gesture for permission
+
 main.classList.add("loading")
 setFeedback("Initialising...<br> Please wait")
 
-loadModel(settings).then( async update =>{ 
+const enableMIDI = async () => {
 
-	try{
-		setFeedback("Attempting to locate camera...")
-
-		// wait for video or image to be loaded!
-		camera = await setupCamera(video)
-		setFeedback( "Camera located!", 0 )
-
-		// at this point the video dimensions are accurate
-		// so we add the main style vars
-		main.style.setProperty('--width', video.width )
-		main.style.setProperty('--height', video.height )
-			
-		photo = await setupImage(image)
-		setFeedback( "Image downloaded...<br> Please wait")
-
-		audio = setupAudio()
-		setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
-
-		// instrument = await loadInstrument( randomInstrument() )
-		const instrumentName = await loadRandomInstrument()
-		// now you can play any of the objects keys with
-		// playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
-		//playTrack(instrument.A0, 0)
-		setFeedback(instrumentName+" Samples available...<br>Instrument Sounds downloaded")
-		
-		midi = await setupMIDI()
-		setFeedback("MIDI Available?<br>Stand By", 0)
-		
-		// midi device connected! huzzah!
-		midi.addListener("connected", (e) => {
-			console.log(e)
-			setFeedback("MIDI Device connected!")
-			// check outputs
-			if (midi.outputs.length > 0)
-			{
-				const person = getPerson(0)
-				person.setMIDI(midi.outputs[0])
-			}
-		})
-		
-		// Reacting when a device becomes unavailable
-		midi.addListener("disconnected", (e) => {
-			console.log(e)
-			setFeedback("Lost MIDI Device connection")
-		})
-
-		// console.log("Streamin", {video, photo, camera} )
-
-	}catch(error){
-		console.error("Bummer", error)
-		setFeedback("Something went wrong :(<br>"+error)
-	}
+	midi = await setupMIDI()
 	
-	// const {startRecording, stopRecording} = record(stream)
+	// this needs a user interaction to trigger
+	setFeedback("MIDI Available<br>Stand By", 0)
 	
-	// set the input element to either the image or the video
-	inputElement = video // image
-	// hide the other or just set the class?
-
-	// set the canvas to the size of the video / image
-	canvas.width = inputElement.width
-	canvas.height = inputElement.height
-
-	// console.error("Tensorflow", tf)
-	main.classList.add( inputElement.nodeName.toLowerCase() )
-	main.classList.remove("loading")
-
-	// after a period of inactivity...
-	setFeedback("Open your mouth to begin!")
-
-	// FIXME: set up a basic metronome here too...
-	const playing = []
-
-	let counter = 0
-
-	// turn up the amp
-	setAmplitude( 1 )
-
-	start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
-		
-		if (ui.metronome)
+	// midi device connected! huzzah!
+	midi.addListener("connected", (e) => {
+		console.log(e)
+		setFeedback("MIDI Device connected!")
+		// check outputs
+		if (midi.outputs.length > 0)
 		{
-			const person = getPerson(0).sing()
-			//console.log("Timing has occurred... sequence?", person)
+			const person = getPerson(0)
+			person.setMIDI(midi.outputs[0])
+		}
+	})
+	
+	// Reacting when a device becomes unavailable
+	midi.addListener("disconnected", (e) => {
+		console.log(e)
+		setFeedback("Lost MIDI Device connection")
+	})
+}
+
+const showMIDI = async () => {
+
+	// show button
+	// to skip clicking but results in a warning
+	const onStartRequested = async () => {
+		console.log("User input detected so enabling MIDI!")
+		await enableMIDI()
+		buttonVideo.documentElement.removeEventListener('mousedown', onStartRequested)
+	}
+	buttonVideo.addEventListener('click', onStartRequested)
+}
+
+// this needs to occur on click
+
+const setup = (settings) => {
+
+	loadModel(settings).then( async update =>{ 
+
+		try{
+			setFeedback("Attempting to locate camera...")
+
+			// wait for video or image to be loaded!
+			camera = await setupCamera(video)
+			setFeedback( "Camera located!", 0 )
+
+			// at this point the video dimensions are accurate
+			// so we add the main style vars
+			main.style.setProperty('--width', video.width )
+			main.style.setProperty('--height', video.height )
+
+			updateCanvasSize(video.width, video.height)
+				
+			photo = await setupImage(image)
+			setFeedback( "Image downloaded...<br> Please wait")
+
+			audio = setupAudio()
+			setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
+
+			// instrument = await loadInstrument( randomInstrument() )
+			const instrumentName = await loadRandomInstrument()
+			// now you can play any of the objects keys with
+			// playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
+			//playTrack(instrument.A0, 0)
+			setFeedback(instrumentName+" Samples available...<br>Instrument Sounds downloaded")
+			
+			kick = createKick()
+			snare = createSnare()
+			// console.log("Streamin", {video, photo, camera} )
+
+		}catch(error){
+			console.error("Bummer", error)
+			setFeedback("Something went wrong :(<br>"+error)
+		}
+
+		// MIDI ------
+		try{
+			// rather than enabling midi directly we show a button to enable it
+			await showMIDI()
+			main.classList.add('midi')
+		
+		}catch(error){
+			// no midi - don't show midi button
+			console.log("no MIDI!")
+			main.classList.add('no-midi')
 		}
 		
-	}, 2403 / 16 )
+		// const {startRecording, stopRecording} = record(stream)
+		
+		// set the input element to either the image or the video
+		inputElement = video // image
+		// hide the other or just set the class?
 
-	// LOOP ---------------------------------------
+		// set the canvas to the size of the video / image
+		canvas.width = inputElement.width
+		canvas.height = inputElement.height
 
-	// FaceMesh.getUVCoords 
-	// this then runs the loop if set to true
-	update( inputElement === video, (predictions)=>{
+		// console.error("Tensorflow", tf)
+		main.classList.add( inputElement.nodeName.toLowerCase() )
+		main.classList.remove("loading")
 
-		let tickerTape = ''
-		counter++
+		// after a period of inactivity...
+		setFeedback("Open your mouth to begin!")
 
-		// setAmplitude( 1 )
-		if (predictions)
-		{
-			// TODO: loop through all predictions...
-			const index = 0
-			const prediction = predictions[index]
+		// FIXME: set up a basic metronome here too...
+		const playing = []
+
+		let counter = 0
+
+		// turn up the amp
+		setAmplitude( 1 )
+
+		let barsElapsed = 0
+		const timer = start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
 			
-			// create as many people as we need
-			const person = getPerson(index)
-			
-			// face available!
-			if (prediction && prediction.faceInViewConfidence > 0.9)
-			{
-				main.classList.toggle("active", true)
-				playAudio()
-			}else{
-				stopAudio()
-				setFeedback( "I need to see your face!" )
-				main.classList.toggle("active", false)
-				return
-			}
+			barsElapsed++
 
-			// first update the person
-			person.update(prediction)
-			// then redraw them
-			//const { yaw, pitch, lipPercentage } = 
-			person.draw(prediction)
-			
-			// then whenever you fancy it,
 			if (ui.metronome)
 			{
-				// we only want it on the beat
-			}else{
-				person.sing()
+				const person = getPerson(0).sing()
+				//console.log("Timing has occurred... sequence?", person)
+
+				// show quantise
+				drawQuantise(true)
 			}
+			if (ui.backingTrack)
+			{
 			
-			// you want a tight curve
-			//setAmplitude( logAmp )
-			//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-			tickerTape += `<br>PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/LIPS_RANGE)}% - ${person.instrumentName}`
+				if (barsElapsed%4 === 0)
+				{
+					kick()	
+				}
 
-		}else{
+				if ((barsElapsed+2)%4 === 0 || (barsElapsed)%8 === 0)
+				{
+					snare()
+				}
+			}
 
-		}
+		}, timePerBar() )
 
-		// Feedback text changes depending on time
-		if (counter < 50)
-		{
-			setFeedback(`Smile to begin!`)
-		}else if (counter < 150){
-			setFeedback(`Look at the screen and open your mouth!`)
-		}else if (counter < 250){
-			setFeedback(`Click your face to change instruments!`)
-		}else if (counter > 10000){
-			setFeedback(`OMG I can't believe you are still here!`)
-		}else if (tickerTape.length){
-			setFeedback(tickerTape)
-			// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
-		}else{
-			setFeedback(`Look at me and open your mouth`)
-		}
-	} )
-})
+		console.log("timer", timer)
+
+		// LOOP ---------------------------------------
+
+		// FaceMesh.getUVCoords 
+		// this then runs the loop if set to true
+		update( inputElement === video, (predictions)=>{
+
+			let tickerTape = ''
+			counter++
+
+			// setAmplitude( 1 )
+			if (predictions)
+			{
+				// TODO: loop through all predictions...
+				const index = 0
+				const prediction = predictions[index]
+				
+				// create as many people as we need
+				const person = getPerson(index)
+				
+				// face available!
+				if (prediction && prediction.faceInViewConfidence > 0.9)
+				{
+					main.classList.toggle("active", true)
+					playAudio()
+				}else{
+					stopAudio()
+					setFeedback( "I need to see your face!" )
+					main.classList.toggle("active", false)
+					return
+				}
+
+				// first update the person
+				person.update(prediction)
+
+				// then redraw them
+				//const { yaw, pitch, lipPercentage } = 
+				person.draw(prediction)
+				
+				// then whenever you fancy it,
+				if (ui.metronome)
+				{
+					// we only want it on the beat
+				}else{
+					person.sing()
+				}
+				
+				// you want a tight curve
+				//setAmplitude( logAmp )
+				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
+				tickerTape += `<br>PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/LIPS_RANGE)}% - ${person.instrumentName}`
+
+			}else{
+
+			}
+
+			// Feedback text changes depending on time
+			if (counter < 50)
+			{
+				setFeedback(`Smile to begin!`)
+			}else if (counter < 150){
+				setFeedback(`Look at the screen and open your mouth!`)
+			}else if (counter < 250){
+				setFeedback(`Click your face to change instruments!`)
+			}else if (counter > 10000){
+				setFeedback(`OMG I can't believe you are still here!`)
+			}else if (tickerTape.length){
+				setFeedback(tickerTape)
+				// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+			}else{
+				setFeedback(`Look at me and open your mouth`)
+			}
+		} )
+	})
+}
+
+setup(SETTINGS) 	
 
 // now wire up the bits...
-
 canvas.addEventListener('mousedown',loadRandomInstrument )
 video.addEventListener('mousedown', loadRandomInstrument )
+
+window.addEventListener('keydown', (event)=>{
+
+	switch(event.key)
+	{
+		// case '':
+		case 'ArrowLeft':
+			// next instrument
+			previousInstrument()
+			break
+		case 'ArrowRight':
+			// next instrument
+			nextInstrument()
+			break
+		case 'ArrowUp':
+			// change amount of bars
+			bars = ++bars > 32 ? 32 : bars
+			setTimeBetween(timePerBar())
+			setFeedback( `Bars ${bars}`, 0 )
+			break
+		case 'ArrowDown':
+			// bar length
+			bars = --bars < 1 ? 1 : bars
+			setTimeBetween(timePerBar())
+			setFeedback( `Bars ${bars}`, 0 )
+			break
+		case 'w':
+			snare()
+			break
+		case 'a':
+			kick()
+			break
+		case 's':
+			snare()
+			break
+		case 'd':
+			kick()
+			break
+
+		default:
+			ui.metronome = !ui.metronome
+			setFeedback( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+	}
 	
+	console.log("key", ui, event)
+
+})
+
+
 // input.addListener("noteon", "all", (event: InputEventNoteon) => {
 // 	...
 //   }) 

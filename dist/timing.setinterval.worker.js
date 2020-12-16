@@ -55,10 +55,13 @@ const start = (interval=250)=>{
         clearInterval(timerID)
     }
 
-    startTime = performance.now()
-    isRunning = true
+    if (!isRunning)
+    {
+        startTime = performance.now()
+        isRunning = true
+        postMessage({event:EVENT_STARTING, time:0})
+    }
 
-    postMessage({event:EVENT_STARTING, time:0})
 
     gap = interval
     // do the setinterval here

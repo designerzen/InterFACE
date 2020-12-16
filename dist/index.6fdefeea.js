@@ -138,8 +138,8 @@
       this[globalName] = mainExports;
     }
   }
-})({"525pK":[function(require,module,exports) {
-var HMR_HOST = null;var HMR_PORT = 11939;var HMR_ENV_HASH = "d751713988987e9331980363e24189ce";module.bundle.HMR_BUNDLE_ID = "9a7fb50ab835f84e64e57d8c6fdefeea";/* global HMR_HOST, HMR_PORT, HMR_ENV_HASH */
+})({"5Xdj4":[function(require,module,exports) {
+var HMR_HOST = null;var HMR_PORT = 1234;var HMR_ENV_HASH = "d751713988987e9331980363e24189ce";module.bundle.HMR_BUNDLE_ID = "9a7fb50ab835f84e64e57d8c6fdefeea";/* global HMR_HOST, HMR_PORT, HMR_ENV_HASH */
 
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -490,7 +490,8 @@ const main = document.querySelector("main");
 const video = document.querySelector("video");
 const image = document.querySelector("img");
 const feedback = document.getElementById("feedback");
-const buttonInstrument = document.getElementById("button-instrument"); // options
+const buttonInstrument = document.getElementById("button-instrument");
+const buttonVideo = document.getElementById("button-video"); // options
 
 const ease = _maths.easeInCubic; // easeInSine
 
@@ -501,7 +502,15 @@ let camera;
 let photo;
 let audio;
 let midi;
-const settings = {
+let kick;
+let snare; // As each sample is 2403 ms long, we should try and do it 
+// as a factor of that, so perhaps bars would be better than BPM?
+
+let bars = 16;
+
+let timePerBar = () => 2403 / bars;
+
+const SETTINGS = {
   // maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
   maxFaces: 1,
   // Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
@@ -517,7 +526,8 @@ const settings = {
 }; // realtime UI options
 
 const ui = {
-  metronome: true
+  metronome: true,
+  backingTrack: false
 };
 
 function debounce(callback, wait) {
@@ -558,6 +568,30 @@ const loadRandomInstrument = async () => {
   return i;
 };
 
+const previousInstrument = async () => {
+  const person = people[0];
+
+  if (person) {
+    const index = _audio.FOLDERS.indexOf(person.instrumentName);
+
+    const newIndex = index - 1 < 0 ? 0 : index - 1;
+    await person.loadInstrument(_audio.FOLDERS[newIndex]);
+    setFeedback(`${_audio.FOLDERS[newIndex]} loaded!`);
+  }
+};
+
+const nextInstrument = async () => {
+  const person = people[0];
+
+  if (person) {
+    const index = _audio.FOLDERS.indexOf(person.instrumentName);
+
+    const newIndex = index + 1 >= _audio.FOLDERS.length ? 0 : index + 1;
+    await person.loadInstrument(_audio.FOLDERS[newIndex]);
+    setFeedback(`${_audio.FOLDERS[newIndex]} loaded!`);
+  }
+};
+
 async function predict(model) {
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph. If passing in a video
@@ -586,7 +620,9 @@ async function predict(model) {
       } = prediction; // now there are some points already isolated :)
       // so we can work out how much area the mouth is using up
       // See keypoints.js
-      // There are three points on the face that we can compare against
+
+      const topOfHead = 0;
+      const bottomOfHead = 0; // There are three points on the face that we can compare against
 
       const {
         leftEyeIris,
@@ -606,6 +642,8 @@ async function predict(model) {
 
       const lx = leftEyeLower0[0][0];
       const rx = rightEyeLower0[0][0];
+      const ly = leftEyeLower0[0][1];
+      const ry = rightEyeLower0[0][1];
       const mx = midwayBetweenEyes[0][0]; // lengths of the triangle
 
       const lmx = (mx - lx) * -1;
@@ -614,8 +652,7 @@ async function predict(model) {
         rightCheek,
         leftCheek,
         silhouette
-      } = annotations; //drawPart(silhouette, 5, 'rgba(255,255,0,0.5)', true)
-
+      } = annotations;
       prediction.lookingRight = lookingRight; // and now we want the angle formed
 
       const yaw = -1 * (Math.atan2(lmx, rmx) - 0.75); //const yaw = 0.5 - Math.atan( midPoint[2], -1 * midPoint[0] ) / ( 2.0 * Math.PI )
@@ -624,7 +661,10 @@ async function predict(model) {
 
       const pitch = 0.5 - Math.asin(midPoint[1]) / Math.PI; // if either eye is lower than the other
 
-      const roll = 1; // leaning head as if to look at own chest / sky
+      const rollX = lx - rx;
+      const rollY = ly - ry;
+      const roll = Math.atan2(rollX, rollY) - Math.PI * 0.5; //console.log("roll",roll, {rollX,rollY} )
+      // leaning head as if to look at own chest / sky
 
       prediction.pitch = pitch; // tilting head towards shoulders
 
@@ -638,9 +678,15 @@ async function predict(model) {
       } = annotations; // central piece of the mouth
 
       const lipUpperMiddle = lipsUpperInner[5];
-      const lipLowerMiddle = lipsLowerInner[5];
-      const lipVerticalOpening = lipLowerMiddle[1] - lipUpperMiddle[1];
-      prediction.mouthRange = lipVerticalOpening; // -1 -> 1
+      const lipLowerMiddle = lipsLowerInner[5]; // use hypotheneuse
+
+      const lipVerticalOpeningX = lipLowerMiddle[0] - lipUpperMiddle[0];
+      const lipVerticalOpeningY = lipLowerMiddle[1] - lipUpperMiddle[1];
+      const lipVerticalOpening = Math.sqrt(lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY); //const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
+
+      prediction.mouthRange = lipVerticalOpening; // this is the size of the mouth as a factor of the head size
+
+      prediction.mouthOpen = 1; // -1 -> 1
 
       prediction.happiness = 0; //console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
     }
@@ -673,7 +719,12 @@ async function loadModel(options) {
     //clear()
     // draw data frame to canvas
 
-    _visual.canvasContext.drawImage(inputElement, 0, 0); //console.log("Predictions narrowed down to", predictions)
+    _visual.canvasContext.drawImage(inputElement, 0, 0);
+
+    if (ui.metronome) {
+      // show quantise
+      (0, _visual.drawQuantise)();
+    } //console.log("Predictions narrowed down to", predictions)
 
 
     if (predictions.length > 0) {
@@ -721,7 +772,11 @@ const getPerson = index => {
     };
     const person = new _person.default('person-' + ['a', 'b', 'c'][index], _audio.audioContext, audio, options);
     person.loadInstrument((0, _audio.randomInstrument)());
-    person.setMIDI(midi.outputs[0]);
+
+    if (midi && midi.outputs && midi.outputs.length > 0) {
+      person.setMIDI(midi.outputs[0]);
+    }
+
     people.push(person);
     return person;
   } else {
@@ -730,144 +785,248 @@ const getPerson = index => {
 }; // BEGIN ---------------------------------------
 
 
-const onFace = () => {};
+const onFace = () => {}; // start on click as things require gesture for permission
+
 
 main.classList.add("loading");
 setFeedback("Initialising...<br> Please wait");
-loadModel(settings).then(async update => {
-  try {
-    setFeedback("Attempting to locate camera..."); // wait for video or image to be loaded!
 
-    camera = await (0, _visual.setupCamera)(video);
-    setFeedback("Camera located!", 0); // at this point the video dimensions are accurate
-    // so we add the main style vars
+const enableMIDI = async () => {
+  midi = await (0, _midi.setupMIDI)(); // this needs a user interaction to trigger
 
-    main.style.setProperty('--width', video.width);
-    main.style.setProperty('--height', video.height);
-    photo = await (0, _visual.setupImage)(image);
-    setFeedback("Image downloaded...<br> Please wait");
-    audio = (0, _audio.setupAudio)();
-    setFeedback("Audio Available...<br>Instrument " + instrument + " Sounds downloaded", 0); // instrument = await loadInstrument( randomInstrument() )
+  setFeedback("MIDI Available<br>Stand By", 0); // midi device connected! huzzah!
 
-    const instrumentName = await loadRandomInstrument(); // now you can play any of the objects keys with
-    // playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
-    //playTrack(instrument.A0, 0)
+  midi.addListener("connected", e => {
+    console.log(e);
+    setFeedback("MIDI Device connected!"); // check outputs
 
-    setFeedback(instrumentName + " Samples available...<br>Instrument Sounds downloaded");
-    midi = await (0, _midi.setupMIDI)();
-    setFeedback("MIDI Available?<br>Stand By", 0); // midi device connected! huzzah!
-
-    midi.addListener("connected", e => {
-      console.log(e);
-      setFeedback("MIDI Device connected!"); // check outputs
-
-      if (midi.outputs.length > 0) {
-        const person = getPerson(0);
-        person.setMIDI(midi.outputs[0]);
-      }
-    }); // Reacting when a device becomes unavailable
-
-    midi.addListener("disconnected", e => {
-      console.log(e);
-      setFeedback("Lost MIDI Device connection");
-    }); // console.log("Streamin", {video, photo, camera} )
-  } catch (error) {
-    console.error("Bummer", error);
-    setFeedback("Something went wrong :(<br>" + error);
-  } // const {startRecording, stopRecording} = record(stream)
-  // set the input element to either the image or the video
-
-
-  inputElement = video; // image
-  // hide the other or just set the class?
-  // set the canvas to the size of the video / image
-
-  _visual.canvas.width = inputElement.width;
-  _visual.canvas.height = inputElement.height; // console.error("Tensorflow", tf)
-
-  main.classList.add(inputElement.nodeName.toLowerCase());
-  main.classList.remove("loading"); // after a period of inactivity...
-
-  setFeedback("Open your mouth to begin!"); // FIXME: set up a basic metronome here too...
-
-  const playing = [];
-  let counter = 0; // turn up the amp
-
-  (0, _audio.setAmplitude)(1);
-  (0, _timing.start)(({
-    timePassed,
-    elapsed,
-    expected,
-    drift,
-    level,
-    intervals,
-    lag
-  }) => {
-    if (ui.metronome) {
-      const person = getPerson(0).sing(); //console.log("Timing has occurred... sequence?", person)
+    if (midi.outputs.length > 0) {
+      const person = getPerson(0);
+      person.setMIDI(midi.outputs[0]);
     }
-  }, 2403 / 16); // LOOP ---------------------------------------
-  // FaceMesh.getUVCoords 
-  // this then runs the loop if set to true
+  }); // Reacting when a device becomes unavailable
 
-  update(inputElement === video, predictions => {
-    let tickerTape = '';
-    counter++; // setAmplitude( 1 )
-
-    if (predictions) {
-      // TODO: loop through all predictions...
-      const index = 0;
-      const prediction = predictions[index]; // create as many people as we need
-
-      const person = getPerson(index); // face available!
-
-      if (prediction && prediction.faceInViewConfidence > 0.9) {
-        main.classList.toggle("active", true);
-        (0, _audio.playAudio)();
-      } else {
-        (0, _audio.stopAudio)();
-        setFeedback("I need to see your face!");
-        main.classList.toggle("active", false);
-        return;
-      } // first update the person
-
-
-      person.update(prediction); // then redraw them
-      //const { yaw, pitch, lipPercentage } = 
-
-      person.draw(prediction); // then whenever you fancy it,
-
-      if (ui.metronome) {// we only want it on the beat
-      } else {
-        person.sing();
-      } // you want a tight curve
-      //setAmplitude( logAmp )
-      //setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-
-
-      tickerTape += `<br>PITCH:${Math.ceil(360 * prediction.pitch)} ROLL:${Math.ceil(360 * prediction.roll)} YAW:${180 * prediction.yaw} MOUTH:${Math.ceil(100 * prediction.mouthRange / _person.LIPS_RANGE)}% - ${person.instrumentName}`;
-    } else {} // Feedback text changes depending on time
-
-
-    if (counter < 50) {
-      setFeedback(`Smile to begin!`);
-    } else if (counter < 150) {
-      setFeedback(`Look at the screen and open your mouth!`);
-    } else if (counter < 250) {
-      setFeedback(`Click your face to change instruments!`);
-    } else if (counter > 10000) {
-      setFeedback(`OMG I can't believe you are still here!`);
-    } else if (tickerTape.length) {
-      setFeedback(tickerTape); // setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
-    } else {
-      setFeedback(`Look at me and open your mouth`);
-    }
+  midi.addListener("disconnected", e => {
+    console.log(e);
+    setFeedback("Lost MIDI Device connection");
   });
-}); // now wire up the bits...
+};
+
+const showMIDI = async () => {
+  // show button
+  // to skip clicking but results in a warning
+  const onStartRequested = async () => {
+    console.log("User input detected so enabling MIDI!");
+    await enableMIDI();
+    buttonVideo.documentElement.removeEventListener('mousedown', onStartRequested);
+  };
+
+  buttonVideo.addEventListener('click', onStartRequested);
+}; // this needs to occur on click
+
+
+const setup = settings => {
+  loadModel(settings).then(async update => {
+    try {
+      setFeedback("Attempting to locate camera..."); // wait for video or image to be loaded!
+
+      camera = await (0, _visual.setupCamera)(video);
+      setFeedback("Camera located!", 0); // at this point the video dimensions are accurate
+      // so we add the main style vars
+
+      main.style.setProperty('--width', video.width);
+      main.style.setProperty('--height', video.height);
+      (0, _visual.updateCanvasSize)(video.width, video.height);
+      photo = await (0, _visual.setupImage)(image);
+      setFeedback("Image downloaded...<br> Please wait");
+      audio = (0, _audio.setupAudio)();
+      setFeedback("Audio Available...<br>Instrument " + instrument + " Sounds downloaded", 0); // instrument = await loadInstrument( randomInstrument() )
+
+      const instrumentName = await loadRandomInstrument(); // now you can play any of the objects keys with
+      // playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
+      //playTrack(instrument.A0, 0)
+
+      setFeedback(instrumentName + " Samples available...<br>Instrument Sounds downloaded");
+      kick = (0, _audio.createKick)();
+      snare = (0, _audio.createSnare)(); // console.log("Streamin", {video, photo, camera} )
+    } catch (error) {
+      console.error("Bummer", error);
+      setFeedback("Something went wrong :(<br>" + error);
+    } // MIDI ------
+
+
+    try {
+      // rather than enabling midi directly we show a button to enable it
+      await showMIDI();
+      main.classList.add('midi');
+    } catch (error) {
+      // no midi - don't show midi button
+      console.log("no MIDI!");
+      main.classList.add('no-midi');
+    } // const {startRecording, stopRecording} = record(stream)
+    // set the input element to either the image or the video
+
+
+    inputElement = video; // image
+    // hide the other or just set the class?
+    // set the canvas to the size of the video / image
+
+    _visual.canvas.width = inputElement.width;
+    _visual.canvas.height = inputElement.height; // console.error("Tensorflow", tf)
+
+    main.classList.add(inputElement.nodeName.toLowerCase());
+    main.classList.remove("loading"); // after a period of inactivity...
+
+    setFeedback("Open your mouth to begin!"); // FIXME: set up a basic metronome here too...
+
+    const playing = [];
+    let counter = 0; // turn up the amp
+
+    (0, _audio.setAmplitude)(1);
+    let barsElapsed = 0;
+    const timer = (0, _timing.start)(({
+      timePassed,
+      elapsed,
+      expected,
+      drift,
+      level,
+      intervals,
+      lag
+    }) => {
+      barsElapsed++;
+
+      if (ui.metronome) {
+        const person = getPerson(0).sing(); //console.log("Timing has occurred... sequence?", person)
+        // show quantise
+
+        (0, _visual.drawQuantise)(true);
+      }
+
+      if (ui.backingTrack) {
+        if (barsElapsed % 4 === 0) {
+          kick();
+        }
+
+        if ((barsElapsed + 2) % 4 === 0 || barsElapsed % 8 === 0) {
+          snare();
+        }
+      }
+    }, timePerBar());
+    console.log("timer", timer); // LOOP ---------------------------------------
+    // FaceMesh.getUVCoords 
+    // this then runs the loop if set to true
+
+    update(inputElement === video, predictions => {
+      let tickerTape = '';
+      counter++; // setAmplitude( 1 )
+
+      if (predictions) {
+        // TODO: loop through all predictions...
+        const index = 0;
+        const prediction = predictions[index]; // create as many people as we need
+
+        const person = getPerson(index); // face available!
+
+        if (prediction && prediction.faceInViewConfidence > 0.9) {
+          main.classList.toggle("active", true);
+          (0, _audio.playAudio)();
+        } else {
+          (0, _audio.stopAudio)();
+          setFeedback("I need to see your face!");
+          main.classList.toggle("active", false);
+          return;
+        } // first update the person
+
+
+        person.update(prediction); // then redraw them
+        //const { yaw, pitch, lipPercentage } = 
+
+        person.draw(prediction); // then whenever you fancy it,
+
+        if (ui.metronome) {// we only want it on the beat
+        } else {
+          person.sing();
+        } // you want a tight curve
+        //setAmplitude( logAmp )
+        //setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
+
+
+        tickerTape += `<br>PITCH:${Math.ceil(360 * prediction.pitch)} ROLL:${Math.ceil(360 * prediction.roll)} YAW:${180 * prediction.yaw} MOUTH:${Math.ceil(100 * prediction.mouthRange / _person.LIPS_RANGE)}% - ${person.instrumentName}`;
+      } else {} // Feedback text changes depending on time
+
+
+      if (counter < 50) {
+        setFeedback(`Smile to begin!`);
+      } else if (counter < 150) {
+        setFeedback(`Look at the screen and open your mouth!`);
+      } else if (counter < 250) {
+        setFeedback(`Click your face to change instruments!`);
+      } else if (counter > 10000) {
+        setFeedback(`OMG I can't believe you are still here!`);
+      } else if (tickerTape.length) {
+        setFeedback(tickerTape); // setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+      } else {
+        setFeedback(`Look at me and open your mouth`);
+      }
+    });
+  });
+};
+
+setup(SETTINGS); // now wire up the bits...
 
 _visual.canvas.addEventListener('mousedown', loadRandomInstrument);
 
-video.addEventListener('mousedown', loadRandomInstrument); // input.addListener("noteon", "all", (event: InputEventNoteon) => {
+video.addEventListener('mousedown', loadRandomInstrument);
+window.addEventListener('keydown', event => {
+  switch (event.key) {
+    // case '':
+    case 'ArrowLeft':
+      // next instrument
+      previousInstrument();
+      break;
+
+    case 'ArrowRight':
+      // next instrument
+      nextInstrument();
+      break;
+
+    case 'ArrowUp':
+      // change amount of bars
+      bars = ++bars > 32 ? 32 : bars;
+      (0, _timing.setTimeBetween)(timePerBar());
+      setFeedback(`Bars ${bars}`, 0);
+      break;
+
+    case 'ArrowDown':
+      // bar length
+      bars = --bars < 1 ? 1 : bars;
+      (0, _timing.setTimeBetween)(timePerBar());
+      setFeedback(`Bars ${bars}`, 0);
+      break;
+
+    case 'w':
+      snare();
+      break;
+
+    case 'a':
+      kick();
+      break;
+
+    case 's':
+      snare();
+      break;
+
+    case 'd':
+      kick();
+      break;
+
+    default:
+      ui.metronome = !ui.metronome;
+      setFeedback(ui.metronome ? `Quantised enabled` : `Quantise disabled`);
+  }
+
+  console.log("key", ui, event);
+}); // input.addListener("noteon", "all", (event: InputEventNoteon) => {
 // 	...
 //   }) 
 // const {startRecording, stopRecording} = record()
@@ -101217,7 +101376,7 @@ exports.webgl_util = webgl_util;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.record = exports.loadInstrument = exports.loadInstrumentParts = exports.INSTRUMENT_NAMES = exports.playTrack = exports.setAmplitude = exports.setFrequency = exports.setShape = exports.playAudio = exports.stopAudio = exports.setupAudio = exports.inputNode = exports.active = exports.playing = exports.dataArray = exports.bufferLength = exports.audioContext = exports.randomInstrument = exports.FOLDERS = void 0;
+exports.createSnare = exports.createKick = exports.record = exports.loadInstrument = exports.loadInstrumentParts = exports.INSTRUMENT_NAMES = exports.playTrack = exports.setAmplitude = exports.setFrequency = exports.setShape = exports.playAudio = exports.stopAudio = exports.setupAudio = exports.inputNode = exports.active = exports.playing = exports.dataArray = exports.bufferLength = exports.audioContext = exports.randomInstrument = exports.FOLDERS = void 0;
 
 var _maths = require("./maths");
 
@@ -101246,6 +101405,7 @@ let delayNode;
 let feedbackNode;
 let analyser;
 let compressor;
+let reverb;
 let destinationVolume = 0;
 let playing = false;
 exports.playing = playing;
@@ -101255,16 +101415,35 @@ const inputNode = delayNode;
 exports.inputNode = inputNode;
 
 const setupAudio = () => {
-  // MIDI.Soundfont.accordion
-  // init // set up forked web audio context, for multiple browsers
+  // set up forked web audio context, for multiple browsers
   // window. is needed otherwise Safari explodes
   exports.audioContext = audioContext = new (window.AudioContext || window.webkitAudioContext)();
   gainNode = audioContext.createGain();
   gainNode.gain.value = 0;
   oscillator = audioContext.createOscillator();
   oscillator.type = "sine"; // "sawtooth"
+  // this should hopefully balance the outputs
 
-  compressor = audioContext.createDynamicsCompressor();
+  compressor = audioContext.createDynamicsCompressor(); // compressor.threshold.setValueAtTime(-50, audioContext.currentTime)
+  // compressor.knee.setValueAtTime(40, audioContext.currentTime)
+  // compressor.ratio.setValueAtTime(12, audioContext.currentTime)
+  // compressor.attack.setValueAtTime(0, audioContext.currentTime)
+  // compressor.release.setValueAtTime(0.25, audioContext.currentTime)
+  // var compressor = {
+  // 	threshold: [-100, 0],
+  // 	knee: [0, 40],
+  // 	ratio: [1, 20],
+  // 	attack: [0, 1],
+  // 	release: [0, 1]
+  //   }
+
+  compressor.threshold.value = -50;
+  compressor.knee.value = 40;
+  compressor.ratio.value = 12;
+  compressor.attack.value = 0;
+  compressor.release.value = 0.5;
+  reverb = audioContext.createConvolver(); // reverb = audioContext.createConvolver(null, true)
+
   delayNode = audioContext.createDelay(100);
   feedbackNode = audioContext.createGain();
   delayNode.delayTime.value = 0.1;
@@ -101286,7 +101465,9 @@ const setupAudio = () => {
   oscillator.connect(delayNode);
   delayNode.connect(feedbackNode);
   feedbackNode.connect(delayNode);
-  delayNode.connect(gainNode);
+  delayNode.connect(gainNode); // delayNode.connect(reverb)
+  // reverb.connect(gainNode)
+
   gainNode.connect(compressor);
   compressor.connect(analyser); // oscillator.start()
 
@@ -101388,36 +101569,44 @@ async function loadAudio(path) {
 const playTrack = (audioBuffer, offset = 0, destination = delayNode, options = {
   loop: false
 }) => {
-  const trackSource = audioContext.createBufferSource();
-  trackSource.buffer = audioBuffer; // loop through options nad add
-  // options
+  return new Promise((resolve, reject) => {
+    const trackSource = audioContext.createBufferSource();
+    trackSource.buffer = audioBuffer; // loop through options nad add
+    // options
 
-  trackSource.loop = options.loop; // trackSource.detune = options.detune
-  //trackSource.playbackRate = options.playbackRate
+    trackSource.loop = options.loop; // trackSource.detune = options.detune
+    //trackSource.playbackRate = options.playbackRate
 
-  trackSource.connect(destination); // trackSource.connect(audioContext.destination)
-  // console.error("Playing track", {audioBuffer,trackSource} )
-  // https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
-  // FIXME: when it has finished playing remove it...
-  // trackSource.addEventListener()
+    trackSource.connect(destination); // trackSource.connect(audioContext.destination)
+    // console.error("Playing track", {audioBuffer,trackSource} )
+    // https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
+    // FIXME: when it has finished playing remove it...
+    // trackSource.addEventListener()
 
-  trackSource.onended = () => {
-    trackSource.disconnect();
-    exports.active = active = false;
-  };
+    trackSource.onended = () => {
+      trackSource.disconnect();
+      exports.active = active = false;
+      resolve();
+    };
 
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
+    trackSource.onerror = error => {
+      trackSource.disconnect();
+      exports.active = active = false;
+      reject(error);
+    };
 
-  if (offset == 0) {
-    trackSource.start(); //offset = audioContext.currentTime
-  } else {
-    trackSource.start(0, audioContext.currentTime - offset);
-  }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
 
-  exports.active = active = true;
-  return trackSource;
+    if (offset == 0) {
+      trackSource.start(); //offset = audioContext.currentTime
+    } else {
+      trackSource.start(0, audioContext.currentTime - offset);
+    }
+
+    exports.active = active = true;
+  });
 }; // const track = await loadAudio()
 // const r = playTrack(track)
 
@@ -101559,6 +101748,115 @@ const record = stream => {
 };
 
 exports.record = record;
+
+const createKick = () => {
+  const osc = audioContext.createOscillator();
+  const osc2 = audioContext.createOscillator();
+  const gainOsc = audioContext.createGain();
+  const gainOsc2 = audioContext.createGain();
+  osc.type = "triangle";
+  osc2.type = "sine";
+
+  const kick = (attack = 0.01, duration = 0.5) => {
+    gainOsc.gain.setValueAtTime(1, audioContext.currentTime);
+    gainOsc.gain.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration);
+    gainOsc2.gain.setValueAtTime(1, audioContext.currentTime);
+    gainOsc2.gain.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration);
+    osc.frequency.setValueAtTime(120, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration);
+    osc2.frequency.setValueAtTime(50, audioContext.currentTime);
+    osc2.frequency.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration);
+
+    try {
+      osc.start(audioContext.currentTime);
+      osc2.start(audioContext.currentTime);
+    } catch (error) {} //  osc.stop(audioContext.currentTime + duration)
+    //  osc2.stop(audioContext.currentTime + duration)
+
+  };
+
+  osc.connect(gainOsc);
+  osc2.connect(gainOsc2);
+  gainOsc.connect(gainNode);
+  gainOsc2.connect(gainNode);
+  return kick;
+};
+
+exports.createKick = createKick;
+
+const createSnare = () => {
+  const osc3 = audioContext.createOscillator();
+  const gainOsc3 = audioContext.createGain();
+  const filterGain = audioContext.createGain();
+
+  const snare = () => {
+    const time = audioContext.currentTime;
+    filterGain.gain.cancelScheduledValues(time);
+    filterGain.gain.setValueAtTime(1, time);
+    filterGain.gain.exponentialRampToValueAtTime(0.000000000001, time + 0.2);
+
+    try {
+      osc3.start(time); //osc3.stop(audioContext.currentTime + 0.2)
+
+      node.start(time); //node.stop(audioContext.currentTime + 0.2)	
+
+      gainOsc3.gain.setValueAtTime(0, time);
+      gainOsc3.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+      filter.frequency.setValueAtTime(100, time);
+      filter.frequency.linearRampToValueAtTime(1000, time + 0.2);
+    } catch (error) {}
+  };
+
+  osc3.type = "triangle";
+  osc3.frequency.value = 100;
+  gainOsc3.gain.value = 0;
+  osc3.connect(gainOsc3);
+  gainOsc3.connect(gainNode); //gainNode.gain.value = 1
+
+  const node = audioContext.createBufferSource();
+  const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+  const filter = audioContext.createBiquadFilter();
+  filter.type = "highpass";
+
+  for (var i = 0; i < 4096; i++) {
+    data[i] = Math.random();
+  }
+
+  node.buffer = buffer;
+  node.loop = true;
+  node.connect(filter);
+  filter.connect(filterGain);
+  filterGain.connect(gainNode);
+  return snare;
+};
+
+exports.createSnare = createSnare;
+
+function hihat() {
+  var gainOsc4 = audioContext.createGain();
+  var fundamental = 40;
+  var ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+  var bandpass = audioContext.createBiquadFilter();
+  bandpass.type = "bandpass";
+  bandpass.frequency.value = 10000;
+  var highpass = audioContext.createBiquadFilter();
+  highpass.type = "highpass";
+  highpass.frequency.value = 7000;
+  ratios.forEach(function (ratio) {
+    var osc4 = audioContext.createOscillator();
+    osc4.type = "square";
+    osc4.frequency.value = fundamental * ratio;
+    osc4.connect(bandpass);
+    osc4.start(audioContext.currentTime);
+    osc4.stop(audioContext.currentTime + 0.05);
+  });
+  gainOsc4.gain.setValueAtTime(1, audioContext.currentTime);
+  gainOsc4.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+  bandpass.connect(highpass);
+  highpass.connect(gainOsc4);
+  gainOsc4.connect(mixGain);
+}
 },{"./maths":"4YhKa","./instruments":"nOq63"}],"4YhKa":[function(require,module,exports) {
 "use strict";
 
@@ -102009,6 +102307,7 @@ const prefix = ""; //./
 
 let timingWorker = new Worker(`${prefix}timing.${mode}.worker.js`);
 let startTime = -1;
+let currentInterval = 1;
 let audioContext = null;
 let isRunning = false;
 
@@ -102031,11 +102330,16 @@ const setMode = newMode => {
 exports.setMode = setMode;
 
 const setTimeBetween = time => {
-  interval = time; // if it is running, stop and restart it?
+  currentInterval = time; // if it is running, stop and restart it?
   //interval = newInterval
   // TODO
   // FIXME
-  // timingWorker.postMessage({command:CMD_UPDATE, interval:newInterval, time:currentTime})
+
+  timingWorker.postMessage({
+    command: _timingConstants.CMD_UPDATE,
+    interval: currentInterval,
+    time: now()
+  });
 };
 
 exports.setTimeBetween = setTimeBetween;
@@ -102044,7 +102348,7 @@ const getMode = () => mode;
 
 exports.getMode = getMode;
 
-const start = (callback, interval = 200) => {
+const start = (callback, timeBetween = 200) => {
   // lazily initialise a context
   if (audioContext === null) {
     audioContext = new AudioContext(); // on Safari macOS/iOS, the audioContext is suspended if it's not created
@@ -102053,6 +102357,11 @@ const start = (callback, interval = 200) => {
     if (audioContext.state === 'suspended') {
       audioContext.resume();
     }
+  }
+
+  currentInterval = timeBetween;
+
+  if (!isRunning) {// 
   } // now hook into our worker bee and watch for timing changes
 
 
@@ -102076,17 +102385,17 @@ const start = (callback, interval = 200) => {
         // How many ticks have occured yet
         const intervals = data.intervals; // Expected time stamp
 
-        const expected = intervals * interval * 0.001; // How long has elapsed according to audio context
+        const expected = intervals * timeBetween * 0.001; // How long has elapsed according to audio context
 
         const elapsed = currentTime - startTime; // How long has elapsed according to our worker
 
         const timePassed = data.time; // how much spill over the expected timestamp is there
 
-        const lag = timePassed % interval * 0.001; // should be 0 if the timer is working...
+        const lag = timePassed % timeBetween * 0.001; // should be 0 if the timer is working...
 
         const drift = timePassed - elapsed; // deterministic intervals not neccessary
 
-        const level = Math.floor(timePassed / interval); // update offset?
+        const level = Math.floor(timePassed / timeBetween); // update offset?
         // elapsed should === time
         //console.log("EVENT_TICK", {timePassed, elapsed, drift, art})
 
@@ -102122,11 +102431,11 @@ const start = (callback, interval = 200) => {
   timingWorker.postMessage({
     command: _timingConstants.CMD_START,
     time: audioContext.currentTime,
-    interval
+    interval: timeBetween
   });
   console.log("Starting...", {
     audioContext,
-    interval,
+    interval: timeBetween,
     timingWorker
   }); // methods that can be chained?
 
@@ -103233,7 +103542,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.drawBars = exports.drawWaves = exports.drawFace = exports.DEFAULT_COLOURS = exports.drawPoints = exports.drawBoundingBox = exports.drawMouth = exports.drawEye = exports.drawPart = exports.clear = exports.canvasContext = exports.canvas = exports.setupImage = exports.setupCamera = void 0;
+exports.drawBars = exports.drawWaves = exports.drawQuantise = exports.drawFace = exports.drawPoints = exports.drawBoundingBox = exports.drawMouth = exports.drawEye = exports.drawPart = exports.clear = exports.updateCanvasSize = exports.canvasContext = exports.canvas = exports.setupImage = exports.setupCamera = exports.DEFAULT_COLOURS = void 0;
 
 var _maths = require("./maths");
 
@@ -103249,6 +103558,19 @@ var _maths = require("./maths");
 // 	})
 // 	video.srcObject = stream
 // }
+const DEFAULT_COLOURS = {
+  dots: 'red',
+  mouth: 'rgba(255,0,0,0.5)',
+  lipsUpperInner: 'pink',
+  lipsLowerInner: 'pink',
+  midwayBetweenEyes: 'blue',
+  leftEyeLower0: 'red',
+  rightEyeLower0: 'red',
+  leftEyeIris: 'yellow',
+  rightEyeIris: 'yellow'
+};
+exports.DEFAULT_COLOURS = DEFAULT_COLOURS;
+
 async function startCamera(video) {
   return new Promise(async (resolve, reject) => {
     video = video || document.createElement('video');
@@ -103310,8 +103632,19 @@ const canvas = document.querySelector("canvas");
 exports.canvas = canvas;
 const canvasContext = canvas.getContext('2d');
 exports.canvasContext = canvasContext;
-const width = canvas.width;
-const height = canvas.height;
+let width = canvas.width;
+let height = canvas.height;
+
+const updateCanvasSize = (w, h) => {
+  width = w || canvas.width;
+  height = h || canvas.height;
+  console.error("Updated canvas size to", {
+    w,
+    h
+  }, canvas.width, canvas.height);
+};
+
+exports.updateCanvasSize = updateCanvasSize;
 canvasContext.save();
 
 const clear = () => {
@@ -103348,29 +103681,109 @@ exports.drawPart = drawPart;
 
 const drawEye = (eye, colour = "blue") => {
   canvasContext.fillStyle = colour;
+  const iris = eye[0];
+  const inner = eye[1];
+  const up = eye[2];
+  const outer = eye[3];
+  const down = eye[4];
+  canvasContext.strokeWidth = 0; // draw eye path
 
-  for (let i = 0; i < eye.length; i++) {
-    const x = eye[i][0];
-    const y = eye[i][1];
-    const z = eye[i][2];
-    const radius = 1 + Math.abs(z) * 0.8;
-    canvasContext.beginPath();
-    canvasContext.arc(x, y, radius, 0, _maths.TAU);
-    canvasContext.fill();
+  const arcLength = 6;
+  canvasContext.beginPath();
+  canvasContext.fillStyle = 'blue';
+  canvasContext.arcTo(up[0], up[1], inner[0], inner[1], arcLength);
+  canvasContext.arcTo(inner[0], inner[1], down[0], down[1], arcLength);
+  canvasContext.arcTo(down[0], down[1], outer[0], outer[1], arcLength);
+  canvasContext.arcTo(outer[0], outer[1], up[0], up[1], arcLength);
+  canvasContext.fill();
+  let radius = 2; // 1 + clamp( (10+iris[2]) * 0.8, 5, 10 )
+
+  canvasContext.beginPath();
+  canvasContext.fillStyle = 'black';
+  canvasContext.arc(iris[0], iris[1], radius, 0, _maths.TAU);
+  canvasContext.fill();
+  /*
+  radius = 4
+  canvasContext.beginPath()
+  canvasContext.fillStyle  = 'blue'
+  canvasContext.arc(up[0], up[1], radius, 0, TAU)
+  canvasContext.fill()
+  canvasContext.closePath()
+  
+  canvasContext.beginPath()
+  canvasContext.fillStyle  = 'purple'
+  canvasContext.arc(outer[0], outer[1], radius, 0, TAU)
+  canvasContext.fill()
+  	
+  canvasContext.beginPath()
+  canvasContext.fillStyle  = 'green'
+  canvasContext.arc(down[0], down[1], radius, 0, TAU)
+  canvasContext.fill()
+  
+  
+  canvasContext.beginPath()
+  canvasContext.fillStyle  = 'yellow'
+  canvasContext.arc(inner[0], inner[1], radius, 0, TAU)
+  canvasContext.fill()
+  */
+
+  /*
+  // there are four outer balls
+  for (let i = 0  ; i < eye.length -1; i++ ) 
+  {
+  const x = eye[i][0]
+  const y = eye[i][1]
+  const z = eye[i][2]
+  		// const radius = 1 + clamp( (10+z) * 0.8, 5, 10 )
+  // canvasContext.arc(x, y, radius, 0, TAU)
+  // canvasContext.fill()
+  		if (i > 0)
+  {
+  	const arcLength = 7 ;//Math.abs( i%2 ? iris - x : iris - y )
+  	const previous = eye[i-1]
+  	canvasContext.arcTo(previous[0],previous[1], x,y,arcLength)
   }
+  }*/
+  // canvasContext.stroke()
 };
 
 exports.drawEye = drawEye;
 
-const drawMouth = (lipsUpper, lipsLower, colour = "yellow") => {
-  const lips = [lipsUpper, lipsLower]; // central piece of the mouth
+const drawMouth = (prediction, colour = "yellow") => {
+  const {
+    annotations,
+    mouthRange,
+    mouthOpen
+  } = prediction;
+  const {
+    lipsUpperInner,
+    lipsLowerInner
+  } = annotations;
+  const lips = [lipsUpperInner, lipsLowerInner]; // central piece of the mouth
 
-  const lipUpperMiddle = lipsUpper[5];
-  const lipLowerMiddle = lipsLower[5];
-  const lipVerticalOpening = lipLowerMiddle[1] - lipUpperMiddle[1];
-  canvasContext.fillStyle = colour;
+  const lipUpperMiddle = lipsUpperInner[5];
+  const lipLowerMiddle = lipsLowerInner[5]; // kermit style mouth with gradient!
+  // const topGradient = ctx.createLinearGradient(0, 0, 0, lipVerticalOpening)
+  // topGradient.addColorStop(0, "black")
+  // topGradient.addColorStop(1, "white")
+  // how can we work out height of the mouth???
+
+  const mouthGradient = canvasContext.createLinearGradient(0, 0, 0, mouthRange);
+  mouthGradient.addColorStop(0, colour);
+  mouthGradient.addColorStop(0.5, "black");
+  mouthGradient.addColorStop(1, colour); // canvasContext.beginPath()
+  // canvasContext.moveTo(lipsUpper[0][0], lipsUpper[0][1])
+  // for (let i = 0, q=lip.length; i < q; i++) 
+  // {
+  // 	const x = lip[i][0]
+  // 	const y = lip[i][1]
+  // 	canvasContext.lineTo(x, y)
+  // }	
+  // canvasContext.fill()
+
   canvasContext.beginPath();
-  canvasContext.moveTo(lipsUpper[0][0], lipsUpper[0][1]);
+  canvasContext.moveTo(lipsUpperInner[0][0], lipsUpperInner[0][1]);
+  canvasContext.fillStyle = mouthGradient; // dual lips mode
 
   for (let l = 0, t = lips.length; l < t; l++) {
     const lip = lips[l];
@@ -103400,12 +103813,11 @@ const drawMouth = (lipsUpper, lipsLower, colour = "yellow") => {
   canvasContext.stroke();
   canvasContext.font = "12px Oxanium";
   canvasContext.textAlign = "center";
-  canvasContext.fillText(`${Math.floor(lipVerticalOpening)}px`, lipLowerMiddle[0], lipLowerMiddle[1] - 20); // -- debug
+  canvasContext.fillText(`${Math.floor(mouthRange)}px`, lipLowerMiddle[0], lipLowerMiddle[1] - 20); // -- debug
 
   return {
     lipUpperMiddle,
-    lipLowerMiddle,
-    lipVerticalOpening
+    lipLowerMiddle
   };
 };
 
@@ -103422,43 +103834,39 @@ const drawBoundingBox = (boundingBox, colour = 'red') => {
 
   canvasContext.strokeRect(topLeft[0], topLeft[1], bottomRight[0], bottomRight[1]);
   canvasContext.fill();
-}; // Just draws lots of dots on an image on the canvas
-
+};
 
 exports.drawBoundingBox = drawBoundingBox;
+const modifier = _maths.easeInQuad; // Just draws lots of dots on an image on the canvas
 
-const drawPoints = (prediction, colour = 'brown') => {
+const drawPoints = (prediction, hue = 60, size = 3) => {
   const {
     scaledMesh
-  } = prediction;
-  canvasContext.fillStyle = colour; // draw face points at correct position on canvas
+  } = prediction; // draw face points at correct position on canvas
 
   for (let i = 0; i < scaledMesh.length; i++) {
     const x = scaledMesh[i][0];
     const y = scaledMesh[i][1];
-    const z = scaledMesh[i][2];
-    const radius = 1 + Math.abs(100 - z) * 0.01;
+    const z = scaledMesh[i][2]; // z index should not be considered as depth as we
+    // start from the front and head back
+    // const depth = size * ( z + 2) * 0.1
+
+    const depth = 1 - (z + 45) / 45; //* 0.1
+
+    const radius = (0, _maths.clamp)(size * modifier(depth), 1, size);
+    const alpha = (0, _maths.clamp)(depth, 0.5, 1); // console.log({depth,radius,alpha})
+    // const radius = size * Math.abs(10 - z) * 0.1
+
     canvasContext.beginPath();
+    canvasContext.fillStyle = `hsla(${hue},70%,50%,${alpha})`;
     canvasContext.arc(x, y, radius, 0, _maths.TAU);
     canvasContext.fill();
   }
-};
-
-exports.drawPoints = drawPoints;
-const DEFAULT_COLOURS = {
-  dots: 'red',
-  mouth: 'rgba(255,0,0,0.5)',
-  lipsUpperInner: 'pink',
-  lipsLowerInner: 'pink',
-  midwayBetweenEyes: 'blue',
-  leftEyeLower0: 'red',
-  rightEyeLower0: 'red',
-  leftEyeIris: 'yellow',
-  rightEyeIris: 'yellow'
 }; // every frame this gets called with an array of points in a mesh face
 // we use certain deviations to determine direction and mouth size
 
-exports.DEFAULT_COLOURS = DEFAULT_COLOURS;
+
+exports.drawPoints = drawPoints;
 
 const drawFace = (prediction, options = DEFAULT_COLOURS) => {
   // extract our data
@@ -103481,11 +103889,11 @@ const drawFace = (prediction, options = DEFAULT_COLOURS) => {
     lipsUpperInner,
     lipsLowerInner
   } = annotations; // top lips
+  // drawPart(lipsUpperInner, options.lipsUpperInner)
+  // drawPart(lipsLowerInner, options.lipsLowerInner)
+  //drawMouth(lipsUpperInner,lipsLowerInner)
 
-  drawPart(lipsUpperInner, options.lipsUpperInner);
-  drawPart(lipsLowerInner, options.lipsLowerInner); //drawMouth(lipsUpperInner,lipsLowerInner)
-
-  drawMouth(lipsUpperInner, lipsLowerInner, options.mouth); // EYES ===========================================
+  drawMouth(prediction, options.mouth); // EYES ===========================================
 
   const {
     leftEyeIris,
@@ -103497,10 +103905,11 @@ const drawFace = (prediction, options = DEFAULT_COLOURS) => {
     leftEyeLower0,
     rightEyeLower0,
     midwayBetweenEyes
-  } = annotations;
-  drawPart(midwayBetweenEyes, options.midwayBetweenEyes);
-  drawPart(leftEyeLower0, options.leftEyeLower0);
-  drawPart(rightEyeLower0, options.rightEyeLower0); // these aren't scaled :(
+  } = annotations; // drawPart(midwayBetweenEyes, options.midwayBetweenEyes )
+  // eye lids
+  // drawPart(leftEyeLower0, options.leftEyeLower0 )
+  // drawPart(rightEyeLower0, options.rightEyeLower0 )
+  // these aren't scaled :(
   // canvasContext.fillStyle  = 'orange'
   // canvasContext.beginPath()
   // canvasContext.arc( midwayBetweenEyes[0], midwayBetweenEyes[1], 10, 0, TAU )
@@ -103508,6 +103917,21 @@ const drawFace = (prediction, options = DEFAULT_COLOURS) => {
 };
 
 exports.drawFace = drawFace;
+
+const drawQuantise = active => {
+  const stroke = 10;
+  canvasContext.fillStyle = "hsla(" + (active ? 180 : 90) + ", 80%,50%, 0.5)"; // canvasContext.fillStyle = "green"
+  // canvasContext.strokeStyle = "green"
+
+  canvasContext.strokeWidth = stroke; //+"px"
+
+  canvasContext.font = "32px Oxanium";
+  canvasContext.textAlign = "right";
+  canvasContext.fillText(`Quantise`, stroke, stroke);
+  canvasContext.strokeRect(0, 0, width, height); // console.log("quantise enabled!")
+};
+
+exports.drawQuantise = drawQuantise;
 
 const drawWaves = (dataArray, bufferLength) => {
   canvasContext.lineWidth = 2;
@@ -103564,9 +103988,8 @@ var _maths = require("./maths");
 var _visual = require("./visual");
 
 // each person in the app has their own instrument and face
-// options
-const ease = _maths.easeInCubic; // easeInSine
-
+// options easeInCubic // 
+const ease = _maths.easeInSine;
 const LIPS_RANGE = 40;
 exports.LIPS_RANGE = LIPS_RANGE;
 const DEFAULT_OPTIONS = _visual.DEFAULT_COLOURS;
@@ -103575,8 +103998,10 @@ class Person {
   constructor(name, audioContext, destinationNode, options = {}) {
     this.name = name;
     this.counter = 0;
+    this.instrumentLoading = false;
     this.data = null;
     this.audioContext = audioContext;
+    this.active = false;
     this.stereoNode = audioContext.createStereoPanner();
     const delayNode = audioContext.createDelay(100);
     const feedbackNode = audioContext.createGain();
@@ -103593,7 +104018,10 @@ class Person {
     this.gainNode.connect(destinationNode);
     this.button = document.getElementById(name);
     this.button.addEventListener('click', event => {
-      this.loadInstrument((0, _audio.randomInstrument)());
+      if (this.instrumentLoading) {} else {
+        this.loadInstrument((0, _audio.randomInstrument)());
+      }
+
       event.preventDefault();
     });
     this.button.addEventListener('mouseover', event => {
@@ -103622,9 +104050,25 @@ class Person {
     } else if (!prediction) {
       // refresh
       prediction = this.prediction;
-    } // NB. assumes screen has been previously cleared	
-    // drawBox( prediction )
+    }
 
+    let hue = 90;
+
+    if (this.instrumentLoading) {
+      hue += 120;
+    } // update colours...
+
+
+    this.options.dots = hue;
+    this.options.mouth = `hsla(${(hue + 30) % 360},70%,50%,0.5)`;
+    this.options.lipsUpperInner = `hsla(${(hue + 50) % 360},70%,50%,1)`;
+    this.options.lipsLowerInner = `hsla(${(hue + 50) % 360},70%,50%,1)`;
+    this.options.midwayBetweenEyes = `hsla(${(hue + 270) % 360},70%,50%,1)`;
+    this.options.leftEyeLower0 = `hsla(${(hue + 300) % 360},70%,50%,0.8)`;
+    this.options.rightEyeLower0 = `hsla(${(hue + 300) % 360},70%,50%,0.8)`;
+    this.options.leftEyeIris = `hsla(${(hue + 90) % 360},70%,50%,1)`;
+    this.options.rightEyeIris = `hsla(${(hue + 90) % 360},70%,50%,1)`; // NB. assumes screen has been previously cleared	
+    // drawBox( prediction )
 
     (0, _visual.drawPoints)(prediction, this.options.dots);
     (0, _visual.drawFace)(prediction, this.options); // drawBoundingBox( prediction.boundingBox )
@@ -103642,37 +104086,43 @@ class Person {
       this.button.style.setProperty('--person-a-y', topLeft[1]);
       this.button.style.setProperty('--person-a-w', boxWidth);
       this.button.style.setProperty('--person-a-h', boxHeight);
-    } // draw silhoette if the user is interacting
+    } // draw silhoette if the user is 
+    // if you want it to flicker...
+    // interacting&& this.counter%2 === 0)
 
 
-    if (this.isMouseOver && this.counter % 2 === 0) {
+    if (this.isMouseOver || this.instrumentLoading) {
       const {
         silhouette
-      } = prediction.annotations;
-      const offsetX = topLeft[0];
-      const offsetY = topLeft[1];
+      } = prediction.annotations; // draw silhoette directly on the canvas or
+      // SVG shape in the button for hitarea?
 
-      const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${coord[1] - offsetY}`;
-
-      const svgPaths = silhouette.map(part => `L${svgCoord(part)}`);
-      const circles = silhouette.map(part => {
-        const c = svgCoord(part);
-        return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`;
-      }); // for outline...+ ` Z`
-
-      const svgPath = `M${svgCoord(silhouette[0])} ` + svgPaths.join(" "); //  height="210" width="400"
-
-      const silhoetteShape = `<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
-				<path d="${svgPath}" />
-				${circles.join('')}
-			</svg>`; //console.log("SVG",silhouette, silhoetteShape)
-
-      this.button.innerHTML = silhoetteShape;
+      (0, _visual.drawPart)(silhouette, 4, 'hsla(' + hue + ',50%,50%,0.3)', true);
+      /*
+      			const offsetX = topLeft[0]
+      			const offsetY = topLeft[1]
+      			const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
+      			const svgPaths = silhouette.map( part => `L${svgCoord(part)}`)
+      			const circles = silhouette.map( part =>{
+      				const c = svgCoord(part)
+      				return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`
+      			})
+      			// for outline...+ ` Z`
+      			const svgPath = `M${svgCoord(silhouette[0])} ` + svgPaths.join(" ")
+      			//  height="210" width="400"
+      			const silhoetteShape = 
+      			`<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
+      				<path d="${svgPath}" />
+      				${circles.join('')}
+      			</svg>`
+      			//console.log("SVG",silhouette, silhoetteShape)
+      			this.button.innerHTML = silhoetteShape	
+      			*/
     }
   }
 
   sing() {
-    if (!this.data) {
+    if (!this.data || this.active) {
       return;
     }
 
@@ -103681,6 +104131,8 @@ class Person {
     const lipPercentage = (0, _maths.clamp)(prediction.mouthRange / LIPS_RANGE, 0, 1);
     const yaw = prediction.yaw;
     const pitch = prediction.pitch; // Math.abs()
+
+    const roll = (prediction.roll + 1) / 2; // -1 => +1
     // volume is an log of this
 
     const amp = (0, _maths.clamp)(lipPercentage, 0, 1); //- 0.1
@@ -103697,11 +104149,16 @@ class Person {
       if (_audio.active) {} // play a note from the collectionlogAmp
 
 
-      const noteNumber = Math.floor(lipPercentage * (_audio.INSTRUMENT_NAMES.length - 1));
+      const noteNumber = Math.floor(roll * (_audio.INSTRUMENT_NAMES.length - 1)); // const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
+
       const noteName = _audio.INSTRUMENT_NAMES[noteNumber];
       const note = this.instrument[noteName]; // TODO: add velocity logAmp
 
-      const track = (0, _audio.playTrack)(note, 0, this.stereoNode); // send out some MIDI yum yum noteName && 
+      this.active = true;
+      const track = (0, _audio.playTrack)(note, 0, this.stereoNode).then(() => {
+        console.log("Sample completed playback... request tock");
+        this.active = false;
+      }); // send out some MIDI yum yum noteName && 
 
       if (this.midi && this.midiChannel) {
         // duration: 2000,
@@ -103719,10 +104176,13 @@ class Person {
       pitch,
       lipPercentage
     };
-  }
+  } // wee need loadiing events
+
 
   async loadInstrument(instrumentName) {
+    this.instrumentLoading = true;
     this.instrument = await (0, _audio.loadInstrument)(instrumentName);
+    this.instrumentLoading = false;
   }
 
   setMIDI(midi, channel = "all") {
@@ -103756,6 +104216,6 @@ const setupInterface = () => {
 };
 
 exports.setupInterface = setupInterface;
-},{"./audio":"5DhFk"}]},{},["525pK","6KIZ6"], "6KIZ6", "parcelRequiree3fa")
+},{"./audio":"5DhFk"}]},{},["5Xdj4","6KIZ6"], "6KIZ6", "parcelRequiree3fa")
 
 //# sourceMappingURL=index.6fdefeea.js.map

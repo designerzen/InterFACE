@@ -18,6 +18,7 @@ const prefix = "" //./
 let timingWorker = new Worker(`${prefix}timing.${mode}.worker.js`)
 
 let startTime = -1
+let currentInterval = 1
 let audioContext = null
 let isRunning = false
 
@@ -40,17 +41,17 @@ export const setMode = newMode => {
 }
 
 export const setTimeBetween = time => {
-    interval = time
+    currentInterval = time
     // if it is running, stop and restart it?
      //interval = newInterval
     // TODO
     // FIXME
-    // timingWorker.postMessage({command:CMD_UPDATE, interval:newInterval, time:currentTime})
+    timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
 }
 
 export const getMode = () => mode
 
-export const start = (callback, interval=200) => {
+export const start = (callback, timeBetween=200) => {
 
 	
     // lazily initialise a context
@@ -62,6 +63,13 @@ export const start = (callback, interval=200) => {
         if (audioContext.state === 'suspended') {
             audioContext.resume();
         }
+    }
+
+    currentInterval = timeBetween
+
+    if (!isRunning)
+    {
+        // 
     }
    
     // now hook into our worker bee and watch for timing changes
@@ -83,17 +91,17 @@ export const start = (callback, interval=200) => {
                 // How many ticks have occured yet
                 const intervals = data.intervals
                 // Expected time stamp
-                const expected = intervals * interval * 0.001
+                const expected = intervals * timeBetween * 0.001
                 // How long has elapsed according to audio context
                 const elapsed = currentTime - startTime
                 // How long has elapsed according to our worker
                 const timePassed = data.time
                 // how much spill over the expected timestamp is there
-                const lag = timePassed % interval * 0.001
+                const lag = timePassed % timeBetween * 0.001
                 // should be 0 if the timer is working...
                 const drift = timePassed - elapsed
                 // deterministic intervals not neccessary
-                const level = Math.floor(timePassed / interval)
+                const level = Math.floor(timePassed / timeBetween)
                 
                 // update offset?
 
@@ -115,8 +123,8 @@ export const start = (callback, interval=200) => {
     }
 
     // send command to worker
-    timingWorker.postMessage({command:CMD_START, time:audioContext.currentTime, interval })
-    console.log("Starting...", {audioContext, interval, timingWorker} )
+    timingWorker.postMessage({command:CMD_START, time:audioContext.currentTime, interval:timeBetween })
+    console.log("Starting...", {audioContext, interval:timeBetween, timingWorker} )
 
     // methods that can be chained?
     return {
