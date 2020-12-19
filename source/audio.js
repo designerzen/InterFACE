@@ -61,9 +61,10 @@ export const setupAudio = () => {
 
 	reverb = audioContext.createConvolver()
 	// reverb = audioContext.createConvolver(null, true)
-	delayNode = audioContext.createDelay(100)
+	delayNode = audioContext.createDelay(5)
 	feedbackNode = audioContext.createGain()
-	delayNode.delayTime.value = 0.1
+
+	delayNode.delayTime.value = 0
 	feedbackNode.gain.value = 0.3
 
 	analyser = audioContext.createAnalyser()
@@ -387,6 +388,7 @@ export const record = (stream)=>{
 	return {startRecording,stopRecording}
 } 
 
+const ZERO = 0.0000001
 
 export const createKick = () => {
 
@@ -399,21 +401,32 @@ export const createKick = () => {
     osc2.type = "sine"
 
 	const kick = (attack=0.01,duration=0.5) => {
-		gainOsc.gain.setValueAtTime(1, audioContext.currentTime)
-		 gainOsc.gain.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
-	 
-		 gainOsc2.gain.setValueAtTime(1, audioContext.currentTime)
-		 gainOsc2.gain.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
+
+		const time = audioContext.currentTime
 		
-		 osc.frequency.setValueAtTime(120, audioContext.currentTime)
-		 osc.frequency.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
-	 
-		 osc2.frequency.setValueAtTime(50, audioContext.currentTime)
-		 osc2.frequency.exponentialRampToValueAtTime(attack, audioContext.currentTime + duration)
+		// clear anything from previous plays
+		gainOsc.gain.cancelScheduledValues(time)
+		gainOsc2.gain.cancelScheduledValues(time)
+		osc.frequency.cancelScheduledValues(time)
+		osc2.frequency.cancelScheduledValues(time)
+
+		gainOsc.gain.setValueAtTime(1, time)
+		gainOsc.gain.exponentialRampToValueAtTime(ZERO, time + duration)
+	
+		gainOsc2.gain.setValueAtTime(1, audioContext.currentTime)
+		gainOsc2.gain.exponentialRampToValueAtTime(ZERO, time + duration)
+	
+		osc.frequency.setValueAtTime(120, audioContext.currentTime)
+		osc.frequency.exponentialRampToValueAtTime(attack, time + duration)
+	
+		osc2.frequency.setValueAtTime(50, audioContext.currentTime)
+		osc2.frequency.exponentialRampToValueAtTime(attack, time + duration)
 		 
 		 try{
-			osc.start(audioContext.currentTime)
-			osc2.start(audioContext.currentTime)
+
+			osc.start(time)
+			osc2.start(time)
+
 		 }catch(error)
 		 {
 
@@ -431,64 +444,84 @@ export const createKick = () => {
 	return kick
 }
 
+// this is just an array of kicks
+export const createKicks = (quantity=5) => {
+
+	const kicks = []
+	for (let i=0; i < quantity; ++i)
+	{
+		const kick = createKick()
+		kicks.push( kick )
+	}
+
+	// interface to play
+	let index = 0
+	const fetchNextKick = (attack=0.01,duration=0.5) => {
+		index = index + 1 < quantity ? index + 1 : 0
+		const kick = kicks[index]
+		kick(attack, duration)
+	}
+	return fetchNextKick
+}
 
 export const createSnare = () => {
 
     const osc3 = audioContext.createOscillator()
     const gainOsc3 = audioContext.createGain()
     const filterGain = audioContext.createGain()
+	const node = audioContext.createBufferSource()
+	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
+
+	const filter = audioContext.createBiquadFilter()
+	filter.type = "highpass"
+
+	osc3.type = "triangle"
+	osc3.frequency.value = 100
+
+	// TODO Cache the noise
+	const data = buffer.getChannelData(0)
+	for (var i = 0; i < 4096; i++) 
+	{
+		data[i] = Math.random()
+	}
+
+	node.buffer = buffer
+	node.loop = true
+	
+	osc3.connect(gainOsc3)
+	gainOsc3.connect(gainNode)	
+
+	node.connect(filter)
+	filter.connect(filterGain)
+	filterGain.connect(gainNode)
 
 	const snare = () => {
 
 		const time = audioContext.currentTime
+		
 		filterGain.gain.cancelScheduledValues(time)
-
 		filterGain.gain.setValueAtTime(1, time)
-		filterGain.gain.exponentialRampToValueAtTime(0.000000000001, time + 0.2)
+		filterGain.gain.exponentialRampToValueAtTime(ZERO, time + 0.2)
 	
+		gainOsc3.gain.setValueAtTime(ZERO, time)
+		gainOsc3.gain.exponentialRampToValueAtTime(ZERO, time+ 0.1)	
+		//gainOsc3.gain.value = 0
+
+		filter.frequency.setValueAtTime(100, time)
+		filter.frequency.linearRampToValueAtTime(1000,time + 0.2)		
+	
+		//gainNode.gain.value = 1			
 		try{
 			osc3.start(time)
 			//osc3.stop(audioContext.currentTime + 0.2)
 		
 			node.start(time)
 			//node.stop(audioContext.currentTime + 0.2)	
-			
-			gainOsc3.gain.setValueAtTime(0, time)
-			gainOsc3.gain.exponentialRampToValueAtTime(0.01, time+ 0.1)
-				
-			filter.frequency.setValueAtTime(100, time)
-			filter.frequency.linearRampToValueAtTime(1000,time + 0.2)		
 		}catch(error){
 
 		}
 	}
 
-    osc3.type = "triangle"
-    osc3.frequency.value = 100
-    gainOsc3.gain.value = 0
-
-    osc3.connect(gainOsc3)
-    gainOsc3.connect(gainNode)
-
-    //gainNode.gain.value = 1
-
-	const node = audioContext.createBufferSource()
-	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
-    const data = buffer.getChannelData(0)
-
-    const filter = audioContext.createBiquadFilter()
-    filter.type = "highpass"
-   
-    for (var i = 0; i < 4096; i++) {
-        data[i] = Math.random()
-	}
-	
-    node.buffer = buffer
-    node.loop = true
-    node.connect(filter)
-    filter.connect(filterGain)
-	filterGain.connect(gainNode)
-	
 	return snare
 }
 

@@ -6,7 +6,7 @@
 // FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
 import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
 import * as tf from '@tensorflow-models/face-landmarks-detection'
-import {ready, setBackend} from '@tensorflow/tfjs'
+import { setBackend} from '@tensorflow/tfjs'
 // If you are using the WebGL backend:
 // require('@tensorflow/tfjs-backend-webgl')
 import '@tensorflow/tfjs-backend-webgl'
@@ -17,6 +17,9 @@ import '@tensorflow/tfjs-backend-webgl'
 // If you are using the WASM backend:
 // require('@tensorflow/tfjs-backend-wasm')
 //import '@tensorflow/tfjs-backend-wasm'
+
+import {loadModel} from './predictor'
+
 // You need to require the backend explicitly because facemesh itself does not
 import { 
 	audioContext,inputNode,
@@ -25,7 +28,8 @@ import {
 	loadInstrument, INSTRUMENT_NAMES, randomInstrument, 
 	playTrack, playAudio, stopAudio, 
 	bufferLength,dataArray, 
-	setupAudio, createKick, createSnare,
+	setupAudio, 
+	createKick, createKicks, createSnare,
 	setShape, setFrequency, setAmplitude, 
 	record } from './audio'
 import { start, stop, getMode, setMode, setTimeBetween } from './timing.js'
@@ -33,10 +37,11 @@ import { setupMIDI } from './midi'
 import { setupCamera, setupImage} from './visual'
 import { easeInSine, easeOutSine , easeInCubic, lerp,clamp, TAU} from "./maths"
 import {updateCanvasSize, clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext, drawWaves, drawBars, drawQuantise} from './visual'
-import Person, {LIPS_RANGE} from './person'
+import Person, {DEFAULT_OPTIONS} from './person'
 import {setupInterface} from './ui'
-// import from './person'
 
+// import from './person'
+const body = document.documentElement
 const main = document.querySelector("main")
 const video = document.querySelector("video")
 const image = document.querySelector("img")
@@ -45,10 +50,9 @@ const buttonInstrument = document.getElementById("button-instrument")
 const buttonVideo = document.getElementById("button-video")
 
 // options
-const ease = easeInCubic // easeInSine
-
 const people = []
-let inputElement = image
+let inputElement = video // image
+		
 let instrument
 
 let camera
@@ -87,8 +91,6 @@ const ui = {
 	backingTrack:false
 }
 
-
-
 function debounce(callback, wait) {
 	let timerId
 	return (...args) => {
@@ -100,6 +102,17 @@ function debounce(callback, wait) {
 
 let cachedFeedback= null
 
+// updates the text on screen
+const setToast = (info, rate=200) => {
+
+	// change it after debounce timeout to prevent flooding
+	debounce(()=>{
+		toast.innerHTML = info
+	}, rate)()
+
+}
+
+//
 // updates the text on screen
 const setFeedback = (info, rate=200) => {
 	// debounce and only change if var has
@@ -115,17 +128,19 @@ const setFeedback = (info, rate=200) => {
 
 //
 const loadRandomInstrument = async () => {
-	const i = randomInstrument() 
 	// console.log("Loading random instrument", i)
-	setFeedback(`Loading ${i}`)
-	// instrument = await loadInstrument( i )
-	const person = people[0]
-	if (person)
+	setFeedback(`Changing all instruments`)
+	
+	for (let p in people)
 	{
+		const i = randomInstrument() 
+		const person = people[p]
+		// instrument = await loadInstrument( i )
 		await person.loadInstrument( i )
 		setFeedback(`${i} loaded!`)
 	}
-	return i
+
+	return people.map( person => person.instrument )
 }
 
 const previousInstrument = async() => {
@@ -136,6 +151,7 @@ const previousInstrument = async() => {
 		const newIndex = index-1 < 0 ? 0 : index-1
 		await person.loadInstrument( FOLDERS[newIndex] )
 		setFeedback(`${FOLDERS[newIndex]} loaded!`)
+		setToast(`${FOLDERS[newIndex]}`)
 	}
 }
 const nextInstrument = async() => {
@@ -146,208 +162,8 @@ const nextInstrument = async() => {
 		const newIndex = index+1 >= FOLDERS.length ? 0 : index+1
 		await person.loadInstrument( FOLDERS[newIndex] )
 		setFeedback(`${FOLDERS[newIndex]} loaded!`)
+		setToast(`${FOLDERS[newIndex]}`)
 	}
-}
-
-async function predict(model){
-
-	// Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
-	// array of detected faces from the MediaPipe graph. If passing in a video
-	// stream, a single prediction per frame will be returned.
-	const predictions = await model.estimateFaces({
-		// webcam element with video
-	  	// input: video
-	  	input: inputElement
-	})
-
-	// Fetch the UV coords for use with 3D renderers
-	// const uvs = FaceLandmarksDetection.getUVCoords()
-
-	// determine head rotation?
-	// take the UV of the eyes and use them to determine angle
-
-	//console.log("Predicting", inputElement, predictions)
-	// firstly check to see if there any predictions
-	if (predictions.length > 0) 
-	{
-		// now loop through all predictions?
-		for (let p = 0, l = predictions.length; p < l; p++) 
-		{
-			const prediction = predictions[p]
-			
-			// more than likely there is a face on the screen :P
-			const {boundingBox, mesh, scaledMesh, annotations} = prediction
-			
-			// now there are some points already isolated :)
-			// so we can work out how much area the mouth is using up
-
-			// See keypoints.js
-
-			const topOfHead = 0
-			const bottomOfHead = 0
-
-			// There are three points on the face that we can compare against
-			const {leftEyeIris,rightEyeIris} = annotations
-			const {leftEyeLower0, rightEyeLower0, midwayBetweenEyes} = annotations
-
-			// eyes pointing in directions?
-			const eyeLeft = leftEyeIris[0]
-			const eyeRight = rightEyeIris[0]
-			const midPoint = midwayBetweenEyes[0]
-
-			const lookingRight = eyeLeft[2] < eyeRight[2]
-
-			// add in some extras to make things easier 
-			// the midpoint can be used to triangulate the yaw
-			const lx = leftEyeLower0[0][0] 
-			const rx = rightEyeLower0[0][0] 
-			const ly = leftEyeLower0[0][1] 
-			const ry = rightEyeLower0[0][1] 
-			const mx = midwayBetweenEyes[0][0] 
-
-			// lengths of the triangle
-			const lmx = (mx - lx) * -1
-			const rmx = mx - rx
-
-			const {rightCheek,leftCheek, silhouette} = annotations
-
-			prediction.lookingRight = lookingRight
-
-
-			// and now we want the angle formed
-			const yaw = -1 * (Math.atan2(lmx, rmx) - 0.75)
- 			//const yaw = 0.5 - Math.atan( midPoint[2], -1 * midPoint[0] ) / ( 2.0 * Math.PI )
-		  
-			// this is from forehead to chin...
-			// if the chin is in front (z) of forehead, head tilting back
-			const pitch = 0.5 - Math.asin( midPoint[1] ) / Math.PI
-
-			// if either eye is lower than the other
-			const rollX = (lx - rx)
-			const rollY = (ly - ry)
-
-			const roll = Math.atan2(rollX, rollY) - Math.PI * 0.5
-			//console.log("roll",roll, {rollX,rollY} )
-			
-			// leaning head as if to look at own chest / sky
-			prediction.pitch = pitch
-			// tilting head towards shoulders
-			prediction.roll = roll
-			// regular left right movement
-			prediction.yaw = yaw
-
-			
-			// Lip work --------------------------------
-
-			const {lipsUpperInner,lipsLowerInner } = annotations
-	
-			// central piece of the mouth
-			const lipUpperMiddle = lipsUpperInner[5]
-			const lipLowerMiddle = lipsLowerInner[5]
-
-			// use hypotheneuse
-			const lipVerticalOpeningX = lipLowerMiddle[0] - lipUpperMiddle[0]
-			const lipVerticalOpeningY = lipLowerMiddle[1] - lipUpperMiddle[1]
-			
-			 const lipVerticalOpening = Math.sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
-			//const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
-			prediction.mouthRange = lipVerticalOpening
-
-			// this is the size of the mouth as a factor of the head size
-			prediction.mouthOpen = 1
-
-			// -1 -> 1
-			prediction.happiness = 0
-
-			//console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
-		} 
-		
-	}else{
-		//console.log("No face in shot")
-	}
-	
-	return predictions
-}
-
-async function loadModel(options) {
-
-	// Set the backend to WASM and wait for the module to be ready.
-	//await setBackend('wasm')
-	await ready()
-	
-	const detectPeople = options.maxFaces
-
-	if (detectPeople === 1)
-	{
-		setFeedback( "Loading Face Landmarks Detection model" )
-	}else{
-		setFeedback( "Loading Group Face Landmarks Detection model" )
-	}
-	
-	// Load the MediaPipe Facemesh package.
-	const model = await load( SupportedPackages.mediapipeFacemesh, options)
-
-	console.log("Loaded model", model )
-	setFeedback( "Learning Model Loaded" )
-
-	// now subscribe to events and monitor
-	const update = async (repeat, callback) => { 
-
-		// single player right now but this could be an array in future
-		const predictions = await predict(model) 
-		
-		// clear for invisible canvas
-		//clear()
-
-		// draw data frame to canvas
-		canvasContext.drawImage(inputElement, 0, 0)
-
-		if (ui.metronome)
-		{
-			// show quantise
-			drawQuantise()
-		}
-
-		//console.log("Predictions narrowed down to", predictions)
-		if (predictions.length > 0)
-		{
-			drawBars( dataArray, bufferLength )
-			//drawWaves( dataArray, bufferLength )
-			
-			// find the smaller value and use as the face quantity
-			const quantity = Math.min(detectPeople, predictions.length)
-			const people = []
-			for (let i=0; i < quantity; ++i)
-			{
-				const prediction = predictions[i]
-				// drawBox( prediction )
-				// drawPoints( prediction )
-				// drawFace( prediction )
-				// drawBoundingBox( prediction.boundingBox )
-				people.push( prediction )
-			}
-		
-			if (callback) 
-			{
-				callback(people)
-			}
-
-		}else{
-
-			// nofaces
-			if (callback) 
-			{
-				callback(null)
-			}
-		}
-
-		// loop
-		if (repeat)
-		{
-			requestAnimationFrame( () => update(repeat, callback) )
-		}
-	}
-	return update
 }
 
 // We cahce every new user!
@@ -376,7 +192,7 @@ const onFace = ()=>{
 
 // start on click as things require gesture for permission
 
-main.classList.add("loading")
+body.classList.add("loading")
 setFeedback("Initialising...<br> Please wait")
 
 const enableMIDI = async () => {
@@ -421,9 +237,13 @@ const showMIDI = async () => {
 
 const setup = (settings) => {
 
-	loadModel(settings).then( async update =>{ 
+	loadModel(inputElement, settings).then( async update =>{ 
 
 		try{
+				
+			setFeedback( "Image downloaded...<br> Please wait")
+			photo = await setupImage(image)
+			
 			setFeedback("Attempting to locate camera...")
 
 			// wait for video or image to be loaded!
@@ -436,10 +256,7 @@ const setup = (settings) => {
 			main.style.setProperty('--height', video.height )
 
 			updateCanvasSize(video.width, video.height)
-				
-			photo = await setupImage(image)
-			setFeedback( "Image downloaded...<br> Please wait")
-
+			
 			audio = setupAudio()
 			setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
 
@@ -450,14 +267,16 @@ const setup = (settings) => {
 			//playTrack(instrument.A0, 0)
 			setFeedback(instrumentName+" Samples available...<br>Instrument Sounds downloaded")
 			
-			kick = createKick()
+			kick = createKicks()
 			snare = createSnare()
 			// console.log("Streamin", {video, photo, camera} )
 
 		}catch(error){
+
 			console.error("Bummer", error)
 			setFeedback("Something went wrong :(<br>"+error)
 		}
+
 
 		// MIDI ------
 		try{
@@ -474,7 +293,6 @@ const setup = (settings) => {
 		// const {startRecording, stopRecording} = record(stream)
 		
 		// set the input element to either the image or the video
-		inputElement = video // image
 		// hide the other or just set the class?
 
 		// set the canvas to the size of the video / image
@@ -483,11 +301,8 @@ const setup = (settings) => {
 
 		// console.error("Tensorflow", tf)
 		main.classList.add( inputElement.nodeName.toLowerCase() )
-		main.classList.remove("loading")
-
-		// after a period of inactivity...
-		setFeedback("Open your mouth to begin!")
-
+		
+		
 		// FIXME: set up a basic metronome here too...
 		const playing = []
 
@@ -496,10 +311,16 @@ const setup = (settings) => {
 		// turn up the amp
 		setAmplitude( 1 )
 
+		// set up the instrument selctor etc
+		setupInterface()
+
+
 		let barsElapsed = 0
 		const timer = start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
 			
 			barsElapsed++
+			
+			// console.log(barsElapsed, "timer", timer)
 
 			if (ui.metronome)
 			{
@@ -509,6 +330,8 @@ const setup = (settings) => {
 				// show quantise
 				drawQuantise(true)
 			}
+
+			// play some music!
 			if (ui.backingTrack)
 			{
 			
@@ -525,8 +348,19 @@ const setup = (settings) => {
 
 		}, timePerBar() )
 
-		console.log("timer", timer)
 
+		// after a period of inactivity...
+		setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
+	
+		// remove loading flag as we now have all of our assets!
+		body.classList.remove("loading")
+
+		update( inputElement === video, (predictions)=>{
+
+			//console.log(inputElement === video, "Predictions found ",predictions)
+		})
+		console.log(inputElement === video, "Waiting on predicions")
+		return
 		// LOOP ---------------------------------------
 
 		// FaceMesh.getUVCoords 
@@ -535,6 +369,25 @@ const setup = (settings) => {
 
 			let tickerTape = ''
 			counter++
+			
+			// clear for invisible canvas
+			//clear()
+
+			// draw data frame to canvas
+			canvasContext.drawImage(inputElement, 0, 0)
+
+			//drawWaves( dataArray, bufferLength )
+			drawBars( dataArray, bufferLength )
+			// drawBox( prediction )
+			// drawPoints( prediction )
+			// drawFace( prediction )
+			// drawBoundingBox( prediction.boundingBox )
+
+			if (ui.metronome)
+			{
+				// show quantise
+				drawQuantise()
+			}
 
 			// setAmplitude( 1 )
 			if (predictions)
@@ -576,15 +429,16 @@ const setup = (settings) => {
 				// you want a tight curve
 				//setAmplitude( logAmp )
 				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-				tickerTape += `<br>PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/LIPS_RANGE)}% - ${person.instrumentName}`
+				tickerTape += `<br>PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}% - ${person.instrumentName}`
 
 			}else{
-
+				// tickerTape += `No prediction`
 			}
 
 			// Feedback text changes depending on time
-			if (counter < 50)
-			{
+			if (!predictions){
+				setFeedback(`No faces found!`)
+			}else if (counter < 50)	{
 				setFeedback(`Smile to begin!`)
 			}else if (counter < 150){
 				setFeedback(`Look at the screen and open your mouth!`)
@@ -598,11 +452,19 @@ const setup = (settings) => {
 			}else{
 				setFeedback(`Look at me and open your mouth`)
 			}
+
+			//console.warn("update",predictions, tickerTape )
 		} )
+
+
 	})
 }
 
-setup(SETTINGS) 	
+// set up some extra options from query strings
+setup( Object.assign( {}, SETTINGS, {
+	// 
+	maxFaces:1
+}))
 
 // now wire up the bits...
 canvas.addEventListener('mousedown',loadRandomInstrument )

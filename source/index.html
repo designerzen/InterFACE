@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="loading">
 
 <head>
 
 	<meta charset="utf-8">
-	<title>Musical Face</title>
+	<title>InterFace</title>
 	
 	<!-- <base href="/MusicalFace/"> -->
 
@@ -19,7 +19,7 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
   
 	<!-- Imports an icon to represent the document. -->
-	<link rel="icon" href="assets/icons/icon_24.png" type="image/x-icon">
+	<link rel="icon" href="assets/icons/android-chrome-24x24.png" type="image/x-icon">
 	<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
 	<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
@@ -38,12 +38,19 @@
 </head>
 
 <body> 
-	<header>
-		<h1>Musical Face</h1>
-		<h2>a Simple Inter<strong>face</strong></h2>
+
+	<header id="intro">
+		<a class="logo" href="#app">
+			<img src="assets/logos/interface.png">
+			Jump to menu
+		</a>
+
+		<h1>Inter<strong>face</strong></h1>
+		<h2><em>Smile</em> Based Synthesizer</h2>
+		<p></p>
 	</header>
 
-	<main> 
+	<main id="app"> 
 		<img id="face" src="assets/will.png" width="640" height="480"> 
 		
 		<video id="webcam" autoplay playsinline width="640" height="480">
@@ -53,26 +60,45 @@
 		<canvas width="640" height="480"></canvas> 
 
 		<p id="feedback">Loading interFACE, please wait</p> 
+		<p id="toast"></p> 
 
 		<form id="controls">
 
-			<button class="person" id="person-a">Change instrument for this person</button>
-
+			<button class="person" id="person-a">Change instrument for person A</button>
+			
+			<button id="button-midi">Connect MIDI instrument</button>
 			<button id="button-video">Begin!<button>
 			
 			<fieldset id="pwa">
+				<!-- <script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script> -->
+
 				<!-- For more info on the pwa-update component click here https://github.com/pwa-builder/pwa-update -->
-	<pwa-install></pwa-install>
-				<pwa-update offlineToastDuration="0" swpath="service-worker.js"></pwa-update>
+				<pwa-install 
+					iconpath="assets/icons/android-chrome-512x512.png"
+					manifestpath="manifest.webmanifest" 
+					openmodal="true">
+				</pwa-install>
+				
+				<pwa-update 
+					offlineToastDuration="0" 
+					swpath="service-worker.js">
+				</pwa-update>
+
+				<script type="module" src="install.js"></script> 
+				
 			</fieldset>
 		</form>
 
 	</main> 
 
-	<script type="module" src="install.js"></script> 
+	
+	<footer>
 
+	</footer>
+
+	<!-- For users with javascript disabled -->
 	<noscript>
-		<p>This application requires javascript to work</p>
+		<p>This application requires javascript to work unfortunately and doesn't do much without it</p>
 	</noscript>
-	 
+
 </body>

@@ -1,26 +1,115 @@
-html,body{
+$easeInBack:  cubic-bezier(0.600, -0.280, 0.735, 0.045);
+$easeOutBack:  cubic-bezier(0.175,	0.885, 0.320, 1.275);
+$easeInOutBack:  cubic-bezier(0.680, -0.550, 0.265, 1.550);
+
+html,body,h1,h2,h3,h4,h5,h6,p{
 	margin:0;
 	padding:0;
 }
-
+:root{
+	
+	--pad:2vmin;
+}
 html{
-	background-color: black;
 	font-family: 'Oxanium', sans-serif;
+
+	// dark
+	transition: background-color 450ms linear;
+	background-color: hsl(0, 10%, 0%);
+	background-image:linear-gradient(hsla(0, 10%, 38%, 0.5), hsla(0, 10%, 28%, 0.5)) ;
+	
+	// light
+	&.loading{
+		background-color: hsl(0, 10%, 100%);
+		background-image:linear-gradient(hsla(0, 10%, 88%, 0.5), hsla(0, 10%, 68%, 0.5)) ;
+	}
+}
+
+html, body{
+	height: 100%;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@700&display=swap');
 
 
 header{
-	position: fixed;
+	position: absolute;
 	z-index: -1;
 	top:0;
 	right:0;
+	left:0;
+	//overflow: hidden;
+	// above feedback
+	bottom:6rem;
+	display: grid;
+	text-align: center;
+	justify-content: center;
+
+	> * {
+		max-height:100vh;
+		grid-area: 1/1/1/1;
+		visibility: hidden;
+	}
+	h1{
+		background-color: black;
+		color: hsl(0, 10%, 100%);
+		display: inline-block;
+		padding:var(--pad) calc(var(--pad) * 2);
+		text-transform: uppercase;
+		align-self: self-start;
+		justify-self: center;
+		margin-top:var(--pad);
+	}
+	h1{
+		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
+					rgba(0,0,0,0.56) 0 2px 4px,
+					rgba(0,0,0,0.56)0 3px 4px,
+					rgba(255,255,255,0.96) 0 0 4px;
+	}
+	h2,p{
+		text-shadow: rgba(255,255,255,0.96) 0 1px 4px,
+					rgba(255,255,255,0.7) 0 2px 4px,
+					rgba(255,255,255,0.5) 0 3px 4px,
+					rgba(0,0,0,0.56) 0 0 4px;
+		
+	}
+	h2{
+		margin-top:auto;
+	}
+	.logo{
+		align-self: center;
+		justify-self: center;
+	}
+}
+.logo, h1, h2{
+	// position: absolute;
+	// top:0;
+	// left:0;
+}
+
+.logo{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	// max-height:10vh;
+	width:auto;
+	color:transparent;
+	visibility: visible;
+	overflow: hidden;
+
+	img {
+		margin: auto;
+		display: block;
+		height:auto;
+		width:auto;
+		max-width:100vmin;
+		max-height:100vmin;
+		// height:100%;
+	}
 }
 
 main{
 
-	--pad:2vmin;
 
 	--person-a-x:0;
 	--person-a-y:0;
@@ -29,8 +118,9 @@ main{
 
 	display: grid;
 	position: relative;
+
 	height: 100%;
-	min-height: 100%;
+	min-height: 320px;
 	max-height: 100vh;
 
 	object-fit: contain;
@@ -55,49 +145,77 @@ main > * {
 	margin:auto;
 }
 
-main.loading{
+.loading {
 
-	--loader-size:8vmin;
-	--loader-duration:4;
-	overflow:hidden;
-	
-	// show a graphic but hide contents
-	&::before,&::after{
-		content: '';
-		opacity: 1;
+	header{
 		
-		// height:6vh;
-		// width:6vh;
-		width:100%;
-		height:100%;
-		background-image:linear-gradient(blue,blue);
-		background-size: var(--loader-size) var(--loader-size);
-		background-position: top left;
-		background-repeat: no-repeat;
-
-		position: absolute;
-		top:0;
-		left:0;
-		
-		display: block;
-		animation:Loading calc(var(--loader-duration) * 1s) 0s linear infinite;
+		> *{
+			visibility:visible;
+			animation:Fade 400ms ease-in 1 0s both;
+		}	
+		.logo{
+			
+		}
 	}
-
-	&::after{
-		animation-delay:calc( var(--loader-duration) / 4 * 0.02s );
+	video{
+		opacity:0.5;
 	}
-
-	> *:not(p){
-		visibility: hidden;
-		opacity:0;
+	#face{
 		display: none;
 	}
-	#feedback{
-		text-align: center;
+	main{
+
+		--loader-size:8vmin;
+		--loader-duration:4;
+		overflow:hidden;
+
+		pointer-events: none;
+		
+		// show a graphic but hide contents
+		&::before,&::after{
+			content: '';
+			opacity: 1;
+			
+			// height:6vh;
+			// width:6vh;
+			width:100%;
+			height:100%;
+			background-image:linear-gradient(blue,blue);
+			background-size: var(--loader-size) var(--loader-size);
+			background-position: top left;
+			background-repeat: no-repeat;
+
+			position: absolute;
+			top:0;
+			left:0;
+			
+			display: block;
+			animation:Loading calc(var(--loader-duration) * 1s) 0s infinite $easeInOutBack;
+		}
+
+		&::after{
+			animation-delay:calc( var(--loader-duration) / 4 * 0.02s );
+			filter: blur(5px);
+		}
+
+		> *:not(p){
+			visibility: hidden;
+			opacity:0;
+			display: none;
+		}
+
+		#feedback{
+			text-align: center;
+		}
 	}
+
 }
 
+
 main{
+	#button-midi{
+		display: none;
+	}
 	video,canvas{
 		border-radius:12px;
 		overflow: hidden;
@@ -106,8 +224,11 @@ main{
 		//transform:scale(0,-1);
 	}
 }
-#feedback:hover ~ canvas{
-	opacity:0.5;
+
+main.midi{
+	#button-midi{
+		display: block;
+	}
 }
 
 main.video{
@@ -120,7 +241,6 @@ main.img{
 		display: none;
 	}
 }
-
 
 main{
 	button{
@@ -139,31 +259,45 @@ main.active{
 	position: fixed;
 	z-index: 303;
 	bottom:var(--pad);
-	left:var(--pad);
+	// left:var(--pad);
 	right:var(--pad);
+	max-width: calc(100% - 2 * var(--pad));
 	display: block;
 	font-weight:bold;
 	text-align:right ;
 	color:white;
-	text-shadow:black 0 0 4px;
+	background-color: 	rgba(0,0,0,0.46);
+	display: inline-block;
+	padding:var(--pad);
+	text-shadow : rgba(255,255,255,0.96) 0 1px 4px,
+					rgba(0,0,0,0.96) 0 0 4px;
 
+	// cool carat
 	&::after{
 		content:'';
-		widows: 1rem;
+		width: 1rem;
 		height:100%;
 		background-color: yellow;
+		display: inline-block;
 	}
 }
 
-// we want this to visually look the same size as the video
+#feedback:hover ~ canvas{
+	opacity:0.5;
+}
+
+// we need this to visually look the same size as the video
 #controls{
 	
 	display: block;
 	margin:auto;
 	padding:0;
 	
-	width:100%;
+	// width:100%;
 	pointer-events: none;
+
+	max-width:var(--width);
+	max-height:var(--height);
 
 	> *{
 		pointer-events: auto;
@@ -174,12 +308,12 @@ main.active{
 	// landscape
 	@media (orientation: landscape) {
 		height:100vh;
-		width:calc(var(--height) / var(--width) * 100vh );
+		width:calc(var(--width) / var(--height) * 100vh );
 	}
 	@media (orientation: portrait) {
 		// portrait
 		width:100vw;
-		height:calc(var(--width) / var(--height) * 100vw );
+		height:calc(var(--height) / var(--width) * 100vw );
 	}
 
 	overflow: hidden;
@@ -278,26 +412,51 @@ button#button-video{
 	bottom:0;
 	z-index:-1;
 }
+
+#button-midi{
+	background-image:url(assets/logos/midi.svg);
+	background-repeat:no-repeat;
+}
+@keyframes Fade{
+	from{
+		opacity: 0;
+	}
+	to{
+		opacity: 1;
+	}
+}
 @keyframes Loading{
 	0%{
 		transform:translateX( 0 );
 		//background-color: hsl(90, 60%, 40%);
 		background-image:linear-gradient(90deg, hsl(90, 60%, 40%), hsl(90, 60%, 40%));
 	}
+	10%{
+		background-image:linear-gradient(90deg, hsl(180, 60%, 40%),hsl(180, 60%, 40%));
+	}
 	20%{
 		transform:translateX( calc(100% - var(--loader-size)) );
 		//background-color: hsl(180, 60%, 40%);
 		background-image:linear-gradient(90deg, hsl(180, 60%, 40%),hsl(180, 60%, 40%));
+	}
+	30%{
+		background-image:linear-gradient(90deg, hsl(270, 60%, 40%),hsl(270, 60%, 40%));
 	}
 	40%{
 		transform:translateX( calc(100% - var(--loader-size)) ) translateY( calc( 100% - var(--loader-size) ) );
 		//background-color: hsl(270, 60%, 40%);
 		background-image:linear-gradient(90deg, hsl(270, 60%, 40%),hsl(270, 60%, 40%));
 	}
-	60%{
+	50%{
+		background-image:linear-gradient(90deg, hsl(360, 60%, 40%), hsl(360, 60%, 40%));
+	}
+	70%{
 		transform:translateX( 0 )  translateY( calc( 100% - var(--loader-size) ) );
 		//background-color: hsl(360, 60%, 40%);
 		background-image:linear-gradient(90deg, hsl(360, 60%, 40%), hsl(360, 60%, 40%));
+	}
+	80%{
+		background-image:linear-gradient(90deg, hsl(90, 60%, 40%),hsl(90, 60%, 40%));
 	}
 	100%{
 		transform:translateX( 0 );

@@ -10,31 +10,44 @@ import {
 	setShape, setFrequency, setAmplitude, 
 	record } from './audio'
 	
-import { easeInSine, easeOutSine , easeInCubic, lerp,clamp, TAU} from "./maths"
 import { DEFAULT_COLOURS, clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext,drawWaves, drawBars} from './visual'
+import { easeInSine, easeOutSine , easeInCubic, linear, easeOutQuad, lerp,clamp, TAU} from "./maths"
 
-// options easeInCubic // 
-const ease =easeInSine
+// options easeInCubic // easeInSine
+// const ease = easeOutQuad
 
-export const LIPS_RANGE = 40
-const DEFAULT_OPTIONS = DEFAULT_COLOURS
+// Maximum simultaneous tracks to play (will wait for slot)
+const MAX_TRACKS = 8
+
+export const DEFAULT_OPTIONS = {
+	...DEFAULT_COLOURS,
+	LIPS_RANGE: 40,
+	delayTime: 0.14,
+	delayLength: 50,
+	feedback:0.1,
+	// set this to one of the interpolation methods above
+	ease:linear
+}
 
 export default class Person{
 
 	constructor(name, audioContext, destinationNode, options={} ) {
+		
+		this.options = Object.assign({}, DEFAULT_OPTIONS, options)
 		this.name = name
 		this.counter = 0
 		this.instrumentLoading = false
 		this.data = null
 		this.audioContext = audioContext
 		this.active = false
+		this.tracks = 0
 
 		this.stereoNode =  audioContext.createStereoPanner()
 
-		const delayNode = audioContext.createDelay(100)
+		const delayNode = audioContext.createDelay( this.options.delayLength )
 		const feedbackNode = audioContext.createGain()
-		delayNode.delayTime.value = 0.54
-		feedbackNode.gain.value = 0.2
+		delayNode.delayTime.value = this.options.delayTime
+		feedbackNode.gain.value = this.options.feedback
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
@@ -44,6 +57,7 @@ export default class Person{
 
 		delayNode.connect(feedbackNode)
 		feedbackNode.connect(delayNode)
+
 		//delayNode.connect(destinationNode)
 		delayNode.connect(this.gainNode)
 
@@ -67,7 +81,7 @@ export default class Person{
 			this.isMouseOver = false
 		})
 		console.log("Created new person", this, "connecting to", destinationNode )
-		this.options = Object.assign({}, DEFAULT_COLOURS, options)
+		
 	}
 
 	get instrumentName(){
@@ -165,21 +179,21 @@ export default class Person{
 	
 	sing(){
 
-		if (!this.data || this.active)
+		if (!this.data || this.tracks > MAX_TRACKS)
 		{
 			return
 		}
 		const prediction = this.data
 
 		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = clamp( prediction.mouthRange / LIPS_RANGE, 0 , 1 )
+		const lipPercentage = clamp( prediction.mouthRange / this.options.LIPS_RANGE, 0 , 1 )
 		const yaw = prediction.yaw
 		const pitch = prediction.pitch // Math.abs()
 		const roll = (prediction.roll + 1) / 2 // -1 => +1
 
 		// volume is an log of this
 		const amp = clamp(lipPercentage, 0, 1 ) //- 0.1
-		const logAmp = ease(amp)
+		const logAmp = this.options.ease(amp)
 
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
@@ -206,11 +220,12 @@ export default class Person{
 			
 			// TODO: add velocity logAmp
 			this.active = true
+			this.tracks++
 			const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
-				console.log("Sample completed playback... request tock")
 				this.active = false
+				this.tracks--
+				//console.log("Sample completed playback... request tock", this.tracks )
 			})
-			
 			
 			// send out some MIDI yum yum noteName && 
 			if (this.midi && this.midiChannel)

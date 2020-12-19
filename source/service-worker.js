@@ -86,7 +86,7 @@ const matchCallback = ({ request }) =>
 registerRoute(
   matchCallback,
   new StaleWhileRevalidate({
-    cacheName,
+    cacheName: CACHE_MEDIA,
     plugins: [
       new CacheableResponsePlugin({
         statuses: [0, 200],
@@ -94,3 +94,9 @@ registerRoute(
     ],
   }),
 );
+
+// TF json
+// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
+
+// Now the TF models...
+// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file

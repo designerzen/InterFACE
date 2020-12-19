@@ -1,6 +1,6 @@
 {
   "name": "musical-face",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "https://github.com/designerzen/MusicalFace.git",
   "author": "designerzen <designerzen@gmail.com>",
   "license": "GPL2.0",
@@ -10,6 +10,7 @@
     "start": "parcel serve source/index.html",
     "build": "parcel build source/index.html",
     "deploy": "node deploy.js",
+    "upgrader": "yarn upgrade-interactive",
     "package": "yarn clean && yarn build && yarn deploy"
   },
   "dependencies": {

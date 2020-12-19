@@ -31,16 +31,8 @@ async function startCamera(video) {
 
 	return new Promise( async (resolve,reject) => {
 		
+		let stream
 		video = video || document.createElement('video')
-
-		const stream = await navigator.mediaDevices.getUserMedia({
-		audio: false,
-		video: {
-			facingMode: 'user',
-			width: 640,
-			height: 640
-		}
-		})
 
 		video.onloadedmetadata = (event) => { 
 
@@ -53,8 +45,25 @@ async function startCamera(video) {
 			resolve(stream)
 		}
 
-		video.srcObject = stream
-	
+		video.onerror = event => reject(stream)
+
+		try{
+			stream = await navigator.mediaDevices.getUserMedia({
+				audio: false,
+				video: {
+					facingMode: 'user',
+					// optional?
+					// width: 640,
+					// height: 640
+				}
+			})			
+			
+			video.srcObject = stream
+
+		}catch(error){
+
+			reject(error)
+		}
 	})
 	
   }
