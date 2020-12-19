@@ -3,5 +3,7 @@
 // FIXME: Lazy load this whilst camera searching...
 // https://github.com/pwa-builder/pwa-install#pwa-install
 import '@pwabuilder/pwainstall'
-import '@pwabuilder/pwaupdate'
 
+//import '../node_modules/@pwabuilder/pwainstall/src/pwa-install.ts'
+
+import '@pwabuilder/pwaupdate'

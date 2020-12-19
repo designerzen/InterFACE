@@ -5,6 +5,7 @@ const directory = 'dist'
 
 console.log(`Cleaning ${directory}...`)
 const WHITELIST = [
+	"manifest.webmanifest",
 	"service-worker.js",
 	"timing.requestframe.worker.js",
 	"timing.setinterval.worker.js",
