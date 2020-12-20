@@ -71,7 +71,6 @@ const {StaleWhileRevalidate,CacheFirst} = workbox.strategies;
 // Include offline.html in the manifest__WB_MANIFEST
 // precacheAndRoute(self.origin);
 precacheAndRoute([ {url: '/index.html', revision:REVISION }])
-console.error("precacheAndRoute", self, self.origin)
 
 pageCache();
 
