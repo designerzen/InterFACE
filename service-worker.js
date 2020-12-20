@@ -1,5 +1,5 @@
 // Not compiled so best add the ; to the es5
-
+const ONE_DAY = 60 * 60 * 24;
 const REVISION = 0;
 const BUILD_MMR = "0.0.1";
 const WORKBOX_DEBUG_LOGGING = true;
@@ -45,9 +45,14 @@ const {
 } = workbox.recipes;
 
 const {registerRoute} = workbox.routing;
-const {StaleWhileRevalidate,CacheFirst} = workbox.strategies;
+const {ExpirationPlugin} = workbox.expiration;
 const {CacheableResponse, CacheableResponsePlugin} = workbox.cacheableResponse;
 const {precacheAndRoute} = workbox.precaching;
+
+const {StaleWhileRevalidate,CacheFirst} = workbox.strategies;
+// CacheFirst - an implementation of a cache-first request strategy.
+// A cache first strategy is useful for assets that have been revisioned, such as URLs like /styles/example.a8f5f1.css, since they can be cached for long periods of time.
+// If the network request fails, and there is no cache match, this will throw a WorkboxError exception.
 
 // import { registerRoute } from 'workbox-routing';
 // import { StaleWhileRevalidate } from 'workbox-strategies';
@@ -78,23 +83,25 @@ imageCache();
 
 offlineFallback();
 
-
 // Music files!
-const cacheName = 'static-resources';
+const CACHE_MEDIA = 'static-media';
 const matchCallback = (match) =>{
   const { request } = match
-  const isMedia = request.destination === 'mp3' ||
+  const isMedia = 
+  request.destination === 'mp3' ||
   request.destination === 'media' ||
   request.destination === 'audio' || 
-  request.url.indexOf(".mp3") === request.url - 5;
-  console.error(isMedia, "matchCallback", {match, request})
+  request.url.indexOf(".mp3") === request.url.length - 4;
+  
+  console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
+  
   return isMedia
 }
 
 registerRoute(
   matchCallback,
   new StaleWhileRevalidate({
-    cacheName,
+    cacheName: CACHE_MEDIA,
     plugins: [
       new CacheableResponsePlugin({
         statuses: [0, 200],
@@ -103,4 +110,50 @@ registerRoute(
   }),
 );
 
+// Cache the cloud hosted TF models as they are heavy and not local!
+registerRoute(
+  /^https:\/\/storage\.googleapis\.com\/tfhub-tfjs-modules/,
+  new CacheFirst({
+    cacheName: 'tf-models-googleapi',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        // one month should be good
+        maxAgeSeconds: ONE_DAY * 30,
+      }),
+    ],
+  }),
+);
+// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
+registerRoute(
+  /^https:\/\/tfhub\.dev\/mediapipe\/tfjs-model/,
+  new CacheFirst({
+    cacheName: 'tf-models-tfhub',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        // one month should be good
+        maxAgeSeconds: ONE_DAY * 30,
+      }),
+    ],
+  }),
+);
 
+
+
+// TF json
+// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
+
+// Now the TF models...
+// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
+
+// workbox.routing.registerRoute(
+//   /^https:\/\/fonts\.googleapis\.com/,
+//   workbox.strategies.staleWhileRevalidate({
+//     cacheName: 'google-fonts-stylesheets',
+//   }),
+// );
