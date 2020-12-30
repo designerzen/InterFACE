@@ -84,7 +84,7 @@ offlineFallback();
 
 // Music files!
 const CACHE_MEDIA = 'static-media';
-const matchCallback = (match) =>{
+const catchMedia = (match) =>{
   const { request } = match
   const isMedia = 
   request.destination === 'mp3' ||
@@ -92,14 +92,14 @@ const matchCallback = (match) =>{
   request.destination === 'audio' || 
   request.url.indexOf(".mp3") === request.url.length - 4;
   
-  console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
+  // console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
   
   return isMedia
 }
 
 registerRoute(
-  matchCallback,
-  new StaleWhileRevalidate({
+  catchMedia,
+  new CacheFirst({
     cacheName: CACHE_MEDIA,
     plugins: [
       new CacheableResponsePlugin({
@@ -108,6 +108,25 @@ registerRoute(
     ],
   }),
 );
+
+// registerRoute(
+//   catchMedia,
+//   new StaleWhileRevalidate({
+//     cacheName: CACHE_MEDIA,
+//     plugins: [
+//       new CacheableResponsePlugin({
+//         statuses: [0, 200],
+//       }),
+//     ],
+//   }),
+// );
+
+
+// TF json
+// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
+
+// Now the TF models...
+// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 
 // Cache the cloud hosted TF models as they are heavy and not local!
 registerRoute(
@@ -143,12 +162,6 @@ registerRoute(
 );
 
 
-
-// TF json
-// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
-
-// Now the TF models...
-// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 
 // workbox.routing.registerRoute(
 //   /^https:\/\/fonts\.googleapis\.com/,
