@@ -202,7 +202,7 @@ export const loadModel = async (inputElement, options) => {
 	// Load the MediaPipe Facemesh package.
 	const model = await load( SupportedPackages.mediapipeFacemesh, options)
 
-	console.log("Loaded TF model", model, "for", detectPeople, "people" )
+	// console.log("Loaded TF model", model, "for", detectPeople, "people" )
 
 	// now subscribe to events and monitor
 	const update = async (repeat, callback) => { 
