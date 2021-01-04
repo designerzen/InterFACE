@@ -1,32 +1,54 @@
 // each person in the app has their own instrument and face
-
+import {DEFAULT_COLOURS} from './palette'
 import { 
 	active, playing, 
-	FOLDERS,
-	loadInstrument, INSTRUMENT_NAMES, randomInstrument, 
+	loadInstrument, NOTE_NAMES, randomInstrument, 
 	playTrack, playAudio, stopAudio, 
 	bufferLength,dataArray, 
 	setupAudio, 
 	setShape, setFrequency, setAmplitude, 
-	record } from './audio'
-	
-import { DEFAULT_COLOURS, clear,drawFace, drawPoints, drawPart, drawEye, drawMouth,drawBoundingBox, canvas, canvasContext,drawWaves, drawBars} from './visual'
-import { easeInSine, easeOutSine , easeInCubic, linear, easeOutQuad, lerp,clamp, TAU} from "./maths"
+	getNoteName} from './audio'
 
+import {INSTRUMENT_FOLDERS} from "./instruments"
+
+import { clear,
+		drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
+		drawText,drawParagraph,
+		drawWaves, drawBars, drawInstrument} from './visual'
+import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
+import {cleanTitle, MUSICAL_NOTES} from './instruments'
 // options easeInCubic // easeInSine
 // const ease = easeOutQuad
 
 // Maximum simultaneous tracks to play (will wait for slot)
-const MAX_TRACKS = 8
+const MAX_TRACKS = 18
 
 export const DEFAULT_OPTIONS = {
 	...DEFAULT_COLOURS,
 	LIPS_RANGE: 40,
+
+	// Passed to the delay node
 	delayTime: 0.14,
-	delayLength: 50,
+	delayLength: 10,
+
+	// how much feedback to apply to the feedback node
 	feedback:0.1,
+
+	// size of the mouth to signal activity
+	mouthCutOff:0.2,
+	// size of the mouth to signal silence
+	mouthSilence:0.05,
+
+	// volume smooth rate = smaller means faster fades?
+	volumeRate:0.7,
+
+	// this is the amount of decimal places used to smooth the mouth
+	// the higher the number the less smooth the output is
+	// 1 or 2 should be more than enough
+	precision:2,
+
 	// set this to one of the interpolation methods above
-	ease:linear
+	ease:easeOutCubic //easeOutSine // easeInSine // linear
 }
 
 export default class Person{
@@ -41,8 +63,22 @@ export default class Person{
 		this.audioContext = audioContext
 		this.active = false
 		this.tracks = 0
+		this.octave = 4
+		this.midiActive = false
+		this.midiChannel = "all"
+		this.hue = options.hue || Math.random() * 360
+		this.saturation = 40
+		this.precision = Math.pow(10, parseInt(this.options.precision) )
+			
+		this.singing = false
+		this.isMouthOpen = false
+		this.lastNoteName = "A0"
+		this.debug = options.debug || false
 
-		this.stereoNode =  audioContext.createStereoPanner()
+		// this.range = 1 / ( 1 - this.options.mouthCutOff )
+		this.mouthScale = rescale(this.options.mouthCutOff)
+
+		this.stereoNode = audioContext.createStereoPanner()
 
 		const delayNode = audioContext.createDelay( this.options.delayLength )
 		const feedbackNode = audioContext.createGain()
@@ -53,13 +89,15 @@ export default class Person{
 		this.gainNode.gain.value = 0
 
 		this.stereoNode.connect(this.gainNode)
-		this.stereoNode.connect(delayNode)
 
-		delayNode.connect(feedbackNode)
-		feedbackNode.connect(delayNode)
+		// DELAY
+		// this.stereoNode.connect(delayNode)
 
-		//delayNode.connect(destinationNode)
-		delayNode.connect(this.gainNode)
+		// delayNode.connect(feedbackNode)
+		// feedbackNode.connect(delayNode)
+
+		// //delayNode.connect(destinationNode)
+		// delayNode.connect(this.gainNode)
 
 		this.gainNode.connect(destinationNode)
 
@@ -80,13 +118,26 @@ export default class Person{
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
-		console.log("Created new person", this, "connecting to", destinationNode )
 		
+		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
 	get instrumentName(){
+		return this.instrument ? this.instrument.name : 'loading'
+	}
+	
+	get instrumentTitle(){
 		return this.instrument ? this.instrument.title : 'loading'
 	}
+	
+	get instrumentIndex(){
+		return INSTRUMENT_FOLDERS.indexOf(this.instrumentName)
+	}
+
+	get hasMIDI(){
+		return this.midi && this.midiChannel > -1
+	}
+
 
 	update(prediction){
 		
@@ -100,44 +151,56 @@ export default class Person{
 		{
 			// nothing to refresh so exit here
 			return
+
 		}else if (!prediction){
 			// refresh
 			prediction = this.prediction
 		}
 		
-		
-		let hue = 90
+		let hue = this.hue
+
 		if (this.instrumentLoading )
 		{
 			hue += 120
 		}
 
+		let saturation = this.saturation
+
+		const options = this.options
+
 		// update colours...
-		this.options.dots = hue
-		this.options.mouth = `hsla(${(hue+30)%360},70%,50%,0.5)`
-		this.options.lipsUpperInner = `hsla(${(hue+50)%360},70%,50%,1)`
-		this.options.lipsLowerInner = `hsla(${(hue+50)%360},70%,50%,1)`
-		this.options.midwayBetweenEyes = `hsla(${(hue+270)%360},70%,50%,1)`
-		this.options.leftEyeLower0 = `hsla(${(hue+300)%360},70%,50%,0.8)`
-		this.options.rightEyeLower0 = `hsla(${(hue+300)%360},70%,50%,0.8)`
-		this.options.leftEyeIris = `hsla(${(hue+90)%360},70%,50%,1)`
-		this.options.rightEyeIris = `hsla(${(hue+90)%360},70%,50%,1)`
+		options.dots = hue
+		options.mouth = `hsla(${(hue+30)%360},${saturation}%,40%,0.8)`
+		options.mouthClosed = `hsla(${(hue+30)%360},${saturation}%,10%,0.99)`
+		options.lipsUpperInner = `hsla(${(hue+50)%360},${saturation}%,50%,1)`
+		options.lipsLowerInner = `hsla(${(hue+50)%360},${saturation}%,50%,1)`
+		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${saturation}%,50%,1)`
+		options.leftEyeLower0 = `hsla(${(hue+300)%360},${saturation}%,50%,0.8)`
+		options.rightEyeLower0 = `hsla(${(hue+300)%360},${saturation}%,50%,0.8)`
+		options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
 
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
-		drawPoints( prediction, this.options.dots )
-		drawFace( prediction, this.options )
+		drawPoints( prediction, options.dots, this.debug )
+
+		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
+		
 		// drawBoundingBox( prediction.boundingBox )
 
+		// use the eyes?
+		
+		// if this is mirrored using the option in the TF model...
 		const {bottomRight, topLeft} = prediction.boundingBox
-		const boxWidth = bottomRight[0] - topLeft[0]
-		const boxHeight = bottomRight[1] - topLeft[1]
+		const boxWidth = Math.abs(bottomRight[0] - topLeft[0])
+		const boxHeight = Math.abs(bottomRight[1] - topLeft[1])
 			
 		// we only want this every frame or so as this 
 		// is altering the DOM
-		if (this.counter%10===0)
+		if (this.counter%12===0)
 		{
-			this.button.style.setProperty('--person-a-x', `${topLeft[0]}` )
+			// this.button.style.setProperty('--person-a-x', `${topLeft[0]}` )
+			this.button.style.setProperty('--person-a-x', `${bottomRight[0]}` )
 			this.button.style.setProperty('--person-a-y', topLeft[1] )
 			this.button.style.setProperty('--person-a-w', boxWidth )
 			this.button.style.setProperty('--person-a-h', boxHeight )			
@@ -153,8 +216,10 @@ export default class Person{
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
 
+			drawInstrument(prediction.boundingBox, this.instrumentName, '\nclick for new instrument')
+			
 			drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
-/*
+/*	
 			const offsetX = topLeft[0]
 			const offsetY = topLeft[1]
 			const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
@@ -174,52 +239,111 @@ export default class Person{
 			//console.log("SVG",silhouette, silhoetteShape)
 			this.button.innerHTML = silhoetteShape	
 			*/
+		}else if (this.instrumentLoading){
+
+			drawInstrument(prediction.boundingBox, this.instrumentTitle, 'loading...')
+
+		}else{
+
+			// Main flow 
+			const extra = this.debug ? ` ${this.lastNoteName}`  : ` ${this.lastNoteName}`
+
+			// eye:${prediction.eyeDirection}
+			drawInstrument(prediction.boundingBox, this.instrumentTitle, extra + (this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? '~' : '' )  )
+			if (this.debug )
+			{
+				const paragraphs = [
+					`gain:${(this.gainNode.gain.value).toFixed(2)}`, 
+					`pitch:${(prediction.pitch).toFixed(3)}`, 
+					`roll:${(prediction.roll).toFixed(3)}`, 
+					`yaw:${(prediction.yaw).toFixed(3)}`,
+					`eyes:${(prediction.eyeDirection).toFixed(3)}`,
+					`mouth:${(prediction.mouthOpen).toFixed(3)}`,
+					`dims:${(prediction.mouthWidth).toFixed(2)}x${(prediction.mouthRange).toFixed(2)}`,
+					'facing'+prediction.lookingRight ? 'left' : 'right'
+				]
+				drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, paragraphs, '14px' )
+				// drawText(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1], extra )
+			}
 		}
 	}
 	
+	// Sing some songs
 	sing(){
 
 		if (!this.data || this.tracks > MAX_TRACKS)
 		{
 			return
 		}
+
+		// only change the note if not active?
+		if (active)
+		{
+			// return
+		}
+
 		const prediction = this.data
+		const options = this.options
+
+		// do some checks on data to see if an event
+		// should be triggered such as eye left / right
 
 		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = clamp( prediction.mouthRange / this.options.LIPS_RANGE, 0 , 1 )
+		const lipPercentage = prediction.mouthOpen // prediction.mouthRange / options.LIPS_RANGE
+		
+		// Controls minor / major
 		const yaw = prediction.yaw
-		const pitch = prediction.pitch // Math.abs()
-		const roll = (prediction.roll + 1) / 2 // -1 => +1
+		
+		// Octave control by up and down head
+		const pitch = clamp(0.5 * (prediction.pitch + 1), 0,1)
+		// const pitch = (prediction.pitch + 1 ) / 2
+		
+		// -1 => +1 -> convert to 
+		// ignore < -0.5 and > 0.5
+		const roll = clamp((prediction.roll + 0.5) , 0, 1)
+		
+		// Controls stereo pan
+		const eyeDirection = prediction.eyeDirection  // (prediction.eyeDirection + 1)/ 2
 
 		// volume is an log of this
 		const amp = clamp(lipPercentage, 0, 1 ) //- 0.1
-		const logAmp = this.options.ease(amp)
+		const logAmp = options.ease(amp)
+		const newOctave = Math.round(pitch * 7)
+
+		// octave needs to be up or down from existing?
+		this.octave = newOctave
+
+		// FIXME: if we don't want the happy notes...
+		// we can flip this on somehow?
+		const isMinor = prediction.lookingRight
+
+		const noteName = getNoteName(roll, this.octave, isMinor)
+
+		this.lastNoteName = noteName
+		this.hue = roll * 360
+		this.saturation = 100 * lipPercentage
 
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
-		this.stereoNode.pan.value = clamp(yaw, -1, 1 ) 
+		this.stereoNode.pan.value = clamp(eyeDirection, -1, 1 ) 
 		//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
-			
+		
+		// you want the scale to be from 0-1 but from 03-1
+		let newVolume
+
 		// !active && active is updated by playback state
-		if (this.instrument && amp > 0.3)
+		if ( this.instrument && amp >= options.mouthCutOff )
 		{
-			this.gainNode.gain.value = logAmp
-
-			// only change the note if not active?
-			if (active)
-			{
-
-			}
-
+			// here is where we need to do our majic
 			// play a note from the collectionlogAmp
-			const noteNumber = Math.floor( roll * (INSTRUMENT_NAMES.length-1) )
-			// const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
-			const noteName = INSTRUMENT_NAMES[noteNumber]
 			const note = this.instrument[ noteName ]
+
+			if (!note){
+				console.log("note not found!", {noteName, roll, octave:this.octave, isMinor})
+			}
 			
 			// TODO: add velocity logAmp
-			this.active = true
 			this.tracks++
 			const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
 				this.active = false
@@ -227,22 +351,109 @@ export default class Person{
 				//console.log("Sample completed playback... request tock", this.tracks )
 			})
 			
+			// rescale for 0.3->1
+			newVolume = this.mouthScale( amp )
+			// curve
+			newVolume = options.ease(newVolume)
+			// smooth
+			newVolume = Math.round( newVolume * this.precision ) / this.precision 
+			
+			// newVolume = Math.round( newVolume * options.precision * 10 ) / (options.precision * 10) 
+			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
+			
 			// send out some MIDI yum yum noteName && 
-			if (this.midi && this.midiChannel)
+			if (this.hasMIDI && !this.active)
 			{
 				// duration: 2000,
+				// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 				//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
-				this.midi.playNote(noteName, this.midiChannel, { velocity:amp})
-			}
-			
-		}else{
-			this.gainNode.gain.value = 0
-		}	
+				this.midi.playNote(noteName, 
+					{ 
+						channels:this.midiChannel,
+						attack:amp
+					}
+				)
+				this.midiActive = true
 
+			}else{
+				// add connect midi device note?
+			}
+
+			this.singing = true
+			this.isMouthOpen = true
+			this.active = true
+			
+		}else if ( amp > options.mouthSilence && amp < options.mouthCutOff ){
+
+			// this.gainNode.gain.value = 0
+			//const destinationVolume  = 0 // logAmp
+			
+			// newVolume = this.gainNode.gain.value + (destinationVolume - this.gainNode.gain.value) * options.volumeRate
+			newVolume = 0
+			this.singing = false
+			this.isMouthOpen = true
+
+		}else{
+
+			// no instrument available or mouth totally closed
+			newVolume = 0
+			this.singing = false
+			this.isMouthOpen = false
+			// no instruments in memory yet... play silence?
+			if (this.hasMIDI)
+			{
+				this.midi.stopNote(noteName)
+				this.midiActive = false
+			}
+		}
+
+
+// WebMidi.outputs[0].channels[1].stopNote("C3", {time: "+2500"});
+
+// // Set polyphonic aftertouch : Send polyphonic aftertouch message to channel 8
+
+// WebMidi.outputs[0].channels[8].setKeyAftertouch("B#3", 0.25);
+
+// // Set pitch bend value : The value is between -1 and 1 (a value of 0 means no bend).
+
+// WebMidi.outputs[0].channels[8].setPitchBend(-0.25);
+
+		// try and smooth the volume if it is fading out...
+		// if ( this.gainNode.gain.value > newVolume)
+		// {
+		// 	// volume decrease fades
+			this.gainNode.gain.value = this.gainNode.gain.value + (newVolume - this.gainNode.gain.value) * options.volumeRate
+		
+		// }else{
+
+		// 	this.gainNode.gain.value = this.gainNode.gain.value + (newVolume - this.gainNode.gain.value) * 0.9
+		// 	// volume in direct
+		// 	// this.gainNode.gain.value = newVolume
+		// }
+		// this.gainNode.gain.value = newVolume
+		console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
+		
 		return {
 			yaw, pitch,
 			lipPercentage
 		}
+	}
+
+	async loadRandomInstrument(){
+		return await this.loadInstrument( randomInstrument() )
+	}
+
+	async loadPreviousInstrument(){
+		const index = this.index
+		const newIndex = index-1 < 0 ? 0 : index-1
+		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex] )
+	}
+
+	async loadNextInstrument(){
+		// first fetch existing
+		const index = this.index
+		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
+		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex] )
 	}
 
 	// wee need loadiing events
@@ -250,6 +461,7 @@ export default class Person{
 		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
 		this.instrumentLoading = false
+		return instrumentName
 	}
 
 	setMIDI(midi, channel="all"){

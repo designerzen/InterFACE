@@ -45,10 +45,14 @@ const {
 } = workbox.recipes;
 
 const {registerRoute} = workbox.routing;
-const {StaleWhileRevalidate,CacheFirst} = workbox.strategies;
 const {ExpirationPlugin} = workbox.expiration;
 const {CacheableResponse, CacheableResponsePlugin} = workbox.cacheableResponse;
 const {precacheAndRoute} = workbox.precaching;
+
+const {StaleWhileRevalidate,CacheFirst} = workbox.strategies;
+// CacheFirst - an implementation of a cache-first request strategy.
+// A cache first strategy is useful for assets that have been revisioned, such as URLs like /styles/example.a8f5f1.css, since they can be cached for long periods of time.
+// If the network request fails, and there is no cache match, this will throw a WorkboxError exception.
 
 // import { registerRoute } from 'workbox-routing';
 // import { StaleWhileRevalidate } from 'workbox-strategies';
@@ -67,7 +71,6 @@ const {precacheAndRoute} = workbox.precaching;
 // Include offline.html in the manifest__WB_MANIFEST
 // precacheAndRoute(self.origin);
 precacheAndRoute([ {url: '/index.html', revision:REVISION }])
-console.error("precacheAndRoute", self, self.origin)
 
 pageCache();
 
@@ -81,7 +84,7 @@ offlineFallback();
 
 // Music files!
 const CACHE_MEDIA = 'static-media';
-const matchCallback = (match) =>{
+const catchMedia = (match) =>{
   const { request } = match
   const isMedia = 
   request.destination === 'mp3' ||
@@ -89,14 +92,14 @@ const matchCallback = (match) =>{
   request.destination === 'audio' || 
   request.url.indexOf(".mp3") === request.url.length - 4;
   
-  console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
+  // console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
   
   return isMedia
 }
 
 registerRoute(
-  matchCallback,
-  new StaleWhileRevalidate({
+  catchMedia,
+  new CacheFirst({
     cacheName: CACHE_MEDIA,
     plugins: [
       new CacheableResponsePlugin({
@@ -105,6 +108,25 @@ registerRoute(
     ],
   }),
 );
+
+// registerRoute(
+//   catchMedia,
+//   new StaleWhileRevalidate({
+//     cacheName: CACHE_MEDIA,
+//     plugins: [
+//       new CacheableResponsePlugin({
+//         statuses: [0, 200],
+//       }),
+//     ],
+//   }),
+// );
+
+
+// TF json
+// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
+
+// Now the TF models...
+// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 
 // Cache the cloud hosted TF models as they are heavy and not local!
 registerRoute(
@@ -140,12 +162,6 @@ registerRoute(
 );
 
 
-
-// TF json
-// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
-
-// Now the TF models...
-// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 
 // workbox.routing.registerRoute(
 //   /^https:\/\/fonts\.googleapis\.com/,

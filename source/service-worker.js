@@ -52,7 +52,6 @@ const {precacheAndRoute} = workbox.precaching;
 // import { StaleWhileRevalidate } from 'workbox-strategies';
 // import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
-
 // import {
 //   pageCache,
 //   imageCache,
@@ -78,14 +77,26 @@ offlineFallback();
 
 // Music files!
 const cacheName = 'static-resources';
-const matchCallback = ({ request }) =>
+const catchMedia = ({ request }) =>
   request.destination === 'mp3' ||
   request.destination === 'media' ||
   request.destination === 'audio';
 
+// registerRoute(
+//   matchCallback,
+//   new StaleWhileRevalidate({
+//     cacheName: CACHE_MEDIA,
+//     plugins: [
+//       new CacheableResponsePlugin({
+//         statuses: [0, 200],
+//       }),
+//     ],
+//   }),
+// );
+
 registerRoute(
-  matchCallback,
-  new StaleWhileRevalidate({
+  catchMedia,
+  new CacheFirst({
     cacheName: CACHE_MEDIA,
     plugins: [
       new CacheableResponsePlugin({

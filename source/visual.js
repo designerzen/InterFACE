@@ -14,19 +14,9 @@
 // 	video.srcObject = stream
 // }
 import { clamp, TAU} from "./maths"
+import PALETTE, { DEFAULT_COLOURS } from "./palette"
 
 
-export const DEFAULT_COLOURS = {
-	dots:'red',
-	mouth:'rgba(255,0,0,0.5)',
-	lipsUpperInner:'pink',
-	lipsLowerInner:'pink',
-	midwayBetweenEyes:'blue',
-	leftEyeLower0:'red',
-	rightEyeLower0:'red',
-	leftEyeIris:'yellow',
-	rightEyeIris:'yellow',
-}
 async function startCamera(video) {
 
 	return new Promise( async (resolve,reject) => {
@@ -108,14 +98,23 @@ let height = canvas.height
 export const updateCanvasSize = (w,h) => {
 	width = w || canvas.width
 	height = h || canvas.height
-	console.error("Updated canvas size to", {w,h}, canvas.width, canvas.height)
+	// console.error("Updated canvas size to", {w,h}, canvas.width, canvas.height)
 }
 
-canvasContext.save()
+export const drawElement = element => {
+	
+	canvasContext.save()
+	canvasContext.translate(width, 0)
+	canvasContext.scale(-1, 1)
+	// draw data frame to canvas but invert horizontally?
+	canvasContext.drawImage(element , 0, 0)
+	canvasContext.restore()
+}
 
 export const clear = () => {
-	canvasContext.fillStyle = 'rgba(255,0,0,0)'
-	canvasContext.fillRect(0, 0, width, height)
+	// canvasContext.fillStyle = 'rgba(255,0,0,0)'
+	canvasContext.clearRect(0, 0, width, height)
+	// canvasContext.fillRect(0, 0, width, height)
 	// canvasContext.restore()
 }
 
@@ -221,10 +220,40 @@ export const drawEye = (eye, colour="blue") => {
 	// canvasContext.stroke()
 }
 
-
-export const drawMouth = ( prediction, colour="yellow") => {
+export const drawNode = (pointA, pointB, radius=5, fill="blue", showText=false) => {
 	
-	const { annotations, mouthRange, mouthOpen } = prediction
+	canvasContext.fillStyle  = fill
+
+	canvasContext.beginPath()
+	canvasContext.arc(pointB[0], pointB[1], radius, 0, TAU)
+	canvasContext.fill()
+
+	canvasContext.beginPath()
+	canvasContext.arc(pointA[0], pointA[1], radius, 0, TAU)
+	canvasContext.fill()
+
+	canvasContext.beginPath()
+	canvasContext.moveTo(pointA[0], pointA[1])
+
+	canvasContext.strokeStyle = "orange"
+	canvasContext.fillStyle = "orange"
+	canvasContext.lineTo(pointB[0], pointB[1])
+
+	// add text
+	if (showText)
+	{
+		canvasContext.stroke( )
+		canvasContext.fillStyle = PALETTE.blue
+		canvasContext.font = "12px Oxanium"
+		canvasContext.textAlign = "center"
+		canvasContext.fillText(`${Math.floor(mouthRange)}px`, pointA[0], pointA[1] - 20 )
+	}
+}
+
+
+export const drawMouth = ( prediction, colour="yellow", debug=true ) => {
+	
+	const { annotations, mouthRange,mouthWidth, mouthOpen } = prediction
 	const {lipsUpperInner,lipsLowerInner} = annotations 
 	const lips = [lipsUpperInner, lipsLowerInner]
 	
@@ -238,7 +267,7 @@ export const drawMouth = ( prediction, colour="yellow") => {
 	// topGradient.addColorStop(1, "white")
 
 	// how can we work out height of the mouth???
-	const mouthGradient = canvasContext.createLinearGradient(0, 0, 0, mouthRange )
+	const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRange )
 	mouthGradient.addColorStop(0, colour)
 	mouthGradient.addColorStop(0.5, "black")
 	mouthGradient.addColorStop(1, colour)
@@ -275,30 +304,47 @@ export const drawMouth = ( prediction, colour="yellow") => {
 	}
 	canvasContext.fill()
 
+	if (debug)
+	{
+		drawNode(lipLowerMiddle, lipUpperMiddle, 5)
+	}
 	
-	// debug ----
-	// centres
-	canvasContext.fillStyle  = 'blue'
-	canvasContext.beginPath()
-	canvasContext.arc(lipUpperMiddle[0], lipUpperMiddle[1], 5, 0, TAU)
-	canvasContext.fill()
-
-	canvasContext.beginPath()
-	canvasContext.arc(lipLowerMiddle[0], lipLowerMiddle[1], 5, 0, TAU)
-	canvasContext.fill()
-
-	canvasContext.beginPath()
-	canvasContext.moveTo(lipUpperMiddle[0], lipUpperMiddle[1])
-	canvasContext.strokeStyle = "orange"
-	canvasContext.fillStyle = "orange"
-	canvasContext.lineTo(lipLowerMiddle[0], lipLowerMiddle[1])
-
-	canvasContext.stroke( )
-	canvasContext.font = "12px Oxanium"
-	canvasContext.textAlign = "center"
-	canvasContext.fillText(`${Math.floor(mouthRange)}px`, lipLowerMiddle[0], lipLowerMiddle[1] - 20 );
-	// -- debug
 	return {lipUpperMiddle, lipLowerMiddle }
+}
+
+
+export const drawText = (x, y, text='', size='10px', align="center") => {
+	const f = false
+	canvasContext.font = `900 ${size} Oxanium`
+	canvasContext.textAlign = align
+	canvasContext.fillStyle = f ? "black" : "white"
+	canvasContext.strokeStyle  = f ? 'white' : "black"
+	canvasContext.strokeText(`${text}`, x,y )
+	canvasContext.fillText(`${text}`, x, y )
+}
+
+// multi line
+export const drawParagraph = (x, y, paragraph=[], size='10px', lineHeight=20) => {
+	let textY = y
+	for (const p of paragraph)
+	{
+		drawText( x, textY, p, size, "left" )
+		textY += lineHeight
+	}
+}
+
+export const drawInstrument = (boundingBox, instrumentName, extra='') => {
+
+	// use prediction.boundingBox
+	const {bottomRight, topLeft} = boundingBox
+	const text = `${instrumentName.toUpperCase()} - ${extra}`
+	// canvasContext.beginPath()
+	// // these aren't scaled :(
+	// canvasContext.fillStyle  = colour
+	// // canvasContext.rect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
+	// canvasContext.strokeRect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
+	// canvasContext.fill()
+	drawText( topLeft[0], topLeft[1], text, "24px" )
 }
 
 export const drawBoundingBox = (boundingBox, colour='red') => {
@@ -311,16 +357,22 @@ export const drawBoundingBox = (boundingBox, colour='red') => {
 	canvasContext.fill()
 }
 
-
 import {easeInQuad } from './maths'
 const modifier = easeInQuad
 
+
+let nodeCount = 0
+
+export const setNodeCount = value => nodeCount += value
+
 // Just draws lots of dots on an image on the canvas
-export const drawPoints = (prediction, hue=60, size=3) => {
+export const drawPoints = (prediction, hue=60, size=3, showText=true) => {
 
 	const { scaledMesh } = prediction
+	const quantity = scaledMesh.length
+	
 	// draw face points at correct position on canvas
-	for (let i = 0; i < scaledMesh.length; i++) 
+	for (let i = 0; i < quantity; i++) 
 	{
 		const x = scaledMesh[i][0]
 		const y = scaledMesh[i][1]
@@ -336,16 +388,34 @@ export const drawPoints = (prediction, hue=60, size=3) => {
 		// console.log({depth,radius,alpha})
 // const radius = size * Math.abs(10 - z) * 0.1
 		canvasContext.beginPath()
-		canvasContext.fillStyle  =  `hsla(${hue},70%,50%,${alpha})`
-		canvasContext.arc(x, y, radius, 0, TAU)
+		
+		if (showText && ( i === (nodeCount % quantity) ))
+		{
+			canvasContext.stroke( )
+			canvasContext.font = "22px Oxanium"
+			canvasContext.textAlign = "center"
+			canvasContext.fillText(`#${i}`, x + radius + 1, y  )
+			
+			canvasContext.fillStyle = `hsla(0,90%,70%,1)`
+			canvasContext.arc(x, y, radius * 3, 0, TAU)
+		}else{
 
+			canvasContext.fillStyle = `hsla(${hue},70%,50%,${alpha})`
+		
+			canvasContext.arc(x, y, radius, 0, TAU)
+		}
+
+		
 		canvasContext.fill()
 	}
 }
 
 // every frame this gets called with an array of points in a mesh face
 // we use certain deviations to determine direction and mouth size
-export const drawFace = (prediction, options=DEFAULT_COLOURS) => {
+export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mouthOpen=false, debug=false) => {
+
+	// singing - the user has their mouth open beyond the threshold
+	// mouthOpen - the user has their mouth closed
 
 	// extract our data
 	// const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height)
@@ -364,12 +434,17 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS) => {
 	const {lipsUpperInner,lipsLowerInner } = annotations
 	
 	// top lips
+	if (mouthOpen && singing)
+	{
+		drawMouth(prediction, options.mouth, debug)
+		
+	}else{
+		// mouth closedc or not singing
+		drawMouth(prediction, options.mouthClosed, debug)
+	}
 	// drawPart(lipsUpperInner, options.lipsUpperInner)
 	// drawPart(lipsLowerInner, options.lipsLowerInner)
-
-	//drawMouth(lipsUpperInner,lipsLowerInner)
-	drawMouth(prediction, options.mouth)
-
+	
 	// EYES ===========================================
 	const {leftEyeIris,rightEyeIris} = annotations
 	
@@ -394,7 +469,7 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS) => {
 
 export const drawQuantise = active => {
 	const stroke = 10
-	canvasContext.fillStyle = "hsla("+(active ? 180 : 90 )+", 80%,50%, 0.5)"
+	canvasContext.fillStyle = "hsla(90, 80%, "+(active ? 90 : 10 )+"%, 0.9)"
 	// canvasContext.fillStyle = "green"
 	// canvasContext.strokeStyle = "green"
 	canvasContext.strokeWidth = stroke//+"px"
@@ -445,7 +520,7 @@ export const drawBars = (dataArray, bufferLength)=>{
 	{
 		barHeight = dataArray[i]
 
-		canvasContext.fillStyle = 'hsla(' + (barHeight/height*360) + ',50%,50%,0.8)'
+		canvasContext.fillStyle = 'hsla(' + (barHeight/height*360) + ',50%,50%,0.3)'
 		canvasContext.fillRect(x, height-barHeight, barWidth, barHeight )
 
 		x += barWidth + 1
