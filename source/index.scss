@@ -283,14 +283,27 @@ main{
 	}
 }
 
+.midi {
+	#button-midi{
+		
+	}
+}
+// MIDI is available buyt there are no instruments connected
+.midi.no-instrument {
+	#button-midi{
+		
+	}
+}
+.no-midi {
+	#button-midi{
+		display: none;
+	}
+}
 
 #app-frame{
 
 	margin:auto;
 
-	#button-midi{
-		display: none;
-	}
 	video{
 		transform: scaleX(-1);
 	}
@@ -533,6 +546,56 @@ button#button-video{
 button#button-midi{
 	background-image:url(assets/logos/midi.svg);
 	background-repeat:no-repeat;
+	background-size: contain;
+	z-index:1;
+	cursor:pointer;
+	left:0;
+	bottom:0;
+	position: absolute;
+	min-width:200px;
+	min-height:50px;
+	color:$col-cream;
+	background-color:$col-blue;
+	// box-sizing: border-box;
+	padding-left:110px;
+	padding-right:20px;
+	&:before{
+		position: absolute;
+		top:0;
+		left:0;
+		right:0;
+		bottom:0;
+		content:'';
+		background:inherit ;
+		filter:blur(6px);
+		opacity:0;
+		z-index: -1;
+		transition: 400ms ease-out;
+	}
+	&:hover{
+		color:$col-blue;
+		background-color:$col-cream;
+
+		&:before{
+			opacity:0.5;
+		}
+	}
+}
+
+// midi buton was pressed - now loading state
+main.midi-activated{
+	// hide button
+	#button-midi{
+		cursor:not-allowed;
+	}
+}
+
+
+main.midi-available{
+	// hide button
+	#button-midi{
+		display: none;
+	}
 }
 
 button#button-record{

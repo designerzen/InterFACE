@@ -451,7 +451,7 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mou
 	drawEye(leftEyeIris, options.leftEyeIris)
 	drawEye(rightEyeIris, options.rightEyeIris)
 
-	const {leftEyeLower0,rightEyeLower0, midwayBetweenEyes} = annotations
+	// const {leftEyeLower0,rightEyeLower0, midwayBetweenEyes} = annotations
 	
 	// drawPart(midwayBetweenEyes, options.midwayBetweenEyes )
 	

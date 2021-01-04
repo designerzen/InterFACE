@@ -15,11 +15,11 @@ export const createQueue = (factorymethod, quantity=5) => {
 
 	// interface to play
 	let index = 0
-	const fetchNextInstrument = () => {
+	const fetchNextInstrument = (...args) => {
 		index = index + 1 < quantity ? index + 1 : 0
 		const instrument = instruments[index]
-		//...argsinstrument(...args)
-		instrument.apply(null, arguments)
+		instrument(...args)
+		//instrument.apply(null, arguments)
 	}
 	return fetchNextInstrument
 }
@@ -309,11 +309,10 @@ export const createCowbell = () => {
 	return cowbell
 }
 
-
 // this is just an array of kicks
 export const createKicks = (quantity=2) => createQueue(createKick, quantity)
 export const createSnares = (quantity=3) => createQueue(createSnare, quantity)
-export const createHiHats = (quantity=3) => createQueue(createHihat, quantity)
+export const createHihats = (quantity=3) => createQueue(createHihat, quantity)
 export const createCowbells = (quantity=2) => createQueue(createCowbell, quantity)
 export const createClacks = (quantity=2) => createQueue(createClack, quantity)
 
@@ -322,8 +321,8 @@ export const createClacks = (quantity=2) => createQueue(createClack, quantity)
 export const createDrumkit = () => {
 
 	const kick = createKicks()
-	const hat = createHihat()
-	const snare = createSnare()
+	const hat = createHihats()
+	const snare = createSnares()
 	const cowbell = createCowbell()
 	const clack = createClack()
 

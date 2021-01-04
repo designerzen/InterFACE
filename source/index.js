@@ -47,7 +47,8 @@ const body = document.documentElement
 const main = document.querySelector("main")
 const video = document.querySelector("video")
 const image = document.querySelector("img")
-
+const buttonMIDI = document.getElementById("button-midi")
+	
 // Record stuff
 const {isRecording, startRecording, stopRecording} = record()
 
@@ -151,46 +152,79 @@ const getPerson = (index) => {
 body.classList.add("loading")
 setFeedback("Initialising...<br> Please wait")
 
+const enableMIDIForPerson = (personIndex=0, portIndex=0) => {
+	const person = getPerson(personIndex)
+	person.setMIDI(midi.outputs[portIndex])
+	console.log("Enabling MIDI for", person)
+}
+
 const enableMIDI = async () => {
 
-	midi = await setupMIDI()
-	
-	// this needs a user interaction to trigger
-	setFeedback("MIDI Available<br>Stand By", 0)
-	
-	// midi device connected! huzzah!
-	midi.addListener("connected", (e) => {
-		console.log(e)
-		setFeedback("MIDI Device connected!")
-		// check outputs
-		if (midi.outputs.length > 0)
+	try{
+		midi = await setupMIDI()
+
+		// this needs a user interaction to trigger
+		
+		// console.log(midi.inputs)
+		if (midi.outputs.length>0)
 		{
-			const person = getPerson(0)
-			person.setMIDI(midi.outputs[0])
+			// w00t
+			console.log("MIDI devices", midi.outputs, midi)
+			setFeedback("MIDI Available<br>Stand By", 0)
+			// use this to fill the peoples
+			enableMIDIForPerson(0,0)
+		}else{
+			// bugger
+			console.log("No MIDI devices detected", midi)
+			setFeedback("MIDI Available but no instruments detected", 0)
 		}
-	})
-	
-	// Reacting when a device becomes unavailable
-	midi.addListener("disconnected", (e) => {
-		console.log(e)
-		setFeedback("Lost MIDI Device connection")
-	})
+		
+		// midi device connected! huzzah!
+		midi.addListener("connected", (e) => {
+			console.log(e)
+			setFeedback("MIDI Device connected!")
+			// check outputs
+			if (midi.outputs.length > 0)
+			{
+				enableMIDIForPerson(0,0)
+			}
+		})
+		
+		// Reacting when a device becomes unavailable
+		midi.addListener("disconnected", (e) => {
+			console.log(e)
+			setFeedback("Lost MIDI Device connection")
+		})
 
-	midiAvailable = midi && midi.outputs && midi.outputs.length > 0
+		midiAvailable = midi // && midi.outputs && midi.outputs.length > 0
+		main.classList.add('midi-available')
 
-	return midiAvailable
+	}catch(error){	
+
+		// failed
+		console.error("Total failure", error)
+		// this needs a user interaction to trigger
+		setFeedback("MIDI NOT Available<br>"+error, 0)
+		return false
+	}
+	// suvvess
+	return true	
 }
 
 const showMIDI = async () => {
 
 	// show button
 	// to skip clicking but results in a warning
-	const onStartRequested = async () => {
+	const onStartRequested = async (event) => {
+		setFeedback("MIDI available<br>Connecting to instruments...", 0)
 		console.log("User input detected so enabling MIDI!")
 		await enableMIDI()
-		buttonVideo.documentElement.removeEventListener('mousedown', onStartRequested)
+		buttonMIDI.removeEventListener('mousedown', onStartRequested)
+		event.preventDefault()
+		main.classList.add('midi-activated')
 	}
-	buttonVideo.addEventListener('click', onStartRequested)
+	buttonMIDI.addEventListener('click', onStartRequested)
+	return true
 }
 
 // this needs to occur on click
@@ -253,12 +287,17 @@ const setup = (settings) => {
 			if (hasMIDI)
 			{
 				main.classList.add('midi')
+				setFeedback("MIDI available<br>Click the screen to connect", 0)
+			}else{
+				main.classList.add('midi','no-instrument')
+				setFeedback("MIDI available<br>Connect an instrument to continue", 0)
 			}
 			
 		}catch(error){
 			// no midi - don't show midi button
-			console.log("no MIDI!")
+			console.log("no MIDI!", error)
 			main.classList.add('no-midi')
+			setFeedback("MIDI unavailable, or no instrument connected<br>"+error, 0)
 		}
 		
 		// const {startRecording, stopRecording} = record(stream)
@@ -286,7 +325,7 @@ const setup = (settings) => {
 	
 
 		// after a period of inactivity...
-		setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
+		//setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
 	
 		// remove loading flag as we now have all of our assets!
 		body.classList.remove("loading")
@@ -398,7 +437,7 @@ const setup = (settings) => {
 
 			//console.warn("update",predictions, tickerTape )
 		} )
-		
+
 		let barsElapsed = 0
 		const timer = start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
 			

@@ -1,7 +1,7 @@
 import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './instruments'
 
 let buttonInstrument
-let buttonVideo
+export let buttonVideo
 let buttonRecord
 
 import PALETTE from "./palette"
@@ -34,7 +34,7 @@ export const setupInterface = ( options ) => {
 	fragment.innerHTML = uiSelect
 	// add to dom
 	controls.appendChild( fragment )
-	console.error("Creating UI", {controls, fragment, uiOptions, uiSelect })
+	// console.error("Creating UI", {controls, fragment, uiOptions, uiSelect })
 }
 
 // updates the text on screen

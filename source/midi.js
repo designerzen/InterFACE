@@ -1,22 +1,16 @@
 
-import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
+// import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
+import {WebMidi} from "../node_modules/webmidi/dist/webmidi.esm.js"
 
 export const setupMIDI = () => new Promise ( (resolve,reject) => {
 	
-	WebMidi.enable( (err) => {
+	WebMidi.enable().then( ports => {
 
-		if (err) 
-		{
-			console.log("WebMidi could not be enabled.", err);
-			reject("no MIDI")
-			return
-		}
 
-		console.log("WebMidi enabled!")
+		//console.log("WebMidi enabled!", ports, ports.outputs[0] , WebMidi.outputs[0], WebMidi.outputs[0] === ports.outputs[0] )
 		// I / O change
-		console.log(WebMidi.inputs)
-		console.log(WebMidi.outputs)
-
+		// console.log(WebMidi.inputs)
+		// console.log(WebMidi.outputs)
 
 		resolve(WebMidi)
 		
@@ -80,7 +74,6 @@ export const setupMIDI = () => new Promise ( (resolve,reject) => {
 		// 		.stopNote("G5", 12, {time: 1200});    // After 1.2 s.
 
 		// }
-	})
-
+	}).catch(error=> reject(error))
 
 })

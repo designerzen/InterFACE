@@ -135,7 +135,7 @@ export default class Person{
 	}
 
 	get hasMIDI(){
-		return this.midi && this.midiChannel > -1
+		return this.midi && this.midiChannel
 	}
 
 
@@ -182,7 +182,7 @@ export default class Person{
 
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
-		drawPoints( prediction, options.dots, this.debug )
+		drawPoints( prediction, options.dots, 3, this.debug )
 
 		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
 		
@@ -303,7 +303,7 @@ export default class Person{
 		const roll = clamp((prediction.roll + 0.5) , 0, 1)
 		
 		// Controls stereo pan
-		const eyeDirection = prediction.eyeDirection  // (prediction.eyeDirection + 1)/ 2
+		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 
 		// volume is an log of this
 		const amp = clamp(lipPercentage, 0, 1 ) //- 0.1
@@ -326,7 +326,7 @@ export default class Person{
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
-		this.stereoNode.pan.value = clamp(eyeDirection, -1, 1 ) 
+		this.stereoNode.pan.value = eyeDirection
 		//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		
 		// you want the scale to be from 0-1 but from 03-1
@@ -362,18 +362,20 @@ export default class Person{
 			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
 			
 			// send out some MIDI yum yum noteName && 
-			if (this.hasMIDI && !this.active)
+			if (this.hasMIDI)
+			// if (this.hasMIDI && !this.active)
 			{
 				// duration: 2000,
 				// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 				//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
-				this.midi.playNote(noteName, 
-					{ 
-						channels:this.midiChannel,
-						attack:amp
-					}
-				)
+				const midiOptions = { 
+					channels:this.midiChannel,
+					attack:amp
+				}
+				this.midi.playNote( noteName, midiOptions )
 				this.midiActive = true
+				
+				console.log("MIDI noteOn", noteName, "Channel:"+this.midiChannel, {midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 
 			}else{
 				// add connect midi device note?
@@ -407,6 +409,12 @@ export default class Person{
 			}
 		}
 
+		// Midi pitch bending with eyes!
+		if (this.hasMIDI && eyeDirection !== 0)
+		{
+			this.midi.setPitchBend( eyeDirection )
+		}
+
 
 // WebMidi.outputs[0].channels[1].stopNote("C3", {time: "+2500"});
 
@@ -431,7 +439,7 @@ export default class Person{
 		// 	// this.gainNode.gain.value = newVolume
 		// }
 		// this.gainNode.gain.value = newVolume
-		console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
+		//console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
 		
 		return {
 			yaw, pitch,
@@ -467,5 +475,6 @@ export default class Person{
 	setMIDI(midi, channel="all"){
 		this.midiChannel = channel
 		this.midi = midi
+		console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 }
