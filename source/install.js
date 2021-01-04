@@ -4,6 +4,6 @@
 // https://github.com/pwa-builder/pwa-install#pwa-install
 import '@pwabuilder/pwainstall'
 
-//import '../node_modules/@pwabuilder/pwainstall/src/pwa-install.ts'
+// import '../node_modules/@pwabuilder/pwainstall/src/pwa-install.ts'
 
 import '@pwabuilder/pwaupdate'

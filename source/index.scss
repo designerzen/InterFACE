@@ -2,26 +2,61 @@ $easeInBack:  cubic-bezier(0.600, -0.280, 0.735, 0.045);
 $easeOutBack:  cubic-bezier(0.175,	0.885, 0.320, 1.275);
 $easeInOutBack:  cubic-bezier(0.680, -0.550, 0.265, 1.550);
 
+$col-white:hsl(22, 28%, 87%);
+$col-dark:hsl(30, 6%, 14%);
+$col-grey:hsl(11, 6%, 50%);
+$col-cream:hsl(23, 18%, 53%);
+$col-tan:hsl(27, 30%, 45%);
+$col-brown:hsl(23, 22%, 30%);
+$col-blue:hsl(196, 18%, 33%);
+$col-green:hsl(56, 18%, 33%);
+$col-yellow:hsl(56, 18%, 33%);
+$col-orange:hsl(28, 69%, 38%);
+$col-red:hsl(9, 58%, 35%);
+
+// @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap');
+// @font-face {
+// 	font-family: 'Oxanium';
+// 	src: './assets/fonts/Oxanium.ttf' format('truetype');
+// 	// font-weight: 125 950;
+// 	// font-stretch: 75% 125%;
+// 	font-style: normal;
+//    }
+
 html,body,h1,h2,h3,h4,h5,h6,p{
+
 	margin:0;
 	padding:0;
 }
 :root{
 	
 	--pad:2vmin;
+	// FROM PWAINSTALL / UPDTE
+	//	Changes the background color of the toast
+	--toast-background:$col-dark;
+	//	Changes the background color of the update button
+	--button-background:$col-dark;
 }
+
+html, input, button, textarea{
+	font-family: 'Oxanium', sans-serif !important;
+	font-weight: 800;
+}
+
 html{
-	font-family: 'Oxanium', sans-serif;
+
 
 	// dark
 	transition: background-color 450ms linear;
-	background-color: hsl(0, 10%, 0%);
-	background-image:linear-gradient(hsla(0, 10%, 38%, 0.5), hsla(0, 10%, 28%, 0.5)) ;
+
+	color:$col-white;
+	background-color:$col-dark;
+	background-image:linear-gradient(rgba($col-dark, 0.5), rgba($col-dark, 0.1));
 	
 	// light
 	&.loading{
-		background-color: hsl(0, 10%, 100%);
-		background-image:linear-gradient(hsla(0, 10%, 88%, 0.5), hsla(0, 10%, 68%, 0.5)) ;
+		background-color:$col-white;
+		background-image:linear-gradient(rgba(white, 0.9), rgba(white, 0.1) );
 	}
 }
 
@@ -29,16 +64,27 @@ html, body{
 	height: 100%;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@700&display=swap');
+body{
+	overflow: hidden;
+}
 
+h1,h2,h3,h4,h5,h6{
+	font-weight: 800;
+}
 
+p{
+	font-weight: 500;
+}
+a{
+	color:$col-blue;
+}
 header{
 	position: absolute;
 	z-index: -1;
 	top:0;
 	right:0;
 	left:0;
-	//overflow: hidden;
+	overflow: hidden;
 	// above feedback
 	bottom:6rem;
 	display: grid;
@@ -48,25 +94,31 @@ header{
 	> * {
 		max-height:100vh;
 		grid-area: 1/1/1/1;
-		visibility: hidden;
 	}
 	h1{
-		background-color: black;
-		color: hsl(0, 10%, 100%);
+		background-color: $col-dark;
+		color: $col-grey;
+		
+		strong{
+			color:$col-blue;
+		}
 		display: inline-block;
 		padding:var(--pad) calc(var(--pad) * 2);
 		text-transform: uppercase;
 		align-self: self-start;
 		justify-self: center;
 		margin-top:var(--pad);
-	}
-	h1{
+		transition:color 400ms ease-out;
+		font-size:clamp(10vmin, 3rem, 4.5rem);
+		clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
 		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
 					rgba(0,0,0,0.56) 0 2px 4px,
 					rgba(0,0,0,0.56)0 3px 4px,
 					rgba(255,255,255,0.96) 0 0 4px;
 	}
+	
 	h2,p{
+
 		text-shadow: rgba(255,255,255,0.96) 0 1px 4px,
 					rgba(255,255,255,0.7) 0 2px 4px,
 					rgba(255,255,255,0.5) 0 3px 4px,
@@ -74,11 +126,11 @@ header{
 		
 	}
 	h2{
+		color: $col-yellow;
 		margin-top:auto;
 	}
 	.logo{
-		align-self: center;
-		justify-self: center;
+		align-self:  flex-start;
 	}
 }
 .logo, h1, h2{
@@ -88,28 +140,31 @@ header{
 }
 
 .logo{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	// max-height:10vh;
-	width:auto;
+	display: block;
+	fill:$col-red;
+	width:100%;
+	min-height:10vh;
 	color:transparent;
 	visibility: visible;
-	overflow: hidden;
+	// overflow: hidden;
+	z-index:1;
 
-	img {
-		margin: auto;
-		display: block;
-		height:auto;
-		width:auto;
-		max-width:100vmin;
-		max-height:100vmin;
-		// height:100%;
-	}
+	// background:url(./assets/logos/interface.svg) no-repeat left;
+	// background-size: contain;
+	// background-position: left;
 }
 
 main{
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	min-height: 320px;
+	// max-height: 100vh;
+}
 
+#app-frame{
 
 	--person-a-x:0;
 	--person-a-y:0;
@@ -119,9 +174,11 @@ main{
 	display: grid;
 	position: relative;
 
-	height: 100%;
-	min-height: 320px;
-	max-height: 100vh;
+	// height: 100%;
+	// min-height: 320px;
+	// max-height: 100vh;
+	max-width: 100%;
+	max-height: 100%;
 
 	object-fit: contain;
 
@@ -133,7 +190,7 @@ main{
 }
 
 // put them all in the same place in the grid
-main > * {
+#app-frame > * {
 	grid-area: 1/1/1/1;
 	transition: 400ms ease-out opacity;
 
@@ -154,7 +211,15 @@ main > * {
 			animation:Fade 400ms ease-in 1 0s both;
 		}	
 		.logo{
-			
+			align-self: center;
+			height:100%;
+			background-position: center;
+			z-index:-1;
+		}
+		h1{
+			//background-color: black;
+			color: $col-orange;
+
 		}
 	}
 	video{
@@ -203,25 +268,54 @@ main > * {
 			opacity:0;
 			display: none;
 		}
-
-		#feedback{
-			text-align: center;
-		}
 	}
 
+	#feedback{
+		text-align: center;
+	}
 }
 
 
-main{
+// FIXME:
+.loaded{
+	header{
+		display: none;
+	}
+}
+
+
+#app-frame{
+
+	margin:auto;
+
 	#button-midi{
 		display: none;
 	}
+	video{
+		transform: scaleX(-1);
+	}
 	video,canvas{
+		display: block;
 		border-radius:12px;
 		overflow: hidden;
-		// scale to fit screen!
-		transform: scaleX(-1);
-		//transform:scale(0,-1);
+
+		--wig:0;
+
+		--hue:180;
+		--l:50%;
+		
+		box-shadow:
+			var(--wig) 1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
+			var(--wig) 2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
+			var(--wig) 4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
+			var(--wig) 8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
+			var(--wig) 13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
+			var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
+			var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
+			// scale to fit screen!
+	}
+	canvas{
+		z-index: 1;
 	}
 }
 
@@ -254,6 +348,25 @@ main.active{
 	}
 }
 
+p{
+	color:$col-white;
+	pointer-events: none;
+	font-weight:bold;
+	text-align:right ;
+	display: inline-block;
+	padding:var(--pad);
+	// emboss
+	text-shadow : rgba(255,255,255,0.96) 0 -1px 4px,
+					rgba($col-dark, 0.96) 0 0 4px;
+
+}
+
+#toast{
+	position: absolute;
+	left:var(--pad);
+	top:var(--pad);
+}
+
 #feedback{
 	box-sizing: border-box;
 	position: fixed;
@@ -262,22 +375,13 @@ main.active{
 	// left:var(--pad);
 	right:var(--pad);
 	max-width: calc(100% - 2 * var(--pad));
-	display: block;
-	font-weight:bold;
-	text-align:right ;
-	color:white;
-	background-color: 	rgba(0,0,0,0.46);
-	display: inline-block;
-	padding:var(--pad);
-	text-shadow : rgba(255,255,255,0.96) 0 1px 4px,
-					rgba(0,0,0,0.96) 0 0 4px;
-
+	
 	// cool carat
 	&::after{
 		content:'';
 		width: 1rem;
 		height:100%;
-		background-color: yellow;
+		background-color: $col-yellow;
 		display: inline-block;
 	}
 }
@@ -293,31 +397,37 @@ main.active{
 	margin:auto;
 	padding:0;
 	
+	overflow: hidden;
+	position: absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom: 0;
+
 	// width:100%;
 	pointer-events: none;
-
-	max-width:var(--width);
-	max-height:var(--height);
 
 	> *{
 		pointer-events: auto;
 	}
 
+	/*
 	// we need media queries to complete
 	
+	max-width:var(--width);
+	max-height:var(--height);
+
 	// landscape
 	@media (orientation: landscape) {
 		height:100vh;
 		width:calc(var(--width) / var(--height) * 100vh );
 	}
+	// portrait
 	@media (orientation: portrait) {
-		// portrait
 		width:100vw;
-		height:calc(var(--height) / var(--width) * 100vw );
-	}
+		height:calc(var(--height) / var(--width)  * 100vw );
+	}*/
 
-	overflow: hidden;
-	position: relative;
 
 	// &::before{
 	// 	display: block;
@@ -333,10 +443,13 @@ fieldset{
 	border:0;
 	margin:var(--pad);
 	padding:0;
+	display: grid;
+	grid-template-columns:1fr 1fr ;
 }
 
 button{
-	
+	margin:0;
+	padding:0;
 	appearance: none;
 	border:0;
 	background-color: transparent;
@@ -386,9 +499,11 @@ button.person{
 
 
 button#person-a{
+
+	outline:2px solid $col-blue;
 	
-	// left:calc( 1px * var(--person-a-x,0) );
-	right:calc( 100% * var(--person-a-x,0) / var(--width,640) );
+	//left:calc( 1px * var(--person-a-x,0) );
+	left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
 	top:calc( 100% * var(--person-a-y,0) / var(--height,640) );
 	
 	width:calc( 100% * var(--person-a-w,0) / var(--width,640) );
@@ -397,6 +512,8 @@ button#person-a{
 
 // move into position
 button#person-b{
+	outline:2px solid $col-green;
+
 	left:calc( 1px * var(--person-b-x,0) );
 	top:calc( 1px *var(--person-b-y,0) );
 	width:calc( 1px * var(--person-b-w,0) );
@@ -413,10 +530,15 @@ button#button-video{
 	z-index:-1;
 }
 
-#button-midi{
+button#button-midi{
 	background-image:url(assets/logos/midi.svg);
 	background-repeat:no-repeat;
 }
+
+button#button-record{
+	color:$col-red;
+}
+
 @keyframes Fade{
 	from{
 		opacity: 0;

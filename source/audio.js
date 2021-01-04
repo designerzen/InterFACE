@@ -1,18 +1,21 @@
-import {lerp, TAU} from "./maths"
+import {clamp, lerp, TAU} from "./maths"
+import {cleanTitle} from './instruments'
 
-import INSTRUMENT_FOLDERS from "./instruments"
-export const FOLDERS = INSTRUMENT_FOLDERS.split("\n")
+import {INSTRUMENT_FOLDERS} from "./instruments"
 
-export const randomInstrument = () => FOLDERS[ Math.floor( Math.random() * FOLDERS.length ) ]
+const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
 
-
-// import * as instrumentAccordian from "./FluidR3_GM/accordion-ogg"
+const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
+const NOTES_WHITE = ["A","B","C","D","E","F", "G" ]
+	
+export const randomInstrument = () => INSTRUMENT_FOLDERS[ Math.floor( Math.random() * INSTRUMENT_FOLDERS.length ) ]
 
 export let audioContext
 let mediaRecorder
 
 export let bufferLength
 export let dataArray
+
 let oscillator
 let gainNode
 let delayNode
@@ -21,10 +24,12 @@ let analyser
 let compressor
 let reverb
 let destinationVolume = 0
+
 export let playing = false
 export let active = false
 
-export const inputNode = delayNode
+export const inputNode = () => delayNode
+export const inputDryNode = () => gainNode
 
 export const setupAudio = () => {
 
@@ -35,44 +40,38 @@ export const setupAudio = () => {
 	gainNode = audioContext.createGain()
 	gainNode.gain.value = 0
 
-	oscillator = audioContext.createOscillator()
-	oscillator.type = "sine" // "sawtooth"
+	// oscillator = audioContext.createOscillator()
+	// oscillator.type = "sine" // "sawtooth"
+	// oscillator.frequency.value = 261.63
+	// oscillator.connect(delayNode)
+	// oscillator.start()
 
 	// this should hopefully balance the outputs
 	compressor = audioContext.createDynamicsCompressor()
-	// compressor.threshold.setValueAtTime(-50, audioContext.currentTime)
-	// compressor.knee.setValueAtTime(40, audioContext.currentTime)
-	// compressor.ratio.setValueAtTime(12, audioContext.currentTime)
-	// compressor.attack.setValueAtTime(0, audioContext.currentTime)
-	// compressor.release.setValueAtTime(0.25, audioContext.currentTime)
-	
-	// var compressor = {
 	// 	threshold: [-100, 0],
 	// 	knee: [0, 40],
 	// 	ratio: [1, 20],
 	// 	attack: [0, 1],
 	// 	release: [0, 1]
-	//   }
-	compressor.threshold.value = -50
+	compressor.threshold.value = -70
 	compressor.knee.value = 40
-	compressor.ratio.value = 12
-	compressor.attack.value = 0
+	compressor.ratio.value = 15
+	compressor.attack.value = 0.2
 	compressor.release.value = 0.5
 
 	reverb = audioContext.createConvolver()
 	// reverb = audioContext.createConvolver(null, true)
-	delayNode = audioContext.createDelay(5)
+	delayNode = audioContext.createDelay(0.01)
 	feedbackNode = audioContext.createGain()
 
-	delayNode.delayTime.value = 0
-	feedbackNode.gain.value = 0.3
+	//delayNode.delayTime.value = 0
+	feedbackNode.gain.value = 0.2
 
 	analyser = audioContext.createAnalyser()
 	analyser.minDecibels = -90
 	analyser.maxDecibels = -10
 	analyser.smoothingTimeConstant = 0.85
 
-	
 	// for waves
 	analyser.fftSize = 2048
 	bufferLength = analyser.fftSize
@@ -85,23 +84,17 @@ export const setupAudio = () => {
 	
 	//console.error("instrument",{oscillator, compressor, dataArray} )
 	
-	//oscillator.type = e.currentTarget.id
-	oscillator.frequency.value = 261.63
-	
-	oscillator.connect(delayNode)
-	
+	// To recreate feedback...
 	delayNode.connect(feedbackNode)
 	feedbackNode.connect(delayNode)
-
 	delayNode.connect(gainNode)
+
 	// delayNode.connect(reverb)
 	// reverb.connect(gainNode)
 
 	gainNode.connect(compressor)
 	compressor.connect(analyser)
 
-	// oscillator.start()
-		
 	analyser.connect(audioContext.destination)
 	
 	return delayNode
@@ -126,7 +119,7 @@ export const stopAudio = () => {
 		playing = false
 		// you cannot restart an oscillator!
 		//oscillator.stop()
-		oscillator.disconnect()
+		//oscillator.disconnect()
 		// analyser.disconnect()
 		return true
 	}else{
@@ -144,7 +137,7 @@ export const playAudio = () => {
 			audioContext.resume()
 		}
 		// analyser.connect(audioContext.destination)
-		oscillator.connect(delayNode)
+		//oscillator.connect(delayNode)
 		
 		playing = true
 		monitor()
@@ -251,19 +244,32 @@ async function loadInstrumentPart (instrumentName, part) {
 	return new Promise((resolve,reject)=>{
 		const path = `${instrumentName}/${part}`
 		const audio = new Audio()
-		audio.addEventListener('canplaythrough', () => {
-			// available...
-			//console.log("Attempting to create audio", { audio, path})
+
+		const resolution = event => {
+			disconnect()
 			resolve( audio )
-		})
+		}
+		const failure = event =>{
+			disconnect()
+			reject(event.error)
+		} 
+
+		const connect = ()=>{
+			audio.addEventListener('canplaythrough',resolution)
+			audio.addEventListener('error', failure)
+		}
+		const disconnect = ()=>{
+			audio.removeEventListener('error',failure)
+			audio.removeEventListener('canplaythrough',resolution)
+		}
+
+		connect()
 		audio.src = path
-		
 	})
 }
 
 const createInstrumentBanks = (fileTye="mp3", dot=".")=>{
 
-	const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
 	const bank = []
 	for (let b=0; b<BANKS.length;++b)
 	{
@@ -299,7 +305,51 @@ const createInstrumentBanks = (fileTye="mp3", dot=".")=>{
 	// Gb1-7
 }
 
-export const INSTRUMENT_NAMES = createInstrumentBanks('','')
+export const NOTE_NAMES = createInstrumentBanks('','')
+
+// this is an object with the keys being the NOTE_NAMES
+const NOTE_NAMES_FRIENDLY = {}
+
+NOTE_NAMES.forEach( note => {
+	// for each name we do a clever thing innit...
+	NOTE_NAMES_FRIENDLY[note] = note
+} )
+
+console.error({BANKS, NOTE_NAMES, NOTE_NAMES_FRIENDLY})
+
+ 
+// octaves 1-7
+export const getNoteName = (percent, octave=3, isMinor=false) => {
+
+	// restrict to 1-7 even though 0 is available for many
+	// octave = clamp(octave, 1, 7)
+	let noteNumber
+	let noteName
+	
+	if (isMinor)
+	{
+		noteNumber = Math.floor( percent * (NOTES_BLACK.length-1) )
+		noteName = NOTES_BLACK[noteNumber]
+	}else{
+		noteNumber = Math.floor( percent * (NOTES_WHITE.length-1) )
+		noteName = NOTES_WHITE[noteNumber]
+	}
+
+	// here is where we need to do our majic
+	// const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
+	// play a note from bank (this is the same for every octave?)
+	// const noteNumber = Math.floor( percent * (BANKS.length-1) )
+	
+	// console.log("Creating note", {percent, octave, isMinor, noteNumber, noteName} )
+	// const noteNumber = Math.floor( percent * (NOTE_NAMES.length-1) )
+	// const noteNumber = Math.floor( percent * (NOTE_NAMES.length-1) )
+	// const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
+	// const noteName = NOTE_NAMES[noteNumber]
+
+	// just in case the note name is not found?
+	return `${noteName}${clamp(octave, 1, 7)}`
+	// return noteName ? `${noteName}${clamp(octave, 1, 7)}` : `A0`
+}
 
 
 export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="./FluidR3_GM") => {
@@ -319,11 +369,12 @@ export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="./Fluid
 export const loadInstrument = async (instrumentName="alto_sax-mp3", path="./FluidR3_GM", progressCallback ) => {
 	
 	const output = {
-		title:instrumentName
+		title:cleanTitle(instrumentName),
+		name:instrumentName,
 	}
 	// progressCallback?
 	const parts = await Promise.all( loadInstrumentParts(instrumentName, path) )
-	INSTRUMENT_NAMES.forEach( (instrument, index) => {
+	NOTE_NAMES.forEach( (instrument, index) => {
 		output[ instrument.split('.')[0] ] = parts[index]
 	})
 	return output
@@ -336,6 +387,7 @@ export const loadInstrument = async (instrumentName="alto_sax-mp3", path="./Flui
 export const record = (stream)=>{
 	let recording = false
 	let dataArray
+
 	const startRecording = stream => {
 
 		return new Promise((resolve,reject)=>{
@@ -360,7 +412,7 @@ export const record = (stream)=>{
 		})
 	}
 
-	const stopRecording = ( type='audio/mp3;' ) => {
+	const stopRecording = ( ) => {
 		return new Promise((resolve,reject)=>{
 			if (!recording)
 			{
@@ -368,195 +420,26 @@ export const record = (stream)=>{
 			}
 			
 			mediaRecorder.onstop = event => { 
-
-				// blob of type mp3 
-				const audioData = new Blob(dataArray, { 'type': type })
-					
+	
 				// After fill up the chunk  
 				// array make it empty 
-				dataArray = []
-
 				recording = false
 
 				// Pass the audio url to the 2nd video tag 
-				resolve( audioData )
+				resolve( dataArray )
 			}
 			mediaRecorder.stop()
 		})
 	}
 
-	return {startRecording,stopRecording}
+	const encodeRecording = (recording, type='audio/mp3;') => {
+
+		// blob of type mp3 
+		const audioData = new Blob(recording, { 'type': type })
+		return audioData
+	}
+
+	const isRecording = () => recording
+
+	return {encodeRecording, startRecording,stopRecording, isRecording}
 } 
-
-const ZERO = 0.0000001
-
-export const createKick = () => {
-
-    const osc = audioContext.createOscillator()
-    const osc2 = audioContext.createOscillator()
-    const gainOsc = audioContext.createGain()
-    const gainOsc2 = audioContext.createGain()
-
-    osc.type = "triangle"
-    osc2.type = "sine"
-
-	const kick = (attack=0.01,duration=0.5) => {
-
-		const time = audioContext.currentTime
-		
-		// clear anything from previous plays
-		gainOsc.gain.cancelScheduledValues(time)
-		gainOsc2.gain.cancelScheduledValues(time)
-		osc.frequency.cancelScheduledValues(time)
-		osc2.frequency.cancelScheduledValues(time)
-
-		gainOsc.gain.setValueAtTime(1, time)
-		gainOsc.gain.exponentialRampToValueAtTime(ZERO, time + duration)
-	
-		gainOsc2.gain.setValueAtTime(1, audioContext.currentTime)
-		gainOsc2.gain.exponentialRampToValueAtTime(ZERO, time + duration)
-	
-		osc.frequency.setValueAtTime(120, audioContext.currentTime)
-		osc.frequency.exponentialRampToValueAtTime(attack, time + duration)
-	
-		osc2.frequency.setValueAtTime(50, audioContext.currentTime)
-		osc2.frequency.exponentialRampToValueAtTime(attack, time + duration)
-		 
-		 try{
-
-			osc.start(time)
-			osc2.start(time)
-
-		 }catch(error)
-		 {
-
-		 }
-	 
-		//  osc.stop(audioContext.currentTime + duration)
-		//  osc2.stop(audioContext.currentTime + duration)
-	}
- 
-    osc.connect(gainOsc)
-    osc2.connect(gainOsc2)
-    gainOsc.connect(gainNode)
-    gainOsc2.connect(gainNode)
-
-	return kick
-}
-
-// this is just an array of kicks
-export const createKicks = (quantity=5) => {
-
-	const kicks = []
-	for (let i=0; i < quantity; ++i)
-	{
-		const kick = createKick()
-		kicks.push( kick )
-	}
-
-	// interface to play
-	let index = 0
-	const fetchNextKick = (attack=0.01,duration=0.5) => {
-		index = index + 1 < quantity ? index + 1 : 0
-		const kick = kicks[index]
-		kick(attack, duration)
-	}
-	return fetchNextKick
-}
-
-export const createSnare = () => {
-
-    const osc3 = audioContext.createOscillator()
-    const gainOsc3 = audioContext.createGain()
-    const filterGain = audioContext.createGain()
-	const node = audioContext.createBufferSource()
-	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
-
-	const filter = audioContext.createBiquadFilter()
-	filter.type = "highpass"
-
-	osc3.type = "triangle"
-	osc3.frequency.value = 100
-
-	// TODO Cache the noise
-	const data = buffer.getChannelData(0)
-	for (var i = 0; i < 4096; i++) 
-	{
-		data[i] = Math.random()
-	}
-
-	node.buffer = buffer
-	node.loop = true
-	
-	osc3.connect(gainOsc3)
-	gainOsc3.connect(gainNode)	
-
-	node.connect(filter)
-	filter.connect(filterGain)
-	filterGain.connect(gainNode)
-
-	const snare = () => {
-
-		const time = audioContext.currentTime
-		
-		filterGain.gain.cancelScheduledValues(time)
-		filterGain.gain.setValueAtTime(1, time)
-		filterGain.gain.exponentialRampToValueAtTime(ZERO, time + 0.2)
-	
-		gainOsc3.gain.setValueAtTime(ZERO, time)
-		gainOsc3.gain.exponentialRampToValueAtTime(ZERO, time+ 0.1)	
-		//gainOsc3.gain.value = 0
-
-		filter.frequency.setValueAtTime(100, time)
-		filter.frequency.linearRampToValueAtTime(1000,time + 0.2)		
-	
-		//gainNode.gain.value = 1			
-		try{
-			osc3.start(time)
-			//osc3.stop(audioContext.currentTime + 0.2)
-		
-			node.start(time)
-			//node.stop(audioContext.currentTime + 0.2)	
-		}catch(error){
-
-		}
-	}
-
-	return snare
-}
-
-
-function hihat() {
-
-    var gainOsc4 = audioContext.createGain();
-    var fundamental = 40;
-    var ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
-
-    var bandpass = audioContext.createBiquadFilter();
-    bandpass.type = "bandpass";
-    bandpass.frequency.value = 10000;
-
-    var highpass = audioContext.createBiquadFilter();
-    highpass.type = "highpass";
-    highpass.frequency.value = 7000;
-
-
-    ratios.forEach(function(ratio) {
-
-        var osc4 = audioContext.createOscillator();
-        osc4.type = "square";
-        osc4.frequency.value = fundamental * ratio;
-        osc4.connect(bandpass);
-
-        osc4.start(audioContext.currentTime);
-        osc4.stop(audioContext.currentTime + 0.05);
-        
-    });
-
-    gainOsc4.gain.setValueAtTime(1, audioContext.currentTime);
-    gainOsc4.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
-    
-    bandpass.connect(highpass)
-    highpass.connect(gainOsc4)
-    gainOsc4.connect(mixGain)
-}
