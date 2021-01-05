@@ -649,7 +649,7 @@ const installer = async ()=> {
 	
 	const shouldShowInstall = () => {
 		const eligibleUser = isSupportingBrowser &&
-		  relatedApps.length < 1 &&
+		relatedApps && relatedApps.length < 1 &&
 		  (hasprompt || isIOS)
 	
 		return eligibleUser
@@ -754,10 +754,21 @@ const installer = async ()=> {
 		}
 	  }
 	
-	// const test = await getManifestData()
-	const test = await firstUpdated()
-	console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
-	console.log(manifestdata)
+	const showInstaller = shouldShowInstall()
+
+	if (("standalone" in navigator && navigator.standalone === false) || 
+		(showInstaller && installed === false))
+	{
+		// we need to show the installer!	// const test = await getManifestData()
+		const test = await firstUpdated()
+		console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
+		console.log(manifestdata)
+		//show install button?
+		
+	}else{
+		// we are already showing?
+		console.log("Application is currently ignored" )
+	}
 }
 
 installer()
