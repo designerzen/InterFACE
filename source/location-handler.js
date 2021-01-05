@@ -66,11 +66,11 @@ export const getLocationSettings = (defaultOptions) => {{
 	const urlParams = new URLSearchParams(window.location.search)
 	for (const [key, value] of urlParams) 
 	{
-		console.log(`${key}:${value}`)
+	//	console.log(`${key}:${value}`)
 		// ensure we data type these
 		locationOptions.key = guessType(value)
 	}
 
-	console.log(`query:${locationOptions}`)
+	//console.log(`query:${locationOptions}`)
 	return locationOptions
 }}

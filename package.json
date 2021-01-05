@@ -9,12 +9,12 @@
     "test": "parcel serve source/test.html",
     "start": "parcel serve source/index.html",
     "build": "parcel build source/index.html",
+    "analyse": "PARCEL_BUNDLE_ANALYZER=1 parcel build source/index.html",
     "deploy": "node deploy.js",
     "upgrader": "yarn upgrade-interactive",
     "package": "yarn clean && yarn build && yarn deploy"
   },
   "dependencies": {
-    "@capacitor/cli": "^2.4.5",
     "@capacitor/core": "^2.4.5",
     "@capacitor/ios": "^2.4.5",
     "@pwabuilder/pwainstall": "^1.6.7",
@@ -30,6 +30,7 @@
     "webmidi": "^3.0.0-alpha.2"
   },
   "devDependencies": {
+    "@capacitor/cli": "^2.4.5",
     "gh-pages": "^3.1.0",
     "parcel": "^2.0.0-beta.1",
     "sass": "^1.30.0"

@@ -30,6 +30,7 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 }
 :root{
 	
+	--curve:12px;
 	--pad:2vmin;
 	// FROM PWAINSTALL / UPDTE
 	//	Changes the background color of the toast
@@ -72,8 +73,19 @@ h1,h2,h3,h4,h5,h6{
 	font-weight: 800;
 }
 
+
 p{
 	font-weight: 500;
+}
+
+p[aria-label="Summary"]{
+	color:transparent;
+	text-shadow: none;
+}
+
+small{
+	font-size: 60%;
+	font-weight: 200;
 }
 a{
 	color:$col-blue;
@@ -309,7 +321,7 @@ main{
 	}
 	video,canvas{
 		display: block;
-		border-radius:12px;
+		border-radius:var(--curve);
 		overflow: hidden;
 
 		--wig:0;
@@ -452,6 +464,20 @@ p{
 	// }
 }
 
+
+#pwa{
+	position:absolute;
+	left: var(--pad);
+	bottom: var(--pad);
+	color:$col-brown;
+}
+
+.brand{
+	background:url(./assets/logos/designerzen.svg) no-repeat left 2px center;
+	background-size: contain;
+	padding-left:15px;
+}
+
 fieldset{
 	border:0;
 	margin:var(--pad);
@@ -505,9 +531,7 @@ button.person{
 	}
 }
 .active button.person{
-	display: block;
-
-	
+	display: block;	
 }
 
 
@@ -554,30 +578,40 @@ button#button-midi{
 	position: absolute;
 	min-width:200px;
 	min-height:50px;
-	color:$col-cream;
-	background-color:$col-blue;
 	// box-sizing: border-box;
 	padding-left:110px;
 	padding-right:20px;
+	border-radius: var(--curve) var(--curve) var(--curve) 0;
+	transition:background-color 400ms ease-out;
+	overflow: hidden;
+
+	color:$col-white;
+	background-color:$col-blue;
+	
 	&:before{
+		// border-radius: var(--curve) 0;
 		position: absolute;
 		top:0;
 		left:0;
 		right:0;
 		bottom:0;
 		content:'';
-		background:inherit ;
-		filter:blur(6px);
+		background:inherit;
+		background-color:transparent;
+		filter:brightness(0%) hue-rotate(180deg);
+		// filter: tint($col-blue);
 		opacity:0;
 		z-index: -1;
-		transition: 400ms ease-out;
+		transition:opacity 400ms ease-out;
 	}
+
 	&:hover{
 		color:$col-blue;
-		background-color:$col-cream;
+		background-color:$col-white;
 
 		&:before{
-			opacity:0.5;
+			opacity:1;
+			z-index:1;
 		}
 	}
 }

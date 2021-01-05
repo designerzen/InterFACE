@@ -375,7 +375,7 @@ export default class Person{
 				this.midi.playNote( noteName, midiOptions )
 				this.midiActive = true
 				
-				console.log("MIDI noteOn", noteName, "Channel:"+this.midiChannel, {midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+				// /console.log("MIDI noteOn", noteName, "Channel:"+this.midiChannel, {midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 
 			}else{
 				// add connect midi device note?

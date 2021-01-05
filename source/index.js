@@ -239,15 +239,21 @@ const setup = (settings) => {
 
 		try{
 			
-			setFeedback( "Image downloaded...<br> Please wait")
-			photo = await setupImage(image)
+			if (image)
+			{
+				setFeedback( "Image downloaded...<br> Please wait")
+				photo = await setupImage(image)
+			}
 			
 			setFeedback("Attempting to locate camera...")
 
 			// wait for video or image to be loaded!
-			camera = await setupCamera(video)
-			setFeedback( "Camera located!", 0 )
-
+			if (video)
+			{
+				camera = await setupCamera(video)
+				setFeedback( "Camera located!", 0 )
+			}
+			
 			// at this point the video dimensions are accurate
 			// so we add the main style vars
 			main.style.setProperty('--width', video.width )
