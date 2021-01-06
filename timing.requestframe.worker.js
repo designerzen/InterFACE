@@ -50,6 +50,9 @@ const start = (interval=250)=>{
 
     gap = interval
    
+    // work out the next step from this step...
+    nextInterval = startTime + interval
+
     if (!isRunning)
     {   
          startTime = performance.now()
@@ -57,9 +60,6 @@ const start = (interval=250)=>{
         postMessage({event:EVENT_STARTING, time:0, intervals})
     }
    
-    // work out the next step from this step...
-    nextInterval = startTime + interval
-
     // Loop
     loop()
 
