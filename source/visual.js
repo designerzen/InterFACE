@@ -29,9 +29,6 @@ async function startCamera(video) {
 			video.play()
 			video.width = video.videoWidth
 			video.height = video.videoHeight
-
-			console.log("Video camera", video)
-
 			resolve(stream)
 		}
 

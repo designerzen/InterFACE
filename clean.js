@@ -5,15 +5,14 @@ const directory = 'dist'
 
 console.log(`Cleaning ${directory}...`)
 const WHITELIST = [
-	"manifest.webmanifest",
-	"service-worker.js",
+	// "manifest.webmanifest",
+	// "service-worker.js",
 	"timing.requestframe.worker.js",
-	"timing.setinterval.worker.js",
-	"timing.settimeout.worker.js",
+	// "timing.setinterval.worker.js",
+	// "timing.settimeout.worker.js",
 	"browserconfig.xml",
 	"favicon.ico"
 	// "safari-pinned-tab.svg"
-
 ]
 
 fs.readdir(directory, (err, files) => {

@@ -1,44 +1,37 @@
-// JS test combining an audio context currentTime
-// with a JS worker running in parallel
-import {
-    CMD_START, CMD_STOP, CMD_UPDATE,
-    EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
-} from './timing.constants.js'
+export const CMD_START = "start"
+export const CMD_STOP  = "stop"
+export const CMD_UPDATE  = "update"
+
+export const EVENT_READY = "ready"
+export const EVENT_STARTING = "starting"
+export const EVENT_STOPPING = "stopping"
+export const EVENT_TICK = "tick"
 
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
-// different timing options
-const mode = "requestframe"
-// let mode = "setinterval"
-//let mode = "settimeout"
-
-const prefix = "" //./
-
 // Load in the correct worker...timing.requestframe.worker.js
-let timingWorker = new Worker(`${prefix}timing.${mode}.worker.js`)
+let timingWorker = new Worker("data-url:./timing.requestframe.worker.js") // new Worker(WORKER_URL)
 
 let startTime = -1
 let currentInterval = 1
 let audioContext = null
 let isRunning = false
 
-const now = () => {
-	return audioContext.currentTime
-}
+const now = () => audioContext.currentTime
 
 const elapsed = () => (now() - startTime) * 0.001
 
-export const setMode = newMode => {
-    // check to see if in array of acceptable types
-    mode = newMode
-    timingWorker = new Worker(`${prefix}/timing.${mode}.worker.js`)
-    // TODO: restart if running
-   // console.error("Changing mode",mode, timingWorker)
-    if (isRunning)
-    {
-        // 
-    }
-}
+// export const setMode = newMode => {
+//     // check to see if in array of acceptable types
+//     mode = newMode
+//     timingWorker = new Worker(`${prefix}/timing.${mode}.worker.js`)
+//     // TODO: restart if running
+//    // console.error("Changing mode",mode, timingWorker)
+//     if (isRunning)
+//     {
+//         // 
+//     }
+// }
 
 export const setTimeBetween = time => {
     currentInterval = time
@@ -49,11 +42,8 @@ export const setTimeBetween = time => {
     timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
 }
 
-export const getMode = () => mode
-
 export const start = (callback, timeBetween=200) => {
 
-	
     // lazily initialise a context
     if (audioContext === null)
     {
@@ -84,7 +74,7 @@ export const start = (callback, timeBetween=200) => {
                 // save start time
                 startTime = currentTime
                 isRunning = true
-                console.log("EVENT_STARTING", {time, startTime})
+                //console.log("EVENT_STARTING", {time, startTime})
                 break
 
             case EVENT_TICK:
@@ -129,8 +119,7 @@ export const start = (callback, timeBetween=200) => {
     // methods that can be chained?
     return {
         currentTime:now(),
-        timingWorker,
-        mode
+        timingWorker
     }
 }
 
@@ -154,7 +143,6 @@ export const stop = () => {
 
     return {
         currentTime:now(),
-        timingWorker,
-        mode
+        timingWorker
     }
 }

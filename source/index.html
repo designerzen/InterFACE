@@ -13,22 +13,6 @@
 	
 	<meta name="description" content="Face synth">
 
-	<!-- These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-title" content="Face synth">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black">
-  
-	<!-- Imports an icon to represent the document. -->
-	<link rel="icon" href="assets/icons/android-chrome-24x24.png" type="image/x-icon">
-	<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
-	<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
-	<link rel="mask-icon" href="assets/icons/safari-pinned-tab.svg" color="#5bbad5">
-	
-	<meta name="msapplication-TileColor" content="#e4dede">
-	<meta name="theme-color" content="#e4dede">
-
-	
 	<!-- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. -->
 	<link rel="manifest" href="manifest.webmanifest" rel=preload>
   	
@@ -70,11 +54,34 @@
 	</noscript>
 
 	<script type="module" src="index.js" rel=preload></script> 
+
+	<!-- These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-title" content="Face synth">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+	<!-- Imports an icon to represent the document. -->
+	<link rel="icon" href="assets/icons/android-chrome-24x24.png" type="image/x-icon">
+	<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+	<link rel="mask-icon" href="assets/icons/safari-pinned-tab.svg" color="#5bbad5">
+	
+	<meta name="msapplication-TileColor" content="#e4dede">
+	<meta name="theme-color" content="#e4dede">
+
+	<meta property="og:image" content="assets/icons/og-image.jpg">
+	<meta property="og:image:height" content="268">
+	<meta property="og:image:width" content="512">
+	<meta property="og:description" content="A face controlled musical instrument that uses a video camera.">
+	<meta property="og:title" content="InterFACE">
+	<meta property="og:url" content="https://designerzen.github.io/MusicalFace/">
 </head>
 
 <body> 
 
 	<header id="intro">
+		
 		<a class="logo" href="#app">
 			<svg xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 1024 1024">
 				<path d="M964.332 297.989c0-13.423-10.882-24.303-24.303-24.303H83.976c-13.423 0-24.303 10.88-24.303 24.303 0 249.648 202.681 452.33 452.329 452.33 249.647 0 452.33-202.682 452.33-452.33zm-49.335 24.304h-805.99c12.57 211.517 188.329 379.419 402.995 379.419 214.665 0 390.425-167.902 402.995-379.42z"/>
@@ -87,13 +94,13 @@
 		<h1>Inter<strong>face</strong></h1>
 		<h2><em>Smile</em> Based Synthesizer</h2>
 		<p aria-label="Summary">
-			An experiment in computer control by designerzen
+			An experiment in computer control by designerzen. By allowing your webcamera access, every movement of your face and mouth will control music. Pressing the arrow keys changes the instrument sound.
 		</p>
 	</header>
 
 	<main id="app"> 
 		
-		<p id="feedback">Loading interFACE, please wait</p> 
+		<p id="feedback">Loading please wait</p> 
 		<p id="toast"></p> 
 
 		<div id="app-frame">
@@ -110,7 +117,7 @@
 				<button class="person" id="person-a">Change instrument for person A</button>
 				<button class="person" id="person-b">Change instrument for person B</button>
 				
-				<button id="button-midi">Connect MIDI instrument</button>
+				<button id="button-midi">Connect a MIDI instrument and click here</button>
 				<button id="button-video">Begin!<button>
 				<button id="button-record">Record loop<button>
 				
@@ -122,9 +129,8 @@
 	<footer id="pwa">
 
 		<small clasds="copyright">Copyright © 2021 <strong class="brand">designerzen</strong></small>
-		<small>Version 0.0.4</small>
+		<small id="versin">Version 0.0.6</small>
 
-		<script type="module" src="install.js"></script> 
 		<!-- <script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script> -->
 
 		<!-- For more info on the pwa-update component click here https://github.com/pwa-builder/pwa-update -->
@@ -132,9 +138,9 @@
 			iconpath="assets/icons/android-chrome-512x512.png"
 			manifestpath="./manifest.webmanifest" 
 			openmodal="true">
-		</pwa-install>
+		</pwa-install> -->
 		
-		<pwa-update 
+		<!-- <pwa-update 
 			offlineToastDuration="0" 
 			swpath="service-worker.js">
 		</pwa-update> -->
@@ -145,5 +151,8 @@
 	<noscript>
 		<p>This application requires javascript to work unfortunately and doesn't do much without it</p>
 	</noscript>
+
+	<script type="module" src="install.js"></script> 
+	<script type="module" src="update.js"></script> 
 
 </body>
