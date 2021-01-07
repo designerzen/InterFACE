@@ -8,11 +8,14 @@
     "clean": "node clean.js",
     "test": "parcel serve source/test.html",
     "start": "parcel serve source/index.html",
-    "build": "parcel build source/index.html",
-    "analyse": "PARCEL_BUNDLE_ANALYZER=1 parcel build source/index.html",
+    "build": "parcel build --public-url ./ source/index.html",
+    "builds": "parcel build --no-scope-hoist --public-url ./ source/index.html",
+    "analyse": "parcel build source/index.html --profile --detailed-report",
     "deploy": "node deploy.js",
+    "version": "parcel -V",
     "upgrader": "yarn upgrade-interactive",
-    "package": "yarn clean && yarn build && yarn deploy"
+    "package": "yarn clean && yarn build",
+    "finalise": "yarn clean && yarn build && yarn deploy"
   },
   "dependencies": {
     "@capacitor/core": "^2.4.5",

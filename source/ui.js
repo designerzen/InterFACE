@@ -34,26 +34,43 @@ export const setupInterface = ( options ) => {
 	fragment.innerHTML = uiSelect
 	// add to dom
 	controls.appendChild( fragment )
+
+	// prevent the form from changing the url
+	controls.addEventListener("submit", (event) => {
+		event.preventDefault()
+		// removes the ?
+        //window.history.back()
+	}, true)
+	
+
 	// console.error("Creating UI", {controls, fragment, uiOptions, uiSelect })
 }
 
 // updates the text on screen
 // here we take an element and return a method to set it
-export const bindTextElement = (element, rate=200) => {
+export const bindTextElement = (element, rate=200, clearAfter=-1) => {
 	
 	let cachedMessage = null
 	let interval = -1
+	let clearInterval = -1
 
 	const db = debounce((message)=>{
 		element.innerHTML = message
 	}, rate)
+
+	const clear = debounce(()=>{
+		element.innerHTML = ''
+	}, clearAfter > -1 ? clearAfter : 0 )
 	
-	return element ? (message) => {
+	return element ? (message, responseRate=rate ) => {
 		// debounce and only change if var has
 		if (cachedMessage != message)
 		{
+			// prevent it blanking from previous request
+			clearTimeout(clearInterval)
+
 			cachedMessage = message
-			if (rate === 0)
+			if (responseRate === 0)
 			{
 				// instant overwrite
 				clearTimeout(interval)
@@ -62,7 +79,11 @@ export const bindTextElement = (element, rate=200) => {
 				// change it after debounce timeout to prevent flooding
 				interval = db(message)				
 			}
-
+			// clear after wards unless intercepted...
+			if (clearAfter > 0)
+			{
+				clearInterval = clear()
+			}
 		}
 	} : null
 }

@@ -1,7 +1,7 @@
 // Not compiled so best add the ; to the es5
 const ONE_DAY = 60 * 60 * 24;
 const REVISION = 0;
-const BUILD_MMR = "0.0.1";
+const BUILD_MMR = "0.0.5";
 const WORKBOX_DEBUG_LOGGING = true;
 // Workbox version - update manually when there are new releases.
 const WORKBOX_VERSION = '6.0.2';
@@ -18,6 +18,7 @@ workbox.core.setCacheNameDetails({
     precache: 'installtime',
     runtime: 'runtime',
 });
+
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.message) {
@@ -46,6 +47,7 @@ const {
 
 const {registerRoute} = workbox.routing;
 const {ExpirationPlugin} = workbox.expiration;
+const {RangeRequestsPlugin} = workbox.rangeRequests;
 const {CacheableResponse, CacheableResponsePlugin} = workbox.cacheableResponse;
 const {precacheAndRoute} = workbox.precaching;
 
@@ -70,7 +72,7 @@ const {StaleWhileRevalidate,CacheFirst} = workbox.strategies;
 
 // Include offline.html in the manifest__WB_MANIFEST
 // precacheAndRoute(self.origin);
-precacheAndRoute([ {url: '/index.html', revision:REVISION }])
+precacheAndRoute([ {url: 'index.html', revision:REVISION }])
 
 pageCache();
 
@@ -105,10 +107,12 @@ registerRoute(
       new CacheableResponsePlugin({
         statuses: [0, 200],
       }),
+      new RangeRequestsPlugin()
     ],
   }),
 );
-
+// workbox.loadModule('workbox-range-requests');
+// RangeRequestsPlugin
 // registerRoute(
 //   catchMedia,
 //   new StaleWhileRevalidate({

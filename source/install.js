@@ -4,11 +4,7 @@
 // https://github.com/pwa-builder/pwa-install#pwa-install
 // import '@pwabuilder/pwainstall'
 
-// import '../node_modules/@pwabuilder/pwainstall/src/pwa-install.ts'
-
-import '@pwabuilder/pwaupdate'
-
-import { LitElement, html, customElement, property, css } from "lit-element";
+import {setToast, setFeedback} from './index'
 
 // @customElement("pwa-install")
 // export class pwainstall extends LitElement {
@@ -587,13 +583,13 @@ const installer = async ()=> {
     // check for beforeinstallprompt support
     const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
 
-	let deferredprompt
+	let deferredPrompt
 	
     let installed = false
-	let hasprompt = false
+	let hasPrompt = false
 	let manifestdata
 	let manifestpath = "./manifest.webmanifest"
-	let relatedApps
+	let relatedApps = []
 
     // handle iOS specifically
     // this includes the regular iPad
@@ -603,19 +599,17 @@ const installer = async ()=> {
       navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
       (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
 
-
-    // grab an install event
+    // hijack an install event
     window.addEventListener("beforeinstallprompt", (event) => {
-		deferredprompt = event
-		hasprompt = true
+		deferredPrompt = event
+		hasPrompt = true
 		event.preventDefault() 	
 	})
 
-	
 	const cancelInstall = () =>{
 		return new Promise((resolve, reject) => {
 			// close the modal
-		  this.openmodal = false
+		  openmodal = false
 	
 		//   if (this.hasAttribute("openmodal")) {
 		// 	this.removeAttribute("openmodal")
@@ -635,8 +629,6 @@ const installer = async ()=> {
 	})
 	
 	const getInstalledStatus = () => {
-		// cast to any because the typescript navigator object
-		// does not have this non standard safari object
 		if (navigator.standalone) {
 		  return navigator.standalone
 		} else if (matchMedia("(display-mode: standalone)").matches) {
@@ -646,11 +638,10 @@ const installer = async ()=> {
 		}
 	}
 
-	
 	const shouldShowInstall = () => {
 		const eligibleUser = isSupportingBrowser &&
-		relatedApps && relatedApps.length < 1 &&
-		  (hasprompt || isIOS)
+		relatedApps.length < 1 &&
+		(hasPrompt || isIOS)
 	
 		return eligibleUser
 	}
@@ -713,14 +704,14 @@ const installer = async ()=> {
 
 	
 	const install =  async () => {
-		if (deferredprompt) 
+		if (deferredPrompt) 
 		{
-		  deferredprompt.prompt()
+		  deferredPrompt.prompt()
 	
 		//   let event = new CustomEvent("show")
 		//   this.dispatchEvent(event)
 	
-		  const choiceResult = await deferredprompt.userChoice
+		  const choiceResult = await deferredPrompt.userChoice
 	
 		  if (choiceResult.outcome === "accepted") 
 		  {
@@ -763,11 +754,11 @@ const installer = async ()=> {
 		const test = await firstUpdated()
 		console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
 		console.log(manifestdata)
-		//show install button?
+		//show install button or update button???
 		
 	}else{
 		// we are already showing?
-		console.log("Application is currently ignored" )
+		console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not installed" )
 	}
 }
 

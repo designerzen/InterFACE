@@ -2,22 +2,6 @@
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
 
-// const faceLandmarksDetection = require('@tensorflow-models/face-landmarks-detection')
-// FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
-import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
-import * as tf from '@tensorflow-models/face-landmarks-detection'
-import { setBackend} from '@tensorflow/tfjs'
-// If you are using the WebGL backend:
-// require('@tensorflow/tfjs-backend-webgl')
-import '@tensorflow/tfjs-backend-webgl'
-
-// CPU Only
-//import '@tensorflow/tfjs-backend-cpu'
-
-// If you are using the WASM backend:
-// require('@tensorflow/tfjs-backend-wasm')
-//import '@tensorflow/tfjs-backend-wasm'
-
 import {loadModel} from './predictor'
 
 // You need to require the backend explicitly because facemesh itself does not
@@ -29,18 +13,16 @@ import {
 	setupAudio, setAmplitude, 
 	record } from './audio'
 
-import {setupInterface, bindTextElement } from './ui'
-import {getLocationSettings} from './location-handler'
-
-import { createKick, createKicks, createSnare, createHihat, createCowbell, createDrumkit } from './synthesizers'
-import { start, stop, getMode, setMode, setTimeBetween } from './timing.js'
+import { start, stop, setTimeBetween } from './timing.js'
+import { setupInterface, bindTextElement } from './ui'
+import { getLocationSettings} from './location-handler'
+import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
 import { setupCamera, setupImage} from './visual'
-import { easeInSine, easeOutSine , easeInCubic, lerp,clamp, TAU} from "./maths"
-import { setNodeCount, updateCanvasSize, clear, canvas, canvasContext,
-	drawWaves, drawBars, drawQuantise, drawElement } from './visual'
-import Person, {DEFAULT_OPTIONS} from './person'
+import { setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
 import { playNextPart, kitSequence } from './patterns'
+import { getInstruction, getNextInstruction, INSTRUCTIONS, QUICK_START } from './instructions'
+import Person, {DEFAULT_OPTIONS} from './person'
 
 // DOM Elements
 const body = document.documentElement
@@ -53,8 +35,8 @@ const buttonMIDI = document.getElementById("button-midi")
 const {isRecording, startRecording, stopRecording} = record()
 
 // Feedback ui
-const setFeedback = bindTextElement( document.getElementById("feedback") )
-const setToast = bindTextElement( document.getElementById("toast") )
+export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
+export const setToast = bindTextElement( document.getElementById("toast"), 20, 2000 )
 
 // coletion of persons
 const people = []
@@ -75,7 +57,7 @@ let recorder
 // As each sample is 2403 ms long, we should try and do it 
 // as a factor of that, so perhaps bars would be better than BPM?
 let bars = 16
-let timePerBar =()=> 2403 / bars
+let timePerBar = () => 2403 / bars
 let midiAvailable = false
 
 // realtime UI options
@@ -95,14 +77,13 @@ const SETTINGS = {
    	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
 	shouldLoadIrisModel:true,
 	
-	/*
-	maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
-    detectionConfidence - Threshold for discarding a prediction. Defaults to 0.9.
-    iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
-    scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
-    modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
-    irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
-	*/
+	
+	// maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
+    // detectionConfidence - Threshold for discarding a prediction. Defaults to 0.9.
+    // iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
+    // scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
+    // modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
+    // irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
 }
 
 // For all people!
@@ -115,7 +96,6 @@ const loadInstruments = async (method) => people.map( async (person) => {
 const loadRandomInstrument = async () => await loadInstruments('loadRandomInstrument')
 const previousInstrument = async () => await loadInstruments('loadPreviousInstrument')
 const nextInstrument = async () => await loadInstruments('loadNextInstrument')
-
 
 // We cache every new user!
 const getPerson = (index) => {
@@ -198,6 +178,7 @@ const enableMIDI = async () => {
 
 		midiAvailable = midi // && midi.outputs && midi.outputs.length > 0
 		main.classList.add('midi-available')
+		setToast("MIDI Connected")
 
 	}catch(error){	
 
@@ -211,19 +192,21 @@ const enableMIDI = async () => {
 	return true	
 }
 
+// MIDI will require a user interaction
 const showMIDI = async () => {
 
 	// show button
 	// to skip clicking but results in a warning
 	const onStartRequested = async (event) => {
+		event.preventDefault()
+		//buttonMIDI.removeEventListener('mousedown', onStartRequested)
 		setFeedback("MIDI available<br>Connecting to instruments...", 0)
 		console.log("User input detected so enabling MIDI!")
 		await enableMIDI()
-		buttonMIDI.removeEventListener('mousedown', onStartRequested)
-		event.preventDefault()
 		main.classList.add('midi-activated')
+		return false
 	}
-	buttonMIDI.addEventListener('click', onStartRequested)
+	buttonMIDI.addEventListener('mousedown', onStartRequested, { once: true })
 	return true
 }
 
@@ -424,21 +407,28 @@ const setup = (settings) => {
 			}
 
 			// Feedback text changes depending on time
-			if (!predictions){
-				setFeedback(`No faces found!`)
-			}else if (counter < 50)	{
-				setFeedback(`Smile to begin!`)
-			}else if (counter < 150){
-				setFeedback(`Look at the screen and open your mouth!`)
-			}else if (counter < 250){
-				setFeedback(`Click your face to change instruments!`)
-			}else if (counter > 10000){
-				setFeedback(`OMG I can't believe you are still here!`)
-			}else if (tickerTape.length){
-				//setFeedback(tickerTape)
-				// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+			if (!predictions)
+			{
+				// Need to show instructions to the user...
+				// as no face can be detected
+				setFeedback(QUICK_START[0])
+			// }else if (counter < 50)	{
+			// 	setFeedback( getNextInstruction() )
+			// }else if (counter < 150){
+			// 	setFeedback( getNextInstruction() )
+			// }else if (counter < 250){
+			// 	setFeedback( getNextInstruction() )
+			// }else if (counter > 10000){
+			// 	setFeedback( getNextInstruction() )
+				
+			// }else if (counter%100){
+			// 	setFeedback( getNextInstruction() )
+			// }else if (tickerTape.length){
+			// 	setFeedback(tickerTape)
+			// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
 			}else{
-				setFeedback(`Look at me and open your mouth`)
+				setFeedback(getInstruction( Math.floor(counter/100) ))
+				// setFeedback(`Look at me and open your mouth`)
 			}
 
 			//console.warn("update",predictions, tickerTape )
@@ -495,6 +485,7 @@ window.addEventListener('keydown', async (event)=>{
 		case 'Tab':
 			ui.debug = !ui.debug
 			people.forEach( person => person.debug = ui.debug )
+			setToast(`DEBUG : ${ui.debug}`)
 			break
 
 		case 'ArrowLeft':
@@ -511,14 +502,16 @@ window.addEventListener('keydown', async (event)=>{
 			// change amount of bars
 			bars = ++bars > 32 ? 32 : bars
 			setTimeBetween(timePerBar())
-			setFeedback( `Bars ${bars}`, 0 )
+			// setFeedback( `Bars ${bars}`, 0 )
+			setToast(`Bars : ${bars}`)
 			break
 
 		case 'ArrowDown':
 			// bar length
 			bars = --bars < 1 ? 1 : bars
 			setTimeBetween(timePerBar())
-			setFeedback( `Bars ${bars}`, 0 )
+			// setFeedback( `Bars ${bars}`, 0 )
+			setToast( `Bars ${bars}` )
 			break
 
 		case ',':
@@ -551,19 +544,20 @@ window.addEventListener('keydown', async (event)=>{
 	
 		case 'b':
 			ui.backingTrack = !ui.backingTrack
+			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 			break
 
 		case 'r':
 			if (!isRecording())
 			{
-				setFeedback("Recording START", 0)
+				setToast("Recording START")
 				console.error("Recording START")
 				recorder = await startRecording(audio)
 				console.error("Recording...", recorder)
 				
 			}else{
 				console.error("Recording END", recorder)
-				setFeedback( `Recording Ended - now encoding`, 0 )
+				setToast( `Recording Ended - now encoding` )
 				stopRecording().then(recording=>{
 
 					const mp3 = encodeRecording(recording, 'audio/mp3;')
@@ -576,10 +570,12 @@ window.addEventListener('keydown', async (event)=>{
 			}
 			break
 
+		case 'm':
 		default:
 			ui.metronome = !ui.metronome
-			setFeedback( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+			setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 	}
 	
 	console.log("key", ui, event)
 })
+

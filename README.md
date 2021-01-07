@@ -1,17 +1,11 @@
 # InterFACE
-A camera based musical instrument.
+A face controlled musical instrument that uses a video camera.
 
 Smile to begin - click your face to change to a different instrument.
-
-
-# Describe your entry (up to 1000 characters) *
-A face controlled musical instrument that uses a video camera.
 
 Or, an augmented reality, real-time motion-capture, machine-learning powered, holographic, acessible general MIDI controller and synthesizer (that comes without a manual). 
 
 By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allow for expressive yet intuitive control.
-
-I've made an interactive protoype that hopefully explains it better than these words have!
 
 # Describe how it is innovative (up to 500 characters) *
 
@@ -27,8 +21,6 @@ By creating a virtual interface with no moving parts or extra hardware, we can u
 I have been researching and creating accessible technology for twenty years and for the past 10 have been helping run a monthly workshop alongside Drake Music Charity that brings together people who struggle to play traditional instruments, and technology focussed individuals who know how to build and make things. The charity work directly alongside schools and individuals offering real world use cases and genuine feedback - indispensable when simplicity is the aim. Together we have created a whole number of accessible musical instruments, some that are repurposing of existing instruments and some entirely new. My focus for the past few years has been to try and create musical instruments & music creation tools with the lowest barriers to entry - intuitive tools that everybody can play instinctively, that are easy to obtain and fun to play too! Currently the only requirement for this one to play is a mouth, but that could be swapped for eyes or eyebrows, the technology is quite broad!
 
 Ultimately, this tool allows *all* sorts of people to create their own sounds and music but the technology can ultimately be expanded to control anything.
-
-
 
 # Do you have plans for expansion and commercialisation (up to 500 characters)?
 

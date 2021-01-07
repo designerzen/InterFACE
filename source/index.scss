@@ -46,6 +46,7 @@ html, input, button, textarea{
 
 html{
 
+	text-rendering: optimizeSpeed;
 
 	// dark
 	transition: background-color 450ms linear;
@@ -53,7 +54,8 @@ html{
 	color:$col-white;
 	background-color:$col-dark;
 	background-image:linear-gradient(rgba($col-dark, 0.5), rgba($col-dark, 0.1));
-	
+	text-rendering: optimizeSpeed;
+
 	// light
 	&.loading{
 		background-color:$col-white;
@@ -96,9 +98,9 @@ header{
 	top:0;
 	right:0;
 	left:0;
-	overflow: hidden;
+	//overflow: hidden;
 	// above feedback
-	bottom:6rem;
+	bottom:5rem;
 	display: grid;
 	text-align: center;
 	justify-content: center;
@@ -131,10 +133,10 @@ header{
 	
 	h2,p{
 
-		text-shadow: rgba(255,255,255,0.96) 0 1px 4px,
-					rgba(255,255,255,0.7) 0 2px 4px,
-					rgba(255,255,255,0.5) 0 3px 4px,
-					rgba(0,0,0,0.56) 0 0 4px;
+		text-shadow: rgba(white,0.96) 0 1px 4px,
+					rgba(white,0.7) 0 2px 4px,
+					rgba(white,0.5) 0 3px 4px,
+					rgba($col-cream,0.56) 0 0 4px;
 		
 	}
 	h2{
@@ -142,7 +144,8 @@ header{
 		margin-top:auto;
 	}
 	.logo{
-		align-self:  flex-start;
+		align-self:flex-end;//  flex-start;
+		z-index: -2;
 	}
 }
 .logo, h1, h2{
@@ -400,6 +403,7 @@ p{
 	// left:var(--pad);
 	right:var(--pad);
 	max-width: calc(100% - 2 * var(--pad));
+	background-color:rgba($col-dark,0.9);
 	
 	// cool carat
 	&::after{
@@ -573,8 +577,8 @@ button#button-midi{
 	background-size: contain;
 	z-index:1;
 	cursor:pointer;
-	left:0;
-	bottom:0;
+	left:var(--pad);
+	bottom:var(--pad);
 	position: absolute;
 	min-width:200px;
 	min-height:50px;
@@ -582,7 +586,7 @@ button#button-midi{
 	padding-left:110px;
 	padding-right:20px;
 	border-radius: var(--curve) var(--curve) var(--curve) 0;
-	transition:background-color 400ms ease-out;
+	transition:background-color 40ms ease-out;
 	overflow: hidden;
 
 	color:$col-white;
@@ -634,6 +638,13 @@ main.midi-available{
 
 button#button-record{
 	color:$col-red;
+}
+
+// an update is available to the app!
+button.update-available{
+	position: absolute;
+	top:var(--pad);
+	left:var(--pad);
 }
 
 @keyframes Fade{

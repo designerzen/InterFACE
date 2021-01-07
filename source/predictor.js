@@ -1,5 +1,21 @@
 import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
+// import * as tf from '@tensorflow-models/face-landmarks-detection'
+
+// CPU Only
+//import '@tensorflow/tfjs-backend-cpu'
+
+// If you are using the WASM backend:
+// require('@tensorflow/tfjs-backend-wasm')
+//import '@tensorflow/tfjs-backend-wasm'
+
 import {ready, setBackend} from '@tensorflow/tfjs'
+
+// const faceLandmarksDetection = require('@tensorflow-models/face-landmarks-detection')
+// FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
+
+// If you are using the WebGL backend:
+// require('@tensorflow/tfjs-backend-webgl')
+import '@tensorflow/tfjs-backend-webgl'
 
 const flipHorizontally = true
 
