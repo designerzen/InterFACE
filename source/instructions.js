@@ -12,6 +12,8 @@ export const INSTRUCTIONS = [
 	`Use your eyes to shape the sound`,
 	`Facing left plays the black keys`,
 	`Facing right plays the white keys`,
+	`Connect a MIDI instrument and click the MIDI button`,
+	`To play the MIDI instrument with your head`,
 	`Change tempo and quantize using the secret keys`,
 	``,
 	``,

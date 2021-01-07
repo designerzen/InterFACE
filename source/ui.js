@@ -101,3 +101,9 @@ function debounce(callback, wait) {
 	  return timerId
 	}
 }
+
+
+
+// Feedback ui
+export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
+export const setToast = bindTextElement( document.getElementById("toast"), 20, 2000 )

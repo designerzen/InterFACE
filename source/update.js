@@ -1,4 +1,4 @@
-import {setToast, setFeedback} from './index'
+import {setToast, setFeedback} from './ui'
 
 // import '../node_modules/@pwabuilder/pwainstall/src/pwa-install.ts'
 // import '@pwabuilder/pwaupdate'
@@ -42,7 +42,7 @@ const updater = async () => new Promise( (resolve,reject)  => {
 				const storageData = await navigator.storage.estimate();
 				if (storageData) 
 				{
-					storageUsed = this.formatBytes(storageData.usage);
+					storageUsed = formatBytes(storageData.usage);
 				}
 			}
 	

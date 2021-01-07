@@ -4,7 +4,7 @@
 // https://github.com/pwa-builder/pwa-install#pwa-install
 // import '@pwabuilder/pwainstall'
 
-import {setToast, setFeedback} from './index'
+// import {setToast, setFeedback} from './ui.js'
 
 // @customElement("pwa-install")
 // export class pwainstall extends LitElement {

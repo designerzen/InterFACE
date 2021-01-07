@@ -14,7 +14,7 @@ import {
 	record } from './audio'
 
 import { start, stop, setTimeBetween } from './timing.js'
-import { setupInterface, bindTextElement } from './ui'
+import { setupInterface, setFeedback, setToast } from './ui'
 import { getLocationSettings} from './location-handler'
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
@@ -33,10 +33,6 @@ const buttonMIDI = document.getElementById("button-midi")
 	
 // Record stuff
 const {isRecording, startRecording, stopRecording} = record()
-
-// Feedback ui
-export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
-export const setToast = bindTextElement( document.getElementById("toast"), 20, 2000 )
 
 // coletion of persons
 const people = []
