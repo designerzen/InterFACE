@@ -221,44 +221,51 @@ export const loadModel = async (inputElement, options) => {
 	// console.log("Loaded TF model", model, "for", detectPeople, "people" )
 
 	// now subscribe to events and monitor
-	const update = async (repeat, callback) => { 
+	const update = async (repeat, callback, isPaused=null) => { 
 
+		const shouldUpdate = isPaused ? isPaused() : true
+	
+		// console.log("shouldUpdate", shouldUpdate, {isPaused})
 		// console.log("Combining TF model", model, "with element", inputElement, "..." )
-
-		// single player right now but this could be an array in future
-		const predictions = await predict(inputElement, model) 
-		//console.warn("carpet", {predictions, inputElement, model})
-
-		//console.log("Predictions narrowed down to", predictions)
-		if (predictions.length > 0)
+		if (shouldUpdate)
 		{
-			// find the smaller value and use as the face quantity
-			const quantity = Math.min(detectPeople, predictions.length)
-			const people = []
-			for (let i=0; i < quantity; ++i)
-			{
-				const prediction = predictions[i]
-				people.push( prediction )
-			}
-		
-			if (callback) 
-			{
-				callback(people)
-			}
+			// single player right now but this could be an array in future
+			const predictions = await predict(inputElement, model) 
+			//console.warn("carpet", {predictions, inputElement, model})
 
+			//console.log("Predictions narrowed down to", predictions)
+			if (predictions.length > 0)
+			{
+				// find the smaller value and use as the face quantity
+				const quantity = Math.min(detectPeople, predictions.length)
+				const people = []
+				for (let i=0; i < quantity; ++i)
+				{
+					const prediction = predictions[i]
+					people.push( prediction )
+				}
+			
+				if (callback) 
+				{
+					callback(people)
+				}
+
+			}else{
+
+				// nofaces
+				if (callback) 
+				{
+					callback(null)
+				}
+			}
 		}else{
-
-			// nofaces
-			if (callback) 
-			{
-				callback(null)
-			}
+			// console.log("Paused")
 		}
 
 		// loop
 		if (repeat)
 		{
-			requestAnimationFrame( () => update(repeat, callback) )
+			requestAnimationFrame( () => update(repeat, callback, isPaused) )
 		}
 	}
 	return update

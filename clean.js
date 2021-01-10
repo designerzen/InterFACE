@@ -1,5 +1,5 @@
-const fs = require('fs')
-const path = require('path')
+import {readdir,statSync,unlink} from 'fs'
+import * as path from 'path'
 
 const directory = 'dist'
 
@@ -15,14 +15,14 @@ const WHITELIST = [
 	// "safari-pinned-tab.svg"
 ]
 
-fs.readdir(directory, (err, files) => {
+readdir(directory, (err, files) => {
   if (err) throw err
 
   for (const file of files) 
   {
 	  //"./",
 	  const location = path.join(directory,file )
-	  if (fs.statSync(location).isDirectory() )
+	  if (statSync(location).isDirectory() )
 	  {
 
 	  }else{
@@ -33,7 +33,7 @@ fs.readdir(directory, (err, files) => {
 			// ignore
 		}else{
 			// DELETE
-			fs.unlink(location, err => {
+			unlink(location, err => {
 				if (err) throw err
 			})	
 		}

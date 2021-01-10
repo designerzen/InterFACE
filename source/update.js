@@ -81,12 +81,13 @@ const updateShit = async () => {
 		const updateApp = await updater();
 
 		// wait around
-		setToast("An Update is available! Press update to install it");
+		setToast("An Update is available! Press update to install it" )
 			
 		// reveal update button?
 		const button = document.createElement('button')
 		button.classList.add("update-available")
 		button.innerHTML = "Update to new version"
+		
 		// on button press...
 		button.addEventListener('click', ()=>updateApp(), {once:true} )
 		document.documentElement.appendChild(button)

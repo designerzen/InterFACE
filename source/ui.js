@@ -1,21 +1,77 @@
 import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './instruments'
+import {VERSION} from './version'
 
 let buttonInstrument
-export let buttonVideo
 let buttonRecord
+export let buttonVideo
+export let controls
 
 import PALETTE from "./palette"
 
-export const setupInterface = ( options ) => {
-	// populate form elements
-		
-	// populate ui
-	const uiOptions = INSTRUMENT_FOLDERS.map( (folder, index) => `<label for="${folder}">${INSTRUMENT_NAMES[index]}</label><input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input>` ) 
+export const setControls = fragment => {
 	
-	// const uiOptions = INSTRUMENT_FOLDERS.map( folder => `<option value="${folder}">${folder}</option>` ) 
-	const uiSelect = `${uiOptions.join('')}`
+	const personControl = document.getElementById('person-a-controls')
 
-	const controls = document.getElementById("controls")
+	// add to dom or replace existing????
+	personControl.appendChild( fragment )
+
+	// bind mouse events here???
+}
+
+export const setupCameraForm = (cameras, callback) => {
+	
+	const cameraForm = document.getElementById("camera")
+
+	// loop through cameras and add to list
+	const optionElements = cameras.map( (camera, index) => {
+		// now add this to the fragment
+		return `<option value="${camera.deviceId}">${camera.label}</option>`
+	})
+
+	const dom = `<label id="select-camera-label" for="select-camera">Select a different camera</label>
+				<select id="select-camera">${optionElements.join('')}</select>`
+	cameraForm.innerHTML = dom
+
+	// now add the interaction
+	// const ele = cameraForm.querySelectorAll('option')
+	// ele.forEach( input => input.addEventListener('change', event => {
+	// 	console.error( "cameraForm input", input )
+	// }))
+		
+	const select = cameraForm.querySelector('select')
+
+	select.addEventListener( 'change', event=>{
+		
+		const selection = select.options.selectedIndex
+		// send out the device change to the callback...
+		callback & callback( cameras[selection] )
+		
+		console.error( "cameraForm input", {event, select, selection} ) 
+
+	})
+	console.log("Created camera buttons", {dom, select, opt:select.options })
+}
+
+// Setup the instrument list - connect to callback?
+export const setupInstrumentForm = callback => {
+	
+	// populate ui	
+	const uiOptions = INSTRUMENT_FOLDERS.map( (folder, index) => `<label for="${folder}">${INSTRUMENT_NAMES[index]}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label>` ) 
+	
+	// bind mouse events too???
+
+	// const uiOptions = INSTRUMENT_FOLDERS.map( folder => `<option value="${folder}">${folder}</option>` ) 
+	return `${uiOptions.join('')}`
+}
+
+// DOM elements
+export const setupInterface = ( options ) => {
+	
+	// populate form elements
+	const versionNode = document.getElementById('version')
+	versionNode.innerHTML = `Version ${VERSION}`
+
+	controls = document.getElementById("controls")
 
 	buttonInstrument = document.getElementById("button-instrument")
 	buttonVideo = document.getElementById("button-video")
@@ -30,10 +86,10 @@ export const setupInterface = ( options ) => {
 
 	// const fragment = document.createDocumentFragment() 
 	// fragment.appendChild(document.createElement('fieldset'))
-	const fragment = document.createElement('fieldset')
-	fragment.innerHTML = uiSelect
-	// add to dom
-	controls.appendChild( fragment )
+	// const fragment = document.createElement('fieldset')
+	// fragment.innerHTML = setupInstrumentForm()
+	// // add to dom
+	// controls.appendChild( fragment )
 
 	// prevent the form from changing the url
 	controls.addEventListener("submit", (event) => {
