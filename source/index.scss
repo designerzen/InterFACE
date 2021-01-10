@@ -32,14 +32,9 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	
 	--curve:12px;
 	--pad:2vmin;
-	// FROM PWAINSTALL / UPDTE
-	//	Changes the background color of the toast
-	--toast-background:$col-dark;
-	//	Changes the background color of the update button
-	--button-background:$col-dark;
 }
 
-html, input, button, textarea{
+html, input, button, textarea, option, select{
 	font-family: 'Oxanium', sans-serif !important;
 	font-weight: 800;
 }
@@ -67,12 +62,21 @@ html, body{
 	height: 100%;
 }
 
-body{
+body, main{
 	overflow: hidden;
 }
 
-h1,h2,h3,h4,h5,h6{
+h1 strong,h2,h3,h4,h5,h6{
 	font-weight: 800;
+}
+
+
+h1{
+	font-weight: 200;
+}
+
+label,select,option{
+	font-size:1rem;
 }
 
 
@@ -91,6 +95,7 @@ small{
 }
 a{
 	color:$col-blue;
+	text-decoration: none;
 }
 header{
 	position: absolute;
@@ -155,10 +160,14 @@ header{
 }
 
 .logo{
+	margin-left:auto;
+	margin-right:auto;
 	display: block;
 	fill:$col-red;
 	width:100%;
 	min-height:10vh;
+	max-height:90vmin;
+	max-width:90vmin;
 	color:transparent;
 	visibility: visible;
 	// overflow: hidden;
@@ -178,7 +187,13 @@ main{
 	min-height: 320px;
 	// max-height: 100vh;
 }
-
+option, select{
+	text-align: center;
+}
+select{
+	appearance: none;
+	padding:var(--pad);
+}
 #app-frame{
 
 	--person-a-x:0;
@@ -319,18 +334,36 @@ main{
 
 	margin:auto;
 
+	--wig:0;
+
+	--hue:180;
+	--l:50%;
+
+	// $col-yellow
+	
 	video{
 		transform: scaleX(-1);
+
+		--l:85%;	
+		--hue:220;
+		
+		box-shadow:
+			var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
+			var(--wig) -2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
+			var(--wig) -4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
+			var(--wig) -8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
+			var(--wig) -13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
+			var(--wig) -23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
+			var(--wig) -50px 51px hsla(var(--hue), 90%, 10%, 0.15);
 	}
 	video,canvas{
 		display: block;
 		border-radius:var(--curve);
 		overflow: hidden;
 
-		--wig:0;
-
-		--hue:180;
-		--l:50%;
+	}
+	canvas{
+		z-index: 1;
 		
 		box-shadow:
 			var(--wig) 1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
@@ -340,10 +373,7 @@ main{
 			var(--wig) 13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
 			var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
 			var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
-			// scale to fit screen!
-	}
-	canvas{
-		z-index: 1;
+	// scale to fit screen!
 	}
 }
 
@@ -384,16 +414,25 @@ p{
 	display: inline-block;
 	padding:var(--pad);
 	// emboss
-	text-shadow : rgba(255,255,255,0.96) 0 -1px 4px,
-					rgba($col-dark, 0.96) 0 0 4px;
+	
 
 }
 
 #toast{
 	position: absolute;
-	left:var(--pad);
+	right:var(--pad);
 	top:var(--pad);
+	z-index:909;
+	color:$col-dark;
+	background-color:$col-white;
+
+	text-shadow : rgba(255,255,255,0.96) 0 -1px 2px,
+					rgba($col-dark, 0.96) 0 0 2px;
+	&:empty{
+		display:none;
+	}
 }
+
 
 #feedback{
 	box-sizing: border-box;
@@ -404,6 +443,8 @@ p{
 	right:var(--pad);
 	max-width: calc(100% - 2 * var(--pad));
 	background-color:rgba($col-dark,0.9);
+	text-shadow : rgba(255,255,255,0.96) 0 -1px 2px,
+					rgba($col-dark, 0.96) 0 0 2px;
 	
 	// cool carat
 	&::after{
@@ -412,6 +453,9 @@ p{
 		height:100%;
 		background-color: $col-yellow;
 		display: inline-block;
+	}
+	&:empty{
+		display: none;
 	}
 }
 
@@ -426,19 +470,20 @@ p{
 	margin:auto;
 	padding:0;
 	
-	overflow: hidden;
+	overflow: auto;
 	position: absolute;
 	top:0;
 	left:0;
 	right:0;
 	bottom: 0;
+	z-index:303;
 
 	// width:100%;
-	pointer-events: none;
+	// pointer-events: none;
 
-	> *{
-		pointer-events: auto;
-	}
+	// > *{
+	// 	pointer-events: auto;
+	// }
 
 	/*
 	// we need media queries to complete
@@ -483,14 +528,71 @@ p{
 }
 
 fieldset{
+	--breakpoint:320px;//12ch;
+
+	--gap: 1px;	
+	--v:min( (var(--breakpoint) - 100%) * 999, 100%);
+		
+	opacity:1;
 	border:0;
-	margin:var(--pad);
+	margin:0;//var(--pad);
 	padding:0;
+	gap: var(--gap);  
+	grid-gap: var(--gap);
+	grid-template-columns:
+		repeat(
+		auto-fit,	
+		minmax(
+			var(--v),
+			1fr
+		)
+    );
+
 	display: grid;
-	grid-template-columns:1fr 1fr ;
+	// grid-template-columns:1fr 1fr ;
+	position: relative;
+	// NB. ensure in front of the person buttons
+	z-index:909;
+	transition:opacity 400ms linear;
+	background-color:rgba($col-dark, 0.9);
+	animation:Fade 400ms ease-in 1 0s both;
+}
+
+fieldset:empty{
+	display: none;
+	opacity:0;
+	animation:Fade 400ms ease-in 1 0s reverse both;
+}
+
+button:empty{
+	display: none;
+}
+
+
+label{
+	--padding:calc( 1 * var(--pad));
+	outline: 1px dotted $col-cream;
+	font-weight:900;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition:color 400ms linear, background-color 90ms linear;
+
+	padding:var(--padding);// var(--pad) 0 var(--pad);
+	&:hover, &:focus{
+		color:$col-white;
+		background-color: $col-blue;
+		outline:none;
+	}
+}
+
+
+// actual button
+input[type=radio]{
+	appearance: none;
 }
 
 button{
+	cursor: pointer;
 	margin:0;
 	padding:0;
 	appearance: none;
@@ -503,8 +605,9 @@ button.person{
 	cursor:pointer;
 	position: absolute;	
 	z-index:202;
+	overflow: hidden;
 	
-	border-radius: 100%;
+	// border-radius: 100%;
 	//border:2px solid white;
 
 	color:transparent;
@@ -561,6 +664,31 @@ button#person-b{
 	height:calc( 1px * var(--person-b-h,0) );
 }
 
+// generic button style
+button#button-record,
+// button#button-video,
+button#button-midi,
+button.install-app,
+button.update-available{
+
+	user-select: none;
+	cursor:pointer;
+	min-height:50px;
+	padding:var(--pad);
+	border-radius: var(--curve) var(--curve) var(--curve) 0;
+	transition:background-color 40ms linear, color 40ms linear;
+	overflow: hidden;
+
+	color:$col-white;
+	background-color:$col-blue;
+
+	&:hover{
+		color:$col-blue;
+		background-color:$col-white;
+	}
+}
+
+
 button#button-video{
 	position: absolute;
 	top:0;
@@ -569,6 +697,8 @@ button#button-video{
 	// right:0;
 	bottom:0;
 	z-index:-1;
+	color:transparent;
+
 }
 
 button#button-midi{
@@ -576,22 +706,20 @@ button#button-midi{
 	background-repeat:no-repeat;
 	background-size: contain;
 	z-index:1;
-	cursor:pointer;
+	
 	left:var(--pad);
 	bottom:var(--pad);
 	position: absolute;
 	min-width:200px;
-	min-height:50px;
+
+	max-width:calc(100% - 2 * var(--pad));
+	box-sizing: border-box;
+	
 	// box-sizing: border-box;
+	
 	padding-left:110px;
 	padding-right:20px;
-	border-radius: var(--curve) var(--curve) var(--curve) 0;
-	transition:background-color 40ms ease-out;
-	overflow: hidden;
 
-	color:$col-white;
-	background-color:$col-blue;
-	
 	&:before{
 		// border-radius: var(--curve) 0;
 		position: absolute;
@@ -610,9 +738,7 @@ button#button-midi{
 	}
 
 	&:hover{
-		color:$col-blue;
-		background-color:$col-white;
-
+	
 		&:before{
 			opacity:1;
 			z-index:1;
@@ -638,14 +764,112 @@ main.midi-available{
 
 button#button-record{
 	color:$col-red;
+	border-radius: 0 var(--curve) var(--curve)  var(--curve);
+	visibility:hidden;
 }
 
 // an update is available to the app!
+button.install-app,
 button.update-available{
 	position: absolute;
 	top:var(--pad);
 	left:var(--pad);
+	
+	// make this stand out
+	background-color: $col-orange;
 }
+
+button.update-available{
+	z-index:1080;
+}
+
+button.install-app{
+	--overlap:0px;
+	// after a brief while hide this
+	animation: 
+				Hide-Install 0.4s $easeOutBack 2s 1 reverse both,
+				Hide-Install 1s $easeOutBack 5s 1 normal both;
+	&.later{
+		animation: Hide-Install 1s $easeOutBack 5s 1 normal both;
+	}
+	&:hover, &:focus{
+		--overlap:40px;
+		animation: Hide-Install 1s $easeInBack 0s 1 reverse both;
+	}
+}
+
+@keyframes Hide-Install{
+	from{
+		transform: translateX( 0 );
+	}
+	to{
+		transform: translateX( calc( -100% - var(--pad)) + var(--overlap) );
+	}
+}
+
+#camera{
+	box-sizing: border-box;
+	position:fixed;
+	overflow:hidden;
+	left:var(--pad);
+	//right:var(--pad);
+	top:var(--pad);
+	width:44px;
+	display:flex;
+	flex-direction: column;
+	transition:width 40ms ease-out;
+	cursor: pointer;
+	background-color:$col-blue;
+	border-radius: 4px;
+// &:focus-within,
+
+	&:hover,&:focus,&:target,
+	&:focus-visible{
+		// height:auto;
+		outline:none;
+		width:calc(100% - 2 * var(--pad));
+		label{
+			opacity:1;
+		}
+	}
+	label{
+		position:absolute;
+		top:0;
+		left:0;
+		pointer-events: none;
+		white-space: pre;
+		outline:none;
+		opacity:0;
+		transition:opacity 40ms ease-out;
+	}
+	select{
+		background:url(./assets/icons/switch_video-24px.svg) no-repeat center left 9px;
+		
+		font-weight:900;
+		cursor:pointer;
+		border:0;
+		width: 100%;
+
+		color:transparent;
+
+		option{
+			background-color: $col-dark;
+			color: $col-cream;
+			cursor:pointer;
+			&:hover, &:focus{
+				background-color: $col-green;
+			}
+		}
+	}
+}
+
+
+#select-camera-label{
+	//background:url(./assets/icons/switch_video-24px.svg) no-repeat center left 4px;
+	padding-left:40px;
+}
+
+// 
 
 @keyframes Fade{
 	from{

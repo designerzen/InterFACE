@@ -1,4 +1,5 @@
-const ghpages = require('gh-pages')
+
+import * as ghpages from 'gh-pages'
 
 // delete all none folders in dest/
 console.log("Deploying to github pages")

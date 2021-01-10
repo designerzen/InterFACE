@@ -1,6 +1,13 @@
 // Just a simple face detection script with visual overlaid feedback and audio
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
+const pwa = async() => {
+	const installer =  await import('./install.js')
+	const updater =  await import('./update.js')
+	console.log("installer", {installer,updater})
+	installer.default()
+}
+pwa()
 
 import {loadModel} from './predictor'
 
@@ -14,15 +21,16 @@ import {
 	record } from './audio'
 
 import { start, stop, setTimeBetween } from './timing.js'
-import { setupInterface, setFeedback, setToast } from './ui'
+import { setupCameraForm, setupInterface, setFeedback, setToast } from './ui'
 import { getLocationSettings} from './location-handler'
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
-import { setupCamera, setupImage} from './visual'
+import { detectCameras, setupCamera, filterVideoCameras } from './camera'
+import { setupImage} from './visual'
 import { setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
 import { playNextPart, kitSequence } from './patterns'
-import { getInstruction, getNextInstruction, INSTRUCTIONS, QUICK_START } from './instructions'
-import Person, {DEFAULT_OPTIONS} from './person'
+import { getInstruction, getHelp, getNextInstruction, INSTRUCTIONS, QUICK_START } from './instructions'
+import Person, {DEFAULT_OPTIONS, NAMES} from './person'
 
 // DOM Elements
 const body = document.documentElement
@@ -55,6 +63,7 @@ let recorder
 let bars = 16
 let timePerBar = () => 2403 / bars
 let midiAvailable = false
+let cameraLoading = false
 
 // realtime UI options
 const ui = getLocationSettings({
@@ -107,7 +116,7 @@ const getPerson = (index) => {
 			hue:Math.random() * 360,
 			debug:ui.debug
 		}
-		const name = 'person-'+['a','b','c'][index]
+		const name = NAMES[index]
 		const person = new Person(name, audioContext, audio, options ) 
 		person.loadInstrument( randomInstrument() )
 		if (midi && midi.outputs && midi.outputs.length > 0) 
@@ -206,8 +215,7 @@ const showMIDI = async () => {
 	return true
 }
 
-// this needs to occur on click
-
+// selected
 const setup = (settings) => {
 
 	// set up the instrument selctor etc
@@ -230,6 +238,20 @@ const setup = (settings) => {
 			if (video)
 			{
 				camera = await setupCamera(video)
+				
+				// check to see if we want a selector
+				const videoCameraDevices = filterVideoCameras( await detectCameras() )
+				if (videoCameraDevices.length > 1)
+				{
+					setupCameraForm(videoCameraDevices, async (selected) => {
+						// console.error("Camera selected",selected)
+						cameraLoading = true
+						camera = await setupCamera( video, selected.deviceId )
+						cameraLoading = false
+						setToast( `Camera ${selected.label} selected`, 0 )
+					})	
+				}
+			
 				setFeedback( "Camera located!", 0 )
 			}
 			
@@ -272,10 +294,10 @@ const setup = (settings) => {
 			if (hasMIDI)
 			{
 				main.classList.add('midi')
-				setFeedback("MIDI available<br>Click the screen to connect", 0)
+				setFeedback("MIDI available<br>Click the button to connect", 0)
 			}else{
 				main.classList.add('midi','no-instrument')
-				setFeedback("MIDI available<br>Connect an instrument to continue", 0)
+				setFeedback("MIDI available<br>Connect an instrument <small>and click the button</small>", 0)
 			}
 			
 		}catch(error){
@@ -300,6 +322,10 @@ const setup = (settings) => {
 		// turn up the amp
 		setAmplitude( 1 )
 
+		// load install scripts once eveything has completed...
+		//setTimeout(async ()=>{
+		
+		//}, 0 )
 
 		// FIXME: set up a basic metronome here too...
 		const playing = []
@@ -324,9 +350,17 @@ const setup = (settings) => {
 		// return
 		// LOOP ---------------------------------------
 
+		const shouldUpdate = () => !cameraLoading
 		// FaceMesh.getUVCoords 
 		// this then runs the loop if set to true
 		update( inputElement === video, (predictions)=>{
+
+			// return if camera is still connecting...
+			if (cameraLoading)
+			{
+				console.log("update:progress loading")
+				return
+			}
 
 			let tickerTape = ''
 			counter++
@@ -357,47 +391,49 @@ const setup = (settings) => {
 			// setAmplitude( 1 )
 			if (predictions)
 			{
-				// TODO: loop through all predictions...
-				const index = 0
-
-				const prediction = predictions[index]
-				
-				// create as many people as we need
-				const person = getPerson(index)
-				
-				// face available!
-				if (prediction && prediction.faceInViewConfidence > 0.9)
+				// loop through all predictions...
+				for (let i=0, l=predictions.length; i < l; ++i)
 				{
-					main.classList.toggle("active", true)
-					// playAudio()
-				}else{
-					// stopAudio()
-					setFeedback( "I need to see your face!" )
-					main.classList.toggle("active", false)
-					return
-				}
 
-				// first update the person
-				person.update(prediction)
-
-				// then redraw them
-				//const { yaw, pitch, lipPercentage } = 
-				person.draw(prediction)
+					const prediction = predictions[i]
+					// create as many people as we need
+					const person = getPerson(i)
 				
-				// then whenever you fancy it,
-				if (ui.metronome)
-				{
-					// we only want it on the beat
-				}else{
-					person.sing()
-				}
-				
-				// you want a tight curve
-				//setAmplitude( logAmp )
-				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
-				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+					// face available!
+					if (prediction && prediction.faceInViewConfidence > 0.9)
+					{
+						main.classList.toggle("active", true)
+						// playAudio()
+					}else{
+						// stopAudio()
+						setFeedback( getHelp( Math.floor(counter/100) ) )
+						main.classList.toggle("active", false)
+						return
+					}
 
+					// first update the person
+					person.update(prediction)
+
+					// then redraw them
+					//const { yaw, pitch, lipPercentage } = 
+					person.draw(prediction)
+					
+					// then whenever you fancy it,
+					if (ui.metronome)
+					{
+						// we only want it on the beat
+					}else{
+						person.sing()
+					}
+					
+					// you want a tight curve
+					//setAmplitude( logAmp )
+					//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
+					tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+		
+				}
+					
 			}else{
 				// tickerTape += `No prediction`
 			}
@@ -407,7 +443,7 @@ const setup = (settings) => {
 			{
 				// Need to show instructions to the user...
 				// as no face can be detected
-				setFeedback(QUICK_START[0])
+				setFeedback(getHelp( Math.floor(counter/100)  ))
 			// }else if (counter < 50)	{
 			// 	setFeedback( getNextInstruction() )
 			// }else if (counter < 150){
@@ -428,7 +464,7 @@ const setup = (settings) => {
 			}
 
 			//console.warn("update",predictions, tickerTape )
-		} )
+		}, shouldUpdate )
 
 		let barsElapsed = 0
 		const timer = start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
@@ -462,8 +498,8 @@ const setup = (settings) => {
 
 		}, timePerBar() )
 
-	})
-	
+	} )
+	// camera loading just pauses the update mechanism
 }
 
 // set up some extra options from query strings
@@ -478,7 +514,9 @@ window.addEventListener('keydown', async (event)=>{
 
 	switch(event.key)
 	{
-		case 'Tab':
+		// don't hijack tab you numpty!
+		
+		case 'CapsLock':
 			ui.debug = !ui.debug
 			people.forEach( person => person.debug = ui.debug )
 			setToast(`DEBUG : ${ui.debug}`)
@@ -547,10 +585,11 @@ window.addEventListener('keydown', async (event)=>{
 			if (!isRecording())
 			{
 				setToast("Recording START")
-				console.error("Recording START")
+				console.error("Recording START", audio)
 				recorder = await startRecording(audio)
 				console.error("Recording...", recorder)
 				
+
 			}else{
 				console.error("Recording END", recorder)
 				setToast( `Recording Ended - now encoding` )
@@ -566,6 +605,11 @@ window.addEventListener('keydown', async (event)=>{
 			}
 			break
 
+		// FILTER
+		case 'Tab':
+			break
+
+		// DEFAULT
 		case 'm':
 		default:
 			ui.metronome = !ui.metronome

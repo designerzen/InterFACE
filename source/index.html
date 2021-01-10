@@ -113,13 +113,18 @@
 			<canvas width="640" height="480"></canvas> 
 
 			<form id="controls">
+	
+				<fieldset id="camera"></fieldset>
 
 				<button class="person" id="person-a">Change instrument for person A</button>
+				<fieldset id="person-a-controls"></fieldset>
+
 				<button class="person" id="person-b">Change instrument for person B</button>
-				
+				<fieldset id="person-b-controls"></fieldset>
+
 				<button id="button-midi">Connect a MIDI instrument and click here</button>
-				<button id="button-video">Begin!<button>
 				<button id="button-record">Record loop<button>
+				<button id="button-video">Swap all instruments!<button>
 				
 			</form>
 		</div>
@@ -128,8 +133,8 @@
 
 	<footer id="pwa">
 
-		<small clasds="copyright">Copyright © 2021 <strong class="brand">designerzen</strong></small>
-		<small id="versin">Version 0.0.9</small>
+		<small clasds="copyright">Copyright © 2021 <a href="https://github.com/designerzen" class="brand">designerzen</a></small>
+		<small id="version">Version 0.0.9</small>
 
 		<!-- <script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script> -->
 
@@ -152,7 +157,9 @@
 		<p>This application requires javascript to work unfortunately and doesn't do much without it</p>
 	</noscript>
 
-	<script src="install.js"></script> 
-	<script src="update.js"></script> 
+	<!-- <script src="install.js"></script> 
+	<script src="update.js"></script>  -->
+	<script type="module" src="install.js"></script> 
+	<script type="module" src="update.js"></script> 
 
 </body>

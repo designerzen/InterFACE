@@ -1,65 +1,5 @@
-// const cam = (video) => {
-
-// 	video = video || document.createElement('video')
-
-// 	const stream = await navigator.mediaDevices.getUserMedia({
-// 	  audio: false,
-// 	  video: {
-// 		facingMode: 'user',
-// 		width: 640,
-// 		height: 640
-// 	  }
-// 	})
-
-// 	video.srcObject = stream
-// }
 import { clamp, TAU} from "./maths"
 import PALETTE, { DEFAULT_COLOURS } from "./palette"
-
-
-async function startCamera(video) {
-
-	return new Promise( async (resolve,reject) => {
-		
-		let stream
-		video = video || document.createElement('video')
-
-		video.onloadedmetadata = (event) => { 
-
-			video.play()
-			video.width = video.videoWidth
-			video.height = video.videoHeight
-			resolve(stream)
-		}
-
-		video.onerror = event => reject(stream)
-
-		try{
-			stream = await navigator.mediaDevices.getUserMedia({
-				audio: false,
-				video: {
-					facingMode: 'user',
-					// optional?
-					// width: 640,
-					// height: 640
-				}
-			})			
-			
-			video.srcObject = stream
-
-		}catch(error){
-
-			reject(error)
-		}
-	})
-	
-  }
-
-
-export const setupCamera = async (video) => {
-	return startCamera(video) 
-}
-
 
 async function loadImage(image) {
 	return new Promise( async (resolve,reject) => {
@@ -362,8 +302,10 @@ let nodeCount = 0
 
 export const setNodeCount = value => nodeCount += value
 
+let cycleCounter = 0
+
 // Just draws lots of dots on an image on the canvas
-export const drawPoints = (prediction, hue=60, size=3, showText=true) => {
+export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showText=true) => {
 
 	const { scaledMesh } = prediction
 	const quantity = scaledMesh.length
@@ -397,7 +339,8 @@ export const drawPoints = (prediction, hue=60, size=3, showText=true) => {
 			canvasContext.arc(x, y, radius * 3, 0, TAU)
 		}else{
 
-			canvasContext.fillStyle = `hsla(${hue},70%,50%,${alpha})`
+			const modifiedHue = colourCycle ? ((cycleCounter++)+hue+360*i/quantity)%360 : hue
+			canvasContext.fillStyle = `hsla(${modifiedHue},70%,50%,${alpha})`
 		
 			canvasContext.arc(x, y, radius, 0, TAU)
 		}

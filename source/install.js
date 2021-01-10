@@ -1,10 +1,554 @@
 
+import { setFeedback, setToast } from './ui'
+import { VERSION } from './version'
+
+const installer = async ()=> {
+   	
+    // check for beforeinstallprompt support
+    const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
+
+	let deferredPrompt
+	
+    let installed = false
+	let hasPrompt = false
+	let openModal = false
+	let manifestData
+	let manifestPath = "./manifest.webmanifest"
+	let relatedApps = []
+
+    // handle iOS specifically
+    // this includes the regular iPad
+    // and the iPad pro
+    // but not macOS
+    const isIOS =
+      navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
+      (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
+
+
+	const cancelInstall = () =>{
+		return new Promise((resolve, reject) => {
+			// close the modal
+		  openModal = false
+	
+		//   if (this.hasAttribute("openmodal")) {
+		// 	this.removeAttribute("openmodal")
+		//   }
+	
+		//   let event = new CustomEvent("hide")
+		//   this.dispatchEvent(event)
+	
+		  resolve()
+		})
+	}
+
+
+    document.addEventListener("keyup", (event) => {
+      if (event.key === "Escape") {
+        cancelInstall()
+      }
+	})
+	
+	const getInstalledStatus = () => {
+		if (navigator.standalone) {
+		  return navigator.standalone
+		} else if (matchMedia("(display-mode: standalone)").matches) {
+		  return true
+		} else {
+		  return false
+		}
+	}
+
+	const shouldShowInstall = () => {
+		const eligibleUser = isSupportingBrowser &&
+		relatedApps.length < 1 &&
+		(hasPrompt || isIOS)
+	
+		return eligibleUser
+	}
+
+	// Check that the manifest has our 3 required properties
+	// If not console an error to the user and return
+	const checkManifest = (manifestToCheck) => {
+	  if (!manifestToCheck.icons || !manifestToCheck.icons[0]) {
+		console.error("Your web manifest must have atleast one icon listed");
+		return
+	  }
+  
+	  if (!manifestToCheck.name) {
+		console.error("Your web manifest must have a name listed");
+		return
+	  }
+  
+	  if (!manifestToCheck.description) {
+		console.error("Your web manifest must have a description listed");
+		return
+	  }
+	}
+
+	const getManifestData = async () => {
+		try {
+		  const response = await fetch(manifestPath)
+		  const data = await response.json()
+	
+		  manifestData = data
+	
+		  if (data) 
+		  {
+			// any point if it only logs and still continues?
+			checkManifest(data)
+			return data
+		  }
+
+		} catch (err) {
+		  return null
+		}
+	  }
+	
+	  
+	const firstUpdated = async () => {
+		if (manifestPath) 
+		{
+		  try {
+			await getManifestData()
+		  } catch (err) {
+			console.error(
+			  "Error getting manifest, check that you have a valid web manifest"
+			)
+		  }
+		}
+	
+		if ("getInstalledRelatedApps" in navigator) {
+			relatedApps = await navigator.getInstalledRelatedApps()
+		}
+	}
+
+	// This is created from the manifest
+	const createOverlayMarkup = () =>
+	`<button id="openButton" class="install-app">
+	Install InterFACE Version ${VERSION}
+	</button>
+	
+	<dialog open>
+		<!-- background needs to cancel install too? -->
+		<header id="logoContainer">
+			<img src="${ manifestData.icons[0].src }" alt="App Logo"/>
+
+			<div id="installTitle">
+				<h1>${ manifestData.short_name || manifestData.name}</h1>
+				<p id="desc">${explainer}</p>
+			</div>
+		</header>
+
+		<button id="closeButton" click="" aria-label="Close">
+			<svg width="23" height="22" viewBox="0 0 23 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path opacity="0.33" fill-rule="evenodd" clip-rule="evenodd" d="M1.11932 0.357981C1.59693 -0.119327 2.37129 -0.119327 2.8489 0.357981L11.7681 9.27152L20.6873 0.357981C21.165 -0.119327 21.9393 -0.119327 22.4169 0.357981C22.8945 0.835288 22.8945 1.60916 22.4169 2.08646L13.4977 11L22.4169 19.9135C22.8945 20.3908 22.8945 21.1647 22.4169 21.642C21.9393 22.1193 21.165 22.1193 20.6873 21.642L11.7681 12.7285L2.8489 21.642C2.37129 22.1193 1.59693 22.1193 1.11932 21.642C0.641705 21.1647 0.641705 20.3908 1.11932 19.9135L10.0385 11L1.11932 2.08646C0.641705 1.60916 0.641705 0.835288 1.11932 0.357981Z" fill="#60656D"/>
+			</svg>
+		</button>
+
+
+		<div id="contentContainer">
+
+			<div id="featuresScreenDiv">
+
+			${ manifestData.features ? 
+				`<div id="keyFeatures">
+				<h3>Features</h3>
+				<ul>
+				${
+					manifestData.features
+					? manifestDatafeatures.map((feature) => ` <li>${feature}</li> ` )
+					: null
+				}
+				</ul>
+			</div>
+			</div>`
+				: null
+			}
+
+			${manifestData.screenshots
+				? html`
+					<div id="screenshotsContainer">
+						<button
+							@click="${() => this.scrollToLeft()}"
+							aria-label="previous image"
+							>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 512 512"
+							>
+								<path
+								d="M401.4 224h-214l83-79.4c11.9-12.5 11.9-32.7 0-45.2s-31.2-12.5-43.2 0L89 233.4c-6 5.8-9 13.7-9 22.4v.4c0 8.7 3 16.6 9 22.4l138.1 134c12 12.5 31.3 12.5 43.2 0 11.9-12.5 11.9-32.7 0-45.2l-83-79.4h214c16.9 0 30.6-14.3 30.6-32 .1-18-13.6-32-30.5-32z"
+								/>
+							</svg>
+						</button>
+
+						<section id="screenshots">
+						${manifestData.screenshots.map((screen) => {
+							return html`
+							<div>
+								<img alt="App Screenshot" src="${screen.src}" />
+							</div>
+							`;
+						})}
+
+						</section>
+						<button
+						@click="${() => this.scrollToRight()}"
+						aria-label="next image"
+						>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 512 512"
+						>
+							<path
+							d="M284.9 412.6l138.1-134c6-5.8 9-13.7 9-22.4v-.4c0-8.7-3-16.6-9-22.4l-138.1-134c-12-12.5-31.3-12.5-43.2 0-11.9 12.5-11.9 32.7 0 45.2l83 79.4h-214c-17 0-30.7 14.3-30.7 32 0 18 13.7 32 30.6 32h214l-83 79.4c-11.9 12.5-11.9 32.7 0 45.2 12 12.5 31.3 12.5 43.3 0z"
+							/>
+						</svg>
+						</button>
+					</div>
+					`
+				: null
+			}
+			</div>
+
+			<div id="descriptionWrapper">
+				<h3>${this.descriptionheader}</h3>
+				<p id="manifest-description">${this.manifestdata.description}</p>
+			</div>
+			
+			</div>
+		
+		<button id="openButton" class="install-app">Install InterFACE Version ${VERSION}</button>
+		<button class="cancel-install">Cancel</button>
+
+		<p id="iosText">${iosinstallinfotext}</p> 
+
+	</dialog>
+	`
+
+	
+	const install = async () => new Promise( async (resolve,reject)=>{
+
+		if (deferredPrompt) 
+		{
+			deferredPrompt.prompt()
+		
+			//   let event = new CustomEvent("show")
+			//   this.dispatchEvent(event)
+			await cancelInstall()
+
+			// brute force hide the button?
+			// set installed to true because we dont
+			// want to show the install button to
+			// a user who chose not to install?
+				
+		 	const choiceResult = await deferredPrompt.userChoice
+	
+			if (choiceResult.outcome === "accepted") 
+			{
+				console.log("Your PWA has been installed")
+		
+				installed = true
+	
+				resolve(true)
+
+		  	} else {
+
+				console.log("User chose to not install")
+		
+				installed = false
+				
+				resolve(false);
+		  	}
+
+		} else {
+			  // handle else case
+			  reject("no prompt cached")
+		}
+	})
+
+	const begin = async () => {
+
+		console.log("Installer setup")
+		
+		const showInstaller = shouldShowInstall()
+		if (("standalone" in navigator && navigator.standalone === false) || (showInstaller && installed === false))
+		{
+			// we need to show the installer!	// const test = await getManifestData()
+			const test = await firstUpdated()
+			console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
+			console.log({manifestdata: manifestData, test})
+			//show install button or update button???
+			// reveal update button?
+			const button = document.createElement('button')
+			button.classList.add("install-app")
+			button.innerHTML = `Click to install ${manifestData.short_name} Version ${VERSION}` 
+			
+			// on button press...
+			button.addEventListener('click', async ()=>{
+			
+				// show overlay with install button or just install directly?
+				setFeedback("Installing",0)
+				try{
+					// installed
+					const success = await install()
+					setToast( success ? "The App was installed" : "Maybe some other time" )
+					if (!success)
+					{
+						// show buton?
+						//document.querySelector(".install-app").style.display = "none"
+						button.classList.add("later")
+
+					}else{
+						// hide button
+						document.querySelector(".install-app").style.display = "none"
+					}
+				}catch(error){
+					setToast("The App was not installed")
+				}
+					
+			}, {once:true} )
+			document.documentElement.appendChild(button)
+
+		}else{
+			// we are already showing?
+			console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not installed" )
+			console.error( `isSupportingBrowser && relatedApps.length < 1 && (hasPrompt || isIOS)`)
+			console.error( { isSupportingBrowser, relatedApps, hasPrompt, isIOS} )
+		}
+	}
+	  
+    // hijack an install event
+    window.addEventListener("beforeinstallprompt", event => {
+		
+		deferredPrompt = event
+		hasPrompt = true
+		event.preventDefault() 
+
+		if (!isIOS)
+		{
+			begin()
+		}
+
+	}, {once:true})
+
+	if (isIOS)
+	{
+		window.addEventListener("load", async (event) => {
+			
+			begin()
+
+		}, {once:true})		
+	}
+
+	console.log("Installing...")
+}
+
+installer()
+
+// export default installer
+/*
+
+  scrollToLeft(): void {
+    const screenshotsDiv = this.shadowRoot.querySelector("#screenshots");
+    // screenshotsDiv.scrollBy(-10, 0);
+    screenshotsDiv.scrollBy({
+      // left: -15,
+      left: -screenshotsDiv.clientWidth,
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  scrollToRight(): void {
+    const screenshotsDiv = this.shadowRoot.querySelector("#screenshots");
+    // screenshotsDiv.scrollBy(10, 0);
+    screenshotsDiv.scrollBy({
+      // left: 15,
+      left: screenshotsDiv.clientWidth,
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  public openPrompt(): void {
+    this.openmodal = true;
+
+    let event = new CustomEvent("show");
+    this.dispatchEvent(event);
+  }
+
+  public closePrompt(): void {
+    this.openmodal = false;
+
+    let event = new CustomEvent("hide");
+    this.dispatchEvent(event);
+  }
+
+*/
+//   render() {
+//     return html`
+//       ${("standalone" in navigator &&
+//         (navigator as any).standalone === false) ||
+//       (this.usecustom !== true &&
+//         this.shouldShowInstall() &&
+//         this.installed === false)
+//         ? html`<button
+//             part="openButton"
+//             id="openButton"
+//             @click="${() => this.openPrompt()}"
+//           >
+//             <slot>
+//               ${this.installbuttontext}
+//             </slot>
+//           </button>`
+//         : null}
+//       ${this.openmodal === true
+//         ? html`
+//           <div id="installModalWrapper">
+//           ${
+//             this.openmodal
+//               ? html`<div
+//                   id="background"
+//                   @click="${() => this.cancel()}"
+//                 ></div>`
+//               : null
+//           }
+//           <div id="installModal" part="installModal">
+//           <div id="headerContainer">
+//           <div id="logoContainer">
+//             <img src="${
+//               this.iconpath ? this.iconpath : this.manifestdata.icons[0].src
+//             }" alt="App Logo"/>
+
+//             <div id="installTitle">
+//               <h1>${this.manifestdata.short_name || this.manifestdata.name}</h1>
+
+//               <p id="desc">
+//                 ${this.explainer}
+//               </p>
+//             </div>
+//           </div>
+
+//           <button id="closeButton" @click="${() =>
+//             this.cancel()}" aria-label="Close">
+//             <svg width="23" height="22" viewBox="0 0 23 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+//               <path opacity="0.33" fill-rule="evenodd" clip-rule="evenodd" d="M1.11932 0.357981C1.59693 -0.119327 2.37129 -0.119327 2.8489 0.357981L11.7681 9.27152L20.6873 0.357981C21.165 -0.119327 21.9393 -0.119327 22.4169 0.357981C22.8945 0.835288 22.8945 1.60916 22.4169 2.08646L13.4977 11L22.4169 19.9135C22.8945 20.3908 22.8945 21.1647 22.4169 21.642C21.9393 22.1193 21.165 22.1193 20.6873 21.642L11.7681 12.7285L2.8489 21.642C2.37129 22.1193 1.59693 22.1193 1.11932 21.642C0.641705 21.1647 0.641705 20.3908 1.11932 19.9135L10.0385 11L1.11932 2.08646C0.641705 1.60916 0.641705 0.835288 1.11932 0.357981Z" fill="#60656D"/>
+//             </svg>
+//           </button>
+//         </div>
+
+//         <div id="contentContainer">
+
+//         <div id="featuresScreenDiv">
+
+//           ${
+//             this.manifestdata.features
+//               ? html`<div id="keyFeatures">
+//             <h3>${this.featuresheader}</h3>
+//             <ul>
+//               ${
+//                 this.manifestdata.features
+//                   ? this.manifestdata.features.map((feature) => {
+//                       return html` <li>${feature}</li> `;
+//                     })
+//                   : null
+//               }
+//             </ul>
+//           </div>
+//           </div>`
+//               : null
+//           }
+
+//           ${
+//             this.manifestdata.screenshots
+//               ? html`
+//                   <div id="screenshotsContainer">
+//                     <button
+//                       @click="${() => this.scrollToLeft()}"
+//                       aria-label="previous image"
+//                     >
+//                       <svg
+//                         xmlns="http://www.w3.org/2000/svg"
+//                         viewBox="0 0 512 512"
+//                       >
+//                         <path
+//                           d="M401.4 224h-214l83-79.4c11.9-12.5 11.9-32.7 0-45.2s-31.2-12.5-43.2 0L89 233.4c-6 5.8-9 13.7-9 22.4v.4c0 8.7 3 16.6 9 22.4l138.1 134c12 12.5 31.3 12.5 43.2 0 11.9-12.5 11.9-32.7 0-45.2l-83-79.4h214c16.9 0 30.6-14.3 30.6-32 .1-18-13.6-32-30.5-32z"
+//                         />
+//                       </svg>
+//                     </button>
+//                     <section id="screenshots">
+//                       ${this.manifestdata.screenshots.map((screen) => {
+//                         return html`
+//                           <div>
+//                             <img alt="App Screenshot" src="${screen.src}" />
+//                           </div>
+//                         `;
+//                       })}
+//                     </section>
+//                     <button
+//                       @click="${() => this.scrollToRight()}"
+//                       aria-label="next image"
+//                     >
+//                       <svg
+//                         xmlns="http://www.w3.org/2000/svg"
+//                         viewBox="0 0 512 512"
+//                       >
+//                         <path
+//                           d="M284.9 412.6l138.1-134c6-5.8 9-13.7 9-22.4v-.4c0-8.7-3-16.6-9-22.4l-138.1-134c-12-12.5-31.3-12.5-43.2 0-11.9 12.5-11.9 32.7 0 45.2l83 79.4h-214c-17 0-30.7 14.3-30.7 32 0 18 13.7 32 30.6 32h214l-83 79.4c-11.9 12.5-11.9 32.7 0 45.2 12 12.5 31.3 12.5 43.3 0z"
+//                         />
+//                       </svg>
+//                     </button>
+//                   </div>
+//                 `
+//               : null
+//           }
+//           </div>
+
+//           <div id="descriptionWrapper">
+//             <h3>${this.descriptionheader}</h3>
+//             <p id="manifest-description">${this.manifestdata.description}</p>
+//           </div>
+//         </div>
+
+//         ${
+//           !this.isIOS
+//             ? html`<div id="buttonsContainer">
+//           ${
+//             this.deferredprompt
+//               ? html`<button
+//                   id="installButton"
+//                   @click="${() => this.install()}"
+//                 >
+//                   ${this.installbuttontext} ${this.manifestdata.short_name}
+//                 </button>`
+//               : html`<button
+//                   @click="${() => this.cancel()}"
+//                   id="installCancelButton"
+//                 >
+//                   ${this.cancelbuttontext}
+//                 </button>`
+//           }
+//         </div>
+//           </div>`
+//             : html`<p id="iosText">${this.iosinstallinfotext}</p>`
+//         }
+//         `
+//         : null}
+//     `;
+//   }
+// }
+
+
+
+
+
+
+
+
+
 // Allow app to be installed
 // FIXME: Lazy load this whilst camera searching...
-// https://github.com/pwa-builder/pwa-install#pwa-install
-// import '@pwabuilder/pwainstall'
-
-// import {setToast, setFeedback} from './ui.js'
 
 // @customElement("pwa-install")
 // export class pwainstall extends LitElement {
@@ -577,384 +1121,3 @@
 //       }
 //     `;
 //   }
-
-const installer = async ()=> {
-   
-    // check for beforeinstallprompt support
-    const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
-
-	let deferredPrompt
-	
-    let installed = false
-	let hasPrompt = false
-	let manifestdata
-	let manifestpath = "./manifest.webmanifest"
-	let relatedApps = []
-
-    // handle iOS specifically
-    // this includes the regular iPad
-    // and the iPad pro
-    // but not macOS
-    const isIOS =
-      navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
-      (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
-
-    // hijack an install event
-    window.addEventListener("beforeinstallprompt", (event) => {
-		deferredPrompt = event
-		hasPrompt = true
-		event.preventDefault() 	
-	})
-
-	const cancelInstall = () =>{
-		return new Promise((resolve, reject) => {
-			// close the modal
-		  openmodal = false
-	
-		//   if (this.hasAttribute("openmodal")) {
-		// 	this.removeAttribute("openmodal")
-		//   }
-	
-		//   let event = new CustomEvent("hide")
-		//   this.dispatchEvent(event)
-	
-		  resolve()
-		})
-	}
-
-    document.addEventListener("keyup", (event) => {
-      if (event.key === "Escape") {
-        cancelInstall()
-      }
-	})
-	
-	const getInstalledStatus = () => {
-		if (navigator.standalone) {
-		  return navigator.standalone
-		} else if (matchMedia("(display-mode: standalone)").matches) {
-		  return true
-		} else {
-		  return false
-		}
-	}
-
-	const shouldShowInstall = () => {
-		const eligibleUser = isSupportingBrowser &&
-		relatedApps.length < 1 &&
-		(hasPrompt || isIOS)
-	
-		return eligibleUser
-	}
-
-	// Check that the manifest has our 3 required properties
-	// If not console an error to the user and return
-	const checkManifest = (manifestToCheck) => {
-	  if (!manifestToCheck.icons || !manifestToCheck.icons[0]) {
-		console.error("Your web manifest must have atleast one icon listed");
-		return
-	  }
-  
-	  if (!manifestToCheck.name) {
-		console.error("Your web manifest must have a name listed");
-		return
-	  }
-  
-	  if (!manifestToCheck.description) {
-		console.error("Your web manifest must have a description listed");
-		return
-	  }
-	}
-
-	const getManifestData = async () => {
-		try {
-		  const response = await fetch(manifestpath)
-		  const data = await response.json()
-	
-		  manifestdata = data
-	
-		  if (data) 
-		  {
-			// any point if it only logs and still continues?
-			checkManifest(data)
-			return data
-		  }
-
-		} catch (err) {
-		  return null
-		}
-	  }
-	
-	  
-	const firstUpdated = async () => {
-		if (manifestpath) 
-		{
-		  try {
-			await getManifestData()
-		  } catch (err) {
-			console.error(
-			  "Error getting manifest, check that you have a valid web manifest"
-			)
-		  }
-		}
-	
-		if ("getInstalledRelatedApps" in navigator) {
-			relatedApps = await navigator.getInstalledRelatedApps()
-		}
-	}
-
-	
-	const install =  async () => {
-		if (deferredPrompt) 
-		{
-		  deferredPrompt.prompt()
-	
-		//   let event = new CustomEvent("show")
-		//   this.dispatchEvent(event)
-	
-		  const choiceResult = await deferredPrompt.userChoice
-	
-		  if (choiceResult.outcome === "accepted") 
-		  {
-			console.log("Your PWA has been installed")
-	
-			await cancel()
-			installed = true
-	
-			// let event = new CustomEvent("hide")
-			// this.dispatchEvent(event)
-	
-			return true
-
-		  } else {
-			console.log("User chose to not install your PWA");
-	
-			await cancel()
-	
-			// set installed to true because we dont
-			// want to show the install button to
-			// a user who chose not to install
-			installed = true
-	
-			// let event = new CustomEvent("hide");
-			// this.dispatchEvent(event);
-	
-			return false
-		  }
-		} else {
-		  // handle else case
-		}
-	  }
-	
-	const showInstaller = shouldShowInstall()
-
-	if (("standalone" in navigator && navigator.standalone === false) || 
-		(showInstaller && installed === false))
-	{
-		// we need to show the installer!	// const test = await getManifestData()
-		const test = await firstUpdated()
-		console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
-		console.log(manifestdata)
-		//show install button or update button???
-		
-	}else{
-		// we are already showing?
-		console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not installed" )
-	}
-}
-
-installer()
-/*
-
-  scrollToLeft(): void {
-    const screenshotsDiv = this.shadowRoot.querySelector("#screenshots");
-    // screenshotsDiv.scrollBy(-10, 0);
-    screenshotsDiv.scrollBy({
-      // left: -15,
-      left: -screenshotsDiv.clientWidth,
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  scrollToRight(): void {
-    const screenshotsDiv = this.shadowRoot.querySelector("#screenshots");
-    // screenshotsDiv.scrollBy(10, 0);
-    screenshotsDiv.scrollBy({
-      // left: 15,
-      left: screenshotsDiv.clientWidth,
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  public openPrompt(): void {
-    this.openmodal = true;
-
-    let event = new CustomEvent("show");
-    this.dispatchEvent(event);
-  }
-
-  public closePrompt(): void {
-    this.openmodal = false;
-
-    let event = new CustomEvent("hide");
-    this.dispatchEvent(event);
-  }
-
-
-
-
-
-*/
-//   render() {
-//     return html`
-//       ${("standalone" in navigator &&
-//         (navigator as any).standalone === false) ||
-//       (this.usecustom !== true &&
-//         this.shouldShowInstall() &&
-//         this.installed === false)
-//         ? html`<button
-//             part="openButton"
-//             id="openButton"
-//             @click="${() => this.openPrompt()}"
-//           >
-//             <slot>
-//               ${this.installbuttontext}
-//             </slot>
-//           </button>`
-//         : null}
-//       ${this.openmodal === true
-//         ? html`
-//           <div id="installModalWrapper">
-//           ${
-//             this.openmodal
-//               ? html`<div
-//                   id="background"
-//                   @click="${() => this.cancel()}"
-//                 ></div>`
-//               : null
-//           }
-//           <div id="installModal" part="installModal">
-//           <div id="headerContainer">
-//           <div id="logoContainer">
-//             <img src="${
-//               this.iconpath ? this.iconpath : this.manifestdata.icons[0].src
-//             }" alt="App Logo"/>
-
-//             <div id="installTitle">
-//               <h1>${this.manifestdata.short_name || this.manifestdata.name}</h1>
-
-//               <p id="desc">
-//                 ${this.explainer}
-//               </p>
-//             </div>
-//           </div>
-
-//           <button id="closeButton" @click="${() =>
-//             this.cancel()}" aria-label="Close">
-//             <svg width="23" height="22" viewBox="0 0 23 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-//               <path opacity="0.33" fill-rule="evenodd" clip-rule="evenodd" d="M1.11932 0.357981C1.59693 -0.119327 2.37129 -0.119327 2.8489 0.357981L11.7681 9.27152L20.6873 0.357981C21.165 -0.119327 21.9393 -0.119327 22.4169 0.357981C22.8945 0.835288 22.8945 1.60916 22.4169 2.08646L13.4977 11L22.4169 19.9135C22.8945 20.3908 22.8945 21.1647 22.4169 21.642C21.9393 22.1193 21.165 22.1193 20.6873 21.642L11.7681 12.7285L2.8489 21.642C2.37129 22.1193 1.59693 22.1193 1.11932 21.642C0.641705 21.1647 0.641705 20.3908 1.11932 19.9135L10.0385 11L1.11932 2.08646C0.641705 1.60916 0.641705 0.835288 1.11932 0.357981Z" fill="#60656D"/>
-//             </svg>
-//           </button>
-//         </div>
-
-//         <div id="contentContainer">
-
-//         <div id="featuresScreenDiv">
-
-//           ${
-//             this.manifestdata.features
-//               ? html`<div id="keyFeatures">
-//             <h3>${this.featuresheader}</h3>
-//             <ul>
-//               ${
-//                 this.manifestdata.features
-//                   ? this.manifestdata.features.map((feature) => {
-//                       return html` <li>${feature}</li> `;
-//                     })
-//                   : null
-//               }
-//             </ul>
-//           </div>
-//           </div>`
-//               : null
-//           }
-
-//           ${
-//             this.manifestdata.screenshots
-//               ? html`
-//                   <div id="screenshotsContainer">
-//                     <button
-//                       @click="${() => this.scrollToLeft()}"
-//                       aria-label="previous image"
-//                     >
-//                       <svg
-//                         xmlns="http://www.w3.org/2000/svg"
-//                         viewBox="0 0 512 512"
-//                       >
-//                         <path
-//                           d="M401.4 224h-214l83-79.4c11.9-12.5 11.9-32.7 0-45.2s-31.2-12.5-43.2 0L89 233.4c-6 5.8-9 13.7-9 22.4v.4c0 8.7 3 16.6 9 22.4l138.1 134c12 12.5 31.3 12.5 43.2 0 11.9-12.5 11.9-32.7 0-45.2l-83-79.4h214c16.9 0 30.6-14.3 30.6-32 .1-18-13.6-32-30.5-32z"
-//                         />
-//                       </svg>
-//                     </button>
-//                     <section id="screenshots">
-//                       ${this.manifestdata.screenshots.map((screen) => {
-//                         return html`
-//                           <div>
-//                             <img alt="App Screenshot" src="${screen.src}" />
-//                           </div>
-//                         `;
-//                       })}
-//                     </section>
-//                     <button
-//                       @click="${() => this.scrollToRight()}"
-//                       aria-label="next image"
-//                     >
-//                       <svg
-//                         xmlns="http://www.w3.org/2000/svg"
-//                         viewBox="0 0 512 512"
-//                       >
-//                         <path
-//                           d="M284.9 412.6l138.1-134c6-5.8 9-13.7 9-22.4v-.4c0-8.7-3-16.6-9-22.4l-138.1-134c-12-12.5-31.3-12.5-43.2 0-11.9 12.5-11.9 32.7 0 45.2l83 79.4h-214c-17 0-30.7 14.3-30.7 32 0 18 13.7 32 30.6 32h214l-83 79.4c-11.9 12.5-11.9 32.7 0 45.2 12 12.5 31.3 12.5 43.3 0z"
-//                         />
-//                       </svg>
-//                     </button>
-//                   </div>
-//                 `
-//               : null
-//           }
-//           </div>
-
-//           <div id="descriptionWrapper">
-//             <h3>${this.descriptionheader}</h3>
-//             <p id="manifest-description">${this.manifestdata.description}</p>
-//           </div>
-//         </div>
-
-//         ${
-//           !this.isIOS
-//             ? html`<div id="buttonsContainer">
-//           ${
-//             this.deferredprompt
-//               ? html`<button
-//                   id="installButton"
-//                   @click="${() => this.install()}"
-//                 >
-//                   ${this.installbuttontext} ${this.manifestdata.short_name}
-//                 </button>`
-//               : html`<button
-//                   @click="${() => this.cancel()}"
-//                   id="installCancelButton"
-//                 >
-//                   ${this.cancelbuttontext}
-//                 </button>`
-//           }
-//         </div>
-//           </div>`
-//             : html`<p id="iosText">${this.iosinstallinfotext}</p>`
-//         }
-//         `
-//         : null}
-//     `;
-//   }
-// }

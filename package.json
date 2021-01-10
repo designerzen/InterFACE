@@ -1,23 +1,23 @@
 {
 	"name": "musical-face",
-	"version": "0.0.9",
+	"version": "0.0.21",
 	"repository": "https://github.com/designerzen/MusicalFace.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL2.0",
 	"type": "module",
 	"scripts": {
 		"clean": "node clean.js",
-		"revise": "node revision.js",
+		"revision": "yarn version --patch --no-git-tag-version",
+		"revise": "yarn revision && node revision.js",
 		"test": "parcel serve source/test.html",
 		"start": "parcel serve source/index.html",
 		"build": "parcel build --public-url ./ source/index.html",
 		"builds": "parcel build --no-scope-hoist --public-url ./ source/index.html",
 		"analyse": "parcel build source/index.html --profile --detailed-report",
 		"deploy": "node deploy.js",
-		"version": "parcel -V",
 		"upgrader": "yarn upgrade-interactive",
-		"package": "yarn clean && yarn build",
-		"finalise": "yarn clean && yarn build && yarn deploy"
+		"package": "yarn revise && yarn clean && yarn build",
+		"release": "yarn revise && yarn clean && yarn build && yarn deploy"
 	},
 	"dependencies": {
 		"@capacitor/core": "^2.4.5",

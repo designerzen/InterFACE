@@ -1,6 +1,8 @@
+import { VERSION } from './version'
+
 // Not compiled so best add the ; to the es5
 const ONE_DAY = 60 * 60 * 24;
-const REVISION = 0;
+const REVISION = VERSION;
 const BUILD_MMR = "0.0.5";
 const WORKBOX_DEBUG_LOGGING = true;
 // Workbox version - update manually when there are new releases.

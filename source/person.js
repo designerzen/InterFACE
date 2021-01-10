@@ -9,27 +9,30 @@ import {
 	setShape, setFrequency, setAmplitude, 
 	getNoteName} from './audio'
 
-import {INSTRUMENT_FOLDERS} from "./instruments"
-
 import { clear,
 		drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
 		drawText,drawParagraph,
 		drawWaves, drawBars, drawInstrument} from './visual'
 import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
-import {cleanTitle, MUSICAL_NOTES} from './instruments'
+import {INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './instruments'
+import {setControls, setupInstrumentForm} from './ui'
 // options easeInCubic // easeInSine
 // const ease = easeOutQuad
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
 
+export const NAMES = ['a','b','c'].map( m => `person-${m}` )
+				
 export const DEFAULT_OPTIONS = {
 	...DEFAULT_COLOURS,
-	LIPS_RANGE: 40,
 
 	// Passed to the delay node
 	delayTime: 0.14,
 	delayLength: 10,
+
+	// mouse hold for
+	mouseHoldDuration:0.6,
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,
@@ -48,7 +51,7 @@ export const DEFAULT_OPTIONS = {
 	precision:2,
 
 	// set this to one of the interpolation methods above
-	ease:easeOutCubic //easeOutSine // easeInSine // linear
+	ease:easeInCubic //easeOutSine // easeInSine // linear
 }
 
 export default class Person{
@@ -72,6 +75,7 @@ export default class Person{
 			
 		this.singing = false
 		this.isMouthOpen = false
+		this.mouseDownAt = -1
 		this.lastNoteName = "A0"
 		this.debug = options.debug || false
 
@@ -101,17 +105,49 @@ export default class Person{
 
 		this.gainNode.connect(destinationNode)
 
+		// fetch dom element
 		this.button = document.getElementById(name)
-		this.button.addEventListener( 'click', event => {
+		this.button.addEventListener( 'mousedown', event => {
+
+			this.mouseDownAt = audioContext.currentTime
+			
+			// test to see how long we are help down for?
+			const waitPatiently = () => {
+
+				const elapsed = this.mouseDownFor
+				if ( elapsed < this.options.mouseHoldDuration )
+				{
+					// ignore?
+					//console.log("mouseDownFor", elapsed )
+
+					requestAnimationFrame( waitPatiently )
+				}else if (this.isMouseDown){
+					// FIXME
+					this.mouseDownAt = -1
+					this.showForm()
+				}
+			}
+			waitPatiently()
+			event.preventDefault()
+		})
+
+		this.button.addEventListener( 'mouseup', event => {
+			// should this trigger something else depending on time?
+			const elapsed = this.mouseDownFor
+			console.log("mouseDownFor", elapsed )
+
 			if (this.instrumentLoading)
 			{
 
 			}else{
 				this.loadInstrument( randomInstrument() )
 			}
-			
+
+			// and reset
+			this.mouseDownAt = -1
 			event.preventDefault()
 		})
+
 		this.button.addEventListener( 'mouseover', event => {
 			this.isMouseOver = true
 		})
@@ -120,6 +156,25 @@ export default class Person{
 		})
 		
 		//console.log("Created new person", this, "connecting to", destinationNode )
+	}
+
+	get mouseDownFor(){
+		return this.audioContext.currentTime - this.mouseDownAt
+	}
+
+	get isMouseDown(){
+		return this.mouseDownAt > -1
+	}
+
+	get isMouseHeld(){
+		return this.options.mouseHoldDuration < this.mouseDownFor
+	}
+
+	get controlsID (){
+		return `${this.name}-controls`
+	}
+	get controls (){
+		return document.getElementById(this.controlsID)
 	}
 
 	get instrumentName(){
@@ -137,7 +192,6 @@ export default class Person{
 	get hasMIDI(){
 		return this.midi && this.midiChannel
 	}
-
 
 	update(prediction){
 		
@@ -182,7 +236,7 @@ export default class Person{
 
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
-		drawPoints( prediction, options.dots, 3, this.debug )
+		drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
 
 		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
 		
@@ -210,35 +264,60 @@ export default class Person{
 		// draw silhoette if the user is 
 		// if you want it to flicker...
 		// interacting&& this.counter%2 === 0)
-		if ( this.isMouseOver || this.instrumentLoading )
-		{	
-			const {silhouette} = prediction.annotations
+		const {silhouette} = prediction.annotations
+			
+		 if ( this.isMouseOver || this.instrumentLoading ){
+
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
+			// user is interacting...
+			if (this.isMouseDown && !this.instrumentLoading)
+			{
+				// user is holding mouse down on user...
+				const remaining = 1 - this.mouseDownFor / this.options.mouseHoldDuration
+				const percentageRemaining = 100 - Math.ceil(remaining*100)
+				
+				if (this.isMouseHeld)
+				{
+					// user is holding mouse down on user...
+					drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Select')			
+					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.3)`, true)
+					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Press me`], '14px' )
+				}else{
+					
+					drawInstrument(prediction.boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
+					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.5)`, true)
+					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
+				}
 
-			drawInstrument(prediction.boundingBox, this.instrumentName, '\nclick for new instrument')
-			
-			drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
-/*	
-			const offsetX = topLeft[0]
-			const offsetY = topLeft[1]
-			const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
-			const svgPaths = silhouette.map( part => `L${svgCoord(part)}`)
-			const circles = silhouette.map( part =>{
-				const c = svgCoord(part)
-				return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`
-			})
-			// for outline...+ ` Z`
-			const svgPath = `M${svgCoord(silhouette[0])} ` + svgPaths.join(" ")
-			//  height="210" width="400"
-			const silhoetteShape = 
-			`<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
-				<path d="${svgPath}" />
-				${circles.join('')}
-			</svg>`
-			//console.log("SVG",silhouette, silhoetteShape)
-			this.button.innerHTML = silhoetteShape	
-			*/
+			}else{
+				
+				// No mouse held
+				drawInstrument(prediction.boundingBox, this.instrumentTitle, '\press me')
+				drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
+				/*	
+				const offsetX = topLeft[0]
+				const offsetY = topLeft[1]
+				const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
+				const svgPaths = silhouette.map( part => `L${svgCoord(part)}`)
+				const circles = silhouette.map( part =>{
+					const c = svgCoord(part)
+					return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`
+				})
+				// for outline...+ ` Z`
+				const svgPath = `M${svgCoord(silhouette[0])} ` + svgPaths.join(" ")
+				//  height="210" width="400"
+				const silhoetteShape = 
+				`<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
+					<path d="${svgPath}" />
+					${circles.join('')}
+				</svg>`
+				//console.log("SVG",silhouette, silhoetteShape)
+				this.button.innerHTML = silhoetteShape	
+				*/
+
+			}
+		
 		}else if (this.instrumentLoading){
 
 			drawInstrument(prediction.boundingBox, this.instrumentTitle, 'loading...')
@@ -289,7 +368,7 @@ export default class Person{
 		// should be triggered such as eye left / right
 
 		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = prediction.mouthOpen // prediction.mouthRange / options.LIPS_RANGE
+		const lipPercentage = prediction.mouthOpen
 		
 		// Controls minor / major
 		const yaw = prediction.yaw
@@ -323,6 +402,8 @@ export default class Person{
 		this.hue = roll * 360
 		this.saturation = 100 * lipPercentage
 
+
+		
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
@@ -458,13 +539,12 @@ export default class Person{
 	}
 
 	async loadNextInstrument(){
-		// first fetch existing
 		const index = this.index
 		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex] )
 	}
 
-	// wee need loadiing events
+	// we need loadiing events?
 	async loadInstrument(instrumentName){
 		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
@@ -476,5 +556,40 @@ export default class Person{
 		this.midiChannel = channel
 		this.midi = midi
 		console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
+	}
+
+	// Instrument selected from the DOM UI
+	onInstrumentInput(event) {
+		const id = event.target.id
+		//console.error(id, "on inputted", event)
+		this.hideForm()
+		this.loadInstrument(id)
+		event.preventDefault()
+	}
+
+	showForm(){
+
+		//console.log("showForm", this.controlsID, this.controls)
+
+		this.controls.innerHTML = setupInstrumentForm( ()=> {})
+		const inputs = this.controls.querySelectorAll('input')
+		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)
+		
+		// find active input field and focus
+		const active = document.getElementById(this.instrumentName)
+		if (active)
+		{
+			active.focus()
+		}else{
+			// send focus to form
+			this.controls.focus()
+		}
+		// this.controls.classList.toggle("showing",true)
+	}
+
+	hideForm(){
+		//const inputs = this.controls.querySelectorAll('input')
+		//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
+		this.controls.innerHTML = ''
 	}
 }
