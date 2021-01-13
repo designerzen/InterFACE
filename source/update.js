@@ -1,8 +1,5 @@
 import {setToast, setFeedback} from './ui'
 
-// import '../node_modules/@pwabuilder/pwainstall/src/pwa-install.ts'
-// import '@pwabuilder/pwaupdate'
-
 const updater = async () => new Promise( (resolve,reject)  => {
 	
 	let storageUsed = 0
@@ -97,5 +94,6 @@ const updateShit = async () => {
 	}
 }
 
-
 updateShit()
+
+export default updater

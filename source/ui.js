@@ -1,5 +1,6 @@
 import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './instruments'
 import {VERSION} from './version'
+import {debounce} from './utils'
 
 let buttonInstrument
 let buttonRecord
@@ -7,6 +8,10 @@ export let buttonVideo
 export let controls
 
 import PALETTE from "./palette"
+
+export const showReloadButton = () => {
+
+}
 
 export const setControls = fragment => {
 	
@@ -67,10 +72,6 @@ export const setupInstrumentForm = callback => {
 // DOM elements
 export const setupInterface = ( options ) => {
 	
-	// populate form elements
-	const versionNode = document.getElementById('version')
-	versionNode.innerHTML = `Version ${VERSION}`
-
 	controls = document.getElementById("controls")
 
 	buttonInstrument = document.getElementById("button-instrument")
@@ -97,8 +98,6 @@ export const setupInterface = ( options ) => {
 		// removes the ?
         //window.history.back()
 	}, true)
-	
-
 	// console.error("Creating UI", {controls, fragment, uiOptions, uiSelect })
 }
 
@@ -143,22 +142,6 @@ export const bindTextElement = (element, rate=200, clearAfter=-1) => {
 		}
 	} : null
 }
-
-
-
-// utils ----
-
-function debounce(callback, wait) {
-	let timerId
-	return (...args) => {
-		//console.error(args, "debounce", arguments)
-	  clearTimeout(timerId)
-	  timerId = setTimeout(() => callback(...args), wait)
-	  return timerId
-	}
-}
-
-
 
 // Feedback ui
 export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
