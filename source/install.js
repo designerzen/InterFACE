@@ -1,10 +1,15 @@
 
 import { setFeedback, setToast } from './ui'
+
 import { VERSION } from './version'
 
-const installer = async ()=> {
-   	
-    // check for beforeinstallprompt support
+const body = document.documentElement
+
+// const shareMenu = document.getElementById('share-menu')
+
+export const installer = async (defer=false) => {
+	   
+	// check for beforeinstallprompt support
     const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
 
 	let deferredPrompt
@@ -24,7 +29,6 @@ const installer = async ()=> {
       navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
       (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
 
-
 	const cancelInstall = () =>{
 		return new Promise((resolve, reject) => {
 			// close the modal
@@ -40,7 +44,6 @@ const installer = async ()=> {
 		  resolve()
 		})
 	}
-
 
     document.addEventListener("keyup", (event) => {
       if (event.key === "Escape") {
@@ -267,23 +270,28 @@ const installer = async ()=> {
 		}
 	})
 
-	const begin = async () => {
+	const begin = async (destination) => {
 
-		console.log("Installer setup")
-		
 		const showInstaller = shouldShowInstall()
-		if (("standalone" in navigator && navigator.standalone === false) || (showInstaller && installed === false))
+		if (hasPrompt && ("standalone" in navigator && navigator.standalone === false) || (showInstaller && installed === false))
 		{
 			// we need to show the installer!	// const test = await getManifestData()
 			const test = await firstUpdated()
 			console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
 			console.log({manifestdata: manifestData, test})
-			//show install button or update button???
+		
+			body.classList.add(getInstalledStatus() ? "installed" : "not installed")
+
+			// show install button or update button???
 			// reveal update button?
 			const button = document.createElement('button')
 			button.classList.add("install-app")
+			button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
+
 			button.innerHTML = `Click to install ${manifestData.short_name} Version ${VERSION}` 
 			
+			setToast("This App can be installed!<br> Click the orange button on the left")
+
 			// on button press...
 			button.addEventListener('click', async ()=>{
 			
@@ -307,14 +315,21 @@ const installer = async ()=> {
 					setToast("The App was not installed")
 				}
 					
-			}, {once:true} )
-			document.documentElement.appendChild(button)
+			} )
+
+			destination = destination || body
+    
+			destination.appendChild(button)
+			return true
 
 		}else{
+			body.classList.add( installed ? "installed" : "not-installed")
+
 			// we are already showing?
 			console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not installed" )
 			console.error( `isSupportingBrowser && relatedApps.length < 1 && (hasPrompt || isIOS)`)
 			console.error( { isSupportingBrowser, relatedApps, hasPrompt, isIOS} )
+			return false
 		}
 	}
 	  
@@ -325,14 +340,14 @@ const installer = async ()=> {
 		hasPrompt = true
 		event.preventDefault() 
 
-		if (!isIOS)
+		if (!defer && !isIOS)
 		{
 			begin()
 		}
 
 	}, {once:true})
 
-	if (isIOS)
+	if (!defer && isIOS)
 	{
 		window.addEventListener("load", async (event) => {
 			
@@ -341,49 +356,10 @@ const installer = async ()=> {
 		}, {once:true})		
 	}
 
-	console.log("Installing...")
+	return begin
 }
 
-installer()
-
-// export default installer
-/*
-
-  scrollToLeft(): void {
-    const screenshotsDiv = this.shadowRoot.querySelector("#screenshots");
-    // screenshotsDiv.scrollBy(-10, 0);
-    screenshotsDiv.scrollBy({
-      // left: -15,
-      left: -screenshotsDiv.clientWidth,
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  scrollToRight(): void {
-    const screenshotsDiv = this.shadowRoot.querySelector("#screenshots");
-    // screenshotsDiv.scrollBy(10, 0);
-    screenshotsDiv.scrollBy({
-      // left: 15,
-      left: screenshotsDiv.clientWidth,
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  public openPrompt(): void {
-    this.openmodal = true;
-
-    let event = new CustomEvent("show");
-    this.dispatchEvent(event);
-  }
-
-  public closePrompt(): void {
-    this.openmodal = false;
-
-    let event = new CustomEvent("hide");
-    this.dispatchEvent(event);
-  }
+ /*
 
 */
 //   render() {

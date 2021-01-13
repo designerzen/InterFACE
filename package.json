@@ -6,14 +6,15 @@
 	"license": "GPL2.0",
 	"type": "module",
 	"scripts": {
+		"reset": "node reset.js",
 		"clean": "node clean.js",
 		"revision": "yarn version --patch --no-git-tag-version",
 		"revise": "yarn revision && node revision.js",
+		"patch": "yarn version --patch && node revision.js",
 		"test": "parcel serve source/test.html",
-		"start": "parcel serve source/index.html",
-		"build": "parcel build --public-url ./ source/index.html",
-		"builds": "parcel build --no-scope-hoist --public-url ./ source/index.html",
-		"analyse": "parcel build source/index.html --profile --detailed-report",
+		"start": "parcel serve source/index.pug",
+		"build": "parcel build --public-url ./ source/index.pug",
+		"analyse": "parcel build source/index.pug --profile --detailed-report",
 		"deploy": "node deploy.js",
 		"upgrader": "yarn upgrade-interactive",
 		"package": "yarn revise && yarn clean && yarn build",
@@ -32,12 +33,14 @@
 		"@tensorflow/tfjs-converter": "^2.8.2",
 		"@tensorflow/tfjs-core": "^2.8.2",
 		"capacitor-dark-mode": "^1.0.5",
+		"share-menu": "^4.0.0",
 		"webmidi": "^3.0.0-alpha.2"
 	},
 	"devDependencies": {
 		"@capacitor/cli": "^2.4.5",
 		"gh-pages": "^3.1.0",
 		"parcel": "^2.0.0-beta.1",
+		"pug": "^3.0.0",
 		"sass": "^1.30.0"
 	}
 }

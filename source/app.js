@@ -5,3 +5,5 @@
 import { Capacitor } from '@capacitor/core'
 
 // camera???
+import * as I from './index'
+

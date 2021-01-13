@@ -206,7 +206,7 @@ export const drawMouth = ( prediction, colour="yellow", debug=true ) => {
 	// how can we work out height of the mouth???
 	const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRange )
 	mouthGradient.addColorStop(0, colour)
-	mouthGradient.addColorStop(0.5, "black")
+	mouthGradient.addColorStop(0.5, PALETTE.dark )
 	mouthGradient.addColorStop(1, colour)
 
 	// canvasContext.beginPath()
@@ -254,8 +254,8 @@ export const drawText = (x, y, text='', size='10px', align="center") => {
 	const f = false
 	canvasContext.font = `900 ${size} Oxanium`
 	canvasContext.textAlign = align
-	canvasContext.fillStyle = f ? "black" : "white"
-	canvasContext.strokeStyle  = f ? 'white' : "black"
+	canvasContext.fillStyle = f ? PALETTE.dark :  PALETTE.white
+	canvasContext.strokeStyle  = f ? PALETTE.white : PALETTE.dark
 	canvasContext.strokeText(`${text}`, x,y )
 	canvasContext.fillText(`${text}`, x, y )
 }
@@ -333,6 +333,7 @@ export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showTe
 			canvasContext.stroke( )
 			canvasContext.font = "22px Oxanium"
 			canvasContext.textAlign = "center"
+			canvasContext.fillStyle = PALETTE.dark
 			canvasContext.fillText(`#${i}`, x + radius + 1, y  )
 			
 			canvasContext.fillStyle = `hsla(0,90%,70%,1)`
@@ -345,7 +346,6 @@ export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showTe
 			canvasContext.arc(x, y, radius, 0, TAU)
 		}
 
-		
 		canvasContext.fill()
 	}
 }
@@ -399,7 +399,6 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mou
 	// drawPart(leftEyeLower0, options.leftEyeLower0 )
 	// drawPart(rightEyeLower0, options.rightEyeLower0 )
 
-
 	// these aren't scaled :(
 	// canvasContext.fillStyle  = 'orange'
 	// canvasContext.beginPath()
@@ -407,16 +406,34 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mou
 	// canvasContext.fill()
 }
 
-export const drawQuantise = active => {
-	const stroke = 10
-	canvasContext.fillStyle = "hsla(90, 80%, "+(active ? 90 : 10 )+"%, 0.9)"
-	// canvasContext.fillStyle = "green"
-	// canvasContext.strokeStyle = "green"
-	canvasContext.strokeWidth = stroke//+"px"
-	canvasContext.font = "32px Oxanium"
-	canvasContext.textAlign = "right"
-	canvasContext.fillText(`Quantise`, stroke, stroke)
-	canvasContext.strokeRect(0,0,width,height)
+export const drawQuantise = (active, bar=-1, extras="") => {
+	
+	const stroke = 30
+
+	// text
+	// canvasContext.strokeWidth = stroke//+"px"
+	// canvasContext.font = "24px Oxanium"
+	// canvasContext.textAlign = "left"
+	// canvasContext.fillStyle = PALETTE.grey
+	// canvasContext.strokeStyle = PALETTE.dark
+	// canvasContext.fillText( (bar === -1 ? `-` : `${bar+1}`) + extras, stroke, stroke)
+	
+	// blobs
+	for (let i=0, l= bar+1; i<l; ++i)
+	{
+		canvasContext.fillStyle = i === bar ? PALETTE.cream : PALETTE.orange
+		canvasContext.strokeStyle = i ===  bar ? PALETTE.orange : PALETTE.brown
+		canvasContext.lineWidth = 4
+		canvasContext.beginPath()
+		canvasContext.arc( i * 20 + 20, 20, 4, 0, TAU )
+		canvasContext.fill()
+		canvasContext.stroke()
+	}
+	
+		
+	// draw a frame around the whole qindow
+	// canvasContext.fillStyle = "hsla(90, 80%, "+(active ? 90 : 10 )+"%, 0.9)"
+	// canvasContext.strokeRect(0,0,width,height)
 	// console.log("quantise enabled!")
 }
 

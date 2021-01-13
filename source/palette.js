@@ -1,9 +1,9 @@
 const PALETTE = {
+	white:"hsl(22, 28%, 87%)",
 	dark:"hsl(30, 6%, 14%)",
 	grey:"hsl(11, 6%, 50%)",
 	cream:"hsl(27, 30%, 45%)",
 	brown:"hsl(23, 22%, 30%)",
-	white:"hsl(23, 18%, 53%)",
 	blue:"hsl(196, 18%, 33%)",
 	green:"hsl(56, 18%, 33%)",
 	yellow:"hsl(56, 18%, 33%)",

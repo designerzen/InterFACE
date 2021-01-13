@@ -164,6 +164,7 @@ header{
 	margin-right:auto;
 	display: block;
 	fill:$col-red;
+
 	width:100%;
 	min-height:10vh;
 	max-height:90vmin;
@@ -241,6 +242,7 @@ select{
 			animation:Fade 400ms ease-in 1 0s both;
 		}	
 		.logo{
+			color:#8d3525;
 			align-self: center;
 			height:100%;
 			background-position: center;
@@ -311,6 +313,16 @@ select{
 	header{
 		display: none;
 	}
+	
+	#app-frame video,
+	#app-frame canvas{
+		display: block;
+		visibility: visible;
+	}
+
+	#pwa{
+		--spacer:44px;
+	}
 }
 
 .midi {
@@ -357,10 +369,19 @@ select{
 			var(--wig) -50px 51px hsla(var(--hue), 90%, 10%, 0.15);
 	}
 	video,canvas{
-		display: block;
 		border-radius:var(--curve);
 		overflow: hidden;
-
+		visibility: hidden;
+			// landscape
+		@media (orientation: landscape) {
+			height:100vh;
+			width:calc(var(--width) / var(--height)  * 100vh );
+		}
+		// portrait
+		@media (orientation: portrait) {
+			width:100vw;
+			height:calc(var(--height) / var(--width) * 100vw );
+		}
 	}
 	canvas{
 		z-index: 1;
@@ -396,7 +417,7 @@ main.img{
 
 main{
 	button{
-		display: none;
+		//display: none;
 	}
 }
 
@@ -487,20 +508,11 @@ p{
 
 	/*
 	// we need media queries to complete
-	
+	--ratio:calc( var(--width)/var(--height));
 	max-width:var(--width);
 	max-height:var(--height);
+*/
 
-	// landscape
-	@media (orientation: landscape) {
-		height:100vh;
-		width:calc(var(--width) / var(--height) * 100vh );
-	}
-	// portrait
-	@media (orientation: portrait) {
-		width:100vw;
-		height:calc(var(--height) / var(--width)  * 100vw );
-	}*/
 
 
 	// &::before{
@@ -511,14 +523,25 @@ p{
 	// 	width:100%;
 	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
 	// }
+	#shared-controls{
+		border-top:2px dotted white;
+		bottom:0;
+		position:absolute;
+		left:0;
+		right:0;
+		display:flex;
+	}
 }
 
 
 #pwa{
+	--spacer:0;
 	position:absolute;
-	left: var(--pad);
+	left: calc( var(--pad));
 	bottom: var(--pad);
 	color:$col-brown;
+	transition:transform 450ms $easeOutBack;
+	transform: translateX(var(--spacer));
 }
 
 .brand{
@@ -562,10 +585,6 @@ fieldset:empty{
 	display: none;
 	opacity:0;
 	animation:Fade 400ms ease-in 1 0s reverse both;
-}
-
-button:empty{
-	display: none;
 }
 
 
@@ -641,6 +660,24 @@ button.person{
 	display: block;	
 }
 
+// There are no faces looking at the screen
+.no-faces{ 
+	#app-frame{
+		
+	}
+}
+
+// Could not load due to privacy restrictoin or user uninteraction
+.failure{
+	#feedback{
+		left:var(--pad);
+		bottom:calc(50vh - 0.5rem);
+		text-align: center;
+		color:$col-red;
+		font-size:200%;
+	}
+}
+
 
 button#person-a{
 
@@ -698,7 +735,7 @@ button#button-video{
 	bottom:0;
 	z-index:-1;
 	color:transparent;
-
+cursor: crosshair;
 }
 
 button#button-midi{
@@ -772,9 +809,9 @@ button#button-record{
 button.install-app,
 button.update-available{
 	position: absolute;
-	top:var(--pad);
-	left:var(--pad);
-	
+	bottom:0;//var(--pad);
+	left:0;//var(--pad);
+	border-radius: 0;
 	// make this stand out
 	background-color: $col-orange;
 }
@@ -784,18 +821,40 @@ button.update-available{
 }
 
 button.install-app{
+
+	--logo:url();
 	--overlap:0px;
+	--delay:0s;
+
+	background-image:url(./assets/icons/get_app-24px.svg);
+	background-repeat:no-repeat;
+	background-position: right var(--pad) center;
+	padding:var(--pad);
+	padding-right:44px;
+	z-index: 1080;
+
 	// after a brief while hide this
 	animation: 
-				Hide-Install 0.4s $easeOutBack 2s 1 reverse both,
-				Hide-Install 1s $easeOutBack 5s 1 normal both;
+				Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
+				Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+	
+	
 	&.later{
-		animation: Hide-Install 1s $easeOutBack 5s 1 normal both;
+		animation: Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
 	}
+
 	&:hover, &:focus{
 		--overlap:40px;
-		animation: Hide-Install 1s $easeInBack 0s 1 reverse both;
+		animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
 	}
+}
+button#share{
+	position:fixed;
+	background-image:url(./assets/icons/share-24px.svg);
+	background-repeat:no-repeat;
+	background-position: left var(--pad) center;
+	padding:var(--pad);
+	padding-left:40px;
 }
 
 @keyframes Hide-Install{
@@ -803,7 +862,7 @@ button.install-app{
 		transform: translateX( 0 );
 	}
 	to{
-		transform: translateX( calc( -100% - var(--pad)) + var(--overlap) );
+		transform: translateX( calc( -100% + 44px ) );
 	}
 }
 

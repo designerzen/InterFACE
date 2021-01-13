@@ -131,6 +131,7 @@ export default class Person{
 			event.preventDefault()
 		})
 
+		// FACE has been pressed!
 		this.button.addEventListener( 'mouseup', event => {
 			// should this trigger something else depending on time?
 			const elapsed = this.mouseDownFor
@@ -154,6 +155,10 @@ export default class Person{
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
+		// this.button.addEventListener( 'instrumentchange', event => {
+		// 	console.log("External event for instrument", event )
+		// })
+
 		
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
@@ -528,27 +533,33 @@ export default class Person{
 		}
 	}
 
-	async loadRandomInstrument(){
-		return await this.loadInstrument( randomInstrument() )
+	async loadRandomInstrument(callback){
+		return await this.loadInstrument( randomInstrument(), callback )
 	}
 
-	async loadPreviousInstrument(){
+	async loadPreviousInstrument(callback){
 		const index = this.index
 		const newIndex = index-1 < 0 ? 0 : index-1
-		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex] )
+		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
 
-	async loadNextInstrument(){
+	async loadNextInstrument(callback){
 		const index = this.index
 		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
-		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex] )
+		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
 
 	// we need loadiing events?
-	async loadInstrument(instrumentName){
+	async loadInstrument(instrumentName, callback){
 		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
 		this.instrumentLoading = false
+		callback && callback( instrumentName )
+		
+		this.button.dispatchEvent(new CustomEvent("instrumentchange", {
+			detail: { instrument:this.instrument, instrumentName }
+		}))
+
 		return instrumentName
 	}
 
@@ -558,7 +569,7 @@ export default class Person{
 		console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
-	// Instrument selected from the DOM UI
+	// Instrument selected from the DOM UI face click
 	onInstrumentInput(event) {
 		const id = event.target.id
 		//console.error(id, "on inputted", event)
