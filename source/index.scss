@@ -70,7 +70,6 @@ h1 strong,h2,h3,h4,h5,h6{
 	font-weight: 800;
 }
 
-
 h1{
 	font-weight: 200;
 }
@@ -78,7 +77,6 @@ h1{
 label,select,option{
 	font-size:1rem;
 }
-
 
 p{
 	font-weight: 500;
@@ -93,10 +91,12 @@ small{
 	font-size: 60%;
 	font-weight: 200;
 }
+
 a{
 	color:$col-blue;
 	text-decoration: none;
 }
+
 header{
 	position: absolute;
 	z-index: -1;
@@ -110,10 +110,6 @@ header{
 	text-align: center;
 	justify-content: center;
 
-	> * {
-		max-height:100vh;
-		grid-area: 1/1/1/1;
-	}
 	h1{
 		background-color: $col-dark;
 		color: $col-grey;
@@ -128,7 +124,7 @@ header{
 		justify-self: center;
 		margin-top:var(--pad);
 		transition:color 400ms ease-out;
-		font-size:clamp(10vmin, 3rem, 4.5rem);
+		font-size:clamp(8vmin, 2rem, 3.5rem);
 		clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
 		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
 					rgba(0,0,0,0.56) 0 2px 4px,
@@ -162,7 +158,8 @@ header{
 .logo{
 	margin-left:auto;
 	margin-right:auto;
-	display: block;
+	display: flex;
+	flex-direction: column;
 	fill:$col-red;
 
 	width:100%;
@@ -173,6 +170,10 @@ header{
 	visibility: visible;
 	// overflow: hidden;
 	z-index:1;
+
+	svg{
+		order: -1;
+	}
 
 	// background:url(./assets/logos/interface.svg) no-repeat left;
 	// background-size: contain;
@@ -306,12 +307,44 @@ select{
 		text-align: center;
 	}
 }
-
+.loading{
+	header{
+		
+		> * {
+			max-height:100vh;
+			grid-area: 1/1/1/1;
+		}
+	}
+}
 
 // FIXME:
 .loaded{
 	header{
-		display: none;
+		display:flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-start;
+		bottom:auto;
+
+		.logo{
+			margin:0;
+			min-width:60px;
+			max-width:82px;
+			align-self:flex-start;
+			font-size: 0;
+		}
+		h1{
+			margin:0;
+			align-self:center;
+			padding-left: 0;
+		}
+		h2{
+			margin-top:0;
+			font-size:50%;
+			width:100%;
+			display:block;
+
+		}
 	}
 	
 	#app-frame video,
@@ -320,7 +353,7 @@ select{
 		visibility: visible;
 	}
 
-	#pwa{
+	#foot{
 		--spacer:44px;
 	}
 }
@@ -499,6 +532,16 @@ p{
 	bottom: 0;
 	z-index:303;
 
+	&:before{
+		opacity:0.5;
+		position: absolute;
+		top:-12px;
+		right:5px;
+		width:10%;
+		display: block;
+		content:url(./assets/logos/interface_colour.svg);
+	}
+
 	// width:100%;
 	// pointer-events: none;
 
@@ -524,25 +567,33 @@ p{
 	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
 	// }
 	#shared-controls{
-		border-top:2px dotted white;
 		bottom:0;
 		position:absolute;
 		left:0;
 		right:0;
 		display:flex;
+
+		border-top:1px dotted $col-dark;
+
+		button{
+
+			border-top:1px dotted $col-white;
+			color:$col-dark;
+			background-color:rgba($col-white,0.5);
+			transition:background-color 40ms linear, color 40ms linear;
+	
+			&:hover{
+				color:$col-blue;
+				background-color:$col-orange;
+			}
+		}
+
+		button + button{
+			border-left:1px dotted white;
+		}
 	}
 }
 
-
-#pwa{
-	--spacer:0;
-	position:absolute;
-	left: calc( var(--pad));
-	bottom: var(--pad);
-	color:$col-brown;
-	transition:transform 450ms $easeOutBack;
-	transform: translateX(var(--spacer));
-}
 
 .brand{
 	background:url(./assets/logos/designerzen.svg) no-repeat left 2px center;
@@ -577,7 +628,6 @@ fieldset{
 	// NB. ensure in front of the person buttons
 	z-index:909;
 	transition:opacity 400ms linear;
-	background-color:rgba($col-dark, 0.9);
 	animation:Fade 400ms ease-in 1 0s both;
 }
 
@@ -610,52 +660,6 @@ input[type=radio]{
 	appearance: none;
 }
 
-button{
-	cursor: pointer;
-	margin:0;
-	padding:0;
-	appearance: none;
-	border:0;
-	background-color: transparent;
-}
-
-// button that covers people
-button.person{
-	cursor:pointer;
-	position: absolute;	
-	z-index:202;
-	overflow: hidden;
-	
-	// border-radius: 100%;
-	//border:2px solid white;
-
-	color:transparent;
-	opacity: 0;
-	transition: 400ms ease-in opacity, left 9ms linear, top 9ms linear;
-
-	&:hover, &:focus{
-		
-		outline: none;
-	}
-
-	&:hover{
-		opacity: 0.8;
-	}
-
-	svg{
-		width: 100%;
-		//height:auto;
-		fill:orange;
-		stroke-width: 3px;
-		stroke:purple;
-		//transform: scaleX(-1);
-		pointer-events: none;
-		circle{
-			stroke:black;
-			fill:white;
-		}
-	}
-}
 .active button.person{
 	display: block;	
 }
@@ -679,10 +683,99 @@ button.person{
 }
 
 
-button#person-a{
-
-	outline:2px solid $col-blue;
+button{
+	cursor: pointer;
+	min-height:44px;
+	position: relative;
+	box-sizing: border-box;
+	margin:0;
+	padding:var(--pad);
+	user-select: none;
+	appearance: none;
+	border:0;
+	// max-width:calc(100% - 2 * var(--pad));
+	z-index:1;
 	
+	color:$col-white;
+	background-color:$col-blue;
+
+	background-color: transparent;
+	background-repeat:no-repeat;
+	background-size: contain;	
+	background-size:auto 32px;
+	background-position:center left var(--pad);
+	
+	
+	&:before{
+		// border-radius: var(--curve) 0;
+		position: absolute;
+		top:0;
+		left:0;
+		right:0;
+		bottom:0;
+		content:'';
+		background:inherit;
+		background-color:transparent;
+		filter:brightness(0%) hue-rotate(180deg);
+		//filter: tint($col-blue);
+		opacity:0;
+		z-index: -1;
+		transition:opacity 400ms ease-out;
+	}
+	
+	&:hover, &:focus{
+
+		color:$col-blue;
+		background-color:$col-white;
+
+		&:before{
+			opacity:1;
+			z-index:1;
+		}
+	}
+}
+
+// button that covers people
+button.person{
+	padding:0;
+	cursor:pointer;
+	position: absolute;	
+	z-index:202;
+	overflow: hidden;
+	outline:2px solid $col-blue;
+	box-sizing: border-box;
+	// border-radius: 100%;
+	//border:2px solid white;
+
+	color:transparent;
+	opacity: 0;
+	transition: 400ms ease-in opacity, left 9ms linear, top 9ms linear;
+
+	&:hover, &:focus{
+		background-color: transparent;
+		outline: none;
+	}
+
+	&:hover{
+		opacity: 0.9;
+	}
+
+	svg{
+		width: 100%;
+		//height:auto;
+		fill:orange;
+		stroke-width: 3px;
+		stroke:purple;
+		//transform: scaleX(-1);
+		pointer-events: none;
+		circle{
+			stroke:black;
+			fill:white;
+		}
+	}
+}
+
+button#person-a{
 	//left:calc( 1px * var(--person-a-x,0) );
 	left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
 	top:calc( 100% * var(--person-a-y,0) / var(--height,640) );
@@ -693,7 +786,7 @@ button#person-a{
 
 // move into position
 button#person-b{
-	outline:2px solid $col-green;
+	outline-color:$col-green;
 
 	left:calc( 1px * var(--person-b-x,0) );
 	top:calc( 1px *var(--person-b-y,0) );
@@ -707,80 +800,38 @@ button#button-record,
 button#button-midi,
 button.install-app,
 button.update-available{
-
-	user-select: none;
-	cursor:pointer;
-	min-height:50px;
 	padding:var(--pad);
-	border-radius: var(--curve) var(--curve) var(--curve) 0;
+	// border-radius: var(--curve) var(--curve) var(--curve) 0;
 	transition:background-color 40ms linear, color 40ms linear;
 	overflow: hidden;
-
-	color:$col-white;
-	background-color:$col-blue;
-
-	&:hover{
-		color:$col-blue;
-		background-color:$col-white;
-	}
 }
 
 
 button#button-video{
+	display: block;
 	position: absolute;
 	top:0;
-	left:0;
-	width: 100%;
-	// right:0;
+	// left:0;
+	right:0;
+	width:100%;
 	bottom:0;
 	z-index:-1;
 	color:transparent;
-cursor: crosshair;
+	cursor: default;
+	background-color: transparent;
+	&:hover,&:focus{
+		background-color: transparent;
+		border:5px solid $col-yellow;
+	}
 }
+
 
 button#button-midi{
 	background-image:url(assets/logos/midi.svg);
-	background-repeat:no-repeat;
-	background-size: contain;
-	z-index:1;
-	
-	left:var(--pad);
-	bottom:var(--pad);
-	position: absolute;
-	min-width:200px;
 
-	max-width:calc(100% - 2 * var(--pad));
-	box-sizing: border-box;
-	
-	// box-sizing: border-box;
-	
-	padding-left:110px;
+	padding-left:92px;
 	padding-right:20px;
 
-	&:before{
-		// border-radius: var(--curve) 0;
-		position: absolute;
-		top:0;
-		left:0;
-		right:0;
-		bottom:0;
-		content:'';
-		background:inherit;
-		background-color:transparent;
-		filter:brightness(0%) hue-rotate(180deg);
-		// filter: tint($col-blue);
-		opacity:0;
-		z-index: -1;
-		transition:opacity 400ms ease-out;
-	}
-
-	&:hover{
-	
-		&:before{
-			opacity:1;
-			z-index:1;
-		}
-	}
 }
 
 // midi buton was pressed - now loading state
@@ -788,30 +839,39 @@ main.midi-activated{
 	// hide button
 	#button-midi{
 		cursor:not-allowed;
+		background-color: $col-blue;
 	}
 }
-
 
 main.midi-available{
 	// hide button
 	#button-midi{
-		display: none;
+		// display: none;
+		//cursor:not-allowed;
 	}
 }
 
 button#button-record{
 	color:$col-red;
-	border-radius: 0 var(--curve) var(--curve)  var(--curve);
-	visibility:hidden;
+	display: none;
+}
+button#share{
+	// position:fixed;
+	background-image:url(./assets/icons/share-24px.svg);
+	background-repeat:no-repeat;
+	background-position: left var(--pad) center;
+	padding:var(--pad);
+	padding-left:62px;
+	margin-left: auto;
 }
 
 // an update is available to the app!
 button.install-app,
 button.update-available{
-	position: absolute;
-	bottom:0;//var(--pad);
-	left:0;//var(--pad);
-	border-radius: 0;
+	// position: absolute;
+	// bottom:0;//var(--pad);
+	// left:0;//var(--pad);
+	
 	// make this stand out
 	background-color: $col-orange;
 }
@@ -827,35 +887,26 @@ button.install-app{
 	--delay:0s;
 
 	background-image:url(./assets/icons/get_app-24px.svg);
-	background-repeat:no-repeat;
-	background-position: right var(--pad) center;
-	padding:var(--pad);
-	padding-right:44px;
-	z-index: 1080;
 
-	// after a brief while hide this
-	animation: 
-				Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
-				Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+	padding-left:44px;
+	order:-1;
+
+	// after a brief while hide this?
+	// animation: 
+	// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
+	// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
 	
-	
+
+	// &:hover, &:focus{
+	// 	--overlap:40px;
+	// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
+	// }
 	&.later{
 		animation: Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
 	}
+}
 
-	&:hover, &:focus{
-		--overlap:40px;
-		animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
-	}
-}
-button#share{
-	position:fixed;
-	background-image:url(./assets/icons/share-24px.svg);
-	background-repeat:no-repeat;
-	background-position: left var(--pad) center;
-	padding:var(--pad);
-	padding-left:40px;
-}
+
 
 @keyframes Hide-Install{
 	from{
@@ -928,6 +979,28 @@ button#share{
 	padding-left:40px;
 }
 
+#foot{
+	--spacer:0;
+	position:absolute;
+	left: calc( var(--pad));
+	bottom: var(--pad);
+	color:$col-brown;
+	transition:transform 450ms $easeOutBack;
+	transform: translateX(var(--spacer));
+}
+
+@media (orientation: landscape) {
+	
+}
+// portrait
+@media (orientation: portrait) {
+	
+	// sideways copyright
+	#foot{
+		transform-origin: bottom left;
+		transform: rotate(270deg) translateY(10px);
+	}
+}
 // 
 
 @keyframes Fade{

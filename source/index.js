@@ -20,7 +20,7 @@ import {
 	record } from './audio'
 
 import { start, stop, setTimeBetween } from './timing.js'
-import { setupCameraForm, setupInterface, setFeedback, setToast, showReloadButton } from './ui'
+import { setupMIDIButton, setupCameraForm, setupInterface, setFeedback, setToast, showReloadButton } from './ui'
 import { getLocationSettings} from './location-handler'
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
@@ -38,8 +38,6 @@ const main = document.querySelector("main")
 const video = document.querySelector("video")
 const image = document.querySelector("img")
 
-const buttonMIDI = document.getElementById("button-midi")
-	
 // Record stuff
 const {isRecording, startRecording, stopRecording} = record()
 
@@ -55,6 +53,7 @@ let camera
 let photo
 let audio 
 let midi
+let midiButton
 
 // samples and synths
 let kit
@@ -72,7 +71,6 @@ let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
 let noFacesFound = false
-
 
 body.classList.add("loading")
 
@@ -179,6 +177,7 @@ const enableMIDI = async () => {
 			setFeedback("MIDI Available<br>Stand By", 0)
 			// use this to fill the peoples
 			enableMIDIForPerson(0,0)
+			
 		}else{
 			// bugger
 			console.log("No MIDI devices detected", midi)
@@ -195,12 +194,14 @@ const enableMIDI = async () => {
 			{
 				people.forEach( (person,i) => enableMIDIForPerson(i,0) )
 			}
+			midiButton.setText("Click to disable")
 		})
 		
 		// Reacting when a device becomes unavailable
 		midi.addListener("disconnected", (e) => {
 			console.log(e)
 			setFeedback("Lost MIDI Device connection")
+
 		})
 
 		midiAvailable = midi // && midi.outputs && midi.outputs.length > 0
@@ -220,21 +221,22 @@ const enableMIDI = async () => {
 	return true	
 }
 
+const disableMIDI = () => {
+	// midiButton.setText()
+}
+
 // MIDI will require a user interaction
 const showMIDI = async () => {
 
-	// show button
 	// to skip clicking but results in a warning
-	const onStartRequested = async (event) => {
-		event.preventDefault()
-		//buttonMIDI.removeEventListener('mousedown', onStartRequested)
+	midiButton = setupMIDIButton( async (b) => {
+		await enableMIDI()
 		setFeedback("MIDI available<br>Connecting to instruments...", 0)
 		console.log("User input detected so enabling MIDI!")
-		await enableMIDI()
 		main.classList.add('midi-activated')
 		return false
-	}
-	buttonMIDI.addEventListener('mousedown', onStartRequested, { once: true })
+	})
+	
 	return true
 }
 
@@ -602,7 +604,7 @@ const loadingLoop = () => {
 			// at any point we can now trigger the installation
 			if (installation)
 			{
-				const destination = document.getElementsById("shared-controls")
+				const destination = document.getElementById("shared-controls")
 				const needsInstall = installation( destination )
 				console.log("Loaded App", {VERSION, needsInstall, installation})
 			}else{
@@ -631,14 +633,16 @@ window.addEventListener('keydown', async (event)=>{
 			setToast(`DEBUG : ${ui.debug}`)
 			break
 
+		case 'Space':
+			loadRandomInstrument() 
+			break
+
 		case 'ArrowLeft':
-			// next instrument
 			previousInstrument()
 			break
 
 		case 'ArrowRight':
-			// next instrument
-			nextInstrument()
+			nextInstrument() 
 			break
 
 		case 'ArrowUp':
@@ -697,15 +701,13 @@ window.addEventListener('keydown', async (event)=>{
 				console.error("Recording START", audio)
 				recorder = await startRecording(audio)
 				console.error("Recording...", recorder)
-				
-
+			
 			}else{
 				console.error("Recording END", recorder)
 				setToast( `Recording Ended - now encoding` )
 				stopRecording().then(recording=>{
 
 					const mp3 = encodeRecording(recording, 'audio/mp3;')
-
 					// Creating audio url with reference  
 					// of created blob named 'audioData' 
 					const audioSrc = window.URL.createObjectURL(mp3)

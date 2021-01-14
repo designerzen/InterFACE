@@ -1,4 +1,4 @@
-//- var URL = "https://designerzen.github.io/MusicalFace"
+- var URL = "https://designerzen.github.io/MusicalFace"
 doctype html
 html(lang="")
 	head
@@ -35,7 +35,8 @@ html(lang="")
 			link(rel="stylesheet", href="https://fonts.googleapis.com/family=Oxanium:wght@774&display=swap")
 		
 		//- ENTRY POINT
-		script(type="module", src="index.js", rel="preload")
+		block scripts
+			script(type="module", src="index.js", rel="preload")
 		
 		//-  These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html
 		meta(name="apple-mobile-web-app-capable", content="yes")
@@ -54,7 +55,7 @@ html(lang="")
 		meta(property="og:image:width", content="512")
 		meta(property="og:description", content="A face controlled musical instrument that uses a video camera.")
 		meta(property="og:title", content="InterFACE")
-		meta(property="og:url", content="https://designerzen.github.io/MusicalFace/")
+		meta(property="og:url", content=URL)
 
 	body
 		header#intro
@@ -79,6 +80,7 @@ html(lang="")
 		main#app
 			p#feedback Loading please wait
 			p#toast
+			
 			#app-frame
 				//- img#face(src="assets/will.png", width="640", height="480")
 				video#webcam(autoplay, playsinline, width="640", height="480")
@@ -94,29 +96,34 @@ html(lang="")
 					button.person#person-b Change instrument for person B
 					fieldset#person-b-controls
 					
-					fieldset#camera
-						
 					fieldset#shared-controls
+
+						#camera
+					
 						button#button-midi Connect a MIDI instrument and click here
 						button#button-record Record loop
+						//- button#button-percussion Backing track
+						//- button#load-midi Backing track
+						//- button#toggle-synth Synth Engine / Natural Sounds
 						
-						button#share( onclick="document.getElementById('share-menu').share()" ) Share!
+						button#share( onclick="document.getElementById('share-menu').share()" ) Share
 				
 					button#button-video Swap all instruments!
 
-		footer#pwa
+		footer#foot
 			small(class="copyright")
 				| Copyright © #{year||2021} 
-				a.brand(href=link) designerzen 
+				a.brand(href=URL) designerzen 
 			
 			//- Dynamically created
-			small#version Version #{version} #{env}
+			small#version version 
+				include version.txt
 
 
 		share-menu#share-menu( 
 			title="Give the interFACE to your friends and family" 
 			text="By clicking the buttons below you can easily share the InterFACE with your friends and family" 
-			url=link
+			url="https://github.com/designerzen"
 		)
 
 		//-  For users with javascript disabled 
