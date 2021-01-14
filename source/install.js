@@ -278,9 +278,9 @@ export const installer = async (defer=false) => {
 			// we need to show the installer!	// const test = await getManifestData()
 			const test = await firstUpdated()
 			console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
-			console.log({manifestdata: manifestData, test})
+			console.log({manifestdata: manifestData})
 		
-			body.classList.add(getInstalledStatus() ? "installed" : "not installed")
+			body.classList.add(getInstalledStatus() ? "installed" : "not-installed")
 
 			// show install button or update button???
 			// reveal update button?
@@ -323,11 +323,10 @@ export const installer = async (defer=false) => {
 			return true
 
 		}else{
-			body.classList.add( installed ? "installed" : "not-installed")
+			body.classList.add( installed ? "installed" : "not-installed" )
 
 			// we are already showing?
-			console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not installed" )
-			console.error( `isSupportingBrowser && relatedApps.length < 1 && (hasPrompt || isIOS)`)
+			console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not-installed" )
 			console.error( { isSupportingBrowser, relatedApps, hasPrompt, isIOS} )
 			return false
 		}

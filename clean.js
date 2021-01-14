@@ -1,9 +1,10 @@
 import {readdir,statSync,unlink} from 'fs'
 import * as path from 'path'
 
-const directory = 'dist'
+// const directory = 'dist'
 
-console.log(`Cleaning ${directory}...`)
+const directories = ['dist','app']
+
 const WHITELIST = [
 	// "manifest.webmanifest",
 	// "service-worker.js",
@@ -15,32 +16,38 @@ const WHITELIST = [
 	// "safari-pinned-tab.svg"
 ]
 
-readdir(directory, (err, files) => {
-  if (err) throw err
+directories.forEach( directory => {
 
-  for (const file of files) 
-  {
-	  //"./",
-	  const location = path.join(directory,file )
-	  if (statSync(location).isDirectory() )
-	  {
+	console.log(`Cleaning ${directory}...`)
 
-	  }else{
-
-		// check to see if it is whitelisted
-		if (WHITELIST.indexOf(file) > -1)
+	readdir(directory, (err, files) => {
+		if (err) throw err
+	  
+		for (const file of files) 
 		{
-			// ignore
-		}else{
-			// DELETE
-			unlink(location, err => {
-				if (err) throw err
-			})	
+			const location = path.join( directory,file )
+			if (statSync(location).isDirectory() )
+			{
+	  
+			}else{
+	  
+			  // check to see if it is whitelisted
+			  if (WHITELIST.indexOf(file) > -1)
+			  {
+				  // ignore
+			  }else{
+				  // DELETE
+				  unlink(location, err => {
+					  if (err) throw err
+				  })	
+			  }
+		  
+			}
 		}
-	
-	  }
-   
-  }
+	  })
+	  
+	console.log(`Cleaned ${directory}.`)
 })
 
-console.log(`Cleaned ${directory}.`)
+
+console.log(`All Clean!`)

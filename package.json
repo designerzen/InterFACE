@@ -1,6 +1,6 @@
 {
 	"name": "musical-face",
-	"version": "0.0.21",
+	"version": "0.0.25",
 	"repository": "https://github.com/designerzen/MusicalFace.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL2.0",
@@ -10,15 +10,18 @@
 		"clean": "node clean.js",
 		"revision": "yarn version --patch --no-git-tag-version",
 		"revise": "yarn revision && node revision.js",
-		"patch": "yarn version --patch && node revision.js",
-		"test": "parcel serve source/test.html",
+		"patch": "yarn version patch && node revision.js",
+		"minor": "yarn version minor && node revision.js",
+		"major": "yarn version major && node revision.js",
 		"start": "parcel serve source/index.pug",
 		"build": "parcel build --public-url ./ source/index.pug",
+		"app": "parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
 		"deploy": "node deploy.js",
 		"upgrader": "yarn upgrade-interactive",
 		"package": "yarn revise && yarn clean && yarn build",
-		"release": "yarn revise && yarn clean && yarn build && yarn deploy"
+		"hotfix": "yarn patch && yarn clean && yarn build && yarn deploy",
+		"release": "yarn minor && yarn clean && yarn build && yarn deploy"
 	},
 	"dependencies": {
 		"@capacitor/core": "^2.4.5",
