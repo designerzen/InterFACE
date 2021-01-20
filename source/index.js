@@ -15,22 +15,24 @@ import {
 	audioContext,
 	active, playing, 
 	randomInstrument, playTrack, playAudio, stopAudio, 
+	updateByteFrequencyData,
 	bufferLength,dataArray, 
 	setupAudio, setAmplitude, 
 	record } from './audio'
 
-import { start, stop, setTimeBetween } from './timing.js'
-import { setupMIDIButton, setupCameraForm, setupInterface, setFeedback, setToast, showReloadButton } from './ui'
+import { start, stop, setTimeBetween, timePerBar, getBar } from './timing.js'
+import { buttonVideo, progressBar, setToggle, setButton, setupMIDIButton, setupCameraForm, setupInterface, setFeedback, setToast, showReloadButton } from './ui'
 import { getLocationSettings} from './location-handler'
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 import { setupImage} from './visual'
-import { setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
+import { overdraw, setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
 import { playNextPart, kitSequence } from './patterns'
-import { getInstruction, getHelp, getNextInstruction, INSTRUCTIONS, QUICK_START } from './instructions'
+import { getInstruction, getHelp, getNextInstruction } from './instructions'
 import Person, {DEFAULT_OPTIONS, NAMES} from './person'
 import { VERSION } from './version'
+import { setupReporting, trackError, trackExit } from './reporting'
 
 // DOM Elements
 const body = document.documentElement
@@ -55,6 +57,8 @@ let audio
 let midi
 let midiButton
 
+let reporter
+
 // samples and synths
 let kit
 let patterns
@@ -63,10 +67,9 @@ let recorder
 // As each sample is 2403 ms long, we should try and do it 
 // as a factor of that, so perhaps bars would be better than BPM?
 let bars = 16
-let barsElapsed = 0
-let timePerBar = () => 2403 / bars
 
 let isLoading = true
+let loadProgress = 0
 let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
@@ -76,11 +79,28 @@ body.classList.add("loading")
 
 // realtime UI options
 const ui = getLocationSettings({
-	metronome:true,
+	// play a constant beat
+	metronome:false,
+	// play music at same time
 	backingTrack:false,
+	// clear canvas every frame (if transparent will be ignored)
+	clear:true,
+	// draw video onto canvas
+	transparent:true,
+	// same thing?
 	synch:true,
+	// show debug texts
 	debug:false,
-	duet:false
+	// cancel audio playback (not midi)
+	muted:false,
+	// dual person mode (required reload)
+	duet:false,
+	// synchronise the beats with metronome
+	quantise:true,
+	// show the person's texts above them
+	text:true,
+	// audio visualiser is actually helpful to play
+	spectrogram:true
 })
 
 const SETTINGS = {
@@ -157,7 +177,6 @@ const getPerson = (index) => {
 // BEGIN ---------------------------------------
 
 // start on click as things require gesture for permission
-
 const enableMIDIForPerson = (personIndex=0, portIndex=0) => {
 	const person = getPerson(personIndex)
 	person.setMIDI(midi.outputs[portIndex])
@@ -183,6 +202,7 @@ const enableMIDI = async () => {
 			console.log("No MIDI devices detected", midi)
 			setFeedback("MIDI Available but no instruments detected", 0)
 			setToast("No MIDI Device connected")
+			main.classList.toggle('midi-no-devices', true)
 		}
 		
 		// midi device connected! huzzah!
@@ -192,6 +212,7 @@ const enableMIDI = async () => {
 			// check outputs
 			if (midi.outputs.length > 0)
 			{
+				main.classList.toggle('midi-no-devices', false)
 				people.forEach( (person,i) => enableMIDIForPerson(i,0) )
 			}
 			midiButton.setText("Click to disable")
@@ -201,7 +222,12 @@ const enableMIDI = async () => {
 		midi.addListener("disconnected", (e) => {
 			console.log(e)
 			setFeedback("Lost MIDI Device connection")
+			if (midi.outputs.length > 0)
+			{
 
+			}else{
+				main.classList.toggle('midi-no-devices', true)
+			}
 		})
 
 		midiAvailable = midi // && midi.outputs && midi.outputs.length > 0
@@ -242,10 +268,59 @@ const showMIDI = async () => {
 
 
 // selected
-const setup = (settings) => {
+const setup = (settings, progressCallback) => {
+
+	const loadTotal = 10
+	let loadIndex = 0
 
 	// set up the instrument selctor etc
 	setupInterface( ui )
+	progressCallback(loadIndex++/loadTotal)
+
+	// Connect up sone buttons?
+	setToggle( "button-quantise", status =>{
+		ui.quantise = status
+		console.log("button-quantise", ui.quantise)
+		setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
+	}, ui.quantise)
+
+	// progressCallback(loadIndex++/loadTotal)
+
+	// Connect up sone buttons?
+	setToggle( "button-metronome", status =>{
+		ui.metronome = status
+		//ui.metronome = !ui.metronome
+		console.log("button-metronome", ui.metronome)
+		setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
+	}, ui.metronome )
+
+	setToggle( "button-spectrogram", status =>{
+		ui.spectrogram = status
+		console.log("button-spectrogram", ui.spectrogram)
+		setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
+	}, ui.spectrogram )
+
+	const isVideoVisible = () => video.style.visibility === "hidden" 
+	setToggle( "button-overlay", status =>{
+		
+		video.style.visibility = isVideoVisible() ? "visible" : "hidden"
+		
+	}, !isVideoVisible() )
+	
+	setToggle( "button-clear", status =>{
+		
+		ui.clear = !ui.clear
+
+	}, ui.clear )
+
+	// Button video loads random instruments for all
+	setButton( "button-video", status => loadRandomInstrument() )
+
+
+	
+	// create our reporter for analytics
+	// reporter.track()
+	reporter = setupReporting("InterFACE")
 
 	// Load tf model and wait
 	loadModel(inputElement, settings).then( async update =>{ 
@@ -253,6 +328,7 @@ const setup = (settings) => {
 		try{
 			
 			setFeedback("Setting things up")
+			progressCallback(loadIndex++/loadTotal)
 
 			if (image)
 			{
@@ -261,12 +337,13 @@ const setup = (settings) => {
 			}
 			
 			setFeedback("Attempting to locate camera...")
+			progressCallback(loadIndex++/loadTotal)
 
 			// wait for video or image to be loaded!
 			if (video)
 			{
 				const deviceId = store.has('cameraId') ? store.getItem('cameraId') : undefined
-				camera = await setupCamera(video)
+				camera = await setupCamera(video, deviceId)
 				
 				// check to see if we want a selector
 				const videoCameraDevices = filterVideoCameras( await detectCameras() )
@@ -283,14 +360,20 @@ const setup = (settings) => {
 				}
 			
 				setFeedback( "Camera located!", 0 )
+				progressCallback(loadIndex++/loadTotal)
 			}
 			
 			// at this point the video dimensions are accurate
 			// so we add the main style vars
 			main.style.setProperty('--width', video.width )
 			main.style.setProperty('--height', video.height )
-
+			main.classList.toggle('landscape', video.width > video.height )
+			main.classList.toggle('portrait', video.width < video.height )
+			main.classList.toggle('square', video.width === video.height )
+			
 			updateCanvasSize(video.width, video.height)
+			progressCallback(loadIndex++/loadTotal)
+
 		}catch(error){
 
 			const errorMessage = String(error).replace("NotAllowedError: ",'')
@@ -299,6 +382,7 @@ const setup = (settings) => {
 			setToast( errorMessage )
 			isLoading = false
 			ultimateFailure = true
+			trackError('Camera Rejected or Not allowed')
 			// FATAL ERROR
 			return
 		}
@@ -306,6 +390,7 @@ const setup = (settings) => {
 		try{
 			audio = setupAudio()
 			setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
+			progressCallback(loadIndex++/loadTotal)
 
 			// not neccessary if using Person
 			// instrument = await loadInstrument( randomInstrument() )
@@ -316,19 +401,18 @@ const setup = (settings) => {
 			// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
 			
 			kit = createDrumkit()
-
 			patterns = kitSequence()
 
 			// console.log("Streamin", {video, photo, camera} )
 			setFeedback( "Audio available...<br>Instrument Sounds ready")
-			
+			progressCallback(loadIndex++/loadTotal)
+
 		}catch(error){
 
 			ultimateFailure = true
 			setFeedback("Something went wrong with the Audio<br>"+error, 0)
 			return 
 		}
-
 
 		// MIDI ------
 		try{
@@ -342,7 +426,8 @@ const setup = (settings) => {
 				main.classList.add('midi','no-instrument')
 				setFeedback("MIDI available<br>Connect an instrument <small>and click the button</small>", 0)
 			}
-			
+			progressCallback(loadIndex++/loadTotal)
+
 		}catch(error){
 			// no midi - don't show midi button
 			console.log("no MIDI!", error)
@@ -365,10 +450,9 @@ const setup = (settings) => {
 		// turn up the amp
 		setAmplitude( 1 )
 
-		// load install scripts once eveything has completed...
-		//setTimeout(async ()=>{
-		
-		//}, 0 )
+		// load scripts once eveything has completed...
+		// setTimeout( ()=>{
+		// }, 0 )
 
 		// FIXME: set up a basic metronome here too...
 		const playing = []
@@ -383,6 +467,7 @@ const setup = (settings) => {
 	
 		// remove loading flag as we now have all of our assets!
 	
+		progressCallback(loadIndex++/loadTotal)
 		isLoading = false
 
 		// update( inputElement === video, (predictions)=>{
@@ -401,33 +486,46 @@ const setup = (settings) => {
 			// return if camera is still connecting...
 			if (cameraLoading)
 			{
-				console.log("update:progress loading")
+				//console.log("update:progress loading")
 				return
 			}
 
 			let tickerTape = ''
 			counter++
-			
-			if (ui.synch)
+		
+			if (!ui.transparent)
 			{
 				// paste video frame
 				drawElement( inputElement )
+
 			}else{
-				// clear for invisible canvas but 
-				// NB. this may cause visual disconnect
-				clear()
+						
+				if (ui.clear)
+				{
+					// clear for invisible canvas but 
+					// NB. this may cause visual disconnect
+					clear()
+				}else{
+					// switch effect type?
+					const t = counter * 0.01
+					overdraw( Math.sin(t), Math.cos(t))
+				}
 			}
 			
-			//drawWaves( dataArray, bufferLength )
-			drawBars( dataArray, bufferLength )
-	
-			if (ui.metronome)
+			if (ui.quantise)
 			{
+				// Start on BAR
 				// show quantise
-				const bar = barsElapsed % bars
-				drawQuantise(true, bar)
+				drawQuantise(true, getBar())
 			}
-
+			
+			if (ui.spectrogram)
+			{
+				updateByteFrequencyData()
+				//drawWaves( dataArray, bufferLength )
+				drawBars( dataArray, bufferLength )
+			}
+				
 			// setAmplitude( 1 )
 			if (predictions)
 			{
@@ -452,14 +550,16 @@ const setup = (settings) => {
 						}
 						
 					}else{
+
 						// stopAudio()
-						setFeedback( getHelp( Math.floor(counter/100) ) )
-						
 						if (!noFacesFound)
 						{
+							// face found!??
 							main.classList.toggle( `${person.name}-active`, false)
 							main.classList.toggle( `no-faces`, true)
 							noFacesFound = true
+						}else{
+							setFeedback( getHelp( Math.floor(counter/100) ) )
 						}
 						
 						return
@@ -469,16 +569,17 @@ const setup = (settings) => {
 					person.update(prediction)
 
 					// then redraw them
-					//const { yaw, pitch, lipPercentage } = 
-					person.draw(prediction)
+					// const { yaw, pitch, lipPercentage } = 
+					person.draw(prediction, ui.text)
 					
 					// then whenever you fancy it,
-					if (ui.metronome)
+					if (!ui.quantise && !ui.muted)
 					{
-						// we only want it on the beat
-					}else{
 						// unless quantize is turned off
 						person.sing()
+					}else{
+						// we only want it on the beat
+						
 					}
 					
 					// you want a tight curve
@@ -486,7 +587,6 @@ const setup = (settings) => {
 					//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
 					tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
-		
 				}
 					
 			}else{
@@ -498,54 +598,59 @@ const setup = (settings) => {
 			{
 				// Need to show instructions to the user...
 				// as no face can be detected
-				setFeedback(getHelp( Math.floor(counter/100)  ))
+				setFeedback( getHelp( Math.floor(counter/100)  ))
 			// }else if (tickerTape.length){
 			// 	setFeedback(tickerTape)
 			// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
 			}else{
-				setFeedback(getInstruction( Math.floor(counter/100) ))
+				setFeedback( getInstruction( Math.floor(counter/100) ))
 				// setFeedback(`Look at me and open your mouth`)
 			}
 
 			//console.warn("update",predictions, tickerTape )
 		}, shouldUpdate )
 
-		// Metronome
-		const timer = start( ({timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
-			
-			const bar = barsElapsed % bars
 
-			// Start on BAR
-			if (barsElapsed % bars === 0)
+		// Metronome
+		const timer = start( ({bar, bars, barsElapsed, timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
+		
+			if (ui.muted)
 			{
-				// show quantise
-				drawQuantise(true, bar, `/${bars}*` )
-			}else{
-				drawQuantise(true, bar, `/${bars}-` )
+				return
 			}
 
-			
-			// console.log(barsElapsed, "timer", timer)
 			if (ui.metronome)
 			{
-				const person = getPerson(0).sing()
-				//console.log("Timing has occurred... sequence?", person)
+				// TODO: change timbre for first & last stroke
+				const metronomeLength = 0.01
+				kit.clack( metronomeLength, bars % 4 === 0 ? 1 : 2 )
+			}
+
+			// console.log(barsElapsed, "timer", timer)
+			// Play metronome!
+			if(ui.quantise)
+			{
+				for (let i=0, l=people.length; i<l; ++i )
+				{
+					const person = getPerson(i).sing()
+				}
 			}
 
 			// play some accompanyment music!
-			if (ui.backingTrack)
+			if (ui.backingTrack && bar === 0 )
 			{
-				playNextPart( patterns.kick, kit.kick )
-				playNextPart( patterns.snare, kit.snare )
-				playNextPart( patterns.hat, kit.hat )
+				const kick = playNextPart( patterns.kick, kit.kick )
+				const snare = playNextPart( patterns.snare, kit.snare )
+				const hat = playNextPart( patterns.hat, kit.hat )
 
+				console.error("backing|", {kick, snare, hat })
 				// todo: also MIDI beats on channel 16?
 			}
 
 			if (playing)
 			{
 				// timePassed
-				barsElapsed++
+				//barsElapsed++
 			}
 			
 		}, timePerBar() )
@@ -556,35 +661,13 @@ const setup = (settings) => {
 
 // 
 setFeedback("Initialising...<br> Please wait")
-// load settings from store?
-// set up some extra options from query strings
-// any custom overrides (shouldn't be needed : use query strings)
-setup( Object.assign( {}, SETTINGS, {} ))
 
-setFeedback("Please wait...")
 
 // Progressive Web Application ---------------------------------
 let installation = null
 
-// progressive web app variant
-const pwa = async() => {
-	try{
-		const {installer} = await import('./install.js')
-		installation = await installer(true)
-		const updater = await import('./update.js') // ,updater,beginInstall
-		const sharer = await import('share-menu')
-		
-		console.log("installer", {updater, installer, installation, sharer})
-	
-	}catch(error){
-		console.error("PWA", error)
-	}
-}
-pwa()
-
-
 // loop until loaded...
-const loadingLoop = () => {
+const loadingLoop = async () => {
 
 	if (isLoading)
 	{ 
@@ -599,28 +682,73 @@ const loadingLoop = () => {
 			showReloadButton()
 
 		}else{
-			body.classList.add("loaded")
 
+			body.classList.add("loaded")
+			
+			
 			// at any point we can now trigger the installation
 			if (installation)
 			{
+				const {update} = await import('./update.js') // ,updater,beginInstall
+	
 				const destination = document.getElementById("shared-controls")
-				const needsInstall = installation( destination )
-				console.log("Loaded App", {VERSION, needsInstall, installation})
+				const needsInstall = await installation( destination )
+				const needsUpdate = await update()
+
+				console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
+
+				setToast( needsInstall ? "You can install this as an app! Click install below" : needsUpdate ? "Update available" : "" )
+
 			}else{
+				
 				console.log("Loaded Webpage", VERSION)
 			}
-			
 		}
 	}
 }
+
+// progressive web app variant
+const pwa = async() => {
+	try{
+		const {installer} = await import('./install.js')
+		installation = await installer(true)
+
+		const sharer = await import('share-menu')
+		
+		// console.log("installer", { installer, installation, sharer})
+	
+	}catch(error){
+		console.error("PWA", error)
+	}
+}
+
+// load settings from store here too?
+// set up some extra options from query strings
+// any custom overrides (shouldn't be needed : use query strings)
+setup( Object.assign( {}, SETTINGS, {} ), progress => {
+	//console.log("Loading", progress, progressBar )
+	progressBar.setAttribute("value",progress)
+})
+
+setFeedback("Loading...<br>Please wait")
+pwa()
+
 loadingLoop()
+
+
+// Exit
+window.onbeforeunload = ()=>{
+	// save ui settings in cookie too?
+	trackExit()
+	//store.setItem(person.name, {instrument})
+}
 
 // ---- Other forms of input -----
 
 // now wire up the bits...
-canvas.addEventListener('mousedown',loadRandomInstrument )
-video.addEventListener('mousedown', loadRandomInstrument )
+// canvas.addEventListener('mousedown',loadRandomInstrument )
+// video.addEventListener('mousedown', loadRandomInstrument )
+
 window.addEventListener('keydown', async (event)=>{
 
 	switch(event.key)
@@ -664,7 +792,8 @@ window.addEventListener('keydown', async (event)=>{
 		case ',':
 			setNodeCount(-1)
 			break
-		
+
+			
 		case '.':
 			setNodeCount(1)
 			break
@@ -694,6 +823,14 @@ window.addEventListener('keydown', async (event)=>{
 			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 			break
 
+		case 'c':
+			ui.clear = !ui.clear
+			break
+
+		case 't':
+			ui.text = !ui.text
+			break
+
 		case 'r':
 			if (!isRecording())
 			{
@@ -720,13 +857,21 @@ window.addEventListener('keydown', async (event)=>{
 		case 'Tab':
 			break
 
+		// Hide video
+		case 'v':
+			video.style.visibility = video.style.visibility === "hidden" ? "visible" : "hidden"
+			break
+
 		// DEFAULT
 		case 'm':
-		default:
 			ui.metronome = !ui.metronome
 			setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+			break
+		
+		default:
+			loadRandomInstrument()
 	}
-	
+
 	console.log("key", ui, event)
 })
 

@@ -7,8 +7,6 @@ const pkg = JSON.parse(packageFile)
 
 // But which sem version scheme to use???
 const packageVerson = pkg.version
-const gitVerson = "0.0.3"
-const parcelVerson = "0.0.3"
 
 // sem ver style set by YARN
 // pkg.version = gitVerson

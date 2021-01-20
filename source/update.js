@@ -1,6 +1,6 @@
 import {setToast, setFeedback} from './ui'
 
-const updater = async () => new Promise( (resolve,reject)  => {
+export const updater = async () => new Promise( (resolve,reject)  => {
 	
 	let storageUsed = 0
 	let reg
@@ -73,7 +73,7 @@ const updater = async () => new Promise( (resolve,reject)  => {
 })
 
 // 
-const updateShit = async () => {
+export const update = async () => {
 	try{
 		const updateApp = await updater();
 
@@ -89,11 +89,10 @@ const updateShit = async () => {
 		button.addEventListener('click', ()=>updateApp(), {once:true} )
 		document.documentElement.appendChild(button)
 
+		return true
+
 	}catch(error){
 		// no updates
+		return false
 	}
 }
-
-updateShit()
-
-export default updater

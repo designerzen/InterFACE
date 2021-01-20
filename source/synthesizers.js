@@ -35,7 +35,7 @@ export const createKick = () => {
     osc.type = "triangle"
     osc2.type = "sine"
 
-	const kick = (length=0.05, velocity=255, attack=0.01, duration=0.5) => {
+	const kick = (velocity=1, length=0.05, attack=0.01, duration=0.5) => {
 
 		const time = audioContext.currentTime
 		
@@ -129,7 +129,7 @@ export const createSnare = () => {
 	filter.connect(filterGain)
 	filterGain.connect(inputDryNode() )
 
-	const snare = (length = 0.2) => {
+	const snare = (velocity=1, length = 0.2) => {
 
 		const time = audioContext.currentTime
 		
@@ -190,7 +190,7 @@ export const createHihat = () => {
     highpass.connect(gainOsc4)
 	gainOsc4.connect(inputDryNode())
 	
-	const hihat = (length=0.05 )=>{
+	const hihat = (velocity=1, length=0.05 )=>{
 		const time = audioContext.currentTime
 		
 		// clear anything from previous plays
@@ -241,12 +241,15 @@ export const createClack = () => {
     highpass.connect(cowbellGainNode)
 	cowbellGainNode.connect(inputDryNode())
 	
-	const clack = (length=0.05 )=>{
+	const clack = (velocity=1, length=0.05, ocatave=fundamental )=>{
 		const time = audioContext.currentTime
 		
 		// clear anything from previous plays
 		cowbellGainNode.gain.cancelScheduledValues(time)
-		oscillators.forEach( oscillator => oscillator.frequency.cancelScheduledValues(time) )
+		oscillators.forEach( (oscillator,i) =>{ 
+			oscillator.frequency.cancelScheduledValues(time) 
+			oscillator.frequency.value = ocatave * ratios[i]
+		})
 		
 		// set neew envelopes
 		cowbellGainNode.gain.setValueAtTime(1, time)
@@ -287,7 +290,7 @@ export const createCowbell = () => {
 	bandpass.connect(cowbellGainNode)
 	cowbellGainNode.connect(inputDryNode())
 	
-	const cowbell = (length=0.05 )=>{
+	const cowbell = (velocity=1, length=0.05 )=>{
 		const time = audioContext.currentTime
 		
 		// clear anything from previous plays

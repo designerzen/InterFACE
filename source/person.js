@@ -48,10 +48,10 @@ export const DEFAULT_OPTIONS = {
 	// this is the amount of decimal places used to smooth the mouth
 	// the higher the number the less smooth the output is
 	// 1 or 2 should be more than enough
-	precision:2,
+	precision:3,
 
 	// set this to one of the interpolation methods above
-	ease:easeInCubic //easeOutSine // easeInSine // linear
+	ease:linear //easeOutSine // easeInSine // linear
 }
 
 export default class Person{
@@ -135,7 +135,7 @@ export default class Person{
 		this.button.addEventListener( 'mouseup', event => {
 			// should this trigger something else depending on time?
 			const elapsed = this.mouseDownFor
-			console.log("mouseDownFor", elapsed )
+			//console.log("mouseDownFor", elapsed )
 
 			if (this.instrumentLoading)
 			{
@@ -204,7 +204,7 @@ export default class Person{
 		this.data = prediction
 	}
 
-	draw(prediction){
+	draw(prediction, showText=true){
 		
 		if (!prediction && !this.prediction)
 		{
@@ -265,6 +265,11 @@ export default class Person{
 			this.button.style.setProperty('--person-a-h', boxHeight )			
 		}
 
+		// everything here is for displaying the text
+		if (!showText)
+		{
+			return
+		}
 
 		// draw silhoette if the user is 
 		// if you want it to flicker...
@@ -298,7 +303,7 @@ export default class Person{
 			}else{
 				
 				// No mouse held
-				drawInstrument(prediction.boundingBox, this.instrumentTitle, '\press me')
+				drawInstrument(prediction.boundingBox, this.instrumentTitle, '')
 				drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
 				/*	
 				const offsetX = topLeft[0]

@@ -94,8 +94,10 @@ export const playNextPart = (pattern, instrument, ...options )=> {
 	if (velocity > 0)
 	{
 		instrument(velocity, ...options)	// velocity
+		return true
 	}else{
 		// no note but noteOff?
+		return false
 	}
 }
 

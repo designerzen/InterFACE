@@ -1,9 +1,9 @@
 
-import * as ghpages from 'gh-pages'
+import {publish} from 'gh-pages'
 
 // delete all none folders in dest/
 console.log("Deploying to github pages")
-ghpages.publish('dist',{dotfiles: true}, function(err) {
+publish('dist',{dotfiles: true}, function(err) {
 
 	if (err)
 	{
