@@ -23,6 +23,7 @@ let feedbackNode
 let analyser
 let compressor
 let reverb
+let recorder
 let destinationVolume = 0
 
 export let playing = false
@@ -31,7 +32,11 @@ export let active = false
 export const inputNode = () => delayNode
 export const inputDryNode = () => gainNode
 
-export const setupAudio = () => {
+export const setupAudio = (
+	BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
+	INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
+	OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
+) => {
 
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
@@ -73,8 +78,8 @@ export const setupAudio = () => {
 	analyser.smoothingTimeConstant = 0.85
 
 	// for waves
-	analyser.fftSize = 2048
-	bufferLength = analyser.fftSize
+	// analyser.fftSize = 2048
+	// bufferLength = analyser.fftSize
 
 	// for bars
 	analyser.fftSize = 256
@@ -95,10 +100,16 @@ export const setupAudio = () => {
 	gainNode.connect(compressor)
 	compressor.connect(analyser)
 
+	recorder = audioContext.createScriptProcessor(BUFFER_SIZE, INPUT_CHANNELS, OUTPUT_CHANNELS)
+
 	analyser.connect(audioContext.destination)
 	
 	return delayNode
 }
+
+
+export const updateByteFrequencyData = ()=> analyser.getByteFrequencyData(dataArray)
+export const updateByteTimeDomainData = ()=> analyser.getByteTimeDomainData(dataArray)
 
 const monitor = () => {
 
@@ -315,7 +326,7 @@ NOTE_NAMES.forEach( note => {
 	NOTE_NAMES_FRIENDLY[note] = note
 } )
 
-console.error({BANKS, NOTE_NAMES, NOTE_NAMES_FRIENDLY})
+// console.error({BANKS, NOTE_NAMES, NOTE_NAMES_FRIENDLY})
 
  
 // octaves 1-7
@@ -499,7 +510,8 @@ export const record = (stream)=>{
 		window.URL.revokeObjectURL(url);
 	  }
 
+	const isAvailable = () => !!(window && window.MediaRecorder && typeof window.MediaRecorder.isTypeSupported === 'function' && window.Blob)
 	const isRecording = () => recording
 
-	return {downloadRecording, encodeRecording, startRecording,stopRecording, isRecording}
+	return {isAvailable, downloadRecording, encodeRecording, startRecording,stopRecording, isRecording}
 } 

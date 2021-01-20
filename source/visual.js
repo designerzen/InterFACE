@@ -55,6 +55,18 @@ export const clear = () => {
 	// canvasContext.restore()
 }
 
+// funky effects!	
+export const overdraw = (x=0, y=-1) => {
+	
+	canvasContext.save()
+	
+	//canvasContext.translate(0, -1)
+	canvasContext.drawImage(canvas,x,y)
+	// for (var i = 0; i < numImages; i++) {
+	// 	canvasContext.drawImage(img, i * img.width, 0);
+	// }
+	canvasContext.restore()
+}
 
 export const drawPart = (part, radius=4, colour="red", lines=true) => {
 	
@@ -469,18 +481,20 @@ export const drawWaves = (dataArray, bufferLength)=>{
 
 export const drawBars = (dataArray, bufferLength)=>{
 
-	const barWidth = (width / bufferLength) * 2
+	const barWidth = (width / bufferLength) * 3	// number here is just cos we only care about a really narrow band
 	let barHeight
 	let x = 0
 
-	for(var i = 0; i < bufferLength; i++) 
+	for(let i = 0; i < bufferLength; i++) 
 	{
 		barHeight = dataArray[i]
 
 		canvasContext.fillStyle = 'hsla(' + (barHeight/height*360) + ',50%,50%,0.3)'
-		canvasContext.fillRect(x, height-barHeight, barWidth, barHeight )
-
+		canvasContext.fillRect(x, 0, barWidth, barHeight )
+// height-barHeight
 		x += barWidth + 1
 	}
+
+	// console.log("draw bars", dataArray, bufferLength)
 	
 }

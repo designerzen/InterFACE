@@ -1,6 +1,7 @@
 
 export const debounce = (callback, wait) => {
 	let timerId
+	
 	return (...args) => {
 		//console.error(args, "debounce", arguments)
 	  clearTimeout(timerId)

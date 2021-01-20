@@ -57,7 +57,6 @@ export const parseType = value => {
     }
 }
 
-
 // this takes a snapshot of the url and takes and queries
 // then it will take apart and create an object
 // and return a merged subset
@@ -68,9 +67,28 @@ export const getLocationSettings = (defaultOptions) => {{
 	{
 	//	console.log(`${key}:${value}`)
 		// ensure we data type these
-		locationOptions.key = guessType(value)
+		locationOptions[key] = guessType(value)
 	}
 
 	//console.log(`query:${locationOptions}`)
 	return locationOptions
 }}
+
+// reload the exact same URL but wih duet=true enabled
+export const loadDuetMode = ()=> {
+	// grab existing...
+	const urlParams = new URLSearchParams(window.location.search)
+	urlParams.duet = true
+	//window.location = url
+}
+
+export const loadSoloMode = ()=> {
+	const urlParams = new URLSearchParams(window.location.search)
+	urlParams.duet = false
+	//window.location = url
+}
+
+export const refresh = options => {
+	// save to url?
+	window.location.reload()
+}

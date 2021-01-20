@@ -3,7 +3,8 @@ doctype html
 html(lang="")
 	head
 		meta(charset="utf-8")
-		title InterFace V #{version}
+		block title
+			title InterFace
 		//- meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"> 
 		meta(name="viewport", content="viewport-fit=cover,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=5")
 		meta(name="description", content="Face synth")
@@ -76,7 +77,10 @@ html(lang="")
 
 			p(aria-label="Summary").
 				An experiment in computer control by designerzen. By allowing your webcamera access, every movement of your face and mouth will control music. Pressing the arrow keys changes the instrument sound.
-				
+		
+		label#progress-bar(for="progress") Progress
+			progress(min=0 max=1)#progress
+		
 		main#app
 			p#feedback Loading please wait
 			p#toast
@@ -90,25 +94,56 @@ html(lang="")
 				
 				form#controls
 					
-					button.person#person-a Change instrument for person A
-					fieldset#person-a-controls
+					button.person#person-a Change instrument for the person on the left
+					fieldset.person-controls#person-a-controls
 					
-					button.person#person-b Change instrument for person B
-					fieldset#person-b-controls
+					button.person#person-b Change instrument for the person on the right 
+					fieldset.person-controls#person-b-controls
 					
 					fieldset#shared-controls
 
-						#camera
+						legend Shared controls that apply to all faces
+
+						fieldset#camera
 					
-						button#button-midi Connect a MIDI instrument and click here
-						button#button-record Record loop
-						//- button#button-percussion Backing track
-						//- button#load-midi Backing track
-						//- button#toggle-synth Synth Engine / Natural Sounds
+						button#button-midi( aria-label="Connect a MIDI instrument and click here") MIDI
 						
-						button#share( onclick="document.getElementById('share-menu').share()" ) Share
+						button#button-record.hide( aria-label="Record a loop or two" ) Record Loop
+						
+						button#button-duet( aria-label="Swap to DUET mode!<br>Invite a friend and play together" ) Duet
+						
+						button#button-solo( aria-label="Single player mode" ) Solo
+						
+						label(for="button-quantise" aria-label="Ensure that the notes are played at regular intervals") Quantise
+							input(type="checkbox")#button-quantise
+						
+						label(for="button-metronome" aria-label="Play a metronome to help you keep time") Metronome
+							input(type="checkbox")#button-metronome
+						
+
+						label(for="button-clear" aria-label="Clear visuals") Clear
+							input(type="checkbox")#button-clear
+											
+						
+						label(for="button-spectrogram" aria-label="Show a funky bar chart of frequencies") Spectrogram
+							input(type="checkbox")#button-spectrogram
+						
+						label.hide-text(for="button-fullscreen" aria-label="Toggle full screen mode" ) Fullscreen toggle
+							input(type="checkbox")#button-fullscreen
+						
+						label(for="button-overlay" aria-label="Toggle augmented reality mode" ) Overlay
+							input(type="checkbox")#button-overlay
+						
+						//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI
+						
+						//- button#button-percussion( aria-label="Toggle the backing track" ) Backing track
+						
+						//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
+						
+						button#share.hide-text( aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
+						
 				
-					button#button-video Swap all instruments!
+					button#button-video Swap instruments for all people
 
 		footer#foot
 			small(class="copyright")
@@ -119,7 +154,6 @@ html(lang="")
 			small#version version 
 				include version.txt
 
-
 		share-menu#share-menu( 
 			title="Give the interFACE to your friends and family" 
 			text="By clicking the buttons below you can easily share the InterFACE with your friends and family" 
@@ -129,3 +163,12 @@ html(lang="")
 		//-  For users with javascript disabled 
 		noscript
 			p This application requires javascript to work unfortunately and doesn't do much without it
+
+		//- Global site tag (gtag.js) - Google Analytics
+		//- script( async src="https://www.googletagmanager.com/gtag/js?id=G-1XT0GV0L6J")
+		//- script.
+		//- 	window.dataLayer = window.dataLayer || [];  
+		//- 	function gtag(){dataLayer.push(arguments);}  
+		//- 	gtag('js', new Date());  
+		//- 	gtag('config', 'G-1XT0GV0L6J');
+		

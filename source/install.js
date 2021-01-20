@@ -1,5 +1,5 @@
 
-import { setFeedback, setToast } from './ui'
+import { setFeedback, setToast, addTooltip } from './ui'
 
 import { VERSION } from './version'
 
@@ -286,10 +286,13 @@ export const installer = async (defer=false) => {
 			// reveal update button?
 			const button = document.createElement('button')
 			button.classList.add("install-app")
+			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} Version ${VERSION}` )
 			button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
 
-			button.innerHTML = `Click to install ${manifestData.short_name} Version ${VERSION}` 
+			button.innerHTML = "Install App"
 			
+			addTooltip(button)
+
 			setToast("This App can be installed!<br> Click the orange button on the left")
 
 			// on button press...

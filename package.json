@@ -24,6 +24,7 @@
 		"release": "yarn minor && yarn clean && yarn build && yarn deploy"
 	},
 	"dependencies": {
+		"@analytics/google-analytics": "^0.5.2",
 		"@capacitor/core": "^2.4.5",
 		"@capacitor/ios": "^2.4.5",
 		"@pwabuilder/pwainstall": "^1.6.7",
@@ -35,6 +36,7 @@
 		"@tensorflow/tfjs-backend-webgl": "^2.8.2",
 		"@tensorflow/tfjs-converter": "^2.8.2",
 		"@tensorflow/tfjs-core": "^2.8.2",
+		"analytics": "^0.6.6",
 		"capacitor-dark-mode": "^1.0.5",
 		"share-menu": "^4.0.0",
 		"webmidi": "^3.0.0-alpha.2"

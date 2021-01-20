@@ -17,6 +17,14 @@ let currentInterval = 1
 let audioContext = null
 let isRunning = false
 
+// for time formatting...
+let bar = 0
+let bars = 16
+let barsElapsed = 0
+
+export const timePerBar = () => 2403 / bars
+export const getBar = () => bar
+
 const now = () => audioContext.currentTime
 
 const elapsed = () => (now() - startTime) * 0.001
@@ -43,6 +51,8 @@ export const setTimeBetween = time => {
 }
 
 export const start = (callback, timeBetween=200) => {
+
+    barsElapsed = 0
 
     // lazily initialise a context
     if (audioContext === null)
@@ -93,11 +103,11 @@ export const start = (callback, timeBetween=200) => {
                 // deterministic intervals not neccessary
                 const level = Math.floor(timePassed / timeBetween)
                 
-                // update offset?
-
+                bar = ++barsElapsed % bars
+				
                 // elapsed should === time
                 //console.log("EVENT_TICK", {timePassed, elapsed, drift, art})
-                callback && callback({timePassed, elapsed, expected, drift, level, intervals, lag})
+                callback && callback({bar, bars, barsElapsed, timePassed, elapsed, expected, drift, level, intervals, lag})
                 // timingWorker.postMessage({command:CMD_UPDATE, time:currentTime, interval})
                 break
 
@@ -114,7 +124,7 @@ export const start = (callback, timeBetween=200) => {
 
     // send command to worker
     timingWorker.postMessage({command:CMD_START, time:audioContext.currentTime, interval:timeBetween })
-    console.log("Starting...", {audioContext, interval:timeBetween, timingWorker} )
+    //console.log("Starting...", {audioContext, interval:timeBetween, timingWorker} )
 
     // methods that can be chained?
     return {
