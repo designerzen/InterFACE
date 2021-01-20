@@ -350,10 +350,12 @@ const setup = (settings, progressCallback) => {
 				if (videoCameraDevices.length > 1)
 				{
 					setupCameraForm(videoCameraDevices, async (selected) => {
-						// console.error("Camera selected",selected)
+						console.error("Camera selected",selected)
+						// prevent screen re-draw
 						cameraLoading = true
 						camera = await setupCamera( video, selected.deviceId )
 						cameraLoading = false
+						// save for re-use
 						store.setItem( 'cameraId', selected.deviceId ) 
 						setToast( `Camera ${selected.label} selected`, 0 )
 					})	
