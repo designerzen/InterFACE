@@ -5,9 +5,9 @@ Smile to begin - click your face to change to a different instrument.
 
 Or, an augmented reality, real-time motion-capture, machine-learning powered, holographic, acessible general MIDI controller and synthesizer (that comes without a manual). 
 
-By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allow for expressive yet intuitive control.
+By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allow for expressive yet intuitive control and hopefully fun musicality.
 
-# Describe how it is innovative
+# What is it?
 
 Real-time motion tracking become possible due to innovations in machine learning and improvements in graphics processers.
 
@@ -15,18 +15,14 @@ This software has been designed to be used with the Looking Glass 'Portrait' dis
 
 By creating a virtual interface with no moving parts or extra hardware, we can use a person's own expressions and movements to control and manipulate hardware, software and data.
 
-
-
-# What is the most inspiring use of your entry? *
+# Purpose *
 I have been researching and creating accessible technology for twenty years and for the past 10 have been helping run a monthly workshop alongside Drake Music Charity that brings together people who struggle to play traditional instruments, and technology focussed individuals who know how to build and make things. The charity work directly alongside schools and individuals offering real world use cases and genuine feedback - indispensable when simplicity is the aim. Together we have created a whole number of accessible musical instruments, some that are repurposing of existing instruments and some entirely new. My focus for the past few years has been to try and create musical instruments & music creation tools with the lowest barriers to entry - intuitive tools that everybody can play instinctively, that are easy to obtain and fun to play too! Currently the only requirement for this one to play is a mouth, but that could be swapped for eyes or eyebrows, the technology is quite broad!
 
 Ultimately, this tool allows *all* sorts of people to create their own sounds and music but the technology can ultimately be expanded to control anything.
 
-# Do you have plans for expansion and commercialisation?
+# Potential plans for expansion and commercialisation?
 
-Plans for expansion would be to add more musicality, expression and to create an app version that would allow it to run smoother on mobile devices. I think this would be key to getting it onto everybody's devices and the app stores also offers retail opportunities. 
-
-Plans for commercialisation would revolve around monetisation from expansion packs or potentially a paid for pro version. For development to continue there would have to be a certain level of income provided by the project but I have open sourced it.
+Add more musicality, expression and to create an app version that would allow it to run smoother on mobile devices. I think this would be key to getting it onto everybody's devices and the app stores also offers retail opportunities. 
 
 Already there are plans for a recording looper and effects but ideally the full magnitude of the project would be suggested by user cases in an attempt to streamline the simplicity and minimize development costs whilst still offering a viable product.
 # MIDI connection to other devices or software
@@ -50,6 +46,14 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Vocoder mode using microphone
 - Collab with Beardyman?
 
+# Requirements
+- Face
+- Video camera or web cam
+- A screen with dimensions greater than 320 x 320 pixels
+- A relatively modern computer
+- Speakers or headphones
+- Mouse / Keyboard / finger to change optional settings 
+
 # Check it out over at
 
-[InterFACE](http://designerzen.github.io/MusicalFace)
+[InterFACE](http://designerzen.github.io/InterFACE)

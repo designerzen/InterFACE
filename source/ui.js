@@ -85,34 +85,25 @@ export const setControls = fragment => {
 export const setupCameraForm = (cameras, callback) => {
 	
 	const cameraForm = document.getElementById("camera")
+	const select = cameraForm.querySelector('select')
 
 	// loop through cameras and add to list
 	const optionElements = cameras.map( (camera, index) => {
 		// now add this to the fragment
 		return `<option value="${camera.deviceId}">${camera.label}</option>`
 	})
-
-	const dom = `<label id="select-camera-label" for="select-camera">Select a different camera</label>
-				<select id="select-camera">${optionElements.join('')}</select>`
-	cameraForm.innerHTML = dom
+			
+	// we only inject into the select field
+	select.innerHTML = optionElements.join('')
 
 	// now add the interaction
-	// const ele = cameraForm.querySelectorAll('option')
-	// ele.forEach( input => input.addEventListener('change', event => {
-	// 	console.error( "cameraForm input", input )
-	// }))
-		
-	const select = cameraForm.querySelector('select')
-
 	select.addEventListener( 'change', event=>{
 		
 		const selection = select.options.selectedIndex
 		// send out the device change to the callback...
 		callback & callback( cameras[selection] )
-		
 		console.error( "cameraForm input", {event, select, selection} ) 
 	})
-	console.log("Created camera buttons", {dom, select, opt:select.options })
 }
 
 // Setup the instrument list - connect to callback?
