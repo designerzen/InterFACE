@@ -94,7 +94,7 @@ export const setupCameraForm = (cameras, callback) => {
 	})
 			
 	// we only inject into the select field
-	select.innerHTML = optionElements.join('')
+	select.innerHTML = `<optgroup label="Detected Cameras">${optionElements.join('')}</optgroup>`
 
 	// now add the interaction
 	select.addEventListener( 'change', event=>{
@@ -102,7 +102,7 @@ export const setupCameraForm = (cameras, callback) => {
 		const selection = select.options.selectedIndex
 		// send out the device change to the callback...
 		callback & callback( cameras[selection] )
-		console.error( "cameraForm input", {event, select, selection} ) 
+		//console.error( "cameraForm input", {event, select, selection} ) 
 	})
 }
 

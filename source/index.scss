@@ -44,6 +44,7 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	
 	--curve:12px;
 	--pad:2vmin;
+	--footer-gap:88px;
 }
 
 html, input, button, textarea, option, select{
@@ -80,6 +81,7 @@ body, main{
 
 body{
 	overflow: hidden;
+	display: flex;
 }
 
 h1 strong,h2,h3,h4,h5,h6{
@@ -207,6 +209,8 @@ main{
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	
+	margin:auto;
 	// height: 100%;
 	// min-height: 320px;
 	// max-height: 100vh;
@@ -263,8 +267,13 @@ label#progress-bar{
 
 	transition:opacity 300ms ease-out;
 
-	//margin:auto;
 	display:block;
+
+	// rounded corners
+	border-radius:var(--curve);
+	overflow: hidden;
+
+	background-color: black;
 
 	box-shadow:
 		var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
@@ -284,6 +293,11 @@ label#progress-bar{
 		var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
 	// $col-yellow
 	
+	// show a graphic but hide contents
+	&::before, &::after{
+		transition: 400ms linear opacity;
+		opacity:0;
+	}
 	// Overlaid logo
 	&:before{
 		opacity:0.5;
@@ -292,25 +306,29 @@ label#progress-bar{
 		right:5px;
 		width:10%;
 		display: block;
+		z-index:3;
 		content:url(./assets/logos/interface_colour.svg);
 	}
 
-	// show a graphic but hide contents
-	&::before, &::after{
-		transition: 400ms linear opacity;
-		opacity:0;
+	video,canvas{
+		// max-width:100%;
+		// max-height:100vh;
+		// height:auto;
+
+		// put them all in the same place in the grid
+		object-fit: contain;
+		//margin:auto;
+		visibility: hidden;	
 	}
-	
-	video{
-		// rounded corners
-		border-radius:var(--curve);
-		overflow: hidden;
 
-		// flip it around
-		transform: scaleX(-1);
+	canvas{
 
+		z-index: 1;
+		position: relative;
+		
 		// stretch it to flood the width
 		// width:100vw;
+
 		height: auto;
 		//width:100%;
 
@@ -319,11 +337,21 @@ label#progress-bar{
 		// max-height: 100vh;
 
 		// video actually always maintains apect ratio which we can abuse...	
-		@media (orientation: landscape) {
-			height: 100%;
-			width:calc(var(--width) / var(--height)  * 100vh );
-		}
+		// @media (orientation: landscape) {
+		// 	height: 100%;
+		// 	width:calc(var(--width) / var(--height)  * 100vh );
+		// }
+
+		// width:100%;//clamp(100%, 100vw, 100% );
+		height: 100vh;
+		max-width: 100vw;
+		// max-height: 100vh;
+		// max-width: 100vw;
+		// height:calc(var(--height) / var(--width) * 100vw );
+
 		@media (orientation: portrait) {
+			// 	height: 100%;
+			// 	width:calc(var(--width) / var(--height)  * 100vh );
 			width: 100%;
 			height:calc(var(--height) / var(--width) * 100vw );
 		}
@@ -350,20 +378,13 @@ label#progress-bar{
 		// }
 	}
 
-	video,canvas{
-		// max-width:100%;
-		// max-height:100vh;
-		// height:auto;
-
-		// put them all in the same place in the grid
-		object-fit: contain;
-		//margin:auto;
-		visibility: hidden;	
-	}
-
 	// in front
-	canvas{
-		z-index: 1;
+	video{
+		
+		// flip it around
+		transform: scaleX(-1);
+
+		z-index: 0;
 		position:absolute;
 		top:0;
 		left:0;
@@ -487,7 +508,7 @@ label#progress-bar{
 			max-width:82px;
 			align-self:flex-start;
 			font-size: 0;
-			fill:$col-cream;
+			fill:black;//$col-cream;
 		}
 		h1{
 			margin:0;
@@ -580,7 +601,7 @@ p{
 #toast{
 	position: absolute;
 	left:var(--pad);
-	bottom:calc( 88px + var(--pad) );
+	bottom:calc( var(--footer-gap) + var(--pad) );
 	z-index:909;
 	color:$col-dark;
 	background-color:$col-white;
@@ -601,6 +622,10 @@ p{
 		margin-left:calc(var(--pad)/2);
 		animation: Blink 950ms 0s infinite normal both;
 		vertical-align:text-bottom;
+	}
+
+	@media (orientation: portrait) {
+		--footer-gap:4rem;
 	}
 }
 
@@ -779,6 +804,9 @@ input[type=radio]{
 
 // Could not load due to privacy restrictoin or user uninteraction
 .failure{
+	#controls{
+		display: none;
+	}
 	#feedback{
 		left:var(--pad);
 		bottom:calc(50vh - 0.5rem);
@@ -806,7 +834,7 @@ button,
 	line-height: 1;
 	// -0.5385rem + 7.6923vw
 	// clamp(minimum, preferred, maximum)
-	font-size:clamp(8px, -0.5385rem + 2.2vmax, 14px);
+	font-size:clamp(8px, -0.5385rem + 2.2vmax, 17px);
 
 	// max-width:calc(100% - 2 * var(--pad));
 	z-index:1;
@@ -1315,8 +1343,13 @@ button#button-midi{
 	background-color: $col-yellow;
 }
 
+// connect your midi device!
 .midi-no-devices button#button-midi{
 	background-color: $col-yellow;
+	&:after{
+		content:'...';
+		display: inline-block;
+	}
 }
 
 
@@ -1393,7 +1426,7 @@ button#share{
 // &:focus-within,
 background-image:url(./assets/icons/switch_video-24px.svg);
 	&:before{
-		
+		pointer-events: none;
 	}
 
 	&:hover,&:focus,&:target,
@@ -1431,11 +1464,19 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 		background-color: transparent;
 	
 		option{
-			background-color: $col-dark;
-			color: $col-cream;
+			color: $col-dark;
+			background-color: $col-cream;
 			cursor:pointer;
+
 			&:hover, &:focus{
-				background-color: $col-green;
+				color:$col-cream;
+				background-color: $col-dark;
+			}
+
+			optgroup{
+				appearance:none;
+				background-color: $col-blue;
+				color: $col-dark;
 			}
 		}
 	}
@@ -1450,6 +1491,7 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 	color:$col-brown;
 	transition:transform 450ms $easeOutBack;
 	transform: translateX(var(--spacer));
+	z-index:-1;
 }
 
 @media (orientation: landscape) {
@@ -1459,15 +1501,7 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 		transform: rotate(270deg) translateX(67px) translateY(10px);
 	}
 }
-// portrait
-@media (orientation: portrait) {
-	
-	#toast{
-		bottom:var(--pad);
-	}
-	// sideways copyright
 
-}
 // 
 
 @keyframes Fade{

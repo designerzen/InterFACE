@@ -17,6 +17,9 @@ export const createStore = (name="Plops") => {
 		has:key =>{
 			return data[key] ? true : false
 		},
+		removeItem:key =>{
+			delete data[key] 
+		},
 		getItem:key =>{
 			return data[key] 
 		},

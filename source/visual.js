@@ -481,7 +481,7 @@ export const drawWaves = (dataArray, bufferLength)=>{
 
 export const drawBars = (dataArray, bufferLength)=>{
 
-	const barWidth = (width / bufferLength) * 3	// number here is just cos we only care about a really narrow band
+	const barWidth = (width / bufferLength) * 2	// number here is just cos we only care about a really narrow band
 	let barHeight
 	let x = 0
 
