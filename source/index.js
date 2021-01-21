@@ -266,6 +266,21 @@ const showMIDI = async () => {
 	return true
 }
 
+const loadCamera = async (deviceId) => {
+	let newCamera
+	// prevent screen re-draw
+	cameraLoading = true
+	try{
+		newCamera = await setupCamera( video, deviceId )
+		store.setItem( 'cameraId', deviceId ) 
+	
+	}catch(error){
+		console.error( deviceId, "Camera errored",{ error, deviceId, newCamera})
+		throw error
+	}
+	cameraLoading = false
+	return newCamera
+}
 
 // selected
 const setup = (settings, progressCallback) => {
@@ -280,43 +295,28 @@ const setup = (settings, progressCallback) => {
 	// Connect up sone buttons?
 	setToggle( "button-quantise", status =>{
 		ui.quantise = status
-		console.log("button-quantise", ui.quantise)
 		setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 	}, ui.quantise)
-
-	// progressCallback(loadIndex++/loadTotal)
 
 	// Connect up sone buttons?
 	setToggle( "button-metronome", status =>{
 		ui.metronome = status
-		//ui.metronome = !ui.metronome
-		console.log("button-metronome", ui.metronome)
 		setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 	}, ui.metronome )
 
 	setToggle( "button-spectrogram", status =>{
 		ui.spectrogram = status
-		console.log("button-spectrogram", ui.spectrogram)
 		setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.spectrogram )
 
 	const isVideoVisible = () => video.style.visibility === "hidden" 
-	setToggle( "button-overlay", status =>{
-		
-		video.style.visibility = isVideoVisible() ? "visible" : "hidden"
-		
-	}, !isVideoVisible() )
-	
-	setToggle( "button-clear", status =>{
-		
-		ui.clear = !ui.clear
-
-	}, ui.clear )
+	setToggle( "button-overlay", status => video.style.visibility = isVideoVisible() ? "visible" : "hidden", !isVideoVisible() )
+	setToggle( "button-clear", status => ui.clear = !ui.clear, ui.clear )
 
 	// Button video loads random instruments for all
 	setButton( "button-video", status => loadRandomInstrument() )
 
-
+	progressCallback(loadIndex++/loadTotal)
 	
 	// create our reporter for analytics
 	// reporter.track()
@@ -336,28 +336,35 @@ const setup = (settings, progressCallback) => {
 				photo = await setupImage(image)
 			}
 			
-			setFeedback("Attempting to locate camera...")
 			progressCallback(loadIndex++/loadTotal)
 
 			// wait for video or image to be loaded!
 			if (video)
 			{
 				const deviceId = store.has('cameraId') ? store.getItem('cameraId') : undefined
-				camera = await setupCamera(video, deviceId)
 				
+				setFeedback( deviceId ? "Found saved camera" : "Attempting to locate camera...")
+			
+				try{
+					camera = await loadCamera(deviceId)
+
+				}catch( error ) {
+
+					setFeedback( "Could not oppen saved camera, looking for another...")
+					// bummer! try and use fallback?
+					camera = await loadCamera()
+					// delete saved key
+					store.removeItem('cameraId')
+				}
+
 				// check to see if we want a selector
 				const videoCameraDevices = filterVideoCameras( await detectCameras() )
 				if (videoCameraDevices.length > 1)
 				{
 					setupCameraForm(videoCameraDevices, async (selected) => {
-						console.error("Camera selected",selected)
-						// prevent screen re-draw
-						cameraLoading = true
-						camera = await setupCamera( video, selected.deviceId )
-						cameraLoading = false
-						// save for re-use
-						store.setItem( 'cameraId', selected.deviceId ) 
-						setToast( `Camera ${selected.label} selected`, 0 )
+						camera = loadCamera( selected.deviceId )
+						//console.log( selected.deviceId, "Camera selected",selected, camera)
+						setToast( `Camera ${selected.label} changed`, 0 )
 					})	
 				}
 			
@@ -457,8 +464,6 @@ const setup = (settings, progressCallback) => {
 		// }, 0 )
 
 		// FIXME: set up a basic metronome here too...
-		const playing = []
-
 		let counter = 0
 
 		// ----------------------------------------------------------------------------------
@@ -481,6 +486,7 @@ const setup = (settings, progressCallback) => {
 		// LOOP ---------------------------------------
 
 		const shouldUpdate = () => !cameraLoading
+
 		// FaceMesh.getUVCoords 
 		// this then runs the loop if set to true
 		update( inputElement === video, (predictions)=>{

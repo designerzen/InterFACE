@@ -34,6 +34,9 @@ export const setupCamera = async (video, deviceId ) => {
 		let stream
 		video = video || document.createElement('video')
 
+		// stop it if it is already running?
+		//video.stop()
+
 		video.onloadedmetadata = (event) => { 
 			
 			video.play()
@@ -46,9 +49,9 @@ export const setupCamera = async (video, deviceId ) => {
 		
 		const videoConstraints = {}
 		if (deviceId) {
-		  videoConstraints.facingMode = 'user' // 'environment'
-		} else {
 		  videoConstraints.deviceId = { exact: deviceId }
+		} else {
+		  videoConstraints.facingMode = 'user' // 'environment'
 		}
 
 		const constraints = {
@@ -59,10 +62,12 @@ export const setupCamera = async (video, deviceId ) => {
 		try{
 			// hope and preay that this is the right camera...
 			stream = await navigator.mediaDevices.getUserMedia( constraints )
-			video.srcObject = stream
-
+			
+		video.srcObject = stream
+			
 		}catch(error){
-
+// console.error("stream",{constraints,stream,video})
+	
 			reject(error)
 		}
 	})

@@ -44,8 +44,13 @@ export const trackExit = () => {
 	// })
 }
 
-export const trackError = error => reporter.track('Error', {
-	category: 'Fails',
-	label:error,
-	value: 42	
-})
+export const trackError = error =>{ 
+	if (analytics)
+	{
+		analytics.track('Error', {
+			category: 'Fails',
+			label:error,
+			value: 42	
+		})		
+	}
+}
