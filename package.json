@@ -1,6 +1,6 @@
 {
 	"name": "musical-face",
-	"version": "0.10.0",
+	"version": "0.11.0",
 	"repository": "https://github.com/designerzen/MusicalFace.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL2.0",
@@ -15,7 +15,7 @@
 		"minor": "yarn version --minor && node revision.js",
 		"major": "yarn version --major && node revision.js",
 		"start": "parcel serve source/index.pug",
-		"build": "parcel build --public-url ./ source/index.pug --no-scope-hoist",
+		"build": "parcel build --no-scope-hoist --public-url ./ source/index.pug",
 		"app": "parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
 		"deploy": "node deploy.js",
