@@ -1,6 +1,6 @@
 {
 	"name": "musical-face",
-	"version": "0.15.0",
+	"version": "0.16.0",
 	"repository": "https://github.com/designerzen/MusicalFace.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL2.0",
@@ -28,8 +28,6 @@
 		"@analytics/google-analytics": "^0.5.2",
 		"@capacitor/core": "^2.4.5",
 		"@capacitor/ios": "^2.4.5",
-		"@pwabuilder/pwainstall": "^1.6.7",
-		"@pwabuilder/pwaupdate": "^0.2.0",
 		"@tensorflow-models/face-landmarks-detection": "^0.0.2",
 		"@tensorflow/tfjs": "^2.8.2",
 		"@tensorflow/tfjs-backend-cpu": "^2.8.2",
