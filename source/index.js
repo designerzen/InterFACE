@@ -2,11 +2,6 @@
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
 
-
-
-
-
-
 import {createStore} from './store'
 import {loadModel} from './predictor'
 
@@ -20,24 +15,32 @@ import {
 	setupAudio, setAmplitude, 
 	record } from './audio'
 
-import { start, stop, setTimeBetween, timePerBar, getBar } from './timing.js'
-import { buttonVideo, progressBar, setToggle, setButton, setupMIDIButton, setupCameraForm, setupInterface, setFeedback, setToast, showReloadButton } from './ui'
-import { getLocationSettings} from './location-handler'
+import { start, stop,now, setTimeBetween, timePerBar, getBar } from './timing.js'
+import {
+	progressBar, 
+	video,isVideoVisible,toggleVideoVisiblity,
+	setToggle, setButton, 
+	setupMIDIButton, 
+	showUpdateButton, showReloadButton,
+	setupCameraForm, 
+	setupInterface, 
+	setFeedback, setToast } from './ui'
+import { getLocationSettings, getShareLink, addToHistory } from './location-handler'
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 import { setupImage} from './visual'
-import { overdraw, setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
+import { takePhotograph, overdraw, setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
 import { playNextPart, kitSequence } from './patterns'
 import { getInstruction, getHelp, getNextInstruction } from './instructions'
 import Person, {DEFAULT_OPTIONS, NAMES} from './person'
 import { VERSION } from './version'
-import { setupReporting, trackError, trackExit } from './reporting'
+
+import { setupReporting, track, trackError, trackExit } from './reporting'
 
 // DOM Elements
 const body = document.documentElement
 const main = document.querySelector("main")
-const video = document.querySelector("video")
 const image = document.querySelector("img")
 
 // Record stuff
@@ -74,6 +77,9 @@ let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
 let noFacesFound = false
+let counter = 0
+
+const cameraPan = {x:1,y:1}
 
 body.classList.add("loading")
 
@@ -266,18 +272,21 @@ const showMIDI = async () => {
 	return true
 }
 
-const loadCamera = async (deviceId) => {
+const loadCamera = async (deviceId, name="Default") => {
 	let newCamera
 	// prevent screen re-draw
 	cameraLoading = true
 	try{
 		newCamera = await setupCamera( video, deviceId )
 		store.setItem( 'cameraId', deviceId ) 
-	
+		track('Action', {category:'Camera', label:name, value:deviceId})
+						
 	}catch(error){
-		console.error( deviceId, "Camera errored",{ error, deviceId, newCamera})
+		console.error( deviceId, "Camera errored", error)
+		trackError( `${name} camera could not be accessed`, deviceId, "Camera" )
 		throw error
 	}
+	
 	cameraLoading = false
 	return newCamera
 }
@@ -295,26 +304,65 @@ const setup = (settings, progressCallback) => {
 	// Connect up sone buttons?
 	setToggle( "button-quantise", status =>{
 		ui.quantise = status
+		addToHistory(ui,'quantise')
+		main.classList.toggle('flag-quantise', status )
 		setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 	}, ui.quantise)
 
 	// Connect up sone buttons?
 	setToggle( "button-metronome", status =>{
 		ui.metronome = status
+		addToHistory(ui,'metronome')
+		main.classList.toggle('flag-metronome', status )
 		setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 	}, ui.metronome )
 
 	setToggle( "button-spectrogram", status =>{
 		ui.spectrogram = status
+		addToHistory(ui,'spectrogram')
+		main.classList.toggle('flag-spectrogram', status )
 		setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.spectrogram )
 
-	const isVideoVisible = () => video.style.visibility === "hidden" 
-	setToggle( "button-overlay", status => video.style.visibility = isVideoVisible() ? "visible" : "hidden", !isVideoVisible() )
-	setToggle( "button-clear", status => ui.clear = !ui.clear, ui.clear )
+	setToggle( "button-transparent", status =>{
+		ui.transparent = status
+		addToHistory(ui,'transparent')
+		main.classList.toggle('flag-transparent', status )
+		setToast("Video Synch " + (ui.spectrogram ? 'enabled' : 'disabled')  )
+	}, ui.transparent )
+
+	setToggle( "button-clear", status =>{ 
+		ui.clear = status
+		addToHistory(ui,'clear')
+		main.classList.toggle('flag-clear', status )
+	}, ui.clear )
+
+	setToggle( "button-overlay", status => toggleVideoVisiblity(), !isVideoVisible() )
 
 	// Button video loads random instruments for all
 	setButton( "button-video", status => loadRandomInstrument() )
+	
+	setButton( "button-photograph", event => {
+		const unique = Math.ceil( now() * 10000000 )
+		const id = `photograph-${unique}`
+		
+		const img = new Image()
+		img.src = takePhotograph()
+		img.alt = "Photograph taken " + Date.now().toString()
+		
+		const anchor = document.createElement("a")
+		anchor.href = img.src
+		anchor.innerHTML = `Click to download this photograph`
+		anchor.id = id
+		anchor.download = `snapshot-${unique}.png`
+		anchor.appendChild(img)
+
+		document.getElementById("photographs").appendChild(anchor)
+
+		requestAnimationFrame( ()=>document.getElementById(id).scrollIntoView() )
+		
+		console.log("Photo taken!", img)
+	} )
 
 	progressCallback(loadIndex++/loadTotal)
 	
@@ -346,11 +394,11 @@ const setup = (settings, progressCallback) => {
 				setFeedback( deviceId ? "Found saved camera" : "Attempting to locate camera...")
 			
 				try{
-					camera = await loadCamera(deviceId)
+					camera = await loadCamera(deviceId, "Saved")
 
 				}catch( error ) {
 
-					setFeedback( "Could not oppen saved camera, looking for another...")
+					setFeedback( "Could not open saved camera, looking for another...")
 					// bummer! try and use fallback?
 					camera = await loadCamera()
 					// delete saved key
@@ -362,7 +410,7 @@ const setup = (settings, progressCallback) => {
 				if (videoCameraDevices.length > 1)
 				{
 					setupCameraForm(videoCameraDevices, async (selected) => {
-						camera = loadCamera( selected.deviceId )
+						camera = loadCamera( selected.deviceId, selected.label )
 						//console.log( selected.deviceId, "Camera selected",selected, camera)
 						setToast( `Camera ${selected.label} changed`, 0 )
 					})	
@@ -463,9 +511,6 @@ const setup = (settings, progressCallback) => {
 		// setTimeout( ()=>{
 		// }, 0 )
 
-		// FIXME: set up a basic metronome here too...
-		let counter = 0
-
 		// ----------------------------------------------------------------------------------
 	
 
@@ -475,7 +520,7 @@ const setup = (settings, progressCallback) => {
 		// remove loading flag as we now have all of our assets!
 	
 		progressCallback(loadIndex++/loadTotal)
-		isLoading = false
+		
 
 		// update( inputElement === video, (predictions)=>{
 
@@ -491,6 +536,11 @@ const setup = (settings, progressCallback) => {
 		// this then runs the loop if set to true
 		update( inputElement === video, (predictions)=>{
 
+			if(isLoading)
+			{
+				isLoading = false
+			}
+
 			// return if camera is still connecting...
 			if (cameraLoading)
 			{
@@ -500,24 +550,24 @@ const setup = (settings, progressCallback) => {
 
 			let tickerTape = ''
 			counter++
-		
-			if (!ui.transparent)
+	
+			if (ui.clear)
 			{
-				// paste video frame
-				drawElement( inputElement )
+				// clear for invisible canvas but 
+				// NB. this may cause visual disconnect
+				clear()
+				
+				if (!ui.transparent)
+				{
+					// paste video frame
+					drawElement( inputElement )
+				}
 
 			}else{
-						
-				if (ui.clear)
-				{
-					// clear for invisible canvas but 
-					// NB. this may cause visual disconnect
-					clear()
-				}else{
-					// switch effect type?
-					const t = counter * 0.01
-					overdraw( Math.sin(t), Math.cos(t))
-				}
+				// switch effect type?
+				const t = counter * 0.01
+				
+				overdraw( cameraPan.x * Math.sin(t), cameraPan.y * Math.cos(t))
 			}
 			
 			if (ui.quantise)
@@ -584,7 +634,16 @@ const setup = (settings, progressCallback) => {
 					if (!ui.quantise && !ui.muted)
 					{
 						// unless quantize is turned off
-						person.sing()
+						const stuff = person.sing()
+						// stuff.eyeDirection
+						if (i===0)
+						{
+							// stuff.eyeDirection
+							// use person 1's eyes to control other stuff too?
+							// in this case the direction of the pan in disco mode
+							cameraPan.x = stuff.eyeDirection
+						}
+
 					}else{
 						// we only want it on the beat
 						
@@ -630,8 +689,8 @@ const setup = (settings, progressCallback) => {
 			if (ui.metronome)
 			{
 				// TODO: change timbre for first & last stroke
-				const metronomeLength = 0.01
-				kit.clack( metronomeLength, bars % 4 === 0 ? 1 : 2 )
+				const metronomeLength = 0.1
+				kit.clack( metronomeLength, bars % 4 === 0 ? 0.1 : 0.2 )
 			}
 
 			// console.log(barsElapsed, "timer", timer)
@@ -640,12 +699,23 @@ const setup = (settings, progressCallback) => {
 			{
 				for (let i=0, l=people.length; i<l; ++i )
 				{
-					const person = getPerson(i).sing()
+					const person = getPerson(i)
+					// yaw, pitch, lipPercentage, eyeDirection
+					const stuff = person.sing()
+					if (i===0)
+					{
+						
+						// stuff.eyeDirection
+						// use person 1's eyes to control other stuff too?
+						// in this case the direction of the pan in disco mode
+						cameraPan.x = stuff.eyeDirection
+					}
 				}
 			}
 
+
 			// play some accompanyment music!
-			if (ui.backingTrack && bar === 0 )
+			if (ui.backingTrack && bar%2 === 0 )
 			{
 				const kick = playNextPart( patterns.kick, kit.kick )
 				const snare = playNextPart( patterns.snare, kit.snare )
@@ -673,12 +743,42 @@ setFeedback("Initialising...<br> Please wait")
 
 // Progressive Web Application ---------------------------------
 let installation = null
+let loadMeter = 0
+
+const onLoaded = async () => {
+
+	// load the share menu :)
+	const sharer = await import('share-menu')
+	
+	body.classList.add("loaded")
+
+	// at any point we can now trigger the installation
+	if (installation)
+	{
+		try{
+			const destination = document.getElementById("shared-controls")
+			const needsInstall = await installation( destination )		
+			setToast( needsInstall ? "You can install this as an app! Click install below" : "" )
+		
+		}catch(error){
+			console.error("Install/Update issue", error)
+		}
+		
+	}else{
+		console.log("Loaded Webpage", VERSION)
+	}
+	
+	// Show hackers message
+	// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
+	// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )
+}
 
 // loop until loaded...
 const loadingLoop = async () => {
 
 	if (isLoading)
 	{ 
+		// console.log("loading",loadMeter*100)
 		requestAnimationFrame( loadingLoop ) 
 	}else{
 
@@ -690,40 +790,42 @@ const loadingLoop = async () => {
 			showReloadButton()
 
 		}else{
-
-			body.classList.add("loaded")
-			
-			
-			// at any point we can now trigger the installation
-			if (installation)
-			{
-				const {update} = await import('./update.js') // ,updater,beginInstall
-	
-				const destination = document.getElementById("shared-controls")
-				const needsInstall = await installation( destination )
-				const needsUpdate = await update()
-
-				console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
-
-				setToast( needsInstall ? "You can install this as an app! Click install below" : needsUpdate ? "Update available" : "" )
-
-			}else{
-				
-				console.log("Loaded Webpage", VERSION)
-			}
+			onLoaded()
 		}
 	}
 }
+
+// import {installer} from './install'
+// import {update}  from './update.js'
+// const test = async ()=>{
+// 	const {installer} = await import('./install.js')
+// 	const {update} = await import('./update.js')
+// 	const destination = document.getElementById("shared-controls")
+// 	const install = await installer(true)
+// 	const needsInstall = await install( destination )		
+// 	const needsUpdate = await update()
+// }
+// test()
 
 // progressive web app variant
 const pwa = async() => {
 	try{
 		const {installer} = await import('./install.js')
 		installation = await installer(true)
-
-		const sharer = await import('share-menu')
+	
+		const {updateApp} = await import('./update.js')
 		
-		// console.log("installer", { installer, installation, sharer})
+		// may as well disrupt the load if an update is available!
+		// as we reload the thing anyways!
+		const {updater, updateAvailable} = await updateApp()
+
+		if (updateAvailable)
+		{
+			showUpdateButton(updater)
+			setToast("An Update is available! Press update to install it" )
+		}
+
+		console.log("installer", { installer, installation, sharer})
 	
 	}catch(error){
 		console.error("PWA", error)
@@ -734,8 +836,11 @@ const pwa = async() => {
 // set up some extra options from query strings
 // any custom overrides (shouldn't be needed : use query strings)
 setup( Object.assign( {}, SETTINGS, {} ), progress => {
+	
 	//console.log("Loading", progress, progressBar )
 	progressBar.setAttribute("value",progress)
+	// ease this?
+	loadMeter = progress
 })
 
 setFeedback("Loading...<br>Please wait")
@@ -751,6 +856,12 @@ window.onbeforeunload = ()=>{
 	//store.setItem(person.name, {instrument})
 }
 
+
+window.oncontextmenu = () => {
+	counter = 0
+	// restart counter?
+    //return false     // cancel default menu
+}
 // ---- Other forms of input -----
 
 // now wire up the bits...
@@ -880,6 +991,11 @@ window.addEventListener('keydown', async (event)=>{
 			loadRandomInstrument()
 	}
 
+	// we run this when we want to 
+	addToHistory(ui, event.key)
 	console.log("key", ui, event)
 })
 
+window.addEventListener('popstate', (event) => {
+	console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
+})

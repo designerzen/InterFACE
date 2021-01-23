@@ -1,21 +1,21 @@
 
 import { setFeedback, setToast, addTooltip } from './ui'
 
-import { VERSION } from './version'
+import { VERSION, DATE } from './version'
 
 const body = document.documentElement
 
 // const shareMenu = document.getElementById('share-menu')
+// check for beforeinstallprompt support
+export const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
+
+let deferredPrompt
+		   
+let installed = false
+let hasPrompt = false
 
 export const installer = async (defer=false) => {
-	   
-	// check for beforeinstallprompt support
-    const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
 
-	let deferredPrompt
-	
-    let installed = false
-	let hasPrompt = false
 	let openModal = false
 	let manifestData
 	let manifestPath = "./manifest.webmanifest"
@@ -286,7 +286,7 @@ export const installer = async (defer=false) => {
 			// reveal update button?
 			const button = document.createElement('button')
 			button.classList.add("install-app")
-			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} Version ${VERSION}` )
+			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} V:${VERSION.replaceAll(".","-")} Date:${DATE}`  )
 			button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
 
 			button.innerHTML = "Install App"
@@ -335,19 +335,24 @@ export const installer = async (defer=false) => {
 		}
 	}
 	  
-    // hijack an install event
-    window.addEventListener("beforeinstallprompt", event => {
-		
-		deferredPrompt = event
-		hasPrompt = true
-		event.preventDefault() 
+	// hijack an install event
+	if (!deferredPrompt && !hasPrompt)
+	{
+		window.addEventListener("beforeinstallprompt", event => {
+			
+			deferredPrompt = event
+			hasPrompt = true
+			event.preventDefault() 
+			console.error("prompt caught pwas!")
 
-		if (!defer && !isIOS)
-		{
-			begin()
-		}
+			if (!defer && !isIOS)
+			{
+				begin()
+			}
 
-	}, {once:true})
+		}, {once:true})	
+	}
+  
 
 	if (!defer && isIOS)
 	{
@@ -361,6 +366,15 @@ export const installer = async (defer=false) => {
 	return begin
 }
 
+
+window.addEventListener("beforeinstallprompt", event => {
+		
+	deferredPrompt = event
+	hasPrompt = true
+	event.preventDefault() 
+	console.error("prompt caught pwas!")
+
+}, {once:true})
  /*
 
 */

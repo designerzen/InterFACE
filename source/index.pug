@@ -77,14 +77,14 @@ html(lang="")
 
 			p(aria-label="Summary").
 				An experiment in computer control by designerzen. By allowing your webcamera access, every movement of your face and mouth will control music. Pressing the arrow keys changes the instrument sound.
-		
-		label#progress-bar(for="progress") Progress
-			progress(min=0 max=1)#progress
-		
-		main#app
-			p#feedback Loading please wait
-			p#toast
 			
+			label#progress-bar(for="progress") Loading, Please wait...
+				progress(min=0 max=1)#progress
+			
+		main#app
+			h3 Please have patience
+			p#feedback Loading
+			p#toast
 			#app-frame
 				//- img#face(src="assets/will.png", width="640", height="480")
 				video#webcam(autoplay, playsinline, width="640", height="480")
@@ -115,6 +115,8 @@ html(lang="")
 						
 						button#button-solo( aria-label="Single player mode" ) Solo
 						
+						button#button-photograph( aria-label="Take a photograph" ) Photograph
+						
 						label(for="button-quantise" aria-label="Ensure that the notes are played at regular intervals") Quantise
 							input(type="checkbox")#button-quantise
 						
@@ -124,6 +126,9 @@ html(lang="")
 
 						label(for="button-clear" aria-label="Clear visuals") Clear
 							input(type="checkbox")#button-clear
+											
+						label(for="button-transparent" aria-label="Synch video to movements") Synch
+							input(type="checkbox")#button-transparent
 											
 						
 						label(for="button-spectrogram" aria-label="Show a funky bar chart of frequencies") Spectrogram
@@ -142,7 +147,9 @@ html(lang="")
 						//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 						
 						button#share.hide-text( aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
-						
+							
+					
+					result#photographs
 				
 					button#button-video Swap instruments for all people
 

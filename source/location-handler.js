@@ -92,3 +92,21 @@ export const refresh = options => {
 	// save to url?
 	window.location.reload()
 }
+
+export const toQuery = options =>  (new URLSearchParams(options).toString())
+
+export const addToHistory = (options, title="") => {
+	const url = new URL(window.location)
+	for (let i in options){
+		const option = options[i]
+		url.searchParams.set(i, option)
+		//console.log("History", {out, options, title, url} )
+	}
+	//
+	const out = window.history.pushState(options, title, url)
+	console.log("History", {out, options, title, url} )
+}
+export const getShareLink = (options) => {
+	
+	return window.location + toQuery(options)
+}

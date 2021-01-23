@@ -478,6 +478,12 @@ export const drawWaves = (dataArray, bufferLength)=>{
 	canvasContext.stroke()
 }
 
+// converts the canvas into a PNG / JPEG and adds returns as a blob?
+export const takePhotograph = (type="image/png") => {
+
+	// reassemble canvas?
+	return canvas.toDataURL(type)
+}
 
 export const drawBars = (dataArray, bufferLength)=>{
 

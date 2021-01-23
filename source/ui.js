@@ -1,8 +1,8 @@
 import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './instruments'
-import {VERSION} from './version'
+import {VERSION, DATE} from './version'
 import {debounce} from './utils'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
-import {loadSoloMode,loadDuetMode} from './location-handler'
+import {getShareLink,loadSoloMode,loadDuetMode} from './location-handler'
 
 export const progressBar = document.querySelector('progress')
 
@@ -13,6 +13,8 @@ export let buttonQuantise
 export let buttonMIDI
 export let buttonVideo
 export let controls
+
+const releaseDate = new Date(DATE * 1000)
 
 import PALETTE from "./palette"
 
@@ -66,6 +68,13 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 			}
 		}
 	} : null
+}
+
+
+export const video = document.querySelector("video")
+export const isVideoVisible = () => video.style.visibility === "hidden" 
+export const toggleVideoVisiblity = value => {
+	video.style.visibility = isVideoVisible() ? "visible" : "hidden", !isVideoVisible() 
 }
 
 // Feedback ui
@@ -138,7 +147,6 @@ export const setupMIDIButton = (callback) => {
 export const addTooltip = button =>  button.addEventListener("mouseover", event => {
 	const toolTip = event.target.getAttribute("aria-label") || event.target.innerHTML
 	setToast(toolTip)
-	console.log("event", event.target.innerHTML )
 })
 
 export const setButton = (buttonName, callback ) => {
@@ -160,7 +168,6 @@ export const setToggle = (toggleName, callback, value ) => {
 		{
 			element.parentNode.classList.toggle("checked", value )
 		}
-		console.log(toggleName,element, element.parentNode.nodeName)
 		callback(value)
 	})
 	// preset the button
@@ -178,14 +185,36 @@ export const showReloadButton = () => {
 }
 
 
+export const showUpdateButton = (action) => {
+	// reveal update button?
+	const button = document.createElement('button')
+	button.id = "button-update"
+	button.classList.add("update-available")
+	button.innerHTML = "Update to new version"
+
+	// on button press...
+	button.addEventListener('click', ()=>action() )
+	document.documentElement.appendChild(button)
+}
+
+
 // DOM elements
 export const setupInterface = ( options ) => {
 
 	const main = document.querySelector("main")
 	const h1 = document.querySelector("h1")
 	
+	const buttonShare = document.getElementById("share")
 	const buttonSolo = document.getElementById("button-solo")
 	const buttonDuet = document.getElementById("button-duet")
+	
+	const shareElement = document.querySelector("share-menu")
+	shareElement.url = getShareLink( options )
+	buttonShare.addEventListener('mousedown', e => {
+		
+		shareElement.setAttribute( "url", getShareLink( options ) )
+		console.error("SHARING", {shareElement, url:shareElement.url  } )
+	}, false)
 	
 	controls = document.getElementById("controls")
 
@@ -194,7 +223,9 @@ export const setupInterface = ( options ) => {
 	buttonRecord = document.getElementById("button-record")
 	buttonMIDI = document.getElementById("button-midi")
 	buttonQuantise = document.getElementById("button-quantise")
+	//buttonPhotograph = document.getElementById("button-photograph")
 	
+
 	if ( canFullscreen() )
 	{
 		//also pass this inott a flip flopper
@@ -210,6 +241,11 @@ export const setupInterface = ( options ) => {
 		document.getElementById( "button-fullscreen").classList.toggle("hide", true)
 	}
 	
+	// Show the release date on the UI somewhere...
+	const versionElement = document.getElementById("version")
+	const currentVersion = versionElement.innerHTML
+	versionElement.innerHTML = `${currentVersion} <span id="release">${releaseDate.format(format("MMMM YYYY"))}</span>`
+
 	// if we are in solo mode
 	if (!options.duet)
 	{
@@ -227,6 +263,7 @@ export const setupInterface = ( options ) => {
 		main.classList.add("duet")
 		buttonDuet.addEventListener( "click", event => loadSoloMode, false)
 	}
+	
 	
 	// do a query here to catch all buttons?
 	const buttons = controls.querySelectorAll("button, label")
