@@ -13,8 +13,11 @@ let startTime = -1
 let currentTime = -1
 let gap = -1
 let intervals = 0
+let accurateTiming = true
 
-const elapsed = () => (performance.now() - startTime) * 0.001
+const now = () => performance.now()
+
+const elapsed = () => ( now() - startTime) * 0.001
 
 const loop = interval => {
     
@@ -25,24 +28,25 @@ const loop = interval => {
         const passed = elapsed()
         const difference = expected - passed
 
-        currentTime = performance.now()
+        currentTime = now()
         
         intervals++
         
         postMessage({ event:EVENT_TICK, time:passed, intervals })
-        console.log({expected,passed,difference,currentTime})
+        // console.log({expected,passed,difference,currentTime})
 
         // modify the interval to accomodate the drift
-        
+        const nextInterval = accurateTiming ? interval + difference : interval 
+
         // call itself with the new interval?
-        loop(interval + difference)
+        loop(nextInterval)
 
     }, interval)
 }
 
 const reset = () =>{
     intervals = 0
-    startTime = performance.now()
+    startTime = now()
 }
 
 const start = (interval=250)=>{
@@ -54,7 +58,7 @@ const start = (interval=250)=>{
 
     if (!isRunning)
     {
-        startTime = performance.now()
+        startTime = now()
         isRunning = true
 
         postMessage({event:EVENT_STARTING, time:0})
@@ -80,6 +84,7 @@ self.onmessage = e => {
     switch (data.command)
     {
         case CMD_START:
+            accurateTiming = data.accurateTiming || false
             start(data.interval)
             break
 

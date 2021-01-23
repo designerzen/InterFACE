@@ -10,7 +10,9 @@ export const EVENT_TICK = "tick"
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
 // Load in the correct worker...timing.requestframe.worker.js
-let timingWorker = new Worker("data-url:./timing.requestframe.worker.js") // new Worker(WORKER_URL)
+// const timingWorker = new Worker("data-url:./timing.setinterval.worker.js") 
+// const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
+const timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
 
 let startTime = -1
 let currentInterval = 1
@@ -22,10 +24,11 @@ let bar = 0
 let bars = 16
 let barsElapsed = 0
 
+// time sig
 export const timePerBar = () => 2403 / bars
 export const getBar = () => bar
 
-const now = () => audioContext.currentTime
+export const now = () => audioContext.currentTime
 
 const elapsed = () => (now() - startTime) * 0.001
 
@@ -50,7 +53,7 @@ export const setTimeBetween = time => {
     timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
 }
 
-export const start = (callback, timeBetween=200) => {
+export const start = (callback, timeBetween=200, options={} ) => {
 
     barsElapsed = 0
 
@@ -61,7 +64,7 @@ export const start = (callback, timeBetween=200) => {
         // on Safari macOS/iOS, the audioContext is suspended if it's not created
         // in the event handler of a user action: we attempt to resume it.
         if (audioContext.state === 'suspended') {
-            audioContext.resume();
+            audioContext.resume()
         }
     }
 
@@ -122,8 +125,14 @@ export const start = (callback, timeBetween=200) => {
         timingWorker.postMessage({error, time:audioContext.currentTime })
     }
 
-    // send command to worker
-    timingWorker.postMessage({command:CMD_START, time:audioContext.currentTime, interval:timeBetween })
+    // send command to worker... options
+    timingWorker.postMessage({
+        command:CMD_START, 
+        time:audioContext.currentTime, 
+        interval:timeBetween,
+        // FIXME:
+        accurateTiming:false
+    })
     //console.log("Starting...", {audioContext, interval:timeBetween, timingWorker} )
 
     // methods that can be chained?
@@ -132,6 +141,7 @@ export const start = (callback, timeBetween=200) => {
         timingWorker
     }
 }
+
 
 export const stop = () => {
     const currentTime = now()

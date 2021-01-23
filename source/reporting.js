@@ -34,6 +34,12 @@ export const setupReporting = (name="Interface", id="G-1XT0GV0L6J") => {
 	// })	
 }
 
+export const track = (name, data) => {
+	if (analytics)
+	{
+		analytics.track(name, data)		
+	}
+}
 export const trackExit = () => {
 	
 	// // Track a custom event 
@@ -44,13 +50,13 @@ export const trackExit = () => {
 	// })
 }
 
-export const trackError = error =>{ 
+export const trackError = (error, code=42, category="Fails") =>{ 
 	if (analytics)
 	{
 		analytics.track('Error', {
-			category: 'Fails',
+			category:category,
 			label:error,
-			value: 42	
+			value:code
 		})		
 	}
 }

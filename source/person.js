@@ -534,7 +534,8 @@ export default class Person{
 		
 		return {
 			yaw, pitch,
-			lipPercentage
+			lipPercentage,
+			eyeDirection
 		}
 	}
 
