@@ -343,7 +343,6 @@ export const installer = async (defer=false) => {
 			deferredPrompt = event
 			hasPrompt = true
 			event.preventDefault() 
-			console.error("prompt caught pwas!")
 
 			if (!defer && !isIOS)
 			{
@@ -372,7 +371,6 @@ window.addEventListener("beforeinstallprompt", event => {
 	deferredPrompt = event
 	hasPrompt = true
 	event.preventDefault() 
-	console.error("prompt caught pwas!")
 
 }, {once:true})
  /*

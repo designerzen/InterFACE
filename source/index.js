@@ -29,7 +29,7 @@ import { getLocationSettings, getShareLink, addToHistory } from './location-hand
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
-import { setupImage} from './visual'
+import { setupImage, getCanvasDimensions } from './visual'
 import { takePhotograph, overdraw, setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
 import { playNextPart, kitSequence } from './patterns'
 import { getInstruction, getHelp, getNextInstruction } from './instructions'
@@ -81,7 +81,7 @@ let counter = 0
 
 const cameraPan = {x:1,y:1}
 
-body.classList.add("loading")
+body.classList.toggle("loading", true)
 
 // realtime UI options
 const ui = getLocationSettings({
@@ -345,11 +345,13 @@ const setup = (settings, progressCallback) => {
 	setButton( "button-photograph", event => {
 		const unique = Math.ceil( now() * 10000000 )
 		const id = `photograph-${unique}`
-		
+		const dimensions = getCanvasDimensions()
 		const img = new Image()
 		img.src = takePhotograph()
 		img.alt = "Photograph taken " + Date.now().toString()
-		
+		img.width = dimensions.width
+		img.height = dimensions.height
+
 		const anchor = document.createElement("a")
 		anchor.href = img.src
 		anchor.innerHTML = `Click to download this photograph`
@@ -567,7 +569,7 @@ const setup = (settings, progressCallback) => {
 				// switch effect type?
 				const t = counter * 0.01
 				
-				overdraw( cameraPan.x * Math.sin(t), cameraPan.y * Math.cos(t))
+				overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
 			}
 			
 			if (ui.quantise)
@@ -642,6 +644,7 @@ const setup = (settings, progressCallback) => {
 							// use person 1's eyes to control other stuff too?
 							// in this case the direction of the pan in disco mode
 							cameraPan.x = stuff.eyeDirection
+							cameraPan.y = stuff.pitch
 						}
 
 					}else{
@@ -709,6 +712,7 @@ const setup = (settings, progressCallback) => {
 						// use person 1's eyes to control other stuff too?
 						// in this case the direction of the pan in disco mode
 						cameraPan.x = stuff.eyeDirection
+						cameraPan.y = stuff.pitch
 					}
 				}
 			}
@@ -750,7 +754,7 @@ const onLoaded = async () => {
 	// load the share menu :)
 	const sharer = await import('share-menu')
 	
-	body.classList.add("loaded")
+	body.classList.toggle("loaded", true)
 
 	// at any point we can now trigger the installation
 	if (installation)

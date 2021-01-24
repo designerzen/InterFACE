@@ -244,7 +244,8 @@ export const setupInterface = ( options ) => {
 	// Show the release date on the UI somewhere...
 	const versionElement = document.getElementById("version")
 	const currentVersion = versionElement.innerHTML
-	versionElement.innerHTML = `${currentVersion} <span id="release">${releaseDate.format(format("MMMM YYYY"))}</span>`
+	const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()}/${releaseDate.getFullYear()}`
+	versionElement.innerHTML = `${currentVersion} <span id="release">${formattedDate}</span>`
 
 	// if we are in solo mode
 	if (!options.duet)

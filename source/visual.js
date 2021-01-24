@@ -32,6 +32,14 @@ export const canvasContext = canvas.getContext('2d')
 let width = canvas.width
 let height = canvas.height
 
+export const getCanvasDimensions = () => { 
+	return {
+		width, height
+	}
+	// width:canvas.width, 
+	// height:canvas.height 
+}
+
 export const updateCanvasSize = (w,h) => {
 	width = w || canvas.width
 	height = h || canvas.height

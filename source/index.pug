@@ -1,6 +1,6 @@
 - var URL = "https://designerzen.github.io/MusicalFace"
 doctype html
-html(lang="")
+html(lang="").loading
 	head
 		meta(charset="utf-8")
 		block title
@@ -115,21 +115,21 @@ html(lang="")
 						
 						button#button-solo( aria-label="Single player mode" ) Solo
 						
+						label(for="button-metronome" aria-label="Play a metronome to help you keep time") Metronome
+							input(type="checkbox")#button-metronome
+						
+						label(for="button-clear" aria-label="Clear visuals") Clear
+							input(type="checkbox")#button-clear
+						
+						label(for="button-transparent" aria-label="Synch video to movements") Synch
+							input(type="checkbox")#button-transparent
+						
 						button#button-photograph( aria-label="Take a photograph" ) Photograph
 						
 						label(for="button-quantise" aria-label="Ensure that the notes are played at regular intervals") Quantise
 							input(type="checkbox")#button-quantise
 						
-						label(for="button-metronome" aria-label="Play a metronome to help you keep time") Metronome
-							input(type="checkbox")#button-metronome
-						
-
-						label(for="button-clear" aria-label="Clear visuals") Clear
-							input(type="checkbox")#button-clear
-											
-						label(for="button-transparent" aria-label="Synch video to movements") Synch
-							input(type="checkbox")#button-transparent
-											
+										
 						
 						label(for="button-spectrogram" aria-label="Show a funky bar chart of frequencies") Spectrogram
 							input(type="checkbox")#button-spectrogram

@@ -73,6 +73,11 @@ export default class Person{
 		this.saturation = 40
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
 			
+		// Head orientation
+		this.yaw = 0
+		this.pitch = 0
+		this.roll = 0
+
 		this.singing = false
 		this.isMouthOpen = false
 		this.mouseDownAt = -1
@@ -362,7 +367,11 @@ export default class Person{
 
 		if (!this.data || this.tracks > MAX_TRACKS)
 		{
-			return
+			return {
+				yaw:0, pitch:0, 
+				lipPercentage:0,
+				eyeDirection:0
+			}
 		}
 
 		// only change the note if not active?
@@ -532,8 +541,12 @@ export default class Person{
 		// this.gainNode.gain.value = newVolume
 		//console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
 		
+		this.yaw = yaw
+		this.pitch = pitch
+		this.roll = roll
+
 		return {
-			yaw, pitch,
+			yaw, pitch, roll,
 			lipPercentage,
 			eyeDirection
 		}
