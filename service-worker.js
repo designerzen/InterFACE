@@ -131,22 +131,22 @@
       this[globalName] = mainExports;
     }
   }
-})({"fc6d81ecdbfaf2f7661e4caf9725077d":[function(require,module,exports) {
+})({"a8f3bcb152bf53a7519b0cc47cf626ed":[function(require,module,exports) {
 "use strict";
 
 var _version = require("./version");
 
 // Not compiled so best add the ; to the es5
-var ONE_DAY = 60 * 60 * 24;
-var REVISION = _version.VERSION;
-var BUILD_MMR = "0.0.5";
-var WORKBOX_DEBUG_LOGGING = true; // Workbox version - update manually when there are new releases.
+const ONE_DAY = 60 * 60 * 24;
+const REVISION = _version.VERSION;
+const BUILD_MMR = "0.0.5";
+const WORKBOX_DEBUG_LOGGING = true; // Workbox version - update manually when there are new releases.
 
-var WORKBOX_VERSION = '6.0.2'; // Cache naming and versioning.
+const WORKBOX_VERSION = '6.0.2'; // Cache naming and versioning.
 
-var APP_CACHE_PREFIX = 'mct';
-var APP_CACHE_SUFFIX = "v".concat(BUILD_MMR);
-importScripts("https://storage.googleapis.com/workbox-cdn/releases/".concat(WORKBOX_VERSION, "/workbox-sw.js"));
+const APP_CACHE_PREFIX = 'mct';
+const APP_CACHE_SUFFIX = `v${BUILD_MMR}`;
+importScripts(`https://storage.googleapis.com/workbox-cdn/releases/${WORKBOX_VERSION}/workbox-sw.js`);
 workbox.setConfig({
   debug: WORKBOX_DEBUG_LOGGING
 });
@@ -156,9 +156,9 @@ workbox.core.setCacheNameDetails({
   precache: 'installtime',
   runtime: 'runtime'
 });
-self.addEventListener('message', function (event) {
+self.addEventListener('message', event => {
   if (event.data && event.data.message) {
-    console.log(">>> Message received from client: ", event.data);
+    console.log(`>>> Message received from client: `, event.data);
 
     if (event.data.message === 'SKIP_WAITING') {
       self.skipWaiting();
@@ -168,26 +168,37 @@ self.addEventListener('message', function (event) {
       debug.warning('>>>> No idea what to do with that message!');
     }
   } else {
-    throw new Error("Message event handler: event.data=[".concat(event.data, "], event.data.message=[").concat(event.data.message, "]"));
+    throw new Error(`Message event handler: event.data=[${event.data}], event.data.message=[${event.data.message}]`);
   }
 }); // Load caching routines
 
-var _workbox$recipes = workbox.recipes,
-    pageCache = _workbox$recipes.pageCache,
-    imageCache = _workbox$recipes.imageCache,
-    staticResourceCache = _workbox$recipes.staticResourceCache,
-    googleFontsCache = _workbox$recipes.googleFontsCache,
-    offlineFallback = _workbox$recipes.offlineFallback;
-var registerRoute = workbox.routing.registerRoute;
-var ExpirationPlugin = workbox.expiration.ExpirationPlugin;
-var RangeRequestsPlugin = workbox.rangeRequests.RangeRequestsPlugin;
-var _workbox$cacheableRes = workbox.cacheableResponse,
-    CacheableResponse = _workbox$cacheableRes.CacheableResponse,
-    CacheableResponsePlugin = _workbox$cacheableRes.CacheableResponsePlugin;
-var precacheAndRoute = workbox.precaching.precacheAndRoute;
-var _workbox$strategies = workbox.strategies,
-    StaleWhileRevalidate = _workbox$strategies.StaleWhileRevalidate,
-    CacheFirst = _workbox$strategies.CacheFirst; // CacheFirst - an implementation of a cache-first request strategy.
+const {
+  pageCache,
+  imageCache,
+  staticResourceCache,
+  googleFontsCache,
+  offlineFallback
+} = workbox.recipes;
+const {
+  registerRoute
+} = workbox.routing;
+const {
+  ExpirationPlugin
+} = workbox.expiration;
+const {
+  RangeRequestsPlugin
+} = workbox.rangeRequests;
+const {
+  CacheableResponse,
+  CacheableResponsePlugin
+} = workbox.cacheableResponse;
+const {
+  precacheAndRoute
+} = workbox.precaching;
+const {
+  StaleWhileRevalidate,
+  CacheFirst
+} = workbox.strategies; // CacheFirst - an implementation of a cache-first request strategy.
 // A cache first strategy is useful for assets that have been revisioned, such as URLs like /styles/example.a8f5f1.css, since they can be cached for long periods of time.
 // If the network request fails, and there is no cache match, this will throw a WorkboxError exception.
 // import { registerRoute } from 'workbox-routing';
@@ -214,11 +225,13 @@ staticResourceCache();
 imageCache();
 offlineFallback(); // Music files!
 
-var CACHE_MEDIA = 'static-media';
+const CACHE_MEDIA = 'static-media';
 
-var catchMedia = function catchMedia(match) {
-  var request = match.request;
-  var isMedia = request.destination === 'mp3' || request.destination === 'media' || request.destination === 'audio' || request.url.indexOf(".mp3") === request.url.length - 4; // console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
+const catchMedia = match => {
+  const {
+    request
+  } = match;
+  const isMedia = request.destination === 'mp3' || request.destination === 'media' || request.destination === 'audio' || request.url.indexOf(".mp3") === request.url.length - 4; // console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
 
   return isMedia;
 };
@@ -271,17 +284,17 @@ registerRoute(/^https:\/\/tfhub\.dev\/mediapipe\/tfjs-model/, new CacheFirst({
 //     cacheName: 'google-fonts-stylesheets',
 //   }),
 // );
-},{"./version":"96bbf71b97db043de13209fe2c1629cf"}],"96bbf71b97db043de13209fe2c1629cf":[function(require,module,exports) {
+},{"./version":"25488683cc04bb43faf629e105172bc8"}],"25488683cc04bb43faf629e105172bc8":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.DATE = exports.VERSION = void 0;
-var VERSION = "0.24.0";
+const VERSION = "0.25.0";
 exports.VERSION = VERSION;
-var DATE = "1611522094892";
+const DATE = "1611531448251";
 exports.DATE = DATE;
-},{}]},{},["fc6d81ecdbfaf2f7661e4caf9725077d"], null)
+},{}]},{},["a8f3bcb152bf53a7519b0cc47cf626ed"], null)
 
 //# sourceMappingURL=service-worker.js.map
