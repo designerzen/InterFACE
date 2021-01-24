@@ -278,9 +278,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.DATE = exports.VERSION = void 0;
-var VERSION = "0.22.0";
+var VERSION = "0.23.0";
 exports.VERSION = VERSION;
-var DATE = "1611452235071";
+var DATE = "1611518784502";
 exports.DATE = DATE;
 },{}]},{},["fc6d81ecdbfaf2f7661e4caf9725077d"], null)
 
