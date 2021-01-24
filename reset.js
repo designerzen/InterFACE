@@ -4,13 +4,20 @@
 import {rmdirSync,unlink} from 'fs'
 import * as path from 'path'
 
+// get args from node 
 // DELETE node_modules too?
-const TO_DELETE = [ '.parcel-cache' ]
-const directory = TO_DELETE[0]
-
-try {
-    rmdirSync(directory, { recursive: true })
-    console.log(`${directory} was deleted`)
-} catch (err) {
-    console.error(`Error while deleting ${dir}.`)
+const TO_DELETE = [ '.parcel-cache']
+if ( process.argv.indexOf('--total') > -1 ){
+    TO_DELETE.push('node_modules')
 }
+    
+TO_DELETE.forEach( async (directory) => {
+
+    try {
+        rmdirSync(directory, { recursive: true })
+        console.log("\x1b[32m", `${directory} was deleted`)
+    } catch (err) {
+        console.error("\x1b[31m", `Error while deleting ${dir}.`)
+    }
+
+})
