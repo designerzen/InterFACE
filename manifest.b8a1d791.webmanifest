@@ -1,0 +1,43 @@
+{
+	"name": "interFACE",
+	"display": "standalone",
+	"start_url": "/",
+	"short_name": "interFACE",
+	"theme_color": "#e4dede",
+	"description": "Webcam based music making device",
+	"orientation": "any",
+	"background_color": "#e4dede",
+	"related_applications": [],
+	"prefer_related_applications": false,
+	"icons": [
+	  {
+		"src": "assets/icons/android-chrome-512x512.png",
+		"sizes": "512x512"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-192x192.png",
+		"sizes": "192x192"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-48x48.png",
+		"sizes": "48x48"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-24x24.png",
+		"sizes": "24x24"
+	  }
+	],
+	"screenshots": [
+	  {
+		"src": "assets/screenshots/screen.png"
+	  }
+	],
+	"features": [
+	  "Cross Platform",
+	  "Machine Learning based motion capture",
+	  "Simple synth"
+	],
+	"categories": [
+	  "music"
+	]
+  }
