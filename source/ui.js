@@ -14,8 +14,6 @@ export let buttonMIDI
 export let buttonVideo
 export let controls
 
-const releaseDate = new Date(DATE * 1000)
-
 import PALETTE from "./palette"
 
 // updates the text on screen
@@ -207,6 +205,7 @@ export const setupInterface = ( options ) => {
 	const buttonShare = document.getElementById("share")
 	const buttonSolo = document.getElementById("button-solo")
 	const buttonDuet = document.getElementById("button-duet")
+	const title = document.getElementById("title")
 	
 	const shareElement = document.querySelector("share-menu")
 	shareElement.url = getShareLink( options )
@@ -232,7 +231,7 @@ export const setupInterface = ( options ) => {
 		const buttonFullscreen = setToggle( "button-fullscreen", status =>{
 			options.fullscreen = toggleFullScreen()
 			buttonFullscreen.classList.toggle("fs", options.fullscreen)
-			console.log("fullscreen", options.fullscreen)
+			//console.log("fullscreen", options.fullscreen)
 			//setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 		}, false )
 	
@@ -242,10 +241,20 @@ export const setupInterface = ( options ) => {
 	}
 	
 	// Show the release date on the UI somewhere...
+	
+	const releaseDate = new Date(DATE)
+	const dateOptions = {
+		hour12 : true,
+		hour:  "numeric",
+		minute:  "numeric",
+	 }
+ 
 	const versionElement = document.getElementById("version")
 	const currentVersion = versionElement.innerHTML
-	const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()}/${releaseDate.getFullYear()}`
+	const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+1}/${releaseDate.getFullYear()} ${ releaseDate.toLocaleTimeString("en-GB",dateOptions) }`
 	versionElement.innerHTML = `${currentVersion} <span id="release">${formattedDate}</span>`
+	
+	// console.log(`InterFACE ${currentVersion} build date : ${formattedDate} `, {DATE, releaseDate})
 
 	// if we are in solo mode
 	if (!options.duet)
@@ -285,4 +294,6 @@ export const setupInterface = ( options ) => {
 		// removes the ?
         //window.history.back()
 	}, true)
+
+	title.innerHTML = "The InterFACE is ready, open your mouth to begin"
 }

@@ -48,6 +48,10 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	--curve:12px;
 	--pad:2vmin;
 	--footer-gap:calc(61px);
+
+	--ease-s:450ms;
+	--ease-m:90ms;
+	--ease-q:45ms;
 }
 
 html, input, button, textarea, option, select{
@@ -62,7 +66,7 @@ html{
 	text-rendering: optimizeSpeed;
 
 	// dark
-	transition: background-color 450ms linear;
+	transition: background-color var(--ease-s) linear;
 
 	color:$col-white;
 	background-color:$col-dark;
@@ -148,7 +152,7 @@ header{
 		align-self: self-start;
 		justify-self: center;
 		margin-top:var(--pad);
-		transition:color 400ms ease-out;
+		transition:color var(--ease-s) ease-out;
 		// font-size: clamp(1rem, -0.5385rem + 7.6923vw, 3.5rem);
 		// clamp(minimum, preferred, maximum)
 		font-size:clamp(2rem, -0.5385rem + 7.6923vw, 3.5rem);
@@ -191,7 +195,7 @@ header{
 
 	// we can transition fill :)
 	fill:currentColor;
-	transition:fill 90ms linear;
+	transition:fill var(--ease-m) linear;
 
 	width:100%;
 	min-height:10vh;
@@ -279,7 +283,7 @@ label#progress-bar{
 
 	// object-fit: contain;
 
-	transition:opacity 300ms ease-out;
+	transition:opacity var(--ease-s) ease-out;
 
 	display:block;
 
@@ -309,12 +313,12 @@ label#progress-bar{
 	
 	// show a graphic but hide contents
 	&::before, &::after{
-		transition: 400ms linear opacity;
+		transition: var(--ease-s) linear opacity;
 		opacity:0;
 	}
 	// Overlaid logo
 	&:before{
-		animation: Fade 450ms linear 0s 1 normal both;
+		animation: Fade var(--ease-s) linear 0s 1 normal both;
 		opacity:0.9;
 		position: absolute;
 		top:-4px;
@@ -413,21 +417,31 @@ label#progress-bar{
 
 // Hide controls on mouse out on hover devices
 @media (any-hover: hover) {
+	//@supports (html:focus-within){
+			
+		// #controls,
+		#controls{
+			//visibility: hidden;
+			// transition:45ms linear opacity;
+			// fade out
+			animation: Fade var(--ease-s) linear 1500ms both reverse;
+			// opacity:0;
+		}
 
-	// #controls,
-	#controls{
-		//visibility: hidden;
-		// transition:45ms linear opacity;
-		// fade out
-		animation: Fade 900ms linear 1500ms both reverse;
-		// opacity:0;
-	}
+		html:focus-visible #controls,
+		html:focus-within #controls,
+		html:hover #controls{
+			// opacity:1;
+			//visibility: visible;
+			animation: Fade var(--ease-q) linear 0s both;
+		}
+	//}
+}
 
-	html:hover #controls{
-		// opacity:1;
-		//visibility: visible;
-		animation: Fade 45ms linear 0s both;
-	}
+// funky text animations
+.loading h1 strong,
+p strong{
+	animation:TextColours 4s linear infinite 0.05s both;
 }
 
 .loading {
@@ -467,7 +481,7 @@ label#progress-bar{
 			max-height:100vh;
 			grid-area: 1/1/1/1;
 			visibility:visible;
-			animation:Fade 400ms ease-in 1 0s both;
+			animation:Fade var(--ease-s) ease-in 1 0s both;
 		}	
 		.logo{
 			@extend %image-replacement;
@@ -483,7 +497,10 @@ label#progress-bar{
 			//background-color: black;
 			color: $col-orange;
 			clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
+		
+		
 		}
+
 	}
 	video{
 		opacity:0.5;
@@ -543,7 +560,7 @@ label#progress-bar{
 			align-self:center;
 			padding-left: 0;
 			opacity:0.2;
-			transition:opacity 90ms linear;
+			transition:opacity var(--ease-m) linear;
 				
 			transform: rotate(90deg) translateX(var(--pad));
 			transform-origin: top left;
@@ -561,8 +578,10 @@ label#progress-bar{
 		display: none;
 	}
 	#app{
-		h3{
+		#title{
 			visibility: hidden;
+			position: absolute;
+			right:0;
 		}
 	}
 	
@@ -687,7 +706,7 @@ p{
 		height:calc(1rem - 0px);
 		background-color:$col-orange;
 		margin-left:calc(var(--pad)/2);
-		animation: Blink 950ms 0s infinite normal both;
+		animation: Blink 1150ms 0s infinite normal both;
 		vertical-align:text-bottom;
 	}
 	
@@ -754,6 +773,9 @@ p{
 	right:0;
 	display: flex;
 	overflow: auto;
+	overflow-y: hidden;
+	// a bit of space to zomom
+	padding-top:30px;
 			
 	&:focus-within {
 		// prefer smooth scrolling where available (opinionated).
@@ -764,16 +786,45 @@ p{
 		color:transparent;
 		user-select: none;
 		font-size:0;
+		position: relative;
+		box-sizing: border-box;
+		transition: transform var(--ease-m) ease-out;
+
+		&::before{
+			content:'';
+			border:4px solid $col-white;
+			position: absolute;
+			top:0;
+			left:0;
+			right:0;
+			bottom:0;
+			opacity: 0;
+			transition: var(--ease-m) linear;
+		}
+
+		&:hover, &:focus{
+			z-index:2;
+			transform-origin: bottom center;
+			transform:scale(1.2);			
+			background-color: $col-dark;
+			&::before{
+				opacity: 1;
+			}
+		}
+		
+		&:focus{
+			outline:4px solid $col-cream;
+		}
 	}
 
 	img{
 		max-width:120px;
-		max-height:20vmin;
+		min-height:44px;
+		max-height:12vmin;
+		height: auto;
+		width: auto;
 		display:block;
-		&:hover{
-			outline:4px solid $col-white;
-			background-color: $col-dark;
-		}
+
 	}
 	
 }
@@ -811,24 +862,24 @@ fieldset{
 	position: relative;
 	// NB. ensure in front of the person buttons
 	z-index:909;
-	transition:opacity 400ms linear;
-	animation:Fade 400ms ease-in 1 0s both;
+	transition:opacity var(--ease-s) linear;
+	animation:Fade var(--ease-s) ease-in 1 0s both;
 }
 
 fieldset:empty{
 	display: none;
 	opacity:0;
-	animation:Fade 400ms ease-in 1 0s reverse both;
+	animation:Fade var(--ease-s) ease-in 1 0s reverse both;
 }
 
 
 label{
 	--padding:calc( 1 * var(--pad));
-	outline: 1px dotted $col-cream;
+	//outline: 1px groove $col-cream;
 	font-weight:900;
 	text-transform: uppercase;
 	cursor: pointer;
-	transition:color 400ms linear, background-color 90ms linear;
+	transition:color var(--ease-s) linear, background-color 90ms linear;
 
 	padding:var(--padding);// var(--pad) 0 var(--pad);
 	&:hover, &:focus{
@@ -897,8 +948,9 @@ button,
 #shared-controls > *{
 
 	--icon-size:32px;
-	--fade-speed:45ms;
+	--fade-speed:var(--ease-q);
 
+	border-style: double ridge outset groove;
 	cursor: pointer;
 	// from ios guidelines
 	min-width:44px;
@@ -933,8 +985,14 @@ button,
 	background-repeat:no-repeat;
 	background-size:auto var(--icon-size);
 	// background-position:top var(--pad) center;
-	background-position: center left var(--pad);
+	background-position: left var(--pad) center;
 	background-color:$col-cream;
+
+	// this mau be a bad idea
+	//background-image:linear-gradient($col-cream, $col-grey);
+	
+	border-radius: 2px;
+
 	color:$col-dark;
 
 	&:empty{ 
@@ -1064,12 +1122,15 @@ button,
 	display:flex;
 	align-items: stretch;
 	justify-content: stretch;
-	border-top:1px dotted var(--col-regular);
+	border-top:1px groove var(--col-regular);
+	
+	background-image:linear-gradient($col-cream, $col-grey);
+	
+
 	//overflow: hidden;
 	// overflow: scroll;
 	//overflow-y:hidden;
 
-	background-image:linear-gradient($col-grey, $col-cream);
 	
 	// need to bring it into z-range
 	z-index:303;
@@ -1110,8 +1171,8 @@ button,
 			height:8px;
 			transform-origin: center bottom;
 			transform:translateY(100%);
-			transition:opacity 400ms linear,
-						transform 450ms $easeOutBack;
+			transition:opacity var(--ease-s) linear,
+						transform var(--ease-s) $easeOutBack;
 		}
 
 		&.checked{
@@ -1124,7 +1185,7 @@ button,
 		}
 		&.checked:after{
 			opacity:1;
-			transform:translateY(0%);
+			transform:translateY(20%);
 		}
 	}
 
@@ -1134,6 +1195,13 @@ button,
 		background-color:transparent;
 		color:transparent;
 		user-select: none;
+		pointer-events: none;
+		border:0;
+		visibility: hidden;
+		&:focus{
+			color:$col-white;
+			visibility: visible;
+		}
 	}
 
 	label,button{
@@ -1145,16 +1213,16 @@ button,
 		text-transform: uppercase;
 	
 		//border-left:0;
-		border-right:1px dotted $col-dark;
-		border-top:1px dotted $col-white;
-		border-bottom:1px dotted $col-dark;
+		border-right:1px groove $col-dark;
+		border-top:1px groove $col-white;
+		border-bottom:1px groove $col-dark;
 		
 		// color:var(--col-regular);
 		// background-color:rgba($col-yellow,0.5);
 
-		transition:transform 45ms $easeOutBack,
-					background-color 40ms linear, 
-					color 45ms linear;
+		transition:transform var(--ease-q) $easeOutBack,
+					background-color var(--ease-q) linear, 
+					color var(--ease-q) linear;
 	
 		&:active{
 			transform: scale(0.94);
@@ -1174,7 +1242,7 @@ button,
 	}
 	
 	> * + *{
-		border-left:1px dotted $col-white;
+		border-left:1px groove $col-white;
 	}
 		
 
@@ -1214,7 +1282,7 @@ button,
 		// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
 		// }
 		&.later{
-			animation: Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+			animation: Hide-Install var(--ease-s) $easeOutBack var(--delay) 1 normal both;
 		}
 	}
 		
@@ -1332,18 +1400,25 @@ button.person{
 	position: absolute;	
 	z-index:202;
 	overflow: hidden;
-	outline:2px solid $col-blue;
+	border:2px solid $col-blue;
+	outline:2px solid $col-cream;
 	box-sizing: border-box;
-	border-radius: 2px;
+	border-radius: 3px;
+	// appearance: none;
 	//border:2px solid white;
 
 	color:transparent;
 	opacity: 0;
-	transition: 400ms ease-in opacity, left 9ms linear, top 9ms linear;
+	transition: var(--ease-s) ease-in opacity;
+	//, left 9ms linear, top 9ms linear;
 
 	&:hover, &:focus{
 		background-color: transparent;
 		outline: none;
+	}
+
+	&:active{
+		opacity: 1;
 	}
 
 	&:hover{
@@ -1420,7 +1495,7 @@ button#button-midi,
 button.install-app,
 button.update-available{
 	// border-radius: var(--curve) var(--curve) var(--curve) 0;
-	transition:background-color 40ms linear, color 40ms linear;
+	transition:background-color var(--ease-q) linear, color 40ms linear;
 	overflow: hidden;
 }
 
@@ -1450,6 +1525,9 @@ button#button-video{
 	&:hover,&:focus{
 		background-color: transparent;
 		//border:5px solid $col-yellow;
+	}
+	&::before, &::after{
+		display:none;
 	}
 }
 
@@ -1651,16 +1729,18 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 	left: calc( var(--pad));
 	bottom: var(--pad);
 	color:$col-brown;
-	transition:transform 450ms $easeOutBack;
+	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
 	z-index:-1;
+	
 }
 
 @media (orientation: landscape) {
-	.loaded #foot{
-		transform-origin: bottom left;
-		transform: rotate(270deg) translateX(67px) translateY(10px);
-	}
+	// .loaded #foot{
+	// 	--spacer:67px;
+	// 	transform-origin: bottom left;
+	// 	transform: rotate(270deg) translateX(var(--spacer)) translateY(10px);
+	// }
 }
 
 // 

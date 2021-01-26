@@ -7,6 +7,8 @@ export const EVENT_STARTING = "starting"
 export const EVENT_STOPPING = "stopping"
 export const EVENT_TICK = "tick"
 
+export const MAX_BARS_ALLOWED = 32
+
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
 // Load in the correct worker...timing.requestframe.worker.js
@@ -27,6 +29,10 @@ let barsElapsed = 0
 // time sig
 export const timePerBar = () => 2403 / bars
 export const getBar = () => bar
+
+export const getBPM = () => 60000 / timePerBar 
+export const getBars = () => bars 
+export const setBars = value => bars = value < 1 ? 1 : bars > MAX_BARS_ALLOWED ? MAX_BARS_ALLOWED : bars
 
 export const now = () => audioContext.currentTime
 

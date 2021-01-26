@@ -104,7 +104,7 @@ export const addToHistory = (options, title="") => {
 	}
 	//
 	const out = window.history.pushState(options, title, url)
-	console.log("History", {out, options, title, url} )
+	//console.log("History", {out, options, title, url} )
 }
 export const getShareLink = (options) => {
 	

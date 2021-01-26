@@ -3,6 +3,9 @@ import { setFeedback, setToast, addTooltip } from './ui'
 
 import { VERSION, DATE } from './version'
 
+import manifestPath from "url:./manifest.webmanifest"
+// let manifestPath = "./manifest.webmanifest"
+	
 const body = document.documentElement
 
 // const shareMenu = document.getElementById('share-menu')
@@ -10,15 +13,14 @@ const body = document.documentElement
 export const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
 
 let deferredPrompt
+
 		   
 let installed = false
 let hasPrompt = false
 
 export const installer = async (defer=false) => {
 
-	let openModal = false
 	let manifestData
-	let manifestPath = "./manifest.webmanifest"
 	let relatedApps = []
 
     // handle iOS specifically
@@ -29,21 +31,20 @@ export const installer = async (defer=false) => {
       navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
       (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
 
-	const cancelInstall = () =>{
-		return new Promise((resolve, reject) => {
-			// close the modal
-		  openModal = false
+	const cancelInstall = () => new Promise((resolve, reject) => {
+		// close the modal
+		openModal = false
+
+	//   if (this.hasAttribute("openmodal")) {
+	// 	this.removeAttribute("openmodal")
+	//   }
+
+	//   let event = new CustomEvent("hide")
+	//   this.dispatchEvent(event)
+
+		resolve()
+	})
 	
-		//   if (this.hasAttribute("openmodal")) {
-		// 	this.removeAttribute("openmodal")
-		//   }
-	
-		//   let event = new CustomEvent("hide")
-		//   this.dispatchEvent(event)
-	
-		  resolve()
-		})
-	}
 
     document.addEventListener("keyup", (event) => {
       if (event.key === "Escape") {
@@ -103,7 +104,8 @@ export const installer = async (defer=false) => {
 		  }
 
 		} catch (err) {
-		  return null
+			console.error("Manifest could not be loaded",err)
+		  	return null
 		}
 	  }
 	
@@ -114,9 +116,7 @@ export const installer = async (defer=false) => {
 		  try {
 			await getManifestData()
 		  } catch (err) {
-			console.error(
-			  "Error getting manifest, check that you have a valid web manifest"
-			)
+			console.error("Error getting manifest, check that you have a valid web manifest")
 		  }
 		}
 	
@@ -127,11 +127,7 @@ export const installer = async (defer=false) => {
 
 	// This is created from the manifest
 	const createOverlayMarkup = () =>
-	`<button id="openButton" class="install-app">
-	Install InterFACE Version ${VERSION}
-	</button>
-	
-	<dialog open>
+	`<dialog open>
 		<!-- background needs to cancel install too? -->
 		<header id="logoContainer">
 			<img src="${ manifestData.icons[0].src }" alt="App Logo"/>
@@ -172,7 +168,6 @@ export const installer = async (defer=false) => {
 				? html`
 					<div id="screenshotsContainer">
 						<button
-							@click="${() => this.scrollToLeft()}"
 							aria-label="previous image"
 							>
 							<svg
@@ -196,7 +191,6 @@ export const installer = async (defer=false) => {
 
 						</section>
 						<button
-						@click="${() => this.scrollToRight()}"
 						aria-label="next image"
 						>
 						<svg
@@ -215,8 +209,8 @@ export const installer = async (defer=false) => {
 			</div>
 
 			<div id="descriptionWrapper">
-				<h3>${this.descriptionheader}</h3>
-				<p id="manifest-description">${this.manifestdata.description}</p>
+				<h3>${manifestData.descriptionheader}</h3>
+				<p id="manifest-description">${manifestData.description}</p>
 			</div>
 			
 			</div>
@@ -277,9 +271,7 @@ export const installer = async (defer=false) => {
 		{
 			// we need to show the installer!	// const test = await getManifestData()
 			const test = await firstUpdated()
-			console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
-			console.log({manifestdata: manifestData})
-		
+			
 			body.classList.add(getInstalledStatus() ? "installed" : "not-installed")
 
 			// show install button or update button???
@@ -323,14 +315,19 @@ export const installer = async (defer=false) => {
 			destination = destination || body
     
 			destination.appendChild(button)
+
+			// console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
+			// console.log({manifestdata: manifestData})
+		
 			return true
 
 		}else{
+
 			body.classList.add( installed ? "installed" : "not-installed" )
 
 			// we are already showing?
-			console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not-installed" )
-			console.error( { isSupportingBrowser, relatedApps, hasPrompt, isIOS} )
+			// console.log("Application not installable", {showInstaller, installed} , getInstalledStatus() ? "installed" : "not-installed" )
+			// console.error( { isSupportingBrowser, relatedApps, hasPrompt, isIOS} )
 			return false
 		}
 	}
