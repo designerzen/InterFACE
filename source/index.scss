@@ -1355,10 +1355,10 @@ button,
 		// @extend %image-replacement;
 		// background-image:url(./assets/icons/movie_creation-24px.svg);
 		// background-image:url(./assets/icons/music_note-24px.svg);
-		background-image:url(./assets/icons/image-24px.svg);
+		background-image:url(./assets/icons/image_not_supported-24px.svg);
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
-			background-image:url(./assets/icons/image_not_supported-24px.svg);
+			background-image:url(./assets/icons/image-24px.svg);
 			// background-image:url(./assets/icons/music_note-24px-24px.svg);
 		}
 	}
