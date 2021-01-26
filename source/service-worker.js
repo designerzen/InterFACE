@@ -4,7 +4,7 @@ import { VERSION } from './version'
 const ONE_DAY = 60 * 60 * 24;
 const REVISION = VERSION;
 const BUILD_MMR = "0.0.5";
-const WORKBOX_DEBUG_LOGGING = true;
+const WORKBOX_DEBUG_LOGGING = process.env.NODE_ENV === "development";
 // Workbox version - update manually when there are new releases.
 const WORKBOX_VERSION = '6.0.2';
 // Cache naming and versioning.

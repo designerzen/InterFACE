@@ -30,18 +30,12 @@
 	"screenshots": [
 	  {
 		"src": "assets/screenshots/screen.png"
-	  },
-	  {
-		"src": "assets/screenshots/screen.png"
-	  },
-	  {
-		"src": "assets/screenshots/screen.png"
 	  }
 	],
 	"features": [
 	  "Cross Platform",
 	  "Machine Learning based motion capture",
-	  "simple synth"
+	  "Simple synth"
 	],
 	"categories": [
 	  "music"

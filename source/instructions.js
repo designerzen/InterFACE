@@ -6,7 +6,7 @@ export const QUICK_START = [
 	`Make sure you allowed the camera!`
 ]
 export const INSTRUCTIONS = [
-	`Welcome to the interFACE`,
+	`Welcome to the <strong>interFACE</strong>`,
 	`Smile at the screen to begin...`,
 	`Tilt your head forwards and backwards to change octave`,
 	`Roll your head left and right to change pitch`,

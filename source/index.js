@@ -1,9 +1,10 @@
 // Just a simple face detection script with visual overlaid feedback and audio
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
+import {installer} from './install.js'
 
 import {createStore} from './store'
-import {loadModel} from './predictor'
+
 
 // You need to require the backend explicitly because facemesh itself does not
 import { 
@@ -32,11 +33,10 @@ import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 import { setupImage, getCanvasDimensions } from './visual'
 import { takePhotograph, overdraw, setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
 import { playNextPart, kitSequence } from './patterns'
-import { getInstruction, getHelp, getNextInstruction } from './instructions'
+import { getInstruction, getHelp } from './instructions'
 import Person, {DEFAULT_OPTIONS, NAMES} from './person'
-import { VERSION } from './version'
-
 import { setupReporting, track, trackError, trackExit } from './reporting'
+import { VERSION } from './version'
 
 // DOM Elements
 const body = document.documentElement
@@ -69,7 +69,6 @@ let recorder
 
 // As each sample is 2403 ms long, we should try and do it 
 // as a factor of that, so perhaps bars would be better than BPM?
-let bars = 16
 
 let isLoading = true
 let loadProgress = 0
@@ -79,8 +78,10 @@ let cameraLoading = false
 let noFacesFound = false
 let counter = 0
 
+// for disco mode!
 const cameraPan = {x:1,y:1}
 
+// should be set on the html but jic
 body.classList.toggle("loading", true)
 
 // realtime UI options
@@ -96,7 +97,7 @@ const ui = getLocationSettings({
 	// same thing?
 	synch:true,
 	// show debug texts
-	debug:false,
+	debug:process.env.NODE_ENV === "development",
 	// cancel audio playback (not midi)
 	muted:false,
 	// dual person mode (required reload)
@@ -277,8 +278,14 @@ const loadCamera = async (deviceId, name="Default") => {
 	// prevent screen re-draw
 	cameraLoading = true
 	try{
+		
 		newCamera = await setupCamera( video, deviceId )
-		store.setItem( 'cameraId', deviceId ) 
+		if (deviceId && deviceId.length > 0)
+		{
+			store.setItem( 'cameraId', deviceId )
+			console.log( deviceId, "Camera id saved")
+		}
+		 
 		track('Action', {category:'Camera', label:name, value:deviceId})
 						
 	}catch(error){
@@ -292,10 +299,17 @@ const loadCamera = async (deviceId, name="Default") => {
 }
 
 // selected
-const setup = (settings, progressCallback) => {
+const setup = async (settings, progressCallback) => {
 
 	const loadTotal = 10
 	let loadIndex = 0
+
+	progressCallback(loadIndex++/loadTotal)
+
+	// test of loading external scripts sequentially...
+	const {loadModel} = await import('./predictor')
+
+	progressCallback(loadIndex++/loadTotal)
 
 	// set up the instrument selctor etc
 	setupInterface( ui )
@@ -362,8 +376,6 @@ const setup = (settings, progressCallback) => {
 		document.getElementById("photographs").appendChild(anchor)
 
 		requestAnimationFrame( ()=>document.getElementById(id).scrollIntoView() )
-		
-		console.log("Photo taken!", img)
 	} )
 
 	progressCallback(loadIndex++/loadTotal)
@@ -581,8 +593,9 @@ const setup = (settings, progressCallback) => {
 			
 			if (ui.spectrogram)
 			{
-				updateByteFrequencyData()
 				//drawWaves( dataArray, bufferLength )
+				
+				updateByteFrequencyData()
 				drawBars( dataArray, bufferLength )
 			}
 				
@@ -732,7 +745,6 @@ const setup = (settings, progressCallback) => {
 			if (playing)
 			{
 				// timePassed
-				//barsElapsed++
 			}
 			
 		}, timePerBar() )
@@ -749,13 +761,12 @@ setFeedback("Initialising...<br> Please wait")
 let installation = null
 let loadMeter = 0
 
+
 const onLoaded = async () => {
 
-	// load the share menu :)
-	const sharer = await import('share-menu')
-	
 	body.classList.toggle("loaded", true)
-
+	body.classList.remove("loading")
+	
 	// at any point we can now trigger the installation
 	if (installation)
 	{
@@ -770,6 +781,14 @@ const onLoaded = async () => {
 		
 	}else{
 		console.log("Loaded Webpage", VERSION)
+	}
+
+	try{
+		// load the share menu :)
+		const sharer = await import('share-menu')
+	}catch(error){
+		// disable the share menu...
+		document.getElementById("share").style.display = "none"
 	}
 	
 	// Show hackers message
@@ -786,8 +805,6 @@ const loadingLoop = async () => {
 		requestAnimationFrame( loadingLoop ) 
 	}else{
 
-		body.classList.remove("loading")
-		
 		if (ultimateFailure)
 		{
 			body.classList.add("failure")
@@ -814,7 +831,7 @@ const loadingLoop = async () => {
 // progressive web app variant
 const pwa = async() => {
 	try{
-		const {installer} = await import('./install.js')
+		// const {installer} = await import('./install.js')
 		installation = await installer(true)
 	
 		const {updateApp} = await import('./update.js')
@@ -829,12 +846,14 @@ const pwa = async() => {
 			setToast("An Update is available! Press update to install it" )
 		}
 
-		console.log("installer", { installer, installation, sharer})
+		console.log("installer", { installer, installation})
 	
 	}catch(error){
 		console.error("PWA", error)
 	}
 }
+
+// ---------------------------------------------------------
 
 // load settings from store here too?
 // set up some extra options from query strings
@@ -852,12 +871,12 @@ pwa()
 
 loadingLoop()
 
-
 // Exit
 window.onbeforeunload = ()=>{
 	// save ui settings in cookie too?
 	trackExit()
 	//store.setItem(person.name, {instrument})
+	setToast("bye bye!")
 }
 
 
@@ -1001,5 +1020,13 @@ window.addEventListener('keydown', async (event)=>{
 })
 
 window.addEventListener('popstate', (event) => {
-	console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
+	//console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
+})
+
+window.addEventListener('wheel' , event => {
+	console.log("mouse wheel", event)
+})
+
+window.addEventListener('deviceorientation' , event => {
+	console.log("device orientation", event)
 })
