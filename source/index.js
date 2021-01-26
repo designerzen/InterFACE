@@ -16,7 +16,7 @@ import {
 	setupAudio, setAmplitude, 
 	record } from './audio'
 
-import { start, stop,now, setTimeBetween, timePerBar, getBar } from './timing.js'
+import { getBars, setBars, start, stop,now, setTimeBetween, timePerBar, getBar } from './timing.js'
 import {
 	progressBar, 
 	video,isVideoVisible,toggleVideoVisiblity,
@@ -917,18 +917,18 @@ window.addEventListener('keydown', async (event)=>{
 
 		case 'ArrowUp':
 			// change amount of bars
-			bars = ++bars > 32 ? 32 : bars
+			setBars( getBars() + 1 )
 			setTimeBetween(timePerBar())
 			// setFeedback( `Bars ${bars}`, 0 )
-			setToast(`Bars : ${bars}`)
+			setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
 			break
 
 		case 'ArrowDown':
 			// bar length
-			bars = --bars < 1 ? 1 : bars
+			setBars( getBars() - 1 )
 			setTimeBetween(timePerBar())
 			// setFeedback( `Bars ${bars}`, 0 )
-			setToast( `Bars ${bars}` )
+			setToast( `Bars ${bars} / BPM : ${getBPM()}` )
 			break
 
 		case ',':
