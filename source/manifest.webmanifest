@@ -1,7 +1,7 @@
 {
 	"name": "interFACE",
 	"display": "standalone",
-	"start_url": "/",
+	"start_url": "/InterFACE/",
 	"short_name": "interFACE",
 	"theme_color": "#e4dede",
 	"description": "Webcam based music making device",

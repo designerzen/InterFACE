@@ -5,9 +5,9 @@ export const createStore = (name="Plops") => {
 	const storage = localStorage.getItem(name)
 	const data = Object.assign({}, JSON.parse(storage) )
 	const save = debounce( updates => {
-		localStorage.setItem(name, JSON.stringify(updates) )
-		// console.error("store",name,"saved>",updates, localStorage.getItem(name) )
-
+		const encoded = JSON.stringify(updates)
+		localStorage.setItem(name, encoded )
+		
 	}, 20 )
 	
 // console.error("store",name,"created", {data, storage})
@@ -24,9 +24,10 @@ export const createStore = (name="Plops") => {
 			return data[key] 
 		},
 		setItem:(key,value)=>{
-			data[key] = Object.assign( {}, value, data[key] )
+			data[key] = Object.assign( {}, data[key], value )
 			// save to local
 			save(data)
+			
 			return data
 		},
 	}

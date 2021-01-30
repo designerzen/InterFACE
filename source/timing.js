@@ -30,9 +30,12 @@ let barsElapsed = 0
 export const timePerBar = () => 2403 / bars
 export const getBar = () => bar
 
-export const getBPM = () => 60000 / timePerBar 
+export const getBPM = () => 60000 / timePerBar()
 export const getBars = () => bars 
-export const setBars = value => bars = value < 1 ? 1 : bars > MAX_BARS_ALLOWED ? MAX_BARS_ALLOWED : bars
+export const setBars = value => {
+    bars = value < 1 ? 1 : value > MAX_BARS_ALLOWED ? MAX_BARS_ALLOWED : value
+    return bars
+}
 
 export const now = () => audioContext.currentTime
 
@@ -57,6 +60,7 @@ export const setTimeBetween = time => {
     // TODO
     // FIXME
     timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
+    return currentInterval
 }
 
 export const start = (callback, timeBetween=200, options={} ) => {

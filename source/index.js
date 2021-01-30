@@ -5,18 +5,27 @@ import {installer} from './install.js'
 
 import {createStore} from './store'
 
+import {say, hasSpeech} from './speech'
 
 // You need to require the backend explicitly because facemesh itself does not
 import { 
 	audioContext,
 	active, playing, 
-	randomInstrument, playTrack, playAudio, stopAudio, 
+	randomInstrument, 
+	playAudio, stopAudio, 
 	updateByteFrequencyData,
 	bufferLength,dataArray, 
-	setupAudio, setAmplitude, 
+	setupAudio,
+	getVolume, setVolume, setAmplitude, 
 	record } from './audio'
 
-import { getBars, setBars, start, stop,now, setTimeBetween, timePerBar, getBar } from './timing.js'
+import { 
+	getBars, setBars, getBar, 
+	start, stop,
+	now, 
+	setTimeBetween, timePerBar, 
+	getBPM } from './timing.js'
+	
 import {
 	progressBar, 
 	video,isVideoVisible,toggleVideoVisiblity,
@@ -71,7 +80,6 @@ let recorder
 // as a factor of that, so perhaps bars would be better than BPM?
 
 let isLoading = true
-let loadProgress = 0
 let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
@@ -107,7 +115,9 @@ const ui = getLocationSettings({
 	// show the person's texts above them
 	text:true,
 	// audio visualiser is actually helpful to play
-	spectrogram:true
+	spectrogram:true,
+	// read out important instructions
+	speak:true
 })
 
 const SETTINGS = {
@@ -126,11 +136,25 @@ const SETTINGS = {
     // irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
 }
 
+// This sets the master volume below the compressor
+const setMasterVolume = volume => {
+	const r = setVolume(volume)
+	store.setItem('audio', { volume:r })
+	setToast(`Volume ${Math.ceil(r * 100)}%`,0)
+	return r
+}
+
+const speak = toSay => {
+	if ( ui.speak && hasSpeech() ) 
+	{
+		say(toSay,true)
+	}
+}
+
 // For all people!
 const loadInstruments = async (method, callback) => people.map( async (person) => { 
 	const instrument = await person[method](callback)
-	store.setItem(person.name, {instrument})
-	setFeedback(`${person.name} has ${instrument} loaded`)
+	setToast(`${person.name} has ${instrument} loaded`)
 	console.log(`${person.name} has ${instrument} loaded` )
 	return instrument
 })
@@ -164,7 +188,7 @@ const getPerson = (index) => {
 			// save it for next time
 			const {detail} = event
 			const cache = store.setItem(name, {instrument:detail.instrumentName })
-			//console.log("External event for ",{ person, detail , cache})
+			console.log("External event for ",{ person, detail , cache})
 		})
 		person.loadInstrument( instrument, instrumentName => {} )
 		
@@ -282,7 +306,8 @@ const loadCamera = async (deviceId, name="Default") => {
 		newCamera = await setupCamera( video, deviceId )
 		if (deviceId && deviceId.length > 0)
 		{
-			store.setItem( 'cameraId', deviceId )
+			store.setItem( 'camera', {deviceId} )
+			
 			console.log( deviceId, "Camera id saved")
 		}
 		 
@@ -403,8 +428,7 @@ const setup = async (settings, progressCallback) => {
 			// wait for video or image to be loaded!
 			if (video)
 			{
-				const deviceId = store.has('cameraId') ? store.getItem('cameraId') : undefined
-				
+				const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 				setFeedback( deviceId ? "Found saved camera" : "Attempting to locate camera...")
 			
 				try{
@@ -519,7 +543,8 @@ const setup = async (settings, progressCallback) => {
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		
 		// turn up the amp
-		setAmplitude( 1 )
+		const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
+		setVolume( volume )
 
 		// load scripts once eveything has completed...
 		// setTimeout( ()=>{
@@ -599,7 +624,6 @@ const setup = async (settings, progressCallback) => {
 				drawBars( dataArray, bufferLength )
 			}
 				
-			// setAmplitude( 1 )
 			if (predictions)
 			{
 				// loop through all predictions...
@@ -666,7 +690,6 @@ const setup = async (settings, progressCallback) => {
 					}
 					
 					// you want a tight curve
-					//setAmplitude( logAmp )
 					//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
 					tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
@@ -702,11 +725,11 @@ const setup = async (settings, progressCallback) => {
 				return
 			}
 
-			if (ui.metronome)
+			if (ui.metronome && bars % 2 === 0 )
 			{
 				// TODO: change timbre for first & last stroke
 				const metronomeLength = 0.1
-				kit.clack( metronomeLength, bars % 4 === 0 ? 0.1 : 0.2 )
+				kit.clack( metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
 			}
 
 			// console.log(barsElapsed, "timer", timer)
@@ -791,10 +814,13 @@ const onLoaded = async () => {
 		document.getElementById("share").style.display = "none"
 	}
 	
+	speak("Open your mouth to begin!")
+
 	// Show hackers message
 	// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
 	// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )
 }
+
 
 // loop until loaded...
 const loadingLoop = async () => {
@@ -871,6 +897,7 @@ pwa()
 
 loadingLoop()
 
+
 // Exit
 window.onbeforeunload = ()=>{
 	// save ui settings in cookie too?
@@ -895,15 +922,16 @@ window.addEventListener('keydown', async (event)=>{
 
 	switch(event.key)
 	{
-		// don't hijack tab you numpty!
-		
 		case 'CapsLock':
 			ui.debug = !ui.debug
 			people.forEach( person => person.debug = ui.debug )
 			setToast(`DEBUG : ${ui.debug}`)
+			speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
 			break
 
 		case 'Space':
+			// read out last bit of help?
+			speak(document.getElementById('toast').innerText, true)
 			loadRandomInstrument() 
 			break
 
@@ -915,27 +943,29 @@ window.addEventListener('keydown', async (event)=>{
 			nextInstrument() 
 			break
 
+		// change amount of bars
 		case 'ArrowUp':
-			// change amount of bars
-			setBars( getBars() + 1 )
-			setTimeBetween(timePerBar())
-			// setFeedback( `Bars ${bars}`, 0 )
+			let b = getBars() + 1
+			let bars = setBars( b )
+			let t = setTimeBetween( timePerBar() )
+	
+			console.error("bars---",bars,  b, t )
 			setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
 			break
 
 		case 'ArrowDown':
-			// bar length
-			setBars( getBars() - 1 )
-			setTimeBetween(timePerBar())
-			// setFeedback( `Bars ${bars}`, 0 )
-			setToast( `Bars ${bars} / BPM : ${getBPM()}` )
+			let ub = getBars() - 1
+			let ubars = setBars( ub )
+			let ut = setTimeBetween( timePerBar() )
+	
+			console.error("bars---", ubars, ub, ut )
+			setToast( `Bars ${ubars} / BPM : ${getBPM()}` )
 			break
 
 		case ',':
 			setNodeCount(-1)
 			break
 
-			
 		case '.':
 			setNodeCount(1)
 			break
@@ -995,23 +1025,24 @@ window.addEventListener('keydown', async (event)=>{
 			}
 			break
 
-		// FILTER
-		case 'Tab':
-			break
-
 		// Hide video
 		case 'v':
 			video.style.visibility = video.style.visibility === "hidden" ? "visible" : "hidden"
 			break
 
-		// DEFAULT
 		case 'm':
 			ui.metronome = !ui.metronome
 			setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 			break
-		
+
+		// don't hijack tab you numpty!
+		// FILTER
+		case 'Tab':
+			break
+
 		default:
 			loadRandomInstrument()
+			speak("Loading random instruments",true)
 	}
 
 	// we run this when we want to 
@@ -1019,14 +1050,30 @@ window.addEventListener('keydown', async (event)=>{
 	console.log("key", ui, event)
 })
 
+// URL has been updated internally
 window.addEventListener('popstate', (event) => {
 	//console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
 })
 
 window.addEventListener('wheel' , event => {
-	console.log("mouse wheel", event)
+	let d = event.detail
+	const w =  event.deltaY || event.wheelDelta
+	let n = 225
+	let n1 = n-1
+	let f
+
+	// Normalize delta
+	d = d ? w && (f = w/d) ? d/f : -d/1.35 : w/120
+	// Quadratic scale if |d| > 1
+	d = d < 1 ? d < -1 ? (-Math.pow(d, 2) - n1) / n : d : (Math.pow(d, 2) + n1) / n
+	// Delta *should* not be greater than 2...
+	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
+	const volume = getVolume()
+	const result = setMasterVolume(volume + wheel)
+
+	console.log("mouse wheel",{ wheel, volume, result}, event)	
 })
 
 window.addEventListener('deviceorientation' , event => {
-	console.log("device orientation", event)
+	//console.log("device orientation", event)
 })

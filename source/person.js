@@ -3,10 +3,8 @@ import {DEFAULT_COLOURS} from './palette'
 import { 
 	active, playing, 
 	loadInstrument, NOTE_NAMES, randomInstrument, 
-	playTrack, playAudio, stopAudio, 
-	bufferLength,dataArray, 
-	setupAudio, 
-	setShape, setFrequency, setAmplitude, 
+	playTrack,
+	setShape, setFrequency, 
 	getNoteName} from './audio'
 
 import { clear,
@@ -15,7 +13,7 @@ import { clear,
 		drawWaves, drawBars, drawInstrument} from './visual'
 import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
 import {INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './instruments'
-import {setControls, setupInstrumentForm} from './ui'
+import { setupInstrumentForm} from './ui'
 // options easeInCubic // easeInSine
 // const ease = easeOutQuad
 
@@ -72,7 +70,7 @@ export default class Person{
 		this.hue = options.hue || Math.random() * 360
 		this.saturation = 40
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
-			
+		
 		// Head orientation
 		this.yaw = 0
 		this.pitch = 0
@@ -348,6 +346,10 @@ export default class Person{
 			{
 				const paragraphs = [
 					`gain:${(this.gainNode.gain.value).toFixed(2)}`, 
+					`happiness:${(prediction.happiness).toFixed(3)}`, 
+					`mouthRange:${(prediction.mouthRange).toFixed(3)}`, 
+					`mouthRatio:${(prediction.mouthRatio).toFixed(3)}`, 
+					`mouthWidth:${(prediction.mouthWidth).toFixed(3)}`, 
 					`pitch:${(prediction.pitch).toFixed(3)}`, 
 					`roll:${(prediction.roll).toFixed(3)}`, 
 					`yaw:${(prediction.yaw).toFixed(3)}`,
@@ -575,6 +577,7 @@ export default class Person{
 		this.instrumentLoading = false
 		callback && callback( instrumentName )
 		
+		// you have to dispatch the event from an element!
 		this.button.dispatchEvent(new CustomEvent("instrumentchange", {
 			detail: { instrument:this.instrument, instrumentName }
 		}))
