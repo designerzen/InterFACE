@@ -14,7 +14,7 @@ console.log( "\x1b[35m", "info Using version", pkg.version  )
 
 // also save i into a js file as a constant
 // const fileVariant = `module.export = { version:"${packageVerson}" }`
-const fileVariant = `export const VERSION="${packageVerson}"; export const DATE=${DATE};`
+const fileVariant = `export const VERSION="${packageVerson}";\rexport const DATE=${DATE};`
 const textVariant = `${packageVerson}`
 
 // save to disk
