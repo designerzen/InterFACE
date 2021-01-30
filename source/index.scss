@@ -943,6 +943,8 @@ input[type=radio]{
 [id]{
 	scroll-margin-top: 2ex;
 }
+
+
 // BUTTON ABSTRACT
 button,
 #shared-controls > *{
@@ -950,8 +952,16 @@ button,
 	--icon-size:32px;
 	--fade-speed:var(--ease-q);
 
+	// inset
+	text-shadow: rgba($col-white,0.4) 0 1px 4px,
+				rgba($col-white,0.3) 0 2px 4px,
+				rgba($col-cream,0.2) 0 3px 4px,
+				rgba($col-cream,0.1) 0 4px 4px;
+
+	border-radius:5px;
 	border-style: double ridge outset groove;
 	cursor: pointer;
+
 	// from ios guidelines
 	min-width:44px;
 	min-height:44px;
@@ -988,12 +998,16 @@ button,
 	background-position: left var(--pad) center;
 	background-color:$col-cream;
 
+
 	// this mau be a bad idea
 	//background-image:linear-gradient($col-cream, $col-grey);
 	
-	border-radius: 2px;
-
 	color:$col-dark;
+	
+	// animations
+	transition:transform var(--fade-speed) $easeOutBack,
+				background-color var(--fade-speed) linear, 
+				color var(--fade-speed) linear;
 
 	&:empty{ 
 		display:none;
@@ -1016,7 +1030,7 @@ button,
 		
 		opacity:1;
 		// z-index: -1;
-		transition:opacity var(--fade-speed) ease-out;
+		transition:opacity var(--fade-speed) linear;
 	}
 	&:not(.hide-text):before{
 		margin-right:calc(var(--pad) / 2 );
@@ -1069,10 +1083,11 @@ button,
 
 	button,
 	#shared-controls > *{
-		// --icon-size:26px;
+		--icon-size:26px;
 		flex-direction: column;
 		background-position:top var(--pad) center;
 		
+		// remove margin
 		&:not(.hide-text):before{
 			margin-right:0;
 		}
@@ -1088,18 +1103,32 @@ button,
 
 	button,
 	#shared-controls > *{
-		--icon-size:22px;
+		--icon-size:28px;
 		font-size: 0;
 		text-indent: -9999px;
 		overflow:hidden;
 		color:transparent;
 		flex-direction: row;
 		// as there is now no loner any text we need to centralise the icon
+		justify-content: center;
 		background-position: center center;
-		// justify-content: center;
-		// &:before{
-		// 	margin-right:0;
-		// }
+	}
+}
+
+
+// smallest always hides text so overrides here...
+@media screen and (max-width:340px){
+
+	:root{
+		--footer-gap:calc(67px);
+	}
+
+	// smallest icon size to squeeze fit
+	button,
+	#shared-controls > *{
+		--icon-size:20px;
+		max-width:33px;
+		min-width:22px;
 	}
 }
 
@@ -1122,11 +1151,9 @@ button,
 	display:flex;
 	align-items: stretch;
 	justify-content: stretch;
-	border-top:1px groove var(--col-regular);
 	
 	background-image:linear-gradient($col-cream, $col-grey);
 	
-
 	//overflow: hidden;
 	// overflow: scroll;
 	//overflow-y:hidden;
@@ -1207,9 +1234,7 @@ button,
 	label,button{
 		
 		// labels can collapse without text to expand them
-		min-width:44px;
-		background-repeat:no-repeat;
-
+		
 		text-transform: uppercase;
 	
 		//border-left:0;
@@ -1220,9 +1245,6 @@ button,
 		// color:var(--col-regular);
 		// background-color:rgba($col-yellow,0.5);
 
-		transition:transform var(--ease-q) $easeOutBack,
-					background-color var(--ease-q) linear, 
-					color var(--ease-q) linear;
 	
 		&:active{
 			transform: scale(0.94);
@@ -1305,6 +1327,7 @@ button,
 		}
 	}
 
+
 	label[for="button-fullscreen"]{
 		// far right
 		order:99;
@@ -1313,11 +1336,18 @@ button,
 
 		@extend %image-replacement;
 		background-image:url(./assets/icons/fullscreen-24px.svg);
+		
 		// toggled state
 		&.checked{
 			background-image:url(./assets/icons/fullscreen_exit-24px.svg);
 		}
+		
+		// override if user has esc'ed
+		@media all and (display-mode: fullscreen) {
+			background-image:url(./assets/icons/fullscreen_exit-24px.svg) !important;
+		}
 	}
+	
 
 	label[for="button-overlay"]{
 		// --col-hover:#{$col-dark};
@@ -1395,6 +1425,7 @@ button,
 
 // button that covers people
 button.person{
+	
 	padding:0;
 	cursor:pointer;
 	position: absolute;	
@@ -1407,6 +1438,7 @@ button.person{
 	// appearance: none;
 	//border:2px solid white;
 
+	text-shadow:0;
 	color:transparent;
 	opacity: 0;
 	transition: var(--ease-s) ease-in opacity;
@@ -1516,9 +1548,11 @@ button#button-video{
 	z-index:-1;
 	// hide any copy
 	color:transparent;
+	text-shadow:0;
+	background-color: transparent;
+
 	// prevent finger cursor
 	cursor: default;
-	background-color: transparent;
 
 	max-width:none;
 
@@ -1535,7 +1569,7 @@ button#button-video{
 button#button-midi{
 
 	//background-position: left 1px center;
-	--icon-size:36px;
+	// --icon-size:36px;
 	//background-color: $col-cream;
 	background-image:url(assets/logos/midi2.0.svg);
 	&:before{
@@ -1544,7 +1578,7 @@ button#button-midi{
 	}
 }
 .midi-active button#button-midi{
-	background-color: $col-yellow;
+	background-color: $col-green;
 }
 
 // connect your midi device!
@@ -1887,4 +1921,35 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 	background-color: $col-dark;
 	border-radius: 99px;
 	border: 3px solid $col-orange;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/display-mode
+
+@media all and (display-mode: fullscreen) {
+
+    #displayMode::before {
+        content: "Fullscreen mode"
+    }
+}
+
+// Installed on machine... show extra buttons?
+@media all and (display-mode: standalone) {
+
+    #displayMode::before {
+        content: "Standalone mode"
+    }
+}
+
+@media all and (display-mode: minimal-ui) {
+
+    #displayMode::before {
+        content: "Minimal-UI mode"
+    }
+}
+
+@media all and (display-mode: browser) {
+   
+    #displayMode::before {
+        content: "Browser mode"
+    }
 }

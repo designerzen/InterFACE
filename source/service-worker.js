@@ -3,7 +3,7 @@ import { VERSION } from './version'
 // Not compiled so best add the ; to the es5
 const ONE_DAY = 60 * 60 * 24;
 const REVISION = VERSION;
-const BUILD_MMR = "0.0.5";
+const BUILD_MMR = VERSION;
 const WORKBOX_DEBUG_LOGGING = process.env.NODE_ENV === "development";
 // Workbox version - update manually when there are new releases.
 const WORKBOX_VERSION = '6.0.2';
@@ -82,6 +82,7 @@ googleFontsCache();
 
 staticResourceCache();
 
+// so this aint working...
 imageCache();
 
 offlineFallback();

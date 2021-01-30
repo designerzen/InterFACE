@@ -30,9 +30,11 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 	}, rate)
 
 	const clear = (rate) => {
+		const after = clearAfter * rate
 		clearInterval = setTimeout(()=>{
 			element.innerHTML = ''
-		}, clearAfter * rate)
+		}, after)
+		return after
 	}
 	
 	return element ? (message, responseRate=rate ) => {

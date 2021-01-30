@@ -1,3 +1,4 @@
+import {clamp} from './maths'
 // FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
 import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
 
@@ -16,11 +17,26 @@ const flipHorizontally = true
 
 const now = ()=> Performance.now
 
-const TAU = Math.PI * 2
-const HALF_PI = Math.PI * 0.5
+const {PI,sqrt, atan2, cos, tan, sin} = Math
+const TAU = PI * 2
+const HALF_PI = PI * 0.5
 
 // a mouth covers about 1/3 of the face?
 const RATIO_OF_MOUTH_TO_FACE = 0.25
+const PITCH_SCALE = 8
+
+const twist = (value, amount=0) => {
+
+	// if it is negative, invert
+	if (value < 0)
+	{
+		value = (value + 1) * -1
+	}else{
+		value = 1 - value
+	}
+	//return value + amount
+	return clamp(value + amount,-1,1)
+ }
 
 const predict = async (inputElement,model) => {
 
@@ -48,7 +64,6 @@ const predict = async (inputElement,model) => {
 	// determine head rotation?
 	// take the UV of the eyes and use them to determine angle
 
-	//console.log("Predicting", inputElement, predictions)
 	// firstly check to see if there any predictions
 	if (predictions.length > 0) 
 	{
@@ -106,7 +121,7 @@ const predict = async (inputElement,model) => {
 			const lmx = (mx - lx) * -1
 			const rmx = mx - rx
 
-			const {rightCheek,leftCheek, silhouette} = annotations
+			//const {rightCheek,leftCheek, silhouette} = annotations
 
 			prediction.lookingRight = flipHorizontally ? !lookingRight : lookingRight
 
@@ -123,18 +138,24 @@ const predict = async (inputElement,model) => {
 
 			// and now we want the angle formed
 			const yaw = flipHorizontally ? 
-				-1 * (Math.atan2(lmx, rmx) - 2)
-				: -1 * (Math.atan2(lmx, rmx) - 0.75)
+				-1 * (atan2(lmx, rmx) - 2)
+				: -1 * (atan2(lmx, rmx) - 0.75)
  			//const yaw = 0.5 - Math.atan( midPoint[2], -1 * midPoint[0] ) / ( 2.0 * Math.PI )
 		  
-		
-			// this is from forehead to chin...
+			 // as nthis is -1 -> 1 we need to wrap it better
+			
+			// this is from forehead to chin...?
+			// or nose to top lip?
 			// if the chin is in front (z) of forehead, head tilting back
-			// const pitch = 0.5 - Math.asin( my ) / Math.PI
+			// const pitch = 0.5 - Math.asin( my ) / PI
 			// currently ranges between -0.35 -> -0.4 -> -0.35 
-			const pitch = flipHorizontally ? 
-				((Math.atan2(topOfHead[2], bottomOfHead[2] ) ) - 1.9 - 0.2 ) / HALF_PI
-				: (Math.atan2(midwayBetweenEyes[0][2], rmx) - 0.75)
+			const pitchAngle = atan2(topOfHead[2], noseTip[0][2] )
+			const pitch = PITCH_SCALE * twist( pitchAngle / PI, -0.15 )
+				
+			// const pitch = flipHorizontally ? 
+			// 	((Math.atan2(topOfHead[2], bottomOfHead[2] ) ) - 1.9 - 0.2 ) / HALF_PI
+			// 	: (Math.atan2(midwayBetweenEyes[0][2], rmx) - 0.75)
+				
 
 			// if either eye is lower than the other
 			const rollX = (lx - rx)
@@ -142,8 +163,8 @@ const predict = async (inputElement,model) => {
 
 			// As this is for 350 range, we double to make it just 180
 			const roll = flipHorizontally ?  
-				-1 * (Math.atan2(rollX, rollY) + HALF_PI)//Math.atan2(rollY, rollX):
-				: Math.atan2(rollX, rollY) - HALF_PI
+				-1 * (atan2(rollX, rollY) + HALF_PI)//Math.atan2(rollY, rollX):
+				: atan2(rollX, rollY) - HALF_PI
 			
 			// leaning head as if to look at own chest / sky
 			prediction.pitch = pitch
@@ -175,8 +196,8 @@ const predict = async (inputElement,model) => {
 			const lipHorizontalOpeningX = lipLowerRight[0] - lipLowerLeft[0]
 			const lipHorizontalOpeningY = lipUpperRight[1] - lipUpperLeft[1]
 			
-			const lipVerticalOpening = Math.sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
-			const lipHorizontalOpening = Math.sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
+			const lipVerticalOpening = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
+			const lipHorizontalOpening = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
 			
 			 //const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
 			prediction.mouthRange = lipVerticalOpening

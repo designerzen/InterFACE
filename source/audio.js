@@ -166,28 +166,39 @@ export const setFrequency = frequency => {
 	oscillator.frequency.value = frequency
 }
 
+export const getVolume = () => destinationVolume // gainNode.gain.value
+
 // smaller means slower
+export const setVolume = (destinationVolume) => {
+
+	destinationVolume = clamp(destinationVolume, 0, 1)
+	//gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime)
+	gainNode.gain.value = destinationVolume
+
+	return destinationVolume
+}
+
 const rate = 0.1
-const setVolume = () => {
+const fadeVolume = (destinationVolume) => {
 
 	//gainNode.gain.value = lerp( gain.gain.value, destinationVolume, 0.1 )
 	const newVolume = gainNode.gain.value + (destinationVolume - gainNode.gain.value) * rate
-	// gainNode.gain.setValueAtTime(destinationVolume, audioContext.currentTime)
-	gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime)
-
+	gainNode.gain.setValueAtTime(destinationVolume, audioContext.currentTime)
+	
 	if (gainNode.gain.value === destinationVolume)
 	{
 
 	}else{
-		requestAnimationFrame( setVolume )
+		requestAnimationFrame( fadeVolume )
 	}
+	return newVolume
 }
 
 
 export const setAmplitude = amplitude => {
 	// lerp towards
 	 destinationVolume = amplitude
-	 setVolume()
+	 fadeVolume()
 	//gainNode.gain.clearValues()
 	//gainNode.gain.setValueAtTime(amplitude, audioContext.currentTime)
 }
