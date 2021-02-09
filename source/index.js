@@ -33,7 +33,7 @@ import {
 	setupMIDIButton, 
 	showUpdateButton, showReloadButton,
 	setupCameraForm, 
-	setupInterface, 
+	setupInterface, addToolTips,
 	setFeedback, setToast } from './ui'
 import { getLocationSettings, getShareLink, addToHistory } from './location-handler'
 import { createDrumkit } from './synthesizers'
@@ -134,6 +134,16 @@ const SETTINGS = {
     // scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
     // modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
     // irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
+}
+
+// TODO: a version of the instructor that also reads out the messages
+const setToaster = (message, time=0) => {
+	if (ui.speak)
+	{
+		speak( message,true)
+	}
+	setToast(message,time)
+	
 }
 
 // This sets the master volume below the compressor
@@ -451,9 +461,13 @@ const setup = async (settings, progressCallback) => {
 						camera = loadCamera( selected.deviceId, selected.label )
 						//console.log( selected.deviceId, "Camera selected",selected, camera)
 						setToast( `Camera ${selected.label} changed`, 0 )
-					})	
+					})
+					
+					// show / hide camera button
+					main.classList.toggle("multiple-cameras", true)
 				}
-			
+				
+				
 				setFeedback( "Camera located!", 0 )
 				progressCallback(loadIndex++/loadTotal)
 			}
@@ -542,9 +556,11 @@ const setup = async (settings, progressCallback) => {
 		// console.error("Tensorflow", tf)
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		
+		addToolTips()
+
 		// turn up the amp
 		const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
-		setVolume( volume )
+		setVolume( volume > 0 ? volume : 1 )
 
 		// load scripts once eveything has completed...
 		// setTimeout( ()=>{
@@ -1035,6 +1051,12 @@ window.addEventListener('keydown', async (event)=>{
 			setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 			break
 
+		case '?':
+			// toggle speech
+			ui.speak = !ui.speak
+			setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
+			break
+
 		// don't hijack tab you numpty!
 		// FILTER
 		case 'Tab':
@@ -1056,6 +1078,9 @@ window.addEventListener('popstate', (event) => {
 })
 
 window.addEventListener('wheel' , event => {
+	
+	return
+
 	let d = event.detail
 	const w =  event.deltaY || event.wheelDelta
 	let n = 225
@@ -1069,7 +1094,7 @@ window.addEventListener('wheel' , event => {
 	// Delta *should* not be greater than 2...
 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
 	const volume = getVolume()
-	const result = setMasterVolume(volume + wheel)
+	//const result = setMasterVolume(volume + wheel)
 
 	console.log("mouse wheel",{ wheel, volume, result}, event)	
 })
