@@ -189,14 +189,30 @@ export const showUpdateButton = (action) => {
 	// reveal update button?
 	const button = document.createElement('button')
 	button.id = "button-update"
+	button.setAttribute("aria-label", `Update to new version` )
 	button.classList.add("update-available")
-	button.innerHTML = "Update to new version"
+	button.innerHTML = "Update"
 
 	// on button press...
 	button.addEventListener('click', ()=>action() )
-	document.documentElement.appendChild(button)
+	controls.appendChild(button)
 }
 
+export const addToolTips = (query="button, label") => {
+	
+	// do a query here to catch all buttons?
+	const buttons = controls.querySelectorAll(query)
+	
+	// const fragment = document.createDocumentFragment() 
+	// fragment.appendChild(document.createElement('fieldset'))
+	// const fragment = document.createElement('fieldset')
+	// fragment.innerHTML = setupInstrumentForm()
+	// add to dom
+	// controls.appendChild( fragment )
+
+	// intercept any hover events...
+	buttons.forEach( button => addTooltip(button) )
+}
 
 // DOM elements
 export const setupInterface = ( options ) => {
@@ -277,19 +293,6 @@ export const setupInterface = ( options ) => {
 	}
 	
 	
-	// do a query here to catch all buttons?
-	const buttons = controls.querySelectorAll("button, label")
-	
-	// const fragment = document.createDocumentFragment() 
-	// fragment.appendChild(document.createElement('fieldset'))
-	// const fragment = document.createElement('fieldset')
-	// fragment.innerHTML = setupInstrumentForm()
-	// // add to dom
-	// controls.appendChild( fragment )
-
-	// intercept any hover events...
-	buttons.forEach( button => addTooltip(button) )
-
 	// prevent the form from changing the url	
 	controls.addEventListener("submit", (event) => {
 		event.preventDefault()
