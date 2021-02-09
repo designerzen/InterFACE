@@ -561,8 +561,8 @@ p strong{
 			padding-left: 0;
 			opacity:0.2;
 			transition:opacity var(--ease-m) linear;
-				
-			transform: rotate(90deg) translateX(var(--pad));
+			writing-mode: vertical-rl;
+			// transform: rotate(90deg) translateX(var(--pad));
 			transform-origin: top left;
 		}
 		h2{
@@ -953,10 +953,10 @@ button,
 	--fade-speed:var(--ease-q);
 
 	// inset
-	text-shadow: rgba($col-white,0.4) 0 1px 4px,
-				rgba($col-white,0.3) 0 2px 4px,
-				rgba($col-cream,0.2) 0 3px 4px,
-				rgba($col-cream,0.1) 0 4px 4px;
+	text-shadow: rgba($col-white,0.4) 0 0px 2px,
+				rgba($col-white,0.3) 0 0.5px 2px,
+				rgba($col-cream,0.2) 0 1px 2px,
+				rgba($col-cream,0.1) 0 1.5px 2px;
 
 	border-radius:5px;
 	border-style: double ridge outset groove;
@@ -974,6 +974,7 @@ button,
 	user-select: none;
 	appearance: none;
 	line-height: 1;
+	
 	// -0.5385rem + 7.6923vw
 	// clamp(minimum, preferred, maximum)
 	font-size:clamp(8px, -0.5385rem + 2.2vmax, 14px);
@@ -1265,6 +1266,7 @@ button,
 	
 	> * + *{
 		border-left:1px groove $col-white;
+		
 	}
 		
 
@@ -1438,7 +1440,7 @@ button.person{
 	// appearance: none;
 	//border:2px solid white;
 
-	text-shadow:0;
+	text-shadow:none;
 	color:transparent;
 	opacity: 0;
 	transition: var(--ease-s) ease-in opacity;
@@ -1531,6 +1533,24 @@ button.update-available{
 	overflow: hidden;
 }
 
+// override style
+button.person,
+button#button-video{
+	user-select: none;
+	// hide any copy
+	color:transparent;
+	text-shadow:none;
+	background-color: transparent;
+	
+	&:hover, &:active, &:focus{
+		color:transparent;
+		background-color: transparent;
+		text-shadow:none;
+		//border:5px solid $col-yellow;
+	}
+}
+
+
 button#button-video{
 	display: block;
 	position: absolute;//fixed;
@@ -1542,24 +1562,18 @@ button#button-video{
 	padding:0;
 	border:0;
 	
+	
 	// just a little margin of error
 	// bottom:0rem;
 	// try and push to the back
 	z-index:-1;
-	// hide any copy
-	color:transparent;
-	text-shadow:0;
-	background-color: transparent;
+	
 
 	// prevent finger cursor
 	cursor: default;
 
 	max-width:none;
 
-	&:hover,&:focus{
-		background-color: transparent;
-		//border:5px solid $col-yellow;
-	}
 	&::before, &::after{
 		display:none;
 	}
@@ -1678,18 +1692,22 @@ button#share{
 		transform: translateX( calc( -100% + 44px ) );
 	}
 }
-
 #camera{
+	display: none;
+}
+.multiple-cameras #camera{
 
-	// display: flex;
+	display: flex;
     // flex-direction: column-reverse;
 	//transition:width 40ms ease-out;
 	// display: grid;
 
 	// background-color:$col-blue;
 	// border-radius: 4px;
-// &:focus-within,
-background-image:url(./assets/icons/switch_video-24px.svg);
+	// &:focus-within,
+	background-image:url(./assets/icons/switch_video-24px.svg);
+	// overflow:hiddfooten;
+
 	&:before{
 		pointer-events: none;
 	}
@@ -1722,7 +1740,8 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 		position:absolute;
 		top:0;
 		left:0;
-		right:0;
+		min-width:100%;
+		// right:0;
 		bottom:0;
 
 		color:transparent;
@@ -1767,6 +1786,10 @@ background-image:url(./assets/icons/switch_video-24px.svg);
 	transform: translateX(var(--spacer));
 	z-index:-1;
 	
+	#year::before{
+		content:"© ";
+		color:$col-cream;
+	}
 }
 
 @media (orientation: landscape) {
