@@ -1,9 +1,11 @@
 # InterFACE
+## A Smile Powered Synthesizer
+
 A face controlled musical instrument that uses a video camera.
 
 Smile to begin - click your face to change to a different instrument.
 
-Or, an augmented reality, real-time motion-capture, machine-learning powered, holographic, acessible general MIDI controller and synthesizer (that comes without a manual). 
+Or, an augmented reality, real-time motion-capture, machine-learning powered, holographic, accessible general MIDI controller and synthesizer (that comes without a manual). 
 
 By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allows for expressive yet intuitive control and hopefully fun musicality.
 
@@ -40,10 +42,12 @@ Given enough time it would be possible to save MIDI files directly from the app 
 ## Future plans
 - Better musicality and expression
 - Upgraded synth engine
+- Refactor Instruments to Intsrument Interface for future IO
 - MIDI phrase support
 - Percussion that sounds good!
 - Hand remote Controls
 - Full Body version for beats
+- Saving "Persons" and using face ID loading them back in
 - Vocoder mode using microphone
 - Collab with Beardyman?
 
