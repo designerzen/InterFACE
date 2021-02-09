@@ -21,22 +21,22 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 	// The actual install script!
 	// NB. exported by wrapper
 	const installUpdate = () => {
-		reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-		window.location.reload();
+		reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+		window.location.reload()
 	}
 
 	// Use the window load event to keep the page load performant
 	const checkUpdates = async () => {
 			
-		reg = await navigator.serviceWorker.register('service-worker.js');// sw
-		const worker = reg.installing;
+		reg = await navigator.serviceWorker.register('service-worker.js')
+		const worker = reg.installing
 	
 		if (worker && navigator.storage) 
 		{
-			const storageData = await navigator.storage.estimate();
+			const storageData = await navigator.storage.estimate()
 			if (storageData) 
 			{
-				storageUsed = formatBytes(storageData.usage);
+				storageUsed = formatBytes(storageData.usage)
 			}
 		}
 
@@ -86,7 +86,7 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 // 
 export const updateApp = async (sw='service-worker.js') => {
 	try{
-		const update = await updater(sw);
+		const update = await updater(sw)
 		return {
 			updater:update,
 			updateAvailable:true

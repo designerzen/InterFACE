@@ -278,7 +278,7 @@ export const installer = async (defer=false) => {
 			// reveal update button?
 			const button = document.createElement('button')
 			button.classList.add("install-app")
-			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} V:${VERSION.replaceAll(".","-")} Date:${DATE}`  )
+			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} V-${VERSION.replaceAll(".","-")}<br>Date:${(new Date(DATE)).getDate()}`  )
 			button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
 
 			button.innerHTML = "Install App"
