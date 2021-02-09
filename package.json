@@ -1,6 +1,6 @@
 {
 	"name": "musical-face",
-	"version": "0.38.0",
+	"version": "0.39.0",
 	"repository": "https://github.com/designerzen/InterFACE.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -14,7 +14,7 @@
 		"revision": "yarn version --patch --no-git-tag-version",
 		"revise": "yarn revision && node actions/revision.js",
 		"patch": "yarn version --patch && node actions/revision.js",
-		"minor": "yarn version --minor && node ractions/evision.js",
+		"minor": "yarn version --minor && node actions/revision.js",
 		"major": "yarn version --major && node actions/revision.js",
 		"start": "parcel serve source/index.pug",
 		"build": "parcel build --no-scope-hoist --public-url ./ source/index.pug",
