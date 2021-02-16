@@ -17,6 +17,7 @@ let deferredPrompt
 		   
 let installed = false
 let hasPrompt = false
+let openModal = false
 
 export const installer = async (defer=false) => {
 

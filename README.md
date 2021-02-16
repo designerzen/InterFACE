@@ -13,7 +13,7 @@ By piggybacking onto a person's own natural movements, we reduce the complexity 
 
 Real-time motion tracking become possible due to innovations in machine learning and improvements in graphics processers.
 
-This software has been designed to be used with the Looking Glass 'Portrait' display - the world's first consumer grade holographic display which gives the visuals extra depth and believability.
+This software has been designed to be used with a holographic display which gives the visuals extra depth and believability.
 
 By creating a virtual interface with no moving parts or extra hardware, we can use a person's own expressions and movements to control and manipulate hardware, software and data.
 
@@ -50,6 +50,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Saving "Persons" and using face ID loading them back in
 - Vocoder mode using microphone
 - Collab with Beardyman?
+- Improved timing
 
 ## Requirements
 - Face
@@ -58,6 +59,11 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - A relatively modern computer
 - Speakers or headphones
 - Mouse / Keyboard / finger to change optional settings 
+
+## Credits
+- Font is Oxanium by [Severin Meyer](https://sev.dev/fonts/oxanium/)
+- TensorFlowJS is maintained by Alphabet
+- [Drake Music](https://drakemusic.org)
 
 ## Check it out over at
 
