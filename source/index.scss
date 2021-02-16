@@ -82,8 +82,12 @@ html{
 
 body {
 	// prevent collapse
-	min-height: 100vh;
 	min-height: -webkit-fill-available;
+	min-height: 100vh;
+}
+
+html.loading body{
+	background-image: url(./assets/textures/45-degree-fabric-light.png);
 }
   
 body, main{
@@ -434,6 +438,10 @@ label#progress-bar{
 			// opacity:1;
 			//visibility: visible;
 			animation: Fade var(--ease-q) linear 0s both;
+		}
+
+		html.debug #controls{
+			animation:none;
 		}
 	//}
 }
@@ -942,6 +950,8 @@ input[type=radio]{
 
 [id]{
 	scroll-margin-top: 2ex;
+	// stupid old safari
+	scroll-snap-margin-top:2ex;
 }
 
 
@@ -951,6 +961,11 @@ button,
 
 	--icon-size:32px;
 	--fade-speed:var(--ease-q);
+	--pos: left var(--pad) center;
+
+	--col-top:$col-cream;
+	--col-bottom: $col-grey;
+	
 
 	// inset
 	text-shadow: rgba($col-white,0.4) 0 0px 2px,
@@ -993,15 +1008,24 @@ button,
 	justify-content: space-between;
 	//justify-content: center;
 
-	background-repeat:no-repeat;
-	background-size:auto var(--icon-size);
-	// background-position:top var(--pad) center;
-	background-position: left var(--pad) center;
 	background-color:$col-cream;
 
+	background-image: var(--bg),
+					  url(./assets/textures/45-degree-fabric-light.png);
+					//   linear-gradient( var(--col-top), var(--col-bottom));
 
-	// this mau be a bad idea
-	//background-image:linear-gradient($col-cream, $col-grey);
+	background-repeat:no-repeat, 
+					  repeat, 
+					  repeat-x;
+	
+	background-size:auto var(--icon-size), 
+					auto, 
+					auto ;
+	
+	// background-position:top var(--pad) center;
+	background-position: var(--pos),
+						center, 
+						center;
 	
 	color:$col-dark;
 	
@@ -1023,9 +1047,13 @@ button,
 		min-height:var(--icon-size);
 
 		content:'';
-		background:inherit;
-		background-color:transparent;
+		
+		// background:inherit;
+		// background-image: none;
+		background:transparent var(--bg) no-repeat;
+		// background-color:transparent;
 		background-position:top center;
+		background-size:auto var(--icon-size);
 
 		filter:brightness(0%);
 		
@@ -1033,6 +1061,7 @@ button,
 		// z-index: -1;
 		transition:opacity var(--fade-speed) linear;
 	}
+	
 	&:not(.hide-text):before{
 		margin-right:calc(var(--pad) / 2 );
 	}
@@ -1086,7 +1115,7 @@ button,
 	#shared-controls > *{
 		--icon-size:26px;
 		flex-direction: column;
-		background-position:top var(--pad) center;
+		--pos:top var(--pad) center;
 		
 		// remove margin
 		&:not(.hide-text):before{
@@ -1112,7 +1141,7 @@ button,
 		flex-direction: row;
 		// as there is now no loner any text we need to centralise the icon
 		justify-content: center;
-		background-position: center center;
+		--pos: center center;
 	}
 }
 
@@ -1153,7 +1182,11 @@ button,
 	align-items: stretch;
 	justify-content: stretch;
 	
-	background-image:linear-gradient($col-cream, $col-grey);
+	background-image: 	url(./assets/textures/45-degree-fabric-light.png),
+						linear-gradient( $col-cream, $col-grey );
+	
+	// background-image: url(./assets/textures/45-degree-fabric-light.png),
+	// 					linear-gradient( fade($col-cream, 0.5), fade($col-grey, 0.5));
 	
 	//overflow: hidden;
 	// overflow: scroll;
@@ -1235,7 +1268,6 @@ button,
 	label,button{
 		
 		// labels can collapse without text to expand them
-		
 		text-transform: uppercase;
 	
 		//border-left:0;
@@ -1243,22 +1275,27 @@ button,
 		border-top:1px groove $col-white;
 		border-bottom:1px groove $col-dark;
 		
+		font-weight:900;
 		// color:var(--col-regular);
 		// background-color:rgba($col-yellow,0.5);
 
-	
 		&:active{
-			transform: scale(0.94);
+			--col-top:$col-select;
+			--col-bottom:$col-select;
+			transform: scale(0.96);
+			//background-color: var(--col-select);
 		}
 		&.checked,
 		&.checked:hover,
 		&:hover, &:focus{
 			color:$col-white;
-			background-color: var(--col-hover);
+			background-color: var(--col-regular);
 		}
 
 		&.checked{
-			background-color: var(--col-regular);
+			--col-top:$col-dark;
+			--col-bottom:$col-dark;
+			//background-color: var(--col-regular);
 			// background-color: $col-dark;
 		}
 	
@@ -1282,7 +1319,7 @@ button,
 	button.install-app,
 	button.update-available{
 		order:-1;
-		background-image:url(./assets/icons/get_app-24px.svg);
+		--bg:url(./assets/icons/get_app-24px.svg);
 		background-color: $col-orange;
 	}
 
@@ -1314,18 +1351,18 @@ button,
 	label[for="button-metronome"]{
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
-		background-image:url(./assets/icons/timer_off-24px.svg);
+		--bg:url(./assets/icons/timer_off-24px.svg);
 		&.checked{
-			background-image:url(./assets/icons/timer-24px.svg);
+			--bg:url(./assets/icons/timer-24px.svg);
 		}
 	}
 
 	label[for="button-quantise"]{
 		--col-select:#{$col-yellow};
 		--col-hover:#{$col-blue};
-		background-image:url(./assets/icons/grid_off-24px.svg);
+		--bg:url(./assets/icons/grid_off-24px.svg);
 		&.checked{
-			background-image:url(./assets/icons/grid_on-24px.svg);
+			--bg:url(./assets/icons/grid_on-24px.svg);
 		}
 	}
 
@@ -1337,16 +1374,16 @@ button,
 		//--col-hover:transparent;
 
 		@extend %image-replacement;
-		background-image:url(./assets/icons/fullscreen-24px.svg);
+		--bg:url(./assets/icons/fullscreen-24px.svg);
 		
 		// toggled state
 		&.checked{
-			background-image:url(./assets/icons/fullscreen_exit-24px.svg);
+			--bg:url(./assets/icons/fullscreen_exit-24px.svg);
 		}
 		
 		// override if user has esc'ed
 		@media all and (display-mode: fullscreen) {
-			background-image:url(./assets/icons/fullscreen_exit-24px.svg) !important;
+			--bg:url(./assets/icons/fullscreen_exit-24px.svg) !important;
 		}
 	}
 	
@@ -1355,9 +1392,9 @@ button,
 		// --col-hover:#{$col-dark};
 		--col-select:#{$col-blue};
 		// @extend %image-replacement;
-		background-image:url(./assets/icons/videocam_off-24px.svg);
+		--bg:url(./assets/icons/videocam_off-24px.svg);
 		&.checked{
-			background-image:url(./assets/icons/videocam-24px.svg);
+			--bg:url(./assets/icons/videocam-24px.svg);
 		}
 	}
 
@@ -1365,9 +1402,9 @@ button,
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-green};
 		--col-select:#{$col-orange};
-		background-image:url(./assets/icons/blur_off-24px.svg);
+		--bg:url(./assets/icons/blur_off-24px.svg);
 		&.checked{
-			background-image:url(./assets/icons/blur_on-24px.svg);
+			--bg:url(./assets/icons/blur_on-24px.svg);
 		}
 	}
 	// label[for="button-spectrogram"]{
@@ -1387,10 +1424,10 @@ button,
 		// @extend %image-replacement;
 		// background-image:url(./assets/icons/movie_creation-24px.svg);
 		// background-image:url(./assets/icons/music_note-24px.svg);
-		background-image:url(./assets/icons/image_not_supported-24px.svg);
+		--bg:url(./assets/icons/image_not_supported-24px.svg);
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
-			background-image:url(./assets/icons/image-24px.svg);
+			--bg:url(./assets/icons/image-24px.svg);
 			// background-image:url(./assets/icons/music_note-24px-24px.svg);
 		}
 	}
@@ -1406,10 +1443,10 @@ button,
 		// @extend %image-replacement;
 		// background-image:url(./assets/icons/movie_creation-24px.svg);
 		// background-image:url(./assets/icons/music_note-24px.svg);
-		background-image:url(./assets/icons/web_asset-24px.svg);
+		--bg:url(./assets/icons/web_asset-24px.svg);
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
-			background-image:url(./assets/icons/web_asset_off-24px.svg);
+			--bg:url(./assets/icons/web_asset_off-24px.svg);
 			// background-image:url(./assets/icons/music_note-24px-24px.svg);
 		}
 	}
@@ -1502,6 +1539,7 @@ button#person-b{
 	right:0;
 }
 
+// Instrument selection panel
 fieldset.person-controls{
 
 	// or in duet do we split screen???
@@ -1511,6 +1549,10 @@ fieldset.person-controls{
 	max-width: 50%;
 	bottom:0;
 	overflow: auto;
+	display: grid;
+
+	// smol : Next, we use minmax for the main content. Why? Because if we only use 1fr then eventually our sidebar and main will share 50% of the space, and we want the main area to always be wider. We also nest min to ask the browser to use the minimum of either of the options. The result in this case is use of 50vw on mobile-sized viewports, and 30ch on larger viewports. And, when there's room, it also stretches to 1fr for the max part of minmax 🙌🏽
+	grid-template-columns: fit-content(20ch) minmax(min(50vw, 30ch), 1fr);
 
 	label{
 		color:$col-dark;
@@ -1573,6 +1615,7 @@ button#button-video{
 	cursor: default;
 
 	max-width:none;
+	background: none;
 
 	&::before, &::after{
 		display:none;
@@ -1585,7 +1628,7 @@ button#button-midi{
 	//background-position: left 1px center;
 	// --icon-size:36px;
 	//background-color: $col-cream;
-	background-image:url(assets/logos/midi2.0.svg);
+	--bg:url(assets/logos/midi2.0.svg);
 	&:before{
 		// also make sure we have set the width for midi as is not square
 		//min-width: calc(var(--icon-size) * 1.2);
@@ -1653,31 +1696,31 @@ label[for="select-camera"],
 
 button#button-photograph{
 	--col-hover:#{$col-blue};
-	background-image:url(./assets/icons/add_a_photo-24px.svg);
+	--bg:url(./assets/icons/add_a_photo-24px.svg);
 }
 
 button#button-duet{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
 	--col-hover:#{$col-yellow};
-	background-image:url(./assets/icons/person_add-24px.svg);
+	--bg:url(./assets/icons/person_add-24px.svg);
 	display: none;
 }
 button#button-solo{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
 	--col-hover:#{$col-yellow};
-	background-image:url(./assets/icons/person-24px.svg);
+	--bg:url(./assets/icons/person-24px.svg);
 	display: none;
 }
 
 button#button-metronome{
 	
-	// background-image:url(./assets/icons/person_add-24px.svg);
+	// --bg:url(./assets/icons/person_add-24px.svg);
 }
 
 button#share{
-	background-image:url(./assets/icons/share-24px.svg);
+	--bg:url(./assets/icons/share-24px.svg);
 	margin-left: auto;
 }
 
@@ -1705,7 +1748,8 @@ button#share{
 	// background-color:$col-blue;
 	// border-radius: 4px;
 	// &:focus-within,
-	background-image:url(./assets/icons/switch_video-24px.svg);
+	// background-image:url(./assets/icons/switch_video-24px.svg);
+	--bg:url(./assets/icons/switch_video-24px.svg);
 	// overflow:hiddfooten;
 
 	&:before{

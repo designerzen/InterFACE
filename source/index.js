@@ -439,7 +439,7 @@ const setup = async (settings, progressCallback) => {
 			if (video)
 			{
 				const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-				setFeedback( deviceId ? "Found saved camera" : "Attempting to locate camera...")
+				setFeedback( deviceId ? "Found saved camera" : "Attempting to locate a camera...<br>Please click accept if you are prompted")
 			
 				try{
 					camera = await loadCamera(deviceId, "Saved")
@@ -800,12 +800,14 @@ setFeedback("Initialising...<br> Please wait")
 let installation = null
 let loadMeter = 0
 
+// allow for debug via css
+body.classList.toggle("debug", ui.debug )
 
 const onLoaded = async () => {
 
 	body.classList.toggle("loaded", true)
 	body.classList.remove("loading")
-	
+		
 	// at any point we can now trigger the installation
 	if (installation)
 	{
@@ -830,11 +832,15 @@ const onLoaded = async () => {
 		document.getElementById("share").style.display = "none"
 	}
 	
+	// change this depending on whether a face is detected
 	speak("Open your mouth to begin!")
 
 	// Show hackers message
-	// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
-	// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )
+	if (ui.debug)
+	{
+		// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
+		console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
+	}
 }
 
 
@@ -908,7 +914,7 @@ setup( Object.assign( {}, SETTINGS, {} ), progress => {
 	loadMeter = progress
 })
 
-setFeedback("Loading...<br>Please wait")
+setFeedback("Loading... Please wait<br>This can take <strong>some</strong> time!")
 pwa()
 
 loadingLoop()
@@ -922,8 +928,13 @@ window.onbeforeunload = ()=>{
 	setToast("bye bye!")
 }
 
+// document.addEventListener( "contextmenu", (e) => {
+//     console.log(e)
+// })
 
+// if this is a desktop?
 window.oncontextmenu = () => {
+	// reset instructions
 	counter = 0
 	// restart counter?
     //return false     // cancel default menu
@@ -1043,6 +1054,7 @@ window.addEventListener('keydown', async (event)=>{
 
 		// Hide video
 		case 'v':
+			// FIXME: Alsoenable sync?
 			video.style.visibility = video.style.visibility === "hidden" ? "visible" : "hidden"
 			break
 
@@ -1077,28 +1089,28 @@ window.addEventListener('popstate', (event) => {
 	//console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
 })
 
-window.addEventListener('wheel' , event => {
+// window.addEventListener('wheel' , event => {
 	
-	return
+// 	return
 
-	let d = event.detail
-	const w =  event.deltaY || event.wheelDelta
-	let n = 225
-	let n1 = n-1
-	let f
+// 	let d = event.detail
+// 	const w =  event.deltaY || event.wheelDelta
+// 	let n = 225
+// 	let n1 = n-1
+// 	let f
 
-	// Normalize delta
-	d = d ? w && (f = w/d) ? d/f : -d/1.35 : w/120
-	// Quadratic scale if |d| > 1
-	d = d < 1 ? d < -1 ? (-Math.pow(d, 2) - n1) / n : d : (Math.pow(d, 2) + n1) / n
-	// Delta *should* not be greater than 2...
-	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
-	const volume = getVolume()
-	//const result = setMasterVolume(volume + wheel)
+// 	// Normalize delta
+// 	d = d ? w && (f = w/d) ? d/f : -d/1.35 : w/120
+// 	// Quadratic scale if |d| > 1
+// 	d = d < 1 ? d < -1 ? (-Math.pow(d, 2) - n1) / n : d : (Math.pow(d, 2) + n1) / n
+// 	// Delta *should* not be greater than 2...
+// 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
+// 	const volume = getVolume()
+// 	//const result = setMasterVolume(volume + wheel)
 
-	console.log("mouse wheel",{ wheel, volume, result}, event)	
-})
+// 	console.log("mouse wheel",{ wheel, volume, result}, event)	
+// })
 
-window.addEventListener('deviceorientation' , event => {
-	//console.log("device orientation", event)
-})
+// window.addEventListener('deviceorientation' , event => {
+// 	//console.log("device orientation", event)
+// })
