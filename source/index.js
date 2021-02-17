@@ -89,6 +89,12 @@ let counter = 0
 // for disco mode!
 const cameraPan = {x:1,y:1}
 
+
+// TODO: before doing anything, let us check the bare minimum...
+// is https()
+//
+
+
 // should be set on the html but jic
 body.classList.toggle("loading", true)
 
