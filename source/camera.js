@@ -13,6 +13,10 @@
 
 // 	video.srcObject = stream
 // }
+
+// export const hasCameraCapabilities = () => {
+
+// }
 export const filterVideoCameras = (devices) => {
 	
 	return devices.filter( device => {
@@ -21,6 +25,8 @@ export const filterVideoCameras = (devices) => {
 		
 	})
 }
+
+// WARNING : Triggers an error if not from a user click!?
 // This returns a list of IDS that you can then feed into the setupCamera
 // if you want to select a specific camera
 export const detectCameras = async () => {
@@ -39,10 +45,17 @@ export const setupCamera = async (video, deviceId ) => {
 
 		video.onloadedmetadata = (event) => { 
 			
-			video.play()
-			video.width = video.videoWidth
-			video.height = video.videoHeight
-			resolve(stream)
+			// if not from a user document interaction, this
+			// will throw some blah blah error so we must wrap and re-act
+			try{
+				video.play()
+				video.width = video.videoWidth
+				video.height = video.videoHeight
+				resolve(stream)	
+			}catch(error){
+				reject(stream)
+			}
+			
 		}
 
 		video.onerror = event => reject(stream)

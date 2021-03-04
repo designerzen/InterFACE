@@ -426,9 +426,7 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mou
 	// canvasContext.fill()
 }
 
-export const drawQuantise = (active, bar=-1, extras="") => {
-	
-	const stroke = 30
+export const drawQuantise = (active, bar=-1, bars=1, stroke = 30, extras="") => {
 
 	// text
 	// canvasContext.strokeWidth = stroke//+"px"
@@ -437,15 +435,17 @@ export const drawQuantise = (active, bar=-1, extras="") => {
 	// canvasContext.fillStyle = PALETTE.grey
 	// canvasContext.strokeStyle = PALETTE.dark
 	// canvasContext.fillText( (bar === -1 ? `-` : `${bar+1}`) + extras, stroke, stroke)
-	
+	const gap = width /( bars + 1 )
 	// blobs
 	for (let i=0, l= bar+1; i<l; ++i)
 	{
+		// + gap fence post
+		let x = i * gap + gap
 		canvasContext.fillStyle = i === bar ? PALETTE.cream : PALETTE.orange
 		canvasContext.strokeStyle = i ===  bar ? PALETTE.orange : PALETTE.brown
 		canvasContext.lineWidth = 4
 		canvasContext.beginPath()
-		canvasContext.arc( i * 20 + 20, 20, 4, 0, TAU )
+		canvasContext.arc( x, 20, 4, 0, TAU )
 		canvasContext.fill()
 		canvasContext.stroke()
 	}

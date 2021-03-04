@@ -139,3 +139,14 @@ export const INSTRUMENT_FOLDERS = [
 export const cleanTitle = name => name && name.length > 1 ? name.replaceAll("_", " ").replace("-mp3", "") : ''
 
 export const INSTRUMENT_NAMES = INSTRUMENT_FOLDERS.map( instrument => cleanTitle(instrument) )
+
+export const instrumentCache = {}
+export const fetchInstrument = (name) =>{
+	
+	// FIXME: Create if it doesn't exist?
+	return instrumentCache[name]
+}
+
+export const storeInstrument = (name,data) => {
+	instrumentCache[name] = data
+}

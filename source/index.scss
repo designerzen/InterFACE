@@ -17,6 +17,8 @@ $col-yellow:hsl(41, 34%, 50%);
 $col-orange:hsl(28, 69%, 38%);
 $col-red:hsl(9, 58%, 35%);
 
+@import "./assets/styles/gadgets.scss";
+
 %image-replacement{
 	text-indent: -9999px;
 	overflow:hidden;
@@ -28,6 +30,11 @@ $col-red:hsl(9, 58%, 35%);
 	justify-content: center;
 }
   
+
+// debug
+// @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
+
+
 
 // @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap');
 // @font-face {
@@ -52,6 +59,12 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	--ease-s:450ms;
 	--ease-m:90ms;
 	--ease-q:45ms;
+
+	--duration:calc( 2 * var(--ease-s) );//var(--ease-out-quick);
+	--duration-scroll:calc( 5 * var(--ease-s) );
+
+	--overlap:0.2;  // the smaller, the closer together the nimations are
+	--offset:0.1s;	// initial delay for all
 }
 
 html, input, button, textarea, option, select{
@@ -88,6 +101,7 @@ body {
 
 html.loading body{
 	background-image: url(./assets/textures/45-degree-fabric-light.png);
+	background-image: url(./assets/textures/45-degree-fabric-dark.png);
 }
   
 body, main{
@@ -109,6 +123,7 @@ h1{
 
 label,select,option{
 	font-size:1rem;
+	user-select: none;
 }
 
 p{
@@ -238,6 +253,10 @@ select{
 	appearance: none;
 	padding:var(--pad);
 }
+video,canvas{
+	max-width:100%;
+	visibility: hidden;
+}
 
 // Loading progress	
 label#progress-bar{
@@ -291,30 +310,6 @@ label#progress-bar{
 
 	display:block;
 
-	// rounded corners
-	border-radius:var(--curve);
-	overflow: hidden;
-
-	background-color: black;
-
-	box-shadow:
-		var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
-		var(--wig) -2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
-		var(--wig) -4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
-		var(--wig) -8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
-		var(--wig) -13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
-		var(--wig) -23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
-		var(--wig) -50px 51px hsla(var(--hue), 90%, 10%, 0.15),
-		
-		var(--wig) 1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
-		var(--wig) 2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
-		var(--wig) 4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
-		var(--wig) 8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
-		var(--wig) 13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
-		var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
-		var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
-	// $col-yellow
-	
 	// show a graphic but hide contents
 	&::before, &::after{
 		transition: var(--ease-s) linear opacity;
@@ -330,120 +325,45 @@ label#progress-bar{
 		width:10%;
 		display: block;
 		z-index:3;
+		fill:pink;
 		content:url(./assets/logos/interface_colour.svg);
+		// content:url(./assets/logos/interface_current-color.svg);
 	}
 
-	video,canvas{
-		// max-width:100%;
-		// max-height:100vh;
-		// height:auto;
-
-		// put them all in the same place in the grid
-		object-fit: contain;
-		//margin:auto;
-		visibility: hidden;	
-	}
-
-	canvas{
-
-		z-index: 1;
-		position: relative;
-		
-		// stretch it to flood the width
-		// width:100vw;
-
-		height: auto;
-		//width:100%;
-
-		// prevent overflow
-		// max-width: 100vw;
-		// max-height: 100vh;
-
-		// video actually always maintains apect ratio which we can abuse...	
-		// @media (orientation: landscape) {
-		// 	height: 100%;
-		// 	width:calc(var(--width) / var(--height)  * 100vh );
-		// }
-
-		// width:100%;//clamp(100%, 100vw, 100% );
-		height: 100vh;
-		max-width: 100vw;
-		// max-height: 100vh;
-		// max-width: 100vw;
-		// height:calc(var(--height) / var(--width) * 100vw );
-
-		@media (orientation: portrait) {
-			// 	height: 100%;
-			// 	width:calc(var(--width) / var(--height)  * 100vh );
-			width: 100%;
-			height:calc(var(--height) / var(--width) * 100vw );
-		}
-		
-		// @media (orientation: landscape) {
-		// 	height: 100vh;
-		// 	width:calc(var(--width) / var(--height)  * 100vh );
-		// }
-		// @media (orientation: portrait) {
-		// 	width: 100vw;
-		// 	height:calc(var(--height) / var(--width) * 100vw );
-		// }
-		
-		// scale to fit screen?
-		// landscape
-		// @media (orientation: landscape) {
-		// 	height:100vh;
-		// 	width:calc(var(--width) / var(--height)  * 100vh );
-		// }
-		// // portrait
-		// @media (orientation: portrait) {
-		// 	width:100vw;
-		// 	height:calc(var(--height) / var(--width) * 100vw );
-		// }
-	}
-
-	// in front
-	video{
-		
-		// flip it around
-		transform: scaleX(-1);
-
-		z-index: 0;
-		position:absolute;
-		top:0;
-		left:0;
-		// right:0;
-		// bottom:0;
-		width:100%;
-		height:100%;
-	}
 }
 
 
 // Hide controls on mouse out on hover devices
 @media (any-hover: hover) {
 	//@supports (html:focus-within){
-			
+	.loaded{
 		// #controls,
-		#controls{
+		#shared-controls{
 			//visibility: hidden;
-			// transition:45ms linear opacity;
+			transition:45ms linear opacity;
 			// fade out
-			animation: Fade var(--ease-s) linear 1500ms both reverse;
-			// opacity:0;
+			//animation: Fade var(--ease-s) linear 1500ms both reverse;
+			 opacity:0;
+		
 		}
 
-		html:focus-visible #controls,
-		html:focus-within #controls,
-		html:hover #controls{
-			// opacity:1;
+		main:focus-visible #shared-controls,
+		main:focus-within #shared-controls,
+		main:hover #shared-controls{
+			 opacity:1;	
+			 > *{
+				animation-name:Fade;
+				animation-duration:var(--ease-s);
+				animation-direction:both;
+				// animation-delay:inherit;
+			}
 			//visibility: visible;
-			animation: Fade var(--ease-q) linear 0s both;
+			//animation: Fade var(--ease-q) linear 0s both;
 		}
-
-		html.debug #controls{
-			animation:none;
-		}
-	//}
+	}
+	.debug #controls{
+		animation:none;
+	}
 }
 
 // funky text animations
@@ -483,6 +403,7 @@ p strong{
 		animation-delay:calc( var(--loader-duration) / 4 * 0.02s );
 		filter: blur(5px);
 	}
+
 	header{
 		
 		> *{
@@ -491,10 +412,19 @@ p strong{
 			visibility:visible;
 			animation:Fade var(--ease-s) ease-in 1 0s both;
 		}	
+
+		$end:9;
+		@for $i from 1 to $end {
+
+			&:nth-child(#{$i}){
+				// delay is the amount of time to wait before reveal
+				animation-delay:calc( var(--offset) + #{$i - 1} * var(--overlap) * var(--duration) );
+			}
+		}
+
 		.logo{
 			@extend %image-replacement;
 			color:#8d3525;
-
 			align-self: center;
 			height:100%;
 			background-position: center;
@@ -505,17 +435,10 @@ p strong{
 			//background-color: black;
 			color: $col-orange;
 			clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
-		
-		
 		}
+	}
 
-	}
-	video{
-		opacity:0.5;
-	}
-	#face{
-		display: none;
-	}
+	
 	main{
 
 		overflow:hidden;
@@ -536,6 +459,55 @@ p strong{
 		bottom:var(--pad);
 		top:auto;
 	}
+	#shared-controls{
+		visibility: hidden;
+	}
+}
+
+// STATE - Choose players
+// This is the how many people are playing mode
+.player-selection{
+	header > *{
+	// header > *:not(h1){
+		visibility: hidden;
+	}
+	// strapline... show yet?
+	#title{
+		position: absolute;
+		bottom:0;
+		visibility:hidden;
+	}
+	
+	#toast{
+		right:auto;
+		// prevent cramping
+		margin:0 var(--pad);
+		background-color: transparent;
+		text-align:center;
+	}
+	.person,
+	#shared-controls{
+		visibility: hidden;
+	}
+	#player-selector{
+		visibility: visible;
+	}
+
+	#button-trio{
+		display:none;
+	}
+
+	fieldset > *{
+		--xa:-50%;
+		animation-name:Fade, Shift;
+	}
+	// &:focus-within{
+	// 	fieldset > *{
+	// 		animation-name:unset;
+	// 	}
+	// }
+	// canvas,
+	// video{visibility: hidden;}
 }
 
 // FIXME:
@@ -582,8 +554,124 @@ p strong{
 		}
 	}
 
+	#shared-controls{
+		visibility: visible;
+	}
+
+	#player-selector,
 	#progress-bar{
 		display: none;
+	}
+	// wrapper
+	#app-frame{
+			
+		// rounded corners
+		border-radius:var(--curve);
+		overflow: hidden;
+
+		background-color: black;
+		box-shadow:
+			var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
+			var(--wig) -2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
+			var(--wig) -4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
+			var(--wig) -8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
+			var(--wig) -13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
+			var(--wig) -23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
+			var(--wig) -50px 51px hsla(var(--hue), 90%, 10%, 0.15),
+			
+			var(--wig) 1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
+			var(--wig) 2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
+			var(--wig) 4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
+			var(--wig) 8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
+			var(--wig) 13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
+			var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
+			var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
+		// $col-yellow
+		
+		video,canvas{
+			// max-width:100%;
+			// max-height:100vh;
+			// height:auto;
+
+			// put them all in the same place in the grid
+			object-fit: contain;
+			//margin:auto;
+			visibility: hidden;	
+		}
+
+		canvas{
+
+			z-index: 1;
+			position: relative;
+			
+			// stretch it to flood the width
+			// width:100vw;
+
+			height: auto;
+			//width:100%;
+
+			// prevent overflow
+			// max-width: 100vw;
+			// max-height: 100vh;
+
+			// video actually always maintains apect ratio which we can abuse...	
+			// @media (orientation: landscape) {
+			// 	height: 100%;
+			// 	width:calc(var(--width) / var(--height)  * 100vh );
+			// }
+
+			// width:100%;//clamp(100%, 100vw, 100% );
+			height: 100vh;
+			max-width: 100vw;
+			// max-height: 100vh;
+			// max-width: 100vw;
+			// height:calc(var(--height) / var(--width) * 100vw );
+
+			@media (orientation: portrait) {
+				// 	height: 100%;
+				// 	width:calc(var(--width) / var(--height)  * 100vh );
+				width: 100%;
+				height:calc(var(--height) / var(--width) * 100vw );
+			}
+			
+			// @media (orientation: landscape) {
+			// 	height: 100vh;
+			// 	width:calc(var(--width) / var(--height)  * 100vh );
+			// }
+			// @media (orientation: portrait) {
+			// 	width: 100vw;
+			// 	height:calc(var(--height) / var(--width) * 100vw );
+			// }
+			
+			// scale to fit screen?
+			// landscape
+			// @media (orientation: landscape) {
+			// 	height:100vh;
+			// 	width:calc(var(--width) / var(--height)  * 100vh );
+			// }
+			// // portrait
+			// @media (orientation: portrait) {
+			// 	width:100vw;
+			// 	height:calc(var(--height) / var(--width) * 100vw );
+			// }
+		}
+
+		// in front
+		video{
+			
+			// flip it around
+			transform: scaleX(-1);
+
+			z-index: 0;
+			position:absolute;
+			top:0;
+			left:0;
+			// right:0;
+			// bottom:0;
+			width:100%;
+			height:100%;
+		}
+		
 	}
 	#app{
 		#title{
@@ -629,6 +717,18 @@ p strong{
 	}
 }
 
+// If the user has de-selected 'advanced' mode, we hide some buttons that
+// will just confuse them...
+.beginner{
+
+	// hide these...
+	label[for="button-quantise"],
+	label[for="button-spectrogram"]{
+		display: none;
+	}
+}
+
+
 main.midi{
 	#button-midi{
 		display: flex;
@@ -672,7 +772,7 @@ p{
 
 #toast{
 	position: absolute;
-	right:var(--pad);
+	right:calc(var(--pad) + 2px);
 	bottom:calc( var(--footer-gap) + var(--pad) );
 	z-index:909;
 	color:$col-white;
@@ -844,29 +944,32 @@ p{
 fieldset{
 	--breakpoint:320px;//12ch;
 
-	--gap: 1px;	
-	--v:min( (var(--breakpoint) - 100%) * 999, 100%);
-		
 	opacity:1;
 	border:0;
 	margin:0;//var(--pad);
 	padding:0;
-	gap: var(--gap);  
-	grid-gap: var(--gap);
 
-	grid-template-columns:
-		repeat(
-		auto-fit,	
-		minmax(
-			var(--v),
-			1fr
-		)
-	);
+	display:flex;
 	
-	grid-template-columns: max-content;
+	// --gap: 1px;	
+	// --v:min( (var(--breakpoint) - 100%) * 999, 100%);
+	// 	gap: var(--gap);  
+	// grid-gap: var(--gap);
 
-	display: grid;
+	// grid-template-columns:
+	// 	repeat(
+	// 	auto-fit,	
+	// 	minmax(
+	// 		var(--v),
+	// 		1fr
+	// 	)
+	// );
+	
+	// grid-template-columns: max-content;
+
+	// display: grid;
 	// grid-template-columns:1fr 1fr ;
+	
 	position: relative;
 	// NB. ensure in front of the person buttons
 	z-index:909;
@@ -907,6 +1010,7 @@ input[type=radio]{
 
 // STATES ==========================
 
+// Faces are shown on video
 .active button.person{
 	display: block;	
 }
@@ -915,7 +1019,7 @@ input[type=radio]{
 .no-faces{ 
 	#app-frame{
 
-		// opacity:0.8;
+		opacity:0.9;
 
 		&::after{
 			content:'';
@@ -929,31 +1033,35 @@ input[type=radio]{
 			opacity:1;
 			transform:translateZ(100px);
 			display: block;
+			z-index:303;
 		}
 	}
 	
 }
 
 // Could not load due to privacy restrictoin or user uninteraction
+//  or no camera or whatever
 .failure{
 	#controls{
 		display: none;
 	}
 	#feedback{
 		left:var(--pad);
+		right:var(--pad);
 		bottom:calc(50vh - 0.5rem);
 		text-align: center;
-		color:$col-red;
-		font-size:200%;
+
+		background-color:$col-red;
+		color:$col-white;
+		border:10px solid $col-white;
+		
+		font-size:240%;
+
+		&::after{
+			display:none;
+		}
 	}
 }
-
-[id]{
-	scroll-margin-top: 2ex;
-	// stupid old safari
-	scroll-snap-margin-top:2ex;
-}
-
 
 // BUTTON ABSTRACT
 button,
@@ -965,8 +1073,8 @@ button,
 
 	--col-top:$col-cream;
 	--col-bottom: $col-grey;
+	--direction:row;
 	
-
 	// inset
 	text-shadow: rgba($col-white,0.4) 0 0px 2px,
 				rgba($col-white,0.3) 0 0.5px 2px,
@@ -980,6 +1088,8 @@ button,
 	// from ios guidelines
 	min-width:44px;
 	min-height:44px;
+	max-width:var(--max-width-override, var(--max-width,auto) );
+
 	position: relative;
 	box-sizing: border-box;
 	margin:0;
@@ -996,9 +1106,26 @@ button,
 
 	// max-width:calc(100% - 2 * var(--pad));
 	z-index:1;
+
+
+	// from horizontal to vertical stack using grid
+	// --breakpoint:300px;
+  	// --gap: 20px;
+	// display: grid;
+  	// gap: var(--gap);  
+	// grid-gap: var(--gap);
+	// --v:min( (var(--breakpoint) - 100%) * 999, 100%);
+	// grid-template-columns:repeat(
+    //   auto-fit,
+    //   minmax(
+    //     var(--v),
+    //     1fr
+    //   )
+    // );
+
 	display: flex;
 	//flex-wrap: auto;
-	flex-direction: row;
+	flex-direction: var( --dir-override, var(--direction, row));
 	// ensure a gap between row items...
 
 	// align-items: center;
@@ -1023,13 +1150,17 @@ button,
 					auto ;
 	
 	// background-position:top var(--pad) center;
-	background-position: var(--pos),
+	background-position: var( --pos-override, var(--pos, center) ),
 						center, 
 						center;
 	
 	color:$col-dark;
 	
 	// animations
+	animation-name:unset;	// start unset
+	animation-fill-mode: both, both;
+	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
+	
 	transition:transform var(--fade-speed) $easeOutBack,
 				background-color var(--fade-speed) linear, 
 				color var(--fade-speed) linear;
@@ -1065,6 +1196,7 @@ button,
 	&:not(.hide-text):before{
 		margin-right:calc(var(--pad) / 2 );
 	}
+
 	&:hover, &:focus{
 
 		&:before{
@@ -1072,14 +1204,34 @@ button,
 			z-index:1;
 		}
 	}
+	
+	
 	&:active{
 		background-color: $col-orange;
+	}
+
+	&:focus{
+		outline:4px solid $col-yellow;
 	}
 
 	&.hide{
 		display: none;
 	}
 }
+
+// fancy shared controls animations
+#shared-controls > *{
+	$end:19;
+	@for $i from 1 to $end {
+
+		&:nth-child(#{$i}){
+			// delay is the amount of time to wait before reveal
+			animation-delay:calc( #{$i - 1} * 45ms );
+			animation-delay:calc( var(--offset) + #{$i - 1} * var(--overlap) * var(--duration) );
+		}
+	}
+}
+
 
 // show even the hidden text!
 @media screen and (max-width:1960px){
@@ -1114,8 +1266,8 @@ button,
 	button,
 	#shared-controls > *{
 		--icon-size:26px;
-		flex-direction: column;
 		--pos:top var(--pad) center;
+		--direction: column;
 		
 		// remove margin
 		&:not(.hide-text):before{
@@ -1134,20 +1286,20 @@ button,
 	button,
 	#shared-controls > *{
 		--icon-size:28px;
+		--pos: center center;
+		--direction: row;
 		font-size: 0;
 		text-indent: -9999px;
 		overflow:hidden;
 		color:transparent;
-		flex-direction: row;
 		// as there is now no loner any text we need to centralise the icon
 		justify-content: center;
-		--pos: center center;
 	}
 }
 
 
 // smallest always hides text so overrides here...
-@media screen and (max-width:340px){
+@media screen and (max-width:388px){
 
 	:root{
 		--footer-gap:calc(67px);
@@ -1157,7 +1309,9 @@ button,
 	button,
 	#shared-controls > *{
 		--icon-size:20px;
-		max-width:33px;
+		// here we set a max width
+		// NB. you can override this with --max-width-override
+		--max-width:33px;
 		min-width:22px;
 	}
 }
@@ -1178,11 +1332,11 @@ button,
 	//right:0;
 	min-width:100vw;
 
-	display:flex;
+	visibility:hidden;
 	align-items: stretch;
 	justify-content: stretch;
 	
-	background-image: 	url(./assets/textures/45-degree-fabric-light.png),
+	background-image: 	url(./assets/textures/bedge-grunge.png),
 						linear-gradient( $col-cream, $col-grey );
 	
 	// background-image: url(./assets/textures/45-degree-fabric-light.png),
@@ -1192,7 +1346,6 @@ button,
 	// overflow: scroll;
 	//overflow-y:hidden;
 
-	
 	// need to bring it into z-range
 	z-index:303;
 	
@@ -1271,7 +1424,7 @@ button,
 		text-transform: uppercase;
 	
 		//border-left:0;
-		border-right:1px groove $col-dark;
+		
 		border-top:1px groove $col-white;
 		border-bottom:1px groove $col-dark;
 		
@@ -1299,6 +1452,10 @@ button,
 			// background-color: $col-dark;
 		}
 	
+	}
+
+	label:not(:last-child),button:not(:last-child){
+		border-right:1px groove $col-dark;
 	}
 	
 	> * + *{
@@ -1699,19 +1856,92 @@ button#button-photograph{
 	--bg:url(./assets/icons/add_a_photo-24px.svg);
 }
 
-button#button-duet{
+#player-selector{
+	--top-gap:clamp(4rem, 1vw, 5rem);
+	// prevents a button becoming an icon
+	--max-width-override:auto;
+	
+	text-align:center;
+	box-sizing: border-box;
+	visibility: hidden;
+	border-radius:18px;
+	border:1px solid $col-blue;
+	margin:calc(var(--top-gap)) var(--pad);// solid transparent;
+	padding:var(--top-gap);
+	// margin-top:calc(var(--top-gap));// solid transparent;
+	// margin-bottom:calc(var(--top-gap));// solid transparent;
+	display:flex;
+	flex-direction: column;
+	// place-content: center;
+	align-items:stretch;
+	justify-content: space-around;
+	// grid-gap:4px;
+	//min-height:calc( 100% - var(--top-gap) * 2);
+
+	button{
+		--icon-size: 44px;
+		--pos-override: top var(--v-pad) center;
+		
+		&:hover{
+			background-color:var(--col-hover);
+		}
+	}
+
+	button, label{
+		--dir-override:column;
+		--pos-override:top center;
+		--pos-override:top var(--pad) center;
+		font-weight: 900;
+		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
+		border-radius:24px;
+		text-indent: 0;
+		overflow: visible;
+		color: black;
+		background-color: $col-yellow;
+		justify-content: center;
+		text-transform: uppercase;
+	}
+
+	label{
+		margin-top:var(--pad);
+		align-self: center;
+	}
+
+	// animate out again?
+	&.completed{
+
+		> *{
+			--xa:50%;
+			//animation-name: Shift, Fade;
+			animation-direction: normal, reverse;
+			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
+		}
+	}
+}
+
+
+
+button#button-trio{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
-	--col-hover:#{$col-yellow};
+	--col-hover:#{$col-green};
 	--bg:url(./assets/icons/person_add-24px.svg);
-	display: none;
+	//display: none;
+}
+button#button-duet{
+	
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-blue};
+	--bg:url(./assets/icons/people-24px.svg);
+	//display: none;
 }
 button#button-solo{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
-	--col-hover:#{$col-yellow};
+	--col-hover:#{$col-orange};
 	--bg:url(./assets/icons/person-24px.svg);
-	display: none;
+	//display: none;
 }
 
 button#button-metronome{
@@ -1904,6 +2134,14 @@ button#share{
 		color: hsl(90, 60%, 40%);
 	}
 }
+@keyframes Shift{
+	from{
+		transform: translate( var(--xa,0), var(--ya,0) );
+	}
+	to{
+		transform: translate( var(--xb,0), var(--yb,0) );
+	}
+}
 @keyframes Fade{
 	from{
 		opacity: 0;
@@ -1992,6 +2230,7 @@ button#share{
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/@media/display-mode
 
+
 @media all and (display-mode: fullscreen) {
 
     #displayMode::before {
@@ -1999,7 +2238,7 @@ button#share{
     }
 }
 
-// Installed on machine... show extra buttons?
+// Installed on machine... hide extra buttons?
 @media all and (display-mode: standalone) {
 
     #displayMode::before {

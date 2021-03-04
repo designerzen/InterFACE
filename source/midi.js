@@ -2,6 +2,26 @@
 // import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
 import {WebMidi} from "../node_modules/webmidi/dist/webmidi.esm.js"
 
+// https://mpe.js.org/#Installation
+// import mpeInstrument from 'mpe'
+
+let mpeEnabled = false
+
+// Define `instrument` as an instance of `mpeInstrument`
+// const instrument = mpeInstrument()
+
+// Request MIDI device access from the Web MIDI API
+// navigator.requestMIDIAccess().then(access => {
+//   // Iterate over the list of inputs returned
+//   access.inputs.forEach(midiInput => {
+//     // Send 'midimessage' events to the mpe.js `instrument` instance
+//     midiInput.addEventListener(
+//       'midimessage',
+//       (event) => instrument.processMidiMessage(event.data)
+//     )
+//   })
+// })
+
 export const setupMIDI = () => new Promise ( (resolve,reject) => {
 	
 	WebMidi.enable().then( ports => {

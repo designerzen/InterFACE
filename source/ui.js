@@ -4,7 +4,9 @@ import {debounce} from './utils'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink,loadSoloMode,loadDuetMode} from './location-handler'
 
-export const progressBar = document.querySelector('progress')
+const doc = document
+
+export const progressBar = doc.querySelector('progress')
 
 let buttonInstrument
 let buttonRecord
@@ -16,6 +18,8 @@ export let controls
 
 import PALETTE from "./palette"
 
+const main = doc.querySelector("main")
+	
 // updates the text on screen
 // here we take an element and return a method to set it
 export const bindTextElement = (element, rate=700, clearAfter=0, split=false) => {
@@ -71,19 +75,21 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 }
 
 
-export const video = document.querySelector("video")
+export const video = doc.querySelector("video")
 export const isVideoVisible = () => video.style.visibility === "hidden" 
 export const toggleVideoVisiblity = value => {
-	video.style.visibility = isVideoVisible() ? "visible" : "hidden", !isVideoVisible() 
+	const currentlyVisible = isVideoVisible()
+	console.error("toggling video vis", {value, currentlyVisible})
+	video.style.visibility = currentlyVisible ? "visible" : "hidden", !currentlyVisible 
 }
 
 // Feedback ui
-export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
-export const setToast = bindTextElement( document.getElementById("toast"), 20, 900, true )
+export const setFeedback = bindTextElement( doc.getElementById("feedback"), 20 )
+export const setToast = bindTextElement( doc.getElementById("toast"), 20, 900, true )
 
 export const setControls = fragment => {
 	
-	const personControl = document.getElementById('person-a-controls')
+	const personControl = doc.getElementById('person-a-controls')
 
 	// add to dom or replace existing????
 	personControl.appendChild( fragment )
@@ -93,7 +99,7 @@ export const setControls = fragment => {
 
 export const setupCameraForm = (cameras, callback) => {
 	
-	const cameraForm = document.getElementById("camera")
+	const cameraForm = doc.getElementById("camera")
 	const select = cameraForm.querySelector('select')
 
 	// loop through cameras and add to list
@@ -150,7 +156,7 @@ export const addTooltip = button =>  button.addEventListener("mouseover", event 
 })
 
 export const setButton = (buttonName, callback ) => {
-	const element = document.getElementById(buttonName)
+	const element = doc.getElementById(buttonName)
 	element.addEventListener("click", (event) => {
 		callback && callback({element})
 	})
@@ -187,7 +193,7 @@ export const showReloadButton = () => {
 
 export const showUpdateButton = (action) => {
 	// reveal update button?
-	const button = document.createElement('button')
+	const button = doc.createElement('button')
 	button.id = "button-update"
 	button.setAttribute("aria-label", `Update to new version` )
 	button.classList.add("update-available")
@@ -203,9 +209,9 @@ export const addToolTips = (query="button, label") => {
 	// do a query here to catch all buttons?
 	const buttons = controls.querySelectorAll(query)
 	
-	// const fragment = document.createDocumentFragment() 
-	// fragment.appendChild(document.createElement('fieldset'))
-	// const fragment = document.createElement('fieldset')
+	// const fragment = doc.createDocumentFragment() 
+	// fragment.appendChild(doc.createElement('fieldset'))
+	// const fragment = doc.createElement('fieldset')
 	// fragment.innerHTML = setupInstrumentForm()
 	// add to dom
 	// controls.appendChild( fragment )
@@ -214,18 +220,77 @@ export const addToolTips = (query="button, label") => {
 	buttons.forEach( button => addTooltip(button) )
 }
 
+// This is the 2nd screen, just after loading
+// returns a true or false for if the user hit duet
+export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
+
+	const CSS_CLASS = "player-selection"
+	const panel = doc.getElementById("player-selector")
+	const solo = panel.querySelector("#button-solo")
+	const duet = panel.querySelector("#button-duet")
+	const trio = panel.querySelector("#button-trio")
+	const advanced = panel.querySelector("#toggle-advanced-mode")
+	let advancedMode = false
+	
+	doc.documentElement.classList.toggle(CSS_CLASS, true)
+
+	const complete = result => {
+		
+		// if we are in solo mode
+		if (result < 2)
+		{
+			solo.classList.toggle( "hide", true)
+			duet.classList.toggle( "hide", false)
+			
+			main.classList.add("solo")
+		
+		}else{
+			
+			duet.classList.toggle( "hide", true)
+			solo.classList.toggle( "hide", false)
+			
+			main.classList.add("duet")
+		}
+
+		// start the animation out.
+		// NB. This is not superflous as the camera
+		// takes a broze age to load into memory
+		panel.classList.add("completed")
+		doc.documentElement.classList.toggle(CSS_CLASS, false)
+			
+		// wait for animation to complete
+		setTimeout( ()=> {
+			console.log({advancedMode})
+			doc.documentElement.classList.toggle(CSS_CLASS, false)
+			panel.classList.remove("completed")
+		}, 450 )
+		
+		resolve(result > 1)
+	}
+
+	solo.addEventListener("click", event => complete(1) )
+	duet.addEventListener("click", event => complete(2) )
+	trio.addEventListener("click", event => complete(3) )
+	
+	advanced.addEventListener("change", event =>{ 
+		advancedMode = !advancedMode 
+		main.classList.toggle("beginner", !advancedMode)
+	})
+	main.classList.toggle("beginner", !advancedMode)
+	panel.focus()
+})
+
+
 // DOM elements
 export const setupInterface = ( options ) => {
-
-	const main = document.querySelector("main")
-	const h1 = document.querySelector("h1")
+	const h1 = doc.querySelector("h1")
 	
-	const buttonShare = document.getElementById("share")
-	const buttonSolo = document.getElementById("button-solo")
-	const buttonDuet = document.getElementById("button-duet")
-	const title = document.getElementById("title")
+	const buttonShare = doc.getElementById("share")
+	const buttonSolo = doc.getElementById("button-solo")
+	const buttonDuet = doc.getElementById("button-duet")
+	const title = doc.getElementById("title")
 	
-	const shareElement = document.querySelector("share-menu")
+	const shareElement = doc.querySelector("share-menu")
 	shareElement.url = getShareLink( options )
 	buttonShare.addEventListener('mousedown', e => {
 		
@@ -233,16 +298,15 @@ export const setupInterface = ( options ) => {
 		console.error("SHARING", {shareElement, url:shareElement.url  } )
 	}, false)
 	
-	controls = document.getElementById("controls")
+	controls = doc.getElementById("controls")
 
-	buttonInstrument = document.getElementById("button-instrument")
-	buttonVideo = document.getElementById("button-video")
-	buttonRecord = document.getElementById("button-record")
-	buttonMIDI = document.getElementById("button-midi")
-	buttonQuantise = document.getElementById("button-quantise")
-	//buttonPhotograph = document.getElementById("button-photograph")
+	buttonInstrument = doc.getElementById("button-instrument")
+	buttonVideo = doc.getElementById("button-video")
+	buttonRecord = doc.getElementById("button-record")
+	buttonMIDI = doc.getElementById("button-midi")
+	buttonQuantise = doc.getElementById("button-quantise")
+	//buttonPhotograph = doc.getElementById("button-photograph")
 	
-
 	if ( canFullscreen() )
 	{
 		//also pass this inott a flip flopper
@@ -255,9 +319,14 @@ export const setupInterface = ( options ) => {
 	
 	}else{
 		// no full screen mode available so hide the full screen button
-		document.getElementById( "button-fullscreen").classList.toggle("hide", true)
+		doc.getElementById( "button-fullscreen").classList.toggle("hide", true)
 	}
+
+	// if (options.duet){
+	// 	h1.innerHTML += ":DUET"
+	// }
 	
+	// title.innerHTML = "The InterFACE is ready, open your mouth to begin"
 	// Show the release date on the UI somewhere...
 	
 	const releaseDate = new Date(DATE)
@@ -267,38 +336,23 @@ export const setupInterface = ( options ) => {
 		minute:  "numeric",
 	 }
  
-	const versionElement = document.getElementById("version")
+	const versionElement = doc.getElementById("version")
 	const currentVersion = versionElement.innerHTML
 	const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+1}/${releaseDate.getFullYear()} ${ releaseDate.toLocaleTimeString("en-GB",dateOptions) }`
 	versionElement.innerHTML = `${currentVersion} <span id="release">${formattedDate}</span>`
 	
 	// console.log(`InterFACE ${currentVersion} build date : ${formattedDate} `, {DATE, releaseDate})
+	// buttonSolo.addEventListener( "click", event => loadDuetMode, false)
+	// buttonDuet.addEventListener( "click", event => loadSoloMode, false)
 
-	// if we are in solo mode
-	if (!options.duet)
-	{
-		buttonSolo.classList.toggle( "hide", true)
-		buttonDuet.classList.toggle( "hide", false)
-		main.classList.add("solo")
-		buttonSolo.addEventListener( "click", event => loadDuetMode, false)
-
-	}else{
-		
-		// append duet mode styles
-		h1.innerHTML += ' duet' 
-		buttonDuet.classList.toggle( "hide", true)
-		buttonSolo.classList.toggle( "hide", false)
-		main.classList.add("duet")
-		buttonDuet.addEventListener( "click", event => loadSoloMode, false)
-	}
-	
-	
 	// prevent the form from changing the url	
 	controls.addEventListener("submit", (event) => {
 		event.preventDefault()
 		// removes the ?
         //window.history.back()
 	}, true)
+}
 
-	title.innerHTML = "The InterFACE is ready, open your mouth to begin"
+export const focusApp = ()=>{ 
+	controls
 }

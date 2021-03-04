@@ -1,4 +1,4 @@
-- var URL = "https://designerzen.github.io/MusicalFace"
+s- var URL = "https://designerzen.github.io/MusicalFace"
 doctype html
 html(lang="en-GB" dir="ltr").loading
 	head
@@ -93,10 +93,24 @@ html(lang="en-GB" dir="ltr").loading
 				canvas(width="640", height="480")
 				
 				form#controls
+
+					fieldset#player-selector
+						legend How many people are going to participate?
+						//- Start buttons
+						button#button-solo( aria-label="Single player mode" ) <strong>Solo</strong> : 1 Player
+						button#button-duet( aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" ) <strong>Duet</strong> : 2 Players
+						button#button-trio( aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" ) <strong>Trio</strong> : 3 People
 					
+						label(for="toggle-advanced-mode" aria-label="Show advanced mode and features") Advanced Mode
+							input(type="checkbox" toggle)#toggle-advanced-mode
+			
+					//- Button is the face of the user
 					button.person#person-a Change instrument for the person on the left
+					//- Fieldset that fills with instruments 
+					// FIXME: ADD ARIA
 					fieldset.person-controls#person-a-controls
 					
+					//- Same for Player 2
 					button.person#person-b Change instrument for the person on the right 
 					fieldset.person-controls#person-b-controls
 					
@@ -106,30 +120,22 @@ html(lang="en-GB" dir="ltr").loading
 
 						label#camera( aria-label="Select a different camera" for="select-camera") Camera
 							select#select-camera
-					
-						button#button-midi( aria-label="Connect a MIDI instrument and click here") MIDI
-						
+							
 						button#button-record.hide( aria-label="Record a loop or two" ) Record Loop
-						
-						button#button-duet( aria-label="Swap to DUET mode!<br>Invite a friend and play together" ) Duet
-						
-						button#button-solo( aria-label="Single player mode" ) Solo
-						
+
 						label(for="button-metronome" aria-label="Play a metronome to help you keep time") Metronome
 							input(type="checkbox")#button-metronome
-						
-						label(for="button-clear" aria-label="Clear visuals") Clear
-							input(type="checkbox")#button-clear
-						
+
+						label(for="button-quantise" aria-label="Ensure that the notes are played at regular intervals") Quantise
+							input(type="checkbox")#button-quantise
+
 						label(for="button-transparent" aria-label="Synch video to movements") Synch
 							input(type="checkbox")#button-transparent
 						
+						label(for="button-clear" aria-label="Clear visuals") Clear
+							input(type="checkbox")#button-clear
+					
 						button#button-photograph( aria-label="Take a photograph" ) Photograph
-						
-						label(for="button-quantise" aria-label="Ensure that the notes are played at regular intervals") Quantise
-							input(type="checkbox")#button-quantise
-						
-										
 						
 						label(for="button-spectrogram" aria-label="Show a funky bar chart of frequencies") Spectrogram
 							input(type="checkbox")#button-spectrogram
@@ -139,20 +145,21 @@ html(lang="en-GB" dir="ltr").loading
 						
 						label(for="button-overlay" aria-label="Toggle augmented reality mode" ) Overlay
 							input(type="checkbox")#button-overlay
+							
+						button#button-midi( aria-label="Connect a MIDI instrument and click here") MIDI
+						//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
 						
-						//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI
-						
-						//- button#button-percussion( aria-label="Toggle the backing track" ) Backing track
+						//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
 						
 						//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 						
 						button#share.hide-text( aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
 							
-					
+						button#button-video Swap instruments for all people
+
 					result#photographs
 				
-					button#button-video Swap instruments for all people
-
+					
 		footer#foot
 			small(class="copyright")
 				| Copyright <span id="year">#{year||2021}</span>

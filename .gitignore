@@ -3,3 +3,5 @@ node_modules
 # there are things already committed in dist/ mainly the smaples
 dist
 app
+*.mp4
+*.zip

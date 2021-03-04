@@ -27,6 +27,7 @@ import {
 	getBPM } from './timing.js'
 	
 import {
+	showPlayerSelector,
 	progressBar, 
 	video,isVideoVisible,toggleVideoVisiblity,
 	setToggle, setButton, 
@@ -34,7 +35,9 @@ import {
 	showUpdateButton, showReloadButton,
 	setupCameraForm, 
 	setupInterface, addToolTips,
-	setFeedback, setToast } from './ui'
+	setFeedback, setToast,
+	focusApp } from './ui'
+
 import { getLocationSettings, getShareLink, addToHistory } from './location-handler'
 import { createDrumkit } from './synthesizers'
 import { setupMIDI } from './midi'
@@ -90,10 +93,8 @@ let counter = 0
 const cameraPan = {x:1,y:1}
 
 
-// TODO: before doing anything, let us check the bare minimum...
-// is https()
-//
-
+// ESCAPE - no cameras found on system?
+// ESCAPE - no GPU
 
 // should be set on the html but jic
 body.classList.toggle("loading", true)
@@ -140,6 +141,19 @@ const SETTINGS = {
     // scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
     // modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
     // irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
+}
+
+// ESCAPE: before doing anything, let us check the bare minimum...
+// is https()
+if (!ui.debug && location.protocol !== 'https:')
+{
+	isLoading = false
+	ultimateFailure = true
+	setToast("Redirecting to a secure site, please stand by!")
+	// show link or just try and force a redirect?
+	setTimeout(()=> location.replace(`https:${location.href.substring(location.protocol.length)}`), 50 )
+	// EXIT HERE
+	return
 }
 
 // TODO: a version of the instructor that also reads out the messages
@@ -340,11 +354,404 @@ const loadCamera = async (deviceId, name="Default") => {
 }
 
 // selected
-const setup = async (settings, progressCallback) => {
+const setup = async (update, settings, progressCallback) => {
 
-	const loadTotal = 10
+	const loadTotal = 5
 	let loadIndex = 0
 
+	try{
+		
+		setFeedback("Setting things up")
+		progressCallback(loadIndex++/loadTotal)
+
+		if (image)
+		{
+			setFeedback( "Image downloaded...<br> Please wait")
+			photo = await setupImage(image)
+		}
+		
+		progressCallback(loadIndex++/loadTotal)
+
+		// wait for video or image to be loaded!
+		if (video)
+		{
+			const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
+			setFeedback( deviceId ? "Found saved camera" : "Attempting to locate a camera...<br>Please click accept if you are prompted")
+		
+			const videoCameraDevices = filterVideoCameras( await detectCameras() )
+			
+			try{
+				camera = await loadCamera(deviceId, "Saved")
+
+			}catch( error ) {
+
+				// bummer! try and use fallback?
+				if (videoCameraDevices.length > 1)
+				{
+					// loop through and try the others?
+					setFeedback( "Could not open saved camera, but found others...")
+					camera = await loadCamera()
+					
+				}else{
+
+					setFeedback( "Could not open saved camera, looking for another...")
+					camera = await loadCamera()
+					
+					if (!camera)
+					{
+						setFeedback( "Could not find any camera :(")
+						// ultimate failure???
+					}
+				}
+				
+				// delete saved key
+				store.removeItem('cameraId')
+			}
+
+			// check to see if we want a selector
+			if (videoCameraDevices.length > 1)
+			{
+				setupCameraForm(videoCameraDevices, async (selected) => {
+					camera = loadCamera( selected.deviceId, selected.label )
+					//console.log( selected.deviceId, "Camera selected",selected, camera)
+					setToast( `Camera ${selected.label} changed`, 0 )
+				})
+				
+				// show / hide camera button
+				main.classList.toggle("multiple-cameras", true)
+			}
+			
+			
+			setFeedback( "Camera located!", 0 )
+			progressCallback(loadIndex++/loadTotal)
+		}
+		
+		// at this point the video dimensions are accurate
+		// so we add the main style vars
+		main.style.setProperty('--width', video.width )
+		main.style.setProperty('--height', video.height )
+		main.classList.toggle('landscape', video.width > video.height )
+		main.classList.toggle('portrait', video.width < video.height )
+		main.classList.toggle('square', video.width === video.height )
+		
+		updateCanvasSize(video.width, video.height)
+		progressCallback(loadIndex++/loadTotal)
+
+	}catch(error){
+
+		const errorMessage = String(error).replace("NotAllowedError: ",'')
+		// NotAllowedError: Permission denied
+		setFeedback(`Camera could not be accessed<br><strong>${errorMessage}</strong>`, 0)
+		setToast( errorMessage )
+		isLoading = false
+		ultimateFailure = true
+		trackError('Camera Rejected or Not allowed')
+		// FATAL ERROR
+		return
+	}
+
+	try{
+		audio = setupAudio()
+		setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
+		progressCallback(loadIndex++/loadTotal)
+
+		// not neccessary if using Person
+		// instrument = await loadInstrument( randomInstrument() )
+		// const instrumentName = await loadRandomInstrument()
+		// // now you can play any of the objects keys with
+		// // playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
+		// //playTrack(instrument.A0, 0)
+		// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
+		
+		kit = createDrumkit()
+		patterns = kitSequence()
+
+		// console.log("Streamin", {video, photo, camera} )
+		setFeedback( "Audio available...<br>Instrument Sounds ready")
+		progressCallback(loadIndex++/loadTotal)
+
+	}catch(error){
+
+		ultimateFailure = true
+		setFeedback("Something went wrong with the Audio<br>"+error, 0)
+		return 
+	}
+
+	// MIDI ------
+	try{
+		// rather than enabling midi directly we show a button to enable it
+		const hasMIDI = await showMIDI()
+		if (hasMIDI)
+		{
+			main.classList.add('midi')
+			setFeedback("MIDI available<br>Click the button to connect", 0)
+		}else{
+			main.classList.add('midi','no-instrument')
+			setFeedback("MIDI available<br>Connect an instrument <small>and click the button</small>", 0)
+		}
+		progressCallback(loadIndex++/loadTotal)
+
+	}catch(error){
+		// no midi - don't show midi button
+		console.log("no MIDI!", error)
+		main.classList.add('no-midi')
+		setFeedback("MIDI unavailable, or no instrument connected<br>"+error, 0)
+	}
+	
+	// const {startRecording, stopRecording} = record(stream)
+	
+	// set the input element to either the image or the video
+	// hide the other or just set the class?
+
+	// set the canvas to the size of the video / image
+	canvas.width = inputElement.width
+	canvas.height = inputElement.height
+
+	// console.error("Tensorflow", tf)
+	main.classList.add( inputElement.nodeName.toLowerCase() )
+	
+	addToolTips()
+
+	// turn up the amp
+	const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
+	setVolume( volume > 0 ? volume : 1 )
+
+	// load scripts once eveything has completed...
+	// setTimeout( ()=>{
+	// }, 0 )
+
+	// ----------------------------------------------------------------------------------
+
+
+	// after a period of inactivity...
+	//setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
+
+	// remove loading flag as we now have all of our assets!
+
+	progressCallback(loadIndex++/loadTotal)
+	
+
+	// update( inputElement === video, (predictions)=>{
+
+	// 	//console.log(inputElement === video, "Predictions found ",predictions)
+	// })
+	// console.log(inputElement === video, "Waiting on predicions")
+	// return
+	// LOOP ---------------------------------------
+
+	const shouldUpdate = () => !cameraLoading
+
+	// FaceMesh.getUVCoords 
+	// this then runs the loop if set to true
+	update( inputElement === video, (predictions)=>{
+
+		if(isLoading)
+		{
+			isLoading = false
+		}
+
+		// return if camera is still connecting...
+		if (cameraLoading)
+		{
+			//console.log("update:progress loading")
+			return
+		}
+
+		let tickerTape = ''
+		counter++
+
+		if (ui.clear)
+		{
+			// clear for invisible canvas but 
+			// NB. this may cause visual disconnect
+			clear()
+			
+			if (!ui.transparent)
+			{
+				// paste video frame
+				drawElement( inputElement )
+			}
+
+		}else{
+			// switch effect type?
+			const t = counter * 0.01
+			
+			overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
+		}
+		
+		if (ui.quantise)
+		{
+			// Start on BAR
+			// show quantise
+			drawQuantise(true, getBar(), getBars() )
+		}
+		
+		if (ui.spectrogram)
+		{
+			//drawWaves( dataArray, bufferLength )
+			
+			updateByteFrequencyData()
+			drawBars( dataArray, bufferLength )
+		}
+			
+		if (predictions)
+		{
+			// loop through all predictions...
+			for (let i=0, l=predictions.length; i < l; ++i)
+			{
+				const prediction = predictions[i]
+				// create as many people as we need
+				const person = getPerson(i)
+			
+				// face available!
+				if (prediction && prediction.faceInViewConfidence > 0.9)
+				{
+					//if (!act)
+					//main.classList.toggle("active", true)
+					// playAudio()
+					if (noFacesFound)
+					{
+						noFacesFound = false
+						main.classList.toggle( `${person.name}-active`, true)
+						main.classList.toggle( `no-faces`, false)
+					}
+					
+				}else{
+
+					// stopAudio()
+					if (!noFacesFound)
+					{
+						// face found!??
+						main.classList.toggle( `${person.name}-active`, false)
+						main.classList.toggle( `no-faces`, true)
+						noFacesFound = true
+					}else{
+						setFeedback( getHelp( Math.floor(counter/100) ) )
+					}
+					
+					return
+				}
+
+				// first update the person
+				person.update(prediction)
+
+				// then redraw them
+				// const { yaw, pitch, lipPercentage } = 
+				person.draw(prediction, ui.text)
+				
+				// then whenever you fancy it,
+				if (!ui.quantise && !ui.muted)
+				{
+					// unless quantize is turned off
+					const stuff = person.sing()
+					// stuff.eyeDirection
+					if (i===0)
+					{
+						// stuff.eyeDirection
+						// use person 1's eyes to control other stuff too?
+						// in this case the direction of the pan in disco mode
+						cameraPan.x = stuff.eyeDirection
+						cameraPan.y = stuff.pitch
+					}
+
+				}else{
+					// we only want it on the beat
+					
+				}
+				
+				// you want a tight curve
+				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
+				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+			}
+				
+		}else{
+			// tickerTape += `No prediction`
+		}
+
+		// Feedback text changes depending on time
+		if (!predictions)
+		{
+			// Need to show instructions to the user...
+			// as no face can be detected
+			setFeedback( getHelp( Math.floor(counter/100)  ))
+		// }else if (tickerTape.length){
+		// 	setFeedback(tickerTape)
+		// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+		}else{
+			setFeedback( getInstruction( Math.floor(counter/100) ))
+			// setFeedback(`Look at me and open your mouth`)
+		}
+
+		//console.warn("update",predictions, tickerTape )
+	}, shouldUpdate )
+
+
+	// Metronome
+	const timer = start( ({bar, bars, barsElapsed, timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
+	
+		if (ui.muted)
+		{
+			return
+		}
+
+		if (ui.metronome && bars % 2 === 0 )
+		{
+			// TODO: change timbre for first & last stroke
+			const metronomeLength = 0.1
+			kit.clack( metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
+		}
+
+		// console.log(barsElapsed, "timer", timer)
+		// Play metronome!
+		if(ui.quantise)
+		{
+			for (let i=0, l=people.length; i<l; ++i )
+			{
+				const person = getPerson(i)
+				// yaw, pitch, lipPercentage, eyeDirection
+				const stuff = person.sing()
+				if (i===0)
+				{
+					
+					// stuff.eyeDirection
+					// use person 1's eyes to control other stuff too?
+					// in this case the direction of the pan in disco mode
+					cameraPan.x = stuff.eyeDirection
+					cameraPan.y = stuff.pitch
+				}
+			}
+		}
+
+
+		// play some accompanyment music!
+		if (ui.backingTrack && bar%2 === 0 )
+		{
+			const kick = playNextPart( patterns.kick, kit.kick )
+			const snare = playNextPart( patterns.snare, kit.snare )
+			const hat = playNextPart( patterns.hat, kit.hat )
+
+			console.error("backing|", {kick, snare, hat })
+			// todo: also MIDI beats on channel 16?
+		}
+
+		if (playing)
+		{
+			// timePassed
+		}
+		
+	}, timePerBar() )
+
+} 
+
+
+
+
+const load = async (settings, progressCallback) => {
+
+	const loadTotal = 5
+	let loadIndex = 0
+	
 	progressCallback(loadIndex++/loadTotal)
 
 	// test of loading external scripts sequentially...
@@ -354,6 +761,7 @@ const setup = async (settings, progressCallback) => {
 
 	// set up the instrument selctor etc
 	setupInterface( ui )
+
 	progressCallback(loadIndex++/loadTotal)
 
 	// Connect up sone buttons?
@@ -394,9 +802,6 @@ const setup = async (settings, progressCallback) => {
 
 	setToggle( "button-overlay", status => toggleVideoVisiblity(), !isVideoVisible() )
 
-	// Button video loads random instruments for all
-	setButton( "button-video", status => loadRandomInstrument() )
-	
 	setButton( "button-photograph", event => {
 		const unique = Math.ceil( now() * 10000000 )
 		const id = `photograph-${unique}`
@@ -419,387 +824,21 @@ const setup = async (settings, progressCallback) => {
 		requestAnimationFrame( ()=>document.getElementById(id).scrollIntoView() )
 	} )
 
+	// Button video loads random instruments for all
+	setButton( "button-video", status => loadRandomInstrument() )
+	
 	progressCallback(loadIndex++/loadTotal)
 	
-	// create our reporter for analytics
-	// reporter.track()
-	reporter = setupReporting("InterFACE")
-
 	// Load tf model and wait
-	loadModel(inputElement, settings).then( async update =>{ 
-
-		try{
-			
-			setFeedback("Setting things up")
-			progressCallback(loadIndex++/loadTotal)
-
-			if (image)
-			{
-				setFeedback( "Image downloaded...<br> Please wait")
-				photo = await setupImage(image)
-			}
-			
-			progressCallback(loadIndex++/loadTotal)
-
-			// wait for video or image to be loaded!
-			if (video)
-			{
-				const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-				setFeedback( deviceId ? "Found saved camera" : "Attempting to locate a camera...<br>Please click accept if you are prompted")
-			
-				try{
-					camera = await loadCamera(deviceId, "Saved")
-
-				}catch( error ) {
-
-					setFeedback( "Could not open saved camera, looking for another...")
-					// bummer! try and use fallback?
-					camera = await loadCamera()
-					// delete saved key
-					store.removeItem('cameraId')
-				}
-
-				// check to see if we want a selector
-				const videoCameraDevices = filterVideoCameras( await detectCameras() )
-				if (videoCameraDevices.length > 1)
-				{
-					setupCameraForm(videoCameraDevices, async (selected) => {
-						camera = loadCamera( selected.deviceId, selected.label )
-						//console.log( selected.deviceId, "Camera selected",selected, camera)
-						setToast( `Camera ${selected.label} changed`, 0 )
-					})
-					
-					// show / hide camera button
-					main.classList.toggle("multiple-cameras", true)
-				}
-				
-				
-				setFeedback( "Camera located!", 0 )
-				progressCallback(loadIndex++/loadTotal)
-			}
-			
-			// at this point the video dimensions are accurate
-			// so we add the main style vars
-			main.style.setProperty('--width', video.width )
-			main.style.setProperty('--height', video.height )
-			main.classList.toggle('landscape', video.width > video.height )
-			main.classList.toggle('portrait', video.width < video.height )
-			main.classList.toggle('square', video.width === video.height )
-			
-			updateCanvasSize(video.width, video.height)
-			progressCallback(loadIndex++/loadTotal)
-
-		}catch(error){
-
-			const errorMessage = String(error).replace("NotAllowedError: ",'')
-			// NotAllowedError: Permission denied
-			setFeedback("Camera could not be accessed<br>"+errorMessage, 0)
-			setToast( errorMessage )
-			isLoading = false
-			ultimateFailure = true
-			trackError('Camera Rejected or Not allowed')
-			// FATAL ERROR
-			return
-		}
-
-		try{
-			audio = setupAudio()
-			setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
-			progressCallback(loadIndex++/loadTotal)
-
-			// not neccessary if using Person
-			// instrument = await loadInstrument( randomInstrument() )
-			// const instrumentName = await loadRandomInstrument()
-			// // now you can play any of the objects keys with
-			// // playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
-			// //playTrack(instrument.A0, 0)
-			// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
-			
-			kit = createDrumkit()
-			patterns = kitSequence()
-
-			// console.log("Streamin", {video, photo, camera} )
-			setFeedback( "Audio available...<br>Instrument Sounds ready")
-			progressCallback(loadIndex++/loadTotal)
-
-		}catch(error){
-
-			ultimateFailure = true
-			setFeedback("Something went wrong with the Audio<br>"+error, 0)
-			return 
-		}
-
-		// MIDI ------
-		try{
-			// rather than enabling midi directly we show a button to enable it
-			const hasMIDI = await showMIDI()
-			if (hasMIDI)
-			{
-				main.classList.add('midi')
-				setFeedback("MIDI available<br>Click the button to connect", 0)
-			}else{
-				main.classList.add('midi','no-instrument')
-				setFeedback("MIDI available<br>Connect an instrument <small>and click the button</small>", 0)
-			}
-			progressCallback(loadIndex++/loadTotal)
-
-		}catch(error){
-			// no midi - don't show midi button
-			console.log("no MIDI!", error)
-			main.classList.add('no-midi')
-			setFeedback("MIDI unavailable, or no instrument connected<br>"+error, 0)
-		}
-		
-		// const {startRecording, stopRecording} = record(stream)
-		
-		// set the input element to either the image or the video
-		// hide the other or just set the class?
-
-		// set the canvas to the size of the video / image
-		canvas.width = inputElement.width
-		canvas.height = inputElement.height
-
-		// console.error("Tensorflow", tf)
-		main.classList.add( inputElement.nodeName.toLowerCase() )
-		
-		addToolTips()
-
-		// turn up the amp
-		const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
-		setVolume( volume > 0 ? volume : 1 )
-
-		// load scripts once eveything has completed...
-		// setTimeout( ()=>{
-		// }, 0 )
-
-		// ----------------------------------------------------------------------------------
-	
-
-		// after a period of inactivity...
-		//setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
-	
-		// remove loading flag as we now have all of our assets!
-	
-		progressCallback(loadIndex++/loadTotal)
-		
-
-		// update( inputElement === video, (predictions)=>{
-
-		// 	//console.log(inputElement === video, "Predictions found ",predictions)
-		// })
-		// console.log(inputElement === video, "Waiting on predicions")
-		// return
-		// LOOP ---------------------------------------
-
-		const shouldUpdate = () => !cameraLoading
-
-		// FaceMesh.getUVCoords 
-		// this then runs the loop if set to true
-		update( inputElement === video, (predictions)=>{
-
-			if(isLoading)
-			{
-				isLoading = false
-			}
-
-			// return if camera is still connecting...
-			if (cameraLoading)
-			{
-				//console.log("update:progress loading")
-				return
-			}
-
-			let tickerTape = ''
-			counter++
-	
-			if (ui.clear)
-			{
-				// clear for invisible canvas but 
-				// NB. this may cause visual disconnect
-				clear()
-				
-				if (!ui.transparent)
-				{
-					// paste video frame
-					drawElement( inputElement )
-				}
-
-			}else{
-				// switch effect type?
-				const t = counter * 0.01
-				
-				overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
-			}
-			
-			if (ui.quantise)
-			{
-				// Start on BAR
-				// show quantise
-				drawQuantise(true, getBar())
-			}
-			
-			if (ui.spectrogram)
-			{
-				//drawWaves( dataArray, bufferLength )
-				
-				updateByteFrequencyData()
-				drawBars( dataArray, bufferLength )
-			}
-				
-			if (predictions)
-			{
-				// loop through all predictions...
-				for (let i=0, l=predictions.length; i < l; ++i)
-				{
-					const prediction = predictions[i]
-					// create as many people as we need
-					const person = getPerson(i)
-				
-					// face available!
-					if (prediction && prediction.faceInViewConfidence > 0.9)
-					{
-						//if (!act)
-						//main.classList.toggle("active", true)
-						// playAudio()
-						if (noFacesFound)
-						{
-							noFacesFound = false
-							main.classList.toggle( `${person.name}-active`, true)
-							main.classList.toggle( `no-faces`, false)
-						}
-						
-					}else{
-
-						// stopAudio()
-						if (!noFacesFound)
-						{
-							// face found!??
-							main.classList.toggle( `${person.name}-active`, false)
-							main.classList.toggle( `no-faces`, true)
-							noFacesFound = true
-						}else{
-							setFeedback( getHelp( Math.floor(counter/100) ) )
-						}
-						
-						return
-					}
-
-					// first update the person
-					person.update(prediction)
-
-					// then redraw them
-					// const { yaw, pitch, lipPercentage } = 
-					person.draw(prediction, ui.text)
-					
-					// then whenever you fancy it,
-					if (!ui.quantise && !ui.muted)
-					{
-						// unless quantize is turned off
-						const stuff = person.sing()
-						// stuff.eyeDirection
-						if (i===0)
-						{
-							// stuff.eyeDirection
-							// use person 1's eyes to control other stuff too?
-							// in this case the direction of the pan in disco mode
-							cameraPan.x = stuff.eyeDirection
-							cameraPan.y = stuff.pitch
-						}
-
-					}else{
-						// we only want it on the beat
-						
-					}
-					
-					// you want a tight curve
-					//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-					tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
-					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
-				}
-					
-			}else{
-				// tickerTape += `No prediction`
-			}
-
-			// Feedback text changes depending on time
-			if (!predictions)
-			{
-				// Need to show instructions to the user...
-				// as no face can be detected
-				setFeedback( getHelp( Math.floor(counter/100)  ))
-			// }else if (tickerTape.length){
-			// 	setFeedback(tickerTape)
-			// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
-			}else{
-				setFeedback( getInstruction( Math.floor(counter/100) ))
-				// setFeedback(`Look at me and open your mouth`)
-			}
-
-			//console.warn("update",predictions, tickerTape )
-		}, shouldUpdate )
-
-
-		// Metronome
-		const timer = start( ({bar, bars, barsElapsed, timePassed, elapsed, expected, drift, level, intervals, lag} )=>{
-		
-			if (ui.muted)
-			{
-				return
-			}
-
-			if (ui.metronome && bars % 2 === 0 )
-			{
-				// TODO: change timbre for first & last stroke
-				const metronomeLength = 0.1
-				kit.clack( metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
-			}
-
-			// console.log(barsElapsed, "timer", timer)
-			// Play metronome!
-			if(ui.quantise)
-			{
-				for (let i=0, l=people.length; i<l; ++i )
-				{
-					const person = getPerson(i)
-					// yaw, pitch, lipPercentage, eyeDirection
-					const stuff = person.sing()
-					if (i===0)
-					{
-						
-						// stuff.eyeDirection
-						// use person 1's eyes to control other stuff too?
-						// in this case the direction of the pan in disco mode
-						cameraPan.x = stuff.eyeDirection
-						cameraPan.y = stuff.pitch
-					}
-				}
-			}
-
-
-			// play some accompanyment music!
-			if (ui.backingTrack && bar%2 === 0 )
-			{
-				const kick = playNextPart( patterns.kick, kit.kick )
-				const snare = playNextPart( patterns.snare, kit.snare )
-				const hat = playNextPart( patterns.hat, kit.hat )
-
-				console.error("backing|", {kick, snare, hat })
-				// todo: also MIDI beats on channel 16?
-			}
-
-			if (playing)
-			{
-				// timePassed
-			}
-			
-		}, timePerBar() )
-
-	} )
-	// camera loading just pauses the update mechanism
+	return loadModel(inputElement, settings)
 }
 
 // 
 setFeedback("Initialising...<br> Please wait")
+
+// create our reporter for analytics
+// reporter.track()
+reporter = setupReporting("InterFACE")
 
 
 // Progressive Web Application ---------------------------------
@@ -811,8 +850,10 @@ body.classList.toggle("debug", ui.debug )
 
 const onLoaded = async () => {
 
+	body.classList.toggle("loading", false)
 	body.classList.toggle("loaded", true)
-	body.classList.remove("loading")
+	
+	// focus app
 		
 	// at any point we can now trigger the installation
 	if (installation)
@@ -907,18 +948,55 @@ const pwa = async() => {
 	}
 }
 
-// ---------------------------------------------------------
 
-// load settings from store here too?
-// set up some extra options from query strings
-// any custom overrides (shouldn't be needed : use query strings)
-setup( Object.assign( {}, SETTINGS, {} ), progress => {
+
+// ---------------------------------------------------------
+const options = Object.assign( {}, SETTINGS, {} )
+// now load dependencies and show progress
+load(options, progress => {
 	
 	//console.log("Loading", progress, progressBar )
 	progressBar.setAttribute("value",progress)
 	// ease this?
 	loadMeter = progress
+
+}).then( async update =>{ 
+
+	setToast( "Please select how many players you want to play" )
+
+	setFeedback("")
+
+	// hide the loading screen but dont sdt it to loaded just yet
+	body.classList.toggle("loading", false)
+
+	// load completed and now we show the ui
+	// for selecting regular or multi-face mode!
+	try{
+		ui.duet = await showPlayerSelector(options)
+
+	}catch(error){
+		console.error("player selection failed")
+	}
+	body.classList.toggle("loading", true)
+
+
+	console.error("player selection duet", ui.duet)
+
+	// load settings from store here too?
+	// set up some extra options from query strings
+	// any custom overrides (shouldn't be needed : use query strings)
+	return setup( update, options, progress => {
+		
+		//console.log("Loading", progress, progressBar )
+		progressBar.setAttribute("value",progress)
+		// ease this?
+		loadMeter = progress
+	})
+
+}).catch( error => {
+	console.error("Could not load", error )
 })
+
 
 setFeedback("Loading... Please wait<br>This can take <strong>some</strong> time!")
 pwa()
@@ -932,6 +1010,8 @@ window.onbeforeunload = ()=>{
 	trackExit()
 	//store.setItem(person.name, {instrument})
 	setToast("bye bye!")
+	setFeedback("strong>I hope you had fun!<</strong>")
+
 }
 
 // document.addEventListener( "contextmenu", (e) => {
