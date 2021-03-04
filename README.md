@@ -68,9 +68,8 @@ Given enough time it would be possible to save MIDI files directly from the app 
 
 ## Check it out over at
 
-- [InterFACE:SOLO](http://designerzen.github.io/InterFACE)
-- [InterFACE:DUET](http://designerzen.github.io/InterFACE/?duet=true)
+- [InterFACE](https://interface.place)
+- [InterFACE:SOLO (dev)](https://designerzen.github.io/InterFACE)
+- [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
 
-- [or the dedicated site at](https://interface.place)
-
-or the [Brief Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
+- [Brief Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
