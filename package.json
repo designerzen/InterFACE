@@ -1,6 +1,6 @@
 {
 	"name": "musical-face",
-	"version": "0.39.1",
+	"version": "0.40.0",
 	"repository": "https://github.com/designerzen/InterFACE.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -10,6 +10,7 @@
 		"license": "yarn licenses generate-disclaimer > LICENSES.md",
 		"hardreset": "node actions/reset.js --total",
 		"reset": "node actions/reset.js",
+		"killport": "npx kill-port 1234",
 		"clean": "node actions/clean.js",
 		"revision": "yarn version --patch --no-git-tag-version",
 		"revise": "yarn revision && node actions/revision.js",
@@ -40,13 +41,14 @@
 		"@tensorflow/tfjs-core": "^2.8.2",
 		"analytics": "^0.6.6",
 		"capacitor-dark-mode": "^1.0.5",
+		"mpe": "^1.0.4",
 		"share-menu": "^4.0.0",
 		"webmidi": "^3.0.0-alpha.2"
 	},
 	"devDependencies": {
 		"@capacitor/cli": "^2.4.5",
 		"gh-pages": "^3.1.0",
-		"parcel": "2.0.0-beta.1",
+		"parcel": "^2.0.0-beta.1",
 		"pug": "^3.0.0",
 		"sass": "^1.30.0"
 	}

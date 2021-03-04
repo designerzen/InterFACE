@@ -40,7 +40,8 @@ const WHITELIST = [
 	// "timing.setinterval.worker.js",
 	// "timing.settimeout.worker.js",
 	"browserconfig.xml",
-	"favicon.ico"
+	"favicon.ico",
+	"CNAME"
 	// "safari-pinned-tab.svg"
 ]
 

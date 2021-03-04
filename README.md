@@ -51,6 +51,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Vocoder mode using microphone
 - Collab with Beardyman?
 - Improved timing
+- MIDI 2.0 (MPE) Support
 
 ## Requirements
 - Face
@@ -69,3 +70,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 
 - [InterFACE:SOLO](http://designerzen.github.io/InterFACE)
 - [InterFACE:DUET](http://designerzen.github.io/InterFACE/?duet=true)
+
+- [or the dedicated site at](https://interface.place)
+
+or the [Brief Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
