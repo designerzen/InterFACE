@@ -1261,12 +1261,16 @@ main.midi-available{
 	transform: translateX(var(--spacer));
 	// z-index:-1;
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
+
 	small{
 		margin-left:var(--pad);
 	}
 	#year::before{
 		content:"© ";
 		color:$col-cream;
+	}
+	a:hover, a:focus{
+		color:$col-orange;
 	}
 }
 

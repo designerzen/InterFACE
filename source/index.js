@@ -84,6 +84,7 @@ let recorder
 // as a factor of that, so perhaps bars would be better than BPM?
 
 let isLoading = true
+let isMuted = false
 let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
@@ -1166,6 +1167,12 @@ window.addEventListener('keydown', async (event)=>{
 			ui.text = !ui.text
 			break
 
+		case 'p':
+			setMasterVolume( isMuted ? 1 : 0 )
+			isMuted = !isMuted
+
+			break
+
 		case 'r':
 			if (!isRecording())
 			{
@@ -1243,6 +1250,7 @@ window.addEventListener('popstate', (event) => {
 // 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
 // 	const volume = getVolume()
 // 	//const result = setMasterVolume(volume + wheel)
+
 
 // 	console.log("mouse wheel",{ wheel, volume, result}, event)	
 // })
