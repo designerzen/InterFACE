@@ -1,25 +1,17 @@
 // each person in the app has their own instrument and face
-import {DEFAULT_COLOURS} from './palette'
-import { 
-	active, playing, 
-	loadInstrument, NOTE_NAMES, randomInstrument, 
-	playTrack,
-	setShape, setFrequency, 
-	getNoteName} from './audio'
-
+import { DEFAULT_COLOURS } from './palette'
+import { active, playing, loadInstrument, randomInstrument, playTrack, getNoteName} from './audio'
+import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
+import { INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './instruments'
+import { setupInstrumentForm} from './ui'
+import { ParamaterRecorder} from './record'
 import { clear,
 		drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
-		drawText,drawParagraph,
-		drawWaves, drawBars, drawInstrument} from './visual'
-import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
-import {INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './instruments'
-import { setupInstrumentForm} from './ui'
-// options easeInCubic // easeInSine
-// const ease = easeOutQuad
+		drawText,drawParagraph, drawInstrument} from './visual'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
-
+const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
 export const NAMES = ['a','b','c'].map( m => `person-${m}` )
 				
 export const DEFAULT_OPTIONS = {
@@ -65,12 +57,16 @@ export default class Person{
 		this.active = false
 		this.tracks = 0
 		this.octave = 4
+		this.midi = null
 		this.midiActive = false
 		this.midiChannel = "all"
+
 		this.hue = options.hue || Math.random() * 360
 		this.saturation = 40
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
 		
+		this.parameterRecorder = new ParamaterRecorder( audioContext )
+
 		// Head orientation
 		this.yaw = 0
 		this.pitch = 0
@@ -78,6 +74,7 @@ export default class Person{
 
 		this.singing = false
 		this.isMouthOpen = false
+		this.isRecordingParameters = false
 		this.mouseDownAt = -1
 		this.lastNoteName = "A0"
 		this.debug = options.debug || false
@@ -161,19 +158,15 @@ export default class Person{
 		// this.button.addEventListener( 'instrumentchange', event => {
 		// 	console.log("External event for instrument", event )
 		// })
-
-		
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
 	get mouseDownFor(){
 		return this.audioContext.currentTime - this.mouseDownAt
 	}
-
 	get isMouseDown(){
 		return this.mouseDownAt > -1
 	}
-
 	get isMouseHeld(){
 		return this.options.mouseHoldDuration < this.mouseDownFor
 	}
@@ -187,26 +180,47 @@ export default class Person{
 
 	get instrumentName(){
 		return this.instrument ? this.instrument.name : 'loading'
-	}
-	
+	}	
 	get instrumentTitle(){
 		return this.instrument ? this.instrument.title : 'loading'
 	}
-	
 	get instrumentIndex(){
 		return INSTRUMENT_FOLDERS.indexOf(this.instrumentName)
 	}
 
 	get hasMIDI(){
-		return this.midi && this.midiChannel
+		return this.midi !== null && this.midiChannel && this.midiChannel.length > 0
 	}
 
+	get MIDIDeviceName(){
+		return this.midi ? this.midi.name : 'unknown'
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// Return a time based library of face movements since recording began
+	/////////////////////////////////////////////////////////////////////
+	get history(){
+		return this.parameterRecorder.recording
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// Cache data for use in processing later
+	/////////////////////////////////////////////////////////////////////
 	update(prediction){
 		
 		this.counter++
 		this.data = prediction
+		
+		// save all the parameters for recall later on...
+		if (this.isRecordingParameters)
+		{
+			this.parameterRecorder.save(prediction)
+		}
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	// Update visuals
+	/////////////////////////////////////////////////////////////////////
 	draw(prediction, showText=true){
 		
 		if (!prediction && !this.prediction)
@@ -259,13 +273,18 @@ export default class Person{
 			
 		// we only want this every frame or so as this 
 		// is altering the DOM
-		if (this.counter%12===0)
+		if (this.counter%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
 		{
-			// this.button.style.setProperty('--person-a-x', `${topLeft[0]}` )
-			this.button.style.setProperty('--person-a-x', `${bottomRight[0]}` )
-			this.button.style.setProperty('--person-a-y', topLeft[1] )
-			this.button.style.setProperty('--person-a-w', boxWidth )
-			this.button.style.setProperty('--person-a-h', boxHeight )			
+			// TODO: Profile which is faster...
+			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
+			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
+			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
+			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
+			// ?
+			this.button.setAttribute( "style", `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};` );
+
+			// ?
+			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
 		}
 
 		// everything here is for displaying the text
@@ -347,6 +366,7 @@ export default class Person{
 				const paragraphs = [
 					`gain:${(this.gainNode.gain.value).toFixed(2)}`, 
 					`happiness:${(prediction.happiness).toFixed(3)}`, 
+					`Smirks left:${(prediction.leftSmirk).toFixed(3)} / right:${(prediction.rightSmirk).toFixed(3)}`, 
 					`mouthRange:${(prediction.mouthRange).toFixed(3)}`, 
 					`mouthRatio:${(prediction.mouthRatio).toFixed(3)}`, 
 					`mouthWidth:${(prediction.mouthWidth).toFixed(3)}`, 
@@ -363,8 +383,10 @@ export default class Person{
 			}
 		}
 	}
-	
+
+	/////////////////////////////////////////////////////////////////////
 	// Sing some songs
+	/////////////////////////////////////////////////////////////////////
 	sing(){
 
 		if (!this.data || this.tracks > MAX_TRACKS)
@@ -477,7 +499,7 @@ export default class Person{
 				this.midi.playNote( noteName, midiOptions )
 				this.midiActive = true
 				
-				// /console.log("MIDI noteOn", noteName, "Channel:"+this.midiChannel, {midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+				console.log(this.midi.playNote, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 
 			}else{
 				// add connect midi device note?
@@ -508,7 +530,9 @@ export default class Person{
 			{
 				this.midi.stopNote(noteName)
 				this.midiActive = false
+				console.log(this.midi, "MIDI noteOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
 			}
+
 		}
 
 		// Midi pitch bending with eyes!
@@ -554,23 +578,34 @@ export default class Person{
 		}
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	/////////////////////////////////////////////////////////////////////
 	async loadRandomInstrument(callback){
 		return await this.loadInstrument( randomInstrument(), callback )
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	/////////////////////////////////////////////////////////////////////
 	async loadPreviousInstrument(callback){
 		const index = this.index
 		const newIndex = index-1 < 0 ? 0 : index-1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	/////////////////////////////////////////////////////////////////////
 	async loadNextInstrument(callback){
 		const index = this.index
 		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
 
+	/////////////////////////////////////////////////////////////////////
 	// we need loadiing events?
+	/////////////////////////////////////////////////////////////////////
 	async loadInstrument(instrumentName, callback){
 		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
@@ -585,13 +620,18 @@ export default class Person{
 		return instrumentName
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	/////////////////////////////////////////////////////////////////////
 	setMIDI(midi, channel="all"){
 		this.midiChannel = channel
 		this.midi = midi
-		console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
+		//console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
+	/////////////////////////////////////////////////////////////////////
 	// Instrument selected from the DOM UI face click
+	/////////////////////////////////////////////////////////////////////
 	onInstrumentInput(event) {
 		const id = event.target.id
 		//console.error(id, "on inputted", event)
@@ -600,6 +640,9 @@ export default class Person{
 		event.preventDefault()
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	/////////////////////////////////////////////////////////////////////
 	showForm(){
 
 		//console.log("showForm", this.controlsID, this.controls)
@@ -620,6 +663,9 @@ export default class Person{
 		// this.controls.classList.toggle("showing",true)
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	//
+	/////////////////////////////////////////////////////////////////////
 	hideForm(){
 		//const inputs = this.controls.querySelectorAll('input')
 		//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))

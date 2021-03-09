@@ -1,9 +1,11 @@
 export const QUICK_START = [
-	`No faces found!`,
+	`Hello!`,
+	`I'm looking for your pretty face`,
 	`Look at me and open your mouth`,
 	`Move your face close to the screen`,
 	`Try and put it in the centre`,
-	`Make sure you allowed the camera!`
+	`I still cannot see you`,
+	`Make sure you allowed the camera!`,
 ]
 export const INSTRUCTIONS = [
 	`Welcome to the <strong>interFACE</strong>`,

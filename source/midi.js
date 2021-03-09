@@ -22,16 +22,25 @@ let mpeEnabled = false
 //   })
 // })
 
-export const setupMIDI = () => new Promise ( (resolve,reject) => {
+export const setupMIDI = (connectedCallback, disconnectedCallback) => new Promise ( (resolve,reject) => {
 	
 	WebMidi.enable().then( ports => {
-
 
 		//console.log("WebMidi enabled!", ports, ports.outputs[0] , WebMidi.outputs[0], WebMidi.outputs[0] === ports.outputs[0] )
 		// I / O change
 		// console.log(WebMidi.inputs)
 		// console.log(WebMidi.outputs)
-
+		WebMidi.addListener("connected", function(e) {
+			console.log(e);
+			connectedCallback && connectedCallback(e)
+		})
+		  
+		  // Reacting when a device becomes unavailable
+		WebMidi.addListener("disconnected", function(e) {
+			console.log(e);
+			disconnectedCallback && disconnectedCallback()
+		})
+		
 		resolve(WebMidi)
 		
 		// Display the current time
