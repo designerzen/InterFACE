@@ -1,4 +1,4 @@
-s- var URL = "https://designerzen.github.io/MusicalFace"
+- var URL = "https://designerzen.github.io/MusicalFace"
 doctype html
 html(lang="en-GB" dir="ltr").loading
 	head
@@ -61,7 +61,7 @@ html(lang="en-GB" dir="ltr").loading
 	body
 		header#intro
 
-			a.logo(href="#app") Jump to menu
+			a.logo(href="#app") Jump directly to the app
 				svg(viewBox="0 0 1024 1024", xmlns="http://www.w3.org/2000/svg", fill-rule="evenodd", clip-rule="evenodd", stroke-linejoin="round", stroke-miterlimit="2")
 					//- Rounded corners 
 					path(d="M964.332 297.989c0-13.423-10.882-24.303-24.303-24.303H83.976c-13.423 0-24.303 10.88-24.303 24.303 0 249.648 202.681 452.33 452.329 452.33 249.647 0 452.33-202.682 452.33-452.33zm-49.335 24.304h-805.99c12.57 211.517 188.329 379.419 402.995 379.419 214.665 0 390.425-167.902 402.995-379.42z")
@@ -70,21 +70,24 @@ html(lang="en-GB" dir="ltr").loading
 				
 			h1
 				| Inter
-				strong face
+				strong FACE
 			h2
 				em Smile
-				|  Based Synthesizer
+				|  Powered Synthesizer
 
 			p(aria-label="Summary").
-				An experiment in computer control by designerzen. By allowing your webcamera access, every movement of your face and mouth will control music. Pressing the arrow keys changes the instrument sound.
+				An experiment in computer control by <a href="https://designerzen.com">designerzen</a>. 
+				By allowing your webcamera access, every movement of your face and mouth will control aspects of music. 
+				Pressing the screen will change instruments.
 			
 			label#progress-bar(for="progress") Loading, Please wait...
 				progress(min=0 max=1)#progress
 			
 		main#app
 			h3#title Please have patience
-			p#feedback Loading
+			p#feedback Loading takes a long time
 			p#toast
+			
 			#app-frame
 				//- img#face(src="assets/will.png", width="640", height="480")
 				video#webcam(autoplay, playsinline, width="640", height="480")
@@ -112,6 +115,7 @@ html(lang="en-GB" dir="ltr").loading
 					
 					//- Same for Player 2
 					button.person#person-b Change instrument for the person on the right 
+					// FIXME: ADD ARIA
 					fieldset.person-controls#person-b-controls
 					
 					fieldset#shared-controls
@@ -146,7 +150,7 @@ html(lang="en-GB" dir="ltr").loading
 						label(for="button-overlay" aria-label="Toggle augmented reality mode" ) Overlay
 							input(type="checkbox")#button-overlay
 							
-						button#button-midi( aria-label="Connect a MIDI instrument and click here") MIDI
+						button#button-midi( aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 						//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
 						
 						//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
@@ -163,11 +167,23 @@ html(lang="en-GB" dir="ltr").loading
 		footer#foot
 			small(class="copyright")
 				| Copyright <span id="year">#{year||2021}</span>
-				a.brand(href="https://github.com/designerzen") designerzen 
-			
+				a.brand(href="https://designerzen.com/") designerzen 
+				
 			//- Dynamically created
-			small#version version 
-				include version.txt
+			small#version 
+				a(href="https://github.com/designerzen") Version 
+					include version.txt
+						
+			ul#associates
+				li: a(href="https://www.designerzen.com/") designerzen
+					include ./assets/logos/designerzen_current-color.svg
+				li: a(href="https://www.tensorflow.com/") TensorFlow
+					include ./assets/logos/tensorflow-tf.svg
+				li: a(href="https://drakemusic.org") Drake Music
+					include ./assets/logos/drakemusic.svg
+				li: a(href="https://www.sxsw.com/") SXSW
+					//- include ./assets/logos/sxsw2021.svg
+					include ./assets/logos/sxsw.svg
 
 		share-menu#share-menu( 
 			title="Give the interFACE to your friends and family" 
