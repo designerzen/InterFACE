@@ -7,11 +7,9 @@ Smile to begin - click your face to change to a different instrument.
 
 Or, an augmented reality, real-time motion-capture, machine-learning powered, holographic, accessible general MIDI controller and synthesizer (that comes without a manual). 
 
-By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allows for expressive yet intuitive control and hopefully fun musicality.
-
 ## What is it?
 
-Real-time motion tracking become possible due to innovations in machine learning and improvements in graphics processers.
+By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allows for expressive yet intuitive control and hopefully fun musicality.
 
 This software has been designed to be used with a holographic display which gives the visuals extra depth and believability.
 
@@ -39,32 +37,46 @@ I would also like to develop certain different modes - as well as the expressive
 
 Given enough time it would be possible to save MIDI files directly from the app too, turning it into a rudimentary face controlled DAW.
 
+## Troubleshooting
+
+- If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
+- If your face is not found, try and improve the brightness in the room by turning on some lights
+- If the website does not load and shows "loading" forever, hard refresh your browser
+
+## Build from source
+- Install NodeJS and Yarn
+- Download the source code and enter the directory
+- open a terminal / cli / bash / command prompt
+- enter ```yarn install```
+- then ```yarn build```
+- Your interface will be built into the dist folder
+
 ## Future plans
 - Better musicality and expression
 - Upgraded synth engine
-- Refactor Instruments to Intsrument Interface for future IO
+- Refactor Instruments to Instrument Interface for future IO
 - MIDI phrase support
 - Percussion that sounds good!
 - Hand remote Controls
 - Full Body version for beats
 - Saving "Persons" and using face ID loading them back in
 - Vocoder mode using microphone
-- Collab with Beardyman?
 - Improved timing
 - MIDI 2.0 (MPE) Support
+- Collab with Beardyman?
 
 ## Requirements
 - Face
 - Video camera or web cam
 - A screen with dimensions greater than 320 x 320 pixels
-- A relatively modern computer
+- A relatively modern computer (GPU preffered)
 - Speakers or headphones
 - Mouse / Keyboard / finger to change optional settings 
 
 ## Credits
+- [Drake Music](https://drakemusic.org) for inspiration and support
 - Font is Oxanium by [Severin Meyer](https://sev.dev/fonts/oxanium/)
-- TensorFlowJS is maintained by Alphabet
-- [Drake Music](https://drakemusic.org)
+- [TensorFlowJS](https://www.tensorflow.org/js) is maintained by Alphabet
 
 ## Check it out over at
 
@@ -73,3 +85,4 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
 
 - [Brief Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
+- [Audience of the Future](https://audienceofthefuture.live/interface/)
