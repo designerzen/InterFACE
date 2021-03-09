@@ -36,9 +36,13 @@
 	  }
 	],
 	"screenshots": [
-	  {
-		"src": "assets/screenshots/screen.png"
-	  }
+		{
+		"src": "assets/screenshots/screen1.png"
+		},  {
+		"src": "assets/screenshots/screen2.png"
+		},  {
+		"src": "assets/screenshots/screen3.png"
+		}
 	],
 
 	
