@@ -1,4 +1,4 @@
-export default class MIDIInstrument{
+export default class MIDIInstrument extends Instrument{
 
 	constructor( channel="all" ){
 		super()

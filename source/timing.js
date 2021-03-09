@@ -15,6 +15,7 @@ const AudioContext = window.AudioContext || window.webkitAudioContext
 // const timingWorker = new Worker("data-url:./timing.setinterval.worker.js") 
 // const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
 const timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
+// const timingWorker = new Worker(new URL('data-url:./timing.requestframe.worker.js', import.meta.url))
 
 let startTime = -1
 let currentInterval = 1

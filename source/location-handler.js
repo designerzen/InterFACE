@@ -31,7 +31,9 @@ export const parseType = value => {
 	// check to see if the string is also an array...
 	if (typeof value === "string")
 	{
-		if (value.toLowerCase() === "true") {
+		if (!isNaN(parseFloat(value))) {
+			return parseFloat(value)
+		} else if (value.toLowerCase() === "true") {
 			return true
 		} else if (value === "false") {
 			return false
@@ -40,10 +42,7 @@ export const parseType = value => {
 			
 			return convertIntegerArrayToBooleans( value.split(",") )
 
-		} else if (!isNaN(parseFloat(value))) {
-			// Number / Int
-			return parseFloat(value)
-		} else{
+		} else {
 			return value
 		}
 

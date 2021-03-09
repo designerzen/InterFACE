@@ -63,6 +63,8 @@ const snareSequences = [
 	]
 ]
 
+const drumRollSequence = new Array(16).map( i => i * 255 / 16 )
+
 const hatSequences = [
 	[
 		255,0,255,0,
@@ -81,7 +83,8 @@ export const kitSequence = () => {
 	return {
 		kick:pattern( kickSequences[0] ),
 		hat:pattern( hatSequences[0] ),
-		snare:pattern( snareSequences[0] )
+		snare:pattern( snareSequences[0] ),
+		roll:pattern( drumRollSequence )
 	}
 }
 

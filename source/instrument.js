@@ -14,8 +14,11 @@ import {
 // we always have the same exposed methods
 export default class Instrument{
 
-	constructor( audioContext, destinationNode, options={} ) {
+	constructor( audioContext, destinationNode, options={} ) 
+	{
 		this.sendMIDI = true
+		this.active = false
+		this.polyphony = 5
 	}
 
 	setMIDI(value){
@@ -24,7 +27,14 @@ export default class Instrument{
 
 	noteOn(){
 
+		// playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } )
+		const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
+			this.active = false
+			this.polyphony--
+			//console.log("Sample completed playback... request tock", this.tracks )
+		})
 	}
+	
 	noteOff(){
 
 	}
@@ -47,14 +57,6 @@ export default class Instrument{
 Stolen from MIDI
 
 
-// playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } )
-Play
-	const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
-				this.active = false
-				this.tracks--
-				//console.log("Sample completed playback... request tock", this.tracks )
-			})
-			
 
 
 const createInstrument = async () => {

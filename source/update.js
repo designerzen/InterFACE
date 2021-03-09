@@ -29,6 +29,7 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 	const checkUpdates = async () => {
 			
 		reg = await navigator.serviceWorker.register('service-worker.js')
+		// reg = await navigator.serviceWorker.register(new URL('service-worker.js', import.meta.url))
 		const worker = reg.installing
 	
 		if (worker && navigator.storage) 

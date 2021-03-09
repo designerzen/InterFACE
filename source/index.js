@@ -16,8 +16,9 @@ import {
 	updateByteFrequencyData,
 	bufferLength,dataArray, 
 	setupAudio,
-	getVolume, setVolume, setAmplitude, 
-	record } from './audio'
+	getVolume, setVolume, setAmplitude } from './audio'
+
+import { ParamaterRecorder, record } from './record'
 
 import { 
 	getBars, setBars, getBar, 
@@ -87,6 +88,7 @@ let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
 let noFacesFound = false
+let userLocated = false
 let counter = 0
 
 // for disco mode!
@@ -124,7 +126,9 @@ const ui = getLocationSettings({
 	// audio visualiser is actually helpful to play
 	spectrogram:true,
 	// read out important instructions
-	speak:true
+	speak:true,
+	// midi channel (0/"all" means send to all)
+	midiChannel:"all"
 })
 
 const SETTINGS = {
@@ -224,10 +228,10 @@ const getPerson = (index) => {
 		
 		//console.error(name, {instrument, person, savedOptions})
 		
-		if (midi && midi.outputs && midi.outputs.length > 0) 
-		{
-			person.setMIDI( midi.outputs[0] )
-		}
+		// if (midi && midi.outputs && midi.outputs.length > 0) 
+		// {
+		// 	person.setMIDI( midi.outputs[0] )
+		// }
 		people.push( person )
 		return person
 	} else{
@@ -238,10 +242,62 @@ const getPerson = (index) => {
 // BEGIN ---------------------------------------
 
 // start on click as things require gesture for permission
-const enableMIDIForPerson = (personIndex=0, portIndex=0) => {
+const enableMIDIForPerson = (personIndex=0, midiDevices=[], midiChannel=0) => {
 	const person = getPerson(personIndex)
-	person.setMIDI(midi.outputs[portIndex])
-	console.log("Enabling MIDI for", person)
+	// try and determine which port the user is expecting
+	//const p = midiChannel === "all" ? 0 : midiChannel
+	// select instrument
+	const port = midiDevices[ personIndex < midiDevices.length ? personIndex : 0 ]
+	if (port)
+	{
+		person.setMIDI(port, midiChannel)
+		console.log(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
+
+	}else{
+		console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel}, midi.outputs[midiChannel])
+	}
+}
+
+
+const updateMIDIStatus = (outputs)=>{
+	const quantity = outputs.length
+	if (quantity>0)
+	{
+		let feedback = outputs.map(midiInstrument => midiInstrument.name || "MIDI Instrument" ).join( "<br>" )
+		switch(quantity)
+		{
+			// FIXME: 2 instruments have been connected,
+			// we should send one to each instrument presumably?
+			case 2:
+				break;
+
+			default:
+				// w00t
+				// console.error("MIDI devices",midiInstrument, midiInstrumentName, outputs)
+				
+				//midiButton.setText("Click to disable")
+		}
+
+		main.classList.toggle('midi-no-devices', false)
+		main.classList.toggle('midi-connected', true)
+		main.classList.toggle(`midi-devices-${quantity}`, true)
+
+		// use this to fill the peoples
+		people.forEach( (person,i) => enableMIDIForPerson(i, outputs, ui.midiChannel) )
+		
+		feedback = `MIDI Available<br>${feedback}`
+				
+		setToast( feedback )
+		midiButton.setText("Click to disable")
+		midiButton.setLabel(feedback)
+
+	}else{
+		// bugger - either we never had or we lost...
+		setFeedback(midiAvailable ? "Lost MIDI Device connection" : "MIDI Available but no instruments detected", 0)
+		setToast("No MIDI Device connected")
+		main.classList.toggle('midi-no-devices', true)
+		main.classList.toggle('midi-connected', false)
+	}
 }
 
 // this needs a user interaction to trigger
@@ -249,52 +305,17 @@ const enableMIDI = async () => {
 
 	try{
 		midi = await setupMIDI()
-		// console.log(midi.inputs)
-		if (midi.outputs.length>0)
-		{
-			// w00t
-			console.log("MIDI devices", midi.outputs, midi)
-			setFeedback("MIDI Available<br>Stand By", 0)
-			// use this to fill the peoples
-			enableMIDIForPerson(0,0)
-			
-		}else{
-			// bugger
-			console.log("No MIDI devices detected", midi)
-			setFeedback("MIDI Available but no instruments detected", 0)
-			setToast("No MIDI Device connected")
-			main.classList.toggle('midi-no-devices', true)
-		}
 		
 		// midi device connected! huzzah!
-		midi.addListener("connected", (e) => {
-			console.log(e)
-			setFeedback("MIDI Device connected!")
-			// check outputs
-			if (midi.outputs.length > 0)
-			{
-				main.classList.toggle('midi-no-devices', false)
-				people.forEach( (person,i) => enableMIDIForPerson(i,0) )
-			}
-			midiButton.setText("Click to disable")
-		})
+		midi.addListener("connected", (e) => updateMIDIStatus(midi.outputs) )
 		
 		// Reacting when a device becomes unavailable
-		midi.addListener("disconnected", (e) => {
-			console.log(e)
-			setFeedback("Lost MIDI Device connection")
-			if (midi.outputs.length > 0)
-			{
+		midi.addListener("disconnected", (e) => updateMIDIStatus(midi.outputs) )
 
-			}else{
-				main.classList.toggle('midi-no-devices', true)
-			}
-		})
+		updateMIDIStatus(midi.outputs)
 
 		midiAvailable = midi // && midi.outputs && midi.outputs.length > 0
 		main.classList.add('midi-available')
-
-		setToast(midi.outputs.length > 0 ? "MIDI Connected" : "Connect a MIDI Device to continue")
 
 	}catch(error){	
 
@@ -302,9 +323,10 @@ const enableMIDI = async () => {
 		console.error("Total failure", error)
 		// this needs a user interaction to trigger
 		setFeedback("MIDI NOT Available<br>"+error, 0)
+		main.classList.add('midi-unavailable')
 		return false
 	}
-	// suvvess
+
 	return true	
 }
 
@@ -319,7 +341,6 @@ const showMIDI = async () => {
 	midiButton = setupMIDIButton( async (b) => {
 		await enableMIDI()
 		setFeedback("MIDI available<br>Connecting to instruments...", 0)
-		console.log("User input detected so enabling MIDI!")
 		main.classList.add('midi-activated')
 		return false
 	})
@@ -452,7 +473,16 @@ const setup = async (update, settings, progressCallback) => {
 
 	try{
 		audio = setupAudio()
-		setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
+		
+		if (instrument)
+		{
+			setFeedback( "Audio Available...<br>Instrument "+instrument+" Sounds downloaded", 0 )
+		}else{
+			setFeedback( "Audio Available. Final checks...", 0 )
+		}
+		
+		
+		
 		progressCallback(loadIndex++/loadTotal)
 
 		// not neccessary if using Person
@@ -484,10 +514,10 @@ const setup = async (update, settings, progressCallback) => {
 		if (hasMIDI)
 		{
 			main.classList.add('midi')
-			setFeedback("MIDI available<br>Click the button to connect", 0)
+			// setFeedback("MIDI available<br>And device(s) found", 0)
 		}else{
 			main.classList.add('midi','no-instrument')
-			setFeedback("MIDI available<br>Connect an instrument <small>and click the button</small>", 0)
+			setFeedback("MIDI available<br>Connect a MIDI instrument <strong>and click the button</strong>", 0)
 		}
 		progressCallback(loadIndex++/loadTotal)
 
@@ -510,6 +540,7 @@ const setup = async (update, settings, progressCallback) => {
 	// console.error("Tensorflow", tf)
 	main.classList.add( inputElement.nodeName.toLowerCase() )
 	
+	// this just adds some visual onscreen tooltips to the buttons
 	addToolTips()
 
 	// turn up the amp
@@ -545,6 +576,9 @@ const setup = async (update, settings, progressCallback) => {
 	// this then runs the loop if set to true
 	update( inputElement === video, (predictions)=>{
 
+		// NB. always update the counter
+		counter++
+
 		if(isLoading)
 		{
 			isLoading = false
@@ -558,8 +592,7 @@ const setup = async (update, settings, progressCallback) => {
 		}
 
 		let tickerTape = ''
-		counter++
-
+		
 		if (ui.clear)
 		{
 			// clear for invisible canvas but 
@@ -596,6 +629,7 @@ const setup = async (update, settings, progressCallback) => {
 			
 		if (predictions)
 		{
+			let haveFacesBeenDetected = false
 			// loop through all predictions...
 			for (let i=0, l=predictions.length; i < l; ++i)
 			{
@@ -611,22 +645,24 @@ const setup = async (update, settings, progressCallback) => {
 					// playAudio()
 					if (noFacesFound)
 					{
+						
 						noFacesFound = false
 						main.classList.toggle( `${person.name}-active`, true)
 						main.classList.toggle( `no-faces`, false)
 					}
-					
+
+					userLocated = true
+					haveFacesBeenDetected = true
+						
 				}else{
 
 					// stopAudio()
 					if (!noFacesFound)
 					{
-						// face found!??
+						// no face found!??
 						main.classList.toggle( `${person.name}-active`, false)
 						main.classList.toggle( `no-faces`, true)
 						noFacesFound = true
-					}else{
-						setFeedback( getHelp( Math.floor(counter/100) ) )
 					}
 					
 					return
@@ -663,6 +699,13 @@ const setup = async (update, settings, progressCallback) => {
 				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
 				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+			}
+
+			// No face was detected on either user
+			if (!haveFacesBeenDetected)
+			{
+				// No faces located so update help
+				setFeedback( getHelp( Math.floor(counter/100) ) )
 			}
 				
 		}else{
@@ -706,11 +749,15 @@ const setup = async (update, settings, progressCallback) => {
 		// Play metronome!
 		if(ui.quantise)
 		{
+			const personParameters = []
+
 			for (let i=0, l=people.length; i<l; ++i )
 			{
 				const person = getPerson(i)
+
 				// yaw, pitch, lipPercentage, eyeDirection
 				const stuff = person.sing()
+
 				if (i===0)
 				{
 					
@@ -720,9 +767,12 @@ const setup = async (update, settings, progressCallback) => {
 					cameraPan.x = stuff.eyeDirection
 					cameraPan.y = stuff.pitch
 				}
-			}
-		}
 
+				// save data to an array to record
+				personParameters.push(stuff)
+			}
+			
+		}
 
 		// play some accompanyment music!
 		if (ui.backingTrack && bar%2 === 0 )
@@ -731,7 +781,7 @@ const setup = async (update, settings, progressCallback) => {
 			const snare = playNextPart( patterns.snare, kit.snare )
 			const hat = playNextPart( patterns.hat, kit.hat )
 
-			console.error("backing|", {kick, snare, hat })
+			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
 		}
 
@@ -739,6 +789,7 @@ const setup = async (update, settings, progressCallback) => {
 		{
 			// timePassed
 		}
+
 		
 	}, timePerBar() )
 
@@ -886,7 +937,8 @@ const onLoaded = async () => {
 	if (ui.debug)
 	{
 		// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
-		console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
+		console.log(`Loaded App Version ${VERSION}` )	
+		// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 	}
 }
 
@@ -894,7 +946,7 @@ const onLoaded = async () => {
 // loop until loaded...
 const loadingLoop = async () => {
 
-	if (isLoading)
+	if (isLoading || !userLocated)
 	{ 
 		// console.log("loading",loadMeter*100)
 		requestAnimationFrame( loadingLoop ) 
@@ -904,7 +956,6 @@ const loadingLoop = async () => {
 		{
 			body.classList.add("failure")
 			showReloadButton()
-
 		}else{
 			onLoaded()
 		}
@@ -978,9 +1029,8 @@ load(options, progress => {
 		console.error("player selection failed")
 	}
 	body.classList.toggle("loading", true)
-
-
-	console.error("player selection duet", ui.duet)
+	
+	setToast( "" )
 
 	// load settings from store here too?
 	// set up some extra options from query strings

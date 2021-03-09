@@ -1,4 +1,5 @@
 import {clamp} from './maths'
+
 // FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
 import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
 
@@ -37,6 +38,23 @@ const twist = (value, amount=0) => {
 	//return value + amount
 	return clamp(value + amount,-1,1)
  }
+
+// Feed it a right angle triangle and get the angle between the edges
+const determineAngle = ( pointA, pointO ) => {
+
+	// determine missing point?
+	// const hypoteneuseX = pointO[0]
+	// const hypoteneuseY = pointA[1]
+
+	// work out the lengths of the known edges
+	const oppositeLength = pointA[1] - pointO[1] 
+	const adjacentLength = pointO[0] - pointA[0]
+
+	const angleInRadians = atan2(oppositeLength, adjacentLength)
+	// process?
+	return angleInRadians
+}
+
 
 const predict = async (inputElement,model) => {
 
@@ -199,6 +217,19 @@ const predict = async (inputElement,model) => {
 			const lipVerticalOpening = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
 			const lipHorizontalOpening = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
 			
+			// create triangles from the shape of the mouth
+			// const upperLipLeft = [ lipUpperLeft, lipUpperMiddle ]
+			
+			// // this is the top left lip to fultrum (snot run)
+			// // const upperLipLeftAngle = 
+			
+			
+			// const upperLipRight = [ lipUpperMiddle, lipUpperRight ]
+			
+			// const lowerLip = [ lipLowerLeft, lipLowerMiddle, lipLowerRight ]
+
+			// const upperLip = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
+			
 			 //const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
 			prediction.mouthRange = lipVerticalOpening
 			prediction.mouthRatio = lipVerticalOpening / headHeight
@@ -207,10 +238,19 @@ const predict = async (inputElement,model) => {
 			// TODO: this is the size of the mouth as a factor of the head size
 			prediction.mouthOpen = lipVerticalOpening / (headHeight * RATIO_OF_MOUTH_TO_FACE)
 
-			// -1 -> 1
-			prediction.happiness = 0
+			// These are the angles caused by smiling
+			// We add them together and deduct them from 180 to find
+			// the kinked angle of the top lip between left - feltrum - right
+			const leftSmirk = Math.abs( determineAngle(lipUpperLeft, lipUpperMiddle) ) / PI
+			const rightSmirk = Math.abs( determineAngle(lipUpperMiddle, lipUpperRight) ) / PI
 
-			// useful
+			// 0 -> 1 ()
+			prediction.happiness = (leftSmirk + rightSmirk) * 0.5
+			// 0 -> 1
+			prediction.leftSmirk = (leftSmirk - 1) * 1000
+			prediction.rightSmirk = (rightSmirk - 1) * 1000
+
+			// useful sometimes (different time to audio context?)
 			prediction.time = time
 
 			//console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
