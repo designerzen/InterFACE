@@ -1,0 +1,143 @@
+
+// 
+@keyframes BGColours{
+	0%{
+		background-color:hsl(90, 60%, 40%);
+	}
+	10%{
+		background-color: hsl(180, 60%, 40%);
+	}
+	20%{
+		background-color: hsl(180, 60%, 40%);
+	}
+	30%{
+		background-color: hsl(270, 60%, 40%);
+	}
+	40%{
+		background-color: hsl(270, 60%, 40%);
+	}
+	50%{
+		background-color: hsl(360, 60%, 40%);
+	}
+	70%{
+		background-color: hsl(360, 60%, 40%);
+	}
+	80%{
+		background-color:hsl(90, 60%, 40%);
+	}
+	100%{
+		background-color: hsl(90, 60%, 40%);
+	}
+}
+// 
+@keyframes TextColours{
+	0%{
+		color:hsl(90, 60%, 40%);
+	}
+	10%{
+		color: hsl(180, 60%, 40%);
+	}
+	20%{
+		color: hsl(180, 60%, 40%);
+	}
+	30%{
+		color: hsl(270, 60%, 40%);
+	}
+	40%{
+		color: hsl(270, 60%, 40%);
+	}
+	50%{
+		color: hsl(360, 60%, 40%);
+	}
+	70%{
+		color: hsl(360, 60%, 40%);
+	}
+	80%{
+		color:hsl(90, 60%, 40%);
+	}
+	100%{
+		color: hsl(90, 60%, 40%);
+	}
+}
+@keyframes Shift{
+	from{
+		transform: translate( var(--xa,0), var(--ya,0) );
+	}
+	to{
+		transform: translate( var(--xb,0), var(--yb,0) );
+	}
+}
+@keyframes Fade{
+	from{
+		opacity: 0;
+	}
+	to{
+		opacity: var(--opacity,1);
+	}
+}
+
+@keyframes Blink{
+	0%{
+		opacity: 0;
+	}
+	49%{
+		opacity: 0;
+	}
+	50%{
+		opacity: 1;
+	}
+	100%{
+		opacity: 1;
+	}
+}
+@keyframes Loading{
+	0%{
+		transform:translateX( 0 );
+		//background-color: hsl(90, 60%, 40%);
+		background-image:linear-gradient(90deg, hsl(90, 60%, 40%), hsl(90, 60%, 40%));
+	}
+	10%{
+		background-image:linear-gradient(90deg, hsl(180, 60%, 40%),hsl(180, 60%, 40%));
+	}
+	20%{
+		transform:translateX( calc(100% - var(--loader-size)) );
+		//background-color: hsl(180, 60%, 40%);
+		background-image:linear-gradient(90deg, hsl(180, 60%, 40%),hsl(180, 60%, 40%));
+	}
+	30%{
+		background-image:linear-gradient(90deg, hsl(270, 60%, 40%),hsl(270, 60%, 40%));
+	}
+	40%{
+		transform:translateX( calc(100% - var(--loader-size)) ) translateY( calc( 100% - var(--loader-size) ) );
+		//background-color: hsl(270, 60%, 40%);
+		background-image:linear-gradient(90deg, hsl(270, 60%, 40%),hsl(270, 60%, 40%));
+	}
+	50%{
+		background-image:linear-gradient(90deg, hsl(360, 60%, 40%), hsl(360, 60%, 40%));
+	}
+	70%{
+		transform:translateX( 0 )  translateY( calc( 100% - var(--loader-size) ) );
+		//background-color: hsl(360, 60%, 40%);
+		background-image:linear-gradient(90deg, hsl(360, 60%, 40%), hsl(360, 60%, 40%));
+	}
+	80%{
+		background-image:linear-gradient(90deg, hsl(90, 60%, 40%),hsl(90, 60%, 40%));
+	}
+	100%{
+		transform:translateX( 0 );
+		//background-color: hsl(90, 60%, 40%);
+		background-image:linear-gradient(90deg, hsl(90, 60%, 40%),hsl(90, 60%, 40%));
+	}
+}
+
+
+
+
+@keyframes Hide-Install{
+	from{
+		transform: translateX( 0 );
+	}
+	to{
+		transform: translateX( calc( -100% + 44px ) );
+	}
+}

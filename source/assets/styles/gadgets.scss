@@ -1,0 +1,940 @@
+
+// Loading progress	
+label#progress-bar{
+	position: absolute;
+	// left:var(--pad);
+	// right:var(--pad);
+	width:100%;
+	bottom:10%;
+	color: $col-brown;
+	outline: none;
+	border:0;
+	display: flex;
+	flex-direction: column;
+
+	&:hover{
+		background-color: transparent;
+	}
+
+	#progress{
+		//@extend:60%;
+		// // border-radius: 99%;
+		// max-width:80%;
+		margin:auto;
+	}
+}
+
+// actual button
+input[type=radio]{
+	appearance: none;
+}
+
+// BUTTON ABSTRACT
+button,
+#shared-controls > *{
+
+	--icon-size:32px;
+	--fade-speed:var(--ease-q);
+	--pos: left var(--pad) center;
+
+	--col-top:$col-cream;
+	--col-bottom: $col-grey;
+	--direction:row;
+	
+	// inset
+	text-shadow: rgba($col-white,0.4) 0 0px 2px,
+				rgba($col-white,0.3) 0 0.5px 2px,
+				rgba($col-cream,0.2) 0 1px 2px,
+				rgba($col-cream,0.1) 0 1.5px 2px;
+
+	border-radius:5px;
+	border-style: double ridge outset groove;
+	cursor: pointer;
+
+	// from ios guidelines
+	min-width:44px;
+	min-height:44px;
+	max-width:var(--max-width-override, var(--max-width,auto) );
+
+	position: relative;
+	box-sizing: border-box;
+	margin:0;
+	padding:var(--pad);
+	// force onto one line...
+	white-space: pre;
+	user-select: none;
+	appearance: none;
+	-webkit-appearance: none;
+
+	line-height: 1;
+	
+	// -0.5385rem + 7.6923vw
+	// clamp(minimum, preferred, maximum)
+	font-size:clamp(8px, -0.5385rem + 2.2vmax, 14px);
+
+	// max-width:calc(100% - 2 * var(--pad));
+	z-index:1;
+
+
+	// from horizontal to vertical stack using grid
+	// --breakpoint:300px;
+  	// --gap: 20px;
+	// display: grid;
+  	// gap: var(--gap);  
+	// grid-gap: var(--gap);
+	// --v:min( (var(--breakpoint) - 100%) * 999, 100%);
+	// grid-template-columns:repeat(
+    //   auto-fit,
+    //   minmax(
+    //     var(--v),
+    //     1fr
+    //   )
+    // );
+
+	display: flex;
+	//flex-wrap: auto;
+	flex-direction: var( --dir-override, var(--direction, row));
+	// ensure a gap between row items...
+
+	// align-items: center;
+	// justify-content: center;
+	// flex-wrap: wrap;	
+	align-items: center;
+	justify-content: space-between;
+	//justify-content: center;
+
+	background-color:$col-cream;
+
+	background-image: var(--bg),
+					  url(./assets/textures/45-degree-fabric-light.png);
+					//   linear-gradient( var(--col-top), var(--col-bottom));
+
+	background-repeat:no-repeat, 
+					  repeat, 
+					  repeat-x;
+	
+	background-size:auto var(--icon-size), 
+					auto, 
+					auto ;
+	
+	// background-position:top var(--pad) center;
+	background-position: var( --pos-override, var(--pos, center) ),
+						center, 
+						center;
+	
+	color:$col-dark;
+	
+	// animations
+	//animation-name:unset;	// start unset
+	animation-fill-mode: both, both;
+	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
+	
+	transition:transform var(--fade-speed) $easeOutBack,
+				background-color var(--fade-speed) linear, 
+				color var(--fade-speed) linear;
+
+	&:empty{ 
+		display:none;
+	}
+	
+	// Inherit the icon and recolour
+	&:before{
+		display: block;
+
+		// try and set to the size of the background icon
+		min-width:var(--icon-size);
+		min-height:var(--icon-size);
+
+		content:'';
+		
+		// background:inherit;
+		// background-image: none;
+		background:transparent var(--bg) no-repeat;
+		// background-color:transparent;
+		background-position:top center;
+		background-size:auto var(--icon-size);
+
+		filter:brightness(0%);
+		
+		opacity:1;
+		// z-index: -1;
+		transition:opacity var(--fade-speed) linear;
+	}
+
+	// cool effect?
+	&:after{
+
+	}
+	
+
+	&:hover, &:focus{
+
+		&:before{
+			opacity:0;
+			z-index:1;
+		}
+	}
+	
+	
+	&:active{
+		background-color: $col-orange;
+	}
+
+	&:focus{
+		outline:3px solid $col-blue;
+		outline-offset: 1px;
+		z-index:808;
+	}
+
+	&.hide{
+		display: none;
+	}
+}
+
+// this adds some right pad to icons on the control bar
+#shared-controls > *{
+
+	&:not(.hide-text):before{
+		margin-right:calc(var(--pad) / 2 );
+	}
+}
+
+// show even the hidden text!
+@media screen and (max-width:1960px){
+	
+	:root{
+		
+	}
+
+	button,
+	#shared-controls > * {
+		.hide-text{
+			// %image-replacement
+			text-indent: -9999px;
+			overflow:hidden;
+			color:transparent;
+			text-shadow:none;
+			white-space: pre;
+			font-size: 0;
+			background-position: center center;
+			justify-content: center;
+		}	
+	}
+}
+
+// stack
+@media screen and (max-width:1240px){
+	
+	:root{
+		--footer-gap:calc(74px);
+	}
+
+	button,
+	#shared-controls > *{
+		--icon-size:26px;
+		--pos:top var(--pad) center;
+		--direction: column;
+		
+		// remove margin
+		&:not(.hide-text):before{
+			margin-right:0;
+		}
+	}
+}
+
+// smallest always hides text so overrides here...
+@media screen and (max-width:586px){
+
+	:root{
+		--footer-gap:calc(67px);
+	}
+
+	button,
+	#shared-controls > *{
+		--icon-size:28px;
+		--pos: center center;
+		--direction: row;
+		font-size: 0;
+		text-indent: -9999px;
+		overflow:hidden;
+		color:transparent;
+		// as there is now no loner any text we need to centralise the icon
+		justify-content: center;
+	}
+}
+
+
+// smallest always hides text so overrides here...
+@media screen and (max-width:388px){
+
+	:root{
+		--footer-gap:calc(67px);
+	}
+
+	// smallest icon size to squeeze fit
+	button,
+	#shared-controls > *{
+		--icon-size:20px;
+		// here we set a max width
+		// NB. you can override this with --max-width-override
+		--max-width:33px;
+		min-width:22px;
+	}
+}
+
+
+
+
+
+// Overlay buttons
+#shared-controls{
+
+	// backgrounds
+	--col-regular:#{$col-dark};
+	--col-hover:#{$col-orange};
+	--col-select:#{$col-yellow};
+	
+	bottom:0;
+	// position:fixed;
+	left:0;
+	//right:0;
+	min-width:100vw;
+
+	visibility:hidden;
+	align-items: stretch;
+	justify-content: stretch;
+	
+	background-image: 	url(./assets/textures/bedge-grunge.png),
+						linear-gradient( $col-cream, $col-grey );
+	
+	// background-image: url(./assets/textures/45-degree-fabric-light.png),
+	// 					linear-gradient( fade($col-cream, 0.5), fade($col-grey, 0.5));
+	
+	//overflow: hidden;
+	// overflow: scroll;
+	//overflow-y:hidden;
+
+	// need to bring it into z-range
+	z-index:303;
+	
+	// @media screen and (min-width:640px){
+		
+	// }
+
+	// we swap this to absolute when we want to window it
+	position: fixed;
+
+	label{
+
+		// background-color:$col-yellow;
+		// base plane shows funky
+		
+		input{
+			opacity:0;
+			height: 0;
+			width: 0;
+			overflow: hidden;
+			position: absolute;
+			top:0;
+			left:0;
+		}	
+	
+		// Indicator
+		&:after{
+			
+			background-color: var(--col-select, $col-orange);
+			opacity:0.5;
+			content:'';
+			display: block;
+			position: absolute;
+			left:0;
+			right:0;
+			bottom:0;
+			height:8px;
+			transform-origin: center bottom;
+			transform:translateY(100%);
+			transition:opacity var(--ease-s) linear,
+						transform var(--ease-s) $easeOutBack;
+		}
+
+		&.checked{
+			background-color: var(--col-select);
+		}
+	
+		// toggled state eachone can have unique color
+		&.checked:before{
+			opacity: 0;
+		}
+		&.checked:after{
+			opacity:1;
+			transform:translateY(20%);
+		}
+	}
+
+	legend{
+		position: absolute;
+		bottom:100%;
+		background-color:transparent;
+		color:transparent;
+		user-select: none;
+		pointer-events: none;
+		border:0;
+		visibility: hidden;
+		&:focus{
+			color:$col-white;
+			visibility: visible;
+		}
+	}
+
+	label,button{
+		
+		// labels can collapse without text to expand them
+		text-transform: uppercase;
+	
+		//border-left:0;
+		
+		border-top:1px groove $col-white;
+		border-bottom:1px groove $col-dark;
+		
+		font-weight:900;
+		// color:var(--col-regular);
+		// background-color:rgba($col-yellow,0.5);
+
+		&:active{
+			--col-top:$col-select;
+			--col-bottom:$col-select;
+			transform: scale(0.96);
+			//background-color: var(--col-select);
+		}
+		&.checked,
+		&.checked:hover,
+		&:hover, &:focus{
+			color:$col-white;
+			background-color: var(--col-regular);
+		}
+
+		&.checked{
+			--col-top:$col-dark;
+			--col-bottom:$col-dark;
+			//background-color: var(--col-regular);
+			// background-color: $col-dark;
+		}
+	
+	}
+
+	label:not(:last-child),button:not(:last-child){
+		border-right:1px groove $col-dark;
+	}
+	
+	> * + *{
+		border-left:1px groove $col-white;
+		
+	}
+		
+
+	button{
+
+		
+		// padding-right:20px;
+	
+	
+	}
+
+	// Labels
+	label[for="button-metronome"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/timer_off-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/timer-24px.svg);
+		}
+	}
+
+	label[for="button-quantise"]{
+		--col-select:#{$col-yellow};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/grid_off-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/grid_on-24px.svg);
+		}
+	}
+
+
+	label[for="button-fullscreen"]{
+		// far right
+		order:99;
+		--col-select:transparent;
+		//--col-hover:transparent;
+
+		@extend %image-replacement;
+		--bg:url(./assets/icons/fullscreen-24px.svg);
+		
+		// toggled state
+		&.checked{
+			--bg:url(./assets/icons/fullscreen_exit-24px.svg);
+		}
+		
+		// override if user has esc'ed
+		@media all and (display-mode: fullscreen) {
+			--bg:url(./assets/icons/fullscreen_exit-24px.svg) !important;
+		}
+	}
+	
+
+	label[for="button-overlay"]{
+		// --col-hover:#{$col-dark};
+		--col-select:#{$col-blue};
+		// @extend %image-replacement;
+		--bg:url(./assets/icons/videocam_off-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/videocam-24px.svg);
+		}
+	}
+
+	label[for="button-spectrogram"]{
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-green};
+		--col-select:#{$col-orange};
+		--bg:url(./assets/icons/blur_off-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/blur_on-24px.svg);
+		}
+	}
+	// label[for="button-spectrogram"]{
+	// 	// --col-hover:$col-dark;
+	// 	--col-hover:#{$col-green};
+	// 	--col-select:#{$col-green};
+	// 	background-image:url(./assets/icons/piano-24px.svg);
+	// 	&.checked{
+	// 		background-image:url(./assets/icons/piano_off-24px.svg);
+	// 	}
+	// }
+
+	label[for="button-clear"]{
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+		// @extend %image-replacement;
+		// background-image:url(./assets/icons/movie_creation-24px.svg);
+		// background-image:url(./assets/icons/music_note-24px.svg);
+		--bg:url(./assets/icons/image_not_supported-24px.svg);
+		&.checked{
+			// background-image:url(./assets/icons/music_off-24px.svg);
+			--bg:url(./assets/icons/image-24px.svg);
+			// background-image:url(./assets/icons/music_note-24px-24px.svg);
+		}
+	}
+
+	label[for="button-transparent"]{
+
+		// only display between certain sizes?
+		display: none;
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+		// @extend %image-replacement;
+		// background-image:url(./assets/icons/movie_creation-24px.svg);
+		// background-image:url(./assets/icons/music_note-24px.svg);
+		--bg:url(./assets/icons/web_asset-24px.svg);
+		&.checked{
+			// background-image:url(./assets/icons/music_off-24px.svg);
+			--bg:url(./assets/icons/web_asset_off-24px.svg);
+			// background-image:url(./assets/icons/music_note-24px-24px.svg);
+		}
+	}
+}
+
+// button that covers people
+button.person{
+	
+	padding:0;
+	cursor:pointer;
+	position: absolute;	
+	z-index:202;
+	overflow: hidden;
+	border:2px solid $col-blue;
+	outline:2px solid $col-cream;
+	box-sizing: border-box;
+	border-radius: 3px;
+	// appearance: none;
+	//border:2px solid white;
+
+	text-shadow:none;
+	color:transparent;
+	opacity: 0;
+	transition: var(--ease-s) ease-in opacity;
+	//, left 9ms linear, top 9ms linear;
+
+	&:hover, &:focus{
+		background-color: transparent;
+		outline: none;
+	}
+
+	&:active{
+		opacity: 1;
+	}
+
+	&:hover{
+		opacity: 0.9;
+		background-color: transparent;
+	}
+
+	svg{
+		width: 100%;
+		//height:auto;
+		fill:orange;
+		stroke-width: 3px;
+		stroke:purple;
+		//transform: scaleX(-1);
+		pointer-events: none;
+		circle{
+			stroke:black;
+			fill:white;
+		}
+	}
+}
+
+	
+
+// move into position
+button#person-a{
+	left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
+	top:calc( 100% * var(--person-a-y,0) / var(--height,640) );
+	width:calc( 100% * var(--person-a-w,0) / var(--width,640) );
+	height:calc( 100% * var(--person-a-h,0) / var(--height,640) );
+}
+
+button#person-b{
+	outline-color:$col-green;
+	left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
+	top:calc( 100% * var(--person-b-y,0) / var(--height,640) );
+	width:calc( 100% * var(--person-b-w,0) / var(--width,640) );
+	height:calc( 100% * var(--person-b-h,0) / var(--height,640) );
+}
+
+// generic button style
+button#button-record,
+// button#button-video,
+button#button-midi,
+button.install-app,
+button.update-available{
+	// border-radius: var(--curve) var(--curve) var(--curve) 0;
+	transition:background-color var(--ease-q) linear, color 40ms linear;
+	overflow: hidden;
+}
+
+// override style
+button.person,
+button#button-video{
+	user-select: none;
+	// hide any copy
+	color:transparent;
+	text-shadow:none;
+	background-color: transparent;
+	
+	&:hover, &:active, &:focus{
+		color:transparent;
+		background-color: transparent;
+		text-shadow:none;
+		//border:5px solid $col-yellow;
+	}
+}
+
+button#button-video{
+	display: block;
+	position: absolute;//fixed;
+	bottom:0;
+	left:0;
+	// right:0;
+	width: 100%;
+	height:100%;
+	padding:0;
+	border:0;
+	
+	// just a little margin of error
+	// bottom:0rem;
+	// try and push to the back
+	z-index:-1;
+	
+	// prevent finger cursor
+	cursor: default;
+
+	max-width:none;
+	background: none;
+
+	&::before, &::after{
+		display:none;
+	}
+}
+
+// SHARED CONTROL PANEL
+button#button-midi{
+
+	//background-position: left 1px center;
+	// --icon-size:36px;
+	//background-color: $col-cream;
+	--bg:url(assets/logos/midi2.0.svg);
+	&:before{
+		// also make sure we have set the width for midi as is not square
+		//min-width: calc(var(--icon-size) * 1.2);
+	}
+}
+
+button#button-record{
+	//color:$col-red;
+	&.recording{
+
+	}
+}
+
+button#button-photograph{
+	--col-hover:#{$col-blue};
+	--bg:url(./assets/icons/add_a_photo-24px.svg);
+}
+
+// These need overrides for size
+button#button-trio{
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-green};
+	--bg:url(./assets/icons/person_add-24px.svg);
+	//display: none;
+}
+
+button#button-solo{
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-orange};
+	--bg:url(./assets/icons/person-24px.svg);
+	//display: none;
+	border-radius: 18px 18px 0 0;
+}
+button#button-duet{
+	
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-blue};
+	--bg:url(./assets/icons/people-24px.svg);
+	//display: none;
+	border-top:1px solid $col-white;
+	border-radius: 0 0 18px 18px;
+}
+button#button-metronome{
+	
+	// --bg:url(./assets/icons/person_add-24px.svg);
+}
+
+button#share{
+	--bg:url(./assets/icons/share-24px.svg);
+	margin-left: auto;
+}
+
+// an update is available to the app!
+button.install-app,
+button.update-available{
+	order:-1;
+	--bg:url(./assets/icons/get_app-24px.svg);
+	background-color: $col-orange;
+}
+
+button.install-app{
+	//--logo:url();
+	--overlap:0px;
+	--delay:0s;
+
+	// after a brief while hide this?
+	// animation: 
+	// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
+	// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+	
+
+	// &:hover, &:focus{
+	// 	--overlap:40px;
+	// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
+	// }
+	&.later{
+		animation: Hide-Install var(--ease-s) $easeOutBack var(--delay) 1 normal both;
+	}
+}
+
+button.update-available{
+	
+}
+
+
+label[for="select-camera"],
+#select-camera{
+	--col-hover:#{$col-green};
+}
+#select-camera{
+	z-index:-1;
+}
+label[for="select-camera"]:focus #select-camera{
+	z-index:909;
+}
+// generally hide the camera select button unless 
+// there are multiple cameras
+#camera{
+	display: none;
+}
+.multiple-cameras #camera{
+
+	display: flex;
+    // flex-direction: column-reverse;
+	//transition:width 40ms ease-out;
+	// display: grid;
+
+	// background-color:$col-blue;
+	// border-radius: 4px;
+	// &:focus-within,
+	// background-image:url(./assets/icons/switch_video-24px.svg);
+	--bg:url(./assets/icons/switch_video-24px.svg);
+	// overflow:hiddfooten;
+
+	&:before{
+		pointer-events: none;
+	}
+
+	&:hover,&:focus,&:target,
+	&:focus-visible{
+		// height:auto;
+		outline:none;
+		//width:calc(100% - 2 * var(--pad));
+	}
+	// label,select{
+	// 	grid-area:1/1/1/1;
+	// }
+	// label{
+	// 	// 
+	// 	pointer-events: none;
+	// 	white-space: pre;
+	// 	outline:none;
+	// 	opacity:0;
+	// 	transition:opacity 40ms ease-out;
+	// 	position: relative;
+	// }
+	// instead of the :before :)
+	select{
+
+		order:-1;
+		cursor:pointer;
+		border:0;
+		// width: var(--icon-size);
+		position:absolute;
+		top:0;
+		left:0;
+		min-width:100%;
+		// right:0;
+		bottom:0;
+
+		color:transparent;
+		background-color: transparent;
+		text-align: center;
+		optgroup{
+			appearance:none;
+			background-color: $col-yellow;
+			color: $col-dark;
+			font-weight:900;
+			
+			text-transform: uppercase;
+			padding:var(--pad);
+			margin:auto;
+		}
+
+		option{
+			padding:var(--pad);
+			color: $col-dark;
+			background-color: $col-cream;
+			cursor:pointer;
+			text-transform:initial;
+
+			&:hover, &:focus{
+				color:$col-cream;
+				background-color: $col-dark;
+			}
+
+		}
+	}
+}
+
+
+// Player selection screen
+#player-selector{
+	--top-gap:7vh;//clamp(1rem, 7vh, 5rem);
+	// prevents a button becoming an icon
+	--max-width-override:auto;
+	
+	text-align:center;
+	box-sizing: border-box;
+	visibility: hidden;
+	border-radius:18px;
+	border:1px solid $col-blue;
+	margin:auto;// solid transparent;
+	margin-top:var(--top-gap);
+	// margin:clamp(calc(var(--top-gap)),3vw,auto) auto;// solid transparent;
+	padding:var(--top-gap);// var(--pad);
+	// margin-top:calc(var(--top-gap));// solid transparent;
+	// margin-bottom:calc(var(--top-gap));// solid transparent;
+	display:flex;
+	flex-direction: column;
+	// place-content: center;
+	align-items:stretch;
+	justify-content: space-around;
+	// grid-gap:4px;
+	//min-height:calc( 100% - var(--top-gap) * 2);
+	max-width:60ch;
+	max-height:100%;
+	
+	button{
+		--icon-size: 44px;
+
+		
+		&:hover{
+			background-color:var(--col-hover);
+		}
+	}
+
+	button, label{
+		--dir-override:column;
+		--pos-override: top var(--pad) center;
+		//--pos-override: top center;
+		font-weight: 900;
+		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
+		border-radius:24px;
+		text-indent: 0;
+		overflow: visible;
+		color: black;
+		background-color: $col-yellow;
+		justify-content: center;
+		text-transform: uppercase;
+		max-height: auto;
+		// prevent growing the button 
+		// as this mis-aligns the icons
+		flex-grow:0;
+		flex-shrink:0;
+	}
+
+	// label[for="toggle-advanced-mode"],
+	label{
+		--col-hover:#{$col-green};
+		background:transparent;
+		color:$col-white;
+		margin-top:var(--pad);
+		align-self: center;
+
+		input{
+			margin-left:var(--pad);
+		}
+	}
+	
+	// animate out again?
+	&.completed{
+
+		button, label{
+			--xa:50%;
+			//animation-name: Shift, Fade;
+			animation-direction: normal, reverse;
+			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
+		}
+	}
+}
