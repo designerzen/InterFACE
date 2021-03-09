@@ -31,9 +31,12 @@ export const createKick = () => {
     const osc2 = audioContext.createOscillator()
     const gainOsc = audioContext.createGain()
     const gainOsc2 = audioContext.createGain()
+	const FREQUENCY_LO = 90
+	const FREQUENCY_HI = 50
 
     osc.type = "triangle"
     osc2.type = "sine"
+	
 
 	const kick = (velocity=1, length=0.05, attack=0.01, duration=0.5) => {
 
@@ -51,10 +54,10 @@ export const createKick = () => {
 		gainOsc2.gain.setValueAtTime(1, audioContext.currentTime)
 		gainOsc2.gain.exponentialRampToValueAtTime(ZERO, time + length)
 	
-		osc.frequency.setValueAtTime(120, audioContext.currentTime)
+		osc.frequency.setValueAtTime(FREQUENCY_LO, audioContext.currentTime)
 		osc.frequency.exponentialRampToValueAtTime(attack, time + length)
 	
-		osc2.frequency.setValueAtTime(50, audioContext.currentTime)
+		osc2.frequency.setValueAtTime(FREQUENCY_HI, audioContext.currentTime)
 		osc2.frequency.exponentialRampToValueAtTime(attack, time + length)
 		 
 		 try{
