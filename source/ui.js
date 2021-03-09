@@ -147,7 +147,7 @@ export const setupMIDIButton = (callback) => {
 	buttonMIDI.addEventListener('mousedown', onStartRequested, { once: true })
 	return {
 		setText:text=>buttonMIDI.innerHTML = text,
-		setLabel:text=>buttonMIDI.setProperty("aria-label",text)
+		setLabel:text=>buttonMIDI.setAttribute("aria-label",text)
 	}
 }
 
