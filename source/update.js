@@ -1,16 +1,16 @@
 
 const formatBytes = (bytes, decimals = 2) => {
-	const SIZES = ['Bytes', 'KB', 'MB', 'GB'];
+	const SIZES = ['Bytes', 'KB', 'MB', 'GB']
 	
 	if (bytes === 0)
 	{
-		return '0 '+SIZES[0];
+		return '0 '+SIZES[0]
 	} 
 	
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + SIZES[i];
+	const k = 1024
+	const dm = decimals < 0 ? 0 : decimals
+	const i = Math.floor(Math.log(bytes) / Math.log(k))
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + SIZES[i]
 }
 
 export const updater = async (sw='service-worker.js') => new Promise( (resolve,reject) => {
@@ -42,24 +42,24 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 		}
 
 		reg.onupdatefound = async () => {
-			const newWorker = reg.installing;
+			const newWorker = reg.installing
 			newWorker.onstatechange = async () => {
 				if (newWorker.state === 'installed') 
 				{
 					if (navigator.serviceWorker) 
 					{
-						const registeredWorker = await navigator.serviceWorker.getRegistration();
+						const registeredWorker = await navigator.serviceWorker.getRegistration()
 						if (registeredWorker && registeredWorker.waiting) 
 						{
 							// show update icon!
-							resolve(installUpdate);
+							resolve(installUpdate)
 						}
 					}else{
-						reject("No Service Worker");
+						reject("No Service Worker")
 					}
 				}else{
 					// not instaLLed
-					reject("Not Installed");
+					reject("Not Installed")
 				}
 			}
 		}
@@ -77,7 +77,7 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 		}
 
 	}else{
-		reject("Service Workers not allowed");
+		reject("Service Workers not allowed")
 	}
 })
 
