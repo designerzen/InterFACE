@@ -69,6 +69,7 @@ directories.forEach( directory => {
 				  unlink(location, err => {
 					  if (err) throw err
 				  })	
+				  // fs.rm(path, { recursive: true, force: true })
 			  }
 		  
 			}
