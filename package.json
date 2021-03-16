@@ -1,6 +1,6 @@
 {
 	"name": "musical-face",
-	"version": "0.41.0",
+	"version": "0.42.0",
 	"repository": "https://github.com/designerzen/InterFACE.git",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -52,7 +52,7 @@
 		"@parcel/transformer-inline-string": "2.0.0-beta.1",
 		"@parcel/transformer-pug": "2.0.0-beta.1",
 		"@parcel/transformer-sass": "2.0.0-beta.1",
-		"@parcel/transformer-webmanifest": "2.0.0-beta.1",
+		"@parcel/transformer-webmanifest": "^2.0.0-beta.1",
 		"gh-pages": "^3.1.0",
 		"parcel": "2.0.0-beta.1",
 		"postcss": "^8.2.1",
