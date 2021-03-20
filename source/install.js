@@ -1,7 +1,7 @@
 
-import { setFeedback, setToast, addTooltip } from './ui'
+import { setFeedback, setToast, addTooltip, formattedDate } from './ui'
 
-import { VERSION, DATE } from './version'
+import { VERSION } from './version'
 
 import manifestPath from "url:./manifest.webmanifest"
 // let manifestPath = "./manifest.webmanifest"
@@ -279,14 +279,11 @@ export const installer = async (defer=false) => {
 			// reveal update button?
 			const button = document.createElement('button')
 			button.classList.add("install-app")
-			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} V-${VERSION.replaceAll(".","-")}<br>Date:${(new Date(DATE)).getDate()}`  )
+			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} V-${VERSION.replaceAll(".","-")}<br>Date:${formattedDate}`  )
 			button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
-
-			button.innerHTML = "Install App"
+			button.innerHTML = "Install"
 			
 			addTooltip(button)
-
-			setToast("This App can be installed!<br> Click the orange button on the left")
 
 			// on button press...
 			button.addEventListener('click', async ()=>{
@@ -317,7 +314,7 @@ export const installer = async (defer=false) => {
     
 			destination.appendChild(button)
 
-			// console.log("Application is currently ", getInstalledStatus() ? "installed" : "not installed" )
+			console.log("Application is currently ", {button, destination}, getInstalledStatus() ? "installed" : "not installed" )
 			// console.log({manifestdata: manifestData})
 		
 			return true
