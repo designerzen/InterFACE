@@ -1,0 +1,33 @@
+
+
+// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/display-mode
+
+
+@media all and (display-mode: fullscreen) {
+
+    #displayMode::before {
+        content: "Fullscreen mode"
+    }
+}
+
+// Installed on machine... hide extra buttons?
+@media all and (display-mode: standalone) {
+
+    #displayMode::before {
+        content: "Standalone mode"
+    }
+}
+
+@media all and (display-mode: minimal-ui) {
+
+    #displayMode::before {
+        content: "Minimal-UI mode"
+    }
+}
+
+@media all and (display-mode: browser) {
+   
+    #displayMode::before {
+        content: "Browser mode"
+    }
+}
