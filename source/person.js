@@ -1,4 +1,5 @@
 // each person in the app has their own instrument and face
+import { getBarProgress } from './timing.js'
 import { DEFAULT_COLOURS } from './palette'
 import { active, playing, loadInstrument, randomInstrument, playTrack, getNoteName} from './audio'
 import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
@@ -13,7 +14,8 @@ import { clear,
 const MAX_TRACKS = 18
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
 export const NAMES = ['a','b','c'].map( m => `person-${m}` )
-				
+export const EYE_COLOURS = ['blue','green','brown','orange']
+
 export const DEFAULT_OPTIONS = {
 	...DEFAULT_COLOURS,
 
@@ -21,11 +23,23 @@ export const DEFAULT_OPTIONS = {
 	delayTime: 0.14,
 	delayLength: 10,
 
+	// if you want the axis to be switched
+	swapControls:false,
+
 	// mouse hold for
 	mouseHoldDuration:0.6,
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,
+
+	// to adjust the angle that the head has to roll...
+	// larger means less movement required
+	rollSensitivity:1.2,
+
+	// to adjust the amount of pitching (head rocking)
+	// depending on how complicated the piece is the octaves
+	// can also be shifted between a certain range...
+	pitchSensitivity:1,
 
 	// size of the mouth to signal activity
 	mouthCutOff:0.2,
@@ -417,13 +431,18 @@ export default class Person{
 		const yaw = prediction.yaw
 		
 		// Octave control by up and down head
-		const pitch = clamp(0.5 * (prediction.pitch + 1), 0,1)
+		const pitchRaw = clamp(0.5 * (prediction.pitch + 1) * this.options.pitchSensitivity, 0, 1)
 		// const pitch = (prediction.pitch + 1 ) / 2
 		
 		// -1 => +1 -> convert to 
 		// ignore < -0.5 and > 0.5
-		const roll = clamp((prediction.roll + 0.5) , 0, 1)
+		// we can exagerate a motion by amplyifying it's signal and clamping its output
+		const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
 		
+		// swap em arounnd!
+		const pitch = this.options.swapControls ? rollRaw : pitchRaw
+		const roll = this.options.swapControls ? pitchRaw : rollRaw
+
 		// Controls stereo pan
 		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 
@@ -445,8 +464,6 @@ export default class Person{
 		this.hue = roll * 360
 		this.saturation = 100 * lipPercentage
 
-
-		
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
@@ -486,23 +503,37 @@ export default class Person{
 			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
 			
 			// send out some MIDI yum yum noteName && 
-			if (this.hasMIDI)
 			// if (this.hasMIDI && !this.active)
+			if (this.hasMIDI)
 			{
 				// duration: 2000,
 				// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 				//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
 				const midiOptions = { 
 					channels:this.midiChannel,
-					attack:amp
+					attack:newVolume // amp
 				}
-				this.midi.playNote( noteName, midiOptions )
-				this.midiActive = true
-				
-				console.log(this.midi.playNote, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 
-			}else{
-				// add connect midi device note?
+				this.midi.playNote( noteName, midiOptions )
+				
+				if (this.midiActive)
+				{
+					this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+					// this.midi.setPitchBend( eyeDirection )
+				}else{
+					this.midiActive = true
+				}
+				
+				//console.log(t, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+		
+				// Use eye direction as a modifier for the sound
+				if (eyeDirection !== 0)
+				{
+					// Midi pitch bending with eyes!
+					// Pitch bending eyes!
+					// 
+					// this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+				}
 			}
 
 			this.singing = true
@@ -511,6 +542,7 @@ export default class Person{
 			
 		}else if ( amp > options.mouthSilence && amp < options.mouthCutOff ){
 
+			// dampen the sound to silence
 			// this.gainNode.gain.value = 0
 			//const destinationVolume  = 0 // logAmp
 			
@@ -526,21 +558,35 @@ export default class Person{
 			this.singing = false
 			this.isMouthOpen = false
 			// no instruments in memory yet... play silence?
-			if (this.hasMIDI)
-			{
-				this.midi.stopNote(noteName)
-				this.midiActive = false
-				console.log(this.midi, "MIDI noteOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
-			}
-
 		}
 
-		// Midi pitch bending with eyes!
-		if (this.hasMIDI && eyeDirection !== 0)
+		//&& this.midiActive If the user has stopped singing we need to stop the midi too!
+		if (this.hasMIDI)
 		{
-			this.midi.setPitchBend( eyeDirection )
-		}
+			this.midi.sendClock( )
+			this.midi.setSongPosition( getBarProgress() * 16383 )
+				
+			if (!this.singing)
+			{
+				this.midi.stopNote(noteName, {
+					// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
+					// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
+					release:0.2
+				})
 
+				// immediate mute, but doesn't block (sounds better)
+				this.midi.turnSoundOff()
+
+				// fade out but prevents new notes...
+				this.midi.turnNotesOff()
+				
+				// prevent flooding the off bus
+				this.midiActive = false
+
+				console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+			}		
+		}
+		
 
 // WebMidi.outputs[0].channels[1].stopNote("C3", {time: "+2500"});
 
@@ -552,11 +598,13 @@ export default class Person{
 
 // WebMidi.outputs[0].channels[8].setPitchBend(-0.25);
 
+
+// smooth this down
 		// try and smooth the volume if it is fading out...
 		// if ( this.gainNode.gain.value > newVolume)
 		// {
 		// 	// volume decrease fades
-			this.gainNode.gain.value = this.gainNode.gain.value + (newVolume - this.gainNode.gain.value) * options.volumeRate
+			//this.gainNode.gain.value = this.gainNode.gain.value + (newVolume - this.gainNode.gain.value) * options.volumeRate
 		
 		// }else{
 
@@ -566,6 +614,8 @@ export default class Person{
 		// }
 		// this.gainNode.gain.value = newVolume
 		//console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
+		
+		this.gainNode.gain.value = newVolume
 		
 		this.yaw = yaw
 		this.pitch = pitch
@@ -641,7 +691,7 @@ export default class Person{
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	//
+	// This pops up the user side bar and populates it accordingly
 	/////////////////////////////////////////////////////////////////////
 	showForm(){
 
@@ -660,7 +710,7 @@ export default class Person{
 			// send focus to form
 			this.controls.focus()
 		}
-		// this.controls.classList.toggle("showing",true)
+		this.controls.classList.toggle("showing",true)
 	}
 
 	/////////////////////////////////////////////////////////////////////
