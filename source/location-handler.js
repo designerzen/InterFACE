@@ -87,6 +87,13 @@ export const loadSoloMode = ()=> {
 	//window.location = url
 }
 
+export const getReferer = () => {
+	// save to url?
+	const ref = document.referrer
+	// check against our list
+	return ref
+}
+
 export const refresh = options => {
 	// save to url?
 	window.location.reload()
