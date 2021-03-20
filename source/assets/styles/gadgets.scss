@@ -40,6 +40,10 @@ button,
 	--col-top:$col-cream;
 	--col-bottom: $col-grey;
 	--direction:row;
+
+	--duration: var(--ease-q);
+	--delay-offset: var(--ease-q);
+					
 	
 	// inset
 	text-shadow: rgba($col-white,0.4) 0 0px 2px,
@@ -47,8 +51,14 @@ button,
 				rgba($col-cream,0.2) 0 1px 2px,
 				rgba($col-cream,0.1) 0 1.5px 2px;
 
-	border-radius:5px;
-	border-style: double ridge outset groove;
+	box-shadow: rgba($col-dark,0.4) 0 0px 2px,
+				rgba($col-dark,0.3) 0 0.5px 2px,
+				rgba($col-dark,0.2) 0 1px 2px,
+				rgba($col-dark,0.1) 0 1.5px 2px;
+
+	border:0;
+	border-radius:5px 5px 0 0;
+	border-style: solid;// outset groove;
 	cursor: pointer;
 
 	// from ios guidelines
@@ -75,7 +85,6 @@ button,
 	// max-width:calc(100% - 2 * var(--pad));
 	z-index:1;
 
-
 	// from horizontal to vertical stack using grid
 	// --breakpoint:300px;
   	// --gap: 20px;
@@ -96,14 +105,11 @@ button,
 	flex-direction: var( --dir-override, var(--direction, row));
 	// ensure a gap between row items...
 
-	// align-items: center;
-	// justify-content: center;
 	// flex-wrap: wrap;	
 	align-items: center;
 	justify-content: space-between;
-	//justify-content: center;
 
-	background-color:$col-cream;
+	background-color:$col-tan;
 
 	background-image: var(--bg),
 					  url(./assets/textures/45-degree-fabric-light.png);
@@ -128,7 +134,7 @@ button,
 	//animation-name:unset;	// start unset
 	animation-fill-mode: both, both;
 	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
-	
+	animation-direction: normal, normal;
 	transition:transform var(--fade-speed) $easeOutBack,
 				background-color var(--fade-speed) linear, 
 				color var(--fade-speed) linear;
@@ -166,7 +172,6 @@ button,
 
 	}
 	
-
 	&:hover, &:focus{
 
 		&:before{
@@ -175,7 +180,6 @@ button,
 		}
 	}
 	
-	
 	&:active{
 		background-color: $col-orange;
 	}
@@ -183,7 +187,12 @@ button,
 	&:focus{
 		outline:3px solid $col-blue;
 		outline-offset: 1px;
-		z-index:808;
+		z-index:808;	
+
+		// pop to front
+		select{
+			z-index:909;
+		}
 	}
 
 	&.hide{
@@ -303,6 +312,7 @@ button,
 	visibility:hidden;
 	align-items: stretch;
 	justify-content: stretch;
+	pointer-events: auto;
 	
 	background-image: 	url(./assets/textures/bedge-grunge.png),
 						linear-gradient( $col-cream, $col-grey );
@@ -324,24 +334,33 @@ button,
 	// we swap this to absolute when we want to window it
 	position: fixed;
 
+	// sometimes the label takes focus making interaction difficult
 	label{
+		pointer-events: none;
+		position: relative;
 
-		// background-color:$col-yellow;
-		// base plane shows funky
-		
-		input{
-			opacity:0;
-			height: 0;
-			width: 0;
-			overflow: hidden;
-			position: absolute;
+		// stertch them out 
+		select, input{
+			pointer-events: auto;
+			cursor:pointer;
+			border:0;
+			// width: var(--icon-size);
+			position:absolute;
 			top:0;
-			left:0;
-		}	
-	
+			bottom:0;
+			min-width:100%;
+			right:0;
+			// left:0;
+			z-index:1;
+			order:-1;
+			appearance:none;
+			opacity:0;
+			overflow: hidden;
+		}
+
+
 		// Indicator
 		&:after{
-			
 			background-color: var(--col-select, $col-orange);
 			opacity:0.5;
 			content:'';
@@ -353,7 +372,7 @@ button,
 			height:8px;
 			transform-origin: center bottom;
 			transform:translateY(100%);
-			transition:opacity var(--ease-s) linear,
+			transition:opacity var(--ease-m) linear,
 						transform var(--ease-s) $easeOutBack;
 		}
 
@@ -380,21 +399,21 @@ button,
 		pointer-events: none;
 		border:0;
 		visibility: hidden;
+
 		&:focus{
 			color:$col-white;
 			visibility: visible;
 		}
 	}
 
-	label,button{
+	label, button{
 		
 		// labels can collapse without text to expand them
 		text-transform: uppercase;
 	
 		//border-left:0;
-		
-		border-top:1px groove $col-white;
-		border-bottom:1px groove $col-dark;
+		border-top:1px solid $col-white;
+		border-bottom:1px solid $col-blue;
 		
 		font-weight:900;
 		// color:var(--col-regular);
@@ -406,6 +425,12 @@ button,
 			transform: scale(0.96);
 			//background-color: var(--col-select);
 		}
+
+		&:focus{
+			outline:2px solid $col-blue;
+			outline-offset: -3px;
+		}
+
 		&.checked,
 		&.checked:hover,
 		&:hover, &:focus{
@@ -419,25 +444,49 @@ button,
 			//background-color: var(--col-regular);
 			// background-color: $col-dark;
 		}
+	}
+
+	select{
+		padding:var(--pad) ;
+		color:transparent;
+		background-color: transparent;
+		text-align: center;
+
+		optgroup{
+			appearance:none;
+			background-color: $col-yellow;
+			color: $col-dark;
+			font-weight:900;
+			text-transform: uppercase;
+			padding:var(--pad);
+			margin:auto;
+		}
+
+		option{
+			padding:var(--pad);
+			color: $col-dark;
+			background-color: $col-cream;
+			text-transform:initial;
+
+			&:hover, &:focus{
+				color:$col-cream;
+				background-color: $col-dark;
+			}
+
+		}
+	}
 	
-	}
-
-	label:not(:last-child),button:not(:last-child){
-		border-right:1px groove $col-dark;
-	}
-	
-	> * + *{
-		border-left:1px groove $col-white;
-		
-	}
-		
-
-	button{
-
-		
+	button{	
 		// padding-right:20px;
+	}
+
+	// > * + *{
+	// 	border-left:1px groove $col-white;
+	// }
 	
-	
+	label:not(:last-child),
+	button:not(:last-child){
+		border-right:1px solid $col-dark;
 	}
 
 	// Labels
@@ -514,9 +563,6 @@ button,
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		// @extend %image-replacement;
-		// background-image:url(./assets/icons/movie_creation-24px.svg);
-		// background-image:url(./assets/icons/music_note-24px.svg);
 		--bg:url(./assets/icons/image_not_supported-24px.svg);
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
@@ -526,21 +572,29 @@ button,
 	}
 
 	label[for="button-transparent"]{
-
 		// only display between certain sizes?
 		display: none;
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		// @extend %image-replacement;
-		// background-image:url(./assets/icons/movie_creation-24px.svg);
-		// background-image:url(./assets/icons/music_note-24px.svg);
 		--bg:url(./assets/icons/web_asset-24px.svg);
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
 			--bg:url(./assets/icons/web_asset_off-24px.svg);
 			// background-image:url(./assets/icons/music_note-24px-24px.svg);
 		}
+	}
+
+	// selector for the tempo
+	label[for="select-tempo"]{
+		--bg:url(./assets/icons/speed-24px.svg);
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+	}
+
+	label[for="input-tempo"]{
+		--bg:url(./assets/icons/speed-24px.svg);
+		--col-select:#{$col-yellow};
 	}
 }
 
@@ -626,6 +680,8 @@ button.update-available{
 // override style
 button.person,
 button#button-video{
+	// forces the cursor to work inside
+	pointer-events: auto;
 	user-select: none;
 	// hide any copy
 	color:transparent;
@@ -766,17 +822,13 @@ label[for="select-camera"],
 #select-camera{
 	--col-hover:#{$col-green};
 }
-#select-camera{
-	z-index:-1;
-}
-label[for="select-camera"]:focus #select-camera{
-	z-index:909;
-}
+
 // generally hide the camera select button unless 
 // there are multiple cameras
 #camera{
 	display: none;
 }
+
 .multiple-cameras #camera{
 
 	display: flex;
@@ -814,47 +866,7 @@ label[for="select-camera"]:focus #select-camera{
 	// 	position: relative;
 	// }
 	// instead of the :before :)
-	select{
-
-		order:-1;
-		cursor:pointer;
-		border:0;
-		// width: var(--icon-size);
-		position:absolute;
-		top:0;
-		left:0;
-		min-width:100%;
-		// right:0;
-		bottom:0;
-
-		color:transparent;
-		background-color: transparent;
-		text-align: center;
-		optgroup{
-			appearance:none;
-			background-color: $col-yellow;
-			color: $col-dark;
-			font-weight:900;
-			
-			text-transform: uppercase;
-			padding:var(--pad);
-			margin:auto;
-		}
-
-		option{
-			padding:var(--pad);
-			color: $col-dark;
-			background-color: $col-cream;
-			cursor:pointer;
-			text-transform:initial;
-
-			&:hover, &:focus{
-				color:$col-cream;
-				background-color: $col-dark;
-			}
-
-		}
-	}
+	
 }
 
 
@@ -868,7 +880,7 @@ label[for="select-camera"]:focus #select-camera{
 	box-sizing: border-box;
 	visibility: hidden;
 	border-radius:18px;
-	border:1px solid $col-blue;
+	border:2px solid $col-blue;
 	margin:auto;// solid transparent;
 	margin-top:var(--top-gap);
 	// margin:clamp(calc(var(--top-gap)),3vw,auto) auto;// solid transparent;
@@ -888,10 +900,13 @@ label[for="select-camera"]:focus #select-camera{
 	button{
 		--icon-size: 44px;
 
-		
 		&:hover{
 			background-color:var(--col-hover);
 		}
+	}
+
+	button + button { 
+		margin-top:var(--pad);
 	}
 
 	button, label{
@@ -901,13 +916,15 @@ label[for="select-camera"]:focus #select-camera{
 		font-weight: 900;
 		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
 		border-radius:24px;
+		border-style: outset;
+
 		text-indent: 0;
 		overflow: visible;
 		color: black;
 		background-color: $col-yellow;
 		justify-content: center;
 		text-transform: uppercase;
-		max-height: auto;
+		max-height: unset;
 		// prevent growing the button 
 		// as this mis-aligns the icons
 		flex-grow:0;
