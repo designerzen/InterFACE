@@ -1,4 +1,4 @@
-- var URL = "https://designerzen.github.io/MusicalFace"
+- var URL = "https://interface.place"
 doctype html
 html(lang="en-GB" dir="ltr").loading
 	head
@@ -122,44 +122,69 @@ html(lang="en-GB" dir="ltr").loading
 
 						legend Shared controls that apply to all faces
 
-						label#camera( aria-label="Select a different camera" for="select-camera") Camera
-							select#select-camera
+						label#camera(for="select-camera") Camera
+							select(aria-label="Select a different camera")#select-camera
 							
-						button#button-record.hide( aria-label="Record a loop or two" ) Record Loop
-
-						label(for="button-metronome" aria-label="Play a metronome to help you keep time") Metronome
-							input(type="checkbox")#button-metronome
-
-						label(for="button-quantise" aria-label="Ensure that the notes are played at regular intervals") Quantise
-							input(type="checkbox")#button-quantise
-
-						label(for="button-transparent" aria-label="Synch video to movements") Synch
-							input(type="checkbox")#button-transparent
-						
-						label(for="button-clear" aria-label="Clear visuals") Clear
-							input(type="checkbox")#button-clear
+						label(for="button-metronome") Metronome
+							input(type="checkbox" aria-label="Play a metronome to help you keep time")#button-metronome
 					
-						button#button-photograph( aria-label="Take a photograph" ) Photograph
-						
-						label(for="button-spectrogram" aria-label="Show a funky bar chart of frequencies") Spectrogram
-							input(type="checkbox")#button-spectrogram
-						
-						label.hide-text(for="button-fullscreen" aria-label="Toggle full screen mode" ) Fullscreen toggle
-							input(type="checkbox")#button-fullscreen
-						
-						label(for="button-overlay" aria-label="Toggle augmented reality mode" ) Overlay
-							input(type="checkbox")#button-overlay
-							
-						button#button-midi( aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
+						label(for="button-quantise") Quantise
+							input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
+
+						button#button-record.hide(aria-label="Record a loop or two" ) Record Loop
+	
+						button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 						//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+					
+		
+						label(for="button-transparent") Synch
+							input(type="checkbox" aria-label="Synch video to movements")#button-transparent
+						
+						label(for="button-clear") Clear
+							input(type="checkbox" aria-label="Clear visuals")#button-clear
+					
+						button#button-photograph( aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
+						
+						label(for="button-spectrogram") U.V.<span class="hide-text"> Spectrogram</span>
+							input(type="checkbox" aria-label="Show a funky bar chart of frequencies")#button-spectrogram
+						
+						
+						label(for="button-overlay" ) Overlay
+							input(type="checkbox" aria-label="Toggle augmented reality mode")#button-overlay
 						
 						//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
 						
 						//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 						
+						label.hide-text(for="button-fullscreen") Toggle Fullscreen
+							input(type="checkbox"  aria-label="Toggle full screen mode")#button-fullscreen
+						
 						button#share.hide-text( aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
-							
-						button#button-video Swap instruments for all people
+					
+						//- label(for="input-tempo" aria-label="Set the tempo" ) Tempo
+						//- 	input(type="number" value="1")#input-tempo
+						//- 	input(type="button")#input-tempo-increase
+						//- 	input(type="button")#input-tempo-decrease
+						
+						label(for="select-tempo") <span class="hide-text">Set </span>Tempo
+							select#select-tempo(aria-label="Choose a tempo from the list")
+								option 45 BPM
+								option 60 BPM
+								option 75 BPM
+								option 85 BPM
+								option 90 BPM
+								option 100 BPM
+								option 110 BPM
+								option 120 BPM
+								option 130 BPM
+								option 140 BPM
+								option 150 BPM
+								option 200 BPM
+								option 300 BPM
+								option 400 BPM
+								option 500 BPM
+					
+					button#button-video Swap instruments for all people
 
 					result#photographs
 				
@@ -181,7 +206,7 @@ html(lang="en-GB" dir="ltr").loading
 					include ./assets/logos/tensorflow-tf.svg
 				li: a(href="https://drakemusic.org/") Drake Music
 					include ./assets/logos/drakemusic.svg
-				li: a(href="https://audienceofthefuture.live/") Audience of the Future
+				li: a(href="https://audienceofthefuture.live/interface/") Audience of the Future
 					include ./assets/logos/aotf.svg
 				li: a(href="https://www.sxsw.com/") SXSW
 					//- include ./assets/logos/sxsw2021.svg
@@ -198,10 +223,10 @@ html(lang="en-GB" dir="ltr").loading
 			p This application requires javascript to work unfortunately and doesn't do much without it
 
 		//- Global site tag (gtag.js) - Google Analytics
-		//- script( async src="https://www.googletagmanager.com/gtag/js?id=G-1XT0GV0L6J")
-		//- script.
-		//- 	window.dataLayer = window.dataLayer || [];  
-		//- 	function gtag(){dataLayer.push(arguments);}  
-		//- 	gtag('js', new Date());  
-		//- 	gtag('config', 'G-1XT0GV0L6J');
+		script( async src="https://www.googletagmanager.com/gtag/js?id=G-1XT0GV0L6J")
+		script.
+			window.dataLayer = window.dataLayer || [];  
+			function gtag(){dataLayer.push(arguments);}  
+			gtag('js', new Date());  
+			gtag('config', 'G-1XT0GV0L6J');
 		
