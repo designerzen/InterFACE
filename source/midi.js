@@ -21,6 +21,14 @@ let mpeEnabled = false
 //     )
 //   })
 // })
+export const testForMIDI = () => {
+	// check for all potential failure casess...
+	if (navigator.requestMIDIAccess === undefined)
+	{
+		return false
+	}
+	return true
+}
 
 export const setupMIDI = (connectedCallback, disconnectedCallback) => new Promise ( (resolve,reject) => {
 	
