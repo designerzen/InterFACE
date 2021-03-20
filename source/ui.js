@@ -4,6 +4,16 @@ import {debounce} from './utils'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink,loadSoloMode,loadDuetMode} from './location-handler'
 
+
+const releaseDate = new Date(DATE)
+const dateOptions = {
+	hour12 : true,
+	hour:  "numeric",
+	minute:  "numeric",
+ }
+export const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+1}/${releaseDate.getFullYear()} ${ releaseDate.toLocaleTimeString("en-GB",dateOptions) }`
+
+
 const doc = document
 
 export const progressBar = doc.querySelector('progress')
@@ -74,7 +84,11 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 	} : null
 }
 
-
+export const toggleVisibility = element => {
+	const isVisisble = element.style.visibility !== "hidden"
+	element.style.visibility = !isVisisble ? "visible" : "hidden"
+	return !isVisisble
+}
 export const video = doc.querySelector("video")
 export const isVideoVisible = () => video.style.visibility === "hidden" 
 export const toggleVideoVisiblity = value => {
@@ -127,14 +141,18 @@ export const setupInstrumentForm = callback => {
 	// populate ui	
 	const uiOptions = INSTRUMENT_FOLDERS.map( (folder, index) => `<label for="${folder}">${INSTRUMENT_NAMES[index]}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label>` ) 
 	
+	uiOptions.unshift("<legend>Select an instrument</legend>")
+
 	// bind mouse events too???
 
 	// const uiOptions = INSTRUMENT_FOLDERS.map( folder => `<option value="${folder}">${folder}</option>` ) 
 	return `${uiOptions.join('')}`
 }
 
+////////////////////////////////////////////////////////////////////
 // a simple midi buttnon with states
 // just set the state with the return
+////////////////////////////////////////////////////////////////////
 export const setupMIDIButton = (callback) => {
 	let midiEnabled = false
 	const onStartRequested = async (event) => {
@@ -151,7 +169,7 @@ export const setupMIDIButton = (callback) => {
 	}
 }
 
-export const addTooltip = button =>  button.addEventListener("mouseover", event => {
+export const addTooltip = element =>  element.addEventListener("mouseover", event => {
 	const toolTip = event.target.getAttribute("aria-label") || event.target.innerHTML
 	setToast(toolTip)
 })
@@ -165,7 +183,9 @@ export const setButton = (buttonName, callback ) => {
 	return element
 }
 
+////////////////////////////////////////////////////////////////////
 // this allows checkbox use where the variable is changed
+////////////////////////////////////////////////////////////////////
 export const setToggle = (toggleName, callback, value ) => {
 	
 	const element = setButton( toggleName, ()=>{
@@ -191,6 +211,26 @@ export const showReloadButton = () => {
 
 }
 
+export const updateTempo = tempo =>{
+	const b = doc.getElementById('input-tempo')
+	if (b)
+	{
+		b.setAttribute("value", tempo)
+	}
+	console.log("Setting tempo", tempo)
+}
+
+// console.error(tempo)
+export const connectTempoControls = (callback) => {
+	const select = doc.getElementById('select-tempo')
+	select.addEventListener( 'change', event=>{
+		const selection = select.options.selectedIndex
+		const option = select.childNodes[selection]
+		const tempo = parseInt( option.innerHTML )
+		updateTempo(tempo)
+		callback && callback (tempo)
+	})
+}
 
 export const showUpdateButton = (action) => {
 	// reveal update button?
@@ -205,7 +245,10 @@ export const showUpdateButton = (action) => {
 	controls.appendChild(button)
 }
 
-export const addToolTips = (query="button, label") => {
+////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////
+export const addToolTips = (query="button, select, input") => {
 	
 	// do a query here to catch all buttons?
 	const buttons = controls.querySelectorAll(query)
@@ -221,8 +264,10 @@ export const addToolTips = (query="button, label") => {
 	buttons.forEach( button => addTooltip(button) )
 }
 
+////////////////////////////////////////////////////////////////////
 // This is the 2nd screen, just after loading
 // returns a true or false for if the user hit duet
+////////////////////////////////////////////////////////////////////
 export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 
 	const CSS_CLASS = "player-selection"
@@ -257,14 +302,15 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 		// NB. This is not superflous as the camera
 		// takes a broze age to load into memory
 		panel.classList.add("completed")
-		doc.documentElement.classList.toggle(CSS_CLASS, false)
+		doc.documentElement.classList.toggle(CSS_CLASS, true)
 			
 		// wait for animation to complete
 		setTimeout( ()=> {
-			console.log({advancedMode})
+			//console.log({advancedMode})
+			doc.documentElement.classList.toggle('advanced', advancedMode)
 			doc.documentElement.classList.toggle(CSS_CLASS, false)
 			panel.classList.remove("completed")
-		}, 450 )
+		}, 45 )
 		
 		resolve(result > 1)
 	}
@@ -330,16 +376,9 @@ export const setupInterface = ( options ) => {
 	// title.innerHTML = "The InterFACE is ready, open your mouth to begin"
 	// Show the release date on the UI somewhere...
 	
-	const releaseDate = new Date(DATE)
-	const dateOptions = {
-		hour12 : true,
-		hour:  "numeric",
-		minute:  "numeric",
-	 }
- 
+
 	const versionElement = doc.getElementById("version")
 	const currentVersion = versionElement.innerHTML
-	const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+1}/${releaseDate.getFullYear()} ${ releaseDate.toLocaleTimeString("en-GB",dateOptions) }`
 	versionElement.innerHTML = `${currentVersion} <span id="release">${formattedDate}</span>`
 	
 	// console.log(`InterFACE ${currentVersion} build date : ${formattedDate} `, {DATE, releaseDate})
@@ -352,8 +391,14 @@ export const setupInterface = ( options ) => {
 		// removes the ?
         //window.history.back()
 	}, true)
+
+	connectTempoControls()
 }
 
+////////////////////////////////////////////////////////////////////
+// For accessibility, once the app has loaded we try and put the
+// user in the right place so that they can begin
+////////////////////////////////////////////////////////////////////
 export const focusApp = ()=>{ 
-	controls
+	
 }
