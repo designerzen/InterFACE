@@ -11,10 +11,14 @@ export const MAX_BARS_ALLOWED = 32
 
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
+
+// NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
+//      FF does not allow raf so use setimeout is preffered
+
 // Load in the correct worker...timing.requestframe.worker.js
 // const timingWorker = new Worker("data-url:./timing.setinterval.worker.js") 
-// const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
-const timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
+const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
+//const timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
 // const timingWorker = new Worker(new URL('data-url:./timing.requestframe.worker.js', import.meta.url))
 
 let startTime = -1
@@ -30,6 +34,7 @@ let barsElapsed = 0
 // time sig
 export const timePerBar = () => 2403 / bars
 export const getBar = () => bar
+export const getBarProgress = () => bar / bars
 
 export const getBPM = () => 60000 / timePerBar()
 export const getBars = () => bars 
@@ -54,17 +59,28 @@ const elapsed = () => (now() - startTime) * 0.001
 //     }
 // }
 
-export const setTimeBetween = time => {
-    currentInterval = time
+export const setBPM = bpm => {
+    // determine the interval from the BPM
+    currentInterval =  60000 / bpm
     // if it is running, stop and restart it?
-     //interval = newInterval
+    //interval = newInterval
     // TODO
     // FIXME
     timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
     return currentInterval
 }
 
-export const start = (callback, timeBetween=200, options={} ) => {
+export const setTimeBetween = time => {
+    currentInterval = time
+    // if it is running, stop and restart it?
+    //interval = newInterval
+    // TODO
+    // FIXME
+    timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
+    return currentInterval
+}
+
+export const startTimer = (callback, timeBetween=200, options={} ) => {
 
     barsElapsed = 0
 
@@ -154,7 +170,7 @@ export const start = (callback, timeBetween=200, options={} ) => {
 }
 
 
-export const stop = () => {
+export const stopTimer = () => {
     const currentTime = now()
     // cancel the thing thrugh the workers first
     // cancel any scheduled quie noises
@@ -176,4 +192,40 @@ export const stop = () => {
         currentTime:now(),
         timingWorker
     }
+}
+
+
+
+
+// TODO: Implement lienar regression like nayuki
+// https://www.nayuki.io/page/tap-to-measure-tempo-javascript
+let beatTimes = []
+const TAP_TIMEOUT = 10000
+
+// requires at least two taps
+export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT) => {
+    
+    const now = Date.now()
+
+    if ( autoReset && beatTimes.length > 0 && now - beatTimes[beatTimes.length-1] > timeOut )
+    {
+        beatTimes = []
+    }
+
+    // Add beat
+    beatTimes.push(now)
+
+    const quantity = beatTimes.length
+    const x = quantity - 1
+    const y = beatTimes[x] - beatTimes[0]
+    // const time = (y / 1000).toFixed(3)
+   
+    if (quantity >= 2) 
+    {
+        // period
+        // const tempo = 60000 * x / y
+        const period = y / x
+        return period
+    }
+    return -1
 }
