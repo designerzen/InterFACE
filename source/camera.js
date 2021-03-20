@@ -58,7 +58,10 @@ export const setupCamera = async (video, deviceId ) => {
 			
 		}
 
-		video.onerror = event => reject(stream)
+		video.onerror = event => {
+			console.error("VIDEO:Error", event)
+			reject(stream)
+		}
 		
 		const videoConstraints = {}
 		if (deviceId) {
@@ -76,10 +79,10 @@ export const setupCamera = async (video, deviceId ) => {
 			// hope and preay that this is the right camera...
 			stream = await navigator.mediaDevices.getUserMedia( constraints )
 			
-		video.srcObject = stream
+			video.srcObject = stream
 			
 		}catch(error){
-// console.error("stream",{constraints,stream,video})
+			// console.error("stream",{constraints,stream,video})
 	
 			reject(error)
 		}
