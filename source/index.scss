@@ -89,6 +89,8 @@ html{
 
 	// hide all cruft and hide scrollbars too
 	overflow:hidden;
+	// saves on memory as it crops it too
+	overflow: clip;
 
 	// light
 	&.loading{
@@ -116,6 +118,10 @@ h1 strong,h2,h3,h4,h5,h6{
 	font-weight: 800;
 }
 
+em{
+	font-weight: 900;
+}
+
 h1{
 	font-weight: 200;
 }
@@ -141,6 +147,7 @@ a{
 
 img,
 svg{
+	width:100%;
 	max-width:100%;
 	height:auto;
 }
@@ -155,25 +162,25 @@ svg{
 	left:0;
 	//overflow: hidden;
 	// above feedback
-	bottom:5rem;
+	bottom:var(--footer-gap);
 
 	display: grid;
 	text-align: center;
 	justify-content: center;
+
 	> * {
 		grid-area: 1/1/1/1;
 	}
+	
 	h1{
-		background-color: $col-dark;
+		//background-color: $col-dark;
 		color: $col-grey;
-		
-		strong{
-			color:$col-blue;
-		}
+		order:-1;
+	
 		display: inline-block;
 		padding:var(--pad) calc(var(--pad) * 2);
 		text-transform: uppercase;
-		align-self: self-start;
+		
 		justify-self: center;
 		margin-top:var(--pad);
 		transition:color var(--ease-s) ease-out;
@@ -185,19 +192,24 @@ svg{
 					rgba(0,0,0,0.56) 0 2px 4px,
 					rgba(0,0,0,0.56)0 3px 4px,
 					rgba(255,255,255,0.96) 0 0 4px;
+						
+		strong{
+			color:$col-blue;
+		}
 	}
 	
 	h2{
-
 		text-shadow: rgba(white,0.96) 0 1px 4px,
 					rgba(white,0.7) 0 2px 4px,
 					rgba(white,0.5) 0 3px 4px,
 					rgba($col-cream,0.56) 0 0 4px;
-		
-	}
-	h2{
 		color: $col-yellow;
-		margin-top:auto;
+		// margin-top:auto;
+		// margin-left:auto;
+		// margin-right:auto;
+		margin:auto;
+		margin-bottom:0;
+		padding:var(--pad);
 	}
 		
 	p,
@@ -210,8 +222,20 @@ svg{
 		// align-self:flex-end;//  flex-start;
 		z-index: -2;
 		align-self: center;
-		animation:TextColours 4s linear infinite 0s both;
+		text-indent: -99999rem;
 	}
+	
+	@media (orientation: portrait) {
+		display: flex;
+		flex-direction: column;
+
+		h2{
+			max-width:12ch;
+			text-align: center;
+			
+		}
+	}
+
 }
 
 .logo, h1, h2{
@@ -226,11 +250,7 @@ svg{
 	margin-right:auto;
 	display: flex;
 	flex-direction: column;
-
-	// we can transition fill :)
-	fill:currentColor;
-	transition:fill var(--ease-m) linear;
-
+	
 	width:100%;
 	min-height:10vh;
 	max-height:90vmin;
@@ -242,6 +262,10 @@ svg{
 
 	svg{
 		order: -1;
+		color:inherit;
+		fill:currentColor;
+		// we can transition fill :)
+		transition:fill var(--ease-m) linear;
 	}
 
 	// background:url(./assets/logos/interface.svg) no-repeat left;
@@ -301,6 +325,8 @@ select{
 video,canvas{
 	max-width:100%;
 	visibility: hidden;
+	// nothing to click
+	pointer-events: none;
 }
 // funky text animations
 .loading strong,
@@ -365,7 +391,7 @@ p strong{
 // Hide controls on mouse out on hover devices
 @media (any-hover: hover) {
 	//@supports (html:focus-within){
-	.loaded{
+	.loaded:not(.debug){
 		#toast{
 			transition:transform var(--ease-q) calc(var(--ease-s) + var(--ease-s));//0s $easeOutBack;
 			transform:translateY(150%);
@@ -409,14 +435,11 @@ p strong{
 			 #photographs{
 				opacity:1;	
 				transition-duration: var(--ease-q);
+				
 				> *{
-					--duration: var(--ease-q);
-					--delay-offset: var(--ease-q);
-					animation-name:Fade;
-					animation-direction: normal;
-					animation-duration:var(--ease-q);
-					// animation-delay:inherit;
+					//animation-name:BGColours, Fade;
 				}
+
 				//visibility: visible;
 				//animation: Fade var(--ease-q) linear 0s both;
 			}
@@ -506,7 +529,12 @@ html.loading {
 			height:100%;
 			background-position: center;
 			z-index:-1;
-			animation:TextColours 4s linear infinite 0s both;
+			align-self: center;
+			
+			svg{
+				animation:TextColours 4s linear infinite 0s both;
+			
+			}
 		}
 		h1{
 			//background-color: black;
@@ -539,6 +567,14 @@ html.loading {
 	}
 }
 
+// form seems to want focus all the time
+form > fieldset,
+form{
+	pointer-events: none;
+}
+form > fieldset > *{
+	pointer-events: auto;
+}
 // STATE - Choose players
 // This is the how many people are playing mode
 .player-selection{
@@ -570,13 +606,7 @@ html.loading {
 		visibility: hidden;
 		pointer-events: auto;
 	}	
-	form > fieldset,
-	form{
-		pointer-events: none;
-	}
-	form > fieldset > *{
-		pointer-events: auto;
-	}
+
 	#player-selector{
 		visibility: visible;
 	}
@@ -594,6 +624,10 @@ html.loading {
 	fieldset > *{
 		--xa:-50%;
 		animation-name:Fade, Shift;
+		animation-duration: var(--ease-s),var(--ease-s);
+		animation-fill-mode: both, both;
+		animation-delay: var(--delay,0), var(--delay,0);
+		// animation-direction: f;
 	}
 
 	#controls{
@@ -652,7 +686,10 @@ html.loading {
 			display:block;
 			opacity:0;
 		}
-		p{visibility: hidden;}
+		h2,
+		p{
+			visibility: hidden;
+		}
 	}
 
 	#shared-controls{
@@ -807,38 +844,6 @@ html.debug{
 }
 
 
-
-.no-midi {
-	#button-midi{
-		display: none;
-	}
-}
-
-.midi {
-	#button-midi{
-		
-	}
-}
-
-// MIDI is available buyt there are no instruments connected
-.midi.no-instrument {
-	#button-midi{
-		
-	}
-}
-
-.midi-no-devices{
-	#button-midi{
-		animation:BGColours 4s linear infinite 0s both;
-	}
-}
-
-.mini-connected{
-	#midi-device{
-		display:inline-block;
-	}
-}
-
 // If the user has de-selected 'advanced' mode, we hide some buttons that
 // will just confuse them...
 .beginner{
@@ -850,7 +855,6 @@ html.debug{
 	}
 }
 
-
 p{
 	color:$col-white;
 	pointer-events: none;
@@ -861,6 +865,7 @@ p{
 	// emboss
 }
 
+// Feedback text that pops up and dissappears
 #toast{
 	position: absolute;
 	right:calc(var(--pad) + 2px);
@@ -874,11 +879,9 @@ p{
 	&:empty{
 		display:none;
 	}
-
-
 }
 
-
+// Feedback text on screen all the time
 #feedback{
 	box-sizing: border-box;
 	position: fixed;
@@ -913,6 +916,7 @@ p{
 		display: none;
 	}
 }
+
 
 #feedback:hover ~ canvas{
 	opacity:0.5;
@@ -962,7 +966,7 @@ p{
 .brand{
 	background:url(./assets/logos/designerzen.svg) no-repeat left 2px center;
 	background-size: contain;
-	padding-left:15px;
+	padding-left:17px;
 }
 
 #photographs{
@@ -975,6 +979,7 @@ p{
 	overflow-y: hidden;
 	// a bit of space to zomom
 	padding-top:30px;
+	pointer-events: all;
 			
 	&:focus-within {
 		// prefer smooth scrolling where available (opinionated).
@@ -1004,8 +1009,9 @@ p{
 		&:hover, &:focus{
 			z-index:2;
 			transform-origin: bottom center;
-			transform:scale(1.2);			
+			transform:scale(1.1);			
 			background-color: $col-dark;
+			outline:1px solid $col-orange;
 			&::before{
 				opacity: 1;
 			}
@@ -1073,7 +1079,6 @@ fieldset:empty{
 	animation:Fade var(--ease-s) ease-in 1 0s reverse both;
 }
 
-
 label{
 	--padding:calc( 1 * var(--pad));
 	//outline: 1px groove $col-cream;
@@ -1088,8 +1093,6 @@ label{
 		background-color: $col-blue;
 		outline:none;
 	}
-
-
 }
 
 
@@ -1123,7 +1126,6 @@ label{
 			pointer-events: none;
 		}
 	}
-	
 }
 
 // Could not load due to privacy restrictoin or user uninteraction
@@ -1159,21 +1161,15 @@ fieldset > *{
 
 		&:nth-child(#{$i}){
 			// delay is the amount of time to wait before reveal
-			animation-delay:calc( #{$i - 1} * 45ms );
-			animation-delay:calc( var(--delay-offset, var(--offset,0)) + #{$i - 1} * var(--overlap) * var(--duration) );
+			--delay:calc( var(--delay-offset, var(--offset,0)) + #{$i - 1} * var(--overlap) * var(--duration) );
 		}
 	}
 }
 
-// Show secret buttons
-.flag-clear #shared-controls label[for="button-transparent"]{
-	display: flex;
-}
-
 #person-a-controls{
 	left:0;
-
 }
+
 #person-b-controls{
 	right:0;
 }
@@ -1183,37 +1179,112 @@ fieldset.person-controls{
 	// or in duet do we split screen???
 	position: fixed;
 	top:0;
-	
-	max-width: 50%;
+	min-width:12ch;
+	max-width: 40%;
 	bottom:0;
 	overflow: auto;
+	overflow-x: hidden;
+	visibility: hidden;
+	pointer-events: all;
 
 	display:grid;
-	// smol : Next, we use minmax for the main content. Why? Because if we only use 1fr then eventually our sidebar and main will share 50% of the space, and we want the main area to always be wider. We also nest min to ask the browser to use the minimum of either of the options. The result in this case is use of 50vw on mobile-sized viewports, and 30ch on larger viewports. And, when there's room, it also stretches to 1fr for the max part of minmax 🙌🏽
-	grid-template-columns: fit-content(20ch) minmax(min(50vw, 30ch), 1fr);
+	background-color:rgba($col-white, 0.9);
 
+	// smol : Next, we use minmax for the main content. Why? Because if we only use 1fr then eventually our sidebar and main will share 50% of the space, and we want the main area to always be wider. We also nest min to ask the browser to use the minimum of either of the options. The result in this case is use of 50vw on mobile-sized viewports, and 30ch on larger viewports. And, when there's room, it also stretches to 1fr for the max part of minmax 🙌🏽
+	//grid-template-columns: fit-content(24ch) minmax(min(50vw, 44ex), 1fr);
+	//grid-template-columns:fit-content(48ch) ;
+	// grid-template-columns: repeat(auto-fill, minmax(12ch, 1fr));
+	
+	grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
+	grid-template-columns: repeat(auto-fit,fit-content(48ch));
+
+	legend{
+		grid-column: 1/-1;
+		color:$col-white;
+		background-color:rgba($col-dark, 1);
+		width:100%;
+		position: sticky;
+  	 	bottom: 0;
+  	 	top: 0;
+	}
 	label{
+		border:1px dotted $col-dark;
 		color:$col-dark;
-		background-color:rgba($col-white, 0.9);
+		//background-color:rgba($col-white, 0.9);
 		&:hover{
 			color:$col-white;
 			background-color:rgba($col-dark, 0.9);
 		}
 	}
+
+	&.showing{
+		visibility: visible;
+	}
 }
 
-.midi-active button#button-midi{
-	background-color: $col-green;
+// MIDI MIDI MIDI MIDI! ===============================
+
+// FF user
+main.no-midi,
+main.midi-unavailable{
+	#button-midi{
+		display: none;
+	}
 }
 
+main.midi {
+	#button-midi{
+		
+	}
+}
+
+// Regular state when MIDI is available but not activated
+main.midi-available{
+	// hide button
+	#button-midi{
+		// display: none;
+		//cursor:not-allowed;
+	}
+}
+
+
+
+main.midi-active button#button-midi{
+	#button-midi{
+		--col: $col-green;
+	}
+}
+
+// midi buton was pressed - now loading state
+main.midi-activated{
+	// hide button
+	#button-midi{
+		//cursor:not-allowed;
+		--col: $col-blue;
+	}
+}
+
+// MIDI Device is connected
+main.midi-connected{
+	#midi-device{
+		display:inline-block;
+		--col: $col-red;
+	}
+}
+
+
+// MIDI is available but there are no instruments connected
 // connect your midi device!
-.midi-no-devices button#button-midi{
-	background-color: $col-yellow;
+main.midi-no-devices button#button-midi{
+	
 	overflow: visible;
-	// we can show some extra text
+	animation:BGColours 4s linear infinite 0s both;
+	--col: $col-red;
+
+	// we can show some extra text above the button
 	&:after{
 		display: block;
-		content:'Connect a device';
+		content:'Connect a MIDI device...';
 		position:absolute;
 		bottom:calc(100% + var(--pad) );
 		text-indent: 0;
@@ -1232,22 +1303,36 @@ fieldset.person-controls{
 }
 
 
-// midi buton was pressed - now loading state
-main.midi-activated{
-	// hide button
-	#button-midi{
-		cursor:not-allowed;
-		--col: $col-blue;
+
+
+main.sharing-disabled{
+	#share{
+		display: none;
 	}
 }
 
-main.midi-available{
-	// hide button
-	#button-midi{
-		// display: none;
-		//cursor:not-allowed;
+// Show secret buttons
+main.flag-clear {
+
+	
+	#shared-controls label[for="button-transparent"]{
+		display: flex;
+	}
+	#shared-controls label[for="button-overlay"]{
+		display: none;
 	}
 }
+
+// this hides the video when in synch mode
+main:not(.flag-clear.flag-transparent){
+	// hide videp as drawing to canvas direct
+	#app-frame video{
+		display: none;
+	}
+}
+
+
+// END OF MIDI MIDI MID MIDI ====================================
 
 #foot{
 	--spacer:0;
@@ -1274,7 +1359,6 @@ main.midi-available{
 	}
 }
 
-
 #associates{
 	--size:74px;
 	margin:0;
@@ -1297,11 +1381,17 @@ main.midi-available{
 	// just 1 column
 	grid-auto-columns: var(--size);
 	
-	
 	//grid-gap:var(--pad);
 	place-items: flex-end center;
 	box-sizing: border-box;
+
+	
+	@media (orientation: portrait) {
+		--size:44px;
+	}
 }
+
+
 
 // .associates li::marker{
 // 	content:'#';
@@ -1309,7 +1399,6 @@ main.midi-available{
 // 	font-size: 66%;
 // } 
 #associates li{
-	
 	box-sizing: border-box;
 }
 
@@ -1324,6 +1413,10 @@ main.midi-available{
 	color:transparent;
 	user-select: none;
 	color:$col-blue;
+	text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
+					rgba(0,0,0,0.56) 0 2px 4px,
+					rgba(0,0,0,0.56)0 3px 4px,
+					rgba(255,255,255,0.96) 0 0 4px;
 
 	svg{
 		color:inherit;
@@ -1339,46 +1432,14 @@ main.midi-available{
 }
 
 
+
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/scrollbars.scss";
 
-@media (orientation: landscape) {
-	// .loaded #foot{
-	// 	--spacer:67px;
-	// 	transform-origin: bottom left;
-	// 	transform: rotate(270deg) translateX(var(--spacer)) translateY(10px);
-	// }
-}
-
-
-// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/display-mode
-
-
-@media all and (display-mode: fullscreen) {
-
-    #displayMode::before {
-        content: "Fullscreen mode"
-    }
-}
-
-// Installed on machine... hide extra buttons?
-@media all and (display-mode: standalone) {
-
-    #displayMode::before {
-        content: "Standalone mode"
-    }
-}
-
-@media all and (display-mode: minimal-ui) {
-
-    #displayMode::before {
-        content: "Minimal-UI mode"
-    }
-}
-
-@media all and (display-mode: browser) {
-   
-    #displayMode::before {
-        content: "Browser mode"
-    }
-}
+// @media (orientation: landscape) {
+// 	// .loaded #foot{
+// 	// 	--spacer:67px;
+// 	// 	transform-origin: bottom left;
+// 	// 	transform: rotate(270deg) translateX(var(--spacer)) translateY(10px);
+// 	// }
+// }
