@@ -107,11 +107,14 @@ const predict = async (inputElement,model) => {
 			const topOfHead = scaledMesh[109] //topLeft[1]
 			const bottomOfHead = scaledMesh[400]
 
+			// size of head from chin to top
 			const headHeight = bottomOfHead[1] - topOfHead[1]
 
 			// Eyes ---------------------
 			// There are three points on the face that we can compare against
-			const {leftEyeIris,rightEyeIris,leftEyeLower0, rightEyeLower0, midwayBetweenEyes} = annotations
+			const { leftEyeIris,leftEyeLower0,leftEyeLower1,leftEyeUpper1, 
+					rightEyeIris,rightEyeLower0,rightEyeLower1, rightEyeUpper0,rightEyeUpper1,
+					midwayBetweenEyes } = annotations
 
 			// eyes pointing in directions?
 			const irisLeft = leftEyeIris[0]
@@ -119,10 +122,46 @@ const predict = async (inputElement,model) => {
 			const midPoint = midwayBetweenEyes[0]
 			const distanceBetweenEyes = Math.abs(irisLeft[0] - irisRight[0])
 				
+
+			const eyeDist = Math.sqrt(
+				( leftEyeUpper1[ 3 ][ 0 ] - rightEyeUpper1[ 3 ][ 0 ] ) ** 2 +
+				( leftEyeUpper1[ 3 ][ 1 ] - rightEyeUpper1[ 3 ][ 1 ] ) ** 2 +
+				( leftEyeUpper1[ 3 ][ 2 ] - rightEyeUpper1[ 3 ][ 2 ] ) ** 2
+			)
+			const eyeScale = eyeDist / 80
+
 			const lookingRight = irisLeft[2] < irisRight[2]
 
 			// -1 -> +1
 			const eyeDirection = (2 * ( midPoint[0] - irisLeft[0] ) / distanceBetweenEyes) - 1
+
+			// Check for eyes closed
+			const leftEyesDist = Math.sqrt(
+				( leftEyeLower1[ 4 ][ 0 ] - leftEyeUpper1[ 4 ][ 0 ] ) ** 2 +
+				( leftEyeLower1[ 4 ][ 1 ] - leftEyeUpper1[ 4 ][ 1 ] ) ** 2 +
+				( leftEyeLower1[ 4 ][ 2 ] - leftEyeUpper1[ 4 ][ 2 ] ) ** 2
+			)
+			const rightEyesDist = Math.sqrt(
+				( rightEyeLower1[ 4 ][ 0 ] - rightEyeUpper1[ 4 ][ 0 ] ) ** 2 +
+				( rightEyeLower1[ 4 ][ 1 ] - rightEyeUpper1[ 4 ][ 1 ] ) ** 2 +
+				( rightEyeLower1[ 4 ][ 2 ] - rightEyeUpper1[ 4 ][ 2 ] ) ** 2
+			)
+
+			prediction.leftEye = leftEyesDist / eyeScale
+			if( prediction.leftEye < 23.5 ) 
+			{
+				prediction.leftEyeClosed = true
+			}else{
+				prediction.leftEyeClosed = false
+			}
+			
+			prediction.rightEye = rightEyesDist / eyeScale 
+			if( prediction.rightEye < 23.5 ) 
+			{
+				prediction.rightEyeShut = true
+			}else{
+				prediction.rightEyeShut = false
+			}
 
 			// add in some extras to make things easier 
 			// the midpoint can be used to triangulate the yaw
@@ -132,20 +171,16 @@ const predict = async (inputElement,model) => {
 			const ly = leftEyeLower0[0][1] 
 			const ry = rightEyeLower0[0][1] 
 
-			const mx = midwayBetweenEyes[0][0] 
-			const my = midwayBetweenEyes[0][1] 
+			const midwayBetweenEyesX = midwayBetweenEyes[0][0] 
+			const midwayBetweenEyesY = midwayBetweenEyes[0][1] 
 
 			// lengths of the triangle
-			const lmx = (mx - lx) * -1
-			const rmx = mx - rx
+			const lmx = (midwayBetweenEyesX - lx) * -1
+			const rmx = midwayBetweenEyesX - rx
 
 			//const {rightCheek,leftCheek, silhouette} = annotations
 
 			prediction.lookingRight = flipHorizontally ? !lookingRight : lookingRight
-
-			// worked out by ????
-			// prediction.leftEyeShut = false
-			// prediction.rightEyeShut = false
 
 			// Looking left / Right -1 -> 1
 			prediction.eyeDirection = eyeDirection * -1 // flipit
@@ -274,6 +309,8 @@ export const loadModel = async (inputElement, options) => {
 	// Load the MediaPipe Facemesh package.
 	const model = await load( SupportedPackages.mediapipeFacemesh, options)
 
+ 	// Load Emotion Detection
+	// const emotionModel = await tf.loadLayersModel( 'web/model/facemo.json' )
 	// console.log("Loaded TF model", model, "for", detectPeople, "people" )
 
 	// now subscribe to events and monitor
@@ -326,3 +363,4 @@ export const loadModel = async (inputElement, options) => {
 	}
 	return update
 }
+

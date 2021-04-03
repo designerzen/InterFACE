@@ -63,7 +63,6 @@ const store = createStore()
 const people = []
 let inputElement = video // image
 		
-let instrument
 let camera
 let photo
 let audio 
@@ -82,6 +81,7 @@ let recorder
 let canBeInstalled = true
 let isLoading = true
 let isMuted = false
+let beatJustPlayed = false
 let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
@@ -111,7 +111,7 @@ const ui = getLocationSettings({
 	// same thing?
 	synch:true,
 	// show debug texts
-	debug:false,//process.env.NODE_ENV === "development",
+	debug:process.env.NODE_ENV === "development",
 	// cancel audio playback (not midi)
 	muted:false,
 	// dual person mode (required reload)
@@ -674,7 +674,7 @@ const setup = async (update, settings, progressCallback) => {
 		{
 			// Start on BAR
 			// show quantise
-			drawQuantise(true, getBar(), getBars() )
+			drawQuantise( beatJustPlayed, getBar(), getBars() )
 		}
 		
 		if (ui.spectrogram)
@@ -703,7 +703,6 @@ const setup = async (update, settings, progressCallback) => {
 					// playAudio()
 					if (noFacesFound)
 					{
-						
 						noFacesFound = false
 						main.classList.toggle( `${person.name}-active`, true)
 						main.classList.toggle( `no-faces`, false)
@@ -785,6 +784,11 @@ const setup = async (update, settings, progressCallback) => {
 			// setFeedback(`Look at me and open your mouth`)
 		}
 
+		if (beatJustPlayed)
+		{
+			beatJustPlayed = false
+		}
+		
 		//console.log(counter, "update", {predictions, tickerTape, userLocated, cameraLoading} )
 
 	}, shouldUpdate )
@@ -813,7 +817,7 @@ const setup = async (update, settings, progressCallback) => {
 		// Play metronome!
 		if(ui.quantise)
 		{
-			const personParameters = []
+			//const personParameters = []
 
 			for (let i=0, l=people.length; i<l; ++i )
 			{
@@ -832,7 +836,7 @@ const setup = async (update, settings, progressCallback) => {
 				}
 
 				// save data to an array to record
-				personParameters.push(stuff)
+				// personParameters.push(stuff)
 			}
 			
 		}
@@ -860,6 +864,8 @@ const setup = async (update, settings, progressCallback) => {
 			//midi.sendClock( )
 			//console.log(midi)
 		}
+
+		beatJustPlayed = true
 
 		
 	}, timePerBar() )

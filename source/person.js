@@ -75,6 +75,11 @@ export default class Person{
 		this.midiActive = false
 		this.midiChannel = "all"
 
+		// if we are repeating our bars...
+		this.isLooping = false
+		// if we are watching the face perform without interaction
+		this.isPlayingBack = false
+
 		this.hue = options.hue || Math.random() * 360
 		this.saturation = 40
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
@@ -235,16 +240,24 @@ export default class Person{
 	/////////////////////////////////////////////////////////////////////
 	// Update visuals
 	/////////////////////////////////////////////////////////////////////
-	draw(prediction, showText=true){
+	draw(prediction, showText=true, forceRefresh=false){
 		
-		if (!prediction && !this.prediction)
+		if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
 		{
-			// nothing to refresh so exit here
+			// nothing to (re)draw so exit here
 			return
-
-		}else if (!prediction){
+		}
+		
+		if (!prediction || forceRefresh)
+		{
 			// refresh
 			prediction = this.prediction
+		}
+
+		if (this.isPlayingBack)
+		{
+			// TODO:
+			// overwrite prediction
 		}
 		
 		let hue = this.hue
@@ -378,8 +391,8 @@ export default class Person{
 			if (this.debug )
 			{
 				const paragraphs = [
-					`gain:${(this.gainNode.gain.value).toFixed(2)}`, 
-					`happiness:${(prediction.happiness).toFixed(3)}`, 
+					`Gain:${(this.gainNode.gain.value).toFixed(2)}`, 
+					`Happiness:${(prediction.happiness).toFixed(3)}`, 
 					`Smirks left:${(prediction.leftSmirk).toFixed(3)} / right:${(prediction.rightSmirk).toFixed(3)}`, 
 					`mouthRange:${(prediction.mouthRange).toFixed(3)}`, 
 					`mouthRatio:${(prediction.mouthRatio).toFixed(3)}`, 
@@ -387,7 +400,7 @@ export default class Person{
 					`pitch:${(prediction.pitch).toFixed(3)}`, 
 					`roll:${(prediction.roll).toFixed(3)}`, 
 					`yaw:${(prediction.yaw).toFixed(3)}`,
-					`eyes:${(prediction.eyeDirection).toFixed(3)}`,
+					`eyes:${(prediction.eyeDirection).toFixed(3)} left:${(prediction.leftEye).toFixed(3)} right:${(prediction.rightEye).toFixed(3)}`,
 					`mouth:${(prediction.mouthOpen).toFixed(3)}`,
 					`dims:${(prediction.mouthWidth).toFixed(2)}x${(prediction.mouthRange).toFixed(2)}`,
 					'facing'+prediction.lookingRight ? 'left' : 'right'
