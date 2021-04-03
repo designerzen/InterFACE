@@ -69,14 +69,17 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Face
 - Video camera or web cam
 - A screen with dimensions greater than 320 x 320 pixels
-- A relatively modern computer (GPU preffered)
+- A relatively modern computer (GPU prefered)
 - Speakers or headphones
 - Mouse / Keyboard / finger to change optional settings 
 
 ## Credits
 - [Drake Music](https://drakemusic.org) for inspiration and support
 - Font is Oxanium by [Severin Meyer](https://sev.dev/fonts/oxanium/)
-- [TensorFlowJS](https://www.tensorflow.org/js) is maintained by Alphabet
+- [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Alphabet](https://google.com)
+
+## Thanks
+- Darren Southea
 
 ## Check it out over at
 
@@ -85,4 +88,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
 
 - [Brief Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
+- [GIVE A MAN A RECORD AND THEY DANCE FOR THE DAY, GIVE THAT MAN A SYNTH AND THEY DANCE FOR A LIFETIME - Talk given @ SXSW21](https://youtu.be/3SmpSvRB4XA)
+
+## Other links
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
