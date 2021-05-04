@@ -1,16 +1,124 @@
+// voicemail-24px
+
+%button-style{
+	
+	// inset
+	text-shadow: rgba($col-white,0.4) 0 0px 1px,
+				rgba($col-white,0.3) 0 0.5px 1px,
+				rgba($col-cream,0.2) 0 1px 1px,
+				rgba($col-cream,0.1) 0 1.5px 1px;
+
+	// only for larger sizes?
+	// this softens the border and adds a soft dropshadow
+	box-shadow: inset 0px 4px calc(2 * var(--border-size)) $col-white,
+				rgba($col-dark,0.4) 0 0px 2px,
+				rgba($col-dark,0.3) 0 0.5px 2px,
+				rgba($col-dark,0.2) 0 1px 2px,
+				rgba($col-dark,0.1) 0 1.5px 2px;
+	
+	// custom border - light from top right
+	border:var(--button-border-size) solid rgba($col-brown, 0.9);
+	border-top-color: rgba($col-white, 0.6 );
+	border-left-color: rgba($col-white, 0.3);
+	border-right-color: rgba($col-white, 0.7);
+
+	border-radius:var(--button-curve, 16px);
+
+	padding:var(--pad);
+
+	// start with dark text
+	color:$col-dark;
+	background-color:var(--col-bg);
+	background-image: var(--bg),
+					 // url(./assets/textures/45-degree-fabric-light.png),
+					linear-gradient( 
+						var(--col-top, rgba(255,255,255, 0.3) ), 
+						var(--col-bottom, rgba(0,0,0, 0.3) )
+					);
+
+	background-repeat:no-repeat, 
+					  //repeat, 
+					  repeat-x;
+	
+	background-size:auto var(--icon-size), 
+					auto, 
+					auto ;
+	
+	// background-position:top var(--pad) center;
+	background-position: var( --pos-override, var(--pos, center) ),
+						center, 
+						center;
+	
+	
+	// animations
+	//animation-name:unset;	// start unset
+	animation-fill-mode: both, both;
+	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
+	animation-direction: normal, normal;
+
+	transition:transform var(--fade-speed) $easeOutBack,
+				background-color var(--fade-speed) linear, 
+				color var(--fade-speed) linear;
+
+	
+	&:hover, &:focus{
+		
+		--col-bottom:#{rgba($col-white, 0.25)};
+		--col-top:#{rgba($col-dark, 0.25)};
+		// border:var(--button-border-size) solid rgba($col-white, 0.9);
+		// border-top-color: rgba($col-brown, 0.6 );
+		border-left-color: rgba($col-white, 0.4);
+		border-right-color: rgba($col-white, 0.8);
+		border-bottom-color: rgba($col-white, 0.7);
+	
+		background-color:var(--col-hover);
+		text-shadow: rgba($col-dark,0.4) 0 0px 1px,
+					rgba($col-dark,0.3) 0 0.5px 1px,
+					rgba($col-dark,0.2) 0 1px 1px,
+					rgba($col-dark,0.1) 0 1.5px 1px;
+
+		&:before{
+			opacity:1;
+			z-index:1;
+		}
+	}
+	
+	&:active{
+		background-color: $col-orange;
+		--col-top:#{$col-tan};
+		--col-bottom:#{$col-grey};
+	}
+
+	&:focus{
+		// outline:3px solid $col-orange;
+		// outline-offset:-3px;
+		z-index:808;	
+
+		// pop to front
+		select{
+			z-index:909;
+		}
+	}
+}
 
 // Loading progress	
 label#progress-bar{
-	position: absolute;
-	// left:var(--pad);
-	// right:var(--pad);
-	width:100%;
-	bottom:10%;
+	// position: absolute;
+	// // left:var(--pad);
+	// // right:var(--pad);
+	// width:calc(80% -2 * var(--pad) ) ;
+	// bottom:10%;
+	//margin:auto auto 4rem auto;
+	// set the label colour...
 	color: $col-brown;
 	outline: none;
+	padding:0;
 	border:0;
+	font-size:66%;
 	display: flex;
 	flex-direction: column;
+	align-items: center;
+    justify-content: flex-end;
 
 	&:hover{
 		background-color: transparent;
@@ -21,44 +129,40 @@ label#progress-bar{
 		// // border-radius: 99%;
 		// max-width:80%;
 		margin:auto;
+		color:inherit;
+		order:-1;
 	}
-}
-
-// actual button
-input[type=radio]{
-	appearance: none;
 }
 
 // BUTTON ABSTRACT
 button,
+input[type=list],
+// input[type=radio],
+label[for=button-solo],
+label[for=button-duet],
 #shared-controls > *{
 
 	--icon-size:32px;
 	--fade-speed:var(--ease-q);
+
 	--pos: left var(--pad) center;
+	--button-border-size:2px;
+	--button-curve:clamp(2px, 1vmin, 6px);
+	
+	// actual colour
+	--col-bg:#{$col-yellow};
 
-	--col-top:$col-cream;
-	--col-bottom: $col-grey;
-	--direction:row;
-
+	// gradient background
+	--col-top:#{rgba($col-white, 0.15)};
+	--col-bottom:#{rgba($col-dark, 0.15)};
+	
 	--duration: var(--ease-q);
 	--delay-offset: var(--ease-q);
-					
+				
+	// override just in case
+	text-rendering: optimizeLegibility;
 	
-	// inset
-	text-shadow: rgba($col-white,0.4) 0 0px 2px,
-				rgba($col-white,0.3) 0 0.5px 2px,
-				rgba($col-cream,0.2) 0 1px 2px,
-				rgba($col-cream,0.1) 0 1.5px 2px;
-
-	box-shadow: rgba($col-dark,0.4) 0 0px 2px,
-				rgba($col-dark,0.3) 0 0.5px 2px,
-				rgba($col-dark,0.2) 0 1px 2px,
-				rgba($col-dark,0.1) 0 1.5px 2px;
-
-	border:0;
-	border-radius:5px 5px 0 0;
-	border-style: solid;// outset groove;
+	//border-style: solid;// outset groove;
 	cursor: pointer;
 
 	// from ios guidelines
@@ -70,6 +174,7 @@ button,
 	box-sizing: border-box;
 	margin:0;
 	padding:var(--pad);
+
 	// force onto one line...
 	white-space: pre;
 	user-select: none;
@@ -81,7 +186,8 @@ button,
 	// -0.5385rem + 7.6923vw
 	// clamp(minimum, preferred, maximum)
 	font-size:clamp(8px, -0.5385rem + 2.2vmax, 14px);
-
+	font-weight: 900;
+		
 	// max-width:calc(100% - 2 * var(--pad));
 	z-index:1;
 
@@ -109,49 +215,34 @@ button,
 	align-items: center;
 	justify-content: space-between;
 
-	background-color:$col-tan;
-
-	background-image: var(--bg),
-					  url(./assets/textures/45-degree-fabric-light.png);
-					//   linear-gradient( var(--col-top), var(--col-bottom));
-
-	background-repeat:no-repeat, 
-					  repeat, 
-					  repeat-x;
-	
-	background-size:auto var(--icon-size), 
-					auto, 
-					auto ;
-	
-	// background-position:top var(--pad) center;
-	background-position: var( --pos-override, var(--pos, center) ),
-						center, 
-						center;
-	
-	color:$col-dark;
-	
+		
 	// animations
 	//animation-name:unset;	// start unset
 	animation-fill-mode: both, both;
 	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
 	animation-direction: normal, normal;
+
 	transition:transform var(--fade-speed) $easeOutBack,
 				background-color var(--fade-speed) linear, 
 				color var(--fade-speed) linear;
 
-	&:empty{ 
-		display:none;
-	}
 	
 	// Inherit the icon and recolour
 	&:before{
+		// allow to pop in front
+		position: relative;
+		z-index:1;
+
 		display: block;
+		// prevent squishing
+		flex: none;
 
 		// try and set to the size of the background icon
 		min-width:var(--icon-size);
 		min-height:var(--icon-size);
 
 		content:'';
+		pointer-events: none;
 		
 		// background:inherit;
 		// background-image: none;
@@ -160,45 +251,42 @@ button,
 		background-position:top center;
 		background-size:auto var(--icon-size);
 
-		filter:brightness(0%);
+		// flip the black to white and desaturate a little to make
+		// it look great - remember this is the hover state
+		// https://codepen.io/sosuke/pen/Pjoqqp
+		filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
 		
-		opacity:1;
+		opacity:0;
 		// z-index: -1;
 		transition:opacity var(--fade-speed) linear;
-	}
-
-	// cool effect?
-	&:after{
-
-	}
-	
-	&:hover, &:focus{
-
-		&:before{
-			opacity:0;
-			z-index:1;
-		}
-	}
-	
-	&:active{
-		background-color: $col-orange;
-	}
-
-	&:focus{
-		outline:3px solid $col-blue;
-		outline-offset: 1px;
-		z-index:808;	
-
-		// pop to front
-		select{
-			z-index:909;
-		}
 	}
 
 	&.hide{
 		display: none;
 	}
 }
+
+// BUTTON STYLE
+button,
+input[type=list],
+input[type=radio]:checked,
+// label[for=button-solo],
+// label[for=button-duet],
+label[for=button-start],
+#shared-controls > *{
+
+	@extend %button-style;
+
+
+	&.hide{
+		display: none;
+	}
+}
+
+
+
+// BUTTON STYLE
+
 
 // this adds some right pad to icons on the control bar
 #shared-controls > *{
@@ -258,16 +346,18 @@ button,
 		--footer-gap:calc(67px);
 	}
 
-	button,
+	// make sure we only specify the none person-controls
+	//button,
 	#shared-controls > *{
 		--icon-size:28px;
 		--pos: center center;
 		--direction: row;
 		font-size: 0;
+		// as there is now no longer any text we 
+		// need to centralise the icon
 		text-indent: -9999px;
 		overflow:hidden;
 		color:transparent;
-		// as there is now no loner any text we need to centralise the icon
 		justify-content: center;
 	}
 }
@@ -336,7 +426,7 @@ button,
 
 	// sometimes the label takes focus making interaction difficult
 	label{
-		pointer-events: none;
+		// pointer-events: none;
 		position: relative;
 
 		// stertch them out 
@@ -351,7 +441,7 @@ button,
 			min-width:100%;
 			right:0;
 			// left:0;
-			z-index:1;
+			// z-index:1;
 			order:-1;
 			appearance:none;
 			opacity:0;
@@ -382,7 +472,7 @@ button,
 	
 		// toggled state eachone can have unique color
 		&.checked:before{
-			opacity: 0;
+			opacity: 1;
 		}
 		&.checked:after{
 			opacity:1;
@@ -407,13 +497,14 @@ button,
 	}
 
 	label, button{
-		
 		// labels can collapse without text to expand them
 		text-transform: uppercase;
 	
+		border-radius:5px 5px 0 0;
 		//border-left:0;
-		border-top:1px solid $col-white;
-		border-bottom:1px solid $col-blue;
+		// border-right-color:$col-white;
+		// border-left:$col-cream;
+		// border-bottom:var(--button-border-size) solid $col-blue;
 		
 		font-weight:900;
 		// color:var(--col-regular);
@@ -427,7 +518,7 @@ button,
 		}
 
 		&:focus{
-			outline:2px solid $col-blue;
+			outline:2px solid $col-orange;
 			outline-offset: -3px;
 		}
 
@@ -444,8 +535,13 @@ button,
 			//background-color: var(--col-regular);
 			// background-color: $col-dark;
 		}
+		
+		&:empty{ 
+			display:none;
+		}
 	}
 
+	input[type=select],
 	select{
 		padding:var(--pad) ;
 		color:transparent;
@@ -486,7 +582,7 @@ button,
 	
 	label:not(:last-child),
 	button:not(:last-child){
-		border-right:1px solid $col-dark;
+		
 	}
 
 	// Labels
@@ -563,10 +659,13 @@ button,
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		--bg:url(./assets/icons/image_not_supported-24px.svg);
+		// --bg:url(./assets/icons/image_not_supported-24px.svg);
+		--bg:url(./assets/icons/visibility-24px.svg);
+
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
-			--bg:url(./assets/icons/image-24px.svg);
+			// --bg:url(./assets/icons/image-24px.svg);
+			--bg:url(./assets/icons/visibility_off-24px.svg);
 			// background-image:url(./assets/icons/music_note-24px-24px.svg);
 		}
 	}
@@ -596,6 +695,79 @@ button,
 		--bg:url(./assets/icons/speed-24px.svg);
 		--col-select:#{$col-yellow};
 	}
+}
+
+// actual button
+input{
+	cursor:pointer;
+	appearance: none;
+	position: relative;
+	box-sizing: border-box;
+	margin:0;
+}
+
+input[type=radio]{
+	//background-color: $col-yellow;
+	position: absolute;
+	--over:0%;
+	--y:0;
+	top:calc( -1 * var(--over));
+	left:calc( -1 * var(--over));
+	// right:calc( -1 * var(--over));
+	bottom:calc( -1 * var(--over));
+	width:calc( 2 * var(--over) + 100% );
+	display:block;
+	transition:transform 1300ms $easeInOutBack;
+	transform:translateY(var(--y,-10%)) scale(0.8);
+	
+	&:checked{
+		transform:translateY(0) scale(1);
+	}
+}
+
+// label[for="button-*"]{
+// 	outline:10px solid yellow;
+// }
+
+// replace regular with a classic radio style toggle button
+input[type=checkbox]{
+
+	display: inline-block;
+	background-color:$col-dark;
+	background:linear-gradient( $col-gray, $col-dark );
+	border:var(--button-border-size) solid rgba($col-brown, 0.9);
+	border-top-color: rgba($col-white, 0.6 );
+	border-left-color: rgba($col-white, 0.3);
+	border-right-color: rgba($col-white, 0.7);
+	// filthy hack
+	margin-top: -1rem;
+    margin-bottom: -0.5rem;
+	margin-left:1rem;
+	//border-radius:999px;
+	
+	// from ios guidelines
+	// min-width:44px;
+	// min-height:44px;
+	// max-width:var(--max-width-override, var(--max-width,auto) );
+
+	padding:var(--pad);
+
+	&:checked{
+		background-color:$col-red;
+		background:linear-gradient( $col-gray, $col-dark ), linear-gradient( $col-dark, $col-gray );
+		background-size:80%, 100%;
+	}
+
+	&:focus{
+		border-color:$col-orange;
+	}
+}
+input[type=submit]{
+	background:transparent;
+	font:inherit;
+	color:inherit;
+	text-transform:inherit;
+	border:0;
 }
 
 // button that covers people
@@ -747,8 +919,12 @@ button#button-photograph{
 	--col-hover:#{$col-blue};
 	--bg:url(./assets/icons/add_a_photo-24px.svg);
 }
+label[for="button-trio"]{
+	display:none;
+}
 
 // These need overrides for size
+label[for="button-trio"],
 button#button-trio{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
@@ -756,24 +932,40 @@ button#button-trio{
 	--bg:url(./assets/icons/person_add-24px.svg);
 	//display: none;
 }
-
+label[for="button-solo"],
 button#button-solo{
-	// background-color:vae(--col-hover);
-	// background-color: $col-yellow;
+	--col-bg: #{$col-yellow};
 	--col-hover:#{$col-orange};
 	--bg:url(./assets/icons/person-24px.svg);
-	//display: none;
-	border-radius: 18px 18px 0 0;
+	--y:100%;
 }
+
+label[for="button-duet"],
 button#button-duet{
-	
+	--col-bg: #{$col-blue};
+	--col-hover:#{$col-orange};
+	--bg:url(./assets/icons/people-24px.svg);
+	--y:-100%;
+}
+
+label[for="button-start"]{
+	margin-top:-1.5rem;
+	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(5 * var(--pad));
+	--col-bg: #{$col-orange};
+	--col-hover:#{$col-red};
+	--button-border-size:4px;
+	--bg:url(./assets/icons/music_note-24px.svg);
+	--pos-override:left;
+	z-index:909;
+	border-radius:0;
+}
+
+button#button-help{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
 	--col-hover:#{$col-blue};
 	--bg:url(./assets/icons/people-24px.svg);
 	//display: none;
-	border-top:1px solid $col-white;
-	border-radius: 0 0 18px 18px;
 }
 button#button-metronome{
 	
@@ -783,6 +975,7 @@ button#button-metronome{
 button#share{
 	--bg:url(./assets/icons/share-24px.svg);
 	margin-left: auto;
+	z-index:2;
 }
 
 // an update is available to the app!
@@ -872,19 +1065,25 @@ label[for="select-camera"],
 
 // Player selection screen
 #player-selector{
-	--top-gap:7vh;//clamp(1rem, 7vh, 5rem);
+	--top-gap:clamp(40px, 7vh, 80px);//clamp(1rem, 7vh, 5rem);
 	// prevents a button becoming an icon
 	--max-width-override:auto;
+	--border-radius:8px;
+	--border-size:4px;
 	
 	text-align:center;
 	box-sizing: border-box;
 	visibility: hidden;
-	border-radius:18px;
-	border:2px solid $col-blue;
-	margin:auto;// solid transparent;
+	user-select: none;
+
+	border-radius:var(--border-radius);
+	border:var(--border-size) solid $col-gray;
+
+	//margin:auto;// solid transparent;
 	margin-top:var(--top-gap);
+	//margin-bottom:var(--top-gap);
 	// margin:clamp(calc(var(--top-gap)),3vw,auto) auto;// solid transparent;
-	padding:var(--top-gap);// var(--pad);
+	padding:calc(var(--pad)*2) calc(var(--pad));// var(--pad);
 	// margin-top:calc(var(--top-gap));// solid transparent;
 	// margin-bottom:calc(var(--top-gap));// solid transparent;
 	display:flex;
@@ -894,18 +1093,46 @@ label[for="select-camera"],
 	justify-content: space-around;
 	// grid-gap:4px;
 	//min-height:calc( 100% - var(--top-gap) * 2);
-	max-width:60ch;
+	max-width:42ch;
 	max-height:100%;
 	
-	button{
+	label{
 		--icon-size: 44px;
+		--button-border-size:var(--border-size);
 
-		&:hover{
-			background-color:var(--col-hover);
+		//border-radius:var(--border-radius);
+
+		// this softens the border
+		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
+
+		input{
+			
+		}
+
+		// cool effect
+		&:after{
+			content: "";
+			z-index:-1;
+			opacity:0.6;
+			background:var( --col-hover, rgba($col-white, 0.4) );
+			position: absolute;
+			top:0;
+			left: 0;
+			bottom:0;
+			right:0;
+			transform: scaleY(0);
+			transition: transform 50ms ease-out;
+		}
+		
+		&:hover, &:focus{
+			
+			&:after{
+				transform: scaleY(1);
+			}
 		}
 	}
 
-	button + button { 
+	> label + label { 
 		margin-top:var(--pad);
 	}
 
@@ -913,36 +1140,50 @@ label[for="select-camera"],
 		--dir-override:column;
 		--pos-override: top var(--pad) center;
 		//--pos-override: top center;
-		font-weight: 900;
 		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
-		border-radius:24px;
-		border-style: outset;
+		// border-radius:24px;
 
 		text-indent: 0;
 		overflow: visible;
-		color: black;
-		background-color: $col-yellow;
+		// color: $col-dark;
+		// background-color: $col-yellow;
 		justify-content: center;
 		text-transform: uppercase;
 		max-height: unset;
+
 		// prevent growing the button 
 		// as this mis-aligns the icons
-		flex-grow:0;
-		flex-shrink:0;
+		// flex-grow:0;
+		// flex-shrink:0;
+		flex:none;
 	}
 
-	// label[for="toggle-advanced-mode"],
+	label[for="toggle-advanced-mode"]{
+		//color:$col-white;
+		padding:var(--pad);
+		margin-top:var(--pad);
+		margin-bottom:var(--pad);
+		border-top:1px solid $col-white;
+		background:transparent;
+		// align-self: center;
+		vertical-align: middle;
+	}
+
 	label{
 		--col-hover:#{$col-green};
-		background:transparent;
-		color:$col-white;
-		margin-top:var(--pad);
-		align-self: center;
+		background:none;
 
+		&:before,
+		&:hover:before,
+		&:focus:before{
+			opacity:1;
+		}
 		input{
-			margin-left:var(--pad);
+			//margin-left:var(--pad);
+			z-index:-1;
 		}
 	}
+
 	
 	// animate out again?
 	&.completed{
