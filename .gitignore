@@ -5,3 +5,5 @@ dist
 app
 *.mp4
 *.zip
+android
+electron
