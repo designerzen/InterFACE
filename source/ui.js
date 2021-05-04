@@ -1,4 +1,4 @@
-import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './instruments'
+import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './audio/instruments'
 import {VERSION, DATE} from './version'
 import {debounce} from './utils'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
@@ -13,10 +13,20 @@ const dateOptions = {
  }
 export const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+1}/${releaseDate.getFullYear()} ${ releaseDate.toLocaleTimeString("en-GB",dateOptions) }`
 
-
 const doc = document
 
-export const progressBar = doc.querySelector('progress')
+let loadMeter = 0
+const progressMessage = doc.getElementById("progress-bar")
+const progressBar = doc.querySelector('progress')
+export const setLoadProgress = (progress, message) => {
+	loadMeter = progress
+	progressBar.setAttribute("value", parseInt(progress) )
+	if (message && message.length)
+	{
+		progressMessage.innerHTML = message
+	}
+}
+export const getLoadProgress = () => loadMeter
 
 let buttonInstrument
 let buttonRecord
@@ -232,7 +242,7 @@ export const connectTempoControls = (callback) => {
 	})
 }
 
-export const showUpdateButton = (action) => {
+export const showUpdateButton = (domElement, action) => {
 	// reveal update button?
 	const button = doc.createElement('button')
 	button.id = "button-update"
@@ -242,7 +252,7 @@ export const showUpdateButton = (action) => {
 
 	// on button press...
 	button.addEventListener('click', ()=>action() )
-	controls.appendChild(button)
+	domElement.appendChild(button)
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -271,12 +281,18 @@ export const addToolTips = (query="button, select, input") => {
 export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 
 	const CSS_CLASS = "player-selection"
+	const form = doc.getElementById("onboard")
 	const panel = doc.getElementById("player-selector")
 	const solo = panel.querySelector("#button-solo")
 	const duet = panel.querySelector("#button-duet")
 	const trio = panel.querySelector("#button-trio")
+	const start =  doc.getElementById("button-start")
 	const advanced = panel.querySelector("#toggle-advanced-mode")
 	let advancedMode = false
+	let players = options.duet ? 2 : 1
+
+	// set the query to this stae
+	advanced.setAttribute( "checked", !advancedMode )
 	
 	doc.documentElement.classList.toggle(CSS_CLASS, true)
 
@@ -315,14 +331,27 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 		resolve(result > 1)
 	}
 
-	solo.addEventListener("click", event => complete(1) )
-	duet.addEventListener("click", event => complete(2) )
-	trio.addEventListener("click", event => complete(3) )
-	
+	solo.addEventListener("click", event => players = (1) )
+	duet.addEventListener("click", event => players = (2) )
+	trio.addEventListener("click", event => players = (3) )
+
 	advanced.addEventListener("change", event =>{ 
 		advancedMode = !advancedMode 
 		main.classList.toggle("beginner", !advancedMode)
 	})
+	
+	// start.addEventListener("click", event => {
+	// 	event.preventDefault()
+	// 	complete(players)
+	// 	return false
+	// } , true )
+	
+	form.addEventListener("submit", (event) => {
+		event.preventDefault()
+		complete(players)
+		return false
+	}, true)
+
 	main.classList.toggle("beginner", !advancedMode)
 	panel.focus()
 })
