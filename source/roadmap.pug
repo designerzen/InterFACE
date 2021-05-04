@@ -1,0 +1,86 @@
+extends index.pug
+
+mixin event(year, name)
+	- var hash = '#' + name
+	a(href=hash)
+		date= year
+		
+	details
+		summary= name
+		if block
+			block
+		else
+			No content provided
+
+block title
+	+title('RoadMap')
+
+block nav
+
+block main
+
+	h3 Roadmap
+	h4 Timeline
+	
+	ul.timeline
+
+		li 
+			+event("1999", "Implement learning mechanism for training gesture recognition") 
+				p Implement learning mechanism for training gesture recognition
+		li 
+			+event("2001", "Add facial recognition to retain session wihout interaction") 
+				p Add facial recognition to retain session wihout interaction
+		li 
+			+event("2010", "Add the ability to track faces even if they cross") 
+				p Add the ability to track faces even if they cross
+		li 
+			+event("2020", "Hand / Body input mechanisms") 
+				p Hand / Body input mechanisms
+		li 
+			+event("2020", "Allow recording of performance per person") 
+				p Allow recording of performance per person
+		li 
+			+event("2020", "Allow recording of all data in realtime to be downloaded") 
+				p Allow recording of all data in realtime to be downloaded
+		li 
+			+event("2020", "Create a playback / replay mode") 
+				p Create a playback / replay mode 
+	
+		li 
+			+event("2020", "MIDI2 (MPE) Support") 
+				p MIDI 2.0 (MPE) Support to control modern polyphonic instruments via MIDI cable
+	 
+		li 
+			+event("2020", "Export of MIDI composition") 
+				p Saving the composition as a MIDI file to your local device to use with other software 
+	 
+		li 
+			+event("2020", "Saving 'Persons' and using face ID loading them back in") 
+				p Saving "Persons" and using face ID loading them back in
+	
+		li 
+			+event("2020", "Full Body version for beats") 
+				p Full Body version for beats
+	
+		li 
+			+event("2020", "Hardware - Projected Installation AMIC") 
+				p Hardware - Projected Installation AMIC
+	
+		li 
+			+event("2020", "Hardware - Holographic Arcade Booth AMIC") 
+				p Hardware -Holographic Arcade Booth AMIC
+	
+		li 
+			+event("2020", "Hardware - USB MIDI to GPIO adapter") 
+				p Hardware - USB MIDI to GPIO adapter
+	
+//- ## Future plans
+//- - Better musicality and expression
+//- - Upgraded synth engine
+//- - Refactor Instruments to Instrument Interface for future IO
+//- - MIDI phrase support
+//- - Percussion that sounds good!
+//- - Hand remote Controls
+//- - Full Body version for beats
+//- - Vocoder mode using microphone
+//- - Improved timing
