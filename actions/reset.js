@@ -1,7 +1,7 @@
 // Be careful, this will reset the package in case it has stopped compiling
 // Only use it if you know what the below phrases mean!
 
-import {rmdirSync,unlink} from 'fs'
+import {rmSync, rmdirSync,unlink} from 'fs'
 import * as path from 'path'
 
 // get args from node 
@@ -14,10 +14,13 @@ if ( process.argv.indexOf('--total') > -1 ){
 TO_DELETE.forEach( async (directory) => {
 
     try {
-        rmdirSync(directory, { recursive: true })
+        // Node 12+
+        rmSync(directory, { recursive: true })
+        //rmdirSync(directory, { recursive: true })
         console.log("\x1b[32m", `${directory} was deleted`)
     } catch (err) {
-        console.error("\x1b[31m", `Error while deleting ${dir}.`)
+        console.error("\x1b[31m", `Error while deleting ${directory}. `)
+        console.error("\x1b[31m", `Perhaps "${directory}" doesn't exist?`)
     }
 
 })
