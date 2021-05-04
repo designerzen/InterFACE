@@ -314,7 +314,7 @@ export const installer = async (defer=false) => {
     
 			destination.appendChild(button)
 
-			console.log("Application is currently ", {button, destination}, getInstalledStatus() ? "installed" : "not installed" )
+			//console.log("Application is currently ", {button, destination}, getInstalledStatus() ? "installed" : "not installed" )
 			// console.log({manifestdata: manifestData})
 		
 			return true
