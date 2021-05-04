@@ -92,3 +92,4 @@ Given enough time it would be possible to save MIDI files directly from the app 
 
 ## Other links
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
+- [Music Maker Festival](https://www.makermusicfestival.com/)
