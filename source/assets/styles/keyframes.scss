@@ -1,4 +1,8 @@
-
+@keyframes BGScroll {
+  	0% { 
+	  	background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
+	}
+}
 // 
 @keyframes BGColours{
 	0%{
