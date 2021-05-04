@@ -5,9 +5,10 @@ $easeInBack:  cubic-bezier(0.600, -0.280, 0.735, 0.045);
 $easeOutBack:  cubic-bezier(0.175,	0.885, 0.320, 1.275);
 $easeInOutBack:  cubic-bezier(0.680, -0.550, 0.265, 1.550);
 
-$col-white:hsl(22, 28%, 87%);
+$col-white:hsl(20, 27%, 87%);
 $col-dark:hsl(30, 6%, 14%);
 $col-grey:hsl(11, 6%, 50%);
+$col-gray:hsla(18, 6%, 55%, 1);
 $col-cream:hsl(23, 18%, 53%);
 $col-tan:hsl(27, 30%, 45%);
 $col-brown:hsl(23, 22%, 30%);
@@ -16,7 +17,6 @@ $col-green:hsl(56, 18%, 33%);
 $col-yellow:hsl(41, 34%, 50%);
 $col-orange:hsl(28, 69%, 38%);
 $col-red:hsl(9, 58%, 35%);
-
 
 %image-replacement{
 	text-indent: -9999px;
@@ -32,34 +32,36 @@ $col-red:hsl(9, 58%, 35%);
 // debug
 // @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
 
-// @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap');
-// @font-face {
-// 	font-family: 'Oxanium';
-// 	src: './assets/fonts/Oxanium.ttf' format('truetype');
-// 	// font-weight: 125 950;
-// 	// font-stretch: 75% 125%;
-// 	font-style: normal;
-//    }
-
 // Basic resets
 html,body,h1,h2,h3,h4,h5,h6,p{
 	margin:0;
 	padding:0;
 }
 
+// some shared vars
 :root{
 	--line-height:1.6;
 	--curve:12px;
-	--pad:2vmin;
+	--pad:clamp(10px,2vmin,20px);
+
+	// FIXME:
 	--footer-gap:calc(61px);
 	
 	@media (orientation: portrait) {
 		--footer-gap:var(--pad);
 	}
 
+	// ease speeds (see overriding media queries)
 	--ease-s:450ms;
 	--ease-m:90ms;
 	--ease-q:45ms;
+		
+	// no animation
+	@media (prefers-reduced-motion: reduce) {
+		--ease-s:1ms;
+		--ease-m:1ms;
+		--ease-q:1ms;
+	}
 
 	--duration:calc( 2 * var(--ease-s) );//var(--ease-out-quick);
 	--duration-scroll:calc( 5 * var(--ease-s) );
@@ -68,49 +70,44 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	--offset:0s;	// initial delay for all
 }
 
+// inherit fonts
 html, input, button, textarea, option, select{
 	font-family: 'Oxanium', sans-serif !important;
 	font-weight: 800;
 }
   
 html{
-	// allows 100vh to work on mobile safari
-	height: -webkit-fill-available;
-	text-rendering: optimizeSpeed;
+	
 	line-height:var(--line-height);
 
-	// dark
 	transition: background-color var(--ease-s) linear;
 
+	// dark
 	color:$col-white;
 	background-color:$col-dark;
-	background-image:linear-gradient(rgba($col-dark, 0.5), rgba($col-dark, 0.1));
+	background-image:linear-gradient(hsla(18, 21%, 12%, 0.7), hsla(340, 5%, 11%, 0.7) );
+	
+	// otherwise legibility takes forever to render
 	text-rendering: optimizeSpeed;
 
-	// hide all cruft and hide scrollbars too
-	overflow:hidden;
-	// saves on memory as it crops it too
-	overflow: clip;
+	//	clip-path: inset(0 0 0 0);
 
-	// light
-	&.loading{
-		background-color:$col-white;
-		background-image:linear-gradient(rgba(white, 0.9), rgba(white, 0.1) );
-	}
+	// allows 100vh to work on mobile safari
+	height: -webkit-fill-available;
 }
 
 body {
 	// prevent collapse
 	min-height: -webkit-fill-available;
 	min-height: 100vh;
-}
+	max-height:100vh;
+	max-width:100vw;
+	
+	// hide all cruft and hide scrollbars too
+	overflow:hidden;
+	// saves on memory as it crops it too
+	overflow: clip;
 
-body, main{
-	// overflow: hidden;
-}
-
-body{
-	overflow: auto;
 	display: flex;
 }
 
@@ -133,6 +130,13 @@ label,select,option{
 
 p{
 	font-weight: 500;
+	color:$col-white;
+	pointer-events: none;
+	font-weight:bold;
+	text-align:right ;
+	display: inline-block;
+	padding:var(--pad);
+	// emboss?
 }
 
 small{
@@ -142,6 +146,7 @@ small{
 
 a{
 	color:$col-blue;
+	// FIXME:
 	text-decoration: none;
 }
 
@@ -152,26 +157,23 @@ svg{
 	height:auto;
 }
 
+// elements and sections
+
 @import "./assets/styles/gadgets.scss";
 
 #intro{
 	position: absolute;
-	z-index: -1;
 	top:0;
-	right:0;
-	left:0;
-	//overflow: hidden;
+	right:var(--pad);
+	left:var(--pad);
 	// above feedback
 	bottom:var(--footer-gap);
-
-	display: grid;
 	text-align: center;
-	justify-content: center;
+	display: flex;
+	flex-direction: column;
 
-	> * {
-		grid-area: 1/1/1/1;
-	}
-	
+
+	// main title
 	h1{
 		//background-color: $col-dark;
 		color: $col-grey;
@@ -182,7 +184,7 @@ svg{
 		text-transform: uppercase;
 		
 		justify-self: center;
-		margin-top:var(--pad);
+		// margin-top:var(--pad);
 		transition:color var(--ease-s) ease-out;
 		
 		// font-size: clamp(1rem, -0.5385rem + 7.6923vw, 3.5rem);
@@ -203,12 +205,10 @@ svg{
 					rgba(white,0.7) 0 2px 4px,
 					rgba(white,0.5) 0 3px 4px,
 					rgba($col-cream,0.56) 0 0 4px;
-		color: $col-yellow;
-		// margin-top:auto;
-		// margin-left:auto;
-		// margin-right:auto;
-		margin:auto;
-		margin-bottom:0;
+		
+		color: $col-tan;
+
+		margin:0 auto;
 		padding:var(--pad);
 	}
 		
@@ -218,11 +218,39 @@ svg{
 		text-shadow: none;
 	}
 
+	p[aria-label]{
+		position: absolute;
+	}
+
 	.logo{
 		// align-self:flex-end;//  flex-start;
-		z-index: -2;
+		// z-index: -2;
 		align-self: center;
 		text-indent: -99999rem;
+	}
+
+	// this holds nav to sectionsinc help and funding
+	nav{
+		position:fixed;
+		top:0;
+		left:0;
+	}
+
+	nav ul{
+		list-style: none;
+		margin:0;
+		padding:0;
+		opacity: 0.8;
+		transition: opacity 45ms linear;
+		&:hover{
+			opacity: 1;
+		}
+		// prevent the whole thing stealing focus
+		pointer-events: none;
+
+		li{
+			pointer-events: auto;
+		}
 	}
 	
 	@media (orientation: portrait) {
@@ -257,8 +285,9 @@ svg{
 	max-width:90vmin;
 	
 	visibility: visible;
+	font-size: 0;
 	// overflow: hidden;
-	z-index:1;
+	// z-index:1;
 
 	svg{
 		order: -1;
@@ -328,12 +357,45 @@ video,canvas{
 	// nothing to click
 	pointer-events: none;
 }
+
+
+
+// form seems to want focus all the time
+form{
+	// give it a cool border effect
+	fieldset{
+		box-shadow: rgba($col-dark,0.4) 0 0px 2px,
+				rgba($col-dark,0.3) 0 0.5px 2px,
+				rgba($col-dark,0.2) 0 1px 2px,
+				rgba($col-dark,0.1) 0 1.5px 2px;
+		// slight hack to fix focus issue		
+		pointer-events: none;
+	}
+	
+
+	// cool intro effects
+	fieldset > *{
+		--xa:-50%;
+		animation-name:Fade, Shift;
+		animation-duration: var(--ease-s),var(--ease-s);
+		animation-fill-mode: both, both;
+		animation-delay: var(--delay,0), var(--delay,0);
+		pointer-events: auto;
+	}
+	
+	// kill anims if focussed inside the form
+	&:focus-within{
+		fieldset > *{
+			animation-duration:1ms,1ms;
+		}
+	}
+}
+
 // funky text animations
 .loading strong,
 p strong{
 	animation:TextColours 4s linear infinite 0.05s both;
 }
-
 
 #app-frame{
 
@@ -370,12 +432,12 @@ p strong{
 	// Overlaid logo
 	&:before{
 		--opacity:0.5;
+		--size:clamp(10%, 10vmin, 180px );
 		animation: Fade var(--ease-s) linear 5s 1 normal both;
 		position: absolute;
 		top:-7px;
 		right:8px;
 		width:10%;
-		--size:clamp(10%, 10vmin, 180px );
 		width:var(--size,10%);
 		height:var(--size,10%);
 		display: block;
@@ -384,7 +446,6 @@ p strong{
 		content:'';//url(./assets/logos/interface_colour.svg);
 		// content:url(./assets/logos/interface_current-color.svg);
 	}
-
 }
 
 
@@ -453,6 +514,8 @@ p strong{
 }
 
 
+// STATES //////////////////////////////////////////////////////////////////
+
 
 // Loading screen ------------------------------
 html.loading {
@@ -460,11 +523,22 @@ html.loading {
 	--loader-size:8vmin;
 	--loader-duration:4;
 
+	--scroll-x:50px;
+	--scroll-y:50px;
+		
+	// grid effect
+	$bg-url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC";
+	background-color:$col-white;
+	background-image: url($bg-url), linear-gradient(rgba($col-white, 0.9), rgba($col-cream, 0.2) );
+	background-size:var(--scroll-x), 100%;
+	background-repeat:repeat, repeat;
+
+	animation: BGScroll 999ms infinite linear reverse;
+
 	// show a graphic but hide contents
 	&::before,&::after{
 		content: '';
 		opacity: 1;
-		
 		// height:6vh;
 		// width:6vh;
 		width:100%;
@@ -482,28 +556,38 @@ html.loading {
 		animation:Loading calc(var(--loader-duration) * 1s) 0s infinite $easeInOutBack;
 	}
 
+	// motion blur
 	&::after{
 		animation-delay:calc( var(--loader-duration) / 4 * 0.02s );
-		filter: blur(5px);
+		filter: blur(6px);
 	}
 
+	// add some background textures
 	body{
-		// background-image: url(./assets/textures/45-degree-fabric-light.png);
-		background-image:  url(./assets/logos/sxsw2021.svg),
+		background-image:  linear-gradient( rgba($col-white, 0.5), rgba($col-cream, 0.5) ),
+							//url(./assets/logos/sxsw2021.svg),
 							url(./assets/textures/45-degree-fabric-light.png), 
 							url(./assets/textures/45-degree-fabric-dark.png);
 
-		background-size: 	15%,
+		background-size: 	100%,
+							//15%,
 							25%, 
 							25%;
 
-		background-position: bottom 66px right 24px,
-							 center,center;
+		background-position: center, 
+							// top 44px right 44px,
+							 center,
+							 center;
 
-		background-repeat:no-repeat, repeat, repeat;
-		overflow: hidden;
+		background-repeat:no-repeat, 
+							//no-repeat, 
+							repeat, repeat;
+		
+		// prevents overflowing of information
+		// overflow: hidden;
 	}
 
+	// sections
 	#intro header{
 		
 		> *{
@@ -528,9 +612,8 @@ html.loading {
 			align-self: center;
 			height:100%;
 			background-position: center;
-			z-index:-1;
+			// z-index:-1;
 			align-self: center;
-			
 			svg{
 				animation:TextColours 4s linear infinite 0s both;
 			
@@ -539,7 +622,7 @@ html.loading {
 		h1{
 			//background-color: black;
 			color: $col-orange;
-			clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
+			//clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
 		}
 	}
 
@@ -548,15 +631,14 @@ html.loading {
 		position: relative;
 		pointer-events: none;
 		min-height: 100vh;
-		
-
+	
 		> *:not(p){
 			visibility: hidden;
 			opacity:0;
 			display: none;
 		}
 	}
-
+	
 	#feedback{
 		text-align: center;
 		bottom:calc( 1rem * var(--line-height) + var(--pad) );
@@ -565,19 +647,25 @@ html.loading {
 	#shared-controls{
 		visibility: hidden;
 	}
+	footer{
+		z-index:909;
+	}
 }
 
-// form seems to want focus all the time
-form > fieldset,
-form{
-	pointer-events: none;
+
+// need to always show this
+#app-frame{
+	
+
 }
-form > fieldset > *{
-	pointer-events: auto;
-}
-// STATE - Choose players
+
+
+// STATES /////////////////////////////////////////////////////
+
+// Choose players
 // This is the how many people are playing mode
 .player-selection{
+	
 	header > *{
 	// header > *:not(h1){
 		visibility: hidden;
@@ -589,6 +677,8 @@ form > fieldset > *{
 		visibility:hidden;
 	}
 	
+	// instructions do show periodically so we need to ensure that they
+	// don't cover the buttons
 	#toast{
 		--footer-gap:var(--pad);
 		right:auto;
@@ -597,22 +687,33 @@ form > fieldset > *{
 		background-color: $col-dark;
 		text-align:center;
 	}
+
+	// form > * {
+	// 	visibility: hidden;
+	// 	pointer-events: auto;
+	// }	
+
+	// show this
+	#onboard,
+	#player-selector{
+		visibility: visible;
+	}
+	
+	
+	// hide stuff not relevent
+	// Instrument selection panel
+	#controls{
+		display: none;
+	}
+
+	// canvas,
+	// video{visibility: hidden;}
+	
 	.person,
 	#shared-controls{
 		visibility: hidden;
 	}
 
-	form > * {
-		visibility: hidden;
-		pointer-events: auto;
-	}	
-
-	#player-selector{
-		visibility: visible;
-	}
-	
-	// hide stuff not relevent
-	// Instrument selection panel
 	fieldset.person-controls{
 		display: none;
 	}
@@ -620,26 +721,6 @@ form > fieldset > *{
 	#button-trio{
 		display:none;
 	}
-
-	fieldset > *{
-		--xa:-50%;
-		animation-name:Fade, Shift;
-		animation-duration: var(--ease-s),var(--ease-s);
-		animation-fill-mode: both, both;
-		animation-delay: var(--delay,0), var(--delay,0);
-		// animation-direction: f;
-	}
-
-	#controls{
-		overflow: visible;
-	}
-	// &:focus-within{
-	// 	fieldset > *{
-	// 		animation-name:unset;
-	// 	}
-	// }
-	// canvas,
-	// video{visibility: hidden;}
 }
 
 // FIXME:
@@ -651,7 +732,8 @@ form > fieldset > *{
 		align-items: center;
 		justify-content: flex-start;
 		bottom:auto;
-
+		z-index: -1;
+		
 		.logo{
 			margin:0;
 			min-width:60px;
@@ -662,7 +744,9 @@ form > fieldset > *{
 			top:0;
 			align-self:flex-start;
 			font-size: 0;
+			// for anly inline
 			fill:black;//$col-cream;
+			
 			svg{
 				width: 100vw;
 				height: 100vh;
@@ -679,6 +763,7 @@ form > fieldset > *{
 			// transform: rotate(90deg) translateX(var(--pad));
 			transform-origin: top left;
 		}
+
 		h2{
 			margin-top:0;
 		//	font-size:50%;
@@ -692,18 +777,24 @@ form > fieldset > *{
 		}
 	}
 
+
+	
 	#shared-controls{
 		visibility: visible;
 	}
-	
 
+	#onboard,
 	#player-selector,
 	#progress-bar{
 		display: none;
 	}
+
 	// wrapper
 	#app-frame{
+
+		display: block;
 			
+
 		// rounded corners
 		border-radius:var(--curve);
 		overflow: hidden;
@@ -762,10 +853,10 @@ form > fieldset > *{
 			// width:100%;//clamp(100%, 100vw, 100% );
 			height: 100vh;
 			max-width: 100vw;
+
 			// max-height: 100vh;
 			// max-width: 100vw;
 			// height:calc(var(--height) / var(--width) * 100vw );
-
 
 			@media (orientation: portrait) {
 				// 	height: 100%;
@@ -796,23 +887,22 @@ form > fieldset > *{
 			// }
 		}
 
-		// in front
+		// behind canvas (canvas can be transparent at times)
 		video{
 			
-			// flip it around
+			// flip it around for mirror mode
 			transform: scaleX(-1);
 
 			z-index: 0;
 			position:absolute;
 			top:0;
 			left:0;
-			// right:0;
-			// bottom:0;
+			
 			width:100%;
 			height:100%;
 		}
-		
 	}
+
 	#app{
 		#title{
 			visibility: hidden;
@@ -832,37 +922,31 @@ form > fieldset > *{
 	}
 }
 
-#version, #midi-device{
-	display:none;
-}
-
-html.debug{
-	#version,
-	#version span{
-		display: block;
-	}
-}
-
 
 // If the user has de-selected 'advanced' mode, we hide some buttons that
 // will just confuse them...
 .beginner{
 
 	// hide these...
+	// #fund,
 	label[for="button-quantise"],
 	label[for="button-spectrogram"]{
 		display: none;
 	}
 }
 
-p{
-	color:$col-white;
-	pointer-events: none;
-	font-weight:bold;
-	text-align:right ;
-	display: inline-block;
-	padding:var(--pad);
-	// emboss
+
+html.debug{
+	#version,
+	#version span{
+		opacity: 1;
+	}
+}
+
+
+// #version,
+#midi-device{
+	display:none;
 }
 
 // Feedback text that pops up and dissappears
@@ -923,6 +1007,7 @@ p{
 }
 
 // we need this to visually look the same size as the video
+#onboard,
 #controls{
 	
 	display: block;
@@ -963,11 +1048,22 @@ p{
 	// }
 }
 
+
+// we need this to visually look the same size as the video
+#onboard{
+	z-index:1;
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	// do something
+}
+
 .brand{
 	background:url(./assets/logos/designerzen.svg) no-repeat left 2px center;
 	background-size: contain;
-	padding-left:17px;
+	padding-left:1.5rem;
 }
+
 
 #photographs{
 	position: fixed;
@@ -1032,9 +1128,6 @@ p{
 	}
 }
 
-#release{
-	color:$col-grey;
-}
 
 
 fieldset{
@@ -1067,11 +1160,15 @@ fieldset{
 	// grid-template-columns:1fr 1fr ;
 	
 	position: relative;
-	// NB. ensure in front of the person buttons
-	z-index:909;
+	// NB. ensure in front of the person buttons (202)
+	z-index:303;
 	transition:opacity var(--ease-s) linear;
 	//animation:Fade var(--ease-s) ease-in 1 0s both;
 }
+
+
+
+
 
 fieldset:empty{
 	display: none;
@@ -1131,6 +1228,7 @@ label{
 // Could not load due to privacy restrictoin or user uninteraction
 //  or no camera or whatever
 .failure{
+	#onboard,
 	#controls{
 		display: none;
 	}
@@ -1302,7 +1400,11 @@ main.midi-no-devices button#button-midi{
 	}
 }
 
-
+main.solo{
+	#person-b{
+		visibility: hidden;
+	}
+}
 
 
 main.sharing-disabled{
@@ -1337,21 +1439,65 @@ main:not(.flag-clear.flag-transparent){
 #foot{
 	--spacer:0;
 	display: flex;
-	flex-direction: column-reverse;
+
+	align-items: flex-end;
+	justify-content: flex-end;
+	// flex-wrap: wrap;
+ 	flex-direction: column;
+	
+// 	@media (orientation: portrait) {
+		
+// 	flex-direction: column-reverse;
+			
+// 	}
 	position:absolute;
 	left: calc( var(--pad));
+	right: calc( var(--pad));
 	bottom: var(--pad);
+	max-height:var(--footer-gap);
 	color:$col-brown;
 	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
-	// z-index:-1;
+	z-index:909;
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
 
 	small{
-		margin-left:var(--pad);
+		// margin-left:var(--pad);
+		// margin-right: auto;
+		justify-self: stretch;
+		width:100%;
+		display:flex;
+		align-items: flex-end;
+
+		#version{
+			margin-left: auto;
+			display: flex;
+			flex-wrap: wrap;
+			opacity:0.8;
+			
+			padding-left:var(--pad);
+
+			#release{
+				color:$col-grey;
+				visibility: hidden;
+				order:-1;
+			}		
+			&:hover #release{
+				visibility: visible;
+			}
+		}
+		
 	}
+
+	#year{
+		display: inline-flex;
+		flex-direction: row;
+	}
+
+	// this *still* gets read out via screenreaders!!!
 	#year::before{
 		content:"© ";
+		
 		color:$col-cream;
 	}
 	a:hover, a:focus{
@@ -1359,12 +1505,12 @@ main:not(.flag-clear.flag-transparent){
 	}
 }
 
+
+// Icons for institutions that have presented or promoted this project
 #associates{
 	--size:74px;
 	margin:0;
-	margin-bottom:var(--pad);
 	padding:0;
-	
 	/* grid-auto-columns: 50%;
 	grid-auto-flow: column;
 	grid-gap:var(--pad);
@@ -1380,14 +1526,23 @@ main:not(.flag-clear.flag-transparent){
 
 	// just 1 column
 	grid-auto-columns: var(--size);
+	grid-auto-rows: var(--size);
+
+	// which direction to flow into 
+	grid-auto-flow: column;
 	
 	//grid-gap:var(--pad);
 	place-items: flex-end center;
 	box-sizing: border-box;
 
-	
+	// we flip things around if the screen is taller than wide	
 	@media (orientation: portrait) {
 		--size:44px;
+		grid-auto-flow: row;
+		margin-bottom:var(--pad);
+		
+	// order:-1;
+	// 	order:unset;
 	}
 }
 
@@ -1431,7 +1586,17 @@ main:not(.flag-clear.flag-transparent){
 
 }
 
-
+// Help Box
+dialog::backdrop {
+	background: repeating-linear-gradient(
+	  0deg,
+	  rgba($col-blue, 0.2),
+	  rgba($col-blue, 0.2) 1px,
+	  rgba($col-cream, 0.3) 1px,
+	  rgba($col-cream, 0.3) 20px
+	);
+	//backdrop-filter: blur(3px);
+}
 
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/scrollbars.scss";
