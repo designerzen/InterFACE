@@ -1,18 +1,21 @@
 // Just a simple face detection script with visual overlaid feedback and audio
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
+
 import {installer} from './install.js'
 import {createStore} from './store'
-import {say, hasSpeech} from './speech'
+import {say, hasSpeech} from './audio/speech'
 
-// You need to require the backend explicitly because facemesh itself does not
 import { 
 	setupAudio,	audioContext,
 	active, playing, 
 	randomInstrument,
 	updateByteFrequencyData,
+	updateByteTimeDomainData,
 	bufferLength,dataArray, 
-	getVolume, setVolume, setAmplitude } from './audio'
+	getVolume, setVolume, setAmplitude } from './audio/audio'
+import { createDrumkit } from './audio/synthesizers'
+import { setupMIDI, testForMIDI } from './audio/midi'
 
 import { record } from './record'
 
@@ -22,12 +25,12 @@ import {
 	startTimer, stopTimer,
 	now, 
 	getBarProgress,
-	setTimeBetween, timePerBar, 
-	getBPM } from './timing.js'
+	setTimeBetween, timePerBar, getBPM 
+} from './timing/timing.js'
 	
 import {
+	setLoadProgress, getLoadProgress,
 	showPlayerSelector,
-	progressBar, 
 	video,isVideoVisible,toggleVideoVisiblity,
 	setToggle, setButton, 
 	setupMIDIButton, 
@@ -35,14 +38,20 @@ import {
 	setupCameraForm, setupInterface, addToolTips,
 	setFeedback, setToast,
 	toggleVisibility,
-	focusApp, connectTempoControls } from './ui'
+	focusApp, connectTempoControls 
+} from './ui'
+
+import { 
+	takePhotograph,setupImage, getCanvasDimensions,
+	copyCanvasToClipboard, 
+	overdraw, setNodeCount, updateCanvasSize, clear, canvas, 
+	drawWaves, drawBars, drawQuantise, drawElement 
+} from './visual/visual'
 
 import { getReferer, getLocationSettings, getShareLink, addToHistory } from './location-handler'
-import { createDrumkit } from './synthesizers'
-import { setupMIDI, testForMIDI } from './midi'
+
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
-import { setupImage, getCanvasDimensions } from './visual'
-import { takePhotograph, overdraw, setNodeCount, updateCanvasSize, clear, canvas, drawWaves, drawBars, drawQuantise, drawElement } from './visual'
+
 import { playNextPart, kitSequence } from './patterns'
 import { getInstruction, getHelp } from './instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
@@ -96,7 +105,7 @@ const cameraPan = {x:1,y:1}
 body.classList.toggle("loading", true)
 
 // if we have a specific referer, we can change these accordingly
-const referer = getReferer()
+const referer = getReferer() || 'interface.place'
 
 // realtime UI options
 const ui = getLocationSettings({
@@ -220,7 +229,9 @@ const loadInstruments = async (method, callback) => people.map( async (person) =
 	const instrument = await person[method](callback)
 
 	setToast(`${person.name} has ${person.instrumentTitle} loaded`)
-	// console.log(`${person.name} has ${instrument} loaded` )
+	
+	console.log(`${person.name} has ${instrument} loaded` )
+	
 	return instrument
 })
 
@@ -420,11 +431,19 @@ const loadCamera = async (deviceId, name="Default") => {
 	return newCamera
 }
 
-// selected
+// This creates all the wiring 
 const setup = async (update, settings, progressCallback) => {
 
 	const loadTotal = 5
 	let loadIndex = 0
+
+	// allow different domains to show different styles
+	// so we take the domain LTD
+	// current domains that point this way include :
+	// interface.place
+	// interface.lol	<- defaults to simple 'kid' mode
+	// interface.band	<- defaults to duet mode
+	main.classList.add( referer.split('.').pop() )
 
 	try{
 		
@@ -652,6 +671,7 @@ const setup = async (update, settings, progressCallback) => {
 
 		let tickerTape = ''
 		
+		// do we clear the canvas?
 		if (ui.clear)
 		{
 			// clear for invisible canvas but 
@@ -665,24 +685,19 @@ const setup = async (update, settings, progressCallback) => {
 			}
 
 		}else{
+			// FUNKY DISCO MODE...
 			// switch effect type?
-			const t = counter * 0.01
+			const t = (counter * 0.01) % TAU
 			overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
-		}
-		
-		if (ui.quantise)
-		{
-			// Start on BAR
-			// show quantise
-			drawQuantise( beatJustPlayed, getBar(), getBars() )
 		}
 		
 		if (ui.spectrogram)
 		{
-			//drawWaves( dataArray, bufferLength )
+			updateByteTimeDomainData()
+			drawWaves( dataArray, bufferLength )
 			
-			updateByteFrequencyData()
-			drawBars( dataArray, bufferLength )
+			// updateByteFrequencyData()
+			// drawBars( dataArray, bufferLength )
 		}
 
 		let haveFacesBeenDetected = false	
@@ -720,6 +735,10 @@ const setup = async (update, settings, progressCallback) => {
 						main.classList.toggle( `${person.name}-active`, false)
 						main.classList.toggle( `no-faces`, true)
 						noFacesFound = true
+
+						// TODO : Switch to hand / body detection whilst faces not found?
+						// TODO: Implement part switching behaviour
+
 					}
 					
 					return
@@ -768,6 +787,19 @@ const setup = async (update, settings, progressCallback) => {
 		}else{
 			// tickerTape += `No prediction`
 		}
+
+
+		// On BEAT if beatjustplayed
+		// TODO: convert this into a per user bar and use the last played note to 
+		// change the colour of the indicator
+		if (ui.quantise)
+		{
+			// Start on BAR
+			// show quantise
+			// fetch notes played from user?
+			drawQuantise( beatJustPlayed, getBar(), getBars() )
+		}
+		
 
 		// Feedback text changes depending on time
 		if (!predictions)
@@ -954,6 +986,9 @@ const load = async (settings, progressCallback) => {
 		anchor.download = `snapshot-${unique}.png`
 		anchor.appendChild(img)
 
+		// TODO: also copy to clipboard?
+		// copyCanvasToClipboard()
+
 		document.getElementById("photographs").appendChild(anchor)
 
 		requestAnimationFrame( ()=>document.getElementById(id).scrollIntoView() )
@@ -990,7 +1025,6 @@ reporter = setupReporting("InterFACE")
 body.classList.toggle("debug", ui.debug )
 
 let installation = null
-let loadMeter = 0
 let extrasLoaded = false
 
 const loadExtras = async ()=> {
@@ -1063,7 +1097,7 @@ const onLoaded = async () => {
 // loop until loaded...
 const loadingLoop = async () => {
 
-	// console.log("loading",loadMeter*100, {isLoading, userLocated, cameraLoading})
+	// console.log("loading", {isLoading, userLocated, cameraLoading})
 		
 	if ( isLoading )
 	{ 
@@ -1099,6 +1133,7 @@ const pwa = async() => {
 		// const {installer} = await import('./install.js')
 		installation = await installer(true)
 	
+		// Update checks
 		const {updateApp} = await import('./update.js')
 		
 		// may as well disrupt the load if an update is available!
@@ -1107,11 +1142,11 @@ const pwa = async() => {
 
 		if (updateAvailable)
 		{
-			showUpdateButton(updater)
+			showUpdateButton(document.getElementById("shared-controls"), updater)
 			setToast("An Update is available! Press update to install it" )
 		}
 
-		console.log("installer", { installer, installation})
+		//console.log("installer", { installer, installation})
 	
 	}catch(error){
 		console.error("PWA", error)
@@ -1123,19 +1158,24 @@ const pwa = async() => {
 // ---------------------------------------------------------
 const options = Object.assign( {}, SETTINGS, {} )
 // now load dependencies and show progress
-load(options, progress => {
+load(options, (progress, message) => {
 	
 	//console.log("Loading", progress, progressBar )
-	progressBar.setAttribute("value",progress)
-	// ease this?
-	loadMeter = progress
+	setLoadProgress( progress, message )
 
 }).then( async update =>{ 
 
 	// Select NUMBER of players!
-	setToast( "Please select how many players you want to play" )
 	setFeedback("")
+	setToast("")
 
+	// FIXME: Maybe only show if people dont do anything?
+	let timeOut = setTimeout(()=>{
+		setToast( "Please select how many players you want to play" )
+		timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
+	}, 60000 )
+
+	
 	// hide the loading screen but dont sdt it to loaded just yet
 	body.classList.toggle("loading", false)
 
@@ -1148,9 +1188,13 @@ load(options, progress => {
 	try{
 		ui.duet = await showPlayerSelector(options)
 	}catch(error){
-		console.error("player selection failed")
+		console.error("player selection failed", error)
 	}
 
+	setFeedback("Please wait loading! This can take <strong>some</strong> time...")
+
+	// celar timeoiut
+	clearInterval( timeOut )
 
 	body.classList.toggle("loading", true)
 	
@@ -1162,9 +1206,7 @@ load(options, progress => {
 	return setup( update, options, progress => {
 		
 		//console.log("Loading", progress, progressBar )
-		progressBar.setAttribute("value",progress)
-		// ease this?
-		loadMeter = progress
+		setLoadProgress(progress)
 	})
 
 }).then( data => {
@@ -1177,7 +1219,6 @@ load(options, progress => {
 })
 
 
-setFeedback("Please wait loading! This can take <strong>some</strong> time...")
 // needs to be run early on ideally
 pwa()
 loadingLoop()

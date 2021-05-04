@@ -25,6 +25,7 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 		window.location.reload()
 	}
 
+
 	// Use the window load event to keep the page load performant
 	const checkUpdates = async () => {
 			
@@ -42,17 +43,25 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 		}
 
 		reg.onupdatefound = async () => {
+
 			const newWorker = reg.installing
+			console.error("Update Found!", {reg, newWorker} )
+
 			newWorker.onstatechange = async () => {
+				
 				if (newWorker.state === 'installed') 
 				{
+					// navigator.serviceWorker.controller
 					if (navigator.serviceWorker) 
 					{
 						const registeredWorker = await navigator.serviceWorker.getRegistration()
 						if (registeredWorker && registeredWorker.waiting) 
 						{
 							// show update icon!
-							resolve(installUpdate)
+							resolve({
+								installUpdate,
+								storageUsed
+							})
 						}
 					}else{
 						reject("No Service Worker")
@@ -87,16 +96,15 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 // 
 export const updateApp = async (sw='service-worker.js') => {
 	try{
-		const update = await updater(sw)
+		const updates = await updater(sw)
+
 		return {
-			updater:update,
+			updater:updates.installUpdate,
+			storageUsed:updates.storageUsed,
 			updateAvailable:true
 		}
 
 	}catch(error){
-
-		// no updates or app not installed etc
-		console.log(error)
 
 		return false
 	}
