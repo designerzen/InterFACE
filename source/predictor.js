@@ -2,6 +2,7 @@ import {clamp} from './maths'
 
 // FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
 import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
+// import * as FACEDETECT from '@tensorflow-models/face-landmarks-detection'
 
 // CPU Only
 //import '@tensorflow/tfjs-backend-cpu'
@@ -16,7 +17,7 @@ import '@tensorflow/tfjs-backend-webgl'
 
 const flipHorizontally = true
 
-const now = ()=> Performance.now
+const now = ()=> Date.now() || Performance.now
 
 const {PI,sqrt, atan2, cos, tan, sin} = Math
 const TAU = PI * 2
@@ -24,8 +25,10 @@ const HALF_PI = PI * 0.5
 
 // a mouth covers about 1/3 of the face?
 const RATIO_OF_MOUTH_TO_FACE = 0.25
+const EYE_CLOSED_AT = 20.2 //.5
 const PITCH_SCALE = 8
 
+// cheaper than TAN
 const twist = (value, amount=0) => {
 
 	// if it is negative, invert
@@ -37,7 +40,7 @@ const twist = (value, amount=0) => {
 	}
 	//return value + amount
 	return clamp(value + amount,-1,1)
- }
+}
 
 // Feed it a right angle triangle and get the angle between the edges
 const determineAngle = ( pointA, pointO ) => {
@@ -55,7 +58,6 @@ const determineAngle = ( pointA, pointO ) => {
 	return angleInRadians
 }
 
-
 const predict = async (inputElement,model) => {
 
 	// some effects are timing related
@@ -68,7 +70,8 @@ const predict = async (inputElement,model) => {
 		// webcam element with video
 	  	// input: video / img etc
 		input: inputElement,
-		// no need for these
+		// no need for these yet...
+		// TODO: Implement emotion tests
 		returnTensors :false,
 		// Whether to flip/mirror the facial keypoints horizontally. Should be true for videos that are flipped by default (e.g. webcams)
 		flipHorizontal:flipHorizontally,
@@ -94,21 +97,20 @@ const predict = async (inputElement,model) => {
 			const {boundingBox, mesh, scaledMesh, annotations} = prediction
 			const {bottomRight, topLeft} = boundingBox
 
-			// now there are some points already isolated :)
-			// so we can work out how much area the mouth is using up
-
-			// See keypoints.js
-			// const {rightCheek, leftCheek} = annotations
-
 			// Nose
 			const {noseTip, noseBottom, noseRightCorner} = annotations
-			
+			//const {rightCheek,leftCheek, silhouette} = annotations
+
 			// we can use the bounding box or actual face mesh coords
 			const topOfHead = scaledMesh[109] //topLeft[1]
 			const bottomOfHead = scaledMesh[400]
 
 			// size of head from chin to top
-			const headHeight = bottomOfHead[1] - topOfHead[1]
+			// const headHeight = bottomOfHead[1] - topOfHead[1]
+			const headHeight =	Math.sqrt(
+				(bottomOfHead[0] - topOfHead[0]) ** 2 + 
+				(bottomOfHead[1] - topOfHead[1]) ** 2
+			)
 
 			// Eyes ---------------------
 			// There are three points on the face that we can compare against
@@ -117,23 +119,31 @@ const predict = async (inputElement,model) => {
 					midwayBetweenEyes } = annotations
 
 			// eyes pointing in directions?
-			const irisLeft = leftEyeIris[0]
-			const irisRight = rightEyeIris[0]
-			const midPoint = midwayBetweenEyes[0]
-			const distanceBetweenEyes = Math.abs(irisLeft[0] - irisRight[0])
-				
+			const irisLeftX = leftEyeIris[0]
+			const irisRightX = rightEyeIris[0]
 
-			const eyeDist = Math.sqrt(
+			const midPoint = midwayBetweenEyes[0]
+			const midwayBetweenEyesX = midPoint[0] 
+			const midwayBetweenEyesY = midPoint[1] 
+			
+			// const distanceBetweenEyes = Math.abs(irisLeft[0] - irisRight[0])
+			const distanceBetweenEyes =	Math.sqrt(
+				(irisLeftX[0] - irisRightX[0]) ** 2 + 
+				(irisLeftX[1] - irisRightX[1]) ** 2
+			)
+			
+			const lookingRight = irisLeftX[2] < irisRightX[2]
+
+			// -1 -> +1
+			const eyeDirection = (2 * ( midPoint[0] - irisLeftX[0] ) / distanceBetweenEyes) - 1
+
+			// Now eyes open calcs
+			const eyeSocketHeight = Math.sqrt(
 				( leftEyeUpper1[ 3 ][ 0 ] - rightEyeUpper1[ 3 ][ 0 ] ) ** 2 +
 				( leftEyeUpper1[ 3 ][ 1 ] - rightEyeUpper1[ 3 ][ 1 ] ) ** 2 +
 				( leftEyeUpper1[ 3 ][ 2 ] - rightEyeUpper1[ 3 ][ 2 ] ) ** 2
 			)
-			const eyeScale = eyeDist / 80
-
-			const lookingRight = irisLeft[2] < irisRight[2]
-
-			// -1 -> +1
-			const eyeDirection = (2 * ( midPoint[0] - irisLeft[0] ) / distanceBetweenEyes) - 1
+			const eyeScale = eyeSocketHeight / 80
 
 			// Check for eyes closed
 			const leftEyesDist = Math.sqrt(
@@ -147,22 +157,6 @@ const predict = async (inputElement,model) => {
 				( rightEyeLower1[ 4 ][ 2 ] - rightEyeUpper1[ 4 ][ 2 ] ) ** 2
 			)
 
-			prediction.leftEye = leftEyesDist / eyeScale
-			if( prediction.leftEye < 23.5 ) 
-			{
-				prediction.leftEyeClosed = true
-			}else{
-				prediction.leftEyeClosed = false
-			}
-			
-			prediction.rightEye = rightEyesDist / eyeScale 
-			if( prediction.rightEye < 23.5 ) 
-			{
-				prediction.rightEyeShut = true
-			}else{
-				prediction.rightEyeShut = false
-			}
-
 			// add in some extras to make things easier 
 			// the midpoint can be used to triangulate the yaw
 			const lx = leftEyeLower0[0][0] 
@@ -171,22 +165,30 @@ const predict = async (inputElement,model) => {
 			const ly = leftEyeLower0[0][1] 
 			const ry = rightEyeLower0[0][1] 
 
-			const midwayBetweenEyesX = midwayBetweenEyes[0][0] 
-			const midwayBetweenEyesY = midwayBetweenEyes[0][1] 
 
 			// lengths of the triangle
 			const lmx = (midwayBetweenEyesX - lx) * -1
 			const rmx = midwayBetweenEyesX - rx
-
-			//const {rightCheek,leftCheek, silhouette} = annotations
 
 			prediction.lookingRight = flipHorizontally ? !lookingRight : lookingRight
 
 			// Looking left / Right -1 -> 1
 			prediction.eyeDirection = eyeDirection * -1 // flipit
 			prediction.eyeDistance = distanceBetweenEyes
+			
+			// FIXME: Ideally these give a percentage of open-ness
+			prediction.leftEye = leftEyesDist / eyeScale
+			prediction.leftEyeClosed = prediction.leftEye < EYE_CLOSED_AT
+			
+			prediction.rightEye = rightEyesDist / eyeScale 
+			prediction.rightEyeClosed = prediction.rightEye < EYE_CLOSED_AT
+			
+			// both together
+			//prediction.eyesClosed = prediction.leftEyeClosed && prediction.rightEyeClosed
 
+	
 			prediction.headHeight = headHeight
+	
 			// FIXME : flipHorizontal
 
 			// and now we want the angle formed
@@ -280,21 +282,23 @@ const predict = async (inputElement,model) => {
 			const rightSmirk = Math.abs( determineAngle(lipUpperMiddle, lipUpperRight) ) / PI
 
 			// 0 -> 1 ()
-			prediction.happiness = (leftSmirk + rightSmirk) * 0.5
+			// the range is pretty much empty between 0->0.9
+			prediction.happiness = 10 * (((leftSmirk + rightSmirk) * 0.5)  - 0.9)
 			// 0 -> 1
-			prediction.leftSmirk = (leftSmirk - 1) * 1000
-			prediction.rightSmirk = (rightSmirk - 1) * 1000
+			prediction.leftSmirk = (leftSmirk - 1) * 100000
+			prediction.rightSmirk = (rightSmirk - 1) * 100000
 
 			// useful sometimes (different time to audio context?)
 			prediction.time = time
-
+			
 			//console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
 		} 
 		
 	}else{
 		//console.log("No face in shot")
 	}
-	
+
+
 	return predictions
 }
 
@@ -355,7 +359,7 @@ export const loadModel = async (inputElement, options) => {
 			// console.log("Paused")
 		}
 
-		// loop
+		// loop or use worker???
 		if (repeat)
 		{
 			requestAnimationFrame( () => update(repeat, callback, isPaused) )
