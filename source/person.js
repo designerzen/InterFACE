@@ -1,18 +1,21 @@
 // each person in the app has their own instrument and face
-import { getBarProgress } from './timing.js'
+import { getBarProgress } from './timing/timing.js'
 import { DEFAULT_COLOURS } from './palette'
-import { active, playing, loadInstrument, randomInstrument, playTrack, getNoteName} from './audio'
+import { getNoteText, SOLFEGE_SCALE, active, playing, loadInstrument, randomInstrument, playTrack, getNoteName, getNoteSound } from './audio/audio'
 import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
-import { INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './instruments'
+import { INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './audio/instruments'
 import { setupInstrumentForm} from './ui'
 import { ParamaterRecorder} from './record'
-import { clear,
-		drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
-		drawText,drawParagraph, drawInstrument} from './visual'
+import { 
+	clear,
+	drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
+	drawText,drawParagraph, drawInstrument, drawFaceMesh
+} from './visual/visual'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
+
 export const NAMES = ['a','b','c'].map( m => `person-${m}` )
 export const EYE_COLOURS = ['blue','green','brown','orange']
 
@@ -26,8 +29,12 @@ export const DEFAULT_OPTIONS = {
 	// if you want the axis to be switched
 	swapControls:false,
 
-	// mouse hold for
+	drawMesh:false,
+	drawNodes:true,
+
+	// mouse hold for clicking
 	mouseHoldDuration:0.6,
+	eyeShutHolddDuration:3500, // ms
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,
@@ -43,6 +50,7 @@ export const DEFAULT_OPTIONS = {
 
 	// size of the mouth to signal activity
 	mouthCutOff:0.2,
+
 	// size of the mouth to signal silence
 	mouthSilence:0.05,
 
@@ -55,7 +63,8 @@ export const DEFAULT_OPTIONS = {
 	precision:3,
 
 	// set this to one of the interpolation methods above
-	ease:linear //easeOutSine // easeInSine // linear
+	// IN means that it starts off slowly (prefered)
+	ease:easeInSine // easeInSine // linear
 }
 
 export default class Person{
@@ -65,6 +74,8 @@ export default class Person{
 		this.options = Object.assign({}, DEFAULT_OPTIONS, options)
 		this.name = name
 		this.counter = 0
+		// instrument index
+		this.index = 0
 		this.instrumentLoading = false
 		this.data = null
 		this.audioContext = audioContext
@@ -74,6 +85,7 @@ export default class Person{
 		this.midi = null
 		this.midiActive = false
 		this.midiChannel = "all"
+
 
 		// if we are repeating our bars...
 		this.isLooping = false
@@ -93,9 +105,14 @@ export default class Person{
 
 		this.singing = false
 		this.isMouthOpen = false
+		this.isLeftEyeOpen = true
+		this.isRightEyeOpen = true
 		this.isRecordingParameters = false
 		this.mouseDownAt = -1
+		this.leftEyeClosedAt = -1
+		this.rightEyeClosedAt = -1
 		this.lastNoteName = "A0"
+		this.lastNoteSound = "-"
 		this.debug = options.debug || false
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
@@ -180,6 +197,10 @@ export default class Person{
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
+	get areEyesOpen(){
+		return this.isLeftEyeOpen && this.isRightEyeOpen
+	}
+
 	get mouseDownFor(){
 		return this.audioContext.currentTime - this.mouseDownAt
 	}
@@ -235,6 +256,34 @@ export default class Person{
 		{
 			this.parameterRecorder.save(prediction)
 		}
+		
+		// update any eye states
+		if (this.isLeftEyeOpen !== !prediction.leftEyeClosed)
+		{
+			if (prediction.leftEyeClosed)
+			{
+				this.onLeftEyeClose( prediction.time )
+			}else{
+				// open eye
+				this.onLeftEyeOpen( prediction.time - this.leftEyeClosedAt )
+			}
+			// eye state changed
+			this.isLeftEyeOpen = !prediction.leftEyeClosed
+		}
+
+		if (this.isRightEyeOpen !== !prediction.rightEyeClosed)
+		{
+			if (prediction.rightEyeClosed)
+			{
+				this.onRightEyeClose( prediction.time )
+				
+			}else{
+				this.onRightEyeOpen( prediction.time - this.rightEyeClosedAt )
+			}
+			// eye state changed
+			this.isRightEyeOpen = !prediction.rightEyeClosed
+		}
+		
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -259,17 +308,24 @@ export default class Person{
 			// TODO:
 			// overwrite prediction
 		}
+
 		
 		let hue = this.hue
 
-		if (this.instrumentLoading )
+		if ( this.instrumentLoading )
 		{
 			hue += 120
 		}
 
 		let saturation = this.saturation
 
+		// can this just be a reference???
 		const options = this.options
+		// const options = Object.assign( {} , this.options )
+
+		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
+		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
+		// this.areEyesOpen 
 
 		// update colours...
 		options.dots = hue
@@ -280,15 +336,34 @@ export default class Person{
 		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${saturation}%,50%,1)`
 		options.leftEyeLower0 = `hsla(${(hue+300)%360},${saturation}%,50%,0.8)`
 		options.rightEyeLower0 = `hsla(${(hue+300)%360},${saturation}%,50%,0.8)`
-		options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
-		options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		
+		// change eye colours if closed...?
+		// options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		// options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		
+		options.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${saturation}%,50%,1)`
+		options.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${saturation}%,50%,1)`
 
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
-		drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
-
-		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
 		
+		
+		// mesh
+		if (options.drawMesh) 
+		{
+			drawFaceMesh( prediction, options.dots, this.instrumentLoading, this.debug )
+		}
+		
+		// nodes
+		if (options.drawNodes)
+		{
+			// blobs
+			drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
+		}
+
+		// This overlays the mouth and the eyes
+		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
+	
 		// drawBoundingBox( prediction.boundingBox )
 
 		// use the eyes?
@@ -314,18 +389,75 @@ export default class Person{
 			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
 		}
 
+		// draw silhoette if the user is 
+		// if you want it to flicker...
+		// interacting&& this.counter%2 === 0)
+		const {annotations} = prediction
+		const {silhouette} = annotations
+		// we need to ignore eyes closed if the instrument is loading...
+		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
+		
+		// eyes have been closed for X -period of time
+		if (eyesClosedFor > options.eyeShutHolddDuration)
+		{
+			// both eyes are closed for X amount of time...
+			console.log("EYES SHUT", {
+				rightEyeClosedFor, 
+				leftEyeClosedFor, 
+				eyesClosedFor, 
+				ro:this.isRightEyeOpen,
+				lo:this.isLeftEyeOpen,
+				time:prediction.time, 
+				rca:this.rightEyeClosedAt, 
+				lca:this.leftEyeClosedAt
+			} )
+
+			// update to reset counter
+			this.leftEyeClosedAt = prediction.time
+			this.rightEyeClosedAt = prediction.time
+
+			// 
+			this.loadNextInstrument( instrumnetName => console.log("instrumnetName",instrumnetName ) )
+		
+		}else{
+
+			//console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
+			if (this.isLeftEyeOpen)
+			{
+				drawEye(annotations.leftEyeIris, options.leftEyeIris)	
+			}else{
+				// const leftEyeHeldShut = prediction.time - this.leftEyeClosedAt > options.eyeShutHolddDuration
+				// drawEye(annotations.leftEyeIris, leftEyeHeldShut ?'red' : 'green')	
+			}
+
+			if (this.isRightEyeOpen)
+			{
+				drawEye(annotations.rightEyeIris, options.rightEyeIris)
+			}else{
+				// const rightEyeHeldShut = prediction.time - this.rightEyeClosedAt > options.eyeShutHolddDuration
+				// drawEye(annotations.rightEyeIris,rightEyeHeldShut ? 'red' : 'green')
+			}
+
+			// console.log("EYE OPEN", {
+			// 	rightEyeClosedFor, 
+			// 	leftEyeClosedFor, 
+			// 	eyesClosedFor, 
+			// 	ro:this.isRightEyeOpen,
+			// 	lo:this.isLeftEyeOpen,
+			// 	time:prediction.time, 
+			// 	rca:this.rightEyeClosedAt, 
+			// 	lca:this.leftEyeClosedAt
+			// } )
+			
+		}
+
 		// everything here is for displaying the text
 		if (!showText)
 		{
 			return
 		}
 
-		// draw silhoette if the user is 
-		// if you want it to flicker...
-		// interacting&& this.counter%2 === 0)
-		const {silhouette} = prediction.annotations
-			
-		 if ( this.isMouseOver || this.instrumentLoading ){
+		if ( this.isMouseOver || this.instrumentLoading ){
 
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
@@ -352,7 +484,7 @@ export default class Person{
 			}else{
 				
 				// No mouse held
-				drawInstrument(prediction.boundingBox, this.instrumentTitle, '')
+				drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Press to change instrument')
 				drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
 				/*	
 				const offsetX = topLeft[0]
@@ -379,15 +511,19 @@ export default class Person{
 		
 		}else if (this.instrumentLoading){
 
+			// Instrument loading...
 			drawInstrument(prediction.boundingBox, this.instrumentTitle, 'loading...')
 
 		}else{
 
-			// Main flow 
-			const extra = this.debug ? ` ${this.lastNoteName}`  : ` ${this.lastNoteName}`
-
+			// Main flow
+			const extra = this.debug ? ` ${getNoteText( this.lastNoteName) }`  : ` ${getNoteText(this.lastNoteName)}`
+			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `-`
+			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
+			
 			// eye:${prediction.eyeDirection}
-			drawInstrument(prediction.boundingBox, this.instrumentTitle, extra + (this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? '~' : '' )  )
+			drawInstrument(prediction.boundingBox, this.instrumentTitle, `${extra} ${suffix}` )
+			
 			if (this.debug )
 			{
 				const paragraphs = [
@@ -397,11 +533,11 @@ export default class Person{
 					`mouthRange:${(prediction.mouthRange).toFixed(3)}`, 
 					`mouthRatio:${(prediction.mouthRatio).toFixed(3)}`, 
 					`mouthWidth:${(prediction.mouthWidth).toFixed(3)}`, 
-					`pitch:${(prediction.pitch).toFixed(3)}`, 
-					`roll:${(prediction.roll).toFixed(3)}`, 
-					`yaw:${(prediction.yaw).toFixed(3)}`,
-					`eyes:${(prediction.eyeDirection).toFixed(3)} left:${(prediction.leftEye).toFixed(3)} right:${(prediction.rightEye).toFixed(3)}`,
-					`mouth:${(prediction.mouthOpen).toFixed(3)}`,
+					`mouthOpen:${(prediction.mouthOpen).toFixed(3)}`,
+					`pitch:${(prediction.pitch).toFixed(3)} roll:${(prediction.roll).toFixed(3)} yaw:${(prediction.yaw).toFixed(3)}`,
+					`eyes direction:${(prediction.eyeDirection).toFixed(3)} left:${(prediction.leftEye).toFixed(3)} right:${(prediction.rightEye).toFixed(3)}`,
+					`eyes open :${this.areEyesOpen} left:${!prediction.leftEyeClosed} right:${!prediction.rightEyeClosed}`,
+					`eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
 					`dims:${(prediction.mouthWidth).toFixed(2)}x${(prediction.mouthRange).toFixed(2)}`,
 					'facing'+prediction.lookingRight ? 'left' : 'right'
 				]
@@ -471,9 +607,14 @@ export default class Person{
 		// we can flip this on somehow?
 		const isMinor = prediction.lookingRight
 
+		// eg. A1 Ab1 C3 etc
 		const noteName = getNoteName(roll, this.octave, isMinor)
+		// eg. Do Re Mi
+		const noteSound = getNoteSound(roll, isMinor)
 
+		// cache for drawing getNoteText
 		this.lastNoteName = noteName
+		this.lastNoteSound = noteSound
 		this.hue = roll * 360
 		this.saturation = 100 * lipPercentage
 
@@ -670,9 +811,15 @@ export default class Person{
 	// we need loadiing events?
 	/////////////////////////////////////////////////////////////////////
 	async loadInstrument(instrumentName, callback){
+
 		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
+		this.index = INSTRUMENT_FOLDERS.indexOf(instrumentName)
+
 		this.instrumentLoading = false
+		
+		console.log(this.index, "Attempting to load instruments", instrumentName, this.instrument )
+
 		callback && callback( instrumentName )
 		
 		// you have to dispatch the event from an element!
@@ -702,6 +849,23 @@ export default class Person{
 		this.loadInstrument(id)
 		event.preventDefault()
 	}
+
+	onLeftEyeOpen( timeClosedFor ){
+		this.leftEyeClosedAt = -1
+	}
+	onLeftEyeClose( timeClosed ){
+		this.leftEyeClosedAt = timeClosed
+	}
+
+	onRightEyeOpen( timeClosedFor ){
+		this.rightEyeClosedAt = -1
+	}
+
+	onRightEyeClose( timeClosed ){
+		this.rightEyeClosedAt = timeClosed
+	}
+
+
 
 	/////////////////////////////////////////////////////////////////////
 	// This pops up the user side bar and populates it accordingly
@@ -733,5 +897,6 @@ export default class Person{
 		//const inputs = this.controls.querySelectorAll('input')
 		//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
 		this.controls.innerHTML = ''
+		setTimeout( ()=> this.controls.classList.toggle("showing",false), 303 )
 	}
 }
