@@ -19,7 +19,7 @@ const flipHorizontally = true
 
 const now = ()=> Date.now() || Performance.now
 
-const {PI,sqrt, atan2, cos, tan, sin} = Math
+const {PI, sqrt, atan2, cos, tan, sin} = Math
 const TAU = PI * 2
 const HALF_PI = PI * 0.5
 
@@ -27,6 +27,13 @@ const HALF_PI = PI * 0.5
 const RATIO_OF_MOUTH_TO_FACE = 0.25
 const EYE_CLOSED_AT = 20.2 //.5
 const PITCH_SCALE = 8
+
+// What the face is observing in a cone shape...
+const fieldOfView = (dfov, w, h) => {
+    const hypothenuse = sqrt( w ** 2 + h ** 2 )
+    const tan_dfov = tan(dfov / 2)
+    return [2 * atan(w * tan_dfov / hypothenuse), 2 * atan(h * tan_dfov / hypothenuse)]
+}
 
 // cheaper than TAN
 const twist = (value, amount=0) => {
@@ -96,10 +103,18 @@ const predict = async (inputElement,model) => {
 			// more than likely there is a face on the screen :P
 			const {boundingBox, mesh, scaledMesh, annotations} = prediction
 			const {bottomRight, topLeft} = boundingBox
-
+			
 			// Nose
 			const {noseTip, noseBottom, noseRightCorner} = annotations
 			//const {rightCheek,leftCheek, silhouette} = annotations
+
+			// Useful landmarks on the face
+			const centerOfHead = scaledMesh[168]
+            const forehead = scaledMesh[10]
+
+			// Triangulate view cone
+			// const depth = 0.06 * FOCAL_LENGTH * canvas.width / MAX_WIDTH / sqrt((centerX - forehead[0]) ** 2 + (centerY - forehead[1]) ** 2 )
+			// const depth = IRIS_SIZE * FOCAL_LENGTH * canvas.width / MAX_WIDTH / diameter;
 
 			// we can use the bounding box or actual face mesh coords
 			const topOfHead = scaledMesh[109] //topLeft[1]
@@ -107,7 +122,7 @@ const predict = async (inputElement,model) => {
 
 			// size of head from chin to top
 			// const headHeight = bottomOfHead[1] - topOfHead[1]
-			const headHeight =	Math.sqrt(
+			const headHeight = sqrt(
 				(bottomOfHead[0] - topOfHead[0]) ** 2 + 
 				(bottomOfHead[1] - topOfHead[1]) ** 2
 			)
@@ -126,19 +141,20 @@ const predict = async (inputElement,model) => {
 			const midwayBetweenEyesX = midPoint[0] 
 			const midwayBetweenEyesY = midPoint[1] 
 			
-			// const distanceBetweenEyes = Math.abs(irisLeft[0] - irisRight[0])
-			const distanceBetweenEyes =	Math.sqrt(
+			// const distanceBetweenEyes = abs(irisLeft[0] - irisRight[0])
+			const distanceBetweenEyes =	sqrt(
 				(irisLeftX[0] - irisRightX[0]) ** 2 + 
 				(irisLeftX[1] - irisRightX[1]) ** 2
 			)
 			
+			// Are we looking right or left?
 			const lookingRight = irisLeftX[2] < irisRightX[2]
 
 			// -1 -> +1
 			const eyeDirection = (2 * ( midPoint[0] - irisLeftX[0] ) / distanceBetweenEyes) - 1
 
 			// Now eyes open calcs
-			const eyeSocketHeight = Math.sqrt(
+			const eyeSocketHeight = sqrt(
 				( leftEyeUpper1[ 3 ][ 0 ] - rightEyeUpper1[ 3 ][ 0 ] ) ** 2 +
 				( leftEyeUpper1[ 3 ][ 1 ] - rightEyeUpper1[ 3 ][ 1 ] ) ** 2 +
 				( leftEyeUpper1[ 3 ][ 2 ] - rightEyeUpper1[ 3 ][ 2 ] ) ** 2
@@ -146,12 +162,12 @@ const predict = async (inputElement,model) => {
 			const eyeScale = eyeSocketHeight / 80
 
 			// Check for eyes closed
-			const leftEyesDist = Math.sqrt(
+			const leftEyesDist = sqrt(
 				( leftEyeLower1[ 4 ][ 0 ] - leftEyeUpper1[ 4 ][ 0 ] ) ** 2 +
 				( leftEyeLower1[ 4 ][ 1 ] - leftEyeUpper1[ 4 ][ 1 ] ) ** 2 +
 				( leftEyeLower1[ 4 ][ 2 ] - leftEyeUpper1[ 4 ][ 2 ] ) ** 2
 			)
-			const rightEyesDist = Math.sqrt(
+			const rightEyesDist = sqrt(
 				( rightEyeLower1[ 4 ][ 0 ] - rightEyeUpper1[ 4 ][ 0 ] ) ** 2 +
 				( rightEyeLower1[ 4 ][ 1 ] - rightEyeUpper1[ 4 ][ 1 ] ) ** 2 +
 				( rightEyeLower1[ 4 ][ 2 ] - rightEyeUpper1[ 4 ][ 2 ] ) ** 2

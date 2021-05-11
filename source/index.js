@@ -30,7 +30,7 @@ import {
 	
 import {
 	setLoadProgress, getLoadProgress,
-	showPlayerSelector,
+	showPlayerSelector, showError,
 	video,isVideoVisible,toggleVideoVisiblity,
 	setToggle, setButton, 
 	setupMIDIButton, 
@@ -42,11 +42,18 @@ import {
 } from './ui'
 
 import { 
-	takePhotograph,setupImage, getCanvasDimensions,
-	copyCanvasToClipboard, 
-	overdraw, setNodeCount, updateCanvasSize, clear, canvas, 
-	drawWaves, drawBars, drawQuantise, drawElement 
-} from './visual/visual'
+	updateCanvasSize, copyCanvasToClipboard, 
+	getCanvasDimensions, overdraw, clear, canvas
+} from './visual/canvas'
+
+import { 
+	takePhotograph,setupImage,
+	setNodeCount, 
+	drawQuantise, drawElement 
+} from './visual/2d'
+
+import { drawWaves, drawBars } from './visual/spectrograms'
+
 
 import { getReferer, getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
@@ -414,9 +421,9 @@ const loadCamera = async (deviceId, name="Default") => {
 		if (deviceId && deviceId.length > 0)
 		{
 			store.setItem( 'camera', {deviceId} )
-			console.log( deviceId, "Camera id saved")
+			//console.log( deviceId, "Camera id saved")
 		}else{
-			console.log( deviceId, "Camera unfound", {video,deviceId})
+			//console.log( deviceId, "Camera unfound", {video,deviceId})
 		}
 		 
 		track('Action', {category:'Camera', label:name, value:deviceId})
@@ -431,10 +438,224 @@ const loadCamera = async (deviceId, name="Default") => {
 	return newCamera
 }
 
+
+const registerKeyboard = () => {
+	let numberSequence = ""
+
+	window.addEventListener('keydown', async (event)=>{
+
+		const isNumber = !isNaN( parseInt(event.key) )
+		switch(event.key)
+		{
+			case 'CapsLock':
+				ui.debug = !ui.debug
+				people.forEach( person => person.debug = ui.debug )
+				setToast(`DEBUG : ${ui.debug}`)
+				speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
+				break
+
+			case 'Space':
+				// read out last bit of help?
+				speak(document.getElementById('toast').innerText, true)
+				loadRandomInstrument() 
+				break
+
+			case 'ArrowLeft':
+				previousInstrument()
+				break
+
+			case 'ArrowRight':
+				nextInstrument() 
+				break
+
+			// change amount of bars
+			case 'ArrowUp':
+				let b = getBars() + 1
+				let bars = setBars( b )
+				let t = setTimeBetween( timePerBar() )
+		
+				console.error("bars---",bars,  b, t )
+				setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
+				break
+
+			case 'ArrowDown':
+				let ub = getBars() - 1
+				let ubars = setBars( ub )
+				let ut = setTimeBetween( timePerBar() )
+		
+				console.error("bars---", ubars, ub, ut )
+				setToast( `Bars ${ubars} / BPM : ${getBPM()}` )
+				break
+
+			case ',':
+				setNodeCount(-1)
+				break
+
+			case '.':
+				setNodeCount(1)
+				break
+
+			case 'a':
+				kit.kick()
+				break
+
+			case 'b':
+				ui.backingTrack = !ui.backingTrack
+				setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
+				break
+		
+			case 'c':
+				ui.clear = !ui.clear
+				break
+
+			case 'd':
+				kit.hat()
+				break
+
+			case 'e':
+				kit.clack()
+				break
+
+			case 'f':
+				toggleVisibility(document.getElementById("shared-controls") )
+				break
+
+			case 'g':
+				const isVisisble = toggleVisibility(document.getElementById("feedback") )
+				toggleVisibility(document.getElementById("toast") )
+				ui.text = isVisisble
+				break
+
+			case 'h':
+				toggleVisibility(canvas)
+				break
+
+			case 'j':
+				toggleVisibility(video)
+				break
+
+			// kid mode / advanced mode toggle
+			case 'k':
+				//doc.documentElement.classList.toggle('advanced', advancedMode)
+				//doc.documentElement.classList.toggle(CSS_CLASS, false)
+				break
+
+			case 'm':
+				ui.metronome = !ui.metronome
+				setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+				break
+
+			case 'q':
+				setMasterVolume( isMuted ? 1 : 0 )
+				isMuted = !isMuted
+				break
+		
+			case 'r':
+				if (!isRecording())
+				{
+					setToast("Recording START")
+					console.error("Recording START", audio)
+					recorder = await startRecording(audio)
+					console.error("Recording...", recorder)
+				
+				}else{
+					console.error("Recording END", recorder)
+					setToast( `Recording Ended - now encoding` )
+					stopRecording().then(recording=>{
+
+						const mp3 = encodeRecording(recording, 'audio/mp3;')
+						// Creating audio url with reference  
+						// of created blob named 'audioData' 
+						const audioSrc = window.URL.createObjectURL(mp3)
+						console.error("Recording END", {recording, audioSrc, mp3})
+					})
+				}
+				break
+
+			case 's':
+				kit.snare()
+				break
+
+			case 't':
+				ui.text = !ui.text
+				break
+
+
+			// Hide video
+			case 'v':
+				// FIXME: Alsoenable sync?
+				toggleVisibility(video)
+				break
+
+			case 'w':
+				kit.cowbell()
+				break
+		
+			case 'x':
+				// if the time since last one is too great clear?
+				const tappedTempo = tapTempo()
+				if (tappedTempo > 1)
+				{
+					setBPM(tappedTempo)
+				}
+				//console.log("tappedTempo",tappedTempo)
+				break
+		
+
+			case '?':
+				// toggle speech
+				ui.speak = !ui.speak
+				setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
+				break
+
+			// don't hijack tab you numpty!
+			// FILTER
+			case 'Tab':
+				break
+
+			default:
+				// check if it is numerical...
+				if (!isNumber)
+				{
+					loadRandomInstrument()
+					speak("Loading random instruments",true)	
+				}
+		}
+
+		// Check to see if it is a number
+		if (isNumber)
+		{
+			numberSequence += event.key
+			// now check to see if it is 3 numbers long
+			if (numberSequence.length === 3)
+			{
+				// this is a tempo!
+				const tempo = parseFloat(numberSequence)
+				console.log("Setting tempo to ", tempo)
+
+				setBPM(tempo)
+				// reset
+				numberSequence = ''
+			}
+
+		}else{
+
+			numberSequence = ''
+		}
+
+		// we run this when we want to 
+		addToHistory(ui, event.key)
+		console.log("key", ui, event)
+	})
+
+}
+
+//////////////////////////////////////////////////////////////////
 // This creates all the wiring 
+//////////////////////////////////////////////////////////////////
 const setup = async (update, settings, progressCallback) => {
 
-	const loadTotal = 5
+	const loadTotal = 7
 	let loadIndex = 0
 
 	// allow different domains to show different styles
@@ -448,7 +669,7 @@ const setup = async (update, settings, progressCallback) => {
 	try{
 		
 		setFeedback("Setting things up...<br>This can take a while!")
-		progressCallback(loadIndex++/loadTotal)
+		progressCallback(loadIndex++/loadTotal, "Setting things up...")
 
 		if (image)
 		{
@@ -456,7 +677,7 @@ const setup = async (update, settings, progressCallback) => {
 			photo = await setupImage(image)
 		}
 		
-		progressCallback(loadIndex++/loadTotal)
+		progressCallback(loadIndex++/loadTotal, "Looking for cameras")
 
 		// wait for video or image to be loaded!
 		if (video)
@@ -509,7 +730,7 @@ const setup = async (update, settings, progressCallback) => {
 			}
 			
 			setFeedback( "Camera connected", 0 )
-			progressCallback(loadIndex++/loadTotal)
+			progressCallback(loadIndex++/loadTotal, "Camera connected")
 		}
 		
 		// at this point the video dimensions are accurate
@@ -542,7 +763,7 @@ const setup = async (update, settings, progressCallback) => {
 		const newVolume = savedVolume ? savedVolume.volume : 1
 		audio = setupAudio()
 		
-		console.log("Initiating audio", {newVolume,savedVolume, audio})
+		//console.log("Initiating audio", {newVolume,savedVolume, audio})
 		
 		// if (instrument)
 		// {
@@ -590,8 +811,7 @@ const setup = async (update, settings, progressCallback) => {
 				main.classList.add('midi','no-instrument')
 				setFeedback("MIDI available<br>Connect a MIDI instrument <strong>and click the button</strong>", 0)
 			}
-			progressCallback(loadIndex++/loadTotal)
-
+			
 		}catch(error){
 			// no midi - don't show midi button
 			console.log("no MIDI!", error)
@@ -599,8 +819,10 @@ const setup = async (update, settings, progressCallback) => {
 			main.classList.add('midi-unavailable')
 			setFeedback("MIDI unavailable, or no instrument connected<br>"+error, 0)
 		}
+		progressCallback(loadIndex++/loadTotal, "MIDI Located")
 
 	}else{
+		progressCallback(loadIndex++/loadTotal)
 
 		main.classList.add('midi-unavailable')
 		setFeedback("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
@@ -926,7 +1148,7 @@ const setState = ( key, value, saveHistory=true )=>{
 
 const load = async (settings, progressCallback) => {
 
-	const loadTotal = 5
+	const loadTotal = 3
 	let loadIndex = 0
 	
 	progressCallback(loadIndex++/loadTotal)
@@ -1079,7 +1301,12 @@ const onLoaded = async () => {
 	body.classList.toggle("loading", false)
 	body.classList.toggle("loaded", true)
 	body.classList.toggle("searching-for-user", true)
+
+	// wait for the user - show some visual cues
 	lookForUser()
+
+	// monitor keyboard events
+	registerKeyboard()
 
 	// focus app?
 	setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
@@ -1160,7 +1387,7 @@ const options = Object.assign( {}, SETTINGS, {} )
 // now load dependencies and show progress
 load(options, (progress, message) => {
 	
-	//console.log("Loading", progress, progressBar )
+	//console.log("Loading A Side", progress )
 	setLoadProgress( progress, message )
 
 }).then( async update =>{ 
@@ -1205,7 +1432,7 @@ load(options, (progress, message) => {
 	// any custom overrides (shouldn't be needed : use query strings)
 	return setup( update, options, progress => {
 		
-		//console.log("Loading", progress, progressBar )
+		// console.log("Loading B Side", progress )
 		setLoadProgress(progress)
 	})
 
@@ -1215,7 +1442,9 @@ load(options, (progress, message) => {
 	focusApp()
 })
 .catch( error => {
-	console.error("Could not load", error )
+
+	// show an on screen error message with the codes...
+	showError(error, "Try hard refresh")
 })
 
 
@@ -1231,7 +1460,6 @@ window.onbeforeunload = ()=>{
 	//store.setItem(person.name, {instrument})
 	setToast("bye bye!")
 	setFeedback("<strong>I hope you had fun!</strong>")
-
 }
 
 // document.addEventListener( "contextmenu", (e) => {
@@ -1245,219 +1473,6 @@ window.oncontextmenu = () => {
 	// restart counter?
     //return false     // cancel default menu
 }
-// ---- Other forms of input -----
-
-// now wire up the bits...
-// canvas.addEventListener('mousedown',loadRandomInstrument )
-// video.addEventListener('mousedown', loadRandomInstrument )
-
-let numberSequence = ""
-
-window.addEventListener('keydown', async (event)=>{
-
-	const isNumber = !isNaN( parseInt(event.key) )
-	switch(event.key)
-	{
-		case 'CapsLock':
-			ui.debug = !ui.debug
-			people.forEach( person => person.debug = ui.debug )
-			setToast(`DEBUG : ${ui.debug}`)
-			speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
-			break
-
-		case 'Space':
-			// read out last bit of help?
-			speak(document.getElementById('toast').innerText, true)
-			loadRandomInstrument() 
-			break
-
-		case 'ArrowLeft':
-			previousInstrument()
-			break
-
-		case 'ArrowRight':
-			nextInstrument() 
-			break
-
-		// change amount of bars
-		case 'ArrowUp':
-			let b = getBars() + 1
-			let bars = setBars( b )
-			let t = setTimeBetween( timePerBar() )
-	
-			console.error("bars---",bars,  b, t )
-			setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
-			break
-
-		case 'ArrowDown':
-			let ub = getBars() - 1
-			let ubars = setBars( ub )
-			let ut = setTimeBetween( timePerBar() )
-	
-			console.error("bars---", ubars, ub, ut )
-			setToast( `Bars ${ubars} / BPM : ${getBPM()}` )
-			break
-
-		case ',':
-			setNodeCount(-1)
-			break
-
-		case '.':
-			setNodeCount(1)
-			break
-
-		case 'a':
-			kit.kick()
-			break
-
-		case 'b':
-			ui.backingTrack = !ui.backingTrack
-			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
-			break
-	
-		case 'c':
-			ui.clear = !ui.clear
-			break
-
-		case 'd':
-			kit.hat()
-			break
-
-		case 'e':
-			kit.clack()
-			break
-
-		case 'f':
-			toggleVisibility(document.getElementById("shared-controls") )
-			break
-
-		case 'g':
-			const isVisisble = toggleVisibility(document.getElementById("feedback") )
-			toggleVisibility(document.getElementById("toast") )
-			ui.text = isVisisble
-			break
-
-		case 'h':
-			toggleVisibility(canvas)
-			break
-
-		case 'j':
-			toggleVisibility(video)
-			break
-
-		// kid mode / advanced mode toggle
-		case 'k':
-			//doc.documentElement.classList.toggle('advanced', advancedMode)
-			//doc.documentElement.classList.toggle(CSS_CLASS, false)
-			break
-
-		case 'm':
-			ui.metronome = !ui.metronome
-			setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
-			break
-
-		case 'q':
-			setMasterVolume( isMuted ? 1 : 0 )
-			isMuted = !isMuted
-			break
-	
-		case 'r':
-			if (!isRecording())
-			{
-				setToast("Recording START")
-				console.error("Recording START", audio)
-				recorder = await startRecording(audio)
-				console.error("Recording...", recorder)
-			
-			}else{
-				console.error("Recording END", recorder)
-				setToast( `Recording Ended - now encoding` )
-				stopRecording().then(recording=>{
-
-					const mp3 = encodeRecording(recording, 'audio/mp3;')
-					// Creating audio url with reference  
-					// of created blob named 'audioData' 
-					const audioSrc = window.URL.createObjectURL(mp3)
-					console.error("Recording END", {recording, audioSrc, mp3})
-				})
-			}
-			break
-
-		case 's':
-			kit.snare()
-			break
-
-		case 't':
-			ui.text = !ui.text
-			break
-
-
-		// Hide video
-		case 'v':
-			// FIXME: Alsoenable sync?
-			toggleVisibility(video)
-			break
-
-		case 'w':
-			kit.cowbell()
-			break
-	
-		case 'x':
-			// if the time since last one is too great clear?
-			const tappedTempo = tapTempo()
-			if (tappedTempo > 1)
-			{
-				setBPM(tappedTempo)
-			}
-			//console.log("tappedTempo",tappedTempo)
-			break
-	
-
-		case '?':
-			// toggle speech
-			ui.speak = !ui.speak
-			setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
-			break
-
-		// don't hijack tab you numpty!
-		// FILTER
-		case 'Tab':
-			break
-
-		default:
-			// check if it is numerical...
-			if (!isNumber)
-			{
-				loadRandomInstrument()
-				speak("Loading random instruments",true)	
-			}
-	}
-
-	// Check to see if it is a number
-	if (isNumber)
-	{
-		numberSequence += event.key
-		// now check to see if it is 3 numbers long
-		if (numberSequence.length === 3)
-		{
-			// this is a tempo!
-			const tempo = parseFloat(numberSequence)
-			console.log("Setting tempo to ", tempo)
-
-			setBPM(tempo)
-			// reset
-			numberSequence = ''
-		}
-
-	}else{
-
-		numberSequence = ''
-	}
-
-	// we run this when we want to 
-	addToHistory(ui, event.key)
-	console.log("key", ui, event)
-})
 
 // URL has been updated internally
 window.addEventListener('popstate', (event) => {
@@ -1482,7 +1497,6 @@ window.addEventListener('popstate', (event) => {
 // 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
 // 	const volume = getVolume()
 // 	//const result = setMasterVolume(volume + wheel)
-
 
 // 	console.log("mouse wheel",{ wheel, volume, result}, event)	
 // })

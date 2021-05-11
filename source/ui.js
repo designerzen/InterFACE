@@ -16,6 +16,7 @@ export const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+
 const doc = document
 
 let loadMeter = 0
+const LOAD_MESSAGES = ["Please wait", "Loading.","Loading..","Loading...", "Almost done!"]
 const progressMessage = doc.getElementById("progress-bar")
 const progressBar = doc.querySelector('progress')
 export const setLoadProgress = (progress, message) => {
@@ -23,6 +24,16 @@ export const setLoadProgress = (progress, message) => {
 	progressBar.setAttribute("value", parseInt(progress) )
 	if (message && message.length)
 	{
+		
+	}else{
+		// get prescripted from list...
+		message = LOAD_MESSAGES[ Math.ceil(progress * (LOAD_MESSAGES.length-1)) ]	
+	}
+	console.log("load", {progress, message} , Math.ceil(progress * LOAD_MESSAGES.length), LOAD_MESSAGES)
+	
+	if (progressMessage.innerHTML !== message)
+	{
+		// only change label text not the input field too?
 		progressMessage.innerHTML = message
 	}
 }
@@ -331,9 +342,15 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 		resolve(result > 1)
 	}
 
-	solo.addEventListener("click", event => players = (1) )
-	duet.addEventListener("click", event => players = (2) )
-	trio.addEventListener("click", event => players = (3) )
+	const setPlayers = amount => {
+		players = amount
+		doc.documentElement.classList.remove("solo", "duet")
+		doc.documentElement.classList.add( players === 1 ? "solo" : "duet")
+	}
+
+	solo.addEventListener("click", event => setPlayers(1) )
+	duet.addEventListener("click", event => setPlayers(2) )
+	trio.addEventListener("click", event => setPlayers(3) )
 
 	advanced.addEventListener("change", event =>{ 
 		advancedMode = !advancedMode 
@@ -352,7 +369,9 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 		return false
 	}, true)
 
+	// set defaults
 	main.classList.toggle("beginner", !advancedMode)
+	setPlayers(players)
 	panel.focus()
 })
 
@@ -404,8 +423,6 @@ export const setupInterface = ( options ) => {
 	
 	// title.innerHTML = "The InterFACE is ready, open your mouth to begin"
 	// Show the release date on the UI somewhere...
-	
-
 	const versionElement = doc.getElementById("version")
 	const currentVersion = versionElement.innerHTML
 	versionElement.innerHTML = `${currentVersion} <span id="release">${formattedDate}</span>`
@@ -430,4 +447,9 @@ export const setupInterface = ( options ) => {
 ////////////////////////////////////////////////////////////////////
 export const focusApp = ()=>{ 
 	
+}
+
+export const showError = (error, solution) => {
+	console.error("Could not load", error )
+	console.warn("Try", solution )
 }
