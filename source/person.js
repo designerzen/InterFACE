@@ -10,7 +10,7 @@ import {
 	clear,
 	drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
 	drawText,drawParagraph, drawInstrument, drawFaceMesh
-} from './visual/visual'
+} from './visual/2d'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
