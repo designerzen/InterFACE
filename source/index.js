@@ -3,7 +3,7 @@
 // Best used with the Looking Glass Portrait
 
 // TODO: Lazy load more of these...
-import {midiLikeEvents} from './timing/rhythm'
+// import {midiLikeEvents} from './timing/rhythm'
 import { installer} from './install.js'
 import { createStore} from './store'
 import { say, hasSpeech} from './audio/speech'
@@ -17,7 +17,6 @@ import {
 	getVolume, setVolume, setAmplitude } from './audio/audio'
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI, testForMIDI } from './audio/midi-out'
-
 
 import { 
 	tapTempo,
@@ -51,7 +50,7 @@ import {
 
 import { drawWaves, drawBars, drawElement } from './visual/spectrograms'
 
-import {drawQuantise} from './visual/quantise'
+import { drawQuantise } from './visual/quantise'
 
 import { getReferer, getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
@@ -61,7 +60,7 @@ import { playNextPart, kitSequence } from './timing/patterns'
 import { getInstruction, getHelp } from './models/instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { VERSION } from './version'
-import Person, {DEFAULT_OPTIONS, NAMES, EYE_COLOURS} from './person'
+import Person, { DEFAULT_OPTIONS, NAMES, EYE_COLOURS } from './person'
 import { TAU } from "./maths"
 
 // DOM Elements
@@ -70,7 +69,7 @@ const main = document.querySelector("main")
 const image = document.querySelector("img")
 
 // Record stuff
-const {isRecording, startRecording, stopRecording} = record()
+const { isRecording, startRecording, stopRecording } = record()
 
 const store = createStore()
 
