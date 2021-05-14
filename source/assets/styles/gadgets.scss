@@ -1,35 +1,77 @@
 // voicemail-24px
 
-%button-style{
-	
+%text-glow{
 	// inset
 	text-shadow: rgba($col-white,0.4) 0 0px 1px,
 				rgba($col-white,0.3) 0 0.5px 1px,
 				rgba($col-cream,0.2) 0 1px 1px,
 				rgba($col-cream,0.1) 0 1.5px 1px;
 
+	
+}
+
+%drop-shadow{
+	box-shadow:/* inset 0px 0px calc(1 * var(--button-border-size)) rgba($col-white, 0.8 ),*/
+				rgba($col-dark,0.8) 0 0px 2px,
+				rgba($col-dark,0.6) 0 0.5px 2px,
+				rgba($col-dark,0.4) 0 1px 2px,
+				rgba($col-dark,0.2) 0 1.5px 2px;
+	
+}
+
+%button-style{
+	
+	@extend %text-glow;
 	// only for larger sizes?
 	// this softens the border and adds a soft dropshadow
-	box-shadow: inset 0px 4px calc(2 * var(--border-size)) $col-white,
-				rgba($col-dark,0.4) 0 0px 2px,
-				rgba($col-dark,0.3) 0 0.5px 2px,
-				rgba($col-dark,0.2) 0 1px 2px,
-				rgba($col-dark,0.1) 0 1.5px 2px;
+	@extend %drop-shadow;
+
 	
 	// custom border - light from top right
-	border:var(--button-border-size) solid rgba($col-brown, 0.9);
-	border-top-color: rgba($col-white, 0.6 );
-	border-left-color: rgba($col-white, 0.3);
-	border-right-color: rgba($col-white, 0.7);
+	border:var(--button-border-size) solid rgba($col-brown, 0.5);
+	border-top-color: rgba($col-white, 0.3 );
+	border-right-color: rgba($col-white, 0.34 );
+	border-left-color: rgba($col-white, 0.15);
+	
+	
+	// each corner has a gradient too
+	// border-image: 
+	// 	linear-gradient(
+	// 		var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
+	// 		var(--col-bottom, hsla(0, 0%, 0%, 0.3) )
+	// 	),
+	// 	radial-gradient(
+	// 		at top left,
+	// 		var(--col-top), var(--col-bottom)
+	// 	),
+	// 	radial-gradient(
+	// 		at top right,
+	// 		var(--col-top), var(--col-bottom)
+	// 	),
+	// 	radial-gradient(
+	// 		at bottom left,
+	// 		var(--col-top), var(--col-bottom)
+	// 	), 
+	// 	radial-gradient(
+	// 		at bottom right,
+	// 		var(--col-top), var(--col-bottom)
+	// 	);
+		
+	// this overscales the border to make it darker!
+	//border-image-outset: 4px;
+
+	// border-image-repeat: repeat;
 
 	border-radius:var(--button-curve, 16px);
 
+	outline:var(--button-border-size) solid transparent;
+	outline-offset: -1px;
 	padding:var(--pad);
 
 	// start with dark text
 	color:$col-dark;
 	background-color:var(--col-bg);
-	background-image: var(--bg),
+	background-image:var(--bg),
 					 // url(./assets/textures/45-degree-fabric-light.png),
 					linear-gradient( 
 						var(--col-top, rgba(255,255,255, 0.3) ), 
@@ -58,17 +100,20 @@
 
 	transition:transform var(--fade-speed) $easeOutBack,
 				background-color var(--fade-speed) linear, 
-				color var(--fade-speed) linear;
+				color var(--fade-speed) linear,
+				border-color var(--fade-speed) linear,
+				outline-color var(--fade-speed) linear;
 
 	
 	&:hover, &:focus{
 		
-		--col-bottom:#{rgba($col-white, 0.25)};
-		--col-top:#{rgba($col-dark, 0.25)};
-		// border:var(--button-border-size) solid rgba($col-white, 0.9);
+		--col-bottom:#{rgba($col-dark, 0.5)};
+		--col-top:#{rgba($col-white, 0.5)};
+
+		border:var(--button-border-size) solid rgba($col-white, 0.8);
 		// border-top-color: rgba($col-brown, 0.6 );
-		border-left-color: rgba($col-white, 0.4);
-		border-right-color: rgba($col-white, 0.8);
+		// border-left-color: rgba($col-white, 0.4);
+		border-right-color: rgba($col-white, 0.9);
 		border-bottom-color: rgba($col-white, 0.7);
 	
 		background-color:var(--col-hover);
@@ -76,6 +121,12 @@
 					rgba($col-dark,0.3) 0 0.5px 1px,
 					rgba($col-dark,0.2) 0 1px 1px,
 					rgba($col-dark,0.1) 0 1.5px 1px;
+					
+		box-shadow:/* inset 0px 0px calc(1 * var(--button-border-size)) rgba($col-white, 0.8 ),*/
+					rgba($col-dark,0.8) 0 0px 2px,
+					rgba($col-dark,0.6) 0 0.5px 2px,
+					rgba($col-dark,0.4) 0 1px 2px,
+					rgba($col-dark,0.2) 0 1.5px 2px;
 
 		&:before{
 			opacity:1;
@@ -83,23 +134,40 @@
 		}
 	}
 	
+	// on hold...
 	&:active{
-		background-color: $col-orange;
+		--col-hover: $col-orange;
 		--col-top:#{$col-tan};
 		--col-bottom:#{$col-grey};
 	}
 
-	&:focus{
-		// outline:3px solid $col-orange;
-		// outline-offset:-3px;
-		z-index:808;	
 
+	// on hold...
+	&:active:focus{
+		--col-hover: $col-grey;
+		--col-top:#{$col-orange};
+		--col-bottom:#{$col-red};
+	}
+
+	&:focus{
+		outline-color:$col-orange;
+		// outline-offset:calc( -1 * var(--button-border-size) );
 		// pop to front
+		z-index:808;
 		select{
 			z-index:909;
 		}
 	}
 }
+.hide-text{
+	// %image-replacement
+	text-indent: -9999px;
+	overflow:hidden;
+	color:transparent;
+	text-shadow:none;
+	white-space: pre;
+	font-size: 0;
+}	
 
 // Loading progress	
 label#progress-bar{
@@ -144,7 +212,7 @@ label[for=button-duet],
 
 	--icon-size:32px;
 	--fade-speed:var(--ease-q);
-
+	// calc(var(--pad) - var(--border-size))
 	--pos: left var(--pad) center;
 	--button-border-size:2px;
 	--button-curve:clamp(2px, 1vmin, 6px);
@@ -387,26 +455,39 @@ label[for=button-start],
 
 // Overlay buttons
 #shared-controls{
-
+	
 	// backgrounds
 	--col-regular:#{$col-dark};
 	--col-hover:#{$col-orange};
 	--col-select:#{$col-yellow};
-	
+
+	// we swap this to absolute when we want to window it
+	position: fixed;
+	margin:0;
+
 	bottom:0;
-	// position:fixed;
 	left:0;
 	//right:0;
+	
+	gap: 1px;
+
 	min-width:100vw;
+	max-width:100%;
 
 	visibility:hidden;
 	align-items: stretch;
 	justify-content: stretch;
 	pointer-events: auto;
 	
-	background-image: 	url(./assets/textures/bedge-grunge.png),
-						linear-gradient( $col-cream, $col-grey );
-	
+	// background-image: 	url(./assets/textures/bedge-grunge.png),
+	// 					linear-gradient( 
+	// 						$col-tan, 
+	// 						$col-dark 
+	// 					);
+	background-image:linear-gradient(
+		hsla(18, 21%, 12%, 0.7), 
+		hsla(340, 5%, 11%, 0.7)
+	);
 	// background-image: url(./assets/textures/45-degree-fabric-light.png),
 	// 					linear-gradient( fade($col-cream, 0.5), fade($col-grey, 0.5));
 	
@@ -421,8 +502,10 @@ label[for=button-start],
 		
 	// }
 
-	// we swap this to absolute when we want to window it
-	position: fixed;
+
+	//  > * + *{
+	//  	border-left:1px solid $col-dark;
+	// }
 
 	// sometimes the label takes focus making interaction difficult
 	label{
@@ -452,7 +535,7 @@ label[for=button-start],
 		// Indicator
 		&:after{
 			background-color: var(--col-select, $col-orange);
-			opacity:0.5;
+			opacity:0;
 			content:'';
 			display: block;
 			position: absolute;
@@ -498,8 +581,6 @@ label[for=button-start],
 
 	label, button{
 		// labels can collapse without text to expand them
-		text-transform: uppercase;
-	
 		border-radius:5px 5px 0 0;
 		//border-left:0;
 		// border-right-color:$col-white;
@@ -519,7 +600,7 @@ label[for=button-start],
 
 		&:focus{
 			outline:2px solid $col-orange;
-			outline-offset: -3px;
+			//outline-offset: -3px;
 		}
 
 		&.checked,
@@ -576,9 +657,6 @@ label[for=button-start],
 		// padding-right:20px;
 	}
 
-	// > * + *{
-	// 	border-left:1px groove $col-white;
-	// }
 	
 	label:not(:last-child),
 	button:not(:last-child){
@@ -596,7 +674,7 @@ label[for=button-start],
 	}
 
 	label[for="button-quantise"]{
-		--col-select:#{$col-yellow};
+		--col-select:#{$col-blue};
 		--col-hover:#{$col-blue};
 		--bg:url(./assets/icons/grid_off-24px.svg);
 		&.checked{
@@ -670,6 +748,11 @@ label[for=button-start],
 		}
 	}
 
+	// we have the top left nav button instead here?
+	#button-help{
+		display: none;
+	}
+
 	label[for="button-transparent"]{
 		// only display between certain sizes?
 		display: none;
@@ -730,19 +813,20 @@ input[type=radio]{
 // }
 
 // replace regular with a classic radio style toggle button
+// square emerald with a big tick
 input[type=checkbox]{
 
+	appearance: none;
 	display: inline-block;
 	background-color:$col-dark;
-	background:linear-gradient( $col-gray, $col-dark );
+	background:linear-gradient( $col-green, $col-gray );
+		
 	border:var(--button-border-size) solid rgba($col-brown, 0.9);
 	border-top-color: rgba($col-white, 0.6 );
 	border-left-color: rgba($col-white, 0.3);
 	border-right-color: rgba($col-white, 0.7);
-	// filthy hack
-	margin-top: -1rem;
-    margin-bottom: -0.5rem;
-	margin-left:1rem;
+	border-radius:3px;
+	margin-left:var(--pad);
 	//border-radius:999px;
 	
 	// from ios guidelines
@@ -752,16 +836,107 @@ input[type=checkbox]{
 
 	padding:var(--pad);
 
+	// FIXME:
 	&:checked{
 		background-color:$col-red;
-		background:linear-gradient( $col-gray, $col-dark ), linear-gradient( $col-dark, $col-gray );
+		background:linear-gradient( $col-red, $col-dark );
+	
 		background-size:80%, 100%;
+
+		&:before, &:after{
+			content:'✔';
+			position: absolute;
+			// top:0;
+			left:0;
+			right:0;
+			bottom:0.5rem;
+			color:$col-white;
+			text-align: center;
+			font-size: 200%;
+			line-height: 0;
+			@extend %text-glow;
+		}
+		&:before{
+			color:$col-red;
+		}
 	}
 
 	&:focus{
-		border-color:$col-orange;
+		//border-color:$col-orange;
+		outline:1px solid $col-orange;
 	}
 }
+
+// different kind of switchbox for one toggle only
+input[type=checkbox].switch{
+
+	--width:4rem;
+	--col-top:#{$col-tan};
+	--col-bottom:#{$col-grey};
+
+	background-color:$col-gray;
+	//background:linear-gradient( $col-green, $col-gray );
+	background:linear-gradient( to right, rgba($col-grey, 0.5), rgba( $col-cream, 0.5) );
+	width:var(--width);
+	position: relative;
+	box-sizing: border-box;
+	border-radius:99px;	
+	
+	&:before, &:after{
+		content:'';
+		box-sizing: border-box;
+		font-weight:900;
+	}
+	
+	// knob
+	&:before{
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		content:'OFF';
+		@extend %drop-shadow;
+		color:$col-white;
+		position:absolute;
+		left:0;
+		height:100%;
+		text-align: center;
+
+		top:0;
+		width:calc( var(--width) / 2 );
+		font-size: 8px;
+		border-radius:99px;
+		border:calc( 0.5 * var(--button-border-size,4px)) solid $col-white;
+		background-color:$col-gray;
+		background-image:linear-gradient($col-dark, $col-gray);
+		transition:transform 195ms $easeOutBack;
+	}
+
+	&:checked{
+		background-color:$col-orange;
+		//background:linear-gradient( to right, $col-green, $col-green );
+		background-size:80%, 100%;
+
+		// 
+		&:before{
+			content:'ON';
+			//color:$col-green;
+			//border-color:$col-cream;
+			transform: translateX(50%);
+			background-image:linear-gradient($col-green, $col-gray);
+		}
+	}
+
+	&:focus{
+		outline:0;
+		border:var(--button-border-size) solid rgba($col-brown, 0.7);
+		border-top-color: rgba($col-white, 0.4 );
+		border-left-color: rgba($col-white, 0.2);
+		border-right-color: rgba($col-white, 0.5);
+	}
+}
+
+
+
 input[type=submit]{
 	background:transparent;
 	font:inherit;
@@ -819,8 +994,6 @@ button.person{
 		}
 	}
 }
-
-	
 
 // move into position
 button#person-a{
@@ -919,8 +1092,10 @@ button#button-photograph{
 	--col-hover:#{$col-blue};
 	--bg:url(./assets/icons/add_a_photo-24px.svg);
 }
+
 label[for="button-trio"]{
 	display:none;
+	--bg:url(./assets/icons/groups-24px.svg);
 }
 
 // These need overrides for size
@@ -934,8 +1109,7 @@ button#button-trio{
 }
 label[for="button-solo"],
 button#button-solo{
-	--col-bg: #{$col-yellow};
-	--col-hover:#{$col-orange};
+	--col-bg: #{$col-green};
 	--bg:url(./assets/icons/person-24px.svg);
 	--y:100%;
 }
@@ -943,28 +1117,44 @@ button#button-solo{
 label[for="button-duet"],
 button#button-duet{
 	--col-bg: #{$col-blue};
-	--col-hover:#{$col-orange};
 	--bg:url(./assets/icons/people-24px.svg);
 	--y:-100%;
 }
 
 label[for="button-start"]{
-	margin-top:-1.5rem;
-	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(5 * var(--pad));
+	margin-top:-2.5rem;
+	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
+	
 	--col-bg: #{$col-orange};
-	--col-hover:#{$col-red};
+	--col-hover:#{$col-cream};
+
 	--button-border-size:4px;
 	--bg:url(./assets/icons/music_note-24px.svg);
-	--pos-override:left;
+	--pos-override:left var(--pad) center;
 	z-index:909;
 	border-radius:0;
+
+	input{
+		position: absolute;
+		top:0;
+		right:0;
+		opacity: 0;
+	}
+}
+
+.solo label[for="button-start"]{
+	--bg:url(./assets/icons/person-24px.svg);
+}
+
+.duet label[for="button-start"]{
+	--bg:url(./assets/icons/people-24px.svg);
 }
 
 button#button-help{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
 	--col-hover:#{$col-blue};
-	--bg:url(./assets/icons/people-24px.svg);
+	--bg:url(./assets/icons/help_outline_black_24dp.svg);
 	//display: none;
 }
 button#button-metronome{
@@ -1065,11 +1255,12 @@ label[for="select-camera"],
 
 // Player selection screen
 #player-selector{
-	--top-gap:clamp(40px, 7vh, 80px);//clamp(1rem, 7vh, 5rem);
+	// size of the logo asnd help button
+	--top-gap:clamp(66px, 7vh, 15%);//clamp(1rem, 7vh, 5rem);
 	// prevents a button becoming an icon
 	--max-width-override:auto;
 	--border-radius:8px;
-	--border-size:4px;
+	--border-size:clamp(4px, 4vmax, 8px);
 	
 	text-align:center;
 	box-sizing: border-box;
@@ -1077,13 +1268,18 @@ label[for="select-camera"],
 	user-select: none;
 
 	border-radius:var(--border-radius);
-	border:var(--border-size) solid $col-gray;
-
+		
+	border-image: linear-gradient(
+		var(--shade-grey, hsla(0, 0%, 100%, 0.3) ), 
+		var(--shade-gray, hsla(0, 0%, 0%, 0.3) )
+	);
+	border-style: ridge;
+	
 	//margin:auto;// solid transparent;
 	margin-top:var(--top-gap);
 	//margin-bottom:var(--top-gap);
 	// margin:clamp(calc(var(--top-gap)),3vw,auto) auto;// solid transparent;
-	padding:calc(var(--pad)*2) calc(var(--pad));// var(--pad);
+	padding:calc(var(--pad)*2) calc(var(--pad) * 1.5);// var(--pad);
 	// margin-top:calc(var(--top-gap));// solid transparent;
 	// margin-bottom:calc(var(--top-gap));// solid transparent;
 	display:flex;
@@ -1093,7 +1289,7 @@ label[for="select-camera"],
 	justify-content: space-around;
 	// grid-gap:4px;
 	//min-height:calc( 100% - var(--top-gap) * 2);
-	max-width:42ch;
+	max-width:62ch;
 	max-height:100%;
 	
 	label{
@@ -1106,28 +1302,38 @@ label[for="select-camera"],
 		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
 
 		input{
-			
+			--col-hover:$col-blue;
+			// special border for these only
+			// border-image: linear-gradient(
+			// 	var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
+			// 	var(--col-bottom, hsla(0, 0%, 0%, 0.3) )
+			// );
+
+			// border-image:conic-gradient(from 90deg, #fff, #000);
+
 		}
 
 		// cool effect
 		&:after{
 			content: "";
 			z-index:-1;
-			opacity:0.6;
+			opacity:0;
 			background:var( --col-hover, rgba($col-white, 0.4) );
 			position: absolute;
 			top:0;
 			left: 0;
 			bottom:0;
 			right:0;
-			transform: scaleY(0);
-			transition: transform 50ms ease-out;
+			transform: scaleX(0);
+			transition: transform 45ms ease-out, opacity 90ms linear;
 		}
 		
 		&:hover, &:focus{
 			
 			&:after{
-				transform: scaleY(1);
+				transition: transform 150ms ease-out, opacity 150ms linear;
+				transform:none;
+				opacity:0.3;
 			}
 		}
 	}
@@ -1138,7 +1344,7 @@ label[for="select-camera"],
 
 	button, label{
 		--dir-override:column;
-		--pos-override: top var(--pad) center;
+		--pos-override: top calc(var(--pad) - var(--border-size)) center;
 		//--pos-override: top center;
 		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
 		// border-radius:24px;
@@ -1148,7 +1354,6 @@ label[for="select-camera"],
 		// color: $col-dark;
 		// background-color: $col-yellow;
 		justify-content: center;
-		text-transform: uppercase;
 		max-height: unset;
 
 		// prevent growing the button 
@@ -1166,11 +1371,15 @@ label[for="select-camera"],
 		border-top:1px solid $col-white;
 		background:transparent;
 		// align-self: center;
-		vertical-align: middle;
+		// vertical-align: middle;
+		display: flex;
+		align-items: center;
 	}
 
-	label{
-		--col-hover:#{$col-green};
+	label[for*="button-"]{
+		// hover colour should be neutral on label...
+		--col-hover:#{$col-gray};
+		
 		background:none;
 
 		&:before,
@@ -1194,5 +1403,141 @@ label[for="select-camera"],
 			animation-direction: normal, reverse;
 			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
 		}
+	}
+}
+
+
+
+// this holds nav to sections inc help and funding
+nav{
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	// 303 is the shared controls...
+	z-index:505;
+}
+
+nav ul{
+	
+	display: flex;
+	flex-direction: row-reverse;
+	justify-content: space-between;
+	align-items: flex-start;
+	list-style: none;
+	margin:0;
+	padding:0;
+
+
+	// prevent the whole thing stealing focus
+	pointer-events: none;
+	
+	// > * {
+	// 	opacity: 0.4;
+	// 	transition: opacity 95ms linear;
+	// }
+	// &:focus-within,
+	// &:hover{
+	// 	> * {
+	// 		opacity: 1;
+	// 	}
+	// }
+	
+	li{
+		pointer-events: auto;
+	}
+
+	li a{
+		text-align: center;
+	}
+
+	// however i do want all hover and focus withins to activaste the fund animation
+	&:focus-within,
+	&:hover{
+		// a[href="#fund"]{
+
+		// 	animation:TagReveal 1s 1 0.1s both,
+		// 				TextColours 1s infinite 0s both;
+		// }
+	}
+
+}
+
+
+a[href="#help"]{
+	border:1px solid transparent;
+	padding:var(--pad);
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	// align-items: flex-end;
+	// align-items: flex-end;
+	justify-content: center;
+	color:transparent;
+	transition:color 95ms linear;
+
+	&::before{
+		flex:0;
+		display: inline-block;
+		content: '';
+		min-width:44px;
+		min-height:44px;
+		background:url(./assets/icons/help_outline_black_24dp.svg) center no-repeat;
+		background-size: contain;
+		filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+		margin-right:calc( 0.5 * var(--pad) );
+		margin-bottom:calc( 0.5 * var(--pad) );
+	}
+
+	&:hover{
+		color:inherit;
+	}
+}
+
+.loaded a[href="#fund"]{
+	animation:TagReveal 1s 1 0.1s both reverse;
+}
+
+a[href="#fund"]{
+	text-transform: uppercase;
+	display: flex;
+	align-items:center;
+	flex-direction: column-reverse;
+	padding:var(--pad);
+	padding-bottom: 0;
+	border:1px solid transparent;
+	animation:TagReveal 1s 1 0.1s both;
+
+	// show a graphic but hide contents
+	&::before, &::after{
+		transition: var(--ease-s) linear opacity;
+		opacity:0;
+	}
+
+	// Overlaid logo
+	&:before{
+		--opacity:0.8;
+		--delay:0s;
+		--size:clamp(48px, 10vmin, 180px );
+
+		flex-shrink:0;
+		animation: Fade var(--ease-s) linear var(--delay) 1 normal both;
+		// position: absolute;
+		// top:-7px;
+		// right:8px;
+		width:100%;
+		//width:auto;
+		height:var(--size,10%);
+		display: block;
+		z-index:3;
+//		filter:drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+		background:url(./assets/logos/interface.cropped.svg) center no-repeat;
+		background-size: contain;
+		content:'';//url(./assets/logos/interface_colour.svg);
+		// content:url(./assets/logos/interface_current-color.svg);
+	}
+
+	&:hover, &:focus{
+		animation:TagReveal 90ms 1 0.1s both, TextColours 4s infinite 0.4s both;
 	}
 }

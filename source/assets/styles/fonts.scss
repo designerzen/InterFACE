@@ -1,9 +1,28 @@
 
 // @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap');
-// @font-face {
-// 	font-family: 'Oxanium';
-// 	src: './assets/fonts/Oxanium.ttf' format('truetype');
-// 	// font-weight: 125 950;
-// 	// font-stretch: 75% 125%;
-// 	font-style: normal;
-//    }
+@font-face {
+	font-family: 'Oxanium';
+	src: url('./assets/fonts/oxanium/Oxanium[wght].ttf') format('truetype');
+	// src: url('./assets/fonts/oxanium/Oxanium.ttf') format('truetype');
+	font-weight: 100 900;
+	// font-stretch: 75% 125%;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Lexend';
+	src: url('./assets/fonts/lexend/LexendDeca-Regular.ttf') format('truetype');
+	// font-weight: 125 950;
+	// font-stretch: 75% 125%;
+	font-style: normal;
+}
+
+// inherit fonts and set default weight
+html, input, button, textarea, option, select{
+	font-family: 'Oxanium', sans-serif;
+	font-weight: 800;
+}
+
+// p, small{
+// 	font-family:'Lexend', 'Oxanium', sans-serif;
+// }
