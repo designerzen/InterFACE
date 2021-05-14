@@ -112,7 +112,7 @@ $viewport-max:840/16;//740/16;	// about 16x
 html{
 	// otherwise legibility takes forever to render
 	text-rendering: optimizeSpeed;
-	font-size: calc( var(--font-zoom) * 100%, 100% );
+	font-size: calc( var(--font-zoom, 100%) * 100% );
 }
 
 body{
@@ -139,7 +139,6 @@ body{
 	font-size:calc( var(--zoom) * var(--font-zoom) * var(--font-size) );
 	line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
 }
-
 
 h1 strong, h2, h3, h4, h5, h6{
 	font-weight: 800;
