@@ -5,18 +5,32 @@ $easeInBack:  cubic-bezier(0.600, -0.280, 0.735, 0.045);
 $easeOutBack:  cubic-bezier(0.175,	0.885, 0.320, 1.275);
 $easeInOutBack:  cubic-bezier(0.680, -0.550, 0.265, 1.550);
 
-$col-white:hsl(20, 27%, 87%);
-$col-dark:hsl(30, 6%, 14%);
-$col-grey:hsl(11, 6%, 50%);
-$col-gray:hsla(18, 6%, 55%, 1);
-$col-cream:hsl(23, 18%, 53%);
-$col-tan:hsl(27, 30%, 45%);
-$col-brown:hsl(23, 22%, 30%);
-$col-blue:hsl(196, 18%, 33%);
-$col-green:hsl(56, 18%, 33%);
-$col-yellow:hsl(41, 34%, 50%);
-$col-orange:hsl(28, 69%, 38%);
-$col-red:hsl(9, 58%, 35%);
+// use the hues to set tints
+$hue-white:20;
+$hue-dark:30;
+$hue-grey:11;
+$hue-gray:18;
+$hue-cream:23;
+$hue-tan:27;
+$hue-brown:23;
+$hue-blue:196;
+$hue-green:56;
+$hue-yellow:41;
+$hue-orange:28;
+$hue-red:9;
+
+$col-white:hsl( $hue-white, 27%, 87%);
+$col-dark:hsl( $hue-dark, 6%, 14%);
+$col-grey:hsl( $hue-grey, 6%, 50%);
+$col-gray:hsla( $hue-gray, 6%, 55%, 1);
+$col-cream:hsl( $hue-cream, 18%, 53%);
+$col-tan:hsl( $hue-tan, 30%, 45%);
+$col-brown:hsl( $hue-brown, 22%, 30%);
+$col-blue:hsl( $hue-blue, 18%, 33%);
+$col-green:hsl( $hue-green, 18%, 33%);
+$col-yellow:hsl( $hue-yellow, 34%, 50%);
+$col-orange:hsl( $hue-orange, 69%, 38%);
+$col-red:hsl( $hue-red, 58%, 35%);
 
 %image-replacement{
 	text-indent: -9999px;
@@ -40,8 +54,23 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 
 // some shared vars
 :root{
-	--line-height:1.6;
+
+	// tints (use anywhere for colour with cpntrols)
+	--shade-white:hsl( $hue-white, var( --s, 27%), var( --l, 87%) );
+	--shade-dark:hsl( $hue-dark, var( --s, 6%), var( --l, 14%) );
+	--shade-grey:hsl( $hue-grey, var( --s, 6%), var( --l, 50%) );
+	--shade-gray:hsl( $hue-gray, var( --s, 6%), var( --l, 55%) );
+	--shade-cream:hsl( $hue-cream, var( --s, 18%), var( --l, 53%) );
+	--shade-tan:hsl( $hue-tan, var( --s, 30%), var( --l, 45%) );
+	--shade-brown:hsl( $hue-brown, var( --s, 22%), var( --l,30%) );
+	--shade-blue:hsl( $hue-blue, var( --s, 18%), var( --l,33%) );
+	--shade-green:hsl( $hue-green, var( --s, 18%), var( --l,33%) );
+	--shade-yellow:hsl( $hue-yellow, var( --s, 34%), var( --l,50%) );
+	--shade-orange:hsl( $hue-orange, var( --s, 69%), var( --l,38%) );
+	--shade-red:hsl( $hue-red, var( --s, 58%), var( --l,35%) );
+	
 	--curve:12px;
+	// global padding
 	--pad:clamp(10px,2vmin,20px);
 
 	// FIXME:
@@ -56,44 +85,44 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	--ease-m:90ms;
 	--ease-q:45ms;
 		
-	// no animation
+	// no animation 
+	// NB. this is also passed into JS as a safety net
 	@media (prefers-reduced-motion: reduce) {
 		--ease-s:1ms;
 		--ease-m:1ms;
 		--ease-q:1ms;
 	}
 
-	--duration:calc( 2 * var(--ease-s) );//var(--ease-out-quick);
+	// do not change
+	--duration:calc( 1 * var(--ease-s) );//var(--ease-out-quick);
 	--duration-scroll:calc( 5 * var(--ease-s) );
 
-	--overlap:0.2;  // the smaller, the closer together the nimations are
+	// animation stagger 
+	--overlap:0.3;  // the smaller, the closer together the nimations are
 	--offset:0s;	// initial delay for all
 }
 
-// inherit fonts
-html, input, button, textarea, option, select{
-	font-family: 'Oxanium', sans-serif !important;
-	font-weight: 800;
-}
-  
+// Load fonts & set typography
+@import "./assets/styles/fonts.scss";
+@import "./assets/styles/typography.scss";
+
 html{
-	
-	line-height:var(--line-height);
+	// allows 100vh to work on mobile safari
+	height: -webkit-fill-available;
 
 	transition: background-color var(--ease-s) linear;
 
 	// dark
 	color:$col-white;
 	background-color:$col-dark;
-	background-image:linear-gradient(hsla(18, 21%, 12%, 0.7), hsla(340, 5%, 11%, 0.7) );
 	
-	// otherwise legibility takes forever to render
-	text-rendering: optimizeSpeed;
-
+	// from jpg
+	background-image:linear-gradient(
+		hsla(18, 21%, 12%, 0.7), 
+		hsla(340, 5%, 11%, 0.7)
+	);
+	
 	//	clip-path: inset(0 0 0 0);
-
-	// allows 100vh to work on mobile safari
-	height: -webkit-fill-available;
 }
 
 body {
@@ -102,278 +131,78 @@ body {
 	min-height: 100vh;
 	max-height:100vh;
 	max-width:100vw;
+
+	// try to use sparingly...
+	// // hide all cruft and hide scrollbars too
+	// overflow:hidden;
+	// // saves on memory as it crops it too
+	// overflow: clip;
 	
-	// hide all cruft and hide scrollbars too
-	overflow:hidden;
-	// saves on memory as it crops it too
-	overflow: clip;
-
-	display: flex;
-}
-
-h1 strong,h2,h3,h4,h5,h6{
-	font-weight: 800;
-}
-
-em{
-	font-weight: 900;
-}
-
-h1{
-	font-weight: 200;
-}
-
-label,select,option{
-	font-size:1rem;
-	user-select: none;
-}
-
-p{
-	font-weight: 500;
-	color:$col-white;
-	pointer-events: none;
-	font-weight:bold;
-	text-align:right ;
-	display: inline-block;
-	padding:var(--pad);
-	// emboss?
-}
-
-small{
-	// font-size: 90%;
-	font-weight: 200;
-}
-
-a{
-	color:$col-blue;
-	// FIXME:
-	text-decoration: none;
-}
-
-img,
-svg{
-	width:100%;
-	max-width:100%;
-	height:auto;
-}
-
-// elements and sections
-
-@import "./assets/styles/gadgets.scss";
-
-#intro{
-	position: absolute;
-	top:0;
-	right:var(--pad);
-	left:var(--pad);
-	// above feedback
-	bottom:var(--footer-gap);
-	text-align: center;
 	display: flex;
 	flex-direction: column;
-
-
-	// main title
-	h1{
-		//background-color: $col-dark;
-		color: $col-grey;
-		order:-1;
-	
-		display: inline-block;
-		padding:var(--pad) calc(var(--pad) * 2);
-		text-transform: uppercase;
-		
-		justify-self: center;
-		// margin-top:var(--pad);
-		transition:color var(--ease-s) ease-out;
-		
-		// font-size: clamp(1rem, -0.5385rem + 7.6923vw, 3.5rem);
-		// clamp(minimum, preferred, maximum)
-		font-size:clamp(2rem, -0.5385rem + 7.6923vw, 3.5rem);
-		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
-					rgba(0,0,0,0.56) 0 2px 4px,
-					rgba(0,0,0,0.56)0 3px 4px,
-					rgba(255,255,255,0.96) 0 0 4px;
-						
-		strong{
-			color:$col-blue;
-		}
-	}
-	
-	h2{
-		text-shadow: rgba(white,0.96) 0 1px 4px,
-					rgba(white,0.7) 0 2px 4px,
-					rgba(white,0.5) 0 3px 4px,
-					rgba($col-cream,0.56) 0 0 4px;
-		
-		color: $col-tan;
-
-		margin:0 auto;
-		padding:var(--pad);
-	}
-		
-	p,
-	p a{
-		color:transparent;
-		text-shadow: none;
-	}
-
-	p[aria-label]{
-		position: absolute;
-	}
-
-	.logo{
-		// align-self:flex-end;//  flex-start;
-		// z-index: -2;
-		align-self: center;
-		text-indent: -99999rem;
-	}
-
-	// this holds nav to sectionsinc help and funding
-	nav{
-		position:fixed;
-		top:0;
-		left:0;
-	}
-
-	nav ul{
-		list-style: none;
-		margin:0;
-		padding:0;
-		opacity: 0.8;
-		transition: opacity 45ms linear;
-		&:hover{
-			opacity: 1;
-		}
-		// prevent the whole thing stealing focus
-		pointer-events: none;
-
-		li{
-			pointer-events: auto;
-		}
-	}
-	
-	@media (orientation: portrait) {
-		display: flex;
-		flex-direction: column;
-
-		h2{
-			max-width:12ch;
-			text-align: center;
-			
-		}
-	}
-
+    flex-wrap: nowrap;
+    align-content: stretch;
+    justify-content: space-between;
 }
 
-.logo, h1, h2{
-	// position: absolute;
-	// top:0;
-	// left:0;
-}
+// forms
+label{
+	--padding:calc( 1 * var(--pad));
+	//outline: 1px groove $col-cream;
+	cursor: pointer;
+	transition:color var(--ease-s) linear, 
+				background-color 90ms linear;
 
-// inline logo :)
-.logo{
-	margin-left:auto;
-	margin-right:auto;
-	display: flex;
-	flex-direction: column;
-	
-	width:100%;
-	min-height:10vh;
-	max-height:90vmin;
-	max-width:90vmin;
-	
-	visibility: visible;
-	font-size: 0;
-	// overflow: hidden;
-	// z-index:1;
+	padding:var(--padding);// var(--pad) 0 var(--pad);
+	position: relative;
+	user-select:none;
 
-	svg{
-		order: -1;
-		color:inherit;
-		fill:currentColor;
-		// we can transition fill :)
-		transition:fill var(--ease-m) linear;
-	}
-
-	// background:url(./assets/logos/interface.svg) no-repeat left;
-	// background-size: contain;
-	// background-position: left;
-}
-
-main{
-	display:flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	// min-width:100%;
-	
-	margin:auto;
-	// height: 100%;
-	// min-height: 320px;
-	// max-height: 100vh;
-
-	button{
-		//display: none;
+	&:hover, &:focus{
+		color:$col-white;
+		background-color: $col-blue;
+		outline:none;
 	}
 }
 
-
-main.midi{
-	#button-midi{
-		display: flex;
-	}
-}
-
-main.video{
-	> img{
-		display: none;
-	}
-}
-
-main.img{
-	> video{
-		display: none;
-	}
-}
-
-main.active{
-	button{
-		display: block;
-	}
-}
-
-option, select{
-	text-align: center;
-}
 select{
 	appearance: none;
 	padding:var(--pad);
 }
-video,canvas{
-	max-width:100%;
-	visibility: hidden;
-	// nothing to click
-	pointer-events: none;
-}
-
-
 
 // form seems to want focus all the time
 form{
+
 	// give it a cool border effect
 	fieldset{
+		--breakpoint:320px;//12ch;
+
+		margin:var(--pad) 0;
+		padding:0;
+		border:var(--border-size, 3px) double $col-grey;
+		border-image: linear-gradient( $col-grey, $col-gray );
+		
+		display:flex;
+		position: relative;
+		
 		box-shadow: rgba($col-dark,0.4) 0 0px 2px,
 				rgba($col-dark,0.3) 0 0.5px 2px,
 				rgba($col-dark,0.2) 0 1px 2px,
 				rgba($col-dark,0.1) 0 1.5px 2px;
+		
 		// slight hack to fix focus issue		
 		pointer-events: none;
+		// fade in from empty
+		animation:Fade var(--ease-s) linear 1 0s both;
+		// NB. ensure in front of the person buttons (202)
+		z-index:303;
+	}
+
+
+	fieldset:empty{
+		display: none;
 	}
 	
-
-	// cool intro effects
+	// cool intro effects...
 	fieldset > *{
 		--xa:-50%;
 		animation-name:Fade, Shift;
@@ -391,14 +220,223 @@ form{
 	}
 }
 
-// funky text animations
+ol{
+	margin:0;
+	margin-top:var(--pad);
+	padding:0;
+	// list-style-position: inside;
+}
+
+ol li{
+	
+}
+
+ol li + li{
+	margin-top:var(--pad);
+}
+
+
+img,
+svg{
+	width:100%;
+	max-width:100%;
+	height:auto;
+}
+
+// we hide these by default until ready to preserve CPU
+video,canvas{
+	max-width:100%;
+	visibility: hidden;
+	// nothing to click so prevent
+	pointer-events: none;
+}
+
+// elements and sections
+@import "./assets/styles/gadgets.scss";
+
+#intro{
+	position: absolute;
+	top:0;
+	right:var(--pad);
+	left:var(--pad);
+	// above feedback
+	bottom:var(--footer-gap);
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	// main title
+	h1{
+		//background-color: $col-dark;
+		color: $col-grey;
+		order:-1;
+	
+		display: inline-block;
+		padding:var(--pad) calc(var(--pad) * 2);
+		
+		justify-self: center;
+		// margin-top:var(--pad);
+		transition:color var(--ease-s) ease-out;
+		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
+					rgba(0,0,0,0.56) 0 2px 4px,
+					rgba(0,0,0,0.56)0 3px 4px,
+					rgba(255,255,255,0.96) 0 0 4px;
+						
+		strong{
+			color:$col-blue;
+		}
+	}
+	
+	h2{
+		// drop shadow
+		text-shadow: rgba($col-white,0.96) 0 1px 4px,
+					rgba($col-white,0.7) 0 2px 4px,
+					rgba($col-white,0.5) 0 3px 4px,
+					rgba($col-cream,0.56) 0 0 4px;
+		
+		color: $col-tan;
+		margin:0 auto;
+		padding:var(--pad);
+	}
+		
+	p,
+	p a{
+		
+	}
+
+	p{
+		color:$col-white;
+	}
+
+	// Epilepsy warning
+	.warning{
+		// we dont want any animations here
+		strong{
+			animation:none;
+		}
+		color: $col-dark;
+		background: $col-white;
+		padding: var(--pad) calc( 2 * var(--pad) );
+		margin-bottom:var(--pad);
+		flex: 0 1 auto;
+		display: inline-block;
+		align-self: center;
+	}
+
+	p[aria-label]{
+		position: absolute;
+		color:transparent;
+		text-shadow: none;
+		// hide links too
+		a{
+			color:transparent;
+		}
+	}
+
+	@media (orientation: portrait) {
+		display: flex;
+		flex-direction: column;
+
+		h2{
+			max-width:12ch;
+			text-align: center;
+			
+		}
+	}
+}
+
+.logo, h1, h2{
+	// position: absolute;
+	// top:0;
+	// left:0;
+}
+
+// inline logo :)
+.logo{
+	// z-index: -2;
+	align-self: center;
+	text-indent: -99999rem;
+
+	margin-left:auto;
+	margin-right:auto;
+	display: flex;
+	flex-direction: column;
+	
+	// scale
+	width:100%;
+	min-height:10vh;
+	max-height:90vmin;
+	max-width:90vmin;
+	
+	visibility: visible;
+	font-size: 0;
+	// overflow: hidden;
+
+	svg{
+		order: -1;
+		color:inherit;
+		fill:currentColor;
+	}
+
+	// background:url(./assets/logos/interface.svg) no-repeat left;
+	// background-size: contain;
+	// background-position: left;
+}
+
+main{
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	// min-width:100%;
+	
+	margin:auto;
+	// height: 100%;
+	// min-height: 320px;
+	//max-height: 100%;
+
+	button{
+		//display: none;
+	}
+}
+
+main.midi{
+	#button-midi{
+		display: flex;
+	}
+}
+
+main.video{
+	> img{
+		display: none;
+	}
+}
+
+// if static image mode
+main.img{
+	> video{
+		display: none;
+	}
+}
+
+//
+main.active{
+	button{
+		display: block;
+	}
+}
+
+// funky text animations where the colour fades...
+// NB. EXPENSIVE, use sparingly
+.loading .logo,
 .loading strong,
 p strong{
 	animation:TextColours 4s linear infinite 0.05s both;
 }
 
-#app-frame{
 
+#app-frame{
 	--person-a-x:0;
 	--person-a-y:0;
 	--person-b-x:0;
@@ -411,41 +449,17 @@ p strong{
 	
 	// we only disable this in jumbo mode
 	position: relative;
+	display:block;
 
-	// height: 100%;
+	height: 100%;
 	// min-height: 320px;
-	// max-height: 100vh;
+	min-height: 100vh;
 	// max-width: 100%;
-	// max-height: 100%;
+	max-height: 100vh;
 
 	// object-fit: contain;
 
 	transition:opacity var(--ease-s) ease-out;
-
-	display:block;
-
-	// show a graphic but hide contents
-	&::before, &::after{
-		transition: var(--ease-s) linear opacity;
-		opacity:0;
-	}
-	// Overlaid logo
-	&:before{
-		--opacity:0.5;
-		--size:clamp(10%, 10vmin, 180px );
-		animation: Fade var(--ease-s) linear 5s 1 normal both;
-		position: absolute;
-		top:-7px;
-		right:8px;
-		width:10%;
-		width:var(--size,10%);
-		height:var(--size,10%);
-		display: block;
-		z-index:3;
-		background:url(./assets/logos/interface_colour.svg) center no-repeat;
-		content:'';//url(./assets/logos/interface_colour.svg);
-		// content:url(./assets/logos/interface_current-color.svg);
-	}
 }
 
 
@@ -518,7 +532,70 @@ p strong{
 
 
 // Loading screen ------------------------------
-html.loading {
+html.loading,
+html.loading body,
+html.loading main{
+	--delay:calc( 1s * var(--loader-duration) / 4 );
+	--blur-delay: 0.02s;
+	
+	// hide all cruft and hide scrollbars too
+	overflow:hidden;
+	// saves on memory as it crops it too
+	overflow: clip;
+
+	// ensure the blobs dont peek out over bounce
+	max-width:100vw;
+	max-height:100vh;
+
+	// show a graphic but hide contents
+	&::before,&::after{
+		content: '';
+		opacity: 1;
+		width:100%;
+		height:100%;
+		background-image:linear-gradient(blue,blue);
+		background-size: var(--loader-size) var(--loader-size);
+		background-position: top left;
+		background-repeat: no-repeat;
+		pointer-events:none;
+		position: absolute;
+		top:0;
+		left:0;
+		display: block;
+		animation:Loading calc(var(--loader-duration) * 1s) 0s infinite $easeInOutBack;
+	}
+
+	// motion blur
+	&::after{
+		animation-delay:calc( var(--delay) + var(--blur-delay) );
+		filter: blur(6px);
+	}
+}
+
+html.loading body{
+
+	&::before{
+		animation-delay:calc( var(--delay) * 2 );
+	}
+
+	&::after{
+		animation-delay:calc( var(--delay) * 2 + var(--blur-delay) );
+	}
+}
+
+html.loading main{
+
+	&::before{
+		animation-delay:calc( var(--delay) * 3 );
+	}
+
+	&::after{
+		animation-delay:calc( var(--delay) * 3 + var(--blur-delay) );
+	}
+}
+
+
+.loading {
 	
 	--loader-size:8vmin;
 	--loader-duration:4;
@@ -534,33 +611,6 @@ html.loading {
 	background-repeat:repeat, repeat;
 
 	animation: BGScroll 999ms infinite linear reverse;
-
-	// show a graphic but hide contents
-	&::before,&::after{
-		content: '';
-		opacity: 1;
-		// height:6vh;
-		// width:6vh;
-		width:100%;
-		height:100%;
-		background-image:linear-gradient(blue,blue);
-		background-size: var(--loader-size) var(--loader-size);
-		background-position: top left;
-		background-repeat: no-repeat;
-
-		position: absolute;
-		top:0;
-		left:0;
-		
-		display: block;
-		animation:Loading calc(var(--loader-duration) * 1s) 0s infinite $easeInOutBack;
-	}
-
-	// motion blur
-	&::after{
-		animation-delay:calc( var(--loader-duration) / 4 * 0.02s );
-		filter: blur(6px);
-	}
 
 	// add some background textures
 	body{
@@ -641,9 +691,11 @@ html.loading {
 	
 	#feedback{
 		text-align: center;
-		bottom:calc( 1rem * var(--line-height) + var(--pad) );
-		top:auto;
+		top:calc( 1rem * var(--line-height) + var(--pad) );
+		bottom:auto;
+		opacity: 0.1;
 	}
+
 	#shared-controls{
 		visibility: hidden;
 	}
@@ -659,7 +711,12 @@ html.loading {
 
 }
 
-
+// hide all help bits
+#help .app-help,
+#help .player-selection-help{
+// #help > *{
+	display: none;
+}
 // STATES /////////////////////////////////////////////////////
 
 // Choose players
@@ -678,7 +735,7 @@ html.loading {
 	}
 	
 	// instructions do show periodically so we need to ensure that they
-	// don't cover the buttons
+	// NB. don't cover the buttons
 	#toast{
 		--footer-gap:var(--pad);
 		right:auto;
@@ -699,21 +756,22 @@ html.loading {
 		visibility: visible;
 	}
 	
-	
 	// hide stuff not relevent
 	// Instrument selection panel
 	#controls{
 		display: none;
 	}
 
-	// canvas,
-	// video{visibility: hidden;}
 	
 	.person,
 	#shared-controls{
 		visibility: hidden;
 	}
 
+	// NB: Warning - this MAY trigger a video element not found error
+	// as JS pointer no longer has DOM equivalent
+	canvas,
+	video,
 	fieldset.person-controls{
 		display: none;
 	}
@@ -721,7 +779,12 @@ html.loading {
 	#button-trio{
 		display:none;
 	}
+
+	#help .player-selection-help{
+		display: block;
+	}
 }
+
 
 // FIXME:
 .loaded{
@@ -777,12 +840,11 @@ html.loading {
 		}
 	}
 
-
-	
 	#shared-controls{
 		visibility: visible;
 	}
 
+	// hide other bits
 	#onboard,
 	#player-selector,
 	#progress-bar{
@@ -792,9 +854,8 @@ html.loading {
 	// wrapper
 	#app-frame{
 
-		display: block;
+		display: flex;
 			
-
 		// rounded corners
 		border-radius:var(--curve);
 		overflow: hidden;
@@ -827,6 +888,7 @@ html.loading {
 			object-fit: contain;
 			//margin:auto;
 			visibility: hidden;	
+			display: block;
 		}
 
 		canvas{
@@ -853,6 +915,7 @@ html.loading {
 			// width:100%;//clamp(100%, 100vw, 100% );
 			height: 100vh;
 			max-width: 100vw;
+			margin:auto;
 
 			// max-height: 100vh;
 			// max-width: 100vw;
@@ -920,6 +983,10 @@ html.loading {
 	#foot{
 		z-index:-1;
 	}
+
+	#help .app-help{
+		display: block;
+	}
 }
 
 
@@ -943,7 +1010,6 @@ html.debug{
 	}
 }
 
-
 // #version,
 #midi-device{
 	display:none;
@@ -951,27 +1017,39 @@ html.debug{
 
 // Feedback text that pops up and dissappears
 #toast{
+	// FIXME: Still too big?
+	--font-scale:0.5;
+	font-size:var(--font-size);
+
 	position: absolute;
+	padding: calc( var(--pad) * 1);
 	right:calc(var(--pad) + 2px);
 	bottom:calc( var(--footer-gap) + var(--pad) );
 	z-index:909;
 	color:$col-white;
 	background-color:rgba($col-dark,0.94);
+	
+	// FIXME:
 	// text-shadow : rgba(255,255,255,0.96) 0 -1px 2px,
 	// 				rgba($col-dark, 0.96) 0 0 2px;
 
+	// hide if no text inside
 	&:empty{
 		display:none;
 	}
 }
 
 // Feedback text on screen all the time
+// NB. ensure font doesn't grow too much
 #feedback{
+	padding: calc( var(--pad) * 1.5 ) calc( var(--pad) * 2 );
 	box-sizing: border-box;
 	position: fixed;
 	z-index: 303;
 	top:var(--pad);
 	text-align: center;
+	
+	// text-transform: uppercase;
 	// left:var(--pad);
 	// right:var(--pad);
 	// left:var(--pad);
@@ -981,15 +1059,15 @@ html.debug{
 	background-color:$col-white;
 	border-radius: 3px;
 	text-align: left;
-	text-shadow : rgba(255,255,255,0.96) 0 -1px 2px,
+	text-shadow : rgba($col-white,0.96) 0 -1px 2px,
 					rgba($col-dark, 0.96) 0 0 2px;
 					
-	// cool carat
+	// cool animating carat
 	&:after{
 		display: inline-block;
 		content:'';
 		width: 6px;
-		height:calc(1rem - 0px);
+		height:calc(2ch - 3px);
 		background-color:$col-orange;
 		margin-left:calc(var(--pad)/2);
 		animation: Blink 1150ms 0s infinite normal both;
@@ -1007,7 +1085,10 @@ html.debug{
 }
 
 // we need this to visually look the same size as the video
-#onboard,
+#onboard{
+
+}
+
 #controls{
 	
 	display: block;
@@ -1059,9 +1140,16 @@ html.debug{
 }
 
 .brand{
-	background:url(./assets/logos/designerzen.svg) no-repeat left 2px center;
+	//background:url(./assets/logos/designerzen_current-color.svg) no-repeat left 2px center;
 	background-size: contain;
-	padding-left:1.5rem;
+	//padding-left:1.3rem;
+	margin-left:0.25rem;
+	svg{
+		height:1rem;
+		width:1rem;
+		margin-bottom: -0.25rem;
+		padding-right:0.25rem;
+	}
 }
 
 
@@ -1129,71 +1217,6 @@ html.debug{
 }
 
 
-
-fieldset{
-	--breakpoint:320px;//12ch;
-
-	opacity:1;
-	border:0;
-	margin:0;//var(--pad);
-	padding:0;
-
-	display:flex;
-	
-	// --gap: 1px;	
-	// --v:min( (var(--breakpoint) - 100%) * 999, 100%);
-	// 	gap: var(--gap);  
-	// grid-gap: var(--gap);
-
-	// grid-template-columns:
-	// 	repeat(
-	// 	auto-fit,	
-	// 	minmax(
-	// 		var(--v),
-	// 		1fr
-	// 	)
-	// );
-	
-	// grid-template-columns: max-content;
-
-	// display: grid;
-	// grid-template-columns:1fr 1fr ;
-	
-	position: relative;
-	// NB. ensure in front of the person buttons (202)
-	z-index:303;
-	transition:opacity var(--ease-s) linear;
-	//animation:Fade var(--ease-s) ease-in 1 0s both;
-}
-
-
-
-
-
-fieldset:empty{
-	display: none;
-	opacity:0;
-	animation:Fade var(--ease-s) ease-in 1 0s reverse both;
-}
-
-label{
-	--padding:calc( 1 * var(--pad));
-	//outline: 1px groove $col-cream;
-	font-weight:900;
-	text-transform: uppercase;
-	cursor: pointer;
-	transition:color var(--ease-s) linear, background-color 90ms linear;
-
-	padding:var(--padding);// var(--pad) 0 var(--pad);
-	&:hover, &:focus{
-		color:$col-white;
-		background-color: $col-blue;
-		outline:none;
-	}
-}
-
-
-
 // STATES ==========================
 
 // Faces are shown on video
@@ -1252,7 +1275,8 @@ label{
 
 // fancy shared controls animations
 header > *,
-fieldset > *{
+fieldset > *
+dialog[open] > *{
 
 	$end:19;
 	@for $i from 1 to $end {
@@ -1275,6 +1299,7 @@ fieldset > *{
 // Instrument selection panel
 fieldset.person-controls{
 	// or in duet do we split screen???
+	// NB. we cannot avoid fixed
 	position: fixed;
 	top:0;
 	min-width:12ch;
@@ -1284,6 +1309,9 @@ fieldset.person-controls{
 	overflow-x: hidden;
 	visibility: hidden;
 	pointer-events: all;
+	border:0;
+	margin:0;
+	z-index:505;
 
 	display:grid;
 	background-color:rgba($col-white, 0.9);
@@ -1301,12 +1329,18 @@ fieldset.person-controls{
 		color:$col-white;
 		background-color:rgba($col-dark, 1);
 		width:100%;
-		position: sticky;
-  	 	bottom: 0;
-  	 	top: 0;
+		padding: var(--pad);
+		box-sizing: border-box;
+		//position: sticky;
+  	 	// bottom: 0;
+  	 	// top: 0;
+		z-index:303;
 	}
+
 	label{
 		border:1px dotted $col-dark;
+		border-right:0;
+		border-left:0;
 		color:$col-dark;
 		//background-color:rgba($col-white, 0.9);
 		&:hover{
@@ -1320,9 +1354,10 @@ fieldset.person-controls{
 	}
 }
 
+
 // MIDI MIDI MIDI MIDI! ===============================
 
-// FF user
+// FF user no midi
 main.no-midi,
 main.midi-unavailable{
 	#button-midi{
@@ -1330,6 +1365,7 @@ main.midi-unavailable{
 	}
 }
 
+// WEBMIDI is present 
 main.midi {
 	#button-midi{
 		
@@ -1345,13 +1381,13 @@ main.midi-available{
 	}
 }
 
-
-
+// midi was requested but no devices yet discovered
 main.midi-active button#button-midi{
 	#button-midi{
 		--col: $col-green;
 	}
 }
+
 
 // midi buton was pressed - now loading state
 main.midi-activated{
@@ -1400,6 +1436,7 @@ main.midi-no-devices button#button-midi{
 	}
 }
 
+
 main.solo{
 	#person-b{
 		visibility: hidden;
@@ -1416,7 +1453,6 @@ main.sharing-disabled{
 // Show secret buttons
 main.flag-clear {
 
-	
 	#shared-controls label[for="button-transparent"]{
 		display: flex;
 	}
@@ -1424,6 +1460,7 @@ main.flag-clear {
 		display: none;
 	}
 }
+
 
 // this hides the video when in synch mode
 main:not(.flag-clear.flag-transparent){
@@ -1438,6 +1475,7 @@ main:not(.flag-clear.flag-transparent){
 
 #foot{
 	--spacer:0;
+	--border:1px solid #{$col-gray};
 	display: flex;
 
 	align-items: flex-end;
@@ -1459,6 +1497,8 @@ main:not(.flag-clear.flag-transparent){
 	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
 	z-index:909;
+
+	// fader it in immediately
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
 
 	small{
@@ -1468,6 +1508,9 @@ main:not(.flag-clear.flag-transparent){
 		width:100%;
 		display:flex;
 		align-items: flex-end;
+		letter-spacing:0.5px;
+		padding-top:var(--pad);
+		border-top:var(--border);
 
 		#version{
 			margin-left: auto;
@@ -1476,17 +1519,28 @@ main:not(.flag-clear.flag-transparent){
 			opacity:0.8;
 			
 			padding-left:var(--pad);
+			padding-right:var(--pad);
+
+			position: relative;
 
 			#release{
+				white-space:nowrap;
+				text-overflow: ellipsis;
+				border:1px solid $col-cream;
+				background-color:$col-white;
+				padding:var(--pad);
 				color:$col-grey;
 				visibility: hidden;
 				order:-1;
+				position: absolute;
+				left:50%;
+				bottom:100%;
+				transform: translateX(-50%);
 			}		
 			&:hover #release{
 				visibility: visible;
 			}
 		}
-		
 	}
 
 	#year{
@@ -1496,18 +1550,25 @@ main:not(.flag-clear.flag-transparent){
 
 	// this *still* gets read out via screenreaders!!!
 	#year::before{
-		content:"© ";
-		
+		content:"© ";	
 		color:$col-cream;
 	}
+
+	.licenses{
+		// margin-left:auto;
+		// margin-right:auto;
+		padding-left:var(--pad);
+		order:999;
+		border-left:var(--border);
+	}
+
 	a:hover, a:focus{
 		color:$col-orange;
 	}
 }
 
-
 // Icons for institutions that have presented or promoted this project
-#associates{
+.associates{
 	--size:74px;
 	margin:0;
 	padding:0;
@@ -1546,18 +1607,18 @@ main:not(.flag-clear.flag-transparent){
 	}
 }
 
-
-
+// Associates and friends ---
 // .associates li::marker{
 // 	content:'#';
 // 	color:hsla(0, 0%, 100%, 0.5);
 // 	font-size: 66%;
 // } 
-#associates li{
+.associates li{
 	box-sizing: border-box;
 }
 
-#associates li a{
+// Each associate link
+.associates li a{
 	display: flex;
 	flex-direction: column-reverse;
 	align-items: flex-end;
@@ -1575,6 +1636,7 @@ main:not(.flag-clear.flag-transparent){
 
 	svg{
 		color:inherit;
+		fill:currentColor;
 	}
 
 	&:focus,
@@ -1582,29 +1644,11 @@ main:not(.flag-clear.flag-transparent){
 		color:$col-orange;
 	}
 }
-#associates li a:hover{
+
+.associates li a:hover{
 
 }
 
-// Help Box
-dialog::backdrop {
-	background: repeating-linear-gradient(
-	  0deg,
-	  rgba($col-blue, 0.2),
-	  rgba($col-blue, 0.2) 1px,
-	  rgba($col-cream, 0.3) 1px,
-	  rgba($col-cream, 0.3) 20px
-	);
-	//backdrop-filter: blur(3px);
-}
-
+@import "./assets/styles/dialog.scss";
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/scrollbars.scss";
-
-// @media (orientation: landscape) {
-// 	// .loaded #foot{
-// 	// 	--spacer:67px;
-// 	// 	transform-origin: bottom left;
-// 	// 	transform: rotate(270deg) translateX(var(--spacer)) translateY(10px);
-// 	// }
-// }
