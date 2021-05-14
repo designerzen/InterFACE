@@ -1,8 +1,10 @@
-extends index.pug
+extends abstract.pug
 
 block title
 	title InterFace v 
 		include version.txt
+
+block preload 
 
 block scripts
 	script(type="module", src="app.js", rel="preload")
