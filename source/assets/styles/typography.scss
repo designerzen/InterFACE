@@ -1,0 +1,231 @@
+
+// Overall font size zoom 
+// Changing this does not impact on browser setting so +1 a18y
+// NB. 16px = 100% therefore 10px = 100/16 * 10
+$font-zoom:16/16; // 10/16 //0.625; //0.625
+
+// This is the size that the smallest elements scale down to in pixels
+// NB. The zoom factor above has influence on these calculations...
+$font-size-smallest:9;
+
+// font sizes in ems (see above for how to set in pixel sizes)
+
+// Wiewport in (r)ems
+// NB. multiple by 16 to get approx size in pixels for default browser font size
+// NB. Omit units
+$viewport-min:320/16;//20;	// about 320px
+$viewport-max:840/16;//740/16;	// about 16x 
+
+:root{
+	
+	// harmonic relation
+	--harmonic:5/4;//6/5;//5/4;//1.22; //5/3;//1.581;
+	
+	// Upper
+	--s0: 1;
+	--s1:calc( var(--harmonic) );
+	--s2:calc( var(--s1) * var(--harmonic) );
+	--s3:calc( var(--s2) * var(--harmonic) );
+	--s4:calc( var(--s3) * var(--harmonic) );
+	--s5:calc( var(--s4) * var(--harmonic) );
+	
+	// global overall zoom
+	--zoom:1;
+	
+    // Max text width (can be based on font size or percentage or characters)
+    // Recomended is 60ch but you can have a pixel or rem width too
+    // or set no value at all by changing it to auto
+	--text-max-width:auto;
+	
+	// global font scaling we can turn any h into any other h with a handy local override
+	// NB. Do NOT change this
+	--font-scale:1;
+		
+	// in EMs (omit units tho)
+	--font-size-min:1;
+	--font-size-max:2.1;
+
+	// calc([minimum size] + ([maximum size] - [minimum size]) * ((100vw - [minimum viewport width]) / ([maximum viewport width] - [minimum viewport width])));
+	// calc([minimum size] + ([font range]) * ( (100vw - [minimum viewport width]) / [viewport width range] ));
+	// calc([minimum size] + ([font range]) * ( (100vw - [viewport ratio] ));
+
+	// A global scale factor only for fonts - a float based percentage
+	--font-zoom:#{$font-zoom};
+	
+	// Height between text lines (browser default 1.5)
+    // Recommended 1.6+
+    // NB. *always* keep this as a simple ratio (unitless)
+    // https://www.24a11y.com/2019/pixels-vs-relative-units-in-css-why-its-still-a-big-deal/
+	// shared line-height (can set to whatever you like)
+	--line-height:1.6;
+	
+	// vertical balance
+	--balance:0.5;
+	
+	// In Rems or Pixels
+	--viewport-width:#{$viewport-min};
+	--viewport-height:#{$viewport-max};
+
+	// CALCULATIONS DO NOT ALTER ----------------------
+
+	// Rhythm Calculations
+	
+	// Range of the fonts
+	--font-range:calc( var(--font-size-max) - var(--font-size-min) );
+	
+	// NB. Always use REMS to preserve scaling and accessibility
+	// https://blog.typekit.com/2016/08/17/flexible-typography-with-css-locks/
+	// https://madebymike.com.au/writing/fluid-type-calc-examples/
+	// font-size: calc([minimum size] + ([maximum size] - [minimum size]) * ((100vw - [minimum viewport width]) / ([maximum viewport width] - [minimum viewport width])));
+	// Set the baseline font size for universal use
+	//--font-base:calc( var(--font-size-min) + var(--font-range) * var(--viewport-range ) );
+	// calc([minimum size] + ([maximum size] - [minimum size]) * ((100vw - [minimum viewport width]) / ([maximum viewport width] - [minimum viewport width])));
+	--font-base:calc( var(--font-size-min) + (var(--font-size-max) - var(--font-size-min)) * (( 100vw - var(--viewport-width-min)) / (var(--viewport-width-max) - var(--viewport-width-min) ) ) );
+	
+	// --font-base:calc( var(--font-range) * ((100vw - var(--font-viewport-min)) / var(--font-range)) );
+	// --font-base:calc(var(--font-size-min) + 1vmin );
+	//--font-base: calc(16px + 1vw + 1vh + .25vmin);
+
+	// https://www.24a11y.com/2019/pixels-vs-relative-units-in-css-why-its-still-a-big-deal/
+    //--font-size:calc( var(--font-range) * ((100vw - var(--font-viewport-min)) / (var(--font-viewport-max) - var(--font-viewport-min))) * var(--scale));
+    --font-size:calc( var(--zoom, 1) * var(--font-scale) * var(--scale) * var(--font-base) );
+    // --font-size: calc( 1rem * var(--rhythm-size) / var(--line-height));
+
+	// DO NOT EDIT THESE ---------------------------------------------
+	
+	--font-size-range:calc( var(--font-size-max) - var(--font-size-min) );
+	
+	// default size is smallest as a fallback
+	--font-size:calc( var(--font-size-min) * 1rem );
+	
+	// Give the height - width of the viewport
+	--viewport-range: calc( ( var(--viewport-height)) - ( var(--viewport-width) ) );
+	
+	// NB. You can only divide by a unitless value
+	// NB. Keep in REM format to negate need for inverse-zoom
+	--viewport-space:calc( 100vw - (var(--viewport-width) * 1rem )); 
+	
+	// Full viewport width - max viewport width / height - width
+	--viewport-scale:calc( var(--viewport-space) / var(--viewport-range) );
+}
+
+html{
+	// otherwise legibility takes forever to render
+	text-rendering: optimizeSpeed;
+	font-size: calc( var(--font-zoom) * 100%, 100% );
+}
+
+body{
+	// https://blog.55minutes.com/2012/04/iphone-text-resizing/#fnref:bootstrap
+    // The 100% value tells WebKit to disable the automatic behavior, but to still allow user-initiated zoom.
+    text-size-adjust: 100%;
+	
+	// general scale
+	// --font-scale:var(--s0);
+	
+	// This needs to be a value that alters in relation
+	// to the viewport size but we can use the calc
+	//--flexible: calc(var( --viewport-width) * 0.2vw) ; 
+	--flexible: calc( var(--font-size-range) * var(--viewport-scale) );
+
+	// we still want the same calculation as liquid in the middle of clamp
+	// ems or rems?
+	--font-size:clamp( 
+		var(--font-size-min) * var(--font-scale) * 1rem, 
+		var(--flexible) * var(--font-scale), 
+		var(--font-size-max) * var(--font-scale) * 1rem 
+	);
+	
+	font-size:calc( var(--zoom) * var(--font-zoom) * var(--font-size) );
+	line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
+}
+
+
+h1 strong, h2, h3, h4, h5, h6{
+	font-weight: 800;
+}
+
+h1,h3,h4,h5,button,legend, label{
+	text-transform: uppercase;
+}
+
+// clear line height for big titles
+h1,h2,h3{
+	--line-height:1;
+}
+h1{
+	font-weight: 300;
+	// font-size: clamp(1rem, -0.5385rem + 7.6923vw, 3.5rem);
+	// clamp(minimum, preferred, maximum)
+	font-size:clamp(2rem, -0.5385rem + 7.6923vw, 3.5rem);	
+	--font-scale:var(--s6);
+}
+h2 {
+	--font-scale:var(--s5);
+}
+h3{
+	--font-scale:var(--s4);
+}
+h4{
+	--font-scale:var(--s3);
+}
+h5{
+	--font-scale:var(--s2);
+	color:$col-blue;
+}
+h6{
+	color:$col-brown;
+}
+legend,
+h6{
+	--font-scale:var(--s1);
+}
+label,
+em{
+	font-weight: 900;
+}
+
+p{
+	font-weight: 500;
+	--font-scale:var(--s0);
+	// pointer-events: none;
+	// display: inline-block;
+	// padding:var(--pad);
+	// emboss?
+}
+
+
+a{
+	color:$col-blue;
+	// FIXME:
+	text-decoration:none;
+	text-decoration-thickness: 1px;
+}
+
+// fixed
+small{
+	font-weight:400;
+	font-size:80%;
+	font-size:clamp(9px, var(--zoom) * 2vmin, 12px);
+}
+
+// flexible sizes
+h1,h2,h3,h4,h5,h6,
+p,
+pre{
+	
+}
+
+label,select,option{
+	font-size:1rem;
+	user-select: none;
+}
+option, select{
+	text-align: center;
+}
+
+
+ol li{
+	//font-style: italic;
+	font-weight:400;
+}

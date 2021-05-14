@@ -1,0 +1,115 @@
+
+
+// -
+dialog{
+	
+}
+
+// Help Box
+dialog::backdrop {
+
+	background: repeating-linear-gradient(
+	  45deg,
+	  rgba($col-blue, 0.2),
+	  rgba($col-blue, 0.2) 1px,
+	  rgba($col-cream, 0.3) 1px,
+	  rgba($col-cream, 0.3) 20px
+	);
+	//backdrop-filter: blur(3px);
+}
+
+// pop over (is this accessible?)
+dialog[open]{
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+
+	max-width:calc( 100% - var(--pad) * 8 );
+	max-height:calc( 100% - var(--pad) * 8 );
+
+	margin:auto;//calc( 2 * var(--pad) );
+	padding:calc( 3 * var(--pad) );
+
+	//position: static;
+	// top right is a fake close icon...
+	background: url(./assets/icons/close-24px.svg) no-repeat, 
+				linear-gradient( white, $col-white );
+
+	background-position:top calc( 3 * var(--pad) ) right calc( 3 * var(--pad) );
+	animation:Fade 90ms linear 0s 1 both;
+
+	> *{
+		user-select: none;
+		animation:Fade 90ms linear 0s 1 both;
+	}
+
+	* {
+		
+	}
+
+	// main title has icon before it
+	h5{
+		display: flex;
+		align-items: center;
+		margin-bottom:var(--pad);
+		--font-scale:4;
+
+		&::before{
+			--size:calc( var(--s5) * 1.5rem );
+			display: inline-block;
+			content: '';
+			min-width:var(--size);
+			min-height:var(--size);
+			background-size: contain;
+			background-image:url(./assets/icons/support_black_24dp.svg);
+			//filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
+			margin-right:calc( 0.5 * var(--pad) );
+		}
+	}
+		
+
+	a{
+		color:$col-orange;
+		// FIXME:
+		text-decoration:underline ;
+		text-decoration-style:dashed;
+		text-decoration-color: $col-dark;
+		text-underline-offset: 4px;
+		z-index:1;
+		pointer-events: auto;
+	}
+
+	.version{
+		order:-1;
+		position:absolute;
+		bottom:calc( 3 * var(--pad) );
+		right:calc( 2rem + var(--pad ) );
+		opacity:0.5;
+		
+		&:hover{
+			opacity:1;
+		}
+	}
+
+	form[method=dialog]{
+		order:-1;
+		pointer-events: none;
+		
+		button{
+			pointer-events: auto;
+			position:fixed;
+			top:0;
+			left:0;
+			width:100vw;
+			bottom:0;
+			z-index:-1;
+			opacity: 0;
+			background: none;
+
+			&:hover{
+				
+			}
+		}
+	}
+
+}
