@@ -1,11 +1,14 @@
 
 // import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
-import {WebMidi} from "../../node_modules/webmidi/dist/webmidi.esm.js"
+import {WebMidi} from "webmidi/dist/webmidi.esm"
 
 // https://mpe.js.org/#Installation
 // import mpeInstrument from 'mpe'
 
+// we load in the relevant lib...
 let mpeEnabled = false
+
+// TODO: Load lib from local
 
 // Define `instrument` as an instance of `mpeInstrument`
 // const instrument = mpeInstrument()

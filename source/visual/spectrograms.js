@@ -1,5 +1,6 @@
 
 import { canvasContext, getCanvasDimensions  } from './canvas'
+import PALETTE, { DEFAULT_COLOURS } from "../palette"
 
 let counter = 0
 const { width, height} = getCanvasDimensions()
@@ -7,6 +8,7 @@ const { width, height} = getCanvasDimensions()
 // Visualisations
 export const drawWaves = (dataArray, bufferLength)=>{
 
+	// PALETTE
 	canvasContext.lineWidth = 2
 	canvasContext.strokeStyle = `hsla(${counter}, 100, 150, 0.5)`
 

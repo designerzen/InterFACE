@@ -2,22 +2,22 @@
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
 
-import {installer} from './install.js'
-import {createStore} from './store'
-import {say, hasSpeech} from './audio/speech'
-
+// TODO: Lazy load more of these...
+import {midiLikeEvents} from './timing/rhythm'
+import { installer} from './install.js'
+import { createStore} from './store'
+import { say, hasSpeech} from './audio/speech'
+import { record } from './record'
 import { 
 	setupAudio,	audioContext,
 	active, playing, 
 	randomInstrument,
-	updateByteFrequencyData,
-	updateByteTimeDomainData,
+	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength,dataArray, 
 	getVolume, setVolume, setAmplitude } from './audio/audio'
 import { createDrumkit } from './audio/synthesizers'
-import { setupMIDI, testForMIDI } from './audio/midi'
+import { setupMIDI, testForMIDI } from './audio/midi-out'
 
-import { record } from './record'
 
 import { 
 	tapTempo,
@@ -33,8 +33,7 @@ import {
 	showPlayerSelector, showError,
 	video,isVideoVisible,toggleVideoVisiblity,
 	setToggle, setButton, 
-	setupMIDIButton, 
-	showUpdateButton, showReloadButton,
+	setupMIDIButton, showUpdateButton, showReloadButton,
 	setupCameraForm, setupInterface, addToolTips,
 	setFeedback, setToast,
 	toggleVisibility,
@@ -47,23 +46,23 @@ import {
 } from './visual/canvas'
 
 import { 
-	takePhotograph,setupImage,
-	setNodeCount, 
-	drawQuantise, drawElement 
+	takePhotograph, setupImage, setNodeCount
 } from './visual/2d'
 
-import { drawWaves, drawBars } from './visual/spectrograms'
+import { drawWaves, drawBars, drawElement } from './visual/spectrograms'
 
+import {drawQuantise} from './visual/quantise'
 
 import { getReferer, getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 
-import { playNextPart, kitSequence } from './patterns'
-import { getInstruction, getHelp } from './instructions'
+import { playNextPart, kitSequence } from './timing/patterns'
+import { getInstruction, getHelp } from './models/instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { VERSION } from './version'
 import Person, {DEFAULT_OPTIONS, NAMES, EYE_COLOURS} from './person'
+import { TAU } from "./maths"
 
 // DOM Elements
 const body = document.documentElement
@@ -262,8 +261,11 @@ const getPerson = (index) => {
 			leftEyeIris:eyeColour, 
 			rightEyeIris:eyeColour,
 			hue:Math.random() * 360,
-			debug:ui.debug
+			debug:ui.debug,
+			// FIXME: why is this per person? should always set per screen
+			photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
 		}
+
 		const name = NAMES[index]
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
 		const person = new Person(name, audioContext, audio, options ) 
@@ -915,11 +917,11 @@ const setup = async (update, settings, progressCallback) => {
 		
 		if (ui.spectrogram)
 		{
-			updateByteTimeDomainData()
-			drawWaves( dataArray, bufferLength )
+			// updateByteTimeDomainData()
+			// drawWaves( dataArray, bufferLength )
 			
-			// updateByteFrequencyData()
-			// drawBars( dataArray, bufferLength )
+			updateByteFrequencyData()
+			drawBars( dataArray, bufferLength )
 		}
 
 		let haveFacesBeenDetected = false	
@@ -1154,7 +1156,7 @@ const load = async (settings, progressCallback) => {
 	progressCallback(loadIndex++/loadTotal)
 
 	// test of loading external scripts sequentially...
-	const {loadModel} = await import('./predictor')
+	const {loadModel} = await import('./models/predictor')
 
 	progressCallback(loadIndex++/loadTotal)
 

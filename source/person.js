@@ -29,6 +29,9 @@ export const DEFAULT_OPTIONS = {
 	// if you want the axis to be switched
 	swapControls:false,
 
+	// if the user has epilepsy, set to true
+	photoSensitive:false,
+
 	drawMesh:false,
 	drawNodes:true,
 
