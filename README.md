@@ -1,11 +1,14 @@
 # InterFACE
-## A Smile Powered Synthesizer
+## [A Smile Powered Synthesizer](https://interface.place)
 
+TL;DR
 A face controlled musical instrument that uses a video camera.
 
 Smile to begin - click your face to change to a different instrument.
 
-Or, an augmented reality, real-time motion-capture, machine-learning powered, holographic, accessible general MIDI controller and synthesizer (that comes without a manual). 
+Or...
+
+An augmented reality, real-time motion-capture, machine-learning powered, holographic, accessible general MIDI controller and synthesizer (that comes without a manual). 
 
 ## What is it?
 
@@ -15,7 +18,7 @@ This software has been designed to be used with a holographic display which give
 
 By creating a virtual interface with no moving parts or extra hardware, we can use a person's own expressions and movements to control and manipulate hardware, software and data.
 
-## Purpose *
+## Purpose
 I have been researching and creating accessible technology for twenty years and for the past 10 have been helping run a monthly workshop alongside Drake Music Charity that brings together people who struggle to play traditional instruments, and technology focussed individuals who know how to build and make things. The charity work directly alongside schools and individuals offering real world use cases and genuine feedback - indispensable when simplicity is the aim. Together we have created a whole number of accessible musical instruments, some that are repurposing of existing instruments and some entirely new. My focus for the past few years has been to try and create musical instruments & music creation tools with the lowest barriers to entry - intuitive tools that everybody can play instinctively, that are easy to obtain and fun to play too! Currently the only requirement for this one to play is a mouth, but that could be swapped for eyes or eyebrows, the technology is quite broad!
 
 Ultimately, this tool allows *all* sorts of people to create their own sounds and music but the technology can be expanded to control anything.
@@ -42,14 +45,15 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
 - If your face is not found, try and improve the brightness in the room by turning on some lights
 - If the website does not load and shows "loading" forever, hard refresh your browser
+- After installing the app it doesn't load, uninstall and re-run it
 
 ## Build from source
-- Install NodeJS and Yarn
+- Install NodeJS 12.8.3+ and Yarn
 - Download the source code and enter the directory
 - open a terminal / cli / bash / command prompt
 - enter ```yarn install```
 - then ```yarn build```
-- Your interface will be built into the dist folder
+- Your interFACE will be built into the dist folder
 
 ## Future plans
 - Better musicality and expression
@@ -68,10 +72,11 @@ Given enough time it would be possible to save MIDI files directly from the app 
 ## Requirements
 - Face
 - Video camera or web cam
-- A screen with dimensions greater than 320 x 320 pixels
+- A screen with dimensions greater than 320 x 280 pixels
 - A relatively modern computer (GPU prefered)
-- Speakers or headphones
-- Mouse / Keyboard / finger to change optional settings 
+- Speakers or headphones or MIDI equipment
+
+- Optional: Mouse / Keyboard / finger to change settings 
 
 ## Credits
 - [Drake Music](https://drakemusic.org) for inspiration and support
@@ -79,11 +84,13 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Alphabet](https://google.com)
 
 ## Thanks
+- Thomas Bonte
 - Darren Southea
 
 ## Check it out over at
 
 - [InterFACE](https://interface.place)
+- [InterFACE:BETA](https://interface.dance)
 - [InterFACE:SOLO (dev)](https://designerzen.github.io/InterFACE)
 - [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
 
