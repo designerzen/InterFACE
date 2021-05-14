@@ -15,10 +15,7 @@ export const getCanvasDimensions = () => {
 	return {
 		width, height
 	}
-	// width:canvas.width, 
-	// height:canvas.height 
 }
-
 
 export const clear = () => {
 	// canvasContext.fillStyle = 'rgba(255,0,0,0)'
