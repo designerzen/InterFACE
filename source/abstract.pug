@@ -96,12 +96,12 @@ html(lang="en-GB" dir="ltr")
 			
 			block header
 
-			nav 
-				ul 
-					block nav
-						li: a(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
-						li: a(href="#help" onclick="window.help.showModal()") Help!
-		
+		nav 
+			ul 
+				block nav
+					li: a(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
+					li: a(href="#help" onclick="window.help.showModal()") Help!
+	
 		block main
 			main#app
 				h3#title Augmented Reality Synthesizer
@@ -134,16 +134,17 @@ html(lang="en-GB" dir="ltr")
 				
 						//- Start buttons
 						//- button#button-start()
-						label(for="button-start" ) Start the fun
-							input#button-start( type="submit" value="Start")
+						label(for="button-start" ) Start!
+							input#button-start( type="submit" value="Begin")
 
 					//- img#face(src="assets/will.png", width="640", height="480")
 					video#webcam(autoplay, playsinline, width="640", height="480")
-						p No Video available!
+						p No Video available - unable to playback ;(
 
+					//- we clone the video onto the canvas every frame
 					canvas(width="640", height="480")
 
-					//- In APP CONTROLS ----
+					//- In APP CONTROLS ------------------------------------------------------
 					form#controls(action="/") 
 
 						//- Button is the face of the user
@@ -266,7 +267,7 @@ html(lang="en-GB" dir="ltr")
 									option 500 BPM
 							
 						
-
+						//- This covers the entire video and canvas elements
 						button#button-video Swap instruments for all people
 						
 						//- Once the user has taken some photos they appear here
@@ -274,10 +275,10 @@ html(lang="en-GB" dir="ltr")
 				
 				//- Help Overlay
 				dialog#help 
-					h5 Don't Panic!
+					h4 Don't Panic!
 					
 					section.player-selection-help
-						h6 This is the 
+						h5 This is the 
 							em Player Selection Screen
 
 						ol 
@@ -286,10 +287,17 @@ html(lang="en-GB" dir="ltr")
 							li Click the Start Button to continue to the next screen
 						
 					section.app-help
-						h6 Help is here
-						p Breath in!
+						h5 This is the Synthesizer 
+						p It is controlled using your head
+							a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
 						ol 
 							li 
+
+						h6 Not working?
+						h6 Common Issues 
+						ol 
+							li Camera was not allowed access
+							li Browser too old / out of date
 						
 					small.version Version 
 						include version.txt
@@ -299,7 +307,7 @@ html(lang="en-GB" dir="ltr")
 						| Learn more in the 
 						a(href="help.pug" target="_blank") Online Documentation
 
-					a(href="#app") Let me try
+					//- a(href="#app") Let me try
 
 					form(method="dialog")
 						button Close Help
@@ -309,22 +317,22 @@ html(lang="en-GB" dir="ltr")
 				
 					ul.fund 
 	
-						li: a(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+						li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
 							include ./assets/logos/patreon.svg
 
 					ul.associates
-						li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+						li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
 							include ./assets/logos/drakemusic.svg
-						li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+						li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
 							include ./assets/logos/aotf.svg
-						li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+						li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
 							//- include ./assets/logos/sxsw2021.svg
 							include ./assets/logos/sxsw.svg
-						li: a(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+						li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
 							include ./assets/logos/mmf.svg
-						li: a(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
+						li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
 							include ./assets/logos/tensorflow-tf.svg
-						li: a(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer
+						li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer
 							include ./assets/logos/designerzen_current-color.svg
 					
 					a(href="roadmap.pug" target="_blank") Future Plans & Roadmap
