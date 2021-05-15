@@ -43,16 +43,14 @@ dialog[open]{
 		animation:Fade 90ms linear 0s 1 both;
 	}
 
-	* {
-		
-	}
-
 	// main title has icon before it
 	h4{
 		display: flex;
 		align-items: center;
 		margin-bottom:var(--pad);
-		--font-scale:4;
+		margin-left: calc(-1 * var(--pad));
+		line-height: 1;
+		--font-scale: 3;
 
 		&::before{
 			--size:calc( var(--s5) * 1.5rem );
@@ -77,10 +75,18 @@ dialog[open]{
 		// FIXME:
 		text-decoration:underline ;
 		text-decoration-style:dashed;
-		text-decoration-color: $col-dark;
+		text-decoration-color: $col-red;
 		text-underline-offset: 4px;
-		z-index:1;
+		z-index:909;
 		pointer-events: auto;
+
+		&:hover{
+			text-decoration-style:solid;
+		}
+
+		&:focus{
+			text-decoration-style:wavy;
+		}
 	}
 
 	.version{
@@ -100,6 +106,7 @@ dialog[open]{
 		border-top:1px solid $col-gray;
 		margin-top:var(--pad);
 		padding-top:var(--pad);
+		z-index:909;
 	}
 
 	form[method=dialog]{

@@ -1,3 +1,7 @@
+%icon{
+	background-size: contain;
+}
+
 .patreon{
 	@extend %image-replacement;
 	background:url(assets/logos/patreon.svg) no-repeat center;
