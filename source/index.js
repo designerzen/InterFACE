@@ -1234,13 +1234,13 @@ const load = async (settings, progressCallback) => {
 	return loadModel(inputElement, settings)
 }
 
-// 
-setFeedback("Initialising...<br> Please wait")
+// We avoid setting feedback until part 2 of loading...
+//setFeedback("Initialising...<br> Please wait")
+setLoadProgress( 0, "Initialising... Please wait" )
 
 // create our reporter for analytics
 // reporter.track()
 reporter = setupReporting("InterFACE")
-
 
 // Progressive Web Application ---------------------------------
 
@@ -1303,7 +1303,7 @@ const onLoaded = async () => {
 	body.classList.toggle("loaded", true)
 	body.classList.toggle("searching-for-user", true)
 
-	// wait for the user - show some visual cues
+	// wait for the user - show some visual cues?
 	lookForUser()
 
 	// monitor keyboard events
@@ -1326,7 +1326,6 @@ const onLoaded = async () => {
 const loadingLoop = async () => {
 
 	// console.log("loading", {isLoading, userLocated, cameraLoading})
-		
 	if ( isLoading )
 	{ 
 		requestAnimationFrame( loadingLoop ) 
@@ -1340,7 +1339,6 @@ const loadingLoop = async () => {
 			onLoaded()
 		}
 	}
-	
 }
 
 // import {installer} from './install'
@@ -1371,6 +1369,8 @@ const pwa = async() => {
 		if (updateAvailable)
 		{
 			showUpdateButton(document.getElementById("shared-controls"), updater)
+			
+			// 
 			setToast("An Update is available! Press update to install it" )
 		}
 
