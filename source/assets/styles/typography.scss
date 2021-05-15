@@ -19,7 +19,7 @@ $viewport-max:840/16;//740/16;	// about 16x
 :root{
 	
 	// harmonic relation
-	--harmonic:5/4;//6/5;//5/4;//1.22; //5/3;//1.581;
+	--harmonic:6/5;//5/4;//1.22; //5/3;//1.581;
 	
 	// Upper
 	--s0: 1;
@@ -43,7 +43,7 @@ $viewport-max:840/16;//740/16;	// about 16x
 		
 	// in EMs (omit units tho)
 	--font-size-min:1;
-	--font-size-max:2.1;
+	--font-size-max:2;
 
 	// calc([minimum size] + ([maximum size] - [minimum size]) * ((100vw - [minimum viewport width]) / ([maximum viewport width] - [minimum viewport width])));
 	// calc([minimum size] + ([font range]) * ( (100vw - [minimum viewport width]) / [viewport width range] ));
@@ -119,7 +119,12 @@ body{
 	// https://blog.55minutes.com/2012/04/iphone-text-resizing/#fnref:bootstrap
     // The 100% value tells WebKit to disable the automatic behavior, but to still allow user-initiated zoom.
     text-size-adjust: 100%;
-	
+	line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
+}
+
+// make scalable
+h1,h2,h3,h4,h5,h6,p{
+
 	// general scale
 	// --font-scale:var(--s0);
 	
@@ -137,7 +142,7 @@ body{
 	);
 	
 	font-size:calc( var(--zoom) * var(--font-zoom) * var(--font-size) );
-	line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
+	
 }
 
 h1 strong, h2, h3, h4, h5, h6{
@@ -160,7 +165,8 @@ h1{
 	--font-scale:var(--s6);
 }
 h2 {
-	--font-scale:var(--s5);
+	// --font-scale:var(--s5);
+	--font-scale:var(--s2);
 }
 h3{
 	--font-scale:var(--s4);
