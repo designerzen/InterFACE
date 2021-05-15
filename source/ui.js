@@ -29,7 +29,7 @@ export const setLoadProgress = (progress, message) => {
 		// get prescripted from list...
 		message = LOAD_MESSAGES[ Math.ceil(progress * (LOAD_MESSAGES.length-1)) ]	
 	}
-	console.log("load", {progress, message} , Math.ceil(progress * LOAD_MESSAGES.length), LOAD_MESSAGES)
+	//console.log("load", {progress, message} , Math.ceil(progress * LOAD_MESSAGES.length), LOAD_MESSAGES)
 	
 	if (progressMessage.innerHTML !== message)
 	{
