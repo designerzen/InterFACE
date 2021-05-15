@@ -664,6 +664,7 @@ html.loading main{
 			background-position: center;
 			// z-index:-1;
 			align-self: center;
+
 			svg{
 				animation:TextColours 4s linear infinite 0s both;
 			
@@ -691,9 +692,10 @@ html.loading main{
 	
 	#feedback{
 		text-align: center;
-		top:calc( 1rem * var(--line-height) + var(--pad) );
+		// dunno where best to overlay as will always cover something!
+		top:calc( 44px + 1rem * var(--line-height) + var(--pad) );
 		bottom:auto;
-		opacity: 0.1;
+		// opacity: 0.1;
 	}
 
 	#shared-controls{
@@ -723,8 +725,8 @@ html.loading main{
 // This is the how many people are playing mode
 .player-selection{
 	
-	header > *{
-	// header > *:not(h1){
+	//header > *{
+	header > *:not(nav){
 		visibility: hidden;
 	}
 	// strapline... show yet?
@@ -1228,15 +1230,14 @@ html.debug{
 .no-faces{ 
 	#app-frame{
 
-		opacity:0.9;
-
+		// opacity:0.9;
 		&::after{
 			content:'';
 			position: absolute;
 			top:0;
 			left:0;
 			right:0;
-			bottom:0;
+			bottom:var(--pad);
 			background:url(assets/icons/child_care-24px.svg) no-repeat center center;
 			background-size: contain;
 			opacity:1;
@@ -1249,7 +1250,7 @@ html.debug{
 }
 
 // Could not load due to privacy restrictoin or user uninteraction
-//  or no camera or whatever
+// or no camera or whatever!
 .failure{
 	#onboard,
 	#controls{
@@ -1388,7 +1389,6 @@ main.midi-active button#button-midi{
 	}
 }
 
-
 // midi buton was pressed - now loading state
 main.midi-activated{
 	// hide button
@@ -1406,19 +1406,22 @@ main.midi-connected{
 	}
 }
 
-
 // MIDI is available but there are no instruments connected
 // connect your midi device!
 main.midi-no-devices button#button-midi{
 	
-	overflow: visible;
-	animation:BGColours 4s linear infinite 0s both;
 	--col: $col-red;
 
+	overflow: visible;
+	animation:BGColours 4s linear infinite 0s both;
+	
 	// we can show some extra text above the button
 	&:after{
 		display: block;
-		content:'Connect a MIDI device...';
+		content:'Connect Device';
+		animation:MIDIConnect 10s infinite 0.2s both;
+					//TextColours 4s linear infinite 0s both;
+		
 		position:absolute;
 		bottom:calc(100% + var(--pad) );
 		text-indent: 0;
@@ -1432,7 +1435,7 @@ main.midi-no-devices button#button-midi{
 		font-weight: 900;
 		padding: var(--pad);
 		//text-shadow:2
-		animation:TextColours 4s linear infinite 0s both;
+		
 	}
 }
 
@@ -1650,5 +1653,6 @@ main:not(.flag-clear.flag-transparent){
 }
 
 @import "./assets/styles/dialog.scss";
+@import "./assets/styles/icons.scss";
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/scrollbars.scss";
