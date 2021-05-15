@@ -149,6 +149,18 @@
 
 @keyframes TagReveal{
 	from{
-		transform: translateY( -3rem );
+		transform: translateY( calc(  var(--pad) - 2.5rem) );
+	}
+}
+
+@keyframes MIDIConnect{
+	0%{
+		content:'Connect a MIDI device.';
+	}
+	50%{
+		content:'Connect a MIDI device..';
+	}
+	100%{
+		content:'Connect a MIDI device...';
 	}
 }

@@ -91,6 +91,9 @@
 						center, 
 						center;
 	
+	// FIXME:
+	// background-blend-mode: difference;
+	
 	
 	// animations
 	//animation-name:unset;	// start unset
@@ -1412,8 +1415,8 @@ label[for="select-camera"],
 nav{
 	position:fixed;
 	top:0;
-	left:0;
-	right:0;
+	left:var(--pad);
+	right:var(--pad);
 	// 303 is the shared controls...
 	z-index:505;
 }
@@ -1484,7 +1487,7 @@ a[href="#help"]{
 		min-height:44px;
 		background:url(./assets/icons/help_outline_black_24dp.svg) center no-repeat;
 		background-size: contain;
-		filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+		filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
 		margin-right:calc( 0.5 * var(--pad) );
 		margin-bottom:calc( 0.5 * var(--pad) );
 	}
@@ -1530,7 +1533,7 @@ a[href="#fund"]{
 		height:var(--size,10%);
 		display: block;
 		z-index:3;
-//		filter:drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+		filter:drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
 		background:url(./assets/logos/interface.cropped.svg) center no-repeat;
 		background-size: contain;
 		content:'';//url(./assets/logos/interface_colour.svg);
