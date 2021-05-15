@@ -48,7 +48,7 @@ dialog[open]{
 	}
 
 	// main title has icon before it
-	h5{
+	h4{
 		display: flex;
 		align-items: center;
 		margin-bottom:var(--pad);
@@ -68,6 +68,10 @@ dialog[open]{
 	}
 		
 
+	ol{
+		padding:calc(var(--pad) * 1) calc(var(--pad) * 2);
+	}
+
 	a{
 		color:$col-orange;
 		// FIXME:
@@ -82,13 +86,20 @@ dialog[open]{
 	.version{
 		order:-1;
 		position:absolute;
-		bottom:calc( 3 * var(--pad) );
+		top:calc( 1 * var(--pad) );
 		right:calc( 2rem + var(--pad ) );
-		opacity:0.5;
+		opacity:0.3;
+		z-index:909;
 		
 		&:hover{
 			opacity:1;
 		}
+	}
+
+	.learn-more{
+		border-top:1px solid $col-gray;
+		margin-top:var(--pad);
+		padding-top:var(--pad);
 	}
 
 	form[method=dialog]{

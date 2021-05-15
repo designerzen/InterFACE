@@ -1,0 +1,34 @@
+.patreon{
+	@extend %image-replacement;
+	background:url(assets/logos/patreon.svg) no-repeat center;
+}
+							
+.drakemusic{
+	@extend %image-replacement;
+	background:url(assets/logos/drakemusic.svg) no-repeat center;
+}
+
+.aotf{
+	@extend %image-replacement;
+	background:url(assets/logos/aotf.svg) no-repeat center;
+}
+	
+.sxsw{
+	@extend %image-replacement;
+	background:url(assets/logos/sxsw.svg) no-repeat center;
+}
+
+.mmf{
+	@extend %image-replacement;
+	background:url(assets/logos/mmf.svg) no-repeat center;
+}
+
+.tensorflow{
+	@extend %image-replacement;
+	background:url(assets/logos/tensorflow-tf.svg) no-repeat center;
+}
+
+.designerzen{
+	@extend %image-replacement;
+	background:url(assets/logos/designerzen.svg) no-repeat center;
+}
