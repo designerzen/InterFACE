@@ -136,7 +136,7 @@ export const drawEye = (eye, colour="blue") => {
 //////////////////////////////////////////////////////////////////////
 // draws a three pointed shape 
 //////////////////////////////////////////////////////////////////////
-export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill ) => {
+export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill, strokeWidth=1 ) => {
 	
 	canvasContext.beginPath()
 	canvasContext.moveTo( x1, y1 )
@@ -144,7 +144,7 @@ export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill ) => {
 	canvasContext.lineTo( x3, y3 )
 	canvasContext.closePath()
 
-	canvasContext.lineWidth = 1
+	canvasContext.lineWidth = strokeWidth
 	canvasContext.strokeStyle = fill
 
 	// canvasContext.lineTo( x1, y1 )
@@ -351,7 +351,7 @@ export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showTe
 // Draws a triangulated face
 //////////////////////////////////////////////////////////////////////
 import {TRIANGLE_MATRIX} from './face'
-export const drawFaceMesh = (prediction, hue=60, size=3, colourCycle=true, showText=true) => {
+export const drawFaceMesh = (prediction, hue=60, strokeWidth=1, colourCycle=true, showText=true) => {
 	const { scaledMesh } = prediction
 
 	const alpha = 0.4
@@ -365,7 +365,7 @@ export const drawFaceMesh = (prediction, hue=60, size=3, colourCycle=true, showT
 		const phase = colourCycle ? (hue + ( 360 * i/q )) % 360 : hue
 		const colour = `hsla(${phase},70%,50%,${alpha})`
 
-		drawTriangle( pointA[ 0 ], pointA[ 1 ], pointB[ 0 ], pointB[ 1 ], pointC[ 0 ], pointC[ 1 ], colour )
+		drawTriangle( pointA[ 0 ], pointA[ 1 ], pointB[ 0 ], pointB[ 1 ], pointC[ 0 ], pointC[ 1 ], colour, strokeWidth )
 	}
 }
 

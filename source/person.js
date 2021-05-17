@@ -32,8 +32,12 @@ export const DEFAULT_OPTIONS = {
 	// if the user has epilepsy, set to true
 	photoSensitive:false,
 
+	// force draw face mesh
 	drawMesh:false,
-	drawNodes:true,
+	// force draw face blob nodes
+	drawNodes:false,
+	// alternate between mesh and blobs depending on mouth
+	meshOnSing:true,
 
 	// mouse hold for clicking
 	mouseHoldDuration:0.6,
@@ -350,20 +354,29 @@ export default class Person{
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
 		
-		
-		// mesh
-		if (options.drawMesh) 
+		// we go from nodes to mesh if mouth active...
+		if (!options.drawNodes && !options.drawMesh && options.meshOnSing)
 		{
-			drawFaceMesh( prediction, options.dots, this.instrumentLoading, this.debug )
-		}
-		
-		// nodes
-		if (options.drawNodes)
-		{
-			// blobs
-			drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
-		}
+			// this.isMouthOpen = true
+			if (this.singing)
+			{
+				drawFaceMesh( prediction, options.dots, 2, this.instrumentLoading, this.isMouthOpen, this.debug )
+			}else{
+				// default mode is always blobs
+				drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
+			}
 
+		} else if (options.drawNodes) {
+
+			// just blobs
+			drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
+		
+		} else if (options.drawMesh) {
+
+			// just mesh
+			drawFaceMesh( prediction, options.dots, 1, this.instrumentLoading, this.debug )
+		}
+	
 		// This overlays the mouth and the eyes
 		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
 	
@@ -460,6 +473,7 @@ export default class Person{
 			return
 		}
 
+		
 		if ( this.isMouseOver || this.instrumentLoading ){
 
 			// draw silhoette directly on the canvas or
