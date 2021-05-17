@@ -40,6 +40,7 @@ import {
 } from './ui'
 
 import { 
+	drawElement,
 	updateCanvasSize, copyCanvasToClipboard, 
 	getCanvasDimensions, overdraw, clear, canvas
 } from './visual/canvas'
@@ -48,7 +49,7 @@ import {
 	takePhotograph, setupImage, setNodeCount
 } from './visual/2d'
 
-import { drawWaves, drawBars, drawElement } from './visual/spectrograms'
+import { drawWaves, drawBars } from './visual/spectrograms'
 
 import { drawQuantise } from './visual/quantise'
 
@@ -584,7 +585,7 @@ const registerKeyboard = () => {
 
 			// Hide video
 			case 'v':
-				// FIXME: Alsoenable sync?
+				// FIXME: Also enable sync?
 				toggleVisibility(video)
 				break
 
