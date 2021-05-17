@@ -4,7 +4,6 @@ import {debounce} from './utils'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink,loadSoloMode,loadDuetMode} from './location-handler'
 
-
 const releaseDate = new Date(DATE)
 const dateOptions = {
 	hour12 : true,
