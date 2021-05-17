@@ -1,7 +1,7 @@
 - var URL = "https://interface.place";
 - var year = String( (new Date() ).getFullYear() ).slice(-2);
 
-mixin title( page="", section="", seperator="-" )
+mixin title( page="", section="", seperator="©" )
 	- page = page.length ? `${page} ${seperator} ` : page
 	- section = section.length ? `${section} ${seperator}` : ``
 	title #{page}InterFACE V
@@ -274,7 +274,7 @@ html(lang="en-GB" dir="ltr")
 							
 						
 						//- This covers the entire video and canvas elements
-						button#button-video Swap instruments for all people
+						button#button-video(aria-label="Click screen to change instruments") Swap instruments for all people
 						
 						//- Once the user has taken some photos they appear here
 						result#photographs
@@ -320,17 +320,22 @@ html(lang="en-GB" dir="ltr")
 				//- TODO:
 				dialog#fund
 				
-					ul.fund 
-	
+					h5 Help support this project! 
+					p.
+						If you enjoy this software and want to help it continue to grow, please consider putting some money
+
+					ul.fund.icon-list
 						li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
 		
-					ul.associates
+					ul.associates.icon-list
 						li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
 						li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
-						li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
-						li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
 						li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
 						li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer
+						
+					ul.supporters.icon-list
+						li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+						li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
 						
 					a(href="roadmap.pug" target="_blank") Future Plans & Roadmap
 					a(href="credits.pug" target="_blank") Thanks to
@@ -342,7 +347,7 @@ html(lang="en-GB" dir="ltr")
 			//- Always visible on screen and overlaid on top	
 			footer#foot
 
-				ul.associates
+				ul.associates.icon-list
 					//- li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
 					//- 	include ./assets/logos/drakemusic.svg
 					//- li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future

@@ -781,6 +781,13 @@ html.loading main{
 	#help .player-selection-help{
 		display: block;
 	}
+	// we invert as on black background
+	#foot{
+		color:$col-tan;
+		a {
+			color: $col-yellow;
+		}
+	}
 }
 
 
@@ -831,7 +838,10 @@ html.loading main{
 			width:100%;
 			display:block;
 			opacity:0;
-		}
+		}	
+
+		// Epilepsy warning
+		.warning,
 		h2,
 		p{
 			visibility: hidden;
@@ -1022,7 +1032,7 @@ html.debug{
 	z-index:909;
 	color:$col-white;
 	background-color:rgba($col-dark,0.94);
-	
+	font-size:clamp(9px, var(--font-size), 14px);
 	// FIXME:
 	// text-shadow : rgba(255,255,255,0.96) 0 -1px 2px,
 	// 				rgba($col-dark, 0.96) 0 0 2px;
@@ -1445,9 +1455,12 @@ main.sharing-disabled{
 	}
 }
 
-// Show secret buttons
+// Show secret buttons#??
+
+// Options set by clicking buttons set these flags as classes
 main.flag-clear {
 
+	// FIXME:
 	#shared-controls label[for="button-transparent"]{
 		display: flex;
 	}
@@ -1471,6 +1484,8 @@ main:not(.flag-clear.flag-transparent){
 #foot{
 	--spacer:0;
 	--border:1px solid #{$col-gray};
+	color:$col-brown;
+
 	display: flex;
 
 	align-items: flex-end;
@@ -1488,7 +1503,7 @@ main:not(.flag-clear.flag-transparent){
 	right: calc( var(--pad));
 	bottom: var(--pad);
 	max-height:var(--footer-gap);
-	color:$col-brown;
+	
 	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
 	z-index:909;
@@ -1511,7 +1526,7 @@ main:not(.flag-clear.flag-transparent){
 			margin-left: auto;
 			display: flex;
 			flex-wrap: wrap;
-			opacity:0.8;
+			opacity:0.9;
 			
 			padding-left:var(--pad);
 			padding-right:var(--pad);
@@ -1545,7 +1560,9 @@ main:not(.flag-clear.flag-transparent){
 
 	// this *still* gets read out via screenreaders!!!
 	#year::before{
-		content:"© ";	
+		content:"©";
+		margin-left:0.2rem;	
+		margin-right:0.2rem;	
 		color:$col-cream;
 	}
 
@@ -1563,8 +1580,7 @@ main:not(.flag-clear.flag-transparent){
 }
 
 // Icons for institutions that have presented or promoted this project
-.fund,
-.associates{
+.icon-list{
 	--size:74px;
 	margin:0;
 	padding:0;
@@ -1614,16 +1630,16 @@ main:not(.flag-clear.flag-transparent){
 // } 
 
 // Each associate link
-.fund li a,
-.associates li a{
+.icon-list li a{
 	display: flex;
 	flex-direction: column-reverse;
 	align-items: flex-end;
 	padding:var(--pad);
-	height: 100%;
 	box-sizing: border-box;
+
 	font-size:0;
 	color:transparent;
+
 	user-select: none;
 	color:$col-blue;
 	text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
@@ -1642,7 +1658,7 @@ main:not(.flag-clear.flag-transparent){
 	}
 }
 
-.associates li a:hover{
+.icon-list li a:hover{
 
 }
 

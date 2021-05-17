@@ -1,38 +1,43 @@
 %icon{
 	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	width:44px;
+	height:44px;
+	@extend %image-replacement;
 }
 
 .patreon{
-	@extend %image-replacement;
-	background:url(assets/logos/patreon.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/patreon.svg);
 }
 							
 .drakemusic{
-	@extend %image-replacement;
-	background:url(assets/logos/drakemusic.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/drakemusic.svg);
 }
 
 .aotf{
-	@extend %image-replacement;
-	background:url(assets/logos/aotf.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/aotf.svg);
 }
 	
 .sxsw{
-	@extend %image-replacement;
-	background:url(assets/logos/sxsw.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/sxsw.svg);
 }
 
 .mmf{
-	@extend %image-replacement;
-	background:url(assets/logos/mmf.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/mmf.svg);
 }
 
 .tensorflow{
-	@extend %image-replacement;
-	background:url(assets/logos/tensorflow-tf.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/tensorflow-tf.svg);
 }
 
 .designerzen{
-	@extend %image-replacement;
-	background:url(assets/logos/designerzen.svg) no-repeat center;
+	@extend %icon;
+	background-image:url(assets/logos/designerzen.svg);
 }

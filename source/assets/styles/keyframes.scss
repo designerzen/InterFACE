@@ -155,12 +155,15 @@
 
 @keyframes MIDIConnect{
 	0%{
-		content:'Connect a MIDI device.';
+		content:'Connect a MIDI device';
 	}
-	50%{
+	30%{
 		content:'Connect a MIDI device..';
 	}
-	100%{
+	60%{
 		content:'Connect a MIDI device...';
+	}
+	90%{
+		content:'Once connected the device will sing';
 	}
 }
