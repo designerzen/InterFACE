@@ -2271,9 +2271,9 @@
     form-data "^3.0.0"
 
 "@types/node@*":
-  version "15.0.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.0.2.tgz#51e9c0920d1b45936ea04341aa3e2e58d339fb67"
-  integrity sha512-p68+a+KoxpoB47015IeYZYRrdqMUcpbK8re/zpFB8Ld46LHC1lPEbp3EXgkEhAYEcPvjJF6ZO+869SQ0aH1dcA==
+  version "15.3.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.3.0.tgz#d6fed7d6bc6854306da3dea1af9f874b00783e26"
+  integrity sha512-8/bnjSZD86ZfpBsDlCIkNXIvm+h6wi9g7IqL+kmFkQ+Wvu3JrasgLElfiPgoo8V8vVfnEi0QVS12gbl94h9YsQ==
 
 "@types/node@^14.6.2":
   version "14.14.44"
@@ -3032,10 +3032,30 @@ builder-util@22.11.2:
     stat-mode "^1.0.0"
     temp-file "^3.3.7"
 
-builder-util@22.11.3, builder-util@^22.10.5:
+builder-util@22.11.3:
   version "22.11.3"
   resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-22.11.3.tgz#933f0242f0466556b604e0ea2a2ad758d649586e"
   integrity sha512-az4s7iyf1ZPXaSVgCY+YoUcBVNspHz/f2lZSXTeXpPUjiKcbV+jzewWdw8yPWFUZ9UDArI5AVhW2bQfyBRjgVQ==
+  dependencies:
+    "7zip-bin" "~5.1.1"
+    "@types/debug" "^4.1.5"
+    "@types/fs-extra" "^9.0.11"
+    app-builder-bin "3.5.13"
+    bluebird-lst "^1.0.9"
+    builder-util-runtime "8.7.5"
+    chalk "^4.1.1"
+    debug "^4.3.2"
+    fs-extra "^10.0.0"
+    is-ci "^3.0.0"
+    js-yaml "^4.1.0"
+    source-map-support "^0.5.19"
+    stat-mode "^1.0.0"
+    temp-file "^3.4.0"
+
+builder-util@^22.10.5:
+  version "22.11.4"
+  resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-22.11.4.tgz#5deee8e067d6e3248791977ce2928b98fe514342"
+  integrity sha512-EIjvZZH0TpfFa+EoG7Y7B0qOAGtL+VIBGd1ri4LhpqC9s9rpyYIYO4JZflbWKMgyCdQSZA6GbLgDsrCJJKxNaA==
   dependencies:
     "7zip-bin" "~5.1.1"
     "@types/debug" "^4.1.5"

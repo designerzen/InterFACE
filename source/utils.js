@@ -9,3 +9,4 @@ export const debounce = (callback, wait) => {
 	  return timerId
 	}
 }
+
