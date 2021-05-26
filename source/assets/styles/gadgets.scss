@@ -2,10 +2,10 @@
 
 %text-glow{
 	// inset
-	text-shadow: rgba($col-white,0.4) 0 0px 1px,
-				rgba($col-white,0.3) 0 0.5px 1px,
-				rgba($col-cream,0.2) 0 1px 1px,
-				rgba($col-cream,0.1) 0 1.5px 1px;
+	text-shadow: 	var( --text-shadow, rgba($col-white,0.4)) 0 0px 1px,
+					var( --text-shadow, rgba($col-white,0.3)) 0 0.5px 1px,
+					var( --text-shadow, rgba($col-cream,0.2)) 0 1px 1px,
+					var( --text-shadow, rgba($col-cream,0.1)) 0 1.5px 1px;
 
 	
 }
@@ -22,6 +22,8 @@
 %button-style{
 	
 	@extend %text-glow;
+	//@include text-glow();
+
 	// only for larger sizes?
 	// this softens the border and adds a soft dropshadow
 	@extend %drop-shadow;
@@ -120,10 +122,11 @@
 		border-bottom-color: rgba($col-white, 0.7);
 	
 		background-color:var(--col-hover);
-		text-shadow: rgba($col-dark,0.4) 0 0px 1px,
-					rgba($col-dark,0.3) 0 0.5px 1px,
-					rgba($col-dark,0.2) 0 1px 1px,
-					rgba($col-dark,0.1) 0 1.5px 1px;
+		
+		// text-shadow: rgba($col-dark,0.4) 0 0px 1px,
+		// 			rgba($col-dark,0.3) 0 0.5px 1px,
+		// 			rgba($col-dark,0.2) 0 1px 1px,
+		// 			rgba($col-dark,0.1) 0 1.5px 1px;
 					
 		box-shadow:/* inset 0px 0px calc(1 * var(--button-border-size)) rgba($col-white, 0.8 ),*/
 					rgba($col-dark,0.8) 0 0px 2px,
@@ -762,10 +765,10 @@ label[for=button-start],
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		--bg:url(./assets/icons/web_asset-24px.svg);
+		--bg:url(./assets/icons/web_asset_off-24px.svg);
 		&.checked{
 			// background-image:url(./assets/icons/music_off-24px.svg);
-			--bg:url(./assets/icons/web_asset_off-24px.svg);
+			--bg:url(./assets/icons/web_asset-24px.svg);
 			// background-image:url(./assets/icons/music_note-24px-24px.svg);
 		}
 	}
@@ -947,6 +950,24 @@ input[type=submit]{
 	text-transform:inherit;
 	border:0;
 }
+
+
+select {
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	background: no-repeat right center / 1em;
+	border-radius: 0;
+	padding-right: 1em;
+}
+  
+select:not([multiple]):not([size]) {
+	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M4 0h6L7 4'/%3E%3C/svg%3E");
+}
+  
+::-ms-expand {
+	display: none;
+}
+
 
 // button that covers people
 button.person{
@@ -1143,6 +1164,7 @@ label[for="button-start"]{
 		right:0;
 		opacity: 0;
 	}
+
 }
 
 .solo label[for="button-start"]{
