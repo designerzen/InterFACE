@@ -1,5 +1,5 @@
 
-import { setFeedback, setToast, addTooltip, formattedDate } from './ui'
+import { setFeedback, setToast, addTooltip, formattedDate } from './dom/ui'
 
 import { VERSION } from './version'
 
