@@ -1,17 +1,3 @@
-export const TAU = 2 * Math.PI
-
-// provide the value and a smallest and largest original then new sizes
-export const rescale = (smallest, largest=1) => {
-    // find the scale and create a method that allows 
-    // you to simply rescale at will
-    const range = 1 / ( largest - smallest )
-
-    return value => range * ( value - smallest )
-}
-
-export const lerp = (start, end, amt) => (1-amt) * start + amt * end
-
-export const clamp = (val, min, max) => val > max ? max : val < min ? min : val
 // Based on https://gist.github.com/gre/1650294
 
 // No easing, no acceleration

@@ -1,11 +1,14 @@
 // each person in the app has their own instrument and face
+import { rescale, lerp, clamp, TAU} from "./maths/maths"
+import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
+
 import { getBarProgress } from './timing/timing.js'
 import { DEFAULT_COLOURS } from './palette'
-import { getNoteText, SOLFEGE_SCALE, active, playing, loadInstrument, randomInstrument, playTrack, getNoteName, getNoteSound } from './audio/audio'
-import { rescale, easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, lerp, clamp, TAU} from "./maths"
+import { active, playing, loadInstrument, randomInstrument, playTrack } from './audio/audio'
+import { getNoteText, getNoteName, getNoteSound } from './audio/notes'
 import { INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './audio/instruments'
-import { setupInstrumentForm} from './ui'
-import { ParamaterRecorder} from './record'
+import { setupInstrumentForm } from './dom/ui'
+import { ParamaterRecorder } from './parameter-recorder'
 import { 
 	clear,
 	drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
@@ -23,8 +26,14 @@ export const DEFAULT_OPTIONS = {
 	...DEFAULT_COLOURS,
 
 	// Passed to the delay node
+	// NB. There is a global delay too remember
+	useDelay:false,
 	delayTime: 0.14,
 	delayLength: 10,
+
+	// left / right ear stereo panning
+	stereoPan:true,
+
 
 	// if you want the axis to be switched
 	swapControls:false,
@@ -35,12 +44,17 @@ export const DEFAULT_OPTIONS = {
 	// force draw face mesh
 	drawMesh:false,
 	// force draw face blob nodes
-	drawNodes:false,
+	drawNodes:true,
+
 	// alternate between mesh and blobs depending on mouth
-	meshOnSing:true,
+	// NB. The two above will override this behaviour
+	meshOnSing:false,
+
 
 	// mouse hold for clicking
 	mouseHoldDuration:0.6,
+
+	// if both eyes are closed for X ms do something...
 	eyeShutHolddDuration:3500, // ms
 
 	// how much feedback to apply to the feedback node
@@ -81,18 +95,17 @@ export default class Person{
 		this.options = Object.assign({}, DEFAULT_OPTIONS, options)
 		this.name = name
 		this.counter = 0
-		// instrument index
-		this.index = 0
+		this.instrumentPointer = 0
 		this.instrumentLoading = false
 		this.data = null
 		this.audioContext = audioContext
 		this.active = false
 		this.tracks = 0
 		this.octave = 4
+
 		this.midi = null
 		this.midiActive = false
 		this.midiChannel = "all"
-
 
 		// if we are repeating our bars...
 		this.isLooping = false
@@ -103,6 +116,7 @@ export default class Person{
 		this.saturation = 40
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
 		
+		// allow us to record the performances (not the audio)
 		this.parameterRecorder = new ParamaterRecorder( audioContext )
 
 		// Head orientation
@@ -114,6 +128,7 @@ export default class Person{
 		this.isMouthOpen = false
 		this.isLeftEyeOpen = true
 		this.isRightEyeOpen = true
+
 		this.isRecordingParameters = false
 		this.mouseDownAt = -1
 		this.leftEyeClosedAt = -1
@@ -125,29 +140,49 @@ export default class Person{
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff)
 
-		this.stereoNode = audioContext.createStereoPanner()
-
-		const delayNode = audioContext.createDelay( this.options.delayLength )
-		const feedbackNode = audioContext.createGain()
-		delayNode.delayTime.value = this.options.delayTime
-		feedbackNode.gain.value = this.options.feedback
-
+		// this controls the amplitude and connects to the mouth ui
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
+	
+		// we want to add a delay before the gain control
+	
+	
+		// 
+		if (this.stereoPan)
+		{
+			this.stereoNode = audioContext.createStereoPanner()
+			this.stereoNode.connect(this.gainNode)
+			// this.stereoNode.connect(delayNode)
+			this.outputNode = this.stereoNode
+		}else{
+			// FIXME: go directly into gain or through other fx first?
+			this.outputNode = this.gainNode
+		}
 
-		this.stereoNode.connect(this.gainNode)
-
-		// DELAY
-		// this.stereoNode.connect(delayNode)
-
+		// we need to feed this from every other node
 		// delayNode.connect(feedbackNode)
 		// feedbackNode.connect(delayNode)
 
+		// we still want it to be gated by the voice!	
 		// //delayNode.connect(destinationNode)
 		// delayNode.connect(this.gainNode)
+		if (this.options.useDelay)
+		{
+			// DELAY : Feedback smooths out the audio
+			const delayNode = audioContext.createDelay( this.options.delayLength )
+			const feedbackNode = audioContext.createGain()
+			delayNode.delayTime.value = this.options.delayTime
+			feedbackNode.gain.value = this.options.feedback
+			
+			// connect gain to delay (delay feeds back)
+			this.gainNode.connect(delayNode)
+			delayNode.connect(destinationNode)
 
-		this.gainNode.connect(destinationNode)
-
+		}else{
+			// WORKS:
+			this.gainNode.connect(destinationNode)
+		}
+	
 		// fetch dom element
 		this.button = document.getElementById(name)
 		this.button.addEventListener( 'mousedown', event => {
@@ -231,7 +266,9 @@ export default class Person{
 	get instrumentTitle(){
 		return this.instrument ? this.instrument.title : 'loading'
 	}
+	// expensive... can we use instrumentPointer instead?
 	get instrumentIndex(){
+		// instrumentPointer ???
 		return INSTRUMENT_FOLDERS.indexOf(this.instrumentName)
 	}
 
@@ -329,6 +366,8 @@ export default class Person{
 		// can this just be a reference???
 		const options = this.options
 		// const options = Object.assign( {} , this.options )
+
+
 
 		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
 		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
@@ -473,7 +512,7 @@ export default class Person{
 			return
 		}
 
-		
+
 		if ( this.isMouseOver || this.instrumentLoading ){
 
 			// draw silhoette directly on the canvas or
@@ -617,8 +656,9 @@ export default class Person{
 		const logAmp = options.ease(amp)
 		const newOctave = Math.round(pitch * 7)
 
-		// octave needs to be up or down from existing?
-		this.octave = newOctave
+		// FIXME: octave needs to be up or down from existing?
+		// FIXME: Shouldn'#t need clamp but pitch is over 1??
+		this.octave = clamp(newOctave,1,7)
 
 		// FIXME: if we don't want the happy notes...
 		// we can flip this on somehow?
@@ -637,9 +677,11 @@ export default class Person{
 
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
-
-		this.stereoNode.pan.value = eyeDirection
-		//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
+		if (this.stereoPan)
+		{
+			this.stereoNode.pan.value = eyeDirection
+			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
+		}
 		
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume
@@ -657,7 +699,7 @@ export default class Person{
 			
 			// TODO: add velocity logAmp
 			this.tracks++
-			const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
+			const track = playTrack( note, 0, this.outputNode ).then( ()=>{
 				this.active = false
 				this.tracks--
 				//console.log("Sample completed playback... request tock", this.tracks )
@@ -810,7 +852,7 @@ export default class Person{
 	//
 	/////////////////////////////////////////////////////////////////////
 	async loadPreviousInstrument(callback){
-		const index = this.index
+		const index = this.instrumentPointer
 		const newIndex = index-1 < 0 ? 0 : index-1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
@@ -819,7 +861,7 @@ export default class Person{
 	//
 	/////////////////////////////////////////////////////////////////////
 	async loadNextInstrument(callback){
-		const index = this.index
+		const index = this.instrumentPointer
 		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
@@ -831,11 +873,11 @@ export default class Person{
 
 		this.instrumentLoading = true
 		this.instrument = await loadInstrument( instrumentName )
-		this.index = INSTRUMENT_FOLDERS.indexOf(instrumentName)
+		this.instrumentPointer = INSTRUMENT_FOLDERS.indexOf(instrumentName)
 
 		this.instrumentLoading = false
 		
-		console.log(this.index, "Attempting to load instruments", instrumentName, this.instrument )
+		//console.log(this.instrumentPointer, "Attempting to load instruments", instrumentName, this.instrument )
 
 		callback && callback( instrumentName )
 		
@@ -882,15 +924,12 @@ export default class Person{
 		this.rightEyeClosedAt = timeClosed
 	}
 
-
-
 	/////////////////////////////////////////////////////////////////////
 	// This pops up the user side bar and populates it accordingly
 	/////////////////////////////////////////////////////////////////////
 	showForm(){
 
 		//console.log("showForm", this.controlsID, this.controls)
-
 		this.controls.innerHTML = setupInstrumentForm( ()=> {})
 		const inputs = this.controls.querySelectorAll('input')
 		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)

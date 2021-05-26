@@ -1,5 +1,5 @@
 
-import { clamp, TAU, easeInQuad } from "../maths"
+import { clamp, TAU, easeInQuad } from "../maths/maths"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
 import { canvasContext, getCanvasDimensions } from './canvas'
 

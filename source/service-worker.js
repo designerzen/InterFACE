@@ -24,7 +24,7 @@ workbox.core.setCacheNameDetails({
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.message) {
-      console.log(`>>> Message received from client: `, event.data);
+     // console.log(`>>> Message received from client: `, event.data);
       if (event.data.message === 'SKIP_WAITING') {
           self.skipWaiting();
       } else if (event.data.message === 'CLIENTS_CLAIM') {

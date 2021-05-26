@@ -1,23 +1,21 @@
-import {clamp, lerp, TAU} from "../maths"
+import {clamp, lerp, TAU} from "../maths/maths"
 import {cleanTitle} from './instruments'
+import {createReverb} from './reverb'
 
 import {INSTRUMENT_FOLDERS} from "./instruments"
 
-const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
-
-const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
-const NOTES_WHITE = ["A","B","C","D","E","F", "G" ]
-const NOTES_BLACK_INDEXES = NOTES_BLACK.length - 1
-const NOTES_WHITE_INDEXES = NOTES_WHITE.length - 1
-
-// renamed white notes
-export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
+import {
+	createInstrumentBanks,
+	// getNoteName,
+	// getNoteSound, getNoteText,
+	NOTE_NAMES, NOTE_NAMES_FRIENDLY,
+	// NOTES_BLACK, NOTES_WHITE
+} from './notes'
 
 
 export const randomInstrument = () => INSTRUMENT_FOLDERS[ Math.floor( Math.random() * INSTRUMENT_FOLDERS.length ) ]
 
 export let audioContext
-let mediaRecorder
 
 export let bufferLength
 export let dataArray
@@ -29,16 +27,43 @@ let feedbackNode
 let analyser
 let compressor
 let reverb
-let recorder
 let destinationVolume = 0
+
+let outputNode = null
 
 export let playing = false
 export let active = false
 
-export const inputNode = () => delayNode
+// 
+export const inputNode = () => outputNode
 export const inputDryNode = () => gainNode
 
-export const setupAudio = (
+
+// just does linear connects in sequence for easier protyping
+const chain = ( routes, connect=true ) => {
+
+	const quantity = routes.length
+
+	for (let i=1; i<quantity; ++i)
+	{
+		const previous = routes[ i-1 ]
+		const route = routes[ i ]
+
+		previous.connect(route)
+		
+		// if last one...
+		if (connect && i === quantity-1 )
+		{
+			route.connect(audioContext.destination)
+		}
+	}
+
+	// grab the first one
+	outputNode = routes[0]
+	return outputNode
+}
+
+export const setupAudio = async (
 	BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
 	INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
 	OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
@@ -51,11 +76,6 @@ export const setupAudio = (
 	gainNode = audioContext.createGain()
 	gainNode.gain.value = 0
 
-	// oscillator = audioContext.createOscillator()
-	// oscillator.type = "sine" // "sawtooth"
-	// oscillator.frequency.value = 261.63
-	// oscillator.connect(delayNode)
-	// oscillator.start()
 
 	// this should hopefully balance the outputs
 	compressor = audioContext.createDynamicsCompressor()
@@ -70,18 +90,20 @@ export const setupAudio = (
 	compressor.attack.value = 0.2
 	compressor.release.value = 0.5
 
-	reverb = audioContext.createConvolver()
-	// reverb = audioContext.createConvolver(null, true)
-	delayNode = audioContext.createDelay(0.01)
-	feedbackNode = audioContext.createGain()
+	reverb = await createReverb(audioContext, 0.5)
+	// reverb.gain.value = 0.2
 
+	delayNode = audioContext.createDelay(0.01)
 	//delayNode.delayTime.value = 0
+	
+	feedbackNode = audioContext.createGain()
 	feedbackNode.gain.value = 0.2
 
 	analyser = audioContext.createAnalyser()
 	analyser.minDecibels = -90
 	analyser.maxDecibels = -10
-	analyser.smoothingTimeConstant = 0.85
+	// how quick it drops 0.85 looks cool
+	analyser.smoothingTimeConstant = 0.45
 
 	// for waves
 	// analyser.fftSize = 2048
@@ -89,33 +111,37 @@ export const setupAudio = (
 
 	// for bars
 	analyser.fftSize = 256
+
 	bufferLength = analyser.frequencyBinCount
 	
     dataArray = new Uint8Array(bufferLength)
 	
-	//console.error("instrument",{oscillator, compressor, dataArray} )
-	
-	// To recreate feedback...
-	delayNode.connect(feedbackNode)
-	feedbackNode.connect(delayNode)
-	delayNode.connect(gainNode)
-
-	// delayNode.connect(reverb)
-	// reverb.connect(gainNode)
-
-	gainNode.connect(compressor)
-	compressor.connect(analyser)
-
-	recorder = audioContext.createScriptProcessor(BUFFER_SIZE, INPUT_CHANNELS, OUTPUT_CHANNELS)
-
+	//recorder = audioContext.createScriptProcessor(BUFFER_SIZE, INPUT_CHANNELS, OUTPUT_CHANNELS)
 	analyser.connect(audioContext.destination)
+
+	// chain( [ delayNode, feedbackNode, delayNode, 
+	// 			gainNode, reverb, 
+	// 				compressor, analyser] )
+
+	// fixes old ios bug about audio not starting until buttons or something
+	resumeAudioContext()
 	
-	return delayNode
+	// all mod cons
+	// return chain( [ delayNode, feedbackNode, delayNode, gainNode, reverb, compressor, analyser ] )
+	
+	// just compressor and reverb
+	return chain( [ gainNode, reverb, compressor, analyser] )
 }
 
+export const updateByteFrequencyData = ()=> {
+	analyser.fftSize = 2048
+	analyser.getByteFrequencyData(dataArray)
+}
 
-export const updateByteFrequencyData = ()=> analyser.getByteFrequencyData(dataArray)
-export const updateByteTimeDomainData = ()=> analyser.getByteTimeDomainData(dataArray)
+export const updateByteTimeDomainData = ()=> {
+	analyser.fftSize = 256
+	analyser.getByteTimeDomainData(dataArray)
+}
 
 const monitor = () => {
 
@@ -144,15 +170,22 @@ export const stopAudio = () => {
 	}
 	//console.error("stop audio",{playing})
 }
+
+const resumeAudioContext = () => {
+	if (audioContext.state === 'suspended') 
+	{
+		audioContext.resume()
+	}
+}
+
 export const playAudio = () => {
 	if (playing)
 	{
 		return false
 	}else{
-		if (audioContext.state === 'suspended') 
-		{
-			audioContext.resume()
-		}
+
+		resumeAudioContext()
+
 		// analyser.connect(audioContext.destination)
 		//oscillator.connect(delayNode)
 		
@@ -162,6 +195,15 @@ export const playAudio = () => {
 	}
 	//console.error("start audio",{playing})
 	return oscillator
+}
+
+export const createOscillator = () => {
+
+	// oscillator = audioContext.createOscillator()
+	// oscillator.type = "sine" // "sawtooth"
+	// oscillator.frequency.value = 261.63
+	// oscillator.connect(outputNode)
+	// oscillator.start()
 }
 
 export const setShape = shape => {
@@ -209,15 +251,15 @@ export const setAmplitude = amplitude => {
 	//gainNode.gain.setValueAtTime(amplitude, audioContext.currentTime)
 }
 
-async function loadAudio(path) {
+export const loadAudio = async (path) => {
 	const response = await fetch(path)
 	const arrayBuffer = await response.arrayBuffer()
 	const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 	return audioBuffer
   }
 
-  // create a buffer, plop in data, connect and play -> modify graph here if required
-  // detune:0,,  playbackRate:1
+// create a buffer, plop in data, connect and play -> modify graph here if required
+// detune:0,,  playbackRate:1
 export const playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
 	
 	return new Promise((resolve, reject)=>{
@@ -294,107 +336,6 @@ async function loadInstrumentPart (instrumentName, part) {
 		connect()
 		audio.src = path
 	})
-}
-
-const createInstrumentBanks = (fileTye="mp3", dot=".")=>{
-
-	const bank = []
-	for (let b=0; b<BANKS.length;++b)
-	{
-		const key = BANKS[b]
-		// insert a 0 for A
-		if (key==="A")
-		{
-			bank.push( `A0${dot}${fileTye}` )
-		}
-		for (let i=1; i<8; ++i)
-		{
-			bank.push( `${key}${i}${dot}${fileTye}` )
-		}
-		// add an extra one for C
-		if (key==="C")
-		{
-			bank.push( `C8${dot}${fileTye}` )
-		}
-	}
-	return bank
-	
-	// A0-7
-	// Ab1-7
-	// B0-7
-	// Bb1-Bb7
-	// C1-C8
-	// D1-7
-	// Db1-7
-	// E1-7
-	// Eb1-7
-	// F1-7
-	// G1-7
-	// Gb1-7
-}
-
-export const NOTE_NAMES = createInstrumentBanks('','')
-
-// this is an object with the keys being the NOTE_NAMES
-const NOTE_NAMES_FRIENDLY = {}
-
-NOTE_NAMES.forEach( note => {
-	// for each name we do a clever thing innit...
-	NOTE_NAMES_FRIENDLY[note] = note
-} )
-
-// console.error({BANKS, NOTE_NAMES, NOTE_NAMES_FRIENDLY})
-
-// return the relevent do re me fah so lat ti
- export const getNoteSound = (percent, isMinor=false) => {
-	return SOLFEGE_SCALE[ Math.floor( percent * (SOLFEGE_SCALE.length-1) ) ]
- }
-
- export const getNoteText = noteName => {
-	 const note = noteName.charAt(0)
-	 let octave
-	 // if we have 3 figures we swap out the 2nd one for a 
-	 if (noteName.length === 3)
-	 {
-		octave = parseInt( noteName.charAt(2) ) + 1
-		return `${note}#${octave}`
-	 }
-	 octave = parseInt( noteName.charAt(1) ) + 1
-	 return `${note}${octave}`
- }
-
-// octaves 1-7
-// returns A1 Ab1 etc
-export const getNoteName = (percent, octave=3, isMinor=false) => {
-
-	// restrict to 1-7 even though 0 is available for many
-	// octave = clamp(octave, 1, 7)
-	let noteNumber
-	let noteName
-	
-	if (isMinor)
-	{
-		noteNumber = Math.floor( percent * NOTES_BLACK_INDEXES )
-		noteName = NOTES_BLACK[noteNumber]
-	}else{
-		noteNumber = Math.floor( percent * NOTES_WHITE_INDEXES )
-		noteName = NOTES_WHITE[noteNumber]
-	}
-
-	// here is where we need to do our majic
-	// const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
-	// play a note from bank (this is the same for every octave?)
-	// const noteNumber = Math.floor( percent * (BANKS.length-1) )
-	
-	// console.log("Creating note", {percent, octave, isMinor, noteNumber, noteName} )
-	// const noteNumber = Math.floor( percent * (NOTE_NAMES.length-1) )
-	// const noteNumber = Math.floor( percent * (NOTE_NAMES.length-1) )
-	// const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
-	// const noteName = NOTE_NAMES[noteNumber]
-
-	// just in case the note name is not found?
-	return `${noteName}${clamp(octave, 1, 7)}`
-	// return noteName ? `${noteName}${clamp(octave, 1, 7)}` : `A0`
 }
 
 
