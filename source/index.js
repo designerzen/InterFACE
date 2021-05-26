@@ -7,7 +7,7 @@
 import { installer} from './install.js'
 import { createStore} from './store'
 import { say, hasSpeech} from './audio/speech'
-import { record } from './record'
+import { record } from './audio/recorder'
 import { 
 	setupAudio,	audioContext,
 	active, playing, 
@@ -37,7 +37,7 @@ import {
 	setFeedback, setToast,
 	toggleVisibility,
 	focusApp, connectTempoControls 
-} from './ui'
+} from './dom/ui'
 
 import { 
 	drawElement,
@@ -45,9 +45,7 @@ import {
 	getCanvasDimensions, overdraw, clear, canvas
 } from './visual/canvas'
 
-import { 
-	takePhotograph, setupImage, setNodeCount
-} from './visual/2d'
+import { takePhotograph, setupImage, setNodeCount } from './visual/2d'
 
 import { drawWaves, drawBars } from './visual/spectrograms'
 
@@ -56,13 +54,14 @@ import { drawQuantise } from './visual/quantise'
 import { getReferer, getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
-
 import { playNextPart, kitSequence } from './timing/patterns'
 import { getInstruction, getHelp } from './models/instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { VERSION } from './version'
 import Person, { DEFAULT_OPTIONS, NAMES, EYE_COLOURS } from './person'
-import { TAU } from "./maths"
+import { TAU } from "./maths/maths"
+
+import { getBrowserLocales } from './i18n'
 
 // DOM Elements
 const body = document.documentElement
@@ -73,6 +72,7 @@ const image = document.querySelector("img")
 const { isRecording, startRecording, stopRecording } = record()
 
 const store = createStore()
+const language = getBrowserLocales()[0]
 
 // coletion of persons
 const people = []
@@ -104,6 +104,12 @@ let noFacesFound = false
 let userLocated = false
 let counter = 0
 
+// performance indicators
+const statistics = {
+	lag:0, 
+	drift:0
+}
+
 // for disco mode!
 const cameraPan = {x:1,y:1}
 
@@ -121,9 +127,9 @@ const ui = getLocationSettings({
 	backingTrack:false,
 	// clear canvas every frame (if transparent will be ignored)
 	clear:true,
-	// draw video onto canvas
+	// should canvas be transparent to let video bleed through?
 	transparent:true,
-	// same thing?
+	// draw video onto canvas every frame (transparent doesn't have to be true then)
 	synch:true,
 	// show debug texts
 	debug:process.env.NODE_ENV === "development",
@@ -142,7 +148,9 @@ const ui = getLocationSettings({
 	// midi channel (0/"all" means send to all)
 	midiChannel:"all",
 	// saved BPM that can be shared?
-	bpm:120
+	bpm:120,
+	// choice of different models to use
+	model:"face"
 })
 
 const SETTINGS = {
@@ -165,13 +173,16 @@ const SETTINGS = {
 // is https()
 if (!ui.debug && location.hostname !== "localhost" && location.protocol !== 'https:')
 {
-	isLoading = false
-	ultimateFailure = true
-	setToast("Redirecting to a secure site, please stand by!")
-	// show link or just try and force a redirect?
-	setTimeout(()=> location.replace(`https:${location.href.substring(location.protocol.length)}`), 50 )
-	// EXIT HERE
-	return
+	location.protocol = 'https:'
+	
+	// isLoading = false
+	// ultimateFailure = true
+	// setToast("Redirecting to a secure site, please stand by!")
+	// // show link or just try and force a redirect?
+	
+	// setTimeout(()=> location.replace(`https:${location.href.substring(location.protocol.length)}`), 50 )
+	// // EXIT HERE
+	// return
 }
 
 // ESCAPE - no cameras found on system?
@@ -191,10 +202,7 @@ const speak = toSay => {
 // TODO: a version of the instructor that also reads out the messages
 ////////////////////////////////////////////////////////////////////
 const setToaster = (message, time=0) => {
-	if (ui.speak)
-	{
-		speak( message,true)
-	}
+	speak( message,true)
 	setToast(message,time)
 }
 
@@ -245,49 +253,57 @@ const loadRandomInstrument = async (callback) => await loadInstruments('loadRand
 const previousInstrument = async (callback) => await loadInstruments('loadPreviousInstrument', callback)
 const nextInstrument = async (callback) => await loadInstruments('loadNextInstrument', callback)
 
+
+const createPerson = (name,eyeColour) => {
+
+	const duetAvailable = ui.duet
+	
+	// TODO: Change these per person...
+	const options = { 
+		dots:eyeColour, 
+		leftEyeIris:eyeColour, 
+		rightEyeIris:eyeColour,
+		hue:Math.random() * 360,
+		debug:ui.debug,
+		// FIXME: why is this per person? should always set per screen
+		photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
+	}
+
+	// Load any saved settings for this specific user name
+	const savedOptions = store.has(name) ? store.getItem(name) : {}
+	// create a new user and load an instrument
+	const person = new Person(name, audioContext, audio, Object.assign ( {}, options, savedOptions)  ) 
+	// see if there is a stored name for the instrument...
+	const instrument = savedOptions.instrument || randomInstrument()
+
+	// the instrument has changed / loaded!
+	// so show some feedback
+	person.button.addEventListener( 'instrumentchange', event => {
+		// save it for next time
+		const {detail} = event
+		const cache = store.setItem(name, {instrument:detail.instrumentName })
+		//console.log("External event for ",{ person, detail , cache})
+		setToast( `${detail.instrument.title} Loaded` )
+	})
+
+	person.loadInstrument( instrument, instrumentName => {} )
+	//console.error(name, {instrument, person, savedOptions})
+	
+	// if (midi && midi.outputs && midi.outputs.length > 0) 
+	// {
+	// 	person.setMIDI( midi.outputs[0] )
+	// }
+	return person
+}
+
 ////////////////////////////////////////////////////////////////////
 // Create / Fetch a user (we cache every new user)
 ////////////////////////////////////////////////////////////////////
 const getPerson = (index) => {
 	
-	const duetAvailable = ui.duet
-	const eyeColour = EYE_COLOURS[index]
-	
 	if (people[index] == undefined)
 	{
-		// TODO: Change these 
-		const options = { 
-			dots:eyeColour, 
-			leftEyeIris:eyeColour, 
-			rightEyeIris:eyeColour,
-			hue:Math.random() * 360,
-			debug:ui.debug,
-			// FIXME: why is this per person? should always set per screen
-			photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
-		}
-
-		const name = NAMES[index]
-		const savedOptions = store.has(name) ? store.getItem(name) : {}
-		const person = new Person(name, audioContext, audio, options ) 
-		// see if there is a stored name for the instrument...
-		const instrument = savedOptions.instrument || randomInstrument()
-	
-		// the instrument has changed / loaded!
-		person.button.addEventListener( 'instrumentchange', event => {
-			// save it for next time
-			const {detail} = event
-			const cache = store.setItem(name, {instrument:detail.instrumentName })
-			//console.log("External event for ",{ person, detail , cache})
-			setToast( `${detail.instrumentName} Loaded` )
-		})
-		person.loadInstrument( instrument, instrumentName => {} )
-		
-		//console.error(name, {instrument, person, savedOptions})
-		
-		// if (midi && midi.outputs && midi.outputs.length > 0) 
-		// {
-		// 	person.setMIDI( midi.outputs[0] )
-		// }
+		const person = createPerson( NAMES[index] , EYE_COLOURS[index] )
 		people.push( person )
 		return person
 	} else{
@@ -763,7 +779,7 @@ const setup = async (update, settings, progressCallback) => {
 		// , { volume:r }
 		const savedVolume = store.getItem('audio')
 		const newVolume = savedVolume ? savedVolume.volume : 1
-		audio = setupAudio()
+		audio = await setupAudio()
 		
 		//console.log("Initiating audio", {newVolume,savedVolume, audio})
 		
@@ -1057,6 +1073,16 @@ const setup = async (update, settings, progressCallback) => {
 			barsElapsed, timePassed, 
 			elapsed, expected, drift, level, intervals, lag} = values
 		
+		// TODO: The timer is a good place to determine if the computer
+		// 		 is struggling to keep up with the program so we can reduce
+		// 		 the visual complexity of the ui and remove some predictions too
+		// 		 in order to try and maintain decent performance
+
+		// lag
+		statistics.lag = lag
+		statistics.drift = drift
+
+		// nothing to play!
 		if (ui.muted)
 		{
 			return
@@ -1153,10 +1179,23 @@ const load = async (settings, progressCallback) => {
 	const loadTotal = 3
 	let loadIndex = 0
 	
+	// TODO: test of loading external scripts sequentially...
 	progressCallback(loadIndex++/loadTotal)
 
-	// test of loading external scripts sequentially...
-	const {loadModel} = await import('./models/predictor')
+	// pick the body parts...
+	let loadModel
+	switch (settings.model)
+	{
+		case "body":
+			const {loadBodyModel} = await import('./models/body')
+			loadModel = loadBodyModel
+			break
+
+		// Face
+		default:
+			const {loadFaceModel} = await import('./models/face')
+			loadModel = loadFaceModel
+	}
 
 	progressCallback(loadIndex++/loadTotal)
 
@@ -1182,15 +1221,19 @@ const load = async (settings, progressCallback) => {
 		setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.spectrogram )
 
+	// Synch button
 	setToggle( "button-transparent", status =>{
-		setState( 'transparent', status )
+		// I inverted the state for UX
+		setState( 'transparent', !status )
 		setToast("Video Synch " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.transparent )
 
+	// Clear canvas between frames
 	setToggle( "button-clear", status =>{ 
 		setState( 'clear', status )
 	}, ui.clear )
 
+	// Show the canvas element
 	setToggle( "button-overlay", status => toggleVideoVisiblity(), !isVideoVisible() )
 
 	setButton( "button-photograph", event => {
@@ -1317,7 +1360,7 @@ const onLoaded = async () => {
 	if (ui.debug)
 	{
 		// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
-		console.log(`Loaded App Version ${VERSION} from ${referer}` )	
+		console.log(`Loaded App Version ${VERSION} from ${referer} in ${language}` )	
 		// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 	}
 }

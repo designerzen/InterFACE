@@ -1,6 +1,7 @@
-import { clamp, TAU, easeInQuad } from "../maths"
+import { clamp, TAU } from "../maths/maths"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
 import { canvas, canvasContext, drawElement } from './canvas'
+import {easeInQuad} from "../maths/easing"
 
 export const setupImage = async (image) => {
 	return new Promise( async (resolve,reject) => {
@@ -292,13 +293,15 @@ export const drawBoundingBox = (boundingBox, colour='red') => {
 	canvasContext.fill()
 }
 
-const modifier = easeInQuad
 
 let nodeCount = 0
 
 export const setNodeCount = value => nodeCount += value
 
 let cycleCounter = 0
+
+// shape the bump sizes
+const modifier = easeInQuad
 
 // Just draws lots of dots on an image on the canvas
 export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showText=true) => {

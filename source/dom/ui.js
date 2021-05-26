@@ -1,8 +1,8 @@
-import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from './audio/instruments'
-import {VERSION, DATE} from './version'
-import {debounce} from './utils'
+import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from '../audio/instruments'
+import {VERSION, DATE} from '../version'
+import {debounce} from '../utils'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
-import {getShareLink,loadSoloMode,loadDuetMode} from './location-handler'
+import {getShareLink,loadSoloMode,loadDuetMode} from '../location-handler'
 
 const releaseDate = new Date(DATE)
 const dateOptions = {
@@ -46,7 +46,7 @@ export let buttonMIDI
 export let buttonVideo
 export let controls
 
-import PALETTE from "./palette"
+import PALETTE from "../palette"
 
 const main = doc.querySelector("main")
 	

@@ -1,19 +1,19 @@
+const SIZES = ['Bytes', 'KB', 'MB', 'GB']
 
+// This was written before seeing a wonderful github repo that
+// did this much better sooo.... 
+// TODO: Implement this either from that lib, or improve this one
 const formatBytes = (bytes, decimals = 2) => {
-	const SIZES = ['Bytes', 'KB', 'MB', 'GB']
-	
 	if (bytes === 0)
 	{
-		return '0 '+SIZES[0]
-	} 
-	
+		return `0 ${SIZES[0]}`
+	}
 	const k = 1024
-	const dm = decimals < 0 ? 0 : decimals
 	const i = Math.floor(Math.log(bytes) / Math.log(k))
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + SIZES[i]
+	return parseFloat((bytes / Math.pow(k, i)).toFixed( Maths.abs(decimals) )) + ' ' + SIZES[i]
 }
 
-export const updater = async (sw='service-worker.js') => new Promise( (resolve,reject) => {
+export const updater = async () => new Promise( (resolve,reject) => {
 	
 	let storageUsed = 0
 	let reg
@@ -24,7 +24,6 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 		reg.waiting.postMessage({ type: 'SKIP_WAITING' })
 		window.location.reload()
 	}
-
 
 	// Use the window load event to keep the page load performant
 	const checkUpdates = async () => {
@@ -45,7 +44,7 @@ export const updater = async (sw='service-worker.js') => new Promise( (resolve,r
 		reg.onupdatefound = async () => {
 
 			const newWorker = reg.installing
-			console.error("Update Found!", {reg, newWorker} )
+			console.log("Update Found!", {reg, newWorker} )
 
 			newWorker.onstatechange = async () => {
 				

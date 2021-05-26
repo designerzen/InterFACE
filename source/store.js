@@ -1,7 +1,7 @@
 import {debounce} from './utils'
 
 // little local storage wrapper for storing cached objects
-export const createStore = (name="Plops") => {
+export const createStore = (name="InterFACE") => {
 	const storage = localStorage.getItem(name)
 	const data = Object.assign({}, JSON.parse(storage) )
 	const save = debounce( updates => {
