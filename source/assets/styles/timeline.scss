@@ -1,0 +1,78 @@
+summary::marker {
+    color: var(--col-marker);
+	display:none;
+	opacity:0;
+}
+
+summary{
+	user-select:none;
+	cursor:pointer;
+	border:1px solid pink;
+	box-sizing:border-box;
+}
+
+/* Open details element. */
+details[open] {
+
+}
+
+/* Summary within an open details element. */
+details[open] summary {
+
+}
+
+
+.timeline{
+	--col-marker:blue;
+	
+	--divider-width:10px;
+	--gap:12px;
+	
+	--width:calc( var(--gap) + var(--divider-width));
+	// TODO: Add a media query to stack em
+	--space:calc(50% + var(--width));
+	
+	display:flex;
+	flex-direction:column;
+	
+	margin:0;
+	padding:0;
+	
+	// draw line down the middle
+	background-image:linear-gradient(black, black);
+	background-size:var(--divider-width, 1px) 100%;
+	background-repeat:repeat-y;
+	background-position:center top;
+	
+	li{
+		list-style:none;
+		position:relative;
+		color:var(--col-marker);
+		a{
+			margin-left:var(--gap);
+			color:inherit;
+		}
+	}
+	
+	li:nth-child(odd){
+		text-align:right;
+		margin-right:calc( var(--space) );
+		summary::after{
+			margin-right:calc( -1 * var(--width));
+			content:'+';
+		}
+	}
+	
+	li:nth-child(even){
+		text-align:left;
+		margin-left:calc( var(--space));
+		summary{
+			margin-left:calc( -1 * var(--width));
+		}
+		
+		summary::before{
+			content:'+';
+			color:var(--col-marker);
+		}
+	}
+}

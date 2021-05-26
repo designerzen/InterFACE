@@ -251,6 +251,16 @@ video,canvas{
 	pointer-events: none;
 }
 
+// Single taps are dispatched immediately on clickable elements
+a, area, button, input, label, select, summary, textarea, [tabindex] {
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+}
+
+[aria-busy="true"] {
+	cursor: progress;
+}
+
 // elements and sections
 @import "./assets/styles/gadgets.scss";
 
@@ -722,6 +732,8 @@ html.loading main{
 	header > *:not(nav){
 		visibility: hidden;
 	}
+
+
 	// strapline... show yet?
 	#title{
 		position: absolute;
@@ -781,8 +793,21 @@ html.loading main{
 	#help .player-selection-help{
 		display: block;
 	}
+	
+	#app-frame{
+		height:auto;
+		min-height:auto;
+		max-height:none;
+		//max-height:calc( 100% - var(--footer-gap, 44px) );
+	}
+
 	// we invert as on black background
 	#foot{
+		position: relative;
+		bottom:auto;
+		left:auto;
+		right:auto;
+		margin:0 var(--pad);
 		color:$col-tan;
 		a {
 			color: $col-yellow;
@@ -1487,6 +1512,7 @@ main:not(.flag-clear.flag-transparent){
 	color:$col-brown;
 
 	display: flex;
+	box-sizing: border-box;
 
 	align-items: flex-end;
 	justify-content: flex-end;
@@ -1506,7 +1532,7 @@ main:not(.flag-clear.flag-transparent){
 	
 	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
-	z-index:909;
+	//z-index:909;
 
 	// fader it in immediately
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
@@ -1556,6 +1582,7 @@ main:not(.flag-clear.flag-transparent){
 	#year{
 		display: inline-flex;
 		flex-direction: row;
+		white-space: nowrap;
 	}
 
 	// this *still* gets read out via screenreaders!!!
