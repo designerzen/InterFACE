@@ -11,7 +11,6 @@ export const NOTES_WHITE_INDEXES = NOTES_WHITE.length - 1
 // renamed white notes
 export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
 
-
 export const createInstrumentBanks = (fileTye="mp3", dot=".")=>{
 
 	const bank = []

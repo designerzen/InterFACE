@@ -19,8 +19,9 @@ export const createMIDIFile = (nestup) => {
 	const midiLikeEvents = nestup.onOffEvents(ticks);
 	let lastEvent = null;
 
-	let tickCounter = 0;
-	let noteStartTick = 0;
+	let tickCounter = 0
+	let noteStartTick = 0
+
 	midiLikeEvents.forEach((event) => {
 
 		if (event.on) {
@@ -39,10 +40,11 @@ export const createMIDIFile = (nestup) => {
 
 			tickCounter += (wait + duration);
 		}
-	});
+	})
 
 	// Generate a data URI
 	const write = new MidiWriter.Writer(track)
 	console.log(write.dataUri())
-	write.saveMIDI(outfile);//#endregion	
+	write.saveMIDI(outfile)
+	//#endregion	
 }
