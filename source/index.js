@@ -14,7 +14,7 @@ import {
 	randomInstrument,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength,dataArray, 
-	getVolume, setVolume, setAmplitude } from './audio/audio'
+	getVolume, setVolume } from './audio/audio'
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI, testForMIDI } from './audio/midi-out'
 
@@ -28,8 +28,7 @@ import {
 } from './timing/timing.js'
 	
 import {
-	setLoadProgress, getLoadProgress,
-	showPlayerSelector, showError,
+	showPlayerSelector, 
 	video,isVideoVisible,toggleVideoVisiblity,
 	setToggle, setButton, 
 	setupMIDIButton, showUpdateButton, showReloadButton,
@@ -39,19 +38,23 @@ import {
 	focusApp, connectTempoControls 
 } from './dom/ui'
 
+import {showError } from './dom/errors'
+import {setLoadProgress, getLoadProgress } from './dom/load-progress'
+import {createPhotographElement} from './dom/photographs'
+
 import { 
 	drawElement,
 	updateCanvasSize, copyCanvasToClipboard, 
-	getCanvasDimensions, overdraw, clear, canvas
+	overdraw, clear, canvas
 } from './visual/canvas'
 
-import { takePhotograph, setupImage, setNodeCount } from './visual/2d'
+import { setupImage, setNodeCount } from './visual/2d'
 
 import { drawWaves, drawBars } from './visual/spectrograms'
 
 import { drawQuantise } from './visual/quantise'
 
-import { getReferer, getLocationSettings, getShareLink, addToHistory } from './location-handler'
+import { getReferer, getRefererHostname, getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 import { playNextPart, kitSequence } from './timing/patterns'
@@ -101,6 +104,8 @@ let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
 let noFacesFound = false
+// TODO:
+let cookieConsent = false
 let userLocated = false
 let counter = 0
 
@@ -117,7 +122,7 @@ const cameraPan = {x:1,y:1}
 body.classList.toggle("loading", true)
 
 // if we have a specific referer, we can change these accordingly
-const referer = getReferer() || 'interface.place'
+const referer = getReferer()
 
 // realtime UI options
 const ui = getLocationSettings({
@@ -473,8 +478,6 @@ const registerKeyboard = () => {
 				break
 
 			case 'Space':
-				// read out last bit of help?
-				speak(document.getElementById('toast').innerText, true)
 				loadRandomInstrument() 
 				break
 
@@ -484,6 +487,12 @@ const registerKeyboard = () => {
 
 			case 'ArrowRight':
 				nextInstrument() 
+				break
+
+			case 'QuestionMark':
+			case '?':
+				// read out last bit of help?
+				speak(document.getElementById('toast').innerText, true)
 				break
 
 			// change amount of bars
@@ -558,6 +567,13 @@ const registerKeyboard = () => {
 				//doc.documentElement.classList.toggle(CSS_CLASS, false)
 				break
 
+			// toggle speech
+			case 'l':
+				ui.speak = !ui.speak
+				setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
+				break
+		
+
 			case 'm':
 				ui.metronome = !ui.metronome
 				setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
@@ -620,12 +636,6 @@ const registerKeyboard = () => {
 				break
 		
 
-			case '?':
-				// toggle speech
-				ui.speak = !ui.speak
-				setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
-				break
-
 			// don't hijack tab you numpty!
 			// FILTER
 			case 'Tab':
@@ -665,8 +675,9 @@ const registerKeyboard = () => {
 		addToHistory(ui, event.key)
 		console.log("key", ui, event)
 	})
-
 }
+
+
 
 //////////////////////////////////////////////////////////////////
 // This creates all the wiring 
@@ -682,7 +693,7 @@ const setup = async (update, settings, progressCallback) => {
 	// interface.place
 	// interface.lol	<- defaults to simple 'kid' mode
 	// interface.band	<- defaults to duet mode
-	main.classList.add( referer.split('.').pop() )
+	main.classList.add( getRefererHostname().split('.').pop()  )
 
 	try{
 		
@@ -1236,29 +1247,10 @@ const load = async (settings, progressCallback) => {
 	// Show the canvas element
 	setToggle( "button-overlay", status => toggleVideoVisiblity(), !isVideoVisible() )
 
-	setButton( "button-photograph", event => {
-		const unique = Math.ceil( now() * 10000000 )
-		const id = `photograph-${unique}`
-		const dimensions = getCanvasDimensions()
-		const img = new Image()
-		img.src = takePhotograph()
-		img.alt = "Photograph taken " + Date.now().toString()
-		img.width = dimensions.width
-		img.height = dimensions.height
-
-		const anchor = document.createElement("a")
-		anchor.href = img.src
-		anchor.innerHTML = `Click to download this photograph`
-		anchor.id = id
-		anchor.download = `snapshot-${unique}.png`
-		anchor.appendChild(img)
-
+	setButton( "button-photograph", event => {	
 		// TODO: also copy to clipboard?
 		// copyCanvasToClipboard()
-
-		document.getElementById("photographs").appendChild(anchor)
-
-		requestAnimationFrame( ()=>document.getElementById(id).scrollIntoView() )
+		appendPhotographElement()
 	} )
 
 	// Button video loads random instruments for all
@@ -1428,7 +1420,12 @@ const pwa = async() => {
 
 
 // ---------------------------------------------------------
-const options = Object.assign( {}, SETTINGS, {} )
+const options = Object.assign( {}, SETTINGS )
+
+// FIXME: Do we instantly show the user quantity screen
+// and load all background elements and scripts
+
+
 // now load dependencies and show progress
 load(options, (progress, message) => {
 	
@@ -1446,7 +1443,6 @@ load(options, (progress, message) => {
 		setToast( "Please select how many players you want to play" )
 		timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
 	}, 60000 )
-
 	
 	// hide the loading screen but dont sdt it to loaded just yet
 	body.classList.toggle("loading", false)
@@ -1462,6 +1458,9 @@ load(options, (progress, message) => {
 	}catch(error){
 		console.error("player selection failed", error)
 	}
+
+
+
 
 	setFeedback("Please wait loading! This can take <strong>some</strong> time...")
 
