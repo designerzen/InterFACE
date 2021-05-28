@@ -87,12 +87,24 @@ export const loadSoloMode = ()=> {
 	//window.location = url
 }
 
+// This attempts to determine where the user came from
+// and to create class names that can create custom versions
+// so long as they maintin their urls (ie. not use shortlinks)
+
 export const getReferer = () => {
 	// save to url?
 	const ref = document.referrer
 	// check against our list
-	return ref
+	return ref || document.location || 'interface.place'
 }
+export const getRefererHostname = () => {
+	// save to url?
+	const referrer = new URL( getReferer() )
+	// now strip out everything but the location
+	// check against our list
+	return referrer.hostname
+}
+
 
 export const refresh = options => {
 	// save to url?
