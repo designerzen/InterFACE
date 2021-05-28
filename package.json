@@ -52,6 +52,16 @@
 		"directories": {
 			"buildResources": "source/assets/icons/",
 			"output": "electron"
+		},
+		"linux": {
+			"target": [
+				{
+					"target": "deb",
+					"arch": [
+						"x64"
+					]
+				}
+			]
 		}
 	},
 	"dependencies": {
@@ -90,6 +100,7 @@
 		"builder-util": "^22.10.5",
 		"electron": "^12.0.2",
 		"electron-builder": "^22.10.5",
+		"electron-prebuilt-compile": "^8.2.0",
 		"gh-pages": "^3.1.0",
 		"parcel": "2.0.0-beta.1",
 		"postcss": "^8.2.1",
