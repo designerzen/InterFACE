@@ -13,31 +13,7 @@ const dateOptions = {
 export const formattedDate = `${releaseDate.getDate()}/${releaseDate.getMonth()+1}/${releaseDate.getFullYear()} ${ releaseDate.toLocaleTimeString("en-GB",dateOptions) }`
 
 const doc = document
-
-let loadMeter = 0
-const LOAD_MESSAGES = ["Please wait", "Loading.","Loading..","Loading...", "Almost done!"]
-const progressMessage = doc.getElementById("progress-bar")
-const progressBar = doc.querySelector('progress')
-export const setLoadProgress = (progress, message) => {
-	loadMeter = progress
-	progressBar.setAttribute("value", parseInt(progress) )
-	if (message && message.length)
-	{
-		
-	}else{
-		// get prescripted from list...
-		message = LOAD_MESSAGES[ Math.ceil(progress * (LOAD_MESSAGES.length-1)) ]	
-	}
-	//console.log("load", {progress, message} , Math.ceil(progress * LOAD_MESSAGES.length), LOAD_MESSAGES)
-	
-	if (progressMessage.innerHTML !== message)
-	{
-		// only change label text not the input field too?
-		progressMessage.innerHTML = message
-	}
-}
-export const getLoadProgress = () => loadMeter
-
+// const { getElementById, querySelector } = document
 let buttonInstrument
 let buttonRecord
 
@@ -45,8 +21,6 @@ export let buttonQuantise
 export let buttonMIDI
 export let buttonVideo
 export let controls
-
-import PALETTE from "../palette"
 
 const main = doc.querySelector("main")
 	
@@ -104,11 +78,18 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 	} : null
 }
 
+// Feedback ui
+export const setFeedback = bindTextElement( doc.getElementById("feedback"), 20 )
+export const setToast = bindTextElement( doc.getElementById("toast"), 20, 900, true )
+
+
+
 export const toggleVisibility = element => {
 	const isVisisble = element.style.visibility !== "hidden"
 	element.style.visibility = !isVisisble ? "visible" : "hidden"
 	return !isVisisble
 }
+
 export const video = doc.querySelector("video")
 export const isVideoVisible = () => video.style.visibility === "hidden" 
 export const toggleVideoVisiblity = value => {
@@ -116,10 +97,6 @@ export const toggleVideoVisiblity = value => {
 	console.error("toggling video vis", {value, currentlyVisible})
 	video.style.visibility = currentlyVisible ? "visible" : "hidden", !currentlyVisible 
 }
-
-// Feedback ui
-export const setFeedback = bindTextElement( doc.getElementById("feedback"), 20 )
-export const setToast = bindTextElement( doc.getElementById("toast"), 20, 900, true )
 
 export const setControls = fragment => {
 	
@@ -446,9 +423,4 @@ export const setupInterface = ( options ) => {
 ////////////////////////////////////////////////////////////////////
 export const focusApp = ()=>{ 
 	
-}
-
-export const showError = (error, solution) => {
-	console.error("Could not load", error )
-	console.warn("Try", solution )
 }
