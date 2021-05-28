@@ -31,31 +31,35 @@ const impulseResponse = ( audioContext, duration=4, decay=4, reverse=false ) => 
 export const createReverb = async ( 
 	audioContext,
 	gain = 0.4,
-	filter='./assets/audio/ir-hall.mp3'
+	normalize=true,
+	filterFile='./assets/audio/ir-hall.mp3'
 ) => {
 
 	// first load our filter into memory...
-	const response = await fetch(filter)
+	const response = await fetch(filterFile)
 	const arrayBuffer = await response.arrayBuffer()
 	const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 	const compressor = new DynamicsCompressorNode(audioContext)
-
 	const reverbGain = new GainNode( audioContext, {gain: gain} )
-	// const convolver = audioContext.createConvolver(null, true)
-	const convolver = new ConvolverNode( audioContext , {
-		buffer : audioBuffer,
-		normalize : false
-	} )
-
-	// convolver.buffer = audioBuffer
-	// convolver.normalize = false
+	
+	// const convolver = new ConvolverNode( audioContext , {
+	// 	buffer : audioBuffer,
+	// 	normalize : normalize
+	// } )
+	const convolver = audioContext.createConvolver(null, true)
+	convolver.buffer = audioBuffer
+	convolver.normalize = normalize
 
 	//console.log("Reverb", {arrayBuffer, filterBuffer, reverbGain, convolver } )
 
 	compressor.connect(audioContext.destination)
 	compressor.connect(convolver)
-	
+
 	convolver.connect(reverbGain).connect(audioContext.destination)
 	
-	return reverbGain
+	return {
+		name:"reverb",
+		node:convolver,
+		gain:value => reverbGain.gain.value = value
+	}
 }

@@ -1,5 +1,6 @@
 
-import {audioContext, inputDryNode} from './audio'
+import {audioContext} from './audio'
+import {inputDryNode} from './rack'
 
 const ZERO = 0.0000001
 

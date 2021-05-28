@@ -1,6 +1,15 @@
 import {clamp, lerp, TAU} from "../maths/maths"
 import {cleanTitle} from './instruments'
-import {createReverb} from './reverb'
+
+import { chain } from './rack'
+
+// Effects
+import {createReverb} from './effects/reverb'
+import {createDelay} from './effects/delay'
+import {createDub} from './effects/dub'
+import {createCompressor} from './effects/compressor'
+import {createDistortion} from './effects/distortion'
+import {createAmplitude} from './effects/amplitude'
 
 import {INSTRUMENT_FOLDERS} from "./instruments"
 
@@ -8,10 +17,8 @@ import {
 	createInstrumentBanks,
 	// getNoteName,
 	// getNoteSound, getNoteText,
-	NOTE_NAMES, NOTE_NAMES_FRIENDLY,
-	// NOTES_BLACK, NOTES_WHITE
+	NOTE_NAMES, NOTE_NAMES_FRIENDLY
 } from './notes'
-
 
 export const randomInstrument = () => INSTRUMENT_FOLDERS[ Math.floor( Math.random() * INSTRUMENT_FOLDERS.length ) ]
 
@@ -21,46 +28,73 @@ export let bufferLength
 export let dataArray
 
 let oscillator
-let gainNode
-let delayNode
-let feedbackNode
 let analyser
 let compressor
+let distortion
 let reverb
-let destinationVolume = 0
-
-let outputNode = null
+let delay
+let dub
+let gain
 
 export let playing = false
 export let active = false
 
-// 
-export const inputNode = () => outputNode
-export const inputDryNode = () => gainNode
+// // just does linear connects in sequence for easier protyping
+// const chain = ( routes, connect=true ) => {
 
+// 	const quantity = routes.length
 
-// just does linear connects in sequence for easier protyping
-const chain = ( routes, connect=true ) => {
+// 	for (let i=1; i<quantity; ++i)
+// 	{
+// 		const previous = routes[ i-1 ]
+// 		const route = routes[ i ]
 
-	const quantity = routes.length
+// 		if (route.name)
+// 		{
+// 			console.error("Object fx needs i/o", route)
+// 		}
 
-	for (let i=1; i<quantity; ++i)
-	{
-		const previous = routes[ i-1 ]
-		const route = routes[ i ]
+// 		// check to see if it is a wrapped object...
 
-		previous.connect(route)
+// 		previous.connect(route)
 		
-		// if last one...
-		if (connect && i === quantity-1 )
-		{
-			route.connect(audioContext.destination)
-		}
-	}
+// 		// if last one...
+// 		if (connect && i === quantity-1 )
+// 		{
+// 			route.connect(audioContext.destination)
+// 		}
+// 	}
 
-	// grab the first one
-	outputNode = routes[0]
-	return outputNode
+// 	// grab the first one
+// 	outputNode = routes[0]
+// 	return outputNode
+// }
+
+export const chooseFilters = async (options) => {
+
+	// create some filters based on some options?
+
+	return chain( [
+		
+		gain,
+		await createCompressor( audioContext ), 
+		// await createReverb(audioContext, 0.5),
+		
+		//, await createDelay(audioContext)
+		//await createDub(audioContext)
+		await createDistortion(audioContext)
+
+	], audioContext )
+}
+
+const DEFAULT_OPTIONS = {
+	// quantity of reverb
+	reverb:0.3,
+	// flatten pops and clicks
+	normalise:true,
+	// frequency analysser pulse smoothing (for cool visual effects!)
+	// how quick it drops < 0.85 looks cool
+	smoothingTimeConstant:0.45
 }
 
 export const setupAudio = async (
@@ -69,78 +103,88 @@ export const setupAudio = async (
 	OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
 ) => {
 
+	const options = Object.assign ( {}, DEFAULT_OPTIONS )
+
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
 	audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
-	gainNode = audioContext.createGain()
-	gainNode.gain.value = 0
-
-
-	// this should hopefully balance the outputs
-	compressor = audioContext.createDynamicsCompressor()
-	// 	threshold: [-100, 0],
-	// 	knee: [0, 40],
-	// 	ratio: [1, 20],
-	// 	attack: [0, 1],
-	// 	release: [0, 1]
-	compressor.threshold.value = -70
-	compressor.knee.value = 40
-	compressor.ratio.value = 15
-	compressor.attack.value = 0.2
-	compressor.release.value = 0.5
-
-	reverb = await createReverb(audioContext, 0.5)
-	// reverb.gain.value = 0.2
-
-	delayNode = audioContext.createDelay(0.01)
-	//delayNode.delayTime.value = 0
+	// universal volume setter
+	gain = await createAmplitude(audioContext, 1)
 	
-	feedbackNode = audioContext.createGain()
-	feedbackNode.gain.value = 0.2
+	// this should hopefully balance the outputs
+	// compressor = await createCompressor( audioContext )
 
+	// reverb = await createReverb(audioContext, 0.5)
+	
+	// some space dubs!
+	// delay = await createDelay(audioContext)
+	// dub = await createDub(audioContext)
+	
+	// masher (expensive)
+	// distortion = await createDistortion(audioContext)
+
+	// UI spectrum analyser
 	analyser = audioContext.createAnalyser()
 	analyser.minDecibels = -90
 	analyser.maxDecibels = -10
-	// how quick it drops 0.85 looks cool
-	analyser.smoothingTimeConstant = 0.45
-
-	// for waves
-	// analyser.fftSize = 2048
-	// bufferLength = analyser.fftSize
-
-	// for bars
-	analyser.fftSize = 256
+	analyser.smoothingTimeConstant = options.smoothingTimeConstant
 
 	bufferLength = analyser.frequencyBinCount
-	
     dataArray = new Uint8Array(bufferLength)
 	
 	//recorder = audioContext.createScriptProcessor(BUFFER_SIZE, INPUT_CHANNELS, OUTPUT_CHANNELS)
-	analyser.connect(audioContext.destination)
-
+	
 	// chain( [ delayNode, feedbackNode, delayNode, 
 	// 			gainNode, reverb, 
-	// 				compressor, analyser] )
+	// 				compressor.node, analyser], audioContext )
 
 	// fixes old ios bug about audio not starting until buttons or something
-	resumeAudioContext()
+	// resumeAudioContext()
+
+	// this should hopefully balance the outputs
+	return chain( [
+
+		gain,
+		//await createCompressor( audioContext )
+		
+		await createReverb( audioContext, options.reverb, options.normalise ),
+		
+		//, await createDelay(audioContext)
+		//await createDub(audioContext)
+		//await createDistortion(audioContext)
+
+	], audioContext )
 	
 	// all mod cons
-	// return chain( [ delayNode, feedbackNode, delayNode, gainNode, reverb, compressor, analyser ] )
+	// return chain( [ delayNode, feedbackNode, delayNode, gainNode, reverb, compressor, analyser ], audioContext )
 	
 	// just compressor and reverb
-	return chain( [ gainNode, reverb, compressor, analyser] )
+	// return chain( [ gain.node, reverb.node, compressor.node, analyser], audioContext )
+	
+	// just rever, delay and compressor
+	//return chain([ gain, analyser ], audioContext )
+	return chain([ gain, compressor, reverb, analyser ], audioContext )
+	
+	return chain([ compressor.node, reverb.node, delay.node, gain.node, analyser ], audioContext )
+	
+	// all mod cons
+	return chain( [ gain.node, reverb.node, delay.node, compressor.node, analyser ], audioContext )
 }
 
 export const updateByteFrequencyData = ()=> {
 	analyser.fftSize = 2048
 	analyser.getByteFrequencyData(dataArray)
+	// for waves?
+	//bufferLength = analyser.fftSize
+	bufferLength = analyser.frequencyBinCount
 }
 
 export const updateByteTimeDomainData = ()=> {
 	analyser.fftSize = 256
+	// for bars
 	analyser.getByteTimeDomainData(dataArray)
+	bufferLength = analyser.frequencyBinCount
 }
 
 const monitor = () => {
@@ -214,42 +258,8 @@ export const setFrequency = frequency => {
 	oscillator.frequency.value = frequency
 }
 
-export const getVolume = () => destinationVolume // gainNode.gain.value
-
-// smaller means slower
-export const setVolume = (destinationVolume) => {
-
-	destinationVolume = clamp(destinationVolume, 0, 1)
-	//gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime)
-	gainNode.gain.value = destinationVolume
-
-	return destinationVolume
-}
-
-const rate = 0.1
-const fadeVolume = (destinationVolume) => {
-
-	//gainNode.gain.value = lerp( gain.gain.value, destinationVolume, 0.1 )
-	const newVolume = gainNode.gain.value + (destinationVolume - gainNode.gain.value) * rate
-	gainNode.gain.setValueAtTime(destinationVolume, audioContext.currentTime)
-	
-	if (gainNode.gain.value === destinationVolume)
-	{
-
-	}else{
-		requestAnimationFrame( fadeVolume )
-	}
-	return newVolume
-}
-
-
-export const setAmplitude = amplitude => {
-	// lerp towards
-	 destinationVolume = amplitude
-	 fadeVolume()
-	//gainNode.gain.clearValues()
-	//gainNode.gain.setValueAtTime(amplitude, audioContext.currentTime)
-}
+export const getVolume = () => gain.volume()
+export const setVolume = (destinationVolume) => gain.volume(destinationVolume)
 
 export const loadAudio = async (path) => {
 	const response = await fetch(path)
