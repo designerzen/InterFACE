@@ -8,10 +8,13 @@
 	"type": "module",
 	"scripts": {
 		"postinstall:": "electron-builder install-app-deps",
+		"push:": "git push origin && git push origin --tags",
+		"freshstart": "yarn reset && parcel serve source/*.pug -p 909",
 		"start": "parcel serve source/*.pug -p 909",
-		"hardreset": "node actions/reset.js --total && yarn install",
-		"reset": "yarn killport && node actions/reset.js",
 		"killport": "npx kill-port 909",
+		"hardreset": "node actions/reset.js --total && yarn install",
+		"reset": "node actions/reset.js",
+		"changes": "node actions/changelog.js",
 		"clean": "node actions/clean.js",
 		"build": "parcel build --no-source-maps --no-scope-hoist --no-content-hash --public-url ./ source/*.pug",
 		"build:debug": "parcel build --no-minify --no-scope-hoist --public-url ./ source/*.pug",
@@ -33,9 +36,9 @@
 		"license:build": "parcel build --public-url ./ source/licenses.pug",
 		"revision": "yarn version --patch --no-git-tag-version",
 		"revise": "yarn revision && node actions/revision.js",
-		"patch": "yarn version --patch && node actions/revision.js",
-		"minor": "yarn version --minor && node actions/revision.js",
-		"major": "yarn version --major && node actions/revision.js",
+		"patch": "changelog -p && yarn version --patch && node actions/revision.js",
+		"minor": "changelog -m && yarn version --minor && node actions/revision.js",
+		"major": "changelog -M && yarn version --major && node actions/revision.js",
 		"package": "yarn revise && yarn clean && yarn build",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
 		"deploy": "node actions/deploy.js",
@@ -47,7 +50,7 @@
 		"appId": "place.interface",
 		"copyright": "Copyright © 2021 designerzen",
 		"mac": {
-			"category": "your.app.category.type"
+			"category": "music"
 		},
 		"directories": {
 			"buildResources": "source/assets/icons/",
@@ -84,6 +87,7 @@
 		"mpe": "^1.0.4",
 		"share-menu": "^4.0.0",
 		"stats.js": "^0.17.0",
+		"three": "^0.129.0",
 		"webmidi": "^3.0.0-alpha.2"
 	},
 	"devDependencies": {
@@ -101,6 +105,7 @@
 		"electron": "^12.0.2",
 		"electron-builder": "^22.10.5",
 		"electron-prebuilt-compile": "^8.2.0",
+		"generate-changelog": "^1.8.0",
 		"gh-pages": "^3.1.0",
 		"parcel": "2.0.0-beta.1",
 		"postcss": "^8.2.1",
