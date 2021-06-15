@@ -6,8 +6,8 @@ let width = canvas.width
 let height = canvas.height
 
 export const updateCanvasSize = (w,h) => {
-	width = w || canvas.width
-	height = h || canvas.height
+	width = w ?? canvas.width
+	height = h ?? canvas.height
 	// console.error("Updated canvas size to", {w,h}, canvas.width, canvas.height)
 }
 

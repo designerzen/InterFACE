@@ -3,27 +3,6 @@ import PALETTE, { DEFAULT_COLOURS } from "../palette"
 import { canvas, canvasContext, drawElement } from './canvas'
 import {easeInQuad} from "../maths/easing"
 
-export const setupImage = async (image) => {
-	return new Promise( async (resolve,reject) => {
-		const setSize = ()=> {
-			image.width = image.naturalWidth
-			image.height = image.naturalHeight
-		}
-		// check to see if has already loaded...
-		if (image.naturalWidth > 0)
-		{
-			setSize()
-			resolve(image) 
-		}else{
-			image.onloaded = ()=>{ 
-				setSize()
-				resolve(image)
-			}
-			image.onerror = error => reject(error)
-		}
-	})
-}
-
 //////////////////////////////////////////////////////////////////////
 // converts the canvas into a PNG / JPEG and adds returns as a blob?
 //////////////////////////////////////////////////////////////////////
@@ -32,14 +11,17 @@ export const takePhotograph = (type="image/png") => {
 	return canvas.toDataURL(type)
 }
 
+//////////////////////////////////////////////////////////////////////
+// draws a specific part by looping through the part array and 
+// connecting the nodes together with paths
+//////////////////////////////////////////////////////////////////////
 export const drawPart = (part, radius=4, colour="red", lines=true) => {
 	
 	canvasContext.fillStyle  = colour
 	canvasContext.strokeStyle = colour
-	
 	canvasContext.moveTo(part[0][0], part[0][1])
-	
 	canvasContext.beginPath()
+
 	for (let i = 0,  l= part.length; i < l; i++) 
 	{
 		const x = part[i][0]
@@ -59,100 +41,31 @@ export const drawPart = (part, radius=4, colour="red", lines=true) => {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Draw an Eye from the EYE Model object
-//////////////////////////////////////////////////////////////////////
-export const drawEye = (eye, colour="blue") => {
-	
-	const iris = eye[0]
-	const inner = eye[1]
-	const up = eye[2]
-	const outer = eye[3]
-	const down = eye[4]
-	
-	canvasContext.strokeWidth = 0
-	
-	// draw eye path
-	const arcLength = 6
-	canvasContext.beginPath()
-	canvasContext.fillStyle  = colour
-	canvasContext.arcTo(up[0], up[1], inner[0], inner[1], arcLength)
-	canvasContext.arcTo(inner[0], inner[1], down[0], down[1], arcLength)
-	canvasContext.arcTo(down[0], down[1], outer[0], outer[1], arcLength)
-	canvasContext.arcTo(outer[0], outer[1], up[0], up[1], arcLength)
-	canvasContext.fill()
-
-	let radius = 2// 1 + clamp( (10+iris[2]) * 0.8, 5, 10 )
-	canvasContext.beginPath()
-	canvasContext.fillStyle  = 'black'
-	canvasContext.arc(iris[0], iris[1], radius, 0, TAU)
-	canvasContext.fill()
-
-	/*
-	radius = 4
-	canvasContext.beginPath()
-	canvasContext.fillStyle  = 'blue'
-	canvasContext.arc(up[0], up[1], radius, 0, TAU)
-	canvasContext.fill()
-	canvasContext.closePath()
-
-	canvasContext.beginPath()
-	canvasContext.fillStyle  = 'purple'
-	canvasContext.arc(outer[0], outer[1], radius, 0, TAU)
-	canvasContext.fill()
-		
-	canvasContext.beginPath()
-	canvasContext.fillStyle  = 'green'
-	canvasContext.arc(down[0], down[1], radius, 0, TAU)
-	canvasContext.fill()
-
-	
-	canvasContext.beginPath()
-	canvasContext.fillStyle  = 'yellow'
-	canvasContext.arc(inner[0], inner[1], radius, 0, TAU)
-	canvasContext.fill()
-	*/
-
-	/*
-	// there are four outer balls
-	for (let i = 0  ; i < eye.length -1; i++ ) 
-	{
-		const x = eye[i][0]
-		const y = eye[i][1]
-		const z = eye[i][2]
-
-		// const radius = 1 + clamp( (10+z) * 0.8, 5, 10 )
-		// canvasContext.arc(x, y, radius, 0, TAU)
-		// canvasContext.fill()
-
-		if (i > 0)
-		{
-			const arcLength = 7 ;//Math.abs( i%2 ? iris - x : iris - y )
-			const previous = eye[i-1]
-			canvasContext.arcTo(previous[0],previous[1], x,y,arcLength)
-		}
-	}*/
-	// canvasContext.stroke()
-}
-
-//////////////////////////////////////////////////////////////////////
 // draws a three pointed shape 
 //////////////////////////////////////////////////////////////////////
 export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill, strokeWidth=1 ) => {
 	
 	canvasContext.beginPath()
-	canvasContext.moveTo( x1, y1 )
-	canvasContext.lineTo( x2, y2 )
-	canvasContext.lineTo( x3, y3 )
-	canvasContext.closePath()
 
 	canvasContext.lineWidth = strokeWidth
 	canvasContext.strokeStyle = fill
+
+	canvasContext.moveTo( x1, y1 )
+	canvasContext.lineTo( x2, y2 )
+	canvasContext.lineTo( x3, y3 )
+
+	canvasContext.closePath()
+
+	// canvasContext.fillStyle
 
 	// canvasContext.lineTo( x1, y1 )
 	canvasContext.stroke()
 }
 
-export const drawNode = (pointA, pointB, radius=5, fill="blue", showText=false) => {
+//////////////////////////////////////////////////////////////////////
+// draw a line with a ball on either end wih optional text
+//////////////////////////////////////////////////////////////////////
+export const drawNode = (pointA, pointB, radius=5, fill="blue") => {
 	
 	canvasContext.fillStyle  = fill
 
@@ -167,83 +80,9 @@ export const drawNode = (pointA, pointB, radius=5, fill="blue", showText=false) 
 	canvasContext.beginPath()
 	canvasContext.moveTo(pointA[0], pointA[1])
 
-	canvasContext.strokeStyle = "orange"
-	canvasContext.fillStyle = "orange"
+	canvasContext.strokeStyle = PALETTE.orange
+	canvasContext.fillStyle = PALETTE.orange
 	canvasContext.lineTo(pointB[0], pointB[1])
-
-	// add text
-	if (showText)
-	{
-		canvasContext.stroke( )
-		canvasContext.fillStyle = PALETTE.blue
-		canvasContext.font = "12px Oxanium"
-		canvasContext.textAlign = "center"
-		canvasContext.fillText(`${Math.floor(mouthRange)}px`, pointA[0], pointA[1] - 20 )
-	}
-}
-
-//////////////////////////////////////////////////////////////////////
-// Draw a Mouth onto the canvas
-//////////////////////////////////////////////////////////////////////
-export const drawMouth = ( prediction, colour="yellow", debug=true ) => {
-	
-	const { annotations, mouthRange,mouthWidth, mouthOpen } = prediction
-	const {lipsUpperInner,lipsLowerInner} = annotations 
-	const lips = [lipsUpperInner, lipsLowerInner]
-	
-	// central piece of the mouth
-	const lipUpperMiddle = lipsUpperInner[5]
-	const lipLowerMiddle = lipsLowerInner[5]
-
-	// kermit style mouth with gradient!
-	// const topGradient = ctx.createLinearGradient(0, 0, 0, lipVerticalOpening)
-	// topGradient.addColorStop(0, "black")
-	// topGradient.addColorStop(1, "white")
-
-	// how can we work out height of the mouth???
-	const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRange )
-	mouthGradient.addColorStop(0, colour)
-	mouthGradient.addColorStop(0.5, PALETTE.dark )
-	mouthGradient.addColorStop(1, colour)
-
-	// canvasContext.beginPath()
-	// canvasContext.moveTo(lipsUpper[0][0], lipsUpper[0][1])
-	// for (let i = 0, q=lip.length; i < q; i++) 
-	// {
-	// 	const x = lip[i][0]
-	// 	const y = lip[i][1]
-
-	// 	canvasContext.lineTo(x, y)
-	// }	
-	// canvasContext.fill()
-	
-	
-	canvasContext.beginPath()
-	canvasContext.moveTo(lipsUpperInner[0][0], lipsUpperInner[0][1])
-
-	canvasContext.fillStyle  = mouthGradient
-
-	// dual lips mode
-	for (let l = 0, t=lips.length; l < t; l++) {
-
-		const lip = lips[l]
-		
-		for (let i = 0, q=lip.length; i < q; i++) 
-		{
-			const x = lip[i][0]
-			const y = lip[i][1]
-	
-			canvasContext.lineTo(x, y)
-		}	
-	}
-	canvasContext.fill()
-
-	if (debug)
-	{
-		drawNode(lipLowerMiddle, lipUpperMiddle, 5)
-	}
-	
-	return {lipUpperMiddle, lipLowerMiddle }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -271,8 +110,7 @@ export const drawParagraph = (x, y, paragraph=[], size='8px', lineHeight=20) => 
 
 export const drawInstrument = (boundingBox, instrumentName, extra='') => {
 
-	// use prediction.boundingBox
-	const {bottomRight, topLeft} = boundingBox
+	// use prediction.boundingBox to position text
 	const text = `${instrumentName.toUpperCase()} - ${extra}`
 	// canvasContext.beginPath()
 	// // these aren't scaled :(
@@ -280,7 +118,7 @@ export const drawInstrument = (boundingBox, instrumentName, extra='') => {
 	// // canvasContext.rect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
 	// canvasContext.strokeRect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
 	// canvasContext.fill()
-	drawText( topLeft[0], topLeft[1], text, "24px" )
+	drawText( boundingBox.topLeft[0], boundingBox.topLeft[1], text, "24px" )
 }
 
 export const drawBoundingBox = (boundingBox, colour='red') => {
@@ -302,9 +140,8 @@ let cycleCounter = 0
 
 // shape the bump sizes
 const modifier = easeInQuad
-
 // Just draws lots of dots on an image on the canvas
-export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showText=true) => {
+export const drawPoints = (prediction, colour={h:0,s:100,l:100}, size=3, colourCycle=false, showText=true) => {
 
 	const { scaledMesh } = prediction
 	const quantity = scaledMesh.length
@@ -339,9 +176,9 @@ export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showTe
 			canvasContext.fillStyle = `hsla(0,90%,70%,1)`
 			canvasContext.arc(x, y, radius * 3, 0, TAU)
 		}else{
-
+			const hue = colour.h
 			const modifiedHue = colourCycle ? ((cycleCounter++)+hue+360*i/quantity)%360 : hue
-			canvasContext.fillStyle = `hsla(${modifiedHue},70%,50%,${alpha})`
+			canvasContext.fillStyle = `hsla(${modifiedHue},${colour.s}%,${colour.l}%,${alpha})`
 			canvasContext.arc(x, y, radius, 0, TAU)
 		}
 
@@ -354,11 +191,9 @@ export const drawPoints = (prediction, hue=60, size=3, colourCycle=false, showTe
 // Draws a triangulated face
 //////////////////////////////////////////////////////////////////////
 import {TRIANGLE_MATRIX} from './face'
-export const drawFaceMesh = (prediction, hue=60, strokeWidth=1, colourCycle=true, showText=true) => {
+export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=0.5, colourCycle=false, alpha=0.2 ) => {
 	const { scaledMesh } = prediction
-
-	const alpha = 0.4
-	
+	const hue = palette.h
 	for( let i = 0, q=TRIANGLE_MATRIX.length - 2; i < q; i+=3 ) 
 	{
 		const pointA = scaledMesh[ TRIANGLE_MATRIX[ i ] ]
@@ -366,7 +201,7 @@ export const drawFaceMesh = (prediction, hue=60, strokeWidth=1, colourCycle=true
 		const pointC = scaledMesh[ TRIANGLE_MATRIX[ i + 2 ] ]
 		
 		const phase = colourCycle ? (hue + ( 360 * i/q )) % 360 : hue
-		const colour = `hsla(${phase},70%,50%,${alpha})`
+		const colour = `hsla(${phase},${palette.s}%,${palette.l}%,${alpha})`
 
 		drawTriangle( pointA[ 0 ], pointA[ 1 ], pointB[ 0 ], pointB[ 1 ], pointC[ 0 ], pointC[ 1 ], colour, strokeWidth )
 	}
