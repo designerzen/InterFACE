@@ -4,7 +4,7 @@ import {cleanTitle} from './instruments'
 import { chain } from './rack'
 
 // Effects
-import {createReverb} from './effects/reverb'
+import { createReverb, randomReverb, getImpulseList } from './effects/reverb'
 import {createDelay} from './effects/delay'
 import {createDub} from './effects/dub'
 import {createCompressor} from './effects/compressor'
@@ -89,21 +89,27 @@ export const chooseFilters = async (options) => {
 
 const DEFAULT_OPTIONS = {
 	// quantity of reverb
-	reverb:0.3,
+	reverb:0.1,
 	// flatten pops and clicks
+	// but omg does it cost a lot
 	normalise:true,
-	// frequency analysser pulse smoothing (for cool visual effects!)
+	// frequency analyser pulse smoothing (for cool visual effects!)
 	// how quick it drops < 0.85 looks cool
 	smoothingTimeConstant:0.45
 }
 
-export const setupAudio = async (
-	BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
-	INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
-	OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
-) => {
+export const setReverb = async (filename) => {
+	const impulse = !filename ? await randomReverb() : filename // await getImpulseList()[0]
+	return reverb.impulseFilter( impulse )
+}
 
-	const options = Object.assign ( {}, DEFAULT_OPTIONS )
+export const setupAudio = async (settings) => {
+
+	// BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
+	// INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
+	// OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
+
+	const options = Object.assign ( {}, DEFAULT_OPTIONS, settings )
 
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
@@ -115,7 +121,8 @@ export const setupAudio = async (
 	// this should hopefully balance the outputs
 	// compressor = await createCompressor( audioContext )
 
-	// reverb = await createReverb(audioContext, 0.5)
+	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
+	// reverb.impulseFilter()
 	
 	// some space dubs!
 	// delay = await createDelay(audioContext)
@@ -142,15 +149,15 @@ export const setupAudio = async (
 	// fixes old ios bug about audio not starting until buttons or something
 	// resumeAudioContext()
 
-	// this should hopefully balance the outputs
 	return chain( [
 
 		gain,
-		//await createCompressor( audioContext )
 		
-		await createReverb( audioContext, options.reverb, options.normalise ),
+		// this should hopefully balance the outputs
+		//await createCompressor( audioContext ),
 		
-		//, await createDelay(audioContext)
+		reverb
+		//await createDelay(audioContext)
 		//await createDub(audioContext)
 		//await createDistortion(audioContext)
 
@@ -349,17 +356,17 @@ async function loadInstrumentPart (instrumentName, part) {
 }
 
 
-export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="./FluidR3_GM") => {
+export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="FluidR3_GM") => {
 	const instrumentPath = `${path}/${instrumentName}`
 	const parts = createInstrumentBanks()
 	// array of buffers to pass to playTrack
-	const instruments = parts.map( part => loadAudio( `${instrumentPath}/${part}` ) )
+	const instruments = parts.map( part => loadAudio( `./assets/audio/${instrumentPath}/${part}` ) )
 	//const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
 	// eg FluidR3_GM
 	return instruments	// array of promises
 }
 
-export const loadInstrument = async (instrumentName="alto_sax-mp3", path="./FluidR3_GM", progressCallback ) => {	
+export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="FluidR3_GM", progressCallback ) => {	
 	const output = {
 		title:cleanTitle(instrumentName),
 		name:instrumentName,

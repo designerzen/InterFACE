@@ -1,3 +1,4 @@
+import {changeParameter} from './effect'
 
 export const createDelay = async ( 
 	audioContext,
@@ -8,7 +9,7 @@ export const createDelay = async (
 	const delayNode = audioContext.createDelay(delayTime)
 	const feedbackNode = audioContext.createGain(feedback)
 	feedbackNode.gain.value = feedback
-	
+
 	// connect the delay node to the feedback node
 	// which then feeds back in to delay node
 	feedbackNode.connect(delayNode)
@@ -17,7 +18,7 @@ export const createDelay = async (
 	return {
 		name:"delay",
 		node:feedbackNode,
-		feedback:value => feedbackNode.gain.value = value,
-		delayTime:value => delayNode.delayTime.value = value
+		feedback:value => changeParameter( feedbackNode, "gain", value), 
+		delayTime:value => changeParameter( delayNode, "delayTime", value), 
 	}
 }
