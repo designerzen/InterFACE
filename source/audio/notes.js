@@ -11,7 +11,7 @@ export const NOTES_WHITE_INDEXES = NOTES_WHITE.length - 1
 // renamed white notes
 export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
 
-export const createInstrumentBanks = (fileTye="mp3", dot=".")=>{
+export const createInstrumentBanks = (fileType="mp3", dot=".")=>{
 
 	const bank = []
 	for (let b=0; b<BANKS.length;++b)
@@ -20,16 +20,16 @@ export const createInstrumentBanks = (fileTye="mp3", dot=".")=>{
 		// insert a 0 for A
 		if (key==="A")
 		{
-			bank.push( `A0${dot}${fileTye}` )
+			bank.push( `A0${dot}${fileType}` )
 		}
 		for (let i=1; i<8; ++i)
 		{
-			bank.push( `${key}${i}${dot}${fileTye}` )
+			bank.push( `${key}${i}${dot}${fileType}` )
 		}
 		// add an extra one for C
 		if (key==="C")
 		{
-			bank.push( `C8${dot}${fileTye}` )
+			bank.push( `C8${dot}${fileType}` )
 		}
 	}
 	return bank
