@@ -1,6 +1,6 @@
 
-import { setFeedback, setToast, addTooltip, formattedDate } from './dom/ui'
-
+import { setFeedback, setToast } from './dom/text'
+import { createInstallButton } from './dom/button'
 import { VERSION } from './version'
 
 import manifestPath from "url:./manifest.webmanifest"
@@ -290,19 +290,16 @@ export const installer = async (defer=false) => {
 		{
 			// we need to show the installer!	// const test = await getManifestData()
 			const test = await firstUpdated()
+			const isInstalled = getInstalledStatus()
 			
-			body.classList.add(getInstalledStatus() ? "installed" : "not-installed")
+			body.classList.add( isInstalled ? "installed" : "not-installed")
+
+			// choose to update if already installed
 
 			// show install button or update button???
 			// reveal update button?
-			const button = document.createElement('button')
-			button.classList.add("install-app")
-			button.setAttribute("aria-label",`Click to install ${manifestData.short_name} V-${VERSION.replaceAll(".","-")}<br>Date:${formattedDate}`  )
-			button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
-			button.innerHTML = "Install"
+			const button = createInstallButton(manifestData)
 			
-			addTooltip(button)
-
 			// on button press...
 			button.addEventListener('click', async ()=>{
 			
@@ -314,6 +311,7 @@ export const installer = async (defer=false) => {
 					setToast( success ? "The App was installed" : "Maybe some other time" )
 					if (!success)
 					{
+						// FIXME: ERRORSSSSSS
 						// show buton?
 						//document.querySelector(".install-app").style.display = "none"
 						button.classList.add("later")
@@ -323,18 +321,16 @@ export const installer = async (defer=false) => {
 						document.querySelector(".install-app").style.display = "none"
 					}
 				}catch(error){
-					setToast("The App was not installed")
+					setToast("The App was not installed "+error )
 				}
 					
 			} )
 
-			destination = destination || body
-    
+			destination = destination || body    
 			destination.appendChild(button)
 
 			//console.log("Application is currently ", {button, destination}, getInstalledStatus() ? "installed" : "not installed" )
 			// console.log({manifestdata: manifestData})
-		
 			return true
 
 		}else{
