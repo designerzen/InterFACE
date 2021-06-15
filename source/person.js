@@ -1,25 +1,29 @@
 // each person in the app has their own instrument and face
-import { rescale, lerp, clamp, TAU} from "./maths/maths"
+import { rescale, lerp, clamp } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
-
 import { getBarProgress } from './timing/timing.js'
 import { DEFAULT_COLOURS } from './palette'
-import { active, playing, loadInstrument, randomInstrument, playTrack } from './audio/audio'
+import { active, playing, loadInstrumentPack, randomInstrument, playTrack } from './audio/audio'
 import { getNoteText, getNoteName, getNoteSound } from './audio/notes'
-import { INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES} from './audio/instruments'
+import { 
+	INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE,
+	INSTRUMENT_PACKS, INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES
+} from './audio/instruments'
+
 import { setupInstrumentForm } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
+
 import { 
-	clear,
-	drawFace, drawPoints, drawPart, drawEye, drawMouth, drawBoundingBox, 
+	drawFace, drawPoints, drawPart, drawBoundingBox, 
 	drawText,drawParagraph, drawInstrument, drawFaceMesh
 } from './visual/2d'
+import { drawEye } from './visual/2d.eyes'
+import { drawMouth } from './visual/2d.mouth'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
 
-export const NAMES = ['a','b','c'].map( m => `person-${m}` )
 export const EYE_COLOURS = ['blue','green','brown','orange']
 
 export const DEFAULT_OPTIONS = {
@@ -34,7 +38,6 @@ export const DEFAULT_OPTIONS = {
 	// left / right ear stereo panning
 	stereoPan:true,
 
-
 	// if you want the axis to be switched
 	swapControls:false,
 
@@ -44,15 +47,20 @@ export const DEFAULT_OPTIONS = {
 	// force draw face mesh
 	drawMesh:false,
 	// force draw face blob nodes
-	drawNodes:true,
-
+	drawNodes:false,
 	// alternate between mesh and blobs depending on mouth
 	// NB. The two above will override this behaviour
 	meshOnSing:false,
 
 
-	// mouse hold for clicking
-	mouseHoldDuration:0.6,
+	// draw these parts over the mesh...
+	drawMouth:true,
+	// kid mode turns eyes googly!
+	drawEyes:true,
+
+
+	// mouse hold for clicking in seconds 0.5 and more feels weird
+	mouseHoldDuration:0.3,
 
 	// if both eyes are closed for X ms do something...
 	eyeShutHolddDuration:3500, // ms
@@ -77,6 +85,10 @@ export const DEFAULT_OPTIONS = {
 
 	// volume smooth rate = smaller means faster fades?
 	volumeRate:0.7,
+
+	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
+	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	// instrumentPack:INSTRUMENT_PACK_FATBOY,
 
 	// this is the amount of decimal places used to smooth the mouth
 	// the higher the number the less smooth the output is
@@ -112,8 +124,10 @@ export default class Person{
 		// if we are watching the face perform without interaction
 		this.isPlayingBack = false
 
-		this.hue = options.hue || Math.random() * 360
-		this.saturation = 40
+		// HSL Colour scheme that can be overwritten
+		this.setPalette(this.options)
+
+		// probably not neccessary with reverb effect
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
 		
 		// allow us to record the performances (not the audio)
@@ -130,12 +144,15 @@ export default class Person{
 		this.isRightEyeOpen = true
 
 		this.isRecordingParameters = false
+	
 		this.mouseDownAt = -1
+	
 		this.leftEyeClosedAt = -1
 		this.rightEyeClosedAt = -1
 		this.lastNoteName = "A0"
 		this.lastNoteSound = "-"
-		this.debug = options.debug || false
+
+		this.debug = this.options.debug
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff)
@@ -144,8 +161,7 @@ export default class Person{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
 	
-		// we want to add a delay before the gain control
-	
+		// we want to add a delay before the gain control?
 	
 		// 
 		if (this.stereoPan)
@@ -176,7 +192,10 @@ export default class Person{
 			
 			// connect gain to delay (delay feeds back)
 			this.gainNode.connect(delayNode)
+			// connect the delay node to the output
 			delayNode.connect(destinationNode)
+			// and back in tot he feedback?
+			// delayNode.connect(destinationNode)
 
 		}else{
 			// WORKS:
@@ -287,6 +306,14 @@ export default class Person{
 		return this.parameterRecorder.recording
 	}
 
+	setPalette(options){
+		this.saturation = options.saturation // && 100
+		this.luminosity = options.luminosity //&& 100
+		this.hueRange = options.hueRange //&& 360
+		this.hue = options.hue ?? Math.random() * this.hueRange
+		console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	// Cache data for use in processing later
 	/////////////////////////////////////////////////////////////////////
@@ -374,24 +401,33 @@ export default class Person{
 		// this.areEyesOpen 
 
 		// update colours...
-		options.dots = hue
-		options.mouth = `hsla(${(hue+30)%360},${saturation}%,40%,0.8)`
-		options.mouthClosed = `hsla(${(hue+30)%360},${saturation}%,10%,0.99)`
-		options.lipsUpperInner = `hsla(${(hue+50)%360},${saturation}%,50%,1)`
-		options.lipsLowerInner = `hsla(${(hue+50)%360},${saturation}%,50%,1)`
-		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${saturation}%,50%,1)`
-		options.leftEyeLower0 = `hsla(${(hue+300)%360},${saturation}%,50%,0.8)`
-		options.rightEyeLower0 = `hsla(${(hue+300)%360},${saturation}%,50%,0.8)`
+		const sl = `${options.saturation}%, ${options.luminosity}%`
+		// options.dots = hue
+		// options.face = `hsla(${hue},${sl},0.8)`
+		options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
+		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.99)`
+		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
+		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
+		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
+		options.leftEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
+		options.rightEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
 		
 		// change eye colours if closed...?
 		// options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
 		// options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
 		
-		options.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${saturation}%,50%,1)`
-		options.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${saturation}%,50%,1)`
+		options.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%,${options.luminosity}%, 1)`
+		options.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%, ${options.luminosity}%, 1)`
 
+		const colours = {
+			h:hue,
+			s:options.saturation, 
+			l:options.luminosity,
+			a:1
+		}
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
+		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
 		
 		// we go from nodes to mesh if mouth active...
 		if (!options.drawNodes && !options.drawMesh && options.meshOnSing)
@@ -399,30 +435,49 @@ export default class Person{
 			// this.isMouthOpen = true
 			if (this.singing)
 			{
-				drawFaceMesh( prediction, options.dots, 2, this.instrumentLoading, this.isMouthOpen, this.debug )
+				drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
 			}else{
 				// default mode is always blobs
-				drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
+				drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
 			}
 
 		} else if (options.drawNodes) {
 
 			// just blobs
-			drawPoints( prediction, options.dots, 3, this.instrumentLoading, this.debug )
+			drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
 		
 		} else if (options.drawMesh) {
 
 			// just mesh
-			drawFaceMesh( prediction, options.dots, 1, this.instrumentLoading, this.debug )
+			drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
 		}
-	
-		// This overlays the mouth and the eyes
-		drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
+
+		if (options.drawMouth)
+		{	
+			const mouthColours = {
+				h:hue,
+				s:options.saturation, 
+				l:options.luminosity,
+				a:1
+			}
+			const mouthColoursClosed = {
+				h:hue,
+				s:options.saturation, 
+				l:20,
+				a:1
+			}
+			// This overlays the mouth and the eyes
+			if (this.isMouthOpen && this.singing)
+			{
+				drawMouth(prediction, mouthColours, this.debug)
+			}else{
+				// mouth closed or not singing
+				drawMouth(prediction, mouthColoursClosed, this.debug)
+			}
+		}
 	
 		// drawBoundingBox( prediction.boundingBox )
 
-		// use the eyes?
-		
 		// if this is mirrored using the option in the TF model...
 		const {bottomRight, topLeft} = prediction.boundingBox
 		const boxWidth = Math.abs(bottomRight[0] - topLeft[0])
@@ -456,16 +511,16 @@ export default class Person{
 		if (eyesClosedFor > options.eyeShutHolddDuration)
 		{
 			// both eyes are closed for X amount of time...
-			console.log("EYES SHUT", {
-				rightEyeClosedFor, 
-				leftEyeClosedFor, 
-				eyesClosedFor, 
-				ro:this.isRightEyeOpen,
-				lo:this.isLeftEyeOpen,
-				time:prediction.time, 
-				rca:this.rightEyeClosedAt, 
-				lca:this.leftEyeClosedAt
-			} )
+			// console.log("EYES SHUT", {
+			// 	rightEyeClosedFor, 
+			// 	leftEyeClosedFor, 
+			// 	eyesClosedFor, 
+			// 	ro:this.isRightEyeOpen,
+			// 	lo:this.isLeftEyeOpen,
+			// 	time:prediction.time, 
+			// 	rca:this.rightEyeClosedAt, 
+			// 	lca:this.leftEyeClosedAt
+			// } )
 
 			// update to reset counter
 			this.leftEyeClosedAt = prediction.time
@@ -474,23 +529,23 @@ export default class Person{
 			// 
 			this.loadNextInstrument( instrumnetName => console.log("instrumnetName",instrumnetName ) )
 		
-		}else{
+		}else if (options.drawEyes){
 
 			//console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
 			if (this.isLeftEyeOpen)
 			{
-				drawEye(annotations.leftEyeIris, options.leftEyeIris)	
+				drawEye( annotations.leftEyeIris, true, true, {pupil:options.leftEyeIris})	
 			}else{
 				// const leftEyeHeldShut = prediction.time - this.leftEyeClosedAt > options.eyeShutHolddDuration
-				// drawEye(annotations.leftEyeIris, leftEyeHeldShut ?'red' : 'green')	
+				drawEye(annotations.leftEyeIris, true, false )	
 			}
 
 			if (this.isRightEyeOpen)
 			{
-				drawEye(annotations.rightEyeIris, options.rightEyeIris)
+				drawEye( annotations.rightEyeIris, false, true, {pupil:options.rightEyeIris})
 			}else{
 				// const rightEyeHeldShut = prediction.time - this.rightEyeClosedAt > options.eyeShutHolddDuration
-				// drawEye(annotations.rightEyeIris,rightEyeHeldShut ? 'red' : 'green')
+				drawEye(annotations.rightEyeIris, false, false ? 'red' : 'green')
 			}
 
 			// console.log("EYE OPEN", {
@@ -504,6 +559,8 @@ export default class Person{
 			// 	lca:this.leftEyeClosedAt
 			// } )
 			
+		}else{
+			// default fails
 		}
 
 		// everything here is for displaying the text
@@ -511,7 +568,6 @@ export default class Person{
 		{
 			return
 		}
-
 
 		if ( this.isMouseOver || this.instrumentLoading ){
 
@@ -571,6 +627,8 @@ export default class Person{
 			drawInstrument(prediction.boundingBox, this.instrumentTitle, 'loading...')
 
 		}else{
+
+	
 
 			// Main flow
 			const extra = this.debug ? ` ${getNoteText( this.lastNoteName) }`  : ` ${getNoteText(this.lastNoteName)}`
@@ -672,7 +730,7 @@ export default class Person{
 		// cache for drawing getNoteText
 		this.lastNoteName = noteName
 		this.lastNoteSound = noteSound
-		this.hue = roll * 360
+		this.hue = roll * this.hueRange
 		this.saturation = 100 * lipPercentage
 
 		// console.log("Person", prediction.yaw , yaw)
@@ -872,7 +930,7 @@ export default class Person{
 	async loadInstrument(instrumentName, callback){
 
 		this.instrumentLoading = true
-		this.instrument = await loadInstrument( instrumentName )
+		this.instrument = await loadInstrumentPack( instrumentName, this.options.instrumentPack )
 		this.instrumentPointer = INSTRUMENT_FOLDERS.indexOf(instrumentName)
 
 		this.instrumentLoading = false
@@ -940,9 +998,11 @@ export default class Person{
 		{
 			active.focus()
 		}else{
-			// send focus to form
+			// send focus to form?
 			this.controls.focus()
 		}
+
+		console.log("Form", {active})
 		this.controls.classList.toggle("showing",true)
 	}
 
