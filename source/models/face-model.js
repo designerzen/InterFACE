@@ -56,6 +56,8 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	const midPoint = midwayBetweenEyes[0]
 	const midwayBetweenEyesX = midPoint[0] 
 	const midwayBetweenEyesY = midPoint[1] 
+
+	
 	
 	// const distanceBetweenEyes = abs(irisLeft[0] - irisRight[0])
 	const distanceBetweenEyes =	distanceBetween2Points(irisLeftX, irisRightX)
@@ -70,10 +72,16 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	const eyeSocketHeight = distanceBetween3Points(leftEyeUpper1[ 3 ],rightEyeUpper1[ 3 ])
 	const eyeScale = eyeSocketHeight / 80
 
+	
+
 	// Check for eyes closed
 	const leftEyesDist = distanceBetween3Points(leftEyeLower1[ 4 ], leftEyeUpper1[ 4 ])
 	const rightEyesDist = distanceBetween3Points(rightEyeLower1[ 4 ], rightEyeUpper1[ 4 ])
 
+	const leftIrisHeight = leftEyeIris[4][1] - leftEyeIris[2][1]
+	const rightIrisHeight = rightEyeIris[4][1] - rightEyeIris[2][1]
+	
+	//console.log("Eyes : ",{leftIrisHeight, leftEyesDist, rightIrisHeight, rightEyesDist, eyeSocketHeight, eyeScale } )
 
 	// add in some extras to make things easier 
 	// the midpoint can be used to triangulate the yaw
@@ -82,7 +90,6 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 
 	const ly = leftEyeLower0[0][1] 
 	const ry = rightEyeLower0[0][1] 
-
 
 	// lengths of the triangle
 	const lmx = (midwayBetweenEyesX - lx) * -1

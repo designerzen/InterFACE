@@ -20,23 +20,66 @@ import '@tensorflow/tfjs-backend-webgl'
 
 import { enhancePrediction} from './face-model'
 
-const useWorker = false
+// This flips to using a seperate thread for the 
+// prediction calculations - dunno if it makes it quicker
+// but it certainly uses more CPU which then shonks audio
+const useWorker = true
 
 const flipHorizontally = true
-const now = ()=> Date.now() || Performance.now
+const now = ()=> performance.now || Date.now
 
+let faceWorker 
 
-// FIXME: useWorker
+// const createWorker = () => {
+
+// 	const worker = new Worker("data-url:./face-worker.js") 
+// 	let callback = (e)=>{ console.log(e.data) }
+// 	faceWorker.onmessage = (e) => callback
+	
+// 	// Send prediction data to our worker
+// 	return {
+// 		worker,
+// 		send: async (value) =>{ 
+
+// 			// wait for message...?
+// 			callback = (e) => {
+// 				return e.data
+// 			}
+// 			// send
+// 			faceWorker.postMessage(prediction)
+// 		}
+// 	}
+// }
+
 // Load in our transformer
-const faceWorker = new Worker("data-url:./face-worker.js") 
-
 const makePrediction = (prediction) => new Promise((resolve,reject)=>{
+
+	// load worker if neccessary
+	if (!faceWorker)
+	{
+		faceWorker = new Worker("data-url:./face-worker.js") 
+	
+	}
 
 	faceWorker.onmessage = (e) => resolve( e.data )
 	
 	// Send prediction data to our worker
 	faceWorker.postMessage(prediction)
 })
+
+// const makePrediction = (prediction) => new Promise((resolve,reject)=>{
+
+// 	// load worker if neccessary
+// 	if (!faceWorker)
+// 	{
+// 		faceWorker = new Worker("data-url:./face-worker.js") 
+// 	}
+
+// 	faceWorker.onmessage = (e) => resolve( e.data )
+	
+// 	// Send prediction data to our worker
+// 	faceWorker.postMessage(prediction)
+// })
 
 
 const predict = async (inputElement,model) => {
@@ -73,15 +116,19 @@ const predict = async (inputElement,model) => {
 		for (let p = 0, l = predictions.length; p < l; p++) 
 		{
 			// no enhancement...
-			// const prediction = predictions[p]
-
-			// direct (no worker)
-			// const prediction = enhancePrediction( predictions[p], time )
-
-			// using async worker (any faster?)
-			const prediction = await makePrediction( predictions[p] )
-			predictions[p] = prediction
+			let prediction // = predictions[p]
 			
+			if (!useWorker)
+			{
+				// direct (no worker)
+				prediction = enhancePrediction( predictions[p], time )
+			}else{
+				// using async worker (any faster?)
+				prediction = await makePrediction( predictions[p] )
+			}
+
+			// overwrite
+			predictions[p] = prediction
 			//console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
 		} 
 		
