@@ -10,6 +10,8 @@ import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
 import { 
 	setupAudio,	audioContext,
+	// FX
+	setReverb,
 	active, playing, 
 	randomInstrument,
 	updateByteFrequencyData, updateByteTimeDomainData,
@@ -28,19 +30,22 @@ import {
 } from './timing/timing.js'
 	
 import {
+	updateTempo,
 	showPlayerSelector, 
-	video,isVideoVisible,toggleVideoVisiblity,
-	setToggle, setButton, 
-	setupMIDIButton, showUpdateButton, showReloadButton,
-	setupCameraForm, setupInterface, addToolTips,
-	setFeedback, setToast,
+	video,isVideoVisible,toggleVideoVisiblity,  
+	setupCameraForm, setupInterface,
 	toggleVisibility,
-	focusApp, connectTempoControls 
+	focusApp
 } from './dom/ui'
+
+import { connectSelect, connectReverbControls } from './dom/select'
+import { setToggle } from './dom/toggle'
+import { setButton, showUpdateButton, showReloadButton, setupMIDIButton } from './dom/button'
+import { setFeedback, setToast, addToolTips } from './dom/text'
 
 import {showError } from './dom/errors'
 import {setLoadProgress, getLoadProgress } from './dom/load-progress'
-import {createPhotographElement} from './dom/photographs'
+import {appendPhotographElement } from './dom/photographs'
 
 import { 
 	drawElement,
@@ -58,29 +63,42 @@ import { getReferer, getRefererHostname, getLocationSettings, getShareLink, addT
 
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 import { playNextPart, kitSequence } from './timing/patterns'
+// TODO: Lazy load
 import { getInstruction, getHelp } from './models/instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { VERSION } from './version'
-import Person, { DEFAULT_OPTIONS, NAMES, EYE_COLOURS } from './person'
 import { TAU } from "./maths/maths"
-
+import Person, { DEFAULT_OPTIONS, EYE_COLOURS } from './person'
 import { getBrowserLocales } from './i18n'
+import { getFactoryDefaults, NAMES } from './settings'
+
+import {
+	addMouseTapAndHoldEvents, 
+	MOUSE_HELD,MOUSE_HOLDING,MOUSE_TAP
+} from './utils'
 
 // DOM Elements
 const body = document.documentElement
 const main = document.querySelector("main")
 const image = document.querySelector("img")
 
+// should be set on the html but jic
+body.classList.toggle("loading", true)
+
 // Record stuff
 const { isRecording, startRecording, stopRecording } = record()
 
+// state management
 const store = createStore()
+
+// i18n / l10n
 const language = getBrowserLocales()[0]
 
-// coletion of persons
+// collection of persons
 const people = []
 let inputElement = video // image
-		
+
+// dom elements wrapped in js
 let camera
 let photo
 let audio 
@@ -98,15 +116,16 @@ let recorder
 // as a factor of that, so perhaps bars would be better than BPM?
 let canBeInstalled = true
 let isLoading = true
-let isMuted = false
 let beatJustPlayed = false
 let ultimateFailure = false
 let midiAvailable = false
 let cameraLoading = false
 let noFacesFound = false
+let userLocated = false
+
 // TODO:
 let cookieConsent = false
-let userLocated = false
+
 let counter = 0
 
 // performance indicators
@@ -118,61 +137,13 @@ const statistics = {
 // for disco mode!
 const cameraPan = {x:1,y:1}
 
-// should be set on the html but jic
-body.classList.toggle("loading", true)
-
 // if we have a specific referer, we can change these accordingly
 const referer = getReferer()
 
+
 // realtime UI options
-const ui = getLocationSettings({
-	// play a constant beat
-	metronome:false,
-	// play music at same time
-	backingTrack:false,
-	// clear canvas every frame (if transparent will be ignored)
-	clear:true,
-	// should canvas be transparent to let video bleed through?
-	transparent:true,
-	// draw video onto canvas every frame (transparent doesn't have to be true then)
-	synch:true,
-	// show debug texts
-	debug:process.env.NODE_ENV === "development",
-	// cancel audio playback (not midi)
-	muted:false,
-	// dual person mode (required reload)
-	duet:false,
-	// synchronise the beats with metronome
-	quantise:true,
-	// show the person's texts above them
-	text:true,
-	// audio visualiser is actually helpful to play
-	spectrogram:true,
-	// read out important instructions
-	speak:true,
-	// midi channel (0/"all" means send to all)
-	midiChannel:"all",
-	// saved BPM that can be shared?
-	bpm:120,
-	// choice of different models to use
-	model:"face"
-})
+let ui = getLocationSettings( getFactoryDefaults() )
 
-const SETTINGS = {
-
-	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
-	maxFaces:ui.duet ? 2 : 1,
-	
-   	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
-	shouldLoadIrisModel:true,
-	
-	// maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
-    // detectionConfidence - Threshold for discarding a prediction. Defaults to 0.9.
-    // iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
-    // scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
-    // modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
-    // irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
-}
 
 // ESCAPE: before doing anything, let us check the bare minimum...
 // is https()
@@ -246,11 +217,8 @@ const setBPM = (bpm) => setTempo( 60000 / bpm  )
 ////////////////////////////////////////////////////////////////////
 const loadInstruments = async (method, callback) => people.map( async (person) => { 
 	const instrument = await person[method](callback)
-
 	setToast(`${person.name} has ${person.instrumentTitle} loaded`)
-	
-	console.log(`${person.name} has ${instrument} loaded` )
-	
+	//console.log(`${person.name} has ${instrument} loaded` )
 	return instrument
 })
 
@@ -258,26 +226,34 @@ const loadRandomInstrument = async (callback) => await loadInstruments('loadRand
 const previousInstrument = async (callback) => await loadInstruments('loadPreviousInstrument', callback)
 const nextInstrument = async (callback) => await loadInstruments('loadNextInstrument', callback)
 
-
 const createPerson = (name,eyeColour) => {
 
 	const duetAvailable = ui.duet
 	
 	// TODO: Change these per person...
-	const options = { 
+	const personOptions = { 
 		dots:eyeColour, 
 		leftEyeIris:eyeColour, 
 		rightEyeIris:eyeColour,
+		// should probably use a set hue for consistency...
 		hue:Math.random() * 360,
 		debug:ui.debug,
 		// FIXME: why is this per person? should always set per screen
 		photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
+		// force draw face mesh
+		// drawMesh:false,
+		// force draw face blob nodes
+		// drawNodes:true,
+		// drawEyes:true,
+		// alternate between mesh and blobs depending on mouth
+		// NB. The two above will override this behaviour
+		// meshOnSing:false,
 	}
 
 	// Load any saved settings for this specific user name
 	const savedOptions = store.has(name) ? store.getItem(name) : {}
 	// create a new user and load an instrument
-	const person = new Person(name, audioContext, audio, Object.assign ( {}, options, savedOptions)  ) 
+	const person = new Person(name, audioContext, audio, Object.assign ( {}, personOptions, savedOptions)  ) 
 	// see if there is a stored name for the instrument...
 	const instrument = savedOptions.instrument || randomInstrument()
 
@@ -314,6 +290,33 @@ const getPerson = (index) => {
 	} else{
 		return people[index]
 	}
+}
+
+const setPlayerOption = (option, value) => {
+	// change the default for any new players created
+	people.forEach( player => {
+		player.options[option] = value
+	})
+}
+
+// merges all named player options into an array
+// [{ values } , { values }]
+const fetchPlayerOptions = values => people.map( player => values.reduce((accumulator, currentValue, index, array) => {	
+		accumulator[currentValue] = player.options[currentValue]
+		return accumulator
+	}, {} )
+)
+
+
+// Player options
+const setPlayerOptions = (values) => {
+	const unique = typeof value === "Array" 
+	// change the default for any new players created
+	people.forEach( (player, index) => {
+		// if unique is set, it means different per person
+		const p = unique ? values[index] : values
+		player.options = { ...player.options, ...p }
+	})
 }
 
 // BEGIN ---------------------------------------
@@ -424,13 +427,17 @@ const disableMIDI = () => {
 const showMIDI = async () => {
 
 	// to skip clicking but results in a warning
-	midiButton = setupMIDIButton( async (b) => {
-		await enableMIDI()
-		setFeedback("MIDI available<br>Connecting to instruments...", 0)
-		main.classList.add('midi-activated')
-		return false
-	})
+	midiButton = setupMIDIButton( 
+		document.getElementById("button-midi"), 
+		async (b) => {
+			await enableMIDI()
+			setFeedback("MIDI available<br>Connecting to instruments...", 0)
+			main.classList.add('midi-activated')
+			return false
+		}
+	)
 	
+	// FIXME:this is supposed to check for midi instrument somehow??!!!
 	return true
 }
 
@@ -557,6 +564,14 @@ const registerKeyboard = () => {
 				toggleVisibility(canvas)
 				break
 
+			// Change impulse filter in the reverb
+			case 'i':
+				const reverb = await setReverb()
+				console.log("New reverb is ", reverb)
+				setToast( `Reverb : '${reverb}' loaded` )
+				
+				break
+
 			case 'j':
 				toggleVisibility(video)
 				break
@@ -580,8 +595,8 @@ const registerKeyboard = () => {
 				break
 
 			case 'q':
-				setMasterVolume( isMuted ? 1 : 0 )
-				isMuted = !isMuted
+				setMasterVolume( ui.muted ? 1 : 0 )
+				ui.muted = !ui.muted
 				break
 		
 			case 'r':
@@ -869,8 +884,8 @@ const setup = async (update, settings, progressCallback) => {
 	// console.error("Tensorflow", tf)
 	main.classList.add( inputElement.nodeName.toLowerCase() )
 	
-	// this just adds some visual onscreen tooltips to the buttons
-	addToolTips()
+	// this just adds some visual onscreen tooltips to the buttons specified
+	addToolTips( document.getElementById("controls") )
 
 	// turn up the amp
 	const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
@@ -1000,7 +1015,9 @@ const setup = async (update, settings, progressCallback) => {
 
 				// then redraw them
 				// const { yaw, pitch, lipPercentage } = 
-				person.draw(prediction, ui.text)
+				
+				// prediction, showText=true, forceRefresh=false
+				person.draw(prediction, ui.text, false)
 				
 				// then whenever you fancy it,
 				if (!ui.quantise && !ui.muted)
@@ -1221,16 +1238,32 @@ const load = async (settings, progressCallback) => {
 		setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 	}, ui.quantise)
 
+	// #button-settings
+	setToggle( "button-settings", status =>{ 
+		setState( 'showSettings', status )
+		setToast("Settings " + (status ? 'enabled' : 'disabled')  )
+	}, ui.showSettings )
+
 	// Connect up sone buttons?
 	setToggle( "button-metronome", status =>{
 		setState( 'metronome', status )
 		setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 	}, ui.metronome )
 
+	setToggle( "button-percussion", status =>{
+		setState( 'backingTrack', status )
+		setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
+	}, ui.backingTrack )
+
 	setToggle( "button-spectrogram", status =>{
 		setState( 'spectrogram', status )
 		setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.spectrogram )
+
+	setToggle( "button-speak", status =>{
+		setState( 'speak', status )
+		setToast("Speaking " + (ui.speak ? 'enabled' : 'disabled')  )
+	}, ui.speak )
 
 	// Synch button
 	setToggle( "button-transparent", status =>{
@@ -1244,8 +1277,66 @@ const load = async (settings, progressCallback) => {
 		setState( 'clear', status )
 	}, ui.clear )
 
+	
+	// toggle mute
+	setToggle( "button-mute", status =>{ 
+		
+		setState( 'muted', !ui.muted )
+		setMasterVolume( ui.muted ? 1 : 0 )
+		
+	}, ui.muted )
+
+	let discoPreviousState
+	// Special disco mode!
+	setToggle( "button-disco", status =>{ 
+
+		setState( 'masks', status )
+		if (ui.masks)
+		{
+			// save previous state to go back to later...
+			discoPreviousState = fetchPlayerOptions(['drawNodes','drawMesh','meshOnSing'])
+			console.log(ui.masks,"MTV save old state", discoPreviousState)
+			// setPlayerOption("drawMesh", ui.masks)
+			setPlayerOptions( {drawNodes:false, drawMesh:false, meshOnSing:true})
+		}else{
+			// setPlayerOption("drawNodes", ui.masks)
+			//setPlayerOptions( {drawNodes:true, drawMesh:false})
+			setPlayerOptions( discoPreviousState )
+			console.log(ui.masks,"MTV load old state", discoPreviousState)
+			discoPreviousState = null
+		}
+		
+		
+	}, ui.muted )
+
+	// Overlays ----
+	// Face overlays... should be dropdown?
+	setToggle( "button-meshes", status =>{ 
+		setState( 'masks', !ui.masks )
+		if (ui.masks)
+		{
+			// setPlayerOption("drawMesh", ui.masks)
+			setPlayerOptions( {drawNodes:true,rawMesh:false})
+		}else{
+			// setPlayerOption("drawNodes", ui.masks)
+			setPlayerOptions( {drawNodes:false,rawMesh:true})
+		}
+	}, ui.masks )
+
+	// hide / show eye overlays
+	setToggle( "button-eyes", status => {
+		setState( 'eyes', !ui.eyes )
+		setPlayerOption("drawEyes", ui.eyes)
+	}, ui.eyes )
+
 	// Show the canvas element
 	setToggle( "button-overlay", status => toggleVideoVisiblity(), !isVideoVisible() )
+	
+	// show / hide the text
+	setToggle( "button-subtitles", status => {
+		setState( 'text', !ui.text )
+		setPlayerOption("drawEyes", ui.text)
+	} )
 
 	setButton( "button-photograph", event => {	
 		// TODO: also copy to clipboard?
@@ -1255,9 +1346,65 @@ const load = async (settings, progressCallback) => {
 
 	// Button video loads random instruments for all
 	setButton( "button-video", status => loadRandomInstrument() )
+	
+	// reset to factory defaults
+	setButton( "button-reset", status =>{ 
+		ui = getFactoryDefaults() 
+		refreshState()
+	})
+
+	// setButton( "link-about", status => {
+		
+	// } )
 
 	// set the master tempo
-	connectTempoControls( tempo => setBPM(tempo) )
+	connectSelect( 'select-tempo', option => {
+		const tempo = parseInt( option.innerHTML )
+		updateTempo(tempo)
+		setBPM(tempo)
+	} )
+
+	connectSelect( 'select-palette', option => {
+		const items = option.value.split(",")
+		const palette = items.reduce( (accumulator, current) => {
+			const c = current.split(":")
+			accumulator[c[0]] = parseFloat(c[1])
+			return accumulator
+		}, {})
+
+		console.log("connectPaletteSelector", {items, palette, option})
+		
+		setPlayerOptions({
+			saturation:palette.s,
+			luminosity:palette.l,
+		})
+	})
+
+	// connect the reverb selector to the reverb chooser
+	connectReverbControls( async (option) => {
+		if (option && option.value)
+		{
+			const url = option.value
+			console.log(option.value, {url, option})
+			const reverb = await setReverb(url)
+		}else{
+			console.error(option, option.previousSibling )
+		}
+	})
+	
+
+	// change behviours for logo buttons
+	const logoButton = document.getElementById( "link-about" )
+	
+	addMouseTapAndHoldEvents( logoButton )
+	
+	logoButton.addEventListener( MOUSE_TAP, event => {
+		console.log("Logo tapped")
+	} )
+
+	logoButton.addEventListener( MOUSE_HELD, event => {
+		console.log("Logo held")
+	} )
 	
 	// this takes any existing state from the url and updates our front end
 	// so that any previously saved settings show as if the user is continuing
@@ -1328,31 +1475,38 @@ const onLoaded = async () => {
 
 		if (!userLocated)
 		{
+			// change this depending on whether a face is detected
 			requestAnimationFrame( lookForUser ) 
 		}else{
 			// change this depending on whether a face is detected
 			speak("Hello! Open your mouth to begin!")
 			body.classList.toggle("searching-for-user", false)
+			// may as well create a user?
+			return getPerson(0)
 		}
 	}
+
 	body.classList.toggle("loading", false)
 	body.classList.toggle("loaded", true)
-	body.classList.toggle("searching-for-user", true)
-
-	// wait for the user - show some visual cues?
-	lookForUser()
-
+	
 	// monitor keyboard events
 	registerKeyboard()
 
-	// focus app?
 	setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
 		
+	// looking...
+	// wait for the user - show some visual cues?
+	body.classList.toggle("searching-for-user", true)
+	speak("I am looking for your face")
+	const user = await lookForUser()
+
+	// focus app?
+
 	// Show hackers message
 	if (ui.debug)
 	{
 		// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
-		console.log(`Loaded App Version ${VERSION} from ${referer} in ${language}` )	
+		console.log(`InterFACE Version ${VERSION} from ${referer} in ${language}`, user )	
 		// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 	}
 }
@@ -1420,11 +1574,24 @@ const pwa = async() => {
 
 
 // ---------------------------------------------------------
-const options = Object.assign( {}, SETTINGS )
+const options = Object.assign( {}, {
+
+	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
+	maxFaces:ui.duet ? 2 : 1,
+	
+	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
+	shouldLoadIrisModel:true,
+	
+	// maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
+	// detectionConfidence - Threshold for discarding a prediction. Defaults to 0.9.
+	// iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
+	// scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
+	// modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
+	// irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
+} )
 
 // FIXME: Do we instantly show the user quantity screen
 // and load all background elements and scripts
-
 
 // now load dependencies and show progress
 load(options, (progress, message) => {
