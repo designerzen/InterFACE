@@ -1,6 +1,13 @@
 export const MUSICAL_NOTES = ['♫','𝅗𝅥','𝅘𝅥','𝅘𝅥𝅮','𝅘𝅥𝅯','𝅘𝅥𝅰','𝅘𝅥𝅱','𝅘𝅥𝅲']
 // '𝄞',
 
+
+export const INSTRUMENT_PACK_FM = "FluidR3_GM"
+export const INSTRUMENT_PACK_FATBOY = "FatBoy"
+export const INSTRUMENT_PACK_MUSYNGKITE = "MusyngKite"
+export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY]
+
+
 export const INSTRUMENT_FOLDERS = [
 	"accordion-mp3",
 	"acoustic_bass-mp3",
@@ -131,6 +138,8 @@ export const INSTRUMENT_FOLDERS = [
 	"woodblock-mp3",
 	"xylophone-mp3"
 ]
+
+
 
 // TODO: Which of these are loops?
 // export const LOOPS = []
