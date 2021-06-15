@@ -1,3 +1,4 @@
+import {changeParameter} from './effect'
 
 export const createCompressor = async ( 
 	audioContext,
@@ -32,10 +33,11 @@ export const createCompressor = async (
 	return {
 		name:"compressor",
 		node:compressor,
-		knee:value => compressor.knee.value = value,
-		threshold:value => compressor.threshold.value = value,
-		ratio:value => compressor.ratio.value = value,
-		attack:value => compressor.attack.value = value,
-		release:value => compressor.release.value = value
+		knee:value => changeParameter( compressor, "knee", value),
+		threshold:value => changeParameter( compressor, "threshold", value),
+		ratio:value => changeParameter( compressor, "ratio", value),
+		attack:value => changeParameter( compressor, "attack", value),
+		release:value => changeParameter( compressor, "release", value)
 	}
 }
+

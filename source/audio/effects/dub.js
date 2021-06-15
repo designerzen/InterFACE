@@ -1,3 +1,5 @@
+import {changeParameter} from './effect'
+
 
 export const createDub = async ( 
 	audioContext,
@@ -26,8 +28,8 @@ export const createDub = async (
 	return {
 		name:"dub",
 		node:dubDelay,
-		delayTime:value => dubDelay.delayTime.value = value,
-		feedback:value => feedbackNode.gain.value = value,
-		filter:value => filterNode.frequency.value = value
+		delayTime:value => changeParameter( dubDelay, "delayTime", value),
+		feedback:value => changeParameter( feedbackNode, "gain", value),
+		filter:value => changeParameter( filterNode, "frequency", value) 
 	}
 }

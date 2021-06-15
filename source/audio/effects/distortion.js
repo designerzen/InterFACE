@@ -1,3 +1,8 @@
+import {changeParameter} from './effect'
+
+// distortion curve for the waveshaper, thanks to Kevin Ennis
+// http://stackoverflow.com/questions/22312841/waveshaper-node-in-webaudio-how-to-emulate-distortion
+
 function makeDistortionCurve(amount) {
 	var k = typeof amount === 'number' ? amount : 50,
 		n_samples = 44100,
