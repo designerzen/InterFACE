@@ -12,7 +12,16 @@ const PALETTE = {
 }
 
 export const DEFAULT_COLOURS = {
-	dots:'red',
+	// 0->hueRange
+	hue:90,
+	// percentages
+	saturation:80,
+	// used to create white mode / black mode and greyscale modes
+	luminosity:50,
+	// 0->360
+	hueRange:360,
+	// dots hue? still used?
+	dots:60,
 	mouth:'rgba(255,0,0,0.5)',
 	mouthClosed:'rgba(255,0,0,0.2)',
 	lipsUpperInner:'pink',
@@ -23,5 +32,11 @@ export const DEFAULT_COLOURS = {
 	leftEyeIris:'yellow',
 	rightEyeIris:'yellow',
 }
+
+// Dami kim special mode
+export const DAMI_KIM_COLOURS = { ...DEFAULT_COLOURS }
+
+// Simpler colour scheme
+export const PASTEL_COLOURS = { ... DEFAULT_COLOURS }
 
 export default PALETTE
