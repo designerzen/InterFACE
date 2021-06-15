@@ -38,7 +38,7 @@ export const setupCamera = async (video, deviceId ) => {
 	return new Promise( async (resolve,reject) => {
 		
 		let stream
-		video = video || document.createElement('video')
+		video = video ?? document.createElement('video')
 
 		// stop it if it is already running?
 		//video.stop()
