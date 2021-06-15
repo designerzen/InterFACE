@@ -16,48 +16,40 @@ export default class Instrument{
 
 	constructor( audioContext, destinationNode, options={} ) 
 	{
-		this.sendMIDI = true
-		this.active = false
-		this.polyphony = 5
+		this.outputNode = destinationNode
+		this.context = audioContext
+		
+		// monophonic by default
+		this.polyphony = 1
 	}
 
-	setMIDI(value){
-		this.sendMIDI = value
-	}
-
-	noteOn(){
-
-		// playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } )
-		const track = playTrack( note, 0, this.stereoNode ).then( ()=>{
-			this.active = false
-			this.polyphony--
-			//console.log("Sample completed playback... request tock", this.tracks )
-		})
+	noteOn( note ){
+		this.active = true
 	}
 	
 	noteOff(){
-
+		this.active = false
 	}
+	
 	aftertouch(){
 
 	}
-	pitchBend(){
+	
+	pitchBend(pitch){
 
 	}
+
 	allSoundOff(){
 
 	}
+
 	allNotesOff(){
 
 	}
-		
 }
 
 /*
 Stolen from MIDI
-
-
-
 
 const createInstrument = async () => {
 

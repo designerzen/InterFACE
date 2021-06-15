@@ -1,9 +1,70 @@
+import {getBarProgress} from '../timing/timing'
 export default class MIDIInstrument extends Instrument{
 
 	constructor( channel="all" ){
+		
 		super()
+		this.channel = channel
+		this.sendMIDI = true
 	}
 
+	setMIDI(value){
+		this.sendMIDI = value
+	}
+
+	noteOn(note){
+		super.noteOn(note)
+		// duration: 2000,
+		// https://github.com/djipco/webmidi/blob/develop/src/Output.js
+		//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
+		const midiOptions = { 
+			channels:this.channel,
+			attack:newVolume // amp
+		}
+
+		this.midi.playNote( noteName, midiOptions )
+		
+		// if (this.midiActive)
+		// {
+		// 	this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+		// 	// this.midi.setPitchBend( eyeDirection )
+		// }else{
+		// 	this.midiActive = true
+		// }
+		
+		//console.log(t, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+
+		// Use eye direction as a modifier for the sound
+		// if (eyeDirection !== 0)
+		// {
+		// 	// Midi pitch bending with eyes!
+		// 	// Pitch bending eyes!
+		// 	// 
+		// 	// this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+		// }
+	}
+	noteOff(){
+
+		this.midi.sendClock( )
+		this.midi.setSongPosition( getBarProgress() * 16383 )
+		
+		this.midi.stopNote(noteName, {
+			// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
+			// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
+			release:0.2
+		})
+
+		// immediate mute, but doesn't block (sounds better)
+		this.midi.turnSoundOff()
+
+		// fade out but prevents new notes...
+		this.midi.turnNotesOff()
+		
+		// prevent flooding the off bus
+		this.midiActive = false
+
+		console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+	}
 }
 
 // incoming MIDI
