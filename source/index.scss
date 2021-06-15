@@ -321,13 +321,15 @@ a, area, button, input, label, select, summary, textarea, [tabindex] {
 
 	// Epilepsy warning
 	.warning{
+		
+		background:$col-white url('./assets/icons/report_problem_black_24dp.svg') no-repeat;
+		background-position: left var(--pad) center;
 		// we dont want any animations here
 		strong{
 			animation:none;
 		}
 		color: $col-dark;
-		background: $col-white;
-		padding: var(--pad) calc( 2 * var(--pad) );
+		padding: var(--pad) calc( 2 * var(--pad) ) var(--pad) calc( 4 * var(--pad) );
 		margin-bottom:var(--pad);
 		flex: 0 1 auto;
 		display: inline-block;
@@ -475,7 +477,7 @@ p strong{
 
 		// #controls,
 		#photographs,
-		#shared-controls{
+		.controls{
 			//visibility: hidden;
 			transition:opacity var(--ease-s) linear;
 			transition-delay: var(--ease-s);
@@ -507,7 +509,7 @@ p strong{
 				transition-delay:0;
 			}
 
-			 #shared-controls,
+			 .controls,
 			 #photographs{
 				opacity:1;	
 				transition-duration: var(--ease-q);
@@ -807,7 +809,7 @@ html.loading main{
 		bottom:auto;
 		left:auto;
 		right:auto;
-		margin:0 var(--pad);
+		margin:0 var(--pad) var(--pad) var(--pad);
 		color:$col-tan;
 		a {
 			color: $col-yellow;
@@ -864,15 +866,14 @@ html.loading main{
 			display:block;
 			opacity:0;
 		}	
-
-		// Epilepsy warning
-		.warning,
-		h2,
-		p{
-			visibility: hidden;
-		}
 	}
 
+	// Epilepsy warning
+	.warning,
+	h2{
+		visibility: hidden;
+	}
+	
 	#shared-controls{
 		visibility: visible;
 	}
@@ -1029,6 +1030,9 @@ html.loading main{
 
 	// hide these...
 	// #fund,
+	label[for="select-impulse"],
+	label[for="button-install"],
+	label[for="button-quantise"],
 	label[for="button-quantise"],
 	label[for="button-spectrogram"]{
 		display: none;
@@ -1480,7 +1484,27 @@ main.sharing-disabled{
 	}
 }
 
+#settings{
+	display: none;
+	transform: translateY( 0 );
+	transition: transform var(--ease-s) $easeOutBack;
+
+	.button-close{
+		position: absolute;
+		left:0;
+		right:0;
+		z-index:-1;
+		align-items: flex-end;
+		// get rid of icon
+   		--bg: unset;
+	}
+}
 // Show secret buttons#??
+main.flag-showSettings #settings{
+	display: flex;
+	visibility: visible;
+	transform: translateY( -100% );
+}
 
 // Options set by clicking buttons set these flags as classes
 main.flag-clear {
