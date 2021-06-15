@@ -28,13 +28,11 @@
 	// this softens the border and adds a soft dropshadow
 	@extend %drop-shadow;
 
-	
 	// custom border - light from top right
 	border:var(--button-border-size) solid rgba($col-brown, 0.5);
 	border-top-color: rgba($col-white, 0.3 );
 	border-right-color: rgba($col-white, 0.34 );
 	border-left-color: rgba($col-white, 0.15);
-	
 	
 	// each corner has a gradient too
 	// border-image: 
@@ -111,6 +109,9 @@
 
 	
 	&:hover, &:focus{
+
+		// for a custom cursor too...
+		// cursor: var(--bg), auto;
 		
 		--col-bottom:#{rgba($col-dark, 0.5)};
 		--col-top:#{rgba($col-white, 0.5)};
@@ -205,6 +206,7 @@ label#progress-bar{
 		margin:auto;
 		color:inherit;
 		order:-1;
+		cursor: progress;
 	}
 }
 
@@ -214,7 +216,7 @@ input[type=list],
 // input[type=radio],
 label[for=button-solo],
 label[for=button-duet],
-#shared-controls > *{
+.controls > *{
 
 	--icon-size:32px;
 	--fade-speed:var(--ease-q);
@@ -347,7 +349,7 @@ input[type=radio]:checked,
 // label[for=button-solo],
 // label[for=button-duet],
 label[for=button-start],
-#shared-controls > *{
+.controls > *{
 
 	@extend %button-style;
 
@@ -360,10 +362,14 @@ label[for=button-start],
 
 
 // BUTTON STYLE
-
+.controls{
+	// FIXME: container query
+	// contain: layout size style;
+	// contain: layout inline-size style;
+}
 
 // this adds some right pad to icons on the control bar
-#shared-controls > *{
+.controls > *{
 
 	&:not(.hide-text):before{
 		margin-right:calc(var(--pad) / 2 );
@@ -378,7 +384,7 @@ label[for=button-start],
 	}
 
 	button,
-	#shared-controls > * {
+	.controls > * {
 		.hide-text{
 			// %image-replacement
 			text-indent: -9999px;
@@ -401,7 +407,7 @@ label[for=button-start],
 	}
 
 	button,
-	#shared-controls > *{
+	.controls > *{
 		--icon-size:26px;
 		--pos:top var(--pad) center;
 		--direction: column;
@@ -422,7 +428,7 @@ label[for=button-start],
 
 	// make sure we only specify the none person-controls
 	//button,
-	#shared-controls > *{
+	.controls > *{
 		--icon-size:28px;
 		--pos: center center;
 		--direction: row;
@@ -446,7 +452,7 @@ label[for=button-start],
 
 	// smallest icon size to squeeze fit
 	button,
-	#shared-controls > *{
+	.controls > *{
 		--icon-size:20px;
 		// here we set a max width
 		// NB. you can override this with --max-width-override
@@ -460,7 +466,7 @@ label[for=button-start],
 
 
 // Overlay buttons
-#shared-controls{
+.controls{
 	
 	// backgrounds
 	--col-regular:#{$col-dark};
@@ -518,6 +524,10 @@ label[for=button-start],
 		// pointer-events: none;
 		position: relative;
 
+		select{
+			z-index:-1;
+		}
+
 		// stertch them out 
 		select, input{
 			pointer-events: auto;
@@ -528,13 +538,24 @@ label[for=button-start],
 			top:0;
 			bottom:0;
 			min-width:100%;
-			right:0;
+			max-width:100%;
+			// FIXME:
+			//right:0;
 			// left:0;
 			// z-index:1;
 			order:-1;
 			appearance:none;
 			opacity:0;
 			overflow: hidden;
+		}
+
+		// bring in front of selects...
+		input, button{
+			z-index:1;
+		}
+		
+		select:focus{
+			max-width:none;
 		}
 
 
@@ -587,7 +608,7 @@ label[for=button-start],
 
 	label, button{
 		// labels can collapse without text to expand them
-		border-radius:5px 5px 0 0;
+		//border-radius:5px 5px 0 0;
 		//border-left:0;
 		// border-right-color:$col-white;
 		// border-left:$col-cream;
@@ -670,12 +691,23 @@ label[for=button-start],
 	}
 
 	// Labels
-	label[for="button-metronome"]{
+	
+	// selector for the tempo
+	label[for="select-tempo"]{
+		--bg:url(./assets/icons/speed-24px.svg);
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+	}
+
+	label[for="button-settings"]{
+		order:-1;
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/timer_off-24px.svg);
+		--bg:url(./assets/icons/settings-24px.svg);
+
 		&.checked{
-			--bg:url(./assets/icons/timer-24px.svg);
+			// arrow down to show that the settings hide
+			--bg:url(./assets/icons/expand_more-24px.svg);
 		}
 	}
 
@@ -685,6 +717,91 @@ label[for=button-start],
 		--bg:url(./assets/icons/grid_off-24px.svg);
 		&.checked{
 			--bg:url(./assets/icons/grid_on-24px.svg);
+		}
+	}
+
+	label[for="button-metronome"]{
+		--bg:url(./assets/icons/hourglass_disabled-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/hourglass_empty-24px.svg);
+		}
+	}
+
+	label[for="button-mute"]{
+		--col-select:#{$col-blue};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/volume_mute-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/volume_off-24px.svg);
+		}
+	}
+
+	label[for="button-disco"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/blur_off-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/blur_on-24px.svg);
+		}
+	}
+
+	// Reverb selection
+	label[for="select-impulse"]{
+		--col-select:#{$col-blue};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/extension-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	// Face mesh overlays
+	label[for="button-meshes"]{
+		--col-select:#{$col-yellow};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/face_retouching_natural-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/face_retouching_off-24px.svg);
+		}
+	}
+
+	// Eye overlays
+	label[for="button-eyes"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/adjust-24px.svg);
+		&.checked{
+			//--bg:url(./assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	// 
+	label[for="button-subtitles"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(./assets/icons/speaker_notes-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/speaker_notes_off-24px.svg);
+		}
+	}
+
+	// choose colour scheme
+	label[for="select-palette"]{
+		--col-select:#{$col-yellow};
+		--col-hover:#{$col-green};
+		--bg:url(./assets/icons/color_lens-24px.svg);
+		&.checked{
+			//--bg:url(./assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	// add beats
+	label[for="button-percussion"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-yellow};
+		--bg:url(./assets/icons/auto_fix_high-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/auto_fix_off-24px.svg);
 		}
 	}
 
@@ -724,9 +841,9 @@ label[for=button-start],
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-green};
 		--col-select:#{$col-orange};
-		--bg:url(./assets/icons/blur_off-24px.svg);
+		--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
 		&.checked{
-			--bg:url(./assets/icons/blur_on-24px.svg);
+			--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
 		}
 	}
 	// label[for="button-spectrogram"]{
@@ -759,6 +876,18 @@ label[for=button-start],
 		display: none;
 	}
 
+	label[for="button-speak"]{
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+		// --bg:url(./assets/icons/mic_off-24px.svg);
+		--bg:url(./assets/icons/voice_over_off_black_24dp.svg);
+		&.checked{
+			// background-image:url(./assets/icons/music_off-24px.svg);
+			--bg:url(./assets/icons/record_voice_over_black_24dp.svg);
+			// background-image:url(./assets/icons/music_note-24px-24px.svg);
+		}
+	}
+	
 	label[for="button-transparent"]{
 		// only display between certain sizes?
 		display: none;
@@ -779,11 +908,13 @@ label[for=button-start],
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
 	}
+	
 
 	label[for="input-tempo"]{
 		--bg:url(./assets/icons/speed-24px.svg);
 		--col-select:#{$col-yellow};
 	}
+
 }
 
 // actual button
@@ -966,12 +1097,82 @@ select:not([multiple]):not([size]) {
   
 ::-ms-expand {
 	display: none;
+
 }
 
 
+
+label[for="button-trio"]{
+	display:none;
+	--bg:url(./assets/icons/groups-24px.svg);
+}
+
+// These need overrides for size
+label[for="button-trio"],
+button#button-trio{
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-green};
+	--bg:url(./assets/icons/person_add-24px.svg);
+	//display: none;
+}
+label[for="button-solo"],
+button#button-solo{
+	--col-bg: #{$col-green};
+	--bg:url(./assets/icons/person-24px.svg);
+	--y:100%;
+}
+
+label[for="button-duet"],
+button#button-duet{
+	--col-bg: #{$col-blue};
+	--bg:url(./assets/icons/people-24px.svg);
+	--y:-100%;
+}
+
+label[for="button-start"]{
+	margin-top:-2.5rem;
+	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
+	
+	--col-bg: #{$col-orange};
+	--col-hover:#{$col-cream};
+
+	--button-border-size:4px;
+	--bg:url(./assets/icons/music_note-24px.svg);
+	--pos-override:left var(--pad) center;
+	z-index:909;
+	border-radius:0;
+
+	input{
+		position: absolute;
+		top:0;
+		right:0;
+		opacity: 0;
+	}
+}
+
+.solo label[for="button-start"]{
+	--bg:url(./assets/icons/person-24px.svg);
+}
+
+.duet label[for="button-start"]{
+	--bg:url(./assets/icons/people-24px.svg);
+}
+
+// logo 
+#link-about{
+
+}
+
+// generic close button
+.button-close{
+	&:before{
+		content:'x';
+	}
+}
+
 // button that covers people
 button.person{
-	
 	padding:0;
 	cursor:pointer;
 	position: absolute;	
@@ -1117,62 +1318,10 @@ button#button-photograph{
 	--bg:url(./assets/icons/add_a_photo-24px.svg);
 }
 
-label[for="button-trio"]{
-	display:none;
-	--bg:url(./assets/icons/groups-24px.svg);
-}
 
-// These need overrides for size
-label[for="button-trio"],
-button#button-trio{
-	// background-color:vae(--col-hover);
-	// background-color: $col-yellow;
-	--col-hover:#{$col-green};
-	--bg:url(./assets/icons/person_add-24px.svg);
-	//display: none;
-}
-label[for="button-solo"],
-button#button-solo{
-	--col-bg: #{$col-green};
-	--bg:url(./assets/icons/person-24px.svg);
-	--y:100%;
-}
-
-label[for="button-duet"],
-button#button-duet{
-	--col-bg: #{$col-blue};
-	--bg:url(./assets/icons/people-24px.svg);
-	--y:-100%;
-}
-
-label[for="button-start"]{
-	margin-top:-2.5rem;
-	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
-	
-	--col-bg: #{$col-orange};
-	--col-hover:#{$col-cream};
-
-	--button-border-size:4px;
-	--bg:url(./assets/icons/music_note-24px.svg);
-	--pos-override:left var(--pad) center;
-	z-index:909;
-	border-radius:0;
-
-	input{
-		position: absolute;
-		top:0;
-		right:0;
-		opacity: 0;
-	}
-
-}
-
-.solo label[for="button-start"]{
-	--bg:url(./assets/icons/person-24px.svg);
-}
-
-.duet label[for="button-start"]{
-	--bg:url(./assets/icons/people-24px.svg);
+button#button-reset{
+	--col-hover:#{$col-blue};
+	--bg:url(./assets/icons/report_problem_black_24dp.svg);
 }
 
 button#button-help{
@@ -1181,10 +1330,7 @@ button#button-help{
 	--col-hover:#{$col-blue};
 	--bg:url(./assets/icons/help_outline_black_24dp.svg);
 	//display: none;
-}
-button#button-metronome{
-	
-	// --bg:url(./assets/icons/person_add-24px.svg);
+	cursor: help;
 }
 
 button#share{
@@ -1197,7 +1343,8 @@ button#share{
 button.install-app,
 button.update-available{
 	order:-1;
-	--bg:url(./assets/icons/get_app-24px.svg);
+	// --bg:url(./assets/icons/get_app-24px.svg);
+	--bg:url(./assets/icons/download_for_offline_black_24dp.svg);
 	background-color: $col-orange;
 }
 
@@ -1300,7 +1447,7 @@ label[for="select-camera"],
 	);
 	border-style: ridge;
 	
-	//margin:auto;// solid transparent;
+	margin:0;// solid transparent;
 	margin-top:var(--top-gap);
 	//margin-bottom:var(--top-gap);
 	// margin:clamp(calc(var(--top-gap)),3vw,auto) auto;// solid transparent;
@@ -1495,6 +1642,7 @@ a[href="#help"]{
 	display: flex;
 	flex-direction: column;
 	flex-wrap: wrap;
+	cursor: help;
 	// align-items: flex-end;
 	// align-items: flex-end;
 	justify-content: center;
