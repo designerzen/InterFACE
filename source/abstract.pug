@@ -105,7 +105,7 @@ html(lang="en-GB" dir="ltr")
 		nav 
 			ul 
 				block nav
-					li: a(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
+					li: a#link-about(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
 					li: a(href="#help" onclick="window.help.showModal()") Help!
 	
 		block main
@@ -176,7 +176,7 @@ html(lang="en-GB" dir="ltr")
 						
 
 						//- Controls for all players
-						fieldset#shared-controls
+						fieldset#shared-controls.controls
 
 							legend Shared controls that apply to all players
 
@@ -184,34 +184,36 @@ html(lang="en-GB" dir="ltr")
 													
 							//- Equipment Settings 
 							//- TODO: Put into a dialog?
-							label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-								select(aria-label="Select a different camera")#select-camera
+							//- label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
+							//- 	select(aria-label="Select a different camera")#select-camera
+							label(for="button-settings") <span class="hide-text"> Change and edit </span>Settings<span class="hide-text"> that modify behaviour and sound</span>
+								input(type="checkbox" aria-label="Show the settings panel")#button-settings
 							
 							button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 							//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
 							
-							label(for="button-metronome") <span class="hide-text">Toggle </span>Metronome
-								input(type="checkbox" aria-label="Play a metronome to help you keep time")#button-metronome
-						
 							label(for="button-quantise") Quantise
 								input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
 
 							button#button-record.hide(aria-label="Record a loop or two" ) Record Loop
 		
+							label(for="button-percussion") Beats
+								input#button-percussion(type="checkbox" aria-label="Play some background beats")
 							
 							label(for="button-clear") Clear
-								input(type="checkbox" aria-label="Clear visuals")#button-clear
+								input#button-clear(type="checkbox" aria-label="Clear visuals")
 							
-							label(for="button-transparent") Synch<span class="hide-text">ronise</span>
-									input(type="checkbox" aria-label="Synch video to movements")#button-transparent
-								
+							label(for="button-disco") MTV Mode
+								input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
 							
 							label(for="button-spectrogram") U.V.<span class="hide-text"> Spectrogram</span>
-								input(type="checkbox" aria-label="Show a funky bar chart of frequencies")#button-spectrogram
-							
+								input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
 							
 							label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
-								input(type="checkbox" aria-label="Toggle augmented reality mode")#button-overlay
+								input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
+								
+							label(for="button-mute" ) Mute
+								input#button-mute(type="checkbox" aria-label="Toggle mute")
 								
 							button#button-photograph( aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
 						
@@ -222,7 +224,7 @@ html(lang="en-GB" dir="ltr")
 							//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 							
 							label.hide-text(for="button-fullscreen") Toggle Fullscreen
-								input(type="checkbox"  aria-label="Toggle full screen mode")#button-fullscreen
+								input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
 							
 							button#share.hide-text( aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
 						
@@ -252,7 +254,10 @@ html(lang="en-GB" dir="ltr")
 							//- 		option( value="300 BPM")
 							//- 		option( value="400 BPM")
 							//- 		option( value="500 BPM")
-									
+							
+							label(for="button-metronome") <span class="hide-text">Toggle </span>Metronome
+								input#button-metronome(type="checkbox" aria-label="Play a metronome to help you keep time")
+								
 							label(for="select-tempo") <span class="hide-text">Set </span>Tempo
 								select#select-tempo(aria-label="Choose a tempo from the list")
 									//- optgroup Select Tempo
@@ -271,13 +276,56 @@ html(lang="en-GB" dir="ltr")
 									option 300 BPM
 									option 400 BPM
 									option 500 BPM
-							
 						
+					
 						//- This covers the entire video and canvas elements
 						button#button-video(aria-label="Click screen to change instruments") Swap instruments for all people
 						
 						//- Once the user has taken some photos they appear here
 						result#photographs
+
+						//- Settings for all players... usually hidden?
+						fieldset#settings.controls
+							legend Global settings and options
+
+							//- only appears when there are multiple cameras on the computer?
+							//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?
+							label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
+								select#select-camera(aria-label="Select a different camera")
+								
+							label(for="button-transparent") Synch<span class="hide-text">ronise the movements (prevents judder)</span>
+									input#button-transparent(type="checkbox" aria-label="Synch video to movements")
+						
+							label(for="button-meshes") Faces<span class="hide-text"> have overlays</span>
+									input#button-meshes(type="checkbox" aria-label="Toggle Face overlays")
+						
+							label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
+									input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
+						
+							label(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
+									input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
+						
+							//- label(for="button-pattern") Drum Pattern
+							//- 		input#button-pattern(type="checkbox" aria-label="Change percussion arrangement")
+						
+							label(for="select-palette") <span class="hide-text">Choose </span>Colours
+								select#select-palette(aria-label="Select different colours")
+									option(value="s:80,l:80") Neon 
+									option(value="s:30,l:40") Pastel 
+									option(value="s:2,l:80") Monochrome (B&amp;W)
+									option(value="s:100,l:0") Dark
+						
+							label(for="select-impulse") <span class="hide-text">Select </span>Reverb
+								select#select-impulse(aria-label="Select a different reverb")
+							
+							label(for="button-speak") <span class="hide-text">Toggle </span>Speech
+								input#button-speak(type="checkbox" aria-label="Read out instructions and help")
+						
+							button#button-reset( aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
+						
+							//- bit of a hack...
+							label.button-close(for="button-settings") Hide Settings
+							
 				
 				//- Help Overlay
 				dialog#help 
