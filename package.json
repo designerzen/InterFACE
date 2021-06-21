@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "a camera based synthesizer",
-	"version": "0.50.4",
+	"version": "0.50.5",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
