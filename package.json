@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "a camera based synthesizer",
-	"version": "0.50.0",
+	"version": "0.50.1",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -110,7 +110,18 @@
 		"parcel": "2.0.0-beta.1",
 		"postcss": "^8.2.1",
 		"pug": "^3.0.0",
-		"sass": "^1.30.0"
+		"sass": "^1.30.0",
+		"showdown": "^1.9.1",
+		"workbox-cacheable-response": "^6.1.5",
+		"workbox-core": "^6.1.5",
+		"workbox-expiration": "^6.1.5",
+		"workbox-google-analytics": "^6.1.5",
+		"workbox-precaching": "^6.1.5",
+		"workbox-range-requests": "^6.1.5",
+		"workbox-recipes": "^6.1.5",
+		"workbox-routing": "^6.1.5",
+		"workbox-strategies": "^6.1.5",
+		"workbox-sw": "^6.1.5"
 	},
 	"engines": {
 		"node": ">=12.18.3"
