@@ -73,6 +73,25 @@ export const getLocationSettings = (defaultOptions) => {{
 	return locationOptions
 }}
 
+export const forceSecure = (debug=false) => {
+	
+	// ESCAPE: before doing anything, let us check the bare minimum...
+	// is https()
+	if (!debug && location.hostname !== "localhost" && location.protocol !== 'https:')
+	{
+		location.protocol = 'https:'
+		
+		// isLoading = false
+		// ultimateFailure = true
+		// setToast("Redirecting to a secure site, please stand by!")
+		// // show link or just try and force a redirect?
+		
+		// setTimeout(()=> location.replace(`https:${location.href.substring(location.protocol.length)}`), 50 )
+		// // EXIT HERE
+		// return
+	}
+}
+
 // reload the exact same URL but wih duet=true enabled
 export const loadDuetMode = ()=> {
 	// grab existing...
