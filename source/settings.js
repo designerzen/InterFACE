@@ -1,8 +1,10 @@
-const DEFAULT_OPTIONS = {
+import { INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
+
+export const DEFAULT_OPTIONS = {
 
 	// this allows us to show some extra options if set to true...
 	advancedMode:false,
-
+	// initially show the settings panel
 	showSettings:false,
 	// play a constant beat
 	metronome:false,
@@ -37,13 +39,49 @@ const DEFAULT_OPTIONS = {
 	// saved BPM that can be shared?
 	bpm:120,
 	// choice of different models to use
-	model:"face"
+	model:"face",
+	// sample set
+	instrumentPack:INSTRUMENT_PACK_FATBOY,
+	// global mode that get's passed into person too
+	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
 }
+
+// For kid friendly versions with big eyes, no scary overlays and 
+// simpler buttons and fewer controls and settings
+export const KIDS_OPTIONS = {
+	...DEFAULT_OPTIONS ,
+	advancedMode:false,
+	text:false,
+	masks:false,
+}
+
+// simpler buttons and fewer controls and settings
+export const BODY_OPTIONS = {
+	...DEFAULT_OPTIONS ,
+	// model:'hand'
+	backingTrack:true
+}
+
 
 // NB. These must align with the button names
 // 		in the DOM when the app is launched
-export const NAMES = ['a','b','c'].map( m => `person-${m}` )
+export const NAMES = ['a','b','c','d'].map( m => `person-${m}` )
 
-export const getFactoryDefaults = () => {
-	return Object.assign( {}, DEFAULT_OPTIONS )
+export const getFactoryDefaults = ( options=DEFAULT_OPTIONS ) => Object.assign( {}, options )
+
+export const getDomainDefaults = (name) => {
+
+	switch(name.toLowerCase())
+	{
+		// localhost 127.0.0.(1)
+		// case 'localhost': 
+		// case '1': return getFactoryDefaults(KIDS_OPTIONS)
+		
+		case 'lol': return getFactoryDefaults(KIDS_OPTIONS)
+
+		case 'band': return getFactoryDefaults()
+
+		// defaults to interface.place
+		default: return getFactoryDefaults()
+	}
 }
