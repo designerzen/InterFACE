@@ -15,9 +15,8 @@ html(lang="en-GB" dir="ltr")
 		block title 
 			+title()
 
-		//- meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"> 
 		meta(name="viewport", content="viewport-fit=cover,width=device-width,initial-scale=1")
-		meta(name="description", content="Face synth")
+		meta(name="description", content="Face Controlled Augmented Reality Motion Capture Controlled Machine Learning Powered Accessible Synthesizer")
 		//- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. 
 		link(rel="manifest", href="manifest.webmanifest")
 		link(rel="stylesheet", href="index.scss", type="text/css")
@@ -109,290 +108,80 @@ html(lang="en-GB" dir="ltr")
 					li: a(href="#help" onclick="window.help.showModal()") Help!
 	
 		block main
-			main#app
-				h3#title Augmented Reality Synthesizer
-				p#feedback
-				p#toast
+
+		block dialogs 
+			//- Help Overlay
+			dialog#help 
+				h4 Don't Panic!
 				
-				#app-frame
+				section.player-selection-help
+					h5 This is the 
+						em Player Selection Screen
+
+					ol 
+						li Select how many people will make music at the same time - one or two players
+						li Toggle the simple mode on for an easier to use version
+						li Click the Start Button to continue to the next screen
 					
-					//- ONBOARDING ---
-					form#onboard(action="/") 
+				section.app-help
+					h5 This is the Synthesizer 
+					p It is controlled using your head
 						
-						fieldset#player-selector
-							legend How many people are going to participate?
-							//- button#button-solo( aria-label="Single player mode" ) <strong>Solo</strong> : 1 Player
-							//- button#button-duet( aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" ) <strong>Duet</strong> : 2 Players
-							//- button#button-trio( aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" ) <strong>Trio</strong> : 3 People
-							
-
-							//- https://adrianroselli.com/2020/01/my-priority-of-methods-for-labeling-a-control.html
-							label(for="button-solo") <strong>Solo</strong> : 1 Player
-								input#button-solo(name="players" type="radio" aria-label="Single player mode" checked)
-							label(for="button-duet") <strong>Duet</strong> : 2 Players
-								input#button-duet(name="players" type="radio" aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" )
-							label(for="button-trio") <strong>Trio</strong> : 3 People
-								input#button-trio(name="players" type="radio" aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" )
-							
-							//- Simple / Advanced mode
-							label(for="toggle-advanced-mode" aria-label="Show advanced mode and features" ) Simple Mode
-								input#toggle-advanced-mode.switch(type="checkbox" checked)
-				
-						//- Start buttons
-						//- button#button-start()
-						label(for="button-start" ) Start!
-							input#button-start( type="submit" value="Begin")
-
-					//- img#face(src="assets/will.png", width="640", height="480")
-					video#webcam(autoplay, playsinline, width="640", height="480")
-						p No Video available - unable to playback ;(
-
-					//- we clone the video onto the canvas every frame
-					canvas(width="640", height="480")
-
-					//- In APP CONTROLS ------------------------------------------------------
-					form#controls(action="/") 
-
-						//- Button is the face of the user
-						button.person#person-a Change instrument for the person on the left
-						//- Fieldset that fills with instruments 
-						// FIXME: ADD ARIA
-						fieldset.person-controls#person-a-controls
-						
-						//- Same for Player 2
-						button.person#person-b Change instrument for the person on the right 
-						// FIXME: ADD ARIA
-						fieldset.person-controls#person-b-controls
-
-						//- fieldset#shared-settings
-							
-						//- 	//- Equipment Settings 
-						//- 	//- TODO: Put into a dialog?
-						//- 	label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-						//- 		select(aria-label="Select a different camera")#select-camera
-							
-						//- 	button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
-						//- 	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
-						
-
-						//- Controls for all players
-						fieldset#shared-controls.controls
-
-							legend Shared controls that apply to all players
-
-							button#button-help( aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
-													
-							//- Equipment Settings 
-							//- TODO: Put into a dialog?
-							//- label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-							//- 	select(aria-label="Select a different camera")#select-camera
-							label(for="button-settings") <span class="hide-text"> Change and edit </span>Settings<span class="hide-text"> that modify behaviour and sound</span>
-								input(type="checkbox" aria-label="Show the settings panel")#button-settings
-							
-							button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
-							//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
-							
-							label(for="button-quantise") Quantise
-								input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
-
-							button#button-record.hide(aria-label="Record a loop or two" ) Record Loop
-		
-							label(for="button-percussion") Beats
-								input#button-percussion(type="checkbox" aria-label="Play some background beats")
-							
-							label(for="button-clear") Clear
-								input#button-clear(type="checkbox" aria-label="Clear visuals")
-							
-							label(for="button-disco") MTV Mode
-								input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
-							
-							label(for="button-spectrogram") U.V.<span class="hide-text"> Spectrogram</span>
-								input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
-							
-							label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
-								input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
-								
-							label(for="button-mute" ) Mute
-								input#button-mute(type="checkbox" aria-label="Toggle mute")
-								
-							button#button-photograph( aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
-						
-							//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
-							//button#button-donk( aria-label="Put a donk on it" ) Add Donk
-							//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
-							
-							//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
-							
-							label.hide-text(for="button-fullscreen") Toggle Fullscreen
-								input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
-							
-							button#share.hide-text( aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
-						
-							//- label(for="input-tempo" aria-label="Set the tempo" ) Tempo
-							//- 	input(type="number" value="1")#input-tempo
-							//- 	input(type="button")#input-tempo-increase
-							//- 	input(type="button")#input-tempo-decrease
-							
-							//- Drop up / down list of tempos with typeable option too
-							//- label(for="set-tempo") <span class="hide-text">Set </span>Tempo
-							//- 	input(list="tempos")
-							//- 	datalist#tempos
-							//- 		option( value="45 BPM")
-							//- 		option( value="60 BPM")
-							//- 		option( value="75 BPM")
-							//- 		option( value="85 BPM")
-							//- 		option( value="90 BPM")
-							//- 		option( value="95 BPM")
-							//- 		option( value="100 BPM")
-							//- 		option( value="110 BPM")
-							//- 		option( value="120 BPM")
-							//- 		option( value="130 BPM")
-							//- 		option( value="140 BPM")
-							//- 		option( value="150 BPM")
-							//- 		option( value="170 BPM")
-							//- 		option( value="200 BPM")
-							//- 		option( value="300 BPM")
-							//- 		option( value="400 BPM")
-							//- 		option( value="500 BPM")
-							
-							label(for="button-metronome") <span class="hide-text">Toggle </span>Metronome
-								input#button-metronome(type="checkbox" aria-label="Play a metronome to help you keep time")
-								
-							label(for="select-tempo") <span class="hide-text">Set </span>Tempo
-								select#select-tempo(aria-label="Choose a tempo from the list")
-									//- optgroup Select Tempo
-									option 45 BPM
-									option 60 BPM
-									option 75 BPM
-									option 85 BPM
-									option 90 BPM
-									option 100 BPM
-									option 110 BPM
-									option 120 BPM
-									option 130 BPM
-									option 140 BPM
-									option 150 BPM
-									option 200 BPM
-									option 300 BPM
-									option 400 BPM
-									option 500 BPM
-						
+					h6 Not working?
+					h6 Common Issues / Troubleshooting
+					ol 
+						li Camera was not allowed access
+						li Browser too old / out of date
+						li If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
+						li If your face is not found, try and improve the brightness in the room by turning on some lights
 					
-						//- This covers the entire video and canvas elements
-						button#button-video(aria-label="Click screen to change instruments") Swap instruments for all people
-						
-						//- Once the user has taken some photos they appear here
-						result#photographs
+				small.version Version 
+					include version.txt
 
-						//- Settings for all players... usually hidden?
-						fieldset#settings.controls
-							legend Global settings and options
+				//- iframe instead?
+				p.learn-more
+					| Learn more from the 
+					a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
+					| / 
+					a.documentation(href="help.pug" target="_blank") Online Documentation
 
-							//- only appears when there are multiple cameras on the computer?
-							//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?
-							label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-								select#select-camera(aria-label="Select a different camera")
-								
-							label(for="button-transparent") Synch<span class="hide-text">ronise the movements (prevents judder)</span>
-									input#button-transparent(type="checkbox" aria-label="Synch video to movements")
-						
-							label(for="button-meshes") Faces<span class="hide-text"> have overlays</span>
-									input#button-meshes(type="checkbox" aria-label="Toggle Face overlays")
-						
-							label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
-									input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
-						
-							label(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
-									input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
-						
-							//- label(for="button-pattern") Drum Pattern
-							//- 		input#button-pattern(type="checkbox" aria-label="Change percussion arrangement")
-						
-							label(for="select-palette") <span class="hide-text">Choose </span>Colours
-								select#select-palette(aria-label="Select different colours")
-									option(value="s:80,l:80") Neon 
-									option(value="s:30,l:40") Pastel 
-									option(value="s:2,l:80") Monochrome (B&amp;W)
-									option(value="s:100,l:0") Dark
-						
-							label(for="select-impulse") <span class="hide-text">Select </span>Reverb
-								select#select-impulse(aria-label="Select a different reverb")
-							
-							label(for="button-speak") <span class="hide-text">Toggle </span>Speech
-								input#button-speak(type="checkbox" aria-label="Read out instructions and help")
-						
-							button#button-reset( aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
-						
-							//- bit of a hack...
-							label.button-close(for="button-settings") Hide Settings
-							
-				
-				//- Help Overlay
-				dialog#help 
-					h4 Don't Panic!
+				//- a(href="#app") Let me try
+
+				form(method="dialog")
+					button Close Help
+
+			//- TODO:
+			dialog#fund
+			
+				h5 Help support this project! 
+				p.
+					If you enjoy this software and want to help it continue to grow, please consider putting some money
+
+				ul.fund.icon-list
+					li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+
+				ul.associates.icon-list
+					li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+					li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+					li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
+					li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer
 					
-					section.player-selection-help
-						h5 This is the 
-							em Player Selection Screen
+				ul.supporters.icon-list
+					li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+					li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+					
+				a(href="roadmap.pug" target="_blank") Future Plans & Roadmap
+				a(href="credits.pug" target="_blank") Thanks to
 
-						ol 
-							li Select how many people will make music at the same time - one or two players
-							li Toggle the simple mode on for an easier to use version
-							li Click the Start Button to continue to the next screen
-						
-					section.app-help
-						h5 This is the Synthesizer 
-						p It is controlled using your head
-							
-						h6 Not working?
-						h6 Common Issues / Troubleshooting
-						ol 
-							li Camera was not allowed access
-							li Browser too old / out of date
-							li If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
-							li If your face is not found, try and improve the brightness in the room by turning on some lights
-						
-					small.version Version 
-						include version.txt
+				form(method="dialog")
+					button Close Help
 
-					//- iframe instead?
-					p.learn-more
-						| Learn more from the 
-						a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
-						| / 
-						a.documentation(href="help.pug" target="_blank") Online Documentation
-
-					//- a(href="#app") Let me try
-
-					form(method="dialog")
-						button Close Help
-
-				//- TODO:
-				dialog#fund
-				
-					h5 Help support this project! 
-					p.
-						If you enjoy this software and want to help it continue to grow, please consider putting some money
-
-					ul.fund.icon-list
-						li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
-		
-					ul.associates.icon-list
-						li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
-						li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
-						li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
-						li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer
-						
-					ul.supporters.icon-list
-						li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
-						li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
-						
-					a(href="roadmap.pug" target="_blank") Future Plans & Roadmap
-					a(href="credits.pug" target="_blank") Thanks to
-
-					form(method="dialog")
-						button Close Help
-				
+			dialog#pwa
+				#changelog
+				form(method="dialog")
+					button Close Help
+			
+	
 		block footer
 			//- Always visible on screen and overlaid on top	
 			footer#foot
@@ -428,10 +217,6 @@ html(lang="en-GB" dir="ltr")
 				text="By clicking the buttons below you can easily share the InterFACE with your friends and family" 
 				url=URL
 			)
-
-		//-  For users with javascript disabled 
-		noscript
-			p This application requires javascript to work unfortunately and doesn't do much without it
 
 		//- Global site tag (gtag.js) - Google Analytics
 		script( async src="https://www.googletagmanager.com/gtag/js?id=G-1XT0GV0L6J")
