@@ -1,12 +1,10 @@
 export const MUSICAL_NOTES = ['♫','𝅗𝅥','𝅘𝅥','𝅘𝅥𝅮','𝅘𝅥𝅯','𝅘𝅥𝅰','𝅘𝅥𝅱','𝅘𝅥𝅲']
 // '𝄞',
 
-
 export const INSTRUMENT_PACK_FM = "FluidR3_GM"
 export const INSTRUMENT_PACK_FATBOY = "FatBoy"
 export const INSTRUMENT_PACK_MUSYNGKITE = "MusyngKite"
-export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY]
-
+export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_MUSYNGKITE]
 
 export const INSTRUMENT_FOLDERS = [
 	"accordion-mp3",

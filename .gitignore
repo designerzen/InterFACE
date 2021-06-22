@@ -3,8 +3,6 @@ node_modules
 # there are things already committed in dist/ mainly the smaples
 dist/*
 !dist/assets
-!dist/Fatboy
-!dist/FluidR3_GM
 !dist/CNAME
 !dist/browserconfig.xml
 app
