@@ -1,10 +1,12 @@
 // Just a simple face detection script with visual overlaid feedback and audio
-// https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
 // Best used with the Looking Glass Portrait
+
+
+
+
 
 // TODO: Lazy load more of these...
 // import {midiLikeEvents} from './timing/rhythm'
-import { installer} from './install.js'
 import { createStore} from './store'
 import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
@@ -42,10 +44,9 @@ import { connectSelect, connectReverbControls } from './dom/select'
 import { setToggle } from './dom/toggle'
 import { setButton, showUpdateButton, showReloadButton, setupMIDIButton } from './dom/button'
 import { setFeedback, setToast, addToolTips } from './dom/text'
-
-import {showError } from './dom/errors'
-import {setLoadProgress, getLoadProgress } from './dom/load-progress'
-import {appendPhotographElement } from './dom/photographs'
+import { showError } from './dom/errors'
+import { setLoadProgress, getLoadProgress } from './dom/load-progress'
+import { appendPhotographElement } from './dom/photographs'
 
 import { 
 	drawElement,
@@ -59,7 +60,10 @@ import { drawWaves, drawBars } from './visual/spectrograms'
 
 import { drawQuantise } from './visual/quantise'
 
-import { getReferer, getRefererHostname, getLocationSettings, getShareLink, addToHistory } from './location-handler'
+import { 
+	getReferer, getRefererHostname, 
+	getLocationSettings, getShareLink, 
+	forceSecure, addToHistory } from './location-handler'
 
 import { detectCameras, setupCamera, filterVideoCameras } from './camera'
 import { playNextPart, kitSequence } from './timing/patterns'
@@ -70,12 +74,28 @@ import { VERSION } from './version'
 import { TAU } from "./maths/maths"
 import Person, { DEFAULT_OPTIONS, EYE_COLOURS } from './person'
 import { getBrowserLocales } from './i18n'
-import { getFactoryDefaults, NAMES } from './settings'
+import { getDomainDefaults, NAMES } from './settings'
 
 import {
+	convertOptionToObject,
 	addMouseTapAndHoldEvents, 
 	MOUSE_HELD,MOUSE_HOLDING,MOUSE_TAP
 } from './utils'
+
+
+import { installOrUpdate } from './pwa/pwa'
+
+// if we have a specific referer, we can change the options accordingly
+// allow different domains to show different styles / options / configs
+// current domains that point this way include :
+// interface.place
+// interface.lol	<- defaults to simple 'kid' mode
+// interface.band	<- defaults to duet mode
+const referer = getReferer()
+const LTD = getRefererHostname().split('.').pop()
+const defaultOptions = getDomainDefaults( LTD ) 
+let ui = getLocationSettings( defaultOptions )
+
 
 // DOM Elements
 const body = document.documentElement
@@ -137,29 +157,10 @@ const statistics = {
 // for disco mode!
 const cameraPan = {x:1,y:1}
 
-// if we have a specific referer, we can change these accordingly
-const referer = getReferer()
+// if on http flip to https
+forceSecure(ui.debug)
 
 
-// realtime UI options
-let ui = getLocationSettings( getFactoryDefaults() )
-
-
-// ESCAPE: before doing anything, let us check the bare minimum...
-// is https()
-if (!ui.debug && location.hostname !== "localhost" && location.protocol !== 'https:')
-{
-	location.protocol = 'https:'
-	
-	// isLoading = false
-	// ultimateFailure = true
-	// setToast("Redirecting to a secure site, please stand by!")
-	// // show link or just try and force a redirect?
-	
-	// setTimeout(()=> location.replace(`https:${location.href.substring(location.protocol.length)}`), 50 )
-	// // EXIT HERE
-	// return
-}
 
 // ESCAPE - no cameras found on system?
 // ESCAPE - no GPU?
@@ -208,6 +209,7 @@ const setTempo = (tempo) => {
 	store.setItem('tempo', { period:tempo, bpm })
 	return tempo
 }
+
 // 60,000 / BPM = one beat in milliseconds - 10 is fir fun
 const setBPM = (bpm) => setTempo( 60000 / bpm  )
 
@@ -225,6 +227,7 @@ const loadInstruments = async (method, callback) => people.map( async (person) =
 const loadRandomInstrument = async (callback) => await loadInstruments('loadRandomInstrument', callback)
 const previousInstrument = async (callback) => await loadInstruments('loadPreviousInstrument', callback)
 const nextInstrument = async (callback) => await loadInstruments('loadNextInstrument', callback)
+const reloadInstrument = async (callback) => await loadInstruments('reloadInstrument', callback)
 
 const createPerson = (name,eyeColour) => {
 
@@ -239,21 +242,27 @@ const createPerson = (name,eyeColour) => {
 		hue:Math.random() * 360,
 		debug:ui.debug,
 		// FIXME: why is this per person? should always set per screen
-		photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
+		photoSensitive:ui.photoSensitive,
+
+		instrumentPack:ui.instrumentPack,
+
 		// force draw face mesh
 		// drawMesh:false,
 		// force draw face blob nodes
-		// drawNodes:true,
-		// drawEyes:true,
+		drawNodes:ui.masks,
+		drawEyes:ui.eyes,
 		// alternate between mesh and blobs depending on mouth
 		// NB. The two above will override this behaviour
 		// meshOnSing:false,
 	}
 
+
 	// Load any saved settings for this specific user name
 	const savedOptions = store.has(name) ? store.getItem(name) : {}
+	const options = Object.assign ( {}, personOptions, savedOptions ) 
+	
 	// create a new user and load an instrument
-	const person = new Person(name, audioContext, audio, Object.assign ( {}, personOptions, savedOptions)  ) 
+	const person = new Person(name, audioContext, audio, options ) 
 	// see if there is a stored name for the instrument...
 	const instrument = savedOptions.instrument || randomInstrument()
 
@@ -392,10 +401,7 @@ const enableMIDI = async () => {
 		midi = await setupMIDI()
 		
 		// midi device connected! huzzah!
-		midi.addListener("connected", (e) =>{ 
-			console.log("Midi device connected!")
-			updateMIDIStatus(midi.outputs) 
-		})
+		midi.addListener("connected", (e) => updateMIDIStatus(midi.outputs) )
 		
 		// Reacting when a device becomes unavailable
 		midi.addListener("disconnected", (e) => updateMIDIStatus(midi.outputs) )
@@ -567,7 +573,6 @@ const registerKeyboard = () => {
 			// Change impulse filter in the reverb
 			case 'i':
 				const reverb = await setReverb()
-				console.log("New reverb is ", reverb)
 				setToast( `Reverb : '${reverb}' loaded` )
 				
 				break
@@ -688,7 +693,7 @@ const registerKeyboard = () => {
 
 		// we run this when we want to 
 		addToHistory(ui, event.key)
-		console.log("key", ui, event)
+		// console.log("key", ui, event)
 	})
 }
 
@@ -702,13 +707,7 @@ const setup = async (update, settings, progressCallback) => {
 	const loadTotal = 7
 	let loadIndex = 0
 
-	// allow different domains to show different styles
-	// so we take the domain LTD
-	// current domains that point this way include :
-	// interface.place
-	// interface.lol	<- defaults to simple 'kid' mode
-	// interface.band	<- defaults to duet mode
-	main.classList.add( getRefererHostname().split('.').pop()  )
+	main.classList.add( LTD  )
 
 	try{
 		
@@ -1277,19 +1276,15 @@ const load = async (settings, progressCallback) => {
 		setState( 'clear', status )
 	}, ui.clear )
 
-	
 	// toggle mute
 	setToggle( "button-mute", status =>{ 
-		
 		setState( 'muted', !ui.muted )
 		setMasterVolume( ui.muted ? 1 : 0 )
-		
 	}, ui.muted )
 
 	let discoPreviousState
 	// Special disco mode!
 	setToggle( "button-disco", status =>{ 
-
 		setState( 'masks', status )
 		if (ui.masks)
 		{
@@ -1305,8 +1300,6 @@ const load = async (settings, progressCallback) => {
 			console.log(ui.masks,"MTV load old state", discoPreviousState)
 			discoPreviousState = null
 		}
-		
-		
 	}, ui.muted )
 
 	// Overlays ----
@@ -1324,6 +1317,7 @@ const load = async (settings, progressCallback) => {
 	}, ui.masks )
 
 	// hide / show eye overlays
+	// NB. this gets hidden in kid mode?
 	setToggle( "button-eyes", status => {
 		setState( 'eyes', !ui.eyes )
 		setPlayerOption("drawEyes", ui.eyes)
@@ -1349,7 +1343,7 @@ const load = async (settings, progressCallback) => {
 	
 	// reset to factory defaults
 	setButton( "button-reset", status =>{ 
-		ui = getFactoryDefaults() 
+		ui = {...defaultOptions}
 		refreshState()
 	})
 
@@ -1362,17 +1356,34 @@ const load = async (settings, progressCallback) => {
 		const tempo = parseInt( option.innerHTML )
 		updateTempo(tempo)
 		setBPM(tempo)
+		// FIXME:
+		// setState( 'bpm', tempo )
+	} )
+
+	connectSelect( 'select-eyes', option => {
+		const items = option.value.split(",")
+		const eye = convertOptionToObject(items)
+		console.log("Setting eyes", eye, {items} )
+		setPlayerOptions({ 
+			scleraRadius:eye.s,
+			irisRadius:eye.i,
+			pupilRadius:eye.p,
+			eyeRatio:eye.a || 1
+		 })
+	} )
+
+	// set the master sound font
+	connectSelect( 'select-samples', async (option) => {
+		const instrumentPack = option.value
+		setPlayerOptions({ instrumentPack })
+		const instrument = await reloadInstrument()
+		setState( 'instrumentPack', instrumentPack )
+		//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
 	} )
 
 	connectSelect( 'select-palette', option => {
 		const items = option.value.split(",")
-		const palette = items.reduce( (accumulator, current) => {
-			const c = current.split(":")
-			accumulator[c[0]] = parseFloat(c[1])
-			return accumulator
-		}, {})
-
-		console.log("connectPaletteSelector", {items, palette, option})
+		const palette = convertOptionToObject(items)
 		
 		setPlayerOptions({
 			saturation:palette.s,
@@ -1385,7 +1396,7 @@ const load = async (settings, progressCallback) => {
 		if (option && option.value)
 		{
 			const url = option.value
-			console.log(option.value, {url, option})
+			//console.log(option.value, {url, option})
 			const reverb = await setReverb(url)
 		}else{
 			console.error(option, option.previousSibling )
@@ -1440,6 +1451,7 @@ const loadExtras = async ()=> {
 	}
 
 	extrasLoaded = true
+	
 	try{
 		// load the share menu :)
 		const sharer = await import('share-menu')
@@ -1447,6 +1459,7 @@ const loadExtras = async ()=> {
 		// disable the share menu...
 		body.classList.add("sharing-disabled")
 	}
+
 	
 	// at any point we can now trigger the installation
 	if (installation)
@@ -1543,35 +1556,6 @@ const loadingLoop = async () => {
 // }
 // test()
 
-// progressive web app variant
-const pwa = async() => {
-	try{
-		// const {installer} = await import('./install.js')
-		installation = await installer(true)
-	
-		// Update checks
-		const {updateApp} = await import('./update.js')
-		
-		// may as well disrupt the load if an update is available!
-		// as we reload the thing anyways!
-		const {updater, updateAvailable} = await updateApp()
-
-		if (updateAvailable)
-		{
-			showUpdateButton(document.getElementById("shared-controls"), updater)
-			
-			// 
-			setToast("An Update is available! Press update to install it" )
-		}
-
-		//console.log("installer", { installer, installation})
-	
-	}catch(error){
-		console.error("PWA", error)
-	}
-}
-
-
 
 // ---------------------------------------------------------
 const options = Object.assign( {}, {
@@ -1582,8 +1566,15 @@ const options = Object.assign( {}, {
 	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
 	shouldLoadIrisModel:true,
 	
+	// Minimum detection Confidence - Threshold for discarding a prediction. 
+	// [0 - 1] for a face to be considered detected
+    // detectionConfidence: 0.9,
+    
+    // Minimum confidence [0 - 1] for the landmark tracker to be considered detected
+    // Higher values are more robust at the expense of higher latency
+    // minTrackingConfidence: 0.5
+
 	// maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
-	// detectionConfidence - Threshold for discarding a prediction. Defaults to 0.9.
 	// iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
 	// scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
 	// modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
@@ -1606,10 +1597,6 @@ load(options, (progress, message) => {
 	setToast("")
 
 	// FIXME: Maybe only show if people dont do anything?
-	let timeOut = setTimeout(()=>{
-		setToast( "Please select how many players you want to play" )
-		timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
-	}, 60000 )
 	
 	// hide the loading screen but dont sdt it to loaded just yet
 	body.classList.toggle("loading", false)
@@ -1618,6 +1605,14 @@ load(options, (progress, message) => {
 	// whilst the user hits the button!
 	requestAnimationFrame( loadExtras )
 
+	// now before doing anything else, let us see if the app is installed and if there is an update available...
+	// TODO: Add update checks
+
+	let timeOut = setTimeout(()=>{
+		setToast( "Please select how many players you want to play" )
+		timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
+	}, 60000 )
+	
 	// load completed and now we show the ui
 	// for selecting regular or multi-face mode!
 	try{
@@ -1625,8 +1620,6 @@ load(options, (progress, message) => {
 	}catch(error){
 		console.error("player selection failed", error)
 	}
-
-
 
 
 	setFeedback("Please wait loading! This can take <strong>some</strong> time...")
@@ -1659,10 +1652,8 @@ load(options, (progress, message) => {
 })
 
 
-// needs to be run early on ideally
-pwa()
+// wait for stuff to load / be available
 loadingLoop()
-
 
 // Exit
 window.onbeforeunload = ()=>{
@@ -1715,3 +1706,21 @@ window.addEventListener('popstate', (event) => {
 // window.addEventListener('deviceorientation' , event => {
 // 	//console.log("device orientation", event)
 // })
+
+
+
+
+
+
+
+
+
+// needs to be run early on ideally and in a seperate thread
+// loads in the relevant data to determine if the app needs to be 
+// updated if installed or installed if uninstalled
+installOrUpdate(ui.debug).then( req => {
+
+	//console.log( "PWA", req )
+	// do stuff!
+	
+}).catch ( error => console.error("PWA",error) )
