@@ -1,3 +1,8 @@
+export const convertOptionToObject = items => items.reduce( (accumulator, current) => {
+	const c = current.split(":")
+	accumulator[c[0]] = parseFloat(c[1])
+	return accumulator
+}, {})
 
 export const debounce = (callback, wait) => {
 	let timerId
