@@ -199,6 +199,7 @@ export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=
 		const pointA = scaledMesh[ TRIANGLE_MATRIX[ i ] ]
 		const pointB = scaledMesh[ TRIANGLE_MATRIX[ i + 1 ] ]
 		const pointC = scaledMesh[ TRIANGLE_MATRIX[ i + 2 ] ]
+		const alpha = palette.a || 1
 		
 		const phase = colourCycle ? (hue + ( 360 * i/q )) % 360 : hue
 		const colour = `hsla(${phase},${palette.s}%,${palette.l}%,${alpha})`

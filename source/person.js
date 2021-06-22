@@ -38,6 +38,8 @@ export const DEFAULT_OPTIONS = {
 	// left / right ear stereo panning
 	stereoPan:true,
 
+	sendMIDI:true,
+
 	// if you want the axis to be switched
 	swapControls:false,
 
@@ -47,17 +49,22 @@ export const DEFAULT_OPTIONS = {
 	// force draw face mesh
 	drawMesh:false,
 	// force draw face blob nodes
-	drawNodes:false,
+	drawNodes:true,
 	// alternate between mesh and blobs depending on mouth
 	// NB. The two above will override this behaviour
 	meshOnSing:false,
-
 
 	// draw these parts over the mesh...
 	drawMouth:true,
 	// kid mode turns eyes googly!
 	drawEyes:true,
 
+	// ratios of size of eye
+	scleraRadius:3,
+	irisRadius:1,
+	pupilRadius:0.3,
+	// frank sidebottom angle
+	eyeRatio:0.8,
 
 	// mouse hold for clicking in seconds 0.5 and more feels weird
 	mouseHoldDuration:0.3,
@@ -87,8 +94,8 @@ export const DEFAULT_OPTIONS = {
 	volumeRate:0.7,
 
 	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
-	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	// instrumentPack:INSTRUMENT_PACK_FATBOY,
+	//instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	instrumentPack:INSTRUMENT_PACK_FATBOY,
 
 	// this is the amount of decimal places used to smooth the mouth
 	// the higher the number the less smooth the output is
@@ -164,7 +171,7 @@ export default class Person{
 		// we want to add a delay before the gain control?
 	
 		// 
-		if (this.stereoPan)
+		if (this.options.stereoPan)
 		{
 			this.stereoNode = audioContext.createStereoPanner()
 			this.stereoNode.connect(this.gainNode)
@@ -311,7 +318,7 @@ export default class Person{
 		this.luminosity = options.luminosity //&& 100
 		this.hueRange = options.hueRange //&& 360
 		this.hue = options.hue ?? Math.random() * this.hueRange
-		console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
+		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -531,22 +538,40 @@ export default class Person{
 		
 		}else if (options.drawEyes){
 
-			//console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
-			if (this.isLeftEyeOpen)
-			{
-				drawEye( annotations.leftEyeIris, true, true, {pupil:options.leftEyeIris})	
-			}else{
-				// const leftEyeHeldShut = prediction.time - this.leftEyeClosedAt > options.eyeShutHolddDuration
-				drawEye(annotations.leftEyeIris, true, false )	
+			const eyeOptions = {
+				// colourful part of the eye
+				iris:options.leftEyeIris, 
+				irisRadius:options.irisRadius,
+				// holes in the eyes
+				pupil:'rgba(0,0,0,0.8)', 
+				pupilRadius:0.3,
+				// big white bit of the eyed
+				sclera:'white',
+				scleraRadius:options.scleraRadius,
+				ratio:options.eyeRatio
 			}
 
-			if (this.isRightEyeOpen)
-			{
-				drawEye( annotations.rightEyeIris, false, true, {pupil:options.rightEyeIris})
-			}else{
-				// const rightEyeHeldShut = prediction.time - this.rightEyeClosedAt > options.eyeShutHolddDuration
-				drawEye(annotations.rightEyeIris, false, false ? 'red' : 'green')
-			}
+			drawEye( annotations.leftEyeIris, true, this.isLeftEyeOpen, eyeOptions)	
+			
+			eyeOptions.iris = options.rightEyeIris
+			drawEye( annotations.rightEyeIris, false, this.isRightEyeOpen, eyeOptions)
+
+			//console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
+			// if (this.isLeftEyeOpen)
+			// {
+			// 	drawEye( annotations.leftEyeIris, true, true, eyeOptions)	
+			// }else{
+			// 	// const leftEyeHeldShut = prediction.time - this.leftEyeClosedAt > options.eyeShutHolddDuration
+			// 	drawEye(annotations.leftEyeIris, true, false, { irisRadius:options.eyeRadius} )	
+			// }
+
+			// if (this.isRightEyeOpen)
+			// {
+			// 	drawEye( annotations.rightEyeIris, false, true, {pupil:options.rightEyeIris, irisRadius:options.eyeRadius})
+			// }else{
+			// 	// const rightEyeHeldShut = prediction.time - this.rightEyeClosedAt > options.eyeShutHolddDuration
+			// 	drawEye(annotations.rightEyeIris, false, false ? 'red' : 'green', { irisRadius:options.eyeRadius})
+			// }
 
 			// console.log("EYE OPEN", {
 			// 	rightEyeClosedFor, 
@@ -569,6 +594,7 @@ export default class Person{
 			return
 		}
 
+		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
 
 			// draw silhoette directly on the canvas or
@@ -735,7 +761,7 @@ export default class Person{
 
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
-		if (this.stereoPan)
+		if (this.options.stereoPan)
 		{
 			this.stereoNode.pan.value = eyeDirection
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
@@ -775,7 +801,7 @@ export default class Person{
 			
 			// send out some MIDI yum yum noteName && 
 			// if (this.hasMIDI && !this.active)
-			if (this.hasMIDI)
+			if (this.options.sendMIDI && this.hasMIDI)
 			{
 				// duration: 2000,
 				// https://github.com/djipco/webmidi/blob/develop/src/Output.js
@@ -832,7 +858,7 @@ export default class Person{
 		}
 
 		//&& this.midiActive If the user has stopped singing we need to stop the midi too!
-		if (this.hasMIDI)
+		if (this.options.sendMIDI && this.hasMIDI)
 		{
 			this.midi.sendClock( )
 			this.midi.setSongPosition( getBarProgress() * 16383 )
@@ -916,7 +942,7 @@ export default class Person{
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	//
+	// 
 	/////////////////////////////////////////////////////////////////////
 	async loadNextInstrument(callback){
 		const index = this.instrumentPointer
@@ -925,7 +951,15 @@ export default class Person{
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	// we need loadiing events?
+	// if we have swapped on the instrument pack we can use this method
+	// to reload the same instrument but with the new samples
+	/////////////////////////////////////////////////////////////////////
+	async reloadInstrument(callback){
+		return await this.loadInstrument( INSTRUMENT_FOLDERS[this.instrumentPointer], callback )
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// we need loading events?
 	/////////////////////////////////////////////////////////////////////
 	async loadInstrument(instrumentName, callback){
 
@@ -1002,7 +1036,7 @@ export default class Person{
 			this.controls.focus()
 		}
 
-		console.log("Form", {active})
+		//console.log("Form", {active})
 		this.controls.classList.toggle("showing",true)
 	}
 
