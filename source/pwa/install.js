@@ -1,34 +1,12 @@
 
-import { setFeedback, setToast } from './dom/text'
-import { createInstallButton } from './dom/button'
-import { VERSION } from './version'
+import { setFeedback, setToast } from '../dom/text'
+import { createInstallButton } from '../dom/button'
+import { VERSION } from '../version'
+import {isSupportingBrowser} from './pwa'
+import manifestPath from "url:../manifest.webmanifest"
 
-import manifestPath from "url:./manifest.webmanifest"
-// let manifestPath = "./manifest.webmanifest"
-
-// Brilliant prolyfil by dfabulich
-// https://github.com/w3c/ServiceWorker/issues/1222#issuecomment-351566460
-if (!('waiting' in navigator.serviceWorker)) {
-	navigator.serviceWorker.waiting = new Promise(function(resolve) {
-		navigator.serviceWorker.ready.then(function(reg) {
-			function awaitStateChange() {
-				reg.installing.addEventListener('statechange', function() {
-					if (this.state === 'installed') resolve(reg)
-				})
-			}
-			if (reg.waiting) resolve(reg)
-			if (reg.installing) awaitStateChange()
-			reg.addEventListener('updatefound', awaitStateChange)
-		})
-	})
-}
-
-	
 const body = document.documentElement
 
-// const shareMenu = document.getElementById('share-menu')
-// check for beforeinstallprompt support
-export const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
 
 let deferredPrompt
 
@@ -37,15 +15,31 @@ let installed = false
 let hasPrompt = false
 let openModal = false
 
+/////////////////////////////////////////////////////////
+// is currently installed?
+/////////////////////////////////////////////////////////
+export const isAppInstalled = () => {
+	if (!isSupportingBrowser) {
+		return false
+	} else if (navigator.standalone) {
+	  	return navigator.standalone
+	} else if (matchMedia("(display-mode: standalone)").matches) {
+	  	return true
+	} else {
+	  	return false
+	}
+}
+
+
+
+
 export const installer = async (defer=false) => {
 
 	let manifestData
 	let relatedApps = []
 
     // handle iOS specifically
-    // this includes the regular iPad
-    // and the iPad pro
-    // but not macOS
+    // this includes the regular iPad and the iPad pro but not macOS
     const isIOS =
       navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
       (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
@@ -71,23 +65,9 @@ export const installer = async (defer=false) => {
       }
 	})
 	
-	const getInstalledStatus = () => {
-		if (navigator.standalone) {
-		  return navigator.standalone
-		} else if (matchMedia("(display-mode: standalone)").matches) {
-		  return true
-		} else {
-		  return false
-		}
-	}
 
-	const shouldShowInstall = () => {
-		const eligibleUser = isSupportingBrowser &&
-		relatedApps.length < 1 &&
-		(hasPrompt || isIOS)
-	
-		return eligibleUser
-	}
+
+	const shouldShowInstall = () => isSupportingBrowser && relatedApps.length < 1 && (hasPrompt || isIOS)
 
 	// Check that the manifest has our 3 required properties
 	// If not console an error to the user and return
@@ -126,7 +106,7 @@ export const installer = async (defer=false) => {
 			console.error("Manifest could not be loaded",err)
 		  	return null
 		}
-	  }
+	}
 	
 	  
 	const firstUpdated = async () => {
@@ -264,6 +244,9 @@ export const installer = async (defer=false) => {
 			{
 				console.log("Your PWA has been installed")
 		
+				const urlParams = new URLSearchParams(window.location.search)
+				urlParams.installing = true
+
 				installed = true
 	
 				resolve(true)
@@ -274,7 +257,7 @@ export const installer = async (defer=false) => {
 		
 				installed = false
 				
-				resolve(false);
+				resolve(false)
 		  	}
 
 		} else {
@@ -290,7 +273,7 @@ export const installer = async (defer=false) => {
 		{
 			// we need to show the installer!	// const test = await getManifestData()
 			const test = await firstUpdated()
-			const isInstalled = getInstalledStatus()
+			const isInstalled = isAppInstalled()
 			
 			body.classList.add( isInstalled ? "installed" : "not-installed")
 
@@ -374,7 +357,7 @@ export const installer = async (defer=false) => {
 	return begin
 }
 
-
+// catch install prompt and prevent it showing immediately
 window.addEventListener("beforeinstallprompt", event => {
 		
 	deferredPrompt = event
@@ -382,6 +365,10 @@ window.addEventListener("beforeinstallprompt", event => {
 	event.preventDefault() 
 
 }, {once:true})
+
+
+
+
  /*
 
 */
