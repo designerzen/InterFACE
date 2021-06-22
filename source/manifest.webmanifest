@@ -4,7 +4,7 @@
 	"start_url": "/InterFACE/",
 	"short_name": "interFACE",
 	"theme_color": "#e4dede",
-	"description": "Webcam based music making device",
+	"description": "Smile Powered Synthesizer",
 	"orientation": "any",
 	"background_color": "#e4dede",
 	"related_applications": [],
@@ -37,16 +37,22 @@
 	],
 	"screenshots": [
 		{
-		"src": "assets/screenshots/screen1.png"
+			"src": "assets/screenshots/screen1.png",
+			"sizes": "640x480",
+			"type": "image/png"
 		},  {
-		"src": "assets/screenshots/screen2.png"
+			"src": "assets/screenshots/screen2.png",
+			"sizes": "1680x1050",
+			"type": "image/png"
 		},  {
-		"src": "assets/screenshots/screen3.png"
+			"src": "assets/screenshots/screen3.png",
+			"sizes": "2456x1171",
+			"type": "image/png"
 		}
 	],
 
 	
 	"categories": [
-	  "music", "midi","technology", "accessibility"
+	  "audio","AR","music", "midi","technology", "accessibility"
 	]
   }
