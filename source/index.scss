@@ -169,6 +169,10 @@ select{
 	padding:var(--pad);
 }
 
+select::-ms-expand {
+	display: none;
+}
+
 // form seems to want focus all the time
 form{
 
@@ -1030,6 +1034,7 @@ html.loading main{
 
 	// hide these...
 	// #fund,
+	#button-reset,
 	label[for="select-impulse"],
 	label[for="button-install"],
 	label[for="button-quantise"],
@@ -1054,6 +1059,8 @@ html.debug{
 
 // Feedback text that pops up and dissappears
 #toast{
+	user-select: none;
+	pointer-events: none;
 	position: absolute;
 	padding: calc( var(--pad) * 1);
 	right:calc(var(--pad) + 2px);
@@ -1499,11 +1506,17 @@ main.sharing-disabled{
    		--bg: unset;
 	}
 }
+
 // Show secret buttons#??
-main.flag-showSettings #settings{
-	display: flex;
-	visibility: visible;
-	transform: translateY( -100% );
+main.flag-showSettings {
+	#settings{
+		display: flex;
+		visibility: visible;
+		transform: translateY( -100% );
+	}
+	#toast{
+		--footer-gap:calc( 2 * 4rem + var(--pad) );
+	}
 }
 
 // Options set by clicking buttons set these flags as classes
@@ -1525,6 +1538,10 @@ main:not(.flag-clear.flag-transparent){
 	#app-frame video{
 		display: none;
 	}
+}
+
+main.flag-eyes label[for="select-eyes"]{
+	visibility: visible;
 }
 
 
