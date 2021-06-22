@@ -26,17 +26,20 @@ BgCyan = "\x1b[46m"
 BgWhite = "\x1b[47m"
 */
 
-import {readdir,statSync,unlink} from 'fs'
+import {existsSync,readdir,statSync,unlink} from 'fs'
 import * as path from 'path'
 
 // const directory = 'dist'
+// check dirs exist
+const DIRS = ['dist','app']
+const directories = DIRS.filter( (dir,index,data)=> existsSync(dir) )
 
-const directories = ['dist','app']
+console.log(`Found ${directories.length} folders`, directories )
 
 const WHITELIST = [
 	// "manifest.webmanifest",
 	// "service-worker.js",
-	"timing.requestframe.worker.js",
+	// "timing.requestframe.worker.js",
 	// "timing.setinterval.worker.js",
 	// "timing.settimeout.worker.js",
 	"browserconfig.xml",
