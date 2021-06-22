@@ -140,21 +140,6 @@
 			z-index:1;
 		}
 	}
-	
-	// on hold...
-	&:active{
-		--col-hover: $col-orange;
-		--col-top:#{$col-tan};
-		--col-bottom:#{$col-grey};
-	}
-
-
-	// on hold...
-	&:active:focus{
-		--col-hover: $col-grey;
-		--col-top:#{$col-orange};
-		--col-bottom:#{$col-red};
-	}
 
 	&:focus{
 		outline-color:$col-orange;
@@ -165,6 +150,20 @@
 			z-index:909;
 		}
 	}
+
+	// on press via keyboard only?...
+	&:active{
+		--col-hover: $col-orange;
+		--col-top:#{$col-orange};
+		--col-bottom:#{$col-red};
+	}
+	
+	// // on press!
+	// &:active:focus{
+	// 	--col-hover: $col-grey;
+	// 	--col-top:#{$col-orange};
+	// 	--col-bottom:#{$col-red};
+	// }
 }
 .hide-text{
 	// %image-replacement
@@ -554,7 +553,8 @@ label[for=button-start],
 			z-index:1;
 		}
 		
-		select:focus{
+		// selected
+		select:focus:active{
 			max-width:none;
 		}
 
@@ -759,19 +759,32 @@ label[for=button-start],
 	label[for="button-meshes"]{
 		--col-select:#{$col-yellow};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/face_retouching_natural-24px.svg);
+		--bg:url(./assets/icons/face_retouching_off-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/face_retouching_off-24px.svg);
+			--bg:url(./assets/icons/face_retouching_natural-24px.svg);
 		}
 	}
 
 	// Eye overlays
-	label[for="button-eyes"]{
+	label[for="button-eyes"],
+	label[for="select-eyes"]{
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
 		--bg:url(./assets/icons/adjust-24px.svg);
 		&.checked{
 			//--bg:url(./assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	label[for="select-eyes"]{
+		visibility: hidden;
+	}
+		
+	// Toggle show eyes or hide eyes
+	label[for="button-eyes"]{
+		--bg:url(./assets/icons/motion_photos_off-24px.svg);
+		&.checked{
+			--bg:url(./assets/icons/motion_photos_on-24px.svg);
 		}
 	}
 
@@ -846,6 +859,16 @@ label[for=button-start],
 			--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
 		}
 	}
+	label[for="select-samples"]{
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-green};
+		--col-select:#{$col-orange};
+		--bg:url(./assets/icons/audiotrack-24px.svg);
+		// &.checked{
+		// 	--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
+		// }
+	}
+
 	// label[for="button-spectrogram"]{
 	// 	// --col-hover:$col-dark;
 	// 	--col-hover:#{$col-green};
