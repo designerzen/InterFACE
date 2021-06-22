@@ -1,4 +1,4 @@
-import { INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
+import { INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
 
 export const DEFAULT_OPTIONS = {
 
@@ -41,7 +41,7 @@ export const DEFAULT_OPTIONS = {
 	// choice of different models to use
 	model:"face",
 	// sample set
-	instrumentPack:INSTRUMENT_PACK_FATBOY,
+	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
 }
@@ -80,6 +80,8 @@ export const getDomainDefaults = (name) => {
 		case 'lol': return getFactoryDefaults(KIDS_OPTIONS)
 
 		case 'band': return getFactoryDefaults()
+		
+		case 'dance': return getFactoryDefaults()
 
 		// defaults to interface.place
 		default: return getFactoryDefaults()
