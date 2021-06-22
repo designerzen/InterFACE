@@ -156,10 +156,12 @@ export const setupAudio = async (settings) => {
 		// this should hopefully balance the outputs
 		//await createCompressor( audioContext ),
 		
-		reverb
+		reverb,
 		//await createDelay(audioContext)
 		//await createDub(audioContext)
 		//await createDistortion(audioContext)
+		
+		analyser
 
 	], audioContext )
 	
