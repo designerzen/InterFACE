@@ -1,13 +1,19 @@
 {
 	"name": "interFACE",
 	"display": "standalone",
-	"start_url": "/InterFACE/",
+	"start_url": "./index.html",
 	"short_name": "interFACE",
 	"theme_color": "#e4dede",
 	"description": "Smile Powered Synthesizer",
 	"orientation": "any",
 	"background_color": "#e4dede",
-	"related_applications": [],
+	"related_applications": [
+		{
+			"platform": "webapp",
+			"url": "https://interface.place",
+			"id": "place.interface"
+		}
+	],
 	"prefer_related_applications": false,
 	"icons": [
 	  {
@@ -54,5 +60,18 @@
 	
 	"categories": [
 	  "audio","AR","music", "midi","technology", "accessibility"
+	],
+
+	"shortcuts":[
+		{
+			"name": "Fund Project",
+			"url": "./funding.html",
+			"description": "Show your support for this project"
+		},
+		{
+			"name": "Change Log",
+			"url": "./changes.html",
+			"description": "See all new features and changes with this version"
+		}
 	]
   }
