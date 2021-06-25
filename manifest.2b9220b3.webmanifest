@@ -1,0 +1,77 @@
+{
+	"name": "interFACE",
+	"display": "standalone",
+	"start_url": "./index.html",
+	"short_name": "interFACE",
+	"theme_color": "#e4dede",
+	"description": "Smile Powered Synthesizer",
+	"orientation": "any",
+	"background_color": "#e4dede",
+	"related_applications": [
+		{
+			"platform": "webapp",
+			"url": "https://interface.place",
+			"id": "place.interface"
+		}
+	],
+	"prefer_related_applications": false,
+	"icons": [
+	  {
+		"src": "assets/icons/android-chrome-512x512.png",
+		"sizes": "512x512",
+		"type": "image/png",
+		"purpose": "any maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-192x192.png",
+		"sizes": "192x192",
+		"type": "image/png",
+		"purpose": "any maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-48x48.png",
+		"sizes": "48x48",
+		"type": "image/png",
+		"purpose": "any maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-24x24.png",
+		"sizes": "24x24",
+		"type": "image/png",
+		"purpose": "any maskable"
+	  }
+	],
+	"screenshots": [
+		{
+			"src": "assets/screenshots/screen1.png",
+			"sizes": "640x480",
+			"type": "image/png"
+		},  {
+			"src": "assets/screenshots/screen2.png",
+			"sizes": "1680x1050",
+			"type": "image/png"
+		},  {
+			"src": "assets/screenshots/screen3.png",
+			"sizes": "2456x1171",
+			"type": "image/png"
+		}
+	],
+
+	
+	"categories": [
+	  "audio","AR","music", "midi","technology", "accessibility"
+	],
+
+	"shortcuts":[
+		{
+			"name": "Fund Project",
+			"url": "./funding.html",
+			"description": "Show your support for this project"
+		},
+		{
+			"name": "Change Log",
+			"url": "./changes.html",
+			"description": "See all new features and changes with this version"
+		}
+	]
+  }
