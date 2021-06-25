@@ -1,4 +1,4 @@
-import { INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
+import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
 
 export const DEFAULT_OPTIONS = {
 
@@ -24,6 +24,8 @@ export const DEFAULT_OPTIONS = {
 	duet:false,
 	// show face overlays
 	masks:true,
+	// stereo panning with eyes
+	stereo:false,
 	// show eye tracking
 	eyes:true,
 	// synchronise the beats with metronome
@@ -42,6 +44,7 @@ export const DEFAULT_OPTIONS = {
 	model:"face",
 	// sample set
 	instrumentPack:INSTRUMENT_PACK_FATBOY,
+	instrumentPacks:[INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE].join(","),
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
 }
@@ -62,6 +65,14 @@ export const BODY_OPTIONS = {
 	backingTrack:true
 }
 
+// simpler buttons and fewer controls and settings
+export const DANCE_OPTIONS = {
+	...DEFAULT_OPTIONS ,
+	// model:'hand'
+	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	instrumentPacks:[INSTRUMENT_PACK_MUSYNGKITE].join(",")
+}
+
 
 // NB. These must align with the button names
 // 		in the DOM when the app is launched
@@ -78,9 +89,8 @@ export const getDomainDefaults = (name) => {
 		// case '1': return getFactoryDefaults(KIDS_OPTIONS)
 		
 		case 'lol': return getFactoryDefaults(KIDS_OPTIONS)
-
 		case 'band': return getFactoryDefaults()
-
+		case 'dance': return getFactoryDefaults(DANCE_OPTIONS)
 		// defaults to interface.place
 		default: return getFactoryDefaults()
 	}
