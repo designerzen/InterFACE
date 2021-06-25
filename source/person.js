@@ -14,11 +14,14 @@ import { setupInstrumentForm } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
 
 import { 
-	drawFace, drawPoints, drawPart, drawBoundingBox, 
+	drawShapeByIndexes,drawPart, 
+	drawFace, drawPoints, drawBoundingBox, 
 	drawText,drawParagraph, drawInstrument, drawFaceMesh
 } from './visual/2d'
 import { drawEye } from './visual/2d.eyes'
 import { drawMouth } from './visual/2d.mouth'
+
+const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
@@ -53,6 +56,9 @@ export const DEFAULT_OPTIONS = {
 	// alternate between mesh and blobs depending on mouth
 	// NB. The two above will override this behaviour
 	meshOnSing:false,
+
+	// all the above can be disabled!
+	drawMask:true,
 
 	// draw these parts over the mesh...
 	drawMouth:true,
@@ -95,7 +101,7 @@ export const DEFAULT_OPTIONS = {
 
 	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
 	//instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	instrumentPack:INSTRUMENT_PACK_FATBOY,
+	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
 
 	// this is the amount of decimal places used to smooth the mouth
 	// the higher the number the less smooth the output is
@@ -117,8 +123,8 @@ export default class Person{
 		this.instrumentPointer = 0
 		this.instrumentLoading = false
 		this.data = null
-		this.audioContext = audioContext
 		this.active = false
+		this.audioContext = audioContext
 		this.tracks = 0
 		this.octave = 4
 
@@ -259,7 +265,7 @@ export default class Person{
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
-		// this.button.addEventListener( 'instrumentchange', event => {
+		// this.button.addEventListener( EVENT_INSTRUMENT_CHANGED, event => {
 		// 	console.log("External event for instrument", event )
 		// })
 		//console.log("Created new person", this, "connecting to", destinationNode )
@@ -366,8 +372,12 @@ export default class Person{
 
 	/////////////////////////////////////////////////////////////////////
 	// Update visuals
+	// prediction - data model
+	// showText - show / hide the subtitles
+	// forceRefresh - forces the redraw regardless of other settings
+	// beatJustPlayed - has the metronome just ticked?
 	/////////////////////////////////////////////////////////////////////
-	draw(prediction, showText=true, forceRefresh=false){
+	draw(prediction, showText=true, forceRefresh=false, beatJustPlayed=false){
 		
 		if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
 		{
@@ -395,24 +405,24 @@ export default class Person{
 			hue += 120
 		}
 
-		let saturation = this.saturation
-
+		
 		// can this just be a reference???
 		const options = this.options
-		// const options = Object.assign( {} , this.options )
-
-
-
+		
 		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
 		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
 		// this.areEyesOpen 
 
+		// allows us to use the metronome to shape the colours
+		const saturation = options.saturation
+		const luminosity = options.luminosity + (beatJustPlayed ? 10 : 0)
+		
 		// update colours...
-		const sl = `${options.saturation}%, ${options.luminosity}%`
+		const sl = `${saturation}%, ${luminosity}%`
 		// options.dots = hue
 		// options.face = `hsla(${hue},${sl},0.8)`
 		options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
-		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.99)`
+		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.9)`
 		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
 		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
 		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
@@ -435,28 +445,30 @@ export default class Person{
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
 		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
-		
-		// we go from nodes to mesh if mouth active...
-		if (!options.drawNodes && !options.drawMesh && options.meshOnSing)
+		if (options.drawMask)
 		{
-			// this.isMouthOpen = true
-			if (this.singing)
+			// we go from nodes to mesh if mouth active...
+			if (!options.drawNodes && !options.drawMesh && options.meshOnSing)
 			{
-				drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
-			}else{
-				// default mode is always blobs
+				// this.isMouthOpen = true
+				if (this.singing)
+				{
+					drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
+				}else{
+					// default mode is always blobs
+					drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
+				}
+
+			} else if (options.drawNodes) {
+
+				// just blobs
 				drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
+			
+			} else if (options.drawMesh) {
+
+				// just mesh
+				drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
 			}
-
-		} else if (options.drawNodes) {
-
-			// just blobs
-			drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
-		
-		} else if (options.drawMesh) {
-
-			// just mesh
-			drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
 		}
 
 		if (options.drawMouth)
@@ -544,19 +556,38 @@ export default class Person{
 				irisRadius:options.irisRadius,
 				// holes in the eyes
 				pupil:'rgba(0,0,0,0.8)', 
-				pupilRadius:0.3,
+				pupilRadius:options.pupilRadius,
 				// big white bit of the eyed
 				sclera:'white',
 				scleraRadius:options.scleraRadius,
 				ratio:options.eyeRatio
 			}
 
-			drawEye( annotations.leftEyeIris, true, this.isLeftEyeOpen, eyeOptions)	
-			
+			const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
+			drawEye( annotations, true, this.isLeftEyeOpen, eyeDirection, eyeOptions)	
 			eyeOptions.iris = options.rightEyeIris
-			drawEye( annotations.rightEyeIris, false, this.isRightEyeOpen, eyeOptions)
+			drawEye( annotations, false, this.isRightEyeOpen, eyeDirection, eyeOptions)
 
-			//console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
+			// console.log("EYES", {annotations} )
+
+			// drawShapeByIndexes( annotations.rightEyeLower0, [0,2,8], 0.5, 'red', true, false, true )
+			
+			
+			// drawPart( annotations.rightEyeLower0, 1, 'black', false, false, true )
+
+		//	drawPart( annotations.leftEyeUpper1, 1, 'pink', true, false, false )
+
+			// drawPart( annotations.leftEyeLower1, 1, 'yellow', true )
+		//	drawPart( annotations.leftEyeLower2, 1, 'green', true, false, false )
+			// drawPart( annotations.leftEyeLower3, 1, 'blue', true )
+			// drawPart( annotations.leftEyeLower4, 1, 'orange', true )
+
+			// drawPart( annotations.rightEyeLower1 )
+			// drawPart( annotations.rightEyeLower2 )
+			// drawPart( annotations.rightEyeLower3 )
+			// drawPart( annotations.rightEyeLower4 )
+
+			// console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
 			// if (this.isLeftEyeOpen)
 			// {
 			// 	drawEye( annotations.leftEyeIris, true, true, eyeOptions)	
@@ -588,6 +619,7 @@ export default class Person{
 			// default fails
 		}
 
+		// TEXT ===================================================
 		// everything here is for displaying the text
 		if (!showText)
 		{
@@ -610,19 +642,19 @@ export default class Person{
 				{
 					// user is holding mouse down on user...
 					drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Select')			
-					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.3)`, true)
+					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.3)`, true, false, false)
 					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Press me`], '14px' )
 				}else{
 					
 					drawInstrument(prediction.boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
-					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.5)`, true)
+					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)
 					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
 				}
 
 			}else{
 				
 				// No mouse held
-				drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Press to change instrument')
+				drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Hold to choose instrument')
 				drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
 				/*	
 				const offsetX = topLeft[0]
@@ -653,8 +685,6 @@ export default class Person{
 			drawInstrument(prediction.boundingBox, this.instrumentTitle, 'loading...')
 
 		}else{
-
-	
 
 			// Main flow
 			const extra = this.debug ? ` ${getNoteText( this.lastNoteName) }`  : ` ${getNoteText(this.lastNoteName)}`
@@ -695,17 +725,17 @@ export default class Person{
 		if (!this.data || this.tracks > MAX_TRACKS)
 		{
 			return {
-				yaw:0, pitch:0, 
+				yaw:0, pitch:0, roll:0,
 				lipPercentage:0,
 				eyeDirection:0
 			}
 		}
 
 		// only change the note if not active?
-		if (active)
-		{
-			// return
-		}
+		// if (active)
+		// {
+		// 	// return
+		// }
 
 		const prediction = this.data
 		const options = this.options
@@ -880,7 +910,7 @@ export default class Person{
 				// prevent flooding the off bus
 				this.midiActive = false
 
-				console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+				//console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
 			}		
 		}
 		
@@ -974,7 +1004,7 @@ export default class Person{
 		callback && callback( instrumentName )
 		
 		// you have to dispatch the event from an element!
-		this.button.dispatchEvent(new CustomEvent("instrumentchange", {
+		this.button.dispatchEvent(new CustomEvent( EVENT_INSTRUMENT_CHANGED, {
 			detail: { instrument:this.instrument, instrumentName }
 		}))
 
