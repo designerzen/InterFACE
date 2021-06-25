@@ -5,6 +5,13 @@
 // import './servicewaiting.polyfill'
 
 import { VERSION } from '../version'
+// import serviceWorkerPath from "url:../service-worker.js"
+import manifestPath from "url:../manifest.webmanifest"
+
+// console.error({serviceWorkerPath, manifestPath})
+
+// ? made CloudFlare barf up the ServiceWorker so meh!
+const URL_SEPERATOR = "#"
 
 // check for beforeinstallprompt support
 
@@ -168,7 +175,12 @@ export const installOrUpdate = async(debug=false) => {
 		previousVersion = previousServiceWorkerURL.search.split("=")[1]
 		updatesAvailable = previousVersion !== VERSION
 		
-		// activated, activating
+		// "installing" - the install event has fired, but not yet complete
+		// "installed"  - install complete
+		// "activating" - the activate event has fired, but not yet complete
+		// "activated"  - fully active
+		// "redundant"  - discarded. Either failed install, or it's been
+		//                replaced by a newer version
 		const activatedState = activeWorker.state
 
 		log.push("SW Reg v", `${previousVersion} -> ${currentVersion}`, {updatesAvailable, previousVersion, registration, activatedState, activeWorker, previousServiceWorkerURL } )
@@ -233,7 +245,20 @@ export const installOrUpdate = async(debug=false) => {
 
 	// This "installs" the app into the local app cache but does
 	// not create the icon on the homescreen or desktop
-	const serviceWorker = await navigator.serviceWorker.register(`../service-worker.js?v=${VERSION}`)
+	let serviceWorker = await navigator.serviceWorker.register(`../service-worker.js${URL_SEPERATOR}v=${VERSION}`)
+	
+	if (!serviceWorker)
+	{
+		console.log("Service worker with #")
+		serviceWorker = await navigator.serviceWorker.register(`../service-worker.js?v=${VERSION}`)		
+	}
+	// annoying really
+	if (!serviceWorker)
+	{
+		console.log("Service worker with ?")
+		serviceWorker = await navigator.serviceWorker.register("../service-worker.js")		
+	}
+	
 	// at this point, if the service worker is a different version,
 	// the update method above begins
 
