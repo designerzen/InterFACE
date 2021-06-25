@@ -36,8 +36,11 @@ export const drawQuantise = (active, bar=-1, bars=1, stroke = 30, radius = 4) =>
 		canvasContext.arc( x, y, radius, 0, TAU )
 		canvasContext.fill()
 		canvasContext.stroke()
+		canvasContext.closePath()
 	}
-	
+
+	canvasContext.lineWidth = 1
+
 	// draw a frame around the whole qindow
 	// canvasContext.fillStyle = "hsla(90, 80%, "+(active ? 90 : 10 )+"%, 0.9)"
 	// canvasContext.strokeRect(0,0,width,height)
