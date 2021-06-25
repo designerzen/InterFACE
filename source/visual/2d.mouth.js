@@ -41,7 +41,8 @@ export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, debug=tru
 	// 	canvasContext.lineTo(x, y)
 	// }	
 	// canvasContext.fill()
-	
+	canvasContext.lineWidth = 2
+	canvasContext.strokeStyle = colourDark
 	canvasContext.beginPath()
 	canvasContext.moveTo(lipsUpperInner[0][0], lipsUpperInner[0][1])
 	canvasContext.fillStyle  = mouthGradient
@@ -60,19 +61,25 @@ export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, debug=tru
 		}	
 	}
 
+	canvasContext.closePath()
 	canvasContext.fill()
+	canvasContext.stroke( )
+
+
 
 	if (debug)
 	{
 		drawNode(lipLowerMiddle, lipUpperMiddle, 5)
 	
 		// add text
-		canvasContext.stroke( )
+		
 		canvasContext.fillStyle = PALETTE.blue
 		canvasContext.font = "12px Oxanium"
 		canvasContext.textAlign = "center"
 		canvasContext.fillText(`${Math.floor(mouthRange)}px`, lipLowerMiddle[0], lipLowerMiddle[1] - 20 )
 	}
+	canvasContext.stroke( )
+	canvasContext.lineWidth = 1
 	
 	return {lipUpperMiddle, lipLowerMiddle }
 }
