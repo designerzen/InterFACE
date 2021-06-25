@@ -72,14 +72,19 @@ import { getInstruction, getHelp } from './models/instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { VERSION } from './version'
 import { TAU } from "./maths/maths"
-import Person, { DEFAULT_OPTIONS, EYE_COLOURS } from './person'
+
+import Person, { 
+	DEFAULT_OPTIONS, EYE_COLOURS, 
+	EVENT_INSTRUMENT_CHANGED 
+} from './person'
+
 import { getBrowserLocales } from './i18n'
 import { getDomainDefaults, NAMES } from './settings'
 
 import {
 	convertOptionToObject,
 	addMouseTapAndHoldEvents, 
-	MOUSE_HELD,MOUSE_HOLDING,MOUSE_TAP
+	MOUSE_HELD, MOUSE_HOLDING,MOUSE_TAP
 } from './utils'
 
 
@@ -104,6 +109,7 @@ const image = document.querySelector("img")
 
 // should be set on the html but jic
 body.classList.toggle("loading", true)
+body.classList.add(LTD)
 
 // Record stuff
 const { isRecording, startRecording, stopRecording } = record()
@@ -246,29 +252,31 @@ const createPerson = (name,eyeColour) => {
 
 		instrumentPack:ui.instrumentPack,
 
-		// force draw face mesh
-		// drawMesh:false,
-		// force draw face blob nodes
-		drawNodes:ui.masks,
-		drawEyes:ui.eyes,
+		stereoPan:ui.stereo,
+
 		// alternate between mesh and blobs depending on mouth
 		// NB. The two above will override this behaviour
 		// meshOnSing:false,
+		// force draw face mesh
+		// drawMesh:false,
+		// force draw face blob nodes
+		drawMask:ui.masks,
+		// drawNodes:ui.masks,
+		drawEyes:ui.eyes
 	}
-
 
 	// Load any saved settings for this specific user name
 	const savedOptions = store.has(name) ? store.getItem(name) : {}
 	const options = Object.assign ( {}, personOptions, savedOptions ) 
 	
 	// create a new user and load an instrument
-	const person = new Person(name, audioContext, audio, options ) 
+	const person = new Person( name, audioContext, audio, options ) 
 	// see if there is a stored name for the instrument...
 	const instrument = savedOptions.instrument || randomInstrument()
 
 	// the instrument has changed / loaded!
 	// so show some feedback
-	person.button.addEventListener( 'instrumentchange', event => {
+	person.button.addEventListener( EVENT_INSTRUMENT_CHANGED, event => {
 		// save it for next time
 		const {detail} = event
 		const cache = store.setItem(name, {instrument:detail.instrumentName })
@@ -310,7 +318,9 @@ const setPlayerOption = (option, value) => {
 
 // merges all named player options into an array
 // [{ values } , { values }]
-const fetchPlayerOptions = values => people.map( player => values.reduce((accumulator, currentValue, index, array) => {	
+const fetchPlayerOptions = values => people.map( 
+	
+	player => values.reduce((accumulator, currentValue, index, array) => {	
 		accumulator[currentValue] = player.options[currentValue]
 		return accumulator
 	}, {} )
@@ -319,12 +329,14 @@ const fetchPlayerOptions = values => people.map( player => values.reduce((accumu
 
 // Player options
 const setPlayerOptions = (values) => {
-	const unique = typeof value === "Array" 
+	const unique = Array.isArray(values) 
+
 	// change the default for any new players created
 	people.forEach( (player, index) => {
 		// if unique is set, it means different per person
 		const p = unique ? values[index] : values
 		player.options = { ...player.options, ...p }
+		//console.log("settings player.options", {p,unique}, {result:player.options} 
 	})
 }
 
@@ -484,7 +496,7 @@ const registerKeyboard = () => {
 		switch(event.key)
 		{
 			case 'CapsLock':
-				ui.debug = !ui.debug
+				setState("debug", !ui.debug )
 				people.forEach( person => person.debug = ui.debug )
 				setToast(`DEBUG : ${ui.debug}`)
 				speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
@@ -540,12 +552,12 @@ const registerKeyboard = () => {
 				break
 
 			case 'b':
-				ui.backingTrack = !ui.backingTrack
+				setState("backingTrack", !ui.backingTrack )
 				setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 				break
 		
 			case 'c':
-				ui.clear = !ui.clear
+				setState("clear", !ui.clear )
 				break
 
 			case 'd':
@@ -574,7 +586,6 @@ const registerKeyboard = () => {
 			case 'i':
 				const reverb = await setReverb()
 				setToast( `Reverb : '${reverb}' loaded` )
-				
 				break
 
 			case 'j':
@@ -589,19 +600,18 @@ const registerKeyboard = () => {
 
 			// toggle speech
 			case 'l':
-				ui.speak = !ui.speak
+				setState("speak", !ui.speak )
 				setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
 				break
 		
-
 			case 'm':
-				ui.metronome = !ui.metronome
+				setState("metronome", !ui.metronome )
 				setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 				break
 
 			case 'q':
+				setState("muted", !ui.muted )
 				setMasterVolume( ui.muted ? 1 : 0 )
-				ui.muted = !ui.muted
 				break
 		
 			case 'r':
@@ -631,7 +641,7 @@ const registerKeyboard = () => {
 				break
 
 			case 't':
-				ui.text = !ui.text
+				setState("text", !ui.text )
 				break
 
 
@@ -653,6 +663,11 @@ const registerKeyboard = () => {
 					setBPM(tappedTempo)
 				}
 				//console.log("tappedTempo",tappedTempo)
+				break
+
+			// Reset help!
+			case 'z':
+				counter = 0
 				break
 		
 
@@ -956,6 +971,18 @@ const setup = async (update, settings, progressCallback) => {
 			overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
 		}
 		
+
+		// On BEAT if beatjustplayed
+		// TODO: convert this into a per user bar and use the last played note to 
+		// change the colour of the indicator
+		if (ui.quantise)
+		{
+			// Start on BAR
+			// show quantise
+			// fetch notes played from user?
+			drawQuantise( beatJustPlayed, getBar(), getBars() )
+		}
+		
 		if (ui.spectrogram)
 		{
 			// updateByteTimeDomainData()
@@ -1016,7 +1043,7 @@ const setup = async (update, settings, progressCallback) => {
 				// const { yaw, pitch, lipPercentage } = 
 				
 				// prediction, showText=true, forceRefresh=false
-				person.draw(prediction, ui.text, false)
+				person.draw(prediction, ui.text, false, beatJustPlayed)
 				
 				// then whenever you fancy it,
 				if (!ui.quantise && !ui.muted)
@@ -1032,10 +1059,6 @@ const setup = async (update, settings, progressCallback) => {
 						cameraPan.x = stuff.eyeDirection
 						cameraPan.y = stuff.pitch
 					}
-
-				}else{
-					// we only want it on the beat
-					
 				}
 				
 				// you want a tight curve
@@ -1055,17 +1078,6 @@ const setup = async (update, settings, progressCallback) => {
 			// tickerTape += `No prediction`
 		}
 
-
-		// On BEAT if beatjustplayed
-		// TODO: convert this into a per user bar and use the last played note to 
-		// change the colour of the indicator
-		if (ui.quantise)
-		{
-			// Start on BAR
-			// show quantise
-			// fetch notes played from user?
-			drawQuantise( beatJustPlayed, getBar(), getBars() )
-		}
 		
 
 		// Feedback text changes depending on time
@@ -1124,12 +1136,14 @@ const setup = async (update, settings, progressCallback) => {
 
 		// console.log(barsElapsed, "timer", timer)
 		// Play metronome!
-		if(ui.quantise)
+		if(ui.quantise )
 		{
 			//const personParameters = []
 
 			for (let i=0, l=people.length; i<l; ++i )
 			{
+
+				
 				const person = getPerson(i)
 
 				// yaw, pitch, lipPercentage, eyeDirection
@@ -1180,6 +1194,9 @@ const setup = async (update, settings, progressCallback) => {
 	}, timePerBar() )
 } 
 
+
+
+
 ///////////////////////////////////////////////////////////
 // simply refreshes the ui with any updated options
 const refreshState = ()=>{
@@ -1198,6 +1215,11 @@ const setState = ( key, value, saveHistory=true )=>{
 		addToHistory(ui,key)
 	}
 	main.classList.toggle(`flag-${key}`, value )
+
+	// FIXME: TODO:
+	// also update select for checked and things? bit more complex?
+	// see if there is a matching dom element???
+	// .checked
 }
 
 
@@ -1288,16 +1310,19 @@ const load = async (settings, progressCallback) => {
 		setState( 'masks', status )
 		if (ui.masks)
 		{
+			ui.clear = false
 			// save previous state to go back to later...
-			discoPreviousState = fetchPlayerOptions(['drawNodes','drawMesh','meshOnSing'])
-			console.log(ui.masks,"MTV save old state", discoPreviousState)
+			discoPreviousState = fetchPlayerOptions(['drawMask','drawNodes','drawMesh','meshOnSing'])
+			
+			//console.log(ui.masks,"MTV save old state", discoPreviousState)
 			// setPlayerOption("drawMesh", ui.masks)
-			setPlayerOptions( {drawNodes:false, drawMesh:false, meshOnSing:true})
+			setPlayerOptions( {drawMask:true, drawNodes:false, drawMesh:false, meshOnSing:true})
 		}else{
+			ui.clear = true
 			// setPlayerOption("drawNodes", ui.masks)
 			//setPlayerOptions( {drawNodes:true, drawMesh:false})
 			setPlayerOptions( discoPreviousState )
-			console.log(ui.masks,"MTV load old state", discoPreviousState)
+			//console.log(ui.masks,"MTV load old state", discoPreviousState)
 			discoPreviousState = null
 		}
 	}, ui.muted )
@@ -1306,14 +1331,7 @@ const load = async (settings, progressCallback) => {
 	// Face overlays... should be dropdown?
 	setToggle( "button-meshes", status =>{ 
 		setState( 'masks', !ui.masks )
-		if (ui.masks)
-		{
-			// setPlayerOption("drawMesh", ui.masks)
-			setPlayerOptions( {drawNodes:true,rawMesh:false})
-		}else{
-			// setPlayerOption("drawNodes", ui.masks)
-			setPlayerOptions( {drawNodes:false,rawMesh:true})
-		}
+		setPlayerOption("drawMask", ui.masks)
 	}, ui.masks )
 
 	// hide / show eye overlays
@@ -1329,7 +1347,6 @@ const load = async (settings, progressCallback) => {
 	// show / hide the text
 	setToggle( "button-subtitles", status => {
 		setState( 'text', !ui.text )
-		setPlayerOption("drawEyes", ui.text)
 	} )
 
 	setButton( "button-photograph", event => {	
@@ -1363,7 +1380,7 @@ const load = async (settings, progressCallback) => {
 	connectSelect( 'select-eyes', option => {
 		const items = option.value.split(",")
 		const eye = convertOptionToObject(items)
-		console.log("Setting eyes", eye, {items} )
+		//console.log("Setting eyes", eye, {items} )
 		setPlayerOptions({ 
 			scleraRadius:eye.s,
 			irisRadius:eye.i,
@@ -1504,13 +1521,13 @@ const onLoaded = async () => {
 	
 	// monitor keyboard events
 	registerKeyboard()
-
-	setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
-		
+	
 	// looking...
 	// wait for the user - show some visual cues?
 	body.classList.toggle("searching-for-user", true)
+	
 	speak("I am looking for your face")
+	
 	const user = await lookForUser()
 
 	// focus app?
@@ -1718,9 +1735,19 @@ window.addEventListener('popstate', (event) => {
 // needs to be run early on ideally and in a seperate thread
 // loads in the relevant data to determine if the app needs to be 
 // updated if installed or installed if uninstalled
-installOrUpdate(ui.debug).then( req => {
+installOrUpdate(ui.debug).then( state => {
 
-	//console.log( "PWA", req )
-	// do stuff!
+	//console.log( "PWA", state )
+	// log,
+	// previousVersion, currentVersion,
+	// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()
+	
+	// do stuff with this info...
+	body.classList.toggle( "updates-available", state.updateAvailable )
+	body.classList.toggle( "first-run", state.isFirstRun )
+	body.classList.toggle( "installable", state.isInstallable )
+	
+	//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
+	
 	
 }).catch ( error => console.error("PWA",error) )
