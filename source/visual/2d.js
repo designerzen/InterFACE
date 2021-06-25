@@ -12,10 +12,37 @@ export const takePhotograph = (type="image/png") => {
 }
 
 //////////////////////////////////////////////////////////////////////
+// takes indexes from an array and finds the associated links to draw
+//////////////////////////////////////////////////////////////////////
+export const drawShapeByIndexes = (points, indexes, radius=2, colour="red", lines=true, fill=true) => {
+	canvasContext.fillStyle  = colour
+	canvasContext.strokeStyle = colour
+	canvasContext.moveTo(points[ indexes[0] ][0], points[ indexes[0]][1] )
+	canvasContext.beginPath()
+	
+	for (let i = 1,  l= indexes.length; i < l; i++) 
+	{
+		canvasContext.lineTo(points[ indexes[i] ][0], points[ indexes[i]][1] )
+	}
+	canvasContext.closePath()
+
+	// if we want a filled thing
+	if (fill)
+	{
+		canvasContext.fill()
+	}
+	
+	if (lines)
+	{
+		canvasContext.stroke()
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
 // draws a specific part by looping through the part array and 
 // connecting the nodes together with paths
 //////////////////////////////////////////////////////////////////////
-export const drawPart = (part, radius=4, colour="red", lines=true) => {
+export const drawPart = (part, radius=2, colour="red", lines=true, fill=true, showNumbers=false) => {
 	
 	canvasContext.fillStyle  = colour
 	canvasContext.strokeStyle = colour
@@ -26,17 +53,43 @@ export const drawPart = (part, radius=4, colour="red", lines=true) => {
 	{
 		const x = part[i][0]
 		const y = part[i][1]
-
+	
+		// draw blob
 		canvasContext.arc(x, y, radius, 0, TAU)
 		
-		if (lines){
+		// onnecting lines
+		if (lines)
+		{
 			canvasContext.lineTo(x, y)
 		}
+	
 	}	
-	canvasContext.fill()
 
-	if (lines){
+	// if we want a filled thing
+	if (fill)
+	{
+		canvasContext.fill()
+	}
+	
+	if (lines)
+	{
 		canvasContext.stroke()
+	}
+	
+	
+	if (showNumbers)
+	{
+		for (let i = 0, l=part.length; i < l; i += 2 ) 
+		{
+			const x = part[i][0]
+			const y = part[i][1]
+
+			canvasContext.stroke( )
+			canvasContext.font = "18px Oxanium"
+			canvasContext.textAlign = "center"
+			canvasContext.fillStyle = PALETTE.dark
+			canvasContext.fillText(`#${i}`, x, y  )
+		}
 	}
 }
 
