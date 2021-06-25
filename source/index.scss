@@ -208,7 +208,7 @@ form{
 	
 	// cool intro effects...
 	fieldset > *{
-		--xa:-50%;
+		--ya:50%;
 		animation-name:Fade, Shift;
 		animation-duration: var(--ease-s),var(--ease-s);
 		animation-fill-mode: both, both;
@@ -1297,14 +1297,15 @@ html.debug{
 	#feedback{
 		left:var(--pad);
 		right:var(--pad);
-		bottom:calc(50vh - 0.5rem);
+		// bottom:calc(50vh - 0.5rem);
 		text-align: center;
 
 		background-color:$col-red;
 		color:$col-white;
 		border:10px solid $col-white;
+		z-index:909;
 		
-		font-size:240%;
+		font-size:140%;
 
 		&::after{
 			display:none;
@@ -1314,7 +1315,7 @@ html.debug{
 
 // fancy shared controls animations
 header > *,
-fieldset > *
+fieldset > *,
 dialog[open] > *{
 
 	$end:19;
@@ -1326,6 +1327,8 @@ dialog[open] > *{
 		}
 	}
 }
+
+
 
 #person-a-controls{
 	left:0;
@@ -1734,3 +1737,5 @@ main.flag-eyes label[for="select-eyes"]{
 @import "./assets/styles/icons.scss";
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/scrollbars.scss";
+
+@import "./assets/styles/domains.scss";
