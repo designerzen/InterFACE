@@ -6,7 +6,9 @@ dist/*
 !dist/Fatboy
 !dist/FluidR3_GM
 !dist/CNAME
-!dist/browserconfig.xml
+!dist/favicon.ico
+!dist/humans.txt
+!dist/robots.txt
 app
 *.mp4
 *.log
