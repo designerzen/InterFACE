@@ -17,6 +17,7 @@ const destinationURL = `https://${repoOwner}.github.io/${repoName}/`
 
 // delete all none folders in dest/
 console.log( "\x1b[33m", `Deploying ${repoName} - v${packageVerson}... please wait...` )
+console.log( "\x1b[33m", `Depending on the size of this commit, it could take a long time` )
 publish('dist',{dotfiles: true}, function(err) {
 
 	if (err)
