@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "a camera based synthesizer",
-	"version": "0.53.0",
+	"version": "0.54.0",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -44,7 +44,8 @@
 		"deploy": "node actions/deploy.js",
 		"upgrader": "yarn upgrade-interactive",
 		"hotfix": "yarn patch && yarn clean && yarn build && yarn deploy",
-		"release": "yarn minor && yarn clean && yarn build && yarn deploy"
+		"release": "yarn minor && yarn clean && yarn build && yarn deploy",
+		"bump": "yarn major && yarn clean && yarn build && yarn deploy"
 	},
 	"build": {
 		"appId": "place.interface",
@@ -69,6 +70,7 @@
 	},
 	"dependencies": {
 		"@analytics/google-analytics": "^0.5.2",
+		"@bubblewrap/cli": "^1.13.2",
 		"@cutelab/nestup": "^0.5.11",
 		"@mediapipe/pose": "^0.3.1621277220",
 		"@tensorflow-models/face-landmarks-detection": "^0.0.2",
