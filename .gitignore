@@ -6,6 +6,7 @@ dist/*
 !dist/Fatboy
 !dist/FluidR3_GM
 !dist/CNAME
+!dist/.well-known
 !dist/favicon.ico
 !dist/humans.txt
 !dist/robots.txt
