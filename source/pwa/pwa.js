@@ -58,32 +58,59 @@ const setJustBeenInstalled = (cookieSecret=NAME) =>{
 
 // UPDATE PATH
 
-
+let installed
 // TODO: Lazy load from install
-const showInstallPrompt = async (prompt) => {
+const showInstallPrompt = (installButton, prompt) => new Promise( async (resolve,reject)=>{
+
+	if (!prompt)
+	{
+		return reject()
+	}
+
+	window.addEventListener("appinstalled", evt => {
+		
+		//console.log("appinstalled fired", evt)
+		resolve({
+			success:true,
+			log:"Your PWA has been installed"
+		})
+
+	}, {once:true})
 
 	// show the actual prompt
 	prompt.prompt()
-
+	
+	// disable the install button to prevent repress
+	installButton.disabled = true
+	
 	// wait for the user to click a button...
 	const choiceResult = await prompt.userChoice
 	
 	// user clicked...
 	if (choiceResult.outcome === "accepted") 
 	{
-		console.log("Your PWA has been installed")
 		const urlParams = new URLSearchParams(window.location.search)
 		urlParams.installing = true
-		installed = true
-		return true
+		// set?
 
+		installed = true
+		installButton.hidden = true
+		//prompt = null
+
+		// this should trigger the above event!
+		
 	} else {
 
-		console.log("User chose to not install")
 		installed = false
-		return false
+		resolve({
+			success:false,
+			log:"User chose to not install"
+		})
+		//reject("User chose to not install")
 	}
-}
+
+	installButton.disabled = false
+})
 
 
 // TODO: Lazy load from update
@@ -298,8 +325,9 @@ export const installOrUpdate = async(debug=false) => {
 		isInstallable, isFirstRun, isRunningAsApp, 
 		// Show the installer if not installed?
 		// NB. THIS MUST BE TIES INTO A USER INTERACTION
-		install:()=> showInstallPrompt( deferredPrompt ),
-		
+		install:(button)=> showInstallPrompt( button, deferredPrompt ),
+		prompt:deferredPrompt,
+
 		updatesAvailable, updating, updated, 
 
 		// The actual update / reload script for if user wants new version now!
