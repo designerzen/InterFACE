@@ -136,7 +136,10 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 			panel.classList.remove("completed")
 		}, 45 )
 		
-		resolve(result > 1)
+		resolve({
+			players:result,
+			advancedMode
+		})
 	}
 
 	const setPlayers = amount => {
