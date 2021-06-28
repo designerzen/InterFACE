@@ -15,9 +15,21 @@ const AudioContext = window.AudioContext || window.webkitAudioContext
 // NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
 //      FF does not allow raf so use setimeout is preffered
 
+// FIX: Safarai does *not* allow inline Workers so we have to use blob
+
+// const url = `data:text/javascript;charset=utf-8,${encodeURIComponent(js)}`;
+// return url;
+// if (forceDataUri) {
+//     const url = `data:text/javascript;charset=utf-8,${encodeURIComponent(js)}`;
+//     return url;
+// }
+// const blob = new Blob([js], { type: 'application/javascript' });
+// return URL.createObjectURL(blob);
+
 // Load in the correct worker...timing.requestframe.worker.js
 // const timingWorker = new Worker("data-url:./timing.setinterval.worker.js") 
-const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
+const timingWorker = new Worker("./timing.settimeout.worker.js") 
+// const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
 //const timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
 // const timingWorker = new Worker(new URL('data-url:./timing.requestframe.worker.js', import.meta.url))
 
