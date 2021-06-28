@@ -1,5 +1,7 @@
+import changesPath from "url:../changes.html"
+
 export const fetchChangesAsText = async () => {
-    const response = await fetch("./changes.html")
+    const response = await fetch(changesPath)
     return await response.text()
 }
 
