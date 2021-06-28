@@ -208,7 +208,6 @@ form{
 	
 	// cool intro effects...
 	fieldset > *{
-		--ya:50%;
 		animation-name:Fade, Shift;
 		animation-duration: var(--ease-s),var(--ease-s);
 		animation-fill-mode: both, both;
@@ -1340,6 +1339,10 @@ dialog[open] > *{
 
 // Instrument selection panel
 fieldset.person-controls{
+
+	--xa:50%;
+	--ya:0;
+	
 	// or in duet do we split screen???
 	// NB. we cannot avoid fixed
 	position: fixed;

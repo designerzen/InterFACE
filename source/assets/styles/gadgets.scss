@@ -524,7 +524,8 @@ label[for=button-start],
 		position: relative;
 
 		select{
-			z-index:-1;
+			// FIXME: Should this be -1?
+			z-index:1;
 		}
 
 		// stertch them out 
@@ -1363,15 +1364,15 @@ button#share{
 }
 
 // an update is available to the app!
-button.install-app,
-button.update-available{
+#button-install,
+#button-upgrade{
 	order:-1;
 	// --bg:url(./assets/icons/get_app-24px.svg);
 	--bg:url(./assets/icons/download_for_offline_black_24dp.svg);
 	background-color: $col-orange;
 }
 
-button.install-app{
+#button-install{
 	//--logo:url();
 	--overlap:0px;
 	--delay:0s;
@@ -1391,7 +1392,7 @@ button.install-app{
 	}
 }
 
-button.update-available{
+#button-upgrade{
 	
 }
 
@@ -1593,7 +1594,7 @@ label[for="select-camera"],
 	&.completed{
 
 		button, label{
-			--xa:50%;
+			--xb:100%;
 			//animation-name: Shift, Fade;
 			animation-direction: normal, reverse;
 			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
@@ -1601,7 +1602,10 @@ label[for="select-camera"],
 	}
 }
 
-
+.hidden,
+[hidden]{
+	display:none;
+}
 
 // this holds nav to sections inc help and funding
 nav{

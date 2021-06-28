@@ -11,6 +11,7 @@ block header
 	progress(min=0 max=1)#progress
 
 block main
+
 	main#app
 		h3#title Augmented Reality Synthesizer
 		p#feedback
@@ -67,6 +68,7 @@ block main
 				// FIXME: ADD ARIA
 				fieldset.person-controls#person-b-controls
 
+
 				//- fieldset#shared-settings
 					
 				//- 	//- Equipment Settings 
@@ -77,11 +79,13 @@ block main
 				//- 	button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 				//- 	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
 				
-
 				//- Controls for all players
 				fieldset#shared-controls.controls
 
 					legend Shared controls that apply to all players
+
+					button#button-install( hidden, aria-label="Install this application to your homescreen") Install
+					button#button-upgrade( hidden, aria-label="Upgrade this app to the latest version") Upgrade
 
 					button#button-help( aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
 											
