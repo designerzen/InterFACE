@@ -65,7 +65,7 @@ import {
 	getLocationSettings, getShareLink, 
 	forceSecure, addToHistory } from './location-handler'
 
-import { detectCameras, setupCamera, filterVideoCameras } from './camera'
+import { findBestCamera, loadCamera } from './camera'
 import { playNextPart, kitSequence } from './timing/patterns'
 // TODO: Lazy load
 import { getInstruction, getHelp } from './models/instructions'
@@ -86,7 +86,6 @@ import {
 	addMouseTapAndHoldEvents, 
 	MOUSE_HELD, MOUSE_HOLDING,MOUSE_TAP
 } from './utils'
-
 
 import { installOrUpdate } from './pwa/pwa'
 
@@ -145,7 +144,7 @@ let isLoading = true
 let beatJustPlayed = false
 let ultimateFailure = false
 let midiAvailable = false
-let cameraLoading = false
+let cameraLoading = true
 let noFacesFound = false
 let userLocated = false
 
@@ -459,34 +458,6 @@ const showMIDI = async () => {
 	return true
 }
 
-const loadCamera = async (deviceId, name="Default") => {
-	let newCamera
-	// prevent screen re-draw
-	cameraLoading = true
-	try{
-		
-		newCamera = await setupCamera( video, deviceId )
-		if (deviceId && deviceId.length > 0)
-		{
-			store.setItem( 'camera', {deviceId} )
-			//console.log( deviceId, "Camera id saved")
-		}else{
-			//console.log( deviceId, "Camera unfound", {video,deviceId})
-		}
-		 
-		track('Action', {category:'Camera', label:name, value:deviceId})
-						
-	}catch(error){
-		console.error( deviceId, "Camera errored", error)
-		trackError( `${name} camera could not be accessed`, deviceId, "Camera" )
-		throw error
-	}
-	
-	cameraLoading = false
-	return newCamera
-}
-
-
 const registerKeyboard = () => {
 	let numberSequence = ""
 
@@ -740,46 +711,26 @@ const setup = async (update, settings, progressCallback) => {
 		// wait for video or image to be loaded!
 		if (video)
 		{
-			const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-			setFeedback( deviceId ? "Found saved camera" : "Attempting to locate a camera...<br>Please click accept if you are prompted")
+			setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted")
 		
-			const videoCameraDevices = filterVideoCameras( await detectCameras() )
-			
-			try{
-				camera = await loadCamera(deviceId, "Saved")
-				setFeedback( "Camera Found")
+			const investigastion = await findBestCamera(store, video)
+			const {videoCameraDevices} = investigastion
+			camera = investigastion.camera
+			cameraLoading = false
 
-			}catch( error ) {
-
-				// bummer! try and use fallback?
-				if (videoCameraDevices.length > 1)
-				{
-					// loop through and try the others?
-					setFeedback( "Could not open saved camera, but found others...")
-					camera = await loadCamera()
-					
-				}else{
-
-					setFeedback( "Could not open saved camera, looking for another...")
-					camera = await loadCamera()
-					
-					if (!camera)
-					{
-						setFeedback( "Could not find any camera :(")
-						// ultimate failure???
-					}
-				}
-				
-				// delete saved key
-				store.removeItem('cameraId')
-			}
-
-			// check to see if we want a selector
+			//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
+			setFeedback( investigastion.saved ? "Found saved camera" : videoCameraDevices.length > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera")
+		
+			// check to see if there are multiple cameras and we want a selector
 			if (videoCameraDevices.length > 1)
 			{
 				setupCameraForm(videoCameraDevices, async (selected) => {
-					camera = loadCamera( selected.deviceId, selected.label )
-					//console.log( selected.deviceId, "Camera selected",selected, camera)
+					cameraLoading = true
+					camera = await loadCamera( video, selected.value, selected.label )
+					cameraLoading = false
+					// if successful store for next time
+					store.setItem('camera', {deviceId:selected.value})
+					//console.log( selected.value , "Camera selected",selected, camera)
 					setToast( `Camera ${selected.label} changed`, 0 )
 				})
 				
@@ -928,6 +879,7 @@ const setup = async (update, settings, progressCallback) => {
 	// return
 	// LOOP ---------------------------------------
 
+	// Ensure that the video element is always being fed data
 	const shouldUpdate = () => !cameraLoading
 
 	// FaceMesh.getUVCoords 
@@ -1630,14 +1582,19 @@ load(options, (progress, message) => {
 		timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
 	}, 60000 )
 	
+
 	// load completed and now we show the ui
 	// for selecting regular or multi-face mode!
 	try{
-		ui.duet = await showPlayerSelector(options)
+		
+		const {players,advancedMode} = await showPlayerSelector(options)
+		setState("duet",players > 1	)
+		setState("advancedMode", advancedMode )
+		//console.log("Duet", multiPlayer, ui.duet )
+
 	}catch(error){
 		console.error("player selection failed", error)
 	}
-
 
 	setFeedback("Please wait loading! This can take <strong>some</strong> time...")
 
@@ -1747,7 +1704,26 @@ installOrUpdate(ui.debug).then( state => {
 	body.classList.toggle( "first-run", state.isFirstRun )
 	body.classList.toggle( "installable", state.isInstallable )
 	
-	//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
+	if (state.isInstallable)
+	{
+		// hook into button and show...
+		const installButton = document.getElementById("button-install")
+		installButton.addEventListener("click", async (event) => {
+			
+			const installed = await state.install(installButton)
+			console.log( "installed", installed.success, {installed} )
+			setToast( installed.success ? "Installed to HomeScreen" : "You can always install again in the future" )
+		} )
+
+		installButton.hidden = false
+
+	}else if(state.updatesAvailable){
+
+		// show updates button
+		const updateButton = document.getElementById("button-update")
+		//updateButton.hidden = false
+	}
 	
+	//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
 	
 }).catch ( error => console.error("PWA",error) )
