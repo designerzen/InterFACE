@@ -25,8 +25,7 @@ import { setupMIDI, testForMIDI } from './audio/midi-out'
 import { 
 	tapTempo,
 	getBars, setBars, getBar, 
-	startTimer, stopTimer,
-	now, 
+	startTimer, stopTimer, now, 
 	getBarProgress,
 	setTimeBetween, timePerBar, getBPM 
 } from './timing/timing.js'
@@ -88,6 +87,9 @@ import {
 } from './utils'
 
 import { installOrUpdate } from './pwa/pwa'
+
+// this is the amount of time to run before we "check" for things
+const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 
 // if we have a specific referer, we can change the options accordingly
 // allow different domains to show different styles / options / configs
@@ -151,8 +153,17 @@ let userLocated = false
 // TODO:
 let cookieConsent = false
 
+// This allows us to determine how long the app has been running for?
+
 let counter = 0
 
+const information = store.getItem('info') || {
+	lastTime:-1,
+	count:0
+}
+
+const timeElapsedSinceLastPlay = information.lastTime > 0 ? Date.now() - information.lastTime : -1
+	
 // performance indicators
 const statistics = {
 	lag:0, 
@@ -206,11 +217,9 @@ const setMasterVolume = volume => {
 ////////////////////////////////////////////////////////////////////
 const setTempo = (tempo) => {
 	setTimeBetween( tempo )
-	
 	const bpm = getBPM()
 	setToast( `Tempo : Period set at ${tempo} milliseconds between bars<br>or ${bpm}BPM` )
-	console.log({bpm, timer, tempo})
-	
+	//console.log({bpm, timer, tempo})
 	store.setItem('tempo', { period:tempo, bpm })
 	return tempo
 }
@@ -1073,6 +1082,14 @@ const setup = async (update, settings, progressCallback) => {
 		statistics.lag = lag
 		statistics.drift = drift
 
+		// The app has been running for over x amount of time
+		if (elapsed > TIME_BEFORE_REFRESH)
+		{
+			// so we may want to refresh if the time is appropriate?
+	
+
+		}
+
 		// nothing to play!
 		if (ui.muted)
 		{
@@ -1488,7 +1505,7 @@ const onLoaded = async () => {
 	if (ui.debug)
 	{
 		// console.log("Loaded App", {VERSION, needsInstall, needsUpdate })
-		console.log(`InterFACE Version ${VERSION} from ${referer} in ${language}`, user )	
+		console.log(`InterFACE Version ${VERSION} from ${referer} in ${language} used ${information.count} times, last time was ${Math.ceil(information.timeElapsedSinceLastPlay/1000)} seconds ago`, user )	
 		// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 	}
 }
@@ -1631,6 +1648,13 @@ loadingLoop()
 
 // Exit
 window.onbeforeunload = ()=>{
+
+	const saveSession = Object.assign({}, information, {
+		lastTime:Date.now(),
+		count:information.count++
+	})
+	store.setItem('info', saveSession)
+	
 	// save ui settings in cookie too?
 	trackExit()
 	//store.setItem(person.name, {instrument})
