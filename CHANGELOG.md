@@ -1,3 +1,56 @@
+### 0.7.0 (2021-06-28)
+
+## 1.0.0 (2021-06-28)
+
+##### New Features
+
+*  Added preliminary Android store items (fe662595)
+*  Changes now compiles with build (d0279899)
+
+##### Bug Fixes
+
+*  Select items not recieving label focus (8300ac26)
+*  Show Install prompt (a857c0b2)
+*  Safari timing fix for data-uri inline issue (5bb43a4b)
+*  Persistnet changes for advancedMode (4658204e)
+*  MS Icons for MS Store (c5c8a160)
+*  Camera selection and saving if corrupted (ce578b25)
+
+### 0.54.0 (2021-06-27)
+
+##### New Features
+
+*  Added mstile assets to browserconfig (b05613f5)
+*  Added robots.txt for crawling (c42d0331)
+
+##### Bug Fixes
+
+*  .gitignore added humans / robots (ae45007c)
+*  Added wait patiently text to deploy script (a077d6a3)
+
+### 0.53.0 (2021-06-25)
+
+##### New Features
+
+*  Helper functions for drawing parts (63bd151b)
+*  Eyeballs now hot swappable (3ff30362)
+*  PWA augmentor (8fac443e)
+*  Added shortcuts and related_apps to manifest (d072b6b5)
+*  Mouth style looks good in all modes (1a8810ca)
+*  Added offline.pug for use in MicroSoft Store (518a818b)
+*  Domain specific styling (0a6aac2a)
+*  Stereo mode setting (1133a940)
+
+##### Bug Fixes
+
+*  Updated packages (cf3e5630)
+*  Bumped nodeJS requirement to 14 to fix CF (da445e85)
+*  Child animation stagger delays (2c4e26c1)
+*  Quantise does no longer flicker text (d777560b)
+*  Updated title for App (c964cb45)
+*  Eyeballs selectable and disableable (4f847c74)
+*  Subtitles affecting Eyes (b4d0bd8f)
+
 ### 0.52.0 (2021-06-22)
 
 #### 0.51.1 (2021-06-22)
