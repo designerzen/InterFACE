@@ -11,6 +11,8 @@ export const MAX_BARS_ALLOWED = 32
 
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
+let isAvailable = true
+let timingWorker
 
 // NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
 //      FF does not allow raf so use setimeout is preffered
@@ -28,10 +30,17 @@ const AudioContext = window.AudioContext || window.webkitAudioContext
 
 // Load in the correct worker...timing.requestframe.worker.js
 // const timingWorker = new Worker("data-url:./timing.setinterval.worker.js") 
-const timingWorker = new Worker("./timing.settimeout.worker.js") 
-// const timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
-//const timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
-// const timingWorker = new Worker(new URL('data-url:./timing.requestframe.worker.js', import.meta.url))
+try{
+    timingWorker = new Worker("./timing.settimeout.worker.js") 
+    // timingWorker = new Worker("./timing.setinterval.worker.js") 
+    // timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
+    // timingWorker = new Worker("data-url:./timing.requestframe.worker.js")
+    // timingWorker = new Worker(new URL('data-url:./timing.requestframe.worker.js', import.meta.url))
+
+}catch(error){
+    isAvailable = false
+}
+
 
 let startTime = -1
 let currentInterval = 1
@@ -57,7 +66,7 @@ export const setBars = value => {
 
 export const now = () => audioContext.currentTime
 
-const elapsed = () => (now() - startTime) * 0.001
+export const elapsed = () => (now() - startTime) * 0.001
 
 // export const setMode = newMode => {
 //     // check to see if in array of acceptable types
