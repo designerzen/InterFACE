@@ -1,4 +1,5 @@
 node_modules
+node_modules*
 .parcel-cache
 # there are things already committed in dist/ mainly the smaples
 dist/*
@@ -11,6 +12,7 @@ dist/*
 !dist/humans.txt
 !dist/robots.txt
 app
+*.bak
 *.mp4
 *.log
 *.zip
