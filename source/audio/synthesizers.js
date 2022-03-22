@@ -4,7 +4,12 @@ import {inputDryNode} from './rack'
 
 const ZERO = 0.0000001
 
-// this is just an array of kicks
+/**
+ * create a fixed amount of instrument instances
+ * @param {Function} factorymethod constructor method to create instance
+ * @param {Number} quantity amount of items to create
+ * @returns {Function} method to retrieve next item in the queue
+ */
 export const createQueue = (factorymethod, quantity=5) => {
 
 	const instruments = []
@@ -25,7 +30,10 @@ export const createQueue = (factorymethod, quantity=5) => {
 	return fetchNextInstrument
 }
 
-// Kick me
+/**
+ * Kick me!
+ * @returns {Function} trigger start method
+ */
 export const createKick = () => {
 
     const osc = audioContext.createOscillator()
@@ -102,6 +110,10 @@ export const createKick = () => {
 // 	return fetchNextKick
 // }
 
+/**
+ * Create an instance of the snare instrument
+ * @returns {Function} trigger start method
+ */
 export const createSnare = () => {
 
     const osc3 = audioContext.createOscillator()
@@ -167,6 +179,10 @@ export const createSnare = () => {
 	return snare
 }
 
+/**
+ * Create an instance of the hi-hat instrument
+ * @returns {Function} trigger start method
+ */
 export const createHihat = () => {
 
     const gainOsc4 = audioContext.createGain()
@@ -216,6 +232,11 @@ export const createHihat = () => {
 	return hihat
 }
 
+
+/**
+ * Create an instance of the clack instrument
+ * @returns {Function} trigger start method
+ */
 export const createClack = () => {
 	
 	const cowbellGainNode = audioContext.createGain()
@@ -270,6 +291,11 @@ export const createClack = () => {
 	return clack
 }
 
+
+/**
+ * Create an instance of the cowbell instrument
+ * @returns {Function} trigger start method
+ */
 export const createCowbell = () => {
 	
 	const cowbellGainNode = audioContext.createGain()
@@ -316,6 +342,7 @@ export const createCowbell = () => {
 	return cowbell
 }
 
+
 // this is just an array of kicks
 export const createKicks = (quantity=2) => createQueue(createKick, quantity)
 export const createSnares = (quantity=3) => createQueue(createSnare, quantity)
@@ -323,8 +350,11 @@ export const createHihats = (quantity=3) => createQueue(createHihat, quantity)
 export const createCowbells = (quantity=2) => createQueue(createCowbell, quantity)
 export const createClacks = (quantity=2) => createQueue(createClack, quantity)
 
-// Just a drum kit you can play that has one of each of the
-// drum sounds set up in cascades. simply createDrumkit().kick() etc
+/**
+ * Just a drum kit you can play that has one of each of the
+ * drum sounds set up in cascades. simply createDrumkit().kick() etc
+ * @returns {Object<Function>} all individual instruments
+ */
 export const createDrumkit = () => {
 
 	const kick = createKicks()
