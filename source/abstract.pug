@@ -3,10 +3,8 @@
 
 mixin title( page="", section="", seperator="©" )
 	- page = page.length ? `${page} ${seperator} ` : page
-	- section = section.length ? `${section} ${seperator}` : ``
-	title #{page}InterFACE V
-			include version.txt
-			|  #{seperator} #{section}designerzen
+	- section = section.length ? `${section} ${seperator} ` : ``
+	title #{page}InterFACE V #{package.version} #{seperator} #{section}designerzen
 
 doctype html
 html(lang="en-GB" dir="ltr")
@@ -16,7 +14,8 @@ html(lang="en-GB" dir="ltr")
 			+title()
 
 		meta(name="viewport", content="viewport-fit=cover,width=device-width,initial-scale=1")
-		meta(name="description", content="Face Controlled Augmented Reality Motion Capture Controlled Machine Learning Powered Accessible Synthesizer")
+		meta(name="description", content=package.description)
+		
 		//- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. 
 		link(rel="manifest", href="manifest.webmanifest")
 		link(rel="stylesheet", href="index.scss", type="text/css")
@@ -59,26 +58,35 @@ html(lang="en-GB" dir="ltr")
 		block scripts
 			script(type="module", src="index.js", rel="preload")
 		
-		//-  These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html
+		//-  These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. 
+		//- Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html
 		meta(name="apple-mobile-web-app-capable", content="yes")
-		meta(name="apple-mobile-web-app-title", content="Face synth")
+		meta(name="apple-mobile-web-app-title", content="InterFace Smile Powered Synthesizer")
 		meta(name="apple-mobile-web-app-status-bar-style", content="black")
-		//-  Imports an icon to represent the document. 
+		
+		//- Favicons
 		link(rel="icon", href="assets/icons/android-chrome-24x24.png", type="image/x-icon")
 		link(rel="icon", type="image/png", sizes="32x32", href="assets/icons/favicon-32x32.png")
 		link(rel="icon", type="image/png", sizes="16x16", href="assets/icons/favicon-16x16.png")
 		link(rel="apple-touch-icon", sizes="180x180", href="assets/icons/apple-touch-icon.png")
 		link(rel="mask-icon", href="assets/icons/safari-pinned-tab.svg", color="#5bbad5")
+		
+		//- MS Store
 		meta(name="msapplication-config" content="./browserconfig.xml")
 		meta(name="msapplication-TileColor", content="#e4dede")
 		meta(name="theme-color", content="#e4dede")
+		
+		//- Twitter
 		meta(property="og:image", content="assets/icons/og-image.jpg")
 		meta(property="og:image:height", content="268")
 		meta(property="og:image:width", content="512")
-		meta(property="og:description", content="A face controlled musical instrument that uses a video camera.")
+		meta(property="og:description", content=package.description)
 		meta(property="og:title", content="InterFACE")
 		meta(property="og:url", content=URL)
 
+		//- Humans.txt - https://humanstxt.org/
+		link(type="text/plain" rel="author" href="https://interface.place/humans.txt")
+		
 	body
 		header#intro
 
@@ -128,7 +136,7 @@ html(lang="en-GB" dir="ltr")
 					h5 This is the Synthesizer 
 					p It is controlled using your head
 						
-					h6 Not working?
+					h5 Not working?
 					h6 Common Issues / Troubleshooting
 					ol 
 						li Camera was not allowed access
@@ -178,7 +186,7 @@ html(lang="en-GB" dir="ltr")
 					button Close Help
 
 			dialog#pwa
-				#changelog
+				iframe#changelog(src="./changes.html")
 				form(method="dialog")
 					button Close Help
 			
@@ -206,16 +214,14 @@ html(lang="en-GB" dir="ltr")
 						| designerzen 
 					
 					a.licenses(href="licenses.pug" target="_blank") Licenses
+					a.licenses(href="copyright.pug" target="_blank") Copyright
 
-					//- Dynamically created date get's prepended
-					a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V
-						include version.txt
+					a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V #{package.description}
 							
-
 			//- Generally hidden aspects
 			share-menu#share-menu( 
-				title="Give the interFACE to your friends and family" 
-				text="By clicking the buttons below you can easily share the InterFACE with your friends and family" 
+				title="Share your interFACE with friends and family!" 
+				text="Select your social platform to easily share the InterFACE with your friends and family" 
 				url=URL
 			)
 
