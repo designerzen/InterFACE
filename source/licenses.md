@@ -1,9 +1,3 @@
-info dmg-license@1.0.8: The platform "win32" is incompatible with this module.
-info "dmg-license@1.0.8" is an optional dependency and failed compatibility check. Excluding it from installation.
-info iconv-corefoundation@1.1.5: The platform "win32" is incompatible with this module.
-info "iconv-corefoundation@1.1.5" is an optional dependency and failed compatibility check. Excluding it from installation.
-info fsevents@2.3.2: The platform "win32" is incompatible with this module.
-info "fsevents@2.3.2" is an optional dependency and failed compatibility check. Excluding it from installation.
 THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED IN PORTIONS OF THE INTERFACE PRODUCT.
 
 -----
