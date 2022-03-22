@@ -10,7 +10,6 @@ const pkg = JSON.parse(packageFile)
 // But which sem version scheme to use???
 const packageVerson = pkg.version
 const repositoryURL = pkg.repository.split("/")
-// designerzen/MusicalFace.git
 const repoName = repositoryURL.pop().replace(".git","")
 const repoOwner = repositoryURL.pop()
 const destinationURL = `https://${repoOwner}.github.io/${repoName}/`
