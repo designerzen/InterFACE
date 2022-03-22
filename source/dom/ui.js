@@ -2,7 +2,6 @@ import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from '../audio/instruments'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink,loadSoloMode,loadDuetMode} from '../location-handler'
 import {formattedDate} from '../models/info'
-import {setButton} from './button'
 import {setToggle} from './toggle'
 import { connectSelect } from './select'
 
@@ -16,24 +15,63 @@ export let buttonVideo
 export let controls
 
 const main = doc.querySelector("main")
-	
-export const toggleVisibility = element => {
-	const isVisisble = element.style.visibility !== "hidden"
-	element.style.visibility = !isVisisble ? "visible" : "hidden"
-	return !isVisisble
+
+/**
+ * is the element currently visible?
+ * @param {HTMLElement} element to toggle the visibility of
+ * @return {Boolean} visibility state of the element 
+ */
+export const isVisible = (element) => {
+	return element.style.visibility !== "hidden" 
 }
+/**
+ * show or hide an element depending on the provided value
+ * @param {HTMLElement} element to toggle the visibility of
+ * @param {Boolean} visisble value to set visibility to
+ * @return {Boolean} is now visible 
+ */
+export const setVisibility = (element, visisble) => {
+	element.style.visibility = !visisble ? "visible" : "hidden"
+	return isVisible(element)
+}
+/**
+ * toggle an element's visibility to the opposite of it's current state
+ * @param {HTMLElement} element to toggle the visibility of
+ * @return {Boolean} is now visible 
+ */
+export const toggleVisibility = element => {
+	const isVisisble = isVisible(element)
+	setVisibility(element, !isVisisble)
+	return isVisible(element)
+}
+
 
 export const video = doc.querySelector("video")
-export const isVideoVisible = () => video.style.visibility === "hidden" 
+
+/**
+ * is the video element currently visible on the screen?
+ * @return {Boolean} visibility of video
+ */
+export const isVideoVisible = () => isVisible(video) 
+
+/**
+ * show or hide the video element
+ * @param {Boolean} value to set the visibility to
+ */
 export const toggleVideoVisiblity = value => {
-	const currentlyVisible = isVideoVisible()
+	const currentlyVisible = setVisibility(video, value ? value : !isVideoVisible())
 	console.error("toggling video vis", {value, currentlyVisible})
-	video.style.visibility = currentlyVisible ? "visible" : "hidden", !currentlyVisible 
 }
 
-export const setControls = fragment => {
+
+/**
+ * add a html fragment to a specific person's control panel
+ * @param {HTMLElement} fragment as a quantity of beats per measure
+ * @param {String} personName as a quantity of beats per measure
+ */
+export const setControls = (fragment, personName='person-a-controls') => {
 	
-	const personControl = doc.getElementById('person-a-controls')
+	const personControl = doc.getElementById(personName)
 
 	// add to dom or replace existing????
 	personControl.appendChild( fragment )
@@ -41,6 +79,12 @@ export const setControls = fragment => {
 	// bind mouse events here???
 }
 
+/**
+ * Add a select with all available cameras as a dropdown
+ * @param {Array} cameras Collection of hardware cameras
+ * @param {Function} callback Mehod to trigger when camera selected
+ * @returns {Boolean} true if the user hit duet
+ */
 export const setupCameraForm = (cameras, callback) => {
 	
 	const cameraForm = doc.getElementById("camera")
@@ -54,21 +98,25 @@ export const setupCameraForm = (cameras, callback) => {
 	connectSelect( select, callback )
 }
 
-// Setup the instrument list - connect to callback?
+/**
+ * Setup the instrument list
+ * @param {Function} callback Method to trigger when instument selected
+ */
 export const setupInstrumentForm = callback => {
 	
-	// populate ui	
 	const uiOptions = INSTRUMENT_FOLDERS.map( (folder, index) => `<label for="${folder}">${INSTRUMENT_NAMES[index]}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label>` ) 
-	
 	uiOptions.unshift("<legend>Select an instrument</legend>")
 
-	// bind mouse events too???
+	// TODO: bind mouse events too???
 
 	// const uiOptions = INSTRUMENT_FOLDERS.map( folder => `<option value="${folder}">${folder}</option>` ) 
 	return `${uiOptions.join('')}`
 }
 
-
+/**
+ * Update the BPM on screen
+ * @param {Number} tempo as a quantity of beats per measure
+ */
 export const updateTempo = tempo =>{
 	const b = doc.getElementById('input-tempo')
 	if (b)
@@ -78,12 +126,11 @@ export const updateTempo = tempo =>{
 	console.log("Setting tempo", tempo)
 }
 
-
-
-////////////////////////////////////////////////////////////////////
-// This is the 2nd screen, just after loading
-// returns a true or false for if the user hit duet
-////////////////////////////////////////////////////////////////////
+/**
+ * This is the 2nd screen, just after loading
+ * @param {Object} options Configuration object
+ * @returns {Boolean} true if the user hit duet
+ */
 export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 
 	const CSS_CLASS = "player-selection"
@@ -175,15 +222,17 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 	panel.focus()
 })
 
-
-// DOM elements
+/**
+ * DOM elements on main app screen
+ * @param {Object} options Configuration object
+ */
 export const setupInterface = ( options ) => {
 	const h1 = doc.querySelector("h1")
 	
 	const buttonShare = doc.getElementById("share")
-	const buttonSolo = doc.getElementById("button-solo")
-	const buttonDuet = doc.getElementById("button-duet")
-	const title = doc.getElementById("title")
+	// const buttonSolo = doc.getElementById("button-solo")
+	// const buttonDuet = doc.getElementById("button-duet")
+	// const title = doc.getElementById("title")
 	
 	const shareElement = doc.querySelector("share-menu")
 	shareElement.url = getShareLink( options )
@@ -238,10 +287,10 @@ export const setupInterface = ( options ) => {
 	}, true)
 }
 
-////////////////////////////////////////////////////////////////////
-// For accessibility, once the app has loaded we try and put the
-// user in the right place so that they can begin
-////////////////////////////////////////////////////////////////////
+/**
+ * For accessibility, once the app has loaded we try and put the
+ * user in the right place so that they can begin
+ */
 export const focusApp = ()=>{ 
 	
 }

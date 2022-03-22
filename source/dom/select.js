@@ -11,8 +11,10 @@ export const connectSelect = async (element,callback) => {
 		// const option = select.childNodes[selection]
 		const option = select.options[select.selectedIndex || select.options.selectedIndex] 
 		callback && callback (option)
-		return true
+		event.preventDefault()
 	})
+
+	return select
 }
 
 export const connectPaletteSelector = (callback) => connectSelect('select-palette', callback )
@@ -25,6 +27,8 @@ export const connectTempoControls = (callback) => {
 		callback && callback (tempo)
 	} )
 }
+
+
 import {loadImpulseJSON, DIRS, REVERB_PATHS} from '../audio/effects/reverb'
 
 const path = './assets/audio/acoustics/'	
@@ -63,5 +67,5 @@ export const connectReverbControls = (callback) => {
 		console.error("Injecting impulse FAILED to ", {options, impulseList})
 	}
 
-	connectSelect( ID, (option)=> callback && callback(option) )
+	return connectSelect( ID, (option)=> callback && callback(option) )
 }
