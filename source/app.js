@@ -2,7 +2,7 @@
 
 // https://www.npmjs.com/package/capacitor-dark-mode
 
-import { Capacitor } from '@capacitor/core'
+// import { Capacitor } from '@capacitor/core'
 
 // camera???
 import * as I from './index'
