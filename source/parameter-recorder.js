@@ -1,6 +1,6 @@
 // Ok, here's a fun one...
 
-// RECRD Vars just save it and it will record the time
+// RECORD Vars just save it and it will record the time
 export class ParamaterRecorder{
 
 	constructor( audioContext, options={} ) {

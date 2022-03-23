@@ -722,6 +722,7 @@ export default class Person{
 	/////////////////////////////////////////////////////////////////////
 	sing(){
 
+		// nothing to play or too many simultaneous samples
 		if (!this.data || this.tracks > MAX_TRACKS)
 		{
 			return {
@@ -949,6 +950,7 @@ export default class Person{
 		this.roll = roll
 
 		return {
+			
 			yaw, pitch, roll,
 			lipPercentage,
 			eyeDirection

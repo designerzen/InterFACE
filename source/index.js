@@ -3,7 +3,10 @@
 
 
 
-
+// Fix iOS and FF
+import dialogPolyfill from 'dialog-polyfill'
+const dialogs = document.querySelectorAll('dialog')
+dialogs.forEach( dialog => dialogPolyfill.registerDialog(dialog) )
 
 // TODO: Lazy load more of these...
 // import {midiLikeEvents} from './timing/rhythm'
@@ -58,13 +61,14 @@ import { setupImage, setNodeCount } from './visual/2d'
 import { drawWaves, drawBars } from './visual/spectrograms'
 
 import { drawQuantise } from './visual/quantise'
+import Stave from './visual/2d.stave'
 
 import { 
 	getReferer, getRefererHostname, 
 	getLocationSettings, getShareLink, 
 	forceSecure, addToHistory } from './location-handler'
 
-import { findBestCamera, loadCamera } from './camera'
+import { findBestCamera, loadCamera } from './hardware/camera'
 import { playNextPart, kitSequence } from './timing/patterns'
 // TODO: Lazy load
 import { getInstruction, getHelp } from './models/instructions'
@@ -100,13 +104,17 @@ const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 const referer = getReferer()
 const LTD = getRefererHostname().split('.').pop()
 const defaultOptions = getDomainDefaults( LTD ) 
+
 let ui = getLocationSettings( defaultOptions )
+// let ui = createState( getLocationSettings( defaultOptions ), main )
 
 
 // DOM Elements
 const body = document.documentElement
 const main = document.querySelector("main")
 const image = document.querySelector("img")
+const toggles = {}
+const selects = {}
 
 // should be set on the html but jic
 body.classList.toggle("loading", true)
@@ -181,9 +189,10 @@ forceSecure(ui.debug)
 // ESCAPE - no cameras found on system?
 // ESCAPE - no GPU?
 
-////////////////////////////////////////////////////////////////////
-// Vocal mode uses speech synthesis to talk the toSay string
-////////////////////////////////////////////////////////////////////
+/**
+ *  Vocal mode uses speech synthesis to talk the toSay string
+ * @param {String} toSay Audio phrase to repeat
+ */
 const speak = toSay => {
 	if ( ui.speak && hasSpeech() ) 
 	{
@@ -210,11 +219,12 @@ const setMasterVolume = volume => {
 	return r
 }
 
-////////////////////////////////////////////////////////////////////
-// This sets the rate of the master clock that gets transported 
-// through the app in order to perform time based actions
-// RETURNS : tempo
-////////////////////////////////////////////////////////////////////
+/**
+ *  This sets the rate of the master clock that gets transported 
+ *  through the app in order to perform time based actions
+ * @param {Number} bpm Beats per minute
+ * @returns {Number} New Tempo
+ */
 const setTempo = (tempo) => {
 	setTimeBetween( tempo )
 	const bpm = getBPM()
@@ -224,13 +234,21 @@ const setTempo = (tempo) => {
 	return tempo
 }
 
-// 60,000 / BPM = one beat in milliseconds - 10 is fir fun
+
+/**
+ *  Set the speed of this track by how many ticks per minute
+ *  60,000 / BPM = one beat in milliseconds - 10 is fir fun
+ * @param {Number} bpm Beats per minute
+ */
 const setBPM = (bpm) => setTempo( 60000 / bpm  )
 
-////////////////////////////////////////////////////////////////////
-// Instruments : Load for all people!
-// RETURNS : instrument name (raw)
-////////////////////////////////////////////////////////////////////
+
+/**
+ *  Instruments : Load for all people!
+ * @param {String} method Name of method to call on Person
+ * @param {Function} callback Method to run once instruments have loaded
+ * @returns {Function} instrument name (raw)
+ */
 const loadInstruments = async (method, callback) => people.map( async (person) => { 
 	const instrument = await person[method](callback)
 	setToast(`${person.name} has ${person.instrumentTitle} loaded`)
@@ -243,6 +261,12 @@ const previousInstrument = async (callback) => await loadInstruments('loadPrevio
 const nextInstrument = async (callback) => await loadInstruments('loadNextInstrument', callback)
 const reloadInstrument = async (callback) => await loadInstruments('reloadInstrument', callback)
 
+/**
+ * Instantiate a Person Class and connect it up accordingly
+ * @param {string} name Player's name
+ * @param {string} eyeColour Player's eye colour
+ * @returns {Function<Person>} Person fully wired
+ */
 const createPerson = (name,eyeColour) => {
 
 	const duetAvailable = ui.duet
@@ -302,9 +326,12 @@ const createPerson = (name,eyeColour) => {
 	return person
 }
 
-////////////////////////////////////////////////////////////////////
-// Create / Fetch a user (we cache every new user)
-////////////////////////////////////////////////////////////////////
+
+/**
+ *  Create / Fetch a user (we cache every new user)
+ * @param {Number} index Person's at index
+ * @returns {Function} Player Class 
+ */
 const getPerson = (index) => {
 	
 	if (people[index] == undefined)
@@ -317,15 +344,23 @@ const getPerson = (index) => {
 	}
 }
 
+/**
+ *  Set all existing player's options to the selected values 
+ *  (change the default for any new players created)
+ * @param {Number} option Variable to set
+ * @param {Number} value Value to set the variable to
+ */
 const setPlayerOption = (option, value) => {
-	// change the default for any new players created
 	people.forEach( player => {
 		player.options[option] = value
 	})
 }
 
-// merges all named player options into an array
-// [{ values } , { values }]
+/**
+ * merges all named player options into an array eg. [{ values } , { values }]
+ * @param {Array<string>} values Selective player configuration object keys
+ * @returns {Array<Boolean>} Player configuration object
+ */
 const fetchPlayerOptions = values => people.map( 
 	
 	player => values.reduce((accumulator, currentValue, index, array) => {	
@@ -334,8 +369,10 @@ const fetchPlayerOptions = values => people.map(
 	}, {} )
 )
 
-
-// Player options
+/**
+ * Player options Update
+ * @param {Array<string>} values Selective player configuration object keys
+ */
 const setPlayerOptions = (values) => {
 	const unique = Array.isArray(values) 
 
@@ -467,6 +504,9 @@ const showMIDI = async () => {
 	return true
 }
 
+/**
+ *  Add Keyboard listeners and tie in commands
+ */
 const registerKeyboard = () => {
 	let numberSequence = ""
 
@@ -532,12 +572,12 @@ const registerKeyboard = () => {
 				break
 
 			case 'b':
-				setState("backingTrack", !ui.backingTrack )
+				setState("backingTrack", !ui.backingTrack, toggles )
 				setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 				break
 		
 			case 'c':
-				setState("clear", !ui.clear )
+				setState("clear", !ui.clear, toggles )
 				break
 
 			case 'd':
@@ -580,17 +620,17 @@ const registerKeyboard = () => {
 
 			// toggle speech
 			case 'l':
-				setState("speak", !ui.speak )
+				setState("speak", !ui.speak, toggles )
 				setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
 				break
 		
 			case 'm':
-				setState("metronome", !ui.metronome )
+				setState("metronome", !ui.metronome, toggles )
 				setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 				break
 
 			case 'q':
-				setState("muted", !ui.muted )
+				setState("muted", !ui.muted, toggles )
 				setMasterVolume( ui.muted ? 1 : 0 )
 				break
 		
@@ -621,7 +661,7 @@ const registerKeyboard = () => {
 				break
 
 			case 't':
-				setState("text", !ui.text )
+				setState("text", !ui.text, toggles )
 				break
 
 
@@ -686,17 +726,18 @@ const registerKeyboard = () => {
 			numberSequence = ''
 		}
 
-		// we run this when we want to 
+		// we run this when we want to ???
 		addToHistory(ui, event.key)
 		// console.log("key", ui, event)
 	})
 }
 
-
-
-//////////////////////////////////////////////////////////////////
-// This creates all the wiring 
-//////////////////////////////////////////////////////////////////
+/**
+ * Wires up all of the individual parts of the app
+ * @param {Function} update Method to call when face moves
+ * @param {Function} settings App Settings Object
+ * @param {Function} progressCallback Method to progressivley call during setup procedure
+*/
 const setup = async (update, settings, progressCallback) => {
 
 	const loadTotal = 7
@@ -855,6 +896,9 @@ const setup = async (update, settings, progressCallback) => {
 	canvas.width = inputElement.width
 	canvas.height = inputElement.height
 
+	// TODO: create and position the stave?
+	// const stave = new Stave( canvas, 0, 0, true )
+
 	// console.error("Tensorflow", tf)
 	main.classList.add( inputElement.nodeName.toLowerCase() )
 	
@@ -997,7 +1041,7 @@ const setup = async (update, settings, progressCallback) => {
 					return
 				}
 
-				// first update the person
+				// first update the person - this allows us to sing at will
 				person.update(prediction)
 
 				// then redraw them
@@ -1011,6 +1055,15 @@ const setup = async (update, settings, progressCallback) => {
 				{
 					// unless quantize is turned off
 					const stuff = person.sing()
+					
+					// yaw, pitch, lipPercentage, eyeDirection
+					// update the stave with X amount of notes
+					if (person.singing)
+					{
+						// stave.noteOn( person.lastNoteName, person.name )
+					}else{
+						// stave.noteOff( person.name )
+					}
 					// stuff.eyeDirection
 					if (i===0)
 					{
@@ -1056,6 +1109,10 @@ const setup = async (update, settings, progressCallback) => {
 			// setFeedback(`Look at me and open your mouth`)
 		}
 
+		// this simply forces refresh of the stave notes
+		// stave.update( counter )
+
+
 		if (beatJustPlayed)
 		{
 			beatJustPlayed = false
@@ -1096,6 +1153,7 @@ const setup = async (update, settings, progressCallback) => {
 			return
 		}
 
+		// Play metronome!
 		if ( ui.metronome && bars )
 		{
 			// TODO: change timbre for first & last stroke
@@ -1104,19 +1162,19 @@ const setup = async (update, settings, progressCallback) => {
 		}
 
 		// console.log(barsElapsed, "timer", timer)
-		// Play metronome!
-		if(ui.quantise )
+	
+		// sing note and draw to canvas
+		if( ui.quantise )
 		{
-			//const personParameters = []
-
 			for (let i=0, l=people.length; i<l; ++i )
 			{
-
-				
 				const person = getPerson(i)
 
 				// yaw, pitch, lipPercentage, eyeDirection
 				const stuff = person.sing()
+				
+				// update the stave with X amount of notes
+				// stave.draw(stuff)
 
 				if (i===0)
 				{
@@ -1132,6 +1190,8 @@ const setup = async (update, settings, progressCallback) => {
 			}
 			
 		}
+
+		
 
 		// play some accompanyment music!
 		if (ui.backingTrack && bar%2 === 0 )
@@ -1165,33 +1225,53 @@ const setup = async (update, settings, progressCallback) => {
 
 
 
-
-///////////////////////////////////////////////////////////
-// simply refreshes the ui with any updated options
+/**
+ * refreshState : Refreshes the ui with any updated options
+ */
 const refreshState = ()=>{
-
-	Object.entries(ui).forEach(([key,value])=>{
-		main.classList.toggle(`flag-${key}`, value )
-	})
+	Object.entries(ui).forEach(([key,value])=> main.classList.toggle(`flag-${key}`, value ) )
 }
 
-///////////////////////////////////////////////////////////
-// This simply allows you to set the state of the ui
-const setState = ( key, value, saveHistory=true )=>{
+/**
+ * setState : set / store the state of the ui & update DOM
+ * @param {String} key state unique key ID
+ * @param {String} value value to set the key to
+ * @param {Array<HTMLElement>} elements buttons with toggleable attributes
+ * @param {Boolean} saveHistory add to localStorage cache
+ */
+const setState = ( key, value, elements=null, saveHistory=true )=>{
+	
 	ui[key] = value
+
 	if (saveHistory)
 	{
 		addToHistory(ui,key)
 	}
+
 	main.classList.toggle(`flag-${key}`, value )
 
 	// FIXME: TODO:
 	// also update select for checked and things? bit more complex?
 	// see if there is a matching dom element???
 	// .checked
+	if ( elements && elements[key] )
+	{
+		//elements[key].checked = value
+		elements[key].setAttribute("checked", value)
+		if (elements[key].parentNode.nodeName === "LABEL")
+		{
+			elements[key].parentNode.classList.toggle("checked", value )
+		}
+		console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
+	}
 }
 
-
+/**
+ * load : load the files required for this app
+ * @param {Object} settings Configuration object
+ * @param {Function} progressCallback optional method to call on load progress
+ * @returns {Promise<Boolean>} TensorFlow model load promise
+ */
 const load = async (settings, progressCallback) => {
 
 	const loadTotal = 3
@@ -1222,64 +1302,71 @@ const load = async (settings, progressCallback) => {
 
 	progressCallback(loadIndex++/loadTotal)
 
+	
+
+	// you can toggle any checkbox like...
+	// toggles.quantise.setAttribute('checked', value)
+
 	// Connect up sone buttons?
-	setToggle( "button-quantise", status =>{
+	toggles.quantise = setToggle( "button-quantise", status =>{
 		setState( 'quantise', status )
 		setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 	}, ui.quantise)
 
 	// #button-settings
-	setToggle( "button-settings", status =>{ 
+	toggles.settings = setToggle( "button-settings", status =>{ 
 		setState( 'showSettings', status )
 		setToast("Settings " + (status ? 'enabled' : 'disabled')  )
 	}, ui.showSettings )
 
 	// Connect up sone buttons?
-	setToggle( "button-metronome", status =>{
+	toggles.metronome = setToggle( "button-metronome", status =>{
 		setState( 'metronome', status )
 		setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 	}, ui.metronome )
 
-	setToggle( "button-percussion", status =>{
+	toggles.backingTrack = setToggle( "button-percussion", status =>{
 		setState( 'backingTrack', status )
 		setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 	}, ui.backingTrack )
 
-	setToggle( "button-spectrogram", status =>{
+	toggles.spectrogram = setToggle( "button-spectrogram", status =>{
 		setState( 'spectrogram', status )
 		setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.spectrogram )
 
-	setToggle( "button-speak", status =>{
+	toggles.speak = setToggle( "button-speak", status =>{
 		setState( 'speak', status )
 		setToast("Speaking " + (ui.speak ? 'enabled' : 'disabled')  )
 	}, ui.speak )
 
 	// Synch button
-	setToggle( "button-transparent", status =>{
+	toggles.transparent = setToggle( "button-transparent", status =>{
 		// I inverted the state for UX
 		setState( 'transparent', !status )
 		setToast("Video Synch " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 	}, ui.transparent )
 
 	// Clear canvas between frames
-	setToggle( "button-clear", status =>{ 
+	toggles.clear = setToggle( "button-clear", status =>{ 
 		setState( 'clear', status )
 	}, ui.clear )
 
 	// toggle mute
-	setToggle( "button-mute", status =>{ 
+	toggles.muted = setToggle( "button-mute", status =>{ 
 		setState( 'muted', !ui.muted )
 		setMasterVolume( ui.muted ? 1 : 0 )
 	}, ui.muted )
 
 	let discoPreviousState
 	// Special disco mode!
-	setToggle( "button-disco", status =>{ 
+	toggles.disco = setToggle( "button-disco", status =>{ 
 		setState( 'masks', status )
-		if (ui.masks)
+		if (status)
 		{
+			// setState( 'clear', false )
 			ui.clear = false
+			
 			// save previous state to go back to later...
 			discoPreviousState = fetchPlayerOptions(['drawMask','drawNodes','drawMesh','meshOnSing'])
 			
@@ -1287,6 +1374,7 @@ const load = async (settings, progressCallback) => {
 			// setPlayerOption("drawMesh", ui.masks)
 			setPlayerOptions( {drawMask:true, drawNodes:false, drawMesh:false, meshOnSing:true})
 		}else{
+			// setState( 'clear', true )
 			ui.clear = true
 			// setPlayerOption("drawNodes", ui.masks)
 			//setPlayerOptions( {drawNodes:true, drawMesh:false})
@@ -1294,29 +1382,33 @@ const load = async (settings, progressCallback) => {
 			//console.log(ui.masks,"MTV load old state", discoPreviousState)
 			discoPreviousState = null
 		}
-	}, ui.muted )
+	}, ui.masks )
 
 	// Overlays ----
 	// Face overlays... should be dropdown?
-	setToggle( "button-meshes", status =>{ 
+	toggles.masks = setToggle( "button-meshes", status =>{ 
 		setState( 'masks', !ui.masks )
 		setPlayerOption("drawMask", ui.masks)
 	}, ui.masks )
 
 	// hide / show eye overlays
 	// NB. this gets hidden in kid mode?
-	setToggle( "button-eyes", status => {
+	toggles.eyes = setToggle( "button-eyes", status => {
 		setState( 'eyes', !ui.eyes )
 		setPlayerOption("drawEyes", ui.eyes)
 	}, ui.eyes )
 
-	// Show the canvas element
-	setToggle( "button-overlay", status => toggleVideoVisiblity(), !isVideoVisible() )
+	// Show / hide the canvas element
+	toggles.overlay = setToggle( "button-overlay", status => { 
+		toggleVideoVisiblity( !isVideoVisible() )
+	} )
 	
 	// show / hide the text
-	setToggle( "button-subtitles", status => {
+	toggles.text = setToggle( "button-subtitles", status => {
 		setState( 'text', !ui.text )
 	} )
+
+	//console.error("toggles", toggles)
 
 	setButton( "button-photograph", event => {	
 		// TODO: also copy to clipboard?
@@ -1338,7 +1430,7 @@ const load = async (settings, progressCallback) => {
 	// } )
 
 	// set the master tempo
-	connectSelect( 'select-tempo', option => {
+	selects.tempo = connectSelect( 'select-tempo', option => {
 		const tempo = parseInt( option.innerHTML )
 		updateTempo(tempo)
 		setBPM(tempo)
@@ -1346,7 +1438,7 @@ const load = async (settings, progressCallback) => {
 		// setState( 'bpm', tempo )
 	} )
 
-	connectSelect( 'select-eyes', option => {
+	selects.eyes = connectSelect( 'select-eyes', option => {
 		const items = option.value.split(",")
 		const eye = convertOptionToObject(items)
 		//console.log("Setting eyes", eye, {items} )
@@ -1359,7 +1451,7 @@ const load = async (settings, progressCallback) => {
 	} )
 
 	// set the master sound font
-	connectSelect( 'select-samples', async (option) => {
+	selects.samples = connectSelect( 'select-samples', async (option) => {
 		const instrumentPack = option.value
 		setPlayerOptions({ instrumentPack })
 		const instrument = await reloadInstrument()
@@ -1367,7 +1459,7 @@ const load = async (settings, progressCallback) => {
 		//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
 	} )
 
-	connectSelect( 'select-palette', option => {
+	selects.palette = connectSelect( 'select-palette', option => {
 		const items = option.value.split(",")
 		const palette = convertOptionToObject(items)
 		
@@ -1378,7 +1470,7 @@ const load = async (settings, progressCallback) => {
 	})
 
 	// connect the reverb selector to the reverb chooser
-	connectReverbControls( async (option) => {
+	selects.reverbs = connectReverbControls( async (option) => {
 		if (option && option.value)
 		{
 			const url = option.value
@@ -1408,6 +1500,7 @@ const load = async (settings, progressCallback) => {
 	// their project from before - same buttons selected etc
 	refreshState()
 
+	// upodate the load progress
 	progressCallback(loadIndex++/loadTotal)
 	
 	// Load tf model and wait
@@ -1425,11 +1518,14 @@ reporter = setupReporting("InterFACE")
 // Progressive Web Application ---------------------------------
 
 // allow for debug via css
-body.classList.toggle("debug", ui.debug )
+body.classList.toggle( "debug", ui.debug )
 
 let installation = null
 let extrasLoaded = false
 
+/**
+ * loadExtras : load uneccessary files used later in this app
+ */
 const loadExtras = async ()=> {
 	if (extrasLoaded)
 	{
@@ -1718,7 +1814,7 @@ window.addEventListener('popstate', (event) => {
 // updated if installed or installed if uninstalled
 installOrUpdate(ui.debug).then( state => {
 
-	//console.log( "PWA", state )
+	console.log( "PWA", state.log, {state} )
 	// log,
 	// previousVersion, currentVersion,
 	// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()

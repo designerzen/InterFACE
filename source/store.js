@@ -1,6 +1,10 @@
 import {debounce} from './utils'
 
-// little local storage wrapper for storing cached objects
+/**
+ * little local storage wrapper for storing cached objects
+ * @param {String} name Unique name for the store cache
+ * @returns {Array<Function>} Store controls
+ */
 export const createStore = (name="InterFACE") => {
 	const storage = localStorage.getItem(name)
 	const data = Object.assign({}, JSON.parse(storage) )
