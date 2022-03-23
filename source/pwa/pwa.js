@@ -13,6 +13,48 @@ import manifestPath from "url:../manifest.webmanifest"
 // ? made CloudFlare barf up the ServiceWorker so meh!
 const URL_SEPERATOR = "#"
 
+
+let deferredPrompt
+
+
+
+// flags
+const PWA_TYPES = [ "standalone", "fullscreen",  "minimal-ui" ]
+
+
+// Determine as much functionality as possible
+// Is running as a PWA
+
+const isInWebAppiOS = "standalone" in navigator && window.navigator.standalone === true
+// as there are other modes that are active as pwa such as fullscreen
+const displayMode = PWA_TYPES.filter( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
+const isInWebAppChrome = PWA_TYPES.includes( displayMode )
+
+// const isInWebAppChrome = ["fullscreen", "standalone", "minimal-ui"].some( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
+// const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches
+
+// is this an APK TWA android app?
+const isAndroid = document.referrer.includes('android-app://')
+// check to see if it is in the microsoft store pwas format
+const isMicrosoftStore = Array.isArray( navigator.userAgent.match(/MSAppHost/i) )
+// is this runnning as an App on the device? PWA / TWA / MSStore 
+const isRunningAsApp = isInWebAppiOS || isInWebAppChrome || isAndroid || isMicrosoftStore || false
+// const isRunningAsApp = isStandalone()
+
+// if this is the first ever run or if this is the cache has been cleared...
+const isFirstRun = navigator.serviceWorker.controller === null
+// Is the user online or offline?
+const isOnline = navigator.onLine 
+
+const platform = {
+	android:isAndroid,
+	microsoft:isMicrosoftStore,
+	pwa:isRunningAsApp,
+	offline:!isOnline,
+	displayMode
+}
+
+
 // check for beforeinstallprompt support
 
 // This loads in all extra files at the right time depending on
@@ -21,6 +63,9 @@ const URL_SEPERATOR = "#"
 // 1. Check WebBrowser to see if PWA mode is available (not all browsers have it!)
 // 		- if available then continue
 export const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
+
+
+
 
 
 const NAME = "ploppypantspwaispoo"
@@ -127,20 +172,18 @@ const showChangelog = async () =>{
 const isStandalone = () => {	
 
 	const isInWebAppiOS = "standalone" in navigator && window.navigator.standalone === true
-	const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches
-	
+	// as there are other modes that are active as pwa such as fullscreen
+	const isInWebAppChrome = ["fullscreen", "standalone", "minimal-ui"].some( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
+   	// const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches
+	const isTWAAndroid = document.referrer.includes('android-app://')
+	// check to see if it is in the microsoft store pwas format
+	const isMicrosoftStore = navigator.userAgent.match(/MSAppHost/i)
+
 	// app is running as a PWA so we don't have to show the install button ever! 
-	return isInWebAppiOS || isInWebAppChrome || false
+	return isInWebAppiOS || isInWebAppChrome || isTWAAndroid || isMicrosoftStore || false
 }
 
 
-let deferredPrompt
-
-// flags
-// Is running as a PWA
-let isRunningAsApp = isStandalone()
-// if this is the first ever run or if this is the cache has been cleared...
-let isFirstRun = navigator.serviceWorker.controller === null
 let isInstallable = false
 let updating = false
 let updatesAvailable = false
@@ -182,14 +225,31 @@ export const installOrUpdate = async(debug=false) => {
 	}
 
 
+	const registration = await navigator.serviceWorker.getRegistration()
+	console.log("Checking for installed service worker", registration )
+	
+
+	// ===================================================
+	// INSTALLATION OF SERVICE WORKER MEANS IT WAS JUST INSTALLED 
+	// check if installing...
+	if (registration && registration.installing)
+	{
+		// if the feature exists, we can work out how heavy the app is
+		if (navigator.storage)
+		{
+			const storageData = await navigator.storage.estimate()
+			console.log("Checking for installed storage space", storageData )
+		}
+	}
+
+	// FIXME: Check if we are installing the app!
+
 
 	// INSTALL UPDATES ===================================================
 	// Updates - the app does not need to be installed to have updates!
 	// updates simply means that the service-worker has changed since last time
 	// and that there are new assets that need to be cached and downloaded.
 	// 1. Check to see if it is installed as a service worker
-	const registration = await navigator.serviceWorker.getRegistration()
-
 	if (registration)
 	{
 		// if there is an active SW it means that this isn't the first
@@ -199,7 +259,7 @@ export const installOrUpdate = async(debug=false) => {
 		const activeWorker = registration.active
 		const previousServiceWorkerURL = new URL(activeWorker.scriptURL)
 		
-		previousVersion = previousServiceWorkerURL.search.split("=")[1]
+		previousVersion = previousServiceWorkerURL.search.split("=")[1] || '-.-.-'
 		updatesAvailable = previousVersion !== VERSION
 		
 		// "installing" - the install event has fired, but not yet complete
@@ -210,7 +270,9 @@ export const installOrUpdate = async(debug=false) => {
 		//                replaced by a newer version
 		const activatedState = activeWorker.state
 
+		log.push("PREVIOUS SW URL", `${previousServiceWorkerURL}` )
 		log.push("SW Reg v", `${previousVersion} -> ${currentVersion}`, {updatesAvailable, previousVersion, registration, activatedState, activeWorker, previousServiceWorkerURL } )
+		log.push(`SW State ${activatedState}` )
 			
 		// As in our service worker we have the self.skipWaiting() command set up
 		// the update should automatically install in the background 
@@ -254,10 +316,10 @@ export const installOrUpdate = async(debug=false) => {
 			})
 
 			
-			if (navigator.storage) 
-			{
-				const storageData = await navigator.storage.estimate()
-			}
+			// if (navigator.storage) 
+			// {
+			// 	const storageData = await navigator.storage.estimate()
+			// }
 
 		}, {once:true})
 
@@ -268,22 +330,28 @@ export const installOrUpdate = async(debug=false) => {
 
 	//log.push("PWA registering service worker..." )
 
-	
+	// as there is no previously one registered, we 
 
 	// This "installs" the app into the local app cache but does
 	// not create the icon on the homescreen or desktop
-	let serviceWorker = await navigator.serviceWorker.register(`../service-worker.js${URL_SEPERATOR}v=${VERSION}`)
-	
+	const hashedSWURL = `../service-worker.js#v=${VERSION}`
+	let serviceWorker = await navigator.serviceWorker.register(hashedSWURL)
+	log.push("Service worker with #",hashedSWURL, serviceWorker)
+
 	if (!serviceWorker)
 	{
-		console.log("Service worker with #")
-		serviceWorker = await navigator.serviceWorker.register(`../service-worker.js?v=${VERSION}`)		
+		const querySWURL = `../service-worker.js?v=${VERSION}`
+		serviceWorker = await navigator.serviceWorker.register(querySWURL)		
+		log.push("Service worker with ?",querySWURL, serviceWorker)
 	}
-	// annoying really
+
+	// annoying really but we leave this in just for parcel to force copy it
 	if (!serviceWorker)
 	{
-		console.log("Service worker with ?")
-		serviceWorker = await navigator.serviceWorker.register("../service-worker.js")		
+		serviceWorker = await navigator.serviceWorker.register( new URL('../service-worker.js', import.meta.url) , {type: 'module'} )	
+		// serviceWorker = await navigator.serviceWorker.register("../service-worker.js")	
+		log.push("Service worker falling back to default :*(", serviceWorker)
+			
 	}
 	
 	// at this point, if the service worker is a different version,
@@ -320,6 +388,8 @@ export const installOrUpdate = async(debug=false) => {
 	output = {
 
 		log,
+		online: isOnline,
+		offline:!isOnline,
 		previousVersion, currentVersion,
 		
 		isInstallable, isFirstRun, isRunningAsApp, 
@@ -330,11 +400,14 @@ export const installOrUpdate = async(debug=false) => {
 
 		updatesAvailable, updating, updated, 
 
+
+		// requestAddToHomescreen 
 		// The actual update / reload script for if user wants new version now!
 		update:()=>{
 			registration.waiting.postMessage({ type: 'SKIP_WAITING' })
 			window.location.reload()
-		}
+		},
+		...platform
 	}
 
 	// Updates are available so change the setup
