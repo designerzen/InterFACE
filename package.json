@@ -111,6 +111,7 @@
 		"generate-changelog": "^1.8.0",
 		"gh-pages": "^3.1.0",
 		"jsdoc": "^3.6.7",
+		"jstransformer-markdown-it": "^2.1.0",
 		"parcel": "^2.0.0",
 		"postcss": "^8.2.1",
 		"pug": "^3.0.0",
