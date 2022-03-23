@@ -57,8 +57,7 @@ const makePrediction = (prediction) => new Promise((resolve,reject)=>{
 	// load worker if neccessary
 	if (!faceWorker)
 	{
-		faceWorker = new Worker("data-url:./face-worker.js") 
-	
+		faceWorker = new Worker( new URL('data-url:./face-worker.js', import.meta.url), {type:'module'} )
 	}
 
 	faceWorker.onmessage = (e) => resolve( e.data )
