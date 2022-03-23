@@ -175,6 +175,10 @@
 	font-size: 0;
 }	
 
+body{ 
+	accent-color: #{$col-yellow};
+}
+
 // Loading progress	
 label#progress-bar{
 	// position: absolute;
@@ -558,7 +562,6 @@ label[for=button-start],
 		select:focus:active{
 			max-width:none;
 		}
-
 
 		// Indicator
 		&:after{
@@ -1173,14 +1176,29 @@ label[for="button-start"]{
 		right:0;
 		opacity: 0;
 	}
+	&:after{
+		content:'!';
+	}
 }
 
 .solo label[for="button-start"]{
 	--bg:url(./assets/icons/person-24px.svg);
+	&:before{
+		content:'Solo ';
+	}
 }
 
 .duet label[for="button-start"]{
 	--bg:url(./assets/icons/people-24px.svg);
+	&:before{
+		content:'Duet ';
+	}
+}
+
+.beginner label[for="button-start"]{
+	&:after{
+		content:' in Simple Mode';
+	}
 }
 
 // logo 
