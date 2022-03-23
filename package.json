@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Augmented Reality, Motion Capture Controlled Machine Learning Powered Accessible Audio Synthesizer",
-	"version": "0.7.1",
+	"version": "0.7.2",
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -13,7 +13,6 @@
 		"ai",
 		"accessibility"
 	],
-	
 	"scripts": {
 		"fixme:postinstall:": "electron-builder install-app-deps",
 		"push:": "git push origin && git push origin --tags",
