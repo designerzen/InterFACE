@@ -31,7 +31,11 @@ let timingWorker
 // Load in the correct worker...timing.requestframe.worker.js
 // const timingWorker = new Worker("data-url:./timing.setinterval.worker.js") 
 try{
-    timingWorker = new Worker("./timing.settimeout.worker.js") 
+    timingWorker = new Worker(
+        new URL('./timing.settimeout.worker.js', import.meta.url),
+        {type: 'module'}
+    )
+    //timingWorker = new Worker("./timing.settimeout.worker.js") 
     // timingWorker = new Worker("./timing.setinterval.worker.js") 
     // timingWorker = new Worker("data-url:./timing.settimeout.worker.js") 
     // timingWorker = new Worker("data-url:./timing.requestframe.worker.js")

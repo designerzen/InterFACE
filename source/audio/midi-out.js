@@ -1,6 +1,6 @@
 
 // import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
-import {WebMidi} from "webmidi/dist/webmidi.esm"
+import {WebMidi} from "webmidi"
 
 // https://mpe.js.org/#Installation
 // import mpeInstrument from 'mpe'
