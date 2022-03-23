@@ -5,6 +5,14 @@
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
+	"bugs": "https://github.com/designerzen/InterFACE/issues",
+	"homepage": "https://interface.place",
+	"keywords": [
+		"music",
+		"machine learning",
+		"ai",
+		"accessibility"
+	],
 	
 	"scripts": {
 		"fixme:postinstall:": "electron-builder install-app-deps",
