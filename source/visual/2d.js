@@ -243,7 +243,7 @@ export const drawPoints = (prediction, colour={h:0,s:100,l:100}, size=3, colourC
 //////////////////////////////////////////////////////////////////////
 // Draws a triangulated face
 //////////////////////////////////////////////////////////////////////
-import {TRIANGLE_MATRIX} from './face'
+import {TRIANGLE_MATRIX} from '../models/face-mesh-model'
 export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=0.5, colourCycle=false, alpha=0.2 ) => {
 	const { scaledMesh } = prediction
 	const hue = palette.h
