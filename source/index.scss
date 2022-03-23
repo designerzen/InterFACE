@@ -1580,8 +1580,8 @@ main.flag-eyes label[for="select-eyes"]{
 
 	align-items: flex-end;
 	justify-content: flex-end;
-	// flex-wrap: wrap;
- 	flex-direction: column;
+	flex-wrap: wrap;
+ 	flex-direction: row;
 	
 // 	@media (orientation: portrait) {
 		
@@ -1601,16 +1601,23 @@ main.flag-eyes label[for="select-eyes"]{
 	// fader it in immediately
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
 
+	.associates {
+		flex-basis: 100%;
+		border-bottom:var(--border);
+	}
 	small{
 		// margin-left:var(--pad);
 		// margin-right: auto;
 		justify-self: stretch;
-		width:100%;
+		// width:100%;
 		display:flex;
-		align-items: flex-end;
-		letter-spacing:0.5px;
+		// align-items: flex-end;
+		
 		padding-top:var(--pad);
-		border-top:var(--border);
+
+		&:last-of-type{
+			margin-left:auto;
+		}
 
 		#version{
 			margin-left: auto;
@@ -1658,9 +1665,7 @@ main.flag-eyes label[for="select-eyes"]{
 	}
 
 	.licenses{
-		// margin-left:auto;
-		// margin-right:auto;
-		padding-left:var(--pad);
+		padding:0 var(--pad);
 		order:999;
 		border-left:var(--border);
 	}

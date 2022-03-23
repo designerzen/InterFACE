@@ -215,6 +215,7 @@ small{
 	font-weight:400;
 	font-size:80%;
 	font-size:clamp(9px, var(--zoom) * 2vmin, 12px);
+	letter-spacing:0.5px;
 }
 
 // flexible sizes
