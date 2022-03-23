@@ -84,6 +84,8 @@ html(lang="en-GB" dir="ltr")
 		meta(property="og:title", content="InterFACE")
 		meta(property="og:url", content=URL)
 
+		//- {tags && tags.map((tag) => <meta property="article:tag" content={tag} />) }
+
 		//- Humans.txt - https://humanstxt.org/
 		link(type="text/plain" rel="author" href="https://interface.place/humans.txt")
 		
@@ -216,7 +218,7 @@ html(lang="en-GB" dir="ltr")
 					a.licenses(href="licenses.pug" target="_blank") Licenses
 					a.licenses(href="copyright.pug" target="_blank") Copyright
 
-					a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V #{package.description}
+					a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V #{package.version}
 							
 			//- Generally hidden aspects
 			share-menu#share-menu( 
