@@ -3,6 +3,7 @@
 	  	background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
 	}
 }
+
 // 
 @keyframes BGColours{
 	0%{
@@ -33,6 +34,7 @@
 		background-color: hsl(90, 60%, 40%);
 	}
 }
+
 // 
 @keyframes TextColours{
 	0%{
@@ -63,6 +65,7 @@
 		color: hsl(90, 60%, 40%);
 	}
 }
+
 @keyframes Shift{
 	from{
 		transform: translate( var(--xa,0), var(--ya,0) );
@@ -71,6 +74,7 @@
 		transform: translate( var(--xb,0), var(--yb,0) );
 	}
 }
+
 @keyframes Fade{
 	from{
 		opacity: 0;
@@ -94,6 +98,7 @@
 		opacity: 1;
 	}
 }
+
 @keyframes Loading{
 	0%{
 		transform:translateX( 0 );
@@ -165,5 +170,41 @@
 	}
 	90%{
 		content:'Once connected the device will sing';
+	}
+}
+
+
+
+$emoji:(
+	😀,
+	😃,
+	😄,
+	😁,
+	😆,
+	😅
+);
+// $emoji:(
+// 	GrinningFace:😀,
+// 	GrinningFaceWithBigEyes:😃,
+// 	GrinningFaceWithSmilingEyes:😄,
+// 	BeamingFaceWithSmilingEyes:😁,
+// 	GrinningSquintingFace:😆,
+// 	GrinningFaceWithSweat:😅
+// );
+
+@keyframes Emoji {
+	
+  	//  @each $name, $value in $emoji {
+		
+	// 	#{$name} {
+	// 		content: $value;
+	// 	}
+	// }
+	$end:6;
+	@for $i from 1 to $end {
+        #{100/$end*$i + "%"} {
+			$emoji:nth($emoji,$i);
+			content:quote( $emoji );
+		}
 	}
 }

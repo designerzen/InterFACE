@@ -42,6 +42,7 @@ $col-red:hsl( $hue-red, 58%, 35%);
 	background-position: center center;
 	justify-content: center;
 }
+
   
 // debug
 // @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
@@ -56,18 +57,18 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 :root{
 
 	// tints (use anywhere for colour with cpntrols)
-	--shade-white:hsl( $hue-white, var( --s, 27%), var( --l, 87%) );
-	--shade-dark:hsl( $hue-dark, var( --s, 6%), var( --l, 14%) );
-	--shade-grey:hsl( $hue-grey, var( --s, 6%), var( --l, 50%) );
-	--shade-gray:hsl( $hue-gray, var( --s, 6%), var( --l, 55%) );
-	--shade-cream:hsl( $hue-cream, var( --s, 18%), var( --l, 53%) );
-	--shade-tan:hsl( $hue-tan, var( --s, 30%), var( --l, 45%) );
-	--shade-brown:hsl( $hue-brown, var( --s, 22%), var( --l,30%) );
-	--shade-blue:hsl( $hue-blue, var( --s, 18%), var( --l,33%) );
-	--shade-green:hsl( $hue-green, var( --s, 18%), var( --l,33%) );
-	--shade-yellow:hsl( $hue-yellow, var( --s, 34%), var( --l,50%) );
-	--shade-orange:hsl( $hue-orange, var( --s, 69%), var( --l,38%) );
-	--shade-red:hsl( $hue-red, var( --s, 58%), var( --l,35%) );
+	--shade-white:hsl( #{$hue-white}, var( --s, 27%), var( --l, 87%) );
+	--shade-dark:hsl( #{$hue-dark}, var( --s, 6%), var( --l, 14%) );
+	--shade-grey:hsl( #{$hue-grey}, var( --s, 6%), var( --l, 50%) );
+	--shade-gray:hsl( #{$hue-gray}, var( --s, 6%), var( --l, 55%) );
+	--shade-cream:hsl( #{$hue-cream}, var( --s, 18%), var( --l, 53%) );
+	--shade-tan:hsl( #{$hue-tan}, var( --s, 30%), var( --l, 45%) );
+	--shade-brown:hsl( #{$hue-brown}, var( --s, 22%), var( --l,30%) );
+	--shade-blue:hsl( #{$hue-blue}, var( --s, 18%), var( --l,33%) );
+	--shade-green:hsl( #{$hue-green}, var( --s, 18%), var( --l,33%) );
+	--shade-yellow:hsl( #{$hue-yellow}, var( --s, 34%), var( --l,50%) );
+	--shade-orange:hsl( #{$hue-orange}, var( --s, 69%), var( --l,38%) );
+	--shade-red:hsl( #{$hue-red}, var( --s, 58%), var( --l,35%) );
 	
 	--curve:12px;
 	// global padding
@@ -209,7 +210,7 @@ form{
 	// cool intro effects...
 	fieldset > *{
 		animation-name:Fade, Shift;
-		animation-duration: var(--ease-s),var(--ease-s);
+		animation-duration: var(--ease-s, 0), var(--ease-s, 0);
 		animation-fill-mode: both, both;
 		animation-delay: var(--delay,0), var(--delay,0);
 		pointer-events: auto;
@@ -608,12 +609,13 @@ html.loading main{
 
 	--scroll-x:50px;
 	--scroll-y:50px;
-		
-	// grid effect
 	$bg-url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC";
-	background-color:$col-white;
 	background-image: url($bg-url), linear-gradient(rgba($col-white, 0.9), rgba($col-cream, 0.2) );
+	
 	background-size:var(--scroll-x), 100%;
+
+	background-color:$col-white;
+
 	background-repeat:repeat, repeat;
 
 	animation: BGScroll 999ms infinite linear reverse;
@@ -732,6 +734,21 @@ html.loading main{
 // Choose players
 // This is the how many people are playing mode
 .player-selection{
+
+	body{
+		
+		--scroll-x:50px;
+		--scroll-y:0px;
+
+		animation: BGScroll 999ms infinite linear;
+
+		// grid effect
+		background-size:var(--scroll-x) var(--scroll-y);
+		background-image:
+		  radial-gradient(circle at 75% 75%, var(--shade-gray) 6%, var(--shade-dark) 6% 18%, transparent 18%),
+		  linear-gradient(180deg, transparent 70%, var(--shade-brown) 70% 80%, transparent 80%),
+		  linear-gradient(90deg, var(--shade-dark) 70%, var(--shade-brown) 70% 80%, var(--shade-dark) 80%);
+	}
 	
 	//header > *{
 	header > *:not(nav){
@@ -1317,7 +1334,7 @@ header > *,
 fieldset > *,
 dialog[open] > *{
 
-	$end:19;
+	$end:49;
 	@for $i from 1 to $end {
 
 		&:nth-child(#{$i}){
