@@ -1,0 +1,7 @@
+User-agent: Googlebot
+Disallow: /assets/
+
+User-agent: *
+Allow: /
+
+Sitemap: http://interface.place/sitemap.xml
