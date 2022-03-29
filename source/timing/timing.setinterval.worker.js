@@ -10,7 +10,7 @@ const EVENT_TICK = "tick"
 let timerID = null
 let isRunning = false
 let startTime = -1
-let  = -1
+let currentTime = -1
 // assumes a constant tempo
 let gap = -1
 let intervals = 0
@@ -36,8 +36,7 @@ const loop = interval => {
         intervals++
         
         postMessage({ event:EVENT_TICK, time:passed, intervals })
-        // console.log({expected,passed,difference,currentTime})
-
+       
         const nextInterval = accurateTiming ? interval + difference : interval 
 
         // call itself with the new interval?
