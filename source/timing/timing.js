@@ -1,3 +1,7 @@
+// Only one instance of this timing class is allowed
+// but it is designed as such to allow for complex rythmns to 
+// be created as well as very basic events such as metronmoes.
+
 export const CMD_START = "start"
 export const CMD_STOP  = "stop"
 export const CMD_UPDATE  = "update"
@@ -11,7 +15,7 @@ export const MAX_BARS_ALLOWED = 32
 
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
-let isAvailable = true
+let isCompatable = true
 let timingWorker
 
 // NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
@@ -42,12 +46,12 @@ try{
     // timingWorker = new Worker(new URL('data-url:./timing.requestframe.worker.js', import.meta.url))
 
 }catch(error){
-    isAvailable = false
+    isCompatable = false
 }
 
 
 let startTime = -1
-let currentInterval = 1
+let period = 1
 let audioContext = null
 let isRunning = false
 
@@ -56,55 +60,109 @@ let bar = 0
 let bars = 16
 let barsElapsed = 0
 
-// time sig
+/**
+ *  Can we use this timing method on this device?
+ * @returns {Boolean} is the worker available and compatable
+ */
+export const isAvailable = () => isCompatable
+
+
+/**
+ *  Accurate time in milliseconds
+ * @returns {Number} The current time as of now
+ */
+export const now = () => audioContext.currentTime
+
+
+/**
+ *  Amount of time elapsed since startTimer()
+ * @returns {Number} BPM
+ */
+ export const elapsed = () => (now() - startTime) * 0.001
+
+
+// Bars 
+
 export const timePerBar = () => 2403 / bars
+
+/**
+ *  Fetch current bar
+ * @returns {Number} current bar
+ */
 export const getBar = () => bar
+
+
+/**
+ *  Fetch total bar quantity
+ * @returns {Number} total bars
+ */
+ export const getBars = () => bars 
+
+
+/**
+ *  Percentage duration of bar progress
+ * @returns {Number} percentage elapsed
+ */
 export const getBarProgress = () => bar / bars
 
-export const getBPM = () => 60000 / timePerBar()
-export const getBars = () => bars 
+
+/**
+ *  Allows a user to set the total number of bars
+ * @param {Number} value How many bars to have in a measure
+ * @returns {Number} total bars
+ */
 export const setBars = value => {
     bars = value < 1 ? 1 : value > MAX_BARS_ALLOWED ? MAX_BARS_ALLOWED : value
     return bars
 }
 
-export const now = () => audioContext.currentTime
 
-export const elapsed = () => (now() - startTime) * 0.001
+/**
+ *  Get the current timing as Beats per minute
+ * @returns {Number} BPM
+ */
+export const getBPM = () => 60000 / timePerBar()
 
-// export const setMode = newMode => {
-//     // check to see if in array of acceptable types
-//     mode = newMode
-//     timingWorker = new Worker(`${prefix}/timing.${mode}.worker.js`)
-//     // TODO: restart if running
-//    // console.error("Changing mode",mode, timingWorker)
-//     if (isRunning)
-//     {
-//         // 
-//     }
-// }
 
+/**
+ *  Set the current timing using a BPM
+ * @param {Number} bpm Beats per minute
+ * @returns {Number} interval id
+ */
 export const setBPM = bpm => {
-    // determine the interval from the BPM
-    currentInterval =  60000 / bpm
+    // determine the period from the BPM
+    period = 60000 / bpm
     // if it is running, stop and restart it?
-    //interval = newInterval
     // TODO
     // FIXME
-    timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
-    return currentInterval
+    timingWorker.postMessage({command:CMD_UPDATE, interval:period, time:now() })
+    return period
 }
 
+
+/**
+ *  Using a time in milliseconds, set the amount of time between tick and tock
+ * @param {Number} time Amount of millieconds between ticks
+ * @returns {Number} interval id
+ */
 export const setTimeBetween = time => {
-    currentInterval = time
+    period = time
     // if it is running, stop and restart it?
     //interval = newInterval
     // TODO
     // FIXME
-    timingWorker.postMessage({command:CMD_UPDATE, interval:currentInterval, time:now() })
-    return currentInterval
+    timingWorker.postMessage({command:CMD_UPDATE, interval:period, time:now() })
+    return period
 }
 
+
+/**
+ *  Starts the timer and begins events being dispatched
+ * @param {Function} callback Method to call when the timer ticks
+ * @param {Number} timeBetween Milliseconds between ticks aka Period
+ * @param {Object} options Other settings
+ * @returns {Object} current time and timingWorker
+ */
 export const startTimer = (callback, timeBetween=200, options={} ) => {
 
     barsElapsed = 0
@@ -120,7 +178,7 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
         }
     }
 
-    currentInterval = timeBetween
+    period = timeBetween
 
     if (!isRunning)
     {
@@ -195,6 +253,10 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
 }
 
 
+/**
+ *  Stops the timer and prevents events being dispatched
+ * @returns {Object} current time and timingWorker
+ */
 export const stopTimer = () => {
     const currentTime = now()
     // cancel the thing thrugh the workers first
@@ -226,9 +288,16 @@ export const stopTimer = () => {
 // https://www.nayuki.io/page/tap-to-measure-tempo-javascript
 let beatTimes = []
 const TAP_TIMEOUT = 10000
+const MINIMUM_TEMPOS = 2
 
-// requires at least two taps
-export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT) => {
+/**
+ *  Converts a series of method calls into a tempo estimate.
+ * @param {Boolean} autoReset Start a new estimation session if timeout reached
+ * @param {Number} timeOut Time frame before ignoring the event and starting a fresh estimation session
+ * @param {Number} minimumTaps Requires at least x taps before estimate set
+ * @returns {Number} New Period
+ */
+export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT, minimumTaps = MINIMUM_TEMPOS) => {
     
     const now = Date.now()
 
@@ -237,7 +306,6 @@ export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT) => {
         beatTimes = []
     }
 
-    // Add beat
     beatTimes.push(now)
 
     const quantity = beatTimes.length
@@ -245,9 +313,8 @@ export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT) => {
     const y = beatTimes[x] - beatTimes[0]
     // const time = (y / 1000).toFixed(3)
    
-    if (quantity >= 2) 
+    if (quantity >= minimumTaps) 
     {
-        // period
         // const tempo = 60000 * x / y
         const period = y / x
         return period
