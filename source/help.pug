@@ -1,4 +1,4 @@
-extends abstract.pug
+extends _abstract.pug
 
 block title
 	+title('Help')
@@ -13,5 +13,6 @@ block preload
 
 block main
 	h3 Help
+	include:markdown-it ./instructions.md
 
 	

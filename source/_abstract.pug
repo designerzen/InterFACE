@@ -56,8 +56,7 @@ html(lang="en-GB" dir="ltr")
 				document.documentElement.classList.add("loading","app")
 			
 		block scripts
-			script(type="module", src="index.js", rel="preload")
-		
+			
 		//-  These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. 
 		//- Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html
 		meta(name="apple-mobile-web-app-capable", content="yes")
@@ -146,8 +145,7 @@ html(lang="en-GB" dir="ltr")
 						li If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
 						li If your face is not found, try and improve the brightness in the room by turning on some lights
 					
-				small.version Version 
-					include version.txt
+				small.version Version #{package.version}
 
 				//- iframe instead?
 				p.learn-more
@@ -196,6 +194,8 @@ html(lang="en-GB" dir="ltr")
 		block footer
 			//- Always visible on screen and overlaid on top	
 			footer#foot
+
+				<h6 class="sr-only">Associates</h6>
 
 				ul.associates.icon-list
 					li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
