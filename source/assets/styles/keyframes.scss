@@ -1,3 +1,4 @@
+@use "sass:math";
 @keyframes BGScroll {
   	0% { 
 	  	background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
@@ -202,7 +203,7 @@ $emoji:(
 	// }
 	$end:6;
 	@for $i from 1 to $end {
-        #{100/$end*$i + "%"} {
+        #{math.div(100, $end)*$i + "%"} {
 			$emoji:nth($emoji,$i);
 			content:quote( $emoji );
 		}

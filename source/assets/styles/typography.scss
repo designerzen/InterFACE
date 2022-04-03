@@ -1,4 +1,4 @@
-
+@use "sass:math";
 // Overall font size zoom 
 // Changing this does not impact on browser setting so +1 a18y
 // NB. 16px = 100% therefore 10px = 100/16 * 10
@@ -13,8 +13,8 @@ $font-size-smallest:9;
 // Wiewport in (r)ems
 // NB. multiple by 16 to get approx size in pixels for default browser font size
 // NB. Omit units
-$viewport-min:320/16;//20;	// about 320px
-$viewport-max:840/16;//740/16;	// about 16x 
+$viewport-min:math.div(320, 16);//20;	// about 320px
+$viewport-max:math.div(840, 16);//740/16;	// about 16x 
 
 :root{
 	
@@ -123,7 +123,7 @@ body{
 }
 
 // make scalable
-h1,h2,h3,h4,h5,h6,p{
+h1,h2,h3,h4,h5,h6,p, label{
 
 	// general scale
 	// --font-scale:var(--s0);

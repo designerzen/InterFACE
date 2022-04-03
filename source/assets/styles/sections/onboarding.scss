@@ -1,0 +1,366 @@
+
+// we need this to visually look the same size as the video
+#onboard{
+	visibility:hidden;
+	display: none;
+}
+
+// Choose players screen
+// This is the how many people are playing mode
+.player-selection{
+
+	body{
+		
+		--scroll-x:50px;
+		--scroll-y:0px;
+
+		animation: BGScroll 999ms infinite linear;
+
+		// grid effect
+		background-size:var(--scroll-x) var(--scroll-y);
+		background-image:
+		  radial-gradient(circle at 75% 75%, var(--shade-gray) 6%, var(--shade-dark) 6% 18%, transparent 18%),
+		  linear-gradient(180deg, transparent 70%, var(--shade-brown) 70% 80%, transparent 80%),
+		  linear-gradient(90deg, var(--shade-dark) 70%, var(--shade-brown) 70% 80%, var(--shade-dark) 80%);
+	}
+	
+	//header > *{
+	header > *:not(nav){
+		visibility: hidden;
+	}
+
+
+	// strapline... show yet?
+	#title{
+		position: absolute;
+		bottom:0;
+		visibility:hidden;
+	}
+	
+	// instructions do show periodically so we need to ensure that they
+	// NB. don't cover the buttons
+	#toast{
+		--footer-gap:var(--pad);
+		bottom:auto;
+		top:var(--pad);
+		right:auto;
+		max-width:calc( 100% - 4rem );
+		// prevent cramping
+		margin:0 var(--pad);
+		background-color: $col-dark;
+		text-align:center;
+	}
+
+	// form > * {
+	// 	visibility: hidden;
+	// 	pointer-events: auto;
+	// }	
+	#onboard{
+		z-index:1;
+		display:flex;
+		flex-direction:column;
+		align-items:center;
+		border:var(--border-size, 9px) solid var(--shade-dark);
+		border-radius:var(--curve);
+		background-image:linear-gradient(
+			hsla(18, 21%, 12%, 0.7), 
+			hsla(340, 5%, 11%, 0.7)
+		);
+		padding: var(--pad);
+		padding-top: 0;
+		margin:auto;
+
+		// do something in wider screens
+		max-width:calc( 100% - 240px );
+		
+		@media screen and (max-width:440px){
+			margin-top:5rem;
+			max-width:100%;
+		}
+	}
+
+	// show this
+	#onboard,
+	#player-selector{
+		visibility: visible;
+	}
+	
+	// hide stuff not relevent
+	// Instrument selection panel
+	#controls{
+		display: none;
+	}
+
+	
+	.person,
+	#shared-controls{
+		visibility: hidden;
+	}
+
+	// NB: Warning - this MAY trigger a video element not found error
+	// as JS pointer no longer has DOM equivalent
+	canvas,
+	video,
+	fieldset.person-controls{
+		display: none;
+	}
+
+	#button-trio{
+		display:none;
+	}
+
+	#help .player-selection-help{
+		display: block;
+	}
+	
+	#app-frame{
+		height:auto;
+		min-height:auto;
+		max-height:none;
+		//max-height:calc( 100% - var(--footer-gap, 44px) );
+	}
+
+	// we invert as on black background
+	#foot{
+		position: relative;
+		bottom:auto;
+		left:auto;
+		right:auto;
+		margin:0 var(--pad) var(--pad) var(--pad);
+		color:$col-tan;
+		a {
+			color: $col-yellow;
+		}
+	}
+}
+
+
+label[for=button-start]{
+
+	transform: translateY(-50%);
+	//margin-top:-2.5rem;
+	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
+	
+	--col-bg: #{$col-orange};
+	--col-hover:#{$col-cream};
+
+	--button-border-size:4px;
+	--bg:url(/source/assets/icons/music_note-24px.svg);
+	--pos-override:left var(--pad) center;
+	
+	
+	@extend %button-style;
+
+	z-index:909;
+	border-radius:var(--curve, 0);
+
+	position: relative;
+
+	input{
+		position: absolute;
+		top:0;
+		right:0;
+		bottom:0;
+		left:0;
+		color:transparent;
+		// opacity: 0;
+	}
+	&:after{
+		content:'!';
+	}
+}
+.solo label[for="button-start"]{
+	--bg:url(/source/assets/icons/person-24px.svg);
+	&:before{
+		content:'Solo ';
+	}
+}
+
+.beginner label[for="button-start"]{
+	&:after{
+		content:' in Simple Mode';
+	}
+}
+.duet label[for="button-start"]{
+	--bg:url(/source/assets/icons/people-24px.svg);
+	&:before{
+		content:'Duet ';
+	}
+}
+
+
+// Player selection screen
+#player-selector{
+	// size of the logo asnd help button
+	--top-gap:clamp(66px, 7vh, 15%);//clamp(1rem, 7vh, 5rem);
+	// prevents a button becoming an icon
+	--max-width-override:auto;
+	--border-radius:8px;
+	--border-size:clamp(4px, 20vmax, 9px);
+	
+	text-align:center;
+	box-sizing: border-box;
+	visibility: hidden;
+	user-select: none;
+
+	border-radius:var(--border-radius);
+	// doesn't work anymore
+	// border-image: linear-gradient(
+	// 	var(--shade-grey, hsla(0, 0%, 100%, 0.3) ), 
+	// 	var(--shade-gray, hsla(0, 0%, 0%, 0.3) )
+	// );
+	border-style: ridge;
+	
+	margin:0;
+	padding:calc(var(--pad)*2) calc(var(--pad) * 1.5);// var(--pad);
+	display:flex;
+	flex-direction: row;
+	flex-wrap:wrap;
+
+	align-items:stretch;
+	justify-content: center;
+	grid-gap:4px;
+
+	//min-height:calc( 100% - var(--top-gap) * 2);
+	// max-height:100%;
+	
+	label{
+		--icon-size: 44px;
+		--button-border-size:var(--border-size);
+
+		//border-radius:var(--border-radius);
+
+		// this softens the border
+		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
+
+		input{
+			--col-hover:$col-blue;
+			// special border for these only
+			// border-image: linear-gradient(
+			// 	var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
+			// 	var(--col-bottom, hsla(0, 0%, 0%, 0.3) )
+			// );
+
+			// border-image:conic-gradient(from 90deg, #fff, #000);
+
+		}
+
+		// cool effect
+		&:after{
+			content: "";
+			z-index:-1;
+			opacity:0;
+			background:var( --col-hover, rgba($col-white, 0.4) );
+			position: absolute;
+			top:0;
+			left: 0;
+			bottom:0;
+			right:0;
+			transform: scaleX(0);
+			transition: transform 45ms ease-out, opacity 90ms linear;
+		}
+		
+		&:hover, &:focus{
+			
+			&:after{
+				transition: transform 150ms ease-out, opacity 150ms linear;
+				transform:none;
+				opacity:0.3;
+			}
+		}
+	}
+
+	button, label{
+		--dir-override:column;
+		--pos-override: top calc(var(--pad) - var(--border-size)) center;
+		//--pos-override: top center;
+		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
+		// border-radius:24px;
+
+		text-indent: 0;
+		overflow: visible;
+		// color: $col-dark;
+		// background-color: $col-yellow;
+		justify-content: center;
+		max-height: unset;
+
+		// prevent growing the button 
+		// as this mis-aligns the icons
+		// flex-grow:0;
+		// flex-shrink:0;
+		flex:0 1 100%;
+		
+		// double channel if short and wide
+		@media screen and (min-width:640px) and (max-height:640px) {
+			flex:0 1 calc(50% - 2px);
+		}
+
+	}
+
+	label[for="toggle-advanced-mode"]{
+		//color:$col-white;
+		padding:var(--pad);
+		margin-top:var(--pad);
+		margin-bottom:var(--pad);
+		border-top:1px solid $col-white;
+		background:transparent;
+		// align-self: center;
+		// vertical-align: middle;
+		display: flex;
+		align-items: center;
+		flex-basis: 100%;
+	}
+
+	label[for*="button-"]{
+		// hover colour should be neutral on label...
+		--col-hover:#{$col-gray};
+		
+		background:none;
+
+		&:before,
+		&:hover:before,
+		&:focus:before{
+			opacity:1;
+		}
+		input{
+			//margin-left:var(--pad);
+			z-index:-1;
+		}
+	}
+
+	
+	// animate out again?
+	&.completed{
+
+		button, label{
+			--xb:100%;
+			//animation-name: Shift, Fade;
+			animation-direction: normal, reverse;
+			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
+		}
+	}
+	p{
+		animation-delay: 0s;
+		transition-delay: 0s;
+	}
+
+	.simple{
+		display: none;
+	}
+		
+	.advanced{
+		display: block;
+	}
+
+	.beginner &{
+	
+		.simple{
+			display: block;
+		}
+			
+		.advanced{
+			display: none;
+		}
+	}
+
+}

@@ -351,7 +351,6 @@ input[type=list],
 input[type=radio]:checked,
 // label[for=button-solo],
 // label[for=button-duet],
-label[for=button-start],
 .controls > *{
 
 	@extend %button-style;
@@ -374,8 +373,9 @@ label[for=button-start],
 // this adds some right pad to icons on the control bar
 .controls > *{
 
-	&:not(.hide-text):before{
-		margin-right:calc(var(--pad) / 2 );
+	&:not(.hide-text){
+		gap:calc(var(--pad) / 2 );
+		//margin-right:calc(var(--pad) / 2 );
 	}
 }
 
@@ -698,7 +698,7 @@ label[for=button-start],
 	
 	// selector for the tempo
 	label[for="select-tempo"]{
-		--bg:url(./assets/icons/speed-24px.svg);
+		--bg:url(/source/assets/icons/speed-24px.svg);
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
 	}
@@ -707,45 +707,45 @@ label[for=button-start],
 		order:-1;
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/settings-24px.svg);
+		--bg:url(/source/assets/icons/settings-24px.svg);
 
 		&.checked{
 			// arrow down to show that the settings hide
-			--bg:url(./assets/icons/expand_more-24px.svg);
+			--bg:url(/source/assets/icons/expand_more-24px.svg);
 		}
 	}
 
 	label[for="button-quantise"]{
 		--col-select:#{$col-blue};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/grid_off-24px.svg);
+		--bg:url(/source/assets/icons/grid_off-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/grid_on-24px.svg);
+			--bg:url(/source/assets/icons/grid_on-24px.svg);
 		}
 	}
 
 	label[for="button-metronome"]{
-		--bg:url(./assets/icons/hourglass_disabled-24px.svg);
+		--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/hourglass_empty-24px.svg);
+			--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
 		}
 	}
 
 	label[for="button-mute"]{
 		--col-select:#{$col-blue};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/volume_mute-24px.svg);
+		--bg:url(/source/assets/icons/volume_mute-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/volume_off-24px.svg);
+			--bg:url(/source/assets/icons/volume_off-24px.svg);
 		}
 	}
 
 	label[for="button-disco"]{
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/blur_off-24px.svg);
+		--bg:url(/source/assets/icons/blur_off-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/blur_on-24px.svg);
+			--bg:url(/source/assets/icons/blur_on-24px.svg);
 		}
 	}
 
@@ -753,9 +753,9 @@ label[for=button-start],
 	label[for="select-impulse"]{
 		--col-select:#{$col-blue};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/extension-24px.svg);
+		--bg:url(/source/assets/icons/extension-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/extension_off-24px.svg);
+			--bg:url(/source/assets/icons/extension_off-24px.svg);
 		}
 	}
 
@@ -763,9 +763,9 @@ label[for=button-start],
 	label[for="button-meshes"]{
 		--col-select:#{$col-yellow};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/face_retouching_off-24px.svg);
+		--bg:url(/source/assets/icons/face_retouching_off-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/face_retouching_natural-24px.svg);
+			--bg:url(/source/assets/icons/face_retouching_natural-24px.svg);
 		}
 	}
 
@@ -774,9 +774,9 @@ label[for=button-start],
 	label[for="select-eyes"]{
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/adjust-24px.svg);
+		--bg:url(/source/assets/icons/adjust-24px.svg);
 		&.checked{
-			//--bg:url(./assets/icons/extension_off-24px.svg);
+			//--bg:url(/source/assets/icons/extension_off-24px.svg);
 		}
 	}
 
@@ -786,9 +786,9 @@ label[for=button-start],
 		
 	// Toggle show eyes or hide eyes
 	label[for="button-eyes"]{
-		--bg:url(./assets/icons/motion_photos_off-24px.svg);
+		--bg:url(/source/assets/icons/motion_photos_off-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/motion_photos_on-24px.svg);
+			--bg:url(/source/assets/icons/motion_photos_on-24px.svg);
 		}
 	}
 
@@ -796,9 +796,9 @@ label[for=button-start],
 	label[for="button-subtitles"]{
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
-		--bg:url(./assets/icons/speaker_notes-24px.svg);
+		--bg:url(/source/assets/icons/speaker_notes-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/speaker_notes_off-24px.svg);
+			--bg:url(/source/assets/icons/speaker_notes_off-24px.svg);
 		}
 	}
 
@@ -806,9 +806,9 @@ label[for=button-start],
 	label[for="select-palette"]{
 		--col-select:#{$col-yellow};
 		--col-hover:#{$col-green};
-		--bg:url(./assets/icons/color_lens-24px.svg);
+		--bg:url(/source/assets/icons/color_lens-24px.svg);
 		&.checked{
-			//--bg:url(./assets/icons/extension_off-24px.svg);
+			//--bg:url(/source/assets/icons/extension_off-24px.svg);
 		}
 	}
 
@@ -816,9 +816,9 @@ label[for=button-start],
 	label[for="button-percussion"]{
 		--col-select:#{$col-green};
 		--col-hover:#{$col-yellow};
-		--bg:url(./assets/icons/auto_fix_high-24px.svg);
+		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/auto_fix_off-24px.svg);
+			--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
 		}
 	}
 
@@ -830,16 +830,16 @@ label[for=button-start],
 		//--col-hover:transparent;
 
 		@extend %image-replacement;
-		--bg:url(./assets/icons/fullscreen-24px.svg);
+		--bg:url(/source/assets/icons/fullscreen-24px.svg);
 		
 		// toggled state
 		&.checked{
-			--bg:url(./assets/icons/fullscreen_exit-24px.svg);
+			--bg:url(/source/assets/icons/fullscreen_exit-24px.svg);
 		}
 		
 		// override if user has esc'ed
 		@media all and (display-mode: fullscreen) {
-			--bg:url(./assets/icons/fullscreen_exit-24px.svg) !important;
+			--bg:url(/source/assets/icons/fullscreen_exit-24px.svg) !important;
 		}
 	}
 	
@@ -848,9 +848,9 @@ label[for=button-start],
 		// --col-hover:#{$col-dark};
 		--col-select:#{$col-blue};
 		// @extend %image-replacement;
-		--bg:url(./assets/icons/videocam_off-24px.svg);
+		--bg:url(/source/assets/icons/videocam_off-24px.svg);
 		&.checked{
-			--bg:url(./assets/icons/videocam-24px.svg);
+			--bg:url(/source/assets/icons/videocam-24px.svg);
 		}
 	}
 
@@ -858,18 +858,18 @@ label[for=button-start],
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-green};
 		--col-select:#{$col-orange};
-		--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
+		--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
 		&.checked{
-			--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
+			--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
 		}
 	}
 	label[for="select-samples"]{
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-green};
 		--col-select:#{$col-orange};
-		--bg:url(./assets/icons/audiotrack-24px.svg);
+		--bg:url(/source/assets/icons/audiotrack-24px.svg);
 		// &.checked{
-		// 	--bg:url(./assets/icons/graphic_eq_black_24dp.svg);
+		// 	--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
 		// }
 	}
 
@@ -877,9 +877,9 @@ label[for=button-start],
 	// 	// --col-hover:$col-dark;
 	// 	--col-hover:#{$col-green};
 	// 	--col-select:#{$col-green};
-	// 	background-image:url(./assets/icons/piano-24px.svg);
+	// 	background-image:url(/source/assets/icons/piano-24px.svg);
 	// 	&.checked{
-	// 		background-image:url(./assets/icons/piano_off-24px.svg);
+	// 		background-image:url(/source/assets/icons/piano_off-24px.svg);
 	// 	}
 	// }
 
@@ -887,14 +887,14 @@ label[for=button-start],
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		// --bg:url(./assets/icons/image_not_supported-24px.svg);
-		--bg:url(./assets/icons/visibility-24px.svg);
+		// --bg:url(/source/assets/icons/image_not_supported-24px.svg);
+		--bg:url(/source/assets/icons/visibility-24px.svg);
 
 		&.checked{
-			// background-image:url(./assets/icons/music_off-24px.svg);
-			// --bg:url(./assets/icons/image-24px.svg);
-			--bg:url(./assets/icons/visibility_off-24px.svg);
-			// background-image:url(./assets/icons/music_note-24px-24px.svg);
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			// --bg:url(/source/assets/icons/image-24px.svg);
+			--bg:url(/source/assets/icons/visibility_off-24px.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
 		}
 	}
 
@@ -906,12 +906,12 @@ label[for=button-start],
 	label[for="button-speak"]{
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		// --bg:url(./assets/icons/mic_off-24px.svg);
-		--bg:url(./assets/icons/voice_over_off_black_24dp.svg);
+		// --bg:url(/source/assets/icons/mic_off-24px.svg);
+		--bg:url(/source/assets/icons/voice_over_off_black_24dp.svg);
 		&.checked{
-			// background-image:url(./assets/icons/music_off-24px.svg);
-			--bg:url(./assets/icons/record_voice_over_black_24dp.svg);
-			// background-image:url(./assets/icons/music_note-24px-24px.svg);
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			--bg:url(/source/assets/icons/record_voice_over_black_24dp.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
 		}
 	}
 	
@@ -921,24 +921,24 @@ label[for=button-start],
 		// --col-hover:$col-dark;
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
-		--bg:url(./assets/icons/web_asset_off-24px.svg);
+		--bg:url(/source/assets/icons/web_asset_off-24px.svg);
 		&.checked{
-			// background-image:url(./assets/icons/music_off-24px.svg);
-			--bg:url(./assets/icons/web_asset-24px.svg);
-			// background-image:url(./assets/icons/music_note-24px-24px.svg);
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			--bg:url(/source/assets/icons/web_asset-24px.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
 		}
 	}
 
 	// selector for the tempo
 	label[for="select-tempo"]{
-		--bg:url(./assets/icons/speed-24px.svg);
+		--bg:url(/source/assets/icons/speed-24px.svg);
 		--col-hover:#{$col-blue};
 		--col-select:#{$col-yellow};
 	}
 	
 
 	label[for="input-tempo"]{
-		--bg:url(./assets/icons/speed-24px.svg);
+		--bg:url(/source/assets/icons/speed-24px.svg);
 		--col-select:#{$col-yellow};
 	}
 
@@ -1131,7 +1131,7 @@ select:not([multiple]):not([size]) {
 
 label[for="button-trio"]{
 	display:none;
-	--bg:url(./assets/icons/groups-24px.svg);
+	--bg:url(/source/assets/icons/groups-24px.svg);
 }
 
 // These need overrides for size
@@ -1140,66 +1140,24 @@ button#button-trio{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
 	--col-hover:#{$col-green};
-	--bg:url(./assets/icons/person_add-24px.svg);
+	--bg:url(/source/assets/icons/person_add-24px.svg);
 	//display: none;
 }
 label[for="button-solo"],
 button#button-solo{
 	--col-bg: #{$col-green};
-	--bg:url(./assets/icons/person-24px.svg);
+	--bg:url(/source/assets/icons/person-24px.svg);
 	--y:100%;
 }
 
 label[for="button-duet"],
 button#button-duet{
 	--col-bg: #{$col-blue};
-	--bg:url(./assets/icons/people-24px.svg);
+	--bg:url(/source/assets/icons/people-24px.svg);
 	--y:-100%;
 }
 
-label[for="button-start"]{
-	margin-top:-2.5rem;
-	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
-	
-	--col-bg: #{$col-orange};
-	--col-hover:#{$col-cream};
 
-	--button-border-size:4px;
-	--bg:url(./assets/icons/music_note-24px.svg);
-	--pos-override:left var(--pad) center;
-	z-index:909;
-	border-radius:0;
-
-	input{
-		position: absolute;
-		top:0;
-		right:0;
-		opacity: 0;
-	}
-	&:after{
-		content:'!';
-	}
-}
-
-.solo label[for="button-start"]{
-	--bg:url(./assets/icons/person-24px.svg);
-	&:before{
-		content:'Solo ';
-	}
-}
-
-.duet label[for="button-start"]{
-	--bg:url(./assets/icons/people-24px.svg);
-	&:before{
-		content:'Duet ';
-	}
-}
-
-.beginner label[for="button-start"]{
-	&:after{
-		content:' in Simple Mode';
-	}
-}
 
 // logo 
 #link-about{
@@ -1341,7 +1299,7 @@ button#button-midi{
 	//background-position: left 1px center;
 	// --icon-size:36px;
 	//background-color: $col-cream;
-	--bg:url(assets/logos/midi2.0.svg);
+	--bg:url(/source/assets/logos/midi2.0.svg);
 	&:before{
 		// also make sure we have set the width for midi as is not square
 		//min-width: calc(var(--icon-size) * 1.2);
@@ -1357,26 +1315,26 @@ button#button-record{
 
 button#button-photograph{
 	--col-hover:#{$col-blue};
-	--bg:url(./assets/icons/add_a_photo-24px.svg);
+	--bg:url(/source/assets/icons/add_a_photo-24px.svg);
 }
 
 
 button#button-reset{
 	--col-hover:#{$col-blue};
-	--bg:url(./assets/icons/report_problem_black_24dp.svg);
+	--bg:url(/source/assets/icons/report_problem_black_24dp.svg);
 }
 
 button#button-help{
 	// background-color:vae(--col-hover);
 	// background-color: $col-yellow;
 	--col-hover:#{$col-blue};
-	--bg:url(./assets/icons/help_outline_black_24dp.svg);
+	--bg:url(/source/assets/icons/help_outline_black_24dp.svg);
 	//display: none;
 	cursor: help;
 }
 
 button#share{
-	--bg:url(./assets/icons/share-24px.svg);
+	--bg:url(/source/assets/icons/share-24px.svg);
 	margin-left: auto;
 	z-index:2;
 }
@@ -1385,8 +1343,8 @@ button#share{
 #button-install,
 #button-upgrade{
 	order:-1;
-	// --bg:url(./assets/icons/get_app-24px.svg);
-	--bg:url(./assets/icons/download_for_offline_black_24dp.svg);
+	// --bg:url(/source/assets/icons/get_app-24px.svg);
+	--bg:url(/source/assets/icons/download_for_offline_black_24dp.svg);
 	background-color: $col-orange;
 }
 
@@ -1436,8 +1394,8 @@ label[for="select-camera"],
 	// background-color:$col-blue;
 	// border-radius: 4px;
 	// &:focus-within,
-	// background-image:url(./assets/icons/switch_video-24px.svg);
-	--bg:url(./assets/icons/switch_video-24px.svg);
+	// background-image:url(/source/assets/icons/switch_video-24px.svg);
+	--bg:url(/source/assets/icons/switch_video-24px.svg);
 	// overflow:hiddfooten;
 
 	&:before{
@@ -1467,159 +1425,6 @@ label[for="select-camera"],
 }
 
 
-// Player selection screen
-#player-selector{
-	// size of the logo asnd help button
-	--top-gap:clamp(66px, 7vh, 15%);//clamp(1rem, 7vh, 5rem);
-	// prevents a button becoming an icon
-	--max-width-override:auto;
-	--border-radius:8px;
-	--border-size:clamp(4px, 4vmax, 8px);
-	
-	text-align:center;
-	box-sizing: border-box;
-	visibility: hidden;
-	user-select: none;
-
-	border-radius:var(--border-radius);
-		
-	border-image: linear-gradient(
-		var(--shade-grey, hsla(0, 0%, 100%, 0.3) ), 
-		var(--shade-gray, hsla(0, 0%, 0%, 0.3) )
-	);
-	border-style: ridge;
-	
-	margin:0;// solid transparent;
-	margin-top:var(--top-gap);
-	//margin-bottom:var(--top-gap);
-	// margin:clamp(calc(var(--top-gap)),3vw,auto) auto;// solid transparent;
-	padding:calc(var(--pad)*2) calc(var(--pad) * 1.5);// var(--pad);
-	// margin-top:calc(var(--top-gap));// solid transparent;
-	// margin-bottom:calc(var(--top-gap));// solid transparent;
-	display:flex;
-	flex-direction: column;
-	// place-content: center;
-	align-items:stretch;
-	justify-content: space-around;
-	// grid-gap:4px;
-	//min-height:calc( 100% - var(--top-gap) * 2);
-	max-width:62ch;
-	max-height:100%;
-	
-	label{
-		--icon-size: 44px;
-		--button-border-size:var(--border-size);
-
-		//border-radius:var(--border-radius);
-
-		// this softens the border
-		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
-
-		input{
-			--col-hover:$col-blue;
-			// special border for these only
-			// border-image: linear-gradient(
-			// 	var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
-			// 	var(--col-bottom, hsla(0, 0%, 0%, 0.3) )
-			// );
-
-			// border-image:conic-gradient(from 90deg, #fff, #000);
-
-		}
-
-		// cool effect
-		&:after{
-			content: "";
-			z-index:-1;
-			opacity:0;
-			background:var( --col-hover, rgba($col-white, 0.4) );
-			position: absolute;
-			top:0;
-			left: 0;
-			bottom:0;
-			right:0;
-			transform: scaleX(0);
-			transition: transform 45ms ease-out, opacity 90ms linear;
-		}
-		
-		&:hover, &:focus{
-			
-			&:after{
-				transition: transform 150ms ease-out, opacity 150ms linear;
-				transform:none;
-				opacity:0.3;
-			}
-		}
-	}
-
-	> label + label { 
-		margin-top:var(--pad);
-	}
-
-	button, label{
-		--dir-override:column;
-		--pos-override: top calc(var(--pad) - var(--border-size)) center;
-		//--pos-override: top center;
-		font-size: clamp(15px, -0.5385rem + 2.2vmax, 14px);
-		// border-radius:24px;
-
-		text-indent: 0;
-		overflow: visible;
-		// color: $col-dark;
-		// background-color: $col-yellow;
-		justify-content: center;
-		max-height: unset;
-
-		// prevent growing the button 
-		// as this mis-aligns the icons
-		// flex-grow:0;
-		// flex-shrink:0;
-		flex:none;
-	}
-
-	label[for="toggle-advanced-mode"]{
-		//color:$col-white;
-		padding:var(--pad);
-		margin-top:var(--pad);
-		margin-bottom:var(--pad);
-		border-top:1px solid $col-white;
-		background:transparent;
-		// align-self: center;
-		// vertical-align: middle;
-		display: flex;
-		align-items: center;
-	}
-
-	label[for*="button-"]{
-		// hover colour should be neutral on label...
-		--col-hover:#{$col-gray};
-		
-		background:none;
-
-		&:before,
-		&:hover:before,
-		&:focus:before{
-			opacity:1;
-		}
-		input{
-			//margin-left:var(--pad);
-			z-index:-1;
-		}
-	}
-
-	
-	// animate out again?
-	&.completed{
-
-		button, label{
-			--xb:100%;
-			//animation-name: Shift, Fade;
-			animation-direction: normal, reverse;
-			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
-		}
-	}
-}
-
 .hidden,
 [hidden]{
 	display:none;
@@ -1633,6 +1438,7 @@ nav{
 	right:var(--pad);
 	// 303 is the shared controls...
 	z-index:505;
+	pointer-events: none;
 }
 
 nav ul{
@@ -1700,7 +1506,7 @@ a[href="#help"]{
 		content: '';
 		min-width:44px;
 		min-height:44px;
-		background:url(./assets/icons/help_outline_black_24dp.svg) center no-repeat;
+		background:url(/source/assets/icons/help_outline_black_24dp.svg) center no-repeat;
 		background-size: contain;
 		filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
 		margin-right:calc( 0.5 * var(--pad) );
