@@ -1,4 +1,4 @@
-extends abstract.pug
+extends _abstract.pug
 
 block title
 	+title('Copyright')
@@ -8,5 +8,19 @@ block nav
 block preload 
 
 block main
-	h3 Copyright
+	h3 Copyright 2022 &amp; designerzen ltd
+
+	p.
+		This project is licensed under the GPL license.
+		
+		The MIT License (MIT)
 	a(href="./licenses.pug") Licenses
+
+	h4 Libraries Used
+	p.
+		The following libraries are used in this project and I sincerly thank them for their hard work and input with this project
+		
+	ul.libraries
+		li TensorFlow 
+		li MediaPose 
+		li WorkBox
