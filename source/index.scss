@@ -177,14 +177,16 @@ select::-ms-expand {
 // form seems to want focus all the time
 form{
 
+	
+
 	// give it a cool border effect
 	fieldset{
 		--breakpoint:320px;//12ch;
 
 		margin:var(--pad) 0;
 		padding:0;
-		border:var(--border-size, 3px) double $col-grey;
-		border-image: linear-gradient( $col-grey, $col-gray );
+		border:var(--border-size, 9px) double var(--col-white);
+		//border-image: linear-gradient( $col-grey, $col-gray );
 		
 		display:flex;
 		position: relative;
@@ -201,7 +203,6 @@ form{
 		// NB. ensure in front of the person buttons (202)
 		z-index:303;
 	}
-
 
 	fieldset:empty{
 		display: none;
@@ -386,7 +387,7 @@ a, area, button, input, label, select, summary, textarea, [tabindex] {
 		fill:currentColor;
 	}
 
-	// background:url(./assets/logos/interface.svg) no-repeat left;
+	// background:url(/source/assets/logos/interface.svg) no-repeat left;
 	// background-size: contain;
 	// background-position: left;
 }
@@ -623,9 +624,9 @@ html.loading main{
 	// add some background textures
 	body{
 		background-image:  linear-gradient( rgba($col-white, 0.5), rgba($col-cream, 0.5) ),
-							//url(./assets/logos/sxsw2021.svg),
-							url(./assets/textures/45-degree-fabric-light.png), 
-							url(./assets/textures/45-degree-fabric-dark.png);
+							//url(/source/assets/logos/sxsw2021.svg),
+							url(/source/assets/textures/45-degree-fabric-light.png), 
+							url(/source/assets/textures/45-degree-fabric-dark.png);
 
 		background-size: 	100%,
 							//15%,
@@ -730,112 +731,6 @@ html.loading main{
 	display: none;
 }
 // STATES /////////////////////////////////////////////////////
-
-// Choose players
-// This is the how many people are playing mode
-.player-selection{
-
-	body{
-		
-		--scroll-x:50px;
-		--scroll-y:0px;
-
-		animation: BGScroll 999ms infinite linear;
-
-		// grid effect
-		background-size:var(--scroll-x) var(--scroll-y);
-		background-image:
-		  radial-gradient(circle at 75% 75%, var(--shade-gray) 6%, var(--shade-dark) 6% 18%, transparent 18%),
-		  linear-gradient(180deg, transparent 70%, var(--shade-brown) 70% 80%, transparent 80%),
-		  linear-gradient(90deg, var(--shade-dark) 70%, var(--shade-brown) 70% 80%, var(--shade-dark) 80%);
-	}
-	
-	//header > *{
-	header > *:not(nav){
-		visibility: hidden;
-	}
-
-
-	// strapline... show yet?
-	#title{
-		position: absolute;
-		bottom:0;
-		visibility:hidden;
-	}
-	
-	// instructions do show periodically so we need to ensure that they
-	// NB. don't cover the buttons
-	#toast{
-		--footer-gap:var(--pad);
-		bottom:auto;
-		top:var(--pad);
-		right:auto;
-		max-width:calc( 100% - 4rem );
-		// prevent cramping
-		margin:0 var(--pad);
-		background-color: $col-dark;
-		text-align:center;
-	}
-
-	// form > * {
-	// 	visibility: hidden;
-	// 	pointer-events: auto;
-	// }	
-
-	// show this
-	#onboard,
-	#player-selector{
-		visibility: visible;
-	}
-	
-	// hide stuff not relevent
-	// Instrument selection panel
-	#controls{
-		display: none;
-	}
-
-	
-	.person,
-	#shared-controls{
-		visibility: hidden;
-	}
-
-	// NB: Warning - this MAY trigger a video element not found error
-	// as JS pointer no longer has DOM equivalent
-	canvas,
-	video,
-	fieldset.person-controls{
-		display: none;
-	}
-
-	#button-trio{
-		display:none;
-	}
-
-	#help .player-selection-help{
-		display: block;
-	}
-	
-	#app-frame{
-		height:auto;
-		min-height:auto;
-		max-height:none;
-		//max-height:calc( 100% - var(--footer-gap, 44px) );
-	}
-
-	// we invert as on black background
-	#foot{
-		position: relative;
-		bottom:auto;
-		left:auto;
-		right:auto;
-		margin:0 var(--pad) var(--pad) var(--pad);
-		color:$col-tan;
-		a {
-			color: $col-yellow;
-		}
-	}
-}
 
 
 // FIXME:
@@ -1185,28 +1080,24 @@ html.debug{
 	// }
 }
 
-
-// we need this to visually look the same size as the video
-#onboard{
-	z-index:1;
-	display:flex;
-	flex-direction:column;
-	align-items:center;
-	// do something
-}
-
 .brand{
-	//background:url(./assets/logos/designerzen_current-color.svg) no-repeat left 2px center;
-	background-size: contain;
+	//background:url(/source/assets/logos/designerzen_current-color.svg) no-repeat left 2px center;
+	//background-size: contain;
 	//padding-left:1.3rem;
+	display: inline-flex;
+	align-items: center;
 	margin-left:0.25rem;
 	svg{
+		color:inherit;
 		height:1rem;
 		width:1rem;
-		margin-bottom: -0.25rem;
+		margin-top: -0.25rem;
 		padding-right:0.25rem;
+		stroke:currentColor;
 	}
+
 }
+
 
 
 #photographs{
@@ -1592,12 +1483,11 @@ main.flag-eyes label[for="select-eyes"]{
 	left: calc( var(--pad));
 	right: calc( var(--pad));
 	bottom: var(--pad);
-	max-height:var(--footer-gap);
+	// max-height:var(--footer-gap);
 	
 	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
-	//z-index:909;
-
+	
 	// fader it in immediately
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
 
@@ -1605,13 +1495,11 @@ main.flag-eyes label[for="select-eyes"]{
 		flex-basis: 100%;
 		border-bottom:var(--border);
 	}
+	
+
 	small{
-		// margin-left:var(--pad);
-		// margin-right: auto;
-		justify-self: stretch;
-		// width:100%;
 		display:flex;
-		// align-items: flex-end;
+		align-items: center;
 		
 		padding-top:var(--pad);
 
@@ -1650,6 +1538,10 @@ main.flag-eyes label[for="select-eyes"]{
 		}
 	}
 
+	.brand:hover, .brand:focus{
+		color:var(--shade-white);
+	}
+	
 	#year{
 		display: inline-flex;
 		flex-direction: row;
@@ -1757,6 +1649,9 @@ main.flag-eyes label[for="select-eyes"]{
 .icon-list li a:hover{
 
 }
+
+// sections
+@import "./assets/styles/sections/onboarding.scss";
 
 @import "./assets/styles/dialog.scss";
 @import "./assets/styles/icons.scss";
