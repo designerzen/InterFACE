@@ -1,6 +1,6 @@
 import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from '../audio/instruments'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
-import {getShareLink,loadSoloMode,loadDuetMode} from '../location-handler'
+import {getShareLink} from '../location-handler'
 import {formattedDate} from '../models/info'
 import {setToggle} from './toggle'
 import { connectSelect } from './select'
@@ -15,6 +15,9 @@ export let buttonVideo
 export let controls
 
 const main = doc.querySelector("main")
+
+
+export const video = doc.querySelector("video")
 
 /**
  * is the element currently visible?
@@ -45,8 +48,6 @@ export const toggleVisibility = element => {
 	return isVisible(element)
 }
 
-
-export const video = doc.querySelector("video")
 
 /**
  * is the video element currently visible on the screen?
@@ -276,8 +277,6 @@ export const setupInterface = ( options ) => {
 	versionElement.innerHTML = `${currentVersion} <span id="release">${formattedDate}</span>`
 	
 	// console.log(`InterFACE ${currentVersion} build date : ${formattedDate} `, {DATE, releaseDate})
-	// buttonSolo.addEventListener( "click", event => loadDuetMode, false)
-	// buttonDuet.addEventListener( "click", event => loadSoloMode, false)
 
 	// prevent the form from changing the url	
 	controls.addEventListener("submit", (event) => {

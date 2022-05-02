@@ -18,8 +18,12 @@ import {ready, setBackend} from '@tensorflow/tfjs'
 
 export const loadBodyModel = async (inputElement, options) => {
 
+	
+	console.error("loadModel", {inputElement})
 	await ready()
 
+	console.error("loadModel", {inputElement})
+	
 	const detectPeople = options.maxFaces
 
 	// Create a detector.

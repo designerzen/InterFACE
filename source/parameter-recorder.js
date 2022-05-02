@@ -14,6 +14,9 @@ export class ParamaterRecorder{
 	get recording(){
 		return this.parameters
 	}
+	get isActive(){
+		return this.isRecording
+	}
 
 	reset(){
 		this.parameters = {}
@@ -27,7 +30,8 @@ export class ParamaterRecorder{
 			this.isRecording = true
 		}
 		// save whatever you want innit
-		this.parameters[this.startTime - time] = parameters
+		const elapsed = this.startTime - time
+		this.parameters[elapsed] = parameters
 	}
 
 	getValuesAtTime(time){
