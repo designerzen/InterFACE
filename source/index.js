@@ -1,16 +1,9 @@
-// Just a simple face detection script with visual overlaid feedback and audio
-// Best used with the Looking Glass Portrait
-
-
-
-// Fix iOS and FF
-import dialogPolyfill from 'dialog-polyfill'
-const dialogs = document.querySelectorAll('dialog')
-dialogs.forEach( dialog => dialogPolyfill.registerDialog(dialog) )
-
 // TODO: Lazy load more of these...
+
 // import {midiLikeEvents} from './timing/rhythm'
 import { createStore} from './store'
+import { loadState, getState, setState, refreshState } from './state'
+
 import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
 import { 
@@ -30,8 +23,10 @@ import {
 	getBars, setBars, getBar, 
 	startTimer, stopTimer, now, 
 	getBarProgress,
+	convertBPMToPeriod,
 	setTimeBetween, timePerBar, getBPM 
 } from './timing/timing.js'
+import { playNextPart, kitSequence } from './timing/patterns'
 	
 import {
 	updateTempo,
@@ -41,7 +36,7 @@ import {
 	toggleVisibility,
 	focusApp
 } from './dom/ui'
-
+import setupDialogs from './dom/dialog'
 import { connectSelect, connectReverbControls } from './dom/select'
 import { setToggle } from './dom/toggle'
 import { setButton, showUpdateButton, showReloadButton, setupMIDIButton } from './dom/button'
@@ -57,9 +52,7 @@ import {
 } from './visual/canvas'
 
 import { setupImage, setNodeCount } from './visual/2d'
-
 import { drawWaves, drawBars } from './visual/spectrograms'
-
 import { drawQuantise } from './visual/quantise'
 import Stave from './visual/2d.stave'
 
@@ -69,7 +62,7 @@ import {
 	forceSecure, addToHistory } from './location-handler'
 
 import { findBestCamera, loadCamera } from './hardware/camera'
-import { playNextPart, kitSequence } from './timing/patterns'
+
 // TODO: Lazy load
 import { getInstruction, getHelp } from './models/instructions'
 import { setupReporting, track, trackError, trackExit } from './reporting'
@@ -82,7 +75,7 @@ import Person, {
 } from './person'
 
 import { getBrowserLocales } from './i18n'
-import { getDomainDefaults, NAMES } from './settings'
+import { getDomainDefaults, NAMES, DEFAULT_TENSORFLOW_OPTIONS } from './settings'
 
 import {
 	convertOptionToObject,
@@ -105,14 +98,11 @@ const referer = getReferer()
 const LTD = getRefererHostname().split('.').pop()
 const defaultOptions = getDomainDefaults( LTD ) 
 
-let ui = getLocationSettings( defaultOptions )
-// let ui = createState( getLocationSettings( defaultOptions ), main )
-
-
 // DOM Elements
 const body = document.documentElement
 const main = document.querySelector("main")
 const image = document.querySelector("img")
+
 const toggles = {}
 const selects = {}
 
@@ -120,11 +110,18 @@ const selects = {}
 body.classList.toggle("loading", true)
 body.classList.add(LTD)
 
-// Record stuff
-const { isRecording, startRecording, stopRecording } = record()
+// Fix dialogs and bind them with events
+setupDialogs()
 
 // state management
 const store = createStore()
+let ui = loadState( defaultOptions, main )
+
+// if on http flip to https
+forceSecure(ui.debug)
+
+// Record stuff
+const { isRecording, startRecording, stopRecording } = record()
 
 // i18n / l10n
 const language = getBrowserLocales()[0]
@@ -162,7 +159,6 @@ let userLocated = false
 let cookieConsent = false
 
 // This allows us to determine how long the app has been running for?
-
 let counter = 0
 
 const information = store.getItem('info') || {
@@ -180,9 +176,6 @@ const statistics = {
 
 // for disco mode!
 const cameraPan = {x:1,y:1}
-
-// if on http flip to https
-forceSecure(ui.debug)
 
 
 
@@ -237,8 +230,9 @@ const setTempo = (tempo) => {
 
 /**
  *  Set the speed of this track by how many ticks per minute
- *  60,000 / BPM = one beat in milliseconds - 10 is fir fun
+ *  60,000 / BPM = one beat in milliseconds
  * @param {Number} bpm Beats per minute
+ * @returns {Number} New Tempo
  */
 const setBPM = (bpm) => setTempo( 60000 / bpm  )
 
@@ -740,6 +734,8 @@ const registerKeyboard = () => {
 */
 const setup = async (update, settings, progressCallback) => {
 
+console.error("update", update)
+
 	const loadTotal = 7
 	let loadIndex = 0
 
@@ -763,14 +759,25 @@ const setup = async (update, settings, progressCallback) => {
 		{
 			setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted")
 		
-			const investigastion = await findBestCamera(store, video)
-			const {videoCameraDevices} = investigastion
-			camera = investigastion.camera
+			const investigation = await findBestCamera(store, video)
+			const {videoCameraDevices} = investigation
+			camera = investigation.camera
+
+			// // Fixes if camera loses connection?
+			// if (camera.video.readyState < 2) {
+			// 	await new Promise((resolve) => {
+			// 	  camera.video.onloadeddata = () => {
+			// 		resolve(video)
+			// 	  }
+			// 	})
+			// }
+			
 			cameraLoading = false
 
 			//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-			setFeedback( investigastion.saved ? "Found saved camera" : videoCameraDevices.length > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera")
+			setFeedback( investigation.saved ? "Found saved camera" : videoCameraDevices.length > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera")
 		
+
 			// check to see if there are multiple cameras and we want a selector
 			if (videoCameraDevices.length > 1)
 			{
@@ -800,6 +807,7 @@ const setup = async (update, settings, progressCallback) => {
 		main.classList.toggle('portrait', video.width < video.height )
 		main.classList.toggle('square', video.width === video.height )
 		
+		
 		updateCanvasSize(video.width, video.height)
 		progressCallback(loadIndex++/loadTotal)
 
@@ -816,6 +824,7 @@ const setup = async (update, settings, progressCallback) => {
 		return
 	}
 
+	
 	try{
 		// , { volume:r }
 		const savedVolume = store.getItem('audio')
@@ -909,6 +918,7 @@ const setup = async (update, settings, progressCallback) => {
 	const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
 	setVolume( volume > 0 ? volume : 1 )
 
+	
 	// load scripts once eveything has completed...
 	// setTimeout( ()=>{
 	// }, 0 )
@@ -935,6 +945,8 @@ const setup = async (update, settings, progressCallback) => {
 	// Ensure that the video element is always being fed data
 	const shouldUpdate = () => !cameraLoading
 
+	console.error( "shouldUpdate", {cameraLoading}, shouldUpdate() )
+	
 	// FaceMesh.getUVCoords 
 	// this then runs the loop if set to true
 	update( inputElement === video, (predictions)=>{
@@ -1077,7 +1089,7 @@ const setup = async (update, settings, progressCallback) => {
 				
 				// you want a tight curve
 				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange)}%`
 				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 			}
 
@@ -1219,52 +1231,9 @@ const setup = async (update, settings, progressCallback) => {
 
 		beatJustPlayed = true
 
-		
-	}, timePerBar() )
+	}, convertBPMToPeriod( getState('bpm') ) )
 } 
 
-
-
-/**
- * refreshState : Refreshes the ui with any updated options
- */
-const refreshState = ()=>{
-	Object.entries(ui).forEach(([key,value])=> main.classList.toggle(`flag-${key}`, value ) )
-}
-
-/**
- * setState : set / store the state of the ui & update DOM
- * @param {String} key state unique key ID
- * @param {String} value value to set the key to
- * @param {Array<HTMLElement>} elements buttons with toggleable attributes
- * @param {Boolean} saveHistory add to localStorage cache
- */
-const setState = ( key, value, elements=null, saveHistory=true )=>{
-	
-	ui[key] = value
-
-	if (saveHistory)
-	{
-		addToHistory(ui,key)
-	}
-
-	main.classList.toggle(`flag-${key}`, value )
-
-	// FIXME: TODO:
-	// also update select for checked and things? bit more complex?
-	// see if there is a matching dom element???
-	// .checked
-	if ( elements && elements[key] )
-	{
-		//elements[key].checked = value
-		elements[key].setAttribute("checked", value)
-		if (elements[key].parentNode.nodeName === "LABEL")
-		{
-			elements[key].parentNode.classList.toggle("checked", value )
-		}
-		console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
-	}
-}
 
 /**
  * load : load the files required for this app
@@ -1291,8 +1260,10 @@ const load = async (settings, progressCallback) => {
 
 		// Face
 		default:
+			console.log("Loading face model")
 			const {loadFaceModel} = await import('./models/face')
 			loadModel = loadFaceModel
+			console.log("Loadied face model", {loadModel})
 	}
 
 	progressCallback(loadIndex++/loadTotal)
@@ -1434,8 +1405,6 @@ const load = async (settings, progressCallback) => {
 		const tempo = parseInt( option.innerHTML )
 		updateTempo(tempo)
 		setBPM(tempo)
-		// FIXME:
-		// setState( 'bpm', tempo )
 	} )
 
 	selects.eyes = connectSelect( 'select-eyes', option => {
@@ -1504,6 +1473,10 @@ const load = async (settings, progressCallback) => {
 	progressCallback(loadIndex++/loadTotal)
 	
 	// Load tf model and wait
+
+	
+
+	// this gets returned then used an the update method
 	return loadModel(inputElement, settings)
 }
 
@@ -1566,6 +1539,7 @@ const loadExtras = async ()=> {
 
 const onLoaded = async () => {
 
+	// just wait until a user is found
 	const lookForUser = () => {
 
 		if (!userLocated)
@@ -1593,6 +1567,7 @@ const onLoaded = async () => {
 	
 	speak("I am looking for your face")
 	
+	// wait here until a user shows their face...
 	const user = await lookForUser()
 
 	// focus app?
@@ -1610,7 +1585,7 @@ const onLoaded = async () => {
 // loop until loaded...
 const loadingLoop = async () => {
 
-	// console.log("loading", {isLoading, userLocated, cameraLoading})
+	//console.log("loading", {isLoading, userLocated, cameraLoading})
 	if ( isLoading )
 	{ 
 		requestAnimationFrame( loadingLoop ) 
@@ -1640,28 +1615,7 @@ const loadingLoop = async () => {
 
 
 // ---------------------------------------------------------
-const options = Object.assign( {}, {
-
-	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
-	maxFaces:ui.duet ? 2 : 1,
-	
-	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
-	shouldLoadIrisModel:true,
-	
-	// Minimum detection Confidence - Threshold for discarding a prediction. 
-	// [0 - 1] for a face to be considered detected
-    // detectionConfidence: 0.9,
-    
-    // Minimum confidence [0 - 1] for the landmark tracker to be considered detected
-    // Higher values are more robust at the expense of higher latency
-    // minTrackingConfidence: 0.5
-
-	// maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
-	// iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
-	// scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
-	// modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
-	// irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
-} )
+const options = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS, { maxFaces:ui.duet ? 2 : 1 } )
 
 // FIXME: Do we instantly show the user quantity screen
 // and load all background elements and scripts
@@ -1673,6 +1627,8 @@ load(options, (progress, message) => {
 	setLoadProgress( progress, message )
 
 }).then( async update =>{ 
+
+	
 
 	// Select NUMBER of players!
 	setFeedback("")
@@ -1711,12 +1667,14 @@ load(options, (progress, message) => {
 
 	setFeedback("Please wait loading! This can take <strong>some</strong> time...")
 
-	// celar timeoiut
+	// clear timeout
 	clearInterval( timeOut )
 
 	body.classList.toggle("loading", true)
 	
 	setToast( "" )
+
+	
 
 	// load settings from store here too?
 	// set up some extra options from query strings
@@ -1757,6 +1715,12 @@ window.onbeforeunload = ()=>{
 	setToast("bye bye!")
 	setFeedback("<strong>I hope you had fun!</strong>")
 }
+
+// NB. can trigger multiple times
+document.addEventListener("visibilitychange", e => {
+    document.documentElement.classList.toggle("tab-hidden", document.hidden)
+}, false)
+
 
 // document.addEventListener( "contextmenu", (e) => {
 //     console.log(e)
