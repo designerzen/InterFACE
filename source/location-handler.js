@@ -1,3 +1,7 @@
+/**
+ *  Convert a URL query value into a JS data type by inferring the type
+ * @param {Any} JavaScript data type (eg. String, Number, Boolean, Array, Object)
+ */
 const guessType = value => {
 
 	if (typeof value === "string")
@@ -21,11 +25,12 @@ const guessType = value => {
 
 		return data
 	}
-
 }
 
-
-// convert string to rudimentary types
+/**
+ *  Convert a string into a JS data type by inferring the type
+ * @param {Any} JavaScript data type (eg. String, Number, Boolean, Array, Object)
+ */
 export const parseType = value => {
 
 	// check to see if the string is also an array...
@@ -39,9 +44,7 @@ export const parseType = value => {
 			return false
 		}else if (value.indexOf(',') >= 0){
 			// this is a comma seperated list array...
-			
 			return convertIntegerArrayToBooleans( value.split(",") )
-
 		} else {
 			return value
 		}
@@ -56,82 +59,101 @@ export const parseType = value => {
     }
 }
 
-// this takes a snapshot of the url and takes and queries
-// then it will take apart and create an object
-// and return a merged subset
+/**
+ *  Fetch the current URL query as an object
+ * @returns {URLSearchParams} URL States
+ */
+ const fetchStateFromURL = () => {
+	return new URLSearchParams(window.location.search)
+}
+
+/**
+ * This takes a snapshot of the url and takes and queries
+ * then it will take apart and create an object
+ * and return a merged subset
+ * @returns {Object} URL State Object 
+ */
 export const getLocationSettings = (defaultOptions) => {{
+	const urlParams = fetchStateFromURL()
 	const locationOptions = Object.assign( {}, defaultOptions )
-	const urlParams = new URLSearchParams(window.location.search)
 	for (const [key, value] of urlParams) 
 	{
-	//	console.log(`${key}:${value}`)
-		// ensure we data type these
-		locationOptions[key] = guessType(value)
+		// NB. ensure we data type these
+		locationOptions[key] = guessType(value)	
+		// console.log(`${key}:${value}`)
 	}
-
 	//console.log(`query:${locationOptions}`)
 	return locationOptions
 }}
 
-export const forceSecure = (debug=false) => {
-	
-	// ESCAPE: before doing anything, let us check the bare minimum...
-	// is https()
-	if (!debug && location.hostname !== "localhost" && location.protocol !== 'https:')
-	{
-		location.protocol = 'https:'
-		
-		// isLoading = false
-		// ultimateFailure = true
-		// setToast("Redirecting to a secure site, please stand by!")
-		// // show link or just try and force a redirect?
-		
-		// setTimeout(()=> location.replace(`https:${location.href.substring(location.protocol.length)}`), 50 )
-		// // EXIT HERE
-		// return
-	}
+/**
+ * This takes a state and creates a URL query string
+ * @returns {String} Query String with current state
+ */
+export const createQueryString = options => {
+	return new URLSearchParams(options).toString()
 }
 
-// reload the exact same URL but wih duet=true enabled
-export const loadDuetMode = ()=> {
-	// grab existing...
-	const urlParams = new URLSearchParams(window.location.search)
-	urlParams.duet = true
-	//window.location = url
+/**
+ * This takes a snapshot of the url and queries
+ * then it will take apart and create an object
+ * and return a merged subset
+ * @returns {String} URL with current state
+ */
+ export const getShareLink = (options) => {
+	return window.location + createQueryString(options)
 }
 
-export const loadSoloMode = ()=> {
-	const urlParams = new URLSearchParams(window.location.search)
-	urlParams.duet = false
-	//window.location = url
-}
-
-// This attempts to determine where the user came from
-// and to create class names that can create custom versions
-// so long as they maintin their urls (ie. not use shortlinks)
-
+/**
+ * This attempts to determine where the user came from
+ * and to create class names that can create custom versions
+ * so long as they maintin their urls (ie. not use shortlinks)
+ * @returns {String} Refering URL
+ */
 export const getReferer = () => {
-	// save to url?
 	const ref = document.referrer
 	// check against our list
 	return ref || document.location || 'interface.place'
 }
+
+/**
+ * This attempts to determine which domain the user came from
+ * @returns {String} Refering hostname
+ */
 export const getRefererHostname = () => {
-	// save to url?
 	const referrer = new URL( getReferer() )
 	// now strip out everything but the location
 	// check against our list
 	return referrer.hostname
 }
 
-
+/**
+ * Reload the current page with the current state or
+ * optionally a new state to be merged
+ * @param {Object} options New state to set on reload
+ */
 export const refresh = options => {
-	// save to url?
+	if (options){
+		addToHistory(options)
+	}
 	window.location.reload()
 }
 
-export const toQuery = options =>  (new URLSearchParams(options).toString())
+/**
+ * Reloads current page in secure mode (as cameras need a certificate)
+ */
+ export const forceSecure = (debug=false) => {
+	if (!debug && location.hostname !== "localhost" && location.protocol !== 'https:')
+	{
+		location.protocol = 'https:'
+	}
+}
 
+/**
+ * Changes options in the URL so that state survives refreshes
+ * @param {Object} options New state to set on location
+ * @param {String} title Optional history title
+ */
 export const addToHistory = (options, title="") => {
 	const url = new URL(window.location)
 	for (let i in options){
@@ -142,8 +164,4 @@ export const addToHistory = (options, title="") => {
 	//
 	const out = window.history.pushState(options, title, url)
 	//console.log("History", {out, options, title, url} )
-}
-export const getShareLink = (options) => {
-	
-	return window.location + toQuery(options)
 }
