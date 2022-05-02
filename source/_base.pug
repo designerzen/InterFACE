@@ -1,0 +1,173 @@
+- var URL = "https://interface.place";
+- var year = String( (new Date() ).getFullYear() ).slice(-2);
+
+mixin title( page="", section="", seperator="©" )
+	- page = page.length ? `${page} ${seperator} ` : page
+	- section = section.length ? `${section} ${seperator} ` : ``
+	title #{page}InterFACE V #{package.version} #{seperator} #{section}designerzen
+
+doctype html
+html(lang="en-GB" dir="ltr")
+	head
+		meta(charset="utf-8")
+		block title 
+			+title()
+
+		meta(name="viewport", content="viewport-fit=cover,width=device-width,initial-scale=1")
+		meta(name="description", content=package.description)
+		
+		//- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. 
+		link(rel="manifest", href="manifest.webmanifest")
+		link(rel="stylesheet", href="index.scss", type="text/css")
+		//-
+			
+			- 1. Preemptively warm up the fonts’ origin.
+			-
+			- 2. Initiate a high-priority, asynchronous fetch for the CSS file. Works in
+			-    most modern browsers.
+			-
+			- 3. Initiate a low-priority, asynchronous fetch that gets applied to the page
+			-    only after it’s arrived. Works in all browsers with JavaScript enabled.
+			-
+			- 4. In the unlikely event that a visitor has intentionally disabled
+			-    JavaScript, fall back to the original method. The good news is that,
+			-    although this is a render-blocking request, it can still make use of the
+			-    preconnect which makes it marginally faster than the default.
+			
+			//-  https://csswizardry.com/2020/05/the-fastest-google-fonts/ 
+			//-  https://fonts.gstatic.com is the font file origin 
+			//-  It may not have the same origin as the CSS file (https://fonts.googleapis.com) 
+			link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin)
+			
+			//-  We use the full link to the CSS file in the rest of the tags 
+			link(rel="preload", as="style", href="https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap")
+			link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap", media="print", onload="this.media=\'all\'")
+			noscript
+				link(rel="stylesheet", href="https://fonts.googleapis.com/family=Oxanium:wght@774&display=swap")
+		
+		//- tfhub-tfjs-modules/tensorflow/tfjs-model/blazeface/1/default/1/model.json
+		link(rel="preconnect", href="https://storage.googleapis.com/", crossorigin)
+		link(rel="preload", as="font", href="./assets/fonts/oxanium/Oxanium[wght].ttf")
+		link(rel="preload", as="font", href="./assets/fonts/lexend/LexendDeca-Regular.ttf")
+			
+		//- ENTRY POINT
+		block preload 
+			script.
+				document.documentElement.classList.add("loading","app")
+			
+		block scripts
+			
+		//-  These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. 
+		//- Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html
+		meta(name="apple-mobile-web-app-capable", content="yes")
+		meta(name="apple-mobile-web-app-title", content="InterFace Smile Powered Synthesizer")
+		meta(name="apple-mobile-web-app-status-bar-style", content="black")
+		
+		//- Favicons
+		link(rel="icon", href="assets/icons/android-chrome-24x24.png", type="image/x-icon")
+		link(rel="icon", type="image/png", sizes="32x32", href="assets/icons/favicon-32x32.png")
+		link(rel="icon", type="image/png", sizes="16x16", href="assets/icons/favicon-16x16.png")
+		link(rel="apple-touch-icon", sizes="180x180", href="assets/icons/apple-touch-icon.png")
+		link(rel="mask-icon", href="assets/icons/safari-pinned-tab.svg", color="#5bbad5")
+		
+		//- MS Store
+		meta(name="msapplication-config" content="./browserconfig.xml")
+		meta(name="msapplication-TileColor", content="#e4dede")
+		meta(name="theme-color", content="#e4dede")
+		
+		//- Twitter
+		meta(property="og:image", content="assets/icons/og-image.jpg")
+		meta(property="og:image:height", content="268")
+		meta(property="og:image:width", content="512")
+		meta(property="og:description", content=package.description)
+		meta(property="og:title", content="InterFACE")
+		meta(property="og:url", content=URL)
+
+		//- {tags && tags.map((tag) => <meta property="article:tag" content={tag} />) }
+
+		//- Humans.txt - https://humanstxt.org/
+		link(type="text/plain" rel="author" href="https://interface.place/humans.txt")
+		
+	body
+		header#intro
+
+			h1
+				block headline
+					| Inter
+					strong FACE
+					
+			h2
+				block tagline
+					em Smile
+					|  Powered Synthesizer
+
+			block mainHeader
+				
+			nav#nav-main
+				ul 
+					block nav
+						li: a#link-about(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
+						li: a(href="#help" onclick="window.help.showModal()") Help!
+
+		main#app
+			block main
+
+		block dialogs 
+
+		//- Always visible on screen and overlaid on top	
+		footer#foot
+
+			block mainFooter
+
+			small(class="copyright") Copyright  
+				span#year 2020-#{year||22}
+				a.brand(href="https://designerzen.com/" rel="noopener noreferrer" target="_blank") 
+					include ./assets/logos/designerzen_current-color.svg
+					| designerzen ltd.
+
+			section.associates#associates
+				<h6><span class="sr-only">Associates</span></h6>
+
+				ul.icon-list
+					li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+						include ./assets/logos/drakemusic.svg
+					li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+						include ./assets/logos/aotf.svg
+					li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+						//- include ./assets/logos/sxsw2021.svg
+						include ./assets/logos/sxsw.svg
+					li: a(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+						include ./assets/logos/mmf.svg
+
+			small(class="copyright")
+				a.licenses(href="licenses.pug" target="_blank") Licenses
+				a.licenses(href="copyright.pug" target="_blank") Copyright
+
+				a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V #{package.version}
+						
+			//- Generally hidden aspects
+			share-menu#share-menu( 
+				title="Share your interFACE with friends and family!" 
+				text="Select your social platform to easily share the InterFACE with your friends and family" 
+				url=URL
+			)
+
+		//- svg.filter(xmlns="http://www.w3.org/2000/svg")
+		//- 	filter#filter-noise
+		//- 		feTurbulence( type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch' )
+		//- 	rect(width="100%" height="100%" filter="url(#filter-noise)")
+
+		//- svg.filter(xmlns="http://www.w3.org/2000/svg")
+		//- 	filter#filter-stars
+		//- 		feTurbulence( baseFrequency="0.2" )
+		//- 		feColorMatrix( values="0 0 0 9 -4  0 0 0 9 -4  0 0 0 9 -4  0 0 0 0 1")
+		//- 	rect(width="100%" height="100%" filter="url(#filter-stars)")
+			
+
+		//- Global site tag (gtag.js) - Google Analytics
+		script( async src="https://www.googletagmanager.com/gtag/js?id=G-1XT0GV0L6J")
+		script.
+			window.dataLayer = window.dataLayer || [];  
+			function gtag(){dataLayer.push(arguments);}  
+			gtag('js', new Date());  
+			gtag('config', 'G-1XT0GV0L6J');
