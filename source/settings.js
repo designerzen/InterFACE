@@ -1,4 +1,36 @@
 import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
+import { DEFAULT_COLOURS } from './palette'
+import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
+
+
+export const DEFAULT_TENSORFLOW_OPTIONS = {
+	
+	// or 'tfjs' (mediapipe is far smoother)
+	runtime: 'mediapipe', 
+
+	// location of actual ML model
+	solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+
+	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
+	maxFaces:1,
+	
+	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
+	shouldLoadIrisModel:true,
+	
+	// Minimum detection Confidence - Threshold for discarding a prediction. 
+	// [0 - 1] for a face to be considered detected
+    // detectionConfidence: 0.9,
+    
+    // Minimum confidence [0 - 1] for the landmark tracker to be considered detected
+    // Higher values are more robust at the expense of higher latency
+    // minTrackingConfidence: 0.5
+
+	// maxContinuousChecks - How many frames to go without running the bounding box detector. Only relevant if maxFaces > 1. Defaults to 5.
+	// iouThreshold - A float representing the threshold for deciding whether boxes overlap too much in non-maximum suppression. Must be between [0, 1]. Defaults to 0.3. A score of 0 means no overlapping faces will be detected, whereas a score closer to 1 means the model will attempt to detect completely overlapping faces.
+	// scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
+	// modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
+	// irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
+}
 
 export const DEFAULT_OPTIONS = {
 
@@ -39,7 +71,7 @@ export const DEFAULT_OPTIONS = {
 	// midi channel (0/"all" means send to all)
 	midiChannel:"all",
 	// saved BPM that can be shared?
-	bpm:120,
+	bpm:200,
 	// choice of different models to use
 	model:"face",
 	// sample set
@@ -95,3 +127,90 @@ export const getDomainDefaults = (name) => {
 		default: return getFactoryDefaults()
 	}
 }
+
+
+export const DEFAULT_PERSON_OPTIONS = {
+	...DEFAULT_COLOURS,
+
+	// Passed to the delay node
+	// NB. There is a global delay too remember
+	useDelay:false,
+	delayTime: 0.14,
+	delayLength: 10,
+
+	// left / right ear stereo panning
+	stereoPan:true,
+
+	sendMIDI:true,
+
+	// if you want the axis to be switched
+	swapControls:false,
+
+	// if the user has epilepsy, set to true
+	photoSensitive:false,
+
+	// force draw face mesh
+	drawMesh:false,
+	// force draw face blob nodes
+	drawNodes:true,
+	// alternate between mesh and blobs depending on mouth
+	// NB. The two above will override this behaviour
+	meshOnSing:false,
+
+	// all the above can be disabled!
+	drawMask:true,
+
+	// draw these parts over the mesh...
+	drawMouth:true,
+	// kid mode turns eyes googly!
+	drawEyes:true,
+
+	// ratios of size of eye
+	scleraRadius:3,
+	irisRadius:1,
+	pupilRadius:0.3,
+	// frank sidebottom angle
+	eyeRatio:0.8,
+
+	// mouse hold for clicking in seconds 0.5 and more feels weird
+	mouseHoldDuration:0.3,
+
+	// if both eyes are closed for X ms do something...
+	eyeShutHolddDuration:3500, // ms
+
+	// how much feedback to apply to the feedback node
+	feedback:0.1,
+
+	// to adjust the angle that the head has to roll...
+	// larger means less movement required
+	rollSensitivity:1.2,
+
+	// to adjust the amount of pitching (head rocking)
+	// depending on how complicated the piece is the octaves
+	// can also be shifted between a certain range...
+	pitchSensitivity:1,
+
+	// size of the mouth to signal activity
+	mouthCutOff:0.2,
+
+	// size of the mouth to signal silence
+	mouthSilence:0.05,
+
+	// volume smooth rate = smaller means faster fades?
+	volumeRate:0.7,
+
+	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
+	//instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+
+	// this is the amount of decimal places used to smooth the mouth
+	// the higher the number the less smooth the output is
+	// 1 or 2 should be more than enough
+	precision:3,
+
+	// set this to one of the interpolation methods above
+	// IN means that it starts off slowly (prefered)
+	ease:easeInSine // easeInSine // linear
+}
+
+
