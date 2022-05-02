@@ -50,7 +50,7 @@ const reset = () =>{
     startTime = now()
 }
 
-const start = (interval=250)=>{
+const start = (interval=250, timeSignature )=>{
     // stop if running
     if (isRunning)
     {
@@ -63,7 +63,6 @@ const start = (interval=250)=>{
         isRunning = true
         postMessage({event:EVENT_STARTING, time:0})
     }
-
 
     gap = interval
     // do the setinterval here
