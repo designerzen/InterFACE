@@ -20,16 +20,14 @@ export const filterVideoCameras = (devices) => devices.filter( device => device.
  * finds all local cameras and filters them to only return kind of videoinputs
  * @returns {Array<Object>} Collection of video input camera device objects
  */
-// may have broke it here by turning it async
 export const fetchVideoCameras = async() => {
 	filterVideoCameras( await detectCameras() )
 }
 
-
 /**
  * Bind a video element to a camera
- * @param {?HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
- * @param {?string} deviceId Device ID unique to the camera to try to access first if provided
+ * @param {HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
+ * @param {string} deviceId Device ID unique to the camera to try to access first if provided
  * @returns {Promise} video stream is returned if successfull
  */
 export const setupCamera = async (video, deviceId ) => {
@@ -42,19 +40,26 @@ export const setupCamera = async (video, deviceId ) => {
 		// stop it if it is already running?
 		// video.stop()
 
-		video.onloadedmetadata = (event) => { 
-			
-			// if not from a user document interaction, this
-			// will throw some blah blah error so we must wrap and re-act
-			try{
-				video.play()
-				video.width = video.videoWidth
-				video.height = video.videoHeight
-				resolve(stream)	
-			}catch(error){
-				reject(stream)
+		let loadCount = 2
+		const checkVideoAccess = () => {
+			if (--loadCount <= 0)
+			{
+				// if not from a user document interaction, this
+				// will throw some blah blah error so we must wrap and re-act
+				try{
+					video.play()
+					video.width = video.videoWidth
+					video.height = video.videoHeight
+					resolve(stream)	
+				}catch(error){
+					reject(stream)
+				}
 			}
 		}
+
+		// FIXED: This was suggested to use rather than meta
+		video.onloadedmetadata = (event) => checkVideoAccess()
+		video.onloadeddata = (event) => checkVideoAccess()
 
 		video.onerror = event => {
 			console.error("VIDEO:Connection Error", event)
@@ -88,14 +93,18 @@ export const setupCamera = async (video, deviceId ) => {
 
 /**
  * Requests access to a specific device
- * @param {?HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
- * @param {?string} deviceId Device ID unique to the camera to try to access first if provided
+ * @param {HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
+ * @param {String} deviceId Device ID unique to the camera to try to access first if provided
+ * @param {?String} name Optional name to bind to the camera
  * @returns {Promise} video stream is returned if successfull
  */
 export const loadCamera = async (video, deviceId, name="Default") => {
+
 	let newCamera
-	// prevent screen re-draw
+
+	// prevent screen re-draw during camera loading
 	cameraLoading = true
+
 	try{
 		
 		if (deviceId && deviceId.length > 0)
@@ -124,10 +133,10 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 }
 
 /**
- * Bind a video element to a camera
+ * Try and determine which camera would be best suited for this app
+ * @param {?HTMLElement} store A video HTMLElement NB. If not specified a new video element is created in the DOM
  * @param {?HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
- * @param {?string} deviceId Device ID unique to the camera to try to access first if provided
- * @returns {Object} camera, devices, 
+* @returns {Object} best camera, all cameras, using saved device?
  */
 export const findBestCamera = async (store, video) => {
 
@@ -171,6 +180,7 @@ export const findBestCamera = async (store, video) => {
 
 		// delete saved key as was invalid...
 		store.removeItem('camera')
+		saved = false
 
 		// bummer! try and use fallback?
 	
