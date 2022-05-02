@@ -1,10 +1,5 @@
 
 
-// -
-dialog{
-	display: none;
-}
-
 // Help Box
 dialog::backdrop {
 
@@ -16,6 +11,17 @@ dialog::backdrop {
 	  rgba($col-cream, 0.3) 20px
 	);
 	//backdrop-filter: blur(3px);
+}
+// -
+dialog{
+	&:not([open]) {
+		pointer-events: none;
+		opacity: 0;
+	}
+	
+	&[loading] {
+		visibility: hidden;
+	}	
 }
 
 // pop over (is this accessible?)
@@ -36,7 +42,11 @@ dialog[open]{
 				linear-gradient( white, $col-white );
 
 	background-position:top calc( 3 * var(--pad) ) right calc( 3 * var(--pad) );
-	animation:Fade 90ms linear 0s 1 both;
+	
+	transition: opacity 90ms linear;
+	
+	--y:10%;
+	animation:TranslateY 90ms linear 0s 1 both;
 
 	> *{
 		user-select: none;
@@ -112,6 +122,7 @@ dialog[open]{
 	form[method=dialog]{
 		order:-1;
 		pointer-events: none;
+		z-index:-1;
 		
 		button{
 			pointer-events: auto;

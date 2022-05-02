@@ -1,0 +1,92 @@
+
+// Basic resets
+html,body,h1,h2,h3,h4,h5,h6,p{
+	margin:0;
+	padding:0;
+}
+
+html{
+	// allows 100vh to work on mobile safari
+	height: -webkit-fill-available;
+
+	transition: background-color var(--ease-s) linear;
+
+	// dark
+	color:$col-white;
+	background-color:$col-dark;
+	
+	// from jpg
+	background-image:
+		linear-gradient(
+			hsla(18, 21%, 12%, 0.7), 
+			hsla(340, 5%, 11%, 0.7)
+		),
+		var(--noise);
+	
+	//	clip-path: inset(0 0 0 0);
+}
+
+body{ 
+	accent-color: #{$col-yellow};
+
+	// prevent collapse
+	min-height: -webkit-fill-available;
+	min-height: 100vh;
+	// max-height:100vh;
+	// max-width:100vw;
+
+	// try to use sparingly...
+	// // hide all cruft and hide scrollbars too
+	// overflow:hidden;
+	// // saves on memory as it crops it too
+	overflow: clip;
+	
+	position: relative;
+	display: flex;
+	flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: stretch;
+    justify-content: space-between;
+}
+
+
+ol{
+	margin:0;
+	margin-top:var(--pad);
+	padding:0;
+	// list-style-position: inside;
+}
+
+ol li{
+	
+}
+
+ol li + li{
+	margin-top:var(--pad);
+}
+
+
+img,
+svg{
+	width:100%;
+	max-width:100%;
+	height:auto;
+}
+
+// we hide these by default until ready to preserve CPU
+video,canvas{
+	max-width:100%;
+	visibility: hidden;
+	// nothing to click so prevent
+	pointer-events: none;
+}
+
+// Single taps are dispatched immediately on clickable elements
+a, area, button, input, label, select, summary, textarea, [tabindex] {
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+}
+
+[aria-busy="true"] {
+	cursor: progress;
+}

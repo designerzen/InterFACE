@@ -1,0 +1,137 @@
+@import "_ease";
+
+progress{
+    --angle:50deg;
+    --size:250px;
+    --overscale:1.3;//1.5;//.5;
+    --direction:-1;
+    --duration:2s;
+    --stroke:70px;
+    --saturation:80%;
+    --luminosity:70%;
+    --ease:#{$authenticMotion};//ease-in-out;
+
+    appearance: none;
+    box-sizing: border-box;
+    display: grid;
+    border-radius:999px;
+    transition: border 900ms linear;
+    width:var(--size);
+    height:var(--size);
+    position:relative;
+    //height:calc(var(--size) * 0.5);
+    overflow: hidden;
+    clip-path: inset(0 0 50% 0);
+    //background-image: conic-gradient(from 90deg, red, yellow, green);
+    
+    --_eye-r:calc( var(--size) * 0.3 );
+
+    --_nose-x:calc( var(--size) * 0.25 );
+    --_nose-y:33%;//calc( var(--size) * 0.5 );
+    background-image:   radial-gradient(var(--_eye-r) circle at calc( 50% + var(--_eye-r) ) var(--_nose-y), #E71D36 50%, transparent 51%),
+                        radial-gradient(var(--_eye-r) circle at calc( 50% - var(--_eye-r) )  var(--_nose-y), #E71D36 50%, transparent 51%);
+
+
+
+    // we also have to rotate the innards
+    //animation: Loader calc(var(--duration)*1) linear infinite alternate-reverse;
+
+   //transform: rotate(180deg);
+    transform-origin: center;
+    
+    &::before,
+    &::after{
+        content: '';
+        display: block;
+        grid-area: 1/-1;
+        width:calc( var(--size) - var(--stroke,10px) * 2 );
+    	height:calc( var(--size) - var(--stroke,10px) * 2 );
+        border-radius:999px;
+        border: var(--stroke,10px) solid transparent;
+        transform-origin: center;
+        box-sizing: content-box;
+        // now we mask the circle so it is just the top half
+        clip-path: inset(0 0 50% 0);
+        overflow: hidden;
+        animation:  LoaderLine var(--duration) var(--ease) infinite alternate both,
+                    LoaderColor calc(var(--duration)*7) linear infinite both;
+    }
+    
+	// this trails behind
+    &::before{
+        opacity: 0.5;
+    }
+
+    &::after{
+        --delay:calc( var(--duration, 0s) * -0.03 );
+        // animation:  LoaderLine var(--duration) var(--ease) var(--delay) infinite alternate both,
+        //             LoaderColor calc(var(--duration)*7) linear infinite both;
+       
+    }
+}
+
+.loader.wheel{
+    
+    &::after{
+        --delay:calc( var(--duration, 0s) * -0.015 );
+        animation:  LoaderLine var(--duration) var(--ease) var(--delay) infinite alternate both,
+                    LoaderColor calc(var(--duration)*7) linear infinite both;
+       
+    }
+}
+
+// rotates the opposite way to it's innards
+@keyframes Loader{
+    // 0%{
+    //     transform: rotate(var(--angle) );
+    // }
+    // 100%{
+    //     transform: rotate( calc( var(--direction,-1) *  (1turn + var(--angle) ) * -1 ));
+    // }
+}
+
+@keyframes LoaderLine{
+    0%{
+        transform: rotate( calc( -0.5turn + var(--angle) ) );
+    }
+    10%{
+        transform: rotate( calc( -0.5turn + var(--angle) ) );
+    }
+	50%{
+		transform: rotate( 0turn ) scale(var(--overscale,1.5));
+	}
+    90%{
+        transform: rotate( calc( 0.5turn - var(--angle) ) );
+    }
+    100%{
+        transform: rotate( calc( 0.5turn - var(--angle) ) );
+    }
+}
+@keyframes LoaderLine2{
+    0%{
+        transform: rotate( calc( 0turn + var(--angle) ) );
+    }
+   50%{
+    //    transform: rotate( 0.5turn ) scale(var(--overscale,1.5));
+  }
+    100%{
+        transform: rotate( calc( 1turn - var(--angle) ) );
+    }
+}
+
+
+// change colour over a longer period
+@keyframes LoaderColor{
+    0%{
+        border-color:hsl(0,var(--saturation,50%),var(--luminosity,50%));
+    }
+    50%{
+        border-color:hsl(180,var(--saturation,50%),var(--luminosity,50%));
+    }
+    75%{
+        border-color:hsl(270,var(--saturation,50%),var(--luminosity,50%));
+    }
+    100%{
+        border-color:hsl(360,var(--saturation,50%),var(--luminosity,50%));
+    }
+}

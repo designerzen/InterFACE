@@ -1,10 +1,8 @@
-// voicemail-24px
-
 %text-glow{
 	// inset
-	text-shadow: 	var( --text-shadow, rgba($col-white,0.4)) 0 0px 1px,
-					var( --text-shadow, rgba($col-white,0.3)) 0 0.5px 1px,
-					var( --text-shadow, rgba($col-cream,0.2)) 0 1px 1px,
+	text-shadow: 	var( --text-shadow, rgba($col-white,0.6)) 0 0px 1px,
+					var( --text-shadow, rgba($col-white,0.4)) 0 0.5px 1px,
+					var( --text-shadow, rgba($col-cream,0.24)) 0 1px 1px,
 					var( --text-shadow, rgba($col-cream,0.1)) 0 1.5px 1px;
 
 	
@@ -19,10 +17,20 @@
 	
 }
 
+%button-active{
+	--col-top: var(--col-orange);
+    --col-bottom: var(--col-select);
+
+	--col-select:#{$col-blue};
+	transform:translateX(2px) translateY(2px);
+}
+
+// This is the button style that can be added to any element
 %button-style{
 	
+	--col-fg:#{$col-white};
+	
 	@extend %text-glow;
-	//@include text-glow();
 
 	// only for larger sizes?
 	// this softens the border and adds a soft dropshadow
@@ -66,13 +74,13 @@
 
 	outline:var(--button-border-size) solid transparent;
 	outline-offset: -1px;
+
 	padding:var(--pad);
 
-	// start with dark text
-	color:$col-dark;
-	background-color:var(--col-bg);
+	color:var(--col-fg, #{$col-white} );
+	background-color:var(--col-bg, #{$col-blue});
+
 	background-image:var(--bg),
-					 // url(./assets/textures/45-degree-fabric-light.png),
 					linear-gradient( 
 						var(--col-top, rgba(255,255,255, 0.3) ), 
 						var(--col-bottom, rgba(0,0,0, 0.3) )
@@ -94,7 +102,6 @@
 	// FIXME:
 	// background-blend-mode: difference;
 	
-	
 	// animations
 	//animation-name:unset;	// start unset
 	animation-fill-mode: both, both;
@@ -107,14 +114,15 @@
 				border-color var(--fade-speed) linear,
 				outline-color var(--fade-speed) linear;
 
-	
 	&:hover, &:focus{
 
 		// for a custom cursor too...
 		// cursor: var(--bg), auto;
 		
-		--col-bottom:#{rgba($col-dark, 0.5)};
-		--col-top:#{rgba($col-white, 0.5)};
+		--col-fg:#{$col-dark};
+		--col-top:#{rgba($col-orange, 0.9)};
+		--col-bottom:#{rgba($col-yellow, 0.8)};
+		
 
 		border:var(--button-border-size) solid rgba($col-white, 0.8);
 		// border-top-color: rgba($col-brown, 0.6 );
@@ -135,8 +143,9 @@
 					rgba($col-dark,0.4) 0 1px 2px,
 					rgba($col-dark,0.2) 0 1.5px 2px;
 
+		// before is dark and we fade it in...
 		&:before{
-			opacity:1;
+			opacity:0;
 			z-index:1;
 		}
 	}
@@ -151,74 +160,35 @@
 		}
 	}
 
-	// on press via keyboard only?...
 	&:active{
+		// set background to orange
 		--col-hover: $col-orange;
+
 		--col-top:#{$col-orange};
 		--col-bottom:#{$col-red};
+		
+		@extend %button-active;
+		
+		// move icons down and to the right
+		&::before{
+			transition:opacity var(--fade-speed) linear;
+		}
 	}
 	
 	// // on press!
-	// &:active:focus{
+	 &:active:focus{
 	// 	--col-hover: $col-grey;
 	// 	--col-top:#{$col-orange};
 	// 	--col-bottom:#{$col-red};
-	// }
-}
-.hide-text{
-	// %image-replacement
-	text-indent: -9999px;
-	overflow:hidden;
-	color:transparent;
-	text-shadow:none;
-	white-space: pre;
-	font-size: 0;
-}	
-
-body{ 
-	accent-color: #{$col-yellow};
-}
-
-// Loading progress	
-label#progress-bar{
-	// position: absolute;
-	// // left:var(--pad);
-	// // right:var(--pad);
-	// width:calc(80% -2 * var(--pad) ) ;
-	// bottom:10%;
-	//margin:auto auto 4rem auto;
-	// set the label colour...
-	color: $col-brown;
-	outline: none;
-	padding:0;
-	border:0;
-	font-size:66%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-    justify-content: flex-end;
-
-	&:hover{
-		background-color: transparent;
-	}
-
-	#progress{
-		//@extend:60%;
-		// // border-radius: 99%;
-		// max-width:80%;
-		margin:auto;
-		color:inherit;
-		order:-1;
-		cursor: progress;
-	}
+	
+		outline-color:$col-yellow;
+	 }
 }
 
 // BUTTON ABSTRACT
+.button,
 button,
 input[type=list],
-// input[type=radio],
-label[for=button-solo],
-label[for=button-duet],
 .controls > *{
 
 	--icon-size:32px;
@@ -228,8 +198,9 @@ label[for=button-duet],
 	--button-border-size:2px;
 	--button-curve:clamp(2px, 1vmin, 6px);
 	
-	// actual colour
-	--col-bg:#{$col-yellow};
+	// actual colour of the button
+	--col-bg:#{$col-dark};
+	--col-fg:#{$col-white};
 
 	// gradient background
 	--col-top:#{rgba($col-white, 0.15)};
@@ -262,10 +233,12 @@ label[for=button-duet],
 
 	line-height: 1;
 	
+	
 	// -0.5385rem + 7.6923vw
 	// clamp(minimum, preferred, maximum)
 	font-size:clamp(8px, -0.5385rem + 2.2vmax, 14px);
-	font-weight: 900;
+	font-weight: 800;
+	letter-spacing: 0.75px;
 		
 	// max-width:calc(100% - 2 * var(--pad));
 	z-index:1;
@@ -292,8 +265,8 @@ label[for=button-duet],
 
 	// flex-wrap: wrap;	
 	align-items: center;
+	// put as much space between as possible
 	justify-content: space-between;
-
 		
 	// animations
 	//animation-name:unset;	// start unset
@@ -305,7 +278,6 @@ label[for=button-duet],
 				background-color var(--fade-speed) linear, 
 				color var(--fade-speed) linear;
 
-	
 	// Inherit the icon and recolour
 	&:before{
 		// allow to pop in front
@@ -335,9 +307,11 @@ label[for=button-duet],
 		// https://codepen.io/sosuke/pen/Pjoqqp
 		filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
 		
-		opacity:0;
+		opacity:0.9;
 		// z-index: -1;
-		transition:opacity var(--fade-speed) linear;
+
+		transition:opacity var(--fade-speed) linear,
+					transform var(--fade-speed) $easeOutBack;
 	}
 
 	&.hide{
@@ -351,10 +325,10 @@ input[type=list],
 input[type=radio]:checked,
 // label[for=button-solo],
 // label[for=button-duet],
+label[for="button-start"],
 .controls > *{
 
 	@extend %button-style;
-
 
 	&.hide{
 		display: none;
@@ -443,6 +417,14 @@ input[type=radio]:checked,
 		color:transparent;
 		justify-content: center;
 	}
+		
+	// this adds some right pad to icons on the control bar
+	.controls > *{
+
+		&:not(.hide-text){
+			gap:0;
+		}
+	}
 }
 
 
@@ -493,19 +475,12 @@ input[type=radio]:checked,
 	align-items: stretch;
 	justify-content: stretch;
 	pointer-events: auto;
-	
-	// background-image: 	url(./assets/textures/bedge-grunge.png),
-	// 					linear-gradient( 
-	// 						$col-tan, 
-	// 						$col-dark 
-	// 					);
+
 	background-image:linear-gradient(
 		hsla(18, 21%, 12%, 0.7), 
 		hsla(340, 5%, 11%, 0.7)
 	);
-	// background-image: url(./assets/textures/45-degree-fabric-light.png),
-	// 					linear-gradient( fade($col-cream, 0.5), fade($col-grey, 0.5));
-	
+
 	//overflow: hidden;
 	// overflow: scroll;
 	//overflow-y:hidden;
@@ -584,11 +559,13 @@ input[type=radio]:checked,
 			background-color: var(--col-select);
 		}
 	
-		// toggled state eachone can have unique color
-		&.checked:before{
+		// hover when selected still turns orange!
+		&.checked:hover::before{
 			opacity: 1;
 		}
-		&.checked:after{
+
+		// toggled state each one can have unique color
+		&.checked::after{
 			opacity:1;
 			transform:translateY(20%);
 		}
@@ -623,10 +600,10 @@ input[type=radio]:checked,
 		// background-color:rgba($col-yellow,0.5);
 
 		&:active{
-			--col-top:$col-select;
-			--col-bottom:$col-select;
-			transform: scale(0.96);
+			--col-top:var(--col-select);
+			--col-bottom:var(--col-select);
 			//background-color: var(--col-select);
+			@extend %button-active;
 		}
 
 		&:focus{
@@ -634,18 +611,27 @@ input[type=radio]:checked,
 			//outline-offset: -3px;
 		}
 
-		&.checked,
-		&.checked:hover,
-		&:hover, &:focus{
-			color:$col-white;
-			background-color: var(--col-regular);
-		}
+
 
 		&.checked{
-			--col-top:$col-dark;
-			--col-bottom:$col-dark;
+			// --col-fg:red;
+			--col-top:#{$col-dark};
+			--col-bottom:#{$col-dark};
 			//background-color: var(--col-regular);
 			// background-color: $col-dark;
+		}
+		
+		&.checked:hover,
+		&:hover, &:focus{
+			--col-top:#{$col-orange};
+			--col-bottom:#{$col-yellow};
+			
+			//color:$col-white;
+			//background-color: var(--col-regular);
+
+			&::before{
+				opacity: 0;
+			}
 		}
 		
 		&:empty{ 
@@ -983,7 +969,8 @@ input[type=checkbox]{
 	appearance: none;
 	display: inline-block;
 	background-color:$col-dark;
-	background:linear-gradient( $col-green, $col-gray );
+
+	// background:linear-gradient( $col-green, $col-gray );
 		
 	border:var(--button-border-size) solid rgba($col-brown, 0.9);
 	border-top-color: rgba($col-white, 0.6 );
@@ -1029,22 +1016,26 @@ input[type=checkbox]{
 		//border-color:$col-orange;
 		outline:1px solid $col-orange;
 	}
+	&:active{
+		@extend %button-active;
+	}
 }
 
 // different kind of switchbox for one toggle only
 input[type=checkbox].switch{
 
-	--width:4rem;
+	--width:100%;
 	--col-top:#{$col-tan};
 	--col-bottom:#{$col-grey};
 
 	background-color:$col-gray;
 	//background:linear-gradient( $col-green, $col-gray );
 	background:linear-gradient( to right, rgba($col-grey, 0.5), rgba( $col-cream, 0.5) );
-	width:var(--width);
+	//min-width:var(--width);
 	position: relative;
 	box-sizing: border-box;
 	border-radius:99px;	
+	flex-grow: 1;
 	
 	&:before, &:after{
 		content:'';
@@ -1060,33 +1051,35 @@ input[type=checkbox].switch{
 		content:'OFF';
 		@extend %drop-shadow;
 		color:$col-white;
+
 		position:absolute;
 		left:0;
 		height:100%;
 		text-align: center;
-
 		top:0;
 		width:calc( var(--width) / 2 );
+		//margin-left:calc( -1 * var(--width) / 4 );
+
 		font-size: 8px;
 		border-radius:99px;
 		border:calc( 0.5 * var(--button-border-size,4px)) solid $col-white;
 		background-color:$col-gray;
 		background-image:linear-gradient($col-dark, $col-gray);
-		transition:transform 195ms $easeOutBack;
+		transition:transform 195ms $easeInOutQuad;
 	}
 
 	&:checked{
-		background-color:$col-orange;
-		//background:linear-gradient( to right, $col-green, $col-green );
+		background-color:$col-blue;
+		background:linear-gradient( to right, $col-green, $col-green );
 		background-size:80%, 100%;
 
 		// 
 		&:before{
 			content:'ON';
-			//color:$col-green;
+			color:$col-dark;
 			//border-color:$col-cream;
-			transform: translateX(50%);
-			background-image:linear-gradient($col-green, $col-gray);
+			transform: translateX(100%);
+			background-image:linear-gradient($col-yellow, $col-gray);
 		}
 	}
 
@@ -1097,6 +1090,7 @@ input[type=checkbox].switch{
 		border-left-color: rgba($col-white, 0.2);
 		border-right-color: rgba($col-white, 0.5);
 	}
+
 }
 
 
@@ -1243,7 +1237,7 @@ button#button-midi,
 button.install-app,
 button.update-available{
 	// border-radius: var(--curve) var(--curve) var(--curve) 0;
-	transition:background-color var(--ease-q) linear, color 40ms linear;
+	//transition:background-color var(--ease-q) linear, color 40ms linear;
 	overflow: hidden;
 }
 
@@ -1352,13 +1346,13 @@ button#share{
 	//--logo:url();
 	--overlap:0px;
 	--delay:0s;
+	border-radius:99px;
 
 	// after a brief while hide this?
 	// animation: 
 	// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
 	// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
 	
-
 	// &:hover, &:focus{
 	// 	--overlap:40px;
 	// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;

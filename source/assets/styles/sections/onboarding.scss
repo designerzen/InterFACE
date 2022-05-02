@@ -40,6 +40,7 @@
 	// instructions do show periodically so we need to ensure that they
 	// NB. don't cover the buttons
 	#toast{
+		
 		--footer-gap:var(--pad);
 		bottom:auto;
 		top:var(--pad);
@@ -137,21 +138,19 @@
 
 label[for=button-start]{
 
-	transform: translateY(-50%);
-	//margin-top:-2.5rem;
-	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
-	
+	--col-fg: #{$col-dark};
 	--col-bg: #{$col-orange};
 	--col-hover:#{$col-cream};
-
 	--button-border-size:4px;
 	--bg:url(/source/assets/icons/music_note-24px.svg);
 	--pos-override:left var(--pad) center;
-	
-	
-	@extend %button-style;
 
-	z-index:909;
+	// transform: translateY(-50%);
+	margin-top:var(--pad);
+	
+	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
+	
+	z-index:606;
 	border-radius:var(--curve, 0);
 
 	position: relative;
@@ -168,7 +167,11 @@ label[for=button-start]{
 	&:after{
 		content:'!';
 	}
+	&:hover::before{
+		opacity: 1;
+	}
 }
+
 .solo label[for="button-start"]{
 	--bg:url(/source/assets/icons/person-24px.svg);
 	&:before{
@@ -181,6 +184,7 @@ label[for=button-start]{
 		content:' in Simple Mode';
 	}
 }
+
 .duet label[for="button-start"]{
 	--bg:url(/source/assets/icons/people-24px.svg);
 	&:before{
@@ -309,6 +313,7 @@ label[for=button-start]{
 		display: flex;
 		align-items: center;
 		flex-basis: 100%;
+		justify-content: stretch;
 	}
 
 	label[for*="button-"]{
