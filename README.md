@@ -2,7 +2,7 @@
 ## [A Smile Powered Synthesizer](https://interface.place)
 
 TL;DR
-A face controlled musical instrument that uses a video camera.
+A musical instrument completely controlled by your face.
 
 Smile to begin - click your face to change to a different instrument.
 
@@ -10,20 +10,25 @@ Or...
 
 An augmented reality, real-time motion-capture, machine-learning powered, holographic, accessible general MIDI controller and synthesizer (that comes without a manual). 
 
-## What is it?
 
-By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument and this allows for expressive yet intuitive control and hopefully fun musicality.
+## Abstract - Just what is it?
 
-This software has been designed to be used with a holographic display which gives the visuals extra depth and believability.
+An exended-reality accessible musical synthesizer - completely controlled by your face.
 
-By creating a virtual interface with no moving parts or extra hardware, we can use a person's own expressions and movements to control and manipulate hardware, software and data.
+By piggybacking onto a person's own natural movements, we reduce the complexity required to learn a new instrument to mere moments whilst retaining full expression and precise control.
+
+We can convert smiles into musical notes and winks into audio controls.
+
+This virtual interface has no moving parts, requires no extra hardware, and can run on most modern computers and mobile phones.
+
+We can use a person's own expressions and movements to control and manipulate hardware, software and data to create music.
 
 ## Purpose
-I have been researching and creating accessible technology for twenty years and for the past 10 have been helping run a monthly workshop alongside Drake Music Charity that brings together people who struggle to play traditional instruments, and technology focussed individuals who know how to build and make things. The charity work directly alongside schools and individuals offering real world use cases and genuine feedback - indispensable when simplicity is the aim. Together we have created a whole number of accessible musical instruments, some that are repurposing of existing instruments and some entirely new. My focus for the past few years has been to try and create musical instruments & music creation tools with the lowest barriers to entry - intuitive tools that everybody can play instinctively, that are easy to obtain and fun to play too! Currently the only requirement for this one to play is a mouth, but that could be swapped for eyes or eyebrows, the technology is quite broad!
+I have been researching and creating accessible technology for over twenty years and for the past 10 have been helping run a monthly workshop alongside Drake Music Charity that brings together people who struggle to play traditional instruments, and technology focussed individuals who know how to build and make things. The charity work directly alongside schools and individuals offering real world use cases and genuine feedback - indispensable when simplicity is the aim. Together we have created a whole number of accessible musical instruments, some that are repurposing of existing instruments and some entirely new. My focus for the past few years has been to try and create musical instruments & music creation tools with the lowest barriers to entry - intuitive tools that everybody can play instinctively, that are easy to obtain and fun to play too! Currently the only requirement for this one to play is a mouth, but that could be swapped for eyes or eyebrows, the technology is quite broad!
 
 Ultimately, this tool allows *all* sorts of people to create their own sounds and music but the technology can be expanded to control anything.
 
-## Potential plans for expansion and commercialisation?
+## Potential plans
 
 Add more musicality, expression and to create an app version that would allow it to run smoother on mobile devices. I think this would be key to getting it onto everybody's devices and the app stores also offers retail opportunities. 
 
@@ -48,12 +53,70 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - After installing the app it doesn't load, uninstall and re-run it
 
 ## Build from source
+
 - Install NodeJS 12.8.3+ and Yarn
 - Download the source code and enter the directory
 - open a terminal / cli / bash / command prompt
 - enter ```yarn install```
 - then ```yarn build```
 - Your interFACE will be built into the dist folder
+
+### Other commands
+
+```freshstart: yarn reset && parcel serve source/*.pug -p 909```
+```start: parcel serve source/*.pug -p 909```
+```clean: node actions/clean.mjs```
+```changes: node actions/changelog.mjs```
+```doc: jsdoc -d dist/docs --configure .jsdoc.json source/index.js```
+
+build: parcel build --no-source-maps --no-scope-hoist --no-content-hash --public-url ./ source/*.pug,
+build:debug: parcel build --no-minify --no-scope-hoist --public-url ./ source/*.pug,
+build:index: parcel build --no-scope-hoist --no-content-hash --public-url ./ source/index.pug,
+electron: electron-builder --dir,
+run:electron: electron-builder,
+build:electron: parcel build --public-url ./ --dist-dir ./dist --no-source-maps --no-content-hash source/app.pug,
+open:electron: npx cap open @capacitor-community/electron,
+build:android: parcel build --public-url ./ --dist-dir ./dist --no-source-maps source/app.pug,
+open:android: npx cap open android,
+run:android: npx cap run android,
+android: yarn clean && yarn build:android && node actions/app.mjs && yarn open:android,
+
+app:build: parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug,
+
+
+// Documentation generation
+help: parcel build --public-url ./ source/help.pug,
+roadmap: parcel build --public-url ./ source/roadmap.pug,
+app: parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug,
+copyrights:list: NODE_ENV=production yarn licenses list && node license.mjs,
+license: yarn licenses generate-disclaimer > LICENSES.md && yarn licenses generate-disclaimer > source/licenses.md,
+license:build: parcel build --public-url ./ source/licenses.pug,
+
+
+// Revisions and versioning
+revision: yarn version --patch --no-git-tag-version,
+revise: yarn revision && node actions/revision.mjs,
+patch: changelog -p && yarn version --patch && node actions/revision.mjs,
+minor: changelog -m && yarn version --minor && node actions/revision.mjs,
+major: changelog -M && yarn version --major && node actions/revision.mjs,
+
+package: yarn revise && yarn clean && yarn build,
+
+analyse: parcel build source/index.pug --profile --detailed-report,
+
+// Deployment & Distribution
+push: git push origin && git push origin --tags,
+deploy: node actions/deploy.mjs,
+hotfix: yarn patch && yarn clean && yarn build && yarn deploy,
+release: yarn minor && yarn clean && yarn build && yarn deploy,
+bump: yarn major && yarn clean && yarn build && yarn deploy
+
+// troubleshooting and library upgrades
+```killport: npx kill-port 909```
+```hardreset: node actions/reset.mjs --total && yarn install```
+```reset: node actions/reset.mjs```
+```upgrader: yarn upgrade-interactive```
+
 
 ## Future plans
 - Better musicality and expression
@@ -63,11 +126,10 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Percussion that sounds good!
 - Hand remote Controls
 - Full Body version for beats
-- Saving "Persons" and using face ID loading them back in
+- Saving "Personas" and using face ID loading them back in
 - Vocoder mode using microphone
 - Improved timing
 - MIDI 2.0 (MPE) Support
-- Collab with Beardyman?
 
 ## Requirements
 - Face
@@ -84,6 +146,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Alphabet](https://google.com)
 
 ## Thanks
+- Tim Yates
 - Thomas Bonte
 - Darren Southea
 
@@ -100,3 +163,13 @@ Given enough time it would be possible to save MIDI files directly from the app 
 ## Other links
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
 - [Music Maker Festival](https://www.makermusicfestival.com/)
+
+
+### Keywords
+- augmented reality
+- extended reality
+- pose piggybacking
+- natural interface
+- musical instrument
+- synthesizer
+- MIDI hardware controller
