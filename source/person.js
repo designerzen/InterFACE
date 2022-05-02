@@ -2,7 +2,6 @@
 import { rescale, lerp, clamp } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 import { getBarProgress } from './timing/timing.js'
-import { DEFAULT_COLOURS } from './palette'
 import { active, playing, loadInstrumentPack, randomInstrument, playTrack } from './audio/audio'
 import { getNoteText, getNoteName, getNoteSound } from './audio/notes'
 import { 
@@ -20,6 +19,7 @@ import {
 } from './visual/2d'
 import { drawEye } from './visual/2d.eyes'
 import { drawMouth } from './visual/2d.mouth'
+import { DEFAULT_PERSON_OPTIONS } from './settings'
 
 const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
 
@@ -28,96 +28,11 @@ const MAX_TRACKS = 18
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
 
 export const EYE_COLOURS = ['blue','green','brown','orange']
-
-export const DEFAULT_OPTIONS = {
-	...DEFAULT_COLOURS,
-
-	// Passed to the delay node
-	// NB. There is a global delay too remember
-	useDelay:false,
-	delayTime: 0.14,
-	delayLength: 10,
-
-	// left / right ear stereo panning
-	stereoPan:true,
-
-	sendMIDI:true,
-
-	// if you want the axis to be switched
-	swapControls:false,
-
-	// if the user has epilepsy, set to true
-	photoSensitive:false,
-
-	// force draw face mesh
-	drawMesh:false,
-	// force draw face blob nodes
-	drawNodes:true,
-	// alternate between mesh and blobs depending on mouth
-	// NB. The two above will override this behaviour
-	meshOnSing:false,
-
-	// all the above can be disabled!
-	drawMask:true,
-
-	// draw these parts over the mesh...
-	drawMouth:true,
-	// kid mode turns eyes googly!
-	drawEyes:true,
-
-	// ratios of size of eye
-	scleraRadius:3,
-	irisRadius:1,
-	pupilRadius:0.3,
-	// frank sidebottom angle
-	eyeRatio:0.8,
-
-	// mouse hold for clicking in seconds 0.5 and more feels weird
-	mouseHoldDuration:0.3,
-
-	// if both eyes are closed for X ms do something...
-	eyeShutHolddDuration:3500, // ms
-
-	// how much feedback to apply to the feedback node
-	feedback:0.1,
-
-	// to adjust the angle that the head has to roll...
-	// larger means less movement required
-	rollSensitivity:1.2,
-
-	// to adjust the amount of pitching (head rocking)
-	// depending on how complicated the piece is the octaves
-	// can also be shifted between a certain range...
-	pitchSensitivity:1,
-
-	// size of the mouth to signal activity
-	mouthCutOff:0.2,
-
-	// size of the mouth to signal silence
-	mouthSilence:0.05,
-
-	// volume smooth rate = smaller means faster fades?
-	volumeRate:0.7,
-
-	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
-	//instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-
-	// this is the amount of decimal places used to smooth the mouth
-	// the higher the number the less smooth the output is
-	// 1 or 2 should be more than enough
-	precision:3,
-
-	// set this to one of the interpolation methods above
-	// IN means that it starts off slowly (prefered)
-	ease:easeInSine // easeInSine // linear
-}
-
 export default class Person{
 
 	constructor(name, audioContext, destinationNode, options={} ) {
 		
-		this.options = Object.assign({}, DEFAULT_OPTIONS, options)
+		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		this.name = name
 		this.counter = 0
 		this.instrumentPointer = 0
@@ -270,7 +185,11 @@ export default class Person{
 		// })
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
-
+	
+	/**
+	 * Is the mouse button down?
+	 * @returns {Boolean} Mouse button state
+	 */
 	get areEyesOpen(){
 		return this.isLeftEyeOpen && this.isRightEyeOpen
 	}
@@ -278,47 +197,93 @@ export default class Person{
 	get mouseDownFor(){
 		return this.audioContext.currentTime - this.mouseDownAt
 	}
+		
+	/**
+	 * Is the mouse button down?
+	 * @returns {Boolean} Mouse button state
+	 */
 	get isMouseDown(){
 		return this.mouseDownAt > -1
 	}
+
+	/**
+	 * Checks to see if the user is pressing their face
+	 * @returns {Boolean} has this Person got a finger depressed on their face?
+	 */
 	get isMouseHeld(){
 		return this.options.mouseHoldDuration < this.mouseDownFor
 	}
 
+	/**
+	 * Fetch the ID of the form on the DOM that matches this Person
+	 * @returns {String} ID name
+	 */
 	get controlsID (){
 		return `${this.name}-controls`
 	}
+
+	/**
+	 * Fetch the form controls on the DOM that matches this Person
+	 * @returns {HTMLElement} Form element for this Person
+	 */
 	get controls (){
 		return document.getElementById(this.controlsID)
 	}
 
+	/**
+	 * Fetch the instrument name eg.
+	 * @returns {String} Instrument name
+	 */
 	get instrumentName(){
 		return this.instrument ? this.instrument.name : 'loading'
 	}	
+
+	/**
+	 * Fetch the instrument title eg. French Horn
+	 * @returns {String} Instrument title
+	 */
 	get instrumentTitle(){
 		return this.instrument ? this.instrument.title : 'loading'
 	}
-	// expensive... can we use instrumentPointer instead?
+
+	/**
+	 * Fetch the index in the instrument array of the current instrument
+	 * FIXME: expensive... can we use instrumentPointer instead?
+	 * @returns {Number} Instrument index
+	 */
 	get instrumentIndex(){
 		// instrumentPointer ???
 		return INSTRUMENT_FOLDERS.indexOf(this.instrumentName)
 	}
 
+	/**
+	 * Fetch the instrument title eg. French Horn
+	 * @returns {Boolean} does this machine have MIDI set up?
+	 */
 	get hasMIDI(){
 		return this.midi !== null && this.midiChannel && this.midiChannel.length > 0
 	}
 
+	/**
+	 * Fetch the MIDI device name if one is connected
+	 * @returns {String} MIDI Device name
+	 */
 	get MIDIDeviceName(){
 		return this.midi ? this.midi.name : 'unknown'
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// Return a time based library of face movements since recording began
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Return a time based library of face movements since recording began
+	 * @returns {Array<String>} time based library of face movements
+	 */
 	get history(){
 		return this.parameterRecorder.recording
 	}
 
+	/**
+	 * Set the palette for this Person
+	 * @param {Object} options HSL colour model
+	 */
 	setPalette(options){
 		this.saturation = options.saturation // && 100
 		this.luminosity = options.luminosity //&& 100
@@ -327,9 +292,11 @@ export default class Person{
 		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// Cache data for use in processing later
-	/////////////////////////////////////////////////////////////////////
+	/** 
+	 * Update Person's Memory state
+	 * Cache data for use in processing later
+	 * @param {Object} prediction data model
+	 */
 	update(prediction){
 		
 		this.counter++
@@ -370,13 +337,13 @@ export default class Person{
 		
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// Update visuals
-	// prediction - data model
-	// showText - show / hide the subtitles
-	// forceRefresh - forces the redraw regardless of other settings
-	// beatJustPlayed - has the metronome just ticked?
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Update visuals
+	 * @param {Object} prediction data model
+	 * @param {Boolean} showText show / hide the subtitles
+	 * @param {Boolean} forceRefresh forces the redraw regardless of other settings
+	 * @param {Boolean} beatJustPlayed has the metronome just ticked?
+	 */
 	draw(prediction, showText=true, forceRefresh=false, beatJustPlayed=false){
 		
 		if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
@@ -717,9 +684,9 @@ export default class Person{
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// Sing some songs
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Sing some songs
+	 */
 	sing(){
 
 		// nothing to play or too many simultaneous samples
@@ -892,7 +859,7 @@ export default class Person{
 		if (this.options.sendMIDI && this.hasMIDI)
 		{
 			this.midi.sendClock( )
-			this.midi.setSongPosition( getBarProgress() * 16383 )
+			//this.midi.setSongPosition( getBarProgress() * 16383 )
 				
 			if (!this.singing)
 			{
@@ -903,10 +870,10 @@ export default class Person{
 				})
 
 				// immediate mute, but doesn't block (sounds better)
-				this.midi.turnSoundOff()
+				//this.midi.turnSoundOff()
 
 				// fade out but prevents new notes...
-				this.midi.turnNotesOff()
+				//this.midi.turnNotesOff()
 				
 				// prevent flooding the off bus
 				this.midiActive = false
@@ -957,42 +924,50 @@ export default class Person{
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Provide this Person with a random instrument
+	 * @param {Function} callback Method to call once the instrument has loaded
+	 */
 	async loadRandomInstrument(callback){
 		return await this.loadInstrument( randomInstrument(), callback )
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Provide this Person with a the previous instrument in the list
+	 * @param {Function} callback Method to call once the instrument has loaded
+	 */
 	async loadPreviousInstrument(callback){
 		const index = this.instrumentPointer
 		const newIndex = index-1 < 0 ? 0 : index-1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// 
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Provide this Person with a the subsequent instrument in the list
+	 * @param {Function} callback Method to call once the instrument has loaded
+	 */
 	async loadNextInstrument(callback){
 		const index = this.instrumentPointer
 		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// if we have swapped on the instrument pack we can use this method
-	// to reload the same instrument but with the new samples
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Reload ALL instruments for this user
+	 * NB. If we have swapped the instrument pack we can use this method
+	 * to reload the same instrument but with the new samples
+	 * @param {Function} callback Method to call once the instrument has loaded
+	 */
 	async reloadInstrument(callback){
 		return await this.loadInstrument( INSTRUMENT_FOLDERS[this.instrumentPointer], callback )
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// we need loading events?
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Load a specific instrument for this Person
+	 * TODO: Add loading events
+	 * @param {String} instrumentName Name of the standard instrument to load
+	 * @param {Function} callback Method to call once the instrument has loaded
+	 */
 	async loadInstrument(instrumentName, callback){
 
 		this.instrumentLoading = true
@@ -1013,18 +988,18 @@ export default class Person{
 		return instrumentName
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Set the MIDI channel to use for this Person
+	 * @param {Function} midi MIDI implementation
+	 * @param {String} channel MIDI CHannel to dispatch MIDI events to
+	 */
 	setMIDI(midi, channel="all"){
 		this.midiChannel = channel
 		this.midi = midi
 		//console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// Instrument selected from the DOM UI face click
-	/////////////////////////////////////////////////////////////////////
+	
 	onInstrumentInput(event) {
 		const id = event.target.id
 		//console.error(id, "on inputted", event)
@@ -1048,9 +1023,9 @@ export default class Person{
 		this.rightEyeClosedAt = timeClosed
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	// This pops up the user side bar and populates it accordingly
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * This pops up the user side bar and populates it accordingly
+	 */
 	showForm(){
 
 		//console.log("showForm", this.controlsID, this.controls)
@@ -1072,9 +1047,9 @@ export default class Person{
 		this.controls.classList.toggle("showing",true)
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	//
-	/////////////////////////////////////////////////////////////////////
+	/**
+	 * Hide this Person's form
+	 */
 	hideForm(){
 		//const inputs = this.controls.querySelectorAll('input')
 		//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
