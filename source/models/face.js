@@ -4,8 +4,8 @@
 // https://github.com/vivien000/trompeloeil/blob/master/src/World/components/geometry/geometry.js
 
 // FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
+//import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
 import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
-// import * as FACEDETECT from '@tensorflow-models/face-landmarks-detection'
 
 // CPU Only
 //import '@tensorflow/tfjs-backend-cpu'
@@ -13,12 +13,15 @@ import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detec
 // If you are using the WASM backend:
 //import '@tensorflow/tfjs-backend-wasm'
 
-import {ready, setBackend} from '@tensorflow/tfjs'
-
 // If you are using the WebGL backend:
 import '@tensorflow/tfjs-backend-webgl'
 
+import {ready, setBackend} from '@tensorflow/tfjs'
 import { enhancePrediction} from './face-model'
+
+// wasm version
+import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
+
 
 // This flips to using a seperate thread for the 
 // prediction calculations - dunno if it makes it quicker
@@ -81,7 +84,7 @@ const makePrediction = (prediction) => new Promise((resolve,reject)=>{
 // })
 
 
-const predict = async (inputElement,model) => {
+const predict = async (inputElement,detector) => {
 
 	// some effects are timing related
 	const time = now()
@@ -89,7 +92,7 @@ const predict = async (inputElement,model) => {
 	// Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
 	// array of detected faces from the MediaPipe graph. If passing in a video
 	// stream, a single prediction per frame will be returned.
-	const predictions = await model.estimateFaces({
+	const predictions = await detector.estimateFaces({
 		// webcam element with video
 	  	// input: video / img etc
 		input: inputElement,
@@ -134,21 +137,24 @@ const predict = async (inputElement,model) => {
 	}else{
 		//console.log("No face in shot")
 	}
-
-
 	return predictions
 }
 
 export const loadFaceModel = async (inputElement, options) => {
 
-	// Set the backend to WASM and wait for the module to be ready.
-	//await setBackend('wasm')
 	await ready()
+
+	// Set the backend to WASM and wait for the module to be ready.
+	// tfjsWasm.setWasmPaths(
+	// 	`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${
+	// 		tfjsWasm.version_wasm}/dist/`)
+	// await setBackend('wasm')
 	
 	const detectPeople = options.maxFaces
 
 	// Load the MediaPipe Facemesh package.
-	const model = await load( SupportedPackages.mediapipeFacemesh, options)
+	//const detector = await createDetector(SupportedModels.MediaPipeFaceMesh, options)
+	const detector = await load( SupportedPackages.mediapipeFacemesh, options)
 
  	// Load Emotion Detection
 	// const emotionModel = await tf.loadLayersModel( 'web/model/facemo.json' )
@@ -158,13 +164,13 @@ export const loadFaceModel = async (inputElement, options) => {
 	const update = async (repeat, callback, isPaused=null) => { 
 
 		const shouldUpdate = isPaused ? isPaused() : true
-	
+
 		// console.log("shouldUpdate", shouldUpdate, {isPaused})
 		// console.log("Combining TF model", model, "with element", inputElement, "..." )
 		if (shouldUpdate)
 		{
 			// single player right now but this could be an array in future
-			const predictions = await predict(inputElement, model) 
+			const predictions = await predict(inputElement, detector) 
 			//console.warn("carpet", {predictions, inputElement, model})
 
 			// //console.log("Predictions narrowed down to", predictions)
@@ -194,6 +200,7 @@ export const loadFaceModel = async (inputElement, options) => {
 			// 		callback(null)
 			// 	}
 			// }
+
 			// const people = predictions.slice(0,quantity)
 			callback( predictions.length ? predictions.slice(0,quantity) : [] )
 		}else{
