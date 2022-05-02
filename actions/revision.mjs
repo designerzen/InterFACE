@@ -15,7 +15,6 @@ console.log( "\x1b[35m", "info Using version", pkg.version  )
 
 // also save it into a js file as a constant
 const fileVariant = `export const VERSION="${packageVerson}";\rexport const DATE=${DATE};`
-const textVariant = `${packageVerson}`
 const jsonVariant = JSON.stringify( { 
 	version:packageVerson, 
 	date:DATE,
@@ -27,19 +26,16 @@ const jsonVariant = JSON.stringify( {
 	dependencies:pkg.dependencies
 } )
 
+
+pkg.time = DATE
+
 // save to disk
-// writeFileSync("./package.json", JSON.stringify(pkg, null, '\t') )
+writeFileSync("./package.json", JSON.stringify(pkg, null, '\t') )
 
 // For COMPILE time in JS
 writeFileSync("./source/version.js", fileVariant)
 
-// For COMPILE in PUG 
-writeFileSync("./source/version.txt", textVariant)
-
 // For CLIENTSIDE download
 writeFileSync("./dist/info.json", jsonVariant)
 
-
-console.log("Saved to package.json and to source/version.js, dist/info.json and source/version.txt" )
-
-// now update the pug config :( as it cannot handle require :(
+console.log("Saved to package.json and to source/version.js, dist/info.json" )

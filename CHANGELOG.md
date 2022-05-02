@@ -1,3 +1,75 @@
+### 0.8.0 (2022-04-03)
+
+##### Bug Fixes
+
+*  Scss math updates (26eb5723)
+
+##### Other Changes
+
+*  Pug template improved (8cb1bb20)
+*  adding docs for timing  before fix (96d822f0)
+
+#### 0.7.5 (2022-03-23)
+
+##### Bug Fixes
+
+*  footer affiliates (f3a2ff33)
+*  Licenses (78ba7efb)
+*  Version not appearing (a48842cd)
+*  Version bump and upgrade fixes (6656986f)
+
+#### 0.7.4 (2022-03-23)
+
+#### 0.7.3 (2022-03-23)
+
+#### 0.7.2 (2022-03-23)
+
+##### Bug Fixes
+
+*  PWA still not acting like desired (7d9eadb4)
+*  Assets in browserconfig (0f752908)
+*  Parcel 2 requires  Workers differently (e4ab8b7f)
+*  Upgraded packages and imports (76fcb893)
+*  iOS safari doesnt recognise dialog element (ddd6a38d)
+*  Parked capactitor integration for now (ea702fb0)
+*  DOM utils (6bb16c7f)
+*  Autoprefixer enabled (5b2416e4)
+
+##### Other Changes
+
+*  Added PhotoSynth branding (470f3ddf)
+*  added 2d canvas classes (82371580)
+*  Persistent states and flag modifiers (83446e6c)
+*  Added reverb list and asset (7a597b37)
+*  CSS (18024c5a)
+*  JSDoc updates (7e01fb2b)
+*  deleted some unused files (bf037988)
+*  removed old cam (c0b2639d)
+*  Camera class documented (7dc75f9b)
+*  Added more pages (e1c10a93)
+*  Actions imrpoved (318baa9f)
+*  Face Mesh model coords (6764ad4e)
+*  Added dynamic pug vars (c245e953)
+*  Started adding jsdocs (ea77b78b)
+*  Licenses from packages (cae4d649)
+*  Added robots.txt (9b7a0391)
+*  Added humans.txt (a30d1822)
+*  Added bak files to gitignore (9a651a56)
+*  Added .editorconfig for interoperability (2335e205)
+
+#### 0.7.1 (2021-07-01)
+
+##### New Features
+
+*  Version bumped (60145ee8)
+*  Updated screenshots to show art mode (b9364014)
+
+##### Bug Fixes
+
+*  Optimised android icons (dec4d1a6)
+*  Timing improvements for control (b5a6085e)
+*  favicons use rounded style when small (37c93502)
+
 ### 0.7.0 (2021-06-28)
 
 ## 1.0.0 (2021-06-28)
