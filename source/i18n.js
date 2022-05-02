@@ -21,3 +21,5 @@ export const getBrowserLocales = (options = {}) => {
 	  return settings.languageCodeOnly ? trimLocaleCode(trimmedLocale) : trimmedLocale
 	})
   }
+
+  // TODO: Load pot files
