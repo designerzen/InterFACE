@@ -154,7 +154,7 @@ registerRoute(
 // Cache the cloud hosted TF models as they are heavy and not local!
 registerRoute(
   /^https:\/\/storage\.googleapis\.com\/tfhub-tfjs-modules/,
-  new CacheFirst({
+  new NetworkFirst({
     cacheName: 'tf-models-googleapi',
     plugins: [
       new CacheableResponsePlugin({
@@ -171,7 +171,7 @@ registerRoute(
 // https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 registerRoute(
   /^https:\/\/tfhub\.dev\/mediapipe\/tfjs-model/,
-  new CacheFirst({
+  new NetworkFirst({
     cacheName: 'tf-models-tfhub-mediapipe',
     plugins: [
       new CacheableResponsePlugin({
@@ -188,7 +188,7 @@ registerRoute(
 // https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1/model.json?tfjs-format=file
 registerRoute(
   /^https:\/\/tfhub\.dev\/tensorflow\/tfjs-model/,
-  new CacheFirst({
+  new NetworkFirst({
     cacheName: 'tf-models-tfhub-tensorflow',
     plugins: [
       new CacheableResponsePlugin({
