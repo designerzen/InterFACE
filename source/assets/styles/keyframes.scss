@@ -76,6 +76,12 @@
 	}
 }
 
+@keyframes TranslateY{
+	from{
+		transform: translateY( var(--y,0) );
+	}
+}
+
 @keyframes Fade{
 	from{
 		opacity: 0;
@@ -155,7 +161,10 @@
 
 @keyframes TagReveal{
 	from{
-		transform: translateY( calc(  var(--pad) - 2.5rem) );
+		transform: translateY( calc(  var(--pad) - 3.2rem ) );
+	}
+	to{
+		transform: translateY( calc(  var(--pad) ) );
 	}
 }
 

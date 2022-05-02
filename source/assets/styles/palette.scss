@@ -1,0 +1,27 @@
+
+// use the hues to set tints
+$hue-white:20;
+$hue-dark:30;
+$hue-grey:11;
+$hue-gray:18;
+$hue-cream:23;
+$hue-tan:27;
+$hue-brown:23;
+$hue-blue:196;
+$hue-green:56;
+$hue-yellow:41;
+$hue-orange:28;
+$hue-red:9;
+
+$col-white:hsl( $hue-white, 27%, 87%);
+$col-dark:hsl( $hue-dark, 6%, 14%);
+$col-grey:hsl( $hue-grey, 6%, 50%);
+$col-gray:hsla( $hue-gray, 6%, 55%, 1);
+$col-cream:hsl( $hue-cream, 18%, 53%);
+$col-tan:hsl( $hue-tan, 30%, 45%);
+$col-brown:hsl( $hue-brown, 22%, 30%);
+$col-blue:hsl( $hue-blue, 18%, 33%);
+$col-green:hsl( $hue-green, 18%, 33%);
+$col-yellow:hsl( $hue-yellow, 34%, 50%);
+$col-orange:hsl( $hue-orange, 69%, 38%);
+$col-red:hsl( $hue-red, 58%, 35%);

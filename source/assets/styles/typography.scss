@@ -2,7 +2,7 @@
 // Overall font size zoom 
 // Changing this does not impact on browser setting so +1 a18y
 // NB. 16px = 100% therefore 10px = 100/16 * 10
-$font-zoom:16/16; // 10/16 //0.625; //0.625
+$font-zoom:math.div(16,16); // 10/16 //0.625; //0.625
 
 // This is the size that the smallest elements scale down to in pixels
 // NB. The zoom factor above has influence on these calculations...

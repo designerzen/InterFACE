@@ -1,0 +1,44 @@
+
+.hide-text{
+	// %image-replacement
+	text-indent: -9999px;
+	overflow:hidden;
+	color:transparent;
+	text-shadow:none;
+	white-space: pre;
+	font-size: 0;
+	position: absolute;
+}	
+
+// To pass the w3c accessibility standards (see a11yproject.com)
+// add this class to any element to visually hide it from the screen
+// without affecting the other elements whilst also allowing
+// the user to tab to focus and read the contents within them
+// https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+.sr-only{
+
+	border: 0;
+	// clip: rect(1px 1px 1px 1px); // IE6, IE7
+	clip: rect(1px, 1px, 1px, 1px);
+	clip: rect(0 0 0 0);
+	height: 1px; width: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute !important;
+	
+	// For long content, line feeds are not interpreted as spaces and small width
+	// causes content to wrap 1 word per line:
+	// https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
+	white-space: nowrap; 
+  
+	// allow focus within
+	a:focus,
+	input:focus,
+	button:focus {
+		position:static;
+		width:auto; 
+		height:auto;
+	}
+  }
+  

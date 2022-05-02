@@ -1,36 +1,9 @@
+@import "./assets/styles/_ease.scss";
+@import "./assets/styles/palette.scss";
+
 // Special thanks to 
 // https://nicolas-hoizey.com/articles/2015/02/18/viewport-height-is-taller-than-the-visible-part-of-the-document-in-some-mobile-browsers/
 // for fixing my 100vh not being 100% viewport height on mobile safari
-$easeInBack:  cubic-bezier(0.600, -0.280, 0.735, 0.045);
-$easeOutBack:  cubic-bezier(0.175,	0.885, 0.320, 1.275);
-$easeInOutBack:  cubic-bezier(0.680, -0.550, 0.265, 1.550);
-
-// use the hues to set tints
-$hue-white:20;
-$hue-dark:30;
-$hue-grey:11;
-$hue-gray:18;
-$hue-cream:23;
-$hue-tan:27;
-$hue-brown:23;
-$hue-blue:196;
-$hue-green:56;
-$hue-yellow:41;
-$hue-orange:28;
-$hue-red:9;
-
-$col-white:hsl( $hue-white, 27%, 87%);
-$col-dark:hsl( $hue-dark, 6%, 14%);
-$col-grey:hsl( $hue-grey, 6%, 50%);
-$col-gray:hsla( $hue-gray, 6%, 55%, 1);
-$col-cream:hsl( $hue-cream, 18%, 53%);
-$col-tan:hsl( $hue-tan, 30%, 45%);
-$col-brown:hsl( $hue-brown, 22%, 30%);
-$col-blue:hsl( $hue-blue, 18%, 33%);
-$col-green:hsl( $hue-green, 18%, 33%);
-$col-yellow:hsl( $hue-yellow, 34%, 50%);
-$col-orange:hsl( $hue-orange, 69%, 38%);
-$col-red:hsl( $hue-red, 58%, 35%);
 
 %image-replacement{
 	text-indent: -9999px;
@@ -46,12 +19,6 @@ $col-red:hsl( $hue-red, 58%, 35%);
   
 // debug
 // @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
-
-// Basic resets
-html,body,h1,h2,h3,h4,h5,h6,p{
-	margin:0;
-	padding:0;
-}
 
 // some shared vars
 :root{
@@ -101,172 +68,17 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 	// animation stagger 
 	--overlap:0.3;  // the smaller, the closer together the nimations are
 	--offset:0s;	// initial delay for all
+
+	--noise:url("data:image/svg+xml,%3Csvg class='filter' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='filter-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter-noise)'%3E%3C/rect%3E%3C/svg%3E");
 }
 
-// Load fonts & set typography
+// Load reset, fonts & set typography
+@import "./assets/styles/base.scss";
 @import "./assets/styles/fonts.scss";
 @import "./assets/styles/typography.scss";
 
-html{
-	// allows 100vh to work on mobile safari
-	height: -webkit-fill-available;
-
-	transition: background-color var(--ease-s) linear;
-
-	// dark
-	color:$col-white;
-	background-color:$col-dark;
-	
-	// from jpg
-	background-image:linear-gradient(
-		hsla(18, 21%, 12%, 0.7), 
-		hsla(340, 5%, 11%, 0.7)
-	);
-	
-	//	clip-path: inset(0 0 0 0);
-}
-
-body {
-	// prevent collapse
-	min-height: -webkit-fill-available;
-	min-height: 100vh;
-	max-height:100vh;
-	max-width:100vw;
-
-	// try to use sparingly...
-	// // hide all cruft and hide scrollbars too
-	// overflow:hidden;
-	// // saves on memory as it crops it too
-	// overflow: clip;
-	
-	display: flex;
-	flex-direction: column;
-    flex-wrap: nowrap;
-    align-content: stretch;
-    justify-content: space-between;
-}
-
-// forms
-label{
-	--padding:calc( 1 * var(--pad));
-	//outline: 1px groove $col-cream;
-	cursor: pointer;
-	transition:color var(--ease-s) linear, 
-				background-color 90ms linear;
-
-	padding:var(--padding);// var(--pad) 0 var(--pad);
-	position: relative;
-	user-select:none;
-
-	&:hover, &:focus{
-		color:$col-white;
-		background-color: $col-blue;
-		outline:none;
-	}
-}
-
-select{
-	appearance: none;
-	padding:var(--pad);
-}
-
-select::-ms-expand {
-	display: none;
-}
-
-// form seems to want focus all the time
-form{
-
-	
-
-	// give it a cool border effect
-	fieldset{
-		--breakpoint:320px;//12ch;
-
-		margin:var(--pad) 0;
-		padding:0;
-		border:var(--border-size, 9px) double var(--col-white);
-		//border-image: linear-gradient( $col-grey, $col-gray );
-		
-		display:flex;
-		position: relative;
-		
-		box-shadow: rgba($col-dark,0.4) 0 0px 2px,
-				rgba($col-dark,0.3) 0 0.5px 2px,
-				rgba($col-dark,0.2) 0 1px 2px,
-				rgba($col-dark,0.1) 0 1.5px 2px;
-		
-		// slight hack to fix focus issue		
-		pointer-events: none;
-		// fade in from empty
-		animation:Fade var(--ease-s) linear 1 0s both;
-		// NB. ensure in front of the person buttons (202)
-		z-index:303;
-	}
-
-	fieldset:empty{
-		display: none;
-	}
-	
-	// cool intro effects...
-	fieldset > *{
-		animation-name:Fade, Shift;
-		animation-duration: var(--ease-s, 0), var(--ease-s, 0);
-		animation-fill-mode: both, both;
-		animation-delay: var(--delay,0), var(--delay,0);
-		pointer-events: auto;
-	}
-	
-	// kill anims if focussed inside the form
-	&:focus-within{
-		fieldset > *{
-			animation-duration:1ms,1ms;
-		}
-	}
-}
-
-ol{
-	margin:0;
-	margin-top:var(--pad);
-	padding:0;
-	// list-style-position: inside;
-}
-
-ol li{
-	
-}
-
-ol li + li{
-	margin-top:var(--pad);
-}
-
-
-img,
-svg{
-	width:100%;
-	max-width:100%;
-	height:auto;
-}
-
-// we hide these by default until ready to preserve CPU
-video,canvas{
-	max-width:100%;
-	visibility: hidden;
-	// nothing to click so prevent
-	pointer-events: none;
-}
-
-// Single taps are dispatched immediately on clickable elements
-a, area, button, input, label, select, summary, textarea, [tabindex] {
-	-ms-touch-action: manipulation;
-	touch-action: manipulation;
-}
-
-[aria-busy="true"] {
-	cursor: progress;
-}
-
 // elements and sections
+@import "./assets/styles/forms.scss";
 @import "./assets/styles/gadgets.scss";
 
 #intro{
@@ -295,7 +107,7 @@ a, area, button, input, label, select, summary, textarea, [tabindex] {
 		transition:color var(--ease-s) ease-out;
 		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
 					rgba(0,0,0,0.56) 0 2px 4px,
-					rgba(0,0,0,0.56)0 3px 4px,
+					rgba(0,0,0,0.56) 0 3px 4px,
 					rgba(255,255,255,0.96) 0 0 4px;
 						
 		strong{
@@ -555,6 +367,7 @@ html.loading main{
 	max-width:100vw;
 	max-height:100vh;
 
+	/*
 	// show a graphic but hide contents
 	&::before,&::after{
 		content: '';
@@ -578,6 +391,7 @@ html.loading main{
 		animation-delay:calc( var(--delay) + var(--blur-delay) );
 		filter: blur(6px);
 	}
+	*/
 }
 
 html.loading body{
@@ -613,6 +427,13 @@ html.loading main{
 	$bg-url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC";
 	background-image: url($bg-url), linear-gradient(rgba($col-white, 0.9), rgba($col-cream, 0.2) );
 	
+	mix-blend-mode: darken;
+	mix-blend-mode: difference;
+	mix-blend-mode: exclusion;
+	mix-blend-mode: multiply;
+  
+	filter: url(#noiseFilter);
+  
 	background-size:var(--scroll-x), 100%;
 
 	background-color:$col-white;
@@ -623,11 +444,8 @@ html.loading main{
 
 	// add some background textures
 	body{
-		background-image:  linear-gradient( rgba($col-white, 0.5), rgba($col-cream, 0.5) ),
-							//url(/source/assets/logos/sxsw2021.svg),
-							url(/source/assets/textures/45-degree-fabric-light.png), 
-							url(/source/assets/textures/45-degree-fabric-dark.png);
-
+		background-image:  linear-gradient( rgba($col-white, 0.5), rgba($col-cream, 0.5) );
+						
 		background-size: 	100%,
 							//15%,
 							25%, 
@@ -970,24 +788,86 @@ html.debug{
 
 // Feedback text that pops up and dissappears
 #toast{
+
+	--max-percent:70vw;
+	--left:0;
+
+	--y:var(--top);
+	--_x:calc(1px * var(--left, 0));
+
+	--x:clamp(var(--pad), var(--_x), var(--max-percent) );
+	
+	--v:calc( var(--left) * 1px - var(--_x) );
+
+	// remaing width
+	--max-width:calc(100vw - var(--x) - var(--pad) * 3 );
+
 	user-select: none;
 	pointer-events: none;
 	position: absolute;
 	padding: calc( var(--pad) * 1);
-	right:calc(var(--pad) + 2px);
+
+	// squish all the way down
+	left:var(--_x);
+	// stop at min-width
+	left:var(--x);
+	//right:calc( var(--pad) );
 	bottom:calc( var(--footer-gap) + var(--pad) );
 	z-index:909;
+
+	min-height:1ch;
+	min-width:3ch;
+	max-width:var(--max-width);
+	// text-align: right;
+
 	color:$col-white;
 	background-color:rgba($col-dark,0.94);
 	font-size:clamp(9px, var(--font-size), 14px);
+
 	// FIXME:
 	// text-shadow : rgba(255,255,255,0.96) 0 -1px 2px,
 	// 				rgba($col-dark, 0.96) 0 0 2px;
 
+	&::before{
+		
+		// is this above or below?
+		--_y:clamp(0, calc( var(--top) * 99 ), 1);
+		
+		// x coord in pixels - percentage of screen
+		--d:calc( var(--_x) - var(--max-percent) );
+		--_d:clamp(0 , var(--d) , 1 );
+
+		content:'';
+		position:absolute;
+		top:calc( (1 - var(--_y,1)) * 100% );
+		left:max( 0px, var(--d) );
+
+//		left:calc( var(--max-width) );
+		// this has to change after 60%
+		//right:100%;//calc( var(--v) );
+		// so we allow it to go all across
+		// left:clamp( 
+		// 	var(--pad), 
+		// 	calc(  - var(--x) ) , 
+		// 	calc(60%) 
+		// );
+		//right:calc( 100% + var(--x) );
+		//margin-left:calc( -1 * var(--left) + var(--pad) );
+
+		height:2rem;
+		width:2rem;
+		background:inherit;
+		display: block;
+		clip-path: polygon(0 0, 100% 0, 100% 100%);
+		z-index:-1;
+	}
+
 	// hide if no text inside
 	&:empty{
-		display:none;
+		//display:none;
+		animation: Fade var(--ease-q) 1 0s ease-out both reverse;
 	}
+
 }
 
 // Feedback text on screen all the time
@@ -1220,10 +1100,27 @@ html.debug{
 	}
 }
 
+.loaded{
+	#intro{
+
+		> * {
+			visibility: hidden;
+		}
+		nav{
+			visibility: visible;
+		}
+	}
+	#progress{
+		display: none;
+	}
+}
+
 // fancy shared controls animations
 header > *,
 fieldset > *,
 dialog[open] > *{
+
+	--overlap:0.06;
 
 	$end:49;
 	@for $i from 1 to $end {
@@ -1465,6 +1362,8 @@ main.flag-eyes label[for="select-eyes"]{
 	--spacer:0;
 	--border:1px solid #{$col-gray};
 	color:$col-brown;
+	
+	border-top:var(--border);
 
 	display: flex;
 	box-sizing: border-box;
@@ -1488,15 +1387,43 @@ main.flag-eyes label[for="select-eyes"]{
 	transition:transform var(--ease-s) $easeOutBack;
 	transform: translateX(var(--spacer));
 	
-	// fader it in immediately
+	// fade it in immediately
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
 
+
+	// allow the contents to hide
 	.associates {
-		flex-basis: 100%;
-		border-bottom:var(--border);
+		position: relative;
+	
+		h6{
+			&::before{
+				content:'+';
+				color:inherit;
+			}
+		}
+
+		ul{
+			visibility: hidden;
+			display: grid;
+			position: absolute;
+			background: inherit;
+			display: grid;
+			position: absolute;
+			bottom: 90%;
+			background-color:$col-dark;
+			z-index: 909;
+			transform: translateX(-50%);
+		}
+
+		h6:hover ~ ul,
+		ul:hover,
+		ul:focus,
+		ul:focus-within{
+			visibility: visible;
+			animation: Fade var(--ease-s) 1 0s ease-out both normal;
+		}
 	}
 	
-
 	small{
 		display:flex;
 		align-items: center;
@@ -1650,8 +1577,22 @@ main.flag-eyes label[for="select-eyes"]{
 
 }
 
+// These are the backgrounds
+.filter{
+	opacity: 0.33;
+	position: absolute;
+	top:0;
+	right:0;
+	bottom:0;
+	left:0;
+	display: block;
+	background-image: url("data:image/svg+xml,%3Csvg class='filter' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='filter-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter-noise)'%3E%3C/rect%3E%3C/svg%3E");
+}
+
 // sections
+@import "./assets/styles/progress.scss";
 @import "./assets/styles/sections/onboarding.scss";
+@import "./assets/styles/sections/timeline.scss";
 
 @import "./assets/styles/dialog.scss";
 @import "./assets/styles/icons.scss";
@@ -1659,3 +1600,4 @@ main.flag-eyes label[for="select-eyes"]{
 @import "./assets/styles/scrollbars.scss";
 
 @import "./assets/styles/domains.scss";
+@import "./assets/styles/utils.scss";
