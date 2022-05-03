@@ -222,7 +222,6 @@ const setTempo = (tempo) => {
 	setTimeBetween( tempo )
 	const bpm = getBPM()
 	setToast( `Tempo : Period set at ${tempo} milliseconds between bars<br>or ${bpm}BPM` )
-	//console.log({bpm, timer, tempo})
 	store.setItem('tempo', { period:tempo, bpm })
 	return tempo
 }
@@ -393,7 +392,7 @@ const enableMIDIForPerson = (personIndex=0, midiDevices=[], midiChannel=0) => {
 	if (port)
 	{
 		person.setMIDI(port, midiChannel)
-		// console.log(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
+		console.log(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 	}else{
 		console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel}, midi.outputs[midiChannel])
 	}
@@ -404,17 +403,23 @@ const updateMIDIStatus = (outputs)=>{
 	const quantity = outputs.length
 	if (quantity>0)
 	{
-		let feedback = outputs.map(midiInstrument => midiInstrument.name || "MIDI Instrument" ).join( "<br>" )
+		const midiDevices = outputs.map(midiInstrument => midiInstrument.name || "MIDI Instrument" )
+		let feedback = `MIDI : <br>${midiDevices.join( "<br>" )}`
 		switch(quantity)
 		{
 			// FIXME: 2 instruments have been connected,
 			// we should send one to each instrument presumably?
 			case 2:
+				people.forEach( (person,i) => enableMIDIForPerson(i, outputs, ui.midiChannel) )
+				
 				break;
 
 			default:
 				// w00t
 				// console.error("MIDI devices",midiInstrument, midiInstrumentName, outputs)
+						
+				// use this to fill the peoples
+				people.forEach( (person,i) => enableMIDIForPerson(i, outputs, ui.midiChannel) )
 				
 				//midiButton.setText("Click to disable")
 		}
@@ -424,12 +429,8 @@ const updateMIDIStatus = (outputs)=>{
 		main.classList.toggle(`midi-devices-${quantity}`, true)
 		main.classList.remove(`midi-unavailable`)
 
-		// use this to fill the peoples
-		people.forEach( (person,i) => enableMIDIForPerson(i, outputs, ui.midiChannel) )
-		
-		feedback = `MIDI Available<br>${feedback}`
-				
 		setToast( feedback )
+
 		midiButton.setText("<span class='hide-text'>Click to </span>Disable")
 		midiButton.setLabel(feedback)
 
@@ -539,8 +540,6 @@ const registerKeyboard = () => {
 				let b = getBars() + 1
 				let bars = setBars( b )
 				let t = setTimeBetween( timePerBar() )
-		
-				console.error("bars---",bars,  b, t )
 				setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
 				break
 
@@ -548,8 +547,6 @@ const registerKeyboard = () => {
 				let ub = getBars() - 1
 				let ubars = setBars( ub )
 				let ut = setTimeBetween( timePerBar() )
-		
-				console.error("bars---", ubars, ub, ut )
 				setToast( `Bars ${ubars} / BPM : ${getBPM()}` )
 				break
 
@@ -708,8 +705,6 @@ const registerKeyboard = () => {
 			{
 				// this is a tempo!
 				const tempo = parseFloat(numberSequence)
-				console.log("Setting tempo to ", tempo)
-
 				setBPM(tempo)
 				// reset
 				numberSequence = ''
@@ -734,7 +729,6 @@ const registerKeyboard = () => {
 */
 const setup = async (update, settings, progressCallback) => {
 
-console.error("update", update)
 
 	const loadTotal = 7
 	let loadIndex = 0
@@ -908,7 +902,6 @@ console.error("update", update)
 	// TODO: create and position the stave?
 	// const stave = new Stave( canvas, 0, 0, true )
 
-	// console.error("Tensorflow", tf)
 	main.classList.add( inputElement.nodeName.toLowerCase() )
 	
 	// this just adds some visual onscreen tooltips to the buttons specified
@@ -944,8 +937,6 @@ console.error("update", update)
 
 	// Ensure that the video element is always being fed data
 	const shouldUpdate = () => !cameraLoading
-
-	console.error( "shouldUpdate", {cameraLoading}, shouldUpdate() )
 	
 	// FaceMesh.getUVCoords 
 	// this then runs the loop if set to true
@@ -1067,7 +1058,12 @@ console.error("update", update)
 				{
 					// unless quantize is turned off
 					const stuff = person.sing()
+
+					// console.log("Person:sing", stuff)
 					
+					// stuff.played is an array of notes
+					// midiButton.classList.toggle("active", stuff.played.length > 0)
+
 					// yaw, pitch, lipPercentage, eyeDirection
 					// update the stave with X amount of notes
 					if (person.singing)
@@ -1260,10 +1256,9 @@ const load = async (settings, progressCallback) => {
 
 		// Face
 		default:
-			console.log("Loading face model")
+			
 			const {loadFaceModel} = await import('./models/face')
 			loadModel = loadFaceModel
-			console.log("Loadied face model", {loadModel})
 	}
 
 	progressCallback(loadIndex++/loadTotal)
@@ -1457,11 +1452,11 @@ const load = async (settings, progressCallback) => {
 	addMouseTapAndHoldEvents( logoButton )
 	
 	logoButton.addEventListener( MOUSE_TAP, event => {
-		console.log("Logo tapped")
+		// console.log("Logo tapped")/
 	} )
 
 	logoButton.addEventListener( MOUSE_HELD, event => {
-		console.log("Logo held")
+		// console.log("Logo held")
 	} )
 	
 	// this takes any existing state from the url and updates our front end
@@ -1473,9 +1468,6 @@ const load = async (settings, progressCallback) => {
 	progressCallback(loadIndex++/loadTotal)
 	
 	// Load tf model and wait
-
-	
-
 	// this gets returned then used an the update method
 	return loadModel(inputElement, settings)
 }
@@ -1532,7 +1524,7 @@ const loadExtras = async ()=> {
 		}
 		
 	}else{
-		console.log("Loaded Webpage", VERSION)
+		// console.log("Loaded Webpage", VERSION)
 	}
 }
 
