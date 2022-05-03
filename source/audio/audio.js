@@ -20,7 +20,6 @@ import {
 	NOTE_NAMES, NOTE_NAMES_FRIENDLY
 } from './notes'
 
-export const randomInstrument = () => INSTRUMENT_FOLDERS[ Math.floor( Math.random() * INSTRUMENT_FOLDERS.length ) ]
 
 export let audioContext
 
@@ -70,6 +69,17 @@ export let active = false
 // 	return outputNode
 // }
 
+/**
+ * Fetch a random instrument name
+ * @returns {String} Instrument Name
+ */
+export const randomInstrument = () => INSTRUMENT_FOLDERS[ Math.floor( Math.random() * INSTRUMENT_FOLDERS.length ) ]
+
+/**
+ * Create a chain of audio effects
+ * @param {?Object} options config
+ * @returns {Promise} Chain of effects
+ */
 export const chooseFilters = async (options) => {
 
 	// create some filters based on some options?
@@ -103,6 +113,11 @@ export const setReverb = async (filename) => {
 	return reverb.impulseFilter( impulse )
 }
 
+/**
+ * Set up the Audio Engine
+ * @param {?Object} settings Options
+ * @returns {Promise} Chain of effects
+ */
 export const setupAudio = async (settings) => {
 
 	// BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
@@ -181,6 +196,9 @@ export const setupAudio = async (settings) => {
 	return chain( [ gain.node, reverb.node, delay.node, compressor.node, analyser ], audioContext )
 }
 
+/**
+ * update the frequency analyser and fetch EQ data in the Frequency Domain
+ */
 export const updateByteFrequencyData = ()=> {
 	analyser.fftSize = 2048
 	analyser.getByteFrequencyData(dataArray)
@@ -189,6 +207,9 @@ export const updateByteFrequencyData = ()=> {
 	bufferLength = analyser.frequencyBinCount
 }
 
+/**
+ * update the frequency analyser and fetch EQ data in the Time Domian
+ */
 export const updateByteTimeDomainData = ()=> {
 	analyser.fftSize = 256
 	// for bars
@@ -196,6 +217,10 @@ export const updateByteTimeDomainData = ()=> {
 	bufferLength = analyser.frequencyBinCount
 }
 
+/**
+ * Automatically Loop and update the frequency analyser and 
+ * fetch EQ data in the Frequency Domain
+ */
 const monitor = () => {
 
 	const result = requestAnimationFrame(monitor)
@@ -231,6 +256,10 @@ const resumeAudioContext = () => {
 	}
 }
 
+/**
+ * Start playback
+ * @returns {Number} Volume
+ */
 export const playAudio = () => {
 	if (playing)
 	{
@@ -267,18 +296,41 @@ export const setFrequency = frequency => {
 	oscillator.frequency.value = frequency
 }
 
+/**
+ * Get the volume of the audio playback 
+ * @returns {Number} Volume
+ */
 export const getVolume = () => gain.volume()
-export const setVolume = (destinationVolume) => gain.volume(destinationVolume)
 
+/**
+ * Set the volume of the audio playback 
+ * @param {Number} destinationVolume Volume to set
+ * @returns {Number} Volume
+ */
+export const setVolume = destinationVolume => gain.volume(destinationVolume)
+
+/**
+ * Load an Audio Buffer
+ * @param {String} path Instrument Sample path
+ * @returns {HTMLAudioElement} Audio buffer
+ */
 export const loadAudio = async (path) => {
 	const response = await fetch(path)
 	const arrayBuffer = await response.arrayBuffer()
 	const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 	return audioBuffer
-  }
+}
 
-// create a buffer, plop in data, connect and play -> modify graph here if required
-// detune:0,,  playbackRate:1
+/**
+ * Play an Audio Buffer
+ * create a buffer, plop in data, connect and play -> modify graph here if required
+ * detune:0,,  playbackRate:1
+ * @param {Object} audioBuffer Audio data buffer
+ * @param {Number} offset position to start from
+ * @param {AudioNode} destination Audio Node to route to
+ * @param {Object} options options such as looping
+ * @returns {HTMLAudioElement} Auudio object
+ */
 export const playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
 	
 	return new Promise((resolve, reject)=>{
@@ -326,9 +378,13 @@ export const playTrack = (audioBuffer, offset=0, destination=delayNode, options=
 	})
 }
 
-// const track = await loadAudio()
-// const r = playTrack(track)
-
+/**
+ * Replace the in-memory sample with a new sample
+ * This loads only one pitch for the specific sound
+ * @param {String} instrumentName Instrument Sample name
+ * @param {String} part The part of the instrument to load
+ * @returns {HTMLAudioElement} Auudio object
+ */
 async function loadInstrumentPart (instrumentName, part) {
 	return new Promise((resolve,reject)=>{
 		const path = `${instrumentName}/${part}`
@@ -357,7 +413,13 @@ async function loadInstrumentPart (instrumentName, part) {
 	})
 }
 
-
+/**
+ * Replace the in-memory sound with a new dound
+ * This loads all pitches for one specific sound
+ * @param {String} instrumentName Instrument Sample name
+ * @param {String} path File path for sample pack
+ * @returns {Array<Promise>} Array of instrument load promises
+ */
 export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="FluidR3_GM") => {
 	const instrumentPath = `${path}/${instrumentName}`
 	const parts = createInstrumentBanks()
@@ -365,15 +427,22 @@ export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="FluidR3
 	const instruments = parts.map( part => loadAudio( `./assets/audio/${instrumentPath}/${part}` ) )
 	//const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
 	// eg FluidR3_GM
-	return instruments	// array of promises
+	return instruments
 }
 
+/**
+ * Replace the in-memory sample pack with a new pack
+ * @param {String} instrumentName Instrument Sample name
+ * @param {String} path File path for sample pack
+ * @param {?Function} progressCallback Optional callback to report progress
+ * @returns {Object} Instrument information
+ */
 export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="FluidR3_GM", progressCallback ) => {	
 	const output = {
 		title:cleanTitle(instrumentName),
 		name:instrumentName,
 	}
-	// progressCallback?
+	// TODO: implement progressCallback
 	const parts = await Promise.all( loadInstrumentParts(instrumentName, path) )
 	NOTE_NAMES.forEach( (instrument, index) => {
 		output[ instrument.split('.')[0] ] = parts[index]
