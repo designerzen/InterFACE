@@ -35,7 +35,7 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 export const DEFAULT_OPTIONS = {
 
 	// this allows us to show some extra options if set to true...
-	advancedMode:false,
+	advancedMode:true,
 	// initially show the settings panel
 	showSettings:false,
 	// play a constant beat
