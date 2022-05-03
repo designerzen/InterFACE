@@ -28,8 +28,8 @@ progress{
 
     --_nose-x:calc( var(--size) * 0.25 );
     --_nose-y:33%;//calc( var(--size) * 0.5 );
-    background-image:   radial-gradient(var(--_eye-r) circle at calc( 50% + var(--_eye-r) ) var(--_nose-y), #E71D36 50%, transparent 51%),
-                        radial-gradient(var(--_eye-r) circle at calc( 50% - var(--_eye-r) )  var(--_nose-y), #E71D36 50%, transparent 51%);
+    // background-image:   radial-gradient(var(--_eye-r) circle at calc( 50% + var(--_eye-r) ) var(--_nose-y), #E71D36 50%, transparent 51%),
+    //                     radial-gradient(var(--_eye-r) circle at calc( 50% - var(--_eye-r) )  var(--_nose-y), #E71D36 50%, transparent 51%);
 
 
 
