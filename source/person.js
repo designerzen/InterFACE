@@ -705,6 +705,8 @@ export default class Person{
 		// 	// return
 		// }
 
+		const played = []
+
 		const prediction = this.data
 		const options = this.options
 
@@ -786,6 +788,8 @@ export default class Person{
 				this.tracks--
 				//console.log("Sample completed playback... request tock", this.tracks )
 			})
+
+			played.push(note)
 			
 			// rescale for 0.3->1
 			newVolume = this.mouthScale( amp )
@@ -801,36 +805,41 @@ export default class Person{
 			// if (this.hasMIDI && !this.active)
 			if (this.options.sendMIDI && this.hasMIDI)
 			{
-				// duration: 2000,
 				// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 				//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
 				const midiOptions = { 
-					channels:this.midiChannel,
-					attack:newVolume // amp
+					//attack:newVolume // amp
 				}
 
+				// if all is specified - leave the channel option empty
+				if (this.midiChannel !== "all")
+				{
+					midiOptions.channel = this.midiChannel
+				}
+
+				// https://webmidijs.org/api/classes/Output#playNote
 				this.midi.playNote( noteName, midiOptions )
-				
+				console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+		
 				if (this.midiActive)
 				{
-					this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+					//this.midi.sendKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
 					// this.midi.setPitchBend( eyeDirection )
 				}else{
 					this.midiActive = true
 				}
 				
-				//console.log(t, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
-		
+				
 				// Use eye direction as a modifier for the sound
 				if (eyeDirection !== 0)
 				{
 					// Midi pitch bending with eyes!
 					// Pitch bending eyes!
-					// 
-					// this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+					//this.midi.setPitchBend( eyeDirection )
+					this.midi.sendKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
 				}
 			}
-
+			
 			this.singing = true
 			this.isMouthOpen = true
 			this.active = true
@@ -916,8 +925,9 @@ export default class Person{
 		this.pitch = pitch
 		this.roll = roll
 
+		// TODO: Return all notes played
 		return {
-			
+			played,
 			yaw, pitch, roll,
 			lipPercentage,
 			eyeDirection
@@ -996,7 +1006,7 @@ export default class Person{
 	setMIDI(midi, channel="all"){
 		this.midiChannel = channel
 		this.midi = midi
-		//console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
+		console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
 	
