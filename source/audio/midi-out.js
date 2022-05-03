@@ -42,13 +42,13 @@ export const setupMIDI = (connectedCallback, disconnectedCallback) => new Promis
 		// console.log(WebMidi.inputs)
 		// console.log(WebMidi.outputs)
 		WebMidi.addListener("connected", function(e) {
-			console.log(e);
+			//console.log(e);
 			connectedCallback && connectedCallback(e)
 		})
 		  
 		  // Reacting when a device becomes unavailable
 		WebMidi.addListener("disconnected", function(e) {
-			console.log(e);
+			//console.log(e);
 			disconnectedCallback && disconnectedCallback()
 		})
 		
