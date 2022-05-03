@@ -39,8 +39,6 @@ const createTip =  (element, revealRate=6, clearRate=550) => {
 			// ok, so we have a new message and immediately we overwrite the previous message
 			element.innerHTML = revealingMessage
 
-			console.error(index < message.length, "TIP",index, message.length, {message, speed, revealingMessage, element} )
-		
 			if (index < message.length){
 				requestAnimationFrame(()=>write( index + speed, speed ))
 			}else{			
@@ -113,7 +111,7 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 		// debounce and only change if var has
 		if (element.innerHTML === '' || cachedMessage != message)
 		{
-			console.error("TOAST:Clear AUTOMATIC")
+			
 			// prevent it blanking from previous request
 			clearTimeout(clearInterval)
 
