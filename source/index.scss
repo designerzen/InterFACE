@@ -1243,7 +1243,7 @@ main.midi-activated{
 	// hide button
 	#button-midi{
 		//cursor:not-allowed;
-		--col: $col-blue;
+		--col-bg: #{$col-blue};
 	}
 }
 
@@ -1559,7 +1559,7 @@ main.flag-eyes label[for="select-eyes"]{
 	color:$col-blue;
 	text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
 					rgba(0,0,0,0.56) 0 2px 4px,
-					rgba(0,0,0,0.56)0 3px 4px,
+					rgba(0,0,0,0.56) 0 3px 4px,
 					rgba(255,255,255,0.96) 0 0 4px;
 
 	svg{
@@ -1571,10 +1571,6 @@ main.flag-eyes label[for="select-eyes"]{
 	&:hover{
 		color:$col-orange;
 	}
-}
-
-.icon-list li a:hover{
-
 }
 
 // These are the backgrounds

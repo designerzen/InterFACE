@@ -1068,11 +1068,13 @@ input[type=checkbox].switch{
 		transition:transform 195ms $easeInOutQuad;
 	}
 
+	border-color:$col-dark;
 	&:checked{
 		background-color:$col-blue;
 		background:linear-gradient( to right, $col-green, $col-green );
 		background-size:80%, 100%;
 
+		border-color:$col-dark;
 		// 
 		&:before{
 			content:'ON';
@@ -1085,10 +1087,12 @@ input[type=checkbox].switch{
 
 	&:focus{
 		outline:0;
-		border:var(--button-border-size) solid rgba($col-brown, 0.7);
-		border-top-color: rgba($col-white, 0.4 );
-		border-left-color: rgba($col-white, 0.2);
-		border-right-color: rgba($col-white, 0.5);
+	//	border:var(--button-border-size) solid rgba($col-brown, 0.7);
+		
+	// border-color:$col-dark;
+		// border-top-color: rgba($col-white, 0.4 );
+		// border-left-color: rgba($col-white, 0.2);
+		// border-right-color: rgba($col-white, 0.5);
 	}
 
 }
