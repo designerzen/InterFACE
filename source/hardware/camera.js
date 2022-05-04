@@ -21,7 +21,8 @@ export const filterVideoCameras = (devices) => devices.filter( device => device.
  * @returns {Array<Object>} Collection of video input camera device objects
  */
 export const fetchVideoCameras = async() => {
-	filterVideoCameras( await detectCameras() )
+	const allCameras = await detectCameras()
+	return filterVideoCameras( allCameras )
 }
 
 /**
@@ -146,13 +147,15 @@ export const findBestCamera = async (store, video) => {
 	const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 			
 	// first fetch all cameras!
-	const videoCameraDevices = fetchVideoCameras()
+	const videoCameraDevices = await fetchVideoCameras()
 	
 	// 1st point of failure is if there are no cameras at all...
 	if (videoCameraDevices.length < 1)
 	{
 		throw Error("No Cameras found on this device")
 	}
+
+	console.log("videoCameraDevices", videoCameraDevices)
 	
 	// the deviceId is only a suggestion as the camera may well have been removed
 	// since the last time that the app was used or may have changed names
