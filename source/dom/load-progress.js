@@ -2,12 +2,13 @@
 const doc = document
 
 let loadMeter = 0
-const LOAD_MESSAGES = ["Please wait", "Loading.","Loading..","Loading...", "Almost done!"]
+const LOAD_MESSAGES = ["Please wait", "Loading.","Loading..","Loading...","Still Loading!", "Almost done!"]
 const progressMessage = doc.getElementById("progress-bar")
 const progressBar = doc.querySelector('progress')
 
 export const setLoadProgress = (progress, message) => {
 	loadMeter = progress
+	progressBar.style.setProperty("--progress", parseInt(progress) )
 	progressBar.setAttribute("value", parseInt(progress) )
 	if (message && message.length)
 	{
