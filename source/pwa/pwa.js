@@ -286,7 +286,7 @@ export const installOrUpdate = async(debug=false) => {
 			updating = true
 
 			// show "install update" buton?
-			log.push( {changes,waiting: installWorker.waiting, controller: navigator.serviceWorker.controller  } )
+			//log.push( {changes,waiting: installWorker.waiting, controller: navigator.serviceWorker.controller  } )
 			
 			// if there is already a service-worker registered and running as the controller...
 			// as well as a worker "waiting" to be installed... resolve immediately?
