@@ -1293,11 +1293,15 @@ button#button-video{
 
 // SHARED CONTROL PANEL
 button#button-midi{
+	// We were looking at all the MIDI Innovation Award apps and noticed that you are using the new MIDI pictogram on your website. 
+	// The MIDI logo and Pictogram is the intellectual property of the MIDI Association and can only be used by MIDI Association members who have signed our logo licensing agreement and certify that their product supports MIDI 2.0. 
+	// As we have not publicized the rules about MIDI 2.0 logo usage we are sure this is unintentional on your part.  
+	// However we have to insist that you immediately remove the logo from your website. 
 
 	//background-position: left 1px center;
 	// --icon-size:36px;
 	//background-color: $col-cream;
-	--bg:url(/source/assets/logos/midi2.0.svg);
+	--bg:url(/source/assets/icons/midi-copyright-free.svg);
 	&:before{
 		// also make sure we have set the width for midi as is not square
 		//min-width: calc(var(--icon-size) * 1.2);
