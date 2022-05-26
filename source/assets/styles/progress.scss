@@ -1,22 +1,88 @@
 @import "_ease";
 
+#load-progress{
+	display: flex;
+	flex-direction: column-reverse;
+	gap:var(--pad);
+	
+	position:fixed;
+	top:50%;
+	left:50%;
+	transform: translate(-50%,-50%);
+	
+	padding:var(--pad);
+	border-radius:18px;
+	background-image:
+		linear-gradient(
+			hsla(0, 50%, 100%, 0.8), 
+			hsla(0, 65%, 97%, 0.9)
+		);
+	box-shadow:var(--shadow);
+
+	progress{
+		transform: translateY(25%);
+	}
+	
+	&:has(progress[value="1"]){
+		border-radius:0;
+		box-shadow:none;
+		background-image:none;
+	}
+}
+
+label[for="progress-bar"]{
+	// position: absolute;
+	// // left:var(--pad);
+	// // right:var(--pad);
+	// width:calc(80% -2 * var(--pad) ) ;
+	// bottom:10%;
+	//margin:auto auto 4rem auto;
+	// set the label colour...
+	color: var(--shade-gray);
+	outline: none;
+	border:0;
+	padding: 0;
+	font-size:77%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+    justify-content: flex-end;
+
+	&:hover{
+		background-color: transparent;
+	}
+}
+// 10deg +
 progress{
+	
+	--range:160deg;
 	--progress:1;
-    --angle:clac( 10deg + var(--progress) * 40deg);
+    --angle:calc( var(--progress) * var(--range,160deg) );
     --size:250px;
-    --overscale:1.3;//1.5;//.5;
-    --direction:-1;
+    
+	--scale:1;
+	--overscale:0.3;//1.5;//.5;
+
+	--direction:-1;
     --duration:2s;
     --stroke:70px;
     --saturation:80%;
     --luminosity:70%;
     --ease:#{$authenticMotion};//ease-in-out;
+	
+
+	--full-scale:calc( var(--scale,1) + var(--overscale,0.5)); 
+
+	margin:auto;
+	color:inherit;
+
+	cursor: progress;
 
     appearance: none;
     box-sizing: border-box;
     display: grid;
     border-radius:999px;
-    transition: border 900ms linear;
+    // transition: border 900ms linear;
     width:var(--size);
     height:var(--size);
     position:relative;
@@ -24,11 +90,6 @@ progress{
     overflow: hidden;
     clip-path: inset(0 0 50% 0);
     //background-image: conic-gradient(from 90deg, red, yellow, green);
-    
-    --_eye-r:calc( var(--size) * 0.3 );
-
-    --_nose-x:calc( var(--size) * 0.25 );
-    --_nose-y:33%;//calc( var(--size) * 0.5 );
     // background-image:   radial-gradient(var(--_eye-r) circle at calc( 50% + var(--_eye-r) ) var(--_nose-y), #E71D36 50%, transparent 51%),
     //                     radial-gradient(var(--_eye-r) circle at calc( 50% - var(--_eye-r) )  var(--_nose-y), #E71D36 50%, transparent 51%);
 
@@ -65,19 +126,71 @@ progress{
 
     &::after{
         --delay:calc( var(--duration, 0s) * -0.03 );
+		
         // animation:  LoaderLine var(--duration) var(--ease) var(--delay) infinite alternate both,
         //             LoaderColor calc(var(--duration)*7) linear infinite both;
        
     }
 }
 
-.loader.wheel{
-    
+progress[value="1"]{
+	--overscale:0;
+	--range:180deg;
+	clip-path: none;
+	border-radius: 0;
+    animation: LoaderComplete 0.2s var(--ease) 1 alternate both;
+	animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+	// background-image: conic-gradient(from 90deg, red, yellow, green);
+	
+	&::before,
+    &::after{
+		--size:250px;
+		--delay:0s;
+		--duration:0.5s;
+		--stroke:40px;
+		--scale:0.7;
+		--overscale:0;
+		--saturation:100%;
+		--luminosity:0%;
+		// animation: 	LoaderLineComplete var(--duration, 1s) 0s var(--ease, linear) 1 forwards,
+		// 			LoaderColor calc(var(--duration)*7) linear infinite both;
+		animation-play-state: paused;
+		transition:background 450ms linear;
+    }
+
+	&::after{
+		 
+		--_eye-r:calc( var(--size) * 0.2 );
+		--_nose-x:calc( var(--size) * 0.18 );
+		--_nose-y:66%;//calc( var(--size) * 0.5 );
+		--col-eye:hsl(360,var(--saturation,50%),var(--luminosity,50%));;
+
+		box-sizing: border-box;
+		clip-path: none;
+		width:100%;
+		height:100%;
+		padding: 0;
+		margin: 0;
+		transform:none;// scale( var(--scale) );
+		background-repeat: no-repeat;
+		animation: none;
+		border-color:transparent;
+		border-width:0;
+		//background-color: var(--shade-yellow);
+		//background-image:   radial-gradient( var(--_eye-r, 5px) circle at var(--nose-x) var(--_nose-y, 50%),var(--col-eye) 50%, transparent 51%);
+		background-image:   radial-gradient(var(--_eye-r, 5px) circle at calc( 50% + var(--_nose-x,0) ) var(--_nose-y, 50%), var(--col-eye) 50%, transparent 51%),
+							radial-gradient(var(--_eye-r, 5px ) circle at calc( 50% - var(--_nose-x,0) ) var(--_nose-y, 50% ), var(--col-eye) 50%, transparent 51%);
+
+						background-size:100% 100%;
+	}
+}
+
+.loader.wheel{    
     &::after{
         --delay:calc( var(--duration, 0s) * -0.015 );
+		
         animation:  LoaderLine var(--duration) var(--ease) var(--delay) infinite alternate both,
                     LoaderColor calc(var(--duration)*7) linear infinite both;
-       
     }
 }
 
@@ -91,32 +204,46 @@ progress{
     // }
 }
 
-@keyframes LoaderLine{
-    0%{
-        transform: rotate( calc( -0.5turn + var(--angle) ) );
-    }
-    10%{
-        transform: rotate( calc( -0.5turn + var(--angle) ) );
-    }
-	50%{
-		transform: rotate( 0turn ) scale(var(--overscale,1.5));
-	}
-    90%{
-        transform: rotate( calc( 0.5turn - var(--angle) ) );
-    }
-    100%{
-        transform: rotate( calc( 0.5turn - var(--angle) ) );
+@keyframes LoaderComplete{
+    to{
+        transform: rotate( -0.5turn ) scale(var(--scale,1));
     }
 }
+
+
+@keyframes LoaderLine{
+    0%{
+        transform: rotate( calc( -0.5turn + var(--angle) ) ) scale(var(--scale,1));
+    }
+    10%{
+        transform: rotate( calc( -0.5turn + var(--angle) ) ) scale(var(--scale,1));
+    }
+	50%{
+		transform: rotate( 0turn ) scale(var(--full-scale,1.5));
+	}
+    90%{
+        transform: rotate( calc( 0.5turn - var(--angle) ) ) scale(var(--scale,1));
+    }
+    100%{
+        transform: rotate( calc( 0.5turn - var(--angle) ) ) scale(var(--scale,1));
+    }
+}
+
 @keyframes LoaderLine2{
     0%{
-        transform: rotate( calc( 0turn + var(--angle) ) );
+        transform: rotate( calc( 0turn + var(--angle) ) ) scale(var(--scale,1));
     }
    50%{
-    //    transform: rotate( 0.5turn ) scale(var(--overscale,1.5));
+    //    transform: rotate( 0.5turn ) scale(var(--full-scale,1.5));
   }
     100%{
-        transform: rotate( calc( 1turn - var(--angle) ) );
+        transform: rotate( calc( 1turn - var(--angle) ) ) scale(var(--scale,1));
+    }
+}
+
+@keyframes LoaderLineComplete{
+	to{
+        transform:  rotate( 0.5turn );
     }
 }
 

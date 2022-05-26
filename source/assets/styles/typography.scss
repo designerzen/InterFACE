@@ -43,7 +43,7 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 		
 	// in EMs (omit units tho)
 	--font-size-min:1;
-	--font-size-max:2;
+	--font-size-max:1.5;
 
 	// calc([minimum size] + ([maximum size] - [minimum size]) * ((100vw - [minimum viewport width]) / ([maximum viewport width] - [minimum viewport width])));
 	// calc([minimum size] + ([font range]) * ( (100vw - [minimum viewport width]) / [viewport width range] ));

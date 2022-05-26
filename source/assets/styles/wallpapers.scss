@@ -1,0 +1,64 @@
+$bg-url-grid: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC";
+	
+
+html{
+	--scroll-x:50px;
+	--scroll-y:50px;
+	--stroke:2px;
+
+	--col-bg:black;
+	--col-grid:#{$col-dark};
+
+	transition: background-color var(--ease-s) linear;
+	background-color:var(--col-bg, #{$col-dark} );
+}
+
+html.loading{
+
+	--col-bg:#{$col-white};
+	background-image: 	url($bg-url-grid), 
+						linear-gradient(rgba($col-white, 0.9), rgba($col-cream, 0.2) );
+	
+	background-size:var(--scroll-x) 100%;
+
+	background-repeat:repeat, no-repeat;
+
+	// mix-blend-mode: darken;
+	// mix-blend-mode: difference;
+	// mix-blend-mode: exclusion;
+	// mix-blend-mode: multiply;
+
+	//filter: url(#noiseFilter);
+
+	animation: BGScroll 999ms infinite linear reverse;
+	//	clip-path: inset(0 0 0 0);
+}
+
+
+html.player-selection{
+
+	--col-bg:#{$col-white};
+	--grid-x:calc(var(--scroll-x) - var(--stroke) );// 
+	--grid-y:calc(var(--scroll-y) - var(--stroke) );// 
+	
+	// colour that bleeds through the gap
+	
+	// dash pattern using css
+	background-image:
+		linear-gradient(0deg, var(--col-grid) var(--grid-x), transparent var(--scroll-x) ),
+		linear-gradient(90deg, var(--col-grid) var(--grid-y), transparent var(--grid-y) );
+		
+	// grid pattern using css
+	background-image:
+		linear-gradient(0deg, var(--col-grid) var(--grid-x), transparent var(--grid-x) ),
+		linear-gradient(90deg, var(--col-grid) var(--grid-y), transparent var(--grid-y) );
+		
+	background-size:
+		var(--scroll-x) 
+		var(--scroll-y);
+
+	background-repeat:repeat, repeat;
+
+	animation: BGScroll2 999ms infinite linear reverse;
+	//	clip-path: inset(0 0 0 0);
+}

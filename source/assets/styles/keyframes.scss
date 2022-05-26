@@ -1,8 +1,13 @@
 @use "sass:math";
 @keyframes BGScroll {
-  	0% { 
-	  	background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
-	}
+	0% { 
+		background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
+  }
+}
+@keyframes BGScroll2 {
+	100% { 
+		background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
+  }
 }
 
 // 
@@ -88,6 +93,16 @@
 	}
 	to{
 		opacity: var(--opacity,1);
+	}
+}
+
+@keyframes Hide{
+	99%{
+		opacity: var(--opacity,0);
+	}
+	100%{
+		opacity: var(--opacity,0);
+		display:none;
 	}
 }
 
