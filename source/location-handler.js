@@ -147,6 +147,7 @@ export const refresh = options => {
 	{
 		location.protocol = 'https:'
 	}
+	return false
 }
 
 /**
