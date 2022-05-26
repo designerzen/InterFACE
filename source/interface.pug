@@ -1,15 +1,17 @@
 extends _abstract.pug
 
 block header 
+
 	p.warning 
 		strong Warning : 
 		| Please be 
 		em very careful 
 		| if you are photosensitive. 
 		| Contains flashing lights.
-		
-	label#progress-bar(for="progress") Please wait, loading takes some time...
-	progress(max=1)#progress
+	
+	#load-progress
+		label(for="progress-bar") Please wait, loading takes some time...
+		progress(max=1)#progress-bar
 
 
 block nav
@@ -37,11 +39,11 @@ block main
 				
 
 				//- https://adrianroselli.com/2020/01/my-priority-of-methods-for-labeling-a-control.html
-				label.button(for="button-solo") <strong>Solo</strong> : 1 Player
+				label.button(for="button-solo") <strong>Solo</strong> 1 Player
 					input#button-solo(name="players" type="radio" aria-label="Single player mode" checked)
-				label.button(for="button-duet") <strong>Duet</strong> : 2 Players
+				label.button(for="button-duet") <strong>Duet</strong> 2 Players
 					input#button-duet(name="players" type="radio" aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" )
-				label.button(for="button-trio") <strong>Trio</strong> : 3 People
+				label.button(for="button-trio") <strong>Trio</strong> 3 People
 					input#button-trio(name="players" type="radio" aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" )
 				
 				//- Simple / Advanced mode
@@ -143,7 +145,7 @@ block main
 				label.hide-text(for="button-fullscreen") Toggle Fullscreen
 					input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
 				
-				button#share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) Share
+				button#share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
 			
 				//- label(for="input-tempo" aria-label="Set the tempo" ) Tempo
 				//- 	input(type="number" value="1")#input-tempo
