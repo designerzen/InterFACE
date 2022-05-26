@@ -13,14 +13,10 @@ import manifestPath from "url:../manifest.webmanifest"
 // ? made CloudFlare barf up the ServiceWorker so meh!
 const URL_SEPERATOR = "#"
 
-
 let deferredPrompt
-
-
 
 // flags
 const PWA_TYPES = [ "standalone", "fullscreen",  "minimal-ui" ]
-
 
 // Determine as much functionality as possible
 // Is running as a PWA
@@ -159,11 +155,12 @@ const showInstallPrompt = (installButton, prompt) => new Promise( async (resolve
 
 
 // TODO: Lazy load from update
-const showChangelog = async () =>{
+const showChangelog = async ( domElement ) =>{
 	
 	// FIXME: show changelog???
 	const {injectChangeLog, fetchChangesAsText} = await import('./changes.js')
 	const changes = await fetchChangesAsText('changelog')
+	// injectChangeLog( domElement )
 	return changes
 }
 
@@ -260,6 +257,7 @@ export const installOrUpdate = async(debug=false) => {
 		const previousServiceWorkerURL = new URL(activeWorker.scriptURL)
 		
 		previousVersion = previousServiceWorkerURL.search.split("=")[1] || '-.-.-'
+		// isFirstRun
 		updatesAvailable = previousVersion !== VERSION
 		
 		// "installing" - the install event has fired, but not yet complete
@@ -271,6 +269,7 @@ export const installOrUpdate = async(debug=false) => {
 		const activatedState = activeWorker.state
 
 		log.push("PREVIOUS SW URL", `${previousServiceWorkerURL}` )
+		log.push("EXPECTED VERSION", `${VERSION}` )
 		log.push("SW Reg v", `${previousVersion} -> ${currentVersion}`, {updatesAvailable, previousVersion, registration, activatedState, activeWorker, previousServiceWorkerURL } )
 		log.push(`SW State ${activatedState}` )
 			
@@ -363,7 +362,6 @@ export const installOrUpdate = async(debug=false) => {
 
 	}else{
 		log.push("PWA registering service worker", {serviceWorker} )
-
 	}
 
 	// INSTALLABLE!
@@ -388,11 +386,20 @@ export const installOrUpdate = async(debug=false) => {
 	output = {
 
 		log,
+
 		online: isOnline,
 		offline:!isOnline,
+
 		previousVersion, currentVersion,
 		
 		isInstallable, isFirstRun, isRunningAsApp, 
+	
+		// 
+		hasUpdates: updatesAvailable && !isFirstRun,
+
+		// FIXME
+		isInstalled:isRunningAsApp,
+
 		// Show the installer if not installed?
 		// NB. THIS MUST BE TIES INTO A USER INTERACTION
 		install:(button)=> showInstallPrompt( button, deferredPrompt ),
@@ -400,7 +407,7 @@ export const installOrUpdate = async(debug=false) => {
 
 		updatesAvailable, updating, updated, 
 
-
+	
 		// requestAddToHomescreen 
 		// The actual update / reload script for if user wants new version now!
 		update:()=>{
@@ -410,12 +417,12 @@ export const installOrUpdate = async(debug=false) => {
 		...platform
 	}
 
-	// Updates are available so change the setup
-	if (updatesAvailable)
-	{
-		const changes = await showChangelog()
-		output.changes = changes
-	}
+	// // Updates are available so change the setup
+	// if (updatesAvailable)
+	// {
+	// 	const changes = await showChangelog()
+	// 	output.changes = changes
+	// }
 	
 	// first thing first, load in our PWA utilities and manifestand changelog and stuff...
 	
