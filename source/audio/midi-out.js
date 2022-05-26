@@ -24,20 +24,25 @@ let mpeEnabled = false
 //     )
 //   })
 // })
-export const testForMIDI = () => {
-	// check for all potential failure casess...
-	if (navigator.requestMIDIAccess === undefined)
-	{
-		return false
-	}
-	return true
-}
 
+/**
+ * Check to see if MIDI is available on this platform
+ * @returns {Boolean} true if MIDI is available
+ */
+export const testForMIDI = () => navigator.requestMIDIAccess === undefined? false : true
+
+/**
+ * Initialise and connect to MIDI Hardware
+ * @param {Function} connectedCallback - method to call when connected
+ * @param {Function} disconnectedCallback - method to call when disconnected
+ * @returns 
+ */
 export const setupMIDI = (connectedCallback, disconnectedCallback) => new Promise ( (resolve,reject) => {
 	
 	WebMidi.enable().then( ports => {
 
 		//console.log("WebMidi enabled!", ports, ports.outputs[0] , WebMidi.outputs[0], WebMidi.outputs[0] === ports.outputs[0] )
+		
 		// I / O change
 		// console.log(WebMidi.inputs)
 		// console.log(WebMidi.outputs)
@@ -52,6 +57,11 @@ export const setupMIDI = (connectedCallback, disconnectedCallback) => new Promis
 			disconnectedCallback && disconnectedCallback()
 		})
 		
+		// Check for MIDI Clock events
+		WebMidi.inputs[0].addListener("controlchange", e => {
+			console.log(`Received 'controlchange' message.`, e);
+		})
+
 		resolve(WebMidi)
 		
 		// Display the current time
@@ -114,6 +124,7 @@ export const setupMIDI = (connectedCallback, disconnectedCallback) => new Promis
 		// 		.stopNote("G5", 12, {time: 1200});    // After 1.2 s.
 
 		// }
+
 	}).catch(error=> reject(error))
 
 })
