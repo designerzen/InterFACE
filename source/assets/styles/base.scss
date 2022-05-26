@@ -1,29 +1,17 @@
-
 // Basic resets
 html,body,h1,h2,h3,h4,h5,h6,p{
 	margin:0;
 	padding:0;
 }
 
+// Special thanks to 
+// https://nicolas-hoizey.com/articles/2015/02/18/viewport-height-is-taller-than-the-visible-part-of-the-document-in-some-mobile-browsers/
+// for fixing my 100vh not being 100% viewport height on mobile safari
 html{
 	// allows 100vh to work on mobile safari
 	height: -webkit-fill-available;
-
-	transition: background-color var(--ease-s) linear;
-
-	// dark
 	color:$col-white;
 	background-color:$col-dark;
-	
-	// from jpg
-	background-image:
-		linear-gradient(
-			hsla(18, 21%, 12%, 0.7), 
-			hsla(340, 5%, 11%, 0.7)
-		),
-		var(--noise);
-	
-	//	clip-path: inset(0 0 0 0);
 }
 
 body{ 
@@ -65,12 +53,12 @@ ol li + li{
 	margin-top:var(--pad);
 }
 
-
 img,
 svg{
 	width:100%;
 	max-width:100%;
 	height:auto;
+	display: block;
 }
 
 // we hide these by default until ready to preserve CPU

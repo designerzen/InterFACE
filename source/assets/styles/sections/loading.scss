@@ -1,0 +1,144 @@
+
+// Loading screen ------------------------------
+html.loading,
+html.loading body,
+html.loading main{
+	--delay:calc( 1s * var(--loader-duration) / 4 );
+	--blur-delay: 0.02s;
+	
+	// hide all cruft and hide scrollbars too
+	overflow:hidden;
+	// saves on memory as it crops it too
+	overflow: clip;
+
+	// ensure the blobs dont peek out over bounce
+	max-width:100vw;
+	max-height:100vh;
+
+	/*
+	// show a graphic but hide contents
+	&::before,&::after{
+		content: '';
+		opacity: 1;
+		width:100%;
+		height:100%;
+		background-image:linear-gradient(blue,blue);
+		background-size: var(--loader-size) var(--loader-size);
+		background-position: top left;
+		background-repeat: no-repeat;
+		pointer-events:none;
+		position: absolute;
+		top:0;
+		left:0;
+		display: block;
+		animation:Loading calc(var(--loader-duration) * 1s) 0s infinite $easeInOutBack;
+	}
+
+	// motion blur
+	&::after{
+		animation-delay:calc( var(--delay) + var(--blur-delay) );
+		filter: blur(6px);
+	}
+	*/
+}
+
+.loading {
+
+	// add some background textures
+	body{
+		background-image:  linear-gradient( rgba($col-white, 0.5), rgba($col-cream, 0.5) );
+						
+		background-size: 	100%,
+							//15%,
+							25%, 
+							25%;
+
+		background-position: center, 
+							// top 44px right 44px,
+							 center,
+							 center;
+
+		background-repeat:no-repeat, 
+							//no-repeat, 
+							repeat, repeat;
+		
+		// prevents overflowing of information
+		// overflow: hidden;
+	}
+
+	// sections
+	#intro header{
+		
+		> *{
+			max-height:100vh;
+			grid-area: 1/1/1/1;
+			visibility:visible;
+			animation:Fade var(--ease-s) ease-in 1 0s both;
+		}	
+
+		$end:9;
+		@for $i from 1 to $end {
+
+			&:nth-child(#{$i}){
+				// delay is the amount of time to wait before reveal
+				animation-delay:calc( var(--offset) + #{$i - 1} * var(--overlap) * var(--duration) );
+			}
+		}
+
+		.logo{
+			@extend %image-replacement;
+			color:#8d3525;
+			align-self: center;
+			height:100%;
+			background-position: center;
+			// z-index:-1;
+			align-self: center;
+
+			order:1;
+
+			svg{
+				animation:TextColours 4s linear infinite 0s both;
+			
+			}
+		}
+		h1{
+			//background-color: black;
+			color: $col-orange;
+			//clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 45%);
+		}
+	}
+
+	main{
+		overflow:hidden;
+		position: relative;
+		pointer-events: none;
+		min-height: 100vh;
+	
+		> *:not(p){
+			visibility: hidden;
+			opacity:0;
+			display: none;
+		}
+	}
+	
+	#feedback{
+		text-align: center;
+		// dunno where best to overlay as will always cover something!
+		// but we want it pointing to the allow camera pop up dialog
+		top:calc( 1rem * var(--line-height) + var(--pad) );
+		left:var(--pad);
+		bottom:auto;
+	}
+
+	#toast{
+
+	}
+
+	#shared-controls{
+		visibility: hidden;
+	}
+
+	footer{
+		z-index:909;
+	}
+}
