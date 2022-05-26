@@ -91,15 +91,17 @@ html(lang="en-GB" dir="ltr")
 	body
 		header#intro
 
-			h1
+			h1(translate="no")
 				block headline
+					span.sr-only PhotoSynth 3
 					| Inter
 					strong FACE
 					
 			h2
 				block tagline
-					em Smile
-					|  Powered Synthesizer
+					em Smile 
+					| Powered Synthesizer
+					| Instant Musical Superpowers!
 
 			block mainHeader
 				
@@ -138,6 +140,13 @@ html(lang="en-GB" dir="ltr")
 						include ./assets/logos/sxsw.svg
 					li: a(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
 						include ./assets/logos/mmf.svg
+					li: a(href="https://www.namm.org/" rel="noopener noreferrer" target="_blank") NAMM Show
+						include ./assets/logos/namm.svg
+					li: a(href="https://www.midi.org/component/zoo/item/photosynth-interface?Itemid=1423" rel="noopener noreferrer" target="_blank") MIDI Innovation Awards
+						include ./assets/logos/midi.svg
+					//- other places that have helped out
+					li: a(href="https://www.browserstack.com" rel="noopener noreferrer" target="_blank") BrowserStack
+						include ./assets/logos/midi.svg
 
 			small(class="copyright")
 				a.licenses(href="licenses.pug" target="_blank") Licenses
