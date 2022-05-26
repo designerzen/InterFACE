@@ -1,3 +1,50 @@
+#### 0.8.3 (2022-05-04)
+
+##### Bug Fixes
+
+*  Cameras weren't appearing! (f91f0718)
+
+#### 0.8.2 (2022-05-04)
+
+##### Other Changes
+
+*  hologram library (18be7738)
+*  holography classes (ee674fad)
+*  Progress bar style update (ce66c63d)
+*  genuinely got copyright strike for a logo (c5a91f9e)
+
+#### 0.8.1 (2022-05-03)
+
+##### Bug Fixes
+
+*  Person for WebMIDI 3 all channels (551174f3)
+*  MIDI Improvements for disconnected devices (f8d28b0b)
+*  Assorted code improvements (72c21fa4)
+*  Try and precache tensor models (53a71721)
+*  Tempo was acting wonky (e13156ce)
+*  Dialogs for FF and iOS (acc0d660)
+*  iOS doesn't do dialogs (050dfd4d)
+
+##### Other Changes
+
+*  WebMIDI v3 lib integration (daf1d6cc)
+*  Tooltips now work with motion (9ce88f48)
+*  Instructions now in seperate file (a6d490b3)
+* CSS colour scheme (ad5918c5)
+*  Default to adult mode with MIDI (1b87280c)
+*  tooltip now tips (cbf9ee09)
+*  more docs added (2d347f1b)
+*  External state (d3fabe37)
+*  i18n manager (3e3d3f89)
+*  Camera docs (2c70cf0b)
+*  Settings added more options (7720bb5f)
+*  Massive CSS upgrade (d607d162)
+*  MIDI lib updates to Person (5367dce8)
+*  Versioning handled by yarn now (7962db34)
+*  Readme makes more sense (74d9eed8)
+*  New library versions (fe674834)
+*  Pug accessibility (e118ba82)
+
 ### 0.8.0 (2022-04-03)
 
 ##### Bug Fixes
