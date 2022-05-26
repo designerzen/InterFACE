@@ -2,17 +2,18 @@
 const doc = document
 
 let loadMeter = 0
+
 const LOAD_MESSAGES = ["Please wait", "Loading.","Loading..","Loading...","Still Loading!", "Almost done!"]
-const progressMessage = doc.getElementById("progress-bar")
+const progressMessage = doc.querySelector('label[for="progress-bar"]')
 const progressBar = doc.querySelector('progress')
 
 export const setLoadProgress = (progress, message) => {
-	loadMeter = progress
-	progressBar.style.setProperty("--progress", parseInt(progress) )
-	progressBar.setAttribute("value", parseInt(progress) )
+	loadMeter = parseInt(progress)
+	progressBar.style.setProperty("--progress", loadMeter )
+	progressBar.setAttribute("value", loadMeter )
 	if (message && message.length)
 	{
-		
+		// use message but break lines?
 	}else{
 		// get prescripted from list...
 		message = LOAD_MESSAGES[ Math.ceil(progress * (LOAD_MESSAGES.length-1)) ]	
