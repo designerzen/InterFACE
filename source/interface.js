@@ -1716,7 +1716,6 @@ export const createInterface = (
 	// so not mobiles!
 	if (capabilities.mouse)
 	{
-
 		interact( 
 			document.getElementById("button-video"),
 			function onActive(){
@@ -1728,11 +1727,8 @@ export const createInterface = (
 				body.classList.toggle("user-inactive", true)
 			}
 		)
-		console.error("EWAREARE")
-	}else{
-		console.error("GAHHHH")
 	}
-	
+
 	// Exit & save all cookies!
 	window.onbeforeunload = ()=>{
 
