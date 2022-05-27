@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Augmented Reality, Motion Capture Controlled Machine Learning Powered Accessible Audio Synthesizer",
-	"version": "0.8.3",
+	"version": "0.8.4",
 	"time": 1651675815826,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -79,7 +79,6 @@
 	},
 	"dependencies": {
 		"@analytics/google-analytics": "^0.5.3",
-		"@bubblewrap/cli": "^1.13.2",
 		"@mediapipe/face_mesh": "^0.4.1633559619",
 		"@mediapipe/pose": "^0.5.1635988162",
 		"@tensorflow-models/face-landmarks-detection": "^0.0.3",
@@ -102,6 +101,7 @@
 		"webmidi": "^3.0.19"
 	},
 	"devDependencies": {
+		"@bubblewrap/cli": "^1.13.2",
 		"@parcel/optimizer-data-url": "2.5.0",
 		"@parcel/packager-raw-url": "2.5.0",
 		"@parcel/packager-xml": "2.5.0",
@@ -115,7 +115,7 @@
 		"gh-pages": "^4.0.0",
 		"jsdoc": "^3.6.7",
 		"jstransformer-markdown-it": "^2.1.0",
-		"parcel": "^2.5.0",
+		"parcel": "2.5.0",
 		"postcss": "^8.4.13",
 		"pug": "^3.0.0",
 		"rss": "^1.2.2",
