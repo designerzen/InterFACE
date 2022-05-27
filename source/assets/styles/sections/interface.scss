@@ -563,7 +563,7 @@ html.debug{
 		height:1rem;
 		width:1rem;
 		margin-top: -0.25rem;
-		padding-right:0.25rem;
+		margin-right:0.25rem;
 		stroke:currentColor;
 	}
 
@@ -1057,8 +1057,10 @@ main.flag-eyes label[for="select-eyes"]{
 		}
 	}
 
-	.brand:hover, .brand:focus{
+	.brand:hover svg, 
+	.brand:focus svg{
 		color:var(--shade-white);
+		fill: var(--shade-dark);
 	}
 	
 	#year{

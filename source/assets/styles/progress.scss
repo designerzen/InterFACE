@@ -14,8 +14,8 @@
 	border-radius:18px;
 	background-image:
 		linear-gradient(
-			hsla(0, 50%, 100%, 0.8), 
-			hsla(0, 65%, 97%, 0.9)
+			rgba(255, 255, 255, 0.93), 
+			hsla(48, 63%, 97%, 0.96)
 		);
 	box-shadow:var(--shadow);
 
@@ -139,6 +139,7 @@ progress[value="1"]{
 	clip-path: none;
 	border-radius: 0;
     animation: LoaderComplete 0.2s var(--ease) 1 alternate both;
+	animation-timing-function: var(--ease-out-back);
 	animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
 	// background-image: conic-gradient(from 90deg, red, yellow, green);
 	

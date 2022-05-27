@@ -1,37 +1,14 @@
 
 // Loading screen ------------------------------
-html.loading,
-html.loading body,
-html.loading main{
+html.loading{
 	--delay:calc( 1s * var(--loader-duration) / 4 );
-	// hide all cruft and hide scrollbars too
-	overflow:hidden;
-	// saves on memory as it crops it too
-	overflow: clip;
+
 	max-width:100vw;
 	max-height:100vh;
 }
 
 .loading {
 
-	// add some background textures
-	body{
-		background-image:  linear-gradient( rgba($col-white, 0.5), rgba($col-cream, 0.5) );
-						
-		background-size: 	100%,
-							//15%,
-							25%, 
-							25%;
-
-		background-position: center, 
-							// top 44px right 44px,
-							 center,
-							 center;
-
-		background-repeat:no-repeat, 
-							//no-repeat, 
-							repeat, repeat;
-	}
 
 	// sections
 	#intro header{
@@ -88,6 +65,7 @@ html.loading main{
 		}
 	}
 	
+	// this is the camera accept popup
 	#feedback{
 		text-align: center;
 		// dunno where best to overlay as will always cover something!
@@ -96,6 +74,7 @@ html.loading main{
 		left:var(--pad);
 		bottom:auto;
 		z-index: 909;
+		filter:invert(100%);
 	}
 
 	#shared-controls{
