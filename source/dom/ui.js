@@ -12,7 +12,7 @@ let buttonRecord
 
 export let buttonQuantise
 export let buttonVideo
-export let controls
+export let controlPanel
 
 const main = doc.querySelector("main")
 
@@ -243,7 +243,7 @@ export const setupInterface = ( options ) => {
 		console.error("SHARING", {shareElement, url:shareElement.url  } )
 	}, false)
 	
-	controls = doc.getElementById("controls")
+	controlPanel = doc.getElementById("control-panel")
 
 	buttonInstrument = doc.getElementById("button-instrument")
 	buttonVideo = doc.getElementById("button-video")
@@ -279,7 +279,7 @@ export const setupInterface = ( options ) => {
 	// console.log(`InterFACE ${currentVersion} build date : ${formattedDate} `, {DATE, releaseDate})
 
 	// prevent the form from changing the url	
-	controls.addEventListener("submit", (event) => {
+	controlPanel.addEventListener("submit", (event) => {
 		event.preventDefault()
 		// removes the ?
         //window.history.back()
