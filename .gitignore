@@ -3,6 +3,7 @@ node_modules*
 .parcel-cache
 # there are things already committed in dist/ mainly the smaples
 dist/*
+docs/
 !dist/assets
 !dist/Fatboy
 !dist/FluidR3_GM
