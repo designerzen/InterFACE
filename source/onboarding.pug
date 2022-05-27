@@ -10,8 +10,9 @@ block header
 			em very careful 
 			| if you are photosensitive
 		
-	label#progress-bar(for="progress") Please wait, loading takes some time...
-	progress(max=1)#progress
+	#load-progress
+		label(for="progress-bar") Please wait, loading takes some time...
+		progress(max=1)#progress-bar
 
 block main
 
