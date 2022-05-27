@@ -70,11 +70,13 @@ block dialogs
 		form(method="dialog")
 			h5 Help support this project! 
 			p.
-				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal using th elinks below
+				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
 
 			ul.fund.icon-list
+				//li: a.paypal(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
 				li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
 				li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
+			
 			//- ul.associates.icon-list
 			//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
 			//- 	li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
@@ -84,9 +86,12 @@ block dialogs
 			//- ul.supporters.icon-list
 			//- 	li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
 			//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
-				
-			a(href="roadmap.pug" target="_blank") Future Plans & Roadmap
-			a(href="credits.pug" target="_blank") Thanks to
+			
+			ul.links
+				li: a(href="roadmap.pug" target="_blank") Roadmap
+				li: a(href="credits.pug" target="_blank") Credits
+				li: a(href="licenses.pug" target="_blank") Licenses
+				li: a(href="copyright.pug" target="_blank") Copyright
 
 			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Dialog
 
