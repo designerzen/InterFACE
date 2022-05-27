@@ -35,6 +35,8 @@ dialog[open]{
 
 	margin:auto;//calc( 2 * var(--pad) );
 	padding:calc( 3 * var(--pad) );
+	overflow: auto;
+	overflow-x: hidden;
 
 	//position: static;
 	// top right is a fake close icon...

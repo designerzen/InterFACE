@@ -317,6 +317,12 @@ input[type=list],
 	&.hide{
 		display: none;
 	}
+
+	&.no-text{
+		// we hide the text for some buttons
+		justify-content: center;
+		background-position: center;
+	}
 }
 
 // BUTTON STYLE
@@ -334,7 +340,6 @@ label[for="button-start"],
 		display: none;
 	}
 }
-
 
 
 // BUTTON STYLE
@@ -930,6 +935,7 @@ label[for="button-start"],
 
 }
 
+
 // actual button
 input{
 	cursor:pointer;
@@ -1436,13 +1442,6 @@ label[for="select-camera"],
 	// 	position: relative;
 	// }
 	// instead of the :before :)
-	
-}
-
-
-.hidden,
-[hidden]{
-	display:none;
 }
 
 // this holds nav to sections inc help and funding
@@ -1534,7 +1533,8 @@ a[href="#help"]{
 }
 
 .loaded a[href="#fund"]{
-	animation:TagReveal 1s 1 0.1s both reverse;
+	animation:TagHide 1s 1 0.1s both;
+	animation-timing-function: var(--ease-out-back);
 }
 
 a[href="#fund"]{

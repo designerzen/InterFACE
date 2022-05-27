@@ -175,11 +175,15 @@
 
 
 @keyframes TagReveal{
-	from{
-		transform: translateY( calc(  var(--pad) - 3.2rem ) );
-	}
 	to{
-		transform: translateY( calc(  var(--pad) ) );
+		transform: translateY( calc(  var(--pad, 0) ) );
+	}
+}
+
+@keyframes TagHide{
+
+	to{
+		transform: translateY( calc(  var(--pad, 0) - 3.2rem  ) );
 	}
 }
 
