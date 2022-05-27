@@ -166,8 +166,11 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawEyes:true,
 
 	// ratios of size of eye
-	scleraRadius:3,
-	irisRadius:1,
+	// white bit
+	scleraRadius:1,
+	// blue bit
+	irisRadius:0.8,
+	// black bit
 	pupilRadius:0.3,
 	// frank sidebottom angle
 	eyeRatio:0.8,

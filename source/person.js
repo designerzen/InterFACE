@@ -17,6 +17,7 @@ import {
 	drawFace, drawPoints, drawBoundingBox, 
 	drawText,drawParagraph, drawInstrument, drawFaceMesh
 } from './visual/2d'
+
 import { drawEye } from './visual/2d.eyes'
 import { drawMouth } from './visual/2d.mouth'
 import { DEFAULT_PERSON_OPTIONS } from './settings'
@@ -736,8 +737,9 @@ export default class Person{
 		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 
 		// volume is an log of this
-		const amp = clamp(lipPercentage, 0, 1 ) //- 0.1
-		const logAmp = options.ease(amp)
+		const FUDGE = 1.8
+		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
+		// const logAmp = options.ease(amp)
 		const newOctave = Math.round(pitch * 7)
 
 		// FIXME: octave needs to be up or down from existing?

@@ -26,6 +26,7 @@ import {
 import { playNextPart, kitSequence } from './timing/patterns'
 	
 import {
+	controlPanel,
 	updateTempo,
 	showPlayerSelector, 
 	video,isVideoVisible,toggleVideoVisiblity,  
@@ -34,8 +35,9 @@ import {
 	focusApp
 } from './dom/ui'
 
+import interact from './inactivity'
 import setupDialogs from './dom/dialog'
-import { connectSelect, connectReverbControls } from './dom/select'
+import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
 import { setToggle } from './dom/toggle'
 import { setButton, showUpdateButton, showReloadButton, setupMIDIButton } from './dom/button'
 import { setFeedback, setToast, addToolTips } from './dom/text'
@@ -160,7 +162,6 @@ export const createInterface = (
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
-	let canBeInstalled = true
 	let isLoading = true
 	let beatJustPlayed = false
 	let ultimateFailure = false
@@ -227,7 +228,7 @@ export const createInterface = (
 	const setTempo = (tempo) => {
 		setTimeBetween( tempo )
 		const bpm = getBPM()
-		setToast( `Tempo : Period set at ${tempo} milliseconds between bars<br>or ${bpm}BPM` )
+		setToast( `Tempo : Period set at ${Math.ceil(tempo)} ms between bars / ${Math.ceil(bpm)}BPM` )
 		store.setItem('tempo', { period:tempo, bpm })
 		return tempo
 	}
@@ -394,7 +395,7 @@ export const createInterface = (
 
 			updateMIDIStatus(midi.outputs)
 
-			midiAvailable = midi // && midi.outputs && midi.outputs.length > 0
+			midiAvailable = midi && midi.outputs  //&& midi.outputs.length > 0
 			main.classList.add('midi-available')
 
 		}catch(error){	
@@ -434,7 +435,7 @@ export const createInterface = (
 		if (port)
 		{
 			person.setMIDI(port, midiChannel)
-			console.log(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
+			console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 		}else{
 			console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel}, midi.outputs[midiChannel])
 		}
@@ -536,32 +537,44 @@ export const createInterface = (
 					loadRandomInstrument() 
 					break
 
-				case 'ArrowLeft':
-					previousInstrument()
-					break
-
-				case 'ArrowRight':
-					nextInstrument() 
-					break
-
+			
 				case 'QuestionMark':
 				case '?':
 					// read out last bit of help?
 					speak(document.getElementById('toast').innerText, true)
 					break
 
-				// change amount of bars
+				case 'A':
+				case 'J':
+					previousInstrument()
+					break
+
+				case 'D':
+				case 'L':
+					nextInstrument() 
+					break
+	
+				// Arrows set timing
+				case 'ArrowLeft':
+					setBPM( getBPM() - 10 )
+					break
+
+				case 'ArrowRight':
+					setBPM( getBPM() + 10 )
+					break
+
 				case 'ArrowUp':
 					let b = getBars() + 1
 					let bars = setBars( b )
-					let t = setTimeBetween( timePerBar() )
+					setTimeBetween( timePerBar() )
 					setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
 					break
 
+				// change amount of bars
 				case 'ArrowDown':
 					let ub = getBars() - 1
 					let ubars = setBars( ub )
-					let ut = setTimeBetween( timePerBar() )
+					setTimeBetween( timePerBar() )
 					setToast( `Bars ${ubars} / BPM : ${getBPM()}` )
 					break
 
@@ -595,7 +608,7 @@ export const createInterface = (
 					break
 
 				case 'f':
-					toggleVisibility(document.getElementById("shared-controls") )
+					toggleVisibility( controlPanel )
 					break
 
 				case 'g':
@@ -747,6 +760,8 @@ export const createInterface = (
 		const loadTotal = 7
 		let loadIndex = 0
 
+		body.classList.toggle("initialising", true)
+
 		try{
 			
 			setFeedback("Setting things up...<br>This can take a while!")
@@ -765,7 +780,7 @@ export const createInterface = (
 			{
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted")
 			
-				progressCallback(loadIndex/loadTotal,"Attempting to locate a camera...<br>Please click accept if you are prompted" )
+				progressCallback(loadIndex/loadTotal,"Looking for cameras..." )
 
 				const investigation = await findBestCamera(store, video)
 				const {videoCameraDevices} = investigation
@@ -912,12 +927,10 @@ export const createInterface = (
 		canvas.width = inputElement.width
 		canvas.height = inputElement.height
 
-		// TODO: create and position the stave?
-		// const stave = new Stave( canvas, 0, 0, true )
-		main.classList.add( inputElement.nodeName.toLowerCase() )
+	
 		
 		// this just adds some visual onscreen tooltips to the buttons specified
-		addToolTips( document.getElementById("controls") )
+		addToolTips( controlPanel)
 
 		// turn up the amp
 		const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
@@ -933,11 +946,16 @@ export const createInterface = (
 
 		// after a period of inactivity...
 		//setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
+		
+		progressCallback(loadIndex++/loadTotal)
 
 		// remove loading flag as we now have all of our assets!
-
-		progressCallback(loadIndex++/loadTotal)
+		// TODO: create and position the stave?
+		// const stave = new Stave( canvas, 0, 0, true )
+		main.classList.add( inputElement.nodeName.toLowerCase() )
+		body.classList.toggle("initialising", false)
 		
+
 
 		// update( inputElement === video, (predictions)=>{
 
@@ -1251,7 +1269,7 @@ export const createInterface = (
 
 		const loadTotal = 5
 		let loadIndex = 0
-
+		
 		// TODO: test of loading external scripts sequentially...
 		progressCallback(loadIndex++/loadTotal, "Loading Brains")
 
@@ -1693,7 +1711,29 @@ export const createInterface = (
 	// wait for stuff to load / be available
 	loadingLoop()
 
-	// Exit
+	// watch for users getting uninterested or leave the browser
+	// NB. this ONLY affects machines that have hover events
+	// so not mobiles!
+	if (capabilities.mouse)
+	{
+
+		interact( 
+			document.getElementById("button-video"),
+			function onActive(){
+				body.classList.toggle("user-active", true)
+				body.classList.toggle("user-inactive", false)
+			}, 
+			function onInactive(){
+				body.classList.toggle("user-active", false)
+				body.classList.toggle("user-inactive", true)
+			}
+		)
+		console.error("EWAREARE")
+	}else{
+		console.error("GAHHHH")
+	}
+	
+	// Exit & save all cookies!
 	window.onbeforeunload = ()=>{
 
 		const saveSession = Object.assign({}, information, {
@@ -1708,12 +1748,6 @@ export const createInterface = (
 		setToast("bye bye!")
 		setFeedback("<strong>I hope you had fun!</strong>")
 	}
-
-	// NB. can trigger multiple times
-	document.addEventListener("visibilitychange", e => {
-		document.documentElement.classList.toggle("tab-hidden", document.hidden)
-	}, false)
-
 
 	// document.addEventListener( "contextmenu", (e) => {
 	//     console.log(e)
