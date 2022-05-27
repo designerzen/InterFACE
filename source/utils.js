@@ -49,7 +49,6 @@ export const addMouseTapAndHoldEvents = ( button, holdTime=800 ) => {
 				// BEFORE HOLDING TIME... ignore?
 				const remaining = 1 - elapsed / holdTime
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
-			console.log("mouseDownFor",percentageRemaining, {elapsed,remaining} )
 				
 				dispatch( MOUSE_HOLDING, {elapsed, isMouseOver, remaining, percentageRemaining } )
 				
