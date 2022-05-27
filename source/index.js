@@ -40,17 +40,23 @@ const start = () => {
 
 	import('./interface.js').then( async ({createInterface}) => {
 
+		let halfLoaded = false
 		const title = document.title
 		const application = await createInterface( defaultOptions, store, capabilities, language, (loadProgress, message) => {
 			if (loadProgress === 1)
 			{
-				setLoadProgress(1, " ")
+				if (!halfLoaded)
+				{
+					halfLoaded = true
+					setLoadProgress(0.99, " ")
+				}else{
+					setLoadProgress(1, "Ready!")
+				}
 				document.title = title	
 			}else{
 				setLoadProgress( loadProgress, message )
 				document.title = title + " - " + loadProgress * 100 +  "%"
 			}
-			console.log( loadProgress +  "%", message )
 		})
 	
 		// let installation = null
@@ -138,12 +144,13 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 		//updateButton.hidden = false
 	}
 
+	//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
+	
 }).catch ( error =>{ 
 
 	console.error("PWA",error) 
 	
 }).finally( p => {
 
-	//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
 	start()
 })

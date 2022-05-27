@@ -3,7 +3,10 @@
  * this to work are available such as camera, midi etc
  */
 import {testForMIDI} from './audio/midi-out'
-
+const hasTouchEvents = () => {
+	try{ document.createEvent("TouchEvent"); return true; }
+	catch(e){ return false; }
+}
 export default class Capabilities {
 
 	// required = {
@@ -16,6 +19,9 @@ export default class Capabilities {
 
 	cameraAvailble = navigator.getUserMedia !== undefined
 	webMIDIAvailable = false
+
+	touchScreen = hasTouchEvents()
+	mouse = !window.matchMedia( "(hover: none)" ).matches
 
 	/**
 	 * returns {Boolean} is this machine capable of running this app?
