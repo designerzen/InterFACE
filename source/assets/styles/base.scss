@@ -10,9 +10,14 @@ html,body,h1,h2,h3,h4,h5,h6,p{
 html{
 	// allows 100vh to work on mobile safari
 	height: -webkit-fill-available;
-	color:$col-white;
+	color:$col-white;	
 	background-color:$col-dark;
+	// hide all cruft and hide scrollbars too
+	overflow:hidden;
+	// saves on memory as it crops it too
+	overflow: clip;
 }
+
 
 body{ 
 	accent-color: #{$col-yellow};
