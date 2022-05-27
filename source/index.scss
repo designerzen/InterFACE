@@ -13,6 +13,10 @@
 }
   
 :root{
+
+	// forces dark scrollbars
+	color-scheme: dark;
+
 	// tints (use anywhere for colour with cpntrols)
 	--shade-white:hsl( #{$hue-white}, var( --s, 27%), var( --l, 87%) );
 	--shade-dark:hsl( #{$hue-dark}, var( --s, 6%), var( --l, 14%) );
@@ -91,11 +95,13 @@
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/scrollbars.scss";
 @import "./assets/styles/wallpapers.scss";
+@import "./assets/styles/sections/dialog-fund.scss";
 
 @import "./assets/styles/sections/loading.scss";
 @import "./assets/styles/sections/onboarding.scss";
 @import "./assets/styles/sections/interface.scss";
 @import "./assets/styles/sections/timeline.scss";
 
+@import "./assets/styles/states.scss";
 @import "./assets/styles/domains.scss";
 @import "./assets/styles/utils.scss";

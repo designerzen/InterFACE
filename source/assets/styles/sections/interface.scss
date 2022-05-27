@@ -204,7 +204,7 @@ p strong{
 			transform:translateY(150%);
 		}
 
-		// #controls,
+		// #control-panel,
 		#photographs,
 		.controls{
 			//visibility: hidden;
@@ -251,11 +251,6 @@ p strong{
 				//animation: Fade var(--ease-q) linear 0s both;
 			}
 		}
-	}
-
-
-	.debug #controls{
-		animation:none;
 	}
 }
 
@@ -516,7 +511,7 @@ html.debug{
 
 
 
-#controls{
+#control-panel{
 	
 	display: block;
 	margin:auto;
@@ -674,7 +669,7 @@ html.debug{
 // or no camera or whatever!
 .failure{
 	#onboard,
-	#controls{
+	#control-panel{
 		display: none;
 	}
 	#feedback{

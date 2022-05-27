@@ -1,0 +1,30 @@
+
+
+// added when the user engages with the app
+.user-active{
+	#shared-controls {
+		visibility: visible;
+	}
+	// .controls > *{
+	// 	animation-direction: reverse, reverse;
+	// }
+}
+
+// added when user gives up attention
+.user-inactive{
+	#shared-controls {
+		visibility: hidden;
+		animation:Fade var(--ease-m) 0s both linear;
+	}
+	// .controls > *{
+	// 	animation-direction: normal, normal;
+	// }
+	#toast{
+		visibility: hidden;
+	}
+}
+
+// when tab is muted
+.tab-hidden{
+
+}

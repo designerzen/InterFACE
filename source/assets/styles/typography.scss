@@ -142,11 +142,10 @@ h1,h2,h3,h4,h5,h6,p, label{
 	);
 	
 	font-size:calc( var(--zoom) * var(--font-zoom) * var(--font-size) );
-	
 }
 
 h1 strong, h2, h3, h4, h5, h6{
-	font-weight: 800;
+	font-weight: 500;
 }
 
 h1,h3,h4,h5,button,legend, label{
@@ -189,7 +188,7 @@ h6{
 #toast,
 label,
 em{
-	font-weight: 900;
+	font-weight: 800;
 }
 
 p{
@@ -200,8 +199,6 @@ p{
 	// padding:var(--pad);
 	// emboss?
 }
-
-
 
 a{
 	color:$col-blue;
@@ -232,7 +229,6 @@ label,select,option{
 option, select{
 	text-align: center;
 }
-
 
 ol li{
 	//font-style: italic;

@@ -45,7 +45,7 @@
 	min-height:1ch;
 
 	color:$col-white;
-	background-color:rgba($col-dark,0.94);
+	background-color:$col-dark;
 	font-size:clamp(9px, var(--font-size), 14px);
 	text-shadow : 	rgba($col-dark, 0.96) 0 -1px 2px,
 					rgba($col-dark, 0.96) 0 0 2px;
@@ -61,10 +61,12 @@
 		--r:calc(-1 + var(--_y,1) * 2 );
 		// reverse it so from 1->-1
 		--_r:calc(-1 * var(--r) );
+		// -1 or 1 only
+		--flipper:clamp(-1, calc( var(--_r) * 9 ), 1 );
 		// 0 or 100% only (100% if mouse above)
 		--f:calc( ( var(--_y,1) ) * 100% );
-		// -1 or 1 only
-		--scale:clamp(-1, calc( var(--_r) * 9 ), 1 );
+		
+		--scale:0.7;// clamp(0.5, calc( var(--_y,1) * 9 ), 0.8 );
 		// how much to move laterally - if above loads to the right...
 		--tx:clamp(0px, calc( var(--_y) * 900px ), var(--_x) );
 
@@ -76,15 +78,24 @@
 		display: block;
 		z-index:-1;
 		position:absolute;
-		top:calc( (1 - var(--_y,1)) * 50% );
 
+		
 		// if we are above we go 100% + var(--tx)
 		--a:calc( var(--d) + 3 * var(--f) );
 		--z:max( var(--a), calc( var(--f) - var(--triangle-size) - var(--pad) ) );
+		// a little extra offset to position the arrow better
+		--_o:(var(--flipper,0) * -8px );
+		
+		
 		// now we have a special case of when on the right hand side...
-		left: clamp( 0%, var(--z), 100% );
+		left: clamp( 0%, var(--z), calc(100% - var(--triangle-size) ) );
+		
+		left: clamp( 0%, var(--d), calc(100% - var(--triangle-size) ) );
 
-		transform:translateY( calc( ( var(--_y,1) ) * -50% ) ) ;
+		top:calc( (1 - var(--_y,1)) * 100% );
+
+		transform:translateY( calc( ( var(--_y,1) ) * -50% ) ) scale( var(--scale,1));
+		transform:translateY( calc( ( var(--_y,1) ) * -100% + var(--_o) )  ) scale( var(--scale,1));
 		transform-origin: center;
 	}
 
