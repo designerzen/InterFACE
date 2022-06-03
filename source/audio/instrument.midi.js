@@ -1,8 +1,9 @@
+import Instrument from './instrument'
 import {getBarProgress} from '../timing/timing'
+import {WebMidi} from "webmidi"
 export default class MIDIInstrument extends Instrument{
 
 	constructor( channel="all" ){
-		
 		super()
 		this.channel = channel
 		this.sendMIDI = true
@@ -12,8 +13,8 @@ export default class MIDIInstrument extends Instrument{
 		this.sendMIDI = value
 	}
 
-	noteOn(note){
-		super.noteOn(note)
+	noteOn(noteNumber, velocity=1){
+		super.noteOn(noteNumber)
 		// duration: 2000,
 		// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 		//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
@@ -31,22 +32,12 @@ export default class MIDIInstrument extends Instrument{
 		// }else{
 		// 	this.midiActive = true
 		// }
-		
-		//console.log(t, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
-
-		// Use eye direction as a modifier for the sound
-		// if (eyeDirection !== 0)
-		// {
-		// 	// Midi pitch bending with eyes!
-		// 	// Pitch bending eyes!
-		// 	// 
-		// 	// this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
-		// }
 	}
-	noteOff(){
 
-		this.midi.sendClock( )
-		this.midi.setSongPosition( getBarProgress() * 16383 )
+	noteOff(noteNumber){
+
+		//this.midi.sendClock( )
+		//this.midi.setSongPosition( getBarProgress() * 16383 )
 		
 		this.midi.stopNote(noteName, {
 			// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
@@ -55,18 +46,30 @@ export default class MIDIInstrument extends Instrument{
 		})
 
 		// immediate mute, but doesn't block (sounds better)
-		this.midi.turnSoundOff()
+		// this.midi.turnSoundOff()
 
-		// fade out but prevents new notes...
-		this.midi.turnNotesOff()
+		// // fade out but prevents new notes...
+		// this.midi.turnNotesOff()
 		
 		// prevent flooding the off bus
 		this.midiActive = false
 
 		console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
 	}
+
+	aftertouch(noteNumber, pressure){
+		this.midi.setKeyAftertouch(noteNumber, (pressure + 1 ) * 0.5 )
+		super.aftertouch(noteNumber, pressure)
+	}
+	
+	pitchBend(pitch){
+		this.midi.setPitchBend( pitch )
+		super.pitchBend(pitch)
+	}
 }
 
+
+/*
 // incoming MIDI
 const h = function(event){
 
@@ -165,4 +168,4 @@ const h = function(event){
 	}
 
 	return new MIDIMessage(event);
-}
+}*/
