@@ -43,7 +43,8 @@ dialog[open]{
 	background: url(./assets/icons/close-24px.svg) no-repeat, 
 				linear-gradient( white, $col-white );
 
-	background-position:top calc( 3 * var(--pad) ) right calc( 3 * var(--pad) );
+	background-position:top calc( 1 * var(--pad) ) right calc( 1 * var(--pad) ), center;
+	color:var(--shade-dark);
 	
 	transition: opacity 90ms linear;
 	

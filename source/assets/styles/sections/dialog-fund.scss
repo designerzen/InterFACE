@@ -2,8 +2,9 @@
 	.links{
 		margin:0;
 		padding:0;
-		
+		flex-wrap: wrap;
 		display: flex;
 		gap:var(--pad);
+		list-style: none;
 	}
 }

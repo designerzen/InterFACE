@@ -1354,26 +1354,41 @@ button#share{
 // an update is available to the app!
 #button-install,
 #button-upgrade{
-	border:0;
 	// moves the text outside
-	width:calc( var(--pad) * 2 + 32px);
+	//width:calc( var(--pad) * 2 + 22px);
 	// hides text until hover
 	color:transparent;
 	text-shadow: none;
 	order:-1;
+	// flex-direction: row;
+	// flex-wrap: nowrap;
+
+	border:0;
+	box-shadow: none;
+	border-radius:99px;
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
 	// --bg:url(/source/assets/icons/get_app-24px.svg);
 	--bg:url(/source/assets/icons/download_for_offline_black_24dp.svg);
-	background-color:transparent;
-	
+	//background-position: left;
+	padding:0;
+	padding-top: var(--pad);
+	min-height:74px;
 	//background: none;
-
+	&:hover{
+		color:var(--shade-dark);
+		background-color:var(--shade-blue);
+	}
 }
 
 #button-install{
 	//--logo:url();
 	--overlap:0px;
 	--delay:0s;
-	border-radius:99px;
+	position: fixed;
+	bottom:0;
+	transform:translateY(-100%);
+	animation: none;
 
 	// after a brief while hide this?
 	// animation: 
@@ -1393,6 +1408,48 @@ button#share{
 	
 }
 
+#button-reload{
+	--bg:url(/source/assets/icons/autorenew_black_24dp.svg);
+	width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+	gap:var(--pad);
+	flex-gap:var(--pad);
+}
+
+
+#button-midi-upload{
+	--bg:url(/source/assets/icons/midi-copyright-free.svg);
+	gap:var(--pad);
+}
+
+
+// form!
+#midi-file{
+	position: fixed;
+	z-index:0;
+	top:0;
+	left: 0;
+	right:0;
+	bottom:0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+    justify-content: center;
+		
+	> *{
+		opacity: 0;	
+	}
+}
+
+
+#midi-upload{
+	position: absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom: 0;
+}
 
 label[for="select-camera"],
 #select-camera{
@@ -1514,7 +1571,13 @@ a[href="#help"]{
 	color:transparent;
 	transition:color 95ms linear;
 
+	&:hover{
+		color:var(--shade-white);
+	}
+
 	&::before{
+		
+		color:inherit;
 		flex:0;
 		display: inline-block;
 		content: '';
@@ -1527,8 +1590,8 @@ a[href="#help"]{
 		margin-bottom:calc( 0.5 * var(--pad) );
 	}
 
-	&:hover{
-		color:inherit;
+	&:hover:before{
+		background-image:url(/source/assets/icons/help_black_24dp.svg);
 	}
 }
 

@@ -58,7 +58,7 @@ progress{
 	--range:160deg;
 	--progress:1;
     --angle:calc( var(--progress) * var(--range,160deg) );
-    --size:250px;
+    --size:clamp(150px, 50vh, 250px);
     
 	--scale:1;
 	--overscale:0.3;//1.5;//.5;
