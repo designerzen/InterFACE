@@ -23,8 +23,7 @@ import{
   offlineFallback
 } from 'workbox-recipes'
 
-import * as googleAnalytics from 'workbox-google-analytics';
-
+import * as googleAnalytics from 'workbox-google-analytics'
 // Used for filtering matches based on status code, header, or both
 import { CacheableResponse, CacheableResponsePlugin } from 'workbox-cacheable-response'
 // Used to limit entries in cache, remove entries after a certain period of time
@@ -47,6 +46,25 @@ const APP_CACHE_SUFFIX = `v${BUILD_MMR}`
 // setConfig({debug: WORKBOX_DEBUG_LOGGING})
 self.__WB_DISABLE_DEV_LOGS = !WORKBOX_DEBUG_LOGGING
 
+// https://love2dev.com/blog/how-to-uninstall-a-service-worker/
+const uninstall = () => {
+	navigator.serviceWorker.getRegistrations()
+		.then( registrations => { 
+			for(let registration of registrations) 
+			{ 
+				registration.unregister()
+				.then(()=>self.clients.matchAll())
+				.then(clients => { 
+					clients.forEach(client => { 
+						if (client.url && "navigate" in client){ 
+							client.navigate(client.url)
+						} 
+					})
+				})
+			}
+		})
+}
+
 setCacheNameDetails({
     prefix: APP_CACHE_PREFIX,
     suffix: APP_CACHE_SUFFIX,
@@ -54,7 +72,7 @@ setCacheNameDetails({
     runtime: 'runtime',
 })
 
-console.log(`>>> Workbox`,REVISION, {WORKBOX_DEBUG_LOGGING});
+// console.log(`>>> Workbox`,REVISION, {WORKBOX_DEBUG_LOGGING});
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.message) {
@@ -71,6 +89,11 @@ self.addEventListener('message', (event) => {
   }
 })
 
+// Uninstall if b0rked
+// self.addEventListener("activate", event => {
+// 	uninstall()
+// })
+
 
 // Load caching routines
 
@@ -82,10 +105,7 @@ self.addEventListener('message', (event) => {
 // precacheAndRoute(self.origin);
 precacheAndRoute([ {url: 'index.html', revision:REVISION }])
 
-
 pageCache()
-
-// googleFontsCache()
 
 staticResourceCache()
 
@@ -185,28 +205,19 @@ registerRoute(
   }),
 )
 
-// https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1/model.json?tfjs-format=file
-registerRoute(
-  /^https:\/\/tfhub\.dev\/tensorflow\/tfjs-model/,
-  new NetworkFirst({
-    cacheName: 'tf-models-tfhub-tensorflow',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new ExpirationPlugin({
-        // one month should be good
-        maxAgeSeconds: ONE_DAY * 30,
-      }),
-    ],
-  }),
-)
-
-
-
-// workbox.routing.registerRoute(
-//   /^https:\/\/fonts\.googleapis\.com/,
-//   workbox.strategies.staleWhileRevalidate({
-//     cacheName: 'google-fonts-stylesheets',
+// // https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1/model.json?tfjs-format=file
+// registerRoute(
+//   /^https:\/\/tfhub\.dev\/tensorflow\/tfjs-model/,
+//   new NetworkFirst({
+//     cacheName: 'tf-models-tfhub-tensorflow',
+//     plugins: [
+//       new CacheableResponsePlugin({
+//         statuses: [0, 200],
+//       }),
+//       new ExpirationPlugin({
+//         // one month should be good
+//         maxAgeSeconds: ONE_DAY * 30,
+//       }),
+//     ],
 //   }),
-// );
+// )
