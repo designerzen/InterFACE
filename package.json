@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Augmented Reality, Motion Capture Controlled Machine Learning Powered Accessible Audio Synthesizer",
-	"version": "0.8.4",
+	"version": "0.8.5",
 	"time": 1653692738868,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -12,7 +12,9 @@
 		"music",
 		"accessibility",
 		"machine learning",
-		"ai","xr","ar"
+		"ai",
+		"xr",
+		"ar"
 	],
 	"scripts": {
 		"fixme:postinstall:": "electron-builder install-app-deps",
