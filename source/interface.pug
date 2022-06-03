@@ -259,7 +259,12 @@ block main
 			
 				//- bit of a hack...
 				label.button-close(for="button-settings") Hide Settings
-				
+
+		form#midi-file
+		
+			label(for="midi-upload") Upload a MIDI backing track!
+			input#midi-upload(type="file" hidden)
+			button#button-midi-upload( type="button" ) Upload MIDI file
 		
 	//-  For users with javascript disabled 
 	noscript

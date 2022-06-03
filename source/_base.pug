@@ -121,14 +121,18 @@ html(lang="en-GB" dir="ltr")
 
 			block mainFooter
 
-			small(class="copyright") Copyright  
-				span#year 2020-#{year||22}
+		
+			small
+				a.copyright(href="copyright.pug" target="_blank") Copyright  
+					span#year 2020-#{year||22}
+
 				a.brand(href="https://designerzen.com/" rel="noopener noreferrer" target="_blank") 
 					include ./assets/logos/designerzen_current-color.svg
 					| designerzen ltd.
 
 			section.associates#associates
-				<h6><span class="sr-only">Associates</span></h6>
+				h6
+					span.sr-only Associates
 
 				ul.icon-list
 					li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
@@ -148,10 +152,8 @@ html(lang="en-GB" dir="ltr")
 					li: a(href="https://www.browserstack.com" rel="noopener noreferrer" target="_blank") BrowserStack
 						include ./assets/logos/browserstack.svg
 
-			small(class="copyright")
+			small
 				a.licenses(href="licenses.pug" target="_blank") Licenses
-				a.licenses(href="copyright.pug" target="_blank") Copyright
-
 				a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V #{package.version}
 						
 			//- Generally hidden aspects
