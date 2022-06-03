@@ -87,12 +87,12 @@ const setupDialog = async (dialog) => {
 // -------------------------------------------------------
 
 const onDialogClosing = ({target:dialog}) => {
-	console.log('Dialog closing', dialog)
+	// console.log('Dialog closing', dialog)
 }
 
 const onDialogClosed = ({target:dialog}) => {
-	console.log('Dialog closed', dialog)
-	console.info('Dialog user action:', dialog.returnValue)
+	// console.log('Dialog closed', dialog)
+	// console.info('Dialog user action:', dialog.returnValue)
 
 	if (dialog.returnValue === 'confirm') {
 		// const dialogFormData = new FormData(dialog.querySelector('form'))
@@ -102,11 +102,11 @@ const onDialogClosed = ({target:dialog}) => {
 }
 
 const onDialogOpened = ({target:dialog}) => {
-	console.log('Dialog open', dialog)
+	// console.log('Dialog open', dialog)
 }
 
 const onDialogOpening = ({target:dialog}) => {
-	console.log('Dialog opening', dialog)
+	// console.log('Dialog opening', dialog)
 }
 
 const onDialogRemoved = ({target:dialog}) => {

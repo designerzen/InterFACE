@@ -1,4 +1,4 @@
-import {INSTRUMENT_NAMES, INSTRUMENT_FOLDERS} from '../audio/instruments'
+import {instrumentNames, instrumentFolders} from '../audio/instruments'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink} from '../location-handler'
 import {formattedDate} from '../models/info'
@@ -105,7 +105,7 @@ export const setupCameraForm = (cameras, callback) => {
  */
 export const setupInstrumentForm = callback => {
 	
-	const uiOptions = INSTRUMENT_FOLDERS.map( (folder, index) => `<label for="${folder}">${INSTRUMENT_NAMES[index]}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label>` ) 
+	const uiOptions = instrumentFolders.map( (folder, index) => `<label for="${folder}">${instrumentNames[index]}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label>` ) 
 	uiOptions.unshift("<legend>Select an instrument</legend>")
 
 	// TODO: bind mouse events too???

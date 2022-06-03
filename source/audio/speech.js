@@ -120,13 +120,18 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang, 
   })
 }
 
-
+/**
+ * Force the voice to stop speaking
+ */
 export const stopSpeaking = ()=>{
 
   return window.speechSynthesis.cancel()
 }
 
-
+/**
+ *  Is the voice currently speaking?
+ * @returns true is voice is speaking or waiting to speak
+ */
 export const isVoiceActive = ()=>{
 
   return window.speechSynthesis.pending

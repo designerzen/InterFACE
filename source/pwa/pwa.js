@@ -153,6 +153,24 @@ const showInstallPrompt = (installButton, prompt) => new Promise( async (resolve
 	installButton.disabled = false
 })
 
+export const uninstall = () => {
+	navigator.serviceWorker.getRegistrations()
+		.then( registrations => { 
+			for(let registration of registrations) 
+			{ 
+				registration.unregister()
+				.then(()=>self.clients.matchAll())
+				.then(clients => { 
+					clients.forEach(client => { 
+						if (client.url && "navigate" in client){ 
+							client.navigate(client.url)
+						} 
+					})
+				})
+			}
+		})
+}
+
 
 // TODO: Lazy load from update
 const showChangelog = async ( domElement ) =>{
