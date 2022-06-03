@@ -1,10 +1,5 @@
 #intro{
-	position: absolute;
-	top:0;
-	right:var(--pad);
-	left:var(--pad);
-	// above feedback
-	bottom:var(--footer-gap);
+	
 	text-align: center;
 	display: flex;
 	flex-direction: column;
@@ -50,7 +45,6 @@
 
 	// Epilepsy warning
 	.warning{
-		
 		background:$col-white url('./assets/icons/report_problem_black_24dp.svg') no-repeat;
 		background-position: left var(--pad) center;
 		// we dont want any animations here
@@ -76,6 +70,31 @@
 		}
 	}
 }
+
+.app{ 
+	// try to use sparingly...
+	// hide all cruft and hide scrollbars too
+	overflow:hidden;
+	// saves on memory as it crops it too??
+	overflow: clip;
+		
+	#intro{
+		position: absolute;
+		top:0;
+		right:var(--pad);
+		left:var(--pad);
+		// above feedback
+		bottom:var(--footer-gap);	
+	}
+
+	#foot{
+		position:absolute;
+		left: 0;//calc( var(--pad));
+		right: 0;//calc( var(--pad));
+		bottom: 0;//var(--pad);
+	}
+}
+
 
 .logo, h1, h2{
 	// position: absolute;
@@ -642,70 +661,6 @@ html.debug{
 	display: block;	
 }
 
-// There are no faces looking at the screen
-.no-faces{ 
-	#app-frame{
-
-		// opacity:0.9;
-		&::after{
-			content:'';
-			position: absolute;
-			top:0;
-			left:0;
-			right:0;
-			bottom:var(--pad);
-			background:url(assets/icons/child_care-24px.svg) no-repeat center center;
-			background-size: contain;
-			opacity:1;
-			transform:translateZ(100px);
-			display: block;
-			z-index:1;
-			pointer-events: none;
-		}
-	}
-}
-
-// Could not load due to privacy restrictoin or user uninteraction
-// or no camera or whatever!
-.failure{
-	#onboard,
-	#control-panel{
-		display: none;
-	}
-	#feedback{
-		left:var(--pad);
-		right:var(--pad);
-		// bottom:calc(50vh - 0.5rem);
-		text-align: center;
-
-		background-color:$col-red;
-		color:$col-white;
-		border:10px solid $col-white;
-		z-index:909;
-		
-		font-size:140%;
-
-		&::after{
-			display:none;
-		}
-	}
-}
-
-.loaded{
-	#intro{
-
-		> * {
-			visibility: hidden;
-		}
-		nav{
-			visibility: visible;
-		}
-	}
-	#progress{
-		display: none;
-	}
-}
-
 // fancy shared controls animations
 header > *,
 fieldset > *,
@@ -956,8 +911,7 @@ main.flag-eyes label[for="select-eyes"]{
 
 	display: flex;
 	box-sizing: border-box;
-
-	align-items: flex-end;
+	align-items: center;
 	justify-content: flex-end;
 	flex-wrap: wrap;
  	flex-direction: row;
@@ -967,10 +921,10 @@ main.flag-eyes label[for="select-eyes"]{
 // 	flex-direction: column-reverse;
 			
 // 	}
-	position:absolute;
-	left: calc( var(--pad));
-	right: calc( var(--pad));
-	bottom: var(--pad);
+
+	margin:var(--pad);
+	margin-top:0;
+
 	// max-height:var(--footer-gap);
 	
 	transition:transform var(--ease-s) $easeOutBack;
@@ -1114,7 +1068,7 @@ main.flag-eyes label[for="select-eyes"]{
 	grid-auto-flow: column;
 	
 	//grid-gap:var(--pad);
-	place-items: flex-end center;
+	place-items: center center;
 	box-sizing: border-box;
 
 	// we flip things around if the screen is taller than wide	

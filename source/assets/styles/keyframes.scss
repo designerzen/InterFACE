@@ -42,6 +42,19 @@
 }
 
 // 
+@keyframes TextError{
+	0%{
+		color: hsl(360, 60%, 40%);
+	}
+	50%{
+		color: hsl(270, 60%, 40%);
+	}
+	100%{
+		color: hsl(360, 60%, 40%);
+	}
+	
+}
+
 @keyframes TextColours{
 	0%{
 		color:hsl(90, 60%, 40%);
@@ -84,6 +97,12 @@
 @keyframes TranslateY{
 	from{
 		transform: translateY( var(--y,0) );
+	}
+}
+
+@keyframes Translate{
+	from{
+		transform: translate( var(--x,0), var(--y,0) );
 	}
 }
 

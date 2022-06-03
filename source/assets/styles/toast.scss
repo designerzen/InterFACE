@@ -23,7 +23,7 @@
 	--min-width:calc( var(--d) + var(--pad) * 2 );
 
 	user-select: none;
-	pointer-events: none;
+	//pointer-events: none;
 	position: absolute;
 	padding: calc( var(--pad) * 1);
 
@@ -103,5 +103,10 @@
 	&:empty{
 		--opacity:0;
 		animation: Hide var(--ease-q) 1 0s ease-out both;
+	}
+
+	&:hover{
+		//visibility: hidden;
+		opacity: 0;
 	}
 }

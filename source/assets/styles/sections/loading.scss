@@ -76,6 +76,10 @@ html.loading{
 		z-index: 909;
 		filter:invert(100%);
 	}
+	
+	#toast{
+		pointer-events: none;
+	}
 
 	#shared-controls{
 		visibility: hidden;

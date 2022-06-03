@@ -12,10 +12,8 @@ html{
 	height: -webkit-fill-available;
 	color:$col-white;	
 	background-color:$col-dark;
-	// hide all cruft and hide scrollbars too
-	overflow:hidden;
-	// saves on memory as it crops it too
-	overflow: clip;
+	overflow: auto;
+	overflow-x: hidden;
 }
 
 
@@ -28,12 +26,7 @@ body{
 	// max-height:100vh;
 	// max-width:100vw;
 
-	// try to use sparingly...
-	// // hide all cruft and hide scrollbars too
-	// overflow:hidden;
-	// // saves on memory as it crops it too
-	overflow: clip;
-	
+
 	position: relative;
 	display: flex;
 	flex-direction: column;
@@ -82,4 +75,14 @@ a, area, button, input, label, select, summary, textarea, [tabindex] {
 
 [aria-busy="true"] {
 	cursor: progress;
+}
+
+hr{
+    display:block;
+    height: 1rem;
+	width:100%;
+    padding:0;
+    margin:var(--pad);
+    border:0;
+    background-image:radial-gradient( farthest-corner at 50% 0, rgba(255,255,255,0.6) 0,transparent 50% );
 }
