@@ -1,4 +1,5 @@
 
+import { RedFormat } from "three"
 import { clamp, TAU, easeInQuad } from "../maths/maths"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
 import { canvasContext, getCanvasDimensions } from './canvas'
@@ -11,9 +12,19 @@ const { width, height} = getCanvasDimensions()
 // top to bottom where the centre is "now" and below the line is the past
 // or the so called "history" that could also change colour to the note played
 // if in single player mode
-export const drawQuantise = (active, bar=-1, bars=1, stroke = 30, radius = 4) => {
+/**
+ * 
+ * @param {Number} hasPlayed - is this note playing?
+ * @param {Number} bar 
+ * @param {Number} totalBars 
+ * @param {Number} noteColour 
+ * @param {Number} stroke - color of the ring
+ * @param {Number} radius - of the circle
+ * @param {Number} positionX - x position of the gadget
+ * @param {Number} positionY - y position of the gadget
+ */
+export const drawQuantise = (hasPlayed, bar=-1, totalBars=1,noteColour=0xff0000, stroke = 30, radius = 4, positionX=0, positionY=0) => {
 
-	// text
 	// canvasContext.strokeWidth = stroke//+"px"
 	// canvasContext.font = "24px Oxanium"
 	// canvasContext.textAlign = "left"
@@ -21,17 +32,28 @@ export const drawQuantise = (active, bar=-1, bars=1, stroke = 30, radius = 4) =>
 	// canvasContext.strokeStyle = PALETTE.dark
 	// canvasContext.fillText( (bar === -1 ? `-` : `${bar+1}`) + extras, stroke, stroke)
 	// const gap = width /( bars + 1 )
-	const gap = height / ( bars + 1 )
-	// blobs
-	for (let i=0, l= bar+1; i<l; ++i)
+	const gap = height / ( totalBars + 1 )
+
+	// blobs up to down
+	// for (let i=0, l= bar+1; i<l; ++i)
+	// grows up
+	for (let i=totalBars; i>=0; --i)
 	{
 		// + gap fence post
-		let x = 0// i * gap + gap
-		let y = i * gap + gap
-		canvasContext.fillStyle = i === bar ? PALETTE.cream : PALETTE.orange
-		canvasContext.strokeStyle = i ===  bar ? PALETTE.orange : PALETTE.brown
+		const colour = hasPlayed ? noteColour : i === bar ? PALETTE.cream : PALETTE.orange
+		const x = positionX // i * gap + gap
+		const y = i * gap + gap + positionY
+		const finished = i < bar
+		const active = i === bar
+		const scaleFactor = active ? 2 : 1
+		const scale = finished || active ? 6 : 1
+		const size = scaleFactor * scale
+
+		//PALETTE.cream PALETTE.brown
+		canvasContext.fillStyle = active ?  colour : noteColour
+		canvasContext.strokeStyle = active ? noteColour : finished ? PALETTE.cream : PALETTE.orange //  : noteColour
 		canvasContext.strokeWidth = stroke
-		canvasContext.lineWidth = active && i === bar ? 8 : 4
+		canvasContext.lineWidth = size
 		canvasContext.beginPath()
 		canvasContext.arc( x, y, radius, 0, TAU )
 		canvasContext.fill()
@@ -47,3 +69,57 @@ export const drawQuantise = (active, bar=-1, bars=1, stroke = 30, radius = 4) =>
 	// console.log("quantise enabled!")
 }
 
+
+export class Quanitiser{
+
+	history = []
+
+	constructor(){
+
+	}
+
+	draw(hasPlayed, bar=-1, totalBars=1,noteColour=0xff0000, stroke = 30, radius = 4, positionX=0, positionY=0){
+		// canvasContext.strokeWidth = stroke//+"px"
+		// canvasContext.font = "24px Oxanium"
+		// canvasContext.textAlign = "left"
+		// canvasContext.fillStyle = PALETTE.grey
+		// canvasContext.strokeStyle = PALETTE.dark
+		// canvasContext.fillText( (bar === -1 ? `-` : `${bar+1}`) + extras, stroke, stroke)
+		// const gap = width /( bars + 1 )
+		const gap = height / ( totalBars + 1 )
+
+		// blobs up to down
+		// for (let i=0, l= bar+1; i<l; ++i)
+		// grows up
+		for (let i=totalBars - 1; i>=0; --i)
+		{
+			// + gap fence post
+			const colour = hasPlayed ? noteColour : i === bar ? PALETTE.cream : PALETTE.orange
+			const x = positionX // i * gap + gap
+			const y = i * gap + gap + positionY
+			const finished = i < bar
+			const active = i === bar
+			const scaleFactor = active ? 2 : 1
+			const scale = finished || active ? 6 : 1
+			const size = scaleFactor * scale
+
+			//PALETTE.cream PALETTE.brown
+			canvasContext.fillStyle = active ?  colour : noteColour
+			canvasContext.strokeStyle = active ? noteColour : finished ? this.history[i] || PALETTE.cream : PALETTE.orange //  : noteColour
+			canvasContext.strokeWidth = stroke
+			canvasContext.lineWidth = size
+			canvasContext.beginPath()
+			canvasContext.arc( x, y, radius, 0, TAU )
+			canvasContext.fill()
+			canvasContext.stroke()
+			canvasContext.closePath()
+
+			if (active)
+			{
+				this.history[i] = noteColour
+			}
+		}
+
+		canvasContext.lineWidth = 1
+	}
+}
