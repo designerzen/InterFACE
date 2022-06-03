@@ -14,7 +14,12 @@ export const resolveRoute = route => {
 	return route.name ? route.node : route 
 }
 
-// just does linear connects in sequence for easier protyping
+/**
+ * just does linear connects in sequence for easier protyping
+ * @param {Array<Filters>} routes 
+ * @param {AudioContext} audioContext 
+ * @returns first node in chain
+ */
 export const chain = ( routes, audioContext=null ) => {
 
 	// we should always unchain before rechaining otherwise... havoc

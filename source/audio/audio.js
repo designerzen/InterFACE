@@ -11,7 +11,7 @@ import {createCompressor} from './effects/compressor'
 import {createDistortion} from './effects/distortion'
 import {createAmplitude} from './effects/amplitude'
 
-import {INSTRUMENT_FOLDERS} from "./instruments"
+import {instrumentFolders} from "./instruments"
 
 import {
 	createInstrumentBanks,
@@ -20,6 +20,7 @@ import {
 	NOTE_NAMES, NOTE_NAMES_FRIENDLY
 } from './notes'
 
+export const ZERO = 0.0000001
 
 export let audioContext
 
@@ -73,7 +74,7 @@ export let active = false
  * Fetch a random instrument name
  * @returns {String} Instrument Name
  */
-export const randomInstrument = () => INSTRUMENT_FOLDERS[ Math.floor( Math.random() * INSTRUMENT_FOLDERS.length ) ]
+export const randomInstrument = () => instrumentFolders[ Math.floor( Math.random() * instrumentFolders.length ) ]
 
 /**
  * Create a chain of audio effects
@@ -329,7 +330,7 @@ export const loadAudio = async (path) => {
  * @param {Number} offset position to start from
  * @param {AudioNode} destination Audio Node to route to
  * @param {Object} options options such as looping
- * @returns {HTMLAudioElement} Auudio object
+ * @returns {HTMLAudioElement} Audio object
  */
 export const playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
 	
