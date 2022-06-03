@@ -11,10 +11,7 @@ export const createStore = (name="InterFACE") => {
 	const save = debounce( updates => {
 		const encoded = JSON.stringify(updates)
 		localStorage.setItem(name, encoded )
-		
 	}, 20 )
-	
-// console.error("store",name,"created", {data, storage})
 
 	return {
 		save,
@@ -23,6 +20,7 @@ export const createStore = (name="InterFACE") => {
 		},
 		removeItem:key =>{
 			delete data[key] 
+			save(data)
 		},
 		getItem:key =>{
 			return data[key] 
