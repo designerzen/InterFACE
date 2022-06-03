@@ -1,4 +1,5 @@
 
+
 let cameraLoading = false
 
 /**
@@ -27,70 +28,81 @@ export const fetchVideoCameras = async() => {
 
 /**
  * Bind a video element to a camera
- * @param {HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
- * @param {string} deviceId Device ID unique to the camera to try to access first if provided
+ * @param {HTMLElement} video - A video HTMLElement NB. If not specified a new video element is created in the DOM
+ * @param {?string} deviceId - Device ID unique to the camera to try to access first if provided
  * @returns {Promise} video stream is returned if successfull
  */
-export const setupCamera = async (video, deviceId ) => {
-
-	return new Promise( async (resolve,reject) => {
+export const setupCamera = async (video, deviceId ) => new Promise( async (resolve,reject) => {
 		
-		let stream
-		video = video ?? document.createElement('video')
+	let stream
+	video = video ?? document.createElement('video')
 
-		// stop it if it is already running?
-		// video.stop()
+	// stop it if it is already running?
+	// video.stop()
 
-		let loadCount = 2
-		const checkVideoAccess = () => {
-			if (--loadCount <= 0)
-			{
-				// if not from a user document interaction, this
-				// will throw some blah blah error so we must wrap and re-act
-				try{
-					video.play()
-					video.width = video.videoWidth
-					video.height = video.videoHeight
-					resolve(stream)	
-				}catch(error){
-					reject(stream)
-				}
+	let loadCount = 2
+	const checkVideoAccess = () => {
+		if (--loadCount <= 0)
+		{
+			// if not from a user document interaction, this
+			// will throw some blah blah error so we must wrap and re-act
+			try{
+				video.play()
+				video.width = video.videoWidth
+				video.height = video.videoHeight
+				resolve(stream)	
+			}catch(error){
+				reject(stream)
 			}
 		}
+	}
 
-		// FIXED: This was suggested to use rather than meta
-		video.onloadedmetadata = (event) => checkVideoAccess()
-		video.onloadeddata = (event) => checkVideoAccess()
+	// FIXED: This was suggested to use rather than meta
+	video.onloadedmetadata = (event) => checkVideoAccess()
+	video.onloadeddata = (event) => checkVideoAccess()
+	video.onerror = event => reject(stream)
+	
+	const videoConstraints = {}
+	if (deviceId) {
+		videoConstraints.deviceId = { exact: deviceId }
+	} else {
+		videoConstraints.facingMode = 'user' // 'environment'
+	}
 
-		video.onerror = event => {
-			console.error("VIDEO:Connection Error", event)
-			reject(stream)
-		}
-		
-		const videoConstraints = {}
-		if (deviceId) {
-		  videoConstraints.deviceId = { exact: deviceId }
-		} else {
-		  videoConstraints.facingMode = 'user' // 'environment'
-		}
-
-		const constraints = {
-		  video: videoConstraints,
-		  audio: false
-		}
-
-		try{
-			// hope and preay that this is the right camera...
-			stream = await navigator.mediaDevices.getUserMedia( constraints )
+	const constraints = {
+		video: videoConstraints,
+		audio: false
+	}
+	
+	try{
+		// hope and pray that this is the right camera...
+		// NB. FIXME: If the camera is already in use this can take forever
+		// and so can hang here - let's add some protection
+		const BAD_RESULT = "BAD_RESULT"
+		stream = await navigator.mediaDevices.getUserMedia( constraints )
+		//stream = navigator.mediaDevices.getUserMedia( constraints )
+		const timeout = new Promise((resolve, reject) => {
+			setTimeout(resolve, 5000, BAD_RESULT)
+		})
+		const result = await Promise.race([ timeout, stream ])
+	
+		// FIXME: "Failed to set the 'srcObject' property on 'HTMLMediaElement': 
+		// Failed to convert value to 'MediaStream'."
+		if (result === BAD_RESULT){
+			reject("Camera was located but could not be accessed - perhaps it is being used by another page?")
+		}else{
 			video.srcObject = stream
-			
-		}catch(error){
-
-			// console.error("stream",{constraints,stream,video})
-			reject(error)
 		}
-	})
-}
+
+		// console.log("setupCamera", {constraints, stream})
+		
+	}catch(error){
+
+		console.error("Camera:Error > ",{constraints,stream,video,error})
+		reject(error)
+	}
+})
+
 
 /**
  * Requests access to a specific device
@@ -108,7 +120,7 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 
 	try{
 		
-		if (deviceId && deviceId.length > 0)
+		if (deviceId.length > 0)
 		{
 			newCamera = await setupCamera( video, deviceId )
 		
@@ -121,17 +133,21 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 			console.log( deviceId, "Camera unfound", {video,deviceId})
 			throw Error("Camera Device not specified "+ deviceId )
 		}
-		 
-					
+		 			
 	}catch(error){
+
+		// NotAllowedError: Permission denied
+		const errorReason = String(error).replace("NotAllowedError: ",'')
+	
 		// console.error( deviceId, "Camera errored", error)
 		// trackError( `${name} camera could not be accessed`, deviceId, "Camera" )
-		throw error
+		throw Error(errorReason)
 	}
 	
 	cameraLoading = false
 	return newCamera
 }
+
 
 /**
  * Try and determine which camera would be best suited for this app
@@ -139,14 +155,13 @@ export const loadCamera = async (video, deviceId, name="Default") => {
  * @param {?HTMLElement} video A video HTMLElement NB. If not specified a new video element is created in the DOM
 * @returns {Object} best camera, all cameras, using saved device?
  */
-export const findBestCamera = async (store, video) => {
-
-	let camera
-	let saved = false
-
-	const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-			
-	// first fetch all cameras!
+export const findBestCamera = async (store, video, onStatus) => {
+		
+	// first fetch all cameras - array of these objects
+	// deviceId: "d3071f102b089a7c24ad1aefc6dc7ab9a22d2707e53c891f6dc5bd9ad182dc70"
+	// groupId: "2416e346fdaf93298be3415c78df5eebb51c4945a7c910743406c3cd23eeb004"
+	// kind: "videoinput"
+	// label: "DroidCam Source 3"
 	const videoCameraDevices = await fetchVideoCameras()
 	
 	// 1st point of failure is if there are no cameras at all...
@@ -155,45 +170,102 @@ export const findBestCamera = async (store, video) => {
 		throw Error("No Cameras found on this device")
 	}
 
-	console.log("videoCameraDevices", videoCameraDevices)
+	let camera
+	let saved = false
+	const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
+	const attempts = {}
 	
+	// try and find if there is video camera with that ID available...
 	// the deviceId is only a suggestion as the camera may well have been removed
 	// since the last time that the app was used or may have changed names
-
+	const matches = videoCameraDevices.filter( videoCamera => videoCamera.deviceId === deviceId )
+	
 	// we do not have any device id so attempt to load the default 
-	if (!deviceId)
+	if (!deviceId || matches.length < 1)
 	{
 		try{
 			camera = await setupCamera( video )
 			return {
-				camera, videoCameraDevices, saved
+				camera, videoCameraDevices, saved, attempts
 			}
 		}catch(error){
-			// next...
-			// console.log("default camera not found")
+			
+			onStatus && onStatus("default camera not found")
 		}
 	}
 
-	// a saved device ID was found let's test to see if it works...
-	try{
-		camera = await loadCamera(video, deviceId, "Saved")
-		saved = true
-	
-	}catch( error ) {
+	if (matches.length > 0)
+	{
+		// a saved device ID was found let's test to see if it works...
+		onStatus && onStatus(`Attempting to connect to saved camera <strong>${matches[0].label}</strong>...` )
+		try{
+			camera = await loadCamera(video, deviceId, "Saved")
+			saved = true
+			return {
+				camera,
+				videoCameraDevices,
+				saved, attempts
+			}
+		
+		}catch( error ) {
 
-		// delete saved key as was invalid...
+			// delete saved key as was invalid...
+			store.removeItem('camera')
+			saved = false
+			attempts[deviceId] = false
+	
+			// bummer! try and use fallback?
+			onStatus && onStatus(`Found saved camera <strong>${matches[0].label}</strong> but could not access it` )
+			console.error("Couldn't access saved camera - removed from store", errorReason )
+		}
+
+	}else{
+		// this camera is no longer available on this device so remove from the system?
 		store.removeItem('camera')
 		saved = false
+		attempts[deviceId] = false
+		onStatus && onStatus("Saved camera no longer available on this device" )
+	}
 
-		// bummer! try and use fallback?
+	// front facing next
+	try{
+		camera = await loadCamera(video, undefined, "Front-Facing")
+		return {
+			camera,
+			videoCameraDevices,
+			saved, attempts
+		}
+	}catch(error){
+		onStatus && onStatus("No front facing camera found on this device" )
+	}
+
+	// should we filter these based on certain names?
+	// desperation! loop through and try the others?
+	const filteredDevices = videoCameraDevices.filter( videoCamera => videoCamera.deviceId !== deviceId )
+	for (let i=0; i<filteredDevices.length; ++i)
+	{
+		const videoCameraDevice = filteredDevices[i]
+		try{
+			onStatus && onStatus( `Found another camera <br><strong>${videoCameraDevice.label}</strong>` )
+			camera = await setupCamera( video, videoCameraDevice.deviceId )
+			return {
+				camera,
+				videoCameraDevices,
+				saved, attempts
+			}
+		}catch(error){
+			attempts[videoCameraDevice.deviceId] = false
+			//console.error(error)
+			onStatus && onStatus(`Camera <strong>${videoCameraDevice.label}</strong> was denied access` )
+		}
+		// pause to show error and to allow camera hardware to rest
+		await new Promise(resolve=>setTimeout(resolve, 900))
+	}
 	
-		// loop through and try the others?
-		camera = await setupCamera( video )
-	}
-
-	return {
-		camera,
-		videoCameraDevices,
-		saved
-	}
+	// still here huh? 
+	// so, we tried the saved camera, that didn't work
+	// we tried the forward facing cam, that didn't work
+	// then we tried the remaining cameras too!
+	onStatus && onStatus( "No cameras accessible!" )
+	throw Error("There was no access to the cameras on this machine, <strong>suspect the permission was denied</strong>")
 }
