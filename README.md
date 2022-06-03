@@ -151,18 +151,51 @@ bump: yarn major && yarn clean && yarn build && yarn deploy
 - Darren Southea
 
 ## Check it out over at
-
 - [InterFACE](https://interface.place)
 - [InterFACE:BETA](https://interface.dance)
 - [InterFACE:SOLO (dev)](https://designerzen.github.io/InterFACE)
 - [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
 
-- [Brief Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
-- [GIVE A MAN A RECORD AND THEY DANCE FOR THE DAY, GIVE THAT MAN A SYNTH AND THEY DANCE FOR A LIFETIME - Talk given @ SXSW21](https://youtu.be/3SmpSvRB4XA)
 
-## Other links
+- [90 Second Intro on youtube](https://www.youtube.com/watch?v=-DSDIET5MJo)
+- [5 Minute Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
+
+
+## Other links & Supporters
+- [GIVE A MAN A RECORD AND THEY DANCE FOR THE DAY, GIVE THAT MAN A SYNTH AND THEY DANCE FOR A LIFETIME - Talk given @ SXSW21](https://youtu.be/3SmpSvRB4XA)
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
+- [MIDI Innnovation Finalists 2022](https://www.midi.org/component/zoo/item/photosynth-interface)
 - [Music Maker Festival](https://www.makermusicfestival.com/)
+- [MIDI Innovation Awards 2022 Stream](https://www.youtube.com/watch?v=1HzlwlekZQk)
+
+
+
+1. What was the motivation for your product/installation?
+
+I wanted to expand the ways we interact with our machines beyond just sitting and clicking, something that didn't require touch but that was still simple and expressive. 
+
+I work with a lot of musicians with different abilities and disabilities and this software gives them a new way to express themselves and to empower them to expand their range of skills.
+
+Ive been involved with making accessible techology for over twenty years but the technology to make this kind of software has only recently ev
+
+A touch free interface that requires no training in the day of the super virus could prove useful beyond playing music.
+
+Ultimately this project is dedicated to my grandma who lived with blindness most of her adult life and who passed away a few months ago,
+
+2. Describe how it is innovative
+
+As far as I can tell it's the first one of it's kind and it does have many applications outside of making music.   
+
+It hopes to improve computer - human relations
+
+Ultimately I hope that it can inspire people to try things beyond their regular capabilities and provide people with new skills and opportunities. 
+
+It aims to bring more equality to skills and leverages technology to empower and include the most diverse and varied audience - giving confidence to the most underrepresented and unprivileged.
+
+
+
+
+
 
 
 ### Keywords
