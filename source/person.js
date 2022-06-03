@@ -6,7 +6,7 @@ import { active, playing, loadInstrumentPack, randomInstrument, playTrack } from
 import { getNoteText, getNoteName, getNoteSound } from './audio/notes'
 import { 
 	INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE,
-	INSTRUMENT_PACKS, INSTRUMENT_FOLDERS, cleanTitle, MUSICAL_NOTES
+	INSTRUMENT_PACKS, instrumentFolders, cleanTitle, MUSICAL_NOTES
 } from './audio/instruments'
 
 import { setupInstrumentForm } from './dom/ui'
@@ -27,6 +27,20 @@ const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
+
+const DEFAULT_VOICE_OPTIONS = {
+	yaw:0, pitch:0, roll:0,
+	hue:90,
+	lipPercentage:0,
+	eyeDirection:0,
+	octave:4,
+	note:-1,
+	noteName:'',
+	volume:0,
+	singing:false,
+	mouthOpen:false,
+	active:false
+}
 
 export const EYE_COLOURS = ['blue','green','brown','orange']
 export default class Person{
@@ -254,7 +268,7 @@ export default class Person{
 	 */
 	get instrumentIndex(){
 		// instrumentPointer ???
-		return INSTRUMENT_FOLDERS.indexOf(this.instrumentName)
+		return instrumentFolders.indexOf(this.instrumentName)
 	}
 
 	/**
@@ -693,11 +707,7 @@ export default class Person{
 		// nothing to play or too many simultaneous samples
 		if (!this.data || this.tracks > MAX_TRACKS)
 		{
-			return {
-				yaw:0, pitch:0, roll:0,
-				lipPercentage:0,
-				eyeDirection:0
-			}
+			return DEFAULT_VOICE_OPTIONS
 		}
 
 		// only change the note if not active?
@@ -707,10 +717,13 @@ export default class Person{
 		// }
 
 		const played = []
-
 		const prediction = this.data
 		const options = this.options
-
+		
+		// you want the scale to be from 0-1 but from 03-1
+		let newVolume
+		let note = -1
+		
 		// do some checks on data to see if an event
 		// should be triggered such as eye left / right
 
@@ -740,18 +753,14 @@ export default class Person{
 		const FUDGE = 1.6
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
 		// const logAmp = options.ease(amp)
-		const newOctave = Math.round(pitch * 7)
-
-		// FIXME: octave needs to be up or down from existing?
-		// FIXME: Shouldn'#t need clamp but pitch is over 1??
-		this.octave = clamp(newOctave,1,7)
+		const newOctave = clamp( Math.round(pitch * 7) ,1,7)
 
 		// FIXME: if we don't want the happy notes...
 		// we can flip this on somehow?
 		const isMinor = prediction.lookingRight
 
 		// eg. A1 Ab1 C3 etc
-		const noteName = getNoteName(roll, this.octave, isMinor)
+		const noteName = getNoteName(roll, newOctave, isMinor)
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(roll, isMinor)
 
@@ -760,6 +769,11 @@ export default class Person{
 		this.lastNoteSound = noteSound
 		this.hue = roll * this.hueRange
 		this.saturation = 100 * lipPercentage
+		this.singing = amp >= options.mouthCutOff
+
+		// FIXME: octave needs to be up or down from existing?
+		// FIXME: Shouldn't need clamp but pitch is over 1??
+		this.octave = newOctave
 
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
@@ -769,29 +783,24 @@ export default class Person{
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
 		
-		// you want the scale to be from 0-1 but from 03-1
-		let newVolume
-
 		// !active && active is updated by playback state
-		if ( this.instrument && amp >= options.mouthCutOff )
+		if ( this.instrument && this.singing )
 		{
 			// here is where we need to do our majic
 			// play a note from the collectionlogAmp
-			const note = this.instrument[ noteName ]
-
-			if (!note){
-				console.log("note not found!", {noteName, roll, octave:this.octave, isMinor})
+			note = this.instrument[ noteName ]
+			if (note)
+			{
+				// TODO: add velocity logAmp
+				this.tracks++
+				const track = playTrack( note, 0, this.outputNode ).then( ()=>{
+					this.active = false
+					this.tracks--
+					//console.log("Sample completed playback... request tock", this.tracks )
+				})
+				played.push(note)
+				//console.log("note not found!", {noteName, roll, octave:this.octave, isMinor})
 			}
-			
-			// TODO: add velocity logAmp
-			this.tracks++
-			const track = playTrack( note, 0, this.outputNode ).then( ()=>{
-				this.active = false
-				this.tracks--
-				//console.log("Sample completed playback... request tock", this.tracks )
-			})
-
-			played.push(note)
 			
 			// rescale for 0.3->1
 			newVolume = this.mouthScale( amp )
@@ -821,7 +830,7 @@ export default class Person{
 
 				// https://webmidijs.org/api/classes/Output#playNote
 				this.midi.playNote( noteName, midiOptions )
-				console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+				//console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 		
 				if (this.midiActive)
 				{
@@ -842,7 +851,6 @@ export default class Person{
 				}
 			}
 			
-			this.singing = true
 			this.isMouthOpen = true
 			this.active = true
 			
@@ -854,17 +862,16 @@ export default class Person{
 			
 			// newVolume = this.gainNode.gain.value + (destinationVolume - this.gainNode.gain.value) * options.volumeRate
 			newVolume = 0
-			this.singing = false
 			this.isMouthOpen = true
 
 		}else{
 
 			// no instrument available or mouth totally closed
 			newVolume = 0
-			this.singing = false
 			this.isMouthOpen = false
 			// no instruments in memory yet... play silence?
 		}
+
 
 		//&& this.midiActive If the user has stopped singing we need to stop the midi too!
 		if (this.options.sendMIDI && this.hasMIDI)
@@ -904,7 +911,6 @@ export default class Person{
 
 // WebMidi.outputs[0].channels[8].setPitchBend(-0.25);
 
-
 // smooth this down
 		// try and smooth the volume if it is fading out...
 		// if ( this.gainNode.gain.value > newVolume)
@@ -922,7 +928,6 @@ export default class Person{
 		//console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
 		
 		this.gainNode.gain.value = newVolume
-		
 		this.yaw = yaw
 		this.pitch = pitch
 		this.roll = roll
@@ -930,9 +935,17 @@ export default class Person{
 		// TODO: Return all notes played
 		return {
 			played,
-			yaw, pitch, roll,
+			yaw, pitch, roll, 
+			hue:this.hue,
 			lipPercentage,
-			eyeDirection
+			eyeDirection,
+			octave:newOctave,
+			note,
+			noteName,
+			volume:newVolume,
+			singing:this.singing,
+			mouthOpen: this.isMouthOpen,
+			active:this.active
 		}
 	}
 
@@ -951,7 +964,7 @@ export default class Person{
 	async loadPreviousInstrument(callback){
 		const index = this.instrumentPointer
 		const newIndex = index-1 < 0 ? 0 : index-1
-		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
+		return await this.loadInstrument( instrumentFolders[newIndex], callback )
 	}
 
 	/**
@@ -960,8 +973,8 @@ export default class Person{
 	 */
 	async loadNextInstrument(callback){
 		const index = this.instrumentPointer
-		const newIndex = index+1 >= INSTRUMENT_FOLDERS.length ? 0 : index+1
-		return await this.loadInstrument( INSTRUMENT_FOLDERS[newIndex], callback )
+		const newIndex = index+1 >= instrumentFolders.length ? 0 : index+1
+		return await this.loadInstrument( instrumentFolders[newIndex], callback )
 	}
 
 	/**
@@ -971,7 +984,7 @@ export default class Person{
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	async reloadInstrument(callback){
-		return await this.loadInstrument( INSTRUMENT_FOLDERS[this.instrumentPointer], callback )
+		return await this.loadInstrument( instrumentFolders[this.instrumentPointer], callback )
 	}
 
 	/**
@@ -984,8 +997,7 @@ export default class Person{
 
 		this.instrumentLoading = true
 		this.instrument = await loadInstrumentPack( instrumentName, this.options.instrumentPack )
-		this.instrumentPointer = INSTRUMENT_FOLDERS.indexOf(instrumentName)
-
+		this.instrumentPointer = instrumentFolders.indexOf(instrumentName)
 		this.instrumentLoading = false
 		
 		//console.log(this.instrumentPointer, "Attempting to load instruments", instrumentName, this.instrument )

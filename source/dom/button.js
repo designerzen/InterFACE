@@ -16,22 +16,45 @@ export const setButton = (buttonName, callback ) => {
 	return false
 }
 
-export const showReloadButton = () => {
+/**
+ * Create a clickable button with label and tooltip
+ * @param {String} label 
+ * @param {String} tip 
+ * @param {String} classes 
+ */
+const createButton = (label, tip, classes='' ) => {
+	const button = document.createElement('button')
+	button.classList.add(classes)
+	button.setAttribute("type", "button" )
+	button.setAttribute("aria-label", tip )
+	button.innerHTML = label
+	addTooltip(button)
+	return button
+}
 
+/**
+ * For when an update has taken or a failure has occurred
+ * this simply adds a CTA with a reload button
+ */
+export const showReloadButton = (reset) => {
+	const button = createButton("Try again! Reload and reset", "Reload this application!", "reload-app" )
+	button.addEventListener( "click", event => {
+		// remove any potential options that could cause issue?
+		if (reset){
+			history.replaceState( null, null, "?" )
+		}
+		window.location.reload() 
+	})
+	button.id = "button-reload"
+	return button
 }
 
 export const createInstallButton = (manifestData) => {
 	// show install button or update button???
-	// reveal update button?
 	const tip = `Click to install ${manifestData.short_name} V-${VERSION.replaceAll(".","-")}<br>Date:${formattedDate}`
-	const button = document.createElement('button')
+	const button = createButton("Install", tip, "install-app" )
 	button.id = "button-install"
-	button.classList.add("install-app")
-	button.setAttribute("aria-label", tip )
 	button.style.setProperty("--logo",`url(${ manifestData.icons[0].src })`)
-	button.innerHTML = "Install"
-	
-	addTooltip(button)
 	return button
 }
 
@@ -39,16 +62,11 @@ export const createInstallButton = (manifestData) => {
 // TODO: This is rubbish, what was I thinking?
 ////////////////////////////////////////////////////////////////////
 export const showUpdateButton = (domElement, action) => {
-	// reveal update button?
-	const button = doc.createElement('button')
+	const button = createButton("Update", `Update to new version`, "update-available" )
 	button.id = "button-update"
-	button.setAttribute("aria-label", `Update to new version` )
-	button.classList.add("update-available")
-	button.innerHTML = "Update"
-
-	// on button press...
 	button.addEventListener('click', ()=>action() )
-	domElement.appendChild(button)
+	// reveal update button?
+	//domElement.appendChild(button)
 }
 
 ////////////////////////////////////////////////////////////////////

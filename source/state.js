@@ -12,6 +12,7 @@ let main
  * Adds classnames to the main element to indicate the current state
  */
  const setUIState = (key, value) => {
+	 // FIXME: filter these?
 	main.classList.toggle(`flag-${key}`, value )
 }
 
