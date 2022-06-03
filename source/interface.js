@@ -3,15 +3,28 @@ import { loadState, getState, setState, refreshState } from './state'
 import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
 import { 
+	active, playing, 
+	loadInstrumentPack, randomInstrument, playTrack,
 	setupAudio,	audioContext,
 	setReverb,
-	active, playing, 
 	randomInstrument,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength,dataArray, 
 	getVolume, setVolume } from './audio/audio'
+
+import { loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
 import { createDrumkit } from './audio/synthesizers'
-import { setupMIDI } from './audio/midi-out'
+import { setupMIDI } from './audio/midi/midi-out'
+import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
+import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
+
+// Different ways of playing sound!
+import SampleInstrument from './audio/instrument.sample'
+import MIDIInstrument from './audio/instrument.midi'
+import OscillatorInstrument from './audio/instrument.oscillator'
+
+// More input mechanisms
+import GamePad from './hardware/gamepad'
 
 // import {midiLikeEvents} from './timing/rhythm'
 import { 
@@ -39,7 +52,7 @@ import interact from './inactivity'
 import setupDialogs from './dom/dialog'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
 import { setToggle } from './dom/toggle'
-import { setButton, showUpdateButton, showReloadButton, setupMIDIButton } from './dom/button'
+import { setButton, setupMIDIButton } from './dom/button'
 import { setFeedback, setToast, addToolTips } from './dom/text'
 import { showError } from './dom/errors'
 import { appendPhotographElement } from './dom/photographs'
@@ -52,7 +65,7 @@ import {
 
 import { setupImage, setNodeCount } from './visual/2d'
 import { drawWaves, drawBars } from './visual/spectrograms'
-import { drawQuantise } from './visual/quantise'
+import { drawQuantise, Quanitiser } from './visual/quantise'
 import Stave from './visual/2d.stave'
 
 import { 
@@ -80,15 +93,18 @@ let instance = null
 
 // TODO: Public class with public facing methods only
 class PhotoSYNTH{
-	constructor(){
-
+	constructor( publicMethods )
+	{
+		const keys = Object.keys(publicMethods)
+		keys.forEach( key => {
+			this[key] = publicMethods[key]
+		})
+		// console.log("PhotoSYNTH", this)
 	}
-
-	toggleMute(){
-
-	}
-	pause(){}
-	resume(){}
+	// toggleMute(){}
+	// pause(){}
+	// resume(){}
+	// changePlayerInstrument( playerIndex ){}
 }
 
 /**
@@ -111,7 +127,7 @@ export const createInterface = (
 
 ) => new Promise( (resolve,reject) => {
 
-	// TODO: Enforce Singleton and return Class with public methods
+	// Enforce Singleton and return Class with public methods only
 	if (instance)
 	{
 		return resolve(instance)
@@ -152,13 +168,19 @@ export const createInterface = (
 	let audio 
 	let midi
 	let midiButton
+
 	let timer
 	let reporter
+	let gamePad
 
 	// samples and synths
 	let kit
 	let patterns
 	let recorder
+
+	// load MIDI Track model midi track  / save midi track
+	let midiPerformance
+	let samplePlayer
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -184,6 +206,42 @@ export const createInterface = (
 
 	// for disco mode!
 	const cameraPan = {x:1,y:1}
+
+	/**
+	 * load MIDI Performance from FILE / Local
+	 * @param {string} file - string
+	 */
+	const loadMIDIPerformance = async (file="./assets/audio/midi_nyan-cat.mid") => {
+		const midiTrack = await loadMIDIFile( file )
+		
+		console.log("midi", { midiTrack, file} )
+		for (let i=0; i<40; ++i)
+		{
+			const commands = midiTrack.getNextCommands()
+			const duration = midiTrack.getDurationUntilNextCommand()
+		
+			commands.forEach( command => {
+				const fraction = midiTrack.convertTimeToFraction( command )
+				switch (command.subtype){
+
+					case COMMAND_NOTE_ON:
+						// command.noteNumber 
+						// command.velocity
+						// find the current note that is playing with this key
+						console.error(i, fraction, command.subtype, "command",  { command, duration} )
+						//playingNotes.add(command)
+						break
+
+					case COMMAND_NOTE_OFF:
+						console.error(i, fraction, command.subtype, "command",  { command, duration} )
+						//playingNotes.remove(command)
+						break
+				}
+			})
+		}
+		return midiTrack
+	}
+
 
 	/**
 	 *  Vocal mode uses speech synthesis to talk the toSay string
@@ -242,7 +300,7 @@ export const createInterface = (
 	const setBPM = (bpm) => setTempo( 60000 / bpm  )
 
 	/**
-	 *  Instruments : Load for all people!
+	 * Instruments : Load for all people!
 	 * @param {String} method Name of method to call on Person
 	 * @param {Function} callback Method to run once instruments have loaded
 	 * @returns {Function} instrument name (raw)
@@ -259,13 +317,15 @@ export const createInterface = (
 	const nextInstrument = async (callback) => await loadInstruments('loadNextInstrument', callback)
 	const reloadInstrument = async (callback) => await loadInstruments('reloadInstrument', callback)
 
+	
 	/**
 	 * Instantiate a Person Class and connect it up accordingly
 	 * @param {String} name Player's name
 	 * @param {String} eyeColour Player's eye colour
+	 * @param {?Number} personIndex -  Player number
 	 * @returns {Person} Person fully wired
 	 */
-	const createPerson = (name,eyeColour) => {
+	const createPerson = (name,eyeColour, personIndex=0) => {
 
 		const duetAvailable = ui.duet
 		
@@ -300,7 +360,9 @@ export const createInterface = (
 		const options = Object.assign ( {}, personOptions, savedOptions ) 
 		const person = new Person( name, audioContext, audio, options ) 
 		// see if there is a stored name for the instrument...
-		const instrument = savedOptions.instrument || randomInstrument()
+		// FIXME: Look also in the midiPerformance for the first instrument
+		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || randomInstrument() )
+		//console.error("Person created", {instrument}, {person})
 
 		// the instrument has changed / loaded so show some feedback
 		person.button.addEventListener( EVENT_INSTRUMENT_CHANGED, ({detail}) => {
@@ -313,6 +375,20 @@ export const createInterface = (
 		person.loadInstrument( instrument, instrumentName => {} )
 		//console.error(name, {instrument, person, savedOptions})
 		
+		// see if there are any gamepads connected - let's go te whole hog!
+		gamePad = new GamePad( personIndex )
+		gamePad.addEventListener( "start", event =>{
+
+		} )
+		
+		gamePad.addEventListener( "left", event =>{
+			// previous instrument
+		} )
+
+		gamePad.addEventListener( "right", event =>{
+			// next instrument
+		} )
+
 		// if (midi && midi.outputs && midi.outputs.length > 0) 
 		// {
 		// 	person.setMIDI( midi.outputs[0] )
@@ -329,7 +405,7 @@ export const createInterface = (
 		
 		if (people[index] == undefined)
 		{
-			const person = createPerson( NAMES[index] , EYE_COLOURS[index] )
+			const person = createPerson( NAMES[index] , EYE_COLOURS[index], index )
 			people.push( person )
 			return person
 		} else{
@@ -416,6 +492,35 @@ export const createInterface = (
 	 */
 	const disableMIDI = () => {
 		// midiButton.setText()
+	}
+
+	/**
+	 * name: "midi_banjos.mid"
+	 * size: 19444
+	 * type: "audio/mid"
+	 * @param {File} file - object with above meta
+	 */
+	const userUploadMediaFile = async (file) => {
+		if (file)
+		{
+			// Load a MIDI file
+			switch (file.type)
+			{
+				case "application/json":
+					console.log("Instrument Pack loading is not supported at this time")
+					break
+
+				case "audio/mid":
+					const midiFile = await loadMIDIFileThroughClient( file )
+					midiPerformance = midiFile
+					onMIDIPerformanceAvailable(midiFile)
+					return midiFile
+
+				default:
+					console.log("Dropped file", {file} , "Ignoring...")
+			}
+			return null
+		}
 	}
 
 	/**
@@ -537,7 +642,6 @@ export const createInterface = (
 					loadRandomInstrument() 
 					break
 
-			
 				case 'QuestionMark':
 				case '?':
 					// read out last bit of help?
@@ -648,6 +752,24 @@ export const createInterface = (
 					setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 					break
 
+				case 'o':
+					if (midiPerformance){
+
+					}
+					break
+
+				case 'p':
+					if (midiPerformance){
+						const commands = midiPerformance.getNextCommands()
+						commands.forEach( command => {
+							command.type === COMMAND_NOTE_ON ?
+								samplePlayer.noteOn() : 
+								samplePlayer.noteOff()
+						})
+						
+					}
+					break
+
 				case 'q':
 					setState("muted", !ui.muted, toggles )
 					break
@@ -750,6 +872,33 @@ export const createInterface = (
 	}
 
 	/**
+	 * play Audio for a Person using their current face status
+	 * @param {Person} person 
+	 * @returns {Object} of metadata
+	 */
+	const playPersonAudio = ( person ) => {
+		// FIXME: Don't play the audio directly in Person
+		// but instead extract it and pass it to the audioBus
+		const stuff = person.sing()
+		// notesPlayed.push()			
+		// console.log("Sing", stuff)
+		// console.log("Person:sing", stuff)
+		// stuff.played is an array of notes
+		// midiButton.classList.toggle("active", stuff.played.length > 0)
+		// update the stave with X amount of notes
+		// stave.draw(stuff)
+		// yaw, pitch, lipPercentage, eyeDirection
+		// update the stave with X amount of notes
+		if (person.singing)
+		{
+			// stave.noteOn( person.lastNoteName, person.name )
+		}else{
+			// stave.noteOff( person.name )
+		}
+		return stuff
+	}
+
+	/**
 	 * Wires up all of the individual parts of the app
 	 * @param {Function} update Method to call when face moves
 	 * @param {Object} settings App Settings Object
@@ -781,27 +930,19 @@ export const createInterface = (
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted")
 			
 				progressCallback(loadIndex/loadTotal,"Looking for cameras..." )
+						
+				const investigation = await findBestCamera(store, video, status => {
+					progressCallback(loadIndex/loadTotal, status)
+				})
 
-				const investigation = await findBestCamera(store, video)
 				const {videoCameraDevices} = investigation
 				camera = investigation.camera
-
-				// // Fixes if camera loses connection?
-				// if (camera.video.readyState < 2) {
-				// 	await new Promise((resolve) => {
-				// 	  camera.video.onloadeddata = () => {
-				// 		resolve(video)
-				// 	  }
-				// 	})
-				// }
-				
 				cameraLoading = false
 
 				const cameraFeedbackMessage = investigation.saved ? "Found saved camera" : videoCameraDevices.length > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera"
-
 				//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 				// setFeedback( cameraFeedbackMessage )
-			
+
 				progressCallback(loadIndex/loadTotal, cameraFeedbackMessage )
 
 				// check to see if there are multiple cameras and we want a selector
@@ -837,24 +978,39 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal)
 
 		}catch(error){
-
-			const errorMessage = String(error).replace("NotAllowedError: ",'')
 			// NotAllowedError: Permission denied
-			setFeedback(`Camera could not be accessed<br><strong>${errorMessage}</strong>`, 0)
-			setToast( errorMessage )
-			progressCallback(loadIndex++/loadTotal, errorMessage )
+			const errorReason = String(error).replace("NotAllowedError: ",'')
+			const errorMessage = 
+			`Camera could not be accessed<br>
+			<strong>${errorReason}</strong>`
+			
+			setFeedback(errorMessage, 0)
+			setToast( errorReason )
+			progressCallback(loadIndex++/loadTotal, errorReason )
 			isLoading = false
 			ultimateFailure = true
 			trackError('Camera Rejected or Not allowed')
 			// FATAL ERROR
-			return reject( errorMessage )
+			return reject( errorReason )
 		}
 
+		// Load any previous performances...
+		if (ui.loadMIDIPerformance)
+		{
+			try{
+				midiPerformance = await loadMIDIPerformance()
+			}catch(error){
+				setFeedback(error, 0)
+			}
+		}
+	
 		try{
 			const savedVolume = store.getItem('audio')
 			const newVolume = savedVolume ? savedVolume.volume : 1
 			audio = await setupAudio()
 			
+			// load a specific instrumentPack?
+			await loadInstrumentDataPack()
 			//console.log("Initiating audio", {newVolume,savedVolume, audio})
 			
 			// if (instrument)
@@ -927,8 +1083,13 @@ export const createInterface = (
 		canvas.width = inputElement.width
 		canvas.height = inputElement.height
 
-	
+		// Create a new sample player to handle sound playback
+		samplePlayer = new SampleInstrument(audioContext, audio, {})
 		
+		// Add some scales on the side
+		quanitiser = new Quanitiser()
+
+
 		// this just adds some visual onscreen tooltips to the buttons specified
 		addToolTips( controlPanel)
 
@@ -936,7 +1097,6 @@ export const createInterface = (
 		const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
 		setVolume( volume > 0 ? volume : 1 )
 
-		
 		// load scripts once eveything has completed...
 		// setTimeout( ()=>{
 		// }, 0 )
@@ -1002,6 +1162,7 @@ export const createInterface = (
 				}
 
 			}else{
+
 				// FUNKY DISCO MODE...
 				// switch effect type?
 				const t = (counter * 0.01) % TAU
@@ -1017,7 +1178,9 @@ export const createInterface = (
 				// Start on BAR
 				// show quantise
 				// fetch notes played from user?
-				drawQuantise( beatJustPlayed, getBar(), getBars() )
+				const barColour = `hsl(${getPerson(0).hue },50%,50%)`
+				//drawQuantise( beatJustPlayed, getBar(), getBars(), barColour)
+				quanitiser.draw( beatJustPlayed, getBar(), getBars(), barColour )
 			}
 			
 			if (ui.spectrogram)
@@ -1028,6 +1191,7 @@ export const createInterface = (
 				updateByteFrequencyData()
 				drawBars( dataArray, bufferLength )
 			}
+
 
 			let haveFacesBeenDetected = false	
 			if (predictions)
@@ -1084,23 +1248,11 @@ export const createInterface = (
 					
 					// then whenever you fancy it,
 					if (!ui.quantise && !ui.muted)
-					{
+					{	
 						// unless quantize is turned off
-						const stuff = person.sing()
-
-						// console.log("Person:sing", stuff)
-						
-						// stuff.played is an array of notes
-						// midiButton.classList.toggle("active", stuff.played.length > 0)
-
-						// yaw, pitch, lipPercentage, eyeDirection
-						// update the stave with X amount of notes
-						if (person.singing)
-						{
-							// stave.noteOn( person.lastNoteName, person.name )
-						}else{
-							// stave.noteOff( person.name )
-						}
+						// we can "sing" in realtime
+						playPersonAudio( person )
+					
 						// stuff.eyeDirection
 						if (i===0)
 						{
@@ -1199,25 +1351,28 @@ export const createInterface = (
 			}
 
 			// console.log(barsElapsed, "timer", timer)
+
+			const notesPlayed = []
 		
 			// sing note and draw to canvas
 			if( ui.quantise )
 			{
+				// TODO: Modify the sound!
+				if (ui.useGamePad && gamePad && gamePad.connected) 
+				{
+					gamePad.update()
+				}
+
 				for (let i=0, l=people.length; i<l; ++i )
 				{
 					const person = getPerson(i)
-
-					// yaw, pitch, lipPercentage, eyeDirection
-					const stuff = person.sing()
-					
-					// update the stave with X amount of notes
-					// stave.draw(stuff)
-
+					const stuff = playPersonAudio( person )
+	
+					// use person 1's eyes to control other stuff too?
+					// in this case the direction of the pan in disco mode
 					if (i===0)
 					{
 						// stuff.eyeDirection
-						// use person 1's eyes to control other stuff too?
-						// in this case the direction of the pan in disco mode
 						cameraPan.x = stuff.eyeDirection
 						cameraPan.y = stuff.pitch
 					}
@@ -1225,10 +1380,8 @@ export const createInterface = (
 					// save data to an array to record
 					// personParameters.push(stuff)
 				}
-				
 			}
 
-			
 
 			// play some accompanyment music!
 			if (ui.backingTrack && bar%2 === 0 )
@@ -1252,6 +1405,29 @@ export const createInterface = (
 				//midi.setSongPosition( getBarProgress() * 16383 , {})
 				//midi.sendClock( )
 				//console.log(midi)
+			}
+
+			// we can actually play a midi file here as an accompanying voice!
+			if (midiPerformance)
+			{
+				const commands = midiPerformance.getNextCommands() || []
+				commands.forEach( command => {
+					
+					console.log("MIDI Command",command.toString() )
+				
+					switch(command.type)
+					{
+						case COMMAND_NOTE_ON:
+							// playTrack( note, 0, audioContext )
+							//samplePlayer.noteOn()
+							break
+
+						case COMMAND_NOTE_OFF:
+							// playTrack( note, 0, audioContext )
+							//samplePlayer.noteOff()
+							break
+					}
+				})
 			}
 
 			beatJustPlayed = true
@@ -1285,18 +1461,18 @@ export const createInterface = (
 
 			// Face
 			default:
-				
 				const {loadFaceModel} = await import('./models/face')
 				loadModel = loadFaceModel
 				progressCallback(loadIndex++/loadTotal, "Loaded Face Brain" )
 		}
 
-		
-
 		// set up the instrument selctor etc
 		setupInterface( ui )
 
 		progressCallback(loadIndex++/loadTotal, "Connecting wires")
+
+	
+
 
 		// you can toggle any checkbox like...
 		// toggles.quantise.setAttribute('checked', value)
@@ -1413,6 +1589,7 @@ export const createInterface = (
 			// copyCanvasToClipboard()
 			appendPhotographElement()
 			setToast('Photograph taken!' )
+			kit.cowbell()
 		} )
 
 		// Button video loads random instruments for all
@@ -1486,11 +1663,65 @@ export const createInterface = (
 		
 		logoButton.addEventListener( MOUSE_TAP, event => {
 			// console.log("Logo tapped")/
+			if (kit){
+				kit.cowbell()
+			}
 		} )
 
 		logoButton.addEventListener( MOUSE_HELD, event => {
 			// console.log("Logo held")
+			// Easter egg
 		} )
+
+
+		// Upload MIDI File! Secret functions
+		const uploadMIDIForm = document.getElementById("midi-file") 
+		const uploadMIDIButton = document.getElementById("button-midi-upload") 
+		const uploadMIDIFileInput = document.getElementById("midi-upload") 
+		
+		uploadMIDIButton.addEventListener( "click", event => {
+			event.preventDefault()
+			const file = uploadMIDIFileInput.files[0]
+			userUploadMediaFile( file )
+		})
+		
+		uploadMIDIFileInput.addEventListener( "change", async (e) => {
+			const file = uploadMIDIFileInput.files[0] 
+			await userUploadMediaFile( file )
+		})
+	
+		const dropAreas = [ body ]
+		const evs = ['dragenter', 'dragover', 'dragleave', 'drop']
+		dropAreas.forEach( dropArea => {
+			evs.forEach(eventName => {
+				dropArea.addEventListener(eventName, async (event) => {
+					event.preventDefault()
+					event.stopPropagation()
+					switch (event.type)
+					{
+						case 'dragenter':
+						case 'dragover':
+							body.classList.toggle('dragging', true)
+							break
+		
+						case 'dragleave':
+						case 'drop':
+							body.classList.toggle('dragging', false)
+							break
+					}
+
+					if (event.type === "drop")
+					{
+						const dataTransfer = event.originalEvent ? event.originalEvent.dataTransfer : event.dataTransfer
+						const file = dataTransfer.files[0]
+						await userUploadMediaFile( file )
+					}
+
+				}, false)
+			})
+		})
+	
+		
 
 		try{
 			// Attempt to Lazy load
@@ -1602,20 +1833,20 @@ export const createInterface = (
 		// focus app?
 		onLoadProgress && onLoadProgress(1,"complete")
 		
-		// finish promising
-		resolve( constructPublicClass( { language, ...ui, ...information } ) )
+		// finish promising with some public method to access
+		resolve( constructPublicClass( { 
+			user,
+			language, 
+			...ui, 
+			...information,
+			setBPM, loadInstruments, 
+			loadRandomInstrument, 
+			previousInstrument, nextInstrument
+		} ) )
 	}
 
-	/**
-	 * Factory method for creating PhotoSYNTH instances
-	 * @param {Object} data - whatever
-	 * @returns {PhotoSYNTH} class populated with public methods and events
-	 */
-	const constructPublicClass = (data) => {
-		const app = new PhotoSYNTH()
-		app.data = { ...data }
-		instance = app
-		return instance
+	const onMIDIPerformanceAvailable = (midiTrack) => {
+		console.log("onMIDIPerformanceAvailable", midiTrack )
 	}
 
 	// loop until loaded...
@@ -1630,7 +1861,8 @@ export const createInterface = (
 			if (ultimateFailure)
 			{
 				body.classList.add("failure")
-				showReloadButton()
+				body.classList.remove("loading")
+				
 			}else{
 				onLoaded()
 			}
@@ -1787,4 +2019,15 @@ export const createInterface = (
 	// window.addEventListener('deviceorientation' , event => {
 	// 	//console.log("device orientation", event)
 	// })
+		
+	/**
+	 * Factory method for creating PhotoSYNTH instances
+	 * @param {Object} data - whatever
+	 * @returns {PhotoSYNTH} class populated with public methods and events
+	 */
+	const constructPublicClass = (data) => {
+		const app = new PhotoSYNTH(data)
+		instance = app
+		return instance
+	}
 })

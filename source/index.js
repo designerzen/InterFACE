@@ -3,8 +3,9 @@ import { setLoadProgress, getLoadProgress } from './dom/load-progress'
 import { VERSION } from './version'
 import { getBrowserLocales } from './i18n'
 import { getDomainDefaults } from './settings'
-import { installOrUpdate } from './pwa/pwa'
+import { installOrUpdate, uninstall } from './pwa/pwa'
 import { createStore} from './store'
+import { showReloadButton as createReloadButton } from './dom/button'
 import Capabilities from './capabilities'
 import Attractor from './attractor'
 
@@ -42,51 +43,62 @@ const start = () => {
 
 		let halfLoaded = false
 		const title = document.title
-		const application = await createInterface( defaultOptions, store, capabilities, language, (loadProgress, message) => {
-			if (loadProgress === 1)
-			{
-				if (!halfLoaded)
+		try{
+			const application = await createInterface( defaultOptions, store, capabilities, language, (loadProgress, message) => {
+				if (loadProgress === 1)
 				{
-					halfLoaded = true
-					setLoadProgress(0.99, " ")
+					if (!halfLoaded)
+					{
+						halfLoaded = true
+						setLoadProgress(0.99, " ")
+					}else{
+						setLoadProgress(1, "Ready!")
+					}
+					document.title = title	
 				}else{
-					setLoadProgress(1, "Ready!")
+					setLoadProgress( loadProgress, message )
+					document.title = title + " - " + loadProgress * 100 +  "%"
 				}
-				document.title = title	
-			}else{
-				setLoadProgress( loadProgress, message )
-				document.title = title + " - " + loadProgress * 100 +  "%"
-			}
-		})
+			})
+		
+			// let installation = null
+			// // at any point we can now trigger the installation
+			// if (installation)
+			// {
+			// 	try{
+			// 		const destination = document.getElementById("shared-controls")
+			// 		const needsInstall = await installation( destination )		
+					
+			// 		canBeInstalled = needsInstall
+					
+			// 	}catch(error){
 	
-		// let installation = null
-		// // at any point we can now trigger the installation
-		// if (installation)
-		// {
-		// 	try{
-		// 		const destination = document.getElementById("shared-controls")
-		// 		const needsInstall = await installation( destination )		
+			// 		body.classList.add("installation-unavailable")
+			// 		console.error("Install/Update issue", error)
+			// 	}
 				
-		// 		canBeInstalled = needsInstall
-				
-		// 	}catch(error){
+			// }else{
+			// 	// console.log("Loaded Webpage")
+			// }
+	
+			// For automatic stuff...
+			const attractMode = new Attractor( application )
+	
+			// Show hackers message to debuggers
+			if (application.debug)
+			{
+				console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, last time was ${Math.ceil(application.timeElapsedSinceLastPlay/1000)} seconds ago`, {application} )	
+				// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
+			}
 
-		// 		body.classList.add("installation-unavailable")
-		// 		console.error("Install/Update issue", error)
-		// 	}
-			
-		// }else{
-		// 	// console.log("Loaded Webpage")
-		// }
+		}catch(error){
 
-		// For automatic stuff...
-		const attractMode = new Attractor( application )
-
-		// Show hackers message to debuggers
-		if (application.debug)
-		{
-			console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, last time was ${Math.ceil(application.timeElapsedSinceLastPlay/1000)} seconds ago`, {application} )	
-			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
+			// body.classList.add("failed")
+			body.classList.add("failure")
+			body.classList.remove("loading")
+			document.getElementById("feedback").appendChild( createReloadButton(true) )
+			//uninstall()
+			console.error("Ultimate failure - remove loading - add error class?")
 		}
 	})
 }
@@ -113,9 +125,9 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 	// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 	if (IS_DEVELOPMENT_MODE){
 
+	console.info( "PWA", state.log, {state} )
 	}
 
-	console.info( "PWA", state.log, {state} )
 	// previousVersion, currentVersion,
 	// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()
 
@@ -153,4 +165,9 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 }).finally( p => {
 
 	start()
+
+}).catch( error =>{
+
+	// uninstall()
+	console.error(error)
 })

@@ -33,7 +33,10 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 }
 
 export const DEFAULT_OPTIONS = {
-
+	loadMIDIPerformance:false,
+	// allow game pads such as the xbox controller to do cool
+	// stuff as a modifier for the audio
+	useGamePad:true,
 	// this allows us to show some extra options if set to true...
 	advancedMode:true,
 	// initially show the settings panel
