@@ -1,14 +1,15 @@
+import { GENERAL_MIDI_INSTRUMENTS  } from "./midi/general-midi"
+
 export const MUSICAL_NOTES = ['♫','𝅗𝅥','𝅘𝅥','𝅘𝅥𝅮','𝅘𝅥𝅯','𝅘𝅥𝅰','𝅘𝅥𝅱','𝅘𝅥𝅲']
 // '𝄞',
-
 
 export const INSTRUMENT_PACK_FM = "FluidR3_GM"
 export const INSTRUMENT_PACK_FATBOY = "FatBoy"
 export const INSTRUMENT_PACK_MUSYNGKITE = "MusyngKite"
 export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY]
 
-
-export const INSTRUMENT_FOLDERS = [
+// defaults
+export let instrumentFolders = [
 	"accordion-mp3",
 	"acoustic_bass-mp3",
 	"acoustic_grand_piano-mp3",
@@ -147,7 +148,7 @@ export const INSTRUMENT_FOLDERS = [
 
 export const cleanTitle = name => name && name.length > 1 ? name.replaceAll("_", " ").replace("-mp3", "") : ''
 
-export const INSTRUMENT_NAMES = INSTRUMENT_FOLDERS.map( instrument => cleanTitle(instrument) )
+export let instrumentNames = instrumentFolders.map( instrument => cleanTitle(instrument) )
 
 export const instrumentCache = {}
 export const fetchInstrument = (name) =>{
@@ -158,4 +159,25 @@ export const fetchInstrument = (name) =>{
 
 export const storeInstrument = (name,data) => {
 	instrumentCache[name] = data
+}
+
+// This is a way to load in a collection of files from json
+export const loadInstrumentDataPack = async ( packName='musyng.json' ) => {
+	const url = `./assets/audio/${packName}`
+	const request = await fetch( url )
+	const packs = await request.json()
+	return packs.map( (instrument, i) => {
+		instrumentFolders[i] = `${instrument}-mp3`
+		instrumentNames[i] = GENERAL_MIDI_INSTRUMENTS[i]
+		return `${instrument}-mp3`
+	})
+}
+
+
+export const getFolderNameForInstrument = name => {
+	let index = instrumentFolders.indexOf(name)
+	if (index === -1){
+		index = instrumentNames.indexOf(name)
+	}
+	return instrumentFolders[index]
 }

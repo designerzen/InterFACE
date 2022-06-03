@@ -1,3 +1,4 @@
+import Instrument from './instrument'
 export default class OscillatorInstrument extends Instrument{
 
 	constructor( channel="all" ){
@@ -8,7 +9,7 @@ export default class OscillatorInstrument extends Instrument{
 		this.sawtooth
 	}
 
-	noteOn( note ){
+	noteOn( note, velocity=1 ){
 		super.noteOn(note)
 	}
 	
