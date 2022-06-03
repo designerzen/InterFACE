@@ -2,7 +2,7 @@
  * Checks to see if all of the things we need for
  * this to work are available such as camera, midi etc
  */
-import {testForMIDI} from './audio/midi-out'
+import {testForMIDI} from './audio/midi/midi-out'
 const hasTouchEvents = () => {
 	try{ document.createEvent("TouchEvent"); return true; }
 	catch(e){ return false; }
