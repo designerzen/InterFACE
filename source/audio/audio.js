@@ -17,7 +17,7 @@ import {
 	createInstrumentBanks,
 	// getNoteName,
 	// getNoteSound, getNoteText,
-	NOTE_NAMES, NOTE_NAMES_FRIENDLY
+	NOTE_NAMES
 } from './notes'
 
 export const ZERO = 0.0000001
@@ -443,8 +443,15 @@ export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="Fl
 		title:cleanTitle(instrumentName),
 		name:instrumentName,
 	}
-	// TODO: implement progressCallback
-	const parts = await Promise.all( loadInstrumentParts(instrumentName, path) )
+	const partPromises = loadInstrumentParts(instrumentName, path) 
+	const parts= []
+	for (let i=0, l=partPromises.length; i < l; ++i)
+	{
+		const part = await partPromises[i]
+		parts.push( part )
+		progressCallback && progressCallback(i/l)
+	}
+	
 	NOTE_NAMES.forEach( (instrument, index) => {
 		output[ instrument.split('.')[0] ] = parts[index]
 	})

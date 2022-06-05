@@ -10,6 +10,7 @@ export default class MidiTrack
 	tracks = []
 	commands = []
 	instruments = []
+	noteOnCommands = []
 
 	trackName = ""
 	meta = ""
@@ -61,6 +62,10 @@ export default class MidiTrack
 
 	getNextCommands(){
 		return this.tracks[ ++this.trackPosition ]
+	}
+
+	getNextNoteOnCommand(){
+		return this.noteOnCommands[ ++this.commandPosition ]
 	}
 
 	getDurationUntilNextCommand(){
@@ -136,6 +141,7 @@ export default class MidiTrack
 					break
 			}
 
+		
 			switch( midiCommand.subtype )
 			{
 				case MIDICommands.COMMAND_NOTE_ON:
@@ -182,6 +188,13 @@ export default class MidiTrack
 
 					this.commands.push(midiCommand)
 			}
+
+			switch( midiCommand.subtype )
+			{
+				case MIDICommands.COMMAND_NOTE_ON:
+					this.noteOnCommands.push(midiCommand)
+			}
+
 		}
 	}
 	
