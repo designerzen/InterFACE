@@ -17,15 +17,13 @@ const createTip =  (element, revealRate=6, clearRate=550) => {
 
 	return element ? (message, letterRate=revealRate ) => {
 		
-		hasCompleted = false
-
 		// check to see if it has changed...
 		if (message === previousMessage)
 		{
 			// or do we just show it all???
 			return
 		}
-		
+
 		clearInterval( interval )
 		
 		previousMessage = message
