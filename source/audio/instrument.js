@@ -3,27 +3,47 @@
 // https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
 export default class Instrument{
 
+	active = false
+	// monophonic by default
+	polyphony = 1
+	
 	constructor( audioContext, destinationNode, options={} ) 
 	{
 		this.outputNode = destinationNode
 		this.context = audioContext
-
-		console.log("Instrument:CREATED:", { audioContext, destinationNode } )
-		
-		// monophonic by default
-		this.polyphony = 1
 		this.activeNotes = new Map()
+		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
+	}
+
+	getVolume(){
+		return 1
+	}
+
+	setVolume( volume ){
+		// FIXME:
 	}
 
 	/**
 	 * This message is sent when a note is depressed (start).
 	 * @param {Number} noteNumber 
-	 * @param {Number} veolcity 
+	 * @param {Number} velocity 
+	 * @returns {Boolean} has the sample started or is it already playing?
 	 */
-	noteOn( noteNumber, velocity=1 ){
-		this.active = true
-		// set it not to true but to the velocity?
-		this.activeNotes.set( noteNumber, {} )
+	 async noteOn( noteNumber, velocity=1 ){
+		
+		const activeNote = this.activeNotes.get(noteNumber)
+		if (activeNote)
+		{
+			//console.log(activeNote, "retrigger noteOn", noteNumber, this.activeNotes )
+			return false
+		}else{
+
+			// set it not to true but to the velocity?
+			this.activeNotes.set( noteNumber, velocity )
+			//console.log("noteOn", noteNumber, this.activeNotes )
+			this.active = true
+			return true
+		}
 	}
 	
 	/**
@@ -31,9 +51,11 @@ export default class Instrument{
 	 * @param {Number} noteNumber 
 	 * @param {Number} veolcity 
 	 */
-	noteOff( noteNumber, veolcity=0 ){
+	 async noteOff( noteNumber, veolcity=0 ){
 		this.active = false
-		this.activeNotes.set( noteNumber, null )
+		this.activeNotes.delete( noteNumber )
+		//console.log("noteOff", noteNumber, this.activeNotes )
+		return true
 	}
 	
 	/**
@@ -77,7 +99,7 @@ export default class Instrument{
 	 * This message sent when the patch number changes. 
 	 * @param {Number} programNumber - new program number.
 	 */
-	programChange( programNumber ){
+	 async programChange( programNumber ){
 
 	}
 }

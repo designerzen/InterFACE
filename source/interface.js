@@ -4,10 +4,8 @@ import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
 import { 
 	active, playing, 
-	loadInstrumentPack, randomInstrument, playTrack,
-	setupAudio,	audioContext,
-	setReverb,
-	randomInstrument,
+	randomInstrument, 
+	setupAudio,	audioContext, setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength,dataArray, 
 	getVolume, setVolume } from './audio/audio'
@@ -17,6 +15,8 @@ import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
 import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
+
+import {getMIDINoteNumberAsName} from './audio/notes'
 
 // Different ways of playing sound!
 import SampleInstrument from './audio/instrument.sample'
@@ -75,7 +75,7 @@ import {
 import { findBestCamera, loadCamera } from './hardware/camera'
 import { TAU } from "./maths/maths"
 
-import Person, { EYE_COLOURS, EVENT_INSTRUMENT_CHANGED } from './person'
+import Person, { EYE_COLOURS, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING } from './person'
 
 import { NAMES, DEFAULT_TENSORFLOW_OPTIONS } from './settings'
 
@@ -181,6 +181,7 @@ export const createInterface = (
 	// load MIDI Track model midi track  / save midi track
 	let midiPerformance
 	let samplePlayer
+	let midiPlayer
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -206,41 +207,6 @@ export const createInterface = (
 
 	// for disco mode!
 	const cameraPan = {x:1,y:1}
-
-	/**
-	 * load MIDI Performance from FILE / Local
-	 * @param {string} file - string
-	 */
-	const loadMIDIPerformance = async (file="./assets/audio/midi_nyan-cat.mid") => {
-		const midiTrack = await loadMIDIFile( file )
-		
-		console.log("midi", { midiTrack, file} )
-		for (let i=0; i<40; ++i)
-		{
-			const commands = midiTrack.getNextCommands()
-			const duration = midiTrack.getDurationUntilNextCommand()
-		
-			commands.forEach( command => {
-				const fraction = midiTrack.convertTimeToFraction( command )
-				switch (command.subtype){
-
-					case COMMAND_NOTE_ON:
-						// command.noteNumber 
-						// command.velocity
-						// find the current note that is playing with this key
-						console.error(i, fraction, command.subtype, "command",  { command, duration} )
-						//playingNotes.add(command)
-						break
-
-					case COMMAND_NOTE_OFF:
-						console.error(i, fraction, command.subtype, "command",  { command, duration} )
-						//playingNotes.remove(command)
-						break
-				}
-			})
-		}
-		return midiTrack
-	}
 
 
 	/**
@@ -359,6 +325,8 @@ export const createInterface = (
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
 		const options = Object.assign ( {}, personOptions, savedOptions ) 
 		const person = new Person( name, audioContext, audio, options ) 
+		//person.addInstrument( new SampleInstrument(audioContext, audio, {}))
+
 		// see if there is a stored name for the instrument...
 		// FIXME: Look also in the midiPerformance for the first instrument
 		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || randomInstrument() )
@@ -372,7 +340,22 @@ export const createInterface = (
 			setToast( `${detail.instrument.title} Loaded` )
 		})
 
-		person.loadInstrument( instrument, instrumentName => {} )
+		person.button.addEventListener( EVENT_INSTRUMENT_LOADING, ({detail}) => {
+			const { progress, instrumentName } = detail
+			const percent = Math.ceil(progress*100)
+			//setFeedback( `${instrumentName} ${Math.ceil(progress*100)} Loading` )
+			if (percent < 99){
+				setToast( `${instrumentName} ${percent} Loading` )
+			}else{
+				setToast( `` )
+			}
+		})
+
+		person.loadInstrument( instrument, instrumentName => {
+
+			//console.log("Person instrument loading")
+		} )
+
 		//console.error(name, {instrument, person, savedOptions})
 		
 		// see if there are any gamepads connected - let's go te whole hog!
@@ -471,7 +454,6 @@ export const createInterface = (
 
 			updateMIDIStatus(midi.outputs)
 
-			midiAvailable = midi && midi.outputs  //&& midi.outputs.length > 0
 			main.classList.add('midi-available')
 
 		}catch(error){	
@@ -539,8 +521,10 @@ export const createInterface = (
 		const port = midiDevices[ personIndex < midiDevices.length ? personIndex : 0 ]
 		if (port)
 		{
+			
 			person.setMIDI(port, midiChannel)
-			console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
+			
+			//console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 		}else{
 			console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel}, midi.outputs[midiChannel])
 		}
@@ -563,7 +547,6 @@ export const createInterface = (
 				// we should send one to each instrument presumably?
 				case 2:
 					people.forEach( (person,i) => connectMIDIForPerson(i, outputs, ui.midiChannel) )
-					
 					break;
 
 				default:
@@ -594,6 +577,8 @@ export const createInterface = (
 			main.classList.toggle('midi-no-devices', true)
 			main.classList.toggle('midi-connected', false)
 		}
+
+		midiAvailable = outputs.length > 0
 	}
 
 	/**
@@ -877,23 +862,86 @@ export const createInterface = (
 	 * @returns {Object} of metadata
 	 */
 	const playPersonAudio = ( person ) => {
+		// yaw, pitch, lipPercentage, eyeDirection
+		const stuff = person.sing()
+		let noteName = stuff.noteName
+		let noteNumber = stuff.noteNumber
+		let note = stuff.note
+		let noteVelocity = stuff.volume
+
+		if (!person.instrument || !person.instrument[ noteName ]){
+			// probably still loading!
+			return stuff
+		}
+
+		// we can have some fun here and inercept the output
+		// and replace them with MIDI performance commands :P
+		if (midiPerformance && person.singing)
+		{
+			const command = midiPerformance.getNextNoteOnCommand()
+			if (command)
+			{
+				//noteName = getMIDINoteNumberAsName(command.noteNumber)
+				noteName = command.noteName
+				noteNumber = command.noteNumber
+				// to use the gate as a throttle for the velocity too...
+				// noteVelocity = command.velocity * 0.01	
+				noteVelocity *= command.velocity * 0.01	
+			}
+
+			// const commands = midiPerformance.getNextCommands() || []
+			// commands.forEach( command => {
+				
+			// 	switch(command.subtype)
+			// 	{
+			// 		case COMMAND_NOTE_ON:
+			// 			// FIXME:
+			// 			noteName = getMIDINoteNumberAsName(command.noteNumber)
+			// 			noteNumber = command.noteNumber
+			// 			noteVelocity = command.velocity * 0.01
+			// 			// playTrack( note, 0, audioContext )
+			// 			// samplePlayer.noteOn()
+			// 			console.log("Person:intercept", {commands, noteName, noteNumber, noteVelocity } )
+			// 			break
+
+			// 		default:
+			// 		case COMMAND_NOTE_OFF:
+			// 			// playTrack( note, 0, audioContext )
+			// 			// samplePlayer.noteOff()
+			// 			console.log("Person:intercept ignord", command.subtype, {commands, noteName, noteNumber, noteVelocity } )
+			// 			break
+			// 	}
+			// })
+			
+		}else{
+			// notesPlayed.push()			
+			//console.log("Person:sing", { stuff,noteName,note})
+		}
+	
+		const personalSamplePlayer = person.samplePlayer
+
 		// FIXME: Don't play the audio directly in Person
 		// but instead extract it and pass it to the audioBus
-		const stuff = person.sing()
-		// notesPlayed.push()			
-		// console.log("Sing", stuff)
-		// console.log("Person:sing", stuff)
 		// stuff.played is an array of notes
-		// midiButton.classList.toggle("active", stuff.played.length > 0)
 		// update the stave with X amount of notes
 		// stave.draw(stuff)
-		// yaw, pitch, lipPercentage, eyeDirection
 		// update the stave with X amount of notes
 		if (person.singing)
 		{
+			personalSamplePlayer && personalSamplePlayer.noteOnByName( noteName, noteVelocity )
+			//midiPlayer && midiPlayer.noteOn( noteNumber, noteVelocity )
+			// person.midiPlayer && person.midiPlayer.noteOn( noteNumber, noteVelocity )
+			//console.log("Person wants to sing", {note, noteNumber, noteName, track, samplePlayer})
 			// stave.noteOn( person.lastNoteName, person.name )
+
+			//person.sendMIDI( "noteOn", noteNumber, noteVelocity )
 		}else{
+			personalSamplePlayer && personalSamplePlayer.noteOff( noteNumber )
+			//midiPlayer && midiPlayer.noteOff( noteNumber )
+			//person.midiPlayer && person.midiPlayer.noteOff( noteNumber )
+			//console.log("Person silenced", {note, noteNumber, noteName, track, samplePlayer})
 			// stave.noteOff( person.name )
+			//person.sendMIDI( "noteOff", noteNumber )
 		}
 		return stuff
 	}
@@ -997,8 +1045,10 @@ export const createInterface = (
 		// Load any previous performances...
 		if (ui.loadMIDIPerformance)
 		{
+			progressCallback(loadIndex/loadTotal,"Loading MIDI Performance")
 			try{
-				midiPerformance = await loadMIDIPerformance()
+				midiPerformance = await loadMIDIFile( "./assets/audio/midi_nyan-cat.mid" )
+				onMIDIPerformanceAvailable( midiPerformance )
 			}catch(error){
 				setFeedback(error, 0)
 			}
@@ -1088,7 +1138,6 @@ export const createInterface = (
 		
 		// Add some scales on the side
 		quanitiser = new Quanitiser()
-
 
 		// this just adds some visual onscreen tooltips to the buttons specified
 		addToolTips( controlPanel)
@@ -1251,7 +1300,7 @@ export const createInterface = (
 					{	
 						// unless quantize is turned off
 						// we can "sing" in realtime
-						playPersonAudio( person )
+						const stuff = playPersonAudio( person )
 					
 						// stuff.eyeDirection
 						if (i===0)
@@ -1410,6 +1459,7 @@ export const createInterface = (
 			// we can actually play a midi file here as an accompanying voice!
 			if (midiPerformance)
 			{
+				/*
 				const commands = midiPerformance.getNextCommands() || []
 				commands.forEach( command => {
 					
@@ -1428,6 +1478,7 @@ export const createInterface = (
 							break
 					}
 				})
+				*/
 			}
 
 			beatJustPlayed = true
@@ -1845,8 +1896,40 @@ export const createInterface = (
 		} ) )
 	}
 
+
+	/**
+	 * 
+	 * @param {MIDITrack} midiTrack 
+	 */
 	const onMIDIPerformanceAvailable = (midiTrack) => {
+
 		console.log("onMIDIPerformanceAvailable", midiTrack )
+
+		for (let i=0; i<0; ++i)
+		{
+			const commands = midiTrack.getNextCommands()
+			const duration = midiTrack.getDurationUntilNextCommand()
+		
+			console.log(i, "midi", commands, duration )
+
+			commands.forEach( command => {
+				const fraction = midiTrack.convertTimeToFraction( command )
+				switch (command.subtype){
+
+					case COMMAND_NOTE_ON:
+						// find the current note that is playing with this key
+						//samplePlayer && samplePlayer.noteOn( command.noteNumber, command.velocity )
+						console.error(i, fraction, command.subtype, "command",  { command, duration}, samplePlayer )
+						//playingNotes.add(command)
+						break
+
+					case COMMAND_NOTE_OFF:
+						console.error(i, fraction, command.subtype, "command",  { command, duration} )
+						//playingNotes.remove(command)
+						break
+				}
+			})
+		}
 	}
 
 	// loop until loaded...
@@ -1862,7 +1945,7 @@ export const createInterface = (
 			{
 				body.classList.add("failure")
 				body.classList.remove("loading")
-				
+				// LOAD CANCELLED FATAL ERROR
 			}else{
 				onLoaded()
 			}

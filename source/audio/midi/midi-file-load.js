@@ -99,9 +99,9 @@ export const loadMIDIFile = async ( url, options={} ) => {
 }
 
 /**
- * 
- * @param {*} file 
- * @param {*} progressCallback 
+ * load MIDI Performance from FILE / Local
+ * @param {string} file 
+ * @param {Function} progressCallback 
  * @returns {MIDITrack}
  */
 export const loadMIDIFileThroughClient = async (file, options, progressCallback) => {
@@ -109,5 +109,6 @@ export const loadMIDIFileThroughClient = async (file, options, progressCallback)
 	const midiTrack = await loadMIDIFile( rawFile, {
 		trackName:(file.name).split(".mid")[0].replace("_", " ")
 	} )
+
 	return midiTrack
 }

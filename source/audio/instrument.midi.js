@@ -3,18 +3,19 @@ import {getBarProgress} from '../timing/timing'
 import {WebMidi} from "webmidi"
 export default class MIDIInstrument extends Instrument{
 
-	constructor( channel="all" ){
+	constructor( device, channel="all" ){
 		super()
 		this.channel = channel
 		this.sendMIDI = true
+		this.midiPort = device
 	}
 
 	setMIDI(value){
 		this.sendMIDI = value
 	}
 
-	noteOn(noteNumber, velocity=1){
-		super.noteOn(noteNumber)
+	async noteOn(noteNumber, velocity=1){
+		
 		// duration: 2000,
 		// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 		//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
@@ -22,16 +23,8 @@ export default class MIDIInstrument extends Instrument{
 			channels:this.channel,
 			attack:newVolume // amp
 		}
-
-		this.midi.playNote( noteName, midiOptions )
-		
-		// if (this.midiActive)
-		// {
-		// 	this.midi.setKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
-		// 	// this.midi.setPitchBend( eyeDirection )
-		// }else{
-		// 	this.midiActive = true
-		// }
+		super.noteOn(noteNumber)
+		return this.midiPort.playNote( noteNumber, midiOptions )
 	}
 
 	noteOff(noteNumber){
@@ -39,7 +32,7 @@ export default class MIDIInstrument extends Instrument{
 		//this.midi.sendClock( )
 		//this.midi.setSongPosition( getBarProgress() * 16383 )
 		
-		this.midi.stopNote(noteName, {
+		this.midiPort.stopNote(noteNumber, {
 			// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
 			// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
 			release:0.2
@@ -55,16 +48,21 @@ export default class MIDIInstrument extends Instrument{
 		this.midiActive = false
 
 		console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+		return super.noteOff( noteNumber )
 	}
 
 	aftertouch(noteNumber, pressure){
-		this.midi.setKeyAftertouch(noteNumber, (pressure + 1 ) * 0.5 )
+		this.midiPort.setKeyAftertouch(noteNumber, (pressure + 1 ) * 0.5 )
 		super.aftertouch(noteNumber, pressure)
 	}
 	
 	pitchBend(pitch){
-		this.midi.setPitchBend( pitch )
+		this.midiPort.setPitchBend( pitch )
 		super.pitchBend(pitch)
+	}
+
+	sendClock(){
+		this.midiPort.sendClock( )
 	}
 }
 

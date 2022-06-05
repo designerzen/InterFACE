@@ -2,11 +2,16 @@
 import { rescale, lerp, clamp } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 import { getBarProgress } from './timing/timing.js'
-import { active, playing, loadInstrumentPack, randomInstrument, playTrack } from './audio/audio'
-import { getNoteText, getNoteName, getNoteSound } from './audio/notes'
+
+import SampleInstrument from './audio/instrument.sample'
+import MIDIInstrument from './audio/instrument.midi'
+import OscillatorInstrument from './audio/instrument.oscillator'
+
+import { active, playing, loadInstrumentPack, randomInstrument } from './audio/audio'
+import { noteNameToNoteNumber, getNoteText, getNoteName, getNoteSound } from './audio/notes'
 import { 
 	INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE,
-	INSTRUMENT_PACKS, instrumentFolders, cleanTitle, MUSICAL_NOTES
+	INSTRUMENT_PACKS, instrumentFolders, cleanTitle
 } from './audio/instruments'
 
 import { setupInstrumentForm } from './dom/ui'
@@ -22,10 +27,10 @@ import { drawEye } from './visual/2d.eyes'
 import { drawMouth } from './visual/2d.mouth'
 import { DEFAULT_PERSON_OPTIONS } from './settings'
 
-const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
 
-// Maximum simultaneous tracks to play (will wait for slot)
-const MAX_TRACKS = 18
+export const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
+export const EVENT_INSTRUMENT_LOADING = "instrumentloading"
+
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
 
 const DEFAULT_VOICE_OPTIONS = {
@@ -45,15 +50,33 @@ const DEFAULT_VOICE_OPTIONS = {
 export const EYE_COLOURS = ['blue','green','brown','orange']
 export default class Person{
 
+	midiPlayer
+	samplePlayer
+	instrumentPointer = 0
+	active = false
+
+	// Head orientation
+	yaw = 0
+	pitch = 0
+	roll = 0
+
+	singing = false
+	isMouthOpen = false
+	isLeftEyeOpen = true
+	isRightEyeOpen = true
+	// if we are repeating our bars...
+	isLooping = false
+	// if we are watching the face perform without interaction
+	isPlayingBack = false
+	instrumentLoading = false
+
 	constructor(name, audioContext, destinationNode, options={} ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		this.name = name
 		this.counter = 0
-		this.instrumentPointer = 0
-		this.instrumentLoading = false
+		this.instruments = []
 		this.data = null
-		this.active = false
 		this.audioContext = audioContext
 		this.tracks = 0
 		this.octave = 4
@@ -61,11 +84,6 @@ export default class Person{
 		this.midi = null
 		this.midiActive = false
 		this.midiChannel = "all"
-
-		// if we are repeating our bars...
-		this.isLooping = false
-		// if we are watching the face perform without interaction
-		this.isPlayingBack = false
 
 		// HSL Colour scheme that can be overwritten
 		this.setPalette(this.options)
@@ -75,16 +93,6 @@ export default class Person{
 		
 		// allow us to record the performances (not the audio)
 		this.parameterRecorder = new ParamaterRecorder( audioContext )
-
-		// Head orientation
-		this.yaw = 0
-		this.pitch = 0
-		this.roll = 0
-
-		this.singing = false
-		this.isMouthOpen = false
-		this.isLeftEyeOpen = true
-		this.isRightEyeOpen = true
 
 		this.isRecordingParameters = false
 	
@@ -103,7 +111,8 @@ export default class Person{
 		// this controls the amplitude and connects to the mouth ui
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
-	
+
+
 		// we want to add a delay before the gain control?
 	
 		// 
@@ -144,6 +153,9 @@ export default class Person{
 			// WORKS:
 			this.gainNode.connect(destinationNode)
 		}
+
+		// create a sample player
+		this.samplePlayer = new SampleInstrument(audioContext, this.gainNode, {})
 	
 		// fetch dom element
 		this.button = document.getElementById(name)
@@ -174,7 +186,7 @@ export default class Person{
 		// FACE has been pressed!
 		this.button.addEventListener( 'mouseup', event => {
 			// should this trigger something else depending on time?
-			const elapsed = this.mouseDownFor
+			// const elapsed = this.mouseDownFor
 			//console.log("mouseDownFor", elapsed )
 
 			if (this.instrumentLoading)
@@ -293,6 +305,17 @@ export default class Person{
 	 */
 	get history(){
 		return this.parameterRecorder.recording
+	}
+
+	/**
+	 * Dispatch a custom event
+	 * @param {*} type 
+	 * @param {*} data 
+	 */
+	dispatchEvent(type, data = {}){
+		this.button.dispatchEvent(new CustomEvent( type, {
+			detail: data
+		}))
 	}
 
 	/**
@@ -704,8 +727,8 @@ export default class Person{
 	 */
 	sing(){
 
-		// nothing to play or too many simultaneous samples
-		if (!this.data || this.tracks > MAX_TRACKS)
+		// nothing to play
+		if (!this.data )
 		{
 			return DEFAULT_VOICE_OPTIONS
 		}
@@ -763,7 +786,9 @@ export default class Person{
 		const noteName = getNoteName(roll, newOctave, isMinor)
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(roll, isMinor)
-
+		// MIDI Note Number 0-127
+		const noteNumberForMIDI = noteNameToNoteNumber(noteName)
+		
 		// cache for drawing getNoteText
 		this.lastNoteName = noteName
 		this.lastNoteSound = noteSound
@@ -792,12 +817,12 @@ export default class Person{
 			if (note)
 			{
 				// TODO: add velocity logAmp
-				this.tracks++
-				const track = playTrack( note, 0, this.outputNode ).then( ()=>{
-					this.active = false
-					this.tracks--
-					//console.log("Sample completed playback... request tock", this.tracks )
-				})
+				// this.tracks++
+				// const track = playTrack( note, 0, this.outputNode ).then( ()=>{
+				// 	this.active = false
+				// 	this.tracks--
+				// 	//console.log("Sample completed playback... request tock", this.tracks )
+				// })
 				played.push(note)
 				//console.log("note not found!", {noteName, roll, octave:this.octave, isMinor})
 			}
@@ -872,7 +897,6 @@ export default class Person{
 			// no instruments in memory yet... play silence?
 		}
 
-
 		//&& this.midiActive If the user has stopped singing we need to stop the midi too!
 		if (this.options.sendMIDI && this.hasMIDI)
 		{
@@ -941,6 +965,7 @@ export default class Person{
 			eyeDirection,
 			octave:newOctave,
 			note,
+			noteNumber:noteNumberForMIDI,
 			noteName,
 			volume:newVolume,
 			singing:this.singing,
@@ -949,12 +974,14 @@ export default class Person{
 		}
 	}
 
+	// actual sing here!
+
 	/**
 	 * Provide this Person with a random instrument
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	async loadRandomInstrument(callback){
-		return await this.loadInstrument( randomInstrument(), callback )
+		return await this.samplePlayer.loadRandomInstrument( callback )
 	}
 
 	/**
@@ -962,9 +989,7 @@ export default class Person{
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	async loadPreviousInstrument(callback){
-		const index = this.instrumentPointer
-		const newIndex = index-1 < 0 ? 0 : index-1
-		return await this.loadInstrument( instrumentFolders[newIndex], callback )
+		return await this.samplePlayer.loadPreviousInstrument(callback)
 	}
 
 	/**
@@ -972,9 +997,7 @@ export default class Person{
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	async loadNextInstrument(callback){
-		const index = this.instrumentPointer
-		const newIndex = index+1 >= instrumentFolders.length ? 0 : index+1
-		return await this.loadInstrument( instrumentFolders[newIndex], callback )
+		return await this.samplePlayer.loadNextInstrument(callback)
 	}
 
 	/**
@@ -984,32 +1007,43 @@ export default class Person{
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	async reloadInstrument(callback){
-		return await this.loadInstrument( instrumentFolders[this.instrumentPointer], callback )
+		return await this.samplePlayer.reloadInstrument(callback)
 	}
 
 	/**
 	 * Load a specific instrument for this Person
 	 * TODO: Add loading events
 	 * @param {String} instrumentName Name of the standard instrument to load
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadInstrument(instrumentName, callback){
+	async loadInstrument(instrumentName, progressCallback){
 
+		const generalMIDIInstrumentId = instrumentFolders.indexOf(instrumentName)
+		if ( generalMIDIInstrumentId  < 0 )
+		{
+			throw Error("loadInstrument("+instrumentName+") failed")
+		}
 		this.instrumentLoading = true
-		this.instrument = await loadInstrumentPack( instrumentName, this.options.instrumentPack )
-		this.instrumentPointer = instrumentFolders.indexOf(instrumentName)
+		this.instrumentPointer = generalMIDIInstrumentId
+
+		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName+" via sampleplayer", {instrumentFolders})
+		this.instrument = await this.samplePlayer.loadInstrument(instrumentName, this.options.instrumentPack, progress => {
+			progressCallback && progressCallback( progress )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+		} )
 		this.instrumentLoading = false
 		
-		//console.log(this.instrumentPointer, "Attempting to load instruments", instrumentName, this.instrument )
-
-		callback && callback( instrumentName )
-		
 		// you have to dispatch the event from an element!
-		this.button.dispatchEvent(new CustomEvent( EVENT_INSTRUMENT_CHANGED, {
-			detail: { instrument:this.instrument, instrumentName }
-		}))
-
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName })
 		return instrumentName
+	}
+
+	/**
+	 * Inject an instrument to be used by this person
+	 * @param {*} instrument 
+	 */
+	addInstrument( instrument ){
+		this.instruments.push( instrument )
 	}
 
 	/**
@@ -1020,10 +1054,21 @@ export default class Person{
 	setMIDI(midi, channel="all"){
 		this.midiChannel = channel
 		this.midi = midi
-		console.log("MIDI set for person", this, "Channel:"+this.midiChannel, {midi,channel, hasMIDI:this.hasMIDI } )
+
+		this.midiPlayer = new MIDIInstrument(midi, channel)
+		this.instruments.push( this.midiPlayer )
+		
+		console.log("MIDI set for person", this, "Channel:"+channel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
-	
+	// send a single midi command to all active instruments
+	sendMIDI( methodName="noteOn", ...values ){
+		this.instruments.forEach( instrument => {
+			console.log("PLAY:", methodName, instrument, {values} )
+			//instrument[methodName].apply( values )
+		})
+	}
+
 	onInstrumentInput(event) {
 		const id = event.target.id
 		//console.error(id, "on inputted", event)
