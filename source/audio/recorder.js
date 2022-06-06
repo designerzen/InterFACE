@@ -1,10 +1,13 @@
 
 // RECORD AUDIO
-
+// TODO : new Worker( new URL('./recorder.worker.js', import.meta.url), {type: 'module'} )
+		
 // If audio data available then push  it to the chunk array 
 export const record = (stream)=>{
+
 	let recording = false
-	let dataArray
+	let dataArray = []
+	let mediaRecorder
 
 	const startRecording = stream => {
 
@@ -14,21 +17,23 @@ export const record = (stream)=>{
 			{
 				return reject("already recording")
 			}
-
-			dataArray = []
 			
 			mediaRecorder = new MediaRecorder(stream)
-			mediaRecorder.ondataavailable = (ev) =>{ 
-				dataArray.push(ev.data)
+			mediaRecorder.onstart = event => {
+				dataArray.length = 0
 				resolve({mediaRecorder,dataArray,stream})
 			}
 
+			mediaRecorder.ondataavailable = (ev) =>{ 
+				dataArray.push(ev.data)
+			}
+
 			mediaRecorder.onwarning = function(e) {
-				console.log('onwarning fired')
-			  }
+				console.warn('onwarning fired')
+			}
 			
-			  mediaRecorder.onerror = (error) => {
-				console.log('onerror fired')
+			mediaRecorder.onerror = (error) => {
+				console.error('onerror fired',error.name,error)
 				switch(error.name) {
 					case 'InvalidState':
 						break;
@@ -49,11 +54,13 @@ export const record = (stream)=>{
 						console.error('MediaRecorder Error', error);
 						break;
 				}
-			  }
+			}
+
 			// Convert the audio data in to blob  
 			// after stopping the recording 
 			mediaRecorder.start()
 			recording = true	
+			console.log("recording", {mediaRecorder, dataArray})
 		})
 	}
 
@@ -69,6 +76,7 @@ export const record = (stream)=>{
 				// After fill up the chunk  
 				// array make it empty 
 				recording = false
+				mediaRecorder = null
 
 				// Pass the audio url to the 2nd video tag 
 				resolve( dataArray )
@@ -77,8 +85,9 @@ export const record = (stream)=>{
 		})
 	}
 
-	const encodeRecording = (recording, type='audio/mp3;') => {
-
+	const encodeRecording = ( format="audio", type= "mp3", codecs="") => {
+		// ='audio/mp3;'
+		// var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' 
 		// 'audio': [
 		// 	'audio/webm;codecs=opus',
 		// 	'audio/webm',
@@ -95,32 +104,50 @@ export const record = (stream)=>{
 		// 	'video/mp4',
 		// 	'video/mpeg'
 		// ]
-		const audioData = new Blob(recording, { 'type': type })
+
+		const encode = `${format}/${type}` + codecs.length ? ';codecs=' + codecs : ''
+		console.error("Encoding", encode, dataArray)
+		const audioData = new Blob(dataArray, { 'type': encode })
 		return audioData
 	}
-	const looper = (blob) => {
-		const audioURL = window.URL.createObjectURL(blob)
- 		const audio = document.createElement('audio')
-		audio.setAttribute('controls', '')
-		audio.src = audioURL;
+
+	// const looper = (blob) => {
+	// 	const audioURL = window.URL.createObjectURL(blob)
+ 	// 	const audio = document.createElement('audio')
+	// 	audio.setAttribute('controls', '')
+	// 	audio.src = audioURL;
+	// }
+
+	const downloadRecording = ( fileName="recording", format="audio", type= "ogg", codec="opus" ) => {
+		const blob = encodeRecording( format, type, codec )
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement("a")
+		document.body.appendChild(a)
+		a.style = "display: none"
+		a.href = url
+		a.download = `${fileName}.${codec||type}`
+		a.click()
+		URL.revokeObjectURL(url)
+		return blob
 	}
 
-	const downloadRecording = () => {
-		var blob = new Blob(recordedChunks, {
-		  type: "video/webm"
-		});
-		var url = URL.createObjectURL(blob);
-		var a = document.createElement("a");
-		document.body.appendChild(a);
-		a.style = "display: none";
-		a.href = url;
-		a.download = "test.webm";
-		a.click();
-		window.URL.revokeObjectURL(url);
-	  }
-
-	const isAvailable = () => !!(window && window.MediaRecorder && typeof window.MediaRecorder.isTypeSupported === 'function' && window.Blob)
+	const isRecordingAvailable = () => !!(window && window.MediaRecorder && typeof window.MediaRecorder.isTypeSupported === 'function' && window.Blob)
 	const isRecording = () => recording
 
-	return {isAvailable, downloadRecording, encodeRecording, startRecording,stopRecording, isRecording}
+	return { isRecordingAvailable, downloadRecording, encodeRecording, startRecording,stopRecording, isRecording}
 } 
+
+/**
+ * To save to a server as Base64
+ * @param {Blob} blob 
+ * @returns 
+ */
+export const blobToBase64 = (blob) => {
+	const reader = new FileReader()
+	reader.readAsDataURL(blob)
+	return new Promise(resolve => {
+		reader.onloadend = () => {
+			resolve(reader.result)
+		}
+	})
+}
