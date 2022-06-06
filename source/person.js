@@ -8,7 +8,7 @@ import MIDIInstrument from './audio/instrument.midi'
 import OscillatorInstrument from './audio/instrument.oscillator'
 
 import { active, playing, loadInstrumentPack, randomInstrument } from './audio/audio'
-import { noteNameToNoteNumber, getNoteText, getNoteName, getNoteSound } from './audio/notes'
+import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
 import { 
 	INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE,
 	INSTRUMENT_PACKS, instrumentFolders, cleanTitle
@@ -92,8 +92,8 @@ export default class Person{
 		this.precision = Math.pow(10, parseInt(this.options.precision) )
 		
 		// allow us to record the performances (not the audio)
+		// useful for showing recordings of a person
 		this.parameterRecorder = new ParamaterRecorder( audioContext )
-
 		this.isRecordingParameters = false
 	
 		this.mouseDownAt = -1
@@ -112,9 +112,6 @@ export default class Person{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
 
-
-		// we want to add a delay before the gain control?
-	
 		// 
 		if (this.options.stereoPan)
 		{
@@ -372,7 +369,6 @@ export default class Person{
 			// eye state changed
 			this.isRightEyeOpen = !prediction.rightEyeClosed
 		}
-		
 	}
 
 	/**
@@ -410,7 +406,6 @@ export default class Person{
 			hue += 120
 		}
 
-		
 		// can this just be a reference???
 		const options = this.options
 		
@@ -550,9 +545,8 @@ export default class Person{
 			this.leftEyeClosedAt = prediction.time
 			this.rightEyeClosedAt = prediction.time
 
-			// 
-			this.loadNextInstrument( instrumnetName => console.log("instrumnetName",instrumnetName ) )
-		
+			this.onEyesClosedForTimePeriod()
+
 		}else if (options.drawEyes){
 
 			const eyeOptions = {
@@ -692,7 +686,7 @@ export default class Person{
 		}else{
 
 			// Main flow
-			const extra = this.debug ? ` ${getNoteText( this.lastNoteName) }`  : ` ${getNoteText(this.lastNoteName)}`
+			const extra = this.debug ? ` ${getFriendlyNoteName( this.lastNoteName) }`  : ` ${getFriendlyNoteName(this.lastNoteName)}`
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `-`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			
@@ -773,7 +767,7 @@ export default class Person{
 		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 
 		// volume is an log of this
-		const FUDGE = 1.6
+		const FUDGE = 1.3
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
 		// const logAmp = options.ease(amp)
 		const newOctave = clamp( Math.round(pitch * 7) ,1,7)
@@ -787,7 +781,7 @@ export default class Person{
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(roll, isMinor)
 		// MIDI Note Number 0-127
-		const noteNumberForMIDI = noteNameToNoteNumber(noteName)
+		const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
 		
 		// cache for drawing getNoteText
 		this.lastNoteName = noteName
@@ -1090,6 +1084,12 @@ export default class Person{
 
 	onRightEyeClose( timeClosed ){
 		this.rightEyeClosedAt = timeClosed
+	}
+
+	onEyesClosedForTimePeriod(){
+		// 
+		this.loadNextInstrument( instrumnetName => console.log("instrumnetName",instrumnetName ) )
+		
 	}
 
 	/**

@@ -8,7 +8,7 @@ import {
 	loadInstrument, randomInstrument, 
 	NOTE_NAMES,	getNoteName } from './audio'
 
-import {MIDI_CONVERTOR, noteNameToNoteNumber} from './notes'
+import {MIDI_CONVERTOR, convertNoteNameToMIDINoteNumber} from './notes'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 18
@@ -65,7 +65,7 @@ export default class SampleInstrument extends Instrument{
 			return true
 		})
 
-		return super.noteOn(noteNumber > 0 ? noteNumber : noteNameToNoteNumber(noteName), velocity)
+		return super.noteOn(noteNumber > 0 ? noteNumber : convertNoteNameToMIDINoteNumber(noteName), velocity)
 	}
 
 	async noteOn(noteNumber, velocity=1){
@@ -90,6 +90,9 @@ export default class SampleInstrument extends Instrument{
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		super.programChange( programNumber )
+
+		//console.log("")
+
 		return await this.loadInstrument( instrumentFolders[programNumber] )
 	}
 

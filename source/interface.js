@@ -14,6 +14,7 @@ import { loadInstrumentDataPack, getFolderNameForInstrument } from './audio/inst
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
 import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
+import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-create'
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
 import {getMIDINoteNumberAsName} from './audio/notes'
@@ -48,7 +49,8 @@ import {
 	focusApp
 } from './dom/ui'
 
-import interact from './inactivity'
+import {appendAudioElement} from './dom/audio-element'
+
 import setupDialogs from './dom/dialog'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
 import { setToggle } from './dom/toggle'
@@ -56,6 +58,8 @@ import { setButton, setupMIDIButton } from './dom/button'
 import { setFeedback, setToast, addToolTips } from './dom/text'
 import { showError } from './dom/errors'
 import { appendPhotographElement } from './dom/photographs'
+
+import interact from './inactivity'
 
 import { 
 	drawElement,
@@ -133,9 +137,11 @@ export const createInterface = (
 		return resolve(instance)
 	}
 
-	const body = document.documentElement
-	const main = document.querySelector("main")
-	const image = document.querySelector("img")
+	const doc = document
+	const body = doc.documentElement
+	const main = doc.querySelector("main")
+	const image = doc.querySelector("img")
+	const buttonRecordAudio = doc.getElementById("button-record-audio")
 
 	// lazy loaded imports
 	let getInstruction, getHelp
@@ -156,7 +162,7 @@ export const createInterface = (
 	let ui = loadState( defaultOptions, main )
 
 	// Record stuff
-	const { isRecording, startRecording, stopRecording } = record()
+	const { isRecordingAvailable, isRecording, startRecording, stopRecording, encodeRecording, downloadRecording } = record()
 
 	// collection of persons
 	const people = []
@@ -182,6 +188,7 @@ export const createInterface = (
 	let midiPerformance
 	let samplePlayer
 	let midiPlayer
+	let savedPerformance
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -760,25 +767,7 @@ export const createInterface = (
 					break
 			
 				case 'r':
-					if (!isRecording())
-					{
-						setToast("Recording START")
-						console.error("Recording START", audio)
-						recorder = await startRecording(audio)
-						console.error("Recording...", recorder)
-					
-					}else{
-						console.error("Recording END", recorder)
-						setToast( `Recording Ended - now encoding` )
-						stopRecording().then(recording=>{
-
-							const mp3 = encodeRecording(recording, 'audio/mp3;')
-							// Creating audio url with reference  
-							// of created blob named 'audioData' 
-							const audioSrc = window.URL.createObjectURL(mp3)
-							console.error("Recording END", {recording, audioSrc, mp3})
-						})
-					}
+					toggleRecording()
 					break
 
 				case 's':
@@ -944,6 +933,68 @@ export const createInterface = (
 			//person.sendMIDI( "noteOff", noteNumber )
 		}
 		return stuff
+	}
+
+	const toggleRecording = () => {
+		if (isRecording())
+		{
+			setToast( `Recording Ended - now encoding` )			
+			stopRecordingAudio()
+		}else{
+			setToast("Recording START")
+			startRecordingAudio()
+		}
+	}
+
+	// allows us to record the stream!
+	const startRecordingAudio = () => {
+		if (!isRecordingAvailable())
+		{
+			// not supported on this browser
+			return
+		}
+		const recordingNode = audioContext.createMediaStreamDestination()
+		// pipe in some data from the MASTER BUS gain node
+		audio.connect(recordingNode)
+
+		buttonRecordAudio.classList.toggle("recording", true)
+		console.error("Recording...", {recordingNode})
+		startRecording(recordingNode.stream).then( recorderInstance => {
+			recorder = recorderInstance 
+			console.error("Recording...established", recorder)
+			buttonRecordAudio.classList.toggle("progress", true)
+		})
+	}
+
+	const stopRecordingAudio = () => {
+		buttonRecordAudio.classList.toggle("cancelling", true)
+		
+		stopRecording().then(recording=>{
+			buttonRecordAudio.classList.remove("recording","progress","cancelling")
+		
+			console.log("stopRecordingAudio",recording)
+
+			// first thing we do before encoding is add it to our output window
+			// along with our photos
+			appendAudioElement( recording, "audio-download.wav")
+
+			//document.getElementById("photographs").appendChild(anchor)
+
+			// const mp3 = encodeRecording(recording, 'audio/mp3;')
+			//const ogg = encodeRecording(recording, 'audio/ogg; codecs=')
+
+			// const ogg = downloadRecording("magnum","audio","ogg","opus")
+			// const mp3 = downloadRecording("magnum","audio","mp3")
+
+			// Creating audio url with reference  
+			// of created blob named 'audioData' 
+			//const audioSrc = window.URL.createObjectURL(mp3)
+			console.error("Recording END", {recording, ogg})
+			console.error("Recording END", {recording, mp3})
+			// clear memory
+			recorder = null
+			setToast( `Recording Encoded!` )	
+		})
 	}
 
 	/**
@@ -1534,6 +1585,13 @@ export const createInterface = (
 			setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 		}, ui.quantise)
 
+		toggles.recordAudio = setToggle( "button-record-audio", status =>{
+			// setState( 'recording', status )
+			// setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
+			const isRecording = toggleRecording()
+
+		}, false )
+
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
 			setState( 'showSettings', status )
@@ -1896,40 +1954,20 @@ export const createInterface = (
 		} ) )
 	}
 
-
 	/**
 	 * 
 	 * @param {MIDITrack} midiTrack 
 	 */
 	const onMIDIPerformanceAvailable = (midiTrack) => {
-
-		console.log("onMIDIPerformanceAvailable", midiTrack )
-
-		for (let i=0; i<0; ++i)
+		const matchingCommands = midiTrack.getMatchingCommands(["noteOn","noteOff","programChange"]) 
+		if (matchingCommands && matchingCommands.length)
 		{
-			const commands = midiTrack.getNextCommands()
-			const duration = midiTrack.getDurationUntilNextCommand()
-		
-			console.log(i, "midi", commands, duration )
-
-			commands.forEach( command => {
-				const fraction = midiTrack.convertTimeToFraction( command )
-				switch (command.subtype){
-
-					case COMMAND_NOTE_ON:
-						// find the current note that is playing with this key
-						//samplePlayer && samplePlayer.noteOn( command.noteNumber, command.velocity )
-						console.error(i, fraction, command.subtype, "command",  { command, duration}, samplePlayer )
-						//playingNotes.add(command)
-						break
-
-					case COMMAND_NOTE_OFF:
-						console.error(i, fraction, command.subtype, "command",  { command, duration} )
-						//playingNotes.remove(command)
-						break
-				}
-			})
+			savedPerformance = matchingCommands
+			console.log("onMIDIPerformanceAvailable", midiTrack, matchingCommands )
 		}
+
+		const midiFile = createMIDIFileFromTrack(midiTrack)
+		saveMIDIFile( midiFile, "./local.mid")
 	}
 
 	// loop until loaded...
