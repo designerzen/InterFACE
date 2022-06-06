@@ -33,7 +33,9 @@
 	#progress{
 		display: none;
 	}
-	
+	// #toast{
+	// 	po
+	// }
 }
 
 
@@ -49,9 +51,9 @@
 
 // added when user gives up attention
 .user-inactive{
-	#shared-controls {
+	#shared-controls, #settings {
 		visibility: hidden;
-		animation:Fade var(--ease-m) 0s both linear;
+		animation:Fade var(--ease-m) 0s both linear reverse;
 	}
 	// .controls > *{
 	// 	animation-direction: normal, normal;
@@ -108,6 +110,59 @@
 		}
 	}
 }
+
+
+
+
+
+
+// Show secret buttons#??
+main.flag-showSettings {
+	#settings{
+		display: flex;
+		visibility: visible;
+		transform: translateY( -100% );
+	}
+	#toast{
+		--footer-gap:calc( 2 * 4rem + var(--pad) );
+	}
+}
+
+// Options set by clicking buttons set these flags as classes
+main.flag-clear {
+
+	// FIXME:
+	#shared-controls label[for="button-transparent"]{
+		display: flex;
+	}
+	#shared-controls label[for="button-overlay"]{
+		display: none;
+	}
+}
+
+
+// this hides the video when in synch mode
+main:not(.flag-clear.flag-transparent){
+	// hide videp as drawing to canvas direct
+	#app-frame video{
+		display: none;
+	}
+}
+
+main.flag-eyes label[for="select-eyes"]{
+	visibility: visible;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 // ===================================
 
