@@ -1,8 +1,10 @@
 
 import {clamp} from "../maths/maths"
 
+// Memoize as much as possible
+
 const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
-const CONVERSION_NOTES = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
+// const CONVERSION_NOTES = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
 
 const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
 const NOTES_WHITE = ["A", "B", "C", "D", "E", "F", "G" ]
@@ -13,7 +15,23 @@ const NOTE_RANGE = NOTES_ALPHABETICAL.length
 // renamed white notes
 export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
 
-// returns a note name from an index and offset
+// this is an object with the keys being the NOTE_NAMES
+// MIDI conversion stuff
+const NOTE_NAME_MAP = {}
+const NOTE_FRIENDLY_NAME_MAP = {}
+const TEST_MAP = {}
+
+const MIDI_NOTE_NUMBER_MAP = []
+const MIDI_NOTE_NUMBERS = []
+const MIDI_NOTE_NAMES = []
+const GENERAL_MIDI_INSTRUMENTS = []
+
+/**
+ * returns a note name from an index and offset
+ * @param {Number} index 
+ * @param {Number} offset 
+ * @returns {Number} noteNumber
+ */
 const getNoteFromBank = (index=0, offset=0) => {
 	const rotation = index + offset
 	return NOTES_ALPHABETICAL[ rotation < 0 ? NOTE_RANGE + rotation : rotation % NOTE_RANGE ]
@@ -24,19 +42,8 @@ const getNoteFromBank = (index=0, offset=0) => {
  * creates the data model
  * @param {String} fileType - audio file type (wav, ogg or mp3)
  * @param {String} dot - delimiter before file type
- * @returns {String} Array containing the following
-	// A0-7
-	// Ab1-7
-	// B0-7
-	// Bb1-Bb7
-	// C1-C8
-	// D1-7
-	// Db1-7
-	// E1-7
-	// Eb1-7
-	// F1-7
-	// G1-7
-	// Gb1-7
+ * @returns {String} Array containing the following strings...
+ * A0-7 / Ab1-7 / B0-7 / Bb1-Bb7 / C1-C8 / D1-7 / Db1-7 / E1-7 / Eb1-7 / F1-7 / G1-7 / Gb1-7
  */
 export const createInstrumentBanks = (fileType="mp3", dot=".")=>{
 	const bank = []
@@ -57,6 +64,7 @@ export const createInstrumentBanks = (fileType="mp3", dot=".")=>{
 		{
 			bank.push( `${key}${i}${dot}${fileType}` )
 		}
+
 		// add an extra one for C
 		if (key==="C")
 		{
@@ -65,78 +73,68 @@ export const createInstrumentBanks = (fileType="mp3", dot=".")=>{
 	}
 	return bank
 }
+const extractKeyAndOctave = note => {
+	const key = note.charAt(0)
+	const octave = parseInt( note.charAt( note.length - 1 ) ) // + 1
+	return {
+		key, octave
+	}
+}
+
+const friendly = note => {
+	const {key, octave} = extractKeyAndOctave(note)
+	note = note.replace( octave, `-${octave}` )
+	note = note.replace("b","#")
+	return note
+}
+
 
 export const NOTE_NAMES = createInstrumentBanks('','')
 
 // for each name we do a clever thing innit...
-export const NOTE_NAMES_FRIENDLY = NOTE_NAMES.map( note => {
-	const nu = parseInt( note.charAt( note.length - 1 ) )
-	// console.log( nu, note)
-	note = note.replace( nu, `-${nu}` )
-	note = note.replace("b","#")
-	return note
- })
+const NOTE_NAMES_FRIENDLY = NOTE_NAMES.map( note => friendly(note) )
 
-// this is an object with the keys being the NOTE_NAMES
-// MIDI conversion stuff
-const NOTE_NAME_MAP = {}
-const MIDI_NOTE_NUMBER_MAP = []
-const MIDI_NOTE_NUMBERS = []
-const MIDI_NOTE_NAMES = []
-const MIDI_CONVERTOR = []
-const GENERAL_MIDI_INSTRUMENTS = []
 
 // NB. We only have instruments for the GM Range so 
 //		all MIDI numbers below 21 should be ignored really!
-
 for(let noteNumber = 0; noteNumber < 127; noteNumber++) 
 {
 	// MIDI scale starts at octave = -1
 	const octave = ((noteNumber / NOTE_RANGE) | 0) - 1
 	const key = getNoteFromBank(noteNumber % NOTE_RANGE, 4)
-
-	let output = key
 	const midiNoteName = `${key}${octave}`
 
-	// seperate
-	if(output.length === 1) {
-		output = output + '-'
-	}
 
-	output += octave
+	NOTE_FRIENDLY_NAME_MAP[midiNoteName] = NOTE_NAMES_FRIENDLY[noteNumber]
 
 	NOTE_NAME_MAP[midiNoteName] = noteNumber
-	MIDI_NOTE_NUMBERS[noteNumber] = output
+
+	MIDI_NOTE_NUMBERS[noteNumber] = midiNoteName
 	MIDI_NOTE_NAMES[noteNumber] = midiNoteName
 	MIDI_NOTE_NUMBER_MAP[noteNumber] = {octave,key}
-	MIDI_CONVERTOR[noteNumber] = midiNoteName
 
 	// ensure that it exists in our super array...
 	const hasSample = NOTE_NAMES.indexOf(midiNoteName) > -1
 	GENERAL_MIDI_INSTRUMENTS[noteNumber] = hasSample ? midiNoteName : `UNKNOWN`
 }
 
+// console.error("MIDI", { NOTE_NAME_MAP })
+// // console.error("MIDI", { NOTES_ALPHABETICAL, CHROMATIC, CONVERSION_NOTES, MIDI_NOTE_NUMBERS, MIDI_CONVERTOR })
+// console.error({GENERAL_MIDI_INSTRUMENTS, NOTES_ALPHABETICAL, MIDI_NOTE_NUMBERS, MIDI_NOTE_NUMBER_MAP, NOTE_NAME_MAP, NOTE_NAMES,NOTE_FRIENDLY_NAME_MAP, NOTE_NAMES_FRIENDLY})
 
-// console.error("MIDI", { NOTES_ALPHABETICAL, CHROMATIC, CONVERSION_NOTES, MIDI_NOTE_NUMBERS, MIDI_CONVERTOR })
-// console.error({GENERAL_MIDI_INSTRUMENTS, NOTES_ALPHABETICAL, CONVERSION_NOTES, MIDI_NOTE_NUMBERS, MIDI_CONVERTOR, MIDI_NOTE_NUMBER_MAP, NOTE_NAME_MAP, NOTE_NAMES, NOTE_NAMES_FRIENDLY})
 
-// return the relevent do re me fah so lat ti
- export const getNoteSound = (percent, isMinor=false) => {
-	return SOLFEGE_SCALE[ Math.floor( percent * (SOLFEGE_SCALE.length-1) ) ]
- }
-
-export const getNoteText = noteName => {
-	const note = noteName.charAt(0)
-	let octave
-	// if we have 3 figures we swap out the 2nd one for a 
-	if (noteName.length === 3)
-	{
-		octave = parseInt( noteName.charAt(2) ) + 1
-		return `${note}#${octave}`
-	}
-	octave = parseInt( noteName.charAt(1) ) + 1
-	return `${note}${octave}`
-}
+// export const getNoteText = noteName => {
+// 	const note = noteName.charAt(0)
+// 	let octave
+// 	// if we have 3 figures we swap out the 2nd one for a 
+// 	if (noteName.length === 3)
+// 	{
+// 		octave = parseInt( noteName.charAt(2) ) + 1
+// 		return `${note}#${octave}`
+// 	}
+// 	octave = parseInt( noteName.charAt(1) ) + 1
+// 	return `${note}${octave}`
+// }
 
 
 // octaves 1-7
@@ -173,6 +171,17 @@ export const getNoteName = (percent, octave=3, isMinor=false) => {
 	// return noteName ? `${noteName}${clamp(octave, 1, 7)}` : `A0`
 }
 
+/**
+ * return the relevent do re me fah so lat ti
+ * @param {*} percent 
+ * @param {*} isMinor 
+ * @returns 
+ */
+export const getNoteSound = (percent, isMinor=false) => SOLFEGE_SCALE[ Math.floor( percent * (SOLFEGE_SCALE.length-1) ) ]
+
+
+// Pass in A0 get out the equivalent friendly name
+export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] || noteName
 
 /**
  * Get the note name (in scientific notation) of the given midi number
@@ -188,7 +197,7 @@ export const getNoteName = (percent, octave=3, isMinor=false) => {
  * @param {Integer} midi - the midi number
  * @return {String} the pitch
  */
-export const noteNameToNoteNumber = name => NOTE_NAME_MAP[name]
+export const convertNoteNameToMIDINoteNumber = name => NOTE_NAME_MAP[name]
 
 export const convertMIDINoteNumberToName = note => GENERAL_MIDI_INSTRUMENTS[note]
 
