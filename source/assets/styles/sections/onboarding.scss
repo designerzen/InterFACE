@@ -241,8 +241,9 @@ label[for=button-start]{
 		// this softens the border
 		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
 
+
 		input{
-			--col-hover:$col-blue;
+			
 			// special border for these only
 			// border-image: linear-gradient(
 			// 	var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
@@ -250,7 +251,6 @@ label[for=button-start]{
 			// );
 
 			// border-image:conic-gradient(from 90deg, #fff, #000);
-
 		}
 
 		// cool effect

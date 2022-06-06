@@ -18,11 +18,17 @@
 }
 
 %button-active{
-	--col-top: var(--col-orange);
-    --col-bottom: var(--col-select);
+	// --col-top: var(--col-orange);
+    // --col-bottom: var(--col-select);
+	// --col-select:#{$col-blue};
 
-	--col-select:#{$col-blue};
-	transform:translateX(2px) translateY(2px);
+	animation-name: Activate;
+	animation-timing-function: var(--ease-out-back);
+	animation-duration: var(--ease-s);
+	animation-fill-mode: forwards,forwards;
+	border:var(--button-border-size) solid rgba($col-white, 0.9);
+	
+//	animation-play-state: running;
 }
 
 // This is the button style that can be added to any element
@@ -163,10 +169,9 @@
 	&:active{
 		// set background to orange
 		--col-hover: $col-orange;
-
 		--col-top:#{$col-orange};
 		--col-bottom:#{$col-red};
-		
+
 		@extend %button-active;
 		
 		// move icons down and to the right
@@ -674,6 +679,11 @@ label[for="button-start"],
 
 		}
 	}
+
+	input[type="checkbox"]{
+		visibility: hidden;
+		
+	}
 	
 	button{	
 		// padding-right:20px;
@@ -932,7 +942,10 @@ label[for="button-start"],
 		--bg:url(/source/assets/icons/speed-24px.svg);
 		--col-select:#{$col-yellow};
 	}
-
+	label[for="button-record-audio"]{
+		--bg:url(/source/assets/icons/voicemail-24px.svg);
+		--col-select:#{$col-yellow};
+	}
 }
 
 
@@ -1012,6 +1025,7 @@ input[type=checkbox]{
 			font-size: 200%;
 			line-height: 0;
 			@extend %text-glow;
+			
 		}
 		&:before{
 			color:$col-red;
@@ -1047,6 +1061,8 @@ input[type=checkbox].switch{
 		content:'';
 		box-sizing: border-box;
 		font-weight:900;
+		
+		color:$col-dark;
 	}
 	
 	// knob
@@ -1056,7 +1072,7 @@ input[type=checkbox].switch{
 		justify-content: center;
 		content:'OFF';
 		@extend %drop-shadow;
-		color:$col-white;
+		color: $col-white;
 
 		position:absolute;
 		left:0;
@@ -1070,7 +1086,7 @@ input[type=checkbox].switch{
 		border-radius:99px;
 		border:calc( 0.5 * var(--button-border-size,4px)) solid $col-white;
 		background-color:$col-gray;
-		background-image:linear-gradient($col-dark, $col-gray);
+		background-image:linear-gradient($col-gray, $col-dark);
 		transition:transform 195ms $easeInOutQuad;
 	}
 
@@ -1084,15 +1100,18 @@ input[type=checkbox].switch{
 		// 
 		&:before{
 			content:'ON';
-			color:$col-dark;
 			//border-color:$col-cream;
 			transform: translateX(100%);
 			background-image:linear-gradient($col-yellow, $col-gray);
 		}
 	}
 
+	// user has higighted it
 	&:focus{
 		outline:0;
+		background-color:$col-blue;
+		background:linear-gradient( to right, $col-blue, $col-blue );
+		
 	//	border:var(--button-border-size) solid rgba($col-brown, 0.7);
 		
 	// border-color:$col-dark;
@@ -1371,9 +1390,8 @@ button#share{
 	// --bg:url(/source/assets/icons/get_app-24px.svg);
 	--bg:url(/source/assets/icons/download_for_offline_black_24dp.svg);
 	//background-position: left;
-	padding:0;
-	padding-top: var(--pad);
-	min-height:74px;
+	
+	//min-height:74px;
 	//background: none;
 	&:hover{
 		color:var(--shade-dark);

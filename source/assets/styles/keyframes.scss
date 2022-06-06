@@ -114,6 +114,13 @@
 		opacity: var(--opacity,1);
 	}
 }
+@keyframes Activate{
+	from{
+		opacity: 0.97;
+		transform:scale(0.99) translateX(2px) translateY(2px);
+	}
+	
+}
 
 @keyframes Hide{
 	99%{
