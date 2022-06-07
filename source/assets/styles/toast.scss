@@ -1,7 +1,6 @@
 // Feedback text that pops up and dissappears
 #toast{
 
-
 	--max-percent:78vw;
 	--left:0;
 
@@ -37,10 +36,9 @@
 
 	// ok this is where things start getting "clever"
 	// here we *only* enforce this fixed width IF --_d > 0
-	min-width:3ch;
 	// by specifying a positive min width we prevent collapse
-	//min-width:calc( var(--_d) * var(--max-percent) );
-	min-width:var(--min-width);
+	// min-width:calc( var(--_d) * var(--max-percent) );
+	min-width:var(--min-width, 3ch);
 	max-width:var(--max-width);
 	min-height:1ch;
 
@@ -70,15 +68,6 @@
 		// how much to move laterally - if above loads to the right...
 		--tx:clamp(0px, calc( var(--_y) * 900px ), var(--_x) );
 
-		clip-path: polygon(0 var(--f), 100% 0, 100% 100%);
-		content:'';
-		height:var(--triangle-size);
-		width:var(--triangle-size);
-		background:inherit;
-		display: block;
-		z-index:-1;
-		position:absolute;
-
 		
 		// if we are above we go 100% + var(--tx)
 		--a:calc( var(--d) + 3 * var(--f) );
@@ -87,14 +76,22 @@
 		--_o:(var(--flipper,0) * -8px );
 		
 		
-		// now we have a special case of when on the right hand side...
-		left: clamp( 0%, var(--z), calc(100% - var(--triangle-size) ) );
+		clip-path: polygon(0 var(--f), 100% 0, 100% 100%);
+		content:'';
+		height:var(--triangle-size);
+		width:var(--triangle-size);
+		background:inherit;
+		display: block;
+		z-index:-1;
+		position:absolute;
 		
+		// now we have a special case of when on the right hand side...
+		// left: clamp( 0%, var(--z), calc(100% - var(--triangle-size) ) );
 		left: clamp( 0%, var(--d), calc(100% - var(--triangle-size) ) );
 
 		top:calc( (1 - var(--_y,1)) * 100% );
 
-		transform:translateY( calc( ( var(--_y,1) ) * -50% ) ) scale( var(--scale,1));
+		//transform:translateY( calc( ( var(--_y,1) ) * -50% ) ) scale( var(--scale,1));
 		transform:translateY( calc( ( var(--_y,1) ) * -100% + var(--_o) )  ) scale( var(--scale,1));
 		transform-origin: center;
 	}
@@ -105,6 +102,7 @@
 		animation: Hide var(--ease-q) 1 0s ease-out both;
 	}
 
+	// if you somehow manage to mouse over the tooltip
 	&:hover{
 		//visibility: hidden;
 		opacity: 0;
