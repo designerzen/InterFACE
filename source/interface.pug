@@ -1,7 +1,6 @@
 extends _abstract.pug
 
 block header 
-
 	p.warning 
 		strong Warning : 
 		| Please be 
@@ -12,7 +11,6 @@ block header
 	#load-progress
 		label(for="progress-bar") Please wait, loading takes some time...
 		progress(max=1)#progress-bar
-
 
 block nav
 	li: a#link-about(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
@@ -37,7 +35,6 @@ block main
 				//- button#button-duet( aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" ) <strong>Duet</strong> : 2 Players
 				//- button#button-trio( aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" ) <strong>Trio</strong> : 3 People
 				
-
 				//- https://adrianroselli.com/2020/01/my-priority-of-methods-for-labeling-a-control.html
 				label.button(for="button-solo") <strong>Solo</strong> 1 Player
 					input#button-solo(name="players" type="radio" aria-label="Single player mode" checked)
@@ -100,37 +97,51 @@ block main
 				button#button-upgrade( type="button" hidden aria-label="Upgrade this app to the latest version") Upgrade
 
 				button#button-help( type="button" aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
-										
+						
 				//- Equipment Settings 
 				//- TODO: Put into a dialog?
 				//- label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
 				//- 	select(aria-label="Select a different camera")#select-camera
 				label(for="button-settings") <span class="hide-text"> Change and edit </span>Settings<span class="hide-text"> that modify behaviour and sound</span>
 					input(type="checkbox" aria-label="Show the settings panel")#button-settings
+								
+
+
+				//- Record / Save / Load --------------------------------------------------------------
+				button#button-photograph(type="button" aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
+				button#button-save-midi.hide(type="button" aria-label="Save this performance as a MIDI file" ) Save MIDI<span class="hide-text"> File to local drive</span>
+				label(for="button-record-audio" ) Audio<span class="hide-text"> Record</span>
+					input#button-record-audio(type="checkbox" aria-label="Record Your Performance as an Audio File")
+				button#button-record.hide(type="button" aria-label="Record a loop or two" ) Record Loop
+
+
+				label.hide(for="button-record-video" ) Video<span class="hide-text"> Record</span>
+					input#button-record-video(type="checkbox" aria-label="Record Your Performance as an Video File")
 				
+
 				button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 				//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
 				
 				label(for="button-quantise") Quantise
 					input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
 
-				button#button-record.hide(type="button" aria-label="Record a loop or two" ) Record Loop
-
-				label(for="button-percussion") Beats
+			
+				//- Percussion and background accompanyment 
+				label(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
 					input#button-percussion(type="checkbox" aria-label="Play some background beats")
 				
-				label(for="button-clear") Clear
-					input#button-clear(type="checkbox" aria-label="Clear visuals")
-				
+				//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
+				//button#button-donk( aria-label="Put a donk on it" ) Add Donk
+				//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
+
+
+
 				label(for="button-disco") MTV Mode
 					input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
 				
 				label(for="button-spectrogram") U.V.<span class="hide-text"> Spectrogram</span>
 					input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
-				
-				label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
-					input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
-					
+			
 				label(for="button-mute" ) Mute
 					input#button-mute(type="checkbox" aria-label="Toggle mute")
 					
@@ -138,17 +149,6 @@ block main
 
 
 
-				button#button-photograph(type="button" aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
-				label(for="button-record-audio" ) Record<span class="hide-text"> audio</span>
-					input#button-record-audio(type="checkbox" aria-label="Record Your Performance as an Audio File")
-				
-
-
-
-
-				//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
-				//button#button-donk( aria-label="Put a donk on it" ) Add Donk
-				//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
 				
 				//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 				
@@ -213,9 +213,18 @@ block main
 			//- Once the user has taken some photos they appear here
 			result#photographs
 
-			//- Settings for all players... usually hidden?
+			//- ALL PLAYER SETTINGS --------------------------------------
+			//- Settings for all players... usually hidden
 			fieldset#settings.controls
 				legend Global settings and options
+
+
+				label(for="button-clear") Clear
+					input#button-clear(type="checkbox" aria-label="Clear visuals")
+					
+				label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
+					input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
+					
 
 				//- only appears when there are multiple cameras on the computer?
 				//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?
@@ -271,11 +280,100 @@ block main
 				label.button-close(for="button-settings") Hide Settings
 
 		form#midi-file
-		
 			label(for="midi-upload") Upload a MIDI backing track!
 			input#midi-upload(type="file" hidden)
 			button#button-midi-upload( type="button" ) Upload MIDI file
-		
+
 	//-  For users with javascript disabled 
 	noscript
-		p This application requires javascript to work unfortunately and doesn't do much without it
+		p This application requires javascript to work unfortunately and doesn't do much without it. 
+
+block dialogs 
+	dialog#help 
+		form(method="dialog")
+			h4 Don't Panic!
+			
+			section.player-selection-help
+				h5 This is the 
+					em Player Selection Screen
+
+				ol 
+					li Select how many people will make music at the same time - one or two players
+					li Toggle the simple mode on for an easier to use version
+					li Click the Start Button to continue to the next screen
+				
+			section.app-help
+				h5 This is the Synthesizer 
+				p It is controlled using your head
+					
+				h5 Not working?
+				h6 Common Issues / Troubleshooting
+				ol 
+					li Camera was not allowed access
+					li Browser too old / out of date
+					li If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
+					li If your face is not found, try and improve the brightness in the room by turning on some lights
+				
+			small.version Version #{package.version}
+
+			//- iframe instead?
+			p.learn-more
+				| Learn more from the 
+				a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
+				| / 
+				a.documentation(href="help.pug" target="_blank") Online Documentation
+
+				//- a(href="#app") Let me try
+
+			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Help
+
+	//- TODO: Error Dialog
+	dialog#dialog-tempo 
+		form(method="dialog")
+			h5 Tempo
+			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
+	
+	//- TODO: Error Dialog
+	dialog#errors 
+		form(method="dialog")
+			h5 An error has occurred!
+			p(id="error-message") 
+			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
+	
+	//- TODO:
+	dialog#fund
+		form(method="dialog")
+			h5 Help support this project! 
+			p.
+				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
+
+			ul.fund.icon-list
+				//li: a.paypal(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+				li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+				li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
+			
+			//- ul.associates.icon-list
+			//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+			//- 	li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+			//- 	li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
+			//- 	
+				
+			//- ul.supporters.icon-list
+			//- 	li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+			//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+			
+			ul.links
+				li: a(href="roadmap.pug" target="_blank") Roadmap
+				li: a(href="credits.pug" target="_blank") Credits
+				li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
+				li: a.licenses(href="licenses.pug" target="_blank") Licenses
+				li: a.copyright(href="copyright.pug" target="_blank") Copyright
+				li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
+
+			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Dialog
+
+	dialog#pwa
+		iframe#changelog(src="./changes.html")
+		form(method="dialog")
+			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Funding 
+	
