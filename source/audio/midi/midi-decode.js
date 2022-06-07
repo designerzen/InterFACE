@@ -145,7 +145,7 @@ const convertEventToCommand = (stream) =>
  */
 const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 {
-	let param1
+	let firstParameter
 
 	if ((eventTypeByte & 0x80) === 0)
 	{
@@ -154,10 +154,10 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 		this allows bytes to be saved if the command repeats
 			eventTypeByte is actually the first parameter
 		*/
-		param1 = eventTypeByte
+		firstParameter = eventTypeByte
 		eventTypeByte = lastEventTypeByte
 	} else {
-		param1 = stream.readInt8()
+		firstParameter = stream.readInt8()
 		lastEventTypeByte = eventTypeByte
 	}
 
@@ -170,12 +170,12 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 		case 0x08:
 			event.subtype = MIDICommands.COMMAND_NOTE_OFF
 			//'noteOff';
-			event.noteNumber = param1
+			event.noteNumber = firstParameter
 			event.velocity = stream.readInt8()
 			return event
 
 		case 0x09:
-			event.noteNumber = param1
+			event.noteNumber = firstParameter
 			event.velocity = stream.readInt8()
 			if (event.velocity === 0)
 			{
@@ -187,29 +187,30 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 
 		case 0x0a:
 			event.subtype = MIDICommands.COMMAND_NOTE_AFTER_TOUCH;//'noteAftertouch';
-			event.noteNumber = param1
+			event.noteNumber = firstParameter
 			event.amount = stream.readInt8()
 			return event
 
 		case 0x0b:
 			event.subtype = MIDICommands.COMMAND_CONTROLLER;//'controller';
-			event.controllerType = param1
+			event.controllerType = firstParameter
 			event.value = stream.readInt8()
 			return event
 
 		case 0x0c:
 			event.subtype = MIDICommands.COMMAND_PROGRAM_CHANGE;//'programChange';
-			event.programNumber = param1
+			event.programNumber = firstParameter
 			return event
 
 		case 0x0d:
 			event.subtype = MIDICommands.COMMAND_CHANNEL_AFTER_TOUCH;//'channelAftertouch';
-			event.amount = param1
+			event.amount = firstParameter
 			return event
 
 		case 0x0e:
-			event.subtype = MIDICommands.COMMAND_PITCH_BEND;//'pitchBend';
-			event.value = param1 + (stream.readInt8() << 7)
+			event.subtype = MIDICommands.COMMAND_PITCH_BEND
+			event.value = firstParameter + (stream.readInt8() << 7)
+
 			return event;
 
 		default:

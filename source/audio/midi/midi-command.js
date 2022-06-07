@@ -36,6 +36,8 @@ export default class MIDICommand
 	amount
 	noteNumber
 	velocity
+
+	// pitch value from MIDI is 0 -> 16383
 	value
 
 	controllerType
