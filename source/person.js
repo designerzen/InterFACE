@@ -186,12 +186,9 @@ export default class Person{
 			// const elapsed = this.mouseDownFor
 			//console.log("mouseDownFor", elapsed )
 
-			if (this.instrumentLoading)
-			{
-
-			}else{
-				this.loadInstrument( randomInstrument() )
-			}
+		
+			this.loadRandomInstrument()
+			
 
 			// and reset
 			this.mouseDownAt = -1
@@ -278,6 +275,10 @@ export default class Person{
 	get instrumentIndex(){
 		// instrumentPointer ???
 		return instrumentFolders.indexOf(this.instrumentName)
+	}
+
+	get instrumentLoading(){
+		return this.instrument.isLoading
 	}
 
 	/**
@@ -972,37 +973,58 @@ export default class Person{
 
 	/**
 	 * Provide this Person with a random instrument
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadRandomInstrument(callback){
-		return await this.samplePlayer.loadRandomInstrument( callback )
+	async loadRandomInstrument(progressCallback){
+		this.instrument = await this.samplePlayer.loadRandomInstrument( ({progress,instrumentName}) => {
+			progressCallback && progressCallback( progress )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+		} )
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
+		return this.instrument
 	}
 
 	/**
 	 * Provide this Person with a the previous instrument in the list
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadPreviousInstrument(callback){
-		return await this.samplePlayer.loadPreviousInstrument(callback)
+	async loadPreviousInstrument(progressCallback){
+		this.instrument = await this.samplePlayer.loadPreviousInstrument(({progress,instrumentName}) => {
+			progressCallback && progressCallback( progress )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+		})
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
+		return this.instrument
 	}
 
 	/**
 	 * Provide this Person with a the subsequent instrument in the list
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadNextInstrument(callback){
-		return await this.samplePlayer.loadNextInstrument(callback)
+	async loadNextInstrument(progressCallback){
+		this.instrument = await this.samplePlayer.loadNextInstrument(({progress,instrumentName}) => {
+			progressCallback && progressCallback( progress )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+		})
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
+		return this.instrument
 	}
 
 	/**
 	 * Reload ALL instruments for this user
 	 * NB. If we have swapped the instrument pack we can use this method
 	 * to reload the same instrument but with the new samples
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async reloadInstrument(callback){
-		return await this.samplePlayer.reloadInstrument(callback)
+	async reloadInstrument(progressCallback){
+		this.instrument = await this.samplePlayer.reloadInstrument(({progress,instrumentName}) => {
+			progressCallback && progressCallback( progress )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+		})
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
+		return this.instrument
 	}
+	
 
 	/**
 	 * Load a specific instrument for this Person
@@ -1017,15 +1039,15 @@ export default class Person{
 		{
 			throw Error("loadInstrument("+instrumentName+") failed")
 		}
-		this.instrumentLoading = true
 		this.instrumentPointer = generalMIDIInstrumentId
 
-		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName+" via sampleplayer", {instrumentFolders})
-		this.instrument = await this.samplePlayer.loadInstrument(instrumentName, this.options.instrumentPack, progress => {
+		const instrumentPack = this.options.instrumentPack
+		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName + '>' + instrumentPack + +" via sampleplayer", {instrumentFolders})
+		this.instrument = await this.samplePlayer.loadInstrument(instrumentName, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
-		this.instrumentLoading = false
+		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName })
 		
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName })
@@ -1048,10 +1070,8 @@ export default class Person{
 	setMIDI(midi, channel="all"){
 		this.midiChannel = channel
 		this.midi = midi
-
 		this.midiPlayer = new MIDIInstrument(midi, channel)
 		this.instruments.push( this.midiPlayer )
-		
 		console.log("MIDI set for person", this, "Channel:"+channel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
