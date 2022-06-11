@@ -2,6 +2,8 @@
 // RECORD AUDIO
 // TODO : new Worker( new URL('./recorder.worker.js', import.meta.url), {type: 'module'} )
 		
+
+// TODO: Add in AnalyzerNode and record the waveform data too if requested
 // If audio data available then push  it to the chunk array 
 export const record = (stream)=>{
 
@@ -119,6 +121,7 @@ export const record = (stream)=>{
 	// }
 
 	const downloadRecording = ( fileName="recording", format="audio", type= "ogg", codec="opus" ) => {
+		console.log("downloadRecording", {fileName,format,type,codec})
 		const blob = encodeRecording( format, type, codec )
 		const url = URL.createObjectURL(blob)
 		const a = document.createElement("a")
