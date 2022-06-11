@@ -7,6 +7,9 @@ const hasTouchEvents = () => {
 	try{ document.createEvent("TouchEvent"); return true; }
 	catch(e){ return false; }
 }
+
+const hasFileHandler = () => 'launchQueue' in window && 'files' in LaunchParams.prototype
+
 export default class Capabilities {
 
 	// required = {
@@ -17,6 +20,7 @@ export default class Capabilities {
 	// 	midi:false
 	// }
 
+	fileHandlerAvailable = hasFileHandler()
 	cameraAvailble = navigator.getUserMedia !== undefined
 	webMIDIAvailable = false
 

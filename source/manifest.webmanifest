@@ -15,6 +15,32 @@
 		}
 	],
 	"prefer_related_applications": false,
+	"file_handlers":[
+		{
+			"action":"/",
+			"accept": {"audio/mid":[".mid"]},
+			"icons":[
+				{
+					"src":"assets/icons/midi-copyright-free.svg",
+					"sizes":"256x256",
+					"type":"image/svg+xml"
+				}
+			],
+			"launch_type":"single-client"
+		},
+		{
+			"action":"/open-sample-pack",
+			"accept": {"text/json":[".json"]},
+			"icons":[
+				{
+					"src":"assets/icons/music_note-24px.svg",
+					"sizes":"256x256",
+					"type":"image/svg+xml"
+				}
+			],
+			"launch_type":"single-client"
+		}
+	],
 	"icons": [
 	  {
 		"src": "assets/icons/android-chrome-512x512.png",

@@ -3,6 +3,7 @@ import { loadState, getState, setState, refreshState } from './state'
 import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
 import { 
+	getRecordableOutputNode,
 	active, playing, 
 	randomInstrument, 
 	setupAudio,	audioContext, setReverb,
@@ -13,6 +14,7 @@ import {
 import { loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
+import { createWaveform } from './audio/waveform'
 import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
 import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-create'
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
@@ -55,7 +57,8 @@ import setupDialogs from './dom/dialog'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
 import { setToggle } from './dom/toggle'
 import { setButton, setupMIDIButton } from './dom/button'
-import { setFeedback, setToast, addToolTips } from './dom/text'
+import { addToolTips, setToast } from './dom/tooltips'
+import { setFeedback } from './dom/text'
 import { showError } from './dom/errors'
 import { appendPhotographElement } from './dom/photographs'
 
@@ -189,6 +192,7 @@ export const createInterface = (
 	let samplePlayer
 	let midiPlayer
 	let savedPerformance
+	let waveforms = []
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -344,24 +348,26 @@ export const createInterface = (
 			// save it for next time
 			const cache = store.setItem(name, {instrument:detail.instrumentName })
 			//console.log("External event for ",{ person, detail , cache})
-			setToast( `${detail.instrument.title} Loaded` )
+			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
 		})
 
-		person.button.addEventListener( EVENT_INSTRUMENT_LOADING, ({detail}) => {
-			const { progress, instrumentName } = detail
+
+		const markInstrumnetProgress = (progress,instrumentName) =>{ 
 			const percent = Math.ceil(progress*100)
 			//setFeedback( `${instrumentName} ${Math.ceil(progress*100)} Loading` )
 			if (percent < 99){
-				setToast( `${instrumentName} ${percent} Loading` )
+				setToast( `${instrumentName} ${percent}% Loading...` )
 			}else{
-				setToast( `` )
+				setToast( `${person.instrumentTitle} Loaded!` )
 			}
+		}
+
+		person.button.addEventListener( EVENT_INSTRUMENT_LOADING, ({detail}) => {
+			const { progress, instrumentName } = detail
+			markInstrumnetProgress( progress, instrumentName )
 		})
 
-		person.loadInstrument( instrument, instrumentName => {
-
-			//console.log("Person instrument loading")
-		} )
+		person.loadInstrument( instrument )
 
 		//console.error(name, {instrument, person, savedOptions})
 		
@@ -935,6 +941,9 @@ export const createInterface = (
 		return stuff
 	}
 
+	/**
+	 * Toggle Start / Stop of the Recording
+	 */
 	const toggleRecording = () => {
 		if (isRecording())
 		{
@@ -954,43 +963,93 @@ export const createInterface = (
 			return
 		}
 		const recordingNode = audioContext.createMediaStreamDestination()
+		
 		// pipe in some data from the MASTER BUS gain node
-		audio.connect(recordingNode)
-
-		buttonRecordAudio.classList.toggle("recording", true)
-		console.error("Recording...", {recordingNode})
+		const masterOutput = getRecordableOutputNode()
+		
+		masterOutput.connect(recordingNode)
+		
+		// empty waveform collector
+		waveforms = []
+		
+		buttonRecordAudio.parentElement.classList.toggle("recording", true)
 		startRecording(recordingNode.stream).then( recorderInstance => {
 			recorder = recorderInstance 
-			console.error("Recording...established", recorder)
 			buttonRecordAudio.classList.toggle("progress", true)
 		})
 	}
 
 	const stopRecordingAudio = () => {
-		buttonRecordAudio.classList.toggle("cancelling", true)
+		buttonRecordAudio.parentElement.classList.toggle("cancelling", true)
 		
 		stopRecording().then(recording=>{
-			buttonRecordAudio.classList.remove("recording","progress","cancelling")
-		
-			console.log("stopRecordingAudio",recording)
+			buttonRecordAudio.parentElement.classList.remove("recording","progress","cancelling")
+	
 
+
+			// get user's instrument names...tempo etc...
+			const person = getPerson(0)
+
+			const fileName = person.instrumentName || `audio-download`
+
+
+
+			let svg
+			if (waveforms && waveforms.length)
+			{
+				// process the waveforms
+				let lastNonZero = 0
+				let datum
+				const compacted = waveforms.map( freqByteData=> {
+					
+					const waveformDataCompacted = []
+					for (let idx = 0; idx < 255; idx += 1) {
+						datum = Math.floor(freqByteData[idx]) - (Math.floor(freqByteData[idx]) % 5)
+
+						if (datum !== 0) {
+							lastNonZero = idx
+						}
+
+						waveformDataCompacted[idx] = datum
+					}
+					return waveformDataCompacted
+				})
+
+				const f = compacted.flat(1)
+				svg = createWaveform( f, lastNonZero )	
+				// console.log( f, {compacted, waveforms, waveformData} )
+				// console.log(svg)
+			}
+
+			
 			// first thing we do before encoding is add it to our output window
 			// along with our photos
-			appendAudioElement( recording, "audio-download.wav")
+			appendAudioElement( recording, fileName, downloadType => {
+					
+				console.log("Download", downloadType, {recording})
+				// variations to trigger download
+				switch(downloadType)
+				{
+					case "ogg":
+						//encodeRecording("audio", "ogg", "opus")
+						downloadRecording("magnum", "audio", "ogg", "opus")
+						break
 
-			//document.getElementById("photographs").appendChild(anchor)
+					case "mp3":
+						//encodeRecording("audio","mp3")
+						downloadRecording("emmpeethree", "audio", "mp3")
+						break
 
-			// const mp3 = encodeRecording(recording, 'audio/mp3;')
-			//const ogg = encodeRecording(recording, 'audio/ogg; codecs=')
+					default:
+					case "wave":
+						//encodeRecording( 'audio','wav')
+						downloadRecording("wave","audio","wav")
+						break
+				}
+			}, svg)
 
-			// const ogg = downloadRecording("magnum","audio","ogg","opus")
-			// const mp3 = downloadRecording("magnum","audio","mp3")
-
-			// Creating audio url with reference  
-			// of created blob named 'audioData' 
-			//const audioSrc = window.URL.createObjectURL(mp3)
-			console.error("Recording END", {recording, ogg})
-			console.error("Recording END", {recording, mp3})
+			// console.error("Recording END", {recording, ogg})
+			// console.error("Recording END", {recording, mp3})
 			// clear memory
 			recorder = null
 			setToast( `Recording Encoded!` )	
@@ -1007,6 +1066,23 @@ export const createInterface = (
 
 		const loadTotal = 7
 		let loadIndex = 0
+
+		// PWA file types! Check manifest and 
+		// https://web.dev/file-handling/
+		if (capabilities.fileHandlerAvailable) 
+		{
+			// The File Handling API is supported.
+			launchQueue.setConsumer((launchParams) => {
+				// Nothing to do when the queue is empty.
+				if (!launchParams.files.length) {
+				  return
+				}
+				// load associated files
+				for (const fileHandle of launchParams.files) {
+				  // Handle the file.
+				}
+			})
+		}
 
 		body.classList.toggle("initialising", true)
 
@@ -1290,6 +1366,11 @@ export const createInterface = (
 				
 				updateByteFrequencyData()
 				drawBars( dataArray, bufferLength )
+
+				if (recorder)
+				{
+					waveforms.push(dataArray)
+				}
 			}
 
 
