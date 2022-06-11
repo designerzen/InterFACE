@@ -5,39 +5,6 @@
 	flex-direction: column;
 	align-items: center;
 
-	// main title
-	h1{
-		//background-color: $col-dark;
-		color: $col-grey;
-		order:-1;
-	
-		display: inline-block;
-		padding:var(--pad) calc(var(--pad) * 2);
-		
-		justify-self: center;
-		// margin-top:var(--pad);
-		transition:color var(--ease-s) ease-out;
-		text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
-					rgba(0,0,0,0.56) 0 2px 4px,
-					rgba(0,0,0,0.56) 0 3px 4px,
-					rgba(255,255,255,0.96) 0 0 4px;
-						
-		strong{
-			color:$col-blue;
-		}
-	}
-	
-	h2{
-		// drop shadow
-		text-shadow: rgba($col-white,0.96) 0 1px 4px,
-					rgba($col-white,0.7) 0 2px 4px,
-					rgba($col-white,0.5) 0 3px 4px,
-					rgba($col-cream,0.56) 0 0 4px;
-		
-		color: $col-tan;
-		margin:0 auto;
-		padding:var(--pad);
-	}
 		
 	p{
 		color:$col-white;
@@ -54,6 +21,7 @@
 		color: $col-dark;
 		padding: var(--pad) calc( 2 * var(--pad) ) var(--pad) calc( 4 * var(--pad) );
 		margin-bottom:var(--pad);
+		margin-top: auto;
 		flex: 0 1 auto;
 		display: inline-block;
 		align-self: center;
@@ -85,6 +53,40 @@
 		left:var(--pad);
 		// above feedback
 		bottom:var(--footer-gap);	
+		
+		// main title
+		h1{
+			//background-color: $col-dark;
+			color: $col-grey;
+			order:-1;
+		
+			display: inline-block;
+			padding:var(--pad) calc(var(--pad) * 2);
+			
+			justify-self: center;
+			// margin-top:var(--pad);
+			transition:color var(--ease-s) ease-out;
+			text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
+						rgba(0,0,0,0.56) 0 2px 4px,
+						rgba(0,0,0,0.56) 0 3px 4px,
+						rgba(255,255,255,0.96) 0 0 4px;
+							
+			strong{
+				color:$col-blue;
+			}
+		}
+		
+		h2{
+			// drop shadow
+			text-shadow: rgba($col-white,0.96) 0 1px 4px,
+						rgba($col-white,0.7) 0 2px 4px,
+						rgba($col-white,0.5) 0 3px 4px,
+						rgba($col-cream,0.56) 0 0 4px;
+			
+			color: $col-tan;
+			margin:0 auto;
+			padding:var(--pad);
+		}
 	}
 
 	#foot{
@@ -211,6 +213,24 @@ p strong{
 	// object-fit: contain;
 
 	transition:opacity var(--ease-s) ease-out;
+	
+	// face overlay to remind to show face
+	&::after{
+		content:'';
+		position: absolute;
+		top:var(--pad);
+		left:var(--pad);
+		right:var(--pad);
+		bottom:var(--pad);
+		background:url(assets/icons/child_care-24px.svg) no-repeat center center;
+		background-size: contain;
+		opacity:0;
+		//transform:translateZ(100px);
+		display: block;
+		z-index:1;
+		pointer-events: none;
+		display: none;
+	}
 }
 
 
@@ -388,7 +408,7 @@ p strong{
 			var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
 		// $col-yellow
 		
-		video,canvas{
+		video, #interface{
 			// max-width:100%;
 			// max-height:100vh;
 			// height:auto;
@@ -400,7 +420,7 @@ p strong{
 			display: block;
 		}
 
-		canvas{
+		#interface{
 
 			z-index: 1;
 			position: relative;
@@ -473,6 +493,16 @@ p strong{
 			width:100%;
 			height:100%;
 		}
+		#control-panel{
+			
+			@media (orientation: portrait) {
+				// 	height: 100%;
+				// 	width:calc(var(--width) / var(--height)  * 100vh );
+				width: 100%;
+				height:calc(var(--height) / var(--width) * 100vw );
+			}
+			
+		}
 	}
 
 	#app{
@@ -484,7 +514,7 @@ p strong{
 	}
 	
 	#app-frame video,
-	#app-frame canvas{
+	#app-frame #interface{
 		display: block;
 		visibility: visible;
 	}
@@ -536,7 +566,7 @@ html.debug{
 	margin:auto;
 	padding:0;
 	
-	overflow: auto;
+	overflow: hidden;
 	position: absolute;
 	top:0;
 	left:0;
@@ -589,18 +619,40 @@ html.debug{
 }
 
 
-
+// Results
 #photographs{
+	--side:100px;
 	position: fixed;
-	bottom:var(--footer-gap);
-	left:0;
-	right:0;
+	// bottom:var(--footer-gap);
+	top:var(--pad);
+
+	left:var(--side);
+	right:var(--side);
+
 	display: flex;
 	overflow: auto;
 	overflow-y: hidden;
-	// a bit of space to zomom
-	padding-top:30px;
+	
+	// a bit of space to zoom
+	padding:var(--pad);
+	padding-top:36px;
 	pointer-events: all;
+
+	z-index: 303;
+	gap:var(--pad);
+	border:var(--border-size) solid var(--shade-yellow);
+
+	scroll-behavior:smooth ;
+	scroll-snap-type: x mandatory;
+	scroll-padding: 50%;
+
+	> * {
+		scroll-snap-align: center;
+	}
+
+	&:empty{
+		visibility: hidden;
+	}
 			
 	&:focus-within {
 		// prefer smooth scrolling where available (opinionated).
@@ -847,10 +899,11 @@ main.sharing-disabled{
 }
 
 #settings{
-	display: none;
+	visibility: hidden;
 	transform: translateY( 0 );
-	transition: transform var(--ease-s) $easeOutBack;
-
+	transition: transform var(--ease-m) $easeOutBack, opacity var(--ease-m) linear;
+	animation: none;
+	
 	.button-close{
 		position: absolute;
 		left:0;
@@ -1075,6 +1128,7 @@ main.sharing-disabled{
 	svg{
 		color:inherit;
 		fill:currentColor;
+		width:100%;
 	}
 
 	&:focus,

@@ -25,8 +25,8 @@
 	animation-name: Activate;
 	animation-timing-function: var(--ease-out-back);
 	animation-duration: var(--ease-s);
-	animation-fill-mode: forwards,forwards;
-	border:var(--button-border-size) solid rgba($col-white, 0.9);
+	animation-fill-mode: both,both;
+	//border:var(--button-border-size) solid rgba($col-white, 0.9);
 	
 //	animation-play-state: running;
 }
@@ -680,9 +680,9 @@ label[for="button-start"],
 		}
 	}
 
-	input[type="checkbox"]{
-		visibility: hidden;
-		
+	input[type=checkbox]{
+		//visibility: hidden;
+		opacity:0;
 	}
 	
 	button{	
@@ -782,7 +782,8 @@ label[for="button-start"],
 	}
 
 	label[for="select-eyes"]{
-		visibility: hidden;
+		// visibility: hidden;
+		display: none;
 	}
 		
 	// Toggle show eyes or hide eyes
@@ -942,9 +943,23 @@ label[for="button-start"],
 		--bg:url(/source/assets/icons/speed-24px.svg);
 		--col-select:#{$col-yellow};
 	}
+
 	label[for="button-record-audio"]{
 		--bg:url(/source/assets/icons/voicemail-24px.svg);
 		--col-select:#{$col-yellow};
+
+		&.recording{
+
+			&::before{
+				opacity:1;
+				animation: Throb 0.8s 0s both infinite;
+			}
+			--col-hover:#{$col-red};
+			--col-select:#{$col-red};
+		}
+		&.progress{
+
+		}
 	}
 }
 
@@ -984,19 +999,14 @@ input[type=radio]{
 // replace regular with a classic radio style toggle button
 // square emerald with a big tick
 input[type=checkbox]{
-
 	appearance: none;
 	display: inline-block;
-	background-color:$col-dark;
+	padding:var(--pad);
+	border:0;
+	text-shadow: none;
+	box-shadow: none;
+	
 
-	// background:linear-gradient( $col-green, $col-gray );
-		
-	border:var(--button-border-size) solid rgba($col-brown, 0.9);
-	border-top-color: rgba($col-white, 0.6 );
-	border-left-color: rgba($col-white, 0.3);
-	border-right-color: rgba($col-white, 0.7);
-	border-radius:3px;
-	margin-left:var(--pad);
 	//border-radius:999px;
 	
 	// from ios guidelines
@@ -1004,13 +1014,10 @@ input[type=checkbox]{
 	// min-height:44px;
 	// max-width:var(--max-width-override, var(--max-width,auto) );
 
-	padding:var(--pad);
-
 	// FIXME:
 	&:checked{
-		background-color:$col-red;
+		/*background-color:$col-red;
 		background:linear-gradient( $col-red, $col-dark );
-	
 		background-size:80%, 100%;
 
 		&:before, &:after{
@@ -1029,16 +1036,14 @@ input[type=checkbox]{
 		}
 		&:before{
 			color:$col-red;
-		}
+		}*/
 	}
 
 	&:focus{
 		//border-color:$col-orange;
-		outline:1px solid $col-orange;
+		
 	}
-	&:active{
-		@extend %button-active;
-	}
+	
 }
 
 // different kind of switchbox for one toggle only
@@ -1048,9 +1053,16 @@ input[type=checkbox].switch{
 	--col-top:#{$col-tan};
 	--col-bottom:#{$col-grey};
 
-	background-color:$col-gray;
+	margin-left:var(--pad);
+
+	border:var(--button-border-size) solid rgba($col-brown, 0.9);
+	border-top-color: rgba($col-white, 0.6 );
+	border-left-color: rgba($col-white, 0.3);
+	border-right-color: rgba($col-white, 0.7);
+	border-radius:3px;
+
 	//background:linear-gradient( $col-green, $col-gray );
-	background:linear-gradient( to right, rgba($col-grey, 0.5), rgba( $col-cream, 0.5) );
+	background:$col-gray linear-gradient( to right, rgba($col-grey, 0.5), rgba( $col-cream, 0.5) );
 	//min-width:var(--width);
 	position: relative;
 	box-sizing: border-box;
@@ -1119,7 +1131,9 @@ input[type=checkbox].switch{
 		// border-left-color: rgba($col-white, 0.2);
 		// border-right-color: rgba($col-white, 0.5);
 	}
-
+	&:active{
+		@extend %button-active;
+	}
 }
 
 
@@ -1190,7 +1204,9 @@ button#button-duet{
 // generic close button
 .button-close{
 	&:before{
-		content:'x';
+		font-weight: 900;
+			
+		content:'×';
 	}
 }
 
@@ -1243,20 +1259,31 @@ button.person{
 	}
 }
 
-// move into position
+// move into position and ensure that left as % + width as % < 100%
 button#person-a{
-	left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
-	top:calc( 100% * var(--person-a-y,0) / var(--height,640) );
-	width:calc( 100% * var(--person-a-w,0) / var(--width,640) );
-	height:calc( 100% * var(--person-a-h,0) / var(--height,640) );
+	--left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
+	--breadth:calc( 100% * var(--person-a-w,0) / var(--width,640) );
+	top:calc( 100% * var(--person-a-y,0) / var(--height,480) );
+	height:calc( 100% * var(--person-a-h,0) / var(--height,480) );
 }
 
 button#person-b{
-	outline-color:$col-green;
-	left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
-	top:calc( 100% * var(--person-b-y,0) / var(--height,640) );
-	width:calc( 100% * var(--person-b-w,0) / var(--width,640) );
-	height:calc( 100% * var(--person-b-h,0) / var(--height,640) );
+	--left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
+	--breadth:calc( 100% * var(--person-b-w,0) / var(--width,640) );
+	top:calc( 100% * var(--person-b-y,0) / var(--height,480) );
+	height:calc( 100% * var(--person-b-h,0) / var(--height,480) );
+}
+
+// prevent the width of the face button falling off right hand side of the screen
+button#person-a,
+button#person-b{
+	--total:calc( var(--left) + var(--breadth));
+	// distance in pixels remaining on the right
+	--over:calc( 100vw - var(--total)) ;
+	// ignore if positive...
+	--overflow:min( var(--over), 0px );
+	left:var(--left);
+	width:calc( var(--breadth) + var(--overflow) );
 }
 
 // generic button style

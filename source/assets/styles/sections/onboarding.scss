@@ -45,7 +45,7 @@
 		bottom:auto;
 		top:var(--pad);
 		left:50%;
-		transform: translateX(-100%);
+		transform: translateX(-50%);
 		right:auto;
 		max-width:calc( 100% - 4rem );
 		// prevent cramping
@@ -104,7 +104,7 @@
 
 	// NB: Warning - this MAY trigger a video element not found error
 	// as JS pointer no longer has DOM equivalent
-	canvas,
+	#interface,
 	video,
 	fieldset.person-controls{
 		display: none;
@@ -159,6 +159,11 @@ label[for=button-start]{
 
 	position: relative;
 
+	width: 100%;
+    box-sizing: border-box;
+
+	animation: CTA 2s infinite;
+
 	input{
 		position: absolute;
 		top:0;
@@ -170,6 +175,10 @@ label[for=button-start]{
 	}
 	&:after{
 		content:'!';
+	}
+	&:hover,	
+	&:focus{
+		animation-duration: 0.7s;
 	}
 	&:hover::before{
 		opacity: 1;

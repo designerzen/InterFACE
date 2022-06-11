@@ -85,6 +85,23 @@
 	}
 }
 
+@keyframes CTA{
+	
+	12%{
+		filter:saturate(200%);
+		// filter:hue-rotate(1turn) saturate(0%);
+	}
+}
+
+@keyframes Throb{
+	50%{
+		transform: scale(1.1);
+	}
+	90%{
+		opacity: 0;
+	}
+}
+
 @keyframes Shift{
 	from{
 		transform: translate( var(--xa,0), var(--ya,0) );
