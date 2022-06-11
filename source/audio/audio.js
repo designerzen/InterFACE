@@ -39,6 +39,22 @@ let gain
 export let playing = false
 export let active = false
 
+/**
+ * 
+ * @returns Post FX node
+ */
+export const getMasterGain = () => {
+	return gain.node
+}
+
+/**
+ * 
+ * @returns Post FX node
+ */
+export const getRecordableOutputNode = () => {
+	return reverb.node
+}
+
 // // just does linear connects in sequence for easier protyping
 // const chain = ( routes, connect=true ) => {
 
@@ -229,7 +245,7 @@ const monitor = () => {
 	// waves
 	//analyser.getByteTimeDomainData(dataArray)
 	
-	// bsrs
+	// bars
 	analyser.getByteFrequencyData(dataArray)
 
 	return result
@@ -268,16 +284,12 @@ export const playAudio = () => {
 	}else{
 
 		resumeAudioContext()
-
 		// analyser.connect(audioContext.destination)
 		//oscillator.connect(delayNode)
-		
 		playing = true
 		monitor()
 		return true
 	}
-	//console.error("start audio",{playing})
-	return oscillator
 }
 
 export const createOscillator = () => {
@@ -449,7 +461,10 @@ export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="Fl
 	{
 		const part = await partPromises[i]
 		parts.push( part )
-		progressCallback && progressCallback(i/l)
+		progressCallback && progressCallback({
+			progress:i/l,
+			instrumentName
+		})
 	}
 	
 	NOTE_NAMES.forEach( (instrument, index) => {
