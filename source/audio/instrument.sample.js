@@ -16,10 +16,16 @@ export default class SampleInstrument extends Instrument{
 
 	instrument
 	instrumentName = "Unloaded"
-	instrumentPack
+	instrumentPack 
 	instrumentNumber
 	instrumentPointer = 0
 	instrumentLoading = true
+
+	
+	get isLoading(){
+		return this.instrumentLoading
+	}
+
 	
 	// allow this itself to load instruments from the system
 	// based on whatever programNumber we set below...
@@ -101,30 +107,30 @@ export default class SampleInstrument extends Instrument{
 	
 	/**
 	 * Provide this Person with a random instrument
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	 async loadRandomInstrument(callback){
-		return await this.loadInstrument( randomInstrument(), callback )
+	 async loadRandomInstrument(progressCallback){
+		return await this.loadInstrument( randomInstrument(), this.instrumentPack, progressCallback )
 	}
 
 	/**
 	 * Load the previous instrument in the list
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadPreviousInstrument(callback){
+	async loadPreviousInstrument(progressCallback){
 		const index = this.instrumentPointer-1
 		const newIndex = index < 0 ? instrumentFolders.length + index : index
-		return await this.loadInstrument( instrumentFolders[newIndex], callback )
+		return await this.loadInstrument( instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
 	/**
 	 * Load the subsequent instrument in the list
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadNextInstrument(callback){
+	async loadNextInstrument(progressCallback){
 		const index = this.instrumentPointer+1 
 		const newIndex = index >= instrumentFolders.length ? 0 : index
-		return await this.loadInstrument( instrumentFolders[newIndex], callback )
+		return await this.loadInstrument( instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
 	/**
@@ -133,8 +139,18 @@ export default class SampleInstrument extends Instrument{
 	 * to reload the same instrument but with the new samples
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
-	async reloadInstrument(callback){
-		return await this.loadInstrument( instrumentFolders[this.instrumentPointer], callback )
+	async reloadInstrument(progressCallback){
+		return await this.loadInstrument( instrumentFolders[this.instrumentPointer], this.instrumentPack, progressCallback )
+	}
+
+	/**
+	 * Changes all instuments to new pack
+	 * @param {*} instrumentPack 
+	 * @param {*} progressCallback 
+	 */
+	async loadPack(instrumentPack, progressCallback){
+		this.instrumentPack = instrumentPack
+		return await this.reloadInstrument(progressCallback)
 	}
 
 	/**
@@ -146,6 +162,7 @@ export default class SampleInstrument extends Instrument{
 	 */
 	 async loadInstrument(instrumentName, instrumentPack, progressCallback ){
 		this.instrumentLoading = true
+		
 		this.instrument = await loadInstrumentPack( instrumentName, instrumentPack, progressCallback )
 		this.instrumentName = instrumentName
 		this.instrumentPack = instrumentPack
@@ -153,9 +170,10 @@ export default class SampleInstrument extends Instrument{
 		this.instrumentMap = {}
 		// TODO: inside out object
 		// convert the instrument map into a number map
-		for (let i=0; i < 200; ++i){
-			this.instrumentMap[i] = this.instrument
-		}
+		// for (let i=0; i < 200; ++i){
+		// 	this.instrumentMap[i] = this.instrument
+		// }
+		//console.error("Instrument loading", {instrumentName, instrumentPack}, this )
 		this.instrumentLoading = false
 		// this.instrumentOrder = this.instrument
 		return this.instrument
