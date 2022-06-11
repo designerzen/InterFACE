@@ -46,9 +46,12 @@ html(lang="en-GB" dir="ltr")
 				link(rel="stylesheet", href="https://fonts.googleapis.com/family=Oxanium:wght@774&display=swap")
 		
 		//- tfhub-tfjs-modules/tensorflow/tfjs-model/blazeface/1/default/1/model.json
-		link(rel="preconnect", href="https://storage.googleapis.com/", crossorigin)
-		link(rel="preload", as="font", href="./assets/fonts/oxanium/Oxanium[wght].ttf")
-		link(rel="preload", as="font", href="./assets/fonts/lexend/LexendDeca-Regular.ttf")
+		link(rel="preconnect" href="https://storage.googleapis.com/" crossorigin)
+		
+		//- Try and preload fonts
+		//- Note. loading fonts require the presence of the crossOrigin attribute, even when loading the fonts from the same-origin. Source: https://github.com/w3c/preload/issues/32
+		link(rel="preload" as="font" href="./assets/fonts/oxanium/Oxanium[wght].ttf" crossOrigin)
+		link(rel="preload" as="font" href="./assets/fonts/lexend/LexendDeca-Regular.ttf" crossOrigin) 
 			
 		//- ENTRY POINT
 		block preload 
@@ -147,10 +150,13 @@ html(lang="en-GB" dir="ltr")
 					li: a(href="https://www.namm.org/" rel="noopener noreferrer" target="_blank") NAMM Show
 						include ./assets/logos/namm.svg
 					li: a(href="https://www.midi.org/component/zoo/item/photosynth-interface?Itemid=1423" rel="noopener noreferrer" target="_blank") MIDI Innovation Awards
-						include ./assets/logos/midi.svg
+						include ./assets/logos/midi-association.svg
+					
 					//- other places that have helped out
 					li: a(href="https://www.browserstack.com" rel="noopener noreferrer" target="_blank") BrowserStack
 						include ./assets/logos/browserstack.svg
+					li: a(href="https://www.tensorflow.org" rel="noopener noreferrer" target="_blank") TensorFlow
+						include ./assets/logos/tensorflow-tf.svg
 
 			small
 				a.licenses(href="licenses.pug" target="_blank") Licenses
