@@ -7,6 +7,11 @@
 	@extend %image-replacement;
 }
 
+.paypal{
+	@extend %icon;
+	background-image:url(assets/logos/paypal.svg);
+}
+
 .patreon{
 	@extend %icon;
 	background-image:url(assets/logos/patreon.svg);

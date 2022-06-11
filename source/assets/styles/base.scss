@@ -53,14 +53,13 @@ ol li + li{
 
 img,
 svg{
-	width:100%;
 	max-width:100%;
 	height:auto;
 	display: block;
 }
 
 // we hide these by default until ready to preserve CPU
-video,canvas{
+video,#interface{
 	max-width:100%;
 	visibility: hidden;
 	// nothing to click so prevent
