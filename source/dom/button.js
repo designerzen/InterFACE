@@ -7,7 +7,9 @@ export const setButton = (buttonName, callback ) => {
 	// check to see that the button hasn't got the display:none!
 	if (element)
 	{
-		element.addEventListener("click", (event) => {
+		// element.addEventListener("click", (event) => {
+		// click was too unresponsive so lets use touch / mousedown
+		element.addEventListener("mousedown", (event) => {
 			callback && callback({element})
 		})
 		return element
