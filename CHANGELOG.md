@@ -1,3 +1,52 @@
+#### 0.8.6 (2022-06-05)
+
+#### 0.8.5 (2022-06-03)
+
+##### Bug Fixes
+
+*  Service worker model requested 2 (4ea83725)
+*  MIDI GM insruments now align (290e76a8)
+
+##### Other Changes
+
+*  CSS improvements (898fb69d)
+*  misc js improvements (d4d5a1f6)
+*  Camera removes any state that is invalid (05ede53e)
+*  Shared compat capabilities obj (ed4dc10c)
+*  Libs & Readme (d6605364)
+*  New options for gamepad and midi files (5b3ea86a)
+*  Markup improvements (206642b8)
+*  Stripped out synth instruments (971eb321)
+*  Gamepad IO begun (e549b575)
+*  Quantiser remembers history (3f8f65f8)
+*  InstrumentPacks & GMidi (debdf0a2)
+*  MIDI Innovation finalist! (0eb84dc5)
+
+#### 0.8.4 (2022-05-27)
+
+##### Bug Fixes
+
+*  Removed log (469204cd)
+*  Made Person louder (4c322cb8)
+
+##### Other Changes
+
+*  Backgrounds animate (de7e9538)
+*  Inactivity improvements with timing (1b3c3348)
+*  Darker theme (10873441)
+*  UI and UX adjustments (f8fd36f8)
+*  InactivityClass handles hiding controls (a81c4e6f)
+*  Markup improvements (cd1a67cc)
+*  removed docs from deploy (ff68b315)
+*  Added NAMM and MIDI Innovation logos (9ce37582)
+*  Markup improvements (19b28482)
+*  NAMM logo (84e41a98)
+*  MIDI finalist fixes (479dac6d)
+*  Theme improved with better UX (931808ae)
+*  Loading is now smooth with great feedback (c28413b1)
+*  PWA improvements (4b3743bf)
+*  Packages & libs (9f375e9a)
+
 #### 0.8.3 (2022-05-04)
 
 ##### Bug Fixes
