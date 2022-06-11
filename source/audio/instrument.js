@@ -7,6 +7,10 @@ export default class Instrument{
 	// monophonic by default
 	polyphony = 1
 	
+	get isLoading(){
+		return false
+	}
+
 	constructor( audioContext, destinationNode, options={} ) 
 	{
 		this.outputNode = destinationNode
@@ -14,7 +18,7 @@ export default class Instrument{
 		this.activeNotes = new Map()
 		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
 	}
-
+	
 	getVolume(){
 		return 1
 	}
