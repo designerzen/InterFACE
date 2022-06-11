@@ -60,7 +60,7 @@ block main
 			p No Video available - unable to playback ;(
 
 		//- we clone the video onto the canvas every frame
-		canvas(width="640", height="480")
+		canvas#interface(width="640", height="480")
 
 		//- In APP CONTROLS ------------------------------------------------------
 		form#control-panel(action="/") 
@@ -281,7 +281,7 @@ block main
 
 		form#midi-file
 			label(for="midi-upload") Upload a MIDI backing track!
-			input#midi-upload(type="file" hidden)
+			input#midi-upload(type="file" hidden name="midi-upload")
 			button#button-midi-upload( type="button" ) Upload MIDI file
 
 	//-  For users with javascript disabled 
@@ -342,38 +342,46 @@ block dialogs
 	
 	//- TODO:
 	dialog#fund
-		form(method="dialog")
-			h5 Help support this project! 
-			p.
-				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
+	
+		h5 Help support this project! 
+		p.
+			If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
 
-			ul.fund.icon-list
-				//li: a.paypal(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
-				li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
-				li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
-			
-			//- ul.associates.icon-list
-			//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
-			//- 	li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
-			//- 	li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
-			//- 	
+		ul.fund.icon-list
+			li: a.paypal(href="https://www.paypal.com/donate/?hosted_button_id=RHGJDTPJQ77F4/" rel="noopener noreferrer" target="_blank") Donate via Paypal
+			li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+			li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
+			//- li
+				form(action="https://www.paypal.com/donate" method="post" target="_top")
+					input(type="hidden" name="hosted_button_id" value="RHGJDTPJQ77F4")
+					input(type="image" src="./assets/logos/paypal.svg" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
+					//- input(type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
+					<img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
 				
-			//- ul.supporters.icon-list
-			//- 	li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
-			//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
-			
-			ul.links
-				li: a(href="roadmap.pug" target="_blank") Roadmap
-				li: a(href="credits.pug" target="_blank") Credits
-				li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
-				li: a.licenses(href="licenses.pug" target="_blank") Licenses
-				li: a.copyright(href="copyright.pug" target="_blank") Copyright
-				li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
 
+		//- ul.associates.icon-list
+		//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+		//- 	li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+		//- 	li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
+		//- 	
+			
+		//- ul.supporters.icon-list
+		//- 	li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+		//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+		
+		ul.links
+			li: a(href="roadmap.pug" target="_blank") Roadmap
+			li: a(href="credits.pug" target="_blank") Credits
+			li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
+			li: a.licenses(href="licenses.pug" target="_blank") Licenses
+			li: a.copyright(href="copyright.pug" target="_blank") Copyright
+			li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
+		
+		form(method="dialog")
 			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Dialog
 
 	dialog#pwa
-		iframe#changelog(src="./changes.html")
+		iframe#changelog(src="./changes.html" title="Changes")
 		form(method="dialog")
 			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Funding 
 	
