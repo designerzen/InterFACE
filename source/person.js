@@ -972,11 +972,13 @@ export default class Person{
 	// actual sing here!
 
 	/**
-	 * Provide this Person with a random instrument
-	 * @param {Function} progressCallback Method to call once the instrument has loaded
+	 * Load a sample using one of the prebuilt methods
+	 * @param {String} method - name of the function to call
+	 * @param {*} progressCallback - method to invoke on loading progress
+	 * @returns instrument
 	 */
-	async loadRandomInstrument(progressCallback){
-		this.instrument = await this.samplePlayer.loadRandomInstrument( ({progress,instrumentName}) => {
+	async loadSamples(method="loadRandomInstrument",progressCallback=null){
+		this.instrument = await this.samplePlayer[method]( ({progress,instrumentName}) => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
@@ -985,16 +987,19 @@ export default class Person{
 	}
 
 	/**
+	 * Provide this Person with a random instrument
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
+	 */
+	async loadRandomInstrument(progressCallback){
+		return this.loadSamples("loadRandomInstrument", progressCallback)
+	}
+
+	/**
 	 * Provide this Person with a the previous instrument in the list
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadPreviousInstrument(progressCallback){
-		this.instrument = await this.samplePlayer.loadPreviousInstrument(({progress,instrumentName}) => {
-			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
-		})
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
-		return this.instrument
+		return this.loadSamples("loadPreviousInstrument", progressCallback)
 	}
 
 	/**
@@ -1002,12 +1007,7 @@ export default class Person{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadNextInstrument(progressCallback){
-		this.instrument = await this.samplePlayer.loadNextInstrument(({progress,instrumentName}) => {
-			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
-		})
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
-		return this.instrument
+		return this.loadSamples("loadNextInstrument", progressCallback)
 	}
 
 	/**
@@ -1017,15 +1017,9 @@ export default class Person{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async reloadInstrument(progressCallback){
-		this.instrument = await this.samplePlayer.reloadInstrument(({progress,instrumentName}) => {
-			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
-		})
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
-		return this.instrument
+		return this.loadSamples("reloadInstrument", progressCallback)
 	}
 	
-
 	/**
 	 * Load a specific instrument for this Person
 	 * TODO: Add loading events
@@ -1049,6 +1043,7 @@ export default class Person{
 		} )
 		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName })
 		
+
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName })
 		return instrumentName
