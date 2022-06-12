@@ -1,4 +1,4 @@
-import { addTooltip } from './text'
+import { addTooltip } from './tooltips'
 import { VERSION } from '../version'
 import {formattedDate} from '../models/info'
 
@@ -24,7 +24,7 @@ export const setButton = (buttonName, callback ) => {
  * @param {String} tip 
  * @param {String} classes 
  */
-const createButton = (label, tip, classes='' ) => {
+export const createButton = (label, tip, classes='' ) => {
 	const button = document.createElement('button')
 	button.classList.add(classes)
 	button.setAttribute("type", "button" )
