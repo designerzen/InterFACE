@@ -1,6 +1,7 @@
 import { now } from '../timing/timing.js'
 import { addTooltip, removeTooltip } from './tooltips.js'
-import { audioContext, getMasterGain } from '../audio/audio.js'
+import { audioContext, getMasterMixdown } from '../audio/audio.js'
+import {createButton} from './button'
 
 const createCanvasProgressBar = (width, height) => {
 	const canvas = document.createElement("canvas")
@@ -34,6 +35,9 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 
 	// console.log("Creating an audio element...", audio, {src,fileName, duration, currentTime})
 	
+
+	audio.className = "audio-file"
+	audio.playbackRate.value = 1
 	audio.onload = e =>{
 		
 	}
@@ -63,7 +67,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 
 	// hijack and re route the audio
 	const proxy = audioContext.createMediaElementSource(audio)
-	proxy.connect( getMasterGain() )
+	proxy.connect( getMasterMixdown() )
 
 	const menu = document.createElement("menu")
 	menu.className = "audio-download-menu"
@@ -72,12 +76,8 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	const textPlay = `Play <strong>${fileName}</strong> loop`
 	const textPause = `Pause <strong>${fileName}</strong> loop`
 
-	const playPause = document.createElement("button")
-	playPause.className = "button-play-pause"
-	playPause.innerHTML = textPlay
-	playPause.setAttribute("aria-label", `Play or Pause this loop`) 
-		
-	playPause.addEventListener("click", e => {
+	const playPause = createButton(textPlay,`Play or Pause this loop`, "button-play-pause" )
+	playPause.addEventListener("mousedown", e => {
 		isPlaying ? 
 			audio.pause() :
 			audio.play() 
@@ -94,6 +94,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	exitButton.textContent = "Exit"
 	exitButton.setAttribute("aria-label", `Clear this loop`) 
 	exitButton.addEventListener("click", e => {
+		// DESTROY
 		audio.pause()
 		audio.ontimeupdate = audio.onloadedmetadata = audio.onload = null
 		audio.currentTime = 0
@@ -111,9 +112,9 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	anchor.download = fileName
 	anchor.href = audio.src
 		
-	wrapper.appendChild(audio)
 	wrapper.appendChild(anchor)
 	wrapper.appendChild(playPause)
+	wrapper.appendChild(audio)
 	wrapper.appendChild(menu)
 	wrapper.appendChild(exitButton)
 

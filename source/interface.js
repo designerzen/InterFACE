@@ -203,6 +203,8 @@ export const createInterface = (
 	let cameraLoading = true
 	let noFacesFound = false
 	let userLocated = false
+	// if the user leaves the tab
+	let userActive = false
 
 	// TODO:
 	let cookieConsent = false
@@ -627,6 +629,45 @@ export const createInterface = (
 		window.addEventListener('keydown', async (event)=>{
 
 			const isNumber = !isNaN( parseInt(event.key) )
+			const focussedElement = document.activeElement
+			if (focussedElement && focussedElement !== document.documentElement ){
+				// not body!
+				switch(focussedElement.nodeName)
+				{
+					case "BUTTON":
+						// see if a sample is focussed and if so do something different
+						if ( focussedElement.classList.contains("button-play-pause") ){
+							// find nearest audio element?
+
+							const audio = focussedElement.parentElement.querySelector("audio")
+							const rate = isNumber ? 
+								parseInt(event.key) : 
+								// check to see if this is a+ or - or up or down
+								event.key === 'ArrowRight' ||
+								event.key === 'ArrowUp' ? 
+									audio.playbackRate + 0.1 :
+									event.key === 'ArrowLeft' ||
+									event.key === 'ArrowDown' ? 
+										audio.playbackRate - 0.1 :
+										0.2 + Math.random() * 3
+
+							audio.playbackRate = rate
+							return
+
+						}else{
+							
+						}
+						break
+
+					case "DIALOG":
+
+						break
+				}
+
+				// we should quit here?
+			}
+
+			
 			switch(event.key)
 			{
 				case 'CapsLock':
@@ -2153,12 +2194,14 @@ export const createInterface = (
 		interact( 
 			document.getElementById("button-video"),
 			function onActive(){
-				body.classList.toggle("user-active", true)
-				body.classList.toggle("user-inactive", false)
+				ui.autoHide && body.classList.toggle("user-active", true)
+				ui.autoHide && body.classList.toggle("user-inactive", false)
+				userActive = true
 			}, 
 			function onInactive(){
-				body.classList.toggle("user-active", false)
-				body.classList.toggle("user-inactive", true)
+				ui.autoHide && body.classList.toggle("user-active", false)
+				ui.autoHide && body.classList.toggle("user-inactive", true)
+				userActive = false
 			}
 		)
 	}
