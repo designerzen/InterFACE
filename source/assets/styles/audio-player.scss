@@ -92,6 +92,7 @@
 
 
 .button-play-pause{
+	--max-width:auto;
 	--bg: url(/source/assets/icons/volume_off-24px.svg);
 	position: absolute;
 	left:0;
@@ -102,11 +103,14 @@
 	background: none;
 	background-image: var(--bg) center no-repeat;
 	border-radius: 0;
+
 	&:focus{
 		outline:none;
 		box-shadow: none;
-		border:0;
+		border:3px solid var(--shade-orange);
+		
 	}
+
 	strong{
 		display:block;
 	}
