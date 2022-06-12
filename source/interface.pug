@@ -134,8 +134,6 @@ block main
 				//button#button-donk( aria-label="Put a donk on it" ) Add Donk
 				//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
 
-
-
 				label(for="button-disco") MTV Mode
 					input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
 				
@@ -145,24 +143,13 @@ block main
 				label(for="button-mute" ) Mute
 					input#button-mute(type="checkbox" aria-label="Toggle mute")
 					
-
-
-
-
-				
 				//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 				
-				label.hide-text(for="button-fullscreen") Toggle Fullscreen
-					input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
-				
-				button.no-text#share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
-			
 				//- label(for="input-tempo" aria-label="Set the tempo" ) Tempo
 				//- 	input(type="number" value="1")#input-tempo
 				//- 	input(type="button")#input-tempo-increase
 				//- 	input(type="button")#input-tempo-decrease
 				
-				//- Drop up / down list of tempos with typeable option too
 				//- label(for="set-tempo") <span class="hide-text">Set </span>Tempo
 				//- 	input(list="tempos")
 				//- 	datalist#tempos
@@ -187,6 +174,7 @@ block main
 				label(for="button-metronome") <span class="hide-text">Toggle </span>Metronome
 					input#button-metronome(type="checkbox" aria-label="Play a metronome to help you keep time")
 					
+				//- Drop up / down list of tempos with typeable option too
 				label(for="select-tempo") <span class="hide-text">Set </span>Tempo
 					select#select-tempo(aria-label="Choose a tempo from the list")
 						//- optgroup Select Tempo
@@ -205,6 +193,11 @@ block main
 						option 300 BPM
 						option 400 BPM
 						option 500 BPM
+				
+				//- put share and full screen at the end
+				button.no-text#share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
+				label.hide-text(for="button-fullscreen") Toggle Fullscreen
+					input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
 			
 		
 			//- This covers the entire video and canvas elements

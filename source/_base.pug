@@ -19,41 +19,14 @@ html(lang="en-GB" dir="ltr")
 		//- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. 
 		link(rel="manifest", href="manifest.webmanifest")
 		link(rel="stylesheet", href="index.scss", type="text/css")
-		//-
-			
-			- 1. Preemptively warm up the fonts’ origin.
-			-
-			- 2. Initiate a high-priority, asynchronous fetch for the CSS file. Works in
-			-    most modern browsers.
-			-
-			- 3. Initiate a low-priority, asynchronous fetch that gets applied to the page
-			-    only after it’s arrived. Works in all browsers with JavaScript enabled.
-			-
-			- 4. In the unlikely event that a visitor has intentionally disabled
-			-    JavaScript, fall back to the original method. The good news is that,
-			-    although this is a render-blocking request, it can still make use of the
-			-    preconnect which makes it marginally faster than the default.
-			
-			//-  https://csswizardry.com/2020/05/the-fastest-google-fonts/ 
-			//-  https://fonts.gstatic.com is the font file origin 
-			//-  It may not have the same origin as the CSS file (https://fonts.googleapis.com) 
-			link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin)
-			
-			//-  We use the full link to the CSS file in the rest of the tags 
-			link(rel="preload", as="style", href="https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap")
-			link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap", media="print", onload="this.media=\'all\'")
-			noscript
-				link(rel="stylesheet", href="https://fonts.googleapis.com/family=Oxanium:wght@774&display=swap")
-		
+	
 		//- tfhub-tfjs-modules/tensorflow/tfjs-model/blazeface/1/default/1/model.json
 		link(rel="preconnect" href="https://storage.googleapis.com/" crossorigin)
 		
-		//- Try and preload fonts
 		//- Note. loading fonts require the presence of the crossOrigin attribute, even when loading the fonts from the same-origin. Source: https://github.com/w3c/preload/issues/32
 		link(rel="preload" as="font" href="./assets/fonts/oxanium/Oxanium[wght].ttf" crossOrigin)
 		link(rel="preload" as="font" href="./assets/fonts/lexend/LexendDeca-Regular.ttf" crossOrigin) 
 			
-		//- ENTRY POINT
 		block preload 
 			script.
 				document.documentElement.classList.add("loading","app")
