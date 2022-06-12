@@ -303,6 +303,7 @@ label[for=button-start]{
 
 		// prevent growing the button 
 		// as this mis-aligns the icons
+		// FIXME: Setting flex:0 1 100% fixes
 		// flex-grow:0;
 		// flex-shrink:0;
 		flex:0 1 100%;

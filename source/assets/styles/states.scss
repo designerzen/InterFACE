@@ -11,6 +11,8 @@
 	}
 }
 
+// for loading see loading
+
 .loaded{
 	#intro{
 		> * {
@@ -71,10 +73,42 @@
 	}
 }
 
+// ------- APPLICATION -------------------
+
+.first-run{
+	#version{
+		opacity:0.5;
+	}
+}
+
+.updates-available{
+	#version{
+		text-decoration: underline;
+		text-decoration-style: wavy;
+		color:var(--shade-blue);
+		animation: Throb 1s both 0s infinite;
+		border:1px var(--shade-gray) solid dashed;
+	}
+}
+
+.installable{
+	#version{
+		border:1px var(--shade-gray) solid dashed;
+		
+	}
+}
+
+.installed{
+	#version{
+		// invert
+		background-color: var(--shade-brown);
+		color:var(--shade-white);
+	}
+}
 
 
 
-
+// ---------------- FLAGS ---------------
 
 // Show secret buttons#??
 .flag-showSettings {
