@@ -2,7 +2,7 @@ import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE 
 import { DEFAULT_COLOURS } from './palette'
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
-
+const isDevelopmentMode = process.env.NODE_ENV === "development"
 export const DEFAULT_TENSORFLOW_OPTIONS = {
 	
 	// or 'tfjs' (mediapipe is far smoother)
@@ -33,10 +33,6 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 }
 
 export const DEFAULT_OPTIONS = {
-	loadMIDIPerformance:false,
-	// allow game pads such as the xbox controller to do cool
-	// stuff as a modifier for the audio
-	useGamePad:true,
 	// this allows us to show some extra options if set to true...
 	advancedMode:true,
 	// initially show the settings panel
@@ -52,7 +48,7 @@ export const DEFAULT_OPTIONS = {
 	// draw video onto canvas every frame (transparent doesn't have to be true then)
 	synch:true,
 	// show debug texts
-	debug:process.env.NODE_ENV === "development",
+	debug:isDevelopmentMode,
 	// cancel audio playback (not midi)
 	muted:false,
 	// dual person mode (required reload)
@@ -71,10 +67,20 @@ export const DEFAULT_OPTIONS = {
 	spectrogram:true,
 	// read out important instructions
 	speak:true,
+	
 	// midi channel (0/"all" means send to all)
 	midiChannel:"all",
 	// saved BPM that can be shared?
 	bpm:200,
+	
+	// hide menu if mouse outside of screen...
+	autoHide:!isDevelopmentMode,
+	// load a midi track automatically on app start
+	loadMIDIPerformance:false,
+	// allow game pads such as the xbox controller to do cool
+	// stuff as a modifier for the audio
+	useGamePad:true,
+	
 	// choice of different models to use
 	model:"face",
 	// sample set
