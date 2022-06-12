@@ -6,6 +6,7 @@ import { getDomainDefaults } from './settings'
 import { installOrUpdate, uninstall } from './pwa/pwa'
 import { createStore} from './store'
 import { showReloadButton as createReloadButton } from './dom/button'
+import { setToast } from './dom/tooltips'
 import Capabilities from './capabilities'
 import Attractor from './attractor'
 
@@ -15,7 +16,6 @@ const body = document.documentElement
 
 // if on http flip to https and exit
 forceSecure(IS_DEVELOPMENT_MODE)
-
 
 const capabilities = new Capabilities()
 // TODO: 
@@ -57,7 +57,7 @@ const start = () => {
 					document.title = title	
 				}else{
 					setLoadProgress( loadProgress, message )
-					document.title = title + " - " + loadProgress * 100 +  "%"
+					document.title = title + " - " + Math.ceil(loadProgress * 100) +  "%"
 				}
 			})
 		
@@ -82,7 +82,7 @@ const start = () => {
 			// }
 	
 			// For automatic stuff...
-			const attractMode = new Attractor( application )
+			// const attractMode = new Attractor( application )
 	
 			// Show hackers message to debuggers
 			if (application.debug)
@@ -125,8 +125,14 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 	// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 	if (IS_DEVELOPMENT_MODE){
 
-	console.info( "PWA", state.log, {state} )
+		console.info( "PWA", state.log, {state} )
 	}
+
+	// add custom classes to elements so that we can 
+	// show a bit more useful feedback about the status of the web app
+	// and whether it is installed / has updates available etc...
+	// TODO: Add an update button!?
+	const versionElement = document.getElementById("version")
 
 	// previousVersion, currentVersion,
 	// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()
@@ -135,6 +141,7 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 	body.classList.toggle( "updates-available", state.hasUpdates )
 	body.classList.toggle( "first-run", state.isFirstRun )
 	body.classList.toggle( "installable", state.isInstallable )
+	body.classList.toggle( "installed", state.isRunningAsApp )
 	
 	if (state.isInstallable)
 	{

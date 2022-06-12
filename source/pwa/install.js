@@ -1,5 +1,6 @@
 
-import { setFeedback, setToast } from '../dom/text'
+import { setFeedback } from '../dom/text'
+import { setToast } from '../dom/tooltips'
 import { createInstallButton } from '../dom/button'
 import { VERSION } from '../version'
 import {isSupportingBrowser} from './pwa'
