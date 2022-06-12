@@ -632,7 +632,7 @@ html.debug{
 	display: flex;
 	overflow: auto;
 	overflow-y: hidden;
-	
+
 	// a bit of space to zoom
 	padding:var(--pad);
 	padding-top:36px;
@@ -644,7 +644,7 @@ html.debug{
 
 	scroll-behavior:smooth ;
 	scroll-snap-type: x mandatory;
-	scroll-padding: 50%;
+	//scroll-padding: 50%;
 
 	> * {
 		scroll-snap-align: center;
