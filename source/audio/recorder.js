@@ -62,7 +62,7 @@ export const record = (stream)=>{
 			// after stopping the recording 
 			mediaRecorder.start()
 			recording = true	
-			console.log("recording", {mediaRecorder, dataArray})
+			//console.log("recording", {mediaRecorder, dataArray})
 		})
 	}
 
@@ -108,7 +108,7 @@ export const record = (stream)=>{
 		// ]
 
 		const encode = `${format}/${type}` + codecs.length ? ';codecs=' + codecs : ''
-		console.error("Encoding", encode, dataArray)
+		//console.error("Encoding", encode, dataArray)
 		const audioData = new Blob(dataArray, { 'type': encode })
 		return audioData
 	}

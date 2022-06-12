@@ -35,21 +35,21 @@ let reverb
 let delay
 let dub
 let gain
+let mixer
 
 export let playing = false
 export let active = false
 
 /**
  * 
- * @returns Post FX node
+ * @returns Post FX -> MIXER
  */
-export const getMasterGain = () => {
-	return gain.node
+export const getMasterMixdown = () => {
+	return mixer.node
 }
 
 /**
- * 
- * @returns Post FX node
+ * @returns Post FX node but before mixer
  */
 export const getRecordableOutputNode = () => {
 	return reverb.node
@@ -148,6 +148,7 @@ export const setupAudio = async (settings) => {
 	audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
 	// universal volume setter
+	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
 	
 	// this should hopefully balance the outputs
@@ -193,7 +194,9 @@ export const setupAudio = async (settings) => {
 		//await createDub(audioContext)
 		//await createDistortion(audioContext)
 		
-		analyser
+		analyser,
+
+		mixer
 
 	], audioContext )
 	
@@ -240,6 +243,7 @@ export const updateByteTimeDomainData = ()=> {
  */
 const monitor = () => {
 
+
 	const result = requestAnimationFrame(monitor)
 
 	// waves
@@ -274,53 +278,17 @@ const resumeAudioContext = () => {
 }
 
 /**
- * Start playback
- * @returns {Number} Volume
- */
-export const playAudio = () => {
-	if (playing)
-	{
-		return false
-	}else{
-
-		resumeAudioContext()
-		// analyser.connect(audioContext.destination)
-		//oscillator.connect(delayNode)
-		playing = true
-		monitor()
-		return true
-	}
-}
-
-export const createOscillator = () => {
-
-	// oscillator = audioContext.createOscillator()
-	// oscillator.type = "sine" // "sawtooth"
-	// oscillator.frequency.value = 261.63
-	// oscillator.connect(outputNode)
-	// oscillator.start()
-}
-
-export const setShape = shape => {
-	oscillator.type = shape
-}
-
-export const setFrequency = frequency => {
-	oscillator.frequency.value = frequency
-}
-
-/**
  * Get the volume of the audio playback 
  * @returns {Number} Volume
  */
-export const getVolume = () => gain.volume()
+export const getVolume = () => mixer.volume()
 
 /**
  * Set the volume of the audio playback 
  * @param {Number} destinationVolume Volume to set
  * @returns {Number} Volume
  */
-export const setVolume = destinationVolume => gain.volume(destinationVolume)
+export const setVolume = destinationVolume => mixer.volume(destinationVolume)
 
 /**
  * Load an Audio Buffer
