@@ -264,6 +264,9 @@ input[type=list],
     // );
 
 	display: flex;
+	flex-grow:1;
+	flex-shrink:1;
+
 	//flex-wrap: auto;
 	flex-direction: var( --dir-override, var(--direction, row));
 	// ensure a gap between row items...
@@ -439,7 +442,7 @@ label[for="button-start"],
 
 
 // smallest always hides text so overrides here...
-@media screen and (max-width:388px){
+@media screen and (max-width:430px){
 
 	:root{
 		--footer-gap:calc(67px);
@@ -455,8 +458,6 @@ label[for="button-start"],
 		min-width:22px;
 	}
 }
-
-
 
 
 
@@ -484,7 +485,16 @@ label[for="button-start"],
 	visibility:hidden;
 	align-items: stretch;
 	justify-content: stretch;
+    // place-self: center;
+
 	pointer-events: auto;
+
+	display: grid;
+	grid-auto-flow: column;
+    grid-auto-columns: auto;
+	
+    gap: 0px;
+
 
 	background-image:linear-gradient(
 		hsla(18, 21%, 12%, 0.7), 
@@ -706,6 +716,7 @@ label[for="button-start"],
 
 	label[for="button-settings"]{
 		order:-1;
+		grid-area:1/1;
 		--col-select:#{$col-green};
 		--col-hover:#{$col-blue};
 		--bg:url(/source/assets/icons/settings-24px.svg);
@@ -827,7 +838,7 @@ label[for="button-start"],
 
 	label[for="button-fullscreen"]{
 		// far right
-		order:99;
+		//order:99;
 		--col-select:transparent;
 		//--col-hover:transparent;
 
@@ -962,6 +973,9 @@ label[for="button-start"],
 		}
 	}
 }
+
+
+// #shared-controls{
 
 
 // actual button
@@ -1430,10 +1444,16 @@ button#share{
 	//--logo:url();
 	--overlap:0px;
 	--delay:0s;
-	position: fixed;
-	bottom:0;
-	transform:translateY(-100%);
+
+	grid-area:1/1;
+	transform:translateY( calc(-100% + 7px) );
 	animation: none;
+	transition: transform var(--ease-s);
+	transition-timing-function:  var(--ease-out-back);
+
+	&:hover, &:focus, &:active{
+		transform:translateY(-100%);
+	}
 
 	// after a brief while hide this?
 	// animation: 
@@ -1678,7 +1698,7 @@ a[href="#fund"]{
 		display: block;
 		z-index:3;
 		filter:drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
-		background:url(./assets/logos/interface.cropped.svg) center no-repeat;
+		background:url(./assets/logos/interface_round-composite.svg) center no-repeat;
 		background-size: contain;
 		content:'';//url(./assets/logos/interface_colour.svg);
 		// content:url(./assets/logos/interface_current-color.svg);
