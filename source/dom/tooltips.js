@@ -17,8 +17,6 @@
 
 	return element ? (message, letterRate=revealRate ) => {
 	
-		letterRate = 1
-
 		// prevent hiding 
 		clearInterval( interval )
 		

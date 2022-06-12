@@ -1,3 +1,6 @@
+// inspired by
+// https://web.dev/building-a-dialog-component/
+// https://github.com/argyleink/gui-challenges/tree/main/dialog
 import dialogPolyfill from 'dialog-polyfill'
 
 // custom events to be added to <dialog>
