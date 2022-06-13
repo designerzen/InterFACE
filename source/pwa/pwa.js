@@ -203,6 +203,7 @@ let isInstallable = false
 let updating = false
 let updatesAvailable = false
 let updated = false
+let newVersionAvailable = false
 
 // versioning
 const currentVersion = VERSION
@@ -276,7 +277,7 @@ export const installOrUpdate = async(debug=false) => {
 		
 		previousVersion = previousServiceWorkerURL.search.split("=")[1] || '-.-.-'
 		// isFirstRun
-		updatesAvailable = previousVersion !== VERSION
+		newVersionAvailable = previousVersion !== VERSION
 		
 		// "installing" - the install event has fired, but not yet complete
 		// "installed"  - install complete
@@ -296,10 +297,10 @@ export const installOrUpdate = async(debug=false) => {
 		// FOR USE AFTER RELOAD - for the time being the previous Service-Worker is used
 		registration.addEventListener('updatefound', async () => {
 
-			const installWorker = registration.installing
+			const installingWorker = registration.installing
 			
 			// check this version installed and the updated version????
-			log.push("Update found", {registration, installWorker, activeWorker, previousServiceWorkerURL } )
+			log.push("Update found", {registration, installWorker: installingWorker, activeWorker, previousServiceWorkerURL } )
 			updating = true
 
 			// show "install update" buton?
@@ -307,30 +308,48 @@ export const installOrUpdate = async(debug=false) => {
 			
 			// if there is already a service-worker registered and running as the controller...
 			// as well as a worker "waiting" to be installed... resolve immediately?
-			if (installWorker.waiting && navigator.serviceWorker.controller) 
+			if (installingWorker && installingWorker.waiting && navigator.serviceWorker.controller) 
 			{
-				
+				// FIXME: 
 				//newWorker = reg.waiting
-				log.push( "sanity check", {installWorker, nav:navigator.serviceWorker.controller} )
+				log.push( "sanity check", {installWorker: installingWorker, nav:navigator.serviceWorker.controller} )
 			}
 
-			installWorker.addEventListener('statechange', () => {
+			if (installingWorker)
+			{
+				installingWorker.addEventListener('statechange', () => {
 
-				if (installWorker.state === 'installed') 
-				{
-					// New Service-Worker has replaced the old one!
-					updating = false
-					updated = true
+					switch (installingWorker.state) {
+						case 'installed':
+							if (navigator.serviceWorker.controller) {
+								// New Service-Worker has replaced the old one!
+								// new update available!
+								updatesAvailable = true
+							
+							} else {
 
-					// FIXME: unregister old one???
+								// no update available
+								updatesAvailable = false
+								log.push("update", installingWorker.state, {registration, installWorker: installingWorker} )
+							}
+							log.push("update installed expected truth", navigator.serviceWorker.controller, {registration, installWorker: installingWorker} )
+							break
+					}
 
-					// TODO: Auto reload???
-					
-					log.push("update installed expected truth", navigator.serviceWorker.controller, {registration, installWorker} )
-				}else{
-					log.push("update", installWorker.state, {registration, installWorker} )
-				}
-			})
+					if (installingWorker.state === 'installed') 
+					{
+						
+						// FIXME: unregister old one???
+	
+						// TODO: Auto reload???
+						
+						
+					}else{
+						
+					}
+				})
+			}
+			
 
 			
 			// if (navigator.storage) 
@@ -424,6 +443,7 @@ export const installOrUpdate = async(debug=false) => {
 		prompt:deferredPrompt,
 
 		updatesAvailable, updating, updated, 
+		newVersionAvailable,
 
 	
 		// requestAddToHomescreen 
