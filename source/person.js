@@ -799,7 +799,8 @@ export default class Person{
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 		if (this.options.stereoPan)
 		{
-			this.stereoNode.pan.value = eyeDirection
+			this.stereoNode.pan.value = eyeDirection * 1.3
+			//console.log("stereoNode", this.stereoNode.pan.value, eyeDirection )
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
 		

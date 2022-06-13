@@ -56,7 +56,7 @@ export const DEFAULT_OPTIONS = {
 	// show face overlays
 	masks:true,
 	// stereo panning with eyes
-	stereo:false,
+	stereo:true,
 	// show eye tracking
 	eyes:true,
 	// synchronise the beats with metronome
