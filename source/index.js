@@ -13,6 +13,7 @@ import Attractor from './attractor'
 const LTD = getRefererHostname().split('.').pop()
 const IS_DEVELOPMENT_MODE = process.env.NODE_ENV === "development"
 const body = document.documentElement
+const debugMode = IS_DEVELOPMENT_MODE || new URLSearchParams(window.location.search).has("debug") 
 
 // if on http flip to https and exit
 forceSecure(IS_DEVELOPMENT_MODE)
@@ -94,10 +95,8 @@ const start = () => {
 		}catch(error){
 
 			// body.classList.add("failed")
-			body.classList.add("failure")
-			body.classList.remove("loading")
-			document.getElementById("feedback").appendChild( createReloadButton(true) )
 			//uninstall()
+			showError( error, "Oh no!" )
 			console.error("Ultimate failure - remove loading - add error class?")
 		}
 	})
@@ -123,7 +122,7 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 
 	// this is the amount of time to run before we "check" for things
 	// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
-	if (IS_DEVELOPMENT_MODE){
+	if (debugMode){
 
 		console.info( "PWA", state.log, {state} )
 	}
@@ -175,6 +174,6 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 
 }).catch( error =>{
 
-	// uninstall()
-	console.error(error)
+	// uninstall() ?
+	console.error("FATAL ERROR ;(", error)
 })
