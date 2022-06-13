@@ -17,6 +17,18 @@ const fieldOfView = (dfov, w, h) => {
     return [2 * atan(w * tanDFOV / hypothenuse), 2 * atan(h * tanDFOV / hypothenuse)]
 }
 
+const setOrientation = () => {
+	
+
+}
+
+// NB. we will use time for smoothing out the eyes
+const setEyeData = (annotations, prediction, time, flipHorizontally = true) => {
+	
+}
+
+
+// TODO: Implement a cache of eyes so that we can learn on the go
 export const enhancePrediction = (prediction, time, flipHorizontally = true) => {
 
 	// more than likely there is a face on the screen :P
@@ -43,7 +55,13 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	// const headHeight = bottomOfHead[1] - topOfHead[1]
 	const headHeight = distanceBetween2Points(bottomOfHead, topOfHead)
 
+
+
+
+
 	// Eyes ---------------------
+	// setEyeData( annotations, prediction, time, flipHorizontally )
+	
 	// There are three points on the face that we can compare against
 	const { leftEyeIris,leftEyeLower0,leftEyeLower1,leftEyeUpper1, 
 			rightEyeIris,rightEyeLower0,rightEyeLower1, rightEyeUpper0,rightEyeUpper1,
@@ -53,23 +71,21 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	const irisLeftX = leftEyeIris[0]
 	const irisRightX = rightEyeIris[0]
 
-	const midPoint = midwayBetweenEyes[0]
-	const midwayBetweenEyesX = midPoint[0] 
-	const midwayBetweenEyesY = midPoint[1] 
+	const midPointVector = midwayBetweenEyes[0]
+	const midwayBetweenEyesX = midPointVector[0] 
+	const midwayBetweenEyesY = midPointVector[1] 
 
-	
-	
-	// const distanceBetweenEyes = abs(irisLeft[0] - irisRight[0])
 	const distanceBetweenEyes =	distanceBetween2Points(irisLeftX, irisRightX)
 	
 	// Are we looking right or left?
 	const lookingRight = irisLeftX[2] < irisRightX[2]
 
 	// -1 -> +1
-	const eyeDirection = (2 * ( midPoint[0] - irisLeftX[0] ) / distanceBetweenEyes) - 1
+	const eyeDirection = (2 * ( midPointVector[0] - irisLeftX[0] ) / distanceBetweenEyes) - 1
 
 	// Now eyes open calcs
 	const eyeSocketHeight = distanceBetween3Points(leftEyeUpper1[ 3 ],rightEyeUpper1[ 3 ])
+	// FIXME: 
 	const eyeScale = eyeSocketHeight / 80
 
 	
@@ -91,10 +107,6 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	const ly = leftEyeLower0[0][1] 
 	const ry = rightEyeLower0[0][1] 
 
-	// lengths of the triangle
-	const lmx = (midwayBetweenEyesX - lx) * -1
-	const rmx = midwayBetweenEyesX - rx
-
 	prediction.lookingRight = flipHorizontally ? !lookingRight : lookingRight
 
 	// Looking left / Right -1 -> 1
@@ -112,7 +124,15 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	//prediction.eyesClosed = prediction.leftEyeClosed && prediction.rightEyeClosed
 
 
-	prediction.headHeight = headHeight
+
+
+
+
+
+	
+	// lengths of the triangle
+	const lmx = (midwayBetweenEyesX - lx) * -1
+	const rmx = midwayBetweenEyesX - rx
 
 	// FIXME : flipHorizontal
 
@@ -146,12 +166,16 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 		-1 * (atan2(rollX, rollY) + HALF_PI)//Math.atan2(rollY, rollX):
 		: atan2(rollX, rollY) - HALF_PI
 	
+
+
+
 	// leaning head as if to look at own chest / sky
 	prediction.pitch = pitch
 	// tilting head towards shoulders
 	prediction.roll = roll
 	// regular left right movement
 	prediction.yaw = yaw
+
 
 	
 	// Lip work --------------------------------
@@ -194,13 +218,19 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 
 	// const upperLip = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
 	
-		//const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
+	
+	prediction.headHeight = headHeight
+	
+	//const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
 	prediction.mouthRange = lipVerticalOpening
 	prediction.mouthRatio = lipVerticalOpening / headHeight
 	prediction.mouthWidth = lipHorizontalOpening
 
 	// TODO: this is the size of the mouth as a factor of the head size
 	prediction.mouthOpen = lipVerticalOpening / (headHeight * RATIO_OF_MOUTH_TO_FACE)
+
+
+
 
 	// These are the angles caused by smiling
 	// We add them together and deduct them from 180 to find
@@ -215,6 +245,7 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	prediction.leftSmirk = (leftSmirk - 1) * 100000
 	prediction.rightSmirk = (rightSmirk - 1) * 100000
 
+	
 	// useful sometimes (different time to audio context?)
 	prediction.time = time	
 
