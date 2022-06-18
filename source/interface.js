@@ -1537,10 +1537,15 @@ export const createInterface = (
 		// Metronome
 		timer = startTimer( ( values )=>{
 		
-			const { bar, bars, 
+
+			const { 
+				divisionsElapsed,
+				bar, bars, 
 				barsElapsed, timePassed, 
 				elapsed, expected, drift, level, intervals, lag} = values
 			
+
+			const isBar = divisionsElapsed % 4 === 0
 			// TODO: The timer is a good place to determine if the computer
 			// 		 is struggling to keep up with the program so we can reduce
 			// 		 the visual complexity of the ui and remove some predictions too
@@ -1565,16 +1570,17 @@ export const createInterface = (
 			}
 
 			// Play metronome!
-			if ( ui.metronome && bars )
+			if ( ui.metronome && bars && isBar )
 			{
 				// TODO: change timbre for first & last stroke
-				const metronomeLength = 0.1
-				kit.clack( metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
+				const metronomeLength = 0.09
+				// click for 3 then clack
+				kit.clack(metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
 			}
 
 			// console.log(barsElapsed, "timer", timer)
 
-			const notesPlayed = []
+			// const notesPlayed = []
 		
 			// sing note and draw to canvas
 			if( ui.quantise )
@@ -1605,8 +1611,10 @@ export const createInterface = (
 			}
 
 
-			// play some accompanyment music!
-			if (ui.backingTrack && bar%2 === 0 )
+			// play some accompanyment music on every note
+			// (as we use 16 divisions for quarter notes)
+			// FIXME: Just expland the patterns with longer gaps
+			if (ui.backingTrack && isBar)
 			{
 				const kick = playNextPart( patterns.kick, kit.kick )
 				const snare = playNextPart( patterns.snare, kit.snare )
@@ -1658,6 +1666,8 @@ export const createInterface = (
 
 		}, convertBPMToPeriod( getState('bpm') ) )
 	} 
+
+
 
 	/**
 	 * load : load the files required for this app

@@ -91,8 +91,7 @@ export const record = (stream)=>{
 	}
 
 	const encodeRecording = async( format="audio", type= "mp3", codecs="") => {
-		// ='audio/mp3;'
-		// var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' 
+		
 		// 'audio': [
 		// 	'audio/webm;codecs=opus',
 		// 	'audio/webm',
@@ -112,33 +111,25 @@ export const record = (stream)=>{
 
 		const encode = `${format}/${type}` + codecs.length ? ';codecs=' + codecs : ''
 		
-		// now hook into our worker bee and watch for timing changes
+		// TODO: Chunk this data so that it sends the packets rather than the blob
+
+		// hook into our worker bee
 		encoder.onmessage = (e) => {	
 			const data = e.data
 			switch(data.event)
 			{
-				case EVENT_ENCODED:
-
-					const encoded  = data.audio
-					return encoded
-					break
-
-				default:
-					// ready!
+				case EVENT_ENCODED: return data.audio
 			}
 		}
 
 		encoder.postMessage({
-			format, 
-			type, 
-			codecs,
+			format, type, codecs,
 			command:CMD_ENCODE, 
 			data:dataArray
 		})
 
 		console.error("Encoding via worker", encode, dataArray)
 		// const audioData = new Blob(dataArray, { 'type': encode })
-		
 		//return audioData
 	}
 
