@@ -24,6 +24,8 @@ export const EVENT_TICK = "tick"
 
 export const MAX_BARS_ALLOWED = 32
 
+const DIVISIONS = 4
+
 const AudioContext = window.AudioContext || window.webkitAudioContext
 
 let startTime = -1
@@ -36,6 +38,9 @@ let isCompatible = true
 let bar = 0
 let bars = 16
 let barsElapsed = 0
+
+// There are 16 quarter notes in a note
+let divisionsElapsed = 0
 
 // NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
 //      FF does not allow raf so use setimeout is preffered
@@ -91,13 +96,13 @@ export const convertBPMToPeriod = bpm => 60000 / bpm
  * Fetch current bar length in milliseconds
  * @returns {Number} bar length in milliseconds
  */
-export const getTimePerBar = () => period
+export const getTimePerBar = () => period * DIVISIONS
 
 /**
  * Fetch whole loop length in milliseconds
  * @returns {Number} length in milliseconds
  */
-export const getTotalTime = () => period * bars
+export const getTotalTime = () => getTimePerBar() * bars
 
 /**
  * Fetch current bar
@@ -163,11 +168,14 @@ export const setBars = value => {
  * @returns {Number} period
  */
 export const setTimeBetween = time => {
-    period = time
+
+	// we want 16 notes
+    period = time / DIVISIONS
+
+  	// TODO
+    // FIXME
     // if it is running, stop and restart it?
     //interval = newInterval
-    // TODO
-    // FIXME
     timingWorker.postMessage({command:CMD_UPDATE, interval:period, time:now() })
     return period
 }
@@ -212,10 +220,12 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
                	// save start time
                 startTime = currentTime
                 isRunning = true
+				divisionsElapsed = 0
                 //console.log("EVENT_STARTING", {time:data.time, startTime})
                 break
 
             case EVENT_TICK:
+
                 // How many ticks have occured yet
                 const intervals = data.intervals
                 // Expected time stamp
@@ -231,11 +241,19 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
                 // deterministic intervals not neccessary
                 const level = Math.floor(timePassed / timeBetween)
                 
-                bar = ++barsElapsed % bars
-				
+				if (++divisionsElapsed === DIVISIONS)
+				{
+					bar = ++barsElapsed % bars
+					divisionsElapsed = 0
+				}
+			
                 // elapsed should === time
                 //console.log("EVENT_TICK", {timePassed, elapsed, drift, art})
-                callback && callback({bar, bars, barsElapsed, timePassed, elapsed, expected, drift, level, intervals, lag})
+                // console.log(divisionsElapsed, bar +'/' + bars)
+                callback && callback({
+					divisionsElapsed, bar, bars, barsElapsed, 
+					timePassed, elapsed, expected, drift, level, intervals, lag
+				})
                 // timingWorker.postMessage({command:CMD_UPDATE, time:currentTime, interval})
                 break
 
