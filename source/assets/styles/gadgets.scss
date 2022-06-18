@@ -220,9 +220,9 @@ input[type=list],
 	//border-style: solid;// outset groove;
 	cursor: pointer;
 
-	// from ios guidelines
-	min-width:44px;
-	min-height:44px;
+	// from ios guidelines 44px- 2px gap
+	min-width:42px;
+	min-height:42px;
 	max-width:var(--max-width-override, var(--max-width,auto) );
 
 	position: relative;
@@ -454,7 +454,7 @@ label[for="button-start"],
 		--icon-size:20px;
 		// here we set a max width
 		// NB. you can override this with --max-width-override
-		--max-width:33px;
+		//--max-width:44px;
 		min-width:22px;
 	}
 }
@@ -838,7 +838,7 @@ label[for="button-start"],
 
 	label[for="button-fullscreen"]{
 		// far right
-		//order:99;
+		// order:99;
 		--col-select:transparent;
 		//--col-hover:transparent;
 
@@ -1408,7 +1408,7 @@ button#share{
 	margin-left: auto;
 	z-index:2;
 	// second from right
-	order:98;
+	// order:98;
 }
 
 // an update is available to the app!
