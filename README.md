@@ -69,59 +69,10 @@ Given enough time it would be possible to save MIDI files directly from the app 
 ```changes: node actions/changelog.mjs```
 ```doc: jsdoc -d dist/docs --configure .jsdoc.json source/index.js```
 
-build: parcel build --no-source-maps --no-scope-hoist --no-content-hash --public-url ./ source/*.pug,
-build:debug: parcel build --no-minify --no-scope-hoist --public-url ./ source/*.pug,
-build:index: parcel build --no-scope-hoist --no-content-hash --public-url ./ source/index.pug,
-electron: electron-builder --dir,
-run:electron: electron-builder,
-build:electron: parcel build --public-url ./ --dist-dir ./dist --no-source-maps --no-content-hash source/app.pug,
-open:electron: npx cap open @capacitor-community/electron,
-build:android: parcel build --public-url ./ --dist-dir ./dist --no-source-maps source/app.pug,
-open:android: npx cap open android,
-run:android: npx cap run android,
-android: yarn clean && yarn build:android && node actions/app.mjs && yarn open:android,
-
-app:build: parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug,
-
-
-// Documentation generation
-help: parcel build --public-url ./ source/help.pug,
-roadmap: parcel build --public-url ./ source/roadmap.pug,
-app: parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug,
-copyrights:list: NODE_ENV=production yarn licenses list && node license.mjs,
-license: yarn licenses generate-disclaimer > LICENSES.md && yarn licenses generate-disclaimer > source/licenses.md,
-license:build: parcel build --public-url ./ source/licenses.pug,
-
-
-// Revisions and versioning
-revision: yarn version --patch --no-git-tag-version,
-revise: yarn revision && node actions/revision.mjs,
-patch: changelog -p && yarn version --patch && node actions/revision.mjs,
-minor: changelog -m && yarn version --minor && node actions/revision.mjs,
-major: changelog -M && yarn version --major && node actions/revision.mjs,
-
-package: yarn revise && yarn clean && yarn build,
-
-analyse: parcel build source/index.pug --profile --detailed-report,
-
-// Deployment & Distribution
-push: git push origin && git push origin --tags,
-deploy: node actions/deploy.mjs,
-hotfix: yarn patch && yarn clean && yarn build && yarn deploy,
-release: yarn minor && yarn clean && yarn build && yarn deploy,
-bump: yarn major && yarn clean && yarn build && yarn deploy
-
-// troubleshooting and library upgrades
-```killport: npx kill-port 909```
-```hardreset: node actions/reset.mjs --total && yarn install```
-```reset: node actions/reset.mjs```
-```upgrader: yarn upgrade-interactive```
-
 
 ## Future plans
 - Better musicality and expression
 - Upgraded synth engine
-- Refactor Instruments to Instrument Interface for future IO
 - MIDI phrase support
 - Percussion that sounds good!
 - Hand remote Controls
@@ -130,6 +81,8 @@ bump: yarn major && yarn clean && yarn build && yarn deploy
 - Vocoder mode using microphone
 - Improved timing
 - MIDI 2.0 (MPE) Support
+- Favouriting instruments so they go to the top of the list per person
+- Adding new instruments!
 
 ## Requirements
 - Face
@@ -146,16 +99,18 @@ bump: yarn major && yarn clean && yarn build && yarn deploy
 - [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Alphabet](https://google.com)
 
 ## Thanks
+- Becky Morris Knight 
 - Tim Yates
 - Thomas Bonte
 - Darren Southea
+- Jean-Baptiste Thiebaut 
+- [Severin Meyer]((https://sev.dev)
 
 ## Check it out over at
 - [InterFACE](https://interface.place)
 - [InterFACE:BETA](https://interface.dance)
 - [InterFACE:SOLO (dev)](https://designerzen.github.io/InterFACE)
 - [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
-
 
 - [90 Second Intro on youtube](https://www.youtube.com/watch?v=-DSDIET5MJo)
 - [5 Minute Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
@@ -170,32 +125,22 @@ bump: yarn major && yarn clean && yarn build && yarn deploy
 
 
 
-1. What was the motivation for your product/installation?
+## Accessibilty Checklist :
 
-I wanted to expand the ways we interact with our machines beyond just sitting and clicking, something that didn't require touch but that was still simple and expressive. 
+### Accessible ###
+- In terms of the physical format of the instrument, or the design of the software. This could mean using high contrast colours to remove visibility barriers, or keeping an interface streamlined to remove complexity barriers.
 
-I work with a lot of musicians with different abilities and disabilities and this software gives them a new way to express themselves and to empower them to expand their range of skills.
+### Authentic ###
+- Co-created; designed by Disabled people, not for them. Disabled people are experts in their lived experience and nothing beats that for creating truly accessible ideas.
 
-Ive been involved with making accessible techology for over twenty years but the technology to make this kind of software has only recently ev
+### Affordable ### 
+– If it’s not affordable, it’s not accessible. This will work at different levels, with the cost being appropriate to the quality of the instrument – e.g. a professional-grade piece of kit will cost more than a beginners instrument.
 
-A touch free interface that requires no training in the day of the super virus could prove useful beyond playing music.
+### Available ### 
+– If it’s not available, it’s not accessible. We see great ideas which end up in drawers. If it’s not available to play, it’s no longer accessible!
 
-Ultimately this project is dedicated to my grandma who lived with blindness most of her adult life and who passed away a few months ago,
-
-2. Describe how it is innovative
-
-As far as I can tell it's the first one of it's kind and it does have many applications outside of making music.   
-
-It hopes to improve computer - human relations
-
-Ultimately I hope that it can inspire people to try things beyond their regular capabilities and provide people with new skills and opportunities. 
-
-It aims to bring more equality to skills and leverages technology to empower and include the most diverse and varied audience - giving confidence to the most underrepresented and unprivileged.
-
-
-
-
-
+### Adaptable ###
+– We want to create new musical kit which can fit the person playing, like how Mi.Mu Glove gesture technology is mapped to the musician using it. If music technology can be personalised, it will be more accessible to a broader group of people.
 
 
 ### Keywords
@@ -206,3 +151,28 @@ It aims to bring more equality to skills and leverages technology to empower and
 - musical instrument
 - synthesizer
 - MIDI hardware controller
+
+
+Questions and known unknowns
+
+- amic museum amicdrakemusic.wordpress.com
+- drake music charity 
+- suite of none touch instruments / tools
+
+- shown at SXSW by the UKRI but refused to fund
+
+- trend of piggybacking onto natural movements
+- expressive real time gestures
+
+- head angle causes issues with the calculations 
+
+- put me in touch with the right people at tensorflow
+
+- following human emotions to change / set the instruments / scale
+- recording performances to a server / video recording
+ 
+- analysis of voice commands!
+- recognition of faces and preserving state
+
+- protecting copyright and intellectual property
+- extracting license codes in every library even though many are similar
