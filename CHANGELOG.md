@@ -1,3 +1,75 @@
+#### 0.8.13 (2022-06-13)
+
+#### 0.8.12 (2022-06-13)
+
+#### 0.8.11 (2022-06-13)
+
+##### Bug Fixes
+
+*  a18n headline order (7f7f060a)
+
+##### Other Changes
+
+*  Re-enabled stereo panning (9d9d122c)
+
+#### 0.8.10 (2022-06-13)
+
+##### Bug Fixes
+
+*  Extra debug mode for live (88a0ba74)
+*  Errors now exclaimed (e180e51f)
+
+##### Other Changes
+
+*  Added new sound effects (116f4145)
+
+#### 0.8.9 (2022-06-13)
+
+##### Other Changes
+
+*  Moree animations for buttons added (6b243901)
+*  main menu uses grid for stretch (40d46559)
+
+#### 0.8.8 (2022-06-12)
+
+##### Bug Fixes
+
+*  PWA now uses toast (64fb68b6)
+*  Tooltip fixes with timing (b5c20d1f)
+
+##### Other Changes
+
+*  Better markup (d4a1a002)
+*  Audio element now speed controllable (2fb75621)
+*  Person now accurately dispatches progress (e27e87f4)
+*  Added circuar svg logo (3dd64bf5)
+
+#### 0.8.7 (2022-06-11)
+
+##### Bug Fixes
+
+*  Person's instrument loading updates (d91e6de9)
+*  added PWA file handlers (c1abb5a5)
+*  preload on fonts always needs crossOrigin (b062afc4)
+*  Recorder not encodes (fddda52d)
+*  tooltip not revealing (ef908261)
+
+##### Other Changes
+
+*  Logos added and improved (f9dc1c39)
+*  Markup improvements (51dc055b)
+*  Audio-player now self contained (fc2e8a19)
+*  Added very rudimentary wave SVG drawer (4b5efadd)
+*  Added isLoading to Instrument (d3adde28)
+*  From click to mousedown! (e4a83ffe)
+*  Tooltips in seperate class (25584022)
+*  MidiFiles load and record (b49378bb)
+*  Added new buttons! (8df972f2)
+*  Tooltip code prettier (2daa5f3e)
+*  Added Record button (347cc30f)
+*  MIDI conversion fixed up (b42d95c5)
+*  Major audio improvement + midi files (d518b70e)
+
 #### 0.8.6 (2022-06-05)
 
 #### 0.8.5 (2022-06-03)
