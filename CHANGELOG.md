@@ -1,3 +1,19 @@
+#### 0.8.15 (2022-06-18)
+
+#### 0.8.14 (2022-06-18)
+
+##### Other Changes
+
+*  Version bump (80b952a6)
+*  Changed titles for better SEO (b47e2d9a)
+*  Person's eye stereo seperation reduced (da3458eb)
+*  Basic audio player styles (9bb3e968)
+*  Recorder simplified (c47f19fe)
+*  Added quarter notes to timing (162519c2)
+*  Added hats to drum sequence (d176c9a2)
+*  Encoder now lives in a Worker (64072b82)
+*  Packages & parcel lib (412c0355)
+
 #### 0.8.13 (2022-06-13)
 
 #### 0.8.12 (2022-06-13)

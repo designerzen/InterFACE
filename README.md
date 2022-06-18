@@ -90,13 +90,12 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - A screen with dimensions greater than 320 x 280 pixels
 - A relatively modern computer (GPU prefered)
 - Speakers or headphones or MIDI equipment
-
-- Optional: Mouse / Keyboard / finger to change settings 
+- Optional: GamePAD / Mouse / Keyboard / finger to change settings 
 
 ## Credits
 - [Drake Music](https://drakemusic.org) for inspiration and support
 - Font is Oxanium by [Severin Meyer](https://sev.dev/fonts/oxanium/)
-- [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Alphabet](https://google.com)
+- [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Google](https://google.com)
 
 ## Thanks
 - Becky Morris Knight 
@@ -104,7 +103,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Thomas Bonte
 - Darren Southea
 - Jean-Baptiste Thiebaut 
-- [Severin Meyer]((https://sev.dev)
+- [Severin Meyer](https://sev.dev)
 
 ## Check it out over at
 - [InterFACE](https://interface.place)
@@ -120,8 +119,8 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - [GIVE A MAN A RECORD AND THEY DANCE FOR THE DAY, GIVE THAT MAN A SYNTH AND THEY DANCE FOR A LIFETIME - Talk given @ SXSW21](https://youtu.be/3SmpSvRB4XA)
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
 - [MIDI Innnovation Finalists 2022](https://www.midi.org/component/zoo/item/photosynth-interface)
-- [Music Maker Festival](https://www.makermusicfestival.com/)
 - [MIDI Innovation Awards 2022 Stream](https://www.youtube.com/watch?v=1HzlwlekZQk)
+- [Music Maker Festival](https://www.makermusicfestival.com/)
 
 
 
