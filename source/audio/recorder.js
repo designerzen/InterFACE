@@ -1,7 +1,5 @@
 
 // RECORD AUDIO
-// TODO : new Worker( new URL('./recorder.worker.js', import.meta.url), {type: 'module'} )
-		
 
 // TODO: Add in AnalyzerNode and record the waveform data too if requested
 // If audio data available then push  it to the chunk array 
@@ -11,6 +9,11 @@ export const record = (stream)=>{
 	let dataArray = []
 	let mediaRecorder
 
+	const encoder = new Worker(
+        new URL('./encoder.worker.js', import.meta.url),
+        {type: 'module'}
+    )
+	
 	const startRecording = stream => {
 
 		return new Promise((resolve,reject)=>{
@@ -56,10 +59,10 @@ export const record = (stream)=>{
 						console.error('MediaRecorder Error', error);
 						break;
 				}
+				return reject(error)
 			}
 
-			// Convert the audio data in to blob  
-			// after stopping the recording 
+			// Convert the audio data in to blob after stopping the recording 
 			mediaRecorder.start()
 			recording = true	
 			//console.log("recording", {mediaRecorder, dataArray})
@@ -87,7 +90,7 @@ export const record = (stream)=>{
 		})
 	}
 
-	const encodeRecording = ( format="audio", type= "mp3", codecs="") => {
+	const encodeRecording = async( format="audio", type= "mp3", codecs="") => {
 		// ='audio/mp3;'
 		// var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' 
 		// 'audio': [
@@ -108,9 +111,35 @@ export const record = (stream)=>{
 		// ]
 
 		const encode = `${format}/${type}` + codecs.length ? ';codecs=' + codecs : ''
-		//console.error("Encoding", encode, dataArray)
-		const audioData = new Blob(dataArray, { 'type': encode })
-		return audioData
+		
+		// now hook into our worker bee and watch for timing changes
+		encoder.onmessage = (e) => {	
+			const data = e.data
+			switch(data.event)
+			{
+				case EVENT_ENCODED:
+
+					const encoded  = data.audio
+					return encoded
+					break
+
+				default:
+					// ready!
+			}
+		}
+
+		encoder.postMessage({
+			format, 
+			type, 
+			codecs,
+			command:CMD_ENCODE, 
+			data:dataArray
+		})
+
+		console.error("Encoding via worker", encode, dataArray)
+		// const audioData = new Blob(dataArray, { 'type': encode })
+		
+		//return audioData
 	}
 
 	// const looper = (blob) => {
@@ -120,9 +149,9 @@ export const record = (stream)=>{
 	// 	audio.src = audioURL;
 	// }
 
-	const downloadRecording = ( fileName="recording", format="audio", type= "ogg", codec="opus" ) => {
+	const downloadRecording = async ( fileName="recording", format="audio", type= "ogg", codec="opus" ) => {
 		console.log("downloadRecording", {fileName,format,type,codec})
-		const blob = encodeRecording( format, type, codec )
+		const blob = await encodeRecording( format, type, codec )
 		const url = URL.createObjectURL(blob)
 		const a = document.createElement("a")
 		document.body.appendChild(a)
