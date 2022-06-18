@@ -165,7 +165,7 @@ export const createInterface = (
 	let ui = loadState( defaultOptions, main )
 
 	// Record stuff
-	const { isRecordingAvailable, isRecording, startRecording, stopRecording, encodeRecording, downloadRecording } = record()
+	const { getRecordedDuration, isRecordingAvailable, isRecording, startRecording, stopRecording, encodeRecording, downloadRecording } = record()
 
 	// collection of persons
 	const people = []
@@ -1357,9 +1357,9 @@ export const createInterface = (
 			}
 
 			// return if camera is still connecting...
+			// otherwise tensorflow will try and calculate blankness
 			if (cameraLoading)
 			{
-				//console.log("update:progress loading")
 				return
 			}
 
@@ -1395,7 +1395,7 @@ export const createInterface = (
 				// Start on BAR
 				// show quantise
 				// fetch notes played from user?
-				const barColour = `hsl(${getPerson(0).hue },50%,50%)`
+				const barColour = `hsl (${getPerson(0).hue },50%,50%)`
 				//drawQuantise( beatJustPlayed, getBar(), getBars(), barColour)
 				quanitiser.draw( beatJustPlayed, getBar(), getBars(), barColour )
 			}
@@ -1491,13 +1491,6 @@ export const createInterface = (
 					tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange)}%`
 					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 				}
-
-				// No face was detected on either user
-				if (!haveFacesBeenDetected)
-				{
-					// No faces located so update help
-					setFeedback( getHelp( Math.floor(counter/100) ) )
-				}
 					
 			}else{
 				// tickerTape += `No prediction`
@@ -1505,30 +1498,48 @@ export const createInterface = (
 
 			
 
-			// Feedback text changes depending on time
-			if (!predictions)
-			{
-				// Need to show instructions to the user...
-				// as no face can be detected
-				setFeedback( getHelp( Math.floor(counter/100)  ))
-				// }else if (tickerTape.length){
-				// 	setFeedback(tickerTape)
-				// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
-			}else{
-				// Faces found so show the next set of instructions
-				setFeedback( getInstruction( Math.floor(counter/100) ))
-				// setFeedback(`Look at me and open your mouth`)
-			}
-
 			// this simply forces refresh of the stave notes
 			// stave.update( counter )
 
 
+			// Update TEXT on screen...
+			if (isRecording())
+			{
+				const recordedDuration = getRecordedDuration() * 0.001
+				// format the time?
+				const minutes = recordedDuration / 60
+  				const seconds = recordedDuration % 60
+  				const milliseconds = (seconds % 1) * 1000
+				//const recordString = (minutes>>0) + ':' + (seconds>>0)
+				const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
+				setFeedback(recordString)
+
+			}else{
+				
+				// No face was detected on either user
+				if (!haveFacesBeenDetected || !predictions)
+				{
+					// Need to show instructions to the user...
+					// as no face can be detected
+					setFeedback( getHelp( Math.floor( counter * 0.01 )  ))
+					// }else if (tickerTape.length){
+					// 	setFeedback(tickerTape)
+					// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+			
+				}else{
+
+					// Faces found so show the next set of instructions
+					setFeedback( getInstruction( Math.floor( counter * 0.01 ) ))
+					// setFeedback(`Look at me and open your mouth`)
+				}
+			}
+			
+			// finallyu reset this flag
 			if (beatJustPlayed)
 			{
 				beatJustPlayed = false
 			}
-			
+
 			//console.log(counter, "update", {predictions, tickerTape, userLocated, cameraLoading} )
 
 		}, shouldUpdate )

@@ -28,11 +28,15 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 		return after
 	}
 	
-	return element ? (message, responseRate=rate ) => {
+	return element ? (message, responseRate=rate, showFlasher=true ) => {
 
 		if (split)
 		{
 			message = message.split(/!|\./i).join("<br>")
+		}
+
+		if (!showFlasher){
+			// FIXME: Hide the cursor indicator
 		}
 
 		currentMessage = message

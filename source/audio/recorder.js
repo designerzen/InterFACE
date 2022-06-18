@@ -5,6 +5,8 @@
 // If audio data available then push  it to the chunk array 
 export const record = (stream)=>{
 
+	let startTime = -1
+	let duration = -1
 	let recording = false
 	let dataArray = []
 	let mediaRecorder
@@ -26,6 +28,8 @@ export const record = (stream)=>{
 			mediaRecorder = new MediaRecorder(stream)
 			mediaRecorder.onstart = event => {
 				dataArray.length = 0
+				startTime = Date.now()
+				duration = 0
 				resolve({mediaRecorder,dataArray,stream})
 			}
 
@@ -82,6 +86,8 @@ export const record = (stream)=>{
 				// array make it empty 
 				recording = false
 				mediaRecorder = null
+
+				duration = Date.now() - startTime
 
 				// Pass the audio url to the 2nd video tag 
 				resolve( dataArray )
@@ -156,8 +162,9 @@ export const record = (stream)=>{
 
 	const isRecordingAvailable = () => !!(window && window.MediaRecorder && typeof window.MediaRecorder.isTypeSupported === 'function' && window.Blob)
 	const isRecording = () => recording
+	const getRecordedDuration = () => recording ? Date.now() - startTime : duration
 
-	return { isRecordingAvailable, downloadRecording, encodeRecording, startRecording,stopRecording, isRecording}
+	return { isRecordingAvailable, downloadRecording, encodeRecording, startRecording,stopRecording, isRecording, getRecordedDuration }
 } 
 
 /**
