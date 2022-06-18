@@ -1512,7 +1512,7 @@ export const createInterface = (
   				const milliseconds = (seconds % 1) * 1000
 				//const recordString = (minutes>>0) + ':' + (seconds>>0)
 				const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
-				setFeedback(recordString)
+				setFeedback(recordString, false)
 
 			}else{
 				
