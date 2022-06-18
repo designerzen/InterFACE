@@ -123,7 +123,7 @@
 	
 	visibility: visible;
 	font-size: 0;
-	order: -1;
+	// order: -1;
 	// overflow: hidden;
 
 	svg{
@@ -626,21 +626,26 @@ html.debug{
 	// bottom:var(--footer-gap);
 	top:var(--pad);
 
-	left:var(--side);
-	right:var(--side);
+	left:50%;//var(--side);
+	width:min-content;
+	max-width:calc( 100vw - 2 * var(--side) );
+	transform: translateX(-50%);
+	//right:var(--side);
 
 	display: flex;
 	overflow: auto;
 	overflow-y: hidden;
-
+	justify-content: center;
+	
 	// a bit of space to zoom
 	padding:var(--pad);
-	padding-top:36px;
+	padding-top:22px;
 	pointer-events: all;
 
 	z-index: 303;
 	gap:var(--pad);
 	border:var(--border-size) solid var(--shade-yellow);
+	background-color:var(--shade-dark);
 
 	scroll-behavior:smooth ;
 	scroll-snap-type: x mandatory;
@@ -648,6 +653,7 @@ html.debug{
 
 	> * {
 		scroll-snap-align: center;
+		margin-right: 20px;
 	}
 
 	&:empty{

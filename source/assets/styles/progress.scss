@@ -109,7 +109,7 @@ progress{
         width:calc( var(--size) - var(--stroke,10px) * 2 );
     	height:calc( var(--size) - var(--stroke,10px) * 2 );
         border-radius:999px;
-        border: var(--stroke,10px) solid transparent;
+        border: var(--stroke,10px) solid var(--shade-green);
         transform-origin: center;
         box-sizing: content-box;
         // now we mask the circle so it is just the top half
@@ -252,15 +252,24 @@ progress[value="1"]{
 // change colour over a longer period
 @keyframes LoaderColor{
     0%{
-        border-color:hsl(0,var(--saturation,50%),var(--luminosity,50%));
+		filter:hue-rotate(0);
     }
-    50%{
-        border-color:hsl(180,var(--saturation,50%),var(--luminosity,50%));
-    }
-    75%{
-        border-color:hsl(270,var(--saturation,50%),var(--luminosity,50%));
-    }
+   
     100%{
-        border-color:hsl(360,var(--saturation,50%),var(--luminosity,50%));
+        filter:hue-rotate(1turn);
     }
 }
+// @keyframes LoaderColor{
+//     0%{
+//         border-color:hsl(0,var(--saturation,50%),var(--luminosity,50%));
+//     }
+//     50%{
+//         border-color:hsl(180,var(--saturation,50%),var(--luminosity,50%));
+//     }
+//     75%{
+//         border-color:hsl(270,var(--saturation,50%),var(--luminosity,50%));
+//     }
+//     100%{
+//         border-color:hsl(360,var(--saturation,50%),var(--luminosity,50%));
+//     }
+// }
