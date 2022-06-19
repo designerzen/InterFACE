@@ -27,28 +27,36 @@
 // http://grimmdude.com/MidiWriterJS/
 import MidiWriter from 'midi-writer-js'
 import MIDITrack from './midi-track'
-import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF, COMMAND_PROGRAM_CHANGE } from './midi-commands'
+import { 
+	COMMAND_NOTE_ON, COMMAND_NOTE_OFF, COMMAND_PROGRAM_CHANGE,
+	COMMAND_CHANNEL_AFTER_TOUCH, COMMAND_CHANNEL_PRESSURE,	
+	COMMAND_PITCH_BEND,	COMMAND_SYSTEM_MESSAGE
+} from './midi-commands'
+
 /**
- * 
+ * Create a MIDI File!
  * @param {MIDITrack} midiTrack 
  */
-export const createMIDIFileFromTrack = (midiTrack) => {
+export const createMIDIFileFromTrack = (midiTrack, bpm=120 ) => {
 
-	// Start with a new track
 	const track = new MidiWriter.Track()
-	track.addCopyright("interface.place")
-	track.addTrackName("interFACE")
-	
-	console.log("Creating MIDI File", {midiTrack, track} )
+
+	track
+		.addCopyright("interface.place")
+		.addTrackName("interFACE")
+		.setTempo(bpm)
+		
+	console.log("[MIDIFile] Creating MIDI File", {midiTrack, track} )
 
 	midiTrack.commands.forEach( (command,index)=> {
 
+	//	console.log("[MIDIFile] Adding MIDI Command", {command, index} )
+		
 		if (command.type === "channel")
 		{
 			switch(command.type)
 			{
 				case COMMAND_NOTE_ON:
-
 					track.addEvent(
 						new MidiWriter.NoteOnEvent({
 							pitch: [command.noteNumber], 
@@ -56,11 +64,9 @@ export const createMIDIFileFromTrack = (midiTrack) => {
 							velocity:command.velocity
 						})
 					)
-					
 					break
 
 				case COMMAND_NOTE_OFF:
-
 					track.addEvent(
 						new MidiWriter.NoteOffEvent({
 							pitch: [command.noteNumber], 
@@ -71,7 +77,7 @@ export const createMIDIFileFromTrack = (midiTrack) => {
 					break
 
 				case COMMAND_PROGRAM_CHANGE:
-					// Define an instrument (optional):
+					// Define an instrument
 					track.addEvent(
 						new MidiWriter.ProgramChangeEvent({
 							instrument: command.programNumber 
@@ -79,6 +85,12 @@ export const createMIDIFileFromTrack = (midiTrack) => {
 					)
 					break
 
+				case COMMAND_CHANNEL_AFTER_TOUCH: 
+				case COMMAND_CHANNEL_PRESSURE:
+				case COMMAND_PITCH_BEND:
+				case COMMAND_SYSTEM_MESSAGE:
+					// TODO:
+					break
 			}
 		}
 	})
@@ -119,5 +131,5 @@ export const createMIDIFileFromTrack = (midiTrack) => {
 export const saveMIDIFile = (track, output) => {
 	const writer = new MidiWriter.Writer(track)
 	console.log(writer.dataUri())
-	writer.saveMIDI(output)
+	//writer.saveMIDI(output)
 }
