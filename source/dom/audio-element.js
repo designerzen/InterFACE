@@ -13,8 +13,8 @@ const createCanvasProgressBar = (width, height) => {
 
 export const createAudioElement = (src, fileName, downloadCallback, waveform=null ) => {
 	
-	const width = 48
-	const height = 48
+	const width = 100
+	const height = 1
 
 	let isPlaying = false
 
@@ -29,13 +29,15 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	const progressBar = createCanvasProgressBar(  width, height )
 	const canvasContext = progressBar.getContext("2d")
 	
+	// we guess how long the duration is until the meta tells us for sure
+	const estimatedAudioDuration = 3 * 1000
+
 	let audio = new Audio()
-	let duration = audio.duration
-	let currentTime = audio.currentTime	
+	let duration = audio.duration || estimatedAudioDuration
+	let currentTime = audio.currentTime	|| 0
 
 	// console.log("Creating an audio element...", audio, {src,fileName, duration, currentTime})
 	
-
 	audio.className = "audio-file"
 	audio.playbackRate.value = 1
 	audio.onload = e =>{
@@ -43,7 +45,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	}
 	audio.onloadedmetadata = e => {
 		// probably infinity!
-		duration = !isNaN(audio.duration) ? audio.duration : -1
+		duration = !isNaN(audio.duration) ? audio.duration : estimatedAudioDuration
 		currentTime = audio.currentTime
 	}
 
