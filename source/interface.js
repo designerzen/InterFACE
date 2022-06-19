@@ -5,13 +5,13 @@ import { record } from './audio/recorder'
 import { 
 	getRecordableOutputNode,
 	active, playing, 
-	randomInstrument, 
 	setupAudio,	audioContext, setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength,dataArray, 
 	getVolume, setVolume } from './audio/audio'
 
-import { loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
+import { 
+	getRandomInstrument, createInstruments, loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
 import { createWaveform } from './audio/waveform'
@@ -21,10 +21,12 @@ import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
 import {getMIDINoteNumberAsName} from './audio/notes'
 
+import {easeOutQuart} from './maths/easing'
+
 // Different ways of playing sound!
-import SampleInstrument from './audio/instrument.sample'
-import MIDIInstrument from './audio/instrument.midi'
-import OscillatorInstrument from './audio/instrument.oscillator'
+import SampleInstrument from './audio/instruments/instrument.sample'
+import MIDIInstrument from './audio/instruments/instrument.midi'
+import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 
 // More input mechanisms
 import GamePad from './hardware/gamepad'
@@ -342,7 +344,7 @@ export const createInterface = (
 
 		// see if there is a stored name for the instrument...
 		// FIXME: Look also in the midiPerformance for the first instrument
-		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || randomInstrument() )
+		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || getRandomInstrument() )
 		//console.error("Person created", {instrument}, {person})
 
 		// the instrument has changed / loaded so show some feedback
@@ -893,6 +895,43 @@ export const createInterface = (
 	}
 
 	/**
+	 * Add a drag and drop zone to allow files to be 
+	 * dragged onto the app to then load additional features
+	 */
+	const connectDropZone = () => {
+		const dropAreas = [ body ]
+		const evs = ['dragenter', 'dragover', 'dragleave', 'drop']
+		dropAreas.forEach( dropArea => {
+			evs.forEach(eventName => {
+				dropArea.addEventListener(eventName, async (event) => {
+					event.preventDefault()
+					event.stopPropagation()
+					switch (event.type)
+					{
+						case 'dragenter':
+						case 'dragover':
+							body.classList.toggle('dragging', true)
+							break
+		
+						case 'dragleave':
+						case 'drop':
+							body.classList.toggle('dragging', false)
+							break
+					}
+
+					if (event.type === "drop")
+					{
+						const dataTransfer = event.originalEvent ? event.originalEvent.dataTransfer : event.dataTransfer
+						const file = dataTransfer.files[0]
+						await userUploadMediaFile( file )
+					}
+
+				}, false)
+			})
+		})
+	}
+
+	/**
 	 * play Audio for a Person using their current face status
 	 * @param {Person} person 
 	 * @returns {Object} of metadata
@@ -1227,6 +1266,10 @@ export const createInterface = (
 			const newVolume = savedVolume ? savedVolume.volume : 1
 			audio = await setupAudio()
 			
+			// create a super object containing paths and families ands such!
+			const instrumentDictionary = createInstruments()
+			console.error({instrumentDictionary})
+
 			// load a specific instrumentPack?
 			await loadInstrumentDataPack()
 			//console.log("Initiating audio", {newVolume,savedVolume, audio})
@@ -1346,6 +1389,7 @@ export const createInterface = (
 		const shouldUpdate = () => !cameraLoading
 		
 		// this then runs the loop if set to true
+		// 
 		update( inputElement === video, (predictions)=>{
 
 			// NB. always update the counter
@@ -1548,7 +1592,6 @@ export const createInterface = (
 		// Metronome
 		timer = startTimer( ( values )=>{
 		
-
 			const { 
 				divisionsElapsed,
 				bar, bars, 
@@ -1622,10 +1665,14 @@ export const createInterface = (
 			}
 
 
+			
+			// to add swing to the beats
+			// easeOutQuart(divisionsElapsed%16 / 16)
+			// && isBar
 			// play some accompanyment music on every note
 			// (as we use 16 divisions for quarter notes)
 			// FIXME: Just expland the patterns with longer gaps
-			if (ui.backingTrack && isBar)
+			if (ui.backingTrack )
 			{
 				const kick = playNextPart( patterns.kick, kit.kick )
 				const snare = playNextPart( patterns.snare, kit.snare )
@@ -1844,15 +1891,16 @@ export const createInterface = (
 			kit.cowbell()
 		} )
 
-		// Button video loads random instruments for all
-		setButton( "button-video", status => loadRandomInstrument() )
-		
+	
 		// reset to factory defaults
 		setButton( "button-reset", status =>{ 
 			ui = {...defaultOptions}
 			refreshState()
 		})
 
+		// Button video loads random instruments for all
+		setButton( "button-video", status => loadRandomInstrument() )
+		
 		// setButton( "link-about", status => {
 			
 		// } )
@@ -1910,9 +1958,7 @@ export const createInterface = (
 
 		// change behviours for logo buttons
 		const logoButton = document.getElementById( "link-about" )
-		
 		addMouseTapAndHoldEvents( logoButton )
-		
 		logoButton.addEventListener( MOUSE_TAP, event => {
 			// console.log("Logo tapped")/
 			if (kit){
@@ -1924,7 +1970,6 @@ export const createInterface = (
 			// console.log("Logo held")
 			// Easter egg
 		} )
-
 
 		// Upload MIDI File! Secret functions
 		const uploadMIDIForm = document.getElementById("midi-file") 
@@ -1941,39 +1986,8 @@ export const createInterface = (
 			const file = uploadMIDIFileInput.files[0] 
 			await userUploadMediaFile( file )
 		})
-	
-		const dropAreas = [ body ]
-		const evs = ['dragenter', 'dragover', 'dragleave', 'drop']
-		dropAreas.forEach( dropArea => {
-			evs.forEach(eventName => {
-				dropArea.addEventListener(eventName, async (event) => {
-					event.preventDefault()
-					event.stopPropagation()
-					switch (event.type)
-					{
-						case 'dragenter':
-						case 'dragover':
-							body.classList.toggle('dragging', true)
-							break
-		
-						case 'dragleave':
-						case 'drop':
-							body.classList.toggle('dragging', false)
-							break
-					}
 
-					if (event.type === "drop")
-					{
-						const dataTransfer = event.originalEvent ? event.originalEvent.dataTransfer : event.dataTransfer
-						const file = dataTransfer.files[0]
-						await userUploadMediaFile( file )
-					}
-
-				}, false)
-			})
-		})
-	
-		
+		connectDropZone()
 
 		try{
 			// Attempt to Lazy load
@@ -2109,7 +2123,7 @@ export const createInterface = (
 			console.log("onMIDIPerformanceAvailable", midiTrack, matchingCommands )
 		}
 
-		const midiFile = createMIDIFileFromTrack(midiTrack)
+		const midiFile = createMIDIFileFromTrack( midiTrack, getBPM() )
 		saveMIDIFile( midiFile, "./local.mid")
 	}
 
@@ -2176,6 +2190,7 @@ export const createInterface = (
 			//console.log("Duet", multiPlayer, ui.duet )
 
 		}catch(error){
+
 			console.error("player selection failed", error)
 		}
 
