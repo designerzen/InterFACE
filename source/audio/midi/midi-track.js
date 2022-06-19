@@ -31,15 +31,15 @@ export default class MidiTrack
 			types = [types]
 		}
 		return this.commands.filter( value => {
-			console.log("getMatchingCommands",value.type === type,value)
+			//console.log("getMatchingCommands",value.type === type,value)
 			
 			if (value.type === type)
 			{
 				const typePosition = types.indexOf(value.subtype)
-				console.log("typePosition > -1", typePosition > -1, types, value.subType)
+				//console.log("typePosition > -1", typePosition > -1, types, value.subType)
 				return typePosition > -1
 			}else{
-				console.log("getMatchingCommands",value.type,value)
+				//console.log("getMatchingCommands",value.type,value)
 			}
 			
 			return false
