@@ -75,8 +75,10 @@ export const DEFAULT_OPTIONS = {
 	
 	// hide menu if mouse outside of screen...
 	autoHide:!isDevelopmentMode,
+
 	// load a midi track automatically on app start
-	loadMIDIPerformance:false,
+	loadMIDIPerformance:isDevelopmentMode,
+
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio
 	useGamePad:true,
