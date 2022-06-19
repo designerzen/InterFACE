@@ -71,6 +71,8 @@ block main
 			//- Fieldsets that fills with instruments 
 			// FIXME: ADD ARIA
 			fieldset.person-controls#person-a-controls
+				#{instruments}
+
 			
 			//- Same for Player 2
 			button(type="button").person#person-b Change instrument for the person on the right 
@@ -204,7 +206,7 @@ block main
 			button#button-video(type="button" aria-label="Click screen to change instruments") Swap instruments for all people
 			
 			//- Once the user has taken some photos they appear here
-			result#photographs
+			result#photographs.recordings
 
 			//- ALL PLAYER SETTINGS --------------------------------------
 			//- Settings for all players... usually hidden
@@ -374,7 +376,10 @@ block dialogs
 			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Dialog
 
 	dialog#pwa
-		iframe#changelog(src="./changes.html" title="Changes")
+		//-iframe#changelog(src="./changes.html" title="Changes")
 		form(method="dialog")
-			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Funding 
+			h5 Updates available!
+			#changelog
+			button(autofocus type="button" title="Upgrade to the latest version") Upgrade 
+			button#button-update(onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close 
 	

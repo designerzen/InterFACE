@@ -3,10 +3,11 @@ import { setLoadProgress, getLoadProgress } from './dom/load-progress'
 import { VERSION } from './version'
 import { getBrowserLocales } from './i18n'
 import { getDomainDefaults } from './settings'
-import { installOrUpdate, uninstall } from './pwa/pwa'
+import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
 import { createStore} from './store'
 import { showReloadButton as createReloadButton } from './dom/button'
 import { setToast } from './dom/tooltips'
+import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents} from './utils'
 import Capabilities from './capabilities'
 import Attractor from './attractor'
 
@@ -26,6 +27,13 @@ const capabilities = new Capabilities()
 // start loading / updating...
 body.classList.add("loading", IS_DEVELOPMENT_MODE ? "debug" : LTD )
 
+// FIXME: show updates button
+const showUpgradeDialog = () => {	
+	const updateButton = document.getElementById("button-update")
+	const changes = showChangelog( document.getElementById("changelog") )
+	document.getElementById("pwa").setAttribute("open", true)
+	updateButton.setAttribute("hidden", false)
+}
 
 const start = () => {
 
@@ -118,7 +126,10 @@ const start = () => {
 // needs to be run early on ideally and in a seperate thread
 // loads in the relevant data to determine if the app needs to be 
 // updated if installed or installed if uninstalled
-installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
+const versionElement = document.getElementById("version")
+const runningVersion = versionElement.innerText
+
+installOrUpdate(debugMode, runningVersion).then( state => {
 
 	// this is the amount of time to run before we "check" for things
 	// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
@@ -131,8 +142,7 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 	// show a bit more useful feedback about the status of the web app
 	// and whether it is installed / has updates available etc...
 	// TODO: Add an update button!?
-	const versionElement = document.getElementById("version")
-
+	
 	// previousVersion, currentVersion,
 	// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()
 
@@ -157,9 +167,7 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 
 	}else if(state.updatesAvailable){
 
-		// show updates button
-		const updateButton = document.getElementById("button-update")
-		//updateButton.hidden = false
+		showUpgradeDialog()
 	}
 
 	//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
@@ -177,3 +185,16 @@ installOrUpdate(IS_DEVELOPMENT_MODE).then( state => {
 	// uninstall() ?
 	console.error("FATAL ERROR ;(", error)
 })
+
+
+
+const versionButton = document.getElementById( "version" )
+addMouseTapAndHoldEvents( versionButton )
+versionButton.addEventListener( MOUSE_TAP, event => {
+	// allow pass through to github
+} )
+
+versionButton.addEventListener( MOUSE_HELD, event => {
+	// Show dialog for upgrade?
+	showUpgradeDialog()
+} )
