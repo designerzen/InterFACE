@@ -257,7 +257,6 @@ Mute Triangle
 
 81
 
-
 Open Triangle
 */
 export const GENERAL_MIDI_INSTRUMENTS = [
@@ -391,7 +390,7 @@ export const GENERAL_MIDI_INSTRUMENTS = [
 	"gunshot",
 ]
 
-export const GENERAL_MIDI_INSTRUMENT_FAMILIES = [
+export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES = [
 	"piano",
 	"chromatic percussion",
 	"organ",
@@ -409,6 +408,47 @@ export const GENERAL_MIDI_INSTRUMENT_FAMILIES = [
 	"percussive",
 	"sound effects",
 ]
+
+export const GENERAL_MIDI_INSTRUMENT_FAMILY_IDS = {
+	0: "piano",
+	7: "chromatic percussion",
+	12: "organ",
+	25: "guitar",
+	33: "bass",
+	41: "strings",
+	49: "ensemble",
+	57: "brass",
+	65: "reed",
+	69: "pipe",
+	81: "synth lead",
+	89: "synth pad",
+	97: "synth effects",
+	// some rasict shit right here akin to "world" music
+	105: "ethnic",
+	113: "percussive",
+	123: "sound effects"
+}
+
+export const GENERAL_MIDI_FAMILIES = new Map()
+
+// This creates a Map of instument arrays
+export const GENERAL_MIDI_INSTRUMENT_FAMILIES = {
+
+}
+
+export const FAMILY_DICTIONARY = {}
+let latch = GENERAL_MIDI_INSTRUMENT_FAMILY_IDS[0]
+GENERAL_MIDI_INSTRUMENTS.forEach( (instrument, index) => {
+	
+	if (GENERAL_MIDI_INSTRUMENT_FAMILY_IDS[index])
+	{
+		latch = GENERAL_MIDI_INSTRUMENT_FAMILY_IDS[index]
+	}
+	// GENERAL_MIDI_INSTRUMENT_FAMILY_IDS[index]
+	GENERAL_MIDI_FAMILIES.set( latch, [...(GENERAL_MIDI_FAMILIES.get(latch) || []), instrument] )
+	FAMILY_DICTIONARY[instrument] = latch
+})
+
 
 export const DrumKitByPatchID = {
 	 0: "standard kit",
