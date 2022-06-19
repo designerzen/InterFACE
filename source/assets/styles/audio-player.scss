@@ -1,6 +1,4 @@
 
-
-
 .audio-player{
 
 	--size:100px;
@@ -93,7 +91,7 @@
 
 .button-play-pause{
 	--max-width:auto;
-	--bg: url(/source/assets/icons/volume_off-24px.svg);
+	--bg: url(/source/assets/icons/play_circle_black_24dp.svg);
 	position: absolute;
 	padding:0;
 	left:0;
@@ -114,11 +112,13 @@
 
 	strong{
 		display:block;
+		font-size: 70%;
+		font-weight:900;
 	}
 }
 
 .paused .button-play-pause{
-	--bg: url(/source/assets/icons/volume_up-24px.svg);
+	--bg: url(/source/assets/icons/play_circle_outline_black_24dp.svg);
 }
 
 
