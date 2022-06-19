@@ -2,14 +2,14 @@ import { addTooltip } from './tooltips'
 import { VERSION } from '../version'
 import {formattedDate} from '../models/info'
 
-export const setButton = (buttonName, callback ) => {
+export const setButton = (buttonName, callback, eventType="mousedown" ) => {
 	const element = document.getElementById(buttonName)
 	// check to see that the button hasn't got the display:none!
 	if (element)
 	{
 		// element.addEventListener("click", (event) => {
 		// click was too unresponsive so lets use touch / mousedown
-		element.addEventListener("mousedown", (event) => {
+		element.addEventListener(eventType, (event) => {
 			callback && callback({element})
 		})
 		return element
