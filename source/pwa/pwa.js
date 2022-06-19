@@ -6,12 +6,13 @@
 
 import { VERSION } from '../version'
 // import serviceWorkerPath from "url:../service-worker.js"
-import manifestPath from "url:../manifest.webmanifest"
 
 // console.error({serviceWorkerPath, manifestPath})
 
 // ? made CloudFlare barf up the ServiceWorker so meh!
 const URL_SEPERATOR = "#"
+
+const NAME = "ploppypantspwaispoo"
 
 let deferredPrompt
 
@@ -19,9 +20,7 @@ let deferredPrompt
 const PWA_TYPES = [ "standalone", "fullscreen",  "minimal-ui" ]
 
 // Determine as much functionality as possible
-// Is running as a PWA
-
-const isInWebAppiOS = "standalone" in navigator && window.navigator.standalone === true
+const isInWebAppiOS = "standalone" in navigator ? window.navigator.standalone === true : matchMedia("(display-mode: standalone)").matches
 // as there are other modes that are active as pwa such as fullscreen
 const displayMode = PWA_TYPES.filter( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
 const isInWebAppChrome = PWA_TYPES.includes( displayMode )
@@ -29,21 +28,47 @@ const isInWebAppChrome = PWA_TYPES.includes( displayMode )
 // const isInWebAppChrome = ["fullscreen", "standalone", "minimal-ui"].some( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
 // const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches
 
+// handle iOS specifically
+// this includes the regular iPad and the iPad pro but not macOS
+const isIOS =
+	navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
+	(navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
+
 // is this an APK TWA android app?
-const isAndroid = document.referrer.includes('android-app://')
+const isTWAAndroid = document.referrer.includes('android-app://')
 // check to see if it is in the microsoft store pwas format
 const isMicrosoftStore = Array.isArray( navigator.userAgent.match(/MSAppHost/i) )
-// is this runnning as an App on the device? PWA / TWA / MSStore 
-const isRunningAsApp = isInWebAppiOS || isInWebAppChrome || isAndroid || isMicrosoftStore || false
-// const isRunningAsApp = isStandalone()
 
 // if this is the first ever run or if this is the cache has been cleared...
 const isFirstRun = navigator.serviceWorker.controller === null
 // Is the user online or offline?
 const isOnline = navigator.onLine 
 
+// 1. Check WebBrowser to see if PWA mode is available (not all browsers have it!)
+// 		check for beforeinstallprompt support
+// 		- if available then continue
+export const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
+
+// 2. Check if the app was JUST installed (previously before refresh)
+// was installed on the last refresh
+// - if so then quit
+const wasJustInstalled = new URLSearchParams(window.location.search).installing || false
+
+// 3. Check to see if the app has already been installed!
+//		- if it has continue to UPDATE step
+//		- if it has not, continue to INSTALL step
+// is this runnning as an App on the device? PWA / TWA / MSStore 
+const isRunningAsApp = isInWebAppiOS || isInWebAppChrome || isTWAAndroid || isMicrosoftStore || false
+
+// 4. If Installed check for updates
+
+
+
+
+
 const platform = {
-	android:isAndroid,
+	ios:isIOS,
+	android:isTWAAndroid,
 	microsoft:isMicrosoftStore,
 	pwa:isRunningAsApp,
 	offline:!isOnline,
@@ -51,30 +76,10 @@ const platform = {
 }
 
 
-// check for beforeinstallprompt support
 
-// This loads in all extra files at the right time depending on
-// the state of the user's browser. The process goes like this...
+// The process goes like this...
 
-// 1. Check WebBrowser to see if PWA mode is available (not all browsers have it!)
-// 		- if available then continue
-export const isSupportingBrowser = window.hasOwnProperty("BeforeInstallPromptEvent")
-
-
-
-
-
-const NAME = "ploppypantspwaispoo"
-
-
-// 2. Check if the app was JUST installed (previously before refresh)
-const hasJustBeenInstalled = () =>{
-	// checks a few things... query string for "installing=true"
-	return new URLSearchParams(window.location.search).installing || false
-}
-
-// show change log if just installed and silently exit!
-
+// FIXME: show change log if just installed and silently exit!
 const setJustBeenInstalled = (cookieSecret=NAME) =>{
 	// checks a few things... query string for "installing=true"
 	const urlParams = new URLSearchParams(window.location.search)
@@ -86,11 +91,6 @@ const setJustBeenInstalled = (cookieSecret=NAME) =>{
 	})
 }
 
-
-
-// 3. Check to see if the app has already been installed!
-//		- if it has continue to UPDATE step
-//		- if it has not, continue to INSTALL step
 
 
 // INSTALL PATH
@@ -142,6 +142,7 @@ const showInstallPrompt = (installButton, prompt) => new Promise( async (resolve
 		
 	} else {
 
+		installButton.disabled = false
 		installed = false
 		resolve({
 			success:false,
@@ -149,10 +150,9 @@ const showInstallPrompt = (installButton, prompt) => new Promise( async (resolve
 		})
 		//reject("User chose to not install")
 	}
-
-	installButton.disabled = false
 })
 
+// Force uninstall (if pushed out a dodgy version for example)
 export const uninstall = () => {
 	navigator.serviceWorker.getRegistrations()
 		.then( registrations => { 
@@ -171,33 +171,12 @@ export const uninstall = () => {
 		})
 }
 
-
-// TODO: Lazy load from update
-const showChangelog = async ( domElement ) =>{
-	
-	// FIXME: show changelog???
+export const showChangelog = async ( domElement ) =>{
 	const {injectChangeLog, fetchChangesAsText} = await import('./changes.js')
 	const changes = await fetchChangesAsText('changelog')
-	// injectChangeLog( domElement )
+	injectChangeLog( domElement )
 	return changes
 }
-
-// tests to see if it is running as an App right now...
-// if it is, we are only interested in any updates...
-const isStandalone = () => {	
-
-	const isInWebAppiOS = "standalone" in navigator && window.navigator.standalone === true
-	// as there are other modes that are active as pwa such as fullscreen
-	const isInWebAppChrome = ["fullscreen", "standalone", "minimal-ui"].some( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
-   	// const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches
-	const isTWAAndroid = document.referrer.includes('android-app://')
-	// check to see if it is in the microsoft store pwas format
-	const isMicrosoftStore = navigator.userAgent.match(/MSAppHost/i)
-
-	// app is running as a PWA so we don't have to show the install button ever! 
-	return isInWebAppiOS || isInWebAppChrome || isTWAAndroid || isMicrosoftStore || false
-}
-
 
 let isInstallable = false
 let updating = false
@@ -211,7 +190,7 @@ let previousVersion
 
 // progressive web app variant
 // this simply loads and installs the service worker
-export const installOrUpdate = async(debug=false) => {
+export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) => {
 
 	let log = []
 	let output = {}
@@ -230,10 +209,14 @@ export const installOrUpdate = async(debug=false) => {
 
 	}else{
 
+		// check to see if the service worker is running...
 		if (isFirstRun)
 		{
-			// check to see if the service worker is running...
+			// totally clean setup
 			log.push(`PWA ${VERSION} AVAILABLE WWW / PWA`, {deferredPrompt, isFirstRun, first:navigator.serviceWorker.controller } )
+		}else if (wasJustInstalled){
+			// recently installed
+			log.push(`PWA ${VERSION} was JUST installed` )
 		}else{
 			// check to see if the service worker is running...
 			log.push(`WWW ${VERSION}`, {deferredPrompt, isFirstRun, first:navigator.serviceWorker.controller } )
@@ -275,8 +258,7 @@ export const installOrUpdate = async(debug=false) => {
 		const activeWorker = registration.active
 		const previousServiceWorkerURL = new URL(activeWorker.scriptURL)
 		
-		previousVersion = previousServiceWorkerURL.search.split("=")[1] || '-.-.-'
-		// isFirstRun
+		previousVersion = previousServiceWorkerURL.search.split("=")[1] || currentlyRunningVersion
 		newVersionAvailable = previousVersion !== VERSION
 		
 		// "installing" - the install event has fired, but not yet complete
@@ -370,6 +352,7 @@ export const installOrUpdate = async(debug=false) => {
 
 	// This "installs" the app into the local app cache but does
 	// not create the icon on the homescreen or desktop
+	// NB. By appending the Version as an GET var we can specify which version this matches
 	const hashedSWURL = `../service-worker.js#v=${VERSION}`
 	let serviceWorker = await navigator.serviceWorker.register(hashedSWURL)
 	log.push("Service worker with #",hashedSWURL, serviceWorker)
@@ -440,12 +423,13 @@ export const installOrUpdate = async(debug=false) => {
 		// Show the installer if not installed?
 		// NB. THIS MUST BE TIES INTO A USER INTERACTION
 		install:(button)=> showInstallPrompt( button, deferredPrompt ),
+
 		prompt:deferredPrompt,
 
 		updatesAvailable, updating, updated, 
 		newVersionAvailable,
 
-	
+
 		// requestAddToHomescreen 
 		// The actual update / reload script for if user wants new version now!
 		update:()=>{
