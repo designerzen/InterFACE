@@ -1,8 +1,7 @@
 import {clamp, lerp, TAU} from "../maths/maths"
-import {cleanTitle} from './instruments'
 
 import { chain } from './rack'
-
+import {getInstrumentFamily} from './instruments'
 // Effects
 import { createReverb, randomReverb, getImpulseList } from './effects/reverb'
 import {createDelay} from './effects/delay'
@@ -10,8 +9,6 @@ import {createDub} from './effects/dub'
 import {createCompressor} from './effects/compressor'
 import {createDistortion} from './effects/distortion'
 import {createAmplitude} from './effects/amplitude'
-
-import {instrumentFolders} from "./instruments"
 
 import {
 	createInstrumentBanks,
@@ -85,12 +82,6 @@ export const getRecordableOutputNode = () => {
 // 	outputNode = routes[0]
 // 	return outputNode
 // }
-
-/**
- * Fetch a random instrument name
- * @returns {String} Instrument Name
- */
-export const randomInstrument = () => instrumentFolders[ Math.floor( Math.random() * instrumentFolders.length ) ]
 
 /**
  * Create a chain of audio effects
@@ -419,11 +410,20 @@ export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="FluidR3
  * @returns {Object} Instrument information
  */
 export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="FluidR3_GM", progressCallback ) => {	
+	
+	const title = instrumentName
+	const family = getInstrumentFamily(instrumentName)
+	const name = instrumentName
+	// .indexOf("-mp3") < 0 ? instrumentName + "-mp3" : instrumentName
+
+	// ensure we have the suffix on the name
 	const output = {
-		title:cleanTitle(instrumentName),
-		name:instrumentName,
+		title,
+		family:getInstrumentFamily(name),
+		name
 	}
-	const partPromises = loadInstrumentParts(instrumentName, path) 
+
+	const partPromises = loadInstrumentParts(name, path) 
 	const parts= []
 	for (let i=0, l=partPromises.length; i < l; ++i)
 	{
@@ -431,9 +431,11 @@ export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="Fl
 		parts.push( part )
 		progressCallback && progressCallback({
 			progress:i/l,
-			instrumentName
+			instrumentName:title
 		})
 	}
+
+	// all partPromises have been resolved...
 	
 	NOTE_NAMES.forEach( (instrument, index) => {
 		output[ instrument.split('.')[0] ] = parts[index]

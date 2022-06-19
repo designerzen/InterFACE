@@ -3,6 +3,9 @@
 // https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
 export default class Instrument{
 
+	name = "Unknown"
+	title = "Untitled"
+
 	active = false
 	// monophonic by default
 	polyphony = 1

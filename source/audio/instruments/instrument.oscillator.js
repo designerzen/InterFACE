@@ -1,7 +1,7 @@
 import Instrument from './instrument'
 export default class OscillatorInstrument extends Instrument{
 
-	constructor( channel="all" ){
+	constructor( channel="all", shape="sine" ){
 		super()
 
 		this.sine
@@ -10,6 +10,8 @@ export default class OscillatorInstrument extends Instrument{
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 1
+		this.title = shape
+		this.name = "OscillatorInstrument"
 	}
 
 	async noteOn( note, velocity=1 ){
