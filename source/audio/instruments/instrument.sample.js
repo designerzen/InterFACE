@@ -1,27 +1,31 @@
 import Instrument from './instrument'
 // A generic interface for instruments
 import {
-	instrumentFolders
-} from './instruments'
+	getRandomInstrument, instrumentFolders, instrumentNames, getInstrumentFamily
+} from '../instruments'
 import { 
 	playTrack,loadInstrumentPack,
-	loadInstrument, randomInstrument, 
-	NOTE_NAMES,	getNoteName } from './audio'
+	loadInstrument,
+	NOTE_NAMES,	getNoteName } from '../audio'
 
-import {MIDI_CONVERTOR, convertNoteNameToMIDINoteNumber} from './notes'
+import {MIDI_CONVERTOR, convertNoteNameToMIDINoteNumber} from '../notes'
 
 // Maximum simultaneous tracks to play (will wait for slot)
-const MAX_TRACKS = 18
+const MAX_TRACKS = 16 // AKA one bar
+
 export default class SampleInstrument extends Instrument{
 
 	instrument
 	instrumentName = "Unloaded"
+	instrumentTitle = "Unloaded"
+	instrumentFamily = "Unknown"
 	instrumentPack 
 	instrumentNumber
+
+	// do not edit
 	instrumentPointer = 0
 	instrumentLoading = true
 
-	
 	get isLoading(){
 		return this.instrumentLoading
 	}
@@ -110,7 +114,7 @@ export default class SampleInstrument extends Instrument{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	 async loadRandomInstrument(progressCallback){
-		return await this.loadInstrument( randomInstrument(), this.instrumentPack, progressCallback )
+		return await this.loadInstrument( getRandomInstrument(), this.instrumentPack, progressCallback )
 	}
 
 	/**
@@ -161,20 +165,34 @@ export default class SampleInstrument extends Instrument{
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	 async loadInstrument(instrumentName, instrumentPack, progressCallback ){
-		this.instrumentLoading = true
 		
+		const index = instrumentFolders.indexOf(instrumentName)
+		
+		this.instrumentLoading = true
+
+		// FIXME: Send the -mp3 version...
 		this.instrument = await loadInstrumentPack( instrumentName, instrumentPack, progressCallback )
+		
+		this.instrumentNumber = index
 		this.instrumentName = instrumentName
 		this.instrumentPack = instrumentPack
-		this.instrumentNumber = instrumentFolders.indexOf(instrumentName)
+
+		// Fetch the GM name
+		this.title = instrumentNames[index]
+		this.name = "SampleInstrument"
+		this.instrumentFamily = this.instrument.family
+
 		this.instrumentMap = {}
 		// TODO: inside out object
 		// convert the instrument map into a number map
 		// for (let i=0; i < 200; ++i){
 		// 	this.instrumentMap[i] = this.instrument
 		// }
-		//console.error("Instrument loading", {instrumentName, instrumentPack}, this )
+		
+		console.log("Instrument loading", {instrumentName, instrumentPack}, this )
 		this.instrumentLoading = false
+
+
 		// this.instrumentOrder = this.instrument
 		return this.instrument
 	}

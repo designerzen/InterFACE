@@ -137,8 +137,14 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 // }
 
 
-// octaves 1-7
-// returns A1 Ab1 etc
+/**
+ * what percentage of an octave results in
+ * which musical notes
+ * @param {*} percent 
+ * @param {Number} octave - octaves 1-7
+ * @param {Boolean} isMinor 
+ * @returns A1 Ab1 etc
+ */
 export const getNoteName = (percent, octave=3, isMinor=false) => {
 
 	// restrict to 1-7 even though 0 is available for many
@@ -178,7 +184,6 @@ export const getNoteName = (percent, octave=3, isMinor=false) => {
  * @returns 
  */
 export const getNoteSound = (percent, isMinor=false) => SOLFEGE_SCALE[ Math.floor( percent * (SOLFEGE_SCALE.length-1) ) ]
-
 
 // Pass in A0 get out the equivalent friendly name
 export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] || noteName

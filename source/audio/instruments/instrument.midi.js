@@ -1,5 +1,5 @@
 import Instrument from './instrument'
-import {getBarProgress} from '../timing/timing'
+import {getBarProgress} from '../../timing/timing'
 import {WebMidi} from "webmidi"
 export default class MIDIInstrument extends Instrument{
 
@@ -8,6 +8,8 @@ export default class MIDIInstrument extends Instrument{
 		this.channel = channel
 		this.sendMIDI = true
 		this.midiPort = device
+		this.title = device
+		this.name = "MIDIInstrument"
 	}
 
 	setMIDI(value){
