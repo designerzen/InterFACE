@@ -2,7 +2,8 @@
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Augmented Reality, Motion Capture Controlled Machine Learning Powered Accessible Audio Synthesizer",
 	"version": "0.8.17",
-	"time": 1655554507631,
+	"time": 1655557655234,
+
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -16,9 +17,9 @@
 		"xr",
 		"ar"
 	],
+	"main": "main.cjs",
 	"scripts": {
 		"test": "jest",
-		"fixme:postinstall:": "electron-builder install-app-deps",
 		"push:": "git push origin && git push origin --tags",
 		"freshstart": "yarn reset && parcel serve source/*.pug -p 909",
 		"start": "parcel serve source/*.pug -p 909",
@@ -55,19 +56,20 @@
 		"package": "yarn revise && yarn clean && yarn build",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
 		"deploy": "node actions/deploy.mjs",
-		"hotfix": "yarn patch && yarn clean && yarn build && yarn deploy",
-		"release": "yarn minor && yarn clean && yarn build && yarn deploy",
-		"bump": "yarn major && yarn clean && yarn build && yarn deploy"
+		"publish": "yarn clean && yarn build && yarn deploy",
+		"hotfix": "yarn patch && yarn publish",
+		"release": "yarn minor && yarn publish",
+		"bump": "yarn major && yarn publish"
 	},
 	"build": {
 		"appId": "place.interface",
-		"copyright": "Copyright © 2021 designerzen",
-		"mac": {
-			"category": "music"
-		},
+		"copyright": "Copyright © 2022 designerzen",
 		"directories": {
 			"buildResources": "source/assets/icons/",
 			"output": "electron"
+		},
+		"mac": {
+			"category": "music"
 		},
 		"linux": {
 			"target": [
@@ -95,13 +97,24 @@
 		"@tonaljs/tonal": "^4.6.5",
 		"analytics": "^0.8.1",
 		"dialog-polyfill": "^0.5.6",
+		"electron": "^19.0.4",
 		"holoplay-core": "^0.0.8",
 		"midi-writer-js": "^2.0.1",
 		"mpe": "^1.0.4",
 		"share-menu": "^4.0.0",
 		"stats.js": "^0.17.0",
 		"three": "^0.141.0",
-		"webmidi": "^3.0.19"
+		"webmidi": "^3.0.19",
+		"workbox-cacheable-response": "^6.1.5",
+		"workbox-core": "^6.1.5",
+		"workbox-expiration": "^6.1.5",
+		"workbox-google-analytics": "^6.1.5",
+		"workbox-precaching": "^6.1.5",
+		"workbox-range-requests": "^6.1.5",
+		"workbox-recipes": "^6.1.5",
+		"workbox-routing": "^6.1.5",
+		"workbox-strategies": "^6.1.5",
+		"workbox-sw": "^6.1.5"
 	},
 	"devDependencies": {
 		"@bubblewrap/cli": "^1.13.2",
@@ -114,6 +127,7 @@
 		"@parcel/transformer-webmanifest": "2.6.1",
 		"@parcel/transformer-xml": "2.6.1",
 		"autoprefixer": "^10.4.5",
+		"electron-builder": "^23.0.3",
 		"generate-changelog": "^1.8.0",
 		"gh-pages": "^4.0.0",
 		"jest": "^28.1.1",
@@ -124,16 +138,6 @@
 		"pug": "^3.0.0",
 		"rss": "^1.2.2",
 		"sass": "^1.52.3",
-		"showdown": "^2.1.0",
-		"workbox-cacheable-response": "^6.1.5",
-		"workbox-core": "^6.1.5",
-		"workbox-expiration": "^6.1.5",
-		"workbox-google-analytics": "^6.1.5",
-		"workbox-precaching": "^6.1.5",
-		"workbox-range-requests": "^6.1.5",
-		"workbox-recipes": "^6.1.5",
-		"workbox-routing": "^6.1.5",
-		"workbox-strategies": "^6.1.5",
-		"workbox-sw": "^6.1.5"
+		"showdown": "^2.1.0"
 	}
 }
