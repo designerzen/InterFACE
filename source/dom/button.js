@@ -1,22 +1,49 @@
 import { addTooltip } from './tooltips'
 import { VERSION } from '../version'
 import {formattedDate} from '../models/info'
+import {addMouseTapAndHoldEvents, MOUSE_HELD, MOUSE_HOLDING, MOUSE_TAP} from '../hardware/mouse'
 
-export const setButton = (buttonName, callback, eventType="mousedown" ) => {
-	const element = document.getElementById(buttonName)
+export const setButton = (buttonNameOrElement, callback, eventType="mousedown", preventDefault=false ) => {
+	const element = typeof buttonNameOrElement === "string" ? document.getElementById(buttonNameOrElement) : buttonNameOrElement
 	// check to see that the button hasn't got the display:none!
 	if (element)
 	{
 		// element.addEventListener("click", (event) => {
 		// click was too unresponsive so lets use touch / mousedown
 		element.addEventListener(eventType, (event) => {
-			callback && callback({element})
+			if (preventDefault){
+				event.preventDefault()
+			}
+			callback && callback({element, event})
 		})
 		return element
 	}
 	
-	return false
+	return null
 }
+
+export const setPressureButton = (buttonNameOrElement, tapCallback, holdCallback, holdingCallback ) => {
+	const element = typeof buttonNameOrElement === "string" ? document.getElementById(buttonNameOrElement) : buttonNameOrElement
+	if (element)
+	{
+		addMouseTapAndHoldEvents( element )
+		element.addEventListener( MOUSE_TAP, event => {
+			tapCallback && tapCallback(event)
+		} )
+
+		element.addEventListener( MOUSE_HOLDING, event => {
+			holdingCallback && holdingCallback(event)
+		} )
+
+		element.addEventListener( MOUSE_HELD, event => {
+			holdCallback && holdCallback(event)
+		} )
+		return element
+	}
+	return null
+}
+
+
 
 /**
  * Create a clickable button with label and tooltip
