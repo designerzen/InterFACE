@@ -331,7 +331,7 @@ export default class Person{
 		// Vocal state machine ASDR
 		this.state = state
 	}
-
+	
 	/**
 	 * Dispatch a custom event
 	 * @param {*} type 
@@ -816,9 +816,6 @@ export default class Person{
 		// volume is an log of this
 		const FUDGE = 1.3
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
-		const isMouthSinging = amp >= options.mouthCutOff
-		const hasMouthOpened = !this.singing && isMouthSinging
-
 		// const logAmp = options.ease(amp)
 		const newOctave = clamp( Math.round(pitch * 7) ,1,7)
 
@@ -838,7 +835,7 @@ export default class Person{
 		this.lastNoteSound = noteSound
 		this.hue = roll * this.hueRange
 		this.saturation = 100 * lipPercentage
-		this.singing = isMouthSinging
+		this.singing = amp >= options.mouthCutOff
 
 		// FIXME: octave needs to be up or down from existing?
 		// FIXME: Shouldn't need clamp but pitch is over 1??
@@ -866,9 +863,10 @@ export default class Person{
 				//console.log("note not found!", {noteName, roll, octave:this.octave, isMinor})
 			}
 
-			if (hasMouthOpened)
+			if (!this.active)
 			{
 				// fresh note playing
+				this.active = true
 				this.setState(STATE_INSTRUMENT_ATTACK)
 			}else{
 				// already playing so we continue the note
@@ -925,7 +923,6 @@ export default class Person{
 			}
 			
 			this.isMouthOpen = true
-			this.active = true
 			
 		}else if ( amp > options.mouthSilence && amp < options.mouthCutOff ){
 
@@ -940,10 +937,10 @@ export default class Person{
 			{
 				// already playing so release it
 				this.active = false
-				//this.setState(STATE_INSTRUMENT_DECAY)
-				this.setState(STATE_INSTRUMENT_RELEASE)
+				this.setState(STATE_INSTRUMENT_DECAY)
+				
 			}else{
-				this.setState(STATE_INSTRUMENT_SILENT)
+				this.setState(STATE_INSTRUMENT_RELEASE)
 				// this.setState(STATE_INSTRUMENT_ATTACK)
 				// this.setState(STATE_INSTRUMENT_DECAY)
 			}
@@ -1021,7 +1018,6 @@ export default class Person{
 		// TODO: Return all notes played
 		return {
 			played,
-			state:this.state,
 			yaw, pitch, roll, 
 			hue:this.hue,
 			lipPercentage,
@@ -1031,7 +1027,7 @@ export default class Person{
 			noteNumber:noteNumberForMIDI,
 			noteName,
 			volume:newVolume,
-			singing:isMouthSinging,
+			singing:this.singing,
 			mouthOpen: this.isMouthOpen,
 			active:this.active
 		}

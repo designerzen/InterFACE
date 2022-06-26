@@ -19,7 +19,7 @@ export default class SampleInstrument extends Instrument{
 	instrumentName = "Unloaded"
 	instrumentTitle = "Unloaded"
 	instrumentFamily = "Unknown"
-	instrumentPack 
+	instrumentPack  = ''
 	instrumentNumber
 
 	// do not edit
