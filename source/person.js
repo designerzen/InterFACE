@@ -3,15 +3,14 @@ import { rescale, lerp, clamp } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 import { getBarProgress } from './timing/timing.js'
 
-import SampleInstrument from './audio/instrument.sample'
-import MIDIInstrument from './audio/instrument.midi'
-import OscillatorInstrument from './audio/instrument.oscillator'
+import SampleInstrument from './audio/instruments/instrument.sample'
+import MIDIInstrument from './audio/instruments/instrument.midi'
+import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 
-import { active, playing, loadInstrumentPack, randomInstrument } from './audio/audio'
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
 import { 
 	INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE,
-	INSTRUMENT_PACKS, instrumentFolders, cleanTitle
+	INSTRUMENT_PACKS, instrumentFolders
 } from './audio/instruments'
 
 import { setupInstrumentForm } from './dom/ui'
@@ -23,9 +22,17 @@ import {
 	drawText,drawParagraph, drawInstrument, drawFaceMesh
 } from './visual/2d'
 
+import {drawMousePressure} from './dom/mouse-pressure'
 import { drawEye } from './visual/2d.eyes'
 import { drawMouth } from './visual/2d.mouth'
 import { DEFAULT_PERSON_OPTIONS } from './settings'
+
+// States for the audio controlled by the face
+export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
+export const STATE_INSTRUMENT_ATTACK = "instrument-attack"
+export const STATE_INSTRUMENT_SUSTAIN = "instrument-sustain"
+export const STATE_INSTRUMENT_DECAY = "instrument-decay"
+export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 
 
 export const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
@@ -55,6 +62,9 @@ export default class Person{
 	instrumentPointer = 0
 	active = false
 
+	// default state is audio off
+	state = STATE_INSTRUMENT_SILENT
+
 	// Head orientation
 	yaw = 0
 	pitch = 0
@@ -69,6 +79,120 @@ export default class Person{
 	// if we are watching the face perform without interaction
 	isPlayingBack = false
 	instrumentLoading = false
+
+	isFormShowing = false
+
+	/**
+	 * Is the mouse button down?
+	 * @returns {Boolean} Mouse button state
+	 */
+	 get areEyesOpen(){
+		return this.isLeftEyeOpen && this.isRightEyeOpen
+	}
+
+	/**
+	 * Returns time in ms since the user moused down
+	 * or else -1 if the mouse is not down at all 
+	 */
+	get mouseDownFor(){
+		return this.isMouseDown ? 
+			this.audioContext.currentTime - this.mouseDownAt :
+			-1
+	}
+		
+	/**
+	 * Is the mouse button down?
+	 * @returns {Boolean} Mouse button state
+	 */
+	get isMouseDown(){
+		return this.mouseDownAt > -1
+	}
+
+	/**
+	 * Checks to see if the user is pressing their face
+	 * @returns {Boolean} has this Person got a finger depressed on their face?
+	 */
+	get isMouseHeld(){
+		return this.mouseDownFor > this.options.mouseHoldDuration
+	}
+
+	/**
+	 * Checks to see if the user is pressing their face
+	 * @returns {Number} 0-1 how long the user has proportionally held their finger
+	 */
+	 get mouseHoldProgress(){
+		return this.mouseDownFor / this.options.mouseHoldDuration
+	}
+
+	/**
+	 * Fetch the ID of the form on the DOM that matches this Person
+	 * @returns {String} ID name
+	 */
+	get controlsID (){
+		return `${this.name}-controls`
+	}
+
+	/**
+	 * Fetch the form controls on the DOM that matches this Person
+	 * @returns {HTMLElement} Form element for this Person
+	 */
+	get controls (){
+		return document.getElementById(this.controlsID)
+	}
+
+	/**
+	 * Fetch the instrument name eg. french-horn
+	 * @returns {String} Instrument name
+	 */
+	get instrumentName(){
+		return this.samplePlayer ? this.samplePlayer.name : 'loading'
+	}	
+
+	/**
+	 * Fetch the instrument title eg. French Horn
+	 * @returns {String} Instrument title
+	 */
+	get instrumentTitle(){
+		return this.samplePlayer ? this.samplePlayer.title : 'loading'
+	}
+
+	/**
+	 * Fetch the index in the instrument array of the current instrument
+	 * FIXME: expensive... can we use instrumentPointer instead?
+	 * @returns {Number} Instrument index
+	 */
+	get instrumentIndex(){
+		// instrumentPointer ???
+		return instrumentFolders.indexOf(this.instrumentName)
+	}
+
+	get instrumentLoading(){
+		return this.samplePlayer.isLoading
+	}
+
+	/**
+	 * Fetch the instrument title eg. French Horn
+	 * @returns {Boolean} does this machine have MIDI set up?
+	 */
+	get hasMIDI(){
+		return this.midi !== null && this.midiChannel && this.midiChannel.length > 0
+	}
+
+	/**
+	 * Fetch the MIDI device name if one is connected
+	 * @returns {String} MIDI Device name
+	 */
+	get MIDIDeviceName(){
+		return this.midi ? this.midi.name : 'unknown'
+	}
+
+	/**
+	 * Return a time based library of face movements since recording began
+	 * @returns {Array<String>} time based library of face movements
+	 */
+	get history(){
+		return this.parameterRecorder.recording
+	}
 
 	constructor(name, audioContext, destinationNode, options={} ) {
 		
@@ -153,30 +277,15 @@ export default class Person{
 
 		// create a sample player
 		this.samplePlayer = new SampleInstrument(audioContext, this.gainNode, {})
-	
+		
+		// create our side bar and instrument selector form
+		this.setupForm()
+
 		// fetch dom element
 		this.button = document.getElementById(name)
 		this.button.addEventListener( 'mousedown', event => {
-
 			this.mouseDownAt = audioContext.currentTime
-			
-			// test to see how long we are help down for?
-			const waitPatiently = () => {
-
-				const elapsed = this.mouseDownFor
-				if ( elapsed < this.options.mouseHoldDuration )
-				{
-					// ignore?
-					//console.log("mouseDownFor", elapsed )
-
-					requestAnimationFrame( waitPatiently )
-				}else if (this.isMouseDown){
-					// FIXME
-					this.mouseDownAt = -1
-					this.showForm()
-				}
-			}
-			waitPatiently()
+			drawMousePressure( 0, this.options.mouseHoldDuration )
 			event.preventDefault()
 		})
 
@@ -185,13 +294,18 @@ export default class Person{
 			// should this trigger something else depending on time?
 			// const elapsed = this.mouseDownFor
 			//console.log("mouseDownFor", elapsed )
+			if (this.isMouseHeld)
+			{
+				
+			}else{
+				this.loadRandomInstrument()
+			}
 
-		
-			this.loadRandomInstrument()
-			
-
+			// reset it
 			// and reset
 			this.mouseDownAt = -1
+			drawMousePressure( 1, this.options.mouseHoldDuration )	
+			
 			event.preventDefault()
 		})
 
@@ -201,6 +315,7 @@ export default class Person{
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
+
 		// this.button.addEventListener( EVENT_INSTRUMENT_CHANGED, event => {
 		// 	console.log("External event for instrument", event )
 		// })
@@ -208,101 +323,13 @@ export default class Person{
 	}
 	
 	/**
-	 * Is the mouse button down?
-	 * @returns {Boolean} Mouse button state
+	 * 
+	 * @param {String} state - which state the Person is in
 	 */
-	get areEyesOpen(){
-		return this.isLeftEyeOpen && this.isRightEyeOpen
-	}
-
-	get mouseDownFor(){
-		return this.audioContext.currentTime - this.mouseDownAt
-	}
-		
-	/**
-	 * Is the mouse button down?
-	 * @returns {Boolean} Mouse button state
-	 */
-	get isMouseDown(){
-		return this.mouseDownAt > -1
-	}
-
-	/**
-	 * Checks to see if the user is pressing their face
-	 * @returns {Boolean} has this Person got a finger depressed on their face?
-	 */
-	get isMouseHeld(){
-		return this.options.mouseHoldDuration < this.mouseDownFor
-	}
-
-	/**
-	 * Fetch the ID of the form on the DOM that matches this Person
-	 * @returns {String} ID name
-	 */
-	get controlsID (){
-		return `${this.name}-controls`
-	}
-
-	/**
-	 * Fetch the form controls on the DOM that matches this Person
-	 * @returns {HTMLElement} Form element for this Person
-	 */
-	get controls (){
-		return document.getElementById(this.controlsID)
-	}
-
-	/**
-	 * Fetch the instrument name eg.
-	 * @returns {String} Instrument name
-	 */
-	get instrumentName(){
-		return this.instrument ? this.instrument.name : 'loading'
-	}	
-
-	/**
-	 * Fetch the instrument title eg. French Horn
-	 * @returns {String} Instrument title
-	 */
-	get instrumentTitle(){
-		return this.instrument ? this.instrument.title : 'loading'
-	}
-
-	/**
-	 * Fetch the index in the instrument array of the current instrument
-	 * FIXME: expensive... can we use instrumentPointer instead?
-	 * @returns {Number} Instrument index
-	 */
-	get instrumentIndex(){
-		// instrumentPointer ???
-		return instrumentFolders.indexOf(this.instrumentName)
-	}
-
-	get instrumentLoading(){
-		return this.instrument.isLoading
-	}
-
-	/**
-	 * Fetch the instrument title eg. French Horn
-	 * @returns {Boolean} does this machine have MIDI set up?
-	 */
-	get hasMIDI(){
-		return this.midi !== null && this.midiChannel && this.midiChannel.length > 0
-	}
-
-	/**
-	 * Fetch the MIDI device name if one is connected
-	 * @returns {String} MIDI Device name
-	 */
-	get MIDIDeviceName(){
-		return this.midi ? this.midi.name : 'unknown'
-	}
-
-	/**
-	 * Return a time based library of face movements since recording began
-	 * @returns {Array<String>} time based library of face movements
-	 */
-	get history(){
-		return this.parameterRecorder.recording
+	setState(state){
+		console.log(state)
+		// Vocal state machine ASDR
+		this.state = state
 	}
 
 	/**
@@ -342,6 +369,13 @@ export default class Person{
 		if (this.isRecordingParameters)
 		{
 			this.parameterRecorder.save(prediction)
+		}
+
+		// check to see if mouse if down
+		if (this.isMouseHeld)
+		{
+			this.mouseDownAt = -1
+			this.onButtonHeld()
 		}
 		
 		// update any eye states
@@ -397,6 +431,10 @@ export default class Person{
 		{
 			// TODO:
 			// overwrite prediction
+		}
+
+		if (this.isMouseDown){
+			drawMousePressure( this.mouseHoldProgress, this.options.mouseHoldDuration )
 		}
 
 		
@@ -625,7 +663,7 @@ export default class Person{
 		{
 			return
 		}
-
+	
 		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
 
@@ -635,21 +673,27 @@ export default class Person{
 			if (this.isMouseDown && !this.instrumentLoading)
 			{
 				// user is holding mouse down on user...
-				const remaining = 1 - this.mouseDownFor / this.options.mouseHoldDuration
+				const remaining = 1 - this.mouseHoldProgress
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
 				
 				if (this.isMouseHeld)
 				{
 					// user is holding mouse down on user...
 					drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Select')			
-					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.3)`, true, false, false)
+					// FIXME: Do we hide the face entirely???
+					// drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
 					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Press me`], '14px' )
+			
+					// draw our mouse expanding circles...
+					// we use CSS and it is only hidden here?
+
+			
 				}else{
-					
 					drawInstrument(prediction.boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
 					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)
 					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
 				}
+
 
 			}else{
 				
@@ -719,6 +763,8 @@ export default class Person{
 
 	/**
 	 * Sing some songs
+	 * state machine diagram :
+	 * SILENT ATTACK SUSTAIN SUSTAIN SUSTAIN DECAY RELEASE
 	 */
 	sing(){
 
@@ -770,6 +816,9 @@ export default class Person{
 		// volume is an log of this
 		const FUDGE = 1.3
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
+		const isMouthSinging = amp >= options.mouthCutOff
+		const hasMouthOpened = !this.singing && isMouthSinging
+
 		// const logAmp = options.ease(amp)
 		const newOctave = clamp( Math.round(pitch * 7) ,1,7)
 
@@ -789,7 +838,7 @@ export default class Person{
 		this.lastNoteSound = noteSound
 		this.hue = roll * this.hueRange
 		this.saturation = 100 * lipPercentage
-		this.singing = amp >= options.mouthCutOff
+		this.singing = isMouthSinging
 
 		// FIXME: octave needs to be up or down from existing?
 		// FIXME: Shouldn't need clamp but pitch is over 1??
@@ -804,23 +853,26 @@ export default class Person{
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
 		
-		// !active && active is updated by playback state
+		// If we have an instrument and singing is enabled
 		if ( this.instrument && this.singing )
 		{
 			// here is where we need to do our majic
-			// play a note from the collectionlogAmp
+			// play a note from the collection
 			note = this.instrument[ noteName ]
 			if (note)
 			{
-				// TODO: add velocity logAmp
-				// this.tracks++
-				// const track = playTrack( note, 0, this.outputNode ).then( ()=>{
-				// 	this.active = false
-				// 	this.tracks--
-				// 	//console.log("Sample completed playback... request tock", this.tracks )
-				// })
 				played.push(note)
+			}else{
 				//console.log("note not found!", {noteName, roll, octave:this.octave, isMinor})
+			}
+
+			if (hasMouthOpened)
+			{
+				// fresh note playing
+				this.setState(STATE_INSTRUMENT_ATTACK)
+			}else{
+				// already playing so we continue the note
+				this.setState(STATE_INSTRUMENT_SUSTAIN)
 			}
 			
 			// rescale for 0.3->1
@@ -884,12 +936,26 @@ export default class Person{
 			// newVolume = this.gainNode.gain.value + (destinationVolume - this.gainNode.gain.value) * options.volumeRate
 			newVolume = 0
 			this.isMouthOpen = true
-
+			if (this.active)
+			{
+				// already playing so release it
+				this.active = false
+				//this.setState(STATE_INSTRUMENT_DECAY)
+				this.setState(STATE_INSTRUMENT_RELEASE)
+			}else{
+				this.setState(STATE_INSTRUMENT_SILENT)
+				// this.setState(STATE_INSTRUMENT_ATTACK)
+				// this.setState(STATE_INSTRUMENT_DECAY)
+			}
+		
 		}else{
+
+			this.setState(STATE_INSTRUMENT_SILENT)
 
 			// no instrument available or mouth totally closed
 			newVolume = 0
 			this.isMouthOpen = false
+			this.active = false
 			// no instruments in memory yet... play silence?
 		}
 
@@ -955,6 +1021,7 @@ export default class Person{
 		// TODO: Return all notes played
 		return {
 			played,
+			state:this.state,
 			yaw, pitch, roll, 
 			hue:this.hue,
 			lipPercentage,
@@ -964,7 +1031,7 @@ export default class Person{
 			noteNumber:noteNumberForMIDI,
 			noteName,
 			volume:newVolume,
-			singing:this.singing,
+			singing:isMouthSinging,
 			mouthOpen: this.isMouthOpen,
 			active:this.active
 		}
@@ -983,6 +1050,8 @@ export default class Person{
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
+		this.setupForm()
+		this.hideForm()
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
 		return this.instrument
 	}
@@ -1044,7 +1113,6 @@ export default class Person{
 		} )
 		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName })
 		
-
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName })
 		return instrumentName
@@ -1105,7 +1173,31 @@ export default class Person{
 	onEyesClosedForTimePeriod(){
 		// 
 		this.loadNextInstrument( instrumnetName => console.log("instrumnetName",instrumnetName ) )
+	}
+
+	onButtonHeld(){
+		this.showForm()
+		drawMousePressure( 1, this.options.mouseHoldDuration )
+	}
+
+	setupForm(){
+
+		this.controls.innerHTML = setupInstrumentForm( this.samplePlayer.instrumentPack )
 		
+		const inputs = this.controls.querySelectorAll('input')
+		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)
+
+		const legend = this.controls.querySelector('legend')
+		legend.addEventListener("click", event => {
+			const details = this.controls.querySelectorAll('details')
+			if (details.length)
+			{
+				const shouldOpen = !details[0].hasAttribute("open")
+				details.forEach( detail => {
+					shouldOpen ? detail.setAttribute("open", true) : detail.removeAttribute("open")
+				})
+			}
+		})
 	}
 
 	/**
@@ -1113,11 +1205,6 @@ export default class Person{
 	 */
 	showForm(){
 
-		//console.log("showForm", this.controlsID, this.controls)
-		this.controls.innerHTML = setupInstrumentForm( ()=> {})
-		const inputs = this.controls.querySelectorAll('input')
-		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)
-		
 		// find active input field and focus
 		const active = document.getElementById(this.instrumentName)
 		if (active)
@@ -1130,15 +1217,22 @@ export default class Person{
 
 		//console.log("Form", {active})
 		this.controls.classList.toggle("showing",true)
+		this.isFormShowing = true
 	}
 
 	/**
 	 * Hide this Person's form
 	 */
 	hideForm(){
-		//const inputs = this.controls.querySelectorAll('input')
-		//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
-		this.controls.innerHTML = ''
-		setTimeout( ()=> this.controls.classList.toggle("showing",false), 303 )
+		if (this.isFormShowing)
+		{
+			this.isFormShowing = false
+			//const inputs = this.controls.querySelectorAll('input')
+			//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
+			//this.controls.innerHTML = ''
+			this.controls.classList.toggle("showing",false)
+			// setTimeout( ()=> this.controls.classList.toggle("showing",false), 303 )	
+		}
+		
 	}
 }

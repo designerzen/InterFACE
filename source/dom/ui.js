@@ -1,21 +1,19 @@
-import {instrumentNames, instrumentFolders} from '../audio/instruments'
+import {createInstruments, instrumentNames, instrumentFolders} from '../audio/instruments'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink} from '../location-handler'
 import {formattedDate} from '../models/info'
 import {setToggle} from './toggle'
 import { connectSelect } from './select'
 
+
 const doc = document
 // const { getElementById, querySelector } = document
-let buttonInstrument
-let buttonRecord
 
 export let buttonQuantise
 export let buttonVideo
 export let controlPanel
 
 const main = doc.querySelector("main")
-
 
 export const video = doc.querySelector("video")
 
@@ -98,20 +96,53 @@ export const setupCameraForm = (cameras, callback) => {
 	select.innerHTML = `<optgroup label="Detected Cameras">${optionElements.join('')}</optgroup>`
 	connectSelect( select, callback )
 }
+/**
+ * Create the markup required for one instrument
+ *  
+ * @param {*} folder 
+ * @param {*} instrumentName 
+ * @returns 
+ */
+const createInstumentForForm = 
+	( folder, instrumentName ) => 
+		`<li><label for="${folder}">${instrumentName}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label></li>`
+const createInstumentFamilyForForm = 
+	( family, instruments ) => 
+		`<details open>
+			<summary>${family}</summary>
+			<menu>${uiOptions.join('')}</menu>
+		</details>`
 
 /**
  * Setup the instrument list
  * @param {Function} callback Method to trigger when instument selected
  */
-export const setupInstrumentForm = callback => {
-	
-	const uiOptions = instrumentFolders.map( (folder, index) => `<label for="${folder}">${instrumentNames[index]}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label>` ) 
-	uiOptions.unshift("<legend>Select an instrument</legend>")
+export const setupInstrumentForm = (pack='') => {
 
-	// TODO: bind mouse events too???
+	const instruments = createInstruments()
+	let output = `<legend>${pack} Select an instrument</legend>`
+	let family = instruments[0].family
+	const uiOptions = []// instruments.map( (instrument, index) => createInstumentForForm( instrument.location, instrument.name ) ) 
+	// add a title at the start...
+	// uiOptions.unshift("<legend>Select an instrument</legend>")
 
-	// const uiOptions = INSTRUMENT_FOLDERS.map( folder => `<option value="${folder}">${folder}</option>` ) 
-	return `${uiOptions.join('')}`
+	output += `<details open id="instrument-family-${family}"><summary>${family}</summary><menu>`
+
+	// now group them into families...
+	instruments.forEach( (instrument, index) => {
+		
+		const form = createInstumentForForm( instrument.location, instrument.name )
+		output += form
+		if (family !== instrument.family)
+		{
+		
+			family = instrument.family
+			output += `</menu></details>`
+			output += `<details open id="instrument-family-${family}"><summary>${family}</summary><menu>`
+		}
+	})
+	output += `</menu></details>`
+	return output
 }
 
 /**
