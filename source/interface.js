@@ -15,13 +15,13 @@ import {
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
 import { createWaveform } from './audio/waveform'
-import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
+// FIXME: 
+import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file'
+// import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
 import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-create'
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
-
 import {getMIDINoteNumberAsName} from './audio/notes'
 
-import {easeOutQuart} from './maths/easing'
 
 // Different ways of playing sound!
 import SampleInstrument from './audio/instruments/instrument.sample'
@@ -53,16 +53,14 @@ import {
 	focusApp
 } from './dom/ui'
 
-import {appendAudioElement} from './dom/audio-element'
-
 import setupDialogs from './dom/dialog'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
-import { setToggle } from './dom/toggle'
-import { setButton, setupMIDIButton } from './dom/button'
+import { setToggle, setPressureToggle } from './dom/toggle'
+import { setButton, setPressureButton, setupMIDIButton } from './dom/button'
 import { addToolTips, setToast } from './dom/tooltips'
 import { setFeedback } from './dom/text'
-import { showError } from './dom/errors'
 import { appendPhotographElement } from './dom/photographs'
+import { appendAudioElement} from './dom/audio-element'
 
 import interact from './inactivity'
 
@@ -72,27 +70,24 @@ import {
 	overdraw, clear, canvas
 } from './visual/canvas'
 
+import {drawMousePressure} from './dom/mouse-pressure'
 import { setupImage, setNodeCount } from './visual/2d'
 import { drawWaves, drawBars } from './visual/spectrograms'
 import { drawQuantise, Quanitiser } from './visual/quantise'
-import Stave from './visual/2d.stave'
+// import Stave from './visual/2d.stave'
 
-import { 
-	getLocationSettings, getShareLink, 
-	forceSecure, addToHistory } from './location-handler'
+import { getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
 import { findBestCamera, loadCamera } from './hardware/camera'
-import { TAU } from "./maths/maths"
+import { watchMouseCoords  } from './hardware/mouse'
 
 import Person, { EYE_COLOURS, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING } from './person'
 
 import { NAMES, DEFAULT_TENSORFLOW_OPTIONS } from './settings'
 
-import {
-	convertOptionToObject,
-	addMouseTapAndHoldEvents, 
-	MOUSE_HELD, MOUSE_HOLDING, MOUSE_TAP
-} from './utils'
+import { TAU } from "./maths/maths"
+
+import { convertOptionToObject } from './utils'
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
@@ -117,8 +112,8 @@ class PhotoSYNTH{
 }
 
 /**
- * This is the actual app - I should probably refactor this but as 
- * a singleton I'm not sure a class is the right way to go!
+ * This is the actual method "app" that acts as a 
+ * Singleton Factory for a single instance of the PhotoSYNTH Class
  * @param {Object} defaultOptions - options to overwrite
  * @param {Function} store - state management
  * @param {Capabilities} capabilities - object to represent device specs
@@ -207,6 +202,8 @@ export const createInterface = (
 	let userLocated = false
 	// if the user leaves the tab
 	let userActive = false
+	let recordRequested = false
+	let recordCancelRequested = false
 
 	// TODO:
 	let cookieConsent = false
@@ -373,22 +370,39 @@ export const createInterface = (
 
 		person.loadInstrument( instrument )
 
-		//console.error(name, {instrument, person, savedOptions})
-		
 		// see if there are any gamepads connected - let's go te whole hog!
 		gamePad = new GamePad( personIndex )
-		gamePad.addEventListener( "start", event =>{
+		gamePad.on( (buttonName, value) => {
+			switch(buttonName)
+			{
+				case "disconnected":
+					setToast("GamePAD Unplugged")
+					break
 
-		} )
+				case "connected":
+					setToast(value)
+					break
+
+				// open sidebar
+				case "start": 
+				case "select":	
+					person.showForm() 
+					break
+				
+				case "dup": break
+				case "dright": 
+					person.loadPreviousInstrument()
+					break
+
+				case "ddown": break
+				case "dleft": 
+					person.loadPreviousInstrument()
+					break
+			}
+		})
 		
-		gamePad.addEventListener( "left", event =>{
-			// previous instrument
-		} )
-
-		gamePad.addEventListener( "right", event =>{
-			// next instrument
-		} )
-
+		//console.error(name, {instrument, person, savedOptions})
+		
 		// if (midi && midi.outputs && midi.outputs.length > 0) 
 		// {
 		// 	person.setMIDI( midi.outputs[0] )
@@ -538,9 +552,7 @@ export const createInterface = (
 		const port = midiDevices[ personIndex < midiDevices.length ? personIndex : 0 ]
 		if (port)
 		{
-			
-			person.setMIDI(port, midiChannel)
-			
+			person.setMIDI(port, midiChannel)	
 			//console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 		}else{
 			console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel}, midi.outputs[midiChannel])
@@ -632,7 +644,9 @@ export const createInterface = (
 
 			const isNumber = !isNaN( parseInt(event.key) )
 			const focussedElement = document.activeElement
-			if (focussedElement && focussedElement !== document.documentElement ){
+			
+			if (focussedElement && focussedElement !== document.documentElement )
+			{
 				// not body!
 				switch(focussedElement.nodeName)
 				{
@@ -645,15 +659,26 @@ export const createInterface = (
 							const rate = isNumber ? 
 								parseInt(event.key) : 
 								// check to see if this is a+ or - or up or down
-								event.key === 'ArrowRight' ||
-								event.key === 'ArrowUp' ? 
+								event.key === 'ArrowRight' ? 
 									audio.playbackRate + 0.1 :
-									event.key === 'ArrowLeft' ||
-									event.key === 'ArrowDown' ? 
+									event.key === 'ArrowLeft' ? 
 										audio.playbackRate - 0.1 :
 										0.2 + Math.random() * 3
 
+							const pitch = isNumber ? 
+								parseInt(event.key) : 
+								// check to see if this is a+ or - or up or down
+								event.key === 'ArrowUp' ? 
+									audio.detune.value + 10 :
+									event.key === 'ArrowDown' ? 
+										audio.detune.value - 10 :
+										0.2 + Math.random() * 3
+
 							audio.playbackRate = rate
+
+							// value in cents
+							audio.detune.value = pitch
+							
 							return
 
 						}else{
@@ -664,6 +689,8 @@ export const createInterface = (
 					case "DIALOG":
 
 						break
+					
+					
 				}
 
 				// we should quit here?
@@ -939,6 +966,7 @@ export const createInterface = (
 	const playPersonAudio = ( person ) => {
 		// yaw, pitch, lipPercentage, eyeDirection
 		const stuff = person.sing()
+
 		let noteName = stuff.noteName
 		let noteNumber = stuff.noteNumber
 		let note = stuff.note
@@ -962,6 +990,9 @@ export const createInterface = (
 				// to use the gate as a throttle for the velocity too...
 				// noteVelocity = command.velocity * 0.01	
 				noteVelocity *= command.velocity * 0.01	
+				// console.log("Intercepted cmmand", command)
+			}else{
+				// console.log("No Interception available")
 			}
 
 			// const commands = midiPerformance.getNextCommands() || []
@@ -1023,36 +1054,62 @@ export const createInterface = (
 
 	/**
 	 * Toggle Start / Stop of the Recording
+	 * @
 	 */
-	const toggleRecording = () => {
-		if (isRecording())
+	const toggleRecording = (defer = true) => {
+		if (recordRequested)
 		{
-			setToast( `Recording Ended - now encoding` )			
-			stopRecordingAudio()
+			console.log("recordRequested")
+		}
+		if (recordCancelRequested)
+		{
+			console.log("recordCancelRequested")
+		}
+
+		if ( (defer && recordRequested) || isRecording())
+		{
+			recordRequested = false
+			if (defer){
+				setToast("Recording Ending...")
+				recordCancelRequested = true
+			}else{
+				setToast("Recording Ended - now encoding")
+				stopRecordingAudio()
+			}
+			
+		}else if ( (defer && !recordRequested) || !isRecording() ){
+			
+			if (defer){
+				setToast("Recording ARMED")
+				recordRequested = true
+			}else{
+				setToast("Recording START")
+				startRecordingAudio()
+			}
 		}else{
-			setToast("Recording START")
-			startRecordingAudio()
+			console.log("record button ignored")
 		}
 	}
 
 	// allows us to record the stream!
 	const startRecordingAudio = () => {
+
 		if (!isRecordingAvailable())
 		{
 			// not supported on this browser
 			return
 		}
-		const recordingNode = audioContext.createMediaStreamDestination()
 		
 		// pipe in some data from the MASTER BUS gain node
+		const recordingNode = audioContext.createMediaStreamDestination()
 		const masterOutput = getRecordableOutputNode()
-		
 		masterOutput.connect(recordingNode)
 		
 		// empty waveform collector
 		waveforms = []
 		
 		buttonRecordAudio.parentElement.classList.toggle("recording", true)
+		
 		startRecording(recordingNode.stream).then( recorderInstance => {
 			recorder = recorderInstance 
 			buttonRecordAudio.classList.toggle("progress", true)
@@ -1065,14 +1122,10 @@ export const createInterface = (
 		stopRecording().then(recording=>{
 			buttonRecordAudio.parentElement.classList.remove("recording","progress","cancelling")
 	
-
-
 			// get user's instrument names...tempo etc...
 			const person = getPerson(0)
 
 			const fileName = person.instrumentName || `audio-download`
-
-
 
 			let svg
 			if (waveforms && waveforms.length)
@@ -1103,10 +1156,10 @@ export const createInterface = (
 
 			
 			// first thing we do before encoding is add it to our output window
-			// along with our photos
+			// along with our photos and video recordings
 			appendAudioElement( recording, fileName, downloadType => {
 					
-				console.log("Download", downloadType, {recording})
+				//console.log("Download", downloadType, {recording})
 				// variations to trigger download
 				switch(downloadType)
 				{
@@ -1137,10 +1190,12 @@ export const createInterface = (
 	}
 
 	/**
-	 * Wires up all of the individual parts of the app
+	 * Wires up all of the individual parts of the app and returns a method
+	 * to begin the actual application
 	 * @param {Function} update Method to call when face moves
 	 * @param {Object} settings App Settings Object
 	 * @param {Function} progressCallback Method to progressivley call during setup procedure
+	 * @returns {Function} start() method
 	*/
 	const setup = async (update, settings, progressCallback) => {
 
@@ -1255,8 +1310,10 @@ export const createInterface = (
 			progressCallback(loadIndex/loadTotal,"Loading MIDI Performance")
 			try{
 				midiPerformance = await loadMIDIFile( "./assets/audio/midi_nyan-cat.mid" )
+				console.error("MIDIFILE", midiPerformance)
 				onMIDIPerformanceAvailable( midiPerformance )
 			}catch(error){
+				console.error("MIDIFILE", error)
 				setFeedback(error, 0)
 			}
 		}
@@ -1344,6 +1401,7 @@ export const createInterface = (
 		canvas.width = inputElement.width
 		canvas.height = inputElement.height
 
+
 		// Create a new sample player to handle sound playback
 		samplePlayer = new SampleInstrument(audioContext, audio, {})
 		
@@ -1387,342 +1445,363 @@ export const createInterface = (
 
 		// Ensure that the video element is always being fed data
 		const shouldUpdate = () => !cameraLoading
+
+		const start = () => {
 		
-		// this then runs the loop if set to true
-		// 
-		update( inputElement === video, (predictions)=>{
+			// this then runs the loop if set to true
+			update( inputElement === video, (predictions)=>{
 
-			// NB. always update the counter
-			counter++
+				// NB. always update the counter
+				counter++
 
-			if(isLoading)
-			{
-				isLoading = false
-			}
-
-			// return if camera is still connecting...
-			// otherwise tensorflow will try and calculate blankness
-			if (cameraLoading)
-			{
-				return
-			}
-
-			let tickerTape = ''
-			
-			// do we clear the canvas?
-			if (ui.clear)
-			{
-				// clear for invisible canvas but 
-				// NB. this may cause visual disconnect
-				clear()
-				
-				if (!ui.transparent)
+				if(isLoading)
 				{
-					// paste video frame
-					drawElement( inputElement )
+					isLoading = false
 				}
 
-			}else{
-
-				// FUNKY DISCO MODE...
-				// switch effect type?
-				const t = (counter * 0.01) % TAU
-				overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
-			}
-			
-
-			// On BEAT if beatjustplayed
-			// TODO: convert this into a per user bar and use the last played note to 
-			// change the colour of the indicator
-			if (ui.quantise)
-			{
-				// Start on BAR
-				// show quantise
-				// fetch notes played from user?
-				const barColour = `hsl (${getPerson(0).hue },50%,50%)`
-				//drawQuantise( beatJustPlayed, getBar(), getBars(), barColour)
-				quanitiser.draw( beatJustPlayed, getBar(), getBars(), barColour )
-			}
-			
-			if (ui.spectrogram)
-			{
-				// updateByteTimeDomainData()
-				// drawWaves( dataArray, bufferLength )
-				
-				updateByteFrequencyData()
-				drawBars( dataArray, bufferLength )
-
-				if (recorder)
+				// return if camera is still connecting...
+				// otherwise tensorflow will try and calculate blankness
+				if (cameraLoading)
 				{
-					waveforms.push(dataArray)
+					return
 				}
-			}
 
-
-			let haveFacesBeenDetected = false	
-			if (predictions)
-			{
-				// loop through all predictions...
-				for (let i=0, l=predictions.length; i < l; ++i)
-				{
-					const prediction = predictions[i]
-					// create as many people as we need
-					const person = getPerson(i)
 				
-					// face available!
-					if (prediction && prediction.faceInViewConfidence > 0.9)
+			
+				let tickerTape = ''
+				
+				// do we clear the canvas?
+				if (ui.clear)
+				{
+					// clear for invisible canvas but 
+					// NB. this may cause visual disconnect
+					clear()
+					
+					if (!ui.transparent)
 					{
-						//if (!act)
-						//main.classList.toggle("active", true)
-						// playAudio()
-						if (noFacesFound)
-						{
-							noFacesFound = false
-							main.classList.toggle( `${person.name}-active`, true)
-							main.classList.toggle( `no-faces`, false)
-						}
-
-						userLocated = true
-						haveFacesBeenDetected = true
-							
-					}else{
-
-						// stopAudio()
-						if (!noFacesFound)
-						{
-							// no face found!??
-							main.classList.toggle( `${person.name}-active`, false)
-							main.classList.toggle( `no-faces`, true)
-							noFacesFound = true
-
-							// TODO : Switch to hand / body detection whilst faces not found?
-							// TODO: Implement part switching behaviour
-
-						}
-						
-						return
+						// paste video frame
+						drawElement( inputElement )
 					}
 
-					// first update the person - this allows us to sing at will
-					person.update(prediction)
+				}else{
 
-					// then redraw them
-					// const { yaw, pitch, lipPercentage } = 
+					// FUNKY DISCO MODE...
+					// switch effect type?
+					const t = (counter * 0.01) % TAU
+					overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
+				}
+				
+
+				// On BEAT if beatjustplayed
+				// TODO: convert this into a per user bar and use the last played note to 
+				// change the colour of the indicator
+				if (ui.quantise)
+				{
+					// Start on BAR
+					// show quantise
+					// fetch notes played from user?
+					const barColour = `hsl (${getPerson(0).hue },50%,50%)`
+					//drawQuantise( beatJustPlayed, getBar(), getBars(), barColour)
+					quanitiser.draw( beatJustPlayed, getBar(), getBars(), barColour )
+				}
+				
+				if (ui.spectrogram)
+				{
+					// updateByteTimeDomainData()
+					// drawWaves( dataArray, bufferLength )
 					
-					// prediction, showText=true, forceRefresh=false
-					person.draw(prediction, ui.text, false, beatJustPlayed)
+					updateByteFrequencyData()
+					drawBars( dataArray, bufferLength )
+
+					if (recorder)
+					{
+						waveforms.push(dataArray)
+					}
+				}
+
+
+				let haveFacesBeenDetected = false	
+				if (predictions)
+				{
+					// loop through all predictions...
+					for (let i=0, l=predictions.length; i < l; ++i)
+					{
+						const prediction = predictions[i]
+						// create as many people as we need
+						const person = getPerson(i)
 					
-					// then whenever you fancy it,
-					if (!ui.quantise && !ui.muted)
-					{	
-						// unless quantize is turned off
-						// we can "sing" in realtime
+						// face available!
+						if (prediction && prediction.faceInViewConfidence > 0.9)
+						{
+							//if (!act)
+							//main.classList.toggle("active", true)
+							// playAudio()
+							if (noFacesFound)
+							{
+								noFacesFound = false
+								main.classList.toggle( `${person.name}-active`, true)
+								main.classList.toggle( `no-faces`, false)
+							}
+
+							userLocated = true
+							haveFacesBeenDetected = true
+								
+						}else{
+
+							// stopAudio()
+							if (!noFacesFound)
+							{
+								// no face found!??
+								main.classList.toggle( `${person.name}-active`, false)
+								main.classList.toggle( `no-faces`, true)
+								noFacesFound = true
+
+								// TODO : Switch to hand / body detection whilst faces not found?
+								// TODO: Implement part switching behaviour
+
+							}
+							
+							return
+						}
+
+						// first update the person - this allows us to sing at will
+						person.update(prediction)
+
+						// then redraw them
+						// const { yaw, pitch, lipPercentage } = 
+						
+						// prediction, showText=true, forceRefresh=false
+						person.draw(prediction, ui.text, false, beatJustPlayed)
+						
+						// then whenever you fancy it,
+						if (!ui.quantise && !ui.muted)
+						{	
+							// unless quantize is turned off
+							// we can "sing" in realtime
+							const stuff = playPersonAudio( person )
+						
+							// stuff.eyeDirection
+							if (i===0)
+							{
+								// stuff.eyeDirection
+								// use person 1's eyes to control other stuff too?
+								// in this case the direction of the pan in disco mode
+								cameraPan.x = stuff.eyeDirection
+								cameraPan.y = stuff.pitch
+							}
+						}
+						
+						// you want a tight curve
+						//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
+						tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange)}%`
+						// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+					}
+						
+				}else{
+					// tickerTape += `No prediction`
+				}
+
+				
+
+				// this simply forces refresh of the stave notes
+				// stave.update( counter )
+
+
+				// Update TEXT on screen...
+				if (isRecording())
+				{
+					const recordedDuration = getRecordedDuration() * 0.001
+					// format the time?
+					const minutes = recordedDuration / 60
+					const seconds = recordedDuration % 60
+					const milliseconds = (seconds % 1) * 1000
+					//const recordString = (minutes>>0) + ':' + (seconds>>0)
+					const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
+					setFeedback(recordString, false)
+
+				}else{
+					
+					// No face was detected on either user
+					if (!haveFacesBeenDetected || !predictions)
+					{
+						// Need to show instructions to the user...
+						// as no face can be detected
+						setFeedback( getHelp( Math.floor( counter * 0.01 )  ))
+						// }else if (tickerTape.length){
+						// 	setFeedback(tickerTape)
+						// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+				
+					}else{
+
+						// Faces found so show the next set of instructions
+						setFeedback( getInstruction( Math.floor( counter * 0.01 ) ))
+						// setFeedback(`Look at me and open your mouth`)
+					}
+				}
+				
+				// finallyu reset this flag
+				if (beatJustPlayed)
+				{
+					beatJustPlayed = false
+				}
+
+				//console.log(counter, "update", {predictions, tickerTape, userLocated, cameraLoading} )
+
+			}, shouldUpdate )
+
+
+			// Metronome
+			timer = startTimer( ( values )=>{
+			
+				const { 
+					divisionsElapsed,
+					bar, bars, 
+					barsElapsed, timePassed, 
+					elapsed, expected, drift, level, intervals, lag} = values
+				
+				if (recordRequested)
+				{
+					recordRequested = false
+					startRecordingAudio()
+				}
+					
+				if (recordCancelRequested)
+				{
+					recordCancelRequested = false
+					stopRecordingAudio()
+				}
+					
+				const isBar = divisionsElapsed % 4 === 0
+				// TODO: The timer is a good place to determine if the computer
+				// 		 is struggling to keep up with the program so we can reduce
+				// 		 the visual complexity of the ui and remove some predictions too
+				// 		 in order to try and maintain decent performance
+
+				// lag
+				statistics.lag = lag
+				statistics.drift = drift
+
+				// The app has been running for over x amount of time
+				if (elapsed > TIME_BEFORE_REFRESH)
+				{
+					// so we may want to refresh if the time is appropriate?
+			
+
+				}
+
+				// nothing to play!
+				if (ui.muted)
+				{
+					return
+				}
+
+				// Play metronome!
+				if ( ui.metronome && bars && isBar )
+				{
+					// TODO: change timbre for first & last stroke
+					const metronomeLength = 0.09
+					// click for 3 then clack
+					kit.clack(metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
+				}
+
+				// console.log(barsElapsed, "timer", timer)
+
+				// const notesPlayed = []
+			
+				// sing note and draw to canvas
+				if( ui.quantise )
+				{
+					// update game pads - events are caught elsewhere
+					if (ui.useGamePad && gamePad && gamePad.connected) 
+					{
+						gamePad.update()
+					}
+
+					for (let i=0, l=people.length; i<l; ++i )
+					{
+						const person = getPerson(i)
 						const stuff = playPersonAudio( person )
-					
-						// stuff.eyeDirection
+		
+						// use person 1's eyes to control other stuff too?
+						// in this case the direction of the pan in disco mode
 						if (i===0)
 						{
 							// stuff.eyeDirection
-							// use person 1's eyes to control other stuff too?
-							// in this case the direction of the pan in disco mode
 							cameraPan.x = stuff.eyeDirection
 							cameraPan.y = stuff.pitch
 						}
+
+						// save data to an array to record
+						// personParameters.push(stuff)
 					}
-					
-					// you want a tight curve
-					//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-					tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange)}%`
-					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 				}
-					
-			}else{
-				// tickerTape += `No prediction`
-			}
-
-			
-
-			// this simply forces refresh of the stave notes
-			// stave.update( counter )
 
 
-			// Update TEXT on screen...
-			if (isRecording())
-			{
-				const recordedDuration = getRecordedDuration() * 0.001
-				// format the time?
-				const minutes = recordedDuration / 60
-  				const seconds = recordedDuration % 60
-  				const milliseconds = (seconds % 1) * 1000
-				//const recordString = (minutes>>0) + ':' + (seconds>>0)
-				const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
-				setFeedback(recordString, false)
-
-			}else{
 				
-				// No face was detected on either user
-				if (!haveFacesBeenDetected || !predictions)
+				// to add swing to the beats
+				// easeOutQuart(divisionsElapsed%16 / 16)
+				// && isBar
+				// play some accompanyment music on every note
+				// (as we use 16 divisions for quarter notes)
+				// FIXME: Just expland the patterns with longer gaps
+				if (ui.backingTrack )
 				{
-					// Need to show instructions to the user...
-					// as no face can be detected
-					setFeedback( getHelp( Math.floor( counter * 0.01 )  ))
-					// }else if (tickerTape.length){
-					// 	setFeedback(tickerTape)
-					// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
-			
-				}else{
+					const kick = playNextPart( patterns.kick, kit.kick )
+					const snare = playNextPart( patterns.snare, kit.snare )
+					const hat = playNextPart( patterns.hat, kit.hat )
 
-					// Faces found so show the next set of instructions
-					setFeedback( getInstruction( Math.floor( counter * 0.01 ) ))
-					// setFeedback(`Look at me and open your mouth`)
-				}
-			}
-			
-			// finallyu reset this flag
-			if (beatJustPlayed)
-			{
-				beatJustPlayed = false
-			}
-
-			//console.log(counter, "update", {predictions, tickerTape, userLocated, cameraLoading} )
-
-		}, shouldUpdate )
-
-
-		// Metronome
-		timer = startTimer( ( values )=>{
-		
-			const { 
-				divisionsElapsed,
-				bar, bars, 
-				barsElapsed, timePassed, 
-				elapsed, expected, drift, level, intervals, lag} = values
-			
-
-			const isBar = divisionsElapsed % 4 === 0
-			// TODO: The timer is a good place to determine if the computer
-			// 		 is struggling to keep up with the program so we can reduce
-			// 		 the visual complexity of the ui and remove some predictions too
-			// 		 in order to try and maintain decent performance
-
-			// lag
-			statistics.lag = lag
-			statistics.drift = drift
-
-			// The app has been running for over x amount of time
-			if (elapsed > TIME_BEFORE_REFRESH)
-			{
-				// so we may want to refresh if the time is appropriate?
-		
-
-			}
-
-			// nothing to play!
-			if (ui.muted)
-			{
-				return
-			}
-
-			// Play metronome!
-			if ( ui.metronome && bars && isBar )
-			{
-				// TODO: change timbre for first & last stroke
-				const metronomeLength = 0.09
-				// click for 3 then clack
-				kit.clack(metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
-			}
-
-			// console.log(barsElapsed, "timer", timer)
-
-			// const notesPlayed = []
-		
-			// sing note and draw to canvas
-			if( ui.quantise )
-			{
-				// TODO: Modify the sound!
-				if (ui.useGamePad && gamePad && gamePad.connected) 
-				{
-					gamePad.update()
+					//console.error("backing|", {kick, snare, hat })
+					// todo: also MIDI beats on channel 16?
 				}
 
-				for (let i=0, l=people.length; i<l; ++i )
+				if (playing)
 				{
-					const person = getPerson(i)
-					const stuff = playPersonAudio( person )
+					// timePassed
+				}
+
+				if (midiAvailable && midi)
+				{
+					// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
+					//midi.setSongPosition( getBarProgress() * 16383 , {})
+					//midi.sendClock( )
+					//console.log(midi)
+				}
+
+				// we can actually play a midi file here as an accompanying voice!
+				if (midiPerformance)
+				{
+					/*
+					const commands = midiPerformance.getNextCommands() || []
+					commands.forEach( command => {
+						
+						console.log("MIDI Command",command.toString() )
+					
+						switch(command.type)
+						{
+							case COMMAND_NOTE_ON:
+								// playTrack( note, 0, audioContext )
+								//samplePlayer.noteOn()
+								break
+
+							case COMMAND_NOTE_OFF:
+								// playTrack( note, 0, audioContext )
+								//samplePlayer.noteOff()
+								break
+						}
+					})
+					*/
+				}
+
+				
+
+				beatJustPlayed = true
+
+			}, convertBPMToPeriod( getState('bpm') ) )
 	
-					// use person 1's eyes to control other stuff too?
-					// in this case the direction of the pan in disco mode
-					if (i===0)
-					{
-						// stuff.eyeDirection
-						cameraPan.x = stuff.eyeDirection
-						cameraPan.y = stuff.pitch
-					}
-
-					// save data to an array to record
-					// personParameters.push(stuff)
-				}
-			}
-
-
-			
-			// to add swing to the beats
-			// easeOutQuart(divisionsElapsed%16 / 16)
-			// && isBar
-			// play some accompanyment music on every note
-			// (as we use 16 divisions for quarter notes)
-			// FIXME: Just expland the patterns with longer gaps
-			if (ui.backingTrack )
-			{
-				const kick = playNextPart( patterns.kick, kit.kick )
-				const snare = playNextPart( patterns.snare, kit.snare )
-				const hat = playNextPart( patterns.hat, kit.hat )
-
-				//console.error("backing|", {kick, snare, hat })
-				// todo: also MIDI beats on channel 16?
-			}
-
-			if (playing)
-			{
-				// timePassed
-			}
-
-			if (midiAvailable && midi)
-			{
-				// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
-				//midi.setSongPosition( getBarProgress() * 16383 , {})
-				//midi.sendClock( )
-				//console.log(midi)
-			}
-
-			// we can actually play a midi file here as an accompanying voice!
-			if (midiPerformance)
-			{
-				/*
-				const commands = midiPerformance.getNextCommands() || []
-				commands.forEach( command => {
-					
-					console.log("MIDI Command",command.toString() )
-				
-					switch(command.type)
-					{
-						case COMMAND_NOTE_ON:
-							// playTrack( note, 0, audioContext )
-							//samplePlayer.noteOn()
-							break
-
-						case COMMAND_NOTE_OFF:
-							// playTrack( note, 0, audioContext )
-							//samplePlayer.noteOff()
-							break
-					}
-				})
-				*/
-			}
-
-			beatJustPlayed = true
-
-		}, convertBPMToPeriod( getState('bpm') ) )
+		}
+		
+		// start()
+		return start
 	} 
 
 
@@ -1775,13 +1854,7 @@ export const createInterface = (
 			setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 		}, ui.quantise)
 
-		toggles.recordAudio = setToggle( "button-record-audio", status =>{
-			// setState( 'recording', status )
-			// setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
-			const isRecording = toggleRecording()
-
-		}, false )
-
+		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
 			setState( 'showSettings', status )
@@ -1805,6 +1878,7 @@ export const createInterface = (
 		}, ui.spectrogram )
 
 		toggles.speak = setToggle( "button-speak", status =>{
+			kit.cowbell()
 			setState( 'speak', status )
 			setToast("Speaking " + (ui.speak ? 'enabled' : 'disabled')  )
 		}, ui.speak )
@@ -1827,6 +1901,7 @@ export const createInterface = (
 			setToast(ui.muted  ? 'Volume Muted' : 'Unmuted' )
 		}, ui.muted )
 
+		// FIXME: This does not work after refresh
 		let discoPreviousState
 		// MTV : Special disco mode!
 		toggles.disco = setToggle( "button-disco", status =>{ 
@@ -1881,6 +1956,23 @@ export const createInterface = (
 			setState( 'text', !ui.text )
 		} )
 
+		// TODO : Set some up with double functions if held
+		// Recording bars by holding...
+		// toggles.recordAudio = setToggle( "button-record-audio", 
+		toggles.recordAudio = setPressureToggle( 
+			"button-record-audio",
+			tap =>{ 
+				drawMousePressure( 1, ui.mouseHoldDuration )
+				toggleRecording( false )
+			},
+			hold =>{ 
+				drawMousePressure( 1, ui.mouseHoldDuration )
+				toggleRecording( true )
+			},
+			holding => drawMousePressure( holding, ui.mouseHoldDuration ),
+			false 
+		)
+
 		//console.error("toggles", toggles)
 
 		setButton( "button-photograph", event => {	
@@ -1890,7 +1982,6 @@ export const createInterface = (
 			setToast('Photograph taken!' )
 			kit.cowbell()
 		} )
-
 	
 		// reset to factory defaults
 		setButton( "button-reset", status =>{ 
@@ -1901,9 +1992,41 @@ export const createInterface = (
 		// Button video loads random instruments for all
 		setButton( "button-video", status => loadRandomInstrument() )
 		
-		// setButton( "link-about", status => {
-			
-		// } )
+		
+		// change behviours for certain buttons to allow for holding
+		// NB. this is *not* good for accessibility as it cannot be 
+		// easily duplicated by the keyboard - hence why
+		// there are special keyboard modifiers for performing
+		// these actions solely with the keyboard. How to instruct the 
+		// user about these additional actions is a challenge
+		setPressureButton( "link-about", 
+			tap => {
+				if (kit){
+					kit.cowbell()
+				}
+			},
+			hold => {
+				// Easter egg
+			},
+			percentHeld => {}
+		)
+
+		// Upload MIDI File! Secret functions
+		//const uploadMIDIForm = document.getElementById("midi-file") 
+		const uploadMIDIFileInput = document.getElementById("midi-upload") 
+
+		setButton("button-midi-upload", click => {
+			const file = uploadMIDIFileInput.files[0]
+			userUploadMediaFile( file )
+		}, 'click', true)
+		
+		uploadMIDIFileInput.addEventListener( "change", async (e) => {
+			const file = uploadMIDIFileInput.files[0] 
+			userUploadMediaFile( file )
+			// await userUploadMediaFile( file )
+		})
+
+		connectDropZone()
 
 		// set the master tempo
 		selects.tempo = connectSelect( 'select-tempo', option => {
@@ -1955,39 +2078,15 @@ export const createInterface = (
 			}
 		})
 		
-
-		// change behviours for logo buttons
-		const logoButton = document.getElementById( "link-about" )
-		addMouseTapAndHoldEvents( logoButton )
-		logoButton.addEventListener( MOUSE_TAP, event => {
-			// console.log("Logo tapped")/
-			if (kit){
-				kit.cowbell()
-			}
-		} )
-
-		logoButton.addEventListener( MOUSE_HELD, event => {
-			// console.log("Logo held")
-			// Easter egg
-		} )
-
-		// Upload MIDI File! Secret functions
-		const uploadMIDIForm = document.getElementById("midi-file") 
-		const uploadMIDIButton = document.getElementById("button-midi-upload") 
-		const uploadMIDIFileInput = document.getElementById("midi-upload") 
+	
 		
-		uploadMIDIButton.addEventListener( "click", event => {
-			event.preventDefault()
-			const file = uploadMIDIFileInput.files[0]
-			userUploadMediaFile( file )
-		})
-		
-		uploadMIDIFileInput.addEventListener( "change", async (e) => {
-			const file = uploadMIDIFileInput.files[0] 
-			await userUploadMediaFile( file )
-		})
 
-		connectDropZone()
+		// Track mouse coords on canvas for use with mouse cursor thingy
+		watchMouseCoords( document.getElementById('control-panel'), coords =>{
+			//console.log("Canvas Mouse",coords)
+		} )
+		
+			
 
 		try{
 			// Attempt to Lazy load
@@ -2022,7 +2121,7 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "Reporting blocked")
 		}
 		
-		
+	
 		// this takes any existing state from the url and updates our front end
 		// so that any previously saved settings show as if the user is continuing
 		// their project from before - same buttons selected etc
@@ -2056,12 +2155,33 @@ export const createInterface = (
 		try{
 			// load the share menu :)
 			const sharer = await import('share-menu')
+			body.classList.add("sharing-enabled")
 		}catch(error){
 			// disable the share menu...
-			body.classList.add("sharing-disabled")
+			
 		}
 	}
 
+
+	// loop until loaded...
+	const loadingLoop = async () => {
+
+		//console.log("loading", {isLoading, userLocated, cameraLoading})
+		if ( isLoading )
+		{ 
+			requestAnimationFrame( loadingLoop ) 
+		}else{
+
+			if (ultimateFailure)
+			{
+				body.classList.add("failure")
+				body.classList.remove("loading")
+				// LOAD CANCELLED FATAL ERROR
+			}else{
+				onLoaded()
+			}
+		}
+	}
 
 	const onLoaded = async () => {
 
@@ -2115,7 +2235,7 @@ export const createInterface = (
 	 * 
 	 * @param {MIDITrack} midiTrack 
 	 */
-	const onMIDIPerformanceAvailable = (midiTrack) => {
+	 const onMIDIPerformanceAvailable = (midiTrack) => {
 		const matchingCommands = midiTrack.getMatchingCommands(["noteOn","noteOff","programChange"]) 
 		if (matchingCommands && matchingCommands.length)
 		{
@@ -2125,26 +2245,6 @@ export const createInterface = (
 
 		const midiFile = createMIDIFileFromTrack( midiTrack, getBPM() )
 		saveMIDIFile( midiFile, "./local.mid")
-	}
-
-	// loop until loaded...
-	const loadingLoop = async () => {
-
-		//console.log("loading", {isLoading, userLocated, cameraLoading})
-		if ( isLoading )
-		{ 
-			requestAnimationFrame( loadingLoop ) 
-		}else{
-
-			if (ultimateFailure)
-			{
-				body.classList.add("failure")
-				body.classList.remove("loading")
-				// LOAD CANCELLED FATAL ERROR
-			}else{
-				onLoaded()
-			}
-		}
 	}
 
 
@@ -2162,144 +2262,126 @@ export const createInterface = (
 
 	}).then( async update =>{ 
 
+		// we can sneakily back ground load in some data
+		// whilst the user hits the button!
+		requestAnimationFrame( loadExtras )
+		
 		// Hide 
 		setFeedback("")
 		setToast("")
 
 		// FIXME: Maybe only show if people dont do anything?
 		
+		// attempt to get player quantity and mouse event in one
+	
 		// hide the loading screen but dont sdt it to loaded just yet
 		body.classList.toggle("loading", false)
 
-		// we can sneakily back ground load in some data
-		// whilst the user hits the button!
-		requestAnimationFrame( loadExtras )
-		
+		// preload completed and now we show the ui
+		// for selecting regular or multi-face mode!
 		let timeOut = setTimeout(()=>{
 			setToast( "Please select how many players you want to play" )
 			timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
 		}, 60000 )
 
-		// load completed and now we show the ui
-		// for selecting regular or multi-face mode!
-		try{
-			
-			const {players,advancedMode} = await showPlayerSelector(options)
-			setState("duet", players > 1	)
-			setState("advancedMode", advancedMode )
-			//console.log("Duet", multiPlayer, ui.duet )
-
-		}catch(error){
-
-			console.error("player selection failed", error)
-		}
-
-		// continue loading...
+		const { players,advancedMode } = await showPlayerSelector(options)
+		setState("duet", players > 1	)
+		setState("advancedMode", advancedMode )
 		clearInterval( timeOut )
-		body.classList.toggle("loading", true)
 		setToast( "" )
 
+		// continue loading...
+		body.classList.toggle("loading", true)
+		
+		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
 		// set up some extra options from query strings
 		// any custom overrides (shouldn't be needed : use query strings)
-		return setup( update, options, (progress,message) => {
+		const startApp = await setup( update, options, (progress,message) => {
 			
 			// console.log("Loading B Side", progress )
 			onLoadProgress && onLoadProgress(progress, message)
 		})
 
-	}).then( data => {
+		return startApp
+
+	}).then( startPhotoSYNTH => {
+
+		// throw Error("test")
+
+		// let's launch it after it has resolved...
+		startPhotoSYNTH()
 
 		// setup done!
 		focusApp()
+
+
+		// wait for stuff to load / be available
+		loadingLoop()
+
+		// watch for users getting uninterested or leave the browser
+		// NB. this ONLY affects machines that have hover events
+		// so not mobiles!
+		if (capabilities.mouse)
+		{
+			interact( 
+				document.getElementById("button-video"),
+				function onActive(){
+					ui.autoHide && body.classList.toggle("user-active", true)
+					ui.autoHide && body.classList.toggle("user-inactive", false)
+					userActive = true
+				}, 
+				function onInactive(){
+					ui.autoHide && body.classList.toggle("user-active", false)
+					ui.autoHide && body.classList.toggle("user-inactive", true)
+					userActive = false
+				}
+			)
+		}
+
+		// Exit & save all cookies!
+		window.onbeforeunload = ()=>{
+
+			const saveSession = Object.assign({}, information, {
+				lastTime:Date.now(),
+				count:information.count++
+			})
+			store.setItem('info', saveSession)
+			//store.setItem(person.name, {instrument})
+			
+			// save ui settings in cookie too?
+			trackExit()
+			setToast("bye bye!")
+			setFeedback("<strong>I hope you had fun!</strong>")
+		}
+
+		// document.addEventListener( "contextmenu", (e) => {
+		//     console.log(e)
+		// })
+
+		// TODO: if this is a desktop?
+		window.oncontextmenu = () => {
+			// reset instructions
+			counter = 0
+			// restart counter?
+			//return false     // cancel default menu
+		}
+
+		// URL has been updated internally
+		window.addEventListener('popstate', (event) => {
+			//console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
+		})
+
+		// window.addEventListener('deviceorientation' , event => {
+		// 	//console.log("device orientation", event)
+		// })
 	})
 	.catch( error => {
 
-		// show an on screen error message with the codes...
-		showError(error, "Try hard refresh")
+		// show an on screen error message with the code
+		reject(error)
+		// trackError('Esoteric interaction', error)
 	})
-
-	// wait for stuff to load / be available
-	loadingLoop()
-
-	// watch for users getting uninterested or leave the browser
-	// NB. this ONLY affects machines that have hover events
-	// so not mobiles!
-	if (capabilities.mouse)
-	{
-		interact( 
-			document.getElementById("button-video"),
-			function onActive(){
-				ui.autoHide && body.classList.toggle("user-active", true)
-				ui.autoHide && body.classList.toggle("user-inactive", false)
-				userActive = true
-			}, 
-			function onInactive(){
-				ui.autoHide && body.classList.toggle("user-active", false)
-				ui.autoHide && body.classList.toggle("user-inactive", true)
-				userActive = false
-			}
-		)
-	}
-
-	// Exit & save all cookies!
-	window.onbeforeunload = ()=>{
-
-		const saveSession = Object.assign({}, information, {
-			lastTime:Date.now(),
-			count:information.count++
-		})
-		store.setItem('info', saveSession)
-		
-		// save ui settings in cookie too?
-		trackExit()
-		//store.setItem(person.name, {instrument})
-		setToast("bye bye!")
-		setFeedback("<strong>I hope you had fun!</strong>")
-	}
-
-	// document.addEventListener( "contextmenu", (e) => {
-	//     console.log(e)
-	// })
-
-	// if this is a desktop?
-	window.oncontextmenu = () => {
-		// reset instructions
-		counter = 0
-		// restart counter?
-		//return false     // cancel default menu
-	}
-
-	// URL has been updated internally
-	window.addEventListener('popstate', (event) => {
-		//console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
-	})
-
-	// window.addEventListener('wheel' , event => {
-		
-	// 	return
-
-	// 	let d = event.detail
-	// 	const w =  event.deltaY || event.wheelDelta
-	// 	let n = 225
-	// 	let n1 = n-1
-	// 	let f
-
-	// 	// Normalize delta
-	// 	d = d ? w && (f = w/d) ? d/f : -d/1.35 : w/120
-	// 	// Quadratic scale if |d| > 1
-	// 	d = d < 1 ? d < -1 ? (-Math.pow(d, 2) - n1) / n : d : (Math.pow(d, 2) + n1) / n
-	// 	// Delta *should* not be greater than 2...
-	// 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
-	// 	const volume = getVolume()
-	// 	//const result = setMasterVolume(volume + wheel)
-
-	// 	console.log("mouse wheel",{ wheel, volume, result}, event)	
-	// })
-
-	// window.addEventListener('deviceorientation' , event => {
-	// 	//console.log("device orientation", event)
-	// })
 		
 	/**
 	 * Factory method for creating PhotoSYNTH instances
