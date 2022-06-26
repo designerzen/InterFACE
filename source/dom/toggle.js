@@ -1,4 +1,4 @@
-import {setButton} from './button'
+import {setButton, setPressureButton} from './button'
 
 /**
  * this allows checkbox use to determine when the variable is changed
@@ -26,5 +26,36 @@ export const setToggle = (toggleName, callback, value ) => {
 		element.setAttribute('checked', value)
 		element.parentNode.classList.toggle("checked", value )
 	}
+	return element
+}
+
+// Same as regular toggle but if held down you get different outcome
+export const setPressureToggle = (toggleName, tapCallback, holdCallback, holdingProgressCallback, value ) => {
+
+	const toggle = () => {
+		value = !value
+		// add classes to any associated wrapped label
+		if (element.parentNode.nodeName === "LABEL")
+		{
+			element.parentNode.classList.toggle("checked", value )
+		}
+	}
+
+	const element = setPressureButton( toggleName, 
+		tap =>{
+			toggle()
+			tapCallback && tapCallback(value)
+		},
+		hold => {
+			toggle()
+			holdCallback && holdCallback(value)
+		},
+		holdingProgressCallback
+	)
+
+	// preset the button
+	element.setAttribute('checked', value)
+	element.parentNode.classList.toggle("checked", value )
+
 	return element
 }
