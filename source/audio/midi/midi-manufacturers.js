@@ -38,3 +38,6 @@ export const KORG =                   0X42
 export const YAMAHA =                 0X43
 export const CASIO =                  0X44
 export const AKAI =                   0X45
+
+// One day!
+// DESIGNERZEN

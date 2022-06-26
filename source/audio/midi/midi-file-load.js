@@ -3,25 +3,60 @@
 // Abstract    - Load a .midi file from a local server
 // Description - Buffers a .midi file into memory, parse the commands
 // Use         - Load( file.midi, onComplete ) and wait for the callback
-import MIDIStream from './midi-stream'
-import {decodeMIDI} from './midi-decode'
 
-const fromCharCode = String.fromCharCode
+import MIDIStream from './midi-stream'
+import { decodeMIDI } from './midi-decode'
+import { base64DecToArr } from '../../utils'
 
 /**
- * 
+ * Clean data
  * @param {String} data - raw data
  * @returns String of decoded MIDI data
  */
- const convertResponse = ( data ) => {
+ const sanitizeResponse = ( data ) => {
 	const chars = []
-	const quantity = data.length
-	for (let i = 0; i < quantity; ++i)
+	for (let i = 0, quantity = data.length; i < quantity; ++i)
 	{
-		chars[i] = fromCharCode(data.charCodeAt(i) & 255)
+		chars[i] = String.fromCharCode(data.charCodeAt(i) & 255)
 	}
 	return chars.join('')
 }
+
+/**
+ * Convert an array of integers into a string of bytes
+ * NB. & 255 is not neccessary
+ * @param {*} arrayBuffer 
+ * @returns {String} String Bytes
+ */
+const arrayBufferToBytes = arrayBuffer => Array.prototype.map.call( arrayBuffer, ch => String.fromCharCode(ch) ).join('')
+
+/**
+ * ASCII to Bytes  bufferToBinaryString
+ * WebWorker compatable atob.
+ * NB. This is very costly - try and avoid
+ * @returns 
+ */
+const asciiToBinary = ( ascii ) => {	
+	return (typeof window == "object" && typeof document == "object" && window.document === document) ?
+		window.atob : 
+		arrayBufferToBytes( base64DecToArr(ascii) )
+}
+
+/**
+ * load From Base64 String
+ * @param {string} arr - UInt8Array
+ * @param {Object} options -
+ * @returns 
+ */
+const loadMIDIFromArray = async ( arr, options={}, progressCallback=null ) => new Promise( (resolve,reject) => {
+	try{
+		const data = arrayBufferToBytes( new Uint8Array(arr) )
+		const stream = new MIDIStream( data )
+		resolve( decodeMIDI(stream, options) )
+	}catch(error){
+		reject(error)
+	}
+})
 
 /**
  * load From Base64 String
@@ -29,9 +64,10 @@ const fromCharCode = String.fromCharCode
  * @param {Object} options -
  * @returns 
  */
-const loadMIDIFromBase64 = async ( file, options={} ) => new Promise( (resolve,reject) => {
+const loadMIDIFromBase64 = async ( file, options={}, progressCallback=null ) => new Promise( (resolve,reject) => {
 	try{
-		const data = window.atob(file.split(',')[1])
+		const encoded = file.split(',')[1]
+		const data = asciiToBinary(encoded)
 		const stream = new MIDIStream( data )
 		resolve( decodeMIDI(stream, options) )
 	}catch(error){
@@ -41,9 +77,11 @@ const loadMIDIFromBase64 = async ( file, options={} ) => new Promise( (resolve,r
 
 /**
  * loadMIDIFromFile
+ * FIXME: Use fetch rather than XMLHttpRequest?
  * @param {string} url - url
  */
-const loadMIDIFromFile = async ( url, options={} ) => new Promise( (resolve,reject) => {
+const loadMIDIFromFile = ( url, options={}, progressCallback=null ) => new Promise( (resolve,reject) => {
+	
 	const fetch = new XMLHttpRequest()
 	fetch.open('GET', url, true)
 	fetch.overrideMimeType('text/plain; charset=x-user-defined')
@@ -59,56 +97,79 @@ const loadMIDIFromFile = async ( url, options={} ) => new Promise( (resolve,reje
 		{
 			if (fetch.status === 200)
 			{
-				const data = convertResponse( fetch.responseText || '' )
+				const response = fetch.responseText || '' 
+				const data = sanitizeResponse( response )
 				const stream = new MIDIStream( data )
-				//console.log("stream found", { data,stream} )
 				resolve( decodeMIDI(stream, options) )
 			} else {
-				reject('Unable to load MIDI file')
+				reject('Unable to load MIDI file from '+url )
 			}
 		}
 	}
 	fetch.send()
 })
 
-
-const loadRawFile = (file, progressCallback) => new Promise( (resolve,reject) => {
+/**
+ * Open a file from the client's local machine and load it
+ * into memory
+ * @param {*} file 
+ * @param {*} progressCallback 
+ * @returns 
+ */
+const loadRawFile = (file, progressCallback, base64=true) => new Promise( (resolve,reject) => {
 	const fileReader = new FileReader()
-	fileReader.onload = event => {
-		resolve(fileReader.result)
-	}
-	fileReader.onprogress = event => {
-		progressCallback && progressCallback(event)
-	}
-	fileReader.onerror = event => {
-		reject(fileReader.error)
-	}
-	fileReader.readAsDataURL(file)
+	fileReader.onload = event => resolve(fileReader.result)
+	fileReader.onprogress = event => progressCallback && progressCallback(event)
+	fileReader.onerror = event => reject(fileReader.error)
+	base64 ? 
+		fileReader.readAsDataURL(file) :
+		fileReader.readAsArrayBuffer(file)
 })
 
 
 /**
  * url can either be a file name as a string or 
  * it can be a base64 encoded midi file
- * @param {string} url - or base64 encoded file
+ * @param {string} urlOrBlob - URL string or base64 encoded string
  * @returns {MIDITrack} MIDIStream instance
  */
-export const loadMIDIFile = async ( url, options={} ) => {
-	const isFile = url.indexOf('base64,') === -1
-	return isFile ? await loadMIDIFromFile( url, options ) : await loadMIDIFromBase64( url, options )
-}
+export const loadMIDIFile = ( urlOrBlob, options={}, progressCallback=null ) => new Promise( async (resolve,reject) => {
+	const isString = typeof urlOrBlob === "string"
+	let midiFile
+
+	if (isString)
+	{
+		const isBase64 = urlOrBlob.indexOf('base64,') === -1
+		if (isBase64)
+		{
+			midiFile = await loadMIDIFromFile( urlOrBlob, options, progressCallback ) 
+		}else{
+			midiFile = await loadMIDIFromBase64( urlOrBlob, options, progressCallback )
+		}
+		console.error("loadMIDIFile via BASE64",{urlOrBlob, midiFile})
+		
+	}else{
+
+		midiFile = await loadMIDIFromArray( urlOrBlob, options, progressCallback )
+		console.error("loadMIDIFile via ArrayBuffer",{ urlOrBlob, midiFile})
+	}
+	resolve(midiFile)
+})
 
 /**
- * load MIDI Performance from FILE / Local
+ * Load MIDI Performance from FILE / String / Local
  * @param {string} file 
+ * @param {Object} options 
  * @param {Function} progressCallback 
+ * @param {Function} useBase64 - false 
  * @returns {MIDITrack}
  */
-export const loadMIDIFileThroughClient = async (file, options, progressCallback) => {
-	const rawFile = await loadRawFile( file, progressCallback )
+export const loadMIDIFileThroughClient = async (file, options, progressCallback, useBase64=false ) => {
+	
+	const rawFile = await loadRawFile( file, progressCallback, useBase64 )
 	const midiTrack = await loadMIDIFile( rawFile, {
+		...options,
 		trackName:(file.name).split(".mid")[0].replace("_", " ")
-	} )
-
+	}, progressCallback )
 	return midiTrack
 }

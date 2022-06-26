@@ -225,4 +225,8 @@ export default class MidiTrack
 	{
 		return `MIDI:Track::${this.tracks.map( track => track.toString() )}`
 	}
+	toJSON()
+	{
+		return `MIDI:Track::${this.tracks.map( track => track.toString() )}`
+	}
 }
