@@ -14,129 +14,52 @@ export const debounce = (callback, wait) => {
 	  return timerId
 	}
 }
-const now = () => performance.now() || Date.now()
 
-export const MOUSE_HELD = "mouse_held"
-export const MOUSE_HOLDING = "mouse_holding"
-export const MOUSE_TAP = "mouse_tap"
-
-// hook in to see how the user treats an element...
-// how long did they click for or if after x seconds
-// has the user held itt down still?
-export const addMouseTapAndHoldEvents = ( button, holdTime=800 ) => {
-
-	let mouseDownAt = -1
-	// FIXME: Immediately test to see if this actually *is* false
-	let isMouseOver = false
-	let isMouseDown = false
-	
-	// fetch dom element
-	const dispatch = (name, detail={}) => {
-		button.dispatchEvent( 
-			new CustomEvent( name, { detail } )
-		)
-	}
-
-	// test to see how long we are help down for?
-	const waitPatiently = () => {
-
-		// we have lost focus
-		if ( isMouseOver && isMouseDown )
-		{
-			const elapsed = now() - mouseDownAt		
-			if ( elapsed < holdTime )
-			{
-				// BEFORE HOLDING TIME... ignore?
-				const remaining = 1 - elapsed / holdTime
-				const percentageRemaining = 100 - Math.ceil(remaining*100)
-				
-				dispatch( MOUSE_HOLDING, {elapsed, isMouseOver, remaining, percentageRemaining } )
-				
-				requestAnimationFrame( waitPatiently )
-
-			}else{
-
-				// HELD long enough
-				
-				// FIXME
-				mouseDownAt = -1
-			}
-		} 
-	}
-
-	// BUTTON has been pressed!
-	button.addEventListener( 'mousedown', event => {
-
-		mouseDownAt = now()
-		isMouseDown = true
-		waitPatiently()
-		
-		// TODO: add in document listener in case mouse out and back up?
-		
-		event.preventDefault()
-	})
-
-	button.addEventListener( 'mouseup', event => {
-
-		// should this trigger something else depending on time?
-		const elapsed = now() - mouseDownAt	
-	
-		if ( elapsed < holdTime )
-		{
-			dispatch( MOUSE_TAP, {elapsed, isMouseOver} )
-		}else{
-			dispatch( MOUSE_HELD, {elapsed, isMouseOver} )
-		}
-
-		//console.log("mouseDownFor", elapsed )
-
-		// CALLBACKS
-		// dispatch( MOUSE_HELD, {elapsed, isMouseOver} )
-	
-		// and reset
-		mouseDownAt = -1
-		isMouseDown = false
-		event.preventDefault()
-	})
-
-	button.addEventListener( 'mouseover', event => {
-		isMouseOver = true
-	})
-	
-	button.addEventListener( 'mouseout', event => {
-		isMouseOver = false
-	})
-
-	// return some controls or destroy?
-	return {
-
-	}
-}
-
-
-
-
-
-
-// https://github.com/audiojs/audio-loader/blob/master/lib/base64.js
 
 // DECODE UTILITIES
-function b64ToUint6 (nChr) {
+
+
+/*
+Base64 / binary data / UTF-8 strings utilities
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Base64_encoding_and_decoding
+https://github.com/audiojs/audio-loader/blob/master/lib/base64.js
+*/
+export const b64ToUint6 = nChr => {
 	return nChr > 64 && nChr < 91 ? nChr - 65
 	  : nChr > 96 && nChr < 123 ? nChr - 71
 	  : nChr > 47 && nChr < 58 ? nChr + 4
 	  : nChr === 43 ? 62
 	  : nChr === 47 ? 63
 	  : 0
-  }
-  
-// Decode Base64 to Uint8Array
+}
+
+/**
+ * Base64 string to array encoding 
+ * @param {Uint6} nUint6 
+ * @returns 
+ */
+export const uint6ToB64 = nUint6 => {
+	return nUint6 < 26 ? nUint6 + 65
+	  : nUint6 < 52 ? nUint6 + 71
+	  : nUint6 < 62 ? nUint6 - 4
+	  : nUint6 === 62 ? 43
+	  : nUint6 === 63 ? 47
+	  : 65
+}
+
+/**
+ * Decode Base64 to Uint8Array
+ * @param {sBase64} sBase64 
+ * @param {nBlocksSize} nBlocksSize 
+ * @returns Uint8Array
+ */
 export const decodeBase64 = (sBase64, nBlocksSize) => {
 	const sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, '')
 	const nInLen = sB64Enc.length
 	const nOutLen = nBlocksSize
 	  ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize
 	  : nInLen * 3 + 1 >> 2
+
 	const taBytes = new Uint8Array(nOutLen)
   
 	for (let nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) 
@@ -155,3 +78,183 @@ export const decodeBase64 = (sBase64, nBlocksSize) => {
 	return taBytes
 }
   
+
+
+
+
+
+
+
+export const base64DecToArr = (sBase64, nBlocksSize) => {
+
+  var
+    sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen = sB64Enc.length,
+    nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2, taBytes = new Uint8Array(nOutLen);
+
+  for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+    nMod4 = nInIdx & 3;
+    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 6 * (3 - nMod4);
+    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+      for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+        taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+      }
+      nUint24 = 0;
+
+    }
+  }
+
+  return taBytes;
+}
+
+
+export const base64EncArr = (aBytes) => {
+
+  var nMod3 = 2, sB64Enc = ""
+
+  for (var nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) 
+  {
+    nMod3 = nIdx % 3
+    if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) 
+	{ 
+		sB64Enc += "\r\n" 
+	}
+    nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24)
+    if (nMod3 === 2 || aBytes.length - nIdx === 1) 
+	{
+      sB64Enc += String.fromCodePoint(uint6ToB64(nUint24 >>> 18 & 63), uint6ToB64(nUint24 >>> 12 & 63), uint6ToB64(nUint24 >>> 6 & 63), uint6ToB64(nUint24 & 63))
+      nUint24 = 0
+    }
+  }
+
+  return sB64Enc.substr(0, sB64Enc.length - 2 + nMod3) + (nMod3 === 2 ? '' : nMod3 === 1 ? '=' : '==');
+}
+
+/**
+ * UTF-8 array to JS string and vice versa 
+ */
+export const UTF8ArrToStr = (aBytes) => {
+  let sView = ""
+  for (var nPart, nLen = aBytes.length, nIdx = 0; nIdx < nLen; nIdx++) 
+  {
+    nPart = aBytes[nIdx]
+    sView += String.fromCodePoint(
+      nPart > 251 && nPart < 254 && nIdx + 5 < nLen ? /* six bytes */
+        /* (nPart - 252 << 30) may be not so safe in ECMAScript! So...: */
+        (nPart - 252) * 1073741824 + (aBytes[++nIdx] - 128 << 24) + (aBytes[++nIdx] - 128 << 18) + (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+      : nPart > 247 && nPart < 252 && nIdx + 4 < nLen ? /* five bytes */
+        (nPart - 248 << 24) + (aBytes[++nIdx] - 128 << 18) + (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+      : nPart > 239 && nPart < 248 && nIdx + 3 < nLen ? /* four bytes */
+        (nPart - 240 << 18) + (aBytes[++nIdx] - 128 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+      : nPart > 223 && nPart < 240 && nIdx + 2 < nLen ? /* three bytes */
+        (nPart - 224 << 12) + (aBytes[++nIdx] - 128 << 6) + aBytes[++nIdx] - 128
+      : nPart > 191 && nPart < 224 && nIdx + 1 < nLen ? /* two bytes */
+        (nPart - 192 << 6) + aBytes[++nIdx] - 128
+      : /* nPart < 127 ? */ /* one byte */
+        nPart
+    )
+  }
+  return sView
+}
+
+/**
+ * 
+ * @param {*} sDOMStr 
+ * @returns 
+ */
+export const strToUTF8Arr = (sDOMStr) => {
+
+  var aBytes, nChr, nStrLen = sDOMStr.length, nArrLen = 0
+
+  /* mapping... */
+
+  for (var nMapIdx = 0; nMapIdx < nStrLen; nMapIdx++) 
+  {
+    nChr = sDOMStr.codePointAt(nMapIdx)
+
+    if (nChr > 65536) {
+      nMapIdx++
+    }
+
+    nArrLen += nChr < 0x80 ? 1 : nChr < 0x800 ? 2 : nChr < 0x10000 ? 3 : nChr < 0x200000 ? 4 : nChr < 0x4000000 ? 5 : 6
+  }
+
+  aBytes = new Uint8Array(nArrLen)
+
+  /* transcription... */
+  for (var nIdx = 0, nChrIdx = 0; nIdx < nArrLen; nChrIdx++) 
+  {
+    nChr = sDOMStr.codePointAt(nChrIdx)
+    if (nChr < 128) {
+      /* one byte */
+      aBytes[nIdx++] = nChr
+    } else if (nChr < 0x800) {
+      /* two bytes */
+      aBytes[nIdx++] = 192 + (nChr >>> 6)
+      aBytes[nIdx++] = 128 + (nChr & 63)
+    } else if (nChr < 0x10000) {
+      /* three bytes */
+      aBytes[nIdx++] = 224 + (nChr >>> 12)
+      aBytes[nIdx++] = 128 + (nChr >>> 6 & 63)
+      aBytes[nIdx++] = 128 + (nChr & 63)
+    } else if (nChr < 0x200000) {
+      /* four bytes */
+      aBytes[nIdx++] = 240 + (nChr >>> 18)
+      aBytes[nIdx++] = 128 + (nChr >>> 12 & 63)
+      aBytes[nIdx++] = 128 + (nChr >>> 6 & 63)
+      aBytes[nIdx++] = 128 + (nChr & 63);
+      nChrIdx++
+    } else if (nChr < 0x4000000) {
+      /* five bytes */
+      aBytes[nIdx++] = 248 + (nChr >>> 24)
+      aBytes[nIdx++] = 128 + (nChr >>> 18 & 63)
+      aBytes[nIdx++] = 128 + (nChr >>> 12 & 63)
+      aBytes[nIdx++] = 128 + (nChr >>> 6 & 63)
+      aBytes[nIdx++] = 128 + (nChr & 63)
+      nChrIdx++
+    } else /* if (nChr <= 0x7fffffff) */ {
+      /* six bytes */
+      aBytes[nIdx++] = 252 + (nChr >>> 30)
+      aBytes[nIdx++] = 128 + (nChr >>> 24 & 63)
+      aBytes[nIdx++] = 128 + (nChr >>> 18 & 63)
+      aBytes[nIdx++] = 128 + (nChr >>> 12 & 63)
+      aBytes[nIdx++] = 128 + (nChr >>> 6 & 63)
+      aBytes[nIdx++] = 128 + (nChr & 63)
+      nChrIdx++
+    }
+  }
+  return aBytes
+}
+
+
+/* Array of bytes to Base64 string decoding */
+
+// export const b64ToUint6 = (nChr) => {
+// 	return nChr > 64 && nChr < 91 ?
+// 		nChr - 65
+// 	  : nChr > 96 && nChr < 123 ?
+// 		nChr - 71
+// 	  : nChr > 47 && nChr < 58 ?
+// 		nChr + 4
+// 	  : nChr === 43 ?
+// 		62
+// 	  : nChr === 47 ?
+// 		63
+// 	  :
+// 		0;
+//   }  
+
+/**
+ * 
+const a2b = (a) => {
+	let b, c, d, e = {}, f = 0, g = 0, h = "", i = String.fromCharCode, j = a.length
+	for (b = 0; 64 > b; b++){
+		e["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".charAt(b)] = b
+	}
+	for (c = 0; j > c; c++){
+		for (b = e[a.charAt(c)], f = (f << 6) + b, g += 6; g >= 8; ) {
+			((d = 255 & f >>> (g -= 8)) || j - 2 > c) && (h += i(d))
+		}
+	}
+	return h
+}
+ */
