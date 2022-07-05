@@ -5,12 +5,11 @@ import { getBrowserLocales } from './i18n'
 import { getDomainDefaults } from './settings'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
 import { createStore} from './store'
-
 import { showError} from './dom/errors'
 import { setToast } from './dom/tooltips'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents} from './hardware/mouse'
 import Capabilities from './capabilities'
-
+import Attractor from './attractor'
 
 const LTD = getRefererHostname().split('.').pop()
 const IS_DEVELOPMENT_MODE = process.env.NODE_ENV === "development"
@@ -70,7 +69,9 @@ const start = () => {
 					document.title = title + " - " + Math.ceil(loadProgress * 100) +  "%"
 				}
 			})
-			
+
+			const automator = application.setAutomator( new Attractor(application) )
+			// console.log("Attract mode!", {automator, application})
 		
 			// let installation = null
 			// // at any point we can now trigger the installation
