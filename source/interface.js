@@ -1706,7 +1706,7 @@ export const createInterface = (
 				// control this class automatically
 				if (useAutomator && automator)
 				{
-					automator.tick(elapsed)
+					automator.tick(elapsed, getBarProgress() )
 				}
 					
 				const isBar = divisionsElapsed % 4 === 0

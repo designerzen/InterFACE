@@ -17,8 +17,7 @@
 const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = 3
 export default class Attractor{
 
-	counter = 0
-	userActive = true
+	barCounter = 0
 
 	constructor( application ) {
 		this.application = application
@@ -27,19 +26,22 @@ export default class Attractor{
 	/**
 	 * Tick this along!
 	 */
-	tick(elapsed, barProgress){
+	tick(elapsed, barProgress=0){
 
 		const players = this.application.getPlayers() 
-	
-		if (!this.application.isUserActive() )
+		const userActive = this.application.isUserActive()
+		if (!userActive )
 		{
 			// inactive - ATTRACT MODE
 			if (barProgress === 0)
 			{
-				this.counter++
+				this.barCounter++
+
 				players.forEach( player => {
 					if ( player.timeSinceInstrumentChanged > DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE )
 					{
+						//console.log("Has player been stuck on this instrument too long?", player.timeSinceInstrumentChanged, DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE)
+					
 						player.loadRandomInstrument()
 					}
 				})
@@ -55,7 +57,7 @@ export default class Attractor{
 			if (barProgress === 0)
 			{
 				//this.application.setState( 'backingTrack', true )
-				this.counter++
+				this.barCounter++
 				players.forEach( player => {
 					if ( player.timeSinceInstrumentChanged > DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE )
 					{
@@ -68,21 +70,13 @@ export default class Attractor{
 		}
 
 		// FIXME: 
-		// console.log(this.counter, "AUTOMATON:", elapsed.toFixed(2), "seconds", barProgress * 100,  this.application )
+		//console.log(this.barCounter, "AUTOMATON:", elapsed.toFixed(2) + "seconds", barProgress,  {players, userActive, photoSYNTH: this.application,} )
 	}
 
+	// every frame....
 	tock(elapsed, barProgress){
 		// FIXME: 
 		// console.log(this.counter, "AUTOMATON:", elapsed.toFixed(2), "seconds", barProgress * 100,  this.application )
 	}
 
-	// setUserActive(){
-	// 	this.userActive = true
-	// 	//console.log("User engaged... disengaging advanced attract mode." )
-	// }
-
-	// setUserInactive(){
-	// 	this.userActive = false
-	// 	//console.log("User disengaged... attracting..." )
-	// }
 }

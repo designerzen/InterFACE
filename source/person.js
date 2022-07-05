@@ -329,6 +329,9 @@ export default class Person{
 		// this.button.addEventListener( EVENT_INSTRUMENT_CHANGED, event => {
 		// 	console.log("External event for instrument", event )
 		// })
+
+		this.instrumentLoadedAt = this.now
+
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 	
@@ -1052,11 +1055,11 @@ export default class Person{
 	 * @returns instrument
 	 */
 	async loadSamples(method="loadRandomInstrument",progressCallback=null){
+		this.instrumentLoadedAt = this.now
 		this.instrument = await this.samplePlayer[method]( ({progress,instrumentName}) => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
-		this.instrumentLoadedAt = this.now
 		this.setupForm()
 		this.hideForm()
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
