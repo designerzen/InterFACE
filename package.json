@@ -1,8 +1,8 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Augmented Reality, Motion Capture Controlled Machine Learning Powered Accessible Audio Synthesizer",
-	"version": "0.8.25",
-	"time": 1657044384892,
+	"version": "0.8.26",
+	"time": 1657047217191,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -55,6 +55,7 @@
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
 		"deploy": "node actions/deploy.mjs",
 		"publish:www": "yarn clean && yarn build && yarn deploy",
+		"publish:cloudflare": "yarn clean && yarn build && yarn deploy",
 		"hotfix": "yarn patch && yarn publish:www",
 		"release": "yarn minor && yarn publish:www",
 		"bump": "yarn major && yarn publish:www"
