@@ -2,7 +2,7 @@
 
 #load-progress{
 	display: flex;
-	flex-direction: column-reverse;
+	flex-direction: column;
 	gap:var(--pad);
 	
   
@@ -20,9 +20,11 @@
 			rgba(255, 255, 255, 0.93), 
 			hsla(48, 63%, 97%, 0.96)
 		);
+
 	box-shadow:var(--shadow);
 
 	transition: transform var(--ease-m) 0s,
+				background-color var(--ease-m) 0s var(--ease-out-back),
 				border-radius var(--ease-m) 0s var(--ease-out-back);
 
 	progress{
@@ -30,9 +32,10 @@
 	}
 	
 	&:has(progress[value="1"]){
-		border-radius:0;
+		border-radius:99px;
 		box-shadow:none;
 		background-image:none;
+		background-color: var(--shade-yellow);
 	}
 }
 
@@ -53,7 +56,6 @@ label[for="progress-bar"]{
 	flex-direction: column;
 	align-items: center;
     justify-content: flex-end;
-
 	&:hover{
 		background-color: transparent;
 	}
@@ -190,6 +192,10 @@ progress[value="1"]{
 
 						background-size:100% 100%;
 	}
+}
+
+progress[value="1"] + label{
+	display: none;
 }
 
 .loader.wheel{    
