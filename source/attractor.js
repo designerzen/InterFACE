@@ -14,7 +14,9 @@
 	toggleRecording
  */
 
-const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = 3
+// in seconds
+const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = 60 * 3
+
 export default class Attractor{
 
 	barCounter = 0
