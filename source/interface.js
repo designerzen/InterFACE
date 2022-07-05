@@ -283,6 +283,10 @@ export const createInterface = (
 		setToast(message,time)
 	}
 
+	const setRandomDrumPattern = () => {
+		patterns = kitSequence( Math.floor( 17 + Math.random() * 23 ))
+	} 
+
 	/**
 	 * This sets the master volume below the compressor
 	 * @param {Number} volume 
@@ -1908,7 +1912,7 @@ export const createInterface = (
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
 			// change drums!
-			patterns = kitSequence( Math.floor( Math.random() * 13 ))
+			setRandomDrumPattern()
 			setState( 'backingTrack', status )
 			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 		}, ui.backingTrack )
@@ -2275,6 +2279,7 @@ export const createInterface = (
 		resolve( constructPublicClass( { 
 			user,
 			setState,
+			setRandomDrumPattern,
 			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers, getBar, getBars,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,

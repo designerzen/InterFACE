@@ -14,8 +14,10 @@ export const createSnare = () => {
 	const noise = audioContext.createBufferSource()
 	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
 
+	// just allow the hihgs through
 	const filter = audioContext.createBiquadFilter()
 	filter.type = "highpass"
+	filter.gain.value = 2
 
 	osc3.type = "triangle"
 	osc3.frequency.value = 100
@@ -52,8 +54,8 @@ export const createSnare = () => {
 
 		// modulate and filter freqs
 		filter.frequency.cancelScheduledValues(time)
-		filter.frequency.setValueAtTime(100, time)
-		filter.frequency.linearRampToValueAtTime(1000,time + length)		
+		filter.frequency.setValueAtTime(10, time)
+		filter.frequency.linearRampToValueAtTime(2000,time + length)		
 	
 		//gainNode.gain.value = 1			
 		try{

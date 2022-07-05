@@ -13,7 +13,7 @@ export const createKick = () => {
     const gainOsc = audioContext.createGain()
     const gainOsc2 = audioContext.createGain()
 	const FREQUENCY_LO = 90
-	const FREQUENCY_HI = 50
+	const FREQUENCY_HI = 40
 
     osc.type = "triangle"
     osc2.type = "sine"
