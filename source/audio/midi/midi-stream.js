@@ -8,19 +8,29 @@ export default class MIDIStream {
 	position = 0
 	str
 
+	/**
+	 * Create an instance of a MIDI data stream
+	 * @param {String} data - RAW data
+	 */
 	constructor(data) {
 		this.str = data
 	}
 
-	// Data management
-	// :string
+	/**
+	 * Read X length of the internal string
+	 * @param {*} length 
+	 * @returns {String} 
+	 */
 	read(length) {
 		const result = this.str.substr(this.position, length)
 		this.position += length
 		return result
 	}
 
-	// read a big-endian 32-bit integer
+	/**
+	 * Read a big-endian 32-bit integer
+	 * @returns {String} XXXX
+	 */
 	readInt32() {
 		const result = (
 			(this.str.charCodeAt(this.position) << 24)
@@ -31,7 +41,10 @@ export default class MIDIStream {
 		return result
 	}
 
-	// Read a big-endian 16-bit integer
+	/**
+	 * Read a big-endian 16-bit integer
+	 * @returns {String} XX
+	 */
 	readInt16() {
 		const result = (
 			(this.str.charCodeAt(this.position) << 8)
@@ -40,7 +53,11 @@ export default class MIDIStream {
 		return result
 	}
 
-	// read an 8-bit integer
+	/**
+	 * read an 8-bit integer
+	 * @param {Boolean} signed 
+	 * @returns {String} X
+	 */
 	readInt8(signed = false) {
 		const result = this.str.charCodeAt(this.position)
 		if (signed && result > 127) {
@@ -50,9 +67,12 @@ export default class MIDIStream {
 		return result
 	}
 
-	// read a MIDI-style variable-length integer
-	//	(big-endian value in groups of 7 bits,
-	//	with top bit set to signify that another byte follows)
+	/**
+	 * Read a MIDI-style variable-length integer
+	 * (big-endian value in groups of 7 bits,
+	 * with top bit set to signify that another byte follows)
+	 * @returns {Number} A
+	 */
 	readVarInt() {
 		let result = 0
 		while (true) {
@@ -61,7 +81,6 @@ export default class MIDIStream {
 				result += (b & 0x7f)
 				result <<= 7
 			} else {
-
 				return result + b
 				// b is the last byte
 			}

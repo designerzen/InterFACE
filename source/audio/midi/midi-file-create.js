@@ -39,8 +39,11 @@ import {
  */
 export const createMIDIFileFromTrack = (midiTrack, bpm=120 ) => {
 
+	// const convertFloatToHex = float => float.toString(16)
+	// ` NoteHEX:${convertFloatToHex(noteNumber)}` 
+	// ` VelocityHEX:${convertFloatToHex(velocity)}` 
+		
 	const track = new MidiWriter.Track()
-
 	track
 		.addCopyright("interface.place")
 		.addTrackName("interFACE")
@@ -49,9 +52,7 @@ export const createMIDIFileFromTrack = (midiTrack, bpm=120 ) => {
 	console.log("[MIDIFile] Creating MIDI File", {midiTrack, track} )
 
 	midiTrack.commands.forEach( (command,index)=> {
-
-	//	console.log("[MIDIFile] Adding MIDI Command", {command, index} )
-		
+		//	console.log("[MIDIFile] Adding MIDI Command", {command, index} )
 		if (command.type === "channel")
 		{
 			switch(command.type)

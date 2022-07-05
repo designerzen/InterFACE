@@ -1,7 +1,3 @@
-const convertFloatToHex = float => float.toString(16)
-
-import {convertMIDINoteNumberToName} from '../notes'
-
 export default class MIDICommand
 {
 	// Uint8Array
@@ -35,6 +31,8 @@ export default class MIDICommand
 
 	amount
 	noteNumber
+	// not an official MIDI spec but we use it in our app
+	noteName
 	velocity
 
 	// pitch value from MIDI is 0 -> 16383
@@ -44,15 +42,7 @@ export default class MIDICommand
 	programNumber
 	sequenceNumber
 
-	get noteName(){
-		return this.noteNumber ?
-			convertMIDINoteNumberToName( this.noteNumber ) :
-			"Not a note"
-	}
-
-	constructor()
-	{
-
+	constructor(){
 	}
 
 	toString()
@@ -61,8 +51,6 @@ export default class MIDICommand
 		if (this.channel){ output += ` [Channel ${this.channel}] ` }
 		if (this.noteNumber){ output += ` Note:${this.noteNumber} -> ${this.noteName}` }
 		if (this.velocity){ output += ` Velocity:${this.velocity}` }
-		// if (this.noteNumber){ output += ` NoteHEX:${convertFloatToHex(noteNumber)}` }
-		// if (this.velocity){ output += ` VelocityHEX:${convertFloatToHex(velocity)}` }
 		return output + '\n'
 	}
 }
