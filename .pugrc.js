@@ -4,9 +4,11 @@
 // but it is also handy for connecting together other data
 
 const package = require("./package.json");
+const instruments = require("./source/assets/audio/fatboy.json");
 
 module.exports = {
   locals: {
-    package
+    package,
+	instruments
   }
 };
