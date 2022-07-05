@@ -42,6 +42,8 @@
 		--footer-gap:var(--pad);
 	}
 
+	--ease-out-back:#{$easeOutBack};
+
 	// ease speeds (see overriding media queries)
 	--ease-s:450ms;
 	--ease-m:90ms;
@@ -99,10 +101,12 @@
 @import "./assets/styles/sections/dialog-fund.scss";
 
 @import "./assets/styles/sections/loading.scss";
+@import "./assets/styles/sections/tutorial.scss";
 @import "./assets/styles/sections/onboarding.scss";
 @import "./assets/styles/sections/interface.scss";
 @import "./assets/styles/sections/timeline.scss";
 
 @import "./assets/styles/states.scss";
 @import "./assets/styles/domains.scss";
+@import "./assets/styles/cursors.scss";
 @import "./assets/styles/utils.scss";
