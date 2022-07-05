@@ -109,8 +109,7 @@ export const base64DecToArr = (sBase64, nBlocksSize) => {
 
 export const base64EncArr = (aBytes) => {
 
-  var nMod3 = 2, sB64Enc = ""
-
+  let nMod3 = 2, sB64Enc = ""
   for (var nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) 
   {
     nMod3 = nIdx % 3
@@ -223,6 +222,36 @@ export const strToUTF8Arr = (sDOMStr) => {
     }
   }
   return aBytes
+}
+
+
+export const toBytes = (number, byteCount) => {
+	const bytes = new Array(byteCount)
+	for (let i = byteCount - 1; i >= 0; i--) 
+	{
+		bytes[i] = number & 255
+		number >>= 8
+	}
+	return bytes
+}
+
+export const toVarLenBytes = (number) => {
+	const bytes = []
+	let last = true
+	do {
+		const partial_value = number & 127
+		number >>= 7
+		if (last) {
+			// first bit is off for last byte
+			bytes.unshift(partial_value)
+			last = false
+		}
+		else {
+			// set first bit on for all other bytes
+			bytes.unshift(partial_value | 128)
+		}
+	} while (number > 0)
+	return bytes
 }
 
 
