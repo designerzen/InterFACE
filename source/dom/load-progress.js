@@ -30,7 +30,7 @@ export const setLoadProgress = (progress, message) => {
 		loadMeter = rounded
 	}
 	
-	progressBar.style.setProperty("--progress", loadMeter )
+	progressBar.parentNode.style.setProperty("--progress", loadMeter )
 	progressBar.setAttribute("value", loadMeter )
 
 	if (rounded === 0 ){

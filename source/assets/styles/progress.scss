@@ -5,6 +5,7 @@
 	flex-direction: column-reverse;
 	gap:var(--pad);
 	
+  
 	position:fixed;
 	top:50%;
 	left:50%;
@@ -12,12 +13,17 @@
 	
 	padding:var(--pad);
 	border-radius:18px;
+	border-radius:max( 18px, calc( 999px * var(--progress,0) ) );
+
 	background-image:
 		linear-gradient(
 			rgba(255, 255, 255, 0.93), 
 			hsla(48, 63%, 97%, 0.96)
 		);
 	box-shadow:var(--shadow);
+
+	transition: transform var(--ease-m) 0s,
+				border-radius var(--ease-m) 0s var(--ease-out-back);
 
 	progress{
 		transform: translateY(25%);
@@ -56,8 +62,7 @@ label[for="progress-bar"]{
 progress{
 	
 	--range:160deg;
-	--progress:1;
-    --angle:calc( var(--progress) * var(--range,160deg) );
+    --angle:calc( var(--progress,1) * var(--range,160deg) );
     --size:clamp(150px, 50vh, 250px);
     
 	--scale:1;
