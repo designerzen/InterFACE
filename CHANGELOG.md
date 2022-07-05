@@ -1,3 +1,70 @@
+#### 0.8.18 (2022-07-05)
+
+##### Bug Fixes
+
+*  Timing now tracks elapsed times (3fc63948)
+*  Clearing canvas now no-longer show stopper (900d3d01)
+*  Diisco mode now a setting (7c9c5f54)
+
+##### Other Changes
+
+*  Version bump (3bd1deac)
+*  Added lemming to Error page (4df459e4)
+*  Cleaned gitignore (857ffa8b)
+*  Added new sections to stylesheet (ce828eed)
+*  State service todo -> batching (cfe91af4)
+*  Upgraded libs (5bea5769)
+*  AttractorMode changes instruments (840cbd9e)
+*  Removed logs from Instruments (3f8d0837)
+*  Many visual style improvements & upgrades (dc861bd8)
+*  Video recording (9a6ba1f6)
+*  Person aware how long playing instrument (af0bac3d)
+*  More encoder modes added (528e1660)
+*  ontrols re-ordered and added synch (5a6576e4)
+*  Dropzone added for file uploads (c47e8bb1)
+*  App mode now optional Electron (eff0591b)
+*  MIDI file optimisations & encoder (b814a0f1)
+*  AttractMode added (a868be34)
+*  PWA fixes and improvements (d2445f80)
+*  Instruments added directly to pug (7129544a)
+*  Extra loading messages to show time (a1d14ac6)
+*  MIDIWorkers! (8498be21)
+*  Added useful encode / decode utils (c19564f6)
+*  Button uses mousedown rather than click (92c6973f)
+*  Timing events shared (4ba2c1cc)
+*  New icons for media controls (cd633d39)
+*  New Social / Favicons (9f241927)
+*  Sidebar now accordian (2d385fd5)
+*  Pressure based toggle for record button (6978e387)
+*  GampePad per person (24f967b2)
+*  Mouse now has a pressure mode (ff467283)
+*  Major MIDI file speed improvements (4caa041d)
+*  Play icon added and progress improved (b79e45f1)
+*  MIDI file creation tests (93eac2b0)
+*  Person has better awareness of situation (535f4892)
+*  Allow buttons to use different click types (b2a692c6)
+*  Changelog shown in dialog (a233cbdb)
+*  Changelog loads only when updated (963dc44e)
+*  Note / Sample / GM consistencu improvement (b5191503)
+*  Added Electron version (340d9235)
+*  Icons for MS Store / Android (f916464e)
+*  Instruments now grouped into families (c8e15e61)
+
+#### 0.8.17 (2022-06-18)
+
+##### Other Changes
+
+*  Recorder now shows time in Feedback (3684d1d7)
+*  Added new icons (d89a7ce3)
+*  Recorder now shows time recorded (ae9048dd)
+
+#### 0.8.16 (2022-06-18)
+
+##### Other Changes
+
+*  Version bump (1201a1b6)
+*  Readme links added (90813496)
+
 #### 0.8.15 (2022-06-18)
 
 #### 0.8.14 (2022-06-18)
