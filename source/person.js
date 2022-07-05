@@ -79,6 +79,7 @@ export default class Person{
 	// if we are watching the face perform without interaction
 	isPlayingBack = false
 	instrumentLoading = false
+	instrumentLoadedAt = -1
 
 	isFormShowing = false
 
@@ -192,6 +193,15 @@ export default class Person{
 	 */
 	get history(){
 		return this.parameterRecorder.recording
+	}
+
+	get now(){
+		return this.audioContext.currentTime
+	}
+
+	get timeSinceInstrumentChanged(){
+		return this.instrumentLoadedAt < 0 ? 
+			0 : this.now - this.instrumentLoadedAt
 	}
 
 	constructor(name, audioContext, destinationNode, options={} ) {
@@ -327,7 +337,7 @@ export default class Person{
 	 * @param {String} state - which state the Person is in
 	 */
 	setState(state){
-		console.log(state)
+		// console.log(state)
 		// Vocal state machine ASDR
 		this.state = state
 	}
@@ -1046,6 +1056,7 @@ export default class Person{
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
+		this.instrumentLoadedAt = this.now
 		this.setupForm()
 		this.hideForm()
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
@@ -1213,6 +1224,7 @@ export default class Person{
 
 		//console.log("Form", {active})
 		this.controls.classList.toggle("showing",true)
+		document.documentElement.classList.toggle(`${this.name}-sidebar-showing`,true)
 		this.isFormShowing = true
 	}
 
@@ -1227,6 +1239,7 @@ export default class Person{
 			//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
 			//this.controls.innerHTML = ''
 			this.controls.classList.toggle("showing",false)
+			document.documentElement.classList.toggle(`${this.name}-sidebar-showing`,false)
 			// setTimeout( ()=> this.controls.classList.toggle("showing",false), 303 )	
 		}
 		
