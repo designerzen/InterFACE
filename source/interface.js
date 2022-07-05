@@ -1,7 +1,11 @@
 // import {midiLikeEvents} from './timing/rhythm'
 import { loadState, getState, setState, refreshState } from './state'
+
+// TODO :lazy load
 import { say, hasSpeech} from './audio/speech'
 import { record } from './audio/recorder'
+import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/video'
+
 import { 
 	getRecordableOutputNode,
 	active, playing, 
@@ -22,11 +26,10 @@ import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-cre
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 import {getMIDINoteNumberAsName} from './audio/notes'
 
-
 // Different ways of playing sound!
 import SampleInstrument from './audio/instruments/instrument.sample'
-import MIDIInstrument from './audio/instruments/instrument.midi'
-import OscillatorInstrument from './audio/instruments/instrument.oscillator'
+// import MIDIInstrument from './audio/instruments/instrument.midi'
+// import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 
 // More input mechanisms
 import GamePad from './hardware/gamepad'
@@ -34,6 +37,7 @@ import GamePad from './hardware/gamepad'
 // import {midiLikeEvents} from './timing/rhythm'
 import { 
 	tapTempo,
+	getElapsed,
 	getBars, setBars, getBar, 
 	startTimer, stopTimer, now, 
 	getBarProgress,
@@ -61,7 +65,7 @@ import { addToolTips, setToast } from './dom/tooltips'
 import { setFeedback } from './dom/text'
 import { appendPhotographElement } from './dom/photographs'
 import { appendAudioElement} from './dom/audio-element'
-
+import { connectDropZone } from './dom/drop-zone'
 import interact from './inactivity'
 
 import { 
@@ -71,7 +75,8 @@ import {
 } from './visual/canvas'
 
 import {drawMousePressure} from './dom/mouse-pressure'
-import { setupImage, setNodeCount } from './visual/2d'
+import { setupImage } from './visual/image'
+import { setNodeCount } from './visual/2d'
 import { drawWaves, drawBars } from './visual/spectrograms'
 import { drawQuantise, Quanitiser } from './visual/quantise'
 // import Stave from './visual/2d.stave'
@@ -190,6 +195,8 @@ export const createInterface = (
 	let midiPlayer
 	let savedPerformance
 	let waveforms = []
+	let automator
+	let useAutomator = true
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -204,6 +211,25 @@ export const createInterface = (
 	let userActive = false
 	let recordRequested = false
 	let recordCancelRequested = false
+
+
+	// TODO : video or canvas copy
+	// should canvas be transparent to let video bleed through?#
+	// retrun true if we should copy the video output
+	// onto the canvas.
+	// NB. This should be only possible if we 
+	// are *not* showing the video element underneith
+	const shouldCopyVideoFrame = () => {
+		if (ui.clear)
+		{
+			return false
+		}
+		if (ui.synch){
+			return true
+		}
+		return false
+	}
+
 
 	// TODO:
 	let cookieConsent = false
@@ -220,6 +246,19 @@ export const createInterface = (
 	// for disco mode!
 	const cameraPan = {x:1,y:1}
 
+
+	/**
+	 * For Demonstration and automation purposes 
+	 * where you want the entire app to be remote
+	 * controlled, you can pass in an instance of the Automator
+	 * @param {Automator} automataton 
+	 * @returns Automator instance
+	 */
+	const setAutomator = automataton => {
+		automator = automataton
+		// console.log("Automator set", {useAutomator, automator} )
+		return automator
+	}
 
 	/**
 	 *  Vocal mode uses speech synthesis to talk the toSay string
@@ -353,7 +392,7 @@ export const createInterface = (
 		})
 
 
-		const markInstrumnetProgress = (progress,instrumentName) =>{ 
+		const markInstrumentProgress = (progress,instrumentName) =>{ 
 			const percent = Math.ceil(progress*100)
 			//setFeedback( `${instrumentName} ${Math.ceil(progress*100)} Loading` )
 			if (percent < 99){
@@ -365,7 +404,7 @@ export const createInterface = (
 
 		person.button.addEventListener( EVENT_INSTRUMENT_LOADING, ({detail}) => {
 			const { progress, instrumentName } = detail
-			markInstrumnetProgress( progress, instrumentName )
+			markInstrumentProgress( progress, instrumentName )
 		})
 
 		person.loadInstrument( instrument )
@@ -409,6 +448,8 @@ export const createInterface = (
 		// }
 		return person
 	}
+
+	const getPlayers = () => people
 
 	/**
 	 * Create / Fetch a user (we cache every new user)
@@ -530,7 +571,7 @@ export const createInterface = (
 					return midiFile
 
 				default:
-					console.log("Dropped file", {file} , "Ignoring...")
+					console.log("Dropped file", {file} , "Ignoring as not sure how to interpret it")
 			}
 			return null
 		}
@@ -800,7 +841,7 @@ export const createInterface = (
 					break
 
 				case 'j':
-					toggleVisibility(video)
+					//toggleVideoFrameCopy()
 					break
 
 				// kid mode / advanced mode toggle
@@ -858,7 +899,7 @@ export const createInterface = (
 				// Hide video
 				case 'v':
 					// FIXME: Also enable sync?
-					toggleVisibility(video)
+					toggleVideoOutput()
 					break
 
 				case 'w':
@@ -921,41 +962,10 @@ export const createInterface = (
 		})
 	}
 
-	/**
-	 * Add a drag and drop zone to allow files to be 
-	 * dragged onto the app to then load additional features
-	 */
-	const connectDropZone = () => {
-		const dropAreas = [ body ]
-		const evs = ['dragenter', 'dragover', 'dragleave', 'drop']
-		dropAreas.forEach( dropArea => {
-			evs.forEach(eventName => {
-				dropArea.addEventListener(eventName, async (event) => {
-					event.preventDefault()
-					event.stopPropagation()
-					switch (event.type)
-					{
-						case 'dragenter':
-						case 'dragover':
-							body.classList.toggle('dragging', true)
-							break
-		
-						case 'dragleave':
-						case 'drop':
-							body.classList.toggle('dragging', false)
-							break
-					}
 
-					if (event.type === "drop")
-					{
-						const dataTransfer = event.originalEvent ? event.originalEvent.dataTransfer : event.dataTransfer
-						const file = dataTransfer.files[0]
-						await userUploadMediaFile( file )
-					}
+	// TODO:
+	const changeDrumPattern = () => {
 
-				}, false)
-			})
-		})
 	}
 
 	/**
@@ -972,8 +982,9 @@ export const createInterface = (
 		let note = stuff.note
 		let noteVelocity = stuff.volume
 
-		if (!person.instrument || !person.instrument[ noteName ]){
-			// probably still loading!
+		if (!person.instrument || !person.instrument[ noteName ])
+		{
+			// probably still loading...
 			return stuff
 		}
 
@@ -990,9 +1001,9 @@ export const createInterface = (
 				// to use the gate as a throttle for the velocity too...
 				// noteVelocity = command.velocity * 0.01	
 				noteVelocity *= command.velocity * 0.01	
-				// console.log("Intercepted cmmand", command)
+				//console.log("Intercepted command via MIDI", noteName, command)
 			}else{
-				// console.log("No Interception available")
+				 //console.log("No Interception available", command)
 			}
 
 			// const commands = midiPerformance.getNextCommands() || []
@@ -1054,16 +1065,16 @@ export const createInterface = (
 
 	/**
 	 * Toggle Start / Stop of the Recording
-	 * @
+	 * @param {Boolean} defer 
 	 */
 	const toggleRecording = (defer = true) => {
 		if (recordRequested)
 		{
-			console.log("recordRequested")
+			// console.log("recordRequested")
 		}
 		if (recordCancelRequested)
 		{
-			console.log("recordCancelRequested")
+			// console.log("recordCancelRequested")
 		}
 
 		if ( (defer && recordRequested) || isRecording())
@@ -1087,7 +1098,7 @@ export const createInterface = (
 				startRecordingAudio()
 			}
 		}else{
-			console.log("record button ignored")
+			// console.log("record button ignored")
 		}
 	}
 
@@ -1310,10 +1321,10 @@ export const createInterface = (
 			progressCallback(loadIndex/loadTotal,"Loading MIDI Performance")
 			try{
 				midiPerformance = await loadMIDIFile( "./assets/audio/midi_nyan-cat.mid" )
-				console.error("MIDIFILE", midiPerformance)
+				// console.error("MIDIFILE", midiPerformance)
 				onMIDIPerformanceAvailable( midiPerformance )
 			}catch(error){
-				console.error("MIDIFILE", error)
+				// console.error("MIDIFILE", error)
 				setFeedback(error, 0)
 			}
 		}
@@ -1325,7 +1336,7 @@ export const createInterface = (
 			
 			// create a super object containing paths and families ands such!
 			const instrumentDictionary = createInstruments()
-			console.error({instrumentDictionary})
+			// console.error({instrumentDictionary})
 
 			// load a specific instrumentPack?
 			await loadInstrumentDataPack()
@@ -1466,32 +1477,50 @@ export const createInterface = (
 					return
 				}
 
+				const barProgress = getBarProgress()
+				const elapsed = getElapsed()
 				
+				// If there is a attract mode supervisor
+				// we update it every tick so that it can 
+				// control this class automatically
+				if (useAutomator && automator)
+				{
+					automator.tock(elapsed, barProgress)
+				}
 			
 				let tickerTape = ''
 				
-				// do we clear the canvas?
-				if (ui.clear)
-				{
-					// clear for invisible canvas but 
-					// NB. this may cause visual disconnect
-					clear()
-					
-					if (!ui.transparent)
-					{
-						// paste video frame
-						drawElement( inputElement )
-					}
-
-				}else{
-
+				if (ui.disco)
+				{	
 					// FUNKY DISCO MODE...
 					// switch effect type?
-					const t = (counter * 0.01) % TAU
+					const t = (counter * 0.01) % TAU	
 					overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
+				
+				}else{
+
+					// do we clear the canvas?
+					// if it is disco mode, we always want it to 
+					// copy the previous frames otherwise it will
+					// just look like it is janking
+					// we also clear if sync is not set to true
+					// as this means the video is playing behind
+					// the canvas on the DOM
+					if (ui.clear || !ui.synch)
+					{
+						// clear for invisible canvas but 
+						// NB. this may cause visual disconnect
+						clear()
+					
+					}else if (ui.synch){
+						
+						// paste video frame if the video is hidden
+						drawElement( inputElement )
+					}else{
+						// video is already showing
+					}
 				}
 				
-
 				// On BEAT if beatjustplayed
 				// TODO: convert this into a per user bar and use the last played note to 
 				// change the colour of the indicator
@@ -1567,11 +1596,12 @@ export const createInterface = (
 						// first update the person - this allows us to sing at will
 						person.update(prediction)
 
-						// then redraw them
-						// const { yaw, pitch, lipPercentage } = 
-						
-						// prediction, showText=true, forceRefresh=false
-						person.draw(prediction, ui.text, false, beatJustPlayed)
+						// add face overlay
+						if (ui.disco || ui.overlays)
+						{
+							// prediction, showText=true, forceRefresh=false
+							person.draw(prediction, ui.text, false, beatJustPlayed)
+						}
 						
 						// then whenever you fancy it,
 						if (!ui.quantise && !ui.muted)
@@ -1669,6 +1699,14 @@ export const createInterface = (
 				{
 					recordCancelRequested = false
 					stopRecordingAudio()
+				}
+
+				// If there is a attract mode supervisor
+				// we update it every tick so that it can 
+				// control this class automatically
+				if (useAutomator && automator)
+				{
+					automator.tick(elapsed)
 				}
 					
 				const isBar = divisionsElapsed % 4 === 0
@@ -1884,15 +1922,19 @@ export const createInterface = (
 		}, ui.speak )
 
 		// Synch button
-		toggles.transparent = setToggle( "button-transparent", status =>{
+		// draw video onto canvas every frame (transparent doesn't have to be true then)
+		toggles.synch = setToggle( "button-sync-video", status =>{
 			// I inverted the state for UX
-			setState( 'transparent', !status )
-			setToast("Video Synch " + (ui.spectrogram ? 'enabled' : 'disabled')  )
-		}, ui.transparent )
+			setState( 'synch', !status )
+			setToast( status ? `Video Frame Synching enabled` : 'disabled Frame Synch') 
+		}, ui.synch )
 
 		// Clear canvas between frames
+		// NB. 	there are 2 modes - video frame copy 
+		// 		transparent canvas with video beneath
 		toggles.clear = setToggle( "button-clear", status =>{ 
-			setState( 'clear', status )
+			setState( 'clear', !ui.clear )
+			setToast( status ? "Hiding video enabled" : 'Hiding video disabled') 
 		}, ui.clear )
 
 		// toggle mute
@@ -1902,10 +1944,12 @@ export const createInterface = (
 		}, ui.muted )
 
 		// FIXME: This does not work after refresh
-		let discoPreviousState
+		// let discoPreviousState
 		// MTV : Special disco mode!
 		toggles.disco = setToggle( "button-disco", status =>{ 
-			setState( 'masks', status )
+			setState( 'disco', !ui.disco )
+		
+			/*setState( 'masks', status )
 			if (status)
 			{
 				// ENABLE disco mode
@@ -1929,11 +1973,20 @@ export const createInterface = (
 				//console.log(ui.masks,"MTV load old state", discoPreviousState)
 				discoPreviousState = null
 				setToast('Disco mode disabled!' )
-			}
-		}, ui.masks )
+			}*/
+		}, ui.disco )
 
 		// Overlays ----
-		// Face overlays... should be dropdown?
+		
+			// toggleVideoVisiblity( !isVideoVisible() )
+
+		// All person  overlays... should be dropdown?
+		// Show / hide the face and stuff
+		toggles.overlay = setToggle( "button-overlay", status => { 
+			setState( 'overlays', !ui.overlays )
+		}, ui.overlays )
+
+		// Face meshes
 		toggles.masks = setToggle( "button-meshes", status =>{ 
 			setState( 'masks', !ui.masks )
 			setPlayerOption("drawMask", ui.masks)
@@ -1946,11 +1999,7 @@ export const createInterface = (
 			setPlayerOption("drawEyes", ui.eyes)
 		}, ui.eyes )
 
-		// Show / hide the canvas element
-		toggles.overlay = setToggle( "button-overlay", status => { 
-			toggleVideoVisiblity( !isVideoVisible() )
-		} )
-		
+	
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
 			setState( 'text', !ui.text )
@@ -2026,7 +2075,7 @@ export const createInterface = (
 			// await userUploadMediaFile( file )
 		})
 
-		connectDropZone()
+		connectDropZone( userUploadMediaFile )
 
 		// set the master tempo
 		selects.tempo = connectSelect( 'select-tempo', option => {
@@ -2222,12 +2271,19 @@ export const createInterface = (
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
 			user,
+			setState,
+			getPerson, getPlayers, getBar, getBars,
+			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 			language, 
-			...ui, 
+			isUserActive:()=>userActive,
+			options:ui, 
 			...information,
-			setBPM, loadInstruments, 
-			loadRandomInstrument, 
-			previousInstrument, nextInstrument
+			setAutomator,
+			setBPM, setMasterVolume,
+			changeDrumPattern,
+			loadInstruments,
+			loadRandomInstrument, previousInstrument, nextInstrument,
+			toggleRecording
 		} ) )
 	}
 
@@ -2240,7 +2296,8 @@ export const createInterface = (
 		if (matchingCommands && matchingCommands.length)
 		{
 			savedPerformance = matchingCommands
-			console.log("onMIDIPerformanceAvailable", midiTrack, matchingCommands )
+			// console.log("onMIDIPerformanceAvailable", midiTrack, matchingCommands )
+			// console.log("onMIDIPeconstrformanceAvailable", midiTrack.toString(), midiTrack.toString() )
 		}
 
 		const midiFile = createMIDIFileFromTrack( midiTrack, getBPM() )
@@ -2284,9 +2341,15 @@ export const createInterface = (
 			timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
 		}, 60000 )
 
-		const { players,advancedMode } = await showPlayerSelector(options)
-		setState("duet", players > 1	)
+		const { players, advancedMode, automationMode } = await showPlayerSelector(options)
+		
+		// console.error("FWSFEW",{ players, advancedMode, automationMode } )
+		useAutomator = automationMode
+
+		setState("duet", players > 1 )
 		setState("advancedMode", advancedMode )
+		setState("automationMode", automationMode)
+		
 		clearInterval( timeOut )
 		setToast( "" )
 
