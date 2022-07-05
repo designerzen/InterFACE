@@ -225,8 +225,6 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 
 
 	const registration = await navigator.serviceWorker.getRegistration()
-	console.log("Checking for installed service worker", registration )
-	
 
 	// ===================================================
 	// INSTALLATION OF SERVICE WORKER MEANS IT WAS JUST INSTALLED 
