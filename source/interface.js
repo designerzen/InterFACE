@@ -42,7 +42,8 @@ import {
 	startTimer, stopTimer, now, 
 	getBarProgress,
 	convertBPMToPeriod,
-	setTimeBetween, timePerBar, getBPM 
+	getTimePerBar,
+	setTimeBetween, getBPM
 } from './timing/timing.js'
 
 import { playNextPart, kitSequence } from './timing/patterns'

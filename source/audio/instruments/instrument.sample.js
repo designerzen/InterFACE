@@ -8,7 +8,7 @@ import {
 	loadInstrument,
 	NOTE_NAMES,	getNoteName } from '../audio'
 
-import {MIDI_CONVERTOR, convertNoteNameToMIDINoteNumber} from '../notes'
+import {convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../notes'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 16 // AKA one bar
@@ -79,7 +79,7 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	async noteOn(noteNumber, velocity=1){
-		const noteName = MIDI_CONVERTOR[noteNumber]
+		const noteName = convertMIDINoteNumberToName(noteNumber)
 		return this.noteOnByName( noteName , velocity, noteNumber )
 	}
 
