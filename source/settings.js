@@ -44,7 +44,7 @@ export const DEFAULT_OPTIONS = {
 
 	// clear the canvas on every frame
 	// also doubles as a video hider
-	clear:true,
+	clear:false,
 	// draw video onto canvas every frame (transparent doesn't have to be true then)
 	// clear will always take precedence
 	synch:true,
