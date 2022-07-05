@@ -3,13 +3,17 @@ import { DEFAULT_COLOURS } from './palette'
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
 const isDevelopmentMode = process.env.NODE_ENV === "development"
+
+// https://www.midi.org/specifications-old/item/manufacturer-id-numbers
+export const MIDI_ID = "00H 21H 71H"
+
 export const DEFAULT_TENSORFLOW_OPTIONS = {
 	
 	// or 'tfjs' (mediapipe is far smoother)
 	runtime: 'mediapipe', 
 
 	// location of actual ML model
-	solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+	// solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
 
 	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
 	maxFaces:1,
