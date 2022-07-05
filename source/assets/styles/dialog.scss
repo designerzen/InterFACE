@@ -39,6 +39,9 @@ dialog[open]{
 	overflow-x: hidden;
 	overscroll-behavior-y: contain;
 
+	// king of the castle
+	z-index:999;
+
 	//position: static;
 	// top right is a fake close icon...
 	background: url(./assets/icons/close-24px.svg) no-repeat, 

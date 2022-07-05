@@ -1,0 +1,106 @@
+.cursor{
+
+	--size:100px;
+	// duration is only until it pops
+	--total:calc( var(--duration, 4) * 3s );
+	--percent:calc( var(--p,0) );
+
+	position: absolute;
+	left: calc( var(--mx, 0) * 1px );
+	top: calc( var(--my, 0) * 1px );
+	transform: translate( -50%, -50%);
+	display: grid;
+	visibility: hidden;
+	display: none;
+	pointer-events: none;
+	
+	border-radius: 99px;
+
+	z-index:9999999999;
+		
+	&::before,
+	&::after{
+		content: '';
+		transform-origin: center;
+		grid-area:1/-1;
+		width:var(--size);
+		height:var(--size);
+		display: block;
+		border-radius: 99px;
+		box-sizing: border-box;
+	}
+
+	&::before{
+		background-color: hsla(var(--hue-red), 30%, 50%, 50%);
+		background-image: repeating-conic-gradient(var(--shade-yellow) 0deg 3deg, transparent 3deg 33deg);
+	
+		// background-image: conic-gradient( 
+		// 	var(--shade-yellow) 10deg, 
+		// 	transparent 10deg 30deg, 
+		// 	var(--shade-yellow) 30deg 45deg, 
+		// 	transparent 45deg 110deg, 
+		// 	var(--shade-yellow) 110deg 200deg, 
+		// 	transparent 200deg 290deg, 
+		// 	var(--shade-yellow) 290deg
+		// );
+		border:3px dashed var(--shade-red);
+	}
+
+	&:after{
+		background-color: var(--shade-green);
+		background-image: radial-gradient(circle, var(--shade-yellow) 0%, var(--shade-green) 100%);
+	}
+
+	&.pressure{
+
+		visibility: visible;
+		display: grid;
+
+		&::before{
+			animation: MousePressureOuter var(--total) var(--ease-out-back, linear) 0s 1 both;
+			//animation-delay: calc( -1 * var(--percent,0) * var(--total) );
+		}
+
+		&:after{
+			//opacity:calc( 1 - (var(--percent, 0) / 100 ) );
+			animation: MousePressureInner var(--total) var(--ease-out-back, linear) 0s 1 both;
+		}
+	}
+}
+
+// From tiny to large as it grows to shrink invisible
+@keyframes MousePressureOuter {
+	0%{
+
+		transform: scale(0.1) ;
+	}
+	5%{
+		transform: scale( 1 ) rotate(0.2turn);
+	}
+	// pop : 33%{ }
+	95%{
+		transform: scale( 1 ) rotate(0.2turn);
+	}
+	100%{
+		transform: scale(0.1);
+		opacity: 0;
+	}
+}
+@keyframes MousePressureInner {
+	
+	0%{
+		transform: scale(0.1);
+	}// pop
+	33%{
+		transform: scale( calc( var(--percent ) ) );
+	}
+	66%{
+		opacity: 1;
+		transform: scale(0);
+		// reveal background???
+	}
+	100%{
+		opacity: 0;
+		transform: scale(0);
+	}
+}

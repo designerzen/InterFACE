@@ -53,6 +53,7 @@
 		left:var(--pad);
 		// above feedback
 		bottom:var(--footer-gap);	
+		pointer-events: none;
 		
 		// main title
 		h1{
@@ -244,7 +245,7 @@ p strong{
 		}
 
 		// #control-panel,
-		#photographs,
+		.recordings,
 		.controls{
 			//visibility: hidden;
 			transition:opacity var(--ease-s) linear;
@@ -278,7 +279,7 @@ p strong{
 			}
 
 			 .controls,
-			 #photographs{
+			 .recordings{
 				opacity:1;	
 				transition-duration: var(--ease-q);
 				
@@ -305,16 +306,21 @@ p strong{
 }
 
 // hide all help bits
-#help .app-help,
-#help .player-selection-help{
+#help section{
 // #help > *{
 	display: none;
 }
+
+
 // STATES /////////////////////////////////////////////////////
 
 
 // FIXME:
 .loaded{
+
+	#help .app-help{
+		display: block;
+	}
 
 	#intro header{
 		display:flex;
@@ -523,9 +529,6 @@ p strong{
 		z-index:-1;
 	}
 
-	#help .app-help{
-		display: block;
-	}
 }
 
 
@@ -572,7 +575,7 @@ html.debug{
 	left:0;
 	right:0;
 	bottom: 0;
-	z-index:303;
+	z-index:606; // NOT top - we have help and about remember!
 
 	// width:100%;
 	// pointer-events: none;
@@ -618,15 +621,15 @@ html.debug{
 
 }
 
-
 // Results
-#photographs{
-	--side:100px;
+.recordings{
+	--side:123px;
 	position: fixed;
 	// bottom:var(--footer-gap);
-	top:var(--pad);
+	top:0;
 
 	left:50%;//var(--side);
+	border-radius: var(--curve);
 	width:min-content;
 	max-width:calc( 100vw - 2 * var(--side) );
 	transform: translateX(-50%);
@@ -638,8 +641,8 @@ html.debug{
 	justify-content: center;
 	
 	// a bit of space to zoom
-	padding:var(--pad);
-	padding-top:22px;
+	//padding:var(--pad);
+	padding:22px;
 	pointer-events: all;
 
 	z-index: 303;
@@ -651,9 +654,28 @@ html.debug{
 	scroll-snap-type: x mandatory;
 	//scroll-padding: 50%;
 
+	// &:before, &:after{
+	// 	content:'';
+	// 	position: absolute;
+	// 	top:0;
+	// 	right:100%;
+	// 	background-color: aquamarine;
+	// 	width: 20px;
+	// 	height:20px;
+	// 	display: block;
+	// }
+
+	&:after{
+		left:100%;
+		right:auto;
+	}
+
 	> * {
 		scroll-snap-align: center;
-		margin-right: 20px;
+	}
+
+	> * + * {
+		margin-left:8px;
 	}
 
 	&:empty{
@@ -736,13 +758,23 @@ dialog[open] > *{
 	}
 }
 
+
 #person-a-controls{
+	transform:translateX(-100%);
 	left:0;
+	&.showing{
+		transform:translateX(0);
+	}
 }
 
 #person-b-controls{
+	transform:translateX(100%);
 	right:0;
+	&.showing{
+		transform:translateX(0);
+	}
 }
+
 
 // Instrument selection panel
 fieldset.person-controls{
@@ -760,13 +792,15 @@ fieldset.person-controls{
 	overflow: auto;
 	overflow-x: hidden;
 	visibility: hidden;
-	pointer-events: all;
+	pointer-events: auto;
+	// prevent causing issues with tooltips
+	z-index:9999999999999;
 	border:0;
 	margin:0;
-	z-index:505;
-
+	color:$col-dark;
 	display:grid;
 	background-color:rgba($col-white, 0.9);
+	transition: transform var(--ease-m) ease-in-out;
 
 	// smol : Next, we use minmax for the main content. Why? Because if we only use 1fr then eventually our sidebar and main will share 50% of the space, and we want the main area to always be wider. We also nest min to ask the browser to use the minimum of either of the options. The result in this case is use of 50vw on mobile-sized viewports, and 30ch on larger viewports. And, when there's room, it also stretches to 1fr for the max part of minmax 🙌🏽
 	//grid-template-columns: fit-content(24ch) minmax(min(50vw, 44ex), 1fr);
@@ -776,7 +810,8 @@ fieldset.person-controls{
 	grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
 	grid-template-columns: repeat(auto-fit,fit-content(48ch));
 
-	legend{
+	legend,
+	summary{
 		grid-column: 1/-1;
 		color:$col-white;
 		background-color:rgba($col-dark, 1);
@@ -787,13 +822,26 @@ fieldset.person-controls{
   	 	// bottom: 0;
   	 	// top: 0;
 		z-index:303;
+		text-transform: uppercase;
+	}
+	
+	summary{
+		background-color:var(--shade-gray);
+		position: sticky;
+  	 	// bottom: 0;
+  	 	top: 0;
+	}
+
+	details{
+		// 
 	}
 
 	label{
+		display: block;
 		border:1px dotted $col-dark;
 		border-right:0;
 		border-left:0;
-		color:$col-dark;
+		
 		//background-color:rgba($col-white, 0.9);
 		&:hover{
 			color:$col-white;
@@ -801,10 +849,21 @@ fieldset.person-controls{
 		}
 	}
 
+	input[type="radio"]:checked{
+		background-color: var(--shade-orange);
+		border-radius: 0;
+		z-index: -1;
+	}
+
+
+	// reveal!
 	&.showing{
 		visibility: visible;
+		//animation: SideBar duration timing-function delay iteration-count direction fill-mode;
 	}
 }
+
+
 
 
 // MIDI MIDI MIDI MIDI! ===============================
@@ -897,10 +956,14 @@ main.solo{
 	}
 }
 
+// only enable when loaded
+#share{
+	display: none;
+}
 
-main.sharing-disabled{
+.sharing-enabled{
 	#share{
-		display: none;
+		display: flex;
 	}
 }
 

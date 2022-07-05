@@ -35,12 +35,21 @@ body{
     justify-content: space-between;
 }
 
-
+menu{
+	list-style: none;
+	::marker {
+		display: none;
+	}
+}
+menu,
 ol{
 	margin:0;
-	margin-top:var(--pad);
 	padding:0;
 	// list-style-position: inside;
+}
+
+ol{
+	margin-top:var(--pad);
 }
 
 ol li{
@@ -57,13 +66,40 @@ svg{
 	height:auto;
 	display: block;
 }
+summary::marker {
+    color: var(--shade-blue);
+	display:none;
+	opacity:0;
+	margin-right: 0.5rem;
+}
+
+summary{
+	user-select:none;
+	cursor:pointer;
+}
+
+details[open] {
+	summary{
+		margin:0;
+	}
+	summary::marker {
+		display:inline-block;
+		opacity:1
+	}
+}
+
+figure{
+	margin: 0;
+}
+
+figcaption{
+	text-align: center;
+}
 
 // we hide these by default until ready to preserve CPU
 video,#interface{
 	max-width:100%;
 	visibility: hidden;
-	// nothing to click so prevent
-	pointer-events: none;
 }
 
 // Single taps are dispatched immediately on clickable elements
