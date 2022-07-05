@@ -1,13 +1,15 @@
-import { clamp, TAU } from "../maths/maths"
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
+import { clamp, TAU, HALF_PI } from "../maths/maths"
 import { canvas, canvasContext, drawElement } from './canvas'
-import {easeInQuad} from "../maths/easing"
+import { easeInQuad} from "../maths/easing"
+import PALETTE, { DEFAULT_COLOURS } from "../palette"
 
-//////////////////////////////////////////////////////////////////////
-// converts the canvas into a PNG / JPEG and adds returns as a blob?
-//////////////////////////////////////////////////////////////////////
+/**
+ * converts the canvas into a PNG / JPEG and adds returns as a blob?
+ * @param {String} type 
+ * @returns Blob
+ */
 export const takePhotograph = (type="image/png") => {
-	// reassemble canvas with logo and stuff?
+	// TODO: reassemble canvas with logo and stuff?
 	return canvas.toDataURL(type)
 }
 
@@ -93,9 +95,39 @@ export const drawPart = (part, radius=2, colour="red", lines=true, fill=true, sh
 	}
 }
 
-//////////////////////////////////////////////////////////////////////
-// draws a three pointed shape 
-//////////////////////////////////////////////////////////////////////
+/**
+ * 
+ * @param {*} cx 
+ * @param {*} cy 
+ * @param {*} radius 
+ * @param {*} strokeWidth 
+ * @param {*} fillColour 
+ * @param {*} strokeColour 
+ */
+export const drawCircle = (cx,cy, radius, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
+	
+	canvasContext.beginPath()
+    canvasContext.arc(cx, cy, radius, 0, Math.PI * 2, true)
+    canvasContext.fillStyle = fillColour
+    canvasContext.fill()
+     
+    // draw the stroke
+    canvasContext.lineWidth = strokeWidth
+    canvasContext.strokeStyle = strokeColour
+    canvasContext.stroke()
+}
+
+/**
+ * draws a three pointed shape 
+ * @param {*} x1 
+ * @param {*} y1 
+ * @param {*} x2 
+ * @param {*} y2 
+ * @param {*} x3 
+ * @param {*} y3 
+ * @param {*} fill 
+ * @param {*} strokeWidth 
+ */
 export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill, strokeWidth=1 ) => {
 	
 	canvasContext.beginPath()

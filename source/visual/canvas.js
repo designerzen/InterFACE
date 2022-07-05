@@ -17,6 +17,9 @@ export const getCanvasDimensions = () => {
 	}
 }
 
+/**
+ * Empty the canvas and paint it transparent
+ */
 export const clear = () => {
 	// canvasContext.fillStyle = 'rgba(255,0,0,0)'
 	canvasContext.clearRect(0, 0, width, height)
@@ -24,19 +27,24 @@ export const clear = () => {
 	// canvasContext.restore()
 }
 
-//////////////////////////////////////////////////////////////////////
-// Overwrite the existing canvas with another -> funky effects!	
-//////////////////////////////////////////////////////////////////////
+/**
+ * Overwrite the existing canvas with the same one but
+ * positioned at a specific offset to make it look cool
+ * @param {*} x 
+ * @param {*} y 
+ */
 export const overdraw = (x=0, y=-1) => {
 	
-	canvasContext.save()
+	// canvasContext.save()
 	
 	//canvasContext.translate(0, -1)
 	canvasContext.drawImage(canvas,x,y)
 	// for (var i = 0; i < numImages; i++) {
 	// 	canvasContext.drawImage(img, i * img.width, 0);
 	// }
-	canvasContext.restore()
+
+
+	// canvasContext.restore()
 }
 
 //////////////////////////////////////////////////////////////////////
