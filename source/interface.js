@@ -2370,8 +2370,7 @@ export const createInterface = (
 
 	}).then( startPhotoSYNTH => {
 
-		// throw Error("test")
-
+	
 		// let's launch it after it has resolved...
 		startPhotoSYNTH()
 
