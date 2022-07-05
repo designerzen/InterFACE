@@ -827,7 +827,7 @@ export default class Person{
 		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 
 		// volume is an log of this
-		const FUDGE = 1.3
+		const FUDGE = 1// 1.3
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
 		// const logAmp = options.ease(amp)
 		const newOctave = clamp( Math.round(pitch * 7) ,1,7)

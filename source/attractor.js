@@ -45,6 +45,17 @@ export default class Attractor{
 						//console.log("Has player been stuck on this instrument too long?", player.timeSinceInstrumentChanged, DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE)
 					
 						player.loadRandomInstrument()
+
+						// change styles use array for 2 people...
+						// this.application.setPlayerOption("scleraRadius",value)
+						// this.application.setPlayerOptions({ 
+						// 	scleraRadius:eye.s,
+						// 	irisRadius:eye.i,
+						// 	pupilRadius:eye.p,
+						// 	eyeRatio:eye.a || 1
+						// saturation:palette.s,
+						// luminosity:palette.l,
+						// })
 					}
 				})
 					
