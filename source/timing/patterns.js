@@ -61,15 +61,58 @@ const kickSequences = [
 		255,0,0,0,
 		255,0,0,0,
 		255,0,0,0
+	],
+	[
+		255,0,255,0,
+		255,0,255,0,
+		255,0,255,0,
+		255,0,255,0
+	],
+	[
+		255,0,0,0,
+		0,0,0,0,
+		255,0,0,0,
+		0,0,0,0
+	],
+	[
+		255,155,0,0,
+		0,0,0,0,
+		255,155,0,0,
+		0,0,0,0
+	],
+	[
+		0,255,0,0,
+		0,0,0,0,
+		0,255,0,0,
+		0,0,0,0
+	],
+	[
+		0,255,155,0,
+		0,0,0,0,
+		0,255,155,0,
+		0,0,0,0
 	]
 ]
 
 const snareSequences = [
 	[
+		0,0,0,0,
 		0,0,255,0,
-		0,0,255,0,
-		0,0,255,0,
-		0,0,255,255
+		0,0,0,0,
+		0,0,255,0
+	],
+	[
+		0,255,0,0,
+		0,255,0,0,
+		0,255,0,0,
+		0,255,0,0
+	
+	],
+	[
+		0,255,0,0,
+		0,0,0,0,
+		0,255,0,0,
+		0,0,0,0
 	]
 ]
 
@@ -77,23 +120,44 @@ const drumRollSequence = new Array(16).map( i => i * 255 / 16 )
 
 const hatSequences = [
 	[
-		255,180,200,170,
-		200,180,200,170,
-		255,180,200,170,
-		200,180,200,170,
+		255,0,170,0,
+		200,0,170,0,
+		255,0,170,0,
+		200,0,170,0
+	],
+	[
+		255,0,170,0,
+		200,0,170,0,
+		255,0,170,0,
+		200,0,170,188
+	],
+	[
+		50,50,50,50,
+		50,50,50,50,
+		50,50,50,50,
+		50,50,50,50
 	]
 ]
+
+// const hatSequences = [
+// 	[
+// 		255,180,200,170,
+// 		200,180,200,170,
+// 		255,180,200,170,
+// 		200,180,200,170,
+// 	]
+// ]
 
 export const kickSequence = pattern( kickSequences[0] )
 export const snareSequence = pattern(snareSequences[0])
 export const hatSequence = pattern(hatSequences[0])
 
 // should we add ways to randomise this???
-export const kitSequence = () => {
+export const kitSequence = (kitIndex=0) => {
 	return {
-		kick:pattern( kickSequences[0] ),
-		hat:pattern( hatSequences[0] ),
-		snare:pattern( snareSequences[0] ),
+		kick:pattern( kickSequences[kitIndex%(kickSequences.length-1)] ),
+		hat:pattern( hatSequences[kitIndex%(hatSequences.length-1)] ),
+		snare:pattern( snareSequences[kitIndex%(snareSequences.length-1)] ),
 		roll:pattern( drumRollSequence )
 	}
 }
