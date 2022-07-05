@@ -189,7 +189,6 @@ export default class SampleInstrument extends Instrument{
 		// 	this.instrumentMap[i] = this.instrument
 		// }
 		
-		console.log("Instrument loading", {instrumentName, instrumentPack}, this )
 		this.instrumentLoading = false
 
 
