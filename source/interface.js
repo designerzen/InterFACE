@@ -470,6 +470,19 @@ export const createInterface = (
 	}
 
 	/**
+	 * merges all named player options into an array eg. [{ values } , { values }]
+	 * @param {Array<string>} values Selective player configuration object keys
+	 * @returns {Array<Boolean>} Player configuration object
+	 */
+	 const fetchPlayerOptions = values => people.map( 
+		
+		player => values.reduce((accumulator, currentValue, index, array) => {	
+			accumulator[currentValue] = player.options[currentValue]
+			return accumulator
+		}, {} )
+	)
+
+	/**
 	 * Set all existing player's options to the selected values 
 	 * (change the default for any new players created)
 	 * @param {Number} option Variable to set
@@ -480,19 +493,6 @@ export const createInterface = (
 			player.options[option] = value
 		})
 	}
-
-	/**
-	 * merges all named player options into an array eg. [{ values } , { values }]
-	 * @param {Array<string>} values Selective player configuration object keys
-	 * @returns {Array<Boolean>} Player configuration object
-	 */
-	const fetchPlayerOptions = values => people.map( 
-		
-		player => values.reduce((accumulator, currentValue, index, array) => {	
-			accumulator[currentValue] = player.options[currentValue]
-			return accumulator
-		}, {} )
-	)
 
 	/**
 	 * Player options batch Update
@@ -1907,6 +1907,8 @@ export const createInterface = (
 		}, ui.metronome )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
+			// change drums!
+			patterns = kitSequence( Math.floor( Math.random() * 13 ))
 			setState( 'backingTrack', status )
 			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 		}, ui.backingTrack )
@@ -2273,6 +2275,7 @@ export const createInterface = (
 		resolve( constructPublicClass( { 
 			user,
 			setState,
+			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers, getBar, getBars,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 			language, 
