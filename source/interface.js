@@ -900,6 +900,9 @@ export const createInterface = (
 					setState("text", !ui.text, toggles )
 					break
 
+				case 'u':
+					setRandomDrumPattern()
+					break
 
 				// Hide video
 				case 'v':
