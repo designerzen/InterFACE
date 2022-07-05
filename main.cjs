@@ -15,9 +15,21 @@ function createWindow () {
     }
   })
 
-  // and load the index.html of the app.?port=1337
-  mainWindow.loadFile('dits/index.html')
+  mainWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "dist/app.html"),
+      protocol: "file:",
+      slashes: true
+    })
+  )
+	// // and load the index.html of the app.?port=1337
+	// mainWindow.loadFile('../dist/index.html')
 
+  if (env.name === "development") {
+    mainWindow.openDevTools();
+  }
+
+  
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 }
