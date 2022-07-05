@@ -249,7 +249,9 @@ label[for=button-start]{
 
 		// this softens the border
 		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
-
+	
+		
+		align-items: center;
 
 		input{
 			
@@ -321,7 +323,7 @@ label[for=button-start]{
 		margin-top:var(--pad);
 		margin-bottom:var(--pad);
 		border-top:1px solid $col-white;
-		background:transparent;
+	
 		// align-self: center;
 		// vertical-align: middle;
 		display: flex;

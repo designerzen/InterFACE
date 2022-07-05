@@ -89,9 +89,12 @@
 }
 
 
+
 .button-play-pause{
 	--max-width:auto;
 	--bg: url(/source/assets/icons/play_circle_black_24dp.svg);
+	--bg: url(/source/assets/icons/not_started_black_24dp.svg);
+	--bg: url(/source/assets/icons/pause_circle_black_24dp.svg);
 	position: absolute;
 	padding:0;
 	left:0;
@@ -107,9 +110,11 @@
 		outline:none;
 		box-shadow: none;
 		border:3px solid var(--shade-orange);
-		
 	}
-
+	&:hover, &:focus{
+		animation: none;
+		transition: none;
+	}
 	strong{
 		display:block;
 		font-size: 70%;
@@ -120,6 +125,8 @@
 .paused .button-play-pause{
 	--bg: url(/source/assets/icons/play_circle_outline_black_24dp.svg);
 }
+
+
 
 
 .button-download-mp3{

@@ -131,27 +131,61 @@
 .flag-clear {
 
 	// FIXME:
-	#shared-controls label[for="button-transparent"]{
-		display: flex;
-	}
-	#shared-controls label[for="button-overlay"]{
-		display: none;
-	}
+	// #shared-controls label[for="button-sync-video"]{
+	// 	display: flex;
+	// }
+	// #shared-controls label[for="button-overlay"]{
+	// 	display: none;
+	// }
 }
 
-
-// this hides the video when in synch mode
-main:not(.flag-clear.flag-transparent){
-	// hide videp as drawing to canvas direct
+// We want to copy the video frame so we do not 
+// need to also show it
+.flag-clear,
+.flag-synch{
 	#app-frame video{
 		display: none;
 	}
 }
 
+// this hides the video when in synch mode
+// main:not(.flag-clear.flag-transparent){
+// 	// hide videp as drawing to canvas direct
+// 	#app-frame video{
+// 		display: none;
+// 	}
+// }
+
+// this hides the video when in synch mode
+// main:not(.flag-clear.flag-transparent){
+// 	// hide videp as drawing to canvas direct
+// 	#app-frame video{
+// 		display: none;
+// 	}
+// }
+
+
 .flag-eyes label[for="select-eyes"]{
 	display:flex;
 }
 
+// if we are showing the flag-overlay we are showing all 
+// XR overlays
+.flag-overlays{
+	
+}
+
+// If we are not showing overlays, what use is there in the
+// eyes, mask buttons?
+main:not(.flag-overlays){
+	label[for="button-meshes"],
+	label[for="button-eyes"],
+	label[for="select-eyes"],
+	label[for="select-palette"],
+	label[for="button-subtitles"]{
+		visibility: hidden;
+	}
+}
 
 
 

@@ -63,7 +63,7 @@ label{
 
 	&:hover, &:focus{
 		color:var(--col-fg, #{$col-white} );
-		background-color:var(--col-bg, #{$col-blue});
+		//background-color:var(--col-bg, #{$col-blue});
 		outline:none;
 	}
 }
