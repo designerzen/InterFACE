@@ -37,6 +37,10 @@ import MIDIStream from './midi-stream'
 import MIDICommand from './midi-command'
 import MIDITrack from './midi-track'
 import * as MIDICommands from './midi-commands'
+import {convertMIDINoteNumberToName} from '../notes'
+
+const TIME_CODE_BASED = "time-code-based" 
+const METRIC_TIME = "metrical"
 
 // some systems leave the last byte out
 // to preserve memory but here we can
@@ -48,16 +52,27 @@ let lastEventTypeByte
  * @param {MidiStream} stream 
  * @returns {Object}
  */
-const readChunk = (stream) => 
+const readChunk = (stream, size=4) => 
 {
 	const chunk = {}
 	// Each midi event message is 4 bytes big...
-	chunk.id = stream.read(4)
+	chunk.id = stream.read(size)
 	chunk.length = stream.readInt32()
 	chunk.data = stream.read(chunk.length)
 	return chunk
 }
- 
+
+/**
+ * Get the amount of frames per second from the division
+ * @param {Number} timeDivision 
+ * @returns {Number}
+ */
+const getFramesPerSecond = timeDivision => {
+    const bit8_15 = (timeDivision & 0xFF00) >> 8
+    const flippedBit8_15 = bit8_15 ^ 0xFF
+    return flippedBit8_15 + 1
+}
+
 /**
  * Convert Raw header data into readable object data
  * @param {MidiStream} stream 
@@ -67,25 +82,42 @@ const readChunk = (stream) =>
 const decodeHeader = ( stream, options={} ) =>
 {
 	const headerChunk = readChunk(stream)
-	if (headerChunk.id !== 'MThd' || headerChunk.length !== 6)
+	const headerType = headerChunk.id
+	
+	if (headerType !== 'MThd' && headerType !== 'MTrk' || headerChunk.length !== 6)
 	{
-		throw "Bad .mid file - header not found"
+		throw ".mid file could not be read - header chunk 'MThd'/'MTrk' was not found"
 	}
 
 	const headerStream = new MIDIStream(headerChunk.data)
+
 	const formatType = headerStream.readInt16()
 	const trackCount = headerStream.readInt16()
 	const timeDivision = headerStream.readInt16()
 
-	// console.error(stream, headerChunk, headerStream, formatType, trackCount, timeDivision)
-	if (timeDivision & 0x8000)
+	const isTimeCodeBased = timeDivision & 0x8000 
+	const timeCodeType = isTimeCodeBased ? TIME_CODE_BASED : METRIC_TIME
+	
+	switch( headerType )
 	{
-		throw "Expressing time division in SMTPE frames is not supported yet"
+		case "MThd":
+			const division = {}
+			if (timeCodeType === TIME_CODE_BASED) {
+				division.ticksPerFrame = timeDivision & 0x00FF
+				division.framesPerSecond = getFramesPerSecond(timeDivision)
+			} else {
+				division.ticksPerQuarterNote = timeDivision & 0x7FFF
+			}
+			return {
+				formatType, trackCount, timeDivision, isTimeCodeBased, timeCodeType, division
+			}
+			
+		case "MTrk":	
+			return {
+				formatType, trackCount, timeDivision, isTimeCodeBased, timeCodeType
+			}
 	}
 
-	return {
-		formatType, trackCount, timeDivision
-	}
 }
 
 /**
@@ -99,12 +131,19 @@ const decodeTracks = ( track, stream ) =>
 	const quantity = track.header.trackCount
 	for (let i = 0; i < quantity; i++)
 	{
-		//tracks[i] = [];
 		const trackChunk = readChunk(stream)
-		if (trackChunk.id !== 'MTrk')
+		switch(trackChunk.id)
 		{
-			throw `Unexpected chunk - expected MTrk, got ${trackChunk.id}`
+			case "MTrk":
+				break
+
+			case "MThd":
+				throw `Still working on MThd implementation... ${trackChunk.id}`
+
+			default:
+				throw `Unexpected chunk - expected MTrk, got ${trackChunk.id}`
 		}
+		
 		const trackStream = new MIDIStream(trackChunk.data)
 		while (!trackStream.eof())
 		{
@@ -162,8 +201,10 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 	}
 
 	const eventType = eventTypeByte >> 4
+	
 	event.channel = eventTypeByte & 0x0f
 	event.type = MIDICommands.TYPE_CHANNEL
+	//event.raw = `"type":${event.type},"channel":${event.channel}`
 
 	switch (eventType)
 	{
@@ -171,15 +212,18 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 			event.subtype = MIDICommands.COMMAND_NOTE_OFF
 			//'noteOff';
 			event.noteNumber = firstParameter
+			event.noteName = convertMIDINoteNumberToName(firstParameter)
 			event.velocity = stream.readInt8()
+			//event.raw += `"subtype":${event.subtype},"noteNumber":${firstParameter}`
 			return event
 
 		case 0x09:
 			event.noteNumber = firstParameter
+			event.noteName = convertMIDINoteNumberToName(firstParameter)
 			event.velocity = stream.readInt8()
 			if (event.velocity === 0)
 			{
-				event.subtype =  MIDICommands.COMMAND_NOTE_OFF
+				event.subtype = MIDICommands.COMMAND_NOTE_OFF
 			} else {
 				event.subtype = MIDICommands.COMMAND_NOTE_ON;//'noteOn';
 			}
@@ -188,6 +232,7 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 		case 0x0a:
 			event.subtype = MIDICommands.COMMAND_NOTE_AFTER_TOUCH;//'noteAftertouch';
 			event.noteNumber = firstParameter
+			event.noteName = convertMIDINoteNumberToName(firstParameter)
 			event.amount = stream.readInt8()
 			return event
 
@@ -315,7 +360,7 @@ const decodeSystemEvent = ( stream, event, eventTypeByte ) =>
 				event.frameRate = {
 					0x00: 24, 0x20: 25, 0x40: 29, 0x60: 30
 				}[hourByte & 0x60]
-				console.error( event.frameRate )
+				//console.error( event.frameRate )
 
 				event.hour = hourByte & 0x1f
 				event.min = stream.readInt8()

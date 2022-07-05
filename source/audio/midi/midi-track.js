@@ -1,4 +1,5 @@
 import { GENERAL_MIDI_INSTRUMENTS } from './general-midi'
+import MIDICommand from './midi-command'
 import * as MIDICommands from './midi-commands'
 
 export default class MidiTrack
@@ -22,6 +23,18 @@ export default class MidiTrack
 	duration = 0
 
 	mimeType = "audio/mid"
+
+	get ticksPerBeat(){
+		// return 
+	}
+
+	get tempo(){
+		
+	}
+
+	get timeSignature(){
+		return [4,4]
+	}
 
 	getMatchingCommands( types=[MIDICommands.COMMAND_NOTE_ON], type="channel" )
 	{
@@ -68,12 +81,7 @@ export default class MidiTrack
 
 		const commands = []
 		let track = this.tracks[++this.trackPosition]
-		
-		while ( track && track.subtype !== MIDICommands.COMMAND_NOTE_ON )
-		{
-			track = this.tracks[ ++this.trackPosition ]
-		}
-
+	
 		while ( track && track.subtype === MIDICommands.COMMAND_NOTE_ON )
 		{
 			commands.push(track)
@@ -107,14 +115,42 @@ export default class MidiTrack
 		return command.time / this.duration
 	}
 
+	copyCommand( command ) {
+		const copy = new MIDICommand()
+		for (let i in command)
+		{
+			copy[i] = command[i]
+		}
+		return copy
+	}
+
 	constructor( header=null, defaultOptions={} )
 	{
-		if (header) {
+		if (header) 
+		{
 			this.header = header
 		}
 		
-		for (let i in defaultOptions){
-			this[i] = defaultOptions[i]
+		for (let i in defaultOptions)
+		{
+			// check to see if they are one of our subclasses...
+			switch (i)
+			{
+				// case "header": 
+				// 	this.header = defaultOptions[i]
+				// 	break
+
+				case "commands":
+				case "noteOnCommands":
+					this[i] = defaultOptions[i].map( command => this.copyCommand(command) )
+					break
+
+				default:
+					// check if is command
+					this[i] = defaultOptions[i]
+					console.log(i, this[i] )
+			}
+			
 		}
 	}
 
@@ -223,10 +259,23 @@ export default class MidiTrack
 	
 	toString()
 	{
-		return `MIDI:Track::${this.tracks.map( track => track.toString() )}`
+		return `MIDI:Track::${this.commands.map( track => track.toString() ).join(", ")}`
 	}
+
+
+	commandToJSON( command )
+	{
+		let output = `${command.time}. MIDI:Input::${command.subtype} Type:${command.type}`
+		if (command.channel){ output += ` [Channel ${command.channel}] ` }
+		if (command.noteNumber){ output += ` Note:${command.noteNumber} -> ${command.noteName}` }
+		if (command.velocity){ output += ` Velocity:${command.velocity}` }
+		return output
+	}
+
+	// To load save midi tracks in a web friendlier way, we can serialise it to JSON
 	toJSON()
 	{
-		return `MIDI:Track::${this.tracks.map( track => track.toString() )}`
+		const o = this.commands.map( command => commandToJSON(command) )
+		return o // `[${this.tracks.map( track => track.toString() ).join(",")}]`
 	}
 }

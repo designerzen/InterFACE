@@ -80,11 +80,11 @@ const loadMIDIFromBase64 = async ( file, options={}, progressCallback=null ) => 
  * FIXME: Use fetch rather than XMLHttpRequest?
  * @param {string} url - url
  */
-const loadMIDIFromFile = ( url, options={}, progressCallback=null ) => new Promise( (resolve,reject) => {
-	
-	const fetch = new XMLHttpRequest()
-	fetch.open('GET', url, true)
-	fetch.overrideMimeType('text/plain; charset=x-user-defined')
+export const loadMIDIFromFile = (url, options={}, progressCallback=null) => new Promise( (resolve,reject) => {
+    const fetch = new XMLHttpRequest()
+    fetch.open("GET", url, true)
+    fetch.responseType = "arraybuffer"
+	fetch.onerror = error => reject(error)
 	fetch.onreadystatechange = (e) => {
 		/*
 		0: request not initialized
@@ -93,20 +93,18 @@ const loadMIDIFromFile = ( url, options={}, progressCallback=null ) => new Promi
 		3: processing request
 		4: request finished and response is ready
 		*/
-		if (fetch.readyState === 4)
+		if (fetch.readyState === 4 && fetch.status === 200)
 		{
-			if (fetch.status === 200)
-			{
-				const response = fetch.responseText || '' 
-				const data = sanitizeResponse( response )
-				const stream = new MIDIStream( data )
-				resolve( decodeMIDI(stream, options) )
-			} else {
-				reject('Unable to load MIDI file from '+url )
+			const arrayBuffer = fetch.response
+			if (arrayBuffer) {
+			  const byteArray = new Uint8Array(arrayBuffer)
+			  const midi =loadMIDIFromArray(byteArray, options, progressCallback )
+			  resolve(midi)
 			}
 		}
 	}
-	fetch.send()
+    // fetch.onload = () => {}
+    fetch.send(null)
 })
 
 /**
