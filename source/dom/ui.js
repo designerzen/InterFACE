@@ -172,10 +172,13 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 	const duet = panel.querySelector("#button-duet")
 	const trio = panel.querySelector("#button-trio")
 	const start =  doc.getElementById("button-start")
+	
 	const advanced = panel.querySelector("#toggle-advanced-mode")
+	const automation = panel.querySelector("#toggle-automation-mode")
 
 	// FIXME!
 	let advancedMode = options.advancedMode || false
+	let automationMode = options.automationMode || false
 	let players = options.duet ? 2 : 1
 
 	// set the query to this stae
@@ -217,7 +220,8 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 		
 		resolve({
 			players:result,
-			advancedMode
+			advancedMode,
+			automationMode
 		})
 	}
 
@@ -234,6 +238,11 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 	advanced.addEventListener("change", event =>{ 
 		advancedMode = !advancedMode 
 		main.classList.toggle("beginner", !advancedMode)
+	})
+	
+	automation.addEventListener("change", event =>{ 
+		automationMode = !automationMode 
+		main.classList.toggle("automated", automationMode)
 	})
 	
 	// start.addEventListener("click", event => {
@@ -268,10 +277,9 @@ export const setupInterface = ( options ) => {
 	
 	const shareElement = doc.querySelector("share-menu")
 	shareElement.url = getShareLink( options )
-	buttonShare.addEventListener('mousedown', e => {
-		
+	buttonShare.addEventListener('click', e => {
 		shareElement.setAttribute( "url", getShareLink( options ) )
-		console.error("SHARING", {shareElement, url:shareElement.url  } )
+		//console.error("SHARING", {shareElement, url:shareElement.url  } )
 	}, false)
 	
 	controlPanel = doc.getElementById("control-panel")
