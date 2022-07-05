@@ -1023,7 +1023,7 @@ main.solo{
 		position: relative;
 	    
 
-		h6{
+		h5{
 			&::before{
 				content:'+';
 				color:inherit;
@@ -1045,7 +1045,7 @@ main.solo{
 			transform: translateX(-33%);
 		}
 
-		h6:hover ~ ul,
+		h5:hover ~ ul,
 		ul:hover,
 		ul:focus,
 		ul:focus-within{

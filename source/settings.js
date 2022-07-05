@@ -200,7 +200,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	eyeRatio:0.8,
 
 	// mouse hold for clicking in seconds 0.5 and more feels weird
-	mouseHoldDuration:0.6,
+	mouseHoldDuration:0.4,
 
 	// if both eyes are closed for X ms do something...
 	eyeShutHolddDuration:3500, // ms
