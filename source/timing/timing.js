@@ -78,8 +78,7 @@ export const now = () => audioContext.currentTime
  * Amount of time elapsed since startTimer() in seconds
  * @returns {Number} BPM
  */
- export const elapsed = () => (now() - startTime) * 0.001
-
+ export const getElapsed = () => (now() - startTime) * 0.001
 
 /**
  * Convert a BPM to a period in ms
