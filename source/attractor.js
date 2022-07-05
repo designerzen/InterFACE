@@ -62,6 +62,12 @@ export default class Attractor{
 				// occassionally turn on a feature or two...
 				//this.application.setBPM( Math.random() * 100 + 60 )
 				//console.log(this.counter, "AUTOMATON:", elapsed.toFixed(2), "seconds", barProgress * 100,  this.application )
+
+				if (this.barCounter%2)
+				{
+					this.application.setRandomDrumPattern()
+				}
+				
 			}
 			
 		}else{
@@ -77,6 +83,12 @@ export default class Attractor{
 						player.loadRandomInstrument()
 					}
 				})
+				
+				if (this.barCounter%2)
+				{
+					this.application.setRandomDrumPattern()
+				}
+				
 			}else{
 				//this.application.setState( 'backingTrack', false )
 			}
