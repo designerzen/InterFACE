@@ -62,6 +62,20 @@ export const refreshState = ()=>{
 	return state
 }
 
+const setElementCheckState = (element, value) => {
+	if ( element )
+	{
+		//elements[key].checked = value
+		element.setAttribute("checked", value)
+		if (element.parentNode.nodeName === "LABEL")
+		{
+			element.parentNode.classList.toggle("checked", value )
+		}
+		//console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
+	}
+
+}
+
 /**
  * setState : set / store the state of the ui & update DOM
  * Allows you to set the state of the ui by passing in 
@@ -90,16 +104,21 @@ export const setState = ( key, value, elements=null, saveHistory=true )=>{
 	
 	// also update select for checked and things? bit more complex?
 	// see if there is a matching dom element???
-	if ( elements && elements[key] )
+	if (elements)
 	{
-		//elements[key].checked = value
-		elements[key].setAttribute("checked", value)
-		if (elements[key].parentNode.nodeName === "LABEL")
-		{
-			elements[key].parentNode.classList.toggle("checked", value )
-		}
-		//console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
+		setElementCheckState(elements[key], value)
 	}
 
 	return state
 }
+
+// FIXME: Optimise this...
+// TODO: Batch state setting...
+export const setStates = (states, key, value, elements=null, saveHistory=true ) => {
+
+	states.map( ({key,value}) => setUIState( key, value ) )
+
+}
+
+// TODO: Make a wrapper createStateStack
+// stack.setState( "advancedMode", advancedMode )
