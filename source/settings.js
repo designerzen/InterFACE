@@ -41,22 +41,22 @@ export const DEFAULT_OPTIONS = {
 	metronome:false,
 	// play music at same time
 	backingTrack:false,
-	// clear canvas every frame (if transparent will be ignored)
+
+	// clear the canvas on every frame
+	// also doubles as a video hider
 	clear:true,
-	// should canvas be transparent to let video bleed through?
-	transparent:true,
 	// draw video onto canvas every frame (transparent doesn't have to be true then)
+	// clear will always take precedence
 	synch:true,
-	// show debug texts
-	debug:isDevelopmentMode,
-	// cancel audio playback (not midi)
-	muted:false,
-	// dual person mode (required reload)
-	duet:false,
+	// start in MTV disco mode
+	disco:false,
+
+
+	// AR mode (without this - just video stream or blank)
+	overlays:true,
+
 	// show face overlays
 	masks:true,
-	// stereo panning with eyes
-	stereo:true,
 	// show eye tracking
 	eyes:true,
 	// synchronise the beats with metronome
@@ -68,6 +68,15 @@ export const DEFAULT_OPTIONS = {
 	// read out important instructions
 	speak:true,
 	
+	// show debug texts
+	debug:isDevelopmentMode,
+	// cancel audio playback (not midi)
+	muted:false,
+	// dual person mode (required reload)
+	duet:false,
+	// stereo panning with eyes
+	stereo:true,
+
 	// midi channel (0/"all" means send to all)
 	midiChannel:"all",
 	// saved BPM that can be shared?
@@ -187,7 +196,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	eyeRatio:0.8,
 
 	// mouse hold for clicking in seconds 0.5 and more feels weird
-	mouseHoldDuration:0.3,
+	mouseHoldDuration:0.6,
 
 	// if both eyes are closed for X ms do something...
 	eyeShutHolddDuration:3500, // ms
