@@ -1,5 +1,4 @@
-import {audioContext, ZERO} from '../audio'
-import {inputDryNode} from '../rack'
+import {audioContext, ZERO, getPercussionNode} from '../audio'
 import {createQueue} from '../synthesizers'
 
 /**
@@ -7,6 +6,8 @@ import {createQueue} from '../synthesizers'
  * @returns {Function} trigger start method
  */
 export const createSnare = () => {
+
+	const output = getPercussionNode()
 
     const osc3 = audioContext.createOscillator()
     const gainOsc3 = audioContext.createGain()
@@ -33,13 +34,13 @@ export const createSnare = () => {
 	noise.loop = true
 	
 	osc3.connect(gainOsc3)
-	gainOsc3.connect(inputDryNode() )	
+	gainOsc3.connect(output )	
 
 	noise.connect(filter)
 	filter.connect(filterGain)
-	filterGain.connect(inputDryNode() )
+	filterGain.connect( output )
 
-	const snare = (velocity=1, length = 0.2) => {
+	const snare = (velocity=1, length = 0.3) => {
 
 		const time = audioContext.currentTime
 		
