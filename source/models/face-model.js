@@ -1,111 +1,142 @@
 import {
 	clamp, 
 	distanceBetween2Points,distanceBetween3Points,
-	determineAngle, twist, TAU,HALF_PI} from '../maths/maths'
+	determineAngle, twist, 
+	TAU,HALF_PI
+} from '../maths/maths'
 
+// ** === ^ == Math.pow in ECMA22
 const {PI, abs, sqrt, atan2, tan} = Math
 
+// Tweakable parameters - these use the dark art of fidling
 // a mouth covers about 1/3 of the face?
 const RATIO_OF_MOUTH_TO_FACE = 0.25
 const EYE_CLOSED_AT = 20.2 //.5
 const PITCH_SCALE = 8
 
+const MOUTH_SHAPE_CLOSED = "-"
+const MOUTH_SHAPE_O = "o"
+const MOUTH_SHAPE_E = "e"
+const MOUTH_SHAPE_I = "i"
+const MOUTH_SHAPE_U = "u"
+
+
 // What the face is observing in a cone shape...
-const fieldOfView = (dfov, w, h) => {
-    const hypothenuse = sqrt( w ** 2 + h ** 2 )
+const fieldOfView = (dfov, width, height) => {
+    const hypothenuse = sqrt( width * width + height * height )
     const tanDFOV = tan(dfov / 2)
-    return [2 * atan(w * tanDFOV / hypothenuse), 2 * atan(h * tanDFOV / hypothenuse)]
+    return [2 * atan(width * tanDFOV / hypothenuse), 2 * atan(height * tanDFOV / hypothenuse)]
 }
 
-const setOrientation = () => {
+// const setOrientation = () => {
 	
 
-}
+// }
 
-// NB. we will use time for smoothing out the eyes
-const setEyeData = (annotations, prediction, time, flipHorizontally = true) => {
+// // NB. we will use time for smoothing out the eyes
+// const setEyeData = (annotations, prediction, time, flipHorizontally = true) => {
 	
+// }
+
+const eyeOpeness = () => {
+	return distanceBetween3Points(leftEyeLower1[ 4 ], leftEyeUpper1[ 4 ])
 }
 
-
-// TODO: Implement a cache of eyes so that we can learn on the go
+/**
+ * TODO: Implement a cache of eyes so that we can learn on the go
+ * @param {*} prediction 
+ * @param {*} time 
+ * @param {*} flipHorizontally 
+ * @returns 
+ */
 export const enhancePrediction = (prediction, time, flipHorizontally = true) => {
 
 	// more than likely there is a face on the screen :P
 	const {boundingBox, mesh, scaledMesh, annotations} = prediction
 	//const {bottomRight, topLeft} = boundingBox
 	
-	// Nose
-	const {noseTip, noseBottom, noseRightCorner} = annotations
-	//const {rightCheek,leftCheek, silhouette} = annotations
-
 	// Useful landmarks on the face
-	const centerOfHead = scaledMesh[168]
-	const forehead = scaledMesh[10]
+	// const centerOfHead = scaledMesh[168]
+	// const forehead = scaledMesh[10]
+
+	// we can use the bounding box or actual face mesh coords
+	const topOfHead = scaledMesh[109]
+	const bottomOfHead = scaledMesh[400]
+
+
+	// Calculate some sizes.
+	// size of head from chin to top
+	// const headHeight = bottomOfHead[1] - topOfHead[1]
+	const headHeight = distanceBetween2Points(bottomOfHead, topOfHead)
+	prediction.headHeight = headHeight
 
 	// Triangulate view cone
 	// const depth = 0.06 * FOCAL_LENGTH * canvas.width / MAX_WIDTH / sqrt((centerX - forehead[0]) ** 2 + (centerY - forehead[1]) ** 2 )
 	// const depth = IRIS_SIZE * FOCAL_LENGTH * canvas.width / MAX_WIDTH / diameter;
-
-	// we can use the bounding box or actual face mesh coords
-	const topOfHead = scaledMesh[109] //topLeft[1]
-	const bottomOfHead = scaledMesh[400]
-
-	// size of head from chin to top
-	// const headHeight = bottomOfHead[1] - topOfHead[1]
-	const headHeight = distanceBetween2Points(bottomOfHead, topOfHead)
-
-
 
 
 
 	// Eyes ---------------------
 	// setEyeData( annotations, prediction, time, flipHorizontally )
 	
-	// There are three points on the face that we can compare against
+	// eyes pointing in directions
 	const { leftEyeIris,leftEyeLower0,leftEyeLower1,leftEyeUpper1, 
-			rightEyeIris,rightEyeLower0,rightEyeLower1, rightEyeUpper0,rightEyeUpper1,
+			rightEyeIris,rightEyeLower0,rightEyeLower1, rightEyeUpper0, rightEyeUpper1,
 			midwayBetweenEyes } = annotations
 
-	// eyes pointing in directions?
 	const irisLeftX = leftEyeIris[0]
 	const irisRightX = rightEyeIris[0]
 
+	// this is the distance between irises on the face
+	const distanceBetweenEyes =	distanceBetween2Points(irisLeftX, irisRightX)
+	// Extents of the eye vertically
+	const eyeSocketHeight = distanceBetween3Points(leftEyeUpper1[ 3 ], rightEyeUpper1[ 3 ])
+	// Extents of the eye horizontally
+	const eyeSocketWidth = distanceBetween3Points(leftEyeUpper1[ 0 ],rightEyeUpper1[ 0 ])
+	
 	const midPointVector = midwayBetweenEyes[0]
+
 	const midwayBetweenEyesX = midPointVector[0] 
 	const midwayBetweenEyesY = midPointVector[1] 
 
-	const distanceBetweenEyes =	distanceBetween2Points(irisLeftX, irisRightX)
-	
 	// Are we looking right or left?
 	const lookingRight = irisLeftX[2] < irisRightX[2]
 
 	// -1 -> +1
 	const eyeDirection = (2 * ( midPointVector[0] - irisLeftX[0] ) / distanceBetweenEyes) - 1
 
-	// Now eyes open calcs
-	const eyeSocketHeight = distanceBetween3Points(leftEyeUpper1[ 3 ],rightEyeUpper1[ 3 ])
+	
 	// FIXME: 
 	const eyeScale = eyeSocketHeight / 80
 
-	
+	const quantityOfPointsInEye = 5//leftEyeLower1.length 
+	let leftEyesDist = 0
+	let rightEyesDist = 0
 
-	// Check for eyes closed
-	const leftEyesDist = distanceBetween3Points(leftEyeLower1[ 4 ], leftEyeUpper1[ 4 ])
-	const rightEyesDist = distanceBetween3Points(rightEyeLower1[ 4 ], rightEyeUpper1[ 4 ])
+	// Check for eyes closed - we can do this on a loop for better results...
+	// originally, p was 4
+	for (let p=4; p<quantityOfPointsInEye; ++p)
+	{
+		leftEyesDist = distanceBetween3Points(leftEyeLower1[ p ], leftEyeUpper1[ p ])
+		rightEyesDist = distanceBetween3Points(rightEyeLower1[ p ], rightEyeUpper1[ p ])
+	}
 
-	const leftIrisHeight = leftEyeIris[4][1] - leftEyeIris[2][1]
-	const rightIrisHeight = rightEyeIris[4][1] - rightEyeIris[2][1]
+	// leftEyesDist /= quantityOfPointsInEye
+	// rightEyesDist /= quantityOfPointsInEye
+
+	// const leftIrisHeight = leftEyeIris[4][1] - leftEyeIris[2][1]
+	// const rightIrisHeight = rightEyeIris[4][1] - rightEyeIris[2][1]
 	
 	//console.log("Eyes : ",{leftIrisHeight, leftEyesDist, rightIrisHeight, rightEyesDist, eyeSocketHeight, eyeScale } )
 
 	// add in some extras to make things easier 
 	// the midpoint can be used to triangulate the yaw
-	const lx = leftEyeLower0[0][0] 
-	const rx = rightEyeLower0[0][0] 
+	const leftEyeLowerX = leftEyeLower0[0][0] 
+	const leftEyeLowerY = leftEyeLower0[0][1] 
+	
+	const rightEyeLowerX = rightEyeLower0[0][0] 
+	const rightEyeLowerY = rightEyeLower0[0][1] 
 
-	const ly = leftEyeLower0[0][1] 
-	const ry = rightEyeLower0[0][1] 
 
 	prediction.lookingRight = flipHorizontally ? !lookingRight : lookingRight
 
@@ -129,10 +160,16 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 
 
 
+
+	// Nose
+	const {noseTip, noseBottom, noseRightCorner} = annotations
+	//const {rightCheek,leftCheek, silhouette} = annotations
+
+
 	
 	// lengths of the triangle
-	const lmx = (midwayBetweenEyesX - lx) * -1
-	const rmx = midwayBetweenEyesX - rx
+	const lmx = (midwayBetweenEyesX - leftEyeLowerX) * -1
+	const rmx = midwayBetweenEyesX - rightEyeLowerX
 
 	// FIXME : flipHorizontal
 
@@ -158,8 +195,8 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 		
 
 	// if either eye is lower than the other
-	const rollX = (lx - rx)
-	const rollY = (ly - ry)
+	const rollX = (leftEyeLowerX - rightEyeLowerX)
+	const rollY = (leftEyeLowerY - rightEyeLowerY)
 
 	// As this is for 350 range, we double to make it just 180
 	const roll = flipHorizontally ?  
@@ -219,12 +256,14 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	// const upperLip = sqrt( lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY )
 	
 	
-	prediction.headHeight = headHeight
 	
 	//const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
 	prediction.mouthRange = lipVerticalOpening
 	prediction.mouthRatio = lipVerticalOpening / headHeight
 	prediction.mouthWidth = lipHorizontalOpening
+
+	// TODO: FIXME: mouth shape fixing
+	prediction.mouthShape = MOUTH_SHAPE_CLOSED
 
 	// TODO: this is the size of the mouth as a factor of the head size
 	prediction.mouthOpen = lipVerticalOpening / (headHeight * RATIO_OF_MOUTH_TO_FACE)
@@ -244,6 +283,8 @@ export const enhancePrediction = (prediction, time, flipHorizontally = true) => 
 	// 0 -> 1
 	prediction.leftSmirk = (leftSmirk - 1) * 100000
 	prediction.rightSmirk = (rightSmirk - 1) * 100000
+
+
 
 	
 	// useful sometimes (different time to audio context?)
