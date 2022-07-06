@@ -172,6 +172,7 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 	const duet = panel.querySelector("#button-duet")
 	const trio = panel.querySelector("#button-trio")
 	const start =  doc.getElementById("button-start")
+	const body = doc.documentElement
 	
 	const advanced = panel.querySelector("#toggle-advanced-mode")
 	const automation = panel.querySelector("#toggle-automation-mode")
@@ -184,7 +185,7 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 	// set the query to this stae
 	advanced.setAttribute( "checked", !advancedMode )
 	
-	doc.documentElement.classList.toggle(CSS_CLASS, true)
+	body.classList.toggle(CSS_CLASS, true)
 
 	const complete = result => {
 		
@@ -208,13 +209,13 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 		// NB. This is not superflous as the camera
 		// takes a broze age to load into memory
 		panel.classList.add("completed")
-		doc.documentElement.classList.toggle(CSS_CLASS, true)
+		body.classList.toggle(CSS_CLASS, true)
 			
 		// wait for animation to complete
 		setTimeout( ()=> {
 			//console.log({advancedMode})
-			doc.documentElement.classList.toggle('advanced', advancedMode)
-			doc.documentElement.classList.toggle(CSS_CLASS, false)
+			body.classList.toggle('advanced', advancedMode)
+			body.classList.toggle(CSS_CLASS, false)
 			panel.classList.remove("completed")
 		}, 45 )
 		
@@ -227,8 +228,8 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 
 	const setPlayers = amount => {
 		players = amount
-		doc.documentElement.classList.remove("solo", "duet")
-		doc.documentElement.classList.add( players === 1 ? "solo" : "duet")
+		body.classList.remove("solo", "duet")
+		body.classList.add( players === 1 ? "solo" : "duet")
 	}
 
 	solo.addEventListener("click", event => setPlayers(1) )
@@ -237,12 +238,12 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 
 	advanced.addEventListener("change", event =>{ 
 		advancedMode = !advancedMode 
-		main.classList.toggle("beginner", !advancedMode)
+		body.classList.toggle("beginner", !advancedMode)
 	})
 	
 	automation.addEventListener("change", event =>{ 
 		automationMode = !automationMode 
-		main.classList.toggle("automated", automationMode)
+		body.classList.toggle("automated", automationMode)
 	})
 	
 	// start.addEventListener("click", event => {
@@ -258,7 +259,7 @@ export const showPlayerSelector = (options) => new Promise( (resolve,reject)=>{
 	}, true)
 
 	// set defaults
-	main.classList.toggle("beginner", !advancedMode)
+	body.classList.toggle("beginner", !advancedMode)
 	setPlayers(players)
 	panel.focus()
 })

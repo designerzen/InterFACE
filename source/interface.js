@@ -1102,7 +1102,7 @@ export const createInterface = (
 				setToast("Recording ARMED")
 				recordRequested = true
 			}else{
-				setToast("Recording START")
+				
 				startRecordingAudio()
 			}
 		}else{
@@ -1129,6 +1129,8 @@ export const createInterface = (
 		
 		buttonRecordAudio.parentElement.classList.toggle("recording", true)
 		
+		setToast("Recording STARTED")
+
 		startRecording(recordingNode.stream).then( recorderInstance => {
 			recorder = recorderInstance 
 			buttonRecordAudio.classList.toggle("progress", true)
@@ -1789,13 +1791,17 @@ export const createInterface = (
 				// && isBar
 				// play some accompanyment music on every note
 				// (as we use 16 divisions for quarter notes)
-				// FIXME: Just expland the patterns with longer gaps
-				if (ui.backingTrack )
+				// FIXME: Just expand the patterns with longer gaps
+				if ( ui.backingTrack  )
 				{
-					const kick = playNextPart( patterns.kick, kit.kick )
-					const snare = playNextPart( patterns.snare, kit.snare )
-					const hat = playNextPart( patterns.hat, kit.hat )
-
+					const slower = Math.floor( getBPM() * 0.01 ) + 1
+					if ( divisionsElapsed % slower === 0 )
+					{
+						//console.log(slower,barsElapsed, getBPM() * 0.001,  divisionsElapsed % slower )
+						const kick = playNextPart( patterns.kick, kit.kick )
+						const snare = playNextPart( patterns.snare, kit.snare )
+						const hat = playNextPart( patterns.hat, kit.hat )
+					}
 					//console.error("backing|", {kick, snare, hat })
 					// todo: also MIDI beats on channel 16?
 				}
