@@ -40,7 +40,7 @@ export let playing = false
 export let active = false
 
 /**
- * 
+ * get Percussion Mixer
  * @returns Pre FX -> PRE MIXER, Accompaniment mixer
  */
 export const getPercussionNode = () => {
@@ -48,7 +48,7 @@ export const getPercussionNode = () => {
 }
 
 /**
- * 
+ * get Master Output Mixer
  * @returns Post FX -> MIXER
  */
 export const getMasterMixdown = () => {
@@ -56,6 +56,7 @@ export const getMasterMixdown = () => {
 }
 
 /**
+ * get Master Recording Node (pre percussion)
  * @returns Post FX node but before mixer
  */
 export const getRecordableOutputNode = () => {
@@ -151,10 +152,9 @@ export const setupAudio = async (settings) => {
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
-	percussion = await createAmplitude(audioContext, 1)
+	percussion = await createAmplitude(audioContext, 0.1 )
 	
 	// FIXME: This is still too loud
-	percussion.volume(0.01)
 	percussion.node.connect( getMasterMixdown() )
 
 	// this should hopefully balance the outputs
@@ -203,7 +203,6 @@ export const setupAudio = async (settings) => {
 		analyser,
 
 		mixer,
-
 
 	], audioContext )
 	
