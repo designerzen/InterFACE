@@ -1,4 +1,10 @@
 // AKA "Sequences"
+import {
+	kickSequences,
+	snareSequences,
+	hatSequences,
+	drumRollSequence
+} from './drum-patterns'
 
 // Just a simple factory for creating random repetitive beats
 const subdivisions = 4
@@ -26,6 +32,13 @@ export const factory = (bars=16) => {
 	return sequence
 }
 
+/**
+ * Create a pattern or sequence of velocities
+ * that can be used as triggers for percussion
+ * @param {*} sequence 
+ * @param {*} offset 
+ * @returns 
+ */
 export const pattern = ( sequence, offset=0 )=>{
 
 	let index = offset
@@ -54,130 +67,6 @@ export const pattern = ( sequence, offset=0 )=>{
 		set:s => sequence = s
 	}
 }
-
-const kickSequences = [
-	[
-		255,0,0,0,
-		255,0,0,0,
-		255,0,0,0,
-		255,0,0,0
-	],
-	[
-		255,0,255,0,
-		255,0,255,0,
-		255,0,255,0,
-		255,0,255,0
-	],
-	[
-		255,0,0,0,
-		0,0,0,0,
-		255,0,0,0,
-		0,0,0,0
-	],
-	[
-		255,0,0,0,
-		0,0,0,0,
-		0,0,0,0,
-		5,50,150,200
-	],
-	[
-		255,155,0,0,
-		0,0,0,0,
-		255,155,0,0,
-		0,0,0,0
-	],
-	[
-		0,255,0,0,
-		0,0,0,0,
-		0,255,0,0,
-		0,0,0,0
-	],
-	[
-		0,255,155,0,
-		0,0,0,0,
-		0,255,155,0,
-		0,0,0,0
-	]
-]
-
-const snareSequences = [
-	[
-		0,0,0,0,
-		0,0,255,0,
-		0,0,0,0,
-		0,0,255,0
-	],
-	[
-		0,255,0,0,
-		0,255,0,0,
-		0,255,0,0,
-		0,255,0,0
-	
-	],
-	[
-		0,255,0,0,
-		0,255,0,0,
-		0,255,205,205,
-		255,205,205,255
-	
-	],
-	[
-		0,255,0,0,
-		0,0,0,255,
-		0,255,0,0,
-		0,0,0,255
-	],
-	[
-		0,255,0,0,
-		0,0,0,0,
-		0,255,0,0,
-		0,0,0,0
-	]
-]
-
-const drumRollSequence = new Array(16).map( i => i * 255 / 16 )
-
-const hatSequences = [
-	[
-		255,0,170,0,
-		200,0,170,0,
-		255,0,170,0,
-		200,0,170,0
-	],
-	[
-		255,0,170,0,
-		200,0,170,0,
-		255,0,170,0,
-		200,0,170,188
-	],	
-	[
-		170,0,0,0,
-		170,0,0,0,
-		170,0,0,0,
-		170,0,0,0
-	],
-	[
-		50,50,50,50,
-		50,50,50,50,
-		50,50,50,50,
-		50,50,50,50
-	],
-	[
-		0,0,0,0,
-		0,0,0,0,
-		0,0,0,0,
-		0,0,0,0
-	]
-]
-
-// const hatSequences = [
-// 	[
-// 		255,180,200,170,
-// 		200,180,200,170,
-// 		255,180,200,170,
-// 		200,180,200,170,
-// 	]
-// ]
 
 export const kickSequence = pattern( kickSequences[0] )
 export const snareSequence = pattern(snareSequences[0])
@@ -225,4 +114,3 @@ export const playNextPart = (pattern, instrument, ...options )=> {
 // {
 // 	kit.hat() // snareVelocity
 // }
-
