@@ -1,5 +1,4 @@
-import {audioContext, ZERO} from '../audio'
-import {inputDryNode} from '../rack'
+import {audioContext, ZERO, getPercussionNode} from '../audio'
 import {createQueue} from '../synthesizers'
 
 
@@ -8,6 +7,8 @@ import {createQueue} from '../synthesizers'
  * @returns {Function} trigger start method
  */
 export const createCowbell = () => {
+	
+	const output = getPercussionNode()
 	
 	const cowbellGainNode = audioContext.createGain()
  
@@ -29,7 +30,7 @@ export const createCowbell = () => {
     })
 
 	bandpass.connect(cowbellGainNode)
-	cowbellGainNode.connect(inputDryNode())
+	cowbellGainNode.connect(output)
 	
 	const cowbell = (velocity=1, length=0.05 )=>{
 		const time = audioContext.currentTime

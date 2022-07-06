@@ -25,7 +25,8 @@ export let bufferLength
 export let dataArray
 
 let oscillator
-let analyser
+let createAnalyser
+
 let compressor
 let distortion
 let reverb
@@ -33,9 +34,18 @@ let delay
 let dub
 let gain
 let mixer
+let percussion
 
 export let playing = false
 export let active = false
+
+/**
+ * 
+ * @returns Pre FX -> PRE MIXER, Accompaniment mixer
+ */
+export const getPercussionNode = () => {
+	return percussion.node
+}
 
 /**
  * 
@@ -141,7 +151,12 @@ export const setupAudio = async (settings) => {
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
+	percussion = await createAmplitude(audioContext, 1)
 	
+	// FIXME: This is still too loud
+	percussion.volume(0.01)
+	percussion.node.connect( getMasterMixdown() )
+
 	// this should hopefully balance the outputs
 	// compressor = await createCompressor( audioContext )
 
@@ -187,7 +202,8 @@ export const setupAudio = async (settings) => {
 		
 		analyser,
 
-		mixer
+		mixer,
+
 
 	], audioContext )
 	

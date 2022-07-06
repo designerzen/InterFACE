@@ -1,5 +1,4 @@
-import {audioContext, ZERO} from '../audio'
-import {inputDryNode} from '../rack'
+import {audioContext, ZERO, getPercussionNode} from '../audio'
 import {createQueue} from '../synthesizers'
 
 /**
@@ -7,6 +6,8 @@ import {createQueue} from '../synthesizers'
  * @returns {Function} trigger start method
  */
 export const createHihat = () => {
+
+	const output = getPercussionNode()
 
     const gainOsc4 = audioContext.createGain()
     const fundamental = 40
@@ -31,7 +32,7 @@ export const createHihat = () => {
 
 	bandpass.connect(highpass)
     highpass.connect(gainOsc4)
-	gainOsc4.connect(inputDryNode())
+	gainOsc4.connect(output)
 	
 	const hihat = (velocity=1, length=0.05 )=>{
 		const time = audioContext.currentTime

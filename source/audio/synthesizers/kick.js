@@ -1,5 +1,4 @@
-import {audioContext, ZERO} from '../audio'
-import {inputDryNode} from '../rack'
+import {audioContext, ZERO, getPercussionNode} from '../audio'
 import {createQueue} from '../synthesizers'
 
 /**
@@ -7,6 +6,8 @@ import {createQueue} from '../synthesizers'
  * @returns {Function} trigger start method
  */
 export const createKick = () => {
+
+	const output = getPercussionNode()
 
     const osc = audioContext.createOscillator()
     const osc2 = audioContext.createOscillator()
@@ -56,8 +57,8 @@ export const createKick = () => {
  
     osc.connect(gainOsc)
     osc2.connect(gainOsc2)
-    gainOsc.connect(inputDryNode())
-    gainOsc2.connect(inputDryNode())
+    gainOsc.connect(output)
+    gainOsc2.connect(output)
 
 	return kick
 }

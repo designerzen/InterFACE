@@ -1,5 +1,4 @@
-import {audioContext, ZERO} from '../audio'
-import {inputDryNode} from '../rack'
+import {audioContext, ZERO, getPercussionNode} from '../audio'
 import {createQueue} from '../synthesizers'
 
 /**
@@ -7,6 +6,8 @@ import {createQueue} from '../synthesizers'
  * @returns {Function} trigger start method
  */
 export const createClack = () => {
+
+	const output = getPercussionNode()
 	
 	const cowbellGainNode = audioContext.createGain()
  
@@ -33,7 +34,7 @@ export const createClack = () => {
 
 	bandpass.connect(highpass)
     highpass.connect(cowbellGainNode)
-	cowbellGainNode.connect(inputDryNode())
+	cowbellGainNode.connect(output)
 	
 	const clack = (velocity=1, length=0.05, ocatave=fundamental )=>{
 		const time = audioContext.currentTime

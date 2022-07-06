@@ -7,8 +7,9 @@ let currentContext = null
 // If you just want to add things into the mix..
 export const inputNode = () => (firstNode.name ? firstNode.node : firstNode )
 
-// If you want to bypass themix and send straight to the amp
+// If you want to bypass the mix and send straight to the amp
 export const inputDryNode = () => finalNode
+
 
 export const resolveRoute = route => {
 	return route.name ? route.node : route 
