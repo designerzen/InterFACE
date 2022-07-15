@@ -1,7 +1,6 @@
 // each person in the app has their own instrument and face
 import { rescale, lerp, clamp } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
-import { getBarProgress } from './timing/timing.js'
 
 import SampleInstrument from './audio/instruments/instrument.sample'
 import MIDIInstrument from './audio/instruments/instrument.midi'
@@ -22,72 +21,99 @@ import {
 	drawText,drawParagraph, drawInstrument, drawFaceMesh
 } from './visual/2d'
 
-import {drawMousePressure} from './dom/mouse-pressure'
+import { drawMousePressure } from './dom/mouse-pressure'
 import { drawEye } from './visual/2d.eyes'
 import { drawMouth } from './visual/2d.mouth'
-import { DEFAULT_PERSON_OPTIONS } from './settings'
+import { 
+	EYE_COLOURS,
+	DEFAULT_PERSON_OPTIONS,
+	DEFAULT_VOICE_OPTIONS
+} from './settings'
+import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
 export const STATE_INSTRUMENT_ATTACK = "instrument-attack"
 export const STATE_INSTRUMENT_SUSTAIN = "instrument-sustain"
+export const STATE_INSTRUMENT_PITCH_BEND = "instrument-pitchbend"
 export const STATE_INSTRUMENT_DECAY = "instrument-decay"
 export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 
+export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
+export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 
-export const EVENT_INSTRUMENT_CHANGED = "instrumentchange"
-export const EVENT_INSTRUMENT_LOADING = "instrumentloading"
-
+// after how many frames do we set the DOM css vars
 const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
 
-const DEFAULT_VOICE_OPTIONS = {
-	yaw:0, pitch:0, roll:0,
-	hue:90,
-	lipPercentage:0,
-	eyeDirection:0,
-	octave:4,
-	note:-1,
-	noteName:'',
-	volume:0,
-	singing:false,
-	mouthOpen:false,
-	active:false
-}
+// FIXME:
+const FUDGE = 1.0// 1.3
 
-export const EYE_COLOURS = ['blue','green','brown','orange']
 export default class Person{
 
+	// instances
 	midiPlayer
 	samplePlayer
-	instrumentPointer = 0
-	active = false
-
-	// default state is audio off
+	
+	// States, default state is audio off
 	state = STATE_INSTRUMENT_SILENT
 
+	// Flags
+	active = false
+	singing = false
+	isMouthOpen = false
+	isLeftEyeOpen = true
+	isRightEyeOpen = true
+
+	// if we are repeating our bars...
+	isLooping = false
+	// if we are watching the face perform without interaction
+	isPlayingBack = false
+	// is the instrument panel selection form visibile
+	isFormShowing = false
+	// is a sample based instrument loading still?
+	instrumentLoading = false
+	// is the MIDI port active?
+	isMIDIActive = false
+	
 	// Head orientation
 	yaw = 0
 	pitch = 0
 	roll = 0
 
-	singing = false
-	isMouthOpen = false
-	isLeftEyeOpen = true
-	isRightEyeOpen = true
-	// if we are repeating our bars...
-	isLooping = false
-	// if we are watching the face perform without interaction
-	isPlayingBack = false
-	instrumentLoading = false
+	// internal person frame counter
+	counter = 0
+
+	tracks = 0
+	octave = 4
+
+	// real time colour settings
+	hue = 0
+	saturation = 50
+
+	instrumentPointer = 0
 	instrumentLoadedAt = -1
 
-	isFormShowing = false
+	mouseDownAt = -1
+	leftEyeClosedAt = -1
+	rightEyeClosedAt = -1
+
+	instruments = []
+
+	data = null
+	midi = null
+
+	lastNoteSound = "-"
+	lastNoteName = "A0"
+	lastNoteNumber
+	
+	// default MIDI settings
+	midiChannel = "all"
 
 	/**
 	 * Is the mouse button down?
 	 * @returns {Boolean} Mouse button state
 	 */
-	 get areEyesOpen(){
+	get areEyesOpen(){
 		return this.isLeftEyeOpen && this.isRightEyeOpen
 	}
 
@@ -121,7 +147,7 @@ export default class Person{
 	 * Checks to see if the user is pressing their face
 	 * @returns {Number} 0-1 how long the user has proportionally held their finger
 	 */
-	 get mouseHoldProgress(){
+	get mouseHoldProgress(){
 		return this.mouseDownFor / this.options.mouseHoldDuration
 	}
 
@@ -167,6 +193,10 @@ export default class Person{
 		return instrumentFolders.indexOf(this.instrumentName)
 	}
 
+	/**
+	 * Is the instrument currently loading
+	 * @returns {Boolean} are samples loading
+	 */
 	get instrumentLoading(){
 		return this.samplePlayer.isLoading
 	}
@@ -195,10 +225,17 @@ export default class Person{
 		return this.parameterRecorder.recording
 	}
 
+	/**
+	 * get the current time in milliseconds
+	 */
 	get now(){
 		return this.audioContext.currentTime
 	}
 
+	/**
+	 * get the time elapsed in milliseconds since
+	 * the Person's instrument last changed
+	 */
 	get timeSinceInstrumentChanged(){
 		return this.instrumentLoadedAt < 0 ? 
 			0 : this.now - this.instrumentLoadedAt
@@ -208,17 +245,9 @@ export default class Person{
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		this.name = name
-		this.counter = 0
-		this.instruments = []
-		this.data = null
+
 		this.audioContext = audioContext
-		this.tracks = 0
-		this.octave = 4
-
-		this.midi = null
-		this.midiActive = false
-		this.midiChannel = "all"
-
+			
 		// HSL Colour scheme that can be overwritten
 		this.setPalette(this.options)
 
@@ -230,13 +259,6 @@ export default class Person{
 		this.parameterRecorder = new ParamaterRecorder( audioContext )
 		this.isRecordingParameters = false
 	
-		this.mouseDownAt = -1
-	
-		this.leftEyeClosedAt = -1
-		this.rightEyeClosedAt = -1
-		this.lastNoteName = "A0"
-		this.lastNoteSound = "-"
-
 		this.debug = this.options.debug
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
@@ -254,17 +276,10 @@ export default class Person{
 			// this.stereoNode.connect(delayNode)
 			this.outputNode = this.stereoNode
 		}else{
-			// FIXME: go directly into gain or through other fx first?
+			// TODO: go directly into gain or through other fx first?
 			this.outputNode = this.gainNode
 		}
 
-		// we need to feed this from every other node
-		// delayNode.connect(feedbackNode)
-		// feedbackNode.connect(delayNode)
-
-		// we still want it to be gated by the voice!	
-		// //delayNode.connect(destinationNode)
-		// delayNode.connect(this.gainNode)
 		if (this.options.useDelay)
 		{
 			// DELAY : Feedback smooths out the audio
@@ -285,8 +300,11 @@ export default class Person{
 			this.gainNode.connect(destinationNode)
 		}
 
-		// create a sample player
-		this.samplePlayer = new SampleInstrument(audioContext, this.gainNode, {})
+		// create a sample player, oscilaltor...
+		// add all instruments
+		this.samplePlayer = this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) )
+		this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
+		this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
 		
 		// create our side bar and instrument selector form
 		this.setupForm()
@@ -347,8 +365,8 @@ export default class Person{
 	
 	/**
 	 * Dispatch a custom event
-	 * @param {*} type 
-	 * @param {*} data 
+	 * @param {String} type 
+	 * @param {Object} data 
 	 */
 	dispatchEvent(type, data = {}){
 		this.button.dispatchEvent(new CustomEvent( type, {
@@ -376,6 +394,8 @@ export default class Person{
 	update(prediction){
 		
 		this.counter++
+
+		// cache all data
 		this.data = prediction
 		
 		// save all the parameters for recall later on...
@@ -392,6 +412,7 @@ export default class Person{
 		}
 		
 		// update any eye states
+		// FIXME: Smooth these out either here or directly in model
 		if (this.isLeftEyeOpen !== !prediction.leftEyeClosed)
 		{
 			if (prediction.leftEyeClosed)
@@ -446,17 +467,15 @@ export default class Person{
 			// overwrite prediction
 		}
 
-		if (this.isMouseDown){
+		if (this.isMouseDown)
+		{
 			drawMousePressure( this.mouseHoldProgress, this.options.mouseHoldDuration )
 		}
 
-		
-		let hue = this.hue
-
-		if ( this.instrumentLoading )
-		{
-			hue += 120
-		}
+		// change colour while loading
+		const hue = this.instrumentLoading ? 
+						this.hue + 180 : 
+						this.hue
 
 		// can this just be a reference???
 		const options = this.options
@@ -494,6 +513,7 @@ export default class Person{
 			l:options.luminosity,
 			a:1
 		}
+
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
 		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
@@ -777,7 +797,7 @@ export default class Person{
 	/**
 	 * Sing some songs
 	 * state machine diagram :
-	 * SILENT ATTACK SUSTAIN SUSTAIN SUSTAIN DECAY RELEASE
+	 * SILENT ATTACK SUSTAIN PITCH_BEND SUSTAIN DECAY RELEASE
 	 */
 	sing(){
 
@@ -827,7 +847,6 @@ export default class Person{
 		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 
 		// volume is an log of this
-		const FUDGE = 1// 1.3
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
 		// const logAmp = options.ease(amp)
 		const newOctave = clamp( Math.round(pitch * 7) ,1,7)
@@ -843,9 +862,13 @@ export default class Person{
 		// MIDI Note Number 0-127
 		const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
 		
+		const hasNoteChanged = this.lastNoteName !== noteName
+
 		// cache for drawing getNoteText
 		this.lastNoteName = noteName
 		this.lastNoteSound = noteSound
+		this.lastNoteNumber = noteNumberForMIDI
+
 		this.hue = roll * this.hueRange
 		this.saturation = 100 * lipPercentage
 		this.singing = amp >= options.mouthCutOff
@@ -882,8 +905,12 @@ export default class Person{
 				this.active = true
 				this.setState(STATE_INSTRUMENT_ATTACK)
 			}else{
+				
 				// already playing so we continue the note
-				this.setState(STATE_INSTRUMENT_SUSTAIN)
+				this.setState( hasNoteChanged ? 
+					STATE_INSTRUMENT_SUSTAIN : 
+					STATE_INSTRUMENT_SUSTAIN
+				)
 			}
 			
 			// rescale for 0.3->1
@@ -916,7 +943,7 @@ export default class Person{
 				this.midi.playNote( noteName, midiOptions )
 				//console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 		
-				if (this.midiActive)
+				if (this.isMIDIActive)
 				{
 					//this.midi.sendKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
 					// this.midi.setPitchBend( eyeDirection )
@@ -1042,7 +1069,8 @@ export default class Person{
 			volume:newVolume,
 			singing:this.singing,
 			mouthOpen: this.isMouthOpen,
-			active:this.active
+			active:this.active,
+			state:this.state
 		}
 	}
 
@@ -1134,6 +1162,8 @@ export default class Person{
 	 */
 	addInstrument( instrument ){
 		this.instruments.push( instrument )
+		// FIXME: Also connect for changes to instrument
+		return instrument
 	}
 
 	/**

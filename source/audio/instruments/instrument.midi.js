@@ -3,6 +3,8 @@ import {getBarProgress} from '../../timing/timing'
 import {WebMidi} from "webmidi"
 export default class MIDIInstrument extends Instrument{
 
+	type = "midi"
+
 	constructor( device, channel="all" ){
 		super()
 		this.channel = channel
@@ -18,6 +20,8 @@ export default class MIDIInstrument extends Instrument{
 
 	async noteOn(noteNumber, velocity=1){
 		
+		// TODO: multiple velocity by currentVolume
+
 		// duration: 2000,
 		// https://github.com/djipco/webmidi/blob/develop/src/Output.js
 		//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)

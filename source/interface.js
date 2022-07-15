@@ -2440,6 +2440,10 @@ export const createInterface = (
 	// FIXME: Do we instantly show the user quantity screen
 	// and load all background elements and scripts
 
+	
+
+
+
 	// now load dependencies and show progress
 	load(options, (progress, message) => {
 		
