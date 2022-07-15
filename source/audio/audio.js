@@ -154,7 +154,6 @@ export const setupAudio = async (settings) => {
 	gain = await createAmplitude(audioContext, 1)
 	percussion = await createAmplitude(audioContext, 0.1 )
 	
-	// FIXME: This is still too loud
 	percussion.node.connect( getMasterMixdown() )
 
 	// this should hopefully balance the outputs
@@ -456,4 +455,36 @@ export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="Fl
 		output[ instrument.split('.')[0] ] = parts[index]
 	})
 	return output
+}
+
+// await context.audioWorklet.addModule('bit-crusher-processor.js')
+
+let workletsRegistered = false
+
+export const registerAudioWorklets = async (audioContext, progressCallback) => {
+  
+	if (workletsRegistered)
+	{
+		return true
+	}
+	// check to see if it already has beeen registered
+	try {
+		
+		await audioContext.resume()
+		progressCallback && progressCallback(0)
+		
+		await audioContext.audioWorklet.addModule( new URL('./instruments/instrument-audio-worklet.js', import.meta.url))
+		progressCallback && progressCallback(0.5)
+		
+		await audioContext.audioWorklet.addModule( new URL('./effects/bitcrusher.worklet.js', import.meta.url))
+		progressCallback && progressCallback(1)
+		
+		workletsRegistered = true
+		
+	} catch(e) {
+		console.error("createAudioProcessor", e )
+		return false
+	}
+
+	return true
 }

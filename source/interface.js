@@ -7,11 +7,12 @@ import { record } from './audio/recorder'
 import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/video'
 
 import { 
+	registerAudioWorklets,
 	getRecordableOutputNode,
 	active, playing, 
 	setupAudio,	audioContext, setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
-	bufferLength,dataArray, 
+	bufferLength, dataArray, 
 	getVolume, setVolume } from './audio/audio'
 
 import { 
@@ -72,8 +73,10 @@ import interact from './inactivity'
 import { 
 	drawElement,
 	updateCanvasSize, copyCanvasToClipboard, 
-	overdraw, clear, canvas
+	overdraw, clear, canvas, canvasContext
 } from './visual/canvas'
+
+import MusicalKeyboard from './visual/2d.keyboard'
 
 import {drawMousePressure} from './dom/mouse-pressure'
 import { setupImage } from './visual/image'
@@ -87,9 +90,13 @@ import { getLocationSettings, getShareLink, addToHistory } from './location-hand
 import { findBestCamera, loadCamera } from './hardware/camera'
 import { watchMouseCoords  } from './hardware/mouse'
 
-import Person, { EYE_COLOURS, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING } from './person'
+import Person, { 
+	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
+	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
+	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
+ } from './person'
 
-import { NAMES, DEFAULT_TENSORFLOW_OPTIONS } from './settings'
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS } from './settings'
 
 import { TAU } from "./maths/maths"
 
@@ -99,9 +106,8 @@ import { convertOptionToObject } from './utils'
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
 
-let instance = null
 
-// TODO: Public class with public facing methods only
+let instance = null
 class PhotoSYNTH{
 	constructor( publicMethods )
 	{
@@ -111,10 +117,6 @@ class PhotoSYNTH{
 		})
 		// console.log("PhotoSYNTH", this)
 	}
-	// toggleMute(){}
-	// pause(){}
-	// resume(){}
-	// changePlayerInstrument( playerIndex ){}
 }
 
 /**
@@ -196,6 +198,7 @@ export const createInterface = (
 	let midiPlayer
 	let savedPerformance
 	let waveforms = []
+	let musicalKeyboard
 	let automator
 	let useAutomator = true
 
@@ -283,6 +286,10 @@ export const createInterface = (
 		setToast(message,time)
 	}
 
+	/**
+	 * Randomise the drum patterns to create a distinct
+	 * and unique style and sound 
+	 */
 	const setRandomDrumPattern = () => {
 		patterns = kitSequence( Math.floor( 17 + Math.random() * 23 ))
 	} 
@@ -356,7 +363,7 @@ export const createInterface = (
 			dots:eyeColour, 
 			leftEyeIris:eyeColour, 
 			rightEyeIris:eyeColour,
-			// should probably use a set hue for consistency...
+			// FIXME: should probably use a set hue for consistency...
 			hue:Math.random() * 360,
 			debug:ui.debug,
 			// FIXME: why is this per person? should always set per screen
@@ -414,6 +421,8 @@ export const createInterface = (
 
 		person.loadInstrument( instrument )
 
+
+
 		// see if there are any gamepads connected - let's go te whole hog!
 		gamePad = new GamePad( personIndex )
 		gamePad.on( (buttonName, value) => {
@@ -463,9 +472,14 @@ export const createInterface = (
 	 */
 	const getPerson = (index) => {
 		
+		
 		if (people[index] == undefined)
 		{
-			const person = createPerson( NAMES[index] , EYE_COLOURS[index], index )
+			console.error("getPerson", index, people)
+
+			const person = createPerson( NAMES[index] ,EYE_COLOURS[index], index )
+			console.error("getPerson", person )
+
 			people.push( person )
 			return person
 		} else{
@@ -984,7 +998,7 @@ export const createInterface = (
 	const playPersonAudio = ( person ) => {
 		// yaw, pitch, lipPercentage, eyeDirection
 		const stuff = person.sing()
-
+		
 		let noteName = stuff.noteName
 		let noteNumber = stuff.noteNumber
 		let note = stuff.note
@@ -1043,31 +1057,96 @@ export const createInterface = (
 			//console.log("Person:sing", { stuff,noteName,note})
 		}
 	
-		const personalSamplePlayer = person.samplePlayer
+		
+		person.instruments.forEach( instrument => {
 
-		// FIXME: Don't play the audio directly in Person
-		// but instead extract it and pass it to the audioBus
-		// stuff.played is an array of notes
-		// update the stave with X amount of notes
-		// stave.draw(stuff)
-		// update the stave with X amount of notes
-		if (person.singing)
+			// if (instrument.type !== "oscillator"){
+			if (instrument.type !== "waveguide"){
+				return
+			}
+
+			// FIXME: Don't play the audio directly in Person
+			// but instead extract it and pass it to the audioBus
+			// stuff.played is an array of notes
+			// update the stave with X amount of notes
+			// stave.draw(stuff)
+			// update the stave with X amount of notes
+			switch(person.state)
+			{
+				case STATE_INSTRUMENT_ATTACK:
+				case STATE_INSTRUMENT_SUSTAIN:
+				case STATE_INSTRUMENT_PITCH_BEND:
+					const p = instrument.noteOn( noteNumber, noteVelocity )
+					console.log("Person", p, person.state, person, {instrument, noteNumber, noteVelocity} )
+					break
+
+				case STATE_INSTRUMENT_DECAY:
+					break
+
+				case STATE_INSTRUMENT_RELEASE:
+				case STATE_INSTRUMENT_SILENT:
+				default:
+					instrument.noteOff( noteNumber, noteVelocity )
+			}
+		})
+
+		switch(person.state)
 		{
-			personalSamplePlayer && personalSamplePlayer.noteOnByName( noteName, noteVelocity )
-			//midiPlayer && midiPlayer.noteOn( noteNumber, noteVelocity )
-			// person.midiPlayer && person.midiPlayer.noteOn( noteNumber, noteVelocity )
-			//console.log("Person wants to sing", {note, noteNumber, noteName, track, samplePlayer})
-			// stave.noteOn( person.lastNoteName, person.name )
+			case STATE_INSTRUMENT_SILENT:
+				musicalKeyboard.noteOff( noteNumber, noteVelocity )
+				break
 
-			//person.sendMIDI( "noteOn", noteNumber, noteVelocity )
-		}else{
-			personalSamplePlayer && personalSamplePlayer.noteOff( noteNumber )
-			//midiPlayer && midiPlayer.noteOff( noteNumber )
-			//person.midiPlayer && person.midiPlayer.noteOff( noteNumber )
-			//console.log("Person silenced", {note, noteNumber, noteName, track, samplePlayer})
-			// stave.noteOff( person.name )
-			//person.sendMIDI( "noteOff", noteNumber )
+			case STATE_INSTRUMENT_ATTACK:
+				musicalKeyboard.noteOn( noteNumber, noteVelocity )
+				break
+
+			case STATE_INSTRUMENT_SUSTAIN:
+				break
+
+			case STATE_INSTRUMENT_PITCH_BEND:
+				break
+
+			case STATE_INSTRUMENT_DECAY:
+				break
+
+			case STATE_INSTRUMENT_RELEASE:
+				break
 		}
+
+		//const personalSamplePlayer = person.samplePlayer
+
+		// // FIXME: Don't play the audio directly in Person
+		// // but instead extract it and pass it to the audioBus
+		// // stuff.played is an array of notes
+		// // update the stave with X amount of notes
+		// // stave.draw(stuff)
+		// // update the stave with X amount of notes
+		// if (person.singing)
+		// {
+		// 	musicalKeyboard.noteOn( noteNumber, noteVelocity )
+		// 	personalSamplePlayer && personalSamplePlayer.noteOnByName( noteName, noteVelocity )
+		// 	//midiPlayer && midiPlayer.noteOn( noteNumber, noteVelocity )
+		// 	// person.midiPlayer && person.midiPlayer.noteOn( noteNumber, noteVelocity )
+		// 	console.log("Person wants to sing", {note, noteNumber, noteName, track, samplePlayer})
+		// 	// stave.noteOn( person.lastNoteName, person.name )
+
+		// 	//person.sendMIDI( "noteOn", noteNumber, noteVelocity )
+		// }else{
+		// 	// FIXME: We need to send a noteOff when the note
+		// 	// changes too, rather than just letting it continue playing?
+		// 	// or should we pitch bend to that key?
+
+
+		// 	musicalKeyboard.noteOff( noteNumber, noteVelocity )
+		// 	// FIXME: Gets sent even when not playing!
+		// 	personalSamplePlayer && personalSamplePlayer.noteOff( noteNumber )
+		// 	//midiPlayer && midiPlayer.noteOff( noteNumber )
+		// 	//person.midiPlayer && person.midiPlayer.noteOff( noteNumber )
+		// 	console.log("Person silenced", {note, noteNumber, noteName, track, samplePlayer})
+		// 	// stave.noteOff( person.name )
+		// 	//person.sendMIDI( "noteOff", noteNumber )
+		// }
+		
 		return stuff
 	}
 
@@ -1343,7 +1422,30 @@ export const createInterface = (
 			const savedVolume = store.getItem('audio')
 			const newVolume = savedVolume ? savedVolume.volume : 1
 			audio = await setupAudio()
+
+			// audio worklet tests!
+			// NB. run only once per app to load  audio
+			await registerAudioWorklets( audioContext )
 			
+
+			// WaveGuideInstrument
+			
+			// // Run this in instrument.worklet
+			// const processor = new AudioWorkletNode(audioContext, "interface-processor")
+			// // receive message
+			// processor.port.onmessage = (event) => {
+			// 	// Handling data from the processor.
+			// 	console.log(event.data)
+			// }
+
+			// // send message
+			// processor.port.postMessage('Hello!')
+			// processor.connect( audioContext.destination )
+			
+
+
+
+
 			// create a super object containing paths and families ands such!
 			const instrumentDictionary = createInstruments()
 			// console.error({instrumentDictionary})
@@ -1422,6 +1524,8 @@ export const createInterface = (
 		canvas.width = inputElement.width
 		canvas.height = inputElement.height
 
+		// this draws a 2d keyboard on screen at the specified position and dimensions
+		musicalKeyboard = new MusicalKeyboard( 500, 120, 8 )
 
 		// Create a new sample player to handle sound playback
 		samplePlayer = new SampleInstrument(audioContext, audio, {})
@@ -1455,7 +1559,6 @@ export const createInterface = (
 		body.classList.toggle("initialising", false)
 		
 
-
 		// update( inputElement === video, (predictions)=>{
 
 		// 	//console.log(inputElement === video, "Predictions found ",predictions)
@@ -1487,15 +1590,12 @@ export const createInterface = (
 					return
 				}
 
-				const barProgress = getBarProgress()
-				const elapsed = getElapsed()
-				
 				// If there is a attract mode supervisor
 				// we update it every tick so that it can 
 				// control this class automatically
 				if (useAutomator && automator)
 				{
-					automator.tock(elapsed, barProgress)
+					automator.tock(getElapsed(), getBarProgress())
 				}
 			
 				let tickerTape = ''
@@ -1678,6 +1778,17 @@ export const createInterface = (
 						// setFeedback(`Look at me and open your mouth`)
 					}
 				}
+
+
+				// update the keyboard if it is available
+				if (musicalKeyboard)
+				{
+					musicalKeyboard.redraw()
+					// this is updated previously by the playPersonAudio
+					// method that set's the general state of the keyboard
+					drawElement( musicalKeyboard.canvas, 40, 40, false )
+				}
+
 				
 				// finallyu reset this flag
 				if (beatJustPlayed)
