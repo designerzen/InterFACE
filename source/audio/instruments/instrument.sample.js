@@ -3,19 +3,18 @@ import Instrument from './instrument'
 import {
 	getRandomInstrument, instrumentFolders, instrumentNames, getInstrumentFamily
 } from '../instruments'
-import { 
-	playTrack,loadInstrumentPack,
-	loadInstrument,
-	NOTE_NAMES,	getNoteName } from '../audio'
-
-import {convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../notes'
+import { playTrack,loadInstrumentPack } from '../audio'
+import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../notes'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 16 // AKA one bar
 
 export default class SampleInstrument extends Instrument{
 
+	type = "sample"
+
 	instrument
+	
 	instrumentName = "Unloaded"
 	instrumentTitle = "Unloaded"
 	instrumentFamily = "Unknown"
@@ -29,6 +28,15 @@ export default class SampleInstrument extends Instrument{
 	get isLoading(){
 		return this.instrumentLoading
 	}
+	
+	get volume(){
+		return this.gainNode.gain.value
+	}
+
+	set volume( value ){
+		this.gainNode.gain.value = value
+		this.currentVolume = value
+	}
 
 	
 	// allow this itself to load instruments from the system
@@ -39,53 +47,57 @@ export default class SampleInstrument extends Instrument{
 		this.polyphony = 5
 		
 		this.gainNode = audioContext.createGain()
-		this.gainNode.gain.value = 1
 		this.gainNode.connect(destinationNode)
+		this.volume = 1
 	}
 
-	getVolume(){
-		return this.gainNode.gain.value
-	}
+	play(audioBuffer, velocity){
 
-	setVolume( volume ){
-		this.gainNode.gain.value = volume
-	}
-
-	// Like note on but a little easier!
-	async noteOnByName(noteName, velocity=1, noteNumber=-1 ){
-		
 		// too many simultaneous samples
-		if ( ++this.polyphony > MAX_TRACKS){
-
+		if ( ++this.polyphony > MAX_TRACKS)
+		{
+			// return
 		}
-
-		if (this.active){
+		
+		// TODO: Send out pitch bend?
+		if (this.active)
+		{
 			//console.log("Sample overwriting playback.", noteName )
 		}
 
 		this.active = true
-		this.setVolume( velocity )
-
-		const audioBuffer = this.instrument[noteName]
+		this.volume = velocity
 		
+		console.error( "PLAYING NOW!" , {audioBuffer}, this.polyphony, this.gainNode )
+
 		// FIXME: Add to active so we can remove it later
 		const track = playTrack( audioBuffer, 0, this.gainNode ).then( ()=>{
 			this.polyphony--
+			if (this.polyphony < 1) {
+				this.active = false
+			}
+		
 			//console.log("Sample completed playback.", track )
 			return true
 		})
+	}
 
-		return super.noteOn(noteNumber > 0 ? noteNumber : convertNoteNameToMIDINoteNumber(noteName), velocity)
+	// Like note on but using names!
+	async noteOnByName(noteName, velocity=1 ){
+		// const audioBuffer = this.instrument[noteName]
+		// audioBuffer && this.play(audioBuffer, velocity)
+		return this.noteOn( convertNoteNameToMIDINoteNumber(noteName), velocity)
 	}
 
 	async noteOn(noteNumber, velocity=1){
-		const noteName = convertMIDINoteNumberToName(noteNumber)
-		return this.noteOnByName( noteName , velocity, noteNumber )
+		const audioBuffer = this.instrument[convertMIDINoteNumberToName(noteNumber)]
+		audioBuffer && this.play(audioBuffer, velocity)
+		return super.noteOn(noteNumber, velocity)
 	}
 
 	// FIXME: Fade out the gate
 	async noteOff(noteNumber, velocity=0){
-		this.setVolume( velocity )
+		this.volume = velocity
 		return super.noteOff(noteNumber)
 	}
 
@@ -99,10 +111,8 @@ export default class SampleInstrument extends Instrument{
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
+
 		super.programChange( programNumber )
-
-		//console.log("")
-
 		return await this.loadInstrument( instrumentFolders[programNumber] )
 	}
 

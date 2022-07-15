@@ -5,13 +5,24 @@ export default class Instrument{
 
 	name = "Unknown"
 	title = "Untitled"
+	type = "abstract"
 
 	active = false
 	// monophonic by default
 	polyphony = 1
+
+	currentVolume = 1
 	
 	get isLoading(){
 		return false
+	}
+	
+	get volume(){
+		return this.currentVolume
+	}
+
+	set volume( value ){
+		this.currentVolume  = value
 	}
 
 	constructor( audioContext, destinationNode, options={} ) 
@@ -22,14 +33,6 @@ export default class Instrument{
 		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
 	}
 	
-	getVolume(){
-		return 1
-	}
-
-	setVolume( volume ){
-		// FIXME:
-	}
-
 	/**
 	 * This message is sent when a note is depressed (start).
 	 * @param {Number} noteNumber 
@@ -39,6 +42,8 @@ export default class Instrument{
 	 async noteOn( noteNumber, velocity=1 ){
 		
 		const activeNote = this.activeNotes.get(noteNumber)
+		this.active = true
+		
 		if (activeNote)
 		{
 			//console.log(activeNote, "retrigger noteOn", noteNumber, this.activeNotes )
@@ -48,7 +53,6 @@ export default class Instrument{
 			// set it not to true but to the velocity?
 			this.activeNotes.set( noteNumber, velocity )
 			//console.log("noteOn", noteNumber, this.activeNotes )
-			this.active = true
 			return true
 		}
 	}
@@ -87,18 +91,10 @@ export default class Instrument{
 	 * but may be set using RPN 0. 
 	 * (lllllll) are the least significant 7 bits. 
 	 * (mmmmmmm) are the most significant 7 bits.
-	 * @param {*} pitch 
+	 * @param {number} pitch 
 	 */
 	pitchBend(pitch){
 
-	}
-
-	allSoundOff(){
-
-	}
-
-	allNotesOff(){
-		// loop through this.activeNotes
 	}
 
 	/**
@@ -106,7 +102,16 @@ export default class Instrument{
 	 * This message sent when the patch number changes. 
 	 * @param {Number} programNumber - new program number.
 	 */
-	 async programChange( programNumber ){
+	async programChange( programNumber ){
+
+	}
+
+	// TODO: 
+	allSoundOff(){
+
+	}
+
+	allNotesOff(){
 
 	}
 }
