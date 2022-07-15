@@ -1,5 +1,6 @@
 
 import {clamp} from "../maths/maths"
+import { memoize } from "../utils"
 
 // Memoize as much as possible
 
@@ -207,8 +208,12 @@ export const convertNoteNameToMIDINoteNumber = name => NOTE_NAME_MAP[name]
 export const convertMIDINoteNumberToName = note => GENERAL_MIDI_INSTRUMENTS[note]
 
 export const noteNumberToFrequency = (note) => {
-	return 440 * Math.pow(2, (note - 69) / 12)
+	const c = (note - 69) / 12
+	return 440 * c * c
 }
+
+export const noteNumberToFrequencyFast = memoize(noteNumberToFrequency)
+
 
 const L = Math.log(2)
 export const frequencyToNoteNumber = (f) => {
