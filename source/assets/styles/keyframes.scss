@@ -9,6 +9,21 @@
 		background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
   }
 }
+@keyframes BGScroll3{
+	0% { 
+		background-position: 
+		0 0,
+		0 0, 
+		calc(var(--scroll-x) / 2) 0;
+ 	 }
+	100% { 
+		background-position: 
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px), 
+			calc((var(--scroll-x) / 2) + var(--scroll-x,50px)) var(--scroll-y,50px);
+			// calc(var(--scroll-y) / 2)
+ 	 }
+}
 
 // 
 @keyframes BGColours{
