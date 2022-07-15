@@ -153,6 +153,25 @@ export const getDomainDefaults = (name) => {
 }
 
 
+
+
+export const EYE_COLOURS = ['blue','green','brown','orange']
+
+
+export const DEFAULT_VOICE_OPTIONS = {
+	yaw:0, pitch:0, roll:0,
+	hue:90,
+	lipPercentage:0,
+	eyeDirection:0,
+	octave:4,
+	note:-1,
+	noteName:'',
+	volume:0,
+	singing:false,
+	mouthOpen:false,
+	active:false
+}
+
 export const DEFAULT_PERSON_OPTIONS = {
 	...DEFAULT_COLOURS,
 
