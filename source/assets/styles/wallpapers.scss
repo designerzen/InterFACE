@@ -75,6 +75,35 @@ html.player-selection{
 		linear-gradient(0deg, var(--col-grid) var(--grid-x), transparent var(--grid-x) ),
 		linear-gradient(90deg, var(--col-grid) var(--grid-y), transparent var(--grid-y) );
 		
+
+	&.beginner{
+		--scroll-x:150px;
+		--scroll-y:150px;
+
+		// bumps!var(--shade-yellow, transparent)
+		--c:var(--shade-red, black);
+		--_g: 	80%, 
+				var(--c) 25.4%,
+				transparent 26%;
+
+		background-color: var(--shade-dark);
+		background-image:
+			radial-gradient(at 80% var(--_g)),
+			radial-gradient(at 20% var(--_g)),
+			conic-gradient(from 
+				-45deg at 50% 41%,
+				var(--c) 90deg,
+				transparent 0
+			);
+
+		// background-position: 
+		// 	0 0,
+		// 	0 0, 
+		// 	calc(var(--scroll-x) / 2) 0;
+
+		animation-name: BGScroll3;
+	} 
+
 	background-size:
 		var(--scroll-x) 
 		var(--scroll-y);
