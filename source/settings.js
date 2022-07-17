@@ -258,5 +258,3 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// IN means that it starts off slowly (prefered)
 	ease:easeInSine // easeInSine // linear
 }
-
-

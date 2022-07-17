@@ -1,16 +1,39 @@
-// each person in the app has their own instrument and face
+/**
+ * each person in the app has their own instrument and face
+ * 
+ * 
+  DADSHR :
+  Delay | Attack | Decay | Sustain | Release
+  +----------------------------------------+
+  |               XXX                      |
+  |              XX XX                     |
+  |             XX   XX                    |
+  |            XX     XXX                  |
+  |           XX        XXXXXXXXXXX        |
+  |          XX                   XX       |
+  |         XX                     XXX     |  Amplitude
+  |        XX                        XX    |
+  |       XX                          XX   |
+  |      XX                            X   |
+  |     XX                             XX  |
+  |    XX                               XX |
+  |   XX                                 XX|
+  |XXX                                    XX
+  XX---------------------------------------X
+  Start                    |HOLD| Stop
+ * 
+ *  */ 
 import { rescale, lerp, clamp } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
+// all the different instruments!
 import SampleInstrument from './audio/instruments/instrument.sample'
 import MIDIInstrument from './audio/instruments/instrument.midi'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator'
+import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
-import { 
-	INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY,	INSTRUMENT_PACK_MUSYNGKITE,
-	INSTRUMENT_PACKS, instrumentFolders
-} from './audio/instruments'
+import { INSTRUMENT_PACKS, instrumentFolders } from './audio/instruments'
 
 import { setupInstrumentForm } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
@@ -29,7 +52,6 @@ import {
 	DEFAULT_PERSON_OPTIONS,
 	DEFAULT_VOICE_OPTIONS
 } from './settings'
-import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -43,7 +65,7 @@ export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 
 // after how many frames do we set the DOM css vars
-const UPDATE_FACE_BUTTON_AFTER_FRAMES = 22
+const UPDATE_FACE_BUTTON_AFTER_FRAMES = 24
 
 // FIXME:
 const FUDGE = 1.0// 1.3
@@ -185,12 +207,10 @@ export default class Person{
 
 	/**
 	 * Fetch the index in the instrument array of the current instrument
-	 * FIXME: expensive... can we use instrumentPointer instead?
 	 * @returns {Number} Instrument index
 	 */
 	get instrumentIndex(){
-		// instrumentPointer ???
-		return instrumentFolders.indexOf(this.instrumentName)
+		return this.instrumentPointer // instrumentFolders.indexOf(this.instrumentName)
 	}
 
 	/**
@@ -296,12 +316,11 @@ export default class Person{
 			// delayNode.connect(destinationNode)
 
 		}else{
-			// WORKS:
+			// direct to main mixer
 			this.gainNode.connect(destinationNode)
 		}
 
-		// create a sample player, oscilaltor...
-		// add all instruments
+		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) )
 		this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
@@ -343,13 +362,7 @@ export default class Person{
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
-
-		// this.button.addEventListener( EVENT_INSTRUMENT_CHANGED, event => {
-		// 	console.log("External event for instrument", event )
-		// })
-
 		this.instrumentLoadedAt = this.now
-
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 	
@@ -719,14 +732,12 @@ export default class Person{
 			
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
-
 			
 				}else{
 					drawInstrument(prediction.boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
 					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)
 					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
 				}
-
 
 			}else{
 				
@@ -753,7 +764,6 @@ export default class Person{
 				//console.log("SVG",silhouette, silhoetteShape)
 				this.button.innerHTML = silhoetteShape	
 				*/
-
 			}
 		
 		}else if (this.instrumentLoading){
@@ -907,8 +917,9 @@ export default class Person{
 			}else{
 				
 				// already playing so we continue the note
+				// or if it has changed pitch, re-attack
 				this.setState( hasNoteChanged ? 
-					STATE_INSTRUMENT_SUSTAIN : 
+					STATE_INSTRUMENT_ATTACK : 
 					STATE_INSTRUMENT_SUSTAIN
 				)
 			}
@@ -1168,22 +1179,26 @@ export default class Person{
 
 	/**
 	 * Set the MIDI channel to use for this Person
-	 * @param {Function} midi MIDI implementation
+	 * @param {Function} midiDevice MIDI implementation
 	 * @param {String} channel MIDI CHannel to dispatch MIDI events to
 	 */
-	setMIDI(midi, channel="all"){
+	setMIDI(midiDevice, channel="all"){
 		this.midiChannel = channel
-		this.midi = midi
-		this.midiPlayer = new MIDIInstrument(midi, channel)
-		this.instruments.push( this.midiPlayer )
-		console.log("MIDI set for person", this, "Channel:"+channel, {midi,channel, hasMIDI:this.hasMIDI } )
+		this.midi = midiDevice
+		this.midiPlayer = new MIDIInstrument(midiDevice, channel)
+		this.addInstrument( this.midiPlayer )
+		//console.log("MIDI set for person", this, "Channel:"+channel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 
-	// send a single midi command to all active instruments
+	/**
+	 * send a single midi command to all active instruments
+	 * @param {String} methodName - method to call on the instrument
+	 * @param  {...any} values 
+	 */
 	sendMIDI( methodName="noteOn", ...values ){
 		this.instruments.forEach( instrument => {
-			console.log("PLAY:", methodName, instrument, {values} )
-			//instrument[methodName].apply( values )
+			// console.log("PLAY:", methodName, instrument, {values} )
+			//instrument[methodName].apply( null, values )
 		})
 	}
 

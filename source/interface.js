@@ -996,6 +996,13 @@ export const createInterface = (
 	 * @returns {Object} of metadata
 	 */
 	const playPersonAudio = ( person ) => {
+		
+		// no instruments set in Person - exit now
+		if( !person.instrument )
+		{
+			return stuff
+		}
+
 		// yaw, pitch, lipPercentage, eyeDirection
 		const stuff = person.sing()
 		
@@ -1003,12 +1010,6 @@ export const createInterface = (
 		let noteNumber = stuff.noteNumber
 		let note = stuff.note
 		let noteVelocity = stuff.volume
-
-		if (!person.instrument || !person.instrument[ noteName ])
-		{
-			// probably still loading...
-			return stuff
-		}
 
 		// we can have some fun here and inercept the output
 		// and replace them with MIDI performance commands :P
@@ -1025,7 +1026,7 @@ export const createInterface = (
 				noteVelocity *= command.velocity * 0.01	
 				//console.log("Intercepted command via MIDI", noteName, command)
 			}else{
-				 //console.log("No Interception available", command)
+				//console.log("No Interception available", command)
 			}
 
 			// const commands = midiPerformance.getNextCommands() || []
@@ -1056,8 +1057,15 @@ export const createInterface = (
 			// notesPlayed.push()			
 			//console.log("Person:sing", { stuff,noteName,note})
 		}
-	
-		
+
+		// instrument exists but no note with that name exists	
+		// NB. probably still loading...	
+		if (!person.instrument[ noteName ])
+		{
+			return stuff
+		}
+
+		// Make the Person SING!
 		person.instruments.forEach( instrument => {
 
 			// if (instrument.type !== "oscillator"){
@@ -1076,20 +1084,29 @@ export const createInterface = (
 				case STATE_INSTRUMENT_ATTACK:
 				case STATE_INSTRUMENT_SUSTAIN:
 				case STATE_INSTRUMENT_PITCH_BEND:
-					const p = instrument.noteOn( noteNumber, noteVelocity )
-					console.log("Person", p, person.state, person, {instrument, noteNumber, noteVelocity} )
+					// note off if set...
+					if ( person.lastNoteNumber >= 0 )
+					{
+						const previously = instrument.noteOff( person.lastNoteNumber )
+					}
+					const latest = instrument.noteOn( noteNumber, noteVelocity )
+					//console.log("Person", p, person.state, person, {instrument, noteNumber, noteVelocity} )
 					break
 
 				case STATE_INSTRUMENT_DECAY:
 					break
 
 				case STATE_INSTRUMENT_RELEASE:
+					instrument.noteOff( noteNumber )
+					break
+
 				case STATE_INSTRUMENT_SILENT:
 				default:
-					instrument.noteOff( noteNumber, noteVelocity )
+					instrument.noteOff( noteNumber )
 			}
 		})
 
+		// Update visual elements
 		switch(person.state)
 		{
 			case STATE_INSTRUMENT_SILENT:
@@ -1101,6 +1118,7 @@ export const createInterface = (
 				break
 
 			case STATE_INSTRUMENT_SUSTAIN:
+				musicalKeyboard.noteOn( noteNumber, noteVelocity )
 				break
 
 			case STATE_INSTRUMENT_PITCH_BEND:
@@ -1110,6 +1128,7 @@ export const createInterface = (
 				break
 
 			case STATE_INSTRUMENT_RELEASE:
+				musicalKeyboard.noteOff( noteNumber, noteVelocity )
 				break
 		}
 
@@ -1152,6 +1171,9 @@ export const createInterface = (
 
 	/**
 	 * Toggle Start / Stop of the Recording
+	 * with optional defering where the record
+	 * start and stop occur at the start of bars
+	 * only rather than immediately when requested
 	 * @param {Boolean} defer 
 	 */
 	const toggleRecording = (defer = true) => {
@@ -2016,7 +2038,6 @@ export const createInterface = (
 			setState( 'quantise', status )
 			setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 		}, ui.quantise)
-
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
@@ -2202,6 +2223,7 @@ export const createInterface = (
 			// await userUploadMediaFile( file )
 		})
 
+		// allow files to be dragged over the screen
 		connectDropZone( userUploadMediaFile )
 
 		// set the master tempo
@@ -2254,8 +2276,6 @@ export const createInterface = (
 			}
 		})
 		
-	
-		
 
 		// Track mouse coords on canvas for use with mouse cursor thingy
 		watchMouseCoords( document.getElementById('control-panel'), coords =>{
@@ -2263,7 +2283,6 @@ export const createInterface = (
 		} )
 		
 			
-
 		try{
 			// Attempt to Lazy load
 			// Load in our instruction tool kit
@@ -2297,7 +2316,6 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "Reporting blocked")
 		}
 		
-	
 		// this takes any existing state from the url and updates our front end
 		// so that any previously saved settings show as if the user is continuing
 		// their project from before - same buttons selected etc
@@ -2315,11 +2333,11 @@ export const createInterface = (
 	//setFeedback("Initialising...<br> Please wait")
 	onLoadProgress && onLoadProgress(0, "Loading... Please wait")
 
-	let extrasLoaded = false
-
+	
 	/**
 	 * loadExtras : load uneccessary files used later in this app
 	 */
+	let extrasLoaded = false
 	const loadExtras = async ()=> {
 		if (extrasLoaded)
 		{
@@ -2378,6 +2396,7 @@ export const createInterface = (
 		}
 
 		body.classList.toggle("loading", false)
+
 		body.classList.toggle("loaded", true)
 		
 		// monitor keyboard events
@@ -2435,19 +2454,62 @@ export const createInterface = (
 
 
 	// ---------------------------------------------------------
+
+	/**
+	 * get player quantity and mouse event in one click
+	 * @param {*} timeout 
+	 * @returns 
+	 */
+	const showPlayerSelectionScreen = async ( showTextAfter=60000 ) => {
+
+		// preload completed and now we show the ui
+		// for selecting regular or multi-face mode!
+		let timeOut = setTimeout(()=>{
+			setToast( "Please select how many players you want to play" )
+			timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
+		}, showTextAfter )
+
+		// clear help fields
+		setFeedback("")
+		setToast("")
+
+		// hide loading screen temporarily
+		body.classList.toggle("loading", false)
+
+		const results = await showPlayerSelector(options)
+		
+		// console.error("FWSFEW",{ players, advancedMode, automationMode } )
+		useAutomator = results.automationMode
+		setState("duet", results.players > 1 )
+		setState("advancedMode", results.advancedMode )
+		setState("automationMode", results.automationMode)
+		
+		clearInterval( timeOut )
+		setToast( "" )
+		
+		// continue loading...
+		body.classList.toggle("loading", true)
+
+		return results
+	}
+
+
+	// ---------------------------------------------------------
+	// BEGIN APP HERE!
+	// ---------------------------------------------------------
+
 	const options = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS, { maxFaces:ui.duet ? 2 : 1 } )
-
-	// FIXME: Do we instantly show the user quantity screen
-	// and load all background elements and scripts
-
 	
+	let havePlayersBeenSelected = false
 
-
+	// we show selection screen while stuff loads in background
+	showPlayerSelectionScreen().then( r=>{ 
+		havePlayersBeenSelected = true 
+	})
 
 	// now load dependencies and show progress
 	load(options, (progress, message) => {
 		
-		//console.log("Loading A Side", progress )
 		onLoadProgress && onLoadProgress(progress, message)
 
 	}).then( async update =>{ 
@@ -2455,39 +2517,15 @@ export const createInterface = (
 		// we can sneakily back ground load in some data
 		// whilst the user hits the button!
 		requestAnimationFrame( loadExtras )
-		
-		// Hide 
-		setFeedback("")
-		setToast("")
-
-		// FIXME: Maybe only show if people dont do anything?
+		// body.classList.toggle("loading", false)
 		
 		// attempt to get player quantity and mouse event in one
-	
-		// hide the loading screen but dont sdt it to loaded just yet
-		body.classList.toggle("loading", false)
+		// wait here until havePlayersBeenSelected = true
+		await ( new Promise( resolve =>{
+			const wait = a => havePlayersBeenSelected ? resolve(true) : requestAnimationFrame( wait )
+			wait()
+		}) ) 
 
-		// preload completed and now we show the ui
-		// for selecting regular or multi-face mode!
-		let timeOut = setTimeout(()=>{
-			setToast( "Please select how many players you want to play" )
-			timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
-		}, 60000 )
-
-		const { players, advancedMode, automationMode } = await showPlayerSelector(options)
-		
-		// console.error("FWSFEW",{ players, advancedMode, automationMode } )
-		useAutomator = automationMode
-
-		setState("duet", players > 1 )
-		setState("advancedMode", advancedMode )
-		setState("automationMode", automationMode)
-		
-		clearInterval( timeOut )
-		setToast( "" )
-
-		// continue loading...
-		body.classList.toggle("loading", true)
 		
 		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
@@ -2502,14 +2540,12 @@ export const createInterface = (
 		return startApp
 
 	}).then( startPhotoSYNTH => {
-
 	
 		// let's launch it after it has resolved...
 		startPhotoSYNTH()
 
 		// setup done!
 		focusApp()
-
 
 		// wait for stuff to load / be available
 		loadingLoop()
