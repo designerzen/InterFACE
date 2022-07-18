@@ -37,12 +37,12 @@ const directories = DIRS.filter( (dir,index,data)=> existsSync(dir) )
 console.log(`Found ${directories.length} folders`, directories )
 
 const WHITELIST = [
-	"browserconfig.xml",
-	"favicon.ico",
-	"CNAME",
-	"robots.txt",
-	"sitemap.xml",
-	"info.json",
+	// "browserconfig.xml",
+	// "favicon.ico",
+	// "CNAME",
+	// "robots.txt",
+	// "sitemap.xml",
+	// "info.json",
 	// ".well-known"
 	// "safari-pinned-tab.svg"
 ]
