@@ -3,14 +3,9 @@ node_modules*
 .parcel-cache
 # there are things already committed in dist/ mainly the smaples
 dist/*
+!dist/assets/audio/
 
 docs/
-!dist/assets
-!dist/CNAME
-!dist/.well-known
-!dist/favicon.ico
-!dist/humans.txt
-!dist/robots.txt
 textures/
 app
 *.bak
