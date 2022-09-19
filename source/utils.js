@@ -39,6 +39,17 @@ export const memoize = ( method ) => {
 	}
 }
 
+
+export const injectJavascript = async(url) => new Promise((resolve, reject) => {
+	const script = document.createElement("script")
+	script.onload = () => { resolve(url) }
+	script.onerror = error => { reject(error) }
+	script.src = url
+	document.head.appendChild(script)
+	console.error("injecting JS", url , script)
+})
+
+
 // DECODE UTILITIES
 
 
