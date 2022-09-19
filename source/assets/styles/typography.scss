@@ -118,7 +118,8 @@ html{
 body{
 	// https://blog.55minutes.com/2012/04/iphone-text-resizing/#fnref:bootstrap
     // The 100% value tells WebKit to disable the automatic behavior, but to still allow user-initiated zoom.
-    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
 	line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
 }
 

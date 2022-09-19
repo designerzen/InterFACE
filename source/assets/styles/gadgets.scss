@@ -1519,6 +1519,7 @@ button#share{
 #button-midi-upload{
 	--bg:url(/source/assets/icons/midi-copyright-free.svg);
 	gap:var(--pad);
+	width: 100%;
 }
 
 
@@ -1531,10 +1532,11 @@ button#share{
 	right:0;
 	bottom:0;
 	display: flex;
+	visibility: hidden;
 	flex-direction: column;
 	align-items: center;
     justify-content: center;
-		
+	
 	> *{
 		opacity: 0;	
 	}
