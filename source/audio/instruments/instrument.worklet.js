@@ -9,9 +9,8 @@ import Instrument from './instrument'
 import { registerAudioWorklets } from '../audio'
 import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber } from '../notes'
 
-import Noise from '../noise'
 
-export default class WaveGuideInstrument extends Instrument {
+export default class WorkletInstrument extends Instrument {
 
 	type = "worklet"
 
@@ -28,8 +27,6 @@ export default class WaveGuideInstrument extends Instrument {
 	constructor(audioContext, destinationNode, options = {}) {
 
 		super(audioContext, destinationNode, options)
-
-		registerAudioWorklets( audioContext )
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 1
@@ -51,6 +48,8 @@ export default class WaveGuideInstrument extends Instrument {
 		this.instrument = processor
 
 		console.log("Worklet", { audioContext, processor })
+
+		this.available = true
 	}
 
 	post( message ){

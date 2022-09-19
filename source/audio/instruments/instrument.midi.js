@@ -4,6 +4,7 @@ import {WebMidi} from "webmidi"
 export default class MIDIInstrument extends Instrument{
 
 	type = "midi"
+	name = "MIDIInstrument"
 
 	constructor( device, channel="all" ){
 		super()
@@ -11,7 +12,6 @@ export default class MIDIInstrument extends Instrument{
 		this.sendMIDI = true
 		this.midiPort = device
 		this.title = device
-		this.name = "MIDIInstrument"
 	}
 
 	setMIDI(value){
@@ -57,11 +57,13 @@ export default class MIDIInstrument extends Instrument{
 		return super.noteOff( noteNumber )
 	}
 
+	// Set polyphonic aftertouch : Send polyphonic aftertouch message to channel 8
 	aftertouch(noteNumber, pressure){
 		this.midiPort.setKeyAftertouch(noteNumber, (pressure + 1 ) * 0.5 )
 		super.aftertouch(noteNumber, pressure)
 	}
 	
+	// Set pitch bend value : The value is between -1 and 1 (a value of 0 means no bend).
 	pitchBend(pitch){
 		this.midiPort.setPitchBend( pitch )
 		super.pitchBend(pitch)

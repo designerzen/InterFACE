@@ -32,7 +32,16 @@ const OPTIONS = {
 export default class OscillatorInstrument extends Instrument{
 
 	type = "oscillator"
+	name = "OscillatorInstrument"
 
+	get volume() {
+		return this.gainNode.gain.value
+	}
+
+	set volume(value) {
+		this.gainNode.gain.value = value
+	}
+	
 	constructor( audioContext, destinationNode, shape=OSCILLATOR_TYPES[1] ){
 		super()
 
@@ -63,7 +72,7 @@ export default class OscillatorInstrument extends Instrument{
 		this.oscillator.start()
 
 		this.title = shape
-		this.name = "OscillatorInstrument"
+		this.available = true
 	}
 
 	async noteOn( noteNumber, velocity=1 ){
@@ -118,5 +127,13 @@ export default class OscillatorInstrument extends Instrument{
 		const index = programNumber%(OSCILLATOR_TYPES.length-1)
 		this.oscillator.type = OSCILLATOR_TYPES[index]
 		return super.programChange( programNumber )
+	}
+	
+	/**
+	 * 
+	 * @returns {Array<String>} of Instrument Names
+	 */
+	getInstruments(){
+		return OSCILLATOR_TYPES
 	}
 }
