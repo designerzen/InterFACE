@@ -13,6 +13,7 @@ import Noise from '../noise'
 export default class WaveGuideInstrument extends Instrument{
 
 	type = "waveguide"
+	name = "WaveGuideInstrument"
 
 	instrument
 
@@ -24,9 +25,9 @@ export default class WaveGuideInstrument extends Instrument{
 		this.gainNode.gain.value = value
 	}
 
-
 	set pitch(value){
-		this.delay.delayTime.value = value
+		this.delay.delayTime.value = value * 0.01
+		console.log("waveguide::pitch", value, this.delay.delayTime.value)
 	}
 
 	constructor( audioContext, destinationNode, options={} ){
@@ -42,14 +43,16 @@ export default class WaveGuideInstrument extends Instrument{
         noiseBufferSource.buffer = whiteNoiseAudioBuffer
        
 		// 2. then pass the noise through a gain to lower the volume slightly
-		const feedbackNode = audioContext.createGain(feedback)
-		feedbackNode.gain.value = 0.4
+		const feedbackNode = audioContext.createGain(0.2)
 		
 		// 3. then through a delay node with the delay length
 		// related to the pitch requested
-		const delayTime = 7
-		const delayNode = audioContext.createDelay(delayTime)
-		
+		// param is max size in seconds
+		const delayNode = audioContext.createDelay( 1 )
+
+		// 4. pass it through a low pass filter so we dont hurt our precious ears
+		// const filter = audioContext.createBiQuadFilter()
+
 		// would be cool to stereo seperate here...
 		noiseBufferSource
 			.connect( feedbackNode )
@@ -58,7 +61,7 @@ export default class WaveGuideInstrument extends Instrument{
 			.connect( destinationNode )
         
 		// feedback loop back into system
-		delayNode.connect(feedbackNode)
+		//delayNode.connect(feedbackNode)
 		
 		// start the noise
 		noiseBufferSource.start()
@@ -66,7 +69,8 @@ export default class WaveGuideInstrument extends Instrument{
 		this.delay = delayNode
 		
 		// to control pitch
-		this.pitch = 10
+		this.pitch = 69
+		this.available = true
 	}
 
 	async noteOn(noteNumber, velocity=1){
@@ -77,7 +81,7 @@ export default class WaveGuideInstrument extends Instrument{
 			//console.log("Sample overwriting playback.", noteName )
 		}
 		this.active = true
-		this.pitch = noteNumber * 44
+		this.pitch = noteNumber
 		this.volume = velocity
 		return super.noteOn( noteNumber, velocity )
 	}

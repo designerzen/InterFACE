@@ -5,6 +5,7 @@ import {
 } from '../instruments'
 import { playTrack,loadInstrumentPack } from '../audio'
 import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../notes'
+import { createInstruments, instrumentNames, instrumentFolders} from '../instruments'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 16 // AKA one bar
@@ -12,6 +13,7 @@ const MAX_TRACKS = 16 // AKA one bar
 export default class SampleInstrument extends Instrument{
 
 	type = "sample"
+	name = "SamplePlayerInstrument"
 
 	instrument
 	
@@ -49,6 +51,7 @@ export default class SampleInstrument extends Instrument{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.connect(destinationNode)
 		this.volume = 1
+		this.available = true
 	}
 
 	play(audioBuffer, velocity){
@@ -116,6 +119,13 @@ export default class SampleInstrument extends Instrument{
 		return await this.loadInstrument( instrumentFolders[programNumber] )
 	}
 
+	/**
+	 * 
+	 * @returns {Array<String>} of Instrument Names
+	 */
+	getInstruments(){
+		return createInstruments()
+	}
 
 	// INTERNAL -------------------------------------------
 	

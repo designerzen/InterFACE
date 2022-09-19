@@ -7,6 +7,7 @@ export default class Instrument{
 	title = "Untitled"
 	type = "abstract"
 
+	available = false
 	active = false
 	// monophonic by default
 	polyphony = 1
@@ -30,6 +31,7 @@ export default class Instrument{
 		this.outputNode = destinationNode
 		this.context = audioContext
 		this.activeNotes = new Map()
+		
 		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
 	}
 	
@@ -104,6 +106,16 @@ export default class Instrument{
 	 */
 	async programChange( programNumber ){
 
+	}
+
+	/**
+	 * Get a list of all the instrument names available for this
+	 * instrument preferably at the no
+	 * @returns {Array<String>} of Instrument Names
+	 */
+	getInstruments(){
+		return []
+		
 	}
 
 	// TODO: 
