@@ -65,12 +65,14 @@
 		display:flex;
 		flex-direction:column;
 		align-items:center;
-		border:var(--border-size, 9px) solid var(--shade-dark);
+		// border:var(--border-size, 9px) solid var(--shade-dark);
 		border-radius:var(--curve, 9px);
 		background-image:linear-gradient(
 			hsla(18, 21%, 12%, 0.7), 
 			hsla(340, 5%, 11%, 0.7)
 		);
+		
+		backdrop-filter: grayscale(3) blur(3px);
 		padding: var(--pad);
 		padding-top: 0;
 		margin:auto;
@@ -154,7 +156,7 @@ label[for=button-start]{
 	
 	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
 	
-	z-index:606;
+	// z-index:606;
 	border-radius:var(--curve, 0);
 
 	position: relative;

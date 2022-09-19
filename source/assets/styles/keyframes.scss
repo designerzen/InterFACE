@@ -5,9 +5,11 @@
   }
 }
 @keyframes BGScroll2 {
-	100% { 
-		background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
-  }
+	0% { 
+		background-position:
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px); 
+ 	}
 }
 @keyframes BGScroll3{
 	0% { 
@@ -242,6 +244,21 @@
 
 	to{
 		transform: translateY( calc(  var(--pad, 0) - 44%  ) );
+	}
+}
+
+@keyframes DevelopPhotograph {
+	0% { 
+		opacity: 0; 
+		filter: brightness(1) blur(20px);
+	}
+	10% { 
+		opacity: 1; 
+		filter: brightness(2) blur(10px);
+	}
+	100% { 
+		opacity: 1; 
+		filter: brightness(1) blur(0);
 	}
 }
 

@@ -7,7 +7,6 @@ html{
 	--stroke:2px;
 
 	--col-bg:black;
-	--col-grid:#{$col-dark};
 
 	transition: background-color var(--ease-s) linear;
 	background-color:var(--col-bg, #{$col-dark} );
@@ -59,11 +58,32 @@ html.initialising{
 
 html.player-selection{
 
+	--size:66px;
+
+	--scroll-x:var(--size);
+	--scroll-y:var(--size);
+
 	--col-bg:#{$col-white};
-	--grid-x:calc(var(--scroll-x) - var(--stroke) );// 
-	--grid-y:calc(var(--scroll-y) - var(--stroke) );// 
+
+	--grid-x:calc(var(--scroll-x) - var(--stroke) ); 
+	--grid-y:calc(var(--scroll-y) - var(--stroke) );
+
+	// colours	
+	--h:#{$hue-dark};
+	--c1: hsl( var(--h),77%, 9%);
+	--c2: hsl( var(--h),67%, 18%);
+	--c3: hsl( var(--h),17%, 2%);
+	--col-grid:var(--shade-dark);
 	
+	background-repeat:repeat, repeat;
+	//	clip-path: inset(0 0 0 0);
+
+	background-size:
+		var(--scroll-x, 150px) 
+		var(--scroll-y, 150px);
+
 	// colour that bleeds through the gap
+	background-color: var(--shade-white);
 	
 	// dash pattern using css
 	background-image:
@@ -74,19 +94,40 @@ html.player-selection{
 	background-image:
 		linear-gradient(0deg, var(--col-grid) var(--grid-x), transparent var(--grid-x) ),
 		linear-gradient(90deg, var(--col-grid) var(--grid-y), transparent var(--grid-y) );
-		
+	
+	animation: BGScroll2 2s infinite linear reverse;
+
+	// &.solo{
+
+	// }
+
+
+	&.duet{
+		--size:44px;
+		--h:#{$hue-blue};
+		background-color: var(--shade-orange);
+	}
+
+
+	&.trio{
+		--size:33px;
+		--h:#{$hue-green};
+		background-color: var(--shade-yellow);
+	}
 
 	&.beginner{
-		--scroll-x:150px;
-		--scroll-y:150px;
-
+		// cool site Temani Afif thanks! https://css-pattern.com/
+		// --scroll-x:calc( 150px);
+		// --scroll-y:calc(2*var(--scroll-x)/3);
+		
+		/*
 		// bumps!var(--shade-yellow, transparent)
 		--c:var(--shade-red, black);
 		--_g: 	80%, 
 				var(--c) 25.4%,
 				transparent 26%;
 
-		background-color: var(--shade-dark);
+		
 		background-image:
 			radial-gradient(at 80% var(--_g)),
 			radial-gradient(at 20% var(--_g)),
@@ -100,16 +141,102 @@ html.player-selection{
 		// 	0 0,
 		// 	0 0, 
 		// 	calc(var(--scroll-x) / 2) 0;
+		*/
 
-		animation-name: BGScroll3;
+		/*
+		// grid paper
+		--s: var(--scroll-x,150px);
+		--_g: #0000 90deg,var(--col-grid) 0;
+		background: 
+			conic-gradient(from 90deg at 2px 2px,var(--_g)),
+			conic-gradient(from 90deg at 1px 1px,var(--_g));
+		background-size: var(--s) var(--s), calc(var(--s)/5) calc(var(--s)/5);
+		*/
+/*
+		--_g: var(--c1) 10%,var(--c2) 10.5% 19%,#0000 19.5% 80.5%,var(--c2) 81% 89.5%,var(--c3) 90%;
+		--_c: from -90deg at 37.5% 50%,#0000 75%;
+		--_l1: linear-gradient(145deg,var(--_g));
+		--_l2: linear-gradient( 35deg,var(--_g));
+
+		background-image: 
+			var(--_l1), 
+			var(--_l2),
+			conic-gradient(var(--_c),var(--c1) 0),
+			conic-gradient(var(--_c),var(--c3) 0) ,
+			linear-gradient(90deg,var(--c3) 38%,var(--c1) 0 50%,var(--c3) 0 62%,var(--c1) 0);
+		
+		background-position: 
+			calc(var(--size)/2) var(--size),
+			calc(var(--size)/2) var(--size),
+			calc(var(--size)/8) 0,
+			calc(var(--size)/2) 0;
+*/
+		
+		// --scroll-y:calc(var(--size)*0.577);
+		
+		// background-image:
+		// 	repeating-conic-gradient(from 30deg, #0000 0 120deg, var(--c3) 0 180deg)    
+		// 	repeating-conic-gradient(from 30deg,var(--c1) 0 60deg,var(--c2) 0 120deg,var(--c3) 0 180deg);
+		
+		// background-position: 
+		// 	calc(.5*var(--size)) calc(.5*var(--size)*0.577),
+		// 	calc(.5*var(--size)) calc(.5*var(--size)*0.577);
+
+		// background-size:
+		// 	var(--scroll-x, 150px) 
+		// 	var(--scroll-y, 150px);
+		--_g: 
+			var(--c1) 0%  5% ,var(--c2) 6%  15%,var(--c1) 16% 25%,var(--c2) 26% 35%,var(--c1) 36% 45%,
+			var(--c2) 46% 55%,var(--c1) 56% 65%,var(--c2) 66% 75%,var(--c1) 76% 85%,var(--c2) 86% 95%,
+			#0000 96%;
+
+		background:
+			radial-gradient(50% 50% at 100% 0,var(--_g)),
+			radial-gradient(50% 50% at 0 100%,var(--_g)),
+			radial-gradient(50% 50%,var(--_g)),
+			radial-gradient(50% 50%,var(--_g)) calc(var(--size)/2) calc(var(--size)/2)
+			var(--c1);
+
+		//animation-name: BGScroll2;
+		// animation: BGScroll2 999ms infinite linear reverse;
+		animation: none;
 	} 
 
-	background-size:
-		var(--scroll-x) 
-		var(--scroll-y);
+	// auto selection mode - will choose a lot of 
+	// stuff for you like which instrument etc
+	&.automated{
+		
+		--size:150px;
+		--scroll-x: calc(1.732*var(--size)) ;
+		--scroll-y: calc(var(--size));
+		--_g: var(--c3) 0 120deg,#0000 0;
 
-	background-repeat:repeat, repeat;
+		background:
+			conic-gradient(from -60deg at 50% calc(100%/3),var(--_g)),
+			conic-gradient(from 120deg at 50% calc(200%/3),var(--_g)),
+			conic-gradient(from  60deg at calc(200%/3),var(--c3) 60deg,var(--c2) 0 120deg,#0000 0),
+			conic-gradient(from 180deg at calc(100%/3),var(--c1) 60deg,var(--_g)),
+			linear-gradient(90deg, 
+							var(--c1) calc(100%/6),
+							var(--c2) 0 50%,
+							var(--c1) 0 calc(500%/6), 
+							var(--c2) 0
+						);
+		
+		background-size:
+			var(--scroll-x, 150px) 
+			var(--scroll-y, 150px);
 
-	animation: BGScroll2 999ms infinite linear reverse;
-	//	clip-path: inset(0 0 0 0);
+		// animation-direction: unset;
+		animation-duration: 3s;
+		animation: BGScroll2 2s infinite linear reverse;
+
+		// background:conic-gradient(from -60deg at 50% calc(100%/3),var(--_g)),
+		// conic-gradient(from 120deg at 50% calc(200%/3),var(--_g)),
+		// conic-gradient(from  60deg at calc(200%/3),var(--c3) 60deg,var(--c2) 0 120deg,#0000 0),
+		// conic-gradient(from 180deg at calc(100%/3),var(--c1) 60deg,var(--_g)),
+		// linear-gradient(90deg,var(--c1)   calc(100%/6),var(--c2) 0 50%,
+		// 					  var(--c1) 0 calc(500%/6),var(--c2) 0);
+	 
+	}
 }
