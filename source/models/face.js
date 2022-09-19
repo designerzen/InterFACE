@@ -1,35 +1,39 @@
-// TODO : Convert to a web worker
-
 // Thanks to
 // https://github.com/vivien000/trompeloeil/blob/master/src/World/components/geometry/geometry.js
 
-// FaceLandmarksDetector, FaceLandmarksPrediction, FaceLandmarksDetection
-//import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
-import { load, SupportedPackages } from '@tensorflow-models/face-landmarks-detection'
+import '@tensorflow/tfjs-core'
+
+// Register backends
 
 // CPU Only
 //import '@tensorflow/tfjs-backend-cpu'
 
+// If you are using the WebGL backend:
+import * as tfWebGL from '@tensorflow/tfjs-backend-webgl'
+
 // If you are using the WASM backend:
 //import '@tensorflow/tfjs-backend-wasm'
 
-// If you are using the WebGL backend:
-import '@tensorflow/tfjs-backend-webgl'
-
-import {ready, setBackend} from '@tensorflow/tfjs'
-import { enhancePrediction} from './face-model'
-
-// wasm version
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
+tfjsWasm.setWasmPaths(
+	`./tf/`)
+// tfjsWasm.setWasmPaths(
+// 	`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${
+// 		tfjsWasm.version_wasm}/dist/`)
 
+import * as faceMesh from '@mediapipe/face_mesh'
+// import PACKED_ASSETS from "@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js"
+
+import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'	
+import { ready, setBackend } from '@tensorflow/tfjs'
+import { enhancePrediction } from './face-model'
+import { now } from '../timing/timing'
 
 // This flips to using a seperate thread for the 
 // prediction calculations - dunno if it makes it quicker
 // but it certainly uses more CPU which then shonks audio
 const useWorker = true
-
 const flipHorizontally = true
-const now = ()=> performance.now || Date.now
 
 let faceWorker 
 
@@ -88,77 +92,141 @@ const makePrediction = (prediction) => new Promise((resolve,reject)=>{
 // })
 
 
+const predictPlayerQuantity = async (inputElement,detector) => {
+	const estimationConfig = {flipHorizontal: false}
+	const faces = await detector.estimateFaces(inputElement, estimationConfig)
+	return faces.length
+}
+
+
+
+// const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` })
+// faceMesh.setOptions({
+// 	maxNumFaces: 1,
+// 	refineLandmarks: true,
+// 	minDetectionConfidence: 0.5,
+// 	minTrackingConfidence: 0.5
+//   })
+//  faceMesh.onResults(onResults)
+// await faceMesh.send({image: videoElement}) // inputElement
+
 const predict = async (inputElement,detector) => {
 
-	// some effects are timing related
-	const time = now()
+	try {
+		// some effects are timing related
+		const time = now()
+		const options = {
+			// webcam element with video
+			// input: video / img etc
+			input: inputElement,
+			// no need for these yet...
+			// TODO: Implement emotion tests
+			returnTensors :false,
+			// Whether to flip/mirror the facial keypoints horizontally. Should be true for videos that are flipped by default (e.g. webcams)
+			flipHorizontal:flipHorizontally,
+			// (defaults to true) Whether to return keypoints for the irises. Disabling may improve performance.
+			predictIrises:true
+		}
 
-	// Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
-	// array of detected faces from the MediaPipe graph. If passing in a video
-	// stream, a single prediction per frame will be returned.
-	const predictions = await detector.estimateFaces({
-		// webcam element with video
-	  	// input: video / img etc
-		input: inputElement,
-		// no need for these yet...
-		// TODO: Implement emotion tests
-		returnTensors :false,
-		// Whether to flip/mirror the facial keypoints horizontally. Should be true for videos that are flipped by default (e.g. webcams)
-		flipHorizontal:flipHorizontally,
-		// (defaults to true) Whether to return keypoints for the irises. Disabling may improve performance.
-		predictIrises:true
-	})
+		//console.error(time, { options, detector:detector.estimateFaces, inputElement})
 
-	// Fetch the UV coords for use with 3D renderers
-	// const uvs = FaceLandmarksDetection.getUVCoords()
+		// Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
+		// array of detected faces from the MediaPipe graph. If passing in a video
+		// stream, a single prediction per frame will be returned.
+		//const predictions = await detector.estimateFaces(options)
 
-	// determine head rotation?
-	// take the UV of the eyes and use them to determine angle
 
-	// firstly check to see if there any predictions
-	if (predictions.length > 0) 
-	{
-		// now loop through all predictions?
-		for (let p = 0, l = predictions.length; p < l; p++) 
-		{
-			// no enhancement...
-			let prediction // = predictions[p]
-			
-			if (!useWorker)
-			{
-				// direct (no worker)
-				prediction = enhancePrediction( predictions[p], time )
-			}else{
-				// using async worker (any faster?)
-				prediction = await makePrediction( predictions[p] )
-			}
+		const predictions = await detector.estimateFaces(inputElement, options)
 
-			// overwrite
-			predictions[p] = prediction
-			//console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
-		} 
 		
-	}else{
-		//console.log("No face in shot")
+
+		// Fetch the UV coords for use with 3D renderers
+		// const uvs = FaceLandmarksDetection.getUVCoords()
+
+		// determine head rotation?
+		// take the UV of the eyes and use them to determine angle
+
+		// firstly check to see if there any predictions
+		if (predictions.length > 0) 
+		{
+			// now loop through all predictions?
+			for (let p = 0, l = predictions.length; p < l; p++) 
+			{
+				// no enhancement...
+				let prediction // = predictions[p]
+				
+				if (!useWorker)
+				{
+					// direct (no worker)
+					prediction = enhancePrediction( predictions[p], time )
+				}else{
+					// using async worker (any faster?)
+					prediction = await makePrediction( predictions[p] )
+				}
+
+				// overwrite
+				predictions[p] = prediction
+				//console.log(prediction, {lmx,rmx,yaw},{lookingRight, eyeLeft,eyeRight}, {leftEyeIris,rightEyeIris})
+			} 
+			
+		}else{
+			//console.log("No face in shot")
+		}
+		return predictions
+
+	} catch (error) {
+
+		console.error("Model failure!", error, {inputElement,detector} )
+
+		return null
 	}
-	return predictions
 }
 
 export const loadFaceModel = async (inputElement, options) => {
 
+	// Set the backend to WASM and wait for the module to be ready.
+	// await setBackend('wasm')
+
 	await ready()
 
-	// Set the backend to WASM and wait for the module to be ready.
-	// tfjsWasm.setWasmPaths(
-	// 	`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${
-	// 		tfjsWasm.version_wasm}/dist/`)
-	// await setBackend('wasm')
-	
+	// FIXME: Use the method for player inference once the detector is available
 	const detectPeople = options.maxFaces
 
+	// one of the models from SupportedModels, including MediaPipeFaceMesh.
+	const model = SupportedModels.MediaPipeFaceMesh // SupportedPackages.mediapipeFacemesh
+
+	// console.error({PACKED_ASSETS})
+
+	// 'base/node_modules/@mediapipe/face_mesh' in npm.
+	// solutionPath: The path to where the wasm binary and model files are located.
+	const solutionPath = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
+	
+	// console.error("loadFaceModel", solutionPath )
+
+	const loadDetector = ()=> {
+
+		switch (options.runtime) {
+			case 'mediapipe' :
+				return createDetector(model, {
+					...options, 
+					solutionPath
+					// node_modules\@mediapipe\face_mesh\face_mesh_solution_packed_assets_loader.js
+					// solutionPath: new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
+					// solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}`
+				});
+			
+			case 'tfjs' :
+				return createDetector(model, {
+					...options
+				})
+			
+		}	
+	}
+	
 	// Load the MediaPipe Facemesh package.
-	//const detector = await createDetector(SupportedModels.MediaPipeFaceMesh, options)
-	const detector = await load( SupportedPackages.mediapipeFacemesh, options)
+	const detector = await loadDetector(model, options)
+	//const detector = await load( SupportedPackages.mediapipeFacemesh, options)
+
 
  	// Load Emotion Detection
 	// const emotionModel = await tf.loadLayersModel( 'web/model/facemo.json' )
@@ -174,8 +242,16 @@ export const loadFaceModel = async (inputElement, options) => {
 		if (shouldUpdate)
 		{
 			// single player right now but this could be an array in future
+			// const playerCount = await predictPlayerQuantity(inputElement, detector)
+
 			const predictions = await predict(inputElement, detector) 
-			//console.warn("carpet", {predictions, inputElement, model})
+			
+
+			if (!predictions)
+			{
+				console.warn("face>tfjs", {predictions, inputElement, model})
+				return // ?
+			}
 
 			// //console.log("Predictions narrowed down to", predictions)
 			// if (predictions.length > 0)
