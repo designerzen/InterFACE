@@ -14,22 +14,29 @@ const DEFAULT_OPTIONS = {
 	scleraRadius:4
 }
 
-//////////////////////////////////////////////////////////////////////
-// Draw an Eye from the EYE Model object
-//////////////////////////////////////////////////////////////////////
-export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, options=DEFAULT_OPTIONS ) => {
+/**
+ * Draw an Eye from the EYE Model object
+ * @param {Array<Object>} keypoints 
+ * @param {Boolean} isLeft - draw left eye?
+ * @param {Boolean} open - is the eye open
+ * @param {Number} eyeDirection - stereo gaze direction
+ * @param {Object} options 
+ */
+export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, options=DEFAULT_OPTIONS ) => {
 	
-	const eyeData = isLeft ? annotations.leftEyeIris : annotations.rightEyeIris
+	const eyeData = isLeft ? keypoints.leftIris : keypoints.rightIris
+	
 	const pupil = eyeData[0]
 	const inner = eyeData[1]
 	const up = eyeData[2]
 	const outer = eyeData[3]
 	const down = eyeData[4]
-	const irisWidth = Math.abs(outer[0] - inner[0] )
-	const irisHeight = down[1] - up[1]
+
+	const irisWidth = Math.abs(outer.x - inner.x )
+	const irisHeight = down.y - up.y
 	const showRatio = options.ratio || 0.8 
 
-	// const irisHeight = Math.abs( up[1] - down[1])
+	// const irisHeight = Math.abs( up.y - down.y)
 	const diameter = Math.max(irisWidth , irisHeight)
 	const radius = diameter * 0.5
 	
@@ -45,15 +52,15 @@ export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, op
 
 	// arc(x, y, radius, startAngle, endAngle, counterClockwise) 
 	// straight lines
-	// canvasContext.moveTo(up[0], up[1])
-	// canvasContext.lineTo(inner[0], inner[1])
-	// canvasContext.lineTo(down[0], down[1])
-	// canvasContext.lineTo(outer[0], outer[1])
-	// canvasContext.moveTo(up[0], up[1])
-	// canvasContext.arcTo(inner[0], inner[1])
-	// canvasContext.arcTo(down[0], down[1])
-	// canvasContext.arcTo(outer[0], outer[1])
-	// canvasContext.arcTo(up[0], up[1])
+	// canvasContext.moveTo(up.x, up.y)
+	// canvasContext.lineTo(inner.x, inner.y)
+	// canvasContext.lineTo(down.x, down.y)
+	// canvasContext.lineTo(outer.x, outer.y)
+	// canvasContext.moveTo(up.x, up.y)
+	// canvasContext.arcTo(inner.x, inner.y)
+	// canvasContext.arcTo(down.x, down.y)
+	// canvasContext.arcTo(outer.x, outer.y)
+	// canvasContext.arcTo(up.x, up.y)
 
 	if (open)
 	{
@@ -66,7 +73,7 @@ export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, op
 		const eyeOffset =  socketRadius * -eyeDirection
 		
 		canvasContext.beginPath()
-		canvasContext.arc(pupil[0] + eyeOffset, pupil[1], scleraRadius, 0, TAU)
+		canvasContext.arc(pupil.x + eyeOffset, pupil.y, scleraRadius, 0, TAU)
 		canvasContext.fillStyle  = options.sclera
 		canvasContext.fill()
 		canvasContext.closePath()
@@ -76,51 +83,51 @@ export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, op
 		// 2. Frank Sidebottom Eyes
 		canvasContext.beginPath()
 		canvasContext.fillStyle  = options.iris
-		canvasContext.arc(pupil[0], pupil[1], irisRadius, 0, TAU * showRatio )
-		canvasContext.lineTo(pupil[0], pupil[1])
+		canvasContext.arc(pupil.x, pupil.y, irisRadius, 0, TAU * showRatio )
+		canvasContext.lineTo(pupil.x, pupil.y)
 		canvasContext.fill()
 		canvasContext.closePath()
 
-		// canvasContext.arcTo(up[0], up[1], inner[0], inner[1], options.irisRadius)
-		// canvasContext.arcTo(inner[0], inner[1], down[0], down[1], options.irisRadius)
-		// canvasContext.arcTo(down[0], down[1], outer[0], outer[1], options.irisRadius)
-		// canvasContext.arcTo(outer[0], outer[1], up[0], up[1], options.irisRadius)
+		// canvasContext.arcTo(up.x, up.y, inner.x, inner.y, options.irisRadius)
+		// canvasContext.arcTo(inner.x, inner.y, down.x, down.y, options.irisRadius)
+		// canvasContext.arcTo(down.x, down.y, outer.x, outer.y, options.irisRadius)
+		// canvasContext.arcTo(outer.x, outer.y, up.x, up.y, options.irisRadius)
 		// canvasContext.fill()
-		//canvasContext.arc(pupil[0], pupil[1], radius * options.irisRadius, 0, TAU)
-		// canvasContext.ellipse(pupil[0], pupil[1], irisWidth, irisHeight, 0, 0, TAU)
-		// canvasContext.ellipse(pupil[0], pupil[1], irisHeight, irisWidth, 0, 0, TAU)
+		//canvasContext.arc(pupil.x, pupil.y, radius * options.irisRadius, 0, TAU)
+		// canvasContext.ellipse(pupil.x, pupil.y, irisWidth, irisHeight, 0, 0, TAU)
+		// canvasContext.ellipse(pupil.x, pupil.y, irisHeight, irisWidth, 0, 0, TAU)
 		
 		// PUPILS
 		// 1 + clamp( (10+iris[2]) * 0.8, 5, 10 )
 		canvasContext.beginPath()
 		canvasContext.fillStyle  = options.pupil
-		canvasContext.arc(pupil[0], pupil[1], pupilRadius, 0, TAU * showRatio)
+		canvasContext.arc(pupil.x, pupil.y, pupilRadius, 0, TAU * showRatio)
 		canvasContext.fill()
 
 	}else{
 
 		// ---- EYES CLOSED -----
-		const eyeLid =  isLeft ? annotations.leftEyeLower0 : annotations.rightEyeLower0 
+		const eyeLid =  isLeft ? keypoints.leftEye : keypoints.rightEye
 
 		// draw cute triangle
 		canvasContext.beginPath()
 		canvasContext.lineStyle = options.iris
 		canvasContext.fillStyle = options.pupil
-		canvasContext.moveTo(eyeLid[ 0 ][0], eyeLid[ 0 ][1] )
-		canvasContext.lineTo(eyeLid[ 4 ][0], eyeLid[ 4 ][1] )
-		canvasContext.lineTo(eyeLid[ 6 ][0], eyeLid[ 6 ][1] )
+		canvasContext.moveTo(eyeLid[ 0 ].x, eyeLid[ 0 ].y )
+		canvasContext.lineTo(eyeLid[ 4 ].x, eyeLid[ 4 ].y )
+		canvasContext.lineTo(eyeLid[ 6 ].x, eyeLid[ 6 ].y )
 		canvasContext.closePath()
 		canvasContext.stroke()
 		canvasContext.fill()
 
 		// canvasContext.fillRect( 
-		// 	(!isLeft ? inner[0] : outer[0]), 
-		// 	(!isLeft ? inner[1] : outer[1]), 
+		// 	(!isLeft ? inner.x : outer.x), 
+		// 	(!isLeft ? inner.y : outer.y), 
 		// 	radius * options.scleraRadius, 
 		// 	irisHeight 
 		// )
 
-		// canvasContext.rect(pupil[0], pupil[1], diameter, diameter * 0.2 )
+		// canvasContext.rect(pupil.x, pupil.y, diameter, diameter * 0.2 )
 		// canvasContext.fill()
 	}
 	
@@ -129,23 +136,23 @@ export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, op
 	radius = 4
 	canvasContext.beginPath()
 	canvasContext.fillStyle  = 'blue'
-	canvasContext.arc(up[0], up[1], radius, 0, TAU)
+	canvasContext.arc(up.x, up.y, radius, 0, TAU)
 	canvasContext.fill()
 	canvasContext.closePath()
 
 	canvasContext.beginPath()
 	canvasContext.fillStyle  = 'purple'
-	canvasContext.arc(outer[0], outer[1], radius, 0, TAU)
+	canvasContext.arc(outer.x, outer.y, radius, 0, TAU)
 	canvasContext.fill()
 		
 	canvasContext.beginPath()
 	canvasContext.fillStyle  = 'green'
-	canvasContext.arc(down[0], down[1], radius, 0, TAU)
+	canvasContext.arc(down.x, down.y, radius, 0, TAU)
 	canvasContext.fill()
 
 	canvasContext.beginPath()
 	canvasContext.fillStyle  = 'yellow'
-	canvasContext.arc(inner[0], inner[1], radius, 0, TAU)
+	canvasContext.arc(inner.x, inner.y, radius, 0, TAU)
 	canvasContext.fill()
 	*/
 
@@ -153,9 +160,9 @@ export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, op
 	// there are four outer balls
 	for (let i = 0  ; i < eye.length -1; i++ ) 
 	{
-		const x = eye[i][0]
-		const y = eye[i][1]
-		const z = eye[i][2]
+		const x = eye[i].x
+		const y = eye[i].y
+		const z = eye[i].z || 1
 
 		// const radius = 1 + clamp( (10+z) * 0.8, 5, 10 )
 		// canvasContext.arc(x, y, radius, 0, TAU)
@@ -165,7 +172,7 @@ export const drawEye = ( annotations, isLeft=true, open=true, eyeDirection=0, op
 		{
 			const arcLength = 7 ;//Math.abs( i%2 ? iris - x : iris - y )
 			const previous = eye[i-1]
-			canvasContext.arcTo(previous[0],previous[1], x,y,arcLength)
+			canvasContext.arcTo(previous.x,previous.y, x,y,arcLength)
 		}
 	}*/
 	// canvasContext.stroke()

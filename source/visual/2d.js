@@ -1,4 +1,4 @@
-import { clamp, TAU, HALF_PI } from "../maths/maths"
+import { clamp, TAU, HALF_PI , TWO_PI } from "../maths/maths"
 import { canvas, canvasContext, drawElement } from './canvas'
 import { easeInQuad} from "../maths/easing"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
@@ -13,61 +13,71 @@ export const takePhotograph = (type="image/png") => {
 	return canvas.toDataURL(type)
 }
 
-//////////////////////////////////////////////////////////////////////
-// takes indexes from an array and finds the associated links to draw
-//////////////////////////////////////////////////////////////////////
-export const drawShapeByIndexes = (points, indexes, radius=2, colour="red", lines=true, fill=true) => {
-	canvasContext.fillStyle  = colour
-	canvasContext.strokeStyle = colour
-	canvasContext.moveTo(points[ indexes[0] ][0], points[ indexes[0]][1] )
-	canvasContext.beginPath()
+/**
+ * Create a 2D path object
+ * @param {Array<Object>} points - 2D array {x,y}
+ * @param {Boolean} closePath 
+ * @returns 
+ */
+export const drawPath = ( points, closePath=false ) => {
+	const region = new Path2D()
+	region.moveTo(points[0].x, points[0].y)
 	
-	for (let i = 1,  l= indexes.length; i < l; i++) 
+	for (let i = 1; i < points.length; ++i) 
 	{
-		canvasContext.lineTo(points[ indexes[i] ][0], points[ indexes[i]][1] )
+	  const point = points[i]
+	  region.lineTo(point.x, point.y)
 	}
-	canvasContext.closePath()
+  
+	if (closePath) 
+	{
+	  region.closePath()
+	}
 
-	// if we want a filled thing
-	if (fill)
-	{
-		canvasContext.fill()
-	}
-	
-	if (lines)
-	{
-		canvasContext.stroke()
-	}
+	canvasContext.stroke(region)
+	return region
 }
+
 
 //////////////////////////////////////////////////////////////////////
 // draws a specific part by looping through the part array and 
 // connecting the nodes together with paths
 //////////////////////////////////////////////////////////////////////
-export const drawPart = (part, radius=2, colour="red", lines=true, fill=true, showNumbers=false) => {
+export const drawPart = (keypoints, nodeRadius=0, strokeStyle="red", lines=true, fill=true, showNumbers=false, fillStyle="rgba(255,0,0,0.5)", strokeWidth=1 ) => {
 	
-	canvasContext.fillStyle  = colour
-	canvasContext.strokeStyle = colour
-	canvasContext.moveTo(part[0][0], part[0][1])
+	// console.error("Keypoints", keypoints)
+	const length = keypoints.length
+	let piece = keypoints[0]
+
+	canvasContext.moveTo(piece.x, piece.y)
+
+	canvasContext.fillStyle  = fillStyle || strokeStyle
+	canvasContext.strokeStyle = strokeStyle
+	canvasContext.strokeWidth = strokeWidth
+
 	canvasContext.beginPath()
 
-	for (let i = 0,  l= part.length; i < l; i++) 
+	for (let i = 0; i < length; ++i) 
 	{
-		const x = part[i][0]
-		const y = part[i][1]
+		piece = keypoints[i]
+
+		const x = piece.x
+		const y = piece.y
 	
 		// draw blob
-		canvasContext.arc(x, y, radius, 0, TAU)
+		if (nodeRadius > 0)
+		{
+			canvasContext.arc(x, y, nodeRadius, 0, TAU)
+		}
 		
 		// onnecting lines
 		if (lines)
 		{
 			canvasContext.lineTo(x, y)
 		}
-	
 	}	
 
-	// if we want a filled thing
+	// if we want a filled shape
 	if (fill)
 	{
 		canvasContext.fill()
@@ -78,36 +88,34 @@ export const drawPart = (part, radius=2, colour="red", lines=true, fill=true, sh
 		canvasContext.stroke()
 	}
 	
-	
 	if (showNumbers)
 	{
-		for (let i = 0, l=part.length; i < l; i += 2 ) 
+		// every second number
+		for (let i = 0; i < length; i += 2 ) 
 		{
-			const x = part[i][0]
-			const y = part[i][1]
-
+			piece = keypoints[i]
 			canvasContext.stroke( )
 			canvasContext.font = "18px Oxanium"
 			canvasContext.textAlign = "center"
 			canvasContext.fillStyle = PALETTE.dark
-			canvasContext.fillText(`#${i}`, x, y  )
+			canvasContext.fillText(`#${i}`, piece.x, piece.y  )
 		}
 	}
 }
 
 /**
- * 
- * @param {*} cx 
- * @param {*} cy 
- * @param {*} radius 
- * @param {*} strokeWidth 
- * @param {*} fillColour 
- * @param {*} strokeColour 
+ * Draw a canvas circle
+ * @param {Number} cx 
+ * @param {Number} cy 
+ * @param {Number} radius 
+ * @param {Number} strokeWidth 
+ * @param {Number} fillColour 
+ * @param {Number} strokeColour 
  */
 export const drawCircle = (cx,cy, radius, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
 	
 	canvasContext.beginPath()
-    canvasContext.arc(cx, cy, radius, 0, Math.PI * 2, true)
+    canvasContext.arc(cx, cy, radius, 0, TWO_PI, true)
     canvasContext.fillStyle = fillColour
     canvasContext.fill()
      
@@ -119,14 +127,14 @@ export const drawCircle = (cx,cy, radius, strokeWidth=3, fillColour='#FF6A6A', s
 
 /**
  * draws a three pointed shape 
- * @param {*} x1 
- * @param {*} y1 
- * @param {*} x2 
- * @param {*} y2 
- * @param {*} x3 
- * @param {*} y3 
- * @param {*} fill 
- * @param {*} strokeWidth 
+ * @param {Number} x1 
+ * @param {Number} y1 
+ * @param {Number} x2 
+ * @param {Number} y2 
+ * @param {Number} x3 
+ * @param {Number} y3 
+ * @param {Number} fill 
+ * @param {Number} strokeWidth 
  */
 export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill, strokeWidth=1 ) => {
 	
@@ -155,19 +163,22 @@ export const drawNode = (pointA, pointB, radius=5, fill="blue") => {
 	canvasContext.fillStyle  = fill
 
 	canvasContext.beginPath()
-	canvasContext.arc(pointB[0], pointB[1], radius, 0, TAU)
+	canvasContext.arc(pointB.x, pointB.y, radius, 0, TAU)
 	canvasContext.fill()
+	canvasContext.closePath()
 
 	canvasContext.beginPath()
-	canvasContext.arc(pointA[0], pointA[1], radius, 0, TAU)
+	canvasContext.arc(pointA.x, pointA.y, radius, 0, TAU)
 	canvasContext.fill()
+	canvasContext.closePath()
 
 	canvasContext.beginPath()
-	canvasContext.moveTo(pointA[0], pointA[1])
+	canvasContext.moveTo(pointA.x, pointA.y)
+	canvasContext.closePath()
 
 	canvasContext.strokeStyle = PALETTE.orange
-	canvasContext.fillStyle = PALETTE.orange
-	canvasContext.lineTo(pointB[0], pointB[1])
+	// canvasContext.fillStyle = PALETTE.orange
+	canvasContext.lineTo(pointB.x, pointB.y)
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -193,50 +204,65 @@ export const drawParagraph = (x, y, paragraph=[], size='8px', lineHeight=20) => 
 	}
 }
 
+/**
+ * Write out the intstrument text
+ * @param {*} boundingBox 
+ * @param {*} instrumentName 
+ * @param {*} extra 
+ */
 export const drawInstrument = (boundingBox, instrumentName, extra='') => {
 
 	// use prediction.boundingBox to position text
 	const text = `${instrumentName.toUpperCase()} - ${extra}`
 	// canvasContext.beginPath()
-	// // these aren't scaled :(
+	// these aren't scaled :(
 	// canvasContext.fillStyle  = colour
-	// // canvasContext.rect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
-	// canvasContext.strokeRect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
+	// canvasContext.rect( boundingBox.xMin boundingBox.yMin, boundingBox.xMax, boundingBox.yMax )
+	// canvasContext.strokeRect( boundingBox.xMin, boundingBox.yMin, boundingBox.xMax, boundingBox.yMax )
 	// canvasContext.fill()
-	drawText( boundingBox.topLeft[0], boundingBox.topLeft[1], text, "24px" )
+	drawText( boundingBox.xMin, boundingBox.yMin, text, "24px" )
 }
 
+/**
+ * Draw a rectangle at the set position and dimension
+ * @param {*} boundingBox 
+ * @param {*} colour 
+ */
 export const drawBoundingBox = (boundingBox, colour='red') => {
-	const {bottomRight, topLeft} = boundingBox
 	canvasContext.beginPath()
-	// these aren't scaled :(
 	canvasContext.fillStyle  = colour
-	// canvasContext.rect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
-	canvasContext.strokeRect( topLeft[0], topLeft[1], bottomRight[0], bottomRight[1] )
+	canvasContext.strokeRect( boundingBox.xMin, boundingBox.yMin, boundingBox.xMax, boundingBox.yMax )
 	canvasContext.fill()
 }
 
 
 let nodeCount = 0
-
 export const setNodeCount = value => nodeCount += value
 
 let cycleCounter = 0
 
 // shape the bump sizes
 const modifier = easeInQuad
-// Just draws lots of dots on an image on the canvas
+
+/**
+ * Just draws lots of dots on an image on the canvas
+ * @param {*} prediction 
+ * @param {*} colour 
+ * @param {*} size 
+ * @param {*} colourCycle 
+ * @param {*} showText 
+ */
 export const drawPoints = (prediction, colour={h:0,s:100,l:100}, size=3, colourCycle=false, showText=true) => {
 
-	const { scaledMesh } = prediction
+	const scaledMesh = prediction.keypoints
 	const quantity = scaledMesh.length
 	
 	// draw face points at correct position on canvas
 	for (let i = 0; i < quantity; i++) 
 	{
-		const x = scaledMesh[i][0]
-		const y = scaledMesh[i][1]
-		const z = scaledMesh[i][2]
+		const x = scaledMesh[i].x
+		const y = scaledMesh[i].y
+		const z = scaledMesh[i].z || 1
 		// z index should not be considered as depth as we
 		// start from the front and head back
 		
@@ -271,13 +297,12 @@ export const drawPoints = (prediction, colour={h:0,s:100,l:100}, size=3, colourC
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// Draws a triangulated face
-//////////////////////////////////////////////////////////////////////
+/**
+ * Draws a triangulated face using the matrix model
+ */
 import {TRIANGLE_MATRIX} from '../models/face-mesh-model'
 export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=0.5, colourCycle=false, alpha=0.2 ) => {
-	const { scaledMesh } = prediction
+	const scaledMesh = prediction.keypoints
 	const hue = palette.h
 	for( let i = 0, q=TRIANGLE_MATRIX.length - 2; i < q; i+=3 ) 
 	{
@@ -289,14 +314,20 @@ export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=
 		const phase = colourCycle ? (hue + ( 360 * i/q )) % 360 : hue
 		const colour = `hsla(${phase},${palette.s}%,${palette.l}%,${alpha})`
 
-		drawTriangle( pointA[ 0 ], pointA[ 1 ], pointB[ 0 ], pointB[ 1 ], pointC[ 0 ], pointC[ 1 ], colour, strokeWidth )
+		drawTriangle( pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y, colour, strokeWidth )
 	}
 }
 
-//////////////////////////////////////////////////////////////////////
-// every frame this gets called with an array of points in a mesh face
-// we use certain deviations to determine direction and mouth size
-//////////////////////////////////////////////////////////////////////
+
+/**
+ * every frame this gets called with an array of points in a mesh face
+ * we use certain deviations to determine direction and mouth size
+ * @param {*} prediction 
+ * @param {*} options 
+ * @param {*} singing 
+ * @param {*} mouthOpen 
+ * @param {*} debug 
+ */
 export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mouthOpen=false, debug=false) => {
 
 	// singing - the user has their mouth open beyond the threshold
@@ -345,6 +376,6 @@ export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mou
 	// these aren't scaled :(
 	// canvasContext.fillStyle  = 'orange'
 	// canvasContext.beginPath()
-	// canvasContext.arc( midwayBetweenEyes[0], midwayBetweenEyes[1], 10, 0, TAU )
+	// canvasContext.arc( midwayBetweenEyes.x, midwayBetweenEyes.y, 10, 0, TAU )
 	// canvasContext.fill()
 }
