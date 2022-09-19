@@ -1,3 +1,5 @@
+import 'audioworklet-polyfill'
+
 import {clamp, lerp, TAU} from "../maths/maths"
 
 import { chain } from './rack'
@@ -459,6 +461,8 @@ export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="Fl
 
 // await context.audioWorklet.addModule('bit-crusher-processor.js')
 
+import {injectJavascript} from '../utils'
+
 let workletsRegistered = false
 
 export const registerAudioWorklets = async (audioContext, progressCallback) => {
@@ -477,8 +481,17 @@ export const registerAudioWorklets = async (audioContext, progressCallback) => {
 		progressCallback && progressCallback(0.5)
 		
 		await audioContext.audioWorklet.addModule( new URL('./effects/bitcrusher.worklet.js', import.meta.url))
-		progressCallback && progressCallback(1)
+		progressCallback && progressCallback(0.75)
 		
+		// is this even a good location to load this??
+		await injectJavascript("wam/libs/wam-controller.js")
+		await injectJavascript("wam/yoshimi.js")
+
+		progressCallback && progressCallback(1)
+
+		// not needed with google version
+		//await AWPF.polyfill( audioContext )
+
 		workletsRegistered = true
 		
 	} catch(e) {

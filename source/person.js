@@ -31,17 +31,19 @@ import SampleInstrument from './audio/instruments/instrument.sample'
 import MIDIInstrument from './audio/instruments/instrument.midi'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
+import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
-import { INSTRUMENT_PACKS, instrumentFolders } from './audio/instruments'
+import { instrumentFolders } from './audio/instruments'
 
 import { setupInstrumentForm } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
 
 import { 
-	drawShapeByIndexes,drawPart, 
-	drawFace, drawPoints, drawBoundingBox, 
-	drawText,drawParagraph, drawInstrument, drawFaceMesh
+	drawPart, drawPoints,
+	drawFace, drawFaceMesh,  drawBoundingBox, 
+	drawText, drawParagraph, 
+	drawInstrument
 } from './visual/2d'
 
 import { drawMousePressure } from './dom/mouse-pressure'
@@ -75,6 +77,7 @@ export default class Person{
 	// instances
 	midiPlayer
 	samplePlayer
+	activeInstrument
 	
 	// States, default state is audio off
 	state = STATE_INSTRUMENT_SILENT
@@ -194,7 +197,7 @@ export default class Person{
 	 * @returns {String} Instrument name
 	 */
 	get instrumentName(){
-		return this.samplePlayer ? this.samplePlayer.name : 'loading'
+		return this.activeInstrument ? this.activeInstrument.name : 'loading'
 	}	
 
 	/**
@@ -202,7 +205,7 @@ export default class Person{
 	 * @returns {String} Instrument title
 	 */
 	get instrumentTitle(){
-		return this.samplePlayer ? this.samplePlayer.title : 'loading'
+		return this.activeInstrument ? this.activeInstrument.title : 'loading'
 	}
 
 	/**
@@ -218,7 +221,7 @@ export default class Person{
 	 * @returns {Boolean} are samples loading
 	 */
 	get instrumentLoading(){
-		return this.samplePlayer.isLoading
+		return this.activeInstrument.isLoading
 	}
 
 	/**
@@ -324,7 +327,10 @@ export default class Person{
 		this.samplePlayer = this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) )
 		this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
+		this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
 		
+		this.activeInstrument = this.samplePlayer
+
 		// create our side bar and instrument selector form
 		this.setupForm()
 
@@ -485,6 +491,16 @@ export default class Person{
 			drawMousePressure( this.mouseHoldProgress, this.options.mouseHoldDuration )
 		}
 
+		const {annotations} = prediction
+		const {
+			faceOval, 
+			lips,
+			leftEye, leftEyebrow, leftIris, 
+			rightEye, rightEyebrow, rightIris
+		} = annotations
+
+		const boundingBox = prediction.box
+
 		// change colour while loading
 		const hue = this.instrumentLoading ? 
 						this.hue + 180 : 
@@ -556,6 +572,7 @@ export default class Person{
 			}
 		}
 
+		// now overlay the mouth
 		if (options.drawMouth)
 		{	
 			const mouthColours = {
@@ -580,12 +597,14 @@ export default class Person{
 			}
 		}
 	
-		// drawBoundingBox( prediction.boundingBox )
+		// drawBoundingBox( boundingBox )
+
+		//console.error("Bounding box", {boundingBox} )
+
+		//const { height,width,xMax,xMin,yMax,yMin} = boundingBox
 
 		// if this is mirrored using the option in the TF model...
-		const {bottomRight, topLeft} = prediction.boundingBox
-		const boxWidth = Math.abs(bottomRight[0] - topLeft[0])
-		const boxHeight = Math.abs(bottomRight[1] - topLeft[1])
+		
 			
 		// we only want this every frame or so as this 
 		// is altering the DOM
@@ -596,8 +615,7 @@ export default class Person{
 			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
 			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
 			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-			// ?
-			this.button.setAttribute( "style", `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};` );
+			this.button.setAttribute( "style", `--${this.name}-x:${boundingBox.xMin};--${this.name}-y:${boundingBox.yMin};--${this.name}-w:${boundingBox.width};--${this.name}-h:${boundingBox.height};` );
 
 			// ?
 			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
@@ -606,8 +624,7 @@ export default class Person{
 		// draw silhoette if the user is 
 		// if you want it to flicker...
 		// interacting&& this.counter%2 === 0)
-		const {annotations} = prediction
-		const {silhouette} = annotations
+	
 		// we need to ignore eyes closed if the instrument is loading...
 		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
 		
@@ -637,20 +654,30 @@ export default class Person{
 			const eyeOptions = {
 				// colourful part of the eye
 				iris:options.leftEyeIris, 
+				// size of the colourful part
 				irisRadius:options.irisRadius,
 				// holes in the eyes
 				pupil:'rgba(0,0,0,0.8)', 
+				// size of the hole
 				pupilRadius:options.pupilRadius,
 				// big white bit of the eyed
 				sclera:'white',
+				// size of the white bit
 				scleraRadius:options.scleraRadius,
 				ratio:options.eyeRatio
 			}
 
+			// Draw the eyes over the face
 			const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
 			drawEye( annotations, true, this.isLeftEyeOpen, eyeDirection, eyeOptions)	
 			eyeOptions.iris = options.rightEyeIris
 			drawEye( annotations, false, this.isRightEyeOpen, eyeDirection, eyeOptions)
+
+		}else if (options.drawEyebrows){
+		
+			// FIXME: draw some funky eyebrows!
+			drawPart(leftEyebrow, 5)
+			drawPart(rightEyebrow, 5)
 
 			// console.log("EYES", {annotations} )
 
@@ -710,6 +737,7 @@ export default class Person{
 			return
 		}
 	
+
 		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
 
@@ -725,43 +753,43 @@ export default class Person{
 				if (this.isMouseHeld)
 				{
 					// user is holding mouse down on user...
-					drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Select')			
+					drawInstrument(boundingBox, this.instrumentTitle, 'Select')			
 					// FIXME: Do we hide the face entirely???
-					// drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
-					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Press me`], '14px' )
+					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
+					drawParagraph(boundingBox.topLeft[0], boundingBox.topLeft[1] + 40, [`Press me`], '14px' )
 			
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
 			
 				}else{
-					drawInstrument(prediction.boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
-					drawPart( silhouette, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)
-					drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
+					drawInstrument(boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
+					drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)
+					drawParagraph(boundingBox.topLeft[0], boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
 				}
 
 			}else{
 				
 				// No mouse held
-				drawInstrument(prediction.boundingBox, this.instrumentTitle, 'Hold to choose instrument')
-				drawPart( silhouette, 4, 'hsla('+hue+',50%,50%,0.3)', true)
+				drawInstrument(boundingBox, this.instrumentTitle, 'Hold to choose instrument')
+				drawPart( faceOval, 4, 'hsla('+hue+',50%,50%,0.3)', true)
 				/*	
 				const offsetX = topLeft[0]
 				const offsetY = topLeft[1]
 				const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
-				const svgPaths = silhouette.map( part => `L${svgCoord(part)}`)
-				const circles = silhouette.map( part =>{
+				const svgPaths = faceOval.map( part => `L${svgCoord(part)}`)
+				const circles = faceOval.map( part =>{
 					const c = svgCoord(part)
 					return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`
 				})
 				// for outline...+ ` Z`
-				const svgPath = `M${svgCoord(silhouette[0])} ` + svgPaths.join(" ")
+				const svgPath = `M${svgCoord(faceOval[0])} ` + svgPaths.join(" ")
 				//  height="210" width="400"
 				const silhoetteShape = 
 				`<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
 					<path d="${svgPath}" />
 					${circles.join('')}
 				</svg>`
-				//console.log("SVG",silhouette, silhoetteShape)
+				//console.log("SVG",faceOval, silhoetteShape)
 				this.button.innerHTML = silhoetteShape	
 				*/
 			}
@@ -769,7 +797,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			drawInstrument(prediction.boundingBox, this.instrumentTitle, 'loading...')
+			drawInstrument(boundingBox, this.instrumentTitle, 'loading...')
 
 		}else{
 
@@ -779,27 +807,28 @@ export default class Person{
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			
 			// eye:${prediction.eyeDirection}
-			drawInstrument(prediction.boundingBox, this.instrumentTitle, `${extra} ${suffix}` )
+			drawInstrument(boundingBox, this.instrumentTitle, `${extra} ${suffix}` )
 			
 			if (this.debug )
 			{
 				const paragraphs = [
-					`Gain:${(this.gainNode.gain.value).toFixed(2)}`, 
-					`Happiness:${(prediction.happiness).toFixed(3)}`, 
-					`Smirks left:${(prediction.leftSmirk).toFixed(3)} / right:${(prediction.rightSmirk).toFixed(3)}`, 
-					`mouthRange:${(prediction.mouthRange).toFixed(3)}`, 
-					`mouthRatio:${(prediction.mouthRatio).toFixed(3)}`, 
-					`mouthWidth:${(prediction.mouthWidth).toFixed(3)}`, 
-					`mouthOpen:${(prediction.mouthOpen).toFixed(3)}`,
-					`pitch:${(prediction.pitch).toFixed(3)} roll:${(prediction.roll).toFixed(3)} yaw:${(prediction.yaw).toFixed(3)}`,
-					`eyes direction:${(prediction.eyeDirection).toFixed(3)} left:${(prediction.leftEye).toFixed(3)} right:${(prediction.rightEye).toFixed(3)}`,
+					`Gain:${(this.gainNode.gain.value||0).toFixed(2)}`, 
+					`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
+					`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
+					`mouthRange:${(prediction.mouthRange||0).toFixed(3)}`, 
+					`mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
+					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)}`, 
+					`mouthOpen:${(prediction.mouthOpen||0).toFixed(3)}`,
+					`pitch:${(prediction.pitch||0).toFixed(3)} roll:${(prediction.roll||0).toFixed(3)} yaw:${(prediction.yaw||0).toFixed(3)}`,
+					`eyes direction:${(prediction.eyeDirection||0).toFixed(3)} left:${(prediction.leftEye||0).toFixed(3)} right:${(prediction.rightEye||0).toFixed(3)}`,
 					`eyes open :${this.areEyesOpen} left:${!prediction.leftEyeClosed} right:${!prediction.rightEyeClosed}`,
 					`eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
-					`dims:${(prediction.mouthWidth).toFixed(2)}x${(prediction.mouthRange).toFixed(2)}`,
+					`dims:${(prediction.mouthWidth||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
 					'facing'+prediction.lookingRight ? 'left' : 'right'
 				]
-				drawParagraph(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1] + 40, paragraphs, '14px' )
-				// drawText(prediction.boundingBox.topLeft[0], prediction.boundingBox.topLeft[1], extra )
+
+				drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, paragraphs, '14px' )
+				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
 			}
 		}
 	}
@@ -891,7 +920,8 @@ export default class Person{
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 		if (this.options.stereoPan)
 		{
-			this.stereoNode.pan.value = eyeDirection
+			//FIXME:
+			this.stereoNode.pan.value = isFinite(eyeDirection ) ? eyeDirection : 0
 			//console.log("stereoNode", this.stereoNode.pan.value, eyeDirection )
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
@@ -914,6 +944,7 @@ export default class Person{
 				// fresh note playing
 				this.active = true
 				this.setState(STATE_INSTRUMENT_ATTACK)
+
 			}else{
 				
 				// already playing so we continue the note
@@ -961,7 +992,6 @@ export default class Person{
 				}else{
 					this.midiActive = true
 				}
-				
 				
 				// Use eye direction as a modifier for the sound
 				if (eyeDirection !== 0)
@@ -1034,18 +1064,7 @@ export default class Person{
 			}		
 		}
 		
-
-// WebMidi.outputs[0].channels[1].stopNote("C3", {time: "+2500"});
-
-// // Set polyphonic aftertouch : Send polyphonic aftertouch message to channel 8
-
-// WebMidi.outputs[0].channels[8].setKeyAftertouch("B#3", 0.25);
-
-// // Set pitch bend value : The value is between -1 and 1 (a value of 0 means no bend).
-
-// WebMidi.outputs[0].channels[8].setPitchBend(-0.25);
-
-// smooth this down
+		// smooth this down
 		// try and smooth the volume if it is fading out...
 		// if ( this.gainNode.gain.value > newVolume)
 		// {
@@ -1084,8 +1103,6 @@ export default class Person{
 			state:this.state
 		}
 	}
-
-	// actual sing here!
 
 	/**
 	 * Load a sample using one of the prebuilt methods
@@ -1213,6 +1230,7 @@ export default class Person{
 	onLeftEyeOpen( timeClosedFor ){
 		this.leftEyeClosedAt = -1
 	}
+
 	onLeftEyeClose( timeClosed ){
 		this.leftEyeClosedAt = timeClosed
 	}
@@ -1235,9 +1253,16 @@ export default class Person{
 		drawMousePressure( 1, this.options.mouseHoldDuration )
 	}
 
+	/**
+	 * Create the instrument panel HTML for this user's instrument
+	 * and other settings specific to this person
+	 */
 	setupForm(){
 
-		this.controls.innerHTML = setupInstrumentForm( this.samplePlayer.instrumentPack )
+		// FIXME: Use ACTIVE instrument - don't assume it's samplePlayer
+		const instruments = this.activeInstrument.getInstruments()
+		// FIXME 
+		this.controls.innerHTML = setupInstrumentForm( instruments, this.samplePlayer.instrumentPack )
 		
 		const inputs = this.controls.querySelectorAll('input')
 		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)
