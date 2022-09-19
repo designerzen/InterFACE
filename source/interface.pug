@@ -9,12 +9,12 @@ block header
 		| Contains flashing lights.
 	
 	#load-progress
-		progress(max=1)#progress-bar
+		progress(max=1 role="progressbar" aria-describedby="app" tabindex="-1")#progress-bar
 		label(for="progress-bar") Please wait, loading takes a very long time!
 		
 block nav
-	li: a#link-about(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
-	li: a(href="#help" onclick="window.help.showModal()") Help!
+	li: a#link-about(href="#fund" aria-label="Learn more about this project" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
+	li: a(href="#help" aria-label="Show some helpfull information" onclick="window.help.showModal()") Help!
 	
 block scripts
 	script(type="module", src="index.js", rel="preload")
@@ -306,12 +306,12 @@ block dialogs
 			section.player-selection-help
 				h5 This is the 
 					em Player Selection Screen
-				p Choose how many players
+				p Here we get to choose how many players will get to play!
 
 				ol 
 					li Select how many people will make music at the same time - one or two players
-					li Toggle the simple mode on for an easier to use version
-					li Click the Start Button to continue to the next screen
+					li Toggle the simple mode on for an easier to use version (kids mode)
+					li Click the Orange Start Button to continue
 				
 				h6 Not working? Common Issues / Troubleshooting
 				ol 
@@ -343,7 +343,7 @@ block dialogs
 			p.learn-more
 				| Learn more from the 
 				a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
-				| / 
+				| or the  
 				a.documentation(href="help.pug" target="_blank") Online Documentation
 
 				//- a(href="#app") Let me try
