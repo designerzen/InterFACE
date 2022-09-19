@@ -110,28 +110,31 @@ html(lang="en-GB" dir="ltr")
 				h5
 					span.sr-only Associates
 
-				ul.icon-list
-					li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+				ul(role="list").icon-list
+					li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music #DM­Lab
 						include ./assets/logos/drakemusic.svg
-					li: a(href="https://wac2022.i3s.univ-cotedazur.fr" rel="noopener noreferrer" target="_blank") Audience of the Future
+					li: a(href="https://wac2022.i3s.univ-cotedazur.fr/node/27" rel="noopener noreferrer" target="_blank") Web Audio Conference
 						include ./assets/logos/wac.svg
 					li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
 						include ./assets/logos/aotf.svg
-					li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
-						//- include ./assets/logos/sxsw2021.svg
-						include ./assets/logos/sxsw.svg
-					li: a(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
-						include ./assets/logos/mmf.svg
-					li: a(href="https://www.namm.org/" rel="noopener noreferrer" target="_blank") NAMM Show
-						include ./assets/logos/namm.svg
 					li: a(href="https://www.midi.org/component/zoo/item/photosynth-interface?Itemid=1423" rel="noopener noreferrer" target="_blank") MIDI Innovation Awards
 						include ./assets/logos/midi-association.svg
-					
+					//- li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+					//- 	// i think i allowed to use this specific logo due to showing at SXSW22 https://www.sxsw.com/trademark-guidelines/
+					//- 	include ./assets/logos/sxsw2021.svg
+						//- illegal : https://www.sxsw.com/trademark-guidelines/
+						//- include ./assets/logos/sxsw.svg
+					li: a(href="https://www.makermusicfestival.com/projectdirectory/interface/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+						include ./assets/logos/mmf.svg
+					li: a(href="https://www.namm.org/attendee/articles/winners-second-annual-midi-awards-announced" rel="noopener noreferrer" target="_blank") NAMM Show
+						include ./assets/logos/namm.svg
+				
 					//- other places that have helped out
-					li: a(href="https://www.browserstack.com" rel="noopener noreferrer" target="_blank") BrowserStack
-						include ./assets/logos/browserstack.svg
-					li: a(href="https://www.tensorflow.org" rel="noopener noreferrer" target="_blank") TensorFlow
-						include ./assets/logos/tensorflow-tf.svg
+					//- li: a(href="https://www.browserstack.com" rel="noopener noreferrer" target="_blank") BrowserStack
+					//- 	include ./assets/logos/browserstack.svg
+					//- li: a(href="https://www.tensorflow.org" rel="noopener noreferrer" target="_blank") TensorFlow
+					//- 	include ./assets/logos/tensorflow-tf.svg
+
 
 			small
 				a.licenses(href="licenses.pug" target="_blank") Licenses
@@ -163,3 +166,5 @@ html(lang="en-GB" dir="ltr")
 			function gtag(){dataLayer.push(arguments);}  
 			gtag('js', new Date());  
 			gtag('config', 'G-1XT0GV0L6J');
+
+			
