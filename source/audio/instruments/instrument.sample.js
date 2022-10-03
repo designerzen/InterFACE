@@ -71,7 +71,7 @@ export default class SampleInstrument extends Instrument{
 		this.active = true
 		this.volume = velocity
 		
-		console.error( "PLAYING NOW!" , {audioBuffer}, this.polyphony, this.gainNode )
+		//console.error( "PLAYING NOW!" , {audioBuffer}, this.polyphony, this.gainNode )
 
 		// FIXME: Add to active so we can remove it later
 		const track = playTrack( audioBuffer, 0, this.gainNode ).then( ()=>{
