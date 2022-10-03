@@ -4,16 +4,17 @@
 	display: flex;
 	flex-direction: column;
 	gap:var(--pad);
-	
-  
+	visibility: visible;
+
 	position:fixed;
 	top:50%;
 	left:50%;
 	transform: translate(-50%,-50%);
 	
 	padding:var(--pad);
+
 	border-radius:18px;
-	border-radius:max( 18px, calc( 999px * var(--progress,0) ) );
+	border-radius:min( 18px, calc( 999px * var(--progress,0) ) );
 
 	background-image:
 		linear-gradient(
@@ -23,9 +24,10 @@
 
 	box-shadow:var(--shadow);
 
-	transition: transform var(--ease-m) 0s,
+	transition: opacity var(--ease-m) 0s,
+				transform var(--ease-m) 0s,
 				background-color var(--ease-m) 0s var(--ease-out-back),
-				border-radius var(--ease-m) 0s var(--ease-out-back);
+				border-radius var(--ease-m) 0s;
 
 	progress{
 		transform: translateY(25%);
@@ -36,6 +38,14 @@
 		box-shadow:none;
 		background-image:none;
 		background-color: var(--shade-yellow);
+	}
+
+	&[data-loaded=true]{
+		opacity: 0;
+	}
+
+	&[data-loaded=true]:hover{
+		opacity: 1;
 	}
 }
 
@@ -59,12 +69,22 @@ label[for="progress-bar"]{
 	&:hover{
 		background-color: transparent;
 	}
+
+}
+
+// percentage 100%
+.load-percent{
+	font-size:440%;
+	position: absolute;
+	bottom:100%;
+	color:var(--shade-dark);
 }
 // 10deg +
 progress{
 	
 	--range:160deg;
-    --angle:calc( var(--progress,1) * var(--range,160deg) );
+	// bounces less and grows longer
+    --angle:calc(( 1 - var(--progress,1) )* var(--range,160deg) );
     --size:clamp(150px, 50vh, 250px);
     
 	--scale:1;
@@ -100,8 +120,6 @@ progress{
     // background-image:   radial-gradient(var(--_eye-r) circle at calc( 50% + var(--_eye-r) ) var(--_nose-y), #E71D36 50%, transparent 51%),
     //                     radial-gradient(var(--_eye-r) circle at calc( 50% - var(--_eye-r) )  var(--_nose-y), #E71D36 50%, transparent 51%);
 
-
-
     // we also have to rotate the innards
     //animation: Loader calc(var(--duration)*1) linear infinite alternate-reverse;
 
@@ -110,7 +128,7 @@ progress{
     
     &::before,
     &::after{
-        content: '';
+        content:"";
         display: block;
         grid-area: 1/-1;
         width:calc( var(--size) - var(--stroke,10px) * 2 );
@@ -128,7 +146,10 @@ progress{
     
 	// this trails behind
     &::before{
+		//content:calc( 100 * var(--progress,1) ) "";
         opacity: 0.5;
+		animation-delay: calc( -0.5 * var(--duration) );
+		// animation-play-state: paused;
     }
 
     &::after{
@@ -145,7 +166,7 @@ progress[value="1"]{
 	--overscale:0;
 	--range:180deg;
 	clip-path: none;
-	border-radius: 0;
+border-radius: 0;
     animation: LoaderComplete 0.2s var(--ease) 1 alternate both;
 	animation-timing-function: var(--ease-out-back);
 	animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
@@ -197,6 +218,52 @@ progress[value="1"]{
 progress[value="1"] + label{
 	display: none;
 }
+
+
+
+.player-selection #load-progress{
+
+	top:-7px;//var(--pad);
+	left:82px;
+	transform:none;
+	margin:0;
+	padding:0;
+	display: grid;
+	background-color: transparent;
+	background-image:none;
+	align-items: center;
+    justify-content: center;
+	flex-direction: row;
+
+	box-shadow: none;
+	progress{
+		grid-area:1/-1;
+		margin:0;
+		--size:72px;
+		--stroke: 8px;
+	}
+	progress[value="1"]{
+		opacity: 0;
+	}
+	
+	label[for="progress-bar"]{
+		grid-area:1/-1;
+		font-size: 0;
+		align-self:flex-end;
+		// mix-blend-mode:hard-light;
+	}
+	.load-percent{
+		position: relative;
+		top:auto;
+		left:auto;
+		font-size:20px;
+	}
+	&:has(progress[value="1"]){
+		background-color: transparent;
+	}
+}
+
+
 
 .loader.wheel{    
     &::after{
