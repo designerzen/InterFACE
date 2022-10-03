@@ -11,7 +11,8 @@ const DEFAULT_OPTIONS = {
 	pupilRadius:0.3,
 	// big white bit of the eye
 	sclera:'white',
-	scleraRadius:4
+	scleraRadius:4,
+	outline:false
 }
 
 /**
@@ -24,31 +25,21 @@ const DEFAULT_OPTIONS = {
  */
 export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, options=DEFAULT_OPTIONS ) => {
 	
-	const eyeData = isLeft ? keypoints.leftIris : keypoints.rightIris
+	const irisData = isLeft ? keypoints.leftIris : keypoints.rightIris
+	const eyeData = isLeft ? keypoints.leftEye : keypoints.rightEye
+	const pupil = isLeft ? keypoints.leftPupil : keypoints.rightPupil
 	
-	const pupil = eyeData[0]
-	const inner = eyeData[1]
-	const up = eyeData[2]
-	const outer = eyeData[3]
-	const down = eyeData[4]
-
-	const irisWidth = Math.abs(outer.x - inner.x )
-	const irisHeight = down.y - up.y
+	//console.error("Draw Eyes", {pupil, inner, outer, up, down},  {eyeData, open, isLeft, eyeDirection, options} )
+	
 	const showRatio = options.ratio || 0.8 
 
-	// const irisHeight = Math.abs( up.y - down.y)
-	const diameter = Math.max(irisWidth , irisHeight)
-	const radius = diameter * 0.5
+	const radius = pupil.diameter * 0.5
 	
-	// you can remove this for speed reasons if you are providing a full options config
-	// options = { ...DEFAULT_OPTIONS, ...options }
-
 	// console.log( {eyeData, irisWidth,irisHeight, diameter, options })
 
 	canvasContext.strokeWidth = 0
 	
 	// draw iris path
-
 
 	// arc(x, y, radius, startAngle, endAngle, counterClockwise) 
 	// straight lines
@@ -64,7 +55,6 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 
 	if (open)
 	{
-		// eyeDirection
 		// round no perspective...
 		const scleraRadius = radius * options.scleraRadius
 		const irisRadius = radius * options.irisRadius
@@ -72,18 +62,36 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 		const socketRadius = scleraRadius - irisRadius
 		const eyeOffset =  socketRadius * -eyeDirection
 		
+		// SCLERA - the white stuff... 
 		canvasContext.beginPath()
-		canvasContext.arc(pupil.x + eyeOffset, pupil.y, scleraRadius, 0, TAU)
+		if (options.outline)
+		{
+			// this could be wrapped in the eye socket...
+			eyeData.forEach( data => {
+				canvasContext.lineTo(data.x, data.y)
+			})
+			
+		}else{
+			// or as a funky overlay
+			canvasContext.arc(pupil.x + eyeOffset, pupil.y, scleraRadius, 0, TAU)
+		}
+
 		canvasContext.fillStyle  = options.sclera
 		canvasContext.fill()
-		canvasContext.closePath()
+		canvasContext.closePath()	
 
 		// IRIS - two different styles... 
 		// 1. Circular Eyes
 		// 2. Frank Sidebottom Eyes
 		canvasContext.beginPath()
 		canvasContext.fillStyle  = options.iris
-		canvasContext.arc(pupil.x, pupil.y, irisRadius, 0, TAU * showRatio )
+
+		// pie chart eyes because of showRatio
+		canvasContext.arc(
+			pupil.x, pupil.y, 
+			irisRadius, 0, 
+			TAU * showRatio 
+		)
 		canvasContext.lineTo(pupil.x, pupil.y)
 		canvasContext.fill()
 		canvasContext.closePath()
@@ -97,11 +105,16 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 		// canvasContext.ellipse(pupil.x, pupil.y, irisWidth, irisHeight, 0, 0, TAU)
 		// canvasContext.ellipse(pupil.x, pupil.y, irisHeight, irisWidth, 0, 0, TAU)
 		
+
 		// PUPILS
 		// 1 + clamp( (10+iris[2]) * 0.8, 5, 10 )
 		canvasContext.beginPath()
-		canvasContext.fillStyle  = options.pupil
-		canvasContext.arc(pupil.x, pupil.y, pupilRadius, 0, TAU * showRatio)
+		canvasContext.fillStyle = options.pupil
+		canvasContext.arc(
+			pupil.x, pupil.y, 
+			pupilRadius, 0, 
+			TAU
+		)
 		canvasContext.fill()
 
 	}else{

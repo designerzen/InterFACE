@@ -1,6 +1,95 @@
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
 import { canvasContext } from './canvas'
-import {drawNode} from './2d'
+import { drawCircle, drawNode, drawNodes, drawPath } from './2d'
+
+
+/**
+ * Draw a mouth based on a series of points and close the path
+ * with a gradient or fill as required
+ * @param {Array<>} lips 
+ * @param {Object} stroke 
+ * @param {Array<Number>} sequence 
+ * @returns 
+ */
+export const drawMouthFromSequence = ( 
+	lips, 
+	stroke={h:90,s:50,l:50,a:0.6}, 
+	fill={h:90,s:50,l:50,a:0.6}, 
+	sequence=[] 
+) => {
+	
+	const strokeColour = `hsl( ${stroke.h}%, 80%, 50% )`
+	const fillColour = `hsl( ${fill.h}%, 80%, 50% )`
+
+	const startNode = lips[ sequence[0] ]
+
+	// console.log(colour)
+	//const end = sequence[sequence.length - 1]
+	// const endNode = lips[end]
+
+	canvasContext.beginPath()
+	canvasContext.moveTo( startNode.x, startNode.y)
+	canvasContext.strokeStyle = strokeColour || 'pink'
+				
+	sequence.forEach( index => {
+		const position = lips[index]
+		canvasContext.lineTo( position.x, position.y )
+	})
+
+	// canvasContext.closePath()
+	canvasContext.stroke( )
+
+	// fill
+	canvasContext.fillStyle = fillColour || 'orange'
+	canvasContext.fill( )
+
+	return {}
+}
+
+
+
+
+export const drawLip = ( lips, stroke={h:90,s:50,l:50,a:0.6}, fill={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
+	
+	const strokeColour = `hsla( ${stroke.h}%, ${stroke.s}%, ${stroke.l}%, ${stroke.a} )`
+	const fillColour = `hsla( ${fill.h}%, ${fill.s}%, ${fill.l}%, ${fill.a} )`
+	
+	// This is fixed at 41
+	const lipsLength = lips.length
+
+	const start = startIndex
+	const end = endIndex > -1 ? endIndex : lipsLength - 1
+
+	const startNode = lips[start]
+	//const endNode = lips[end]
+
+	// console.log("START", {start,startIndex,startNode, lipsLength, lips})
+	// console.log("END", {end,endIndex,endNode, lipsLength, lips})
+
+	// drawNode( startNode, 4, "red", "start "+start)
+	// drawNode( endNode, 4, "yellow", "end "+end )
+
+	canvasContext.beginPath()
+	canvasContext.moveTo( startNode.x, startNode.y)
+
+	for (let i=start+1; i <= end; ++i)
+	{
+		const position = lips[i]
+		canvasContext.lineTo( position.x, position.y )
+	}
+
+	// end going back to start...
+	canvasContext.strokeStyle = strokeColour
+	canvasContext.stroke( )
+
+	// fill
+	canvasContext.fillStyle = fillColour || 'orange'
+	canvasContext.fill( )
+
+	return {}
+}
+
+
 
 /**
  * Draw a Mouth onto the canvas directly from the prediction
@@ -12,14 +101,67 @@ import {drawNode} from './2d'
  * @param {Boolean} debug 
  * @returns 
  */
-export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, debug=true ) => {
+
+export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
 	
 	const { annotations, mouthRange, mouthWidth, mouthOpen } = prediction
 	const {lips} = annotations
+
+	// This is fixed at 41
 	const lipsLength = lips.length
-	const colour = `hsla(${palette.h},${palette.s}%,${palette.l}%, ${palette.a})`
-	const colourDark = `hsla(${palette.h},${palette.s}%,10%, ${palette.a})`
+
+	const start = startIndex
+	const end = endIndex > -1 ? endIndex : lipsLength - 1
+
+	const startNode = lips[start]
+	const endNode = lips[end]
+
+	console.log("START", {start,startIndex,startNode, lipsLength, lips})
+	console.log("END", {end,endIndex,endNode, lipsLength, lips})
+
+	//drawCircle( startNode.x, startNode.y, 5, 2, 'red', 'yellow')
+	//drawCircle( endNode.x, endNode.y, 5, 2, 'red', 'yellow')
+	drawNode( startNode, 4, "red", "start "+start)
+	drawNode( endNode, 4, "yellow", "end "+end )
+
+	canvasContext.beginPath()
+	canvasContext.moveTo( startNode.x, startNode.y)
+
+	for (let i=start; i <= end; ++i)
+	{
+		const percent = i / end
+		const position = lips[i]
+		// find which quadrant 0 -> 3
+		// const part = i / lipLength
+		// const quadrant = Math.round(part)
+		// change colour depending on quadrant
+		const colour = `hsl( ${percent * 360}%, 80%, 50% )`
+		// colours[quadrant]
+
+		// each piece can be a different colour :)
+		canvasContext.strokeStyle = colour
+		canvasContext.lineTo( position.x, position.y )
+		canvasContext.stroke( )
+	}
+	// end going back to start...
+
+	return {}
 	
+	
+	const colourInner = `hsla(${palette.h},${palette.s}%,${palette.l}%, ${palette.a})`
+	const colourOuter = `hsla(${palette.h},${palette.s}%,20%, ${palette.a})`
+	const colourDark = `hsla(${palette.h},${palette.s}%,10%, ${palette.a})`
+	// const colours = [
+	// 	colourOuter,colourOuter,
+	// 	colourInner,colourInner
+	// ]
+
+	// The Mouth has 4 parts
+	// 
+
+	const colours = [
+		'blue','pink','orange','purple'
+	]
 // console.log("drawing mouth", {colour, colourDark})
 
 	// central piece of the mouth
@@ -44,10 +186,10 @@ export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, debug=tru
 	// topGradient.addColorStop(1, "white")
 
 	// how can we work out height of the mouth???
-	// const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRange )
-	// mouthGradient.addColorStop(0, colour)
-	// mouthGradient.addColorStop(0.5, colourDark )
-	// mouthGradient.addColorStop(1, colour)
+	const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRange )
+	mouthGradient.addColorStop(0, colourInner)
+	mouthGradient.addColorStop(0.5, colourDark )
+	mouthGradient.addColorStop(1, colourInner)
 
 	// canvasContext.beginPath()
 	// canvasContext.moveTo(lipsUpper[0][0], lipsUpper[0][1])
@@ -60,26 +202,126 @@ export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, debug=tru
 	// }	
 	// canvasContext.fill()
 
+	const START_OFFSET = [1,0,0,0]
+	const LENGTH_OFFSETS = [-1,0,0,1]
 
-	canvasContext.lineWidth = 2
+	// canvasContext.lineWidth = 3
+	// canvasContext.fillStyle = colourDark
+	// canvasContext.fillStyle = mouthGradient
+	// canvasContext.beginPath()
+	// canvasContext.moveTo( lips[startIndex].x, lips[startIndex].y )
 
-	canvasContext.strokeStyle = colourDark
-	canvasContext.beginPath()
-	canvasContext.moveTo( lips[0].x, lips[0].y )
-	// //canvasContext.fillStyle = mouthGradient
-	// //canvasContext.fillStyle = mouthGradient
+	// there are four parts to the mouth.
 
-	// dual lips mode
-	for (let l = 1, t=lips.length; l < t; l++) 
+/*
+	*/
+
+	/*
+	// r = 0, to, 2= bo, 3= bi, 4= ti
+	for (let r=2; r < 4; r++)
 	{
-		const lip = lips[l]
-		canvasContext.lineTo( lip.x, lip.y )
+		//const offset = ( r * lipLengthTest) + currentOffset + counter
+		let l = ( r * lipLength) + START_OFFSET[r]
+		const t = l + lipLength + LENGTH_OFFSETS[r]
+		
+		// bottom outer lip
+		canvasContext.beginPath()
+		canvasContext.moveTo( lips[l].x, lips[l].y )
+		
+		for (; l < t; ++l) 
+		{
+			const lip = lips[l]
+			canvasContext.strokeStyle = colours[r]
+			canvasContext.lineTo( lip.x, lip.y )
+		}	
+		if (r > 2){
+			// Inner lips
+			//canvasContext.closePath()
+		
+		}else{
+			// Outer lips
+		}
+		canvasContext.stroke( )
+		canvasContext.fill( )
 	}
+*/
+
+	// r = 0, to, 2= bo, 3= bi, 4= ti
+	// const r = 2
+	// let l = ( r * lipLength) + START_OFFSET[r] + 1
+	
+	// // bottom outer lip
+	// canvasContext.beginPath()
+	// canvasContext.moveTo( lips[l].x, lips[l].y )
+	// canvasContext.strokeStyle = 'pink'
+	// canvasContext.fillStyle = 'orange'
+
+	// for (; l < lipsLength - 5; ++l) 
+	// {
+	// 	// flip from end half way through
+	// 	const lip = lips[l] 
+	// 	// const lip =  l <= lipsLength - lipLength ? 
+	// 	//  				lips[ l ] : 
+	// 	//  				lips[lipsLength - l]
+
+	// 	canvasContext.lineTo( lip.x, lip.y )
+	// 	//console.log("drawMouth", lip, {r,l,lipsLength, lipLength})
+	// }	
+	// canvasContext.stroke( )
 
 	//canvasContext.closePath()
-	// canvasContext.fill()
-	canvasContext.stroke( )
+	// canvasContext.strokeStyle = 'pink'
+	// canvasContext.fillStyle = 'orange'
+	
+	// canvasContext.fill( )
 
+	let counter = 0
+	// 1. OUTER bottom lip
+	// for (let r=0; r < 1; r++)
+	// {
+	// 	const currentOffset = START_OFFSET[r] + counter
+	// 	const offset = ( r * lipLength) + currentOffset
+
+	// 	canvasContext.beginPath()
+	// 	canvasContext.moveTo( lips[offset].x, lips[offset].y )
+	// 	canvasContext.strokeStyle = colours[r]
+		
+	// 	for (let l = 1, t=lipLengthTest; l < t; l++) 
+	// 	{
+	// 		counter = l + offset
+	// 		const lip = lips[counter]
+	// 		canvasContext.lineTo( lip.x, lip.y )
+	// 	}	
+	// 	//canvasContext.closePath()
+	// 	//canvasContext.fill()
+	// 	canvasContext.stroke( )
+	// 	counter++
+	// } 
+/*
+	// 2. OUTER top lip
+	let currentOffset = LENGTH_OFFSETS[0]
+	let lipLengthTest = Math.round(lipsLength/4) - currentOffset
+
+	for (let r=1; r < 2; r++)
+	{
+		const offset =( r * lipLengthTest) + currentOffset
+		canvasContext.beginPath()
+		canvasContext.moveTo( lips[offset].x, lips[offset].y )
+		canvasContext.strokeStyle = colours[r]
+		
+		for (let l = 1, t=lipLengthTest; l < t; l++) 
+		{
+			const lip = lips[l + offset]
+			canvasContext.lineTo( lip.x, lip.y )
+		}	
+		//canvasContext.closePath()
+		//canvasContext.fill()
+		canvasContext.stroke( )
+	} 
+
+
+	// loop back to start
+	// canvasContext.lineTo( lips[0].x, lips[0].y )
 
 	if (debug)
 	{
@@ -123,6 +365,6 @@ export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, debug=tru
 		canvasContext.textAlign = "center"
 		canvasContext.fillText(`${Math.floor(mouthRange)}px`, lipLowerMiddle.x, lipLowerMiddle.y - 20 )
 	}
-
+*/
 	return {lipUpperMiddle, lipLowerMiddle }
 }
