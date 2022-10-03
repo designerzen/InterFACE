@@ -167,6 +167,7 @@ export default class Person{
 	 * @returns {Boolean} has this Person got a finger depressed on their face?
 	 */
 	get isMouseHeld(){
+		//console.log("isMouseHld", this.mouseDownFor, this.options.mouseHoldDuration )
 		return this.mouseDownFor > this.options.mouseHoldDuration
 	}
 
@@ -341,45 +342,18 @@ export default class Person{
 
 		// fetch dom element
 		this.button = document.getElementById(name)
-		this.button.addEventListener( 'mousedown', event => {
-			//console.log("mousedown:currentTime",  audioContext.currentTime )
-			this.mouseDownAt = audioContext.currentTime
-			drawMousePressure( 0, this.options.mouseHoldDuration )
-			event.preventDefault()
-		})
-
-		// FACE has been pressed!
-		this.button.addEventListener( 'mouseup', event => {
-			// should this trigger something else depending on time?
-			// const elapsed = this.mouseDownFor
-			
-			//console.log("mouseup:mouseDownFor", this.mouseDownAt, this.isMouseHeld )
-			
-			// if someone just keeps the finger on the screen...
-			if (this.isMouseHeld)
-			{
-				this.loadRandomInstrument()
-			}else{
-				
-			}
-
-			// reset it
-			// and reset
-			this.mouseDownAt = -1
-			drawMousePressure( 1, this.options.mouseHoldDuration )	
-			
-			event.preventDefault()
-		})
+		this.button.addEventListener( 'mousedown', e => this.onFaceTouchStart(e) )
+		this.button.addEventListener( 'mouseup', e => this.onFaceTouchEnd(e) )
 
 		this.button.addEventListener( 'mouseover', event => {
 			this.isMouseOver = true
 		})
+
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
 		this.instrumentLoadedAt = this.now
 		//console.log("Created new person", this, "connecting to", destinationNode )
-
 	}
 	
 	/**
@@ -1318,6 +1292,44 @@ export default class Person{
 			// console.log("PLAY:", methodName, instrument, {values} )
 			//instrument[methodName].apply( null, values )
 		})
+	}
+
+	/**
+	 * Touch BEGIN
+	 * @param {*} event 
+	 */
+	onFaceTouchStart(event){
+		//console.log("mousedown:currentTime",  audioContext.currentTime )
+		this.mouseDownAt = this.audioContext.currentTime
+		drawMousePressure( 0, this.options.mouseHoldDuration )
+		event.preventDefault()
+	}
+
+	/**
+	 * Touch END
+	 * @param {*} event 
+	 */
+	onFaceTouchEnd(event){
+		// should this trigger something else depending on time?
+		// const elapsed = this.mouseDownFor
+		
+		console.log("mouseup:mouseDownFor", this.mouseDownAt, this.isMouseHeld, this.options.mouseHoldDuration )
+		
+		// if someone just keeps the finger on the screen...
+		if (this.isMouseHeld)
+		{
+			
+		}else{
+			// Quick tap so don't show the forn
+			this.loadRandomInstrument()
+		}
+
+		// reset it
+		// and reset
+		this.mouseDownAt = -1
+		drawMousePressure( 1, this.options.mouseHoldDuration )	
+		
+		event.preventDefault()
 	}
 
 	onInstrumentInput(event) {
