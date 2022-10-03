@@ -12,76 +12,12 @@
 	justify-content: center;
 }
   
-:root{
-
-	// forces dark scrollbars
-	color-scheme: dark;
-
-	// tints (use anywhere for colour with cpntrols)
-	--shade-white:hsl( #{$hue-white}, var( --s, 27%), var( --l, 87%) );
-	--shade-dark:hsl( #{$hue-dark}, var( --s, 6%), var( --l, 14%) );
-	--shade-grey:hsl( #{$hue-grey}, var( --s, 6%), var( --l, 50%) );
-	--shade-gray:hsl( #{$hue-gray}, var( --s, 6%), var( --l, 55%) );
-	--shade-cream:hsl( #{$hue-cream}, var( --s, 18%), var( --l, 53%) );
-	--shade-tan:hsl( #{$hue-tan}, var( --s, 30%), var( --l, 45%) );
-	--shade-brown:hsl( #{$hue-brown}, var( --s, 22%), var( --l,30%) );
-	--shade-blue:hsl( #{$hue-blue}, var( --s, 18%), var( --l,33%) );
-	--shade-green:hsl( #{$hue-green}, var( --s, 18%), var( --l,33%) );
-	--shade-yellow:hsl( #{$hue-yellow}, var( --s, 34%), var( --l,50%) );
-	--shade-orange:hsl( #{$hue-orange}, var( --s, 69%), var( --l,38%) );
-	--shade-red:hsl( #{$hue-red}, var( --s, 58%), var( --l,35%) );
-	
-	--curve:12px;
-	// global padding
-	--pad:clamp(10px,2vmin,20px);
-
-	// FIXME:
-	--footer-gap:calc(61px);
-	
-	@media (orientation: portrait) {
-		--footer-gap:var(--pad);
-	}
-
-	--ease-out-back:#{$easeOutBack};
-
-	// ease speeds (see overriding media queries)
-	--ease-s:450ms;
-	--ease-m:90ms;
-	--ease-q:45ms;
-		
-	// no animation 
-	// NB. this is also passed into JS as a safety net
-	@media (prefers-reduced-motion: reduce) {
-		--ease-s:1ms;
-		--ease-m:1ms;
-		--ease-q:1ms;
-	}
-
-	// do not change
-	--duration:calc( 1 * var(--ease-s) );//var(--ease-out-quick);
-	--duration-scroll:calc( 5 * var(--ease-s) );
-
-	// animation stagger 
-	--overlap:0.3;  // the smaller, the closer together the nimations are
-	--offset:0s;	// initial delay for all
-
-	--shadow:
-		1.9px 1.9px 2.1px rgba(0, 0, 0, 0.014),
-		4.7px 4.7px 4.6px rgba(0, 0, 0, 0.02),
-		8.8px 8.8px 8.4px rgba(0, 0, 0, 0.025),
-		15.6px 15.6px 14.9px rgba(0, 0, 0, 0.03),
-		29.2px 29.2px 28.9px rgba(0, 0, 0, 0.036),
-		70px 70px 80px rgba(0, 0, 0, 0.05)
-	;
-  
-
-	--noise:url("data:image/svg+xml,%3Csvg class='filter' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='filter-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter-noise)'%3E%3C/rect%3E%3C/svg%3E");
-}
 
 // debug
 // @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
 
 // Load reset, fonts & set typography
+@import "./assets/styles/settings.scss";
 @import "./assets/styles/base.scss";
 @import "./assets/styles/fonts.scss";
 @import "./assets/styles/typography.scss";

@@ -87,7 +87,7 @@ html(lang="en-GB" dir="ltr")
 						li: a#link-about(href="#fund" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
 						li: a(href="#help" onclick="window.help.showModal()") Help!
 
-		main#app
+		main#app(aria-busy="true" aria-describedby="progress-bar")
 			block main
 
 		block dialogs 
