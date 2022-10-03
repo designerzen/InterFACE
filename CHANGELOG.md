@@ -1,3 +1,62 @@
+#### 0.8.30 (2022-07-06)
+
+##### Bug Fixes
+
+*  Tempo doesn't ruin beats (afde38dc)
+
+##### Other Changes
+
+*  Set percussion volume much lower (6544a660)
+*  FaceModel improvements (5cc47848)
+*  New drum patterns (458a4233)
+*  Percussion on seperate gainNode (df74eae4)
+
+#### 0.8.29 (2022-07-05)
+
+##### Other Changes
+
+*  New drum patterns (a416a689)
+*  AttractMode now changes drum patterns (3e311831)
+*  Progress bar improvements (fc924f40)
+*  New drum patterns & randomizer (ce58bf86)
+
+#### 0.8.28 (2022-07-05)
+
+##### Bug Fixes
+
+*  Images in figures now full width (ed09db9d)
+
+##### Other Changes
+
+*  New drum randomiser (1062a2a7)
+*  Progress smiley now has round face (37af8ac9)
+*  More automation (b87a7154)
+*  Simplified instructions (4a075a1a)
+
+#### 0.8.27 (2022-07-05)
+
+#### 0.8.26 (2022-07-05)
+
+#### 0.8.25 (2022-07-05)
+
+#### 0.8.24 (2022-07-05)
+
+##### Bug Fixes
+
+*  Mouse hold duration reduced to 0.4s (309e6166)
+
+#### 0.8.23 (2022-07-05)
+
+#### 0.8.22 (2022-07-05)
+
+##### Other Changes
+
+*  Added unique MIDI SYSEX ID! (8b5c7038)
+*  Made the Automator wait longer (58a57d05)
+*  Added WAC link to footer (5db88a0a)
+*  WAC Logo (7f217dbe)
+*  version for WAC (c7123e8b)
+
 #### 0.8.21 (2022-07-05)
 
 #### 0.8.20 (2022-07-05)
