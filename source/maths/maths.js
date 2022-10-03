@@ -4,15 +4,29 @@ export const TWO_PI = Math.PI * 2
 
 const {PI, sqrt, atan2, tan} = Math
 
+export const range = (input, inputMin, inputMax, outputMin, outputMax) => {
+	const value = (input - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin
+	if (value < outputMin) {return outputMin}
+	else if (value > outputMax) {return outputMax}
+	return value
+}
+
+export const rangeRounded = (input, inputMin, inputMax, outputMin, outputMax ) => {
+	const value = Math.round( (input - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin )
+	if (value < outputMin) {return outputMin}
+	else if (value > outputMax) {return outputMax}
+	return value
+}
+
 // provide the value and a smallest and largest original then new sizes
 // Functional Program
-export const rescale = ( smallest, largest=1 ) => {
+export const rescale = ( smallest=0, largest=1 ) => {
     // find the scale and create a method that allows 
     // you to simply rescale at will
-    const range = 1 / ( largest - smallest )
+    const fullRange = 1 / ( largest - smallest )
 
     // return a method that you can pass a value to
-    return value => range * ( value - smallest )
+    return value => fullRange * ( value - smallest )
 }
 
 // Feed it a right angle triangle and get the angle between the edges
@@ -117,3 +131,10 @@ export const twist = (value, amount=0) => {
 	//return value + amount
 	return clamp(value + amount,-1,1)
 }
+
+
+
+// export const lerp = (a, b, t) => (b-a)*t+a
+// export const unlerp = (a, b, t) => (t-a)/(b-a)
+// export const remap = (a1, b1, a2, b2, t) => lerp(a2, b2, unlerp(a1, b1, t))
+

@@ -1,4 +1,4 @@
-import {createInstruments, instrumentNames, instrumentFolders} from '../audio/instruments'
+import { instrumentNames, instrumentFolders} from '../audio/instruments'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink} from '../location-handler'
 import {formattedDate} from '../models/info'
@@ -117,10 +117,9 @@ const createInstumentFamilyForForm =
  * Setup the instrument list
  * @param {Function} callback Method to trigger when instument selected
  */
-export const setupInstrumentForm = (pack='') => {
+export const setupInstrumentForm = (instruments, packName='') => {
 
-	const instruments = createInstruments()
-	let output = `<legend>${pack} Select an instrument</legend>`
+	let output = `<legend>${packName} Select an instrument</legend>`
 	let family = instruments[0].family
 	const uiOptions = []// instruments.map( (instrument, index) => createInstumentForForm( instrument.location, instrument.name ) ) 
 	// add a title at the start...
