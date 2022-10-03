@@ -1,6 +1,7 @@
 node_modules
 node_modules*
 .parcel-cache
+*.DS_Store
 # there are things already committed in dist/ mainly the smaples
 dist/*
 !dist/assets/audio/
@@ -19,3 +20,4 @@ app
 android
 mediakit
 electron
+public
