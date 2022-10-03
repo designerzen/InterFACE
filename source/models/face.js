@@ -1,6 +1,10 @@
 // Thanks to
 // https://github.com/vivien000/trompeloeil/blob/master/src/World/components/geometry/geometry.js
 
+
+// Import @tensorflow/tfjs or @tensorflow/tfjs-core
+import * as tf from '@tensorflow/tfjs'
+
 import '@tensorflow/tfjs-core'
 
 // Register backends
@@ -11,21 +15,20 @@ import '@tensorflow/tfjs-core'
 // If you are using the WebGL backend:
 import * as tfWebGL from '@tensorflow/tfjs-backend-webgl'
 
-// If you are using the WASM backend:
+// Adds the WASM backend to the global backend registry.
+import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
 //import '@tensorflow/tfjs-backend-wasm'
 
-import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
-tfjsWasm.setWasmPaths(
-	`./tf/`)
-// tfjsWasm.setWasmPaths(
-// 	`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${
-// 		tfjsWasm.version_wasm}/dist/`)
+// import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm/dist/index.js'
+
+import wasmURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm"
+import wasmSIMDURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm"
+import wasmTHREADEDURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm"
 
 import * as faceMesh from '@mediapipe/face_mesh'
 // import PACKED_ASSETS from "@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js"
 
 import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'	
-import { ready, setBackend } from '@tensorflow/tfjs'
 import { enhancePrediction } from './face-model'
 import { now } from '../timing/timing'
 
@@ -182,13 +185,50 @@ const predict = async (inputElement,detector) => {
 	}
 }
 
-export const loadFaceModel = async (inputElement, options) => {
+/**
+ * This is the second steps that are loaded and take about 1/3 of the time
+ * @param {*} inputElement 
+ * @param {*} options 
+ * @param {*} progressCallback 
+ * @returns 
+ */
+export const loadFaceModel = async (inputElement, options, progressCallback) => {
 
+	const startLoadProgress = 0.5
+	const loadRange = 0.3
+	const loadTotal = 2
+	let loadIndex = 0
+	
+	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
+	console.log("Loading Face Model from TF", {options} )
+
+	// Set the WASM paths if possible
+	tfjsWasm.setWasmPaths({
+		'tfjs-backend-wasm.wasm': wasmURL,
+		'tfjs-backend-wasm-simd.wasm':wasmSIMDURL,
+		'tfjs-backend-wasm-threaded-simd.wasm': wasmTHREADEDURL
+	})
+
+	// or fallback due to CORS
+	// `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`
+	let success = false
+	
+	// try wasm first (we can always fallback to it if GL fails below)
 	// Set the backend to WASM and wait for the module to be ready.
-	// await setBackend('wasm')
+	// success =await tf.setBackend('cpu')
+	success = await tf.setBackend('wasm')
+	console.log("TF: Registered backend WASM > " , success )
 
-	await ready()
+	success = await tf.setBackend('webgl')
+	console.log("TF: Registered backend GL > " , success )
 
+	// Returns a promise that resolves when the currently selected backend (or the
+ 	// highest priority one) has initialized. Await this promise when you are using
+	// a backend that has async initialization.
+	await tf.ready()
+
+	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Backend Registered, Loading Detector")
+	
 	// FIXME: Use the method for player inference once the detector is available
 	const detectPeople = options.maxFaces
 
@@ -199,9 +239,10 @@ export const loadFaceModel = async (inputElement, options) => {
 
 	// 'base/node_modules/@mediapipe/face_mesh' in npm.
 	// solutionPath: The path to where the wasm binary and model files are located.
-	const solutionPath = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
+	//const solutionPath = wasmURL
+	 const solutionPath = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
 	
-	// console.error("loadFaceModel", solutionPath )
+	console.log("loadFaceModel",{options, model, solutionPath, detectPeople} )
 
 	const loadDetector = ()=> {
 
@@ -222,11 +263,12 @@ export const loadFaceModel = async (inputElement, options) => {
 			
 		}	
 	}
-	
+
 	// Load the MediaPipe Facemesh package.
 	const detector = await loadDetector(model, options)
-	//const detector = await load( SupportedPackages.mediapipeFacemesh, options)
-
+	
+	progressCallback && progressCallback(startLoadProgress +  loadRange * (loadIndex++/loadTotal), "Loaded Detector")
+	console.log("Loaded Detector", {detector} )
 
  	// Load Emotion Detection
 	// const emotionModel = await tf.loadLayersModel( 'web/model/facemo.json' )
