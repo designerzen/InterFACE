@@ -112,17 +112,21 @@ export const drawPart = (keypoints, nodeRadius=0, strokeStyle="red", lines=true,
  * @param {Number} fillColour 
  * @param {Number} strokeColour 
  */
-export const drawCircle = (cx,cy, radius, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
+export const drawCircle = (cx,cy, radius=5, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
 	
 	canvasContext.beginPath()
     canvasContext.arc(cx, cy, radius, 0, TWO_PI, true)
     canvasContext.fillStyle = fillColour
     canvasContext.fill()
      
-    // draw the stroke
-    canvasContext.lineWidth = strokeWidth
-    canvasContext.strokeStyle = strokeColour
-    canvasContext.stroke()
+	if (strokeWidth)
+	{
+		// draw the stroke
+		canvasContext.lineWidth = strokeWidth
+		canvasContext.strokeStyle = strokeColour
+		canvasContext.stroke()
+	}
+	canvasContext.closePath()
 }
 
 /**
@@ -155,30 +159,44 @@ export const drawTriangle = ( x1, y1, x2, y2, x3, y3, fill, strokeWidth=1 ) => {
 	canvasContext.stroke()
 }
 
-//////////////////////////////////////////////////////////////////////
-// draw a line with a ball on either end wih optional text
-//////////////////////////////////////////////////////////////////////
-export const drawNode = (pointA, pointB, radius=5, fill="blue") => {
+/**
+ * Highlight a specific node
+ * @param {*} pointA 
+ * @param {*} radius 
+ * @param {*} fill 
+ */
+export const drawNode = (point, radius=5, fill="blue", text='', fontSize="12px", strokeWidth=2 ) => {
 	
-	canvasContext.fillStyle  = fill
+	drawCircle( point.x, point.y, radius, strokeWidth, fill)
 
-	canvasContext.beginPath()
-	canvasContext.arc(pointB.x, pointB.y, radius, 0, TAU)
-	canvasContext.fill()
-	canvasContext.closePath()
+	if (text.length > 0)
+	{
+		drawText( point.x, point.y, text, fontSize )
+	}
+}
 
-	canvasContext.beginPath()
-	canvasContext.arc(pointA.x, pointA.y, radius, 0, TAU)
-	canvasContext.fill()
-	canvasContext.closePath()
+/**
+ * draw a line with a ball on either end
+ * @param {Object} pointA 
+ * @param {Object} pointB 
+ * @param {Number} radius 
+ * @param {Number} fill 
+ */
+export const drawNodes = (pointA, pointB, radius=5, fill="blue", strokeWidth=2 ) => {
+	
+	// first circle
+	drawCircle( pointA.x, pointA.y, radius, strokeWidth, fill)
 
-	canvasContext.beginPath()
-	canvasContext.moveTo(pointA.x, pointA.y)
-	canvasContext.closePath()
-
+	// 2nd circle
+	drawCircle( pointB.x, pointB.y, radius, strokeWidth, fill)
+	
+	// connecting line
+	canvasContext.beginPath()	
 	canvasContext.strokeStyle = PALETTE.orange
-	// canvasContext.fillStyle = PALETTE.orange
+	canvasContext.moveTo(pointA.x, pointA.y)
 	canvasContext.lineTo(pointB.x, pointB.y)
+	canvasContext.stroke()
+	canvasContext.closePath()
 }
 
 //////////////////////////////////////////////////////////////////////
