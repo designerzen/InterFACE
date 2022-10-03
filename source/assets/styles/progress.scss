@@ -14,7 +14,7 @@
 	padding:var(--pad);
 
 	border-radius:18px;
-	border-radius:min( 18px, calc( 999px * var(--progress,0) ) );
+	// border-radius:min( 18px, calc( 999px * var(--progress,0) ) );
 
 	background-image:
 		linear-gradient(
