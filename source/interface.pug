@@ -9,7 +9,7 @@ block header
 		| Contains flashing lights.
 	
 	#load-progress
-		progress(max=1 role="progressbar" aria-describedby="app" tabindex="-1")#progress-bar
+		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar 0%
 		label(for="progress-bar") Please wait, loading takes a very long time!
 		
 block nav
@@ -343,7 +343,7 @@ block dialogs
 			p.learn-more
 				| Learn more from the 
 				a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
-				| or the  
+				|  or the  
 				a.documentation(href="help.pug" target="_blank") Online Documentation
 
 				//- a(href="#app") Let me try

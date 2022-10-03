@@ -1,8 +1,10 @@
 
 const doc = document
 
-let loadMeter = 0
+let loadDestination = 0
+let loadMeter = -1
 let loadMessageIndex = 0
+let loadStartedAt = -1
 
 const LOAD_MESSAGES = [
 	"Please wait, this can take<br>up to 6 minutes to load!", 
@@ -17,46 +19,119 @@ const BE_PATIENT_MESSAGES = [
 	"Loading..."
 ]
 
+// give each message one second to display
+const TOTAL_LOAD_DURATION = LOAD_MESSAGES.length * 1000
+
 const progressMessage = doc.querySelector('label[for="progress-bar"]')
 const progressBar = doc.querySelector('progress')
 
-export const setLoadProgress = (progress, message) => {
+let requestFrame 
+let currentMessage = ''
+let messageChangedAt = Date.now()
 
-	const rounded = parseInt(progress)
-	const percentage = rounded * 100
+const getLoaderMessage = (timeAsProgress) => {
+	return LOAD_MESSAGES[ Math.floor(timeAsProgress * (LOAD_MESSAGES.length-1)) ] || BE_PATIENT_MESSAGES[0]
+}
+
+export const setLoadProgress = (progress, message, complete=false) => {
+
+	const percentage = progress * 100
+	const rounded = parseInt(percentage)
 	const hasProgressed = loadMeter !== rounded
+	const RATE = 1
+	const now = Date.now()
+
+	let text = ''
+
+	// we should store the time
+	if (loadMeter < 0){
+		loadStartedAt = now
+	}
+
+	const timeElapsed = now - loadStartedAt
+	const timeAsProgress = timeElapsed / TOTAL_LOAD_DURATION
+
 	if (hasProgressed)
 	{
-		loadMeter = rounded
+		// animate this...
+		loadMeter = loadMeter < rounded ? 
+						loadMeter + RATE:
+						loadMeter > rounded ? 
+							loadMeter - RATE:
+							loadMeter
+	}else{
+		// complete so dont repeat
+		//loadMeter = rounded
 	}
 	
-	progressBar.parentNode.style.setProperty("--progress", loadMeter )
-	progressBar.setAttribute("value", loadMeter )
+	cancelAnimationFrame( requestFrame )
+	
+	const timeSinceTextChanged = now - messageChangedAt
+	const progressAsPercent = loadMeter * 0.01
 
-	if (rounded === 0 ){
+	progressBar.parentNode.style.setProperty("--progress", progressAsPercent )
+	progressBar.setAttribute("value", progressAsPercent )
 
-		message = LOAD_MESSAGES[ 0 ]	
+	if (complete && !hasProgressed)
+	{
+		progressBar.parentNode.setAttribute("data-loaded", true )
+	}else{
+		progressBar.parentNode.setAttribute("data-loaded", false )
+	}
 
-	} else if (message && message.length) {
+	// check to see if the message has changed
+	if (rounded === 0 ) {
+
+		text = LOAD_MESSAGES[ 0 ]	
+
+	} else if (message && message.length && currentMessage !== message && timeSinceTextChanged < 900 ) {
+		
 		// use message but break lines?
 		// append percentage
-		message += " " + percentage + "%"
-	}else{
-		// get prescripted from list...
-		message = LOAD_MESSAGES[ Math.ceil(progress * (LOAD_MESSAGES.length-1)) ]	
-		message += " " + percentage + "%"
-	}
-	//console.log("load", {progress, message} , Math.ceil(progress * LOAD_MESSAGES.length), LOAD_MESSAGES)
-	
-	if (progressMessage.innerHTML !== message)
-	{
-		// only change label text not the input field too?
-		progressMessage.innerHTML = message
+		text = message
+		messageChangedAt = now
+		// console.log(timeSinceTextChanged, "Setting load message", {currentMessage, message} )
 
-	}else if (hasProgressed){
+	}else if (rounded === 100){
+
+		text = LOAD_MESSAGES[ LOAD_MESSAGES.length - 1 ]	
+
+	}else{
+
+		// get prescripted from list...
+		text = getLoaderMessage(timeAsProgress)
+		messageChangedAt = now
+	}
+
+	if (!text){
+
+	}
+
+	// console.log("loading", {timeSinceTextChanged, timeAsProgress, loadMeter, percentage, rounded, progress, message, text} )
+	
+	text += "<span class='load-percent'>" + rounded + "%</span>"
+	
+	// text += BE_PATIENT_MESSAGES[loadMessageIndex++%(BE_PATIENT_MESSAGES.length-1)]	
+	
+	if (progressMessage.innerHTML !== text)
+	{
+	// 	// only change label text not the input field too?
+	// 	progressMessage.innerHTML = text
+
+	// }else if (hasProgressed){
 
 		// add an extra message if it hasn't actually progressed?
-		progressMessage.innerHTML = message + " " + BE_PATIENT_MESSAGES[loadMessageIndex++%BE_PATIENT_MESSAGES.length-1]	
+		progressMessage.innerHTML = text
+		currentMessage = text
+	}
+
+
+
+	if (hasProgressed)
+	{
+		requestFrame = requestAnimationFrame( ()=>{
+			setLoadProgress(progress, message, complete)
+		})
 	}
 }
 
