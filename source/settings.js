@@ -9,17 +9,19 @@ export const MIDI_ID = "00H 21H 71H"
 
 export const DEFAULT_TENSORFLOW_OPTIONS = {
 	
-	// or 'tfjs' (mediapipe is far smoother)
+	// or 'tfjs' (mediapipe is far smoother and gives us handy annotations)
 	runtime: 'mediapipe', 
+	// runtime: 'tfjs', 
 
 	// location of actual ML model
 	// solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+	//solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
 
 	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
 	maxFaces:1,
 	
 	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
-	shouldLoadIrisModel:true,
+	// shouldLoadIrisModel:true,
 	
 	// Minimum detection Confidence - Threshold for discarding a prediction. 
 	// [0 - 1] for a face to be considered detected
@@ -34,6 +36,14 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 	// scoreThreshold - A threshold for deciding when to remove boxes based on score in non-maximum suppression. Defaults to 0.75. Increase this score in order to reduce false positives (detects fewer faces).
 	// modelUrl - Optional param for specifying a custom facemesh model url or a tf.io.IOHandler object.
 	// irisModelUrl - Optional param for specifying a custom iris model url or a tf.io.IOHandler object.
+
+	// send out normalised bits of face too
+	// NB. this we handle ourselves
+	refineLandmarks: true,
+
+	triangulateMesh: false,
+
+	boundingBox: true,
 }
 
 export const DEFAULT_OPTIONS = {
@@ -41,6 +51,8 @@ export const DEFAULT_OPTIONS = {
 	advancedMode:true,
 	// initially show the settings panel
 	showSettings:false,
+	// overlaid screen keyboard
+	showPiano:false,
 	// play a constant beat
 	metronome:false,
 	// play music at same time
@@ -78,8 +90,12 @@ export const DEFAULT_OPTIONS = {
 	muted:false,
 	// dual person mode (required reload)
 	duet:false,
-	// stereo panning with eyes
+	
+	// FIXME: monophonic?
 	stereo:true,
+
+	// stereo panning with eyes
+	stereoPan:true,
 
 	// midi channel (0/"all" means send to all)
 	midiChannel:"all",
@@ -90,7 +106,7 @@ export const DEFAULT_OPTIONS = {
 	autoHide:!isDevelopmentMode,
 
 	// load a midi track automatically on app start
-	loadMIDIPerformance:isDevelopmentMode,
+	loadMIDIPerformance:false,
 
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio
@@ -207,6 +223,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawMouth:true,
 	// kid mode turns eyes googly!
 	drawEyes:true,
+	// extra controls
+	drawEyebrows:true,
 
 	// ratios of size of eye
 	// white bit

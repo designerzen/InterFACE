@@ -16,6 +16,9 @@ const IS_DEVELOPMENT_MODE = process.env.NODE_ENV === "development"
 const body = document.documentElement
 const debugMode = IS_DEVELOPMENT_MODE || new URLSearchParams(window.location.search).has("debug") 
 
+// 5 minutes
+const LOAD_TIMEOUT = 5 * 60 * 1000
+
 // if on http flip to https and exit
 forceSecure(IS_DEVELOPMENT_MODE)
 
@@ -35,7 +38,16 @@ const showUpgradeDialog = () => {
 	updateButton.setAttribute("hidden", false)
 }
 
+const setTitle = title => {
+	if (document.title !== title)
+	{
+		document.title = title
+	}
+}
+
 const start = () => {
+
+	setLoadProgress(0.5, " ")
 
 	// if we have a specific referer, we can change the options accordingly
 	// allow different domains to show different styles / options / configs
@@ -47,26 +59,62 @@ const start = () => {
 	const defaultOptions = getDomainDefaults( LTD ) 
 	const language = getBrowserLocales()[0]
 	const store = createStore()
+	let startLoadTime = Date.now()
+	let failed = false
 
 	import('./interface.js').then( async ({createInterface}) => {
 
-		let halfLoaded = false
 		const title = document.title
 		try{
-			const application = await createInterface( defaultOptions, store, capabilities, language, (loadProgress, message) => {
-				if (loadProgress === 1)
+			const application = await createInterface( defaultOptions, store, capabilities, language, (loadProgress, message, hideLoader=false) => {
+				
+				if (failed)
 				{
-					if (!halfLoaded)
-					{
-						halfLoaded = true
-						setLoadProgress(0.99, " ")
-					}else{
-						setLoadProgress(1, "Ready!")
-					}
-					document.title = title	
+					// already failed so why show more loading?
+					return
+				}
+
+				if (loadProgress !== 0.5){
+					// reset the timer during the half time show
+					startLoadTime = Date.now()
+				}
+
+				const elapsed = Date.now() - startLoadTime
+				console.log( "Loading", {elapsed, loadProgress, message} ) 
+
+				if (elapsed > LOAD_TIMEOUT)
+				{
+					failed = true
+					setLoadProgress( 
+						0, 
+						"Oh no!",
+						true
+					)
+					showError( "Couldn't load everything", "Occasssionally I fall apart and require a refresh! Sorry!" )
+				}
+				else if (hideLoader)
+				{
+					setLoadProgress( 
+						loadProgress, 
+						"",
+						true
+					)
+					setTitle( title )
+
+				} else if (loadProgress < 1) {
+
+					// const rectifiedProgress = halfLoaded ? loadProgress * 0.5 : 0.5 + loadProgress * 0.5
+					// console.log( "Interface: loaded", {rectifiedProgress} )
+					setLoadProgress( 
+						loadProgress, 
+						message 
+					)
+					setTitle( title + " - " + Math.ceil(loadProgress * 100) +  "%" )
+
 				}else{
-					setLoadProgress( loadProgress, message )
-					document.title = title + " - " + Math.ceil(loadProgress * 100) +  "%"
+
+					setLoadProgress(1, "Ready!", true)
+					setTitle( title )
 				}
 			})
 
@@ -156,6 +204,7 @@ installOrUpdate(debugMode, runningVersion).then( state => {
 	body.classList.toggle( "installable", state.isInstallable )
 	body.classList.toggle( "installed", state.isRunningAsApp )
 	
+
 	if (state.isInstallable)
 	{
 		// hook into button and show...

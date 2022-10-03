@@ -23,15 +23,15 @@
   Start                    |HOLD| Stop
  * 
  *  */ 
-import { rescale, lerp, clamp } from "./maths/maths"
+import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
 // all the different instruments!
 import SampleInstrument from './audio/instruments/instrument.sample'
 import MIDIInstrument from './audio/instruments/instrument.midi'
-import OscillatorInstrument from './audio/instruments/instrument.oscillator'
-import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
-import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
+// import OscillatorInstrument from './audio/instruments/instrument.oscillator'
+// import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
+// import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
 import { instrumentFolders } from './audio/instruments'
@@ -40,7 +40,8 @@ import { setupInstrumentForm } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
 
 import { 
-	drawPart, drawPoints,
+	drawNodes,
+	drawPart, drawPoints, 
 	drawFace, drawFaceMesh,  drawBoundingBox, 
 	drawText, drawParagraph, 
 	drawInstrument
@@ -48,7 +49,7 @@ import {
 
 import { drawMousePressure } from './dom/mouse-pressure'
 import { drawEye } from './visual/2d.eyes'
-import { drawMouth } from './visual/2d.mouth'
+import { drawMouthFromSequence, drawLip, drawMouth } from './visual/2d.mouth'
 import { 
 	EYE_COLOURS,
 	DEFAULT_PERSON_OPTIONS,
@@ -129,6 +130,7 @@ export default class Person{
 
 	lastNoteSound = "-"
 	lastNoteName = "A0"
+	lastNoteFriendlyName = "C-4"
 	lastNoteNumber
 	
 	// default MIDI settings
@@ -291,9 +293,11 @@ export default class Person{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
 
-		// 
+		// allow stereo pannning...
+		// NB. This is actually quite a greedy method
 		if (this.options.stereoPan)
 		{
+			
 			this.stereoNode = audioContext.createStereoPanner()
 			this.stereoNode.connect(this.gainNode)
 			// this.stereoNode.connect(delayNode)
@@ -325,13 +329,14 @@ export default class Person{
 
 		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) )
-		this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
-		this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
-		this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
+		
+		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
+		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
+		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
 		
 		this.activeInstrument = this.samplePlayer
 
-		// create our side bar and instrument selector form
+		// create our side bar and instrument selector for m
 		this.setupForm()
 
 		// fetch dom element
@@ -370,6 +375,7 @@ export default class Person{
 		})
 		this.instrumentLoadedAt = this.now
 		//console.log("Created new person", this, "connecting to", destinationNode )
+
 	}
 	
 	/**
@@ -486,10 +492,12 @@ export default class Person{
 			// overwrite prediction
 		}
 
+		//
 		if (this.isMouseDown)
 		{
 			drawMousePressure( this.mouseHoldProgress, this.options.mouseHoldDuration )
 		}
+
 
 		const {annotations} = prediction
 		const {
@@ -543,6 +551,7 @@ export default class Person{
 			a:1
 		}
 
+
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
 		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
@@ -572,30 +581,6 @@ export default class Person{
 			}
 		}
 
-		// now overlay the mouth
-		if (options.drawMouth)
-		{	
-			const mouthColours = {
-				h:hue,
-				s:options.saturation, 
-				l:options.luminosity,
-				a:1
-			}
-			const mouthColoursClosed = {
-				h:hue,
-				s:options.saturation, 
-				l:20,
-				a:1
-			}
-			// This overlays the mouth and the eyes
-			if (this.isMouthOpen && this.singing)
-			{
-				drawMouth(prediction, mouthColours, this.debug)
-			}else{
-				// mouth closed or not singing
-				drawMouth(prediction, mouthColoursClosed, this.debug)
-			}
-		}
 	
 		// drawBoundingBox( boundingBox )
 
@@ -619,6 +604,89 @@ export default class Person{
 
 			// ?
 			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
+		}
+
+		 
+		// now overlay the mouth
+		if (options.drawMouth)
+		{	
+			const mouthColours = {
+				h:hue,
+				s:options.saturation, 
+				l:options.luminosity,
+				a:1
+			}
+
+			const mouthColoursClosed = {
+				h:hue,
+				s:options.saturation, 
+				l:20,
+				a:1
+			}
+
+			const lipColours = {
+				h:90,
+				s:50, 
+				l:50,
+				a:1
+			}
+
+
+
+			//drawLip( prediction.annotations.lips, {...colour, h:0}, lipPathOuter )
+			// drawMouthFromSequence( prediction.annotations.lips, {...colour }, {...colour, a:0.5}, LIP_PATH_OUTER )
+
+			// drawMouthFromSequence( prediction.annotations.lips, {...colour, h:0}, {...colour, h:0}, LIP_PATH_INNER )
+
+			
+			
+			// // Top inner
+			// drawLip(prediction.annotations.lips, {...colour, h:270}, 30, 40)
+
+
+
+
+			// fake it till you make it
+			// bottom outer lip first
+			//drawLip(prediction.annotations.lips, {...colour, h:0}, 1, 9)
+		
+			//drawLip(prediction.annotations.lips, {...colour, h:0}, 10, 11)
+			
+			// top outer lip
+			//drawLip(prediction.annotations.lips, {...colour, h:90}, 10, 19)
+
+			//drawLip(prediction.annotations.lips, {...colour, h:0}, 10, 11)
+			
+			// drawMouth(prediction.annotations.lips, {...colour, h:90 }, 0, 9)
+			// drawMouth(prediction.annotations.lips, {...colour, h:180 }, 0, 9)
+			// drawMouth(prediction.annotations.lips, {...colour, h:270 }, 0, 9)
+
+
+			// DEBUG
+			// drawNodes( annotations.leftEyeSocket[0], annotations.leftEyeSocket[1] )
+			// drawNodes( annotations.rightEyeSocket[0], annotations.rightEyeSocket[1] )
+			// drawNodes( annotations.headVertical[0], annotations.headVertical[1] )
+
+			// This overlays the mouth and the eyes
+			if (this.isMouthOpen && this.singing)
+			{
+				// Inner
+				drawLip( annotations.innerLip, lipColours, mouthColours )
+			
+				//drawLip(prediction.annotations.lips, {...mouthColours, h:0}, 1, 9)
+
+				// drawMouth(prediction.annotations.lips, {...mouthColours, h:90 }, 0, 9)
+				// drawMouth(prediction.annotations.lips, {...mouthColours, h:180 }, 0, 9)
+				// drawMouth(prediction.annotations.lips, {...mouthColours, h:270 }, 0, 9)
+				
+			}else{
+
+				// Outer
+				drawLip( annotations.outerLip, lipColours, mouthColoursClosed )
+		
+				// mouth closed or not singing
+				// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
+			}
 		}
 
 		// draw silhoette if the user is 
@@ -668,7 +736,7 @@ export default class Person{
 			}
 
 			// Draw the eyes over the face
-			const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
+			const eyeDirection = prediction.eyeDirection
 			drawEye( annotations, true, this.isLeftEyeOpen, eyeDirection, eyeOptions)	
 			eyeOptions.iris = options.rightEyeIris
 			drawEye( annotations, false, this.isRightEyeOpen, eyeDirection, eyeOptions)
@@ -746,25 +814,30 @@ export default class Person{
 			// user is interacting...
 			if (this.isMouseDown && !this.instrumentLoading)
 			{
+			
 				// user is holding mouse down on user...
 				const remaining = 1 - this.mouseHoldProgress
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
 				
+				//console.error("this.isMouseHeld",this.isMouseHeld,{remaining,percentageRemaining} )
+			
+
 				if (this.isMouseHeld)
-				{
+				{	
 					// user is holding mouse down on user...
 					drawInstrument(boundingBox, this.instrumentTitle, 'Select')			
+					
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
-					drawParagraph(boundingBox.topLeft[0], boundingBox.topLeft[1] + 40, [`Press me`], '14px' )
+					drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, [`Press me`], '14px' )
 			
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
-			
 				}else{
+
 					drawInstrument(boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
-					drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)
-					drawParagraph(boundingBox.topLeft[0], boundingBox.topLeft[1] + 40, [`Hold me to see all instruments`], '14px' )
+					drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
+					drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, [`Hold me to see all instruments`], '14px' )		
 				}
 
 			}else{
@@ -801,8 +874,8 @@ export default class Person{
 
 		}else{
 
-			// Main flow
-			const extra = this.debug ? ` ${getFriendlyNoteName( this.lastNoteName) }`  : ` ${getFriendlyNoteName(this.lastNoteName)}`
+			// Main data flow
+			const extra = this.lastNoteFriendlyName 
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `-`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			
@@ -812,18 +885,28 @@ export default class Person{
 			if (this.debug )
 			{
 				const paragraphs = [
+					// `Pitch:${(prediction.pitch||0).toFixed(3)}`, 
+					// `Roll:${(prediction.roll||0).toFixed(3)}`, 
+					// `Yaw:${(prediction.yaw||0).toFixed(3)}`, 
+					`Pitch:${(prediction.pitch||0).toFixed(3)} Roll:${(prediction.roll||0).toFixed(3)} Yaw:${(prediction.yaw||0).toFixed(3)}`,
+					
+					`Eyes: LEFT:${(prediction.leftEyeDirection||0).toFixed(3)} RIGHT:${(prediction.rightEyeDirection||0).toFixed(3)}`,
+					
 					`Gain:${(this.gainNode.gain.value||0).toFixed(2)}`, 
+					
 					`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
 					`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
+					
+					`mouthOpen:${prediction.mouthOpen}`, 
 					`mouthRange:${(prediction.mouthRange||0).toFixed(3)}`, 
 					`mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
-					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)}`, 
-					`mouthOpen:${(prediction.mouthOpen||0).toFixed(3)}`,
-					`pitch:${(prediction.pitch||0).toFixed(3)} roll:${(prediction.roll||0).toFixed(3)} yaw:${(prediction.yaw||0).toFixed(3)}`,
+					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
+					
 					`eyes direction:${(prediction.eyeDirection||0).toFixed(3)} left:${(prediction.leftEye||0).toFixed(3)} right:${(prediction.rightEye||0).toFixed(3)}`,
 					`eyes open :${this.areEyesOpen} left:${!prediction.leftEyeClosed} right:${!prediction.rightEyeClosed}`,
-					`eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
-					`dims:${(prediction.mouthWidth||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
+					
+					// `eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
+					// `dims:${(prediction.mouthRatio||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
 					'facing'+prediction.lookingRight ? 'left' : 'right'
 				]
 
@@ -831,12 +914,15 @@ export default class Person{
 				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
 			}
 		}
+
+
 	}
 
 	/**
 	 * Sing some songs
 	 * state machine diagram :
 	 * SILENT ATTACK SUSTAIN PITCH_BEND SUSTAIN DECAY RELEASE
+	 * This is responsible for converting the Face Model into music
 	 */
 	sing(){
 
@@ -856,72 +942,78 @@ export default class Person{
 		const prediction = this.data
 		const options = this.options
 		
-		// you want the scale to be from 0-1 but from 03-1
-		let newVolume
-		let note = -1
-		
 		// do some checks on data to see if an event
 		// should be triggered such as eye left / right
 
 		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = prediction.mouthOpen
+		const lipPercentage = prediction.mouthRatio
 		
 		// Controls minor / major
 		const yaw = prediction.yaw
 		
 		// Octave control by up and down head
-		const pitchRaw = clamp(0.5 * (prediction.pitch + 1) * this.options.pitchSensitivity, 0, 1)
+		// const pitchRaw = clamp(0.5 * (prediction.pitch + 1) * this.options.pitchSensitivity, 0, 1)
 		// const pitch = (prediction.pitch + 1 ) / 2
 		
 		// -1 => +1 -> convert to 
 		// ignore < -0.5 and > 0.5
 		// we can exagerate a motion by amplyifying it's signal and clamping its output
-		const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
+		//const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
 		
 		// swap em arounnd!
-		const pitch = this.options.swapControls ? rollRaw : pitchRaw
-		const roll = this.options.swapControls ? pitchRaw : rollRaw
+		const pitch = this.options.swapControls ? prediction.roll : prediction.pitch
+		const roll = this.options.swapControls ? prediction.pitch : prediction.roll
+
+		// remap -1 -> +1 to 0 -> 1
+		const rolled = (1 + roll) * 0.5 
 
 		// Controls stereo pan
-		const eyeDirection = clamp(prediction.eyeDirection , -1, 1 )  // (prediction.eyeDirection + 1)/ 2
+		const eyeDirection = prediction.eyeDirection
 
 		// volume is an log of this
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
 		// const logAmp = options.ease(amp)
-		const newOctave = clamp( Math.round(pitch * 7) ,1,7)
-
+		
+		// pitch goes from -1 -> +1 and we want to map to 1 -> 7
+		// straight at screen to positive below and negative above
+		const newOctave = rangeRounded( -pitch , -1, 1, 1, 7 )
+		
 		// FIXME: if we don't want the happy notes...
-		// we can flip this on somehow?
-		const isMinor = prediction.lookingRight
+		const isMinor = prediction.isFacingRight
 
 		// eg. A1 Ab1 C3 etc
-		const noteName = getNoteName(roll, newOctave, isMinor)
+		const noteName = getNoteName(rolled, newOctave, isMinor)
 		// eg. Do Re Mi
-		const noteSound = getNoteSound(roll, isMinor)
+		const noteSound = getNoteSound(rolled, isMinor)
 		// MIDI Note Number 0-127
 		const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
 		
+		const friendlyNoteName = getFriendlyNoteName( noteName ) 
 		const hasNoteChanged = this.lastNoteName !== noteName
 
+		// you want the scale to be from 0-1 but from 03-1
+		let newVolume = amp
+		let note = -1
+		
+	
 		// cache for drawing getNoteText
 		this.lastNoteName = noteName
 		this.lastNoteSound = noteSound
 		this.lastNoteNumber = noteNumberForMIDI
+		this.lastNoteFriendlyName = friendlyNoteName
+		this.octave = newOctave
 
 		this.hue = roll * this.hueRange
 		this.saturation = 100 * lipPercentage
 		this.singing = amp >= options.mouthCutOff
 
-		// FIXME: octave needs to be up or down from existing?
-		// FIXME: Shouldn't need clamp but pitch is over 1??
-		this.octave = newOctave
 
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 		if (this.options.stereoPan)
 		{
 			//FIXME:
-			this.stereoNode.pan.value = isFinite(eyeDirection ) ? eyeDirection : 0
+			this.stereoNode.pan.value = eyeDirection
 			//console.log("stereoNode", this.stereoNode.pan.value, eyeDirection )
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
@@ -956,9 +1048,9 @@ export default class Person{
 			}
 			
 			// rescale for 0.3->1
-			newVolume = this.mouthScale( amp )
+			// newVolume = this.mouthScale( amp )
 			// curve
-			newVolume = options.ease(newVolume)
+			// newVolume = options.ease(newVolume)
 			// smooth
 			newVolume = Math.round( newVolume * this.precision ) / this.precision 
 			
@@ -1063,6 +1155,9 @@ export default class Person{
 				//console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
 			}		
 		}
+		//console.log("Singing", {newOctave, newVolume, amp,isMinor, noteName, friendlyNoteName, noteSound, noteNumberForMIDI, lipPercentage, pitch, roll, rolled, eyeDirection, hasNoteChanged })
+
+
 		
 		// smooth this down
 		// try and smooth the volume if it is fading out...
@@ -1081,6 +1176,7 @@ export default class Person{
 		//console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
 		
 		this.gainNode.gain.value = newVolume
+
 		this.yaw = yaw
 		this.pitch = pitch
 		this.roll = roll
@@ -1093,8 +1189,9 @@ export default class Person{
 			lipPercentage,
 			eyeDirection,
 			octave:newOctave,
+			friendlyNoteName,
 			note,
-			noteNumber:noteNumberForMIDI,
+			noteNumberForMIDI,
 			noteName,
 			volume:newVolume,
 			singing:this.singing,
@@ -1295,7 +1392,7 @@ export default class Person{
 			this.controls.focus()
 		}
 
-		//console.log("Form", {active})
+		console.log("SHOW Form", {active})
 		this.controls.classList.toggle("showing",true)
 		document.documentElement.classList.toggle(`${this.name}-sidebar-showing`,true)
 		this.isFormShowing = true
@@ -1307,6 +1404,7 @@ export default class Person{
 	hideForm(){
 		if (this.isFormShowing)
 		{
+			console.log("HIDE Form")
 			this.isFormShowing = false
 			//const inputs = this.controls.querySelectorAll('input')
 			//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))

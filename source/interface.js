@@ -15,8 +15,7 @@ import {
 	bufferLength, dataArray, 
 	getVolume, setVolume } from './audio/audio'
 
-import { 
-	getRandomInstrument, createInstruments, loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
+import { getRandomInstrument, createInstruments, loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
 import { createWaveform } from './audio/waveform'
@@ -25,7 +24,6 @@ import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file'
 // import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
 import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-create'
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
-import {getMIDINoteNumberAsName} from './audio/notes'
 
 // Different ways of playing sound!
 import SampleInstrument from './audio/instruments/instrument.sample'
@@ -53,7 +51,7 @@ import {
 	controlPanel,
 	updateTempo,
 	showPlayerSelector, 
-	video,isVideoVisible,toggleVideoVisiblity,  
+	video, isVideoVisible, toggleVideoVisiblity,  
 	setupCameraForm, setupInterface,
 	toggleVisibility,
 	focusApp
@@ -78,7 +76,7 @@ import {
 
 import MusicalKeyboard from './visual/2d.keyboard'
 
-import {drawMousePressure} from './dom/mouse-pressure'
+import { drawMousePressure } from './dom/mouse-pressure'
 import { setupImage } from './visual/image'
 import { setNodeCount } from './visual/2d'
 import { drawWaves, drawBars } from './visual/spectrograms'
@@ -135,7 +133,7 @@ export const createInterface = (
 	store, 
 	capabilities,
 	language = "en-GB",
-	onLoadProgress
+	onLoadProgress = null
 
 ) => new Promise( (resolve,reject) => {
 
@@ -216,6 +214,17 @@ export const createInterface = (
 	let recordRequested = false
 	let recordCancelRequested = false
 
+
+	const showLoading = () => {
+		body.classList.toggle("loading", true)
+		main.setAttribute("aria-busy", true)
+	}
+
+	const hideLoading = () => {
+		// hide loading screen temporarily
+		body.classList.toggle("loading", false)
+		main.setAttribute("aria-busy", false)
+	}
 
 	// TODO : video or canvas copy
 	// should canvas be transparent to let video bleed through?#
@@ -985,7 +994,7 @@ export const createInterface = (
 	}
 
 
-	// TODO:
+	// TODO: randomise the drum beat
 	const changeDrumPattern = () => {
 
 	}
@@ -997,23 +1006,24 @@ export const createInterface = (
 	 */
 	const playPersonAudio = ( person ) => {
 		
+		// yaw, pitch, lipPercentage, eyeDirection
+		const stuff = person.sing()
+		
 		// no instruments set in Person - exit now
 		if( !person.instrument )
 		{
 			return stuff
 		}
 
-		// yaw, pitch, lipPercentage, eyeDirection
-		const stuff = person.sing()
-		
 		let noteName = stuff.noteName
-		let noteNumber = stuff.noteNumber
+		let noteNumber = stuff.noteNumberForMIDI
 		let note = stuff.note
 		let noteVelocity = stuff.volume
+		let noteFriendlyName = stuff.friendlyNoteName
 
 		// we can have some fun here and inercept the output
 		// and replace them with MIDI performance commands :P
-		if (midiPerformance && person.singing)
+		if ( midiPerformance && person.singing)
 		{
 			const command = midiPerformance.getNextNoteOnCommand()
 			if (command)
@@ -1058,21 +1068,34 @@ export const createInterface = (
 			//console.log("Person:sing", { stuff,noteName,note})
 		}
 
+		
+
 		// instrument exists but no note with that name exists	
 		// NB. probably still loading...	
 		if (!person.instrument[ noteName ])
 		{
+			console.warn("SING Exit as no instrument with that name exists",noteName)
 			return stuff
 		}
-
+		
 		// Make the Person SING!
 		person.instruments.forEach( instrument => {
 
+			//console.log("Attempting to sing",instrument.type, person.state)
+			
 			// if (instrument.type !== "oscillator"){
-			if (instrument.type !== "waveguide"){
+			// if (instrument.type !== "waveguide"){
+			// only check for one at a time
+			// if (instrument.type !== "oscillator" || instrument.type !== "yoshimi"){
+			// if ( instrument.type !== "yoshimi"){
+			// 	return
+			// }
+			if ( instrument.type !== "sample"){
 				return
 			}
 
+		
+			//console.error("SINGING!!!", person.state)
 			// FIXME: Don't play the audio directly in Person
 			// but instead extract it and pass it to the audioBus
 			// stuff.played is an array of notes
@@ -1090,47 +1113,55 @@ export const createInterface = (
 						const previously = instrument.noteOff( person.lastNoteNumber )
 					}
 					const latest = instrument.noteOn( noteNumber, noteVelocity )
+					
+					console.log("Attempting to sing",instrument.type, person.state)
 					//console.log("Person", p, person.state, person, {instrument, noteNumber, noteVelocity} )
 					break
 
 				case STATE_INSTRUMENT_DECAY:
 					break
 
-				case STATE_INSTRUMENT_RELEASE:
-					instrument.noteOff( noteNumber )
-					break
+				// case STATE_INSTRUMENT_RELEASE:
+				// 	instrument.noteOff( noteNumber )
+				// 	break
 
 				case STATE_INSTRUMENT_SILENT:
 				default:
 					instrument.noteOff( noteNumber )
+					console.log("Attempting to mute",instrument.type, person.state)
+			
 			}
 		})
 
-		// Update visual elements
-		switch(person.state)
+		if (ui.showPiano)
 		{
-			case STATE_INSTRUMENT_SILENT:
-				musicalKeyboard.noteOff( noteNumber, noteVelocity )
-				break
+			// Update visual elements
+			switch(person.state)
+			{
+				case STATE_INSTRUMENT_SILENT:
+					musicalKeyboard.noteOff( noteNumber, noteVelocity )
+					break
 
-			case STATE_INSTRUMENT_ATTACK:
-				musicalKeyboard.noteOn( noteNumber, noteVelocity )
-				break
+				case STATE_INSTRUMENT_ATTACK:
+					musicalKeyboard.noteOn( noteNumber, noteVelocity )
+					break
 
-			case STATE_INSTRUMENT_SUSTAIN:
-				musicalKeyboard.noteOn( noteNumber, noteVelocity )
-				break
+				case STATE_INSTRUMENT_SUSTAIN:
+					musicalKeyboard.noteOn( noteNumber, noteVelocity )
+					break
 
-			case STATE_INSTRUMENT_PITCH_BEND:
-				break
+				case STATE_INSTRUMENT_PITCH_BEND:
+					break
 
-			case STATE_INSTRUMENT_DECAY:
-				break
+				case STATE_INSTRUMENT_DECAY:
+					break
 
-			case STATE_INSTRUMENT_RELEASE:
-				musicalKeyboard.noteOff( noteNumber, noteVelocity )
-				break
+				case STATE_INSTRUMENT_RELEASE:
+					musicalKeyboard.noteOff( noteNumber, noteVelocity )
+					break
+			}	
 		}
+		
 
 		//const personalSamplePlayer = person.samplePlayer
 
@@ -1546,9 +1577,12 @@ export const createInterface = (
 		canvas.width = inputElement.width
 		canvas.height = inputElement.height
 
-		// this draws a 2d keyboard on screen at the specified position and dimensions
-		musicalKeyboard = new MusicalKeyboard( 500, 120, 8 )
-
+		if (ui.showPiano)
+		{
+			// this draws a 2d keyboard on screen at the specified position and dimensions
+			musicalKeyboard = new MusicalKeyboard( 500, 120, 8 )
+		}
+		
 		// Create a new sample player to handle sound playback
 		samplePlayer = new SampleInstrument(audioContext, audio, {})
 		
@@ -1692,7 +1726,7 @@ export const createInterface = (
 						const person = getPerson(i)
 					
 						// face available!
-						if (prediction && prediction.faceInViewConfidence > 0.9)
+						if (prediction)
 						{
 							//if (!act)
 							//main.classList.toggle("active", true)
@@ -1743,7 +1777,7 @@ export const createInterface = (
 							const stuff = playPersonAudio( person )
 						
 							// stuff.eyeDirection
-							if (i===0)
+							if (ui.disco && i===0)
 							{
 								// stuff.eyeDirection
 								// use person 1's eyes to control other stuff too?
@@ -2003,7 +2037,7 @@ export const createInterface = (
 		let loadIndex = 0
 		
 		// TODO: test of loading external scripts sequentially...
-		progressCallback(loadIndex++/loadTotal, "Loading Brains")
+		progressCallback(loadIndex++/loadTotal, "Loading...")
 
 		// pick the body parts...
 		let loadModel
@@ -2021,6 +2055,8 @@ export const createInterface = (
 				loadModel = loadFaceModel
 				progressCallback(loadIndex++/loadTotal, "Loaded Face Brain" )
 		}
+
+
 
 		// set up the instrument selctor etc
 		setupInterface( ui )
@@ -2326,7 +2362,9 @@ export const createInterface = (
 		
 		// Load tf model and wait
 		// this gets returned then used an the update method
-		return loadModel(inputElement, settings)
+		// canvasContext || 
+		const elementToAnalyse = inputElement
+		return loadModel(elementToAnalyse, settings, progressCallback)
 	}
 
 	// We avoid setting feedback until part 2 of loading...
@@ -2339,6 +2377,7 @@ export const createInterface = (
 	 */
 	let extrasLoaded = false
 	const loadExtras = async ()=> {
+
 		if (extrasLoaded)
 		{
 			return
@@ -2352,7 +2391,7 @@ export const createInterface = (
 			body.classList.add("sharing-enabled")
 		}catch(error){
 			// disable the share menu...
-			
+			body.classList.add("sharing-disabled")
 		}
 	}
 
@@ -2368,8 +2407,8 @@ export const createInterface = (
 
 			if (ultimateFailure)
 			{
+				hideLoading()
 				body.classList.add("failure")
-				body.classList.remove("loading")
 				// LOAD CANCELLED FATAL ERROR
 			}else{
 				onLoaded()
@@ -2377,34 +2416,47 @@ export const createInterface = (
 		}
 	}
 
-	const onLoaded = async () => {
+	/**
+	 * looking for a face to figure out...
+	 * wait for the user - show some visual cues via classes
+	 * change this depending on whether a face is detected
+	 * just wait until a user is found - this is subroutine that causes
+	 * no music or SPECIAL effects but can be used to guide the users
+	 */
+	const lookForUser = () => {
 
-		// just wait until a user is found
-		const lookForUser = () => {
-
+		const SEARCHING_FOR_USERS_CLASS = "searching-for-user"
+		const waitForUser = () => {
 			if (!userLocated)
 			{
-				// change this depending on whether a face is detected
-				requestAnimationFrame( lookForUser ) 
+				requestAnimationFrame( waitForUser ) 
+
 			}else{
+
 				// change this depending on whether a face is detected
 				speak("Hello! Open your mouth to begin!")
-				body.classList.toggle("searching-for-user", false)
+				
+				body.classList.toggle(SEARCHING_FOR_USERS_CLASS, false)
 				// may as well create a user?
 				return getPerson(0)
-			}
+			}	
 		}
+		
+		body.classList.toggle(SEARCHING_FOR_USERS_CLASS, true)
+		waitForUser()
+	}
+	
+	/**
+	 * Loading COMPLETED
+	 */
+	const onLoaded = async () => {
 
 		body.classList.toggle("loading", false)
-
 		body.classList.toggle("loaded", true)
+		main.setAttribute("aria-busy", false)
 		
 		// monitor keyboard events
 		registerKeyboard()
-		
-		// looking...
-		// wait for the user - show some visual cues?
-		body.classList.toggle("searching-for-user", true)
 		
 		speak("I am looking for your face")
 		
@@ -2412,7 +2464,7 @@ export const createInterface = (
 		const user = await lookForUser()
 
 		// focus app?
-		onLoadProgress && onLoadProgress(1,"complete")
+		onLoadProgress && onLoadProgress(1,"complete", true)
 		
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
@@ -2473,8 +2525,7 @@ export const createInterface = (
 		setFeedback("")
 		setToast("")
 
-		// hide loading screen temporarily
-		body.classList.toggle("loading", false)
+		hideLoading()
 
 		const results = await showPlayerSelector(options)
 		
@@ -2488,8 +2539,7 @@ export const createInterface = (
 		setToast( "" )
 		
 		// continue loading...
-		body.classList.toggle("loading", true)
-
+		showLoading()
 		return results
 	}
 
@@ -2502,17 +2552,26 @@ export const createInterface = (
 	
 	let havePlayersBeenSelected = false
 
+	// NB. To allow this to happen at the same time...
 	// we show selection screen while stuff loads in background
 	showPlayerSelectionScreen().then( r=>{ 
 		havePlayersBeenSelected = true 
 	})
 
 	// now load dependencies and show progress
-	load(options, (progress, message) => {
+	const ML = load(options, (progress, message) => {
 		
-		onLoadProgress && onLoadProgress(progress, message)
+		// console.log("waiting for havePlayersBeenSelected?", havePlayersBeenSelected)
+
+		console.log("Interface:load -> onLoadProgress", {progress, message })
+
+		onLoadProgress && onLoadProgress(progress / 2, message)
 
 	}).then( async update =>{ 
+
+		console.log( "Interface:half loaded" )
+
+		onLoadProgress && onLoadProgress(0.45, "Models available", true)
 
 		// we can sneakily back ground load in some data
 		// whilst the user hits the button!
@@ -2522,24 +2581,37 @@ export const createInterface = (
 		// attempt to get player quantity and mouse event in one
 		// wait here until havePlayersBeenSelected = true
 		await ( new Promise( resolve =>{
-			const wait = a => havePlayersBeenSelected ? resolve(true) : requestAnimationFrame( wait )
+			const wait = a => {
+				//console.log("waiting for havePlayersBeenSelected", havePlayersBeenSelected)
+				if (havePlayersBeenSelected)
+				{
+					console.log( "Interface:Players selected" , onLoadProgress )
+					onLoadProgress && onLoadProgress( 0.5, "Players Selected", false)
+					resolve(true)
+				} else{
+					requestAnimationFrame( wait )
+				} 
+			}
 			wait()
 		}) ) 
 
-		
+		//console.log("loading model havePlayersBeenSelected")
+
 		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
 		// set up some extra options from query strings
 		// any custom overrides (shouldn't be needed : use query strings)
 		const startApp = await setup( update, options, (progress,message) => {
 			
-			// console.log("Loading B Side", progress )
-			onLoadProgress && onLoadProgress(progress, message)
+			console.log("Loading B Side", progress )
+			onLoadProgress && onLoadProgress(0.5 + progress/2, message, false)
 		})
 
 		return startApp
 
 	}).then( startPhotoSYNTH => {
+
+		//onLoadProgress && onLoadProgress(1, "", true)
 	
 		// let's launch it after it has resolved...
 		startPhotoSYNTH()
@@ -2567,6 +2639,7 @@ export const createInterface = (
 					ui.autoHide && body.classList.toggle("user-inactive", true)
 					userActive = false
 				}
+				// , timeout
 			)
 		}
 
