@@ -1,3 +1,11 @@
+/**
+ * Having written this numerous times here are some
+ * notes for next time around.
+ * 
+ * There are MORE MIDI notes than SAMPLES
+ * so we have to restrict the octaves from 1-9 to 1-7
+ * 
+ */
 
 import {clamp} from "../maths/maths"
 import { memoize } from "../utils"
@@ -20,12 +28,26 @@ export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
 // MIDI conversion stuff
 const NOTE_NAME_MAP = {}
 const NOTE_FRIENDLY_NAME_MAP = {}
-const TEST_MAP = {}
 
 const MIDI_NOTE_NUMBER_MAP = []
 const MIDI_NOTE_NUMBERS = []
 const MIDI_NOTE_NAMES = []
+const MIDI_NOTE_FRIENDLY_NAMES = []
+
+const MIDI_NOTE_FREQUENCIES = []
 const GENERAL_MIDI_INSTRUMENTS = []
+
+
+/**
+ * Convert a MIDI Note Number into a frequency in hertz
+ * @param {Number} note 
+ * @returns {Number}
+ */
+ export const noteNumberToFrequency = (note) => {
+	const c = (note - 69) / 12
+	return 440 * c * c
+}
+
 
 /**
  * returns a note name from an index and offset
@@ -41,6 +63,7 @@ const getNoteFromBank = (index=0, offset=0) => {
 /**
  * The instruments are all named the same way and this method
  * creates the data model
+ * 
  * @param {String} fileType - audio file type (wav, ogg or mp3)
  * @param {String} dot - delimiter before file type
  * @returns {String} Array containing the following strings...
@@ -74,6 +97,7 @@ export const createInstrumentBanks = (fileType="mp3", dot=".")=>{
 	}
 	return bank
 }
+
 const extractKeyAndOctave = note => {
 	const key = note.charAt(0)
 	const octave = parseInt( note.charAt( note.length - 1 ) ) // + 1
@@ -83,45 +107,53 @@ const extractKeyAndOctave = note => {
 }
 
 const friendly = note => {
+	
 	const {key, octave} = extractKeyAndOctave(note)
 	note = note.replace( octave, `-${octave}` )
 	note = note.replace("b","#")
+
 	return note
 }
 
-
+// This is a A0-7 / Ab1-7 / B0-7 / Bb1-Bb7 / C1-C8 / D1-7 / Db1-7 / E1-7 / Eb1-7 / F1-7 / G1-7 / Gb1-7
 export const NOTE_NAMES = createInstrumentBanks('','')
 
 // for each name we do a clever thing innit...
 const NOTE_NAMES_FRIENDLY = NOTE_NAMES.map( note => friendly(note) )
 
-
 // NB. We only have instruments for the GM Range so 
 //		all MIDI numbers below 21 should be ignored really!
 for(let noteNumber = 0; noteNumber < 127; noteNumber++) 
 {
+	// const noteName = NOTE_NAMES[noteNumber]
+
 	// MIDI scale starts at octave = -1
 	const octave = ((noteNumber / NOTE_RANGE) | 0) - 1
+	// Determine which key it is from the number?
 	const key = getNoteFromBank(noteNumber % NOTE_RANGE, 4)
+
 	const midiNoteName = `${key}${octave}`
+	const friendlyName = friendly(midiNoteName)
 
+	//console.log( noteNumber, "note", { midiNoteName, friendlyName, octave, key })
 
-	NOTE_FRIENDLY_NAME_MAP[midiNoteName] = NOTE_NAMES_FRIENDLY[noteNumber]
-
+	NOTE_FRIENDLY_NAME_MAP[midiNoteName] = friendlyName
 	NOTE_NAME_MAP[midiNoteName] = noteNumber
 
-	MIDI_NOTE_NUMBERS[noteNumber] = midiNoteName
+	// MIDI_NOTE_NUMBERS[noteNumber] = midiNoteName
 	MIDI_NOTE_NAMES[noteNumber] = midiNoteName
+	MIDI_NOTE_FRIENDLY_NAMES[noteNumber] = friendlyName
 	MIDI_NOTE_NUMBER_MAP[noteNumber] = {octave,key}
 
-	// ensure that it exists in our super array...
+	MIDI_NOTE_FREQUENCIES[noteNumber] = noteNumberToFrequency(noteNumber)
+
+	// console.log(noteNumber, "Converting", {noteName, octave, key, midiNoteName, friendlyName })
+
+	// // ensure that it exists in our super array...
 	const hasSample = NOTE_NAMES.indexOf(midiNoteName) > -1
 	GENERAL_MIDI_INSTRUMENTS[noteNumber] = hasSample ? midiNoteName : `UNKNOWN`
 }
 
-// console.error("MIDI", { NOTE_NAME_MAP })
-// // console.error("MIDI", { NOTES_ALPHABETICAL, CHROMATIC, CONVERSION_NOTES, MIDI_NOTE_NUMBERS, MIDI_CONVERTOR })
-// console.error({GENERAL_MIDI_INSTRUMENTS, NOTES_ALPHABETICAL, MIDI_NOTE_NUMBERS, MIDI_NOTE_NUMBER_MAP, NOTE_NAME_MAP, NOTE_NAMES,NOTE_FRIENDLY_NAME_MAP, NOTE_NAMES_FRIENDLY})
 
 
 // export const getNoteText = noteName => {
@@ -141,7 +173,7 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 /**
  * what percentage of an octave results in
  * which musical notes
- * @param {*} percent 
+ * @param {Number} percent 
  * @param {Number} octave - octaves 1-7
  * @param {Boolean} isMinor 
  * @returns A1 Ab1 etc
@@ -180,7 +212,7 @@ export const getNoteName = (percent, octave=3, isMinor=false) => {
 
 /**
  * return the relevent do re me fah so lat ti
- * @param {*} percent 
+ * @param {Number} percent 
  * @param {*} isMinor 
  * @returns 
  */
@@ -188,6 +220,7 @@ export const getNoteSound = (percent, isMinor=false) => SOLFEGE_SCALE[ Math.floo
 
 // Pass in A0 get out the equivalent friendly name
 export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] || noteName
+
 
 /**
  * Get the note name (in scientific notation) of the given midi number
@@ -205,18 +238,47 @@ export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] 
  */
 export const convertNoteNameToMIDINoteNumber = name => NOTE_NAME_MAP[name]
 
+/**
+ * 
+ * @param {*} note 
+ * @returns 
+ */
 export const convertMIDINoteNumberToName = note => GENERAL_MIDI_INSTRUMENTS[note]
 
-export const noteNumberToFrequency = (note) => {
-	const c = (note - 69) / 12
-	return 440 * c * c
-}
-
+/**
+ * 
+ */
 export const noteNumberToFrequencyFast = memoize(noteNumberToFrequency)
 
 
 const L = Math.log(2)
+
+/**
+ * 
+ * @param {*} f 
+ * @returns 
+ */
 export const frequencyToNoteNumber = (f) => {
 	const log = Math.log(f / 440) / L
 	return Math.round(12 * log + 69)
 }
+
+
+// MIDI_NOTE_NAMES.forEach( note => 
+// 	console.error("convertNoteNameToMIDINoteNumber", note, convertNoteNameToMIDINoteNumber(note) , {NOTE_NAMES, NOTE_NAME_MAP, MIDI_NOTE_NAMES} ) 
+// )
+
+// console.error("NOTE_NAMES", NOTE_NAMES )
+// console.error("NOTE_NAMES_FRIENDLY", NOTE_NAMES_FRIENDLY )
+
+// console.error("MIDI_NOTE_NAMES", MIDI_NOTE_NAMES )
+
+// // console.error("MIDI_NOTE_FREQUENCIES", MIDI_NOTE_FREQUENCIES )
+
+// console.error("MIDI_NOTE_NUMBERS", MIDI_NOTE_NUMBERS )
+// console.error("NOTE_FRIENDLY_NAME_MAP", NOTE_FRIENDLY_NAME_MAP )
+// console.error("MIDI_NOTE_FRIENDLY_NAMES", MIDI_NOTE_FRIENDLY_NAMES )
+// console.error("MIDI_NOTE_NUMBER_MAP", MIDI_NOTE_NUMBER_MAP )
+// console.error("NOTE_NAME_MAP", NOTE_NAME_MAP  )
+// console.error("MIDI", { NOTES_ALPHABETICAL, CHROMATIC, CONVERSION_NOTES, MIDI_NOTE_NUMBERS, MIDI_CONVERTOR })
+// console.error({GENERAL_MIDI_INSTRUMENTS, NOTES_ALPHABETICAL, MIDI_NOTE_NUMBERS, MIDI_NOTE_NUMBER_MAP, NOTE_NAME_MAP, NOTE_NAMES,NOTE_FRIENDLY_NAME_MAP, NOTE_NAMES_FRIENDLY})
