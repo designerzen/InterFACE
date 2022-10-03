@@ -72,7 +72,7 @@ export const isAvailable = () => isCompatible
  * Accurate time in milliseconds
  * @returns {Number} The current time as of now
  */
-export const now = () => audioContext.currentTime
+export const now = () => audioContext ? audioContext.currentTime : Date.now()
 
 /**
  * Amount of time elapsed since startTimer() in seconds
