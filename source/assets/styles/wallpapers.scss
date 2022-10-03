@@ -32,11 +32,15 @@ html{
 
 html.loading{
 
-	--col-bg:#{$col-white};
+	--scroll-x:60px;
+	--scroll-y:80px;
+	--col-bg:var(--shade-dark);
 	background-image: 	url($bg-url-grid);
-	background-size:var(--scroll-x);
+	background-image: url(./assets/logos/photosynth.svg);
+	background-size:var(--scroll-x) var(--scroll-y);
 	background-repeat:repeat;
 
+	background-blend-mode: screen;
 	// mix-blend-mode: darken;
 	// mix-blend-mode: difference;
 	// mix-blend-mode: exclusion;
