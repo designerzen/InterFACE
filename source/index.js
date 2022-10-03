@@ -80,7 +80,7 @@ const start = () => {
 				}
 
 				const elapsed = Date.now() - startLoadTime
-				console.log( "Loading", {elapsed, loadProgress, message} ) 
+				//console.log( "Loading", {elapsed, loadProgress, message} ) 
 
 				if (elapsed > LOAD_TIMEOUT)
 				{

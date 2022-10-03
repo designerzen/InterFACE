@@ -145,8 +145,6 @@ export const LIP_PATH_INNER = [
 	40,39,38,37,36,35,34,33,32,31,30
 ]
 
-console.error( {FACE_CONTOURS} )
-
 /**
  * TODO: Implement a cache of eyes so that we can learn on the go
  * @param {Object} prediction - ML TF model

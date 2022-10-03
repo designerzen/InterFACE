@@ -481,14 +481,9 @@ export const createInterface = (
 	 */
 	const getPerson = (index) => {
 		
-		
 		if (people[index] == undefined)
 		{
-			console.error("getPerson", index, people)
-
 			const person = createPerson( NAMES[index] ,EYE_COLOURS[index], index )
-			console.error("getPerson", person )
-
 			people.push( person )
 			return person
 		} else{
@@ -1114,7 +1109,7 @@ export const createInterface = (
 					}
 					const latest = instrument.noteOn( noteNumber, noteVelocity )
 					
-					console.log("Attempting to sing",instrument.type, person.state)
+					//console.log("Attempting to sing",instrument.type, person.state)
 					//console.log("Person", p, person.state, person, {instrument, noteNumber, noteVelocity} )
 					break
 
@@ -1128,7 +1123,7 @@ export const createInterface = (
 				case STATE_INSTRUMENT_SILENT:
 				default:
 					instrument.noteOff( noteNumber )
-					console.log("Attempting to mute",instrument.type, person.state)
+					//console.log("Attempting to mute",instrument.type, person.state)
 			
 			}
 		})
@@ -2563,13 +2558,13 @@ export const createInterface = (
 		
 		// console.log("waiting for havePlayersBeenSelected?", havePlayersBeenSelected)
 
-		console.log("Interface:load -> onLoadProgress", {progress, message })
+		//console.log("Interface:load -> onLoadProgress", {progress, message })
 
 		onLoadProgress && onLoadProgress(progress / 2, message)
 
 	}).then( async update =>{ 
 
-		console.log( "Interface:half loaded" )
+		//console.log( "Interface:half loaded" )
 
 		onLoadProgress && onLoadProgress(0.45, "Models available", true)
 
@@ -2585,7 +2580,7 @@ export const createInterface = (
 				//console.log("waiting for havePlayersBeenSelected", havePlayersBeenSelected)
 				if (havePlayersBeenSelected)
 				{
-					console.log( "Interface:Players selected" , onLoadProgress )
+					//console.log( "Interface:Players selected" , onLoadProgress )
 					onLoadProgress && onLoadProgress( 0.5, "Players Selected", false)
 					resolve(true)
 				} else{
@@ -2603,7 +2598,7 @@ export const createInterface = (
 		// any custom overrides (shouldn't be needed : use query strings)
 		const startApp = await setup( update, options, (progress,message) => {
 			
-			console.log("Loading B Side", progress )
+			//console.log("Loading B Side", progress )
 			onLoadProgress && onLoadProgress(0.5 + progress/2, message, false)
 		})
 

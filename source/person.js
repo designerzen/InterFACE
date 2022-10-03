@@ -342,6 +342,7 @@ export default class Person{
 		// fetch dom element
 		this.button = document.getElementById(name)
 		this.button.addEventListener( 'mousedown', event => {
+			//console.log("mousedown:currentTime",  audioContext.currentTime )
 			this.mouseDownAt = audioContext.currentTime
 			drawMousePressure( 0, this.options.mouseHoldDuration )
 			event.preventDefault()
@@ -351,12 +352,15 @@ export default class Person{
 		this.button.addEventListener( 'mouseup', event => {
 			// should this trigger something else depending on time?
 			// const elapsed = this.mouseDownFor
-			//console.log("mouseDownFor", elapsed )
+			
+			//console.log("mouseup:mouseDownFor", this.mouseDownAt, this.isMouseHeld )
+			
+			// if someone just keeps the finger on the screen...
 			if (this.isMouseHeld)
 			{
-				
-			}else{
 				this.loadRandomInstrument()
+			}else{
+				
 			}
 
 			// reset it

@@ -25,8 +25,6 @@ export const memoize = ( method ) => {
 	// takes same args as the method
 	return (...args) => {
 
-		console.log(args)
-		
 		// check to see if we have a cached entry
 		if (cache.has(args))
 		{
@@ -46,7 +44,7 @@ export const injectJavascript = async(url) => new Promise((resolve, reject) => {
 	script.onerror = error => { reject(error) }
 	script.src = url
 	document.head.appendChild(script)
-	console.error("injecting JS", url , script)
+	// console.error("injecting JS", url , script)
 })
 
 

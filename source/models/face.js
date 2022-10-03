@@ -200,7 +200,7 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 	let loadIndex = 0
 	
 	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
-	console.log("Loading Face Model from TF", {options} )
+	// console.log("Loading Face Model from TF", {options} )
 
 	// Set the WASM paths if possible
 	tfjsWasm.setWasmPaths({
@@ -217,17 +217,17 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 	// Set the backend to WASM and wait for the module to be ready.
 	// success =await tf.setBackend('cpu')
 	success = await tf.setBackend('wasm')
-	console.log("TF: Registered backend WASM > " , success )
+	// console.log("TF: Registered backend WASM > " , success )
 
 	success = await tf.setBackend('webgl')
-	console.log("TF: Registered backend GL > " , success )
+	// console.log("TF: Registered backend GL > " , success )
 
 	// Returns a promise that resolves when the currently selected backend (or the
  	// highest priority one) has initialized. Await this promise when you are using
 	// a backend that has async initialization.
 	await tf.ready()
 
-	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Backend Registered, Loading Detector")
+	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal) )
 	
 	// FIXME: Use the method for player inference once the detector is available
 	const detectPeople = options.maxFaces
@@ -242,7 +242,7 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 	//const solutionPath = wasmURL
 	 const solutionPath = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
 	
-	console.log("loadFaceModel",{options, model, solutionPath, detectPeople} )
+	// console.log("loadFaceModel",{options, model, solutionPath, detectPeople} )
 
 	const loadDetector = ()=> {
 
@@ -268,7 +268,7 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 	const detector = await loadDetector(model, options)
 	
 	progressCallback && progressCallback(startLoadProgress +  loadRange * (loadIndex++/loadTotal), "Loaded Detector")
-	console.log("Loaded Detector", {detector} )
+	// console.log("Loaded Detector", {detector} )
 
  	// Load Emotion Detection
 	// const emotionModel = await tf.loadLayersModel( 'web/model/facemo.json' )
