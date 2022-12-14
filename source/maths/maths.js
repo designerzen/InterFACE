@@ -138,3 +138,12 @@ export const twist = (value, amount=0) => {
 // export const unlerp = (a, b, t) => (t-a)/(b-a)
 // export const remap = (a1, b1, a2, b2, t) => lerp(a2, b2, unlerp(a1, b1, t))
 
+
+export const round = (somenum) => {
+	// With a bitwise or.
+	return (0.5 + somenum) | 0
+	// A double bitwise not.
+	return ~~ (0.5 + somenum)
+	// Finally, a left bitwise shift.
+	return (0.5 + somenum) << 0
+}
