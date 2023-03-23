@@ -1,0 +1,580 @@
+
+// Overlay buttons
+
+// BUTTON STYLE
+.controls{
+	// FIXME: container query
+	// contain: layout size style;
+	// contain: layout inline-size style;
+	
+	// backgrounds
+	--col-regular:#{$col-dark};
+	--col-hover:#{$col-orange};
+	--col-select:#{$col-yellow};
+
+	// we swap this to absolute when we want to window it
+	position: fixed;
+	margin:0;
+
+	bottom:0;
+	left:0;
+	//right:0;
+	
+	gap: 1px;
+
+	min-width:100vw;
+	max-width:100%;
+
+	visibility:hidden;
+	align-items: stretch;
+	justify-content: stretch;
+    // place-self: center;
+
+	pointer-events: auto;
+
+	display: grid;
+	grid-auto-flow: column;
+    grid-auto-columns: auto;
+	
+    gap: 0px;
+
+
+	background-image:linear-gradient(
+		hsla(18, 21%, 12%, 0.7), 
+		hsla(340, 5%, 11%, 0.7)
+	);
+
+	//overflow: hidden;
+	// overflow: scroll;
+	//overflow-y:hidden;
+
+	// need to bring it into z-range
+	z-index:303;
+	
+	// @media screen and (min-width:640px){
+		
+	// }
+
+
+	//  > * + *{
+	//  	border-left:1px solid $col-dark;
+	// }
+
+	// sometimes the label takes focus making interaction difficult
+	label{
+		// pointer-events: none;
+		position: relative;
+		
+		select{
+			// FIXME: Should this be -1?
+			z-index:1;
+		}
+
+		// stretch them out 
+		select, input{
+			pointer-events: auto;
+			cursor:pointer;
+			border:0;
+			// width: var(--icon-size);
+			position:absolute;
+			top:0;
+			bottom:0;
+			min-width:100%;
+			max-width:100%;
+			// FIXME:
+			//right:0;
+			// left:0;
+			// z-index:1;
+			order:-1;
+			appearance:none;
+			opacity:0;
+			overflow: hidden;
+		}
+
+		// bring in front of selects...
+		input, button{
+			z-index:1;
+		}
+		
+		// selected
+		select:focus:active{
+			max-width:none;
+		}
+
+		// Indicator
+		&:after{
+			background-color: var(--col-select, $col-orange);
+			opacity:0;
+			content:'';
+			display: block;
+			position: absolute;
+			left:0;
+			right:0;
+			bottom:0;
+			height:8px;
+			transform-origin: center bottom;
+			transform:translateY(100%);
+			transition:opacity var(--ease-m) linear,
+						transform var(--ease-s) $easeOutBack;
+		}
+
+		&.checked{
+			background-color: var(--col-select);
+		}
+	
+		// hover when selected still turns orange!
+		&.checked:hover::before{
+			opacity: 1;
+		}
+
+		// toggled state each one can have unique color
+		&.checked::after{
+			opacity:1;
+			transform:translateY(20%);
+		}
+	}
+
+	legend{
+		position: absolute;
+		bottom:100%;
+		background-color:transparent;
+		color:transparent;
+		user-select: none;
+		pointer-events: none;
+		border:0;
+		visibility: hidden;
+
+		&:focus{
+			color:$col-white;
+			visibility: visible;
+		}
+	}
+
+	label, button{
+		--hue: #{$hue-red};
+		--col-bg:var(--shade-dark);
+		--col-top:hsl( var(--hue), var( --s, 58%), 10% );
+		--col-bottom:hsl( var(--hue), var( --s, 58%), 15% );
+	
+		// labels can collapse without text to expand them
+		//border-radius:5px 5px 0 0;
+		//border-left:0;
+		// border-right-color:$col-white;
+		// border-left:$col-cream;
+		// border-bottom:var(--button-border-size) solid $col-blue;
+		padding: var(--pad) calc( 1 * var(--pad) );
+
+		font-weight:900;
+		// color:var(--col-regular);
+		// background-color:rgba($col-yellow,0.5);
+
+		&:active{
+			--col-top:var(--col-select);
+			--col-bottom:var(--col-select);
+			//background-color: var(--col-select);
+			@extend %button-active;
+		}
+
+		&:focus{
+			outline:2px solid $col-orange;
+			//outline-offset: -3px;
+		}
+
+		// enabled
+		&.checked{
+			// --col-fg:red;
+			// --col-top:#{$col-dark};
+			// --col-bottom:#{$col-dark};
+			//background-color: var(--col-regular);
+			// background-color: $col-dark;
+		}
+		
+		&.checked:hover,
+		&:hover, &:focus{
+			--col-top:var(--shade-yellow);//#{$col-orange}//#{$col-yellow};
+			
+			--col-bottom:var(--shade-orange);//var(--shade-red);
+			//color:$col-white;
+			//background-color: var(--col-regular);
+
+			&::before{
+				opacity: 0;
+			}
+		}
+		
+		&:empty{ 
+			display:none;
+		}
+	}
+
+	input[type=select],
+	select{
+		padding:var(--pad) ;
+		color:transparent;
+		background-color: transparent;
+		text-align: center;
+
+		> * {
+			padding:var(--pad);
+			color:var(--shade-white);
+			background-color: var(--shade-dark);
+		}
+
+		optgroup{
+			appearance:none;
+			font-weight:900;
+			text-transform: uppercase;
+			margin:auto;
+		}
+
+		option{
+			text-transform:initial;
+			&:hover, &:focus{
+				color:$col-cream;
+			}
+		}
+	}
+
+	input[type=checkbox]{
+		//visibility: hidden;
+		opacity:0;
+	}
+	
+	button{	
+		// padding-right:20px;
+	}
+
+	
+	// label:not(:last-child),
+	// button:not(:last-child){
+		
+	// }
+
+	// Labels
+	
+	// specific types of contents
+	label[for^="select-"]{
+
+		// swap underline for tiny up triangle
+		&::after{
+			--bg:url(/source/assets/icons/expand_more-24px.svg);
+			--size:25%;
+			display: block;
+			bottom:auto;
+			left:auto;
+			top:0;
+			right:0;
+			position: absolute;
+			width:var(--size,50%);
+			height:var(--size,50%);
+			pointer-events: none;
+			background: transparent var(--bg) no-repeat;
+			background-position: top;
+			background-size:contain;
+			opacity: 0.6;
+			transform: rotate(0deg);
+			transform-origin: center;
+			@extend %filter-icon;
+		}
+
+		// keyboard focus
+		&:focus-visible::after,
+		&:hover::after{
+			opacity: 1;
+		}
+
+		// select is being interfaced
+		&:focus::after, 
+		
+		// &:active::after{
+		&:active::after{
+			transform: rotate(180deg);
+		}
+		&:focus-within::after{
+			// outline:4px solid yellow;
+		}
+	}
+
+	// selector for the tempo
+	label[for="select-tempo"]{
+		--bg:url(/source/assets/icons/speed-24px.svg);
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+	}
+
+	label[for="button-settings"]{
+		order:-1;
+		grid-area:1/1;
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/settings-24px.svg);
+
+		&.checked{
+			// arrow down to show that the settings hide
+			--bg:url(/source/assets/icons/expand_more-24px.svg);
+		}
+	}
+
+	label[for="button-quantise"]{
+		--col-select:#{$col-blue};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/grid_off-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/grid_on-24px.svg);
+		}
+	}
+
+	label[for="button-metronome"]{
+		--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
+		}
+	}
+
+	label[for="button-mute"]{
+		--col-select:#{$col-blue};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/volume_mute-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/volume_off-24px.svg);
+		}
+	}
+
+	label[for="button-disco"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/blur_off-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/blur_on-24px.svg);
+		}
+	}
+
+	// Reverb selection
+	label[for="select-impulse"]{
+		--col-select:#{$col-blue};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/extension-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	// Face mesh overlays
+	label[for="button-meshes"]{
+		--col-select:#{$col-yellow};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/face_retouching_off-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/face_retouching_natural-24px.svg);
+		}
+	}
+
+	// Eye overlays
+	label[for="button-eyes"],
+	label[for="select-eyes"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/adjust-24px.svg);
+		&.checked{
+			//--bg:url(/source/assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	label[for="select-eyes"]{
+		// visibility: hidden;
+		display: none;
+	}
+		
+	// Toggle show eyes or hide eyes
+	label[for="button-eyes"]{
+		--bg:url(/source/assets/icons/motion_photos_off-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/motion_photos_on-24px.svg);
+		}
+	}
+
+	// 
+	label[for="button-subtitles"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-blue};
+		--bg:url(/source/assets/icons/speaker_notes-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/speaker_notes_off-24px.svg);
+		}
+	}
+
+	// choose colour scheme
+	label[for="select-palette"]{
+		--col-select:#{$col-yellow};
+		--col-hover:#{$col-green};
+		--bg:url(/source/assets/icons/color_lens-24px.svg);
+		&.checked{
+			//--bg:url(/source/assets/icons/extension_off-24px.svg);
+		}
+	}
+
+	// add beats
+	label[for="button-percussion"]{
+		--col-select:#{$col-green};
+		--col-hover:#{$col-yellow};
+		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
+		}
+	}
+
+
+	label[for="button-fullscreen"]{
+		// far right
+		// order:99;
+		--col-select:transparent;
+		//--col-hover:transparent;
+
+		@extend %image-replacement;
+		--bg:url(/source/assets/icons/fullscreen-24px.svg);
+		
+		// toggled state
+		&.checked{
+			--bg:url(/source/assets/icons/fullscreen_exit-24px.svg);
+		}
+		
+		// override if user has esc'ed
+		@media all and (display-mode: fullscreen) {
+			--bg:url(/source/assets/icons/fullscreen_exit-24px.svg) !important;
+		}
+	}
+	
+
+	label[for="button-overlay"]{
+		// --col-hover:#{$col-dark};
+		--col-select:#{$col-blue};
+		// @extend %image-replacement;
+	
+		// --bg:url(/source/assets/icons/image_not_supported-24px.svg);
+		--bg:url(/source/assets/icons/visibility-24px.svg);
+
+		&.checked{
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			// --bg:url(/source/assets/icons/image-24px.svg);
+			--bg:url(/source/assets/icons/visibility_off-24px.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+		}
+	}
+
+	label[for="button-spectrogram"]{
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-green};
+		--col-select:#{$col-orange};
+		--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+		}
+	}
+	label[for="select-samples"]{
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-green};
+		--col-select:#{$col-orange};
+		--bg:url(/source/assets/icons/audiotrack-24px.svg);
+		// &.checked{
+		// 	--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+		// }
+	}
+
+	// label[for="button-spectrogram"]{
+	// 	// --col-hover:$col-dark;
+	// 	--col-hover:#{$col-green};
+	// 	--col-select:#{$col-green};
+	// 	background-image:url(/source/assets/icons/piano-24px.svg);
+	// 	&.checked{
+	// 		background-image:url(/source/assets/icons/piano_off-24px.svg);
+	// 	}
+	// }
+
+	label[for="button-clear"]{
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+
+		--bg:url(/source/assets/icons/videocam_off-24px.svg);
+		&.checked{
+			--bg:url(/source/assets/icons/videocam-24px.svg);
+		}
+	}
+
+	// we have the top left nav button instead here?
+	#button-help{
+		display: none;
+	}
+
+	label[for="button-speak"]{
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+		// --bg:url(/source/assets/icons/mic_off-24px.svg);
+		--bg:url(/source/assets/icons/voice_over_off_black_24dp.svg);
+		&.checked{
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			--bg:url(/source/assets/icons/record_voice_over_black_24dp.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+		}
+	}
+	
+	label[for="button-sync-video"]{
+		// only display between certain sizes?
+		// display: none;
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+		--bg:url(/source/assets/icons/web_asset_off-24px.svg);
+		&.checked{
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			--bg:url(/source/assets/icons/web_asset-24px.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+		}
+	}
+
+	label[for="button-transparent"]{
+		// only display between certain sizes?
+		display: none;
+		// --col-hover:$col-dark;
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+		--bg:url(/source/assets/icons/web_asset_off-24px.svg);
+		&.checked{
+			// background-image:url(/source/assets/icons/music_off-24px.svg);
+			--bg:url(/source/assets/icons/web_asset-24px.svg);
+			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+		}
+	}
+
+	// selector for the tempo
+	label[for="select-tempo"]{
+		--bg:url(/source/assets/icons/speed-24px.svg);
+		--col-hover:#{$col-blue};
+		--col-select:#{$col-yellow};
+	}
+	
+
+	label[for="input-tempo"]{
+		--bg:url(/source/assets/icons/speed-24px.svg);
+		--col-select:#{$col-yellow};
+	}
+
+	label[for="button-record-audio"]{
+		--bg:url(/source/assets/icons/voicemail-24px.svg);
+		--col-select:#{$col-yellow};
+
+		&.recording{
+
+			&::before{
+				opacity:1;
+				animation: Throb 0.8s 0s both infinite;
+			}
+			--col-hover:#{$col-red};
+			--col-select:#{$col-red};
+		}
+		&.progress{
+
+		}
+	}
+}
+

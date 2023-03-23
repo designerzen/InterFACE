@@ -46,19 +46,28 @@ details[open] summary {
 	li{
 		list-style:none;
 		position:relative;
-		color:var(--col-marker);
+		// color:var(--col-marker);
 		a{
 			margin-left:var(--gap);
 			color:inherit;
 		}
+		
+		summary::after{
+			color:var(--col-marker);
+			content:'+';
+		}
+	}
+
+	li + li{
+		margin-top:var(--gap, 1rem);
 	}
 	
 	li:nth-child(odd){
 		text-align:right;
 		margin-right:calc( var(--space) );
+		
 		summary::after{
 			margin-right:calc( -1 * var(--width));
-			content:'+';
 		}
 	}
 	
@@ -69,9 +78,7 @@ details[open] summary {
 			margin-left:calc( -1 * var(--width));
 		}
 		
-		summary::before{
-			content:'+';
-			color:var(--col-marker);
+		summary::after{
 		}
 	}
 }

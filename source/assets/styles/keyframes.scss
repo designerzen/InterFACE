@@ -1,31 +1,99 @@
 @use "sass:math";
 @keyframes BGScroll {
 	0% { 
-		background-position:var(--scroll-x,50px) var(--scroll-y,50px); 
-  }
-}
-@keyframes BGScroll2 {
-	0% { 
 		background-position:
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
 			var(--scroll-x,50px) var(--scroll-y,50px),
 			var(--scroll-x,50px) var(--scroll-y,50px); 
  	}
 }
+		
+// move entire thing across and down
+@keyframes BGScroll2 {
+	to{
+		background-position:
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) * 1)) calc(var(--scroll-y) * var(--y)),
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) / 2) ) calc(var(--scroll-y) * var(--y) + var(--scroll-x)) ,
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) * 1)) calc(var(--scroll-y) * var(--y)) ,
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) / 2) ) calc(var(--scroll-y) * var(--y) + var(--scroll-x)) ,
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) / 8) ) calc(var(--scroll-y) * var(--y)),
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) / 2) ) calc(var(--scroll-y) * var(--y)),
+			calc(var(--scroll-x) * var(--x) + (var(--scroll-x) * 1) ) calc(var(--scroll-y) * var(--y)); 
+	}
+	// from{
+	// 	background-position:
+	// 		calc((var(--scroll-x) * 1) * var(--x) ) calc(var(--scroll-y) * var(--y)) ,
+	// 		calc((var(--scroll-x) / 2) * var(--x) ) calc(var(--scroll-y) * 2 * var(--y)) ,
+	// 		calc((var(--scroll-x) * 1) * var(--x) ) calc(var(--scroll-y) * var(--y)) ,
+	// 		calc((var(--scroll-x) / 2) * var(--x) ) calc(var(--scroll-y) * 2 * var(--y)) ,
+	// 		calc((var(--scroll-x) / 8) * var(--x) ) calc(var(--scroll-y) * var(--y)),
+	// 		calc((var(--scroll-x) / 2) * var(--x) ) calc(var(--scroll-y) * var(--y)),
+	// 		calc((var(--scroll-x) * 1) * var(--x) ) calc(var(--scroll-y) * var(--y)); 
+	// }
+	// to { 
+
+	// 	background-position:
+	// 		calc( var(--scroll-x) + (var(--scroll-x) * 1) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * var(--y)) ,
+	// 		calc( var(--scroll-x) + (var(--scroll-x) / 2) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * 2 * var(--y)) ,
+	// 		calc( var(--scroll-x) + (var(--scroll-x) * 1) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * var(--y)) ,
+	// 		calc( var(--scroll-x) + (var(--scroll-x) / 2) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * 2 * var(--y)) ,
+	// 		calc( var(--scroll-x) + (var(--scroll-x) / 8) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * var(--y)),
+	// 		calc( var(--scroll-x) + (var(--scroll-x) / 2) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * var(--y)),
+	// 		calc( var(--scroll-x) + (var(--scroll-x) * 1) * var(--x) ) calc( var(--scroll-y) + var(--scroll-y) * var(--y)); 
+ 	// }
+	
+}
+
 @keyframes BGScroll3{
 	0% { 
 		background-position: 
 		0 0,
 		0 0, 
-		calc(var(--scroll-x) / 2) 0;
- 	 }
+		0 0, 
+		0 0, 
+		0 0;
+ 	}
+	50%{
+		background-position: 
+			calc( var(--scroll-x,50px) ) calc( var(--scroll-y,50px) / 2 ),
+			calc( var(--scroll-x,50px) ) calc( var(--scroll-y,50px) / 2 ),
+			calc( var(--scroll-x,50px) ) calc( var(--scroll-y,50px) / 2 ),
+			calc( var(--scroll-x,50px) ) calc( var(--scroll-y,50px) / 2 ),
+			calc( var(--scroll-x,50px) ) calc( var(--scroll-y,50px) / 2 );
+	}
 	100% { 
 		background-position: 
 			var(--scroll-x,50px) var(--scroll-y,50px),
 			var(--scroll-x,50px) var(--scroll-y,50px), 
-			calc((var(--scroll-x) / 2) + var(--scroll-x,50px)) var(--scroll-y,50px);
-			// calc(var(--scroll-y) / 2)
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px),
+			var(--scroll-x,50px) var(--scroll-y,50px);
  	 }
 }
+// @keyframes BGScroll3{
+// 	0% { 
+// 		background-position: 
+// 		0 0,
+// 		0 0, 
+// 		calc(var(--scroll-x) / 2) 0;
+//  	 }
+// 	100% { 
+// 		background-position: 
+// 			var(--scroll-x,50px) var(--scroll-y,50px),
+// 			var(--scroll-x,50px) var(--scroll-y,50px), 
+// 			calc((var(--scroll-x) / 2) + var(--scroll-x,50px)) var(--scroll-y,50px);
+// 			// calc(var(--scroll-y) / 2)
+//  	 }
+// }
 
 // 
 @keyframes BGColours{
@@ -100,6 +168,15 @@
 	100%{
 		color: hsl(90, 60%, 40%);
 	}
+// 	0%{
+// 	 	color: hsl(0, 60%, 40%);
+// 	}
+// 	50%{
+// 		color: hsl(180, 60%, 40%);
+// 	}
+// 	100%{
+// 		color: hsl(360, 60%, 40%);
+//    }
 }
 
 @keyframes CTA{
@@ -153,7 +230,6 @@
 		opacity: 0.97;
 		transform:scale(0.99) translateX(2px) translateY(2px);
 	}
-	
 }
 
 @keyframes Hide{
@@ -236,14 +312,14 @@
 
 @keyframes TagReveal{
 	to{
-		transform: translateY( calc(  var(--pad, 0) ) );
+		transform: translateY( 0 );
 	}
 }
 
 @keyframes TagHide{
 
 	to{
-		transform: translateY( calc(  var(--pad, 0) - 44%  ) );
+		transform: translateY( calc(  var(--pad, 0) - 48%  ) );
 	}
 }
 
@@ -274,6 +350,54 @@
 	}
 	90%{
 		content:'Once connected the device will sing';
+	}
+}
+
+// mask reveal
+@keyframes RevealViaCircle {
+    0% {
+        clip-path: circle(0.1);
+    }
+
+    100% {
+        clip-path: var(--circle-size, circle( 499 ));
+    }
+}
+
+@keyframes FromCircle {
+    from {
+        clip-path: circle(190);
+    }
+	to{
+		clip-path: circle(0.1);
+	}
+}
+
+@keyframes ToCircle {
+
+	from{
+		clip-path: circle(0.1);
+	}   
+	to {
+        clip-path: circle(190);
+    }
+}
+
+@keyframes OutlineFocus {
+	0%{
+		outline:4px solid var(--shade-yellow);
+	}
+	
+	33%{
+		outline:4px dashed var(--shade-yellow);
+	}
+	
+	66%{
+		outline:4px dotted var(--shade-yellow);
+	}
+
+	100%{
+		outline:4px solid transparent;
 	}
 }
 

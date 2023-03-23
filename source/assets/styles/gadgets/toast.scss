@@ -23,14 +23,28 @@
 
 	user-select: none;
 	//pointer-events: none;
-	position: absolute;
+	position: fixed;
 	padding: calc( var(--pad) * 1);
 
 	// squish all the way down left as fallback for without clamp
 	// left:var(--_x);
 	// or stop at min-width
-	left:var(--x);
+	left:0;
+	//bottom:0;
+	// left:var(--x);
 	bottom:max( calc(var(--y) * 1px), calc( var(--footer-gap) + var(--pad) ) );
+	
+	// we never want the tooltip to drift into the ranges
+	--top:max( calc(var(--y) * 1px), calc( var(--footer-gap) + var(--pad) ) );
+
+	// now --_y is either 0 or 1 -
+	// 0 is bottom control panel
+	// so it will either be y or 0
+
+	// calc(var(--top ) )
+	transform:
+		translateX( var(--x) ) 
+		translateY( calc( var(--top) * 1px) );
 
 	//right:calc( var(--pad) );
 	//bottom:calc( var(--footer-gap) + var(--pad) );

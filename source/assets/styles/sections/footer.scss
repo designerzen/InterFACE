@@ -1,0 +1,159 @@
+
+#foot{
+	--spacer:0;
+	--border:1px solid #{$col-gray};
+
+	color:$col-brown;
+	
+	border-top:var(--border);
+
+	display: flex;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+ 	flex-direction: row;
+	z-index: 808;
+// 	@media (orientation: portrait) {
+		
+// 	flex-direction: column-reverse;
+			
+// 	}
+
+	margin:var(--pad);
+	margin-top:0;
+	
+	// max-height:var(--footer-gap);
+	
+	transition:transform var(--ease-s) $easeOutBack;
+	transform: translateX(var(--spacer));
+	
+	// fade it in immediately
+	animation: Fade var(--ease-s) 1 0s ease-out both normal;
+
+	.copyright{
+		background-image: url(./assets/logos/photosynth.svg);
+		background-position: center left;
+		background-repeat: no-repeat;
+		background-size: 22px;
+		padding-left:33px;
+	}
+
+	// allow the contents to hide until hover or focus
+	.associates {
+		// position: relative;
+	    
+		h5{
+			cursor: pointer;
+			&::before{
+				content:'+';
+				color:inherit;
+			}
+		}
+
+		ul{
+			visibility: hidden;
+			display: grid;
+			justify-items: center;
+    		align-items: center;
+			position: absolute;
+			background: inherit;
+			display: grid;
+			position: absolute;
+			bottom: 69%;
+			background-color:$col-dark;
+			z-index: 909;
+			left:0;
+			max-width: 100%;
+		}
+
+		h5:hover ~ ul,
+		ul:hover,
+		ul:focus,
+		ul:focus-within{
+			--y:10%;
+			visibility: visible;
+			animation: Fade var(--ease-s) 1 0.1s linear both normal,
+						TranslateY var(--ease-s) 1 0s ease-out both normal;
+		}
+		
+		ul:is(:hover,:focus,:focus-within){
+			
+		}
+	}
+	
+	small{
+		display:flex;
+		align-items: center;
+		
+		padding-top:var(--pad);
+
+		&:last-of-type{
+			margin-left:auto;
+		}
+
+		#version{
+			margin-left: auto;
+			display: flex;
+			flex-wrap: wrap;
+			opacity:0.9;
+			
+			padding-left:var(--pad);
+			padding-right:var(--pad);
+
+			position: relative;
+
+			#release{
+				white-space:nowrap;
+				text-overflow: ellipsis;
+				border:1px solid $col-cream;
+				background-color:$col-white;
+				padding:var(--pad);
+				color:$col-grey;
+				visibility: hidden;
+				order:-1;
+				position: absolute;
+				left:50%;
+				bottom:100%;
+				transform: translateX(-50%);
+			}		
+			&:hover #release{
+				visibility: visible;
+			}
+		}
+	}
+
+	.brand:hover svg, 
+	.brand:focus svg{
+		color:var(--shade-white);
+		fill: var(--shade-dark);
+	}
+	
+	#year{
+		display: inline-flex;
+		flex-direction: row;
+		white-space: nowrap;
+	}
+
+	// this *still* gets read out via screenreaders!!!
+	#year::before{
+		content:"©";
+		margin-left:0.2rem;	
+		margin-right:0.2rem;	
+		color:$col-cream;
+	}
+
+	.licenses{
+		padding:0 var(--pad);
+		order:999;
+		border-left:var(--border);
+	}
+
+	a {
+		color: currentColor;
+	}
+
+	a:hover, a:focus{
+		color:var(--shade-red);
+	}
+}

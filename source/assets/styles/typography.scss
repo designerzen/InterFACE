@@ -1,4 +1,13 @@
 @use "sass:math";
+
+@function makelongshadow($color, $length:99) {
+	$val: 0px 0px $color;
+	@for $i from 1 through $length {
+	  $val: #{$val}, -#{$i}px #{$i}px #{$color};
+	}
+	@return $val;
+}
+
 // Overall font size zoom 
 // Changing this does not impact on browser setting so +1 a18y
 // NB. 16px = 100% therefore 10px = 100/16 * 10
@@ -121,9 +130,10 @@ body{
     -webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
 	line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
+	// OPINIONATED : Consistent line spacing
+	hyphens: auto;
 }
 
-// make scalable
 h1,h2,h3,h4,h5,h6,p, label{
 
 	// general scale
@@ -143,6 +153,7 @@ h1,h2,h3,h4,h5,h6,p, label{
 	);
 	
 	font-size:calc( var(--zoom) * var(--font-zoom) * var(--font-size) );
+
 }
 
 h1 strong, h2, h3, h4, h5, h6{
@@ -151,6 +162,13 @@ h1 strong, h2, h3, h4, h5, h6{
 
 h1,h3,h4,h5,button,legend, label{
 	text-transform: uppercase;
+}
+
+// make scalable
+h1,h2,h3,h4,h5,h6,p{
+	
+	// prevent it staying single line
+	max-inline-size: 60ex;
 }
 
 // clear line height for big titles
@@ -209,6 +227,7 @@ a{
 }
 
 // fixed
+details,
 small{
 	font-weight:400;
 	font-size:80%;
@@ -231,7 +250,16 @@ option, select{
 	text-align: center;
 }
 
+ol, ul{
+	padding: calc( var(--pad)/2 ) calc( var(--pad) ) ;
+	text-align: left;	
+	&[role=list]{
+		list-style-position: inside;
+	}
+}
+
 ol li{
 	//font-style: italic;
 	font-weight:400;
+
 }

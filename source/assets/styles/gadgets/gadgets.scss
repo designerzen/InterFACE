@@ -1,0 +1,1086 @@
+@import "./button.scss";
+
+// BUTTON ABSTRACT
+.button,
+button,
+input[type=list],
+.controls > *{
+
+	--icon-size:32px;
+	--fade-speed:var(--ease-q);
+	// calc(var(--pad) - var(--border-size))
+	--pos: left var(--pad) center;
+	--button-border-size:2px;
+	--button-curve:clamp(2px, 1vmin, 6px);
+	
+	// actual colour of the button
+	--col-bg:#{$col-dark};
+	--col-fg:#{$col-white};
+
+	// gradient background
+	--col-top:hsl( #{$hue-red}, var( --s, 58%), 30% );
+	--col-bottom:hsl( #{$hue-red}, var( --s, 58%), 45% );
+	--col-bg:var(--shade-red);
+
+	// --col-top:#{rgba($col-white, 0.15)};
+	// --col-bottom:#{rgba($col-dark, 0.15)};
+	
+	--duration: var(--ease-q);
+	--delay-offset: var(--ease-q);
+				
+	// override just in case
+	text-rendering: optimizeLegibility;
+	
+	//border-style: solid;// outset groove;
+	cursor: pointer;
+
+	// from ios guidelines 44px- 2px gap
+	min-width:42px;
+	min-height:42px;
+	max-width:var(--max-width-override, var(--max-width,auto) );
+
+	position: relative;
+	box-sizing: border-box;
+	margin:0;
+	padding: var(--pad) calc( 2 * var(--pad) );
+
+	// force onto one line...
+	white-space: pre;
+	user-select: none;
+	appearance: none;
+	-webkit-appearance: none;
+
+	line-height: 1;
+	
+	// -0.5385rem + 7.6923vw
+	// clamp(minimum, preferred, maximum)
+	font-size:clamp( var(--min-font-size,8px), -0.5385rem + 2.2vmax, 14px);
+	font-weight: 800;
+	letter-spacing: 0.75px;
+		
+	// max-width:calc(100% - 2 * var(--pad));
+	z-index:1;
+
+	// from horizontal to vertical stack using grid
+	// --breakpoint:300px;
+  	// --gap: 20px;
+	// display: grid;
+  	// gap: var(--gap);  
+	// grid-gap: var(--gap);
+	// --v:min( (var(--breakpoint) - 100%) * 999, 100%);
+	// grid-template-columns:repeat(
+    //   auto-fit,
+    //   minmax(
+    //     var(--v),
+    //     1fr
+    //   )
+    // );
+
+	display: flex;
+	flex-grow:1;
+	flex-shrink:1;
+
+	//flex-wrap: auto;
+	flex-direction: var( --dir-override, var(--direction, row));
+	// ensure a gap between row items...
+
+	// flex-wrap: wrap;	
+	align-items: center;
+	// put as much space between as possible
+	justify-content: space-between;
+		
+	// animations
+	//animation-name:unset;	// start unset
+	animation-fill-mode: both, both;
+	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
+	animation-direction: normal, normal;
+
+	transition:transform var(--fade-speed) $easeOutBack,
+				background-color var(--fade-speed) linear, 
+				color var(--fade-speed) linear;
+
+	// Inherit the icon and recolour
+	&:before{
+		// allow to pop in front
+		position: relative;
+		z-index:1;
+
+		display: block;
+		// prevent squishing
+		flex: none;
+
+		// try and set to the size of the background icon
+		min-width:var(--icon-size);
+		min-height:var(--icon-size);
+
+		content:'';
+		pointer-events: none;
+		
+		// background:inherit;
+		// background-image: none;
+		background:transparent var(--bg) no-repeat;
+		// background-color:transparent;
+		background-position:top center;
+		background-size:auto var(--icon-size);
+
+		// flip the black to white and desaturate a little to make
+		// it look great - remember this is the hover state
+		// https://codepen.io/sosuke/pen/Pjoqqp
+		// z-index: -1;
+
+		transition:opacity var(--fade-speed) linear,
+					transform var(--fade-speed) $easeOutBack;
+	}
+	// , &::after
+	&::before{
+		// kid mode for after!
+		opacity:0.9;
+	}
+
+	&::before{
+		@extend %filter-icon;
+	}
+
+	&.hide{
+		display: none;
+	}
+
+	&.no-text{
+		// we hide the text for some buttons
+		justify-content: center;
+		background-position: center;
+	}
+}
+
+
+// BUTTON STYLE
+button,
+input[type=list],
+input[type=radio]:checked,
+// label[for=button-solo],
+// label[for=button-duet],
+// label[for="button-start"],
+.controls > *{
+
+	@extend %button-style;
+
+	&.hide{
+		display: none;
+	}
+}
+
+
+// BUTTON STYLE
+.controls{
+	// FIXME: container query
+	// contain: layout size style;
+	// contain: layout inline-size style;
+}
+
+// this adds some right pad to icons on the control bar
+.controls > *{
+
+	// gradient background
+	--col-top:hsl( #{$hue-red}, var( --s, 58%), 30% );
+	--col-bottom:hsl( #{$hue-red}, var( --s, 58%), 45% );
+	--col-bg:#{$col-dark};
+	--col-fg:#{$col-white};
+
+
+	&:not(.hide-text){
+		gap:calc(var(--pad) / 2 );
+		//margin-right:calc(var(--pad) / 2 );
+	}
+}
+
+// show even the hidden text!
+@media screen and (max-width:1960px){
+	
+	:root{
+		
+	}
+
+	button,
+	.controls > * {
+		.hide-text{
+			// %image-replacement
+			text-indent: -9999px;
+			overflow:hidden;
+			color:transparent;
+			text-shadow:none;
+			white-space: pre;
+			font-size: 0;
+			background-position: center center;
+			justify-content: center;
+		}	
+	}
+}
+
+// stack
+@media screen and (max-width:1240px){
+	
+	:root{
+		--footer-gap:calc(74px);
+	}
+
+	button,
+	.controls > *{
+		--icon-size:26px;
+		--pos:top var(--pad) center;
+		--direction: column;
+		
+		// remove margin
+		&:not(.hide-text):before{
+			margin-right:0;
+		}
+	}
+}
+
+// smallest always hides text so overrides here...
+@media screen and (max-width:586px){
+
+	:root{
+		--footer-gap:calc(67px);
+	}
+
+	// make sure we only specify the none person-controls
+	//button,
+	.controls > *{
+		--icon-size:28px;
+		--pos: center center;
+		--direction: row;
+		font-size: 0;
+		// as there is now no longer any text we 
+		// need to centralise the icon
+		text-indent: -9999px;
+		overflow:hidden;
+		color:transparent;
+		justify-content: center;
+	}
+		
+	// this adds some right pad to icons on the control bar
+	.controls > *{
+
+		&:not(.hide-text){
+			gap:0;
+		}
+	}
+}
+
+
+// smallest always hides text so overrides here...
+@media screen and (max-width:430px){
+
+	:root{
+		--footer-gap:calc(67px);
+	}
+
+	// smallest icon size to squeeze fit
+	button,
+	.controls > *{
+		--icon-size:20px;
+		// here we set a max width
+		// NB. you can override this with --max-width-override
+		//--max-width:44px;
+		min-width:22px;
+	}
+}
+
+// actual button
+input{
+	cursor:pointer;
+	appearance: none;
+	position: relative;
+	box-sizing: border-box;
+	margin:0;
+}
+
+input[type=radio]{
+	//background-color: $col-yellow;
+	position: absolute;
+	--over:0%;
+	--y:0;
+	top:calc( -1 * var(--over));
+	left:calc( -1 * var(--over));
+	// right:calc( -1 * var(--over));
+	bottom:calc( -1 * var(--over));
+	width:calc( 2 * var(--over) + 100% );
+	display:block;
+	transition:transform 1300ms $easeInOutBack;
+	transform:translateY(var(--y,-10%)) scale(0.8);
+	
+	&:checked{
+		transform:translateY(0) scale(1);
+	}
+}
+
+// label[for="button-*"]{
+// 	outline:10px solid yellow;
+// }
+
+// replace regular with a classic radio style toggle button
+// square emerald with a big tick
+input[type=checkbox]{
+	appearance: none;
+	display: inline-block;
+	padding:var(--pad);
+	border:0;
+	text-shadow: none;
+	box-shadow: none;
+	//border-radius:999px;
+	// from ios guidelines
+	// min-width:44px;
+	// min-height:44px;
+	// max-width:var(--max-width-override, var(--max-width,auto) );
+	&:focus{
+		//border-color:$col-orange;
+	}
+	&:active{
+		@extend %button-active;
+	}
+}
+
+label[for="toggle-automation-mode"]{
+	--col-bg:transparent;
+	border-top: 1px solid var(--shade-white);
+	//background:transparent;
+	align-items: center;
+	justify-content: center;
+	display: flex;
+	gap:calc( var(--pad));
+}
+
+
+// different kind of switchbox for one toggle only
+input[type=checkbox].toggle{
+
+	--saturation:50%;
+
+	// brighter towards the bottom
+	--col-inner-top:hsla( var(--hue), var(--saturation, 50%), 35%, 100% );
+	--col-inner-bottom:hsla( var(--hue), var(--saturation, 50%), 45%, 100% );
+
+	// Padding : brighter towards the top
+	--col-pad-top:hsla( var(--hue), var(--saturation, 50%), 45%, 100%);
+	--col-pad-bottom:hsla( var(--hue), var(--saturation, 50%), 35%, 100%);
+		
+	// BEVEL :brighter towards the bottom
+	--col-back-top:hsla( var(--hue), var(--saturation, 50%), 35%, 40% );
+	--col-back-bottom:hsla( var(--hue), var(--saturation, 50%), 55%, 10% );
+
+	--col-ring:hsla( var(--hue), var(--saturation, 50%), 15%, 100%);
+	
+	// border:var(--button-border-size) solid rgba($col-brown, 0.9);
+	// border-top-color: rgba($col-white, 0.6 );
+	// border-left-color: rgba($col-white, 0.3);
+	// border-right-color: rgba($col-white, 0.7);
+	// border-radius:3px;
+	
+	background-image: 
+		linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
+		linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
+		linear-gradient( var(--col-back-top), var(--col-back-bottom) );
+
+	background-origin:
+		content-box, 
+		padding-box, 
+		border-box;
+
+	background-clip: 
+		content-box, 
+		padding-box, 
+		border-box;
+	
+	background-repeat: 
+		repeat,
+		repeat,
+		repeat;
+
+	background-position:
+		0 0,
+		0 0,
+		0 0 ;
+	
+	background-size:auto;
+	box-shadow: inset 0 0 0 var(--line) var((--col-ring));
+	
+	border-radius: var(--curve);
+	min-width:44px;
+	min-height:44px;
+
+	// FIXME:
+	&:checked{
+		// background-color:$col-red;
+		// background:linear-gradient( $col-red, $col-dark );
+		// background-size:80%, 100%;
+
+		&:before, &:after{
+			content:'✔';
+			position: absolute;
+			top:0;
+			left:0;
+			right:0;
+			bottom:0;
+			color:$col-white;
+			text-align: center;
+			display: grid;
+			align-items: center;
+			justify-content: center;
+			font-size: 200%;
+			line-height: 0;
+			@extend %text-glow;
+		}
+
+		&:before{
+			color:$col-red;
+		}
+	}
+}
+	
+input[type=checkbox].switch{
+
+	--width:100%;
+	--col-top:var(--shade-red);
+	--col-bottom:#{$col-grey};
+
+	// margin-left:var(--pad);
+
+	border:var(--button-border-size) solid rgba($col-brown, 0.9);
+	border-top-color: rgba($col-white, 0.6 );
+	border-left-color: rgba($col-white, 0.3);
+	border-right-color: rgba($col-white, 0.7);
+	border-radius:3px;
+
+	//background:linear-gradient( $col-green, $col-gray );
+	background:$col-gray linear-gradient( to right, rgba($col-grey, 0.5), rgba( $col-cream, 0.5) );
+	//min-width:var(--width);
+	position: relative;
+	box-sizing: border-box;
+	border-radius:99px;	
+	flex-grow: 1;
+	order:1;
+	
+	label{
+		--col-bg:transparent;
+		//background:transparent;
+	}
+	
+	&:before, &:after{
+		content:'';
+		box-sizing: border-box;
+		font-weight:900;
+		color:$col-dark;
+	}
+	
+	// knob
+	&:before{
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		content:'COMPLEX';
+		@extend %drop-shadow;
+		color: $col-white;
+
+		position:absolute;
+		left:0;
+		height:100%;
+		text-align: center;
+		top:0;
+		width:calc( var(--width) / 2 );
+		//margin-left:calc( -1 * var(--width) / 4 );
+
+		font-size: 8px;
+		border-radius:99px;
+		border:calc( 0.5 * var(--button-border-size,4px)) solid $col-white;
+		background-color:var(--shade-red);
+		background-image:linear-gradient($col-dark, var(--shade-red));
+		transition:transform 195ms $easeInOutQuad;
+	}
+
+	border-color:$col-dark;
+	&:checked{
+		background-color:var(--shade-blue);
+		background:linear-gradient( to right, $col-green, $col-green );
+		background-size:80%, 100%;
+
+		border-color:$col-dark;
+		// 
+		&:before{
+			content:'SIMPLE';
+			//border-color:$col-cream;
+			transform: translateX(100%);
+			background-image:linear-gradient($col-tan, var(--shade-red));
+		}
+	}
+
+	// user has higighted it
+	&:focus{
+		outline:0;
+		background-color:$col-blue;
+		background:linear-gradient( to right, $col-blue, $col-blue );
+		
+	//	border:var(--button-border-size) solid rgba($col-brown, 0.7);
+		
+	// border-color:$col-dark;
+		// border-top-color: rgba($col-white, 0.4 );
+		// border-left-color: rgba($col-white, 0.2);
+		// border-right-color: rgba($col-white, 0.5);
+	}
+
+}
+
+input[type=submit]{
+	//background:transparent;
+	font:inherit;
+	color:inherit;
+	text-transform:inherit;
+	// border:var(--border,2px) dashed transparent;
+	// border-radius:inherit;
+
+	&:focus{
+		opacity: 1;
+	}
+}
+
+select {
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	background: no-repeat right center / 1em;
+	border-radius: 0;
+	padding-right: 1em;
+}
+  
+select:not([multiple]):not([size]) {
+	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M4 0h6L7 4'/%3E%3C/svg%3E");
+}
+  
+::-ms-expand {
+	display: none;
+
+}
+
+
+
+label[for="button-trio"]{
+	display:none;
+	--bg:url(/source/assets/icons/groups-24px.svg);
+}
+
+// These need overrides for size
+label[for="button-trio"],
+button#button-trio{
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-green};
+	--bg:url(/source/assets/icons/person_add-24px.svg);
+	//display: none;
+}
+label[for="button-solo"],
+button#button-solo{
+	// --col-bg: #{$col-green};
+	--bg:url(/source/assets/icons/person-24px.svg);
+	--y:100%;
+}
+
+label[for="button-duet"],
+button#button-duet{
+	// --col-bg: #{$col-blue};
+	--bg:url(/source/assets/icons/people-24px.svg);
+	--y:-100%;
+}
+
+
+
+// logo 
+#link-about{
+
+}
+
+#button-install{
+	//--logo:url();
+	--overlap:0px;
+	--delay:0s;
+
+	grid-area:1/1;
+	transform:translateY( calc(-100% + 7px) );
+	animation: none;
+	transition: transform var(--ease-s);
+	transition-timing-function:  var(--ease-out-back);
+
+	&:hover, &:focus, &:active{
+		transform:translateY(-100%);
+	}
+
+	// after a brief while hide this?
+	// animation: 
+	// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
+	// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+	
+	// &:hover, &:focus{
+	// 	--overlap:40px;
+	// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
+	// }
+
+	// clicked "show me later"
+	&.later{
+		animation: Hide-Install var(--ease-s) $easeOutBack var(--delay) 1 normal both;
+	}
+}
+
+// generic close button
+.button-close{
+	&:before{
+		font-weight: 900;
+			
+		content:'×';
+	}
+}
+
+// Button Faces are shown on video
+.active button.person{
+	display: block;	
+}
+
+// button that covers people
+button.person{
+	padding:0;
+	cursor:pointer;
+	position: absolute;	
+	z-index:202;
+	overflow: hidden;
+	border:2px solid $col-blue;
+	outline:2px solid $col-cream;
+	box-sizing: border-box;
+	border-radius: 3px;
+	// appearance: none;
+	//border:2px solid white;
+
+	text-shadow:none;
+	color:transparent;
+	opacity: 0;
+	transition: var(--ease-s) ease-in opacity;
+	//, left 9ms linear, top 9ms linear;
+
+	&:hover, &:focus{
+		background-color: transparent;
+		outline: none;
+	}
+
+	&:active{
+		opacity: 1;
+	}
+
+	&:hover{
+		opacity: 0.9;
+		background-color: transparent;
+	}
+
+	svg{
+		width: 100%;
+		//height:auto;
+		fill:orange;
+		stroke-width: 3px;
+		stroke:purple;
+		//transform: scaleX(-1);
+		pointer-events: none;
+		circle{
+			stroke:black;
+			fill:white;
+		}
+	}
+}
+
+// move into position and ensure that left as % + width as % < 100%
+button#person-a{
+	--left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
+	--breadth:calc( 100% * var(--person-a-w,0) / var(--width,640) );
+	top:calc( 100% * var(--person-a-y,0) / var(--height,480) );
+	height:calc( 100% * var(--person-a-h,0) / var(--height,480) );
+}
+
+button#person-b{
+	--left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
+	--breadth:calc( 100% * var(--person-b-w,0) / var(--width,640) );
+	top:calc( 100% * var(--person-b-y,0) / var(--height,480) );
+	height:calc( 100% * var(--person-b-h,0) / var(--height,480) );
+}
+
+// prevent the width of the face button falling off right hand side of the screen
+button#person-a,
+button#person-b{
+	--total:calc( var(--left) + var(--breadth));
+	// distance in pixels remaining on the right
+	--over:calc( 100vw - var(--total)) ;
+	// ignore if positive...
+	--overflow:min( var(--over), 0px );
+	left:var(--left);
+	width:calc( var(--breadth) + var(--overflow) );
+}
+
+// generic button style
+button#button-record,
+// button#button-video,
+button#button-midi,
+button.install-app,
+button.update-available{
+	// border-radius: var(--curve) var(--curve) var(--curve) 0;
+	//transition:background-color var(--ease-q) linear, color 40ms linear;
+	overflow: hidden;
+}
+
+// override style
+button.person,
+button#button-video{
+	// forces the cursor to work inside
+	pointer-events: auto;
+	user-select: none;
+	// hide any copy
+	color:transparent;
+	text-shadow:none;
+	background-color: transparent;
+	
+	&:hover, &:active, &:focus{
+		color:transparent;
+		background-color: transparent;
+		text-shadow:none;
+		//border:5px solid $col-yellow;
+	}
+}
+
+button#button-video{
+	display: block;
+	position: absolute;//fixed;
+	
+	bottom:var(--pad);
+	left:var(--pad);
+	right:var(--pad);
+	top:var(--pad);
+
+	padding:0;
+	border:0;
+	
+	// just a little margin of error
+	// bottom:0rem;
+	// try and push to the back
+	z-index:-1;
+	
+	// prevent finger cursor
+	cursor: default;
+
+	max-width:none;
+	background: none;
+	opacity: 0;
+
+	&::before, &::after{
+		display:none;
+	}
+}
+
+// SHARED CONTROL PANEL
+button#button-midi{
+	// We were looking at all the MIDI Innovation Award apps and noticed that you are using the new MIDI pictogram on your website. 
+	// The MIDI logo and Pictogram is the intellectual property of the MIDI Association and can only be used by MIDI Association members who have signed our logo licensing agreement and certify that their product supports MIDI 2.0. 
+	// As we have not publicized the rules about MIDI 2.0 logo usage we are sure this is unintentional on your part.  
+	// However we have to insist that you immediately remove the logo from your website. 
+
+	//background-position: left 1px center;
+	// --icon-size:36px;
+	//background-color: $col-cream;
+	--bg:url(/source/assets/icons/midi-copyright-free.svg);
+	&:before{
+		// also make sure we have set the width for midi as is not square
+		//min-width: calc(var(--icon-size) * 1.2);
+	}
+}
+
+button#button-record{
+	//color:$col-red;
+	&.recording{
+
+	}
+}
+
+button#button-photograph{
+	--col-hover:#{$col-blue};
+	--bg:url(/source/assets/icons/add_a_photo-24px.svg);
+}
+
+
+button#button-reset{
+	--col-hover:#{$col-blue};
+	--bg:url(/source/assets/icons/report_problem_black_24dp.svg);
+}
+
+button#button-help{
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:#{$col-blue};
+	--bg:url(/source/assets/icons/help_outline_black_24dp.svg);
+	//display: none;
+	cursor: help;
+}
+
+button#share{
+	--bg:url(/source/assets/icons/share-24px.svg);
+	//margin-left: auto;
+	z-index:2;
+	// second from right
+	// order:98;
+}
+
+#button-reload{
+	--bg:url(/source/assets/icons/autorenew_black_24dp.svg);
+	width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+	gap:var(--pad);
+	flex-gap:var(--pad);
+}
+
+
+#button-midi-upload{
+	--bg:url(/source/assets/icons/midi-copyright-free.svg);
+	gap:var(--pad);
+	width: 100%;
+}
+
+
+// form!
+#midi-file{
+	position: fixed;
+	z-index:0;
+	top:0;
+	left: 0;
+	right:0;
+	bottom:0;
+	display: flex;
+	visibility: hidden;
+	flex-direction: column;
+	align-items: center;
+    justify-content: center;
+	
+	> *{
+		opacity: 0;	
+	}
+}
+
+
+#midi-upload{
+	position: absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom: 0;
+}
+
+label[for="select-camera"],
+#select-camera{
+	--col-hover:#{$col-green};
+}
+
+// generally hide the camera select button unless 
+// there are multiple cameras
+#camera{
+	display: none;
+}
+
+.multiple-cameras #camera{
+
+	display: flex;
+    // flex-direction: column-reverse;
+	//transition:width 40ms ease-out;
+	// display: grid;
+
+	// background-color:$col-blue;
+	// border-radius: 4px;
+	// &:focus-within,
+	// background-image:url(/source/assets/icons/switch_video-24px.svg);
+	--bg:url(/source/assets/icons/switch_video-24px.svg);
+	// overflow:hiddfooten;
+
+	&:before{
+		pointer-events: none;
+	}
+
+	&:hover,&:focus,&:target,
+	&:focus-visible{
+		// height:auto;
+		outline:none;
+		//width:calc(100% - 2 * var(--pad));
+	}
+	// label,select{
+	// 	grid-area:1/1/1/1;
+	// }
+	// label{
+	// 	// 
+	// 	pointer-events: none;
+	// 	white-space: pre;
+	// 	outline:none;
+	// 	opacity:0;
+	// 	transition:opacity 40ms ease-out;
+	// 	position: relative;
+	// }
+	// instead of the :before :)
+}
+
+// this holds nav to sections inc help and funding
+#nav-main{
+	--icon-size: clamp(32px, 9vmin, 64px);
+
+	position:fixed;
+	top:0;
+	left:var(--pad);
+	right:var(--pad);
+	// 303 is the shared controls...
+	// 606 is the ?
+	z-index:808;
+	pointer-events: none;
+}
+
+
+nav ul{
+	
+	display: flex;
+	flex-direction: row-reverse;
+	justify-content: space-between;
+	align-items: flex-start;
+	list-style: none;
+	margin:0;
+	padding:0;
+
+	// prevent the whole thing stealing focus
+	pointer-events: none;
+	
+	// > * {
+	// 	opacity: 0.4;
+	// 	transition: opacity 95ms linear;
+	// }
+	// &:focus-within,
+	// &:hover{
+	// 	> * {
+	// 		opacity: 1;
+	// 	}
+	// }
+	
+
+	li a{
+		pointer-events: auto;
+		text-align: center;
+	}
+
+	// however i do want all hover and focus withins to activaste the fund animation
+	&:focus-within,
+	&:hover{
+		// a[href="#fund"]{
+
+		// 	animation:TagReveal 1s 1 0.1s both,
+		// 				TextColours 1s infinite 0s both;
+		// }
+	}
+
+}
+
+// This is an overlay button
+// so needs to look good on all backgrounds
+a[href="#help"]{
+
+	//border:1px solid transparent;
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	gap:calc( 0.5 * var(--pad) );
+	cursor: help;
+	
+	color:transparent;
+	transition:color 95ms linear;
+	// background-color:var(--shade-white);
+	border-radius: var(--button-curve);
+
+	&:hover{
+		color:var(--shade-yellow);
+		animation:TextColours 4s infinite 0s forwards reverse;
+	}
+
+	&::before{
+		content: '?';
+		// as the font is heavy
+		padding-top:4px;
+		font-size: calc( var(--icon-size) * 0.6 );
+		width:var(--icon-size);
+		height:var(--icon-size);
+		flex:0 0 auto;
+		display: flex;
+		justify-content: center;
+    	align-items: center;
+		box-sizing: border-box;
+
+		// aspect-ratio: 1;
+		// background:url(/source/assets/icons/help_outline_black_24dp.svg) center no-repeat;
+		// background-size: contain;
+		color:var(--shade-red);
+		background-color: var(--shade-white);
+		border-radius: 99%;
+		border:5px solid currentColor;
+	
+		//filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(0px 0px 6px rgba(0, 0, 0, var(--alpha-shadow,0.5)));
+		// margin-right:calc( 0.5 * var(--pad) );
+		// margin-bottom:calc( 0.5 * var(--pad) );
+	}
+
+	&:hover:before{
+		color:inherit;
+		//background-image:url(/source/assets/icons/help_black_24dp.svg);
+	}
+}
+
+
+
+a[href="#fund"]{
+	text-transform: uppercase;
+	display: flex;
+	align-items:center;
+	flex-direction: column-reverse;
+	padding-top:var(--pad);
+	border:1px solid transparent;
+	animation:TagHide 1s 1 0.1s both;
+	animation-timing-function: var(--ease-out-back);
+
+	// show a graphic but hide contents
+	&::before, &::after{
+		transition: var(--ease-s) linear opacity;
+		opacity:0;
+	}
+
+	// Overlaid logo
+	&:before{
+		--opacity:0.8;
+		--delay:0s;
+		
+		flex-shrink:0;
+		animation: Fade var(--ease-s) linear var(--delay) 1 normal both;
+		// position: absolute;
+		// top:-7px;
+		// right:8px;
+		width:var(--icon-size,10%);
+		//width:auto;
+		height:var(--icon-size,10%);
+		display: block;
+		z-index:3;
+		filter:drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
+		background:url(./assets/logos/interface_round-composite.svg) center no-repeat;
+		background-size: contain;
+		content:'';//url(./assets/logos/interface_colour.svg);
+		// content:url(./assets/logos/interface_current-color.svg);
+	}
+}
+
+// show / hide tag at top right	
+// .loaded a[href="#fund"]{
+// 	animation:TagHide 1s 1 0.1s both;
+// 	animation-timing-function: var(--ease-out-back);
+// }
+
+a[href="#fund"]:is(:hover, :focus),
+.player-selection a[href="#fund"]{
+	animation:TagReveal 1s 1 0.1s both;
+}

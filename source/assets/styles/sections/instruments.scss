@@ -1,0 +1,222 @@
+
+// Hide icons when they are being concealed
+// unless they are focused then reshow them
+.person-a-sidebar-showing a[href="#help"],
+.person-b-sidebar-showing a[href="#fund"]{
+	--y:-100%;
+	animation: TranslateY 1s 1 both reverse;
+	&:focus, &:hover{
+		animation: none;
+	}
+}
+
+
+// This is the panel and button set
+// that opens the instrument slide in menu
+.instrument-panel{
+	
+	// or in duet do we split screen???
+	// NB. we cannot avoid fixed
+	position: fixed;
+	top:0;
+	min-width:12ch;
+	max-width: 40%;
+	bottom:0;
+	transition: transform var(--ease-m) ease-in-out;
+
+	// prevent causing issues with tooltips
+	z-index:9999999999999;
+}
+
+.person-a-panel{
+	transform:translateX(-100%);
+	left:0;
+}
+
+.person-b-panel{
+	transform:translateX(100%);
+	right:0;
+}
+
+
+.person-controls{
+	
+	// reveal when requested
+	&.showing{
+		
+	}
+}
+
+.person-toggle-controls{
+	text-orientation:mixed;
+	writing-mode: vertical-rl;
+	// --bg: url(/source/assets/icons/record_voice_over_black_24dp.svg);
+	position: absolute;
+	top:50%;
+	transition: transform 990ms $easeInOutBack;
+	height: 54px;
+	width: 44px;
+	overflow: hidden;
+	color: transparent;
+	text-shadow: none;
+	border-left: none;
+	z-index: -1;
+
+	&::before{
+		transition: transform 990ms $easeInOutBack;
+	}
+	// background-image: url(/source/assets/icons/record_voice_over_black_24dp.svg);
+}
+
+.person-a-toggle-controls{
+	--bg: url(/source/assets/icons/forward_black_24dp.svg);
+	border-radius: 0 99px 99px 0;	
+	
+	left:100%;
+	transform: translateX(-3%);
+	z-index: -1;
+}
+
+.person-b-toggle-controls{
+	// TODO: get reverse
+	--bg: url(/source/assets/icons/forward_black_24dp.svg);
+	border-radius: 99px 0 0 99px;	
+	
+	right:100%;
+	transform:scaleX(-1) translateX(3%);
+	z-index: -1;
+}
+
+// .person-a-sidebar-showing .person-a-toggle-controls{
+// 	// transform: translateX(0%);
+// }
+
+// .person-b-sidebar-showing .person-b-toggle-controls{
+// 	// transform: translateX(0%);
+// }
+
+.person-a-controls{
+	
+}
+
+.person-b-controls{
+	
+}
+
+
+
+// Instrument selection panel
+fieldset.person-controls{
+
+	--xa:50%;
+	--ya:0;
+	
+	visibility: hidden;
+	pointer-events: auto;
+
+	max-height: 100%;
+	
+	overflow: auto;
+	overflow-x: hidden;
+
+	border:0;
+	margin:0;
+	color:$col-dark;
+	display:grid;
+	background-color:rgba($col-white, 0.9);
+	
+	// smol : Next, we use minmax for the main content. Why? Because if we only use 1fr then eventually our sidebar and main will share 50% of the space, and we want the main area to always be wider. We also nest min to ask the browser to use the minimum of either of the options. The result in this case is use of 50vw on mobile-sized viewports, and 30ch on larger viewports. And, when there's room, it also stretches to 1fr for the max part of minmax 🙌🏽
+	//grid-template-columns: fit-content(24ch) minmax(min(50vw, 44ex), 1fr);
+	// grid-template-columns: repeat(auto-fill, minmax(12ch, 1fr));
+	// grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
+	grid-template-columns: repeat(auto-fit,fit-content(48ch));
+
+	legend,
+	summary{
+		grid-column: 1/-1;
+		color:$col-white;
+		background-color:rgba($col-dark, 1);
+		width:100%;
+		padding: var(--pad);
+		box-sizing: border-box;
+		//position: sticky;
+  	 	// bottom: 0;
+  	 	// top: 0;
+		z-index:303;
+		text-transform: uppercase;
+	}
+	
+	summary{
+		background-color:var(--shade-gray);
+		position: sticky;
+  	 	// bottom: 0;
+  	 	top: 0;
+	}
+
+	details{
+		// 
+	}
+
+	label{
+		display: block;
+		border:1px dotted $col-dark;
+		border-right:0;
+		border-left:0;
+		
+		//background-color:rgba($col-white, 0.9);
+		&:hover{
+			color:$col-white;
+			background-color:rgba($col-dark, 0.9);
+		}
+	}
+
+	input[type="radio"]:checked{
+		background-color: var(--shade-orange);
+		border-radius: 0;
+		z-index: -1;
+	}
+
+	// reveal!
+	&.showing{
+		visibility: visible;
+		//animation: SideBar duration timing-function delay iteration-count direction fill-mode;
+	}
+}
+
+
+
+// OPEN
+.person-b-sidebar-showing .person-b-panel,
+.person-a-sidebar-showing .person-a-panel{
+	transform: translateX(0%);
+	
+}
+
+.person-c-sidebar-showing{
+
+}
+
+// opened state
+.person-toggle-controls:is( :active, :focus, :focus-within),
+.person-a-sidebar-showing .person-a-toggle-controls,
+.person-b-sidebar-showing .person-b-toggle-controls{
+	
+	opacity: 1;
+	//transform: translateX(100%);:hover, :visited,
+	//transform: rotate(90deg) translateY(-50%);
+	//transform: translateX(100%); //rotate(90deg);
+	color: transparent;
+	&::before{
+		opacity: 1;
+		// transform: scaleX(-1);
+		transform: rotate(180deg);
+	}
+}
+
+// :is(
+// 	.person-a-sidebar-showing, 
+// 	.person-b-sidebar-showing, 
+// 	.person-c-sidebar-showing
+// ) .person-toggle-controls::before{
+	
+// }

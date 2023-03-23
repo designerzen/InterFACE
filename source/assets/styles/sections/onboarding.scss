@@ -1,3 +1,4 @@
+// Onboarding screen with setup options
 
 // we need this to visually look the same size as the video
 #onboard{
@@ -9,25 +10,18 @@
 // This is the how many people are playing mode
 .player-selection{
 
-	body{
-		
-		--scroll-x:50px;
-		--scroll-y:0px;
+	// hide everything in the header except for the nav
+	// #intro > *:not(nav){
+	// 	visibility: hidden;
+	// 	overflow: hidden;
+	// 	height:0;
+	// }
 
-		animation: BGScroll 999ms infinite linear;
-
-		// grid effect
-		background-size:var(--scroll-x) var(--scroll-y);
-		background-image:
-		  radial-gradient(circle at 75% 75%, var(--shade-gray) 6%, var(--shade-dark) 6% 18%, transparent 18%),
-		  linear-gradient(180deg, transparent 70%, var(--shade-brown) 70% 80%, transparent 80%),
-		  linear-gradient(90deg, var(--shade-dark) 70%, var(--shade-brown) 70% 80%, var(--shade-dark) 80%);
-	}
-	
-	//header > *{
-	header > *:not(nav){
-		visibility: hidden;
-	}
+	// #intro > :is(.logo){
+	// 	visibility: hidden;
+	// 	overflow: hidden;
+	// 	height:0;
+	// }
 
 
 	// strapline... show yet?
@@ -42,17 +36,17 @@
 	#toast{
 		
 		--footer-gap:var(--pad);
-		bottom:auto;
-		top:var(--pad);
-		left:50%;
-		transform: translateX(-50%);
-		right:auto;
-		max-width:calc( 100% - 4rem );
-		// prevent cramping
-		margin:0 var(--pad);
-		background-color: $col-dark;
-		text-align:center;
-		pointer-events: none;
+		// bottom:auto;
+		// top:var(--pad);
+		// left:50%;
+		// transform: translateX(-50%);
+		// right:auto;
+		//max-width:calc( 100% - 4rem );
+		// // prevent cramping
+		// margin:0 var(--pad);
+		// background-color: $col-dark;
+		// text-align:center;
+		// pointer-events: none;
 	}
 
 	// form > * {
@@ -72,7 +66,7 @@
 			hsla(340, 5%, 11%, 0.7)
 		);
 		
-		backdrop-filter: grayscale(3) blur(3px);
+		// backdrop-filter: grayscale(3) blur(3px);
 		padding: var(--pad);
 		padding-top: 0;
 		margin:auto;
@@ -81,7 +75,6 @@
 		max-width:calc( 100% - var(--side) );
 		
 		@media screen and (max-width:540px){
-			margin-top:2rem;
 			--side:0px;
 		}
 	}
@@ -90,6 +83,9 @@
 	#onboard,
 	#player-selector{
 		visibility: visible;
+	}
+	#player-selector{
+		padding-top:var(--pad);
 	}
 	
 	// hide stuff not relevent
@@ -120,28 +116,23 @@
 		display: block;
 	}
 	
-	#app-frame{
-		height:auto;
-		min-height:auto;
-		max-height:none;
-		//max-height:calc( 100% - var(--footer-gap, 44px) );
-	}
+	// #app-frame{
+	// 	height:auto;
+	// 	min-height:auto;
+	// 	max-height:none;
+	// 	//max-height:calc( 100% - var(--footer-gap, 44px) );
+	// }
 
 	// we invert as on black background
 	#foot{
-		position: relative;
-		bottom:auto;
-		left:auto;
-		right:auto;
-		margin:0 var(--pad) var(--pad) var(--pad);
-		color:$col-tan;
-		a {
-			color: $col-yellow;
-		}
+		color:$col-white;
 	}
 }
 
-
+/////////////////////////////////////////////////////
+// CTA to begin the app...
+// Glows and entices a click!
+/////////////////////////////////////////////////////
 label[for=button-start]{
 
 	--col-fg: #{$col-dark};
@@ -154,36 +145,77 @@ label[for=button-start]{
 	// transform: translateY(-50%);
 	margin-top:var(--pad);
 	
-	padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
+	// padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
+	display: block;
+	z-index:606;
 	
-	// z-index:606;
-	border-radius:var(--curve, 0);
-
 	position: relative;
+	// display: flex;
+	// align-items: center;
+	// justify-content: center;
 
 	width: 100%;
+	max-width: max-content;
+	min-height: 5rem;
+
     box-sizing: border-box;
-
-	animation: CTA 2s infinite;
-
+	padding: calc(var(--pad)*3 ) calc(var(--pad)*7 );
+	// animation: CTA 2s infinite;
+	// background-image:linear-gradient(var(--col-top, #ffffff4d), var(--col-bottom, #0000004d));
+	// background-repeat: repeat;
+	
+	// set this up as a background!
 	input{
+		--inset:calc( var(--pad) * 0.5 );
 		position: absolute;
-		top:0;
-		right:0;
-		bottom:0;
-		left:0;
+		top:var(--inset);
+		right:var(--inset);
+		bottom:var(--inset);
+		left:var(--inset);
 		color:transparent;
+		z-index:-1;
 		// opacity: 0;
+		// border-color: var(--shade-white);
 	}
-	&:after{
-		content:'!';
+
+	&::before{
+		// background-image: var(--bg);
+		// background-repeat: no-repeat;
+		// padding-left:calc(var(--pad)*3.5);
+		// margin-left:calc(var(--pad));
+		// gap after prefix
+		// margin-right:0.28rem;
+		grid-area: gap;
 	}
+
+	&::after{
+		content:'';
+		// position: absolute;
+		// left:0;
+		// top:0;
+		// bottom:0;
+		// width:10rem;
+		// gap before suffix
+		// margin-left:0.28rem;
+		// margin-right:calc(var(--pad)*2);
+	}
+
+	// Throb
 	&:hover,	
 	&:focus{
 		animation-duration: 0.7s;
+		input{
+			color:transparent;
+		}
 	}
+
 	&:hover::before{
 		opacity: 1;
+	}
+
+	&:hover input::before{
+		opacity: 1;
+		outline:2px solid yellow;
 	}
 }
 
@@ -207,14 +239,13 @@ label[for=button-start]{
 	}
 }
 
-
 // Player selection screen
 #player-selector{
 	// size of the logo asnd help button
 	--top-gap:clamp(66px, 7vh, 15%);//clamp(1rem, 7vh, 5rem);
 	// prevents a button becoming an icon
 	--max-width-override:auto;
-	--border-radius:8px;
+	--border-radius:9px;
 	--border-size:clamp(4px, 20vmax, 9px);
 	
 	text-align:center;
@@ -223,6 +254,7 @@ label[for=button-start]{
 	user-select: none;
 
 	border-radius:var(--border-radius);
+
 	// doesn't work anymore
 	// border-image: linear-gradient(
 	// 	var(--shade-grey, hsla(0, 0%, 100%, 0.3) ), 
@@ -231,7 +263,7 @@ label[for=button-start]{
 	border-style: ridge;
 	
 	margin:0;
-	padding:calc(var(--pad)*2) calc(var(--pad) * 1.5);// var(--pad);
+	padding:calc(var(--pad)*0) calc(var(--pad) * 1.5);// var(--pad);
 	display:flex;
 	flex-direction: row;
 	flex-wrap:wrap;
@@ -242,16 +274,22 @@ label[for=button-start]{
 
 	//min-height:calc( 100% - var(--top-gap) * 2);
 	// max-height:100%;
+
+	legend{
+		--gap:clamp( 2px, 8vmin, var(--pad,1rem) );
+		padding-left:var(--gap,1rem);
+		padding-right:var(--gap,1rem);
+	}
 	
+	// buttons 
 	label{
-		--icon-size: 44px;
+		--icon-size: clamp(22px, 9vmin, 44px);
 		--button-border-size:var(--border-size);
 
 		//border-radius:var(--border-radius);
 
 		// this softens the border
 		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
-	
 		
 		align-items: center;
 
@@ -307,38 +345,110 @@ label[for=button-start]{
 
 		// prevent growing the button 
 		// as this mis-aligns the icons
-		// FIXME: Setting flex:0 1 100% fixes
-		// flex-grow:0;
-		// flex-shrink:0;
 		flex:0 1 100%;
-		
+	}
+	
+
+	.button{
+
 		// double channel if short and wide
 		@media screen and (min-width:640px), (max-height:640px){
+			--pos-override:50%;
+			
 			flex:0 1 calc(50% - 2px);
+			flex-direction: row;
+			input{
+				--bg:'';
+			}
 		}
-
 	}
 
+	// composite grid layout
 	label[for="toggle-advanced-mode"]{
+
 		//color:$col-white;
-		padding:var(--pad);
+		padding:var(--pad) 0;
 		margin-top:var(--pad);
-		margin-bottom:var(--pad);
-		border-top:1px solid $col-white;
+		// margin-bottom:var(--pad);
+		border-top:1px solid var(--shade-white);
 	
 		// align-self: center;
 		// vertical-align: middle;
-		display: flex;
+		display: grid;
+		grid-template-areas: 
+			"slider"
+			"off"
+		;
+
 		align-items: center;
 		flex-basis: 100%;
 		justify-content: stretch;
+		flex-wrap: wrap;
+		grid-template-columns: 100%;
+		grid-template-rows:1fr;
+
+		&::before{
+			content:"";
+			order:1;
+			max-width: calc(33% - var(--pad));
+			grid-area:off;
+		}
+
+		// full width input unless we are short mode
+		input{
+			min-width: 100%;
+			grid-area:off;
+			min-height:3rem;
+		}
+
+		&::after{
+			content:"";
+			max-width: calc(33% - var(--pad));
+			grid-area:off;
+			z-index:1;
+			opacity:1;
+			background:transparent;
+			order:2;
+			position: relative;
+			top:auto;
+			left: auto;
+			bottom:auto;
+			right:auto;
+			transform: none;
+		}
+
+		@media  screen and (min-width:480px) {
+			&::before{
+				content:"For Experts";
+				text-align: right;
+			}
+	
+			input{
+				min-width: 33%;
+				margin:0 auto;
+			}
+	
+			&::after{
+				content:"For Beginners";
+				// max-width: 33%;
+				
+				margin-left:calc( 66% + var(--pad));
+				opacity: 0.5;
+				text-align: left;
+			}
+		}
 	}
+
 
 	label[for*="button-"]{
 		// hover colour should be neutral on label...
-		--col-hover:#{$col-gray};
+		--col-hover:var(--shade-orange);//#{$col-gray};
 		
+		border-radius: var(--button-curve, 16px);
 		background:none;
+		line-height: 1;
+		// display: grid;
+		flex-wrap: wrap;
 
 		&:before,
 		&:hover:before,
@@ -376,7 +486,16 @@ label[for=button-start]{
 	}
 
 	.beginner &{
-	
+
+		label[for="toggle-advanced-mode"]{
+			&::before{
+				opacity:0.5;
+			}
+			&::after{
+				opacity:1;
+			}
+		}
+
 		.simple{
 			display: block;
 		}

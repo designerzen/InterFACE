@@ -1,0 +1,195 @@
+
+%text-glow{
+	// inset
+	text-shadow: 	var( --text-shadow, rgba($col-white,0.6)) 0 0px 1px,
+					var( --text-shadow, rgba($col-white,0.4)) 0 0.5px 1px,
+					var( --text-shadow, rgba($col-cream,0.24)) 0 1px 1px,
+					var( --text-shadow, rgba($col-cream,0.1)) 0 1.5px 1px;
+
+	
+}
+	
+%filter-icon{
+	filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
+}
+
+%drop-shadow{
+	box-shadow:/* inset 0px 0px calc(1 * var(--button-border-size)) rgba($col-white, 0.8 ),*/
+				rgba($col-dark,0.8) 0 0px 2px,
+				rgba($col-dark,0.6) 0 0.5px 2px,
+				rgba($col-dark,0.4) 0 1px 2px,
+				rgba($col-dark,0.2) 0 1.5px 2px;	
+}
+
+%button-active{
+	// --col-top: var(--col-orange);
+    // --col-bottom: var(--col-select);
+	// --col-select:#{$col-blue};
+
+//	animation-play-state: running;
+	animation-name: Activate;
+	animation-timing-function: var(--ease-out-back);
+	animation-duration: var(--ease-s);
+	animation-fill-mode: both,both;
+	animation-iteration-count: 1;
+	//border:var(--button-border-size) solid rgba($col-white, 0.9);
+}
+
+// This is the button style that can be added to any element
+%button-style{
+	
+	--col-fg:#{$col-white};
+	
+	@extend %text-glow;
+
+	// only for larger sizes?
+	// this softens the border and adds a soft dropshadow
+	@extend %drop-shadow;
+
+	// custom border - light from top right
+	border:var(--button-border-size) solid transparent;//rgba($col-brown, 0.5);
+	// border-top-color: rgba($col-white, 0.3 );
+	// border-right-color: rgba($col-white, 0.34 );
+	// border-left-color: rgba($col-white, 0.15);
+	
+	// each corner has a gradient too
+	// border-image: 
+	// 	linear-gradient(
+	// 		var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
+	// 		var(--col-bottom, hsla(0, 0%, 0%, 0.3) )
+	// 	),
+	// 	radial-gradient(
+	// 		at top left,
+	// 		var(--col-top), var(--col-bottom)
+	// 	),
+	// 	radial-gradient(
+	// 		at top right,
+	// 		var(--col-top), var(--col-bottom)
+	// 	),
+	// 	radial-gradient(
+	// 		at bottom left,
+	// 		var(--col-top), var(--col-bottom)
+	// 	), 
+	// 	radial-gradient(
+	// 		at bottom right,
+	// 		var(--col-top), var(--col-bottom)
+	// 	);
+		
+	// this overscales the border to make it darker!
+	//border-image-outset: 4px;
+
+	// border-image-repeat: repeat;
+
+	border-radius:var(--button-curve, 16px);
+
+	outline:var(--button-border-size) solid transparent;
+	outline-offset: -1px;
+
+	padding:var(--pad);
+
+	color:var(--col-fg, #{$col-white} );
+	background-color:var(--col-bg, #{$col-blue});
+
+	background-image:var(--bg),
+					linear-gradient( 
+						var(--col-top, rgba(255,255,255, 0.3) ), 
+						var(--col-bottom, rgba(0,0,0, 0.3) )
+					);
+
+	background-repeat:no-repeat, 
+					  //repeat, 
+					  repeat-x;
+	
+	background-size:auto var(--icon-size), 
+					auto, 
+					auto ;
+	
+	// background-position:top var(--pad) center;
+	background-position: var( --pos-override, var(--pos, center) ),
+						center, 
+						center;
+	
+	// FIXME:
+	// background-blend-mode: difference;
+	
+	// animations
+	//animation-name:unset;	// start unset
+	animation-fill-mode: both, both;
+	animation-duration: var(--duration,900ms), var(--duration,900ms);// 0s 1 linear both;
+	animation-direction: normal, normal;
+
+	transition:transform var(--fade-speed) $easeOutBack,
+				background-color var(--fade-speed) linear, 
+				color var(--fade-speed) linear,
+				border-color var(--fade-speed) linear,
+				outline-color var(--fade-speed) linear;
+
+	&:hover, &:focus{
+
+		// for a custom cursor too...
+		// cursor: var(--bg), auto;
+		--col-fg:#{$col-dark};
+		--col-top:#{rgba($col-orange, 0.9)};
+		--col-bottom:#{rgba($col-yellow, 0.8)};
+		
+		border:var(--button-border-size) solid rgba($col-white, 0.8);
+		// border-top-color: rgba($col-brown, 0.6 );
+		// border-left-color: rgba($col-white, 0.4);
+		border-right-color: rgba($col-white, 0.9);
+		border-bottom-color: rgba($col-white, 0.7);
+	
+		background-color:var(--col-hover);
+		
+		// text-shadow: rgba($col-dark,0.4) 0 0px 1px,
+		// 			rgba($col-dark,0.3) 0 0.5px 1px,
+		// 			rgba($col-dark,0.2) 0 1px 1px,
+		// 			rgba($col-dark,0.1) 0 1.5px 1px;
+					
+		box-shadow:/* inset 0px 0px calc(1 * var(--button-border-size)) rgba($col-white, 0.8 ),*/
+					rgba($col-dark,0.8) 0 0px 2px,
+					rgba($col-dark,0.6) 0 0.5px 2px,
+					rgba($col-dark,0.4) 0 1px 2px,
+					rgba($col-dark,0.2) 0 1.5px 2px;
+
+		// before is dark and we fade it in...
+		&:before{
+			opacity:0;
+			z-index:1;
+		}
+	}
+
+
+	&:focus{
+		
+		outline-color:$col-orange;
+		// outline-offset:calc( -1 * var(--button-border-size) );
+		// pop to front
+		z-index:808;
+		select{
+			z-index:909;
+		}
+	}
+
+	&:active{
+		// set background to orange
+		--col-hover: $col-orange;
+		--col-top:#{$col-orange};
+		--col-bottom:#{$col-red};
+
+		@extend %button-active;
+		
+		// move icons down and to the right
+		&::before{
+			transition:opacity var(--fade-speed) linear;
+		}
+	}
+	
+	// // on press!
+	&:active:focus{
+	// 	--col-hover: $col-grey;
+	// 	--col-top:#{$col-orange};
+	// 	--col-bottom:#{$col-red};
+	
+		outline-color:$col-yellow;
+	}
+}

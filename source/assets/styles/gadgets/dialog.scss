@@ -17,6 +17,7 @@ dialog{
 	&:not([open]) {
 		pointer-events: none;
 		opacity: 0;
+		display: none;
 	}
 	
 	&[loading] {
@@ -30,8 +31,8 @@ dialog[open]{
 	display: flex;
 	flex-direction: column;
 
-	max-width:calc( 100% - var(--pad) * 8 );
-	max-height:calc( 100% - var(--pad) * 8 );
+	max-width:calc( 100% - var(--pad) * 4 );
+	max-height:calc( 100% - var(--pad) * 4 );
 
 	margin:auto;//calc( 2 * var(--pad) );
 	padding:calc( 3 * var(--pad) );
@@ -41,7 +42,8 @@ dialog[open]{
 
 	// king of the castle
 	z-index:999;
-
+	border:0;
+	border-radius: var(--curve);
 	//position: static;
 	// top right is a fake close icon...
 	background: url(./assets/icons/close-24px.svg) no-repeat, 
@@ -49,6 +51,9 @@ dialog[open]{
 
 	background-position:top calc( 1 * var(--pad) ) right calc( 1 * var(--pad) ), center;
 	color:var(--shade-dark);
+
+	// filter:drop-shadow(var(--shadow));
+	box-shadow:var(--shadow) ;
 	
 	transition: opacity 90ms linear;
 
@@ -67,37 +72,40 @@ dialog[open]{
 	// 	transition: opacity 0.3s;
 	// }
 	
-	--y:10%;
-	animation:TranslateY 90ms linear 0s 1 both;
+	--y:-8%;
+	animation:TranslateY var(--ease-q) linear 0s 1 both;
 
 	> *{
 		user-select: none;
-		animation:Fade 90ms linear 0s 1 both;
+		animation:Fade var(--ease-q) linear 0s 1 both;
 	}
 
-	// main title has icon before it
 	h4{
+		--font-scale: 3;
+		color:var(--shade-red);
 		display: flex;
 		align-items: center;
+		// justify-content: center;
 		margin-bottom:var(--pad);
 		margin-left: calc(-1 * var(--pad));
 		line-height: 1;
-		--font-scale: 3;
 
+		//default icon
 		&::before{
 			--size:calc( var(--s5) * 1.5rem );
-			display: inline-block;
+			--bg:url(/source/assets/icons/support_black_24dp.svg);
 			content: '';
+			display: inline-block;
 			min-width:var(--size);
 			min-height:var(--size);
 			background-size: contain;
-			background-image:url(./assets/icons/support_black_24dp.svg);
+			background-image:var(--bg);
 			//filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
 			margin-right:calc( 0.5 * var(--pad) );
+			opacity: 0.1;
 		}
 	}
 		
-
 	ol{
 		padding:calc(var(--pad) * 1) calc(var(--pad) * 2);
 	}
@@ -151,7 +159,7 @@ dialog[open]{
 			position:fixed;
 			top:0;
 			left:0;
-			width:100vw;
+			right:0;
 			bottom:0;
 			z-index:-1;
 			opacity: 0;

@@ -1,0 +1,85 @@
+// MIDI MIDI MIDI MIDI! ===============================
+
+// FF user -> no midi / midi deniied
+main.no-midi,
+main.midi-unavailable{
+	#button-midi{
+		display: none;
+	}
+}
+
+// WEB MIDI is present - show button
+main.midi {
+	#button-midi{
+		
+	}
+}
+
+// Regular state when MIDI is available but not activated
+main.midi-available{
+	// hide button
+	#button-midi{
+		// display: none;
+		//cursor:not-allowed;
+	}
+}
+
+// midi was requested but no devices yet discovered
+main.midi-active button#button-midi{
+	#button-midi{
+		--col: $col-green;
+	}
+}
+
+// midi connect buton was pressed - now loading state...
+// once connected to the MIDI device this will change to
+// .midi-connected
+main.midi-activated{
+	// hide button
+	#button-midi{
+		//cursor:not-allowed;
+		--col-bg: #{$col-blue};
+	}
+}
+
+// MIDI Device is connected
+main.midi-connected{
+	#midi-device{
+		display:inline-block;
+		--col: $col-red;
+	}
+}
+
+// MIDI is available but there are no instruments connected
+// connect your midi device!
+main.midi-no-devices{ 
+	button#button-midi{
+		
+		--col: $col-red;
+
+		overflow: visible;
+		animation:BGColours 4s linear infinite 0s both;
+		
+		// we can show some extra text above the button
+		&:after{
+			display: block;
+			content:'Connect Device';
+			animation:MIDIConnect 10s infinite 0.2s both;
+						//TextColours 4s linear infinite 0s both;
+			
+			position:absolute;
+			bottom:calc(100% + var(--pad) );
+			text-indent: 0;
+			left:50%;
+			text-align: center;
+			transform:translateX( calc(-50% ) );
+			//left:0;
+			color:$col-dark;
+			background-color: $col-white;
+			font-size:11px;
+			font-weight: 900;
+			padding: var(--pad);
+			//text-shadow:2
+		}
+	}
+}
