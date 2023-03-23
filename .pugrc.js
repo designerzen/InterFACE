@@ -9,6 +9,6 @@ const instruments = require("./source/assets/audio/fatboy.json");
 module.exports = {
   locals: {
     package,
-	instruments
+	instruments:instruments.map( instrument => `<li>${instrument}</li>` ).join()
   }
 };
