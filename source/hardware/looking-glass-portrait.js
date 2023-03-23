@@ -3,6 +3,16 @@
 
 import * as HoloPlayCore from './node_modules/holoplay-core/dist/holoplaycore.module.js'
   
+import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
+const config = LookingGlassConfig
+config.tileHeight = 512
+config.numViews = 45
+config.targetY = 0
+config.targetZ = 0
+config.targetDiam = 3
+config.fovy = (40 * Math.PI) / 180
+new LookingGlassWebXRPolyfill()
+
 // This isn't loaded in automatically but is loaded if a flag is set
 // That way it should degrade nicely for those with only 2D displays
 export const connectToHologramService = () => {
