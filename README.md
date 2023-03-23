@@ -92,14 +92,19 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Speakers or headphones or MIDI equipment
 - Optional: GamePAD / Mouse / Keyboard / finger to change settings 
 
+## Build
+- Requires Yarn 3+
+
 ## Credits
 - [Drake Music](https://drakemusic.org) for inspiration and support
 - Font is Oxanium by [Severin Meyer](https://sev.dev/fonts/oxanium/)
 - [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Google](https://google.com)
 
 ## Thanks
+- [Gawain Hewitt](https://gawainhewitt.co.uk)
 - Becky Morris Knight 
 - Tim Yates
+- Andrew MacPherson
 - Thomas Bonte
 - Darren Southea
 - Jean-Baptiste Thiebaut 
@@ -108,19 +113,22 @@ Given enough time it would be possible to save MIDI files directly from the app 
 ## Check it out over at
 - [InterFACE](https://interface.place)
 - [InterFACE:BETA](https://interface.dance)
-- [InterFACE:SOLO (dev)](https://designerzen.github.io/InterFACE)
-- [InterFACE:DUET (dev)](https://designerzen.github.io/InterFACE/?duet=true)
+- [InterFACE:Github)](https://designerzen.github.io/InterFACE)
 
 - [90 Second Intro on youtube](https://www.youtube.com/watch?v=-DSDIET5MJo)
 - [5 Minute Introduction on youtube](https://youtu.be/gvYxZJRhgRc)
 
 
 ## Other links & Supporters
+- [PhotoSYNTH3>InterFACE : DOI 10.5281/zenodo.6794292](https://zenodo.org/record/6794293)
 - [GIVE A MAN A RECORD AND THEY DANCE FOR THE DAY, GIVE THAT MAN A SYNTH AND THEY DANCE FOR A LIFETIME - Talk given @ SXSW21](https://youtu.be/3SmpSvRB4XA)
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
 - [MIDI Innnovation Finalists 2022](https://www.midi.org/component/zoo/item/photosynth-interface)
 - [MIDI Innovation Awards 2022 Stream](https://www.youtube.com/watch?v=1HzlwlekZQk)
 - [Music Maker Festival](https://www.makermusicfestival.com/)
+
+- Suite of none touch instruments / tools
+[amic museum](amicdrakemusic.wordpress.com)
 
 
 
@@ -152,26 +160,15 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - MIDI hardware controller
 
 
-Questions and known unknowns
-
-- amic museum amicdrakemusic.wordpress.com
-- drake music charity 
-- suite of none touch instruments / tools
-
-- shown at SXSW by the UKRI but refused to fund
-
-- trend of piggybacking onto natural movements
-- expressive real time gestures
+#### Questions and known unknowns
 
 - head angle causes issues with the calculations 
 
 - put me in touch with the right people at tensorflow
 
 - following human emotions to change / set the instruments / scale
+
 - recording performances to a server / video recording
  
 - analysis of voice commands!
 - recognition of faces and preserving state
-
-- protecting copyright and intellectual property
-- extracting license codes in every library even though many are similar
