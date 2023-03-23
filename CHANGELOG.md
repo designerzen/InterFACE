@@ -1,3 +1,44 @@
+### 0.9.0 (2022-10-03)
+
+##### Bug Fixes
+
+*  Face clicking / holding (4aaa13ab)
+*  Timing  fallback for it audiocontext NA (152ffbcb)
+*  Notes now handles ranges larger than samples (26e539a7)
+*  Clear script added to clean and copy (55e93fee)
+*  ADSR mapping to MIDI noteOff trigger (bab1fee5)
+
+##### Other Changes
+
+*  Change log (236a9827)
+*  More contrast on wallpapers (6e352907)
+*  Logs removed (824a3bfd)
+*  Face now works with new model (5b578eae)
+*  New loading / background designs (09ca5279)
+*  Improved loading code - now async (7da9583c)
+*  Removed biquad (12196477)
+*  SamplePlayer now only one type of many (dacbe0c9)
+*  new lib style had knock on effects (81d93db9)
+*  SoundFont generator code (f05ae55a)
+*  New libs (f83e2036)
+*  Altered draw tools for x,y as objects (6dc0f425)
+*  Major CSS additions for BGs (840c5c49)
+*  Sitemap (4ab2cabb)
+*  Assets inc images (ddcc8fd5)
+*  Zip support (3d170828)
+*  Added new instrument worklet audio (60541579)
+*  TF Face Landmarks complete version update (43276bb4)
+*  New Instruments & WAM (a7c1ac30)
+*  Build script now copies (48b03eeb)
+*  Moved more settings into settings file (fe961e44)
+*  Added caching to note generation (8810732e)
+*  Kids mode has new wallpaper (146f763e)
+*  New overlay keyboard (6ed00546)
+*  Added tutorial SVG asset (496c647d)
+*  Added memoisation (6660c16d)
+*  Added new instruments & worklets (fa641cbc)
+*  Added AudioWorklets (fc0b3d79)
+
 #### 0.8.30 (2022-07-06)
 
 ##### Bug Fixes
