@@ -48,7 +48,9 @@ export const loadImpulseJSON = async (directory) => {
 	{
 		return loadedImpulseLists[directory]
 	}
+
 	const jsonData = await fetch(`${path}${directory}/${SAMPLE_PLAYLIST}`)
+	// ensure it is JSON...
 	const json = await jsonData.json()
 	
 	loadedImpulseLists[directory] = json.files.map( item => `${path}${directory}/${item}` )
