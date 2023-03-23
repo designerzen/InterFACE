@@ -1,5 +1,5 @@
 /**
- *  Convert a URL query value into a JS data type by inferring the type
+ * Convert a URL query value into a JS data type by inferring the type
  * @param {Any} JavaScript data type (eg. String, Number, Boolean, Array, Object)
  */
 const guessType = value => {
@@ -125,6 +125,15 @@ export const getRefererHostname = () => {
 	// now strip out everything but the location
 	// check against our list
 	return referrer.hostname
+}
+
+/**
+ * 
+ * @returns {Array<String>} location path
+ */
+export const getEditionFromURL = () => {
+	const domain = new URL( document.location )
+	return domain.pathname.replace("/","").split("/")
 }
 
 /**

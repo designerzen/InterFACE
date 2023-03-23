@@ -50,12 +50,13 @@ import { playNextPart, kitSequence } from './timing/patterns'
 import {
 	controlPanel,
 	updateTempo,
-	showPlayerSelector, 
 	video, isVideoVisible, toggleVideoVisiblity,  
 	setupCameraForm, setupInterface,
 	toggleVisibility,
 	focusApp
 } from './dom/ui'
+
+import { showPlayerSelector } from './dom/player-selection'
 
 import setupDialogs from './dom/dialog'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
@@ -430,7 +431,23 @@ export const createInterface = (
 
 		person.loadInstrument( instrument )
 
+		switch(personIndex)
+		{
+			case 0:
+				const leftControlPanelButton  = doc.querySelector('.person-a-toggle-controls')
+				const leftControlPanel = doc.querySelector(".person-a-panel")
+				leftControlPanelButton.addEventListener("click", e => person.toggleForm() )
+				leftControlPanel.removeAttribute("hidden")
+				break
 
+			case 1:
+				const rightControlPanelButton = doc.querySelector('.person-b-toggle-controls')
+				const rightControlPanel = doc.querySelector(".person-b-panel")
+				rightControlPanelButton.addEventListener("click", e => person.toggleForm() )
+				rightControlPanel.removeAttribute("hidden")
+				break
+		}
+		
 
 		// see if there are any gamepads connected - let's go te whole hog!
 		gamePad = new GamePad( personIndex )
@@ -780,15 +797,6 @@ export const createInterface = (
 					speak(document.getElementById('toast').innerText, true)
 					break
 
-				case 'A':
-				case 'J':
-					previousInstrument()
-					break
-
-				case 'D':
-				case 'L':
-					nextInstrument() 
-					break
 	
 				// Arrows set timing
 				case 'ArrowLeft':
@@ -864,13 +872,16 @@ export const createInterface = (
 					break
 
 				case 'j':
-					//toggleVideoFrameCopy()
+					previousInstrument()
 					break
 
 				// kid mode / advanced mode toggle
+				// case 'k':
+				// 	//doc.documentElement.classList.toggle('advanced', advancedMode)
+				// 	//doc.documentElement.classList.toggle(CSS_CLASS, false)
+				// 	break
 				case 'k':
-					//doc.documentElement.classList.toggle('advanced', advancedMode)
-					//doc.documentElement.classList.toggle(CSS_CLASS, false)
+					nextInstrument() 
 					break
 
 				// toggle speech
@@ -882,6 +893,10 @@ export const createInterface = (
 				case 'm':
 					setState("metronome", !ui.metronome, toggles )
 					setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+					break
+
+				case 'n':
+					toggleVideoFrameCopy()
 					break
 
 				case 'o':
@@ -941,6 +956,12 @@ export const createInterface = (
 					}
 					//console.log("tappedTempo",tappedTempo)
 					break
+
+				// Reset help!
+				case 'y':
+					counter = 0
+					break
+			
 
 				// Reset help!
 				case 'z':
@@ -1273,7 +1294,8 @@ export const createInterface = (
 			// get user's instrument names...tempo etc...
 			const person = getPerson(0)
 
-			const fileName = person.instrumentName || `audio-download`
+
+			const fileName = person.instrumentTitle || `Sample`
 
 			let svg
 			if (waveforms && waveforms.length)
@@ -1892,12 +1914,11 @@ export const createInterface = (
 				statistics.drift = drift
 
 				// The app has been running for over x amount of time
-				if (elapsed > TIME_BEFORE_REFRESH)
-				{
-					// so we may want to refresh if the time is appropriate?
-			
-
-				}
+				// if (elapsed > TIME_BEFORE_REFRESH)
+				// {
+				// 	// so we may want to refresh if the time is appropriate?
+		
+				// }
 
 				// nothing to play!
 				if (ui.muted)
@@ -2507,7 +2528,7 @@ export const createInterface = (
 	 * @param {*} timeout 
 	 * @returns 
 	 */
-	const showPlayerSelectionScreen = async ( showTextAfter=60000 ) => {
+	const showPlayerSelectionScreen = async ( state={}, showTextAfter=60000 ) => {
 
 		// preload completed and now we show the ui
 		// for selecting regular or multi-face mode!
@@ -2522,7 +2543,8 @@ export const createInterface = (
 
 		hideLoading()
 
-		const results = await showPlayerSelector(options)
+		// Show the player selection screen!
+		const results = await showPlayerSelector(options, state)
 		
 		// console.error("FWSFEW",{ players, advancedMode, automationMode } )
 		useAutomator = results.automationMode
@@ -2549,7 +2571,7 @@ export const createInterface = (
 
 	// NB. To allow this to happen at the same time...
 	// we show selection screen while stuff loads in background
-	showPlayerSelectionScreen().then( r=>{ 
+	showPlayerSelectionScreen( ui ).then( r=>{ 
 		havePlayersBeenSelected = true 
 	})
 
