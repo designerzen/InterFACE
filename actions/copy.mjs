@@ -1,5 +1,8 @@
 /**
  * Copy all files from public to dist/
+ * NB. There is already a Parcel Plugin that handles
+ * copying from static/ to dist/ so this is more for server
+ * specific stuff
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, lstatSync, copyFileSync} from 'fs'
 import * as path from 'path'
