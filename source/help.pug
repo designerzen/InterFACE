@@ -12,7 +12,69 @@ block nav
 block preload 
 
 block main
-	h3 Help
-	include:markdown-it ./instructions.md
+	main#help
+		h3 Help
+		p.
+			Hotkeys
 
-	
+			Type any three numbers to set the tempo
+			eg. 090 for 90BPM
+			eg. 120 for 120BPM
+
+			Arrow Up - add more bars
+			Arrow Down - remove a bar
+			Arrow Left - previous instrument
+			Arrow Right - next instrument
+
+			A - 808
+			B - Backing Percussion
+			C - Clear
+			D - Closed Hat
+			E - Clack
+			F - Toggle control panel visibility
+			G - Toggle Text 
+			H - Toggle video frames overlay
+			I - Change Impulse filter
+			J - Previous Instrument
+			K - Next Instrument
+			L - Toggle Speech
+			M - Metronome toggle on or off
+			N - Toggle Video Frame copying
+			O - 
+			P - If MIDI File loaded play next sound
+			Q - Quiet mode (mute / unmute)
+			R - Record*
+			S - Snare
+			T - Toggle Instrument Text visibility
+			U - Change Drum pattern
+			V - Toggle video on screen
+			W - Cowbell
+			X - Tap tempo with x-x-x-x key
+			Y - Reset the help
+			Z - Reset the help
+			SPACE BAR - Load a random instrument for everyone!
+			sub (* means beta feature)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			OMG I can't believe you are still here!
+			Secret Keys are as follows
+			CAPS Lock - developer debug
+			TAB - show more info on screen
+
+
+		include:markdown-it ./instructions.md
+
+		

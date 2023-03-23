@@ -1,0 +1,26 @@
+extends interface.pug
+
+//- custom options go here
+block options
+	script.
+		globalThis._synth = { 
+			advancedMode:false, 
+			text:false, 
+			autoHide:true, 
+			backingTrack:false, 
+			photoSensitive:true,
+			automationMode:true,
+			instrumentPack:'MusyngKite'
+		}
+
+block headline
+	| Science & Industry Museum  
+	span.sr-only PhotoSynth 3
+	| Inter 
+	strong FACE
+
+
+block tagline
+	em Smile 
+	| Powered Synthesizer
+	strong Instant Musical Superpowers!

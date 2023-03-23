@@ -8,9 +8,15 @@ block nav
 block preload 
 
 block main
-	h3 Licenses
-	h4 Thanks
-	p This project could not have been made possible without the following software and the following licenses
-	//- include ../licenses.md
-	
-	include:markdown-it ./licenses.md
+	main#licenses
+		h3 Licenses
+		h4 Thanks
+		p This project could not have been made possible without the software with the following gracious licenses
+		//- include ../licenses.md
+		
+
+		section#licenses
+			include:markdown-it ./licenses.md
+
+block mainFooter
+	a(href="#").back-to-top Jump back to the top
