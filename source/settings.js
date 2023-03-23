@@ -154,7 +154,8 @@ export const getFactoryDefaults = ( options=DEFAULT_OPTIONS ) => Object.assign( 
 
 export const getDomainDefaults = (name) => {
 
-	switch(name.toLowerCase())
+	// use the LTD 
+	switch(name.split('.').pop().toLowerCase())
 	{
 		// localhost 127.0.0.(1)
 		// case 'localhost': 
@@ -163,6 +164,7 @@ export const getDomainDefaults = (name) => {
 		case 'lol': return getFactoryDefaults(KIDS_OPTIONS)
 		case 'band': return getFactoryDefaults()
 		case 'dance': return getFactoryDefaults(DANCE_OPTIONS)
+
 		// defaults to interface.place
 		default: return getFactoryDefaults()
 	}
@@ -238,6 +240,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// mouse hold for clicking in seconds 0.5 and more feels weird
 	mouseHoldDuration:0.4,
+
+	// for how many pixels do you have to drag before it becomes a swipe?
+	mouseGestureDistance:40,
 
 	// if both eyes are closed for X ms do something...
 	eyeShutHolddDuration:3500, // ms
