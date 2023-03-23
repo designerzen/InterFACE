@@ -18,12 +18,16 @@
 	--shade-orange:hsl( #{$hue-orange}, var( --s, 69%), var( --l,38%) );
 	--shade-red:hsl( #{$hue-red}, var( --s, 58%), var( --l,35%) );
 	
+	--alpha-shadow:0.8;
+
 	--curve:12px;
 	// global padding
 	--pad:clamp(10px,2vmin,20px);
 
 	// FIXME:
 	--footer-gap:calc(61px);
+
+	// --viewport-height:100dvh;
 	
 	@media (orientation: portrait) {
 		--footer-gap:var(--pad);
@@ -32,7 +36,7 @@
 	--ease-out-back:#{$easeOutBack};
 
 	// ease speeds (see overriding media queries)
-	--ease-s:450ms;
+	--ease-s:185ms;
 	--ease-m:90ms;
 	--ease-q:45ms;
 		
@@ -61,6 +65,5 @@
 		70px 70px 80px rgba(0, 0, 0, 0.05)
 	;
   
-
 	--noise:url("data:image/svg+xml,%3Csvg class='filter' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='filter-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter-noise)'%3E%3C/rect%3E%3C/svg%3E");
 }

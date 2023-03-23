@@ -1,4 +1,4 @@
-@import "_ease";
+@import "../_ease";
 
 #load-progress{
 	display: flex;
@@ -6,10 +6,10 @@
 	gap:var(--pad);
 	visibility: visible;
 
-	position:fixed;
-	top:50%;
-	left:50%;
-	transform: translate(-50%,-50%);
+	// position:sticky;
+	// top:50%;
+	// // left:50%;
+	// transform: translate(-50%,-50%);
 	
 	padding:var(--pad);
 
@@ -50,7 +50,7 @@
 }
 
 label[for="progress-bar"]{
-	// position: absolute;
+	position: sticky;
 	// // left:var(--pad);
 	// // right:var(--pad);
 	// width:calc(80% -2 * var(--pad) ) ;
@@ -128,6 +128,7 @@ progress{
     
     &::before,
     &::after{
+		--delay:0s;
         content:"";
         display: block;
         grid-area: 1/-1;
@@ -140,24 +141,26 @@ progress{
         // now we mask the circle so it is just the top half
         clip-path: inset(0 0 50% 0);
         overflow: hidden;
-        animation:  LoaderLine var(--duration) var(--ease) infinite alternate both,
-                    LoaderColor calc(var(--duration)*7) linear infinite both;
+        animation:  LoaderLine var(--duration) var(--ease) infinite var(--delay) alternate both,
+                    LoaderColor calc(var(--duration)*7) linear var(--delay) infinite both;
     }
     
 	// this trails behind
     &::before{
 		//content:calc( 100 * var(--progress,1) ) "";
         opacity: 0.5;
-		animation-delay: calc( -0.5 * var(--duration) );
+		// animation-delay: calc( -0.5 * var(--duration) );
 		// animation-play-state: paused;
     }
 
     &::after{
-        --delay:calc( var(--duration, 0s) * -0.03 );
+        --delay:calc( var(--duration, 1s) * -0.03 );
 		
         // animation:  LoaderLine var(--duration) var(--ease) var(--delay) infinite alternate both,
         //             LoaderColor calc(var(--duration)*7) linear infinite both;
-       
+		// animation:  LoaderLine var(--duration) var(--ease) var(--delay) infinite alternate both,
+		// 			LoaderColor calc(var(--duration)*7) linear 0s infinite both;
+
     }
 }
 
@@ -314,12 +317,24 @@ progress[value="1"] + label{
         transform: rotate( calc( 0turn + var(--angle) ) ) scale(var(--scale,1));
     }
    50%{
-    //    transform: rotate( 0.5turn ) scale(var(--full-scale,1.5));
-  }
+    	transform: rotate( 0.5turn ) scale(var(--full-scale,1.5));
+  	}
     100%{
         transform: rotate( calc( 1turn - var(--angle) ) ) scale(var(--scale,1));
     }
 }
+
+// @keyframes LoaderLine2{
+//     0%{
+//         transform: rotate( calc( 0turn + var(--angle) ) ) scale(var(--scale,1));
+//     }
+//    50%{
+//     //    transform: rotate( 0.5turn ) scale(var(--full-scale,1.5));
+//   }
+//     100%{
+//         transform: rotate( calc( 1turn - var(--angle) ) ) scale(var(--scale,1));
+//     }
+// }
 
 @keyframes LoaderLineComplete{
 	to{

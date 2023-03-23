@@ -11,23 +11,16 @@
 	}
 }
 
-// for loading see loading
-
+// for loading see loading, .player-selection
 .loaded{
-	#intro{
+	#intro > *:not(nav){
 		> * {
 			visibility: hidden;
-		}
-		nav{
-			visibility: visible;
 		}
 	}
 	#progress{
 		display: none;
 	}
-	// #toast{
-	// 	po
-	// }
 }
 
 

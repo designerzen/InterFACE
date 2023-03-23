@@ -1,0 +1,28 @@
+
+details{
+	grid-area:requirements;
+	margin-bottom:calc( var(--pad) / 2 );
+	align-self: center;
+	justify-self: stretch;
+
+	summary::marker{
+		content:'';
+	}
+
+	summary::before{
+		content:'×';
+		transform: rotate(45deg);
+		display: inline-block;
+		transition: transform var((--ease-s)) var(--ease-out-back);
+		transition-delay: 0.4s;
+		margin-right: calc( var(--pad) * 0.5 );
+	}
+
+	&[open] summary::before{
+		transform: rotate(0deg);
+	}
+
+	> *:not(summary){
+		border:var(--border,1px) solid var(--shade-white);
+	}
+}

@@ -10,6 +10,7 @@
 	position: absolute;
 }	
 
+/*
 // To pass the w3c accessibility standards (see a11yproject.com)
 // add this class to any element to visually hide it from the screen
 // without affecting the other elements whilst also allowing
@@ -40,8 +41,19 @@
 		width:auto; 
 		height:auto;
 	}
-  }
-  
+}
+*/
+
+[screenreader-only]:not(:focus):not(:active),
+.sr-only:not(:focus):not(:active) {
+    clip-path: inset(50%);
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+	border: 0;
+}
 
   
 .hidden,
