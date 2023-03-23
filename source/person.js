@@ -35,8 +35,7 @@ import MIDIInstrument from './audio/instruments/instrument.midi'
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
 import { instrumentFolders } from './audio/instruments'
-
-import { setupInstrumentForm } from './dom/ui'
+import { hidePersonalControlPanel, setupInstrumentForm, showPersonalControlPanel } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
 
 import { 
@@ -46,6 +45,10 @@ import {
 	drawText, drawParagraph, 
 	drawInstrument
 } from './visual/2d'
+
+// import { 
+// 	draw3dFaceMesh 
+// } from "./visual/3d"
 
 import { drawMousePressure } from './dom/mouse-pressure'
 import { drawEye } from './visual/2d.eyes'
@@ -72,7 +75,6 @@ const UPDATE_FACE_BUTTON_AFTER_FRAMES = 24
 
 // FIXME:
 const FUDGE = 1.0// 1.3
-
 export default class Person{
 
 	// instances
@@ -120,6 +122,9 @@ export default class Person{
 	instrumentLoadedAt = -1
 
 	mouseDownAt = -1
+	mouseHeldAt = -1
+	inputCoordinates = { x:0, y:0 }
+
 	leftEyeClosedAt = -1
 	rightEyeClosedAt = -1
 
@@ -180,11 +185,11 @@ export default class Person{
 	}
 
 	/**
-	 * Fetch the ID of the form on the DOM that matches this Person
+	 * Fetch the class of the form on the DOM that matches this Person
 	 * @returns {String} ID name
 	 */
 	get controlsID (){
-		return `${this.name}-controls`
+		return `.${this.name}-controls`
 	}
 
 	/**
@@ -192,7 +197,7 @@ export default class Person{
 	 * @returns {HTMLElement} Form element for this Person
 	 */
 	get controls (){
-		return document.getElementById(this.controlsID)
+		return document.querySelector(this.controlsID)
 	}
 
 	/**
@@ -271,8 +276,6 @@ export default class Person{
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		this.name = name
-
-		this.audioContext = audioContext
 			
 		// HSL Colour scheme that can be overwritten
 		this.setPalette(this.options)
@@ -290,60 +293,34 @@ export default class Person{
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff)
 
-		// this controls the amplitude and connects to the mouth ui
-		this.gainNode = audioContext.createGain()
-		this.gainNode.gain.value = 0
+		// Create our Audio wiring
+		this.setupAudio(audioContext, destinationNode)
 
-		// allow stereo pannning...
-		// NB. This is actually quite a greedy method
-		if (this.options.stereoPan)
-		{
-			
-			this.stereoNode = audioContext.createStereoPanner()
-			this.stereoNode.connect(this.gainNode)
-			// this.stereoNode.connect(delayNode)
-			this.outputNode = this.stereoNode
-		}else{
-			// TODO: go directly into gain or through other fx first?
-			this.outputNode = this.gainNode
-		}
-
-		if (this.options.useDelay)
-		{
-			// DELAY : Feedback smooths out the audio
-			const delayNode = audioContext.createDelay( this.options.delayLength )
-			const feedbackNode = audioContext.createGain()
-			delayNode.delayTime.value = this.options.delayTime
-			feedbackNode.gain.value = this.options.feedback
-			
-			// connect gain to delay (delay feeds back)
-			this.gainNode.connect(delayNode)
-			// connect the delay node to the output
-			delayNode.connect(destinationNode)
-			// and back in tot he feedback?
-			// delayNode.connect(destinationNode)
-
-		}else{
-			// direct to main mixer
-			this.gainNode.connect(destinationNode)
-		}
-
-		// create a sample player, oscillator add all other instruments
-		this.samplePlayer = this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) )
-		
-		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
-		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
-		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
-		
-		this.activeInstrument = this.samplePlayer
-
-		// create our side bar and instrument selector for m
+		// Create our side bar and instrument selector for m
 		this.setupForm()
 
-		// fetch dom element
+		// fetch face button dom element
 		this.button = document.getElementById(name)
-		this.button.addEventListener( 'mousedown', e => this.onFaceTouchStart(e) )
-		this.button.addEventListener( 'mouseup', e => this.onFaceTouchEnd(e) )
+
+		this.button.addEventListener( 'mousedown', e =>{ 
+			console.log("mouse down")
+			this.onFaceTouchStart(e) 
+			document.addEventListener('mouseup', e => this.onFaceTouchEnd(e), {once:true})
+		})
+		// this.button.addEventListener( 'mouseup', e => {
+		// 	console.log("mouse up")
+		// 	this.onFaceTouchEnd(e) 
+		// })
+
+		this.button.addEventListener( 'touchstart', e =>{ 
+			console.log("touch start")
+			this.onFaceTouchStart(e) 
+			document.addEventListener('touchend', e => this.onFaceTouchEnd(e), {once:true})
+		})
+		// this.button.addEventListener( 'touchend', e => {
+		// 	console.log("touch end")
+		// 	this.onFaceTouchEnd(e) 
+		// })
 
 		this.button.addEventListener( 'mouseover', event => {
 			this.isMouseOver = true
@@ -352,12 +329,18 @@ export default class Person{
 		this.button.addEventListener( 'mouseout', event => {
 			this.isMouseOver = false
 		})
+
 		this.instrumentLoadedAt = this.now
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
+
+	destroy(){
+
+	}
 	
+
 	/**
-	 * 
+	 * Set the internal State for this Person from the constants above
 	 * @param {String} state - which state the Person is in
 	 */
 	setState(state){
@@ -408,9 +391,8 @@ export default class Person{
 		}
 
 		// check to see if mouse if down
-		if (this.isMouseHeld)
+		if (this.mouseHeldAt === -1 && this.isMouseHeld)
 		{
-			this.mouseDownAt = -1
 			this.onButtonHeld()
 		}
 		
@@ -442,6 +424,37 @@ export default class Person{
 			this.isRightEyeOpen = !prediction.rightEyeClosed
 		}
 	}
+	
+	/**
+	 * Using THREE.js to render the points as voxels
+	 * @param {*} prediction 
+	 * @param {*} showText 
+	 * @param {*} forceRefresh 
+	 * @param {*} beatJustPlayed 
+	 */
+	// draw3d(prediction, forceRefresh=false, beatJustPlayed=false){
+	// 	if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
+	// 	{
+	// 		// nothing to (re)draw so exit here
+	// 		return
+	// 	}
+		
+	// 	// reuse old prediction or refresh
+	// 	if (!prediction || forceRefresh)
+	// 	{
+	// 		prediction = this.prediction
+	// 	}
+	// 	const {annotations} = prediction
+	// 	const {
+	// 		faceOval, 
+	// 		lips,
+	// 		leftEye, leftEyebrow, leftIris, 
+	// 		rightEye, rightEyebrow, rightIris
+	// 	} = annotations
+
+	// 	draw3dFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
+	// }
+
 
 	/**
 	 * Update visuals
@@ -458,9 +471,9 @@ export default class Person{
 			return
 		}
 		
+		// reuse old prediction aka refresh
 		if (!prediction || forceRefresh)
 		{
-			// refresh
 			prediction = this.prediction
 		}
 
@@ -475,7 +488,6 @@ export default class Person{
 		{
 			drawMousePressure( this.mouseHoldProgress, this.options.mouseHoldDuration )
 		}
-
 
 		const {annotations} = prediction
 		const {
@@ -529,7 +541,6 @@ export default class Person{
 			a:1
 		}
 
-
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
 		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
@@ -568,7 +579,6 @@ export default class Person{
 
 		// if this is mirrored using the option in the TF model...
 		
-			
 		// we only want this every frame or so as this 
 		// is altering the DOM
 		if (this.counter%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
@@ -584,7 +594,6 @@ export default class Person{
 			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
 		}
 
-		 
 		// now overlay the mouth
 		if (options.drawMouth)
 		{	
@@ -609,20 +618,13 @@ export default class Person{
 				a:1
 			}
 
-
-
 			//drawLip( prediction.annotations.lips, {...colour, h:0}, lipPathOuter )
 			// drawMouthFromSequence( prediction.annotations.lips, {...colour }, {...colour, a:0.5}, LIP_PATH_OUTER )
 
 			// drawMouthFromSequence( prediction.annotations.lips, {...colour, h:0}, {...colour, h:0}, LIP_PATH_INNER )
 
-			
-			
 			// // Top inner
 			// drawLip(prediction.annotations.lips, {...colour, h:270}, 30, 40)
-
-
-
 
 			// fake it till you make it
 			// bottom outer lip first
@@ -638,7 +640,6 @@ export default class Person{
 			// drawMouth(prediction.annotations.lips, {...colour, h:90 }, 0, 9)
 			// drawMouth(prediction.annotations.lips, {...colour, h:180 }, 0, 9)
 			// drawMouth(prediction.annotations.lips, {...colour, h:270 }, 0, 9)
-
 
 			// DEBUG
 			// drawNodes( annotations.leftEyeSocket[0], annotations.leftEyeSocket[1] )
@@ -783,7 +784,6 @@ export default class Person{
 			return
 		}
 	
-
 		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
 
@@ -798,8 +798,6 @@ export default class Person{
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
 				
 				//console.error("this.isMouseHeld",this.isMouseHeld,{remaining,percentageRemaining} )
-			
-
 				if (this.isMouseHeld)
 				{	
 					// user is holding mouse down on user...
@@ -822,7 +820,7 @@ export default class Person{
 				
 				// No mouse held
 				drawInstrument(boundingBox, this.instrumentTitle, 'Hold to choose instrument')
-				drawPart( faceOval, 4, 'hsla('+hue+',50%,50%,0.3)', true)
+				drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
 				/*	
 				const offsetX = topLeft[0]
 				const offsetY = topLeft[1]
@@ -885,15 +883,13 @@ export default class Person{
 					
 					// `eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
 					// `dims:${(prediction.mouthRatio||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
-					'facing'+prediction.lookingRight ? 'left' : 'right'
+					`facing ${prediction.lookingRight ? 'left' : 'right'}`
 				]
 
 				drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, paragraphs, '14px' )
 				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
 			}
 		}
-
-
 	}
 
 	/**
@@ -905,7 +901,7 @@ export default class Person{
 	sing(){
 
 		// nothing to play
-		if (!this.data )
+		if ( !this.data )
 		{
 			return DEFAULT_VOICE_OPTIONS
 		}
@@ -1192,6 +1188,7 @@ export default class Person{
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
 		this.setupForm()
+		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
 		return this.instrument
@@ -1242,7 +1239,7 @@ export default class Person{
 		const generalMIDIInstrumentId = instrumentFolders.indexOf(instrumentName)
 		if ( generalMIDIInstrumentId  < 0 )
 		{
-			throw Error("loadInstrument("+instrumentName+") failed")
+			throw Error("Person.loadInstrument("+instrumentName+") failed")
 		}
 		this.instrumentPointer = generalMIDIInstrumentId
 
@@ -1260,12 +1257,75 @@ export default class Person{
 	}
 
 	/**
+	 * Create the Audio wiring for these options
+	 * @param {AudioContext} audioContext 
+	 */
+	setupAudio(audioContext, destinationNode){
+
+		this.audioContext = audioContext
+		
+		// this controls the amplitude and connects to the mouth ui
+		this.gainNode = audioContext.createGain()
+		this.gainNode.gain.value = 0
+
+		// allow stereo pannning...
+		// NB. This is actually quite a greedy method
+		if (this.options.stereoPan)
+		{
+			this.stereoNode = audioContext.createStereoPanner()
+			this.stereoNode.connect(this.gainNode)
+			// this.stereoNode.connect(delayNode)
+			this.outputNode = this.stereoNode
+		}else{
+			// TODO: go directly into gain or through other fx first?
+			this.outputNode = this.gainNode
+		}
+
+		if (this.options.useDelay)
+		{
+			// DELAY : Feedback smooths out the audio
+			const delayNode = audioContext.createDelay( this.options.delayLength )
+			const feedbackNode = audioContext.createGain()
+			delayNode.delayTime.value = this.options.delayTime
+			feedbackNode.gain.value = this.options.feedback
+			
+			// connect gain to delay (delay feeds back)
+			this.gainNode.connect(delayNode)
+			// connect the delay node to the output
+			delayNode.connect(destinationNode)
+			// and back in tot he feedback?
+			// delayNode.connect(destinationNode)
+
+		}else{
+			// direct to main mixer
+			this.gainNode.connect(destinationNode)
+		}
+
+		// TODO: 
+		// create a sample player, oscillator add all other instruments
+		this.samplePlayer = this.setInstrument( this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) ) )
+		
+		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
+		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
+		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
+	}
+
+	/**
 	 * Inject an instrument to be used by this person
-	 * @param {*} instrument 
+	 * @param {Instrument} instrument 
 	 */
 	addInstrument( instrument ){
 		this.instruments.push( instrument )
 		// FIXME: Also connect for changes to instrument
+		return instrument
+	}
+
+	/**
+	 * Add instrument to pool and set as master
+	 * @param {Instrument} instrument 
+	 */
+	setInstrument( instrument ){
+		this.activeInstrument = instrument
 		return instrument
 	}
 
@@ -1296,48 +1356,82 @@ export default class Person{
 
 	/**
 	 * Touch BEGIN
-	 * @param {*} event 
+	 * stores coordinates of the system in order for gestures
+	 * @param {Event} event 
 	 */
 	onFaceTouchStart(event){
-		//console.log("mousedown:currentTime",  audioContext.currentTime )
-		this.mouseDownAt = this.audioContext.currentTime
-		drawMousePressure( 0, this.options.mouseHoldDuration )
+		// console.log("mousedown:currentTime",  audioContext.currentTime )
 		event.preventDefault()
+
+		this.mouseDownAt = this.audioContext.currentTime
+		this.inputCoordinates.x = event.clientX
+		this.inputCoordinates.y = event.clientY
+		
+		// start mouse pressure animation
+		drawMousePressure( 0, this.options.mouseHoldDuration )
 	}
 
 	/**
 	 * Touch END
-	 * @param {*} event 
+	 * @param {Event} event 
 	 */
 	onFaceTouchEnd(event){
-		// should this trigger something else depending on time?
-		// const elapsed = this.mouseDownFor
+			
+		event.preventDefault()
 		
-		console.log("mouseup:mouseDownFor", this.mouseDownAt, this.isMouseHeld, this.options.mouseHoldDuration )
-		
+		// Gestures -----
 		// if someone just keeps the finger on the screen...
 		if (this.isMouseHeld)
-		{
-			
+		{	
+			// should this trigger something else depending on time?
+			// const elapsed = this.mouseDownFor
+		
+			// long press so show the form cept it shouls already be visible
+			// this is called in update() via onButtonHeld()
+			// this.showForm()
+
 		}else{
-			// Quick tap so don't show the forn
-			this.loadRandomInstrument()
+
+			const xTravel = event.clientX - this.inputCoordinates.x
+			const yTravel = event.clientY - this.inputCoordinates.y
+			
+			if (Math.abs(xTravel) > this.options.mouseGestureDistance)
+			{
+				//console.log("Swipe ", xTravel < 0 ? 'l' : 'r', xTravel)
+				xTravel < 0 ? 
+					this.loadPreviousInstrument() : 
+					this.loadNextInstrument()
+
+			}else if (Math.abs(yTravel) > this.options.mouseGestureDistance){
+
+				//console.log("Swipe down", yTravel < 0 ? 'u' : 'd', yTravel )
+
+			}else{
+
+				// Quick tap so don't show the form, instead change instrument directly
+				this.loadRandomInstrument()
+			}
 		}
 
 		// reset it
-		// and reset
 		this.mouseDownAt = -1
+		this.mouseHeldAt = -1
+
 		drawMousePressure( 1, this.options.mouseHoldDuration )	
-		
-		event.preventDefault()
+	}
+
+	onButtonHeld(){
+		this.mouseHeldAt = this.audioContext.currentTime
+		drawMousePressure( 1, this.options.mouseHoldDuration )
+		this.showForm()
 	}
 
 	onInstrumentInput(event) {
 		const id = event.target.id
-		//console.error(id, "on inputted", event)
+		// console.error(id, "on inputted", event)
 		this.hideForm()
 		this.loadInstrument(id)
-		event.preventDefault()
+		// event.preventDefault()
 	}
 
 	onLeftEyeOpen( timeClosedFor ){
@@ -1357,26 +1451,30 @@ export default class Person{
 	}
 
 	onEyesClosedForTimePeriod(){
-		// 
-		this.loadNextInstrument( instrumnetName => console.log("instrumnetName",instrumnetName ) )
-	}
-
-	onButtonHeld(){
-		this.showForm()
-		drawMousePressure( 1, this.options.mouseHoldDuration )
+		this.loadNextInstrument( instrumentName => console.log("instrumnetName",instrumentName ) )
 	}
 
 	/**
 	 * Create the instrument panel HTML for this user's instrument
-	 * and other settings specific to this person
+	 * and other settings specific to this person. Needs to be done per person
 	 */
 	setupForm(){
 
-		// FIXME: Use ACTIVE instrument - don't assume it's samplePlayer
+		// TODO: Use ACTIVE instrument - don't assume it's samplePlayer
 		const instruments = this.activeInstrument.getInstruments()
-		// FIXME 
-		this.controls.innerHTML = setupInstrumentForm( instruments, this.samplePlayer.instrumentPack )
 		
+		// hide existing
+		const allInstruments = this.controls.querySelectorAll(".instrument")
+		allInstruments.forEach( instrument => instrument.classList.add("hide") )
+
+		// replace 
+		const existing = this.controls.querySelector(`.${this.activeInstrument.name}`)
+		const instrumentPanel = existing ? existing : document.createElement("div")
+		instrumentPanel.innerHTML = setupInstrumentForm( instruments, this.samplePlayer.instrumentPack )
+		instrumentPanel.className = `${this.activeInstrument.name} instrument`
+
+		this.controls.appendChild(instrumentPanel)
+
 		const inputs = this.controls.querySelectorAll('input')
 		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)
 
@@ -1394,41 +1492,34 @@ export default class Person{
 	}
 
 	/**
-	 * This pops up the user side bar and populates it accordingly
+	 * This pops up the user side bar control panel
 	 */
 	showForm(){
-
-		// find active input field and focus
-		const active = document.getElementById(this.instrumentName)
-		if (active)
+		if (!this.isFormShowing)
 		{
-			active.focus()
-		}else{
-			// send focus to form?
-			this.controls.focus()
+			this.isFormShowing = showPersonalControlPanel( this.name, this.controls, this.instrumentName )
 		}
-
-		console.log("SHOW Form", {active})
-		this.controls.classList.toggle("showing",true)
-		document.documentElement.classList.toggle(`${this.name}-sidebar-showing`,true)
-		this.isFormShowing = true
 	}
 
 	/**
-	 * Hide this Person's form
+	 * Hide this Person's control panel form
 	 */
 	hideForm(){
 		if (this.isFormShowing)
 		{
-			console.log("HIDE Form")
-			this.isFormShowing = false
-			//const inputs = this.controls.querySelectorAll('input')
-			//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
-			//this.controls.innerHTML = ''
-			this.controls.classList.toggle("showing",false)
-			document.documentElement.classList.toggle(`${this.name}-sidebar-showing`,false)
-			// setTimeout( ()=> this.controls.classList.toggle("showing",false), 303 )	
+			this.isFormShowing = hidePersonalControlPanel(this.name, this.controls)
 		}
-		
+	}
+
+	/**
+	 * Hide / Show the Person's control panel form
+	 */
+	toggleForm(){
+		if (this.isFormShowing)
+		{
+			this.hideForm()
+		}else{
+			this.showForm()
+		}
 	}
 }
