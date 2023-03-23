@@ -38,11 +38,18 @@ export const drawPath = ( points, closePath=false ) => {
 	return region
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// draws a specific part by looping through the part array and 
-// connecting the nodes together with paths
-//////////////////////////////////////////////////////////////////////
+/**
+ * Draws a specific part by looping through the part array and 
+ * connecting the nodes together with paths
+ * @param {Array} keypoints 
+ * @param {Number} nodeRadius 
+ * @param {String} strokeStyle 
+ * @param {Boolean} lines 
+ * @param {Boolean} fill 
+ * @param {Boolean} showNumbers 
+ * @param {Color} fillStyle 
+ * @param {Number} strokeWidth 
+ */
 export const drawPart = (keypoints, nodeRadius=0, strokeStyle="red", lines=true, fill=true, showNumbers=false, fillStyle="rgba(255,0,0,0.5)", strokeWidth=1 ) => {
 	
 	// console.error("Keypoints", keypoints)
