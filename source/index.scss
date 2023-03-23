@@ -23,26 +23,35 @@
 @import "./assets/styles/typography.scss";
 
 // elements and sections\
-@import "./assets/styles/audio-player.scss";
-@import "./assets/styles/forms.scss";
-@import "./assets/styles/toast.scss";
-@import "./assets/styles/feedback.scss";
-@import "./assets/styles/gadgets.scss";
-@import "./assets/styles/progress.scss";
-@import "./assets/styles/dialog.scss";
+
+@import "./assets/styles/gadgets/audio-player.scss";
+@import "./assets/styles/gadgets/toast.scss";
+@import "./assets/styles/gadgets/gadgets.scss";
+@import "./assets/styles/gadgets/controls.scss";
+@import "./assets/styles/gadgets/progress.scss";
+@import "./assets/styles/gadgets/dialog.scss";
+@import "./assets/styles/gadgets/scrollbars.scss";
+@import "./assets/styles/gadgets/button-arcade.scss";
+@import "./assets/styles/gadgets/button-pwa.scss";
+@import "./assets/styles/gadgets/details.scss";
+@import "./assets/styles/gadgets/cursors.scss";
+
 @import "./assets/styles/icons.scss";
 @import "./assets/styles/keyframes.scss";
-@import "./assets/styles/scrollbars.scss";
 @import "./assets/styles/wallpapers.scss";
-@import "./assets/styles/sections/dialog-fund.scss";
+@import "./assets/styles/forms.scss";
+@import "./assets/styles/feedback.scss";
 
+@import "./assets/styles/sections/dialog-fund.scss";
+@import "./assets/styles/sections/footer.scss";
+@import "./assets/styles/sections/midi.scss";
 @import "./assets/styles/sections/loading.scss";
 @import "./assets/styles/sections/tutorial.scss";
 @import "./assets/styles/sections/onboarding.scss";
 @import "./assets/styles/sections/interface.scss";
+@import "./assets/styles/sections/instruments.scss";
 @import "./assets/styles/sections/timeline.scss";
 
 @import "./assets/styles/states.scss";
 @import "./assets/styles/domains.scss";
-@import "./assets/styles/cursors.scss";
 @import "./assets/styles/utils.scss";
