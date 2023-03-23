@@ -156,10 +156,11 @@ export const setupAudio = async (settings) => {
 	gain = await createAmplitude(audioContext, 1)
 	percussion = await createAmplitude(audioContext, 0.1 )
 	
-	percussion.node.connect( getMasterMixdown() )
-
 	// this should hopefully balance the outputs
-	// compressor = await createCompressor( audioContext )
+	compressor = await createCompressor( audioContext )
+	percussion.node.connect( compressor.node )
+	compressor.node.connect( getMasterMixdown())
+		
 
 	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
 	// reverb.impulseFilter()

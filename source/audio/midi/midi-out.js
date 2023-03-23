@@ -29,7 +29,7 @@ let mpeEnabled = false
  * Check to see if MIDI is available on this platform
  * @returns {Boolean} true if MIDI is available
  */
-export const testForMIDI = () => navigator.requestMIDIAccess === undefined? false : true
+export const testForMIDI = () => navigator.requestMIDIAccess === undefined ? false : true
 
 /**
  * Initialise and connect to MIDI Hardware

@@ -3,15 +3,15 @@ import {changeParameter} from './effect'
 export const createCompressor = async ( 
 	audioContext,
 	// decibel value above which the compression will start taking effect.
-	threshold = -70,
+	threshold = -50,
 	// decibel value representing the range above the threshold where the curve smoothly transitions to the compressed portion.
 	knee = 40,
 	// amount of change, in dB, needed in the input for a 1 dB change in the output.
-	ratio = 5,
+	ratio = 12,
 	// amount of time, in seconds, required to reduce the gain by 10 dB.
 	attack = 0,
 	// amount of time, in seconds, required to increase the gain by 10 dB.
-	release = 0.5,
+	release = 0.25,
 	// Is a float representing the amount of gain reduction currently applied by the compressor to the signal.
 	reduction = 0
 	
