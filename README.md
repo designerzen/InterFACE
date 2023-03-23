@@ -131,23 +131,15 @@ Given enough time it would be possible to save MIDI files directly from the app 
 [amic museum](amicdrakemusic.wordpress.com)
 
 
-
 ## Accessibilty Checklist :
 
-### Accessible ###
+* Accessible
 - In terms of the physical format of the instrument, or the design of the software. This could mean using high contrast colours to remove visibility barriers, or keeping an interface streamlined to remove complexity barriers.
 
-### Authentic ###
-- Co-created; designed by Disabled people, not for them. Disabled people are experts in their lived experience and nothing beats that for creating truly accessible ideas.
-
-### Affordable ### 
-– If it’s not affordable, it’s not accessible. This will work at different levels, with the cost being appropriate to the quality of the instrument – e.g. a professional-grade piece of kit will cost more than a beginners instrument.
-
-### Available ### 
-– If it’s not available, it’s not accessible. We see great ideas which end up in drawers. If it’s not available to play, it’s no longer accessible!
-
-### Adaptable ###
-– We want to create new musical kit which can fit the person playing, like how Mi.Mu Glove gesture technology is mapped to the musician using it. If music technology can be personalised, it will be more accessible to a broader group of people.
+* Authentic - co-created with disabled folk
+* Affordable - free mode for all courtesy of github
+* Available - online, no password, installable directly
+* Adaptable - configurable and mappable
 
 
 ### Keywords
