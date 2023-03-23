@@ -54,9 +54,14 @@ export const connectReverbControls = (callback) => {
 		}).join('\n')
 	
 		const maapped = dirs.map( async (dir) => {
-			const json = await loadImpulseJSON(dir)
-			const option = createOptionValues( json, dir)
-			return `<optgroup>${dir}</optgroup>${option}`
+			try{
+				const json = await loadImpulseJSON(dir)
+				const option = createOptionValues( json, dir)
+				return `<optgroup>${dir}</optgroup>${option}`	
+			}catch(error){
+				console.error("Couldn't load reverb impulse json", error )
+				return ''
+			}
 		})
 
 		Promise.all(maapped).then( optionData => {

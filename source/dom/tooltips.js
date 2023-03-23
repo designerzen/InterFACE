@@ -1,3 +1,6 @@
+/**
+ * Very simple tooltip moving, presenting and updating
+ */
 
 /**
  * Create a tooltip and bind it to the element
@@ -86,7 +89,6 @@
 		   }
 		}
 
-		
 		previousMessage = message
 
 	} : null
@@ -104,6 +106,11 @@ export const setToast = createTip( toastElement )
 
 const tooltips = new Map()
 
+/**
+ * set the style of the tooltip to the x/y coords
+ * of the provided element
+ * @param {HTMLElement} target 
+ */
 const setToolTipPosition = (target) => {
 	toastElement.setAttribute(
 		"style", 
@@ -115,26 +122,25 @@ const setToolTipPosition = (target) => {
 /**
  * adds a single tooltip to an element where hovering will reveal new info
  * @param {HTMLElement} controls DOM element to search within
- * @param {String} query query selector for finding the elements to bind to
  */
 export const addTooltip = element => { 
 	const callback = event => {
-		const toolTip = event.target.getAttribute("aria-label") || event.target.innerHTML
-		if (event.target.nodeName === "BUTTON"){
-
-			setToolTipPosition(event.target)
-		}else{
-			setToolTipPosition(event.target.parentElement)
-		}
+		const toolTip = event.target.getAttribute("aria-label") || event.target.innerText
+		const position = 
+			event.target.nodeName === "BUTTON" ? 
+		 		event.target : event.target.parentElement 
+		setToolTipPosition(position)
 		setToast(toolTip)
+		// console.error( {toolTip, position} )
 	}
 	element.addEventListener("mouseover", callback)
+	// check for dom removal 
 	tooltips.set( element, callback )
 }
 
 /**
  * Undoes the above
- * @param {*} element 
+ * @param {HTMLElement} element 
  */
 export const removeTooltip = element => { 
 	const callback = tooltips.get( element )
