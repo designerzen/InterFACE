@@ -1,0 +1,34 @@
+# name of your github action - this will help you specify where to run 
+# I hate YAML it is stupid and annoying
+name: Electron
+
+on: 
+    release: 
+        types: 
+         -  created
+        strategy: 
+            matrix: 
+                # TODO: Add linux and windows to the process
+                os: [windows-latest] #, ubuntu-latest, macos-latest]
+                node-version: [ 18.x ] # 14.x, 16.x,
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+jobs:
+    windows:
+        runs-on: windows-latest 
+        steps: 
+            - name: Check out Git repository Master branch
+              uses: actions/checkout@v3 
+            - name: Install Node.js ${{ matrix.node-version }}, NPM and Yarn crossplatform :)
+              uses: actions/setup-node@v3
+              with: 
+                node-version: ${{ matrix.node-version }}
+                cache: 'npm'
+            - name: Install yarn packages
+              run: yarn install
+            - name: Build the electron app
+              run: yarn make
+            - uses: actions/upload-artifact@v3
+              with: 
+                name: photosynth-interface
+                path: electron
