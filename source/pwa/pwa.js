@@ -2,9 +2,10 @@
 // await checkForUpdates() => { currentVersion:0.0.1, newVersion:0.0.2, updateAvailable:true } 
 
 // Fix some issues with early browsers
-// import './servicewaiting.polyfill'
-
+import './servicewaiting.polyfill'
 import { VERSION } from '../version'
+import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform'
+
 // import serviceWorkerPath from "url:../service-worker.js"
 
 // console.error({serviceWorkerPath, manifestPath})
@@ -12,32 +13,18 @@ import { VERSION } from '../version'
 // ? made CloudFlare barf up the ServiceWorker so meh!
 const URL_SEPERATOR = "#"
 
-const NAME = "ploppypantspwaispoo"
+const NAME = "pwastillcausingmeheadaches"
 
 let deferredPrompt
 
 // flags
 const PWA_TYPES = [ "standalone", "fullscreen",  "minimal-ui" ]
-
-// Determine as much functionality as possible
-const isInWebAppiOS = "standalone" in navigator ? window.navigator.standalone === true : matchMedia("(display-mode: standalone)").matches
 // as there are other modes that are active as pwa such as fullscreen
 const displayMode = PWA_TYPES.filter( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
 const isInWebAppChrome = PWA_TYPES.includes( displayMode )
 
 // const isInWebAppChrome = ["fullscreen", "standalone", "minimal-ui"].some( displayMode => window.matchMedia( `(display-mode:${displayMode})` ).matches )
 // const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches
-
-// handle iOS specifically
-// this includes the regular iPad and the iPad pro but not macOS
-const isIOS =
-	navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ||
-	(navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
-
-// is this an APK TWA android app?
-const isTWAAndroid = document.referrer.includes('android-app://')
-// check to see if it is in the microsoft store pwas format
-const isMicrosoftStore = Array.isArray( navigator.userAgent.match(/MSAppHost/i) )
 
 // if this is the first ever run or if this is the cache has been cleared...
 const isFirstRun = navigator.serviceWorker.controller === null
@@ -63,19 +50,18 @@ const isRunningAsApp = isInWebAppiOS || isInWebAppChrome || isTWAAndroid || isMi
 // 4. If Installed check for updates
 
 
-
-
-
+// It is useful to know the kind of computer or device this
+// is being installed onto - for example, firefox can show a
+// message saying that certain features aren't available!
 const platform = {
 	ios:isIOS,
 	android:isTWAAndroid,
 	microsoft:isMicrosoftStore,
+	firefox:isFirefox(),
 	pwa:isRunningAsApp,
 	offline:!isOnline,
 	displayMode
 }
-
-
 
 // The process goes like this...
 
@@ -199,7 +185,6 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 	if (!isSupportingBrowser)
 	{
 		throw Error("Browser does not support PWA installation")
-		//return false
 	}
 
 	// 2. check to see if it is already installed and running as a PWA
@@ -229,7 +214,7 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 	// ===================================================
 	// INSTALLATION OF SERVICE WORKER MEANS IT WAS JUST INSTALLED 
 	// check if installing...
-	if (registration && registration.installing)
+	if (registration?.installing)
 	{
 		// if the feature exists, we can work out how heavy the app is
 		if (navigator.storage)
@@ -288,7 +273,7 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 			
 			// if there is already a service-worker registered and running as the controller...
 			// as well as a worker "waiting" to be installed... resolve immediately?
-			if (installingWorker && installingWorker.waiting && navigator.serviceWorker.controller) 
+			if (nstallingWorker?.waiting && navigator.serviceWorker.controller) 
 			{
 				// FIXME: 
 				//newWorker = reg.waiting
