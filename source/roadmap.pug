@@ -10,111 +10,110 @@ mixin event(year, name)
 		if block
 			block
 		else
-			No content provided
+			p No content provided
 
 block title
 	+title('RoadMap')
 
 block nav
 
-
 block preload 
 
 block main
+	main#roadmap
+		h3 Roadmap
+		h4 Timeline
+		
+		ul.timeline(role="list")
 
-	h3 Roadmap
-	h4 Timeline
-	
-	ul.timeline
+			li
+				+event("2020", "Prototype Alpha 1 Launch at #DMLab") 
+					p The very first proof-of-concept was created in December 2021 and demostrated at DMLab December 2020
+			
+			li
+				+event("2021", "Beta Version 1 Launched at SXSW21") 
+					p 
+			
+			li
+				+event("2021", "Beta Version 5 Launched at Music Maker Festival") 
+					p Beta version 5 was shown for the first time at the Music Maker Festival 2021 where the opton to use closed eyes to change instruments per user was added
+			
+			li 
+				+event("2020", "Allow recording of performance per person") 
+					p Allow recording of performance per person
+			
+			li 
+				+event("2020", "Allow recording of all data in realtime to be downloaded") 
+					p Allow recording of all data in realtime to be downloaded
+			
+			li 
+				+event("2021", "Create a playback / replay mode") 
+					p Adding the ability to record every aspect of your performance and replay both the audio and video
+		
+			li 
+				+event("2021", "MIDI2 (MPE) Support") 
+					p MIDI 2.0 (MPE) Support to control modern polyphonic instruments via MIDI cable
+		
+			li 
+				+event("2021", "Synthesis Engine Upgrade") 
+					p Ideally a natural sounding synth could replace or be added to the existing sample based audio engine which would not only sound more interesting but would allow fun fun effects such as pitch bending, micro-tonality and vibrato.
+			
+			li 
+				+event("2021", "Export of MIDI composition") 
+					p Saving your musical composition as a MIDI file to your local device to use with other software such as a DAW.
 
-		li
-			+event("2020", "Prototype Alpha 1 Launch at #DMLab") 
-				p The very first proof-of-concept was created in December 2021 and demostrated at DMLab December 2020
+			li 
+				+event("2021", "Hand / Body input mechanisms") 
+					p The use of other body parts to control the interface. Current plans include tracking the hands as well as a full body shape as input mechanisms.
 		
-		li
-			+event("2021", "Beta Version 1 Launched at SXSW21") 
-				p 
+			li 
+				+event("2021", "Saving 'Persons' and using face ID loading them back in") 
+					p Saving "Persons" and using face ID loading them back in
 		
-		li
-			+event("2021", "Beta Version 5 Launched at Music Maker Festival") 
-				p Beta version 5 was shown for the first time at the Music Maker Festival 2021 where the opton to use closed eyes to change instruments per user was added
-		
-		li 
-			+event("2020", "Allow recording of performance per person") 
-				p Allow recording of performance per person
-		
-		li 
-			+event("2020", "Allow recording of all data in realtime to be downloaded") 
-				p Allow recording of all data in realtime to be downloaded
-		
-		li 
-			+event("2021", "Create a playback / replay mode") 
-				p Adding the ability to record every aspect of your performance and replay both the audio and video
-	
-		li 
-			+event("2021", "MIDI2 (MPE) Support") 
-				p MIDI 2.0 (MPE) Support to control modern polyphonic instruments via MIDI cable
-	 
-		li 
-			+event("2021", "Synthesis Engine Upgrade") 
-				p Ideally a natural sounding synth could replace or be added to the existing sample based audio engine which would not only sound more interesting but would allow fun fun effects such as pitch bending, micro-tonality and vibrato.
-		
-		li 
-			+event("2021", "Export of MIDI composition") 
-				p Saving your musical composition as a MIDI file to your local device to use with other software such as a DAW.
-
-		li 
-			+event("2021", "Hand / Body input mechanisms") 
-				p The use of other body parts to control the interface. Current plans include tracking the hands as well as a full body shape as input mechanisms.
-	
-		li 
-			+event("2021", "Saving 'Persons' and using face ID loading them back in") 
-				p Saving "Persons" and using face ID loading them back in
-	
-		li 
-			+event("2021", "Full Body controlled version") 
-				p Integrated head, body and hands into one interface with smart detection and automatic gesture learning
-		
-		li 
-			+event("2021", "Hardware - USB MIDI to GPIO adapter") 
-				p Small Hardware Run - USB MIDI to GPIO adapter - a usb cable that when connected to the computer communicates with the InterFACE and allows other electronics to be wired in and controlled.
+			li 
+				+event("2021", "Full Body controlled version") 
+					p Integrated head, body and hands into one interface with smart detection and automatic gesture learning
+			
+			li 
+				+event("2021", "Hardware - USB MIDI to GPIO adapter") 
+					p Small Hardware Run - USB MIDI to GPIO adapter - a usb cable that when connected to the computer communicates with the InterFACE and allows other electronics to be wired in and controlled.
 
 
-		li 
-			+event("2022", "Hardware - Holographic Arcade Booth AMIC") 
-				p Permanent installation at the 
-				a(href="https://www.drakemusic.org/technology/accessible-musical-instrument-collection/") "Accessible Musical Instrument Museum (AMIC)"
-				| as an experience for a single player at a time that uses the Looking Glass Holographic Display mounted inside an Arcade Booth
-	
-		li 
-			+event("2022", "Hardware - Projected Installation AMIC") 
-				p Permanent exhibit at the 
-				a(href="https://www.drakemusic.org/technology/accessible-musical-instrument-collection/") "Accessible Musical Instrument Museum (AMIC)" 
-				| using a projector, a high power computer and a ceiling mounted camera would allow multiple people to play music simultaneously.
-	
-		li 
-			+event("2022", "Hardware - Holographic Arcade Booth AMIC") 
-				p Permanent installation at the "Accessible Musical Instrument Museum (AMIC)" as an experience for a single player at a time that uses the Looking Glass Holographic Display mounted inside an Arcade Booth
-	
-		li 
-			+event("2022", "Implement gesture recognition training") 
-				p Implement learning mechanism for training gesture recognition
+			li 
+				+event("2022", "Hardware - Holographic Arcade Booth AMIC") 
+					p Permanent installation at the 
+					a(href="https://www.drakemusic.org/technology/accessible-musical-instrument-collection/") "Accessible Musical Instrument Museum (AMIC)"
+					| as an experience for a single player at a time that uses the Looking Glass Holographic Display mounted inside an Arcade Booth
 		
-		li 
-			+event("2022", "Add the ability to track faces even if they cross") 
-				p Add the ability to track faces even if they cross
+			li 
+				+event("2022", "Hardware - Projected Installation AMIC") 
+					p Permanent exhibit at the 
+					a(href="https://www.drakemusic.org/technology/accessible-musical-instrument-collection/") "Accessible Musical Instrument Museum (AMIC)" 
+					| using a projector, a high power computer and a ceiling mounted camera would allow multiple people to play music simultaneously.
 		
-		li 
-			+event("2022", "Add facial recognition to retain session wihout interaction") 
-				p Add facial recognition to retain session wihout interaction
+			li 
+				+event("2022", "Hardware - Holographic Arcade Booth AMIC") 
+					p Permanent installation at the "Accessible Musical Instrument Museum (AMIC)" as an experience for a single player at a time that uses the Looking Glass Holographic Display mounted inside an Arcade Booth
+		
+			li 
+				+event("2022", "Implement gesture recognition training") 
+					p Implement learning mechanism for training gesture recognition
+			
+			li 
+				+event("2022", "Add the ability to track faces even if they cross") 
+					p Add the ability to track faces even if they cross
+			
+			li 
+				+event("2022", "Add facial recognition to retain session wihout interaction") 
+					p Add facial recognition to retain session wihout interaction
 
-//- ## Future plans
-//- - Better musicality and expression
-//- - Upgraded synth engine
-//- - Refactor Instruments to Instrument Interface for future IO
-//- - MIDI phrase support
-//- - Percussion that sounds good!
-//- - Hand remote Controls
-//- - Full Body version for beats
-//- - Vocoder mode using microphone
-//- - Improved timing
+	//- ## Future plans
+	//- - Better musicality and expression
+	//- - Upgraded synth engine
+	//- - Refactor Instruments to Instrument Interface for future IO
+	//- - MIDI phrase support
+	//- - Percussion that sounds good!
+	//- - Hand remote Controls
+	//- - Full Body version for beats
+	//- - Vocoder mode using microphone
+	//- - Improved timing

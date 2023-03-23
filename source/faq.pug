@@ -1,0 +1,27 @@
+extends _base.pug
+
+mixin faq(question, answer)
+	details
+		summary= question
+		if block
+			block
+		else
+			p #{answer}
+
+block title
+	+title('Frequently Asked Questions')
+
+block nav
+
+block preload 
+
+block main
+	main#faq
+		h3 PhotoSYNTH3:InterFACE v #{package.version}
+		h4 Frequently Asked Questions
+		ul.faq(role="list")
+			li: +faq("How does this work?","Music notes are connected to your natural facial gestures")
+			li: +faq("I have specific requirements that prevent me from using this, can you add X feature?","Yes! Please get in touch to discuss how we can improve the project to meet your needs")
+			li: +faq("How can we support the development?","Patreon and Paypal are both ways to put money towards development")
+			li: +faq("Which technologies does this use?","Performance recording via motion capture using machine learning")
+			li: +faq("Can I use this in my museum","Yes absolutely! Please contact designerzen@gmail.com to discuss implementation")
