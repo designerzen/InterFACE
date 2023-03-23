@@ -1,6 +1,6 @@
 /**
  * This is a simple way to pass state from between pages without storing locally
- * bypassing the need for cookies or local storage.
+ * bypassing the need for cookies or local storage or GDPR cookie messages.
  */
 
 import { addToHistory, getLocationSettings } from './location-handler'
@@ -12,7 +12,7 @@ let main
  * Adds classnames to the main element to indicate the current state
  */
  const setUIState = (key, value) => {
-	 // FIXME: filter these?
+	// FIXME: filter these?
 	main.classList.toggle(`flag-${key}`, value )
 }
 
