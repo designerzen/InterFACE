@@ -75,7 +75,7 @@ ol li{
 }
 
 // List items
-:is(ol,ul) li + li{
+:is(ol,ul)[role=list] li + li{
 	margin-top:calc( var(--pad) / 2 );
 }
 
