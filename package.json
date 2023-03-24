@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical synthesizer",
-	"version": "0.14.0",
+	"version": "0.15.0",
 	"time": 1679660110132,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -68,15 +68,15 @@
 	"staticFiles": {
 		"staticFiles": [
 			{
-			  "staticPath": "static"
+				"staticPath": "static"
 			},
 			{
-			  "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
-			   "staticOutPath": "tf/"
+				"staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
+				"staticOutPath": "tf/"
 			},
 			{
-			  "staticPath": "./node_modules/@mediapipe/face_mesh",
-			   "staticOutPath": "@mediapipe/"
+				"staticPath": "./node_modules/@mediapipe/face_mesh",
+				"staticOutPath": "@mediapipe/"
 			}
 		]
 	},
