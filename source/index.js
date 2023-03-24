@@ -202,7 +202,7 @@ const start = () => {
 
 			// body.classList.add("failed")
 			//uninstall()
-			showError( error, "Oh no! Try a hard refresh (CTRL-SHIFT-R)" )
+			showError( error, "Oh no! Try a hard refresh (CTRL-SHIFT-R)", true )
 			console.error("Ultimate failure - remove loading - add error class?")
 		}
 	})

@@ -1646,7 +1646,8 @@ export const createInterface = (
 		const start = () => {
 		
 			// this then runs the loop if set to true
-			update( inputElement === video, (predictions)=>{
+			const automaticRepeat = inputElement === video
+			update( automaticRepeat , (predictions)=>{
 
 				// NB. always update the counter
 				counter++
