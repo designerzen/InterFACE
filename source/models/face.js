@@ -19,8 +19,7 @@ import * as tfWebGL from '@tensorflow/tfjs-backend-webgl'
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
 //import '@tensorflow/tfjs-backend-wasm'
 
-// import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm/dist/index.js'
-
+import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm/dist/index.js'
 import wasmURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm"
 import wasmSIMDURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm"
 import wasmTHREADEDURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm"
@@ -185,12 +184,32 @@ const predict = async (inputElement,detector) => {
 	}
 }
 
+const determineSolutionPath = (options) => {
+	
+	// as MediaPipe loads this from a domain without the option
+	// of being able to also set the filename, the builder used hashes
+	// all file names making the lib 404 when fishing for it's data
+	// if we specify local and it fails it will fall back to the CDN anyway
+	// as that appears to be hard coded in the system anyway
+
+	return options.solutionPath || `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
+	
+	// 'base/node_modules/@mediapipe/face_mesh' in npm.
+	// solutionPath: The path to where the wasm binary and model files are located.
+	//const solutionPath = wasmURL
+	 
+	// node_modules\@mediapipe\face_mesh\face_mesh_solution_packed_assets_loader.js
+				   // solutionPath: new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
+				   // solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}`
+
+}
+
 /**
  * This is the second steps that are loaded and take about 1/3 of the time
- * @param {*} inputElement 
- * @param {*} options 
- * @param {*} progressCallback 
- * @returns 
+ * @param {HTMLElement} inputElement 
+ * @param {Object} options 
+ * @param {Function} progressCallback 
+ * @returns Function to cause update
  */
 export const loadFaceModel = async (inputElement, options, progressCallback) => {
 
@@ -212,15 +231,18 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 	// or fallback due to CORS
 	// `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`
 	let success = false
-	
+
 	// try wasm first (we can always fallback to it if GL fails below)
 	// Set the backend to WASM and wait for the module to be ready.
-	// success =await tf.setBackend('cpu')
-	success = await tf.setBackend('wasm')
-	// console.log("TF: Registered backend WASM > " , success )
+	const backEnds = options.backEnds || []
+	
+	backEnds.forEach( async(backEnd) => {
+		success = await tf.setBackend(backEnd)
+	})
 
-	success = await tf.setBackend('webgl')
-	// console.log("TF: Registered backend GL > " , success )
+	// success =await tf.setBackend('cpu')
+	// success = await tf.setBackend('wasm')
+	// success = await tf.setBackend('webgl')
 
 	// Returns a promise that resolves when the currently selected backend (or the
  	// highest priority one) has initialized. Await this promise when you are using
@@ -237,30 +259,22 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 
 	// console.error({PACKED_ASSETS})
 
-	// 'base/node_modules/@mediapipe/face_mesh' in npm.
-	// solutionPath: The path to where the wasm binary and model files are located.
-	//const solutionPath = wasmURL
-	 const solutionPath = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
-	
+	const solutionPath = determineSolutionPath(options)
+	console.error("Loading Face Model", {options, backEnds, solutionPath} )
 	// console.log("loadFaceModel",{options, model, solutionPath, detectPeople} )
 
 	const loadDetector = ()=> {
-
 		switch (options.runtime) {
 			case 'mediapipe' :
 				return createDetector(model, {
 					...options, 
 					solutionPath
-					// node_modules\@mediapipe\face_mesh\face_mesh_solution_packed_assets_loader.js
-					// solutionPath: new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
-					// solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}`
 				});
 			
 			case 'tfjs' :
 				return createDetector(model, {
 					...options
 				})
-			
 		}	
 	}
 
@@ -288,7 +302,6 @@ export const loadFaceModel = async (inputElement, options, progressCallback) => 
 
 			const predictions = await predict(inputElement, detector) 
 			
-
 			if (!predictions)
 			{
 				console.warn("face>tfjs", {predictions, inputElement, model})
