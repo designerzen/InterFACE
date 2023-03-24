@@ -167,7 +167,7 @@ block header
 			li Web camera / phone camera 
 			li A cutting edge web-browser preferably Chrome / Edge / Safari
 			li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
-			li Speakers, headphones or a MIDI instrument 
+			li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
 
 	menu#pwa
 
@@ -537,7 +537,7 @@ block dialogs
 
 				//- a(href="#app") Let me try
 
-			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Help
+			button(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Help
 
 	//- TODO: 
 		dialog#dialog-tempo 
@@ -555,21 +555,22 @@ block dialogs
 		label(for="install-pwa" hidden) Install this app
 		button#install-pwa.button-install( hidden type="button" aria-label="Install this application to your homescreen") Install
 		
-		h6 Help support this project! 
-		p.
-			If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
+		aside
+			h6 Help support this project! 
+			p.
+				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
 
-		ul.fund.icon-list
-			li: a.paypal(href="https://www.paypal.com/donate/?hosted_button_id=RHGJDTPJQ77F4/" rel="noopener noreferrer" target="_blank") Donate via Paypal
-			li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
-			li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
-			//- li
-				form(action="https://www.paypal.com/donate" method="post" target="_top")
-					input(type="hidden" name="hosted_button_id" value="RHGJDTPJQ77F4")
-					input(type="image" src="./assets/logos/paypal.svg" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
-					//- input(type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
-					<img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
-				
+			ul.fund.icon-list
+				li: a.paypal(href="https://www.paypal.com/donate/?hosted_button_id=RHGJDTPJQ77F4/" rel="noopener noreferrer" target="_blank") Donate via Paypal
+				li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+				li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
+				//- li
+					form(action="https://www.paypal.com/donate" method="post" target="_top")
+						input(type="hidden" name="hosted_button_id" value="RHGJDTPJQ77F4")
+						input(type="image" src="./assets/logos/paypal.svg" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
+						//- input(type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
+						<img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
+					
 
 		//- ul.associates.icon-list
 		//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
@@ -590,7 +591,7 @@ block dialogs
 			li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
 		
 		form(method="dialog")
-			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Close Dialog
+			button(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Dialog
 
 	dialog#pwa-updates
 		//-iframe#changelog(src="./changes.html" title="Changes")
@@ -599,13 +600,16 @@ block dialogs
 			#changelog
 
 			button#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
-			button(onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Continue without update 
+			button(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
 		
 	dialog#errors 
 		form(method="dialog")
 			h5 Oh no! An error has occurred!
-			p(id="error-message") Hopefully this is a one time problem
-			p(id="error-solution") Click the button to reload and try again
-			button(autofocus type="button") Reload 
-			button(onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
-	
+			p#error-message Hopefully this is a one time problem
+			p#error-solution Click the button to reload and try again
+			details 
+				summary More information 
+				p#error-details
+			menu#reload
+				button(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reload 
+			button(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
