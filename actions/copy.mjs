@@ -28,4 +28,5 @@ const copyFolderSync = (from, to) => {
 	})
 }
   
-copyFolderSync('./public', './dist') 
+// now handled by static-copy-plugin
+// copyFolderSync('./public', './dist') 
