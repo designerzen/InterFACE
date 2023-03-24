@@ -2,7 +2,7 @@
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical synthesizer",
 	"version": "0.14.0",
-	"time": 1679659277736,
+	"time": 1679660110132,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -64,6 +64,21 @@
 		"release:major": "yarn major && yarn publish:www",
 		"release:app": "yarn patch && yarn push",
 		"status": "electron-packager --version"
+	},
+	"staticFiles": {
+		"staticFiles": [
+			{
+			  "staticPath": "static"
+			},
+			{
+			  "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
+			   "staticOutPath": "tf/"
+			},
+			{
+			  "staticPath": "./node_modules/@mediapipe/face_mesh",
+			   "staticOutPath": "@mediapipe/"
+			}
+		]
 	},
 	"dependencies": {
 		"@analytics/google-analytics": "^1.0.5",

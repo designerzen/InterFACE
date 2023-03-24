@@ -29,4 +29,9 @@ const copyFolderSync = (from, to) => {
 }
   
 // now handled by static-copy-plugin
-// copyFolderSync('./public', './dist') 
+// copyFolderSync('./static', './dist') 
+
+// copy Tensflow static wasm files and WAM files from node_modules into
+// the public/ folder... this is because there is no way to specify the hash name
+// in the google library - only the domain to load from!
+copyFolderSync('./node_modules/@mediapipe/face_mesh', './static/@mediapipe') 
