@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Augmented Reality, Motion Capture Controlled Machine Learning Powered Accessible Audio Synthesizer",
-	"version": "0.10.0",
+	"version": "0.11.0",
 	"time": 1664820221930,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
