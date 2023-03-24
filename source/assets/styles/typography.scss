@@ -160,7 +160,8 @@ h1 strong, h2, h3, h4, h5, h6{
 	font-weight: 500;
 }
 
-h1,h3,h4,h5,button,legend, label{
+h1,h3,h4, 
+button,legend, label{
 	text-transform: uppercase;
 }
 
@@ -206,8 +207,13 @@ h6{
 
 #toast,
 label,
-em{
-	font-weight: 800;
+strong,em{
+	font-weight: 600;
+	font-style: normal;
+}
+
+strong, em{
+
 }
 
 p{

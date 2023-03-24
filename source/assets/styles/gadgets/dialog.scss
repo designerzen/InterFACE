@@ -3,14 +3,15 @@
 // Help Box
 dialog::backdrop {
 
-	background: repeating-linear-gradient(
-	  45deg,
-	  rgba($col-blue, 0.2),
-	  rgba($col-blue, 0.2) 1px,
-	  rgba($col-cream, 0.3) 1px,
-	  rgba($col-cream, 0.3) 20px
-	);
+	// background: repeating-linear-gradient(
+	//   45deg,
+	//   rgba($col-blue, 0.2),
+	//   rgba($col-blue, 0.2) 1px,
+	//   rgba($col-cream, 0.3) 1px,
+	//   rgba($col-cream, 0.3) 20px
+	// );
 	//backdrop-filter: blur(3px);
+
 }
 // -
 dialog{
@@ -154,7 +155,7 @@ dialog[open]{
 		pointer-events: none;
 		z-index:-1;
 		
-		button{
+		button[type=submit]{
 			pointer-events: auto;
 			position:fixed;
 			top:0;
@@ -171,4 +172,9 @@ dialog[open]{
 		}
 	}
 
+}
+
+
+.error dialog::backdrop {
+	background-color: var(--shade-red);
 }
