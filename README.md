@@ -63,24 +63,34 @@ Given enough time it would be possible to save MIDI files directly from the app 
 
 ### Other commands
 
-```freshstart: yarn reset && parcel serve source/*.pug -p 909```
-```start: parcel serve source/*.pug -p 909```
-```clean: node actions/clean.mjs```
-```changes: node actions/changelog.mjs```
-```doc: jsdoc -d dist/docs --configure .jsdoc.json source/index.js```
+All commands are run from the root of the project, from a terminal:
+| Command           | Action                                       |
+|:----------------  |:-------------------------------------------- |
+| `yarn install`     | Installs dependencies                        |
+| `yarn reset && parcel serve source/*.pug -p 909` | freshstart		|
+| `parcel serve source/*.pug -p 909`  | start |
+| `node actions/clean.mjs`  | clean out the dist/ folder |
+| `node actions/changelog.mjs`  | create change log and changes.md |
+| `jsdoc -d dist/docs --configure .jsdoc.json source/index.js`  | create documentation |
+| `yarn dev`     | Starts local dev server at `localhost:909`  |
+| `yarn build`   | Build production site to `./dist/`      |
+| `yarn test` 	 | Ensure the environment is set up to build	|
+| `release:*` 	 | patch/minor/major : increment version and deploy	|
+
 
 
 ## Future plans
 - Better musicality and expression
 - Upgraded synth engine
 - MIDI phrase support
-- Percussion that sounds good!
+- Percussion that sounds beefier!
 - Hand remote Controls
 - Full Body version for beats
 - Saving "Personas" and using face ID loading them back in
 - Vocoder mode using microphone
 - Improved timing
 - MIDI 2.0 (MPE) Support
+- Better WAM2 support and implementation
 - Favouriting instruments so they go to the top of the list per person
 - Adding new instruments!
 
@@ -107,6 +117,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - Andrew MacPherson
 - Thomas Bonte
 - Darren Southea
+- Michel Buffa
 - Jean-Baptiste Thiebaut 
 - [Severin Meyer](https://sev.dev)
 
@@ -125,7 +136,7 @@ Given enough time it would be possible to save MIDI files directly from the app 
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
 - [MIDI Innnovation Finalists 2022](https://www.midi.org/component/zoo/item/photosynth-interface)
 - [MIDI Innovation Awards 2022 Stream](https://www.youtube.com/watch?v=1HzlwlekZQk)
-- [Music Maker Festival](https://www.makermusicfestival.com/)
+- [Music Maker Festival](https://www.makermusicfestival.com/projectdirectory/interface/)
 
 - Suite of none touch instruments / tools
 [amic museum](amicdrakemusic.wordpress.com)
