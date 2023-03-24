@@ -15,7 +15,8 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 
 	// location of actual ML model
 	// solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
-	//solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+	// solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+	solutionPath: './@mediapipe/',
 
 	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
 	maxFaces:1,
@@ -44,6 +45,12 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 	triangulateMesh: false,
 
 	boundingBox: true,
+
+	backEnds:[
+		// 'cpu',
+		'wasm',
+		'webgl'
+	]
 }
 
 export const DEFAULT_OPTIONS = {
