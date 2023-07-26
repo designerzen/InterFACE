@@ -2,7 +2,7 @@
 // Register one of the TF.js backends.
 import '@tensorflow/tfjs-backend-webgl'
 // import '@tensorflow/tfjs-backend-wasm'
-import * as poseDetection from '@tensorflow-models/pose-detection'
+// import * as poseDetection from '@tensorflow-models/pose-detection'
 
 import {clamp, TAU, HALF_PI} from '../maths/maths'
 
