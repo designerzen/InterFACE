@@ -61,9 +61,13 @@
 	text-shadow: none;
 	border-left: none;
 	z-index: -1;
+	justify-content: center;
+	align-items: center;
 
 	&::before{
 		transition: transform 990ms $easeInOutBack;
+		margin-right: 4px;
+		margin-top: 3px;
 	}
 	// background-image: url(/source/assets/icons/record_voice_over_black_24dp.svg);
 }
@@ -80,11 +84,13 @@
 .person-b-toggle-controls{
 	// TODO: get reverse
 	--bg: url(/source/assets/icons/forward_black_24dp.svg);
-	border-radius: 99px 0 0 99px;	
+	//border-radius:0 99px  99px 0;	
 	
 	right:100%;
+	// flip horizontally!?
 	transform:scaleX(-1) translateX(3%);
 	z-index: -1;
+	
 }
 
 // .person-a-sidebar-showing .person-a-toggle-controls{

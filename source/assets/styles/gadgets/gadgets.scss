@@ -692,17 +692,25 @@ button.person{
 
 // move into position and ensure that left as % + width as % < 100%
 button#person-a{
-	--left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
-	--breadth:calc( 100% * var(--person-a-w,0) / var(--width,640) );
-	top:calc( 100% * var(--person-a-y,0) / var(--height,480) );
-	height:calc( 100% * var(--person-a-h,0) / var(--height,480) );
+	--left:calc( 100% - ( 100% * var(--person-a-x,0) ) );
+	--breadth:calc( 100% * var(--person-a-w,0) );
+	top:calc( 100% * var(--person-a-y,0)  );
+	height:calc( 100% * var(--person-a-h,0) );
+	// --left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
+	// --breadth:calc( 100% * var(--person-a-w,0) / var(--width,640) );
+	// top:calc( 100% * var(--person-a-y,0) / var(--height,480) );
+	// height:calc( 100% * var(--person-a-h,0) / var(--height,480) );
 }
 
 button#person-b{
-	--left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
-	--breadth:calc( 100% * var(--person-b-w,0) / var(--width,640) );
-	top:calc( 100% * var(--person-b-y,0) / var(--height,480) );
-	height:calc( 100% * var(--person-b-h,0) / var(--height,480) );
+	--left:calc( 100% - ( 100% * var(--person-b-x,0)) );
+	--breadth:calc( 100% * var(--person-b-w,0)  );
+	top:calc( 100% * var(--person-b-y,0) );
+	height:calc( 100% * var(--person-b-h,0) );
+	// --left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
+	// --breadth:calc( 100% * var(--person-b-w,0) / var(--width,640) );
+	// top:calc( 100% * var(--person-b-y,0) / var(--height,480) );
+	// height:calc( 100% * var(--person-b-h,0) / var(--height,480) );
 }
 
 // prevent the width of the face button falling off right hand side of the screen
@@ -1015,7 +1023,6 @@ a[href="#help"]{
 		box-sizing: border-box;
 
 		// aspect-ratio: 1;
-		// background:url(/source/assets/icons/help_outline_black_24dp.svg) center no-repeat;
 		// background-size: contain;
 		color:var(--shade-red);
 		background-color: var(--shade-white);

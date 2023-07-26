@@ -41,13 +41,18 @@ dialog[open]{
 	overflow-x: hidden;
 	overscroll-behavior-y: contain;
 
+	position: fixed;
+	// left:50%;
+	// top:50%;
+	// transform: translate(-50%,-50%);
+
 	// king of the castle
 	z-index:999;
 	border:0;
 	border-radius: var(--curve);
 	//position: static;
 	// top right is a fake close icon...
-	background: url(./assets/icons/close-24px.svg) no-repeat, 
+	background: url(/source/assets/icons/close-24px.svg) no-repeat, 
 				linear-gradient( white, $col-white );
 
 	background-position:top calc( 1 * var(--pad) ) right calc( 1 * var(--pad) ), center;
