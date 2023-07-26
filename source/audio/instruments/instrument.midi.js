@@ -6,6 +6,14 @@ export default class MIDIInstrument extends Instrument{
 	type = "midi"
 	name = "MIDIInstrument"
 
+	get enabled(){
+		return this.sendMIDI
+	}
+
+	set enabled(value){
+		this.sendMIDI = value
+	}
+
 	constructor( device, channel="all" ){
 		super()
 		this.channel = channel
@@ -33,7 +41,7 @@ export default class MIDIInstrument extends Instrument{
 		return this.midiPort.playNote( noteNumber, midiOptions )
 	}
 
-	noteOff(noteNumber){
+	async noteOff(noteNumber){
 
 		//this.midi.sendClock( )
 		//this.midi.setSongPosition( getBarProgress() * 16383 )
@@ -58,13 +66,13 @@ export default class MIDIInstrument extends Instrument{
 	}
 
 	// Set polyphonic aftertouch : Send polyphonic aftertouch message to channel 8
-	aftertouch(noteNumber, pressure){
+	async aftertouch(noteNumber, pressure){
 		this.midiPort.setKeyAftertouch(noteNumber, (pressure + 1 ) * 0.5 )
 		super.aftertouch(noteNumber, pressure)
 	}
 	
 	// Set pitch bend value : The value is between -1 and 1 (a value of 0 means no bend).
-	pitchBend(pitch){
+	async pitchBend(pitch){
 		this.midiPort.setPitchBend( pitch )
 		super.pitchBend(pitch)
 	}

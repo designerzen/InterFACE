@@ -23,6 +23,10 @@ export default class WorkletInstrument extends Instrument {
 	set volume(value) {
 		this.gainNode.gain.value = value
 	}
+	
+	get outputNode(){
+		return this.gainNode
+	}
 
 	constructor(audioContext, destinationNode, options = {}) {
 

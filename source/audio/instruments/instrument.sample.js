@@ -1,11 +1,13 @@
 import Instrument from './instrument'
 // A generic interface for instruments
 import {
-	getRandomInstrument, instrumentFolders, instrumentNames, getInstrumentFamily
+	createInstruments, 
+	getRandomInstrument, getInstrumentFamily,
+	instrumentFolders, instrumentNames
 } from '../instruments'
+
 import { playTrack,loadInstrumentPack } from '../audio'
 import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../notes'
-import { createInstruments, instrumentNames, instrumentFolders} from '../instruments'
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 16 // AKA one bar
@@ -40,7 +42,10 @@ export default class SampleInstrument extends Instrument{
 		this.currentVolume = value
 	}
 
-	
+	get outputNode(){
+		return this.gainNode
+	}
+
 	// allow this itself to load instruments from the system
 	// based on whatever programNumber we set below...
 	constructor( audioContext, destinationNode, options={} ){
@@ -54,7 +59,7 @@ export default class SampleInstrument extends Instrument{
 		this.available = true
 	}
 
-	play(audioBuffer, velocity){
+	async play(audioBuffer, velocity){
 
 		// too many simultaneous samples
 		if ( ++this.polyphony > MAX_TRACKS)
@@ -94,7 +99,10 @@ export default class SampleInstrument extends Instrument{
 
 	async noteOn(noteNumber, velocity=1){
 		const audioBuffer = this.instrument[convertMIDINoteNumberToName(noteNumber)]
-		audioBuffer && this.play(audioBuffer, velocity)
+		if(audioBuffer)
+		{
+			await this.play(audioBuffer, velocity)
+		}
 		return super.noteOn(noteNumber, velocity)
 	}
 
@@ -104,18 +112,18 @@ export default class SampleInstrument extends Instrument{
 		return super.noteOff(noteNumber)
 	}
 
-	aftertouch( noteNumber, pressure ){
-		super.aftertouch( noteNumber, pressure )
+	async aftertouch( noteNumber, pressure ){
+		await super.aftertouch( noteNumber, pressure )
 	}
 	
-	pitchBend(pitch){
-		super.pitchBend(pitch)
+	async pitchBend(pitch){
+		await super.pitchBend(pitch)
 	}
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 
-		super.programChange( programNumber )
+		await super.programChange( programNumber )
 		return await this.loadInstrument( instrumentFolders[programNumber] )
 	}
 
@@ -123,7 +131,7 @@ export default class SampleInstrument extends Instrument{
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getInstruments(){
+	async getInstruments(){
 		return createInstruments()
 	}
 
@@ -170,7 +178,7 @@ export default class SampleInstrument extends Instrument{
 	/**
 	 * Changes all instuments to new pack
 	 * @param {*} instrumentPack 
-	 * @param {*} progressCallback 
+	 * @param {Function} progressCallback 
 	 */
 	async loadPack(instrumentPack, progressCallback){
 		this.instrumentPack = instrumentPack

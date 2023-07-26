@@ -1,5 +1,7 @@
 import 'audioworklet-polyfill'
 
+import { initializeWamHost } from "@webaudiomodules/sdk"
+
 import {clamp, lerp, TAU} from "../maths/maths"
 
 import { chain } from './rack'
@@ -149,7 +151,8 @@ export const setupAudio = async (settings) => {
 
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
-	audioContext = new (window.AudioContext || window.webkitAudioContext)()
+	// { latencyHint: 'playback' } tells the context to try and smooth playback
+	audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' })
 
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
@@ -164,6 +167,24 @@ export const setupAudio = async (settings) => {
 
 	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
 	// reverb.impulseFilter()
+
+
+	
+	// Web Audio Modules! --------------------------
+	const { default: samplerWAMPlugin } = await import("./wam2/sampler/index.js")
+	
+	const [hostGroupId] = await initializeWamHost(audioContext)
+	const samplerPlugin = await samplerWAMPlugin.createInstance(hostGroupId, audioContext, {})
+	// link the sampler to the output
+	samplerPlugin.audioNode.connect( compressor.node )
+	
+
+	// samplerPlugin.
+
+	console.log("Created samplerPlugin Instrument", {samplerPlugin} )
+
+
+	
 	
 	// some space dubs!
 	// delay = await createDelay(audioContext)

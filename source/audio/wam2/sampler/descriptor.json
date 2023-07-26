@@ -1,0 +1,15 @@
+{
+    "name": "Sampler",
+	"identifier": "com.designerzen.sampler",
+    "vendor": "designerzen",
+    "description": "Simple Sample Player",
+    "version": "1.0.0",
+    "apiVersion": "2.0.0",
+    "thumbnail": "screenshot.png",
+    "keywords": ["sampler"],
+   	"website": "https://interface.place",
+    "isInstrument": true,
+	"hasMidiInput": true,
+    "hasAudioInput": false,
+	"hasAudioOutput": true
+}
