@@ -1,6 +1,6 @@
 
 
-import { enhancePrediction} from './face-model'
+import { enhanceFaceModelPrediction} from './face-model-calculations'
 
 // input prediction
 // output prediction & ...object updates
@@ -10,7 +10,7 @@ import { enhancePrediction} from './face-model'
 self.onmessage = prediction => {
 
 	// Clone the object??? or too much performance hit for immutibility?
-	const output = enhancePrediction(prediction.data)
+	const output = enhanceFaceModelPrediction(prediction.data)
 
 	// magic tricks...
 	postMessage( output )

@@ -6,21 +6,22 @@ import {
 	TAU,HALF_PI
 } from '../maths/maths'
 
-import { util, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
 
-const FACE_CONTOURS = util.getKeypointIndexByContour( SupportedModels.MediaPipeFaceMesh )
-
-// Tweakable parameters - these use the dark art of fidling
-// a mouth covers about 1/3 of the face?
-const RATIO_OF_MOUTH_TO_FACE = 0.25
-const EYE_CLOSED_AT = 20.2 //.5
-const PITCH_SCALE = 8
-
-const MOUTH_SHAPE_CLOSED = "-"
-const MOUTH_SHAPE_O = "o"
-const MOUTH_SHAPE_E = "e"
-const MOUTH_SHAPE_I = "i"
-const MOUTH_SHAPE_U = "u"
+import {
+	FACE_CONTOURS,
+	FACE_CONTOURS_LIPS,
+	FACE_CONTOURS_OUTER_TOP_LIP,
+	LIP_PATH_OUTER,
+	LIP_PATH_INNER,
+	MOUTH_SHAPE_CLOSED,
+	MOUTH_SHAPE_O,
+	MOUTH_SHAPE_E,
+	MOUTH_SHAPE_I,
+	MOUTH_SHAPE_U,
+	RATIO_OF_MOUTH_TO_FACE,
+	EYE_CLOSED_AT,
+	PITCH_SCALE
+} from './face-landmark-constants'
 
 
 // ** === ^ == Math.pow in ECMA22
@@ -46,104 +47,7 @@ const fieldOfView = (dfov, width, height) => {
 
 // 
 
-const FACE_CONTOURS_LIPS = [
-    61,
-    146,
-    91,
-    181,
-    84,
-    17,
-    314,
-    405,
-    321,
-    375,
-    61,
-    185,
-    40,
-    39,
-    37,
-    0,
-    267,
-    269,
-    270,
-    409,
-    78,
-    95,
-    88,
-    178,
-    87,
-    14,
-    317,
-    402,
-    318,
-    324,
-    78,
-    191,
-    80,
-    81,
-    82,
-    13,
-    312,
-    311,
-    310,
-    415,
-    308
-]
 
-
-const FACE_CONTOURS_OUTER_TOP_LIP = [
-    61,
-    146,
-    91,
-    181,
-    84,
-    17,
-    314,
-    405,
-    321,
-    375,
-    61,
-    185,
-    40,
-    39,
-    37,
-    0,
-    267,
-    269,
-    270,
-    409,
-    78,
-    95,
-    88,
-    178,
-    87,
-    14,
-    317,
-    402,
-    318,
-    324,
-    78,
-    191,
-    80,
-    81,
-    82,
-    13,
-    312,
-    311,
-    310,
-    415,
-    308
-]
-
-// the 40 is a bug as the outer right lip section is not included
-export const LIP_PATH_OUTER = [
-	0,1,2,3,4,5,6,7,8,9, 40
-	,19,18,17,16,15,14,13,12,11,10
-]
-export const LIP_PATH_INNER = [
-	20,21,22,23,24,25,26,27,28,29,
-	40,39,38,37,36,35,34,33,32,31,30
-]
 
 /**
  * TODO: Implement a cache of eyes so that we can learn on the go
@@ -166,7 +70,7 @@ export const LIP_PATH_INNER = [
  * headHeight
  * 
  */
-export const enhancePrediction = (prediction, time, flipHorizontally = true) => {
+export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = true) => {
 
 	if (!prediction)
 	{

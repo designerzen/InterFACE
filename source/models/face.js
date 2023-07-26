@@ -1,7 +1,6 @@
 // Thanks to
 // https://github.com/vivien000/trompeloeil/blob/master/src/World/components/geometry/geometry.js
 
-
 // Import @tensorflow/tfjs or @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs'
 
@@ -27,8 +26,8 @@ import wasmTHREADEDURL from "url:@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-bac
 import * as faceMesh from '@mediapipe/face_mesh'
 // import PACKED_ASSETS from "@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js"
 
-import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'	
-import { enhancePrediction } from './face-model'
+import { createDetector, SupportedModels } from '@tensorflow-models/face-detection'	
+import { enhanceFaceModelPrediction } from './face-model-calculations'
 import { now } from '../timing/timing'
 
 // This flips to using a seperate thread for the 
@@ -112,6 +111,12 @@ const predictPlayerQuantity = async (inputElement,detector) => {
 //  faceMesh.onResults(onResults)
 // await faceMesh.send({image: videoElement}) // inputElement
 
+/**
+ * This uses the ML model to solve stuff
+ * @param {HTMLElement} inputElement 
+ * @param {Function} detector 
+ * @returns Array predictions
+ */
 const predict = async (inputElement,detector) => {
 
 	try {
@@ -160,7 +165,7 @@ const predict = async (inputElement,detector) => {
 				if (!useWorker)
 				{
 					// direct (no worker)
-					prediction = enhancePrediction( predictions[p], time )
+					prediction = enhanceFaceModelPrediction( predictions[p], time )
 				}else{
 					// using async worker (any faster?)
 					prediction = await makePrediction( predictions[p] )
@@ -191,7 +196,6 @@ const determineSolutionPath = (options) => {
 	// all file names making the lib 404 when fishing for it's data
 	// if we specify local and it fails it will fall back to the CDN anyway
 	// as that appears to be hard coded in the system anyway
-
 	return options.solutionPath || `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}` // '../../node_modules/@mediapipe/face_mesh' // new URL('../../node_modules/@mediapipe/face_mesh/face_mesh_solution_packed_assets_loader.js', import.meta.url)
 	
 	// 'base/node_modules/@mediapipe/face_mesh' in npm.
