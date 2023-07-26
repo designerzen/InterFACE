@@ -11,6 +11,8 @@ export const hasTouchEvents = () => {
 	catch(e){ return false; }
 }
 
+export const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
+
 export const hasFileHandler = () => 'launchQueue' in window && 'files' in LaunchParams.prototype
 
 /**
@@ -76,7 +78,7 @@ export default class Capabilities {
 
 	constructor(){
 		this.fileHandlerAvailable = hasFileHandler()
-		this.touchScreen = hasTouchEvents()
+		this.touchScreen = isTouchDevice()
 		this.webMIDIAvailable = testForMIDI()
 		this.mouse = !window.matchMedia( "(hover: none)" ).matches
 		this.electron = isElectron()
