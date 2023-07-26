@@ -1,11 +1,7 @@
 import * as THREE from "three/src/Three.js";
-import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
-import {
-  LookingGlassWebXRPolyfill,
-  LookingGlassConfig
-} from "@lookingglass/webxr";
+import { TRIANGULATION } from "../models/face-mesh-model";
 
-const VOXEL_QUANTITY = TRIANGLE_MATRIX.length / 3
+const VOXEL_QUANTITY = TRIANGULATION.length / 3
 let camera
 let scene
 let voxels

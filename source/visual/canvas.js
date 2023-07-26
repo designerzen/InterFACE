@@ -1,5 +1,9 @@
 
-export const canvas = document.getElementById('interface') // document.querySelector("canvas")
+/**
+ * Todo: remove all individual canvas references
+ */
+
+export const canvas = document.getElementById('interface')
 export const canvasContext = canvas.getContext('2d')
 
 let width = canvas.width
@@ -20,9 +24,9 @@ export const getCanvasDimensions = () => {
 /**
  * Empty the canvas and paint it transparent
  */
-export const clear = () => {
+export const clear = (canvasContext) => {
 	// canvasContext.fillStyle = 'rgba(255,0,0,0)'
-	canvasContext.clearRect(0, 0, width, height)
+	//canvasContext.clearRect(0, 0, width, height)
 	// canvasContext.fillRect(0, 0, width, height)
 	// canvasContext.restore()
 }
@@ -30,21 +34,21 @@ export const clear = () => {
 /**
  * Overwrite the existing canvas with the same one but
  * positioned at a specific offset to make it look cool
- * @param {*} x 
- * @param {*} y 
+ * @param {Number} x 
+ * @param {Number} y 
  */
-export const overdraw = (x=0, y=-1) => {
+export const overdraw = (ctx, x=0, y=-1) => {
 	
-	// canvasContext.save()
+	// ctx.save()
 	
-	//canvasContext.translate(0, -1)
-	canvasContext.drawImage(canvas,x,y)
+	//ctx.translate(0, -1)
+	ctx.drawImage(canvas,x,y)
 	// for (var i = 0; i < numImages; i++) {
-	// 	canvasContext.drawImage(img, i * img.width, 0);
+	// 	ctx.drawImage(img, i * img.width, 0);
 	// }
 
 
-	// canvasContext.restore()
+	// ctx.restore()
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -55,16 +59,16 @@ export const copyCanvasToClipboard = async () => canvas.toBlob(async (blob) => {
 })
 
 
-export const drawElement = (element, x=0, y=0, flip=true) => {
+export const drawElement = (ctx, element, x=0, y=0, flip=true) => {
 	
-	canvasContext.save()
+	ctx.save()
 	// invert horizontally (mirror image)
 	if (flip){
-		canvasContext.translate(width, 0)
-		canvasContext.scale(-1, 1)
+		ctx.translate(width, 0)
+		ctx.scale(-1, 1)
 	}
-	canvasContext.drawImage(element , x, y)
-	canvasContext.restore()
+	ctx.drawImage(element , x, y)
+	ctx.restore()
 }
 
 /**

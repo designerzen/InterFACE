@@ -1,7 +1,9 @@
 import { clamp, TAU, HALF_PI , TWO_PI } from "../maths/maths"
-import { canvas, canvasContext, drawElement } from './canvas'
+import { canvas, canvasContext } from './canvas'
 import { easeInQuad} from "../maths/easing"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
+
+import {TRIANGULATION} from '../models/face-mesh-constants'
 
 /**
  * converts the canvas into a PNG / JPEG and adds returns as a blob?
@@ -325,15 +327,14 @@ export const drawPoints = (prediction, colour={h:0,s:100,l:100}, size=3, colourC
 /**
  * Draws a triangulated face using the matrix model
  */
-import {TRIANGLE_MATRIX} from '../models/face-mesh-model'
 export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=0.5, colourCycle=false, alpha=0.2 ) => {
 	const scaledMesh = prediction.keypoints
 	const hue = palette.h
-	for( let i = 0, q=TRIANGLE_MATRIX.length - 2; i < q; i+=3 ) 
+	for( let i = 0, q=TRIANGULATION.length - 2; i < q; i+=3 ) 
 	{
-		const pointA = scaledMesh[ TRIANGLE_MATRIX[ i ] ]
-		const pointB = scaledMesh[ TRIANGLE_MATRIX[ i + 1 ] ]
-		const pointC = scaledMesh[ TRIANGLE_MATRIX[ i + 2 ] ]
+		const pointA = scaledMesh[ TRIANGULATION[ i ] ]
+		const pointB = scaledMesh[ TRIANGULATION[ i + 1 ] ]
+		const pointC = scaledMesh[ TRIANGULATION[ i + 2 ] ]
 		const alpha = palette.a || 1
 		
 		const phase = colourCycle ? (hue + ( 360 * i/q )) % 360 : hue
@@ -341,66 +342,4 @@ export const drawFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidth=
 
 		drawTriangle( pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y, colour, strokeWidth )
 	}
-}
-
-
-/**
- * every frame this gets called with an array of points in a mesh face
- * we use certain deviations to determine direction and mouth size
- * @param {*} prediction 
- * @param {*} options 
- * @param {*} singing 
- * @param {*} mouthOpen 
- * @param {*} debug 
- */
-export const drawFace = (prediction, options=DEFAULT_COLOURS, singing=false, mouthOpen=false, debug=false) => {
-
-	// singing - the user has their mouth open beyond the threshold
-	// mouthOpen - the user has their mouth closed
-
-	// extract our data
-	// const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height)
-	// const data = imageData.data
-	// now change the colour of certain pixels in line with the points
-	// for (var i = 0; i < data.length; i += 4) 
-	// {
-    //     data[i]     = 255 - data[i];     // red
-    //     data[i + 1] = 255 - data[i + 1]; // green
-    //     data[i + 2] = 255 - data[i + 2]; // blue
-    // }
-	// canvasContext.putImageData(imageData, 0, 0)
-	const { annotations} = prediction
-	
-	// MOUTH ==============================================
-	// const {lipsUpperInner,lipsLowerInner } = annotations
-	
-	// top lips
-	if (mouthOpen && singing)
-	{
-		drawMouth(prediction, options.mouth, debug)
-		
-	}else{
-		// mouth closedc or not singing
-		drawMouth(prediction, options.mouthClosed, debug)
-	}
-
-	// drawPart(lipsUpperInner, options.lipsUpperInner)
-	// drawPart(lipsLowerInner, options.lipsLowerInner)
-	
-	// EYES ===========================================
-
-
-	// const {leftEyeLower0,rightEyeLower0, midwayBetweenEyes} = annotations
-	
-	// drawPart(midwayBetweenEyes, options.midwayBetweenEyes )
-	
-	// eye lids
-	// drawPart(leftEyeLower0, options.leftEyeLower0 )
-	// drawPart(rightEyeLower0, options.rightEyeLower0 )
-
-	// these aren't scaled :(
-	// canvasContext.fillStyle  = 'orange'
-	// canvasContext.beginPath()
-	// canvasContext.arc( midwayBetweenEyes.x, midwayBetweenEyes.y, 10, 0, TAU )
-	// canvasContext.fill()
 }

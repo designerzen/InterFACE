@@ -1,4 +1,3 @@
-import {canvasContext} from './canvas'
 import { clamp, TAU } from "../maths/maths"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
 
@@ -12,7 +11,11 @@ const DEFAULT_OPTIONS = {
 	// big white bit of the eye
 	sclera:'white',
 	scleraRadius:4,
-	outline:false
+	outline:false,
+	ratio:1,
+	// sometimes x,y,z are returned as widths already
+	scaleX:1,
+	scaleY:1,
 }
 
 /**
@@ -23,17 +26,10 @@ const DEFAULT_OPTIONS = {
  * @param {Number} eyeDirection - stereo gaze direction
  * @param {Object} options 
  */
-export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, options=DEFAULT_OPTIONS ) => {
-	
-	const irisData = isLeft ? keypoints.leftIris : keypoints.rightIris
-	const eyeData = isLeft ? keypoints.leftEye : keypoints.rightEye
-	const pupil = isLeft ? keypoints.leftPupil : keypoints.rightPupil
-	
-	//console.error("Draw Eyes", {pupil, inner, outer, up, down},  {eyeData, open, isLeft, eyeDirection, options} )
-	
-	const showRatio = options.ratio || 0.8 
+export const drawEye = ( canvasContext, eyeData, pupilData, open=true, eyeDirection=0, options=DEFAULT_OPTIONS ) => {
 
-	const radius = pupil.diameter * 0.5
+	const showRatio = options.ratio || 0.8 
+	const radius = pupilData.diameter * 0.5
 	
 	// console.log( {eyeData, irisWidth,irisHeight, diameter, options })
 
@@ -62,19 +58,30 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 		const socketRadius = scleraRadius - irisRadius
 		const eyeOffset =  socketRadius * -eyeDirection
 		
+		const pupilX = pupilData.x * options.scaleX
+		const pupilY = pupilData.y * options.scaleY
+			
 		// SCLERA - the white stuff... 
 		canvasContext.beginPath()
 		if (options.outline)
 		{
 			// this could be wrapped in the eye socket...
 			eyeData.forEach( data => {
-				canvasContext.lineTo(data.x, data.y)
+				const x = data.x * options.scaleX
+				const y = data.y * options.scaleY
+				canvasContext.lineTo(x, y)
+			
+				// console.log("draw eyes", options, x,y )
 			})
 			
 		}else{
+
 			// or as a funky overlay
-			canvasContext.arc(pupil.x + eyeOffset, pupil.y, scleraRadius, 0, TAU)
+			canvasContext.arc(pupilX + eyeOffset, pupilY, scleraRadius, 0, TAU)
+			
+			// console.log("draw eyes",{ options, pupilData,pupilX, scleraRadius, pupilRadius, irisRadius, eyeDirection, socketRadius, x:pupilX + eyeOffset, y:pupilY } )
 		}
+
 
 		canvasContext.fillStyle  = options.sclera
 		canvasContext.fill()
@@ -88,11 +95,11 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 
 		// pie chart eyes because of showRatio
 		canvasContext.arc(
-			pupil.x, pupil.y, 
+			pupilX, pupilY, 
 			irisRadius, 0, 
 			TAU * showRatio 
 		)
-		canvasContext.lineTo(pupil.x, pupil.y)
+		canvasContext.lineTo(pupilX, pupilY)
 		canvasContext.fill()
 		canvasContext.closePath()
 
@@ -111,7 +118,7 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 		canvasContext.beginPath()
 		canvasContext.fillStyle = options.pupil
 		canvasContext.arc(
-			pupil.x, pupil.y, 
+			pupilX, pupilY, 
 			pupilRadius, 0, 
 			TAU
 		)
@@ -120,15 +127,14 @@ export const drawEye = ( keypoints, isLeft=true, open=true, eyeDirection=0, opti
 	}else{
 
 		// ---- EYES CLOSED -----
-		const eyeLid =  isLeft ? keypoints.leftEye : keypoints.rightEye
-
+	
 		// draw cute triangle
 		canvasContext.beginPath()
 		canvasContext.lineStyle = options.iris
 		canvasContext.fillStyle = options.pupil
-		canvasContext.moveTo(eyeLid[ 0 ].x, eyeLid[ 0 ].y )
-		canvasContext.lineTo(eyeLid[ 4 ].x, eyeLid[ 4 ].y )
-		canvasContext.lineTo(eyeLid[ 6 ].x, eyeLid[ 6 ].y )
+		canvasContext.moveTo(eyeData[ 0 ].x, eyeData[ 0 ].y )
+		canvasContext.lineTo(eyeData[ 4 ].x, eyeData[ 4 ].y )
+		canvasContext.lineTo(eyeData[ 6 ].x, eyeData[ 6 ].y )
 		canvasContext.closePath()
 		canvasContext.stroke()
 		canvasContext.fill()

@@ -4,6 +4,7 @@
 import * as HoloPlayCore from './node_modules/holoplay-core/dist/holoplaycore.module.js'
   
 import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
+
 const config = LookingGlassConfig
 config.tileHeight = 512
 config.numViews = 45
