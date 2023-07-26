@@ -102,7 +102,7 @@
 
 	// NB: Warning - this MAY trigger a video element not found error
 	// as JS pointer no longer has DOM equivalent
-	#interface,
+	canvas,
 	video,
 	fieldset.person-controls{
 		display: none;

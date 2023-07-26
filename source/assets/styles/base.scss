@@ -130,7 +130,7 @@ figcaption{
 }
 
 // we hide these by default until ready to preserve CPU
-video, #interface{
+video, canvas.canvas-full-size{
 	max-width:100%;
 	visibility: hidden;
 }
