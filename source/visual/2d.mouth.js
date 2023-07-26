@@ -1,7 +1,5 @@
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
-import { canvasContext } from './canvas'
 import { drawCircle, drawNode, drawNodes, drawPath } from './2d'
-
 
 /**
  * Draw a mouth based on a series of points and close the path
@@ -12,6 +10,7 @@ import { drawCircle, drawNode, drawNodes, drawPath } from './2d'
  * @returns 
  */
 export const drawMouthFromSequence = ( 
+	canvasContext,
 	lips, 
 	stroke={h:90,s:50,l:50,a:0.6}, 
 	fill={h:90,s:50,l:50,a:0.6}, 
@@ -49,7 +48,7 @@ export const drawMouthFromSequence = (
 
 
 
-export const drawLip = ( lips, stroke={h:90,s:50,l:50,a:0.6}, fill={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
+export const drawLip = ( canvasContext, lips, stroke={h:90,s:50,l:50,a:0.6}, fill={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
 	
 	const strokeColour = `hsla( ${stroke.h}%, ${stroke.s}%, ${stroke.l}%, ${stroke.a} )`
 	const fillColour = `hsla( ${fill.h}%, ${fill.s}%, ${fill.l}%, ${fill.a} )`
@@ -102,7 +101,7 @@ export const drawLip = ( lips, stroke={h:90,s:50,l:50,a:0.6}, fill={h:90,s:50,l:
  * @returns 
  */
 
-export const drawMouth = ( prediction, palette={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
+export const drawMouth = ( canvasContext, prediction, palette={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
 	
 	const { annotations, mouthRange, mouthWidth, mouthOpen } = prediction
 	const {lips} = annotations
