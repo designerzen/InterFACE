@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical synthesizer",
-	"version": "0.16.0",
+	"version": "0.16.1",
 	"time": 1679689423651,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
