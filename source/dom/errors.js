@@ -11,18 +11,21 @@ export const showError = (error, solution, fatal=false) => {
 	// TODO: show the error messages on screen in a dialog
 	const dialog = document.getElementById("errors")
 	dialog.open = true
-
-
+	
 	if (fatal)
 	{
 		// if fatal then we can't continue so show reload button?	
 		// add a reload button to the feedback node
-		document.getElementById("feedback").appendChild( showReloadButton(true) )
+		// const form = dialog.querySelector("form")
+		// form.appendChild( showReloadButton(true) )
+
+		// remove existing button
 		
-		// play lemmings sound effect...
-		const audio = new Audio()
-		audio.src = "/assets/audio/lemmings.wav"
-		audio.play()
+		// play audio files located...
+		// lemmings sound effect sounds best
+		const audioElement = dialog.querySelector("audio")
+		audioElement.setAttribute("autoplay", true)
+		audioElement.setAttribute("start", true)
 	}
 
 	document.getElementById("error-details").innerText = error
