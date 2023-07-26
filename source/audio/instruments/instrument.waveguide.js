@@ -29,6 +29,10 @@ export default class WaveGuideInstrument extends Instrument{
 		this.delay.delayTime.value = value * 0.01
 		console.log("waveguide::pitch", value, this.delay.delayTime.value)
 	}
+	
+	get outputNode(){
+		return this.gainNode
+	}
 
 	constructor( audioContext, destinationNode, options={} ){
 		
@@ -92,11 +96,11 @@ export default class WaveGuideInstrument extends Instrument{
 		return super.noteOff( noteNumber )
 	}
 
-	aftertouch( noteNumber, pressure ){
+	async aftertouch( noteNumber, pressure ){
 		super.aftertouch( noteNumber, pressure )
 	}
 	
-	pitchBend(pitch){
+	async pitchBend(pitch){
 		super.pitchBend(pitch)
 	}
 

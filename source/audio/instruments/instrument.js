@@ -9,13 +9,17 @@ export default class Instrument{
 
 	available = false
 	active = false
+
 	// monophonic by default
 	polyphony = 1
 
 	currentVolume = 1
+
+	// where the audio goes to
+	outputNode
 	
 	get isLoading(){
-		return false
+		return this.available
 	}
 	
 	get volume(){
@@ -79,7 +83,7 @@ export default class Instrument{
 	 * @param {Number} noteNumber - is the key (note) number
 	 * @param {Number} pressure 
 	 */
-	aftertouch( noteNumber, pressure ){
+	async aftertouch( noteNumber, pressure ){
 
 	}
 	
@@ -95,7 +99,7 @@ export default class Instrument{
 	 * (mmmmmmm) are the most significant 7 bits.
 	 * @param {number} pitch 
 	 */
-	pitchBend(pitch){
+	async pitchBend(pitch){
 
 	}
 
@@ -113,7 +117,7 @@ export default class Instrument{
 	 * instrument preferably at the no
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getInstruments(){
+	async getInstruments(){
 		return []
 		
 	}
