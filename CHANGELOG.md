@@ -1,3 +1,51 @@
+#### 0.16.1 (2023-07-26)
+
+##### Bug Fixes
+
+*  icons (20d9aff6)
+*  isTouchPad (e69f0d8b)
+
+##### Other Changes
+
+*  media-vision models and updates (e5dda36d)
+*  Static files (bde6d880)
+*  Added media-vision (e5822766)
+*  Particles for looking glass (998504cd)
+*  Styles (9f80af70)
+*  Displays interchangeable and simultaneous (4143fcf2)
+*  imrpoved graphics (64c1817e)
+*  Added WAM2 and sampler WAM (da6fa837)
+*  Removed yarn (cc570c23)
+*  Added commented commands tp readme (acc1bfb0)
+
+### 0.16.0 (2023-03-24)
+
+### 0.15.0 (2023-03-24)
+
+##### Bug Fixes
+
+*  Finally wasm loads from local (c21ad51f)
+
+##### Other Changes
+
+*  Error dialog merged with error message (92892c13)
+*  Local loading of wasm (96e8fdcb)
+*  more wam instruments (88399fc7)
+
+### 0.14.0 (2023-03-24)
+
+### 0.13.0 (2023-03-24)
+
+##### Bug Fixes
+
+*  build using yarn (3dde87c6)
+
+### 0.13.0 (2023-03-24)
+
+##### Bug Fixes
+
+*  build using yarn (3dde87c6)
+
 ### 0.9.0 (2022-10-03)
 
 ##### Bug Fixes
