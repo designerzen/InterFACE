@@ -101,6 +101,13 @@ import { TAU } from "./maths/maths"
 
 import { convertOptionToObject } from './utils'
 
+import { 
+	loadDisplay,
+	DISPLAY_CANVAS_2D,DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE
+ } from './display/display-loader'
+
+import { loadMLModel } from './models/load-model'
+
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
@@ -181,6 +188,8 @@ export const createInterface = (
 	let audio 
 	let midi
 	let midiButton
+	// canvas / GL adapters for front end
+	let display
 
 	let timer
 	let reporter
@@ -215,6 +224,9 @@ export const createInterface = (
 	let recordRequested = false
 	let recordCancelRequested = false
 
+	// fetch some elements from the DOM
+	const canvasElement = document.getElementById('interface')
+	const webGLElement = document.getElementById('interface3D')
 
 	const showLoading = () => {
 		body.classList.toggle("loading", true)
@@ -726,6 +738,7 @@ export const createInterface = (
 			const isNumber = !isNaN( parseInt(event.key) )
 			const focussedElement = document.activeElement
 			
+			// Contextual hotkeys - if something is focussed then different keys!
 			if (focussedElement && focussedElement !== document.documentElement )
 			{
 				// not body!
@@ -770,7 +783,6 @@ export const createInterface = (
 					case "DIALOG":
 
 						break
-					
 					
 				}
 
@@ -1017,6 +1029,7 @@ export const createInterface = (
 
 	/**
 	 * play Audio for a Person using their current face status
+	 * TODO: Add WAM2
 	 * @param {Person} person 
 	 * @returns {Object} of metadata
 	 */
@@ -1094,6 +1107,8 @@ export const createInterface = (
 			return stuff
 		}
 		
+		// console.log("Person:sing", { stuff,noteName,note}, person.instruments )
+
 		// Make the Person SING!
 		person.instruments.forEach( instrument => {
 
@@ -1106,15 +1121,14 @@ export const createInterface = (
 			// if ( instrument.type !== "yoshimi"){
 			// 	return
 			// }
-			if ( instrument.type !== "sample"){
-				return
-			}
+			// if ( instrument.type !== "sample"){
+			// 	return
+			// }
 
 		
 			//console.error("SINGING!!!", person.state)
 			// FIXME: Don't play the audio directly in Person
 			// but instead extract it and pass it to the audioBus
-			// stuff.played is an array of notes
 			// update the stave with X amount of notes
 			// stave.draw(stuff)
 			// update the stave with X amount of notes
@@ -1369,7 +1383,7 @@ export const createInterface = (
 	*/
 	const setup = async (update, settings, progressCallback) => {
 
-		const loadTotal = 7
+		const loadTotal = 6
 		let loadIndex = 0
 
 		// PWA file types! Check manifest and 
@@ -1394,13 +1408,6 @@ export const createInterface = (
 		try{
 			
 			setFeedback("Setting things up...<br>This can take a while!")
-			progressCallback(loadIndex++/loadTotal, "Setting things up...")
-
-			if (document.querySelector("img"))
-			{
-				setFeedback( "Image downloaded...<br> Please wait")
-				photo = await setupImage(document.querySelector("img"))
-			}
 			
 			progressCallback(loadIndex++/loadTotal, "Looking for cameras")
 
@@ -1454,10 +1461,10 @@ export const createInterface = (
 			main.classList.toggle('portrait', video.width < video.height )
 			main.classList.toggle('square', video.width === video.height )
 			
-			updateCanvasSize(video.width, video.height)
 			progressCallback(loadIndex++/loadTotal)
 
 		}catch(error){
+
 			// NotAllowedError: Permission denied
 			const errorReason = String(error).replace("NotAllowedError: ",'')
 			const errorMessage = 
@@ -1571,6 +1578,7 @@ export const createInterface = (
 				}
 				
 			}catch(error){
+
 				// no midi - don't show midi button
 				console.log("no MIDI!", error)
 				main.classList.add('no-midi')
@@ -1580,6 +1588,7 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "MIDI Located")
 
 		}else{
+
 			progressCallback(loadIndex++/loadTotal)
 			main.classList.add('midi-unavailable')
 			setFeedback("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
@@ -1587,12 +1596,31 @@ export const createInterface = (
 		
 		// const {startRecording, stopRecording} = record(stream)
 		
-		// FIXME: set the input element to either the image or the video
-		// hide the other or just set the class?
-
+		// const Display = await loadDisplay( DISPLAY_LOOKING_GLASS_3D )
+		// const Display = await loadDisplay( DISPLAY_WEB_GL_3D )
 		// set the canvas to the size of the video / image
-		canvas.width = inputElement.width
-		canvas.height = inputElement.height
+		// display = new Display( webGLElement, inputElement.width, inputElement.height )
+
+		// Allows mulltiple displays to be simultaneously powered!
+		const DisplayComposite = await loadDisplay( DISPLAY_COMPOSITE )
+		display = new DisplayComposite( canvasElement, inputElement.width, inputElement.height  )
+		
+		// Media Videion ML Model and Canvas 2D
+		const DisplayMediaVision2D = await loadDisplay( DISPLAY_MEDIA_VISION_2D )
+		const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, inputElement.width, inputElement.height )
+		display.addDisplay(displayMediaVision2D)
+
+		// NB. Make sure you set this to a WEB_GL context!
+		// const DisplayWebGL3D = await loadDisplay( DISPLAY_WEB_GL_3D )
+		// const displayWebGL3D = new DisplayWebGL3D( webGLElement, inputElement.width, inputElement.height )
+		// display.addDisplay(displayWebGL3D)
+
+		// TODO: Sniff hardware connected to determine if we want XR?
+		// Looking Glass Portrait hardware
+		// const DisplayLookingGlass3D = await loadDisplay( DISPLAY_LOOKING_GLASS_3D )
+		// const displayLookingGlass3D = new DisplayLookingGlass3D( webGLElement, inputElement.width, inputElement.height )
+		// display.addDisplay(displayLookingGlass3D)
+
 
 		if (ui.showPiano)
 		{
@@ -1604,6 +1632,7 @@ export const createInterface = (
 		samplePlayer = new SampleInstrument(audioContext, audio, {})
 		
 		// Add some scales on the side
+		// FIXME: Do this per PERSON
 		quanitiser = new Quanitiser()
 
 		// this just adds some visual onscreen tooltips to the buttons specified
@@ -1627,15 +1656,10 @@ export const createInterface = (
 
 		// remove loading flag as we now have all of our assets!
 		// TODO: create and position the stave?
-		// const stave = new Stave( canvas, 0, 0, true )
+		// const stave = new Stave( canvasElement, 0, 0, true )
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		body.classList.toggle("initialising", false)
 		
-
-		// update( inputElement === video, (predictions)=>{
-
-		// 	//console.log(inputElement === video, "Predictions found ",predictions)
-		// })
 		// console.log(inputElement === video, "Waiting on predicions")
 		// return
 		// LOOP ---------------------------------------
@@ -1643,10 +1667,15 @@ export const createInterface = (
 		// Ensure that the video element is always being fed data
 		const shouldUpdate = () => !cameraLoading
 
+		/**
+		 * BEGIN ---------------------------------------------------------
+		 */
 		const start = () => {
 		
 			// this then runs the loop if set to true
 			const automaticRepeat = inputElement === video
+
+			// REDRAW DOM / CANVAS / WEB GL -------------------------------
 			update( automaticRepeat , (predictions)=>{
 
 				// NB. always update the counter
@@ -1679,7 +1708,8 @@ export const createInterface = (
 					// FUNKY DISCO MODE...
 					// switch effect type?
 					const t = (counter * 0.01) % TAU	
-					overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
+					display.overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
+					// overdraw( canvasContext, -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
 				
 				}else{
 
@@ -1694,12 +1724,14 @@ export const createInterface = (
 					{
 						// clear for invisible canvas but 
 						// NB. this may cause visual disconnect
-						clear()
+						display.clear()
 					
 					}else if (ui.synch){
 						
 						// paste video frame if the video is hidden
-						drawElement( inputElement )
+						display.drawElement( inputElement )
+						// drawElement( canvasContext, inputElement )
+
 					}else{
 						// video is already showing
 					}
@@ -1732,7 +1764,7 @@ export const createInterface = (
 					}
 				}
 
-
+				
 				let haveFacesBeenDetected = false	
 				if (predictions)
 				{
@@ -1758,6 +1790,9 @@ export const createInterface = (
 
 							userLocated = true
 							haveFacesBeenDetected = true
+
+							// first update the person - this allows us to sing at will
+							person.update(prediction)
 								
 						}else{
 
@@ -1773,18 +1808,22 @@ export const createInterface = (
 								// TODO: Implement part switching behaviour
 
 							}
-							
-							return
 						}
-
-						// first update the person - this allows us to sing at will
-						person.update(prediction)
 
 						// add face overlay
 						if (ui.disco || ui.overlays)
 						{
-							// prediction, showText=true, forceRefresh=false
-							person.draw(prediction, ui.text, false, beatJustPlayed)
+							// FIXME:
+							// TODO:
+							// prediction, forceRefresh=false
+							const colours = person.draw( prediction, false, beatJustPlayed)
+							
+							display.drawPerson( person, beatJustPlayed, colours )
+
+							if (ui.text)
+							{
+								person.drawText( prediction ) 
+							}
 						}
 						
 						// then whenever you fancy it,
@@ -1810,6 +1849,9 @@ export const createInterface = (
 						tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange)}%`
 						// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 					}
+
+					// update if neccessary on screen now all people are drawn
+					display.render()
 						
 				}else{
 					// tickerTape += `No prediction`
@@ -1852,7 +1894,7 @@ export const createInterface = (
 						// setFeedback(`Look at me and open your mouth`)
 					}
 				}
-
+				
 
 				// update the keyboard if it is available
 				if (musicalKeyboard)
@@ -1860,7 +1902,7 @@ export const createInterface = (
 					musicalKeyboard.redraw()
 					// this is updated previously by the playPersonAudio
 					// method that set's the general state of the keyboard
-					drawElement( musicalKeyboard.canvas, 40, 40, false )
+					drawElement( canvasContext, musicalKeyboard.canvas, 40, 40, false )
 				}
 
 				
@@ -1874,8 +1916,7 @@ export const createInterface = (
 
 			}, shouldUpdate )
 
-
-			// Metronome
+			// Metronome -----------------------------------------------------------------
 			timer = startTimer( ( values )=>{
 			
 				const { 
@@ -2040,8 +2081,6 @@ export const createInterface = (
 		return start
 	} 
 
-
-
 	/**
 	 * load : load the files required for this app
 	 * @param {Object} settings Configuration object
@@ -2053,35 +2092,17 @@ export const createInterface = (
 		const loadTotal = 5
 		let loadIndex = 0
 		
-		// TODO: test of loading external scripts sequentially...
-		progressCallback(loadIndex++/loadTotal, "Loading...")
+		progressCallback(loadIndex++/loadTotal, "Loading Brains")
 
-		// pick the body parts...
-		let loadModel
-		switch (settings.model)
-		{
-			case "body":
-				const {loadBodyModel} = await import('./models/body')
-				loadModel = loadBodyModel
-				progressCallback(loadIndex++/loadTotal, "Loaded Body Brain" )
-				break
+		// pick the body parts and return the method used to create them
+		const loadModel = await loadMLModel(settings.model)
 
-			// Face
-			default:
-				const {loadFaceModel} = await import('./models/face')
-				loadModel = loadFaceModel
-				progressCallback(loadIndex++/loadTotal, "Loaded Face Brain" )
-		}
-
-
-
+		progressCallback(loadIndex++/loadTotal, "Loaded Brains" )
+				
 		// set up the instrument selctor etc
 		setupInterface( ui )
 
 		progressCallback(loadIndex++/loadTotal, "Connecting wires")
-
-	
-
 
 		// you can toggle any checkbox like...
 		// toggles.quantise.setAttribute('checked', value)
@@ -2381,6 +2402,7 @@ export const createInterface = (
 		// this gets returned then used an the update method
 		// canvasContext || 
 		const elementToAnalyse = inputElement
+
 		return loadModel(elementToAnalyse, settings, progressCallback)
 	}
 
@@ -2526,7 +2548,8 @@ export const createInterface = (
 
 	/**
 	 * get player quantity and mouse event in one click
-	 * @param {*} timeout 
+	 * @param {*} state 
+	 * @param {Number} showTextAfter 
 	 * @returns 
 	 */
 	const showPlayerSelectionScreen = async ( state={}, showTextAfter=60000 ) => {
@@ -2613,8 +2636,7 @@ export const createInterface = (
 			wait()
 		}) ) 
 
-		//console.log("loading model havePlayersBeenSelected")
-
+	
 		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
 		// set up some extra options from query strings
@@ -2624,6 +2646,9 @@ export const createInterface = (
 			//console.log("Loading B Side", progress )
 			onLoadProgress && onLoadProgress(0.5 + progress/2, message, false)
 		})
+	//
+	
+	console.log("loadingstartApp", {startApp, update, options })
 
 		return startApp
 

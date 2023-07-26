@@ -23,10 +23,17 @@
   Start                    |HOLD| Stop
  * 
  *  */ 
+
+
+// Any instruments you may want to load later on!
+import simplePluginURI from "url:./audio/wam2/simple/index.js"
+import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
+
 import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
 // all the different instruments!
+import WAM2Instrument from './audio/instruments/instrument.wam2'
 import SampleInstrument from './audio/instruments/instrument.sample'
 import MIDIInstrument from './audio/instruments/instrument.midi'
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
@@ -41,18 +48,12 @@ import { ParamaterRecorder } from './parameter-recorder'
 import { 
 	drawNodes,
 	drawPart, drawPoints, 
-	drawFace, drawFaceMesh,  drawBoundingBox, 
+	drawFaceMesh,  drawBoundingBox, 
 	drawText, drawParagraph, 
 	drawInstrument
 } from './visual/2d'
 
-// import { 
-// 	draw3dFaceMesh 
-// } from "./visual/3d"
-
 import { drawMousePressure } from './dom/mouse-pressure'
-import { drawEye } from './visual/2d.eyes'
-import { drawMouthFromSequence, drawLip, drawMouth } from './visual/2d.mouth'
 import { 
 	EYE_COLOURS,
 	DEFAULT_PERSON_OPTIONS,
@@ -115,8 +116,10 @@ export default class Person{
 	octave = 4
 
 	// real time colour settings
-	hue = 0
+	defaultHue = 0
 	saturation = 50
+	luminosity = 50
+	hueRange = 360
 
 	instrumentPointer = 0
 	instrumentLoadedAt = -1
@@ -127,6 +130,7 @@ export default class Person{
 
 	leftEyeClosedAt = -1
 	rightEyeClosedAt = -1
+	eyesClosed = false
 
 	instruments = []
 
@@ -142,11 +146,19 @@ export default class Person{
 	midiChannel = "all"
 
 	/**
-	 * Is the mouse button down?
-	 * @returns {Boolean} Mouse button state
+	 * Are the user's eyes both open?
+	 * @returns {Boolean} are both eyes open
 	 */
 	get areEyesOpen(){
 		return this.isLeftEyeOpen && this.isRightEyeOpen
+	}
+
+	/**
+	 * Are the user's eyes both closed?
+	 * @returns {Boolean} are both eyes closed?
+	 */
+	get areEyesClosed(){
+		return this.eyesClosed
 	}
 
 	/**
@@ -272,6 +284,31 @@ export default class Person{
 			0 : this.now - this.instrumentLoadedAt
 	}
 
+	/**
+	 * Gets the HUE (0-100) set for this user or any variation
+	 * due to implicit state alterations such as during loading
+	 */
+	get hue(){
+		return this.instrumentLoading ? 
+			this.defaultHue + (90+counter % this.hueRange) : 
+			this.defaultHue
+	}
+
+	/**
+	 * Get's the hue but as a colour
+	 */
+	get hsl(){
+		return `hsl(${this.hue},${this.saturation}%,${this.luminosity}%)`
+	}
+	
+	/**
+	 * Get's the hue but as a colour
+	 */
+	get hsla(){
+		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,0.5)`
+	}
+	
+
 	constructor(name, audioContext, destinationNode, options={} ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
@@ -296,44 +333,50 @@ export default class Person{
 		// Create our Audio wiring
 		this.setupAudio(audioContext, destinationNode)
 
-		// Create our side bar and instrument selector for m
-		this.setupForm()
-
 		// fetch face button dom element
 		this.button = document.getElementById(name)
 
-		this.button.addEventListener( 'mousedown', e =>{ 
-			console.log("mouse down")
-			this.onFaceTouchStart(e) 
-			document.addEventListener('mouseup', e => this.onFaceTouchEnd(e), {once:true})
-		})
-		// this.button.addEventListener( 'mouseup', e => {
-		// 	console.log("mouse up")
-		// 	this.onFaceTouchEnd(e) 
-		// })
+		// Create our side bar and instrument selector for m
+		this.setupForm().then(()=>{
+			
+			this.button.addEventListener( 'mousedown', e =>{ 
+				//console.log("mouse down")
+				this.onFaceTouchStart(e) 
+				document.addEventListener('mouseup', e => this.onFaceTouchEnd(e), {once:true})
+			})
+			// this.button.addEventListener( 'mouseup', e => {
+			// 	console.log("mouse up")
+			// 	this.onFaceTouchEnd(e) 
+			// })
 
-		this.button.addEventListener( 'touchstart', e =>{ 
-			console.log("touch start")
-			this.onFaceTouchStart(e) 
-			document.addEventListener('touchend', e => this.onFaceTouchEnd(e), {once:true})
-		})
-		// this.button.addEventListener( 'touchend', e => {
-		// 	console.log("touch end")
-		// 	this.onFaceTouchEnd(e) 
-		// })
+			this.button.addEventListener( 'touchstart', e =>{ 
+				//console.log("touch start")
+				this.onFaceTouchStart(e) 
+				document.addEventListener('touchend', e => this.onFaceTouchEnd(e), {once:true})
+			})
+			// this.button.addEventListener( 'touchend', e => {
+			// 	console.log("touch end")
+			// 	this.onFaceTouchEnd(e) 
+			// })
 
-		this.button.addEventListener( 'mouseover', event => {
-			this.isMouseOver = true
+			this.button.addEventListener( 'mouseover', event => {
+				this.isMouseOver = true
+			})
+
+			this.button.addEventListener( 'mouseout', event => {
+				this.isMouseOver = false
+			})
+
+			this.instrumentLoadedAt = this.now
 		})
 
-		this.button.addEventListener( 'mouseout', event => {
-			this.isMouseOver = false
-		})
-
-		this.instrumentLoadedAt = this.now
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
+	/**
+	 * Destroy this person - disconnect audio chain
+	 * free up associated memory
+	 */
 	destroy(){
 
 	}
@@ -368,7 +411,7 @@ export default class Person{
 		this.saturation = options.saturation // && 100
 		this.luminosity = options.luminosity //&& 100
 		this.hueRange = options.hueRange //&& 360
-		this.hue = options.hue ?? Math.random() * this.hueRange
+		this.defaultHue = options.hue ?? Math.random() * this.hueRange
 		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
 	}
 
@@ -377,9 +420,15 @@ export default class Person{
 	 * Cache data for use in processing later
 	 * @param {Object} prediction data model
 	 */
-	update(prediction){
+	update(prediction, forceRefresh=false){
 		
 		this.counter++
+		
+		// reuse old prediction aka refresh
+		if (!prediction || forceRefresh)
+		{
+			prediction = this.data
+		}
 
 		// cache all data
 		this.data = prediction
@@ -390,11 +439,23 @@ export default class Person{
 			this.parameterRecorder.save(prediction)
 		}
 
+		// If we are playing back an old session, we overwrite
+		// this data with the existing session data
+		if (this.isPlayingBack)
+		{
+			// TODO:
+			// overwrite prediction
+		}
+
 		// check to see if mouse if down
 		if (this.mouseHeldAt === -1 && this.isMouseHeld)
 		{
 			this.onButtonHeld()
 		}
+
+		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
+		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
+		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
 		
 		// update any eye states
 		// FIXME: Smooth these out either here or directly in model
@@ -423,260 +484,9 @@ export default class Person{
 			// eye state changed
 			this.isRightEyeOpen = !prediction.rightEyeClosed
 		}
-	}
-	
-	/**
-	 * Using THREE.js to render the points as voxels
-	 * @param {*} prediction 
-	 * @param {*} showText 
-	 * @param {*} forceRefresh 
-	 * @param {*} beatJustPlayed 
-	 */
-	// draw3d(prediction, forceRefresh=false, beatJustPlayed=false){
-	// 	if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
-	// 	{
-	// 		// nothing to (re)draw so exit here
-	// 		return
-	// 	}
-		
-	// 	// reuse old prediction or refresh
-	// 	if (!prediction || forceRefresh)
-	// 	{
-	// 		prediction = this.prediction
-	// 	}
-	// 	const {annotations} = prediction
-	// 	const {
-	// 		faceOval, 
-	// 		lips,
-	// 		leftEye, leftEyebrow, leftIris, 
-	// 		rightEye, rightEyebrow, rightIris
-	// 	} = annotations
-
-	// 	draw3dFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
-	// }
-
-
-	/**
-	 * Update visuals
-	 * @param {Object} prediction data model
-	 * @param {Boolean} showText show / hide the subtitles
-	 * @param {Boolean} forceRefresh forces the redraw regardless of other settings
-	 * @param {Boolean} beatJustPlayed has the metronome just ticked?
-	 */
-	draw(prediction, showText=true, forceRefresh=false, beatJustPlayed=false){
-		
-		if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
-		{
-			// nothing to (re)draw so exit here
-			return
-		}
-		
-		// reuse old prediction aka refresh
-		if (!prediction || forceRefresh)
-		{
-			prediction = this.prediction
-		}
-
-		if (this.isPlayingBack)
-		{
-			// TODO:
-			// overwrite prediction
-		}
-
-		//
-		if (this.isMouseDown)
-		{
-			drawMousePressure( this.mouseHoldProgress, this.options.mouseHoldDuration )
-		}
-
-		const {annotations} = prediction
-		const {
-			faceOval, 
-			lips,
-			leftEye, leftEyebrow, leftIris, 
-			rightEye, rightEyebrow, rightIris
-		} = annotations
-
-		const boundingBox = prediction.box
-
-		// change colour while loading
-		const hue = this.instrumentLoading ? 
-						this.hue + 180 : 
-						this.hue
-
-		// can this just be a reference???
-		const options = this.options
-		
-		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
-		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
-		// this.areEyesOpen 
-
-		// allows us to use the metronome to shape the colours
-		const saturation = options.saturation
-		const luminosity = options.luminosity + (beatJustPlayed ? 10 : 0)
-		
-		// update colours...
-		const sl = `${saturation}%, ${luminosity}%`
-		// options.dots = hue
-		// options.face = `hsla(${hue},${sl},0.8)`
-		options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
-		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.9)`
-		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
-		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
-		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
-		options.leftEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
-		options.rightEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
-		
-		// change eye colours if closed...?
-		// options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
-		// options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
-		
-		options.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%,${options.luminosity}%, 1)`
-		options.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%, ${options.luminosity}%, 1)`
-
-		const colours = {
-			h:hue,
-			s:options.saturation, 
-			l:options.luminosity,
-			a:1
-		}
-
-		// NB. assumes screen has been previously cleared	
-		// drawBox( prediction )
-		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )
-		if (options.drawMask)
-		{
-			// we go from nodes to mesh if mouth active...
-			if (!options.drawNodes && !options.drawMesh && options.meshOnSing)
-			{
-				// this.isMouthOpen = true
-				if (this.singing)
-				{
-					drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
-				}else{
-					// default mode is always blobs
-					drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
-				}
-
-			} else if (options.drawNodes) {
-
-				// just blobs
-				drawPoints( prediction, colours, 3, this.instrumentLoading, this.debug )
-			
-			} else if (options.drawMesh) {
-
-				// just mesh
-				drawFaceMesh( prediction, colours, 0.5, this.instrumentLoading, this.isMouthOpen, this.debug )
-			}
-		}
-
-	
-		// drawBoundingBox( boundingBox )
-
-		//console.error("Bounding box", {boundingBox} )
-
-		//const { height,width,xMax,xMin,yMax,yMin} = boundingBox
-
-		// if this is mirrored using the option in the TF model...
-		
-		// we only want this every frame or so as this 
-		// is altering the DOM
-		if (this.counter%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
-		{
-			// TODO: Profile which is faster...
-			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
-			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
-			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
-			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-			this.button.setAttribute( "style", `--${this.name}-x:${boundingBox.xMin};--${this.name}-y:${boundingBox.yMin};--${this.name}-w:${boundingBox.width};--${this.name}-h:${boundingBox.height};` );
-
-			// ?
-			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
-		}
-
-		// now overlay the mouth
-		if (options.drawMouth)
-		{	
-			const mouthColours = {
-				h:hue,
-				s:options.saturation, 
-				l:options.luminosity,
-				a:1
-			}
-
-			const mouthColoursClosed = {
-				h:hue,
-				s:options.saturation, 
-				l:20,
-				a:1
-			}
-
-			const lipColours = {
-				h:90,
-				s:50, 
-				l:50,
-				a:1
-			}
-
-			//drawLip( prediction.annotations.lips, {...colour, h:0}, lipPathOuter )
-			// drawMouthFromSequence( prediction.annotations.lips, {...colour }, {...colour, a:0.5}, LIP_PATH_OUTER )
-
-			// drawMouthFromSequence( prediction.annotations.lips, {...colour, h:0}, {...colour, h:0}, LIP_PATH_INNER )
-
-			// // Top inner
-			// drawLip(prediction.annotations.lips, {...colour, h:270}, 30, 40)
-
-			// fake it till you make it
-			// bottom outer lip first
-			//drawLip(prediction.annotations.lips, {...colour, h:0}, 1, 9)
-		
-			//drawLip(prediction.annotations.lips, {...colour, h:0}, 10, 11)
-			
-			// top outer lip
-			//drawLip(prediction.annotations.lips, {...colour, h:90}, 10, 19)
-
-			//drawLip(prediction.annotations.lips, {...colour, h:0}, 10, 11)
-			
-			// drawMouth(prediction.annotations.lips, {...colour, h:90 }, 0, 9)
-			// drawMouth(prediction.annotations.lips, {...colour, h:180 }, 0, 9)
-			// drawMouth(prediction.annotations.lips, {...colour, h:270 }, 0, 9)
-
-			// DEBUG
-			// drawNodes( annotations.leftEyeSocket[0], annotations.leftEyeSocket[1] )
-			// drawNodes( annotations.rightEyeSocket[0], annotations.rightEyeSocket[1] )
-			// drawNodes( annotations.headVertical[0], annotations.headVertical[1] )
-
-			// This overlays the mouth and the eyes
-			if (this.isMouthOpen && this.singing)
-			{
-				// Inner
-				drawLip( annotations.innerLip, lipColours, mouthColours )
-			
-				//drawLip(prediction.annotations.lips, {...mouthColours, h:0}, 1, 9)
-
-				// drawMouth(prediction.annotations.lips, {...mouthColours, h:90 }, 0, 9)
-				// drawMouth(prediction.annotations.lips, {...mouthColours, h:180 }, 0, 9)
-				// drawMouth(prediction.annotations.lips, {...mouthColours, h:270 }, 0, 9)
-				
-			}else{
-
-				// Outer
-				drawLip( annotations.outerLip, lipColours, mouthColoursClosed )
-		
-				// mouth closed or not singing
-				// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
-			}
-		}
-
-		// draw silhoette if the user is 
-		// if you want it to flicker...
-		// interacting&& this.counter%2 === 0)
-	
-		// we need to ignore eyes closed if the instrument is loading...
-		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
 		
 		// eyes have been closed for X -period of time
-		if (eyesClosedFor > options.eyeShutHolddDuration)
+		if (eyesClosedFor > this.options.eyeShutHolddDuration)
 		{
 			// both eyes are closed for X amount of time...
 			// console.log("EYES SHUT", {
@@ -695,95 +505,91 @@ export default class Person{
 			this.rightEyeClosedAt = prediction.time
 
 			this.onEyesClosedForTimePeriod()
-
-		}else if (options.drawEyes){
-
-			const eyeOptions = {
-				// colourful part of the eye
-				iris:options.leftEyeIris, 
-				// size of the colourful part
-				irisRadius:options.irisRadius,
-				// holes in the eyes
-				pupil:'rgba(0,0,0,0.8)', 
-				// size of the hole
-				pupilRadius:options.pupilRadius,
-				// big white bit of the eyed
-				sclera:'white',
-				// size of the white bit
-				scleraRadius:options.scleraRadius,
-				ratio:options.eyeRatio
-			}
-
-			// Draw the eyes over the face
-			const eyeDirection = prediction.eyeDirection
-			drawEye( annotations, true, this.isLeftEyeOpen, eyeDirection, eyeOptions)	
-			eyeOptions.iris = options.rightEyeIris
-			drawEye( annotations, false, this.isRightEyeOpen, eyeDirection, eyeOptions)
-
-		}else if (options.drawEyebrows){
-		
-			// FIXME: draw some funky eyebrows!
-			drawPart(leftEyebrow, 5)
-			drawPart(rightEyebrow, 5)
-
-			// console.log("EYES", {annotations} )
-
-			// drawShapeByIndexes( annotations.rightEyeLower0, [0,2,8], 0.5, 'red', true, false, true )
-			
-			
-			// drawPart( annotations.rightEyeLower0, 1, 'black', false, false, true )
-
-		//	drawPart( annotations.leftEyeUpper1, 1, 'pink', true, false, false )
-
-			// drawPart( annotations.leftEyeLower1, 1, 'yellow', true )
-		//	drawPart( annotations.leftEyeLower2, 1, 'green', true, false, false )
-			// drawPart( annotations.leftEyeLower3, 1, 'blue', true )
-			// drawPart( annotations.leftEyeLower4, 1, 'orange', true )
-
-			// drawPart( annotations.rightEyeLower1 )
-			// drawPart( annotations.rightEyeLower2 )
-			// drawPart( annotations.rightEyeLower3 )
-			// drawPart( annotations.rightEyeLower4 )
-
-			// console.log("EYES", {rightEyeClosedFor, leftEyeClosedFor, eyesClosedFor, time:prediction.time, rca:this.rightEyeClosedAt, lca:this.leftEyeClosedAt} )
-			// if (this.isLeftEyeOpen)
-			// {
-			// 	drawEye( annotations.leftEyeIris, true, true, eyeOptions)	
-			// }else{
-			// 	// const leftEyeHeldShut = prediction.time - this.leftEyeClosedAt > options.eyeShutHolddDuration
-			// 	drawEye(annotations.leftEyeIris, true, false, { irisRadius:options.eyeRadius} )	
-			// }
-
-			// if (this.isRightEyeOpen)
-			// {
-			// 	drawEye( annotations.rightEyeIris, false, true, {pupil:options.rightEyeIris, irisRadius:options.eyeRadius})
-			// }else{
-			// 	// const rightEyeHeldShut = prediction.time - this.rightEyeClosedAt > options.eyeShutHolddDuration
-			// 	drawEye(annotations.rightEyeIris, false, false ? 'red' : 'green', { irisRadius:options.eyeRadius})
-			// }
-
-			// console.log("EYE OPEN", {
-			// 	rightEyeClosedFor, 
-			// 	leftEyeClosedFor, 
-			// 	eyesClosedFor, 
-			// 	ro:this.isRightEyeOpen,
-			// 	lo:this.isLeftEyeOpen,
-			// 	time:prediction.time, 
-			// 	rca:this.rightEyeClosedAt, 
-			// 	lca:this.leftEyeClosedAt
-			// } )
-			
-		}else{
-			// default fails
 		}
-
-		// TEXT ===================================================
-		// everything here is for displaying the text
-		if (!showText)
+	}
+	
+	/**
+	 * Update visuals
+	 * @param {Object} prediction data model
+	 * @param {Boolean} forceRefresh forces the redraw regardless of other settings
+	 * @param {Boolean} beatJustPlayed has the metronome just ticked?
+	 */
+	draw(prediction, forceRefresh=false, beatJustPlayed=false){
+		
+		if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
 		{
-			return
+			// nothing to (re)draw so exit here
+			return this.options
 		}
 	
+		// change colour while loading
+		const hue = this.hue
+
+		// can this just be a reference???
+		const options = this.options
+		
+		// const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
+		// const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
+		// this.areEyesOpen 
+
+		// allows us to use the metronome to shape the colours
+		const saturation = options.saturation
+
+		// Extra luminosity on beat just played
+		const luminosity = options.luminosity + (beatJustPlayed ? 33 : 0)
+		
+		// update colours...
+		const sl = `${saturation}%, ${luminosity}%`
+		// options.dots = hue
+		// options.face = `hsla(${hue},${sl},0.8)`
+		options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
+		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.9)`
+		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
+		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
+		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
+		options.leftEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
+		options.rightEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
+		options.pupil = "rgba(0,0,0,0.8)"
+		// change eye colours if closed...?
+		// options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		// options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		
+		options.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%,${options.luminosity}%, 1)`
+		options.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%, ${options.luminosity}%, 1)`
+		options.leftEyebrow = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%,${options.luminosity}%, 1)`
+		options.rightEyebrow = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%, ${options.luminosity}%, 1)`
+
+		return options
+	}
+
+	/**
+	 * Draw some text onto the screen - used to show text above users and to
+	 * show debug code in realtime
+	 * 
+	 * @param {*} prediction 
+	 * @param {AbstractDisplay} display 
+	 */
+	drawText(prediction, display){
+
+		const boundingBox = prediction.box
+
+		// we only want this every frame or so as this 
+		// is altering the DOM and very costly
+		if (this.counter%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
+		{
+			const boundingBoxWidth = boundingBox.width || boundingBox.xMax - boundingBox.xMin
+			const boundingBoxHeight = boundingBox.height || boundingBox.yMax - boundingBox.yMin
+			// TODO: Profile which is faster...
+			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
+			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
+			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
+			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
+			this.button.setAttribute( "style", `--${this.name}-x:${boundingBox.xMin};--${this.name}-y:${boundingBox.yMin};--${this.name}-w:${boundingBoxWidth};--${this.name}-h:${boundingBoxHeight};` );
+
+			// ?
+			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
+		}
+
 		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
 
@@ -812,7 +618,7 @@ export default class Person{
 				}else{
 
 					drawInstrument(boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
-					drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
+					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
 					drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, [`Hold me to see all instruments`], '14px' )		
 				}
 
@@ -820,7 +626,7 @@ export default class Person{
 				
 				// No mouse held
 				drawInstrument(boundingBox, this.instrumentTitle, 'Hold to choose instrument')
-				drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
+				//drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
 				/*	
 				const offsetX = topLeft[0]
 				const offsetY = topLeft[1]
@@ -896,7 +702,8 @@ export default class Person{
 	 * Sing some songs
 	 * state machine diagram :
 	 * SILENT ATTACK SUSTAIN PITCH_BEND SUSTAIN DECAY RELEASE
-	 * This is responsible for converting the Face Model into music
+	 * This is responsible for converting the Face Model into 
+	 * a musical model that we than pass to our Audio Factory
 	 */
 	sing(){
 
@@ -977,7 +784,8 @@ export default class Person{
 		this.lastNoteFriendlyName = friendlyNoteName
 		this.octave = newOctave
 
-		this.hue = roll * this.hueRange
+		this.defaultHue = roll * this.hueRange
+		
 		this.saturation = 100 * lipPercentage
 		this.singing = amp >= options.mouthCutOff
 
@@ -1159,7 +967,7 @@ export default class Person{
 		return {
 			played,
 			yaw, pitch, roll, 
-			hue:this.hue,
+			hue:this.defaultHue,
 			lipPercentage,
 			eyeDirection,
 			octave:newOctave,
@@ -1178,7 +986,7 @@ export default class Person{
 	/**
 	 * Load a sample using one of the prebuilt methods
 	 * @param {String} method - name of the function to call
-	 * @param {*} progressCallback - method to invoke on loading progress
+	 * @param {Function} progressCallback - method to invoke on loading progress
 	 * @returns instrument
 	 */
 	async loadSamples(method="loadRandomInstrument",progressCallback=null){
@@ -1187,7 +995,7 @@ export default class Person{
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
-		this.setupForm()
+		await this.setupForm()
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
@@ -1198,6 +1006,7 @@ export default class Person{
 	 * Provide this Person with a random instrument
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
+	
 	async loadRandomInstrument(progressCallback){
 		return this.loadSamples("loadRandomInstrument", progressCallback)
 	}
@@ -1304,7 +1113,6 @@ export default class Person{
 		// TODO: 
 		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.setInstrument( this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) ) )
-		
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
@@ -1435,22 +1243,30 @@ export default class Person{
 	}
 
 	onLeftEyeOpen( timeClosedFor ){
+		// console.error( "onLeftEyeOpen", {timeClosedFor} ) 
 		this.leftEyeClosedAt = -1
 	}
 
 	onLeftEyeClose( timeClosed ){
+		// console.error( "onLeftEyeClose", {timeClosed} ) 
 		this.leftEyeClosedAt = timeClosed
 	}
 
 	onRightEyeOpen( timeClosedFor ){
+		// console.error( "onRightEyeOpen", {timeClosedFor} ) 
+		
 		this.rightEyeClosedAt = -1
 	}
 
 	onRightEyeClose( timeClosed ){
+		// console.error( "onRightEyeClose", {timeClosed}  ) 
+		
 		this.rightEyeClosedAt = timeClosed
 	}
 
 	onEyesClosedForTimePeriod(){
+		// console.error( "onEyesClosedForTimePeriod" ) 
+		this.eyesClosed = true
 		this.loadNextInstrument( instrumentName => console.log("instrumnetName",instrumentName ) )
 	}
 
@@ -1458,10 +1274,10 @@ export default class Person{
 	 * Create the instrument panel HTML for this user's instrument
 	 * and other settings specific to this person. Needs to be done per person
 	 */
-	setupForm(){
+	async setupForm(){
 
 		// TODO: Use ACTIVE instrument - don't assume it's samplePlayer
-		const instruments = this.activeInstrument.getInstruments()
+		const instruments = await this.activeInstrument.getInstruments()
 		
 		// hide existing
 		const allInstruments = this.controls.querySelectorAll(".instrument")
@@ -1489,6 +1305,7 @@ export default class Person{
 				})
 			}
 		})
+		return true
 	}
 
 	/**

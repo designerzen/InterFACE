@@ -7,6 +7,29 @@ const isDevelopmentMode = process.env.NODE_ENV === "development"
 // https://www.midi.org/specifications-old/item/manufacturer-id-numbers
 export const MIDI_ID = "00H 21H 71H"
 
+
+export const DEFAULT_TASKS_VISION_OPTIONS = {
+	
+	// runningMode: "IMAGE" | "VIDEO"
+	runningMode:"VIDEO",
+	
+	// numFaces 	The maximum number of faces that can be detected by the the FaceLandmarker. Smoothing is only applied when num_faces is set to 1. 	Integer > 0 	1
+	numFaces: 2,
+	
+	// minFaceDetectionConfidence 	The minimum confidence score for the face detection to be considered successful. 	Float [0.0,1.0] 	0.5
+	// minFacePresenceConfidence 	The minimum confidence score of face presence score in the face landmark detection. 	Float [0.0,1.0] 	0.5
+	// minTrackingConfidence 	The minimum confidence score for the face tracking to be considered successful. 	Float [0.0,1.0] 	0.5
+	
+	// Whether Face Landmarker outputs face blendshapes. Face blendshapes are used for rendering the 3D face model. 	Boolean 	False
+	outputFaceBlendshapes :true,
+	
+	// Whether FaceLandmarker outputs the facial transformation matrix.
+	// FaceLandmarker uses the matrix to transform the face landmarks from 
+	// a canonical face model to the detected face, so users can apply 
+	// effects on the detected landmarks.
+	outputFacialTransformationMatrixes: true
+}
+
 export const DEFAULT_TENSORFLOW_OPTIONS = {
 	
 	// or 'tfjs' (mediapipe is far smoother and gives us handy annotations)
@@ -51,6 +74,8 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 		'wasm',
 		'webgl'
 	]
+	,
+	...DEFAULT_TASKS_VISION_OPTIONS
 }
 
 export const DEFAULT_OPTIONS = {

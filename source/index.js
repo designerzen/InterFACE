@@ -19,6 +19,9 @@ import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents} from './hardware/mouse
 import Capabilities from './capabilities'
 import Attractor from './attractor'
 
+// TESTING
+// import createAppInterface from './interface.js'
+
 // for custom path editions rather than on unique domains
 // instead you can have over-rides both in the globalThis._synth space
 // or else via a named route here
@@ -101,6 +104,7 @@ const start = () => {
 	let startLoadTime = Date.now()
 	let failed = false
 
+	
 	// Lazy load the main interface code
 	import('./interface.js').then( async ({createInterface}) => {
 
