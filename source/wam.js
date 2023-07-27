@@ -59,7 +59,7 @@ const create = async(audioContext) => {
 	// load main plugin file
 	// const { default: synthWAMPlugin } = await import("./audio/wam2-external/synth101/src/index.tsx")
 	const { default: simpleWAMPlugin } = await import("./audio/wam2/simple/index.js")
-	// const { default: pingPongDelayWAMPlugin } = await import("./audio/wam2/pingpongdelay/index.js")
+	const { default: pingPongDelayWAMPlugin } = await import("./audio/wam2/pingpongdelay/index.js")
 	const { default: samplerWAMPlugin } = await import("./audio/wam2/sampler/index.js")
 	
 	const [hostGroupId] = await initializeWamHost(audioContext)
