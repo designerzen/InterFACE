@@ -24,15 +24,15 @@
  * 
  *  */ 
 
-
-// Any instruments you may want to load later on!
-import simplePluginURI from "url:./audio/wam2/simple/index.js"
-import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
-
 import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
 // all the different instruments!
+
+// Any instruments you may want to load later on!
+// import simplePluginURI from "url:./audio/wam2/simple/index.js"
+// import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
+
 import WAM2Instrument from './audio/instruments/instrument.wam2'
 import SampleInstrument from './audio/instruments/instrument.sample'
 import MIDIInstrument from './audio/instruments/instrument.midi'
