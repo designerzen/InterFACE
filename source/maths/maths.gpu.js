@@ -2,8 +2,8 @@
 // the performance of some of the more conplicated
 // maths methods used in the app...
 
-import { GPU } from 'gpu.js'
-const gpu = new GPU()
+// import { GPU } from 'gpu.js'
+// const gpu = new GPU()
 
 
 // Feed it a right angle triangle and get the angle between the edges

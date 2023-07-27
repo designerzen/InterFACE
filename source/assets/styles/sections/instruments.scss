@@ -47,6 +47,7 @@
 	}
 }
 
+// These are the buttons that overlay the user's faces to allow specific user control
 .person-toggle-controls{
 	text-orientation:mixed;
 	writing-mode: vertical-rl;
@@ -63,13 +64,21 @@
 	z-index: -1;
 	justify-content: center;
 	align-items: center;
+	
 
 	&::before{
 		transition: transform 990ms $easeInOutBack;
-		margin-right: 4px;
-		margin-top: 3px;
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
 	}
+
 	// background-image: url(/source/assets/icons/record_voice_over_black_24dp.svg);
+
+	&:focus::before,
+	&:hover::before{
+		opacity: 1;
+	}
 }
 
 .person-a-toggle-controls{
@@ -195,15 +204,14 @@ fieldset.person-controls{
 .person-b-sidebar-showing .person-b-panel,
 .person-a-sidebar-showing .person-a-panel{
 	transform: translateX(0%);
-	
 }
 
 .person-c-sidebar-showing{
 
 }
 
-// opened state
-.person-toggle-controls:is( :active, :focus, :focus-within),
+// opened state:focus, , :focus-within
+// .person-toggle-controls:is( :active ),
 .person-a-sidebar-showing .person-a-toggle-controls,
 .person-b-sidebar-showing .person-b-toggle-controls{
 	
@@ -212,11 +220,20 @@ fieldset.person-controls{
 	//transform: rotate(90deg) translateY(-50%);
 	//transform: translateX(100%); //rotate(90deg);
 	color: transparent;
+
 	&::before{
 		opacity: 1;
 		// transform: scaleX(-1);
-		transform: rotate(180deg);
+		transform: rotate(180deg) translateX(50%);
 	}
+}
+
+.person-a-sidebar-showing .person-a-toggle-controls{
+
+}
+
+.person-b-sidebar-showing .person-b-toggle-controls{
+
 }
 
 // :is(
