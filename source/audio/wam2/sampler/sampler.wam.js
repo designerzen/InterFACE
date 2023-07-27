@@ -97,7 +97,7 @@ export default class SamplerPlugin extends CompositeAudioNode {
                 const midiNote = message.event[1]
                 this.noteOff(midiNote, message.time)
             }
-		});
+		})
     }
 
 	async noteOn(noteNumber, velocity=1){
@@ -140,19 +140,24 @@ export default class SamplerPlugin extends CompositeAudioNode {
 		this.dryGainNode.connect(this.outputNode)
 	}
 
+	async loadAudioArrayBuffer(path ){
+		const response = await fetch(path)
+		return await response.arrayBuffer()
+	}
+
 	/**
 	 * We cache all audioBuffer data for re-use later or until
 	 * we flushData()
 	 * 
 	 * @param {String} path - to audio file mp3/wav/ogg etc
-	 * @param {Boolean} ignoreExisting - forget cache and reload fresh
+	 * @param {Boolean} replaceExisting - forget cache and reload fresh
 	 * @returns 
 	 */
-	async loadAudio(path, ignoreExisting=false ){
+	async loadAudio(path, replaceExisting=false ){
 
 		const existing = this.audioBuffers.get(path)
 		
-		if (!ignoreExisting && existing !== undefined )
+		if (!replaceExisting && ( existing !== undefined ))
 		{
 			return existing
 		}
@@ -165,33 +170,26 @@ export default class SamplerPlugin extends CompositeAudioNode {
 		return audioBuffer
 	}
 	
-	async loadAudioArrayBuffer(path ){
-		const response = await fetch(path)
-		return await response.arrayBuffer()
-	}
-
-	fetchAudioBuffer( audioBuffer, ignoreExisting=true ){
+	fetchAudioBuffer( audioBuffer, replaceExisting=true ){
 		
-		const existing = this.samples.get(audioBuffer)
+		const existingAudioBuffer = this.samples.get(audioBuffer)
 
-		if (!ignoreExisting && existing !== undefined )
+		if (!replaceExisting && ( existingAudioBuffer !== undefined ))
 		{
-			existing.stop()
-			return existing
+			existingAudioBuffer.stop()
+			return existingAudioBuffer
 		}
 
 		// FIXME: Re-use one buffer source per sample?
 		const trackSource = this.context.createBufferSource()
 		
-		const disconnect = (error) => {
-			trackSource.disconnect()
-			trackSource = null
-			active = false
-			return error ? false : true
-		}	
-
-		// trackSource.onended = disconnect
-		// trackSource.onerror = disconnect
+		// const disconnectTrack = (error) => {
+		// 	trackSource.disconnect()
+		// 	active = false
+		// 	return error ? false : true
+		// }	
+		// trackSource.onended = disconnectTrack
+		// trackSource.onerror = disconnectTrack
 		trackSource.connect( this.wetGainNode )
 
 		trackSource.buffer = audioBuffer

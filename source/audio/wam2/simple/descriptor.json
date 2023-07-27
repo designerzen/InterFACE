@@ -1,0 +1,15 @@
+{
+    "name": "WamExample",
+    "identifier": "com.designerzen.simple",
+    "vendor": "designerzen",
+    "description": "Michel told me I should try this out",
+    "version": "1.0.0",
+    "apiVersion": "2.0.0",
+    "thumbnail": "screenshot.png",
+    "keywords": [ "ai", "motion-capture", "xr" ],
+    "website": "https://interface.place",
+    "isInstrument": true,
+	"hasMidiInput": true,
+    "hasAudioInput": true,
+	"hasAudioOutput": true
+}
