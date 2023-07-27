@@ -273,7 +273,7 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 			
 			// if there is already a service-worker registered and running as the controller...
 			// as well as a worker "waiting" to be installed... resolve immediately?
-			if (nstallingWorker?.waiting && navigator.serviceWorker.controller) 
+			if (installingWorker?.waiting && navigator.serviceWorker.controller) 
 			{
 				// FIXME: 
 				//newWorker = reg.waiting
