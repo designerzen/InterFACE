@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical synthesizer",
-	"version": "0.17.0",
+	"version": "0.18.0",
 	"time": 1690388694005,
 	"author": "designerzen <designerzen@gmail.com>",
 	"license": "GPL-2.0-only",
@@ -34,13 +34,11 @@
 		"clear": "npm run clean && npm run copy",
 		"deploy": "node actions/deploy.mjs",
 		"doc": "jsdoc -d docs --configure .jsdoc.json source/interface.js",
-		
 		"build": "parcel build --no-source-maps --no-scope-hoist --no-content-hash --public-url ./ source/index.pug",
 		"build:wam": "parcel build --public-url ./ source/wam.pug",
 		"build:debug": "parcel build --no-minify --no-scope-hoist --public-url ./ source/*.pug",
 		"build:index": "parcel build --public-url ./ source/index.pug",
 		"build:workers": "parcel build --no-scope-hoist --no-content-hash --public-url ./ source/*/**-worker.js",
-		
 		"run:electron": "electron . --enable-logging",
 		"test:electron": "electron ./main.cjs --enable-logging",
 		"build:electron": "electron .",
@@ -50,7 +48,6 @@
 		"open:android": "npx cap open android",
 		"run:android": "npx cap run android",
 		"android": "npm run clear && npm run build:android && node actions/app.mjs && npm run open:android",
-		
 		"build:help": "parcel build --public-url ./ source/help.pug",
 		"build:roadmap": "parcel build --public-url ./ source/roadmap.pug",
 		"app": "parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug",
@@ -63,10 +60,8 @@
 		"major": "changelog -M && npm version major --force && node actions/revision.mjs",
 		"package": "npm run minor && npm run clear && npm run build",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
-
 		"publish:www": "npm run clear && npm run build && npm run deploy",
 		"publish:cloudflare": "npm run clean && npm run build && npm run deploy",
-
 		"release:patch": "npm run patch && npm run publish:www",
 		"release:minor": "npm run minor && npm run publish:www",
 		"release:major": "npm run major && npm run publish:www",
