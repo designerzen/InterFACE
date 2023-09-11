@@ -37,7 +37,7 @@ import MIDIStream from './midi-stream'
 import MIDICommand from './midi-command'
 import MIDITrack from './midi-track'
 import * as MIDICommands from './midi-commands'
-import {convertMIDINoteNumberToName} from '../notes'
+import {convertMIDINoteNumberToName} from '../tuning/notes'
 
 const TIME_CODE_BASED = "time-code-based" 
 const METRIC_TIME = "metrical"
@@ -86,7 +86,7 @@ const decodeHeader = ( stream, options={} ) =>
 	
 	if (headerType !== 'MThd' && headerType !== 'MTrk' || headerChunk.length !== 6)
 	{
-		throw ".mid file could not be read - header chunk 'MThd'/'MTrk' was not found"
+		throw `.mid file could not be read - header chunk ${headerType} is not of type 'MThd'/'MTrk'.`
 	}
 
 	const headerStream = new MIDIStream(headerChunk.data)
@@ -151,6 +151,10 @@ const decodeTracks = ( track, stream ) =>
 			//tracks[i].push(event);
 			track.addEvent(i,event)
 		}
+
+		// Now re-loop through all events and all 
+
+		console.error("YO!", track )
 	}
 	return track
 }
@@ -169,6 +173,7 @@ const convertEventToCommand = (stream) =>
 	event.deltaTime = time
 
 	const isSystemEvent = (eventTypeByte & 0xf0) === 0xf0
+	
 	return isSystemEvent ? 
 		decodeSystemEvent( stream, event, eventTypeByte) :
 		decodeChannelEvent( stream, event, eventTypeByte)
@@ -208,6 +213,7 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 
 	switch (eventType)
 	{
+		// NOTE OFF
 		case 0x08:
 			event.subtype = MIDICommands.COMMAND_NOTE_OFF
 			//'noteOff';
@@ -217,18 +223,22 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 			//event.raw += `"subtype":${event.subtype},"noteNumber":${firstParameter}`
 			return event
 
+		// NOTE ON
 		case 0x09:
 			event.noteNumber = firstParameter
 			event.noteName = convertMIDINoteNumberToName(firstParameter)
 			event.velocity = stream.readInt8()
+			
 			if (event.velocity === 0)
 			{
+				// SURPRISE! Disguised note off!
 				event.subtype = MIDICommands.COMMAND_NOTE_OFF
 			} else {
 				event.subtype = MIDICommands.COMMAND_NOTE_ON;//'noteOn';
 			}
 			return event
 
+		// AFTERTOUCH
 		case 0x0a:
 			event.subtype = MIDICommands.COMMAND_NOTE_AFTER_TOUCH;//'noteAftertouch';
 			event.noteNumber = firstParameter
@@ -242,16 +252,19 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 			event.value = stream.readInt8()
 			return event
 
+		// PROGRAM CHANGE
 		case 0x0c:
 			event.subtype = MIDICommands.COMMAND_PROGRAM_CHANGE;//'programChange';
 			event.programNumber = firstParameter
 			return event
 
+		// AFTER TOUCH
 		case 0x0d:
 			event.subtype = MIDICommands.COMMAND_CHANNEL_AFTER_TOUCH;//'channelAftertouch';
 			event.amount = firstParameter
 			return event
 
+		// PITCH BEND
 		case 0x0e:
 			event.subtype = MIDICommands.COMMAND_PITCH_BEND
 			event.value = firstParameter + (stream.readInt8() << 7)
@@ -275,7 +288,7 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
  * @param {MIDIStream} stream 
  * @param {MIDICommand} event 
  * @param {number} eventTypeByte 
- * @returns MIDICommand
+ * @returns {MIDICommand}
  */
 const decodeSystemEvent = ( stream, event, eventTypeByte ) =>
 {

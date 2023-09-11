@@ -1,26 +1,35 @@
-export default class MIDICommand
+import AudioCommand from "../audio-command"
+
+/**
+ * A single musical command.
+ * This can be used to send data to any part of the 
+ * musical app as it extends the AudioCommand
+ */
+
+export default class MIDICommand extends AudioCommand
 {
-	// Uint8Array
-	raw
-
-	time = 0
-	timeCode = 0
-
 	deltaTime
 	frameRate
 	channel
 
-	type
-	subtype
-	text
-	data
+	// type
+	// subtype
+	// text
+	// data
 
+	// timing
 	hour
 	min
 	sec
 	frame
 	subframe
 	microsecondsPerBeat
+
+	// UNOFFICAl: added by our midi decoder
+	// this is a ratio of this position / track-duration
+	// useful for time-stretching the MIDI track to our own 
+	// rate 
+	percent
 
 	key
 	scale
@@ -30,19 +39,16 @@ export default class MIDICommand
 	thirtyseconds
 
 	amount
-	noteNumber
-	// not an official MIDI spec but we use it in our app
-	noteName
-	velocity
 
-	// pitch value from MIDI is 0 -> 16383
-	value
+	// UNOFFICAl: not an official MIDI spec but we use it in our app
+	noteName
 
 	controllerType
 	programNumber
 	sequenceNumber
 
 	constructor(){
+		super()
 	}
 
 	toString()
@@ -52,5 +58,40 @@ export default class MIDICommand
 		if (this.noteNumber){ output += ` Note:${this.noteNumber} -> ${this.noteName}` }
 		if (this.velocity){ output += ` Velocity:${this.velocity}` }
 		return output + '\n'
+	}
+
+	toJSON()
+	{
+		const output = {}
+		for (const a in this)
+		{
+			// console.log(a, this)
+			// || this.hasOw 
+			if( !this[a] ) 
+			{
+				continue
+			}
+
+			switch (a)
+			{
+				case "next":
+				case "previous":
+					break
+
+				default:
+					output[a] = this[a]
+			}
+			
+		}
+		return output
+	}
+	
+	clone(){
+		const copy = new MIDICommand()
+		for (const i in this)
+		{
+			copy[i] = this[i]
+		}
+		return copy
 	}
 }
