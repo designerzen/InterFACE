@@ -1,13 +1,17 @@
+import 'audioworklet-polyfill'
+
 // import {midiLikeEvents} from './timing/rhythm'
 import { loadState, getState, setState, refreshState } from './state'
 
 // TODO :lazy load
 import { say, hasSpeech} from './audio/speech'
-import { record } from './audio/recorder'
-import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/video'
+
+import { recordAudio } from './audio/record/record.audio'
+
+import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video'
+
 
 import { 
-	registerAudioWorklets,
 	getRecordableOutputNode,
 	active, playing, 
 	setupAudio,	audioContext, setReverb,
@@ -15,10 +19,10 @@ import {
 	bufferLength, dataArray, 
 	getVolume, setVolume } from './audio/audio'
 
-import { getRandomInstrument, createInstruments, loadInstrumentDataPack, getFolderNameForInstrument } from './audio/instruments'
+import { getRandomInstrument, createInstruments, getFolderNameForInstrument } from './audio/sound-font-instruments'
 import { createDrumkit } from './audio/synthesizers'
 import { setupMIDI } from './audio/midi/midi-out'
-import { createWaveform } from './audio/waveform'
+import { createWaveform } from './dom/waveform'
 // FIXME: 
 import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file'
 // import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
@@ -68,21 +72,18 @@ import { appendPhotographElement } from './dom/photographs'
 import { appendAudioElement} from './dom/audio-element'
 import { connectDropZone } from './dom/drop-zone'
 import interact from './inactivity'
-
 import { 
-	drawElement,
-	updateCanvasSize, copyCanvasToClipboard, 
-	overdraw, clear, canvas, canvasContext
+	copyCanvasToClipboard, canvas
 } from './visual/canvas'
 
 import MusicalKeyboard from './visual/2d.keyboard'
+// import Stave from './visual/2d.stave'
 
-import { drawMousePressure } from './dom/mouse-pressure'
 import { setupImage } from './visual/image'
 import { setNodeCount } from './visual/2d'
-import { drawWaves, drawBars } from './visual/spectrograms'
 import { drawQuantise, Quanitiser } from './visual/quantise'
-// import Stave from './visual/2d.stave'
+
+import { drawMousePressure } from './dom/mouse-pressure'
 
 import { getLocationSettings, getShareLink, addToHistory } from './location-handler'
 
@@ -176,7 +177,7 @@ export const createInterface = (
 	let ui = loadState( defaultOptions, main )
 
 	// Record stuff
-	const { getRecordedDuration, isRecordingAvailable, isRecording, startRecording, stopRecording, encodeRecording, downloadRecording } = record()
+	const { getRecordedDuration, isRecordingAvailable, isRecording, startRecording, stopRecording, encodeRecording, downloadRecording } = recordAudio()
 
 	// collection of persons
 	const people = []
@@ -416,6 +417,10 @@ export const createInterface = (
 		// FIXME: Look also in the midiPerformance for the first instrument
 		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || getRandomInstrument() )
 		//console.error("Person created", {instrument}, {person})
+
+
+		// there can be many instruments
+
 
 		// the instrument has changed / loaded so show some feedback
 		person.button.addEventListener( EVENT_INSTRUMENT_CHANGED, ({detail}) => {
@@ -1033,7 +1038,7 @@ export const createInterface = (
 	 * @param {Person} person 
 	 * @returns {Object} of metadata
 	 */
-	const playPersonAudio = ( person ) => {
+	const playPersonAudio = async ( person ) => {
 		
 		// yaw, pitch, lipPercentage, eyeDirection
 		const stuff = person.sing()
@@ -1109,10 +1114,11 @@ export const createInterface = (
 		
 		// console.log("Person:sing", { stuff,noteName,note}, person.instruments )
 
+		// SONIFICATION
 		// Make the Person SING!
-		person.instruments.forEach( instrument => {
+		person.instruments.forEach( async (instrument) => {
 
-			//console.log("Attempting to sing",instrument.type, person.state)
+			// console.log("Attempting to sing",instrument.type, person.state)
 			
 			// if (instrument.type !== "oscillator"){
 			// if (instrument.type !== "waveguide"){
@@ -1144,8 +1150,8 @@ export const createInterface = (
 					}
 					const latest = instrument.noteOn( noteNumber, noteVelocity )
 					
-					//console.log("Attempting to sing",instrument.type, person.state)
-					//console.log("Person", p, person.state, person, {instrument, noteNumber, noteVelocity} )
+					//console.log("Attempting to sing", instrument.name, person.state, {instrument,latest, person})
+					// console.log("Person", person, person.state, {stuff, noteNumber, noteVelocity} )
 					break
 
 				case STATE_INSTRUMENT_DECAY:
@@ -1158,10 +1164,11 @@ export const createInterface = (
 				case STATE_INSTRUMENT_SILENT:
 				default:
 					instrument.noteOff( noteNumber )
-					//console.log("Attempting to mute",instrument.type, person.state)
+					console.log("Attempting to mute",instrument.type, person.state)
 			
 			}
 		})
+
 
 		if (ui.showPiano)
 		{
@@ -1502,7 +1509,7 @@ export const createInterface = (
 
 			// audio worklet tests!
 			// NB. run only once per app to load  audio
-			await registerAudioWorklets( audioContext )
+			//await registerAudioWorklets( audioContext )
 			
 
 			// WaveGuideInstrument
@@ -1527,9 +1534,9 @@ export const createInterface = (
 			const instrumentDictionary = createInstruments()
 			// console.error({instrumentDictionary})
 
-			// load a specific instrumentPack?
-			await loadInstrumentDataPack()
-			//console.log("Initiating audio", {newVolume,savedVolume, audio})
+			// // load a specific instrumentPack?
+			// await loadInstrumentDataPack()
+			// //console.log("Initiating audio", {newVolume,savedVolume, audio})
 			
 			// if (instrument)
 			// {
@@ -1544,8 +1551,8 @@ export const createInterface = (
 			// instrument = await loadInstrument( randomInstrument() )
 			// const instrumentName = await loadRandomInstrument()
 			// // now you can play any of the objects keys with
-			// // playTrack(instrument[ INSTRUMENT_NAMES[0] ], 0)
-			// //playTrack(instrument.A0, 0)
+			// // playTrack( audioContext,  instrument[ INSTRUMENT_NAMES[0] ], 0)
+			// //playTrack( audioContext, instrument.A0, 0)
 			// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
 			
 			kit = createDrumkit()
@@ -1601,14 +1608,20 @@ export const createInterface = (
 		// set the canvas to the size of the video / image
 		// display = new Display( webGLElement, inputElement.width, inputElement.height )
 
-		// Allows mulltiple displays to be simultaneously powered!
-		const DisplayComposite = await loadDisplay( DISPLAY_COMPOSITE )
-		display = new DisplayComposite( canvasElement, inputElement.width, inputElement.height  )
-		
+
+
+
+	
 		// Media Videion ML Model and Canvas 2D
 		const DisplayMediaVision2D = await loadDisplay( DISPLAY_MEDIA_VISION_2D )
 		const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, inputElement.width, inputElement.height )
-		display.addDisplay(displayMediaVision2D)
+		
+		// Allows mulltiple displays to be simultaneously powered!
+		// const DisplayComposite = await loadDisplay( DISPLAY_COMPOSITE )
+		// display = new DisplayComposite( canvasElement, inputElement.width, inputElement.height )
+		// display.addDisplay(displayMediaVision2D)
+
+		display = displayMediaVision2D
 
 		// NB. Make sure you set this to a WEB_GL context!
 		// const DisplayWebGL3D = await loadDisplay( DISPLAY_WEB_GL_3D )
@@ -1621,19 +1634,24 @@ export const createInterface = (
 		// const displayLookingGlass3D = new DisplayLookingGlass3D( webGLElement, inputElement.width, inputElement.height )
 		// display.addDisplay(displayLookingGlass3D)
 
-
 		if (ui.showPiano)
 		{
 			// this draws a 2d keyboard on screen at the specified position and dimensions
 			musicalKeyboard = new MusicalKeyboard( 500, 120, 8 )
 		}
 		
-		// Create a new sample player to handle sound playback
+		// 
+
+		// Create a new sample player to handle sample sound playback external
+		// to each Person. This is used for example to play orchestrated background MIDI
 		samplePlayer = new SampleInstrument(audioContext, audio, {})
 		
 		// Add some scales on the side
 		// FIXME: Do this per PERSON
-		quanitiser = new Quanitiser()
+		// FIRMEL canvasContext does not align
+		const quantiserCanvas = document.createElement("canvas")
+		const quantiserCanvasContext = quantiserCanvas.getContext("2d")
+		quanitiser = new Quanitiser( quantiserCanvasContext )
 
 		// this just adds some visual onscreen tooltips to the buttons specified
 		addToolTips( controlPanel)
@@ -1746,7 +1764,7 @@ export const createInterface = (
 					// show quantise
 					// fetch notes played from user?
 					const barColour = `hsl (${getPerson(0).hue },50%,50%)`
-					//drawQuantise( beatJustPlayed, getBar(), getBars(), barColour)
+					//drawQuantise( canvasContext, beatJustPlayed, getBar(), getBars(), barColour)
 					quanitiser.draw( beatJustPlayed, getBar(), getBars(), barColour )
 				}
 				
@@ -1756,7 +1774,11 @@ export const createInterface = (
 					// drawWaves( dataArray, bufferLength )
 					
 					updateByteFrequencyData()
-					drawBars( dataArray, bufferLength )
+					display.drawBars( dataArray, bufferLength )
+					// display.drawWaves( dataArray, bufferLength )
+
+					// global VU
+					// drawBars( canvasContext, dataArray, bufferLength )
 
 					if (recorder)
 					{
@@ -1822,7 +1844,7 @@ export const createInterface = (
 
 							if (ui.text)
 							{
-								person.drawText( prediction ) 
+								person.drawText( prediction, display ) 
 							}
 						}
 						
@@ -1902,7 +1924,7 @@ export const createInterface = (
 					musicalKeyboard.redraw()
 					// this is updated previously by the playPersonAudio
 					// method that set's the general state of the keyboard
-					drawElement( canvasContext, musicalKeyboard.canvas, 40, 40, false )
+					display.drawElement( musicalKeyboard.canvas, 40, 40, false )
 				}
 
 				
@@ -1925,6 +1947,7 @@ export const createInterface = (
 					barsElapsed, timePassed, 
 					elapsed, expected, drift, level, intervals, lag} = values
 				
+
 				if (recordRequested)
 				{
 					recordRequested = false
@@ -1994,6 +2017,7 @@ export const createInterface = (
 					{
 						const person = getPerson(i)
 						const stuff = playPersonAudio( person )
+
 		
 						// use person 1's eyes to control other stuff too?
 						// in this case the direction of the pan in disco mode
@@ -2056,12 +2080,12 @@ export const createInterface = (
 						switch(command.type)
 						{
 							case COMMAND_NOTE_ON:
-								// playTrack( note, 0, audioContext )
+								// playTrack( audioContext, note, 0 )
 								//samplePlayer.noteOn()
 								break
 
 							case COMMAND_NOTE_OFF:
-								// playTrack( note, 0, audioContext )
+								// playTrack( audioContext, note, 0, )
 								//samplePlayer.noteOff()
 								break
 						}
@@ -2074,7 +2098,6 @@ export const createInterface = (
 				beatJustPlayed = true
 
 			}, convertBPMToPeriod( getState('bpm') ) )
-	
 		}
 		
 		// start()
@@ -2400,7 +2423,6 @@ export const createInterface = (
 		
 		// Load tf model and wait
 		// this gets returned then used an the update method
-		// canvasContext || 
 		const elementToAnalyse = inputElement
 
 		return loadModel(elementToAnalyse, settings, progressCallback)

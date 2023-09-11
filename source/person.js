@@ -34,24 +34,18 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 // import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
 
 import WAM2Instrument from './audio/instruments/instrument.wam2'
-import SampleInstrument from './audio/instruments/instrument.sample'
+// import SampleInstrument from './audio/instruments/instrument.sample'
+import SoundFontInstrument from './audio/instruments/instrument.soundfount'
 import MIDIInstrument from './audio/instruments/instrument.midi'
+
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 // import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
 // import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
 
-import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/notes'
-import { instrumentFolders } from './audio/instruments'
+import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/tuning/notes'
+import { getGeneralMIDIInstrumentFolders } from './audio/sound-font-instruments'
 import { hidePersonalControlPanel, setupInstrumentForm, showPersonalControlPanel } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
-
-import { 
-	drawNodes,
-	drawPart, drawPoints, 
-	drawFaceMesh,  drawBoundingBox, 
-	drawText, drawParagraph, 
-	drawInstrument
-} from './visual/2d'
 
 import { drawMousePressure } from './dom/mouse-pressure'
 import { 
@@ -59,6 +53,7 @@ import {
 	DEFAULT_PERSON_OPTIONS,
 	DEFAULT_VOICE_OPTIONS
 } from './settings'
+import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -233,7 +228,7 @@ export default class Person{
 	 * @returns {Number} Instrument index
 	 */
 	get instrumentIndex(){
-		return this.instrumentPointer // instrumentFolders.indexOf(this.instrumentName)
+		return this.instrumentPointer // getGeneralMIDIInstrumentFolders().indexOf(this.instrumentName)
 	}
 
 	/**
@@ -579,16 +574,25 @@ export default class Person{
 		{
 			const boundingBoxWidth = boundingBox.width || boundingBox.xMax - boundingBox.xMin
 			const boundingBoxHeight = boundingBox.height || boundingBox.yMax - boundingBox.yMin
+			console.error("Display", display.width, display.height, {boundingBoxWidth,boundingBoxHeight,boundingBox} )
 			// TODO: Profile which is faster...
 			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
 			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
 			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
 			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-			this.button.setAttribute( "style", `--${this.name}-x:${boundingBox.xMin};--${this.name}-y:${boundingBox.yMin};--${this.name}-w:${boundingBoxWidth};--${this.name}-h:${boundingBoxHeight};` );
+			this.button.setAttribute( "style", `--${this.name}-x:${boundingBox.xMax};--${this.name}-y:${boundingBox.yMin};--${this.name}-w:${boundingBoxWidth};--${this.name}-h:${boundingBoxHeight};` );
 
 			// ?
 			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
 		}
+
+		const xMin = display.width - (boundingBox.xMin * display.width)
+		const yMin = boundingBox.yMin * display.height
+
+		const xMax = display.width - (boundingBox.xMax * display.width)
+		const yMax = boundingBox.yMax * display.height
+
+		// console.log({xMin, xMax, yMin, yMax })
 
 		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
@@ -607,25 +611,25 @@ export default class Person{
 				if (this.isMouseHeld)
 				{	
 					// user is holding mouse down on user...
-					drawInstrument(boundingBox, this.instrumentTitle, 'Select')			
+					display.drawInstrument( xMin, yMin, this.context, this.instrumentTitle, 'Select')			
 					
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
-					drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, [`Press me`], '14px' )
+					display.drawParagraph( xMax, yMax + 40, [`Press me`], '14px' )
 			
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
 				}else{
 
-					drawInstrument(boundingBox, this.instrumentTitle, `${100-percentageRemaining}`)			
+					display.drawInstrument( xMin, yMin , this.instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
-					drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, [`Hold me to see all instruments`], '14px' )		
+					display.drawParagraph( xMax, yMax + 40, [`Hold me to see all instruments`], '14px' )		
 				}
 
 			}else{
 				
 				// No mouse held
-				drawInstrument(boundingBox, this.instrumentTitle, 'Hold to choose instrument')
+				display.drawInstrument( xMin, yMin , this.instrumentTitle, 'Hold to choose instrument')
 				//drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
 				/*	
 				const offsetX = topLeft[0]
@@ -652,7 +656,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			drawInstrument(boundingBox, this.instrumentTitle, 'loading...')
+			display.drawInstrument(xMin, yMin , this.instrumentTitle, 'loading...')
 
 		}else{
 
@@ -662,11 +666,12 @@ export default class Person{
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			
 			// eye:${prediction.eyeDirection}
-			drawInstrument(boundingBox, this.instrumentTitle, `${extra} ${suffix}` )
+			display.drawInstrument(xMin, yMin, this.instrumentTitle, `${extra} ${suffix}` )
 			
 			if (this.debug )
 			{
 				const paragraphs = [
+					`Hue:${this.defaultHue}`, 
 					// `Pitch:${(prediction.pitch||0).toFixed(3)}`, 
 					// `Roll:${(prediction.roll||0).toFixed(3)}`, 
 					// `Yaw:${(prediction.yaw||0).toFixed(3)}`, 
@@ -679,7 +684,7 @@ export default class Person{
 					`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
 					`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
 					
-					`mouthOpen:${prediction.mouthOpen}`, 
+					`mouthOpen:${prediction.mouthOpen} Singing:${this.singing}`, 
 					`mouthRange:${(prediction.mouthRange||0).toFixed(3)}`, 
 					`mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
 					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
@@ -689,10 +694,12 @@ export default class Person{
 					
 					// `eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
 					// `dims:${(prediction.mouthRatio||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
-					`facing ${prediction.lookingRight ? 'left' : 'right'}`
+					`facing ${prediction.lookingRight ? 'left' : 'right'}`,
+
+					`note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`
 				]
 
-				drawParagraph(boundingBox.xMax, boundingBox.yMin + 40, paragraphs, '14px' )
+				display.drawParagraph( xMax, yMin + 40, paragraphs, '14px' )
 				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
 			}
 		}
@@ -704,10 +711,10 @@ export default class Person{
 	 * SILENT ATTACK SUSTAIN PITCH_BEND SUSTAIN DECAY RELEASE
 	 * This is responsible for converting the Face Model into 
 	 * a musical model that we than pass to our Audio Factory
+	 * Triggered on every metronome strike
 	 */
 	sing(){
-
-		// nothing to play
+		// nothing to play?
 		if ( !this.data )
 		{
 			return DEFAULT_VOICE_OPTIONS
@@ -724,7 +731,7 @@ export default class Person{
 		const options = this.options
 		
 		// do some checks on data to see if an event
-		// should be triggered such as eye left / right
+		// should be triggered via eye left / right
 
 		// we want to ignore the 0-5px range too as inconclusive!
 		const lipPercentage = prediction.mouthRatio
@@ -989,9 +996,9 @@ export default class Person{
 	 * @param {Function} progressCallback - method to invoke on loading progress
 	 * @returns instrument
 	 */
-	async loadSamples(method="loadRandomInstrument",progressCallback=null){
+	async loadPreset(method="loadRandomInstrument",progressCallback=null){
 		this.instrumentLoadedAt = this.now
-		this.instrument = await this.samplePlayer[method]( ({progress,instrumentName}) => {
+		this.instrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
@@ -1006,9 +1013,8 @@ export default class Person{
 	 * Provide this Person with a random instrument
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	
 	async loadRandomInstrument(progressCallback){
-		return this.loadSamples("loadRandomInstrument", progressCallback)
+		return this.loadPreset("loadRandomPreset", progressCallback)
 	}
 
 	/**
@@ -1016,7 +1022,7 @@ export default class Person{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadPreviousInstrument(progressCallback){
-		return this.loadSamples("loadPreviousInstrument", progressCallback)
+		return this.loadPreset("loadPreviousPreset", progressCallback)
 	}
 
 	/**
@@ -1024,7 +1030,7 @@ export default class Person{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadNextInstrument(progressCallback){
-		return this.loadSamples("loadNextInstrument", progressCallback)
+		return this.loadPreset("loadNextPreset", progressCallback)
 	}
 
 	/**
@@ -1034,7 +1040,7 @@ export default class Person{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async reloadInstrument(progressCallback){
-		return this.loadSamples("reloadInstrument", progressCallback)
+		return this.loadPreset("reloadInstrument", progressCallback)
 	}
 	
 	/**
@@ -1045,23 +1051,35 @@ export default class Person{
 	 */
 	async loadInstrument(instrumentName, progressCallback){
 
-		const generalMIDIInstrumentId = instrumentFolders.indexOf(instrumentName)
-		if ( generalMIDIInstrumentId  < 0 )
-		{
-			throw Error("Person.loadInstrument("+instrumentName+") failed")
-		}
-		this.instrumentPointer = generalMIDIInstrumentId
+		const presets = this.samplePlayer.instrumentNames
+
+		// always remove the suffixes?
+		const instrumentNameRefined = instrumentName //.replace("-mp3", "")
+
+		// console.log("Loading instrument",instrumentName, presets)
+
+		// ensure that the instrument is accissilbe
+		//const generalMIDIInstrumentId = presets.indexOf(instrumentNameRefined)
+		// if ( generalMIDIInstrumentId  < 0 )
+		// {
+		// 	throw Error("Person.loadInstrument("+instrumentName+") failed")
+		// }
 
 		const instrumentPack = this.options.instrumentPack
-		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName + '>' + instrumentPack + +" via sampleplayer", {instrumentFolders})
-		this.instrument = await this.samplePlayer.loadInstrument(instrumentName, instrumentPack, progress => {
+		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName + '>' + instrumentPack + +" via sampleplayer")
+		
+		this.instrument = await this.samplePlayer.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentNameRefined })
 		} )
-		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName })
+
+		// just an index as to which out of all instrument data is this one
+		this.instrumentPointer = this.samplePlayer.instrumentIndex
+
+		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentNameRefined })
 		
 		// you have to dispatch the event from an element!
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName })
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentNameRefined })
 		return instrumentName
 	}
 
@@ -1112,7 +1130,7 @@ export default class Person{
 
 		// TODO: 
 		// create a sample player, oscillator add all other instruments
-		this.samplePlayer = this.setInstrument( this.addInstrument( new SampleInstrument(audioContext, this.gainNode, {}) ) )
+		this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, {}) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
@@ -1123,6 +1141,7 @@ export default class Person{
 	 * @param {Instrument} instrument 
 	 */
 	addInstrument( instrument ){
+
 		this.instruments.push( instrument )
 		// FIXME: Also connect for changes to instrument
 		return instrument
@@ -1132,8 +1151,20 @@ export default class Person{
 	 * Add instrument to pool and set as master
 	 * @param {Instrument} instrument 
 	 */
-	setInstrument( instrument ){
+	setMainInstrument( instrument ){
+
+		// disconnect any existing
+		if (this.activeInstrument)
+		{
+			this.activeInstrument.audioNode.disconnect(this.gainNode)
+		}
+
+		// directly to fader
+		instrument.audioNode.connect(this.gainNode)
+		
+		// save for later reference
 		this.activeInstrument = instrument
+
 		return instrument
 	}
 
@@ -1277,14 +1308,22 @@ export default class Person{
 	async setupForm(){
 
 		// TODO: Use ACTIVE instrument - don't assume it's samplePlayer
-		const instruments = await this.activeInstrument.getInstruments()
-		
+		// const instruments = await this.activeInstrument.getPresets()
+		let instruments = await this.activeInstrument.getPresets()
+	
+		// FIXME: HACK!
+		if (this.activeInstrument.type === "sample")
+		{
+			instruments = GENERAL_MIDI_INSTRUMENT_LIST
+		}
+
+
 		// hide existing
 		const allInstruments = this.controls.querySelectorAll(".instrument")
 		allInstruments.forEach( instrument => instrument.classList.add("hide") )
 
 		// replace 
-		const existing = this.controls.querySelector(`.${this.activeInstrument.name}`)
+		const existing = this.controls.querySelector(`.${this.activeInstrument.id}`)
 		const instrumentPanel = existing ? existing : document.createElement("div")
 		instrumentPanel.innerHTML = setupInstrumentForm( instruments, this.samplePlayer.instrumentPack )
 		instrumentPanel.className = `${this.activeInstrument.name} instrument`
