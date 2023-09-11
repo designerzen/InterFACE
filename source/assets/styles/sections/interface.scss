@@ -109,6 +109,13 @@
 	}
 }
 
+.interface #back-to-top{
+	position: absolute;
+	bottom:0;
+	right:0;
+	visibility: hidden;
+}
+
 // during loading we show all in a line
 .interface.loading body{
 	//grid-template-rows: 1fr auto;
@@ -146,6 +153,7 @@
 	#load-progress{
 		display: none;
 	}
+
 }
 .interface #app{
 	
