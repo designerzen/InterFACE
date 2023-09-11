@@ -2,7 +2,7 @@
 import { RedFormat } from "three"
 import { clamp, TAU, easeInQuad } from "../maths/maths"
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
-import { canvasContext, getCanvasDimensions } from './canvas'
+import { getCanvasDimensions } from './canvas'
 
 const { width, height} = getCanvasDimensions()
 
@@ -23,7 +23,7 @@ const { width, height} = getCanvasDimensions()
  * @param {Number} positionX - x position of the gadget
  * @param {Number} positionY - y position of the gadget
  */
-export const drawQuantise = (hasPlayed, bar=-1, totalBars=1,noteColour=0xff0000, stroke = 30, radius = 4, positionX=0, positionY=0) => {
+export const drawQuantise = (canvasContext, hasPlayed, bar=-1, totalBars=1,noteColour=0xff0000, stroke = 30, radius = 4, positionX=0, positionY=0) => {
 
 	// canvasContext.strokeWidth = stroke//+"px"
 	// canvasContext.font = "24px Oxanium"
@@ -73,9 +73,10 @@ export const drawQuantise = (hasPlayed, bar=-1, totalBars=1,noteColour=0xff0000,
 export class Quanitiser{
 
 	history = []
+	canvasContext
 
-	constructor(){
-
+	constructor(canvasContext){
+		this.canvasContext = canvasContext
 	}
 
 	draw(hasPlayed, bar=-1, totalBars=1,noteColour=0xff0000, stroke = 30, radius = 4, positionX=0, positionY=0){
@@ -104,15 +105,15 @@ export class Quanitiser{
 			const size = scaleFactor * scale
 
 			//PALETTE.cream PALETTE.brown
-			canvasContext.fillStyle = active ?  colour : noteColour
-			canvasContext.strokeStyle = active ? noteColour : finished ? this.history[i] || PALETTE.cream : PALETTE.orange //  : noteColour
-			canvasContext.strokeWidth = stroke
-			canvasContext.lineWidth = size
-			canvasContext.beginPath()
-			canvasContext.arc( x, y, radius, 0, TAU )
-			canvasContext.fill()
-			canvasContext.stroke()
-			canvasContext.closePath()
+			this.canvasContext.fillStyle = active ?  colour : noteColour
+			this.canvasContext.strokeStyle = active ? noteColour : finished ? this.history[i] || PALETTE.cream : PALETTE.orange //  : noteColour
+			this.canvasContext.strokeWidth = stroke
+			this.canvasContext.lineWidth = size
+			this.canvasContext.beginPath()
+			this.canvasContext.arc( x, y, radius, 0, TAU )
+			this.canvasContext.fill()
+			this.canvasContext.stroke()
+			this.canvasContext.closePath()
 
 			if (active)
 			{
@@ -120,6 +121,6 @@ export class Quanitiser{
 			}
 		}
 
-		canvasContext.lineWidth = 1
+		this.canvasContext.lineWidth = 1
 	}
 }

@@ -2,12 +2,12 @@ import { now } from '../timing/timing.js'
 import { getCanvasDimensions } from '../visual/canvas'
 import { takePhotograph } from '../visual/2d'
 
-export const createPhotographElement = () => {
+export const createPhotographElement = (canvas) => {
 	const unique = Math.ceil( now() * 10000000 )
 	const id = `photograph-${unique}`
-	const dimensions = getCanvasDimensions()
+	const dimensions = getCanvasDimensions(canvas)
 	const img = new Image()
-	img.src = takePhotograph()
+	img.src = takePhotograph(canvas)
 	img.alt = "Photograph taken " + Date.now().toString()
 	img.width = dimensions.width
 	img.height = dimensions.height
