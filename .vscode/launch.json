@@ -1,0 +1,13 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+	  {
+		"type": "chrome",
+		"runtimeExecutable": "canary",
+		"request": "launch",
+		"name": "PhotoSYNTH",
+		"url": "http://localhost:909",
+		"sourceMaps": true
+	  }
+	]
+  }
