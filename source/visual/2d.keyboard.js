@@ -1,5 +1,5 @@
 import { RGBA_ASTC_4x4_Format } from 'three'
-import {drawRoundedRect} from './canvas'
+import {drawRoundedRect} from './2d'
 
 const whiteKeys = 7
 const blackKeys = 5
