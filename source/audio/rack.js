@@ -1,4 +1,6 @@
-
+/**
+ * Linked list of AudioNodes
+ */
 let firstNode = null
 let finalNode = null
 let currentChain = null
@@ -71,6 +73,9 @@ export const removeLink = item => {
 
 }
 
+/**
+ * linear disconnects
+ */
 export const unchain = () => {
 
 	// check to see there is a chain and a context...
