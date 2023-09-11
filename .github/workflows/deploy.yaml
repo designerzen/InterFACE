@@ -37,8 +37,8 @@ jobs:
         - name: Build the app into dist
           run: npm run build --if-present
 
-        - name: List the current folder contents...
-          run: ls ./
+        # - name: List the current folder contents...
+        #   run: ls ./
 
         - name: List the build folder contents...
           run: ls ./dist
@@ -50,15 +50,23 @@ jobs:
             path: ./dist
 
     deploy:
+        # Deploy to the github-pages environment
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
 
+        # Specify runner + deployment step
         runs-on: ubuntu-latest
-        
+
+        # Add a dependency to the build job
         needs: build
+
+        # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+        permissions:
+            pages: write      # to deploy to Pages
+            id-token: write   # to verify the deployment originates from an appropriate source
+    
         steps:
-            - name: Deploy to GitHub Pages & interface.place
+            - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v2
-			  
+              uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for
