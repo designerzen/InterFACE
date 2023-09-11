@@ -25,7 +25,7 @@ import { base64DecToArr } from '../../utils'
 /**
  * Convert an array of integers into a string of bytes
  * NB. & 255 is not neccessary
- * @param {*} arrayBuffer 
+ * @param {Array} arrayBuffer 
  * @returns {String} String Bytes
  */
 const arrayBufferToBytes = arrayBuffer => Array.prototype.map.call( arrayBuffer, ch => String.fromCharCode(ch) ).join('')
@@ -38,7 +38,7 @@ const arrayBufferToBytes = arrayBuffer => Array.prototype.map.call( arrayBuffer,
  */
 const asciiToBinary = ( ascii ) => {	
 	return (typeof window == "object" && typeof document == "object" && window.document === document) ?
-		window.atob : 
+		atob : 
 		arrayBufferToBytes( base64DecToArr(ascii) )
 }
 
@@ -98,7 +98,7 @@ export const loadMIDIFromFile = (url, options={}, progressCallback=null) => new 
 			const arrayBuffer = fetch.response
 			if (arrayBuffer) {
 			  const byteArray = new Uint8Array(arrayBuffer)
-			  const midi =loadMIDIFromArray(byteArray, options, progressCallback )
+			  const midi = loadMIDIFromArray(byteArray, options, progressCallback )
 			  resolve(midi)
 			}
 		}
@@ -110,11 +110,11 @@ export const loadMIDIFromFile = (url, options={}, progressCallback=null) => new 
 /**
  * Open a file from the client's local machine and load it
  * into memory
- * @param {*} file 
- * @param {*} progressCallback 
+ * @param {File} file 
+ * @param {Function} progressCallback 
  * @returns 
  */
-const loadRawFile = (file, progressCallback, base64=true) => new Promise( (resolve,reject) => {
+export const loadRawFile = (file, progressCallback, base64=true) => new Promise( (resolve,reject) => {
 	const fileReader = new FileReader()
 	fileReader.onload = event => resolve(fileReader.result)
 	fileReader.onprogress = event => progressCallback && progressCallback(event)
@@ -131,7 +131,7 @@ const loadRawFile = (file, progressCallback, base64=true) => new Promise( (resol
  * @param {string} urlOrBlob - URL string or base64 encoded string
  * @returns {MIDITrack} MIDIStream instance
  */
-export const loadMIDIFile = ( urlOrBlob, options={}, progressCallback=null ) => new Promise( async (resolve,reject) => {
+export const fetchMIDIFileData = ( urlOrBlob, options={}, progressCallback=null ) => new Promise( async (resolve,reject) => {
 	const isString = typeof urlOrBlob === "string"
 	let midiFile
 
@@ -162,10 +162,10 @@ export const loadMIDIFile = ( urlOrBlob, options={}, progressCallback=null ) => 
  * @param {Function} useBase64 - false 
  * @returns {MIDITrack}
  */
-export const loadMIDIFileThroughClient = async (file, options, progressCallback, useBase64=false ) => {
+export const fetchMIDIFileThroughClient = async (file, options, progressCallback, useBase64=false ) => {
 	
 	const rawFile = await loadRawFile( file, progressCallback, useBase64 )
-	const midiTrack = await loadMIDIFile( rawFile, {
+	const midiTrack = await fetchMIDIFileData( rawFile, {
 		...options,
 		trackName:(file.name).split(".mid")[0].replace("_", " ")
 	}, progressCallback )

@@ -1,6 +1,6 @@
 import {
-	loadMIDIFile,
-	loadMIDIFileThroughClient
+	fetchMIDIFileData,
+	fetchMIDIFileThroughClient
 } from './midi-file-load'
 
 // Capture public methods
@@ -11,7 +11,7 @@ self.onmessage = e => {
     switch (data.command)
     {
         case "loadMIDIFile":
-			loadMIDIFile(data.url, data.options).then( midi => {
+			fetchMIDIFileData(data.url, data.options).then( midi => {
 
 				console.error("MIDI:Worker loaded", {url:data.url, midi})
 
@@ -23,7 +23,7 @@ self.onmessage = e => {
             break
 
         case "loadMIDIFileThroughClient":
-			loadMIDIFileThroughClient(data.url, data.options ).then( midi => {
+			fetchMIDIFileThroughClient(data.url, data.options ).then( midi => {
 				console.error("MIDI:Worker loaded", {url:data.url, midi})
 				postMessage({ 
 					event:data.command, 

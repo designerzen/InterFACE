@@ -1,131 +1,33 @@
-import { GENERAL_MIDI_INSTRUMENTS } from './general-midi'
+/**
+ * This is a MIDI Sequence containing all MIDI Commands
+ * and a series of super helpful methhods
+ */
+
+import AudioTrack from '../audio-track'
+import { GENERAL_MIDI_INSTRUMENTS } from './general-midi.constants'
 import MIDICommand from './midi-command'
 import * as MIDICommands from './midi-commands'
 
-export default class MidiTrack
+export default class MidiTrack extends AudioTrack
 {
 	// :MidiHeader
 	header
-
-	// :Array<MIDICommands>
-	tracks = []
-	commands = []
-	instruments = []
-	noteOnCommands = []
-
-	trackName = ""
-	meta = ""
-	copyrightNotice = "Copyright held by respective owners"
-	lyrics = ""
-
-	trackPosition = 0
-	commandPosition = 0
-	duration = 0
-
 	mimeType = "audio/mid"
 
-	get ticksPerBeat(){
-		// return 
-	}
-
-	get tempo(){
-		
-	}
-
-	get timeSignature(){
-		return [4,4]
-	}
-
-	getMatchingCommands( types=[MIDICommands.COMMAND_NOTE_ON], type="channel" )
-	{
-		// check if array or string and if string make array
-		if (typeof types === String)
+	addInstrument(instrumentName){
+		// check to see if the instrument has already been added
+		if (this.instruments.indexOf(instrumentName) === -1)
 		{
-			types = [types]
+			this.instruments.push( instrumentName )	
+			return true
 		}
-		return this.commands.filter( value => {
-			//console.log("getMatchingCommands",value.type === type,value)
-			
-			if (value.type === type)
-			{
-				const typePosition = types.indexOf(value.subtype)
-				//console.log("typePosition > -1", typePosition > -1, types, value.subType)
-				return typePosition > -1
-			}else{
-				//console.log("getMatchingCommands",value.type,value)
-			}
-			
-			return false
-		})
-	}
-
-	getNextNoteCommand(){
-
-		const commands = []
-		let track = this.tracks[++this.trackPosition]
-		while ( track && track.subtype !== MIDICommands.COMMAND_NOTE_ON || track.subtype !== MIDICommands.COMMAND_NOTE_OFF  )
-		{
-			track = this.tracks[++this.trackPosition]
-		}
-
-		while ( track && ( track.subtype === MIDICommands.COMMAND_NOTE_ON || track.subtype === MIDICommands.COMMAND_NOTE_OFF )  )
-		{
-			commands.push(track)
-			track = this.tracks[++this.trackPosition]
-		}
-		
-		return commands
-	}
-
-	getNextNoteOnCommand(){
-
-		const commands = []
-		let track = this.tracks[++this.trackPosition]
-	
-		while ( track && track.subtype === MIDICommands.COMMAND_NOTE_ON )
-		{
-			commands.push(track)
-			track = this.tracks[ ++this.trackPosition ]
-		}
-		
-		return commands
-	}
-
-	getNextCommands(){
-		return this.tracks[ ++this.trackPosition ]
-	}
-
-	getNextNoteOnCommand(){
-		return this.noteOnCommands[ ++this.commandPosition ]
-	}
-
-	getDurationUntilNextCommand(){
-		const r = this.tracks[ this.trackPosition + 1 ]
-		return r ? r.deltaTime : -1
-	}
-
-	/**
-	 * If you want all of the events to also be stretchable
-	 * we can condense an entire track into 1 second and
-	 * move all of the events proportionally so that the 
-	 * timings align with whatever you would like to fit it too
-	 * @param {MIDICommand} command 
-	 */
-	convertTimeToFraction( command ){
-		return command.time / this.duration
-	}
-
-	copyCommand( command ) {
-		const copy = new MIDICommand()
-		for (let i in command)
-		{
-			copy[i] = command[i]
-		}
-		return copy
+		return false
 	}
 
 	constructor( header=null, defaultOptions={} )
 	{
+		super(defaultOptions)
+		
 		if (header) 
 		{
 			this.header = header
@@ -154,9 +56,31 @@ export default class MidiTrack
 		}
 	}
 
+
+	/**
+	 * This will loop through all events and add a new section
+	 * that is a factor of total duration
+	 */
+	addTimePositionPercentage(){
+
+	}
+
 	// A way of adding an event and multiple events to track
 	addEvent( index, midiCommand )
 	{
+		// there are no commands! so add the first and save a pointer to it
+		if (!this.firstCommand)
+		{
+			this.firstCommand = midiCommand
+		}
+
+		if (this.finalCommand)
+		{
+			this.finalCommand.next = midiCommand
+			midiCommand.previous = this.finalCommand
+		}
+		this.finalCommand = midiCommand
+
 		// current previous event
 		const currentFinalCommand = this.commands[this.commands.length - 1]
 		
@@ -196,7 +120,7 @@ export default class MidiTrack
 			{
 				case MIDICommands.COMMAND_PROGRAM_CHANGE:
 					const instrumentName = GENERAL_MIDI_INSTRUMENTS[midiCommand.programNumber]
-					this.instruments.push( instrumentName )
+					this.addInstrument(instrumentName)
 					break
 			}
 
@@ -265,17 +189,13 @@ export default class MidiTrack
 
 	commandToJSON( command )
 	{
-		let output = `${command.time}. MIDI:Input::${command.subtype} Type:${command.type}`
-		if (command.channel){ output += ` [Channel ${command.channel}] ` }
-		if (command.noteNumber){ output += ` Note:${command.noteNumber} -> ${command.noteName}` }
-		if (command.velocity){ output += ` Velocity:${command.velocity}` }
-		return output
+		let output = command
 	}
 
 	// To load save midi tracks in a web friendlier way, we can serialise it to JSON
 	toJSON()
 	{
-		const o = this.commands.map( command => commandToJSON(command) )
+		const o = this.commands.map( command => command.toJSON() )
 		return o // `[${this.tracks.map( track => track.toString() ).join(",")}]`
 	}
 }
