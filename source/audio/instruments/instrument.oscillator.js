@@ -1,7 +1,5 @@
 import Instrument from './instrument'
-import {noteNumberToFrequency, noteNumberToFrequencyFast} from '../notes'
-
-import { registerAudioWorklets } from '../audio'
+import {noteNumberToFrequency} from '../tuning/notes'
 
 const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
 
@@ -27,11 +25,16 @@ const OPTIONS = {
 
 	// Represents an enumerated value describing the meaning of the channels. This interpretation will define how audio up-mixing and down-mixing will happen. The possible values are "speakers" or "discrete". (See AudioNode.channelCountMode for more information including default values.)
 	// channelInterpretation
+
+	slideDuration:8,
+	fadeDuration:18,
 }
+
 
 export default class OscillatorInstrument extends Instrument{
 
 	type = "oscillator"
+	title = "Oscillator Instrument"
 	name = "OscillatorInstrument"
 
 	get volume() {
@@ -42,24 +45,32 @@ export default class OscillatorInstrument extends Instrument{
 		this.gainNode.gain.value = value
 	}
 	
-	constructor( audioContext, destinationNode, shape=OSCILLATOR_TYPES[1] ){
-		super()
+	get audioNode(){
+		return this.gainNode
+	}
+
+	constructor( audioContext, shape=OSCILLATOR_TYPES[1], options={} ){
+
+		super(audioContext, { ...OPTIONS, type:shape, ...options })
 
 		this.gainNode = audioContext.createGain()
-		this.gainNode.gain.value = 0.6 // this.currentVolume
+		this.gainNode.gain.value = 1 // this.currentVolume
 		
-		this.oscillator = new OscillatorNode(audioContext, { ...OPTIONS, type:shape }) 
+		this.envelope = audioContext.createGain()
+		this.envelope.gain.value = 1 
 		
-		const bitCrusher = new AudioWorkletNode(audioContext, 'bit-crusher-processor')
-		bitCrusher.onprocessorerror = () => {
-			console.error('An error from AudioWorkletProcessor.process() was detected.')
-		}
+		this.oscillator = new OscillatorNode( audioContext, this.options ) 
 		
-		this.paramBitDepth = bitCrusher.parameters.get('bitDepth')
-		this.paramReduction = bitCrusher.parameters.get('frequencyReduction')
+		// const bitCrusher = new AudioWorkletNode(audioContext, 'bit-crusher-processor')
+		// bitCrusher.onprocessorerror = () => {
+		// 	console.error('An error from AudioWorkletProcessor.process() was detected.')
+		// }
+		
+		// this.paramBitDepth = bitCrusher.parameters.get('bitDepth')
+		// this.paramReduction = bitCrusher.parameters.get('frequencyReduction')
 	
-		this.paramBitDepth.setValueAtTime(8, 0)
-		this.paramReduction.setValueAtTime(0.3, 0)
+		// this.paramBitDepth.setValueAtTime(8, 0)
+		// this.paramReduction.setValueAtTime(0.3, 0)
 
 		// `frequencyReduction` parameters will be automated and changing over time.
 		// Thus its parameter array will have 128 values.
@@ -67,8 +78,12 @@ export default class OscillatorInstrument extends Instrument{
 		// paramReduction.linearRampToValueAtTime(0.1, 4)
 		// paramReduction.exponentialRampToValueAtTime(0.01, 8)
 
-		this.gainNode.connect(destinationNode)
-		this.oscillator.connect(bitCrusher).connect(this.gainNode)
+		this.oscillator
+			// .connect(bitCrusher)
+			.connect(this.envelope)
+			.connect(this.gainNode)
+
+		// immediately start as always playing in silent
 		this.oscillator.start()
 
 		this.title = shape
@@ -76,19 +91,24 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	async noteOn( noteNumber, velocity=1 ){
-		//this.oscillator.frequency.value = noteNumberToFrequency(noteNumber)
-		this.oscillator.frequency.value = noteNumberToFrequencyFast(noteNumber)
-		console.error("oscillator", this.oscillator.frequency.value, {noteNumber, velocity})
 	
-		this.paramReduction.setValueAtTime(0, 0)
-		// this.paramReduction.linearRampToValueAtTime(0.1, 4)
-		this.paramReduction.exponentialRampToValueAtTime(0.01, 8)
+		console.error("oscillator",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
+	
+		this.envelope.gain.setValueAtTime(1, 0)
+		// this.oscillator.linearRampToValueAtTime(0.1, 4)
+		// this.oscillator.exponentialRampToValueAtTime(0.01, 8)
+
+		// instantly or with slide?
+		// this.oscillator.frequency.value = noteNumberToFrequency(noteNumber)
+		
+		// slide
+		this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), this.options.slideDuration )
 
 		return super.noteOn(noteNumber, velocity)
 	}
 	
 	async noteOff(noteNumber, velocity=0){
-		// TODO GATE
+		this.envelope.gain.setValueAtTime( 0, this.options.fadeDuration )
 		return super.noteOff(noteNumber)
 	}
 
@@ -118,7 +138,8 @@ export default class OscillatorInstrument extends Instrument{
 	 * @param {number} pitch 
 	 */
 	pitchBend(pitch){
-		this.oscillator.frequency.value = noteNumberToFrequencyFast(pitch)
+		// this.oscillator.frequency.value = noteNumberToFrequencyFast(pitch)
+		this.oscillator.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), this.options.slideDuration )
 		super.pitchBend(pitch)
 	}
 	
@@ -133,7 +154,39 @@ export default class OscillatorInstrument extends Instrument{
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getInstruments(){
+	getPresets(){
 		return OSCILLATOR_TYPES
+	}
+
+	// CUSTOM Methods
+	setCustomWaveform(){
+		this.oscillator.setCustomWaveform( periodicWave )
+	}
+
+	/**
+	 * Here, we create a PeriodicWave with two values. 
+	 * 
+	 * The first value is the DC offset, which is the value at which the oscillator starts. 
+	 * 0 is good here, because we want to start the curve at the middle of the [-1.0; 1.0] range.
+	 * 
+	 * The second and subsequent values are sine and cosine components. 
+	 * You can think of it as the result of a Fourier transform, where you get frequency 
+	 * domain values from time domain value. Here, with createPeriodicWave(), you specify the 
+	 * frequencies, and the browser performs an inverse Fourier transform to get a time domain 
+	 * buffer for the frequency of the oscillator. 
+	 * 
+	 * Here, we only set one component at full volume (1.0) on the fundamental tone, so we get a sine wave.
+	 */
+	setPeriodicWave(){
+		const real = new Float32Array(2)
+		const imag = new Float32Array(2)
+		
+		real[0] = 0
+		imag[0] = 0
+		real[1] = 1
+		imag[1] = 0
+
+		const periodicWave = this.context.createPeriodicWave(real, imag)
+		this.oscillator.setPeriodicWave( periodicWave )
 	}
 }

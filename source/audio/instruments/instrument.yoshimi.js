@@ -25,10 +25,14 @@ export default class YoshimiInstrument extends Instrument{
 	set volume(value) {
 		this.gainNode.gain.value = value
 	}
+	
+	get audioNode(){
+		return this.gainNode
+	}
 
-	constructor( audioContext, destinationNode ){
+	constructor( audioContext ){
 		
-		super()
+		super(audioContext)
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0.9 // this.currentVolume
@@ -103,6 +107,10 @@ export default class YoshimiInstrument extends Instrument{
 		return await this.loadPreset(f, bank)
 	}
 
+	// async loadRandomPreset(progressCallback){}
+	// async loadPreviousPreset(progressCallback){}
+	// async loadNextPreset(progressCallback){ }
+
 	// ---------------------------------------
 
 	/**
@@ -151,7 +159,7 @@ export default class YoshimiInstrument extends Instrument{
 	 * @param {String} type 
 	 * @returns 
 	 */
-	async loadInstrumentData (url, type) {
+	async loadInstrumentData (url, type="bin") {
 		const response = await fetch(url)
 		const data = type === "bin" ? await response.arrayBuffer() : await response.text()
 		console.log("Loading Instrument", {url, type, data})
@@ -171,7 +179,9 @@ export default class YoshimiInstrument extends Instrument{
 		try {
 			// file may be gzipped...
 			const data = await this.loadInstrumentData(name, "bin")
-			xml = await extractZip(data)
+			const unzipped = await extractZip(data)
+			// convert raw buffer into XML
+			xml = new TextDecoder("utf-8").decode(unzipped)
 			
 		} catch(err) {
 

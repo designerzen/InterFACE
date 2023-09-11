@@ -30,13 +30,13 @@ export default class WaveGuideInstrument extends Instrument{
 		console.log("waveguide::pitch", value, this.delay.delayTime.value)
 	}
 	
-	get outputNode(){
+	get audioNode(){
 		return this.gainNode
 	}
 
-	constructor( audioContext, destinationNode, options={} ){
+	constructor( audioContext, options={} ){
 		
-		super(audioContext, destinationNode, options)
+		super(audioContext, options)
 		
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 1
@@ -62,10 +62,9 @@ export default class WaveGuideInstrument extends Instrument{
 			.connect( feedbackNode )
 			.connect( delayNode )
 			.connect( this.gainNode )
-			.connect( destinationNode )
         
 		// feedback loop back into system
-		//delayNode.connect(feedbackNode)
+		delayNode.connect(feedbackNode)
 		
 		// start the noise
 		noiseBufferSource.start()

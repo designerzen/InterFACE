@@ -9,7 +9,6 @@ import Instrument from './instrument'
 import { registerAudioWorklets } from '../audio'
 import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber } from '../notes'
 
-
 export default class WorkletInstrument extends Instrument {
 
 	type = "worklet"
@@ -24,20 +23,19 @@ export default class WorkletInstrument extends Instrument {
 		this.gainNode.gain.value = value
 	}
 	
-	get outputNode(){
+	get audioNode(){
 		return this.gainNode
 	}
 
-	constructor(audioContext, destinationNode, options = {}) {
+	constructor(audioContext, options = {}) {
 
-		super(audioContext, destinationNode, options)
+		super(audioContext, options)
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 1
-		this.gainNode.connect(destinationNode)
-
+	
 		// Run this in instrument.worklet
-		const processor = new AudioWorkletNode(audioContext, "interface-processor")
+		const processor = new AudioWorkletNode(audioContext, options.workletURL || "interface-processor")
 		// receive message
 		processor.port.onmessage = (event) => {
 			// Handling data from the processor.

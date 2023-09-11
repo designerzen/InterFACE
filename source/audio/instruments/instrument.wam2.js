@@ -27,7 +27,7 @@ export default class WAM2Instrument extends Instrument{
 		this.currentVolume = value
 	}
 
-	get outputNode(){
+	get audioNode(){
 		return this.gainNode
 	}
 
@@ -38,7 +38,7 @@ export default class WAM2Instrument extends Instrument{
 	 * @param {String} pluginURL 
 	 * @param {Object} options 
 	 */
-	async loadWAM(audioContext, pluginURL, options={} )
+	async loadWAM2(audioContext, pluginURL, options={} )
 	{
 		const [hostGroupId] = await initializeWamHost(audioContext)
 		// const { default: WAMPlugin } = await import("/source/audio/wam2/simple/index.js")
@@ -62,24 +62,21 @@ export default class WAM2Instrument extends Instrument{
 		// save for use later!
 		this.plugin = plugin
 
-		
 		console.error("Loaded WAM from", pluginURL, {options, plugin, WAMPlugin})
 	}
 
-	constructor( audioContext, destinationNode, options={} )
+	constructor( audioContext, options={} )
 	{
-		super(audioContext, destinationNode, options)
+		super(audioContext, options)
 		
 		// main controllable output
 		this.gainNode = audioContext.createGain()
-		this.gainNode.connect(destinationNode)
-		this.volume = 1
+		this.volume = options.volume || 1
 
 		// simplePluginURI  || 
-		this.loadWAM(audioContext, options.wamURL, options ).then( result => {
+		this.loadWAM2(audioContext, options.wamURL, options ).then( result => {
 				
 			this.available = true
-
 		})
 	}
 

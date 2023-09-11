@@ -1,13 +1,21 @@
-import * as MIDICommands from "../midi/midi-commands"
+/**
+ * Composite Instrument allows you to use a single instrument
+ * to control many other instruments. You can set them up in 
+ * various ways :
+ * 
+ * - Play all notes
+ * - Each channel can be a different instrument
+ * - Note numbers can trigger different instruments
+ * 
+ */
+import Instrument from "./instrument"
 
-// we always have the same exposed methods
-// based on the MIDI implementations
 // https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
-export default class Instrument{
+export default class CompositeInstrument extends Instrument{
 
-	name = "AbstractInstrument"
-	title = "Instrument"
-	type = "abstract"
+	name = "CompositeInstrument"
+	title = "Composite Instrument"
+	type = "composite"
 
 	unique = -1
 
@@ -20,50 +28,6 @@ export default class Instrument{
 	currentVolume = 1
 	channels = 1
 
-	options = {}
-
-	// linked list
-	nextInstrument = null
-	
-	/**
-	 * @returns {String} of unique Instrument id for this instance
-	 */
-	get id(){
-		return `${this.name}-${this.unique}`.toLowerCase().replace(" ","_")
-	}
-	
-	/**
-	 * @returns {String} of unique Instrument id for this instance
-	 */
-	get isStereo(){
-		return this.channels > 1
-	}
-	
-	get isLoading(){
-		return this.available
-	}
-	
-	get volume(){
-		return this.currentVolume
-	}
-
-	set volume( value ){
-		this.currentVolume  = value
-	}
-
-	// FIXME: Legacy API to work with WAMs
-	get audioNode(){
-		return null
-	}
-
-	get output(){
-		return this.audioNode
-	}
-	
-	get input(){
-		return this.audioNode
-	}
-
 	/**
 	 * All instruments 
 	 * @param {AudioContext} audioContext 
@@ -71,24 +35,23 @@ export default class Instrument{
 	 */
 	constructor( audioContext, options={} ) 
 	{
-		this.context = audioContext
-		this.options = options
-		this.activeNotes = new Map()
-		this.unique = (Date.now() * Math.random() ) >> 0
-		
-		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
+		super(audioContext, options)
 	}
-	
+
+	addInstrument( instrument ){
+
+	}
+
 	// Life cycle methods ----------------------------------
 
 	create(){
 
 	}
-	
+
 	destroy(){
 
 	}
-
+	
 	/**
 	 * This message is sent when a note is depressed (start).
 	 * @param {Number} noteNumber 
@@ -102,6 +65,7 @@ export default class Instrument{
 		
 		if (activeNote)
 		{
+			// already playing
 			//console.log(activeNote, "retrigger noteOn", noteNumber, this.activeNotes )
 			return false
 		}else{
@@ -176,17 +140,18 @@ export default class Instrument{
 	 * instrument preferably at the no
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	async getPresets(){
+	async getInstruments(){
 		return []
 		
 	}
+
 
 	/**
 	 * Provide this Person with a random instrument
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadRandomPreset(progressCallback){
-		// return await 
+		// return await this.loadInstrument(  )
 	}
 
 	/**
@@ -223,45 +188,4 @@ export default class Instrument{
 
 	}
 
-	/**
-	 * Convert an audio command of type Channel into some kind of action
-	 * @returns 
-	 */
-	async doChannelCommand(command){
-		
-		switch( command.subtype )
-		{
-			case MIDICommands.COMMAND_NOTE_ON:
-				return this.noteOn( command.noteNumber, command.velocity )
-			
-			case MIDICommands.COMMAND_NOTE_OFF:
-				return this.noteOff( command.noteNumber, command.velocity  )
-		
-			case MIDICommands.COMMAND_NOTE_AFTER_TOUCH:
-				return this.aftertouch( command.noteNumber, command.amount  )
-		
-			case MIDICommands.COMMAND_PITCH_BEND:
-				return this.pitchBend( command.amount )
-				
-			case MIDICommands.COMMAND_PROGRAM_CHANGE:
-				return this.programChange( command.programNumber )
-			
-			default:
-				console.log("Instrument Ignores channel command", command )
-		}
-	}
-
-	/**
-	 * Pass in an AudioCommand to perform a function...
-	 * this is best demonstrated by sending a MIDICommand
-	 * to it that can be generated either from a MIDI device
-	 * or a MIDI file
-	 */
-	async doCommand(command){
-
-		switch(command.type){
-			case MIDICommands.TYPE_CHANNEL:
-				return this.doChannelCommand(command)
-		}
-	}
 }

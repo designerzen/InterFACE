@@ -4,139 +4,134 @@
 
 import { initializeWamHost } from "@webaudiomodules/sdk"
 
-let initialised = false
+import { injectJavascript } from '../../utils'
+import Instrument from "./instrument"
 
-const create = async(audioContext) => {
+export default class WAMInstrument extends Instrument {
 
-	// load main plugin file
-	const { default: simpleWAMPlugin } = await import("./audio/wam2/simple/index.js")
-	const { default: pingPongDelayWAMPlugin } = await import("./audio/wam2/pingpongdelay/index.js")
-	const { default: samplerWAMPlugin } = await import("./audio/wam2/sampler/index.js")
-	
-	const [hostGroupId] = await initializeWamHost(audioContext)
+	workletsRegistered = false
 
-	// You can can optionally specify additional information such as the initial state 
-	// Create a new instance of the plugin, equivalent to :
-	// const wam = new WAM(audioCtx);
-	// await wam.initialize(initialState);
+	type = "web audio module 1"
+	name = "WAM"
+	title = "WebAudioModule"
 
-	console.log("Creating WAM Instruments...", {hostGroupId, simpleWAMPlugin, pingPongDelayWAMPlugin}  )
+	initialised = false
 
-	const simplePlugin = await simpleWAMPlugin.createInstance(hostGroupId, audioContext, {})
-	console.log("Created simplePlugin Instrument", {simplePlugin} )
+	plugin
 
-	// const pingPongDelayPlugin = await pingPongDelayWAMPlugin.createInstance(hostGroupId, audioContext, {})
-	// console.log("Created pingPongDelayPlugin Instrument", { pingPongDelayPlugin} )
+	audioWorkletNode
 
-	const samplerPlugin = await samplerWAMPlugin.createInstance(hostGroupId, audioContext, {})
-	console.log("Created samplerPlugin Instrument", {samplerPlugin} )
-
-	
-	// GUI -----------------------------------------------------
-	// Now Locate the HTMLElement for controlling playback
-	const player = document.querySelector('#player')
-
-	// Tie the UI into the HTML
-	const mediaElementSource = audioContext.createMediaElementSource(player)	
-	console.log("Creating Media source", {mediaElementSource, player} )
-
-	// Very simple function to connect the plugin audionode to the host
-	const connectPlugin = (output) => {
-		const masterGain = new GainNode(output)
-		// grab the onscreen streaming media item
-	
-		// connect the source to simple plugin
-		mediaElementSource.connect(simplePlugin.audioNode)
-		// and the simple plugin to the ping pong delay
-		// simplePlugin.audioNode.connect(pingPongDelayPlugin.audioNode)
-		simplePlugin.audioNode.connect(masterGain)
-		// now connect our final node to the audioContext output
-		masterGain.connect(output.destination)
-
-		// const simpleGainPluginAudioNode = simpleGainPluginInstance.getAudioNode()
-		// mediaElementSource.connect(simpleGainPluginAudioNode);
-		// simpleGainPluginAudioNode.connect(audioContext.destination);
-		// pingPongDelayPlugin.audioNode.connect(output.destination)
+	get volume() {
+		return this.gainNode.gain.value
 	}
 
-	// Very simple function to append the plugin root dom node to the host
-	const mountPlugin = (domNode) => {
-		mount.innerHtml = ''
-		mount.appendChild(domNode)
+	set volume(value) {
+		this.gainNode.gain.value = value
+		this.currentVolume = value
 	}
 
-	// create a data object that contains the full state of the plugin
-	const downloadState = async () => {
-		let state = await pluginInstance.audioNode.getState()
-		const blob = new Blob([JSON.stringify(state, undefined, 2)])
-		const link = document.createElement('a')
-		link.href = URL.createObjectURL(blob)
-		link.download = 'state.json'
-		link.click()
+	get audioNode() {
+		return this.gainNode
 	}
 
-	// plugins AudioNodes are bypassed by default.
-	// pingPongDelayPlugin.setState({ enabled: true })
+	/**
+	 * Registers the script to load in a WAM
+	 * @param {AudioContext} audioContext 
+	 * @param {String} pluginURL 
+	 * @param {Object} options 
+	 */
+	async loadWAM(audioContext, pluginURL, options = {}) {
+		if (this.workletsRegistered) {
+			return true
+		}
 
-	// instance.audioNode is the plugin WebAudio node (native, AudioWorklet or
-	// Composite). It can then be connected to the WebAudio graph.
+		// check to see if it already has beeen registered
+		try {
 
-	// then create the GUI
-	//- const pluginDomNode = await pingPongDelayPlugin.createGui()
-	//- for example
-	//- document.appendChild(pluginDomNode)
+			await audioContext.resume()
+			// await audioContext.audioWorklet.addModule( new URL('./instruments/instrument-audio-worklet.js', import.meta.url))
 
-	connectPlugin( audioContext )
+			// is this even a good location to load this??
+			// await injectJavascript("wam/libs/wam-controller.js")
+			await injectJavascript(pluginURL)
 
-	// now watch for events from the media player on screen
-	player.onplay = (event) => {
-		event.preventDefault()
-		// audio context must be resumed because browser restrictions
-		audioContext.resume() 
-		console.log("Playing back audio with fx", event, {player, mediaElementSource} )
+			this.workletsRegistered = true
+
+		} catch (e) {
+			console.error("createAudioProcessor", e)
+			return false
+		}
+
+		return true
 	}
 
-	// player.play()
+	constructor(audioContext, options = {}) {
+		super(audioContext, options)
 
-	console.log("Creating WAM Plugin", {player, mediaElementSource} )
-}
+		// main controllable output
+		this.gainNode = audioContext.createGain()
+		this.volume = options.volume || 1
 
+		// "wam/yoshimi.js"
+		this.loadWAM(audioContext, options.wamURL, options).then(result => {
 
-const init = async () => {
-
-	if (initialised)
-	{
-		return
+			console.error("WAM loaded!", result)
+			//this.audioWorkletNode = new AudioWorkletNode(audioContext, "sampler-processor")
+			this.available = true
+		})
 	}
 
-	initialised = true
-		
-		
-	// make the URL relative...
-	//- let testURL = pluginURL.split("?")[0]
-	//- testURL = testURL.replace("http://localhost:909/", "")
-	//- const wamURL = new URL(testURL, import.meta.url)
-	
-	// Safari...
-	const AudioContext = window.AudioContext || window.webkitAudioContext || false
+	async noteOn(noteNumber, velocity = 1) {
 
-	if (AudioContext)
-	{
-		const context = new AudioContext({ latencyHint: 'playback' })
-		await create(context)
-		//- console.log(import.meta, "plugin URL", {pluginURL, testURL, wamURL})
-		console.log("Plugin created?")
-	}else{
+		// const audioBuffer = this.instrument[convertMIDINoteNumberToName(noteNumber)]
+		// if(audioBuffer)
+		// {
+		// 	await this.play(audioBuffer, velocity)
+		// }
+		console.log("Instrument:noteOn", this.plugin, this)
 
-		console.error("No Audio Engine on this browser ;(")
+		// this.plugin.noteOn(noteNumber, velocity)
+		return super.noteOn(noteNumber, velocity)
 	}
-}
 
 
+	async noteOff(noteNumber, velocity = 0) {
+		// this.volume = velocity
+		console.log("note off", { noteNumber, velocity }, this.plugin)
 
+		return super.noteOff(noteNumber)
+	}
 
-export default class WAM2Instrument extends Instrument{
+	async aftertouch(noteNumber, pressure) {
+		await super.aftertouch(noteNumber, pressure)
+	}
 
+	async pitchBend(pitch) {
+		await super.pitchBend(pitch)
+	}
 
+	/**
+	 * Program Change. 
+	 * to load a new sample we can also use the midi methods...
+	 * This message sent when the patch number changes. 
+	 * @param {Number} programNumber - new program number.
+	 */
+	async programChange(programNumber) {
+		return await super.programChange(programNumber)
+		//return await this.loadInstrument( instrumentFolders[programNumber] )
+	}
 
+	/**
+	 *  create a data object that contains the full state of the plugin
+	 *  for loading in via setState at a future occassion!
+	 * @returns {Blob}
+	 */
+	async getState() {
+		const state = await this.plugin.audioNode.getState()
+		return new Blob([JSON.stringify(state, undefined, 2)])
+	}
+
+	async setState() {
+		// TODO: 
+	}
 }
