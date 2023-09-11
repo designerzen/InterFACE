@@ -1,5 +1,4 @@
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
-import { drawCircle, drawNode, drawNodes, drawPath } from './2d'
+import { drawCircle, drawNode } from './2d'
 
 /**
  * Draw a mouth based on a series of points and close the path
@@ -46,8 +45,16 @@ export const drawMouthFromSequence = (
 }
 
 
-
-
+/**
+ * Draw some lips onto the canvas context
+ * @param {CanvasRenderingContext2D} canvasContext 
+ * @param {*} lips 
+ * @param {*} stroke 
+ * @param {*} fill 
+ * @param {*} startIndex 
+ * @param {*} endIndex 
+ * @returns 
+ */
 export const drawLip = ( canvasContext, lips, stroke={h:90,s:50,l:50,a:0.6}, fill={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
 	
 	const strokeColour = `hsla( ${stroke.h}%, ${stroke.s}%, ${stroke.l}%, ${stroke.a} )`
@@ -118,10 +125,10 @@ export const drawMouth = ( canvasContext, prediction, palette={h:90,s:50,l:50,a:
 	console.log("START", {start,startIndex,startNode, lipsLength, lips})
 	console.log("END", {end,endIndex,endNode, lipsLength, lips})
 
-	//drawCircle( startNode.x, startNode.y, 5, 2, 'red', 'yellow')
-	//drawCircle( endNode.x, endNode.y, 5, 2, 'red', 'yellow')
-	drawNode( startNode, 4, "red", "start "+start)
-	drawNode( endNode, 4, "yellow", "end "+end )
+	//drawCircle( canvasContext, startNode.x, startNode.y, 5, 2, 'red', 'yellow')
+	//drawCircle( canvasContext, endNode.x, endNode.y, 5, 2, 'red', 'yellow')
+	drawNode( canvasContext, startNode, 4, "red", "start "+start)
+	drawNode( canvasContext, endNode, 4, "yellow", "end "+end )
 
 	canvasContext.beginPath()
 	canvasContext.moveTo( startNode.x, startNode.y)
