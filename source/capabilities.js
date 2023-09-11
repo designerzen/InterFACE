@@ -15,6 +15,8 @@ export const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouc
 
 export const hasFileHandler = () => 'launchQueue' in window && 'files' in LaunchParams.prototype
 
+export const hasOffscreenCanvasCapability = () => 'OffscreenCanvas' in window
+
 /**
  * Is this running inside a NODE environment (rather than browser?)
  * @returns Boolean
