@@ -1,8 +1,55 @@
-import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE } from './audio/instruments'
 import { DEFAULT_COLOURS } from './palette'
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
 
 const isDevelopmentMode = process.env.NODE_ENV === "development"
+
+// Actual file names of the json data files in assets/audio
+const INSTRUMENT_DATA_PACK_FM = "fluid"
+const INSTRUMENT_DATA_PACK_FATBOY = "fatboy"
+const INSTRUMENT_DATA_PACK_MUSYNGKITE = "musyng"
+
+// Names set by pack authors
+export const INSTRUMENT_PACK_FM = "FluidR3_GM"
+export const INSTRUMENT_PACK_FATBOY = "FatBoy"
+export const INSTRUMENT_PACK_MUSYNGKITE = "MusyngKite"
+
+// Sound font settings 
+export const SOUNDFONT_FM_JS = {
+	title:INSTRUMENT_PACK_FM,
+	filename:`${INSTRUMENT_DATA_PACK_FM}.js`,
+	location:"./"
+}
+
+export const SOUNDFONT_FM_JSON = {
+	title:INSTRUMENT_PACK_FM,
+	filename:`${INSTRUMENT_DATA_PACK_FM}.json`,
+	location:"./assets/audio/"
+}
+
+export const SOUNDFONT_FATBOY_JS = {
+	title:INSTRUMENT_PACK_FATBOY,
+	filename:`${INSTRUMENT_DATA_PACK_FATBOY}.js`,
+	location:"./assets/audio/"
+}
+
+export const SOUNDFONT_FATBOY_JSON = {
+	title:INSTRUMENT_PACK_FATBOY,
+	filename:`${INSTRUMENT_DATA_PACK_FATBOY}.json`,
+	location:"./assets/audio/"
+}
+
+export const SOUNDFONT_MUSYNGKITE_JS = {
+	title:INSTRUMENT_PACK_MUSYNGKITE,
+	filename:`${INSTRUMENT_DATA_PACK_MUSYNGKITE}.js`,
+	location:"./assets/audio/"
+}
+
+export const SOUNDFONT_MUSYNGKITE_JSON = {
+	title:INSTRUMENT_PACK_MUSYNGKITE,
+	filename:`${INSTRUMENT_DATA_PACK_MUSYNGKITE}.json`,
+	location:"./assets/audio/"
+}
+
 
 // https://www.midi.org/specifications-old/item/manufacturer-id-numbers
 export const MIDI_ID = "00H 21H 71H"
@@ -14,7 +61,7 @@ export const DEFAULT_TASKS_VISION_OPTIONS = {
 	runningMode:"VIDEO",
 	
 	// numFaces 	The maximum number of faces that can be detected by the the FaceLandmarker. Smoothing is only applied when num_faces is set to 1. 	Integer > 0 	1
-	numFaces: 2,
+	numFaces: 1,
 	
 	// minFaceDetectionConfidence 	The minimum confidence score for the face detection to be considered successful. 	Float [0.0,1.0] 	0.5
 	// minFacePresenceConfidence 	The minimum confidence score of face presence score in the face landmark detection. 	Float [0.0,1.0] 	0.5
@@ -234,6 +281,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// left / right ear stereo panning
 	stereoPan:true,
 
+	// send out MIDI per person...
+	// see Instrument.MIDI
 	sendMIDI:true,
 
 	// if you want the axis to be switched
@@ -313,3 +362,5 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// IN means that it starts off slowly (prefered)
 	ease:easeInSine // easeInSine // linear
 }
+
+

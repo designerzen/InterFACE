@@ -1,3 +1,29 @@
+### 0.19.0 (2023-07-28)
+
+### 0.18.0 (2023-07-28)
+
+##### Bug Fixes
+
+*  Swapped actions as was getting errors (b4aa65f9)
+*  asset deploys now? (1afb6b0c)
+*  upload artefacts (580b45b5)
+*  Listing dirs in build (da7caaf5)
+*  dist / (c7830345)
+*  npm ci removed (c52f9e8b)
+*  package lock for auto build (1ca8820a)
+*  yaml spacing (e420500a)
+*  updated any code that might cause issues (062e34da)
+*  Deploy to github pages? (2d505dd6)
+*  PWA mispelling (5dc0d1f2)
+*  Parcel bug so using esbuilder instead (47f40fc2)
+
+##### Other Changes
+
+* deploy pages to v 2 (f7f7ab30)
+*  to github pages via action (a38c00fa)
+*  Deploy folder (dc053b07)
+*  Added wam2 samples (7837aa2e)
+
 ### 0.17.0 (2023-07-26)
 
 ##### Other Changes

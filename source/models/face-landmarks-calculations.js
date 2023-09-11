@@ -229,8 +229,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// - BOUNDING BOX ------------------------------------------------
 	
 	prediction.box = {
-		xMin:flipHorizontally ? 1 - pointRightOfFace.x : pointLeftOfFace.x,
-		xMax:flipHorizontally ? 1 - pointLeftOfFace.x : pointRightOfFace.x,
+		xMin:flipHorizontally ? 1 - pointLeftOfFace.x : pointLeftOfFace.x,
+		xMax:flipHorizontally ? 1 - pointRightOfFace.x : pointRightOfFace.x,
 		yMin:pointBottomOfChin.y,
 		yMax:pointApexOfHead.y,
 	}
