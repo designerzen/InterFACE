@@ -111,8 +111,27 @@ export const decodeBase64 = (sBase64, nBlocksSize) => {
 }
   
 
+export const asciiToBinary = (base64) => {
+	if (typeof window !== "undefined")
+	{
+		return atobUTF8(base64)
+	}
+	
+	return atob(base64)	
+}
 
 
+export function base64Decode(base64) {
+	const binaryString = atob(base64)
+	const len = binaryString.length
+	const bytes = new Uint8Array(len)
+	for (let i = 0; i < len; i++) {
+	  bytes[i] = binaryString.charCodeAt(i)
+	}
+	return bytes
+}
+
+  
 
 
 

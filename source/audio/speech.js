@@ -2,7 +2,7 @@
 const TIME_OUT = 10000
 
 export const hasSpeech = () =>{
-  return "speechSynthesis" in window
+  return ("speechSynthesis" in window)
 }
 
 // we have to loop this with a settimout until voices are available...

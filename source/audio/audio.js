@@ -1,11 +1,10 @@
-import 'audioworklet-polyfill'
 
 import { initializeWamHost } from "@webaudiomodules/sdk"
 
 import {clamp, lerp, TAU} from "../maths/maths"
 
 import { chain } from './rack'
-import {getInstrumentFamily} from './instruments'
+import {getInstrumentFamily, loadInstrumentFromSoundFontSamplesViaWorker, loadInstrumentFromSoundFontString, loadInstrumentFromSoundFontStringViaWorker} from './sound-font-instruments'
 // Effects
 import { createReverb, randomReverb, getImpulseList } from './effects/reverb'
 import {createDelay} from './effects/delay'
@@ -19,16 +18,16 @@ import {
 	// getNoteName,
 	// getNoteSound, getNoteText,
 	NOTE_NAMES
-} from './notes'
+} from './tuning/notes'
 
 export const ZERO = 0.0000001
 
 export let audioContext
+export let offlineAudioContext
 
 export let bufferLength
 export let dataArray
 
-let oscillator
 let createAnalyser
 
 let compressor
@@ -154,6 +153,9 @@ export const setupAudio = async (settings) => {
 	// { latencyHint: 'playback' } tells the context to try and smooth playback
 	audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' })
 
+	// check to see if we have an offline context...
+	offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
+ 
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
@@ -163,25 +165,24 @@ export const setupAudio = async (settings) => {
 	compressor = await createCompressor( audioContext )
 	percussion.node.connect( compressor.node )
 	compressor.node.connect( getMasterMixdown())
-		
-
+	
 	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
 	// reverb.impulseFilter()
 
 
 	
 	// Web Audio Modules! --------------------------
-	const { default: samplerWAMPlugin } = await import("./wam2/sampler/index.js")
+	// const { default: samplerWAMPlugin } = await import("./wam2/sampler/index.js")
 	
-	const [hostGroupId] = await initializeWamHost(audioContext)
-	const samplerPlugin = await samplerWAMPlugin.createInstance(hostGroupId, audioContext, {})
-	// link the sampler to the output
-	samplerPlugin.audioNode.connect( compressor.node )
+	// const [hostGroupId] = await initializeWamHost(audioContext)
+	// const samplerPlugin = await samplerWAMPlugin.createInstance(hostGroupId, audioContext, {})
+	// // link the sampler to the output
+	// samplerPlugin.audioNode.connect( compressor.node )
 	
 
 	// samplerPlugin.
 
-	console.log("Created samplerPlugin Instrument", {samplerPlugin} )
+	// console.log("Created samplerPlugin Instrument", {samplerPlugin} )
 
 
 	
@@ -272,7 +273,6 @@ export const updateByteTimeDomainData = ()=> {
  */
 const monitor = () => {
 
-
 	const result = requestAnimationFrame(monitor)
 
 	// waves
@@ -284,6 +284,10 @@ const monitor = () => {
 	return result
 }
 
+/**
+ * 
+ * @returns 
+ */
 export const stopAudio = () => {
 	if (playing)
 	{
@@ -299,10 +303,10 @@ export const stopAudio = () => {
 	//console.error("stop audio",{playing})
 }
 
-const resumeAudioContext = () => {
+const resumeAudioContext = async () => {
 	if (audioContext.state === 'suspended') 
 	{
-		audioContext.resume()
+		await audioContext.resume()
 	}
 }
 
@@ -319,33 +323,48 @@ export const getVolume = () => mixer.volume()
  */
 export const setVolume = destinationVolume => mixer.volume(destinationVolume)
 
+
+/**
+ * buffer source - to convert back to audio...
+ * const song = await audioCtx.createBufferSource()
+ * song.buffer = renderedAudioBuffer
+ * song.connect(audioCtx.destination)
+ * 
+ * @param {OfflineAudioContext} offlineAudioContext 
+ */
+export const convertArrayToBuffer = async (context, arrayBuffer)=>{
+	return await context.decodeAudioData(arrayBuffer)
+}
+
 /**
  * Load an Audio Buffer
  * @param {String} path Instrument Sample path
  * @returns {HTMLAudioElement} Audio buffer
  */
-export const loadAudio = async (path) => {
+export const loadAudio = async ( context, path ) => {
 	const response = await fetch(path)
 	const arrayBuffer = await response.arrayBuffer()
-	const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+	const audioBuffer = await convertArrayToBuffer( context, arrayBuffer )
 	return audioBuffer
 }
+
 
 /**
  * Play an Audio Buffer
  * create a buffer, plop in data, connect and play -> modify graph here if required
  * detune:0,,  playbackRate:1
+ * @param {AudioContext} context AudioContext to stream track to
  * @param {Object} audioBuffer Audio data buffer
  * @param {Number} offset position to start from
  * @param {AudioNode} destination Audio Node to route to
  * @param {Object} options options such as looping
  * @returns {HTMLAudioElement} Audio object
  */
-export const playTrack = (audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
+export const playTrack = (context, audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
 	
 	return new Promise((resolve, reject)=>{
 
-		const trackSource = audioContext.createBufferSource()
+		const trackSource = context.createBufferSource()
 		trackSource.buffer = audioBuffer
 		
 		// loop through options nad add
@@ -372,9 +391,9 @@ export const playTrack = (audioBuffer, offset=0, destination=delayNode, options=
 			reject(error)
 		}
 
-		if (audioContext.state === 'suspended') 
+		if (context.state === 'suspended') 
 		{
-			audioContext.resume()
+			context.resume()
 		}
 		
 		if (offset == 0) 
@@ -382,7 +401,7 @@ export const playTrack = (audioBuffer, offset=0, destination=delayNode, options=
 			trackSource.start()
 		//offset = audioContext.currentTime
 		} else {
-			trackSource.start(0, audioContext.currentTime - offset)
+			trackSource.start(0, context.currentTime - offset)
 		}
 		active = true
 	})
@@ -430,96 +449,121 @@ async function loadInstrumentPart (instrumentName, part) {
  * @param {String} path File path for sample pack
  * @returns {Array<Promise>} Array of instrument load promises
  */
-export const loadInstrumentParts = (instrumentName="alto_sax-mp3", path="FluidR3_GM") => {
-	const instrumentPath = `${path}/${instrumentName}`
+export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}` ) => {
 	const parts = createInstrumentBanks()
+
+	console.error("Pack data", {parts, instrumentPath} )
+
 	// array of buffers to pass to playTrack
-	const instruments = parts.map( part => loadAudio( `./assets/audio/${instrumentPath}/${part}` ) )
+	const instruments = parts.map( part => loadAudio(context, `${instrumentPath}/${part}` ) )
 	//const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
 	// eg FluidR3_GM
 	return instruments
 }
 
+
+/**
+ * This loads the AudioBuffers for the specified audio samples
+ * @param {AudioContext} audioContext 
+ * @param {String} name 
+ * @param {String} path 
+ * @param {Object} options 
+ * @param {?Function} onProgressCallback 
+ * @returns {Object|Array} [ AudioBuffer ] , { A0:AudioBuffer }
+ */
+export const loadInstrumentFromSoundFontSamples = async( audioContext=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
+		
+	// Load as individual parts
+	const partPromises = loadInstrumentParts(audioContext, path ) 
+	const parts = options.asArray ? [] : {}
+
+	for (let i=0, l=partPromises.length; i < l; ++i)
+	{
+		const part = await partPromises[i]
+		if (options.asArray === true)
+		{
+			parts.push( part )
+		}else{
+			parts[ NOTE_NAMES[i] ] = part
+		}
+		
+		onProgressCallback && onProgressCallback({
+			progress:i/l,
+			instrumentName:name
+		})
+	}
+
+	return parts
+}
+
+
+
 /**
  * Replace the in-memory sample pack with a new pack
+ * @param {AudioContext} context Online / Offline Audio Context
  * @param {String} instrumentName Instrument Sample name
- * @param {String} path File path for sample pack
- * @param {?Function} progressCallback Optional callback to report progress
+ * @param {String} instrumentURI File path for sample pack
+ * @param {?Function} onProgressCallback Optional callback to report progress
  * @returns {Object} Instrument information
  */
-export const loadInstrumentPack = async (instrumentName="alto_sax-mp3", path="FluidR3_GM", progressCallback ) => {	
+export const loadInstrumentFromSoundFont = async ( context=audioContext, instrumentName="alto_sax-mp3", instrumentURI="FluidR3_GM", options={}, onProgressCallback=null ) => {	
 	
 	const title = instrumentName
-	const family = getInstrumentFamily(instrumentName)
+	// const family = getInstrumentFamily(instrumentName)
 	const name = instrumentName
 	// .indexOf("-mp3") < 0 ? instrumentName + "-mp3" : instrumentName
 
 	// ensure we have the suffix on the name
 	const output = {
 		title,
-		family:getInstrumentFamily(name),
+		family:getInstrumentFamily(name) ?? getInstrumentFamily(title),
 		name
 	}
 
-	const partPromises = loadInstrumentParts(name, path) 
-	const parts= []
-	for (let i=0, l=partPromises.length; i < l; ++i)
-	{
-		const part = await partPromises[i]
-		parts.push( part )
-		progressCallback && progressCallback({
-			progress:i/l,
-			instrumentName:title
-		})
+	// Ensure default options are set
+	options = {
+		// URI of the sound font
+		soundfont : instrumentURI,
+		// try and use a seperate thread for loading and decoding the data
+		usingWorker : false,
+		// load as a single string and convert to individual files
+		// NB. this uses less network but more decoding time
+		loadAsOne : false,
+		// as a collection of elements in an object rather than array { A0: }
+		asArray : false,
+		// use offline worker if available (may be faster?)
+		offlineAudioContext:null,
+		...options
 	}
 
-	// all partPromises have been resolved...
+	// console.error("AudioContext" , typeof options.offlineAudioContext )
 	
+	let instrumentAudioBuffers
+
+	if (options.loadAsOne)
+	{
+		// load from a single string  
+		instrumentAudioBuffers = options.usingWorker ? 
+			await loadInstrumentFromSoundFontStringViaWorker( context,  instrumentName, options, onProgressCallback ) :
+			await loadInstrumentFromSoundFontString( instrumentName, options, onProgressCallback )
+	
+	}else{
+
+		// set the location that all the single instruments get loaded from...
+		const instrumentPath = `./assets/audio/${instrumentURI}/${instrumentName}`
+		// load from multiple files from a dedicated folder on server
+		// TODO: 
+		instrumentAudioBuffers = options.usingWorker ? 
+			await loadInstrumentFromSoundFontSamplesViaWorker( context, instrumentPath, options, onProgressCallback ) :
+			await loadInstrumentFromSoundFontSamples( context, instrumentPath, options, onProgressCallback )
+	}
+
 	NOTE_NAMES.forEach( (instrument, index) => {
-		output[ instrument.split('.')[0] ] = parts[index]
+		output[ instrument.split('.')[0] ] = instrumentAudioBuffers[instrument] ?? instrumentAudioBuffers[index]
 	})
+
+	console.error("Loaded soundfont", {output, instrumentURI, instrumentAudioBuffers})
+	
 	return output
 }
 
-// await context.audioWorklet.addModule('bit-crusher-processor.js')
-
-import {injectJavascript} from '../utils'
-
-let workletsRegistered = false
-
-export const registerAudioWorklets = async (audioContext, progressCallback) => {
-  
-	if (workletsRegistered)
-	{
-		return true
-	}
-	// check to see if it already has beeen registered
-	try {
-		
-		await audioContext.resume()
-		progressCallback && progressCallback(0)
-		
-		await audioContext.audioWorklet.addModule( new URL('./instruments/instrument-audio-worklet.js', import.meta.url))
-		progressCallback && progressCallback(0.5)
-		
-		await audioContext.audioWorklet.addModule( new URL('./effects/bitcrusher.worklet.js', import.meta.url))
-		progressCallback && progressCallback(0.75)
-		
-		// is this even a good location to load this??
-		await injectJavascript("wam/libs/wam-controller.js")
-		await injectJavascript("wam/yoshimi.js")
-
-		progressCallback && progressCallback(1)
-
-		// not needed with google version
-		//await AWPF.polyfill( audioContext )
-
-		workletsRegistered = true
-		
-	} catch(e) {
-		console.error("createAudioProcessor", e )
-		return false
-	}
-
-	return true
-}
