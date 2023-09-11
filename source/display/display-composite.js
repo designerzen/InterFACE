@@ -2,9 +2,9 @@
  * A way to call all displays at once!
  */
 
-import { AbstractDisplay } from "./display-abstract"
+import AbstractDisplay from "./display-abstract"
 
-export class DisplayComposite extends AbstractDisplay{
+export default class DisplayComposite extends AbstractDisplay{
 
 	initialDisplay
 

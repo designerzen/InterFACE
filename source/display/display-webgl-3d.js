@@ -1,4 +1,4 @@
-import { AbstractDisplay } from "./display-abstract"
+import AbstractDisplay from "./display-abstract"
 import { FaceLandmarker } from "@mediapipe/tasks-vision"
 import * as THREE from "three/src/Three.js"
 // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -14,7 +14,7 @@ const zIndex = 1200
  * Three JS Based with Web VR renderer
  * new Display2D( document.getElementById('interface') ) // document.querySelector("canvas")
  */
-export class DisplayWebGL3D extends AbstractDisplay{
+export default class DisplayWebGL3D extends AbstractDisplay{
 
 	camera
 	scene

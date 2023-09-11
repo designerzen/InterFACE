@@ -1,13 +1,15 @@
 /**
  * Overwrite these methods in your own displays
  */
-export class AbstractDisplay{
+export default class AbstractDisplay{
 
 	// allows you to debug this view
 	debug = true
 	available = false
 
 	canvas
+	canvasWidth
+	canvasHeight
 
 	// Linked List --------------------
 	nextDisplayLink
@@ -53,18 +55,17 @@ export class AbstractDisplay{
 	// Linked List --------------------
 
 	get width(){
-		return this.canvas.width
+		return this.canvasWidth
 	}
 
 	get height(){
-		return this.canvas.height
+		return this.canvasHeight
 	}
 
 	constructor(canvas, initialWidth, initialHeight){
 		this.canvas = canvas
-		this.canvas.width = initialWidth
-		this.canvas.height = initialHeight
-		
+		this.canvas.width = this.canvasWidth = initialWidth
+		this.canvas.height = this.canvasHeight = initialHeight
 	}
 
 	/**
@@ -83,6 +84,18 @@ export class AbstractDisplay{
 	 */
 	drawElement( person, beatJustPlayed, colours ){}
 	
+	/**
+	 * VU Meter bars
+	 * @param {FFT} dataArray 
+	 * @param {Number} bufferLength 
+	 */
+	drawBars( dataArray, bufferLength ){}
+	
+
+	drawInstrument(boundingBox, instrumentName, extra){}
+
+	drawText( x, y, text, size, align, font, invertColours ){}
+	drawParagraph(x, y,  paragraphh, size, lineHeight, invertColours ){}
 	/**
 	 * Draw to screen?
 	 */
