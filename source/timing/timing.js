@@ -39,24 +39,22 @@ let barsElapsed = 0
 let divisionsElapsed = 0
 
 // NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
-//      FF does not allow raf so use setimeout is preffered
+//      FF does not allow raf so use setimeout is prefered
 let timingWorker
 try{
 
+	// Pick your type of worker here 
+	// Settimeout is the most universal but laggiest
+	// audioContext only works on FF!
 	timingWorker = new Worker(
         new URL('./timing.settimeout.worker.js', import.meta.url),
         {type: 'module'}
     )
-		
-	// FIX: Safarai does *not* allow inline Workers so we have to use blob
-	// const url = `data:text/javascript;charset=utf-8,${encodeURIComponent(js)}`;
-	// return url;
-	// if (forceDataUri) {
-	//     const url = `data:text/javascript;charset=utf-8,${encodeURIComponent(js)}`;
-	//     return url;
-	// }
-	// const blob = new Blob([js], { type: 'application/javascript' });
-	// return URL.createObjectURL(blob);
+
+	// timingWorker = new Worker(
+    //     new URL('./timing.audiocontext.worker.js', import.meta.url),
+    //     {type: 'module'}
+    // )
 
 }catch(error){
     isCompatible = false

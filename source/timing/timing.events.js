@@ -1,3 +1,4 @@
+export const CMD_INITIALISE = "init"
 export const CMD_START = "start"
 export const CMD_STOP  = "stop"
 export const CMD_UPDATE  = "update"
