@@ -12,11 +12,11 @@ block header
 		<em>So, how about letting the musical instrument play you instead?.</em><br>
 
 		Presenting, the <strong>original realtime face controlled musical instrument</strong>! 
-		
+	p.
 		By granting your webcamera access, every movement of your face and mouth control all the sound aspects rquired to create music. 
 		
 		Pressing the screen or holding your eyes closed will change instruments.<br>
-		
+	p.
 		Improving human-machine relationships, made with love by <a href="https://designerzen.com">designerzen</a>. 
 	
 	//- In Javascript we show this if the user already has this installed
@@ -463,6 +463,7 @@ block dialogs
 			li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
 			li: a(href="roadmap.pug" target="_blank") Roadmap
 			li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
+			li(hidden): a.instruments(href="wam.pug" target="_blank") Instrument Debugger
 		
 		form(method="dialog")
 			button(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Dialog

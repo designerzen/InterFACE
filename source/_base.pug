@@ -7,7 +7,7 @@
 mixin title( page="", section="", seperator="©" )
 	- page = page.length ? `${page} ${seperator} ` : page
 	- section = section.length ? `${section} ${seperator} ` : ``
-	title : #{name} #{page}InterFACE V #{package.version} #{seperator} #{section}designerzen
+	title #{name} #{page}InterFACE V #{package.version} #{seperator} #{section}designerzen
 
 doctype html
 html(lang="en-GB", class=classes)
@@ -22,7 +22,7 @@ html(lang="en-GB", class=classes)
 		//- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. 
 		link(rel="manifest", href="manifest.webmanifest")
 		link(rel="stylesheet", href="index.scss", type="text/css")
-	
+
 
 		//----------------------------------------------------------------------------------------
 		block preload 
@@ -68,6 +68,8 @@ html(lang="en-GB", class=classes)
 		//- Humans.txt - https://humanstxt.org/
 		link(type="text/plain" rel="author" href="https://interface.place/humans.txt")
 		
+		block styles
+
 	body
 
 		block top
@@ -162,6 +164,8 @@ html(lang="en-GB", class=classes)
 				text="Select your social platform to easily share the InterFACE with your friends and family" 
 				url=URL
 			)
+
+			a#back-to-top(href="#intro") Back to the top
 
 		//- svg.filter(xmlns="http://www.w3.org/2000/svg")
 		//- 	filter#filter-noise
