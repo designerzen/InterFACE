@@ -10,20 +10,20 @@ on:
     # Allows you to run this workflow manually from the Actions tab on GitHub.
     workflow_dispatch:
 
-    jobs:
-        create_release:
-            name: Create release
-            # quickest to spin up?
-            runs-on: ubuntu-latest
-            # Note this. We are going to use that in further jobs.
-            outputs:
-                upload_url: ${{ steps.create_release.outputs.upload_url }}
-            steps:
-                - name: Create Github release
-                  id: create_release
-                  #   uses: actions/create-release@v1
-                  uses: "marvinpinto/action-automatic-releases@latest"
-                  with:
+jobs:
+    create_release:
+        name: Create release
+        # quickest to spin up?
+        runs-on: ubuntu-latest
+        # Note this. We are going to use that in further jobs.
+        outputs:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+        steps:
+            - name: Create Github release
+                id: create_release
+                #   uses: actions/create-release@v1
+                uses: "marvinpinto/action-automatic-releases@latest"
+                with:
                     title: "PhotoSynth3#interFACE"
                     repo_token: "${{ secrets.GITHUB_TOKEN }}"
                     tag_name: ${{ github.ref }}
@@ -33,100 +33,100 @@ on:
                     # if no tag is specified - create one?
                     # automatic_release_tag: true
 
-        build:
-            name: Build assets & upload
-            strategy:
-                matrix:
-                    # TODO: Add linux and windows to the process
-                    os: [ ubuntu-latest, windows-latest ] #, macos-latest]
-                    node-version: [18.x] # 14.x, 16.x,
-                    # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    build:
+        name: Build assets & upload
+        strategy:
+            matrix:
+                # TODO: Add linux and windows to the process
+                os: [ubuntu-latest, windows-latest] #, macos-latest]
+                node-version: [18.x] # 14.x, 16.x,
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
-            runs-on: ${{ matrix.os }}
-            needs: create_release # we need to know the upload URL
-            steps:
-                - name: Check out Git repository ${{ steps.get_version.outputs.version }}
-                  uses: actions/checkout@v3
-                - name: Install Node.js ${{ matrix.node-version }}, NPM and Yarn
-                  uses: actions/setup-node@v3
-                  with:
+        runs-on: ${{ matrix.os }}
+        needs: create_release # we need to know the upload URL
+        steps:
+            - name: Check out Git repository ${{ steps.get_version.outputs.version }}
+                uses: actions/checkout@v3
+            - name: Install Node.js ${{ matrix.node-version }}, NPM and Yarn
+                uses: actions/setup-node@v3
+                with:
                     node-version: ${{ matrix.node-version }}
                     cache: "npm"
 
-                # fetch the latest version
-                - uses: bbonkr/get-version-action@v1.0.4
-                  id: get_version
-                  with:
+            # fetch the latest version
+            - uses: bbonkr/get-version-action@v1.0.4
+                id: get_version
+                with:
                     project: "./package.json"
 
-                - name: Install libraries & dependencies
-                  run: yarn install
+            - name: Install libraries & dependencies
+                run: npm install
 
-                #   run: cd src/assets/Videos/
-                # - name: Download the into video asset...
-                #   uses: carlosperate/download-file-action@v2
-                #   with:
-                #       file-url: "http://ducknest.co.uk/eureka/better-built/assets/Videos/intro.mp4"
-                # - name: Download the other asset video...
-                #   uses: carlosperate/download-file-action@v2
-                #   with:
-                #       file-url: "http://ducknest.co.uk/eureka/better-built/assets/Videos/outro.mp4"
-                # - name: Check the files are there
-                #   run: ls -l intro.mp4
-                # - name: Go back to root directory
-                #   run: cd ../../..
-                # needs all assets in place -----------------------------------------------
-                - name: Show some system info ${{ steps.get_version.outputs.version }}
-                  run: yarn status
+            #   run: cd src/assets/Videos/
+            # - name: Download the into video asset...
+            #   uses: carlosperate/download-file-action@v2
+            #   with:
+            #       file-url: "http://ducknest.co.uk/eureka/better-built/assets/Videos/intro.mp4"
+            # - name: Download the other asset video...
+            #   uses: carlosperate/download-file-action@v2
+            #   with:
+            #       file-url: "http://ducknest.co.uk/eureka/better-built/assets/Videos/outro.mp4"
+            # - name: Check the files are there
+            #   run: ls -l intro.mp4
+            # - name: Go back to root directory
+            #   run: cd ../../..
+            # needs all assets in place -----------------------------------------------
+            - name: Show some system info ${{ steps.get_version.outputs.version }}
+                run: npm run status
 
-                - name: Build the electron app for ${{ matrix.os }}
-                  run: yarn make
+            - name: Build the electron app for ${{ matrix.os }}
+                run: npm run make
 
-                - name: List the releases folder contents
-                  run: ls ./releases/
+            - name: List the releases folder contents
+                run: ls ./releases/
 
-                #   TODO: Rename the folder?
+            #   TODO: Rename the folder?
 
-                # - name: Change folders
-                # - name: Jump into releases/better-built-bridges-win32-x64 folder
-                #   run: cd releases/better-built-bridges-win32-x64
+            # - name: Change folders
+            # - name: Jump into releases/better-built-bridges-win32-x64 folder
+            #   run: cd releases/better-built-bridges-win32-x64
 
-                # https://github.com/marketplace/actions/zip-release
-                - name: Zip it up for Windows release release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip
-                  if: matrix.os == 'windows-latest'
-                  uses: thedoctor0/zip-release@main
-                  with:
+            # https://github.com/marketplace/actions/zip-release
+            - name: Zip it up for Windows release release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip
+                if: matrix.os == 'windows-latest'
+                uses: thedoctor0/zip-release@main
+                with:
                     path: ./releases/PhotoSYNTH-3-interFACE-win32-x64
                     type: "zip"
                     #   filename: "windows-release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip"
                     filename: "release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip"
-                    
-                - name: Zip it up for Mac release release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip
-                  if: matrix.os == 'macos-latest'
-                  uses: thedoctor0/zip-release@main
-                  with:
+
+            - name: Zip it up for Mac release release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip
+                if: matrix.os == 'macos-latest'
+                uses: thedoctor0/zip-release@main
+                with:
                     path: ./releases/PhotoSYNTH-3-interFACE-mac-x64
                     type: "zip"
                     #  filename: "mac-release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip"
                     filename: "release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip"
 
-                - name: Zip it up for Linux release release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip
-                  if: matrix.os == 'ubuntu-latest'
-                  uses: thedoctor0/zip-release@main
-                  with:
+            - name: Zip it up for Linux release release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip
+                if: matrix.os == 'ubuntu-latest'
+                uses: thedoctor0/zip-release@main
+                with:
                     path: ./releases/PhotoSYNTH-3-interFACE-linux-x64
                     type: "zip"
                     #   filename: "linux-release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip"
                     filename: "./release-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip"
 
-                - name: List the zip releases
-                  run: ls ./
+            - name: List the zip releases
+                run: ls ./
 
-                - name: Upload release assets
-                  uses: actions/upload-release-asset@v1
-                  env:
+            - name: Upload release assets
+                uses: actions/upload-release-asset@v1
+                env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  with:
+                with:
                     upload_url: ${{ needs.create_release.outputs.upload_url }}
                     # This is how it will be named on the release page. Put whatever name
                     # you like, remember that they need to be different for each platform.
