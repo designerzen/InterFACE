@@ -1,12 +1,12 @@
 
-import { canvasContext, getCanvasDimensions  } from './canvas'
+import { getCanvasDimensions  } from './canvas'
 import PALETTE, { DEFAULT_COLOURS } from "../palette"
 
 let counter = 0
 const { width, height} = getCanvasDimensions()
 
 // Visualisations
-export const drawWaves = (dataArray, bufferLength)=>{
+export const drawWaves = (canvasContext, dataArray, bufferLength)=>{
 
 	// PALETTE
 	canvasContext.lineWidth = 2
@@ -39,7 +39,7 @@ export const drawWaves = (dataArray, bufferLength)=>{
 }
 
 
-export const drawBars = (dataArray, bufferLength)=>{
+export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 
 	const barWidth = (width / bufferLength) * 2	// number here is just cos we only care about a really narrow band
 	let barHeight

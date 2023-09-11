@@ -1,4 +1,3 @@
-import { instrumentNames, instrumentFolders} from '../audio/instruments'
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
 import {getShareLink} from '../location-handler'
 import {formattedDate} from '../models/info'
