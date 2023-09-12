@@ -1,4 +1,4 @@
-export const m = async (offlineAudioContext, packName) => {
+export const testSoundfontInstrument = async (offlineAudioContext, packName) => {
 	
 	// these objects allow loading in of assets from various sources
 	// so let's test each source...
