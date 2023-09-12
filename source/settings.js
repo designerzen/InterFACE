@@ -1,5 +1,5 @@
 import { DEFAULT_COLOURS } from './palette'
-import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
+import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeOutQuint, easeInQuad} from "./maths/easing"
 
 const isDevelopmentMode = process.env.NODE_ENV === "development"
 
@@ -341,7 +341,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	pitchSensitivity:1,
 
 	// size of the mouth to signal activity
-	mouthCutOff:0.2,
+	mouthCutOff:0.1,
 
 	// size of the mouth to signal silence
 	mouthSilence:0.05,
@@ -360,7 +360,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// set this to one of the interpolation methods above
 	// IN means that it starts off slowly (prefered)
-	ease:easeInSine // easeInSine // linear
+	// ease:easeInSine // easeInSine // linear
+	// ease:easeInQuad // easeInSine // linear
+	ease:easeOutSine // easeInSine // linear
 }
 
 
