@@ -452,7 +452,7 @@ async function loadInstrumentPart (instrumentName, part) {
 export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}` ) => {
 	const parts = createInstrumentBanks()
 
-	console.error("Pack data", {parts, instrumentPath} )
+	// console.error("Pack data", {parts, instrumentPath} )
 
 	// array of buffers to pass to playTrack
 	const instruments = parts.map( part => loadAudio(context, `${instrumentPath}/${part}` ) )
@@ -562,7 +562,7 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 		output[ instrument.split('.')[0] ] = instrumentAudioBuffers[instrument] ?? instrumentAudioBuffers[index]
 	})
 
-	console.error("Loaded soundfont", {output, instrumentURI, instrumentAudioBuffers})
+	// console.error("Loaded soundfont", {output, instrumentURI, instrumentAudioBuffers})
 	
 	return output
 }

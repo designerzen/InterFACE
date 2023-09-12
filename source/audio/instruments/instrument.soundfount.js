@@ -77,7 +77,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 
 				this.available = true
 
-				console.error("soundfont", this, font )
+				// console.error("soundfont", this, font )
 			
 			}).catch( error => {
 
@@ -126,7 +126,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		{
 			this.play(audioBuffer, velocity)
 		}
-		console.log("Buffer playing", {index, audioBuffer,noteNumber, velocity},  this.instrument  )
+		// console.log("Buffer playing", {index, audioBuffer,noteNumber, velocity},  this.instrument  )
 		return super.noteOn(noteNumber, velocity)
 	}
 
@@ -195,7 +195,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			}
 		}
 
-		console.log("loading font",this.instrumentPack, this, arguments )
+		// console.log("loading font",this.instrumentPack, this, arguments )
 		// soundfont automatically reloads so we do not need to re-request it		
 		// const font = await loadInstrumentDataPack( descriptorURI )
 		
@@ -214,7 +214,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// fetch the available presets from the instrument...
 		const availablePresets = await this.soundfont.presetNames
 
-		console.error("Found font", { availablePresets })
+		// console.error("Found font", { availablePresets })
 		// console.error("Found font", { fontData, availablePresets })
 	
 		// FIXME:
@@ -222,7 +222,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// but there may be descrepencies for
 		const currentPreset = availablePresets[ this.instrumentIndex ]
 		
-		console.error("Found availablePreset", availablePresets[0], {currentPreset} )
+		// console.error("Found availablePreset", availablePresets[0], {currentPreset} )
 
 		//await this.soundfont.loadPreset( availablePresets[0], packName, p => console.log(p) )
 		await this.loadPreset( currentPreset, pack, options, p => onProgress && onProgress( 0.5 + p / 2 ) )

@@ -5,7 +5,7 @@ import {
 
 // Capture public methods
 self.onmessage = e => {
-	console.error("MIDI:Worker",e)
+	// console.error("MIDI:Worker",e)
 
     const data = e.data
     switch (data.command)
@@ -13,7 +13,7 @@ self.onmessage = e => {
         case "loadMIDIFile":
 			fetchMIDIFileData(data.url, data.options).then( midi => {
 
-				console.error("MIDI:Worker loaded", {url:data.url, midi})
+				// console.error("MIDI:Worker loaded", {url:data.url, midi})
 
 				postMessage({ 
 					event:data.command, 
@@ -24,7 +24,7 @@ self.onmessage = e => {
 
         case "loadMIDIFileThroughClient":
 			fetchMIDIFileThroughClient(data.url, data.options ).then( midi => {
-				console.error("MIDI:Worker loaded", {url:data.url, midi})
+				// console.error("MIDI:Worker loaded", {url:data.url, midi})
 				postMessage({ 
 					event:data.command, 
 					midi

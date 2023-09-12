@@ -144,12 +144,12 @@ export const fetchMIDIFileData = ( urlOrBlob, options={}, progressCallback=null 
 		}else{
 			midiFile = await loadMIDIFromBase64( urlOrBlob, options, progressCallback )
 		}
-		console.error("loadMIDIFile via BASE64",{urlOrBlob, midiFile})
+		// console.error("loadMIDIFile via BASE64",{urlOrBlob, midiFile})
 		
 	}else{
 
 		midiFile = await loadMIDIFromArray( urlOrBlob, options, progressCallback )
-		console.error("loadMIDIFile via ArrayBuffer",{ urlOrBlob, midiFile})
+		// console.error("loadMIDIFile via ArrayBuffer",{ urlOrBlob, midiFile})
 	}
 	resolve(midiFile)
 })

@@ -49,7 +49,7 @@ export const createMIDIFileFromTrack = (midiTrack, bpm=120 ) => {
 		.addTrackName("interFACE")
 		.setTempo(bpm)
 		
-	console.log("[MIDIFile] Creating MIDI File", {midiTrack, track} )
+	// console.log("[MIDIFile] Creating MIDI File", {midiTrack, track} )
 
 	midiTrack.commands.forEach( (command,index)=> {
 		//	console.log("[MIDIFile] Adding MIDI Command", {command, index} )

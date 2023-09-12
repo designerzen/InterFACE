@@ -69,13 +69,13 @@ export const loadImpulseList = async ( dirs = DIRS ) => {
 
 		const output = dirs.map( async (dir) => {
 			const files = await loadImpulseJSON(dir, dir)
-			console.error(files, dir)
+			// console.error(files, dir)
 			return files
 		}) 
 
 		const filePaths = [].concat(...output)
 
-		console.error(dirs, output, filePaths)
+		// console.error(dirs, output, filePaths)
 		return filePaths
 	try{
 		// const filePath = `${path}${dir}`
