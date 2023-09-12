@@ -272,7 +272,7 @@ export default class SoundFont{
 		// immediately attempt to get the instrument data from the descriptor
 		const data = this.getInstrumentData(presetName) 
 		
-		console.error("Loading PRESET", { preset, presetName, options, data } )
+		// console.error("Loading PRESET", { preset, presetName, options, data } )
 
 		const location = "./"
 
@@ -287,7 +287,7 @@ export default class SoundFont{
 		// check to see if the pack name is valid...
 		this.loading = true
 
-		console.error("PRESET "+presetName+" LOADING", data, "from", location, this )
+		// console.error("PRESET "+presetName+" LOADING", data, "from", location, this )
 
 		// let's load in all notes for this preset by requesting all the audio buffer
 		// data from either the mp3 or wav or ogg files provided by the pattern
@@ -313,7 +313,7 @@ export default class SoundFont{
 		
 			this.audioBuffers.set( data.name, audioBufferData )
 
-			console.error("Instrument loaded",presetName, audioBufferData )
+			// console.error("Instrument loaded",presetName, audioBufferData )
 			
 			this.loading = false
 

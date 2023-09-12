@@ -34,7 +34,7 @@ export const loadMIDIFile =  (midiFileData, options, progressCallback) => new Pr
 		if (!options.useWorker)
 		{
 			const midi = await fetchMIDIFileData( midiFileData, options, progressCallback )
-			console.error("MIDI:loaded", {url: midiFileData, options, midi})
+			// console.error("MIDI:loaded", {url: midiFileData, options, midi})
 			resolve(midi)
 
 		}else{
@@ -43,7 +43,7 @@ export const loadMIDIFile =  (midiFileData, options, progressCallback) => new Pr
 			midiWorker.onmessage = (e) => {
 				// This comes through stripped of prototypes
 				const data = e.data
-				console.error("MIDI:Worker loadMIDIFile", {e, data, url: midiFileData, options})
+				// console.error("MIDI:Worker loadMIDIFile", {e, data, url: midiFileData, options})
 				const track = new MidiTrack(null, data.midi)
 				midiWorker.terminate()
 				midiWorker = null
@@ -89,7 +89,7 @@ export const loadMIDIFileThroughClient =  async (file, options, progressCallback
 export const loadMIDI = async( midiFileData, options, progressCallback) => {
 	
 	const type = typeof midiFileData
-	console.error("Loading MIDI", type, midiFileData)
+	// console.error("Loading MIDI", type, midiFileData)
 
 	switch (type)
 	{

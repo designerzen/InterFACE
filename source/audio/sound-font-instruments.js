@@ -436,7 +436,7 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 			switch(data.event)
 			{
 				case EVENT_DECODED: 
-				console.error("received audio buffers from workers", data.audio )
+				// console.error("received audio buffers from workers", data.audio )
 				cleanUp()
 
 				const rawAudioArrayBuffers = data.audio
@@ -474,7 +474,7 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 
 	const workerLoadedAudioBuffers = await loadSampleViaWorker(path, options)	
 	onProgressCallback && onProgressCallback(1)
-	console.error("audio buffers", workerLoadedAudioBuffers )
+	// console.error("audio buffers", workerLoadedAudioBuffers )
 	return workerLoadedAudioBuffers
 } 
 

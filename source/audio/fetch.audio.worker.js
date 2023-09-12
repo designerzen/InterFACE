@@ -136,20 +136,20 @@ self.onmessage = async (e) => {
 			const audioArrayBuffers = {}
 			// loop through all nmotes but in the special order	
 			const filePromises = NOTE_NAMES_POPULAR_FIRST.map( async(note, index) => {
-				console.error("looosss", {note, index})
+				// console.error("looosss", {note, index})
 		
 				const partResponse = await fetch( `${e.data.path}/${note}.${options.format ?? "mp3"}` )
 				const partArrayBuffer = await partResponse.arrayBuffer()
-				console.error("loop", {note, index, partArrayBuffer})
+				// console.error("loop", {note, index, partArrayBuffer})
 		
 				audioArrayBuffers[note] = partArrayBuffer
 				return partArrayBuffer
 			})
-			console.error("NOTE_NAMES_POPULAR_FIRST", NOTE_NAMES_POPULAR_FIRST)
+			// console.error("NOTE_NAMES_POPULAR_FIRST", NOTE_NAMES_POPULAR_FIRST)
 		
 			await Promise.all(filePromises)
 
-			console.error("NOTE_NAMES_POPULAR_FIRST", NOTE_NAMES_POPULAR_FIRST)
+			// console.error("NOTE_NAMES_POPULAR_FIRST", NOTE_NAMES_POPULAR_FIRST)
 			
 			postMessage({ event:EVENT_DECODED, audio:audioArrayBuffers  })
 			break
@@ -161,18 +161,18 @@ self.onmessage = async (e) => {
 			const audioSampleBuffers = {}
 			// loop through all nmotes but in the special order	
 			const audioBufferPromises = NOTE_NAMES_POPULAR_FIRST.map( async(note, index) => {
-				console.error("looosss", {note, index})
+				// console.error("looosss", {note, index})
 		
 				const partResponse = await fetch( `${e.data.path}/${note}.${options.format ?? "mp3"}` )
 				const partArrayBuffer = await partResponse.arrayBuffer()
 				const partAudioBuffer = await context.decodeAudioData(arrayBuffer)
-				console.error("loop", {note, index, partArrayBuffer, partAudioBuffer})
+				// console.error("loop", {note, index, partArrayBuffer, partAudioBuffer})
 				
 				audioArrayBuffers[note] = partAudioBuffer
 				return partAudioBuffer
 			})
 
-			console.error("NOTE_NAMES_POPULAR_FIRST", NOTE_NAMES_POPULAR_FIRST)
+			// console.error("NOTE_NAMES_POPULAR_FIRST", NOTE_NAMES_POPULAR_FIRST)
 		
 			await Promise.all(audioBufferPromises)
 

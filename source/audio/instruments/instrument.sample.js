@@ -115,7 +115,7 @@ export default class SampleInstrument extends Instrument{
 		{
 			this.play(audioBuffer, velocity)
 		}
-		console.log("Buffer playing", {audioBuffer,noteNumber, velocity} )
+		// console.log("Buffer playing", {audioBuffer,noteNumber, velocity} )
 		return super.noteOn(noteNumber, velocity)
 	}
 

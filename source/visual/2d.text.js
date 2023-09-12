@@ -60,5 +60,4 @@ export const drawInstrument = ( canvasContext, x, y, instrumentName, extra='') =
 	// canvasContext.strokeRect( boundingBox.xMin, boundingBox.yMin, boundingBox.xMax, boundingBox.yMax )
 	// canvasContext.fill()
 	drawText( canvasContext, x, y, text, "24px" )
-	console.error("drawInstrument", {x,y, text} )
 }
