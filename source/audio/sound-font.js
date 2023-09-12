@@ -212,12 +212,15 @@ export default class SoundFont{
 	 */
 	findInstrumentDataFromDetails( presetName ){
 			
-		const check = ["name", "title", "location"]
+		const check = ["folder", "name", "title", "location"]
 		for (let i=0, l=this.instruments.length; i < l; i++)
 		{
+
 			// now check to see if there are any matches
 			const instrument = this.instruments[i]
 			
+// console.log("looking for",presetName, instrument)
+
 			check.forEach( key => {
 				if (instrument[key] === presetName){
 					return instrument
@@ -240,6 +243,8 @@ export default class SoundFont{
 				this.instrumentsByPath.get(presetName) ??  
 				this.instrumentsByName.get(presetName.substring(0, presetName.lastIndexOf('.'))) ?? 
 				this.instrumentsByPath.get(presetName.substring(0, presetName.lastIndexOf('.'))) ?? 
+				this.instrumentsByPath.get(presetName + "-mp3") ?? 
+				this.instrumentsByPath.get(presetName + "-ogg") ?? 
 				this.instrumentsByName.get(presetName.substring(0, presetName.lastIndexOf('-'))) ?? 
 				this.instrumentsByPath.get(presetName.substring(0, presetName.lastIndexOf('-'))) ?? 
 				this.findInstrumentDataFromDetails(presetName)

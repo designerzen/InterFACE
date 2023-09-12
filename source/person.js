@@ -140,6 +140,9 @@ export default class Person{
 	// default MIDI settings
 	midiChannel = "all"
 
+	// where to hook into the 
+	outputNode
+
 	/**
 	 * Are the user's eyes both open?
 	 * @returns {Boolean} are both eyes open
@@ -433,7 +436,7 @@ export default class Person{
 		{
 			this.parameterRecorder.save(prediction)
 		}
-
+		
 		// If we are playing back an old session, we overwrite
 		// this data with the existing session data
 		if (this.isPlayingBack)
@@ -500,6 +503,25 @@ export default class Person{
 			this.rightEyeClosedAt = prediction.time
 
 			this.onEyesClosedForTimePeriod()
+		}
+
+		// stereo eye panning
+		if (this.options.stereoPan)
+		{
+			// -1 -> +1
+			this.stereoNode.pan.value = prediction.eyeDirection
+			// console.log( this.stereoNode.pan.value )
+		}
+		
+		// eyebrows controls
+		if (this.options.drawEyebrows)
+		{
+			this.eyeBrowsNode.frequency.value = prediction.leftEyebrowRaisedBy * 1000 // (1000, audioCtx.currentTime);
+			this.eyeBrowsNode.gain.value =  prediction.rightEyebrowRaisedBy *  25 //(25, audioCtx.currentTime);
+
+			this.eyeBrowNode.threshold.value = prediction.eyebrowsRaisedBy * -100
+			// this.eyeBrowNode.knee.value = prediction.eyebrowsRaisedBy * 40
+			// console.log( this.eyeBrowNode.gain.value, this.eyeBrowNode.frequency.value )
 		}
 	}
 	
@@ -574,7 +596,7 @@ export default class Person{
 		{
 			const boundingBoxWidth = boundingBox.width || boundingBox.xMax - boundingBox.xMin
 			const boundingBoxHeight = boundingBox.height || boundingBox.yMax - boundingBox.yMin
-			console.error("Display", display.width, display.height, {boundingBoxWidth,boundingBoxHeight,boundingBox} )
+			//console.error("Display", display.width, display.height, {boundingBoxWidth,boundingBoxHeight,boundingBox} )
 			// TODO: Profile which is faster...
 			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
 			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
@@ -684,9 +706,8 @@ export default class Person{
 					`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
 					`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
 					
-					`mouthOpen:${prediction.mouthOpen} Singing:${this.singing}`, 
-					`mouthRange:${(prediction.mouthRange||0).toFixed(3)}`, 
-					`mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
+					`mouthOpen:${prediction.mouthOpen} Singing:${this.singing} shape ${prediction.mouthShape}`, 
+					`mouthRange:${(prediction.mouthRange||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
 					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
 					
 					`eyes direction:${(prediction.eyeDirection||0).toFixed(3)} left:${(prediction.leftEye||0).toFixed(3)} right:${(prediction.rightEye||0).toFixed(3)}`,
@@ -796,17 +817,11 @@ export default class Person{
 		this.saturation = 100 * lipPercentage
 		this.singing = amp >= options.mouthCutOff
 
-
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
-		if (this.options.stereoPan)
-		{
-			//FIXME:
-			this.stereoNode.pan.value = eyeDirection
-			//console.log("stereoNode", this.stereoNode.pan.value, eyeDirection )
-			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
-		}
+
 		
+
 		// If we have an instrument and singing is enabled
 		if ( this.instrument && this.singing )
 		{
@@ -836,12 +851,17 @@ export default class Person{
 				)
 			}
 			
-			// rescale for 0.3->1
-			// newVolume = this.mouthScale( amp )
 			// curve
-			// newVolume = options.ease(newVolume)
-			// smooth
+			newVolume = options.ease( newVolume  )
+			// smooth (removes some clicks)
 			newVolume = Math.round( newVolume * this.precision ) / this.precision 
+			// rescale for 0.3->1
+			// newVolume = this.mouthScale( newVolume )
+			// always prevent gain going over 1
+			if (newVolume > 0.99)
+			{
+				newVolume = 0.99
+			}
 			
 			// newVolume = Math.round( newVolume * options.precision * 10 ) / (options.precision * 10) 
 			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
@@ -1095,17 +1115,44 @@ export default class Person{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
 
+		this.outputNode = this.gainNode
+
+		
+		if (this.options.drawEyebrows)
+		{
+			//FIXME:
+			this.eyeBrowsNode = audioContext.createBiquadFilter()
+			// this.eyeBrowsNode.connect(this.outputNode)
+		
+			this.eyeBrowNode = audioContext.createDynamicsCompressor()
+			this.eyeBrowNode.threshold.value = -100
+			this.eyeBrowNode.knee.value = 40
+			this.eyeBrowNode.ratio.value = 12
+			this.eyeBrowNode.attack.value = 0
+			this.eyeBrowNode.release.value = 0.25
+			this.eyeBrowNode.connect(this.eyeBrowsNode)
+
+			this.outputNode.connect(this.eyeBrowNode)
+			
+			this.outputNode = this.eyeBrowNode
+			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
+		}
+
 		// allow stereo pannning...
 		// NB. This is actually quite a greedy method
 		if (this.options.stereoPan)
 		{
 			this.stereoNode = audioContext.createStereoPanner()
-			this.stereoNode.connect(this.gainNode)
+			this.outputNode.connect(this.stereoNode)
+			// this.stereoNode.connect(this.outputNode)
 			// this.stereoNode.connect(delayNode)
 			this.outputNode = this.stereoNode
+
+			//console.log("stereoNode", this.stereoNode.pan.value )
+			
 		}else{
 			// TODO: go directly into gain or through other fx first?
-			this.outputNode = this.gainNode
+			//this.outputNode = this.gainNode
 		}
 
 		if (this.options.useDelay)
@@ -1117,16 +1164,16 @@ export default class Person{
 			feedbackNode.gain.value = this.options.feedback
 			
 			// connect gain to delay (delay feeds back)
-			this.gainNode.connect(delayNode)
+			this.outputNode.connect(delayNode)
 			// connect the delay node to the output
-			delayNode.connect(destinationNode)
+			delayNode.connect( this.outputNode )
 			// and back in tot he feedback?
 			// delayNode.connect(destinationNode)
-
-		}else{
-			// direct to main mixer
-			this.gainNode.connect(destinationNode)
+			this.outputNode = delayNode
 		}
+
+		// now connect this directly to the main mixer
+		this.outputNode.connect(destinationNode)
 
 		// TODO: 
 		// create a sample player, oscillator add all other instruments

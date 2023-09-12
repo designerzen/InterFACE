@@ -1164,7 +1164,7 @@ export const createInterface = (
 				case STATE_INSTRUMENT_SILENT:
 				default:
 					instrument.noteOff( noteNumber )
-					console.log("Attempting to mute",instrument.type, person.state)
+					// console.log("Attempting to mute",instrument.type, person.state)
 			
 			}
 		})
@@ -2670,7 +2670,7 @@ export const createInterface = (
 		})
 	//
 	
-	console.log("loadingstartApp", {startApp, update, options })
+	// console.log("loadingstartApp", {startApp, update, options })
 
 		return startApp
 
