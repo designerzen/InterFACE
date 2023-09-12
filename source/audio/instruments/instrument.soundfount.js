@@ -251,13 +251,13 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 */
 	async loadPreset(presetName, instrumentPack, options, progressCallback ){
 	
-		const index = this.getIndexFromName(presetName)
+		// const index = this.getIndexFromName(presetName)
 		
-		if (index  === -1)
-		{
-			console.error("Couldn't find matching preset name", {presetName, instrumentPack}, this.instrumentFolders, this.soundfont )
-			throw Error( `No Preset found with name "${presetName}" in pack "${instrumentPack}" (${this.soundfont.quantity})` )
-		}
+		// if (index  === -1)
+		// {
+		// 	console.error("Couldn't find matching preset name", {presetName, instrumentPack}, this.instrumentFolders, this.soundfont )
+		// 	throw Error( `No Preset found with name "${presetName}" in pack "${instrumentPack}" (${this.soundfont.quantity})` )
+		// }
 
 		// check to see if the pack name is valid...
 		this.instrumentLoading = true
@@ -295,13 +295,13 @@ export default class SoundFontInstrument extends SampleInstrument{
 			throw Error("Soundfont could not load "+error)
 		}
 		
-		this.instrumentIndex = index
+		this.instrumentIndex = this.soundfont.instrumentIndex
 		this.instrumentName = presetName
 		this.instrumentPack = instrumentPack
 		this.instrumentFamily = this.instrument.family
 
 		// Fetch the GM name
-		this.title = this.instrumentNames[index]
+		this.title = presetName
 		//this.name = "SampleInstrument"
 		
 		// this.instrumentMap = {}

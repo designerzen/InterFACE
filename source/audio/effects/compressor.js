@@ -7,7 +7,7 @@ export const createCompressor = async (
 	// decibel value representing the range above the threshold where the curve smoothly transitions to the compressed portion.
 	knee = 40,
 	// amount of change, in dB, needed in the input for a 1 dB change in the output.
-	ratio = 22,
+	ratio = 12,
 	// amount of time, in seconds, required to reduce the gain by 10 dB.
 	attack = 0,
 	// amount of time, in seconds, required to increase the gain by 10 dB.
