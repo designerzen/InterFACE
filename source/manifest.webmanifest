@@ -1,6 +1,14 @@
 {
-	"name": "interFACE",
+	"name": "PhotoSYNTH:interFACE",
 	"display": "standalone",
+	"id": "com.designerzen.interface",
+	"dir": "ltr",
+	"lang": "en",
+	"display_override": [
+	  "fullscreen",
+	  "standalone",
+	  "window-controls-overlay"
+	],
 	"start_url": "./index.html",
 	"short_name": "interFACE",
 	"theme_color": "#8d3525",
@@ -18,7 +26,7 @@
 	"file_handlers":[
 		{
 			"action":"/",
-			"accept": {"audio/mid":[".mid"]},
+			"accept": {"audio/mid":[".mid",".midi"]},
 			"icons":[
 				{
 					"src":"assets/icons/midi-copyright-free.svg",
