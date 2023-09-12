@@ -51,6 +51,10 @@ export const drawParagraph = ( canvasContext, x, y, paragraph=[], size='8px', li
  */
 export const drawInstrument = ( canvasContext, x, y, instrumentName, extra='') => {
 
+	if (!instrumentName)
+	{
+		return
+	}
 	// use prediction.boundingBox to position text
 	const text = `${instrumentName.toUpperCase()} - ${extra}`
 	// canvasContext.beginPath()
