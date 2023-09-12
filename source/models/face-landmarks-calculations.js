@@ -172,9 +172,16 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	
 	// which ways are the eyes pointing to? we want from -1 -> 1
 	// left is -ve right is +ve
-	prediction.rightEyeDirection = landmarks[16].score - landmarks[14].score
-	prediction.leftEyeDirection = landmarks[13].score - landmarks[15].score
-	
+	// 16 is right eye 0 -> 1 and 14 is 1 -> 0
+	prediction.rightEyeDirection = (1-landmarks[16].score) + landmarks[14].score - 1 
+	prediction.leftEyeDirection = (1-landmarks[13].score) + landmarks[15].score - 1
+
+	// prediction.rightEyeDirection = (landmarks[16].score + landmarks[14].score) - 1 
+	// prediction.leftEyeDirection = (landmarks[13].score + landmarks[15].score)  - 1
+
+	// console.log( "right eye",landmarks[16].score, landmarks[14].score, prediction.rightEyeDirection )
+
+
 	prediction.eyeDirection = 0.5 * ( prediction.rightEyeDirection + prediction.leftEyeDirection ) 
 	prediction.isLookingRight = prediction.eyeDirection > 0.5
 	
@@ -197,7 +204,14 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	prediction.eyesClosed = prediction.leftEyeClosed && prediction.rightEyeClosed
 
 	// console.error("eyes", {pointBetweenTheEyes,distanceBetweenIrises,leftEyeSocketHeight,rightEyeSocketHeight, l:annotations.leftEye, r:annotations.rightEye, leftEyeSocketWidth, rightEyeSocketWidth }, eyes )
-	
+
+	// - EYEBROWS ---------------------------------------------------
+	prediction.leftEyebrowRaisedBy = landmarks[1].score
+	prediction.rightEyebrowRaisedBy =landmarks[2].score
+	prediction.eyebrowsRaisedBy = landmarks[3].score
+
+
+
 	// - MOUTH ------------------------------------------------------
 	const jawOpeness = landmarks[25].score
 	const mouthCloseness = landmarks[27].score
@@ -207,9 +221,9 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// kissing
 	const mouthPucker = landmarks[38].score
 
-	const isMouthOpen = jawOpeness > 0.2
+	const isMouthOpen = jawOpeness > 0.05
 	// is wider than tall?
-	const isMouthWide = jawOpeness > 0.5
+	const isMouthWide = jawOpeness > 0.3
 
 	prediction.mouthRatio = jawOpeness
 
