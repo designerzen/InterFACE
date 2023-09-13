@@ -49,30 +49,55 @@
 			"launch_type":"single-client"
 		}
 	],
+	"launch_handler":{},
 	"icons": [
 	  {
 		"src": "assets/icons/android-chrome-512x512.png",
 		"sizes": "512x512",
 		"type": "image/png",
-		"purpose": "any maskable"
+		"purpose": "any"
 	  },
 	  {
 		"src": "assets/icons/android-chrome-192x192.png",
 		"sizes": "192x192",
 		"type": "image/png",
-		"purpose": "any maskable"
+		"purpose": "any"
 	  },
 	  {
 		"src": "assets/icons/android-chrome-48x48.png",
 		"sizes": "48x48",
 		"type": "image/png",
-		"purpose": "any maskable"
+		"purpose": "any"
 	  },
 	  {
 		"src": "assets/icons/android-chrome-24x24.png",
 		"sizes": "24x24",
 		"type": "image/png",
-		"purpose": "any maskable"
+		"purpose": "maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-512x512.png",
+		"sizes": "512x512",
+		"type": "image/png",
+		"purpose": "maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-192x192.png",
+		"sizes": "192x192",
+		"type": "image/png",
+		"purpose": "maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-48x48.png",
+		"sizes": "48x48",
+		"type": "image/png",
+		"purpose": "maskable"
+	  },
+	  {
+		"src": "assets/icons/android-chrome-24x24.png",
+		"sizes": "24x24",
+		"type": "image/png",
+		"purpose": "maskable"
 	  }
 	],
 	"screenshots": [

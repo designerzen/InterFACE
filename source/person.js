@@ -862,6 +862,8 @@ export default class Person{
 			{
 				newVolume = 0.99
 			}
+
+			newVolume *= 0.4
 			
 			// newVolume = Math.round( newVolume * options.precision * 10 ) / (options.precision * 10) 
 			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
