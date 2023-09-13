@@ -40,7 +40,6 @@ const setOptions = async (options) => {
 
 let previousPrediction = []
 
-
 /**
  * Send an input element and determine how the faces look within
  * @param {HTMLElement} inputElement 
@@ -62,7 +61,7 @@ const predict = async (inputElement,detector, flipHorizontally=true ) => {
 	if (lastVideoTime !== inputElement.currentTime) 
 	{
 		lastVideoTime = inputElement.currentTime
-		results = detector.detectForVideo(inputElement, Date.now() )
+		const results = detector.detectForVideo(inputElement, Date.now() )
 		// results = detector.detectForVideo(inputElement, lastVideoTime)
 		const people = []
 
