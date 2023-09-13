@@ -170,6 +170,7 @@ registerRoute(
 // https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 // https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1/model.json?tfjs-format=file
 
+/*
 
 // Cache the cloud hosted TF models as they are heavy and not local!
 registerRoute(
@@ -221,3 +222,4 @@ registerRoute(
 //     ],
 //   }),
 // )
+*/
