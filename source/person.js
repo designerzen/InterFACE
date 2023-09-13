@@ -509,8 +509,7 @@ export default class Person{
 		if (this.options.stereoPan)
 		{
 			// -1 -> +1
-			this.stereoNode.pan.value = prediction.eyeDirection
-			// console.log( this.stereoNode.pan.value )
+			this.stereoNode.pan.value = prediction.eyeDirection * -1
 		}
 		
 		// eyebrows controls
