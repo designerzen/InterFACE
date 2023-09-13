@@ -125,6 +125,7 @@
 
 // once loaded we hide the #intro
 .interface.loaded{ 
+	background-color: black;
 	body{
 		grid-template-rows: 1fr auto;
 		grid-template-rows:
@@ -497,22 +498,24 @@ p strong{
 		overflow: hidden;
 
 		background-color: black;
-		box-shadow:
-			var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
-			var(--wig) -2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
-			var(--wig) -4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
-			var(--wig) -8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
-			var(--wig) -13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
-			var(--wig) -23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
-			var(--wig) -50px 51px hsla(var(--hue), 90%, 10%, 0.15),
+
+		// nice blue long soft shadow
+		// box-shadow:
+		// 	var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
+		// 	var(--wig) -2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
+		// 	var(--wig) -4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
+		// 	var(--wig) -8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
+		// 	var(--wig) -13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
+		// 	var(--wig) -23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
+		// 	var(--wig) -50px 51px hsla(var(--hue), 90%, 10%, 0.15),
 			
-			var(--wig) 1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
-			var(--wig) 2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
-			var(--wig) 4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
-			var(--wig) 8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
-			var(--wig) 13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
-			var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
-			var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
+		// 	var(--wig) 1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
+		// 	var(--wig) 2.7px 2.7px hsla(var(--hue), 90%, var(--l), 0.074),
+		// 	var(--wig) 4.8px 4.9px hsla(var(--hue), 90%, var(--l), 0.083),
+		// 	var(--wig) 8px 8.2px hsla(var(--hue), 90%, var(--l), 0.09),
+		// 	var(--wig) 13.2px 13.5px hsla(var(--hue), 90%, var(--l), 0.098),
+		// 	var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
+		// 	var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
 		// $col-yellow
 		
 		video, canvas{
