@@ -49,7 +49,9 @@
 			"launch_type":"single-client"
 		}
 	],
-	"launch_handler":{},
+	"launch_handler": {
+		"client_mode": ["navigate-existing, auto"]
+	},
 	"icons": [
 	  {
 		"src": "assets/icons/android-chrome-512x512.png",
