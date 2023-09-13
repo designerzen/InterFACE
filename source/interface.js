@@ -1393,6 +1393,8 @@ export const createInterface = (
 		const loadTotal = 6
 		let loadIndex = 0
 
+		let quanitiser
+
 		// PWA file types! Check manifest and 
 		// https://web.dev/file-handling/
 		if (capabilities.fileHandlerAvailable) 
