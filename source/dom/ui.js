@@ -177,7 +177,8 @@ export const setupInterface = ( options ) => {
 	
 	controlPanel = doc.getElementById("control-panel")
 
-	buttonInstrument = doc.getElementById("button-instrument")
+	// buttonInstrument = doc.getElementById("button-instrument")
+
 	buttonVideo = doc.getElementById("button-video")
 	buttonRecord = doc.getElementById("button-record")
 	buttonQuantise = doc.getElementById("button-quantise")
