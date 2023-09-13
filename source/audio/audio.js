@@ -30,6 +30,7 @@ export let dataArray
 
 let createAnalyser
 
+let analyser
 let compressor
 let distortion
 let reverb
