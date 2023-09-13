@@ -180,7 +180,7 @@ export const setupInterface = ( options ) => {
 	// buttonInstrument = doc.getElementById("button-instrument")
 
 	buttonVideo = doc.getElementById("button-video")
-	buttonRecord = doc.getElementById("button-record")
+	// buttonRecord = doc.getElementById("button-record-audio")
 	buttonQuantise = doc.getElementById("button-quantise")
 	//buttonPhotograph = doc.getElementById("button-photograph")
 	
