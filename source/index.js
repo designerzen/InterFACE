@@ -9,15 +9,13 @@ import { setLoadProgress } from './dom/load-progress'
 import { VERSION } from './version'
 import { getBrowserLocales } from './i18n'
 import { getDomainDefaults } from './settings'
-
 import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
-import { createStore} from './store'
+
 import { showError} from './dom/errors'
 import { setToast } from './dom/tooltips'
-import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents} from './hardware/mouse'
 
+import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents} from './hardware/mouse'
 import Capabilities from './capabilities'
-import Attractor from './attractor'
 
 // TESTING
 // import createAppInterface from './interface.js'
@@ -44,7 +42,8 @@ forceSecure(IS_DEVELOPMENT_MODE)
 body.classList.toggle( "loading", true )
 body.classList.add( debugMode ? "debug" : LTD )
 
-// This teaches us which kind of an app this is...
+// This teaches us which kind of an app this is, can be,
+// and what we can do with the tech installed in this device
 const capabilities = new Capabilities()
 // TODO: 
 // ESCAPE - no cameras found on system?
@@ -66,7 +65,7 @@ const showUpgradeDialog = () => {
 	updateButton.setAttribute("hidden", false)
 }
 
-// set window.title
+// set window.title if it has changed
 const setTitle = title => {
 	if (document.title !== title)
 	{
@@ -96,18 +95,21 @@ const start = () => {
 	const validOptionKeys = Object.keys(defaultOptions)
 	Object.keys(globalOptions).forEach( key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null )
 
-	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
-	
 	const language = getBrowserLocales()[0]
-	const store = createStore()
 
 	let startLoadTime = Date.now()
 	let failed = false
 
+	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
+	
 	
 	// Lazy load the main interface code
 	import('./interface.js').then( async ({createInterface}) => {
 
+		// import { createStore} from './store'
+		const { createStore } = await import('./store') 
+
+		const store = createStore()
 		const title = document.title
 		try{
 			const application = await createInterface( defaultOptions, store, capabilities, language, (loadProgress, message, hideLoader=false) => {
@@ -164,6 +166,9 @@ const start = () => {
 					setTitle( title )
 				}
 			})
+
+			// Load in in automation
+			const Attractor = ( await import( './attractor') ).default
 
 			// This allows for remote control as well as allowing the
 			// app to change parameters on it's own
