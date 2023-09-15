@@ -1,8 +1,10 @@
 /**
- * Copy all files from public to dist/
+ * Copy files to dist/ ...
+ * 
  * NB. There is already a Parcel Plugin that handles
  * copying from static/ to dist/ so this is more for server
- * specific stuff
+ * specific stuff such as downloading API data, copying
+ * files from 
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, lstatSync, copyFileSync} from 'fs'
 import * as path from 'path'
@@ -34,4 +36,4 @@ const copyFolderSync = (from, to) => {
 // copy Tensflow static wasm files and WAM files from node_modules into
 // the public/ folder... this is because there is no way to specify the hash name
 // in the google library - only the domain to load from!
-copyFolderSync('./node_modules/@mediapipe/face_mesh', './static/@mediapipe') 
+copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe') 
