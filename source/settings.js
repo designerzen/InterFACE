@@ -281,6 +281,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// left / right ear stereo panning
 	stereoPan:true,
 
+	// // add a dynamic comp
+	// limiter:true,
+
 	// send out MIDI per person...
 	// see Instrument.MIDI
 	sendMIDI:true,
@@ -306,8 +309,14 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawMouth:true,
 	// kid mode turns eyes googly!
 	drawEyes:true,
+
 	// extra controls
-	drawEyebrows:true,
+	drawEyebrows:false,
+
+	// use the nostrils to alter the sound
+	// NB. these are still disabled in media-vision
+	// but hopefully will work in the future!
+	drawNose:false,
 
 	// ratios of size of eye
 	// white bit
