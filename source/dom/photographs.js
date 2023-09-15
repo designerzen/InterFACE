@@ -24,8 +24,8 @@ export const createPhotographElement = (canvas) => {
 }
 
 
-export const appendPhotographElement = () => {
-	const photo = createPhotographElement()
+export const appendPhotographElement = (canvas) => {
+	const photo = createPhotographElement( canvas )
 	document.getElementById("photographs").appendChild( photo )
 	// Scroll the photograph frame into view
 	requestAnimationFrame( ()=>document.getElementById(photo.id).scrollIntoView() )
