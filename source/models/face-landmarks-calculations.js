@@ -1,3 +1,4 @@
+import { easeInQuint, easeOutQuint } from '../maths/easing'
 import {
 	clamp, 
 	hypoteneuse2D,hypoteneuse3D,
@@ -214,6 +215,11 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 
 	// - MOUTH ------------------------------------------------------
 	const jawOpeness = landmarks[25].score
+
+	// mouth roll (can be used instead of jaw!)
+	const mouthRollUpper = landmarks[41].score
+	const mouthRollLower = landmarks[40].score
+
 	const mouthCloseness = landmarks[27].score
 
 	// ooooooo
@@ -221,11 +227,20 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// kissing
 	const mouthPucker = landmarks[38].score
 
-	const isMouthOpen = jawOpeness > 0.05
-	// is wider than tall?
-	const isMouthWide = jawOpeness > 0.3
 
-	prediction.mouthRatio = jawOpeness
+	// Calculate some mouth info :
+	
+	// how seperated are the lips from one another (or how much is the bottom lip furled)
+	const mouthOpeness = Math.max( jawOpeness, mouthRollLower)
+	
+	const isMouthOpen = mouthOpeness > 0.05
+	// is wider than tall?
+	const isMouthWide = mouthOpeness > 0.3
+
+	// TODO: JawLeft and jawRight for FALSETTO
+
+
+	prediction.mouthRatio = mouthOpeness
 
 	// TODO: this is the size of the mouth as a factor of the head size
 	prediction.mouthOpen = isMouthOpen
@@ -234,11 +249,18 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// if it is wider than tall - E
 	// if it is about the same width as height - O
 	prediction.mouthShape = isMouthOpen ? 
-								(!mouthPucker > 0.3 ? 
+								(mouthPucker > 0.4 ? 
 									MOUTH_SHAPE_O : 
-									MOUTH_SHAPE_E)
-								: MOUTH_SHAPE_CLOSED
+									mouthRollUpper > 0.1 ?  
+										MOUTH_SHAPE_U :
+										mouthFunnel > 0.1 ? MOUTH_SHAPE_I : 
+											MOUTH_SHAPE_E )
+												: MOUTH_SHAPE_CLOSED
 							
+	// - NOSE! -------------------------------------------------------
+	
+	prediction.noseSneerLeft = landmarks[50].score
+	prediction.noseSneerRight = landmarks[51].score
 
 	// - BOUNDING BOX ------------------------------------------------
 	
@@ -293,6 +315,12 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	prediction.rightSmirk = landmarks[44].score // mouthSmileRight
 	//45
 	prediction.leftSmirk = landmarks[45].score // mouthSmileLeft
+	
+	
+	// as mouth opens... happiness falls at the point where the 
+	const openCoefficient = easeOutQuint(1 - jawOpeness )
+	prediction.happiness = ( ( prediction.rightSmirk + prediction.leftSmirk ) / 2 ) * openCoefficient // mouthSmileLeft
+
 
 
 
