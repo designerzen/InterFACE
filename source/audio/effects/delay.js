@@ -7,6 +7,8 @@ export const createDelay = async (
 ) => {
 
 	const delayNode = audioContext.createDelay(delayTime)
+	delayNode.delayTime.value = delayTime
+	
 	const feedbackNode = audioContext.createGain(feedback)
 	feedbackNode.gain.value = feedback
 

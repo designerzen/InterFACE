@@ -17,6 +17,7 @@ import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_PART, EVENT_DE
 import audioDecoder from 'audio-decode'
 
 import { INSTRUMENT_DATA_PACK_FATBOY, INSTRUMENT_DATA_PACK_FM, INSTRUMENT_DATA_PACK_MUSYNGKITE, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, SOUNDFONT_FATBOY_JSON, SOUNDFONT_FM_JSON, SOUNDFONT_MUSYNGKITE_JSON } from "../settings"
+import { convertArrayToBuffer } from "./audio"
 
 export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_MUSYNGKITE]
 export const INSTRUMENT_DATA_PACKS = [
@@ -199,10 +200,10 @@ export const getFolderNameForInstrument = name => {
 }
 
 // repeated in audio but importing will fail inside worker
-// CANNOT RUN INSIDE WORKER
-const convertArrayToBuffer = async (audioContext, bufferData)=>{
-	return await audioContext.decodeAudioData(bufferData)
-}
+// NB. CANNOT RUN INSIDE WORKER
+// const convertArrayToBuffer = async (audioContext, bufferData)=>{
+// 	return await audioContext.decodeAudioData(bufferData)
+// }
 
 // CANNOT RUN INSIDE WORKER
 export const decodeAudioDataIntoBuffer = async (bufferData, asBuffer=false) => {
