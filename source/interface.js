@@ -14,7 +14,9 @@ import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/re
 import { 
 	getRecordableOutputNode,
 	active, playing, 
-	setupAudio,	audioContext, setReverb,
+	setupAudio,	audioContext,
+	offlineAudioContext,
+	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
 	getVolume, setVolume } from './audio/audio'
@@ -229,6 +231,8 @@ export const createInterface = (
 	const canvasElement = document.getElementById('interface')
 	const webGLElement = document.getElementById('interface3D')
 
+	// create audio elements
+
 	const showLoading = () => {
 		body.classList.toggle("loading", true)
 		main.setAttribute("aria-busy", true)
@@ -410,7 +414,7 @@ export const createInterface = (
 		// Load any saved settings for this specific user name
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
 		const options = Object.assign ( {}, personOptions, savedOptions ) 
-		const person = new Person( name, audioContext, audio, options ) 
+		const person = new Person( name, audioContext, offlineAudioContext, audio, options ) 
 		//person.addInstrument( new SampleInstrument(audioContext, audio, {}))
 
 		// see if there is a stored name for the instrument...
@@ -2274,7 +2278,7 @@ export const createInterface = (
 		setButton( "button-photograph", event => {	
 			// TODO: also copy to clipboard?
 			// copyCanvasToClipboard()
-			appendPhotographElement()
+			appendPhotographElement( display.canvas )
 			setToast('Photograph taken!' )
 			kit.cowbell()
 		} )

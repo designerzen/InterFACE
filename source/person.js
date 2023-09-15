@@ -143,6 +143,11 @@ export default class Person{
 	// where to hook into the 
 	outputNode
 
+	// optional fx
+	stereoNode
+	eyeBrowsNode	// highpass filter
+	noseNode		// compressor
+
 	/**
 	 * Are the user's eyes both open?
 	 * @returns {Boolean} are both eyes open
@@ -307,7 +312,7 @@ export default class Person{
 	}
 	
 
-	constructor(name, audioContext, destinationNode, options={} ) {
+	constructor(name, audioContext, offlineAudioContext, destinationNode, options={} ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		this.name = name
@@ -329,7 +334,7 @@ export default class Person{
 		this.mouthScale = rescale(this.options.mouthCutOff)
 
 		// Create our Audio wiring
-		this.setupAudio(audioContext, destinationNode)
+		this.setupAudio(audioContext, offlineAudioContext, destinationNode)
 
 		// fetch face button dom element
 		this.button = document.getElementById(name)
@@ -509,18 +514,27 @@ export default class Person{
 		if (this.options.stereoPan)
 		{
 			// -1 -> +1
-			this.stereoNode.pan.value = prediction.eyeDirection * -1
+			this.stereoNode.pan.value = prediction.eyeDirection // * -1
 		}
 		
 		// eyebrows controls
 		if (this.options.drawEyebrows)
 		{
-			this.eyeBrowsNode.frequency.value = prediction.leftEyebrowRaisedBy * 1000 // (1000, audioCtx.currentTime);
-			this.eyeBrowsNode.gain.value =  prediction.rightEyebrowRaisedBy *  25 //(25, audioCtx.currentTime);
+			// as low pass filter
+			// this.eyeBrowsNode.frequency.value = 1000 + prediction.leftEyebrowRaisedBy * 1000 // (1000, audioCtx.currentTime);
+			// this.eyeBrowsNode.gain.value = 2 + prediction.rightEyebrowRaisedBy * 20 //(25, audioCtx.currentTime);
+			// this.eyeBrowsNode.Q.value = prediction.eyebrowsRaisedBy * 5
+						
+			// this.eyeBrowNode.threshold.value = prediction.eyebrowsRaisedBy * -100
 
-			this.eyeBrowNode.threshold.value = prediction.eyebrowsRaisedBy * -100
+
 			// this.eyeBrowNode.knee.value = prediction.eyebrowsRaisedBy * 40
 			// console.log( this.eyeBrowNode.gain.value, this.eyeBrowNode.frequency.value )
+
+			// As delay and feedback
+			this.feedbackNode.gain.value = prediction.eyebrowsRaisedBy
+
+			this.delayNode.delayTime.value = prediction.leftEyebrowRaisedBy * 3
 		}
 	}
 	
@@ -709,6 +723,8 @@ export default class Person{
 					`mouthRange:${(prediction.mouthRange||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
 					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
 					
+					// `noseSneerLeft:${prediction.noseSneerLeft.toFixed(3)} noseSneerRight:${prediction.noseSneerRight.toFixed(3)}`,
+
 					`eyes direction:${(prediction.eyeDirection||0).toFixed(3)} left:${(prediction.leftEye||0).toFixed(3)} right:${(prediction.rightEye||0).toFixed(3)}`,
 					`eyes open :${this.areEyesOpen} left:${!prediction.leftEyeClosed} right:${!prediction.rightEyeClosed}`,
 					
@@ -862,7 +878,7 @@ export default class Person{
 				newVolume = 0.99
 			}
 
-			newVolume *= 0.4
+			newVolume *= 0.33
 			
 			// newVolume = Math.round( newVolume * options.precision * 10 ) / (options.precision * 10) 
 			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
@@ -1105,12 +1121,15 @@ export default class Person{
 	}
 
 	/**
-	 * Create the Audio wiring for these options
+	 * Create the Audio wiring for this person with these options
+	 * this also includes any filters and effect nodes that the
+	 * other facial features can 
 	 * @param {AudioContext} audioContext 
 	 */
-	setupAudio(audioContext, destinationNode){
+	setupAudio(audioContext, offlineAudioContext, destinationNode){
 
 		this.audioContext = audioContext
+		this.offlineAudioContext = offlineAudioContext
 		
 		// this controls the amplitude and connects to the mouth ui
 		this.gainNode = audioContext.createGain()
@@ -1118,24 +1137,45 @@ export default class Person{
 
 		this.outputNode = this.gainNode
 
-		
 		if (this.options.drawEyebrows)
 		{
 			//FIXME:
-			this.eyeBrowsNode = audioContext.createBiquadFilter()
-			// this.eyeBrowsNode.connect(this.outputNode)
-		
-			this.eyeBrowNode = audioContext.createDynamicsCompressor()
-			this.eyeBrowNode.threshold.value = -100
-			this.eyeBrowNode.knee.value = 40
-			this.eyeBrowNode.ratio.value = 12
-			this.eyeBrowNode.attack.value = 0
-			this.eyeBrowNode.release.value = 0.25
-			this.eyeBrowNode.connect(this.eyeBrowsNode)
+			// this.eyeBrowsNode = audioContext.createBiquadFilter()
+			// // TODO: Set up as a high pass filter
+			// this.outputNode.connect(this.eyeBrowsNode)
+			// this.outputNode = this.eyeBrowsNode
 
-			this.outputNode.connect(this.eyeBrowNode)
+			const delayNode = audioContext.createDelay( this.options.delayLength )
+			const feedbackNode = audioContext.createGain()
+			delayNode.delayTime.value = 0.1
+			feedbackNode.gain.value = 0.5
+			// connect gain to delay (delay feeds back)
+			feedbackNode.connect(delayNode)
+			// connect the delay node to the output
+			delayNode.connect( feedbackNode )
+			// delayNode.connect( this.outputNode )
+
+
+			this.eyeBrowsNode = delayNode
+			this.delayNode = delayNode
+			this.feedbackNode = feedbackNode
+
+			// TODO: Set up as a high pass filter
+			// for now as delay
+			this.outputNode.connect(delayNode)
+			this.outputNode = delayNode
+
+			// this.eyeBrowNode = audioContext.createDynamicsCompressor()
+			// this.eyeBrowNode.threshold.value = -100
+			// this.eyeBrowNode.knee.value = 40
+			// this.eyeBrowNode.ratio.value = 12
+			// this.eyeBrowNode.attack.value = 0
+			// this.eyeBrowNode.release.value = 0.25
+			// this.eyeBrowNode.connect(this.eyeBrowsNode)
+
+			// this.outputNode.connect(this.eyeBrowNode)
 			
-			this.outputNode = this.eyeBrowNode
+			// this.outputNode = this.eyeBrowNode
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
 
@@ -1150,10 +1190,18 @@ export default class Person{
 			this.outputNode = this.stereoNode
 
 			//console.log("stereoNode", this.stereoNode.pan.value )
-			
-		}else{
-			// TODO: go directly into gain or through other fx first?
-			//this.outputNode = this.gainNode
+		}
+
+		if (this.options.drawNose)
+		{
+			this.noseNode = audioContext.createDynamicsCompressor()
+			// this.noseNode.threshold.value = -100
+			// this.noseNode.knee.value = 40
+			// this.noseNode.ratio.value = 12
+			// this.noseNode.attack.value = 0
+			// this.noseNode.release.value = 0.25
+			this.outputNode.connect(this.noseNode)
+			this.outputNode = this.noseNode
 		}
 
 		if (this.options.useDelay)
@@ -1165,20 +1213,25 @@ export default class Person{
 			feedbackNode.gain.value = this.options.feedback
 			
 			// connect gain to delay (delay feeds back)
-			this.outputNode.connect(delayNode)
+			feedbackNode.connect(delayNode)
 			// connect the delay node to the output
+			delayNode.connect( feedbackNode )
 			delayNode.connect( this.outputNode )
 			// and back in tot he feedback?
 			// delayNode.connect(destinationNode)
 			this.outputNode = delayNode
 		}
 
+
 		// now connect this directly to the main mixer
 		this.outputNode.connect(destinationNode)
 
 		// TODO: 
+		const samplePlayerOptions = {
+			offlineAudioContext
+		}
 		// create a sample player, oscillator add all other instruments
-		this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, {}) ) )
+		this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
