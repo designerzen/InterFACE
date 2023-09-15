@@ -8,9 +8,15 @@
  * 
  */
 
-const FACE_LANDMARK_WASM =  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+// const FACE_LANDMARK_WASM =  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
 //const FACE_LANDMARK_TASK = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
 // import FACE_LANDMARK_TASK from "url:./face_landmarker.task"
+
+const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
+// import FACE_LANDMARK_WASM from "./@mediapipe/tasks-vision/wasm"
+// import FACE_LANDMARK_WASM from "url:@mediapipe/tasks-vision/wasm/"
+// import * as WASM from "@mediapipe/tasks-vision/wasm/vision_wasm_internal"
+
 
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { enhanceFaceLandmarksModelPrediction } from './face-landmarks-calculations'
