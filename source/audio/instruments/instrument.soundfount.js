@@ -64,7 +64,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// use the provided soundfont class or else create a new instance
 		// and set it with the offlineAudioCoontext if set as an option,
 		// otherwise load the 
-		this.soundfont = options.packData ?? new SoundFont( options.offlineAudioContext ?? audioContext )
+		this.soundfont = options.packData ?? new SoundFont( audioContext, options.offlineAudioContext )
 
 		
 		// attempt to load "pack" provided - this can come in various forms

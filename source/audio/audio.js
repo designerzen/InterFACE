@@ -31,6 +31,7 @@ export let dataArray
 let createAnalyser
 
 let analyser
+let limiter
 let compressor
 let distortion
 let reverb
@@ -162,16 +163,36 @@ export const setupAudio = async (settings) => {
 	gain = await createAmplitude(audioContext, 1)
 	percussion = await createAmplitude(audioContext, 0.1 )
 	
+	
+	// Creating a compressor but setting a high threshold and 
+	// high ratio so it acts as a limiter. More explanation at 
+	// https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode
+	limiter = await createCompressor( audioContext, 
+		-5,
+		0,
+		40,
+		0.001,
+		0.1
+	)
+
+	// Connect percussion through FAT compressor
 	// this should hopefully balance the outputs
-	compressor = await createCompressor( audioContext )
+	compressor = await createCompressor( audioContext,
+		-50,
+		40,
+		12,
+		0,
+		0.25
+   	)
+
 	percussion.node.connect( compressor.node )
 	compressor.node.connect( getMasterMixdown())
 	
 	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
 	// reverb.impulseFilter()
 
-
 	
+
 	// Web Audio Modules! --------------------------
 	// const { default: samplerWAMPlugin } = await import("./wam2/sampler/index.js")
 	
@@ -216,6 +237,8 @@ export const setupAudio = async (settings) => {
 	return chain( [
 
 		gain,
+
+		limiter,
 		
 		// this should hopefully balance the outputs
 		//await createCompressor( audioContext ),
@@ -342,9 +365,16 @@ export const convertArrayToBuffer = async (context, arrayBuffer)=>{
  * @param {String} path Instrument Sample path
  * @returns {HTMLAudioElement} Audio buffer
  */
-export const loadAudio = async ( context, path ) => {
+export const loadAudio = async ( context, path, options ) => {
 	const response = await fetch(path)
 	const arrayBuffer = await response.arrayBuffer()
+	// TODO : Check for offline audio context !
+	if (options.offlineAudioContext)
+	{
+
+	}else{
+		
+	}
 	const audioBuffer = await convertArrayToBuffer( context, arrayBuffer )
 	return audioBuffer
 }
@@ -450,13 +480,13 @@ async function loadInstrumentPart (instrumentName, part) {
  * @param {String} path File path for sample pack
  * @returns {Array<Promise>} Array of instrument load promises
  */
-export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}` ) => {
+export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options ) => {
 	const parts = createInstrumentBanks()
 
 	// console.error("Pack data", {parts, instrumentPath} )
 
 	// array of buffers to pass to playTrack
-	const instruments = parts.map( part => loadAudio(context, `${instrumentPath}/${part}` ) )
+	const instruments = parts.map( part => loadAudio(context, `${instrumentPath}/${part}` , options ) )
 	//const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
 	// eg FluidR3_GM
 	return instruments
@@ -475,7 +505,7 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 export const loadInstrumentFromSoundFontSamples = async( audioContext=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
 		
 	// Load as individual parts
-	const partPromises = loadInstrumentParts(audioContext, path ) 
+	const partPromises = loadInstrumentParts(audioContext, path, options ) 
 	const parts = options.asArray ? [] : {}
 
 	for (let i=0, l=partPromises.length; i < l; ++i)

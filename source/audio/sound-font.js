@@ -47,6 +47,7 @@ export default class SoundFont{
 	
 	// can be online or offline audio context
 	audioContext
+	offlineAudioContext
 
 	// flags
 	loading = false
@@ -67,9 +68,11 @@ export default class SoundFont{
 	get quantity(){
 		return this.descriptor.length
 	}
-
-	constructor( audioContext, path="./" ){
+	// offlineAudioContext
+	constructor( audioContext, offlineAudioContext, path="./" ){
 		this.audioContext = audioContext
+		this.offlineAudioContext = offlineAudioContext
+		
 		// create defaults to overwrite
 		this.createInstrumentData( createInstruments(), path )
 	}
