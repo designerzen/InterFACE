@@ -174,17 +174,34 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// which ways are the eyes pointing to? we want from -1 -> 1
 	// left is -ve right is +ve
 	// 16 is right eye 0 -> 1 and 14 is 1 -> 0
+	// -1 -> +1
 	prediction.rightEyeDirection = (1-landmarks[16].score) + landmarks[14].score - 1 
+	
+	// eyeLookInLeft eyeLookOutLeft
 	prediction.leftEyeDirection = (1-landmarks[13].score) + landmarks[15].score - 1
+	
+	
+	prediction.leftEyeVertical = (1-landmarks[13].score) + landmarks[15].score - 1
+	prediction.rightEyeVertical = (1-landmarks[13].score) + landmarks[15].score - 1
 
 	// prediction.rightEyeDirection = (landmarks[16].score + landmarks[14].score) - 1 
 	// prediction.leftEyeDirection = (landmarks[13].score + landmarks[15].score)  - 1
 
 	// console.log( "right eye",landmarks[16].score, landmarks[14].score, prediction.rightEyeDirection )
 
-
-	prediction.eyeDirection = 0.5 * ( prediction.rightEyeDirection + prediction.leftEyeDirection ) 
-	prediction.isLookingRight = prediction.eyeDirection > 0.5
+	// -1 -> +1
+	prediction.eyesHorizontal = 0.5 * ( prediction.rightEyeDirection + prediction.leftEyeDirection ) 
+	
+	// 0 -> 1  
+	prediction.gazeHorizontal = ( 0.5 * prediction.eyeDirection ) + 0.5
+	
+	// -1 -> 1:
+	prediction.eyesVertical =  0.5 * ( prediction.leftEyeVertical + prediction.rightEyeVertical ) 
+	
+	// 0 -> 1  
+	prediction.gazeVertical =  ( 0.5 * prediction.eyesVertical ) + 0.5
+	
+	prediction.isLookingRight = prediction.eyeDirection > 0
 	
 	// before an eye blink is the squint!
 	prediction.eyeSquintLeft = landmarks[19].score
