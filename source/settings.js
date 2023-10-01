@@ -89,7 +89,7 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 	solutionPath: './@mediapipe/',
 
 	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
-	maxFaces:1,
+	// maxFaces:1,
 	
 	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
 	// shouldLoadIrisModel:true,
@@ -169,6 +169,7 @@ export const DEFAULT_OPTIONS = {
 	muted:false,
 	// dual person mode (required reload)
 	duet:false,
+	players:1,
 	
 	// FIXME: monophonic?
 	stereo:true,
@@ -176,8 +177,10 @@ export const DEFAULT_OPTIONS = {
 	// stereo panning with eyes
 	stereoPan:true,
 
-	// midi channel (0/"all" means send to all)
+	// FIXME:
+	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
+
 	// saved BPM that can be shared?
 	bpm:200,
 	
@@ -193,6 +196,7 @@ export const DEFAULT_OPTIONS = {
 	
 	// choice of different models to use
 	model:"face",
+
 	// sample set
 	instrumentPack:INSTRUMENT_PACK_FATBOY,
 	instrumentPacks:[INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE].join(","),
@@ -291,6 +295,25 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// if you want the axis to be switched
 	swapControls:false,
 
+	// Here we bind which model variables is assigned to
+	// which audio selection mechanism.
+	// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
+	// eyeSquintLeft, eyeSquintRight, leftSmirk, rightSmirk, 
+	// see models/landmarks
+	noteController:'pitch',
+	octaveController:'roll',
+	gateController:'mouth',
+
+	pitchbendController:'leftSmirk',
+	aftertouchController:'rightSmirk',
+
+	stereoController:'eyesHorizontal',
+	// eyeSquintLeft, leftSmirk, rightSmirk, 
+
+	fxAController:'happiness',
+	fxBController:'eyebrowsRaisedBy',
+
+
 	// if the user has epilepsy, set to true
 	photoSensitive:false,
 
@@ -335,7 +358,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	mouseGestureDistance:40,
 
 	// if both eyes are closed for X ms do something...
-	eyeShutHolddDuration:3500, // ms
+	eyeShutHolddDuration:1500, // ms
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,
@@ -374,4 +397,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	ease:easeOutSine // easeInSine // linear
 }
 
+
+export const DEFAULT_CHILD_OPTIONS = {
+	...DEFAULT_PERSON_OPTIONS
+}
 
