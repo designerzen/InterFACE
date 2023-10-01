@@ -1,3 +1,33 @@
+### 0.20.0 (2023-09-11)
+
+##### Bug Fixes
+
+*  Bounding box (34e424bf)
+*  Timing updates * new event (3b4f00f2)
+
+##### Other Changes
+
+*  Clipboard copy to (37639bcb)
+*  mouse pressure ui (2fd173da)
+*  VSCode debug (ce44726b)
+*  UI improvements (d9a6fe50)
+*  WAM2 (7f5f2b6f)
+*  Noise and scales (87051cef)
+*  audio / video recording (bd93a72c)
+*  Major MIDI improvements (7e4119b5)
+*  tests but VScode destroyed them (acaf707f)
+*  Draw waveforms in SVG (1fb68f0c)
+*  WAM page tests (a45f38f2)
+*  New Instrument interfaces (3f8eefbd)
+*  Soundfont can be loaded new ways (e71c720f)
+*  offscreen canvas (84e3b4a9)
+*  Zip Worker (d919789e)
+*  Stripped out 2d / 3d methods (87b03f31)
+*  New 'Displays' type for different devices (fde376b6)
+*  Scss instrument list improvements (b70f4788)
+*  MediaVision rather than @mediapipe (9aea67f1)
+*  Improved markup and title (018b0b63)
+
 ### 0.19.0 (2023-07-28)
 
 ### 0.18.0 (2023-07-28)
