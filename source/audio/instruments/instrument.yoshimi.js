@@ -30,9 +30,9 @@ export default class YoshimiInstrument extends Instrument{
 		return this.gainNode
 	}
 
-	constructor( audioContext ){
+	constructor( audioContext, options ){
 		
-		super(audioContext)
+		super(audioContext, options)
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0.9 // this.currentVolume
@@ -118,9 +118,8 @@ export default class YoshimiInstrument extends Instrument{
 	 * @param {*} audioContext 
 	 * @returns 
 	 */
-	async createEngine(audioContext){
+	async createEngine(audioContext, origin=`/${WAM_FOLDER}/`){
 
-		const origin = `/${WAM_FOLDER}/`
 		//AWPF.origin = origin
 		// AWPF.origin = "http://127.0.0.1:44102/dist/"
 		// AWPF.origin = "https://webaudiomodules.org/demos/jariseon/yoshimi/"
