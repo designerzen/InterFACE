@@ -15,6 +15,7 @@
 	"description": "Smile Powered Synthesizer",
 	"orientation": "any",
 	"background_color": "#e4dede",
+	"scope":"https://interface.place/",
 	"related_applications": [
 		{
 			"platform": "webapp",
@@ -25,7 +26,7 @@
 	"prefer_related_applications": false,
 	"file_handlers":[
 		{
-			"action":"/",
+			"action":"/open-midi-file",
 			"accept": {"audio/mid":[".mid",".midi"]},
 			"icons":[
 				{
@@ -47,6 +48,12 @@
 				}
 			],
 			"launch_type":"single-client"
+		}
+	],
+	"protocol_handlers": [
+		{
+		  "protocol": "web+pwinter",
+		  "url": "index.html?colors=%s"
 		}
 	],
 	"launch_handler": {
@@ -125,12 +132,32 @@
 
 	"shortcuts":[
 		{
-			"name": "Fund Project",
+			"name": "Solo Simple",
+			"url": "./index.html?players=1",
+			"description": "Start 1 Player in simple mode (best for beginners)"
+		},
+		{
+			"name": "Solo Expert",
+			"url": "./index.html?players=1",
+			"description": "Start 1 Player in expert mode with extra features such as MIDI"
+		},
+		{
+			"name": "Duet Simple",
+			"url": "./index.html?players=1",
+			"description": "Start 2 players as a simple duet"
+		},
+		{
+			"name": "Duet Expert",
+			"url": "./index.html?players=1",
+			"description": "Start 2 pro players"
+		},
+		{
+			"name": "Fund",
 			"url": "./funding.html",
 			"description": "Show your support for this project"
 		},
 		{
-			"name": "Changes",
+			"name": "Release updates & change log",
 			"url": "./changes.html",
 			"description": "See all new features and changes with this version"
 		}
