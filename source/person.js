@@ -1,5 +1,10 @@
 /**
  * each person in the app has their own instrument and face
+ * and each has a unique input mechanism based on the options 
+ * specified.
+ * 
+ * By default the yaw and picth control the 
+ * This can be set to the eyes left and right for 
  * 
  * 
   DADSHR :
@@ -35,7 +40,7 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 
 import WAM2Instrument from './audio/instruments/instrument.wam2'
 // import SampleInstrument from './audio/instruments/instrument.sample'
-import SoundFontInstrument from './audio/instruments/instrument.soundfount'
+import SoundFontInstrument from './audio/instruments/instrument.soundfont'
 import MIDIInstrument from './audio/instruments/instrument.midi'
 
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
@@ -71,6 +76,49 @@ const UPDATE_FACE_BUTTON_AFTER_FRAMES = 24
 
 // FIXME:
 const FUDGE = 1.0// 1.3
+
+/**
+ * Default head control input mechanism
+ * @param {*} prediction 
+ * @param {*} options 
+ * @returns 
+ */
+const convertHeadToNote = (prediction, options) => {
+
+	const octaveNumber = prediction[options.octaveController] 
+	const noteNumber = prediction[options.noteController] 
+	
+	// remap -1 -> +1 to 0 -> 1
+	const noteFloat = (1 + noteNumber) * 0.5 
+
+	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
+	// straight at screen to positive below and negative above
+	const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
+
+	// simple way of selecting the black notes
+	const isMinor = prediction.isFacingRight
+
+	// eg. A1 Ab1 C3 etc
+	const noteName = getNoteName(noteFloat, newOctave, isMinor)
+	// eg. Do Re Mi
+	const noteSound = getNoteSound(noteFloat, isMinor)	
+	
+	const afterTouch = 0
+	const pitchBend = 0
+
+	return {
+		octaveNumber,
+		noteNumber,
+		noteName,
+		noteSound,
+		noteFloat,
+		newOctave,
+		afterTouch,
+		pitchBend,
+		isMinor
+	}
+}
+
 export default class Person{
 
 	// instances
@@ -147,6 +195,10 @@ export default class Person{
 	stereoNode
 	eyeBrowsNode	// highpass filter
 	noseNode		// compressor
+
+	// this is the mechanism to control the music
+	// and can be set on a per user basis
+	controlMode = convertHeadToNote
 
 	/**
 	 * Are the user's eyes both open?
@@ -510,11 +562,12 @@ export default class Person{
 			this.onEyesClosedForTimePeriod()
 		}
 
+		// 
 		// stereo eye panning
 		if (this.options.stereoPan)
 		{
 			// -1 -> +1
-			this.stereoNode.pan.value = prediction.eyeDirection // * -1
+			this.stereoNode.pan.value = prediction[this.options.stereoController] // * -1
 		}
 		
 		// eyebrows controls
@@ -750,6 +803,7 @@ export default class Person{
 	 * Triggered on every metronome strike
 	 */
 	sing(){
+
 		// nothing to play?
 		if ( !this.data )
 		{
@@ -769,9 +823,9 @@ export default class Person{
 		// do some checks on data to see if an event
 		// should be triggered via eye left / right
 
-		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = prediction.mouthRatio
-		
+		// Controls stereo pan
+		const eyeDirection = prediction.eyesHorizontal
+
 		// Controls minor / major
 		const yaw = prediction.yaw
 		
@@ -784,42 +838,62 @@ export default class Person{
 		// we can exagerate a motion by amplyifying it's signal and clamping its output
 		//const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
 		
-		// swap em arounnd!
-		const pitch = this.options.swapControls ? prediction.roll : prediction.pitch
-		const roll = this.options.swapControls ? prediction.pitch : prediction.roll
-
+		const {
+			octaveNumber, newOctave,
+			noteNumber, noteName, noteSound, noteFloat,
+			afterTouch, pitchBend,
+			isMinor
+		} = this.controlMode(prediction, this.options)
+		
+/*
+		// swap em arounnd!??
+		const octaveNumber = this.options.swapControls ? prediction.roll : prediction.pitch
+		const noteNumber = this.options.swapControls ? prediction.pitch : prediction.roll
+		
 		// remap -1 -> +1 to 0 -> 1
-		const rolled = (1 + roll) * 0.5 
+		const noteFloat = (1 + noteNumber) * 0.5 
+	
+		// pitch goes from -1 -> +1 and we want to map to 1 -> 7
+		// straight at screen to positive below and negative above
+		const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
+		
 
-		// Controls stereo pan
-		const eyeDirection = prediction.eyeDirection
+		// FIXME: if we don't want the happy notes...
+		const isMinor = prediction.isFacingRight
 
+
+
+		// eg. A1 Ab1 C3 etc
+		const noteName = getNoteName(noteFloat, newOctave, isMinor)
+		// eg. Do Re Mi
+		const noteSound = getNoteSound(noteFloat, isMinor)
+		
+
+		const afterTouch = 0
+		const pitchBend = 0
+
+
+
+*/
+		
+		const hasNoteChanged = this.lastNoteName !== noteName
+			
+		// MIDI Note Number 0-127
+		const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
+	
+		const friendlyNoteName = getFriendlyNoteName( noteName ) 
+	
+		// we want to ignore the 0-5px range too as inconclusive!
+		const lipPercentage = prediction.mouthRatio
+				
 		// volume is an log of this
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
 		// const logAmp = options.ease(amp)
 		
-		// pitch goes from -1 -> +1 and we want to map to 1 -> 7
-		// straight at screen to positive below and negative above
-		const newOctave = rangeRounded( -pitch , -1, 1, 1, 7 )
-		
-		// FIXME: if we don't want the happy notes...
-		const isMinor = prediction.isFacingRight
-
-		// eg. A1 Ab1 C3 etc
-		const noteName = getNoteName(rolled, newOctave, isMinor)
-		// eg. Do Re Mi
-		const noteSound = getNoteSound(rolled, isMinor)
-		// MIDI Note Number 0-127
-		const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
-		
-		const friendlyNoteName = getFriendlyNoteName( noteName ) 
-		const hasNoteChanged = this.lastNoteName !== noteName
-
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume = amp
 		let note = -1
 		
-	
 		// cache for drawing getNoteText
 		this.lastNoteName = noteName
 		this.lastNoteSound = noteSound
@@ -827,7 +901,7 @@ export default class Person{
 		this.lastNoteFriendlyName = friendlyNoteName
 		this.octave = newOctave
 
-		this.defaultHue = roll * this.hueRange
+		this.defaultHue = noteNumber * this.hueRange
 		
 		this.saturation = 100 * lipPercentage
 		this.singing = amp >= options.mouthCutOff
@@ -835,7 +909,7 @@ export default class Person{
 		// console.log("Person", prediction.yaw , yaw)
 		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
-		
+		// MOUTH GATE ==========================
 
 		// If we have an instrument and singing is enabled
 		if ( this.instrument && this.singing )
@@ -911,14 +985,14 @@ export default class Person{
 					this.midiActive = true
 				}
 				
-				// Use eye direction as a modifier for the sound
-				if (eyeDirection !== 0)
-				{
-					// Midi pitch bending with eyes!
-					// Pitch bending eyes!
-					//this.midi.setPitchBend( eyeDirection )
-					this.midi.sendKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
-				}
+				// // Use eye direction as a modifier for the sound
+				// if (eyeDirection !== 0)
+				// {
+				// 	// Midi pitch bending with eyes!
+				// 	// Pitch bending eyes!
+				// 	//this.midi.setPitchBend( eyeDirection )
+				// 	this.midi.sendKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
+				// }
 			}
 			
 			this.isMouthOpen = true
@@ -954,6 +1028,7 @@ export default class Person{
 			this.active = false
 			// no instruments in memory yet... play silence?
 		}
+
 
 		//&& this.midiActive If the user has stopped singing we need to stop the midi too!
 		if (this.options.sendMIDI && this.hasMIDI)
@@ -1004,22 +1079,33 @@ export default class Person{
 		this.gainNode.gain.value = newVolume
 
 		this.yaw = yaw
-		this.pitch = pitch
-		this.roll = roll
+		this.pitch = octaveNumber
+		this.roll = noteNumber
 
 		// TODO: Return all notes played
 		return {
 			played,
-			yaw, pitch, roll, 
+			yaw, 
+			pitch: octaveNumber, 
+			roll: noteNumber, 
 			hue:this.defaultHue,
+
 			lipPercentage,
 			eyeDirection,
+
+			octaveNumber,
+			noteNumber,
 			octave:newOctave,
 			friendlyNoteName,
 			note,
 			noteNumberForMIDI,
 			noteName,
+			
+			afterTouch,
+			pitchBend,
+
 			volume:newVolume,
+
 			singing:this.singing,
 			mouthOpen: this.isMouthOpen,
 			active:this.active,
