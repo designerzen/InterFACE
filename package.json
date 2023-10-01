@@ -35,7 +35,10 @@
 		"deploy": "node actions/deploy.mjs",
 		"doc": "jsdoc -d docs --configure .jsdoc.json source/interface.js",
 		"build": "npm run copy && npm run build:all",
+		
 		"build:all": "parcel build --public-url ./ source/*.pug",
+		"build:cloudflare": "parcel build --public-url ./ source/*.pug",
+		
 		"build:wam": "parcel build --no-content-hash --public-url ./ source/wam.pug",
 		"build:debug": "parcel build --no-minify --no-scope-hoist ---no-content-hash --public-url ./  source/*.pug",
 		"build:index": "parcel build --public-url ./ source/index.pug",
