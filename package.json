@@ -1,7 +1,7 @@
 {
 	"name": "interface.place",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical instrument",
-	"version": "0.20.0",
+	"version": "0.20.1",
 	"time": 1694451105599,
 	"author": "designerzen <github@designerzen.com>",
 	"license": "GPL-2.0-only",
@@ -19,75 +19,58 @@
 	"scripts": {
 		"test": "jest",
 		"push:": "git push origin --tags && git push origin",
-		
-		"=UTILITIES=":"------------------------------------",
+		"=UTILITIES=": "------------------------------------",
 		"killport": "npx kill-port 909",
 		"hardreset": "node actions/reset.mjs --total && npm ci",
 		"reset": "node actions/reset.mjs",
-		
-		"=START=":"------------------------------------",
+		"=START=": "------------------------------------",
 		"freshstart": "npm run reset && npm run start",
 		"start": "npm run serve",
-		
 		"index": "npm run serve:index",
 		"wam": "npm run serve:wam",
-		
 		"upgrader": "yarn upgrade-interactive",
 		"changes": "node actions/changelog.mjs",
 		"clean": "node actions/clean.mjs",
 		"copy": "node actions/copy.mjs",
-
 		"clear": "npm run clean && npm run copy",
 		"doc": "jsdoc -d docs --configure .jsdoc.json source/interface.js",
-		
-		"=SERVE=":"------------------------------------",
-		"serve":"parcel serve source/*.pug -p 909",
-		"serve:index":"parcel serve source/index.pug -p 909",
-		"serve:wam":"parcel serve source/wam.pug -p 909",
-		
-		"=BUILD=":"------------------------------------",
+		"=SERVE=": "------------------------------------",
+		"serve": "parcel serve source/*.pug -p 909",
+		"serve:index": "parcel serve source/index.pug -p 909",
+		"serve:wam": "parcel serve source/wam.pug -p 909",
+		"=BUILD=": "------------------------------------",
 		"build": "npm run copy && npm run build:all",
-
 		"build:help": "parcel build --public-url ./ source/help.pug",
 		"build:roadmap": "parcel build --public-url ./ source/roadmap.pug",
-		
 		"build:debug": "parcel build --no-minify --no-scope-hoist ---no-content-hash --public-url ./  source/*.pug",
 		"build:all": "parcel build --public-url ./ source/*.pug",
 		"build:cloudflare": "parcel build --public-url ./ source/*.pug",
-		
 		"build:wam": "parcel build --no-content-hash --public-url ./ source/wam.pug",
 		"build:index": "parcel build --public-url ./ source/index.pug",
-		
-		"=ELECTRON=":"------------------------------------",
+		"=ELECTRON=": "------------------------------------",
 		"run:electron": "electron . --enable-logging",
 		"test:electron": "electron ./main.cjs --enable-logging",
 		"build:electron": "electron .",
 		"package:electron": "electron-packager . photosynth-interface --overwrite --out=releases --icon=./source/assets/icons/icon.ico",
 		"open:electron": "npx cap open @capacitor-community/electron",
 		"status:electron": "electron-packager --version",
-	
-		"=ANDROID=":"------------------------------------",
+		"=ANDROID=": "------------------------------------",
 		"build:android": "parcel build --public-url ./ --dist-dir ./dist --no-source-maps source/app.pug",
 		"open:android": "npx cap open android",
 		"run:android": "npx cap run android",
 		"android": "npm run clear && npm run build:android && node actions/app.mjs && npm run open:android",
-		
 		"app": "parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug",
 		"app:build": "parcel build --public-url ./ --dist-dir ./app --no-source-maps source/app.pug",
 		"copyrights:list": "NODE_ENV=production yarn licenses list && node license.mjs",
 		"license": "yarn licenses generate-disclaimer > LICENSES.md && yarn licenses generate-disclaimer > source/licenses.md",
 		"license:build": "parcel build --public-url ./ source/licenses.pug",
-	
-		"=REVISION=":"------------------------------------",
+		"=REVISION=": "------------------------------------",
 		"patch": "changelog -p && npm version patch --force && node actions/revision.mjs",
 		"minor": "changelog -m && npm version minor --force && node actions/revision.mjs",
 		"major": "changelog -M && npm version major --force && node actions/revision.mjs",
-	
-		"=RELEASE=":"------------------------------------",
-		
+		"=RELEASE=": "------------------------------------",
 		"package": "npm run minor && npm run clear && npm run build",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
-	
 		"release:patch": "npm run patch && npm run build:all",
 		"release:minor": "npm run minor && npm run build:all",
 		"release:major": "npm run major && npm run build:all",
@@ -112,9 +95,7 @@
 			}
 		]
 	},
-	"engines": {
-
-	},
+	"engines": {},
 	"dependencies": {
 		"@analytics/google-analytics": "^1.0.7",
 		"@capacitor/electron": "^2.5.0",
