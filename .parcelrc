@@ -10,8 +10,6 @@
 		"wam:*": []
 	},
 	"optimizers": {
-		"*.js": [
-			"@parcel/optimizer-esbuild"
-		]
+		"*.js": []
 	}
 }
