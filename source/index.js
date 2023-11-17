@@ -4,11 +4,11 @@
  * before showing a UI from those external libs
  * http://localhost:909/?advancedMode=false&showSettings=false&showPiano=false&metronome=false&backingTrack=false&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=true&muted=false&duet=false&stereo=true&stereoPan=true&midiChannel=all&bpm=200&autoHide=false&loadMIDIPerformance=false&useGamePad=true&model=face&instrumentPack=FatBoy&instrumentPacks=FatBoy%2CFluidR3_GM%2CMusyngKite&photoSensitive=false&automationMode=false
  */
-import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './location-handler'
+import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
 import { setLoadProgress } from './dom/load-progress'
 import { VERSION } from './version'
 import { getBrowserLocales } from './i18n'
-import { getDomainDefaults } from './settings'
+import { getDomainDefaults } from './settings/options'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
 
 import { showError} from './dom/errors'
@@ -107,7 +107,7 @@ const start = () => {
 	import('./interface.js').then( async ({createInterface}) => {
 
 		// import { createStore} from './store'
-		const { createStore } = await import('./store') 
+		const { createStore } = await import('./utils/store') 
 
 		const store = createStore()
 		const title = document.title

@@ -57,7 +57,7 @@ import {
 	EYE_COLOURS,
 	DEFAULT_PERSON_OPTIONS,
 	DEFAULT_VOICE_OPTIONS
-} from './settings'
+} from './settings/options'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
 
 // States for the audio controlled by the face
