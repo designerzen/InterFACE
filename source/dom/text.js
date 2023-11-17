@@ -1,4 +1,4 @@
-import {debounce} from '../utils'
+import {debounce} from '../utils/utils'
 
 /**
  * updates the text on screen and hides it after a time out 

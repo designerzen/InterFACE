@@ -8,7 +8,7 @@
  */
 
 import {clamp} from "../../maths/maths"
-import { memoize } from "../../utils" 		// Memoize as much as possible
+import { memoize } from "../../utils/utils" 		// Memoize as much as possible
 
 const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
 const NOTES_ALPHABETICAL_FRIENDLY = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
