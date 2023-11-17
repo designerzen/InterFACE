@@ -37,27 +37,47 @@ let barsElapsed = 0
 
 // There are 16 quarter notes in a note
 let divisionsElapsed = 0
-
-// NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
-//      FF does not allow raf so use setimeout is prefered
 let timingWorker
-try{
+
+const loadTimingWorker = type => {
 
 	// Pick your type of worker here 
 	// Settimeout is the most universal but laggiest
 	// audioContext only works on FF!
-	timingWorker = new Worker(
-        new URL('./timing.settimeout.worker.js', import.meta.url),
-        {type: 'module'}
-    )
+	// return new Worker(
+	//     new URL('./timing.settimeout.worker.js', import.meta.url),
+	//     {type: 'module'}
+	// )
 
-	// timingWorker = new Worker(
-    //     new URL('./timing.audiocontext.worker.js', import.meta.url),
-    //     {type: 'module'}
-    // )
+	// identical to the worker above but uses setinterval rather than settimeout
+	// return new Worker(
+	//     new URL('./timing.setinterval.worker.js', import.meta.url),
+	//     {type: 'module'}
+	// )
 
+	// in the future, we may be able to pass offlineAudioContext to a worker
+	// and at that point, we can finally tie in the actual timing by using the 
+	// context as the global clock
+	// return new Worker(
+	//     new URL('./timing.audiocontext.worker.js', import.meta.url),
+	//     {type: 'module'}
+	// )
+
+	// This tries to check the timing every 1ms
+	// and should be the most accurate and the most expensive
+	return new Worker(
+		new URL('./timing.rolling.worker.js', import.meta.url),
+		{type: 'module'}
+	)
+
+	// NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
+	//     FF does not allow raf so use setimeout is prefered
+}
+
+try{
+	timingWorker = loadTimingWorker()
 }catch(error){
-    isCompatible = false
+	isCompatible = false
 }
 
 /**
