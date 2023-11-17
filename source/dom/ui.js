@@ -1,5 +1,5 @@
 import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
-import {getShareLink} from '../location-handler'
+import {getShareLink} from '../utils/location-handler'
 import {formattedDate} from '../models/info'
 import {setToggle} from './toggle'
 import { connectSelect } from './select'
