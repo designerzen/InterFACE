@@ -62,8 +62,14 @@ import { testLoadPresets } from './tests/test.load-presets'
 import { testSoundfontInstrument } from './tests/test.soundfont-instrument'
 import { InstrumentFactory } from './audio/instrument-factory'
 
-import INSTRUMENT_LIST from "url:./settings.instruments.json"
-
+// 
+import INSTRUMENT_DATA from "raw:./settings/instruments.json"
+// import INSTRUMENT_DATA from "url:./settings/instruments.json"
+const INSTRUMENT_LIST = INSTRUMENT_DATA
+// const INSTRUMENT_LIST = new URL(
+// 	'./settings/instruments.json',
+// 	import.meta.url
+// )
 
 
 console.log( {
@@ -111,6 +117,12 @@ let currentPluginAudioNode
 
 const create = async(audioContext, offlineAudioContext) => {
 	
+	// 
+	let packName = INSTRUMENT_PACKS[0]
+	const soundFontOptions = {
+		pack:packName
+	}
+
 	// main output fader
 	const masterGain = new GainNode(audioContext)
 	
@@ -119,18 +131,26 @@ const create = async(audioContext, offlineAudioContext) => {
 	// a one channel mixer
 	masterGain.connect(audioContext.destination)
 
-
 	// Load in out instruments!
 	const factory = new InstrumentFactory(audioContext)
 	const list = await factory.loadList(INSTRUMENT_LIST)
+	const instruments = await factory.loadInstruments()
 
-	const instrumentOscillator = factory.loadInstrumentByType("oscillator")
+	const instrumentOscillator = await factory.loadInstrumentByType("oscillator")
 	//const instrumentOscillator = new OscillatorInstrument( audioContext )
 	
-	const instrumentSoundFont = factory.loadInstrumentByType("soundfont", soundFontOptions)
+	const instrumentSoundFont = await factory.loadInstrumentByType("soundfont", soundFontOptions)
 	
 
+	// 02085107104 
+	// sir ludwig utsman
+	// e20 1as
+	// ultrasound 
+	// 11th 5:15
+
 	console.error("Factory", {
+		instruments,
+		INSTRUMENT_LIST,
 		factory, list,
 		instrumentOscillator, instrumentSoundFont
 	 })
@@ -142,8 +162,6 @@ const create = async(audioContext, offlineAudioContext) => {
 
 
 	// const instruments = createInstruments()
-
-	let packName = INSTRUMENT_PACKS[0]
 
 	let instrumentName = getRandomInstrument() 
 
@@ -223,9 +241,7 @@ const create = async(audioContext, offlineAudioContext) => {
 
 	// ------------------------------------------------------------------------
 
-	const soundFontOptions = {
-		pack:packName
-	}
+
 	// you can provide pack data directly instead of pack name
 	const soundFont = new SoundFontInstrument( audioContext, soundFontOptions )
 	soundFont.audioNode.connect(masterGain)
