@@ -6,7 +6,7 @@ const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
 const OPTIONS = {
 	
 	// The shape of the wave produced by the node. Valid values are 'sine', 'square', 'sawtooth', 'triangle' and 'custom'. The default is 'sine'.
-	type:OSCILLATOR_TYPES[3],
+	shape:OSCILLATOR_TYPES[3],
 	
 	// A detuning value (in cents) which will offset the frequency by the given amount. Its default is 0.
 	detune:0,
@@ -49,9 +49,9 @@ export default class OscillatorInstrument extends Instrument{
 		return this.gainNode
 	}
 
-	constructor( audioContext, shape=OSCILLATOR_TYPES[1], options={} ){
+	constructor( audioContext, options={} ){
 
-		super(audioContext, { ...OPTIONS, type:shape, ...options })
+		super(audioContext, { ...OPTIONS, ...options })
 
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 1 // this.currentVolume
@@ -59,7 +59,7 @@ export default class OscillatorInstrument extends Instrument{
 		this.envelope = audioContext.createGain()
 		this.envelope.gain.value = 1 
 		
-		this.oscillator = new OscillatorNode( audioContext, this.options ) 
+		this.oscillator = new OscillatorNode( audioContext, { ...this.options, type:this.options.shape }) 
 		
 		// const bitCrusher = new AudioWorkletNode(audioContext, 'bit-crusher-processor')
 		// bitCrusher.onprocessorerror = () => {
@@ -86,7 +86,9 @@ export default class OscillatorInstrument extends Instrument{
 		// immediately start as always playing in silent
 		this.oscillator.start()
 
-		this.title = shape
+		const shapeName = string => string[0].toUpperCase() + string.slice(1)
+
+		this.title = `${shapeName(this.options.shape)} Wave Oscillator`
 		this.available = true
 	}
 
