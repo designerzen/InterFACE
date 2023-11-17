@@ -1,7 +1,7 @@
 import 'audioworklet-polyfill'
 
 // import {midiLikeEvents} from './timing/rhythm'
-import { loadState, getState, setState, refreshState } from './state'
+import { loadState, getState, setState, refreshState } from './utils/state'
 
 // TODO :lazy load
 import { say, hasSpeech} from './audio/speech'
@@ -73,7 +73,7 @@ import { setFeedback } from './dom/text'
 import { appendPhotographElement } from './dom/photographs'
 import { appendAudioElement} from './dom/audio-element'
 import { connectDropZone } from './dom/drop-zone'
-import interact from './inactivity'
+import interact from './utils/inactivity'
 import { 
 	copyCanvasToClipboard, canvas
 } from './visual/canvas'
@@ -87,7 +87,7 @@ import { drawQuantise, Quanitiser } from './visual/quantise'
 
 import { drawMousePressure } from './dom/mouse-pressure'
 
-import { getLocationSettings, getShareLink, addToHistory } from './location-handler'
+import { getLocationSettings, getShareLink, addToHistory } from './utils/location-handler'
 
 import { findBestCamera, loadCamera } from './hardware/camera'
 import { watchMouseCoords  } from './hardware/mouse'
@@ -98,11 +98,11 @@ import Person, {
 	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
  } from './person'
 
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS } from './settings'
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS } from './settings/options'
 
 import { TAU } from "./maths/maths"
 
-import { convertOptionToObject } from './utils'
+import { convertOptionToObject } from './utils/utils'
 
 import { 
 	loadDisplay,
