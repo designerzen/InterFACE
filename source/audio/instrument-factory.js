@@ -1,18 +1,30 @@
+
+/*
+
+Load in the instrument list 
+
+const factory = new InstrumentFactory()
+await factory.loadList( "./instrument-list.json" )
+factory.list
+factory.loadInstrument(0)
+
+*/
+
 import SoundFontInstrument from "./instruments/instrument.soundfont"
 // import WAMInstrument from "./instruments/instrument.wam"
 // import WAM2Instrument from "./instruments/instrument.wam2"
 // import OscillatorInstrument from "./instruments/instrument.oscillator.js"
+
+export const INSTRUMENT_TYPE_OSCILLATOR = "oscillator"
+export const INSTRUMENT_TYPE_SOUNDFONT = "soundfont"
+export const INSTRUMENT_TYPE_WAM = "wam"
+export const INSTRUMENT_TYPE_WAM2 = "wam2"
 
 const instrumentsImported = new Map()
 
 // PRELOAD
 // set all types that point to these endpoints
 instrumentsImported.set("soundfont", SoundFontInstrument)
-
-export const INSTRUMENT_TYPE_OSCILLATOR = "oscillator"
-export const INSTRUMENT_TYPE_SOUNDFONT = "soundfont"
-export const INSTRUMENT_TYPE_WAM = "wam"
-export const INSTRUMENT_TYPE_WAM2 = "wam2"
 
 /**
  * 
@@ -32,23 +44,23 @@ export const lazilyLoadInstrument = async (type) => {
 	{
 		case "osc":
 		case INSTRUMENT_TYPE_OSCILLATOR:
-			const OscillatorInstrument = await import("./instruments/instrument.oscillator.js")
+			const OscillatorInstrument = (await import("./instruments/instrument.oscillator.js")).default
 			instrumentsImported.set("oscillator", OscillatorInstrument)
 			return OscillatorInstrument
 			
 		case "sf":
 		case INSTRUMENT_TYPE_SOUNDFONT:
-			const SoundFontInstrument = await import( "./instruments/instrument.soundfont.js")
+			const SoundFontInstrument = (await import( "./instruments/instrument.soundfont.js")).default
 			instrumentsImported.set("soundfont", SoundFontInstrument)
 			return SoundFontInstrument
 			
 		case INSTRUMENT_TYPE_WAM:
-			const WAMInstrument = await import( "./instruments/instrument.wam.js")
+			const WAMInstrument = (await import( "./instruments/instrument.wam.js")).default
 			instrumentsImported.set(type, WAMInstrument)
 			return WAMInstrument
 
 		case INSTRUMENT_TYPE_WAM2:
-			const WAM2Instrument = await import( "./instruments/instrument.wam2.js")
+			const WAM2Instrument = (await import( "./instruments/instrument.wam2.js")).default
 			instrumentsImported.set(type, WAM2Instrument)
 			return WAM2Instrument
 	}
@@ -76,6 +88,7 @@ export const createInstrumentFromData = async (audioContext, options) => {
 		case "osc":
 		case INSTRUMENT_TYPE_OSCILLATOR:
 			const OscillatorInstrument = await lazilyLoadInstrument(type)
+			
 			const oscillatorInstrument = new OscillatorInstrument(audioContext, options)
 			return oscillatorInstrument
 			
@@ -168,6 +181,15 @@ export class InstrumentFactory{
 		return await lazilyLoadInstrument( type.toLowerCase() )
 	}
 
+	// TODO Add arguments
+	async loadInstruments( options={}, progressCallback=null ){
+		const t = this.instrumentList.map( async (data, index) =>{
+			progressCallback && progressCallback( index / (this.quantity -1) )
+			return await createInstrumentFromData( this.audioContext, { ...data,  ...options } ) 
+		})
+		return Promise.all( t )
+	}
+
 	async loadInstrumentFromList( index=0, options={} ){
 		return await createInstrumentFromData( this.audioContext, { ...this.list[ index % (this.quantity - 1)],  ...options } )
 	}
@@ -182,14 +204,3 @@ export class InstrumentFactory{
 		return await createInstrumentFromData( this.audioContext, {...data, ...options } )
 	}
 }
-
-/*
-
-Load in the instrument list 
-
-const factory = new InstrumentFactory()
-await factory.loadList( "./instrument-list.json" )
-factory.list
-factory.loadInstrument(0)
-
-*/
