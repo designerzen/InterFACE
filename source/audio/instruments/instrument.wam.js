@@ -4,7 +4,7 @@
 
 import { initializeWamHost } from "@webaudiomodules/sdk"
 
-import { injectJavascript } from '../../utils'
+import { injectJavascript } from '../../utils/utils'
 import Instrument from "./instrument"
 
 export default class WAMInstrument extends Instrument {
