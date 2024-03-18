@@ -2,12 +2,26 @@
 	"version": "0.2.0",
 	"configurations": [
 	  {
+		"name": "PhotoSYNTH PWA",
 		"type": "chrome",
 		"runtimeExecutable": "canary",
 		"request": "launch",
-		"name": "PhotoSYNTH",
 		"url": "http://localhost:909",
 		"sourceMaps": true
+	  },
+	  {
+		"name": "PhotoSYNTH Debug Main Electron Process",
+		"type": "node",
+		"request": "launch",
+		"cwd": "${workspaceFolder}",
+		"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+		"windows": {
+		  "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+		},
+		"args" : ["."],
+		"outputCapture": "std",
+		"program": "${workspaceRoot}/dist-electron/electron/main.js"
 	  }
 	]
   }
+

@@ -1,0 +1,66 @@
+/**
+ * @see https://www.electron.build/configuration/configuration
+ */
+{
+	"$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+	"appId": "com.designerzen.photosynth",
+	"asar": true,
+	"productName": "PhotoSYNTH",
+	"copyright": "Copyright © 2024 designerzen",
+	
+	"directories": {
+		"output": "release/${version}"
+	},
+
+	"files": [
+		"dist-electron/main/**/*",
+		"dist-electron/electron/**/*"
+	],
+  
+	"extraResources": [
+		{
+        	"from":"source/assets/splash",
+        	"to":"app/dist-electron"
+      	}
+	],  
+
+	"extraMetadata":{
+		"main":"dist-electron/electron/main.js"
+	},
+	"mac": {
+		"icon": "static/icons/mac/icon.icns",
+		"target": [
+			"dmg"
+		],
+		"extraResources": [
+			"res",
+			"iTunesArtwork@1x.png"
+		],
+		"artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+	},
+	"win": {
+		"icon": "static/icons/win/icon.ico",
+		"target": [
+		{
+			"target": "nsis",
+			"arch": [
+				"x64"
+			]
+		}
+		
+		],
+		"artifactName": "${productName}-Windows-${version}-Setup.${ext}"
+	},
+	"nsis": {
+		"oneClick": false,
+		"perMachine": false,
+		"allowToChangeInstallationDirectory": true,
+		"deleteAppDataOnUninstall": false
+	},
+	"linux": {
+		"target": [
+			"AppImage"
+		],
+		"artifactName": "${productName}-Linux-${version}.${ext}"
+	}
+}

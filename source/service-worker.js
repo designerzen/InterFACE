@@ -1,7 +1,7 @@
 import { VERSION } from './version'
 
 // is there a way to save and cache this locally?
-// When offline it freaks out and tries to connec tot the internet?
+// When offline it freaks out and tries to connec to the internet?
 // importScripts(`https://storage.googleapis.com/workbox-cdn/releases/${WORKBOX_VERSION}/workbox-sw.js`);
 import { registerRoute } from 'workbox-routing'
 import {

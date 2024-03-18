@@ -4,8 +4,10 @@ node_modules*
 .parcel-cache
 *.DS_Store
 # there are things already committed in dist/ mainly the smaples
+dist-electron/*
 dist/*
 !dist/assets/audio/
+release
 
 docs/
 textures/
@@ -20,8 +22,8 @@ app
 *-ogg.js*
 android
 mediakit
-electron
 public
+tstex*
 
 source/audio/wam2-external/
 static/@mediapipe
