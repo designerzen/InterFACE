@@ -1,0 +1,54 @@
+fieldset.form-tempo
+	legend Set Tempo
+	
+	label(for="tempo-input-text") Enter tempo
+	input(type="number" min="1" max="300")#tempo-input-text
+
+	label(for="tempo-input-range") Set tempo
+	input(type="range" min="1" max="300" step="0.5" list="tempo-input-ticks")#tempo-input-range
+	datalist#tempo-input-ticks
+		option(value="1", label="1")
+		option(value="100", label="100")
+		option(value="200", label="200")
+		option(value="300", label="300")
+
+	button(type="button")#tempo-increase-button.button-bpm-up Tempo Increase
+	button(type="button")#tempo-decrease-button.button-bpm-down Tempo Decrese
+
+	button(type="button")#tempo-tap-button.button-bpm-tap.round Tap Tempo
+
+	output#timing-feedback 
+
+fieldset(hidden).form-tempo-synch
+	label(for="tempo-clock-select") Synch Clock To
+	select#tempo-clock-select
+		option Internal clock
+
+	label(for="tempo-worker") Engine
+	select#tempo-worker
+		option SetTimeOut Loop
+		option SetInterval Loop
+		option SetTimeOut Rolling
+
+	label(for="tempo-midi-synch") MIDI Toggle
+	input(type="checkbox" value="MIDI Synch")#tempo-midi-synch.toggle
+
+fieldset(hidden).form-tempo-output
+	output#timing-events-output
+
+	output#timing-beat-output
+	output#timing-bar-output
+
+	label(for="midi-inputs-output") MIDI Devices Inputs
+	output#midi-inputs-output
+
+	label(for="midi-outputs-output") MIDI Devices Outputs
+	output#midi-outputs-output
+
+	fieldset 
+		output#tempo-lag-output
+		output#tempo-drift-output
+		output#timer-elapsed-output
+
+	button(type="button")#tempo-reset Reset
+
