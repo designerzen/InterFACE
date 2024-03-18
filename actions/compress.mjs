@@ -1,51 +1,44 @@
-/*
-Reset = "\x1b[0m"
-Bright = "\x1b[1m"
-Dim = "\x1b[2m"
-Underscore = "\x1b[4m"
-Blink = "\x1b[5m"
-Reverse = "\x1b[7m"
-Hidden = "\x1b[8m"
-
-FgBlack = "\x1b[30m"
-FgRed = "\x1b[31m"
-FgGreen = "\x1b[32m"
-FgYellow = "\x1b[33m"
-FgBlue = "\x1b[34m"
-FgMagenta = "\x1b[35m"
-FgCyan = "\x1b[36m"
-FgWhite = "\x1b[37m"
-
-BgBlack = "\x1b[40m"
-BgRed = "\x1b[41m"
-BgGreen = "\x1b[42m"
-BgYellow = "\x1b[43m"
-BgBlue = "\x1b[44m"
-BgMagenta = "\x1b[45m"
-BgCyan = "\x1b[46m"
-BgWhite = "\x1b[47m"
-*/
+/**
+ * This simply deletes files from the build folder that make the package
+ * grow over the 20,000 Cloudflare limit for CF Pages.
+ * 
+ * It mainly just deletes a sound font and specifies the
+ * instrument to load
+ */
 
 import {existsSync,readdir,statSync,unlink} from 'fs'
 import * as path from 'path'
 
-// const directory = 'dist'
 // check dirs exist
-const DIRS = ['dist','dist-electron', 'app', 'release']
+const DELETE = [ 'dist/assets/audio/FluidR3_GM' ]
 const directories = DIRS.filter( (dir,index,data)=> existsSync(dir) )
 
 console.log(`Found ${directories.length} folders`, directories )
 
-const WHITELIST = [
-	// "browserconfig.xml",
-	// "favicon.ico",
-	// "CNAME",
-	// "robots.txt",
-	// "sitemap.xml",
-	// "info.json",
-	// ".well-known"
-	// "safari-pinned-tab.svg"
+// Files to delete!
+const BLACKLIST = [
+	"fluid.json"
 ]
+
+const deleteFile = async (location) => {
+	unlink(location, err => {
+	
+		if (err) {
+			throw err
+		}
+		return true
+	})	
+}
+
+const deleteDir = async (dir) => {
+	fs.rmdir(dir, { recursive: true }, err => {
+		if (err) {
+		  throw err
+		}
+		console.log(`${dir} deleted`)
+		return true
+	})
+}
 
 directories.forEach( directory => {
 
@@ -59,14 +52,12 @@ directories.forEach( directory => {
 			const location = path.join( directory,file )
 			if (statSync(location).isDirectory() )
 			{
-	  
+				// leave directories?
 			}else{
 	  
 			  // check to see if it is whitelisted
-			  if (WHITELIST.indexOf(file) > -1)
+			  if ( BLACKLIST.indexOf(file) > -1)
 			  {
-				  // ignore
-			  }else{
 				  // DELETE
 				  unlink(location, err => {
 					  if (err) throw err
