@@ -4,7 +4,7 @@ import * as path from 'path'
 if (!existsSync('./dist/index.html'))
 {
   console.log("Renaming app to index")
-  renameSync("./dist/app.html", "./dist/index.html")
+//   renameSync("./dist/app.html", "./dist/index.html")
 }
 
 // import { builder } from "electron-builder"
