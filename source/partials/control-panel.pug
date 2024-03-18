@@ -1,0 +1,258 @@
+//- In APP CONTROLS ------------------------------------------------------
+form#control-panel(action="/") 
+
+	div#transport(hidden)
+		include transport.pug
+
+	//- Button is the face of the user
+	button(type="button").person#person-a Change instrument for the person on the left
+	//- the toggle button is hidden until activated by user interaction
+	div(draggable="true").instrument-panel.person-a-panel
+		// FIXME: ADD ARIA
+		button(type="button").person-a-toggle-controls.person-toggle-controls Show instrument panel for the person on the left
+		//- Fieldsets that fills with instruments 
+		fieldset.person-controls.person-a-controls
+			
+	//- Same for Player 2	
+	button(type="button").person#person-b Change instrument for the person on the right 
+	div(draggable="true" hidden).instrument-panel.person-b-panel
+		// FIXME: ADD ARIA
+		button(type="button").person-b-toggle-controls.person-toggle-controls Show instrument panel for the person on the right 
+		fieldset.person-controls.person-b-controls
+			
+
+
+
+	//- fieldset#shared-settings
+		
+	//- 	//- Equipment Settings 
+	//- 	//- TODO: Put into a dialog?
+	//- 	label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
+	//- 		select(aria-label="Select a different camera")#select-camera
+		
+	//- 	button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
+	//- 	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+	
+	//- Controls for all players
+	fieldset#shared-controls.controls(style="visibility:visible;")
+
+		legend Shared controls that apply to all players
+
+		//- button.button-install#button-install( type="button" hidden aria-label="Install this application to your homescreen") Install
+		//- button.button-upgrade#button-upgrade( type="button" hidden aria-label="Upgrade this app to the latest version") Upgrade
+
+		button#button-help( type="button" aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
+				
+		//- Equipment Settings 
+		//- TODO: Put into a dialog?
+		//- label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
+		//- 	select(aria-label="Select a different camera")#select-camera
+		label(for="button-settings") <span class="hide-text"> Change and edit </span>Settings<span class="hide-text"> that modify behaviour and sound</span>
+			input(type="checkbox" aria-label="Show the settings panel")#button-settings
+						
+
+		//- Record / Save / Load --------------------------------------------------------------
+		button#button-photograph(type="button" aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
+		button#button-save-midi.hide(type="button" aria-label="Save this performance as a MIDI file" ) Save MIDI<span class="hide-text"> File to local drive</span>
+		
+		label(for="button-record-audio" ) Audio<span class="hide-text"> Record</span>
+			input#button-record-audio(type="checkbox" aria-label="Record Your Performance as an Audio File")
+		
+		button#button-record.hide(type="button" aria-label="Record a loop or two" ) Record Loop
+
+
+		label.hide(for="button-record-video" ) Video<span class="hide-text"> Record</span>
+			input#button-record-video(type="checkbox" aria-label="Record Your Performance as an Video File")
+		
+		//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
+		//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+
+		//- label(for="button-midi-menu" ) MIDI<span class="hide-text"> Menu</span>
+		//- 	input#button-midi-menu(type="checkbox" aria-label="Show MIDI Options")
+		div.folder-menu.bottom.horizontal.right
+			a.folder-link(href="#folder-midi" aria-label="Show MIDI instruments") Show MIDI options
+			menu.folder-content#folder-midi
+				include midi-panel.pug
+				a(href="#shared-controls") Back to main menu
+
+		label(for="button-quantise") Quantise
+			input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
+
+	
+		//- Percussion and background accompanyment 
+		label(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
+			input#button-percussion(type="checkbox" aria-label="Play some background beats")
+		
+		//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
+		//button#button-donk( aria-label="Put a donk on it" ) Add Donk
+		//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
+
+		label(for="button-disco") MTV Mode
+			input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
+		
+		label(for="button-spectrogram") V.U<span class="hide-text"> Spectrogram</span>
+			input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
+	
+		//- Volumes -------------------------------------------------------------------------------
+		div.folder-menu.bottom.horizontal.right
+			a.folder-link(href="#folder-volume" aria-label="Show volume controls") Volume
+			menu.folder-content#folder-volume
+				include volume-panel.pug
+				a(href="#shared-controls") Back to main menu
+
+		//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
+		
+		//- Metronome ---------------------------------------------------------------------
+		label(for="button-metronome") <span class="hide-text">Toggle </span>Metronome
+			input#button-metronome(type="checkbox" aria-label="Play a metronome to help you keep time")
+		
+		//- TEMPO -------------------------------------------------------------------------
+		//- Drop up / down list of tempos with typeable option too
+		label(for="select-tempo", hidden) <span class="hide-text">Set </span>Tempo
+			select#select-tempo(aria-label="Choose a tempo from the list")
+				//- optgroup Select Tempo
+				option 45 BPM
+				option 60 BPM
+				option 75 BPM
+				option 85 BPM
+				option 90 BPM
+				option 100 BPM
+				option 110 BPM
+				option 120 BPM
+				option 130 BPM
+				option 140 BPM
+				option 150 BPM
+				option 200 BPM
+				option 300 BPM
+				option 400 BPM
+				option 500 BPM
+
+		//- label(for="input-tempo" aria-label="Set the tempo" ) Tempo
+		//- 	input(type="number" value="1")#input-tempo
+		//- 	input(type="button")#input-tempo-increase
+		//- 	input(type="button")#input-tempo-decrease
+		
+		//- label(for="set-tempo") <span class="hide-text">Set </span>Tempo
+		//- 	input(list="tempos")
+		//- 	datalist#tempos
+		//- 		option( value="45 BPM")
+		//- 		option( value="60 BPM")
+		//- 		option( value="75 BPM")
+		//- 		option( value="85 BPM")
+		//- 		option( value="90 BPM")
+		//- 		option( value="95 BPM")
+		//- 		option( value="100 BPM")
+		//- 		option( value="110 BPM")
+		//- 		option( value="120 BPM")
+		//- 		option( value="130 BPM")
+		//- 		option( value="140 BPM")
+		//- 		option( value="150 BPM")
+		//- 		option( value="170 BPM")
+		//- 		option( value="200 BPM")
+		//- 		option( value="300 BPM")
+		//- 		option( value="400 BPM")
+		//- 		option( value="500 BPM")
+		
+
+		div.folder-menu.bottom.horizontal.right
+			a.folder-link(href="#folder-tempo" aria-label="Show timing options") Show tempo options
+			menu.folder-content#folder-tempo
+				include tempo-panel.pug
+				a(href="#shared-controls") Back to main menu
+
+		//- put share and full screen at the end
+		button.no-text#share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
+		label.hide-text(for="button-fullscreen") Toggle Fullscreen
+			input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
+	
+
+	//- This covers the entire video and canvas elements
+	button#button-video(type="button" aria-label="Click screen to change instruments") Swap instruments for all people
+	
+	//- Once the user has taken some photos they appear here
+	result.recordings
+		#taken-photographs
+		#recorded-audio
+		button(type="button")#toggle-recordings Toggle Recordings
+
+
+	//- ALL PLAYER SETTINGS --------------------------------------
+	//- Settings for all players... usually hidden
+	fieldset#midi-settings.controls
+		legend MIDI Connections and options
+
+		//- Should this be in an options select? 
+		label(for="button-sync-midi") Internal<br>Clock
+			input#button-sync-midi(type="radio" name="midi-synch-to" value="internal" aria-label="Use the internal tempo and clock")
+	
+		label(for="button-sync-midi") Synch<br>MIDI
+			input#button-sync-midi(type="radio" name="midi-synch-to" value="external-1" aria-label="Synchronise the tempo with this MIDI device")
+	
+
+	
+	fieldset#settings.controls
+		legend Global settings and options
+
+		//- only appears when there are multiple cameras on the computer?
+		//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?
+		label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
+			select#select-camera(aria-label="Select a different camera")
+		
+		label(for="button-clear") Clear<span class="hide-text"> Video</span>
+			input#button-clear(type="checkbox" aria-label="Clear visuals & video")
+	
+		label(for="button-sync-video") Synch<br>Video
+			input#button-sync-video(type="checkbox" aria-label="Toggle whether to try to synch video to performance")
+			
+		label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
+			input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
+
+		//- label(for="button-pattern") Drum Pattern
+		//- 		input#button-pattern(type="checkbox" aria-label="Change percussion arrangement")
+				
+		//- label(for="button-transparent") Synch<span class="hide-text">ronise the movements (prevents judder)</span>
+		//- 	input#button-transparent(type="checkbox" aria-label="Synch video to movements")
+	
+		label(for="button-meshes") Faces<span class="hide-text"> have overlays</span>
+			input#button-meshes(type="checkbox" aria-label="Toggle Face overlays")
+	
+		label(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
+			input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
+		
+		label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
+			input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
+
+		label(for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> Style</span>
+			select#select-eyes(aria-label="Select some eyes!")
+				option(value="s:0,i:0,p:0,a:1") Disabled (no eyes)
+				option(value="s:0.2,i:0.1,p:0.05,a:1") Tiny Eyes
+				option(value="s:0.5,i:0.2,p:0.1,a:1") Small Eyes
+				option(value="s:1.2,i:1,p:0.4,a:1") Regular Eyes
+				option(value="s:4,i:3,p:2,a:0.8") Sidebottom
+				option(value="s:7,i:5,p:2,a:0.9") Googly Eyes
+	
+		label(for="select-palette") <span class="hide-text">Choose </span>Colours
+			select#select-palette(aria-label="Select different colours")
+				option(value="s:80,l:80") Neon 
+				option(value="s:30,l:40") Pastel 
+				option(value="s:2,l:80") Monochrome (B&amp;W)
+				option(value="s:100,l:0") Dark
+			
+		label(for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
+			select#select-samples(aria-label="Select a sound font to change sounds")
+				option(value="FatBoy") FatBoy 
+				option(value="FluidR3_GM") Fluid
+				option(value="MusyngKite") Musyng Kite 
+
+		include theme-selector.pug
+	
+		label(for="select-impulse") <span class="hide-text">Select </span>Reverb
+			select#select-impulse(aria-label="Select a different reverb")
+		
+		label(for="button-speak") <span class="hide-text">Toggle </span>Speech
+			input#button-speak(type="checkbox" aria-label="Read out instructions and help")
+	
+		button#button-reset( type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
+	
+		//- bit of a hack...
+		label.button-close(for="button-settings") Hide Settings
