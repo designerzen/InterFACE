@@ -2,24 +2,23 @@
 @import "./assets/styles/_ease.scss";
 @import "./assets/styles/_palette.scss";
 
-@import "./assets/styles/utils.scss";
 
 // Load reset, fonts & set typography
 @import "./assets/styles/settings.scss";
+@import "./assets/styles/fonts.scss";
 @import "./assets/styles/base.scss" layer(base);
 @import "./assets/styles/forms.scss" layer(forms);
-@import "./assets/styles/fonts.scss";
 @import "./assets/styles/typography.scss" layer(typography);
 @import "./assets/styles/scrollbars.scss";
-
 @import "./assets/styles/states.scss";
 @import "./assets/styles/domains.scss";
+@import "./assets/styles/utils.scss";
 
 // elements and sections
 @import "./assets/styles/gadgets/audio-player.scss";
 @import "./assets/styles/gadgets/toast.scss";
 @import "./assets/styles/gadgets/progress.scss";
-@import "./assets/styles/gadgets/dialog.scss" layer(dialog);
+@import "./assets/styles/gadgets/dialog.scss";
 @import "./assets/styles/gadgets/scrollbars.scss";
 @import "./assets/styles/gadgets/details.scss";
 @import "./assets/styles/gadgets/cursors.scss";
