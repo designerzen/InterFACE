@@ -1,0 +1,163 @@
+dialog#help 
+	form(method="dialog")
+		h4 Don't Panic!
+
+		section.load-issues 
+			h5 Load critical data
+				
+			h6 Not working?
+			p If this seems to be stuck loading forever, please try the following
+			ol 
+				li Clear your browser's cache and hard refresh <kbd>(ctrl-shift-r)</kbd>
+				li Open the app in Private Browsing mode
+				li Try in a knwon supported Browser such as Chrome / Brave / Edge
+							
+		section.player-selection-help
+			h5 This is the 
+				em Player Selection Screen
+			p Here we get to choose how many players will get to play!
+
+			ol 
+				li Select how many people will make music at the same time - one or two players
+				li Toggle the simple mode on for an easier to use version (kids mode)
+				li Click the Orange Start Button to continue
+			
+			h6 Not working? Common Issues / Troubleshooting
+			ol 
+				li Camera was not granted permission by the browser
+				li Browser is too old / out of date try Chrome / Brave / Edge
+				
+		section.app-help
+			h5 This is the Synthesizer 
+			p It is controlled using your head
+
+			figure.tutorial
+				img(src="./assets/diagrams/tutorial-head.svg" alt="Diagram explaining that head position and mouth control the key and amplitude")
+				figcaption Tilt your head 
+				
+			h5 Not working?
+			h6 Common Issues / Troubleshooting
+			ol 
+				li Camera was not allowed access
+				li Browser too old / out of date
+				li If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
+				li If your face is not found, try and improve the brightness in the room by turning on some lights
+			
+			p Still not working? 
+				a(href="/") Try resetting your options :
+
+		details 
+			summary Instructions
+			include:markdown-it ../instructions.md
+
+		small.version Version #{package.version}
+
+		//- iframe instead?
+		p.learn-more
+			| Learn more from the 
+			a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
+			|  or the  
+			a.documentation(href="help.pug" target="_blank") Online Documentation
+			|  or try the tests  
+			a.documentation(href="tests.pug" target="_blank") Test Suite
+
+		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Help
+
+//- TODO: 
+	dialog#dialog-tempo 
+		form(method="dialog")
+			h5 Tempo
+			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
+
+dialog#dialog-share
+	form(method="dialog")
+		div#qr-code
+		button.close(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
+
+//- TODO:
+dialog#fund
+	form(method="dialog")
+		h5 Realtime face controlled musical instrument! 
+		p.
+			Install it to your device
+
+		label(for="install-pwa" hidden) Install this app
+		//- button.button-install( hidden type="button" aria-label="Install this application to your homescreen") Install
+		
+		aside
+			h6 Help support this project! 
+			p.
+				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
+
+			ul.fund.icon-list
+				li: a.paypal(href="https://www.paypal.com/donate/?hosted_button_id=RHGJDTPJQ77F4/" rel="noopener noreferrer" target="_blank") Donate via Paypal
+				li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
+				li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
+				//- li
+					form(action="https://www.paypal.com/donate" method="post" target="_top")
+						input(type="hidden" name="hosted_button_id" value="RHGJDTPJQ77F4")
+						input(type="image" src="./assets/logos/paypal.svg" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
+						//- input(type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
+						<img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
+					
+
+		//- ul.associates.icon-list
+		//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
+		//- 	li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+		//- 	li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
+		//- 	
+			
+		//- ul.supporters.icon-list
+		//- 	li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+		//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+		
+		ul.links
+			li: a.link-copyright(href="copyright.pug" target="_blank") Copyright
+			li: a(href="credits.pug" target="_blank") Credits
+			li: a.link-licenses(href="licenses.pug" target="_blank") Licenses
+			li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
+			li: a(href="roadmap.pug" target="_blank") Roadmap
+			li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
+			
+			//- li(hidden): a.tests(href="tests.pug" target="_blank") Tests
+		
+		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Dialog
+
+
+dialog#pwa-updates
+	//-iframe#changelog(src="./changes.html" title="Changes")
+	form(method="dialog")
+		h5 Updates available!
+		#changelog
+
+		button#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
+		button.close(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
+	
+
+dialog#errors 
+	form(method="dialog")
+		h5 Oh no! An error has occurred!
+		p#error-message Hopefully this is a one time problem
+		p#error-solution Click the button to reload and try again
+		
+		details 
+			summary More information 
+			p#error-details
+
+		audio(src="./assets/audio/lemmings.wav" controls=false)
+
+		menu
+			button.reload-app(autofocus onclick="window.location.reload();" type="button") Reload 
+			button.reload-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
+	
+		button.close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
+
+
+dialog#select-midi
+	form(method="dialog")
+		h5 Select your MIDI device
+		label(for="select-midi-output") <span class="hide-text">Connect to </span>MIDI
+		div#select-midi-output
+			input.midi-output(type="checkbox" aria-label="Select MIDI Device to play")
+
+		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 

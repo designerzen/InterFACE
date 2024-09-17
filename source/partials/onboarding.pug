@@ -1,0 +1,42 @@
+//- ONBOARDING ---
+form#onboard(action="/") 
+	
+	fieldset#player-selector
+		legend How many people are going to participate?
+		//- button#button-solo( aria-label="Single player mode" ) <strong>Solo</strong> : 1 Player
+		//- button#button-duet( aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" ) <strong>Duet</strong> : 2 Players
+		//- button#button-trio( aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" ) <strong>Trio</strong> : 3 People
+		
+		//- https://adrianroselli.com/2020/01/my-priority-of-methods-for-labeling-a-control.html
+		label.button(for="button-solo" hidden) Solo, 1 Player
+		input#button-solo(name="players" type="radio" aria-label="Single player mode" checked hidden)
+		
+		label.button(for="button-duet" hidden) Duet, 2 Players
+		input#button-duet(name="players" type="radio" aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" hidden)
+		
+		label.button(for="button-trio" hidden) Trio, 3 People
+		input#button-trio(name="players" type="radio" aria-label="Swap to three player <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" hidden)
+		
+		label.button(for="button-quartet" hidden) Quartet, 4 People
+		input#button-quartet(name="players" type="radio" aria-label="Swap to full <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" hidden)
+		
+	fieldset#complexity-selector
+		legend Would you like to play the simple version?
+
+		//- Simple / Advanced mode
+		label(for="toggle-advanced-mode" aria-describeby="advanced-mode-feedback" aria-label="Unlock all features and make it complicated to use but very powerfull" ) Use advanced mode? 
+		input#toggle-advanced-mode.switch(type="checkbox" role="switch")
+
+		//- feedback
+		output#advanced-mode-feedback
+			p.simple-mode Friendly version with simple interface and instuctions suitable for beginners =P
+			p.advanced-mode For Advanced users who want MIDI connectivity and many more controls
+			
+	//- Demostration - automated mode
+	label(for="toggle-automation-mode" aria-label="Automate instrument selection and modes" ) Demonstration Mode
+		input#toggle-automation-mode.toggle(type="checkbox")
+
+	//- Start buttons
+	//- button#button-start()
+	label(for="button-start" ) Start
+	input#button-start.button-push( type="submit" value="Begin")

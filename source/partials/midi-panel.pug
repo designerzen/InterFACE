@@ -1,3 +1,38 @@
-button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
-//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+fieldset#midi-panel(hidden)
+
+	//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
+
+	//- Toggle MIDI ON / OFF
+	label(for="toggle-midi")
+		input#toggle-midi.toggle(type="checkbox" value="Toggle MIDI" aria-label="Toggle MIDI devices" )
+
+	//- MIDI Input options
+	#midi-input-gadgets(hidden)
+		label(for="midi-inputs" hidden) MIDI Devices Inputs
+			select#midi-inputs(name="midi-inputs") 
 		
+	//- MIDI Output options
+	#midi-output-gadgets(hidden)
+		label(for="midi-outputs" hidden) MIDI Devices Outputs
+			select#midi-outputs(name="midi-outputs" multiple) 
+
+
+//- If there are no devices show this item instead
+fieldset#no-midi-devices(hidden)
+
+	//- p#no-midi-suggestion.info Please connect a MIDI device
+
+	p#no-midi-inputs.warning(hidden) No MIDI Input Devices were located!
+	p#no-midi-outputs.warning(hidden) No MIDI Output Devices were located!
+	
+	label(for="waiting-for-midi-devices" hidden) Please connect a MIDI Device
+		progress#waiting-for-midi-devices
+	
+	//- FIXME:
+	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+
+	//- label(for="midi-inputs-output") MIDI Devices Inputs
+	//- output#midi-inputs-output	
+
+	//- label(for="midi-outputs-output") MIDI Devices Outputs
+	//- output#midi-outputs-output
