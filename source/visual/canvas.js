@@ -1,35 +1,6 @@
 import {copyBlobToClipboard} from '../utils/clipboard'
 
 /**
- * Todo: remove all individual canvas references
- */
-export const canvas = document.getElementById('interface')
-
-let width = canvas.width
-let height = canvas.height
-
-export const updateCanvasSize = (w,h) => {
-	width = w ?? canvas.width
-	height = h ?? canvas.height
-	// console.error("Updated canvas size to", {w,h}, canvas.width, canvas.height)
-}
-
-export const getCanvasDimensions = (canvas) => { 
-	if (canvas)
-	{
-		return {
-			width:canvas.width,
-			height:canvas.height
-		}
-	}
-	return {
-		width, height
-	}
-}
-
-
-
-/**
  * Overwrite the existing canvas with the same one but
  * positioned at a specific offset to make it look cool
  * @param {Number} x 
@@ -39,7 +10,7 @@ export const overdraw = (context, x=0, y=-1) => {
 	
 	// context.save()
 	//context.translate(0, -1)
-	context.drawImage(canvas,x,y)
+	context.drawImage(canvasElement,x,y)
 	// for (var i = 0; i < numImages; i++) {
 	// 	context.drawImage(img, i * img.width, 0);
 	// }
