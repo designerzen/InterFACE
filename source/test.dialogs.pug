@@ -1,0 +1,191 @@
+extends _base.pug
+
+block title
+	+title('Test:Dialogs')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block above 
+	
+block main
+	main#test-dialogs
+
+		menu
+			button.light(onclick="help.showModal()") Help!
+			button(onclick="document.getElementById('dialog-share').showModal()") Share
+			button(onclick="document.getElementById('pwa-updates').showModal()") PWA
+			button.wait(onclick="document.getElementById('select-midi').showModal()") MIDI
+			button.error(onclick="errors.showModal()") Errors
+			button(onclick="fund.showModal()") Fund
+			button.dark(onclick="about.showModal()") Test
+	
+		//- control panel with multi-levels
+		include partials/control-panel.pug
+
+block dialogs 
+	include partials/dialogs.pug
+
+block scripts
+	script(type="module").
+		import {showError} from './dom/errors.js'
+		import {addToolTips} from './dom/tooltips.js'		
+		
+		addToolTips( document.documentElement )
+			
+		showError("Error", "This is an error message")
+		// watch for closed dialogs
+		// log the close value to know what button user's clicked
+		document.querySelectorAll('dialog').forEach(dialog => {
+			
+			dialog.onclose = event => {
+				console.log(event.target.returnValue)
+			}
+				
+			if (dialog.classList.contains('notice')) 
+			{
+				// light dismiss for simple popups
+				dialog.addEventListener('click', ({target}) => {
+					if (target.nodeName === 'DIALOG') 
+					{
+						target.close('dismiss')
+					}
+				})
+			}
+		})
+		
+block styles 
+	style.
+		#button-video{
+			z-index:-1;
+		}
+		@layer dialogs {
+		dialog.classic {
+				--_theme-color: CanvasText;
+				--_on-theme-color: Canvas;
+				
+				border-color: var(--_theme-color);
+				accent-color: var(--_theme-color);
+				
+				padding: 0;
+				inline-size: clamp(25ch, 60ch, 80vw);
+				border-radius: 10px;
+				
+				> header {
+					display: flex;
+					align-items: center;
+					background: var(--_theme-color);
+					color: var(--_on-theme-color);
+					padding: .75rem 1rem;
+					font-weight: bold;
+					font-size: 1.25rem;
+				}
+				
+				> form {
+					padding: 1.25rem 1rem 1rem;
+					
+					> p {
+						margin-block-start: 0;
+						line-height: 1.5;
+						
+						&:last-child {
+						margin-block-end: 0;
+						}
+					}
+				}
+				
+				footer {
+					display: flex;
+					gap: 1ch;
+					place-content: center end;
+					
+					margin-block-start: 2rem;
+					padding-block-start: 1rem;
+					border-block-start: 1px solid #aaa3;
+				}
+			}
+			
+			dialog.error {
+				--_theme-color: red;
+				--_on-theme-color: white;
+				
+				&::backdrop {
+				background-color: hsl(from var(--_theme-color) h s 20% / 10%)
+				}
+			}
+			
+			dialog.wait {
+				--_theme-color: Highlight;
+				--_on-theme-color: HighlightText;
+				
+				progress {
+				inline-size: 100%;
+				}
+			}
+			
+			/* enable transitions */
+			dialog.animated {
+				&, &::backdrop {
+					transition: 
+						display .3s allow-discrete, 
+						overlay .3s allow-discrete, 
+						opacity .3s,
+						transform .3s;
+					opacity: 0;
+					transition-timing-function: ease-in-out;
+				}
+				
+				/* ON STAGE */
+				&[open] {
+					opacity: 1;
+
+					&::backdrop {
+						opacity: 0.8;
+					}
+				}
+				
+				/* OFF STAGE */
+				@starting-style {
+					&[open], 
+					&[open]::backdrop {
+						opacity: 0;
+					}
+					
+					&[open] {
+						transform: translateY(10px);
+					}
+				}
+				
+				&::backdrop {
+					background-color: black;
+				}
+			}
+
+			dialog.custom {
+				--_theme-color: oklch(98% .02 200 / 50%);
+				--_on-theme-color: oklch(30% .02 200);
+				
+				max-inline-size: 40ch;
+				background: oklch(90% .02 200 / 25%);
+				
+				> header {
+					display: flex;
+					justify-content: space-between;
+				}
+				
+				input {
+					padding: 1ch 1lh;
+					border-radius: 5px;
+					background: oklch(90% .02 200 / 25%);
+					color: var(--_on-theme-color);
+					border: 1px solid oklch(90% .02 200 / 35%);
+				}
+				
+				&::backdrop {
+					background: radial-gradient(circle at center, hsl(220 50% 50% / 50%), hsl(220 50% 50% / 0%));
+					backdrop-filter: blur(25px);
+				}
+			}
+		}

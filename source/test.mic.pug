@@ -1,0 +1,212 @@
+extends _base.pug
+
+block title
+	+title('Test:Microphone')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#mic
+		include partials/toast.pug	
+		
+		form.set-tempo
+			include partials/transport-panel.pug
+			include partials/tempo-panel.pug
+		
+		nav#menu
+
+			h3 Microphone Menu
+
+			label(for="microphone-toggle") Toggle Microphone
+			input(type="checkbox")#microphone-toggle
+			output#microphone-output
+
+block scripts
+	script(type="module").
+
+		// get the timing scripts
+		//- import {URLFromFiles} from './utils/load-js-from-file.js'
+		//- import {Essentia, EssentiaWASM} from 'essentia.js'
+		//- import { RingBuffer } from 'ringbuf.js'
+		// create essentia object with all the methods to run various algorithms
+		// by loading the wasm back-end.
+		// here, `EssentiaModule` is an emscripten module object imported to the global namespace
+		//- let essentia = new Essentia(EssentiaWASM)	
+		import PITCH_PROCESSOR from "worklet:./audio/processors/pitchyinprob-processor.js"
+		import { convertMIDINoteNumberToName } from './audio/tuning/notes.js'
+		import Microphone, {detectMicrophones} from './hardware/microphone.js'
+
+		const microphoneOutput = document.getElementById("microphone-output")
+		const micToggle = document.getElementById("microphone-toggle")
+		
+		const bufferSize = 8192
+
+		let audioCtx
+		let gumStream
+		let mic
+		let gain
+		let audioReader
+		let pitchNode
+		let recording = false
+
+		// record native microphone input and do further audio processing on each audio buffer using the given callback functions
+		async function startMicRecordStream() 
+		{
+			try{
+				if (navigator.mediaDevices.getUserMedia) 
+				{
+					console.log("Initializing audio...")
+					const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+					return startAudioProcessing(stream)
+				} else {
+					throw "Could not access microphone - getUserMedia not available"
+				}
+			}catch(error){
+				console.error("startMicRecordStream", {error} )
+			}
+		}
+
+		async function startAudioProcessing(stream)
+		{
+			gumStream = stream
+			if (gumStream.active) 
+			{
+				// TODO: Offline context
+				if (!audioCtx || audioCtx.state === "closed") {
+					audioCtx = new AudioContext()
+				}else if (audioCtx.state === "suspended") {
+					await audioCtx.resume()
+				}
+
+				mic = audioCtx.createMediaStreamSource(gumStream)
+				gain = audioCtx.createGain()
+
+				// silence input!
+				gain.gain.setValueAtTime(0, audioCtx.currentTime)
+
+				await audioCtx.audioWorklet.addModule( new URL( PITCH_PROCESSOR) )
+
+				console.log( "startAudioProcessing", {stream, mic, gain, audioCtx}, audioCtx.audioWorklet )
+
+				// Shared Array Buffer
+				//- let sab = RingBuffer.getStorageForCapacity(3, Float32Array) // capacity: three float32 values [pitch, confidence, rms]
+				// Ring Buffer
+				//- let rb = new RingBuffer(sab, Float32Array)
+				//audioReader = new AudioReader(rb)
+
+				pitchNode = new AudioWorkletNode(audioCtx, 'pitchyinprob-processor', {
+					processorOptions: {
+						bufferSize: bufferSize,
+						sampleRate: audioCtx.sampleRate
+					}
+				})
+
+				pitchNode.port.onmessage = e => {
+					const {note, rms,logRMS, pitch,confidence } = e.data
+					const noteName = convertMIDINoteNumberToName( note >> 0 )
+					//- console.log("pitchNode", {rms,logRMS,pitch,confidence } )
+					microphoneOutput.innerText = `${note} -> ${noteName} // ${((confidence * 100).toFixed(2))} pitch:${pitch.toFixed(2)} rms:${rms.toFixed(2)} logRMS:${logRMS.toFixed(2)}`
+				}
+
+				// It seems necessary to connect the stream to a sink for the pipeline to work, contrary to documentataions.
+				// As a workaround, here we create a gain node with zero gain, and connect temp to the system audio output.
+				mic.connect(pitchNode)
+				pitchNode.connect(gain)
+				gain.connect(audioCtx.destination)
+
+				recording = true
+
+			} else {
+				throw "Mic stream not active"
+			}
+		}
+		
+		// stop mic stream	
+		async function stopMicRecordStream() {
+
+			gumStream.getAudioTracks().forEach(function(track) {
+				track.stop()
+				gumStream.removeTrack(track)
+			})
+
+			await audioCtx.close()
+			
+			// disconnect nodes
+			mic.disconnect()
+			pitchNode.disconnect()
+			gain.disconnect()
+			mic = undefined 
+			pitchNode = undefined
+			gain = undefined
+			recording = false
+			console.log("Stopped recording ...")
+		}
+
+		function onRecordClickHandler() {
+			return !recording ? 
+				startMicRecordStream() : 
+				stopMicRecordStream()
+		}
+		
+		// start microphone stream using getUserMedia and runs the feature extraction		
+		micToggle.addEventListener("click", onRecordClickHandler )
+		//document.addEventListener("click", event => startMicRecordStream(), {once:true} )
+
+
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		main{
+			width:100%;
+		}
+		fieldset{
+			box-sizing: border-box;
+			position: relative;
+			border: 0;
+			padding: 0;
+			margin: 0;
+			border-radius: 0.5rem;
+			box-shadow:
+				inset 0 -0.1em 0.1em -0.05em #fff2,
+				inset 0 0.125em 0.25em #0003,
+				inset 0 0.25em 0.25em #0001,
+				inset -0.05em -0.1em 0.15em #0003,
+				inset 0 -0.05em 0.1em #0002,
+				inset 0 0 0 0.4em #c4c1c3;
+			padding: 0.66rem;
+			background: linear-gradient(#000 0 0) 50% 50% / 97.5% 97.5% no-repeat;
+		}
+		#menu{
+			width:100%;
+		}
+		.set-tempo{
+
+		}
+		.form-tempo{
+			display:grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap:0.66rem;
+			/* grid-template-areas: 
+				"slider"
+				"off"
+			;*/
+		}
+		#tempo-tap-button{
+			grid-column: 1 / -1;
+		}
+
+		@media screen and (min-width:720px) {
+			.form-tempo{
+				grid-template-columns: repeat(4, 1fr);
+				gap:1rem;
+			}
+		}
+
+
+

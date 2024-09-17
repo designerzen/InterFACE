@@ -1,0 +1,26 @@
+extends _base.pug
+
+block title
+	+title('Test:Displays')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#hologram
+		canvas(width=720 height=480)
+		include partials/control-panel.pug
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		#hologram{
+			position:relative;
+		}
+		
+block scripts
+	script(type="module" src="./tests/test.displays.js")

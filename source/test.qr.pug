@@ -1,0 +1,81 @@
+extends _base.pug
+
+block title
+	+title('Test:QR Code')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+
+	main#test-buttons
+
+		//- tooltip element
+		include partials/toast.pug	
+
+		label(for="qr-destination")
+		input#qr-destination(type="text" value="https://interface.place")
+		#codes
+
+		//- control panel with multi-levels
+		include partials/control-panel.pug
+
+
+block styles 
+	style.
+		#control-panel{
+			z-index:909;
+		}
+
+block scripts
+	script(type="module").
+		// 			
+		import { createQRCode } from './utils/barcodes.js'
+		
+		import { getDomainDefaults, getFactoryDefaults } from './settings/options.js'
+		import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
+		import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState } from './utils/state'
+
+		import IMAGE from './assets/logos/appstore.png'
+		const start = async () => {
+			const main = document.querySelector("main")
+			const userInput = main.querySelector("#qr-destination")
+			const codes = main.querySelector("#codes")
+		
+			const hostName = getRefererHostname()
+			const globalOptions = Object.assign({}, globalThis._synth)
+			const domainOptions = getDomainDefaults( hostName )
+			const defaultOptions = { ...domainOptions }
+			
+			const state = State.getInstance()
+
+			//- const bookmark = state.asURI
+			//- const qrOptions = {text:bookmark} 
+
+			const qrOptions = {
+				width: 1024,
+				height: 1024,
+				colorDark : "rgb(141, 53, 37)",
+				text:"https://interface.place",
+				logo: IMAGE, // Relative address, relative to `easy.qrcode.min.js`
+				//- logo: "http://127.0.0.1:8020/easy-qrcodejs/demo/logo.png", 
+				logoWidth: 80, // fixed logo width. default is `width/3.5`
+				logoHeight: 80, // fixed logo height. default is `heigth/3.5`
+				logoMaxWidth: undefined, // Maximum logo width. if set will ignore `logoWidth` value
+				logoMaxHeight: undefined, // Maximum logo height. if set will ignore `logoHeight` value
+				logoBackgroundColor: '#fffff', // Logo backgroud color, Invalid when `logBgTransparent` is true; default is '#ffffff'
+				logoBackgroundTransparent: false, // Whether use transparent image, default is false
+			} 
+			
+			const qrcode = createQRCode( codes.appendChild( document.createElement("div")) , qrOptions) 
+
+			userInput.oninput = e => {
+				const value = userInput.value
+				console.info("User Input", value )
+				qrOptions.text = value
+				createQRCode( codes.appendChild( document.createElement("div")) , qrOptions) 
+			}
+		}
+		document.addEventListener( "DOMContentLoaded", e => start() )
