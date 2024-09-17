@@ -47,12 +47,15 @@ app.whenReady().then(() => {
 	icon,
     backgroundColor: '#002b36', 
 	webPreferences: {
+
 		autoplayPolicy:"no-user-gesture-required",
 		backgroundThrottling:false,
 		contextIsolation: false,
+		
 		nodeIntegration: true,  
-		nodeIntegrationInWorker:true,
-		webSecurity:true,
+		nodeIntegrationInWorker:false,
+
+		// webSecurity:true,
 		preload:  './preloader.js' 
 	  }
   })
@@ -91,8 +94,7 @@ app.whenReady().then(() => {
 
     mainWindow.webContents.openDevTools()
 
-    mainWindow.loadFile(path.join(__dirname, '../../index.html'))
-
+    mainWindow.loadFile(path.join(__dirname, '../main/index.html'))
     //mainWindow.loadFile('../../dist/index.html')
     // Load your file
     // mainWindow.loadFile('dist/electron-renderer/index.html')
@@ -103,6 +105,68 @@ app.whenReady().then(() => {
   // mainWindow.setMinimumSize(APP_WIDTH,APP_HEIGHT)
 //   mainWindow.maximize()
 })
+
+
+
+// Hijack the window.open() function to ensure that the new window is set on 
+// the LKP display
+//  window.open("", "new", o), i.popup && (i.popup.document.body.style.background = "black", i.popup.document.body.style.transform = "1.0", j(i), i.popup.document.body.appendChild(n), console.assert(e), i.popup.onbeforeunload = e);
+// url / target / windowFeatures
+mainWindow.webContents.setWindowOpenHandler((request) => {
+	const { url, frameName, features   } = request
+
+	console.log("setWindowOpenHandler", url, frameName, features, request )
+
+	switch (url) {
+		case 'about:blank':
+			return {
+				action: 'deny',
+				overrideBrowserWindowOptions: {
+					frame: false,
+					fullscreenable: false,
+					backgroundColor: 'black',
+					webPreferences: {
+						preload: 'my-child-window-preload-script.js'
+					}
+				}
+			}
+			
+		case '':
+			return {
+				action: 'allow',
+				overrideBrowserWindowOptions: {
+					frame: false,
+					fullscreenable: false,
+					backgroundColor: 'black',
+					webPreferences: {
+						preload: 'my-child-window-preload-script.js'
+					}
+				}
+			}
+
+		default:
+			return { action: 'allow' }
+	}
+})
+
+
+const openHolographicScreen = () => {
+	const displays = screen.getAllDisplays()
+
+	const externalDisplay = displays.find((display) => {
+		return display.label.includes("LKG") || display.bounds.x !== 0 || display.bounds.y !== 0
+	})
+
+	if (externalDisplay) 
+	{
+		const win = new BrowserWindow({
+			x: externalDisplay.bounds.x + 50,
+			y: externalDisplay.bounds.y + 50
+		})
+		win.loadURL('https://github.com')
+	}
+}
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

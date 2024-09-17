@@ -44,7 +44,7 @@ export default class Attractor{
 					{
 						//console.log("Has player been stuck on this instrument too long?", player.timeSinceInstrumentChanged, DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE)
 					
-						player.loadRandomInstrument()
+						player.loadRandomPreset()
 
 						// change styles use array for 2 people...
 						// this.application.setPlayerOption("scleraRadius",value)
@@ -80,7 +80,7 @@ export default class Attractor{
 				players.forEach( player => {
 					if ( player.timeSinceInstrumentChanged > DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE )
 					{
-						player.loadRandomInstrument()
+						player.loadRandomPreset()
 					}
 				})
 				
