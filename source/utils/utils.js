@@ -4,6 +4,10 @@ export const convertOptionToObject = items => items.reduce( (accumulator, curren
 	return accumulator
 }, {})
 
+
+export const toKebabCase = (str) => str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? "-" : "") + $.toLowerCase())
+
+
 export const debounce = (callback, wait) => {
 	let timerId
 	
