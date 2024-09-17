@@ -8,7 +8,10 @@
 	],
 	"transformers": {
 		"wam:*": [],
-		"raw:*": ["@parcel/transformer-raw"]	
+		"raw:*": ["@parcel/transformer-raw"],
+		"*.obj": ["@parcel/transformer-raw"],
+		"*.fbx": ["@parcel/transformer-raw"],
+		"*.mtl": ["@parcel/transformer-raw"]
 	},
 	"optimizers": {
 		"*.js": []
