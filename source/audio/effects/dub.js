@@ -27,7 +27,7 @@ export const createDub = async (
 
 	return {
 		name:"dub",
-		node:dubDelay,
+		node:filterNode,
 		delayTime:value => changeParameter( dubDelay, "delayTime", value),
 		feedback:value => changeParameter( feedbackNode, "gain", value),
 		filter:value => changeParameter( filterNode, "frequency", value) 
