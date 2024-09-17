@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://interface.place/</id>
+    <title>PhotoSYNTH InterFACE v0.20.1</title>
+    <updated>2024-09-17T20:43:56.854Z</updated>
+    <generator>awesome</generator>
+    <author>
+        <name>zen</name>
+        <email>zenon@designerzen.com</email>
+        <uri>https://designerzen.com</uri>
+    </author>
+    <link rel="alternate" href="https://interface.place/"/>
+    <link rel="self" href="https://interface.place/feed.xml"/>
+    <subtitle>News feed and release updates</subtitle>
+    <logo>https://interface.place/favicon.ico</logo>
+    <icon>https://interface.place/favicon.ico</icon>
+    <rights>All rights reserved 2024, designerzen</rights>
+    <category term="VR"/>
+    <entry>
+        <title type="html"><![CDATA[0.20.2 (2024-09-17)]]></title>
+        <id>https://interface.place</id>
+        <link href=""/>
+        <updated>2024-09-17T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Build System / Dependencies / Chores / Documentation Changes / New Features / Other Changes (feature) / Other Changes (feture) / Bug Fixes / Refactors / Other Changes (release) / Tests / Other Changes (update) / Other Changes (upodate) / ]]></summary>
+        <content type="html"><![CDATA[
+moved TF copying assets into build script (40c8a187)
+
+
+added more types to ignore (bc60ece2)
+updated manifest with new features and data (38566234)
+added lock files to ignore (09454a00)
+added new types to gitignore (d9507f0b)
+
+
+updated all public data (4659b8e5)
+
+
+shaders for 3d display (d1d14411)
+QR codes (97bacb66)
+theme selector & loader (cf2668e4)
+instrument from remotes (9b6a42b8)
+patterns & tap to tempo (46c0e92d)
+utils for location, state + flags (e0adff7f)
+utiilities for optimising performance (dbb106f5)
+Added hardware connections inc LGP (f5f511f8)
+Visual updates including 3D variants (29cbd8fc)
+Piano component for testing instruments (d6b23537)
+settings defaults for various sections (cd46bdc4)
+tests with javascript (ac607a80)
+mediators for passing person data (ff84261a)
+MIDI handling for external and 2,0 protocol (e49279aa)
+DOM utils, widgets and controls (0c4a39c1)
+icons for use sharing (e8239557)
+shared pug partials (d78ef560)
+instrument factory (bf73855c)
+more instruments (2a920ef1)
+up / down arrow icons (7227184b)
+3d face model assets (96a697cb)
+component CSS files (26b01ca4)
+New styles using grid and overlays + palette (55a165cc)
+Polymorphic builds (899d0fdb)
+Capactior entry point build (c751ef09)
+Electron build (d0be70c4)
+new static build pipeline (d2c033d6)
+Added company logos for IEEE and AMIC (cbd7c70e)
+App store icons and banners (faaa615b)
+Fonts inc dyslexic / readable / heading / notation (1ec2f9d6)
+
+
+modular display system inc. holographic (b6e5553c)
+icons for webstores / favicons (45fcb93e)
+Electron build (1bfdd3c1)
+UI panels for control panel (209df0f9)
+instrument json (7d7f7075)
+new options file (e1f67266)
+instrument factory (ea45b897)
+
+
+Electron main code (253031f8)
+
+
+preparation for cloudflare (ebee6e13)
+Updated prediction models to work with tf latest (e8b0ccd1)
+timing now uses micro fractions for better MIDI and for swing (a24685d5)
+notes and scales improved (39631b78)
+Beats tuning (74156e03)
+simplified index css as simple gateway (c1fddcfc)
+improved base markup, headers + a18n (4c6f93e7)
+actions for changelogging (1a95bafb)
+Set node version high with flags (77b93e1e)
+PWA updates (bdf27a2f)
+a way to load raw files, skipping processing (f0161aa8)
+SoundFont decoupled from data (c73138f1)
+opt/ error with CI in CF (d83f73c9)
+removed node requirement (4834387e)
+npm tripping up because of yarn confusion (f4d5a76d)
+
+
+build system simplified (e8a61ee2)
+
+
+v0.21 - simpler build pipeline (e286b96b)
+
+
+tests added for various features (caa63e94)
+
+
+file locations (c1d555ec)
+dependency locations (bfa052c3)
+moved all state into utils (22ce8326)
+oscillator instrument (f457c69e)
+smoother timing (ab3ab4c3)
+
+
+moved state (d1c26276)
+
+]]></content>
+        <author>
+            <name>zen</name>
+            <email>zen@designerzen.com</email>
+            <uri>https://designerzen.com</uri>
+        </author>
+    </entry>
+</feed>
