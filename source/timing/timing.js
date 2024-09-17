@@ -18,8 +18,20 @@ import {
 	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
 } from './timing.events.js'
 
+// Parcel style
+import ROLLING_WORKER_URI from 'url:./timing.rolling.worker.js'
+import SETINERVAL_WORKER_URI from 'url:./timing.setinterval.worker.js'
+import SETTIMEOUT_WORKER_URI from 'url:./timing.settimeout.worker.js'
+
+// Vite style
+// import ROLLING_WORKER_URI from './timing.rolling.worker.js?worker'
+// import SETINERVAL_WORKER_URI from './timing.setinterval.worker.js?worker'
+// import SETTIMEOUT_WORKER_URI from './timing.settimeout.worker.js?worker'
+
+
 export const MAX_BARS_ALLOWED = 32
 
+// keep this at 16 to match MIDI1.0 spec
 const DIVISIONS = 4
 
 const AudioContext = window.AudioContext || window.webkitAudioContext
@@ -41,44 +53,46 @@ let timingWorker
 
 const loadTimingWorker = type => {
 
-	// Pick your type of worker here 
-	// Settimeout is the most universal but laggiest
-	// audioContext only works on FF!
-	// return new Worker(
-	//     new URL('./timing.settimeout.worker.js', import.meta.url),
-	//     {type: 'module'}
-	// )
-
-	// identical to the worker above but uses setinterval rather than settimeout
-	// return new Worker(
-	//     new URL('./timing.setinterval.worker.js', import.meta.url),
-	//     {type: 'module'}
-	// )
-
 	// in the future, we may be able to pass offlineAudioContext to a worker
 	// and at that point, we can finally tie in the actual timing by using the 
 	// context as the global clock
-	// return new Worker(
-	//     new URL('./timing.audiocontext.worker.js', import.meta.url),
-	//     {type: 'module'}
-	// )
-
-	// This tries to check the timing every 1ms
-	// and should be the most accurate and the most expensive
-	return new Worker(
-		new URL('./timing.rolling.worker.js', import.meta.url),
-		{type: 'module'}
-	)
-
-	// NB. https://bugzilla.mozilla.org/show_bug.cgi?id=1203382
-	//     FF does not allow raf so use setimeout is prefered
+	return new Worker( new URL( type ), {type: 'module'} )
 }
 
-try{
-	timingWorker = loadTimingWorker()
-}catch(error){
-	isCompatible = false
+export const setTimingWorker = type =>{
+	
+	try{
+		const timer = loadTimingWorker(type)
+		
+		if (timer && timingWorker)
+		{
+			timer.onmessage = timingWorker.onmessage 
+			timer.onerror = timingWorker.onerror 
+		}
+
+		if (timingWorker)
+		{	
+			// TODO: clone the methods into new worker?
+			timingWorker.onmessage = (e) => {}
+			timingWorker.onerror = (e) => {}
+			timingWorker.destroy()
+		}
+		timingWorker = timer
+
+	}catch(error){
+		
+		isCompatible = false
+		console.error("Timing WORKER FAILED TO LOAD", timingWorker, error)
+	}	
 }
+
+// setTimingWorker(SETINERVAL_WORKER_URI)
+// setTimingWorker(SETTIMEOUT_WORKER_URI)
+// This tries to check the timing every 1ms
+// and should be the most accurate and the most expensive	
+// setTimingWorker(ROLLING_WORKER_URI)
+setTimingWorker(ROLLING_WORKER_URI)
+
 
 /**
  * Can we use this timing method on this device?
@@ -103,7 +117,7 @@ export const now = () => audioContext ? audioContext.currentTime : Date.now()
  * @param {Number} bpm beats per minute
  * @returns {Number} time in milliseconds
  */
-export const convertBPMToPeriod = bpm => 60000 / bpm
+export const convertBPMToPeriod = bpm => 60000 / parseFloat(bpm)
 
 /**
  * Fetch current bar length in milliseconds
@@ -136,6 +150,12 @@ export const getBar = () => bar
 export const getBarProgress = () => bar / bars
 
 /**
+ * Fetch current bar
+ * @returns {Number} current bar
+ */
+export const setBar = value => bar = parseInt(value)
+
+/**
  * Allows a user to set the total number of bars
  * @param {Number} value How many bars to have in a measure
  * @returns {Number} total bars
@@ -146,6 +166,13 @@ export const setBars = value => {
 }
 
 // Tempos
+
+/**
+ * Get the current timing as Beats per minute
+ * BPM = 60,000,000 / MicroTempo
+ * @returns {Number} BPM
+ */
+export const getBPM = () => 60000 / getTimePerBar()
 
 /**
  * Get the current timing as a Microtempo 
@@ -160,12 +187,6 @@ export const setBars = value => {
  */
  export const getMicrosPerMIDIClock = () => getMicroTempo() / 24
 
-/**
- * Get the current timing as Beats per minute
- * BPM = 60,000,000 / MicroTempo
- * @returns {Number} BPM
- */
- export const getBPM = () => 60000 / getTimePerBar()
 
  /**
   *  Set the current timing using a BPM where 
@@ -173,8 +194,16 @@ export const setBars = value => {
   * @param {Number} bpm Beats per minute
   * @returns {Number} period
   */
- export const setBPM = bpm => setTimeBetween( convertBPMToPeriod( bpm ) )
+ export const setBPM = bpm => setTimeBetween( convertBPMToPeriod( parseFloat(bpm) ) )
  
+
+ /**
+ * Fetch current bar length in milliseconds
+ * @returns {Number} bar length in milliseconds
+ */
+export const getTimeBetween = () => period 
+
+
 /**
  * Using a time in milliseconds, set the amount of time between tick and tock
  * @param {Number} time Amount of millieconds between ticks
@@ -202,8 +231,6 @@ export const setTimeBetween = time => {
  */
 export const startTimer = (callback, timeBetween=200, options={} ) => {
 
-    barsElapsed = 0
-
     // lazily initialise a context
     if (audioContext === null)
     {
@@ -220,7 +247,21 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
     if (!isRunning)
     {
         // 
+		barsElapsed = 0
     }
+
+	// allows us to disable the existing route to send our own
+	// or to inject them into here 
+	const bypass = ( enabled=true )=>{
+
+		if (enabled){
+			// we want to bypass thew worker's work
+		}
+		// callback && callback({
+		// 	divisionsElapsed, bar, bars, barsElapsed, 
+		// 	timePassed, elapsed, expected, drift, level, intervals, lag
+		// })
+	}
    
     // now hook into our worker bee and watch for timing changes
     timingWorker.onmessage = (e) => {
@@ -238,25 +279,26 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
                 break
 
             case EVENT_TICK:
-
+				const timeBetweenPeriod = timeBetween * 0.001
                 // How many ticks have occured yet
                 const intervals = data.intervals
                 // Expected time stamp
-                const expected = intervals * timeBetween * 0.001
+                const expected = intervals * timeBetweenPeriod
                 // How long has elapsed according to audio context
                 const elapsed = currentTime - startTime
                 // How long has elapsed according to our worker
                 const timePassed = data.time
                 // how much spill over the expected timestamp is there
-                const lag = timePassed % timeBetween * 0.001
+                const lag = timePassed % timeBetweenPeriod
                 // should be 0 if the timer is working...
                 const drift = timePassed - elapsed
                 // deterministic intervals not neccessary
                 const level = Math.floor(timePassed / timeBetween)
                 
-				if (++divisionsElapsed === DIVISIONS)
+				if (++divisionsElapsed >= DIVISIONS)
 				{
-					bar = ++barsElapsed % bars
+					++barsElapsed
+					bar = (bar+1) % bars
 					divisionsElapsed = 0
 				}
 			
@@ -264,6 +306,7 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
                 //console.log("EVENT_TICK", {timePassed, elapsed, drift, art})
                 // console.log(divisionsElapsed, bar +'/' + bars)
                 callback && callback({
+					divisionsTotal:DIVISIONS,
 					divisionsElapsed, bar, bars, barsElapsed, 
 					timePassed, elapsed, expected, drift, level, intervals, lag
 				})
@@ -293,7 +336,8 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
 
     return {
         currentTime:now(),
-        timingWorker
+        timingWorker,
+		bypass
     }
 }
 

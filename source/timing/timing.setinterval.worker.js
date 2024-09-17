@@ -33,10 +33,10 @@ const loop = interval => {
         
         postMessage({ event:EVENT_TICK, time:passed, intervals })
        
-        const nextInterval = accurateTiming ? interval + difference : interval 
+        //dconst nextInterval = accurateTiming ? interval + difference : interval 
 
         // call itself with the new interval?
-        loop(nextInterval)
+        //dloop(nextInterval)
 
     }, interval)
 }
@@ -47,7 +47,10 @@ const reset = () =>{
 }
 
 const start = (interval=250, timeSignature )=>{
-    // stop if running
+    
+    gap = interval
+	
+	// stop if running
     if (isRunning)
     {
         clearInterval(timerID)
@@ -60,7 +63,6 @@ const start = (interval=250, timeSignature )=>{
         postMessage({event:EVENT_STARTING, time:0})
     }
 
-    gap = interval
     // do the setinterval here
     loop(gap)
 
@@ -87,13 +89,16 @@ self.onmessage = e => {
         case CMD_START:
             accurateTiming = data.accurateTiming || false    
             start(data.interval)
-            break
+            console.log("starting at tempo",data.interval)
+           
+			break
 
         case CMD_STOP:
             stop()
             break
 
         case CMD_UPDATE:
+			console.log("changing tempo",data.interval)
             start(data.interval)
             break
     }
