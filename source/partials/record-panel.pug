@@ -1,0 +1,14 @@
+feldset#record-panel
+	button#button-photograph(type="button" aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
+	button#button-save-midi(hidden type="button" aria-label="Save this performance as a MIDI file" ) Save MIDI<span class="hide-text"> File to local drive</span>
+
+	label.button(for="button-record-audio" ) Audio<span class="hide-text"> Record</span>
+		input#button-record-audio(type="checkbox" aria-label="Record Your Performance as an Audio File")
+
+	button#button-record(hidden type="button" aria-label="Record a loop or two" ) Record Loop
+
+	label.button.hide(for="button-record-video" ) Video<span class="hide-text"> Record</span>
+		input#button-record-video(type="checkbox" aria-label="Record Your Performance as an Video File")
+
+	//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
+	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File

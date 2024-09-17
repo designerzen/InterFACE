@@ -1,21 +1,30 @@
-label(for="volume-input-range") 
-	input(type="range" min="0" max="1" step="0.05" list="volume-input-ticks")#volume-input-range
-	
-//- label(for="volume-input-range") 
-//- 	input(type="range" orient="vertical" min="0" max="1" step="0.05" list="volume-input-ticks")#volume-input-range
-//- 	datalist#volume-input-ticks
-//- 		option(value="0", label="0")
-//- 		option(value="0.1", label="0.1")
-//- 		option(value="0.2", label="0.2")
-//- 		option(value="0.3", label="0.3")
-//- 		option(value="0.4", label="0.4")
-//- 		option(value="0.5", label="0.5")
-//- 		option(value="0.6", label="0.6")
-//- 		option(value="0.7", label="0.7")
-//- 		option(value="0.8", label="0.8")
-//- 		option(value="0.9", label="0.9")
-//- 		option(value="1", label="1")
-
-label(for="button-mute" ) Mute
-	input#button-mute(type="checkbox" aria-label="Toggle mute")
+fieldset#volume-panel.volume 
+	legend Volume
+	//- label(for="volume-input-range") 
+	//- 	input(type="range" min="0" max="1" step="0.05" list="volume-input-ticks")#volume-input-range
 		
+	label(for="volume-input-range") 
+		input(type="range" min="0" max="1" step="0.05" list="volume-input-ticks")#volume-input-range.vertical
+		//- input(type="range" orient="vertical" min="0" max="1" step="0.05" list="volume-input-ticks")#volume-input-range
+		datalist#volume-input-ticks
+			option(value="0", label="0")
+			option(value="0.1", label="0.1")
+			option(value="0.2", label="0.2")
+			option(value="0.3", label="0.3")
+			option(value="0.4", label="0.4")
+			option(value="0.5", label="0.5")
+			option(value="0.6", label="0.6")
+			option(value="0.7", label="0.7")
+			option(value="0.8", label="0.8")
+			option(value="0.9", label="0.9")
+			option(value="1", label="1")
+
+		//- datalist#l
+			- for(let i = 0; i <= e; i++)
+			option(value=i style=`--idx: ${i}` label=i%major ? null : i)
+
+	output(for="volume-input-range")#volumeoutput 0
+		
+	label(for="button-mute" ) Mute
+		input#button-mute(type="checkbox" role="switch" aria-label="Toggle mute")
+			
