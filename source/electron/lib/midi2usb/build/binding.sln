@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ALSA", "ALSA.vcxproj", "{842669E9-8888-2767-F634-87645E093C40}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CoreMIDI", "CoreMIDI.vcxproj", "{B8A6A13D-2DCB-A0D2-9371-251F9F10EFD2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CoreMIDI2", "CoreMIDI2.vcxproj", "{FC1817BF-68DD-A23E-1E91-B6A86A56C725}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x64 = Release|x64
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{842669E9-8888-2767-F634-87645E093C40}.Release|x64.ActiveCfg = Release|x64
+		{842669E9-8888-2767-F634-87645E093C40}.Release|x64.Build.0 = Release|x64
+		{842669E9-8888-2767-F634-87645E093C40}.Debug|x64.ActiveCfg = Debug|x64
+		{842669E9-8888-2767-F634-87645E093C40}.Debug|x64.Build.0 = Debug|x64
+		{B8A6A13D-2DCB-A0D2-9371-251F9F10EFD2}.Release|x64.ActiveCfg = Release|x64
+		{B8A6A13D-2DCB-A0D2-9371-251F9F10EFD2}.Release|x64.Build.0 = Release|x64
+		{B8A6A13D-2DCB-A0D2-9371-251F9F10EFD2}.Debug|x64.ActiveCfg = Debug|x64
+		{B8A6A13D-2DCB-A0D2-9371-251F9F10EFD2}.Debug|x64.Build.0 = Debug|x64
+		{FC1817BF-68DD-A23E-1E91-B6A86A56C725}.Release|x64.ActiveCfg = Release|x64
+		{FC1817BF-68DD-A23E-1E91-B6A86A56C725}.Release|x64.Build.0 = Release|x64
+		{FC1817BF-68DD-A23E-1E91-B6A86A56C725}.Debug|x64.ActiveCfg = Debug|x64
+		{FC1817BF-68DD-A23E-1E91-B6A86A56C725}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

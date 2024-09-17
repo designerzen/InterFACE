@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="S:">
+      <UniqueIdentifier>{3FB20534-8784-D57B-2332-716AB6D62862}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="S:\Documents">
+      <UniqueIdentifier>{87566BA0-CA33-1144-65F5-087C5F9D6C20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="S:\Documents\Code">
+      <UniqueIdentifier>{24AFA2F5-98CD-8FF0-1F31-237BC616C130}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="S:\Documents\Code\InterFACE">
+      <UniqueIdentifier>{7A174D1E-B6C7-EDF9-E4E3-7F94F29581EB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="S:\Documents\Code\InterFACE\node_modules">
+      <UniqueIdentifier>{56DF7A98-063D-FB9D-485C-089023B4C16A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="S:\Documents\Code\InterFACE\node_modules\node-gyp">
+      <UniqueIdentifier>{77348C0E-2034-7791-74D5-63C077DF5A3B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="S:\Documents\Code\InterFACE\node_modules\node-gyp\src">
+      <UniqueIdentifier>{8CDEE807-BC53-E450-C8B8-4DEBB66742D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="S:\Documents\Code\InterFACE\node_modules\node-gyp\src\win_delay_load_hook.cc">
+      <Filter>S:\Documents\Code\InterFACE\node_modules\node-gyp\src</Filter>
+    </ClCompile>
+    <None Include="..\binding.gyp">
+      <Filter>..</Filter>
+    </None>
+  </ItemGroup>
+</Project>
