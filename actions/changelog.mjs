@@ -74,11 +74,11 @@ Changelog.generate({
 		const feed = new Feed({
 			title: `PhotoSYNTH InterFACE v${packageVerson}`,
 			description: "News feed and release updates",
-			id: "http://example.com/",
-			link: "http://interface.place/",
+			id: "https://interface.place/",
+			link: "https://interface.place/",
 			language: "en", // optional, used only in RSS 2.0, possible values: http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
-			image: "http://example.com/image.png",
-			favicon: "http://example.com/favicon.ico",
+			image: "https://interface.place/favicon.ico",
+			favicon: "https://interface.place/favicon.ico",
 			copyright: "All rights reserved 2024, designerzen",
 			//updated: new Date(), // optional, default = today
 			generator: "awesome", // optional, default = 'Feed for Node.js'
