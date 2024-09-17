@@ -1,0 +1,26 @@
+{
+    "version": "https://jsonfeed.org/version/1",
+    "title": "PhotoSYNTH InterFACE v0.20.1",
+    "home_page_url": "https://interface.place/",
+    "feed_url": "https://interface.place/feed.json",
+    "description": "News feed and release updates",
+    "icon": "https://interface.place/favicon.ico",
+    "author": {
+        "name": "zen",
+        "url": "https://designerzen.com"
+    },
+    "items": [
+        {
+            "id": "https://interface.place",
+            "content_html": "\nmoved TF copying assets into build script (40c8a187)\n\n\nadded more types to ignore (bc60ece2)\nupdated manifest with new features and data (38566234)\nadded lock files to ignore (09454a00)\nadded new types to gitignore (d9507f0b)\n\n\nupdated all public data (4659b8e5)\n\n\nshaders for 3d display (d1d14411)\nQR codes (97bacb66)\ntheme selector & loader (cf2668e4)\ninstrument from remotes (9b6a42b8)\npatterns & tap to tempo (46c0e92d)\nutils for location, state + flags (e0adff7f)\nutiilities for optimising performance (dbb106f5)\nAdded hardware connections inc LGP (f5f511f8)\nVisual updates including 3D variants (29cbd8fc)\nPiano component for testing instruments (d6b23537)\nsettings defaults for various sections (cd46bdc4)\ntests with javascript (ac607a80)\nmediators for passing person data (ff84261a)\nMIDI handling for external and 2,0 protocol (e49279aa)\nDOM utils, widgets and controls (0c4a39c1)\nicons for use sharing (e8239557)\nshared pug partials (d78ef560)\ninstrument factory (bf73855c)\nmore instruments (2a920ef1)\nup / down arrow icons (7227184b)\n3d face model assets (96a697cb)\ncomponent CSS files (26b01ca4)\nNew styles using grid and overlays + palette (55a165cc)\nPolymorphic builds (899d0fdb)\nCapactior entry point build (c751ef09)\nElectron build (d0be70c4)\nnew static build pipeline (d2c033d6)\nAdded company logos for IEEE and AMIC (cbd7c70e)\nApp store icons and banners (faaa615b)\nFonts inc dyslexic / readable / heading / notation (1ec2f9d6)\n\n\nmodular display system inc. holographic (b6e5553c)\nicons for webstores / favicons (45fcb93e)\nElectron build (1bfdd3c1)\nUI panels for control panel (209df0f9)\ninstrument json (7d7f7075)\nnew options file (e1f67266)\ninstrument factory (ea45b897)\n\n\nElectron main code (253031f8)\n\n\npreparation for cloudflare (ebee6e13)\nUpdated prediction models to work with tf latest (e8b0ccd1)\ntiming now uses micro fractions for better MIDI and for swing (a24685d5)\nnotes and scales improved (39631b78)\nBeats tuning (74156e03)\nsimplified index css as simple gateway (c1fddcfc)\nimproved base markup, headers + a18n (4c6f93e7)\nactions for changelogging (1a95bafb)\nSet node version high with flags (77b93e1e)\nPWA updates (bdf27a2f)\na way to load raw files, skipping processing (f0161aa8)\nSoundFont decoupled from data (c73138f1)\nopt/ error with CI in CF (d83f73c9)\nremoved node requirement (4834387e)\nnpm tripping up because of yarn confusion (f4d5a76d)\n\n\nbuild system simplified (e8a61ee2)\n\n\nv0.21 - simpler build pipeline (e286b96b)\n\n\ntests added for various features (caa63e94)\n\n\nfile locations (c1d555ec)\ndependency locations (bfa052c3)\nmoved all state into utils (22ce8326)\noscillator instrument (f457c69e)\nsmoother timing (ab3ab4c3)\n\n\nmoved state (d1c26276)\n\n",
+            "title": "0.20.2 (2024-09-17)",
+            "summary": "Build System / Dependencies / Chores / Documentation Changes / New Features / Other Changes (feature) / Other Changes (feture) / Bug Fixes / Refactors / Other Changes (release) / Tests / Other Changes (update) / Other Changes (upodate) / ",
+            "image": "http://interface.place/favicon.ico",
+            "date_modified": "2024-09-17T00:00:00.000Z",
+            "author": {
+                "name": "zen",
+                "url": "https://designerzen.com"
+            }
+        }
+    ]
+}
