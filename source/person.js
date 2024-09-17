@@ -28,6 +28,12 @@
   Start                    |HOLD| Stop
  * 
  *  */ 
+  
+import { 
+	EYE_COLOURS,
+	DEFAULT_PERSON_OPTIONS,
+	DEFAULT_VOICE_OPTIONS
+} from './settings/options'
 
 import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
@@ -38,27 +44,31 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 // import simplePluginURI from "url:./audio/wam2/simple/index.js"
 // import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
 
-import WAM2Instrument from './audio/instruments/instrument.wam2'
+// import WAM2Instrument from './audio/instruments/instrument.wam2'
 // import SampleInstrument from './audio/instruments/instrument.sample'
 import SoundFontInstrument from './audio/instruments/instrument.soundfont'
 import MIDIInstrument from './audio/instruments/instrument.midi'
-
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 // import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
 // import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
+import InstrumentFactory, { 
+	INSTRUMENT_TYPE_SOUNDFONT,
+	INSTRUMENT_TYPE_OSCILLATOR, 
+	INSTRUMENT_TYPE_MIDI 
+} from './audio/instrument-factory.js'
+
+import InstrumentManager from './audio/instrument-manager.js'
+import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/tuning/notes'
 import { getGeneralMIDIInstrumentFolders } from './audio/sound-font-instruments'
-import { hidePersonalControlPanel, setupInstrumentForm, showPersonalControlPanel } from './dom/ui'
 import { ParamaterRecorder } from './parameter-recorder'
-
+import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "./dom/ui.panel-instruments.js"
 import { drawMousePressure } from './dom/mouse-pressure'
-import { 
-	EYE_COLOURS,
-	DEFAULT_PERSON_OPTIONS,
-	DEFAULT_VOICE_OPTIONS
-} from './settings/options'
+
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
+import { now } from "./timing/timing.js"
+import { toKebabCase } from "./utils/utils.js"
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -71,16 +81,14 @@ export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 
-// after how many frames do we set the DOM css vars
-const UPDATE_FACE_BUTTON_AFTER_FRAMES = 24
 
 // FIXME:
 const FUDGE = 1.0// 1.3
 
 /**
  * Default head control input mechanism
- * @param {*} prediction 
- * @param {*} options 
+ * @param {Object} prediction 
+ * @param {Object} options 
  * @returns 
  */
 const convertHeadToNote = (prediction, options) => {
@@ -121,14 +129,21 @@ const convertHeadToNote = (prediction, options) => {
 
 export default class Person{
 
+	audioContext
+	offlineAudioContext
+
 	// instances
 	midiPlayer
 	samplePlayer
-	activeInstrument
 	
-	// States, default state is audio off
+	activeInstrument
+	instruments = []
+	instrumentPointer = 0
+	instrumentLoadedAt = -1
+	
+	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
-
+		
 	// Flags
 	active = false
 	singing = false
@@ -146,26 +161,47 @@ export default class Person{
 	instrumentLoading = false
 	// is the MIDI port active?
 	isMIDIActive = false
+
+	// istrument panel connected
+	isInstrumentPanelInteractive = false
 	
 	// Head orientation
 	yaw = 0
 	pitch = 0
 	roll = 0
 
+	// we can use external inputs here and store the dispatcher here
+	gamePad
+
 	// internal person frame counter
 	counter = 0
 
 	tracks = 0
+
 	octave = 4
 
+	// now playing
+	note = -1
+	noteName = "C4"
+	noteSound = "-"
+	noteNumber = -1
+	noteFriendlyName = "C-4"
+	noteVelocity = 0
+
+	// last played
+	lastNote = -1
+	lastNoteName = "C4"
+	lastNoteFriendlyName = "C-4"
+	lastNoteSound = "-"
+	lastNoteNumber
+
+	lastTimeActive = -1
+	
 	// real time colour settings
 	defaultHue = 0
 	saturation = 50
 	luminosity = 50
 	hueRange = 360
-
-	instrumentPointer = 0
-	instrumentLoadedAt = -1
 
 	mouseDownAt = -1
 	mouseHeldAt = -1
@@ -175,16 +211,9 @@ export default class Person{
 	rightEyeClosedAt = -1
 	eyesClosed = false
 
-	instruments = []
-
 	data = null
 	midi = null
 
-	lastNoteSound = "-"
-	lastNoteName = "A0"
-	lastNoteFriendlyName = "C-4"
-	lastNoteNumber
-	
 	// default MIDI settings
 	midiChannel = "all"
 
@@ -199,6 +228,20 @@ export default class Person{
 	// this is the mechanism to control the music
 	// and can be set on a per user basis
 	controlMode = convertHeadToNote
+
+	/**
+	 *  @returns {Boolean} user comp occurring
+	 */
+	get isActive(){
+		return this.active
+	}
+
+	/**
+	 *  @returns {Boolean} is the mouth open beyond threshold / playback happening
+	 */
+	get isSinging(){
+		return this.singing
+	}
 
 	/**
 	 * Are the user's eyes both open?
@@ -222,7 +265,7 @@ export default class Person{
 	 */
 	get mouseDownFor(){
 		return this.isMouseDown ? 
-			this.audioContext.currentTime - this.mouseDownAt :
+			this.now - this.mouseDownAt :
 			-1
 	}
 		
@@ -266,7 +309,25 @@ export default class Person{
 	get controls (){
 		return document.querySelector(this.controlsID)
 	}
+	/**
+	 * Fetch the class of the form on the DOM that matches this Person
+	 * @returns {String} ID name
+	 */
+	get panelID (){
+		return `.${this.name}-panel`
+	}
 
+	/**
+	 * Fetch the form controls on the DOM that matches this Person
+	 * @returns {HTMLElement} Form element for this Person
+	 */
+	get instrumentPanel (){
+		return document.querySelector(this.panelID)
+	}
+
+	get faceButton(){
+		return document.getElementById(this.name)
+	}
 	/**
 	 * Fetch the instrument name eg. french-horn
 	 * @returns {String} Instrument name
@@ -327,7 +388,9 @@ export default class Person{
 	 * get the current time in milliseconds
 	 */
 	get now(){
-		return this.audioContext.currentTime
+		return this.audioContext ?
+				this.audioContext.currentTime :
+				now()
 	}
 
 	/**
@@ -362,12 +425,26 @@ export default class Person{
 	get hsla(){
 		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,0.5)`
 	}
+
+	/**
+	 * Is the user's side panel on the left or right?
+	 * Users A and C go left, B and D go right
+	 */
+	get isLeftSidePanel(){
+		const lowerCaseName = this.name.toLowerCase()
+		const letter = lowerCaseName.charAt(lowerCaseName.length-1)
+		const isLeftSide = letter === 'a' || letter === 'c'
+		console.error( "isLeftSidePanel", lowerCaseName, letter, isLeftSide )
+		return isLeftSide
+	}
 	
 
-	constructor(name, audioContext, offlineAudioContext, destinationNode, options={} ) {
+	constructor(name, options={} ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
-		this.name = name
+
+		// ensure that the name is all lower case and kebabed
+		this.name = toKebabCase(name)
 			
 		// HSL Colour scheme that can be overwritten
 		this.setPalette(this.options)
@@ -377,58 +454,66 @@ export default class Person{
 		
 		// allow us to record the performances (not the audio)
 		// useful for showing recordings of a person
-		this.parameterRecorder = new ParamaterRecorder( audioContext )
-		this.isRecordingParameters = false
+		this.parameterRecorder = new ParamaterRecorder()
+		this.isRecordingParameters = options.recordData ?? false
 	
 		this.debug = this.options.debug
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
-		this.mouthScale = rescale(this.options.mouthCutOff)
+		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
 
-		// Create our Audio wiring
-		this.setupAudio(audioContext, offlineAudioContext, destinationNode)
+		// fetch face button dom element and cache
+		this.button = this.faceButton
 
-		// fetch face button dom element
-		this.button = document.getElementById(name)
+		if (this.button)
+		{
+			// make sure it is visible!
+			this.button.hidden = false
+			// Create our side bar and instrument selector for m
+			//this.setupForm().then(()=>{
+				
+				this.button.addEventListener( 'mousedown', e =>{ 
+					//console.log("mouse down")
+					this.onFaceTouchStart(e) 
+					document.addEventListener('mouseup', e => this.onFaceTouchEnd(e), {once:true})
+				})
 
-		// Create our side bar and instrument selector for m
-		this.setupForm().then(()=>{
-			
-			this.button.addEventListener( 'mousedown', e =>{ 
-				//console.log("mouse down")
-				this.onFaceTouchStart(e) 
-				document.addEventListener('mouseup', e => this.onFaceTouchEnd(e), {once:true})
-			})
-			// this.button.addEventListener( 'mouseup', e => {
-			// 	console.log("mouse up")
-			// 	this.onFaceTouchEnd(e) 
+				// this.button.addEventListener( 'mouseup', e => {
+				// 	console.log("mouse up")
+				// 	this.onFaceTouchEnd(e) 
+				// })
+
+				this.button.addEventListener( 'touchstart', e =>{ 
+					//console.log("touch start")
+					this.onFaceTouchStart(e) 
+					document.addEventListener('touchend', e => this.onFaceTouchEnd(e), {once:true})
+				})
+
+				// this.button.addEventListener( 'touchend', e => {
+				// 	console.log("touch end")
+				// 	this.onFaceTouchEnd(e) 
+				// })
+
+				this.button.addEventListener( 'mouseover', event => {
+					this.isMouseOver = true
+				})
+
+				this.button.addEventListener( 'mouseout', event => {
+					this.isMouseOver = false
+				})
+
+				this.instrumentLoadedAt = this.now
 			// })
-
-			this.button.addEventListener( 'touchstart', e =>{ 
-				//console.log("touch start")
-				this.onFaceTouchStart(e) 
-				document.addEventListener('touchend', e => this.onFaceTouchEnd(e), {once:true})
-			})
-			// this.button.addEventListener( 'touchend', e => {
-			// 	console.log("touch end")
-			// 	this.onFaceTouchEnd(e) 
-			// })
-
-			this.button.addEventListener( 'mouseover', event => {
-				this.isMouseOver = true
-			})
-
-			this.button.addEventListener( 'mouseout', event => {
-				this.isMouseOver = false
-			})
-
-			this.instrumentLoadedAt = this.now
-		})
+		}else{
+			// console.warn(`Created Person "${name}" but could not find associated markup #${name}`)
+			throw Error(`Created Person "${name}" but could not find associated markup #${name}`)
+		}
 
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
 	/**
+	 * TODO:
 	 * Destroy this person - disconnect audio chain
 	 * free up associated memory
 	 */
@@ -453,9 +538,7 @@ export default class Person{
 	 * @param {Object} data 
 	 */
 	dispatchEvent(type, data = {}){
-		this.button.dispatchEvent(new CustomEvent( type, {
-			detail: data
-		}))
+		this.button.dispatchEvent(new CustomEvent( type, {detail: data}))
 	}
 
 	/**
@@ -487,11 +570,12 @@ export default class Person{
 
 		// cache all data
 		this.data = prediction
-		
+		this.lastTimeActive = now()
+
 		// save all the parameters for recall later on...
 		if (this.isRecordingParameters)
 		{
-			this.parameterRecorder.save(prediction)
+			this.parameterRecorder.add(prediction)
 		}
 		
 		// If we are playing back an old session, we overwrite
@@ -564,14 +648,27 @@ export default class Person{
 
 		// 
 		// stereo eye panning
-		if (this.options.stereoPan)
+		if (this.options.stereoPan && this.stereoNode)
 		{
 			// -1 -> +1
 			this.stereoNode.pan.value = prediction[this.options.stereoController] // * -1
 		}
 		
+
+		// TODO:
+		// when the left eyebrow is down and the right is up
+		// if (browDownLeft - browDownRight > 0.5){
+	
+		// 	o-O
+		// 	const isLeftEyebrowDownAndRightEyebrowUp = browDownLeft < browDownRight
+		// 	O-o
+		// 	const isRightEyebrowDownAndLeftEyebrowUp = browDownLeft > browDownRight
+	
+		// }else{
+		//}
+
 		// eyebrows controls
-		if (this.options.drawEyebrows)
+		if (this.options.drawEyebrows && this.delayNode)
 		{
 			// as low pass filter
 			// this.eyeBrowsNode.frequency.value = 1000 + prediction.leftEyebrowRaisedBy * 1000 // (1000, audioCtx.currentTime);
@@ -585,9 +682,16 @@ export default class Person{
 			// console.log( this.eyeBrowNode.gain.value, this.eyeBrowNode.frequency.value )
 
 			// As delay and feedback
-			this.feedbackNode.gain.value = prediction.eyebrowsRaisedBy
+			this.feedbackNode.gain.value = clamp(prediction.eyebrowsRaisedBy, 0, 0.3)
+			this.delayNode.delayTime.value = clamp(prediction.leftEyebrowRaisedBy, 0, 0.3)
+			// console.info("Delay via prediction", {prediction, gain:this.feedbackNode.gain.value , time:this.delayNode.delayTime.value})
+		
+		}else if (this.delayNode){
 
-			this.delayNode.delayTime.value = prediction.leftEyebrowRaisedBy * 3
+			// As delay and feedback that are static
+			this.feedbackNode.gain.value = 0.3 // (30% feedback)
+			this.delayNode.delayTime.value = 0.2 // (40% delay)
+			// console.info("Delay", prediction)
 		}
 	}
 	
@@ -645,34 +749,27 @@ export default class Person{
 		return options
 	}
 
+	moveButton(x,y,width,height){
+		// TODO: Profile which is faster...
+		// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
+		// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
+		// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
+		// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
+	
+		this.button.setAttribute( "style", `--${this.name}-x:${x};--${this.name}-y:${y};--${this.name}-w:${width};--${this.name}-h:${height};` );
+		// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`		
+	}
+
 	/**
 	 * Draw some text onto the screen - used to show text above users and to
 	 * show debug code in realtime
 	 * 
-	 * @param {*} prediction 
+	 * @param {Object} prediction 
 	 * @param {AbstractDisplay} display 
 	 */
 	drawText(prediction, display){
 
 		const boundingBox = prediction.box
-
-		// we only want this every frame or so as this 
-		// is altering the DOM and very costly
-		if (this.counter%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
-		{
-			const boundingBoxWidth = boundingBox.width || boundingBox.xMax - boundingBox.xMin
-			const boundingBoxHeight = boundingBox.height || boundingBox.yMax - boundingBox.yMin
-			//console.error("Display", display.width, display.height, {boundingBoxWidth,boundingBoxHeight,boundingBox} )
-			// TODO: Profile which is faster...
-			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
-			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
-			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
-			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-			this.button.setAttribute( "style", `--${this.name}-x:${boundingBox.xMax};--${this.name}-y:${boundingBox.yMin};--${this.name}-w:${boundingBoxWidth};--${this.name}-h:${boundingBoxHeight};` );
-
-			// ?
-			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`
-		}
 
 		const xMin = display.width - (boundingBox.xMin * display.width)
 		const yMin = boundingBox.yMin * display.height
@@ -772,8 +869,9 @@ export default class Person{
 					`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
 					`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
 					
-					`mouthOpen:${prediction.mouthOpen} Singing:${this.singing} shape ${prediction.mouthShape}`, 
-					`mouthRange:${(prediction.mouthRange||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
+					`mouthOpen:${prediction.isMouthOpen} Singing:${this.singing} shape ${prediction.mouthShape}`, 
+					`mouthRangeVertical:${(prediction.mouthRangeVertical||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
+					`mouthRangeHorizontal:${(prediction.mouthRangeHorizontal||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
 					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
 					
 					// `noseSneerLeft:${prediction.noseSneerLeft.toFixed(3)} noseSneerRight:${prediction.noseSneerRight.toFixed(3)}`,
@@ -888,26 +986,37 @@ export default class Person{
 				
 		// volume is an log of this
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
-		// const logAmp = options.ease(amp)
+		const logAmp = options.ease(amp)
 		
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume = amp
 		let note = -1
 		
-		// cache for drawing getNoteText
-		this.lastNoteName = noteName
-		this.lastNoteSound = noteSound
-		this.lastNoteNumber = noteNumberForMIDI
-		this.lastNoteFriendlyName = friendlyNoteName
+		// cache existing 
+		this.lastNote = this.note
+		this.lastNoteName = this.noteName
+		this.lastNoteSound = this.noteSound 
+		this.lastNoteNumber = this.noteNumber 
+		this.lastNoteFriendlyName = this.noteFriendlyName
+		
+		// save new
+		this.note = noteNumber
+		this.noteName = noteName
+		this.noteSound = noteSound
+		this.noteNumber = noteNumberForMIDI
+		this.noteFriendlyName = friendlyNoteName
+		
 		this.octave = newOctave
 
 		this.defaultHue = noteNumber * this.hueRange
 		
 		this.saturation = 100 * lipPercentage
+		// console.log("lipPercentage", lipPercentage, "amp", amp, "logAmp", logAmp, "cutOff",  options.mouthCutOff, "prediction", prediction)
 		this.singing = amp >= options.mouthCutOff
 
 		// console.log("Person", prediction.yaw , yaw)
-		// // console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
+		// console.log("singing",this.singing, {amp,cut: options.mouthCutOff,logAmp}, this)
+		// console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
 		// MOUTH GATE ==========================
 
@@ -941,18 +1050,14 @@ export default class Person{
 			}
 			
 			// curve
-			newVolume = options.ease( newVolume  )
+			newVolume = options.ease( newVolume )
 			// smooth (removes some clicks)
 			newVolume = Math.round( newVolume * this.precision ) / this.precision 
 			// rescale for 0.3->1
-			// newVolume = this.mouthScale( newVolume )
+			newVolume = this.mouthScale( newVolume )
 			// always prevent gain going over 1
-			if (newVolume > 0.99)
-			{
-				newVolume = 0.99
-			}
-
-			newVolume *= 0.33
+			// increase in volume?
+			// newVolume *= 0.33
 			
 			// newVolume = Math.round( newVolume * options.precision * 10 ) / (options.precision * 10) 
 			// newVolume = parseFloat( newVolume.toFixed( options.precision)) 
@@ -976,7 +1081,10 @@ export default class Person{
 				// https://webmidijs.org/api/classes/Output#playNote
 				this.midi.playNote( noteName, midiOptions )
 				//console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
+	
+				console.info("MIDI note on", noteName, midiOptions )
 		
+
 				if (this.isMIDIActive)
 				{
 					//this.midi.sendKeyAftertouch(noteName, (eyeDirection + 1 ) * 0.5 )
@@ -1013,9 +1121,39 @@ export default class Person{
 				this.setState(STATE_INSTRUMENT_DECAY)
 				
 			}else{
+
 				this.setState(STATE_INSTRUMENT_RELEASE)
 				// this.setState(STATE_INSTRUMENT_ATTACK)
 				// this.setState(STATE_INSTRUMENT_DECAY)
+				
+				//&& this.midiActive If the user has stopped singing we need to stop the midi too!
+				if (this.options.sendMIDI && this.hasMIDI)
+				{
+					// this.midi.sendClock( )
+					//this.midi.setSongPosition( getBarProgress() * 16383 )
+						
+					if (!this.singing)
+					{
+						this.midi.stopNote(noteName, {
+							// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
+							// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
+							release:0.2
+						})
+
+						console.info("MIDI note off", noteName)
+		
+						// immediate mute, but doesn't block (sounds better)
+						//this.midi.turnSoundOff()
+		
+						// fade out but prevents new notes...
+						//this.midi.turnNotesOff()
+						
+						// prevent flooding the off bus
+						this.midiActive = false
+		
+						//console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+					}		
+				}
 			}
 		
 		}else{
@@ -1030,32 +1168,6 @@ export default class Person{
 		}
 
 
-		//&& this.midiActive If the user has stopped singing we need to stop the midi too!
-		if (this.options.sendMIDI && this.hasMIDI)
-		{
-			this.midi.sendClock( )
-			//this.midi.setSongPosition( getBarProgress() * 16383 )
-				
-			if (!this.singing)
-			{
-				this.midi.stopNote(noteName, {
-					// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
-					// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
-					release:0.2
-				})
-
-				// immediate mute, but doesn't block (sounds better)
-				//this.midi.turnSoundOff()
-
-				// fade out but prevents new notes...
-				//this.midi.turnNotesOff()
-				
-				// prevent flooding the off bus
-				this.midiActive = false
-
-				//console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
-			}		
-		}
 		//console.log("Singing", {newOctave, newVolume, amp,isMinor, noteName, friendlyNoteName, noteSound, noteNumberForMIDI, lipPercentage, pitch, roll, rolled, eyeDirection, hasNoteChanged })
 
 
@@ -1076,11 +1188,13 @@ export default class Person{
 		// this.gainNode.gain.value = newVolume
 		//console.log("Gain", this.gainNode.gain.value, "newVolume", newVolume, "Precision", this.precision )
 		
+		this.noteVelocity = newVolume
 		this.gainNode.gain.value = newVolume
 
 		this.yaw = yaw
 		this.pitch = octaveNumber
 		this.roll = noteNumber
+
 
 		// TODO: Return all notes played
 		return {
@@ -1119,15 +1233,21 @@ export default class Person{
 	 * @param {Function} progressCallback - method to invoke on loading progress
 	 * @returns instrument
 	 */
-	async loadPreset(method="loadRandomInstrument",progressCallback=null){
+	async loadPresetByMethod(method="loadRandomInstrument",progressCallback=null){
 		this.instrumentLoadedAt = this.now
+
+		// this has lost it's scope...
 		this.instrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 		} )
-		await this.setupForm()
+
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
+
+		// this will repopulate the panel with correct data
+		await this.setupForm()
+
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
 		return this.instrument
 	}
@@ -1136,24 +1256,24 @@ export default class Person{
 	 * Provide this Person with a random instrument
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadRandomInstrument(progressCallback){
-		return this.loadPreset("loadRandomPreset", progressCallback)
+	async loadRandomPreset(progressCallback){
+		return this.loadPresetByMethod("loadRandomPreset", progressCallback)
 	}
 
 	/**
 	 * Provide this Person with a the previous instrument in the list
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadPreviousInstrument(progressCallback){
-		return this.loadPreset("loadPreviousPreset", progressCallback)
+	async loadPreviousPreset(progressCallback){
+		return this.loadPresetByMethod("loadPreviousPreset", progressCallback)
 	}
 
 	/**
 	 * Provide this Person with a the subsequent instrument in the list
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadNextInstrument(progressCallback){
-		return this.loadPreset("loadNextPreset", progressCallback)
+	async loadNextPreset(progressCallback){
+		return this.loadPresetByMethod("loadNextPreset", progressCallback)
 	}
 
 	/**
@@ -1162,22 +1282,22 @@ export default class Person{
 	 * to reload the same instrument but with the new samples
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async reloadInstrument(progressCallback){
-		return this.loadPreset("reloadInstrument", progressCallback)
+	async reloadPreset(progressCallback){
+		return this.loadPresetByMethod("reloadPreset", progressCallback)
 	}
 	
 	/**
-	 * Load a specific instrument for this Person
+	 * Load a specific patch for this Person's active instrument
 	 * TODO: Add loading events
-	 * @param {String} instrumentName Name of the standard instrument to load
+	 * @param {String} presetName Name of the standard instrument to load
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadInstrument(instrumentName, progressCallback){
+	async loadPreset(presetName, progressCallback){
 
-		const presets = this.samplePlayer.instrumentNames
+		// const presets = this.samplePlayer.instrumentNames
 
 		// always remove the suffixes?
-		const instrumentNameRefined = instrumentName //.replace("-mp3", "")
+		const instrumentNameRefined = presetName //.replace("-mp3", "")
 
 		// console.log("Loading instrument",instrumentName, presets)
 
@@ -1198,12 +1318,15 @@ export default class Person{
 
 		// just an index as to which out of all instrument data is this one
 		this.instrumentPointer = this.samplePlayer.instrumentIndex
+		
+		// this will repopulate the panel with correct data
+		await this.setupForm()
 
 		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentNameRefined })
 		
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentNameRefined })
-		return instrumentName
+		return presetName
 	}
 
 	/**
@@ -1212,7 +1335,17 @@ export default class Person{
 	 * other facial features can 
 	 * @param {AudioContext} audioContext 
 	 */
-	setupAudio(audioContext, offlineAudioContext, destinationNode){
+	async setupAudio(audioContext, destinationNode, offlineAudioContext=null){
+
+		if (!audioContext)
+		{
+			throw Error("Audio Context was not provided")
+		}
+
+		if (!destinationNode)
+		{
+			throw Error("Destination GainNode was not provided")
+		}
 
 		this.audioContext = audioContext
 		this.offlineAudioContext = offlineAudioContext
@@ -1290,6 +1423,18 @@ export default class Person{
 			this.outputNode = this.noseNode
 		}
 
+		if (this.options.drawEyebrows)
+		{
+			this.eyeBrowsNode = audioContext.createDynamicsCompressor()
+			// this.noseNode.threshold.value = -100
+			// this.noseNode.knee.value = 40
+			// this.noseNode.ratio.value = 12
+			// this.noseNode.attack.value = 0
+			// this.noseNode.release.value = 0.25
+			this.outputNode.connect(this.eyeBrowsNode)
+			this.outputNode = this.eyeBrowsNode
+		}
+
 		if (this.options.useDelay)
 		{
 			// DELAY : Feedback smooths out the audio
@@ -1316,8 +1461,21 @@ export default class Person{
 		const samplePlayerOptions = {
 			offlineAudioContext
 		}
+
+		const instrumentFactory = new InstrumentFactory(audioContext)
+		await instrumentFactory.loadList( INSTRUMENT_LIST )
+
+		//- instrumentFactory.loadInstrumentByName()
+		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
+		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions )
+		
+		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
+
 		// create a sample player, oscillator add all other instruments
-		this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
+		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ) )
+	
+		console.info("Person created with active instrument", this.activeInstrument)
+		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
@@ -1363,7 +1521,7 @@ export default class Person{
 	setMIDI(midiDevice, channel="all"){
 		this.midiChannel = channel
 		this.midi = midiDevice
-		this.midiPlayer = new MIDIInstrument(midiDevice, channel)
+		this.midiPlayer = new MIDIInstrument(this.audioContext, midiDevice, channel)
 		this.addInstrument( this.midiPlayer )
 		//console.log("MIDI set for person", this, "Channel:"+channel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
@@ -1389,7 +1547,7 @@ export default class Person{
 		// console.log("mousedown:currentTime",  audioContext.currentTime )
 		event.preventDefault()
 
-		this.mouseDownAt = this.audioContext.currentTime
+		this.mouseDownAt = this.now
 		this.inputCoordinates.x = event.clientX
 		this.inputCoordinates.y = event.clientY
 		
@@ -1405,6 +1563,9 @@ export default class Person{
 			
 		event.preventDefault()
 		
+		document.removeEventListener('touchend', this.onFaceTouchEnd )
+		document.removeEventListener('mouseup', this.onFaceTouchEnd )
+
 		// Gestures -----
 		// if someone just keeps the finger on the screen...
 		if (this.isMouseHeld)
@@ -1425,8 +1586,8 @@ export default class Person{
 			{
 				//console.log("Swipe ", xTravel < 0 ? 'l' : 'r', xTravel)
 				xTravel < 0 ? 
-					this.loadPreviousInstrument() : 
-					this.loadNextInstrument()
+					this.loadPreviousPreset() : 
+					this.loadNextPreset()
 
 			}else if (Math.abs(yTravel) > this.options.mouseGestureDistance){
 
@@ -1435,7 +1596,7 @@ export default class Person{
 			}else{
 
 				// Quick tap so don't show the form, instead change instrument directly
-				this.loadRandomInstrument()
+				this.loadRandomPreset()
 			}
 		}
 
@@ -1447,17 +1608,18 @@ export default class Person{
 	}
 
 	onButtonHeld(){
-		this.mouseHeldAt = this.audioContext.currentTime
+		this.mouseHeldAt = this.now
 		drawMousePressure( 1, this.options.mouseHoldDuration )
 		this.showForm()
 	}
 
 	onInstrumentInput(event) {
+		event.preventDefault()
 		const id = event.target.id
-		// console.error(id, "on inputted", event)
+		console.warn( "Instrument requested", id,  event, "closing side bar")
 		this.hideForm()
-		this.loadInstrument(id)
-		// event.preventDefault()
+		// FIXME: load the instrument first?
+		this.loadPreset(id)
 	}
 
 	onLeftEyeOpen( timeClosedFor ){
@@ -1485,52 +1647,47 @@ export default class Person{
 	onEyesClosedForTimePeriod(){
 		// console.error( "onEyesClosedForTimePeriod" ) 
 		this.eyesClosed = true
-		this.loadNextInstrument( instrumentName => console.log("instrumnetName",instrumentName ) )
+		// Eyes closed for X amount of time...
+		this.loadNextPreset( instrumentName => console.log("instrumentName",instrumentName ) )
 	}
 
 	/**
 	 * Create the instrument panel HTML for this user's instrument
+	 * Using ACTIVE instrument - don't assume it's samplePlayer
 	 * and other settings specific to this person. Needs to be done per person
 	 */
 	async setupForm(){
 
-		// TODO: Use ACTIVE instrument - don't assume it's samplePlayer
-		// const instruments = await this.activeInstrument.getPresets()
-		let instruments = await this.activeInstrument.getPresets()
-	
-		// FIXME: HACK!
-		if (this.activeInstrument.type === "sample")
+		// hideExistingInstruments(this.instrumentPanel)
+
+		if ( !this.instrumentPanel )
 		{
-			instruments = GENERAL_MIDI_INSTRUMENT_LIST
+			throw Error("Instrument panel was not registered so no instument list can be determined")
+		}
+		
+		if ( !this.activeInstrument )
+		{
+			throw Error("Active Instrument was not registered so no presets can be determined")
+		}
+		
+		if (!this.controls)
+		{
+			throw Error("The instrument panel is missing the required menu element")
+		}
+		
+		const presets = await populateInstrumentPanel(this.instrumentPanel, this.activeInstrument, this.name )
+			
+		// stupid event callback forgets scope!
+		addInteractivityToInstrumentPanel( this.controls, (e) => this.onInstrumentInput(e) ) 
+			
+		if (!this.isInstrumentPanelInteractive)
+		{
+			// add some extra UX improvements for the sliding panel
+			createDraggablePanel(this.instrumentPanel, this.isLeftSidePanel)
+			this.instrumentPanel.hidden = false
+			this.isInstrumentPanelInteractive = true
 		}
 
-
-		// hide existing
-		const allInstruments = this.controls.querySelectorAll(".instrument")
-		allInstruments.forEach( instrument => instrument.classList.add("hide") )
-
-		// replace 
-		const existing = this.controls.querySelector(`.${this.activeInstrument.id}`)
-		const instrumentPanel = existing ? existing : document.createElement("div")
-		instrumentPanel.innerHTML = setupInstrumentForm( instruments, this.samplePlayer.instrumentPack )
-		instrumentPanel.className = `${this.activeInstrument.name} instrument`
-
-		this.controls.appendChild(instrumentPanel)
-
-		const inputs = this.controls.querySelectorAll('input')
-		inputs.forEach( input => input.addEventListener('change', event => this.onInstrumentInput(event) ), false)
-
-		const legend = this.controls.querySelector('legend')
-		legend.addEventListener("click", event => {
-			const details = this.controls.querySelectorAll('details')
-			if (details.length)
-			{
-				const shouldOpen = !details[0].hasAttribute("open")
-				details.forEach( detail => {
-					shouldOpen ? detail.setAttribute("open", true) : detail.removeAttribute("open")
-				})
-			}
-		})
 		return true
 	}
 
@@ -1540,7 +1697,9 @@ export default class Person{
 	showForm(){
 		if (!this.isFormShowing)
 		{
-			this.isFormShowing = showPersonalControlPanel( this.name, this.controls, this.instrumentName )
+			this.isFormShowing = showPersonalControlPanel( this.name, this.instrumentPanel, this.instrumentName )
+		}else{
+			console.error("was told to open form that is already open")
 		}
 	}
 
@@ -1548,10 +1707,8 @@ export default class Person{
 	 * Hide this Person's control panel form
 	 */
 	hideForm(){
-		if (this.isFormShowing)
-		{
-			this.isFormShowing = hidePersonalControlPanel(this.name, this.controls)
-		}
+		
+		this.isFormShowing = hidePersonalControlPanel( this.name, this.instrumentPanel )
 	}
 
 	/**
