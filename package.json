@@ -147,7 +147,8 @@
     "release:patch": "npm run patch && npm run build:all",
     "release:minor": "npm run minor && npm run build:all",
     "release:major": "npm run major && npm run build:all",
-    "release:app": "npm run patch && npm run copy && npm run push"
+    "release:app": "npm run patch && npm run copy && npm run push",
+    "release": "npm run changes && npm run release:patch"
   },
   "staticFiles": {
     "staticFiles": [
