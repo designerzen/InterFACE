@@ -6,7 +6,7 @@ import './servicewaiting.polyfill'
 import { VERSION } from '../version'
 import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform'
 
-// import serviceWorkerPath from "url:../service-worker.js"
+import serviceWorkerPath from "url:../service-worker.js"
 
 // console.error({serviceWorkerPath, manifestPath})
 
@@ -232,7 +232,7 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 	// updates simply means that the service-worker has changed since last time
 	// and that there are new assets that need to be cached and downloaded.
 	// 1. Check to see if it is installed as a service worker
-	if (registration)
+	if (registration && registration.active)
 	{
 		// if there is an active SW it means that this isn't the first
 		// time that the app has run and that there maybe updates to this
@@ -336,21 +336,21 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 	// This "installs" the app into the local app cache but does
 	// not create the icon on the homescreen or desktop
 	// NB. By appending the Version as an GET var we can specify which version this matches
-	const hashedSWURL = `../service-worker.js#v=${VERSION}`
-	let serviceWorker = await navigator.serviceWorker.register(hashedSWURL)
+	const hashedSWURL = `${serviceWorkerPath}#v=${VERSION}`
+	let serviceWorker = await navigator.serviceWorker.register( new URL(hashedSWURL) , {type: 'module'} )	
 	log.push("Service worker with #",hashedSWURL, serviceWorker)
 
 	if (!serviceWorker)
 	{
-		const querySWURL = `../service-worker.js?v=${VERSION}`
-		serviceWorker = await navigator.serviceWorker.register(querySWURL)		
+		const querySWURL = `${serviceWorkerPath}?v=${VERSION}`
+		serviceWorker = await navigator.serviceWorker.register( new URL(querySWURL) , {type: 'module'} )			
 		log.push("Service worker with ?",querySWURL, serviceWorker)
 	}
 
 	// annoying really but we leave this in just for parcel to force copy it
 	if (!serviceWorker)
 	{
-		serviceWorker = await navigator.serviceWorker.register( new URL('../service-worker.js', import.meta.url) , {type: 'module'} )	
+		serviceWorker = await navigator.serviceWorker.register( new URL(serviceWorkerPath, {type: 'module'} ))
 		// serviceWorker = await navigator.serviceWorker.register("../service-worker.js")	
 		log.push("Service worker falling back to default :*(", serviceWorker)
 			

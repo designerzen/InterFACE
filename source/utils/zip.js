@@ -1,14 +1,14 @@
 // import Zlib from 'zlibjs'
 import { deflate, unzip } from './zlib'
 
+import ZIP_WORKER_URI from 'url:./zip.worker.js'
+
 export const extractZip = (data, useWorker=false ) => new Promise( (resolve, reject) => {
 	
 	if (useWorker)
 	{
-		let worker = new Worker(
-			new	URL('./zip.worker.js', import.meta.url), 
-			{type: 'module'}
-		)
+		// , import.meta.url
+		const worker = new Worker( new URL(ZIP_WORKER_URI), {type: 'module'} )
 
 		worker.onmessage = message => {
 			//console.log("zippy", message)

@@ -1,6 +1,5 @@
 export const TAU = 2 * Math.PI
 export const HALF_PI = Math.PI * 0.5
-export const TWO_PI = Math.PI * 2
 
 const {PI, sqrt, atan2, tan} = Math
 
