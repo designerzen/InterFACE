@@ -1,0 +1,129 @@
+extends _base.pug
+
+block title
+	+title('Test:Sidebars')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block above 
+	#load-progress
+		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar.donut 0%
+		label(for="progress-bar") Please wait <br>loading may take a very long time
+
+block main
+
+	main#test-sidebars.quartet
+
+		//- tooltip element
+		include partials/toast.pug
+
+		//- control panel with multi-level side panels
+		include partials/control-panel.pug
+
+
+block styles 
+	style.
+		#button-video{
+			z-index:-1;
+		}
+
+		#intro{
+			display:none;
+		}
+		
+block scripts
+	script(type="module").
+			
+		import { getDomainDefaults, getFactoryDefaults } from './settings/options.js'
+		import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
+		import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState, createStateFromHost } from './utils/state'
+
+		import {getNoteSound} from './audio/tuning/notes.js'
+		import {setupThemeControls} from './theme/theme.js'
+		import {createRadialMenu} from './dom/radial-menu.js'
+		import {addToolTips} from './dom/tooltips.js'		
+			
+		import { setupVolumeInterface } from './dom/ui.volume.js'
+		import { setupTempoInterface } from './dom/ui.tempo.js'
+		import AudioTimer from './timing/timer.audio.js' 
+	
+		import {setupInterface} from './dom/ui.js'
+		import Person from './person.js'
+		import { 
+			getRecordableOutputNode,
+			active, playing, 
+			setupAudio,
+			getVolume, setVolume, getPercussionNode,
+			audioContext,
+			getMasterMixdown
+		} from './audio/audio.js'
+	
+		import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+		import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		import MIDIInstrument from './audio/instruments/instrument.midi.js'
+		
+		const start = async () => {
+
+			const state = createStateFromHost()
+
+			// hook unto the audio controls...
+			const audio = await setupAudio()
+			console.info("Setting audio to ",{audio, audioContext})
+
+			setupThemeControls( document.getElementById('select-theme') )
+		
+			const volume = 0.8
+			const {	setVisualVolumeLevel, toggleMute } = setupVolumeInterface( volume, false, function onVolumeChanged(vol){
+				console.info("Setting volume to ",vol)
+				setVolume( vol )
+			} )
+
+			// FIXME: Tooltips should follow button y
+			const controlPanel = document.getElementById("control-panel")
+			//- addToolTips( controlPanel )
+			addToolTips( document.documentElement )
+
+			
+			// Test musical scales
+			
+			//- const MIDIConnectionClasses = [WebMIDIClass]
+			//- const midiManager = new MIDIConnectionManager()
+			//- const audioContext = new AudioContext()
+			//- const timer = new AudioTimer(audioContext)
+			
+			// const instrument = new MIDIInstrument( audioContext )
+			// TODO: load in any settings from localstorage
+			//- setupTempoInterface(timer, midiManager, MIDIConnectionClasses)
+
+			const outputAudioNode = getRecordableOutputNode()
+			
+			const personA = new Person( "PersonA" )
+			const personB = new Person( "PersonB" )
+			const personC = new Person( "PersonC" )
+			const personD = new Person( "PersonD" )
+	
+			// setup audio for each person
+			await personA.setupAudio( audioContext, outputAudioNode )
+			await personB.setupAudio( audioContext, outputAudioNode )
+			await personC.setupAudio( audioContext, outputAudioNode )
+			await personD.setupAudio( audioContext, outputAudioNode )
+
+			// setup the form for each person!
+			await personA.setupForm()
+			await personB.setupForm()
+			await personC.setupForm()
+			await personD.setupForm()
+			
+			// setup the form for each person!
+			//- personA.loadInstrument()
+
+
+			console.info("Sidebars created", [ personA, personB, personC, personD ] )
+
+			setupInterface( state.asObject )
+
+		}
+		document.addEventListener( "DOMContentLoaded", e => start() )

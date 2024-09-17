@@ -1,0 +1,116 @@
+extends _base.pug
+
+block title
+	+title('Test:Controls')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block above 
+	#load-progress
+		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar.donut 0%
+		label(for="progress-bar") Please wait <br>loading may take a veeeery long time
+			span.load-percent 100%
+
+block main
+
+	main#test-controls
+
+		//- controls for choosing how friewdly the app should be?
+		label How friendly 
+			input(type="radio" name="xp" value="0" checked)
+			input(type="radio" name="xp" value="1" checked)
+			input(type="radio" name="xp" value="2" checked)
+			input(type="radio" name="xp" value="3" checked)
+			input(type="radio" name="xp" value="4" checked)
+			input(type="radio" name="xp" value="5" checked)
+
+		//- tooltip element
+		include partials/toast.pug
+
+		//- radial menu
+		include partials/menu-radial-panel.pug
+		
+		//- control panel with multi-levels
+		include partials/control-panel.pug
+
+		//- scales menu
+		include partials/scales-panel.pug
+
+block styles 
+	style.
+		#control-panel{
+			z-index:909;
+		}
+		#button-video{
+			z-index:-1;
+		}
+
+block scripts
+	script(type="module").
+
+		import {setupThemeControls} from './theme/theme.js'
+		import {createRadialMenu} from './dom/radial-menu.js'
+		import {addToolTips} from './dom/tooltips.js'		
+			
+		import { setupVolumeInterface } from './dom/ui.volume.js'
+		import { setupTempoInterface } from './dom/ui.tempo.js'
+		import AudioTimer from './timing/timer.audio.js' 
+		import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+		import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		import MIDIInstrument from './audio/instruments/instrument.midi.js'
+		import {setupInterface} from './dom/ui.js'
+			
+		import { 
+			getRecordableOutputNode,
+			active, playing, 
+			setupAudio,	audioContext,
+			getVolume, setVolume, getPercussionNode 
+		} from './audio/audio.js'
+
+		const start = async () => {
+
+			const options = {}
+
+			//- test for buttons and gadgets
+			setupThemeControls( document.getElementById('select-theme') )
+		
+			const volume = 0.8
+			const {	setVisualVolumeLevel, toggleMute } = setupVolumeInterface( volume, false, function onVolumeChanged(vol){
+				console.info("Setting volume to ",vol)
+				setVolume( vol )
+			} )
+			//- const sliderVolume = document.getElementById("volume-input-range")
+			//- sliderVolume.onchange = sliderVolume.oninput = e => {
+			//- 	console.log("Setting volume", e, sliderVolume.value )
+			//- 	setVolume( sliderVolume.value )
+			//- }
+
+			createRadialMenu( document.getElementById("button-video") )
+			
+
+			const controlPanel = document.getElementById("control-panel")
+			// this just adds some visual onscreen tooltips to the buttons specified
+			addToolTips( controlPanel )
+			
+			// Test tempo
+			
+			const MIDIConnectionClasses = [WebMIDIClass]
+			const midiManager = new MIDIConnectionManager()
+			const timer = new AudioTimer()
+			const audioContext = new AudioContext()
+
+			// const instrument = new MIDIInstrument( audioContext )
+			// TODO: load in any settings from localstorage
+			setupTempoInterface(timer, midiManager, MIDIConnectionClasses)
+
+			setupInterface( options )
+
+			// hook unto the audio controls...
+
+			const audio = await setupAudio()
+
+		}
+		document.addEventListener( "DOMContentLoaded", e => start() )

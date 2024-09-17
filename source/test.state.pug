@@ -1,0 +1,161 @@
+extends _base.pug
+
+block title
+	+title('Test:Controls')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block above 
+	#load-progress
+		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar.donut 0%
+		label(for="progress-bar") Please wait <br>loading may take a veeeery long time
+			span.load-percent 100%
+
+block main
+
+	main#test-controls
+
+		//- controls for choosing how friewdly the app should be?
+		label How friendly 
+			input(type="radio" name="xp" value="0" checked)
+			input(type="radio" name="xp" value="1" checked)
+			input(type="radio" name="xp" value="2" checked)
+			input(type="radio" name="xp" value="3" checked)
+			input(type="radio" name="xp" value="4" checked)
+			input(type="radio" name="xp" value="5" checked)
+
+		//- tooltip element
+		include partials/toast.pug
+
+		//- radial menu
+		include partials/menu-radial-panel.pug
+		
+		//- control panel with multi-levels
+		include partials/control-panel.pug
+
+		//- scales menu
+		include partials/scales-panel.pug
+
+block styles 
+	style.
+		#control-panel{
+			z-index:909;
+		}
+		#button-video{
+			z-index:-1;
+		}
+
+block scripts
+	script(type="module").
+		//
+		import { getDomainDefaults, getFactoryDefaults } from './settings/options.js'
+		import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
+		import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState } from './utils/state'
+
+		import {setupThemeControls} from './theme/theme.js'
+		import {addToolTips} from './dom/tooltips.js'		
+			
+		import { setupVolumeInterface } from './dom/ui.volume.js'
+		import { setupTempoInterface } from './dom/ui.tempo.js'
+		import AudioTimer from './timing/timer.audio.js' 
+		import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+		import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		import MIDIInstrument from './audio/instruments/instrument.midi.js'
+		import {setupInterface} from './dom/ui.js'
+		import { createQRCode } from './utils/barcodes.js'
+
+		import { 
+			getRecordableOutputNode,
+			active, playing, 
+			setupAudio,	audioContext,
+			getVolume, setVolume, getPercussionNode 
+		} from './audio/audio.js'
+
+		const start = async () => {
+
+			const main = document.querySelector("main")
+
+			const hostName = getRefererHostname()
+			const globalOptions = Object.assign({}, globalThis._synth)
+			const domainOptions = getDomainDefaults( hostName )
+			const defaultOptions = { ...domainOptions }
+
+			const state = State.getInstance()
+		
+			//- window.addEventListener(EVENT_STATE_CHANGE, event => {
+			state.addEventListener( event => {
+				const bookmark = state.asURI
+				console.info("State Changed", event )
+				//- console.info("State", state.serialised )
+				const qrOptions = {text:bookmark} 
+				const qrcode = createQRCode( main.appendChild( document.createElement("div")) , qrOptions) 
+				console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
+			})
+		
+			State.getInstance().addEventListener( event => {
+				const bookmark = state.asURI
+				const code = state.asEncodedURI
+				console.info("Global State Changed", event, history.state )
+				console.info("Global State Code", code )
+				//- console.info("Global State Decoded", state.decode( code )  ) 
+			})
+				
+			//state.setDefaults(defaultOptions)
+			state.loadFromLocation(defaultOptions)
+		
+			// updates the URL with the current state (true - encoded)
+			state.updateLocation()
+			
+			// Update UI - this will check all the inputs according to our state	
+			state.updateFrontEnd()
+			
+
+
+			let ui = loadState( defaultOptions, main )
+
+			console.info("State Loaded", state.asObject, {domainOptions, defaultOptions, ui,state})
+
+			const volume = 0.8
+			const {	setVisualVolumeLevel, toggleMute } = setupVolumeInterface( volume, false, function onVolumeChanged(vol){
+				console.info("Setting volume to ",vol)
+				setVolume( vol )
+			} )
+
+			// Test tempo
+			const MIDIConnectionClasses = [WebMIDIClass]
+			const midiManager = new MIDIConnectionManager()
+			const audioContext = new AudioContext()
+			const timer = new AudioTimer(audioContext)
+			timer.BPM = state.get('bpm') ?? 100
+		
+			// UI
+			const controlPanel = document.getElementById("control-panel")
+		
+			// const instrument = new MIDIInstrument( audioContext )
+			// TODO: load in any settings from localstorage
+			setupTempoInterface(timer, midiManager, MIDIConnectionClasses)
+
+			// custom themes
+			setupThemeControls( document.getElementById('select-theme') )
+		
+			//- setupInterface( options )
+			addToolTips( controlPanel )
+			
+			// hook unto the audio controls...
+			const audio = await setupAudio()
+
+			// add some buttons to control the state
+			controlPanel.querySelectorAll("input").forEach( button => {
+				button.onmousedown = e => {
+					const id = button.id ?? ''
+					const value = id.replace("button-","")
+					console.info("Button pressed", {e, value, button} )
+					state.set( value, button.checked )
+				}
+			})
+		}
+
+		document.addEventListener( "DOMContentLoaded", e => start() )

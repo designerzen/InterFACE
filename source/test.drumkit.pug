@@ -1,0 +1,251 @@
+extends _base.pug
+
+block title
+	+title('Test:Drumkit')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	menu.drum-sounds
+		button.trigger-kick Kick
+		button.trigger-hihat Hat
+		button.trigger-snare Snare   
+		button.trigger-clap Clap
+		button.trigger-clack Clack
+		button.trigger-cowbell Cowbell
+
+	kbd a - kick
+	kbd q - kick
+	kbd d - hat
+	kbd e - clack
+	kbd s - snare
+	kbd w - cowbell
+
+
+block scripts
+	script(type="module").
+		// 
+		import { active, playing, setupAudio } from './audio/audio'
+		import {DEFAULT_KICK_OPTIONS} from './audio/synthesizers/kick.js'
+		import {DEFAULT_SNARE_OPTIONS} from './audio/synthesizers/snare.js'
+		import {DEFAULT_OPEN_HIHAT, DEFAULT_CLOSED_HIHAT} from './audio/synthesizers/hihat.js'
+		import {DEFAULT_CLAP_OPTIONS} from './audio/synthesizers/clap.js'
+		import {DEFAULT_COWBELL_OPTIONS} from './audio/synthesizers/cowbell.js'
+		import { createDrumkit } from './audio/drum-kit'
+		import { playNextPart, kitSequence } from './timing/patterns'
+		import GamePad from './hardware/gamepad'
+		import AudioTimer from './timing/timer.audio.js' 
+		import {Pane} from 'tweakpane'
+		import {addToolTips} from './dom/tooltips.js'		
+		
+
+		const CLAP_PARAMS = Object.assign({}, DEFAULT_CLAP_OPTIONS)
+		const SNARE_PARAMS = Object.assign({}, DEFAULT_SNARE_OPTIONS)
+		const HAT_OPEN_PARAMS = Object.assign({}, DEFAULT_OPEN_HIHAT)
+		const HAT_CLOSED_PARAMS = Object.assign({}, DEFAULT_CLOSED_HIHAT)
+		const KICK_PARAMS = Object.assign({}, DEFAULT_KICK_OPTIONS)
+		const COWBELL_PARAMS = Object.assign({}, DEFAULT_COWBELL_OPTIONS)
+
+		let timer = new AudioTimer()
+		let kit
+		let patterns = kitSequence()
+		
+		const setRandomDrumPattern = ( floor=17 ) => {
+			patterns = kitSequence( Math.floor( floor + Math.random() * 23 ))
+		} 
+
+		const advanceDrumSequence = () => {
+			const kick = playNextPart( patterns.kick, kit.kick, KICK_PARAMS )
+			const snare = playNextPart( patterns.snare, kit.snare, SNARE_PARAMS )
+			const hat = playNextPart( patterns.hat, kit.hat, HAT_CLOSED_PARAMS )
+		}
+
+		const pane = new Pane(new Pane({ title: "Config", expanded: true }))
+				
+		const buttonKick = document.querySelector(".trigger-kick").onclick = e => kit.kick(KICK_PARAMS)
+		const buttonSnare  = document.querySelector(".trigger-snare").onclick = e => kit.snare(SNARE_PARAMS)
+		const buttonClack = document.querySelector(".trigger-clack").onclick = e => kit.clack()
+		const buttonClap = document.querySelector(".trigger-clap").onclick = e => kit.clap(CLAP_PARAMS)
+		const buttonCowbell = document.querySelector(".trigger-cowbell").onclick = e => kit.cowbell(COWBELL_PARAMS)
+		const buttonHihat = document.querySelector(".trigger-hihat")
+		buttonHihat.onmousedown = e => kit.hat(HAT_OPEN_PARAMS)
+		buttonHihat.onmouseup = e => kit.hat(HAT_CLOSED_PARAMS)
+		
+		const addSettings = () => {
+
+			pane.addBinding(timer, 'bpm', { min: 1, max: 999 })
+
+			pane.addButton({title:'Auto break'}).on('click', e => timer.toggleTimer() )
+			pane.addButton({title:'Change Break'}).on('click', e => setRandomDrumPattern() )
+
+			const kicksConfig = pane.addFolder({ title: 'Kicks' })
+			const kicksConfigButton = kicksConfig.addButton({ title: 'Play' })
+			kicksConfigButton.on('click', () => kit.kick(KICK_PARAMS))
+			kicksConfig.addBinding(KICK_PARAMS, 'velocity', { min: 0.01, max: 10 })
+			kicksConfig.addBinding(KICK_PARAMS, 'length', { min: 0.01, max: 3 })
+			kicksConfig.addBinding(KICK_PARAMS, 'attack', { min: 0.01, max: 2 })
+			kicksConfig.addBinding(KICK_PARAMS, 'decay', { min: 0.01, max: 2 })
+			kicksConfig.addBinding(KICK_PARAMS, 'sustain', { min: 0.01, max: 1 })
+			kicksConfig.addBinding(KICK_PARAMS, 'release', { min: 0.01, max: 2 })
+
+			kicksConfig.addBinding(KICK_PARAMS, 'triStart', { min: 1, max: 300 })
+			kicksConfig.addBinding(KICK_PARAMS, 'triEnd', { min: 1, max: 300 })
+
+			kicksConfig.addBinding(KICK_PARAMS, 'sineStart', { min: 1, max: 300 })
+			kicksConfig.addBinding(KICK_PARAMS, 'sineApex', { min: 1, max: 400 })
+			kicksConfig.addBinding(KICK_PARAMS, 'sineSustain', { min: 1, max: 300 })
+			kicksConfig.addBinding(KICK_PARAMS, 'sineEnd', { min: 0.1, max: 300 })
+			
+			const snareConfig = pane.addFolder({ title: 'Snare' })
+			const snaresConfigButton = snareConfig.addButton({ title: 'Play' })
+			snaresConfigButton.on('click', () => kit.snare(SNARE_PARAMS) )
+			
+			snareConfig.addBinding(SNARE_PARAMS, 'velocity', { min: 0.01, max: 10 })
+			snareConfig.addBinding(SNARE_PARAMS, 'length', { min: 0.1, max: 5 })
+			snareConfig.addBinding(SNARE_PARAMS, 'attack', { min: 0.01, max: 2 })
+			snareConfig.addBinding(SNARE_PARAMS, 'decay', { min: 0.01, max: 2 })
+			snareConfig.addBinding(SNARE_PARAMS, 'bandpassStart', { min: 0.1, max: 99999 })
+			snareConfig.addBinding(SNARE_PARAMS, 'bandpassEnd', { min: 0.1, max: 99999 })
+			snareConfig.addBinding(SNARE_PARAMS, 'triStart', { min: 0.1, max: 999 })
+			snareConfig.addBinding(SNARE_PARAMS, 'triEnd', { min: 0.1, max: 999 })
+			snareConfig.addBinding(SNARE_PARAMS, 'highpassStart', { min: 0.01, max: 9999 })
+			snareConfig.addBinding(SNARE_PARAMS, 'highpassEnd', { min: 0.01, max: 9999 })
+			
+			const clapConfig = pane.addFolder({ title: 'Clap' })
+			const clapsConfigButton = clapConfig.addButton({ title: 'Play' })
+			clapsConfigButton.on('click', () => kit.clap(CLAP_PARAMS) )
+			clapConfig.addBinding(CLAP_PARAMS, 'velocity', { min: 0.01, max: 10 })
+			clapConfig.addBinding(CLAP_PARAMS, 'length', { min: 0.01, max: 2 })
+			clapConfig.addBinding(CLAP_PARAMS, 'attack', { min: 0.01, max: 2 })
+			clapConfig.addBinding(CLAP_PARAMS, 'decay', { min: 0.01, max: 2 })
+			clapConfig.addBinding(CLAP_PARAMS, 'sustain', { min: 0.01, max: 1 })
+			clapConfig.addBinding(CLAP_PARAMS, 'frequencyStart', { min: 0.01, max: 999 })
+			clapConfig.addBinding(CLAP_PARAMS, 'frequencyEnd', { min: 0.01, max: 999 })
+			
+			const closedHatConfig = pane.addFolder({ title: 'Closed HiHat' })
+			const closedHatConfigButton = closedHatConfig.addButton({ title: 'Play' })
+			closedHatConfigButton.on('click', () => kit.hat(HAT_CLOSED_PARAMS))
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'velocity', { min: 0.01, max: 10 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'length', { min: 0.01, max: 8 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'highpass', { min: 0.01, max: 9999 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'bandpass', { min: 0.01, max: 99999 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'fundamental', { min: 0.01, max: 100, step:0.1 })
+			//- closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'q', { min: 0.1, max: 20 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'attack', { min: 0.01, max: 2 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'decay', { min: 0.01, max: 2 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'sustain', { min: 0.01, max: 1 })
+			closedHatConfig.addBinding(HAT_CLOSED_PARAMS, 'release', { min: 0.01, max: 1 })
+			
+			const openHatConfig = pane.addFolder({ title: 'Closed HiHat' })
+			const openHatConfigButton = openHatConfig.addButton({ title: 'Play' })
+			openHatConfigButton.on('click', () => kit.hat(HAT_OPEN_PARAMS))
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'velocity', { min: 0.01, max: 10 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'length', { min: 0.01, max: 8 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'highpass', { min: 0.01, max: 9999 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'bandpass', { min: 0.01, max: 99999 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'fundamental', { min: 0.01, max: 100, step:0.1 })
+			//- openHatConfig.addBinding(HAT_OPEN_PARAMS, 'q', { min: 0.1, max: 20 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'attack', { min: 0.01, max: 2 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'decay', { min: 0.01, max: 2 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'sustain', { min: 0.01, max: 1 })
+			openHatConfig.addBinding(HAT_OPEN_PARAMS, 'release', { min: 0.01, max: 1 })
+
+
+
+			const cowbellConfig = pane.addFolder({ title: 'Cowbell' })
+			const cowbellConfigButton = cowbellConfig.addButton({ title: 'Play' })
+			cowbellConfigButton.on('click', () => kit.cowbell(COWBELL_PARAMS))
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'velocity', { min: 0.01, max: 10 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'length', { min: 0.01, max: 8 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'bandpass', { min: 0.01, max: 9999 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'fundamental', { min: 0.01, max: 8, step:0.1 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'q', { min: 0.1, max: 20 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'attack', { min: 0.01, max: 2 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'decay', { min: 0.01, max: 2 })
+			cowbellConfig.addBinding(COWBELL_PARAMS, 'sustain', { min: 0.01, max: 1 })
+		
+			//- .on('change', function(ev) {
+			//- 	console.log(`change: ${ev.value}`, KICK_PARAMS)
+			//- })
+		}
+
+		document.addEventListener( "mousedown", e => {
+					
+			const audioContext = new AudioContext()
+			//- const audio = await setupAudio()
+			
+			kit = createDrumkit(audioContext, audioContext.destination )
+			
+			window.addEventListener('keydown', async (event)=>{
+				const isNumber = !isNaN( parseInt(event.key) )
+				const focussedElement = document.activeElement
+
+				if (isNumber){
+					setRandomDrumPattern( 10 + parseInt(event.key) )
+				}else{
+					switch(event.key)
+					{
+						case 'a':
+							kit.kick(KICK_PARAMS)
+							break
+						case 'q':
+							kit.clap(CLAP_PARAMS)
+							break
+						case 'c':
+							kit.hat(HAT_OPEN_PARAMS)
+							break
+						case 'd':
+							kit.hat(HAT_CLOSED_PARAMS)
+							break
+						case 'e':
+							kit.clack()
+							break
+						case 's':
+							kit.snare(SNARE_PARAMS)
+							break
+						case 'w':
+							kit.cowbell(COWBELL_PARAMS)
+							break
+						case 'r':
+							setRandomDrumPattern()
+							break
+						default: 
+							advanceDrumSequence()
+					}
+				}
+			})
+
+			const pad = new GamePad()
+			pad.on( press => {
+				advanceDrumSequence()
+			})
+
+			timer.setCallback( ( values )=>{
+				
+				// we only care about division 1?
+				//- timer.isAtStart && advanceDrumSequence()
+				timer.isQuarterNote && advanceDrumSequence()
+			})
+			timer.bpm = 120
+			//- timer.startTimer()
+
+			addSettings()
+			
+		}, {once:true})
+		addToolTips( document.documentElement )
+
+
+block styles 
+	style.
+		.drum-sounds{
+			width:66vw;
+			height:100vh;
+			gap:12px;
+			padding:12px;
+			box-sizing:border-box;
+			display:grid;
+			grid-template-columns:repeat( 4, 1fr );
+		}
