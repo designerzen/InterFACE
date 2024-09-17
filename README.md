@@ -54,12 +54,13 @@ Given enough time it would be possible to save MIDI files directly from the app 
 
 ## Build from source
 
-- Install NodeJS 12.8.3+ and Yarn
+- Install NodeJS v16.16.0+ and Yarn / NPM
 - Download the source code and enter the directory
 - open a terminal / cli / bash / command prompt
 - enter ```yarn install```
 - then ```yarn build```
 - Your interFACE will be built into the dist folder
+
 
 ### Other commands
 
@@ -76,7 +77,6 @@ All commands are run from the root of the project, from a terminal:
 | `yarn build`   | Build production site to `./dist/`      |
 | `yarn test` 	 | Ensure the environment is set up to build	|
 | `release:*` 	 | patch/minor/major : increment version and deploy	|
-
 
 
 ## Future plans
@@ -108,18 +108,20 @@ All commands are run from the root of the project, from a terminal:
 ## Credits
 - [Drake Music](https://drakemusic.org) for inspiration and support
 - Font is Oxanium by [Severin Meyer](https://sev.dev/fonts/oxanium/)
+- Yoshimi Synthesizer ported by [Jari Kleimola, Alan Calvert and maintained by Will J Godfrey](http://yoshimi.github.io/)
 - [TensorFlowJS](https://www.tensorflow.org/js) is maintained by [Google](https://google.com)
 
 ## Thanks
 - [Gawain Hewitt](https://gawainhewitt.co.uk)
-- Becky Morris Knight 
-- Tim Yates
-- Andrew MacPherson
-- Thomas Bonte
-- Darren Southea
-- Michel Buffa
+- [Becky Morris Knight](https://beckymorrisknight.co.uk/) 
+- [Tim Yates](https://timyates.net/)
+- [Andrew McPherson](https://andrewmcpherson.org/)
+- [Darren Southea](https://www.lboro.ac.uk/schools/design-creative-arts/people/darren-southee/)
+- [Michel Buffa](https://www.researchgate.net/profile/Michel-Buffa)
+- [Peter Salomonsen](https://github.com/petersalomonsen)
 - Jean-Baptiste Thiebaut 
 - [Severin Meyer](https://sev.dev)
+- [Will J Godfrey]()
 
 ## Check it out over at
 - [InterFACE](https://interface.place)
@@ -144,9 +146,7 @@ All commands are run from the root of the project, from a terminal:
 
 ## Accessibilty Checklist :
 
-* Accessible
-- In terms of the physical format of the instrument, or the design of the software. This could mean using high contrast colours to remove visibility barriers, or keeping an interface streamlined to remove complexity barriers.
-
+* Accessible - using high contrast colours to remove visibility barriers, keeping an interface streamlined to remove complexity barriers
 * Authentic - co-created with disabled folk
 * Affordable - free mode for all courtesy of github
 * Available - online, no password, installable directly
