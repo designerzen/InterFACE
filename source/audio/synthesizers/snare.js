@@ -1,72 +1,118 @@
-import {audioContext, ZERO, getPercussionNode} from '../audio'
+import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
+
+export const DEFAULT_SNARE_OPTIONS = {
+	velocity:1, 
+	length : 0.4,
+	// default bandpawss filter Q
+	bandpassStart:90,
+	bandpassEnd:1000,
+	// frequency sweep
+	triStart:90,
+	triEnd:50,
+	// filter sweep
+	highpassStart:2000,
+	highpassEnd:600,
+
+	attack:0.05,
+	decay:0.2,
+
+	// type: "square"
+	type: "triangle"
+}
 
 /**
  * Create an instance of the snare instrument
  * @returns {Function} trigger start method
  */
-export const createSnare = () => {
+export const createSnare = ( audioContext, output ) => {
 
-	const output = getPercussionNode()
-
-    const osc3 = audioContext.createOscillator()
-    const gainOsc3 = audioContext.createGain()
+	let isRunning = false
+    const oscillator = audioContext.createOscillator()
+    const gainTriangle = audioContext.createGain()
     const filterGain = audioContext.createGain()
 	const noise = audioContext.createBufferSource()
 	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
 
-	// just allow the hihgs through
-	const filter = audioContext.createBiquadFilter()
-	filter.type = "highpass"
-	filter.gain.value = 2
+	const bandpass = audioContext.createBiquadFilter()
+    bandpass.type = "bandpass"
+    bandpass.frequency.value = DEFAULT_SNARE_OPTIONS.bandpassStart
 
-	osc3.type = "triangle"
-	osc3.frequency.value = 100
+
+	// just allow these through
+	const highpass = audioContext.createBiquadFilter()
+	highpass.type = "highpass"
+	highpass.frequency.value = DEFAULT_SNARE_OPTIONS.highpassStart
+
+	oscillator.frequency.value = DEFAULT_SNARE_OPTIONS.triStart
 
 	// TODO Cache the noise
 	const data = buffer.getChannelData(0)
 	for (var i = 0; i < 4096; i++) 
 	{
-		data[i] = Math.random()
+		// top heavy noise
+		data[i] = Math.random() / 2
 	}
 
 	noise.buffer = buffer
 	noise.loop = true
 	
-	osc3.connect(gainOsc3)
-	gainOsc3.connect(output )	
+	oscillator.connect(gainTriangle)
+	gainTriangle.connect(output )	
 
-	noise.connect(filter)
-	filter.connect(filterGain)
+	noise.connect(highpass)
+	bandpass.connect(highpass)
+	highpass.connect(filterGain)
 	filterGain.connect( output )
 
-	const snare = (velocity=1, length = 0.3) => {
+	const snare = ( options = DEFAULT_SNARE_OPTIONS ) => {
 
-		const time = audioContext.currentTime
-		
-		filterGain.gain.cancelScheduledValues(time)
-		filterGain.gain.setValueAtTime(1, time)
-		filterGain.gain.exponentialRampToValueAtTime(ZERO, time + length)
+		options = Object.assign({}, DEFAULT_SNARE_OPTIONS, options)
 	
-		gainOsc3.gain.cancelScheduledValues(time)
-		gainOsc3.gain.setValueAtTime(ZERO, time)
-		gainOsc3.gain.exponentialRampToValueAtTime(ZERO, time + (length / 2 ) )	
-		//gainOsc3.gain.value = 0
+		const time = audioContext.currentTime
+		const endAt = time + options.length
+		
+		if (!isRunning)
+		{
+			//gainNode.gain.value = 1			
+			try{
+				oscillator.start(time)
+				//osc3.stop(audioContext.currentTime + 0.2)
+				noise.start(time)
+				//node.stop(audioContext.currentTime + 0.2)	
+			}catch(error){
+			}
+			isRunning = true
+		}	
+
+		// console.log("SNARE",{options})
+
+		filterGain.gain.cancelScheduledValues(time)
+		filterGain.gain.setValueAtTime( options.velocity, time)
+		filterGain.gain.exponentialRampToValueAtTime(ZERO, endAt)
+	
+		gainTriangle.gain.cancelScheduledValues(time)
+		gainTriangle.gain.setValueAtTime(options.velocity, time)
+		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, time + (options.length - options.decay ) )	
+
+		// bandpassing
+		const geometricMean = Math.sqrt( options.bandpassStart * options.bandpassEnd )
+		bandpass.Q.value = geometricMean / (options.bandpassEnd - options.bandpassStart)
+		bandpass.frequency.value = geometricMean
+		bandpass.frequency.setValueAtTime(options.bandpassStart , time )	
+		bandpass.frequency.exponentialRampToValueAtTime(geometricMean, time + options.attack )	
+		bandpass.frequency.linearRampToValueAtTime( options.bandpassEnd, endAt )	
 
 		// modulate and filter freqs
-		filter.frequency.cancelScheduledValues(time)
-		filter.frequency.setValueAtTime(10, time)
-		filter.frequency.linearRampToValueAtTime(2000,time + length)		
-	
-		//gainNode.gain.value = 1			
-		try{
-			osc3.start(time)
-			//osc3.stop(audioContext.currentTime + 0.2)
-			noise.start(time)
-			//node.stop(audioContext.currentTime + 0.2)	
-		}catch(error){
-		}
+		oscillator.type = options.type
+		oscillator.frequency.cancelScheduledValues(time)
+		oscillator.frequency.setValueAtTime( options.triStart, time)
+		oscillator.frequency.linearRampToValueAtTime( options.triEnd, endAt)	
+
+		highpass.frequency.cancelScheduledValues(time)
+		highpass.frequency.setValueAtTime( options.highpassStart, time)
+		highpass.frequency.linearRampToValueAtTime( options.highpassEnd, endAt)
 	}
 	return snare
 }
-export const createSnares = (quantity=3) => createQueue(createSnare, quantity)
+export const createSnares = (audioContext, output , quantity=3) => createQueue(audioContext, output , createSnare, quantity)
