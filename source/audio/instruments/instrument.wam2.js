@@ -2,13 +2,17 @@
  * WAM 2 Instrument! (we must also show the GUI!)
  */
 
-import Instrument from './instrument'
+import Instrument from './instrument.js'
 import { initializeWamHost } from "@webaudiomodules/sdk"
 
 export default class WAM2Instrument extends Instrument{
 
+	static get name(){
+		return "WAM2Instrument"
+	}
+
+	name = WAM2Instrument.name
 	type = "web audio module 2"
-	name = "WAM2"
 	title = "WebAudioModule2"
 
 	initialised = false
@@ -42,7 +46,7 @@ export default class WAM2Instrument extends Instrument{
 	{
 		const [hostGroupId] = await initializeWamHost(audioContext)
 		// const { default: WAMPlugin } = await import("/source/audio/wam2/simple/index.js")
-		const { default: WAMPlugin } = await import("/source/audio/wam2/sampler/index.js")
+		// const { default: WAMPlugin } = await import("./source/audio/wam2/sampler/index.js")
 		// const { default: WAMPlugin } = await import(pluginURL)
 		const plugin = await WAMPlugin.createInstance(hostGroupId, audioContext, options )
 			

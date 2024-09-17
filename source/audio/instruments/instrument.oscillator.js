@@ -1,5 +1,5 @@
 import Instrument from './instrument'
-import {noteNumberToFrequency} from '../tuning/notes'
+import {noteNumberToFrequency} from '../tuning/frequencies.js'
 
 const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
 
@@ -30,12 +30,21 @@ const OPTIONS = {
 	fadeDuration:18,
 }
 
+export const INSTRUMENT_TYPE_OSCILLATOR = "OscillatorInstrument"
 
 export default class OscillatorInstrument extends Instrument{
 
+	static get name(){
+		return INSTRUMENT_TYPE_OSCILLATOR
+	}
+
+	name = INSTRUMENT_TYPE_OSCILLATOR
+
 	type = "oscillator"
 	title = "Oscillator Instrument"
-	name = "OscillatorInstrument"
+
+	envelope
+	oscillator 
 
 	get volume() {
 		return this.gainNode.gain.value

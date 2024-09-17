@@ -6,14 +6,20 @@
  * - Play all notes
  * - Each channel can be a different instrument
  * - Note numbers can trigger different instruments
+ * - Different presets trigger differetn instruments
  * 
  */
-import Instrument from "./instrument"
+import Instrument from "./instrument.js"
+
+export const INSTRUMENT_TYPE_COMPOSITE = "CompositeInstrument"
 
 // https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
 export default class CompositeInstrument extends Instrument{
+	static get name(){
+		return INSTRUMENT_TYPE_COMPOSITE
+	}
 
-	name = "CompositeInstrument"
+	name = INSTRUMENT_TYPE_COMPOSITE
 	title = "Composite Instrument"
 	type = "composite"
 
