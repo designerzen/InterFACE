@@ -17,11 +17,14 @@ block preload
 
 block main
 	main#faq
-		h3 PhotoSYNTH3:InterFACE v #{package.version}
-		h4 Frequently Asked Questions
-		ul.faq(role="list")
-			li: +faq("How does this work?","Music notes are connected to your natural facial gestures")
-			li: +faq("I have specific requirements that prevent me from using this, can you add X feature?","Yes! Please get in touch to discuss how we can improve the project to meet your needs")
-			li: +faq("How can we support the development?","Patreon and Paypal are both ways to put money towards development")
-			li: +faq("Which technologies does this use?","Performance recording via motion capture using machine learning")
-			li: +faq("Can I use this in my museum","Yes absolutely! Please contact designerzen@gmail.com to discuss implementation")
+		section.mixed-content
+			h3 PhotoSYNTH3:InterFACE v #{package.version}
+			h4 Frequently Asked Questions
+			ul.faq(role="list")
+				li: +faq("Is this private? What happens to the video stream","No video frames ever leave the software meaning that each session is 100% private and nobody can watch you or see your performance. It is possible to record the sessions using external software such as <a href='https://obsproject.com/'>OBS</a>")
+				li: +faq("Why can't I use MIDI with Safari?","https://webkit.org/tracking-prevention/ You can using plugin Jazzsoft")
+				li: +faq("How does this work?","Music notes are connected to your natural facial gestures")
+				li: +faq("I have specific requirements that prevent me from using this, can you add X feature?","Yes! Please get in touch to discuss how we can improve the project to meet your needs")
+				li: +faq("How can we support the development?","Patreon and Paypal are both ways to put money towards development")
+				li: +faq("Which technologies does this use?","Performance recording via motion capture using machine learning")
+				li: +faq("Can I use this in my museum","Yes absolutely! Please contact designerzen@gmail.com to discuss implementation")

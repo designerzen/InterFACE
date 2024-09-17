@@ -1,1 +1,119 @@
+
 extends interface.pug
+
+block manifest
+	//- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. 
+	link(rel="manifest", href="manifest.webmanifest")
+		
+block preload 
+	//- tfhub-tfjs-modules/tensorflow/tfjs-model/blazeface/1/default/1/model.json
+	//- link(rel="preconnect" href="https://storage.googleapis.com/" crossorigin)
+	
+block header 
+	
+	a#hero(href="#app-frame") Jump straight to the app
+		include /assets/diagrams/hero.svg 
+
+	p(aria-label="Summary").
+		It's hard work learning how to play a musical instrument...<br>
+		<em>So, how about letting the musical instrument play you instead?.</em><br>
+
+	//- In Javascript we show this if the user already has this installed
+	p(aria-label="Summary" hidden).returning-client.
+		Welcome back old friend! It is so nice to see your face again! Continuing session.
+	
+	p.
+		The <strong>original</strong> face-controlled musical instrument!
+
+	p.info-description.
+		By granting your webcamera access, every movement of your face and mouth control all the sound aspects rquired to create music. 
+		Pressing the screen or holding your eyes closed will change instruments.<br>
+		Improving human-machine relationships, made with love by <a class="link-designerzen" href="https://designerzen.com" rel="noopener noreferrer" target="_blank">designerzen</a>. 
+	
+	p.warning 
+		strong Warning : 
+		| Please be 
+		em very careful
+		|  if you are photo<wbr>sensitive. 
+		| Contains flashing lights.
+
+
+	//- each lower down warning hides the previous
+	p(hidden).warning.fatal.
+		You do not have all of the requirements to continue
+
+
+	#requirements
+		details
+			summary Requirements
+			ul(role="list") 
+				li A face
+				li Web camera / phone camera 
+				li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
+				li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
+				li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
+
+		
+
+	menu#pwa
+
+		a.button.button-push.button-start.text-always#start(href="#button-start") Play!
+
+		label(for="install-pwa" hidden).text-always Install this app
+			button#install-pwa.button-install( hidden type="button" title="Install this application to your homescreen") Install
+		
+		label(for="upgrade-pwa" hidden).text-always Upgrade to the latest version v.#{package.version}
+			button#upgrade-pwa.button-upgrade( type="button" hidden title="Upgrade this app to the latest version") Upgrade
+
+
+	#requirements-test
+		details
+			summary Requirements
+			ul(role="list") 
+				li A face
+				li 
+				li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
+				li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
+				li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
+
+		table#compatibility
+			caption Compatibility
+			
+			tr.capability-camera
+				th(scope="row") Video Camera 
+					small Web camera / phone camera 
+				td.checking Checking...
+			
+			tr.capability-speakers
+				th(scope="row") Speakers / Headset
+					small Make sure you are not muted
+				td.not-available Not Available
+				td.available Available
+				td.checking Checking...
+
+			tr.capability-midi
+				th(scope="row") <abbr title="Musical Instrument Digital Interface">MIDI</abbr>
+				td.not-available Unavailable in Safari
+
+			tr(hidden).capability-microphone
+				th(scope="row") Microphone
+					small Not a requirement
+				td.checking Checking...
+
+			
+			tr.capability-gpu
+				th(scope="row") <abbr title="Graphics Processing Unit">GPU</abbr>
+					small Web camera / phone camera 
+				td.available Available
+
+		//- Browsers
+		p(hidden)#alternate-browsers.
+			<a href="https://www.google.com/chrome/" rel="noopener noreferrer" target="_blank">Chrome</a> / 
+			<a href="https://www.microsoft.com/en-us/edge/download" rel="noopener noreferrer" target="_blank">Edge</a> 
+			<a href="https://brave.com" rel="noopener noreferrer" target="_blank">Brave</a> 
+			<a href="https://arc.net" rel="noopener noreferrer" target="_blank">Arc</a> 
+			<a href="https://opera.com" rel="noopener noreferrer" target="_blank">Opera</a> 
+			<a href="https://vivaldi.com" rel="noopener noreferrer" target="_blank">Vivaldi</a> 
+			<a href="https://www.apple.com/safari/" rel="noopener noreferrer" target="_blank">Safari</a> 
+			<a href="https://firefox.com" rel="noopener noreferrer" target="_blank">Firefox</a> 
+			<a href="https://www.zen-browser.app" rel="noopener noreferrer" target="_blank">Zen</a>
