@@ -41,7 +41,8 @@ export const GENERAL_MIDI_PERCUSSION_FRIENDLY = [
 	"Square Click",
 	"Metronome Click",
 	"Metronome Bell",
-	"Acoustic Bass Drum",
+
+	"Acoustic Bass Drum",	// SAFE until open triangle
 	"Bass Drum 1",
 	"Side Stick",
 	"Acoustic Snare",
@@ -87,7 +88,8 @@ export const GENERAL_MIDI_PERCUSSION_FRIENDLY = [
 	"Mute Cuica",
 	"Open Cuica",
 	"Mute Triangle",
-	"Open Triangle",
+	"Open Triangle", 	// SAFE 
+
 	"Shaker",
 	"Jingle Bell",
 	"Belltree",
