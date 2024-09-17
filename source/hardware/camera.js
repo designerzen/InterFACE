@@ -1,4 +1,4 @@
-
+export const ERROR_NO_CAMERAS = "No Cameras found on this device"
 
 let cameraLoading = false
 
@@ -32,7 +32,7 @@ export const fetchVideoCameras = async() => {
  * @param {?string} deviceId - Device ID unique to the camera to try to access first if provided
  * @returns {Promise} video stream is returned if successfull
  */
-export const setupCamera = async (video, deviceId ) => new Promise( async (resolve,reject) => {
+export const setupCamera = async (video, deviceId, enableAudio=false ) => new Promise( async (resolve,reject) => {
 		
 	let stream
 	video = video ?? document.createElement('video')
@@ -71,7 +71,7 @@ export const setupCamera = async (video, deviceId ) => new Promise( async (resol
 
 	const constraints = {
 		video: videoConstraints,
-		audio: false
+		audio: enableAudio
 	}
 	
 	try{
@@ -81,8 +81,8 @@ export const setupCamera = async (video, deviceId ) => new Promise( async (resol
 		const BAD_RESULT = "BAD_RESULT"
 		stream = await navigator.mediaDevices.getUserMedia( constraints )
 		//stream = navigator.mediaDevices.getUserMedia( constraints )
-		const timeout = new Promise((resolve, reject) => {
-			setTimeout(resolve, 5000, BAD_RESULT)
+		const timeout = new Promise((complete) => {
+			setTimeout(complete, 5000, BAD_RESULT)
 		})
 		const result = await Promise.race([ timeout, stream ])
 	
@@ -162,12 +162,18 @@ export const findBestCamera = async (store, video, onStatus) => {
 	// groupId: "2416e346fdaf93298be3415c78df5eebb51c4945a7c910743406c3cd23eeb004"
 	// kind: "videoinput"
 	// label: "DroidCam Source 3"
-	const videoCameraDevices = await fetchVideoCameras()
-	
+	let videoCameraDevices
+	try{
+		videoCameraDevices = await fetchVideoCameras()
+	}catch(error){
+		// Could not access *any* devices
+		throw Error(error)
+	}
+
 	// 1st point of failure is if there are no cameras at all...
 	if (videoCameraDevices.length < 1)
 	{
-		throw Error("No Cameras found on this device")
+		throw Error(ERROR_NO_CAMERAS)
 	}
 
 	let camera
