@@ -15,7 +15,7 @@ dialog{
 	padding:
 		calc( 2 * var(--pad) ) 
 		calc( 3 * var(--pad) ) 
-		calc( 1 * var(--pad) )
+		calc( 1.5 * var(--pad) )
 		calc( 3 * var(--pad) );
 
 	width: fit-content;
@@ -136,11 +136,14 @@ dialog{
 
 	&.fatal{
 		vertical-align: middle;
+		
 		h5::before{
 			content:'😞';
 			display: inline-block;
 			margin-right:calc( var(--pad) / 2 );
 		}
+
+		.if-recoverable,
 		button.close{
 			display: none;
 		}
