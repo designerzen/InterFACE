@@ -18,12 +18,19 @@ app
 *.zip
 *.reapeaks
 *.sf2
+*.7z
+*--*
+*-new
+*copy*
 *-mp3.js*
 *-ogg.js*
 android
 mediakit
 public
 tstex*
+heap-*
 
 source/audio/wam2-external/
 static/@mediapipe
+Hi Roger,.md
+.nvmrc-new
