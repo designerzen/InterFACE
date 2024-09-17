@@ -15,11 +15,11 @@ export const createDelay = async (
 	// connect the delay node to the feedback node
 	// which then feeds back in to delay node
 	feedbackNode.connect(delayNode)
-	delayNode.connect(audioContext.destination)
+	// delayNode.connect(audioContext.destination)
 
 	return {
 		name:"delay",
-		node:feedbackNode,
+		node:delayNode,
 		feedback:value => changeParameter( feedbackNode, "gain", value), 
 		delayTime:value => changeParameter( delayNode, "delayTime", value), 
 	}

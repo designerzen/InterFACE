@@ -154,7 +154,7 @@ export const createReverb = async (
 	compressor.connect(audioContext.destination)
 	compressor.connect(convolver)
 
-	convolver.connect(reverbGain).connect(audioContext.destination)
+	convolver.connect(reverbGain) //.connect(audioContext.destination)
 	
 	return {
 		name:"reverb",
