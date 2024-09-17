@@ -1,0 +1,45 @@
+input{
+	cursor:pointer;
+	-web-appearance: none;
+	appearance: none;
+	position: relative;
+	box-sizing: border-box;
+	margin:0;
+}
+
+input[type="number" i] {
+	--col-accent: hsl(var(--hue), var(--saturation), 100%);
+	caret-color: var(--col-accent);
+	background: none;
+	border: 1px dotted transparent;
+	border-bottom-color: var(--col-accent, pink);
+	padding-top: var(--pad);
+	padding-bottom: var(--pad);
+	font-size: 300%;
+
+	&:focus-visible {
+		border-color:transparent;
+		border-bottom-style: solid;
+	}
+}
+
+// label[for="button-*" i]{
+// 	outline:10px solid yellow;
+// }
+
+input[type=submit]{
+	//background:transparent;
+	font:inherit;
+	color:inherit;
+	text-transform:inherit;
+	// border:var(--border,2px) dashed transparent;
+	// border-radius:inherit;
+
+	&:focus-visible{
+		opacity: 1;
+	}
+}
+
+@import "./inputs-checkbox.scss";
+@import "./inputs-radio.scss";
+@import "./inputs-range.scss";

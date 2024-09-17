@@ -1,7 +1,6 @@
+@import "../palette.scss";
+@import "./button.scss";
 
-@import "../palette";
-
-// LIGHT MODE
 
 // an update is available to the app!
 @property --hue {
@@ -9,349 +8,51 @@
 	initial-value: 0;
 	inherits: false;
 }
-  
 
-.button-push,
 .button-install,
 .button-upgrade{
-
 	--bg:url(/source/assets/icons/get_app-24px.svg);
 	// --bg:url(/source/assets/icons/download_for_offline_black_24dp.svg);
-	
-	--icon-size:36px;
-	
-	// border:0;
-	// box-shadow: none;
-	// border-radius:99px;
-	// border-bottom-right-radius: 0;
-	// border-bottom-left-radius: 0;
-
-	
-	// moves the text outside
-	//width:calc( var(--pad) * 2 + 22px);
-	// hides text until hover
-	// color:transparent;
-	// text-shadow: none;
-	// order:-1;
-	// flex-direction: row;
-	// flex-wrap: nowrap;
-
-	--min-font-size:14px;
-	--bevel:calc( var(--pad) * 0.5 );
-	--line: 2px;
-	
-	--hue:#{$hue-green};
-	--saturation:50%;
-
-	// brighter towards the bottom
-	--col-inner-top:hsla( var(--hue), var(--saturation, 50%), 35%, 100% );
-	--col-inner-bottom:hsla( var(--hue), var(--saturation, 50%), 45%, 100% );
-
-	// Padding : brighter towards the top
-	--col-pad-top:hsla( var(--hue), var(--saturation, 50%), 45%, 100%);
-	--col-pad-bottom:hsla( var(--hue), var(--saturation, 50%), 35%, 100%);
-		
-	// BEVEL :brighter towards the bottom
-	--col-back-top:hsla( var(--hue), var(--saturation, 50%), 35%, 40% );
-	--col-back-bottom:hsla( var(--hue), var(--saturation, 50%), 55%, 10% );
-
-	--col-ring:hsla( var(--hue), var(--saturation, 50%), 15%, 100%);
-	
-	//@extend %button-style;
-
-	// this is he outline shader
-	border: solid var(--bevel) transparent;
-	border-radius: var(--curve, 50%);
-	
-	flex-direction: row;
-	gap:calc( var(--pad) * 0.5 );
-	padding: calc( var(--bevel) + var(--line) );
-		
-	// width: var(--w, var(--h));
-	// height: var(--h);
-	min-width: 12ch;
-
-	font-weight: bolder;
-	color:var(--shade-white);
-	background-color: transparent;
-	
-	text-transform: uppercase;
-	position: relative;
-	vertical-align: middle;
-	justify-content: flex-start;
-	grid-auto-flow: column;
-	display: inline-grid;
-
-	grid-template-areas: "icon text gap";
-	grid-template-columns: var(--icon-size) auto var(--pad);
-	
-	// background: 
-	// linear-gradient(#bfbfbf, #fff) content-box, 
-	// linear-gradient(#fff, #979797) padding-box, 
-	// linear-gradient(#969696, #fbfbfb) border-box;
-
-	background-image: 
-		var(--bg),
-		linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
-		linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
-		linear-gradient( var(--col-back-top), var(--col-back-bottom) );
-
-	background-origin:
-		content-box, 
-		content-box, 
-		padding-box, 
-		border-box;
-
-	background-clip: 
-		content-box, 
-		content-box, 
-		padding-box, 
-		border-box;
-	
-	background-repeat: 
-		no-repeat, 
-		repeat,
-		repeat,
-		repeat;
-
-	background-position:
-		center left, 
-		0 0,
-		0 0,
-		0 0 ;
-	
-	background-size: var(--icon-size, 22px), auto;
-	
-	// dark outline ring
-	box-shadow: inset 0 0 0 var(--line) var((--col-ring));
-	
-	animation: none;
-
-	// background: 
-	// 	linear-gradient( 
-	// 		hsla( #{$hue-grey}, 6%, 50%, 1), 
-	// 		hsla( #{$hue-grey}, 6%, 88%, 1) 
-	// 	) content-box, 
-	// 	linear-gradient(#fff, green) padding-box, 
-	// 	linear-gradient(#969696, yellow) border-box;
-	
-
-	// icon that is inverted so that it is white
-	// this is so that we can comp it
-	&:before{
-		--inset:0;
-		// filter:none;
-		opacity:0.88;
-	
-		// allow to pop in front
-		position: relative;
-		z-index:1;
-
-		// prevent squishing
-		flex: none;
-
-		// try and set to the size of the background icon
-		width:var(--icon-size);
-		height:var(--icon-size);
-
-		pointer-events: none;
-		grid-area: icon;
-		
-		// background:inherit;
-		// background-image: none;
-		background:transparent var(--bg) no-repeat;
-		// background-color:transparent;
-		background-position:top center;
-		background-size:auto var(--icon-size);
-
-		// flip the black to white and desaturate a little to make
-		// it look great - remember this is the hover state
-		// https://codepen.io/sosuke/pen/Pjoqqp
-		// z-index: -1;
-
-		transition:opacity var(--fade-speed) linear,
-					transform var(--fade-speed) $easeOutBack;
-	}
-
-	// this acts as right padding
-	// or as a new background
-	&:focus:after,
-	&:after{
-		--hue:#{$hue-red};
-			
-		// brighter towards the bottom
-		--col-inner-top:hsla( var(--hue), var(--saturation, 50%), 35%, 100% );
-		--col-inner-bottom:hsla( var(--hue), var(--saturation, 50%), 45%, 100% );
-
-		// Padding : brighter towards the top
-		--col-pad-top:hsla( var(--hue), var(--saturation, 50%), 45%, 100%);
-		--col-pad-bottom:hsla( var(--hue), var(--saturation, 50%), 35%, 100%);
-			
-		// BEVEL :brighter towards the bottom
-		--col-back-top:hsla( var(--hue), var(--saturation, 50%), 35%, 40% );
-		--col-back-bottom:hsla( var(--hue), var(--saturation, 50%), 55%, 10% );
-
-		//grid-area: 1 / 1 / -1 / -1;
-		// height: 100%;
-		// width: 100%;
-		
-		//outline:4px solid yellow;
-		// min-width: calc( var(--icon-size) / 4 );
-		// or
-		--inset:calc( -1 * (var(--bevel) + var(--line) * 0 ) );
-		// background-color: var(--shade-red);
-		
-		// linear-gradient(#bfbfbf, #fff) content-box, 
-		// linear-gradient(#fff, #979797) padding-box, 
-		// linear-gradient(#969696, #fbfbfb) border-box;
-		// background-image: 
-		// 	linear-gradient( hsla( var(--hue), 80%, 50%, 50% ), hsla( var(--hue),80%, 99%, 50% )), 
-		// 	linear-gradient( hsla( var(--hue), 80%, 99%, 50% ), hsla( var(--hue), 80%, 50%, 50% ) ), 
-		// 	linear-gradient( hsla( var(--hue), 80%, 50%, 100% ), hsla( var(--hue), 80%, 50%, 100% ) );
-		
-		// background-origin:
-		// 	content-box, 
-		// 	padding-box, 
-		// 	border-box;
-	
-		// background-clip: 
-		// 	content-box, 
-		// 	padding-box, 
-		// 	border-box;
-		//opacity:0.48;
-		background: inherit;
-		
-		background-image: 
-			var(--bg),
-			linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
-			linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
-			linear-gradient( var(--col-back-top), var(--col-back-bottom) );
-
-		border: inherit;
-		border-radius: inherit;
-		box-shadow: inherit;
-		padding: inherit;
-		position: absolute;
-		top:var(--inset);left:var(--inset);right:var(--inset);bottom:var(--inset);
-		
-		z-index: -1;
-	}
-
-	&::before,
-	&::after{
-		content:'';
-		display: block;
-		box-sizing: border-box;
-		transition:
-			opacity var(--fade-speed) linear,
-			transform var(--fade-speed) $easeOutBack;
-	}
-
-	//min-height:74px;
-	//background: none;
-
-	// inverted text and icon modes
-	&:focus,
-	// &:focus:hover,
-	&:hover{
-
-		color:var(--shade-dark);
-		animation: none;
-
-		&:before{
-			opacity:0;
-		}
-		&::after{
-			//opacity:0;
-		}
-	}
-	
-	&:hover, 
-	&:focus {
-	
-		// --hue:#{$hue-green};
-		border: solid var(--bevel) transparent;
-		box-shadow: inset 0 0 0 var(--line) var((--col-ring));
-	}
-
-	&:hover{
-		&:after{
-			animation:FromCircle var(--ease-s) ease-out 0s both;
-			//animation:ToCircle var(--ease-s) ease-in 0s both;
-		}
-
-	}
-	
-	// Ensure that this is different enough to make it look highlighted
-	// over the others - just changing the colour isn't what this needds
-	&:focus{
-		
-		&:after{
-			--hue:#{$hue-yellow};
-			animation:FromCircle var(--ease-s) ease-in 0s both;
-			animation:ToCircle var(--ease-s) ease-in 0s both;
-		}
-
-
-		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
-		
-
-		opacity: 1;
-		// transform: none;
-		// box-shadow: none;
-
-		// outline: solid var(--line) var(--shade-yellow);
-		// outline-offset:calc( var(--line) * -1px );
-	}
-
-	&:active {
-		&:after{
-			//--hue:#{$hue-blue};
-		}
-		--hue:#{$hue-orange};
-		transform: none;
-		box-shadow: inset 0 0 0 var(--line) var((--col-ring));
-		//border-width: calc(#{$base} + #{$line}) $base calc(#{$base} - #{$line})
-	}
-
-	// if an anchor has been linked here...
-	&:target{
-		// --hue:#{$hue-brown};
-	}
-
-	// prevent them growing tooo long after a certain screen width
-	// @media screen and (min-width:1024px){
-	// 	.max-width: fit-content;
-	// }
+	@include button-with-icon-and-border();
 }
 
 .button-upgrade{
 	// --hue:#{$hue-blue};
+	anchor-name:--button-upgrade;
 }
 
 .button-install{
 	//  --hue:#{$hue-green};
+	anchor-name:--button-install;
 }
 
-.button-start{
-	&::after{
-		--hue:#{$hue-blue};
-			
+#button-install{
+	//--logo:url();
+	--overlap:0px;
+	--delay:0s;
+
+	grid-area:1/1;
+	// transform:translateY( calc(-100% + 7px) );
+	animation: none;
+	transition: transform var(--ease-s);
+	transition-timing-function:  var(--ease-out-back);
+
+	&:hover, &:focus-visible, &:active{
+		transform:translateY(-100%);
 	}
-	--bg:url(/source/assets/icons/play_circle_outline_black_24dp.svg);
-}
 
+	// after a brief while hide this?
+	// animation: 
+	// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
+	// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+	
+	// &:hover, &:focus{
+	// 	--overlap:40px;
+	// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
+	// }
 
-label[for="button-start"]:is(:focus) #button-start{
-	outline:4px solid pink;
-}
-
-#button-start{
-	&::after{
-		
+	// clicked "show me later"
+	&.later{
+		animation: Hide-Install var(--ease-s) $easeOutBack var(--delay) 1 normal both;
 	}
-	--bg:inherit;
-	--icon-size: 44px;
-	color:transparent;
-	background-position: var(--pad), 0 0, 0 0, 0 0;
 }

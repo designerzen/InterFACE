@@ -1,0 +1,454 @@
+// RANGE SLIDERS AND DIALS! ----------------------------
+$track-w: 4.5em;
+
+$track-h: .75em;
+
+$thumb-d: 44px;
+
+
+// NB. The only required properties for the track are the height and background.
+@mixin track() {
+	-webkit-appearance: none;
+	appearance: none;
+	min-width: $track-w;
+	height: $track-h;
+	background: transparent;
+}
+
+// NB. The only required properties for the track are the height and background.
+@mixin vertical-track() {
+	width: $track-h;
+	max-width: 100%;
+	min-height: $track-w;
+	height:auto;
+	
+	// box-shadow:
+	// 	0 1px #fff,
+	// 	inset 0 .125em .125em #7e7e7e,
+	// 	inset 0 .125em .25em #7e7e7e,
+	// 	inset 0 0 0 .25em #d6d6d6;
+	// background: var(--shade-dark);
+}
+
+// Knob
+@mixin thumb($o: 0) {
+
+	--angle:90deg;
+
+	// NB. By default, the WebKit browsers render the thumb 
+	// so that it is not centered on the track.
+	// In order to properly center the thumb on the track we can 
+	// use the following formula and apply it to the margin-top property:
+	// margin-top = (track height in pixels / 2) - (thumb height in pixels /2)
+	@if $o > 0 {
+		margin-top: calc(( #{ $thumb-d} + #{$track-h}) / -2 );
+	}
+
+	width: $thumb-d;
+	// height: max( 100%, $thumb-d );
+	// height: $thumb-h;
+	height: calc( #{ $thumb-d} + #{$track-h} );
+	
+	// outline it!
+	// box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+
+	// background: 
+	// 	linear-gradient(90deg, 
+	// 	rgba(#c9c9c9, 0) 15%,
+	// 	#c9c9c9 37.5%, 
+	// 	#f4f4f4 0%,
+	// 	#f4f4f4 62.5%, 
+	// 	#c9c9c9 0%, 
+	// 	rgba(#c9c9c9, 0) 85%) #fefefe;
+
+	-webkit-appearance: none;
+	appearance: none;
+
+	cursor: pointer;
+	box-sizing: border-box;
+
+	background-color:var(--shade-white, white);
+	background-image: linear-gradient(
+		var(--angle,0deg),
+		var(--shade-white, red) 45%,
+		var(--shade-dark, white) 50%, 
+		var(--shade-white, black) 5%
+	);
+	background-size:cover;
+	
+	border:2px solid var(--shade-dark);
+	border-radius:1px;
+}
+
+@mixin vertical-thumb($o: 0) {
+	--angle:0deg;
+	@if $o > 0 {
+		margin-top: calc(( #{ $thumb-d} + #{$track-h}) / -2 );
+	}
+	width:100%; 
+	height: $thumb-d;
+}
+
+@mixin thumb-focus() {
+	// outline: var(--stroke,2px) solid var(--col-accent, red);
+	// outline-offset: calc( -1 * var(--stroke,2px) ); 
+}
+
+
+
+// Volume slider and other range basewd slides
+input[type="range" i] {
+
+	--col-accent: hsl(var(--hue), var(--saturation), 100%);
+
+	--tick:2px;
+	--half-tick:calc( var(--tick) / 2 );
+	
+	--tick-height:0rem;
+	--divisions:9; // fencepost!
+	
+	--working-size:calc(100% - 2 * var(--tick));
+
+	-webkit-appearance: none;
+	appearance: none;
+
+	// if you want a border!
+	border: solid var(--stroke, 0px) currentcolor;
+	
+	// prevent collapse
+	min-width: $track-w;
+	min-height:calc( #{ $thumb-d} + #{$track-h} );
+
+	// ticks & central line
+	background-image: linear-gradient(90deg, var(--shade-dark, black) var(--tick,2px), transparent 0),
+				linear-gradient(90deg, var(--shade-dark, black) var(--tick,2px), transparent 0),
+				linear-gradient(90deg, var(--shade-white) var(--tick,2px), transparent 0),
+				linear-gradient(90deg, var(--shade-white) var(--tick,2px), transparent 0),
+				
+				linear-gradient(
+					var(--angle, 0deg),
+					transparent calc(50% - 2px),
+					var(--shade-white, white) 50%, 
+					transparent calc(50% + 2px)
+				);
+
+	// tick and line positions
+	background-position: calc( var(--tick-height) - var(--half-tick)) 0,
+						 calc( var(--tick-height) - var(--half-tick)) calc(100% - var(--half-tick)),
+						 calc( var(--tick-height) + var(--half-tick)) var(--half-tick),
+						 calc( var(--tick-height) + var(--half-tick)) 100%,
+						 
+						 center;
+
+	background-repeat: 	repeat-x
+	;
+
+
+	// tick repetitions
+	background-size: 
+		calc(var(--working-size) / var(--divisions)) 30% ,
+		calc(var(--working-size) / var(--divisions)) 30% ,
+		calc(var(--working-size) / var(--divisions)) 30% ,
+		calc(var(--working-size) / var(--divisions)) 30% ,
+
+		100%
+	;
+
+	background-color: transparent;
+	background-clip: padding-box;
+
+	color: transparent;
+
+	// track for pot -----------------------------
+
+	&::-webkit-slider-runnable-track {
+		@include track;
+	}
+
+	&:focus::-webkit-slider-runnable-track {
+		background: transparent;
+	}
+
+	&::-moz-range-track {
+		@include track;
+	}
+
+	// fader button -----------------------------
+
+	&::-webkit-slider-thumb {
+		@include thumb(1);
+	}
+
+	&::-moz-range-thumb {
+		@include thumb;
+	}
+
+	&::-ms-thumb{
+		@include thumb;
+	}
+
+	&:not(:disabled)::-webkit-slider-thumb {
+		cursor:  ew-resize;
+	}
+
+	&:not(:disabled)::-moz-range-thumb {
+		cursor: ew-resize;
+	}
+
+	&:not(:disabled)::-ms-thumb {
+		cursor: ew-resize;
+	}
+
+	// states --------------------------------
+	&:not(:disabled) {
+		cursor: pointer;
+		opacity: 1;
+	}
+
+	&:focus {
+		outline: none;
+		border:0;
+		color: var(--col-accent, red);
+		
+		&::-webkit-slider-thumb {
+			@include thumb-focus;
+		}
+
+		&::-moz-range-thumb {
+			@include thumb-focus;
+		}
+
+		&::-ms-thumb{
+			@include thumb-focus;
+		}
+	}
+
+
+
+	&:disabled {
+		&::-webkit-slider-thumb,
+		&::-moz-range-thumb,
+		&::-ms-thumb,
+		&::-webkit-slider-runnable-track,
+		&::-ms-fill-lower,
+		&::-ms-fill-upper {
+		  cursor: not-allowed;
+		}
+	}
+}
+
+// Vertical range
+// input[type=range][orient="vertical"]{
+// 	appearance: slider-vertical;
+// 	-webkit-appearance: slider-vertical;
+// }
+
+
+// <input type=range style="writing-mode: vertical-lr; direction: rtl">
+input[type=range].vertical{
+	
+	--tick-height:var(--tick);
+
+	writing-mode: vertical-lr; 
+	direction: rtl;
+	
+	// min-width: 3*$thumb-d;
+	width:min-content;
+	// width:3*$thumb-d;
+	width:100%;
+
+	// fix the width
+	max-width:100px;
+	min-width: auto;
+	min-height: auto;
+
+	// ticks
+	background: linear-gradient(0deg, var(--shade-white, black) var(--tick,2px), transparent 0),
+				linear-gradient(0deg, var(--shade-white, black) var(--tick,2px), transparent 0),
+				linear-gradient(0deg, var(--shade-dark) var(--tick,2px), transparent 0),
+				linear-gradient(0deg, var(--shade-dark) var(--tick,2px), transparent 0),
+					
+				linear-gradient(
+					var(--angle,90deg),
+					transparent calc(50% - 2px),
+					var(--shade-white, white) 50%, 
+					transparent calc(50% + 2px)
+				);
+	
+	// tick positions
+	// background-position:left 0 top calc( var(--tick-height) - var(--half-tick)),
+	// 					left calc(100% - var(--half-tick)) top calc( var(--tick-height) - var(--half-tick)),
+	// 					left var(--half-tick) top calc( var(--tick-height) + var(--half-tick)),
+	// 					left 100% top calc( var(--tick-height) + var(--half-tick))
+						 
+	// 					center;
+
+	background-position-x: 
+		0 calc(100% - var(--half-tick)) 
+		0 calc(100% - var(--half-tick)) 
+		center;
+
+	background-position-x: 
+		left, right,
+		left, right,
+		center;
+
+	background-position-y: 
+		calc( var(--tick-height) - var(--half-tick)),  calc( var(--tick-height) - var(--half-tick)) ,
+		calc( var(--tick-height) + var(--half-tick)),  calc( var(--tick-height) + var(--half-tick)) ,
+		center;
+
+	background-repeat: repeat-y;
+
+
+	// tick repetitions
+	background-size: 
+		33% calc(var(--working-size) / var(--divisions)),
+		33% calc(var(--working-size) / var(--divisions)),
+		33% calc(var(--working-size) / var(--divisions)),
+		33% calc(var(--working-size) / var(--divisions)),
+
+		100%
+	;
+
+	// track for pot ----------------------------
+	&::-webkit-slider-runnable-track {
+		@include vertical-track;
+	}
+
+	&::-moz-range-track {
+		@include vertical-track;
+	}
+
+	// fader button -----------------------------
+	&::-webkit-slider-thumb {
+		@include vertical-thumb(1);
+	}
+
+	&::-moz-range-thumb {
+		@include vertical-thumb;
+	}
+
+	&::-ms-thumb{
+		@include vertical-thumb;
+	}
+
+	
+	&:not(:disabled)::-webkit-slider-thumb {
+		cursor:  ns-resize;
+	}
+
+	&:not(:disabled)::-moz-range-thumb {
+		cursor: ns-resize;
+	}
+
+	&:not(:disabled)::-ms-thumb {
+		cursor: ns-resize;
+	}
+}
+
+// if the input is directly inside the label we assume the label is the correct size
+label > input[type=range].vertical{
+	height: 100%;
+}
+
+/*
+
+input[type=range] {
+	--col-accent: hsl(var(--hue), var(--saturation), 100%);
+	-webkit-appearance: none;
+}
+
+input[type=range]:focus {
+	outline: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+	width: 100%;
+	cursor: pointer;
+	box-shadow: var(--shadow);
+	background: var(--col-accent, pink);
+	border-radius: 1.3px;
+	border: 1px solid var(--shade-dark);
+}
+
+input[type=range]::-webkit-slider-thumb {
+	cursor: pointer;
+	-webkit-appearance: none;
+
+	box-shadow: var(--shadow);
+	border: 1px solid var(--shade-dark);
+	min-height: 44px;
+	width: 16px;
+	border-radius: 3px;
+	background: var(--shade-white);
+	//margin-top: -14px;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track {
+	background: var(--col-accent, pink);
+}
+
+input[type=range]::-moz-range-track {
+	width: 100%;
+	min-height: 44px;
+	cursor: pointer;
+	box-shadow: var(--shadow);
+	background: var(--col-accent, pink);
+	border-radius: 1.3px;
+	border: 0.2px solid #010101;
+}
+
+input[type=range]::-moz-range-thumb {
+	box-shadow: var(--shadow);
+	border: 1px solid var(--shade-dark);
+	height: 36px;
+	width: 16px;
+	border-radius: 3px;
+	background: var(--shade-white);
+	cursor: pointer;
+}
+
+input[type=range]::-ms-track {
+	width: 100%;
+	height: 8.4px;
+	cursor: pointer;
+	background: transparent;
+	border-color: transparent;
+	border-width: 16px 0;
+	color: transparent;
+}
+
+input[type=range]::-ms-fill-lower {
+	background: var(--col-accent, pink);
+	border: 1px solid #010101;
+	border-radius: 2.6px;
+	box-shadow: var(--shadow);
+}
+
+input[type=range]:focus::-ms-fill-lower {
+	background: var(--col-accent, pink);
+}
+
+
+input[type=range]::-ms-fill-upper {
+	background: var(--col-accent, pink);
+	border: 1px solid #010101;
+	border-radius: 2.6px;
+	box-shadow: var(--shadow);
+}
+
+input[type=range]:focus::-ms-fill-upper {
+	background: var(--col-accent, pink);
+}
+
+input[type=range]::-ms-thumb {
+	box-shadow: var(--shadow);
+	border: 1px solid var(--shade-dark);
+	min-height: 44px;
+	width: 16px;
+	border-radius: 3px;
+	background: var(--shade-white);
+	cursor: pointer;
+}*/
+

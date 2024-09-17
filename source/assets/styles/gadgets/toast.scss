@@ -1,100 +1,155 @@
 // Feedback text that pops up and dissappears
+// position and orientation are set using --left and --top
+// these are pixel dimensions of the screen width
 #toast{
 
-	--max-percent:78vw;
-	--left:0;
+	// far right extent
+	--max-horizontal-percent:78vw;
+	// lowest extent
+	--min-vertical-pixels:calc( var(--footer-gap, 44px)  );// + var(--pad)
 
-	--y:var(--top);
-	--_x:calc(1px * var(--left, 0));
-	--x:clamp(var(--pad), var(--_x), var(--max-percent) );
-	
-	// is this above or below?
-	--_y:clamp(0, calc( var(--top) * 99 ), 1);
-	
-	--v:calc( var(--left) * 1px - var(--_x) );
+	// PUBLIC : change these
+	--left:0;
+	--top:0;
+
+	// INTERNAL : DO NOT CHANGE
+	--xInPx:calc(1px * var(--left, 0));
+	--yInPx:calc(1px * var(--top, 0));
+
+	// fancy triangle pointer dimensions
+	--triangle-size:1rem;
+
+	// we never want the tooltip to drift outside the ranges
+	// so this restricts the range from 44px -> full
+	--y:max( var(--min-vertical-pixels,100%), var(--yInPx));
+	// FIXME: is this above or below 50vh? - 0 or 1
+	--_ybool:clamp(0, calc( 999 * (var(--top) / 250  )), 1);
+	// --_ybool:clamp(0, calc( 999 * (var(--yInPx) - 50vh )), 1);
+	--_yflip:clamp(-1, calc( 2 * (var(--_ybool) -1 ) ), 1);
+
+	--x:clamp(var(--pad),calc(var(--xInPx) - var(--position-offset-x,0) ), var(--max-horizontal-percent) );
+	--_x:var(--x);
+	// --v:calc( var(--left) * 1px - var(--_x) );
 
 	// x coord in pixels - percentage of screen
-	--d:calc( var(--_x) - var(--max-percent) );
-	--_d:clamp(0 , var(--d) , 1 );
+	--d:calc( var(--xInPx) - var(--max-horizontal-percent) );
+	//--triangle-x:var(--d);
 
-	// remaing width
-	--max-width:calc(100vw - var(--x) - var(--pad) * 3 );
+	// remaing widths
+	--max-width:calc( 100dvw - var(--pad) * 4 - var(--x) ); 
 	--min-width:calc( var(--d) + var(--pad) * 2 );
 
-	user-select: none;
-	//pointer-events: none;
-	position: fixed;
-	padding: calc( var(--pad) * 1);
+	// horizontal offset to accodomdate for the traingle pointer
+	--position-offset-x:calc( var(--triangle-size, 1rem) + .5rem );
+	
+	// booleans : is y > 320px
+	--is-gt-320:clamp( 0, var(--top) / 320 , 1);
+	--is-lt-320:calc( 1 - var(--is-gt-320) );
 
+	margin: 0;
+	
+	// prevent any kind of interactions
+	pointer-events: none;
+	user-select: none;
+	
+	// bring above everything (popover also used
+	z-index:909;
+
+	position: absolute;
+	padding: calc( var(--pad) * 1);
+	
+	// fix position once popover
+	bottom: unset;
+	right:unset;
 	// squish all the way down left as fallback for without clamp
 	// left:var(--_x);
 	// or stop at min-width
 	left:0;
-	//bottom:0;
-	// left:var(--x);
-	bottom:max( calc(var(--y) * 1px), calc( var(--footer-gap) + var(--pad) ) );
-	
-	// we never want the tooltip to drift into the ranges
-	--top:max( calc(var(--y) * 1px), calc( var(--footer-gap) + var(--pad) ) );
-
-	// now --_y is either 0 or 1 -
-	// 0 is bottom control panel
-	// so it will either be y or 0
-
-	// calc(var(--top ) )
-	transform:
-		translateX( var(--x) ) 
-		translateY( calc( var(--top) * 1px) );
-
+	top:0;	
+	// left:var(--x, unset);
+	// top:var(--y, unset);
+	// top:calc( 100vh - var(--y) );
+	// bottom:0;
 	//right:calc( var(--pad) );
 	//bottom:calc( var(--footer-gap) + var(--pad) );
-	z-index:909;
+
+	// --upper-y: var(--is-gt-320,1) * (100% + var(--pad) ) * -1;
+	// --lower-y: var(--is-gt-320,1) * (100% + var(--pad) ) * -1;
+	transform:
+		translateX( var(--x) ) 
+		translateY( calc( var(--y) 
+			+ ( var(--is-gt-320,1) * ( -100% - var(--pad) ) )
+			+ ( var(--is-lt-320,0) * calc( var(--pad) ) )
+		) ); 
+
 
 	// ok this is where things start getting "clever"
-	// here we *only* enforce this fixed width IF --_d > 0
+	// here we *only* enforce this fixed width IF --is-x-past-break > 0
 	// by specifying a positive min width we prevent collapse
-	// min-width:calc( var(--_d) * var(--max-percent) );
+	// min-width:calc( var(--is-x-past-break) * var(--max-horizontal-percent) );
 	min-width:var(--min-width, 3ch);
-	max-width:var(--max-width);
+	max-width:min(var(--max-width), 12ch );
+	width: fit-content;
+
 	min-height:1ch;
+	min-height:1ex;
 
-	color:$col-white;
-	background-color:$col-dark;
+	// overflow: hidden;
+	// overflow: clip;
+	overflow: visible;
+	
+	color:var(--shade-white);
+	background-color:var(--shade-dark);
 	font-size:clamp(9px, var(--font-size), 14px);
-	text-shadow : 	rgba($col-dark, 0.96) 0 -1px 2px,
-					rgba($col-dark, 0.96) 0 0 2px;
+	
+	text-shadow : 	rgba(var(--shade-dark), 0.96) 0 -1px 2px,
+					rgba(var(--shade-dark), 0.96) 0 0 2px;
 
-	pointer-events: none;
 	// FIXME
 	// filter: drop-shadow(0 0 0.75rem var(--shade-blue) );
 
 	// TRIANGLE POINTER!
 	&::before{
-		// fancy triangle dimensions
-		--triangle-size:2rem;
+		
+		// 0 or 100% only (100% if mouse above)
+		--is-x-past-break:clamp(0 , calc( 999 * var(--d) ), 1% );
+		--f:clamp(0 , calc( 99999999 * var(--d) ), 100% );
+		
 		// change range from 0->1 to -1->1
-		--r:calc(-1 + var(--_y,1) * 2 );
+		--r:calc(-1 + var(--_ybool,1) * 2 );
 		// reverse it so from 1->-1
 		--_r:calc(-1 * var(--r) );
 		// -1 or 1 only
 		--flipper:clamp(-1, calc( var(--_r) * 9 ), 1 );
-		// 0 or 100% only (100% if mouse above)
-		--f:calc( ( var(--_y,1) ) * 100% );
 		
-		--scale:0.7;// clamp(0.5, calc( var(--_y,1) * 9 ), 0.8 );
+		--scale:0.7;// clamp(0.5, calc( var(--_ybool,1) * 9 ), 0.8 );
 		// how much to move laterally - if above loads to the right...
-		--tx:clamp(0px, calc( var(--_y) * 900px ), var(--_x) );
+		--tx:clamp(0px, calc( var(--_ybool) * 900px ), var(--_x) );
 
-		
 		// if we are above we go 100% + var(--tx)
 		--a:calc( var(--d) + 3 * var(--f) );
 		--z:max( var(--a), calc( var(--f) - var(--triangle-size) - var(--pad) ) );
 		// a little extra offset to position the arrow better
 		--_o:(var(--flipper,0) * -8px );
 		
+		// y in pixels
+		--arrow-y:clamp(0%, calc( 999 * (var(--yInPx) - 50vh ) ), 100%);
+		--triangle-x:clamp( 0%, var(--d), 100% );
 		
-		clip-path: polygon(0 var(--f), 100% 0, 100% 100%);
 		content:'';
+
+		clip-path: polygon(
+			0 0, 100% 0, 
+			var(--f,0) 100%
+		);
+		clip-path: polygon(
+			0 0, 100% 0, 
+			100% 100%
+		);
+		// clip-path: polygon(
+		// 	0 0, 100% 0, 
+		// 	var(--f) 100%
+		// );
 		height:var(--triangle-size);
 		width:var(--triangle-size);
 		background:inherit;
@@ -103,13 +158,23 @@
 		position:absolute;
 
 		// now we have a special case of when on the right hand side...
-		// left: clamp( 0%, var(--z), calc(100% - var(--triangle-size) ) );
-		left: clamp( 0%, var(--d), calc(100% - var(--triangle-size) ) );
+		left: clamp( var(--pad, 0%), var(--triangle-x), calc(100% - var(--triangle-size) - var(--pad) ) );
+	
+		// top:calc( ( var(--_ybool,1)) * 100% );
 
-		top:calc( (1 - var(--_y,1)) * 100% );
+		top:100%;
 
-		//transform:translateY( calc( ( var(--_y,1) ) * -50% ) ) scale( var(--scale,1));
-		transform:translateY( calc( ( var(--_y,1) ) * -100% + var(--_o) )  ) scale( var(--scale,1));
+		//translateY( var(--arrow-y)) 
+		//transform:translateY( calc( ( var(--_ybool,1) ) * -50% ) ) scale( var(--scale,1));
+		
+		// translateY( calc( ( var(--_yflip,1) ) * -100% + var(--_o) )  ) 
+			
+		// transform:
+		// 	translateX( var(--triangle-x) ) 
+		// 	scale( var(--scale,1));
+		transform: scaleX( clamp(-1 , calc( 99999999 * (var(--left) - 160) ), 1 ) );
+		// transform: scaleX( calc( -1 * var(--left) / 300 ) );
+
 		transform-origin: center;
 	}
 
@@ -124,4 +189,42 @@
 		//visibility: hidden;
 		opacity: 0;
 	}
+}
+
+@supports(position-visibility: anchors-visible) and (justify-self: anchor-center){
+	
+	#toast{
+		--anchor:--home;
+
+		// max-width:max( 
+		// 	var(--max-width),
+		// 	calc(anchor-size(width))
+		// );
+
+
+		max-height: calc(anchor-size(height) * 2);
+
+		// position: absolute;
+		bottom: anchor(top);
+	
+		position-anchor:var(--anchor, auto);
+		
+		position-visibility: no-overflow;
+		position-visibility: anchors-visible;
+		
+		position-try-options: flip-block, flip-inline, flip-block flip-inline;
+		position-area: right span-bottom;
+		
+	
+		// only use this if anchoring works
+		// justify-self: anchor-center;
+	
+		// left:var(--x, unset);
+		// top:var(--y, unset);
+	}
+	// alternate position 
+	// @position-try --bottom {
+	// 	margin: var(--padding) 0 0 var(--padding);
+	// 	inset-area: bottom;
+	// }
 }

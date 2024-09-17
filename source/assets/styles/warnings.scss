@@ -1,0 +1,61 @@
+// Epilepsy warning
+// NB. we dont want any animations here!
+.warning{
+	--size:34px;
+	
+	border-radius: calc( var(--curve) * 0.4 );
+	max-inline-size: none;
+	box-sizing: border-box;
+	width: 100%;
+	position: relative;
+	color:var(--shade-white);
+	background:var(--shade-red, red);
+	padding: var(--pad) calc( 2 * var(--pad) ) var(--pad) calc( 4 * var(--pad) );
+	padding-left:calc( var(--pad) * 2 + var(--size) );
+	
+	z-index: 909;
+	text-wrap: balance;
+
+	flex: 0 1 auto;
+	display: block;
+	align-self: center;
+	justify-self: center;
+
+	strong{
+		animation:none;
+	}
+	em{
+		text-decoration: underline;
+	}
+
+	// Icon
+	&::before{
+		content:'!';
+		text-align: center;
+		font-size:calc(var(--size) * 0.8 );// 215%;
+		width:var(--size);
+		height:var(--size);
+		margin-right: var(--pad);
+		clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+		vertical-align: text-top;
+		display: inline-block;
+		position: absolute;
+		left:var(--pad);
+		top:50%;
+		transform: translateY(-50%);
+		color:var(--shade-red);
+		background:var(--shade-white);
+	}
+
+	// FATAL ERROR ;(
+	&.fatal{
+		// Icon
+		&::before{
+			content:'!';
+			clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+			color:var(--shade-red);
+			background:var(--shade-white);
+			animation:Pulse 3s infinite 0s linear both;
+		}
+	}
+}

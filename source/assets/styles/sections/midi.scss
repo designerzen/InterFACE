@@ -27,7 +27,7 @@ main.midi-available{
 // midi was requested but no devices yet discovered
 main.midi-active button#button-midi{
 	#button-midi{
-		--col: $col-green;
+		--col:var(--shade-green);	
 	}
 }
 
@@ -38,7 +38,7 @@ main.midi-activated{
 	// hide button
 	#button-midi{
 		//cursor:not-allowed;
-		--col-bg: #{$col-blue};
+		--col: #{$col-blue};
 	}
 }
 
@@ -46,7 +46,7 @@ main.midi-activated{
 main.midi-connected{
 	#midi-device{
 		display:inline-block;
-		--col: $col-red;
+		--col: var(--shade-red);
 	}
 }
 
@@ -55,7 +55,7 @@ main.midi-connected{
 main.midi-no-devices{ 
 	button#button-midi{
 		
-		--col: $col-red;
+		--col: var(--shade-red);
 
 		overflow: visible;
 		animation:BGColours 4s linear infinite 0s both;

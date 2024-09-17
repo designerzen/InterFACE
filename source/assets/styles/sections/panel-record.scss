@@ -1,0 +1,21 @@
+#folder-record{
+
+}
+
+#record-panel{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+}
+
+label[for="button-mute"]{
+	text-align: center;
+}
+
+#button-mute{
+	opacity: 1;
+
+	&::before{
+		content:"";
+	}
+}

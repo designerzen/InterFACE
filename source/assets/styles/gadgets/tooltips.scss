@@ -1,0 +1,57 @@
+// https://developer.mozilla.org/en-US/docs/Web/API/Popover_API/Using
+
+[popover] {
+	
+	// position where we would like to
+	// inset: unset;
+
+	// Final state of the exit animation
+	opacity: 0;
+	// transform: scaleX(0);
+
+	--duration: var(--ease-m, 0.7s);
+	
+	transition:
+		opacity var(--duration),
+		transform var(--ease-q, 0.4s),
+		overlay var(--duration) allow-discrete,
+		display var(--duration) allow-discrete;
+}
+
+[popover]:popover-open {
+	opacity: 1;
+	// transform: scaleX(1);
+}
+
+/* Needs to be after the previous [popover]:popover-open rule
+  to take effect, as the specificity is the same */
+@starting-style {
+	[popover]:popover-open {
+		display:none;
+		opacity: 0;
+		// transform: scaleX(0);
+	}
+}
+
+/*
+// Transition for the popover's backdrop
+[popover]::backdrop {
+	background-color: rgb(0 0 0 / 0%);
+	transition:
+		display 0.7s allow-discrete,
+		overlay 0.7s allow-discrete,
+		background-color 0.7s;
+}
+
+[popover]:popover-open::backdrop {
+	background-color: rgb(0 0 0 / 25%);
+}
+
+// The nesting selector (&) cannot represent pseudo-elements so this starting-style rule cannot be nested 
+@starting-style {
+	[popover]:popover-open::backdrop {
+		background-color: rgb(0 0 0 / 0%);
+	}
+}
+
+*/
