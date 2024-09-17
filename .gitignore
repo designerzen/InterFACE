@@ -16,6 +16,7 @@ app
 *.mp4
 *.log
 *.zip
+*.backup.*
 *.reapeaks
 *.sf2
 *.7z
