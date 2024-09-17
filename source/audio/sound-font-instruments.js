@@ -9,19 +9,19 @@ import {
 	GENERAL_MIDI_INSTRUMENTS, 
 	GENERAL_MIDI_LIBRARY,
 	GENERAL_MIDI_FAMILY_DICTIONARY, GENERAL_MIDI_INSTRUMENTS_FRIENDLY 
-} from "./midi/general-midi.constants"
+} from "./midi/general-midi.constants.js"
 
-import { base64Decode } from "../utils/utils"
+import { base64Decode } from "../utils/utils.js"
 import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_PART, EVENT_DECODED } from "./fetch.audio.worker"
 // import { convertArrayToBuffer } from "./audio"
 import audioDecoder from 'audio-decode'
-import { convertArrayToBuffer } from "./audio"
+import { convertArrayToBuffer } from "./audio.js"
 
 import { 
 	INSTRUMENT_DATA_PACK_FATBOY, INSTRUMENT_DATA_PACK_FM, INSTRUMENT_DATA_PACK_MUSYNGKITE, 
 	INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, 
 	SOUNDFONT_FATBOY_JSON, SOUNDFONT_FM_JSON, SOUNDFONT_MUSYNGKITE_JSON 
-} from "../settings/options"
+} from "../settings/options.instruments.js"
 
 export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_MUSYNGKITE]
 export const INSTRUMENT_DATA_PACKS = [
@@ -186,10 +186,22 @@ export const loadInstrumentDataPack = async ( packName='musyng.json', format="mp
 	const url = `${resourcePath}${packName}`
 	try{
 		const request = await fetch( url )
+		const contentType = request.headers.get('content-type')
+        const isJson = contentType ? contentType.includes('application/json') : false
+		// if (!isJson)
+		// {
+		// 	throw Error(`File loaded was not full of json as expected, perhaps the asset ${url} was moved or never copied?`)
+		// }
+		
 		const packs = await request.json()
 		return createPack( packs, format )
 	}catch(error){
-		console.error("loadInstrumentDataPack", {url, packName, error})
+		if (error instanceof SyntaxError) 
+		{
+			console.error(`loadInstrumentDataPack: File loaded was not full of json as expected, perhaps the asset ${url} was moved or never copied?`)
+		}else{
+			console.error("loadInstrumentDataPack", {url, packName, error})
+		}
 		return []
 	}	
 }

@@ -19,6 +19,8 @@ import {
 	// getNoteSound, getNoteText,
 	NOTE_NAMES
 } from './tuning/notes'
+import { createLowPassFilter } from "./effects/filter"
+import { createSaturationFilter } from "./effects/saturator"
 
 export const ZERO = 0.0000001
 
@@ -34,6 +36,8 @@ let analyser
 let limiter
 let compressor
 let distortion
+let lowPassFilter
+let saturator
 let reverb
 let delay
 let dub
@@ -100,10 +104,11 @@ export const getRecordableOutputNode = () => {
 // }
 
 /**
+ * TODO:
  * Create a chain of audio effects
  * @param {?Object} options config
  * @returns {Promise} Chain of effects
- */
+
 export const chooseFilters = async (options) => {
 
 	// create some filters based on some options?
@@ -111,15 +116,16 @@ export const chooseFilters = async (options) => {
 	return chain( [
 		
 		gain,
-		await createCompressor( audioContext ), 
+		// await createCompressor( audioContext ), 
 		// await createReverb(audioContext, 0.5),
 		
 		//, await createDelay(audioContext)
 		//await createDub(audioContext)
-		await createDistortion(audioContext)
+		// await createDistortion(audioContext)
 
 	], audioContext )
 }
+ */
 
 const DEFAULT_OPTIONS = {
 	// quantity of reverb
@@ -144,16 +150,20 @@ export const setReverb = async (filename) => {
  */
 export const setupAudio = async (settings) => {
 
+	
 	// BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
 	// INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
 	// OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
-
+	
 	const options = Object.assign ( {}, DEFAULT_OPTIONS, settings )
 
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
 	// { latencyHint: 'playback' } tells the context to try and smooth playback
 	audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' })
+
+	// fixes old ios bug about audio not starting until buttons or something
+	// resumeAudioContext()
 
 	// check to see if we have an offline context...
 	offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
@@ -170,7 +180,7 @@ export const setupAudio = async (settings) => {
 	limiter = await createCompressor( audioContext, 
 		-5,
 		0,
-		40,
+		20,
 		0.001,
 		0.1
 	)
@@ -184,13 +194,22 @@ export const setupAudio = async (settings) => {
 		0,
 		0.25
    	)
+	// createCompressor( audioContext, -85, 40, 20, 0, 0.3, 0)
 
-	percussion.node.connect( compressor.node )
-	compressor.node.connect( getMasterMixdown())
+	// With added compression set on the drum tracks
+	// percussion.node.connect( compressor.node )
+	// compressor.node.connect( getMasterMixdown())
+
+	// RAW drums
+	percussion.node.connect( getMasterMixdown() )
 	
 	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
 	// reverb.impulseFilter()
 
+	lowPassFilter = await createLowPassFilter( audioContext )
+	
+	saturator = await createSaturationFilter( audioContext )
+		
 	
 
 	// Web Audio Modules! --------------------------
@@ -231,17 +250,19 @@ export const setupAudio = async (settings) => {
 	// 			gainNode, reverb, 
 	// 				compressor.node, analyser], audioContext )
 
-	// fixes old ios bug about audio not starting until buttons or something
-	// resumeAudioContext()
 
 	return chain( [
 
-		gain,
+		// gain,
 
+		// lowPassFilter,
+
+		// saturator,
+	
 		limiter,
 		
 		// this should hopefully balance the outputs
-		//await createCompressor( audioContext ),
+		compressor,
 		
 		reverb,
 		//await createDelay(audioContext)
@@ -273,8 +294,9 @@ export const setupAudio = async (settings) => {
 /**
  * update the frequency analyser and fetch EQ data in the Frequency Domain
  */
-export const updateByteFrequencyData = ()=> {
-	analyser.fftSize = 2048
+export const updateByteFrequencyData = (fftSize=2048)=> {
+	// 
+	analyser.fftSize = fftSize
 	analyser.getByteFrequencyData(dataArray)
 	// for waves?
 	//bufferLength = analyser.fftSize
@@ -327,12 +349,6 @@ export const stopAudio = () => {
 	//console.error("stop audio",{playing})
 }
 
-const resumeAudioContext = async () => {
-	if (audioContext.state === 'suspended') 
-	{
-		await audioContext.resume()
-	}
-}
 
 /**
  * Get the volume of the audio playback 
@@ -495,17 +511,17 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 
 /**
  * This loads the AudioBuffers for the specified audio samples
- * @param {AudioContext} audioContext 
+ * @param {AudioContext} context 
  * @param {String} name 
  * @param {String} path 
  * @param {Object} options 
  * @param {?Function} onProgressCallback 
  * @returns {Object|Array} [ AudioBuffer ] , { A0:AudioBuffer }
  */
-export const loadInstrumentFromSoundFontSamples = async( audioContext=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
+export const loadInstrumentFromSoundFontSamples = async( context=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
 		
 	// Load as individual parts
-	const partPromises = loadInstrumentParts(audioContext, path, options ) 
+	const partPromises = loadInstrumentParts(context, path, options ) 
 	const parts = options.asArray ? [] : {}
 
 	for (let i=0, l=partPromises.length; i < l; ++i)
