@@ -1,57 +1,77 @@
+@import "./assets/styles/_mixins.scss";
 @import "./assets/styles/_ease.scss";
 @import "./assets/styles/_palette.scss";
 
-%image-replacement{
-	text-indent: -9999px;
-	overflow:hidden;
-	color:transparent;
-	text-shadow:none;
-	white-space: pre;
-	font-size: 0;
-	background-position: center center;
-	justify-content: center;
-}
-  
-
-// debug
-// @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
+@import "./assets/styles/utils.scss";
 
 // Load reset, fonts & set typography
 @import "./assets/styles/settings.scss";
-@import "./assets/styles/base.scss";
+@import "./assets/styles/base.scss" layer(base);
+@import "./assets/styles/forms.scss" layer(forms);
 @import "./assets/styles/fonts.scss";
-@import "./assets/styles/typography.scss";
+@import "./assets/styles/typography.scss" layer(typography);
+@import "./assets/styles/scrollbars.scss";
 
-// elements and sections\
+@import "./assets/styles/states.scss";
+@import "./assets/styles/domains.scss";
 
+// elements and sections
 @import "./assets/styles/gadgets/audio-player.scss";
 @import "./assets/styles/gadgets/toast.scss";
-@import "./assets/styles/gadgets/gadgets.scss";
-@import "./assets/styles/gadgets/controls.scss";
 @import "./assets/styles/gadgets/progress.scss";
-@import "./assets/styles/gadgets/dialog.scss";
+@import "./assets/styles/gadgets/dialog.scss" layer(dialog);
 @import "./assets/styles/gadgets/scrollbars.scss";
-@import "./assets/styles/gadgets/button-arcade.scss";
-@import "./assets/styles/gadgets/button-pwa.scss";
 @import "./assets/styles/gadgets/details.scss";
 @import "./assets/styles/gadgets/cursors.scss";
+@import "./assets/styles/gadgets/folder.scss";
+@import "./assets/styles/gadgets/radial-menu.scss";
+@import "./assets/styles/gadgets/tooltips.scss";
+
+@import "./assets/styles/gadgets/buttons.scss" layer(buttons);
+@import "./assets/styles/gadgets/button-arcade.scss";
+@import "./assets/styles/gadgets/button-pwa.scss";
+@import "./assets/styles/gadgets/button-controls.scss";
+
+@import "./assets/styles/gadgets/inputs.scss";
+@import "./assets/styles/gadgets/menu.scss";
+@import "./assets/styles/gadgets/select.scss";
+@import "./assets/styles/gadgets/gadgets.scss";
+@import "./assets/styles/gadgets/controls.scss";
+@import "./assets/styles/gadgets/table.scss";
 
 @import "./assets/styles/icons.scss";
 @import "./assets/styles/keyframes.scss";
 @import "./assets/styles/wallpapers.scss";
-@import "./assets/styles/forms.scss";
 @import "./assets/styles/feedback.scss";
+@import "./assets/styles/warnings.scss";
 
+
+@import "./assets/styles/sections/loading.scss";
+@import "./assets/styles/sections/midi.scss";
 @import "./assets/styles/sections/dialog-fund.scss";
 @import "./assets/styles/sections/footer.scss";
-@import "./assets/styles/sections/midi.scss";
-@import "./assets/styles/sections/loading.scss";
-@import "./assets/styles/sections/tutorial.scss";
-@import "./assets/styles/sections/onboarding.scss";
 @import "./assets/styles/sections/interface.scss";
-@import "./assets/styles/sections/instruments.scss";
-@import "./assets/styles/sections/timeline.scss";
+@import "./assets/styles/sections/intro.scss";
+@import "./assets/styles/sections/onboarding.scss";
 
-@import "./assets/styles/states.scss";
-@import "./assets/styles/domains.scss";
-@import "./assets/styles/utils.scss";
+
+@import "./assets/styles/sections/panel-instruments.scss";
+@import "./assets/styles/sections/panel-midi.scss";
+@import "./assets/styles/sections/panel-record.scss";
+@import "./assets/styles/sections/panel-volume.scss";
+@import "./assets/styles/sections/panel-tempo.scss";
+
+@import "./assets/styles/sections/recordings.scss";
+@import "./assets/styles/sections/timeline.scss";
+@import "./assets/styles/sections/tutorial.scss";
+
+
+// Themes that overide colour shemes and borders
+@import "./assets/styles/themes/theme-clash.scss";
+@import "./assets/styles/themes/theme-friendly.scss";
+@import "./assets/styles/themes/theme-high-contrast.scss";
+@import "./assets/styles/themes/theme-neon.scss" ;
+@import "./assets/styles/themes/theme-pastel.scss";
+
+// debug
+// @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
