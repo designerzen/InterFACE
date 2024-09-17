@@ -65,7 +65,7 @@ export const createButton = (label, tip, classes='' ) => {
  * For when an update has taken or a failure has occurred
  * this simply adds a CTA with a reload button
  */
-export const showReloadButton = (reset) => {
+export const createReloadButton = (reset) => {
 	const button = createButton("Try again! Reload and reset", "Reload this application!", "reload-app" )
 	button.addEventListener( "click", event => {
 		// remove any potential options that could cause issue?
@@ -96,28 +96,4 @@ export const showUpdateButton = (domElement, action) => {
 	button.addEventListener('click', ()=>action() )
 	// reveal update button?
 	//domElement.appendChild(button)
-}
-
-////////////////////////////////////////////////////////////////////
-// a simple midi buttnon with states
-// just set the state with the return
-////////////////////////////////////////////////////////////////////
-export const setupMIDIButton = (buttonMIDI, callback) => {
-	
-	let midiEnabled = false
-
-	const onStartRequested = async (event) => {
-		event.preventDefault()
-		callback && callback()
-		midiEnabled = true
-		//buttonMIDI.removeEventListener('mousedown', onStartRequested)
-		return false
-	}
-
-	buttonMIDI.addEventListener('mousedown', onStartRequested, { once: true })
-	
-	return {
-		setText:text=>buttonMIDI.innerHTML = text,
-		setLabel:text=>buttonMIDI.setAttribute("aria-label",text)
-	}
 }

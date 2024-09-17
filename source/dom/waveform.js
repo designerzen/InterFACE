@@ -31,3 +31,40 @@ export const createWaveform = (data, lineTo) => {
 
     </svg>`
 }
+
+/**
+ * Create a SVG string element from the waveform data
+ * @param {SVGElement} waveforms 
+ * @returns 
+ */
+export const createSVGWaveformFromData = (waveforms) => {
+	
+	if (waveforms && waveforms.length)
+	{
+		// process the waveforms
+		let lastNonZero = 0
+		let datum
+		
+		const compacted = waveforms.map( freqByteData=> {
+			
+			const waveformDataCompacted = []
+			for (let idx = 0; idx < 255; idx += 1) {
+				datum = Math.floor(freqByteData[idx]) - (Math.floor(freqByteData[idx]) % 5)
+
+				if (datum !== 0) {
+					lastNonZero = idx
+				}
+
+				waveformDataCompacted[idx] = datum
+			}
+			return waveformDataCompacted
+		})
+
+		const f = compacted.flat(1)
+		return createWaveform( f, lastNonZero )	
+		// console.log( f, {compacted, waveforms, waveformData} )
+		// console.log(svg)
+	}else{
+		return ''
+	}
+}

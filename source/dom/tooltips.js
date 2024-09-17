@@ -1,6 +1,12 @@
 /**
  * Very simple tooltip moving, presenting and updating
+ * Attempts to use the PopOver API but falls back to a
+ * fixed position with mouse coordinates
+ * 
+ * Provided as a singleton - not much point creating a class versions
  */
+
+const supportsPopover = HTMLElement.prototype.hasOwnProperty("popover")
 
 /**
  * Create a tooltip and bind it to the element
@@ -9,7 +15,7 @@
  * @param {Number} clearRate clear word after x ms
  * @returns {Function} method with 2 arguments to set the tip message
  */
- const createTip =  (element, revealRate=6, clearRate=550) => {
+ const createTip = (element, revealRate=6, clearRate=880) => {
 	
 	let previousMessage = ''
 	let interval = null
@@ -105,18 +111,24 @@ const toastElement = document.getElementById("toast")
 export const setToast = createTip( toastElement )
 
 const tooltips = new Map()
+const tooltipPositions = new Map()
+let tooltipsEnabled = false
 
 /**
  * set the style of the tooltip to the x/y coords
  * of the provided element
  * @param {HTMLElement} target 
  */
-const setToolTipPosition = (target) => {
+const setToolTipPosition = (target, anchor="") => {
 	toastElement.setAttribute(
 		"style", 
-		`--left: ${target.offsetLeft}; 
-		 --top: ${target.offsetTop};`
+		`--left: ${target.x ?? target.offsetLeft};--top: ${target.y ??target.offsetTop};` 
 	)
+
+	// Object.assign(toastElement.style, {
+    //     "--left": target.offsetLeft,
+    //     "--top": target.offsetLeft
+    // })
 }
 
 /**
@@ -124,18 +136,111 @@ const setToolTipPosition = (target) => {
  * @param {HTMLElement} controls DOM element to search within
  */
 export const addTooltip = element => { 
-	const callback = event => {
-		const toolTip = event.target.getAttribute("aria-label") || event.target.innerText
-		const position = 
-			event.target.nodeName === "BUTTON" ? 
-		 		event.target : event.target.parentElement 
-		setToolTipPosition(position)
-		setToast(toolTip)
-		// console.error( {toolTip, position} )
+
+	const setTipSourcePosition = target => {
+		const targetElement = 
+			target.nodeName === "BUTTON" ? 
+				target : target.parentElement 
+
+		tooltipPositions.set( target, getPositionForTooltip(targetElement) )
 	}
-	element.addEventListener("mouseover", callback)
-	// check for dom removal 
-	tooltips.set( element, callback )
+
+	// position-anchor
+	const getPositionForTooltip = target => {
+		const e = target.getBoundingClientRect().toJSON() 
+		return { ...e, 
+			x:e.x + e.width/2, 
+			//y:e.y + e.height/2
+		}
+		
+		return {
+			x:target.offsetLeft,
+			y:target.offsetTop
+		}
+	}
+
+	// lazy create our observer
+	if (tooltips.size === 0)
+	{
+		window.addEventListener("resize", e => {
+			// TODO: Wait one frame before updating
+			tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
+		})
+		tooltipsEnabled = true
+	}
+
+	// set the initial position
+	// tooltipPositions.set( element, getPositionForTooltip(element) )
+	setTipSourcePosition( element )
+
+	const showTooltipCallback = (event, popOver=false) => {
+		
+		if (!tooltipsEnabled)
+		{
+			return
+		}
+		
+		const toolTip = event.target.getAttribute("aria-label") || event.target.innerText
+		const position = tooltipPositions.get( element )
+		if (position)
+		{
+			console.info("Setting tooltip", {position, toolTip} ) 
+			setToolTipPosition(position)
+		}else{
+			console.info("Setting tooltip???", {event} ) 	
+		}
+		
+		// Eventually this will work!
+		
+		toastElement.anchor = event.target.id
+		// toastElement.innerHTML = toolTip
+	 	toastElement.textContent = toolTip
+		// setToast(toolTip)
+		// console.error( {toolTip, position} )
+		if (supportsPopover)
+		{	
+			toastElement.showPopover()	
+		}
+	}
+
+	let cleanUp
+	if (!supportsPopover)
+	{	
+		element.addEventListener("mouseover", showTooltipCallback)
+		
+		cleanUp = e => {
+			element.removeEventListener("mouseover", showTooltipCallback)
+		}
+
+	}else{
+	
+		// check for dom removal 
+		// tooltips.set( element, callback )
+		// toastElement.popover = "auto"
+		element.popoverTargetElement = toastElement
+		// element.popoverTargetAction = "toggle"
+		element.setAttribute("popovertarget", toastElement.id)
+		element.addEventListener("mouseover", showTooltipCallback)
+		//element.addEventListener("mouseout", toastElement.hidePopover )
+	
+		cleanUp = e => {
+			element.removeEventListener("mouseover", showTooltipCallback)
+			//element.removeEventListener("mouseout", toastElement.hidePopover )	
+		}
+	}	
+	
+	tooltips.set( element, cleanUp )
+}
+
+
+export const togglePopover = popover => {
+	const isPopoverOpen = popover.matches(":popover-open")
+    if (isPopoverOpen) 
+	{
+		popover.hidePopover()
+	}else{
+		popover.showPopover()
+    }
 }
 
 /**
@@ -146,7 +251,7 @@ export const removeTooltip = element => {
 	const callback = tooltips.get( element )
 	if (callback)
 	{
-		element.removeEventListener("mouseover", callback)
+		callback()
 		tooltips.delete(element)
 	}
 }
@@ -156,7 +261,7 @@ export const removeTooltip = element => {
  * @param {HTMLElement} controls DOM element to search within
  * @param {String} query query selector for finding the elements to bind to
  */
-export const addToolTips = (controls, query="button, select, input") => {
+export const addToolTips = (controls, query="[aria-label]") => {
 	
 	// do a query here to catch all buttons?
 	const buttons = controls.querySelectorAll(query)
@@ -170,4 +275,12 @@ export const addToolTips = (controls, query="button, select, input") => {
 
 	// intercept any hover events...
 	buttons.forEach( button => addTooltip(button) )
+}
+
+export const toggleTooltips = state => {
+	// document.querySelectorAll("[aria-label]").forEach( button => button.removeAttribute("aria-label") )
+
+	// const buttons = controls.querySelectorAll(query)
+	// tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
+	tooltipsEnabled = state ?? !tooltipsEnabled
 }

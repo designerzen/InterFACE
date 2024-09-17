@@ -1,20 +1,16 @@
-import {canFullscreen, exitFullscreen,goFullscreen,toggleFullScreen} from './full-screen'
+import {canFullscreen, exitFullscreen,goFullscreen,setFullScreenButtonState,toggleFullScreen} from './full-screen'
 import {getShareLink} from '../utils/location-handler'
 import {formattedDate} from '../models/info'
 import {setToggle} from './toggle'
 import { connectSelect } from './select'
 
-
 const doc = document
-// const { getElementById, querySelector } = document
 
 export let buttonQuantise
 export let buttonVideo
 export let controlPanel
 
 const main = doc.querySelector("main")
-
-export const video = doc.querySelector("video")
 
 /**
  * is the element currently visible?
@@ -50,6 +46,8 @@ export const toggleVisibility = element => {
  * is the video element currently visible on the screen?
  * @return {Boolean} visibility of video
  */
+
+export const video = doc.querySelector("video")
 export const isVideoVisible = () => isVisible(video) 
 
 /**
@@ -60,7 +58,6 @@ export const toggleVideoVisiblity = value => {
 	const currentlyVisible = setVisibility(video, value ? value : !isVideoVisible())
 	console.error("toggling video vis", {value, currentlyVisible})
 }
-
 
 /**
  * add a html fragment to a specific person's control panel
@@ -96,54 +93,6 @@ export const setupCameraForm = (cameras, callback) => {
 	connectSelect( select, callback )
 }
 /**
- * Create the markup required for one instrument
- *  
- * @param {*} folder 
- * @param {*} instrumentName 
- * @returns 
- */
-const createInstumentForForm = 
-	( folder, instrumentName ) => 
-		`<li><label for="${folder}">${instrumentName}<input id="${folder}" name="instrument-selector" type="radio" value="${folder}"></input></label></li>`
-const createInstumentFamilyForForm = 
-	( family, instruments ) => 
-		`<details open>
-			<summary>${family}</summary>
-			<menu>${uiOptions.join('')}</menu>
-		</details>`
-
-/**
- * Setup the instrument list
- * @param {Function} callback Method to trigger when instument selected
- */
-export const setupInstrumentForm = (instruments, packName='') => {
-
-	let output = `<legend>${packName} Select an instrument</legend>`
-	let family = instruments[0].family
-	const uiOptions = []// instruments.map( (instrument, index) => createInstumentForForm( instrument.location, instrument.name ) ) 
-	// add a title at the start...
-	// uiOptions.unshift("<legend>Select an instrument</legend>")
-
-	output += `<details open id="instrument-family-${family}"><summary>${family}</summary><menu>`
-
-	// now group them into families...
-	instruments.forEach( (instrument, index) => {
-		
-		const form = createInstumentForForm( instrument.location, instrument.name )
-		output += form
-		if (family !== instrument.family)
-		{
-		
-			family = instrument.family
-			output += `</menu></details>`
-			output += `<details open id="instrument-family-${family}"><summary>${family}</summary><menu>`
-		}
-	})
-	output += `</menu></details>`
-	return output
-}
-
-/**
  * Update the BPM on screen
  * @param {Number} tempo as a quantity of beats per measure
  */
@@ -161,42 +110,50 @@ export const updateTempo = tempo =>{
  * @param {Object} options Configuration object
  */
 export const setupInterface = ( options ) => {
-	const h1 = doc.querySelector("h1")
-	
-	const buttonShare = doc.getElementById("share")
-	// const buttonSolo = doc.getElementById("button-solo")
-	// const buttonDuet = doc.getElementById("button-duet")
-	// const title = doc.getElementById("title")
-	
+
+	// test to see if sharing is possible (on Electron it doesnt work as expected)
+	const buttonShare = doc.getElementById("button-share")
 	const shareElement = doc.querySelector("share-menu")
 	shareElement.url = getShareLink( options )
 	buttonShare.addEventListener('click', e => {
 		shareElement.setAttribute( "url", getShareLink( options ) )
 		//console.error("SHARING", {shareElement, url:shareElement.url  } )
 	}, false)
-	
+
+
+	// const title = doc.getElementById("title")
 	controlPanel = doc.getElementById("control-panel")
 
 	// buttonInstrument = doc.getElementById("button-instrument")
-
 	buttonVideo = doc.getElementById("button-video")
+	// t.lkgCanvas.addEventListener("dblclick", event =>{
+
 	// buttonRecord = doc.getElementById("button-record-audio")
 	buttonQuantise = doc.getElementById("button-quantise")
 	//buttonPhotograph = doc.getElementById("button-photograph")
 	
 	if ( canFullscreen() )
 	{
-		//also pass this inott a flip flopper
-		const buttonFullscreen = setToggle( "button-fullscreen", status =>{
-			options.fullscreen = toggleFullScreen()
-			buttonFullscreen.classList.toggle("fs", options.fullscreen)
+		const toggleBetweenScreen = () => {
+			const isFullscreen = toggleFullScreen()
+			options.fullscreen = isFullscreen
 			//console.log("fullscreen", options.fullscreen)
 			//setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
-		}, false )
+		}
+
+		//also pass this inott a flip flopper
+		const buttonFullscreen = setToggle( "button-fullscreen", toggleBetweenScreen, false )
+		buttonVideo.addEventListener("dblclick", toggleBetweenScreen)
+	
+		document.addEventListener("fullscreenchange", async (event) => {		
+			const isFullscreen = await setFullScreenButtonState(buttonFullscreen)
+			options.fullscreen = isFullscreen
+			console.info("full screen change!", isFullscreen)	
+		})
 	
 	}else{
 		// no full screen mode available so hide the full screen button
-		doc.getElementById( "button-fullscreen").classList.toggle("hide", true)
+		doc.getElementById( "button-fullscreen").setAttribute("hidden", true)
 	}
 
 	// if (options.duet){
@@ -225,41 +182,4 @@ export const setupInterface = ( options ) => {
  */
 export const focusApp = ()=>{ 
 	
-}
-
-
-
-// showPersonalControlPanel( this.name, this.controls, this.instrumentName ) 
-export const showPersonalControlPanel = (playerName, controls, instrumentName) => {
-	
-	const isCurrentlyOpen = controls.classList.contains("showing",true)
-	// find active input field and focus
-	const active = document.getElementById(instrumentName)
-	if (active)
-	{
-		active.focus()
-	}else{
-		// send focus to form?
-		controls.focus()
-	}
-
-	console.log("SHOW Form", {active, isCurrentlyOpen})
-	// FIXME: Add aria-roles
-	controls.classList.toggle("showing",true)
-	document.documentElement.classList.toggle(`${playerName}-sidebar-showing`,true)
-
-	return true
-}
-
-export const hidePersonalControlPanel = (playerName, controls) => {
-	console.log("HIDE Form")
-	
-	//const inputs = this.controls.querySelectorAll('input')
-	//inputs.forEach( input => input.removeEventListener('change',  this.onInstrumentInput))
-	//this.controls.innerHTML = ''
-	controls.classList.toggle("showing",false)
-	document.documentElement.classList.toggle(`${playerName}-sidebar-showing`,false)
-	// setTimeout( ()=> this.controls.classList.toggle("showing",false), 303 )	
-
-	return false
 }

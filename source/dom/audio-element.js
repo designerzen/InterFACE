@@ -150,10 +150,10 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	return wrapper
 }
 
-export const appendAudioElement = (src, fileName, downloadCallback, waveform ) => {
+export const appendAudioElement = ( src, fileName, downloadCallback, waveform ) => {
 	src = Array.isArray(src) ? src[0] : src
 	const audio = createAudioElement(src, fileName, downloadCallback, waveform)
-	document.getElementById("photographs").appendChild( audio )
+	document.getElementById("recorded-audio").appendChild( audio )
 	// Scroll the audio frame into view
 	requestAnimationFrame( ()=>document.getElementById(audio.id).scrollIntoView() )
 }

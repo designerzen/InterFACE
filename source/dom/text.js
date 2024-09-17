@@ -73,3 +73,10 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
  * @param {String} query query selector for finding the elements to bind to
  */
 export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
+
+/**
+ * 
+ * @param {HTMLElement} textElement 
+ * @returns 
+ */
+export const createFeedbackNode = textElement => bindTextElement( textElement, 20 )

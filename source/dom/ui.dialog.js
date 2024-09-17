@@ -24,8 +24,8 @@ const dialogAttrObserver = new MutationObserver((mutations, observer) => {
       // set focus
       const focusTarget = dialog.querySelector('[autofocus]')
       focusTarget
-        ? focusTarget.focus()
-        : dialog.querySelector('button').focus()
+        ? focusTarget.focus({ focusVisible: false })
+        : dialog.querySelector('button').focus({ focusVisible: false })
 
       dialog.dispatchEvent(dialogOpeningEvent)
       await animationsComplete(dialog)
