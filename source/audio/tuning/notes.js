@@ -8,23 +8,18 @@
  */
 
 import {clamp} from "../../maths/maths"
-import { memoize } from "../../utils/utils" 		// Memoize as much as possible
+import { noteNumberToFrequency } from "./frequencies"
+import { C_MAJOR, MAJOR_SCALE, NOTES_ALPHABETICAL, NOTES_ALPHABETICAL_FRIENDLY, NOTES_BLACK, NOTES_WHITE, SOLFEGE_SCALE, makeScaleMode, makeScaleModeFormula } from "./scales"
 
-const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
-const NOTES_ALPHABETICAL_FRIENDLY = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
-
-const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
-const NOTES_WHITE = ["A", "B", "C", "D", "E", "F", "G" ]
 const NOTES_BLACK_INDEXES = NOTES_BLACK.length - 1
 const NOTES_WHITE_INDEXES = NOTES_WHITE.length - 1
 const NOTE_RANGE = NOTES_ALPHABETICAL.length
 
-// renamed white notes
-export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
+const NOTATION_SHARP = "♯" // "#"
+const NOTATION_FLAT = "♭"
 
 // '𝄞',
 export const MUSICAL_NOTES = ['𝅗𝅥','𝅘𝅥','♫','𝅘𝅥𝅮','𝅘𝅥𝅯','𝅘𝅥𝅰','𝅘𝅥𝅱','𝅘𝅥𝅲']
-
 
 // this is an object with the keys being the NOTE_NAMES
 // MIDI conversion stuff
@@ -40,27 +35,9 @@ const MIDI_NOTE_LETTERS = []
 const MIDI_NOTE_FREQUENCIES = []
 const GENERAL_MIDI_INSTRUMENTS = []
 
-
-/**
- * Convert a MIDI Note Number into a frequency in hertz
- * @param {Number} note 
- * @returns {Number}
- */
-export const noteNumberToFrequency = memoize((note) => {
-	const c = (note - 69) / 12
-	return 440 * c * c
-})
-
-/**
- * Convert a frequency in hertz into a noteNumber
- * @param {Number} frequency 
- * @returns {Number} NoteNumber
- */
-const L = Math.log(2)
-export const frequencyToNoteNumber = memoize((frequency) => {
-	const log = Math.log(frequency / 440) / L
-	return Math.round(12 * log + 69)
-})
+export const GENERAL_MIDI_BY_NAME = new Map()
+export const GENERAL_MIDI_NUMBERS_BY_NAME = new Map()
+export const FREQUENCY_BY_NAME = new Map()
 
 
 
@@ -122,10 +99,10 @@ const extractKeyAndOctave = note => {
 	}
 }
 
-const friendly = note => {
+const friendly = (note, seperator="—") => {
 	const {key, octave} = extractKeyAndOctave(note)
 	// if (key === 0){
-		note = note.replace( octave, `—${octave}` )
+		note = note.replace( octave, `${seperator}${octave}` )
 	// }else{
 		// note = note.replace( octave, `— -${octave}` )
 	// }
@@ -222,7 +199,7 @@ export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] 
  * @param {Integer} midi - the midi number
  * @return {String} the pitch
  */
-export const convertNoteNameToMIDINoteNumber = name => NOTE_NAME_MAP[name]
+export const convertNoteNameToMIDINoteNumber = name => GENERAL_MIDI_NUMBERS_BY_NAME.get(name) ?? NOTE_NAME_MAP[name] ?? NOTE_FRIENDLY_NAME_MAP[name]
 
 /**
  * 
@@ -245,15 +222,84 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	const octave = ((noteNumber / NOTE_RANGE) | 0) - 1
 
 	// Determine which key it is from the number?
-	const key = getNoteFromBank( noteIndex , 4)
+	const key = getNoteFromBank( noteIndex , 4)	
 
+	const isFlat = key.indexOf("b") > -1
+	const keyRoot = isFlat ? key.replace("b","") : key
+	const note =  isFlat ? `${keyRoot}${NOTATION_FLAT}` : keyRoot
+		
+	// we use flats here
 	const midiNoteName = `${key}${octave}`
-	const friendlyName = friendly(midiNoteName)
+	const midiNoteNameGap = `${key} ${octave}`
+	const midiNoteNameFriendly = `${note}${octave}`
+	const midiNoteNameFriendlyGap = `${note} ${octave}`
+	
+	
+	let alt = ""
+
+	// Aflat, A, Bflat, B, C, Dflat, D, E, Fflat, F, Gflat, G	
+	// C# s D flat
+	// if we are flat, also create the sharp version
+	if (isFlat)
+	{	
+		// Convert B flat to A sharp
+		const sharpIndex = NOTES_WHITE.indexOf(keyRoot) - 1
+		const sharp = NOTES_WHITE[ sharpIndex < 0 ? NOTES_WHITE.length - 1 : sharpIndex ]
+		
+		const sharpNotationPretty = `${sharp}${NOTATION_SHARP}${octave}`
+		const sharpNotation = `${sharp}#${octave}`
+		const sharpNotationGap = `${sharp} #${octave}`
+
+		GENERAL_MIDI_NUMBERS_BY_NAME.set(sharpNotationPretty, noteNumber)	// C 1 42
+		GENERAL_MIDI_NUMBERS_BY_NAME.set(sharpNotation, noteNumber)			// C 1 42
+		GENERAL_MIDI_NUMBERS_BY_NAME.set(sharpNotationGap, noteNumber)			// C 1 42
+		
+		GENERAL_MIDI_NUMBERS_BY_NAME.set(sharpNotationPretty.toLowerCase(), noteNumber)	// C 1 42
+		GENERAL_MIDI_NUMBERS_BY_NAME.set(sharpNotation.toLowerCase(), noteNumber)		// C 1 42
+		GENERAL_MIDI_NUMBERS_BY_NAME.set(sharpNotationGap.toLowerCase(), noteNumber)		// C 1 42
+
+		alt = sharpNotation
+	}
+	
+	const friendlyName = friendly(midiNoteName, "")
+	const seperatedFriendlyName = friendly(midiNoteName)
 	const frequency = noteNumberToFrequency(noteNumber)
-	const notation = key.replace("b", "#")
+
+	const midiObject =  {
+		noteIndex,
+		octave,
+		key,
+		frequency,
+		notation: note,
+		noteNumber:noteNumber,
+		noteName:midiNoteName,
+		name:midiNoteName,
+		title:midiNoteName,
+		alt
+	}
+	
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteName, noteNumber)		// C#1 42
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteName.toLowerCase(), noteNumber)		// C#1 42
+	
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteNameGap, noteNumber)		// C#1 42
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteNameGap.toLowerCase(), noteNumber)		// C#1 42
+	
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteNameFriendly, noteNumber)		// C#1 42
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteNameFriendly.toLowerCase(), noteNumber)		// C#1 42
+
+	// and for fun, in case somebody provides the wrong format
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(noteNumber, noteNumber)	// 42, 42
+	GENERAL_MIDI_NUMBERS_BY_NAME.set(frequency, noteNumber)		// 232322.3, 42
+	
+	
+	// save the object here
+	GENERAL_MIDI_BY_NAME.set(noteNumber, midiObject )
+	
+
+
 	//console.log( noteNumber, "note", { midiNoteName, friendlyName, octave, key })
 
-	MIDI_NOTE_LETTERS[noteNumber] = notation
+	MIDI_NOTE_LETTERS[noteNumber] = note
 	NOTE_FRIENDLY_NAME_MAP[midiNoteName] = friendlyName
 	NOTE_NAME_MAP[midiNoteName] = noteNumber
 
@@ -263,16 +309,31 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	MIDI_NOTE_FREQUENCIES[noteNumber] = frequency
 
 	// Here we create an array that holds all information in an object for each note number
-	MIDI_NOTE_NUMBER_MAP[noteNumber] = {
-		octave,
-		key,
-		frequency,
-		notation,
-		noteNumber:noteNumber,
-		noteName:noteNumber,
-		name:midiNoteName,
-		title:friendlyName
-	}
+	MIDI_NOTE_NUMBER_MAP[noteNumber] = midiObject
+
+	// add to our super map - each points to same number
+	// GENERAL_MIDI_NUMBERS_BY_NAME.set(friendlyName, noteNumber)		// D flat 42	
+	// GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteName, noteNumber)		// C#1 42
+	
+	
+	
+	
+	//GENERAL_MIDI_NUMBERS_BY_NAME.set(notation, noteNumber)			// Cb1 42	
+	// GENERAL_MIDI_NUMBERS_BY_NAME.set(friendlyName.toLowerCase(), noteNumber)	// c#1 42
+	// GENERAL_MIDI_NUMBERS_BY_NAME.set(seperatedFriendlyName, noteNumber)	// c#-1 42
+	
+	// if (isFlat)
+	// {	
+	// 	// Convert B flat to A sharp
+	// 	const sharpIndex = NOTES_WHITE.indexOf(key) -1
+	// 	const sharp = NOTES_WHITE[ sharpIndex < 0 ?NOTES_WHITE.length - sharpIndex : sharpIndex ]
+	// 	const notationPretty = `${sharp}${NOTATION_SHARP}${octave}`
+
+	// 	// GENERAL_MIDI_NUMBERS_BY_NAME.set(notation, noteNumber)			// Cb1 42	
+	// 	GENERAL_MIDI_NUMBERS_BY_NAME.set(notationPretty, noteNumber)	// C 1 42
+	// 	// GENERAL_MIDI_NUMBERS_BY_NAME.set(notationPretty.toLowerCase(), noteNumber)	// c# 1 42
+	// }
+
 	// console.log(noteNumber, "Converting", {noteName, octave, key, midiNoteName, friendlyName })
 
 	// // ensure that it exists in our super array...
@@ -282,9 +343,37 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 		`UNKNOWN`
 }
 
+GENERAL_MIDI_NUMBERS_BY_NAME.forEach( (note, key) => {
+	//
+	const midiObject = GENERAL_MIDI_BY_NAME.get(note)
+	const {frequency} = midiObject
 
+	GENERAL_MIDI_BY_NAME.set( key, midiObject)
 
-console.error({NOTE_NAMES, NOTE_NAMES_FRIENDLY, MIDI_NOTE_FREQUENCIES, MIDI_NOTE_NAMES, MIDI_NOTE_NUMBER_MAP, GENERAL_MIDI_INSTRUMENTS})
+	FREQUENCY_BY_NAME.set(key, frequency)
+	// detach
+	FREQUENCY_BY_NAME.delete(frequency)
+})
+
+console.log("FREQUENCY_BY_NAME", FREQUENCY_BY_NAME)
+console.log("GENERAL_MIDI_BY_NAME", GENERAL_MIDI_BY_NAME)
+
+const musicalMode = makeScaleMode(C_MAJOR, 4)
+const musicalModeFormula = makeScaleModeFormula(MAJOR_SCALE, 4)
+
+console.info("PhotoSYNTH:NoteMap", {GENERAL_MIDI_MAP: GENERAL_MIDI_BY_NAME, GENERAL_MIDI_NUMBERS_BY_NAME})
+console.info("PhotoSYNTH:Tuning", { 
+	musicalMode, 
+	musicalModeFormula}, 
+	{
+		NOTE_NAMES, 
+		NOTE_NAMES_FRIENDLY, 
+		MIDI_NOTE_FREQUENCIES, 
+		MIDI_NOTE_NAMES, 
+		MIDI_NOTE_NUMBER_MAP, 
+		GENERAL_MIDI_INSTRUMENTS
+	}
+)
 
 // MIDI_NOTE_NAMES.forEach( note => 
 // 	console.error("convertNoteNameToMIDINoteNumber", note, convertNoteNameToMIDINoteNumber(note) , {NOTE_NAMES, NOTE_NAME_MAP, MIDI_NOTE_NAMES} ) 
