@@ -1,5 +1,4 @@
-import PALETTE from "../palette"
-
+import PALETTE from "../settings/palette"
 /**
  * Add a string of text to the canvas
  * @param {CanvasRenderingContext2D} canvasContext 

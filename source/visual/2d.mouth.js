@@ -110,7 +110,7 @@ export const drawLip = ( canvasContext, lips, stroke={h:90,s:50,l:50,a:0.6}, fil
 
 export const drawMouth = ( canvasContext, prediction, palette={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
 	
-	const { annotations, mouthRange, mouthWidth, mouthOpen } = prediction
+	const { annotations, mouthRangeVertical, mouthWidth, isMouthOpen } = prediction
 	const {lips} = annotations
 
 	// This is fixed at 41
@@ -192,7 +192,7 @@ export const drawMouth = ( canvasContext, prediction, palette={h:90,s:50,l:50,a:
 	// topGradient.addColorStop(1, "white")
 
 	// how can we work out height of the mouth???
-	const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRange )
+	const mouthGradient = canvasContext.createLinearGradient(0, 0, mouthWidth, mouthRangeVertical )
 	mouthGradient.addColorStop(0, colourInner)
 	mouthGradient.addColorStop(0.5, colourDark )
 	mouthGradient.addColorStop(1, colourInner)
@@ -369,7 +369,7 @@ export const drawMouth = ( canvasContext, prediction, palette={h:90,s:50,l:50,a:
 		canvasContext.fillStyle = PALETTE.blue
 		canvasContext.font = "12px Oxanium"
 		canvasContext.textAlign = "center"
-		canvasContext.fillText(`${Math.floor(mouthRange)}px`, lipLowerMiddle.x, lipLowerMiddle.y - 20 )
+		canvasContext.fillText(`${Math.floor(mouthRangeVertical)}px`, lipLowerMiddle.x, lipLowerMiddle.y - 20 )
 	}
 */
 	return {lipUpperMiddle, lipLowerMiddle }

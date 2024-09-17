@@ -1,9 +1,6 @@
-
-import { getCanvasDimensions  } from './canvas'
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette.js"
 
 let counter = 0
-const { width, height} = getCanvasDimensions()
 
 // Visualisations
 export const drawWaves = (canvasContext, dataArray, bufferLength)=>{
@@ -11,7 +8,6 @@ export const drawWaves = (canvasContext, dataArray, bufferLength)=>{
 	// PALETTE
 	canvasContext.lineWidth = 2
 	canvasContext.strokeStyle = `hsla(${counter}, 100, 150, 0.5)`
-
 	canvasContext.beginPath()
 
 	counter = counter++ % 360
@@ -34,14 +30,14 @@ export const drawWaves = (canvasContext, dataArray, bufferLength)=>{
 	  x += sliceWidth
 	}
 
-	canvasContext.lineTo(width, height/2)
+	canvasContext.lineTo( canvasContext.canvas.width, canvasContext.canvas.height * 0.5 )
 	canvasContext.stroke()
 }
 
 
 export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 
-	const barWidth = (width / bufferLength) * 2	// number here is just cos we only care about a really narrow band
+	const barWidth = (canvasContext.canvas.width / bufferLength) * 2	// number here is just cos we only care about a really narrow band
 	let barHeight
 	let x = 0
 
@@ -49,7 +45,7 @@ export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 	{
 		barHeight = dataArray[i]
 
-		canvasContext.fillStyle = 'hsla(' + (barHeight/height*360) + ',50%,50%,0.3)'
+		canvasContext.fillStyle = 'hsla(' + (barHeight/ canvasContext.canvas.height*360 ) + ',50%,50%,0.3)'
 		canvasContext.fillRect(x, 0, barWidth, barHeight )
 // height-barHeight
 		x += barWidth + 1
