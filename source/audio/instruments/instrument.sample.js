@@ -9,9 +9,15 @@ import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 16 // AKA one bar
 
+export const INSTRUMENT_TYPE_SAMPLE = "SamplePlayerInstrument"
+
 export default class SampleInstrument extends Instrument{
 
-	name = "SamplePlayerInstrument"
+	static get name(){
+		return INSTRUMENT_TYPE_SAMPLE
+	}
+
+	name = INSTRUMENT_TYPE_SAMPLE
 	title = "Sample Player"
 	type = "sample"
 	
@@ -99,8 +105,8 @@ export default class SampleInstrument extends Instrument{
 	/**
 	 * Like note on but using names!
 	 * 
-	 * @param {*} noteName 
-	 * @param {*} velocity 
+	 * @param {String} noteName 
+	 * @param {Number} velocity 
 	 * @returns 
 	 */
 	async noteOnByName(noteName, velocity=1 ){
@@ -136,7 +142,6 @@ export default class SampleInstrument extends Instrument{
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
-
 		await super.programChange( programNumber )
 		return await this.loadPreset( this.instrumentFolders[programNumber] )
 	}
@@ -244,7 +249,7 @@ export default class SampleInstrument extends Instrument{
 			}	
 		}
 		
-		this.instrumentIndex = index
+		this.instrumentIndex = index ?? 0
 		this.instrumentName = instrumentName
 		this.instrumentPack = instrumentPack
 

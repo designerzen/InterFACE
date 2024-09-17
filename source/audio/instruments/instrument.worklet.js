@@ -1,9 +1,3 @@
-/**
- * This is a set of noise that gets sent into 
- * a delay where the delay length represents 
- * the pitch and is fed back into the delay as
- * a feedback until it resonates in key.
- */
 import Instrument from './instrument'
 
 import { registerAudioWorklets } from '../audio'

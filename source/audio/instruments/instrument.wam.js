@@ -3,16 +3,19 @@
  */
 
 import { initializeWamHost } from "@webaudiomodules/sdk"
-
-import { injectJavascript } from '../../utils/utils'
-import Instrument from "./instrument"
+import { injectJavascript } from '../../utils/utils.js'
+import Instrument from "./instrument.js"
 
 export default class WAMInstrument extends Instrument {
 
+	static get name(){
+		return "WAMInstrument"
+	}
+
+	name = WAMInstrument.name
 	workletsRegistered = false
 
 	type = "web audio module 1"
-	name = "WAM"
 	title = "WebAudioModule"
 
 	initialised = false

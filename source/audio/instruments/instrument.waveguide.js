@@ -4,13 +4,17 @@
  * the pitch and is fed back into the delay as
  * a feedback until it resonates in key.
  */
-import Instrument from './instrument'
-
-import {convertMIDINoteNumberToName} from '../notes'
-
-import Noise from '../noise'
+import Instrument from './instrument.js'
+import Noise from '../noise.js'
+import {convertMIDINoteNumberToName} from '../notes.js'
 
 export default class WaveGuideInstrument extends Instrument{
+
+	static get name(){
+		return "WaveGuideInstrument"
+	}
+
+	name = WaveGuideInstrument.name
 
 	type = "waveguide"
 	name = "WaveGuideInstrument"
@@ -107,5 +111,4 @@ export default class WaveGuideInstrument extends Instrument{
 	async programChange( programNumber ){
 		return super.programChange( programNumber )
 	}
-
 }

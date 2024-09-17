@@ -36,9 +36,16 @@ const DEFAULT_OPTIONS = {
 	asString:true
 }
 
+export const INSTRUMENT_TYPE_SOUNDFONT = "SoundFontInstrument"
+
+
 export default class SoundFontInstrument extends SampleInstrument{
 
-	name = "SoundFontInstrument"
+	static get name(){
+		return INSTRUMENT_TYPE_SOUNDFONT
+	}
+
+	name = INSTRUMENT_TYPE_SOUNDFONT
 	title = "SoundFont Sample Player"
 	type = "sample"
 
@@ -295,7 +302,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 			throw Error("Soundfont could not load "+error)
 		}
 		
-		this.instrumentIndex = this.soundfont.instrumentIndex
+		// FIXME: set the default instrument index if saved
+		this.instrumentIndex = this.soundfont.instrumentIndex ?? 0
 		this.instrumentName = presetName
 		this.instrumentPack = instrumentPack
 		this.instrumentFamily = this.instrument.family
