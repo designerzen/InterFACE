@@ -2,12 +2,16 @@
  * Generic 2D Canvas to override
  */
 import AbstractDisplay from "./display-abstract"
-import { clearCanvas, drawElement, drawFaceMesh, drawPart, drawPoints } from "../visual/2d"
-import { drawEye } from "../visual/2d.eyes"
-import { drawLip } from "../visual/2d.mouth"
+
+import { drawElement } from "../visual/2d"
+// import { drawEye } from "../visual/2d.eyes"
+// import { drawLip } from "../visual/2d.mouth"
 import { hasOffscreenCanvasCapability} from '../capabilities'
 import { drawBars } from "../visual/spectrograms"
 import { drawInstrument, drawParagraph } from "../visual/2d.text"
+import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
+
+export const DISPLAY_CANVAS_2D = "DisplayCanvas2D"
 
 /**
  * Canvas based front end engine for Tensor flow @media pipe
@@ -15,13 +19,15 @@ import { drawInstrument, drawParagraph } from "../visual/2d.text"
  */
 export default class Display2D extends AbstractDisplay{
 
+	name = DISPLAY_CANVAS_2D
 	
-	canvas2DContext = false
+	canvas2DContext = null
 
 	/**
 	 * 
 	 */
-	get canvasContext(){
+	get canvasContext()
+	{
 		if (!this.canvas2DContext)
 		{
 			this.canvas2DContext = this.canvas.getContext('2d')
@@ -32,15 +38,21 @@ export default class Display2D extends AbstractDisplay{
 	constructor( canvas, initialWidth, initialHeight, offscreen=false )
 	{
 		super( offscreen && hasOffscreenCanvasCapability() ? canvas.transferControlToOffscreen() : canvas, initialWidth, initialHeight)
-		// immediately fetch context? NB. this will destroy the offscreen canvas
+		// immediately fetch context?  this is useful for immediate rendering
+		// NB. this will destroy the offscreen canvas
+		if (!offscreen) 
+		{
+			this.getContext
+		}
 		this.available = true
+		this.loadComplete("ready")
 	}
 
 	/**
 	 * Empty the canvas and paint it transparent
 	 */
 	clear() {
-		clearCanvas( this.canvasContext, this.width, this.height )
+		this.canvasContext.clearRect( 0,0, this.width, this.height )
 	}
 
 	/**
@@ -59,8 +71,14 @@ export default class Display2D extends AbstractDisplay{
 	 * You'll likely want to write your own...
 	 * @param {Person} person 
 	 */
-	drawPerson( person, beatJustPlayed, colours ){
+	drawPerson( person, beatJustPlayed, colours, options={} ){
+		const prediction = person.data
 		// Person drawn to screen
+		// let's position our face button
+		if (this.count%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
+		{
+			this.movePersonButton(person, prediction)
+		}
 	}
 	
 	/**
@@ -69,7 +87,23 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Number} bufferLength 
 	 */
 	drawBars( dataArray, bufferLength ){
+
 		drawBars( this.canvasContext, dataArray, bufferLength )
+	}
+		
+	/**
+	 * TODO: Fancier visualiser
+	 * @param {FFT} dataArray 
+	 * @param {Number} bufferLength 
+	 */
+	drawVisualiser( dataArray, bufferLength){
+		// FIXME:
+		drawBars( this.canvasContext, dataArray, bufferLength )
+	}
+
+	
+	postProcess( options ){
+		this.overdraw( options.offsetX ?? 0, options.offsetY ?? 0 )
 	}
 
 	drawInstrument(x, y, instrumentName, extra ){
@@ -79,6 +113,8 @@ export default class Display2D extends AbstractDisplay{
 	drawParagraph(x, y,  paragraph, size, lineHeight, invertColours  ){
 		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours  )
 	}
+
+	// TODO: drawText
 
 	/**
 	 * Overwrite the existing canvas with the same one but
@@ -99,10 +135,6 @@ export default class Display2D extends AbstractDisplay{
 		// this.canvasContext.restore()
 	}
 
-	drawBars( dataArray, bufferLength ){
-		drawBars( this.canvasContext, dataArray, bufferLength )
-	}
-	
 	
 	/**
 	 * converts the canvas into a PNG / JPEG and adds returns as a blob?

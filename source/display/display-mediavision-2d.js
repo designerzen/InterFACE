@@ -19,12 +19,18 @@ import {hasOffscreenCanvasCapability} from '../capabilities'
 import Display2D from "./display-canvas-2d"
 import { drawFace } from "../visual/2d.face"
 
+import MEDIAVISION__WORKER_URI from 'url:./display-mediavision-2d.worker.js'
+import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
+
+export const DISPLAY_MEDIA_VISION_2D = "DisplayMediaVision2D"
+
 /**
  * Canvas based front end engine
  * new Display2D( document.getElementById('interface') ) // document.querySelector("canvas")
  */
 export default class DisplayMediaVision2D extends Display2D{
 
+	name = DISPLAY_MEDIA_VISION_2D
 	worker
 
 	constructor( canvas, initialWidth, initialHeight ){
@@ -34,9 +40,7 @@ export default class DisplayMediaVision2D extends Display2D{
 		
 		if (this.canvas instanceof OffscreenCanvas)
 		{
-			const worker = new Worker(new URL('./display-mediavision-2d.worker.js', import.meta.url),
-			{type: 'module'})
-
+			const worker = new Worker(new URL(MEDIAVISION__WORKER_URI), {type: 'module'})
 			worker.postMessage( {command:"initialise", canvas:this.canvas, canvasContext:this.canvasContext }, [this.canvas] )
 			this.worker = worker
 
@@ -44,13 +48,20 @@ export default class DisplayMediaVision2D extends Display2D{
 
 			this.drawingUtils = new DrawingUtils(this.canvasContext)
 		}
+		this.loadComplete("ready")
 	}
 
 	/**
 	 * 
 	 * @param {Person} person 
 	 */
-	drawPerson( person, beatJustPlayed, colours ) {
+	drawPerson( person, beatJustPlayed, colours, options={} ) {
+		const prediction = person.data
+		// let's position our face button
+		if (this.count%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
+		{
+			this.movePersonButton(person, person.data )
+		}
 		drawFace( this.canvasContext, person, beatJustPlayed, colours, this.drawingUtils, FaceLandmarker )
 		// draw eyes!
 	}

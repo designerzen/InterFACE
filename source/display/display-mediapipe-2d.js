@@ -1,27 +1,41 @@
-import AbstractDisplay from "./display-abstract"
 import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d"
 import { drawEye } from "../visual/2d.eyes"
 import { drawLip } from "../visual/2d.mouth"
 import { drawBars } from "../visual/spectrograms"
+import Display2D from "./display-canvas-2d"
+
+import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options"
+
+export const LOOKING_GLASS_PORTRAIT_WIDTH = 480
+export const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
+
+export const DISPLAY_MEDIA_PIPE_2D = "DisplayMediaPipe2D"
+
+const DEFAULT_OPTIONS = {
+	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
+}
 
 /**
  * Canvas based front end engine for Tensor flow @media pipe
  * new Display2D( document.getElementById('interface') ) // document.querySelector("canvas")
  */
 export default class DisplayMediaPipe2D extends Display2D{
+	
+	name = DISPLAY_MEDIA_PIPE_2D
 
-	constructor( canvas, initialWidth, initialHeight ){
-		super(canvas, initialWidth, initialHeight)
+	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS ){
+		super(canvas, initialWidth, initialHeight, options)
+		this.loadComplete("ready")
 	}
 
 	/**
 	 * 
 	 * @param {Person} person 
 	 */
-	drawPerson( person, beatJustPlayed, colours ){
+	drawPerson( person, beatJustPlayed, colours, options={} ){
 
 		const prediction = person.data
-		const options = person.options
+		// const personOptions = person.options
 		const hue = person.hue
 		const canvasContext = this.canvasContext
 
@@ -40,8 +54,12 @@ export default class DisplayMediaPipe2D extends Display2D{
 		// }
 
 		
-		// let's draw our face
-
+		// let's position our face button
+		if (this.count%this.options.updateFaceButtonAfter===0)
+		{
+			this.movePersonButton(person, prediction)
+		}
+	
 
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )

@@ -3,9 +3,18 @@
  */
 export default class AbstractDisplay{
 
+	static index = 0
+
+	name = "AbstractDisplay"
 	// allows you to debug this view
-	debug = true
+	options
+	debug = false
 	available = false
+
+	count = 0
+
+	// for MTV mode
+	extraVisualMode = false
 
 	canvas
 	canvasWidth
@@ -15,6 +24,15 @@ export default class AbstractDisplay{
 	nextDisplayLink
 	previousDisplayLink
 		
+
+	// Loading ------------------------
+	loadComplete
+
+	// private (consume this in the constructor	)
+	loading = new Promise((resolve,reject)=>this.loadComplete = resolve)
+
+	// Linked List --------------------
+
 	get previousDisplay(){
 		return this.previousDisplayLink
 	}
@@ -41,6 +59,51 @@ export default class AbstractDisplay{
 		return i
 	}
 
+
+	get width(){
+		return this.canvasWidth
+	}
+
+	get height(){
+		return this.canvasHeight
+	}
+
+
+	get discoMode(){
+		return false
+	}
+	set discoMode(value){
+		this.extraVisualMode = value
+	}
+
+	/**
+	 * Unique ID for this Display that includes its type
+	 * @returns {String} ID
+	 */
+	get id(){
+		return this.name + "_" + AbstractDisplay.index
+	}
+
+	constructor(canvas, initialWidth, initialHeight, options={} ){
+		this.canvas = canvas
+		this.canvas.width = this.canvasWidth = initialWidth
+		this.canvas.height = this.canvasHeight = initialHeight
+		this.options = options
+		this.debug = options.debug || false
+		AbstractDisplay.index++
+	}
+
+	// Create
+	
+	/**
+	 * Remove display from linked list
+	 * Delete all references, listeners and handlers
+	 * Free up memory
+	 */
+	async destroy(){
+		// CLEAN UP
+	}
+	
 	/**
 	 * 
 	 * @param {AbstractDisplay} display 
@@ -52,20 +115,30 @@ export default class AbstractDisplay{
 		display.previousDisplayLink = last
 	}
 
-	// Linked List --------------------
-
-	get width(){
-		return this.canvasWidth
+	cancelAnimationLoop(){
+		cancelAnimationFrame(this.loopId)
+	}
+	
+	// This varies for each display but here we create a neverending
+	// loop using requestFrame - be sure to overwrite
+	setAnimationLoop( callback ){
+	
+		const looper = ()=>{
+			callback()
+			this.loopId = requestAnimationFrame(looper)
+		}
+		looper()
 	}
 
-	get height(){
-		return this.canvasHeight
-	}
 
-	constructor(canvas, initialWidth, initialHeight){
-		this.canvas = canvas
-		this.canvas.width = this.canvasWidth = initialWidth
-		this.canvas.height = this.canvasHeight = initialHeight
+	movePersonButton(person, prediction){
+		// we only want this every frame or so as this 
+		// is altering the DOM and very costly
+		const boundingBox = prediction.box
+		const boundingBoxWidth = boundingBox.width || boundingBox.xMax - boundingBox.xMin
+		const boundingBoxHeight = boundingBox.height || boundingBox.yMax - boundingBox.yMin
+		//console.error("Display", display.width, display.height, {boundingBoxWidth,boundingBoxHeight,boundingBox} )
+		person.moveButton( boundingBox.xMax, boundingBox.yMin, boundingBoxWidth, boundingBoxHeight ) 
 	}
 
 	/**
@@ -76,9 +149,8 @@ export default class AbstractDisplay{
 	/**
 	 * Draw a Person model to the screen
 	 */
-	drawPerson( person, beatJustPlayed, colours ){}
+	drawPerson( person, beatJustPlayed, colours, options={} ){}
 	
-
 	/**
 	 * Draw a Person model to the screen
 	 */
@@ -91,15 +163,27 @@ export default class AbstractDisplay{
 	 */
 	drawBars( dataArray, bufferLength ){}
 	
+	/**
+	 * VU Visuals feast!
+	 * @param {FFT} dataArray 
+	 * @param {Number} bufferLength 
+	 */
+	drawVisualiser( dataArray, bufferLength ){}
+
+	postProcess( options ){}
 
 	drawInstrument(boundingBox, instrumentName, extra){}
 
 	drawText( x, y, text, size, align, font, invertColours ){}
 	drawParagraph(x, y,  paragraphh, size, lineHeight, invertColours ){}
+
+
 	/**
 	 * Draw to screen?
 	 */
-	render(){ }
+	render(){ 
+		this.onRender()
+	}
 	
 	/**
 	 * converts the canvas into a PNG / JPEG and adds returns as a blob?
@@ -107,4 +191,18 @@ export default class AbstractDisplay{
 	 * @returns Blob
 	 */
 	takePhotograph(type="image/png"){}
+
+	setSize(width, height){	
+		this.onResize(width, height)
+	}
+
+
+	// EVENTS -----------------------------------------------------
+	onRender(){
+
+	}
+
+	onResize(width, height){
+
+	}
 }
