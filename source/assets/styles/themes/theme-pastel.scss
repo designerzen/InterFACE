@@ -1,0 +1,24 @@
+@import "../_palette.scss";
+
+.theme-pastel{
+	
+	:is(
+		button,
+		.button,
+		input[type=list],
+		.controls > *:not(div), 
+		.controls .folder-link
+	){
+		--hue: #{$hue-red};
+		--hue-selected: #{$hue-blue};
+		--hue-active: #{$hue-yellow};
+	
+		--s:18%;
+		--s-selected:18%;
+		--s-active:18%;
+	
+		--l:48%;
+		--l-selected:48%;
+		--l-active:48%;
+	}
+}

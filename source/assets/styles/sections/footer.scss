@@ -13,7 +13,7 @@
 	justify-content: flex-end;
 	flex-wrap: wrap;
  	flex-direction: row;
-	z-index: 808;
+	z-index: 707;
 // 	@media (orientation: portrait) {
 		
 // 	flex-direction: column-reverse;
@@ -31,12 +31,19 @@
 	// fade it in immediately
 	animation: Fade var(--ease-s) 1 0s ease-out both normal;
 
-	.copyright{
-		background-image: url(./assets/logos/photosynth.svg);
-		background-position: center left;
-		background-repeat: no-repeat;
-		background-size: 22px;
-		padding-left:33px;
+	.link-copyright{
+		line-height: 1.8;
+		&::before{
+			content:'';
+			background-image: url(./assets/logos/photosynth.svg);
+			background-position: center left;
+			background-repeat: no-repeat;
+			background-size: 22px;
+			width:33px;
+			height:27px;
+			display: inline-block;
+			vertical-align: middle;
+		}
 	}
 
 	// allow the contents to hide until hover or focus
@@ -87,6 +94,11 @@
 		align-items: center;
 		
 		padding-top:var(--pad);
+		
+		// ensure this is in front of the back to top
+		position: relative;
+		z-index: 1;
+		gap:var(--pad);
 
 		&:last-of-type{
 			margin-left:auto;
@@ -143,10 +155,14 @@
 		color:$col-cream;
 	}
 
-	.licenses{
+	.link-licenses{
 		padding:0 var(--pad);
 		order:999;
 		border-left:var(--border);
+	}
+
+	.link-news{
+
 	}
 
 	a {

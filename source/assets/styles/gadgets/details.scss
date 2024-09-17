@@ -1,7 +1,6 @@
 
 details{
-	grid-area:requirements;
-	margin-bottom:calc( var(--pad) / 2 );
+	
 	align-self: center;
 	justify-self: stretch;
 
@@ -12,6 +11,7 @@ details{
 	summary::before{
 		content:'×';
 		transform: rotate(45deg);
+		transform-origin: center;
 		display: inline-block;
 		transition: transform var((--ease-s)) var(--ease-out-back);
 		transition-delay: 0.4s;
@@ -22,7 +22,7 @@ details{
 		transform: rotate(0deg);
 	}
 
-	> *:not(summary){
-		border:var(--border,1px) solid var(--shade-white);
-	}
+	// > *:not(summary){
+	// 	border:var(--border,1px) solid var(--shade-white);
+	// }
 }

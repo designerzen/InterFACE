@@ -4,12 +4,6 @@ summary::marker {
 	opacity:0;
 }
 
-summary{
-	user-select:none;
-	cursor:pointer;
-	box-sizing:border-box;
-}
-
 /* Open details element. */
 details[open] {
 

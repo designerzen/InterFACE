@@ -3,18 +3,65 @@
 // Help Box
 dialog::backdrop {
 
-	// background: repeating-linear-gradient(
-	//   45deg,
-	//   rgba($col-blue, 0.2),
-	//   rgba($col-blue, 0.2) 1px,
-	//   rgba($col-cream, 0.3) 1px,
-	//   rgba($col-cream, 0.3) 20px
-	// );
+	background: repeating-linear-gradient(
+	  45deg,
+	  rgba(var(--col-blue, blue), 0.2),
+	  rgba(var(--col-blue, blue), 0.2) 1px,
+	  rgba(var(--col-cream, white), 0.3) 1px,
+	  rgba(var(--col-cream, white), 0.3) 20px
+	),
+	radial-gradient(circle at center, var(--shade-white, white), var(--shade-dark, black));
+	
+
+	//	background: radial-gradient(circle at center, hsl(220 50% 50% / 50%), hsl(220 50% 50% / 0%));
+	
+	backdrop-filter: blur(25px);
 	//backdrop-filter: blur(3px);
 
+	opacity: 0.5;
+	transition: 
+		display .3s allow-discrete, 
+		overlay .3s allow-discrete, 
+		opacity .3s,
+		transform .3s;
+
+	min-height: 100vh;
 }
+
+
+// prevent user scrolling when dialog is open
+html.error:has(dialog[open]) {
+	overflow: hidden;
+	max-height: 100dvh;
+	max-height: 100vh;
+}
+
+// root level elements that should be full screen sized
+body > dialog{
+	
+}
+
 // -
 dialog{
+	animation:DialogOut var(--ease-q) linear 0s 1 both;
+
+	box-sizing: border-box;
+	
+	margin:auto;//calc( 2 * var(--pad) );
+
+	width: fit-content;
+	height: fit-content;
+
+	max-height:  clamp( 420px, 100%, calc(100vh - 2 * var(--pad)));
+	max-width: clamp( 280px, 100%, calc(100vw - 2 * var(--pad)));
+
+	// max-width:calc( 100% - var(--pad) * 4 );
+	// max-height:calc( 100% - var(--pad) * 4 );
+	// opacity: 0;
+	pointer-events: none;
+
+	align-self: center;
+
 	&:not([open]) {
 		pointer-events: none;
 		opacity: 0;
@@ -23,46 +70,71 @@ dialog{
 	
 	&[loading] {
 		visibility: hidden;
-	}	
+	}
 }
 
 // pop over (is this accessible?)
 dialog[open]{
-	box-sizing: border-box;
+	
+	--y:-8%;
+	animation:DialogIn var(--ease-q) linear 0s 1 both;
+
+	opacity: 1;
+	pointer-events: auto;
+	
 	display: flex;
 	flex-direction: column;
-
-	max-width:calc( 100% - var(--pad) * 4 );
-	max-height:calc( 100% - var(--pad) * 4 );
-
-	margin:auto;//calc( 2 * var(--pad) );
 	padding:calc( 3 * var(--pad) );
+
+	// scroll in vertical direction only if needed
 	overflow: auto;
 	overflow-x: hidden;
 	overscroll-behavior-y: contain;
 
-	position: fixed;
+	// position: fixed;
 	// left:50%;
 	// top:50%;
+	// transform: translateY(-50%);
 	// transform: translate(-50%,-50%);
 
+	//position: static;
+
 	// king of the castle
-	z-index:999;
+	// z-index:999;
 	border:0;
 	border-radius: var(--curve);
-	//position: static;
+
 	// top right is a fake close icon...
 	background: url(/source/assets/icons/close-24px.svg) no-repeat, 
-				linear-gradient( white, $col-white );
+				linear-gradient( white, var(--shade-white) );
 
 	background-position:top calc( 1 * var(--pad) ) right calc( 1 * var(--pad) ), center;
+	
 	color:var(--shade-dark);
 
 	// filter:drop-shadow(var(--shadow));
 	box-shadow:var(--shadow) ;
 	
-	transition: opacity 90ms linear;
+	transition: 
+		opacity var(--ease-q) linear,
+		transform var(--ease-q) linear;
 
+	// ON STAGE 
+	opacity: 1;
+
+	// prevent being part of a different grid
+	grid-area:none;
+	position: initial;
+	
+	// OFF STAGE
+	@starting-style {
+		opacity: 0;
+		transform: translateY( var(--y, 10px));
+		&::backdrop {
+			opacity: 0;
+		}
+	}
+	
 	// &::before {
 	// 	content: "";
 	// 	z-index: -1;
@@ -78,23 +150,22 @@ dialog[open]{
 	// 	transition: opacity 0.3s;
 	// }
 	
-	--y:-8%;
-	animation:TranslateY var(--ease-q) linear 0s 1 both;
-
 	> *{
 		user-select: none;
 		animation:Fade var(--ease-q) linear 0s 1 both;
 	}
 
-	h4{
-		--font-scale: 3;
-		color:var(--shade-red);
+	> :is(h3,h4,h5,h6){
+
+		--font-scale: 1.5;
+
 		display: flex;
 		align-items: center;
 		// justify-content: center;
 		margin-bottom:var(--pad);
 		margin-left: calc(-1 * var(--pad));
 		line-height: 1;
+		line-height: 1.04cap;
 
 		//default icon
 		&::before{
@@ -107,8 +178,11 @@ dialog[open]{
 			background-size: contain;
 			background-image:var(--bg);
 			//filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
-			margin-right:calc( 0.5 * var(--pad) );
-			opacity: 0.1;
+			//margin-right:calc( 0.25 * var(--pad) );
+			opacity: 1;
+			// filter: brightness(100%);
+			transform:scale(0.72) translateY(-5%);
+			transform-origin: center;
 		}
 	}
 		
@@ -117,11 +191,11 @@ dialog[open]{
 	}
 
 	a{
-		color:$col-orange;
+		color:var(--shade-orange, orange);
 		// FIXME:
 		text-decoration:underline ;
 		text-decoration-style:dashed;
-		text-decoration-color: $col-red;
+		text-decoration-color: var(--shade-red, red);
 		text-underline-offset: 4px;
 		z-index:909;
 		pointer-events: auto;
@@ -133,6 +207,16 @@ dialog[open]{
 		&:focus{
 			text-decoration-style:wavy;
 		}
+	}
+
+	button.close{
+		position: absolute;
+		top:0;
+		right:0;
+		bottom:0;
+		left:0;
+		display: block;
+		opacity: 0;
 	}
 
 	.version{
@@ -149,7 +233,7 @@ dialog[open]{
 	}
 
 	.learn-more{
-		border-top:1px solid $col-gray;
+		border-top:1px solid var(--shade-grey);
 		margin-top:var(--pad);
 		padding-top:var(--pad);
 		z-index:909;
@@ -160,7 +244,8 @@ dialog[open]{
 		pointer-events: none;
 		z-index:-1;
 		
-		button[type=submit]{
+		// close button
+		:is(button[type=submit]){
 			pointer-events: auto;
 			position:fixed;
 			top:0;
@@ -176,10 +261,25 @@ dialog[open]{
 			}
 		}
 	}
-
 }
 
+// ERROR -------------------------------
 
-.error dialog::backdrop {
+.error dialog::backdrop,
+dialog.error::backdrop {
 	background-color: var(--shade-red);
+}
+
+@keyframes DialogIn{
+	from{
+		transform: translateY( var(--y,0) );
+		opacity: 0.6;
+	}
+}
+
+@keyframes DialogOut{
+	to{
+		transform: translateY( var(--y,0) );
+		opacity: 0.6;
+	}
 }

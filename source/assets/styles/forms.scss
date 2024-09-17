@@ -1,36 +1,48 @@
 
 // form seems to want focus all the time
-form{
+:where(form){
+
+	legend{
+		--gap:clamp( 2px, 8vmin, var(--pad,1rem) );
+		text-align: center;
+		text-shadow:var( --text-shadow );
+		padding-left:var(--gap,1rem);
+		padding-right:var(--gap,1rem);
+		min-width:none;
+	}
+	
 
 	// give it a cool border effect
-	fieldset{
+	
+	> fieldset{
 		--breakpoint:320px;//12ch;
 
-		margin:var(--pad) 0;
-		padding:0;
-		border:var(--border-size, 9px) double var(--col-white);
+		margin:0;
+		padding: calc(var(--pad)* 0) calc(var(--pad) * 1.5);
+		
+		box-shadow: var(--shadow);
+
+		border:var(--border-size, var(--border-radius, 9px )) double var(--shade-white, white);
+		border-radius:var(--curve,0);
+		
 		//border-image: linear-gradient( $col-grey, $col-gray );
 		
 		display:flex;
 		position: relative;
 		
-		box-shadow: rgba($col-dark,0.4) 0 0px 2px,
-				rgba($col-dark,0.3) 0 0.5px 2px,
-				rgba($col-dark,0.2) 0 1px 2px,
-				rgba($col-dark,0.1) 0 1.5px 2px;
-		
 		// slight hack to fix focus issue		
 		pointer-events: none;
-		// fade in from empty
-		animation:Fade var(--ease-s) linear 1 0s both;
+
+		// these break the menu fade in from empty
+		//animation:Fade var(--ease-s) linear 1 0s both;
 		// NB. ensure in front of the person buttons (202)
 		z-index:303;
 	}
 
-	fieldset:empty{
-		display: none;
+	fieldset + fieldset{
+		margin-top:var(--pad);
 	}
-	
+
 	// cool intro effects...
 	fieldset > *{
 		animation-name:Fade, Shift;
@@ -46,59 +58,56 @@ form{
 			animation-duration:1ms,1ms;
 		}
 	}
-}
 
-
-// forms
-label{
-	--padding:calc( 1 * var(--pad));
-	//outline: 1px groove $col-cream;
-	cursor: pointer;
-	transition:color var(--ease-s) linear, 
-				background-color 90ms linear;
-
-	padding:var(--padding);// var(--pad) 0 var(--pad);
-	position: relative;
-	user-select:none;
-
-	&:hover, &:focus{
-		color:var(--col-fg, #{$col-white} );
-		//background-color:var(--col-bg, #{$col-blue});
-		outline:none;
+	label{
+		box-sizing: border-box;
 	}
 }
 
-select{
-	appearance: none;
-	padding:var(--pad);
+// list of items 
+:where(ol[role="list"]) {
+	list-style: numeric;
+	list-style-position: outside;
+}
+:where(ul[role="list"]) {
+	list-style:circle;
+	list-style-position: outside;
+	/*
+	&::marker{
+		display: none;
+		width:0;
+		height:0;
+		overflow: hidden;
+		content:'';
+	}
+	*/
 }
 
-select::-ms-expand {
-	display: none;
-}
-
-
-//fieldset 
-:is(ol[role="list"],ul[role="list"]) {
+:where(ol[role="list"], ul[role="list"]) {
 
 	padding: 0;
 	margin: 0;
 	width: 100%;
+	border: 0;
 
+	display: flex;
+    flex-direction: column;
+	gap:var(--pad);
+
+	&::marker{
+		color:var(--shade-dark);
+		color:color-mix(
+			in srgb, 
+			currentColor, 
+			var(--col-accent, var(--shade-dark)),  
+			50%
+		);
+	}
 	li{
 		margin:0;
 		padding: 0;
 		border-radius: 0;
 		width: 100%;
-
-		&::marker{
-			display: none;
-			width:0;
-			height:0;
-			overflow: hidden;
-			content:'';
-		}
-
 		button{
 			display: flex;
 			place-content: center;
@@ -112,4 +121,11 @@ select::-ms-expand {
 			}
 		}		
 	}
+}
+
+// list of items 
+:where(ol[role="list"], ul[role="list"]) {
+
+
+
 }

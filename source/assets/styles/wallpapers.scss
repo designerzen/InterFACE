@@ -231,6 +231,13 @@ html.player-selection{
 	}
 
 	&.trio{
+		--size:44px;
+		// --h:#{$hue-green};
+		// --col-bg: var(--shade-yellow);
+		// background-color: var(--shade-yellow);
+	}
+	
+	&.quartet{
 		--size:22px;
 		// --h:#{$hue-green};
 		// --col-bg: var(--shade-yellow);

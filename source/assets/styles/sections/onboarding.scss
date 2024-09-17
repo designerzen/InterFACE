@@ -2,13 +2,89 @@
 
 // we need this to visually look the same size as the video
 #onboard{
+
 	visibility:hidden;
-	display: none;
+
+	border:var(--border-size, var(--border-radius, 9px )) double var(--shade-white, white);	
+    border-radius: 22px;
+
+	display: grid;
+	grid-auto-flow: column;
+	grid-template-areas: 
+		"playerSelector"
+		"complexitySelector"
+		"automation"
+		"buttonStart"
+	;		
+	grid-template-columns:1fr; 
+	grid-template-rows: 
+		auto 
+		auto 
+		auto 
+		1fr
+	;	
+	align-items: center;
+    justify-items: stretch;
+
+	// border:var(--border-size, 9px) solid var(--shade-dark);
+	// background-image:linear-gradient(
+	// 	hsla(18, 21%, 12%, 0.7), 
+	// 	hsla(340, 5%, 11%, 0.7)
+	// );
+	
+	// backdrop-filter: grayscale(3) blur(3px);
+	padding: var(--pad);
+	margin:auto;
+
+	// do something in wider screens
+	max-width:calc( 100% - var(--side) );
+	
+	@media screen and (max-width:540px){
+		--side:0px;
+	}
+
+	p{
+		animation-delay: 0s;
+		transition-delay: 0s;
+		color: inherit;
+	}
+	
+	// animate out again?
+	&.completed{
+
+		button, label{
+			--xb:100%;
+			//animation-name: Shift, Fade;
+			animation-direction: normal, reverse;
+			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
+		}
+	}
 }
 
+// STATE =============================================================
 // Choose players screen
 // This is the how many people are playing mode
 .player-selection{
+
+	// instructions do show periodically so we need to ensure that they
+	// NB. don't cover the buttons
+	#toast{
+		--footer-gap:var(--pad);
+		// we push the speech bubble to the right a little
+		--left:100px;
+		// bottom:auto;
+		// top:var(--pad);
+		// left:50%;
+		// transform: translateX(-50%);
+		// right:auto;
+		// max-width:calc( 100% - 4rem );
+		// prevent cramping
+		// margin:0 var(--pad);
+		// background-color: $col-dark;
+		// text-align:center;
+		// pointer-events: none;
+	}
+
 
 	// hide everything in the header except for the nav
 	// #intro > *:not(nav){
@@ -31,24 +107,6 @@
 		visibility:hidden;
 	}
 	
-	// instructions do show periodically so we need to ensure that they
-	// NB. don't cover the buttons
-	#toast{
-		
-		--footer-gap:var(--pad);
-		// bottom:auto;
-		// top:var(--pad);
-		// left:50%;
-		// transform: translateX(-50%);
-		// right:auto;
-		//max-width:calc( 100% - 4rem );
-		// // prevent cramping
-		// margin:0 var(--pad);
-		// background-color: $col-dark;
-		// text-align:center;
-		// pointer-events: none;
-	}
-
 	// form > * {
 	// 	visibility: hidden;
 	// 	pointer-events: auto;
@@ -56,27 +114,6 @@
 	#onboard{
 		--side:clamp( var(--pad), 25%, 240px);
 		z-index:1;
-		display:flex;
-		flex-direction:column;
-		align-items:center;
-		// border:var(--border-size, 9px) solid var(--shade-dark);
-		border-radius:var(--curve, 9px);
-		background-image:linear-gradient(
-			hsla(18, 21%, 12%, 0.7), 
-			hsla(340, 5%, 11%, 0.7)
-		);
-		
-		// backdrop-filter: grayscale(3) blur(3px);
-		padding: var(--pad);
-		padding-top: 0;
-		margin:auto;
-
-		// do something in wider screens
-		max-width:calc( 100% - var(--side) );
-		
-		@media screen and (max-width:540px){
-			--side:0px;
-		}
 	}
 
 	// show this
@@ -84,9 +121,7 @@
 	#player-selector{
 		visibility: visible;
 	}
-	#player-selector{
-		padding-top:var(--pad);
-	}
+	
 	
 	// hide stuff not relevent
 	// Instrument selection panel
@@ -108,10 +143,6 @@
 		display: none;
 	}
 
-	#button-trio{
-		display:none;
-	}
-
 	#help .player-selection-help{
 		display: block;
 	}
@@ -125,119 +156,11 @@
 
 	// we invert as on black background
 	#foot{
-		color:$col-white;
+		color:var(--shade-white);
 	}
 }
 
-/////////////////////////////////////////////////////
-// CTA to begin the app...
-// Glows and entices a click!
-/////////////////////////////////////////////////////
-label[for=button-start]{
 
-	--col-fg: #{$col-dark};
-	--col-bg: #{$col-orange};
-	--col-hover:#{$col-cream};
-	--button-border-size:4px;
-	--bg:url(/source/assets/icons/music_note-24px.svg);
-	--pos-override:left var(--pad) center;
-
-	// transform: translateY(-50%);
-	margin-top:var(--pad);
-	
-	// padding:var(--pad) calc(2 * var(--pad)) var(--pad) calc(4 * var(--pad));
-	display: block;
-	z-index:606;
-	
-	position: relative;
-	// display: flex;
-	// align-items: center;
-	// justify-content: center;
-
-	width: 100%;
-	max-width: max-content;
-	min-height: 5rem;
-
-    box-sizing: border-box;
-	padding: calc(var(--pad)*3 ) calc(var(--pad)*7 );
-	// animation: CTA 2s infinite;
-	// background-image:linear-gradient(var(--col-top, #ffffff4d), var(--col-bottom, #0000004d));
-	// background-repeat: repeat;
-	
-	// set this up as a background!
-	input{
-		--inset:calc( var(--pad) * 0.5 );
-		position: absolute;
-		top:var(--inset);
-		right:var(--inset);
-		bottom:var(--inset);
-		left:var(--inset);
-		color:transparent;
-		z-index:-1;
-		// opacity: 0;
-		// border-color: var(--shade-white);
-	}
-
-	&::before{
-		// background-image: var(--bg);
-		// background-repeat: no-repeat;
-		// padding-left:calc(var(--pad)*3.5);
-		// margin-left:calc(var(--pad));
-		// gap after prefix
-		// margin-right:0.28rem;
-		grid-area: gap;
-	}
-
-	&::after{
-		content:'';
-		// position: absolute;
-		// left:0;
-		// top:0;
-		// bottom:0;
-		// width:10rem;
-		// gap before suffix
-		// margin-left:0.28rem;
-		// margin-right:calc(var(--pad)*2);
-	}
-
-	// Throb
-	&:hover,	
-	&:focus{
-		animation-duration: 0.7s;
-		input{
-			color:transparent;
-		}
-	}
-
-	&:hover::before{
-		opacity: 1;
-	}
-
-	&:hover input::before{
-		opacity: 1;
-		outline:2px solid yellow;
-	}
-}
-
-.solo label[for="button-start"]{
-	--bg:url(/source/assets/icons/person-24px.svg);
-	&:before{
-		content:'Solo ';
-	}
-}
-
-.beginner label[for="button-start"]{
-	&:after{
-		content:' in Simple Mode';
-	}
-}
-
-.duet label[for="button-start"]{
-	--bg:url(/source/assets/icons/people-24px.svg);
-	&:before{
-		content:'Duet ';
-	}
-}
 
 // Player selection screen
 #player-selector{
@@ -248,85 +171,121 @@ label[for=button-start]{
 	--border-radius:9px;
 	--border-size:clamp(4px, 20vmax, 9px);
 	
+	grid-area:playerSelector;
+
 	text-align:center;
 	box-sizing: border-box;
 	visibility: hidden;
 	user-select: none;
-
-	border-radius:var(--border-radius);
-
+	width: 100%;
+	
 	// doesn't work anymore
 	// border-image: linear-gradient(
 	// 	var(--shade-grey, hsla(0, 0%, 100%, 0.3) ), 
 	// 	var(--shade-gray, hsla(0, 0%, 0%, 0.3) )
 	// );
-	border-style: ridge;
 	
 	margin:0;
-	padding:calc(var(--pad)*0) calc(var(--pad) * 1.5);// var(--pad);
-	display:flex;
-	flex-direction: row;
-	flex-wrap:wrap;
+	padding:calc(var(--pad)*1) calc(var(--pad) * 1);// var(--pad);
+	
+	display:grid;
+	align-items: center;
+	justify-content: stretch;
 
-	align-items:stretch;
-	justify-content: center;
-	grid-gap:4px;
+	gap:var(--pad);
+	grid-template-areas:
+		"legend"
+		"p1" 
+		"p2"
+		"p3" 
+		"p4"
+	;
 
-	//min-height:calc( 100% - var(--top-gap) * 2);
+	// grid-template-rows:auto 1fr 1fr;
+
+	// min-height:calc( 100% - var(--top-gap) * 2);
 	// max-height:100%;
 
 	legend{
-		--gap:clamp( 2px, 8vmin, var(--pad,1rem) );
-		padding-left:var(--gap,1rem);
-		padding-right:var(--gap,1rem);
+		grid-area:legend;
 	}
 	
-	// buttons 
-	label{
+	// actual person selection buttons 
+	label[for*="button-"]{
+		--space:11px;
+		--button-radius:3px;
+		--opacity:0.66;
+	
+		--col-stroke:transparent;
+		--col-top:transparent;
+		--col-bottom:transparent;
+		--col-hover:var(--shade-active, var(--shade-white, black) );
 		--icon-size: clamp(22px, 9vmin, 44px);
 		--button-border-size:var(--border-size);
-
-		//border-radius:var(--border-radius);
 
 		// this softens the border
 		//box-shadow: inset 0px 0px calc(var(--border-size)) $col-white;
 		
 		align-items: center;
+		overflow: hidden;
+		max-width: none;
+		border: var(--stroke,2px) solid var(--col-stroke, transparent); 
+		border-radius: var(--button-border-size, var(--border-radius, 0));
+		overflow: hidden;
+		line-height: 1.2;
+		// text-shadow:none;
 
-		input{
-			
-			// special border for these only
-			// border-image: linear-gradient(
-			// 	var(--col-top, hsla(0, 0%, 100%, 0.3) ), 
-			// 	var(--col-bottom, hsla(0, 0%, 0%, 0.3) )
-			// );
-
-			// border-image:conic-gradient(from 90deg, #fff, #000);
-		}
-
-		// cool effect
-		&:after{
-			content: "";
-			z-index:-1;
+		// cool covering effect
+		&:before{
+		
 			opacity:0;
-			background:var( --col-hover, rgba($col-white, 0.4) );
+
+			border-radius: inherit;
+
+			border:inherit;
+			border-color:var(--col-hover);
+			
+			background:inherit;
+			background-color:var(--col-hover);
+
+			padding: inherit;
+			
 			position: absolute;
 			top:0;
 			left: 0;
 			bottom:0;
 			right:0;
+			// grid-area:1/1/-1/-1;
+
+			display: flex;
 			transform: scaleX(0);
-			transition: transform 45ms ease-out, opacity 90ms linear;
+			transition: 
+				transform var(--ease-q, 150ms) ease-out, 
+				opacity var(--ease-q, 95ms) linear;
 		}
 		
-		&:hover, &:focus{
-			
-			&:after{
+		// combine this selector with the one below
+		&:is( :hover, :focus, :focus-visible, :focus-within),
+		&:has( input:checked )
+		{  
+			&:before{
 				transition: transform 150ms ease-out, opacity 150ms linear;
 				transform:none;
-				opacity:0.3;
+				opacity:var(--opacity, 0.3);
 			}
 		}
+
+		// regular selection
+		&:has( input:checked )
+		{  
+			// --col-stroke:var(--col-active);
+		}
+	}
+		
+	input{
+		// opacity: 0;
+		z-index: -1;
+		position: relative;
 	}
 
 	button, label{
@@ -348,7 +307,7 @@ label[for=button-start]{
 		flex:0 1 100%;
 	}
 	
-
+	/*
 	.button{
 
 		// double channel if short and wide
@@ -362,147 +321,419 @@ label[for=button-start]{
 			}
 		}
 	}
-
-	// composite grid layout
-	label[for="toggle-advanced-mode"]{
-
-		//color:$col-white;
-		padding:var(--pad) 0;
-		margin-top:var(--pad);
-		// margin-bottom:var(--pad);
-		border-top:1px solid var(--shade-white);
-	
-		// align-self: center;
-		// vertical-align: middle;
-		display: grid;
-		grid-template-areas: 
-			"slider"
-			"off"
+	*/
+	@media  screen and (min-width:480px) {
+		grid-template-areas:
+			"legend legend"
+			"p1 p2"
+			"p3 p4"
+			// "advanced-toggle advanced-toggle"
+			// "advanced-feedback advanced-feedback"
+			// "automation automation"
 		;
 
-		align-items: center;
-		flex-basis: 100%;
-		justify-content: stretch;
-		flex-wrap: wrap;
-		grid-template-columns: 100%;
-		grid-template-rows:1fr;
+		label{
+
+		}
+	}
+}
+
+// 
+label[for="button-solo"],
+#button-solo{
+	grid-area:p1;
+}
+
+label[for="button-duet"],
+#button-duet{
+	grid-area:p2;
+}
+
+label[for="button-trio"],
+#button-trio{
+	grid-area:p3;
+}
+
+label[for="button-quartet"],
+#button-quartet{
+	grid-area:p4;
+}
+
+#complexity-selector{
+	grid-area:complexitySelector;
+	display: grid;
+	gap: var(--pad);
+	grid-template-areas: 
+			"legend legend legend"
+			"label label label"
+			"output output output"
+		;
+
+	@media  screen and (min-width:480px) {
+		grid-template-areas: 
+			"legend legend legend"
+			"labelStart label labelEnd"
+			"output output output"
+		;
+
+		grid-template-columns:minmax(44px,0.5fr) 1fr minmax(44px,0.5fr);
+	}
+
+	
+	@media screen and (min-width:980px) {
+		
+		grid-template-areas: 
+			"legend legend legend legend legend"
+			"label label label gap output"
+			"labelStart labelMid labelEnd gap output"
+		;
+
+		grid-template-columns:auto 1fr auto var(--pad,0px) 1fr;
+	}
+}
+
+
+#toggle-advanced-mode{
+	grid-area: label;
+}
+
+@media  screen and (min-width:480px) {
+	// toggle in the middle!
+	#toggle-advanced-mode{
+		// grid-column-start: label;
+		// grid-column-end: label;
+		// grid-row-start: label;
+		// grid-row-end: label;
+		grid-area:label;
+		margin-left: var(--pad);
+		margin-right: var(--pad);
+	}
+}
+
+#advanced-mode-feedback{
+	display: grid;
+	width: 100%;
+	grid-area:output;
+	
+	> * {
+		grid-area:1/-1;
+	}
+
+	> *[hidden] {
+		display: block !important;
+		visibility: hidden;
+	}
+}
+
+// composite grid layout with odd setup
+label[for="toggle-advanced-mode"]{
+
+	//color:$col-white;
+	padding:var(--pad) calc( 2 * var(--pad));
+	
+	// margin-bottom:var(--pad);	
+	// border-bottom:1px solid var(--shade-white);
+	grid-template-columns: inherit;
+	grid-template-areas: 
+		"label label"	
+		"off on"
+	;
+	grid-area:label; 
+	// align-self: center;
+	// vertical-align: middle;
+	display: grid;
+	align-items: center;
+	width: 100%;
+	flex-basis: 100%;
+	justify-content: stretch;
+	text-align: center;
+
+	// grid-template-rows:1fr;
+	gap: var(--pad);
+	margin:auto ;
+	max-width: none;
+
+	&::before{
+		content:"";
+		// order:1;
+		// max-width: calc(33% - var(--pad));
+		grid-area:off;
+		opacity:0.5;
+		text-align: right;
+		animation: none;
+	}
+
+	// DEFAULT SELECTION
+	&::after{
+		--opacity:0.8;
+		content:"";
+		// max-width: calc(33% - var(--pad));
+		grid-area:on;
+		z-index:1;
+		opacity:1;
+		background:transparent;
+		// order:2;
+		position: relative;
+		top:auto;
+		left: auto;
+		bottom:auto;
+		right:auto;
+		transform: none;
+		animation: Pulse var(--duration, 0.3s) 0s #{$easeOutQuad} infinite both alternate-reverse; 
+	}
+
+	@media screen and (min-width:480px) {
+
+		grid-area:auto; 
+		grid-column-start: labelStart;
+		grid-column-end: labelEnd;
+		grid-row-start: labelStart;
+		grid-row-end: labelEnd;
+		
+		// gives us 44px with text inside
+		padding: 9px;
+		padding-left: 0;
+		padding-right: 0;
+		grid-template-columns: inherit;
+		grid-template-areas: 
+			"off label on"
+		;
 
 		&::before{
-			content:"";
-			order:1;
-			max-width: calc(33% - var(--pad));
-			grid-area:off;
-		}
-
-		// full width input unless we are short mode
-		input{
-			min-width: 100%;
-			grid-area:off;
-			min-height:3rem;
+			content:"For Beginners";
 		}
 
 		&::after{
-			content:"";
-			max-width: calc(33% - var(--pad));
-			grid-area:off;
-			z-index:1;
-			opacity:1;
-			background:transparent;
-			order:2;
-			position: relative;
-			top:auto;
-			left: auto;
-			bottom:auto;
-			right:auto;
-			transform: none;
+			content:"For Experts";
+			text-align: left;
 		}
 
-		@media  screen and (min-width:480px) {
-			&::before{
-				content:"For Experts";
-				text-align: right;
-			}
-	
-			input{
-				min-width: 33%;
-				margin:0 auto;
-			}
-	
-			&::after{
-				content:"For Beginners";
-				// max-width: 33%;
-				
-				margin-left:calc( 66% + var(--pad));
-				opacity: 0.5;
-				text-align: left;
-			}
+		input{	
+			margin:auto var(--pad);
 		}
 	}
 
+	@media screen and (min-width:920px) {
+		grid-template-columns: 1fr var(--pad) 1fr;
+		color:transparent;
+		font-size:10%;
+		padding-top:0;
 
-	label[for*="button-"]{
-		// hover colour should be neutral on label...
-		--col-hover:var(--shade-orange);//#{$col-gray};
+		&::before{
+			text-align: left;
+			color:var(--shade-white);
+			font-size:900%;
+		}
+
+		&::after{
+			text-align: right;
+			color:var(--shade-white);
+			font-size:900%;
+		}
+	}
+}
+
+label[for="toggle-automation-mode"]{
+	color:var(--shade-dark);
+	grid-area:automation; 
+	background-color: var(--shade-white,white);
+	border-radius: 0px 0 var(--curve,24px) var(--curve,24px);
+	justify-self: center;
+	max-width: calc(100% - var(--pad) * 2);
+	padding:calc(var(--pad) * 1) calc(var(--pad) * 3);
+	margin-bottom:var(--pad,0);
+	
+	@media  screen and (min-width:480px) {
+		max-width: 66%;
+	}
+}
+
+// START BUTTON ================================================================================
+
+// set this up as a background!
+#button-start{
+	
+	// --bg:inherit;
+	// --icon-size: 44px;
+	// // --inset:calc( var(--pad) * 0.5 );
+	// // position: absolute;
+	// // top:var(--inset);
+	// // right:var(--inset);
+	// // bottom:var(--inset);
+	// // left:var(--inset);
+	// color:transparent;
+	// // opacity: 0;
+	// // border-color: var(--shade-white);
+	// text-shadow: none;
+	// color:transparent;
+	opacity: 0;
+	grid-area:buttonStart;
+	z-index:-1;
+}
+
+/////////////////////////////////////////////////////
+// CTA to begin the app...
+// Glows and entices a click!
+/////////////////////////////////////////////////////
+#onboard label[for=button-start]{
+
+	// fake the button
+	@include button-with-icon-and-border;
+	--bg:url(/source/assets/icons/music_note-24px.svg);
+	--icon-size:3rem;
+	--space:0px;
+	--col-hover: var(--shade-blue);
+	--button-curve: calc(2* var(--pad));
+	
+	grid-area:buttonStart;
+    grid-template-columns: var(--_col-width) auto;
+
+	z-index:606;
+	max-width: none;
+	width: fit-content;
+	margin: auto;
+
+	animation: CTA 2s infinite;
+
+	/*
+
+	// --pos-override:left var(--pad) center;
+	--pos-override:left center;
+	
+
+	// animation: CTA 2s infinite;
+	// background-image:linear-gradient(var(--col-top, #ffffff4d), var(--col-bottom, #0000004d));
+	// background-repeat: repeat;
+	// background-size: contain;
+	display: grid;
+	grid-template-areas: "icon label";
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap:var(--pad);
+	margin-top:var(--pad);
+	
+	padding: calc(var(--pad)*2 ) calc(var(--pad)*2 );
+	
+	justify-self: center;
+
+	&::before{
+		content:'';
+		// convert to white
+		@extend %filter-icon;
+		opacity:0.9;
+		background-position: right;
+		display: inline-block;
+		width: var(--icon-size);
+		height:var(--icon-size);
+		background-image: var(--bg);
+		background-repeat: no-repeat;
+		background-size: contain;
+		// padding-left:calc(var(--pad)*3.5);
+		// margin-left:calc(var(--pad));
+		grid-area: icon;
+		// move offset slightly to create depth effect
+		// transform: translateY( calc( var(--shadow-offset-y, 0) * -1px ) ); 
+	}
+
+	&::after{
+		// content:'';
+		// grid-area:1/1/-1/-1;
+		// position: absolute;
+		// left:0;
+		// top:0;
+		// bottom:0;
+		// width:10rem;
+		// gap before suffix
+		// margin-left:0.28rem;
+		// margin-right:calc(var(--pad)*2);
+	}
+
+	// Hide white icon to reveal background icon
+	&:hover,	
+	&:focus{
+		animation-duration: 0.7s;
+		text-shadow: none;
+		&::before{
+			opacity: 0;
+		}
+	}
+	*/
+
+	@media  screen and (min-width:480px) {
 		
-		border-radius: var(--button-curve, 16px);
-		background:none;
-		line-height: 1;
-		// display: grid;
-		flex-wrap: wrap;
+		--space:var(--pad, 4px);
 
-		&:before,
-		&:hover:before,
-		&:focus:before{
-			opacity:1;
-		}
-		input{
-			//margin-left:var(--pad);
-			z-index:-1;
-		}
-	}
-
+		padding: calc(var(--pad)*2 ) calc(var(--pad)*3 );
+		grid-template-areas: "icon label gap";
+		grid-template-columns: calc( var(--icon-size) + var(--space,0px))  1fr var(--icon-size); //var(--icon-size);
 	
-	// animate out again?
-	&.completed{
+		// &::before{
+		// 	width:calc( var(--icon-size) + var(--space, 0) );
+		// }
+	}
 
-		button, label{
-			--xb:100%;
-			//animation-name: Shift, Fade;
-			animation-direction: normal, reverse;
-			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
+}
+
+// Selected states for the person amount buttons
+.solo #onboard label[for="button-solo"],
+.duet #onboard label[for="button-duet"],
+.trio #onboard label[for="button-trio"],
+.quartet #onboard label[for="button-quartet"]{
+	--col-stroke:var(--shade-active);
+	--col-top: var(--shade-blue);
+	--col-bottom: var(--shade-blue);
+}
+
+// variations for the START button
+.solo #onboard label[for="button-start"]{
+	--col-stroke:var(--shade-active);
+	--bg:url(/source/assets/icons/person-24px.svg);
+	// &:before{
+	// 	content:'Solo ';
+	// }
+}
+
+.duet #onboard label[for="button-start"]{
+	--col-stroke:var(--shade-active);
+	--bg:url(/source/assets/icons/people-24px.svg);
+	// &:before{
+	// 	content:'Duet ';
+	// }
+}
+
+.trio #onboard label[for="button-start"]{
+	--col-stroke:var(--shade-active);
+	--bg:url(/source/assets/icons/groups-24px.svg);
+	// &:before{
+	// 	content:'Trio ';
+	// }
+}
+
+.quartet #onboard label[for="button-start"]{
+	--col-stroke:var(--shade-active);
+	--bg:url(/source/assets/icons/person_add-24px.svg);
+	// &:before{
+	// 	content:'Quartet ';
+	// }
+}
+
+// .beginner #onboard label[for="button-start"]{
+	// &:after{
+	// 	content:' in Simple Mode';
+	// }
+// }
+
+// Beginner state selected
+.beginner{
+
+	#onboard label[for="toggle-advanced-mode"]{
+		&::before{
+			opacity:1;
+			animation: Pulse var(--duration-l, 1s) 0s #{$easeOutQuad} infinite both;
+		}
+		&::after{
+			opacity:0.5;
+			animation: none;
 		}
 	}
-	p{
-		animation-delay: 0s;
-		transition-delay: 0s;
-	}
-
-	.simple{
-		display: none;
-	}
-		
-	.advanced{
-		display: block;
-	}
-
-	.beginner &{
-
-		label[for="toggle-advanced-mode"]{
-			&::before{
-				opacity:0.5;
-			}
-			&::after{
-				opacity:1;
-			}
-		}
-
-		.simple{
-			display: block;
-		}
-			
-		.advanced{
-			display: none;
-		}
-	}
-
 }

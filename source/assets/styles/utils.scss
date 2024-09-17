@@ -1,14 +1,25 @@
+@import "./_mixins.scss";
 
-.hide-text{
-	// %image-replacement
-	text-indent: -9999px;
-	overflow:hidden;
-	color:transparent;
-	text-shadow:none;
-	white-space: pre;
-	font-size: 0;
+:is(span).hide-text{
+	@extend %image-replacement;
 	position: absolute;
 }	
+
+// for sections for enclosing content
+:is(section).mixed-content,
+:is(section article){
+	color:var(--shade-dark);
+	background-color:var(--shade-white);
+	max-inline-size: 65ch;
+	border-radius:var(--curve, var(--pad, 24px));
+	padding:calc( var(--pad) * 3) calc(var(--pad) * 4);
+	box-shadow: var(--shadow);
+	margin-bottom:var(--pad);
+
+	& + :is(section).mixed-content{
+		margin-top:var(--pad);
+	}
+}
 
 /*
 // To pass the w3c accessibility standards (see a11yproject.com)
