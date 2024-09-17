@@ -1,5 +1,5 @@
 
-import { showReloadButton } from '../dom/button'
+import { createReloadButton } from '../dom/button'
 
 export const showError = (error, solution, fatal=false) => {
  
@@ -26,7 +26,12 @@ export const showError = (error, solution, fatal=false) => {
 		const audioElement = dialog.querySelector("audio")
 		audioElement.setAttribute("autoplay", true)
 		audioElement.setAttribute("start", true)
+
 	}
+
+	dialog.classList.toggle("fatal", fatal)
+	// no point closing the error
+	dialog.querySelector("button.close").hidden = fatal
 
 	document.getElementById("error-details").innerText = error
 		
