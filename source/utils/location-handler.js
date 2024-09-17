@@ -7,10 +7,16 @@ const guessType = value => {
 	if (typeof value === "string")
 	{
 		const lower = value.toLowerCase()
+
+		// check to see if it is a number masquerading as a string
+		if (!isNaN(parseFloat(value))){
+			return parseFloat(value)
+		}
+
 		// check for bool and such
-		if (lower === "true" || lower === "1") {
+		if ( lower === "true" || lower === "yes" ) {
 			return true
-		} else if (lower === "false"|| lower === "0") {
+		} else if (lower === "false" || lower === "no" ) {
 			return false
 		}
 
