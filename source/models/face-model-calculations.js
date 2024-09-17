@@ -81,7 +81,7 @@ export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = 
 	// you can remove this for speed reasons if you are providing a full options config
 	// options = { ...DEFAULT_OPTIONS, ...options }
 	
-	const { keypoints } = prediction
+	const { keypoints, categories } = prediction
 
 	// This is a virtual line from the top of the head to the bottom...
 	// we can use this and the eyes to determine face roll, pitch, yaw
@@ -251,9 +251,17 @@ export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = 
 	// annotations.lips[27]
 	// annotations.lips[28 - 39]
 
+	// Extract mouth dynamics
+	const mouthSmileLeft = categories[44].score
+	const mouthSmileRight = categories[45].score
+	const mouthClose = categories[27].score
+	const mouthOpeness = 1 - mouthClose //lipVerticalOpening / mouthSizeInTheory
+	const jawOpeness = categories[25].score
+	const jawClose = 1 - jawOpeness
+
+	/*
 	const lips = annotations.lips
 	const lipsLength = lips.length
-
 	const lipLength = 10
 	const midLipLength = 5
 
@@ -272,30 +280,46 @@ export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = 
 	// Correct
 	const lipInnerUpperMiddle = lips[lipsLength - midLipLength - 1]
 	const lipInnerLowerMiddle = lips[lipLength * 2 + midLipLength]
+	*/
+
+	const TLC = 14
+	const BLC = 15
+	const topLipCenter = new THREE.Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
+	const bottomLipCenter = new THREE.Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
 	
-	const lipVerticalOpening = hypoteneuse2D( lipInnerUpperMiddle, lipInnerLowerMiddle )	
+	const LMC = 191
+	const RMC = 419
+	const leftMouthCenter = new THREE.Vector3( points[LMC], points[LMC+1], points[LMC+2] ) 
+	const rightMouthCenter = new THREE.Vector3( points[RMC], points[RMC+1], points[RMC+2] ) 
+
+	// mouthCenterPoint.addVectors( topLipCenter, bottomLipCenter ).divideScalar( 2 )
+	const lipVerticalOpening = topLipCenter.distanceTo(bottomLipCenter)
+	const lipHorizontalOpening = leftMouthCenter.distanceTo(rightMouthCenter)
+
 	
-	// Average of both
-	const lipHorizontalOpening = (
-		hypoteneuse2D( lipLowerLeft, lipLowerRight ) + 
-		hypoteneuse2D( lipUpperLeft, lipUpperRight )
-	) * 0.5
+	// const lipHorizontalOpening = (
+	// 	hypoteneuse2D( lipLowerLeft, lipLowerRight ) + 
+	// 	hypoteneuse2D( lipUpperLeft, lipUpperRight )
+	// ) * 0.5
 	
-	const mouthSizeInTheory = headHeight * RATIO_OF_MOUTH_TO_FACE
-	const mouthOpeness = lipVerticalOpening / mouthSizeInTheory
-	const isMouthOpen = mouthOpeness > 0.2
+	// const mouthSizeInTheory = headHeight * RATIO_OF_MOUTH_TO_FACE
+	// const mouthOpeness = lipVerticalOpening / mouthSizeInTheory
+	const isMouthOpen = mouthOpeness > 0.25
+
 	// is wider than tall?
 	const isMouthWide = lipHorizontalOpening > lipVerticalOpening
 
 	//const lipVerticalOpening = lipVerticalOpeningX * lipVerticalOpeningX + lipVerticalOpeningY * lipVerticalOpeningY
-	prediction.mouthRange = lipVerticalOpening
+	prediction.mouthRangeVertical = lipVerticalOpening
+	prediction.mouthRangeHorizontal = lipHorizontalOpening
+	prediction.mouthHeight = lipVerticalOpening
+	prediction.mouthWidth = lipHorizontalOpening
+	
 	prediction.mouthRatio = mouthOpeness
 
 	// TODO: this is the size of the mouth as a factor of the head size
-	prediction.mouthOpen = isMouthOpen
+	prediction.isMouthOpen = isMouthOpen
 
-	prediction.mouthHeight = lipVerticalOpening
-	prediction.mouthWidth = lipHorizontalOpening
 
 	// TODO: FIXME: mouth shape fixing
 	// if it is wider than tall - E
@@ -305,28 +329,19 @@ export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = 
 									MOUTH_SHAPE_O : 
 									MOUTH_SHAPE_E)
 								: MOUTH_SHAPE_CLOSED
-							
-
-
-	// TODO: Mouth normal vector - an arrow coming out of the mouth the size
-	// of the amplitude so that we can draw and visualise it on screen
-
-	// console.log("mouthRatio", lipVerticalOpening, {ratio:lipVerticalOpening / headHeight, prediction})
-
-
+													
 	// These are the angles caused by smiling
 	// We add them together and deduct them from 180 to find
 	// the kinked angle of the top lip between left - feltrum - right
 	// const leftSmirk = abs( determineAngle(lipUpperLeft, lipOuterUpperMiddle) ) / PI
 	// const rightSmirk = abs( determineAngle(lipOuterUpperMiddle, lipUpperRight) ) / PI
+ 	// 0 -> 1
+	prediction.leftSmirk = mouthSmileLeft.score
+	prediction.rightSmirk = mouthSmileRight.score
+	prediction.happiness = (prediction.leftSmirk + prediction.rightSmirk) * 0.5
 
-	// // 0 -> 1 ()
-	// // FIXME: the range is pretty much empty between 0->0.9
-	// prediction.happiness = 10 * (((leftSmirk + rightSmirk) * 0.5)  - 0.9)
-	// // 0 -> 1
-	// prediction.leftSmirk = (leftSmirk - 1) * 100000
-	// prediction.rightSmirk = (rightSmirk - 1) * 100000
-
+	// TODO: Mouth normal vector - an arrow coming out of the mouth the size
+	// of the amplitude so that we can draw and visualise it on screen
 
 	// - ORIENTATION ------------------------------------------------
 	

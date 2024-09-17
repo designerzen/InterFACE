@@ -17,9 +17,9 @@ const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
 // import FACE_LANDMARK_WASM from "url:@mediapipe/tasks-vision/wasm/"
 // import * as WASM from "@mediapipe/tasks-vision/wasm/vision_wasm_internal"
 
-
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { enhanceFaceLandmarksModelPrediction } from './face-landmarks-calculations'
+import { now } from "../timing/timing"
 // import { now } from '../timing/timing'
 
 // This flips to using a seperate thread for the 
@@ -33,14 +33,30 @@ let faceLandmarker
 let faceLandmarksWorker 
 let lastVideoTime = 0 
 
-const setOptions = async (options) => {
+/**
+ * Defer the options to the ML
+ * @param {Object} options 
+ */
+export const setFaceLandmarkerOptions = async (options) => {
 	if (useWorker)
 	{
-		faceLandmarksWorker.postMessage(
-			{command:"setOptions", options }, 
-		)
+		if (faceLandmarksWorker)
+		{
+			faceLandmarksWorker.postMessage(
+				{command:"setOptions", options }, 
+			)
+		}else{
+			throw Error("No Face Landmark Worker located")
+		}
+		
 	}else{
-		await faceLandmarker.setOptions( options )
+
+		if (faceLandmarker)
+		{
+			await faceLandmarker.setOptions( options )
+		}else{
+			throw Error("No Face Landmarker located")
+		}
 	}
 }
 
@@ -53,7 +69,7 @@ let previousPrediction = []
  * @param {Boolean} flipHorizontally 
  * @returns 
  */
-const predict = async (inputElement,detector, flipHorizontally=true ) => {
+const predict = async (inputElement, detector, flipHorizontally=true ) => {
 
 	// const radio = inputElement.videoHeight / inputElement.videoWidth
 	// TODO: Resize video if too large
@@ -64,10 +80,15 @@ const predict = async (inputElement,detector, flipHorizontally=true ) => {
 	// canvasElement.width = video.videoWidth
 	// canvasElement.height = video.videoHeight
 
+	// video has been updated!
 	if (lastVideoTime !== inputElement.currentTime) 
 	{
+		const time = now()
 		lastVideoTime = inputElement.currentTime
-		const results = detector.detectForVideo(inputElement, Date.now() )
+		const elapsed = time - lastVideoTime
+		const results = detector.detectForVideo( inputElement, time )
+
+
 		// results = detector.detectForVideo(inputElement, lastVideoTime)
 		const people = []
 
@@ -101,9 +122,15 @@ const predict = async (inputElement,detector, flipHorizontally=true ) => {
 			
 			// console.error("Person", results)
 
+			console.info("Prediction Person", elapsed,{ results, people  } )
+
 			previousPrediction = people
 			return people
-		}		
+
+		}	else{
+			// duplicate frame
+		}
+		
 	}else{
 		// no people
 		// console.error("GHOST", results)
@@ -129,11 +156,11 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	const loadRange = 0.3
 	const loadTotal = useWorker ? 3 : 2
 	let loadIndex = 0
-	let detector
-
+	
 	const faceLandmarkerOptions ={
 		baseOptions: {
-			modelAssetPath: '/face_landmarker.task',
+			// this needs to be absolute yet relative :/
+			modelAssetPath: './face_landmarker.task',
 			delegate: "GPU"
 		},
 		// override defaults
@@ -178,15 +205,13 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 
 		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
 	
-		const update = async (repeat, callback, isPaused=null) => {
+		const fetchPrediction = async ( callback) => {
 		
 			faceLandmarksWorker.addEventListener("message", (e)=>{
+				
 				callback(e.data)	
-				// loop or use worker???
-				if (repeat)
-				{
-					requestAnimationFrame( () => update(repeat, callback, isPaused) )
-				}
+				return e.data
+
 			}, {once:true})
 			
 			faceLandmarksWorker.postMessage(
@@ -196,7 +221,7 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 			)
 		}
 
-		return update
+		return fetchPrediction
 	
 	}else{
 
@@ -204,33 +229,18 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Eyes")
 		
 		const detector = await FaceLandmarker.createFromOptions( filesetResolver, faceLandmarkerOptions )
-	
+		faceLandmarker = detector
+
 		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
 			
 		// now subscribe to events and monitor
-		const update = async (repeat, callback, isPaused=null) => { 
-
-			const shouldUpdate = isPaused ? isPaused() : true
-
-			// console.log("shouldUpdate", shouldUpdate, {isPaused})
-			// console.log("Combining TF model", model, "with element", inputElement, "..." )
-			if (shouldUpdate)
-			{
-				const prediction = await predict(inputElement, detector, flipHorizontally) 
-				
-				// enhance prediction to create our model...
-				// console.error("results.prediction", {prediction} )
-		
-				callback( prediction )
-			}
-			
-			// loop or use worker???
-			if (repeat)
-			{
-				requestAnimationFrame( () => update(repeat, callback, isPaused) )
-			}
+		const fetchModelData = async () => { 
+			// enhance prediction to create our model...
+			const prediction = await predict(inputElement, detector, flipHorizontally) 
+			// console.error("results.prediction", {prediction} )
+			return prediction
 		}
 
-		return update
+		return fetchModelData
 	}
 }

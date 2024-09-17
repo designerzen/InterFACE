@@ -34,7 +34,7 @@
  };
 
  export const MEDIAPIPE_FACE_CONFIG = {
-   maxFaces: 1,
+   maxFaces: 4,
    refineLandmarks: true,
    triangulateMesh: true,
    boundingBox: true,
