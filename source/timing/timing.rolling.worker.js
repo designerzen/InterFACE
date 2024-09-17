@@ -7,7 +7,7 @@ const EVENT_STARTING = "starting"
 const EVENT_STOPPING = "stopping"
 const EVENT_TICK = "tick"
 
-const GAP_BETWEEN_LOOPS = 1
+const GAP_BETWEEN_LOOPS = 0
 
 let isRunning = false
 let startTime = -1
@@ -15,14 +15,17 @@ let currentTime = -1
 let nextInterval = -1
 let gap = 0
 let intervals = 0
+let timerID = -1
 let exit = false
 let accurateTiming = true
 
-const elapsed = () => (performance.now() - startTime) * 0.001
+const now = () => performance.now() || Date.now()
 
-const reset = () =>{
+const elapsed = () => (now() - startTime) * 0.001
+
+const reset = () => {
     intervals = 0
-    startTime = performance.now()
+    startTime = now()
 }
 
 /**
@@ -37,34 +40,42 @@ const loop = () => {
         return
     }
 
-    currentTime = performance.now()
+    currentTime = now()
   
     // if the currentTime is equal or greater to our rolling time + interval
     if (currentTime >= nextInterval)
     {
         // update our counter
         intervals++
+		nextInterval += gap
         // callback
         postMessage({ event:EVENT_TICK, time:elapsed(), intervals })
     }
 
-    setTimeout(loop, GAP_BETWEEN_LOOPS )
+    timerID = setTimeout(loop, GAP_BETWEEN_LOOPS )
 }
 
 const start = (interval=250, accurateTiming=true )=>{
 
     gap = interval
    
-    // work out the next step from this step...
-    nextInterval = startTime + interval
+	if (isRunning)
+    {
+        clearInterval(timerID)
+    }
 
     if (!isRunning)
     {   
-        startTime = performance.now()
+        startTime = now()
+		// work out the next step from this step...
+		nextInterval = startTime + interval
         isRunning = true
         postMessage({event:EVENT_STARTING, time:0, intervals})
-    }
-   
+    }else{
+		// work out the next step from this step...
+		nextInterval = now() + interval
+	}
+	
     loop()
 	
     // INITIAL tick
