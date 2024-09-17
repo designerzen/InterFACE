@@ -6,7 +6,7 @@ node_modules*
 # there are things already committed in dist/ mainly the smaples
 dist-electron/*
 dist/*
-!dist/assets/audio/
+# !dist/assets/audio/
 release
 
 docs/
@@ -20,6 +20,7 @@ app
 *.reapeaks
 *.sf2
 *.7z
+*.zip
 *--*
 *~lock~
 *-new
@@ -27,7 +28,9 @@ app
 *-mp3.js*
 *-ogg.js*
 android
-mediakit
+mediakit/*
+!mediakit/people
+!mediakit/screenshots
 public
 tstex*
 heap-*
@@ -36,3 +39,6 @@ source/audio/wam2-external/
 static/@mediapipe
 Hi Roger,.md
 .nvmrc-new
+
+*.afphoto
+*.afdesign
