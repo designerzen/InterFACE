@@ -56,68 +56,69 @@ const getSpecificVoice = async (lang = "en-US", name ="Zira") =>{
 ////////////////////////////////////////////////////////////
 export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang, name ) =>{
 
-  return new Promise(  (resolve,reject)=>{
+  	return new Promise( (resolve,reject)=>{
 
-    if (!hasSpeech)
-    {
-      reject("Speech tech not available")
+		try{
 
-    }else{
+			if (!hasSpeech)
+			{
+				reject("Speech tech not available")
 
-      // now pause whilst we attempt to list...
-      const talk = async () => {
+			}else{
 
-        try{
+				// now pause whilst we attempt to list...
+				const talk = async () => {
 
-          const voices = (lang && name) ? await getSpecificVoice(lang, name) : await getVoices()
-          const person = voices[0]
-          const speech = new SpeechSynthesisUtterance()
+					const voices = (lang && name) ? await getSpecificVoice(lang, name) : await getVoices()
+					const person = voices[0]
+					const speech = new SpeechSynthesisUtterance()
 
-          speech.lang = 'en-US'
-          // set voice if specified
-          // Note: some voices don't support altering params
-          speech.voice = person
-          speech.voiceURI = 'native'
+					speech.lang = 'en-US'
+					// set voice if specified
+					// Note: some voices don't support altering params
+					speech.voice = person
+					speech.voiceURI = 'native'
 
-          // watch for ending...
-          speech.onend = (event) => {
-            //console.log('Finished in ' + event.elapsedTime + ' seconds.')
-            speech.onend = null
-            resolve(event)
-          }
+					// watch for ending...
+					speech.onend = (event) => {
+						//console.log('Finished in ' + event.elapsedTime + ' seconds.')
+						speech.onend = null
+						resolve(event)
+					}
 
-          speech.onerror = (event) =>{
-            reject()
-          }
+					speech.onerror = (event) =>{
+						reject()
+					}
 
-          // 0 to 1
-          speech.volume = volume
-          // 0.1 to 10
-          speech.rate = rate
-          //0 to 2
-          speech.pitch = pitch
-          speech.text = text
-            // console.error("specific voices", {
-            //   speech, lang,
-            //   name,
-            //   voices
-            // });
+					// 0 to 1
+					speech.volume = volume
+					// 0.1 to 10
+					speech.rate = rate
+					//0 to 2
+					speech.pitch = pitch
+					speech.text = text
+						// console.error("specific voices", {
+						//   speech, lang,
+						//   name,
+						//   voices
+						// });
 
-          // kill any pending!
-          if (interupt)
-          {
-            window.speechSynthesis.cancel()
-          }
-          window.speechSynthesis.speak(speech)
+					// kill any pending!
+					if (interupt)
+					{
+						window.speechSynthesis.cancel()
+					}
+					window.speechSynthesis.speak(speech)
+				}
 
-        }catch (error){
+				talk()
+			}
+		
+		}catch (error){
 
-          reject(error) 
-        }
-      }
-      talk()
-    }
-  })
+			reject(error) 
+		}
+	})
 }
 
 /**
