@@ -108,8 +108,25 @@ dialog{
 		z-index:909;
 	}
 
+	button.reload-app{
+		--icon-visible:0;
+	}
+	
+	button.reset-app{
+		--icon-visible:0;
+	}
+
+	// &::after{
+	// 	z-index: 3;
+	// }
+
+	menu{
+		z-index:9;
+	}
 
 	&::after,
+	form[method=dialog] button[type=submit],
+	.if-recoverable,
 	button.close{
 		content: '';
 		position: absolute;
@@ -117,21 +134,16 @@ dialog{
 		right:0;
 		bottom:0;
 		left:0;
-		display: block;
 		opacity: 0;
 		z-index: -1;
-		
+		pointer-events: auto;
 		// top right is a fake close icon...
 		background: url(/source/assets/icons/close-24px.svg) no-repeat;
 		background-position:top calc( 1 * var(--pad) ) right calc( 1 * var(--pad) );
 	}
 
-	&::after{
-		z-index: 3;
-	}
-
-	menu{
-		z-index:9;
+	form[method=dialog]{
+		order:-1;
 	}
 
 	&.fatal{
@@ -143,6 +155,8 @@ dialog{
 			margin-right:calc( var(--pad) / 2 );
 		}
 
+		&::after,
+		form[method=dialog] button[type=submit],
 		.if-recoverable,
 		button.close{
 			display: none;
@@ -173,6 +187,8 @@ dialog{
 			transform .3s;
 
 		min-height: 100vh;
+		pointer-events: none;
+		user-select: none;
 	}
 
 	&[loading] {
@@ -260,28 +276,7 @@ dialog{
 			animation:Fade var(--ease-q) linear 0s 1 both;
 		}
 
-		form[method=dialog]{
-			order:-1;
-			pointer-events: none;
-			z-index:-1;
-			
-			// close button
-			:is(button[type=submit]){
-				pointer-events: auto;
-				position:fixed;
-				top:0;
-				left:0;
-				right:0;
-				bottom:0;
-				z-index:-1;
-				opacity: 0;
-				background: none;
 
-				&:hover{
-					
-				}
-			}
-		}
 	}
 }
 

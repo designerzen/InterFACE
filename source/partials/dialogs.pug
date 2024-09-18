@@ -148,7 +148,7 @@ dialog#errors
 
 		menu
 			button.reload-app(autofocus onclick="window.location.reload();" type="button") Reload 
-			button.reload-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
+			button.reset-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
 	
 		button.close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
 
