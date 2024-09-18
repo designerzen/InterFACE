@@ -47,8 +47,6 @@ import FACE_MESH from '/source/assets/actors/generic_neutral_mesh.obj'
 //import PARTICLE_URI from '../assets/particles/soft-inverted.png'
 import PARTICLE_URI from '../assets/particles/particle.png'
 
-//FIXME
-import DATA_SOURCE from 'url:/source/tests/test.face.json'
 import { TAU } from "../maths/maths.js"
 
 import { 
@@ -64,6 +62,8 @@ import {
 
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
+
+import DATA_SOURCE from 'url:/source/tests/test.face.json'
 
 export const DISPLAY_WEB_GL_3D = "DisplayWebGL3D"
 
