@@ -56,7 +56,7 @@
   "scripts": {
     "kill": "npx kill-port 303",
     "optional": "node-gyp-build-optional-packages",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstallio": "electron-builder install-app-deps",
     "test": "jest",
     "present": "parcel serve source/presentation.pug -p 909",
     "tests": "parcel serve source/tests.pug -p 606",
@@ -248,7 +248,7 @@
     "browser-fs-access": "^0.35.0",
     "concurrently": "^9.0.1",
     "crypto-browserify": "^3.12.0",
-    "electron": "^32.1.0",
+    "electron": "^32.1.1",
     "electron-builder": "^25.0.5",
     "electron-devtools-installer": "^3.2.0",
     "electron-icon-maker": "^0.0.5",
