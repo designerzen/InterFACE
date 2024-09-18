@@ -7,7 +7,17 @@ export const observeWeblink = ( instrument ) => {
 
 	const onWebMIDILinkReceived = (event) => {
 
-		const msg = event.data.split(",")
+		const data = event.data
+
+		if (typeof data === 'string' || data instanceof String){
+			// this is the format we expect
+		}else{
+			// this is what spams every DOM if you have react-dom tools installed!
+			console.info("Ignored message", {data} )
+			return
+		}
+
+		const msg = data.split(",") 
 
 		switch (msg[0]) 
 		{
