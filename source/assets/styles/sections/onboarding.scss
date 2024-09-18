@@ -520,13 +520,13 @@ label[for="toggle-advanced-mode"]{
 		padding-top:0;
 
 		&::before{
-			text-align: left;
+			text-align: right;
 			color:var(--shade-white);
 			font-size:900%;
 		}
 
 		&::after{
-			text-align: right;
+			text-align: left;
 			color:var(--shade-white);
 			font-size:900%;
 		}

@@ -226,12 +226,13 @@ strong{
 :where(p){
 	--font-scale:var(--s0);
 	font-weight: 500;
-	color:var(--shade-dark, black);
+	// color:var(--shade-dark, black);
 }
 
 :where(a){
-	color:var(--shade-brand, red);
-	text-decoration:none;
+	color:var(--shade-brand, var(--shade-accent, red));
+	text-decoration:underline ;
+	text-decoration-style: dotted;
 
 	&:hover,
 	&:focus-visible{

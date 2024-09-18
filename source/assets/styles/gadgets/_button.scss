@@ -810,7 +810,7 @@
 
 	// ensure all new rows created do not change the icon position
 	grid-template-areas: "icon text spacer";
-	grid-template-columns: calc( var(--icon-size) + var(--space,0px)) 1fr auto;
+	grid-template-columns: calc( var( --icon-visible, 1) * var(--icon-size) + var(--space,0px)) 1fr auto;
 	grid-template-rows: 1fr;
 	grid-auto-flow: row;
 

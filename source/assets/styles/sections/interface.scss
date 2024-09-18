@@ -56,7 +56,6 @@
 	#intro{
 		grid-area:hero;
 
-
 		// position: sticky;
 		// top:var(--pad);		
 
@@ -115,6 +114,26 @@
 	//grid-template-rows: 1fr auto;
 	// overrides
 	
+}
+
+#share-code{
+	position: fixed;
+	top:var(--pad);
+	right:var(--pad);
+	z-index:1000;
+	width:90px;
+	height: 90px;
+	display: grid;
+	grid-template-areas: "area";
+	font-size: 10%;
+	color: transparent;
+	> *{
+		grid-area: area;
+	}
+
+	.qr img{
+		max-width: 100%;
+	}
 }
 
 // once loaded we hide the #intro
