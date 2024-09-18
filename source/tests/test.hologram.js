@@ -30,26 +30,21 @@ import CANONICAL_FACE from "../assets/actors/canonical_face_model.fbx"
 import FACE_MESH from '../assets/actors/generic_neutral_mesh.obj'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
-import DATA from './test.face.json'
 import { GeometryUtils } from "../display/display-looking-glass-3d.js"
 import { preload3dFont } from "../visual/3d.js"
 import {Text, getCaretAtPoint} from 'troika-three-text'
 
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
 
+import DATA_SOURCE from 'url:/source/tests/test.face.json'
 
-
-
+let DATA
+let DATA_KEYS 
 
 // Settings
 const TAU = Math.PI / 2
 const LOOKING_GLASS_PORTRAIT_WIDTH = 480
-const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
-
-const DATA_KEYS = Object.keys( DATA )
-
-// VERTEX_SHADER, 
-
+const LOOKING_GLASS_PORTRAIT_HEIGHT = 72
 
 const createScene = (canvas, useHologram=true) => {
 
@@ -306,6 +301,13 @@ export const createXRToggleButton = (renderer, destination) => {
 
 
 async function init(){
+	
+	const request = await fetch(DATA_SOURCE)
+	const response = await request.json()
+
+	DATA = response
+	DATA_KEYS = Object.keys( DATA )
+	
 
 	const COLOUR = 0xdd44ff
 

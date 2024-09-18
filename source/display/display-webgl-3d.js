@@ -48,7 +48,7 @@ import FACE_MESH from '/source/assets/actors/generic_neutral_mesh.obj'
 import PARTICLE_URI from '../assets/particles/particle.png'
 
 //FIXME
-import DATA from '/source/tests/test.face.json'
+import DATA_SOURCE from 'url:/source/tests/test.face.json'
 import { TAU } from "../maths/maths.js"
 
 import { 
@@ -85,6 +85,8 @@ const VIEW_CONE_ANGLE_Z = 0.6
 
 const FACE_SIZE = 0.59 // 0.06
 const FACE_OPACITY = 0.1
+
+let DATA
 
 export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	colour:0xff44ee,
@@ -146,15 +148,22 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		console.log("WEBGL Creating Display", { canvas, initialWidth, initialHeight, options} )
 		super(canvas, initialWidth, initialHeight, options)
 		this.create(options.quantity, options).then( e=>{
-			
 			// ensure that hte canvas is in the DOM
 			if (!canvas)
 			{
 				document.body.append( this.renderer.domElement)
 			}	
-		
-			console.log("WEBGL Connected and actors intiated", canvas, options, this.particles )
-			this.loadComplete("ready")
+
+			fetch(DATA_SOURCE).then(response => {
+				DATA = response.json()
+				this.loadComplete("ready")
+			}).catch(error => {
+				console.error("ERROR loading display root data", error)
+				this.loadComplete("failed")
+			}).finally(() => {
+				console.log("WEBGL Connected and actors intiated", canvas, options, this.particles )
+			})
+
 		})	
 	}
 	

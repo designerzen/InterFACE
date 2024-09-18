@@ -2,7 +2,7 @@
  * Collection of detected/tracked faces, where each face is represented as a list of 468 face landmarks and each landmark is composed of x, y and z. x and y are normalized to [0.0, 1.0] by the image width and height respectively. z represents the landmark depth with the depth at center of the head being the origin, and the smaller the value the closer the landmark is to the camera. The magnitude of z uses roughly the same scale as x.
  */
 
-import DATA from './test.face.json'
+
 import Person from "../person.js"
 
 import { 
@@ -14,8 +14,9 @@ import {
 import { DISPLAY_TYPES } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 
-
-const DATA_KEYS = Object.keys( DATA )
+import DATA_SOURCE from 'url:/source/tests/test.face.json'
+let DATA
+let DATA_KEYS 
 
 let count = 0
 let display
@@ -103,6 +104,13 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 }
 
 async function init(){
+
+	const request = await fetch(DATA_SOURCE)
+	const response = await request.json()
+
+	DATA = response
+	DATA_KEYS = Object.keys( DATA )
+
 	await registerDisplays()
 }
 
