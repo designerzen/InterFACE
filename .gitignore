@@ -13,6 +13,7 @@ docs/
 textures/
 app
 *.bak
+*.sf2
 *.mp4
 *.log
 *.zip
@@ -39,6 +40,12 @@ heap-*
 parcel-bundle-reports/
 source/audio/wam2-external/
 static/@mediapipe
+
+static/assets/audio/*
+!static/assets/audio/acoustics/*
+!static/assets/audio/*.json
+!static/assets/audio/OpenGM24/
+
 Hi Roger,.md
 .nvmrc-new
 
