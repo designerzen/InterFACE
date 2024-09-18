@@ -29,8 +29,10 @@ app
 *-ogg.js*
 android
 mediakit/*
+!mediakit/logo*
 !mediakit/people
 !mediakit/screenshots
+!mediakit/history
 public
 tstex*
 heap-*
