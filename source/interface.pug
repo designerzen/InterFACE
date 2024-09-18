@@ -33,10 +33,11 @@ block main
 		p(role="status" aria-live="polite" popover="manual")#feedback Loading please wait!
 		include partials/toast.pug		
 
-		a(href="/")#share
-			// logo OR
-			// QR code
-			.qr
+		a(href="/")#share-code
+			// logo OR QR code
+			.qr 
+				img(src="/source/assets/qr/interface.place-red.png" alt="QR code linking to the PhotoSYNTH website")
+			
 			p Share with friends
 
 		#app-frame

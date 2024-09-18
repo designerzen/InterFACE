@@ -79,7 +79,7 @@ import { Quanitiser } from './visual/quantise'
 
 import { drawMousePressure } from './dom/mouse-pressure'
 
-import { getLocationSettings, getShareLink, addToHistory } from './utils/location-handler'
+import { getLocationSettings, getShareLink, addToHistory, getRefererHostname } from './utils/location-handler'
 
 // Hardware
 import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera'
@@ -92,7 +92,7 @@ import Person, {
 	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
  } from './person'
 
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH } from './settings/options'
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options'
 
 import { TAU } from "./maths/maths"
 
@@ -118,7 +118,7 @@ import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator
 import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
-import { notifyObserversThatWeblinkIsAvailable } from './audio/instrumentMediators/mediator.weblink-instrument.js'
+import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
 import Capabilities from './capabilities.js'
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
@@ -215,14 +215,14 @@ export const createInterface = (
 	
 	// STATE -----------------------------------------------------------------
 
+	const shareCodeElement = document.querySelector("#share .qr")
+
 	// state management
 	const hostName = getRefererHostname()
 	const globalOptions = Object.assign({}, globalThis._synth)
 	const domainOptions = getDomainDefaults( hostName )
 	const defaultOptions = { ...domainOptions, ...globalOptions }
 	const states = State.getInstance()
-
-	const shareElement = document.querySelector("#share .qr")
 
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
@@ -231,7 +231,7 @@ export const createInterface = (
 		console.info("State Changed", event )
 		//- console.info("State", state.serialised )
 		const qrOptions = {text:bookmark} 
-		const qrcode = createQRCode( shareElement.appendChild( document.createElement("div")) , qrOptions) 
+		const qrcode = createQRCode( shareCodeElement.appendChild( document.createElement("div")) , qrOptions) 
 		console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
 	})
 		
@@ -239,6 +239,8 @@ export const createInterface = (
 	states.loadFromLocation(defaultOptions)
 	debugger
 
+	
+	
 	// updates the URL with the current state (true - encoded)
 	// this is useful as immediately after loading the page the URL will be the current state
 	// and so can be shared to return to this exact setup
