@@ -1,3 +1,4 @@
+import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from "../capabilities"
 
 /**
  * Update the table of compatability and reveal it
@@ -18,12 +19,14 @@ export const updateCapabalitiesTable = async () => {
 		// remove .not-available as appropriate
 	
 		// TODO: show holographic stuff too
+		const tableCamera = document.querySelector(".capability-camera")
+			
 		if (
-			permissions.camera === PERMISSION_GRANTED || 
+			tableCamera &&
+			( permissions.camera === PERMISSION_GRANTED || 
 			permissions.camera === PERMISSION_PROMPT || 
-			capabilities.cameraAvailable 
+			capabilities.cameraAvailable )
 		){
-			const tableCamera = document.querySelector(".capability-camera")
 			const cameraAvailability = tableCamera.querySelector("td."+CHECKING)
 			cameraAvailability.textContent = "Available"
 			cameraAvailability.classList.remove(NOT_AVAILABLE)
@@ -33,12 +36,13 @@ export const updateCapabalitiesTable = async () => {
 			// FATAL ERROR! No camera!
 			fatal = true
 			body.classList.toggle("camera-unavailable", true)
+			console.warn("[FATAL] No camera available")
 		}	
 	
 		// Web MIDI!
-		if (capabilities.webMIDIAvailable)
+		const tableMIDI = document.querySelector(".capability-midi")
+		if (tableMIDI && capabilities.webMIDIAvailable)
 		{
-			const tableMIDI = document.querySelector(".capability-midi")
 			const MIDIAvailability = tableMIDI.querySelector( "td."+CHECKING )
 			MIDIAvailability.textContent = "Available"
 			MIDIAvailability.classList.remove(NOT_AVAILABLE)
@@ -48,18 +52,20 @@ export const updateCapabalitiesTable = async () => {
 		}else{
 			// NONE FATAL ERROR! No MIDI - just hide MIDI stuff!!
 			body.classList.toggle("midi-unavailable", true)
+			console.info("[WARNING] MIDI is not available")
 		}	
 	
 		// GPU 
-		if (capabilities.webGL || capabilities.webGPU)
+		const tableGPU = document.querySelector(".capability-gpu")
+		if (tableGPU && (capabilities.webGL || capabilities.webGPU))
 		{
-			const tableGPU = document.querySelector(".capability-gpu")
 			const GPUAvailability = tableGPU.querySelector("td."+CHECKING )
 			GPUAvailability.textContent = "Available"
 			GPUAvailability.classList.remove(NOT_AVAILABLE)
 		}else{
 			// NONE FATAL ERROR! No WEBGL so use canvas fallback
 			body.classList.toggle("gpu-unavailable", true)
+			console.info("[WARNING] No GPU available")
 		}	
 
 		return fatal
