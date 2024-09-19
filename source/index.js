@@ -43,10 +43,6 @@ body.classList.toggle("interface", true)
 // This teaches us which kind of an app this is, can be,
 // and what we can do with the tech installed in this device
 const capabilities = new Capabilities()
-// TODO: 
-// ESCAPE - no cameras found on system?
-// ESCAPE - no GPU?
-// remove loading stuff and quit
 
 
 // FIXME: show updates button
@@ -101,7 +97,7 @@ const start = () => {
 
 	// only overwrite objects with the same keys!
 	const validOptionKeys = Object.keys(defaultOptions)
-	
+
 	// favour global options over domain options
 	Object.keys(globalOptions).forEach(key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null)
 
@@ -270,19 +266,6 @@ const start = () => {
 // }
 // test()
 
-
-if (debugMode) 
-{
-	console.log("TEST : Initialising", { capabilities, DOMAIN, HOST, LTD })
-}
-
-// we hang out here until the service worker has comfirmed that everything is ready
-checkPlatformUpdates().finally(() => {
-	if (debugMode) {
-		console.log("Starting PhotoSynth v." + runningVersion)
-	}
-})
-	
 const versionElement = document.getElementById("version")
 const runningVersion = versionElement.innerText
 
@@ -393,7 +376,20 @@ const createVersionButton = () => {
 	})
 }
 
+// START HERE ------------------------------------------------------
+
+// we hang out here until the service worker has comfirmed that everything is ready
+checkPlatformUpdates().finally(() => {
+	if (debugMode) {
+		console.log("Starting PhotoSynth v." + runningVersion)
+	}
+})
+
 document.addEventListener("DOMContentLoaded", async(e) => {
+
+	if (debugMode) {
+		console.info("Initialising", runningVersion, { capabilities, DOMAIN, HOST, LTD })
+	}
 	
 	updateSummaryText()
 
@@ -405,12 +401,20 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	
 	// update the table as soon as it is available
 	const isFatalIssue = updateCapabalitiesTable( capabilities )
+
 	// if we have all the hardware we need to continue...
-	// nowhere to go from here :(
 	if (isFatalIssue)
 	{
+		// nowhere to go from here :(
+		// TODO: 
+		// ESCAPE - no cameras found on system?
+		// ESCAPE - no GPU?
+		// remove loading stuff and quit
+
 		// FIXME: improve message to the user
-		showError(error, "Fatal issue with hardware detected", false)
-		document.getElementById("requirements-test").scrollIntoView().focus()
+		const requirementsTable= document.getElementById("requirements-test")
+		showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)
+		requirementsTable.scrollIntoView()
+		requirementsTable.focus()
 	}
 })

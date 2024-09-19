@@ -214,11 +214,15 @@
 	overflow: hidden;
 	overflow: clip;
 
-
 	caption {
 		text-transform: uppercase;
 		text-align: left;
-		padding-left: 0;
+		padding-left: var(--pad);
+		padding-right: var(--pad);
+		display: inline-block;
+		width: fit-content;
+		background-color: var(--shade-cream);
+		border-radius: 0 0 12px 12px;
 	}
 
 	th {
