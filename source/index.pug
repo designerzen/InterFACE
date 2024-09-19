@@ -71,7 +71,6 @@ block header
 			summary Requirements
 			ul(role="list") 
 				li A face
-				li 
 				li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
 				li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
 				li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
@@ -82,30 +81,31 @@ block header
 			tr.capability-camera
 				th(scope="row") Video Camera 
 					small Web camera / phone camera 
-				td.checking Checking...
+				td.result.checking Checking...
 			
 			tr.capability-speakers
 				th(scope="row") Speakers / Headset
 					small Make sure you are not muted
 				//- td.not-available Not Available
 				//- td.available Available
-				td.checking Checking...
-
+				td.result.checking Checking...
+		
+			//- OR
 			tr.capability-midi
 				th(scope="row") <abbr title="Musical Instrument Digital Interface">MIDI</abbr>
 				//- td.not-available Unavailable in Safari
-				td.checking Checking...
+				td.result.checking Checking...
 			
 			tr(hidden).capability-microphone
 				th(scope="row") Microphone
 					small Not a requirement
-				td.checking Checking...
+				td.result.checking Checking...
 
 			
 			tr.capability-gpu
 				th(scope="row") <abbr title="Graphics Processing Unit">GPU</abbr>
 					small Web camera / phone camera 
-				td.checking Checking...
+				td.result.checking Checking...
 
 		//- Browsers
 		p(hidden)#alternate-browsers.

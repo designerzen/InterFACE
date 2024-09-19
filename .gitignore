@@ -8,7 +8,7 @@ dist-electron/*
 dist/*
 # !dist/assets/audio/
 release
-
+*~lock~*
 docs/
 textures/
 app
@@ -39,8 +39,8 @@ tstex*
 heap-*
 parcel-bundle-reports/
 source/audio/wam2-external/
-static/@mediapipe
 
+static/@mediapipe
 static/assets/audio/*
 !static/assets/audio/acoustics/*
 !static/assets/audio/*.json

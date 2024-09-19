@@ -48,10 +48,6 @@ const capabilities = new Capabilities()
 // ESCAPE - no GPU?
 // remove loading stuff and quit
 
-if (debugMode) 
-{
-	console.log("TEST : Initialising", { capabilities, DOMAIN, HOST, LTD })
-}
 
 // FIXME: show updates button
 const showUpgradeDialog = () => {
@@ -96,17 +92,23 @@ const start = () => {
 	// const referer = getReferer()
 
 	// we can also inject specific options through an object set
-	// in a global space 
+	// in a global space in the DOM script for custom html options
 	const globalOptions = Object.assign({}, globalThis._synth)
+	// then we fetch the defaults for this domain if specified
 	const domainOptions = getDomainDefaults(HOST)
+	// now combine both data sets
 	const defaultOptions = { ...domainOptions }
 
 	// only overwrite objects with the same keys!
 	const validOptionKeys = Object.keys(defaultOptions)
+	
+	// favour global options over domain options
 	Object.keys(globalOptions).forEach(key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null)
 
+	// determine the language to use
 	const language = getBrowserLocales()[0]
 
+	// and the start time for metrics
 	let startLoadTime = Date.now()
 	let failed = false
 
@@ -115,15 +117,14 @@ const start = () => {
 	// Lazy load the main interface code
 	import('./interface.js').then(async ({ createInterface }) => {
 
-		// import { createStore} from './store'
-		const { createStore } = await import('./utils/store')
-		const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
-		const store = createStore()
-		const title = document.title
-
 		// change modes based on URLs
 		try {
-			
+			// import { createStore} from './store'
+			const { createStore } = await import('./utils/store')
+			const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+			const store = createStore()
+			const title = document.title
+
 			const application = await createInterface(
 				defaultOptions,
 				store,
@@ -134,8 +135,8 @@ const start = () => {
 
 					if (failed) {
 						// already failed so why show more loading?
-						console.error("FATAL : Failed to load", {loadProgress, message} )
-						return
+						console.error("FATAL : Failed to load", {loadProgress, message, hideLoader} )
+						throw Error("Failed to load due to an unexpected error")
 					}
 
 					if (loadProgress !== 0.5) {
@@ -143,7 +144,7 @@ const start = () => {
 						startLoadTime = Date.now()
 					}
 
-					const elapsed = Date.now() - startLoadTime
+					// const elapsed = Date.now() - startLoadTime
 					//console.log( "Loading", {elapsed, loadProgress, message} ) 
 
 					// if (elapsed > LOAD_TIMEOUT)
@@ -251,7 +252,7 @@ const start = () => {
 
 			// body.classList.add("failed")
 			//uninstall()
-			showError(error, "Oh no! Try a hard refresh (CTRL-SHIFT-R)", true)
+			showError(error, "Oh no, an unexpected error occurred! Try a hard refresh or a reset if still not working", true)
 			console.error("Ultimate failure - remove loading - add error class?")
 		}
 	})
@@ -269,6 +270,19 @@ const start = () => {
 // }
 // test()
 
+
+if (debugMode) 
+{
+	console.log("TEST : Initialising", { capabilities, DOMAIN, HOST, LTD })
+}
+
+// we hang out here until the service worker has comfirmed that everything is ready
+checkPlatformUpdates().finally(() => {
+	if (debugMode) {
+		console.log("Starting PhotoSynth v." + runningVersion)
+	}
+})
+	
 const versionElement = document.getElementById("version")
 const runningVersion = versionElement.innerText
 
@@ -344,6 +358,7 @@ const checkPWAUpdates = () => {
  * Check for app / web pwa updates
  */
 const checkPlatformUpdates = async (query) => {
+
 	if (capabilities.electron) {
 		// TODO: ELECTRON update...
 
@@ -363,22 +378,8 @@ const checkPlatformUpdates = async (query) => {
 	return start(query)
 }
 
-// we hang out here until the service worker has comfirmed that everything is ready
-checkPlatformUpdates().finally(() => {
-	if (debugMode) {
-		console.log("Starting PhotoSynth v." + runningVersion)
-	}
-})
-
-
-// update the table as soon as it is available
-document.addEventListener("DOMContentLoaded", async(e) => {
-	
-	updateSummaryText()
-	updateCapabalitiesTable( capabilities )
-	addToolTips( document.querySelector("main") )
-
-	// Click and hold on the version for more info
+// Click and hold on the version for more info
+const createVersionButton = () => {
 	const versionButton = document.getElementById("version")
 	addMouseTapAndHoldEvents(versionButton)
 	versionButton.addEventListener(MOUSE_TAP, event => {
@@ -390,4 +391,26 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 		showUpgradeDialog()
 		event.preventDefault()
 	})
+}
+
+document.addEventListener("DOMContentLoaded", async(e) => {
+	
+	updateSummaryText()
+
+	// allow the version button to link to secret places
+	createVersionButton()
+
+	// global tooltips!
+	addToolTips( document.querySelector("main") )
+	
+	// update the table as soon as it is available
+	const isFatalIssue = updateCapabalitiesTable( capabilities )
+	// if we have all the hardware we need to continue...
+	// nowhere to go from here :(
+	if (isFatalIssue)
+	{
+		// FIXME: improve message to the user
+		showError(error, "Fatal issue with hardware detected", false)
+		document.getElementById("requirements-test").scrollIntoView().focus()
+	}
 })
