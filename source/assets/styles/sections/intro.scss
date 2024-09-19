@@ -14,8 +14,6 @@
 	background-color: rgba(255, 255, 255, 0.96); // var(--shade-white, white);
 
 	border-radius: var(--curve);
-	margin-left: auto;
-	margin-right: auto;
 
 	// text-align: center;
 	display: grid;
@@ -92,7 +90,7 @@
 		color: inherit;
 	}
 
-	>a {
+	> a {
 		color: inherit;
 	}
 
@@ -121,15 +119,16 @@
 		margin-top: var(--pad); //auto;
 	}
 
-	grid-template-areas: "heading"
-	"poster"
-	"tagline"
-	"summary"
-	"description"
-	"requirements"
-	"menu"
-	"warning"
-	"requirements-test"
+	grid-template-areas: 
+		"heading"
+		"poster"
+		"tagline"
+		"summary"
+		"description"
+		"requirements"
+		"menu"
+		"warning"
+		"requirements-test"
 	;
 
 	@media screen and (min-width:640px) {
@@ -160,6 +159,10 @@
 	}
 
 	@media screen and (min-width:999px) {
+		
+		margin-left: auto;
+		margin-right: auto;
+
 		grid-template-areas:
 			"poster heading"
 			"poster summary"

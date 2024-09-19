@@ -221,7 +221,8 @@ menu#control-panel
 				option(value="s:2,l:80") Monochrome (B&amp;W)
 				option(value="s:100,l:0") Dark
 			
-		label(for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
+		//- We removed the other soound font options for now
+		label(hidden for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
 			select#select-samples(aria-label="Select a sound font to change sounds" name="select-samples")
 				option(value="FatBoy") FatBoy 
 				option(value="FluidR3_GM") Fluid

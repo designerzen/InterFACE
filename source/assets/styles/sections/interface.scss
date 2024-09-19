@@ -4,7 +4,8 @@
 
 	display: grid;
 	align-content: stretch;//space-between;
-    justify-content: stretch;
+    justify-content: center;
+	justify-items: center;
 
 	// stretch full width for 1 unit of each
 	grid-template-columns: 100%;

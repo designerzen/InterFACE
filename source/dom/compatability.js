@@ -12,6 +12,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	const updateTable = (permissions) => {
 
 		const CHECKING = "checking"
+		const RESULT = "result"
 		const NOT_AVAILABLE = "not-available"
 		const AVAILABLE = "available"
 
@@ -27,7 +28,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			permissions.camera === PERMISSION_PROMPT || 
 			capabilities.cameraAvailable )
 		){
-			const cameraAvailability = tableCamera.querySelector("td."+CHECKING)
+			const cameraAvailability = tableCamera.querySelector("td."+RESULT)
 			cameraAvailability.textContent = "Available"
 			cameraAvailability.classList.remove(NOT_AVAILABLE)
 			cameraAvailability.classList.remove(CHECKING)
@@ -43,7 +44,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const tableMIDI = document.querySelector(".capability-midi")
 		if (tableMIDI && capabilities.webMIDIAvailable)
 		{
-			const MIDIAvailability = tableMIDI.querySelector( "td."+CHECKING )
+			const MIDIAvailability = tableMIDI.querySelector( "td."+RESULT )
 			MIDIAvailability.textContent = "Available"
 			MIDIAvailability.classList.remove(NOT_AVAILABLE)
 			MIDIAvailability.classList.remove(CHECKING)
@@ -59,9 +60,10 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const tableGPU = document.querySelector(".capability-gpu")
 		if (tableGPU && (capabilities.webGL || capabilities.webGPU))
 		{
-			const GPUAvailability = tableGPU.querySelector("td."+CHECKING )
+			const GPUAvailability = tableGPU.querySelector("td."+RESULT )
 			GPUAvailability.textContent = "Available"
 			GPUAvailability.classList.remove(NOT_AVAILABLE)
+			GPUAvailability.classList.remove(CHECKING)
 		}else{
 			// NONE FATAL ERROR! No WEBGL so use canvas fallback
 			body.classList.toggle("gpu-unavailable", true)
@@ -71,9 +73,10 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const tableSpeakers = document.querySelector(".capability-speakers")
 		if (tableSpeakers && (capabilities.webGL || capabilities.webGPU))
 		{
-			const speakersAvailability = tableSpeakers.querySelector("td."+CHECKING )
+			const speakersAvailability = tableSpeakers.querySelector("td."+RESULT )
 			speakersAvailability.textContent = "Available"
 			speakersAvailability.classList.remove(NOT_AVAILABLE)
+			speakersAvailability.classList.remove(CHECKING)
 		}else{
 			// NONE FATAL ERROR! No WEBGL so use canvas fallback
 			body.classList.toggle("speakers-unavailable", true)
@@ -103,4 +106,5 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		
 	console.log("Compatability table", table )
 	console.log("Devices", {devices}) 
+	return isFatalIssue
 }
