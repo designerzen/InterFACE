@@ -87,14 +87,15 @@ block header
 			tr.capability-speakers
 				th(scope="row") Speakers / Headset
 					small Make sure you are not muted
-				td.not-available Not Available
-				td.available Available
+				//- td.not-available Not Available
+				//- td.available Available
 				td.checking Checking...
 
 			tr.capability-midi
 				th(scope="row") <abbr title="Musical Instrument Digital Interface">MIDI</abbr>
-				td.not-available Unavailable in Safari
-
+				//- td.not-available Unavailable in Safari
+				td.checking Checking...
+			
 			tr(hidden).capability-microphone
 				th(scope="row") Microphone
 					small Not a requirement
