@@ -19,6 +19,8 @@ export const updateCapabalitiesTable = async (capabilities) => {
 
 		let fatal = false
 	
+		// CAMERA --------------------------------------------------------------------------
+		
 		// TODO: show holographic stuff too
 		const tableCamera = document.querySelector(".capability-camera")
 		const cameraAvailability = tableCamera.querySelector("td."+RESULT)
@@ -28,7 +30,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
 			
-		} else if ( permissions.camera === PERMISSION_UNAVAILABLE ){
+		} else if ( permissions.get("camera") === PERMISSION_UNAVAILABLE ){
 			
 			// FATAL ERROR! No camera!
 			fatal = true
@@ -39,7 +41,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		} else if (
 			capabilities.cameraAvailable &&
 			cameras.length > 0 && 
-			( permissions.camera === PERMISSION_GRANTED || permissions.camera === PERMISSION_PROMPT )
+			( permissions.get("camera") === PERMISSION_GRANTED || permissions.get("camera") === PERMISSION_PROMPT )
 		){
 			// TODO: Check for devices if permission has already been granted
 			cameraAvailability.textContent = `${cameras.length} Available`
@@ -55,9 +57,9 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			console.warn("[FATAL] No camera available")
 		}	
 	
-		// Web MIDI!
+		// Web MIDI --------------------------------------------------------------------------
 		const tableMIDI = document.querySelector(".capability-midi")
-		if ( permissions.midi === PERMISSION_UNAVAILABLE ){
+		if ( permissions.get("midi") === PERMISSION_UNAVAILABLE ){
 			
 			// FATAL ERROR! No camera!
 			document.body.classList.toggle("midi-unavailable", true)
@@ -67,7 +69,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		} else if (
 			tableMIDI && 
 			capabilities.webMIDIAvailable &&
-			( permissions.midi === PERMISSION_GRANTED || permissions.midi === PERMISSION_PROMPT )
+			(  permissions.get("midi") === PERMISSION_GRANTED || permissions.midi === PERMISSION_PROMPT )
 		)
 		{
 			const MIDIAvailability = tableMIDI.querySelector( "td."+RESULT )
@@ -82,7 +84,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			console.info("[WARNING] MIDI is not available")
 		}	
 	
-		// GPU  
+		// GPU --------------------------------------------------------------------------
 		const tableGPU = document.querySelector(".capability-gpu")
 		if (tableGPU && (capabilities.webGL || capabilities.webGPU))
 		{
@@ -96,6 +98,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			console.info("[WARNING] No GPU available")
 		}	
 
+		// Speakers --------------------------------------------------------------------------
 		const tableSpeakers = document.querySelector(".capability-speakers")
 		if (tableSpeakers && (capabilities.webGL || capabilities.webGPU))
 		{
