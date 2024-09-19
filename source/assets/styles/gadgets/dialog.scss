@@ -148,14 +148,14 @@ dialog{
 		z-index: 0;
 	}
 
-	&::backdrop{
+&::backdrop{
 		display: none;
 		pointer-events: none;
 	}
 
 	form[method=dialog]{
 		order:-1;
-		// pointer-events: auto;
+		pointer-events: auto;
 	}
 
 	&.fatal{

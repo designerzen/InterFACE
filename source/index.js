@@ -115,6 +115,7 @@ const start = () => {
 
 		// change modes based on URLs
 		try {
+
 			// import { createStore} from './store'
 			const { createStore } = await import('./utils/store')
 			const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
@@ -400,7 +401,7 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	addToolTips( document.querySelector("main") )
 	
 	// update the table as soon as it is available
-	const isFatalIssue = updateCapabalitiesTable( capabilities )
+	const isFatalIssue = await updateCapabalitiesTable( capabilities )
 
 	// if we have all the hardware we need to continue...
 	if (isFatalIssue)
@@ -411,11 +412,16 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 		// ESCAPE - no GPU?
 		// remove loading stuff and quit
 
-		// FIXME: improve message to the user
+		// FIXME: improve message to user
 		const requirementsTable= document.getElementById("requirements-test")
-		showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)
 		requirementsTable.scrollIntoView()
 		requirementsTable.focus()
-	}
+		console.warn("essential hardware missing") 
+
+		// showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)
 	
+	}else{
+		console.info("All hardware requirements met")
+	}
+
 }, {once:true})

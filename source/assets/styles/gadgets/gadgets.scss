@@ -205,40 +205,52 @@ a[href="#help"]{
 // This is a litle face that changes style depending on the mode
 // the two eye animations are set in the 
 a[href="#fund"]{
-	text-transform: uppercase;
 	line-height: 1;
 	line-height: 1lh;
+
 	display: grid;
 	align-items:center;
 	flex-direction: column-reverse;
-	margin-top:var(--pad);
-	border:1px solid var(--shade-red, transparent);
+	
 	padding:0 6px;
+	margin-top:var(--pad);
+	
+	// border:1px solid var(--shade-red, transparent);
 	border-radius: 999px;
+
 	background-color: var(--shade-white, white);
-	text-decoration: none;
-	animation:TagHide 1s 1 0.1s both;
-	animation-timing-function: var(--ease-out-back);
+	background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
+	background:url(/source/assets/logos/interface_colour.svg) center no-repeat;
+	background-size: contain;
+	
+	text-transform: uppercase;
 	text-decoration: none;
 
+	animation:TagHide 1s 1 0.1s both;
+	animation-timing-function: var(--ease-out-back);
+	
+	filter:drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
+		
 	> *,
 	&::before, &::after{
-		grid-area: 1/1/-1/-1;
+		
 	}
 
 	// show a graphic but hide contents
 	&::before, &::after{
 		transition: var(--ease-s) linear opacity;
 		opacity:0;
+		grid-area: 1/1/-1/-1;
 	}
 
+	// animation: Fade var(--ease-s) linear var(--delay) 1 normal both;
+		
 	// Overlaid logo
 	&:before{
 		--opacity:0.8;
 		--delay:0s;
 		
 		// flex-shrink:0;
-		animation: Fade var(--ease-s) linear var(--delay) 1 normal both;
 		// position: absolute;
 		// top:-7px;
 		// right:8px;
@@ -247,12 +259,7 @@ a[href="#fund"]{
 		height:var(--icon-size,10%);
 		display: block;
 		z-index:3;
-		filter:drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
-		
-		background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
-		background:url(/source/assets/logos/interface_colour.svg) center no-repeat;
-		
-		background-size: contain;
+	
 		content:'';//url(source//assets/logos/interface_colour.svg);
 		// content:url(/source//assets/logos/interface_current-color.svg);
 	}

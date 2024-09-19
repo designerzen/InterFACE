@@ -23,18 +23,12 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const tableCamera = document.querySelector(".capability-camera")
 			
 		if (
-			tableCamera &&
+			cameras.length > 0 && tableCamera &&
 			( permissions.camera === PERMISSION_GRANTED || 
 			permissions.camera === PERMISSION_PROMPT || 
 			capabilities.cameraAvailable )
 		){
 			// TODO: Check for devices if permission has already been granted
-			if (cameras.length > 0)
-			{
-
-			}else{
-
-			}
 
 			const cameraAvailability = tableCamera.querySelector("td."+RESULT)
 			cameraAvailability.textContent = "Available"
