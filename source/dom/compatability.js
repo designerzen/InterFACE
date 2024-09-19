@@ -1,6 +1,7 @@
 import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT, PERMISSION_UNAVAILABLE } from "../capabilities"
 import { filterVideoCameras } from "../hardware/camera"
 
+const UNAVAILABLE = "unavailable"
 /**
  * Update the table of compatability and reveal it
  * if the user has a device that will not work 100%
@@ -28,6 +29,8 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		if (!tableCamera || !cameraAvailability){
 			
 			fatal = true
+			cameraAvailability.classList.toggle(UNAVAILABLE, true)
+			cameraAvailability.classList.remove(CHECKING)
 			document.body.classList.toggle("camera-unavailable", true)
 			
 		} else if ( permissions.get("camera") === PERMISSION_UNAVAILABLE ){
@@ -36,7 +39,8 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
 			// FIXME: instructions for how to enable permission
-			cameraAvailability.textContent = `Camera Permission was not granted`
+			cameraAvailability.textContent = `Camera may not be available`
+			cameraAvailability.classList.toggle(UNAVAILABLE, true)
 			
 		} else if (
 			capabilities.cameraAvailable &&
@@ -54,6 +58,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
 			cameraAvailability.textContent = `${cameras.length} Available`
+			cameraAvailability.classList.toggle(UNAVAILABLE, true)
 			console.warn("[FATAL] No camera available")
 		}	
 	
@@ -69,11 +74,11 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		} else if (
 			tableMIDI && 
 			capabilities.webMIDIAvailable &&
-			(  permissions.get("midi") === PERMISSION_GRANTED || permissions.midi === PERMISSION_PROMPT )
+			(  permissions.get("midi") === PERMISSION_GRANTED || permissions.get("midi") === PERMISSION_PROMPT )
 		)
 		{
 			const MIDIAvailability = tableMIDI.querySelector( "td."+RESULT )
-			MIDIAvailability.textContent = "Available"
+			MIDIAvailability.textContent = permissions.get("midi") === PERMISSION_PROMPT ? "Available, please grant permission when requested" : "Available"
 			MIDIAvailability.classList.remove(NOT_AVAILABLE)
 			MIDIAvailability.classList.remove(CHECKING)
 			MIDIAvailability.classList.add(AVAILABLE)

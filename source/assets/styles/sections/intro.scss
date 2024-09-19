@@ -208,7 +208,7 @@
 
 // table
 #compatibility {
-	--curve:8px;
+	--curve:6px;
 	width: 100%;
 	
 	border-radius: var(--curve, var(--pad));
@@ -220,6 +220,7 @@
 		text-align: left;
 		padding-left: var(--pad);
 		padding-right: var(--pad);
+		padding-bottom: 0;
 		display: inline-block;
 		width: fit-content;
 		background-color: var(--shade-white);
@@ -263,14 +264,19 @@
 		background-repeat: no-repeat;
 	}
 
+	&::before,
+	&::after{
+		color:currentColor;
+		display: inline-block;
+		margin-right: 1ch;
+	}
+
 	// 
 	.available {
 		color: var(--shade-green, green);
 		&::before {
 			// content: "✓";
 			content: "✔";
-			display: inline-block;
-			margin-right: 1ch;
 		}
 	}
 
@@ -280,8 +286,6 @@
 		&::before {
 			content: "✗";
 			// content: "☓";
-			display: inline-block;
-			margin-right: 1ch;
 			animation: Pulse 1s 0s infinite both;
 		}
 	}
