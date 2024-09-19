@@ -14,6 +14,9 @@
 	flex-wrap: wrap;
  	flex-direction: row;
 	z-index: 707;
+	// allow to flood width
+	justify-self: stretch;
+
 // 	@media (orientation: portrait) {
 		
 // 	flex-direction: column-reverse;

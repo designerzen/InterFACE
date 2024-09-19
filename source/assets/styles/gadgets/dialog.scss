@@ -150,6 +150,7 @@ dialog{
 
 	&::backdrop{
 		display: none;
+		pointer-events: none;
 	}
 
 	form[method=dialog]{
@@ -293,13 +294,13 @@ dialog[open].fatal::backdrop {
 	user-select: none;
 }
 
-.error dialog::backdrop,
-dialog.error::backdrop {
+.error dialog[open]::backdrop,
+dialog[open].error::backdrop {
 	background-color: var(--shade-cream);
 }
 
-.failure dialog::backdrop,
-dialog.failure::backdrop {
+.failure dialog[open]::backdrop,
+dialog[open].failure::backdrop {
 	background-color: var(--shade-red);
 }
 
