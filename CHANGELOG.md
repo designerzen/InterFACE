@@ -1,11 +1,15 @@
-#### 0.20.2 (2024-09-17)
+#### 0.21.2 (2024-09-18)
 
 ##### Build System / Dependencies
 
+*  versiom bump ([c2f95c5b](https://github.com/designerzen/interface/commit/c2f95c5b8bc9c3ca097069f46257e898e9a9d972))
+*  changelog + rss update ([953636af](https://github.com/designerzen/interface/commit/953636af6bbc01d4507623b7ac8793c2790bf3f6))
 *  moved TF copying assets into build script ([40c8a187](https://github.com/designerzen/interface/commit/40c8a187f74323c03f6e289565aa13cf9439638f))
 
 ##### Chores
 
+*  ignoring design source files ([6641f06a](https://github.com/designerzen/interface/commit/6641f06aeb2901e92a715d0a90b0d91be769c34f))
+*  updated licenses ([b365a52b](https://github.com/designerzen/interface/commit/b365a52b96e03f293a38c57ea4c2048a12cdcd3e))
 *  added more types to ignore ([bc60ece2](https://github.com/designerzen/interface/commit/bc60ece211d7a546ab3a9754e4523ce09a2c98ca))
 *  updated manifest with new features and data ([38566234](https://github.com/designerzen/interface/commit/38566234eb648264a194cab51d0e745b1cbb8a29))
 *  added lock files to ignore ([09454a00](https://github.com/designerzen/interface/commit/09454a007715ef7adafe0e9c94626306dedd5a0c))
@@ -15,8 +19,20 @@
 
 *  updated all public data ([4659b8e5](https://github.com/designerzen/interface/commit/4659b8e5a5b0da55edae7c39a6d3da6598550276))
 
+##### Other Changes (fea)
+
+*  Image upscaled ([2ab77ae5](https://github.com/designerzen/interface/commit/2ab77ae52ed3699a17ffa835d2af0c86818d93f8))
+
 ##### New Features
 
+*  historic flute ([4d3a15f3](https://github.com/designerzen/interface/commit/4d3a15f3cb3ecc1037e9a9feaaf6ff198a1f396d))
+*  logos in a square format MPU ([23b024e0](https://github.com/designerzen/interface/commit/23b024e0a1baa0be3bd55f8f20a5800caa5d5a5e))
+*  Slides from presetation ([f9dcc264](https://github.com/designerzen/interface/commit/f9dcc264cb3855a74f5a3b41a97fb5ab86a60bc0))
+*  photo at ElectroMagnetic Fields Festival ([c73c61b3](https://github.com/designerzen/interface/commit/c73c61b3cf81a93410c3e66da17983bbaf36e6b1))
+*  audio assets and MIDI files ([c87dc697](https://github.com/designerzen/interface/commit/c87dc69797e324dbcaab172655f3dfd6be91ed09))
+*  changelog action saves rss feed ([441f56f4](https://github.com/designerzen/interface/commit/441f56f408278c4c6526e3c105c5d8d717bdb657))
+*  New release action ([8c74d936](https://github.com/designerzen/interface/commit/8c74d936c880472ea7f4acefd44ac29df44db610))
+*  QR codes ([19e6ccb7](https://github.com/designerzen/interface/commit/19e6ccb73acc86c68634bfa4e3765eba6f8c8bf8))
 *  shaders for 3d display ([d1d14411](https://github.com/designerzen/interface/commit/d1d1441125501eb010feae37e1795b97b03f1b13))
 *  QR codes ([97bacb66](https://github.com/designerzen/interface/commit/97bacb66af3ed2ab61710dab82dfeff5f0af9cb1))
 *  theme selector & loader ([cf2668e4](https://github.com/designerzen/interface/commit/cf2668e43c5260aae6113c8e985343a3c1043a3d))
@@ -64,6 +80,10 @@
 
 ##### Bug Fixes
 
+*  removed video link for cloudflare ([0c88a5ba](https://github.com/designerzen/interface/commit/0c88a5ba70ebc3ac1efa7f401a5c7d38ba54e285))
+*  blog link to image format ([6a840491](https://github.com/designerzen/interface/commit/6a840491dbbe437e20a1b5ec7ccfa64b92edbf2a))
+*  references inside presentation and blog ([774f121a](https://github.com/designerzen/interface/commit/774f121a45b388c9db032fcae66ecec6aa0215d8))
+*  changelog without patching ([d012613c](https://github.com/designerzen/interface/commit/d012613c0abce77ef602000816186947a8a87035))
 *  preparation for cloudflare ([ebee6e13](https://github.com/designerzen/interface/commit/ebee6e13b780a49dc336f67688cf4ab88c36e9fc))
 *  Updated prediction models to work with tf latest ([e8b0ccd1](https://github.com/designerzen/interface/commit/e8b0ccd1ed0459b3242f6d436ae003c1eea6c106))
 *  timing now uses micro fractions for better MIDI and for swing ([a24685d5](https://github.com/designerzen/interface/commit/a24685d568b6f2027ed5f649659d1df205ee3a8f))
