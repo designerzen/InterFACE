@@ -1,4 +1,4 @@
-import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from "../capabilities"
+import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT, PERMISSION_UNAVAILABLE } from "../capabilities"
 import { filterVideoCameras } from "../hardware/camera"
 
 /**
@@ -22,7 +22,15 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		// TODO: show holographic stuff too
 		const tableCamera = document.querySelector(".capability-camera")
 			
-		if (
+		if ( permissions.camera === PERMISSION_UNAVAILABLE ){
+			
+			// FATAL ERROR! No camera!
+			fatal = true
+			document.body.classList.toggle("camera-unavailable", true)
+			// FIXME: instructions for how to enable permission
+			cameraAvailability.textContent = `Camera Permission was not granted`
+			
+		} else if (
 			tableCamera &&
 			capabilities.cameraAvailable &&
 			cameras.length > 0 && 
@@ -42,12 +50,20 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			// FATAL ERROR! No camera!
 			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
+			cameraAvailability.textContent = `${cameras.length} Available`
 			console.warn("[FATAL] No camera available")
 		}	
 	
 		// Web MIDI!
 		const tableMIDI = document.querySelector(".capability-midi")
-		if (
+		if ( permissions.midi === PERMISSION_UNAVAILABLE ){
+			
+			// FATAL ERROR! No camera!
+			document.body.classList.toggle("midi-unavailable", true)
+			// FIXME: instructions for how to enable permission
+			cameraAvailability.textContent = `MIDI Permission was not granted`
+			
+		} else if (
 			tableMIDI && 
 			capabilities.webMIDIAvailable &&
 			( permissions.midi === PERMISSION_GRANTED || permissions.midi === PERMISSION_PROMPT )

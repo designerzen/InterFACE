@@ -208,8 +208,9 @@
 
 // table
 #compatibility {
+	--curve:8px;
 	width: 100%;
-	background-color: var(--shade-cream);
+	
 	border-radius: var(--curve, var(--pad));
 	overflow: hidden;
 	overflow: clip;
@@ -232,6 +233,11 @@
 			bottom: 0;
 			width:12px;
 		}
+	}
+
+	tbody{
+		background-color: var(--shade-cream);
+		border-radius: var(--curve, var(--pad));
 	}
 
 	th {

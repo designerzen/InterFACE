@@ -220,12 +220,18 @@ a[href="#fund"]{
 
 	background-color: var(--shade-white, white);
 	// background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
-	background:url(/source/assets/logos/interface_colour.svg);
+	background-image:url(/source/assets/logos/interface_colour.svg);
 	background-position: center;
 	background-size: contain;
+	background-repeat: no-repeat;
 	
 	text-transform: uppercase;
 	text-decoration: none;
+	color:transparent;
+
+	width:var(--icon-size,10%);
+	height:var(--icon-size,10%);
+	display: block;
 
 	animation:TagHide 1s 1 0.1s both;
 	animation-timing-function: var(--ease-out-back);
@@ -242,6 +248,7 @@ a[href="#fund"]{
 		transition: var(--ease-s) linear opacity;
 		opacity:0;
 		grid-area: 1/1/-1/-1;
+		z-index:3;
 	}
 
 	// animation: Fade var(--ease-s) linear var(--delay) 1 normal both;
@@ -255,19 +262,18 @@ a[href="#fund"]{
 		// position: absolute;
 		// top:-7px;
 		// right:8px;
-		width:var(--icon-size,10%);
-		//width:auto;
-		height:var(--icon-size,10%);
-		display: block;
-		z-index:3;
 	
-		content:'';//url(source//assets/logos/interface_colour.svg);
+		
+	
+		// content:'';//url(source//assets/logos/interface_colour.svg);
 		// content:url(/source//assets/logos/interface_current-color.svg);
 	}
 
 	// some animations to bring character!
 	&::after{
 		content:'O O';	
+		opacity: 1;
+		color:var(--shade-red, red);
 	}
 }
 
