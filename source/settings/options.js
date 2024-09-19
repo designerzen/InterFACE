@@ -199,9 +199,9 @@ export const DEFAULT_OPTIONS = {
 	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
 	instrumentPacks:[
 		INSTRUMENT_PACK_OPEN_SF,
-		INSTRUMENT_PACK_FATBOY,
-		INSTRUMENT_PACK_FM, 
-		INSTRUMENT_PACK_MUSYNGKITE
+		// INSTRUMENT_PACK_FATBOY,
+		// INSTRUMENT_PACK_FM, 
+		// INSTRUMENT_PACK_MUSYNGKITE
 	].join(","),
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
@@ -227,8 +227,8 @@ export const BODY_OPTIONS = {
 export const DANCE_OPTIONS = {
 	...DEFAULT_OPTIONS ,
 	// model:'hand'
-	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	instrumentPacks:[INSTRUMENT_PACK_MUSYNGKITE].join(",")
+	// instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	// instrumentPacks:[INSTRUMENT_PACK_MUSYNGKITE].join(",")
 }
 
 

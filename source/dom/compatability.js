@@ -5,7 +5,7 @@ import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from "../capa
  * if the user has a device that will not work 100%
  * then show a FATAL error message
  */
-export const updateCapabalitiesTable = async () => {
+export const updateCapabalitiesTable = async (capabilities) => {
 	
 	const table = document.getElementById("compatability")
 	

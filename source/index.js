@@ -375,7 +375,7 @@ checkPlatformUpdates().finally(() => {
 document.addEventListener("DOMContentLoaded", async(e) => {
 	
 	updateSummaryText()
-	updateCapabalitiesTable()
+	updateCapabalitiesTable( capabilities )
 	addToolTips( document.querySelector("main") )
 
 	// Click and hold on the version for more info
