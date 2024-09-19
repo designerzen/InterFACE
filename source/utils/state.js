@@ -132,7 +132,7 @@ export const decodeLocation = base64Data => decodeURIComponent(window.atob( base
 // TODO: Make a wrapper createStateStack
 // stack.setState( "advancedMode", advancedMode )
 export const EVENT_STATE_CHANGE = "global-state-change"
-let enforcedSingleton = null
+
 
 /**
  * If you need to observe state changes, use this class
@@ -399,7 +399,10 @@ export default class State {
 		this.loadFromLocation( null,  dispatchEvent )
 	}
 
-
+	/**
+	 * Provide a base64 encoded string and this will decode it
+	 * @param {String} base64Data 
+	 */
 	decode( base64Data ){
 		const url = new URL(base64Data)
 		decodeLocation( url.search.b )		

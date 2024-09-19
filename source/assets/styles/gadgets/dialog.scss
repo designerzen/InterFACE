@@ -122,6 +122,7 @@ dialog{
 
 	menu{
 		z-index:9;
+		pointer-events: auto;
 	}
 
 	&::after,
@@ -149,6 +150,7 @@ dialog{
 
 	form[method=dialog]{
 		order:-1;
+		// pointer-events: auto;
 	}
 
 	&.fatal{
@@ -169,7 +171,7 @@ dialog{
 	}
 		
 	// Help Box
-	&::backdrop {
+	&.fatal::backdrop {
 
 		background: repeating-linear-gradient(
 			45deg,
@@ -280,8 +282,6 @@ dialog{
 			user-select: none;
 			animation:Fade var(--ease-q) linear 0s 1 both;
 		}
-
-
 	}
 }
 
@@ -290,6 +290,11 @@ dialog{
 
 .error dialog::backdrop,
 dialog.error::backdrop {
+	background-color: var(--shade-cream);
+}
+
+.failure dialog::backdrop,
+dialog.failure::backdrop {
 	background-color: var(--shade-red);
 }
 

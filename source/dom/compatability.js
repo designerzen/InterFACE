@@ -1,4 +1,5 @@
 import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from "../capabilities"
+import { filterVideoCameras } from "../hardware/camera"
 
 /**
  * Update the table of compatability and reveal it
@@ -9,7 +10,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	
 	const table = document.getElementById("compatability")
 	
-	const updateTable = (permissions) => {
+	const updateTable = (permissions, cameras) => {
 
 		const CHECKING = "checking"
 		const RESULT = "result"
@@ -17,7 +18,6 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const AVAILABLE = "available"
 
 		let fatal = false
-		// remove .not-available as appropriate
 	
 		// TODO: show holographic stuff too
 		const tableCamera = document.querySelector(".capability-camera")
@@ -28,6 +28,14 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			permissions.camera === PERMISSION_PROMPT || 
 			capabilities.cameraAvailable )
 		){
+			// TODO: Check for devices if permission has already been granted
+			if (cameras.length > 0)
+			{
+
+			}else{
+
+			}
+
 			const cameraAvailability = tableCamera.querySelector("td."+RESULT)
 			cameraAvailability.textContent = "Available"
 			cameraAvailability.classList.remove(NOT_AVAILABLE)
@@ -88,21 +96,27 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	}
 	
 	const permissions = await fetchPermissions()
-	const isFatalIssue = updateTable(permissions)
+	let isFatalIssue = false
 	
 	// FIXME: should we request the camera if permission was already granted?
 	// what is going on?
 	const devices = await navigator.mediaDevices.enumerateDevices()
-	if (devices.length === 0)
+	const cameras = filterVideoCameras( devices )
+	if (cameras.length === 0)
 	{
 		// FATAL ERROR! No camera!
-
+		isFatalIssue = false
+		console.error("Compatability table", table )
+		console.error("Devices", {devices, cameras}) 
+		console.error("Permissions", {isFatalIssue, permissions, capabilities}) 
+	
 	}else{
-		updateTable(devices)
+		isFatalIssue = updateTable(permissions, cameras)
+		console.log("Compatability table", table )
+		console.log("Devices", {devices, cameras}) 
+		console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
 	}
-		
-	console.log("Compatability table", table )
-	console.log("Devices", {devices}) 
-	console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
+
+	// now update the table based on permissions
 	return isFatalIssue
 }
