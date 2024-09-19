@@ -40,7 +40,7 @@ export const showError = (error, solution, fatal=false, details="" ) => {
 		errorDetailsElement.parentElement.hidden = false
 		errorDetailsElement.textContent = details
 	}else{
-		errorDetailsElement.parentElement..hidden = true
+		errorDetailsElement.parentElement.hidden = true
 	}
 		
 	console.error("Could not load", {fatal}, error )
