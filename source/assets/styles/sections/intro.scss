@@ -236,6 +236,25 @@
 
 	th {
 		text-align: right;
+		vertical-align: middle;
+	}
+
+	small{
+		display: block;
+	}
+
+	th::before{
+		content:'';
+		display: inline-block;
+		width: 1rem;
+		height: 1rem;
+		margin-top:auto;
+		margin-bottom:auto;
+		margin-right:calc( var(--pad) / 2 ); 
+		background-image: var(--icon);
+		background-position: center;
+		background-size: contain;
+		background-repeat: no-repeat;
 	}
 
 	.available {
@@ -244,8 +263,7 @@
 			content: "✔";
 			color: var(--shade-green, green);
 			display: inline-block;
-			width: 1ch;
-			height: 1ch;
+			margin-right: 1ch;
 		}
 	}
 
@@ -255,20 +273,44 @@
 			// content: "☓";
 			color: var(--shade-red, red);
 			display: inline-block;
-			width: 1ch;
-			height: 1ch;
+			margin-right: 1ch;
+			animation: Pulse 1s 0s infinite both;
 		}
 	}
 }
 
 
-.capability-camera {}
+.capability-camera {
+	th::before{
+		--icon:url(/source/assets/icons/camera_enhance-24px.svg);
+	}
+}
 
-.capability-speakers {}
+.capability-speakers {
+	th::before{
+		--icon:url(/source/assets/icons/volume_up-24px.svg);
+	}
+}
 
-.capability-midi {}
+.capability-midi {
+	th::before{
+		--icon:url(/source/assets/icons/midi-copyright-free.svg);
+	}
+}
 
-.capability-microphone {}
+.capability-microphone {
+	th::before{
+		--icon:url(/source/assets/icons/mic-24px.svg);		
+	}
+}
+
+
+.capability-gpu {
+	th::before{
+		--icon:url(/source/assets/icons/developer_board-24px.svg);		
+	}
+}
+
 
 /** Internet Explorer */
 @media all and (-ms-high-contrast: none),(-ms-high-contrast: active) {

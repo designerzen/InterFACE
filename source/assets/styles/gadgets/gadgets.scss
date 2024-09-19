@@ -219,8 +219,9 @@ a[href="#fund"]{
 	border-radius: 999px;
 
 	background-color: var(--shade-white, white);
-	background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
-	background:url(/source/assets/logos/interface_colour.svg) center no-repeat;
+	// background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
+	background:url(/source/assets/logos/interface_colour.svg);
+	background-position: center;
 	background-size: contain;
 	
 	text-transform: uppercase;

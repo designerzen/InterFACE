@@ -23,28 +23,35 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const tableCamera = document.querySelector(".capability-camera")
 			
 		if (
-			cameras.length > 0 && tableCamera &&
-			( permissions.camera === PERMISSION_GRANTED || 
-			permissions.camera === PERMISSION_PROMPT || 
-			capabilities.cameraAvailable )
+			tableCamera &&
+			capabilities.cameraAvailable &&
+			cameras.length > 0 && 
+			( permissions.camera === PERMISSION_GRANTED || permissions.camera === PERMISSION_PROMPT )
 		){
 			// TODO: Check for devices if permission has already been granted
 
 			const cameraAvailability = tableCamera.querySelector("td."+RESULT)
-			cameraAvailability.textContent = "Available"
+			cameraAvailability.textContent = `${cameras.length} Available`
 			cameraAvailability.classList.remove(NOT_AVAILABLE)
 			cameraAvailability.classList.remove(CHECKING)
 			cameraAvailability.classList.add(AVAILABLE)
+
+			cameras.length
+
 		}else{
 			// FATAL ERROR! No camera!
 			fatal = true
-			body.classList.toggle("camera-unavailable", true)
+			document.body.classList.toggle("camera-unavailable", true)
 			console.warn("[FATAL] No camera available")
 		}	
 	
 		// Web MIDI!
 		const tableMIDI = document.querySelector(".capability-midi")
-		if (tableMIDI && capabilities.webMIDIAvailable)
+		if (
+			tableMIDI && 
+			capabilities.webMIDIAvailable &&
+			( permissions.midi === PERMISSION_GRANTED || permissions.midi === PERMISSION_PROMPT )
+		)
 		{
 			const MIDIAvailability = tableMIDI.querySelector( "td."+RESULT )
 			MIDIAvailability.textContent = "Available"
@@ -54,7 +61,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			
 		}else{
 			// NONE FATAL ERROR! No MIDI - just hide MIDI stuff!!
-			body.classList.toggle("midi-unavailable", true)
+			document.body.classList.toggle("midi-unavailable", true)
 			console.info("[WARNING] MIDI is not available")
 		}	
 	
@@ -81,9 +88,12 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			speakersAvailability.classList.remove(CHECKING)
 		}else{
 			// NONE FATAL ERROR! No WEBGL so use canvas fallback
-			body.classList.toggle("speakers-unavailable", true)
+			document.body.classList.toggle("speakers-unavailable", true)
 			console.info("[WARNING] No GPU available")
 		}	
+
+		// TODO: Microphone
+
 
 		// Speakers class="capability-speakers"
 		return fatal
