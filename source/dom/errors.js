@@ -1,7 +1,6 @@
-
 import { createReloadButton } from '../dom/button'
 
-export const showError = (error, solution, fatal=false) => {
+export const showError = (error, solution, fatal=false, details="" ) => {
  
 	const body = document.documentElement
 
@@ -11,7 +10,7 @@ export const showError = (error, solution, fatal=false) => {
 	// TODO: show the error messages on screen in a dialog
 	const dialog = document.getElementById("errors")
 	dialog.open = true
-	
+
 	if (fatal)
 	{
 		// if fatal then we can't continue so show reload button?	
@@ -26,14 +25,23 @@ export const showError = (error, solution, fatal=false) => {
 		const audioElement = dialog.querySelector("audio")
 		audioElement.setAttribute("autoplay", true)
 		audioElement.setAttribute("start", true)
-
 	}
 
+	// no point closing the error if fatal
 	dialog.classList.toggle("fatal", fatal)
-	// no point closing the error
 	dialog.querySelector("button.close").hidden = fatal
 
-	document.getElementById("error-details").innerText = error
+	document.getElementById("error-message").innerText = error
+	document.getElementById("error-solution").innerText = solution
+	
+	const errorDetailsElement = document.getElementById("error-details")
+	if (details.length > 0)
+	{
+		errorDetailsElement.parentElement.hidden = false
+		errorDetailsElement.textContent = details
+	}else{
+		errorDetailsElement.parentElement..hidden = true
+	}
 		
 	console.error("Could not load", {fatal}, error )
 	console.warn( "Consider:", solution )

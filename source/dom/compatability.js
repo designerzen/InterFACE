@@ -88,7 +88,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	}
 	
 	const permissions = await fetchPermissions()
-	const isFatalIssue =updateTable(permissions)
+	const isFatalIssue = updateTable(permissions)
 	
 	console.log("Compatability table")
 	console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
