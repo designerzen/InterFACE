@@ -214,14 +214,15 @@ a[href="#fund"]{
 	
 	padding:0 6px;
 	margin-top:var(--pad);
-	
+	position: relative;
+
 	// border:1px solid var(--shade-red, transparent);
 	border-radius: 999px;
 
 	background-color: var(--shade-white, white);
 	// background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
 	background-image:url(/source/assets/logos/interface_colour.svg);
-	background-position: top 75% center;
+	background-position: top 85% center;
 	background-size: contain;
 	background-repeat: no-repeat;
 	
@@ -274,6 +275,11 @@ a[href="#fund"]{
 		content:'O O';	
 		opacity: 1;
 		color:var(--shade-red, red);
+		position: absolute;
+		top:0;
+		left:0;
+		right:0;
+		text-align: center;
 	}
 }
 

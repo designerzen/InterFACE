@@ -52,6 +52,8 @@
 
 	// FIXME: prevent user dragging?
 	touch-action: none;
+	
+	scroll-behavior: smooth;
 }
 
 :where(main){	

@@ -241,6 +241,21 @@
 		border-radius: var(--curve, var(--pad));
 	}
 
+	tr{
+		position: relative;
+	}
+
+	tr+tr{
+		&::before{
+			content:'';
+			position: absolute;
+			left:var(--pad);
+			right:var(--pad);
+			height:1px;
+			background-color:var(--shade-cream);
+		}
+	}
+
 	th {
 		text-align: right;
 		vertical-align: middle;
