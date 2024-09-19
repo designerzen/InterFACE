@@ -417,4 +417,5 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 		requirementsTable.scrollIntoView()
 		requirementsTable.focus()
 	}
-})
+	
+}, {once:true})

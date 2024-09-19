@@ -90,9 +90,6 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	const permissions = await fetchPermissions()
 	const isFatalIssue = updateTable(permissions)
 	
-	console.log("Compatability table")
-	console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
-
 	// FIXME: should we request the camera if permission was already granted?
 	// what is going on?
 	const devices = await navigator.mediaDevices.enumerateDevices()
@@ -106,5 +103,6 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		
 	console.log("Compatability table", table )
 	console.log("Devices", {devices}) 
+	console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
 	return isFatalIssue
 }
