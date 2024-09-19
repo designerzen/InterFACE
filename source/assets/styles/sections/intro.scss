@@ -263,21 +263,23 @@
 		background-repeat: no-repeat;
 	}
 
+	// 
 	.available {
+		color: var(--shade-green, green);
 		&::before {
 			// content: "✓";
 			content: "✔";
-			color: var(--shade-green, green);
 			display: inline-block;
 			margin-right: 1ch;
 		}
 	}
 
+	//
 	.unavailable {
+		color: var(--shade-red, red);
 		&::before {
 			content: "✗";
 			// content: "☓";
-			color: var(--shade-red, red);
 			display: inline-block;
 			margin-right: 1ch;
 			animation: Pulse 1s 0s infinite both;

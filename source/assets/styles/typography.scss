@@ -229,7 +229,7 @@ strong{
 	// color:var(--shade-dark, black);
 }
 
-:where(a){
+p :where(a){
 	color:var(--shade-brand, var(--shade-accent, red));
 	text-decoration:underline ;
 	text-decoration-style: dotted;
