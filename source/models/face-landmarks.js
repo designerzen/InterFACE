@@ -10,7 +10,7 @@
 
 // const FACE_LANDMARK_WASM =  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
 //const FACE_LANDMARK_TASK = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-// import FACE_LANDMARK_TASK from "url:./face_landmarker.task"
+import FACE_LANDMARK_TASK from "url:./face_landmarker.task"
 
 const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
 // import FACE_LANDMARK_WASM from "./@mediapipe/tasks-vision/wasm"
@@ -160,7 +160,8 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	const faceLandmarkerOptions ={
 		baseOptions: {
 			// this needs to be absolute yet relative :/
-			modelAssetPath: './face_landmarker.task',
+			// modelAssetPath: './face_landmarker.task',
+			modelAssetPath: FACE_LANDMARK_TASK,
 			delegate: "GPU"
 		},
 		// override defaults

@@ -28,9 +28,8 @@ const copyFolderSync = (from, to, overwrite=false ) => {
 
 			//console.log("Copying File...", path.join(from, element), path.join(to, element) )
 			try{
-			
-
 				copyFileSync(path.join(from, element), path.join(to, element), overwrite ? constants.COPYFILE_FICLONE_FORCE : constants.COPYFILE_EXCL)
+				console.info("Copied ", from, to, element )
 			}catch(error){
 				console.info("Skipped ", from, element )
 			}
