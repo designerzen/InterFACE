@@ -148,6 +148,10 @@ dialog{
 		z-index: 0;
 	}
 
+	&::backdrop{
+		display: none;
+	}
+
 	form[method=dialog]{
 		order:-1;
 		// pointer-events: auto;
@@ -170,33 +174,6 @@ dialog{
 		}
 	}
 		
-	// Help Box
-	&.fatal::backdrop {
-
-		background: repeating-linear-gradient(
-			45deg,
-			rgba(var(--col-blue, blue), 0.2),
-			rgba(var(--col-blue, blue), 0.2) 1px,
-			rgba(var(--col-cream, white), 0.3) 1px,
-			rgba(var(--col-cream, white), 0.3) 20px
-		),
-		radial-gradient(circle at center, var(--shade-white, white), var(--shade-dark, black));
-	
-		//	background: radial-gradient(circle at center, hsl(220 50% 50% / 50%), hsl(220 50% 50% / 0%));
-		backdrop-filter: blur(25px);
-		//backdrop-filter: blur(3px);
-
-		opacity: 0.5;
-		transition: 
-			display .3s allow-discrete, 
-			overlay .3s allow-discrete, 
-			opacity .3s,
-			transform .3s;
-
-		min-height: 100vh;
-		pointer-events: none;
-		user-select: none;
-	}
 
 	&[loading] {
 		visibility: hidden;
@@ -287,6 +264,34 @@ dialog{
 
 
 // ERROR -------------------------------
+
+// Help Box
+dialog[open].fatal::backdrop {
+
+	background: repeating-linear-gradient(
+		45deg,
+		rgba(var(--col-blue, blue), 0.2),
+		rgba(var(--col-blue, blue), 0.2) 1px,
+		rgba(var(--col-cream, white), 0.3) 1px,
+		rgba(var(--col-cream, white), 0.3) 20px
+	),
+	radial-gradient(circle at center, var(--shade-white, white), var(--shade-dark, black));
+
+	//	background: radial-gradient(circle at center, hsl(220 50% 50% / 50%), hsl(220 50% 50% / 0%));
+	backdrop-filter: blur(25px);
+	//backdrop-filter: blur(3px);
+
+	opacity: 0.5;
+	transition: 
+		display .3s allow-discrete, 
+		overlay .3s allow-discrete, 
+		opacity .3s,
+		transform .3s;
+
+	min-height: 100vh;
+	pointer-events: none;
+	user-select: none;
+}
 
 .error dialog::backdrop,
 dialog.error::backdrop {
