@@ -142,6 +142,11 @@ dialog{
 		background-position:top calc( 1 * var(--pad) ) right calc( 1 * var(--pad) );
 	}
 
+	&::after{
+		opacity: 1;
+		z-index: 0;
+	}
+
 	form[method=dialog]{
 		order:-1;
 	}

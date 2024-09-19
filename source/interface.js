@@ -222,11 +222,13 @@ export const createInterface = (
 	const globalOptions = Object.assign({}, globalThis._synth)
 	const domainOptions = getDomainDefaults( hostName )
 	const defaultOptions = { ...domainOptions, ...globalOptions }
-	const states = State.getInstance()
+	
+	
+	const stateMachine = State.getInstance()
 
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
-	states.addEventListener( event => {
+	stateMachine.addEventListener( event => {
 		const bookmark = state.asURI
 		console.info("State Changed", event )
 		//- console.info("State", state.serialised )
@@ -236,9 +238,10 @@ export const createInterface = (
 	})
 		
 	//state.setDefaults(defaultOptions)
-	states.loadFromLocation(defaultOptions)
-	debugger
+	stateMachine.loadFromLocation(defaultOptions)
 
+	const drawEyes = stateMachine.get("eyes")
+	console.info("State created", {stateMachine, drawEyes} )
 	
 	
 	// updates the URL with the current state (true - encoded)
