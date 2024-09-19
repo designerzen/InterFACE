@@ -55,7 +55,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			console.info("[WARNING] MIDI is not available")
 		}	
 	
-		// GPU 
+		// GPU  
 		const tableGPU = document.querySelector(".capability-gpu")
 		if (tableGPU && (capabilities.webGL || capabilities.webGPU))
 		{
@@ -68,6 +68,19 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			console.info("[WARNING] No GPU available")
 		}	
 
+		const tableSpeakers = document.querySelector(".capability-speakers")
+		if (tableSpeakers && (capabilities.webGL || capabilities.webGPU))
+		{
+			const speakersAvailability = tableSpeakers.querySelector("td."+CHECKING )
+			speakersAvailability.textContent = "Available"
+			speakersAvailability.classList.remove(NOT_AVAILABLE)
+		}else{
+			// NONE FATAL ERROR! No WEBGL so use canvas fallback
+			body.classList.toggle("speakers-unavailable", true)
+			console.info("[WARNING] No GPU available")
+		}	
+
+		// Speakers class="capability-speakers"
 		return fatal
 	}
 	
