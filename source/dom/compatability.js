@@ -21,8 +21,14 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	
 		// TODO: show holographic stuff too
 		const tableCamera = document.querySelector(".capability-camera")
+		const cameraAvailability = tableCamera.querySelector("td."+RESULT)
 			
-		if ( permissions.camera === PERMISSION_UNAVAILABLE ){
+		if (!tableCamera || !cameraAvailability){
+			
+			fatal = true
+			document.body.classList.toggle("camera-unavailable", true)
+			
+		} else if ( permissions.camera === PERMISSION_UNAVAILABLE ){
 			
 			// FATAL ERROR! No camera!
 			fatal = true
@@ -31,20 +37,15 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			cameraAvailability.textContent = `Camera Permission was not granted`
 			
 		} else if (
-			tableCamera &&
 			capabilities.cameraAvailable &&
 			cameras.length > 0 && 
 			( permissions.camera === PERMISSION_GRANTED || permissions.camera === PERMISSION_PROMPT )
 		){
 			// TODO: Check for devices if permission has already been granted
-
-			const cameraAvailability = tableCamera.querySelector("td."+RESULT)
 			cameraAvailability.textContent = `${cameras.length} Available`
 			cameraAvailability.classList.remove(NOT_AVAILABLE)
 			cameraAvailability.classList.remove(CHECKING)
 			cameraAvailability.classList.add(AVAILABLE)
-
-			cameras.length
 
 		}else{
 			// FATAL ERROR! No camera!
