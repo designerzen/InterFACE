@@ -23,6 +23,8 @@ export const hasWebGPUCapability = () => !!navigator.gpu
 
 export const isPopoverSupported = () => HTMLElement.prototype.hasOwnProperty("popover")
 
+export const hasBluetoothCapability = () => 'bluetooth' in navigator
+
 /**
  * Is this running inside a NODE environment (rather than browser?)
  * @returns Boolean
@@ -102,6 +104,8 @@ export default class Capabilities {
 
 		this.popover = isPopoverSupported()
 
+		this.bluetooth = hasBluetoothCapability()
+		
 		this.webGL = hasWebGL2Capability()
 		this.webGPU = hasWebGPUCapability()
 	}
