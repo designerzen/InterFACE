@@ -222,8 +222,7 @@ main:not(.flag-overlays){
 // added when user gives up attention
 .user-inactive{
 
-	#shared-controls:not(:hover, :focus-within, :focus),
-	#settings:not(:hover, :focus-within, :focus) {
+	.controls:not(:hover, :focus-within, :focus) {
 		visibility: hidden;
 		opacity:0;
 	}

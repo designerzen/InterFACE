@@ -155,6 +155,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			}	
 
 			fetch(DATA_SOURCE).then(response => {
+				debugger
 				DATA = response.json()
 				this.loadComplete("ready")
 			}).catch(error => {
@@ -206,6 +207,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	async create( keypointQuantity=478, options={} ){ 
 
 		const scene = new THREE.Scene()
+
+		const response = await fetch(DATA_SOURCE)
+		DATA = await response.json()
+		debugger
 		
 		options = {
 			...DEFAULT_OPTIONS_DISPLAY_WEBGL,

@@ -1505,7 +1505,7 @@ export default class Person{
 
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, options.defaultPreset )	
+		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, this.options.defaultPreset )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
 
 		// create a sample player, oscillator add all other instruments

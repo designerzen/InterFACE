@@ -62,7 +62,7 @@ import {setupThemeControls} from './theme/theme.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
 import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
-import { addToolTips, setToast, toggleTooltips } from './dom/tooltips.js'
+import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { setFeedback } from './dom/text.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
@@ -2843,6 +2843,10 @@ export const createInterface = (
 		
 		// monitor keyboard events
 		registerKeyboard()
+
+		// as we are now "full screen" the positions of the tooltips needs
+		// to be recaulated so we do them all here
+		updateTooltipPositions()
 		
 		speak("I am looking for your face")
 

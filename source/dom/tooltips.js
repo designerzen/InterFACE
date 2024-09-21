@@ -135,10 +135,14 @@ const setToolTipPosition = (target, anchor="") => {
     // })
 }
 
+
+export const updateTooltipPositions = () => {
+	tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
+}
 const onWindowResize = event => {
 	// console.log("onWindowResize", event)
 	// TODO: Wait one frame before updating
-	tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
+	updateTooltipPositions()
 }
 // position-anchor
 const getPositionForTooltip = target => {
@@ -172,6 +176,7 @@ export const addTooltip = element => {
 	{
 		window.addEventListener("resize", onWindowResize )
 	
+		/*
 		// Options for the observer (which mutations to observe)
 		const config = { attributes: true, childList: true, subtree: true };
 
@@ -182,8 +187,11 @@ export const addTooltip = element => {
 					console.log("MutationObserver A child node has been added or removed.", mutation)
 				} else if (mutation.type === "attributes") {
 					console.log(`MutationObserver The ${mutation.attributeName} attribute was modified.`, mutation )
+				}else{
+					console.log(`MutationObserver was modified.`, mutation )
+					updateTooltipPositions()
 				}
-				onWindowResize()
+				
 			}
 		}
 
@@ -193,7 +201,7 @@ export const addTooltip = element => {
 		// Start observing the target node for configured mutations
 		bodyMutationObserver.observe(document.documentElement, config)
 
-
+		*/
 		tooltipsEnabled = true
 	}
 
@@ -288,7 +296,7 @@ export const removeTooltip = element => {
 		// remove the resize listener and stop monitoring for size changes
 		window.removeEventListener("resize", onWindowResize )
 		// stop observing body changes
-		bodyMutationObserver.disconnect()
+		// bodyMutationObserver.disconnect()
 	}
 }
 

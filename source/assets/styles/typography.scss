@@ -240,8 +240,9 @@ strong{
 	&:hover,
 	&:focus-visible{
 		color:var(--shade-active, red);
-		text-decoration-style: dashed;
+		// text-decoration-style: dashed;
 		text-decoration-color:  var(--shade-selected, red);
+		text-decoration-style: double;
 	}
 
 	&:focus-visible{
@@ -249,6 +250,7 @@ strong{
 	}
 	
 	&:active{
+		text-decoration-style: dashed;
 		color:var(--shade-active, red);
 	}
 }
