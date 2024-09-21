@@ -46,7 +46,7 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 
 // import WAM2Instrument from './audio/instruments/instrument.wam2'
 // import SampleInstrument from './audio/instruments/instrument.sample'
-import SoundFontInstrument from './audio/instruments/instrument.soundfont'
+// import SoundFontInstrument from './audio/instruments/instrument.soundfont'
 import MIDIInstrument from './audio/instruments/instrument.midi'
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 // import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
@@ -438,10 +438,14 @@ export default class Person{
 		return isLeftSide
 	}
 	
-
-	constructor(name, options={} ) {
+	constructor(name, options={}, saveData=undefined ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
+
+		if (saveData)
+		{
+			this.importData(saveData)
+		}
 
 		// ensure that the name is all lower case and kebabed
 		this.name = toKebabCase(name)
@@ -519,8 +523,42 @@ export default class Person{
 	 */
 	destroy(){
 
+		// kill instrument and disconnect from graph
 	}
 	
+	/**
+	 * 
+	 * @returns {Object}
+	 */
+	importData( data ){
+		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+		this.options.defaultInstrument = data.defaultInstrument
+		// which instrument preset to load?
+		this.options.defaultPreset = data.defaultPreset
+
+		this.options.saturation = data.saturation
+		this.options.luminosity = data.luminosity
+		this.options.hueRange = data.hueRange 
+		this.options.defaultHue = data.defaultHue
+	}
+
+	/**
+	 * Save this person as something that can be put in the state
+	 * @returns {String}
+	 */
+	exportData(){
+		return {
+			// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+			defaultInstrument:this.options.defaultInstrument,
+			// which instrument preset to load?
+			defaultPreset:this.options.defaultPreset,
+			
+			saturation : this.saturation,
+			luminosity : this.luminosity,
+			hueRange : this.hueRange,
+			defaultHue : this.hue,
+		}
+	}
 
 	/**
 	 * Set the internal State for this Person from the constants above
@@ -1467,12 +1505,11 @@ export default class Person{
 
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions )
-		
+		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, options.defaultPreset )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
 
 		// create a sample player, oscillator add all other instruments
-		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ) )
+		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ))
 	
 		console.info("Person created with active instrument", this.activeInstrument)
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
