@@ -254,11 +254,6 @@ export const createInterface = (
 	
 	const modelOptions = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS )
 
-	console.info(
-		"%c ",
-		`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`
-	)	
-	console.info("State created", {stateMachine, ui} )
 
 
 	// Record stuff
@@ -2974,7 +2969,12 @@ export const createInterface = (
 		// body.classList.toggle("loading", false)
 			
 
-		console.log( "Interface:half loaded... waiting for user response" )
+		console.info(
+			"%c ",
+			`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`,
+			"State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response"
+		)	
+		// console.info("State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response" )
 
 		// attempt to get player quantity and mouse event in one
 		// wait here until havePlayersBeenSelected = true

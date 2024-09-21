@@ -94,10 +94,8 @@ const start = () => {
 	const domainOptions = getDomainDefaults(HOST)
 	// now combine both data sets
 	const defaultOptions = { ...domainOptions }
-
 	// only overwrite objects with the same keys!
 	const validOptionKeys = Object.keys(defaultOptions)
-
 	// favour global options over domain options
 	Object.keys(globalOptions).forEach(key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null)
 
@@ -181,6 +179,8 @@ const start = () => {
 					}
 				})
 
+			const loadTime = Date.now() - startLoadTime
+			
 			// Load in in automation
 			const Attractor = (await import('./attractor')).default
 
@@ -241,7 +241,8 @@ const start = () => {
 			// Show hackers message to debuggers
 			if (debugMode) {
 
-				console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, last time was ${ secondsAgo} seconds ago`, { application, defaultOptions, referer: getReferer() })
+				console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
+				console.log({ application, defaultOptions, globalOptions, domainOptions, referer: getReferer() })
 				// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 			}
 
