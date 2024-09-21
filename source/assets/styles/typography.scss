@@ -223,22 +223,25 @@ strong{
 	font-weight: 900;
 }
 
-:where(p){
-	--font-scale:var(--s0);
+:where(a){
+	// --font-scale:var(--s0);
 	font-weight: 500;
 	text-decoration: none;
+	color: var(--shade-accent);
 	// color:var(--shade-dark, black);
 }
 
-p :where(a){
+:is(li,p) :where(a){
 	color:var(--shade-brand, var(--shade-accent, red));
 	text-decoration:underline ;
 	text-decoration-style: dotted;
+	text-decoration-color: currentColor;
 
 	&:hover,
 	&:focus-visible{
 		color:var(--shade-active, red);
 		text-decoration-style: dashed;
+		text-decoration-color:  var(--shade-selected, red);
 	}
 
 	&:focus-visible{
@@ -249,6 +252,8 @@ p :where(a){
 		color:var(--shade-active, red);
 	}
 }
+
+
 
 // inline links
 p :where(a){

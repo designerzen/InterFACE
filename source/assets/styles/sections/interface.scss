@@ -976,3 +976,64 @@ html.debug{
 		}
 	}
 }
+
+
+// Back to top ----------------------------------------------
+
+a.back-to-top{
+	flex:1 1 100%;
+	width:100%;
+	position: absolute;
+	bottom:0;
+	right:0;
+	
+	view-timeline: --backToTopReveal block;
+	animation-timeline: --backToTopReveal;
+	
+	animation-name: BackToTopReveal;
+	animation-fill-mode: both;
+	animation-duration: 1ms; /* Firefox requires this to apply the animation */
+}
+
+
+#licenses{
+	
+	// prevent it staying single line
+	max-inline-size: 55ex;
+}
+
+
+#hero{
+	order:-42;
+	display: grid;
+	grid-area: poster;
+	align-items: center;
+	justify-content: center;
+	grid-template-columns: auto;
+	grid-template-rows: auto;
+	//grid-area: 1/-1/ 1/-1;
+	width: 100%;
+}
+
+#pwa{
+	grid-area:menu;
+	display: flex;
+	width: 100%;
+	gap:var(--pad);
+	flex-wrap: wrap;
+	justify-content: stretch;
+}
+
+svg.hero-bumper{
+	margin:auto;
+	width: 100%;
+}
+
+.educate{
+	border-radius: 999px;
+    border: 1px solid transparent;
+	padding: 2px 1px 2px 3px;
+	&:hover,&:focus{
+		border-color:var(--shade-red);
+	}
+}
