@@ -2104,6 +2104,7 @@ export const createInterface = (
 			}
 		}
 	
+		
 		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
 		if (midiManager.available)
@@ -2142,6 +2143,7 @@ export const createInterface = (
 			main.classList.add('midi-unavailable')
 			setFeedback("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
 		}
+	
 
 		// PAW Integration
 		handlePWADataTypes()

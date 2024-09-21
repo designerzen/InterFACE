@@ -16,6 +16,9 @@ import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mous
 import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from './capabilities'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 
+import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		
+
 // TESTING
 // import createAppInterface from './interface.js'
 
@@ -116,7 +119,10 @@ const start = () => {
 
 			// import { createStore} from './store'
 			const { createStore } = await import('./utils/store')
-			const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+
+			// This is tweaking out :/
+			// const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+			
 			const store = createStore()
 			const title = document.title
 
