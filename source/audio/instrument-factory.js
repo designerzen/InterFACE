@@ -245,6 +245,7 @@ export default class InstrumentFactory{
 		{
 			throw Error("There is no instrument in the list with type "+type )
 		}
+		
 		// see if that preset exists!
 		const data = all[index]
 		if (!data)

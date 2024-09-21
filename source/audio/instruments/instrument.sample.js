@@ -238,7 +238,7 @@ export default class SampleInstrument extends Instrument{
 
 		try{
 			// FIXME: Send the -mp3 version...
-			this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, instrumentPack, progressCallback )
+			this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, "./assets/audio/" + instrumentPack, progressCallback )
 		
 		}catch(error){
 

@@ -310,7 +310,7 @@ export default class SoundFont{
 			// this is nice as it allows data to be streamed into the app in realtime
 			// and we can load the middle most fequently used samples first as a priority
 			// this results in far more requests but lower CPU usage and smoother transition
-			const audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, this.name, options, onProgressCallback )
+			const audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, "./assets/audio/"+ this.name, options, onProgressCallback )
 			
 			//this.instrument = await loadInstrumentFromSoundFont( presetName, this.name, this.context, onProgressCallback )
 			// const reload = await this.loadPack( this.instrumentPack, onProgressCallback  )
@@ -331,6 +331,9 @@ export default class SoundFont{
 
 			this.loading = false
 
+
+			console.error(  "failed to get audio from", data.location, this.name, {data} )
+
 			// try to understand what has failed here and communicate it back to the user...
 
 			// 1. ,
@@ -344,9 +347,14 @@ export default class SoundFont{
 				throw Error(`data.location of "${data.location}" could not be loaded, please check availability`)
 			}
 			
+			if (error && String(error).toLowerCase().indexOf("encoding") > -1)
+			{
+				throw Error("A Preset '"+presetName+"' was loaded but the data does not appear to contain audio. Perhaps a 404 html page was returned instead of your expected audio file?")	
+			}
+			
 			if ( !this.name || this.name.length < 1 )
 			{
-				throw Error("Not sure what happened there")	
+				throw Error("Not sure what happened but there is name associated with the instrument")	
 			}
 
 			console.error("Instrument failed",presetName, error )

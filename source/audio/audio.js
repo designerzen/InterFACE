@@ -553,7 +553,7 @@ export const loadInstrumentFromSoundFontSamples = async( context=audioContext, p
  * @param {?Function} onProgressCallback Optional callback to report progress
  * @returns {Object} Instrument information
  */
-export const loadInstrumentFromSoundFont = async ( context=audioContext, instrumentName="alto_sax-mp3", instrumentURI="FluidR3_GM", options={}, onProgressCallback=null ) => {	
+export const loadInstrumentFromSoundFont = async ( context=audioContext, instrumentName="alto_sax-mp3", instrumentURI="./assets/audio/FluidR3_GM", options={}, onProgressCallback=null ) => {	
 	
 	const title = instrumentName
 	// const family = getInstrumentFamily(instrumentName)
@@ -596,8 +596,9 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 	
 	}else{
 
+
 		// set the location that all the single instruments get loaded from...
-		const instrumentPath = `./assets/audio/${instrumentURI}/${instrumentName}`
+		const instrumentPath = `${instrumentURI}/${instrumentName}`
 		// load from multiple files from a dedicated folder on server
 		// TODO: 
 		instrumentAudioBuffers = options.usingWorker ? 
