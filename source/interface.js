@@ -229,6 +229,7 @@ export const createInterface = (
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( event => {
+		
 		const bookmark = state.asURI
 		console.info("State Changed", event )
 		//- console.info("State", state.serialised )
@@ -240,9 +241,6 @@ export const createInterface = (
 	//state.setDefaults(defaultOptions)
 	stateMachine.loadFromLocation(defaultOptions)
 
-	const drawEyes = stateMachine.get("eyes")
-	console.info("State created", {stateMachine, drawEyes} )
-	
 	
 	// updates the URL with the current state (true - encoded)
 	// this is useful as immediately after loading the page the URL will be the current state
@@ -252,11 +250,15 @@ export const createInterface = (
 	// Update UI - this will check all the inputs according to our state	
 	// states.updateFrontEnd()
 	
-
 	let ui = loadState( defaultOptions, main )
 	
 	const modelOptions = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS )
 
+	console.info(
+		"%c ",
+		`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`
+	)	
+	console.info("State created", {stateMachine, ui} )
 
 
 	// Record stuff
@@ -474,6 +476,9 @@ export const createInterface = (
 		
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
 
+		// TODO: load in from the URL and players
+		let savedData = undefined
+		
 		// TODO: Change these per person...
 		const personOptions = { 
 			...defaultOptions,
@@ -508,7 +513,7 @@ export const createInterface = (
 		const options = Object.assign ( {}, personOptions, savedOptions ) 
 		
 		// Create our person with the specified options
-		const person = new Person( name, options ) 
+		const person = new Person( name, options, savedData ) 
 
 		// see if there is a stored name for the instrument...
 		// FIXME: Look also in the midiPerformance for the first instrument
@@ -517,11 +522,7 @@ export const createInterface = (
 		
 		if (personOptions.debug)
 		{
-			console.info(
-				"%c ",
-				`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`
-			)	
-		
+			console.info("Created Person", person)
 			console.info(options)
 		}
 		
@@ -1847,7 +1848,6 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 		}
 
-		
 
 
 		console.info("PhotoSYNTH Screens available", initialDisplay ) 
@@ -3058,8 +3058,6 @@ export const createInterface = (
 				// , timeout
 			)
 		}
-
-
 
 		// Exit & save all cookies!
 		window.onbeforeunload = ()=>{

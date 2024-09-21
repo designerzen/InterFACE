@@ -3,11 +3,11 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 import { isProductionBuild } from '../utils/is-production'
 
 // sample string
-import {INSTRUMENT_TYPE_SAMPLE} from '../audio/instruments/instrument.sample.js'
 import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { DISPLAY_LOOKING_GLASS_3D } from '../display/display-looking-glass-3d.js'
 import { DISPLAY_MEDIA_VISION_2D } from '../display/display-mediavision-2d.js'
 import { TUNING_MODE_MAJOR, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
+import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-factory.js'
 
 const isDevelopmentMode = isProductionBuild()
 
@@ -399,11 +399,14 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// which instrument should each person load by default
 	// TODO: this is currently set for all users
-	defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-
 	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
-	//instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
+
+	// default person instument when a person is create
+	// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+	defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
+	// which instrument preset to load?
+	defaultPreset:0,
 
 	// this is the amount of decimal places used to smooth the mouth
 	// the higher the number the less smooth the output is
