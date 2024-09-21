@@ -1505,13 +1505,13 @@ export default class Person{
 
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, this.options.defaultPreset )	
+		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, this.options.defaultPreset )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
 
 		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ))
 	
-		console.info("Person created with active instrument", this.activeInstrument)
+		console.warn("Person created with active instrument", this.activeInstrument, this.options )
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )

@@ -99,7 +99,7 @@ export const showPlayerSelector = (options, state) => new Promise( (resolve,reje
 				buttonStart.value = `Start a Duet`
 				break
 			case 3:
-				labelForButtonStart.textContent = `Start ${advancedModeText} Trio${addendumText}}`
+				labelForButtonStart.textContent = `Start ${advancedModeText} Trio${addendumText}`
 				buttonStart.value = `Start a Trio`
 				break
 			case 4:

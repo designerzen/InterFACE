@@ -108,8 +108,9 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		if (tableSpeakers && (capabilities.webGL || capabilities.webGPU))
 		{
 			const speakersAvailability = tableSpeakers.querySelector("td."+RESULT )
-			speakersAvailability.textContent = "Available"
+			speakersAvailability.textContent = "Check you not muted"
 			speakersAvailability.classList.remove(NOT_AVAILABLE)
+			speakersAvailability.classList.toggle(AVAILABLE, true)
 			speakersAvailability.classList.remove(CHECKING)
 		}else{
 			// NONE FATAL ERROR! No WEBGL so use canvas fallback
