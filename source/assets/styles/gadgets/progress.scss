@@ -374,12 +374,12 @@ progress[value="1"] + label{
 // some background loading so we animate the smiler
 .player-selection #load-progress{
 
-	top:-7px;//var(--pad);
-	left:82px;
+	// top:-7px;//var(--pad);
+	// left:82px;
 	
 	position: fixed;
 	left: var(--pad);
-	top: 0;
+	top: var(--pad);
 
 	transform:none;
 	margin:0;
@@ -395,9 +395,14 @@ progress[value="1"] + label{
 	progress{
 		grid-area:1/-1;
 		margin:0;
-		--size:88px;
-		--stroke: 32px;
+		--size: 59px;
+		--stroke: 16px;
+		/* border: 1px solid red; */
+		// margin-top: 10px;
+		// make into mouth!
+		transform: rotate(0.5turn) scale(0.8);
 	}
+
 	progress[value="1"]{
 		opacity: 0;
 	}
@@ -406,6 +411,8 @@ progress[value="1"] + label{
 		grid-area:1/-1;
 		font-size: 0;
 		align-self:flex-end;
+		margin:0;
+		color:currentColor;
 		// mix-blend-mode:hard-light;
 	}
 	.load-percent{

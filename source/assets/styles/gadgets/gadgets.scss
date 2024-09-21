@@ -183,9 +183,9 @@ a[href="#help"]{
 		// aspect-ratio: 1;
 		// background-size: contain;
 		color:var(--shade-red);
-		background-color: var(--shade-white);
+		background-color: rgba(225,225,225,0.2);
 		border-radius: 99%;
-		border:5px solid currentColor;
+		border:var(--stroke, 4px) solid currentColor;
 	
 		//filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(0px 0px 6px rgba(0, 0, 0, var(--alpha-shadow,0.5)));
 		// margin-right:calc( 0.5 * var(--pad) );
@@ -212,14 +212,16 @@ a[href="#fund"]{
 	align-items:center;
 	flex-direction: column-reverse;
 	
-	padding:0 6px;
+	padding:0;// 6px;
 	margin-top:var(--pad);
 	position: relative;
 
 	// border:1px solid var(--shade-red, transparent);
 	border-radius: 999px;
 
-	background-color: var(--shade-white, white);
+	// background-color: var(--shade-white, white);
+	background-color: rgba(225,225,225,0.2);
+		
 	// background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
 	background-image:url(/source/assets/logos/interface_colour.svg);
 	background-position: top 85% center;
@@ -238,34 +240,30 @@ a[href="#fund"]{
 	animation-timing-function: var(--ease-out-back);
 	
 	filter:drop-shadow(0.15rem 0.15rem 0.4rem rgba(0, 0, 0, 0.5));
-		
-	> *,
-	&::before, &::after{
-		
-	}
 
 	// show a graphic but hide contents
 	&::before, &::after{
 		transition: var(--ease-s) linear opacity;
-		opacity:0;
-		grid-area: 1/1/-1/-1;
+		// opacity:0;
+		// grid-area: 1/1/-1/-1;
 		z-index:3;
 	}
 
 	// animation: Fade var(--ease-s) linear var(--delay) 1 normal both;
 		
-	// Overlaid logo
+	// spacer
 	&:before{
+		content:'';
 		--opacity:0.8;
 		--delay:0s;
+		width:100%;
+		padding-bottom: 100%;
+		display: block;
 		
 		// flex-shrink:0;
 		// position: absolute;
 		// top:-7px;
 		// right:8px;
-	
-		
-	
 		// content:'';//url(source//assets/logos/interface_colour.svg);
 		// content:url(/source//assets/logos/interface_current-color.svg);
 	}

@@ -5,7 +5,7 @@
 
 	color:$col-brown;
 	
-	border-top:var(--border);
+	// border-top:var(--border);
 
 	display: flex;
 	box-sizing: border-box;
@@ -95,7 +95,6 @@
 	small{
 		display:flex;
 		align-items: center;
-		
 		padding-top:var(--pad);
 		
 		// ensure this is in front of the back to top
