@@ -113,6 +113,7 @@ export const setToast = createTip( toastElement )
 const tooltips = new Map()
 const tooltipPositions = new Map()
 let tooltipsEnabled = false
+let bodyMutationObserver
 
 /**
  * set the style of the tooltip to the x/y coords
@@ -120,10 +121,13 @@ let tooltipsEnabled = false
  * @param {HTMLElement} target 
  */
 const setToolTipPosition = (target, anchor="") => {
-	toastElement.setAttribute(
-		"style", 
-		`--left: ${target.x ?? target.offsetLeft};--top: ${target.y ??target.offsetTop};` 
-	)
+	
+	requestAnimationFrame( e => {
+		toastElement.setAttribute(
+			"style", 
+			`--left: ${target.x ?? target.offsetLeft};--top: ${target.y ??target.offsetTop};` 
+		)
+	})
 
 	// Object.assign(toastElement.style, {
     //     "--left": target.offsetLeft,
@@ -131,41 +135,65 @@ const setToolTipPosition = (target, anchor="") => {
     // })
 }
 
+const onWindowResize = event => {
+	// console.log("onWindowResize", event)
+	// TODO: Wait one frame before updating
+	tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
+}
+// position-anchor
+const getPositionForTooltip = target => {
+	const e = target.getBoundingClientRect().toJSON() 
+	return { ...e, 
+		x:e.x + e.width/2, 
+		//y:e.y + e.height/2
+	}
+	return {
+		x:target.offsetLeft,
+		y:target.offsetTop
+	}
+}
+
+const setTipSourcePosition = target => {
+	const targetElement = 
+		target.nodeName === "BUTTON" ? 
+			target : target.parentElement 
+
+	tooltipPositions.set( target, getPositionForTooltip(targetElement) )
+}
+
 /**
+ * 
  * adds a single tooltip to an element where hovering will reveal new info
  * @param {HTMLElement} controls DOM element to search within
  */
 export const addTooltip = element => { 
-
-	const setTipSourcePosition = target => {
-		const targetElement = 
-			target.nodeName === "BUTTON" ? 
-				target : target.parentElement 
-
-		tooltipPositions.set( target, getPositionForTooltip(targetElement) )
-	}
-
-	// position-anchor
-	const getPositionForTooltip = target => {
-		const e = target.getBoundingClientRect().toJSON() 
-		return { ...e, 
-			x:e.x + e.width/2, 
-			//y:e.y + e.height/2
-		}
-		
-		return {
-			x:target.offsetLeft,
-			y:target.offsetTop
-		}
-	}
-
 	// lazy create our observer
 	if (tooltips.size === 0)
 	{
-		window.addEventListener("resize", e => {
-			// TODO: Wait one frame before updating
-			tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
-		})
+		window.addEventListener("resize", onWindowResize )
+	
+		// Options for the observer (which mutations to observe)
+		const config = { attributes: true, childList: true, subtree: true };
+
+		// Callback function to execute when mutations are observed
+		const callback = (mutationList, observer) => {
+			for (const mutation of mutationList) {
+				if (mutation.type === "childList") {
+					console.log("MutationObserver A child node has been added or removed.", mutation)
+				} else if (mutation.type === "attributes") {
+					console.log(`MutationObserver The ${mutation.attributeName} attribute was modified.`, mutation )
+				}
+				onWindowResize()
+			}
+		}
+
+		// Create an observer instance linked to the callback function
+		bodyMutationObserver = new MutationObserver(callback)
+
+		// Start observing the target node for configured mutations
+		bodyMutationObserver.observe(document.documentElement, config)
+
+
 		tooltipsEnabled = true
 	}
 
@@ -253,6 +281,14 @@ export const removeTooltip = element => {
 	{
 		callback()
 		tooltips.delete(element)
+	}
+
+	if (tooltips.size === 0)
+	{
+		// remove the resize listener and stop monitoring for size changes
+		window.removeEventListener("resize", onWindowResize )
+		// stop observing body changes
+		bodyMutationObserver.disconnect()
 	}
 }
 
