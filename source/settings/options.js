@@ -258,6 +258,11 @@ export const getDomainDefaults = (name = '') => {
 	return getFactoryDefaults()
 }
 
+import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
+
+export const INSTRUMENT_OPTIONS = {
+	list:INSTRUMENTS_LIST_LOCATION
+}
 
 
 

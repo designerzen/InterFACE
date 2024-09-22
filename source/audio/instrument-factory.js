@@ -10,6 +10,7 @@ factory.loadInstrument(0)
 
 */
 
+import { fetchJSON } from "../utils/fetch.js"
 import SoundFontInstrument from "./instruments/instrument.soundfont"
 // import WAMInstrument from "./instruments/instrument.wam"
 // import WAM2Instrument from "./instruments/instrument.wam2"
@@ -161,6 +162,7 @@ export default class InstrumentFactory{
 	 */
 	async loadList( listURIorJSON )
 	{
+		
 		if (typeof listURIorJSON === "string")
 		{
 			// check if it is JSON data...
@@ -170,11 +172,17 @@ export default class InstrumentFactory{
 				this.instrumentList = JSON.parse(listURIorJSON)
 
 			}else{
-
+				debugger
 				// if it is a URi... load in from JSON data
-				const listRequest = await fetch(listURIorJSON)
-				const listData = await listRequest.json()
-				this.instrumentList = listData
+				try{
+					console.error("Loading instrument list from JSON data", listURIorJSON)
+					this.instrumentList = await fetchJSON(listURIorJSON)
+					console.error("Loaded instrument list from JSON data", this) 
+					
+				}catch(error){
+					console.error("Error loading instrument list!", error)
+					// throw Error("Could not find that list")
+				}
 			}
 		
 		}else if (typeof listURIorJSON === "object" && Array.isArray(listURIorJSON) ){
@@ -183,6 +191,7 @@ export default class InstrumentFactory{
 			this.instrumentList = listURIorJSON
 
 		}else{
+
 			// No list found???
 			throw Error("Could not find that list")
 		}

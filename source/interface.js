@@ -3,7 +3,6 @@ import 'audioworklet-polyfill'
 // import {midiLikeEvents} from './timing/rhythm'
 import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState } from './utils/state'
 
-
 // TODO :lazy load
 import { say, hasSpeech} from './audio/speech'
 
@@ -31,6 +30,7 @@ import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-cre
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
 // Different ways of playing sound!
+// TODO: Replace with instrumentFactory
 import SampleInstrument from './audio/instruments/instrument.sample'
 // import MIDIInstrument from './audio/instruments/instrument.midi'
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
@@ -120,6 +120,8 @@ import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.pe
 
 import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
 import Capabilities from './capabilities.js'
+import { loadInstrumentsList } from './settings/options.instruments.js'
+import InstrumentFactory from './audio/instrument-factory.js'
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
@@ -157,6 +159,7 @@ export const createInterface = (
 	defaultOptions, 
 	store, 
 	capabilities,
+	instrumentListURIorObject,
 	MIDIConnectionClasses = [],
 	language = "en-GB",
 	onLoadProgress = null
@@ -186,6 +189,9 @@ export const createInterface = (
 
 	// where we extract the face data from
 	let inputElement = video // image
+
+	// JSON object of available instruments
+	let instrumentList
 
 	// dom elements wrapped in js
 	let camera
@@ -266,7 +272,7 @@ export const createInterface = (
 		encodeRecording, 
 		downloadRecording
 	} = recordAudio()
-
+	
 	// collection of persons
 	const people = []
 
@@ -278,7 +284,7 @@ export const createInterface = (
 	let midiButton
 	let midiDevices = []
 
-
+	// MIDI File ---
 	// load MIDI Track model midi track  / save midi track
 	let midiPerformance
 	let samplePlayer
@@ -314,16 +320,16 @@ export const createInterface = (
 	let hasBeatJustPlayed = false
 	let ultimateFailure = false
 	let noFacesFound = false
-	let userLocated = false
+	let isPersonLocatable = false
 
 	let isMIDIAvailable = false
+
 	let isCameraLoading = true
 	// if the user leaves the tab or removes their face from the frame
 	let isUserActive = false
 
 	let recordRequested = false
 	let recordCancelRequested = false
-
 
 	// for disco mode!
 	const cameraPan = {x:1,y:1}
@@ -1650,7 +1656,7 @@ export const createInterface = (
 						main.classList.toggle( `no-faces`, false)
 					}
 
-					userLocated = true
+					isPersonLocatable = true
 					haveFacesBeenDetected = true
 
 					// first update the person - this allows us to sing at will
@@ -1816,8 +1822,10 @@ export const createInterface = (
 	*/
 	const setup = async (fetchPredictions, settings, progressCallback) => {
 
-		const loadTotal = 8
+		const loadTotal = 9
 		let loadIndex = 0
+
+		// --------------------------------------------------------------------------------
 
 		let initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 
@@ -1843,10 +1851,24 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 		}
 
-
-
 		console.info("PhotoSYNTH Screens available", initialDisplay ) 
 
+		// --------------------------------------------------------------------------------
+		const instrumentFactory = new InstrumentFactory(audioContext)
+		try{
+			
+			instrumentFactory.loadList(instrumentListURIorObject)
+			instrumentList = instrumentFactory.list
+			progressCallback(loadIndex++/loadTotal, "Loaded Instrument List")
+			console.info("PhotoSYNTH Instruments Available", {instrumentList,  instrumentListURIorObject} )  
+			
+		}catch(error){
+
+			progressCallback(loadIndex++/loadTotal, "Instrument List Not Found!")
+			console.info("PhotoSYNTH Instruments Unavailable", error)	
+		}
+		
+		// --------------------------------------------------------------------------------
 
 		fetchPredictionFromEngine = fetchPredictions
 		
@@ -2784,7 +2806,7 @@ export const createInterface = (
 	// loop until loaded...
 	const loadingLoop = async () => {
 
-		console.log("loading", {isLoading, userLocated, isCameraLoading})
+		console.log("loading", {isLoading, userLocated: isPersonLocatable, isCameraLoading})
 		if ( isLoading )
 		{ 
 			requestAnimationFrame( loadingLoop ) 
@@ -2812,7 +2834,7 @@ export const createInterface = (
 
 		const SEARCHING_FOR_USERS_CLASS = "searching-for-user"
 		const waitForUser = () => {
-			if (!userLocated)
+			if (!isPersonLocatable)
 			{
 				requestAnimationFrame( waitForUser ) 
 

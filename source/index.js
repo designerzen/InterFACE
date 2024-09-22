@@ -8,7 +8,7 @@ import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from '
 import { setLoadProgress } from './dom/load-progress'
 import { VERSION } from './version'
 import { getBrowserLocales } from './locales/i18n.js'
-import { getDomainDefaults } from './settings/options'
+import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
 import { showError } from './dom/errors'
 import { addToolTips, setToast } from './dom/tooltips'
@@ -18,7 +18,6 @@ import { updateCapabalitiesTable } from './dom/compatability.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 		
-
 // TESTING
 // import createAppInterface from './interface.js'
 
@@ -109,6 +108,8 @@ const start = () => {
 	let startLoadTime = Date.now()
 	let failed = false
 
+	
+
 	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
 
 	// Lazy load the main interface code
@@ -130,6 +131,8 @@ const start = () => {
 				defaultOptions,
 				store,
 				capabilities,
+				/* You can pass in an object or a string! */
+				INSTRUMENT_OPTIONS.list,
 				[WebMIDIClass],
 				language,
 				(loadProgress, message, hideLoader = false) => {

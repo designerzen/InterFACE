@@ -5,7 +5,8 @@
 
 	color:$col-brown;
 	
-	// border-top:var(--border);
+	border-top:var(--border);
+	border-color: transparent;
 
 	display: flex;
 	box-sizing: border-box;
@@ -173,5 +174,19 @@
 
 	a:hover, a:focus{
 		color:var(--shade-red);
+	}
+}
+
+// ariants of the footbar depending on the state
+.loading #foot{
+	border-color:var(--shade-dark, black);
+}
+
+.player-selection #foot{
+	// border-color:var(--shade-dark, black);
+	.link-copyright{
+		&::before{
+			filter: invert(1);
+		}
 	}
 }

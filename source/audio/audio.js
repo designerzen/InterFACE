@@ -583,7 +583,7 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 		...options
 	}
 
-	// console.error("AudioContext" , typeof options.offlineAudioContext )
+	console.error("loadInstrumentFromSoundFont:" , options ) 
 	
 	let instrumentAudioBuffers
 

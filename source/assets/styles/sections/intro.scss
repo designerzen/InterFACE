@@ -260,7 +260,6 @@
 
 	th {
 		text-align: right;
-		vertical-align: middle;
 	}
 
 	small{
@@ -280,6 +279,8 @@
 		background-position: center;
 		background-size: contain;
 		background-repeat: no-repeat;
+		vertical-align: middle;
+		vertical-align: text-top;
 	}
 
 	.result::before{

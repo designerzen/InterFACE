@@ -11,11 +11,25 @@ export const INSTRUMENT_PACK_FATBOY = "FatBoy"
 export const INSTRUMENT_PACK_MUSYNGKITE = "MusyngKite"
 export const INSTRUMENT_PACK_OPEN_SF = "OpenGM24"
 
-// Sound font settings 
+
+// Primary SoundFont - an amalgamation of nice sounds
+// which has open licens so can be used freely
+export const OPEN_SF_JSON = {
+	title:INSTRUMENT_PACK_OPEN_SF,
+	filename:`${INSTRUMENT_PACK_OPEN_SF}.json`,
+	location:"./assets/audio/"
+}
+
+export const OPEN_SF_JS = {
+	title:INSTRUMENT_PACK_OPEN_SF,
+	filename:`${INSTRUMENT_PACK_OPEN_SF}.js`,
+	location:"./assets/audio/"
+}
+
 export const SOUNDFONT_FM_JS = {
 	title:INSTRUMENT_PACK_FM,
 	filename:`${INSTRUMENT_DATA_PACK_FM}.js`,
-	location:"./"
+	location:"./assets/audio/"
 }
 
 export const SOUNDFONT_FM_JSON = {
@@ -30,17 +44,6 @@ export const SOUNDFONT_FATBOY_JS = {
 	location:"./assets/audio/"
 }
 
-export const OPEN_SF_JSON = {
-	title:INSTRUMENT_PACK_FATBOY,
-	filename:`${INSTRUMENT_DATA_PACK_FATBOY}.json`,
-	location:"./assets/audio/"
-}
-
-export const OPEN_SF_JS = {
-	title:INSTRUMENT_PACK_OPEN_SF,
-	filename:`${INSTRUMENT_DATA_PACK_FATBOY}.js`,
-	location:"./assets/audio/"
-}
 
 export const SOUNDFONT_FATBOY_JSON = {
 	title:INSTRUMENT_PACK_FATBOY,
