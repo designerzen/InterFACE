@@ -155,7 +155,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			}	
 
 			fetch(DATA_SOURCE).then(response => {
-				debugger
+				console.error("LOADIG DATA FOR WEBGL 3D!")
 				DATA = response.json()
 				this.loadComplete("ready")
 			}).catch(error => {

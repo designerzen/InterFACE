@@ -259,7 +259,7 @@ export const getDomainDefaults = (name = '') => {
 }
 
 import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
-
+console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
 export const INSTRUMENT_OPTIONS = {
 	list:INSTRUMENTS_LIST_LOCATION
 }
