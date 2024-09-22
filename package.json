@@ -83,7 +83,7 @@
     "clear": "npm run clean && npm run copy",
     "doc": "jsdoc -d docs --configure .jsdoc.json source/interface.js",
     "=SERVE=": "------------------------------------",
-    "serve": "parcel serve -p 909 --target web",
+    "serve": "npm run copy && parcel serve -p 909 --target web",
     "serve:index": "parcel serve source/index.pug -p 909",
     "serve:tests": "parcel serve source/tests.pug -p 909",
     "serve:wam": "parcel serve source/tests.pug -p 909",

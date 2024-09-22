@@ -187,6 +187,7 @@ export default class SoundFont{
 			descriptorURI = pack
 		}
 
+		debugger
 		//  load JSON description from the specified location
 		const descriptor = await loadInstrumentDataPack( descriptorURI, undefined, packURI )
 		

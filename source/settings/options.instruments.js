@@ -14,13 +14,13 @@ export const INSTRUMENT_PACK_OPEN_SF = "OpenGM24"
 
 // Primary SoundFont - an amalgamation of nice sounds
 // which has open licens so can be used freely
-export const OPEN_SF_JSON = {
+export const SOUNDFONT_OPEN_SF_JSON = {
 	title:INSTRUMENT_PACK_OPEN_SF,
 	filename:`${INSTRUMENT_PACK_OPEN_SF}.json`,
 	location:"./assets/audio/"
 }
 
-export const OPEN_SF_JS = {
+export const SOUNDFONT_OPEN_SF_JS = {
 	title:INSTRUMENT_PACK_OPEN_SF,
 	filename:`${INSTRUMENT_PACK_OPEN_SF}.js`,
 	location:"./assets/audio/"

@@ -18,13 +18,19 @@ import audioDecoder from 'audio-decode'
 import { convertArrayToBuffer } from "./audio.js"
 
 import { 
-	INSTRUMENT_DATA_PACK_FATBOY, INSTRUMENT_DATA_PACK_FM, INSTRUMENT_DATA_PACK_MUSYNGKITE, 
-	INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, 
-	SOUNDFONT_FATBOY_JSON, SOUNDFONT_FM_JSON, SOUNDFONT_MUSYNGKITE_JSON 
+	INSTRUMENT_DATA_PACK_OPEN_SF, INSTRUMENT_DATA_PACK_FATBOY, INSTRUMENT_DATA_PACK_FM, INSTRUMENT_DATA_PACK_MUSYNGKITE, 
+	INSTRUMENT_PACK_OPEN_SF, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, 
+	SOUNDFONT_OPEN_SF_JSON, SOUNDFONT_FATBOY_JSON, SOUNDFONT_FM_JSON, SOUNDFONT_MUSYNGKITE_JSON 
 } from "../settings/options.instruments.js"
 
-export const INSTRUMENT_PACKS = [INSTRUMENT_PACK_FM, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_MUSYNGKITE]
+export const INSTRUMENT_PACKS = [
+	INSTRUMENT_PACK_OPEN_SF,
+	INSTRUMENT_PACK_FM, 
+	INSTRUMENT_PACK_FATBOY, 
+	INSTRUMENT_PACK_MUSYNGKITE
+]
 export const INSTRUMENT_DATA_PACKS = [
+	SOUNDFONT_OPEN_SF_JSON,
 	SOUNDFONT_FM_JSON.filename, 
 	SOUNDFONT_FATBOY_JSON.filename, 
 	SOUNDFONT_MUSYNGKITE_JSON.filename
@@ -34,6 +40,18 @@ export const INSTRUMENT_DATA_PACKS = [
 export let instrumentFolders = SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS.map( instrumentFolder => instrumentFolder+`-mp3`)
 // nice names for the above
 export let instrumentNames = instrumentFolders.map( (instrument, index) => GENERAL_MIDI_INSTRUMENTS[index] )
+
+
+// const DEFAULT_SOUNDFONT_HOST = " https://gleitz.github.io/midi-js-soundfonts/"
+const DEFAULT_SOUNDFONT_HOST = " https://paulrosen.github.io/midi-js-soundfonts/"
+
+// https://paulrosen.github.io/midi-js-soundfonts/abcjs/
+const DEFAULT_SOUNDFONT_STRING_OPTIONS = {
+	soundfont : INSTRUMENT_PACK_MUSYNGKITE,
+	uri: DEFAULT_SOUNDFONT_HOST,
+	suffix:".js",
+	url:(uri, soundfont, instrumentNameAndFormat, suffix='.js')=>  `${uri}${soundfont}/${instrumentNameAndFormat}${suffix}`
+}
 
 // combine those 2 together
 
@@ -244,17 +262,6 @@ export const decodeAudioDataIntoBuffers = async (buffersData, asBuffer=false, on
 
 	await Promise.all( loading )
 	return buffers
-}
-
-// const DEFAULT_SOUNDFONT_HOST = " https://gleitz.github.io/midi-js-soundfonts/"
-const DEFAULT_SOUNDFONT_HOST = " https://paulrosen.github.io/midi-js-soundfonts/"
-
-// https://paulrosen.github.io/midi-js-soundfonts/abcjs/
-const DEFAULT_SOUNDFONT_STRING_OPTIONS = {
-	soundfont : INSTRUMENT_PACK_MUSYNGKITE,
-	uri: DEFAULT_SOUNDFONT_HOST,
-	suffix:".js",
-	url:(uri, soundfont, instrumentNameAndFormat, suffix='.js')=>  `${uri}${soundfont}/${instrumentNameAndFormat}${suffix}`
 }
 
 /**
