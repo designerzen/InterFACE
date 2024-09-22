@@ -479,10 +479,28 @@ export const createInterface = (
 
 		// TODO: load in from the URL and players
 		let savedData = undefined
+
+		const locationOptions = new URLSearchParams(window.location.search)
+		const locationData = Object.fromEntries(locationOptions)
+
+		// 
+		const prefix = name + '-'
+		const locationInstrument= locationData[prefix+'instrument' ]
+		const locationPreset= locationData[prefix+'preset' ]
+	
+		// look for preset
+		console.error(personIndex+"PERSON Creating, Please check DATA", {locationData, locationOptions, locationInstrument, locationPreset} )
+		// const NAMES[personIndex]
+
+		// check URL for saved options
+		// defaultPreset:this.options.defaultPreset,
+		// defaultInstrument:this.options.defaultInstrument
 		
 		// TODO: Change these per person...
 		const personOptions = { 
+			
 			...defaultOptions,
+
 			dots:eyeColour, 
 			leftEyeIris:eyeColour, 
 			rightEyeIris:eyeColour,
@@ -506,19 +524,25 @@ export const createInterface = (
 			// drawNodes:ui.masks,
 			drawEyes:ui.eyes,
 
-			recordData:ui.recordData
+			recordData:ui.recordData,
 		}
 
 		// Load any saved settings for this specific user name
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
-		const options = Object.assign ( {}, personOptions, savedOptions ) 
+		const options = Object.assign ( {}, savedOptions, personOptions ) 
 		
 		// Create our person with the specified options
 		const person = new Person( name, options, savedData ) 
 
 		// see if there is a stored name for the instrument...
 		// FIXME: Look also in the midiPerformance for the first instrument
-		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || getRandomInstrument() )
+		const presetName = midiPerformance ? 
+			midiPerformance.instruments[0] : 
+			locationPreset ?? 
+			savedOptions.instrument ?? 
+			getRandomInstrument()
+
+		const preset = getFolderNameForInstrument( presetName )
 		//console.error("Person created", {instrument}, {person})
 		
 		if (personOptions.debug)
@@ -558,8 +582,11 @@ export const createInterface = (
 		person.setupAudio(audioContext, audioChain, offlineAudioContext).then(async()=>{
 			// the above command should initalise a default sample player rendering the following line obsolete
 			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
-			await person.loadPreset( instrument )
-			console.error("Loaded Preset for Person", { person, instrument })
+			await person.loadPreset( preset )
+
+			// FIXME: now append this person's options to the URL
+			const personExportData = person.exportData()
+			console.error("Loaded Preset for Person", { person, personExportData, preset })
 		})
 		
 		/*

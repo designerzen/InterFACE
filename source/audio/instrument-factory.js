@@ -172,12 +172,12 @@ export default class InstrumentFactory{
 				this.instrumentList = JSON.parse(listURIorJSON)
 
 			}else{
-				debugger
+				
 				// if it is a URi... load in from JSON data
 				try{
-					console.error("Loading instrument list from JSON data", listURIorJSON)
+					//console.error("Loading instrument list from JSON data", listURIorJSON)
 					this.instrumentList = await fetchJSON(listURIorJSON)
-					console.error("Loaded instrument list from JSON data", this) 
+					console.error("Loaded instrument list from JSON data",{listURIorJSON, list:this.instrumentList}, this) 
 					
 				}catch(error){
 					console.error("Error loading instrument list!", error)
@@ -206,6 +206,8 @@ export default class InstrumentFactory{
 				this.instrumentData.set( instrument.type, [...(this.instrumentData.get(instrument.type) ?? []), instrument] )
 				this.instruments.set( instrument.name, instrument )
 			})
+		}else{
+			console.error("No instrument list could be decoded", this.instrumentList)
 		}
 
 		// NB. may return undefined if no instrument List was available
@@ -239,10 +241,10 @@ export default class InstrumentFactory{
 	 * 
 	 * @param {String} type 
 	 * @param {Object} options 
-	 * @param {Number} index 
+	 * @param {Number} presetIndex 
 	 * @returns 
 	 */
-	async loadInstrumentByType( type, options={}, index=0 ){
+	async loadInstrumentByType( type, options={}, presetIndex=0 ){
 		if (!this.instrumentData)
 		{
 			throw Error("No instruments loaded, call factory.loadList() to load in a data set before calling factory.loadInstrumentByType()")
@@ -256,10 +258,10 @@ export default class InstrumentFactory{
 		}
 		
 		// see if that preset exists!
-		const data = all[index]
+		const data = all[presetIndex]
 		if (!data)
 		{
-			throw Error("There is no instrument in the list at index "+index )
+			throw Error("There is no instrument in the list at index "+presetIndex )
 		}
 		return await createInstrumentFromData( this.audioContext, {...data, ...options } )
 	}

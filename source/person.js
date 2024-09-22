@@ -530,34 +530,53 @@ export default class Person{
 	 * 
 	 * @returns {Object}
 	 */
-	importData( data ){
-		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-		this.options.defaultInstrument = data.defaultInstrument
-		// which instrument preset to load?
-		this.options.defaultPreset = data.defaultPreset
+	importData( data, prefix='' ){
 
-		this.options.saturation = data.saturation
-		this.options.luminosity = data.luminosity
-		this.options.hueRange = data.hueRange 
-		this.options.defaultHue = data.defaultHue
+		// convert data.... can be string or object
+		if (typeof data === 'string')
+		{
+			data = JSON.parse(data)
+		}
+		
+		prefix = prefix.length > 0 ? 
+			prefix+'-' : 
+			this.name+'-'
+
+		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+		this.options.defaultInstrument = data[prefix+'instrument']
+		// which instrument preset to load?
+		this.options.defaultPreset = data[prefix+'preset' ]
+
+		this.options.saturation = data[prefix+'sat' ]
+		this.options.luminosity = data[prefix+'lum' ]
+		this.options.hueRange = data[prefix+'range' ]
+		this.options.defaultHue = data[prefix+'hue' ]
 	}
 
 	/**
 	 * Save this person as something that can be put in the state
 	 * @returns {String}
 	 */
-	exportData(){
-		return {
+	exportData(prefix='', asURL=false){
+
+		prefix = prefix.length > 0 ? 
+			prefix+'-' : 
+			this.name+'-'
+
+		const data = {
 			// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-			defaultInstrument:this.options.defaultInstrument,
+			[prefix+'instrument']:this.options.defaultInstrument, 
+			// FIXME: GET THIS FROM THE ACTIVE INSTRUMENT!
 			// which instrument preset to load?
-			defaultPreset:this.options.defaultPreset,
+			[prefix+'preset']:this.activeInstrument.instrumentIndex ?? this.options.defaultPreset,
 			
-			saturation : this.saturation,
-			luminosity : this.luminosity,
-			hueRange : this.hueRange,
-			defaultHue : this.hue,
+			[prefix+'sat'] : this.saturation,
+			[prefix+'lum'] : this.luminosity,
+			[prefix+'range'] : this.hueRange,
+			[prefix+'hue'] : this.hue,
 		}
+
+		return asURL ?  new URLSearchParams(data)  : data
 	}
 
 	/**
@@ -1497,7 +1516,10 @@ export default class Person{
 
 		// TODO: 
 		const samplePlayerOptions = {
-			offlineAudioContext
+			...this.options,
+			offlineAudioContext,
+			defaultPreset:this.options.defaultPreset,
+			defaultInstrument:this.options.defaultInstrument
 		}
 
 		const instrumentFactory = new InstrumentFactory(audioContext)
@@ -1505,13 +1527,13 @@ export default class Person{
 
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, this.options.defaultPreset )	
+		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, 0 )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
 
 		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ))
 	
-		console.warn("Person created with active instrument", this.activeInstrument, this.options )
+		console.warn("Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )

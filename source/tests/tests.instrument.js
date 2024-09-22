@@ -219,8 +219,6 @@ const setup = async () => {
 	// load instrument and populate the panels
 	await swapToInstrument( controlsForLeftSide, new SynthesizerInstrument(audioContext) )
 	
-	debugger
-	
 	return true
 }
 

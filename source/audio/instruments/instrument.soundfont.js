@@ -26,7 +26,7 @@ const GM_INSTRUMENT_FOLDERS = getGeneralMIDIInstrumentFolders()
 // must provide both
 const DEFAULT_OPTIONS = {
 	// specify the location as part of the pack...
-	pack:INSTRUMENT_PACKS[0],
+	instrumentPack:INSTRUMENT_PACKS[0],
 	// preset to load on construction
 	preset:GM_INSTRUMENT_NAMES[0],
 	offlineAudioContext:null,
@@ -66,7 +66,18 @@ export default class SoundFontInstrument extends SampleInstrument{
 
 		super(audioContext, {...DEFAULT_OPTIONS, ...options})
 
+
+		console.error( "zen look here", DEFAULT_OPTIONS, options)
+
 		this.available = false
+
+		// if we have a preset number, set it
+		if (!isNaN(options.defaultPreset))
+		{
+			this.instrumentIndex = options.defaultPreset
+		}else if (typeof options.defaultPreset === "string"){
+			this.instrumentIndex = this.getIndexFromName( options.defaultPreset)
+		}
 
 		// use the provided soundfont class or else create a new instance
 		// and set it with the offlineAudioCoontext if set as an option,
@@ -76,11 +87,11 @@ export default class SoundFontInstrument extends SampleInstrument{
 		
 		// attempt to load "pack" provided - this can come in various forms
 		// see below in loadFont for the various options
-		if (this.options.pack)
+		if (this.options.instrumentPack)
 		{
 			// you can use an offline context too...	
 			// as this is an immediate load, we can use the JS rather than MP3s...
-			this.loadFont( this.options.pack, this.options ).then((font)=>{
+			this.loadFont( this.options.instrumentPack, this.options ).then((font)=>{
 
 				this.available = true
 
@@ -126,6 +137,12 @@ export default class SoundFontInstrument extends SampleInstrument{
 		return -1
 	}
 
+	/**
+	 * 
+	 * @param {Number} noteNumber 
+	 * @param {Number} velocity 
+	 * @returns 
+	 */
 	async noteOn(noteNumber, velocity=1){
 		const index = convertMIDINoteNumberToName(noteNumber)
 		const audioBuffer = this.instrument[index]
@@ -169,8 +186,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 
 		// }else
 		
-		if (pack.indexOf(".json") === -1){
-
+		if (pack.indexOf(".json") === -1)
+		{
 			// pack is either by name?
 			const index = INSTRUMENT_PACKS.indexOf(pack)
 			if (index > -1)
@@ -209,27 +226,30 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// load selected instrument
 
 		// const reload = await this.loadPack( this.instrumentPack, onProgress  )
+		
+		// This should really come in from the options
+		const fontDescriptor = {
+			descriptor: this.instrumentPack, 
+			descriptorPath:'./assets/audio/'
+		}
 
 		// load in a sound font - this can be either a fully qualified url
 		// a relative uri or the name of the pack
-		//const fontData = await this.soundfont.loadFont( this.instrumentPack, './audio/', p => onProgress && onProgress( p / 2 ) )
-		const fontData = await this.soundfont.load({
-				descriptor: this.instrumentPack, 
-				descriptorPath:'./assets/audio/'
-		}, p => onProgress && onProgress( p / 2 ) )
+		// const fontData = await this.soundfont.loadFont( this.instrumentPack, './audio/', p => onProgress && onProgress( p / 2 ) )
+		const fontData = await this.soundfont.load( fontDescriptor, p => onProgress && onProgress( p / 2 ) )
 	
 		// fetch the available presets from the instrument...
 		const availablePresets = await this.soundfont.presetNames
 
 		// console.error("Found font", { availablePresets })
-		// console.error("Found font", { fontData, availablePresets })
+		console.error("Found font", { fontDescriptor, fontData, availablePresets })
 	
 		// FIXME:
 		// find associated instrument - for GM these should be the same
 		// but there may be descrepencies for
 		const currentPreset = availablePresets[ this.instrumentIndex ]
 		
-		// console.error("Found availablePreset", availablePresets[0], {currentPreset} )
+		console.error("Found availablePreset", availablePresets[0], {currentPreset} )
 
 		//await this.soundfont.loadPreset( availablePresets[0], packName, p => console.log(p) )
 		await this.loadPreset( currentPreset, pack, options, p => onProgress && onProgress( 0.5 + p / 2 ) )
