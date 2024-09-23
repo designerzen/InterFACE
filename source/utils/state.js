@@ -280,12 +280,19 @@ export default class State {
 	 * @param {String} value 
 	 * @param {Boolean} dispatchEvent - send out an event on complete
 	 */
-	set( key, value, dispatchEvent=true ){
+	set( key, value, elements=null, dispatchEvent=true ){
 		this.state.set(key,value)
 		if (this.controlUI)
 		{
 			// set flag on main
-			( this.element ?? document.documentElement).classList.toggle(`flag-${key}`, value )
+			this.elementForClasses.classList.toggle(`flag-${key}`, value )
+		}
+
+		// also update select for checked and things? bit more complex?
+		// see if there is a matching dom element???
+		if (elements)
+		{
+			setElementCheckState(elements[key], value)
 		}
 
 		if (this.saveHistory)
