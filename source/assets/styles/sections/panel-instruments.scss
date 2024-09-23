@@ -500,8 +500,8 @@
 
 
 // Single side panel open on the left side upper
-.trio:has(.person-a-panel.expanded):not(.person-c-panel.expanded),
-.quartet:has(.person-a-panel.expanded):not(.person-c-panel.expanded){
+.trio:has(.person-a-panel.expanded):not(:has(.person-c-panel.expanded)),
+.quartet:has(.person-a-panel.expanded):not(:has(.person-c-panel.expanded)){
 
 	.person-a-panel.expanded{
 		grid-row-start:  sidebar-left-player-a;
@@ -514,8 +514,8 @@
 }
 
 // Single side panel open on the left side lower
-.trio:has(.person-c-panel.expanded):not(.person-a-panel.expanded),
-.quartet:has(.person-c-panel.expanded):not(.person-a-panel.expanded){
+.trio:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ),
+.quartet:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ){
 
 	.person-a-panel.expanded{
 		
@@ -529,7 +529,7 @@
 
 
 // Single side panel open on the right side upper
-.quartet:has(.person-c-panel.expanded):not(.person-a-panel.expanded){
+.quartet:has(.person-b-panel.expanded):not(:has(.person-d-panel.expanded)){
 
 	.person-b-panel.expanded{
 		grid-row-start:  sidebar-right-player-a;
@@ -542,7 +542,7 @@
 }
 
 // Single side panel open on the right side lower
-.quartet:has(.person-c-panel.expanded):not(.person-a-panel.expanded){
+.quartet:has(.person-d-panel.expanded):not(:has(.person-b-panel.expanded)){
 
 	.person-b-panel.expanded{
 		
