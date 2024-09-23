@@ -397,7 +397,27 @@ label[for="button-quartet"],
 	grid-area: label;
 }
 
-@media  screen and (min-width:480px) {
+#advanced-mode-feedback{
+	display: grid;
+	width: 100%;
+	grid-area:output;
+
+	p{
+		font-size: 60%;
+	}
+
+	
+	> * {
+		grid-area:1/-1;
+	}
+
+	> *[hidden] {
+		display: block !important;
+		visibility: hidden;
+	}
+}
+
+@media screen and (min-width:480px) {
 	// toggle in the middle!
 	#toggle-advanced-mode{
 		// grid-column-start: label;
@@ -408,20 +428,9 @@ label[for="button-quartet"],
 		margin-left: var(--pad);
 		margin-right: var(--pad);
 	}
-}
-
-#advanced-mode-feedback{
-	display: grid;
-	width: 100%;
-	grid-area:output;
 	
-	> * {
-		grid-area:1/-1;
-	}
-
-	> *[hidden] {
-		display: block !important;
-		visibility: hidden;
+	#advanced-mode-feedback p{
+		font-size: 100%;
 	}
 }
 
@@ -539,12 +548,18 @@ label[for="toggle-automation-mode"]{
 	background-color: var(--shade-white,white);
 	border-radius: 0px 0 var(--curve,24px) var(--curve,24px);
 	justify-self: center;
-	max-width: calc(100% - var(--pad) * 2);
-	padding:calc(var(--pad) * 1) calc(var(--pad) * 3);
-	margin-bottom:var(--pad,0);
 	
+	padding:calc(var(--pad) * 1) calc(var(--pad) * 1);
+	margin-bottom:var(--pad,0);
+	font-size:60%;
+	
+	@media  screen and (min-width:320px) {
+		max-width: calc(100% - var(--pad) * 2);
+	}
 	@media  screen and (min-width:480px) {
 		max-width: 66%;
+		font-size:100%;
+		padding:calc(var(--pad) * 1) calc(var(--pad) * 3);
 	}
 }
 
@@ -569,6 +584,10 @@ label[for="toggle-automation-mode"]{
 	opacity: 0;
 	grid-area:buttonStart;
 	z-index:-1;
+	padding:0;
+	margin: 0;
+	border: 0;
+	min-height: unset;
 }
 
 /////////////////////////////////////////////////////
@@ -592,6 +611,7 @@ label[for="toggle-automation-mode"]{
 	max-width: none;
 	width: fit-content;
 	margin: auto;
+	height: 100%;
 
 	animation: CTA 2s infinite;
 
