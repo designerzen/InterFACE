@@ -154,6 +154,9 @@ export default class State {
 		return State.instance
 	}
 
+	// set the element to somewhere 
+	element
+
 	// Map of states
 	state
 
@@ -267,7 +270,7 @@ export default class State {
 		if (this.controlUI)
 		{
 			// set flag on main
-			document.documentElement.classList.toggle(`flag-${key}`, value )
+			( this.element ?? document.documentElement).classList.toggle(`flag-${key}`, value )
 		}
 
 		if (this.saveHistory)
@@ -279,7 +282,7 @@ export default class State {
 		
 		if (dispatchEvent)
 		{
-			this.dispatchEvent()
+			this.dispatchEvent(key, value)
 		}
 	}
 
@@ -295,7 +298,7 @@ export default class State {
 
 		})
 		// force selected atates etc
-		document.documentElement.className = `${this.originalClassList} ${classNames}`
+		( this.element ?? document.documentElement).className = `${this.originalClassList} ${classNames}`
 	}
 
 	/**
@@ -409,13 +412,14 @@ export default class State {
 	}
 
 	// -- EVENTS ---------------------------
-	dispatchEvent( changes={} ){
+	dispatchEvent( key, value ){
 		// TODO: Only send changes?
-		const detail = { state, changes } 
-		const event = new CustomEvent(EVENT_STATE_CHANGE, { detail })
+		// const detail = { key, value } 
+		// const event = new CustomEvent(EVENT_STATE_CHANGE, { detail })
 		if (this.callbacks.size)
 		{
-			this.callbacks.forEach( callback => callback(event) )
+			this.callbacks.forEach( callback => callback(key,value) )
+			// this.callbacks.forEach( callback => callback(event) )
 		}else{
 			window.dispatchEvent(event)
 		}
@@ -431,14 +435,16 @@ export default class State {
 }
 
 
-export const createStateFromHost = () => {
+export const createStateFromHost = (elementToAddClassTo) => {
 	
 	const hostName = getRefererHostname()
 	const globalOptions = Object.assign({}, globalThis._synth)
 	const domainOptions = getDomainDefaults( hostName )
-	const defaultOptions = { ...globalOptions, ...domainOptions }
+	const defaultOptions = { ...domainOptions, ...globalOptions }
 
 	const state = State.getInstance()
+
+	state.element = elementToAddClassTo
 	
 	//state.setDefaults(defaultOptions)
 	state.loadFromLocation(defaultOptions)

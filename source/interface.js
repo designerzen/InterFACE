@@ -1,7 +1,7 @@
 import 'audioworklet-polyfill'
 
 // import {midiLikeEvents} from './timing/rhythm'
-import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState } from './utils/state'
+import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState, createStateFromHost } from './utils/state'
 
 // TODO :lazy load
 import { say, hasSpeech} from './audio/speech'
@@ -230,24 +230,29 @@ export const createInterface = (
 	const defaultOptions = { ...domainOptions, ...globalOptions }
 	
 	
-	const stateMachine = State.getInstance()
+	const stateMachine = createStateFromHost( main )
+	// const stateMachine = State.getInstance()
 
+	const uiTest = {}
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
-	stateMachine.addEventListener( event => {
+	stateMachine.addEventListener( (key,value) => {
 		
+		uiTest[key] = value
+		// main
 		const bookmark = state.asURI
-		console.info("State Changed", event )
 		//- console.info("State", state.serialised )
 		const qrOptions = {text:bookmark} 
 		const qrcode = createQRCode( shareCodeElement.appendChild( document.createElement("div")) , qrOptions) 
 		console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
+		
+		console.info("State Changed", {ui,uiTest } )
 	})
 		
 	//state.setDefaults(defaultOptions)
 	stateMachine.loadFromLocation(defaultOptions)
 
-	
+
 	// updates the URL with the current state (true - encoded)
 	// this is useful as immediately after loading the page the URL will be the current state
 	// and so can be shared to return to this exact setup
@@ -258,6 +263,8 @@ export const createInterface = (
 	
 	let ui = loadState( defaultOptions, main )
 	
+
+
 	const modelOptions = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS )
 
 
@@ -440,6 +447,7 @@ export const createInterface = (
 	 */
 	const setBPM = (bpm) => {
 		clock.BPM = bpm
+		// stateMachine.set( 'bpm',  clock.BPM )
 		setState( 'bpm',  clock.BPM )
 		setToast( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
 		return clock.BPM
@@ -3101,13 +3109,19 @@ export const createInterface = (
 			interact( 
 				document.getElementById("button-video"),
 				function onActive(){
-					ui.autoHide && body.classList.toggle("user-active", true)
-					ui.autoHide && body.classList.toggle("user-inactive", false)
+					if (ui.autoHide)
+					{
+						body.classList.toggle("user-active", true)
+						body.classList.toggle("user-inactive", false)
+					}
 					isUserActive = true
 				}, 
 				function onInactive(){
-					ui.autoHide && body.classList.toggle("user-active", false)
-					ui.autoHide && body.classList.toggle("user-inactive", true)
+					if (ui.autoHide)
+					{
+						body.classList.toggle("user-active", false)
+						body.classList.toggle("user-inactive", true)
+					}
 					isUserActive = false
 				}
 				// , timeout
