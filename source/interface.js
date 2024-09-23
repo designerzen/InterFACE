@@ -448,7 +448,7 @@ export const createInterface = (
 	const setBPM = (bpm) => {
 		clock.BPM = bpm
 		// stateMachine.set( 'bpm',  clock.BPM )
-		setState( 'bpm',  clock.BPM )
+		stateMachine.set( 'bpm',  clock.BPM )
 		setToast( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
 		return clock.BPM
 	}
@@ -874,7 +874,7 @@ export const createInterface = (
 			switch(event.key)
 			{
 				case 'CapsLock':
-					setState("debug", !ui.debug )
+					stateMachine.set("debug", !ui.debug )
 					people.forEach( person => person.debug = ui.debug )
 					setToast(`DEBUG : ${ui.debug}`)
 					speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
@@ -938,12 +938,12 @@ export const createInterface = (
 					break
 
 				case 'b':
-					setState("backingTrack", !ui.backingTrack, toggles )
+					stateMachine.set("backingTrack", !ui.backingTrack, toggles )
 					setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 					break
 			
 				case 'c':
-					setState("clear", !ui.clear, toggles )
+					stateMachine.set("clear", !ui.clear, toggles )
 					break
 
 				case 'd':
@@ -989,12 +989,12 @@ export const createInterface = (
 
 				// toggle speech
 				case 'l':
-					setState("speak", !ui.speak, toggles )
+					stateMachine.set("speak", !ui.speak, toggles )
 					setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
 					break
 			
 				case 'm':
-					setState("metronome", !ui.metronome, toggles )
+					stateMachine.set("metronome", !ui.metronome, toggles )
 					setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
 					break
 
@@ -1021,7 +1021,7 @@ export const createInterface = (
 					break
 
 				case 'q':
-					setState("muted", !ui.muted, toggles )
+					stateMachine.set("muted", !ui.muted, toggles )
 					break
 			
 				case 'r':
@@ -1033,7 +1033,7 @@ export const createInterface = (
 					break
 
 				case 't':
-					setState("text", !ui.text, toggles )
+					stateMachine.set("text", !ui.text, toggles )
 					break
 
 				case 'u':
@@ -1467,7 +1467,7 @@ export const createInterface = (
 		display.setAnimationLoop( predictionLoop )
 
 		// save the display type for next time
-		setState( "display", displayType )
+		stateMachine.set( "display", displayType )
 
 		console.info("Display Created", displayType, display) 
 		return display
@@ -2048,7 +2048,7 @@ export const createInterface = (
 			// connect the tempo interface
 			setupTempoInterface(clock, null, null, v =>{
 				console.log("tempo changed for gui",v, clock )
-				setState( 'bpm',  clock.BPM )
+				stateMachine.set( 'bpm',  clock.BPM )
 			})
 
 		}catch(error){
@@ -2463,44 +2463,44 @@ export const createInterface = (
 
 		// Connect up some latchedtoggles
 		toggles.quantise = setToggle( "button-quantise", status =>{
-			setState( 'quantise', status )
+			stateMachine.set( 'quantise', status )
 			setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
 		}, ui.quantise)
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
-			setState( 'showSettings', status )
+			stateMachine.set( 'showSettings', status )
 			setToast("Settings " + (status ? 'enabled' : 'disabled')  )
 		}, ui.showSettings )
 		
 		/*
 		toggles.midiMenu = setToggle( "button-midi-menu", status =>{ 
-			// setState( 'showSettings', status )
+			// stateMachine.set( 'showSettings', status )
 			setToast("MIDI Menu " + (status ? 'enabled' : 'disabled')  )
 		}, ui.showSettings )
 		*/
 
 		// Connect up sone buttons?
 		toggles.metronome = setToggle( "button-metronome", status =>{
-			setState( 'metronome', status )
+			stateMachine.set( 'metronome', status )
 			setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 		}, ui.metronome )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
 			// change drums!
 			setRandomDrumPattern()
-			setState( 'backingTrack', status )
+			stateMachine.set( 'backingTrack', status )
 			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
 		}, ui.backingTrack )
 
 		toggles.spectrogram = setToggle( "button-spectrogram", status =>{
-			setState( 'spectrogram', status )
+			stateMachine.set( 'spectrogram', status )
 			setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
 		}, ui.spectrogram )
 
 		toggles.speak = setToggle( "button-speak", status =>{
 			kit.cowbell()
-			setState( 'speak', status )
+			stateMachine.set( 'speak', status )
 			setToast("Speaking " + (ui.speak ? 'enabled' : 'disabled')  )
 		}, ui.speak )
 
@@ -2508,7 +2508,7 @@ export const createInterface = (
 		// draw video onto canvas every frame (transparent doesn't have to be true then)
 		toggles.synch = setToggle( "button-sync-video", status =>{
 			// I inverted the state for UX
-			setState( 'synch', !status )
+			stateMachine.set( 'synch', !status )
 			setToast( status ? `Video Frame Synching enabled` : 'disabled Frame Synch') 
 		}, ui.synch )
 
@@ -2516,13 +2516,13 @@ export const createInterface = (
 		// NB. 	there are 2 modes - video frame copy 
 		// 		transparent canvas with video beneath
 		toggles.clear = setToggle( "button-clear", status =>{ 
-			setState( 'clear', !ui.clear )
+			stateMachine.set( 'clear', !ui.clear )
 			setToast( status ? "Hiding video enabled" : 'Hiding video disabled') 
 		}, ui.clear )
 
 		// toggle mute
 		toggles.muted = setToggle( "button-mute", status =>{ 
-			setState( 'muted', !ui.muted )
+			stateMachine.set( 'muted', !ui.muted )
 			setToast(ui.muted  ? 'Volume Muted' : 'Unmuted' )
 		}, ui.muted )
 
@@ -2530,13 +2530,13 @@ export const createInterface = (
 		// let discoPreviousState
 		// MTV : Special disco mode!
 		toggles.disco = setToggle( "button-disco", status =>{ 
-			setState( 'disco', !ui.disco )
+			stateMachine.set( 'disco', !ui.disco )
 		
-			/*setState( 'masks', status )
+			/*stateMachine.set( 'masks', status )
 			if (status)
 			{
 				// ENABLE disco mode
-				// setState( 'clear', false )
+				// stateMachine.set( 'clear', false )
 				ui.clear = false
 				
 				// save previous state to go back to later...
@@ -2548,7 +2548,7 @@ export const createInterface = (
 				
 				setToast('Disco mode enabled!' )
 			}else{
-				// setState( 'clear', true )
+				// stateMachine.set( 'clear', true )
 				ui.clear = true
 				// setPlayerOption("drawNodes", ui.masks)
 				//setPlayerOptions( {drawNodes:true, drawMesh:false})
@@ -2566,26 +2566,26 @@ export const createInterface = (
 		// All person  overlays... should be dropdown?
 		// Show / hide the face and stuff
 		toggles.overlay = setToggle( "button-overlay", status => { 
-			setState( 'overlays', !ui.overlays )
+			stateMachine.set( 'overlays', !ui.overlays )
 		}, ui.overlays )
 
 		// Face meshes
 		toggles.masks = setToggle( "button-meshes", status =>{ 
-			setState( 'masks', !ui.masks )
+			stateMachine.set( 'masks', !ui.masks )
 			setPlayerOption("drawMask", ui.masks)
 		}, ui.masks )
 
 		// hide / show eye overlays
 		// NB. this gets hidden in kid mode?
 		toggles.eyes = setToggle( "button-eyes", status => {
-			setState( 'eyes', !ui.eyes )
+			stateMachine.set( 'eyes', !ui.eyes )
 			setPlayerOption("drawEyes", ui.eyes)
 		}, ui.eyes )
 
 	
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
-			setState( 'text', !ui.text )
+			stateMachine.set( 'text', !ui.text )
 		} )
 
 		// TODO : Set some up with double functions if held
@@ -2685,7 +2685,7 @@ export const createInterface = (
 			const instrumentPack = option.value
 			setPlayerOptions({ instrumentPack })
 			const instrument = await reloadInstrument()
-			setState( 'instrumentPack', instrumentPack )
+			stateMachine.set( 'instrumentPack', instrumentPack )
 			//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
 		} )
 
@@ -2771,7 +2771,7 @@ export const createInterface = (
 		// add theme controls... also add to state?
 		setupThemeControls( document.getElementById('select-theme'), newTheme =>{
 			// update state!
-			setState("theme", newTheme )
+			stateMachine.set("theme", newTheme )
 		} )
 
 		// upodate the load progress
@@ -2918,7 +2918,7 @@ export const createInterface = (
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
 			user,
-			setState,
+			setState:stateMachine.set,
 			setRandomDrumPattern,
 			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers,
@@ -3007,9 +3007,9 @@ export const createInterface = (
 		
 		useAutomator = results.automationMode ?? false
 
-		setState("players", parseInt(players) )
-		setState("advancedMode", results.advancedMode  ?? false )
-		setState("automationMode", automationMode )
+		stateMachine.set("players", parseInt(players) )
+		stateMachine.set("advancedMode", results.advancedMode  ?? false )
+		stateMachine.set("automationMode", automationMode )
 	})
 
 	//console.warn("Loading machine learning models with options", modelOptions)
