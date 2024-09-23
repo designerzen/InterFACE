@@ -127,20 +127,44 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		const browserFeedback = tableBrowser.querySelector("td."+RESULT)
 			
 		// check browser
+		const userAgent = navigator.userAgent
 		let browser = "Unknown"
+		let showUpgrade = false
 		if (userAgent.includes('Firefox/')) {
 			browser = "Firefox"
+			showUpgrade = true
 		} else if (userAgent.includes('Edg/')) {
 			browser = "Edge"
 		} else if (userAgent.includes('Chrome/')) {
 			browser = "Chrome"
 		} else if (userAgent.includes('Safari/')) {
 			browser = "Safari"
+			showUpgrade = true
 		}
 
 		if (tableBrowser){
 			const browsserAvailability = tableBrowser.querySelector("td."+RESULT )
-			browsserAvailability.textContent = browser
+			const browsserNameElement = tableBrowser.querySelector(".browser-name" )
+			browsserNameElement.textContent = `(${browser})`
+			browsserAvailability.classList.remove(NOT_AVAILABLE)
+			browsserAvailability.classList.toggle(AVAILABLE, true)
+			browsserAvailability.classList.remove(CHECKING)
+			switch (browser)
+			{
+				case "Firefox":
+					browsserAvailability.textContent = "Slower Graphics"
+					break
+				case "Safari":
+					browsserAvailability.textContent = "No MIDI support"
+					break
+				default:
+					browsserAvailability.textContent = `Available`
+			}
+			if (showUpgrade)
+			{
+				const alternateBrowsers = document.getElementById("#alternate-browsers")
+				alternateBrowsers.hidden = false
+			}
 		}
 
 		// Speakers class="capability-speakers"
