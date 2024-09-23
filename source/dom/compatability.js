@@ -110,7 +110,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		if (tableSpeakers && (capabilities.webGL || capabilities.webGPU))
 		{
 			const speakersAvailability = tableSpeakers.querySelector("td."+RESULT )
-			speakersAvailability.textContent = "Check you not muted"
+			speakersAvailability.textContent = "Check volume"
 			speakersAvailability.classList.remove(NOT_AVAILABLE)
 			speakersAvailability.classList.toggle(AVAILABLE, true)
 			speakersAvailability.classList.remove(CHECKING)
