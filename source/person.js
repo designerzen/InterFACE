@@ -69,6 +69,7 @@ import { drawMousePressure } from './dom/mouse-pressure'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
 import { now } from "./timing/timing.js"
 import { toKebabCase } from "./utils/utils.js"
+import { recogniseEmoji } from './models/emoji-detection.js'
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -750,8 +751,12 @@ export default class Person{
 			this.delayNode.delayTime.value = 0.2 // (40% delay)
 			// console.info("Delay", prediction)
 		}
+
+		// const emoji = recogniseEmoji(this)
+		const emoji = recogniseEmoji(prediction)
+		emoji && console.info(emoji)
 	}
-	
+
 	/**
 	 * Update visuals
 	 * @param {Object} prediction data model
