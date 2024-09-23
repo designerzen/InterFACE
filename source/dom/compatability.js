@@ -97,6 +97,8 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			GPUAvailability.textContent = "Available"
 			GPUAvailability.classList.remove(NOT_AVAILABLE)
 			GPUAvailability.classList.remove(CHECKING)
+			GPUAvailability.classList.add(AVAILABLE)
+			
 		}else{
 			// NONE FATAL ERROR! No WEBGL so use canvas fallback
 			body.classList.toggle("gpu-unavailable", true)

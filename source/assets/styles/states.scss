@@ -132,7 +132,8 @@
 	--y:100%;
 	display: flex;
 	visibility: visible;
-	animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
+	transform: translateY( 0 );
+	// animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
 }
 
 

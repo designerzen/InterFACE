@@ -199,7 +199,7 @@ export default class Display2D extends AbstractDisplay{
 	overdraw( offsetX=0, offsetY=-1) {
 		
 		// ctx.clearRect(0, 0, width, height);
-		ctx.save()
+		this.canvasContext.save()
 		// this.canvasContext.save()
 		// use this filter
 		this.canvasContext.globalCompositeOperation = this.filter
@@ -208,7 +208,8 @@ export default class Display2D extends AbstractDisplay{
 		// for (var i = 0; i < numImages; i++) {
 		// 	this.canvasContext.drawImage(img, i * img.width, 0);
 		// }
-		// this.canvasContext.restore()
+	
+		this.canvasContext.restore()
 	}
 
 	/**

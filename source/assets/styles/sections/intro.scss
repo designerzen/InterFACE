@@ -218,8 +218,8 @@
 	caption {
 		text-transform: uppercase;
 		text-align: left;
-		padding-left: var(--pad);
-		padding-right: var(--pad);
+		padding-left: calc( 2 * var(--pad) );
+		padding-right: calc( 2 * var(--pad) );
 		padding-bottom: 0;
 		display: inline-block;
 		width: fit-content;
@@ -262,6 +262,12 @@
 		text-align: right;
 	}
 
+	th,td{
+		border-bottom:1px solid var(--shade-cream,white);
+	}
+	td{
+		// border-color:var(--shade-white);
+	}
 	small{
 		display: block;
 	}
@@ -291,7 +297,8 @@
 
 	// 
 	.available {
-		color: var(--shade-green, green);
+		background-color: var(--shade-green, green);
+		color: var(--shade-white, white);
 		&::before {
 			// content: "✓";
 			content: "✔";
@@ -300,7 +307,8 @@
 
 	//
 	.unavailable {
-		color: var(--shade-red, red);
+		background-color: var(--shade-red, red);
+		color: var(--shade-white, white);
 		&::before {
 			content: "✗";
 			// content: "☓";
