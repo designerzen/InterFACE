@@ -1043,3 +1043,19 @@ svg.hero-bumper{
 		border-color:var(--shade-red);
 	}
 }
+
+.link-designerzen{
+	word-break: keep-all;
+	--icon-size:1rem;
+	&::before{
+		content:'';
+		vertical-align: middle;
+		display: inline-block;
+		width: var(--icon-size);
+		height:var(--icon-size);
+		background-image: url(/source/assets/logos/designerzen.svg);
+		background-repeat: no-repeat;
+		background-size: contain;
+		// padding-left:calc(var(--pad)*3.5);
+	}
+}

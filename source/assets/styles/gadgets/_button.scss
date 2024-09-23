@@ -772,7 +772,8 @@
 		"icon"
 		"text";
 
-	grid-auto-flow: column;
+	// counterintuitive but hey
+	grid-auto-flow: row;
 
 	align-content: start;	// center space-between;
 	justify-content: center;
