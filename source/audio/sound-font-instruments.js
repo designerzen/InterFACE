@@ -1,8 +1,4 @@
-/**
- * https://paulrosen.github.io/midi-js-soundfonts/abcjs/
- * https://paulrosen.github.io/midi-js-soundfonts/FluidR3_GM/
- * https://paulrosen.github.io/midi-js-soundfonts/MusyngKite/
- */
+
 
 import { 
 	SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS,
@@ -41,7 +37,11 @@ export let instrumentFolders = SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS.map( instrum
 // nice names for the above
 export let instrumentNames = instrumentFolders.map( (instrument, index) => GENERAL_MIDI_INSTRUMENTS[index] )
 
-
+/**
+ * https://paulrosen.github.io/midi-js-soundfonts/abcjs/
+ * https://paulrosen.github.io/midi-js-soundfonts/FluidR3_GM/
+ * https://paulrosen.github.io/midi-js-soundfonts/MusyngKite/
+ */
 // const DEFAULT_SOUNDFONT_HOST = " https://gleitz.github.io/midi-js-soundfonts/"
 const DEFAULT_SOUNDFONT_HOST = " https://paulrosen.github.io/midi-js-soundfonts/"
 
