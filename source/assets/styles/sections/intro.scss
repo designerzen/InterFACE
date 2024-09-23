@@ -194,6 +194,20 @@
 	}
 }
 
+#alternate-browsers{
+	
+	ol {
+		margin:0;
+		padding:0;
+		list-style: none;
+		display: flex;
+		gap:var(--pad);
+	}
+
+	li + li::before{
+		content: '/';
+	}
+}
 
 
 #requirements {
@@ -351,39 +365,4 @@
 	th::before{
 		--icon:url(/source/assets/icons/developer_board-24px.svg);		
 	}
-}
-
-
-/** Internet Explorer */
-@media all and (-ms-high-contrast: none),(-ms-high-contrast: active) {
-	#alternate-browsers{display: block !important;}
-}
-
-/** Mozilla Firefox */
-// @-moz-document url-prefix() {
-@supports(-moz-appearance:none) {
-	#alternate-browsers{display: block !important;}
-}
-
-/** Safari */
-@media not all and (min-resolution: 0.001dpcm) {
-	#alternate-browsers{display: block !important;}
-}
-
-/* Chrome version 22-28 */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-	#alternate-browsers{display: block !important;}
-}
-
-
-// GOOD Browsers! -----------------------------------------------------
-
-// Chrome version 29 and above + Chrominum 
-@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
-	#alternate-browsers{display: none !important;}
-}
-
-/** Microsoft Edge */
-@supports (-ms-ime-align: auto) {
-	#alternate-browsers{display: none !important;}
 }
