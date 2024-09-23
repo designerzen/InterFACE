@@ -414,7 +414,24 @@
 
 // }
 
+.solo{
+	.person-b-panel,
+	.person-c-panel,
+	.person-d-panel{
+		// transform: translateX(0%);
+		display: none;
+	}
+}
 
+.duet{
+	.person-c-panel,
+	.person-d-panel{
+		// transform: translateX(0%);
+		display: none;
+	}
+}
+
+// this is the three player version
 // Body states
 // .solo{ }
 // .duet{ }
@@ -435,13 +452,17 @@
 			auto
 		;
 
-		// left drag
-		.person-a-panel{
-			grid-area: sidebar-left-player-a;
-		}
-		.person-c-panel{
-			grid-area: sidebar-left-player-c;
-		}
+}
+	// left drag
+	.person-a-panel{
+		grid-area: sidebar-left-player-a;
+	}
+	.person-c-panel{
+		grid-area: sidebar-left-player-c;
+	}
+	.person-d-panel{
+		// transform: translateX(0%);
+		display: none;
 	}
 }
 
@@ -461,46 +482,30 @@
 			1fr
 			auto
 		;
-
-		// left drag
-		.person-a-panel{
-			grid-area: sidebar-left-player-a;
-		}
-		.person-b-panel{
-			grid-area: sidebar-right-player-b;
-		}
-		.person-c-panel{
-			grid-area: sidebar-left-player-c;
-		}
-		.person-d-panel{
-			grid-area: sidebar-right-player-d;
-		}
+	}		
+	
+	.person-a-panel{
+		grid-area: sidebar-left-player-a;
+	}
+	.person-b-panel{
+		grid-area: sidebar-right-player-b;
+	}
+	.person-c-panel{
+		grid-area: sidebar-left-player-c;
+	}
+	.person-d-panel{
+		grid-area: sidebar-right-player-d;
 	}
 }
 
-
-// this is the three player version
-.trio {
-
-}
-
-// quartet version with single side panels open only
-.quartet{
-
-	.person-a-panel.expanded{
-		
-	}
-
-	.person-a-panel.expanded{
-
-	}
-}
 
 // Single side panel open on the left side upper
+.trio:has(.person-a-panel.expanded):not(.person-c-panel.expanded),
 .quartet:has(.person-a-panel.expanded):not(.person-c-panel.expanded){
 
 	.person-a-panel.expanded{
-		
+		grid-row-start:  sidebar-left-player-a;
+		grid-row-end:  sidebar-left-player-c;
 	}
 
 	.person-c-panel.expanded{
@@ -509,6 +514,7 @@
 }
 
 // Single side panel open on the left side lower
+.trio:has(.person-c-panel.expanded):not(.person-a-panel.expanded),
 .quartet:has(.person-c-panel.expanded):not(.person-a-panel.expanded){
 
 	.person-a-panel.expanded{
@@ -516,6 +522,34 @@
 	}
 
 	.person-c-panel.expanded{
+		grid-row-start:  sidebar-left-player-a;
+		grid-row-end:  sidebar-left-player-c;
+	}
+}
 
+
+// Single side panel open on the right side upper
+.quartet:has(.person-c-panel.expanded):not(.person-a-panel.expanded){
+
+	.person-b-panel.expanded{
+		grid-row-start:  sidebar-right-player-a;
+		grid-row-end:  sidebar-right-player-c;
+	}
+
+	.person-d-panel.expanded{
+		
+	}
+}
+
+// Single side panel open on the right side lower
+.quartet:has(.person-c-panel.expanded):not(.person-a-panel.expanded){
+
+	.person-b-panel.expanded{
+		
+	}
+
+	.person-d-panel.expanded{
+		grid-row-start:  sidebar-right-player-a;
+		grid-row-end:  sidebar-right-player-c;
 	}
 }

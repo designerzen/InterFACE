@@ -2291,8 +2291,8 @@ export const createInterface = (
 				{
 					automator.tick(elapsed, clock.barProgress )
 				}
-					
-				const isBar = divisionsElapsed % 4 === 0
+				
+				const isQuarterNote = clock.isQuarterNote
 				// TODO: The timer is a good place to determine if the computer
 				// 		 is struggling to keep up with the program so we can reduce
 				// 		 the visual complexity of the ui and remove some predictions too
@@ -2316,7 +2316,7 @@ export const createInterface = (
 				}
 
 				// Play metronome!
-				if ( ui.metronome && bars && isBar )
+				if ( ui.metronome && isQuarterNote )
 				{
 					// TODO: change timbre for first & last stroke
 					const metronomeLength = 0.09
@@ -2329,7 +2329,8 @@ export const createInterface = (
 				// const notesPlayed = []
 			
 				// sing note and draw to canvas
-				if( ui.quantise )
+				// chcek if quarternote
+				if( ui.quantise && divisionsElapsed===0 )
 				{
 					for (let i=0, l=people.length; i<l; ++i )
 					{
@@ -2359,12 +2360,23 @@ export const createInterface = (
 
 				// to add swing to the beats
 				// easeOutQuart(divisionsElapsed%16 / 16)
-				// && isBar
+	
 				// play some accompanyment music on every note
 				// (as we use 16 divisions for quarter notes)
 				// FIXME: Just expand the patterns with longer gaps
-				if ( ui.backingTrack && clock.isQuarterNote )
+				// a swing of one will offset every second beat
+				const swing = 1
+				if ( ui.backingTrack )
 				{
+					if (isQuarterNote)
+					{
+
+					}
+
+					console.log("clock", {divisionsElapsed,
+						bar, bars, 
+						barsElapsed,})
+
 					const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 					if ( divisionsElapsed % slower === 0 )
 					{
@@ -2377,10 +2389,10 @@ export const createInterface = (
 					// todo: also MIDI beats on channel 16?
 				}
 
-				if (playing)
-				{
-					// timePassed
-				}
+				// if (playing)
+				// {
+				// timePassed
+				// }
 
 				// Send MIDI clock
 				if (isMIDIAvailable && webMidi)
@@ -2883,7 +2895,7 @@ export const createInterface = (
 				speak("Hello! Open your mouth to begin!")
 				
 				body.classList.toggle(SEARCHING_FOR_USERS_CLASS, false)
-				// may as well create a user?
+				
 				return getPerson(0)
 			}	
 		}
@@ -2913,6 +2925,13 @@ export const createInterface = (
 		
 		speak("I am looking for your face")
 
+		// now create all the people we will need!
+		for (let i=0; i< stateMachine.get("players"); ++i)
+		{
+			const person = getPerson(i)
+			console.info(i, "Person created", person)
+		}
+		
 		// wait here until a user shows their face...
 		const user = await lookForUser()
 
@@ -2986,9 +3005,9 @@ export const createInterface = (
 		
 		clearInterval( timeOut )
 		setToast( "" )
+
+		requestAnimationFrame( showLoading )
 		
-		// continue loading...
-		showLoading()
 		return results
 	}
 
@@ -3006,14 +3025,15 @@ export const createInterface = (
 	showPlayerSelectionScreen( ui ).then( results =>{ 
 		havePlayersBeenSelected = true 
 		const { advancedMode, automationMode, players } = results
-		
+		const quantityOfPlayers = parseInt(players) 
 		//console.warn("Selection completed",{ players, advancedMode, automationMode } )
 		
 		useAutomator = results.automationMode ?? false
 
-		stateMachine.set("players", parseInt(players) )
+		stateMachine.set("players", quantityOfPlayers )
 		stateMachine.set("advancedMode", results.advancedMode  ?? false )
 		stateMachine.set("automationMode", automationMode )
+
 	})
 
 	//console.warn("Loading machine learning models with options", modelOptions)

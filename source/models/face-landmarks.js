@@ -122,7 +122,7 @@ const predict = async (inputElement, detector, flipHorizontally=true ) => {
 			
 			// console.error("Person", results)
 
-			console.info("Prediction Person", elapsed,{ results, people  } )
+			// console.info("Prediction Person", elapsed,{ results, people  } )
 
 			previousPrediction = people
 			return people

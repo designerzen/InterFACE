@@ -99,13 +99,17 @@ block header
 			
 			tr(hidden).capability-microphone
 				th(scope="row") Microphone
-					small Not a requirement
+					small Optional. Used for pitch detection for humming melodies.
 				td.result.checking Checking...
 
-			
 			tr.capability-gpu
 				th(scope="row") <abbr title="Graphics Processing Unit">GPU</abbr>
 					small Web camera / phone camera 
+				td.result.checking Checking...
+
+			tr(hidden).capability-browser
+				th(scope="row") Optimised Web Browser
+					small 
 				td.result.checking Checking...
 
 		//- Browsers

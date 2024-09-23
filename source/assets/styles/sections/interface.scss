@@ -777,19 +777,6 @@ html.debug{
 	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
 
 
-
-	// left drag
-	.person-a-panel,
-	.person-c-panel{
-		grid-area: sidebar-left;
-	}
-
-	// Drag from the right
-	.person-b-panel,
-	.person-d-panel{
-		grid-area: sidebar-right;
-	}
-
 	*{
 		pointer-events: auto;
 	}
@@ -812,6 +799,21 @@ html.debug{
 	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
 	// }
 }
+
+// Instrument and user option panels
+
+// left drag
+.person-a-panel,
+.person-c-panel{
+	grid-area: sidebar-left;
+}
+
+// Drag from the right
+.person-b-panel,
+.person-d-panel{
+	grid-area: sidebar-right;
+}
+
 
 .controls{
 	grid-area: control-panel;

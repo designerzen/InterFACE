@@ -16,6 +16,9 @@ export const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouc
 export const hasFileHandler = () => 'launchQueue' in window && 'files' in LaunchParams.prototype
 
 export const hasOffscreenCanvasCapability = () => 'OffscreenCanvas' in window
+export const hasDeviceMotion = () =>  "DeviceMotionEvent" in window
+export const hasDeviceOrientationEvent = () =>  "DeviceOrientationEvent" in window
+
 
 export const hasWebGL2Capability = () => 'WebGL2RenderingContext' in window
 

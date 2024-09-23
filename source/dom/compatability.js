@@ -122,6 +122,26 @@ export const updateCapabalitiesTable = async (capabilities) => {
 
 		// TODO: Microphone
 
+		// BROWSER
+		const tableBrowser = document.querySelector(".capability-browser")
+		const browserFeedback = tableBrowser.querySelector("td."+RESULT)
+			
+		// check browser
+		let browser = "Unknown"
+		if (userAgent.includes('Firefox/')) {
+			browser = "Firefox"
+		} else if (userAgent.includes('Edg/')) {
+			browser = "Edge"
+		} else if (userAgent.includes('Chrome/')) {
+			browser = "Chrome"
+		} else if (userAgent.includes('Safari/')) {
+			browser = "Safari"
+		}
+
+		if (tableBrowser){
+			const browsserAvailability = tableBrowser.querySelector("td."+RESULT )
+			browsserAvailability.textContent = browser
+		}
 
 		// Speakers class="capability-speakers"
 		return fatal

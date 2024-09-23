@@ -225,7 +225,9 @@ main:not(.flag-overlays){
 // added when user gives up attention
 .user-inactive{
 
-	.controls:not(:hover, :focus-within, :focus) {
+	// , :focus
+	.instrument-panel:not(:hover, :focus-within, :focus-visible),
+	.controls:not(:hover, :focus-within,:focus-visible) {
 		visibility: hidden;
 		opacity:0;
 	}
