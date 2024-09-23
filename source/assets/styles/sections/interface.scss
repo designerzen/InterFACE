@@ -763,11 +763,15 @@ html.debug{
 
 	grid-template-areas: 
 		"sidebar-left . sidebar-right"
+		"settings-panel settings-panel settings-panel"
 		"control-panel control-panel control-panel"
 		;
 
 	grid-template-rows: 
 		1fr
+		auto 
+		auto
+		auto
 	;
 
 	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
@@ -851,10 +855,12 @@ html.debug{
 }
 
 #settings{
-	visibility: hidden;
+	// visibility: hidden;
+	display: none;
 	transform: translateY( 0 );
 	transition: transform var(--ease-m) $easeOutBack, opacity var(--ease-m) linear;
 	animation: none;
+	grid-area: settings-panel;
 	
 	.button-close{
 		position: absolute;

@@ -424,12 +424,14 @@
 		grid-template-areas: 
 			"sidebar-left-player-a . sidebar-right"
 			"sidebar-left-player-c . sidebar-right"
+			"settings-panel settings-panel settings-panel"
 			"control-panel control-panel control-panel"
 			;
 				
 		grid-template-rows: 
 			1fr
 			1fr
+			auto
 			auto
 		;
 
@@ -450,6 +452,7 @@
 		grid-template-areas: 
 			"sidebar-left-player-a . sidebar-right-player-b"
 			"sidebar-left-player-c . sidebar-right-player-d"
+			"settings-panel settings-panel settings-panel"
 			"control-panel control-panel control-panel"
 			;
 				

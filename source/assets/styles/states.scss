@@ -127,10 +127,12 @@
 // show settings panel
 .flag-showSettings #settings,
 #settings:focus,
+#settings:focus-visible,
 #settings:focus-within{
+	--y:100%;
 	display: flex;
 	visibility: visible;
-	transform: translateY( -100% );
+	animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
 }
 
 
