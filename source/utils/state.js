@@ -146,10 +146,10 @@ export default class State {
 	 * Use this to get the singleton instance
 	 */
 	static instance
-	static getInstance() {
+	static getInstance( element ) {
 		if (!State.instance)
 		{
-			State.instance = new State()
+			State.instance = new State( element )
 		}
 		return State.instance
 	}
@@ -182,6 +182,15 @@ export default class State {
 
 	originalClassList
 
+	set elementForClasses( element ){
+		this.element = element
+		this.originalClassList = element.className
+	}
+
+	get elementForClasses(){
+		return this.element ?? document.documentElement
+	}
+
 	/**
 	 * Set the URL search params
 	 */
@@ -202,6 +211,10 @@ export default class State {
 		return Object.fromEntries( this.state )
 	}
 
+	get entries(){
+		return this.state.entries()
+	}
+
 	get asURI(){
 		return this.url.href
 	}
@@ -218,13 +231,15 @@ export default class State {
 		return this.url.searchParams
 	}
 
-	constructor(){	
+	constructor( main ){	
 
 		this.state = new Map()
 		this.callbacks = new Set()
-
-		this.originalClassList = document.documentElement.className
-	
+		if (main)
+		{
+			this.elementForClasses = main
+		}
+		
 		window.addEventListener("popstate", (event) => {
 			console.log("Previous State received: ", event, event.state)
 			this.setState(event.state, true)
@@ -291,14 +306,17 @@ export default class State {
 	 */
 	updateFrontEnd(){
 		let classNames = ""
+			
 		this.state.forEach( (value,key) => {
 			classNames += `flag-${key} `
 			// TODO: try and find an associative input for selection
 			// const input = document.querySelector(`input[name="${key}"]`)
 
 		})
+		
+		console.log("GARH", classNames )
 		// force selected atates etc
-		( this.element ?? document.documentElement).className = `${this.originalClassList} ${classNames}`
+		this.elementForClasses.className = `${this.originalClassList} ${classNames}`
 	}
 
 	/**
@@ -376,6 +394,7 @@ export default class State {
 		{
 			window.history.pushState( this.asObject, null, url.pathname + "?b=" + encodeLocation(url.search) )
 		}else{
+
 			this.state.forEach( (value,key) => {
 				options[key] = value
 				url.searchParams.set(key, value)
@@ -442,10 +461,8 @@ export const createStateFromHost = (elementToAddClassTo) => {
 	const domainOptions = getDomainDefaults( hostName )
 	const defaultOptions = { ...domainOptions, ...globalOptions }
 
-	const state = State.getInstance()
+	const state = State.getInstance(elementToAddClassTo)
 
-	state.element = elementToAddClassTo
-	
 	//state.setDefaults(defaultOptions)
 	state.loadFromLocation(defaultOptions)
 

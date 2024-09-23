@@ -19,14 +19,14 @@ const numberOfPlayersAsString = quantityOfPlayers => {
 /**
  * This is the 2nd screen, just after loading
  * @param {Object} options Configuration object
- * @param {Object} state State object - used for preselecting options
+ * @param {Object} stateMachine State object - used for preselecting options
  * @returns {Boolean} true if the user hit duet
  */
-export const showPlayerSelector = (options, state) => new Promise( (resolve,reject)=>{
+export const showPlayerSelector = (options, stateMachine) => new Promise( (resolve,reject)=>{
 
 	// use this to set the buttons on the form
 	const maxQuantityOfPlayers = options.maxFaces
-	const previouslySelectedQuantityOfPlayers = parseInt(state.players ?? 1)
+	const previouslySelectedQuantityOfPlayers = parseInt(stateMachine.get("players") ?? 1)
 	
 	let players = previouslySelectedQuantityOfPlayers
 
@@ -83,8 +83,8 @@ export const showPlayerSelector = (options, state) => new Promise( (resolve,reje
 	// 2. We await an input from the user
 
 	// determine state of the UI and update the DOM
-	let advancedMode = state.advancedMode ?? false
-	let automationMode = state.automationMode ?? false
+	let advancedMode = stateMachine.get("advancedMode") ?? false
+	let automationMode = stateMachine.get("automationMode") ?? false
 	
 	const setQuantityOfPlayers = amount => {
 		players = amount

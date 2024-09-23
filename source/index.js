@@ -116,7 +116,7 @@ const start = () => {
 	import('./interface.js').then(async ({ createInterface }) => {
 
 		// change modes based on URLs
-		try {
+		// try {
 
 			// import { createStore} from './store'
 			const { createStore } = await import('./utils/store')
@@ -255,13 +255,13 @@ const start = () => {
 				// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 			}
 
-		} catch (error) {
+		// } catch (error) {
 
-			// body.classList.add("failed")
-			//uninstall()
-			showError(error, "Oh no, an unexpected error occurred! Try a hard refresh or a reset if still not working", true)
-			console.error("Ultimate failure - remove loading - add error class?")
-		}
+		// 	// body.classList.add("failed")
+		// 	//uninstall()
+		// 	showError(error, "Oh no, an unexpected error occurred! Try a hard refresh or a reset if still not working", true)
+		// 	console.error("Ultimate failure - remove loading - add error class?")
+		// }
 	})
 }
 

@@ -221,7 +221,7 @@ export const createInterface = (
 	
 	// STATE -----------------------------------------------------------------
 
-	const shareCodeElement = document.querySelector("#share .qr")
+	const shareCodeElement = document.querySelector(".qr")
 
 	// state management
 	const hostName = getRefererHostname()
@@ -239,14 +239,18 @@ export const createInterface = (
 	stateMachine.addEventListener( (key,value) => {
 		
 		uiTest[key] = value
-		// main
-		const bookmark = state.asURI
-		//- console.info("State", state.serialised )
-		const qrOptions = {text:bookmark} 
-		const qrcode = createQRCode( shareCodeElement.appendChild( document.createElement("div")) , qrOptions) 
-		console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
-		
-		console.info("State Changed", {ui,uiTest } )
+		if (shareCodeElement)
+		{
+			const bookmark = stateMachine.asURI
+			//- console.info("State", state.serialised )
+			const qrOptions = {text:bookmark} 
+			const hole = document.createElement("div")
+			shareCodeElement.innerText = ""
+			const qrcode = createQRCode( shareCodeElement.appendChild( hole ) , qrOptions) 
+			console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
+		}
+
+		console.info("State Changed", {ui, uiTest, entries:stateMachine.entries } )
 	})
 		
 	//state.setDefaults(defaultOptions)
@@ -2978,7 +2982,7 @@ export const createInterface = (
 		hideLoading()
 
 		// Show the player selection screen!
-		const results = await showPlayerSelector(modelOptions, state)
+		const results = await showPlayerSelector(modelOptions, stateMachine)
 		
 		clearInterval( timeOut )
 		setToast( "" )
