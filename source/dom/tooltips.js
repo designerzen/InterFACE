@@ -147,8 +147,10 @@ const onWindowResize = event => {
 // position-anchor
 const getPositionForTooltip = target => {
 	const e = target.getBoundingClientRect().toJSON() 
+	console.log("getPositionForTooltip", e)
 	return { ...e, 
-		x:e.x + e.width/2, 
+		x:e.x + Math.min( 14, e.width * 0.2 ) + window.scrollX,  
+		y:e.y + window.scrollY
 		//y:e.y + e.height/2
 	}
 	return {

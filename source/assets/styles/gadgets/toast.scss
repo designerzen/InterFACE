@@ -94,6 +94,8 @@
 	min-height:1ch;
 	min-height:1ex;
 
+	display: block;
+	
 	// overflow: hidden;
 	// overflow: clip;
 	overflow: visible;
@@ -191,6 +193,7 @@
 	}
 }
 
+/*
 @supports(position-visibility: anchors-visible) and (justify-self: anchor-center){
 	
 	#toast{
@@ -228,3 +231,4 @@
 	// 	inset-area: bottom;
 	// }
 }
+	*/
