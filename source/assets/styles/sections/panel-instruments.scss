@@ -508,8 +508,9 @@
 		grid-row-end:  sidebar-left-player-c;
 	}
 
+	#person-c,
 	.person-c-panel.expanded{
-
+		z-index: 999;
 	}
 }
 
@@ -517,8 +518,9 @@
 .trio:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ),
 .quartet:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ){
 
+	#person-a,
 	.person-a-panel.expanded{
-		
+		z-index: 999;
 	}
 
 	.person-c-panel.expanded{
@@ -532,24 +534,26 @@
 .quartet:has(.person-b-panel.expanded):not(:has(.person-d-panel.expanded)){
 
 	.person-b-panel.expanded{
-		grid-row-start:  sidebar-right-player-a;
-		grid-row-end:  sidebar-right-player-c;
+		grid-row-start:  sidebar-right-player-b;
+		grid-row-end:  sidebar-right-player-d;
 	}
 
+	#person-d,
 	.person-d-panel.expanded{
-		
+		z-index: 999;
 	}
 }
 
 // Single side panel open on the right side lower
 .quartet:has(.person-d-panel.expanded):not(:has(.person-b-panel.expanded)){
 
+	#person-b,
 	.person-b-panel.expanded{
-		
+		z-index: 999;
 	}
 
 	.person-d-panel.expanded{
-		grid-row-start:  sidebar-right-player-a;
-		grid-row-end:  sidebar-right-player-c;
+		grid-row-start:  sidebar-right-player-b;
+		grid-row-end:  sidebar-right-player-d;
 	}
 }
