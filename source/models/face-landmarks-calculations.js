@@ -264,6 +264,14 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const mouthRollUpper = landmarks[41].score
 	const mouthRollLower = landmarks[40].score
 
+	// smirking
+	const mouthSmileLeft = landmarks[44].score
+	const mouthSmileRight = landmarks[45].score
+
+	// gurning
+	const mouthStretchLeft = landmarks[46].score
+	const mouthStretchRight = landmarks[47].score
+
 	const jawOpeness = landmarks[25].score
 	const jawCloseness = 1 - jawOpeness
 	const mouthCloseness = landmarks[27].score
@@ -279,10 +287,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// kissing
 	const mouthPucker = landmarks[38].score
 
-	// smirking
-	const mouthSmileLeft = landmarks[44].score
-	const mouthSmileRight = landmarks[45].score
-
+	
 	// Calculate some mouth info :
 	// how seperated are the lips from one another (or how much is the bottom lip furled)
 	// const mouthOpeness = Math.max( jawOpeness, mouthRollLower)
@@ -294,6 +299,10 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	
 	// TODO: JawLeft and jawRight for FALSETTO
 	prediction.mouthRatio = easeOutSine( Math.max( 0, mouthRatio - MIN_MOUTH_VALUE) ) 
+	prediction.mouthPucker = mouthPucker
+	prediction.mouthFunnel = mouthFunnel
+	prediction.mouthStretchLeft = mouthStretchLeft
+	prediction.mouthStretchRight = mouthStretchRight
 
 	prediction.isMouthOpen = isMouthOpen
 	prediction.leftSmirk = mouthSmileLeft
