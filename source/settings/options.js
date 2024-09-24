@@ -114,8 +114,8 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 
 export const DEFAULT_OPTIONS = {
 	
-	//display:DISPLAY_MEDIA_VISION_2D,
-	display:DISPLAY_LOOKING_GLASS_3D,
+	display:DISPLAY_MEDIA_VISION_2D,
+	// display:DISPLAY_LOOKING_GLASS_3D,
 
 	// do we show the tooltips overlaid on when hovering
 	tooltips:false,
@@ -130,8 +130,6 @@ export const DEFAULT_OPTIONS = {
 	metronome:false,
 	// play music at same time
 	backingTrack:false,
-
-	gamePad:false,
 
 	// clear the canvas on every frame
 	// also doubles as a video hider
@@ -188,8 +186,8 @@ export const DEFAULT_OPTIONS = {
 
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio
-	useGamePad:true,
-	
+	gamePad:false,
+
 	// choice of different models to use
 	model:"face",
 
@@ -203,6 +201,7 @@ export const DEFAULT_OPTIONS = {
 		// INSTRUMENT_PACK_FM, 
 		// INSTRUMENT_PACK_MUSYNGKITE
 	].join(","),
+
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
 }
@@ -283,6 +282,7 @@ export const DEFAULT_VOICE_OPTIONS = {
 	active:false
 }
 
+
 export const DEFAULT_PERSON_OPTIONS = {
 	...DEFAULT_COLOURS,
 
@@ -326,6 +326,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	pitchbendController:'leftSmirk',
 	aftertouchController:'rightSmirk',
+	// minorController:'eyebrowsRaisedBy',
+	minorController:'isFacingRight',
 
 	stereoController:'eyesHorizontal',
 	// eyeSquintLeft, leftSmirk, rightSmirk, 
@@ -432,15 +434,39 @@ export const DEFAULT_CHILD_OPTIONS = {
 
 export const DEFAULT_PEOPLE_OPTIONS = [
 	{
+		...DEFAULT_PERSON_OPTIONS,
 		hue:Math.random() * 360
 	},
 	{
+		...DEFAULT_PERSON_OPTIONS,
+		hue:Math.random() * 360,
+		// Here we bind which model variables is assigned to
+		// which audio selection mechanism.
+		// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
+		// eyeSquintLeft, eyeSquintRight, leftSmirk, rightSmirk, 
+		// see models/landmarks
+		noteController:'pitch',
+		octaveController:'roll',
+		gateController:'mouth',
+		// minorController:'isFacingRight',
+		minorController:'eyebrowsRaisedBy',
+
+		pitchbendController:'leftSmirk',
+		aftertouchController:'rightSmirk',
+		
+		stereoController:'roll',
+		// stereoController:'eyesHorizontal',
+		// eyeSquintLeft, leftSmirk, rightSmirk, 
+
+		fxAController:'happiness',
+		fxBController:'eyebrowsRaisedBy'
+	},
+	{
+		...DEFAULT_PERSON_OPTIONS,
 		hue:Math.random() * 360
 	},
 	{
-		hue:Math.random() * 360
-	},
-	{
+		...DEFAULT_PERSON_OPTIONS,
 		hue:Math.random() * 360
 	}
 ]
