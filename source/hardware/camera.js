@@ -136,8 +136,11 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 		 			
 	}catch(error){
 
+		// Error: NotReadableError: Could not start video source
 		// NotAllowedError: Permission denied
-		const errorReason = String(error).replace("NotAllowedError: ",'')
+		const errorReason = String(error)
+								.replace("NotAllowedError: ",'')
+								.replace("NotReadableError: ",'')
 	
 		// console.error( deviceId, "Camera errored", error)
 		// trackError( `${name} camera could not be accessed`, deviceId, "Camera" )

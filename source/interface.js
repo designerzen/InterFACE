@@ -1530,19 +1530,29 @@ export const createInterface = (
 
 		const onCameraSelected = async (selected) => {
 			isCameraLoading = true
-			const newCamera = await loadCamera( video, selected.value, selected.label )
-			// if successful store for next time
-			if (newCamera)
-			{
-				camera = newCamera
-				store.setItem('camera', {deviceId:selected.value})
-				console.log( selected.value , "Camera selected",selected, camera)
-				setToast( `Camera ${selected.label} changed`, 0 )
-			}else{
-				// no camera?
-				console.warn( selected.value , "Camera selected but could not load",selected, camera)
-				setToast( `Camera ${selected.label} changed`, 0 )
+			let newCamera
+			try{
+				newCamera = await loadCamera( video, selected.value, selected.label )
+			
+				// if successful store for next time
+				if (newCamera)
+				{
+					camera = newCamera
+					// save the name of the camera locally
+					store.setItem('camera', {deviceId:selected.value})
+					//console.log( selected.value , "Camera selected",selected, camera)
+					setToast( `Camera ${selected.label} changed`, 0 )
+				}else{
+					// no camera?
+					console.warn( selected.value , "Camera selected but could not load",selected, camera)
+					throw Error( `Camera ${selected.label} changed` )
+				}
+
+			}catch(error){
+				console.error("Camera:Error > ",{selected,error})
+				setToast( `Camera ${selected.label} could not be accessed`, 0 )
 			}
+			 
 			isCameraLoading = false
 		}
 
@@ -1632,8 +1642,13 @@ export const createInterface = (
 		{	
 			// FUNKY DISCO MODE...
 			// switch effect type?
-			const t = (counter * 0.01) % TAU	
-			display.postProcess( { offsetX:-7 * cameraPan.x + Math.sin(t), offsetY:-4 * cameraPan.y + Math.cos(t)})
+			const t = (counter * 0.01) % TAU
+			const discoX = -7 * cameraPan.x + Math.sin(t)
+			const discoY = -4 * cameraPan.y + Math.cos(t)
+			console.info("DISCO", {t, cameraPan, discoX,discoY})
+			display.postProcess({ 
+				offsetX:discoX, offsetY:discoY
+			})
 	
 		}else{
 
@@ -1761,16 +1776,14 @@ export const createInterface = (
 				{	
 					// unless quantize is turned off
 					// we can "sing" in realtime
-					const stuff = playPersonAudio( person )
-				
-					// stuff.eyeDirection
+					playPersonAudio( person )
+								
 					if (ui.disco && i===0)
 					{
-						// stuff.eyeDirection
 						// use person 1's eyes to control other stuff too?
 						// in this case the direction of the pan in disco mode
-						cameraPan.x = stuff.eyeDirection
-						cameraPan.y = stuff.pitch
+						cameraPan.x = prediction.eyeDirection ?? 0
+						cameraPan.y = prediction.pitch ?? 1
 					}
 				}
 				
@@ -2357,10 +2370,13 @@ export const createInterface = (
 				// chcek if quarternote
 				if( ui.quantise && divisionsElapsed===0 )
 				{
-					for (let i=0, l=people.length; i<l; ++i )
+					const amountOfPeople = people.length
+					for (let i=0, l=amountOfPeople; i<l; ++i )
 					{
 						const person = getPerson(i)
-						const stuff = playPersonAudio( person )
+						
+						// this is a promise but we dont care how it resolves
+						playPersonAudio( person )
 
 						// update game pads - events are caught elsewhere
 						if (ui.gamePad && person.gamePad && person.gamePad.connected) 
@@ -2373,8 +2389,14 @@ export const createInterface = (
 						if (i===0)
 						{
 							// stuff.eyeDirection
-							cameraPan.x = stuff.eyeDirection
-							cameraPan.y = stuff.pitch
+							cameraPan.x = person.eyeDirection ?? 0
+							
+						}
+
+						// use last persons
+						if (i===amountOfPeople-1)
+						{
+							cameraPan.y = person.pitch ?? 1
 						}
 
 						// save data to an array to record
