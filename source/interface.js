@@ -218,22 +218,29 @@ export const createInterface = (
 	// Fix dialogs and bind them with events
 	setupDialogs()
 
+	// update progress gradually like the old flash days!
 	let loadPercent = 0
 	let loadProgressMediator = ( newValue, message, hideLoader )=>{
+		
 		if (!onLoadProgress)
 		{
 			return
 		}
 
-		if (newValue > loadPercent)
+		if (loadPercent < newValue)
 		{
 			// lerp towards
-			loadPercent = newValue
+			// loadPercent = newValue
+			loadPercent += 0.01
+			console.log("loading", loadPercent)
 			onLoadProgress(loadPercent, message, hideLoader)
 		}
 
-		// FIXME: requestanim to ease the number up!
-		// requestAnimationFrame( e => loadProgressMediator() )
+		if (loadPercent < newValue)
+		{
+			// FIXME: requestanim to ease the number up!
+			requestAnimationFrame( e => loadProgressMediator(newValue) )
+		}
 	}
 
 	console.info( "Interface created", this)
@@ -3110,6 +3117,9 @@ export const createInterface = (
 
 		console.info("Players", ui.players )
 		
+		// reset the progress meter for loading the second half
+		loadPercent = 0
+
 		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
 		// set up some extra options from query strings
