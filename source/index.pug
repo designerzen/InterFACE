@@ -67,16 +67,8 @@ block header
 
 
 	#requirements-test
-		details
-			summary Requirements
-			ul(role="list") 
-				li A face
-				li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
-				li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
-				li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
-
 		table#compatibility
-			caption Compatibility
+			caption Requirements & Compatibility
 			
 			tr.capability-camera
 				th(scope="row") Video Camera 
@@ -104,23 +96,35 @@ block header
 
 			tr.capability-gpu
 				th(scope="row") <abbr title="Graphics Processing Unit">GPU</abbr>
+				
 					small Web camera / phone camera 
 				td.result.checking Checking...
 
 			tr.capability-browser
 				th(scope="row") Optimised Web Browser <span class="browser-name"> </span>
-					small Not all features are available or are restricted in certain browsers
+					small Not all features are available or are restricted in certain browsers. Recommended browsers include <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a>
+				
+					details#alternate-browsers
+						summary Alternate Browsers in terms of recommended features
+						ol
+							li: <a href="https://www.google.com/chrome/" rel="noopener noreferrer" target="_blank">Chrome</a>
+							li: <a href="https://www.microsoft.com/en-us/edge/download" rel="noopener noreferrer" target="_blank">Edge</a> 
+							li: <a href="https://brave.com" rel="noopener noreferrer" target="_blank">Brave</a> 
+							li: <a href="https://arc.net" rel="noopener noreferrer" target="_blank">Arc</a> 
+							li: <a href="https://opera.com" rel="noopener noreferrer" target="_blank">Opera</a> 
+							li: <a href="https://vivaldi.com" rel="noopener noreferrer" target="_blank">Vivaldi</a> 
+							li: <a href="https://www.apple.com/safari/" rel="noopener noreferrer" target="_blank">Safari</a> 
+							li: <a href="https://firefox.com" rel="noopener noreferrer" target="_blank">Firefox</a> 
+							li: <a href="https://www.zen-browser.app" rel="noopener noreferrer" target="_blank">Zen</a>
+
 				td.result.checking Checking...
 
-		//- Browsers
-		#alternate-browsers(hidden)
-			ol
-				li: <a href="https://www.google.com/chrome/" rel="noopener noreferrer" target="_blank">Chrome</a>
-				li: <a href="https://www.microsoft.com/en-us/edge/download" rel="noopener noreferrer" target="_blank">Edge</a> 
-				li: <a href="https://brave.com" rel="noopener noreferrer" target="_blank">Brave</a> 
-				li: <a href="https://arc.net" rel="noopener noreferrer" target="_blank">Arc</a> 
-				li: <a href="https://opera.com" rel="noopener noreferrer" target="_blank">Opera</a> 
-				li: <a href="https://vivaldi.com" rel="noopener noreferrer" target="_blank">Vivaldi</a> 
-				li: <a href="https://www.apple.com/safari/" rel="noopener noreferrer" target="_blank">Safari</a> 
-				li: <a href="https://firefox.com" rel="noopener noreferrer" target="_blank">Firefox</a> 
-				li: <a href="https://www.zen-browser.app" rel="noopener noreferrer" target="_blank">Zen</a>
+		
+			
+			ul(role="list") 
+				li A face
+				li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
+				li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
+				li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
+
+		

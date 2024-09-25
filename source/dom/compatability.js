@@ -160,10 +160,11 @@ export const updateCapabalitiesTable = async (capabilities) => {
 				default:
 					browsserAvailability.textContent = `Available`
 			}
-			if (showUpgrade)
+			if (true )
 			{
 				const alternateBrowsers = document.getElementById("#alternate-browsers")
 				alternateBrowsers.hidden = false
+				alternateBrowsers.open = true
 			}
 		}
 
