@@ -137,7 +137,7 @@ const start = () => {
 			language,
 			(loadProgress, message, hideLoader = false) => {
 
-				console.info("Loading...", loadProgress, message)
+				// console.info("Loading...", loadProgress, message)
 				
 
 				if (failed) {
