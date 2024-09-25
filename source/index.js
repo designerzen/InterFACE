@@ -405,7 +405,6 @@ checkPlatformUpdates().finally(() => {
 	}
 })
 
-/*
 
 document.addEventListener("DOMContentLoaded", async(e) => {
 
@@ -446,5 +445,3 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	}
 
 }, {once:true})
-
-*/

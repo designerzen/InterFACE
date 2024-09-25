@@ -109,7 +109,7 @@ export const setLoadProgress = (progress, message, complete=false) => {
 
 	// console.log("loading", {timeSinceTextChanged, timeAsProgress, loadMeter, percentage, rounded, progress, message, text} )
 	
-	text += "<span class='load-percent'>" + (rounded === 50 ? '' : rounded) + "%</span>"
+	text += "<span class='load-percent'>" + (rounded === 50 ? '' : rounded + '%') + "</span>"
 	
 	// text += BE_PATIENT_MESSAGES[loadMessageIndex++%(BE_PATIENT_MESSAGES.length-1)]	
 	
