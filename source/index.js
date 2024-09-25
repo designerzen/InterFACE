@@ -17,8 +17,8 @@ import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mous
 import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from './capabilities'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 
-import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-// import { createInterface } from './interface.js'
+// import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { createInterface } from './interface.js'
 
 // TESTING
 // import createAppInterface from './interface.js'
@@ -112,7 +112,7 @@ const start = () => {
 
 	const loadInterfaceAndAssembleApplication = async () => {
 
-		const {createInterface:create} = await import( "./interface.js")
+		// const {createInterface:create} = await import( "./interface.js")
 		// debugger
 		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
 		// import { createStore} from './store'
@@ -131,13 +131,13 @@ const start = () => {
 		console.info("loadInterfaceAndAssembleApplication ", {store,title})
 
 		// const application = await createInterface(
-		const application = await create(
+		const application = await createInterface(
 			defaultOptions,
 			store,
 			capabilities,
 			/* You can pass in an object or a string! */
 			INSTRUMENT_OPTIONS.list,
-			[WebMIDIClass],
+			[],
 			language,
 			(loadProgress, message, hideLoader = false) => {
 

@@ -3088,6 +3088,8 @@ export const createInterface = (
 		)	
 		// console.info("State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response" )
 
+		loadProgressMediator(0.5, "Time to pick players!", false)
+
 		// attempt to get player quantity and mouse event in one
 		// wait here until havePlayersBeenSelected = true
 		await ( new Promise( resolve =>{
@@ -3129,6 +3131,7 @@ export const createInterface = (
 			//console.log("Loading B Side", progress )
 			loadProgressMediator(0.5 + progress/2, message, false)
 		})
+		
 		
 		console.info("Loaded ML model now updating with options", {startApp, modelOptions, ui} )
 		
