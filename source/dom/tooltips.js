@@ -8,6 +8,13 @@
 
 const supportsPopover = HTMLElement.prototype.hasOwnProperty("popover")
 
+const tooltips = new Map()
+const tooltipPositions = new Map()
+let tooltipsEnabled = false
+let tooltopPosition = 0
+let tooltipElement = null
+let bodyMutationObserver
+
 /**
  * Create a tooltip and bind it to the element
  * @param {HTMLElement} element DOM element to bind to
@@ -110,10 +117,6 @@ const toastElement = document.getElementById("toast")
 // export const setToast = bindTextElement( toastElement, 20, 900, true )
 export const setToast = createTip( toastElement )
 
-const tooltips = new Map()
-const tooltipPositions = new Map()
-let tooltipsEnabled = false
-let bodyMutationObserver
 
 /**
  * set the style of the tooltip to the x/y coords
@@ -135,10 +138,18 @@ const setToolTipPosition = (target, anchor="") => {
     // })
 }
 
-
+// ensure we remove the cursor from the screen!
 export const updateTooltipPositions = () => {
+	setToolTipPosition({x:0,y:0})
 	tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
+	// reposition any actiev tooltip elements
+	// if (tooltipElement)
+	// {
+	// 	const position = tooltipPositions.get( tooltipElement )
+	// 	position && setToolTipPosition(position)
+	// }
 }
+
 const onWindowResize = event => {
 	// console.log("onWindowResize", event)
 	// TODO: Wait one frame before updating
@@ -164,7 +175,9 @@ const setTipSourcePosition = target => {
 		target.nodeName === "BUTTON" ? 
 			target : target.parentElement 
 
-	tooltipPositions.set( target, getPositionForTooltip(targetElement) )
+	tooltipElement = targetElement
+	tooltopPosition = getPositionForTooltip(targetElement)
+	tooltipPositions.set( target, tooltopPosition )
 }
 
 /**
@@ -217,8 +230,10 @@ export const addTooltip = element => {
 		{
 			return
 		}
+
+		tooltipElement = event.target
 		
-		const toolTip = event.target.getAttribute("aria-label") || event.target.innerText
+		const toolTip = tooltipElement.getAttribute("aria-label") || tooltipElement.innerText
 		const position = tooltipPositions.get( element )
 		if (position)
 		{
@@ -227,6 +242,8 @@ export const addTooltip = element => {
 		}else{
 			console.info("Setting tooltip???", {event} ) 	
 		}
+
+		
 		
 		// Eventually this will work!
 		
