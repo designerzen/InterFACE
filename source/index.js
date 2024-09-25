@@ -1,3 +1,4 @@
+
 /**
  * This is the default root loader for the app
  * It is responsible for loading in as much data upfront as possible
@@ -16,8 +17,9 @@ import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mous
 import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from './capabilities'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 
-import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-		
+// import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { createInterface } from './interface.js'
+
 // TESTING
 // import createAppInterface from './interface.js'
 
@@ -108,161 +110,162 @@ const start = () => {
 	let startLoadTime = Date.now()
 	let failed = false
 
-	
+	const loadInterfaceAndAssembleApplication = async () => {
+
+		// const {createInterface} = (await import( "./interface.js"))
+		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
+		// import { createStore} from './store'
+		const { createStore } = await import('./utils/store')
+
+		// This is tweaking out :/
+		const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+		
+		const store = createStore()
+		const title = document.title
+
+		console.info("loadInterfaceAndAssembleApplication ", {store,title, createInterface})
+
+		const application = await createInterface(
+			defaultOptions,
+			store,
+			capabilities,
+			/* You can pass in an object or a string! */
+			INSTRUMENT_OPTIONS.list,
+			[WebMIDIClass],
+			language,
+			(loadProgress, message, hideLoader = false) => {
+
+				console.info("Loading...", loadProgress, message)
+				
+
+				if (failed) {
+					// already failed so why show more loading?
+					console.error("FATAL : Failed to load", {loadProgress, message, hideLoader} )
+					throw Error("Failed to load due to an unexpected error")
+				}
+
+				if (loadProgress !== 0.5) {
+					// reset the timer during the half time show
+					startLoadTime = Date.now()
+				}
+
+				const elapsed = Date.now() - startLoadTime
+				console.info("Loading ", elapsed)
+				// if (elapsed > LOAD_TIMEOUT)
+				// {
+				// 	failed = true
+				// 	setLoadProgress( 
+				// 		0, 
+				// 		"Oh no!",
+				// 		true
+				// 	)
+				// 	showError( "Couldn't load everything", "Occasssionally I fall apart and require a refresh! Sorry!" )
+				// }
+				// else 
+
+				if (hideLoader) {
+					setLoadProgress(
+						loadProgress,
+						"",
+						true
+					)
+					setTitle(title)
+
+				} else if (loadProgress < 1) {
+
+					// const rectifiedProgress = halfLoaded ? loadProgress * 0.5 : 0.5 + loadProgress * 0.5
+					// console.log( "Interface: loaded", {rectifiedProgress} )
+					setLoadProgress(
+						loadProgress,
+						message
+					)
+					setTitle(`${title} - ${Math.ceil(loadProgress * 100)} %`)
+
+				} else {
+
+					setLoadProgress(1, "Ready!", true)
+					setTitle(title)
+				}
+			}
+		)
+
+		
+		console.info("Application loaded ", {store,title})
+
+		const loadTime = Date.now() - startLoadTime
+		
+		// Load in in automation
+		const Attractor = (await import('./attractor')).default
+
+		// This allows for remote control as well as allowing the
+		// app to change parameters on it's own
+		const automator = application.setAutomator(new Attractor(application))
+		
+
+		// TODO: This will call the app from external URLs
+		// without reloading the page
+
+		// NB. Set launch to focus-existing in manifest
+		// If the PWA has caused this page to load we can intercept the request here
+		if ("launchQueue" in window) 
+		{
+			window.launchQueue.setConsumer((launchParams) => {
+				if (launchParams.targetURL) 
+				{
+					const params = new URL(launchParams.targetURL).searchParams
+					// const track = params.get("track")
+					// queryString = params
+					// application
+				}
+			})
+		}
+
+
+
+		// console.log("Attract mode!", {automator, application})
+
+		// let installation = null
+		// // at any point we can now trigger the installation
+		// if (installation)
+		// {
+		// 	try{
+		// 		const destination = document.getElementById("shared-controls")
+		// 		const needsInstall = await installation( destination )		
+
+		// 		canBeInstalled = needsInstall
+
+		// 	}catch(error){
+
+		// 		body.classList.add("installation-unavailable")
+		// 		console.error("Install/Update issue", error)
+		// 	}
+
+		// }else{
+		// 	// console.log("Loaded Webpage")
+		// }
+
+		// const Attractor = await import('./attractor.js')
+		// For automatic stuff...
+		// const attractMode = new Attractor( application )
+
+		const secondsAgo = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now() ) / 1000)
+
+		// Show hackers message to debuggers
+		if (debugMode) {
+
+			console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
+			console.log({ application, defaultOptions, globalOptions, domainOptions, referer: getReferer() })
+			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
+		}
+	}
 
 	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
 
 	// Lazy load the main interface code
-	import('./interface.js').then(async ({ createInterface }) => {
+	// import('./interface.js').then( loadInterfaceAndAssembleApplication )
 
-		// change modes based on URLs
-		// try {
-
-			// import { createStore} from './store'
-			const { createStore } = await import('./utils/store')
-
-			// This is tweaking out :/
-			// const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
-			
-			const store = createStore()
-			const title = document.title
-
-			const application = await createInterface(
-				defaultOptions,
-				store,
-				capabilities,
-				/* You can pass in an object or a string! */
-				INSTRUMENT_OPTIONS.list,
-				[WebMIDIClass],
-				language,
-				(loadProgress, message, hideLoader = false) => {
-
-					if (failed) {
-						// already failed so why show more loading?
-						console.error("FATAL : Failed to load", {loadProgress, message, hideLoader} )
-						throw Error("Failed to load due to an unexpected error")
-					}
-
-					if (loadProgress !== 0.5) {
-						// reset the timer during the half time show
-						startLoadTime = Date.now()
-					}
-
-					// const elapsed = Date.now() - startLoadTime
-					//console.log( "Loading", {elapsed, loadProgress, message} ) 
-
-					// if (elapsed > LOAD_TIMEOUT)
-					// {
-					// 	failed = true
-					// 	setLoadProgress( 
-					// 		0, 
-					// 		"Oh no!",
-					// 		true
-					// 	)
-					// 	showError( "Couldn't load everything", "Occasssionally I fall apart and require a refresh! Sorry!" )
-					// }
-					// else 
-
-					if (hideLoader) {
-						setLoadProgress(
-							loadProgress,
-							"",
-							true
-						)
-						setTitle(title)
-
-					} else if (loadProgress < 1) {
-
-						// const rectifiedProgress = halfLoaded ? loadProgress * 0.5 : 0.5 + loadProgress * 0.5
-						// console.log( "Interface: loaded", {rectifiedProgress} )
-						setLoadProgress(
-							loadProgress,
-							message
-						)
-						setTitle(`${title} - ${Math.ceil(loadProgress * 100)} %`)
-
-					} else {
-
-						setLoadProgress(1, "Ready!", true)
-						setTitle(title)
-					}
-				})
-
-			const loadTime = Date.now() - startLoadTime
-			
-			// Load in in automation
-			const Attractor = (await import('./attractor')).default
-
-			// This allows for remote control as well as allowing the
-			// app to change parameters on it's own
-			const automator = application.setAutomator(new Attractor(application))
-			
-
-			// TODO: This will call the app from external URLs
-			// without reloading the page
-			//
-
-			// NB. Set launch to focus-existing in manifest
-			// If the PWA has caused this page to load we can intercept the request here
-			if ("launchQueue" in window) 
-			{
-				window.launchQueue.setConsumer((launchParams) => {
-					if (launchParams.targetURL) 
-					{
-						const params = new URL(launchParams.targetURL).searchParams
-						// const track = params.get("track")
-						// queryString = params
-						// application
-					}
-				})
-			}
-
-
-
-			// console.log("Attract mode!", {automator, application})
-
-			// let installation = null
-			// // at any point we can now trigger the installation
-			// if (installation)
-			// {
-			// 	try{
-			// 		const destination = document.getElementById("shared-controls")
-			// 		const needsInstall = await installation( destination )		
-
-			// 		canBeInstalled = needsInstall
-
-			// 	}catch(error){
-
-			// 		body.classList.add("installation-unavailable")
-			// 		console.error("Install/Update issue", error)
-			// 	}
-
-			// }else{
-			// 	// console.log("Loaded Webpage")
-			// }
-
-			// const Attractor = await import('./attractor.js')
-			// For automatic stuff...
-			// const attractMode = new Attractor( application )
-
-			const secondsAgo = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now() ) / 1000)
-
-			// Show hackers message to debuggers
-			if (debugMode) {
-
-				console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
-				console.log({ application, defaultOptions, globalOptions, domainOptions, referer: getReferer() })
-				// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
-			}
-
-		// } catch (error) {
-
-		// 	// body.classList.add("failed")
-		// 	//uninstall()
-		// 	showError(error, "Oh no, an unexpected error occurred! Try a hard refresh or a reset if still not working", true)
-		// 	console.error("Ultimate failure - remove loading - add error class?")
-		// }
-	})
+	// if not lazily loaded here...
+	loadInterfaceAndAssembleApplication()
 }
 
 // import {installer} from './install'
@@ -392,9 +395,11 @@ const createVersionButton = () => {
 // we hang out here until the service worker has comfirmed that everything is ready
 checkPlatformUpdates().finally(() => {
 	if (debugMode) {
-		console.log("Starting PhotoSynth v." + runningVersion)
+		console.log("Starting PhotoSynth", runningVersion)
 	}
 })
+
+/*
 
 document.addEventListener("DOMContentLoaded", async(e) => {
 
@@ -435,3 +440,5 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	}
 
 }, {once:true})
+
+*/

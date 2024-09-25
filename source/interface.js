@@ -155,7 +155,6 @@ class PhotoSYNTH{
  * @returns {PhotoSYNTH} Restricted access to properties and methods
  */
 export const createInterface = ( 
-
 	defaultOptions, 
 	store, 
 	capabilities,
@@ -218,6 +217,27 @@ export const createInterface = (
 
 	// Fix dialogs and bind them with events
 	setupDialogs()
+
+	let loadPercent = 0
+	let loadProgressMediator = ( newValue, message, hideLoader )=>{
+		if (!onLoadProgress)
+		{
+			return
+		}
+
+		if (newValue > loadPercent)
+		{
+			// lerp towards
+			loadPercent = newValue
+			onLoadProgress(loadPercent, message, hideLoader)
+		}
+
+		// FIXME: requestanim to ease the number up!
+		// requestAnimationFrame( e => loadProgressMediator() )
+	}
+
+	console.info( "Interface created", this)
+		
 	
 	// STATE -----------------------------------------------------------------
 
@@ -2814,7 +2834,7 @@ export const createInterface = (
 
 	// We avoid setting feedback until part 2 of loading...
 	//setFeedback("Initialising...<br> Please wait")
-	onLoadProgress && onLoadProgress(0, "Loading... Please wait")
+	loadProgressMediator(0, "Loading... Please wait")
 
 	
 	/**
@@ -2935,7 +2955,7 @@ export const createInterface = (
 		const user = await lookForUser()
 
 		// focus app?
-		onLoadProgress && onLoadProgress(1,"complete", true)
+		loadProgressMediator(1,"complete", true)
 		
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
@@ -3041,12 +3061,12 @@ export const createInterface = (
 
 		//console.log("Interface:load -> onLoadProgress", {progress, message })
 
-		onLoadProgress && onLoadProgress(progress / 2, message)
+		loadProgressMediator(progress / 2, message)
 
 	}).then( async fetchPrediction =>{ 
 
 	
-		onLoadProgress && onLoadProgress(0.45, "Models available", true)
+		loadProgressMediator(0.45, "Models available", true)
 
 		// we can sneakily back ground load in some data
 		// whilst the user hits the button!
@@ -3068,8 +3088,8 @@ export const createInterface = (
 				//console.log("waiting for havePlayersBeenSelected", havePlayersBeenSelected)
 				if (havePlayersBeenSelected)
 				{
-					console.log( "Interface:Players selected" , onLoadProgress )
-					onLoadProgress && onLoadProgress( 0.5, "Players Selected", false)
+					// console.log( "Interface:Players selected"  )
+					loadProgressMediator( 0.5, "Players Selected", false)
 					resolve(true)
 				} else{
 					// TODO: Throw in some zzz animations
@@ -3097,7 +3117,7 @@ export const createInterface = (
 		const startApp = await setup( fetchPrediction, modelOptions, (progress,message) => {
 			
 			//console.log("Loading B Side", progress )
-			onLoadProgress && onLoadProgress(0.5 + progress/2, message, false)
+			loadProgressMediator(0.5 + progress/2, message, false)
 		})
 		
 		console.info("Loaded ML model now updating with options", {startApp, modelOptions, ui} )
@@ -3111,7 +3131,7 @@ export const createInterface = (
 			throw new Error("Failed to load PhotoSynth Models")
 		}
 
-		//onLoadProgress && onLoadProgress(1, "", true)
+		//loadProgressMediator(1, "", true)
 		console.log("PhotoSYNTH3D LOADED", startPhotoSYNTH)
 
 		// let's launch it after it has resolved...
