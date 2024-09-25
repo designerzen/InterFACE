@@ -466,6 +466,8 @@ label[for="toggle-advanced-mode"]{
 	margin:auto ;
 	max-width: none;
 
+	color:transparent;
+
 	&::before{
 		content:"";
 		// order:1;
@@ -474,6 +476,7 @@ label[for="toggle-advanced-mode"]{
 		opacity:0.5;
 		text-align: right;
 		animation: none;
+		color:var(--shade-white);
 	}
 
 	// DEFAULT SELECTION
@@ -492,7 +495,7 @@ label[for="toggle-advanced-mode"]{
 		bottom:auto;
 		right:auto;
 		transform: none;
-		animation: Pulse var(--duration, 0.3s) 0s #{$easeOutQuad} infinite both alternate-reverse; 
+		color:var(--shade-white);
 	}
 
 	@media screen and (min-width:480px) {
