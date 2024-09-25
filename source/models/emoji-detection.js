@@ -27,6 +27,15 @@ export const EMOJI_WORRIED = "😟"
 export const EMOJI_FROWNING = "☹️"
 export const EMOJI_FROWN_EYES_CLOSED = "😞"
 export const EMOJI_ANGRY = "😠"
+export const EMOJI_TRIPPY = "😵‍💫"
+export const EMOJI_SHAKING = "🫨"
+export const EMOJI_SHAKING_HORIZONTALLY = "🙂‍↔️"
+export const EMOJI_SHAKING_VERTICALLY = "🙂‍↕️"
+
+const AMOUNT_BEFORE_SHAKE_X= 0.2 
+const AMOUNT_BEFORE_SHAKE_Y = 0.2 
+const AMOUNT_BEFORE_GRIMMACE = 0.6
+const AMOUNT_BEFORE_ANGRY = 0.4
 
 /**
  * 
@@ -75,20 +84,21 @@ export const recogniseEmoji = (prediction, options) => {
 			return EMOJI_EYES_ROLLING_UP
 		}
 
+
 		// MOUTH OPEN
 		// Wide eyed and mouth crooked and closed
 		// EMOJI_CONFUSED
 		if ( prediction.mouthRatio > options.mouthCutOff  )
 		{
 			// mouth open but no grin
-			if (prediction.happiness < 0.33)
+			if (prediction.happiness < 0.26)
 			{
 				// mouth open but no grin
 				if (prediction.mouthRatio > options.mouthCutOff){
 					return EMOJI_OPEN_MOUTH
-				}else if (prediction.mouthRatio > options.mouthCutOff + 0.2){
+				}else if (prediction.mouthRatio > 0.4){
 					return EMOJI_OPEN_MOUTH_BIG
-				}else if (prediction.mouthRatio > 0.8){
+				}else if (prediction.mouthRatio > 0.6){
 					return EMOJI_WAIL
 				}	
 
@@ -101,7 +111,7 @@ export const recogniseEmoji = (prediction, options) => {
 				return EMOJI_SMILING_BIG_GRIN
 			}
 
-		}else if (prediction.mouthRatio < options.mouthSilence && prediction.happiness > 0.2){
+		}else if (prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.1 ){
 			return EMOJI_SMILING_SLIGHTLY
 		}
 		
@@ -113,21 +123,35 @@ export const recogniseEmoji = (prediction, options) => {
 	
 		// SADNESS
 		if (
-			prediction.leftEyebrowRaisedBy < -0.4 &&
-			prediction.rightEyebrowRaisedBy < -0.4
+			prediction.leftEyebrowRaisedBy < -AMOUNT_BEFORE_ANGRY &&
+			prediction.rightEyebrowRaisedBy < -AMOUNT_BEFORE_ANGRY
 		){
 			return EMOJI_ANGRY
 		}
 		
 		if (
-			prediction.leftSmirk > 0.7 &&
-			prediction.mouthStretchLeft > 0.7 &&
-			prediction.rightSmirk > 0.7 &&
-			prediction.mouthStretchRight > 0.7
+			prediction.leftSmirk > AMOUNT_BEFORE_GRIMMACE &&
+			prediction.mouthStretchLeft > AMOUNT_BEFORE_GRIMMACE &&
+			prediction.rightSmirk > AMOUNT_BEFORE_GRIMMACE &&
+			prediction.mouthStretchRight > AMOUNT_BEFORE_GRIMMACE
 		){
 			return EMOJI_GRIMACE
 		}
 		
+		if (
+			prediction.rightEyeDirection > 0.5 && prediction.leftEyeDirection < 0.5 ||
+			prediction.rightEyeDirection < 0.5 && prediction.leftEyeDirection > 0.5
+		){
+			return EMOJI_TRIPPY
+		}
+
+		if (
+			prediction.rightEyeDirection > 0.2 && prediction.leftEyeDirection < 0.2 ||
+			prediction.rightEyeDirection < 0.2 && prediction.leftEyeDirection > 0.2
+		){
+			return EMOJI_SHAKING
+		}
+
 		return EMOJI_NEUTRAL	
 	}
 
@@ -176,7 +200,18 @@ export const recogniseEmoji = (prediction, options) => {
 	// raise eyebrow 🤨
 	// EMOJI_RAISED_EYEBROW
 
+	if (prediction.yaw > AMOUNT_BEFORE_SHAKE_X || prediction.yaw < -AMOUNT_BEFORE_SHAKE_X)
+	{
+		return EMOJI_SHAKING_HORIZONTALLY
+	}
+
+	if (prediction.pitch > AMOUNT_BEFORE_SHAKE_Y || prediction.pitch < -AMOUNT_BEFORE_SHAKE_Y)
+	{
+		return EMOJI_SHAKING_VERTICALLY
+	}
+
 	return EMOJI_NEUTRAL
+	
 
 	prediction.leftEyeClosed
 	prediction.rightEyeClosed

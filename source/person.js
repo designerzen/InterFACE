@@ -801,7 +801,9 @@ export default class Person{
 		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
 		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
 		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
-	
+
+		this.eyeDirection = prediction.eyeDirection
+
 		// stereo eye panning
 		if (this.options.stereoPan && this.stereoNode)
 		{
