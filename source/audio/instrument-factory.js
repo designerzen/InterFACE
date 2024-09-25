@@ -11,6 +11,7 @@ factory.loadInstrument(0)
 */
 
 import { fetchJSON } from "../utils/fetch.js"
+import MIDIInstrument from "./instruments/instrument.midi.js"
 import SoundFontInstrument from "./instruments/instrument.soundfont"
 // import WAMInstrument from "./instruments/instrument.wam"
 // import WAM2Instrument from "./instruments/instrument.wam2"
@@ -77,8 +78,8 @@ export const lazilyLoadInstrument = async (type) => {
 			return WAM2Instrument
 
 		case INSTRUMENT_TYPE_MIDI:
-			const MIDIInstrument = (await import( "./instruments/instrument.midi.js")).default
-			instrumentsImported.set(type, MIDIInstrument)
+			// const MIDIInstrument = (await import( "./instruments/instrument.midi.js")).default
+			// instrumentsImported.set(type, MIDIInstrument)
 			return MIDIInstrument
 	}
 
