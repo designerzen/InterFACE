@@ -229,26 +229,6 @@
 	overflow: hidden;
 	overflow: clip;
 
-	caption {
-		text-transform: uppercase;
-		text-align: left;
-		padding-left: calc( 2 * var(--pad) );
-		padding-right: calc( 2 * var(--pad) );
-		padding-bottom: 0;
-		display: inline-block;
-		width: fit-content;
-		background-color: var(--shade-white);
-		border-radius: 12px 12px 0 0;
-		position: relative;
-		&::after{
-			content: '';
-			position: absolute;
-			left:100%;
-			top:0;
-			bottom: 0;
-			width:12px;
-		}
-	}
 
 	tbody{
 		background-color: var(--shade-cream);
