@@ -557,42 +557,75 @@
 		outline-color:var(--col-ring, var(--col-accent, black));
 		outline-style: dashed;
 	}
-
-
-	// Hover and focus states,
+	// checked doesn't change the background colours?
+	// CHECKED OR PRESELECTED
+	// enabled and pressed
+	&.checked,
 	&:is(
-		:hover, 
-		:focus,
-		:focus-visible
+		:has(input:checked)
 	){
-		outline-color:var(--col-ring, var(--col-accent, black));
-		outline-style: dotted;
+		// --col-fg:red;
+		// --col-top:var(--shade-dark);
+		// --col-bottom:var(--shade-dark);
+		//background-color: var(--col-regular);
+		// background-color: var(--shade-dark);
+		// background:red;
 	}
-
+		
 	// THIS IS THE INVERTED STATE where the text shadow
 	// is used as the main color
-	// focus states,
+	// focus states? :focus,
 	&:is(
-		:focus,
+		:target,
+		:active,
+		:hover, 
 		:focus-visible,
-		:has(:focus),
+		:focus-within,
 		:has(:focus-visible)
 	){
-		outline-color:var(--col-accent);
-	
+		// --col-fg:var(--shade-dark);
+		--col-top:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%)),  calc( var(--l-selected, var(--l, 30%)) )  );
+		--col-bottom:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%) ), calc( var(--l-selected, var(--l, 30%)) + var(--range,15%) )  );
+		--col-border:var(--shade-light , white );
+		
 		// if you want the icon to appear exactly where the white one was
 		--shadow-offset-y:0;
 
+		outline-color:var(--col-accent);
+	
 		// we use the text-shadow to reveal the text
 		color: transparent;
+
+		// we use the text-shadow to reveal the text
+		text-decoration: none;
 
 		// ICON before is dark and we fade it in...
 		&:after{
 			opacity:0;
 			z-index:1;
 		}
+		
+		select{
+			z-index:909;
+		}
 	}
 
+	// When focussed via keyboard or screen reader
+	// Hover and focus states,
+	&:is(
+		:focus,
+		:focus-visible
+	){
+		--hue:var(--hue-orange);
+		outline-color:var(--col-ring, var(--col-accent, black));
+		outline-style: dotted;
+		//outline-color:hsl( var(--hue-active), var( --s-active, var( --s, 58%)),  calc( var(--l-active, var(--l, 58%)) )  );
+		// outline-color:var(--col-outline);
+		// outline-offset:calc( -1 * var(--button-border-size) );
+		
+		// pop in front!
+		z-index:909;
+	}
 	/*
 	// inverted text and icon modes
 	&:is( 	:focus,
@@ -642,43 +675,12 @@
 		// outline-offset:calc( var(--line) * -1px );
 	}
 
-	&:is(
-		.checked:hover,
-		:hover, 
-		:focus-visible
-	){
-		// --col-fg:var(--shade-dark);
-		--col-top:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%)),  calc( var(--l-selected, var(--l, 30%)) )  );
-		--col-bottom:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%) ), calc( var(--l-selected, var(--l, 30%)) + var(--range,15%) )  );
-		--col-border:var(--shade-light , white );
-		
-		// pop in front!
-		z-index:909;
-		text-decoration: none;
-
-		// Custom border - light from top right
-		// border:var(--button-border-size) solid rgba( var(--col-border), 0.8 );
-		// border-left-color: rgba( var(--col-border), 0.9 );
-		// border-right-color: rgba( var(--col-border), 0.7 );
-		// border-bottom-color: rgba( var(--col-border), 0.6 );
-		// background-color:var(--col-hover);
-		
-		select{
-			z-index:909;
-		}
-	}
-
+*/
 	// ACTIVE ================================================================================
 
 	// Active *always* after hover for iOS
 
-	// When focussed via keyboard or screen reader
-	&:focus-visible{
-		//outline-color:hsl( var(--hue-active), var( --s-active, var( --s, 58%)),  calc( var(--l-active, var(--l, 58%)) )  );
-		// outline-color:var(--col-outline);
-		// outline-offset:calc( -1 * var(--button-border-size) );
-		// pop to front
-	}
+
 
 	// FOCUS on press by keyboard activity
 	// &:active:focus-visible{
@@ -687,7 +689,7 @@
 		// --col-bottom:var(--shade-red);
 		// outline-color:var(--shade-yellow);
 	// }
-	*/
+	
 
 	// on press
 	&:active{
@@ -700,25 +702,28 @@
 		// 	transform: translateY(10%);
 		// }
 	}
+
 	
-	// checked doesn't change the background colours?
-	// CHECKED OR PRESELECTED
-	// enabled and pressed
-	&.checked,
 	&:is(
-		:has(input:checked)
+		:active,
+		.checked:hover,
+		:hover, 
+		:focus-visible
 	){
-		// --col-fg:red;
-		// --col-top:var(--shade-dark);
-		// --col-bottom:var(--shade-dark);
-		//background-color: var(--col-regular);
-		// background-color: var(--shade-dark);
-		// background:red;
-	}
 		
+
+		// Custom border - light from top right
+		// border:var(--button-border-size) solid rgba( var(--col-border), 0.8 );
+		// border-left-color: rgba( var(--col-border), 0.9 );
+		// border-right-color: rgba( var(--col-border), 0.7 );
+		// border-bottom-color: rgba( var(--col-border), 0.6 );
+		// background-color:var(--col-hover);
+	}
+	
+
 	// if an anchor has been linked here...
 	&:target{
-		// --hue:var(--hue-brown);
+		--hue:var(--hue-brown);
 	}
 		
 	// Disabled / prevent access...
@@ -791,12 +796,18 @@
 	// 	top left;
 
 	&.hide-text:not(.text-always){
-		max-width: min-content;
+		// max-width: min-content;
 		grid-template-rows: 1fr 0px;
 		gap:0;
 		background-position:
-			center center,
+			center top calc( 50% + 1px * var(--shadow-offset-y, 0px)),
 			top left;
+
+		// background-position:
+		// 	center calc(var(--space, 0px) * var(--icon-fraction, 0.5) ) top calc( 50% + 1px * var(--shadow-offset-y, 0px)),  
+		// 	0 0,
+		// 	0 0,
+		// 	0 0;
 	}
 }
 
@@ -831,18 +842,22 @@
 	}
 	
 	&.hide-text:not(.text-always){
-		max-width: min-content;
+		// max-width: min-content;
 		gap:0;
 		grid-template-columns: 1fr;
 		background-position:
-			center center,
+			center top calc( 1px * var(--shadow-offset-y, 0px)),
 			top left;
+
+		&::after{
+			margin-right: auto;
+		}
 	}
 }
 
 @mixin add-icon-text-row-show-hidden{
 	&.hide-text:not(.text-always){
-		max-width: min-content;
+		// max-width: min-content;
 		grid-template-columns: 1fr;
 		background-position:
 			center center,
