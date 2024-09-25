@@ -182,7 +182,7 @@ progress.donut{
 	// bounces less and grows longer so that at 100%
 	//  it is a full smile none moving
     --angle:calc( ( var(--progress,1) ) * var(--range,160deg) );
-    --size:clamp(150px, 50vh, 250px);
+    --size:clamp(202px, 50vmin, 250px);
     
 	// we start at this size
 	--scale:1;
@@ -192,7 +192,7 @@ progress.donut{
 
 	--direction:-1;
     --duration:2s;
-    --stroke:70px;
+    --stroke:clamp(50px, 7vmin, 70px);
     --saturation:calc(var(--progress,1) * 100% );
     --luminosity:70%;
 
@@ -395,7 +395,7 @@ progress[value="1"] + label{
 	progress{
 		grid-area:1/-1;
 		margin:0;
-		--size: 59px;
+		--size:var(--loader-size-small, 59px); 
 		--stroke: 16px;
 		/* border: 1px solid red; */
 		// margin-top: 10px;
@@ -464,13 +464,19 @@ progress[value="1"] + label{
         transform: rotate( calc( -0.5turn + var(--angle) ) ) scale(var(--scale,1));
     }
     5%{
-        transform: rotate( calc( -0.5turn + var(--angle) ) ) scale(var(--scale,1));
+        transform: rotate( calc( -0.25turn + var(--angle) ) ) scale( var(--scale,1) );
+    }
+   	25%{
+        transform: rotate( calc( -0.5turn + var(--angle) ) ) scale( calc( (var(--scale,1) + var(--full-scale)) * 0.5));
     }
 	50%{
 		transform: rotate( 0turn ) scale(var(--full-scale,1.5));
 	}
+    75%{
+        transform: rotate( calc( 0.25turn - var(--angle) ) ) scale( calc( (var(--scale,1) + var(--full-scale)) * 0.5));
+    }
     95%{
-        transform: rotate( calc( 0.5turn - var(--angle) ) ) scale(var(--scale,1));
+        transform: rotate( calc( 0.5turn - var(--angle) ) ) scale( var(--scale,1) );
     }
     100%{
         transform: rotate( calc( 0.5turn - var(--angle) ) ) scale(var(--scale,1));

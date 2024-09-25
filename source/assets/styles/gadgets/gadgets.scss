@@ -92,7 +92,7 @@ label[for="select-camera"],
 
 // this holds nav to sections inc help and funding
 #nav-main{
-	--icon-size: clamp(32px, 9vmin, 64px);
+	--icon-size:var(--loader-size-small, 64px );
 
 	position:fixed;
 	top:0;
