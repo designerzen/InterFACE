@@ -18,7 +18,7 @@ import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT }
 import { updateCapabalitiesTable } from './dom/compatability.js'
 
 // import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-import { createInterface } from './interface.js'
+// import { createInterface } from './interface.js'
 
 // TESTING
 // import createAppInterface from './interface.js'
@@ -112,7 +112,8 @@ const start = () => {
 
 	const loadInterfaceAndAssembleApplication = async () => {
 
-		// const {createInterface} = (await import( "./interface.js"))
+		const {createInterface:create} = await import( "./interface.js")
+		// debugger
 		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
 		// import { createStore} from './store'
 		const { createStore } = await import('./utils/store')
@@ -123,9 +124,10 @@ const start = () => {
 		const store = createStore()
 		const title = document.title
 
-		console.info("loadInterfaceAndAssembleApplication ", {store,title, createInterface})
+		console.info("loadInterfaceAndAssembleApplication ", {store,title})
 
-		const application = await createInterface(
+		// const application = await createInterface(
+		const application = await create(
 			defaultOptions,
 			store,
 			capabilities,
