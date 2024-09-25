@@ -31,8 +31,8 @@ import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
 // Different ways of playing sound!
 // TODO: Replace with instrumentFactory
-import SampleInstrument from './audio/instruments/instrument.sample'
-// import MIDIInstrument from './audio/instruments/instrument.midi'
+import SampleInstrument from './audio/instruments/instrument.sample.js'
+// import MIDIInstrument from './audio/instruments/instrument-midi1.js'
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 
 // More input mechanisms (per person)
@@ -2909,16 +2909,16 @@ export const createInterface = (
 		body.classList.toggle("loaded", true)
 		main.setAttribute("aria-busy", false)
 
+		// as we are now "full screen" the positions of the tooltips needs
+		// to be recaulated so we do them all here
+		updateTooltipPositions()
+		
 		observeWeblink()
 		notifyObserversThatWeblinkIsAvailable()
 		
 		// monitor keyboard events
 		registerKeyboard()
 
-		// as we are now "full screen" the positions of the tooltips needs
-		// to be recaulated so we do them all here
-		updateTooltipPositions()
-		
 		speak("I am looking for your face")
 
 		// now create all the people we will need!

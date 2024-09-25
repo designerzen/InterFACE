@@ -309,7 +309,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	recordData:false,
 
 	// send out MIDI per person...
-	// see Instrument.MIDI
+	// see instrument-midi
 	sendMIDI:true,
 
 	// if you want the axis to be switched

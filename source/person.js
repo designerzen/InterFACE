@@ -48,7 +48,9 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 // import WAM2Instrument from './audio/instruments/instrument.wam2'
 // import SampleInstrument from './audio/instruments/instrument.sample'
 // import SoundFontInstrument from './audio/instruments/instrument.soundfont'
-import MIDIInstrument from './audio/instruments/instrument.midi'
+// import MIDIInstrument from './audio/instruments/instrument-midi'
+import MIDIInstrument from './audio/instruments/instrument.midi.js'
+
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 // import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
 // import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
