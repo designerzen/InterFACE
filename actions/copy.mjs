@@ -48,8 +48,8 @@ const copyFolderSync = (from, to, overwrite=false ) => {
 // copyFolderSync('./node_modules/@tensorflow/tfjs-backend-wasm/dist', './static/tf') 
 
 copyFolderSync('./node_modules/@mediapipe/face_mesh/', './static/@mediapipe/face_mesh/') 
-// copyFolderSync('./node_modules/@mediapipe/pose/', './static/@mediapipe/pose/') 
-copyFolderSync('./node_modules/@mediapipe/tasks-vision/wasm/', './static/@mediapipe/tasks-vision/wasm/') 
+copyFolderSync('./node_modules/@mediapipe/pose/', './static/@mediapipe/pose/') 
+copyFolderSync('./node_modules/@mediapipe/tasks-vision/', './static/@mediapipe/tasks-vision/') 
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 
