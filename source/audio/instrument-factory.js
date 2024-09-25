@@ -181,7 +181,7 @@ export default class InstrumentFactory{
 					
 				}catch(error){
 					console.error("Error loading instrument list!", error)
-					// throw Error("Could not find that list")
+					throw Error("Could not find that list")
 				}
 			}
 		
@@ -208,6 +208,7 @@ export default class InstrumentFactory{
 			})
 		}else{
 			console.error("No instrument list could be decoded", this.instrumentList)
+			throw Error("Could not decode that list")
 		}
 
 		// NB. may return undefined if no instrument List was available

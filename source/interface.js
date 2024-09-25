@@ -661,7 +661,7 @@ export const createInterface = (
 		if (people[index] == undefined)
 		{
 			const useGamePad = ui.gamePad ?? false
-			const person = createPerson( NAMES[index] ,EYE_COLOURS[index], index, useGamePad )
+			const person = createPerson( NAMES[index], EYE_COLOURS[index], index, useGamePad )
 		
 			people.push( person )
 			console.log("getPerson", {person,people})
@@ -1899,12 +1899,12 @@ export const createInterface = (
 			instrumentFactory.loadList(instrumentListURIorObject)
 			instrumentList = instrumentFactory.list
 			progressCallback(loadIndex++/loadTotal, "Loaded Instrument List")
-			console.info("PhotoSYNTH Instruments Available", {instrumentList,  instrumentListURIorObject} )  
+			console.info("PhotoSYNTH Instruments Available", {instrumentList, instrumentFactory, instrumentListURIorObject} )  
 			
 		}catch(error){
 
 			progressCallback(loadIndex++/loadTotal, "Instrument List Not Found!")
-			console.info("PhotoSYNTH Instruments Unavailable", error)	
+			console.error("PhotoSYNTH Instruments Unavailable", error)	
 		}
 		
 		// --------------------------------------------------------------------------------
@@ -1925,7 +1925,7 @@ export const createInterface = (
 			{	
 				// Camera -----------------------------------------
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted")
-				progressCallback(loadIndex/loadTotal,"Looking for cameras..." )
+				progressCallback(loadIndex/loadTotal,"Found cameras..." )
 
 				const cameraFeedbackMessage = await setupCamera( video, status =>{
 					progressCallback(loadIndex/loadTotal, status )
@@ -2293,6 +2293,7 @@ export const createInterface = (
 				}
 				
 				const isQuarterNote = clock.isQuarterNote
+				const isBar = clock.isAtStart
 				// TODO: The timer is a good place to determine if the computer
 				// 		 is struggling to keep up with the program so we can reduce
 				// 		 the visual complexity of the ui and remove some predictions too
@@ -2316,7 +2317,7 @@ export const createInterface = (
 				}
 
 				// Play metronome!
-				if ( ui.metronome && isQuarterNote )
+				if ( ui.metronome && isBar )
 				{
 					// TODO: change timbre for first & last stroke
 					const metronomeLength = 0.09
@@ -2338,7 +2339,7 @@ export const createInterface = (
 						const stuff = playPersonAudio( person )
 
 						// update game pads - events are caught elsewhere
-						if (ui.useGamePad && person.gamePad && person.gamePad.connected) 
+						if (ui.gamePad && person.gamePad && person.gamePad.connected) 
 						{
 							person.gamePad.update()
 						}
@@ -2365,14 +2366,9 @@ export const createInterface = (
 				// (as we use 16 divisions for quarter notes)
 				// FIXME: Just expand the patterns with longer gaps
 				// a swing of one will offset every second beat
-				const swing = 1
-				if ( ui.backingTrack )
+				//const swing = 1
+				if ( ui.backingTrack && isQuarterNote)
 				{
-					if (isQuarterNote)
-					{
-
-					}
-
 					console.log("clock", {divisionsElapsed,
 						bar, bars, 
 						barsElapsed,})
@@ -2931,6 +2927,9 @@ export const createInterface = (
 			const person = getPerson(i)
 			console.info(i, "Person created", person)
 		}
+
+		
+		console.info( "People created", people)
 		
 		// wait here until a user shows their face...
 		const user = await lookForUser()
@@ -3033,7 +3032,6 @@ export const createInterface = (
 		stateMachine.set("players", quantityOfPlayers )
 		stateMachine.set("advancedMode", results.advancedMode  ?? false )
 		stateMachine.set("automationMode", automationMode )
-
 	})
 
 	//console.warn("Loading machine learning models with options", modelOptions)
