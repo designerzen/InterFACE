@@ -403,6 +403,9 @@ progress[value="1"] + label{
 		transform: rotate(0.5turn) scale(0.8);
 	}
 
+	progress[value="0.5"]{
+		opacity: 0;
+	}
 	progress[value="1"]{
 		opacity: 0;
 	}
@@ -410,7 +413,8 @@ progress[value="1"] + label{
 	label[for="progress-bar"]{
 		grid-area:1/-1;
 		font-size: 0;
-		align-self:flex-end;
+		align-self:center;
+		justify-self: flex-start;
 		margin:0;
 		color:currentColor;
 		// mix-blend-mode:hard-light;
@@ -420,6 +424,7 @@ progress[value="1"] + label{
 		top:auto;
 		left:auto;
 		font-size:20px;
+		width: min-content;
 	}
 	&:has(progress[value="1"]){
 		background-color: transparent;
