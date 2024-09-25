@@ -120,10 +120,10 @@ const start = () => {
 
 		// This is tweaking out on CloudFlare.
 		// I don't know why it is not working, but it might be path related?
-		if (!WebMIDIClass)
-		{
-			WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
-		}
+		// if (!WebMIDIClass)
+		// {
+		// 	WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+		// }
 		
 		const store = createStore()
 		const title = document.title
