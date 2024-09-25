@@ -49,7 +49,7 @@
       "distDir": "./release/web/",
       "publicUrl": "./",
       "context": "browser",
-      "sourceMap": true
+      "sourceMap": false
     }
   },
   "scripts": {
