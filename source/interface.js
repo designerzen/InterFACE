@@ -229,23 +229,20 @@ export const createInterface = (
 
 		if (loadPercent < newValue)
 		{
-			// lerp towards
 			// loadPercent = newValue
-			loadPercent += 0.01
-			console.log("loading", loadPercent)
+			// lerp towards
+			loadPercent = loadPercent + 0.005 //.toFixed(2)  loadPercent 
 			onLoadProgress(loadPercent, message, hideLoader)
 		}
 
 		if (loadPercent < newValue)
 		{
-			// FIXME: requestanim to ease the number up!
 			requestAnimationFrame( e => loadProgressMediator(newValue) )
+		}else{
+			loadPercent = newValue
 		}
 	}
 
-	console.info( "Interface created", this)
-		
-	
 	// STATE -----------------------------------------------------------------
 
 	const shareCodeElement = document.querySelector(".qr")
