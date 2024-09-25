@@ -11,6 +11,7 @@
 // const FACE_LANDMARK_WASM =  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
 //const FACE_LANDMARK_TASK = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
 import FACE_LANDMARK_TASK from "url:./face_landmarker.task"
+import BLAZE_FACE_SHORT_RANGE_MODEL_PATH from "url:./blaze_face_short_range.tflite"
 
 const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
 // import FACE_LANDMARK_WASM from "./@mediapipe/tasks-vision/wasm"
@@ -160,7 +161,7 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	const faceLandmarkerOptions ={
 		baseOptions: {
 			// this needs to be absolute yet relative :/
-			// modelAssetPath: './face_landmarker.task',
+			// modelAssetPath: BLAZE_FACE_SHORT_RANGE_MODEL_PATH,
 			modelAssetPath: FACE_LANDMARK_TASK,
 			delegate: "GPU"
 		},
@@ -230,6 +231,9 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Eyes")
 		
 		const detector = await FaceLandmarker.createFromOptions( filesetResolver, faceLandmarkerOptions )
+		// direct blazeface
+		// const detector = await FaceDetector.createFromModelPath(vision, BLAZE_FACE_SHORT_RANGE_MODEL_PATH)
+
 		faceLandmarker = detector
 
 		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")

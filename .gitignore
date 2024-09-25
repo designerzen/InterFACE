@@ -40,7 +40,14 @@ heap-*
 parcel-bundle-reports/
 source/audio/wam2-external/
 
-static/@mediapipe
+static/@mediapipe/**/*
+# !static/@mediapipe/tasks-vision/*
+!static/@mediapipe/tasks-vision/
+# They forgot to include the wasm files in the @mediapipe repo!
+# !static/@mediapipe/tasks-vision/
+!static/@mediapipe/tasks-vision/wasm/**
+!static/@mediapipe/tasks-vision/wasm/
+
 static/assets/audio/*
 !static/assets/audio/acoustics/*
 !static/assets/audio/*.json
