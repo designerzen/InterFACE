@@ -17,7 +17,7 @@ import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mous
 import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from './capabilities'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 
-// import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 // import { createInterface } from './interface.js'
 
 // TESTING
@@ -118,8 +118,12 @@ const start = () => {
 		// import { createStore} from './store'
 		const { createStore } = await import('./utils/store')
 
-		// This is tweaking out :/
-		const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+		// This is tweaking out on CloudFlare.
+		// I don't know why it is not working, but it might be path related?
+		if (!WebMIDIClass)
+		{
+			WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+		}
 		
 		const store = createStore()
 		const title = document.title
@@ -151,8 +155,8 @@ const start = () => {
 					startLoadTime = Date.now()
 				}
 
-				const elapsed = Date.now() - startLoadTime
-				console.info("Loading ", elapsed)
+				// const elapsed = Date.now() - startLoadTime
+				// console.info("Loading ", elapsed)
 				// if (elapsed > LOAD_TIMEOUT)
 				// {
 				// 	failed = true
