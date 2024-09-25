@@ -1,7 +1,7 @@
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants"
 
 const createInstrumentFamilyTitle = (family, personName) => `<h4>${personName.length ? personName : family.replace("Instrument","")}</h4>`
-const createInstrumentFamilySummary = family => `<summary><h5>${family}</h5></summary>`
+const createInstrumentFamilySummary = (family) => `<summary><h5>${family}</h5></summary>`
 const createInstrumentFamilyDetails = family => `<summary><h5>${family}</h5></summary>`
 
 /**
@@ -12,11 +12,11 @@ const createInstrumentFamilyDetails = family => `<summary><h5>${family}</h5></su
  * @returns 
  */
 const createInstumentForForm = 
-	( folder, instrumentName ) => 
+	( folder, instrumentName, personName ) => 
 		`<li class="instrument">
-			<label for="${folder}">
+			<label for="${personName}-${folder}">
 				${instrumentName}
-				<input id="${folder}" name="instrument-selector" type="radio" value="${folder}" />
+				<input id="${personName}-${folder}" name="instrument-selector" type="radio" value="${folder}" />
 			</label>
 		</li>`
 
@@ -98,15 +98,15 @@ export const createInstrumentFormHTML = (instruments, packName="", personName=""
 	// now group them into families...
 	instruments.forEach( (instrument, index) => {
 		
-		const form = createInstumentForForm( instrument.location, instrument.name )
+		const form = createInstumentForForm( instrument.location, instrument.name, personName )
 		output += form
 		if (family !== instrument.family)
 		{
 		
 			family = instrument.family
 			output += `</ul></details>`
-			output += `<details open id="instrument-family-${family.toLowerCase()}">
-						${createInstrumentFamilySummary(family)}
+			output += `<details open id="${personName}-instrument-family-${family.toLowerCase()}">
+						${createInstrumentFamilySummary(family, personName)}
 						<ul>`
 		}
 	})
@@ -157,7 +157,10 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) 
 	}
 	
 	const inputs = controls.querySelectorAll('input')
-	inputs.forEach( input => input.addEventListener('change', event => onInstrumentInput(event) ), false)
+	inputs.forEach( input => input.addEventListener('change', onInstrumentInput, false) )
+	
+	console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
+
 
 	// toggle the accordian modes for the details
 	const legend = controls.querySelector('legend')
