@@ -243,20 +243,27 @@ export const addTooltip = element => {
 			console.info("Setting tooltip???", {event} ) 	
 		}
 
-		
-		
 		// Eventually this will work!
-		
 		toastElement.anchor = event.target.id
 		// toastElement.innerHTML = toolTip
 	 	toastElement.textContent = toolTip
 		// setToast(toolTip)
 		// console.error( {toolTip, position} )
+		toastElement.hidden = false
 		if (supportsPopover)
 		{	
 			toastElement.showPopover()	
 		}
 	}
+	const hideTooltipCallback = (event, popOver=false) => {
+		
+		toastElement.hidden = true
+		if (supportsPopover)
+		{	
+			toastElement.hidePopover()	
+		}
+	}
+
 
 	let cleanUp
 	if (!supportsPopover)
@@ -276,11 +283,11 @@ export const addTooltip = element => {
 		// element.popoverTargetAction = "toggle"
 		element.setAttribute("popovertarget", toastElement.id)
 		element.addEventListener("mouseover", showTooltipCallback)
-		//element.addEventListener("mouseout", toastElement.hidePopover )
+		element.addEventListener("mouseout", hideTooltipCallback )
 	
 		cleanUp = e => {
 			element.removeEventListener("mouseover", showTooltipCallback)
-			//element.removeEventListener("mouseout", toastElement.hidePopover )	
+			element.removeEventListener("mouseout", hideTooltipCallback )	
 		}
 	}	
 	
