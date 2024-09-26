@@ -1,3 +1,4 @@
+# Required for Shared Array Buffer to operate on Safari
 /*
 	Cross-Origin-Embedder-Policy: require-corp
 	Cross-Origin-Opener-Policy: same-origin
