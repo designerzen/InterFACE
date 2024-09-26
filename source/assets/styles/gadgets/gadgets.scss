@@ -224,8 +224,8 @@ a[href="#fund"]{
 		
 	// background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
 	background-image:url(/source/assets/logos/interface_colour.svg);
-	background-position: top 85% center;
-	background-size: contain;
+	background-position: top 50% center;
+	background-size: 72%;
 	background-repeat: no-repeat;
 	
 	text-transform: uppercase;
@@ -274,7 +274,7 @@ a[href="#fund"]{
 		opacity: 1;
 		color:var(--shade-red, red);
 		position: absolute;
-		top:0;
+		top:5%;
 		left:0;
 		right:0;
 		text-align: center;
