@@ -140,6 +140,7 @@ const setToolTipPosition = (target, anchor="") => {
 
 // ensure we remove the cursor from the screen!
 export const updateTooltipPositions = () => {
+	// move it out of the way to prevent over scroller
 	setToolTipPosition({x:0,y:0})
 	tooltips.forEach( (data, tipElement) => setTipSourcePosition( tipElement ))
 	// reposition any actiev tooltip elements
@@ -148,6 +149,7 @@ export const updateTooltipPositions = () => {
 	// 	const position = tooltipPositions.get( tooltipElement )
 	// 	position && setToolTipPosition(position)
 	// }
+	console.log("getPositionForTooltip", tooltips)	
 }
 
 const onWindowResize = event => {
@@ -158,7 +160,6 @@ const onWindowResize = event => {
 // position-anchor
 const getPositionForTooltip = target => {
 	const e = target.getBoundingClientRect().toJSON() 
-	console.log("getPositionForTooltip", e)
 	return { ...e, 
 		x:e.x + Math.min( 14, e.width * 0.2 ) + window.scrollX,  
 		y:e.y + window.scrollY

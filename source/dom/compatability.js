@@ -193,9 +193,9 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	
 	}else{
 		isFatalIssue = updateTable(permissions, cameras)
-		console.log("Compatability table", table )
-		console.log("Devices", {devices, cameras}) 
-		console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
+		// console.log("Compatability table", table )
+		// console.log("Devices", {devices, cameras}) 
+		// console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
 	}
 
 	// now update the table based on permissions

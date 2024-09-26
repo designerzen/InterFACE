@@ -327,7 +327,6 @@ export default class State {
 
 		})
 		
-		console.log("GARH", classNames )
 		// force selected atates etc
 		this.elementForClasses.className = `${this.originalClassList} ${classNames}`
 	}
