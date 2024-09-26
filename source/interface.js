@@ -1,7 +1,7 @@
 import 'audioworklet-polyfill'
 
 // import {midiLikeEvents} from './timing/rhythm'
-import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState, createStateFromHost } from './utils/state'
+import State, { EVENT_STATE_CHANGE, createStateFromHost } from './utils/state'
 
 // TODO :lazy load
 import { say, hasSpeech} from './audio/speech'
@@ -2673,7 +2673,6 @@ export const createInterface = (
 		// reset to factory defaults
 		buttons.resetSettings = setButton( "button-reset", status =>{ 
 			stateMachine.reset()
-			refreshState()
 		})
 
 		// Button video loads random instruments for all players at the same time
@@ -2821,7 +2820,7 @@ export const createInterface = (
 		// this takes any existing state from the url and updates our front end
 		// so that any previously saved settings show as if the user is continuing
 		// their project from before - same buttons selected etc
-		refreshState()
+		stateMachine.refresh()
 
 		// now set up the front end based on this state
 		setupInterfaceUI( settings, progressCallback )
