@@ -112,9 +112,6 @@ const start = () => {
 
 	const loadInterfaceAndAssembleApplication = async () => {
 
-		// const {createInterface:create} = await import( "./interface.js")
-		// debugger
-		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
 		// import { createStore} from './store'
 		const { createStore } = await import('./utils/store')
 
@@ -124,11 +121,11 @@ const start = () => {
 		// {
 		// 	WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
 		// }
+		// const {createInterface:create} = await import( "./interface.js")
+		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
 		
 		const store = createStore()
 		const title = document.title
-
-		console.info("loadInterfaceAndAssembleApplication ", {store,title})
 
 		// const application = await createInterface(
 		const application = await createInterface(

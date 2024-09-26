@@ -102,7 +102,7 @@ export const fetchText = async (url, abortController = null, maximumAttempts = 0
 
 
 /**
- * Load in our spreadsheet via JSON
+ * Load in our data via JSON
  */
 export const fetchJSON = async (url, abortController = null, maximumAttempts = 0, reattempt = 0) => {
 
@@ -121,6 +121,7 @@ export const fetchJSON = async (url, abortController = null, maximumAttempts = 0
 		}
 
 		if (!isJson) {
+			console.error("JSON file was mis-named?", {url, contentType, maximumAttempts})
 			throw Error(response.status + ": This data file is not a JSON data file; " + response.statusText)
 		}
 
