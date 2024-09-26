@@ -16,6 +16,7 @@
 
 // in seconds
 const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = 60 * 3
+const BARS_BEFORE_CHANGING_DRUMS = 10
 
 export default class Attractor{
 
@@ -63,11 +64,10 @@ export default class Attractor{
 				//this.application.setBPM( Math.random() * 100 + 60 )
 				//console.log(this.counter, "AUTOMATON:", elapsed.toFixed(2), "seconds", barProgress * 100,  this.application )
 
-				if (this.barCounter%2)
+				if (this.barCounter%BARS_BEFORE_CHANGING_DRUMS)
 				{
 					this.application.setRandomDrumPattern()
 				}
-				
 			}
 			
 		}else{
@@ -77,14 +77,14 @@ export default class Attractor{
 			{
 				//this.application.setState( 'backingTrack', true )
 				this.barCounter++
-				players.forEach( player => {
-					if ( player.timeSinceInstrumentChanged > DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE )
-					{
-						player.loadRandomPreset()
-					}
-				})
+				// players.forEach( player => {
+				// 	if ( player.timeSinceInstrumentChanged > DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE )
+				// 	{
+				// 		player.loadRandomPreset()
+				// 	}
+				// })
 				
-				if (this.barCounter%2)
+				if (this.barCounter%BARS_BEFORE_CHANGING_DRUMS)
 				{
 					this.application.setRandomDrumPattern()
 				}
