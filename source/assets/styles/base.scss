@@ -11,6 +11,8 @@
 	padding:0;
 }
 
+
+  
 :where(html){
 	
 	// work out most appropriate
@@ -307,7 +309,7 @@ svg[aria-hidden='true'] {
 	cursor: pointer;
 }
 
-output{
+output, result{
 	display: block;
 }
 
@@ -323,4 +325,14 @@ hr{
 
 [aria-busy="true"] {
 	cursor: progress;
+}
+
+// Make sure textareas without a rows attribute are not tiny 
+textarea:not([rows]) {
+	min-height: 10ch;
+}
+  
+// Anything that has been anchored to should have extra scroll margin 
+:target {
+	scroll-margin-block: 5ex;
 }
