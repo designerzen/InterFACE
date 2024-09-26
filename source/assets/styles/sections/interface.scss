@@ -1047,8 +1047,11 @@ svg.hero-bumper{
 }
 
 .link-designerzen{
-	word-break: keep-all;
+	
 	--icon-size:1rem;
+	
+	word-break: keep-all;
+	white-space: nowrap;
 	&::before{
 		content:'';
 		vertical-align: middle;
