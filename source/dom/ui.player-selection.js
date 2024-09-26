@@ -86,6 +86,7 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 	let advancedMode = stateMachine.get("advancedMode") ?? false
 	let automationMode = stateMachine.get("automationMode") ?? false
 	
+
 	const setQuantityOfPlayers = amount => {
 		players = amount
 		body.classList.remove(...playerQuantities)
@@ -161,14 +162,15 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 	advanced.addEventListener("change", event =>{ 
 		advancedMode = advanced.checked 
 		body.classList.toggle("beginner", !advancedMode  )
-		const explanation = feedback.childNodes[ advancedMode ? 0 : 1 ]
+		const explanation = feedback.childNodes[ advancedMode ? 1 : 0 ]
 		feedback.childNodes.forEach( child => explanation === child ? child.hidden = false : child.hidden = true )
 		
 		// update button text
 		setQuantityOfPlayers( players )
 	})
+
 	// immediately hide the appropriate output info child
-	feedback.childNodes[ advancedMode ? 0 : 1 ].hidden = true
+	feedback.childNodes[ advancedMode ? 1 : 0 ].hidden = true
 	
 
 	automation.addEventListener("change", event =>{ 
