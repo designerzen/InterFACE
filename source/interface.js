@@ -261,7 +261,6 @@ export const createInterface = (
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( (key,value) => {
 		
-		uiTest[key] = value
 		if (shareCodeElement)
 		{
 			const bookmark = stateMachine.asURI
