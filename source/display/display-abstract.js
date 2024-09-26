@@ -130,7 +130,6 @@ export default class AbstractDisplay{
 		looper()
 	}
 
-
 	movePersonButton(person, prediction){
 		// we only want this every frame or so as this 
 		// is altering the DOM and very costly
@@ -170,13 +169,18 @@ export default class AbstractDisplay{
 	 */
 	drawVisualiser( dataArray, bufferLength ){}
 
-	postProcess( options ){}
-
 	drawInstrument(boundingBox, instrumentName, extra){}
 
 	drawText( x, y, text, size, align, font, invertColours ){}
 	drawParagraph(x, y,  paragraphh, size, lineHeight, invertColours ){}
 
+
+	/**
+	 * Next Filter for the post processing
+	 */
+	nextFilter(){}
+
+	postProcess( options ){}
 
 	/**
 	 * Draw to screen?

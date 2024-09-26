@@ -105,6 +105,11 @@ export default class Display2D extends AbstractDisplay{
 		return this.canvas2DContext
 	}
 
+	get nextFilterIndex()
+	{
+		return (this.filterIndex + 1) % (FILTERS.length-1)
+	}
+
 	constructor( canvas, initialWidth, initialHeight, offscreen=false )
 	{
 		super( offscreen && hasOffscreenCanvasCapability() ? canvas.transferControlToOffscreen() : canvas, initialWidth, initialHeight)
@@ -123,8 +128,7 @@ export default class Display2D extends AbstractDisplay{
 	 * Next Filter for the post processing
 	 */
 	nextFilter(){
-		// this.filterIndex = (this.filterIndex + 1) % FILTERS.length
-		this.filterIndex = (this.filterIndex + 1) % (FILTERS.length-1)
+		this.filterIndex = this.nextFilterIndex
 	}
 
 	/**
@@ -199,7 +203,7 @@ export default class Display2D extends AbstractDisplay{
 	overdraw( offsetX=0, offsetY=-1) {
 		
 		// ctx.clearRect(0, 0, width, height);
-		this.canvasContext.save()
+		// this.canvasContext.save()
 		// this.canvasContext.save()
 		// use this filter
 		this.canvasContext.globalCompositeOperation = this.filter
@@ -209,7 +213,7 @@ export default class Display2D extends AbstractDisplay{
 		// 	this.canvasContext.drawImage(img, i * img.width, 0);
 		// }
 	
-		this.canvasContext.restore()
+		// this.canvasContext.restore()
 	}
 
 	/**
@@ -228,6 +232,10 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Object} options 
 	 */
 	postProcess( options ){
+		if (options.filterIndex && options.filterIndex !== this.filterIndex)
+		{
+			this.filterIndex = options.filterIndex % (FILTERS.length-1)
+		}
 		this.overdraw( options.offsetX ?? 0, options.offsetY ?? 0 )
 	}
 }
