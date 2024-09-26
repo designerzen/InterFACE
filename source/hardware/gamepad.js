@@ -81,8 +81,12 @@ export default class GamePad {
 		this.watcher && this.watcher(key, value)
 	}
 	
-    connect(e) {
-		const gamepad = e.originalEvent ? e.originalEvent.gamepad : e.gamepad
+	/**
+	 * 
+	 * @param {Event} event 
+	 */
+    connect(event) {
+		const gamepad = event.originalEvent ? event.originalEvent.gamepad : event.gamepad
 		const log = `Gamepad #${gamepad.index+1} : ${gamepad.id} Connected`
 		// check to see if this is the right id...
 		if (gamepad.index === this.gamePadIndex)
@@ -100,8 +104,12 @@ export default class GamePad {
 		}
     }
     
-    disconnect(e) {
-		const gamepad = e.originalEvent ? e.originalEvent.gamepad : e.gamepad
+	/**
+	 * 
+	 * @param {Event} event 
+	 */
+    disconnect(event) {
+		const gamepad = event.originalEvent ? event.originalEvent.gamepad : event.gamepad
 		const log = `Gamepad #${gamepad.index+1} : ${gamepad.id} Disconnected`
 		if (gamepad.index === this.gamePadIndex)
 		{
@@ -111,6 +119,19 @@ export default class GamePad {
 			this.dispatch("disconnected", log)
 		}
     }
+
+	/**
+	 * Make the gamepad vibrate!
+	 * @param {*} value 
+	 * @param {*} duration 
+	 * @param {*} hapticIndex 
+	 */
+	vibrate(value=1, duration=200, hapticIndex=0 ){
+		if (this.gamepad)
+		{
+			this.gamepad.hapticActuators[hapticIndex].pulse(value, duration)
+		}
+	}
 
 	setBoolean( gamepad, button, buttonIndex ){
 		// check if changed and send out event if so
