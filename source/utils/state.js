@@ -6,6 +6,7 @@
 import { getDomainDefaults, getFactoryDefaults } from '../settings/options'
 import { addToHistory, getLocationSettings, getRefererHostname } from './location-handler'
 
+
 let state = null
 let main
 
@@ -321,7 +322,9 @@ export default class State {
 		let classNames = ""
 			
 		this.state.forEach( (value,key) => {
-			classNames += `flag-${key} `
+			if (value) {
+				classNames += `flag-${key} `
+			}
 			// TODO: try and find an associative input for selection
 			// const input = document.querySelector(`input[name="${key}"]`)
 
