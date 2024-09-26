@@ -125,7 +125,8 @@ export default class Display2D extends AbstractDisplay{
 	}
 
 	/**
-	 * Next Filter for the post processing
+	 * Next Filter for the post processing. 
+	 * WARNING : Some of these make the person invisible!
 	 */
 	nextFilter(){
 		this.filterIndex = this.nextFilterIndex
@@ -176,13 +177,29 @@ export default class Display2D extends AbstractDisplay{
 	}
 		
 	/**
+	 * VU Meter bars
+	 * @param {FFT} dataArray 
+	 * @param {Number} bufferLength 
+	 */
+	drawWaves( dataArray, bufferLength ){
+
+		drawBars( this.canvasContext, dataArray, bufferLength )
+	}
+		
+	/**
 	 * TODO: Fancier visualiser
 	 * @param {FFT} dataArray 
 	 * @param {Number} bufferLength 
 	 */
-	drawVisualiser( dataArray, bufferLength){
+	drawVisualiser( dataArray, bufferLength, type ){
 		// FIXME:
-		drawBars( this.canvasContext, dataArray, bufferLength )
+		switch(type){
+			case "line":
+				drawBars( this.canvasContext, dataArray, bufferLength )
+				break
+			default:
+				drawBars( this.canvasContext, dataArray, bufferLength )
+		}
 	}
 
 	drawInstrument(x, y, instrumentName, extra ){
