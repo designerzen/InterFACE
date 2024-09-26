@@ -44,7 +44,7 @@ const FILTERS = [
 	"luminosity",
 ].reverse()
 
-const FILTER_DESCRIPTION = [
+const FILTER_DESCRIPTIONS = [
 	"This is the default setting and draws new shapes on top of the existing canvas content.",
 	"The new shape is drawn only where both the new shape and the destination canvas overlap. Everything else is made transparent.",
 	"The new shape is drawn where it doesn't overlap the existing canvas content.",
@@ -129,6 +129,7 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	nextFilter(){
 		this.filterIndex = this.nextFilterIndex
+		console.info("Display filter", this.filter, this.filterDescription )
 	}
 
 	/**
