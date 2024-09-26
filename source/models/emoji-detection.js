@@ -81,7 +81,10 @@ export const recogniseEmoji = (prediction, options) => {
 
 		}else if (prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.1 ){
 			return EMOJI_SMILING_SLIGHTLY
+		}else if (prediction.leftSmirk > prediction.rightSmirk){
+			return EMOJI_DIAGONAL_MOUTH
 		}
+	
 		
 		if (prediction.eyebrowsRaisedBy > 0.3)
 		{
@@ -140,11 +143,7 @@ export const recogniseEmoji = (prediction, options) => {
 
 	// kiss EMOJI_KISS
 	// EMOJI_KISS_EYES_CLOSED
-	if (prediction.leftSmirk > prediction.rightSmirk)
-	{
-		return EMOJI_DIAGONAL_MOUTH
-	}
-
+	
 	// right wink 😉
 	if (prediction.leftEyeClosed && !prediction.rightEyeClosed)
 	{
