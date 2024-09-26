@@ -308,6 +308,12 @@ export default class State {
 		}
 	}
 
+	toggle( key, elements=null, dispatchEvent=true ){
+		const newState = this.state.get(key) ? false : true
+		this.set( key, newState, elements, dispatchEvent )
+		return newState
+	}
+
 	/**
 	 * Update the entire UI to match the current state
 	 */

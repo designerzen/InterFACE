@@ -396,8 +396,8 @@ export const createInterface = (
 	// NB. This should be only possible if we 
 	// are *not* showing the video element underneith
 	const shouldCopyVideoFrame = () => {
-		return ui.clear ? 
-			false : ui.synch ? 
+		return  stateMachine.get("clear") ? 
+			false :  stateMachine.get("synch") ? 
 				true : false
 	}
 
@@ -421,7 +421,7 @@ export const createInterface = (
 	 * @param {Boolean} clear Immediately end any xisting speech
 	 */
 	const speak = (toSay, clear=true) => {
-		if ( ui.speak && hasSpeech() ) 
+		if (  stateMachine.get("speak") && hasSpeech() ) 
 		{
 			try{
 				say(toSay,clear)
@@ -542,13 +542,13 @@ export const createInterface = (
 			rightEyeIris:eyeColour,
 			// FIXME: should probably use a set hue for consistency...
 			// hue:Math.random() * 360,
-			debug:ui.debug,
+			debug:stateMachine.get('debug'),
 			// FIXME: why is this per person? should always set per screen
-			photoSensitive:ui.photoSensitive,
+			photoSensitive:stateMachine.get('photoSensitive'),
 
-			instrumentPack:ui.instrumentPack,
+			instrumentPack:stateMachine.get('instrumentPack'),
 
-			stereoPan:ui.stereo,
+			stereoPan:stateMachine.get('stereo'),
 
 			// alternate between mesh and blobs depending on mouth
 			// NB. The two above will override this behaviour
@@ -556,11 +556,11 @@ export const createInterface = (
 			// force draw face mesh
 			// drawMesh:false,
 			// force draw face blob nodes
-			drawMask:ui.masks,
+			drawMask:stateMachine.get('masks'),
 			// drawNodes:ui.masks,
-			drawEyes:ui.eyes,
+			drawEyes:stateMachine.get('eyes'),
 
-			recordData:ui.recordData,
+			recordData:stateMachine.get('recordData'),
 		}
 
 		// Load any saved settings for this specific user name
@@ -684,7 +684,7 @@ export const createInterface = (
 	const getPerson = (index) => {
 		if (people[index] == undefined)
 		{
-			const useGamePad = ui.gamePad ?? false
+			const useGamePad = stateMachine.get("gamePad") ?? false
 			const person = createPerson( NAMES[index], EYE_COLOURS[index], index, useGamePad )
 		
 			people.push( person )
@@ -786,9 +786,9 @@ export const createInterface = (
 		if (port)
 		{
 			person.setMIDI(port, midiChannel)	
-			//console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
+			//console.info(midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 		}else{
-			console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel} )
+			console.error("No matching MIDI Instrument", midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel} )
 		}
 		return port
 	}
@@ -902,10 +902,10 @@ export const createInterface = (
 			switch(event.key)
 			{
 				case 'CapsLock':
-					stateMachine.set("debug", !ui.debug )
-					people.forEach( person => person.debug = ui.debug )
-					setToast(`DEBUG : ${ui.debug}`)
-					speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
+					stateMachine.set("debug", !stateMachine.get("debug") )
+					people.forEach( person => person.debug = stateMachine.get("debug") )
+					setToast(`DEBUG : ${stateMachine.get("debug")}`)
+					speak( stateMachine.get("debug") ? "secret mode unlocked" : "disabling developer mode", true)
 					break
 
 				case 'Enter':
@@ -966,12 +966,12 @@ export const createInterface = (
 					break
 
 				case 'b':
-					stateMachine.set("backingTrack", !ui.backingTrack, toggles )
-					setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
+					stateMachine.toggle("backingTrack", toggles )
+					setToast( stateMachine.get("backingTrack") ? "Backing track starting" : "Ending Backing Track" )
 					break
 			
 				case 'c':
-					stateMachine.set("clear", !ui.clear, toggles )
+					stateMachine.toggle("clear", toggles )
 					break
 
 				case 'd':
@@ -989,7 +989,7 @@ export const createInterface = (
 				case 'g':
 					const isVisisble = toggleVisibility(document.getElementById("feedback") )
 					toggleVisibility(document.getElementById("toast") )
-					ui.text = isVisisble
+					stateMachine.set("text", isVisisble )
 					break
 
 				case 'h':
@@ -1017,13 +1017,13 @@ export const createInterface = (
 
 				// toggle speech
 				case 'l':
-					stateMachine.set("speak", !ui.speak, toggles )
-					setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
+					stateMachine.toggle("speak", toggles )
+					setToast( stateMachine.get("speak") ? `Reading out instructions` : `Staying quiet` )
 					break
 			
 				case 'm':
-					stateMachine.set("metronome", !ui.metronome, toggles )
-					setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+					stateMachine.toggle("metronome", toggles )
+					setToast( stateMachine.get("metronome") ? `Quantised enabled` : `Quantise disabled` )
 					break
 
 				case 'n':
@@ -1049,7 +1049,7 @@ export const createInterface = (
 					break
 
 				case 'q':
-					stateMachine.set("muted", !ui.muted, toggles )
+					stateMachine.toggle("muted", toggles )
 					break
 			
 				case 'r':
@@ -1061,7 +1061,7 @@ export const createInterface = (
 					break
 
 				case 't':
-					stateMachine.set("text", !ui.text, toggles )
+					stateMachine.toggle("text", toggles )
 					break
 
 				case 'u':
@@ -1279,7 +1279,7 @@ export const createInterface = (
 		// stave.draw(stuff)
 		// update the stave with X amount of notes
 
-		if (ui.showPiano)
+		if (stateMachine.get("showPiano"))
 		{
 			// Update visual elements
 			switch(person.state)
@@ -1638,7 +1638,7 @@ export const createInterface = (
 	
 		let tickerTape = ''
 		
-		if (ui.disco)
+		if (stateMachine.get("disco"))
 		{	
 			// FUNKY DISCO MODE...
 			// switch effect type?
@@ -1659,13 +1659,13 @@ export const createInterface = (
 			// we also clear if sync is not set to true
 			// as this means the video is playing behind
 			// the canvas on the DOM
-			if (ui.clear || !ui.synch)
+			if (stateMachine.get("clear") || !stateMachine.get("synch"))
 			{
 				// clear for invisible canvas but 
 				// NB. this may cause visual disconnect
 				display.clear()
 			
-			}else if (ui.synch){
+			}else if (stateMachine.get("synch")){
 				
 				// paste video frame if the video is hidden
 				display.drawElement( inputElement )
@@ -1679,7 +1679,7 @@ export const createInterface = (
 		// On BEAT if beatjustplayed
 		// TODO: convert this into a per user bar and use the last played note to 
 		// change the colour of the indicator
-		if (ui.quantise)
+		if (stateMachine.get("quantise"))
 		{
 			// Start on BAR
 			// show quantise
@@ -1689,7 +1689,7 @@ export const createInterface = (
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
 		
-		if (ui.spectrogram)
+		if (stateMachine.get("spectrogram"))
 		{
 			// updateByteTimeDomainData()
 			// drawWaves( dataArray, bufferLength )
@@ -1756,7 +1756,7 @@ export const createInterface = (
 				}
 
 				// add face overlay
-				if (ui.disco || ui.overlays)
+				if (stateMachine.get("disco") || stateMachine.get("overlays"))
 				{
 					// FIXME:
 					// TODO:
@@ -1765,20 +1765,20 @@ export const createInterface = (
 					
 					display.drawPerson( person, hasBeatJustPlayed, colours )
 
-					if (ui.text)
+					if (stateMachine.get("text"))
 					{
 						person.drawText( prediction, display ) 
 					}
 				}
 				
 				// then whenever you fancy it,
-				if (!ui.quantise && !ui.muted)
+				if (!stateMachine.get("quantise") && !stateMachine.get("muted"))
 				{	
 					// unless quantize is turned off
 					// we can "sing" in realtime
 					playPersonAudio( person )
 								
-					if (ui.disco && i===0)
+					if (stateMachine.get("disco") && i===0)
 					{
 						// use person 1's eyes to control other stuff too?
 						// in this case the direction of the pan in disco mode
@@ -2082,9 +2082,9 @@ export const createInterface = (
 			// NB. at this point we have access to the user events
 			// 		so can create things that depend on audio context
 			clock = new AudioTimer( audioContext )
-			clock.BPM = ui.bpm ?? 90
+			clock.BPM = stateMachine.get('bpm') ?? 90
 
-			console.info("AudioTimer created @", clock.BPM, ui.bpm, ui,  clock )
+			console.info("AudioTimer created @", clock.BPM, stateMachine.get('bpm'),  clock )
 
 			// connect the tempo interface
 			setupTempoInterface(clock, null, null, v =>{
@@ -2189,7 +2189,7 @@ export const createInterface = (
 		// MIDI --------------------------------------------------------------
 
 		// Load any previous performances...
-		if (ui.loadMIDIPerformance)
+		if (stateMachine.get("loadMIDIPerformance"))
 		{
 			progressCallback(loadIndex/loadTotal,"Loading MIDI Performance")
 			try{
@@ -2247,7 +2247,7 @@ export const createInterface = (
 		handlePWADataTypes()
 
 		// DOM UI ------------------------------------------------
-		if (ui.showPiano)
+		if (stateMachine.get("showPiano"))
 		{
 			// this draws a 2d keyboard on screen at the specified position and dimensions
 			musicalKeyboard = new MusicalKeyboard( 500, 120, 8 )
@@ -2262,12 +2262,12 @@ export const createInterface = (
 
 
 		// Add tooltips to buttons if set in options
-		if (ui.tooltips ?? true)
+		if (stateMachine.get("tooltips"))
 		{
 			// this just adds some visual onscreen tooltips to the buttons specified
 			// addToolTips( controlPanel)
 			// instead we can disable / enable
-			toggleTooltips( ui.tooltips )
+			toggleTooltips( stateMachine.get("tooltips") )
 		}
 		
 		// remove loading flag as we now have all of our assets!
@@ -2276,7 +2276,7 @@ export const createInterface = (
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		body.classList.toggle("initialising", false)
 
-		if (ui.debug)
+		if (stateMachine.get("debug"))
 		{
 			console.info("PhotoSynth 3D - DEBUG")
 			console.info("PhotoSynth Dependents Loaded", loadIndex, loadTotal)
@@ -2348,13 +2348,13 @@ export const createInterface = (
 				// }
 
 				// nothing to play!
-				if (ui.muted)
+				if (stateMachine.get("muted"))
 				{
 					return
 				}
 
 				// Play metronome!
-				if ( ui.metronome && isBar )
+				if ( stateMachine.get("metronome") && isBar )
 				{
 					// TODO: change timbre for first & last stroke
 					const metronomeLength = 0.09
@@ -2368,7 +2368,7 @@ export const createInterface = (
 			
 				// sing note and draw to canvas
 				// chcek if quarternote
-				if( ui.quantise && divisionsElapsed===0 )
+				if( stateMachine.get("quantise") && divisionsElapsed===0 )
 				{
 					const amountOfPeople = people.length
 					for (let i=0, l=amountOfPeople; i<l; ++i )
@@ -2379,7 +2379,7 @@ export const createInterface = (
 						playPersonAudio( person )
 
 						// update game pads - events are caught elsewhere
-						if (ui.gamePad && person.gamePad && person.gamePad.connected) 
+						if (stateMachine.get("gamePad") && person.gamePad && person.gamePad.connected) 
 						{
 							person.gamePad.update()
 						}
@@ -2413,7 +2413,7 @@ export const createInterface = (
 				// FIXME: Just expand the patterns with longer gaps
 				// a swing of one will offset every second beat
 				//const swing = 1
-				if ( ui.backingTrack && isQuarterNote)
+				if ( stateMachine.get("backingTrack") && isQuarterNote)
 				{
 					console.log("clock", {divisionsElapsed,
 						bar, bars, 
@@ -2487,7 +2487,7 @@ export const createInterface = (
 		
 
 			// VIDEO & DISPLAY ------------------------------------------------
-			displayType = ui.display ?? initialDisplay ?? DISPLAY_MEDIA_VISION_2D // DISPLAY_WEB_GL_3D
+			displayType = stateMachine.get('display') ?? initialDisplay ?? DISPLAY_MEDIA_VISION_2D // DISPLAY_WEB_GL_3D
 			progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
 
 			switchDisplay( displayType, predictionLoop )
@@ -2522,45 +2522,45 @@ export const createInterface = (
 		// Connect up some latchedtoggles
 		toggles.quantise = setToggle( "button-quantise", status =>{
 			stateMachine.set( 'quantise', status )
-			setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
-		}, ui.quantise)
+			setToast("Quantise " + (stateMachine.get( 'quantise') ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'quantise') )
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
 			stateMachine.set( 'showSettings', status )
 			setToast("Settings " + (status ? 'enabled' : 'disabled')  )
-		}, ui.showSettings )
+		}, stateMachine.get( 'showSettings') )
 		
 		/*
 		toggles.midiMenu = setToggle( "button-midi-menu", status =>{ 
 			// stateMachine.set( 'showSettings', status )
 			setToast("MIDI Menu " + (status ? 'enabled' : 'disabled')  )
-		}, ui.showSettings )
+		}, stateMachine.get( 'showSettings') )
 		*/
 
 		// Connect up sone buttons?
 		toggles.metronome = setToggle( "button-metronome", status =>{
 			stateMachine.set( 'metronome', status )
-			setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
-		}, ui.metronome )
+			setToast("Metronome " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'metronome') )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
 			// change drums!
 			setRandomDrumPattern()
 			stateMachine.set( 'backingTrack', status )
-			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
-		}, ui.backingTrack )
+			setToast( status ? "Backing track starting" : "Ending Backing Track" )
+		}, stateMachine.get( 'backingTrack') )
 
 		toggles.spectrogram = setToggle( "button-spectrogram", status =>{
 			stateMachine.set( 'spectrogram', status )
-			setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
-		}, ui.spectrogram )
+			setToast("Spectrogram " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'spectrogram') )
 
 		toggles.speak = setToggle( "button-speak", status =>{
 			kit.cowbell()
 			stateMachine.set( 'speak', status )
-			setToast("Speaking " + (ui.speak ? 'enabled' : 'disabled')  )
-		}, ui.speak )
+			setToast("Speaking " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'speak') )
 
 		// Synch button
 		// draw video onto canvas every frame (transparent doesn't have to be true then)
@@ -2568,27 +2568,27 @@ export const createInterface = (
 			// I inverted the state for UX
 			stateMachine.set( 'synch', !status )
 			setToast( status ? `Video Frame Synching enabled` : 'disabled Frame Synch') 
-		}, ui.synch )
+		}, stateMachine.get( 'synch') )
 
 		// Clear canvas between frames
 		// NB. 	there are 2 modes - video frame copy 
 		// 		transparent canvas with video beneath
 		toggles.clear = setToggle( "button-clear", status =>{ 
-			stateMachine.set( 'clear', !ui.clear )
-			setToast( status ? "Hiding video enabled" : 'Hiding video disabled') 
-		}, ui.clear )
+			const flag = stateMachine.toggle( 'clear' )
+			setToast( flag ? "Hiding video enabled" : 'Hiding video disabled') 
+		}, stateMachine.get( 'clear') )
 
 		// toggle mute
 		toggles.muted = setToggle( "button-mute", status =>{ 
-			stateMachine.set( 'muted', !ui.muted )
-			setToast(ui.muted  ? 'Volume Muted' : 'Unmuted' )
-		}, ui.muted )
+			stateMachine.set( 'muted', status )
+			setToast( status  ? 'Volume Muted' : 'Unmuted' )
+		}, stateMachine.get( 'muted') )
 
 		// FIXME: This does not work after refresh
 		// let discoPreviousState
 		// MTV : Special disco mode!
 		toggles.disco = setToggle( "button-disco", status =>{ 
-			stateMachine.set( 'disco', !ui.disco )
+			stateMachine.set( 'disco', status )
 		
 			/*stateMachine.set( 'masks', status )
 			if (status)
@@ -2615,7 +2615,7 @@ export const createInterface = (
 				discoPreviousState = null
 				setToast('Disco mode disabled!' )
 			}*/
-		}, ui.disco )
+		}, stateMachine.get( 'disco') )
 
 		// Overlays ----
 		
@@ -2624,26 +2624,26 @@ export const createInterface = (
 		// All person  overlays... should be dropdown?
 		// Show / hide the face and stuff
 		toggles.overlay = setToggle( "button-overlay", status => { 
-			stateMachine.set( 'overlays', !ui.overlays )
-		}, ui.overlays )
+			stateMachine.toggle( 'overlays' )
+		}, stateMachine.get( 'overlays') )
 
 		// Face meshes
 		toggles.masks = setToggle( "button-meshes", status =>{ 
-			stateMachine.set( 'masks', !ui.masks )
-			setPlayerOption("drawMask", ui.masks)
-		}, ui.masks )
+			const flag = stateMachine.toggle( 'masks' )
+			setPlayerOption("drawMask", flag )
+		}, stateMachine.get( 'masks') )
 
 		// hide / show eye overlays
 		// NB. this gets hidden in kid mode?
 		toggles.eyes = setToggle( "button-eyes", status => {
-			stateMachine.set( 'eyes', !ui.eyes )
-			setPlayerOption("drawEyes", ui.eyes)
-		}, ui.eyes )
+			const flag = stateMachine.toggle( 'eyes' )
+			setPlayerOption("drawEyes", flag )
+		}, stateMachine.get( 'eyes') )
 
 	
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
-			stateMachine.set( 'text', !ui.text )
+			stateMachine.toggle( 'text' )
 		} )
 
 		// TODO : Set some up with double functions if held
@@ -2652,14 +2652,14 @@ export const createInterface = (
 		toggles.recordAudio = setPressureToggle( 
 			"button-record-audio",
 			tap =>{ 
-				drawMousePressure( 1, ui.mouseHoldDuration )
+				drawMousePressure( 1, stateMachine.get('mouseHoldDuration') )
 				toggleRecording( false )
 			},
 			hold =>{ 
-				drawMousePressure( 1, ui.mouseHoldDuration )
+				drawMousePressure( 1, stateMachine.get('mouseHoldDuration') )
 				toggleRecording( true )
 			},
-			holding => drawMousePressure( holding, ui.mouseHoldDuration ),
+			holding => drawMousePressure( holding, stateMachine.get('mouseHoldDuration') ),
 			false 
 		)
 
@@ -2674,7 +2674,7 @@ export const createInterface = (
 	
 		// reset to factory defaults
 		buttons.resetSettings = setButton( "button-reset", status =>{ 
-			ui = {...defaultOptions}
+			stateMachine.reset()
 			refreshState()
 		})
 
@@ -3130,13 +3130,13 @@ export const createInterface = (
 		
 		// now we can update some of the options in the ML model
 		// as the models have loaded already at this point...
-		modelOptions.maxFaces = modelOptions.numFaces = ui.players
+		modelOptions.maxFaces = modelOptions.numFaces = stateMachine.get('players')
 		
 		console.info("setFaceLandmarkerOptions", modelOptions )
 		
 		setFaceLandmarkerOptions( modelOptions )
 
-		console.info("Players", ui.players )
+		console.info("Players", stateMachine.get('players') )
 		
 		// reset the progress meter for loading the second half
 		loadPercent = 0
@@ -3150,7 +3150,6 @@ export const createInterface = (
 			//console.log("Loading B Side", progress )
 			loadProgressMediator(0.5 + progress/2, message, false)
 		})
-		
 		
 		console.info("Loaded ML model now updating with options", {startApp, modelOptions, ui} )
 		
@@ -3183,7 +3182,7 @@ export const createInterface = (
 			interact( 
 				document.getElementById("button-video"),
 				function onActive(){
-					if (ui.autoHide)
+					if ( stateMachine.get("autoHide"))
 					{
 						body.classList.toggle("user-active", true)
 						body.classList.toggle("user-inactive", false)
@@ -3191,7 +3190,7 @@ export const createInterface = (
 					isUserActive = true
 				}, 
 				function onInactive(){
-					if (ui.autoHide)
+					if ( stateMachine.get("autoHide"))
 					{
 						body.classList.toggle("user-active", false)
 						body.classList.toggle("user-inactive", true)
