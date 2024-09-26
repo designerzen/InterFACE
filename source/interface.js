@@ -1,15 +1,14 @@
 import 'audioworklet-polyfill'
 
+import * as EMOJI from "./models/emoji.js"
+
 // import {midiLikeEvents} from './timing/rhythm'
-import State, { EVENT_STATE_CHANGE, createStateFromHost } from './utils/state'
+import State, { EVENT_STATE_CHANGE, createStateFromHost } from './utils/state.js'
 
 // TODO :lazy load
-import { say, hasSpeech} from './audio/speech'
-
-import { recordAudio } from './audio/record/record.audio'
-
-import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video'
-
+import { say, hasSpeech} from './audio/speech.js'
+import { recordAudio } from './audio/record/record.audio.js'
+import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
 import { 
 	getRecordableOutputNode,
 	active, playing, 
@@ -18,7 +17,7 @@ import {
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
-	getVolume, setVolume, getPercussionNode } from './audio/audio'
+	getVolume, setVolume, getPercussionNode } from './audio/audio.js'
 
 import { getRandomInstrument, createInstruments, getFolderNameForInstrument } from './audio/sound-font-instruments'
 import { createDrumkit } from './audio/drum-kit.js'
@@ -42,7 +41,7 @@ import GamePad from './hardware/gamepad'
 import { tapTempo, convertBPMToPeriod } from './timing/timing.js'
 import AudioTimer from './timing/timer.audio.js'
 
-import { playNextPart, kitSequence } from './timing/patterns'
+import { playNextPart, kitSequence } from './timing/patterns.js'
 	
 import {
 	controlPanel,
@@ -1636,18 +1635,26 @@ export const createInterface = (
 	
 		let tickerTape = ''
 		
-		if (stateMachine.get("disco"))
+		const discoMode = stateMachine.get("disco")
+
+		if (discoMode)
 		{	
 			// FUNKY DISCO MODE...
 			// switch effect type?
 			const t = (counter * 0.01) % TAU
 			const discoX = -7 * cameraPan.x + Math.sin(t)
 			const discoY = -4 * cameraPan.y + Math.cos(t)
-			console.info("DISCO", {t, cameraPan, discoX,discoY})
+			// console.info("DISCO", {t, cameraPan, discoX,discoY})
 			display.postProcess({ 
 				offsetX:discoX, offsetY:discoY
 			})
 	
+			// this will change the filter
+			if (counter% 100 === 0)
+			{
+				display.nextFilter()
+			}
+			
 		}else{
 
 			// do we clear the canvas?
@@ -1754,7 +1761,7 @@ export const createInterface = (
 				}
 
 				// add face overlay
-				if (stateMachine.get("disco") || stateMachine.get("overlays"))
+				if (discoMode || stateMachine.get("overlays"))
 				{
 					// FIXME:
 					// TODO:
@@ -1767,6 +1774,12 @@ export const createInterface = (
 					{
 						person.drawText( prediction, display ) 
 					}
+				}
+
+				// Change filter depending on the user's emoticon!
+				if (discoMode && person.emoticon === EMOJI.EMOJI_KISS)
+				{
+					display.nextFilter()
 				}
 				
 				// then whenever you fancy it,

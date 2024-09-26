@@ -72,7 +72,8 @@ import { drawMousePressure } from './dom/mouse-pressure'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
 import { now } from "./timing/timing.js"
 import { toKebabCase } from "./utils/utils.js"
-import { EMOJI_NEUTRAL, recogniseEmoji } from './models/emoji-detection.js'
+import { recogniseEmoji } from './models/emoji-detection.js'
+import { EMOJI_NEUTRAL } from './models/emoji.js'
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -279,7 +280,7 @@ export default class Person{
 	samplePlayer
 	
 	// the :-) that represents this person!
-	emoticon = ""
+	emoticon = EMOJI_NEUTRAL
 
 	activeInstrument
 	instruments = []
@@ -913,7 +914,7 @@ export default class Person{
 		// const emoji = recogniseEmoji(this)
 		// options.mouthCutOff
 		this.emoticon = recogniseEmoji(prediction, this.options)
-		this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
+		// this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
 	}
 
 	/**

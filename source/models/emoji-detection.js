@@ -1,36 +1,4 @@
-import { op } from "@tensorflow/tfjs"
-
-export const EMOJI_NEUTRAL = "😐"
-export const EMOJI_NEUTRAL_EYES_CLOSED = "😑"
-export const EMOJI_LEFT_WINK = "😉"
-export const EMOJI_DIAGONAL_MOUTH = "🫤"
-export const EMOJI_EYES_ROLLING_UP = "🙄"
-export const EMOJI_SMILING_SLIGHTLY = "🙂"
-export const EMOJI_SMILING_EYES_CLOSED = "😊"
-export const EMOJI_SMILING_GRIN = "😀"
-export const EMOJI_SMILING_BIG_GRIN = "😃"
-export const EMOJI_SMILING_GRIN_SQUINT = "😆"
-export const EMOJI_SMILING_BIG_TEETH_GRIN = "😁"
-export const EMOJI_OPEN_MOUTH = "😯"
-export const EMOJI_OPEN_MOUTH_BIG = "😮"
-export const EMOJI_WAIL = "😩"
-export const EMOJI_ASTONISHED = "😲"
-export const EMOJI_GRIMACING = "😬"
-export const EMOJI_ZANY = "🤪"
-export const EMOJI_KISS = "😗"
-export const EMOJI_KISS_EYES_CLOSED = "😙"
-export const EMOJI_SMIRK = "😏"
-export const EMOJI_UNAMUSED = "😒"
-export const EMOJI_RAISED_EYEBROW = "🤨"
-export const EMOJI_CONFUSED = "😕"
-export const EMOJI_WORRIED = "😟"
-export const EMOJI_FROWNING = "☹️"
-export const EMOJI_FROWN_EYES_CLOSED = "😞"
-export const EMOJI_ANGRY = "😠"
-export const EMOJI_TRIPPY = "😵‍💫"
-export const EMOJI_SHAKING = "🫨"
-export const EMOJI_SHAKING_HORIZONTALLY = "🙂‍↔️"
-export const EMOJI_SHAKING_VERTICALLY = "🙂‍↕️"
+import { EMOJI_ANGRY, EMOJI_DIAGONAL_MOUTH, EMOJI_EYES_ROLLING_UP, EMOJI_FROWN_EYES_CLOSED, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_LEFT_WINK, EMOJI_NEUTRAL, EMOJI_NEUTRAL_EYES_CLOSED, EMOJI_OPEN_MOUTH, EMOJI_OPEN_MOUTH_BIG, EMOJI_RAISED_EYEBROW, EMOJI_SHAKING, EMOJI_SHAKING_HORIZONTALLY, EMOJI_SHAKING_VERTICALLY, EMOJI_SMILING_BIG_GRIN, EMOJI_SMILING_BIG_TEETH_GRIN, EMOJI_SMILING_EYES_CLOSED, EMOJI_SMILING_GRIN, EMOJI_SMILING_GRIN_SQUINT, EMOJI_SMILING_SLIGHTLY, EMOJI_SMIRK, EMOJI_TRIPPY, EMOJI_WAIL } from "./emoji"
 
 const AMOUNT_BEFORE_SHAKE_X= 0.2 
 const AMOUNT_BEFORE_SHAKE_Y = 0.2 
@@ -152,7 +120,7 @@ export const recogniseEmoji = (prediction, options) => {
 			return EMOJI_SHAKING
 		}
 
-		return EMOJI_NEUTRAL	
+		return EMOJI_NEUTRAL
 	}
 
 
