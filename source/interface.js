@@ -1696,20 +1696,25 @@ export const createInterface = (
 		
 		if (stateMachine.get("spectrogram"))
 		{
-			// updateByteTimeDomainData()
-			// drawWaves( dataArray, bufferLength )
-			
+			// BARS
 			updateByteFrequencyData()
 			display.drawVisualiser( dataArray, bufferLength )
-			// display.drawWaves( dataArray, bufferLength )
-
-			// global VU
-			// drawBars( canvasContext, dataArray, bufferLength )
-
 			if (recorder)
 			{
 				waveforms.push(dataArray)
 			}
+			
+			// Lines
+			// updateByteTimeDomainData()
+			// display.drawVisualiser( dataArray, bufferLength, "line" )
+			
+			// global VU
+			// drawBars( canvasContext, dataArray, bufferLength )
+
+			// updateByteTimeDomainData()
+			// analyser.fftSize = 2048
+			// const bufferLength = analyser.frequencyBinCount
+			// const dataArray = new Uint8Array(bufferLength)
 		}
 
 		

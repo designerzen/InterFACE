@@ -292,9 +292,11 @@ export const setupAudio = async (settings) => {
 }
 
 /**
+ * For bars graphs
  * update the frequency analyser and fetch EQ data in the Frequency Domain
+ * fftSize *must* be a power of 2 number
  */
-export const updateByteFrequencyData = (fftSize=2048)=> {
+export const updateByteFrequencyData = (fftSize=256)=> {
 	// 
 	analyser.fftSize = fftSize
 	analyser.getByteFrequencyData(dataArray)
@@ -304,11 +306,12 @@ export const updateByteFrequencyData = (fftSize=2048)=> {
 }
 
 /**
+ * For string based waveforms
  * update the frequency analyser and fetch EQ data in the Time Domian
  */
-export const updateByteTimeDomainData = ()=> {
-	analyser.fftSize = 256
-	// for bars
+export const updateByteTimeDomainData = (fftSize=2048)=> {
+	analyser.fftSize = fftSize
+	
 	analyser.getByteTimeDomainData(dataArray)
 	bufferLength = analyser.frequencyBinCount
 }
