@@ -160,9 +160,13 @@ export const updateCapabalitiesTable = async (capabilities) => {
 				default:
 					browsserAvailability.textContent = `Available`
 			}
-			if (true )
+			if ( showUpgrade )
 			{
-				const alternateBrowsers = document.getElementById("#alternate-browsers")
+				const alternateBrowsers = document.getElementById("alternate-browsers")
+				if (!alternateBrowsers)
+				{
+					throw Error("No alternate browser list found")
+				}
 				alternateBrowsers.hidden = false
 				alternateBrowsers.open = true
 			}
