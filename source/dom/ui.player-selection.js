@@ -20,7 +20,7 @@ const numberOfPlayersAsString = quantityOfPlayers => {
  * This is the 2nd screen, just after loading
  * @param {Object} options Configuration object
  * @param {Object} stateMachine State object - used for preselecting options
- * @returns {Boolean} true if the user hit duet
+ * @returns {Promise} with an object payload
  */
 export const showPlayerSelector = (options, stateMachine) => new Promise( (resolve,reject)=>{
 

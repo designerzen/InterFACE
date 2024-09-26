@@ -257,7 +257,6 @@ export const createInterface = (
 	const stateMachine = createStateFromHost( main )
 	// const stateMachine = State.getInstance()
 
-	const uiTest = {}
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( (key,value) => {
@@ -270,16 +269,16 @@ export const createInterface = (
 			const qrOptions = {text:bookmark} 
 			const hole = document.createElement("div")
 			shareCodeElement.innerText = ""
+
 			const qrcode = createQRCode( shareCodeElement.appendChild( hole ) , qrOptions) 
 			console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
 		}
 
-		console.info("State Changed", {ui, uiTest, entries:stateMachine.entries } )
+		console.info("State Changed", { entries:stateMachine.entries } )
 	})
 		
 	//state.setDefaults(defaultOptions)
 	stateMachine.loadFromLocation(defaultOptions)
-
 
 	// updates the URL with the current state (true - encoded)
 	// this is useful as immediately after loading the page the URL will be the current state
@@ -289,13 +288,8 @@ export const createInterface = (
 	// Update UI - this will check all the inputs according to our state	
 	// states.updateFrontEnd()
 	
-	let ui = loadState( defaultOptions, main )
-	
-
 
 	const modelOptions = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS )
-
-
 
 	// Record stuff
 	const { 
@@ -326,6 +320,7 @@ export const createInterface = (
 	let midiPlayer
 	let savedPerformance
 
+	// timer (24 cycles per tick) metronome
 	let clock
 
 	// samples and synths
@@ -509,7 +504,7 @@ export const createInterface = (
 	 * @param {?Number} personIndex -  Player number
 	 * @returns {Person} Person fully wired
 	 */
-	const createPerson = (name,eyeColour, personIndex=0, useGamePad=false ) => {
+	const createPerson = (name, eyeColour, personIndex=0, useGamePad=false ) => {
 		
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
 
@@ -753,6 +748,10 @@ export const createInterface = (
 					console.warn("Instrument Pack loading is not supported at this time")
 					break
 
+				// case "application/json":
+				// 	console.warn("Instrument Pack loading is not supported at this time")
+				// 	break
+
 				case "audio/mid":
 					const midiFile = await loadMIDIFileThroughClient( file )
 					midiPerformance = midiFile
@@ -788,7 +787,7 @@ export const createInterface = (
 			person.setMIDI(port, midiChannel)	
 			//console.info(midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 		}else{
-			console.error("No matching MIDI Instrument", midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel} )
+			console.error("No matching MIDI Instrument", midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{stateMachine, port, portIndex: midiChannel} )
 		}
 		return port
 	}
@@ -1158,7 +1157,7 @@ export const createInterface = (
 			}
 
 			// we run this when we want to ???
-			addToHistory(ui, event.key)
+			// addToHistory(ui, event.key)
 			// console.log("key", ui, event)
 		})
 	}
@@ -2763,6 +2762,7 @@ export const createInterface = (
 			{
 				const url = option.value
 				const reverb = await setReverb(url)
+				setToast('Reverb loaded' )
 				//console.log(option.value, {url, reverb, option})
 			}else{
 				console.error(option, option.previousSibling )
@@ -2777,6 +2777,7 @@ export const createInterface = (
 					const displayType = option.value
 					display = await switchDisplay( displayType, predictionLoop )
 					console.info("Display Changed to", {displayType, display})
+					setToast('Display Changed to '+displayType )
 				}catch(error){
 					console.error("Display Issue! Could not initiate display", error)
 				}
@@ -2811,7 +2812,7 @@ export const createInterface = (
 		progressCallback(loadIndex++/loadTotal, "Loaded Brains" )
 				
 		// set up the instrument selctor etc
-		setupInterface( ui )
+		setupInterface( stateMachine )
 
 		// recording results and controls
 		setupRecordings()
@@ -2993,7 +2994,8 @@ export const createInterface = (
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 			language, 
 			isUserActive:()=>isUserActive,
-			options:ui, 
+			options:stateMachine.asObject, 
+			stateMachine,
 			...information,
 			setAutomator,
 			setBPM, setMasterVolume,
@@ -3026,18 +3028,17 @@ export const createInterface = (
 
 	/**
 	 * get player quantity and mouse event in one click
-	 * @param {*} state 
-	 * @param {Number} showTextAfter 
+	 * @param {Number} showHelpTextAfter 
 	 * @returns 
 	 */
-	const showPlayerSelectionScreen = async ( state={}, showTextAfter=60000 ) => {
+	const showPlayerSelectionScreen = async ( showHelpTextAfter=60000 ) => {
 
 		// preload completed and now we show the ui
 		// for selecting regular or multi-face mode!
 		let timeOut = setTimeout(()=>{
 			setToast( "Please select how many players you want to play" )
 			timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
-		}, showTextAfter )
+		}, showHelpTextAfter )
 
 		// clear help fields
 		setFeedback("")
@@ -3067,7 +3068,7 @@ export const createInterface = (
 
 	// NB. To allow this to happen at the same time...
 	// we show selection screen while stuff loads in background
-	showPlayerSelectionScreen( ui ).then( results =>{ 
+	showPlayerSelectionScreen().then( results =>{ 
 		havePlayersBeenSelected = true 
 		const { advancedMode, automationMode, players } = results
 		const quantityOfPlayers = parseInt(players) 
@@ -3103,7 +3104,7 @@ export const createInterface = (
 		console.info(
 			"%c ",
 			`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`,
-			"State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response"
+			"State created", {stateMachine}, "Interface:half loaded... waiting for user response"
 		)	
 		// console.info("State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response" )
 
@@ -3151,7 +3152,7 @@ export const createInterface = (
 			loadProgressMediator(0.5 + progress/2, message, false)
 		})
 		
-		console.info("Loaded ML model now updating with options", {startApp, modelOptions, ui} )
+		console.info("Loaded ML model now updating with options", {startApp, modelOptions, stateMachine} )
 		
 		return startApp
 

@@ -1,5 +1,5 @@
 import {canFullscreen, exitFullscreen,goFullscreen,setFullScreenButtonState,toggleFullScreen} from './full-screen'
-import {getShareLink} from '../utils/location-handler'
+
 import {formattedDate} from '../models/info'
 import {setToggle} from './toggle'
 import { connectSelect } from './select'
@@ -92,6 +92,7 @@ export const setupCameraForm = (cameras, callback) => {
 	select.innerHTML = `<optgroup label="Detected Cameras">${optionElements.join('')}</optgroup>`
 	connectSelect( select, callback )
 }
+
 /**
  * Update the BPM on screen
  * @param {Number} tempo as a quantity of beats per measure
@@ -107,16 +108,16 @@ export const updateTempo = tempo =>{
 
 /**
  * DOM elements on main app screen
- * @param {Object} options Configuration object
+ * @param {Object} stateMachine Configuration object
  */
-export const setupInterface = ( options ) => {
+export const setupInterface = ( stateMachine ) => {
 
 	// test to see if sharing is possible (on Electron it doesnt work as expected)
 	const buttonShare = doc.getElementById("button-share")
 	const shareElement = doc.querySelector("share-menu")
-	shareElement.url = getShareLink( options )
+	shareElement.url = stateMachine.asURI
 	buttonShare.addEventListener('click', e => {
-		shareElement.setAttribute( "url", getShareLink( options ) )
+		shareElement.setAttribute( "url", stateMachine.asURI )
 		//console.error("SHARING", {shareElement, url:shareElement.url  } )
 	}, false)
 
@@ -126,8 +127,7 @@ export const setupInterface = ( options ) => {
 
 	// buttonInstrument = doc.getElementById("button-instrument")
 	buttonVideo = doc.getElementById("button-video")
-	// t.lkgCanvas.addEventListener("dblclick", event =>{
-
+	
 	// buttonRecord = doc.getElementById("button-record-audio")
 	buttonQuantise = doc.getElementById("button-quantise")
 	//buttonPhotograph = doc.getElementById("button-photograph")
@@ -136,8 +136,7 @@ export const setupInterface = ( options ) => {
 	{
 		const toggleBetweenScreen = () => {
 			const isFullscreen = toggleFullScreen()
-			options.fullscreen = isFullscreen
-			//console.log("fullscreen", options.fullscreen)
+			stateMachine.set('fullscreen', isFullscreen)
 			//setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
 		}
 
@@ -147,7 +146,7 @@ export const setupInterface = ( options ) => {
 	
 		document.addEventListener("fullscreenchange", async (event) => {		
 			const isFullscreen = await setFullScreenButtonState(buttonFullscreen)
-			options.fullscreen = isFullscreen
+			stateMachine.set('fullscreen', isFullscreen)
 			console.info("full screen change!", isFullscreen)	
 		})
 	
@@ -156,11 +155,13 @@ export const setupInterface = ( options ) => {
 		doc.getElementById( "button-fullscreen").setAttribute("hidden", true)
 	}
 
-	// if (options.duet){
+	// if (statMachine.get("duet")){
 	// 	h1.innerHTML += ":DUET"
 	// }
 	
 	// title.innerHTML = "The InterFACE is ready, open your mouth to begin"
+	
+	// Should I put this in the index?
 	// Show the release date on the UI somewhere...
 	const versionElement = doc.getElementById("version")
 	const currentVersion = versionElement.innerHTML
@@ -169,11 +170,7 @@ export const setupInterface = ( options ) => {
 	// console.log(`InterFACE ${currentVersion} build date : ${formattedDate} `, {DATE, releaseDate})
 
 	// prevent the form from changing the url	
-	controlPanel.addEventListener("submit", (event) => {
-		event.preventDefault()
-		// removes the ?
-        //window.history.back()
-	}, true)
+	controlPanel.addEventListener("submit", (event) => event.preventDefault(), true)
 }
 
 /**
@@ -181,5 +178,5 @@ export const setupInterface = ( options ) => {
  * user in the right place so that they can begin
  */
 export const focusApp = ()=>{ 
-	
+	// FIXME:
 }
