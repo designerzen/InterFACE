@@ -183,7 +183,13 @@ export const createInterface = (
 	const main = doc.querySelector("main")
 
 	const buttonRecordAudio = doc.getElementById("button-record-audio")
-	let canvasElement = document.getElementById('photosynth-canvas')
+	const buttonDiscoModeToggle = doc.getElementById("button-disco")
+	const buttonClearToggle = doc.getElementById("button-clear")
+	const buttonSpeakToggle = doc.getElementById("button-speak")
+	const buttonMetronomeToggle = doc.getElementById("button-metronome")
+	
+	
+	let canvasElement = doc.getElementById('photosynth-canvas')
 
 	// where we extract the face data from
 	let inputElement = video // image
@@ -446,6 +452,22 @@ export const createInterface = (
 		patterns = kitSequence( Math.floor( 17 + Math.random() * 23 ))
 	} 
 
+	// TODO: randomise the drum beat
+	const changeDrumPattern = () => {
+
+	}
+	
+	/**
+	 * Toggle the background synthesized percussion
+	 */
+	const toggleBackgroundPercussion = () => {
+		const buttonPercussion = document.getElementById("button-percussion")
+		const isEnabled = stateMachine.toggle( 'backingTrack', buttonPercussion )
+		// toggle UI also...
+		// setElementCheckState(buttonPercussion, isEnabled )
+		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track" )	
+	}
+
 	/**
 	 * This sets the master volume below the compressor
 	 * @param {Number} value 
@@ -454,7 +476,7 @@ export const createInterface = (
 	const setMasterVolume = value => {
 		const volume = setVolume(value)
 		store.setItem('audio', { volume })
-		setToast(`Volume ${Math.ceil(volume * 100)}%`,0)
+		setFeedback(`Volume ${Math.ceil(volume * 100)}%`,0)
 		return volume
 	}
 
@@ -470,7 +492,7 @@ export const createInterface = (
 		clock.BPM = bpm
 		// stateMachine.set( 'bpm',  clock.BPM )
 		stateMachine.set( 'bpm',  clock.BPM )
-		setToast( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
+		setFeedback( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
 		return clock.BPM
 	}
 
@@ -482,7 +504,7 @@ export const createInterface = (
 	 */
 	const loadInstrumentPreset = async (method, callback) => people.map( async (person) => { 
 		const instrument = await person[method](callback)
-		setToast(`${person.name} has ${person.instrumentTitle} loaded`)
+		setFeedback(`${person.name} has ${person.instrumentTitle} loaded`)
 		//console.log(`${person.name} has ${instrument} loaded` )
 		return instrument
 	})
@@ -585,7 +607,7 @@ export const createInterface = (
 			// save it for next time
 			const cache = store.setItem(name, {instrument:detail.instrumentName })
 			//console.log("External event for ",{ person, detail , cache})
-			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
+			setFeedback( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
 		})
 
 
@@ -800,11 +822,11 @@ export const createInterface = (
 			switch(buttonName)
 			{
 				case "disconnected":
-					setToast("GamePAD Unplugged")
+					setFeedback("GamePAD Unplugged")
 					break
 
 				case "connected":
-					setToast(value)
+					setFeedback(value)
 					break
 
 				// open sidebar
@@ -899,10 +921,10 @@ export const createInterface = (
 			switch(event.key)
 			{
 				case 'CapsLock':
-					stateMachine.set("debug", !stateMachine.get("debug") )
+					const isDebug = stateMachine.toggle( "debug" )
 					people.forEach( person => person.debug = stateMachine.get("debug") )
-					setToast(`DEBUG : ${stateMachine.get("debug")}`)
-					speak( stateMachine.get("debug") ? "secret mode unlocked" : "disabling developer mode", true)
+					setFeedback(`DEBUG : ${stateMachine.get("debug")}`)
+					speak( isDebug ? "secret mode unlocked" : "disabling developer mode", true)
 					break
 
 				case 'Enter':
@@ -928,7 +950,6 @@ export const createInterface = (
 					// read out last bit of help?
 					speak(document.getElementById('toast').innerText, true)
 					break
-
 	
 				// Arrows set timing
 				case 'ArrowLeft':
@@ -941,13 +962,13 @@ export const createInterface = (
 
 				case 'ArrowUp':
 					clock.totalBars++
-					setToast(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`)
+					setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`)
 					break
 
 				// change amount of bars
 				case 'ArrowDown':
 					clock.totalBars--
-					setToast( `Bars ${clock.totalBars} / BPM : ${clock.BPM}` )
+					setFeedback( `Bars ${clock.totalBars} / BPM : ${clock.BPM}` )
 					break
 
 				case ',':
@@ -963,12 +984,11 @@ export const createInterface = (
 					break
 
 				case 'b':
-					stateMachine.toggle("backingTrack", toggles )
-					setToast( stateMachine.get("backingTrack") ? "Backing track starting" : "Ending Backing Track" )
+					toggleBackgroundPercussion()
 					break
 			
 				case 'c':
-					stateMachine.toggle("clear", toggles )
+					stateMachine.toggle("clear", buttonClearToggle )
 					break
 
 				case 'd':
@@ -996,7 +1016,7 @@ export const createInterface = (
 				// Change impulse filter in the reverb
 				case 'i':
 					const reverb = await setReverb()
-					setToast( `Reverb : '${reverb}' loaded` )
+					setFeedback( `Reverb : '${reverb}' loaded` )
 					break
 
 				case 'j':
@@ -1014,12 +1034,12 @@ export const createInterface = (
 
 				// toggle speech
 				case 'l':
-					stateMachine.toggle("speak", toggles )
+					stateMachine.toggle("speak", buttonSpeakToggle )
 					setToast( stateMachine.get("speak") ? `Reading out instructions` : `Staying quiet` )
 					break
 			
 				case 'm':
-					stateMachine.toggle("metronome", toggles )
+					stateMachine.toggle("metronome", buttonMetronomeToggle )
 					setToast( stateMachine.get("metronome") ? `Quantised enabled` : `Quantise disabled` )
 					break
 
@@ -1046,7 +1066,7 @@ export const createInterface = (
 					break
 
 				case 'q':
-					stateMachine.toggle("muted", toggles )
+					stateMachine.toggle("muted" )
 					break
 			
 				case 'r':
@@ -1058,7 +1078,7 @@ export const createInterface = (
 					break
 
 				case 't':
-					stateMachine.toggle("text", toggles )
+					stateMachine.toggle("text" )
 					break
 
 				case 'u':
@@ -1161,9 +1181,13 @@ export const createInterface = (
 	}
 
 
-	// TODO: randomise the drum beat
-	const changeDrumPattern = () => {
 
+	const setDiscoMode = (enabled=null) => {
+		if (enabled === null)
+		{
+			enabled = !stateMachine.get("disco")
+		}
+		stateMachine.set("disco", enabled, buttonDiscoModeToggle )
 	}
 
 	/**
@@ -2431,9 +2455,9 @@ export const createInterface = (
 				//const swing = 1
 				if ( stateMachine.get("backingTrack") && isQuarterNote)
 				{
-					console.log("clock", {divisionsElapsed,
-						bar, bars, 
-						barsElapsed,})
+					// console.log("clock", {divisionsElapsed,
+					// 	bar, bars, 
+					// 	barsElapsed,})
 
 					const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 					if ( divisionsElapsed % slower === 0 )
@@ -3004,7 +3028,7 @@ export const createInterface = (
 		resolve( constructPublicClass( { 
 			user,
 			setState:stateMachine.set,
-			setRandomDrumPattern,
+			setRandomDrumPattern,toggleBackgroundPercussion,
 			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
@@ -3014,6 +3038,7 @@ export const createInterface = (
 			stateMachine,
 			...information,
 			setAutomator,
+			setDiscoMode,
 			setBPM, setMasterVolume,
 			changeDrumPattern,
 			loadInstruments: loadInstrumentPreset,

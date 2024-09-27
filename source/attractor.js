@@ -15,8 +15,15 @@
  */
 
 // in seconds
-const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = 60 * 3
+const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = [
+	60 * 1.3,
+	60 * 1.5,
+	60 * 1.7,
+	60 * 1.9
+]
+
 const BARS_BEFORE_CHANGING_DRUMS = 10
+const BARS_BEFORE_TOGGLING_DISCO = 13
 
 export default class Attractor{
 
@@ -40,8 +47,9 @@ export default class Attractor{
 			{
 				this.barCounter++
 
-				players.forEach( player => {
-					if ( !player.isFormShowing && player.timeSinceInstrumentChanged > DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE )
+				players.forEach( (player, index) => {
+					const durationBeforeChange = DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE[index]
+					if ( !player.isFormShowing && player.timeSinceInstrumentChanged > durationBeforeChange )
 					{
 						//console.log("Has player been stuck on this instrument too long?", player.timeSinceInstrumentChanged, DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE)
 					
@@ -60,6 +68,13 @@ export default class Attractor{
 					}
 				})
 					
+				// toggles disco mode!
+				if (this.barCounter%BARS_BEFORE_TOGGLING_DISCO)
+				{
+					// toggle if no arg passed
+					this.application.setDiscoMode()
+				}
+				
 				// occassionally turn on a feature or two...
 				//this.application.setBPM( Math.random() * 100 + 60 )
 				//console.log(this.counter, "AUTOMATON:", elapsed.toFixed(2), "seconds", barProgress * 100,  this.application )

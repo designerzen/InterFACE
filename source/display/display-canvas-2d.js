@@ -14,64 +14,119 @@ import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 export const DISPLAY_CANVAS_2D = "DisplayCanvas2D"
 
-// deafult is source-over
-const FILTERS = [
-	"source-over",
-	"source-in",
-	"source-out",
-	"source-atop",
-	"destination-over",
-	"destination-in",
-	"destination-out",
-	"destination-atop",
-	"lighter",
-	"copy",
-	"xor",
-	"multiply",
-	"screen",
-	"overlay",
-	"darken",
-	"lighten",
-	"color-dodge",
-	"color-burn",
-	"hard-light",
-	"soft-light",
-	"difference",
-	"exclusion",
-	"hue",
-	"saturation",
-	"color",
-	"luminosity",
-].reverse()
+const FILTER_LIBRARY = [
+	{
+		name:"source-over",
+		description:"This is the default setting and draws new shapes on top of the existing canvas content."
+	},
+	// {
+	// 	name:"source-in",
+	// 	description:"The new shape is drawn only where both the new shape and the destination canvas overlap. Everything else is made transparent."
+	// },
+	{
+		name:"source-out",
+		description:"The new shape is drawn where it doesn't overlap the existing canvas content."
+	},
+	// {
+	// 	name:"source-atop",
+	// 	description:"The new shape is only drawn where it overlaps the existing canvas content."
+	// },
 
-const FILTER_DESCRIPTIONS = [
-	"This is the default setting and draws new shapes on top of the existing canvas content.",
-	"The new shape is drawn only where both the new shape and the destination canvas overlap. Everything else is made transparent.",
-	"The new shape is drawn where it doesn't overlap the existing canvas content.",
-	"The new shape is only drawn where it overlaps the existing canvas content.",
-	"New shapes are drawn behind the existing canvas content.",
-	"The existing canvas content is kept where both the new shape and existing canvas content overlap. Everything else is made transparent.",
-	"The existing content is kept where it doesn't overlap the new shape.",
-	"The existing canvas is only kept where it overlaps the new shape. The new shape is drawn behind the canvas content.",
-	"Where both shapes overlap the color is determined by adding color values.",
-	"Only the new shape is shown.",
-	"Shapes are made transparent where both overlap and drawn normal everywhere else.",
-	"The pixels of the top layer are multiplied with the corresponding pixel of the bottom layer. A darker picture is the result.",
-	"The pixels are inverted, multiplied, and inverted again. A lighter picture is the result (opposite of multiply)",
-	"A combination of multiply and screen. Dark parts on the base layer become darker, and light parts become lighter.",
-	"Retains the darkest pixels of both layers.",
-	"Retains the lightest pixels of both layers.",
-	"Divides the bottom layer by the inverted top layer.",
-	"Divides the inverted bottom layer by the top layer, and then inverts the result.",
-	"A combination of multiply and screen like overlay, but with top and bottom layer swapped.",
-	"A softer version of hard-light. Pure black or white does not result in pure black or white.",
-	"Subtracts the bottom layer from the top layer or the other way round to always get a positive value.",
-	"Like difference, but with lower contrast.",
-	"Preserves the luma and chroma of the bottom layer, while adopting the hue of the top layer.",
-	"Preserves the luma and hue of the bottom layer, while adopting the chroma of the top layer.",
-	"Preserves the luma of the bottom layer, while adopting the hue and chroma of the top layer.",
-	"Preserves the hue and chroma of the bottom layer, while adopting the luma of the top layer.",
-  ].reverse()
+	{
+		name:"destination-over",
+		description:"New shapes are drawn behind the existing canvas content."
+	},
+	{
+		name:"destination-in",
+		description:"The existing canvas content is kept where both the new shape and existing canvas content overlap. Everything else is made transparent."
+	},
+	{
+		name:"destination-out",
+		description:"The existing content is kept where it doesn't overlap the new shape."
+	},
+	{
+		name:"destination-atop",
+		description:"The existing canvas is only kept where it overlaps the new shape. The new shape is drawn behind the canvas content."
+	},
+
+	{
+		name:"lighter",
+		description:"Where both shapes overlap the color is determined by adding color values."
+	},
+	{
+		name:"copy",
+		description:"Only the new shape is shown."
+	},
+	{
+		name:"xor",
+		description:"Shapes are made transparent where both overlap and drawn normal everywhere else."
+	},
+	{
+		name:"multiply",
+		description:"The pixels of the top layer are multiplied with the corresponding pixel of the bottom layer. A darker picture is the result."
+	},
+
+	{
+		name:"screen",
+		description:"The pixels are inverted, multiplied, and inverted again. A lighter picture is the result (opposite of multiply)"
+	},
+	{
+		name:"overlay",
+		description:"A combination of multiply and screen. Dark parts on the base layer become darker, and light parts become lighter."
+	},
+	{
+		name:"darken",
+		description:"Retains the darkest pixels of both layers."
+	},
+	{
+		name:"lighten",
+		description:"Retains the lightest pixels of both layers."
+	},
+
+	{
+		name:"color-dodge",
+		description:"Divides the bottom layer by the inverted top layer."
+	},
+	{
+		name:"color-burn",
+		description:"Divides the inverted bottom layer by the top layer, and then inverts the result."
+	},
+
+	{
+		name:"hard-light",
+		description:"A combination of multiply and screen like overlay, but with top and bottom layer swapped."
+	},
+	{
+		name:"soft-light",
+		description:"A softer version of hard-light. Pure black or white does not result in pure black or white."
+	},
+
+	{
+		name:"difference",
+		description:"Subtracts the bottom layer from the top layer or the other way round to always get a positive value."
+	},
+	{
+		name:"exclusion",
+		description:"Like difference, but with lower contrast."
+	},
+
+	{
+		name:"hue",
+		description:"Preserves the luma and chroma of the bottom layer, while adopting the hue of the top layer."
+	},
+	// {
+	// 	name:"saturation",
+	// 	description:"Preserves the luma and hue of the bottom layer, while adopting the chroma of the top layer."
+	// },
+	{
+		name:"color",
+		description:"Preserves the luma of the bottom layer, while adopting the hue and chroma of the top layer."
+	},
+	{
+		name:"luminosity",
+		description:"Preserves the hue and chroma of the bottom layer, while adopting the luma of the top layer."
+	},
+]
 
 /**
  * Canvas based front end engine for Tensor flow @media pipe
@@ -83,14 +138,18 @@ export default class Display2D extends AbstractDisplay{
 	
 	canvas2DContext = null
 
-	filterIndex = 0 % (FILTERS.length-1)
+	filterIndex = 0 % (FILTER_LIBRARY.length-1)
+
+	get filterModel(){
+		return FILTER_LIBRARY[this.filterIndex]
+	}
 
 	get filter(){
-		return FILTERS[this.filterIndex]
+		return this.filterModel.name
 	}
 
 	get filterDescription(){
-		return FILTER_DESCRIPTIONS[this.filterIndex]
+		return this.filterModel.description
 	}
 
 	/**
@@ -107,7 +166,7 @@ export default class Display2D extends AbstractDisplay{
 
 	get nextFilterIndex()
 	{
-		return (this.filterIndex + 1) % (FILTERS.length-1)
+		return (this.filterIndex + 1) % (FILTER_LIBRARY.length-1)
 	}
 
 	constructor( canvas, initialWidth, initialHeight, offscreen=false )
@@ -222,7 +281,6 @@ export default class Display2D extends AbstractDisplay{
 		
 		// ctx.clearRect(0, 0, width, height);
 		// this.canvasContext.save()
-		// this.canvasContext.save()
 		// use this filter
 		this.canvasContext.globalCompositeOperation = this.filter
 		//this.canvasContext.translate(0, -1)
@@ -230,7 +288,6 @@ export default class Display2D extends AbstractDisplay{
 		// for (var i = 0; i < numImages; i++) {
 		// 	this.canvasContext.drawImage(img, i * img.width, 0);
 		// }
-	
 		// this.canvasContext.restore()
 	}
 
@@ -252,7 +309,7 @@ export default class Display2D extends AbstractDisplay{
 	postProcess( options ){
 		if (options.filterIndex && options.filterIndex !== this.filterIndex)
 		{
-			this.filterIndex = options.filterIndex % (FILTERS.length-1)
+			this.filterIndex = options.filterIndex % (FILTER_LIBRARY.length-1)
 		}
 		this.overdraw( options.offsetX ?? 0, options.offsetY ?? 0 )
 	}
