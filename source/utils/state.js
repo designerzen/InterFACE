@@ -65,15 +65,23 @@ export const refreshState = ()=>{
 }
 
 const setElementCheckState = (element, value) => {
-	if ( element )
+	// resolve element if not an element
+	if (element)
 	{
-		//elements[key].checked = value
-		element.setAttribute("checked", value)
-		if (element.parentNode.nodeName === "LABEL")
-		{
-			element.parentNode.classList.toggle("checked", value )
-		}
-		//console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
+		return
+	}
+	if ( 'nodeName' in element )
+	{
+	//console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
+	}else{
+		document.querySelector(element)
+	}
+
+	//elements[key].checked = value
+	element.setAttribute("checked", value)
+	if (element.parentNode.nodeName === "LABEL")
+	{
+		element.parentNode.classList.toggle("checked", value )
 	}
 
 }
@@ -281,7 +289,7 @@ export default class State {
 	 * @param {String} value 
 	 * @param {Boolean} dispatchEvent - send out an event on complete
 	 */
-	set( key, value, elements=null, dispatchEvent=true ){
+	set( key, value, element=null, dispatchEvent=true ){
 		this.state.set(key,value)
 		if (this.controlUI)
 		{
@@ -291,9 +299,9 @@ export default class State {
 
 		// also update select for checked and things? bit more complex?
 		// see if there is a matching dom element???
-		if (elements)
+		if (element)
 		{
-			setElementCheckState(elements[key], value)
+			setElementCheckState(element, value)
 		}
 
 		if (this.saveHistory)
@@ -309,9 +317,9 @@ export default class State {
 		}
 	}
 
-	toggle( key, elements=null, dispatchEvent=true ){
-		const newState = this.state.get(key) ? false : true
-		this.set( key, newState, elements, dispatchEvent )
+	toggle( key, element=null, dispatchEvent=true ){
+		const newState = !this.state.get(key)
+		this.set( key, newState, element, dispatchEvent )
 		return newState
 	}
 
