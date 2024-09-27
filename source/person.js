@@ -1912,7 +1912,7 @@ export default class Person{
 		if (!this.isInstrumentPanelInteractive)
 		{
 			// add some extra UX improvements for the sliding panel
-			createDraggablePanel(this.instrumentPanel, this.isLeftSidePanel)
+			createDraggablePanel(this, this.instrumentPanel, this.isLeftSidePanel)
 			this.instrumentPanel.hidden = false
 			this.isInstrumentPanelInteractive = true
 		}

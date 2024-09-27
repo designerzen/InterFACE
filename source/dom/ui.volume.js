@@ -42,7 +42,7 @@ export const setupVolumeInterface = ( currentVolume=1, startMuted=false, callbac
 		if (mute)
 		{
 			setVolumeIcon(0)
-			sliderVolume.setAttribute("disabled")
+			sliderVolume.toggleAttribute("disabled", true)
 		}else{
 			setVolumeIcon(currentVolume)
 			sliderVolume.removeAttribute("disabled")

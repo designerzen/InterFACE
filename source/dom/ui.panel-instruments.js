@@ -43,6 +43,7 @@ export const showPersonalControlPanel = (playerName, controls, instrumentName, a
 	{
 		// find active input field and focus
 		const active = document.getElementById(instrumentName)
+		
 		if (active)
 		{
 			active.focus({ focusVisible: false })
@@ -176,7 +177,7 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) 
 	})
 }
 
-export const createDraggablePanel = (controls, onLeftSide=true, activeClassName="expanded", considerOpenAt=0.5) => {
+export const createDraggablePanel = (person, controls, onLeftSide=true, activeClassName="expanded", considerOpenAt=0.5) => {
 
 	const playerToggleSelector = ".person-toggle-controls"
 	const playerName = controls.className.split(" ")[1] //.replace("person-","" ).replace("-panel","" )
@@ -195,7 +196,7 @@ export const createDraggablePanel = (controls, onLeftSide=true, activeClassName=
 		// reset the drag state
 		if (open)
 		{
-			showPersonalControlPanel( playerName, controls )
+			showPersonalControlPanel( playerName, controls, person.instrumentTitle )
 		}else{
 			hidePersonalControlPanel( playerName, controls )
 		}
