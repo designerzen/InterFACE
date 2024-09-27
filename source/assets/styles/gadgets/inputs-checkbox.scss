@@ -120,15 +120,15 @@ input[type="checkbox" i].toggle{
 input[type="checkbox" i][role="switch" i],
 input[type="checkbox" i].switch{
 
-	--button-border-size:0;//1px;
+	--button-border-size:2px;
 	--width:100%;
 	--col-top:var(--shade-red);
-	--col-bottom:#{$col-grey};
+	--col-bottom:var(--shade-grey);
 
 	// margin-left:var(--pad);
 
 	// border-color:$col-dark;
-	border:var(--button-border-size, 2px) solid var(--shade-dark);
+	border:var(--button-border-size, 2px) solid var(--shade-white);
 	// border-top-color: rgba($col-white, 0.6 );
 	// border-left-color: rgba($col-white, 0.3);
 	// border-right-color: rgba($col-white, 0.7);
@@ -175,7 +175,8 @@ input[type="checkbox" i].switch{
 
 		// font-size: 8px;
 		border-radius:99px;
-		border:calc( 0.5 * var(--button-border-size,4px)) solid var(--shade-white);
+		border:inherit;
+		// border://calc( 0.5 * var(--button-border-size,4px)) solid var(--shade-white);
 		background-color:var( --shade-accent, var(--shade-red));
 		background-image:linear-gradient( var( --shade-accent, var(--shade-red)), var(--shade-dark, $col-dark));
 		transition:transform 195ms $easeInOutQuad;

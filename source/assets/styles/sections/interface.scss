@@ -549,7 +549,9 @@ p strong{
 
 		// flood width on all si
 		min-width:100%;
-		max-height:100%;
+		// max-height:100%;
+		max-height: 100vh;
+		max-height: 100dvh;
 
 		min-height:100vh;
 		min-height:100dvh;
@@ -559,6 +561,7 @@ p strong{
 		// rounded corners
 		border-radius:var(--curve);
 		overflow: hidden;
+		overflow: clip;
 
 		background-color: black;
 
@@ -1049,7 +1052,7 @@ svg.hero-bumper{
 .link-designerzen{
 	
 	--icon-size:1rem;
-	
+
 	word-break: keep-all;
 	white-space: nowrap;
 	&::before{

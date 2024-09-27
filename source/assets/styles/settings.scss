@@ -25,8 +25,8 @@
 	--shade-orange:hsl( #{$hue-orange}, var( --s, 69%), var( --l,38%) );
 	--shade-red:hsl( #{$hue-red}, var( --s, 58%), var( --l,35%) );
 
-	--shade-brand:hsl( var(--hue-active, #{$hue-blue}), var( --s-active, 58%), var( --l-active, 35%) );
-	--shade-active:hsl( var(--hue-active, #{$hue-blue}), var( --s-active, 58%), var( --l-active, 35%) );
+	--shade-brand:hsl( var(--hue-active, #{$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
+	--shade-active:hsl( var(--hue-active, #{$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
 	--shade-selected:hsl( var(--hue-selected, #{$hue-orange}), var( --s-selected, 58%), var( --l-selected, 35%) );
 		
 	// universal text drop shadow...

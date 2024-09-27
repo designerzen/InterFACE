@@ -173,9 +173,10 @@
 	// prevents a button becoming an icon
 	--max-width-override:auto;
 	--border-radius:9px;
-	--border-size:clamp(4px, 20vmax, 9px);
+    --border-size: clamp(3px, 20vmax, 4px);
 	
 	grid-area:playerSelector;
+	
 
 	text-align:center;
 	box-sizing: border-box;
@@ -233,8 +234,8 @@
 		align-items: center;
 		overflow: hidden;
 		max-width: none;
-		border: var(--stroke,2px) solid var(--col-stroke, transparent); 
-		border-radius: var(--button-border-size, var(--border-radius, 0));
+		border: var(--button-border-size, var(--stroke,2px)) solid var(--col-stroke, transparent); 
+		border-radius: var(--button-radius, var(--border-radius, 0));
 		overflow: hidden;
 		line-height: 1.2;
 		// text-shadow:none;
@@ -364,6 +365,7 @@ label[for="button-quartet"],
 }
 
 #complexity-selector{
+    --border-size: clamp(3px, 20vmax, 4px);
 	grid-area:complexitySelector;
 	display: grid;
 	gap: var(--pad);
@@ -706,9 +708,12 @@ label[for="toggle-automation-mode"]{
 .duet #onboard label[for="button-duet"],
 .trio #onboard label[for="button-trio"],
 .quartet #onboard label[for="button-quartet"]{
-	--col-stroke:var(--shade-active);
-	--col-top: var(--shade-blue);
-	--col-bottom: var(--shade-blue);
+	--col-stroke:var(--shade-white);
+	--col-top: var(--shade-active);
+	--col-bottom: var(--shade-active);
+	// --col-stroke:var(--shade-active);
+	// --col-top: var(--shade-blue);
+	// --col-bottom: var(--shade-blue);
 }
 
 // variations for the START button

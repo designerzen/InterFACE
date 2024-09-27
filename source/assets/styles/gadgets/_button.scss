@@ -357,7 +357,7 @@
 	--col-active:
 
 	// border size and curve
-	--button-border-size:2px;
+	--button-border-size:var(--border-size,2px);
 	--button-curve:clamp(2px, 1vmin, 6px);
 
 	// outline size
@@ -625,8 +625,37 @@
 		
 		// pop in front!
 		z-index:909;
+
+		opacity: 1;
 	}
+	
+	// give it an awesome focus ring that animates!
+	&:is(
+		:target, 
+		:focus,
+		:focus-visible
+	){
+		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
+	}
+
 	/*
+	// Ensure that this is different enough to make it look highlighted
+	// over the others - just changing the colour isn't what this needds
+	&:focus{
+		
+		&:before{
+			--hue:var(--hue-yellow);
+			animation:FromCircle var(--ease-s) ease-in 0s both;
+			animation:ToCircle var(--ease-s) ease-in 0s both;
+		}
+
+		// transform: none;
+		// box-shadow: none;
+
+		// outline: solid var(--line) var(--shade-yellow);
+		// outline-offset:calc( var(--line) * -1px );
+	}
+	
 	// inverted text and icon modes
 	&:is( 	:focus,
 			:focus-visible,
@@ -655,25 +684,7 @@
 		}
 	}
 
-	// Ensure that this is different enough to make it look highlighted
-	// over the others - just changing the colour isn't what this needds
-	&:focus{
-		
-		&:before{
-			--hue:var(--hue-yellow);
-			animation:FromCircle var(--ease-s) ease-in 0s both;
-			animation:ToCircle var(--ease-s) ease-in 0s both;
-		}
 
-		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
-		opacity: 1;
-
-		// transform: none;
-		// box-shadow: none;
-
-		// outline: solid var(--line) var(--shade-yellow);
-		// outline-offset:calc( var(--line) * -1px );
-	}
 
 */
 	// ACTIVE ================================================================================
@@ -724,6 +735,7 @@
 	// if an anchor has been linked here...
 	&:target{
 		--hue:var(--hue-brown);
+		
 	}
 		
 	// Disabled / prevent access...
