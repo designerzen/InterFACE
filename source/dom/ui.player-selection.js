@@ -170,7 +170,7 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 	})
 
 	// immediately hide the appropriate output info child
-	feedback.childNodes[ advancedMode ? 1 : 0 ].hidden = true
+	feedback.childNodes[ advancedMode ? 0 : 1 ].hidden = true
 	
 
 	automation.addEventListener("change", event =>{ 
