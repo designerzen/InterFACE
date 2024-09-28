@@ -12,6 +12,7 @@
 //const FACE_LANDMARK_TASK = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
 import FACE_LANDMARK_TASK from "url:./face_landmarker.task"
 import BLAZE_FACE_SHORT_RANGE_MODEL_PATH from "url:./blaze_face_short_range.tflite"
+// import FACE_LANDMARK_WORKER from "worker:./face-landmarks-worker.js"
 
 const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
 // import FACE_LANDMARK_WASM from "./@mediapipe/tasks-vision/wasm"
@@ -34,34 +35,28 @@ let faceLandmarker
 let faceLandmarksWorker 
 let lastVideoTime = 0 
 
+let previousPrediction = []
+
 /**
  * Defer the options to the ML
  * @param {Object} options 
  */
 export const setFaceLandmarkerOptions = async (options) => {
-	if (useWorker)
+	if (faceLandmarker)
 	{
-		if (faceLandmarksWorker)
-		{
-			faceLandmarksWorker.postMessage(
-				{command:"setOptions", options }, 
-			)
-		}else{
-			throw Error("No Face Landmark Worker located")
-		}
-		
+		await faceLandmarker.setOptions( options )
 	}else{
-
-		if (faceLandmarker)
-		{
-			await faceLandmarker.setOptions( options )
-		}else{
-			throw Error("No Face Landmarker located")
-		}
+		throw Error("No Face Landmarker located")
 	}
 }
 
-let previousPrediction = []
+
+const getWorkerEnhancedPrediction = (prediction) => new Promise( (resolve,reject) => {
+	faceLandmarksWorker.onmessage = (e) => {
+		resolve( e.data )
+	}
+	faceLandmarksWorker.postMessage(prediction)
+})
 
 /**
  * Send an input element and determine how the faces look within
@@ -89,9 +84,10 @@ const predict = async (inputElement, detector, flipHorizontally=true ) => {
 		const elapsed = time - lastVideoTime
 		const results = detector.detectForVideo( inputElement, time )
 
-
 		// results = detector.detectForVideo(inputElement, lastVideoTime)
 		const people = []
+
+		// console.warn("Prediction:RESULTS", results )
 
 		// array
 		if (results.faceLandmarks) 
@@ -104,25 +100,18 @@ const predict = async (inputElement, detector, flipHorizontally=true ) => {
 				const faceBlendshapes = results.faceBlendshapes[i]
 				const faceMatrix = results.facialTransformationMatrixes[i]
 				
-				// 	 drawingUtils.drawConnectors(
-				//     landmarks,
-				//     FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-				//     { color: "#C0C0C070", lineWidth: 1 }
-				//   );
-				
 				if (!useWorker)	
-				{
+				{	
 					// direct (no worker)
 					people[i] = enhanceFaceLandmarksModelPrediction( faceLandmarks, faceBlendshapes, faceMatrix, lastVideoTime, flipHorizontally )
 				}else{
-					// using async worker (any faster?)
-					// results.faceLandmarks[i] = await makePrediction( { keypoints:faceLandmarks }, lastVideoTime, flipHorizontally )
+					// using async worker (is it any faster?)
+					const personData = await getWorkerEnhancedPrediction( {faceLandmarks, faceBlendshapes, facialTransformationMatrixes:faceMatrix, time:lastVideoTime, flipHorizontally} )
+					people[i] = personData
 				}
 			}
 
-			
-			// console.error("Person", results)
-
+			// console.error("Person", people)
 			// console.info("Prediction Person", elapsed,{ results, people  } )
 
 			previousPrediction = people
@@ -139,6 +128,7 @@ const predict = async (inputElement, detector, flipHorizontally=true ) => {
 
 	return previousPrediction
 }
+
 
 /**
  * Before we can use Landmarker class we must wait for it to finish
@@ -170,82 +160,37 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	}
 
 	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
+	
+	const filesetResolver = await FilesetResolver.forVisionTasks( FACE_LANDMARK_WASM )
+	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Eyes")
+	
+	const detector = await FaceLandmarker.createFromOptions( filesetResolver, faceLandmarkerOptions )
+	// direct blazeface
+	// const detector = await FaceDetector.createFromModelPath(vision, BLAZE_FACE_SHORT_RANGE_MODEL_PATH)
 
+	faceLandmarker = detector
+	
 	if (useWorker)
 	{
-		const connectToWorker = async () => {
-			// request it to load all the required data...
-			function handleMessageFromWorker(msg) {
-				faceLandmarksWorker.removeEventListener("error", handleMessageFromWorker)
-				faceLandmarksWorker.removeEventListener("message", handleMessageFromWorker)
-				console.warn("Worker connected to App")
-				return true
-			}
-			
-			faceLandmarksWorker.addEventListener("error", handleMessageFromWorker)
-			faceLandmarksWorker.addEventListener("message", handleMessageFromWorker)
-			faceLandmarksWorker.postMessage(
-				{command:"load", faceLandmarkerOptions}
-			)	
-		}
-			
-		// FIXME: Loading this as a module prevents the vision task working
-		// faceWorker = new Worker( faceLandmarkerWorker )
-
-		// faceLandmarksWorker = new Worker( new URL('./face-landmarks-worker.js', import.meta.url) )
-		// faceLandmarksWorker = new Worker( new URL('data-url:./face-landmarks-worker.js', import.meta.url), {type:'module'} )
-		// faceLandmarksWorker = new Worker(
-		// 	new URL('./face-landmarks-worker.js', import.meta.url), 
-		// 	{type:'module'} 
-		// )
+		faceLandmarksWorker = new Worker(
+			new URL('./face-landmarks-calculations-worker.js', import.meta.url), 
+			{type:'module'} 
+		)
 		
-		faceLandmarksWorker = new Worker( new URL('./face-landmarks-worker.js'))
-		
-		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
-		
-		await connectToWorker()
-
-		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
-	
-		const fetchPrediction = async ( callback) => {
-		
-			faceLandmarksWorker.addEventListener("message", (e)=>{
-				
-				callback(e.data)	
-				return e.data
-
-			}, {once:true})
-			
-			faceLandmarksWorker.postMessage(
-				{command:"predict", callback},
-				flipHorizontally,
-				[inputElement]
-			)
-		}
-
-		return fetchPrediction
+		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Installing Brains")
 	
 	}else{
 
-		const filesetResolver = await FilesetResolver.forVisionTasks( FACE_LANDMARK_WASM )
-		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Eyes")
-		
-		const detector = await FaceLandmarker.createFromOptions( filesetResolver, faceLandmarkerOptions )
-		// direct blazeface
-		// const detector = await FaceDetector.createFromModelPath(vision, BLAZE_FACE_SHORT_RANGE_MODEL_PATH)
-
-		faceLandmarker = detector
-
-		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
-			
-		// now subscribe to events and monitor
-		const fetchModelData = async () => { 
-			// enhance prediction to create our model...
-			const prediction = await predict(inputElement, detector, flipHorizontally) 
-			// console.error("results.prediction", {prediction} )
-			return prediction
-		}
-
-		return fetchModelData
+		progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")		
 	}
+
+	// now subscribe to events and monitor
+	const fetchModelData = async () => { 
+		// enhance prediction to create our model...
+		const prediction = await predict(inputElement, detector, flipHorizontally) 
+		// console.error("results.prediction", {prediction} )
+		return prediction
+	}
+
+	return fetchModelData
 }
