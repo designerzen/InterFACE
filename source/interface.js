@@ -540,7 +540,7 @@ export const createInterface = (
 		const locationPreset= locationData[prefix+'preset' ]
 	
 		// look for preset
-		console.error(personIndex+"PERSON Creating, Please check DATA", {locationData, locationOptions, locationInstrument, locationPreset} )
+		console.info(personIndex+"PERSON Creating, Please check DATA", {locationData, locationOptions, locationInstrument, locationPreset} )
 		// const NAMES[personIndex]
 
 		// check URL for saved options
@@ -1181,11 +1181,20 @@ export const createInterface = (
 	}
 
 
-
+	/**
+	 * Control the "visualiser" feedback
+	 * @param {Boolean} enabled 
+	 */
 	const setDiscoMode = (enabled=null) => {
 		if (enabled === null)
 		{
 			enabled = !stateMachine.get("disco")
+		}
+		if (enabled)
+		{
+			display.nextFilter( )
+		}else{
+			display.resetFilter( )
 		}
 		stateMachine.set("disco", enabled, buttonDiscoModeToggle )
 	}
@@ -1674,10 +1683,10 @@ export const createInterface = (
 			})
 	
 			// this will change the filter
-			if (counter% 100 === 0)
-			{
-				display.nextFilter()
-			}
+			// if (counter% 100 === 0)
+			// {
+			// 	display.nextFilter()
+			// }
 			
 		}else{
 
@@ -1745,6 +1754,7 @@ export const createInterface = (
 		let haveFacesBeenDetected = false	
 		if (predictions)
 		{
+			let shouldChangeToNextFilter = false
 			// console.log(predictions.length, "predictions", predictions)
 			// loop through all predictions...
 			for (let i=0, l=predictions.length; i < l; ++i)
@@ -1806,9 +1816,9 @@ export const createInterface = (
 				}
 
 				// Change filter depending on the user's emoticon!
-				if (discoMode && person.emoticon === EMOJI.EMOJI_KISS)
+				if (discoMode && person.emoticon === EMOJI.EMOJI_KISS && i===0)
 				{
-					display.nextFilter()
+					shouldChangeToNextFilter = true
 				}
 				
 				// then whenever you fancy it,
@@ -1832,6 +1842,8 @@ export const createInterface = (
 				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRatio)}%`
 				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 			}
+
+			shouldChangeToNextFilter && display.nextFilter()
 
 			// update if neccessary on screen now all people are drawn
 			display.render()
@@ -2089,6 +2101,8 @@ export const createInterface = (
 					setFeedback(errorMessage, 0)
 			}
 			
+			
+
 			progressCallback(loadIndex++/loadTotal, errorReason )
 			isLoading = false
 
@@ -2097,7 +2111,9 @@ export const createInterface = (
 			// FATAL ERROR
 			return reject( errorReason )
 		}
-
+		
+		
+		
 		// MIDI ---------------------------------------------------------------
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable)
@@ -2316,18 +2332,6 @@ export const createInterface = (
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		body.classList.toggle("initialising", false)
 
-		if (stateMachine.get("debug"))
-		{
-			console.info("PhotoSynth 3D - DEBUG")
-			console.info("PhotoSynth Dependents Loaded", loadIndex, loadTotal)
-		}else{
-			console.info(
-				"%c ",
-				`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' width='44' height='44' clip-rule='evenodd' viewBox='0 0 3018 2502'%3E%3Cdefs%3E%3C/defs%3E%3Cpath fill='%23000' d='M0 636.628h3017.661v1865.214H.001z'%3E%3C/path%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M3017.65 0H1975.12v636.629h288.113V348.516h754.417V0z'%3E%3C/path%3E%3Cpath fill='%23fff' fill-rule='nonzero' d='M1508.82 2035.531c-257.53 0-466.296-208.78-466.296-466.292 0-257.55 208.767-466.317 466.296-466.317 257.538 0 466.3 208.767 466.3 466.317 0 257.513-208.762 466.292-466.3 466.292m466.3-1398.905V976.15c-128.341-101.05-290.279-161.342-466.3-161.342-416.642 0-754.421 337.767-754.421 754.43 0 416.642 337.779 754.417 754.421 754.417 416.65 0 754.417-337.775 754.417-754.417V636.626H1975.12z'%3E%3C/path%3E%3C/svg%3E")`
-			)
-			console.info("PhotoSynth 3D")
-			console.info("PhotoSynth Dependents Loaded", loadIndex, loadTotal)
-		}
 
 		
 		/**
@@ -2430,7 +2434,6 @@ export const createInterface = (
 						{
 							// stuff.eyeDirection
 							cameraPan.x = person.eyeDirection ?? 0
-							
 						}
 
 						// use last persons
@@ -2546,6 +2549,24 @@ export const createInterface = (
 			return true
 		}
 	
+		if (stateMachine.get("debug"))
+		{
+			console.info("PhotoSynth 3D - DEBUG")
+			console.info("PhotoSynth Dependents Loaded", start, loadIndex, loadTotal)
+		}else{
+			console.info(
+				"%c ",
+				`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' width='44' height='44' clip-rule='evenodd' viewBox='0 0 3018 2502'%3E%3Cdefs%3E%3C/defs%3E%3Cpath fill='%23000' d='M0 636.628h3017.661v1865.214H.001z'%3E%3C/path%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M3017.65 0H1975.12v636.629h288.113V348.516h754.417V0z'%3E%3C/path%3E%3Cpath fill='%23fff' fill-rule='nonzero' d='M1508.82 2035.531c-257.53 0-466.296-208.78-466.296-466.292 0-257.55 208.767-466.317 466.296-466.317 257.538 0 466.3 208.767 466.3 466.317 0 257.513-208.762 466.292-466.3 466.292m466.3-1398.905V976.15c-128.341-101.05-290.279-161.342-466.3-161.342-416.642 0-754.421 337.767-754.421 754.43 0 416.642 337.779 754.417 754.421 754.417 416.65 0 754.417-337.775 754.417-754.417V636.626H1975.12z'%3E%3C/path%3E%3C/svg%3E")`
+			)
+			console.info("PhotoSynth 3D")
+			console.info("PhotoSynth Dependents Loaded", start, loadIndex, loadTotal)
+		}
+
+		if (!start)
+		{
+			throw Error("Total failure")
+		}
+		
 		return start
 	} 
 
@@ -3132,7 +3153,6 @@ export const createInterface = (
 		loadProgressMediator(progress / 2, message)
 
 	}).then( async fetchPrediction =>{ 
-
 	
 		loadProgressMediator(0.45, "Models available", true)
 
@@ -3140,8 +3160,7 @@ export const createInterface = (
 		// whilst the user hits the button!
 		requestAnimationFrame( loadExtras )
 		// body.classList.toggle("loading", false)
-			
-
+		
 		console.info(
 			"%c ",
 			`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`,

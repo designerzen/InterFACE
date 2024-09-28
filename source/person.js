@@ -64,7 +64,7 @@ import InstrumentManager from './audio/instrument-manager.js'
 import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/tuning/notes'
-import { getGeneralMIDIInstrumentFolders } from './audio/sound-font-instruments'
+import { getGeneralMIDIInstrumentFolders, getInstrumentTitle } from './audio/sound-font-instruments'
 import { ParamaterRecorder } from './parameter-recorder'
 import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "./dom/ui.panel-instruments.js"
 import { drawMousePressure } from './dom/mouse-pressure'
@@ -286,6 +286,8 @@ export default class Person{
 	instruments = []
 	instrumentPointer = 0
 	instrumentLoadedAt = -1
+	presetName
+	presetTitle
 	
 	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
@@ -469,7 +471,6 @@ export default class Person{
 	 * @returns {HTMLElement} Form element for this Person
 	 */
 	get instrumentPanel (){
-		
 		return document.querySelector(this.panelID)
 	}
 
@@ -587,6 +588,14 @@ export default class Person{
 		return isLeftSide
 	}
 	
+	get currentPreset(){
+		return this.presetName 
+	}
+	
+	get currentPresetTitle(){
+		return this.presetTitle ?? this.activeInstrument.activePreset
+	}
+
 	constructor(name, options={}, saveData=undefined ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
@@ -996,8 +1005,9 @@ export default class Person{
 		const xMin = display.width - (boundingBox.xMin * display.width)
 		const yMin = boundingBox.yMin * display.height
 
-		const xMax = display.width - (boundingBox.xMax * display.width)
-		const yMax = boundingBox.yMax * display.height
+		const xMax = display.width - (boundingBox.xMax * display.width) - 50
+		const yMax = (boundingBox.yMax * display.height) - 65 // fudgey
+		const instrumentTitle = this.presetTitle ?? this.instrumentTitle
 
 		// console.log({xMin, xMax, yMin, yMax })
 
@@ -1009,16 +1019,16 @@ export default class Person{
 			// user is interacting...
 			if (this.isMouseDown && !this.instrumentLoading)
 			{
-			
 				// user is holding mouse down on user...
 				const remaining = 1 - this.mouseHoldProgress
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
+				
 				
 				//console.error("this.isMouseHeld",this.isMouseHeld,{remaining,percentageRemaining} )
 				if (this.isMouseHeld)
 				{	
 					// user is holding mouse down on user...
-					display.drawInstrument( xMin, yMin, this.context, this.instrumentTitle, 'Select')			
+					display.drawInstrument( xMin, yMin, this.context, instrumentTitle, 'Select')			
 					
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
@@ -1028,7 +1038,7 @@ export default class Person{
 					// we use CSS and it is only hidden here?
 				}else{
 
-					display.drawInstrument( xMin, yMin , this.instrumentTitle, `${100-percentageRemaining}`)			
+					display.drawInstrument( xMin, yMin , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
 					display.drawParagraph( xMax, yMax + 40, [`Hold me to see all instruments`], '14px' )		
 				}
@@ -1036,7 +1046,7 @@ export default class Person{
 			}else{
 				
 				// No mouse held
-				display.drawInstrument( xMin, yMin , this.instrumentTitle, 'Hold to choose instrument')
+				display.drawInstrument( xMin, yMin , instrumentTitle, 'Hold to choose instrument')
 				//drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
 				/*	
 				const offsetX = topLeft[0]
@@ -1063,7 +1073,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			display.drawInstrument(xMin, yMin , this.instrumentTitle, 'loading...')
+			display.drawInstrument(xMin, yMin , instrumentTitle, 'loading...')
 
 		}else{
 
@@ -1072,8 +1082,9 @@ export default class Person{
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `-`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			
-			// eye:${prediction.eyeDirection}
-			display.drawInstrument(xMin, yMin, this.instrumentTitle + " " + this.emoticon, `${extra} ${suffix}` )
+			// eye:${prediction.eyeDirection} 
+			display.drawInstrument(xMin, yMin, instrumentTitle, "", '14px' )
+			display.drawInstrument(xMin, yMin + 24, `${this.emoticon} ${extra} ${suffix}`, "", '28px' )
 			
 			if (this.debug )
 			{
@@ -1462,7 +1473,11 @@ export default class Person{
 		this.instrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+			
 		} )
+		
+		// preset loaded!
+		console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.instrument })
 
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
@@ -1514,12 +1529,19 @@ export default class Person{
 	 * @param {String} presetName Name of the standard instrument to load
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadPreset(presetName, progressCallback){
+	async loadPreset(presetName, presetTitle, progressCallback){
 
 		// const presets = this.samplePlayer.instrumentNames
 
 		// always remove the suffixes?
-		const instrumentNameRefined = presetName //.replace("-mp3", "")
+		const instrumentNameRefined = presetName.replace("-mp3", "")
+
+		if (!presetTitle)
+		{
+			presetTitle = getInstrumentTitle(presetName)
+		}
+
+		
 
 		// console.log("Loading instrument",instrumentName, presets)
 
@@ -1541,6 +1563,9 @@ export default class Person{
 		// just an index as to which out of all instrument data is this one
 		this.instrumentPointer = this.samplePlayer.instrumentIndex
 		
+		this.presetTitle = presetTitle
+		this.presetName = presetName
+
 		// this will repopulate the panel with correct data
 		await this.setupForm()
 
@@ -1841,9 +1866,10 @@ export default class Person{
 		event.preventDefault()
 		const id = event.target.id
 		const value = event.target.value
+		const title = event.target.textContent
 		this.hideForm()
 		// FIXME: load the instrument first?
-		this.loadPreset(value)
+		this.loadPreset(value, title ?? id)
 	}
 
 	onLeftEyeOpen( timeClosedFor ){

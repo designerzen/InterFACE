@@ -174,7 +174,9 @@ export default class AbstractDisplay{
 	drawText( x, y, text, size, align, font, invertColours ){}
 	drawParagraph(x, y,  paragraphh, size, lineHeight, invertColours ){}
 
-
+	
+	setFilter( filterIndex ){}
+	
 	/**
 	 * Next Filter for the post processing
 	 */
