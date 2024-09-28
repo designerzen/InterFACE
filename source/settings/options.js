@@ -118,7 +118,7 @@ export const DEFAULT_OPTIONS = {
 	// display:DISPLAY_LOOKING_GLASS_3D,
 
 	// do we show the tooltips overlaid on when hovering
-	tooltips:false,
+	tooltips:true,
 
 	// this allows us to show some extra options if set to true...
 	advancedMode:true,
@@ -213,21 +213,29 @@ export const KIDS_OPTIONS = {
 	advancedMode:false,
 	text:false,
 	masks:false,
+	theme:"theme-friendly"
 }
 
 // simpler buttons and fewer controls and settings
 export const BODY_OPTIONS = {
 	...DEFAULT_OPTIONS ,
 	// model:'hand'
-	backingTrack:true
+	backingTrack:true,
+	theme:"theme-high-contrast"
 }
 
 // simpler buttons and fewer controls and settings
 export const DANCE_OPTIONS = {
 	...DEFAULT_OPTIONS ,
-	// model:'hand'
-	// instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	// instrumentPacks:[INSTRUMENT_PACK_MUSYNGKITE].join(",")
+	players:4,
+	theme:"theme-neon"
+}
+
+// simpler buttons and fewer controls and settings
+export const BAND_OPTIONS = {
+	...DEFAULT_OPTIONS ,
+	players:4,
+	theme:"theme-neon"
 }
 
 
@@ -242,12 +250,11 @@ export const getDomainDefaults = (name = '') => {
 	// use the LTD 
 	switch(name.split('.').pop().toLowerCase())
 	{
-		// localhost 127.0.0.(1)
+		// For testing dev : localhost 127.0.0.(1)
 		// case 'localhost': 
 		// case '1': return getFactoryDefaults(KIDS_OPTIONS)
-		
 		case 'lol': return getFactoryDefaults(KIDS_OPTIONS)
-		case 'band': return getFactoryDefaults()
+		case 'band': return getFactoryDefaults(BAND_OPTIONS)
 		case 'dance': return getFactoryDefaults(DANCE_OPTIONS)
 
 		// defaults to interface.place
@@ -258,7 +265,7 @@ export const getDomainDefaults = (name = '') => {
 }
 
 import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
-console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
+// console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
 export const INSTRUMENT_OPTIONS = {
 	list:INSTRUMENTS_LIST_LOCATION
 }
