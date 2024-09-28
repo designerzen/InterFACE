@@ -35,6 +35,7 @@ export default class SampleInstrument extends Instrument{
 	instrumentLoading = true
 
 	// these are the file names and locations of each instrument
+	instrumentTitles = []
 	instrumentNames = []
 	instrumentFolders = []
 
@@ -53,6 +54,10 @@ export default class SampleInstrument extends Instrument{
 	// always specify the output node
 	get audioNode(){
 		return this.gainNode
+	}
+
+	get activePreset(){
+		return this.instrumentName
 	}
 
 	// allow this itself to load instruments from the system
@@ -151,7 +156,7 @@ export default class SampleInstrument extends Instrument{
 	 * @returns {Array<String>} of Instrument Names
 	 */
 	async getPresets(){
-		return this.instrumentNames
+		return this.instrumentTitles
 	}
 
 	
@@ -248,14 +253,14 @@ export default class SampleInstrument extends Instrument{
 				throw Error("You tried to load a soundfont with a descriptor uri! "+instrumentPack)
 			}	
 		}
+		// Fetch the GM name
+		this.title = this.instrumentTitles[index]
 		
 		this.instrumentIndex = index ?? 0
 		this.instrumentName = instrumentName
 		this.instrumentPack = instrumentPack
-
-		// Fetch the GM name
-		this.title = this.instrumentNames[index]
-
+		this.instrumentTitle = this.title
+		
 		//this.name = "SampleInstrument"
 		this.instrumentFamily = this.instrument.family
 

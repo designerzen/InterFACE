@@ -53,7 +53,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	soundfont
 	
 	// these are the file names and locations of each instrument
-	instrumentNames = GM_INSTRUMENT_NAMES
+	instrumentTitles = GM_INSTRUMENT_NAMES
 	instrumentFolders = GM_INSTRUMENT_FOLDERS
 
 	/**
@@ -65,7 +65,6 @@ export default class SoundFontInstrument extends SampleInstrument{
 	constructor( audioContext, options={} ){
 
 		super(audioContext, {...DEFAULT_OPTIONS, ...options})
-
 
 		console.error( "zen look here", DEFAULT_OPTIONS, options)
 
@@ -121,7 +120,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			return index
 		}
 		
-		index = this.instrumentNames.indexOf(presetName)
+		index = this.instrumentTitles.indexOf(presetName)
 		if (index > -1)
 		{
 			return index
@@ -230,7 +229,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// This should really come in from the options
 		const fontDescriptor = {
 			descriptor: this.instrumentPack, 
-			descriptorPath:'./assets/audio/'
+			descriptorPath:'./assets/audio/',
+			preset:this.instrumentIndex 
 		}
 
 		// load in a sound font - this can be either a fully qualified url
@@ -239,20 +239,21 @@ export default class SoundFontInstrument extends SampleInstrument{
 		const fontData = await this.soundfont.load( fontDescriptor, p => onProgress && onProgress( p / 2 ) )
 	
 		// fetch the available presets from the instrument...
-		const availablePresets = await this.soundfont.presetNames
+		const availablePresets = this.soundfont.presets
+		// const availablePresets = await this.soundfont.presetTitles
 
-		// console.error("Found font", { availablePresets })
-		console.error("Found font", { fontDescriptor, fontData, availablePresets })
 	
 		// FIXME:
 		// find associated instrument - for GM these should be the same
 		// but there may be descrepencies for
 		const currentPreset = availablePresets[ this.instrumentIndex ]
 		
-		console.error("Found availablePreset", availablePresets[0], {currentPreset} )
+		// console.error("Found font", { availablePresets })
+		console.info("Found font", { fontDescriptor, fontData, availablePresets })		
+		console.info("Found availablePreset", {availablePresets, currentPreset} )
 
 		//await this.soundfont.loadPreset( availablePresets[0], packName, p => console.log(p) )
-		await this.loadPreset( currentPreset, pack, options, p => onProgress && onProgress( 0.5 + p / 2 ) )
+		// await this.loadPreset( currentPreset, pack, options, p => onProgress && onProgress( 0.5 + p / 2 ) )
 
 		onProgress && onProgress(1)
 
@@ -272,11 +273,17 @@ export default class SoundFontInstrument extends SampleInstrument{
 	/**
 	 * Load a specific instrument "patch" for this AudioNode
 	 * TODO: Add loading events
-	 * @param {String} presetName Name of the standard instrument to load
+	 * @param {String} presetNameOrObject Name of the standard instrument to load
 	 * @param {String} instrumentPack Name of the standard instrument to load
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
-	async loadPreset(presetName, instrumentPack, options, progressCallback ){
+	async loadPreset(presetNameOrObject, instrumentPack, options, progressCallback ){
+	
+		// convert the object into a preset folder string name
+		if (typeof presetNameOrObject === "object")
+		{
+			presetNameOrObject = presetNameOrObject.folder
+		}
 	
 		// const index = this.getIndexFromName(presetName)
 		
@@ -285,7 +292,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// 	console.error("Couldn't find matching preset name", {presetName, instrumentPack}, this.instrumentFolders, this.soundfont )
 		// 	throw Error( `No Preset found with name "${presetName}" in pack "${instrumentPack}" (${this.soundfont.quantity})` )
 		// }
-
+	
 		// check to see if the pack name is valid...
 		this.instrumentLoading = true
 	
@@ -302,7 +309,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			
 			// we load the audio buffers from the soundfont
 			// in the { A4:AudioBuffer} format
-			this.instrument = await this.soundfont.loadPreset( presetName, { ...options } )
+			this.instrument = await this.soundfont.loadPreset( presetNameOrObject, { ...options } )
 
 			// FIXME: Send the -mp3 version...
 			//this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, instrumentPack, progressCallback )
@@ -324,12 +331,12 @@ export default class SoundFontInstrument extends SampleInstrument{
 		
 		// FIXME: set the default instrument index if saved
 		this.instrumentIndex = this.soundfont.instrumentIndex ?? 0
-		this.instrumentName = presetName
+		this.instrumentName = presetNameOrObject
 		this.instrumentPack = instrumentPack
 		this.instrumentFamily = this.instrument.family
 
 		// Fetch the GM name
-		this.title = presetName
+		this.title = presetNameOrObject
 		//this.name = "SampleInstrument"
 		
 		// this.instrumentMap = {}

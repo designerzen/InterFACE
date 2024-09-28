@@ -4,7 +4,10 @@ import {
 	SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS,
 	GENERAL_MIDI_INSTRUMENTS, 
 	GENERAL_MIDI_LIBRARY,
-	GENERAL_MIDI_FAMILY_DICTIONARY, GENERAL_MIDI_INSTRUMENTS_FRIENDLY 
+	GENERAL_MIDI_FAMILY_DICTIONARY, GENERAL_MIDI_INSTRUMENTS_FRIENDLY, 
+	GENERAL_MIDI_INSTRUMENT_FAMILY_IDS,
+	GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID,
+	GENERAL_MIDI_FAMILIES
 } from "./midi/general-midi.constants.js"
 
 import { base64Decode } from "../utils/utils.js"
@@ -18,6 +21,7 @@ import {
 	INSTRUMENT_PACK_OPEN_SF, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, 
 	SOUNDFONT_OPEN_SF_JSON, SOUNDFONT_FATBOY_JSON, SOUNDFONT_FM_JSON, SOUNDFONT_MUSYNGKITE_JSON 
 } from "../settings/options.instruments.js"
+import { FAMILY_BASS, FAMILY_BRASS, FAMILY_CHROMATIC_PERCUSSION, FAMILY_ENSEMBLE, FAMILY_ETHNIC, FAMILY_GUITAR, FAMILY_ORGAN, FAMILY_PERCUSSIVE, FAMILY_PIANO, FAMILY_PIPE, FAMILY_REED, FAMILY_SOUND_FX, FAMILY_STRINGS, FAMILY_SYNTH_EFFECTS, FAMILY_SYNTH_LEAD, FAMILY_SYNTH_PAD } from "./midi/general-midi-instrument.constants.js"
 
 export const INSTRUMENT_PACKS = [
 	INSTRUMENT_PACK_OPEN_SF,
@@ -61,11 +65,13 @@ const instrumentTitles= new Map()
 const TITLE_DICTIONARY = {}
 instrumentFolders.forEach( (name,index) =>{
 	TITLE_DICTIONARY[name] = instrumentNames[index] 
+	TITLE_DICTIONARY[name+'-mp3'] = instrumentNames[index] 
 })
 
 GENERAL_MIDI_INSTRUMENTS.forEach( (name,index) =>{
 	instrumentFilenames.set( name, instrumentFolders[index] )
 	instrumentTitles.set( name, instrumentNames[index] )
+	instrumentTitles.set( name+'-mp3', instrumentNames[index] )
 })
 
 /*
@@ -122,11 +128,95 @@ export const getNextSoundPackName = ( soundPack=INSTRUMENT_DATA_PACKS[0] ) => {
 	return INSTRUMENT_PACKS[newIndex]	
 }
 
+
+export const getRandomPresetIndex = (family) => 
+{
+	const familyIndex = GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID[family]
+	const allInstrumentsInFamily = GENERAL_MIDI_FAMILIES.get(family)
+	console.log("getRandomPresetIndex",{family, familyIndex, allInstrumentsInFamily})
+	return family ?
+		familyIndex + Math.floor( Math.random() * allInstrumentsInFamily.length ) :
+		-1
+}
+ 
 /**
  * Fetch a random instrument name
  * @returns {String} Instrument Name
  */
- export const getRandomInstrument = () => instrumentFolders[ Math.floor( Math.random() * instrumentFolders.length ) ]
+export const getRandomInstrument = () => instrumentFolders[ Math.floor( Math.random() * instrumentFolders.length ) ]
+
+
+export const getRandomPianoPresetIndex = () => getRandomPresetIndex(FAMILY_PIANO)
+export const getRandomChromaticPercussionPresetIndex = () => getRandomPresetIndex(FAMILY_CHROMATIC_PERCUSSION)
+export const getRandomOrganPresetIndex = () => getRandomPresetIndex(FAMILY_ORGAN)
+export const getRandomGuitarPresetIndex = () => getRandomPresetIndex(FAMILY_GUITAR)
+export const getRandomBassPresetIndex = () => getRandomPresetIndex(FAMILY_BASS)
+export const getRandomStringsPresetIndex = () => getRandomPresetIndex(FAMILY_STRINGS)
+export const getRandomEnsemblePresetIndex = () => getRandomPresetIndex(FAMILY_ENSEMBLE)
+export const getRandomBrassPresetIndex = () => getRandomPresetIndex(FAMILY_BRASS)
+export const getRandomReedPresetIndex = () => getRandomPresetIndex(FAMILY_REED)
+export const getRandomPipePresetIndex = () => getRandomPresetIndex(FAMILY_PIPE)
+export const getRandomSynthLeadPresetIndex = () => getRandomPresetIndex(FAMILY_SYNTH_LEAD)
+export const getRandomSynthPadPresetIndex = () => getRandomPresetIndex(FAMILY_SYNTH_PAD)
+export const getRandomSynthFXPresetIndex = () => getRandomPresetIndex(FAMILY_SYNTH_EFFECTS)
+export const getRandomEthnicPresetIndex = () => getRandomPresetIndex(FAMILY_ETHNIC)
+export const getRandomPercussivePresetIndex = () => getRandomPresetIndex(FAMILY_PERCUSSIVE)
+export const getRandomSFXPresetIndex = () => getRandomPresetIndex(FAMILY_SOUND_FX)
+
+
+export const leadPresetMethods = [
+	getRandomPianoPresetIndex,
+	getRandomOrganPresetIndex,
+	getRandomGuitarPresetIndex,
+	getRandomStringsPresetIndex,
+	getRandomBrassPresetIndex,
+	getRandomReedPresetIndex,
+	getRandomPipePresetIndex,
+	getRandomSynthLeadPresetIndex,
+	getRandomSynthPadPresetIndex,
+	getRandomSFXPresetIndex
+]
+let randomLeadIndex = 0
+export const getRandomLeadPresetIndex = type => leadPresetMethods[randomLeadIndex++ % leadPresetMethods.length]()
+
+
+export const harmonicLeadPresetMethods = [
+	getRandomPianoPresetIndex,
+	getRandomOrganPresetIndex,
+	getRandomGuitarPresetIndex,
+	getRandomStringsPresetIndex,
+	getRandomBrassPresetIndex,
+	getRandomEnsemblePresetIndex,
+	getRandomReedPresetIndex,
+	getRandomPipePresetIndex,
+	getRandomSynthLeadPresetIndex,
+	getRandomSynthPadPresetIndex,
+	getRandomSynthFXPresetIndex,
+	getRandomSFXPresetIndex
+]
+let randomHarmonicLeadIndex = 0
+export const getRandomHarmonicLeadPresetIndex = type => harmonicLeadPresetMethods[randomHarmonicLeadIndex++ % harmonicLeadPresetMethods.length]()
+
+
+export const percussionPresetMethods = [
+	getRandomChromaticPercussionPresetIndex,
+	getRandomEthnicPresetIndex,
+	getRandomPercussivePresetIndex
+]
+let randomBeatsIndex = 0
+export const getRandomBeatsPresetIndex = type => percussionPresetMethods[randomBeatsIndex++ % percussionPresetMethods.length]()
+
+
+export const bassPresetMethods = [
+	getRandomBassPresetIndex,
+	getRandomOrganPresetIndex,
+	getRandomSynthLeadPresetIndex,
+	getRandomSynthPadPresetIndex,
+
+]
+let randomBassIndex = 0
+export const getRandomBasslinePresetIndex = type => bassPresetMethods[randomBassIndex++ % bassPresetMethods.length]()
+
 
 
 /**

@@ -129,10 +129,11 @@ export const chooseFilters = async (options) => {
 
 const DEFAULT_OPTIONS = {
 	// quantity of reverb
-	reverb:0.1,
+	reverb:0.2,
 	// flatten pops and clicks
 	// but omg does it cost a lot
 	normalise:true,
+
 	// frequency analyser pulse smoothing (for cool visual effects!)
 	// how quick it drops < 0.85 looks cool
 	smoothingTimeConstant:0.45
@@ -196,20 +197,15 @@ export const setupAudio = async (settings) => {
    	)
 	// createCompressor( audioContext, -85, 40, 20, 0, 0.3, 0)
 
-	// With added compression set on the drum tracks
-	// percussion.node.connect( compressor.node )
-	// compressor.node.connect( getMasterMixdown())
-
-	// RAW drums
-	percussion.node.connect( getMasterMixdown() )
-	
 	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
-	// reverb.impulseFilter()
-
 	lowPassFilter = await createLowPassFilter( audioContext )
-	
 	saturator = await createSaturationFilter( audioContext )
 		
+	// With added compression set on the drum tracks
+	// RAW drums -> Compressor cos c'mon now!
+	// percussion.node.connect( getMasterMixdown() )
+	percussion.node.connect( compressor.node )
+	compressor.node.connect( getMasterMixdown() )
 	
 
 	// Web Audio Modules! --------------------------
@@ -229,8 +225,8 @@ export const setupAudio = async (settings) => {
 	
 	
 	// some space dubs!
-	// delay = await createDelay(audioContext)
-	// dub = await createDub(audioContext)
+	delay = await createDelay(audioContext)
+	dub = await createDub(audioContext)
 	
 	// masher (expensive)
 	// distortion = await createDistortion(audioContext)
@@ -259,17 +255,20 @@ export const setupAudio = async (settings) => {
 
 		// saturator,
 	
-		limiter,
+		// limiter,
 		
 		// this should hopefully balance the outputs
-		compressor,
+		// compressor,
+
+		// delay,
 		
 		reverb,
+
 		//await createDelay(audioContext)
 		//await createDub(audioContext)
 		//await createDistortion(audioContext)
 		
-		analyser,
+		// analyser,
 
 		mixer,
 
@@ -586,7 +585,7 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 		...options
 	}
 
-	console.error("loadInstrumentFromSoundFont:" , options ) 
+	// console.error("loadInstrumentFromSoundFont:" , options ) 
 	
 	let instrumentAudioBuffers
 

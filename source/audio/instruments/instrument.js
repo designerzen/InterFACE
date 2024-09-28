@@ -48,7 +48,10 @@ export default class Instrument{
 	get id(){
 		return `${this.name}-${this.unique}`.toLowerCase().replace(" ","_")
 	}
-	
+
+	get activePreset(){
+		return null
+	}
 	/**
 	 * @returns {String} of unique Instrument id for this instance
 	 */

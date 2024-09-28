@@ -42,6 +42,7 @@ export default class SoundFont{
 	audioBuffers = new Map()
 	instrumentsByName = new Map()
 	instrumentsByPath = new Map()
+	instrumentsByIndex = []
 
 	instruments
 	
@@ -52,12 +53,16 @@ export default class SoundFont{
 	// flags
 	loading = false
 	lazyLoading = false
-
+	
 	get presetAudioBuffers(){
 		return this.audioBuffers
 	}	
 
 	get presetNames(){
+		return Array.from( this.instrumentsByName.keys() )
+	}
+	
+	get presetTitles(){
 		return Array.from( this.instrumentsByName.keys() )
 	}
 	
@@ -68,6 +73,7 @@ export default class SoundFont{
 	get quantity(){
 		return this.descriptor.length
 	}
+
 	// offlineAudioContext
 	constructor( audioContext, offlineAudioContext, path="./" ){
 		this.audioContext = audioContext
@@ -96,8 +102,6 @@ export default class SoundFont{
 			await this.loadDescriptor( options.descriptor, options.descriptorPath ?? './' )
 		}
 		
-		// now load in the first preset
-		await this.loadPreset(this.instruments[0], options, onProgress)
 	}
 
 
@@ -109,6 +113,7 @@ export default class SoundFont{
 	 */
 	createInstrumentData( instrumentData, locationData ){
 	
+		this.instrumentsByIndex = []
 		// loop through the data and create all of our associators
 		const data = instrumentData.map((preset,index)=>{
 			
@@ -122,7 +127,7 @@ export default class SoundFont{
 
 			this.instrumentsByPath.set( preset.location, data )
 			this.instrumentsByName.set( data.name, data )
-
+			this.instrumentsByIndex.push( data )
 			return data
 		})
 
@@ -144,9 +149,7 @@ export default class SoundFont{
 		onProgress && onProgress(0)
 
 		// Load in the descriptor
-		
 		const font = await this.loadDescriptor( pack, location )
-		
 		//const reload = await this.loadPack( this.instrumentPack, onProgress  )
 		
 		onProgress && onProgress(1)
@@ -166,16 +169,15 @@ export default class SoundFont{
 	async loadDescriptor( pack, packURI ){
 
 		// 	const descriptorPath = `${location}${pack}`
-		
 		let descriptorURI = ""
-
 		if (pack.indexOf(".json") === -1)
 		{
 			const index = INSTRUMENT_PACKS.indexOf(pack)
 			if (index > -1)
 			{
 				this.name = INSTRUMENT_PACKS[index]
-				descriptorURI = INSTRUMENT_DATA_PACKS[index]
+				const packData = INSTRUMENT_DATA_PACKS[index]
+				descriptorURI = packData.filename
 			}else{
 
 				throw Error("loadFont failed to load descriptor. Expected a data source but couldn't find one", pack )
@@ -236,11 +238,17 @@ export default class SoundFont{
 		
 
 	/**
-	 * Provide a preset name, a 
+	 * Provide a preset name, or an index
 	 * @param {String} presetName 
 	 * @returns 
 	 */
 	getInstrumentData( presetName ){
+
+		// easy enough to resolve, as it is just a number!
+		if (Number.isInteger(presetName))
+		{
+			return this.instrumentsByIndex[presetName]
+		}
 		
 		return 	this.instrumentsByName.get(presetName) ?? 
 				this.instrumentsByPath.get(presetName) ??  
@@ -255,7 +263,7 @@ export default class SoundFont{
 	
 	/**
 	 * Load a specific instrument for this sound font
-	 * @param {String|Object} presetName Name of the standard instrument to load
+	 * @param {Number|String|Object} presetName Name of the standard instrument to load
 	 * @param {Object} options how to load and where to load the data from
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
@@ -267,29 +275,31 @@ export default class SoundFont{
 		}
 
 		// establish the actual name of the preset
-		let presetName
+		let presetNameOrNumber
 
 		// check to see what type it is
 		if ( typeof preset === 'object' )
 		{
-			presetName = preset.name ?? preset.title ?? preset.folder
+			presetNameOrNumber = preset.name ?? preset.title ?? preset.folder
 		}else{
-			presetName = preset
+			presetNameOrNumber = preset
 		}
 
 		// immediately attempt to get the instrument data from the descriptor
-		const data = this.getInstrumentData(presetName) 
+		const data = this.getInstrumentData(presetNameOrNumber) 
 		
 		// console.error("Loading PRESET", { preset, presetName, options, data } )
 
-		const location = "./"
+		const location = "./assets/audio/OpenGM24" //+ data.folder
+			
+		console.info("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
 
 		// If a sound font with a name that isn't recognised
 		// we complain and throw the error here
 		if (!data)
 		{
-			console.error("PRESET "+presetName+" LOADING", data, "from", location, this )
-			throw Error( `No Preset found with name "${presetName}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
+			console.error("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
+			throw Error( `No Preset found with name "${presetNameOrNumber}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
 		}
 
 		// check to see if the pack name is valid...
@@ -310,7 +320,7 @@ export default class SoundFont{
 			// this is nice as it allows data to be streamed into the app in realtime
 			// and we can load the middle most fequently used samples first as a priority
 			// this results in far more requests but lower CPU usage and smoother transition
-			const audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, "./assets/audio/"+ this.name, options, onProgressCallback )
+			const audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, location, options, onProgressCallback )
 			
 			//this.instrument = await loadInstrumentFromSoundFont( presetName, this.name, this.context, onProgressCallback )
 			// const reload = await this.loadPack( this.instrumentPack, onProgressCallback  )
@@ -349,7 +359,7 @@ export default class SoundFont{
 			
 			if (error && String(error).toLowerCase().indexOf("encoding") > -1)
 			{
-				throw Error("A Preset '"+presetName+"' was loaded but the data does not appear to contain audio. Perhaps a 404 html page was returned instead of your expected audio file?")	
+				throw Error("A Preset '"+presetNameOrNumber+"' was loaded but the data does not appear to contain audio. Perhaps a 404 html page was returned instead of your expected audio file?")	
 			}
 			
 			if ( !this.name || this.name.length < 1 )
@@ -357,7 +367,7 @@ export default class SoundFont{
 				throw Error("Not sure what happened but there is name associated with the instrument")	
 			}
 
-			console.error("Instrument failed",presetName, error )
+			console.error("Instrument failed",presetNameOrNumber, error )
 
 			// if ( !instrumentPack )
 			// {
