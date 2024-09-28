@@ -183,6 +183,9 @@ export default class Timer {
 	get isQuarterNote(){
 		return this.divisionsElapsed / this.totalDivisions % 0.25 === 0 
 	}
+	get isHalfNote(){
+		return this.divisionsElapsed / this.totalDivisions % 0.5 === 0 
+	}
 
 	// Setters
 
