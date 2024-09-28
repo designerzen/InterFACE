@@ -13,6 +13,7 @@ import * as GENERAL_MIDI_INSTRUMENTS from '../audio/midi/general-midi-instrument
 //- import * as GENERAL_MIDI_INSTRUMENTS from './audio/midi/general-midi-instrument.constants.js'	 
 
 import {createDraggablePanel, createInstrumentFormHTML, populateInstrumentPanel} from '../dom/ui.panel-instruments.js'
+import { getRandomBassPresetIndex, getRandomBrassPresetIndex, getRandomChromaticPercussionPresetIndex, getRandomEnsemblePresetIndex, getRandomEthnicPresetIndex, getRandomGuitarPresetIndex, getRandomOrganPresetIndex, getRandomPercussivePresetIndex, getRandomPianoPresetIndex, getRandomPipePresetIndex, getRandomReedPresetIndex, getRandomSFXPresetIndex, getRandomStringsPresetIndex, getRandomSynthFXPresetIndex, getRandomSynthLeadPresetIndex, getRandomSynthPadPresetIndex } from '../audio/sound-font-instruments.js'
 
 
 const timer = new AudioTimer()
@@ -24,8 +25,26 @@ let isMuted = false
 
 // ------
 
+const randomPiano = getRandomPianoPresetIndex()
+const randomChromaticPercussive = getRandomChromaticPercussionPresetIndex()
+const randomOrgan = getRandomOrganPresetIndex()
+const randomGuitar = getRandomGuitarPresetIndex()
+const randomBass = getRandomBassPresetIndex()
+const randomString = getRandomStringsPresetIndex()
+const randomEnsemble = getRandomEnsemblePresetIndex()
+const randomBrass = getRandomBrassPresetIndex()
+const randomReed = getRandomReedPresetIndex()
+const randomPipe = getRandomPipePresetIndex()
+const randomSynthLead = getRandomSynthLeadPresetIndex()
+const randomSynthPad = getRandomSynthPadPresetIndex()
+const randomSynthFX = getRandomSynthFXPresetIndex()
+const randomEthnic = getRandomEthnicPresetIndex()
+const randomPercussion = getRandomPercussivePresetIndex()
+const randomSFX = getRandomSFXPresetIndex()
+
 const pane = new Pane(new Pane({ title: "Config", expanded: true }))		
 console.error( "GENERAL_MIDI_INSTRUMENT_NAMES", {GENERAL_MIDI_INSTRUMENT_NAMES, GENERAL_MIDI_INSTRUMENTS} )
+console.error( "Random presets", {randomSFX, randomPercussion, randomEthnic, randomSynthLead, randomSynthPad, randomSynthFX, randomBass, randomBrass, randomString, randomPiano, randomEnsemble, randomGuitar, randomReed,randomPipe, randomOrgan,randomChromaticPercussive, randomOrgan} )
 
 // ------
 
