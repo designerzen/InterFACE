@@ -197,12 +197,12 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	resetFilter(){
 		this.canvasContext.globalCompositeOperation = DEFAULT_FILTER.name
-		console.info("Display filter RESET", this.filter, this.filterDescription )
+		// console.info("Display filter RESET", this.filter, this.filterDescription )
 	}
 
 	setFilter( filterIndex ){
 		this.filterIndex = filterIndex
-		console.info("Display filter", this.filter, this.filterDescription )
+		// console.info("Display filter", this.filter, this.filterDescription )
 	}
 
 	/**
@@ -211,7 +211,7 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	nextFilter(){
 		this.setFilter( this.nextFilterIndex )
-		console.info("Display filter", this.filter, this.filterDescription )
+		// console.info("Display filter", this.filter, this.filterDescription )
 	}
 
 	/**
