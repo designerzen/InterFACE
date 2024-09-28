@@ -33,7 +33,8 @@ import {
 	EYE_COLOURS,
 	DEFAULT_PERSON_OPTIONS,
 	DEFAULT_PEOPLE_OPTIONS,
-	DEFAULT_VOICE_OPTIONS
+	DEFAULT_VOICE_OPTIONS,
+	NAMES
 } from './settings/options'
 
 import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths"
@@ -64,7 +65,7 @@ import InstrumentManager from './audio/instrument-manager.js'
 import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
 
 import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/tuning/notes'
-import { getGeneralMIDIInstrumentFolders, getInstrumentTitle } from './audio/sound-font-instruments'
+import { getGeneralMIDIInstrumentFolders, getInstrumentTitle, getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex, getRandomLeadPresetIndex } from './audio/sound-font-instruments'
 import { ParamaterRecorder } from './parameter-recorder'
 import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "./dom/ui.panel-instruments.js"
 import { drawMousePressure } from './dom/mouse-pressure'
@@ -271,6 +272,8 @@ const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction, options
 }
 
 export default class Person{
+
+	playerNumber = -1
 
 	audioContext
 	offlineAudioContext
@@ -596,11 +599,13 @@ export default class Person{
 		return this.presetTitle ?? this.activeInstrument.activePreset
 	}
 
-	constructor(name, options={}, saveData=undefined ) {
+	constructor( index, options={}, saveData=undefined ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		// ensure that the name is all lower case and kebabed
-		this.name = toKebabCase(name)
+		this.name = toKebabCase( NAMES[index])
+
+		this.playerNumber = index
 
 		if (saveData)
 		{
@@ -1005,8 +1010,14 @@ export default class Person{
 		const xMin = display.width - (boundingBox.xMin * display.width)
 		const yMin = boundingBox.yMin * display.height
 
-		const xMax = display.width - (boundingBox.xMax * display.width) - 50
-		const yMax = (boundingBox.yMax * display.height) - 65 // fudgey
+		const xMax = display.width - (boundingBox.xMax * display.width) 
+		const yMax = (boundingBox.yMax * display.height) 
+		
+		const boxHeight = yMax - yMin
+		const boxWidth = xMax - xMin
+		const thirdHeadHeight = boxHeight * 0.333
+		const thirdHeadWidth = boxWidth * 0.333
+
 		const instrumentTitle = this.presetTitle ?? this.instrumentTitle
 
 		// console.log({xMin, xMax, yMin, yMax })
@@ -1083,8 +1094,10 @@ export default class Person{
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			
 			// eye:${prediction.eyeDirection} 
-			display.drawInstrument(xMin, yMin, instrumentTitle, "", '14px' )
-			display.drawInstrument(xMin, yMin + 24, `${this.emoticon} ${extra} ${suffix}`, "", '28px' )
+			const textX = xMin + thirdHeadWidth
+			const textY = yMin - thirdHeadHeight
+			display.drawInstrument(textX, textY, instrumentTitle, "", '14px' )
+			display.drawInstrument(textX, textY + 24, `${this.emoticon} ${extra} ${suffix}`, "", '28px' )
 			
 			if (this.debug )
 			{
@@ -1215,14 +1228,14 @@ export default class Person{
 		const friendlyNoteName = getFriendlyNoteName( noteName ) 
 	
 		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = prediction.mouthRatio
+		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness ) 
 				
 		// volume is an log of this
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
-		const logAmp = options.ease(amp)
+		const logAmp = easeOutCubic(amp)
 		
 		// you want the scale to be from 0-1 but from 03-1
-		let newVolume = amp
+		let newVolume = logAmp
 		let note = -1
 		
 		// cache existing 
@@ -1340,6 +1353,7 @@ export default class Person{
 			
 		}else if ( amp > options.mouthSilence && amp < options.mouthCutOff ){
 
+			// SINGING! 
 			// dampen the sound to silence
 			// this.gainNode.gain.value = 0
 			//const destinationVolume  = 0 // logAmp
@@ -1469,21 +1483,42 @@ export default class Person{
 	async loadPresetByMethod(method="loadRandomInstrument",progressCallback=null){
 		this.instrumentLoadedAt = this.now
 
-		// this has lost it's scope...
-		this.instrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
-			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+		if (method==="loadRandomInstrument")
+		{
+			// const presets = await this.activeInstrument.getPresets()
+			switch(this.playerNumber)
+			{
+				case 1:
+					this.instrument = await this.loadPreset( getRandomHarmonicLeadPresetIndex(), null, progressCallback )
+					break
+				case 2:
+					this.instrument = await this.loadPreset( getRandomBasslinePresetIndex(), null, progressCallback )
+					break
+				case 3:
+					this.instrument = await this.loadPreset( getRandomBeatsPresetIndex(), null, progressCallback )
+					break
+				default:
+					this.instrument = await this.loadPreset( getRandomLeadPresetIndex(), null, progressCallback )
+			}
+		}else{
+				
+			// this has lost it's scope...
+			this.instrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
+				progressCallback && progressCallback( progress )
+				this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+			} )
 			
-		} )
-		
+		}
+
 		// preset loaded!
-		console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.instrument })
+		// console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.instrument })
 
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
 
 		// this will repopulate the panel with correct data
-		await this.setupForm()
+		this.setupForm()
+		// await this.setupForm()
 
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
 		return this.instrument
@@ -1533,6 +1568,12 @@ export default class Person{
 
 		// const presets = this.samplePlayer.instrumentNames
 
+		if (Number.isInteger(presetName))
+		{
+			const allPresets = await this.samplePlayer.getPresets()
+			presetName = allPresets[presetName]
+		}
+		
 		// always remove the suffixes?
 		const instrumentNameRefined = presetName.replace("-mp3", "")
 
@@ -1582,7 +1623,7 @@ export default class Person{
 	 * other facial features can 
 	 * @param {AudioContext} audioContext 
 	 */
-	async setupAudio(audioContext, destinationNode, offlineAudioContext=null){
+	async setupAudio(audioContext, destinationNode, offlineAudioContext=null, presetIndex=0 ){
 
 		if (!audioContext)
 		{
@@ -1708,7 +1749,7 @@ export default class Person{
 		const samplePlayerOptions = {
 			...this.options,
 			offlineAudioContext,
-			defaultPreset:this.options.defaultPreset,
+			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
 			defaultInstrument:this.options.defaultInstrument
 		}
 
@@ -1723,7 +1764,7 @@ export default class Person{
 		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ))
 	
-		console.warn("Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
+		console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )

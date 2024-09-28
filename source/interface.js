@@ -19,7 +19,7 @@ import {
 	bufferLength, dataArray, 
 	getVolume, setVolume, getPercussionNode } from './audio/audio.js'
 
-import { getRandomInstrument, createInstruments, getFolderNameForInstrument } from './audio/sound-font-instruments'
+import { getRandomInstrument, createInstruments, getFolderNameForInstrument, getRandomLeadPresetIndex, getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex } from './audio/sound-font-instruments'
 import { createDrumkit } from './audio/drum-kit.js'
 import { createSVGWaveformFromData, createWaveform } from './dom/waveform'
 // FIXME: 
@@ -519,14 +519,15 @@ export const createInterface = (
 
 	/**
 	 * Instantiate a Person Class and connect it up accordingly
-	 * @param {String} name Player's name
+	 * @param {Number} index Player's index
 	 * @param {String} eyeColour Player's eye colour
 	 * @param {?Number} personIndex -  Player number
 	 * @returns {Person} Person fully wired
 	 */
-	const createPerson = (name, eyeColour, personIndex=0, useGamePad=false ) => {
+	const createPerson = (index, eyeColour, personIndex=0, useGamePad=false ) => {
 		
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
+	
 
 		// TODO: load in from the URL and players
 		let savedData = undefined
@@ -579,29 +580,14 @@ export const createInterface = (
 		}
 
 		// Load any saved settings for this specific user name
+		const name = NAMES[index]
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
 		const options = Object.assign ( {}, savedOptions, personOptions ) 
 		
 		// Create our person with the specified options
-		const person = new Person( name, options, savedData ) 
+		const person = new Person( index, options, savedData ) 
 
-		// see if there is a stored name for the instrument...
-		// FIXME: Look also in the midiPerformance for the first instrument
-		const presetName = midiPerformance ? 
-			midiPerformance.instruments[0] : 
-			locationPreset ?? 
-			savedOptions.instrument ?? 
-			getRandomInstrument()
 
-		const preset = getFolderNameForInstrument( presetName )
-		//console.error("Person created", {instrument}, {person})
-		
-		if (personOptions.debug)
-		{
-			console.info("Created Person", person)
-			console.info(options)
-		}
-		
 		// the instrument has changed / loaded so show some feedback
 		person.button.addEventListener( EVENT_INSTRUMENT_CHANGED, ({detail}) => {
 			// save it for next time
@@ -626,18 +612,68 @@ export const createInterface = (
 			markInstrumentProgress( progress, instrumentName )
 		})
 
+		// We assign certain random instruments from groups to each user
 		// we want this to happen in the background
+		// see if there is a stored name for the instrument...
+		// FIXME: Look also in the midiPerformance for the first instrument
+		let preset = locationPreset ?? 12
+
+		if (midiPerformance)
+		{
+			preset = midiPerformance.instruments[0]
+			// TODO: Test this is a valid GM instrument!
+		}else if (locationPreset){
+			// There was a location specified in the location bar 
+			// TODO: I should update this to check the stateMachine really!
+			preset = locationPreset
+		}else{
+
+			switch(personIndex)
+			{
+				case 1:
+					preset = getRandomLeadPresetIndex()
+					break
+				case 2:
+					preset = getRandomHarmonicLeadPresetIndex()
+					break
+				case 3:
+					preset = getRandomBasslinePresetIndex()
+					break
+				default:
+					preset = getRandomBeatsPresetIndex()
+			}			
+		}
+
 		
+
+
+		// const preset = midiPerformance ? 
+		// 	midiPerformance.instruments[0] : 
+		// 		locationPreset ?? 
+		// 		options.instrument ?? 
+		// 		getRandomInstrument()
+
+		// const preset = getFolderNameForInstrument( presetName )
+		//console.error("Person created", {instrument}, {person})
+		
+		if (personOptions.debug)
+		{
+			console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
+			console.info(options)
+		}
+		
+		console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
-		person.setupAudio(audioContext, audioChain, offlineAudioContext).then(async()=>{
+		person.setupAudio(audioContext, audioChain, offlineAudioContext, preset).then(async()=>{
 			// the above command should initalise a default sample player rendering the following line obsolete
 			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
+			// const presetData = person.getPresets()[0]
 			await person.loadPreset( preset )
 
 			// FIXME: now append this person's options to the URL
-			const personExportData = person.exportData()
-			console.error("Loaded Preset for Person", { person, personExportData, preset })
+			// const personExportData = person.exportData()
+			// console.error("Loaded Preset for Person", { person, personExportData, preset })
 		})
 		
 		/*
@@ -700,7 +736,7 @@ export const createInterface = (
 		if (people[index] == undefined)
 		{
 			const useGamePad = stateMachine.get("gamePad") ?? false
-			const person = createPerson( NAMES[index], EYE_COLOURS[index], index, useGamePad )
+			const person = createPerson( index, EYE_COLOURS[index], index, useGamePad )
 		
 			people.push( person )
 			console.log("getPerson", {person,people})
@@ -2374,7 +2410,9 @@ export const createInterface = (
 				}
 				
 				const isQuarterNote = clock.isQuarterNote
+				const isHalfNote = clock.isHalfNote
 				const isBar = clock.isAtStart
+				// const isBarStart = divisionsElapsed===0
 				// TODO: The timer is a good place to determine if the computer
 				// 		 is struggling to keep up with the program so we can reduce
 				// 		 the visual complexity of the ui and remove some predictions too
@@ -2412,7 +2450,7 @@ export const createInterface = (
 			
 				// sing note and draw to canvas
 				// chcek if quarternote
-				if( stateMachine.get("quantise") && divisionsElapsed===0 )
+				if( stateMachine.get("quantise") && isHalfNote )
 				{
 					const amountOfPeople = people.length
 					for (let i=0, l=amountOfPeople; i<l; ++i )

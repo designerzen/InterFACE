@@ -2,7 +2,7 @@
 // [General MIDI Level 1.0 Instrument Patch Map](https://www.midi.org/specifications/item/gm-level-1-sound-set)
 // [General MIDI Level 2.0 Instrument Patch Map](http://cs.uccs.edu/~cs525/midi/midi.html)
 
-import { GENERAL_MIDI_INSTRUMENT_NAMES } from "./general-midi-instrument.constants"
+import { FAMILY_BASS, FAMILY_BRASS, FAMILY_CHROMATIC_PERCUSSION, FAMILY_ENSEMBLE, FAMILY_ETHNIC, FAMILY_GUITAR, FAMILY_ORGAN, FAMILY_PERCUSSIVE, FAMILY_PIANO, FAMILY_PIPE, FAMILY_REED, FAMILY_SOUND_FX, FAMILY_STRINGS, FAMILY_SYNTH_EFFECTS, FAMILY_SYNTH_LEAD, FAMILY_SYNTH_PAD, GENERAL_MIDI_INSTRUMENT_NAMES } from "./general-midi-instrument.constants"
 
 /*
 General MIDI Level 1 Instrument Families
@@ -299,64 +299,73 @@ export const SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS = [
 	"gunshot"
 ]
 
-
-export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES = [
-	"piano",
-	"chromatic percussion",
-	"organ",
-	"guitar",
-	"bass",
-	"strings",
-	"ensemble",
-	"brass",
-	"reed",
-	"pipe",
-	"synth lead",
-	"synth pad",
-	"synth effects",
-	"ethnic",
-	"percussive",
-	"sound effects",
-]
-
 export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES_FRIENDLY = [
-	"Piano",
-	"Chromatic Percussion",
-	"Organ",
-	"Guitar",
-	"Bass",
-	"Strings",
-	"Ensemble",
-	"Brass",
-	"Reed",
-	"Pipe",
-	"Synth Lead",
-	"Synth Pad",
-	"Synth Effects",
-	"Ethnic",
-	"Percussive",
-	"Sound Effects",
+	FAMILY_PIANO,
+	FAMILY_CHROMATIC_PERCUSSION,
+	FAMILY_ORGAN,
+	FAMILY_GUITAR,
+	FAMILY_BASS,
+	FAMILY_STRINGS,
+	FAMILY_ENSEMBLE,
+	FAMILY_BRASS,
+	FAMILY_REED,
+	FAMILY_PIPE,
+	FAMILY_SYNTH_LEAD,
+	FAMILY_SYNTH_PAD,
+	FAMILY_SYNTH_EFFECTS,
+	FAMILY_ETHNIC,
+	FAMILY_PERCUSSIVE,
+	FAMILY_SOUND_FX
 ]
+
+export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES = GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES_FRIENDLY.map( r => r.toLowerCase() )
 
 export const GENERAL_MIDI_INSTRUMENT_FAMILY_IDS = {
-	0: "Piano",
-	7: "Chromatic percussion",
-	12: "Organ",
-	25: "Guitar",
-	33: "Bass",
-	41: "Strings",
-	49: "Ensemble",
-	57: "Brass",
-	65: "Reed",
-	69: "Pipe",
-	81: "Synth lead",
-	89: "Synth pad",
-	97: "Synth effects",
-	// some rasict shit right here akin to "world" music
-	105: "Ethnic",
-	113: "Percussive",
-	123: "Sound effects"
+	0: FAMILY_PIANO,
+	7: FAMILY_CHROMATIC_PERCUSSION,
+	12: FAMILY_ORGAN,
+	25: FAMILY_GUITAR,
+	33: FAMILY_BASS,
+	41: FAMILY_STRINGS,
+	49: FAMILY_ENSEMBLE,
+	57: FAMILY_BRASS,
+	65: FAMILY_REED,
+	69: FAMILY_PIPE,
+	81: FAMILY_SYNTH_LEAD,
+	89: FAMILY_SYNTH_PAD,
+	97: FAMILY_SYNTH_EFFECTS,
+	105: FAMILY_ETHNIC,
+	113: FAMILY_PERCUSSIVE,
+	123: FAMILY_SOUND_FX
 }
+
+export const GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID = {
+	[FAMILY_PIANO]:0,
+	[FAMILY_CHROMATIC_PERCUSSION]:7,
+	[FAMILY_ORGAN]:12,
+	[FAMILY_GUITAR]:25,
+	[FAMILY_BASS]:33,
+	[FAMILY_STRINGS]:41,
+	[FAMILY_ENSEMBLE]:49,
+	[FAMILY_BRASS]:57,
+	[FAMILY_REED]:65,
+	[FAMILY_PIPE]:69,
+	[FAMILY_SYNTH_LEAD]:81,
+	[FAMILY_SYNTH_PAD]:89,
+	[FAMILY_SYNTH_EFFECTS]:97,
+	[FAMILY_ETHNIC]:105,
+	[FAMILY_PERCUSSIVE]:113,
+	[FAMILY_SOUND_FX]:123
+}
+
+
+// const GENERAL_MIDI_GROUPING = new Map()
+
+// GENERAL_MIDI_INSTRUMENTS.map( (key, index) => {
+// 	const existing = GENERAL_MIDI_GROUPING.get(key)
+// 	GENERAL_MIDI_GROUPING.set( key, existing ? [...existing, index] : [index] )
+// })
+
 
 export const GENERAL_MIDI_INSTRUMENT_LIST = []
 
@@ -386,13 +395,13 @@ GENERAL_MIDI_INSTRUMENTS.forEach( (instrument, index) => {
 		location
 	})
 	
-
 	GENERAL_MIDI_INSTRUMENT_LIST[index] = {
 		family:latch,
 		location,
 		name:title
 	}
 
+	// GENERAL_MIDI_GROUPING.set()
 	GENERAL_MIDI_FAMILIES.set( latch, [...(GENERAL_MIDI_FAMILIES.get(latch) || []), instrument] )
 	GENERAL_MIDI_FAMILY_DICTIONARY[instrument] = latch
 })
