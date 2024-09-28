@@ -1,4 +1,32 @@
 @use "sass:math";
+
+@keyframes EyesBlinking{
+	0%{
+		content:'o O';	
+	}
+	33%{
+		content:'o o';	
+	}
+	66%{
+		content:'O O';	
+	}
+	100%{
+		content:'O o';	
+	}
+}
+
+@keyframes EyesSleepy{
+	0%{
+		content:'o o';	
+	}
+	50%{
+		content:'_ _';	
+	}
+	100%{
+		content:'. .';	
+	}
+}
+
 @keyframes BGScroll {
 	0% { 
 		background-position:

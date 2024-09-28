@@ -411,20 +411,31 @@ progress[value="1"] + label{
 	}
 	
 	label[for="progress-bar"]{
-		grid-area:1/-1;
-		font-size: 0;
+		grid-area:1/1/-1/-1;
+		font-size: 2px;
 		align-self:center;
 		justify-self: flex-start;
 		margin:0;
-		color:currentColor;
-		// mix-blend-mode:hard-light;
+		color:transparent;
+		position: absolute;
+		top:auto;
+		left:0;
+		right:0;
+		z-index: -1;
+		display: block;
+		mix-blend-mode:hard-light;
 	}
 	.load-percent{
-		position: relative;
-		top:auto;
-		left:auto;
+		// margin: auto;
+		text-align: center;
 		font-size:20px;
-		width: min-content;
+		// width: min-content;
+		// position: absolute;
+		color:var(--shade-brand);
+		// left:0;
+		// right:0;
+		// transform: translate(-50%, -50%);
+		// mix-blend-mode:hard-light;
 	}
 	&:has(progress[value="1"]){
 		background-color: transparent;

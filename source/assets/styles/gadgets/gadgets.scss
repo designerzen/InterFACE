@@ -224,7 +224,7 @@ a[href="#fund"]{
 		
 	// background:url(/source/assets/logos/interface_round-composite.svg) center no-repeat;
 	background-image:url(/source/assets/logos/interface_colour.svg);
-	background-position: top 50% center;
+	background-position: bottom center;
 	background-size: 72%;
 	background-repeat: no-repeat;
 	
@@ -274,10 +274,28 @@ a[href="#fund"]{
 		opacity: 1;
 		color:var(--shade-red, red);
 		position: absolute;
-		top:5%;
+		top:15%;
 		left:0;
 		right:0;
 		text-align: center;
+	}
+}
+
+.loading{
+	a[href="#fund"]{
+		&::after{
+			content:'O o';	
+			animation: EyesBlinking 2s ease-in-out 0s both infinite;
+		}
+	}
+}
+
+.player-selection{
+	a[href="#fund"]{
+		&::after{
+			content:'O o';	
+			animation: EyesBlinking 2s ease-in-out 0s both infinite;
+		}
 	}
 }
 

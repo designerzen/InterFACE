@@ -224,7 +224,8 @@
 		--col-stroke:transparent;
 		--col-top:transparent;
 		--col-bottom:transparent;
-		--col-hover:var(--shade-active, var(--shade-white, black) );
+		--col-hover:var(--shade-white, var(--shade-white, black) );
+		// --col-hover:var(--shade-active, var(--shade-white, black) );
 		--icon-size: clamp(22px, 9vmin, 44px);
 		--button-border-size:var(--border-size);
 
@@ -247,7 +248,7 @@
 
 			border-radius: inherit;
 
-			border:inherit;
+			border:0;
 			border-color:var(--col-hover);
 			
 			background:inherit;

@@ -125,10 +125,9 @@
 		"tagline"
 		"summary"
 		"description"
-		"requirements"
 		"menu"
 		"warning"
-		"requirements-test"
+		"requirements"
 	;
 
 	@media screen and (min-width:640px) {
@@ -136,11 +135,10 @@
 			"poster heading"
 			"poster summary"
 			"poster tagline"
-			"poster requirements"
 			"poster menu"
 			"warning warning"
 			"description description"
-			"requirements-test requirements-test"
+			"requirements requirements"
 		;
 
 		grid-template-columns: minmax(50%, 33vh) 1fr;
@@ -167,11 +165,10 @@
 			"poster heading"
 			"poster summary"
 			"poster tagline"
-			"poster requirements"
 			"poster menu"
 			"poster warning"
 			"description description"
-			"requirements-test requirements-test"
+			"requirements requirements"
 		;
 		// grid-template-columns: minmax(50%, 33vh) 1fr;
 	}
@@ -185,7 +182,7 @@
 			"poster menu menu"
 			"poster description description"
 			"poster warning warning"
-			"requirements-test requirements-test requirements-test"
+			"requirements requirements requirements"
 		;
 
 		grid-template-columns: 2fr 1fr minmax(44px, 1fr);
@@ -195,29 +192,40 @@
 }
 
 #alternate-browsers{
+
+	text-align: right;
+	margin-left:auto;
 	
+	summary{
+		margin-left:auto;
+		display: block;
+	}
+
 	ol {
 		margin:0;
+		margin-left:auto;
 		padding:0;
 		list-style: none;
-		display: flex;
-		gap:var(--pad);
+		display: flex;		
+		justify-content: flex-end;
+		gap:0;//var(--pad);
 	}
 
 	li + li::before{
 		content: '/';
+		margin:0 calc( var(--pad) * 0.5 );
 	}
 }
 
 
 #requirements {
-	grid-area: requirements;
+	//grid-area: requirements;
 	width: 100%;
 }
 
 #requirements-test {
 	width: 100%;
-	grid-area: requirements-test;
+	grid-area: requirements;
 }
 
 // table

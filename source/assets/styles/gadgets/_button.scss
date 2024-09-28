@@ -352,9 +352,8 @@
 
 	--col-fg:var(--col-text, var(--shade-light, white));// --col-fg
 	
-
-	--col-active:
-	--col-active:
+	// --col-active:
+	// --col-active:
 
 	// border size and curve
 	--button-border-size:var(--border-size,2px);
@@ -610,11 +609,16 @@
 		}
 	}
 
+	// Flashing ring!
 	// When focussed via keyboard or screen reader
 	// Hover and focus states,
 	&:is(
 		:focus,
-		:focus-visible
+		:focus-visible,
+		:focus-within,
+		:target,
+		:has(:target),
+		:focus(:target)
 	){
 		--hue:var(--hue-orange);
 		outline-color:var(--col-ring, var(--col-accent, black));
@@ -1114,7 +1118,7 @@
 		min-height: max( var(--min-size, 44px), calc( var( --icon-visible, 1) * var(--icon-size, 22px) ), 4lh );
 
 		justify-content: space-between;
-
+		background-position-y:calc( 50% + 1px * var(--shadow-offset-y, 0px)),0,0,0;
 
 		&:after{	
 			// try and set to the size of the background icon

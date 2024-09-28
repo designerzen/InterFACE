@@ -5,7 +5,7 @@
 	// leftmost gap to behind the icon
 	--bg:url(/source/assets/icons/play_circle_outline_black_24dp.svg);
 	--space: calc(var(--pad)* 2.5px);
-    padding: calc(var(--pad)* 3);
+    padding: calc(var(--pad)* 1);
 	border-radius:999px;
 	font-size: 125%;
 	anchor-name:--button-start;
@@ -15,7 +15,7 @@
 
 	@media screen and (min-width:840px) {
 		--space: calc(var(--pad)* 3.5px);
-		padding: calc(var(--pad)* 5);
+		padding: calc(var(--pad)* 2);
 		font-size: 150%;
 	}
 }
