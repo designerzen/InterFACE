@@ -64,7 +64,7 @@ menu#control-panel
 						
 
 		//- Record / Save / Load --------------------------------------------------------------
-		#control-panel-record.folder-menu.bottom.horizontal.right
+		#control-panel-record(hidden).folder-menu.bottom.horizontal.right
 			a.folder-link(href="#folder-record" aria-label="Show Recording options") <span class="hide-text">Show </span>Record<span class="hide-text">Optionss </span>
 			menu.folder-content#folder-record
 				include record-panel.pug
@@ -72,7 +72,7 @@ menu#control-panel
 
 		//- label(for="button-midi-menu" ) MIDI<span class="hide-text"> Menu</span>
 		//- 	input#button-midi-menu(type="checkbox" aria-label="Show MIDI Options")
-		#control-panel-midi.folder-menu.bottom.horizontal.right
+		#control-panel-midi(hidden).folder-menu.bottom.horizontal.right
 			a.folder-link(href="#folder-midi" aria-label="Show MIDI instruments") <span class="hide-text">Show </span>MIDI<span class="hide-text"> options</span>
 			menu.folder-content#folder-midi
 				include midi-panel.pug
