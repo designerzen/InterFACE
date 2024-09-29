@@ -119,7 +119,7 @@ html.initialising{
   
 html.player-selection{
 
-	--size:99px;//clamp(99px, 50vmax, 50%);
+	--size:400px;//clamp(99px, 50vmax, 50%);
 	--scroll-x:var(--size);
 	--scroll-y:var(--size);
 
@@ -227,18 +227,18 @@ html.player-selection{
 	// &.solo{ }
 
 	&.duet{
-		--size:66px;//clamp(66px, 33vmax, 33%);
+		--size:300px;//clamp(66px, 33vmax, 33%);
 	}
 
 	&.trio{
-		--size:44px;
+		--size:200px;
 		// --h:#{$hue-green};
 		// --col-bg: var(--shade-yellow);
 		// background-color: var(--shade-yellow);
 	}
 	
 	&.quartet{
-		--size:22px;
+		--size:100px;
 		// --h:#{$hue-green};
 		// --col-bg: var(--shade-yellow);
 		// background-color: var(--shade-yellow);
