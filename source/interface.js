@@ -534,7 +534,7 @@ export const createInterface = (
 
 		const locationOptions = new URLSearchParams(window.location.search)
 		const locationData = Object.fromEntries(locationOptions)
-
+		const name = NAMES[index]
 		// 
 		const prefix = name + '-'
 		const locationInstrument= locationData[prefix+'instrument' ]
@@ -580,7 +580,7 @@ export const createInterface = (
 		}
 
 		// Load any saved settings for this specific user name
-		const name = NAMES[index]
+		
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
 		const options = Object.assign ( {}, savedOptions, personOptions ) 
 		
@@ -2293,11 +2293,10 @@ export const createInterface = (
 				setFeedback(error, 0)
 			}
 		}
-	
 		
 		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
-		if (midiManager.available)
+		if (stateMachine.get("midi") && midiManager.available)
 		{
 			// then we attempt to connect to it
 			try{
@@ -2350,6 +2349,8 @@ export const createInterface = (
 		// FIRMEL canvasContext does not align
 		const quantiserCanvas = document.createElement("canvas")
 		const quantiserCanvasContext = quantiserCanvas.getContext("2d")
+		quantiserCanvas.id="quantiser-canvas"
+		quantiserCanvas.className = "quantiser-canvas"
 		quanitiser = new Quanitiser( quantiserCanvasContext )
 
 
@@ -2365,6 +2366,7 @@ export const createInterface = (
 		// remove loading flag as we now have all of our assets!
 		// TODO: create and position the stave?
 		// const stave = new Stave( canvasElement, 0, 0, true )
+		// adds "video" or "image" to main
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		body.classList.toggle("initialising", false)
 
@@ -2380,7 +2382,7 @@ export const createInterface = (
 			console.log("PhotoSYNTH3D STARTING", {options: modelOptions, clock })
 
 			clock.setCallback( ( values )=>{
-			
+				
 				// console.log( clock.bpm, "PhotoSYNTH3D Clock", clock.divisionsElapsed, clock.totalDivisions, 'qn', clock.isQuarterNote, "start", clock.isAtStart, { clock, values })
 				const { 
 					divisionsElapsed,
@@ -2388,6 +2390,16 @@ export const createInterface = (
 					barsElapsed, timePassed, 
 					elapsed, expected, drift, level, intervals, lag
 				} = values
+
+				
+				const isQuarterNote = clock.isQuarterNote
+				const isHalfNote = clock.isHalfNote
+				const isBar = clock.isAtStart
+				// const isBarStart = divisionsElapsed===0
+				// TODO: The timer is a good place to determine if the computer
+				// 		 is struggling to keep up with the program so we can reduce
+				// 		 the visual complexity of the ui and remove some predictions too
+				// 		 in order to try and maintain decent performance
 				
 				if (recordRequested)
 				{
@@ -2409,15 +2421,6 @@ export const createInterface = (
 					automator.tick(elapsed, clock.barProgress )
 				}
 				
-				const isQuarterNote = clock.isQuarterNote
-				const isHalfNote = clock.isHalfNote
-				const isBar = clock.isAtStart
-				// const isBarStart = divisionsElapsed===0
-				// TODO: The timer is a good place to determine if the computer
-				// 		 is struggling to keep up with the program so we can reduce
-				// 		 the visual complexity of the ui and remove some predictions too
-				// 		 in order to try and maintain decent performance
-
 				// lag
 				statistics.lag = lag
 				statistics.drift = drift
@@ -2439,9 +2442,9 @@ export const createInterface = (
 				if ( stateMachine.get("metronome") && isBar )
 				{
 					// TODO: change timbre for first & last stroke
-					const metronomeLength = 0.09
+					const metronomeLength = 0.15
 					// click for 3 then clack
-					kit.clack(metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
+					kit.clack(metronomeLength, bars % 4 === 0 ? 0.4 : 0.2 )
 				}
 
 				// console.log(barsElapsed, "timer", timer)
