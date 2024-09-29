@@ -391,7 +391,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	mouseGestureDistance:40,
 
 	// if both eyes are closed for X ms do something...
-	eyeShutHolddDuration:1500, // ms
+	eyeShutHolddDuration:2000, // ms
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,
