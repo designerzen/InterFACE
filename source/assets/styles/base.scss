@@ -56,9 +56,6 @@
     flex-wrap: nowrap;
     align-content: stretch;
     justify-content: space-between;
-
-	// FIXME: prevent user dragging?
-	touch-action: none;
 	
 	scroll-behavior: smooth;
 }
