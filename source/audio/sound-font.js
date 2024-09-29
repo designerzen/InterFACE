@@ -292,7 +292,7 @@ export default class SoundFont{
 
 		const location = "./assets/audio/OpenGM24" //+ data.folder
 			
-		console.info("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
+		// console.info("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
 
 		// If a sound font with a name that isn't recognised
 		// we complain and throw the error here
@@ -367,7 +367,7 @@ export default class SoundFont{
 				throw Error("Not sure what happened but there is name associated with the instrument")	
 			}
 
-			console.error("Instrument failed",presetNameOrNumber, error )
+			// console.error("Instrument failed",presetNameOrNumber, error )
 
 			// if ( !instrumentPack )
 			// {

@@ -52,7 +52,7 @@ export const showPersonalControlPanel = (playerName, controls, instrumentName, a
 			controls.focus({ focusVisible: false })
 		}
 		
-		console.log("SHOW Form", {active, controls })
+		// console.log("SHOW Form", {active, controls })
 	}
 	
 	// FIXME: Add aria-roles
@@ -70,7 +70,7 @@ export const showPersonalControlPanel = (playerName, controls, instrumentName, a
  * @returns 
  */
 export const hidePersonalControlPanel = (playerName, controls,  activeClassName="expanded") => {
-	console.log("HIDE Form")
+	// console.log("HIDE Form")
 	controls.setAttribute("style", "--x:0;")
 	controls.classList.toggle(activeClassName,false)
 	document.documentElement.classList.toggle(`${playerName}-sidebar-showing`,false)
@@ -160,7 +160,7 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) 
 	const inputs = controls.querySelectorAll('input')
 	inputs.forEach( input => input.addEventListener('change', onInstrumentInput, false) )
 	
-	console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
+	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
 
 
 	// toggle the accordian modes for the details
@@ -186,7 +186,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 	let isDrawerOpen = controls.classList.contains(activeClassName) 
 	let bypass = false
 
-	console.error("Creating sidebar", {isDrawerOpen, onLeftSide} )
+	// console.error("Creating sidebar", {isDrawerOpen, onLeftSide} )
 	
 	const setDrawerState = (open) => {
 
@@ -219,7 +219,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 
 		if (bypass)
 		{
-			console.warn("dragend:BYPASS", event)  
+			// console.warn("dragend:BYPASS", event)  
 			return
 		}
 
@@ -233,14 +233,14 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		// ensure we can drag it
 		controls.classList.toggle(activeClassName, false)
 
-		console.warn("mousemove", x, window.innerWidth , {event, onLeftSide, })
+		// console.warn("mousemove", x, window.innerWidth , {event, onLeftSide, })
 	}
 
 	// 
 	const onDragControlsEnd = (event) => {
 		if (bypass)
 		{
-			console.warn("dragend:BYPASS", event)  
+			// console.warn("dragend:BYPASS", event)  
 			return
 		}
 				
@@ -267,12 +267,12 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 
 		if (isDrawerOpen)
 		{
-			console.error(x, panelWidth/2, "dragend:SHOW", event)
+			// console.error(x, panelWidth/2, "dragend:SHOW", event)
 			controls.classList.toggle(activeClassName, true)
 			controls.setAttribute("style", `--x:${999};`)
 		}else{
 
-			console.error(x, panelWidth/2, "dragend:HIDE", event)
+			// console.error(x, panelWidth/2, "dragend:HIDE", event)
 			controls.classList.toggle(activeClassName, false)
 			controls.setAttribute("style", `--x:${0};`)
 		}
@@ -287,10 +287,10 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		// const isInstrumentButton = 
 		if (nodeType === "DIV" || nodeType === "BUTTON")
 		{
-			console.log("action click", nodeType)
+			// console.log("action click", nodeType)
 			
 		}else{
-			console.log("ignored click", nodeType)
+			// console.log("ignored click", nodeType)
 			return
 		}
 		
@@ -299,7 +299,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 			event.preventDefault()
 		}
 
-		console.log("controls:mousedown", event)
+		// console.log("controls:mousedown", event)
 		
 		// see if it has been dropped near?
 		document.addEventListener("mousemove", onDragControls)
@@ -312,7 +312,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		{
 			event.preventDefault()
 		}
-		console.log("dragstart", event)
+		// console.log("dragstart", event)
 		controls.classList.toggle(activeClassName, false)
 			
 		// see if it has been dropped near?
@@ -350,7 +350,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		
 		bypass = true
 
-		console.error("drawerToggle:down showing", isDrawerOpen)
+		// console.error("drawerToggle:down showing", isDrawerOpen)
 
 		document.addEventListener("mouseleave", onDragCompleteOrCancelled)
 		document.addEventListener("mouseup", onDragCompleteOrCancelled)
