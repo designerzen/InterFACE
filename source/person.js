@@ -302,6 +302,9 @@ export default class Person{
 	isLeftEyeOpen = true
 	isRightEyeOpen = true
 
+	// 
+	isUserActive = true
+
 	// if we are repeating our bars...
 	isLooping = false
 	// if we are watching the face perform without interaction
@@ -986,15 +989,19 @@ export default class Person{
 	}
 
 	moveButton(x,y,width,height){
-		// TODO: Profile which is faster...
-		// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
-		// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
-		// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
-		// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-	
-		this.button.setAttribute( "style", `--${this.name}-x:${x};--${this.name}-y:${y};--${this.name}-w:${width};--${this.name}-h:${height};` );
-		// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`		
-	}
+		if (this.isUserActive)
+		{
+			// TODO: Profile which is faster...
+			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
+			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
+			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
+			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
+			
+
+			
+			this.button.setAttribute( "style", `--${this.name}-x:${x};--${this.name}-y:${y};--${this.name}-w:${width};--${this.name}-h:${height};` );
+			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`		
+	}	}
 
 	/**
 	 * Draw some text onto the screen - used to show text above users and to

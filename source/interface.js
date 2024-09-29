@@ -188,7 +188,6 @@ export const createInterface = (
 	const buttonSpeakToggle = doc.getElementById("button-speak")
 	const buttonMetronomeToggle = doc.getElementById("button-metronome")
 	
-	
 	let canvasElement = doc.getElementById('photosynth-canvas')
 
 	// where we extract the face data from
@@ -2742,11 +2741,19 @@ export const createInterface = (
 			setPlayerOption("drawEyes", flag )
 		}, stateMachine.get( 'eyes') )
 
-	
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
 			stateMachine.toggle( 'text' )
 		} )
+
+		toggles.automator = setToggle( "button-automate", status =>{
+			stateMachine.toggle( 'automationMode' ) 
+		})
+	
+		toggles.automator = setToggle( "button-toggle-advanced", status =>{
+			stateMachine.toggle( 'advancedMode' ) 
+		})
+	
 
 		// TODO : Set some up with double functions if held
 		// Recording bars by holding...
@@ -2781,6 +2788,8 @@ export const createInterface = (
 
 		// Button video loads random instruments for all players at the same time
 		buttons.video = setButton( "button-video", status => loadRandomInstrument() )
+	
+		// buttons.advancedMode = setButton( "button-advanced", status => stateMachine.toggle( 'advancedMode' ) )
 		
 		
 		// change behviours for certain buttons to allow for holding
@@ -3294,6 +3303,7 @@ export const createInterface = (
 						body.classList.toggle("user-inactive", false)
 					}
 					isUserActive = true
+					people.forEach( player => player.isUserActive = true)
 				}, 
 				function onInactive(){
 					if ( stateMachine.get("autoHide"))
@@ -3302,6 +3312,7 @@ export const createInterface = (
 						body.classList.toggle("user-inactive", true)
 					}
 					isUserActive = false
+					people.forEach( player => player.isUserActive = false)
 				}
 				// , timeout
 			)
