@@ -96,7 +96,7 @@
 
 	// hide text that is also a tooltip
 	p[aria-label] {
-		grid-area: summary;
+		
 		// position: absolute;
 		// color:transparent;
 		// text-shadow: none;
@@ -105,6 +105,10 @@
 		// a{
 		// 	color:transparent;
 		// }
+	}
+
+	#summary {
+		grid-area: summary;
 	}
 
 	p.info-description {
@@ -119,6 +123,7 @@
 		margin-top: var(--pad); //auto;
 	}
 
+	// layouts
 	grid-template-areas: 
 		"heading"
 		"poster"
@@ -141,7 +146,7 @@
 			"requirements requirements"
 		;
 
-		grid-template-columns: minmax(50%, 33vh) 1fr;
+		grid-template-columns: minmax(50%, 33vh) minmax(0, 1fr);
 		grid-gap: 0 var(--pad);
 
 		h1 {
@@ -178,14 +183,14 @@
 		grid-template-areas:
 			"poster heading heading"
 			"poster tagline tagline"
-			"poster summary requirements"
+			"poster summary summary"
 			"poster menu menu"
 			"poster description description"
 			"poster warning warning"
 			"requirements requirements requirements"
 		;
 
-		grid-template-columns: 2fr 1fr minmax(44px, 1fr);
+		grid-template-columns: 2fr minmax(0, 1fr) minmax(44px, 1fr);
 
 		// grid-template-columns: minmax(50%, 33vh) 1fr;
 	}
@@ -236,7 +241,6 @@
 	border-radius: var(--curve, var(--pad));
 	overflow: hidden;
 	overflow: clip;
-
 
 	tbody{
 		background-color: var(--shade-cream);

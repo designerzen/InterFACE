@@ -14,29 +14,26 @@ block header
 	a#hero(href="#app-frame") Jump straight to the app
 		include /assets/diagrams/hero.svg 
 
+	#summary
+		p(aria-label="Summary")
+			| It's hard work learning how to play a musical instrument...<br>
+			| <em>So, how about letting the musical instrument play you instead?.</em><br>
+			//- details
+				summary Requirements
+				ul(role="list") 
+					li A face
+					li Web camera / phone camera 
+					li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
+					li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
+					li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
+
+		//- In Javascript we show this if the user already has this installed
+		p(aria-label="Summary" hidden).returning-client.
+			Welcome back old friend! It is so nice to see your face again! Continuing session.
 	
-
-	p(aria-label="Summary").
-		It's hard work learning how to play a musical instrument...<br>
-		<em>So, how about letting the musical instrument play you instead?.</em><br>
-
-	//- details
-		summary Requirements
-		ul(role="list") 
-			li A face
-			li Web camera / phone camera 
-			li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
-			li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
-			li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
-
-	//- In Javascript we show this if the user already has this installed
-	p(aria-label="Summary" hidden).returning-client.
-		Welcome back old friend! It is so nice to see your face again! Continuing session.
+		p The <strong>original</strong> face-controlled musical instrument! 
+			a.link-to-requirements(href="#requirements-test") Show requirements.
 	
-	p
-		| The <strong>original</strong> face-controlled musical instrument! 
-		a.link-to-requirements(href="#requirements-test") Show requirements.
-
 	p.info-description.
 		By granting your webcamera access, every movement of your face and mouth control all the sound aspects rquired to create music. 
 		Pressing the screen or holding your eyes closed will change instruments.<br>

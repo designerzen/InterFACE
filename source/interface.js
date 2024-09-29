@@ -1581,7 +1581,7 @@ export const createInterface = (
 		try{
 
 			investigation = await findBestCamera(store, video, status => {
-				console.error("Camera status", status)
+				// console.info("Camera status", status)
 				onProgress && onProgress(status)
 			})
 
@@ -1607,7 +1607,7 @@ export const createInterface = (
 					// save the name of the camera locally
 					store.setItem('camera', {deviceId:selected.value})
 					//console.log( selected.value , "Camera selected",selected, camera)
-					setToast( `Camera ${selected.label} changed`, 0 )
+					setFeedback( `Camera ${selected.label} changed`, 0 )
 				}else{
 					// no camera?
 					console.warn( selected.value , "Camera selected but could not load",selected, camera)
@@ -1616,7 +1616,7 @@ export const createInterface = (
 
 			}catch(error){
 				console.error("Camera:Error > ",{selected,error})
-				setToast( `Camera ${selected.label} could not be accessed`, 0 )
+				setFeedback( `Camera ${selected.label} could not be accessed`, 0 )
 			}
 			 
 			isCameraLoading = false
@@ -1636,7 +1636,7 @@ export const createInterface = (
 			const videoCameraDevices = await fetchVideoCameras()
 			updateCameraSelector( videoCameraDevices )
 			console.info("New Camera Detected", {videoCameraDevices, event })
-			setToast( `New cameras detected!`, 0 )
+			setFeedback( `New cameras detected!`, 0 )
 		}
 		
 		// check to see if there are multiple cameras and we want a selector
@@ -1842,7 +1842,7 @@ export const createInterface = (
 					// TODO:
 					// prediction, forceRefresh=false
 					const colours = person.draw( prediction, false, hasBeatJustPlayed)
-					
+				
 					display.drawPerson( person, hasBeatJustPlayed, colours )
 
 					if (stateMachine.get("text"))
