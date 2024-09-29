@@ -597,6 +597,7 @@ p strong{
 		#face-buttons{
 			position: absolute;
 			height: 100%;
+			max-width: 100%;
 			width:calc(var(--width) / var(--height)  * 100vh );
 			left:50%;
 			transform: translateX(-50%);
