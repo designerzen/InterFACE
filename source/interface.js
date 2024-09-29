@@ -2941,7 +2941,7 @@ export const createInterface = (
 		try{
 			// Attempt to Lazy load
 			// Load in our instruction tool kit
-			const instructionTools = await import('./models/instructions')
+			const instructionTools = await import('./models/instructions.js')
 
 			// save to local space
 			getInstruction = instructionTools.getInstruction
@@ -3229,6 +3229,7 @@ export const createInterface = (
 			wait()
 		}) ) 
 
+
 		
 		// now we can update some of the options in the ML model
 		// as the models have loaded already at this point...
@@ -3242,6 +3243,9 @@ export const createInterface = (
 		
 		// reset the progress meter for loading the second half
 		loadPercent = 0
+
+		// immediatel update the UI
+		loadProgressMediator( 0.5, stateMachine.get('players') + " players selected!", false)
 
 		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
