@@ -149,7 +149,7 @@ export const updateTooltipPositions = () => {
 	// 	const position = tooltipPositions.get( tooltipElement )
 	// 	position && setToolTipPosition(position)
 	// }
-	console.log("getPositionForTooltip", tooltips)	
+	// console.log("getPositionForTooltip", tooltips)	
 }
 
 const onWindowResize = event => {
@@ -238,10 +238,10 @@ export const addTooltip = element => {
 		const position = tooltipPositions.get( element )
 		if (position)
 		{
-			console.info("Setting tooltip", {position, toolTip} ) 
+			// console.info("Setting tooltip", {position, toolTip} ) 
 			setToolTipPosition(position)
 		}else{
-			console.info("Setting tooltip???", {event} ) 	
+			// console.info("Setting tooltip???", {event} ) 	
 		}
 
 		// Eventually this will work!
