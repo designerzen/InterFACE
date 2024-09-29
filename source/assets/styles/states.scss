@@ -136,9 +136,12 @@
 	// animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
 }
 
+#feedback{
+	display: none;
+}
 
 .flag-text #feedback{
-	display: none;
+	display: block;
 }
 
 // Options set by clicking buttons set these flags as classes
