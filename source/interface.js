@@ -261,6 +261,8 @@ export const createInterface = (
 	const stateMachine = createStateFromHost( main )
 	// const stateMachine = State.getInstance()
 
+	const referer = stateMachine.get("referer")
+	
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( (key,value) => {
@@ -274,10 +276,10 @@ export const createInterface = (
 			shareCodeElement.innerText = ""
 
 			const qrcode = createQRCode( shareCodeElement.appendChild( hole ) , qrOptions) 
-			console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
+			// console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
 		}
 
-		console.info("State Changed", { entries:stateMachine.entries } )
+		// console.info("State Changed", { entries:stateMachine.entries } )
 	})
 		
 	//state.setDefaults(defaultOptions)
@@ -464,7 +466,7 @@ export const createInterface = (
 		const isEnabled = stateMachine.toggle( 'backingTrack', buttonPercussion )
 		// toggle UI also...
 		// setElementCheckState(buttonPercussion, isEnabled )
-		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track" )	
+		setToast( isEnabled ? "Backing track starting" : "Ending Backing Track" )	
 	}
 
 	/**
@@ -475,7 +477,7 @@ export const createInterface = (
 	const setMasterVolume = value => {
 		const volume = setVolume(value)
 		store.setItem('audio', { volume })
-		setFeedback(`Volume ${Math.ceil(volume * 100)}%`,0)
+		setToast(`Volume ${Math.ceil(volume * 100)}%`,0)
 		return volume
 	}
 
@@ -491,7 +493,7 @@ export const createInterface = (
 		clock.BPM = bpm
 		// stateMachine.set( 'bpm',  clock.BPM )
 		stateMachine.set( 'bpm',  clock.BPM )
-		setFeedback( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
+		setToast( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
 		return clock.BPM
 	}
 
@@ -503,7 +505,7 @@ export const createInterface = (
 	 */
 	const loadInstrumentPreset = async (method, callback) => people.map( async (person) => { 
 		const instrument = await person[method](callback)
-		setFeedback(`${person.name} has ${person.instrumentTitle} loaded`)
+		setToast(`${person.name} has ${person.instrumentTitle} loaded`)
 		//console.log(`${person.name} has ${instrument} loaded` )
 		return instrument
 	})
@@ -592,7 +594,7 @@ export const createInterface = (
 			// save it for next time
 			const cache = store.setItem(name, {instrument:detail.instrumentName })
 			//console.log("External event for ",{ person, detail , cache})
-			setFeedback( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
+			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
 		})
 
 
@@ -1606,7 +1608,7 @@ export const createInterface = (
 					// save the name of the camera locally
 					store.setItem('camera', {deviceId:selected.value})
 					//console.log( selected.value , "Camera selected",selected, camera)
-					setFeedback( `Camera ${selected.label} changed`, 0 )
+					setToast( `Camera ${selected.label} changed`, 0 )
 				}else{
 					// no camera?
 					console.warn( selected.value , "Camera selected but could not load",selected, camera)
@@ -1615,7 +1617,7 @@ export const createInterface = (
 
 			}catch(error){
 				console.error("Camera:Error > ",{selected,error})
-				setFeedback( `Camera ${selected.label} could not be accessed`, 0 )
+				setToast( `Camera ${selected.label} could not be accessed`, 0 )
 			}
 			 
 			isCameraLoading = false
@@ -1698,7 +1700,7 @@ export const createInterface = (
 		// control this class automatically
 		if (useAutomator && automator)
 		{
-			automator.tock(clock.timeElapsed, clock.barProgress )
+			automator.tock(clock.timeElapsed, clock )
 		}
 	
 		let tickerTape = ''
@@ -2312,7 +2314,7 @@ export const createInterface = (
 					// setFeedback("MIDI available<br>And device(s) found", 0)
 				}else{
 					main.classList.add('midi','no-instrument')
-					setFeedback("MIDI available<br>Connect a MIDI instrument <strong>and click the button</strong>", 0)
+					setToast("MIDI available<br>Connect a MIDI instrument <strong>and click the button</strong>", 0)
 				}
 				
 			}catch(error){
@@ -2321,7 +2323,7 @@ export const createInterface = (
 				console.log("no MIDI!", error)
 				main.classList.add('no-midi')
 				main.classList.add('midi-unavailable')
-				setFeedback("MIDI unavailable, or no instrument connected<br>"+error, 0)
+				setToast("MIDI unavailable, or no instrument connected<br>"+error, 0)
 			}
 			progressCallback(loadIndex++/loadTotal, "MIDI Located")
 
@@ -2329,7 +2331,7 @@ export const createInterface = (
 
 			progressCallback(loadIndex++/loadTotal)
 			main.classList.add('midi-unavailable')
-			setFeedback("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
+			setToast("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
 		}
 	
 
@@ -2417,7 +2419,7 @@ export const createInterface = (
 				// control this class automatically
 				if (useAutomator && automator)
 				{
-					automator.tick(elapsed, clock.barProgress )
+					automator.tick(elapsed, clock )
 				}
 				
 				// lag
@@ -2950,11 +2952,45 @@ export const createInterface = (
 		try{
 			// Attempt to Lazy load
 			// Load in our instruction tool kit
-			const instructionTools = await import('./models/instructions.js')
-
-			// save to local space
+			let instructionTools = await import('./models/instructions.js')
+			
+// save to local space
+// if automated, we show different instructions!
+			getInstruction = instructionTools.getInstructionForAutomation
+			
 			getInstruction = instructionTools.getInstruction
 			getHelp = instructionTools.getHelp
+
+			
+			switch (referer)
+			{
+				case "ieee":
+					const IEEESpecificInstructions = [
+						`Hello IEEE!`,
+						``,
+						`1st IEEE International Workshop on the Musical Metaverse`,
+						`and the 5th International Symposium`,
+						`on the Internet of Sounds (IS2 2024)`
+					]
+					instructionTools.injectHelp(0, ...IEEESpecificInstructions )
+					instructionTools.injectInstructions(0, ...IEEESpecificInstructions)
+					instructionTools.injectInstructionsForAutomation(0, ...IEEESpecificInstructions)
+
+					break
+				case "embed":
+					break
+				default:
+					instructionTools.injectHelp(0, [
+						"BOO!"
+					])
+					instructionTools.injectHelp(0, "BOO!" )
+					instructionTools.injectInstructions(0, "BOO!")
+					instructionTools.injectInstructionsForAutomation(0, "Robot in disguise")
+
+					break
+			}
+
+
 			progressCallback(loadIndex++/loadTotal, "Instructions Found")
 		
 		}catch(error){

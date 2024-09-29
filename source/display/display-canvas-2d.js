@@ -134,7 +134,8 @@ const FILTER_LIBRARY = [
 		name:"luminosity",
 		description:"Preserves the hue and chroma of the bottom layer, while adopting the luma of the top layer."
 	},
-].reverse()
+]
+//.reverse()
 
 /**
  * Canvas based front end engine for Tensor flow @media pipe
