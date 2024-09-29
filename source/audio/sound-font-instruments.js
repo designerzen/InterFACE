@@ -133,7 +133,7 @@ export const getRandomPresetIndex = (family) =>
 {
 	const familyIndex = GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID[family]
 	const allInstrumentsInFamily = GENERAL_MIDI_FAMILIES.get(family)
-	console.log("getRandomPresetIndex",{family, familyIndex, allInstrumentsInFamily})
+	// console.log("getRandomPresetIndex",{family, familyIndex, allInstrumentsInFamily})
 	return family ?
 		familyIndex + Math.floor( Math.random() * allInstrumentsInFamily.length ) :
 		-1
@@ -345,7 +345,7 @@ export const decodeAudioDataIntoBuffers = async (buffersData, asBuffer=false, on
 	const loading = Object.keys(buffersData).map(async (key, index) => {
 		const promised = await decodeAudioDataIntoBuffer(buffersData[key], asBuffer )
 		buffers[key] = promised
-		console.error( key, buffersData[key], { asBuffer, promised}  )
+		// console.error( key, buffersData[key], { asBuffer, promised}  )
 		onProgress && onProgress( index / total )
 		return promised
 	})

@@ -670,7 +670,9 @@ export const createInterface = (
 			// the above command should initalise a default sample player rendering the following line obsolete
 			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
 			// const presetData = person.getPresets()[0]
-			await person.loadPreset( preset )
+			
+			// now assign the instrument to the person!
+			person.instrument = await person.loadPreset( preset )
 
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
@@ -859,11 +861,11 @@ export const createInterface = (
 			switch(buttonName)
 			{
 				case "disconnected":
-					setFeedback("GamePAD Unplugged")
+					setToast("GamePAD Unplugged")
 					break
 
 				case "connected":
-					setFeedback(value)
+					setToast(value)
 					break
 
 				// open sidebar
@@ -960,7 +962,7 @@ export const createInterface = (
 				case 'CapsLock':
 					const isDebug = stateMachine.toggle( "debug" )
 					people.forEach( person => person.debug = stateMachine.get("debug") )
-					setFeedback(`DEBUG : ${stateMachine.get("debug")}`)
+					setToast(`DEBUG : ${stateMachine.get("debug")}`)
 					speak( isDebug ? "secret mode unlocked" : "disabling developer mode", true)
 					break
 
@@ -999,13 +1001,13 @@ export const createInterface = (
 
 				case 'ArrowUp':
 					clock.totalBars++
-					setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`)
+					setToast(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`)
 					break
 
 				// change amount of bars
 				case 'ArrowDown':
 					clock.totalBars--
-					setFeedback( `Bars ${clock.totalBars} / BPM : ${clock.BPM}` )
+					setToast( `Bars ${clock.totalBars} / BPM : ${clock.BPM}` )
 					break
 
 				case ',':
@@ -1053,7 +1055,7 @@ export const createInterface = (
 				// Change impulse filter in the reverb
 				case 'i':
 					const reverb = await setReverb()
-					setFeedback( `Reverb : '${reverb}' loaded` )
+					setToast( `Reverb : '${reverb}' loaded` )
 					break
 
 				case 'j':
@@ -1637,7 +1639,7 @@ export const createInterface = (
 			const videoCameraDevices = await fetchVideoCameras()
 			updateCameraSelector( videoCameraDevices )
 			console.info("New Camera Detected", {videoCameraDevices, event })
-			setFeedback( `New cameras detected!`, 0 )
+			setToast( `New cameras detected!`, 0 )
 		}
 		
 		// check to see if there are multiple cameras and we want a selector
@@ -1905,7 +1907,7 @@ export const createInterface = (
 			const milliseconds = (seconds % 1) * 1000
 			//const recordString = (minutes>>0) + ':' + (seconds>>0)
 			const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
-			setFeedback(recordString, false)
+			setToast(recordString, false)
 
 		}else{
 			
@@ -1923,6 +1925,7 @@ export const createInterface = (
 
 				// Faces found so show the next set of instructions
 				setFeedback( getInstruction( Math.floor( counter * 0.01 ) ))
+				// console.info("instructions", Math.floor( counter * 0.01 ), getInstruction( Math.floor( counter * 0.01 ) ))
 				// setFeedback(`Look at me and open your mouth`)
 			}
 		}
@@ -2932,11 +2935,7 @@ export const createInterface = (
 
 		progressCallback(loadIndex++/loadTotal, "Connecting wires")
 
-		// this takes any existing state from the url and updates our front end
-		// so that any previously saved settings show as if the user is continuing
-		// their project from before - same buttons selected etc
-		stateMachine.refresh()
-
+		
 		// now set up the front end based on this state
 		setupInterfaceUI( settings, progressCallback )
 
@@ -2946,6 +2945,12 @@ export const createInterface = (
 			stateMachine.set("theme", newTheme )
 		} )
 
+		// this takes any existing state from the url and updates our front end
+		// so that any previously saved settings show as if the user is continuing
+		// their project from before - same buttons selected etc
+		stateMachine.refresh()
+
+
 		// upodate the load progress
 		progressCallback(loadIndex++/loadTotal, "Assembled!")
 		
@@ -2953,47 +2958,52 @@ export const createInterface = (
 			// Attempt to Lazy load
 			// Load in our instruction tool kit
 			let instructionTools = await import('./models/instructions.js')
+		
 			
 // save to local space
 // if automated, we show different instructions!
-			getInstruction = instructionTools.getInstructionForAutomation
+			// getInstruction = instructionTools.getInstructionForAutomation
 			
 			getInstruction = instructionTools.getInstruction
 			getHelp = instructionTools.getHelp
 
-			
+		
 			switch (referer)
 			{
 				case "ieee":
 					const IEEESpecificInstructions = [
 						`Hello IEEE!`,
-						``,
-						`1st IEEE International Workshop on the Musical Metaverse`,
-						`and the 5th International Symposium`,
-						`on the Internet of Sounds (IS2 2024)`
+						`Welcome to the`,
+						`1st IEEE International Workshop on the Musical Metaverse =D`,
+						`and the 5th International Symposium...`,
+						`on the Internet of Sounds (IS2 2024)`,
+						`and me, the PhotoSYNTH...`,
+						`A SMILE POWERED SYNTHESIZER...`,
+						`and psychedelic pop video machine!`,
+						`Change instruments and video effects by posing`,
+						`like your favourite emoji`
 					]
+
 					instructionTools.injectHelp(0, ...IEEESpecificInstructions )
 					instructionTools.injectInstructions(0, ...IEEESpecificInstructions)
-					instructionTools.injectInstructionsForAutomation(0, ...IEEESpecificInstructions)
-
+					instructionTools.injectInstructionsForAutomation(0, ...IEEESpecificInstructions)		
 					break
-				case "embed":
-					break
+			
 				default:
-					instructionTools.injectHelp(0, [
-						"BOO!"
-					])
-					instructionTools.injectHelp(0, "BOO!" )
-					instructionTools.injectInstructions(0, "BOO!")
-					instructionTools.injectInstructionsForAutomation(0, "Robot in disguise")
+					// instructionTools.injectHelp(0, [
+						
+					// ])
+					// instructionTools.injectHelp(0, "BOO!" )
+					// instructionTools.injectInstructions(0, "BOO!")
+					// instructionTools.injectInstructionsForAutomation(0, "Robot in disguise")
 
 					break
 			}
 
-
 			progressCallback(loadIndex++/loadTotal, "Instructions Found")
 		
 		}catch(error){
+			
 			// backup plan for failed JS loads
 			getInstruction = getHelp = i => ''
 			progressCallback(loadIndex++/loadTotal, "Instructions failed to load")

@@ -406,10 +406,10 @@ export const DEFAULT_PERSON_OPTIONS = {
 	pitchSensitivity:1,
 
 	// size of the mouth to signal activity
-	mouthCutOff:0.1,
+	mouthCutOff:0.06,
 
 	// size of the mouth to signal silence
-	mouthSilence:0.05,
+	mouthSilence:0.03,
 
 	// volume smooth rate = smaller means faster fades?
 	volumeRate:0.7,
@@ -434,7 +434,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// IN means that it starts off slowly (prefered)
 	// ease:easeInSine // easeInSine // linear
 	// ease:easeInQuad // easeInSine // linear
-	ease:easeOutSine // easeInSine // linear
+	// ease:easeOutSine // easeInSine // linear
 }
 
 export const DEFAULT_CHILD_OPTIONS = {

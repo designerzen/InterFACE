@@ -1234,11 +1234,10 @@ export default class Person{
 		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness ) 
 				
 		// volume is an log of this
-		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
-		const logAmp = easeInSine(amp)
+		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) //- 0.1
 		
 		// you want the scale to be from 0-1 but from 03-1
-		let newVolume = logAmp
+		let newVolume = amp
 		let note = -1
 		
 		// cache existing 
@@ -1299,11 +1298,11 @@ export default class Person{
 			}
 			
 			// curve
-			newVolume = options.ease( newVolume )
+			// newVolume = options.ease( newVolume )
 			// smooth (removes some clicks)
-			newVolume = Math.round( newVolume * this.precision ) / this.precision 
+			// newVolume = Math.round( newVolume * this.precision ) / this.precision 
 			// rescale for 0.3->1
-			newVolume = this.mouthScale( newVolume )
+			// newVolume = this.mouthScale( newVolume )
 			// always prevent gain going over 1
 			// increase in volume?
 			// newVolume *= 0.33
@@ -1483,12 +1482,12 @@ export default class Person{
 	 * @param {Function} progressCallback - method to invoke on loading progress
 	 * @returns instrument
 	 */
-	async loadPresetByMethod(method="loadRandomInstrument",progressCallback=null){
+	async loadPresetByMethod(method="loadRandomPreset",progressCallback=null){
 		
 		// NB. IMMEDIATELY set this to prevent multiple calls
 		this.instrumentLoadedAt = this.now
 
-		if (method==="loadRandomInstrument")
+		if (method==="loadRandomPreset")
 		{
 			// const presets = await this.activeInstrument.getPresets()
 			switch(this.playerNumber)
@@ -1602,7 +1601,7 @@ export default class Person{
 		const instrumentPack = this.options.instrumentPack
 		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName + '>' + instrumentPack + +" via sampleplayer")
 		
-		this.instrument = await this.samplePlayer.loadPreset(instrumentNameRefined, instrumentPack, progress => {
+		const instrument = await this.samplePlayer.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentNameRefined })
 		} )
@@ -1620,7 +1619,8 @@ export default class Person{
 		
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentNameRefined })
-		return presetName
+		
+		return instrument
 	}
 
 	/**
