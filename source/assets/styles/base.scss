@@ -138,20 +138,21 @@ abbr{
 		"details details"
 	;
 
-	summary{
+	> summary{
 		cursor:pointer;
 		user-select:none;
 		pointer-events: auto;
 		display: inline-flex;
 		box-sizing:border-box;
 		grid-area: summary;
+		list-style: none;
 		// for UX we need to stretch to fill the box		
 
 		&::marker {
-			color: var(--shade-brand);
 			display:none;
-			opacity:0;
-			grid-area: marker;
+		}
+		&::-webkit-details-marker {
+			display: none;
 		}
 	}	
 }
