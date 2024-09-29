@@ -20,6 +20,56 @@ export const updateCapabalitiesTable = async (capabilities) => {
 		
 		let fatal = false
 	
+		// BROWSER
+		const tableBrowser = document.querySelector(".capability-browser")
+		const browserFeedback = tableBrowser.querySelector("td."+RESULT)
+			
+		// check browser
+		const userAgent = navigator.userAgent
+		let browser = "Unknown"
+		let showUpgrade = false
+		if (userAgent.includes('Firefox/')) {
+			browser = "Firefox"
+			showUpgrade = true
+		} else if (userAgent.includes('Edg/')) {
+			browser = "Edge"
+		} else if (userAgent.includes('Chrome/')) {
+			browser = "Chrome"
+		} else if (userAgent.includes('Safari/')) {
+			browser = "Safari"
+			showUpgrade = true
+		}
+
+		if (tableBrowser){
+			const browsserAvailability = tableBrowser.querySelector("td."+RESULT )
+			const browsserNameElement = tableBrowser.querySelector(".browser-name" )
+			browsserNameElement.textContent = `(${browser})`
+			browsserAvailability.classList.remove(NOT_AVAILABLE)
+			browsserAvailability.classList.toggle(AVAILABLE, true)
+			browsserAvailability.classList.remove(CHECKING)
+			switch (browser)
+			{
+				case "Firefox":
+					browsserAvailability.textContent = "Slower Graphics"
+					break
+				case "Safari":
+					browsserAvailability.textContent = "No MIDI supported"
+					break
+				default:
+					browsserAvailability.textContent = `Available`
+			}
+			if ( showUpgrade )
+			{
+				const alternateBrowsers = document.getElementById("alternate-browsers")
+				if (!alternateBrowsers)
+				{
+					throw Error("No alternate browser list found")
+				}
+				alternateBrowsers.hidden = false
+				alternateBrowsers.open = true
+			}
+		}
+
 		// CAMERA --------------------------------------------------------------------------
 		
 		// TODO: show holographic stuff too
@@ -64,12 +114,13 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	
 		// Web MIDI --------------------------------------------------------------------------
 		const tableMIDI = document.querySelector(".capability-midi")
-		if ( permissions.get("midi") === PERMISSION_UNAVAILABLE ){
+		const MIDIAvailability = tableMIDI.querySelector( "td."+RESULT )
+		if ( browser !== "Safari" && permissions.get("midi") === PERMISSION_UNAVAILABLE ){
 			
 			// FATAL ERROR! No camera!
 			document.body.classList.toggle("midi-unavailable", true)
 			// FIXME: instructions for how to enable permission
-			cameraAvailability.textContent = `MIDI Permission was not granted`
+			MIDIAvailability.textContent = `MIDI Permission was not granted`
 			
 		} else if (
 			tableMIDI && 
@@ -77,12 +128,16 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			(  permissions.get("midi") === PERMISSION_GRANTED || permissions.get("midi") === PERMISSION_PROMPT )
 		)
 		{
-			const MIDIAvailability = tableMIDI.querySelector( "td."+RESULT )
 			MIDIAvailability.textContent = permissions.get("midi") === PERMISSION_PROMPT ? "Available, please grant permission when requested" : "Available"
 			MIDIAvailability.classList.remove(NOT_AVAILABLE)
 			MIDIAvailability.classList.remove(CHECKING)
 			MIDIAvailability.classList.add(AVAILABLE)
 			
+		}else if ( browser !== "Safari" ){
+			// NONE FATAL ERROR! No MIDI - just hide MIDI stuff!!
+			document.body.classList.toggle("midi-unavailable", true)
+			MIDIAvailability.textContent = "Unavailable in Safari"
+			MIDIAvailability.classList.remove(CHECKING)
 		}else{
 			// NONE FATAL ERROR! No MIDI - just hide MIDI stuff!!
 			document.body.classList.toggle("midi-unavailable", true)
@@ -122,55 +177,6 @@ export const updateCapabalitiesTable = async (capabilities) => {
 
 		// TODO: Microphone
 
-		// BROWSER
-		const tableBrowser = document.querySelector(".capability-browser")
-		const browserFeedback = tableBrowser.querySelector("td."+RESULT)
-			
-		// check browser
-		const userAgent = navigator.userAgent
-		let browser = "Unknown"
-		let showUpgrade = false
-		if (userAgent.includes('Firefox/')) {
-			browser = "Firefox"
-			showUpgrade = true
-		} else if (userAgent.includes('Edg/')) {
-			browser = "Edge"
-		} else if (userAgent.includes('Chrome/')) {
-			browser = "Chrome"
-		} else if (userAgent.includes('Safari/')) {
-			browser = "Safari"
-			showUpgrade = true
-		}
-
-		if (tableBrowser){
-			const browsserAvailability = tableBrowser.querySelector("td."+RESULT )
-			const browsserNameElement = tableBrowser.querySelector(".browser-name" )
-			browsserNameElement.textContent = `(${browser})`
-			browsserAvailability.classList.remove(NOT_AVAILABLE)
-			browsserAvailability.classList.toggle(AVAILABLE, true)
-			browsserAvailability.classList.remove(CHECKING)
-			switch (browser)
-			{
-				case "Firefox":
-					browsserAvailability.textContent = "Slower Graphics"
-					break
-				case "Safari":
-					browsserAvailability.textContent = "No MIDI support"
-					break
-				default:
-					browsserAvailability.textContent = `Available`
-			}
-			if ( showUpgrade )
-			{
-				const alternateBrowsers = document.getElementById("alternate-browsers")
-				if (!alternateBrowsers)
-				{
-					throw Error("No alternate browser list found")
-				}
-				alternateBrowsers.hidden = false
-				alternateBrowsers.open = true
-			}
-		}
 
 		// Speakers class="capability-speakers"
 		return fatal
