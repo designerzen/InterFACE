@@ -126,6 +126,7 @@ export const DEFAULT_OPTIONS = {
 	showSettings:false,
 	// overlaid screen keyboard
 	showPiano:false,
+	
 	// play a constant beat
 	metronome:false,
 	// play music at same time
@@ -172,6 +173,8 @@ export const DEFAULT_OPTIONS = {
 	stereoPan:true,
 
 	// FIXME:
+	midi:true,
+
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
 

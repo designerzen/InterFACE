@@ -30,9 +30,10 @@
 	// 	auto;
 
 	// the gap is just for fun
+	// minmax(250px, 33vh) - breaks SAFARI
 	grid-template-rows:
 		auto
-		minmax(250px, 33vh)
+		250px
 		auto
 		auto;
 
