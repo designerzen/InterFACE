@@ -604,8 +604,12 @@ p strong{
 			margin:0;
 			padding:0;
 			border:0;
+			pointer-events: none;
 			legend{
 				color:transparent;
+			}
+			button{
+				pointer-events: auto;
 			}
 		}
 				
