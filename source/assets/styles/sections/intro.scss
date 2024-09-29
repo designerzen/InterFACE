@@ -1,7 +1,10 @@
 // Top section that contains the header text and loader
 #intro {
+
 	// height is 100% - the margins
-	min-height: calc(100% - 2 * var(--pad));
+	// min-height: calc(100% - 2 * var(--pad));
+	min-height: calc(100vh - 2 * var(--pad));
+	min-height: calc(100dvh - 2 * var(--pad));
 
 	max-width: 1080px;
 
