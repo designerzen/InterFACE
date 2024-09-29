@@ -325,6 +325,15 @@
 		}
 	}
 
+	// We cannot determine ahead of time if the device is available
+	.unknown {
+		background-color: var(--shade-blue, red);
+		color: var(--shade-white, white);
+		&::before {
+			content: "?";
+		}
+	}
+
 	td.result{
 		text-align: center;
 	}
