@@ -5,9 +5,16 @@ menu#control-panel
 	div#transport(hidden)
 		include transport-panel.pug
 
+	fieldset#face-buttons
+		legend Change instrument Per User
+		//- Button is the face of the user
+		button(type="button", hidden).person#person-a Change instrument for the person on the left
+		button(type="button", hidden).person#person-b Change instrument for the person on the right 
+		button(type="button", hidden).person#person-c Change instrument for the person on the lower left 
+		button(type="button", hidden).person#person-d Change instrument for the person on the lower right 
+
+
 	//- PERSON A ------------------------------------------------------------------------------
-	//- Button is the face of the user
-	button(type="button", hidden).person#person-a Change instrument for the person on the left
 	
 	//- the toggle button & panel is hidden until activated by user interaction
 	div(hidden, aria-live="polite").instrument-panel.person-a-panel
@@ -17,22 +24,19 @@ menu#control-panel
 		menu.person-controls.person-a-controls
 			
 	//- PERSON B ------------------------------------------------------------------------------
-	button(type="button", hidden).person#person-b Change instrument for the person on the right 
 	
 	div(hidden, aria-live="polite").instrument-panel.person-b-panel
 		button(type="button" aria-label="Show the instrument control panel for top right user").person-b-toggle-controls.person-toggle-controls Show instrument panel for the person on the right 
 		menu.person-controls.person-b-controls
 			
 	//- PERSON C ------------------------------------------------------------------------------
-	button(type="button", hidden).person#person-c Change instrument for the person on the lower left 
-
+	
 	div(hidden, aria-live="polite").instrument-panel.person-c-panel
 		button(type="button" aria-label="Show the instrument control panel for lower left user").person-c-toggle-controls.person-toggle-controls Show instrument panel for the person on the lower left
 		menu.person-controls.person-c-controls
 			
 	//- PERSON D ------------------------------------------------------------------------------
-	button(type="button", hidden).person#person-d Change instrument for the person on the lower right 
-
+	
 	div(hidden, aria-live="polite").instrument-panel.person-d-panel
 		button(type="button" aria-label="Show the instrument control panel for lower right user").person-d-toggle-controls.person-toggle-controls Show instrument panel for the person on the lower right
 		menu.person-controls.person-d-controls
@@ -184,7 +188,10 @@ menu#control-panel
 			//- 		select(aria-label="Select a different camera")#select-camera
 		
 		label(hidden for="button-automate") Automate<span class="hide-text"> in supervised mode</span>
-			input#button-automate(type="checkbox" aria-label="Clear visuals & video")
+			input#button-automate(type="checkbox" aria-label="Automate the buttons and supervise the music")
+	
+		label(hidden for="button-toggle-advanced") Advanced Mode<span class="hide-text"> to use advanced features</span>
+			input#button-toggle-advanced(type="checkbox" aria-label="Automate the buttons and supervise the music")
 	
 		
 		label(for="button-clear") Clear<span class="hide-text"> Video</span>

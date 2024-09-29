@@ -61,6 +61,8 @@ button#button-quartet{
 // button that covers people
 button.person{
 
+	// FIXME: Dodge the legend
+	margin-top:var(--pad);
 	padding:0;
 	cursor:pointer;
 	position: absolute;	
@@ -75,10 +77,17 @@ button.person{
 
 	text-shadow:none;
 	color:transparent;
+
 	opacity: 0;
+
 	transition: var(--ease-s) ease-in opacity;
 	//, left 9ms linear, top 9ms linear;
 	anchor-name:--person;
+	display: flex;
+
+	&::before, &::after{
+		display: none;
+	}
 
 	&:hover, &:focus-visible{
 		background-color: transparent;
