@@ -1,4 +1,5 @@
 import {debounce} from '../utils/utils'
+const supportsPopover = HTMLElement.prototype.hasOwnProperty("popover")
 
 /**
  * updates the text on screen and hides it after a time out 
@@ -8,7 +9,7 @@ import {debounce} from '../utils/utils'
  * @param {Number} clearAfter clear word after x ms
  * @returns {Boolean} split if the user hit duet
  */
-export const bindTextElement = (element, rate=700, clearAfter=0, split=false) => {
+export const bindTextElement = (element, rate=700, clearAfter=0, split=false, popOver=true) => {
 	
 	let cachedMessage = null
 	let interval = -1
@@ -24,6 +25,10 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 		const after = clearAfter * rate
 		clearInterval = setTimeout(()=>{
 			element.innerHTML = ''
+			if (popOver && supportsPopover)
+			{
+				element.hidePopover()	
+			}
 		}, after)
 		return after
 	}
@@ -40,6 +45,7 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 		}
 
 		currentMessage = message
+		
 		// debounce and only change if var has
 		if (element.innerHTML === '' || cachedMessage != message)
 		{
@@ -57,6 +63,11 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
 				// change it after debounce timeout to prevent flooding
 				interval = db(message)				
 			}
+			if (popOver && supportsPopover)
+				{
+					element.showPopover()	
+				}
+					
 			// clear after wards unless intercepted...
 			if (clearAfter > 0)
 			{
@@ -72,7 +83,18 @@ export const bindTextElement = (element, rate=700, clearAfter=0, split=false) =>
  * @param {HTMLElement} controls DOM element to search within
  * @param {String} query query selector for finding the elements to bind to
  */
-export const setFeedback = bindTextElement( document.getElementById("feedback"), 20 )
+const feedbackElement = document.getElementById("feedback")
+const setFeedbackText = bindTextElement( feedbackElement, 20 )
+if (!supportsPopover)
+{
+	feedbackElement.removeAttribute("popover")
+}
+
+export const setFeedback = (text)=>{
+
+	// ensure it is visible and "popped"
+	setFeedbackText(text)
+} 
 
 /**
  * 
