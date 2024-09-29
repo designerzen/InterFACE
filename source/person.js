@@ -542,11 +542,10 @@ export default class Person{
 
 	/**
 	 * get the current time in milliseconds
+	 * this.audioContext this.audioContext.currentTime :
 	 */
 	get now(){
-		return this.audioContext ?
-				this.audioContext.currentTime :
-				now()
+		return now()
 	}
 
 	/**
@@ -587,11 +586,8 @@ export default class Person{
 	 * Users A and C go left, B and D go right
 	 */
 	get isLeftSidePanel(){
-		const lowerCaseName = this.name.toLowerCase()
-		const letter = lowerCaseName.charAt(lowerCaseName.length-1)
-		const isLeftSide = letter === 'a' || letter === 'c'
-		console.error( "isLeftSidePanel", lowerCaseName, letter, isLeftSide )
-		return isLeftSide
+		// 0 and 2 are left side
+		return this.playerNumber%2 === 0
 	}
 	
 	get currentPreset(){
@@ -1239,7 +1235,7 @@ export default class Person{
 				
 		// volume is an log of this
 		const amp = clamp(lipPercentage * FUDGE, 0, 1 ) //- 0.1
-		const logAmp = easeOutCubic(amp)
+		const logAmp = easeInSine(amp)
 		
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume = logAmp
@@ -1488,6 +1484,8 @@ export default class Person{
 	 * @returns instrument
 	 */
 	async loadPresetByMethod(method="loadRandomInstrument",progressCallback=null){
+		
+		// NB. IMMEDIATELY set this to prevent multiple calls
 		this.instrumentLoadedAt = this.now
 
 		if (method==="loadRandomInstrument")
@@ -1518,6 +1516,7 @@ export default class Person{
 		}
 
 		// preset loaded!
+
 		// console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.instrument })
 
 		// FIXME: If automatic demo mode enabled, this will auto hide...
@@ -1771,7 +1770,7 @@ export default class Person{
 		// create a sample player, oscillator add all other instruments
 		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ))
 	
-		console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
+		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
@@ -1849,7 +1848,7 @@ export default class Person{
 		this.inputCoordinates.y = event.clientY
 		
 		// start mouse pressure animation
-		drawMousePressure( 0, this.options.mouseHoldDuration )
+		// drawMousePressure( 0, this.options.mouseHoldDuration )
 	}
 
 	/**
@@ -1901,12 +1900,12 @@ export default class Person{
 		this.mouseDownAt = -1
 		this.mouseHeldAt = -1
 
-		drawMousePressure( 1, this.options.mouseHoldDuration )	
+		// drawMousePressure( 1, this.options.mouseHoldDuration )	
 	}
 
 	onButtonHeld(){
 		this.mouseHeldAt = this.now
-		drawMousePressure( 1, this.options.mouseHoldDuration )
+		// drawMousePressure( 1, this.options.mouseHoldDuration )
 		this.showForm()
 	}
 
@@ -2010,7 +2009,7 @@ export default class Person{
 	 * Hide this Person's control panel form
 	 */
 	hideForm(){
-		console.error( "sidebar hiding...", this.name, "closing side bar", this.name, this.instrumentPanel )
+		// console.error( "sidebar hiding...", this.name, "closing side bar", this.name, this.instrumentPanel )
 		this.isFormShowing = hidePersonalControlPanel( this.name, this.instrumentPanel )
 	}
 
