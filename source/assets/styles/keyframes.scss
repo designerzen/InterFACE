@@ -1,4 +1,32 @@
 @use "sass:math";
+
+@keyframes EyesBlinking{
+	0%{
+		content:'o O';	
+	}
+	33%{
+		content:'o o';	
+	}
+	66%{
+		content:'O O';	
+	}
+	100%{
+		content:'O o';	
+	}
+}
+
+@keyframes EyesSleepy{
+	0%{
+		content:'o o';	
+	}
+	50%{
+		content:'_ _';	
+	}
+	100%{
+		content:'. .';	
+	}
+}
+
 @keyframes BGScroll {
 	0% { 
 		background-position:
@@ -187,6 +215,20 @@
 	}
 }
 
+@keyframes Rotate{
+	0%{
+		transform: rotate(0deg);
+	}
+	100%{
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes TextThrob{
+	50%{
+		opacity: 0.7;
+	}
+}
 @keyframes Throb{
 	50%{
 		transform: scale(1.1);
@@ -202,6 +244,17 @@
 	}
 	to{
 		transform: translate( var(--xb,0), var(--yb,0) );
+	}
+}
+
+@keyframes BackToTopReveal{
+	from{
+		opacity: 0;
+		transform: translateY( 0);
+	}
+	to{
+		opacity: 1;
+		transform: translateY( -100% );
 	}
 }
 
@@ -373,6 +426,14 @@
 	}
 }
 
+@keyframes Pulse {
+	from{
+		opacity:var(--opacity, 0.3);
+	}   
+	to {
+		opacity:1;
+    }
+}
 @keyframes ToCircle {
 
 	from{

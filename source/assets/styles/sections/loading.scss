@@ -57,11 +57,10 @@
 	
 	// this is the camera accept popup
 	#feedback{
-		text-align: center;
 		// dunno where best to overlay as will always cover something!
 		// but we want it pointing to the allow camera pop up dialog
 		top:calc( 1rem * var(--line-height) + var(--pad) );
-		left:var(--pad);
+		left:var(--loader-size-small, 150px) + var(--pad);
 		bottom:auto;
 		z-index: 909;
 		filter:invert(100%);

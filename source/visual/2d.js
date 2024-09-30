@@ -1,6 +1,6 @@
-import { clamp, TAU, HALF_PI , TWO_PI } from "../maths/maths"
+import { clamp, TAU, HALF_PI } from "../maths/maths"
 import { easeInQuad} from "../maths/easing"
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette"
 import {TRIANGULATION} from '../models/face-mesh-constants'
 
 let cycleCounter = 0
@@ -45,7 +45,7 @@ export const clearCanvas = (canvasContext,width, height) => {
 export const drawCircle = (cx,cy, radius=5, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
 	
 	canvasContext.beginPath()
-    canvasContext.arc(cx, cy, radius, 0, TWO_PI, true)
+    canvasContext.arc(cx, cy, radius, 0, TAU, true)
     canvasContext.fillStyle = fillColour
     canvasContext.fill()
      

@@ -1,14 +1,16 @@
 // Ok, here's a fun one...
 
+import { now } from "./timing/timing"
+
 // RECORD Vars just save it and it will record the time
 export class ParamaterRecorder{
 
-	constructor( audioContext, options={} ) {
+	constructor( options={} ) {
 
 		this.isRecording = false
-		this.context = audioContext
 		this.parameters
-		this.startTime
+		this.startTime = now()
+		this.reset()
 	}
 
 	get recording(){
@@ -19,23 +21,28 @@ export class ParamaterRecorder{
 	}
 
 	reset(){
-		this.parameters = {}
+		this.parameters = new Map()
 	}
 
-	save( values ){
-		let time = this.context.currentTime
+	add( values, time ){
+		time = time ?? now()
 		if (!this.isRecording)
 		{
 			this.startTime = time
 			this.isRecording = true
 		}
 		// save whatever you want innit
-		const elapsed = this.startTime - time
-		this.parameters[elapsed] = parameters
+		const elapsed = Math.floor(time - this.startTime)
+		this.parameters.set(elapsed, values)
 	}
 
 	getValuesAtTime(time){
 		return this.parameters[time]
 	}
 
+	export(){
+		const data = {}
+		this.parameters.forEach((value,key)=>data[key] = value )
+		return JSON.stringify( data )
+	}
 }

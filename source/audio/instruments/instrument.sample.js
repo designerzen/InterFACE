@@ -9,9 +9,15 @@ import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 16 // AKA one bar
 
+export const INSTRUMENT_TYPE_SAMPLE = "SamplePlayerInstrument"
+
 export default class SampleInstrument extends Instrument{
 
-	name = "SamplePlayerInstrument"
+	static get name(){
+		return INSTRUMENT_TYPE_SAMPLE
+	}
+
+	name = INSTRUMENT_TYPE_SAMPLE
 	title = "Sample Player"
 	type = "sample"
 	
@@ -29,6 +35,7 @@ export default class SampleInstrument extends Instrument{
 	instrumentLoading = true
 
 	// these are the file names and locations of each instrument
+	instrumentTitles = []
 	instrumentNames = []
 	instrumentFolders = []
 
@@ -47,6 +54,10 @@ export default class SampleInstrument extends Instrument{
 	// always specify the output node
 	get audioNode(){
 		return this.gainNode
+	}
+
+	get activePreset(){
+		return this.instrumentName
 	}
 
 	// allow this itself to load instruments from the system
@@ -99,8 +110,8 @@ export default class SampleInstrument extends Instrument{
 	/**
 	 * Like note on but using names!
 	 * 
-	 * @param {*} noteName 
-	 * @param {*} velocity 
+	 * @param {String} noteName 
+	 * @param {Number} velocity 
 	 * @returns 
 	 */
 	async noteOnByName(noteName, velocity=1 ){
@@ -136,7 +147,6 @@ export default class SampleInstrument extends Instrument{
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
-
 		await super.programChange( programNumber )
 		return await this.loadPreset( this.instrumentFolders[programNumber] )
 	}
@@ -146,7 +156,7 @@ export default class SampleInstrument extends Instrument{
 	 * @returns {Array<String>} of Instrument Names
 	 */
 	async getPresets(){
-		return this.instrumentNames
+		return this.instrumentTitles
 	}
 
 	
@@ -233,7 +243,7 @@ export default class SampleInstrument extends Instrument{
 
 		try{
 			// FIXME: Send the -mp3 version...
-			this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, instrumentPack, progressCallback )
+			this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, "./assets/audio/" + instrumentPack, progressCallback )
 		
 		}catch(error){
 
@@ -243,14 +253,14 @@ export default class SampleInstrument extends Instrument{
 				throw Error("You tried to load a soundfont with a descriptor uri! "+instrumentPack)
 			}	
 		}
+		// Fetch the GM name
+		this.title = this.instrumentTitles[index]
 		
-		this.instrumentIndex = index
+		this.instrumentIndex = index ?? 0
 		this.instrumentName = instrumentName
 		this.instrumentPack = instrumentPack
-
-		// Fetch the GM name
-		this.title = this.instrumentNames[index]
-
+		this.instrumentTitle = this.title
+		
 		//this.name = "SampleInstrument"
 		this.instrumentFamily = this.instrument.family
 

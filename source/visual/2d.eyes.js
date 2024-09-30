@@ -1,5 +1,6 @@
 import { clamp, TAU } from "../maths/maths"
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette"
+/**
 
 const DEFAULT_OPTIONS = {
 	// colourful part of the eye

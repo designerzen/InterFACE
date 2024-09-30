@@ -1,10 +1,36 @@
 // This is the Looking Glass Factgory Portrait Display SDK API
 // https://docs.lookingglassfactory.com/HoloPlayCore/holoplaycorejs/
 
-import * as HoloPlayCore from './node_modules/holoplay-core/dist/holoplaycore.module.js'
-  
-import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
+import { Client } from "holoplay-core"
+// import * as HoloPlayCore from './node_modules/holoplay-core/dist/holoplaycore.module.js'
+// import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
 
+let lookingGlassPortraitClient = null
+
+
+
+export const howManyHolographicDisplaysAreConnected = async () => { 
+	// immediately check to see if there is a display available...
+	if (lookingGlassPortraitClient)
+	{
+		return lookingGlassPortraitClient.devices.length
+	}
+	
+	lookingGlassPortraitClient = new Client((msg) => {
+		if (msg.devices.length < 1) 
+		{
+		  return 0
+		}
+		if (msg.devices.length > 1) 
+		{
+			 return msg.devices.length
+		}
+		return 1
+		// const calibratio = msg.devices[0].calibration
+	})
+}
+
+/*
 const config = LookingGlassConfig
 config.tileHeight = 512
 config.numViews = 45
@@ -146,5 +172,6 @@ export const observeLookingGlassButtons = () => {
 		break
 	}
 	})
-
 }
+
+*/

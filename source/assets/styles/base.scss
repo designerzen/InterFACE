@@ -1,148 +1,319 @@
-// Basic resets
-html,body,h1,h2,h3,h4,h5,h6,p{
+// Basic margin resets
+:where(
+	html,body,
+	h1,h2,h3,h4,h5,h6,p
+	menu,
+	ul, ol,
+	summary,
+	figure, picture
+){
 	margin:0;
 	padding:0;
-	overflow-wrap: break-word;
 }
 
-// Special thanks to 
-// https://nicolas-hoizey.com/articles/2015/02/18/viewport-height-is-taller-than-the-visible-part-of-the-document-in-some-mobile-browsers/
-// for fixing my 100vh not being 100% viewport height on mobile safari
-html{
+
+  
+:where(html){
 	
+	// work out most appropriate
+	--_col-accent:var(--shade-brand, var(--col-accent, var(--shade-red, blue ) ) );
+	
+	// absorb viewport height
 	height: 100%;
 	// allows 100vh to work on mobile safari (sometimes)
-	// height: -webkit-fill-available;
+	min-height: 100vh;
+	min-height: -webkit-fill-available;
+	min-height: 100dvh;
+
 	color:var(--shade-white);	
-	background-color:$col-dark;
-	accent-color: var(--shade-red, red );
+	background-color:var(--shade-dark);
+	caret-color: var(--_col-accent );
+	accent-color: var(--_col-accent );
+	scrollbar-color: var(--_col-accent) transparent;
+
+	// allows letters with decsenders to break through the underline
+	// https://css-tricks.com/almanac/properties/t/text-decoration-skip-ink/
+	// https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-skip-ink
+	text-decoration-skip-ink: auto;
+
 	overflow: auto;
+	// only allow vertical scrolling
 	overflow-x: hidden;
 	scroll-behavior: smooth;
+
+	// https://kilianvalkhof.com/2022/css-html/your-css-reset-needs-text-size-adjust-probably/
+	-moz-text-size-adjust: none;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
 }
 
-body{ 
+:where(body){ 
 	// prevent collapse
 	min-height: 100%;
 	// regular arrangement for vertical flow
 	display: flex;
 	flex-direction: column;
     flex-wrap: nowrap;
-
     align-content: stretch;
     justify-content: space-between;
+	
+	scroll-behavior: smooth;
 }
 
-main{
-	
+:where(main){	
 	display:flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	// min-width:100%;
-	
+	min-width:100%;
 	margin:auto;
+	
 	// height: 100%;
 	// min-height: 320px;
 	//max-height: 100%;
-
-	button{
-		//display: none;
-	}
 }
 
-menu{
+:where(menu){
 	list-style: none;
 	::marker {
 		display: none;
 	}
 }
 
-menu,
-ul,
-ol{
-	margin:0;
-	padding:0;
-	// list-style-position: inside;
-}
-
-ol{
+:where(ol, ul){ 
 	margin-top:var(--pad);
+	margin-bottom:var(--pad);
 }
 
-ol li{
-	
-}
-
-// List items
-:is(ol,ul)[role=list] li + li{
+// List item gaps
+:where(ol,ul)[role=list] li + li{
 	margin-top:calc( var(--pad) / 2 );
 }
 
-// main control panel for selecting help / about
-#nav-main{
-	
-}	
+// Type
+:where(
+	h1,h2,h3,h4,h5,h6
+){ 
+	overflow-wrap: break-word;
+	text-wrap:pretty;
+}
 
-img,
-svg{
+:where(
+	canvas,
+	video,
+	iframe,
+	picture,
+	figure,
+	img,
+	svg
+){
 	max-width:100%;
 	height:auto;
 	display: block;
 }
 
-details{
+video, 
+canvas.canvas-full-size{
+	width:100%;
+	visibility: hidden;
+}
+
+abbr{
+	text-decoration: wavy;
+	text-decoration-thickness: 1px;
+	text-decoration-color: var(--shade-white);
+	cursor: help;
+}
+
+
+// Details & Summary ----------------------------------------
+:where(details){
 	pointer-events: auto;
+	display: grid;
+	grid-template-areas: none
+		"marker summary"
+		"details details"
+	;
+
+	> summary{
+		cursor:pointer;
+		user-select:none;
+		pointer-events: auto;
+		display: inline-flex;
+		box-sizing:border-box;
+		grid-area: summary;
+		list-style: none;
+		// for UX we need to stretch to fill the box		
+
+		&::marker {
+			display:none;
+		}
+		&::-webkit-details-marker {
+			display: none;
+		}
+	}	
 }
 
-summary::marker {
-    color: var(--shade-blue);
-	display:none;
-	opacity:0;
-	margin-right: 0.5rem;
-}
-
-summary{
-	user-select:none;
-	cursor:pointer;
-	pointer-events: auto;
-}
-
-details[open] {
-	summary{
-		margin:0;
-	}
+:where(details[open]) {
 	summary::marker {
 		display:inline-block;
-		opacity:1
+		opacity:1;
 	}
 }
 
-figure{
-	margin: 0;
+// FIGURE ----------------------------------------------
+
+:where(figure){	
 	img{
 		width:100%;
 	}
 }
 
-figcaption{
+:where(figcaption){
 	text-align: center;
 }
 
-// we hide these by default until ready to preserve CPU
-video, canvas.canvas-full-size{
-	max-width:100%;
-	visibility: hidden;
+// DATE & TIME -----------------------------------------
+
+:where( time ){
+	font-weight: 900;
+}
+
+// 
+
+// Take SVG filters out of the flow
+svg[aria-hidden='true'] { 
+	position: fixed;
 }
 
 // Single taps are dispatched immediately on clickable elements
-a, area, button, input, label, select, summary, textarea, [tabindex] {
+:where(
+	a, area, button, input, label, select, summary,option, textarea, [tabindex]
+) {
 	-ms-touch-action: manipulation;
 	touch-action: manipulation;
+	font:inherit;
+	letter-spacing: inherit;
+	word-spacing: inherit;
 }
 
-[aria-busy="true"] {
-	cursor: progress;
+:where(label){
+	--padding:calc( 1 * var(--pad));
+	//outline: 1px groove $col-cream;
+	cursor: pointer;
+	transition:color var(--ease-s) linear, 
+				background-color 90ms linear;
+
+	padding:var(--padding);// var(--pad) 0 var(--pad);
+	position: relative;
+	user-select:none;
+	text-wrap:pretty;
+
+	&:hover, &:focus{
+		color:var(--col-fg, var(--shade-white) );
+		//background-color:var(--col-bg, #{$col-blue});
+		outline:none;
+	}
+}
+
+
+// Select gqadget with options ----------------------------------------------
+:where(
+	input[type=select],
+	select
+){
+	appearance: none;
+	// color:transparent;
+
+	text-align: center;
+	padding:var(--pad) ;
+	background-color: transparent;
+	background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+	background-repeat: no-repeat;
+	background-position-x: 100%;
+	background-position-y: 50%;
+
+	// selected
+	&:focus:active{
+		max-width:none;
+	}
+	
+	&::marker{
+		color:white;
+	}
+
+  	// Custom arrow
+	// &:not(.select-multiple)::after {
+	// 	content: "";
+	// 	justify-self: end;
+	// 	width: 0.8em;
+	// 	height: 0.5em;
+	// 	background-color: var(--select-arrow, var(--col-accent, black) );
+	// 	clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+  	// }
+
+	// hide arrow on Microsoft IE
+	&::-ms-expand {
+		display: none;
+	}
+
+	> * {
+		padding:var(--pad);
+		color:var(--shade-white);
+		background-color: var(--shade-dark);
+	}
+
+	optgroup{
+		appearance:none;
+		font-weight:900;
+		text-transform: uppercase;
+		margin:auto;
+	}
+
+	option{
+		text-transform:initial;
+		text-align: left;
+		color: var(--shade-white,white);
+		background: black !important;
+		
+		// border-radius: 2px;
+		transition: 95ms all ease-in;
+	
+		&:hover, &:focus{
+			color:var(--shade-cream);
+		}
+		&:checked {
+			background: linear-gradient(hsl(242, 61%, 76%), hsl(242, 61%, 71%));
+			// color: black !important;
+		}
+	}
+
+	// safari allows styling of options!
+	&:not(:disabled) option {
+		
+	}
+}
+
+// Marked text ----------------------------------------------
+:where(mark){
+	background-color: Highlight;
+	color: HighlightText;
+}
+
+:where(input){
+	text-align: center;
+}
+
+:where(	
+	input[type=submit],
+	input[type=reset],
+	button
+){
+	cursor: pointer;
+}
+
+output, result{
+	display: block;
 }
 
 hr{
@@ -155,231 +326,16 @@ hr{
     background-image:radial-gradient( farthest-corner at 50% 0, rgba(255,255,255,0.6) 0,transparent 50% );
 }
 
-a.back-to-top{
-	flex:1 1 100%;
-	width:100%;
+[aria-busy="true"] {
+	cursor: progress;
 }
 
-
-// Top section that contains the header text and loader
-#intro{
-	
-	grid-gap:0;//var(--pad);
-	grid-column-gap:var(--pad);
-
-	.logo{
-		grid-area:heading;
-	}
-
-	h1{
-		--size:44px;
-		
-		/*
-		// logo above
-		&::before{	
-			content:'';
-			width:var(--size);
-			min-width:25%;
-			height:var(--size);
-			display: block;
-			margin-bottom: var(--pad);
-			
-			background: url('./assets/logos/photosynth.svg') no-repeat;
-			background-size: contain;
-			background-position: 0 7px;
-			background-repeat: no-repeat;
-		}
-
-		
-		@media screen and (min-width:888px){
-			
-			--size:33%;
-			// logo left
-			&::before{	
-				position: absolute;
-				left:var(--pad);
-				top:50%;
-				min-width:var(--size);
-				// min-height:50%;
-				min-height:50%;
-				transform: translateY(-50%);
-			}
-			padding-left: calc(var(--pad) * 2 + var(--size));
-		}
-		*/
-
-		display: inline-block;
-		padding:var(--pad) calc(var(--pad) * 2);
-		
-		position: relative;
-		justify-self: center;
-
-		text-align: left;		
-		background-size: 13%;
-		line-height: 1;
-	}
-
-	h2{
-		grid-area: tagline;
-		color:inherit;
-	}
-
-	> a{
-		color:inherit;
-	}
-
-	// hide text that is also a tooltip
-	p[aria-label]{
-		grid-area:summary;
-		// position: absolute;
-		// color:transparent;
-		// text-shadow: none;
-		// user-select: none;
-		// // hide links inside these too
-		// a{
-		// 	color:transparent;
-		// }
-	}
-	.warning{
-		grid-area:warning;
-		position: sticky;
-    	bottom: var(--pad);
-		// margin-bottom:var(--pad);
-		margin-top: var(--pad);//auto;
-		z-index: 909;
-	}
-
-	grid-template-areas: 
-		"poster"
-		"heading"
-		"tagline"
-		"summary"
-		"requirements"
-		"menu"
-		"warning"
-	;
-
-	@media screen and (min-width:640px){
-		grid-template-areas: 
-			"poster heading"
-			"poster tagline"
-			"poster summary"
-			"poster requirements"
-			"poster menu"
-			"warning warning"
-		;
-		grid-template-columns: minmax(50%, 33vh) 1fr;
-	}
-
-	@media screen and (min-width:999px){
-		grid-template-areas: 
-			"poster heading"
-			"poster tagline"
-			"poster summary"
-			"poster requirements"
-			"poster menu"
-			"poster warning"
-		;
-		// grid-template-columns: minmax(50%, 33vh) 1fr;
-	}
-
-	@media screen and (min-width:1024px){
-		grid-template-areas: 
-			"poster heading heading"
-			"poster tagline tagline"
-			"poster summary summary"
-			"poster requirements menu"
-			"poster warning warning"
-		;
-			
-		.logo{
-			//grid-area:logo;
-		}
-		// grid-template-columns: minmax(50%, 33vh) 1fr;
-	}
+// Make sure textareas without a rows attribute are not tiny 
+textarea:not([rows]) {
+	min-height: 10ch;
 }
-
-
-// Epilepsy warning
-// we dont want any animations here
-p.warning{
-	--size:34px;
-	
-	border-radius: calc( var(--curve) * 0.4 );
-	max-inline-size: max-content;
-	box-sizing: border-box;
-	width: 100%;
-	position: relative;
-	color:var(--shade-white);
-	background:var(--shade-red, red);
-	padding: var(--pad) calc( 2 * var(--pad) ) var(--pad) calc( 4 * var(--pad) );
-	padding-left:calc( var(--pad) * 2 + var(--size) );
-	
-	flex: 0 1 auto;
-	display: block;
-	align-self: center;
-	justify-self: center;
-
-	strong{
-		animation:none;
-	}
-	em{
-		text-decoration: underline;
-	}
-	&::before{
-		content:'!';
-		font-size:calc(var(--size) * 0.8 );// 215%;
-		width:var(--size);
-		height:var(--size);
-		margin-right: var(--pad);
-		clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-		vertical-align: text-top;
-		display: inline-block;
-		position: absolute;
-		left:var(--pad);
-		top:50%;
-		transform: translateY(-50%);
-		color:var(--shade-red);
-		background:var(--shade-white);
-	}
-
-}
-
-#licenses{
-	
-	// prevent it staying single line
-	max-inline-size: 55ex;
-}
-
-
-#hero{
-	order:-42;
-	display: grid;
-	grid-area: poster;
-	align-items: center;
-	justify-content: center;
-	grid-template-rows: 1fr;
-
-	a{
-		display: grid;
-		grid-template-columns: auto;
-		grid-template-rows: auto;
-		width: 100%;
-		> * {
-			//grid-area: 1/-1/ 1/-1;
-		}
-	}
-}
-
-#pwa{
-	grid-area:menu;
-	display: flex;
-	width: 100%;
-	gap:var(--pad);
-	flex-wrap: wrap;
-}
-
-svg.hero-bumper{
-	margin:auto;
-	width: 100%;
+  
+// Anything that has been anchored to should have extra scroll margin 
+:target {
+	scroll-margin-block: 5ex;
 }

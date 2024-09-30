@@ -10,15 +10,28 @@ factory.loadInstrument(0)
 
 */
 
+import { fetchJSON } from "../utils/fetch.js"
+import MIDIInstrument from "./instruments/instrument.midi.js"
 import SoundFontInstrument from "./instruments/instrument.soundfont"
 // import WAMInstrument from "./instruments/instrument.wam"
 // import WAM2Instrument from "./instruments/instrument.wam2"
 // import OscillatorInstrument from "./instruments/instrument.oscillator.js"
+// import WaveGuideInstrument from "./instruments/instrument.waveguide"
+// import YoshimiInstrument from "./instruments/instrument.yoshimi"
 
+export const INSTRUMENT_TYPE_MIDI = "midi"
 export const INSTRUMENT_TYPE_OSCILLATOR = "oscillator"
 export const INSTRUMENT_TYPE_SOUNDFONT = "soundfont"
 export const INSTRUMENT_TYPE_WAM = "wam"
 export const INSTRUMENT_TYPE_WAM2 = "wam2"
+
+export const INSTRUMENTS = [
+	INSTRUMENT_TYPE_SOUNDFONT,
+	INSTRUMENT_TYPE_OSCILLATOR,
+	INSTRUMENT_TYPE_WAM,
+	INSTRUMENT_TYPE_WAM2,
+	INSTRUMENT_TYPE_MIDI
+]
 
 const instrumentsImported = new Map()
 
@@ -27,7 +40,7 @@ const instrumentsImported = new Map()
 instrumentsImported.set("soundfont", SoundFontInstrument)
 
 /**
- * 
+ * Lazily Load the class required for creating an instrument
  * @param {String} type 
  * @returns Class that extends Instrument
  */
@@ -63,6 +76,11 @@ export const lazilyLoadInstrument = async (type) => {
 			const WAM2Instrument = (await import( "./instruments/instrument.wam2.js")).default
 			instrumentsImported.set(type, WAM2Instrument)
 			return WAM2Instrument
+
+		case INSTRUMENT_TYPE_MIDI:
+			// const MIDIInstrument = (await import( "./instruments/instrument.midi.js")).default
+			// instrumentsImported.set(type, MIDIInstrument)
+			return MIDIInstrument
 	}
 
 	return null
@@ -84,11 +102,15 @@ export const createInstrumentFromData = async (audioContext, options) => {
 			
 	// lazily load in data
 	switch( type )
-	{
+	{	
+		case INSTRUMENT_TYPE_MIDI:
+			const MIDIInstrument = await lazilyLoadInstrument(type)
+			const midiInstrument = new MIDIInstrument(audioContext, options)
+			return midiInstrument
+
 		case "osc":
 		case INSTRUMENT_TYPE_OSCILLATOR:
 			const OscillatorInstrument = await lazilyLoadInstrument(type)
-			
 			const oscillatorInstrument = new OscillatorInstrument(audioContext, options)
 			return oscillatorInstrument
 			
@@ -113,8 +135,9 @@ export const createInstrumentFromData = async (audioContext, options) => {
 }
 
 
-export class InstrumentFactory{
+export default class InstrumentFactory{
 
+	instruments = new Map()
 	instrumentData
 	instrumentList
 	audioContext
@@ -133,31 +156,43 @@ export class InstrumentFactory{
 		this.audioContext = audioContext
 	}
 
-	// load list if not already loaded...
-	async loadList( listURI )
+	/**
+	 * load list of instruments from a string if not already loaded.
+	 * @param {String} listURIorJSON 
+	 * @returns Array
+	 */
+	async loadList( listURIorJSON )
 	{
-		if (typeof listURI === "string")
+		
+		if (typeof listURIorJSON === "string")
 		{
 			// check if it is JSON data...
-			if (listURI.charAt(0) === "[" )
+			if (listURIorJSON.charAt(0) === "[" )
 			{
 				// a JSON encoded string of array
-				this.instrumentList = JSON.parse(listURI)
+				this.instrumentList = JSON.parse(listURIorJSON)
 
 			}else{
-
+				
 				// if it is a URi... load in from JSON data
-				const listRequest = await fetch(listURI)
-				const listData = await listRequest.json()
-				this.instrumentList = listData
+				try{
+					//console.error("Loading instrument list from JSON data", listURIorJSON)
+					this.instrumentList = await fetchJSON(listURIorJSON)
+					console.error("Loaded instrument list from JSON data",{listURIorJSON, list:this.instrumentList}, this) 
+					
+				}catch(error){
+					console.error("Error loading instrument list!", error)
+					throw Error("Could not find that list")
+				}
 			}
 		
-		}else if (typeof listURI === "object" && Array.isArray(listURI) ){
+		}else if (typeof listURIorJSON === "object" && Array.isArray(listURIorJSON) ){
 
 			// else assume the data is an array ready to go!
-			this.instrumentList = listURI
+			this.instrumentList = listURIorJSON
 
 		}else{
+
 			// No list found???
 			throw Error("Could not find that list")
 		}
@@ -168,8 +203,13 @@ export class InstrumentFactory{
 			// parse the list
 			this.instrumentData = new Map()
 			this.instrumentList.forEach( instrument => {
-				this.instrumentData.set( instrument.type, instrument )
+				// cache by name?
+				this.instrumentData.set( instrument.type, [...(this.instrumentData.get(instrument.type) ?? []), instrument] )
+				this.instruments.set( instrument.name, instrument )
 			})
+		}else{
+			console.error("No instrument list could be decoded", this.instrumentList)
+			throw Error("Could not decode that list")
 		}
 
 		// NB. may return undefined if no instrument List was available
@@ -177,6 +217,11 @@ export class InstrumentFactory{
 		return this.instrumentList
 	}
 
+	/**
+	 * Create an instrument of type
+	 * @param {String} type 
+	 * @returns 
+	 */
 	async fetchClassByType(type){
 		return await lazilyLoadInstrument( type.toLowerCase() )
 	}
@@ -194,12 +239,53 @@ export class InstrumentFactory{
 		return await createInstrumentFromData( this.audioContext, { ...this.list[ index % (this.quantity - 1)],  ...options } )
 	}
 
-	async loadInstrumentByType( type, options={} ){
+	/**
+	 * 
+	 * @param {String} type 
+	 * @param {Object} options 
+	 * @param {Number} presetIndex 
+	 * @returns 
+	 */
+	async loadInstrumentByType( type, options={}, presetIndex=0 ){
+		if (!this.instrumentData)
+		{
+			throw Error("No instruments loaded, call factory.loadList() to load in a data set before calling factory.loadInstrumentByType()")
+		}
+
 		// loop through list and find that type
-		const data = this.instrumentData.get( type.toLowerCase() )
-		if (!data)
+		const all = this.instrumentData.get( type.toLowerCase() )
+		if (!all)
 		{
 			throw Error("There is no instrument in the list with type "+type )
+		}
+		
+		// see if that preset exists!
+		const data = all[presetIndex]
+		if (!data)
+		{
+			throw Error("There is no instrument in the list at index "+presetIndex )
+		}
+		return await createInstrumentFromData( this.audioContext, {...data, ...options } )
+	}
+
+	/**
+	 * Load / Create a single instance of the named instrument
+	 * or else return null and throw errors
+	 * @param {String} name 
+	 * @param {Object} options 
+	 * @returns 
+	 */
+	async loadInstrumentByName( name, options={} ){
+		if (!this.instruments)
+		{
+			throw Error("No instruments loaded, call factory.loadList() to load in a data set before calling factory.loadInstrumentByName()")
+		}
+
+		// loop through list and find that type
+		const data = this.instruments.get( name )
+		if (!data)
+		{
+			throw Error("There is no instrument in the list named "+name )
 		}
 		return await createInstrumentFromData( this.audioContext, {...data, ...options } )
 	}

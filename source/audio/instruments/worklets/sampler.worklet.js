@@ -13,16 +13,21 @@ class SampleAudioWorkletNode extends AudioWorkletProcessor  {
 	}
 
 	constructor(context) {
-
 		super()
-
-		this.port.onmessage = (event) => {
-			// Handling data from the node.
-			console.log("SampleAudioWorkletNode:", event.data)
-			// loadSample(event.data)
-		}
-	  
+		this.port.onmessage = this.onmessage.bind(this)
 		this.port.postMessage('Hi!')
+	}
+
+	// Pass in the WAV data and 
+	onmessage(event) {
+		// Handling data from the node.
+		// loadSample(event.data)
+		console.log("SampleAudioWorkletNode:", event.data)
+		// loadSample(event.data)
+		switch (event.data.type) {
+            case 'play':
+				break
+		}
 	}
 
 	async loadSample(path){

@@ -1,6 +1,8 @@
 
 // RECORD AUDIO
 
+import ENCODER_WORKER_URI from 'url:./encoder.worker.js'
+
 // TODO: Add in AnalyzerNode and record the waveform data too if requested
 // If audio data available then push  it to the chunk array 
 export const recordAudio = (stream)=>{
@@ -12,7 +14,7 @@ export const recordAudio = (stream)=>{
 	let mediaRecorder
 
 	const encoder = new Worker(
-        new URL('./encoder.worker.js', import.meta.url),
+        new URL(ENCODER_WORKER_URI),
         {type: 'module'}
     )
 	

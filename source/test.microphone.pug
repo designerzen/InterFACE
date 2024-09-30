@@ -1,0 +1,211 @@
+extends _base.pug
+
+block title
+	+title('Test:Microphone')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#mic
+		include partials/toast.pug	
+		form.set-tempo
+			include partials/transport-panel.pug
+			include partials/tempo-panel.pug
+		
+
+		form.set-microphone
+			label(for="select-microphone") Choose Microphone
+			select#select-microphone 
+
+			label(for="microphones") Choose your Microphone from the list:
+			input#microphones(list="microphone-list", name="microphones")
+			datalist#microphone-list
+				option(value="Edge")
+				
+		form.set-instrument
+
+
+		nav#menu
+
+			h3 Microphone Pitch Test
+
+			label(for="microphone-toggle") Toggle Microphone
+			input(type="checkbox")#microphone-toggle
+			output#microphone-output
+			output#metronome-output
+
+block scripts
+	script(type="module").
+
+		// get the timing scripts
+		import { setupTempoInterface } from './dom/ui.tempo.js'
+		import AudioTimer from './timing/timer.audio.js' 
+		
+		import Microphone, {detectMicrophones, BUFFER_SIZE} from './hardware/microphone.js'
+
+		import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+		import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		import MIDIInstrument from './audio/instruments/instrument.midi.js'
+		import SoundFontInstrument from './audio/instruments/instrument.soundfont.js'
+		import InstrumentFactory, { INSTRUMENT_TYPE_SOUNDFONT,INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_MIDI } from './audio/instrument-factory.js'
+		import InstrumentManager from './audio/instrument-manager.js'
+
+		import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
+
+		const metronomeOutput = document.getElementById("metronome-output")
+		const microphoneOutput = document.getElementById("microphone-output")
+		const micToggle = document.getElementById("microphone-toggle")
+		const micSelect = document.getElementById("select-microphone")
+		const formInstruments = document.querySelector(".set-instrument")
+			
+		const SAMPLE_RATE = 44100 / 4
+		const BUFFER_SIZE = 2048 // 4096 // 8192
+
+		micToggle.addEventListener("click", async (e )=>{
+			
+			//- const offlineContext = new OfflineAudioContext(2, 44100 * 40, 44100)
+			const onlineContext = new AudioContext({
+				latencyHint:'interactive',
+				sampleRate: SAMPLE_RATE,
+				sinkId:undefined
+			})
+
+			const instrumentFactory = new InstrumentFactory(onlineContext)
+			await instrumentFactory.loadList( INSTRUMENT_LIST )
+
+			//- instrumentFactory.loadInstrumentByName()
+			//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
+			const soundFontInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
+			const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
+
+			//- const midiInstrument = new MIDIInstrument(onlineContext)
+			//- const rompler = new SoundFontInstrument(onlineContext)
+
+			// each instrument has a patch list that allows you to load timbres
+			// and functions to produce audio
+			const presets = await soundFontInstrument.getPresets()
+			let instrumentsHTML = ""
+			//- const buttons = 
+			presets.map( preset => {
+				instrumentsHTML += `<button type="button" class="button-preset">${preset}</button>`
+				return `<button class="button-preset">${preset}</button>`
+			})
+			formInstruments.innerHTML = instrumentsHTML
+			const buttons = formInstruments.querySelectorAll(".button-preset")
+			buttons.forEach( button => {
+				button.addEventListener("click", e => soundFontInstrument.loadPreset( button.innerText ) )
+			})
+
+			// now we can play these instruments once we route them to the speakers
+			soundFontInstrument.gainNode.connect( onlineContext.destination ) 
+			//- rompler.gainNode.connect( onlineContext.destination ) 
+
+			console.log("Instrument Factory", {SAMPLE_RATE, BUFFER_SIZE}, SAMPLE_RATE / BUFFER_SIZE, {soundFontInstrument, rompler, presets, buttons} , instrumentFactory.data, instrumentFactory.list, instrumentFactory.instruments )
+
+
+			const playNote = (mic) => {
+				if (mic.logRMS > 0 && mic.confidence > 0.001)
+				{
+					//rompler.noteOn(microphone.note)
+					soundFontInstrument.noteOn(mic.note)
+					metronomeOutput.innerText = `${mic.note} -> ${mic.noteName} confidence:${((mic.confidence * 100).toFixed(2))} pitch:${mic.pitch.toFixed(2)} rms:${mic.rms.toFixed(2)} logRMS:${mic.logRMS.toFixed(2)}`
+				}else{
+					metronomeOutput.innerText = `confidence:${((mic.confidence * 100).toFixed(2))} rms:${mic.rms.toFixed(2)} logRMS:${mic.logRMS.toFixed(2)}`
+				}
+			}
+
+		
+			// start microphone stream using getUserMedia and runs the feature extraction		
+			const microphones = await detectMicrophones()
+			microphones.forEach( mic => {
+				micSelect.add( new Option( mic.label.length ? mic.label : (mic.kind === "audioinput" ? 'Audio Input' : 'Video Input') , mic.deviceId ) )
+			})
+		
+			const microphone = new Microphone( onlineContext, BUFFER_SIZE )
+			microphone.onpitch = ({ note, noteName, rms, logRMS, pitch, confidence }) => {
+				//console.log("pitchNode", {note, noteName, rms,logRMS,pitch,confidence } )
+				playNote( microphone )
+				//- microphoneOutput.innerText = `${microphone.note} -> ${microphone.noteName} confidence:${((microphone.confidence * 100).toFixed(2))} pitch:${microphone.pitch.toFixed(2)} rms:${microphone.rms.toFixed(2)} logRMS:${microphone.logRMS.toFixed(2)}`
+			}
+			
+			micSelect.oninput = e => {
+				console.log("Mic selected", micSelect.value )
+				microphone.setInput( micSelect.value )
+			}
+
+			console.log("microphones",{microphones, microphone})
+
+			//microphone.startStream()
+			microphone.toggleStream() 
+
+			//- const MIDIConnectionClasses = [WebMIDIClass]
+			//- const midiManager = new MIDIConnectionManager()
+			const timer = new AudioTimer()
+			timer.setCallback( ( values )=>{
+				//- playNote()
+			})
+			timer.bpm = 90
+			timer.startTimer()
+		})
+		//document.addEventListener("click", e => microphone.startStream(), {once:true} )
+
+
+
+		//setupTempoInterface(timer, midiManager, MIDIConnectionClasses)
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		main{
+			width:100%;
+		}
+		fieldset{
+			box-sizing: border-box;
+			position: relative;
+			border: 0;
+			padding: 0;
+			margin: 0;
+			border-radius: 0.5rem;
+			box-shadow:
+				inset 0 -0.1em 0.1em -0.05em #fff2,
+				inset 0 0.125em 0.25em #0003,
+				inset 0 0.25em 0.25em #0001,
+				inset -0.05em -0.1em 0.15em #0003,
+				inset 0 -0.05em 0.1em #0002,
+				inset 0 0 0 0.4em #c4c1c3;
+			padding: 0.66rem;
+			background: linear-gradient(#000 0 0) 50% 50% / 97.5% 97.5% no-repeat;
+		}
+		#menu{
+			width:100%;
+		}
+		.set-tempo{
+
+		}
+		.form-tempo{
+			display:grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap:0.66rem;
+			/* grid-template-areas: 
+				"slider"
+				"off"
+			;*/
+		}
+		#tempo-tap-button{
+			grid-column: 1 / -1;
+		}
+
+		@media screen and (min-width:720px) {
+			.form-tempo{
+				grid-template-columns: repeat(4, 1fr);
+				gap:1rem;
+			}
+		}
+
+
+

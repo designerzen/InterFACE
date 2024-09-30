@@ -1,0 +1,373 @@
+// Top section that contains the header text and loader
+#intro {
+
+	// height is 100% - the margins
+	// min-height: calc(100% - 2 * var(--pad));
+	min-height: calc(100vh - 2 * var(--pad));
+	min-height: calc(100dvh - 2 * var(--pad));
+
+	max-width: 1080px;
+
+	grid-gap: var(--pad);
+
+	color: var(--shade-red, red);
+	padding: var(--pad);
+	margin: var(--pad);
+
+	background-color: rgba(255, 255, 255, 0.96); // var(--shade-white, white);
+
+	border-radius: var(--curve);
+
+	// text-align: center;
+	display: grid;
+	flex-direction: column;
+	align-items: stretch;
+	justify-items: center;
+
+	// above the 
+	position: relative;
+	z-index: 909;
+
+	.logo {
+		grid-area: heading;
+		gap: var(--pad);
+		flex-direction: row;
+		flex-wrap: wrap;
+		place-content: center;
+		place-items: center;
+
+		border-bottom: 1px dotted currentColor;
+		padding-bottom: var(--pad);
+	}
+
+	h1 {
+		--size: 88px;
+
+		/*
+		// logo above
+		&::before{	
+			content:'';
+			width:var(--size);
+			min-width:25%;
+			height:var(--size);
+			display: block;
+			margin-bottom: var(--pad);
+			
+			background: url('./assets/logos/photosynth.svg') no-repeat;
+			background-size: contain;
+			background-position: 0 7px;
+			background-repeat: no-repeat;
+		}
+
+		
+		@media screen and (min-width:888px){
+			
+			--size:33%;
+			// logo left
+			&::before{	
+				position: absolute;
+				left:var(--pad);
+				top:50%;
+				min-width:var(--size);
+				// min-height:50%;
+				min-height:50%;
+				transform: translateY(-50%);
+			}
+			padding-left: calc(var(--pad) * 2 + var(--size));
+		}
+		*/
+
+		display: inline-block;
+		// padding:var(--pad) calc(var(--pad) * 2);
+
+		position: relative;
+		justify-self: center;
+
+		text-align: center;
+		background-size: 13%;
+		line-height: 1;
+	}
+
+	h2 {
+		grid-area: tagline;
+		color: inherit;
+	}
+
+	> a {
+		color: inherit;
+	}
+
+	// hide text that is also a tooltip
+	p[aria-label] {
+		
+		// position: absolute;
+		// color:transparent;
+		// text-shadow: none;
+		// user-select: none;
+		// // hide links inside these too
+		// a{
+		// 	color:transparent;
+		// }
+	}
+
+	#summary {
+		grid-area: summary;
+	}
+
+	p.info-description {
+		grid-area: description;
+	}
+
+	.warning {
+		grid-area: warning;
+		position: sticky;
+		bottom: var(--pad);
+		// margin-bottom:var(--pad);
+		margin-top: var(--pad); //auto;
+	}
+
+	// layouts
+	grid-template-areas: 
+		"heading"
+		"poster"
+		"tagline"
+		"summary"
+		"description"
+		"menu"
+		"warning"
+		"requirements"
+	;
+
+	@media screen and (min-width:640px) {
+		grid-template-areas:
+			"poster heading"
+			"poster summary"
+			"poster tagline"
+			"poster menu"
+			"warning warning"
+			"description description"
+			"requirements requirements"
+		;
+
+		grid-template-columns: minmax(50%, 33vh) minmax(0, 1fr);
+		grid-gap: 0 var(--pad);
+
+		h1 {
+			text-align: left;
+		}
+
+		.logo {
+			grid-area: heading;
+			flex-direction: column;
+			// place-content: start;
+			// place-items: start;
+		}
+	}
+
+	@media screen and (min-width:999px) {
+		
+		margin-left: auto;
+		margin-right: auto;
+
+		grid-template-areas:
+			"poster heading"
+			"poster summary"
+			"poster tagline"
+			"poster menu"
+			"poster warning"
+			"description description"
+			"requirements requirements"
+		;
+		// grid-template-columns: minmax(50%, 33vh) 1fr;
+	}
+
+
+	@media screen and (min-width:1210px) {
+		grid-template-areas:
+			"poster heading heading"
+			"poster tagline tagline"
+			"poster summary summary"
+			"poster menu menu"
+			"poster description description"
+			"poster warning warning"
+			"requirements requirements requirements"
+		;
+
+		grid-template-columns: 2fr minmax(0, 1fr) minmax(44px, 1fr);
+
+		// grid-template-columns: minmax(50%, 33vh) 1fr;
+	}
+}
+
+#alternate-browsers{
+
+	text-align: right;
+	margin-left:auto;
+	
+	summary{
+		margin-left:auto;
+		display: block;
+	}
+
+	ol {
+		margin:0;
+		margin-left:auto;
+		padding:0;
+		list-style: none;
+		display: flex;		
+		justify-content: flex-end;
+		flex-wrap: wrap;
+		gap:0;//var(--pad);
+	}
+
+	li + li::before{
+		content: '/';
+		margin:0 calc( var(--pad) * 0.5 );
+	}
+}
+
+
+#requirements {
+	//grid-area: requirements;
+	width: 100%;
+}
+
+#requirements-test {
+	width: 100%;
+	grid-area: requirements;
+}
+
+// table
+#compatibility {
+	--curve:9px;
+	width: 100%;
+	
+	border-radius: var(--curve, var(--pad));
+	overflow: hidden;
+	overflow: clip;
+
+	tbody{
+		background-color: var(--shade-cream);
+		border-radius: var(--curve, var(--pad));
+	}
+
+	tr{
+		position: relative;
+	}
+
+	/*
+	tr+tr{
+		&::before{
+			content:'';
+			position: absolute;
+			left:var(--pad);
+			right:var(--pad);
+			height:1px;
+			background-color:var(--shade-cream);
+		}
+	}
+	*/
+
+	th {
+		text-align: right;
+	}
+
+	th,td{
+		border-bottom:1px solid var(--shade-cream,white);
+	}
+	td{
+		// border-color:var(--shade-white);
+	}
+	small{
+		display: block;
+	}
+
+	// icon
+	th::before{
+		content:'';
+		display: inline-block;
+		width: 1rem;
+		height: 1rem;
+		margin-top:auto;
+		margin-bottom:auto;
+		margin-right:calc( var(--pad) / 2 ); 
+		background-image: var(--icon);
+		background-position: center;
+		background-size: contain;
+		background-repeat: no-repeat;
+		vertical-align: middle;
+		vertical-align: text-top;
+	}
+
+	.result::before{
+		color:currentColor;
+		display: inline-block;
+		margin-right: 1ch;
+	}
+
+	// 
+	.available {
+		background-color: var(--shade-green, green);
+		color: var(--shade-white, white);
+		&::before {
+			// content: "✓";
+			content: "✔";
+		}
+	}
+
+	//
+	.unavailable {
+		background-color: var(--shade-red, red);
+		color: var(--shade-white, white);
+		&::before {
+			content: "✗";
+			// content: "☓";
+			animation: Pulse 1s 0s infinite both;
+		}
+	}
+
+	// We cannot determine ahead of time if the device is available
+	.unknown {
+		background-color: var(--shade-blue, red);
+		color: var(--shade-white, white);
+		&::before {
+			content: "?";
+		}
+	}
+
+	td.result{
+		text-align: center;
+	}
+}
+
+
+.capability-camera {
+	th::before{
+		--icon:url(/source/assets/icons/camera_enhance-24px.svg);
+	}
+}
+
+.capability-speakers {
+	th::before{
+		--icon:url(/source/assets/icons/volume_up-24px.svg);
+	}
+}
+
+.capability-midi {
+	th::before{
+		--icon:url(/source/assets/icons/midi-copyright-free.svg);
+	}
+}
+
+.capability-microphone {
+	th::before{
+		--icon:url(/source/assets/icons/mic-24px.svg);		
+	}
+}
+
+
+.capability-gpu {
+	th::before{
+		--icon:url(/source/assets/icons/developer_board-24px.svg);		
+	}
+}

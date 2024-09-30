@@ -1,0 +1,300 @@
+/*
+
+Clickable and openable set of drawers
+
+nav#menu
+
+	ul.folders
+	
+		li.folder-menu
+			a.folder-link(href="#folder-a") Goto folder items
+			menu.folder-content#folder-a
+				li: button(type=button) Rewind
+
+*/
+
+.folder-menu{
+	
+	// height of the control bar
+	--size:44px;
+	--height:calc( 2 * var(--size) );
+	// --height:inherit;//var(--size);
+	--width:var(--size);
+	
+	--overlap:0.05;	
+	--duration:0.3s;
+
+	flex: 1;
+	animation:none;
+
+	position: static;
+	// position:relative;
+	// display:grid;
+	// grid-auto-flow:row;
+	background: inherit;
+
+	// just take the edge off
+	border-radius: 2px;
+}
+
+/*
+// Menu toggle - DISABLED UNTIL MOVED INTO DIFFERENT PROJECT!
+.folder-link{
+	text-decoration:none;
+	display:flex;
+	align-items:center;
+	// icon and text use top as origin
+	justify-content:flex-start;
+	text-align:center;
+	min-height:var(--height);
+}
+*/
+
+
+/*
+
+.folder-content:hover{
+	--color:pink;
+}
+.folder-content:focus{
+	--color:yellow;
+}
+.folder-content:focus-within{
+	--color:green;
+}
+.folder-content:target{
+	--color:orange;
+}
+*/
+
+// menu
+.folder-content{
+	margin:0;
+	padding:0;
+	// padding-top:100%;
+	position:absolute;
+	
+	// prevent being overflown
+	// min-width: 100vw;
+	// max-width: min(100%, 100vw);
+	// max-height: min(100%, 100vh);
+
+	display: flex;
+	flex-direction:column;
+	visibility:hidden;
+	z-index: -1;
+	opacity:0;
+	// pointer-events:none;
+
+	list-style:none;
+
+	// this is the popup background
+	background-color:inherit;
+	// background-color: rgba(11,111,11,0.5);
+
+	animation: CloseFolder 495ms linear 0s both;
+	
+	transition:
+		transform var(--fade-speed) $easeOutBack,
+		opacity var(--fade-speed) linear;
+	
+	// transform: translateY(100%);
+	
+	// animation: CloseFolder 95ms linear 90ms both;
+	//outline: 2px solid var(--color, black);
+	
+	> *{
+		// animation-delay:var(--delay,0s);
+		// transition-delay:var(--delay, 0s);
+
+		// transition: 
+		// 	opacity var(--duration) var(--delay, 0s) linear,	
+		// 	transform var(--duration) var(--delay, 0s) ease-out;
+		// transition:opacity var(--duration) var(--delay, 0s) linear;
+		
+		// opacity:0;
+		// position: relative;
+		z-index: 2;
+		visibility: hidden;
+		
+		> * {
+			z-index:1;
+			// position:relative;
+			//width:100%;
+			//min-height:var(--height);
+		}
+	}
+	
+	// $end:49;
+	// @for $i from 1 to $end {
+	// 	&:nth-child(#{$i}){
+	// 		--i: #{$i};
+	// 	}
+	// }
+	
+
+	// close button
+	a:last-of-type{
+		--size:44px;
+		--bg:url(/source/assets/icons/expand_more-24px-white.svg);
+		// content:'X';
+		// outline:3px solid green;
+		position:absolute;
+		top:0;//calc( -1 * var(--height, 1rem) );
+		left:0;
+		bottom:0;
+		right:0;
+
+		
+		color:transparent;
+		text-align: center;
+		
+		cursor:pointer;
+
+		// z-index:0;
+		user-select:none;
+		order:-1;
+		z-index:-1;
+		background-image: 
+			var(--bg),
+			linear-gradient(0deg, black, transparent);
+	
+		background-size:
+			var(--size, 22px),
+			100%;
+			
+		background-repeat: no-repeat no-repeat;
+
+		background-position: 
+			bottom 18px center, 
+			center;
+	
+		&:hover,
+		&:focus{
+			animation:Pulse 0.9s infinite 0s both alternate;
+		}
+	}
+}
+
+.folder-menu.inline.up{
+	
+	position: relative;
+
+	.folder-content{
+		left:0;
+		right:0;
+		padding-bottom:100%;
+
+		bottom:0;
+		bottom:100%;
+		margin-bottom:-100%;
+	}
+}
+
+.folder-menu.top{
+
+	position: static;
+	
+	.folder-content{
+		top:0;
+	}
+}
+
+.folder-menu.bottom{
+
+	position: static;
+	
+	.folder-content{
+		padding-bottom:100%;
+		padding-top:0;
+		top:auto;
+		bottom:0;
+		// or colulmn-reverse for upwards
+		// flex-direction: column-reverse;
+		a:last-of-type{
+			order:initial;
+		}
+	}
+
+	&.horizontal{
+		.folder-content{
+			// this needs to be set by the height of the parent
+			// and so we can't assume it will be 100%
+			// we use padding so that it conceals the anchor
+			// which lies under it
+			padding-bottom:min(100%, var(--height, 44px) );
+			padding-top:0;
+
+			top:auto;
+			bottom:0;
+			left:0;
+			// or colulmn-reverse for upwards
+			// flex-direction: row;
+			//transform:translateX(-50%);
+			a:last-of-type{
+				order:initial;
+			}
+		}
+	}
+
+	&.right{
+		.folder-content{
+			right:0;
+			// left:auto;
+			// transform: none;
+			// transform:translateX(-100%);
+		}	
+	}
+}
+
+// OPEN! ==================================================
+
+// .folder-content:hover,
+.folder-menu:is(:focus, :focus-within) .folder-content,
+.folder-content:is(:focus,:focus-within, :target),
+// .folder-content:target,
+// .folder-link:hover + .folder-content{
+.folder-link:is(:focus, :focus-visible, :active) + .folder-content
+{
+	animation: OpenFolder 95ms linear 0ms both;
+	visibility:visible;
+	opacity:1;
+	pointer-events:auto;
+	transform: translateY(0%);
+
+	// ensure we are above everything to allow
+	// outside clicks to also close the app
+	z-index: 909;
+
+	> *{
+		visibility: visible;
+		// 	opacity:1;
+		z-index: 909;
+		// 	--delay:calc( (var(--i,0)) * var(--overlap) * var(--duration) );
+		
+		// move up!
+		// transform: translateY(-100%);
+		flex-grow:1;
+	}
+
+	// href="#shared-controls"
+	a:last-of-type{
+		transform: none;
+		z-index: 1;	
+	}
+}
+
+
+@keyframes OpenFolder {
+	from{
+		opacity:0;
+		transform:translateY( 50% );
+	}
+}
+
+@keyframes CloseFolder {
+	to{
+		opacity:0;
+		transform:translateY( 50% );
+	}
+}

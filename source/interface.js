@@ -1,16 +1,14 @@
 import 'audioworklet-polyfill'
 
+import * as EMOJI from "./models/emoji.js"
+
 // import {midiLikeEvents} from './timing/rhythm'
-import { loadState, getState, setState, refreshState } from './utils/state'
+import State, { EVENT_STATE_CHANGE, createStateFromHost } from './utils/state.js'
 
 // TODO :lazy load
-import { say, hasSpeech} from './audio/speech'
-
-import { recordAudio } from './audio/record/record.audio'
-
-import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video'
-
-
+import { say, hasSpeech} from './audio/speech.js'
+import { recordAudio } from './audio/record/record.audio.js'
+import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
 import { 
 	getRecordableOutputNode,
 	active, playing, 
@@ -19,12 +17,11 @@ import {
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
-	getVolume, setVolume } from './audio/audio'
+	getVolume, setVolume, getPercussionNode } from './audio/audio.js'
 
-import { getRandomInstrument, createInstruments, getFolderNameForInstrument } from './audio/sound-font-instruments'
-import { createDrumkit } from './audio/synthesizers'
-import { setupMIDI } from './audio/midi/midi-out'
-import { createWaveform } from './dom/waveform'
+import { getRandomInstrument, createInstruments, getFolderNameForInstrument, getRandomLeadPresetIndex, getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex } from './audio/sound-font-instruments'
+import { createDrumkit } from './audio/drum-kit.js'
+import { createSVGWaveformFromData, createWaveform } from './dom/waveform'
 // FIXME: 
 import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file'
 // import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
@@ -32,26 +29,19 @@ import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-cre
 import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
 // Different ways of playing sound!
-import SampleInstrument from './audio/instruments/instrument.sample'
-// import MIDIInstrument from './audio/instruments/instrument.midi'
+// TODO: Replace with instrumentFactory
+import SampleInstrument from './audio/instruments/instrument.sample.js'
+// import MIDIInstrument from './audio/instruments/instrument-midi1.js'
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
 
-// More input mechanisms
+// More input mechanisms (per person)
 import GamePad from './hardware/gamepad'
 
 // import {midiLikeEvents} from './timing/rhythm'
-import { 
-	tapTempo,
-	getElapsed,
-	getBars, setBars, getBar, 
-	startTimer, stopTimer, now, 
-	getBarProgress,
-	convertBPMToPeriod,
-	getTimePerBar,
-	setTimeBetween, getBPM
-} from './timing/timing.js'
+import { tapTempo, convertBPMToPeriod } from './timing/timing.js'
+import AudioTimer from './timing/timer.audio.js'
 
-import { playNextPart, kitSequence } from './timing/patterns'
+import { playNextPart, kitSequence } from './timing/patterns.js'
 	
 import {
 	controlPanel,
@@ -62,35 +52,38 @@ import {
 	focusApp
 } from './dom/ui'
 
-import { showPlayerSelector } from './dom/player-selection'
+import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
+import { setupTempoInterface } from './dom/ui.tempo.js'
+import setupDialogs from './dom/ui.dialog.js'
+import { showPlayerSelector } from './dom/ui.player-selection.js'
+import {setupThemeControls} from './theme/theme.js'
 
-import setupDialogs from './dom/dialog'
-import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select'
-import { setToggle, setPressureToggle } from './dom/toggle'
-import { setButton, setPressureButton, setupMIDIButton } from './dom/button'
-import { addToolTips, setToast } from './dom/tooltips'
-import { setFeedback } from './dom/text'
-import { appendPhotographElement } from './dom/photographs'
-import { appendAudioElement} from './dom/audio-element'
-import { connectDropZone } from './dom/drop-zone'
-import interact from './utils/inactivity'
-import { 
-	copyCanvasToClipboard, canvas
-} from './visual/canvas'
+import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
+import { setToggle, setPressureToggle } from './dom/toggle.js'
+import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
+import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
+import { setFeedback } from './dom/text.js'
+import { appendPhotographElement } from './dom/photographs.js'
+import { appendAudioElement} from './dom/audio-element.js'
+import { connectDropZone } from './dom/drop-zone.js'
+import { copyCanvasToClipboard, canvasElement } from './visual/canvas.js'
+import interact from './utils/inactivity.js'
 
 import MusicalKeyboard from './visual/2d.keyboard'
 // import Stave from './visual/2d.stave'
 
 import { setupImage } from './visual/image'
 import { setNodeCount } from './visual/2d'
-import { drawQuantise, Quanitiser } from './visual/quantise'
+import { Quanitiser } from './visual/quantise'
 
 import { drawMousePressure } from './dom/mouse-pressure'
 
-import { getLocationSettings, getShareLink, addToHistory } from './utils/location-handler'
+import { getLocationSettings, getShareLink, addToHistory, getRefererHostname } from './utils/location-handler'
 
-import { findBestCamera, loadCamera } from './hardware/camera'
+// Hardware
+import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera'
 import { watchMouseCoords  } from './hardware/mouse'
+import { howManyHolographicDisplaysAreConnected } from './hardware/looking-glass-portrait.js'
 
 import Person, { 
 	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
@@ -98,23 +91,44 @@ import Person, {
 	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
  } from './person'
 
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS } from './settings/options'
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options'
 
 import { TAU } from "./maths/maths"
 
 import { convertOptionToObject } from './utils/utils'
 
-import { 
-	loadDisplay,
-	DISPLAY_CANVAS_2D,DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE
- } from './display/display-loader'
+import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay  } from './display/display-manager.js'
+import { DISPLAY_TYPES } from './display/display-types.js'
 
 import { loadMLModel } from './models/load-model'
 
+import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		
+import { toggleFullScreen } from './dom/full-screen.js'
+import { WebMidi } from 'webmidi'
+import { createQRCode } from './utils/barcodes.js'
+
+import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
+import { setupRecordings } from './dom/ui.recording.js'
+import { setupVolumeInterface } from './dom/ui.volume.js'
+
+import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
+import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
+import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
+
+import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
+import Capabilities from './capabilities.js'
+import { loadInstrumentsList } from './settings/options.instruments.js'
+import InstrumentFactory from './audio/instrument-factory.js'
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
 
+const {DISPLAY_CANVAS_2D,DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
+
+// GAH!?
+// requiredXRSetupForLookingGlass()
 
 let instance = null
 class PhotoSYNTH{
@@ -134,39 +148,72 @@ class PhotoSYNTH{
  * @param {Object} defaultOptions - options to overwrite
  * @param {Function} store - state management
  * @param {Capabilities} capabilities - object to represent device specs
+ * @param {?Function} midiConnectionClass - MIDI connector
  * @param {?String} language - language code
  * @param {?Function} onLoadProgress - method to call on progress
  * @returns {PhotoSYNTH} Restricted access to properties and methods
  */
 export const createInterface = ( 
-
 	defaultOptions, 
 	store, 
 	capabilities,
+	instrumentListURIorObject,
+	MIDIConnectionClasses = [],
 	language = "en-GB",
 	onLoadProgress = null
 
 ) => new Promise( (resolve,reject) => {
 
 	// Enforce Singleton and return Class with public methods only
+	// This allows us to load all the data upfront and then create a single
+	// instance only of this class. Any subsequent instances created will return 
+	// the same original instance.
 	if (instance)
 	{
 		return resolve(instance)
 	}
 
-	const doc = document
-	const body = doc.documentElement
-	const main = doc.querySelector("main")
-	const image = doc.querySelector("img")
-	const buttonRecordAudio = doc.getElementById("button-record-audio")
+	// TODO:
+	// capabilities.popover
 
+	// fetch some elements from the DOM
+	const doc = document	// using a reference allows truncation
+	const body = doc.documentElement
+
+	const main = doc.querySelector("main")
+
+	const buttonRecordAudio = doc.getElementById("button-record-audio")
+	const buttonDiscoModeToggle = doc.getElementById("button-disco")
+	const buttonClearToggle = doc.getElementById("button-clear")
+	const buttonSpeakToggle = doc.getElementById("button-speak")
+	const buttonMetronomeToggle = doc.getElementById("button-metronome")
+	
+	let canvasElement = doc.getElementById('photosynth-canvas')
+
+	// where we extract the face data from
+	let inputElement = video // image
+
+	// JSON object of available instruments
+	let instrumentList
+
+	// dom elements wrapped in js
+	let camera
+	let photo
+	let audioChain
+
+	// canvas / GL adapters for front end
+	let displayType = DISPLAY_CANVAS_2D
+	let display = null
+	
 	// lazy loaded imports
 	let getInstruction, getHelp
 	let setupReporting, track, trackError, trackExit
 
 	const toggles = {}
 	const selects = {}
+	const buttons = {}
 
+	// cookie data
 	const information = Object.assign({
 		lastTime:-1,
 		count:0
@@ -174,72 +221,170 @@ export const createInterface = (
 
 	// Fix dialogs and bind them with events
 	setupDialogs()
-	
+
+	// update progress gradually like the old flash days!
+	let loadPercent = 0
+	let loadProgressMediator = ( newValue, message, hideLoader )=>{
+		
+		if (!onLoadProgress)
+		{
+			return
+		}
+
+		if (loadPercent < newValue)
+		{
+			// loadPercent = newValue
+			// lerp towards
+			loadPercent = loadPercent + 0.005 //.toFixed(2)  loadPercent 
+			onLoadProgress(loadPercent, message, hideLoader)
+		}
+
+		if (loadPercent < newValue)
+		{
+			requestAnimationFrame( e => loadProgressMediator(newValue) )
+		}else{
+			loadPercent = newValue
+		}
+	}
+
+	// STATE -----------------------------------------------------------------
+
+	const shareCodeElement = document.querySelector(".qr")
+
 	// state management
-	let ui = loadState( defaultOptions, main )
+	const hostName = getRefererHostname()
+	const globalOptions = Object.assign({}, globalThis._synth)
+	const domainOptions = getDomainDefaults( hostName )
+	const defaultOptions = { ...domainOptions, ...globalOptions }
+	
+	
+	const stateMachine = createStateFromHost( main )
+	// const stateMachine = State.getInstance()
+
+	const referer = stateMachine.get("referer")
+	
+	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
+	//State.getInstance().addEventListener( event => {
+	stateMachine.addEventListener( (key,value) => {
+		
+		if (shareCodeElement)
+		{
+			const bookmark = stateMachine.asURI
+			//- console.info("State", state.serialised )
+			const qrOptions = {text:bookmark} 
+			const hole = document.createElement("div")
+			shareCodeElement.innerText = ""
+
+			const qrcode = createQRCode( shareCodeElement.appendChild( hole ) , qrOptions) 
+			// console.info("Creating QR code", {bookmark, qrcode, qrOptions} )
+		}
+
+		// console.info("State Changed", { entries:stateMachine.entries } )
+	})
+		
+	//state.setDefaults(defaultOptions)
+	stateMachine.loadFromLocation(defaultOptions)
+
+	// updates the URL with the current state (true - encoded)
+	// this is useful as immediately after loading the page the URL will be the current state
+	// and so can be shared to return to this exact setup
+	// states.updateLocation()
+	
+	// Update UI - this will check all the inputs according to our state	
+	// states.updateFrontEnd()
+	
+
+	const modelOptions = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS )
 
 	// Record stuff
-	const { getRecordedDuration, isRecordingAvailable, isRecording, startRecording, stopRecording, encodeRecording, downloadRecording } = recordAudio()
-
+	const { 
+		getRecordedDuration, 
+		isRecordingAvailable, 
+		isRecording, 
+		startRecording, 
+		stopRecording, 
+		encodeRecording, 
+		downloadRecording
+	} = recordAudio()
+	
 	// collection of persons
 	const people = []
-	let inputElement = video // image
 
-	// dom elements wrapped in js
-	let camera
-	let photo
-	let audio 
+	// MIDI ---
+	const midiManager = new MIDIConnectionManager()
+
+	let webMidi
 	let midi
 	let midiButton
-	// canvas / GL adapters for front end
-	let display
+	let midiDevices = []
 
-	let timer
-	let reporter
-	let gamePad
+	// MIDI File ---
+	// load MIDI Track model midi track  / save midi track
+	let midiPerformance
+	let samplePlayer
+	let midiPlayer
+	let savedPerformance
+
+	// timer (24 cycles per tick) metronome
+	let clock
 
 	// samples and synths
 	let kit
 	let patterns
 	let recorder
 
-	// load MIDI Track model midi track  / save midi track
-	let midiPerformance
-	let samplePlayer
-	let midiPlayer
-	let savedPerformance
+	// UI elements
 	let waveforms = []
-	let musicalKeyboard
+	let musicalKeyboard	
+	let quanitiser
+
+	// Automation & engager for installation booth setup
 	let automator
 	let useAutomator = true
 
+	// Flags
+	let isLoading = true
+
+	// Machine Learning Model connections
+	let isPredictionEngineBusy = false
+	let fetchPredictionFromEngine
+	let peoplePredictions
+
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
-	let isLoading = true
-	let beatJustPlayed = false
+	let hasBeatJustPlayed = false
 	let ultimateFailure = false
-	let midiAvailable = false
-	let cameraLoading = true
 	let noFacesFound = false
-	let userLocated = false
-	// if the user leaves the tab
-	let userActive = false
+	let isPersonLocatable = false
+
+	let isMIDIAvailable = false
+
+	let isCameraLoading = true
+	// if the user leaves the tab or removes their face from the frame
+	let isUserActive = false
+
 	let recordRequested = false
 	let recordCancelRequested = false
 
-	// fetch some elements from the DOM
-	const canvasElement = document.getElementById('interface')
-	const webGLElement = document.getElementById('interface3D')
+	// for disco mode!
+	const cameraPan = {x:1,y:1}
 
-	// create audio elements
+	// This allows us to determine how long the app has been running for?
+	let counter = 0
+	
+	// performance indicators
+	const statistics = {
+		lag:0, 
+		drift:0
+	}
 
+	// UI ---------------------------------------------------------
 	const showLoading = () => {
 		body.classList.toggle("loading", true)
 		main.setAttribute("aria-busy", true)
 	}
 
 	const hideLoading = () => {
-		// hide loading screen temporarily
 		body.classList.toggle("loading", false)
 		main.setAttribute("aria-busy", false)
 	}
@@ -251,32 +396,10 @@ export const createInterface = (
 	// NB. This should be only possible if we 
 	// are *not* showing the video element underneith
 	const shouldCopyVideoFrame = () => {
-		if (ui.clear)
-		{
-			return false
-		}
-		if (ui.synch){
-			return true
-		}
-		return false
+		return  stateMachine.get("clear") ? 
+			false :  stateMachine.get("synch") ? 
+				true : false
 	}
-
-
-	// TODO:
-	let cookieConsent = false
-
-	// This allows us to determine how long the app has been running for?
-	let counter = 0
-	
-	// performance indicators
-	const statistics = {
-		lag:0, 
-		drift:0
-	}
-
-	// for disco mode!
-	const cameraPan = {x:1,y:1}
-
 
 	/**
 	 * For Demonstration and automation purposes 
@@ -293,12 +416,18 @@ export const createInterface = (
 
 	/**
 	 *  Vocal mode uses speech synthesis to talk the toSay string
+	 * and uses the accent dictated usually by the IP output
 	 * @param {String} toSay Audio phrase to repeat
+	 * @param {Boolean} clear Immediately end any xisting speech
 	 */
-	const speak = toSay => {
-		if ( ui.speak && hasSpeech() ) 
+	const speak = (toSay, clear=true) => {
+		if (  stateMachine.get("speak") && hasSpeech() ) 
 		{
-			say(toSay,true)
+			try{
+				say(toSay,clear)
+			}catch(error){
+				console.error("Speech Synthesis Error", error)	
+			}
 		}
 	}
 
@@ -313,6 +442,9 @@ export const createInterface = (
 		setToast(message,time)
 	}
 
+
+	// AUDIO --------------------------------------------------
+
 	/**
 	 * Randomise the drum patterns to create a distinct
 	 * and unique style and sound 
@@ -321,39 +453,49 @@ export const createInterface = (
 		patterns = kitSequence( Math.floor( 17 + Math.random() * 23 ))
 	} 
 
+	// TODO: randomise the drum beat
+	const changeDrumPattern = () => {
+
+	}
+	
+	/**
+	 * Toggle the background synthesized percussion
+	 */
+	const toggleBackgroundPercussion = () => {
+		const buttonPercussion = document.getElementById("button-percussion")
+		const isEnabled = stateMachine.toggle( 'backingTrack', buttonPercussion )
+		// toggle UI also...
+		// setElementCheckState(buttonPercussion, isEnabled )
+		setToast( isEnabled ? "Backing track starting" : "Ending Backing Track" )	
+	}
+
 	/**
 	 * This sets the master volume below the compressor
-	 * @param {Number} volume 
+	 * @param {Number} value 
 	 * @returns volume
 	 */
-	const setMasterVolume = volume => {
-		const r = setVolume(volume)
-		store.setItem('audio', { volume:r })
-		setToast(`Volume ${Math.ceil(r * 100)}%`,0)
-		return r
+	const setMasterVolume = value => {
+		const volume = setVolume(value)
+		store.setItem('audio', { volume })
+		setToast(`Volume ${Math.ceil(volume * 100)}%`,0)
+		return volume
 	}
 
 	/**
 	 *  This sets the rate of the master clock that gets transported 
 	 *  through the app in order to perform time based actions
-	 * @param {Number} bpm Beats per minute
-	 * @returns {Number} New Tempo
-	 */
-	const setTempo = (tempo) => {
-		setTimeBetween( tempo )
-		const bpm = getBPM()
-		setToast( `Tempo : Period set at ${Math.ceil(tempo)} ms between bars / ${Math.ceil(bpm)}BPM` )
-		store.setItem('tempo', { period:tempo, bpm })
-		return tempo
-	}
-
-	/**
 	 *  Set the speed of this track by how many ticks per minute
 	 *  60,000 / BPM = one beat in milliseconds
 	 * @param {Number} bpm Beats per minute
 	 * @returns {Number} New Tempo
 	 */
-	const setBPM = (bpm) => setTempo( 60000 / bpm  )
+	const setBPM = (bpm) => {
+		clock.BPM = bpm
+		// stateMachine.set( 'bpm',  clock.BPM )
+		stateMachine.set( 'bpm',  clock.BPM )
+		setToast( `Tempo : Period set at ${Math.ceil(clock.period)} ms between bars / ${Math.ceil(clock.BPM)}BPM` )
+		return clock.BPM
+	}
 
 	/**
 	 * Instruments : Load for all people!
@@ -361,44 +503,69 @@ export const createInterface = (
 	 * @param {Function} callback Method to run once instruments have loaded
 	 * @returns {Function} instrument name (raw)
 	 */
-	const loadInstruments = async (method, callback) => people.map( async (person) => { 
+	const loadInstrumentPreset = async (method, callback) => people.map( async (person) => { 
 		const instrument = await person[method](callback)
 		setToast(`${person.name} has ${person.instrumentTitle} loaded`)
 		//console.log(`${person.name} has ${instrument} loaded` )
 		return instrument
 	})
 
-	const loadRandomInstrument = async (callback) => await loadInstruments('loadRandomInstrument', callback)
-	const previousInstrument = async (callback) => await loadInstruments('loadPreviousInstrument', callback)
-	const nextInstrument = async (callback) => await loadInstruments('loadNextInstrument', callback)
-	const reloadInstrument = async (callback) => await loadInstruments('reloadInstrument', callback)
+	/**
+	 * Be *sure* to make these the identical same as the names in the instrument Interface
+	 */
+	const loadRandomInstrument = async (callback) => await loadInstrumentPreset('loadRandomPreset', callback)
+	const previousInstrument = async (callback) => await loadInstrumentPreset('loadPreviousPreset', callback)
+	const nextInstrument = async (callback) => await loadInstrumentPreset('loadNextPreset', callback)
+	const reloadInstrument = async (callback) => await loadInstrumentPreset('reloadPreset', callback)
 
-	
 	/**
 	 * Instantiate a Person Class and connect it up accordingly
-	 * @param {String} name Player's name
+	 * @param {Number} index Player's index
 	 * @param {String} eyeColour Player's eye colour
 	 * @param {?Number} personIndex -  Player number
 	 * @returns {Person} Person fully wired
 	 */
-	const createPerson = (name,eyeColour, personIndex=0) => {
+	const createPerson = (index, eyeColour, personIndex=0, useGamePad=false ) => {
+		
+		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
+	
 
-		const duetAvailable = ui.duet
+		// TODO: load in from the URL and players
+		let savedData = undefined
+
+		const locationOptions = new URLSearchParams(window.location.search)
+		const locationData = Object.fromEntries(locationOptions)
+		const name = NAMES[index]
+		// 
+		const prefix = name + '-'
+		const locationInstrument= locationData[prefix+'instrument' ]
+		const locationPreset= locationData[prefix+'preset' ]
+	
+		// look for preset
+		console.info(personIndex+"PERSON Creating, Please check DATA", {locationData, locationOptions, locationInstrument, locationPreset} )
+		// const NAMES[personIndex]
+
+		// check URL for saved options
+		// defaultPreset:this.options.defaultPreset,
+		// defaultInstrument:this.options.defaultInstrument
 		
 		// TODO: Change these per person...
 		const personOptions = { 
+			
+			...defaultOptions,
+
 			dots:eyeColour, 
 			leftEyeIris:eyeColour, 
 			rightEyeIris:eyeColour,
 			// FIXME: should probably use a set hue for consistency...
-			hue:Math.random() * 360,
-			debug:ui.debug,
+			// hue:Math.random() * 360,
+			debug:stateMachine.get('debug'),
 			// FIXME: why is this per person? should always set per screen
-			photoSensitive:ui.photoSensitive,
+			photoSensitive:stateMachine.get('photoSensitive'),
 
-			instrumentPack:ui.instrumentPack,
+			instrumentPack:stateMachine.get('instrumentPack'),
 
-			stereoPan:ui.stereo,
+			stereoPan:stateMachine.get('stereo'),
 
 			// alternate between mesh and blobs depending on mouth
 			// NB. The two above will override this behaviour
@@ -406,24 +573,20 @@ export const createInterface = (
 			// force draw face mesh
 			// drawMesh:false,
 			// force draw face blob nodes
-			drawMask:ui.masks,
+			drawMask:stateMachine.get('masks'),
 			// drawNodes:ui.masks,
-			drawEyes:ui.eyes
+			drawEyes:stateMachine.get('eyes'),
+
+			recordData:stateMachine.get('recordData'),
 		}
 
 		// Load any saved settings for this specific user name
+		
 		const savedOptions = store.has(name) ? store.getItem(name) : {}
-		const options = Object.assign ( {}, personOptions, savedOptions ) 
-		const person = new Person( name, audioContext, offlineAudioContext, audio, options ) 
-		//person.addInstrument( new SampleInstrument(audioContext, audio, {}))
-
-		// see if there is a stored name for the instrument...
-		// FIXME: Look also in the midiPerformance for the first instrument
-		const instrument = getFolderNameForInstrument( midiPerformance ? midiPerformance.instruments[0] : null || savedOptions.instrument || getRandomInstrument() )
-		//console.error("Person created", {instrument}, {person})
-
-
-		// there can be many instruments
+		const options = Object.assign ( {}, savedOptions, personOptions ) 
+		
+		// Create our person with the specified options
+		const person = new Person( index, options, savedData ) 
 
 
 		// the instrument has changed / loaded so show some feedback
@@ -450,56 +613,111 @@ export const createInterface = (
 			markInstrumentProgress( progress, instrumentName )
 		})
 
-		person.loadInstrument( instrument )
+		// We assign certain random instruments from groups to each user
+		// we want this to happen in the background
+		// see if there is a stored name for the instrument...
+		// FIXME: Look also in the midiPerformance for the first instrument
+		let preset = locationPreset ?? 12
+
+		if (midiPerformance)
+		{
+			preset = midiPerformance.instruments[0]
+			// TODO: Test this is a valid GM instrument!
+		}else if (locationPreset){
+			// There was a location specified in the location bar 
+			// TODO: I should update this to check the stateMachine really!
+			preset = locationPreset
+		}else{
+
+			switch(personIndex)
+			{
+				case 1:
+					preset = getRandomLeadPresetIndex()
+					break
+				case 2:
+					preset = getRandomHarmonicLeadPresetIndex()
+					break
+				case 3:
+					preset = getRandomBasslinePresetIndex()
+					break
+				default:
+					preset = getRandomBeatsPresetIndex()
+			}			
+		}
+
+		
+
+
+		// const preset = midiPerformance ? 
+		// 	midiPerformance.instruments[0] : 
+		// 		locationPreset ?? 
+		// 		options.instrument ?? 
+		// 		getRandomInstrument()
+
+		// const preset = getFolderNameForInstrument( presetName )
+		//console.error("Person created", {instrument}, {person})
+		
+		if (personOptions.debug)
+		{
+			console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
+			console.info(options)
+		}
+		
+		console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
+		// we need to wait for the instrument to be loaded before we can start
+		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
+		person.setupAudio(audioContext, audioChain, offlineAudioContext, preset).then(async()=>{
+			// the above command should initalise a default sample player rendering the following line obsolete
+			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
+			// const presetData = person.getPresets()[0]
+			
+			// now assign the instrument to the person!
+			person.instrument = await person.loadPreset( preset )
+
+			// FIXME: now append this person's options to the URL
+			// const personExportData = person.exportData()
+			// console.error("Loaded Preset for Person", { person, personExportData, preset })
+		})
+		
+		/*
+		const bindInstrumentPanelToPerson = (personID) => {
+			const panel = doc.querySelector(`.person-${personID}-panel`) 
+			const togglePanelButton = panel.querySelector(`.person-${personID}-toggle-controls` )
+			togglePanelButton.addEventListener("click", e => person.toggleForm() )
+			panel.removeAttribute("hidden")
+		}
 
 		switch(personIndex)
 		{
+			// Person A - left side TOP
 			case 0:
-				const leftControlPanelButton  = doc.querySelector('.person-a-toggle-controls')
-				const leftControlPanel = doc.querySelector(".person-a-panel")
-				leftControlPanelButton.addEventListener("click", e => person.toggleForm() )
-				leftControlPanel.removeAttribute("hidden")
+				bindInstrumentPanelToPerson("a")
 				break
 
+			// Person B - right side TOP
 			case 1:
-				const rightControlPanelButton = doc.querySelector('.person-b-toggle-controls')
-				const rightControlPanel = doc.querySelector(".person-b-panel")
-				rightControlPanelButton.addEventListener("click", e => person.toggleForm() )
-				rightControlPanel.removeAttribute("hidden")
+				bindInstrumentPanelToPerson("b")
+				break
+
+			// Person C - left side BOTTOM
+			case 2:
+				bindInstrumentPanelToPerson("c")
+				break
+
+			// Person D - right side BOTTOM
+			case 3:
+				bindInstrumentPanelToPerson("d")
 				break
 		}
-		
 
-		// see if there are any gamepads connected - let's go te whole hog!
-		gamePad = new GamePad( personIndex )
-		gamePad.on( (buttonName, value) => {
-			switch(buttonName)
-			{
-				case "disconnected":
-					setToast("GamePAD Unplugged")
-					break
+		*/
 
-				case "connected":
-					setToast(value)
-					break
-
-				// open sidebar
-				case "start": 
-				case "select":	
-					person.showForm() 
-					break
-				
-				case "dup": break
-				case "dright": 
-					person.loadPreviousInstrument()
-					break
-
-				case "ddown": break
-				case "dleft": 
-					person.loadPreviousInstrument()
-					break
-			}
-		})
+		// Each Person can be also controlled via GamePad
+		if (useGamePad)
+		{
+			const gamePad = addGamePadControlToUser( personIndex, person )	
+			person.gamePad = gamePad
+		}
 		
 		//console.error(name, {instrument, person, savedOptions})
 		
@@ -518,11 +736,13 @@ export const createInterface = (
 	 * @returns {Function} Player Class 
 	 */
 	const getPerson = (index) => {
-		
 		if (people[index] == undefined)
 		{
-			const person = createPerson( NAMES[index] ,EYE_COLOURS[index], index )
+			const useGamePad = stateMachine.get("gamePad") ?? false
+			const person = createPerson( index, EYE_COLOURS[index], index, useGamePad )
+		
 			people.push( person )
+			console.log("getPerson", {person,people})
 			return person
 		} else{
 			return people[index]
@@ -569,45 +789,7 @@ export const createInterface = (
 		})
 	}
 
-	// MIDI ////////////////////////////////////////////////////////////////
-
-	////////////////////////////////////////////////////////////////////
-	// this needs a user interaction to trigger
-	////////////////////////////////////////////////////////////////////
-	const enableMIDI = async () => {
-
-		try{
-			midi = await setupMIDI()
-			
-			// midi device connected! huzzah!
-			midi.addListener("connected", (e) => updateMIDIStatus(midi.outputs) )
-			
-			// Reacting when a device becomes unavailable
-			midi.addListener("disconnected", (e) => updateMIDIStatus(midi.outputs) )
-
-			updateMIDIStatus(midi.outputs)
-
-			main.classList.add('midi-available')
-
-		}catch(error){	
-
-			// failed
-			console.error("Total MIDI failure", error)
-			// this needs a user interaction to trigger
-			setFeedback("MIDI NOT Available<br>"+error, 0)
-			main.classList.add('midi-unavailable')
-			return false
-		}
-
-		return true	
-	}
-
-	/**
-	 * TODO:
-	 */
-	const disableMIDI = () => {
-		// midiButton.setText()
-	}
+	// MIDI --------------------------------------------------------
 
 	/**
 	 * name: "midi_banjos.mid"
@@ -622,8 +804,12 @@ export const createInterface = (
 			switch (file.type)
 			{
 				case "application/json":
-					console.log("Instrument Pack loading is not supported at this time")
+					console.warn("Instrument Pack loading is not supported at this time")
 					break
+
+				// case "application/json":
+				// 	console.warn("Instrument Pack loading is not supported at this time")
+				// 	break
 
 				case "audio/mid":
 					const midiFile = await loadMIDIFileThroughClient( file )
@@ -632,11 +818,14 @@ export const createInterface = (
 					return midiFile
 
 				default:
-					console.log("Dropped file", {file} , "Ignoring as not sure how to interpret it")
+					console.warn("Dropped file", {file} , "Ignoring as not sure how to interpret it")
 			}
 			return null
 		}
 	}
+
+
+
 
 	/**
 	 * Connect one person to a MIDI port
@@ -655,87 +844,50 @@ export const createInterface = (
 		if (port)
 		{
 			person.setMIDI(port, midiChannel)	
-			//console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
+			//console.info(midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
 		}else{
-			console.error("No matching MIDI Instrument", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel}, midi.outputs[midiChannel])
+			console.error("No matching MIDI Instrument", midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{stateMachine, port, portIndex: midiChannel} )
 		}
 		return port
 	}
 
-	/**
-	 * Show that MIDI confg and hardware are available / unavailable
-	 * @param {Array} outputs - MIDI Devices we want to use
-	 */
-	const updateMIDIStatus = (outputs)=>{
-		const quantity = outputs.length
-		if (quantity>0)
-		{
-			const midiDevices = outputs.map(midiInstrument => midiInstrument.name || "MIDI Instrument" )
-			let feedback = `MIDI : <br>${midiDevices.join( "<br>" )}`
-			switch(quantity)
-			{
-				// FIXME: 2 instruments have been connected,
-				// we should send one to each instrument presumably?
-				case 2:
-					people.forEach( (person,i) => connectMIDIForPerson(i, outputs, ui.midiChannel) )
-					break;
+	// INTERACTIONS -----------------------------------------------------------------
 
-				default:
-					// w00t
-					// console.error("MIDI devices",midiInstrument, midiInstrumentName, outputs)
-							
-					// use this to fill the peoples
-					people.forEach( (person,i) => connectMIDIForPerson(i, outputs, ui.midiChannel) )
-					
-					//midiButton.setText("Click to disable")
-			}
-
-			main.classList.toggle('midi-no-devices', false)
-			main.classList.toggle('midi-connected', true)
-			main.classList.toggle(`midi-devices-${quantity}`, true)
-			main.classList.remove(`midi-unavailable`)
-
-			setToast( feedback )
-
-			midiButton.setText("<span class='hide-text'>Click to </span>Disable")
-			midiButton.setLabel(feedback)
-
-		}else{
-
-			// bugger - either we never had or we lost...
-			setFeedback(midiAvailable ? "Lost MIDI Device connection" : "MIDI Available but no instruments detected", 0)
-			setToast("No MIDI Devices connected")
-			main.classList.toggle('midi-no-devices', true)
-			main.classList.toggle('midi-connected', false)
-		}
-
-		midiAvailable = outputs.length > 0
-	}
-
-	/**
-	 * Update the GUI to show that MIDI instrument is available
-	 * NB. MIDI will require a user interaction to initiate
-	 * @returns {Boolean} if MIDI is available
-	 */
-	const showMIDI = async () => {
-
-		// to skip clicking but results in a warning
-		midiButton = setupMIDIButton( 
-			document.getElementById("button-midi"), 
-			async (b) => {
-				await enableMIDI()
-				setFeedback("MIDI available<br>Connecting to instruments...", 0)
-				main.classList.add('midi-activated')
-				return false
-			}
-		)
+	const addGamePadControlToUser = (personIndex, person) => {
 		
-		// FIXME:this is supposed to check for midi instrument somehow??!!!
-		return true
+		// see if there are any gamepads connected - let's go te whole hog!
+		const gamePad = new GamePad( personIndex )
+		gamePad.on( (buttonName, value) => {
+			switch(buttonName)
+			{
+				case "disconnected":
+					setToast("GamePAD Unplugged")
+					break
+
+				case "connected":
+					setToast(value)
+					break
+
+				// open sidebar
+				case "start": 
+				case "select":	
+					person.showForm() 
+					break
+				
+				case "dup": break
+				case "dright": 
+					person.loadPreviousInstrument()
+					break
+
+				case "ddown": break
+				case "dleft": 
+					person.loadPreviousInstrument()
+					break
+			}
+		})
+		return gamePad
 	}
-
-	// INTERACTIONS ///////////////////////////////////////////
-
+	
 	/**
 	 *  Add Keyboard listeners and tie in commands
 	 */
@@ -746,6 +898,11 @@ export const createInterface = (
 
 			const isNumber = !isNaN( parseInt(event.key) )
 			const focussedElement = document.activeElement
+
+			if ( event.key !== 'Tab' ){
+				event.preventDefault()
+				return
+			}
 			
 			// Contextual hotkeys - if something is focussed then different keys!
 			if (focussedElement && focussedElement !== document.documentElement )
@@ -789,6 +946,7 @@ export const createInterface = (
 						}
 						break
 
+					// 
 					case "DIALOG":
 
 						break
@@ -802,14 +960,28 @@ export const createInterface = (
 			switch(event.key)
 			{
 				case 'CapsLock':
-					setState("debug", !ui.debug )
-					people.forEach( person => person.debug = ui.debug )
-					setToast(`DEBUG : ${ui.debug}`)
-					speak( ui.debug ? "secret mode unlocked" : "disabling developer mode", true)
+					const isDebug = stateMachine.toggle( "debug" )
+					people.forEach( person => person.debug = stateMachine.get("debug") )
+					setToast(`DEBUG : ${stateMachine.get("debug")}`)
+					speak( isDebug ? "secret mode unlocked" : "disabling developer mode", true)
+					break
+
+				case 'Enter':
+					if (event.ctrlKey)
+					{
+						toggleFullScreen()
+					}else{
+						loadRandomInstrument() 
+					}
 					break
 
 				case 'Space':
-					loadRandomInstrument() 
+					if (event.ctrlKey)
+					{
+						toggleFullScreen()
+					}else{
+						loadRandomInstrument() 
+					}
 					break
 
 				case 'QuestionMark':
@@ -817,30 +989,25 @@ export const createInterface = (
 					// read out last bit of help?
 					speak(document.getElementById('toast').innerText, true)
 					break
-
 	
 				// Arrows set timing
 				case 'ArrowLeft':
-					setBPM( getBPM() - 10 )
+					setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
 					break
 
 				case 'ArrowRight':
-					setBPM( getBPM() + 10 )
+					setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
 					break
 
 				case 'ArrowUp':
-					let b = getBars() + 1
-					let bars = setBars( b )
-					setTimeBetween( timePerBar() )
-					setToast(`Bars : ${bars} / BPM : ${getBPM()}`)
+					clock.totalBars++
+					setToast(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`)
 					break
 
 				// change amount of bars
 				case 'ArrowDown':
-					let ub = getBars() - 1
-					let ubars = setBars( ub )
-					setTimeBetween( timePerBar() )
-					setToast( `Bars ${ubars} / BPM : ${getBPM()}` )
+					clock.totalBars--
+					setToast( `Bars ${clock.totalBars} / BPM : ${clock.BPM}` )
 					break
 
 				case ',':
@@ -856,12 +1023,11 @@ export const createInterface = (
 					break
 
 				case 'b':
-					setState("backingTrack", !ui.backingTrack, toggles )
-					setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
+					toggleBackgroundPercussion()
 					break
 			
 				case 'c':
-					setState("clear", !ui.clear, toggles )
+					stateMachine.toggle("clear", buttonClearToggle )
 					break
 
 				case 'd':
@@ -879,11 +1045,11 @@ export const createInterface = (
 				case 'g':
 					const isVisisble = toggleVisibility(document.getElementById("feedback") )
 					toggleVisibility(document.getElementById("toast") )
-					ui.text = isVisisble
+					stateMachine.set("text", isVisisble )
 					break
 
 				case 'h':
-					toggleVisibility(canvas)
+					toggleVisibility(canvasElement)
 					break
 
 				// Change impulse filter in the reverb
@@ -907,13 +1073,13 @@ export const createInterface = (
 
 				// toggle speech
 				case 'l':
-					setState("speak", !ui.speak, toggles )
-					setToast( ui.speak ? `Reading out instructions` : `Staying quiet` )
+					stateMachine.toggle("speak", buttonSpeakToggle )
+					setToast( stateMachine.get("speak") ? `Reading out instructions` : `Staying quiet` )
 					break
 			
 				case 'm':
-					setState("metronome", !ui.metronome, toggles )
-					setToast( ui.metronome ? `Quantised enabled` : `Quantise disabled` )
+					stateMachine.toggle("metronome", buttonMetronomeToggle )
+					setToast( stateMachine.get("metronome") ? `Quantised enabled` : `Quantise disabled` )
 					break
 
 				case 'n':
@@ -939,7 +1105,7 @@ export const createInterface = (
 					break
 
 				case 'q':
-					setState("muted", !ui.muted, toggles )
+					stateMachine.toggle("muted" )
 					break
 			
 				case 'r':
@@ -951,7 +1117,7 @@ export const createInterface = (
 					break
 
 				case 't':
-					setState("text", !ui.text, toggles )
+					stateMachine.toggle("text" )
 					break
 
 				case 'u':
@@ -986,9 +1152,31 @@ export const createInterface = (
 
 				// Reset help!
 				case 'z':
-					counter = 0
+					const predictions = getPerson(0).parameterRecorder.export()
+					console.log(predictions)
 					break
 			
+				// Swutch between the various displays
+				case "F1":
+					event.preventDefault()
+					switchDisplay( DISPLAY_CANVAS_2D, predictionLoop )
+					break
+				case "F2":
+					event.preventDefault()
+					switchDisplay( DISPLAY_MEDIA_VISION_2D, predictionLoop )
+					break
+				case "F3":
+					event.preventDefault()
+					switchDisplay( DISPLAY_WEB_GL_3D, predictionLoop )
+					break
+				case "F4":
+					event.preventDefault()
+					switchDisplay( DISPLAY_LOOKING_GLASS_3D, predictionLoop )
+					break
+				case "F5":
+					event.preventDefault()
+					switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
+					break
 
 				// don't hijack tab you numpty!
 				// FILTER
@@ -1003,6 +1191,7 @@ export const createInterface = (
 						// loadRandomInstrument()
 						// speak("Loading random instruments",true)	
 					}
+					console.log("Key pressed", {event,isNumber,activeElement} )
 			}
 
 			// Check to see if it is a number
@@ -1025,15 +1214,28 @@ export const createInterface = (
 			}
 
 			// we run this when we want to ???
-			addToHistory(ui, event.key)
+			// addToHistory(ui, event.key)
 			// console.log("key", ui, event)
 		})
 	}
 
 
-	// TODO: randomise the drum beat
-	const changeDrumPattern = () => {
-
+	/**
+	 * Control the "visualiser" feedback
+	 * @param {Boolean} enabled 
+	 */
+	const setDiscoMode = (enabled=null) => {
+		if (enabled === null)
+		{
+			enabled = !stateMachine.get("disco")
+		}
+		if (enabled)
+		{
+			display.nextFilter( )
+		}else{
+			display.resetFilter( )
+		}
+		stateMachine.set("disco", enabled, buttonDiscoModeToggle )
 	}
 
 	/**
@@ -1045,20 +1247,23 @@ export const createInterface = (
 	const playPersonAudio = async ( person ) => {
 		
 		// yaw, pitch, lipPercentage, eyeDirection
-		const stuff = person.sing()
+		const modelData = person.sing()
 		
 		// no instruments set in Person - exit now
 		if( !person.instrument )
 		{
-			return stuff
+			return modelData
 		}
 
-		let noteName = stuff.noteName
-		let noteNumber = stuff.noteNumberForMIDI
-		let note = stuff.note
-		let noteVelocity = stuff.volume
-		let noteFriendlyName = stuff.friendlyNoteName
-
+		// extract some note data
+		let noteName = modelData.noteName
+		let noteNumber = modelData.noteNumberForMIDI
+		// let note = modelData.note
+		let noteVelocity = modelData.volume
+		// let noteFriendlyName = modelData.friendlyNoteName
+		
+		// If there is a MIDI file in memory, we can use the data to overwrite the
+		// person data with the next part from the MIDI file data
 		// we can have some fun here and inercept the output
 		// and replace them with MIDI performance commands :P
 		if ( midiPerformance && person.singing)
@@ -1106,14 +1311,13 @@ export const createInterface = (
 			//console.log("Person:sing", { stuff,noteName,note})
 		}
 
-		
 
 		// instrument exists but no note with that name exists	
 		// NB. probably still loading...	
 		if (!person.instrument[ noteName ])
 		{
-			console.warn("SING Exit as no instrument with that name exists",noteName)
-			return stuff
+			//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
+			return modelData
 		}
 		
 		// console.log("Person:sing", { stuff,noteName,note}, person.instruments )
@@ -1122,59 +1326,29 @@ export const createInterface = (
 		// Make the Person SING!
 		person.instruments.forEach( async (instrument) => {
 
-			// console.log("Attempting to sing",instrument.type, person.state)
-			
-			// if (instrument.type !== "oscillator"){
-			// if (instrument.type !== "waveguide"){
-			// only check for one at a time
-			// if (instrument.type !== "oscillator" || instrument.type !== "yoshimi"){
-			// if ( instrument.type !== "yoshimi"){
-			// 	return
-			// }
-			// if ( instrument.type !== "sample"){
-			// 	return
-			// }
-
-		
-			//console.error("SINGING!!!", person.state)
-			// FIXME: Don't play the audio directly in Person
-			// but instead extract it and pass it to the audioBus
-			// update the stave with X amount of notes
-			// stave.draw(stuff)
-			// update the stave with X amount of notes
-			switch(person.state)
+			// console.log("sing", instrument.type, person.state, { instrument, person } )
+			switch( instrument.type )
 			{
-				case STATE_INSTRUMENT_ATTACK:
-				case STATE_INSTRUMENT_SUSTAIN:
-				case STATE_INSTRUMENT_PITCH_BEND:
-					// note off if set...
-					if ( person.lastNoteNumber >= 0 )
-					{
-						const previously = instrument.noteOff( person.lastNoteNumber )
-					}
-					const latest = instrument.noteOn( noteNumber, noteVelocity )
-					
-					//console.log("Attempting to sing", instrument.name, person.state, {instrument,latest, person})
-					// console.log("Person", person, person.state, {stuff, noteNumber, noteVelocity} )
+				case "percussion":
+					updtateDrumkitWithPerson( instrument, person )
 					break
 
-				case STATE_INSTRUMENT_DECAY:
-					break
-
-				// case STATE_INSTRUMENT_RELEASE:
-				// 	instrument.noteOff( noteNumber )
-				// 	break
-
-				case STATE_INSTRUMENT_SILENT:
 				default:
-					instrument.noteOff( noteNumber )
-					// console.log("Attempting to mute",instrument.type, person.state)
-			
+					updateInstrumentWithPerson( instrument, person )			
 			}
 		})
 
+		// FIXME: For quick demo of webmidi
+		if (webMidi)
+		{
+			updateWebMIDIWithPerson(person)
+		}
 
-		if (ui.showPiano)
+		// update the stave with X amount of notes
+		// stave.draw(stuff)
+		// update the stave with X amount of notes
+
+		if (stateMachine.get("showPiano"))
 		{
 			// Update visual elements
 			switch(person.state)
@@ -1238,7 +1412,7 @@ export const createInterface = (
 		// 	//person.sendMIDI( "noteOff", noteNumber )
 		// }
 		
-		return stuff
+		return modelData
 	}
 
 	/**
@@ -1283,7 +1457,10 @@ export const createInterface = (
 		}
 	}
 
-	// allows us to record the stream!
+	/**
+	 * allows us to record the video stream as audio
+	 * @returns  
+	 */
 	const startRecordingAudio = () => {
 
 		if (!isRecordingAvailable())
@@ -1310,6 +1487,9 @@ export const createInterface = (
 		})
 	}
 
+	/**
+	 * stop recording audio
+	 */
 	const stopRecordingAudio = () => {
 		buttonRecordAudio.parentElement.classList.toggle("cancelling", true)
 		
@@ -1318,37 +1498,8 @@ export const createInterface = (
 	
 			// get user's instrument names...tempo etc...
 			const person = getPerson(0)
-
-
 			const fileName = person.instrumentTitle || `Sample`
-
-			let svg
-			if (waveforms && waveforms.length)
-			{
-				// process the waveforms
-				let lastNonZero = 0
-				let datum
-				const compacted = waveforms.map( freqByteData=> {
-					
-					const waveformDataCompacted = []
-					for (let idx = 0; idx < 255; idx += 1) {
-						datum = Math.floor(freqByteData[idx]) - (Math.floor(freqByteData[idx]) % 5)
-
-						if (datum !== 0) {
-							lastNonZero = idx
-						}
-
-						waveformDataCompacted[idx] = datum
-					}
-					return waveformDataCompacted
-				})
-
-				const f = compacted.flat(1)
-				svg = createWaveform( f, lastNonZero )	
-				// console.log( f, {compacted, waveforms, waveformData} )
-				// console.log(svg)
-			}
-
+			const svg = createSVGWaveformFromData(waveforms)
 			
 			// first thing we do before encoding is add it to our output window
 			// along with our photos and video recordings
@@ -1385,20 +1536,128 @@ export const createInterface = (
 	}
 
 	/**
-	 * Wires up all of the individual parts of the app and returns a method
-	 * to begin the actual application
-	 * @param {Function} update Method to call when face moves
-	 * @param {Object} settings App Settings Object
-	 * @param {Function} progressCallback Method to progressivley call during setup procedure
-	 * @returns {Function} start() method
-	*/
-	const setup = async (update, settings, progressCallback) => {
+	 * switch display to the specifed one and destroy any existing
+	 * ensuring to wipe the canvas ad recrate a new one if required
+	 * @param {String} displayType 
+	 */
+	const switchDisplay = async (displayType, predictionLoop) => {
+		if (!canvasElement)
+		{
+			throw Error("No embedded canvas was provided")
+		}
+		
+		if (!canvasElement.parentNode)
+		{
+			throw Error("No DOM canvas was provided - only an orphaned canvas element")  
+		}
+		
+		if (display)
+		{
+			console.info("DISPLAY:destroying existing", display)
+			display.destroy()
+			display = null
+			canvasElement = await restartCanvas( canvasElement, MAX_CANVAS_WIDTH )
+		}
+				
+		console.info("DISPLAY:Creating new", canvasElement, displayType)
+		display = await createDisplay( canvasElement, displayType )
+		display.setAnimationLoop( predictionLoop )
 
-		const loadTotal = 6
-		let loadIndex = 0
+		// save the display type for next time
+		stateMachine.set( "display", displayType )
 
-		let quanitiser
+		console.info("Display Created", displayType, display) 
+		return display
+	}
 
+	/**
+	 * Setup the Web Camera in relation to the video element
+	 * @param {VideoElement} video 
+	 * @param {Function} onProgress 
+	 * @returns {String} Status message
+	 */
+	const setupCamera = async( video, onProgress ) => {
+
+		let investigation
+		
+		// attempt to get a camera that is suitable for the app
+		try{
+
+			investigation = await findBestCamera(store, video, status => {
+				// console.info("Camera status", status)
+				onProgress && onProgress(status)
+			})
+
+		}catch(error){
+			console.error("Camera not found SHOW ERROR", error)
+			return "Camera could not be accessed"
+		}
+		
+		const quantityOfCameras =  investigation.videoCameraDevices.length
+		camera = investigation.camera
+		isCameraLoading = false
+
+		const onCameraSelected = async (selected) => {
+			isCameraLoading = true
+			let newCamera
+			try{
+				newCamera = await loadCamera( video, selected.value, selected.label )
+			
+				// if successful store for next time
+				if (newCamera)
+				{
+					camera = newCamera
+					// save the name of the camera locally
+					store.setItem('camera', {deviceId:selected.value})
+					//console.log( selected.value , "Camera selected",selected, camera)
+					setToast( `Camera ${selected.label} changed`, 0 )
+				}else{
+					// no camera?
+					console.warn( selected.value , "Camera selected but could not load",selected, camera)
+					throw Error( `Camera ${selected.label} changed` )
+				}
+
+			}catch(error){
+				console.error("Camera:Error > ",{selected,error})
+				setToast( `Camera ${selected.label} could not be accessed`, 0 )
+			}
+			 
+			isCameraLoading = false
+		}
+
+		// show / hide camera button
+		const updateCameraSelector = videoCameraDevices => {
+			setupCameraForm(videoCameraDevices, onCameraSelected)
+			main.classList.toggle( "multiple-cameras", videoCameraDevices.length > 1 )
+		}
+
+		// now ensure that we update the list when devices are added
+		navigator.mediaDevices.ondevicechange = async (event) => {
+			
+			// FIXME: Sometimes software triggers updates heree where no devices
+			// have been addeed or removed
+			const videoCameraDevices = await fetchVideoCameras()
+			updateCameraSelector( videoCameraDevices )
+			console.info("New Camera Detected", {videoCameraDevices, event })
+			setToast( `New cameras detected!`, 0 )
+		}
+		
+		// check to see if there are multiple cameras and we want a selector
+		if ( quantityOfCameras > 1)
+		{
+			updateCameraSelector( investigation.videoCameraDevices )
+		}
+
+		const cameraFeedbackMessage = investigation.saved ? "Found saved camera" : quantityOfCameras > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera"
+		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
+	
+		return cameraFeedbackMessage
+	}
+
+	/**
+	 * Associate file types with actions here
+	 */
+	const handlePWADataTypes = () => {
 		// PWA file types! Check manifest and 
 		// https://web.dev/file-handling/
 		if (capabilities.fileHandlerAvailable) 
@@ -1407,60 +1666,431 @@ export const createInterface = (
 			launchQueue.setConsumer((launchParams) => {
 				// Nothing to do when the queue is empty.
 				if (!launchParams.files.length) {
-				  return
+					return
 				}
 				// load associated files
 				for (const fileHandle of launchParams.files) {
-				  // Handle the file.
+					// Handle the file.
 				}
 			})
 		}
+	
+	}
 
+
+	// LOOP ---------------------------------------
+
+	// Ensure that the video element is always being fed data
+	// return if camera is still connecting...
+	// otherwise tensorflow will try and calculate blankness
+	const shouldLoopBeAllowed = () => !isCameraLoading && !isLoading
+
+	/**
+	 * Pass in the prediction from the Machine Learning
+	 * Model and use it to update the app accordingly
+	 * @param {Object} predictions 
+	 * @returns 
+	 */
+	const usePredictions = predictions =>{
+
+		// console.error("where does this loop start?")
+		// NB. always update the counter
+		counter++
+
+		// If there is a attract mode supervisor
+		// we update it every tick so that it can 
+		// control this class automatically
+		if (useAutomator && automator)
+		{
+			automator.tock(clock.timeElapsed, clock )
+		}
+	
+		let tickerTape = ''
+		
+		const discoMode = stateMachine.get("disco")
+
+		if (discoMode)
+		{	
+			// FUNKY DISCO MODE...
+			// switch effect type?
+			const t = (counter * 0.01) % TAU
+			const discoX = -7 * cameraPan.x + Math.sin(t)
+			const discoY = -4 * cameraPan.y + Math.cos(t)
+			// console.info("DISCO", {t, cameraPan, discoX,discoY})
+			display.postProcess({ 
+				offsetX:discoX, offsetY:discoY
+			})
+	
+			// this will change the filter
+			// if (counter% 100 === 0)
+			// {
+			// 	display.nextFilter()
+			// }
+			
+		}else{
+
+			// do we clear the canvas?
+			// if it is disco mode, we always want it to 
+			// copy the previous frames otherwise it will
+			// just look like it is janking
+			// we also clear if sync is not set to true
+			// as this means the video is playing behind
+			// the canvas on the DOM
+			if (stateMachine.get("clear") || !stateMachine.get("synch"))
+			{
+				// clear for invisible canvas but 
+				// NB. this may cause visual disconnect
+				display.clear()
+			
+			}else if (stateMachine.get("synch")){
+				
+				// paste video frame if the video is hidden
+				display.drawElement( inputElement )
+				// drawElement( canvasContext, inputElement )
+
+			}else{
+				// video is already showing
+			}
+		}
+		
+		// On BEAT if beatjustplayed
+		// TODO: convert this into a per user bar and use the last played note to 
+		// change the colour of the indicator
+		if (stateMachine.get("quantise"))
+		{
+			// Start on BAR
+			// show quantise
+			// fetch notes played from user?
+			const barColour = `hsl (${getPerson(0).hue },50%,50%)`
+			//drawQuantise( canvasContext, beatJustPlayed, clock.bar, clock.totalBars, barColour)
+			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
+		}
+		
+		if (stateMachine.get("spectrogram"))
+		{
+			// BARS
+			updateByteFrequencyData()
+			display.drawVisualiser( dataArray, bufferLength )
+			if (recorder)
+			{
+				waveforms.push(dataArray)
+			}
+			
+			// Lines
+			// updateByteTimeDomainData()
+			// display.drawVisualiser( dataArray, bufferLength, "line" )
+			
+			// global VU
+			// drawBars( canvasContext, dataArray, bufferLength )
+
+			// updateByteTimeDomainData()
+			// analyser.fftSize = 2048
+			// const bufferLength = analyser.frequencyBinCount
+			// const dataArray = new Uint8Array(bufferLength)
+		}
+
+		
+		let haveFacesBeenDetected = false	
+		if (predictions)
+		{
+			
+			// console.log(predictions.length, "predictions", predictions)
+			// loop through all predictions...
+			for (let i=0, l=predictions.length; i < l; ++i)
+			{
+				const prediction = predictions[i]
+				// create as many people as we need
+				const person = getPerson(i)
+			
+				// face available!
+				if (prediction)
+				{
+					//if (!act)
+					//main.classList.toggle("active", true)
+					// playAudio()
+
+					// reset no faces found state
+					if (noFacesFound)
+					{
+						noFacesFound = false
+						main.classList.toggle( `${person.name}-active`, true)
+						main.classList.toggle( `no-faces`, false)
+					}
+
+					isPersonLocatable = true
+					haveFacesBeenDetected = true
+
+					// first update the person - this allows us to sing at will
+					person.update(prediction)
+						
+				}else{
+
+					// stopAudio()
+					if (!noFacesFound)
+					{
+						// no face found!??
+						main.classList.toggle( `${person.name}-active`, false)
+						main.classList.toggle( `no-faces`, true)
+						noFacesFound = true
+
+						// TODO : Switch to hand / body detection whilst faces not found?
+						// TODO: Implement part switching behaviour
+					}
+				}
+
+				// add face overlay
+				if (discoMode || stateMachine.get("overlays"))
+				{
+					// FIXME:
+					// TODO:
+					// prediction, forceRefresh=false
+					const colours = person.draw( prediction, false, hasBeatJustPlayed)
+				
+					display.drawPerson( person, hasBeatJustPlayed, colours )
+
+					if (stateMachine.get("text"))
+					{
+						person.drawText( prediction, display ) 
+					}
+				}
+
+				// then whenever you fancy it,
+				if (!stateMachine.get("quantise") && !stateMachine.get("muted"))
+				{	
+					// unless quantize is turned off
+					// we can "sing" in realtime
+					playPersonAudio( person )
+								
+					if (stateMachine.get("disco") && i===0)
+					{
+						// use person 1's eyes to control other stuff too?
+						// in this case the direction of the pan in disco mode
+						cameraPan.x = prediction.eyeDirection ?? 0
+						cameraPan.y = prediction.pitch ?? 1
+					}
+				}
+				
+				// you want a tight curve
+				//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
+				tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRatio)}%`
+				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
+			}
+
+		
+			// update if neccessary on screen now all people are drawn
+			display.render()
+				
+		}else{
+			// tickerTape += `No prediction`
+		}
+
+		
+
+		// this simply forces refresh of the stave notes
+		// stave.update( counter )
+
+
+		// Update TEXT on screen...
+		if (isRecording())
+		{
+			const recordedDuration = getRecordedDuration() * 0.001
+			// format the time?
+			const minutes = recordedDuration / 60
+			const seconds = recordedDuration % 60
+			const milliseconds = (seconds % 1) * 1000
+			//const recordString = (minutes>>0) + ':' + (seconds>>0)
+			const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
+			setToast(recordString, false)
+
+		}else{
+			
+			// No face was detected on either user
+			if (!haveFacesBeenDetected || !predictions)
+			{
+				// Need to show instructions to the user...
+				// as no face can be detected
+				setFeedback( getHelp( Math.floor( counter * 0.01 )  ))
+				// }else if (tickerTape.length){
+				// 	setFeedback(tickerTape)
+				// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+		
+			}else{
+
+				// Faces found so show the next set of instructions
+				setFeedback( getInstruction( Math.floor( counter * 0.01 ) ))
+				// console.info("instructions", Math.floor( counter * 0.01 ), getInstruction( Math.floor( counter * 0.01 ) ))
+				// setFeedback(`Look at me and open your mouth`)
+			}
+		}
+		
+
+		// update the keyboard if it is available
+		if (musicalKeyboard)
+		{
+			musicalKeyboard.redraw()
+			// this is updated previously by the playPersonAudio
+			// method that set's the general state of the keyboard
+			display.drawElement( musicalKeyboard.canvas, 40, 40, false )
+		}
+
+		
+		// finallyu reset this flag
+		if (hasBeatJustPlayed)
+		{
+			hasBeatJustPlayed = false
+		}
+
+		//console.log(counter, "update", {predictions, tickerTape, userLocated, isCameraLoading} )
+	}
+
+	/**
+	 * Application ANIMATION LOOP! - Rejoice!
+	 * @returns 
+	 */
+	const predictionLoop = async ()=>{
+
+		if (!isPredictionEngineBusy && shouldLoopBeAllowed())
+		{
+			// console.info("Display:Loop-RENDER")
+			isPredictionEngineBusy = true
+			//peoplePredictions = await fetchPredictionFromEngine()
+			fetchPredictionFromEngine().then(updatedPrediction=>{
+				isPredictionEngineBusy = false
+			 	peoplePredictions = updatedPrediction
+			})
+			// isPredictionEngineBusy = false
+			//usePredictions(peoplePredictions)
+			
+		}else{
+			// Re-use the prediction from last time as the prediction engine
+			// is lagging behind the animation loop
+			// console.info("Display:Loop-reuse")
+		}
+		
+		usePredictions(peoplePredictions)
+		
+		return peoplePredictions
+	}
+
+
+	/**
+	 * Wires up all of the individual parts of the app and returns a method
+	 * to begin the actual application
+	 * @param {Function} fetchPredictions Method to call when face moves
+	 * @param {Object} settings App Settings Object
+	 * @param {Function} progressCallback Method to progressivley call during setup procedure
+	 * @returns {Function} start() method
+	*/
+	const setup = async (fetchPredictions, settings, progressCallback) => {
+
+		const loadTotal = 9
+		let loadIndex = 0
+
+		// --------------------------------------------------------------------------------
+
+		let initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
+
+		progressCallback( 0, "Checking displays..." )
+
+		console.info("PhotoSYNTH Setup", settings )
+
+		const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+		if (holographicDisplayQuantity > 0)
+		{
+			initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
+			console.info("PhotoSYNTH Holographic Screens", holographicDisplayQuantity )
+			progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
+
+			// show the 3D option
+			const option = document.querySelector('option[value="DISPLAY_LOOKING_GLASS_3D"]')
+			if (option){
+
+				option.hidden = false
+				option.selected = true
+			}
+		}else{
+			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
+		}
+
+		console.info("PhotoSYNTH Screens available", initialDisplay ) 
+
+		// --------------------------------------------------------------------------------
+		const instrumentFactory = new InstrumentFactory(audioContext)
+		try{
+			
+			instrumentFactory.loadList(instrumentListURIorObject)
+			instrumentList = instrumentFactory.list
+			progressCallback(loadIndex++/loadTotal, "Loaded Instrument List")
+			console.info("PhotoSYNTH Instruments Available", {instrumentList, instrumentFactory, instrumentListURIorObject} )  
+			
+		}catch(error){
+
+			progressCallback(loadIndex++/loadTotal, "Instrument List Not Found!")
+			console.error("PhotoSYNTH Instruments Unavailable", error)	
+		}
+		
+		// --------------------------------------------------------------------------------
+
+		fetchPredictionFromEngine = fetchPredictions
+		
 		body.classList.toggle("initialising", true)
-
+		
+		// VIDEO STREAM / CAMERA -----------------------------------------
 		try{
 			
 			setFeedback("Setting things up...<br>This can take a while!")
 			
 			progressCallback(loadIndex++/loadTotal, "Looking for cameras")
 
-			// wait for video or image to be loaded!
+			// VIDEO ----------------------------------------------
 			if (video)
-			{
+			{	
+				// Camera -----------------------------------------
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted")
-			
-				progressCallback(loadIndex/loadTotal,"Looking for cameras..." )
-						
-				const investigation = await findBestCamera(store, video, status => {
-					progressCallback(loadIndex/loadTotal, status)
-				})
+				progressCallback(loadIndex/loadTotal,"Found cameras..." )
 
+				const cameraFeedbackMessage = await setupCamera( video, status =>{
+					progressCallback(loadIndex/loadTotal, status )
+				})  
+
+				setFeedback( cameraFeedbackMessage )
+				progressCallback(loadIndex/loadTotal, cameraFeedbackMessage)
+
+				/*
 				const {videoCameraDevices} = investigation
 				camera = investigation.camera
-				cameraLoading = false
+				isCameraLoading = false
 
 				const cameraFeedbackMessage = investigation.saved ? "Found saved camera" : videoCameraDevices.length > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera"
 				//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 				// setFeedback( cameraFeedbackMessage )
-
-				progressCallback(loadIndex/loadTotal, cameraFeedbackMessage )
+		
+				const onCameraSelected = async (selected) => {
+					isCameraLoading = true
+					camera = await loadCamera( video, selected.value, selected.label )
+					isCameraLoading = false
+					// if successful store for next time
+					store.setItem('camera', {deviceId:selected.value})
+					console.log( selected.value , "Camera selected",selected, camera)
+					setToast( `Camera ${selected.label} changed`, 0 )
+				}
 
 				// check to see if there are multiple cameras and we want a selector
 				if (videoCameraDevices.length > 1)
 				{
-					setupCameraForm(videoCameraDevices, async (selected) => {
-						cameraLoading = true
-						camera = await loadCamera( video, selected.value, selected.label )
-						cameraLoading = false
-						// if successful store for next time
-						store.setItem('camera', {deviceId:selected.value})
-						//console.log( selected.value , "Camera selected",selected, camera)
-						setToast( `Camera ${selected.label} changed`, 0 )
-					})
-					
+					setupCameraForm(videoCameraDevices,onCameraSelected)
 					// show / hide camera button
 					main.classList.toggle("multiple-cameras", true)
 				}
+
+				// now ensure that we update the list when devices are added
+				navigator.mediaDevices.ondevicechange = async (event) => {
+					const videoCameraDevices = await fetchVideoCameras()
+					console.info("New Camera Detected", {videoCameraDevices})
+					setupCameraForm(videoCameraDevices, onCameraSelected)
+					main.classList.toggle( "multiple-cameras", videoCameraDevices.length > 1 )
+					setToast( `New cameras detected!`, 0 )
+				}*/
 				
 				//setFeedback( "Camera connected", 0 )
 				progressCallback(loadIndex++/loadTotal, "Camera connected")
@@ -1479,40 +2109,88 @@ export const createInterface = (
 		}catch(error){
 
 			// NotAllowedError: Permission denied
-			const errorReason = String(error).replace("NotAllowedError: ",'')
-			const errorMessage = 
-			`Camera could not be accessed<br>
-			<strong>${errorReason}</strong>`
-			
-			setFeedback(errorMessage, 0)
+			let errorReason
+			let errorMessage
+
 			setToast( errorReason )
+
+			switch(error)
+			{
+				case ERROR_NO_CAMERAS:
+					errorMessage = `Could not find any video cameras on this device<br>
+									<strong>${errorReason}</strong>`
+
+					errorReason = String(error).replace("NotAllowedError: ",'')
+					
+					setFeedback(errorMessage, 0)
+					break
+
+				default:
+					errorMessage = `Camera could not be accessed<br>
+									<strong>${errorReason}</strong>`
+
+					errorReason = String(error).replace("NotAllowedError: ",'')
+					
+					setFeedback(errorMessage, 0)
+			}
+			
+			
+
 			progressCallback(loadIndex++/loadTotal, errorReason )
 			isLoading = false
+
 			ultimateFailure = true
-			trackError('Camera Rejected or Not allowed')
+			trackError && trackError('Camera Rejected or Not allowed')
 			// FATAL ERROR
 			return reject( errorReason )
 		}
-
-		// Load any previous performances...
-		if (ui.loadMIDIPerformance)
+		
+		
+		
+		// MIDI ---------------------------------------------------------------
+		// FIXME: Hangs here on certain devices....
+		if (capabilities.webMIDIAvailable)
 		{
-			progressCallback(loadIndex/loadTotal,"Loading MIDI Performance")
+			// This occassionaly breaks for no reason that can be tracked
 			try{
-				midiPerformance = await loadMIDIFile( "./assets/audio/midi_nyan-cat.mid" )
-				// console.error("MIDIFILE", midiPerformance)
-				onMIDIPerformanceAvailable( midiPerformance )
+				// FIXME: use the midi manager
+				webMidi = await WebMidi.enable({sysex:false, software:true })
+				// Inputs
+				WebMidi.inputs.forEach(input => console.log("MIDI INPUT", input.manufacturer, input.name))
+				// Outputs
+				WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
+
 			}catch(error){
-				// console.error("MIDIFILE", error)
-				setFeedback(error, 0)
+
+				console.error("WebMidi is available but a connection cannot be established", error)
 			}
 		}
-	
-		try{
-			const savedVolume = store.getItem('audio')
-			const newVolume = savedVolume ? savedVolume.volume : 1
-			audio = await setupAudio()
 
+		// TIMING ----------------------------------------------------------------------
+		try{
+			// NB. at this point we have access to the user events
+			// 		so can create things that depend on audio context
+			clock = new AudioTimer( audioContext )
+			clock.BPM = stateMachine.get('bpm') ?? 90
+
+			console.info("AudioTimer created @", clock.BPM, stateMachine.get('bpm'),  clock )
+
+			// connect the tempo interface
+			setupTempoInterface(clock, null, null, v =>{
+				console.log("tempo changed for gui",v, clock )
+				stateMachine.set( 'bpm',  clock.BPM )
+			})
+
+		}catch(error){
+			console.error('Error initialising audio clock', error)
+		}
+		
+		// VOLUME --------------------------------------------------------------------------------
+
+		try{
+			
+			audioChain = await setupAudio()
+			
 			// audio worklet tests!
 			// NB. run only once per app to load  audio
 			//await registerAudioWorklets( audioContext )
@@ -1533,9 +2211,6 @@ export const createInterface = (
 			// processor.connect( audioContext.destination )
 			
 
-
-
-
 			// create a super object containing paths and families ands such!
 			const instrumentDictionary = createInstruments()
 			// console.error({instrumentDictionary})
@@ -1550,7 +2225,7 @@ export const createInterface = (
 			// }else{
 			// 	setFeedback( `Audio Available. Setting volume to ${getVolume() * 100}`, 0 )
 			// }
-			setMasterVolume(newVolume)
+			
 			progressCallback(loadIndex++/loadTotal)
 
 			// not neccessary if using Person
@@ -1561,7 +2236,7 @@ export const createInterface = (
 			// //playTrack( audioContext, instrument.A0, 0)
 			// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
 			
-			kit = createDrumkit()
+			kit = createDrumkit( audioContext, getPercussionNode() )
 			patterns = kitSequence()
 
 			// console.log("Streamin", {video, photo, camera} )
@@ -1574,20 +2249,68 @@ export const createInterface = (
 			return 
 		}
 
+		// setup the volume and turn up the amp
+		const onVolumeChanged = vol => {
+			setMasterVolume( vol )
+		}
+
+		const volume = (store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1 ) || 1
+		setVolume( volume )
+		// setMasterVolume(volume)
+
+		const {	
+			setVisualVolumeLevel, 
+			toggleMute 
+		} = setupVolumeInterface( volume, false, onVolumeChanged ) 
+
+		progressCallback(loadIndex/loadTotal, "Volume set to "+Math.ceil(volume*100)+"%")
+
+		// const {startRecording, stopRecording} = record(stream)
+		
+
+		// AUDIO ------------------------------------------------	
+
+		// Create a new sample player to handle sample sound playback external
+		// to each Person. This is used for example to play orchestrated background MIDI
+		samplePlayer = new SampleInstrument(audioContext, audioChain, {})
+
+
+		// MIDI --------------------------------------------------------------
+
+		// Load any previous performances...
+		if (stateMachine.get("loadMIDIPerformance"))
+		{
+			progressCallback(loadIndex/loadTotal,"Loading MIDI Performance")
+			try{
+				midiPerformance = await loadMIDIFile( "./assets/audio/midi_nyan-cat.mid" )
+				// console.error("MIDIFILE", midiPerformance)
+				onMIDIPerformanceAvailable( midiPerformance )
+			}catch(error){
+				// console.error("MIDIFILE", error)
+				setFeedback(error, 0)
+			}
+		}
+		
+		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
-		if (capabilities.webMIDIAvailable)
+		if (stateMachine.get("midi") && midiManager.available)
 		{
 			// then we attempt to connect to it
 			try{
+				const MIDIConnectionClasses = [WebMIDIClass]
+			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await showMIDI()
+				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, people )
+				
+				console.info("MIDIManager", {hasMIDI,midiManager})
+			
 				if (hasMIDI)
 				{
 					main.classList.add('midi')
 					// setFeedback("MIDI available<br>And device(s) found", 0)
 				}else{
 					main.classList.add('midi','no-instrument')
-					setFeedback("MIDI available<br>Connect a MIDI instrument <strong>and click the button</strong>", 0)
+					setToast("MIDI available<br>Connect a MIDI instrument <strong>and click the button</strong>", 0)
 				}
 				
 			}catch(error){
@@ -1596,7 +2319,7 @@ export const createInterface = (
 				console.log("no MIDI!", error)
 				main.classList.add('no-midi')
 				main.classList.add('midi-unavailable')
-				setFeedback("MIDI unavailable, or no instrument connected<br>"+error, 0)
+				setToast("MIDI unavailable, or no instrument connected<br>"+error, 0)
 			}
 			progressCallback(loadIndex++/loadTotal, "MIDI Located")
 
@@ -1604,356 +2327,77 @@ export const createInterface = (
 
 			progressCallback(loadIndex++/loadTotal)
 			main.classList.add('midi-unavailable')
-			setFeedback("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
+			setToast("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
 		}
-		
-		// const {startRecording, stopRecording} = record(stream)
-		
-		// const Display = await loadDisplay( DISPLAY_LOOKING_GLASS_3D )
-		// const Display = await loadDisplay( DISPLAY_WEB_GL_3D )
-		// set the canvas to the size of the video / image
-		// display = new Display( webGLElement, inputElement.width, inputElement.height )
-
-
-
-
 	
-		// Media Videion ML Model and Canvas 2D
-		const DisplayMediaVision2D = await loadDisplay( DISPLAY_MEDIA_VISION_2D )
-		const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, inputElement.width, inputElement.height )
-		
-		// Allows mulltiple displays to be simultaneously powered!
-		// const DisplayComposite = await loadDisplay( DISPLAY_COMPOSITE )
-		// display = new DisplayComposite( canvasElement, inputElement.width, inputElement.height )
-		// display.addDisplay(displayMediaVision2D)
 
-		display = displayMediaVision2D
+		// PAW Integration
+		handlePWADataTypes()
 
-		// NB. Make sure you set this to a WEB_GL context!
-		// const DisplayWebGL3D = await loadDisplay( DISPLAY_WEB_GL_3D )
-		// const displayWebGL3D = new DisplayWebGL3D( webGLElement, inputElement.width, inputElement.height )
-		// display.addDisplay(displayWebGL3D)
-
-		// TODO: Sniff hardware connected to determine if we want XR?
-		// Looking Glass Portrait hardware
-		// const DisplayLookingGlass3D = await loadDisplay( DISPLAY_LOOKING_GLASS_3D )
-		// const displayLookingGlass3D = new DisplayLookingGlass3D( webGLElement, inputElement.width, inputElement.height )
-		// display.addDisplay(displayLookingGlass3D)
-
-		if (ui.showPiano)
+		// DOM UI ------------------------------------------------
+		if (stateMachine.get("showPiano"))
 		{
 			// this draws a 2d keyboard on screen at the specified position and dimensions
 			musicalKeyboard = new MusicalKeyboard( 500, 120, 8 )
 		}
-		
-		// 
-
-		// Create a new sample player to handle sample sound playback external
-		// to each Person. This is used for example to play orchestrated background MIDI
-		samplePlayer = new SampleInstrument(audioContext, audio, {})
 		
 		// Add some scales on the side
 		// FIXME: Do this per PERSON
 		// FIRMEL canvasContext does not align
 		const quantiserCanvas = document.createElement("canvas")
 		const quantiserCanvasContext = quantiserCanvas.getContext("2d")
+		quantiserCanvas.id="quantiser-canvas"
+		quantiserCanvas.className = "quantiser-canvas"
 		quanitiser = new Quanitiser( quantiserCanvasContext )
 
-		// this just adds some visual onscreen tooltips to the buttons specified
-		addToolTips( controlPanel)
 
-		// turn up the amp
-		const volume = store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1
-		setVolume( volume > 0 ? volume : 1 )
-
-		// load scripts once eveything has completed...
-		// setTimeout( ()=>{
-		// }, 0 )
-
-		// ----------------------------------------------------------------------------------
-
-
-		// after a period of inactivity...
-		//setFeedback("Everything is ready to "+ (inputElement === video? "record" : "read"))
+		// Add tooltips to buttons if set in options
+		if (stateMachine.get("tooltips"))
+		{
+			// this just adds some visual onscreen tooltips to the buttons specified
+			// addToolTips( controlPanel)
+			// instead we can disable / enable
+			toggleTooltips( stateMachine.get("tooltips") )
+		}
 		
-		progressCallback(loadIndex++/loadTotal)
-
 		// remove loading flag as we now have all of our assets!
 		// TODO: create and position the stave?
 		// const stave = new Stave( canvasElement, 0, 0, true )
+		// adds "video" or "image" to main
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		body.classList.toggle("initialising", false)
+
+
 		
-		// console.log(inputElement === video, "Waiting on predicions")
-		// return
-		// LOOP ---------------------------------------
-
-		// Ensure that the video element is always being fed data
-		const shouldUpdate = () => !cameraLoading
-
 		/**
 		 * BEGIN ---------------------------------------------------------
 		 */
-		const start = () => {
-		
-			// this then runs the loop if set to true
-			const automaticRepeat = inputElement === video
+		const start = async() => {
 
-			// REDRAW DOM / CANVAS / WEB GL -------------------------------
-			update( automaticRepeat , (predictions)=>{
-
-				// NB. always update the counter
-				counter++
-
-				if(isLoading)
-				{
-					isLoading = false
-				}
-
-				// return if camera is still connecting...
-				// otherwise tensorflow will try and calculate blankness
-				if (cameraLoading)
-				{
-					return
-				}
-
-				// If there is a attract mode supervisor
-				// we update it every tick so that it can 
-				// control this class automatically
-				if (useAutomator && automator)
-				{
-					automator.tock(getElapsed(), getBarProgress())
-				}
+			// TIMING -----------------------------------------------------------------
 			
-				let tickerTape = ''
+			console.log("PhotoSYNTH3D STARTING", {options: modelOptions, clock })
+
+			clock.setCallback( ( values )=>{
 				
-				if (ui.disco)
-				{	
-					// FUNKY DISCO MODE...
-					// switch effect type?
-					const t = (counter * 0.01) % TAU	
-					display.overdraw( -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
-					// overdraw( canvasContext, -7 * cameraPan.x + Math.sin(t), -4 * cameraPan.y + Math.cos(t))
-				
-				}else{
-
-					// do we clear the canvas?
-					// if it is disco mode, we always want it to 
-					// copy the previous frames otherwise it will
-					// just look like it is janking
-					// we also clear if sync is not set to true
-					// as this means the video is playing behind
-					// the canvas on the DOM
-					if (ui.clear || !ui.synch)
-					{
-						// clear for invisible canvas but 
-						// NB. this may cause visual disconnect
-						display.clear()
-					
-					}else if (ui.synch){
-						
-						// paste video frame if the video is hidden
-						display.drawElement( inputElement )
-						// drawElement( canvasContext, inputElement )
-
-					}else{
-						// video is already showing
-					}
-				}
-				
-				// On BEAT if beatjustplayed
-				// TODO: convert this into a per user bar and use the last played note to 
-				// change the colour of the indicator
-				if (ui.quantise)
-				{
-					// Start on BAR
-					// show quantise
-					// fetch notes played from user?
-					const barColour = `hsl (${getPerson(0).hue },50%,50%)`
-					//drawQuantise( canvasContext, beatJustPlayed, getBar(), getBars(), barColour)
-					quanitiser.draw( beatJustPlayed, getBar(), getBars(), barColour )
-				}
-				
-				if (ui.spectrogram)
-				{
-					// updateByteTimeDomainData()
-					// drawWaves( dataArray, bufferLength )
-					
-					updateByteFrequencyData()
-					display.drawBars( dataArray, bufferLength )
-					// display.drawWaves( dataArray, bufferLength )
-
-					// global VU
-					// drawBars( canvasContext, dataArray, bufferLength )
-
-					if (recorder)
-					{
-						waveforms.push(dataArray)
-					}
-				}
-
-				
-				let haveFacesBeenDetected = false	
-				if (predictions)
-				{
-					// loop through all predictions...
-					for (let i=0, l=predictions.length; i < l; ++i)
-					{
-						const prediction = predictions[i]
-						// create as many people as we need
-						const person = getPerson(i)
-					
-						// face available!
-						if (prediction)
-						{
-							//if (!act)
-							//main.classList.toggle("active", true)
-							// playAudio()
-							if (noFacesFound)
-							{
-								noFacesFound = false
-								main.classList.toggle( `${person.name}-active`, true)
-								main.classList.toggle( `no-faces`, false)
-							}
-
-							userLocated = true
-							haveFacesBeenDetected = true
-
-							// first update the person - this allows us to sing at will
-							person.update(prediction)
-								
-						}else{
-
-							// stopAudio()
-							if (!noFacesFound)
-							{
-								// no face found!??
-								main.classList.toggle( `${person.name}-active`, false)
-								main.classList.toggle( `no-faces`, true)
-								noFacesFound = true
-
-								// TODO : Switch to hand / body detection whilst faces not found?
-								// TODO: Implement part switching behaviour
-
-							}
-						}
-
-						// add face overlay
-						if (ui.disco || ui.overlays)
-						{
-							// FIXME:
-							// TODO:
-							// prediction, forceRefresh=false
-							const colours = person.draw( prediction, false, beatJustPlayed)
-							
-							display.drawPerson( person, beatJustPlayed, colours )
-
-							if (ui.text)
-							{
-								person.drawText( prediction, display ) 
-							}
-						}
-						
-						// then whenever you fancy it,
-						if (!ui.quantise && !ui.muted)
-						{	
-							// unless quantize is turned off
-							// we can "sing" in realtime
-							const stuff = playPersonAudio( person )
-						
-							// stuff.eyeDirection
-							if (ui.disco && i===0)
-							{
-								// stuff.eyeDirection
-								// use person 1's eyes to control other stuff too?
-								// in this case the direction of the pan in disco mode
-								cameraPan.x = stuff.eyeDirection
-								cameraPan.y = stuff.pitch
-							}
-						}
-						
-						// you want a tight curve
-						//setFrequency( 1/4 * 261.63 + 261.63 * lipPercentage)
-						tickerTape += `<br>PITCH:${prediction.pitch} ROLL:${prediction.roll} YAW:${prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange)}%`
-						// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
-					}
-
-					// update if neccessary on screen now all people are drawn
-					display.render()
-						
-				}else{
-					// tickerTape += `No prediction`
-				}
-
-				
-
-				// this simply forces refresh of the stave notes
-				// stave.update( counter )
-
-
-				// Update TEXT on screen...
-				if (isRecording())
-				{
-					const recordedDuration = getRecordedDuration() * 0.001
-					// format the time?
-					const minutes = recordedDuration / 60
-					const seconds = recordedDuration % 60
-					const milliseconds = (seconds % 1) * 1000
-					//const recordString = (minutes>>0) + ':' + (seconds>>0)
-					const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
-					setFeedback(recordString, false)
-
-				}else{
-					
-					// No face was detected on either user
-					if (!haveFacesBeenDetected || !predictions)
-					{
-						// Need to show instructions to the user...
-						// as no face can be detected
-						setFeedback( getHelp( Math.floor( counter * 0.01 )  ))
-						// }else if (tickerTape.length){
-						// 	setFeedback(tickerTape)
-						// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
-				
-					}else{
-
-						// Faces found so show the next set of instructions
-						setFeedback( getInstruction( Math.floor( counter * 0.01 ) ))
-						// setFeedback(`Look at me and open your mouth`)
-					}
-				}
-				
-
-				// update the keyboard if it is available
-				if (musicalKeyboard)
-				{
-					musicalKeyboard.redraw()
-					// this is updated previously by the playPersonAudio
-					// method that set's the general state of the keyboard
-					display.drawElement( musicalKeyboard.canvas, 40, 40, false )
-				}
-
-				
-				// finallyu reset this flag
-				if (beatJustPlayed)
-				{
-					beatJustPlayed = false
-				}
-
-				//console.log(counter, "update", {predictions, tickerTape, userLocated, cameraLoading} )
-
-			}, shouldUpdate )
-
-			// Metronome -----------------------------------------------------------------
-			timer = startTimer( ( values )=>{
-			
+				// console.log( clock.bpm, "PhotoSYNTH3D Clock", clock.divisionsElapsed, clock.totalDivisions, 'qn', clock.isQuarterNote, "start", clock.isAtStart, { clock, values })
 				const { 
 					divisionsElapsed,
 					bar, bars, 
 					barsElapsed, timePassed, 
-					elapsed, expected, drift, level, intervals, lag} = values
-				
+					elapsed, expected, drift, level, intervals, lag
+				} = values
 
+				
+				const isQuarterNote = clock.isQuarterNote
+				const isHalfNote = clock.isHalfNote
+				const isBar = clock.isAtStart
+				// const isBarStart = divisionsElapsed===0
+				// TODO: The timer is a good place to determine if the computer
+				// 		 is struggling to keep up with the program so we can reduce
+				// 		 the visual complexity of the ui and remove some predictions too
+				// 		 in order to try and maintain decent performance
+				
 				if (recordRequested)
 				{
 					recordRequested = false
@@ -1971,15 +2415,9 @@ export const createInterface = (
 				// control this class automatically
 				if (useAutomator && automator)
 				{
-					automator.tick(elapsed, getBarProgress() )
+					automator.tick(elapsed, clock )
 				}
-					
-				const isBar = divisionsElapsed % 4 === 0
-				// TODO: The timer is a good place to determine if the computer
-				// 		 is struggling to keep up with the program so we can reduce
-				// 		 the visual complexity of the ui and remove some predictions too
-				// 		 in order to try and maintain decent performance
-
+				
 				// lag
 				statistics.lag = lag
 				statistics.drift = drift
@@ -1992,67 +2430,88 @@ export const createInterface = (
 				// }
 
 				// nothing to play!
-				if (ui.muted)
+				if (stateMachine.get("muted"))
 				{
 					return
 				}
 
 				// Play metronome!
-				if ( ui.metronome && bars && isBar )
+				if ( stateMachine.get("metronome") && isBar )
 				{
 					// TODO: change timbre for first & last stroke
-					const metronomeLength = 0.09
+					const metronomeLength = 0.15
 					// click for 3 then clack
-					kit.clack(metronomeLength, bars % 4 === 0 ? 0.2 : 0.1 )
+					kit.clack(metronomeLength, bars % 4 === 0 ? 0.4 : 0.2 )
 				}
 
 				// console.log(barsElapsed, "timer", timer)
 
 				// const notesPlayed = []
-			
+						
 				// sing note and draw to canvas
-				if( ui.quantise )
+				// chcek if quarternote
+				if( stateMachine.get("quantise") && isHalfNote )
 				{
-					// update game pads - events are caught elsewhere
-					if (ui.useGamePad && gamePad && gamePad.connected) 
-					{
-						gamePad.update()
-					}
-
-					for (let i=0, l=people.length; i<l; ++i )
+					let shouldChangeToNextFilter = false
+				
+					const amountOfPeople = people.length
+					for (let i=0, l=amountOfPeople; i<l; ++i )
 					{
 						const person = getPerson(i)
-						const stuff = playPersonAudio( person )
+						
+						// this is a promise but we dont care how it resolves
+						playPersonAudio( person )
 
-		
+						// update game pads - events are caught elsewhere
+						if (stateMachine.get("gamePad") && person.gamePad && person.gamePad.connected) 
+						{
+							person.gamePad.update()
+						}
+						// Change filter depending on the user's emoticon!
+						if (stateMachine.get("disco") && person.emoticon === EMOJI.EMOJI_KISS)
+						{
+							shouldChangeToNextFilter = true
+						}
+									
+							
 						// use person 1's eyes to control other stuff too?
 						// in this case the direction of the pan in disco mode
 						if (i===0)
 						{
 							// stuff.eyeDirection
-							cameraPan.x = stuff.eyeDirection
-							cameraPan.y = stuff.pitch
+							cameraPan.x = person.eyeDirection ?? 0
+						}
+
+						// use last persons
+						if (i===amountOfPeople-1)
+						{
+							cameraPan.y = person.pitch ?? 1
 						}
 
 						// save data to an array to record
 						// personParameters.push(stuff)
 					}
+					shouldChangeToNextFilter && display.nextFilter()
 				}
-
-
-				
+			
 				// to add swing to the beats
 				// easeOutQuart(divisionsElapsed%16 / 16)
-				// && isBar
+	
 				// play some accompanyment music on every note
 				// (as we use 16 divisions for quarter notes)
 				// FIXME: Just expand the patterns with longer gaps
-				if ( ui.backingTrack  )
+				// a swing of one will offset every second beat
+				//const swing = 1
+				if ( stateMachine.get("backingTrack") && isQuarterNote)
 				{
-					const slower = Math.floor( getBPM() * 0.01 ) + 1
+					// console.log("clock", {divisionsElapsed,
+					// 	bar, bars, 
+					// 	barsElapsed,})
+
+					const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 					if ( divisionsElapsed % slower === 0 )
 					{
-						//console.log(slower,barsElapsed, getBPM() * 0.001,  divisionsElapsed % slower )
+						//console.log(slower,barsElapsed, clock.BPM * 0.001,  divisionsElapsed % slower )
 						const kick = playNextPart( patterns.kick, kit.kick )
 						const snare = playNextPart( patterns.snare, kit.snare )
 						const hat = playNextPart( patterns.hat, kit.hat )
@@ -2061,17 +2520,20 @@ export const createInterface = (
 					// todo: also MIDI beats on channel 16?
 				}
 
-				if (playing)
-				{
-					// timePassed
-				}
+				// if (playing)
+				// {
+				// timePassed
+				// }
 
-				if (midiAvailable && midi)
+				// Send MIDI clock
+				if (isMIDIAvailable && webMidi)
 				{
 					// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
-					//midi.setSongPosition( getBarProgress() * 16383 , {})
-					//midi.sendClock( )
+					//midi.setSongPosition( clock.barProgress * 16383 , {})
 					//console.log(midi)
+					// const MIDIoutput = WebMidi.outputs[0]
+					// SEND OUT Midi to every device
+					WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.sendClock() )
 				}
 
 				// we can actually play a midi file here as an accompanying voice!
@@ -2099,112 +2561,147 @@ export const createInterface = (
 					*/
 				}
 
-				
+				hasBeatJustPlayed = true
+			} )
 
-				beatJustPlayed = true
+			
+			// REDRAW DOM / CANVAS / WEB GL -------------------------------
+			// Update here is a method passed into this function that is called
+			// on every frame to update the visuals and audio of none quanitsed sounds
+		
+			// Fetch the predictions in a predictable loop as fast as we need
+			// NB. the display itself should return duplicate frame if a new frame
+			// hasn't occurred yet
+			// await fetchPrediction( automaticRepeat,usePredictions )
+		
 
-			}, convertBPMToPeriod( getState('bpm') ) )
+			// VIDEO & DISPLAY ------------------------------------------------
+			displayType = stateMachine.get('display') ?? initialDisplay ?? DISPLAY_MEDIA_VISION_2D // DISPLAY_WEB_GL_3D
+			progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
+
+			switchDisplay( displayType, predictionLoop )
+
+			// Audio clock
+			clock.startTimer()		
+
+			progressCallback(loadIndex/loadTotal, "Loading Complete!") 
+			
+			// console.info("App running", {display, predictionLoop, clock})
+
+			// there is a background loop waiting for this to be set
+			// so that we can show the next app parts  
+			isLoading = false
+
+			return true
+		}
+	
+		if (stateMachine.get("debug"))
+		{
+			console.info("PhotoSynth 3D - DEBUG")
+			console.info("PhotoSynth Dependents Loaded", start, loadIndex, loadTotal)
+		}else{
+			console.info(
+				"%c ",
+				`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' width='44' height='44' clip-rule='evenodd' viewBox='0 0 3018 2502'%3E%3Cdefs%3E%3C/defs%3E%3Cpath fill='%23000' d='M0 636.628h3017.661v1865.214H.001z'%3E%3C/path%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M3017.65 0H1975.12v636.629h288.113V348.516h754.417V0z'%3E%3C/path%3E%3Cpath fill='%23fff' fill-rule='nonzero' d='M1508.82 2035.531c-257.53 0-466.296-208.78-466.296-466.292 0-257.55 208.767-466.317 466.296-466.317 257.538 0 466.3 208.767 466.3 466.317 0 257.513-208.762 466.292-466.3 466.292m466.3-1398.905V976.15c-128.341-101.05-290.279-161.342-466.3-161.342-416.642 0-754.421 337.767-754.421 754.43 0 416.642 337.779 754.417 754.421 754.417 416.65 0 754.417-337.775 754.417-754.417V636.626H1975.12z'%3E%3C/path%3E%3C/svg%3E")`
+			)
+			console.info("PhotoSynth 3D")
+			console.info("PhotoSynth Dependents Loaded", start, loadIndex, loadTotal)
+		}
+
+		if (!start)
+		{
+			throw Error("Total failure")
 		}
 		
-		// start()
 		return start
 	} 
 
 	/**
-	 * load : load the files required for this app
-	 * @param {Object} settings Configuration object
-	 * @param {Function} progressCallback optional method to call on load progress
-	 * @returns {Promise<Boolean>} TensorFlow model load promise
+	 * Bind all gadgets and selectors to actions
+	 * @param {Object} settings 
+	 * @param {Function} progressCallback 
 	 */
-	const load = async (settings, progressCallback) => {
-
-		const loadTotal = 5
-		let loadIndex = 0
-		
-		progressCallback(loadIndex++/loadTotal, "Loading Brains")
-
-		// pick the body parts and return the method used to create them
-		const loadModel = await loadMLModel(settings.model)
-
-		progressCallback(loadIndex++/loadTotal, "Loaded Brains" )
-				
-		// set up the instrument selctor etc
-		setupInterface( ui )
-
-		progressCallback(loadIndex++/loadTotal, "Connecting wires")
+	const setupInterfaceUI = (settings, progressCallback) => {
 
 		// you can toggle any checkbox like...
 		// toggles.quantise.setAttribute('checked', value)
 
-		// Connect up sone buttons?
+		// Connect up some latchedtoggles
 		toggles.quantise = setToggle( "button-quantise", status =>{
-			setState( 'quantise', status )
-			setToast("Quantise " + (ui.quantise ? 'enabled' : 'disabled')  )
-		}, ui.quantise)
+			stateMachine.set( 'quantise', status )
+			setToast("Quantise " + (stateMachine.get( 'quantise') ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'quantise') )
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
-			setState( 'showSettings', status )
+			stateMachine.set( 'showSettings', status )
 			setToast("Settings " + (status ? 'enabled' : 'disabled')  )
-		}, ui.showSettings )
+		}, stateMachine.get( 'showSettings') )
+		
+		/*
+		toggles.midiMenu = setToggle( "button-midi-menu", status =>{ 
+			// stateMachine.set( 'showSettings', status )
+			setToast("MIDI Menu " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'showSettings') )
+		*/
 
 		// Connect up sone buttons?
 		toggles.metronome = setToggle( "button-metronome", status =>{
-			setState( 'metronome', status )
-			setToast("Metronome " + (ui.metronome ? 'enabled' : 'disabled')  )
-		}, ui.metronome )
+			stateMachine.set( 'metronome', status )
+			setToast("Metronome " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'metronome') )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
 			// change drums!
 			setRandomDrumPattern()
-			setState( 'backingTrack', status )
-			setToast( ui.backingTrack ? "Backing track starting" : "Ending Backing Track" )
-		}, ui.backingTrack )
+			stateMachine.set( 'backingTrack', status )
+			setToast( status ? "Backing track starting" : "Ending Backing Track" )
+		}, stateMachine.get( 'backingTrack') )
 
 		toggles.spectrogram = setToggle( "button-spectrogram", status =>{
-			setState( 'spectrogram', status )
-			setToast("Spectrogram " + (ui.spectrogram ? 'enabled' : 'disabled')  )
-		}, ui.spectrogram )
+			stateMachine.set( 'spectrogram', status )
+			setToast("Spectrogram " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'spectrogram') )
 
 		toggles.speak = setToggle( "button-speak", status =>{
 			kit.cowbell()
-			setState( 'speak', status )
-			setToast("Speaking " + (ui.speak ? 'enabled' : 'disabled')  )
-		}, ui.speak )
+			stateMachine.set( 'speak', status )
+			setToast("Speaking " + (status ? 'enabled' : 'disabled')  )
+		}, stateMachine.get( 'speak') )
 
 		// Synch button
 		// draw video onto canvas every frame (transparent doesn't have to be true then)
 		toggles.synch = setToggle( "button-sync-video", status =>{
 			// I inverted the state for UX
-			setState( 'synch', !status )
+			stateMachine.set( 'synch', !status )
 			setToast( status ? `Video Frame Synching enabled` : 'disabled Frame Synch') 
-		}, ui.synch )
+		}, stateMachine.get( 'synch') )
 
 		// Clear canvas between frames
 		// NB. 	there are 2 modes - video frame copy 
 		// 		transparent canvas with video beneath
 		toggles.clear = setToggle( "button-clear", status =>{ 
-			setState( 'clear', !ui.clear )
-			setToast( status ? "Hiding video enabled" : 'Hiding video disabled') 
-		}, ui.clear )
+			const flag = stateMachine.toggle( 'clear' )
+			setToast( flag ? "Hiding video enabled" : 'Hiding video disabled') 
+		}, stateMachine.get( 'clear') )
 
 		// toggle mute
 		toggles.muted = setToggle( "button-mute", status =>{ 
-			setState( 'muted', !ui.muted )
-			setToast(ui.muted  ? 'Volume Muted' : 'Unmuted' )
-		}, ui.muted )
+			stateMachine.set( 'muted', status )
+			setToast( status  ? 'Volume Muted' : 'Unmuted' )
+		}, stateMachine.get( 'muted') )
 
 		// FIXME: This does not work after refresh
 		// let discoPreviousState
 		// MTV : Special disco mode!
 		toggles.disco = setToggle( "button-disco", status =>{ 
-			setState( 'disco', !ui.disco )
+			stateMachine.set( 'disco', status )
 		
-			/*setState( 'masks', status )
+			/*stateMachine.set( 'masks', status )
 			if (status)
 			{
 				// ENABLE disco mode
-				// setState( 'clear', false )
+				// stateMachine.set( 'clear', false )
 				ui.clear = false
 				
 				// save previous state to go back to later...
@@ -2216,7 +2713,7 @@ export const createInterface = (
 				
 				setToast('Disco mode enabled!' )
 			}else{
-				// setState( 'clear', true )
+				// stateMachine.set( 'clear', true )
 				ui.clear = true
 				// setPlayerOption("drawNodes", ui.masks)
 				//setPlayerOptions( {drawNodes:true, drawMesh:false})
@@ -2225,7 +2722,7 @@ export const createInterface = (
 				discoPreviousState = null
 				setToast('Disco mode disabled!' )
 			}*/
-		}, ui.disco )
+		}, stateMachine.get( 'disco') )
 
 		// Overlays ----
 		
@@ -2234,27 +2731,35 @@ export const createInterface = (
 		// All person  overlays... should be dropdown?
 		// Show / hide the face and stuff
 		toggles.overlay = setToggle( "button-overlay", status => { 
-			setState( 'overlays', !ui.overlays )
-		}, ui.overlays )
+			stateMachine.toggle( 'overlays' )
+		}, stateMachine.get( 'overlays') )
 
 		// Face meshes
 		toggles.masks = setToggle( "button-meshes", status =>{ 
-			setState( 'masks', !ui.masks )
-			setPlayerOption("drawMask", ui.masks)
-		}, ui.masks )
+			const flag = stateMachine.toggle( 'masks' )
+			setPlayerOption("drawMask", flag )
+		}, stateMachine.get( 'masks') )
 
 		// hide / show eye overlays
 		// NB. this gets hidden in kid mode?
 		toggles.eyes = setToggle( "button-eyes", status => {
-			setState( 'eyes', !ui.eyes )
-			setPlayerOption("drawEyes", ui.eyes)
-		}, ui.eyes )
+			const flag = stateMachine.toggle( 'eyes' )
+			setPlayerOption("drawEyes", flag )
+		}, stateMachine.get( 'eyes') )
 
-	
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
-			setState( 'text', !ui.text )
+			stateMachine.toggle( 'text' )
 		} )
+
+		toggles.automator = setToggle( "button-automate", status =>{
+			stateMachine.toggle( 'automationMode' ) 
+		})
+	
+		toggles.automator = setToggle( "button-toggle-advanced", status =>{
+			stateMachine.toggle( 'advancedMode' ) 
+		})
+	
 
 		// TODO : Set some up with double functions if held
 		// Recording bars by holding...
@@ -2262,20 +2767,19 @@ export const createInterface = (
 		toggles.recordAudio = setPressureToggle( 
 			"button-record-audio",
 			tap =>{ 
-				drawMousePressure( 1, ui.mouseHoldDuration )
+				drawMousePressure( 1, stateMachine.get('mouseHoldDuration') )
 				toggleRecording( false )
 			},
 			hold =>{ 
-				drawMousePressure( 1, ui.mouseHoldDuration )
+				drawMousePressure( 1, stateMachine.get('mouseHoldDuration') )
 				toggleRecording( true )
 			},
-			holding => drawMousePressure( holding, ui.mouseHoldDuration ),
+			holding => drawMousePressure( holding, stateMachine.get('mouseHoldDuration') ),
 			false 
 		)
 
 		//console.error("toggles", toggles)
-
-		setButton( "button-photograph", event => {	
+		buttons.takePhotograph = setButton( "button-photograph", event => {	
 			// TODO: also copy to clipboard?
 			// copyCanvasToClipboard()
 			appendPhotographElement( display.canvas )
@@ -2284,13 +2788,14 @@ export const createInterface = (
 		} )
 	
 		// reset to factory defaults
-		setButton( "button-reset", status =>{ 
-			ui = {...defaultOptions}
-			refreshState()
+		buttons.resetSettings = setButton( "button-reset", status =>{ 
+			stateMachine.reset()
 		})
 
-		// Button video loads random instruments for all
-		setButton( "button-video", status => loadRandomInstrument() )
+		// Button video loads random instruments for all players at the same time
+		buttons.video = setButton( "button-video", status => loadRandomInstrument() )
+	
+		// buttons.advancedMode = setButton( "button-advanced", status => stateMachine.toggle( 'advancedMode' ) )
 		
 		
 		// change behviours for certain buttons to allow for holding
@@ -2299,7 +2804,7 @@ export const createInterface = (
 		// there are special keyboard modifiers for performing
 		// these actions solely with the keyboard. How to instruct the 
 		// user about these additional actions is a challenge
-		setPressureButton( "link-about", 
+		buttons.about = setPressureButton( "link-about", 
 			tap => {
 				if (kit){
 					kit.cowbell()
@@ -2313,9 +2818,9 @@ export const createInterface = (
 
 		// Upload MIDI File! Secret functions
 		//const uploadMIDIForm = document.getElementById("midi-file") 
-		const uploadMIDIFileInput = document.getElementById("midi-upload") 
+		const uploadMIDIFileInput = document.getElementById("midi-upload-input") 
 
-		setButton("button-midi-upload", click => {
+		buttons.uploadMIDI = setButton("button-midi-upload", click => {
 			const file = uploadMIDIFileInput.files[0]
 			userUploadMediaFile( file )
 		}, 'click', true)
@@ -2336,6 +2841,7 @@ export const createInterface = (
 			setBPM(tempo)
 		} )
 
+		// swap out the eyes for some custom ones
 		selects.eyes = connectSelect( 'select-eyes', option => {
 			const items = option.value.split(",")
 			const eye = convertOptionToObject(items)
@@ -2353,7 +2859,7 @@ export const createInterface = (
 			const instrumentPack = option.value
 			setPlayerOptions({ instrumentPack })
 			const instrument = await reloadInstrument()
-			setState( 'instrumentPack', instrumentPack )
+			stateMachine.set( 'instrumentPack', instrumentPack )
 			//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
 		} )
 
@@ -2372,61 +2878,138 @@ export const createInterface = (
 			if (option && option.value)
 			{
 				const url = option.value
-				//console.log(option.value, {url, option})
 				const reverb = await setReverb(url)
+				setToast('Reverb loaded' )
+				//console.log(option.value, {url, reverb, option})
 			}else{
 				console.error(option, option.previousSibling )
 			}
 		})
 		
-
+		// allow display type to be changed on the hoof via toggle
+		selects.displays = connectSelect( 'select-display', async(option) => {
+			if (option && option.value)
+			{
+				try{
+					const displayType = option.value
+					display = await switchDisplay( displayType, predictionLoop )
+					console.info("Display Changed to", {displayType, display})
+					setToast('Display Changed to '+displayType )
+				}catch(error){
+					console.error("Display Issue! Could not initiate display", error)
+				}
+				
+			}else{
+				console.error("Display request ignored", option, option.previousSibling )
+			}
+		})
+		
 		// Track mouse coords on canvas for use with mouse cursor thingy
 		watchMouseCoords( document.getElementById('control-panel'), coords =>{
 			//console.log("Canvas Mouse",coords)
 		} )
+	}
+
+	/**
+	 * load : load the files required for this app
+	 * @param {Object} settings Configuration object
+	 * @param {Function} progressCallback optional method to call on load progress
+	 * @returns {Promise<Boolean>} TensorFlow model load promise
+	 */
+	const load = async (settings, progressCallback) => {
+
+		const loadTotal = 5
+		let loadIndex = 0
 		
-			
+		progressCallback(loadIndex++/loadTotal, "Loading Brains")
+
+		// pick the body parts and return the method used to create them
+		const loadModel = await loadMLModel(settings.model)
+
+		progressCallback(loadIndex++/loadTotal, "Loaded Brains" )
+				
+		// set up the instrument selctor etc
+		setupInterface( stateMachine )
+
+		// recording results and controls
+		setupRecordings()
+
+		progressCallback(loadIndex++/loadTotal, "Connecting wires")
+
+		
+		// now set up the front end based on this state
+		setupInterfaceUI( settings, progressCallback )
+
+		// add theme controls... also add to state?
+		setupThemeControls( document.getElementById('select-theme'), newTheme =>{
+			// update state!
+			stateMachine.set("theme", newTheme )
+		} )
+
+		// this takes any existing state from the url and updates our front end
+		// so that any previously saved settings show as if the user is continuing
+		// their project from before - same buttons selected etc
+		stateMachine.refresh()
+
+
+		// upodate the load progress
+		progressCallback(loadIndex++/loadTotal, "Assembled!")
+		
 		try{
 			// Attempt to Lazy load
 			// Load in our instruction tool kit
-			const instructionTools = await import('./models/instructions')
-
-			// save to local space
+			let instructionTools = await import('./models/instructions.js')
+		
+			
+// save to local space
+// if automated, we show different instructions!
+			// getInstruction = instructionTools.getInstructionForAutomation
+			
 			getInstruction = instructionTools.getInstruction
 			getHelp = instructionTools.getHelp
+
+		
+			switch (referer)
+			{
+				case "ieee":
+					const IEEESpecificInstructions = [
+						`Hello IEEE!`,
+						`Welcome to the`,
+						`1st IEEE International Workshop on the Musical Metaverse =D`,
+						`and the 5th International Symposium...`,
+						`on the Internet of Sounds (IS2 2024)`,
+						`and me, the PhotoSYNTH...`,
+						`A SMILE POWERED SYNTHESIZER...`,
+						`and psychedelic pop video machine!`,
+						`Change instruments and video effects by posing...`,
+						`like your favourite emoji =P`
+					]
+
+					instructionTools.injectHelp(0, ...IEEESpecificInstructions )
+					instructionTools.injectInstructions(0, ...IEEESpecificInstructions)
+					instructionTools.injectInstructionsForAutomation(0, ...IEEESpecificInstructions)		
+					break
+			
+				default:
+					// instructionTools.injectHelp(0, [
+						
+					// ])
+					// instructionTools.injectHelp(0, "BOO!" )
+					// instructionTools.injectInstructions(0, "BOO!")
+					// instructionTools.injectInstructionsForAutomation(0, "Robot in disguise")
+
+					break
+			}
+
 			progressCallback(loadIndex++/loadTotal, "Instructions Found")
 		
 		}catch(error){
+			
 			// backup plan for failed JS loads
 			getInstruction = getHelp = i => ''
 			progressCallback(loadIndex++/loadTotal, "Instructions failed to load")
 		}
 
-		try {
-				
-			// create our reporter for analytics
-			const analyticTools = await import('./reporting')
-			setupReporting = analyticTools.setupReporting
-			track = analyticTools.track
-			trackError = analyticTools.trackError
-			trackExit = analyticTools.trackExit
-			reporter = setupReporting("InterFACE")
-
-			progressCallback(loadIndex++/loadTotal, "Reporter assigned")
-			
-		} catch (error) {
-
-			progressCallback(loadIndex++/loadTotal, "Reporting blocked")
-		}
-		
-		// this takes any existing state from the url and updates our front end
-		// so that any previously saved settings show as if the user is continuing
-		// their project from before - same buttons selected etc
-		refreshState()
-
-		// upodate the load progress
-		progressCallback(loadIndex++/loadTotal, "Assembled!")
-		
 		// Load tf model and wait
 		// this gets returned then used an the update method
 		const elementToAnalyse = inputElement
@@ -2436,7 +3019,7 @@ export const createInterface = (
 
 	// We avoid setting feedback until part 2 of loading...
 	//setFeedback("Initialising...<br> Please wait")
-	onLoadProgress && onLoadProgress(0, "Loading... Please wait")
+	loadProgressMediator(0, "Loading... Please wait")
 
 	
 	/**
@@ -2456,6 +3039,15 @@ export const createInterface = (
 			// load the share menu :)
 			const sharer = await import('share-menu')
 			body.classList.add("sharing-enabled")
+
+
+			const dialogShare = document.getElementById("dialog-share")
+			const elementQRCode = dialogShare.querySelector("#qr-code")
+			// const qr = await createQRCode( elementQRCode, {} )
+			// dialogShare.showModal()
+			// dialog.hidden = false
+
+
 		}catch(error){
 			// disable the share menu...
 			body.classList.add("sharing-disabled")
@@ -2466,7 +3058,7 @@ export const createInterface = (
 	// loop until loaded...
 	const loadingLoop = async () => {
 
-		//console.log("loading", {isLoading, userLocated, cameraLoading})
+		console.log("loading", {isLoading, userLocated: isPersonLocatable, isCameraLoading})
 		if ( isLoading )
 		{ 
 			requestAnimationFrame( loadingLoop ) 
@@ -2494,7 +3086,7 @@ export const createInterface = (
 
 		const SEARCHING_FOR_USERS_CLASS = "searching-for-user"
 		const waitForUser = () => {
-			if (!userLocated)
+			if (!isPersonLocatable)
 			{
 				requestAnimationFrame( waitForUser ) 
 
@@ -2504,7 +3096,7 @@ export const createInterface = (
 				speak("Hello! Open your mouth to begin!")
 				
 				body.classList.toggle(SEARCHING_FOR_USERS_CLASS, false)
-				// may as well create a user?
+				
 				return getPerson(0)
 			}	
 		}
@@ -2521,34 +3113,53 @@ export const createInterface = (
 		body.classList.toggle("loading", false)
 		body.classList.toggle("loaded", true)
 		main.setAttribute("aria-busy", false)
+
+		// as we are now "full screen" the positions of the tooltips needs
+		// to be recaulated so we do them all here
+		updateTooltipPositions()
+		
+		observeWeblink()
+		notifyObserversThatWeblinkIsAvailable()
 		
 		// monitor keyboard events
 		registerKeyboard()
-		
+
 		speak("I am looking for your face")
+
+		// now create all the people we will need!
+		for (let i=0; i< stateMachine.get("players"); ++i)
+		{
+			const person = getPerson(i)
+			console.info(i, "Person created", person)
+		}
+
+		
+		console.info( "People created", people)
 		
 		// wait here until a user shows their face...
 		const user = await lookForUser()
 
 		// focus app?
-		onLoadProgress && onLoadProgress(1,"complete", true)
+		loadProgressMediator(1,"complete", true)
 		
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
 			user,
-			setState,
-			setRandomDrumPattern,
+			setState:stateMachine.set,
+			setRandomDrumPattern,toggleBackgroundPercussion,
 			setPlayerOption, setPlayerOptions,
-			getPerson, getPlayers, getBar, getBars,
+			getPerson, getPlayers,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 			language, 
-			isUserActive:()=>userActive,
-			options:ui, 
+			isUserActive:()=>isUserActive,
+			options:stateMachine.asObject, 
+			stateMachine,
 			...information,
 			setAutomator,
+			setDiscoMode,
 			setBPM, setMasterVolume,
 			changeDrumPattern,
-			loadInstruments,
+			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
 		} ) )
@@ -2567,7 +3178,7 @@ export const createInterface = (
 			// console.log("onMIDIPeconstrformanceAvailable", midiTrack.toString(), midiTrack.toString() )
 		}
 
-		const midiFile = createMIDIFileFromTrack( midiTrack, getBPM() )
+		const midiFile = createMIDIFileFromTrack( midiTrack, clock.BPM )
 		saveMIDIFile( midiFile, "./local.mid")
 	}
 
@@ -2576,18 +3187,17 @@ export const createInterface = (
 
 	/**
 	 * get player quantity and mouse event in one click
-	 * @param {*} state 
-	 * @param {Number} showTextAfter 
+	 * @param {Number} showHelpTextAfter 
 	 * @returns 
 	 */
-	const showPlayerSelectionScreen = async ( state={}, showTextAfter=60000 ) => {
+	const showPlayerSelectionScreen = async ( showHelpTextAfter=60000 ) => {
 
 		// preload completed and now we show the ui
 		// for selecting regular or multi-face mode!
 		let timeOut = setTimeout(()=>{
 			setToast( "Please select how many players you want to play" )
 			timeOut = setTimeout(()=>setToast( "by clicking either button" ), 15000 )
-		}, showTextAfter )
+		}, showHelpTextAfter )
 
 		// clear help fields
 		setFeedback("")
@@ -2596,19 +3206,13 @@ export const createInterface = (
 		hideLoading()
 
 		// Show the player selection screen!
-		const results = await showPlayerSelector(options, state)
-		
-		// console.error("FWSFEW",{ players, advancedMode, automationMode } )
-		useAutomator = results.automationMode
-		setState("duet", results.players > 1 )
-		setState("advancedMode", results.advancedMode )
-		setState("automationMode", results.automationMode)
+		const results = await showPlayerSelector(modelOptions, stateMachine)
 		
 		clearInterval( timeOut )
 		setToast( "" )
+
+		requestAnimationFrame( showLoading )
 		
-		// continue loading...
-		showLoading()
 		return results
 	}
 
@@ -2617,36 +3221,52 @@ export const createInterface = (
 	// BEGIN APP HERE!
 	// ---------------------------------------------------------
 
-	const options = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS, { maxFaces:ui.duet ? 2 : 1 } )
-	
 	let havePlayersBeenSelected = false
+
+	// console.log("PhotoSYNTH3D Waiting to select player...", {options} )
 
 	// NB. To allow this to happen at the same time...
 	// we show selection screen while stuff loads in background
-	showPlayerSelectionScreen( ui ).then( r=>{ 
+	showPlayerSelectionScreen().then( results =>{ 
 		havePlayersBeenSelected = true 
+		const { advancedMode, automationMode, players } = results
+		const quantityOfPlayers = parseInt(players) 
+		//console.warn("Selection completed",{ players, advancedMode, automationMode } )
+		
+		useAutomator = results.automationMode ?? false
+
+		stateMachine.set("players", quantityOfPlayers )
+		stateMachine.set("advancedMode", results.advancedMode  ?? false )
+		stateMachine.set("automationMode", automationMode )
 	})
 
-	// now load dependencies and show progress
-	const ML = load(options, (progress, message) => {
-		
-		// console.log("waiting for havePlayersBeenSelected?", havePlayersBeenSelected)
+	//console.warn("Loading machine learning models with options", modelOptions)
+	
+	// now load dependencies and show progress at the SAME time
+	const ML = load(modelOptions, (progress, message) => {
 
 		//console.log("Interface:load -> onLoadProgress", {progress, message })
 
-		onLoadProgress && onLoadProgress(progress / 2, message)
+		loadProgressMediator(progress / 2, message)
 
-	}).then( async update =>{ 
-
-		//console.log( "Interface:half loaded" )
-
-		onLoadProgress && onLoadProgress(0.45, "Models available", true)
+	}).then( async fetchPrediction =>{ 
+	
+		loadProgressMediator(0.45, "Models available", true)
 
 		// we can sneakily back ground load in some data
 		// whilst the user hits the button!
 		requestAnimationFrame( loadExtras )
 		// body.classList.toggle("loading", false)
 		
+		console.info(
+			"%c ",
+			`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`,
+			"State created", {stateMachine}, "Interface:half loaded... waiting for user response"
+		)	
+		// console.info("State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response" )
+
+		loadProgressMediator(0.5, "Time to pick players!", false)
+
 		// attempt to get player quantity and mouse event in one
 		// wait here until havePlayersBeenSelected = true
 		await ( new Promise( resolve =>{
@@ -2654,36 +3274,59 @@ export const createInterface = (
 				//console.log("waiting for havePlayersBeenSelected", havePlayersBeenSelected)
 				if (havePlayersBeenSelected)
 				{
-					//console.log( "Interface:Players selected" , onLoadProgress )
-					onLoadProgress && onLoadProgress( 0.5, "Players Selected", false)
+					// console.log( "Interface:Players selected"  )
+					loadProgressMediator( 0.5, "Players Selected", false)
 					resolve(true)
 				} else{
-					requestAnimationFrame( wait )
+					// TODO: Throw in some zzz animations
+					requestAnimationFrame( wait )	
 				} 
 			}
 			wait()
 		}) ) 
 
-	
+
+		
+		// now we can update some of the options in the ML model
+		// as the models have loaded already at this point...
+		modelOptions.maxFaces = modelOptions.numFaces = stateMachine.get('players')
+		
+		console.info("setFaceLandmarkerOptions", modelOptions )
+		
+		setFaceLandmarkerOptions( modelOptions )
+
+		console.info("Players", stateMachine.get('players') )
+		
+		// reset the progress meter for loading the second half
+		loadPercent = 0
+
+		// immediatel update the UI
+		loadProgressMediator( 0.5, stateMachine.get('players') + " players selected!", false)
+
 		// we are loading asynchronously due to the requestFrames above
 		// load settings from store here too?
 		// set up some extra options from query strings
 		// any custom overrides (shouldn't be needed : use query strings)
-		const startApp = await setup( update, options, (progress,message) => {
+		const startApp = await setup( fetchPrediction, modelOptions, (progress,message) => {
 			
 			//console.log("Loading B Side", progress )
-			onLoadProgress && onLoadProgress(0.5 + progress/2, message, false)
+			loadProgressMediator(0.5 + progress/2, message, false)
 		})
-	//
-	
-	// console.log("loadingstartApp", {startApp, update, options })
-
+		
+		console.info("Loaded ML model now updating with options", {startApp, modelOptions, stateMachine} )
+		
 		return startApp
 
 	}).then( startPhotoSYNTH => {
 
-		//onLoadProgress && onLoadProgress(1, "", true)
-	
+		if (!startPhotoSYNTH)
+		{
+			throw new Error("Failed to load PhotoSynth Models")
+		}
+
+		//loadProgressMediator(1, "", true)
+		console.log("PhotoSYNTH3D LOADED", startPhotoSYNTH)
+
 		// let's launch it after it has resolved...
 		startPhotoSYNTH()
 
@@ -2701,14 +3344,22 @@ export const createInterface = (
 			interact( 
 				document.getElementById("button-video"),
 				function onActive(){
-					ui.autoHide && body.classList.toggle("user-active", true)
-					ui.autoHide && body.classList.toggle("user-inactive", false)
-					userActive = true
+					if ( stateMachine.get("autoHide"))
+					{
+						body.classList.toggle("user-active", true)
+						body.classList.toggle("user-inactive", false)
+					}
+					isUserActive = true
+					people.forEach( player => player.isUserActive = true)
 				}, 
 				function onInactive(){
-					ui.autoHide && body.classList.toggle("user-active", false)
-					ui.autoHide && body.classList.toggle("user-inactive", true)
-					userActive = false
+					if ( stateMachine.get("autoHide"))
+					{
+						body.classList.toggle("user-active", false)
+						body.classList.toggle("user-inactive", true)
+					}
+					isUserActive = false
+					people.forEach( player => player.isUserActive = false)
 				}
 				// , timeout
 			)
@@ -2717,6 +3368,7 @@ export const createInterface = (
 		// Exit & save all cookies!
 		window.onbeforeunload = ()=>{
 
+			// try and locally store any changes to the interface and settings
 			const saveSession = Object.assign({}, information, {
 				lastTime:Date.now(),
 				count:information.count++
@@ -2725,8 +3377,8 @@ export const createInterface = (
 			//store.setItem(person.name, {instrument})
 			
 			// save ui settings in cookie too?
-			trackExit()
-			setToast("bye bye!")
+			trackExit && trackExit()
+			setToast("Goodbye!")
 			setFeedback("<strong>I hope you had fun!</strong>")
 		}
 
@@ -2755,7 +3407,7 @@ export const createInterface = (
 
 		// show an on screen error message with the code
 		reject(error)
-		// trackError('Esoteric interaction', error)
+		trackError && trackError('Esoteric interaction', error)
 	})
 		
 	/**

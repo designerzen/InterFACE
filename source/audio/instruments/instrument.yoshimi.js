@@ -8,8 +8,12 @@ const WAM_FOLDER = "wam"
 
 export default class YoshimiInstrument extends Instrument{
 
+	static get name(){
+		return "YoshimiInstrument"
+	}
+
+	name = YoshimiInstrument.name
 	type = "yoshimi"
-	name = "YoshimiInstrument"
 
 	yoshimi
 	presets

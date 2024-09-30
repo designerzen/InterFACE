@@ -1,0 +1,170 @@
+//-
+	a short blog from each of you on our website. 
+	Ideally the blog would be between 300-500 words, 
+	and it could include images and video. 
+	Any images will need to have alt text, and ideally 
+	any video would be captioned (we can assist with this if needed).
+
+extends _base.pug
+
+block headline 
+	| Photo<wbr>Synth 3
+	//- span.sr-only PhotoSynth 3
+	| #Inter<wbr>
+	strong FACE
+
+block tagline 
+	| Blog
+
+block main 
+	main#news
+		section
+			article.mixed-content
+
+				img(src="/mediakit/logo-square-tagline.svg" alt="PhotoSYNTH3 logo that resembles the shape of a human mouth with tonsils")
+
+				p.
+					The PhotoSYNTHs are a range of multiplayer, collaborative, mixed-reality POP music factories that grant anyone nearby with radical new musical superpowers! 
+				//- Instantly turning ordinary groups of people into musical super-groups!
+
+				figure
+					img(src="/mediakit/history/PhotoSynth2-big.png" alt="The second version of the PhotoSynth being demonstrated by Gawain Hewitt")
+					figcaption
+						p The PhotoSYNTH II being demonstrated by Gawain Hewitt in 2014
+			
+				p Having long ago developed the <a href="https://www.drakemusic.org/pages-that-are-currently-not-live-on-the-site/instrument-led-projects/photosynth-by-zenon-olenski/">"PhotoSYNTH II : POP Music Factory"</a> with the help of #DMLab, and in order to celebrate ten year since the last version, it was time to push it into the third dimension... and beyond!
+							
+				p The "<i>PhotoSYNTH 3</i> #interFACE" is a web-based music creation technique which instantly transforms anybody it sees into a musical instrument and any group of people into a band!
+
+				p By tracking your motions and emotions in real-time, this magic mirror converts your everyday movements into beautiful music - making it one of the easiest and most fun synthesizers to play, yet remains highly expressive and capable of high fidelity.
+				
+				p Rather than playing a musical instrument, the <i>PhotoSYNTH</i> plays you! 
+			
+				p Without any training you can instantly make great music using movements familiar to you. 
+
+							
+				figure
+					img(src="/mediakit/people/becky.jpg" alt="Becky smiling at the PhotoSynth causing it to play a melody")
+					figcaption
+						p Becky smiling at the PhotoSynth causing it to play a melody
+		
+				p Commonly referred to as the <em>Smile Powered Synthesizer</em> due to how most people discover that their mouth now controls musical instruments.
+
+				p Developed from the ground up to be accessible and inclusive, with the support and feedback from Drake Music and hundreds of disabled and differently-abled people met through #DMLabs throughout the years. 
+				
+				figure
+					img(src="/mediakit/people/john-kelly.png" alt="PhotoSynth being demonstrated by John Kelly playing the Contrabass preset")
+					figcaption
+						p The PhotoSYNTH III being demonstrated by John Kelly
+			
+				p Constant testing with real people ensured that it evolved in an accessible and ergonomic way so that everyone can make music, alone or together with friends. With the broadest demographic covering every diversity and ability... the PhotoSYNTH levels the playing field for any aspiring creatives!
+
+
+				figure
+					img(src="/mediakit/people/louis.jpg" alt="PhotoSynth being demonstrated by Louis playing the harmonic Choir preset")
+					figcaption
+						p The PhotoSYNTH III being demonstrated by Louis from Drake Music playing the harmonic Choir preset
+
+				
+				p Looking like a magic mirror where you can see your own reflection, the PhotoSYNTH is a mixed-reality audio synthesizer that uses real-time motion capture with facial-landmark tracking to enhance your movements, and the movements of your friends, with new musical powers, controlling aspects of each instrument and sound... <i>Finally a purpose for your reflection!</i>
+
+				figure
+					img(src="/mediakit/people/emf.jpg" alt="PhotoSYNTH 4D with a holographic display being tested at Electro Magnetic Fields")
+					figcaption
+						p PhotoSYNTH 4D with a holographic display being tested at Electro Magnetic Fields
+			
+				p Collaboration is encouraged for up to a simultaneous quartet (four people), and whilst playing alone is a lot of fun, bringing more players adds more layers to the music and amplifies the fun considerably, where each new person can controls their favourite instrument such as the guitar, bass or drums. 
+				
+				figure
+					img(src="/mediakit/history/zoom-zen.png" alt="A Zoom session demonstrating the PhotoSYNTH 3 in action using MIDI and an OP1 synthesizer")
+					figcaption
+						p PhotoSYNTH III controlling an OP-1 via MIDI on a Zoom call with Tim Yates, Becky Morris-Knight and John Kelly
+				
+				p It is the most satisfyingly fun and psychedelic way to make music with friends, as nobody requires any skills or musical abilities and you can all just focus on the jam and rocking-out together. You can even record your performances and share them with the world!
+
+				figure
+					img(src="/mediakit/history/photosynth.reverse-shot.jpg" alt="A person demonstrating how to use the PhotoSYNTH 4D with a holographic display")
+					figcaption
+						p Holographic version PhotoSYNTH 4D being demonstrated at the <abrv title="Accessible Musical Instrument Collection">AMIC<abrv>
+
+				p Thanks to the #DMLab grant, there is a brand new version to share with you that contains lots of fun new features and super-powers, this time in true holographic 3D!
+				
+				p Online, the PhotoSYNTH can be accessed at 
+
+					a.link-app(href="https://interface.place" target="_blank") interface.place. 
+
+					| and you can come to the <abrv title="Accessible Musical Instrument Collection">AMIC<abrv> to play with the <strong>holographic version</strong>, <i>PhotoSYNTH</i> 4D!
+
+				p <strong>PROTIP</strong> May your favourite emoji inspire your performances in order to fully maximise your enjoyment by unlocking usually hidden, secret musical superpowers.
+
+				p For more information, see the 
+					a.link-presentation(href="https://youtu.be/rBZGWsk5lxw" target="_blank") #DMLab talk 
+					| and its 
+					a.link-presentation(href="presentation.pug" target="_blank") presentation
+					| , or jump straight in to the 
+					a.link-presentation(href="https://interface.place" target="_blank") online <i>PhotoSYNTH3</i>.
+			
+				a.link-qr(href="https://interface.place" target="_blank")
+					img(src="./assets/qr/interface.place-red.png" alt="QR code linking to the PhotoSYNTH website")
+
+				iframe#yt-dmlab(
+					width="640" 
+					height="360" 
+					src="https://youtu.be/rBZGWsk5lxw?enablejsapi=1" 
+					frameborder="0"
+				)
+
+		include partials/history.pug
+	
+		a.roadmap(href="roadmap.pug" target="_blank") Roadmap
+
+block scripts
+	script(type="text/javascript").
+		const YT_ID_DMLAB = "yt-dmlab"
+		const tag = document.createElement('script')
+		tag.id = YT_ID_DMLAB
+		tag.src = 'https://www.youtube.com/iframe_api'
+		const firstScriptTag = document.getElementsByTagName('script')[0]
+
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+
+		let player
+		function onYouTubeIframeAPIReady() {
+			player = new YT.Player(YT_ID_DMLAB, {
+				events: {
+					'onReady': onPlayerReady,
+					'onStateChange': onPlayerStateChange
+				}
+			})
+		}
+
+		function onPlayerReady(event) {
+			document.getElementById(YT_ID_DMLAB).style.borderColor = '#FF6D00'
+		}
+
+		function changeBorderColor(playerStatus) {
+			let color
+			if (playerStatus == -1) {
+				color = "#37474F"; // unstarted = gray
+			} else if (playerStatus == 0) {
+				color = "#FFFF00"; // ended = yellow
+			} else if (playerStatus == 1) {
+				color = "#33691E"; // playing = green
+			} else if (playerStatus == 2) {
+				color = "#DD2C00"; // paused = red
+			} else if (playerStatus == 3) {
+				color = "#AA00FF"; // buffering = purple
+			} else if (playerStatus == 5) {
+				color = "#FF6DOO"; // video cued = orange
+			}
+			if (color) 
+			{
+				document.getElementById(YT_ID_DMLAB).style.borderColor = color
+			}
+		}
+
+		function onPlayerStateChange(event) {
+			changeBorderColor(event.data)
+		}
+
+block styles

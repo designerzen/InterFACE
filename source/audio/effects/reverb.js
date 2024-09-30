@@ -137,7 +137,7 @@ export const createReverb = async (
 	}
 	
 	// first load our filter into memory...
-	const compressor = new DynamicsCompressorNode(audioContext)
+	// const compressor = new DynamicsCompressorNode(audioContext)
 	const reverbGain = new GainNode( audioContext, {gain: gain} )
 	
 	// const convolver = new ConvolverNode( audioContext , {
@@ -145,16 +145,17 @@ export const createReverb = async (
 	// 	normalize : normalize
 	// } )
 	const convolver = audioContext.createConvolver()// null, true
-	// const audioBuffer = await loadImpulseFilter(impulseFilterFilename)
-	convolver.buffer =  await loadImpulseFilter(impulseFilterFilename)
+	const audioBuffer = await loadImpulseFilter(impulseFilterFilename)
+	
+	convolver.buffer = audioBuffer
 	convolver.normalize = normalize
 
 	//console.log("Reverb", {arrayBuffer, filterBuffer, reverbGain, convolver } )
 
-	compressor.connect(audioContext.destination)
-	compressor.connect(convolver)
+	// compressor.connect(audioContext.destination)
+	// compressor.connect(convolver)
 
-	convolver.connect(reverbGain).connect(audioContext.destination)
+	convolver.connect(reverbGain) //.connect(audioContext.destination)
 	
 	return {
 		name:"reverb",

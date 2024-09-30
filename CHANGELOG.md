@@ -1,730 +1,126 @@
-### 0.20.0 (2023-09-11)
+#### 0.21.2 (2024-09-18)
 
-##### Bug Fixes
+##### Build System / Dependencies
 
-*  Bounding box (34e424bf)
-*  Timing updates * new event (3b4f00f2)
+*  versiom bump ([c2f95c5b](https://github.com/designerzen/interface/commit/c2f95c5b8bc9c3ca097069f46257e898e9a9d972))
+*  changelog + rss update ([953636af](https://github.com/designerzen/interface/commit/953636af6bbc01d4507623b7ac8793c2790bf3f6))
+*  moved TF copying assets into build script ([40c8a187](https://github.com/designerzen/interface/commit/40c8a187f74323c03f6e289565aa13cf9439638f))
 
-##### Other Changes
+##### Chores
 
-*  Clipboard copy to (37639bcb)
-*  mouse pressure ui (2fd173da)
-*  VSCode debug (ce44726b)
-*  UI improvements (d9a6fe50)
-*  WAM2 (7f5f2b6f)
-*  Noise and scales (87051cef)
-*  audio / video recording (bd93a72c)
-*  Major MIDI improvements (7e4119b5)
-*  tests but VScode destroyed them (acaf707f)
-*  Draw waveforms in SVG (1fb68f0c)
-*  WAM page tests (a45f38f2)
-*  New Instrument interfaces (3f8eefbd)
-*  Soundfont can be loaded new ways (e71c720f)
-*  offscreen canvas (84e3b4a9)
-*  Zip Worker (d919789e)
-*  Stripped out 2d / 3d methods (87b03f31)
-*  New 'Displays' type for different devices (fde376b6)
-*  Scss instrument list improvements (b70f4788)
-*  MediaVision rather than @mediapipe (9aea67f1)
-*  Improved markup and title (018b0b63)
+*  ignoring design source files ([6641f06a](https://github.com/designerzen/interface/commit/6641f06aeb2901e92a715d0a90b0d91be769c34f))
+*  updated licenses ([b365a52b](https://github.com/designerzen/interface/commit/b365a52b96e03f293a38c57ea4c2048a12cdcd3e))
+*  added more types to ignore ([bc60ece2](https://github.com/designerzen/interface/commit/bc60ece211d7a546ab3a9754e4523ce09a2c98ca))
+*  updated manifest with new features and data ([38566234](https://github.com/designerzen/interface/commit/38566234eb648264a194cab51d0e745b1cbb8a29))
+*  added lock files to ignore ([09454a00](https://github.com/designerzen/interface/commit/09454a007715ef7adafe0e9c94626306dedd5a0c))
+*  added new types to gitignore ([d9507f0b](https://github.com/designerzen/interface/commit/d9507f0b3a7c1ec805ab21102185e002d5e7591b))
 
-### 0.19.0 (2023-07-28)
+##### Documentation Changes
 
-### 0.18.0 (2023-07-28)
+*  updated all public data ([4659b8e5](https://github.com/designerzen/interface/commit/4659b8e5a5b0da55edae7c39a6d3da6598550276))
 
-##### Bug Fixes
+##### Other Changes (fea)
 
-*  Swapped actions as was getting errors (b4aa65f9)
-*  asset deploys now? (1afb6b0c)
-*  upload artefacts (580b45b5)
-*  Listing dirs in build (da7caaf5)
-*  dist / (c7830345)
-*  npm ci removed (c52f9e8b)
-*  package lock for auto build (1ca8820a)
-*  yaml spacing (e420500a)
-*  updated any code that might cause issues (062e34da)
-*  Deploy to github pages? (2d505dd6)
-*  PWA mispelling (5dc0d1f2)
-*  Parcel bug so using esbuilder instead (47f40fc2)
-
-##### Other Changes
-
-* deploy pages to v 2 (f7f7ab30)
-*  to github pages via action (a38c00fa)
-*  Deploy folder (dc053b07)
-*  Added wam2 samples (7837aa2e)
-
-### 0.17.0 (2023-07-26)
-
-##### Other Changes
-
-*  bump to 0.16.1 (3d455569)
-
-#### 0.16.1 (2023-07-26)
-
-##### Bug Fixes
-
-*  icons (20d9aff6)
-*  isTouchPad (e69f0d8b)
-
-##### Other Changes
-
-*  media-vision models and updates (e5dda36d)
-*  Static files (bde6d880)
-*  Added media-vision (e5822766)
-*  Particles for looking glass (998504cd)
-*  Styles (9f80af70)
-*  Displays interchangeable and simultaneous (4143fcf2)
-*  imrpoved graphics (64c1817e)
-*  Added WAM2 and sampler WAM (da6fa837)
-*  Removed yarn (cc570c23)
-*  Added commented commands tp readme (acc1bfb0)
-
-### 0.16.0 (2023-03-24)
-
-### 0.15.0 (2023-03-24)
-
-##### Bug Fixes
-
-*  Finally wasm loads from local (c21ad51f)
-
-##### Other Changes
-
-*  Error dialog merged with error message (92892c13)
-*  Local loading of wasm (96e8fdcb)
-*  more wam instruments (88399fc7)
-
-### 0.14.0 (2023-03-24)
-
-### 0.13.0 (2023-03-24)
-
-##### Bug Fixes
-
-*  build using yarn (3dde87c6)
-
-### 0.13.0 (2023-03-24)
-
-##### Bug Fixes
-
-*  build using yarn (3dde87c6)
-
-### 0.9.0 (2022-10-03)
-
-##### Bug Fixes
-
-*  Face clicking / holding (4aaa13ab)
-*  Timing  fallback for it audiocontext NA (152ffbcb)
-*  Notes now handles ranges larger than samples (26e539a7)
-*  Clear script added to clean and copy (55e93fee)
-*  ADSR mapping to MIDI noteOff trigger (bab1fee5)
-
-##### Other Changes
-
-*  Change log (236a9827)
-*  More contrast on wallpapers (6e352907)
-*  Logs removed (824a3bfd)
-*  Face now works with new model (5b578eae)
-*  New loading / background designs (09ca5279)
-*  Improved loading code - now async (7da9583c)
-*  Removed biquad (12196477)
-*  SamplePlayer now only one type of many (dacbe0c9)
-*  new lib style had knock on effects (81d93db9)
-*  SoundFont generator code (f05ae55a)
-*  New libs (f83e2036)
-*  Altered draw tools for x,y as objects (6dc0f425)
-*  Major CSS additions for BGs (840c5c49)
-*  Sitemap (4ab2cabb)
-*  Assets inc images (ddcc8fd5)
-*  Zip support (3d170828)
-*  Added new instrument worklet audio (60541579)
-*  TF Face Landmarks complete version update (43276bb4)
-*  New Instruments & WAM (a7c1ac30)
-*  Build script now copies (48b03eeb)
-*  Moved more settings into settings file (fe961e44)
-*  Added caching to note generation (8810732e)
-*  Kids mode has new wallpaper (146f763e)
-*  New overlay keyboard (6ed00546)
-*  Added tutorial SVG asset (496c647d)
-*  Added memoisation (6660c16d)
-*  Added new instruments & worklets (fa641cbc)
-*  Added AudioWorklets (fc0b3d79)
-
-#### 0.8.30 (2022-07-06)
-
-##### Bug Fixes
-
-*  Tempo doesn't ruin beats (afde38dc)
-
-##### Other Changes
-
-*  Set percussion volume much lower (6544a660)
-*  FaceModel improvements (5cc47848)
-*  New drum patterns (458a4233)
-*  Percussion on seperate gainNode (df74eae4)
-
-#### 0.8.29 (2022-07-05)
-
-##### Other Changes
-
-*  New drum patterns (a416a689)
-*  AttractMode now changes drum patterns (3e311831)
-*  Progress bar improvements (fc924f40)
-*  New drum patterns & randomizer (ce58bf86)
-
-#### 0.8.28 (2022-07-05)
-
-##### Bug Fixes
-
-*  Images in figures now full width (ed09db9d)
-
-##### Other Changes
-
-*  New drum randomiser (1062a2a7)
-*  Progress smiley now has round face (37af8ac9)
-*  More automation (b87a7154)
-*  Simplified instructions (4a075a1a)
-
-#### 0.8.27 (2022-07-05)
-
-#### 0.8.26 (2022-07-05)
-
-#### 0.8.25 (2022-07-05)
-
-#### 0.8.24 (2022-07-05)
-
-##### Bug Fixes
-
-*  Mouse hold duration reduced to 0.4s (309e6166)
-
-#### 0.8.23 (2022-07-05)
-
-#### 0.8.22 (2022-07-05)
-
-##### Other Changes
-
-*  Added unique MIDI SYSEX ID! (8b5c7038)
-*  Made the Automator wait longer (58a57d05)
-*  Added WAC link to footer (5db88a0a)
-*  WAC Logo (7f217dbe)
-*  version for WAC (c7123e8b)
-
-#### 0.8.21 (2022-07-05)
-
-#### 0.8.20 (2022-07-05)
-
-#### 0.8.19 (2022-07-05)
-
-##### Other Changes
-
-*  Version bumped (3072c802)
-
-#### 0.8.18 (2022-07-05)
-
-##### Bug Fixes
-
-*  Timing now tracks elapsed times (3fc63948)
-*  Clearing canvas now no-longer show stopper (900d3d01)
-*  Diisco mode now a setting (7c9c5f54)
-
-##### Other Changes
-
-*  Version bump (3bd1deac)
-*  Added lemming to Error page (4df459e4)
-*  Cleaned gitignore (857ffa8b)
-*  Added new sections to stylesheet (ce828eed)
-*  State service todo -> batching (cfe91af4)
-*  Upgraded libs (5bea5769)
-*  AttractorMode changes instruments (840cbd9e)
-*  Removed logs from Instruments (3f8d0837)
-*  Many visual style improvements & upgrades (dc861bd8)
-*  Video recording (9a6ba1f6)
-*  Person aware how long playing instrument (af0bac3d)
-*  More encoder modes added (528e1660)
-*  ontrols re-ordered and added synch (5a6576e4)
-*  Dropzone added for file uploads (c47e8bb1)
-*  App mode now optional Electron (eff0591b)
-*  MIDI file optimisations & encoder (b814a0f1)
-*  AttractMode added (a868be34)
-*  PWA fixes and improvements (d2445f80)
-*  Instruments added directly to pug (7129544a)
-*  Extra loading messages to show time (a1d14ac6)
-*  MIDIWorkers! (8498be21)
-*  Added useful encode / decode utils (c19564f6)
-*  Button uses mousedown rather than click (92c6973f)
-*  Timing events shared (4ba2c1cc)
-*  New icons for media controls (cd633d39)
-*  New Social / Favicons (9f241927)
-*  Sidebar now accordian (2d385fd5)
-*  Pressure based toggle for record button (6978e387)
-*  GampePad per person (24f967b2)
-*  Mouse now has a pressure mode (ff467283)
-*  Major MIDI file speed improvements (4caa041d)
-*  Play icon added and progress improved (b79e45f1)
-*  MIDI file creation tests (93eac2b0)
-*  Person has better awareness of situation (535f4892)
-*  Allow buttons to use different click types (b2a692c6)
-*  Changelog shown in dialog (a233cbdb)
-*  Changelog loads only when updated (963dc44e)
-*  Note / Sample / GM consistencu improvement (b5191503)
-*  Added Electron version (340d9235)
-*  Icons for MS Store / Android (f916464e)
-*  Instruments now grouped into families (c8e15e61)
-
-#### 0.8.17 (2022-06-18)
-
-##### Other Changes
-
-*  Recorder now shows time in Feedback (3684d1d7)
-*  Added new icons (d89a7ce3)
-*  Recorder now shows time recorded (ae9048dd)
-
-#### 0.8.16 (2022-06-18)
-
-##### Other Changes
-
-*  Version bump (1201a1b6)
-*  Readme links added (90813496)
-
-#### 0.8.15 (2022-06-18)
-
-#### 0.8.14 (2022-06-18)
-
-##### Other Changes
-
-*  Version bump (80b952a6)
-*  Changed titles for better SEO (b47e2d9a)
-*  Person's eye stereo seperation reduced (da3458eb)
-*  Basic audio player styles (9bb3e968)
-*  Recorder simplified (c47f19fe)
-*  Added quarter notes to timing (162519c2)
-*  Added hats to drum sequence (d176c9a2)
-*  Encoder now lives in a Worker (64072b82)
-*  Packages & parcel lib (412c0355)
-
-#### 0.8.13 (2022-06-13)
-
-#### 0.8.12 (2022-06-13)
-
-#### 0.8.11 (2022-06-13)
-
-##### Bug Fixes
-
-*  a18n headline order (7f7f060a)
-
-##### Other Changes
-
-*  Re-enabled stereo panning (9d9d122c)
-
-#### 0.8.10 (2022-06-13)
-
-##### Bug Fixes
-
-*  Extra debug mode for live (88a0ba74)
-*  Errors now exclaimed (e180e51f)
-
-##### Other Changes
-
-*  Added new sound effects (116f4145)
-
-#### 0.8.9 (2022-06-13)
-
-##### Other Changes
-
-*  Moree animations for buttons added (6b243901)
-*  main menu uses grid for stretch (40d46559)
-
-#### 0.8.8 (2022-06-12)
-
-##### Bug Fixes
-
-*  PWA now uses toast (64fb68b6)
-*  Tooltip fixes with timing (b5c20d1f)
-
-##### Other Changes
-
-*  Better markup (d4a1a002)
-*  Audio element now speed controllable (2fb75621)
-*  Person now accurately dispatches progress (e27e87f4)
-*  Added circuar svg logo (3dd64bf5)
-
-#### 0.8.7 (2022-06-11)
-
-##### Bug Fixes
-
-*  Person's instrument loading updates (d91e6de9)
-*  added PWA file handlers (c1abb5a5)
-*  preload on fonts always needs crossOrigin (b062afc4)
-*  Recorder not encodes (fddda52d)
-*  tooltip not revealing (ef908261)
-
-##### Other Changes
-
-*  Logos added and improved (f9dc1c39)
-*  Markup improvements (51dc055b)
-*  Audio-player now self contained (fc2e8a19)
-*  Added very rudimentary wave SVG drawer (4b5efadd)
-*  Added isLoading to Instrument (d3adde28)
-*  From click to mousedown! (e4a83ffe)
-*  Tooltips in seperate class (25584022)
-*  MidiFiles load and record (b49378bb)
-*  Added new buttons! (8df972f2)
-*  Tooltip code prettier (2daa5f3e)
-*  Added Record button (347cc30f)
-*  MIDI conversion fixed up (b42d95c5)
-*  Major audio improvement + midi files (d518b70e)
-
-#### 0.8.6 (2022-06-05)
-
-#### 0.8.5 (2022-06-03)
-
-##### Bug Fixes
-
-*  Service worker model requested 2 (4ea83725)
-*  MIDI GM insruments now align (290e76a8)
-
-##### Other Changes
-
-*  CSS improvements (898fb69d)
-*  misc js improvements (d4d5a1f6)
-*  Camera removes any state that is invalid (05ede53e)
-*  Shared compat capabilities obj (ed4dc10c)
-*  Libs & Readme (d6605364)
-*  New options for gamepad and midi files (5b3ea86a)
-*  Markup improvements (206642b8)
-*  Stripped out synth instruments (971eb321)
-*  Gamepad IO begun (e549b575)
-*  Quantiser remembers history (3f8f65f8)
-*  InstrumentPacks & GMidi (debdf0a2)
-*  MIDI Innovation finalist! (0eb84dc5)
-
-#### 0.8.4 (2022-05-27)
-
-##### Bug Fixes
-
-*  Removed log (469204cd)
-*  Made Person louder (4c322cb8)
-
-##### Other Changes
-
-*  Backgrounds animate (de7e9538)
-*  Inactivity improvements with timing (1b3c3348)
-*  Darker theme (10873441)
-*  UI and UX adjustments (f8fd36f8)
-*  InactivityClass handles hiding controls (a81c4e6f)
-*  Markup improvements (cd1a67cc)
-*  removed docs from deploy (ff68b315)
-*  Added NAMM and MIDI Innovation logos (9ce37582)
-*  Markup improvements (19b28482)
-*  NAMM logo (84e41a98)
-*  MIDI finalist fixes (479dac6d)
-*  Theme improved with better UX (931808ae)
-*  Loading is now smooth with great feedback (c28413b1)
-*  PWA improvements (4b3743bf)
-*  Packages & libs (9f375e9a)
-
-#### 0.8.3 (2022-05-04)
-
-##### Bug Fixes
-
-*  Cameras weren't appearing! (f91f0718)
-
-#### 0.8.2 (2022-05-04)
-
-##### Other Changes
-
-*  hologram library (18be7738)
-*  holography classes (ee674fad)
-*  Progress bar style update (ce66c63d)
-*  genuinely got copyright strike for a logo (c5a91f9e)
-
-#### 0.8.1 (2022-05-03)
-
-##### Bug Fixes
-
-*  Person for WebMIDI 3 all channels (551174f3)
-*  MIDI Improvements for disconnected devices (f8d28b0b)
-*  Assorted code improvements (72c21fa4)
-*  Try and precache tensor models (53a71721)
-*  Tempo was acting wonky (e13156ce)
-*  Dialogs for FF and iOS (acc0d660)
-*  iOS doesn't do dialogs (050dfd4d)
-
-##### Other Changes
-
-*  WebMIDI v3 lib integration (daf1d6cc)
-*  Tooltips now work with motion (9ce88f48)
-*  Instructions now in seperate file (a6d490b3)
-* CSS colour scheme (ad5918c5)
-*  Default to adult mode with MIDI (1b87280c)
-*  tooltip now tips (cbf9ee09)
-*  more docs added (2d347f1b)
-*  External state (d3fabe37)
-*  i18n manager (3e3d3f89)
-*  Camera docs (2c70cf0b)
-*  Settings added more options (7720bb5f)
-*  Massive CSS upgrade (d607d162)
-*  MIDI lib updates to Person (5367dce8)
-*  Versioning handled by yarn now (7962db34)
-*  Readme makes more sense (74d9eed8)
-*  New library versions (fe674834)
-*  Pug accessibility (e118ba82)
-
-### 0.8.0 (2022-04-03)
-
-##### Bug Fixes
-
-*  Scss math updates (26eb5723)
-
-##### Other Changes
-
-*  Pug template improved (8cb1bb20)
-*  adding docs for timing  before fix (96d822f0)
-
-#### 0.7.5 (2022-03-23)
-
-##### Bug Fixes
-
-*  footer affiliates (f3a2ff33)
-*  Licenses (78ba7efb)
-*  Version not appearing (a48842cd)
-*  Version bump and upgrade fixes (6656986f)
-
-#### 0.7.4 (2022-03-23)
-
-#### 0.7.3 (2022-03-23)
-
-#### 0.7.2 (2022-03-23)
-
-##### Bug Fixes
-
-*  PWA still not acting like desired (7d9eadb4)
-*  Assets in browserconfig (0f752908)
-*  Parcel 2 requires  Workers differently (e4ab8b7f)
-*  Upgraded packages and imports (76fcb893)
-*  iOS safari doesnt recognise dialog element (ddd6a38d)
-*  Parked capactitor integration for now (ea702fb0)
-*  DOM utils (6bb16c7f)
-*  Autoprefixer enabled (5b2416e4)
-
-##### Other Changes
-
-*  Added PhotoSynth branding (470f3ddf)
-*  added 2d canvas classes (82371580)
-*  Persistent states and flag modifiers (83446e6c)
-*  Added reverb list and asset (7a597b37)
-*  CSS (18024c5a)
-*  JSDoc updates (7e01fb2b)
-*  deleted some unused files (bf037988)
-*  removed old cam (c0b2639d)
-*  Camera class documented (7dc75f9b)
-*  Added more pages (e1c10a93)
-*  Actions imrpoved (318baa9f)
-*  Face Mesh model coords (6764ad4e)
-*  Added dynamic pug vars (c245e953)
-*  Started adding jsdocs (ea77b78b)
-*  Licenses from packages (cae4d649)
-*  Added robots.txt (9b7a0391)
-*  Added humans.txt (a30d1822)
-*  Added bak files to gitignore (9a651a56)
-*  Added .editorconfig for interoperability (2335e205)
-
-#### 0.7.1 (2021-07-01)
+*  Image upscaled ([2ab77ae5](https://github.com/designerzen/interface/commit/2ab77ae52ed3699a17ffa835d2af0c86818d93f8))
 
 ##### New Features
 
-*  Version bumped (60145ee8)
-*  Updated screenshots to show art mode (b9364014)
+*  historic flute ([4d3a15f3](https://github.com/designerzen/interface/commit/4d3a15f3cb3ecc1037e9a9feaaf6ff198a1f396d))
+*  logos in a square format MPU ([23b024e0](https://github.com/designerzen/interface/commit/23b024e0a1baa0be3bd55f8f20a5800caa5d5a5e))
+*  Slides from presetation ([f9dcc264](https://github.com/designerzen/interface/commit/f9dcc264cb3855a74f5a3b41a97fb5ab86a60bc0))
+*  photo at ElectroMagnetic Fields Festival ([c73c61b3](https://github.com/designerzen/interface/commit/c73c61b3cf81a93410c3e66da17983bbaf36e6b1))
+*  audio assets and MIDI files ([c87dc697](https://github.com/designerzen/interface/commit/c87dc69797e324dbcaab172655f3dfd6be91ed09))
+*  changelog action saves rss feed ([441f56f4](https://github.com/designerzen/interface/commit/441f56f408278c4c6526e3c105c5d8d717bdb657))
+*  New release action ([8c74d936](https://github.com/designerzen/interface/commit/8c74d936c880472ea7f4acefd44ac29df44db610))
+*  QR codes ([19e6ccb7](https://github.com/designerzen/interface/commit/19e6ccb73acc86c68634bfa4e3765eba6f8c8bf8))
+*  shaders for 3d display ([d1d14411](https://github.com/designerzen/interface/commit/d1d1441125501eb010feae37e1795b97b03f1b13))
+*  QR codes ([97bacb66](https://github.com/designerzen/interface/commit/97bacb66af3ed2ab61710dab82dfeff5f0af9cb1))
+*  theme selector & loader ([cf2668e4](https://github.com/designerzen/interface/commit/cf2668e43c5260aae6113c8e985343a3c1043a3d))
+*  instrument from remotes ([9b6a42b8](https://github.com/designerzen/interface/commit/9b6a42b8eaa8a51bf6ca4ac654fcb1cfbed63efd))
+*  patterns & tap to tempo ([46c0e92d](https://github.com/designerzen/interface/commit/46c0e92d2a77976d0dbf5b93e647a94253b6be6d))
+*  utils for location, state + flags ([e0adff7f](https://github.com/designerzen/interface/commit/e0adff7fe9910249ca5b81fa76d4f70c1ff2c14e))
+*  utiilities for optimising performance ([dbb106f5](https://github.com/designerzen/interface/commit/dbb106f527295e0dc4eaf2b3f9c8cc01f66429a0))
+*  Added hardware connections inc LGP ([f5f511f8](https://github.com/designerzen/interface/commit/f5f511f8e92b65b2f0a09462c625ce4a8f443571))
+*  Visual updates including 3D variants ([29cbd8fc](https://github.com/designerzen/interface/commit/29cbd8fc16db214390a049692edc7f6affbdaca6))
+*  Piano component for testing instruments ([d6b23537](https://github.com/designerzen/interface/commit/d6b235371d8931cfcca95be1ddbe454871aac009))
+*  settings defaults for various sections ([cd46bdc4](https://github.com/designerzen/interface/commit/cd46bdc489b5718fdaac68b60440fc10c5ea1653))
+*  tests with javascript ([ac607a80](https://github.com/designerzen/interface/commit/ac607a80d4a501ca032cb99f46a358fac1531c4d))
+*  mediators for passing person data ([ff84261a](https://github.com/designerzen/interface/commit/ff84261af45f54718a6327309d54c468a50a2b47))
+*  MIDI handling for external and 2,0 protocol ([e49279aa](https://github.com/designerzen/interface/commit/e49279aa914efa0708474f936d97e15cd5f7327b))
+*  DOM utils, widgets and controls ([0c4a39c1](https://github.com/designerzen/interface/commit/0c4a39c1fd89df7c737376e146c1c14ef0504bcc))
+*  icons for use sharing ([e8239557](https://github.com/designerzen/interface/commit/e8239557e0067feea4466aa8221ba585a3007923))
+*  shared pug partials ([d78ef560](https://github.com/designerzen/interface/commit/d78ef5603cf5641c66a75fe6636aa8507f8c0276))
+*  instrument factory ([bf73855c](https://github.com/designerzen/interface/commit/bf73855c1f6bc7190a3875767fbedfe613ab641d))
+*  more instruments ([2a920ef1](https://github.com/designerzen/interface/commit/2a920ef1ff0eee71c112d84da4a0aa6243bf57cd))
+*  up / down arrow icons ([7227184b](https://github.com/designerzen/interface/commit/7227184b8853950245150b7b6d2f1514003b5f7c))
+*  3d face model assets ([96a697cb](https://github.com/designerzen/interface/commit/96a697cb832f3bda637dce3a9b8164fcba398d7a))
+*  component CSS files ([26b01ca4](https://github.com/designerzen/interface/commit/26b01ca4a6ba1b62da8bba64a8e50ba9fc7d003b))
+*  New styles using grid and overlays + palette ([55a165cc](https://github.com/designerzen/interface/commit/55a165cc6bf7e5b6a84194d2afbbe735bdf7e1e5))
+*  Polymorphic builds ([899d0fdb](https://github.com/designerzen/interface/commit/899d0fdb5bb6a217d112634b7585d1a76917d257))
+*  Capactior entry point build ([c751ef09](https://github.com/designerzen/interface/commit/c751ef09c7d2140c3693b16e434db3148ff40092))
+*  Electron build ([d0be70c4](https://github.com/designerzen/interface/commit/d0be70c4ff781b71524504b5f90ed79d1eb6222e))
+*  new static build pipeline ([d2c033d6](https://github.com/designerzen/interface/commit/d2c033d67f5405f580c401954b0fe853ea9aefc9))
+*  Added company logos for IEEE and AMIC ([cbd7c70e](https://github.com/designerzen/interface/commit/cbd7c70e6d6f09d47db6454706d2e643984e6b16))
+*  App store icons and banners ([faaa615b](https://github.com/designerzen/interface/commit/faaa615b5787cc9344603593b3bbc19a5e73eca0))
+*  Fonts inc dyslexic / readable / heading / notation ([1ec2f9d6](https://github.com/designerzen/interface/commit/1ec2f9d6cbff59974dd1ced0de0de03ce98c69bf))
+
+##### Other Changes (feature)
+
+*  modular display system inc. holographic ([b6e5553c](https://github.com/designerzen/interface/commit/b6e5553ca1e18e4157887d87c25f2744bd80d58e))
+*  icons for webstores / favicons ([45fcb93e](https://github.com/designerzen/interface/commit/45fcb93e07c1b260791999016968b71c75c348f8))
+*  Electron build ([1bfdd3c1](https://github.com/designerzen/interface/commit/1bfdd3c114440a2c059687928e7e8b6662f95c7a))
+*  UI panels for control panel ([209df0f9](https://github.com/designerzen/interface/commit/209df0f92bf698aacd04f5b6f01317b4597d7ef9))
+*  instrument json ([7d7f7075](https://github.com/designerzen/interface/commit/7d7f7075c5fdc499d5f924babefed5fd3e3379d2))
+*  new options file ([e1f67266](https://github.com/designerzen/interface/commit/e1f6726695609279d5cc4444fb8fe67fb85bb2d9))
+*  instrument factory ([ea45b897](https://github.com/designerzen/interface/commit/ea45b897bb9d3558fd91c5b4cdafee2e2c03d487))
+
+##### Other Changes (feture)
+
+*  Electron main code ([253031f8](https://github.com/designerzen/interface/commit/253031f8213949ee3e5513c957a727ba14a7a7fb))
 
 ##### Bug Fixes
 
-*  Optimised android icons (dec4d1a6)
-*  Timing improvements for control (b5a6085e)
-*  favicons use rounded style when small (37c93502)
-
-### 0.7.0 (2021-06-28)
-
-## 1.0.0 (2021-06-28)
-
-##### New Features
-
-*  Added preliminary Android store items (fe662595)
-*  Changes now compiles with build (d0279899)
-
-##### Bug Fixes
-
-*  Select items not recieving label focus (8300ac26)
-*  Show Install prompt (a857c0b2)
-*  Safari timing fix for data-uri inline issue (5bb43a4b)
-*  Persistnet changes for advancedMode (4658204e)
-*  MS Icons for MS Store (c5c8a160)
-*  Camera selection and saving if corrupted (ce578b25)
-
-### 0.54.0 (2021-06-27)
-
-##### New Features
-
-*  Added mstile assets to browserconfig (b05613f5)
-*  Added robots.txt for crawling (c42d0331)
-
-##### Bug Fixes
-
-*  .gitignore added humans / robots (ae45007c)
-*  Added wait patiently text to deploy script (a077d6a3)
-
-### 0.53.0 (2021-06-25)
-
-##### New Features
-
-*  Helper functions for drawing parts (63bd151b)
-*  Eyeballs now hot swappable (3ff30362)
-*  PWA augmentor (8fac443e)
-*  Added shortcuts and related_apps to manifest (d072b6b5)
-*  Mouth style looks good in all modes (1a8810ca)
-*  Added offline.pug for use in MicroSoft Store (518a818b)
-*  Domain specific styling (0a6aac2a)
-*  Stereo mode setting (1133a940)
-
-##### Bug Fixes
-
-*  Updated packages (cf3e5630)
-*  Bumped nodeJS requirement to 14 to fix CF (da445e85)
-*  Child animation stagger delays (2c4e26c1)
-*  Quantise does no longer flicker text (d777560b)
-*  Updated title for App (c964cb45)
-*  Eyeballs selectable and disableable (4f847c74)
-*  Subtitles affecting Eyes (b4d0bd8f)
-
-### 0.52.0 (2021-06-22)
-
-#### 0.51.1 (2021-06-22)
-
-### 0.51.0 (2021-06-22)
-
-##### New Features
-
-*  Start time-signature implementations (5daede47)
-*  select elements now specify options in html (6dad66d3)
-*  LTD now has unique options per domain (411e5a16)
-*  Added new eye styles and eyeball toggle (6e3e900f)
-*  Error methods (0a7888be)
-*  Added screenshots to manifest (0fce7e2f)
-*  PWA install / update mechnism (b32a6cd1)
-*  Changelog now uses GIT commits (916bb223)
-
-##### Bug Fixes
-
-*  SW now uses imports rather than importScripts (ac0d1578)
-*  Better accessibility for focus / active style (2c29b440)
-*  Improved manifest description (ff8c5482)
-*  Clean Action now checks folder exists (4c0b9433)
-*  AudioAnalyzer re-added to fix VIZ (f099b911)
-*  HTTPS forced during load (52098af6)
-
-#### 0.50.13 (2021-06-21)
-
-#### 0.50.12 (2021-06-21)
-
-#### 0.50.11 (2021-06-21)
-
-#### 0.50.10 (2021-06-21)
-
-#### 0.50.9 (2021-06-21)
-
-#### 0.50.8 (2021-06-21)
-
-#### 0.50.7 (2021-06-21)
-
-#### 0.50.6 (2021-06-21)
-
-#### 0.50.5 (2021-06-21)
-
-#### 0.50.4 (2021-06-21)
-
-#### 0.50.3 (2021-06-21)
-
-#### 0.50.2 (2021-06-21)
-
-#### 0.50.1 (2021-06-21)
-
-##### New Features
-
-*  MusyngKite SoundFont (4442191e)
-*  FatBoy SoundFont (0ec963b2)
-*  Soundfonts support (7b234ce6)
-*  Added new banks of notes (b7c4b9ac)
-*  Beginnings of instrument Interface (96461a30)
-*  DOM element handlers for text (8ca2dec4)
-*  Info Model with build / debug data (f4e1c361)
-*  Added Soundfont identifiers (3512f90c)
-*  Mouse utils for varying interaction times (34e02e80)
-*  Changelog auto logger (ccf03c76)
-*  Labels and Buttons with new icons (d26137f1)
-*  Workers for face models (83d6d952)
-*  Added new shared controls (1719f00b)
-*  Audio fx and chains (a6d72765)
-*  Configurable SoundFonts per person (31c3a556)
-*  Mouth and Eyes now have dedicated files (4358c7d0)
-*  Added build scripts for rest and push (7f994d24)
-*  Soundfont descriptors (005e5715)
-*  added extra icons (90ea256b)
-
-##### Bug Fixes
-
-*  Purged all audio sets (61e80459)
-*  Install button now seperate from main index (b97a17c6)
-*  Video finds own element if not specified (4370494c)
-*  removed dist assets from gitignore (47b0236d)
-
-##### Other Changes
-
-* //github.com/designerzen/MusicalFace (13e47cf6)
-* //github.com/designerzen/MusicalFace (565fd77a)
-* //github.com/designerzen/MusicalFace into main (20d2eca7)
+*  removed video link for cloudflare ([0c88a5ba](https://github.com/designerzen/interface/commit/0c88a5ba70ebc3ac1efa7f401a5c7d38ba54e285))
+*  blog link to image format ([6a840491](https://github.com/designerzen/interface/commit/6a840491dbbe437e20a1b5ec7ccfa64b92edbf2a))
+*  references inside presentation and blog ([774f121a](https://github.com/designerzen/interface/commit/774f121a45b388c9db032fcae66ecec6aa0215d8))
+*  changelog without patching ([d012613c](https://github.com/designerzen/interface/commit/d012613c0abce77ef602000816186947a8a87035))
+*  preparation for cloudflare ([ebee6e13](https://github.com/designerzen/interface/commit/ebee6e13b780a49dc336f67688cf4ab88c36e9fc))
+*  Updated prediction models to work with tf latest ([e8b0ccd1](https://github.com/designerzen/interface/commit/e8b0ccd1ed0459b3242f6d436ae003c1eea6c106))
+*  timing now uses micro fractions for better MIDI and for swing ([a24685d5](https://github.com/designerzen/interface/commit/a24685d568b6f2027ed5f649659d1df205ee3a8f))
+*  notes and scales improved ([39631b78](https://github.com/designerzen/interface/commit/39631b780bb97e822efad3591ce0a4993405af41))
+*  Beats tuning ([74156e03](https://github.com/designerzen/interface/commit/74156e032c9276a53e7a80ff41fe8f438b4b2075))
+*  simplified index css as simple gateway ([c1fddcfc](https://github.com/designerzen/interface/commit/c1fddcfc8d9b4d54f91add8c9ea4ed787b87467c))
+*  improved base markup, headers + a18n ([4c6f93e7](https://github.com/designerzen/interface/commit/4c6f93e79ea1652b9ee39146789b95fd31aea5f3))
+*  actions for changelogging ([1a95bafb](https://github.com/designerzen/interface/commit/1a95bafbe0b2bd2150690a43806c480d1bba48c6))
+*  Set node version high with flags ([77b93e1e](https://github.com/designerzen/interface/commit/77b93e1e6bc787ac8a9feb4b966c09de9885c04f))
+*  PWA updates ([bdf27a2f](https://github.com/designerzen/interface/commit/bdf27a2f86594c43a278ed5d04337cec12e0e052))
+*  a way to load raw files, skipping processing ([f0161aa8](https://github.com/designerzen/interface/commit/f0161aa81bcf995234d8e8491f8659992b5a6c3e))
+*  SoundFont decoupled from data ([c73138f1](https://github.com/designerzen/interface/commit/c73138f1732d393a48745d228ebc04fe78d79b87))
+*  opt/ error with CI in CF ([d83f73c9](https://github.com/designerzen/interface/commit/d83f73c9b6a45929b6e5acc30aea0ebeab0e3d36))
+*  removed node requirement ([4834387e](https://github.com/designerzen/interface/commit/4834387eba95bd6ee93cdfa53918778f3251eea8))
+*  npm tripping up because of yarn confusion ([f4d5a76d](https://github.com/designerzen/interface/commit/f4d5a76d18c71b4d15b1208fbde20e77db885594))
 
 ##### Refactors
 
-*  DOM form gadgets now dedicated methods (2b896264)
-*  Settings now has own file (7285b336)
+*  build system simplified ([e8a61ee2](https://github.com/designerzen/interface/commit/e8a61ee23abf0c0b8f999827a3e2e2b38fb3b1d9))
 
-#### 0.50.1 (2021-06-16)
+##### Other Changes (release)
 
-##### New Features
+*  v0.21 - simpler build pipeline ([e286b96b](https://github.com/designerzen/interface/commit/e286b96baa0728630550379d65ad798909694d89))
 
-*  MusyngKite SoundFont ([4442191e](https://github.com/designerzen/interface/commit/4442191e2e8cf26c9e503c1ef506e1a6d6e58ee0))
-*  FatBoy SoundFont ([0ec963b2](https://github.com/designerzen/interface/commit/0ec963b2abccf14489c52011ca8add42f445d189))
-*  Soundfonts support ([7b234ce6](https://github.com/designerzen/interface/commit/7b234ce6266242a2cd28bb8ff2e6b52970813bad))
-*  Added new banks of notes ([b7c4b9ac](https://github.com/designerzen/interface/commit/b7c4b9acd7a7edeb51ac6bbb78a65b7bf0e7bcca))
-*  Beginnings of instrument Interface ([96461a30](https://github.com/designerzen/interface/commit/96461a30b1d24d0adf5e7e9e287e12131ee40692))
-*  DOM element handlers for text ([8ca2dec4](https://github.com/designerzen/interface/commit/8ca2dec4eac75740de07c2f548037bfebd92ab87))
-*  Info Model with build / debug data ([f4e1c361](https://github.com/designerzen/interface/commit/f4e1c361748c85028a62cf6f7609c66613b83b3f))
-*  Added Soundfont identifiers ([3512f90c](https://github.com/designerzen/interface/commit/3512f90ce0f4313f9ec917cc467375e67fffce55))
-*  Mouse utils for varying interaction times ([34e02e80](https://github.com/designerzen/interface/commit/34e02e809cfdb7e6e0cd18cb219dbeb82b5a6596))
-*  Changelog auto logger ([ccf03c76](https://github.com/designerzen/interface/commit/ccf03c76f9516aa13ff5896dd95f90056b6e061a))
-*  Labels and Buttons with new icons ([d26137f1](https://github.com/designerzen/interface/commit/d26137f1bebcd11df0515e6fba8edd531f80815f))
-*  Workers for face models ([83d6d952](https://github.com/designerzen/interface/commit/83d6d95259a39b9a1ec749bc93a12004efe7b793))
-*  Added new shared controls ([1719f00b](https://github.com/designerzen/interface/commit/1719f00bab65781f826f9f6f049476445a73755c))
-*  Audio fx and chains ([a6d72765](https://github.com/designerzen/interface/commit/a6d727656613ba6790ea06d1309b8c2979e511e0))
-*  Configurable SoundFonts per person ([31c3a556](https://github.com/designerzen/interface/commit/31c3a556fcc02a81a8725aeddcf2fa8b9a656ac9))
-*  Mouth and Eyes now have dedicated files ([4358c7d0](https://github.com/designerzen/interface/commit/4358c7d0f90ab231b45ee91cb1595cb778f46828))
-*  Added build scripts for rest and push ([7f994d24](https://github.com/designerzen/interface/commit/7f994d248630f9eaf4897a23982cf8ce64185c66))
-*  Soundfont descriptors ([005e5715](https://github.com/designerzen/interface/commit/005e5715339f941f32a3461a5f36bfb6ad4e20a6))
-*  added extra icons ([90ea256b](https://github.com/designerzen/interface/commit/90ea256bd917afa34a7191ec3d64f419f9aa8d43))
+##### Tests
 
-##### Bug Fixes
+*  tests added for various features ([caa63e94](https://github.com/designerzen/interface/commit/caa63e94dca5026a435019aaee39d6bea6bdff4d))
 
-*  Purged all audio sets ([61e80459](https://github.com/designerzen/interface/commit/61e804597b43a24124235ab869aefcaf432dca7a))
-*  Install button now seperate from main index ([b97a17c6](https://github.com/designerzen/interface/commit/b97a17c6a1c210807f47fff27145dcfb9f014f8a))
-*  Video finds own element if not specified ([4370494c](https://github.com/designerzen/interface/commit/4370494c14bb51405e2f6f035e31dc01b5ceaa25))
-*  removed dist assets from gitignore ([47b0236d](https://github.com/designerzen/interface/commit/47b0236dfa89027b2211eee1a3a3cb2c3248eae4))
+##### Other Changes (update)
 
-##### Other Changes (merge branch 'main' of https)
+*  file locations ([c1d555ec](https://github.com/designerzen/interface/commit/c1d555eca82a82b93e2417e24814284784461e6d))
+*  dependency locations ([bfa052c3](https://github.com/designerzen/interface/commit/bfa052c3f71083a90f496356e3df5af7bf2062d1))
+*  moved all state into utils ([22ce8326](https://github.com/designerzen/interface/commit/22ce8326f8b92928a125e9d58a40181b8a99cd54))
+*  oscillator instrument ([f457c69e](https://github.com/designerzen/interface/commit/f457c69e0e86bfcb08676e4533c04b250242bc25))
+*  smoother timing ([ab3ab4c3](https://github.com/designerzen/interface/commit/ab3ab4c3be32f387634a1d313ad647451f2be2dd))
 
-* //github.com/designerzen/MusicalFace ([13e47cf6](https://github.com/designerzen/interface/commit/13e47cf601b144b02a127d1bd70788c7c265efa7))
-* //github.com/designerzen/MusicalFace ([565fd77a](https://github.com/designerzen/interface/commit/565fd77a15b823b53acd533d671c623139dc25bc))
-* //github.com/designerzen/MusicalFace into main ([20d2eca7](https://github.com/designerzen/interface/commit/20d2eca7273f02b732bf521b22881620e9db3969))
+##### Other Changes (upodate)
 
-##### Refactors
-
-*  DOM form gadgets now dedicated methods ([2b896264](https://github.com/designerzen/interface/commit/2b896264399e75c1b547bed1d797f4978da39335))
-*  Settings now has own file ([7285b336](https://github.com/designerzen/interface/commit/7285b336905dc80bcb697e0f07bf5208040238f3))
+*  moved state ([d1c26276](https://github.com/designerzen/interface/commit/d1c26276275c7651e66d387ba55a721be3b5aa19))
 

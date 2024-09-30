@@ -4,6 +4,14 @@
 	// forces dark scrollbars
 	color-scheme: dark;
 
+	// numbers 
+	--hue-dark:#{$hue-dark};
+	--hue-orange:#{$hue-orange};
+	--hue-yellow:#{$hue-yellow};
+	--hue-green:#{$hue-green};
+	--hue-red:#{$hue-red};
+	--hue-brand:var(--hue-red);
+
 	// tints (use anywhere for colour with cpntrols)
 	--shade-white:hsl( #{$hue-white}, var( --s, 27%), var( --l, 87%) );
 	--shade-dark:hsl( #{$hue-dark}, var( --s, 6%), var( --l, 14%) );
@@ -17,36 +25,40 @@
 	--shade-yellow:hsl( #{$hue-yellow}, var( --s, 34%), var( --l,50%) );
 	--shade-orange:hsl( #{$hue-orange}, var( --s, 69%), var( --l,38%) );
 	--shade-red:hsl( #{$hue-red}, var( --s, 58%), var( --l,35%) );
-	
+
+	--shade-brand:hsl( var(--hue-active, #{$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
+	--shade-active:hsl( var(--hue-active, #{$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
+	--shade-selected:hsl( var(--hue-selected, #{$hue-orange}), var( --s-selected, 58%), var( --l-selected, 35%) );
+		
+	// universal text drop shadow...
+	// needs to be set via the themes too
+	// --text-shadow: 	rgba($col-white,0.6) 0 0px 1px,
+	// 				rgba($col-white,0.4) 0 1px 1px,
+	// 				rgba($col-cream,0.24) 0 1px 1px,
+	// 				rgba($col-cream,0.1) 0 2px 1px;
+
+	--text-shadow: 0 2px 2px hsl( #{$hue-dark}, var( --s, 6%), var( --l, 4%) );
+
+
 	--alpha-shadow:0.8;
 
 	--curve:12px;
 	// global padding
 	--pad:clamp(10px,2vmin,20px);
 
-	// FIXME:
-	--footer-gap:calc(61px);
 
+	--stroke:1px;
 	// --viewport-height:100dvh;
-	
-	@media (orientation: portrait) {
-		--footer-gap:var(--pad);
-	}
+
 
 	--ease-out-back:#{$easeOutBack};
 
 	// ease speeds (see overriding media queries)
-	--ease-s:185ms;
-	--ease-m:90ms;
-	--ease-q:45ms;
-		
-	// no animation 
-	// NB. this is also passed into JS as a safety net
-	@media (prefers-reduced-motion: reduce) {
-		--ease-s:1ms;
-		--ease-m:1ms;
-		--ease-q:1ms;
-	}
+	--ease-s:calc( 185ms * var(--ease-speed, 1) );
+	--ease-m:calc( 90ms * var(--ease-speed, 1) );
+	--ease-q:calc( 45ms * var(--ease-speed, 1) );
+	
+	--duration-l:3s;
 
 	// do not change
 	--duration:calc( 1 * var(--ease-s) );//var(--ease-out-quick);
@@ -66,4 +78,29 @@
 	;
   
 	--noise:url("data:image/svg+xml,%3Csvg class='filter' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='filter-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter-noise)'%3E%3C/rect%3E%3C/svg%3E");
+
+	--loader-size-small: clamp(59px, 10vmin, 88px);
+
+	// FIXME:
+	--footer-gap:calc(61px);
+	@media (orientation: portrait) {
+		--footer-gap:var(--pad);
+	}
+
+	// no animation 
+	// NB. this is also passed into JS as a safety net
+	@media (prefers-reduced-motion: reduce) {
+		--ease-s:1ms;
+		--ease-m:1ms;
+		--ease-q:1ms;
+	}
+
+	
+	// TODO: use P3 display space
+	@media (colu-gamut:p3){
+		@supports (color:oklch(0 0 0)){
+			
+		}
+	}
+
 }

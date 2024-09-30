@@ -2,6 +2,8 @@
 // [General MIDI Level 1.0 Instrument Patch Map](https://www.midi.org/specifications/item/gm-level-1-sound-set)
 // [General MIDI Level 2.0 Instrument Patch Map](http://cs.uccs.edu/~cs525/midi/midi.html)
 
+import { FAMILY_BASS, FAMILY_BRASS, FAMILY_CHROMATIC_PERCUSSION, FAMILY_ENSEMBLE, FAMILY_ETHNIC, FAMILY_GUITAR, FAMILY_ORGAN, FAMILY_PERCUSSIVE, FAMILY_PIANO, FAMILY_PIPE, FAMILY_REED, FAMILY_SOUND_FX, FAMILY_STRINGS, FAMILY_SYNTH_EFFECTS, FAMILY_SYNTH_LEAD, FAMILY_SYNTH_PAD, GENERAL_MIDI_INSTRUMENT_NAMES } from "./general-midi-instrument.constants"
+
 /*
 General MIDI Level 1 Instrument Families
 
@@ -162,136 +164,7 @@ export const GENERAL_MIDI_INSTRUMENTS = [
 	"gunshot"
 ]
 
-export const GENERAL_MIDI_INSTRUMENTS_FRIENDLY = [
-	"Acoustic Grand Piano",
-	"Bright Acoustic Piano",
-	"Electric Grand Piano",
-	"Honky-tonk Piano",
-	"Electric Piano I",
-	"Electric Piano II",
-	"Harpsichord",
-	"Clavi",
-	"Celesta",
-	"Glockenspiel",
-	"Music box",
-	"Vibraphone",
-	"Marimba",
-	"Xylophone",
-	"Tubular bells",
-	"Dulcimer",
-	"Drawbar Organ",
-	"Percussive Organ",
-	"Rock Organ",
-	"Church Organ",
-	"Reed Organ",
-	"Accordion",
-	"Harmonica",
-	"Tango accordion",
-	"Acoustic guitar (nylon)",
-	"Acoustic guitar (steel)",
-	"Electric guitar (jazz)",
-	"Electric guitar (clean)",
-	"Electric guitar (muted)",
-	"Overdriven guitar",
-	"Distortion guitar",
-	"Guitar harmonics",
-	"Acoustic bass",
-	"Electric bass (finger)",
-	"Electric bass (pick)",
-	"Fretless bass",
-	"Slap bass I",
-	"Slap bass II",
-	"Synth bass I",
-	"Synth bass II",
-	"Violin",
-	"Viola",
-	"Cello",
-	"Contrabass",
-	"Tremolo strings",
-	"Pizzicato strings",
-	"Orchestral harp",
-	"Timpani",
-	"String ensemble I",
-	"String ensemble II",
-	"Synthstrings I",
-	"Synthstrings II",
-	"Choir aahs",
-	"Voice oohs",
-	"Synth voice",
-	"Orchestra hit",
-	"Trumpet",
-	"Trombone",
-	"Tuba",
-	"Muted trumpet",
-	"French horn",
-	"Brass section",
-	"Synthbrass I",
-	"Synthbrass II",
-	"Soprano sax",
-	"Alto sax",
-	"Tenor sax",
-	"Baritone sax",
-	"Oboe",
-	"English horn",
-	"Bassoon",
-	"Clarinet",
-	"Piccolo",
-	"Flute",
-	"Recorder",
-	"Pan flute",
-	"Blown bottle",
-	"Shakuhachi",
-	"Whistle",
-	"Ocarina",
-	"Oscillator Square wave",
-	"Oscillator Sawtooth",
-	"Lead Calliope",
-	"Lead Chiff",
-	"Lead Charang",
-	"Lead 6 (voice)",
-	"Lead Fifths",
-	"Lead 8 (bass + lead)",
-	"Pad 1 (new age)",
-	"Pad 2 (warm)",
-	"Pad 3 (polysynth)",
-	"Pad 4 (choir)",
-	"Pad 5 (bowed)",
-	"Pad 6 (metallic)",
-	"Pad 7 (halo)",
-	"Pad 8 (sweep)",
-	"Sound Effect Rain",
-	"Sound Effect 2 (soundtrack)",
-	"Sound Effect Crystal",
-	"Sound Effect Atmosphere",
-	"Sound Effect 5 (brightness)",
-	"Sound Effect Goblins",
-	"Sound Effect Echoes",
-	"Sound Effect Sci-fi",
-	"Sitar",
-	"Banjo",
-	"Shamisen",
-	"Koto",
-	"Kalimba",
-	"Bag pipe",
-	"Fiddle",
-	"Ahanai",
-	"Tinkle bell",
-	"Agogo",
-	"Steel drums",
-	"Woodblock",
-	"Taiko drum",
-	"Melodic tom",
-	"Synth drum",
-	"Reverse cymbal",
-	"Guitar fret noise",
-	"Breath",
-	"Seashore",
-	"Bird tweet",
-	"Telephone ring",
-	"Helicopter",
-	"Applause",
-	"Gunshot"
-]
+export const GENERAL_MIDI_INSTRUMENTS_FRIENDLY = GENERAL_MIDI_INSTRUMENT_NAMES
 
 // NB. These are actually General MIDI instrument names
 // but we can't use them as certain folders are misnamed
@@ -426,64 +299,73 @@ export const SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS = [
 	"gunshot"
 ]
 
-
-export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES = [
-	"piano",
-	"chromatic percussion",
-	"organ",
-	"guitar",
-	"bass",
-	"strings",
-	"ensemble",
-	"brass",
-	"reed",
-	"pipe",
-	"synth lead",
-	"synth pad",
-	"synth effects",
-	"ethnic",
-	"percussive",
-	"sound effects",
-]
-
 export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES_FRIENDLY = [
-	"Piano",
-	"Chromatic Percussion",
-	"Organ",
-	"Guitar",
-	"Bass",
-	"Strings",
-	"Ensemble",
-	"Brass",
-	"Reed",
-	"Pipe",
-	"Synth Lead",
-	"Synth Pad",
-	"Synth Effects",
-	"Ethnic",
-	"Percussive",
-	"Sound Effects",
+	FAMILY_PIANO,
+	FAMILY_CHROMATIC_PERCUSSION,
+	FAMILY_ORGAN,
+	FAMILY_GUITAR,
+	FAMILY_BASS,
+	FAMILY_STRINGS,
+	FAMILY_ENSEMBLE,
+	FAMILY_BRASS,
+	FAMILY_REED,
+	FAMILY_PIPE,
+	FAMILY_SYNTH_LEAD,
+	FAMILY_SYNTH_PAD,
+	FAMILY_SYNTH_EFFECTS,
+	FAMILY_ETHNIC,
+	FAMILY_PERCUSSIVE,
+	FAMILY_SOUND_FX
 ]
+
+export const GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES = GENERAL_MIDI_INSTRUMENT_FAMILY_NAMES_FRIENDLY.map( r => r.toLowerCase() )
 
 export const GENERAL_MIDI_INSTRUMENT_FAMILY_IDS = {
-	0: "piano",
-	7: "chromatic percussion",
-	12: "organ",
-	25: "guitar",
-	33: "bass",
-	41: "strings",
-	49: "ensemble",
-	57: "brass",
-	65: "reed",
-	69: "pipe",
-	81: "synth lead",
-	89: "synth pad",
-	97: "synth effects",
-	// some rasict shit right here akin to "world" music
-	105: "ethnic",
-	113: "percussive",
-	123: "sound effects"
+	0: FAMILY_PIANO,
+	7: FAMILY_CHROMATIC_PERCUSSION,
+	12: FAMILY_ORGAN,
+	25: FAMILY_GUITAR,
+	33: FAMILY_BASS,
+	41: FAMILY_STRINGS,
+	49: FAMILY_ENSEMBLE,
+	57: FAMILY_BRASS,
+	65: FAMILY_REED,
+	69: FAMILY_PIPE,
+	81: FAMILY_SYNTH_LEAD,
+	89: FAMILY_SYNTH_PAD,
+	97: FAMILY_SYNTH_EFFECTS,
+	105: FAMILY_ETHNIC,
+	113: FAMILY_PERCUSSIVE,
+	123: FAMILY_SOUND_FX
 }
+
+export const GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID = {
+	[FAMILY_PIANO]:0,
+	[FAMILY_CHROMATIC_PERCUSSION]:7,
+	[FAMILY_ORGAN]:12,
+	[FAMILY_GUITAR]:25,
+	[FAMILY_BASS]:33,
+	[FAMILY_STRINGS]:41,
+	[FAMILY_ENSEMBLE]:49,
+	[FAMILY_BRASS]:57,
+	[FAMILY_REED]:65,
+	[FAMILY_PIPE]:69,
+	[FAMILY_SYNTH_LEAD]:81,
+	[FAMILY_SYNTH_PAD]:89,
+	[FAMILY_SYNTH_EFFECTS]:97,
+	[FAMILY_ETHNIC]:105,
+	[FAMILY_PERCUSSIVE]:113,
+	[FAMILY_SOUND_FX]:123
+}
+
+
+// const GENERAL_MIDI_GROUPING = new Map()
+
+// GENERAL_MIDI_INSTRUMENTS.map( (key, index) => {
+// 	const existing = GENERAL_MIDI_GROUPING.get(key)
+// 	GENERAL_MIDI_GROUPING.set( key, existing ? [...existing, index] : [index] )
+// })
+
 
 export const GENERAL_MIDI_INSTRUMENT_LIST = []
 
@@ -513,13 +395,13 @@ GENERAL_MIDI_INSTRUMENTS.forEach( (instrument, index) => {
 		location
 	})
 	
-
 	GENERAL_MIDI_INSTRUMENT_LIST[index] = {
 		family:latch,
 		location,
 		name:title
 	}
 
+	// GENERAL_MIDI_GROUPING.set()
 	GENERAL_MIDI_FAMILIES.set( latch, [...(GENERAL_MIDI_FAMILIES.get(latch) || []), instrument] )
 	GENERAL_MIDI_FAMILY_DICTIONARY[instrument] = latch
 })

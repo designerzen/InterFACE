@@ -1,0 +1,64 @@
+extends _base.pug
+
+block title
+	+title('Test:Notation')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#mic
+
+		include partials/toast.pug	
+
+		form.set-tempo
+			include partials/transport-panel.pug
+			include partials/tempo-panel.pug
+		
+
+		form.set-microphone
+			label(for="select-microphone") Choose Microphone
+			select#select-microphone 
+
+			label(for="microphones") Choose your Microphone from the list:
+			input#microphones(list="microphone-list", name="microphones")
+			datalist#microphone-list
+				option(value="Edge")
+				option(value="Firefox")
+				option(value="Chrome")
+				option(value="Opera")
+				option(value="Safari")
+				
+		form.set-instrument
+
+
+		nav#menu
+
+			h3 Microphone Pitch Test
+
+			label(for="microphone-toggle") Toggle Microphone
+			input(type="checkbox")#microphone-toggle
+			output#microphone-output
+			output#metronome-output
+
+block scripts
+	script(type="module").
+
+		// get the notation scripts
+		import { midiToNotation } from './audio/notation.js' 
+		import {addToolTips} from './dom/tooltips.js'		
+			
+		addToolTips( document.documentElement )
+
+		
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		main{
+			width:100%;
+		}

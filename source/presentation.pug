@@ -1,0 +1,198 @@
+extends _base.pug
+
+block headline
+	| PhotoSYNTH Presentation
+
+block tagline 
+	| Give a Man a record and they dance for day, buy that man a synthesizer and they dance for a lifetime
+
+
+block main 
+	.reveal
+		.slides
+
+			section
+				h1.r-fit-text _PhotoSynth 4D_
+
+			section
+				figure
+					img(src="/mediakit/history/first_flute.png")
+					figcaption
+						small Divje babe Flute © Humans 38,000 Before the Wheel
+
+			section
+				h3 MOUTHS > LEGS
+				h3.fragment FLUTE > WHEEL
+				h3.fragment SYNTHESIZER > FLUTE
+				
+				//- 	img(src="/mediakit/Drake/dreamcapturer.jpg")
+
+			section
+				blockquote 
+					p.r-fit-text Give a man a record and they dance for the day,<br> give a man a synthesizer and they can dance for a lifetime.
+						
+			section
+				h3 MOUTHS > LEGS
+				h3 FLUTE > WHEEL
+				h3 SYNTHESIZER > FLUTE
+				h3 ??? > SYNTHESIZER
+
+			section
+				img(src="/mediakit/history/modular-madness.png")
+				p.fragment With infinite sounds come infinite controls
+		
+			section
+				h3.r-fit-text Modular madness!
+
+			section
+				h3 Goal :
+				p.r-fit-text Authentically represent expression
+			
+			section
+				img(src="/mediakit/history/modular-madness.png")
+				p Infinite complexity
+		
+			section
+				h3 Practise, Practise!
+
+			section
+				blockquote 
+					p.r-fit-text What would a musical instrument look like that uses your natural physical expressions as the basis for an auditory one?
+
+			section
+				figure
+					img(src="/mediakit/history/bowler_hat.jpg")
+					figcaption
+						small Magic Bowler Hat © 2010 Z. Olenski
+
+			section
+				figure
+					img(src="/mediakit/history/PhotoSynth2-big.png" alt="The second version of the PhotoSynth being shown demonstrated by Gawain Hewitt")
+					figcaption
+						small PhotoSYNTH II © 2011 Z. Olenski
+
+			
+			section
+				figure
+					img(src="/mediakit/history/zoom-zen.png" alt="A Zoom session demonstrating the PhotoSYNTH 3 in action using MIDI")
+					figcaption
+						small PhotoSYNTH III © 2020 Z. Olenski
+				
+		
+			section
+				figure
+					img(src="/mediakit/history/gang.jpg")
+					figcaption
+						small zen and the gang
+		
+			section
+				h4 Demo
+				//- video(data-autoplay, src="/mediakit/history/PhotoSYNTH4D-demo.mp4")
+				//- video( src="/mediakit/history/PhotoSYNTH4D-demo.mp4")
+	
+	
+			section
+				h4 Scientific Papers based on this research
+				ul 
+					li: p PhotoSYNTH3 - A novel interFACE (2022)
+					li: p Instant Musical Superpowers (preprint) 2023)
+					li: p Instant musical superpowers by augmenting intrinsic movements, expressions and emotions (2023)
+					li: p Musical Avatars (2024)
+
+			section
+				figure
+					img(src="/mediakit/history/musica_avatars.png")
+					figcaption
+						small Musical Avatars © 2024 Z. Olenski
+
+			section 				
+				p.r-fit-text 
+					a(href="./index.pug") https://interface.place
+		
+
+			section
+				h4 Special thanks =)
+				ul 
+					li: p Gawain "OG" Hewitt
+					li: p Becky Morris Knight, Tim Yates, John Kelly and Rob Parton from DMLab
+					li: p Caroline "Liquid" Swords from <a href="https://myvolts.com" target="_blank">MyVolts (myvolts.com)</a>
+					li: p Michel Buffa from the WAC
+					li: p Jonathon Hogg from <a href="https://www.outputarts.com/" target="_blank">Output Arts</a> and EMF
+					li: p Philip "Froggy" Watson from ARM
+					li: p Dami "PainterDM" Kim for helping with the videos
+					li: p Ciocia, Mama i wszyscy w domu
+					li: p All the people who have helped develop and support the project
+					//- li.fragment: p Every hater
+		
+			//- optional if there is time at the end!
+			section(data-visibility="uncounted")  
+				h3 MOUTHS > LEGS
+				h3 FLUTE > WHEEL
+				h3 SYNTHESIZER > FLUTE
+				h3 ??? > SYNTHESIZER
+				h3.fragment CREATING > CONSUMING
+				
+				p 
+					a(href="./index.pug") https://interface.place
+		
+block scripts
+	script(type="module").
+		import Reveal from 'reveal.js'
+		import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js'
+
+		let deck = new Reveal({
+			plugins: [Markdown],
+			// Activate the scroll view
+			//- view: 'scroll',
+			// Force the scrollbar to remain visible
+			//- scrollProgress: true,
+		})
+		deck.initialize()
+		console.log("Initialising Presentation", deck)
+
+block styles
+	link(rel="stylesheet", href="/node_modules/reveal.js/dist/reveal.css", type="text/css")
+	link(rel="stylesheet", href="/node_modules/reveal.js/dist/theme/black.css", type="text/css")
+	//- link(rel="stylesheet", href="/node_modules/reveal.js/dist/theme/sky.css", type="text/css")
+	style.
+		:root {
+			--r-background-color: #191919;
+			--r-main-font: 'Oxanium';
+			--r-main-font-size: 42px;
+			--r-main-color: #fff;
+			--r-block-margin: 20px;
+			--r-heading-margin: 0 0 20px 0;
+			--r-heading-font:  'ReadexPro';
+			--r-heading-color: #fff;
+			--r-heading-line-height: 1.2;
+			--r-heading-letter-spacing: normal;
+			--r-heading-text-transform: uppercase;
+			--r-heading-text-shadow: none;
+			--r-heading-font-weight: 600;
+			--r-heading1-text-shadow: none;
+			--r-heading1-size: 2.5em;
+			--r-heading2-size: 1.6em;
+			--r-heading3-size: 1.3em;
+			--r-heading4-size: 1em;
+			--r-code-font: monospace;
+			--r-link-color: #42affa;
+			--r-link-color-dark: #068de9;
+			--r-link-color-hover: #8dcffc;
+			--r-selection-background-color: rgba(66, 175, 250, 0.75);
+			--r-selection-color: #fff;
+			--r-overlay-element-bg-color: 240, 240, 240;
+			--r-overlay-element-fg-color: 0, 0, 0;
+		}
+		#intro{
+			position:absolute;
+			opacity:0;
+		}
+
+		video{
+			margin:auto;
+			visibility:visible;
+		}
+		.reveal img{
+			margin-left:auto;
+			margin-right:auto;
+		}

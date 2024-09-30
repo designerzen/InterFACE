@@ -7,13 +7,13 @@
 	position: fixed;
 	z-index: 303;
 	top:var(--pad);
-	text-align: center;
+	bottom: auto;
 	
-	// text-transform: uppercase;
-	// left:var(--pad);
-	// right:var(--pad);
-	// left:var(--pad);
-	max-width: calc(100% - 2 * var(--pad));
+	// left:50%;
+	// transform: translateX(-50%);
+	text-align: center;
+
+	max-width: calc( 80vw - 2 * var(--pad));
 
 	color:$col-dark;
 	background-color:$col-white;
@@ -43,3 +43,4 @@
 #feedback:hover ~ canvas{
 	opacity:0.5;
 }
+

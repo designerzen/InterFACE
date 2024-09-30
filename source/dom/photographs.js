@@ -1,11 +1,15 @@
 import { now } from '../timing/timing.js'
-import { getCanvasDimensions } from '../visual/canvas'
 import { takePhotograph } from '../visual/2d'
 
+let photographCounter = 0
+
 export const createPhotographElement = (canvas) => {
-	const unique = Math.ceil( now() * 10000000 )
+	const unique = (1000 + (++photographCounter) + "" ).replace("1","")
 	const id = `photograph-${unique}`
-	const dimensions = getCanvasDimensions(canvas)
+	const dimensions = {
+		w:canvas.width,
+		h:canvas.height
+	}
 	const img = new Image()
 	img.src = takePhotograph(canvas)
 	img.alt = "Photograph taken " + Date.now().toString()
@@ -26,7 +30,7 @@ export const createPhotographElement = (canvas) => {
 
 export const appendPhotographElement = (canvas) => {
 	const photo = createPhotographElement( canvas )
-	document.getElementById("photographs").appendChild( photo )
+	document.getElementById("taken-photographs").appendChild( photo )
 	// Scroll the photograph frame into view
 	requestAnimationFrame( ()=>document.getElementById(photo.id).scrollIntoView() )
 }

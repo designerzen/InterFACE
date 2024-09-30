@@ -1,0 +1,396 @@
+nav.circular-menu{
+	
+	--size:clamp( 206px, 50vw, 480px );
+	--segment:calc( var(--size) / 3 );
+	--stroke:3px;
+	--radius:33%;
+	// --col-arrow:white;
+	--col-arrow:black;
+	
+	// calculations
+	--_duration:calc( var(--duration, 5000) / 1 );
+	--_angle:var(--angle, 90);
+	--_gap:var(--trigger, 10 );
+	
+	align-self:center;
+	justify-self:center;
+	margin:auto;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	
+	min-height:var(--size);
+	max-width:var(--size);
+	outline:1px solid pink;
+
+	// we always want this in the centre of the screen?
+	// or do we position at the touch point?
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	bottom:0;
+
+	// start off behind everything
+	z-index:-1;
+
+	&:hover{
+
+		// bring it to the FRONT
+		// ONLY when open
+		z-index: 99999999999;
+	}
+	
+	// all buttons in this widget
+	button{
+		all: unset;
+		user-select:none;
+		aspect-ratio:1;
+		
+		min-width:var(--segment);
+		min-height:var(--segment);
+		
+		max-width:var(--segment);
+		max-height:var(--segment);
+		
+		text-align:center;
+		text-transform:uppercase;
+		box-sizing:border-box;
+		
+		padding:0.5rem;
+		
+		display:flex;
+		align-items:center;
+		justify-content:center;
+		
+		transform:
+			translateX( calc( var(--x,0%) - (var(--segment)*0) )) 
+			translateY( calc( var(--y,0%) - (var(--segment)*0) ));
+	}
+
+	// depending on the quantity, we must move them accordingly
+	// for direction (4) it is simple to avoid trigonometry
+	menu{
+		--color-ring:purple;		
+		all: unset;
+		opacity:0;
+		visibility:hidden;
+		display:none;
+		box-sizing:content-box;
+		display:grid;
+		margin-top:calc( -2 * var(--segment));
+		margin-left:calc( -1 * var(--segment));
+		//clip-path: circle(150% at 50% 150%);
+		
+		transition:opacity 185ms linear;
+		
+		//position:absolute;
+		//top:0;
+		// transform:translateX( -100%) translateY(-100%) ;
+
+		// inner circles grow when held / swiped
+		&::before, &::after{
+			content:'';
+			opacity:0;
+			transform:scale(0.1);
+			border-radius:999px;
+			border:var(--stroke) solid var(--col-stroke,black);
+			box-sizing:border-box;
+			position:absolute;
+			left:calc(-100% + var(--stroke));
+			right:calc(-100% + var(--stroke));
+			bottom:calc(-200% + var(--stroke));
+			top:var(--stroke);
+			background: radial-gradient(circle, transparent var(--radius), var(--color-ring) var(--radius));
+			transition:
+				opacity 15ms linear, 
+				transform 15ms linear;
+		}
+		
+		//
+		&::after{
+			--color-ring:pink;
+		}
+	}
+		
+	// toggle menu visibility
+	button.open-menu{
+		
+		z-index:1;
+		border-radius:999px;
+		max-width:var(--segment);
+		max-height:var(--segment);
+		overflow:hidden;
+		cursor:pointer;
+		border:var(--stroke) dashed var(--col-stroke,black);
+		
+		// inner border
+		&::after{
+			--stroke:-0px;
+			content:'';
+			display:block;
+			position:absolute;
+			z-index:2;
+			top:calc( -1 * var(--stroke) );
+			left:calc( -1 * var(--stroke) );
+			right:calc( -1 * var(--stroke) );
+			bottom:calc( -1 * var(--stroke) );
+			border:inherit;
+			border-radius:inherit;
+			transform:rotate(0deg);
+			box-sizing:border-box;
+			transition:transform 240ms linear;
+		}
+		
+		// rotating arrow that points the direction of the swipe
+		&::before{
+			--triangle-height:33%;
+			--triangle-width:20%;
+			content:'';
+			position:absolute;
+			z-index:-1;
+		
+			left:0;
+			right:0;
+			top:0;
+			bottom:0;
+			
+			opacity:var(--arrow-opacity,0);
+			background-color:var(--col-arrow, transparent);
+			filter:drop-shadow(1px 1px 1px black);
+			clip-path:polygon(
+				50% 0%, 
+				calc(50% - var(--triangle-width)) var(--triangle-height), 
+				calc(50% + var(--triangle-width)) var(--triangle-height)
+			);
+			
+			// border:inherit;
+			display:block;
+			text-align:center;
+			transform-origin:center center;
+			transform:rotate( calc( 90deg + 1deg * var(--_angle)) );
+			transition:opacity 185ms linear;
+		}
+	}
+	
+	menu button{
+		grid-area:1/1/-1/-1;
+		z-index:1;
+		
+		// These are the blobs that show which direction we are swiping in
+		&::before{
+			content:'';
+			// clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+			background-color:red;
+			border-radius:999px;
+			position:absolute;
+			top:0;
+			left:0;
+			bottom:0;
+			right:0;
+			opacity:0;
+			z-index:-1;
+			margin:10%;
+			transition:opacity 185ms linear, transform 250ms ease-out;
+		}
+		
+		// to indicate that the item when depressed is highlighted
+		&:hover{
+			//background-color:pink;
+			&::before{
+				opacity:1;
+				transform:translateX(var(--fx,0)) translateY(var(--fy,0));
+			}
+		}
+	}
+	
+	// Up
+	menu button:first-of-type{
+		--x:0;
+		--y:0;
+		--fy:-100%;
+	}
+
+	// Right
+	menu button:nth-of-type(2){
+		--x:100%;
+		--y:100%;
+		--fx:100%;
+	}
+
+	// Down
+	menu button:nth-of-type(3){
+		--y:200%;
+		--fy:100%;
+	}
+
+	// Left
+	menu button:nth-of-type(4){
+		--x:-100%;
+		--y:100%;
+		--fx:-100%;
+	}
+	
+	// states -----------------------------------
+	
+	
+	button.open-menu:is(
+		:active, :target
+	){
+		color:transparent;
+		// &::before{
+		// 	background-color:yellow;
+		// 	opacity:1;
+		// 	transform:scale(1);
+		// }
+		// arrow
+		&::before{
+			color:red;
+			//--arrow-opacity:1;
+			// --col-arrow:orange;
+		}
+	}
+	
+	button.open-menu:is(
+		:active, :target, :hover, :focus,
+		:focus-visible
+	){
+		// arrow
+		&::before{
+			//--arrow-opacity:1;
+			// --col-arrow:pink;
+		}
+	}
+	
+	// reveal menu!
+	// button.open-menu:is(:active, :target, :hover,:focus,:focus-visible) ~ menu{
+	// &.mouse-down ~ menu{
+	button.open-menu:is(:active, :target, :focus-visible) ~ menu{
+		opacity:1;
+		transform:scale(1);
+		visibility:visible;
+		display:grid;
+	}
+	
+	
+	
+	// show arrow when...
+	button.open-menu:is(
+		:active, :target,
+		:focus-visible
+	),
+	menu:is(
+		:focus-within
+	){
+		--arrow-opacity:1;
+		background-color:yellow;
+	}
+	
+	// now we ideally only want to show the arrow when the user has moved outside of the button but not outside the menu
+	button.open-menu:is(
+		:active, :target,
+		:focus-visible
+	){
+		
+	}
+
+// 	:is(menu, button.open-menu):is(
+// 		:active, :target, :hover,
+// 		:focus, :focus-visible, :focus-within
+// 	){
+// 		background-color:black;
+// 	}
+	
+	// mouse has been pressed and user is holding it
+	&.mouse-down{
+		//background-color:limegreen;
+		
+		menu{
+			opacity:1;
+			visibility:visible;
+			
+			// swipe circle
+			&::before{
+				opacity:1;
+			}
+			
+			// slow circle
+			&::after{
+				transition-duration: 45ms, calc(var(--_duration, 5000) * 1ms);
+				opacity:1;
+				transform:scale(1);
+			}
+		}
+		
+			// user has clicked, and swiped to rollover one of the swipe directiopns
+		// ut as menu is only visible on click - this is outside this scope
+		// menu button:is(
+		// 	:active, :target, :hover
+		// ){
+		// 	background-color:yellow;
+		// }
+		
+	}
+	
+	@supports ( selector(:has(button)) ) {
+		
+		&.mouse-down menu{
+			opacity:0;
+		}
+		
+		button.open-menu{
+			--col-arrow:black;
+		}
+		
+		button.open-menu:is(
+			:active, 
+			:target,
+			:focus-visible
+		){
+			--arrow-opacity:0;
+		}
+		
+		// reset
+		// button.open-menu:is(
+		// 	:active, :target,
+		// 	:focus-visible
+		// ),
+		// menu:is(
+		// 	:focus-within
+		// ){
+		// 	--arrow-opacity:1;
+		// 	background-color:black;
+		// }
+			
+		&:has( menu button:hover ) button.open-menu {
+			--arrow-opacity:1;
+			opacity:1;
+		}
+		
+// 		menu:is(
+// 			:active, :target, :hover,
+// 			:focus, :focus-visible, :focus-within
+// 		){
+// 			background-color:black;
+// 		}
+	}
+	
+	
+	
+	// user has been pressing mouse for X seconds or longer
+	&.mouse-held{
+		//background-color:goldenrod;
+		button.open-menu{
+			//border-style:solid;
+			&::after{
+				transform:rotate(10deg);
+			}
+		}
+		menu{
+			// background-color:green;
+			&::after{
+				--color-ring:orange;
+			}
+		}
+	}	
+}

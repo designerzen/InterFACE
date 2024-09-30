@@ -4,7 +4,11 @@
 
 import AbstractDisplay from "./display-abstract"
 
+export const DISPLAY_COMPOSITE = "DisplayComposite"
+
 export default class DisplayComposite extends AbstractDisplay{
+	
+	name = DISPLAY_COMPOSITE
 
 	initialDisplay
 
@@ -24,6 +28,7 @@ export default class DisplayComposite extends AbstractDisplay{
 		
 		super( canvas, initialWidth, initialHeight, keypointQuantity )
 		this.available = true
+		this.loadComplete("ready")
 	}
 
 	/**
@@ -58,12 +63,12 @@ export default class DisplayComposite extends AbstractDisplay{
 	/**
 	 * Draw a Person model to the screen
 	 */
-	drawPerson( person, beatJustPlayed, colours ){
+	drawPerson( person, beatJustPlayed, colours, options={} ){
 
 		let display = this.initialDisplay
 		while(display){
 
-			display.drawPerson( person, beatJustPlayed, colours )
+			display.drawPerson( person, beatJustPlayed, colours, options )
 			display = display.nextDisplay
 		}
 	}

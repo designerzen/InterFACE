@@ -36,14 +36,14 @@ export const factory = (bars=16) => {
  * Create a pattern or sequence of velocities
  * that can be used as triggers for percussion
  * @param {*} sequence 
- * @param {*} offset 
+ * @param {Number} offset 
  * @returns 
  */
 export const pattern = ( sequence, offset=0 )=>{
 
 	let index = offset
 	
-	const length = sequence.length - 1
+	let length = sequence.length
 
 	// accessors
 	return {
@@ -51,20 +51,22 @@ export const pattern = ( sequence, offset=0 )=>{
 			index = 0
 			return sequence[index]
 		},
+		current:()=> sequence[index],
 		previous:()=>{
 			const newIndex = index - 1
-			index = newIndex < 0 ? length : newIndex
+			index = newIndex < 0 ? length - 1: newIndex
 			return sequence[index]
 		},
 		next:()=>{
 			const newIndex = index + 1
-			index = newIndex > length ? 0 : newIndex
+			index = newIndex >= length ? 0 : newIndex
 			return sequence[index]
 		},
-		position: i => sequence[i],
-		length:sequence.length,
-		current:()=> sequence[index],
-		set:s => sequence = s
+		setStep: step => index = step,
+		getStep: () => index,
+		getLength: () => length,
+		setLength: l => length = Math.min(l,sequence.length),
+		setSequence:s => sequence = s
 	}
 }
 
@@ -78,6 +80,7 @@ export const kitSequence = (kitIndex=0) => {
 		kick:pattern( kickSequences[kitIndex%(kickSequences.length-1)] ),
 		hat:pattern( hatSequences[kitIndex%(hatSequences.length-1)] ),
 		snare:pattern( snareSequences[kitIndex%(snareSequences.length-1)] ),
+		clap:pattern( snareSequences[kitIndex%(snareSequences.length-1)] ),
 		roll:pattern( drumRollSequence )
 	}
 }
@@ -86,11 +89,11 @@ export const combinePatternWithInstrument = (pattern, instrument )=> {
 
 }
 
-export const playNextPart = (pattern, instrument, ...options )=> {
+export const playNextPart = (pattern, instrument, options )=> {
 	const velocity = pattern.next()
 	if (velocity > 0)
 	{
-		instrument(velocity, ...options)	// velocity
+		instrument( {...options, velocity: velocity / 255 } )	// velocity
 		return true
 	}else{
 		// no note but noteOff?

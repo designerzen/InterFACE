@@ -1,0 +1,29 @@
+extends _base.pug
+
+block title
+	+title('Test:Hologram')
+
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#hologram
+		canvas(width=480 height=720)
+		//- control panel with multi-levels
+		include partials/control-panel.pug
+
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		main{
+			width:100%;
+		}
+
+block scripts
+	script(type="module" src="./tests/test.hologram.js")

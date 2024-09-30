@@ -4,10 +4,12 @@
 
 	display: grid;
 	align-content: stretch;//space-between;
-    justify-content: stretch;
+    justify-content: center;
+	justify-items: center;
 
-	// 1 unit of each
+	// stretch full width for 1 unit of each
 	grid-template-columns: 100%;
+
 	// all space then footer
 	// grid-template-rows:
 	// 	1fr
@@ -15,21 +17,23 @@
 	// 	calc(100vh - var(--pad) * 2) 
 	// 	auto;
 
-	grid-template-rows:
-		1fr
-		33vh
-		calc(100vh - var(--footer-gap) - var(--pad) * 2) 
-		auto;
+	// grid-template-rows:
+	// 	1fr
+	// 	33vh
+	// 	calc(100vh - var(--footer-gap) - var(--pad) * 2) 
+	// 	auto;
 
-	grid-template-rows:
-		1fr
-		33vh
-		calc(100dvh - var(--footer-gap) - var(--pad) * 2) 
-		auto;
+	// grid-template-rows:
+	// 	1fr
+	// 	33vh
+	// 	calc(100dvh - var(--footer-gap) - var(--pad) * 2) 
+	// 	auto;
 
+	// the gap is just for fun
+	// minmax(250px, 33vh) - breaks SAFARI
 	grid-template-rows:
-		1fr
-		33vh
+		auto
+		250px
 		auto
 		auto;
 
@@ -40,38 +44,21 @@
 		"app"
 		"footer";
 
-	// now give each item it's own "page" in the grid
-	> *{	
-		// position: sticky;
-		// top:0;
-		// grid-area: 1 / 2 / -1 / 3;
+		// Loading progress ------------------------------------------
+
+	#load-progress{
 		grid-area:app;
+		// position: sticky;
+		// bottom:0;
+		// margin:clamp( var(--pad), 25%, 25vmin ); //max-width:440px;	
+		align-self: center;
+		justify-self: center;
 	}
 
-
 	#intro{
-		border-radius: var(--curve);
-		
-		text-align: center;
-		display: grid;
-		flex-direction: column;
-		align-items: stretch;
-		justify-items:center ;
-		
-		color:var(--shade-red, red);
-		padding: var(--pad);
-		margin: var(--pad);
-
-		background-color:rgba(255,255,255,0.96);// var(--shade-white, white);
 		grid-area:hero;
-
-		// height is 100% - the margins
-		height:calc( 100% - 2 * var(--pad) );
-
 		// position: sticky;
-		// top:var(--pad);
-
-		
+		// top:var(--pad);		
 	}
 
 	#hero{
@@ -89,19 +76,26 @@
 	.hero-bumper{
 		order:-1;
 	}
-
-	#load-progress{
-		grid-area:app;
+	// now give each item it's own "page" in the grid
+	#app{	
 		// position: sticky;
-		// bottom:0;
-		// margin:clamp( var(--pad), 25%, 25vmin ); //max-width:440px;	
-		align-self: center;
-		justify-self: center;
+		// top:0;
+		// grid-area: 1 / 2 / -1 / 3;
+		grid-area:app;
 	}
 
-	// whole page
-	> :is(dialog){
+
+	// whole page popover
+	> dialog{
 		grid-area: 1 / 1 / -1 / -1;
+		z-index: 1999;	// space
+		// position: sticky;
+		// top:50%;
+		// bottom:25%;
+		position: fixed;
+		top: 50%;
+
+		transform: translateY(-50%);
 	}
 
 	#foot{
@@ -109,11 +103,9 @@
 	}
 }
 
-.interface #back-to-top{
-	position: absolute;
-	bottom:0;
-	right:0;
+.interface .back-to-top{
 	visibility: hidden;
+	position: absolute;
 }
 
 // during loading we show all in a line
@@ -123,44 +115,99 @@
 	
 }
 
+#share-code{
+	position: fixed;
+	top:var(--pad);
+	right:var(--pad);
+	z-index:808;
+	width:90px;
+	height: 90px;
+	display: grid;
+	grid-template-areas: "area";
+	font-size: 10%;
+	color: transparent;
+
+	> *{
+		grid-area: area;
+	}
+
+	.qr img{
+		max-width: 100%;
+	}
+}
+
 // once loaded we hide the #intro
 .interface.loaded{ 
 	background-color: black;
+
 	body{
 		grid-template-rows: 1fr auto;
-		grid-template-rows:
-			calc(100vh - var(--footer-gap) - var(--pad) * 2) 
-			auto;
-
-		grid-template-rows:
-			calc(100dvh - var(--footer-gap) - var(--pad) * 2) 
-			auto;
+		// grid-template-rows:
+		// 	calc(100vh - var(--footer-gap) - var(--pad) * 2);
+		// grid-template-rows:
+		// 	calc(100dvh - var(--footer-gap) - var(--pad) * 2);
+		grid-template-rows:1fr;
 
 		// mmake this big to give adequate room to breathe
-		grid-template-areas:  
-			"app"
-			"footer";
-			
-		#intro{
-			grid-area:app;
-			pointer-events: none;
-			max-height: 100%;
-			background: none;
-			> *:not(nav){
-			 	display: none;
-			}
+		grid-template-areas: "app";
+
+		// grid-template-areas:  
+		// 	"app"
+		// 	"footer";
+	}
+
+	#intro{
+		grid-area:app;
+		pointer-events: none;
+		
+		box-sizing: border-box;
+		max-width: 100%;
+		max-height: 100%;
+
+		background: none;
+
+		> *:not(nav){
+			display: none;
 		}
 	}
+
+	// load bar
 	#load-progress{
 		display: none;
 	}
-
+	#foot{
+		grid-area:app;
+	}
 }
+
 .interface #app{
 	
 }
 
-// app specific styles
+// ELECTRON App
+.interface.desktop{
+
+	body{
+		grid-template-rows:
+			calc(100vh - var(--footer-gap) - var(--pad) * 2) 
+			auto
+			calc(100vh - var(--footer-gap) - var(--pad) * 2)
+			auto;
+
+		// mmake this big to give adequate room to breathe
+		grid-template-areas: 
+			"hero"
+			"gap"
+			"app"
+			"footer";
+	}
+	// hide these butons
+	#buton-share, #button-fullscreen{
+		display: none;
+	}
+}
+
+// app specific styles (also applies to PWAs)
 .interface.app{ 
 
 	margin: 0;
@@ -194,10 +241,6 @@
 			// 			rgba(0,0,0,0.56) 0 2px 4px,
 			// 			rgba(0,0,0,0.56) 0 3px 4px,
 			// 			rgba(255,255,255,0.96) 0 0 4px;
-							
-			strong{
-				//color:$col-blue;
-			}
 		}
 		
 		h2{
@@ -221,12 +264,7 @@
 	// }
 }
 
-
-.logo, h1, h2{
-	// position: absolute;
-	// top:0;
-	// left:0;
-}
+	
 
 // inline logo :)
 .logo{
@@ -236,6 +274,8 @@
 
 	margin-left:auto;
 	margin-right:auto;
+	margin-bottom: var(--pad);
+
 	display: flex;
 	flex-direction: column;
 	
@@ -249,9 +289,10 @@
 	font-size: 0;
 
 	svg{
-		max-width: 33%;
-		margin:auto;
+		max-width: 25%;
+		// margin:auto;
 		color:inherit;
+		order: -1;
 		fill:currentColor;
 	}
 
@@ -286,14 +327,17 @@ main.active{
 	}
 }
 
-
-
 // funky text animations where the colour fades...
 // NB. EXPENSIVE, use sparingly
 .loading .logo,
 .loading strong,
 p strong{
 	animation:TextColours 4s linear infinite 0.05s both;
+}
+
+
+.warning strong{
+	animation:TextThrob 4s linear infinite 0.05s both;
 }
 
 #app-frame{
@@ -311,11 +355,13 @@ p strong{
 	position: relative;
 	display:flex;
 
-	height: 100%;
+	width: 100%;
+	min-width: fit-content;
+
 	// min-height: 320px;
 	min-height:calc(100dvh - var(--footer-gap) - var(--pad) * 2) ;
 	// max-width: 100%;
-	max-height: 100vh;
+	// max-height: 100vh;
 
 	// object-fit: contain;
 
@@ -401,14 +447,19 @@ p strong{
 }
 
 
-// STATES //////////////////////////////////////////////////////////////////
-
-
+// HELP DIALOG //////////////////////////////////////////////////////////////////
 
 // hide all help bits
-#help section{
-// #help > *{
-	display: none;
+
+#help{
+	section{
+		// #help > *{
+		display: none;
+	}
+
+	details{
+		overflow: auto;
+	}
 }
 
 
@@ -443,6 +494,7 @@ p strong{
 			// for anly inline
 			fill:black;//$col-cream;
 			
+
 			svg{
 				width: 100vw;
 				height: 100vh;
@@ -491,14 +543,25 @@ p strong{
 	// wrapper
 	#app-frame{
 
+		// flood width on all si
+		min-width:100%;
+		max-width:100%;
+		// max-height:100%;
+		max-height: 100vh;
+		max-height: 100dvh;
+
+		min-height:100vh;
+		min-height:100dvh;
+	
 		display: grid;
+		justify-content: center;
 			
 		// rounded corners
 		border-radius:var(--curve);
 		overflow: hidden;
+		overflow: clip;
 
 		background-color: black;
-
 		// nice blue long soft shadow
 		// box-shadow:
 		// 	var(--wig) -1.2px 1.2px hsla(var(--hue), 90%, var(--l), 0.059),
@@ -519,10 +582,10 @@ p strong{
 		// $col-yellow
 		
 		video, canvas{
-			// max-width:100%;
-			// max-height:100vh;
-			// height:auto;
-
+			max-width:100%;
+			height:100vh;
+			height:100dvh;
+			width: auto;
 			// put them all in the same place in the grid
 			object-fit: contain;
 			//margin:auto;
@@ -530,21 +593,29 @@ p strong{
 			display: block;
 			grid-area:1/-1;
 		}
+
+		#face-buttons{
+			position: absolute;
+			height: 100%;
+			max-width: 100%;
+			width:calc(var(--width) / var(--height)  * 100vh );
+			left:50%;
+			transform: translateX(-50%);
+			margin:0;
+			padding:0;
+			border:0;
+			pointer-events: none;
+			legend{
+				color:transparent;
+			}
+			button{
+				pointer-events: auto;
+			}
+		}
 				
 		.canvas-full-size{
-
 			z-index: 1;
-			position: relative;
-			
-			// stretch it to flood the width
-			// width:100vw;
-
-			height: auto;
-			//width:100%;
-
-			// prevent overflow
-			// max-width: 100vw;
-			// max-height: 100vh;
+			// position: relative;
 
 			// video actually always maintains apect ratio which we can abuse...	
 			// @media (orientation: landscape) {
@@ -553,10 +624,20 @@ p strong{
 			// }
 
 			// width:100%;//clamp(100%, 100vw, 100% );
-			height: 100vh;
-			max-width: 100vw;
-			margin:auto;
-			display: block;
+			
+			// stretch it to flood the width
+			// width:100vw;
+			// height: auto;
+			// width:100%;
+
+			// // prevent overflow
+			// max-width: 100vw;
+			// max-height: 100vh;
+			// max-height: 100dvh;
+
+			// // centralise if smaller than the screen
+			// margin:auto;
+			// display: block;
 
 			// max-height: 100vh;
 			// max-width: 100vw;
@@ -565,8 +646,8 @@ p strong{
 			@media (orientation: portrait) {
 				// 	height: 100%;
 				// 	width:calc(var(--width) / var(--height)  * 100vh );
-				width: 100%;
-				height:calc(var(--height) / var(--width) * 100vw );
+				// width: 100%;
+				// height:calc(var(--height) / var(--width) * 100vw );
 			}
 			
 			// @media (orientation: landscape) {
@@ -590,19 +671,18 @@ p strong{
 			// 	height:calc(var(--height) / var(--width) * 100vw );
 			// }
 		}
+
 		// behind canvas (canvas can be transparent at times)
 		#webcam{	
 			// bottom of the stack
 			z-index: 0;
-			position:absolute;
-			top:0;
-			left:0;
+			// position:absolute;
+			// top:0;
+			// left:0;
 			
-			width:100%;
-			height:100%;
-		}
+			// width:100%;
+			// height:100%;
 
-		#webcam{
 			// flip it around for mirror mode!
 			transform: scaleX(-1);
 		}
@@ -614,12 +694,12 @@ p strong{
 
 		#control-panel{
 			
-			@media (orientation: portrait) {
-				// 	height: 100%;
-				// 	width:calc(var(--width) / var(--height)  * 100vh );
-				width: 100%;
-				height:calc(var(--height) / var(--width) * 100vw );
-			}
+			// @media (orientation: portrait) {
+			// 	// 	height: 100%;
+			// 	// 	width:calc(var(--width) / var(--height)  * 100vh );
+			// 	width: 100%;
+			// 	height:calc(var(--height) / var(--width) * 100vw );
+			// }
 		}
 	}
 
@@ -675,7 +755,7 @@ html.debug{
 
 #control-panel{
 	
-	display: block;
+	--panel-width:45%;
 	margin:auto;
 	padding:0;
 	
@@ -685,14 +765,40 @@ html.debug{
 	left:0;
 	right:0;
 	bottom: 0;
-	z-index:606; // NOT top - we have help and about remember!
+
+	z-index:808; // NOT top - we have help and about remember!
 
 	// width:100%;
-	// pointer-events: none;
 
-	// > *{
-	// 	pointer-events: auto;
-	// }
+	// prevent the form takin focus
+	pointer-events: none;	
+	
+	
+	display: block;
+
+	// alternate grid layout
+	display: grid;
+
+
+	grid-template-areas: 
+		"sidebar-left . sidebar-right"
+		"settings-panel settings-panel settings-panel"
+		"control-panel control-panel control-panel"
+		;
+
+	grid-template-rows: 
+		1fr
+		auto 
+		auto
+		auto
+	;
+
+	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
+
+
+	*{
+		pointer-events: auto;
+	}
 
 	/*
 	// we need media queries to complete
@@ -713,6 +819,26 @@ html.debug{
 	// }
 }
 
+// Instrument and user option panels
+
+// left drag
+.person-a-panel,
+.person-c-panel{
+	grid-area: sidebar-left;
+}
+
+// Drag from the right
+.person-b-panel,
+.person-d-panel{
+	grid-area: sidebar-right;
+}
+
+
+.controls{
+	grid-area: control-panel;
+	background-color:var(--shade-dark, black);
+}
+
 .brand{
 	//background:url(/source/assets/logos/designerzen_current-color.svg) no-repeat left 2px center;
 	//background-size: contain;
@@ -724,155 +850,44 @@ html.debug{
 		color:inherit;
 		height:1rem;
 		width:1rem;
-		margin-top: -0.25rem;
+		// margin-top: -0.25rem;
 		margin-right:0.25rem;
 		stroke:currentColor;
 	}
 
 }
 
-// Results
-.recordings{
-	--side:123px;
-	position: fixed;
-	// bottom:var(--footer-gap);
-	top:0;
+#LookingGlassWebXRControls{
+	top: 90px !important;
+    bottom: auto !important;
 
-	left:50%;//var(--side);
-	border-radius: var(--curve);
-	width:min-content;
-	max-width:calc( 100vw - 2 * var(--side) );
-	transform: translateX(-50%);
-	//right:var(--side);
-
-	display: flex;
-	overflow: auto;
-	overflow-y: hidden;
-	justify-items: center;
-	
-	// a bit of space to zoom
-	//padding:var(--pad);
-	padding:22px;
-	pointer-events: all;
-
-	z-index: 303;
-	gap:var(--pad);
-	border:var(--border-size) solid var(--shade-yellow);
-	background-color:var(--shade-dark);
-
-	scroll-behavior:smooth ;
-	scroll-snap-type: x mandatory;
-	//scroll-padding: 50%;
-
-	// &:before, &:after{
-	// 	content:'';
-	// 	position: absolute;
-	// 	top:0;
-	// 	right:100%;
-	// 	background-color: aquamarine;
-	// 	width: 20px;
-	// 	height:20px;
-	// 	display: block;
-	// }
-
-	&:after{
-		left:100%;
-		right:auto;
-	}
-
-	> * {
-		scroll-snap-align: center;
-	}
-
-	> * + * {
-		margin-left:8px;
-	}
-
-	&:empty{
-		visibility: hidden;
-	}
-			
-	&:focus-within {
-		// prefer smooth scrolling where available (opinionated).
-		scroll-behavior: smooth;
-	}
-	// grid-auto-rows: ;
-	a{
-		color:transparent;
+	&:first-child{
+		text-align: left;
 		user-select: none;
-		font-size:0;
-		position: relative;
-		box-sizing: border-box;
-		transition: transform var(--ease-m) ease-out;
-
-		&::before{
-			content:'';
-			border:4px solid $col-white;
-			position: absolute;
-			top:0;
-			left:0;
-			right:0;
-			bottom:0;
-			opacity: 0;
-			transition: var(--ease-m) linear;
-		}
-
-		&:hover, &:focus{
-			z-index:2;
-			transform-origin: bottom center;
-			transform:scale(1.1);			
-			background-color: $col-dark;
-			outline:1px solid $col-orange;
-			&::before{
-				opacity: 1;
-			}
-		}
+	}
+	button{
+		height:auto !important;
+	}
+	*{
+		font-family: inherit;
 		
-		&:focus{
-			outline:3px solid $col-orange;
-		}
-	}
-
-	img{
-		max-width:120px;
-		min-height:44px;
-		max-height:12vmin;
-		height: auto;
-		width: auto;
-		display:block;
-	}
-}
-
-
-// STATES ==========================
-
-main.solo{
-	#person-b{
-		visibility: hidden;
-	}
-}
-
-// only enable when loaded
-#share{
-	display: none;
-}
-
-.sharing-enabled{
-	#share{
-		display: flex;
 	}
 }
 
 #settings{
-	visibility: hidden;
-	transform: translateY( 0 );
+	// visibility: hidden;
+	display: none;
+	transform: translateY( 100% );
 	transition: transform var(--ease-m) $easeOutBack, opacity var(--ease-m) linear;
 	animation: none;
+	grid-area: settings-panel;
 	
 	.button-close{
 		position: absolute;
 		left:0;
 		right:0;
+		top: 0;
+		bottom: 0;
 		z-index:-1;
 		align-items: flex-end;
 		// get rid of icon
@@ -986,5 +1001,85 @@ main.solo{
 			// delay is the amount of time to wait before reveal
 			--delay:calc( var(--delay-offset, var(--offset,0)) + #{$i - 1} * var(--overlap) * var(--duration) );
 		}
+	}
+}
+
+
+// Back to top ----------------------------------------------
+
+a.back-to-top{
+	flex:1 1 100%;
+	width:100%;
+	position: absolute;
+	bottom:0;
+	right:0;
+	
+	view-timeline: --backToTopReveal block;
+	animation-timeline: --backToTopReveal;
+	
+	animation-name: BackToTopReveal;
+	animation-fill-mode: both;
+	animation-duration: 1ms; /* Firefox requires this to apply the animation */
+}
+
+
+#licenses{
+	
+	// prevent it staying single line
+	max-inline-size: 55ex;
+}
+
+
+#hero{
+	order:-42;
+	display: grid;
+	grid-area: poster;
+	align-items: center;
+	justify-content: center;
+	grid-template-columns: auto;
+	grid-template-rows: auto;
+	//grid-area: 1/-1/ 1/-1;
+	width: 100%;
+}
+
+#pwa{
+	grid-area:menu;
+	display: flex;
+	width: 100%;
+	gap:var(--pad);
+	flex-wrap: wrap;
+	justify-content: stretch;
+}
+
+svg.hero-bumper{
+	margin:auto;
+	width: 100%;
+}
+
+.educate{
+	border-radius: 999px;
+    border: 1px solid transparent;
+	padding: 2px 1px 2px 3px;
+	&:hover,&:focus{
+		border-color:var(--shade-red);
+	}
+}
+
+.link-designerzen{
+	
+	--icon-size:1rem;
+
+	word-break: keep-all;
+	white-space: nowrap;
+	&::before{
+		content:'';
+		vertical-align: middle;
+		display: inline-block;
+		width: var(--icon-size);
+		height:var(--icon-size);
+		background-image: url(/source/assets/logos/designerzen.svg);
+		background-repeat: no-repeat;
+		background-size: contain;
+		// padding-left:calc(var(--pad)*3.5);
 	}
 }

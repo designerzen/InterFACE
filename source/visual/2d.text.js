@@ -1,5 +1,4 @@
-import PALETTE from "../palette"
-
+import PALETTE from "../settings/palette"
 /**
  * Add a string of text to the canvas
  * @param {CanvasRenderingContext2D} canvasContext 
@@ -49,19 +48,19 @@ export const drawParagraph = ( canvasContext, x, y, paragraph=[], size='8px', li
  * @param {String} instrumentName 
  * @param {String} extra 
  */
-export const drawInstrument = ( canvasContext, x, y, instrumentName, extra='') => {
+export const drawInstrument = ( canvasContext, x, y, instrumentName, extra='', fontSize='24px') => {
 
 	if (!instrumentName)
 	{
 		return
 	}
 	// use prediction.boundingBox to position text
-	const text = `${instrumentName.toUpperCase()} - ${extra}`
+	const text = `${instrumentName.toUpperCase()}` + (extra ? `- ${extra}` : '')
 	// canvasContext.beginPath()
 	// these aren't scaled :(
 	// canvasContext.fillStyle  = colour
 	// canvasContext.rect( boundingBox.xMin boundingBox.yMin, boundingBox.xMax, boundingBox.yMax )
 	// canvasContext.strokeRect( boundingBox.xMin, boundingBox.yMin, boundingBox.xMax, boundingBox.yMax )
 	// canvasContext.fill()
-	drawText( canvasContext, x, y, text, "24px" )
+	drawText( canvasContext, x, y, text, fontSize )
 }

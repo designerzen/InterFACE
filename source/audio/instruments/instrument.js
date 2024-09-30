@@ -1,4 +1,17 @@
-import * as MIDICommands from "../midi/midi-commands"
+/**
+ * Abstract Instrument
+ * MIDI Codes for control
+ * 1 = Modulation wheel, often assigned to a vibrato or tremolo effect.
+ * 7 = Volume level of the instrument
+ * 10 = Panoramic (0 = left; 64 = center; 127 = right)
+ * 11 = Expression (sometimes used also for volume control or similar, depending on the synthesizer)
+ * 32 = Sound bank selection (LSB)
+ * 64 = Sustain pedal (0 = no pedal; >= 64 => pedal ON)
+ * 121 = All controllers off (this message clears all the controller values for this channel, back to their default values)
+ * 123 = All notes off (this message stops all the notes that are currently playing)
+ */
+
+import * as MIDICommands from "../midi/midi-commands.js"
 
 // we always have the same exposed methods
 // based on the MIDI implementations
@@ -14,9 +27,13 @@ export default class Instrument{
 	available = false
 	active = false
 
+	// AudioContext
+	context
+
 	// monophonic by default
 	polyphony = 1
 
+	modulation = 0
 	currentVolume = 1
 	channels = 1
 
@@ -31,7 +48,10 @@ export default class Instrument{
 	get id(){
 		return `${this.name}-${this.unique}`.toLowerCase().replace(" ","_")
 	}
-	
+
+	get activePreset(){
+		return null
+	}
 	/**
 	 * @returns {String} of unique Instrument id for this instance
 	 */
@@ -41,6 +61,14 @@ export default class Instrument{
 	
 	get isLoading(){
 		return this.available
+	}
+
+	get isMonophonic(){
+		return this.polyphony === 1
+	}
+
+	get isPolyphonic(){
+		return this.polyphony > 1
 	}
 	
 	get volume(){
@@ -62,6 +90,14 @@ export default class Instrument{
 	
 	get input(){
 		return this.audioNode
+	}
+
+	set modulation(value){
+		this.modulation = value
+	}	
+
+	get modulation(){
+		return this.modulation
 	}
 
 	/**
@@ -124,6 +160,11 @@ export default class Instrument{
 		//console.log("noteOff", noteNumber, this.activeNotes )
 		return true
 	}
+
+	
+	// TODO: 
+	allSoundOff(){}
+	allNotesOff(){	}
 	
 	/**
 	 * Polyphonic Key Pressure
@@ -133,9 +174,7 @@ export default class Instrument{
 	 * @param {Number} noteNumber - is the key (note) number
 	 * @param {Number} pressure 
 	 */
-	async aftertouch( noteNumber, pressure ){
-
-	}
+	async aftertouch( noteNumber, pressure ){}
 	
 	/**
 	 * Pitch Bend Change. 
@@ -149,8 +188,16 @@ export default class Instrument{
 	 * (mmmmmmm) are the most significant 7 bits.
 	 * @param {number} pitch 
 	 */
-	async pitchBend(pitch){
+	async pitchBend(pitch){}
 
+	/**
+	 * A proxy for programChange that is a bit more explicit
+	 * and sensical considering getPresets()
+	 * @param {Number|String} programNumber 
+	 */
+	async loadPreset( programNumber ){
+		// find number in list?
+		this.programChange(programNumber)
 	}
 
 	/**
@@ -158,19 +205,14 @@ export default class Instrument{
 	 * This message sent when the patch number changes. 
 	 * @param {Number} programNumber - new program number.
 	 */
-	async programChange( programNumber ){
 
+	async programChange( programNumber ){}
+	// another way to access it
+	async setPatch( programNumber ){
+		this. programChange( programNumber )
 	}
-
-	// TODO: 
-	allSoundOff(){
-
-	}
-
-	allNotesOff(){
-
-	}
-
+	
+	
 	/**
 	 * Get a list of all the instrument names available for this
 	 * instrument preferably at the no
@@ -178,7 +220,6 @@ export default class Instrument{
 	 */
 	async getPresets(){
 		return []
-		
 	}
 
 	/**

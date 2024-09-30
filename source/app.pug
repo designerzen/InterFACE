@@ -1,10 +1,15 @@
-extends index.pug
+extends interface.pug
 
 block title
-	+title('App')
+	+title('Desktop')
+
+//- FIXME: Context Security Policy vurrently breaks webasm
+block CSP 
+	//- meta( http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'")
+	//- meta( http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'")
 
 block preload 
+	//- link(rel="preload" href="app.js" as="script") 
 
 block scripts
-	script(type="module", src="app.js", rel="preload")
-	script(type="module", src="renderer.js")
+	script(type="module" src="app.js")

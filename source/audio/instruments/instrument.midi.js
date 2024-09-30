@@ -1,11 +1,15 @@
-import Instrument from './instrument'
-import {getBarProgress} from '../../timing/timing'
-import {WebMidi} from "webmidi"
+import Instrument from './instrument.js'
+
+export const INSTRUMENT_TYPE_MIDI = "MIDIInstrument"
 
 export default class MIDIInstrument extends Instrument{
 
+	static get name(){
+		return INSTRUMENT_TYPE_MIDI
+	}
+
+	name = INSTRUMENT_TYPE_MIDI
 	type = "midi"
-	name = "MIDIInstrument"
 
 	get enabled(){
 		return this.sendMIDI
@@ -18,9 +22,14 @@ export default class MIDIInstrument extends Instrument{
 	constructor( audioContext, device, channel="all" ){
 		super( audioContext, {} )
 		this.channel = channel
+		// ?
+		this.title = device
+		this.connectMIDI(device)
+	}
+
+	connectMIDI(device){
 		this.sendMIDI = true
 		this.midiPort = device
-		this.title = device
 	}
 
 	setMIDI(value){
@@ -29,6 +38,11 @@ export default class MIDIInstrument extends Instrument{
 
 	async noteOn(noteNumber, velocity=1){
 		
+		if (!this.midiPort)
+		{
+			console.warn("No MIDI port to coonnect to")
+			return
+		}
 		// TODO: multiple velocity by this.currentVolume * velocity
 
 		// duration: 2000,
@@ -36,14 +50,19 @@ export default class MIDIInstrument extends Instrument{
 		//console.log("MIDI",amp, noteNumber, INSTRUMENT_NAMES.length, noteName, this.midiChannel)
 		const midiOptions = { 
 			channels:this.channel,
-			attack:newVolume // amp
+			attack:velocity // amp
 		}
 		super.noteOn(noteNumber, this.currentVolume * velocity )
+		//
 		return this.midiPort.playNote( noteNumber, midiOptions )
 	}
 
 	async noteOff(noteNumber){
 
+		if (!this.midiPort)
+		{
+			return
+		}
 		//this.midi.sendClock( )
 		//this.midi.setSongPosition( getBarProgress() * 16383 )
 		
@@ -62,7 +81,7 @@ export default class MIDIInstrument extends Instrument{
 		// prevent flooding the off bus
 		this.midiActive = false
 
-		console.log(this.midi, "MIDI turnSoundOff", noteName, "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+		console.log(this.midi, "MIDI turnSoundOff", "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
 		return super.noteOff( noteNumber )
 	}
 

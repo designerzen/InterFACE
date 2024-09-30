@@ -1,0 +1,264 @@
+
+
+// Custom start button
+.button-start{
+	// leftmost gap to behind the icon
+	--bg:url(/source/assets/icons/play_circle_outline_black_24dp.svg);
+	--space: calc(var(--pad)* 2.5px);
+    padding: calc(var(--pad)* 1);
+	border-radius:999px;
+	font-size: 125%;
+	anchor-name:--button-start;
+	// &::after{
+	// 	--hue:#{$hue-blue};
+	// }
+
+	@media screen and (min-width:840px) {
+		--space: calc(var(--pad)* 3.5px);
+		padding: calc(var(--pad)* 2);
+		font-size: 150%;
+	}
+}
+
+label[for="toggle-automation-mode"]{
+	--col-bg:transparent;
+	border-top: 1px solid var(--shade-white);
+	//background:transparent;
+	align-items: center;
+	justify-content: center;
+	display: flex;
+	gap:calc( var(--pad));
+	anchor-name:--button-automation;
+}
+
+label[for="button-solo"],
+button#button-solo{
+	--bg:url(/source/assets/icons/person-24px.svg);
+	--y:100%;
+	anchor-name:--button-solo;
+}
+
+label[for="button-duet"],
+button#button-duet{
+	--bg:url(/source/assets/icons/people-24px.svg);
+	--y:-100%;
+	anchor-name:--button-duet;
+}
+
+// These need overrides for size
+label[for="button-trio"],
+button#button-trio{
+	--bg:url(/source/assets/icons/groups-24px.svg);//display: none;
+	anchor-name:--button-trio;
+}
+
+label[for="button-quartet"],
+button#button-quartet{
+	--bg:url(/source/assets/icons/person_add-24px.svg);
+	anchor-name:--button-quartet;
+}
+
+// button that covers people
+button.person{
+
+	// FIXME: Dodge the legend
+	margin-top:var(--pad);
+	padding:0;
+	cursor:pointer;
+	position: absolute;	
+	z-index:202;
+	overflow: hidden;
+	border:2px solid var(--col-cream);
+	// outline:2px solid $col-cream;
+	box-sizing: border-box;
+	border-radius: 3px;
+	// appearance: none;
+	//border:2px solid white;
+
+	text-shadow:none;
+	color:transparent;
+
+	opacity: 0;
+
+	transition: var(--ease-s) ease-in opacity;
+	//, left 9ms linear, top 9ms linear;
+	anchor-name:--person;
+	display: flex;
+
+	&::before, &::after{
+		display: none;
+	}
+
+	&:hover, &:focus-visible{
+		background-color: transparent;
+		outline: none;
+	}
+
+	&:active{
+		opacity: 1;
+	}
+
+	&:hover{
+		opacity: 0.9;
+		background-color: transparent;
+	}
+
+	svg{
+		width: 100%;
+		//height:auto;
+		fill:orange;
+		stroke-width: 3px;
+		stroke:purple;
+		//transform: scaleX(-1);
+		pointer-events: none;
+		circle{
+			stroke:black;
+			fill:white;
+		}
+	}
+}
+
+// Button Faces are shown on video
+.user-active button.person{
+	display: block;	
+}
+
+// move into position and ensure that left as % + width as % < 100%
+button#person-a{
+	--left:calc( 100% - ( 100% * var(--person-a-x,0) ) );
+	--breadth:calc( 100% * var(--person-a-w,0) );
+	anchor-name:--button-person-a;
+	top:calc( 100% * var(--person-a-y,0)  );
+	height:calc( 100% * var(--person-a-h,0) );
+	// --left:calc( 100% * var(--person-a-x,0) / var(--width,640) );
+	// --breadth:calc( 100% * var(--person-a-w,0) / var(--width,640) );
+	// top:calc( 100% * var(--person-a-y,0) / var(--height,480) );
+	// height:calc( 100% * var(--person-a-h,0) / var(--height,480) );
+}
+
+button#person-b{
+	--left:calc( 100% - ( 100% * var(--person-b-x,0)) );
+	--breadth:calc( 100% * var(--person-b-w,0)  );
+	anchor-name:--button-person-b;
+	top:calc( 100% * var(--person-b-y,0) );
+	height:calc( 100% * var(--person-b-h,0) );
+	// --left:calc( 100% * var(--person-b-x,0) / var(--width,640) );
+	// --breadth:calc( 100% * var(--person-b-w,0) / var(--width,640) );
+	// top:calc( 100% * var(--person-b-y,0) / var(--height,480) );
+	// height:calc( 100% * var(--person-b-h,0) / var(--height,480) );
+}
+
+// prevent the width of the face button falling off right hand side of the screen
+button#person-a,
+button#person-b{
+	--total:calc( var(--left) + var(--breadth));
+	// distance in pixels remaining on the right
+	--over:calc( 100vw - var(--total)) ;
+	// ignore if positive...
+	--overflow:min( var(--over), 0px );
+	left:var(--left);
+	width:calc( var(--breadth) + var(--overflow) );
+}
+
+// generic button style
+button#button-record,
+// button#button-video,
+button#button-midi,
+button.install-app,
+button.update-available{
+	// border-radius: var(--curve) var(--curve) var(--curve) 0;
+	//transition:background-color var(--ease-q) linear, color 40ms linear;
+	overflow: hidden;
+}
+
+// override style
+button.person,
+#button-video{
+	// forces the cursor to work inside
+	pointer-events: auto;
+	user-select: none;
+	// hide any copy
+	color:transparent;
+	text-shadow:none;
+	background-color: transparent;
+	
+	&:hover, &:active, &:focus-visible{
+		color:transparent;
+		background-color: transparent;
+		text-shadow:none;
+		//border:5px solid $col-yellow;
+	}
+}
+
+// This covers the video element and allows the video
+// to act as a button
+#button-video{
+
+	anchor-name:--button-video-overlay;
+
+	display: block;
+	position: absolute;//fixed;
+	
+	bottom:var(--pad);
+	left:var(--pad);
+	right:var(--pad);
+	top:var(--pad);
+
+	padding:0;
+	border:0;
+	
+	// just a little margin of error
+	// bottom:0rem;
+	// try and push to the back
+	z-index:-1;
+	
+	// prevent finger cursor
+	cursor: default;
+
+	max-width:none;
+	background: none;
+	opacity: 0;
+
+	&::before, &::after{
+		display:none;
+	}
+}
+
+
+// variations
+
+
+// This is the upload midi file button and action
+button.midi-file{
+	--bg:url(/source/assets/icons/face_retouching_off-24px.svg);
+	anchor-name:--button-upload-midi;
+}
+
+
+button.error {
+	--bg:url(/source/assets/icons/person-24px.svg);
+	--col-hover:var(--shade-red);
+	anchor-name:--button-error;
+} 
+
+button.wait {
+	border-color: Highlight;
+	--bg:url(/source/assets/icons/person-24px.svg);
+	--col-fg:HighlightText;
+	--col-hover:var(--shade-red);
+	anchor-name:--button-wait;
+} 
+
+button.light {
+	--bg:url(/source/assets/icons/person-24px.svg);
+	--col-fg:var(--shade-dark);
+	--col-hover:var(--shade-white);
+	--hue:60;
+} 
+
+button.dark {
+	--bg:url(/source/assets/icons/person-24px.svg);
+	--hue:20;
+	--col-fg:var(--shade-white);
+	--col-hover:var(--shade-dark);
+}

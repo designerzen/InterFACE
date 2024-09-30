@@ -6,24 +6,55 @@ node_modules*
 # there are things already committed in dist/ mainly the smaples
 dist-electron/*
 dist/*
-!dist/assets/audio/
+# !dist/assets/audio/
 release
-
+*~lock~*
 docs/
 textures/
 app
 *.bak
+*.sf2
 *.mp4
 *.log
 *.zip
+*.backup*
 *.reapeaks
 *.sf2
+*.7z
+*.zip
+*--*
+*~lock~
+*-new
+*copy*
 *-mp3.js*
 *-ogg.js*
 android
-mediakit
+mediakit/*
+!mediakit/logo*
+!mediakit/people
+!mediakit/screenshots
+!mediakit/history
 public
 tstex*
-
+heap-*
+parcel-bundle-reports/
 source/audio/wam2-external/
-static/@mediapipe
+
+static/@mediapipe/**/*
+# !static/@mediapipe/tasks-vision/*
+!static/@mediapipe/tasks-vision/
+# They forgot to include the wasm files in the @mediapipe repo!
+# !static/@mediapipe/tasks-vision/
+!static/@mediapipe/tasks-vision/wasm/**
+!static/@mediapipe/tasks-vision/wasm/
+
+static/assets/audio/*
+!static/assets/audio/acoustics/*
+!static/assets/audio/*.json
+!static/assets/audio/OpenGM24/
+
+Hi Roger,.md
+.nvmrc-new
+
+*.afphoto
+*.afdesign

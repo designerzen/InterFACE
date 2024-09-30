@@ -1,5 +1,15 @@
 
 // Overlay buttons
+@import "../_ease.scss";
+@import "./_button.scss";
+
+// container (and colour of folder menus)
+#shared-controls{
+	// above all other controls!
+	z-index: 808;
+//	background-color: hsla(196, 58%, calc(28% - 14%), 0.8 );
+}
+
 
 // BUTTON STYLE
 .controls{
@@ -8,68 +18,120 @@
 	// contain: layout inline-size style;
 	
 	// backgrounds
-	--col-regular:#{$col-dark};
-	--col-hover:#{$col-orange};
-	--col-select:#{$col-yellow};
+	--col-regular:var(--shade-dark);
+	--col-hover:var(--shade-dark);
+	--col-select:var(--shade-dark);
 
 	// we swap this to absolute when we want to window it
-	position: fixed;
-	margin:0;
+	// position: fixed;
+	// margin:0;
 
-	bottom:0;
-	left:0;
+	// bottom:0;
+	// left:0;
+
 	//right:0;
-	
-	gap: 1px;
 
-	min-width:100vw;
+	--grid-gap: 1px;
+	--grid-column-count: 14;
+	--grid-item--min-width: 44px;
+	
+	// Calculated values 
+	--gap-count: calc(var(--grid-column-count) - 1);
+	--total-gap-width: calc(var(--gap-count) * var(--grid-gap));
+	--grid-item--max-width: calc((100% - var(--total-gap-width)) / var(--grid-column-count));
+	
+	min-width:100%;
 	max-width:100%;
 
 	visibility:hidden;
-	align-items: stretch;
-	justify-content: stretch;
-    // place-self: center;
 
-	pointer-events: auto;
+	box-sizing: border-box;
 
 	display: grid;
 	grid-auto-flow: column;
     grid-auto-columns: auto;
+	// stretch until we reach x quantity then wrap
+	grid-template-columns: repeat(auto-fit, minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr));
+	gap: var(--grid-gap);
 	
-    gap: 0px;
+	align-items: stretch;
+	justify-content: stretch;
 
+	pointer-events: auto;
 
-	background-image:linear-gradient(
-		hsla(18, 21%, 12%, 0.7), 
-		hsla(340, 5%, 11%, 0.7)
-	);
+	// backgroiund
+	// background-image:linear-gradient(
+	// 	hsla(18, 21%, 12%, 0.7), 
+	// 	hsla(340, 5%, 11%, 0.7)
+	// );
 
+	// NB. adding any kind of overflow
+	// all it to scroll if absolutely neccessary
 	//overflow: hidden;
 	// overflow: scroll;
-	//overflow-y:hidden;
+	// overflow-y: hidden;
+	// overflow-x: auto;
 
 	// need to bring it into z-range
-	z-index:303;
-	
-	// @media screen and (min-width:640px){
-		
-	// }
+	// above the 707 for the footer
+	z-index:707;
 
+	// update folders within
+	.folder-link{
+		width:100%;
+		height:100%;
+	}
 
-	//  > * + *{
-	//  	border-left:1px solid $col-dark;
-	// }
+	// these are sub menus that overlay the main menu
+	.folder-content{
+		background: inherit;
+		z-index:909;
+
+		/*
+		top: auto;
+		bottom: 100%;
+		left: 0;
+		height: 100%;
+		display: grid;
+		grid-template-areas:
+			"buttons"
+			"back";
+
+		> a{
+			grid-area: back;
+		}*/
+	}
+
+	legend{
+		position: absolute;
+		left:0;
+		bottom:0;
+		// bottom:100%;
+		background-color:transparent;
+		color:transparent;
+		user-select: none;
+		pointer-events: none;
+		border:0;
+		visibility: hidden;
+
+		&:focus{
+			color:var(--col-bright, white);
+			visibility: visible;
+			z-index:909;
+		}
+	}
 
 	// sometimes the label takes focus making interaction difficult
 	label{
 		// pointer-events: none;
 		position: relative;
-		
-		select{
+
+		// bring in front of selects...
+		select, input, button{
 			// FIXME: Should this be -1?
 			z-index:1;
 		}
-
+		
 		// stretch them out 
 		select, input{
 			pointer-events: auto;
@@ -91,19 +153,9 @@
 			overflow: hidden;
 		}
 
-		// bring in front of selects...
-		input, button{
-			z-index:1;
-		}
-		
-		// selected
-		select:focus:active{
-			max-width:none;
-		}
-
 		// Indicator
-		&:after{
-			background-color: var(--col-select, $col-orange);
+		&:before{
+			background-color: var(--col-select, var(--hue-selected, rgb(54, 157, 125)));
 			opacity:0;
 			content:'';
 			display: block;
@@ -118,145 +170,33 @@
 						transform var(--ease-s) $easeOutBack;
 		}
 
+		&:has( input:checked ),
 		&.checked{
-			background-color: var(--col-select);
-		}
-	
-		// hover when selected still turns orange!
-		&.checked:hover::before{
-			opacity: 1;
-		}
-
-		// toggled state each one can have unique color
-		&.checked::after{
-			opacity:1;
-			transform:translateY(20%);
-		}
-	}
-
-	legend{
-		position: absolute;
-		bottom:100%;
-		background-color:transparent;
-		color:transparent;
-		user-select: none;
-		pointer-events: none;
-		border:0;
-		visibility: hidden;
-
-		&:focus{
-			color:$col-white;
-			visibility: visible;
-		}
-	}
-
-	label, button{
-		--hue: #{$hue-red};
-		--col-bg:var(--shade-dark);
-		--col-top:hsl( var(--hue), var( --s, 58%), 10% );
-		--col-bottom:hsl( var(--hue), var( --s, 58%), 15% );
-	
-		// labels can collapse without text to expand them
-		//border-radius:5px 5px 0 0;
-		//border-left:0;
-		// border-right-color:$col-white;
-		// border-left:$col-cream;
-		// border-bottom:var(--button-border-size) solid $col-blue;
-		padding: var(--pad) calc( 1 * var(--pad) );
-
-		font-weight:900;
-		// color:var(--col-regular);
-		// background-color:rgba($col-yellow,0.5);
-
-		&:active{
-			--col-top:var(--col-select);
-			--col-bottom:var(--col-select);
-			//background-color: var(--col-select);
-			@extend %button-active;
-		}
-
-		&:focus{
-			outline:2px solid $col-orange;
-			//outline-offset: -3px;
-		}
-
-		// enabled
-		&.checked{
-			// --col-fg:red;
-			// --col-top:#{$col-dark};
-			// --col-bottom:#{$col-dark};
-			//background-color: var(--col-regular);
-			// background-color: $col-dark;
-		}
-		
-		&.checked:hover,
-		&:hover, &:focus{
-			--col-top:var(--shade-yellow);//#{$col-orange}//#{$col-yellow};
+			// background-color: var(--col-select);
 			
-			--col-bottom:var(--shade-orange);//var(--shade-red);
-			//color:$col-white;
-			//background-color: var(--col-regular);
-
-			&::before{
-				opacity: 0;
-			}
-		}
-		
-		&:empty{ 
-			display:none;
-		}
-	}
-
-	input[type=select],
-	select{
-		padding:var(--pad) ;
-		color:transparent;
-		background-color: transparent;
-		text-align: center;
-
-		> * {
-			padding:var(--pad);
-			color:var(--shade-white);
-			background-color: var(--shade-dark);
-		}
-
-		optgroup{
-			appearance:none;
-			font-weight:900;
-			text-transform: uppercase;
-			margin:auto;
-		}
-
-		option{
-			text-transform:initial;
-			&:hover, &:focus{
-				color:$col-cream;
-			}
+			// toggled state each one can have unique color
+			// &::before{
+			// 	opacity:1;
+			// 	transform:translateY(20%);
+			// }
+			
+			// FIXME: Change depending on theme
+			// hover when selected still turns orange!
+			// &:hover::before{
+			// 	opacity: 1;
+			// }
 		}
 	}
 
-	input[type=checkbox]{
-		//visibility: hidden;
-		opacity:0;
-	}
-	
-	button{	
-		// padding-right:20px;
-	}
+	// actual activating triggers
+	// label, button, .folder-link{}
 
-	
-	// label:not(:last-child),
-	// button:not(:last-child){
-		
-	// }
 
-	// Labels
-	
 	// specific types of contents
 	label[for^="select-"]{
 
 		// swap underline for tiny up triangle
-		&::after{
+		&::before{
 			--bg:url(/source/assets/icons/expand_more-24px.svg);
 			--size:25%;
 			display: block;
@@ -278,303 +218,599 @@
 		}
 
 		// keyboard focus
-		&:focus-visible::after,
-		&:hover::after{
+		&:focus-visible::before,
+		&:hover::before{
 			opacity: 1;
 		}
 
 		// select is being interfaced
-		&:focus::after, 
+		&:focus::before, 
 		
-		// &:active::after{
-		&:active::after{
+		// &:active::before{
+		&:active::before{
 			transform: rotate(180deg);
 		}
-		&:focus-within::after{
+		&:focus-within::before{
 			// outline:4px solid yellow;
 		}
 	}
 
-	// selector for the tempo
-	label[for="select-tempo"]{
-		--bg:url(/source/assets/icons/speed-24px.svg);
-		--col-hover:#{$col-blue};
-		--col-select:#{$col-yellow};
-	}
-
-	label[for="button-settings"]{
-		order:-1;
-		grid-area:1/1;
-		--col-select:#{$col-green};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/settings-24px.svg);
-
-		&.checked{
-			// arrow down to show that the settings hide
-			--bg:url(/source/assets/icons/expand_more-24px.svg);
-		}
-	}
-
-	label[for="button-quantise"]{
-		--col-select:#{$col-blue};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/grid_off-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/grid_on-24px.svg);
-		}
-	}
-
-	label[for="button-metronome"]{
-		--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
-		}
-	}
-
-	label[for="button-mute"]{
-		--col-select:#{$col-blue};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/volume_mute-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/volume_off-24px.svg);
-		}
-	}
-
-	label[for="button-disco"]{
-		--col-select:#{$col-green};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/blur_off-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/blur_on-24px.svg);
-		}
-	}
-
-	// Reverb selection
-	label[for="select-impulse"]{
-		--col-select:#{$col-blue};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/extension-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/extension_off-24px.svg);
-		}
-	}
-
-	// Face mesh overlays
-	label[for="button-meshes"]{
-		--col-select:#{$col-yellow};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/face_retouching_off-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/face_retouching_natural-24px.svg);
-		}
-	}
-
-	// Eye overlays
-	label[for="button-eyes"],
-	label[for="select-eyes"]{
-		--col-select:#{$col-green};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/adjust-24px.svg);
-		&.checked{
-			//--bg:url(/source/assets/icons/extension_off-24px.svg);
-		}
-	}
-
-	label[for="select-eyes"]{
-		// visibility: hidden;
-		display: none;
-	}
 		
-	// Toggle show eyes or hide eyes
-	label[for="button-eyes"]{
-		--bg:url(/source/assets/icons/motion_photos_off-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/motion_photos_on-24px.svg);
-		}
-	}
+	// Specific to the control panel at the bottom
+	// this adds some right pad to icons on the control bar
+	// and sets custom colours
+	> *:not(.folder-menu),
+	> .folder-link {
 
-	// 
-	label[for="button-subtitles"]{
-		--col-select:#{$col-green};
-		--col-hover:#{$col-blue};
-		--bg:url(/source/assets/icons/speaker_notes-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/speaker_notes_off-24px.svg);
-		}
-	}
+		// gradient background
+		// --col-top:hsl( var(--hue), var( --s, 58%), 30% );
+		// --col-bottom:hsl( var(--hue), var( --s, 58%), 45% );
+		// --col-bg:#{$col-dark};
+		// --col-fg:#{$col-white};
 
-	// choose colour scheme
-	label[for="select-palette"]{
-		--col-select:#{$col-yellow};
-		--col-hover:#{$col-green};
-		--bg:url(/source/assets/icons/color_lens-24px.svg);
-		&.checked{
-			//--bg:url(/source/assets/icons/extension_off-24px.svg);
-		}
-	}
+		// centralised by default
+		// --pos-override: top calc(var(--pad) - var(--border-size)) center;
+			
+		/*
+		// scale up and show text after
+		@media screen and (max-width:920px){
+			
+			--footer-gap:calc(74px);
+			--icon-size:26px;
+			--pos:center center;
+			--direction: column;
+			padding:var(--pad);
 
-	// add beats
-	label[for="button-percussion"]{
-		--col-select:#{$col-green};
-		--col-hover:#{$col-yellow};
-		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
-		}
-	}
-
-
-	label[for="button-fullscreen"]{
-		// far right
-		// order:99;
-		--col-select:transparent;
-		//--col-hover:transparent;
-
-		@extend %image-replacement;
-		--bg:url(/source/assets/icons/fullscreen-24px.svg);
-		
-		// toggled state
-		&.checked{
-			--bg:url(/source/assets/icons/fullscreen_exit-24px.svg);
-		}
-		
-		// override if user has esc'ed
-		@media all and (display-mode: fullscreen) {
-			--bg:url(/source/assets/icons/fullscreen_exit-24px.svg) !important;
-		}
-	}
-	
-
-	label[for="button-overlay"]{
-		// --col-hover:#{$col-dark};
-		--col-select:#{$col-blue};
-		// @extend %image-replacement;
-	
-		// --bg:url(/source/assets/icons/image_not_supported-24px.svg);
-		--bg:url(/source/assets/icons/visibility-24px.svg);
-
-		&.checked{
-			// background-image:url(/source/assets/icons/music_off-24px.svg);
-			// --bg:url(/source/assets/icons/image-24px.svg);
-			--bg:url(/source/assets/icons/visibility_off-24px.svg);
-			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
-		}
-	}
-
-	label[for="button-spectrogram"]{
-		// --col-hover:$col-dark;
-		--col-hover:#{$col-green};
-		--col-select:#{$col-orange};
-		--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
-		}
-	}
-	label[for="select-samples"]{
-		// --col-hover:$col-dark;
-		--col-hover:#{$col-green};
-		--col-select:#{$col-orange};
-		--bg:url(/source/assets/icons/audiotrack-24px.svg);
-		// &.checked{
-		// 	--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
-		// }
-	}
-
-	// label[for="button-spectrogram"]{
-	// 	// --col-hover:$col-dark;
-	// 	--col-hover:#{$col-green};
-	// 	--col-select:#{$col-green};
-	// 	background-image:url(/source/assets/icons/piano-24px.svg);
-	// 	&.checked{
-	// 		background-image:url(/source/assets/icons/piano_off-24px.svg);
-	// 	}
-	// }
-
-	label[for="button-clear"]{
-		// --col-hover:$col-dark;
-		--col-hover:#{$col-blue};
-		--col-select:#{$col-yellow};
-
-		--bg:url(/source/assets/icons/videocam_off-24px.svg);
-		&.checked{
-			--bg:url(/source/assets/icons/videocam-24px.svg);
-		}
-	}
-
-	// we have the top left nav button instead here?
-	#button-help{
-		display: none;
-	}
-
-	label[for="button-speak"]{
-		--col-hover:#{$col-blue};
-		--col-select:#{$col-yellow};
-		// --bg:url(/source/assets/icons/mic_off-24px.svg);
-		--bg:url(/source/assets/icons/voice_over_off_black_24dp.svg);
-		&.checked{
-			// background-image:url(/source/assets/icons/music_off-24px.svg);
-			--bg:url(/source/assets/icons/record_voice_over_black_24dp.svg);
-			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
-		}
-	}
-	
-	label[for="button-sync-video"]{
-		// only display between certain sizes?
-		// display: none;
-		// --col-hover:$col-dark;
-		--col-hover:#{$col-blue};
-		--col-select:#{$col-yellow};
-		--bg:url(/source/assets/icons/web_asset_off-24px.svg);
-		&.checked{
-			// background-image:url(/source/assets/icons/music_off-24px.svg);
-			--bg:url(/source/assets/icons/web_asset-24px.svg);
-			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
-		}
-	}
-
-	label[for="button-transparent"]{
-		// only display between certain sizes?
-		display: none;
-		// --col-hover:$col-dark;
-		--col-hover:#{$col-blue};
-		--col-select:#{$col-yellow};
-		--bg:url(/source/assets/icons/web_asset_off-24px.svg);
-		&.checked{
-			// background-image:url(/source/assets/icons/music_off-24px.svg);
-			--bg:url(/source/assets/icons/web_asset-24px.svg);
-			// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
-		}
-	}
-
-	// selector for the tempo
-	label[for="select-tempo"]{
-		--bg:url(/source/assets/icons/speed-24px.svg);
-		--col-hover:#{$col-blue};
-		--col-select:#{$col-yellow};
-	}
-	
-
-	label[for="input-tempo"]{
-		--bg:url(/source/assets/icons/speed-24px.svg);
-		--col-select:#{$col-yellow};
-	}
-
-	label[for="button-record-audio"]{
-		--bg:url(/source/assets/icons/voicemail-24px.svg);
-		--col-select:#{$col-yellow};
-
-		&.recording{
-
-			&::before{
-				opacity:1;
-				animation: Throb 0.8s 0s both infinite;
+			// hide all text
+			// as there is now no longer any text we 
+			// need to centralise the icon
+			font-size: 0;
+			gap:0;
+			text-indent: -9999px;
+			color:transparent;
+			//make the icon go in the vertical center
+			justify-content: end;
+			
+			// FIXME: remove margin
+			&:not(.hide-text):before{
+				margin-right:2px;
 			}
-			--col-hover:#{$col-red};
-			--col-select:#{$col-red};
 		}
-		&.progress{
+		*/
 
+		// icon on top
+		// --pos-override: center calc(50% - var(--icon-size)/4);
+	}
+}
+
+
+@media screen and (max-width:480px) {
+	.controls{
+		--gap:11px;
+		gap:var(--gap);
+		padding-left:var(--gap);
+		padding-right:var(--gap);
+	}
+}
+
+
+
+// We slip out of grid when the screen can comortably support
+// them all on a single file - this also has the effect of making
+// certain buttons to be smaller tahn others
+@media screen and (min-width:641px) {
+	.controls{
+		display: flex;
+		> *{
+			flex-grow: 1;
+			flex-shrink: 1;
 		}
 	}
 }
 
+
+
+
+// selector for the tempo
+label[for="select-tempo"]{
+	--bg:url(/source/assets/icons/speed-24px.svg);
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	anchor-name: --select-tempo;
+}
+
+
+label[for="button-settings"]{
+	order:-1;
+	grid-area:1/1;
+	--col-select:var(--shade-green);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/settings-24px.svg);
+	anchor-name: --button-settings;
+	&:has(input:checked),
+	&.checked{
+		// arrow down to show that the settings hide
+		--bg:url(/source/assets/icons/expand_more-24px.svg);
+	}
+}
+
+label[for="button-quantise"]{
+	--col-select:var(--shade-blue);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/grid_off-24px.svg);
+	anchor-name: --button-quantise;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/grid_on-24px.svg);
+	}
+}
+
+label[for="button-metronome"]{
+	--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
+	anchor-name: --button-metronome;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
+	}
+}
+
+
+// This icon represents the different modes
+a.folder-link[href="#folder-volume"]{
+	--col-select:var(--shade-blue);
+	--col-hover:var(--shade-blue);
+
+	// off, silent, low, high...
+	--bg:url(/source/assets/icons/volume_off-24px.svg);
+	--bg:url(/source/assets/icons/volume_mute-24px.svg);
+	--bg:url(/source/assets/icons/volume_down-24px.svg);
+	--bg:url(/source/assets/icons/volume_up-24px.svg);
+	
+	anchor-name: --folder-volume;
+
+	&.checked{
+		--bg:url(/source/assets/icons/volume_off-24px.svg);
+	}
+}
+
+.mute a.folder-link[href="#folder-volume"]{
+	
+	--bg:url(/source/assets/icons/volume_off-24px.svg);
+	--bg:url(/source/assets/icons/volume_mute-24px.svg);
+}
+
+.lo a.folder-link[href="#folder-volume"]{
+	--bg:url(/source/assets/icons/volume_off-24px.svg);
+	--bg:url(/source/assets/icons/volume_down-24px.svg);
+}
+
+.high a.folder-link[href="#folder-volume"]{
+	--bg:url(/source/assets/icons/volume_off-24px.svg);
+	--bg:url(/source/assets/icons/volume_mute-24px.svg);
+	--bg:url(/source/assets/icons/volume_down-24px.svg);
+	--bg:url(/source/assets/icons/volume_up-24px.svg);
+}
+
+
+label[for="button-mute"]{
+	--col-select:var(--shade-blue);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/volume_mute-24px.svg);
+	anchor-name: --button-mute;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/volume_off-24px.svg);
+	}
+}
+
+label[for="button-disco"]{
+	--col-select:var(--shade-green);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/blur_off-24px.svg);
+	anchor-name: --button-disco;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/blur_on-24px.svg);
+	}
+}
+
+// Reverb selection
+label[for="select-impulse"]{
+	--col-select:var(--shade-blue);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/extension-24px.svg);
+	anchor-name: --select-impulse;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/extension_off-24px.svg);
+	}
+}
+
+// Face mesh overlays
+label[for="button-meshes"]{
+	--col-select:var(--shade-yellow);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/face_retouching_off-24px.svg);
+	anchor-name: --button-meshes;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/face_retouching_natural-24px.svg);
+	}
+}
+
+// Eye overlays
+label[for="button-eyes"],
+label[for="select-eyes"]{
+	--col-select:var(--shade-green);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/adjust-24px.svg);
+	&:has(input:checked),
+	&.checked{
+		//--bg:url(/source/assets/icons/extension_off-24px.svg);
+	}
+}
+
+label[for="select-eyes"]{
+	// visibility: hidden;
+	display: none;
+	anchor-name: --select-eyes;
+}
+	
+// Toggle show eyes or hide eyes
+label[for="button-eyes"]{
+	--bg:url(/source/assets/icons/motion_photos_off-24px.svg);
+	anchor-name: --button-eyes;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/motion_photos_on-24px.svg);
+	}
+}
+
+// 
+label[for="button-subtitles"]{
+	--col-select:var(--shade-green);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/speaker_notes-24px.svg);
+	anchor-name: --button-subtitles;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/speaker_notes_off-24px.svg);
+	}
+}
+
+// choose colour scheme
+label[for="select-palette"]{
+	--col-select:var(--shade-yellow);
+	--col-hover:var(--shade-green);
+	--bg:url(/source/assets/icons/color_lens-24px.svg);
+	anchor-name: --select-palette;
+	&:has(input:checked),
+	&.checked{
+		//--bg:url(/source/assets/icons/extension_off-24px.svg);
+	}
+}
+
+// choose display
+label[for="select-display"]{
+	--col-select:var(--shade-yellow);
+	--col-hover:var(--shade-green);
+	--bg:url(/source/assets/icons/gradient-24px.svg);
+	// --bg:url(/source/assets/icons/settings_overscan_black_24dp.svg);
+	// --bg:url(/source/assets/icons/settings_brightness_black_24dp.svg);
+	anchor-name: --select-display;
+	&:has(input:checked),
+	&.checked{
+		//--bg:url(/source/assets/icons/extension_off-24px.svg);
+	}
+}
+
+// add beats
+label[for="button-percussion"]{
+	--col-select:var(--shade-green);
+	--col-hover:var(--shade-yellow);
+	--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
+	anchor-name: --button-percussion;
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
+	}
+}
+
+
+// recording subfolder
+a.folder-link[href="#folder-record"]{
+	--col-select:var(--shade-blue);
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/adjust-24px.svg);
+	anchor-name: --folder-record;
+	&.checked{
+		--bg:url(/source/assets/icons/adjust-24px.svg);
+	}
+}
+
+
+label[for="button-fullscreen"]{
+	// far right
+	order:99;
+	--col-select:transparent;
+	//--col-hover:transparent;
+
+	@extend %image-replacement;
+	--bg:url(/source/assets/icons/fullscreen-24px.svg);
+
+	anchor-name: --button-fullscreen;
+	
+	// toggled state
+	// &.checked{
+	// 	--bg:url(/source/assets/icons/fullscreen_exit-24px.svg);
+	// }
+	
+	// override if user has esc'ed
+	@media all and (display-mode: fullscreen) {
+		--bg:url(/source/assets/icons/fullscreen_exit-24px.svg) !important;
+	}
+}
+
+
+label[for="button-overlay"]{
+	// --col-hover:#{$col-dark};
+	--col-select:var(--shade-blue);
+	// @extend %image-replacement;
+
+	// --bg:url(/source/assets/icons/image_not_supported-24px.svg);
+	--bg:url(/source/assets/icons/visibility-24px.svg);
+
+	anchor-name: --button-overlay;
+
+	&:has(input:checked),
+	&.checked{
+		// background-image:url(/source/assets/icons/music_off-24px.svg);
+		// --bg:url(/source/assets/icons/image-24px.svg);
+		--bg:url(/source/assets/icons/visibility_off-24px.svg);
+		// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+	}
+}
+
+label[for="button-spectrogram"]{
+	// --col-hover:$col-dark;
+	--col-hover:var(--shade-green);
+	--col-select:var(--shade-orange);
+	--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+	anchor-name: --button-spectrogram;
+
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+	}
+}
+label[for="select-samples"]{
+	--col-hover:var(--shade-green);
+	--col-select:var(--shade-orange);
+	--bg:url(/source/assets/icons/audiotrack-24px.svg);
+	anchor-name: --select-samples;
+	// &.checked{
+	// 	--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+	// }
+}
+
+label[for="select-theme"]{
+	--col-hover:var(--shade-green);	
+	--col-select:var(--shade-blue);
+
+	--bg:url(/source/assets/icons/color_lens-24px.svg);
+	anchor-name: --select-theme;
+	// &.checked{
+	// 	--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+	// }
+}
+
+// label[for="button-spectrogram"]{
+// 	// --col-hover:$col-dark;
+// 	--col-hover:var(--shade-green);
+// 	--col-select:var(--shade-green);
+// 	background-image:url(/source/assets/icons/piano-24px.svg);
+// 	&.checked{
+// 		background-image:url(/source/assets/icons/piano_off-24px.svg);
+// 	}
+// }
+
+label[for="button-clear"]{
+	// --col-hover:$col-dark;
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+
+	--bg:url(/source/assets/icons/videocam_off-24px.svg);
+	anchor-name: --button-clear;
+
+	&:has(input:checked),
+	&.checked{
+		--bg:url(/source/assets/icons/videocam-24px.svg);
+	}
+}
+
+label[for="button-speak"]{
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	// --bg:url(/source/assets/icons/mic_off-24px.svg);
+	--bg:url(/source/assets/icons/voice_over_off_black_24dp.svg);
+	anchor-name: --button-speak;
+
+	&:has(input:checked),
+	&.checked{
+		// background-image:url(/source/assets/icons/music_off-24px.svg);
+		--bg:url(/source/assets/icons/record_voice_over_black_24dp.svg);
+		// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+	}
+}
+
+label[for="button-sync-video"]{
+	// only display between certain sizes?
+	// display: none;
+	// --col-hover:$col-dark;
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	--bg:url(/source/assets/icons/web_asset_off-24px.svg);
+	anchor-name: --button-sync-video;
+	&:has(input:checked),
+	&.checked{
+		// background-image:url(/source/assets/icons/music_off-24px.svg);
+		--bg:url(/source/assets/icons/web_asset-24px.svg);
+		// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+	}
+}
+
+label[for="button-transparent"]{
+	// only display between certain sizes?
+	display: none;
+	// --col-hover:$col-dark;
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	--bg:url(/source/assets/icons/web_asset_off-24px.svg);
+	anchor-name: --button-transparent;
+	&:has(input:checked),
+	&.checked{
+		// background-image:url(/source/assets/icons/music_off-24px.svg);
+		--bg:url(/source/assets/icons/web_asset-24px.svg);
+		// background-image:url(/source/assets/icons/music_note-24px-24px.svg);
+	}
+}
+
+// selector for the tempo
+label[for="select-camera"]{
+	--bg:url(/source/assets/icons/camera_enhance-24px.svg);
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	anchor-name: --select-camera;
+}
+
+// selector for the tempo
+label[for="select-tempo"]{
+	--bg:url(/source/assets/icons/speed-24px.svg);
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	anchor-name: --select-tempo;
+}
+
+
+a.folder-link[href="#folder-tempo"],
+label[for="input-tempo"]{
+	--bg:url(/source/assets/icons/speed-24px.svg);
+	--col-select:var(--shade-yellow);
+	anchor-name: --input-tempo;
+}
+
+label[for="button-record-audio"]{
+	--bg:url(/source/assets/icons/voicemail-24px.svg);
+	--col-select:var(--shade-yellow);
+	anchor-name:--button-record-audio;
+	&.recording{
+		--col-hover:var(--shade-red);
+		--col-select:var(--shade-red);
+		&::before{
+			opacity:1;
+			animation: Throb 0.8s 0s both infinite;
+		}
+	}
+
+	&.progress{
+
+	}
+}
+
+
+label[for="button-record-video"]{
+	--bg:url(/source/assets/icons/speed-24px.svg);
+	--col-hover:var(--shade-blue);
+	--col-select:var(--shade-yellow);
+	anchor-name: --button-record-video;
+}
+
+// SHARED CONTROL PANEL
+a.folder-link[href="#folder-midi"],
+button#button-midi{
+	// We were looking at all the MIDI Innovation Award apps and noticed that you are using the new MIDI pictogram on your website. 
+	// The MIDI logo and Pictogram is the intellectual property of the MIDI Association and can only be used by MIDI Association 
+	// members who have signed our logo licensing agreement and certify that their product supports MIDI 2.0. 
+	// As we have not publicized the rules about MIDI 2.0 logo usage we are sure this is unintentional on your part.  
+	// However we have to insist that you immediately remove the logo from your website. 
+
+	//background-position: left 1px center;
+	// --icon-size:36px;
+	//background-color: $col-cream;
+	--bg:url(/source/assets/icons/midi-copyright-free.svg);
+	anchor-name: --folder-midi;
+	&:before{
+		// also make sure we have set the width for midi as is not square
+		//min-width: calc(var(--icon-size) * 1.2);
+	}
+
+	// special case for toggled
+	&.connected{
+		@extend %button-active;
+	}
+}
+
+button#button-record{
+	//color:$col-red;
+	&.recording{
+
+	}
+}
+
+button#button-photograph{
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/add_a_photo-24px.svg);
+	anchor-name: --button-photograph;
+}
+
+button#button-reset{
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/report_problem_black_24dp.svg);
+	anchor-name: --button-reset;
+}
+
+// we have the top left nav button instead here?
+button#button-help{
+	// background-color:vae(--col-hover);
+	// background-color: $col-yellow;
+	--col-hover:var(--shade-blue);
+	--bg:url(/source/assets/icons/help_outline_black_24dp.svg);
+	cursor: help;
+	display: none;
+	anchor-name:--button-help;
+}
+
+button#button-share{
+	--bg:url(/source/assets/icons/share-24px.svg);
+	//margin-left: auto;
+	z-index:2;
+	// second from right
+	// order:98;
+	anchor-name: --button-share;
+}
+
+#button-reload{
+	--bg:url(/source/assets/icons/autorenew_black_24dp.svg);
+	width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+	gap:var(--pad);
+	anchor-name: --button-reload;
+}
+
+#button-midi-upload{
+	--bg:url(/source/assets/icons/midi-copyright-free.svg);
+	gap:var(--pad);
+	width: 100%;
+	anchor-name: --button-midi-upload;
+}
+
+// This toggles Virtual Reality XR mode
+#VRButton{
+	width: auto !important;
+	left: auto !important;
+	position: relative !important;
+	opacity: 1 !important;
+	--bg:url(/source/assets/icons/view_in_ar_black_24dp.svg);
+	anchor-name: --button-vr;
+}

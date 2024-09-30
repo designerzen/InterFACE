@@ -6,13 +6,15 @@ export const connectSelect = async (element,callback) => {
 	if (!select){
 		throw Error("No element found with that spec")
 	}
-	select.addEventListener( 'change', event=>{
+	// select.addEventListener( 'change', event=>{
+	select.onchange = event =>{
 		//const selection = select.options.selectedIndex
 		// const option = select.childNodes[selection]
 		const option = select.options[select.selectedIndex || select.options.selectedIndex] 
 		callback && callback (option)
+		console.info("selected", option)
 		event.preventDefault()
-	})
+	}
 
 	return select
 }

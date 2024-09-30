@@ -5,6 +5,54 @@ const now = () => performance.now() || Date.now()
 export const MOUSE_HELD = "mouse_held"
 export const MOUSE_HOLDING = "mouse_holding"
 export const MOUSE_TAP = "mouse_tap"
+export const MOUSE_REPEATING = "mouse_repeating"
+
+/**
+ * allows a user to repeat pressing a button simply
+ * by holding the event for longer than 
+ * 
+ * @param {HTMLElement} button 
+ * @param {Number} repeatAfter 
+ * @param {Number} rate 
+ */
+export const addMouseRepeaterEvents = (button, repeatAfter=800, rate=200 ) => {
+
+	let mouseDownAt = -1
+	let interval = -1
+	let isMouseDown = false
+	let mouseEvents = 0
+	
+	const dispatch = (name, detail={}) => {
+		button.dispatchEvent( 
+			new CustomEvent( name, { detail } )
+		)
+	}
+	const onMouseUp = event => {
+		event.preventDefault()
+		clearInterval(interval)
+
+		// and reset
+		mouseDownAt = -1
+		isMouseDown = false
+		document.removeEventListener("mouseup", onMouseUp )
+	}
+
+	button.addEventListener( 'mousedown', event => {
+
+		mouseDownAt = now()
+		isMouseDown = true
+		mouseEvents = 0
+		dispatch(MOUSE_REPEATING, {mouseEvents})
+		interval = setTimeout( ()=>{
+			dispatch(MOUSE_REPEATING, {repetitions:++mouseEvents})
+			interval = setInterval( ()=>{
+				dispatch(MOUSE_REPEATING, {repetitions:++mouseEvents})
+			}, rate )
+		}, repeatAfter)
+
+		document.addEventListener("mouseup", onMouseUp , false)
+	})
+}
 
 /**
  * hook in to see how the user treats an element...
@@ -90,7 +138,7 @@ export const addMouseTapAndHoldEvents = ( button, onlySendHoldOnMouseUp=false, h
 		// and reset
 		mouseDownAt = -1
 		isMouseDown = false
-		document.removeEventListener("mouse", onMouseUp )
+		document.removeEventListener("mouseup", onMouseUp )
 	}
 
 	// BUTTON has been pressed!

@@ -1,0 +1,64 @@
+
+small
+	a.link-copyright(href="copyright.pug" target="_blank") Copyright  
+		span#year 2020-#{year||22}
+
+	a.brand(href="https://designerzen.com/" rel="noopener noreferrer" target="_blank") 
+		include ../assets/logos/designerzen_current-color.svg
+		| designerzen ltd.
+
+section.associates#associates
+	h4
+		span.sr-only Associates
+
+	ul(role="list").icon-list
+		li: a(href="https://amicdrakemusic.wordpress.com/" rel="noopener noreferrer" target="_blank") Accessible Musical Instrument Collection AMIC
+			include ../assets/logos/amic.svg
+		li: a(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music #DM­Lab
+			include ../assets/logos/drakemusic.svg
+		li: a(href="https://wac2022.i3s.univ-cotedazur.fr/node/27" rel="noopener noreferrer" target="_blank") Web Audio Conference
+			include ../assets/logos/wac.svg
+		li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
+			include ../assets/logos/aotf.svg
+		li: a(href="https://midi.org/innovation-award/photosynth-interface" rel="noopener noreferrer" target="_blank") MIDI Innovation Awards
+			include ../assets/logos/midi-association.svg
+		//- li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
+		//- 	// i think i allowed to use this specific logo due to showing at SXSW22 https://www.sxsw.com/trademark-guidelines/
+		//- 	include ./assets/logos/sxsw2021.svg
+			//- illegal : https://www.sxsw.com/trademark-guidelines/
+			//- include ./assets/logos/sxsw.svg
+		li: a(href="https://www.makermusicfestival.com/projectdirectory/interface/" rel="noopener noreferrer" target="_blank") Maker Music Festival
+			include ../assets/logos/mmf.svg
+		//- li: a(href="https://www.namm.org/attendee/articles/winners-second-annual-midi-awards-announced" rel="noopener noreferrer" target="_blank") NAMM Show
+		//- 	include ../assets/logos/namm.svg
+		li: a(href="https://internetofsounds2024.ieee-is2.org/program/accepted-works" rel="noopener noreferrer" target="_blank") IEEE IS<sup>2</sup> 2024
+			include ../assets/logos/ieee.svg
+	
+		//- other places that have helped out
+		//- li: a(href="https://www.browserstack.com" rel="noopener noreferrer" target="_blank") BrowserStack
+		//- 	include ./assets/logos/browserstack.svg
+		//- li: a(href="https://www.tensorflow.org" rel="noopener noreferrer" target="_blank") TensorFlow
+		//- 	include ./assets/logos/tensorflow-tf.svg
+
+
+small
+	a.educate(href="presentation.pug" target="_blank") ▶<span class="hide-text">Learn more about this project</span>
+	a.link-licenses(href="licenses.pug" target="_blank") Licenses
+	a.link-news(href="blog.pug" target="_blank") News
+	a#version(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") V #{package.version}
+			
+//- svg.filter(xmlns="http://www.w3.org/2000/svg")
+//- 	filter#filter-noise
+//- 		feTurbulence( type='fractalNoise' baseFrequency='6.29' numOctaves='6' stitchTiles='stitch' )
+//- 	rect(width="100%" height="100%" filter="url(#filter-noise)")
+
+//- svg.filter(xmlns="http://www.w3.org/2000/svg")
+//- 	filter#filter-stars
+//- 		feTurbulence( baseFrequency="0.2" )
+//- 		feColorMatrix( values="0 0 0 9 -4  0 0 0 9 -4  0 0 0 9 -4  0 0 0 0 1")
+//- 	rect(width="100%" height="100%" filter="url(#filter-stars)")
+
+
+
+//- Back to TOP
+a#scroll-to-top.back-to-top(href="#intro") Back to the top

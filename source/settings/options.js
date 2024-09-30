@@ -1,60 +1,38 @@
-import { DEFAULT_COLOURS } from '../palette'
+import { DEFAULT_COLOURS } from './palette'
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeOutQuint, easeInQuad} from "../maths/easing"
+import { isProductionBuild } from '../utils/is-production'
 
-const isDevelopmentMode = process.env.NODE_ENV === "development"
+// sample string
+import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
+import { DISPLAY_LOOKING_GLASS_3D } from '../display/display-looking-glass-3d.js'
+import { DISPLAY_MEDIA_VISION_2D } from '../display/display-mediavision-2d.js'
+import { TUNING_MODE_MAJOR, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
+import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-factory.js'
 
-// Actual file names of the json data files in assets/audio
-const INSTRUMENT_DATA_PACK_FM = "fluid"
-const INSTRUMENT_DATA_PACK_FATBOY = "fatboy"
-const INSTRUMENT_DATA_PACK_MUSYNGKITE = "musyng"
+const isDevelopmentMode = isProductionBuild()
 
-// Names set by pack authors
-export const INSTRUMENT_PACK_FM = "FluidR3_GM"
-export const INSTRUMENT_PACK_FATBOY = "FatBoy"
-export const INSTRUMENT_PACK_MUSYNGKITE = "MusyngKite"
+export const MAX_CANVAS_WIDTH = 1080
 
-// Sound font settings 
-export const SOUNDFONT_FM_JS = {
-	title:INSTRUMENT_PACK_FM,
-	filename:`${INSTRUMENT_DATA_PACK_FM}.js`,
-	location:"./"
-}
+// after X amount of frames we move the face button
+export const UPDATE_FACE_BUTTON_AFTER_FRAMES = 750
 
-export const SOUNDFONT_FM_JSON = {
-	title:INSTRUMENT_PACK_FM,
-	filename:`${INSTRUMENT_DATA_PACK_FM}.json`,
-	location:"./assets/audio/"
-}
-
-export const SOUNDFONT_FATBOY_JS = {
-	title:INSTRUMENT_PACK_FATBOY,
-	filename:`${INSTRUMENT_DATA_PACK_FATBOY}.js`,
-	location:"./assets/audio/"
-}
-
-export const SOUNDFONT_FATBOY_JSON = {
-	title:INSTRUMENT_PACK_FATBOY,
-	filename:`${INSTRUMENT_DATA_PACK_FATBOY}.json`,
-	location:"./assets/audio/"
-}
-
-export const SOUNDFONT_MUSYNGKITE_JS = {
-	title:INSTRUMENT_PACK_MUSYNGKITE,
-	filename:`${INSTRUMENT_DATA_PACK_MUSYNGKITE}.js`,
-	location:"./assets/audio/"
-}
-
-export const SOUNDFONT_MUSYNGKITE_JSON = {
-	title:INSTRUMENT_PACK_MUSYNGKITE,
-	filename:`${INSTRUMENT_DATA_PACK_MUSYNGKITE}.json`,
-	location:"./assets/audio/"
-}
-
+// timeout for loading as there are some issues with continuation...
+export const LOAD_TIMEOUT = 5 * 60 * 1000 // 5 minutes
 
 // https://www.midi.org/specifications-old/item/manufacturer-id-numbers
 export const MIDI_ID = "00H 21H 71H"
 
-
+/**
+Option Name 						Description 	Type 	Default
+running_mode 						Sets the running mode for the task. There are two modes: IMAGE: The mode for single image inputs. / VIDEO: The mode for decoded frames of a video or on a livestream of input data, such as from a camera. 	{IMAGE, VIDEO} 	IMAGE
+numFaces 							The maximum number of faces that can be detected by the the FaceLandmarker. Smoothing is only applied when num_faces is set to 1. 	Integer > 0 	1
+minFaceDetectionConfidence 			The minimum confidence score for the face detection to be considered successful. 	Float [0.0,1.0] 	0.5
+minFacePresenceConfidence 			The minimum confidence score of face presence score in the face landmark detection. 	Float [0.0,1.0] 	0.5
+minTrackingConfidence 				The minimum confidence score for the face tracking to be considered successful. 	Float [0.0,1.0] 	0.5
+outputFaceBlendshapes 				Whether Face Landmarker outputs face blendshapes. Face blendshapes are used for rendering the 3D face model. 	Boolean 	False
+outputFacialTransformationMatrixes 	Whether FaceLandmarker outputs the facial transformation matrix. FaceLandmarker uses the matrix to transform the face landmarks from a canonical face model to the detected face, so users can apply effects on the detected landmarks. 	Boolean 	False
+ */
+// https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker/web_js
 export const DEFAULT_TASKS_VISION_OPTIONS = {
 	
 	// runningMode: "IMAGE" | "VIDEO"
@@ -74,7 +52,16 @@ export const DEFAULT_TASKS_VISION_OPTIONS = {
 	// FaceLandmarker uses the matrix to transform the face landmarks from 
 	// a canonical face model to the detected face, so users can apply 
 	// effects on the detected landmarks.
-	outputFacialTransformationMatrixes: true
+	outputFacialTransformationMatrixes: true,
+
+
+	// selfieMode: true,
+	// enableFaceGeometry: false,
+	
+	// confidence in predictions
+	minFaceDetectionConfidence: 0.5,
+	minFacePresenceConfidence: 0.5,
+	minTrackingConfidence: 0.5
 }
 
 export const DEFAULT_TENSORFLOW_OPTIONS = {
@@ -88,8 +75,8 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 	// solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
 	solutionPath: './@mediapipe/',
 
-	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 10.
-	// maxFaces:1,
+	// maxFaces - The maximum number of faces detected in the input. Should be set to the minimum number for performance. Defaults to 1.
+	maxFaces:4,
 	
 	// Whether to load the MediaPipe iris detection model (an additional 2.6 MB of weights). The MediaPipe iris detection model provides (1) an additional 10 keypoints outlining the irises and (2) improved eye region keypoints enabling blink detection. Defaults to true.
 	// shouldLoadIrisModel:true,
@@ -126,12 +113,20 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 }
 
 export const DEFAULT_OPTIONS = {
+	
+	display:DISPLAY_MEDIA_VISION_2D,
+	// display:DISPLAY_LOOKING_GLASS_3D,
+
+	// do we show the tooltips overlaid on when hovering
+	tooltips:true,
+
 	// this allows us to show some extra options if set to true...
 	advancedMode:true,
 	// initially show the settings panel
 	showSettings:false,
 	// overlaid screen keyboard
 	showPiano:false,
+
 	// play a constant beat
 	metronome:false,
 	// play music at same time
@@ -167,8 +162,8 @@ export const DEFAULT_OPTIONS = {
 	debug:isDevelopmentMode,
 	// cancel audio playback (not midi)
 	muted:false,
-	// dual person mode (required reload)
-	duet:false,
+
+	// better than using "duet" or whatever - we just specify players
 	players:1,
 	
 	// FIXME: monophonic?
@@ -178,11 +173,13 @@ export const DEFAULT_OPTIONS = {
 	stereoPan:true,
 
 	// FIXME:
+	midi:true,
+
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
 
-	// saved BPM that can be shared?
-	bpm:200,
+	// size of the stars / blobs that overlay the face
+	starSize:1,
 	
 	// hide menu if mouse outside of screen...
 	autoHide:!isDevelopmentMode,
@@ -192,14 +189,22 @@ export const DEFAULT_OPTIONS = {
 
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio
-	useGamePad:true,
-	
+	gamePad:false,
+
 	// choice of different models to use
 	model:"face",
 
-	// sample set
-	instrumentPack:INSTRUMENT_PACK_FATBOY,
-	instrumentPacks:[INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE].join(","),
+	theme:"theme-default",
+
+	// TODO: sample set
+	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
+	instrumentPacks:[
+		INSTRUMENT_PACK_OPEN_SF,
+		// INSTRUMENT_PACK_FATBOY,
+		// INSTRUMENT_PACK_FM, 
+		// INSTRUMENT_PACK_MUSYNGKITE
+	].join(","),
+
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
 }
@@ -211,21 +216,29 @@ export const KIDS_OPTIONS = {
 	advancedMode:false,
 	text:false,
 	masks:false,
+	theme:"theme-friendly"
 }
 
 // simpler buttons and fewer controls and settings
 export const BODY_OPTIONS = {
 	...DEFAULT_OPTIONS ,
 	// model:'hand'
-	backingTrack:true
+	backingTrack:true,
+	theme:"theme-high-contrast"
 }
 
 // simpler buttons and fewer controls and settings
 export const DANCE_OPTIONS = {
 	...DEFAULT_OPTIONS ,
-	// model:'hand'
-	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	instrumentPacks:[INSTRUMENT_PACK_MUSYNGKITE].join(",")
+	players:4,
+	theme:"theme-neon"
+}
+
+// simpler buttons and fewer controls and settings
+export const BAND_OPTIONS = {
+	...DEFAULT_OPTIONS ,
+	players:4,
+	theme:"theme-neon"
 }
 
 
@@ -235,24 +248,30 @@ export const NAMES = ['a','b','c','d'].map( m => `person-${m}` )
 
 export const getFactoryDefaults = ( options=DEFAULT_OPTIONS ) => Object.assign( {}, options )
 
-export const getDomainDefaults = (name) => {
+export const getDomainDefaults = (name = '') => {
 
 	// use the LTD 
 	switch(name.split('.').pop().toLowerCase())
 	{
-		// localhost 127.0.0.(1)
+		// For testing dev : localhost 127.0.0.(1)
 		// case 'localhost': 
 		// case '1': return getFactoryDefaults(KIDS_OPTIONS)
-		
 		case 'lol': return getFactoryDefaults(KIDS_OPTIONS)
-		case 'band': return getFactoryDefaults()
+		case 'band': return getFactoryDefaults(BAND_OPTIONS)
 		case 'dance': return getFactoryDefaults(DANCE_OPTIONS)
 
 		// defaults to interface.place
-		default: return getFactoryDefaults()
+		// default: return getFactoryDefaults()
 	}
+
+	return getFactoryDefaults()
 }
 
+import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
+// console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
+export const INSTRUMENT_OPTIONS = {
+	list:INSTRUMENTS_LIST_LOCATION
+}
 
 
 
@@ -269,9 +288,10 @@ export const DEFAULT_VOICE_OPTIONS = {
 	noteName:'',
 	volume:0,
 	singing:false,
-	mouthOpen:false,
+	isMouthOpen:false,
 	active:false
 }
+
 
 export const DEFAULT_PERSON_OPTIONS = {
 	...DEFAULT_COLOURS,
@@ -285,11 +305,21 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// left / right ear stereo panning
 	stereoPan:true,
 
-	// // add a dynamic comp
+	// saved BPM that can be shared
+	bpm:90,
+
+	// scale is confusing as it can mean visual audio or physical
+	tuning:TUNING_MODE_NAMES[0],
+
+	// add a dynamic comp
 	// limiter:true,
 
+	// record data for each Person for use later in playback
+	// and as a performance - NB. this *will* impact performance
+	recordData:false,
+
 	// send out MIDI per person...
-	// see Instrument.MIDI
+	// see instrument-midi
 	sendMIDI:true,
 
 	// if you want the axis to be switched
@@ -300,18 +330,25 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
 	// eyeSquintLeft, eyeSquintRight, leftSmirk, rightSmirk, 
 	// see models/landmarks
-	noteController:'pitch',
-	octaveController:'roll',
+	// noteController:'pitch',		// up down
+	// octaveController:'roll',	// lean tilt
+	
+	noteController:'roll',		// up down
+	octaveController:'pitch',	// lean tilt
+
 	gateController:'mouth',
 
 	pitchbendController:'leftSmirk',
 	aftertouchController:'rightSmirk',
+	// minorController:'eyebrowsRaisedBy',
+	minorController:'isFacingRight',
 
 	stereoController:'eyesHorizontal',
 	// eyeSquintLeft, leftSmirk, rightSmirk, 
 
 	fxAController:'happiness',
 	fxBController:'eyebrowsRaisedBy',
+
 
 
 	// if the user has epilepsy, set to true
@@ -334,7 +371,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawEyes:true,
 
 	// extra controls
-	drawEyebrows:false,
+	drawEyebrows:true,
 
 	// use the nostrils to alter the sound
 	// NB. these are still disabled in media-vision
@@ -358,7 +395,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	mouseGestureDistance:40,
 
 	// if both eyes are closed for X ms do something...
-	eyeShutHolddDuration:1500, // ms
+	eyeShutHolddDuration:2000, // ms
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,
@@ -373,17 +410,24 @@ export const DEFAULT_PERSON_OPTIONS = {
 	pitchSensitivity:1,
 
 	// size of the mouth to signal activity
-	mouthCutOff:0.1,
+	mouthCutOff:0.06,
 
 	// size of the mouth to signal silence
-	mouthSilence:0.05,
+	mouthSilence:0.03,
 
 	// volume smooth rate = smaller means faster fades?
 	volumeRate:0.7,
 
+	// which instrument should each person load by default
+	// TODO: this is currently set for all users
 	// Samples to use for the audio engine INSTRUMENT_PACKS[0]
-	//instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
-	instrumentPack:INSTRUMENT_PACK_MUSYNGKITE,
+	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
+
+	// default person instument when a person is create
+	// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+	defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
+	// which instrument preset to load?
+	defaultPreset:0,
 
 	// this is the amount of decimal places used to smooth the mouth
 	// the higher the number the less smooth the output is
@@ -394,11 +438,49 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// IN means that it starts off slowly (prefered)
 	// ease:easeInSine // easeInSine // linear
 	// ease:easeInQuad // easeInSine // linear
-	ease:easeOutSine // easeInSine // linear
+	// ease:easeOutSine // easeInSine // linear
 }
-
 
 export const DEFAULT_CHILD_OPTIONS = {
 	...DEFAULT_PERSON_OPTIONS
 }
 
+
+export const DEFAULT_PEOPLE_OPTIONS = [
+	{
+		...DEFAULT_PERSON_OPTIONS,
+		hue:Math.random() * 360
+	},
+	{
+		...DEFAULT_PERSON_OPTIONS,
+		hue:Math.random() * 360,
+		// Here we bind which model variables is assigned to
+		// which audio selection mechanism.
+		// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
+		// eyeSquintLeft, eyeSquintRight, leftSmirk, rightSmirk, 
+		// see models/landmarks
+		noteController:'pitch',
+		octaveController:'roll',
+		gateController:'mouth',
+		// minorController:'isFacingRight',
+		minorController:'eyebrowsRaisedBy',
+
+		pitchbendController:'leftSmirk',
+		aftertouchController:'rightSmirk',
+		
+		stereoController:'roll',
+		// stereoController:'eyesHorizontal',
+		// eyeSquintLeft, leftSmirk, rightSmirk, 
+
+		fxAController:'happiness',
+		fxBController:'eyebrowsRaisedBy'
+	},
+	{
+		...DEFAULT_PERSON_OPTIONS,
+		hue:Math.random() * 360
+	},
+	{
+		...DEFAULT_PERSON_OPTIONS,
+		hue:Math.random() * 360
+	}
+]

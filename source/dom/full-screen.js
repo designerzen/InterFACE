@@ -2,31 +2,46 @@
 export const canFullscreen = () => document.fullscreenEnabled || document.mozFullScreenEnabled || document.documentElement.webkitRequestFullScreen
 
 export const exitFullscreen = () => {
-	document.exitFullscreen()
+	if (document.exitFullscreen) 
+	{
+		document.exitFullscreen()
+	}
+	return false
 }
 
 export const goFullscreen = (callback) => {
-
 	if ( canFullscreen() ) 
 	{
-		document.documentElement.requestFullscreen()
+		try{
+			document.documentElement.requestFullscreen()
+			return true
+		}catch(error){
+			return false
+		}
 	}
-	// leave full screen... 
+	return false
 }
 
 export const toggleFullScreen = () => {
 	if (!document.fullscreenElement) 
 	{
-		goFullscreen()
-		return true
-
+		return goFullscreen()
 	} else {
-
-	  if (document.exitFullscreen) 
-	  {
-		exitFullscreen()
-	  }
-
-	  return false
+		return exitFullscreen()
 	}
+}
+
+export const setFullScreenButtonState = async (buttonElement) => {
+	requestAnimationFrame(()=>{
+		const isFullscreen = document.fullscreenElement !== null
+		buttonElement.checked = isFullscreen
+		buttonElement.classList.toggle("fs", isFullscreen )
+		// TODO: update aria-label and announce
+		buttonElement.setAttribute("aria-label", !isFullscreen ? 
+			"Enter full screen mode" :
+			"Exit full screen mode" 
+		)
+
+		return isFullscreen
+	})
 }

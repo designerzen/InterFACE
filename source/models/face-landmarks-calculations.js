@@ -1,4 +1,4 @@
-import { easeInQuint, easeOutQuint } from '../maths/easing'
+import { easeInQuint, easeOutQuint, easeOutSine } from '../maths/easing'
 import {
 	clamp, 
 	hypoteneuse2D,hypoteneuse3D,
@@ -24,9 +24,6 @@ import {
 	PITCH_SCALE
 } from './face-model-constants'
 
-
-
-import { FaceLandmarker, DrawingUtils } from "@mediapipe/tasks-vision"
 /*
 const drawingUtils = new DrawingUtils(canvasCtx);
 
@@ -70,6 +67,8 @@ drawingUtils.drawConnectors(
 
 // ** === ^ == Math.pow in ECMA22
 const {PI, abs, sqrt, atan2, tan} = Math
+
+const MIN_MOUTH_VALUE = 0.01
 
 /**
  * TODO: Implement a cache of eyes so that we can learn on the go
@@ -157,6 +156,25 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// Which way are we facing?
 	// const eyeDirection = widthLeftEye / widthRightEye
 
+	// eye blink!
+	const leftBlink = landmarks[9].score
+	const rightBlink = landmarks[10].score
+
+	// eye blink!
+	const leftSquint = landmarks[19].score
+	const rightSquint = landmarks[20].score
+
+	// eye directions!
+	const leftEyeLookDown = landmarks[11].score
+	const rightEyeLookDown = landmarks[12].score
+
+	const leftEyeLookIn = landmarks[13].score
+	const leftEyeLookInReversed = 1 - leftEyeLookIn
+	const rightEyeLookIn = landmarks[14].score
+
+	const leftEyeLookOut = landmarks[15].score
+	const rightEyeLookOut = landmarks[16].score
+
 	const pointLeftEyeSocketOuter = keypoints[362]
 	const pointLeftEyeCaruncle = keypoints[263]
 
@@ -171,18 +189,18 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const leftEyeSocketWidth = hypoteneuse2D( pointLeftEyeSocketOuter, pointLeftEyeCaruncle)
 	const rightEyeSocketWidth = hypoteneuse2D( pointRightEyeSocketOuter, pointRightEyeCaruncle )
 	
+	
+
 	// which ways are the eyes pointing to? we want from -1 -> 1
 	// left is -ve right is +ve
 	// 16 is right eye 0 -> 1 and 14 is 1 -> 0
 	// -1 -> +1
-	prediction.rightEyeDirection = (1-landmarks[16].score) + landmarks[14].score - 1 
+	prediction.rightEyeDirection = rightEyeLookOut + rightEyeLookIn - 1 
+	prediction.leftEyeDirection = leftEyeLookOut + leftEyeLookOut - 1
 	
-	// eyeLookInLeft eyeLookOutLeft
-	prediction.leftEyeDirection = (1-landmarks[13].score) + landmarks[15].score - 1
-	
-	
-	prediction.leftEyeVertical = (1-landmarks[13].score) + landmarks[15].score - 1
-	prediction.rightEyeVertical = (1-landmarks[13].score) + landmarks[15].score - 1
+	// Up down, 
+	prediction.leftEyeVertical =  2 * leftEyeLookDown - 1
+	prediction.rightEyeVertical = 2 * rightEyeLookDown - 1
 
 	// prediction.rightEyeDirection = (landmarks[16].score + landmarks[14].score) - 1 
 	// prediction.leftEyeDirection = (landmarks[13].score + landmarks[15].score)  - 1
@@ -204,13 +222,10 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	prediction.isLookingRight = prediction.eyeDirection > 0
 	
 	// before an eye blink is the squint!
-	prediction.eyeSquintLeft = landmarks[19].score
-	prediction.eyeSquintRight = landmarks[20].score
+	prediction.eyeSquintLeft = leftSquint
+	prediction.eyeSquintRight = rightSquint
 
-	// eye blink!
-	const leftBlink = landmarks[9].score
-	const rightBlink = landmarks[10].score
-	
+	//	
 	prediction.leftEyeClosedBy = leftBlink
 	prediction.rightEyeClosedBy = rightBlink 
 
@@ -223,50 +238,86 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 
 	// console.error("eyes", {pointBetweenTheEyes,distanceBetweenIrises,leftEyeSocketHeight,rightEyeSocketHeight, l:annotations.leftEye, r:annotations.rightEye, leftEyeSocketWidth, rightEyeSocketWidth }, eyes )
 
+	
 	// - EYEBROWS ---------------------------------------------------
-	prediction.leftEyebrowRaisedBy = landmarks[1].score
-	prediction.rightEyebrowRaisedBy =landmarks[2].score
-	prediction.eyebrowsRaisedBy = landmarks[3].score
+	
+	const browInnerUp = landmarks[3].score
+
+	const browDownRight = landmarks[2].score
+	const browOuterUpRight = landmarks[5].score
+
+	const browDownLeft = landmarks[1].score
+	const browOuterUpLeft = landmarks[4].score
+	
+	// -1 -> +1
+	prediction.leftEyebrowRaisedBy = browOuterUpLeft - browDownLeft
+	prediction.rightEyebrowRaisedBy = browOuterUpRight - browDownRight
+	prediction.eyebrowsRaisedBy = browInnerUp
 
 
 
 	// - MOUTH ------------------------------------------------------
-	const jawOpeness = landmarks[25].score
+	
 
 	// mouth roll (can be used instead of jaw!)
+	// this is when you suck in your lips
 	const mouthRollUpper = landmarks[41].score
 	const mouthRollLower = landmarks[40].score
 
+	// smirking
+	const mouthSmileLeft = landmarks[44].score
+	const mouthSmileRight = landmarks[45].score
+
+	// gurning
+	const mouthStretchLeft = landmarks[46].score
+	const mouthStretchRight = landmarks[47].score
+
+	const jawOpeness = landmarks[25].score
+	const jawCloseness = 1 - jawOpeness
 	const mouthCloseness = landmarks[27].score
+	const mouthOpeness = 1 - mouthCloseness
+
+	// get smallest value
+	const mouthRatio = Math.min(jawOpeness, mouthOpeness)
+
+	// mouth may be closed whilst jaw is open
 
 	// ooooooo
 	const mouthFunnel = landmarks[32].score
 	// kissing
 	const mouthPucker = landmarks[38].score
 
-
+	
 	// Calculate some mouth info :
-	
 	// how seperated are the lips from one another (or how much is the bottom lip furled)
-	const mouthOpeness = Math.max( jawOpeness, mouthRollLower)
-	
-	const isMouthOpen = mouthOpeness > 0.05
+	// const mouthOpeness = Math.max( jawOpeness, mouthRollLower)
+	const isMouthOpen = mouthRatio > MIN_MOUTH_VALUE
 	// is wider than tall?
-	const isMouthWide = mouthOpeness > 0.3
-
+	const isMouthWide = mouthFunnel > jawOpeness
+	// smooth data
+	const openCoefficient = easeOutQuint(1 - mouthRatio )
+	
 	// TODO: JawLeft and jawRight for FALSETTO
+	prediction.mouthRatio = easeOutSine( Math.max( 0, mouthRatio - MIN_MOUTH_VALUE) ) 
+	prediction.mouthPucker = mouthPucker
+	prediction.mouthFunnel = mouthFunnel
+	prediction.mouthStretchLeft = mouthStretchLeft
+	prediction.mouthStretchRight = mouthStretchRight
+
+	prediction.isMouthOpen = isMouthOpen
+	prediction.leftSmirk = mouthSmileLeft
+	prediction.rightSmirk = mouthSmileRight
+	
+	// as mouth opens... happiness falls at the point where the 
+	prediction.happiness = ( ( prediction.rightSmirk + prediction.leftSmirk ) / 2 ) * openCoefficient // mouthSmileLeft
 
 
-	prediction.mouthRatio = mouthOpeness
-
-	// TODO: this is the size of the mouth as a factor of the head size
-	prediction.mouthOpen = isMouthOpen
 
 	// TODO: FIXME: mouth shape fixing
 	// if it is wider than tall - E
 	// if it is about the same width as height - O
 	prediction.mouthShape = isMouthOpen ? 
-								(mouthPucker > 0.4 ? 
+								(isMouthWide ? 
 									MOUTH_SHAPE_O : 
 									mouthRollUpper > 0.1 ?  
 										MOUTH_SHAPE_U :
@@ -304,6 +355,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// this maps from 2 -> 0
 	const yaw = clamp( regulatedYaw < 0 ? regulatedYaw * 2 : regulatedYaw, -1, 1 )
 	
+	// FIXME:
 	// if either eye is lower than the other : 
 	// triangle between eye extents and vertical
 	const rollX = flipHorizontally ? 
@@ -314,6 +366,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const rollRegular = atan2(rollX, rollY) 
 	const rawRoll = flipHorizontally ? -rollRegular : rollRegular
 	const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
+	// const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
 	const roll = clamp( regulatedRoll, -1, 1 )
 	
 	// we use two lengths to determine the angles
@@ -324,19 +377,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// UP & DOWN in RADIANS
 	const pitchDepth = ( pointApexOfHead.z - pointBottomOfChin.z )
 	const pitchHeight = ( pointApexOfHead.y - pointBottomOfChin.y )
-	const pitchInRadians = ( atan2( pitchDepth, pitchHeight) ) * 1.5
-	const pitch = clamp( pitchInRadians, -1, 1)
-
-	// 0 -> 1
-	// 44
-	prediction.rightSmirk = landmarks[44].score // mouthSmileRight
-	//45
-	prediction.leftSmirk = landmarks[45].score // mouthSmileLeft
-	
-	
-	// as mouth opens... happiness falls at the point where the 
-	const openCoefficient = easeOutQuint(1 - jawOpeness )
-	prediction.happiness = ( ( prediction.rightSmirk + prediction.leftSmirk ) / 2 ) * openCoefficient // mouthSmileLeft
+	const pitchInRadians = ( atan2( pitchDepth, pitchHeight) + 0.12 ) * 3.88
+	const pitch = clamp( 2 * (1-pitchInRadians)-1, -1, 1)
 
 
 

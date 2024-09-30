@@ -1,0 +1,126 @@
+extends _base.pug
+
+block title
+	+title('Test:Timing')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#timing
+		include partials/toast.pug
+		form.set-tempo
+			include partials/transport-panel.pug
+			include partials/tempo-panel.pug
+		
+			//- nav#menu
+
+				ul.folders
+
+					li.folder-menu
+						a.folder-link(href="#folder-a") Goto folder items
+						menu.folder-content#folder-a
+							li: button(type=button) Rewind
+							li: button(type=button) Play
+							li: button(type=button) Fast Forward
+							li: button(type=button) Stop
+							li: button(type=button) Record
+							li: a(href="#menu") Back to main menu
+
+
+					li.folder-menu.bottom
+						a.folder-link(href="#folder-b") Goto tempo options
+						menu.folder-content#folder-b
+
+							li: button(type="button")#tempo-tap-button Tap Tempo
+							li
+								label(for="tempo-input-range") Set tempo
+								input(type="range" min="1" max="500" step="0.5")#tempo-input-range
+							li
+								label(for="tempo-input-range") Enter tempo
+								input(type="number")#tempo-input-text
+
+							li: button(type="button")#tempo-increase-button Tempo Increase
+							li: button(type="button")#tempo-decrease-button Tempo Decrese
+
+							li
+								label(for="tempo-clock-select") MIDI Clock
+								select#tempo-clock-select
+									option Internal clock
+
+							li
+								label(for="tempo-midi-synch") MIDI Synch
+								input(type="checkbox" value="MIDI Synch")#tempo-midi-synch.toggle
+
+							li
+								label(for="timer-toggle") Timer
+								input(type="checkbox" value="Timer Started")#timer-toggle.toggle
+
+							li
+								label(for="tempo-worker") Timing Worker
+								select#tempo-worker
+									option SetTimeOut Loop
+									option SetInterval Loop
+									option SetTimeOut Rolling
+
+							li: a(href="#menu") Back to main menu
+
+
+					li.folder-menu.bottom.horizontal.right
+						a.folder-link(href="#folder-c") Goto folder items
+						menu.folder-content#folder-c
+							li: button(type=button) Rewind
+							li: button(type=button) Play
+							li: button(type=button) Fast Forward
+							li: button(type=button) Stop
+							li: button(type=button) Record
+							li: a(href="#menu") Back to main menu
+
+block scripts
+	script(type="module").
+		// 
+		import { setupTempoInterface } from './dom/ui.tempo.js'
+		import AudioTimer from './timing/timer.audio.js' 
+		import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+		import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+		import MIDIInstrument from './audio/instruments/instrument.midi.js'
+
+		const MIDIConnectionClasses = [WebMIDIClass]
+		const midiManager = new MIDIConnectionManager()
+		const timer = new AudioTimer()
+		const audioContext = new AudioContext()
+
+		// const instrument = new MIDIInstrument( audioContext )
+
+		// TODO: load in any settings from localstorage
+		setupTempoInterface(timer, midiManager, MIDIConnectionClasses)
+
+block styles 
+	style.
+		/* See sections/panel-tempo.scss */
+		body{
+			background-image:none;
+		}
+		main{
+			width:100%;
+		}
+		fieldset{
+			box-sizing: border-box;
+			position: relative;
+			border: 0;
+			padding: 0;
+			margin: 0;
+			border-radius: 0.5rem;
+			box-shadow:
+				inset 0 -0.1em 0.1em -0.05em #fff2,
+				inset 0 0.125em 0.25em #0003,
+				inset 0 0.25em 0.25em #0001,
+				inset -0.05em -0.1em 0.15em #0003,
+				inset 0 -0.05em 0.1em #0002,
+				inset 0 0 0 0.4em #c4c1c3;
+			padding: 0.66rem;
+			background: linear-gradient(#000 0 0) 50% 50% / 97.5% 97.5% no-repeat;
+		}
+		

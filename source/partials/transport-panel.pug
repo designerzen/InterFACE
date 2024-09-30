@@ -1,0 +1,8 @@
+fieldset#transport-panel.transport 
+	progress#timing-progress(min="0" max="1" )
+
+	label(for="timer-toggle") Timer
+		input(type="checkbox" value="Timer Started")#timer-toggle.toggle.toggle-play-pause
+
+	label(for="timing-step") Timing Step
+		input(type="range" min="1" max="4" step="1")#timing-step

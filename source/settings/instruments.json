@@ -1,12 +1,13 @@
 [
-
 	{
-		"name":"Oscillator",
-		"type":"oscillator",
-		"title":"Simple Synthesizer",
-		"description":"Single Oscillator Synthesizer",
-		"descriptor":"/assets/audio/oscillator.json",
-		"formats":{}
+		"name":"OpenGM24",
+		"type":"soundfont",
+		"title":"Open General MIDI 2024 Soundfont",
+		"description":"Open Source General MIDI SoundFont 2",
+		"descriptor":"/assets/audio/OpenGM24.json",
+		"formats":{
+			"mp3":"./assets/audio/OpenGM24/"
+		}
 	},
 
 	{
@@ -46,6 +47,15 @@
 			"ogg":"./assets/audio/FluidR3_GM/",
 			"base64-mp3":" https://paulrosen.github.io/midi-js-soundfonts/FluidR3_GM/"
 		}
+	},
+
+	{
+		"name":"Oscillator",
+		"type":"oscillator",
+		"title":"Simple Synthesizer",
+		"description":"Single Oscillator Synthesizer",
+		"descriptor":"/assets/audio/oscillator.json",
+		"formats":{}
 	},
 
 	{

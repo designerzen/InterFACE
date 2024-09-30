@@ -24,6 +24,20 @@
 }
 
 
+// only enable when loaded
+#button-share{
+	display: none;
+}
+
+.sharing-enabled{
+	#button-share{
+		display: inline-grid;
+	}
+}
+
+
+
+
 // User has dragged something over the window
 .dragging{
 	cursor:grabbing;
@@ -113,16 +127,25 @@
 // show settings panel
 .flag-showSettings #settings,
 #settings:focus,
+#settings:focus-visible,
 #settings:focus-within{
+	--y:100%;
 	display: flex;
 	visibility: visible;
-	transform: translateY( -100% );
+	transform: translateY( 0 );
+	// animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
 }
 
+#feedback{
+	display: none;
+}
+
+.flag-text #feedback{
+	display: block;
+}
 
 // Options set by clicking buttons set these flags as classes
 .flag-clear {
-
 	// FIXME:
 	// #shared-controls label[for="button-sync-video"]{
 	// 	display: flex;
@@ -136,7 +159,7 @@
 // need to also show it
 .flag-clear,
 .flag-synch{
-	#app-frame video{
+	#webcam{
 		display: none;
 	}
 }
@@ -159,7 +182,7 @@
 
 
 .flag-eyes label[for="select-eyes"]{
-	display:flex;
+	
 }
 
 // if we are showing the flag-overlay we are showing all 
@@ -204,10 +227,14 @@ main:not(.flag-overlays){
 
 // added when user gives up attention
 .user-inactive{
-	#shared-controls, #settings {
+
+	// , :focus
+	.instrument-panel:not(:hover, :focus-within, :focus-visible),
+	.controls:not(:hover, :focus-within,:focus-visible) {
 		visibility: hidden;
 		opacity:0;
 	}
+	
 	// .controls > *{
 	// 	animation-direction: normal, normal;
 	// }

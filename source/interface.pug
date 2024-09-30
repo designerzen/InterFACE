@@ -1,62 +1,20 @@
-extends _abstract.pug
+extends _base.pug
 
+//- block above 
+//- 	#load-progress
+//- 		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar.donut 0%
+//- 		label(for="progress-bar") Please wait <br>loading may take a very long time
 block above 
 	#load-progress
-		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar 0%
-		label(for="progress-bar") Please wait <br>loading may take a very long time
-
-block header 
-	
-	p(aria-label="Summary").
-		It's hard work learning how to play a musical instrument...<br>
-		<em>So, how about letting the musical instrument play you instead?.</em><br>
-
-		Presenting, the <strong>original realtime face controlled musical instrument</strong>! 
-	p.
-		By granting your webcamera access, every movement of your face and mouth control all the sound aspects rquired to create music. 
-		
-		Pressing the screen or holding your eyes closed will change instruments.<br>
-	p.
-		Improving human-machine relationships, made with love by <a href="https://designerzen.com">designerzen</a>. 
-	
-	//- In Javascript we show this if the user already has this installed
-	p(aria-label="Summary" hidden).returning.
-		Welcome back old friend! It is so nice to see your face again!
-
-	p.warning 
-		strong Warning : 
-		| Please be 
-		em very careful
-		|  if you are photo<wbr>sensitive. 
-		| Contains flashing lights.
-
-	a#hero(href="#app-frame") Jump straight to the app
-		include /assets/diagrams/hero.svg 
-
-	details 
-		summary Requirements
-		ul(role="list") 
-			li A face
-			li Web camera / phone camera 
-			li A cutting edge web-browser preferably <a href="https://www.google.com/chrome/">Chrome</a> / <a href="https://www.microsoft.com/en-us/edge/download">Edge</a> / <a href="https://www.apple.com/safari/">Safari</a>
-			li Relatively modern computer with <abbr title="Graphics Processing Unit">GPU</abbr>
-			li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
-
-	menu#pwa
-
-		a.button.button-push.button-start#start(href="#button-start") Play!
-
-		label(for="install-pwa" hidden) Install this app
-		button#install-pwa.button-install( hidden type="button" title="Install this application to your homescreen") Install
-		
-		label(for="upgrade-pwa" hidden) Upgrade to the latest version v.#{package.version}
-		button#upgrade-pwa.button-upgrade( type="button" hidden title="Upgrade this app to the latest version") Upgrade
+		label(for="progress-bar") Please wait <br>loading may take a veeeery long time
+			span.load-percent 100%
+		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar.donut
 		
 block nav
-	
 	ul
 		li: a#link-about(href="#fund" aria-label="Learn more about this project" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
-		li: a(href="#help" aria-label="Show some helpfull information" onclick="window.help.showModal()") Help!
+		li: a(href="#help" aria-label="Show some helpful information" onclick="window.help.showModal()") Help!
+
 
 block preload 
 	block options
@@ -66,429 +24,51 @@ block preload
 
 block scripts
 	script(type="module" src="index.js")
-		
+
 block main
 	main#app(aria-describedby="progress-bar")
 		h3(screenreader-only)#title Augmented Reality Synthesizer
 		h4(screenreader-only)#subtitle 
 
-		p#feedback Smile to begin!
-		p#toast
-		
-		#app-frame
+		p(role="status" aria-live="polite" popover="manual")#feedback Loading please wait!
+		include partials/toast.pug		
+
+		a(href="/")#share-code
+			// logo OR QR code
+			.qr 
+				img(src="/source/assets/qr/interface.place-red.png" alt="QR code linking to the PhotoSYNTH website")
 			
-			//- ONBOARDING ---
-			form#onboard(action="/") 
-				
-				fieldset#player-selector
-					legend How many people are going to participate?
-					//- button#button-solo( aria-label="Single player mode" ) <strong>Solo</strong> : 1 Player
-					//- button#button-duet( aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" ) <strong>Duet</strong> : 2 Players
-					//- button#button-trio( aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" ) <strong>Trio</strong> : 3 People
-					
-					//- https://adrianroselli.com/2020/01/my-priority-of-methods-for-labeling-a-control.html
-					label.button(for="button-solo") <strong>Solo</strong> 1 Player
-						input#button-solo(name="players" type="radio" aria-label="Single player mode" checked)
-					label.button(for="button-duet") <strong>Duet</strong> 2 Players
-						input#button-duet(name="players" type="radio" aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" )
-					label.button(for="button-trio") <strong>Trio</strong> 3 People
-						input#button-trio(name="players" type="radio" aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" )
-					
-					//- Simple / Advanced mode
-					label(for="toggle-advanced-mode" aria-describeby="advanced-mode-feedback" aria-label="Limit the features and make it suitable for kids" ) Would you like to play the simple version?
-						input#toggle-advanced-mode.switch(type="checkbox")
-		
-					//- feedback
-					#advanced-mode-feedback
-						p.simple Friendly version with simple interface and instuctions suitable for beginners =P
-						p.advanced For Advanced users who want MIDI connectivity and many more controls
+			p Share with friends
 
-					//- Demostration - automated mode
-					label(for="toggle-automation-mode" aria-label="Automate instrument selection and modes" ) Demonstration Mode
-						input#toggle-automation-mode.toggle(type="checkbox")
-		
-				//- Start buttons
-				//- button#button-start()
-				label(for="button-start" ) Start
-					input#button-start.button-push( type="submit" value="Begin")
+		#app-frame
 
+			//- Pick how many people etc
+			include partials/onboarding.pug
+
+			//- THE video element fed by video camera			
 			video#webcam(autoplay, playsinline, width="640", height="480")
 				p No Video available - unable to playback ;(
 
-			//- we clone the video onto the canvas every frame
-			canvas#interface.canvas-full-size.canvas-2d(width="640", height="480")
-			canvas#interface3D.canvas-full-size.canvas-3d(width="640", height="480")
+			//- we clone the video onto the canvas every frame - this has a JS helper
+			//- that deletes this node and re-creates it with a different context
+			canvas#photosynth-canvas.canvas-full-size(width="640", height="480")
 			
 			//- In APP CONTROLS ------------------------------------------------------
-			form#control-panel(action="/") 
-
-				//- Button is the face of the user
-				button(type="button").person#person-a Change instrument for the person on the left
-				//- the toggle button is hidden until activated by user interaction
-				div(draggable="true").instrument-panel.person-a-panel
-					// FIXME: ADD ARIA
-					button(type="button").person-a-toggle-controls.person-toggle-controls Show instrument panel for the person on the left
-					//- Fieldsets that fills with instruments 
-					fieldset.person-controls.person-a-controls
-						
-				//- Same for Player 2	
-				button(type="button").person#person-b Change instrument for the person on the right 
-				div(draggable="true" hidden).instrument-panel.person-b-panel
-					// FIXME: ADD ARIA
-					button(type="button").person-b-toggle-controls.person-toggle-controls Show instrument panel for the person on the right 
-					fieldset.person-controls.person-b-controls
-						
-
-
-
-				//- fieldset#shared-settings
-					
-				//- 	//- Equipment Settings 
-				//- 	//- TODO: Put into a dialog?
-				//- 	label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-				//- 		select(aria-label="Select a different camera")#select-camera
-					
-				//- 	button#button-midi(aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
-				//- 	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
-				
-				//- Controls for all players
-				fieldset#shared-controls.controls
-
-					legend Shared controls that apply to all players
-
-					//- button.button-install#button-install( type="button" hidden aria-label="Install this application to your homescreen") Install
-					//- button.button-upgrade#button-upgrade( type="button" hidden aria-label="Upgrade this app to the latest version") Upgrade
-
-					button#button-help( type="button" aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
-							
-					//- Equipment Settings 
-					//- TODO: Put into a dialog?
-					//- label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-					//- 	select(aria-label="Select a different camera")#select-camera
-					label(for="button-settings") <span class="hide-text"> Change and edit </span>Settings<span class="hide-text"> that modify behaviour and sound</span>
-						input(type="checkbox" aria-label="Show the settings panel")#button-settings
-									
-
-					//- Record / Save / Load --------------------------------------------------------------
-					button#button-photograph(type="button" aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
-					button#button-save-midi.hide(type="button" aria-label="Save this performance as a MIDI file" ) Save MIDI<span class="hide-text"> File to local drive</span>
-					
-					label(for="button-record-audio" ) Audio<span class="hide-text"> Record</span>
-						input#button-record-audio(type="checkbox" aria-label="Record Your Performance as an Audio File")
-					
-					button#button-record.hide(type="button" aria-label="Record a loop or two" ) Record Loop
-
-
-					label.hide(for="button-record-video" ) Video<span class="hide-text"> Record</span>
-						input#button-record-video(type="checkbox" aria-label="Record Your Performance as an Video File")
-					
-
-					button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
-					//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
-					
-					label(for="button-quantise") Quantise
-						input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
-
-				
-					//- Percussion and background accompanyment 
-					label(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
-						input#button-percussion(type="checkbox" aria-label="Play some background beats")
-					
-					//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
-					//button#button-donk( aria-label="Put a donk on it" ) Add Donk
-					//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
-
-					label(for="button-disco") MTV Mode
-						input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
-					
-					label(for="button-spectrogram") U.V.<span class="hide-text"> Spectrogram</span>
-						input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
-				
-					label(for="button-mute" ) Mute
-						input#button-mute(type="checkbox" aria-label="Toggle mute")
-						
-					//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
-					
-					//- label(for="input-tempo" aria-label="Set the tempo" ) Tempo
-					//- 	input(type="number" value="1")#input-tempo
-					//- 	input(type="button")#input-tempo-increase
-					//- 	input(type="button")#input-tempo-decrease
-					
-					//- label(for="set-tempo") <span class="hide-text">Set </span>Tempo
-					//- 	input(list="tempos")
-					//- 	datalist#tempos
-					//- 		option( value="45 BPM")
-					//- 		option( value="60 BPM")
-					//- 		option( value="75 BPM")
-					//- 		option( value="85 BPM")
-					//- 		option( value="90 BPM")
-					//- 		option( value="95 BPM")
-					//- 		option( value="100 BPM")
-					//- 		option( value="110 BPM")
-					//- 		option( value="120 BPM")
-					//- 		option( value="130 BPM")
-					//- 		option( value="140 BPM")
-					//- 		option( value="150 BPM")
-					//- 		option( value="170 BPM")
-					//- 		option( value="200 BPM")
-					//- 		option( value="300 BPM")
-					//- 		option( value="400 BPM")
-					//- 		option( value="500 BPM")
-					
-					label(for="button-metronome") <span class="hide-text">Toggle </span>Metronome
-						input#button-metronome(type="checkbox" aria-label="Play a metronome to help you keep time")
-						
-					//- Drop up / down list of tempos with typeable option too
-					label(for="select-tempo") <span class="hide-text">Set </span>Tempo
-						select#select-tempo(aria-label="Choose a tempo from the list")
-							//- optgroup Select Tempo
-							option 45 BPM
-							option 60 BPM
-							option 75 BPM
-							option 85 BPM
-							option 90 BPM
-							option 100 BPM
-							option 110 BPM
-							option 120 BPM
-							option 130 BPM
-							option 140 BPM
-							option 150 BPM
-							option 200 BPM
-							option 300 BPM
-							option 400 BPM
-							option 500 BPM
-					
-					//- put share and full screen at the end
-					button.no-text#share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
-					label.hide-text(for="button-fullscreen") Toggle Fullscreen
-						input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
-				
 			
-				//- This covers the entire video and canvas elements
-				button#button-video(type="button" aria-label="Click screen to change instruments") Swap instruments for all people
-				
-				//- Once the user has taken some photos they appear here
-				result#photographs.recordings
+			//- control panel with multi-levels
+			include partials/control-panel.pug
 
-				//- ALL PLAYER SETTINGS --------------------------------------
-				//- Settings for all players... usually hidden
-				fieldset#settings.controls
-					legend Global settings and options
-
-					//- only appears when there are multiple cameras on the computer?
-					//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?
-					label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
-						select#select-camera(aria-label="Select a different camera")
-					
-					label(for="button-clear") Clear<span class="hide-text"> Video</span>
-						input#button-clear(type="checkbox" aria-label="Clear visuals & video")
-				
-					label(for="button-sync-video") Synch Video
-						input#button-sync-video(type="checkbox" aria-label="Toggle whether to try to synch video to performance")
-						
-					label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
-						input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
-			
-					//- label(for="button-pattern") Drum Pattern
-					//- 		input#button-pattern(type="checkbox" aria-label="Change percussion arrangement")
-							
-					//- label(for="button-transparent") Synch<span class="hide-text">ronise the movements (prevents judder)</span>
-					//- 	input#button-transparent(type="checkbox" aria-label="Synch video to movements")
-				
-					label(for="button-meshes") Faces<span class="hide-text"> have overlays</span>
-						input#button-meshes(type="checkbox" aria-label="Toggle Face overlays")
-				
-					label(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
-						input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
-					
-					label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
-						input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
-
-					label(for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> Style</span>
-						select#select-eyes(aria-label="Select some eyes!")
-							option(value="s:0,i:0,p:0,a:1") Disabled (no eyes)
-							option(value="s:0.2,i:0.1,p:0.05,a:1") Tiny Eyes
-							option(value="s:0.5,i:0.2,p:0.1,a:1") Small Eyes
-							option(value="s:1.2,i:1,p:0.4,a:1") Regular Eyes
-							option(value="s:4,i:3,p:2,a:0.8") Sidebottom
-							option(value="s:7,i:5,p:2,a:0.9") Googly Eyes
-				
-					label(for="select-palette") <span class="hide-text">Choose </span>Colours
-						select#select-palette(aria-label="Select different colours")
-							option(value="s:80,l:80") Neon 
-							option(value="s:30,l:40") Pastel 
-							option(value="s:2,l:80") Monochrome (B&amp;W)
-							option(value="s:100,l:0") Dark
-						
-					label(for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
-						select#select-samples(aria-label="Select a sound font to change sounds")
-							option(value="FatBoy") FatBoy 
-							option(value="FluidR3_GM") Fluid
-							option(value="MusyngKite") Musyng Kite 
-				
-					label(for="select-impulse") <span class="hide-text">Select </span>Reverb
-						select#select-impulse(aria-label="Select a different reverb")
-					
-					label(for="button-speak") <span class="hide-text">Toggle </span>Speech
-						input#button-speak(type="checkbox" aria-label="Read out instructions and help")
-				
-					button#button-reset( type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
-				
-					//- bit of a hack...
-					label.button-close(for="button-settings") Hide Settings
-
-			form#midi-file
-				label(for="midi-upload") Upload a MIDI backing track!
-				input#midi-upload(type="file" hidden name="midi-upload")
+			//- MIDI FILE Uploader
+			form#upload-midi-form
+				label(for="midi-upload-input") Upload a MIDI backing track!
+				input#midi-upload-input(type="file" hidden name="midi-upload")
 				button#button-midi-upload( type="button" ) Upload MIDI file
 
 		//-  For users with javascript disabled 
 		noscript
-			p This application requires javascript to work unfortunately and doesn't do much without it. 
+			p.
+				This application requires javascript to work unfortunately and doesn't do much without it. 
+				You can install 
 
 block dialogs 
-	dialog#help 
-		form(method="dialog")
-			h4 Don't Panic!
-
-			section.load-issues 
-				h5 Load critical data
-					
-				h6 Not working?
-				p If this seems to be stuck loading forever, please try the following
-				ol 
-					li Clear your browser's cache and hard refresh <kbd>(ctrl-shift-r)</kbd>
-					li Open the app in Private Browsing mode
-					li Try in a knwon supported Browser such as Chrome / Brave / Edge
-								
-			section.player-selection-help
-				h5 This is the 
-					em Player Selection Screen
-				p Here we get to choose how many players will get to play!
-
-				ol 
-					li Select how many people will make music at the same time - one or two players
-					li Toggle the simple mode on for an easier to use version (kids mode)
-					li Click the Orange Start Button to continue
-				
-				h6 Not working? Common Issues / Troubleshooting
-				ol 
-					li Camera was not granted permission by the browser
-					li Browser is too old / out of date try Chrome / Brave / Edge
-					
-			section.app-help
-				h5 This is the Synthesizer 
-				p It is controlled using your head
-
-				figure.tutorial
-					img(src="./assets/diagrams/tutorial-head.svg" alt="Diagram explaining that head position and mouth control the key and amplitude")
-					figcaption Tilt your head 
-					
-				h5 Not working?
-				h6 Common Issues / Troubleshooting
-				ol 
-					li Camera was not allowed access
-					li Browser too old / out of date
-					li If your MIDI device is not found, try connecting it directly to a USB port, rather than through a hub or USB-C convertor
-					li If your face is not found, try and improve the brightness in the room by turning on some lights
-				
-				p Still not working? 
-					a(href="/") Try resetting your options :
-
-
-			details 
-				summary Instructions
-				include:markdown-it ./instructions.md
-
-			small.version Version #{package.version}
-
-			//- iframe instead?
-			p.learn-more
-				| Learn more from the 
-				a.youtube(href="https://www.youtube.com/playlist?list=PL4Rn0ER3M79IOpHkl2hkCodg70lZ-J5xI") YouTube Tutorials
-				|  or the  
-				a.documentation(href="help.pug" target="_blank") Online Documentation
-
-				//- a(href="#app") Let me try
-
-			button(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Help
-
-	//- TODO: 
-		dialog#dialog-tempo 
-			form(method="dialog")
-				h5 Tempo
-				button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
-
-	//- TODO:
-	dialog#fund
-	
-		h5 Realtime face controlled musical instrument! 
-		p.
-			Install it to your device
-
-		label(for="install-pwa" hidden) Install this app
-		button.button-install( hidden type="button" aria-label="Install this application to your homescreen") Install
-		
-		aside
-			h6 Help support this project! 
-			p.
-				If you enjoy this software and want to help it continue to grow, please consider donating some money via Patreon or Paypal!
-
-			ul.fund.icon-list
-				li: a.paypal(href="https://www.paypal.com/donate/?hosted_button_id=RHGJDTPJQ77F4/" rel="noopener noreferrer" target="_blank") Donate via Paypal
-				li: a.patreon(href="https://www.patreon.com/designerzen" rel="noopener noreferrer" target="_blank") Fund this project on Patreon
-				li: a.designerzen(href="https://www.designerzen.com/" rel="noopener noreferrer" target="_blank") Contact Developer Zen
-				//- li
-					form(action="https://www.paypal.com/donate" method="post" target="_top")
-						input(type="hidden" name="hosted_button_id" value="RHGJDTPJQ77F4")
-						input(type="image" src="./assets/logos/paypal.svg" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
-						//- input(type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button")
-						<img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
-					
-
-		//- ul.associates.icon-list
-		//- 	li: a.drakemusic(href="https://www.drakemusic.org/technology/dmlab-community/" rel="noopener noreferrer" target="_blank") Drake Music
-		//- 	li: a.aotf(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank") Audience of the Future
-		//- 	li: a.tensorflow(href="https://www.tensorflow.com/" rel="noopener noreferrer" target="_blank") TensorFlow	
-		//- 	
-			
-		//- ul.supporters.icon-list
-		//- 	li: a.sxsw(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank") SXSW
-		//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
-		
-		ul.links
-			li: a.copyright(href="copyright.pug" target="_blank") Copyright
-			li: a(href="credits.pug" target="_blank") Credits
-			li: a.licenses(href="licenses.pug" target="_blank") Licenses
-			li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
-			li: a(href="roadmap.pug" target="_blank") Roadmap
-			li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
-			li(hidden): a.instruments(href="wam.pug" target="_blank") Instrument Debugger
-		
-		form(method="dialog")
-			button(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Dialog
-
-	dialog#pwa-updates
-		//-iframe#changelog(src="./changes.html" title="Changes")
-		form(method="dialog")
-			h5 Updates available!
-			#changelog
-
-			button#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
-			button(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
-		
-	dialog#errors 
-		form(method="dialog")
-			h5 Oh no! An error has occurred!
-			p#error-message Hopefully this is a one time problem
-			p#error-solution Click the button to reload and try again
-			details 
-				summary More information 
-				p#error-details
-
-			audio(src="./assets/audio/lemmings.wav")
-
-			menu#reload
-				button.reload-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reload 
-			
-			button(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
+	include partials/dialogs.pug

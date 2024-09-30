@@ -1,0 +1,30 @@
+#folder-midi{
+
+}
+
+#midi-panel{
+	box-shadow: none;
+}
+
+#no-midi-devices{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap:var(--pad);
+	box-shadow: none;
+}
+
+#toggle-midi{
+	opacity: 1;
+}
+
+label[for="waiting-for-midi-devices"]{
+	display: flex;
+	gap:var(--pad);
+    align-items: center;
+	flex-direction: row-reverse;
+}
+
+#waiting-for-midi-devices{
+	--size:1rem; 
+}

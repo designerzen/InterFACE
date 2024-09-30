@@ -1,0 +1,26 @@
+extends interface.pug
+
+//- custom options go here
+block options
+	script.
+		globalThis._synth = { 
+			advancedMode:false, 
+			text:false, 
+			autoHide:true, 
+			backingTrack:false, 
+			photoSensitive:true,
+			automationMode:true,
+			instrumentPack:'OpenGM24'
+		}
+
+block headline
+	| Internet of Sound  
+	span.sr-only PhotoSynth 4
+	| Inter 
+	strong FACE
+
+
+block tagline
+	em Smile 
+	| Powered Synthesizer
+	strong Instant Musical Superpowers!

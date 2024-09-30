@@ -25,6 +25,11 @@ export const resolveRoute = route => {
  */
 export const chain = ( routes, audioContext=null ) => {
 
+	if (!routes || routes.length < 1)
+	{
+		throw Error("No routes provided to chain")
+	}
+	
 	// we should always unchain before rechaining otherwise... havoc
 	unchain()
 
