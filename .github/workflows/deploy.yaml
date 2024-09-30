@@ -41,13 +41,13 @@ jobs:
         #   run: ls ./
 
         - name: List the build folder contents...
-          run: ls ./dist
+          run: ls ./release/web
 
         - name: Upload artifact
           uses: actions/upload-pages-artifact@v1
           with:
             name: github-pages
-            path: ./dist
+            path: ./release/web
 
     deploy:
         # Deploy to the github-pages environment
