@@ -66,7 +66,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 
 		super(audioContext, {...DEFAULT_OPTIONS, ...options})
 
-		console.error( "zen look here", DEFAULT_OPTIONS, options)
+		// console.error( "zen look here", DEFAULT_OPTIONS, options)
 
 		this.available = false
 
@@ -98,7 +98,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			
 			}).catch( error => {
 
-				console.error("gah", error)
+				console.error("loadFont", error)
 			})
 
 		}else{
@@ -249,8 +249,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 		const currentPreset = availablePresets[ this.instrumentIndex ]
 		
 		// console.error("Found font", { availablePresets })
-		console.info("Found font", { fontDescriptor, fontData, availablePresets })		
-		console.info("Found availablePreset", {availablePresets, currentPreset} )
+		// console.info("Found font", { fontDescriptor, fontData, availablePresets })		
+		// console.info("Found availablePreset", {availablePresets, currentPreset} )
 
 		//await this.soundfont.loadPreset( availablePresets[0], packName, p => console.log(p) )
 		// await this.loadPreset( currentPreset, pack, options, p => onProgress && onProgress( 0.5 + p / 2 ) )
