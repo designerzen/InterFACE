@@ -434,6 +434,8 @@ label[for="button-quartet"],
 		grid-area:label;
 		margin-left: var(--pad);
 		margin-right: var(--pad);
+		box-sizing: border-box;
+		width: calc(100% - 2 * var(--pad));
 	}
 	
 	#advanced-mode-feedback p{
