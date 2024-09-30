@@ -392,7 +392,6 @@ export default class Person{
 	 * @returns {Boolean} has this Person got a finger depressed on their face?
 	 */
 	get isMouseHeld(){
-		//console.log("isMouseHld", this.mouseDownFor, this.options.mouseHoldDuration )
 		return this.mouseDownFor > this.options.mouseHoldDuration
 	}
 
