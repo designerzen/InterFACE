@@ -1793,7 +1793,7 @@ export const createInterface = (
 		let haveFacesBeenDetected = false	
 		if (predictions)
 		{
-			let shouldChangeToNextFilter = false
+			
 			// console.log(predictions.length, "predictions", predictions)
 			// loop through all predictions...
 			for (let i=0, l=predictions.length; i < l; ++i)
@@ -1854,12 +1854,6 @@ export const createInterface = (
 					}
 				}
 
-				// Change filter depending on the user's emoticon!
-				if (discoMode && person.emoticon === EMOJI.EMOJI_KISS && i===0)
-				{
-					shouldChangeToNextFilter = true
-				}
-				
 				// then whenever you fancy it,
 				if (!stateMachine.get("quantise") && !stateMachine.get("muted"))
 				{	
@@ -1882,8 +1876,7 @@ export const createInterface = (
 				// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 			}
 
-			shouldChangeToNextFilter && display.nextFilter()
-
+		
 			// update if neccessary on screen now all people are drawn
 			display.render()
 				
@@ -2454,11 +2447,13 @@ export const createInterface = (
 				// console.log(barsElapsed, "timer", timer)
 
 				// const notesPlayed = []
-			
+						
 				// sing note and draw to canvas
 				// chcek if quarternote
 				if( stateMachine.get("quantise") && isHalfNote )
 				{
+					let shouldChangeToNextFilter = false
+				
 					const amountOfPeople = people.length
 					for (let i=0, l=amountOfPeople; i<l; ++i )
 					{
@@ -2472,7 +2467,13 @@ export const createInterface = (
 						{
 							person.gamePad.update()
 						}
-
+						// Change filter depending on the user's emoticon!
+						if (stateMachine.get("disco") && person.emoticon === EMOJI.EMOJI_KISS)
+						{
+							shouldChangeToNextFilter = true
+						}
+									
+							
 						// use person 1's eyes to control other stuff too?
 						// in this case the direction of the pan in disco mode
 						if (i===0)
@@ -2490,9 +2491,9 @@ export const createInterface = (
 						// save data to an array to record
 						// personParameters.push(stuff)
 					}
+					shouldChangeToNextFilter && display.nextFilter()
 				}
-
-
+			
 				// to add swing to the beats
 				// easeOutQuart(divisionsElapsed%16 / 16)
 	
