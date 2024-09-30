@@ -76,7 +76,7 @@ export const createCowbell = (audioContext, output ) => {
 		cowbellGainNode.gain.exponentialRampToValueAtTime(options.velocity, time + options.attack)
 		cowbellGainNode.gain.exponentialRampToValueAtTime(options.sustain, time + options.attack + options.decay)
 		cowbellGainNode.gain.linearRampToValueAtTime(ZERO, time + options.length )	
-	
+		return options
 	}
 	return cowbell
 }

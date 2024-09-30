@@ -11,12 +11,29 @@ import { createClap, createClaps } from './synthesizers/clap'
  * @returns {Object<Function>} all individual instruments
  */
 export const createDrumkit = ( audioContext, output ) => {
-	return {
+	
+	const drumkit = {
 		kick : createKick(audioContext, output),
 		snare : createSnare(audioContext, output),
 		hat : createHihat(audioContext, output),
 		cowbell : createCowbell(audioContext, output),
 		clack : createClack(audioContext, output),
-		clap : createClap(audioContext, output)
+		clap : createClap(audioContext, output),
 	}
+
+	// you can set the options on the individual instruments
+
+	// drumkit.setOptions = (options) => {
+	// 	for (let key in options)
+	// 	{
+	// 		drumkit.kick[key] = options[key]
+	// 		drumkit.snare[key] = options[key]
+	// 		drumkit.hat[key] = options[key]
+	// 		drumkit.cowbell[key] = options[key]
+	// 		drumkit.clack[key] = options[key]
+	// 		drumkit.clap[key] = options[key]
+	// 	}
+	// }
+
+	return drumkit
 }

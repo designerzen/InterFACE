@@ -85,6 +85,8 @@ export const createClap = ( audioContext, output ) => {
 		filter.frequency.cancelScheduledValues(time)
 		filter.frequency.setValueAtTime( options.frequencyStart, time)
 		filter.frequency.linearRampToValueAtTime( options.frequencyEnd, endAt)
+
+		return options
 	}
 	return clap
 }

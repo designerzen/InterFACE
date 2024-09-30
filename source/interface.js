@@ -121,6 +121,9 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 import Capabilities from './capabilities.js'
 import { loadInstrumentsList } from './settings/options.instruments.js'
 import InstrumentFactory from './audio/instrument-factory.js'
+import { PRESETS_KICKS } from './audio/synthesizers/kick.js'
+import { PRESET_HIHATS } from './audio/synthesizers/hihat.js'
+import { PRESET_SNARES } from './audio/synthesizers/snare.js'
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
@@ -372,6 +375,23 @@ export const createInterface = (
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
 	
+	kickTimbreOptions = PRESETS_KICKS[0]  
+	kickSnareOptions = PRESET_SNARES[0]
+	hatTimbreOptions = PRESET_HIHATS[0]
+
+	const setRandomDrumTimbres = () => {
+		kickTimbreOptions = PRESETS_KICKS[Math.floor(Math.random() * PRESETS_KICKS.length)]
+		kickSnareOptions = PRESET_SNARES[Math.floor(Math.random() * PRESET_SNARES.length)]
+		hatTimbreOptions = PRESET_HIHATS[Math.floor(Math.random() * PRESET_HIHATS.length)]	
+		// console.info("Setting drum timbres!", 
+		// 	{
+		// 		kickTimbreOptions,
+		// 		kickSnareOptions,
+		// 		hatTimbreOptions
+		// 	}
+		// )
+	}
+
 	// performance indicators
 	const statistics = {
 		lag:0, 
@@ -2512,9 +2532,9 @@ export const createInterface = (
 					if ( divisionsElapsed % slower === 0 )
 					{
 						//console.log(slower,barsElapsed, clock.BPM * 0.001,  divisionsElapsed % slower )
-						const kick = playNextPart( patterns.kick, kit.kick )
-						const snare = playNextPart( patterns.snare, kit.snare )
-						const hat = playNextPart( patterns.hat, kit.hat )
+						const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions )
+						const snare = playNextPart( patterns.snare, kit.snare, kickSnareOptions )
+						const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions )
 					}
 					//console.error("backing|", {kick, snare, hat })
 					// todo: also MIDI beats on channel 16?
@@ -3157,6 +3177,7 @@ export const createInterface = (
 			...information,
 			setAutomator,
 			setDiscoMode,
+			setRandomDrumTimbres,
 			setBPM, setMasterVolume,
 			changeDrumPattern,
 			loadInstruments: loadInstrumentPreset,

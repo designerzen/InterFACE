@@ -21,6 +21,71 @@ export const DEFAULT_SNARE_OPTIONS = {
 	type: "triangle"
 }
 
+export const PRESET_LONG_SNARE_OPTIONS = {
+	velocity:1, 
+	length : 0.9,
+	// default bandpawss filter Q
+	bandpassStart:90,
+	bandpassEnd:1000,
+	// frequency sweep
+	triStart:90,
+	triEnd:50,
+	// filter sweep
+	highpassStart:2000,
+	highpassEnd:600,
+
+	attack:0.07,
+	decay:0.02,
+
+	type: "triangle"
+}
+
+export const PRESET_HEAVY_SNARE_OPTIONS = {
+	velocity:1, 
+	length : 0.9,
+	// default bandpawss filter Q
+	bandpassStart:30,
+	bandpassEnd:1400,
+	// frequency sweep
+	triStart:90,
+	triEnd:50,
+	// filter sweep
+	highpassStart:2000,
+	highpassEnd:600,
+
+	attack:0.07,
+	decay:0.05,
+
+	// type: "square"
+	type: "triangle"
+}
+
+export const PRESET_SQUARE_SNARE_OPTIONS = {
+	velocity:1, 
+	length : 0.3,
+	// default bandpawss filter Q
+	bandpassStart:90,
+	bandpassEnd:1000,
+	// frequency sweep
+	triStart:90,
+	triEnd:50,
+	// filter sweep
+	highpassStart:2000,
+	highpassEnd:600,
+
+	attack:0.07,
+	decay:0.05,
+
+	type: "square"
+}
+
+export const PRESET_SNARES = [
+	DEFAULT_SNARE_OPTIONS,
+	PRESET_HEAVY_SNARE_OPTIONS,
+	PRESET_SQUARE_SNARE_OPTIONS,
+	PRESET_LONG_SNARE_OPTIONS
+]
+
 /**
  * Create an instance of the snare instrument
  * @returns {Function} trigger start method
@@ -112,6 +177,7 @@ export const createSnare = ( audioContext, output ) => {
 		highpass.frequency.cancelScheduledValues(time)
 		highpass.frequency.setValueAtTime( options.highpassStart, time)
 		highpass.frequency.linearRampToValueAtTime( options.highpassEnd, endAt)
+		return options
 	}
 	return snare
 }

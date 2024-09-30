@@ -39,8 +39,29 @@ export const PRESET_TECH_HOUSE_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
 	sineEnd:20,
 })
 
+export const PRESET_BEEFY_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
+	velocity:1.2, 
+	length:0.05, 
+	attack:0.001, 
+	decay:0.005, 
+	// sustain is a volume not a time
+	sustain:0.94, 
+	release:0.01,
+
+	// frequencies
+	triStart:90,
+	triEnd:50,
+
+	sineStart:80,
+	sineApex:100,
+	sineSustain:90,
+	sineEnd:20,
+})
+
 export const PRESETS_KICKS = [
-	PRESET_TECH_HOUSE_KICK
+	DEFAULT_KICK_OPTIONS,
+	PRESET_TECH_HOUSE_KICK,
+	PRESET_BEEFY_KICK
 ]
 
 /**
@@ -111,6 +132,7 @@ export const createKick = (audioContext, output ) => {
 
 		//  osc.stop(audioContext.currentTime + duration)
 		//  osc2.stop(audioContext.currentTime + duration)
+		return options
 	}
  
     triangleOscillator.connect(gainTriangle)

@@ -3,7 +3,7 @@ import {createQueue} from '../synthesizers'
 
 export const DEFAULT_OPEN_HIHAT = {
 	velocity:1, 
-	length:0.25, 	
+	length:0.09, 	
 	fundamental:40,
 	ratios:[2, 3, 4.16, 5.43, 6.79, 8.21],
 	attack:0.0001, 
@@ -32,7 +32,45 @@ export const DEFAULT_CLOSED_HIHAT = {
 	type:"triangle"
 } 
 
+export const OPEN_HIHAT_TINY = {
+	velocity:1, 
+	length:0.06, 	
+	fundamental:40,
+	ratios:[2, 3, 4.16, 5.43, 6.79, 8.21],
+	attack:0.0001, 
+	decay:0.05, 
+	// sustain is a volume not a time
+	sustain:0.9, 
+	release:0.01,
+	highpass:7000,
+	bandpass:10000,
+	type:"triangle"
+} 
+
+// Closed high hat is a shorter version
+export const CLOSED_HIHAT_TINY = {
+	velocity:1, 
+	length:0.03, 	
+	fundamental:40,
+	ratios:[2, 3, 4.16, 5.43, 6.79, 8.21],
+	attack:0.0002, 
+	decay:0.007, 
+	// sustain is a volume not a time
+	sustain:0.7, 
+	release:0.03,
+	highpass:7000,
+	bandpass:20000,
+	type:"triangle"
+} 
+
+export const PRESET_HIHATS = [
+	DEFAULT_CLOSED_HIHAT,
+	CLOSED_HIHAT_TINY,
+	DEFAULT_OPEN_HIHAT
+]
+
 /**
+ * 
  * Create an instance of the hi-hat instrument
  * @returns {Function} trigger start method
  */
@@ -98,6 +136,8 @@ export const createHihat = (audioContext, output ) => {
 		gainNode.gain.linearRampToValueAtTime( SATURATE * options.sustain, time + options.attack + options.decay)
 		gainNode.gain.linearRampToValueAtTime( SATURATE * options.sustain, time + options.length - options.release)
 		gainNode.gain.linearRampToValueAtTime( ZERO, time + options.length)
+
+		return options
 	}
 	return hihat
 }

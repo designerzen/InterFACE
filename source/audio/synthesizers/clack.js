@@ -64,6 +64,8 @@ export const createClack = (audioContext, output ) => {
 		// set new envelopes
 		gainNode.gain.setValueAtTime( options.velocity, time)
 		gainNode.gain.exponentialRampToValueAtTime(ZERO, time + options.length)
+
+		return options
 	}
 	return clack
 }
