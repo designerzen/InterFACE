@@ -110,8 +110,8 @@ export const recogniseEmoji = (prediction, options) => {
 		}
 		
 		if (
-			prediction.rightEyeDirection > 0.5 && prediction.leftEyeDirection < 0.5 ||
-			prediction.rightEyeDirection < 0.5 && prediction.leftEyeDirection > 0.5
+			prediction.rightEyeDirection > 0.66 && prediction.leftEyeDirection < 0.66 ||
+			prediction.rightEyeDirection < 0.66 && prediction.leftEyeDirection > 0.66
 		){
 			return EMOJI_TRIPPY
 		}
