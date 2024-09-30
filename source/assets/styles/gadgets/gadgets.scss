@@ -293,20 +293,22 @@ a[href="#fund"]{
 .player-selection{
 	a[href="#fund"]{
 		&::after{
+			content:'O o';	
+			opacity: 1;
+			animation: EyesBlinking 2s ease-in-out 0s both infinite;
+		}
+	}
+}
+
+.loaded{
+	a[href="#fund"]{
+		&::after{
 			content:'O O';	
 			opacity: 1;
 			animation: EyesBlinking 2s ease-in-out 0s both infinite;
 		}
 	}
 }
-// .loaded{
-// 	a[href="#fund"]{
-// 		&::after{
-// 			content:'O o';	
-// 			animation: EyesBlinking 2s ease-in-out 0s both infinite;
-// 		}
-// 	}
-// }
 
 // show / hide tag at top right	
 // .loaded a[href="#fund"]{
