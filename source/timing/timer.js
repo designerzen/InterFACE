@@ -177,6 +177,10 @@ export default class Timer {
 		return this.microTempo / 24
 	}
 
+	get isAtMiddleOfBar(){
+		return this.barProgress === 0.5
+	}
+
 	get isAtStart(){
 		return this.divisionsElapsed === 0
 	}

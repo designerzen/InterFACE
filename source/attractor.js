@@ -22,8 +22,9 @@ const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = [
 	1000 * 121
 ]
 
-const BARS_BEFORE_CHANGING_DRUMS = 16
-const BARS_BEFORE_TOGGLING_DISCO = 32
+const BARS_BEFORE_CHANGING_DRUM_PATTERNS = 32
+const BARS_BEFORE_CHANGING_DRUM_TIMBRES = 16
+const BARS_BEFORE_TOGGLING_DISCO = 64 + 8
 
 export default class Attractor{
 
@@ -41,15 +42,24 @@ export default class Attractor{
 		const players = this.application.getPlayers() 
 		const userActive = this.application.isUserActive()
 
-		if ( clock.barProgress === 0)
+		if ( clock.isAtStart )
 		{
 			this.barCounter++
 
-			if (this.barCounter%BARS_BEFORE_CHANGING_DRUMS === 0)
+			if (this.barCounter%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
 			{
 				this.application.setRandomDrumPattern()
 			}
-				
+
+			if (this.barCounter%BARS_BEFORE_CHANGING_DRUM_TIMBRES === 0)
+			{
+				this.application.setRandomDrumTimbres()
+			}
+			// this.application.setDrumKitOptons("") 
+		}
+		
+		if (clock.isAtMiddleOfBar)
+		{
 			// toggles disco mode!
 			if (this.barCounter%BARS_BEFORE_TOGGLING_DISCO === 0)
 			{
