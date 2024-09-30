@@ -110,10 +110,13 @@ const convertHeadOrientationIntoNoteData = (prediction, options) => {
 
 	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
 	// straight at screen to positive below and negative above
-	const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
+	const newOctave = rangeRounded( octaveNumber , -1, 1, 1, 7 )
 
 	// simple way of selecting the black notes
 	const isMinor = prediction[options.minorController ]
+
+	
+	// console.info(noteNumber, noteFloat, "-> ? ", octaveNumber, "->", newOctave, {isMinor} )
 
 	// eg. A1 Ab1 C3 etc
 	const noteName = getNoteName(noteFloat, newOctave, isMinor)
@@ -190,40 +193,16 @@ const convertHeadOrientationIntoNoteData = (prediction, options) => {
  * @param {Object} options 
  * @returns 
  */
-const convertHeadRollToScaleAndPitchToOctaveAndYawToPitch = (prediction, options) => {
-
-	const octaveNumber = prediction[options.octaveController] 
-	const noteNumber = prediction[options.noteController] 
-	
-	// remap -1 -> +1 to 0 -> 1
-	const noteFloat = (1 + noteNumber) * 0.5 
-
-	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
-	// straight at screen to positive below and negative above
-	const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
-
-	// simple way of selecting the black notes
-	const isMinor = prediction[options.minorController ]
-
-	// eg. A1 Ab1 C3 etc
-	const noteName = getNoteName(noteFloat, newOctave, isMinor)
-	// eg. Do Re Mi
-	const noteSound = getNoteSound(noteFloat, isMinor)	
-	
-	const afterTouch = 0
-	const pitchBend = 0
-
-	return {
-		octaveNumber,
-		noteNumber,
-		noteName,
-		noteSound,
-		noteFloat,
-		newOctave,
-		afterTouch,
-		pitchBend,
-		isMinor
-	}
+const HEAD_ROLL_TO_SCALE_AND_PITCH_TO_OCTAVE_AND_YAW_TO_PITCH = {
+	noteController:'pitch',		// up down
+	octaveController:'pitch',	// lean tilt
+	gateController:'mouth',
+	pitchbendController:'eyebrowsRaisedBy',
+	aftertouchController:'rightSmirk',
+	minorController:'isFacingRight'
+}
+const convertHeadRollToScaleAndPitchToOctaveAndYawToPitch = (prediction) => {
+	return convertHeadOrientationIntoNoteData = (prediction, HEAD_ROLL_TO_SCALE_AND_PITCH_TO_OCTAVE_AND_YAW_TO_PITCH) 
 }
 
 /**
@@ -235,41 +214,18 @@ const convertHeadRollToScaleAndPitchToOctaveAndYawToPitch = (prediction, options
  * @param {Object} options 
  * @returns 
  */
-const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction, options) => {
-
-	const octaveNumber = prediction[options.octaveController] 
-	const noteNumber = prediction[options.noteController] 
-	
-	// remap -1 -> +1 to 0 -> 1
-	const noteFloat = (1 + noteNumber) * 0.5 
-
-	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
-	// straight at screen to positive below and negative above
-	const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
-
-	// simple way of selecting the black notes
-	const isMinor = prediction.isFacingRight
-
-	// eg. A1 Ab1 C3 etc
-	const noteName = getNoteName(noteFloat, newOctave, isMinor)
-	// eg. Do Re Mi
-	const noteSound = getNoteSound(noteFloat, isMinor)	
-	
-	const afterTouch = 0
-	const pitchBend = 0
-
-	return {
-		octaveNumber,
-		noteNumber,
-		noteName,
-		noteSound,
-		noteFloat,
-		newOctave,
-		afterTouch,
-		pitchBend,
-		isMinor
-	}
+const HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH = {
+	noteController:'yaw',		// up down
+	octaveController:'roll',	// lean tilt
+	gateController:'mouth',
+	pitchbendController:'eyebrowsRaisedBy',
+	aftertouchController:'leftSmirk',
+	minorController:'isFacingRight' // 'eyebrowsRaisedBy',
 }
+const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction) => {
+	return convertHeadOrientationIntoNoteData = (prediction, HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH) 
+}
+
 
 export default class Person{
 

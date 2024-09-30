@@ -355,6 +355,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// this maps from 2 -> 0
 	const yaw = clamp( regulatedYaw < 0 ? regulatedYaw * 2 : regulatedYaw, -1, 1 )
 	
+	// FIXME:
 	// if either eye is lower than the other : 
 	// triangle between eye extents and vertical
 	const rollX = flipHorizontally ? 
@@ -365,6 +366,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const rollRegular = atan2(rollX, rollY) 
 	const rawRoll = flipHorizontally ? -rollRegular : rollRegular
 	const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
+	// const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
 	const roll = clamp( regulatedRoll, -1, 1 )
 	
 	// we use two lengths to determine the angles
@@ -375,8 +377,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// UP & DOWN in RADIANS
 	const pitchDepth = ( pointApexOfHead.z - pointBottomOfChin.z )
 	const pitchHeight = ( pointApexOfHead.y - pointBottomOfChin.y )
-	const pitchInRadians = ( atan2( pitchDepth, pitchHeight) ) * 1.5
-	const pitch = clamp( pitchInRadians, -1, 1)
+	const pitchInRadians = ( atan2( pitchDepth, pitchHeight) + 0.12 ) * 3.88
+	const pitch = clamp( 2 * (1-pitchInRadians)-1, -1, 1)
 
 
 

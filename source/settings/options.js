@@ -330,8 +330,12 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
 	// eyeSquintLeft, eyeSquintRight, leftSmirk, rightSmirk, 
 	// see models/landmarks
-	noteController:'pitch',
-	octaveController:'roll',
+	// noteController:'pitch',		// up down
+	// octaveController:'roll',	// lean tilt
+	
+	noteController:'roll',		// up down
+	octaveController:'pitch',	// lean tilt
+
 	gateController:'mouth',
 
 	pitchbendController:'leftSmirk',
