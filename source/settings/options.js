@@ -388,8 +388,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// frank sidebottom angle
 	eyeRatio:0.8,
 
-	// mouse hold for clicking in seconds 0.5 and more feels weird
-	mouseHoldDuration:0.4,
+	// mouse hold for clicking in millseconds 0.5s and more feels weird
+	// NB. if you use audioContext timer rather than Performance now then this will need to be 0.4!
+	mouseHoldDuration:400,
 
 	// for how many pixels do you have to drag before it becomes a swipe?
 	mouseGestureDistance:40,
