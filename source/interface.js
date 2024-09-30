@@ -2980,8 +2980,8 @@ export const createInterface = (
 						`and me, the PhotoSYNTH...`,
 						`A SMILE POWERED SYNTHESIZER...`,
 						`and psychedelic pop video machine!`,
-						`Change instruments and video effects by posing`,
-						`like your favourite emoji`
+						`Change instruments and video effects by posing...`,
+						`like your favourite emoji =P`
 					]
 
 					instructionTools.injectHelp(0, ...IEEESpecificInstructions )
