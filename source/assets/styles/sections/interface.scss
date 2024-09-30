@@ -462,7 +462,26 @@ p strong{
 	}
 }
 
-
+#face-buttons{
+	position: absolute;
+	height: 100%;
+	max-width: 100%;
+	width:calc(var(--width) / var(--height)  * 100vh );
+	left:50%;
+	transform: translateX(-50%);
+	margin:0;
+	padding:0;
+	border:0;
+	pointer-events: none;
+	
+	legend{
+		color:transparent;
+		border:0;
+	}
+	button{
+		pointer-events: auto;
+	}
+}
 // STATES /////////////////////////////////////////////////////
 
 
@@ -594,25 +613,7 @@ p strong{
 			grid-area:1/-1;
 		}
 
-		#face-buttons{
-			position: absolute;
-			height: 100%;
-			max-width: 100%;
-			width:calc(var(--width) / var(--height)  * 100vh );
-			left:50%;
-			transform: translateX(-50%);
-			margin:0;
-			padding:0;
-			border:0;
-			pointer-events: none;
-			legend{
-				color:transparent;
-			}
-			button{
-				pointer-events: auto;
-			}
-		}
-				
+
 		.canvas-full-size{
 			z-index: 1;
 			// position: relative;
