@@ -52,9 +52,9 @@ export const QUICK_START = [
 	// "TAB - show more info on screen",
 export const INSTRUCTIONS = [
 	"Welcome to the <strong>interFACE</strong>",
-	"Smile at the screen to begin =D",
 	"This isn't a musical isntrument that you learn to play...",
 	"This is a musical instrument that plays you!",
+	"Smile at the screen to begin =D",
 	"Open your mouth to make it louder!",
 	"Rock your head forwards and backwards to change octave",
 	"Roll your head left and right to change pitch",
