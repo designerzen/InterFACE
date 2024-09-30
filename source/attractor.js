@@ -45,13 +45,13 @@ export default class Attractor{
 		{
 			this.barCounter++
 
-			if (this.barCounter%BARS_BEFORE_CHANGING_DRUMS)
+			if (this.barCounter%BARS_BEFORE_CHANGING_DRUMS === 0)
 			{
 				this.application.setRandomDrumPattern()
 			}
 				
 			// toggles disco mode!
-			if (this.barCounter%BARS_BEFORE_TOGGLING_DISCO)
+			if (this.barCounter%BARS_BEFORE_TOGGLING_DISCO === 0)
 			{
 				// toggle if no arg passed
 				this.application.setDiscoMode()
