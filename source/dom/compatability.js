@@ -108,9 +108,15 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			
 			permissions.get("camera") === PERMISSION_GRANTED || permissions.get("camera") === PERMISSION_PROMPT
 
+		}else if (!capabilities.cameraAvailable){
+
+			document.body.classList.toggle("camera-unavailable", true)
+			cameraAvailability.textContent = `${cameras.length} Connected?`
+			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
+			console.warn("[FATAL] No camera available?")
 		}else{
 			// FATAL ERROR! No camera!
-			fatal = true
+			// fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
 			cameraAvailability.textContent = `${cameras.length} Connected`
 			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
