@@ -440,6 +440,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// ease:easeInSine // easeInSine // linear
 	// ease:easeInQuad // easeInSine // linear
 	// ease:easeOutSine // easeInSine // linear
+
+	scale:''
 }
 
 export const DEFAULT_CHILD_OPTIONS = {

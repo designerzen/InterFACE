@@ -141,7 +141,7 @@ export const NOTE_NAMES_POPULAR_FIRST = [...NOTE_NAMES]
  * @param {Boolean} isMinor 
  * @returns A1 Ab1 etc
  */
-export const getNoteName = (percent, octave=3, isMinor=false) => {
+export const getNoteName = (percent, octave=3, isMinor=false, scale=[] ) => {
 
 	// restrict to 1-7 even though 0 is available for many
 	// octave = clamp(octave, 1, 7)

@@ -62,7 +62,7 @@ export const makeScaleMode = (scaleNotes, modeNum) => {
     scaleIndex = (i+modeNum) % scaleNotes.length
     modeNotes.push(scaleNotes[scaleIndex])
   }
-  console.log("mode="+TUNING_MODE_NAMES[modeNum]+" notes="+modeNotes.toString())
+  console.log("makeScaleMode="+TUNING_MODE_NAMES[modeNum]+" notes="+modeNotes.toString())
   return modeNotes
 }
 
@@ -77,7 +77,7 @@ export const makeScaleModeFormula = (parentScaleFormula, modeNum) => {
     modeInterval = (parentScaleFormula[scaleIndex] - parentScaleFormula[modeNum] +12) % 12
     modeFormula.push(modeInterval)
   }  
-  console.log("mode="+TUNING_MODE_NAMES[modeNum]+" formula="+modeFormula.toString())
+  console.log("makeScaleModeFormula="+TUNING_MODE_NAMES[modeNum]+" formula="+modeFormula.toString())
   return modeFormula;
 }
 
