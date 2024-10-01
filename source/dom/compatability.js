@@ -89,19 +89,24 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
 			// FIXME: instructions for how to enable permission
-			cameraAvailability.textContent = `Camera may not be available`
+			cameraAvailability.textContent = `Camera permission required!`
 			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
 			
-		} else if (
-			capabilities.cameraAvailable &&
-			cameras.length > 0 && 
-			( permissions.get("camera") === PERMISSION_GRANTED || permissions.get("camera") === PERMISSION_PROMPT )
-		){
-			// TODO: Check for devices if permission has already been granted
-			cameraAvailability.textContent = `${cameras.length} Available`
+		} else if (capabilities.cameraAvailable && cameras.length > 0  ){
+			
+			// SUCCESS!
+			// permissions.get("camera") === PERMISSION_GRANTED
+			// permissions.get("camera") === PERMISSION_PROMPT
 			cameraAvailability.classList.remove(NOT_AVAILABLE)
 			cameraAvailability.classList.remove(CHECKING)
 			cameraAvailability.classList.add(AVAILABLE)
+			
+			// TODO: Check for devices if permission has already been granted
+			cameraAvailability.textContent = permissions.get("camera") === PERMISSION_PROMPT ?
+				`Camera Available but requires permission` :  
+				`${cameras.length} Available`
+			
+			permissions.get("camera") === PERMISSION_GRANTED || permissions.get("camera") === PERMISSION_PROMPT
 
 		}else{
 			// FATAL ERROR! No camera!
