@@ -78,7 +78,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			
 		if (!tableCamera || !cameraAvailability){
 			
-			fatal = true
+			//fatal = true
 			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
 			cameraAvailability.classList.remove(CHECKING)
 			document.body.classList.toggle("camera-unavailable", true)
@@ -112,7 +112,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 			// FATAL ERROR! No camera!
 			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
-			cameraAvailability.textContent = `${cameras.length} Available`
+			cameraAvailability.textContent = `${cameras.length} Connected`
 			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
 			console.warn("[FATAL] No camera available")
 		}	
