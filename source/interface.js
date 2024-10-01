@@ -374,10 +374,10 @@ export const createInterface = (
 
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
-	
-	kickTimbreOptions = PRESETS_KICKS[0]  
-	kickSnareOptions = PRESET_SNARES[0]
-	hatTimbreOptions = PRESET_HIHATS[0]
+
+	let kickTimbreOptions = PRESETS_KICKS[0]  
+	let kickSnareOptions = PRESET_SNARES[0]
+	let hatTimbreOptions = PRESET_HIHATS[0]
 
 	const setRandomDrumTimbres = () => {
 		kickTimbreOptions = PRESETS_KICKS[Math.floor(Math.random() * PRESETS_KICKS.length)]
