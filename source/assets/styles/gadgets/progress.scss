@@ -392,6 +392,8 @@ progress[value="1"] + label{
 	flex-direction: row;
 	box-shadow: none;
 
+	pointer-events: none;
+
 	progress{
 		grid-area:1/-1;
 		margin:0;
