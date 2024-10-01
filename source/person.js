@@ -997,19 +997,20 @@ export default class Person{
 				if (this.isMouseHeld)
 				{	
 					// user is holding mouse down on user...
-					display.drawInstrument( xMin, yMin, this.context, instrumentTitle, 'Select')			
+					display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
 					
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
-					display.drawParagraph( xMax, yMax + 40, [`Press me`], '14px' )
+					display.drawParagraph( xMax, yMax + 15, [`Press me`], '9px' )
 			
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
 				}else{
 
-					display.drawInstrument( xMin, yMin , instrumentTitle, `${100-percentageRemaining}`)			
+					display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
-					display.drawParagraph( xMax, yMax + 40, [`Hold me to see all instruments`], '14px' )		
+					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`], '9px' )		
+					display.drawParagraph( xMax, yMax + 40, [`Tap to select a random one`], '9px' )		
 				}
 
 			}else{
@@ -1042,7 +1043,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			display.drawInstrument(xMin, yMin , instrumentTitle, 'loading...')
+			display.drawInstrument(xMin, yMin , instrumentTitle, 'Loading...')
 
 		}else{
 
