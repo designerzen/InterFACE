@@ -140,6 +140,8 @@
 .interface.loaded{ 
 	background-color: black;
 
+	// prevent iOS from accidently scrolling the page
+	touch-action: none;
 	body{
 		grid-template-rows: 1fr auto;
 		// grid-template-rows:
