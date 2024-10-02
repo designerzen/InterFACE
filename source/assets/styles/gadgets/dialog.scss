@@ -24,8 +24,8 @@ dialog{
 	// top right is a fake close icon...
 	background-image: linear-gradient( white, var(--shade-white) );
 
-	max-height:  clamp( 420px, 100%, calc(100vh - 2 * var(--pad)));
-	max-width: clamp( 280px, 100%, calc(100vw - 2 * var(--pad)));
+	max-height:  clamp( 420px, 100%, calc(100vh - 4 * var(--pad)));
+	max-width: clamp( 280px, 100%, calc(100vw - 4 * var(--pad)));
 
 	// max-width:calc( 100% - var(--pad) * 4 );
 	// max-height:calc( 100% - var(--pad) * 4 );
@@ -149,8 +149,9 @@ dialog{
 	}
 
 	&::backdrop{
-		display: none;
+		// display: none;
 		pointer-events: none;
+		// background-color: var(--shade-white);
 	}
 
 	form[method=dialog]{
