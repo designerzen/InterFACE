@@ -557,7 +557,7 @@ export default class Person{
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
 		// ensure that the name is all lower case and kebabed
-		this.name = toKebabCase( NAMES[index])
+		this.name = toKebabCase( NAMES[index] ?? "person-" + index )
 
 		this.playerNumber = index
 
