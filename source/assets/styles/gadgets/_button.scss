@@ -216,6 +216,7 @@
 
 	// prevent icon squishing
 	flex: none;
+	font-size: 1rem;
 
 	// try and set to the size of the background icon
 	width:calc( var(--icon-visible,1) * var(--icon-size) );
