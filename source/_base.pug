@@ -25,6 +25,7 @@ html(lang="en-GB", class=classes)
 		//- Note. loading fonts require the presence of the crossOrigin attribute, even when loading the fonts from the same-origin. Source: https://github.com/w3c/preload/issues/32
 		link(rel="preload" as="font" href="./assets/fonts/oxanium/Oxanium[wght].ttf" crossOrigin)
 		link(rel="preload" as="font" href="./assets/fonts/lexend/LexendDeca-Regular.ttf" crossOrigin) 
+		link(rel="preload" as="font" href="./assets/fonts/ostritch/OstrichSans-Bold.woff2" crossOrigin) 
 	
 		block CSP
 			//- Context Security Policy
@@ -65,14 +66,18 @@ html(lang="en-GB", class=classes)
 		meta(name="msapplication-TileColor", content=accentColour)
 		meta(name="theme-color", content="#e4dede")
 		
-		//- Twitter
-		meta(property="og:image", content="assets/icons/og-image.jpg")
-		meta(property="og:image:height", content="268")
-		meta(property="og:image:width", content="512")
+		//- Open Graph
+		meta(property="og:image", content="./assets/icons/og-image.jpg")
+		meta(property="og:image:width", content="2100")
+		meta(property="og:image:height", content="630")
 		meta(property="og:description", content=package.description)
 		meta(property="og:title", content=name)
 		meta(property="og:url", content=URL)
 
+		//- Twitter
+		meta(property="twitter:image", content="./assets/icons/og-image.jpg")
+		meta(property="twitter:site" content="@designerzen")
+		//- meta(property="twitter:card" content="summary_large_image")
 		//- {tags && tags.map((tag) => <meta property="article:tag" content={tag} />) }
 
 		//- Humans.txt - https://humanstxt.org/
