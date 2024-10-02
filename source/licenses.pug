@@ -8,15 +8,16 @@ block nav
 block preload 
 
 block main
-	main#licenses
-		h3 Licenses
-		h4 Thanks
-		p This project could not have been made possible without the software with the following gracious licenses
-		//- include ../licenses.md
-		
-
+	main
 		section#licenses
-			include:markdown-it ./licenses.md
+			article 
+				header
+					h3 Licenses
+					h4 Thanks
+					p(aria-role="Summary") This project could not have been made possible without the software with the following gracious licenses
+				//- include ../licenses.md
+			
+				include:markdown-it ./licenses.md
 
 block footer
 	a(href="#").back-to-top Jump back to the top
