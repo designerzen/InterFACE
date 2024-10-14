@@ -55,7 +55,9 @@ html{
 
 // add some background textures
 body{
-	background-image:  linear-gradient( rgba($col-white, 0.9),rgba($col-white, 048),  rgba($col-dark, 0.2), rgba($col-dark, 0.98) );
+
+	background-image: 
+		linear-gradient( rgba($col-white, 0.9),rgba($col-white, 048),  rgba($col-dark, 0.2), rgba($col-dark, 0.98) );
 
 	// we have four layers of background
 	background-size: 	100%,

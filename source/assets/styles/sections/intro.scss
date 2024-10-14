@@ -1,12 +1,7 @@
 // Top section that contains the header text and loader
 #intro {
 
-	// height is 100% - the margins
-	// min-height: calc(100% - 2 * var(--pad));
-	min-height: calc(100vh - 2 * var(--pad));
-	min-height: calc(100dvh - 2 * var(--pad));
-
-	max-width: 1080px;
+	max-width: var(--viewport-max-width, 1080px);
 
 	grid-gap: var(--pad);
 
@@ -19,12 +14,9 @@
 	border-radius: var(--curve);
 
 	// text-align: center;
-	display: grid;
 	flex-direction: column;
 	align-items: stretch;
 	justify-items: center;
-
-	// above the 
 	position: relative;
 	z-index: 909;
 
@@ -125,8 +117,18 @@
 		// margin-bottom:var(--pad);
 		margin-top: var(--pad); //auto;
 	}
+}
 
-	// layouts
+.interface #intro {
+	
+	// height is 100% - the margins
+	// min-height: calc(100% - 2 * var(--pad));
+	min-height: calc(100vh - 2 * var(--pad));
+	min-height: calc(100dvh - 2 * var(--pad));
+
+	// layouts	
+	display: grid;
+
 	grid-template-areas: 
 		"heading"
 		"poster"

@@ -159,6 +159,9 @@
 		z-index:-1;
 		position:absolute;
 
+		border: inherit;
+		border-top:0;	// for arrow on base
+
 		// now we have a special case of when on the right hand side...
 		left: clamp( var(--pad, 0%), var(--triangle-x), calc(100% - var(--triangle-size) - var(--pad) ) );
 	
