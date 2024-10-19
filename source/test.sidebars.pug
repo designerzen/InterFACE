@@ -100,10 +100,10 @@ block scripts
 
 			const outputAudioNode = getRecordableOutputNode()
 			
-			const personA = new Person( "PersonA" )
-			const personB = new Person( "PersonB" )
-			const personC = new Person( "PersonC" )
-			const personD = new Person( "PersonD" )
+			const personA = new Person( 0 )
+			const personB = new Person( 1 )
+			const personC = new Person( 2 )
+			const personD = new Person( 3 )
 	
 			// setup audio for each person
 			await personA.setupAudio( audioContext, outputAudioNode )

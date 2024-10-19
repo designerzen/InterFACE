@@ -1,28 +1,75 @@
 
-details{
+// Details & Summary ----------------------------------------
+
+
+:where(details){
+	pointer-events: auto;
+	display: block;
 	
 	align-self: center;
 	justify-self: stretch;
 
-	summary::marker{
-		content:'';
-	}
+	// FIX: allow transitions for visibilty and auto
+	interpolate-size: allow-keywords; 
 
+	transition: height 0.25s ease-in;
+	
+	> summary{
+		display: grid;
+		grid-template-areas:"marker summary";
+
+		cursor:pointer;
+		cursor:copy;
+		
+		user-select:none;
+		pointer-events: auto;
+		display: inline-flex;
+		box-sizing:border-box;
+		list-style: none;
+
+		&::before{
+			content:'×';
+			color:inherit;
+			font-size: inherit;
+			transform: rotate(45deg);
+			transform-origin: center;
+			display: inline-block;
+			transition: transform var((--ease-s)) var(--ease-out-back);
+			transition-delay: 0.4s;
+			margin-right: calc( var(--pad) * 0.5 );
+			grid-area:marker; 
+		}
+	
+		&:is( 
+			::marker, 
+			::-webkit-details-marker 
+		){
+			content:'';
+			display:none;
+			grid-area:marker; 
+		}
+	}	
+}
+
+:where(details[open]) {
+
+	// hide default marker
+	// summary::marker {
+	// 	display:inline-block;
+	// 	opacity:1;
+	// 	color: inherit;
+	// }
+	
 	summary::before{
-		content:'×';
-		transform: rotate(45deg);
-		transform-origin: center;
-		display: inline-block;
-		transition: transform var((--ease-s)) var(--ease-out-back);
-		transition-delay: 0.4s;
-		margin-right: calc( var(--pad) * 0.5 );
-	}
-
-	&[open] summary::before{
 		transform: rotate(0deg);
 	}
+}
 
-	// > *:not(summary){
-	// 	border:var(--border,1px) solid var(--shade-white);
-	// }
+::details-content {
+	transition: content-visibility, height;
+	transition-behavior: allow-discrete;
+}
+
+[open]::details-content { 
+	height: auto; 
 }

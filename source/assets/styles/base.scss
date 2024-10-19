@@ -126,40 +126,6 @@ abbr{
 }
 
 
-// Details & Summary ----------------------------------------
-:where(details){
-	pointer-events: auto;
-	display: grid;
-	grid-template-areas: none
-		"marker summary"
-		"details details"
-	;
-
-	> summary{
-		cursor:pointer;
-		user-select:none;
-		pointer-events: auto;
-		display: inline-flex;
-		box-sizing:border-box;
-		grid-area: summary;
-		list-style: none;
-		// for UX we need to stretch to fill the box		
-
-		&::marker {
-			display:none;
-		}
-		&::-webkit-details-marker {
-			display: none;
-		}
-	}	
-}
-
-:where(details[open]) {
-	summary::marker {
-		display:inline-block;
-		opacity:1;
-	}
-}
 
 // FIGURE ----------------------------------------------
 
