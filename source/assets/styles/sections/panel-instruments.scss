@@ -316,8 +316,8 @@
 
 	summary{
 		background-color:var(--shade-gray);
-		color:var(--shade-blue, blue);
-		// border:var(--border,1px) solid var(--shade-white);
+		color:var(--shade-dark, blue);
+		border-top:var(--border,1px) solid var(--shade-white);
 		
 		position: sticky;
   	 	// bottom: 0;
@@ -326,6 +326,9 @@
 		// ensure vertically aligns
 		align-items: center;
 		line-height: inherit;
+		display: flex;
+		gap: calc(var(--pad)/2);
+
 
 		/*
 		// glass effect
@@ -344,6 +347,11 @@
 			transparent
 		);
 		*/
+
+		&::before{
+			font-size:186%;
+			order:303;
+		}
 	}
 
 	:where(details + details){
