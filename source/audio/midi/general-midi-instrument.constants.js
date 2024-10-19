@@ -142,7 +142,7 @@ export const GUNSHOT = "Gunshot"
 
 
 export const FAMILY_PIANO = "Piano"
-export const FAMILY_CHROMATIC_PERCUSSION = "Chromatic Percussion"
+export const FAMILY_CHROMATIC_PERCUSSION = "Percussion" //  "Chromatic Percussion"
 export const FAMILY_ORGAN = "Organ"
 export const FAMILY_GUITAR = "Guitar"
 export const FAMILY_BASS = "Bass"
@@ -155,7 +155,7 @@ export const FAMILY_SYNTH_LEAD = "Synth Lead"
 export const FAMILY_SYNTH_PAD = "Synth Pad"
 export const FAMILY_SYNTH_EFFECTS = "Synth Effects"
 // some rasict shit right here akin to "world" music
-export const FAMILY_ETHNIC = "Ethnic"
+export const FAMILY_ETHNIC = "Folk" // "Ethnic"
 export const FAMILY_PERCUSSIVE = "Percussive"
 export const FAMILY_SOUND_FX = "Sound Effects"
 	
