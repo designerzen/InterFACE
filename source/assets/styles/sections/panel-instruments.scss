@@ -310,9 +310,12 @@
 	// }
 
 	// // expanded state
-	// details[open] {
-	// 	border:0;
-	// }
+	details[open] {
+		@starting-style {
+			height: min-height;
+		  }		
+		  height: fit-height;
+	}
 
 	summary{
 		background-color:var(--shade-gray);
