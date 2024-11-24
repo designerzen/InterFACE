@@ -41,6 +41,7 @@ block main
 
 		//- tooltip element
 		p(role="status" aria-live="polite" popover="manual")#feedback Loading please wait!
+		
 		include partials/toast.pug
 		
 		//- control panel with multi-levels
@@ -56,9 +57,13 @@ block styles
 		}
 		#button-video{
 			z-index:-1;
+			pointer-events:none;
 		}
 		.controls{
 			visibility:visible;
+		}
+		#toast{
+			opacity:1 !important;
 		}
 
 block scripts
@@ -67,22 +72,23 @@ block scripts
 		//- 
 		import { setupThemeControls} from './theme/theme.js'
 		import { createRadialMenu} from './dom/radial-menu.js'
-		import { addToolTips} from './dom/tooltips.js'		
-			
+		import { addToolTips, showTooltip, setToolTipPosition, setToolTipCoordinates } from './dom/tooltips.js'		
 		import { setupVolumeInterface } from './dom/ui.volume.js'
 		import { setupTempoInterface } from './dom/ui.tempo.js'
 		import { setupInterface} from './dom/ui.js'
+		import State, { EVENT_STATE_CHANGE, loadState, getState, setState, refreshState, createStateFromHost } from './utils/state'
 
 		import Person from './person.js'
 
 		const start = async () => {
+			console.info("Now looking for tooltips")
 
-			const options = {}
-
+			const state = createStateFromHost()
+			
 			//- test for buttons and gadgets
 			setupThemeControls( document.getElementById('select-theme') )
 			//- setupTempoInterface(timer)
-			setupInterface( options )
+			setupInterface(  state.asObject  )
 
 			const volume = 0.8
 			const {	setVisualVolumeLevel, toggleMute } = setupVolumeInterface( volume, false, function onVolumeChanged(vol){
@@ -93,18 +99,36 @@ block scripts
 			// this just adds some visual onscreen tooltips to the buttons specified
 
 			const controlPanel = document.getElementById("control-panel")
-			addToolTips( document.body )
-
-			const personA = new Person( "PersonA" )
-			const personB = new Person( "PersonB" )
-			const personC = new Person( "PersonC" )
-			const personD = new Person( "PersonD" )
 	
-			// setup the form for each person!
-			await personA.setupForm()
-			await personB.setupForm()
-			await personC.setupForm()
-			await personD.setupForm()
-		}
+			const personA = new Person( 0 )
+			const personB = new Person( 1 )
+			const personC = new Person( 2 )
+			const personD = new Person( 3 )
+	
+			try{
+				// setup the form for each person!
+				await personA.setupForm()
+				await personB.setupForm()
+				await personC.setupForm()
+				await personD.setupForm()
+			}catch(error){
+				// probably no active instruments set
+				console.error(error)
+			}
+				
+			// track mouse movements
+			//- document.addEventListener( "mousemove", e => {
+			//- 	console.log("Tip", e.clientX, e.clientY)
+			//- 	setToolTipCoordinates( e.clientX, e.clientY )
+			//- 	showTooltip( `x:${e.clientX} y:${e.clientY} ${e.target.id}` )
+			//- } )
 
-		document.addEventListener( "DOMContentLoaded", e => start() )
+			// add tooltips to the buttons
+			addToolTips( document.body )
+		}
+	
+		// why must we wait for the DOM to load?
+		const delayCall = () =>{
+			setTimeout( start, 1000 )
+		} 
+		document.addEventListener( "DOMContentLoaded", e => delayCall() )

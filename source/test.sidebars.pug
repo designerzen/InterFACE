@@ -69,6 +69,8 @@ block scripts
 
 			const state = createStateFromHost()
 
+			console.info("Now looking for tooltips", {state})
+			
 			// hook unto the audio controls...
 			const audio = await setupAudio()
 			console.info("Setting audio to ",{audio, audioContext})
@@ -126,4 +128,8 @@ block scripts
 			setupInterface( state.asObject )
 
 		}
-		document.addEventListener( "DOMContentLoaded", e => start() )
+
+		const delayCall = () =>{
+			setTimeout( start, 1000 )
+		} 
+		document.addEventListener( "DOMContentLoaded", e => delayCall() )
