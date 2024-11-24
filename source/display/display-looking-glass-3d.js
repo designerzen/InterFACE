@@ -36,8 +36,7 @@ import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js'
 import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 
 import DisplayWebGL3D from "./display-webgl-3d"
-
-export const DISPLAY_LOOKING_GLASS_3D = "DisplayLookingGlass3D"
+import { DISPLAY_LOOKING_GLASS_3D } from './display-types'
 
 // Settings
 const LOOKING_GLASS_PORTRAIT_WIDTH = 480

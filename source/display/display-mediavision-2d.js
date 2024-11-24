@@ -21,8 +21,11 @@ import { drawFace } from "../visual/2d.face"
 
 import MEDIAVISION__WORKER_URI from 'url:./display-mediavision-2d.worker.js'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
+import { DISPLAY_MEDIA_VISION_2D } from "./display-types.js"
 
-export const DISPLAY_MEDIA_VISION_2D = "DisplayMediaVision2D"
+const DEFAULT_OPTIONS = {
+	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
+}
 
 /**
  * Canvas based front end engine
@@ -33,8 +36,9 @@ export default class DisplayMediaVision2D extends Display2D{
 	name = DISPLAY_MEDIA_VISION_2D
 	worker
 
-	constructor( canvas, initialWidth, initialHeight ){
-		super( canvas, initialWidth, initialHeight)
+	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS ){
+		options = Object.assign({}, DEFAULT_OPTIONS, options)
+		super( canvas, initialWidth, initialHeight, options)
 		
 		// console.error( "DisplayMediaVision2D", this.canvas, canvas instanceof OffscreenCanvas)
 		

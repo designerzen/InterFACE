@@ -48,24 +48,25 @@ export const loadDisplayClass = async( type ) => {
  * @param {String} displayType 
  * @returns 
  */
-export const createDisplay = async (canvasElement, displayType) => {
+export const createDisplay = async (canvasElement, displayType, options ) => {
 
 	// set the canvas to the size of the video / image
 	// display = new Display( webGLElement, inputElement.width, inputElement.height )
-	
+	console.warn("DISPLAY:Creating new", canvasElement, displayType, options)
+		
 	switch(displayType)
 	{
 		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D:
 			// NB. Make sure you set this to a WEB_GL context!
 			const {default:DisplayWebGL3D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_WEB_GL_3D )
-			const displayWebGL3D = new DisplayWebGL3D( canvasElement, canvasElement.width, canvasElement.height )
+			const displayWebGL3D = new DisplayWebGL3D( canvasElement, canvasElement.width, canvasElement.height, options )
 			await displayWebGL3D.loading
 			return displayWebGL3D
 
 		case DISPLAY_TYPES.DISPLAY_COMPOSITE:
 			// Allows mulltiple displays to be simultaneously powered!
 			const {default:DisplayComposite} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_COMPOSITE )
-			const displayComposite = new DisplayComposite( canvasElement, canvasElement.width, canvasElement.height )
+			const displayComposite = new DisplayComposite( canvasElement, canvasElement.width, canvasElement.height, options )
 			// display.addDisplay(displayMediaVision2D)
 			// return await loadDisplay( DISPLAY_COMPOSITE )
 			return displayComposite
@@ -76,15 +77,15 @@ export const createDisplay = async (canvasElement, displayType) => {
 		
 			// TODO: Sniff hardware connected to determine if we want XR?
 			const lookingGlassWebXR = before()
-			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {lookingGlassWebXR} )
+			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR} )
 			await displayLookingGlass3D.loading
 			return displayLookingGlass3D
 
 		case DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D:
 		default:
-			// Media Videion ML Model and Canvas 2D
+			// Media Vision ML Model and Canvas 2Ds
 			const {default:DisplayMediaVision2D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D )
-			const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, canvasElement.width, canvasElement.height )
+			const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, canvasElement.width, canvasElement.height, options )
 			await displayMediaVision2D.loading
 			return displayMediaVision2D
 	}
@@ -137,7 +138,7 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
  * @param {String} displayType 
  * @returns 
  */
-export const changeDisplay = async(canvasElement, displayType, renderLoop ) => {
+export const changeDisplay = async(canvasElement, displayType, renderLoop, options ) => {
 	
 	if (!canvasElement)
 	{
@@ -165,7 +166,7 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop ) => {
 	
 	// async or load direct
 	// display = await createEmbeddedDisplay(newCanvasElement, displayType)
-	display = await createDisplay(newCanvasElement, displayType)
+	display = await createDisplay(newCanvasElement, displayType, options)
 
 	if (renderLoop)
 	{

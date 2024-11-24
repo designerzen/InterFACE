@@ -5,11 +5,11 @@ import { drawBars } from "../visual/spectrograms"
 import Display2D from "./display-canvas-2d"
 
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options"
+import { DISPLAY_MEDIA_PIPE_2D } from "./display-types"
 
 export const LOOKING_GLASS_PORTRAIT_WIDTH = 480
 export const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
 
-export const DISPLAY_MEDIA_PIPE_2D = "DisplayMediaPipe2D"
 
 const DEFAULT_OPTIONS = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
@@ -24,8 +24,8 @@ export default class DisplayMediaPipe2D extends Display2D{
 	name = DISPLAY_MEDIA_PIPE_2D
 
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS ){
+		options = Object.assign({}, DEFAULT_OPTIONS, options)
 		super(canvas, initialWidth, initialHeight, options)
-		this.loadComplete("ready")
 	}
 
 	/**

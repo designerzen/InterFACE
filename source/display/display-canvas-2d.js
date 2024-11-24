@@ -12,7 +12,9 @@ import { drawBars } from "../visual/spectrograms"
 import { drawInstrument, drawParagraph } from "../visual/2d.text"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
-export const DISPLAY_CANVAS_2D = "DisplayCanvas2D"
+import Stats from 'stats-gl'
+import { DISPLAY_CANVAS_2D } from "./display-types.js"
+
 
 const DEFAULT_FILTER = {
 	name:"source-over",
@@ -137,6 +139,13 @@ const FILTER_LIBRARY = [
 ]
 //.reverse()
 
+const DEFAULT_OPTIONS_DISPLAY_CANVAS = {
+	offscreen:false,
+	debug:false,
+	stats:false
+}
+let stats
+
 /**
  * Canvas based front end engine for Tensor flow @media pipe
  * new Display2D( document.getElementById('interface') ) // document.querySelector("canvas")
@@ -178,18 +187,125 @@ export default class Display2D extends AbstractDisplay{
 		return (this.filterIndex + 1) % (FILTER_LIBRARY.length-1)
 	}
 
-	constructor( canvas, initialWidth, initialHeight, offscreen=false )
+	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_CANVAS )
 	{
-		super( offscreen && hasOffscreenCanvasCapability() ? canvas.transferControlToOffscreen() : canvas, initialWidth, initialHeight)
+		const applicableCanvas = options.offscreen && hasOffscreenCanvasCapability() ? canvas.transferControlToOffscreen() : canvas
+		options = Object.assign( {}, DEFAULT_OPTIONS_DISPLAY_CANVAS, options )
+		super( applicableCanvas, initialWidth, initialHeight, options )
 		// immediately fetch context?  this is useful for immediate rendering
 		// NB. this will destroy the offscreen canvas
-		if (!offscreen) 
+		if (!options.offscreen) 
 		{
 			// this.getContext
 		}
-		this.available = true
-		this.loadComplete("ready")
+
+		this.create(applicableCanvas, options).then( e=>{
+			this.loadComplete("ready")
+		}).catch(error => {
+			console.error("ERROR loading display root data", error)
+			this.loadComplete("failed")
+		})
+	}
+
+	/**
+	 * Finds canvas
+	 */
+	async create( canvas, options)
+	{
+		
 		canvas.addEventListener("click", e => this.nextFilter() )
+		
+		if (options.debug)
+		{
+			this.addDebugElements()
+		}
+			
+		if (options.stats)
+		{
+			this.addStats( canvas )
+		}
+
+		this.available = true
+		return true
+	}
+
+	async destroy(){
+
+		if (stats)
+		{
+			this.removeStats()
+		}
+
+		if (this.available)
+		{
+
+		}
+		return false
+	}
+
+	render(){
+		if (stats)
+		{
+			stats.update()
+		}
+		super.render()		
+	}
+
+	
+	addDebugElements(){
+
+	}
+
+	
+	/**
+	 * Stats Options
+	 * logsPerSecond: How often to log performance data, in logs per second. graphsPerSecond: How often to update the graph, in graphs per second.
+	 * trackGPU: A boolean value to enable or disable GPU tracking.
+	 * trackHz: A boolean value to enable or disable Hz tracking.
+	 * trackCPT: (Threejs specific) A boolean value to enable or disable Threejs Compute Shading tracking.
+	 * samplesLog: Number of recent log samples to keep for computing averages.
+	 * samplesGraph: Number of recent graph samples to keep for computing averages.
+	 * precision: Precision of the data, in number of decimal places (only affects CPU and GPU).
+	 * minimal: A boolean value to control the minimalistic mode of the panel display. If set to true, a simple click on the panel will switch between different metrics.
+	 *  mode: Sets the initial panel to display - 0 for FPS, 1 for CPU, and 2 for GPU (if supported).
+	 *  horizontal: Display the canvases on the X axis, set to align on vertical axis.
+	 * 
+	 */
+	addStats(canvas){
+		if (!stats)
+		{
+			const statsOptions = {
+				trackGPU: false,
+				trackHz: true,
+				trackCPT: false,
+				logsPerSecond: 2,
+				graphsPerSecond: 3,	// (30)
+				samplesLog: 4, 
+				samplesGraph: 10, 
+				precision: 2, 
+				horizontal: true,
+				minimal: true, 
+				mode: 0
+			}
+			stats =  new Stats(statsOptions)
+			stats.init(canvas)
+		}
+		if (!document.getElementById("#realtime-statistics"))
+		{
+			const element = document.body.appendChild(stats.dom)
+			element.id="realtime-statistics"
+			element.className="statistics"
+		}
+	}
+
+	removeStats(){
+		if (stats)
+		{
+			document.body.removeChild(stats.dom)
+			stats.end()
+			stats.destroy()
+			stats = null
+		}
 	}
 
 	/**
@@ -239,7 +355,7 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Person} person 
 	 */
 	drawPerson( person, beatJustPlayed, colours, options={} ){
-		const prediction = person.data
+		//const prediction = person.data
 		// Person drawn to screen
 		// let's position our face button
 		// if (this.count%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)

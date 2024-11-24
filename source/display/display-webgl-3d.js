@@ -32,7 +32,7 @@ import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompas
 import {Text, getCaretAtPoint} from 'troika-three-text'
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import Stats from 'three/examples/jsm/libs/stats.module'
+
 
 // Assets :
 // import FACE_MATERIAL from '/source/assets/actors/ICTFaceModelMaterial.mtl'
@@ -65,7 +65,11 @@ import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 import DATA_SOURCE from 'url:/source/tests/test.face.json'
 
-export const DISPLAY_WEB_GL_3D = "DisplayWebGL3D"
+// https://stats.renaudrohlinger.com/
+// import Stats from 'three/examples/jsm/libs/stats.module'
+import Stats from 'stats-gl'
+import { DISPLAY_WEB_GL_3D } from "./display-types.js"
+
 
 // if you want post processing
 // import { OverrideMaterialManager } from 'postprocessing'
@@ -90,18 +94,19 @@ let DATA
 
 export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	colour:0xff44ee,
-	quantity :KEYPOINT_QUANTITY * 3,
+	quantity: KEYPOINT_QUANTITY * 3,
 	fx:true,
 	antialias: true, 
 	alpha: true,
 	lightColour:0xcccccc,
 	lightIntensity: 0.7,
 	fog:false,
-	showStats:true,
 	particeSize:0.03,
 	opacity:1,
 	mouse:false,
-	debug:false
+	debug:false,
+	stats:false,
+	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
 }
 
 // coord for top lip center
@@ -146,6 +151,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_WEBGL ){
 		console.log("WEBGL Creating Display", { canvas, initialWidth, initialHeight, options} )
+		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_WEBGL, options)
 		super(canvas, initialWidth, initialHeight, options)
 		this.create(options.quantity, options).then( e=>{
 			// ensure that hte canvas is in the DOM
@@ -155,14 +161,14 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			}	
 
 			fetch(DATA_SOURCE).then(response => {
-				console.error("LOADIG DATA FOR WEBGL 3D!")
+				console.info("LOADING DATA FOR WEBGL 3D!")
 				DATA = response.json()
 				this.loadComplete("ready")
 			}).catch(error => {
 				console.error("ERROR loading display root data", error)
 				this.loadComplete("failed")
 			}).finally(() => {
-				console.log("WEBGL Connected and actors intiated", canvas, options, this.particles )
+				console.info("WEBGL Connected and actors intiated", canvas, options, this.particles )
 			})
 
 		})	
@@ -210,7 +216,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		const response = await fetch(DATA_SOURCE)
 		DATA = await response.json()
-		debugger
+		//debugger
 		
 		options = {
 			...DEFAULT_OPTIONS_DISPLAY_WEBGL,
@@ -328,7 +334,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			this.addDebugElements()
 		}
 		
-		if (options.showStats)
+		if (options.stats)
 		{
 			this.addStats()
 		}
@@ -543,10 +549,39 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.controls
 	}
 
+	/**
+	 * Stats Options
+	 * logsPerSecond: How often to log performance data, in logs per second. graphsPerSecond: How often to update the graph, in graphs per second.
+	 * trackGPU: A boolean value to enable or disable GPU tracking.
+	 * trackHz: A boolean value to enable or disable Hz tracking.
+	 * trackCPT: (Threejs specific) A boolean value to enable or disable Threejs Compute Shading tracking.
+	 * samplesLog: Number of recent log samples to keep for computing averages.
+	 * samplesGraph: Number of recent graph samples to keep for computing averages.
+	 * precision: Precision of the data, in number of decimal places (only affects CPU and GPU).
+	 * minimal: A boolean value to control the minimalistic mode of the panel display. If set to true, a simple click on the panel will switch between different metrics.
+	 *  mode: Sets the initial panel to display - 0 for FPS, 1 for CPU, and 2 for GPU (if supported).
+	 *  horizontal: Display the canvases on the X axis, set to align on vertical axis.
+	 * 
+	 */
 	addStats(){
+		
 		if (!stats)
 		{
-			stats = new Stats()
+			const statsOptions = {
+				trackGPU: true,
+				trackHz: true,
+				trackCPT: false,
+				logsPerSecond: 4,
+				graphsPerSecond: 30,
+				samplesLog: 40, 
+				samplesGraph: 10, 
+				precision: 2, 
+				horizontal: true,
+				minimal: false, 
+				mode: 0
+			}
+			stats =  new Stats(statsOptions)
+			stats.init( this.renderer )
 		}
 		if (!document.getElementById("#realtime-statistics"))
 		{
@@ -559,6 +594,9 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		if (stats)
 		{
 			document.body.removeChild(stats.dom)
+			stats.end()
+			stats.destroy()
+			stats = null
 		}
 	}
 
@@ -1247,6 +1285,11 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 			this.composer.render()
 		}else if (this.renderer){
 			this.renderer.render( this.scene, this.camera )	
+		}
+
+		if (stats)
+		{
+			stats.update()
 		}
 		
 		this.count = (this.count + 1 ) % MAX_COUNT

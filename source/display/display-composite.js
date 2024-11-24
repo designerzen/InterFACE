@@ -3,8 +3,7 @@
  */
 
 import AbstractDisplay from "./display-abstract"
-
-export const DISPLAY_COMPOSITE = "DisplayComposite"
+import { DISPLAY_COMPOSITE } from "./display-types"
 
 export default class DisplayComposite extends AbstractDisplay{
 	
