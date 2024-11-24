@@ -26,6 +26,7 @@ block scripts
 	script(type="module" src="index.js")
 
 block main
+
 	main#app(aria-describedby="progress-bar")
 		h3(screenreader-only)#title Augmented Reality Synthesizer
 		h4(screenreader-only)#subtitle 
@@ -70,5 +71,73 @@ block main
 				This application requires javascript to work unfortunately and doesn't do much without it. 
 				You can install 
 
+	#affiliates
+		block affiliates
+			h3 Affiliates and Representatives
+			ul
+				
+				li: a(href="https://amicdrakemusic.wordpress.com/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Available at</small>Accessible Musical Instrument Collection
+						img(src="./assets/logos/amic.svg" alt="Accessible Misical Instrument Collection")
+				
+				li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Represented by</small>Audience of the Future
+						img(src="./assets/logos/aotf.svg" alt="Audience of the Future")
+				
+				li: a(href="https://browserstack.com/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Supported by</small>Browserstack
+						img(src="./assets/logos/browserstack.svg" alt="Browserstack")
+				
+				li: a(href="https://www.drakemusic.org/pages-that-are-currently-not-live-on-the-site/instrument-led-projects/photosynth-by-zenon-olenski/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Supported by</small>Drake Music
+						img(src="./assets/logos/drakemusic.svg" alt="Drake Music")
+				
+				li: a(href="https://www.emfcamp.org/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Presented at</small>Electromagnetic Fields
+						img(src="./assets/logos/emf.svg" alt="Electromagnetic Fields")
+				
+				li: a(href="https://internetofsounds.net/1st-international-workshop-on-the-musical-metaverse/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Showcased at</small>IEEE 1st International Meeting of the Musical Metaverse
+						img(src="./assets/logos/ieee-logo.svg" alt="IEEE 1st International Meeting of the Musical Metaverse")
+				
+				li: a(href="https://www.midi.org/component/zoo/item/photosynth-interface?Itemid=1423" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>2nd Place at</small>MIDI Innovation Awards 2021
+						img(src="./assets/logos/midi-innovation-finalist-21.svg" alt="MIDI Innovation Award Finalist 2021")
+				
+				li: a(href="https://www.makermusicfestival.com/projectdirectory/interface/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Presented at</small>Music Maker Festival
+						img(src="./assets/logos/mmf.svg" alt="Music Maker Festival")
+				
+				li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Showcased at</small>SXSW<br>South By South West
+						img(src="./assets/logos/sxsw-logo.svg" alt="South By South West")
+				
+				li: a(href="https://futureeverything.org" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Supported by</small>Future Everything
+						img(src="./assets/logos/future-everything.svg" alt="Future Everything")
+				
+				li: a(href="https://wac2022.i3s.univ-cotedazur.fr/node/27" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Showcased at</small>Web Audio Conference
+						img(src="./assets/logos/wac.svg" alt="Web Audio Conference")
+				
+				li: a(href="https://web.mit.edu/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Showcased at</small>MIT<br>Massachusetts Institute of Technology
+						img(src="./assets/logos/mit-logo.svg" alt="Massachusetts Institute of Technology")
+
+	small#attributions
+		block attributions
+		
 block dialogs 
 	include partials/dialogs.pug
