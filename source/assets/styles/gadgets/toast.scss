@@ -1,33 +1,78 @@
+$ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
+
 // Feedback text that pops up and dissappears
 // position and orientation are set using --left and --top
 // these are pixel dimensions of the screen width
+.tooltip,
 #toast{
 
-	// far right extent
-	--max-horizontal-percent:78vw;
-	// lowest extent
-	--min-vertical-pixels:calc( var(--footer-gap, 44px)  );// + var(--pad)
+	// Settings :
+	--arrow-tip:12px;
+	
+	// fancy triangle pointer dimensions
+	--triangle-size:2ex;
 
-	// PUBLIC : change these
+	// background colour
+	--col-bg:var(--shade-dark);
+
+	// --- INTERNAL ---
+
+	// PUBLIC : change these via javascript and set in PIXELS to move it around
+	// NB. These set the transform and not the absolute position
 	--left:0;
 	--top:0;
+
+	// --- DO NOT SET----
+
+	// far right extent of left side
+	// which is the full 100% width of the screen
+	// minus the width of the tooltip, minus the padding
+	// |                >             |
+	--max-horizontal-percent:calc(100vw - 100% - 2 * var(--pad));
+	// --max-horizontal-pixels:calc( var(--footer-gap, 44px)  );// + var(--pad)
+
+	// lowest extent - do not let above this Y position
+	--min-vertical-pixels:calc(2 * var(--pad)); // calc( var(--footer-gap, 44px)  );// + var(--pad)
+	
+	// largest y extent
+	--max-vertical-pixels:calc(100dvh - 2 * var(--pad) - 100%); // calc( var(--footer-gap, 44px)  );// + var(--pad)
+
+	// what do we consider the top half of the screen?
+	--top-half:50vh;
 
 	// INTERNAL : DO NOT CHANGE
 	--xInPx:calc(1px * var(--left, 0));
 	--yInPx:calc(1px * var(--top, 0));
 
-	// fancy triangle pointer dimensions
-	--triangle-size:1rem;
-
 	// we never want the tooltip to drift outside the ranges
 	// so this restricts the range from 44px -> full
-	--y:max( var(--min-vertical-pixels,100%), var(--yInPx));
-	// FIXME: is this above or below 50vh? - 0 or 1
-	--_ybool:clamp(0, calc( 999 * (var(--top) / 250  )), 1);
+	--y:clamp( 
+		var(--min-vertical-pixels,100%), 
+		var(--yInPx),
+		var(--max-vertical-pixels)
+	);
+	
+	// is this above or below 50vh? - 0 or 1
+	--_ybool:clamp(
+		0, 
+		calc( 999 * (var(--y) / var(--top-half, 50vh)  )), 
+		1
+	);
+	
+	// https://css-tricks.com/using-absolute-value-sign-rounding-and-modulo-in-css-today/
 	// --_ybool:clamp(0, calc( 999 * (var(--yInPx) - 50vh )), 1);
-	--_yflip:clamp(-1, calc( 2 * (var(--_ybool) -1 ) ), 1);
+	// change range from 0->1 to -1->1
+	--_above-fold-flipper:calc( 2 * (var(--_ybool) -1 ) );
+	// reverse it so from -1->1 to 1->-1
+	--_below-fold-flipper:calc(-1 * var(--_above-fold-flipper) );
+		
+	// X in pixels
+	--x:clamp(
+		var(--pad), 
+		var(--xInPx) - var(--position-offset-x,0), 
+		var(--max-horizontal-percent) 
+	);
 
-	--x:clamp(var(--pad),calc(var(--xInPx) - var(--position-offset-x,0) ), var(--max-horizontal-percent) );
 	--_x:var(--x);
 	// --v:calc( var(--left) * 1px - var(--_x) );
 
@@ -37,6 +82,9 @@
 
 	// remaing widths
 	--max-width:calc( 100dvw - var(--pad) * 4 - var(--x) ); 
+	--max-chars:16ch;
+
+	// --max-width:calc( 100vw - var(--pad) * 6 - var(--x) ); 
 	--min-width:calc( var(--d) + var(--pad) * 2 );
 
 	// horizontal offset to accodomdate for the traingle pointer
@@ -46,33 +94,25 @@
 	--is-gt-320:clamp( 0, var(--top) / 320 , 1);
 	--is-lt-320:calc( 1 - var(--is-gt-320) );
 
-	margin: 0;
-	
 	// prevent any kind of interactions
 	pointer-events: none;
 	user-select: none;
 	
-	// bring above everything (popover also used
-	z-index:909;
+	// scaling type
+	font-size:clamp(9px, var(--font-size), 14px);
 
-	position: absolute;
-	padding: calc( var(--pad) * 1);
+	// bring above everything (popover also used!)
+	z-index:1066;
 	
 	// fix position once popover
 	bottom: unset;
 	right:unset;
-	// squish all the way down left as fallback for without clamp
-	// left:var(--_x);
-	// or stop at min-width
 	left:0;
-	top:0;	
-	// left:var(--x, unset);
-	// top:var(--y, unset);
-	// top:calc( 100vh - var(--y) );
-	// bottom:0;
-	//right:calc( var(--pad) );
-	//bottom:calc( var(--footer-gap) + var(--pad) );
-
+	top:0;
+	position: absolute;
+	
+	// squish all the way down left as fallback for without clamp
+	// or stop at min-width
 	// --upper-y: var(--is-gt-320,1) * (100% + var(--pad) ) * -1;
 	// --lower-y: var(--is-gt-320,1) * (100% + var(--pad) ) * -1;
 	transform:
@@ -87,73 +127,154 @@
 	// here we *only* enforce this fixed width IF --is-x-past-break > 0
 	// by specifying a positive min width we prevent collapse
 	// min-width:calc( var(--is-x-past-break) * var(--max-horizontal-percent) );
-	min-width:var(--min-width, 3ch);
-	max-width:min(var(--max-width), 12ch );
-	width: fit-content;
+	// min-width:var(--min-width, 3ch);
+	width:var(--min-width, 3ch);
 
+	// prevent total collapse and text outside frame
+	min-width: fit-content;
+
+	// we never want it to grow too wide.... so we limit the width
+	max-width:min(var(--max-width), var(--max-chars) );
+	
+	// prevent empty texts
 	min-height:1ch;
 	min-height:1ex;
+
+	margin: 0;
+	padding: calc( var(--pad) * 1);
 
 	display: block;
 	
 	// overflow: hidden;
 	// overflow: clip;
 	overflow: visible;
+
 	
-	color:var(--shade-white);
-	background-color:var(--shade-dark);
-	font-size:clamp(9px, var(--font-size), 14px);
 	
-	text-shadow : 	rgba(var(--shade-dark), 0.96) 0 -1px 2px,
-					rgba(var(--shade-dark), 0.96) 0 0 2px;
+	// text-shadow : 	rgba(var(--shade-dark), 0.96) 0 -1px 2px,
+	// 				rgba(var(--shade-dark), 0.96) 0 0 2px;
 
 	// FIXME
-	// filter: drop-shadow(0 0 0.75rem var(--shade-blue) );
+	filter: drop-shadow(0 0 var(--stroke,2px) var(--shade-dark) );
+	
+	/*
+	// Ana tudor wrote this bit!
 
-	// TRIANGLE POINTER!
+	// left facing arrow
+	--i: 0;		// x co
+	--j: 0.5;	// y co
+
+	// right facing arrow
+	--i: 1;		// x co
+	--j: 0.5;	// y co
+
+	// bottom facing arrow
+	--i: 0.75;	// x co
+	--j: 1;		// y co
+
+	// top facing arrow
+	// --i: 0.5;	// x co
+	// --j: 0;		// y co
+
+	--sgn: clamp(-1, (var(--j) - var(--i))/.1, 1);
+	// angular direction of axis going through middle of tooltip arrow 
+	--dir: calc(var(--sgn)*(var(--j) - 2*var(--i))*180deg);
+	// position of arrow
+	// * for --i/ --j set to 0 => 0% (left/ top)
+	// * for --i/ --j set to .5 => 50% (middle)
+	// * for --i/ --j set to 1 => 100% (right/ bottom) 
+	--oxy: calc(var(--i)*100%) calc(var(--j)*100%);
+
+	// transparent border the size of arrow tip 
+	border: solid var(--arrow-tip) transparent;
+	// corner rounding for the box 
+	// border-radius: calc(var(--arrow-tip) + var(--border-radius,0px));
+
+	// background: 
+	// 	// square box set on padding-box 
+	// 	linear-gradient(var(--col-bg) 0 0) padding-box, 
+	// 	// arrow tip, gradient set on border-box 
+	// 	conic-gradient(
+	// 		from calc(var(--dir) - .5*#{$ang}) 
+	// 		at var(--oxy), 
+	// 		var(--col-bg) $ang, transparent 0%
+	// 	) var(--oxy) / 50% 50% no-repeat border-box;
+	*/
+	
+	// TRIANGLE POINTER that points to the bubble
 	&::before{
 		
+		content:'';
+
 		// 0 or 100% only (100% if mouse above)
 		--is-x-past-break:clamp(0 , calc( 999 * var(--d) ), 1% );
+		
+		// 0 OR 100% only
 		--f:clamp(0 , calc( 99999999 * var(--d) ), 100% );
 		
-		// change range from 0->1 to -1->1
-		--r:calc(-1 + var(--_ybool,1) * 2 );
-		// reverse it so from 1->-1
-		--_r:calc(-1 * var(--r) );
 		// -1 or 1 only
-		--flipper:clamp(-1, calc( var(--_r) * 9 ), 1 );
+		--flipper:clamp(-1, calc( var(--_below-fold-flipper) * 9 ), 1 );
+		// 0 or 1 only - 0 when above, 1 when below
+		--flopper:clamp(0, var(--_ybool), 1 );
 		
 		--scale:0.7;// clamp(0.5, calc( var(--_ybool,1) * 9 ), 0.8 );
+
 		// how much to move laterally - if above loads to the right...
-		--tx:clamp(0px, calc( var(--_ybool) * 900px ), var(--_x) );
+		--tx:clamp(0px, calc( var(--_ybool) * 900px ), var(--x) );
 
 		// if we are above we go 100% + var(--tx)
-		--a:calc( var(--d) + 3 * var(--f) );
-		--z:max( var(--a), calc( var(--f) - var(--triangle-size) - var(--pad) ) );
+		// --a:calc( var(--d) + 3 * var(--f) );
+		// --z:max( var(--a), calc( var(--f) - var(--triangle-size) - var(--pad) ) );
+		
 		// a little extra offset to position the arrow better
 		--_o:(var(--flipper,0) * -8px );
 		
 		// y in pixels
 		--arrow-y:clamp(0%, calc( 999 * (var(--yInPx) - 50vh ) ), 100%);
 		--triangle-x:clamp( 0%, var(--d), 100% );
-		
-		content:'';
 
-		clip-path: polygon(
-			0 0, 100% 0, 
-			var(--f,0) 100%
+		--left:clamp( 
+			var(--pad, 0%),
+			var(--triangle-x), 
+			100% - var(--triangle-size) - var(--pad) * 2
 		);
+
+		--top:calc( 100% + 100% * var(--flipper) );
+		--top:calc( 100% );
+		
+		// top:calc( ( var(--_ybool,1)) * 100% );
+		// FIXME: 
+		// if the flipper is negative, we position the arrow above
+		// otherwise we position it at 100% of the top
+		//--top:calc(100% * var(--flopper) - var(--triangle-size) * var(--flopper) );
+		
+		// if we are close to the left edge we flip the x
+		--_reflect:clamp(
+			-1 , 
+			9999 * (var(--left) - 160), 
+			1 
+		);
+		
+
+		// clip-path: polygon(
+		// 	0 0, 100% 0, 
+		// 	var(--f,0) 100%
+		// );
+
+		// shape the polygon into a triangle
 		clip-path: polygon(
 			0 0, 100% 0, 
 			100% 100%
 		);
+
 		// clip-path: polygon(
 		// 	0 0, 100% 0, 
 		// 	var(--f) 100%
 		// );
+
 		height:var(--triangle-size);
 		width:var(--triangle-size);
+
 		background:inherit;
 		display: block;
 		z-index:-1;
@@ -163,21 +284,24 @@
 		border-top:0;	// for arrow on base
 
 		// now we have a special case of when on the right hand side...
-		left: clamp( var(--pad, 0%), var(--triangle-x), calc(100% - var(--triangle-size) - var(--pad) ) );
-	
-		// top:calc( ( var(--_ybool,1)) * 100% );
-
-		top:100%;
+		left:var(--left,0);
+		top:var(--top,0);
 
 		//translateY( var(--arrow-y)) 
 		//transform:translateY( calc( ( var(--_ybool,1) ) * -50% ) ) scale( var(--scale,1));
 		
-		// translateY( calc( ( var(--_yflip,1) ) * -100% + var(--_o) )  ) 
+		// translateY( calc( ( var(--_above-fold-flipper,1) ) * -100% + var(--_o) )  ) 
 			
 		// transform:
 		// 	translateX( var(--triangle-x) ) 
 		// 	scale( var(--scale,1));
-		transform: scaleX( clamp(-1 , calc( 99999999 * (var(--left) - 160) ), 1 ) );
+
+		// we flip the triangle around if it is close to the left edge
+		transform: 
+			scaleX( calc( var(--scale,1) * var(--_reflect, 1) ) ) 
+			rotate( calc( 180deg * var( --_above-fold-flipper, 0)) ) 
+			translate(var(--left,0),0); 
+
 		// transform: scaleX( calc( -1 * var(--left) / 300 ) );
 
 		transform-origin: center;
@@ -193,6 +317,10 @@
 	&:hover{
 		//visibility: hidden;
 		opacity: 0;
+	}
+
+	&[hidden]{
+		display: none;
 	}
 }
 

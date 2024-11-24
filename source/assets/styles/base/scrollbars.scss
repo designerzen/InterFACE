@@ -1,0 +1,25 @@
+@use "../_palette.scss";
+@layer scrollbar{
+
+	// Works on Firefox 
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: palette.$col-dark palette.$col-cream;
+	}
+
+	// Works on Chrome, Edge, and Safari 
+	*::-webkit-scrollbar {
+		width: 12px;
+	}
+
+	*::-webkit-scrollbar-track {
+		background-color: palette.$col-dark;
+	}
+
+	*::-webkit-scrollbar-thumb {
+		background-color: palette.$col-dark;
+		border-radius: 99px;
+		border: 3px solid palette.$col-orange;
+	}
+
+}

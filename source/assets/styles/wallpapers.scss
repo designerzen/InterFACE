@@ -1,18 +1,20 @@
+@use "./_palette.scss";
 
+/*
 @property --col-transition {
-	syntax: '<color>'; /* <- defined as type number for the transition to work */
-	initial-value: #{$col-white};
+// <- defined as type number for the transition to work 
+	syntax: '<color>'; 
+	initial-value: palette.$col-white;
 	inherits: false;
 }
 
 @property --h {
 	syntax: '<number>';
-	initial-value: #{$hue-white};
+	initial-value: palette.$col-white;
 	inherits: false;
 }
 
 
-/*
 @property --size{
 	syntax: '<number>';
 	initial-value:0px;
@@ -38,7 +40,7 @@ html{
 		background-size var(--ease-s) linear;
 
 	transition: 
-		--col-transition var(--ease-s) linear,
+		transform var(--ease-s) linear,
 		background-position var(--ease-s) linear,
 		background-color var(--ease-s) linear,
 		background-size var(--ease-s) linear;
@@ -57,7 +59,12 @@ html{
 body{
 
 	background-image: 
-		linear-gradient( rgba($col-white, 0.9),rgba($col-white, 048),  rgba($col-dark, 0.2), rgba($col-dark, 0.98) );
+		linear-gradient( 
+			rgba(palette.$col-white, 0.9),
+			rgba(palette.$col-white, 048), 
+			rgba(palette.$col-dark, 0.2), 
+			rgba(palette.$col-dark, 0.98) 
+		);
 
 	// we have four layers of background
 	background-size: 	100%,
@@ -101,8 +108,8 @@ html.loading{
 	
 	// overlay some repeating logos
 	body{
-		// 					linear-gradient(rgba($col-white, 0.9), rgba($col-cream, 0.2) );
-		background-image:  linear-gradient( rgba($col-white, 0.8), rgba($col-white, 0.93) );
+		// 					linear-gradient(rgba(palette.$col-white, 0.9), rgba($col-cream, 0.2) );
+		background-image:  linear-gradient( rgba(palette.$col-white, 0.8), rgba(palette.$col-white, 0.93) );
 	}
 }
 
@@ -116,8 +123,6 @@ html.loaded{
 html.initialising{
 
 }
-
-
   
 html.player-selection{
 
@@ -129,13 +134,13 @@ html.player-selection{
 	--grid-y:calc(var(--scroll-y) - var(--stroke) );
 
 	// colours	
-	--h:#{$hue-white};
+	--h:#{palette.$hue-white};
 	--c1: hsl( var(--h),77%, 9%);
 	--c2: hsl( var(--h),67%, 18%);
 	--c3: hsl( var(--h),17%, 2%);
 	--col-grid:var(--shade-dark);
 
-	// --col-bg:var(--col-transition, #{$col-white});
+	// --col-bg:var(--col-transition, #{palette.$col-white});
 
 	// set scroll size
 	--scroll-x: calc(var(--size)) ;
@@ -156,8 +161,6 @@ html.player-selection{
 	--_l1: linear-gradient(145deg,var(--_g));
 	--_l2: linear-gradient( 35deg,var(--_g));
 
-	animation-name: BGScroll2;
-	animation-duration: 2999ms;
 	
 	// animation-name: BGScroll;
 	// animation-iteration-count: infinite;
@@ -220,12 +223,10 @@ html.player-selection{
 	
 	// colour that bleeds through the gap
 	background-color:var(--col-transition, var(--col-bg) );
-	background-blend-mode: normal;//luminosity;
-		
+	background-blend-mode: normal;//luminosity;		
 	background-repeat:repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat;
 		
-	
-	
+
 	// &.solo{ }
 
 	&.duet{
@@ -234,20 +235,20 @@ html.player-selection{
 
 	&.trio{
 		--size:200px;
-		// --h:#{$hue-green};
+		// --h:#{palette.$hue-green};
 		// --col-bg: var(--shade-yellow);
 		// background-color: var(--shade-yellow);
 	}
 	
 	&.quartet{
 		--size:100px;
-		// --h:#{$hue-green};
+		// --h:#{palette.$hue-green};
 		// --col-bg: var(--shade-yellow);
 		// background-color: var(--shade-yellow);
 	}
 
 	&.beginner{
-		--h:#{$hue-blue};
+		--h:#{palette.$hue-blue};
 		
 		// Brighter more poppy colours
 		--col-bg: var(--shade-blue);
@@ -255,18 +256,18 @@ html.player-selection{
 		background-color: var(--shade-blue);
 
 		
-		// --shade-white:hsl( #{$hue-white}, var( --s, 27%), var( --l, 87%) );
-		// --shade-dark:hsl( #{$hue-dark}, var( --s, 6%), var( --l, 14%) );
-		// --shade-grey:hsl( #{$hue-grey}, var( --s, 6%), var( --l, 50%) );
-		// --shade-gray:hsl( #{$hue-gray}, var( --s, 6%), var( --l, 55%) );
-		// --shade-cream:hsl( #{$hue-cream}, var( --s, 18%), var( --l, 53%) );
-		// --shade-tan:hsl( #{$hue-tan}, var( --s, 30%), var( --l, 45%) );
-		// --shade-brown:hsl( #{$hue-brown}, var( --s, 22%), var( --l,30%) );
-		// --shade-blue:hsl( #{$hue-blue}, var( --s, 18%), var( --l,33%) );
-		// --shade-green:hsl( #{$hue-green}, var( --s, 18%), var( --l,33%) );
-		// --shade-yellow:hsl( #{$hue-yellow}, var( --s, 34%), var( --l,50%) );
-		// --shade-orange:hsl( #{$hue-orange}, var( --s, 69%), var( --l,38%) );
-		// --shade-red:hsl( #{$hue-red}, var( --s, 58%), var( --l,35%) );
+		// --shade-white:hsl( #{palette.$hue-white}, var( --s, 27%), var( --l, 87%) );
+		// --shade-dark:hsl( #{palette.$hue-dark}, var( --s, 6%), var( --l, 14%) );
+		// --shade-grey:hsl( #{palette.$hue-grey}, var( --s, 6%), var( --l, 50%) );
+		// --shade-gray:hsl( #{palette.$hue-gray}, var( --s, 6%), var( --l, 55%) );
+		// --shade-cream:hsl( #{palette.$hue-cream}, var( --s, 18%), var( --l, 53%) );
+		// --shade-tan:hsl( #{palette.$hue-tan}, var( --s, 30%), var( --l, 45%) );
+		// --shade-brown:hsl( #{palette.$hue-brown}, var( --s, 22%), var( --l,30%) );
+		// --shade-blue:hsl( #{palette.$hue-blue}, var( --s, 18%), var( --l,33%) );
+		// --shade-green:hsl( #{palette.$hue-green}, var( --s, 18%), var( --l,33%) );
+		// --shade-yellow:hsl( #{palette.$hue-yellow}, var( --s, 34%), var( --l,50%) );
+		// --shade-orange:hsl( #{palette.$hue-orange}, var( --s, 69%), var( --l,38%) );
+		// --shade-red:hsl( #{palette.$hue-red}, var( --s, 58%), var( --l,35%) );
 		
 
 		// animation-direction: reverse;
@@ -433,9 +434,6 @@ html.player-selection{
 		
 
 		// animation-direction: unset;
-		animation-duration: 3s;
-		animation-name:BGScroll3;
-		animation-timing-function: ease-in-out;
 	}
 }
 
@@ -454,3 +452,18 @@ background-image:
 	linear-gradient(180deg, transparent 70%, var(--shade-brown) 70% 80%, transparent 80%),
 	linear-gradient(90deg, var(--shade-dark) 70%, var(--shade-brown) 70% 80%, var(--shade-dark) 80%);
 */
+
+// Add wallpaper animations if reduced motion is not set
+@media screen and (prefers-reduced-motion: no-preference){
+	
+	html.player-selection{
+		animation-name: BGScroll2;
+		animation-duration: 2999ms;
+	}
+
+	html.automated{
+		animation-duration: 3s;
+		animation-name:BGScroll3;
+		animation-timing-function: ease-in-out;
+	}
+}

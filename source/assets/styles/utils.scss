@@ -1,4 +1,4 @@
-@import "./_mixins.scss";
+@use "./_mixins.scss";
 
 :is(span).hide-text{
 	@extend %image-replacement;
@@ -57,13 +57,13 @@
 
 [screenreader-only]:not(:focus):not(:active),
 .sr-only:not(:focus):not(:active) {
-    clip-path: inset(50%);
-    height: 1px;
-    width: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-	border: 0;
+    clip-path: inset(50%) !important;
+    height: 1px !important;
+    width: 1px !important;
+    overflow: hidden  !important;
+    position: absolute !important;
+    white-space: nowrap  !important;
+	border: 0 !important;
 }
 
   

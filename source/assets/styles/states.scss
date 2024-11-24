@@ -18,6 +18,8 @@
 			visibility: hidden;
 		}
 	}
+	
+	#affiliates,
 	#progress{
 		display: none;
 	}
@@ -262,6 +264,7 @@ main:not(.flag-overlays){
 	#title,
 	#load-progress,
 	#onboard,
+	#affiliates,
 	#control-panel{
 		display: none;
 	}
@@ -286,8 +289,8 @@ main:not(.flag-overlays){
 		background-color:var(--shade-red);
 		background-image:linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.2));
 
-		color:$col-dark;
-		border:10px solid $col-white;
+		color:var(--shade-dark);
+		border:10px solid var(--shade-white);
 		z-index:909;
 
 		filter:none;

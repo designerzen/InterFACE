@@ -1,4 +1,4 @@
-@import "../_palette.scss";
+@use "../_palette.scss";
 
 .theme-clash{
 	
@@ -9,9 +9,9 @@
 		.controls > *:not(div), 
 		.controls .folder-link
 	){
-		--hue: #{$hue-blue};
-		--hue-selected: #{$hue-red};
-		--hue-active: #{$hue-yellow};
+		--hue: #{palette.$hue-blue};
+		--hue-selected: #{palette.$hue-red};
+		--hue-active: #{palette.$hue-yellow};
 	
 		--s:98%;
 		--s-selected:98%;

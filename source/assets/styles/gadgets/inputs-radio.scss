@@ -1,4 +1,3 @@
-
 input[type="radio" i]{
 	
 	--over:0%;
@@ -9,7 +8,7 @@ input[type="radio" i]{
 	bottom:calc( -1 * var(--over));
 	width:calc( 2 * var(--over) + 100% );
 	display:block;
-	transition:transform var(--ease-s, 1s ) $easeInOutBack;
+	transition:transform var(--ease-s, 1s ) var(--ease-out-back);
 	transform:scaleX(0);
 	transform-origin: center;
 	

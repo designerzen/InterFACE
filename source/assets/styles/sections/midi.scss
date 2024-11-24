@@ -38,7 +38,7 @@ main.midi-activated{
 	// hide button
 	#button-midi{
 		//cursor:not-allowed;
-		--col: #{$col-blue};
+		--col: var(--shade-blue);
 	}
 }
 
@@ -74,8 +74,8 @@ main.midi-no-devices{
 			text-align: center;
 			transform:translateX( calc(-50% ) );
 			//left:0;
-			color:$col-dark;
-			background-color: $col-white;
+			color: var(--shade-dark);
+			background-color: var(--col-white);
 			font-size:11px;
 			font-weight: 900;
 			padding: var(--pad);

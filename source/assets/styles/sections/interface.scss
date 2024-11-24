@@ -33,57 +33,16 @@
 	// minmax(250px, 33vh) - breaks SAFARI
 	grid-template-rows:
 		auto
-		250px
+		auto
 		auto
 		auto;
 
 	// mmake this big to give adequate room to breathe
 	grid-template-areas: 
 		"hero"
-		"gap"
+		"affiliates"
 		"app"
 		"footer";
-
-		// Loading progress ------------------------------------------
-
-	#load-progress{
-		grid-area:app;
-		// position: sticky;
-		// bottom:0;
-		// margin:clamp( var(--pad), 25%, 25vmin ); //max-width:440px;	
-		align-self: center;
-		justify-self: center;
-	}
-
-	#intro{
-		grid-area:hero;
-		// position: sticky;
-		// top:var(--pad);		
-	}
-
-	#hero{
-		background-color: #ebebeb;//var(--shade-grey);
-		border-radius:calc( 0.75 * var(--curve) );
-		font-size: 0;
-		user-select: none;
-	}
-
-	#hero,
-	.hero-bumper{
-		height:100%;
-		width: 100%;
-	}
-	.hero-bumper{
-		order:-1;
-	}
-	// now give each item it's own "page" in the grid
-	#app{	
-		// position: sticky;
-		// top:0;
-		// grid-area: 1 / 2 / -1 / 3;
-		grid-area:app;
-	}
-
 
 	// whole page popover
 	> dialog{
@@ -96,10 +55,171 @@
 		// top: 50%;
 		// transform: translateY(-50%);
 	}
+}
 
-	#foot{
-		grid-area: footer;
+// place items into grid
+#load-progress{
+	grid-area:app;
+	// position: sticky;
+	// bottom:0;
+	// margin:clamp( var(--pad), 25%, 25vmin ); //max-width:440px;	
+	align-self: center;
+	justify-self: center;
+}
+
+#intro{
+	grid-area:hero;
+	// position: sticky;
+	// top:var(--pad);		
+}
+
+#hero{
+	background-color: #ebebeb;//var(--shade-grey);
+	border-radius:calc( 0.75 * var(--curve) );
+	font-size: 0;
+	user-select: none;
+}
+
+#affiliates{
+
+	background-color: var(--shade-orange);
+	background-color: color-mix(in lch, var(--shade-orange), transparent 50%);
+	grid-area: affiliates;
+	justify-content: center;
+	justify-items: center;
+	align-content: center;
+	align-items: center;
+	position: relative;
+	z-index: 999;
+	// width: 100%;
+	// margin-top:var(--pad);
+	padding:var(--pad);
+	margin-bottom:var(--pad);
+	margin-left:var(--pad);
+	margin-right:var(--pad);
+	border-radius:var(--curve);
+	max-width: calc(100% - 2 * var(--pad));
+
+	ul{
+		list-style: none;
+		display: grid;
+		gap:var(--pad);
+		grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+		justify-content: center;
+		justify-items: center;
+		align-content: center;
+		align-items: center;
+		padding-left: var(--pad);
+		padding-right: var(--pad);	
+
+		figure{
+			display: grid;
+			justify-content: center;
+			justify-items: center;
+			align-content: center;
+			align-items: center;
+			position: relative;
+			> * {
+				grid-area:1/-1;
+				// max-width: 100%;
+			}
+		}
+		img{
+			filter: invert(1);
+		}
+		figcaption{
+			
+			$tip: .75em; // arrow tip size
+			$ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
+			$rad: 7px; // corner rounding
+			
+			--i:0.5;
+			--j:1;
+			--sgn: clamp(-1, (var(--j) - var(--i))/.1, 1);
+			// angular direction of axis going through middle of tooltip arrow 
+			--dir: calc(var(--sgn)*(var(--j) - 2*var(--i))*180deg);
+			/* position of arrow
+			* for --i/ --j set to 0 => 0% (left/ top)
+			* for --i/ --j set to .5 => 50% (middle)
+			* for --i/ --j set to 1 => 100% (right/ bottom) */
+			--oxy: calc(var(--i)*100%) calc(var(--j)*100%);
+			filter: drop-shadow(2px 2px 5px #363636);
+			// transparent border the size of arrow tip 
+			border: solid $tip transparent;
+			background-color: var(--shade-dark);
+			background: 
+				// square box set on padding-box
+				linear-gradient( var(--shade-dark) 0 0) padding-box, 
+				// arrow tip, gradient set on border-box
+				conic-gradient(
+					from calc(var(--dir) - .5*#{$ang}) at var(--oxy), 
+					var(--shade-dark) $ang, transparent 0%) 
+					var(--oxy)/ 50% 50% no-repeat border-box;
+					
+			position: absolute;
+			width:fit-content;
+			left:50%;
+			top:0;
+			z-index: 1;
+			text-wrap: wrap;
+			pointer-events: none;
+			user-select: none;
+			
+			opacity: 0;
+			padding: var(--pad);
+			transform: translate(-50%, -50%);
+			transition:
+				opacity var(--ease-s) linear,
+				transform var(--ease-m) var(--ease-out-back);
+			
+			small{
+				display: block;
+				border-bottom:1px solid var(--col-white);
+			}
+		}
+		a{
+			color:var(--col-white);
+			
+		}
+		a:is(:hover, :focus, :focus-within){
+			figcaption{
+				opacity: 1;
+				transform: translate(-50%, calc( -100% - var(--pad,0)));
+			}
+			img{
+				filter: brightness(50%);
+			}
+		}
 	}
+
+	img{
+		filter:contrast(1000%) grayscale(100%);
+	}
+}
+
+
+
+#hero,
+.hero-bumper{
+	height:100%;
+	width: 100%;
+}
+.hero-bumper{
+	order:-1;
+}
+// now give each item it's own "page" in the grid
+#app{	
+	// position: sticky;
+	// top:0;
+	// grid-area: 1 / 2 / -1 / 3;
+	grid-area:app;
+}
+
+
+
+
+#foot{
+	grid-area: footer;
 }
 
 .interface .back-to-top{
@@ -155,6 +275,7 @@
 		// grid-template-areas:  
 		// 	"app"
 		// 	"footer";
+		overflow: hidden;
 	}
 
 	#intro{
@@ -892,7 +1013,10 @@ html.debug{
 	// visibility: hidden;
 	display: none;
 	transform: translateY( 100% );
-	transition: transform var(--ease-m) $easeOutBack, opacity var(--ease-m) linear;
+	transition: 
+		transform var(--ease-m) var(--ease-out-back), 
+		opacity var(--ease-m) linear;
+
 	animation: none;
 	grid-area: settings-panel;
 	
@@ -973,7 +1097,7 @@ html.debug{
 	color:transparent;
 
 	user-select: none;
-	color:$col-blue;
+	color:var(--shade-blue);
 	text-shadow: rgba(0,0,0,0.56) 0 1px 4px,
 					rgba(0,0,0,0.56) 0 2px 4px,
 					rgba(0,0,0,0.56) 0 3px 4px,
@@ -987,7 +1111,7 @@ html.debug{
 
 	&:focus,
 	&:hover{
-		color:$col-orange;
+		color:var(--shade-orange);
 	}
 }
 

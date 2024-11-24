@@ -1,3 +1,6 @@
+@use "../_palette.scss";
+@use "../_ease.scss";
+@use "./_button.scss";
 
 // replace regular with a classic radio style toggle button
 // square emerald with a big tick
@@ -135,7 +138,7 @@ input[type="checkbox" i].switch{
 	border-radius:var(--button-curve, var(--border-radius, 3px));
 	
 	//background:linear-gradient( $col-green, $col-gray );
-	background:var(--shade-grey) linear-gradient( to right, rgba($col-grey, 0.5), rgba( $col-cream, 0.5) );
+	background:var(--shade-grey) linear-gradient( to right, rgba(palette.$col-grey, 0.5), rgba( palette.$col-cream, 0.5) );
 	//min-width:var(--width);
 	position: relative;
 	box-sizing: border-box;
@@ -152,7 +155,7 @@ input[type="checkbox" i].switch{
 		content:'';
 		box-sizing: border-box;
 		font-weight:900;
-		color:$col-dark;
+		color:var(--shade-dark);
 	}
 	
 	// knob
@@ -163,7 +166,7 @@ input[type="checkbox" i].switch{
 		content:'SIMPLE';
 		content:'🧸';
 		@extend %drop-shadow;
-		color: $col-white;
+		color: var(--shade-white);
 
 		position:absolute;
 		left:0;
@@ -178,8 +181,8 @@ input[type="checkbox" i].switch{
 		border:inherit;
 		// border://calc( 0.5 * var(--button-border-size,4px)) solid var(--shade-white);
 		background-color:var( --shade-accent, var(--shade-red));
-		background-image:linear-gradient( var( --shade-accent, var(--shade-red)), var(--shade-dark, $col-dark));
-		transition:transform 195ms $easeInOutQuad;
+		background-image:linear-gradient( var( --shade-accent, var(--shade-red)), var(--shade-dark, palette.$col-dark));
+		transition:transform 195ms ease.$easeInOutQuad;
 	}
 
 	&:checked{
@@ -201,8 +204,8 @@ input[type="checkbox" i].switch{
 	// user has higighted it
 	&:focus-visible{
 		outline:0;
-		background-color:$col-blue;
-		background:linear-gradient( to right, $col-blue, $col-blue );
+		background-color:var(--shade-blue);
+		background:linear-gradient( to right, var(--shade-blue), var(--shade-blue) );
 		
 	//	border:var(--button-border-size) solid rgba($col-brown, 0.7);
 		
@@ -211,6 +214,8 @@ input[type="checkbox" i].switch{
 		// border-left-color: rgba($col-white, 0.2);
 		// border-right-color: rgba($col-white, 0.5);
 	}
+
+
 	@media screen and (max-width:480px) {
 
 		&:before{

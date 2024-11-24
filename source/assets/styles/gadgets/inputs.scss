@@ -1,3 +1,4 @@
+
 input{
 	cursor:pointer;
 	-web-appearance: none;
@@ -39,7 +40,3 @@ input[type=submit]{
 		opacity: 1;
 	}
 }
-
-@import "./inputs-checkbox.scss";
-@import "./inputs-radio.scss";
-@import "./inputs-range.scss";

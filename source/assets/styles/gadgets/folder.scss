@@ -23,6 +23,7 @@ nav#menu
 	
 	--overlap:0.05;	
 	--duration:0.3s;
+	--ease:var(--ease-out-back);
 
 	flex: 1;
 	animation:none;
@@ -95,7 +96,7 @@ nav#menu
 	animation: CloseFolder 495ms linear 0s both;
 	
 	transition:
-		transform var(--fade-speed) $easeOutBack,
+		transform var(--fade-speed) var(--ease),
 		opacity var(--fade-speed) linear;
 	
 	// transform: translateY(100%);

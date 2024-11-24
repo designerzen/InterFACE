@@ -1,0 +1,307 @@
+
+// Overlay buttons
+@use "../_ease.scss";
+@use "../gadgets/_button.scss";
+
+// container (and colour of folder menus)
+#shared-controls{
+	// above all other controls!
+	z-index: 808;
+//	background-color: hsla(196, 58%, calc(28% - 14%), 0.8 );
+}
+
+.controls{
+	// FIXME: container query
+	// contain: layout size style;
+	// contain: layout inline-size style;
+	
+	// backgrounds
+	--col-regular:var(--shade-dark);
+	--col-hover:var(--shade-dark);
+	--col-select:var(--shade-dark);
+
+	// we swap this to absolute when we want to window it
+	// position: fixed;
+	// margin:0;
+
+	// bottom:0;
+	// left:0;
+
+	//right:0;
+
+	--grid-gap: 1px;
+	--grid-column-count: 14;
+	--grid-item--min-width: 44px;
+	
+	// Calculated values 
+	--gap-count: calc(var(--grid-column-count) - 1);
+	--total-gap-width: calc(var(--gap-count) * var(--grid-gap));
+	--grid-item--max-width: calc((100% - var(--total-gap-width)) / var(--grid-column-count));
+	
+	min-width:100%;
+	max-width:100%;
+
+	visibility:hidden;
+
+	box-sizing: border-box;
+
+	display: grid;
+	grid-auto-flow: column;
+    grid-auto-columns: auto;
+	// stretch until we reach x quantity then wrap
+	grid-template-columns: repeat(auto-fit, minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr));
+	gap: var(--grid-gap);
+	
+	align-items: stretch;
+	justify-content: stretch;
+
+	pointer-events: auto;
+
+	// backgroiund
+	// background-image:linear-gradient(
+	// 	hsla(18, 21%, 12%, 0.7), 
+	// 	hsla(340, 5%, 11%, 0.7)
+	// );
+
+	// NB. adding any kind of overflow
+	// all it to scroll if absolutely neccessary
+	//overflow: hidden;
+	// overflow: scroll;
+	// overflow-y: hidden;
+	// overflow-x: auto;
+
+	// need to bring it into z-range
+	// above the 707 for the footer
+	z-index:707;
+
+	// update folders within
+	.folder-link{
+		width:100%;
+		height:100%;
+	}
+
+	// these are sub menus that overlay the main menu
+	.folder-content{
+		background: inherit;
+		z-index:909;
+
+		/*
+		top: auto;
+		bottom: 100%;
+		left: 0;
+		height: 100%;
+		display: grid;
+		grid-template-areas:
+			"buttons"
+			"back";
+
+		> a{
+			grid-area: back;
+		}*/
+	}
+
+	legend{
+		position: absolute;
+		left:0;
+		bottom:0;
+		// bottom:100%;
+		background-color:transparent;
+		color:transparent;
+		user-select: none;
+		pointer-events: none;
+		border:0;
+		visibility: hidden;
+
+		&:focus{
+			color:var(--col-bright, white);
+			visibility: visible;
+			z-index:909;
+		}
+	}
+
+	// sometimes the label takes focus making interaction difficult
+	label{
+		// pointer-events: none;
+		position: relative;
+
+		// bring in front of selects...
+		select, input, button{
+			// FIXME: Should this be -1?
+			z-index:1;
+		}
+		
+		// stretch them out 
+		select, input{
+			pointer-events: auto;
+			cursor:pointer;
+			border:0;
+			// width: var(--icon-size);
+			position:absolute;
+			top:0;
+			bottom:0;
+			min-width:100%;
+			max-width:100%;
+			// FIXME:
+			//right:0;
+			// left:0;
+			// z-index:1;
+			order:-1;
+			appearance:none;
+			opacity:0;
+			overflow: hidden;
+		}
+
+		// Indicator
+		&:before{
+			background-color: var(--col-select, var(--hue-selected, rgb(54, 157, 125)));
+			opacity:0;
+			content:'';
+			display: block;
+			position: absolute;
+			left:0;
+			right:0;
+			bottom:0;
+			height:8px;
+			transform-origin: center bottom;
+			transform:translateY(100%);
+			transition:opacity var(--ease-m) linear,
+						transform var(--ease-s) var(--ease-out-back);
+		}
+
+		&:has( input:checked ),
+		&.checked{
+			// background-color: var(--col-select);
+			
+			// toggled state each one can have unique color
+			// &::before{
+			// 	opacity:1;
+			// 	transform:translateY(20%);
+			// }
+			
+			// FIXME: Change depending on theme
+			// hover when selected still turns orange!
+			// &:hover::before{
+			// 	opacity: 1;
+			// }
+		}
+	}
+
+	// actual activating triggers
+	// label, button, .folder-link{}
+
+
+	// specific types of contents
+	label[for^="select-"]{
+
+		// swap underline for tiny up triangle
+		&::before{
+			--bg:url(/source/assets/icons/expand_more-24px.svg);
+			--size:25%;
+			display: block;
+			bottom:auto;
+			left:auto;
+			top:0;
+			right:0;
+			position: absolute;
+			width:var(--size,50%);
+			height:var(--size,50%);
+			pointer-events: none;
+			background: transparent var(--bg) no-repeat;
+			background-position: top;
+			background-size:contain;
+			opacity: 0.6;
+			transform: rotate(0deg);
+			transform-origin: center;
+			@extend %filter-icon;
+		}
+
+		// keyboard focus
+		&:focus-visible::before,
+		&:hover::before{
+			opacity: 1;
+		}
+
+		// select is being interfaced
+		&:focus::before, 
+		
+		// &:active::before{
+		&:active::before{
+			transform: rotate(180deg);
+		}
+		&:focus-within::before{
+			// outline:4px solid yellow;
+		}
+	}
+
+		
+	// Specific to the control panel at the bottom
+	// this adds some right pad to icons on the control bar
+	// and sets custom colours
+	> *:not(.folder-menu),
+	> .folder-link {
+
+		// gradient background
+		// --col-top:hsl( var(--hue), var( --s, 58%), 30% );
+		// --col-bottom:hsl( var(--hue), var( --s, 58%), 45% );
+		// --col-bg:#{$col-dark};
+		// --col-fg:#{$col-white};
+
+		// centralised by default
+		// --pos-override: top calc(var(--pad) - var(--border-size)) center;
+			
+		/*
+		// scale up and show text after
+		@media screen and (max-width:920px){
+			
+			--footer-gap:calc(74px);
+			--icon-size:26px;
+			--pos:center center;
+			--direction: column;
+			padding:var(--pad);
+
+			// hide all text
+			// as there is now no longer any text we 
+			// need to centralise the icon
+			font-size: 0;
+			gap:0;
+			text-indent: -9999px;
+			color:transparent;
+			//make the icon go in the vertical center
+			justify-content: end;
+			
+			// FIXME: remove margin
+			&:not(.hide-text):before{
+				margin-right:2px;
+			}
+		}
+		*/
+
+		// icon on top
+		// --pos-override: center calc(50% - var(--icon-size)/4);
+	}
+}
+
+
+@media screen and (max-width:480px) {
+	.controls{
+		--gap:11px;
+		gap:var(--gap);
+		padding-left:var(--gap);
+		padding-right:var(--gap);
+	}
+}
+
+
+
+// We slip out of grid when the screen can comortably support
+// them all on a single file - this also has the effect of making
+// certain buttons to be smaller tahn others
+@media screen and (min-width:641px) {
+	.controls{
+		display: flex;
+		> *{
+			flex-grow: 1;
+			flex-shrink: 1;
+		}
+	}
+}

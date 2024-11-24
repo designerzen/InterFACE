@@ -1,0 +1,13 @@
+.statistics{
+
+	max-width: none;
+	width:calc( 270px * 1 );
+	height:144px;
+	left:50% !important;
+	transform: translateX(-50%);
+
+	canvas{
+		width:calc( 270px ) !important;
+		height:calc( 144px ) !important;
+	}
+}

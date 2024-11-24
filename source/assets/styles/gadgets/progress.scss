@@ -1,5 +1,4 @@
-@import "../_ease";
-
+@use "../_ease";
 
 // Faster when we get nearer loaded
 #load-progress{
@@ -61,11 +60,13 @@
 	&[data-loaded=true]{
 		opacity: 0;
 		visibility: hidden;
+		display: none;
 	}
 
 	&[data-loaded=true]:hover{
 		opacity: 1;
 		visibility: visible;
+		display: block;
 	}
 }
 
@@ -197,7 +198,7 @@ progress.donut{
     --saturation:calc(var(--progress,1) * 100% );
     --luminosity:70%;
 
-    --ease:#{$authenticMotion};//ease-in-out;
+    --ease:#{ease.$authenticMotion};//ease-in-out;
 	
 	--full-scale:calc( var(--scale,1) + var(--overscale,0.5)); 
 
@@ -282,6 +283,9 @@ progress.donut{
 		animation-play-state: running;
 	}
 }
+
+// @media screen and (prefers-reduced-motion: no-preference){
+	
 
 // Fifefox ONLY (no pseudo elements inside progress but there is a secret extra element!)
 progress::-moz-progress-bar {

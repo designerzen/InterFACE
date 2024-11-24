@@ -1,0 +1,134 @@
+@layer forms{
+		
+	// form seems to want focus all the time
+	:where(form){
+
+		legend{
+			--gap:clamp( 2px, 8vmin, var(--pad,1rem) );
+			text-align: center;
+			text-shadow:var( --text-shadow );
+			padding-left:var(--gap,1rem);
+			padding-right:var(--gap,1rem);
+			min-width:none;
+		}
+		
+
+		// give it a cool border effect
+		
+		> fieldset{
+			--breakpoint:320px;//12ch;
+
+			margin:0;
+			padding: calc(var(--pad)* 0) calc(var(--pad) * 1.5);
+			
+			box-shadow: var(--shadow);
+
+			border:var(--border-size, var(--border-radius, 9px )) double var(--shade-white, white);
+			border-radius:var(--curve,0);
+			
+			//border-image: linear-gradient( $col-grey, $col-gray );
+			
+			display:flex;
+			position: relative;
+			
+			// slight hack to fix focus issue		
+			pointer-events: none;
+
+			// these break the menu fade in from empty
+			//animation:Fade var(--ease-s) linear 1 0s both;
+			// NB. ensure in front of the person buttons (202)
+			z-index:303;
+		}
+
+		fieldset + fieldset{
+			margin-top:var(--pad);
+		}
+
+		// cool intro effects...
+		fieldset > *{
+			animation-name:Fade, Shift;
+			animation-duration: var(--ease-s, 0), var(--ease-s, 0);
+			animation-fill-mode: both, both;
+			animation-delay: var(--delay,0), var(--delay,0);
+			pointer-events: auto;
+		}
+		
+		// kill anims if focussed inside the form
+		&:focus-within{
+			fieldset > *{
+				animation-duration:1ms,1ms;
+			}
+		}
+
+		label{
+			box-sizing: border-box;
+		}
+	}
+
+	// list of items 
+	:where(ol[role="list"]) {
+		list-style: numeric;
+		list-style-position: outside;
+	}
+	:where(ul[role="list"]) {
+		list-style:circle;
+		list-style-position: outside;
+		/*
+		&::marker{
+			display: none;
+			width:0;
+			height:0;
+			overflow: hidden;
+			content:'';
+		}
+		*/
+	}
+
+	:where(ol[role="list"], ul[role="list"]) {
+
+		padding: 0;
+		margin: 0;
+		width: 100%;
+		border: 0;
+
+		display: flex;
+		flex-direction: column;
+		gap:var(--pad);
+
+		&::marker{
+			color:var(--shade-dark);
+			color:color-mix(
+				in srgb, 
+				currentColor, 
+				var(--col-accent, var(--shade-dark)),  
+				50%
+			);
+		}
+		li{
+			margin:0;
+			padding: 0;
+			border-radius: 0;
+			width: 100%;
+			button{
+				display: flex;
+				place-content: center;
+				width: 100%;
+				margin:0;
+				padding: 0;
+				border-radius: 0;
+
+				&::before{
+					display: none;
+				}
+			}		
+		}
+	}
+
+	// list of items 
+	:where(ol[role="list"], ul[role="list"]) {
+
+
+
+	}
+
+}

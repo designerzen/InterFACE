@@ -1,9 +1,9 @@
 
 #foot{
 	--spacer:0;
-	--border:1px solid #{$col-gray};
+	--border:1px solid var(--shade-gray);
 
-	color:$col-brown;
+	color:var(--shade-brown);
 	
 	border-top:var(--border);
 	border-color: transparent;
@@ -30,7 +30,7 @@
 	
 	// max-height:var(--footer-gap);
 	
-	transition:transform var(--ease-s) $easeOutBack;
+	transition:transform var(--ease-s) var(--ease-out-back);
 	transform: translateX(var(--spacer));
 	
 	// fade it in immediately
@@ -73,7 +73,7 @@
 			display: grid;
 			position: absolute;
 			bottom: 69%;
-			background-color:$col-dark;
+			background-color:var(--shade-dark);
 			z-index: 909;
 			left:0;
 			max-width: 100%;
@@ -122,10 +122,10 @@
 			#release{
 				white-space:nowrap;
 				text-overflow: ellipsis;
-				border:1px solid $col-cream;
-				background-color:$col-white;
+				border:1px solid var(--shade-cream);
+				background-color:var(--shade-white);
 				padding:var(--pad);
-				color:$col-grey;
+				color:var(--shade-grey);
 				visibility: hidden;
 				order:-1;
 				position: absolute;
@@ -156,7 +156,7 @@
 		content:"©";
 		margin-left:0.2rem;	
 		margin-right:0.2rem;	
-		color:$col-cream;
+		color:var(--shade-cream);
 	}
 
 	.link-licenses{

@@ -1,4 +1,6 @@
 // Onboarding screen with setup options
+@use "../gadgets/_button.scss";
+@use "../_ease.scss";
 
 // we need this to visually look the same size as the video
 #onboard{
@@ -177,7 +179,6 @@
 	
 	grid-area:playerSelector;
 	
-
 	text-align:center;
 	box-sizing: border-box;
 	visibility: hidden;
@@ -221,10 +222,10 @@
 		--button-radius:3px;
 		--opacity:0.66;
 	
-		--col-stroke:transparent;
+	--col-stroke:transparent;
 		--col-top:transparent;
 		--col-bottom:transparent;
-		--col-hover:var(--shade-white, var(--shade-white, black) );
+		--col-hover:var(--shade-white, white );
 		// --col-hover:var(--shade-active, var(--shade-white, black) );
 		--icon-size: clamp(22px, 9vmin, 44px);
 		--button-border-size:var(--border-size);
@@ -239,17 +240,18 @@
 		border-radius: var(--button-radius, var(--border-radius, 0));
 		overflow: hidden;
 		line-height: 1.2;
+
 		// text-shadow:none;
 
 		// cool covering effect
 		&:before{
-		
+			box-sizing: border-box;
 			opacity:0;
-
 			border-radius: inherit;
-
 			border:0;
-			border-color:var(--col-hover);
+			//border: var(--button-border-size, var(--stroke,2px)) solid var(--col-stroke, transparent); 
+		
+			// border-color:var(--col-hover);
 			
 			background:inherit;
 			background-color:var(--col-hover);
@@ -261,6 +263,7 @@
 			left: 0;
 			bottom:0;
 			right:0;
+			z-index: -1;
 			// grid-area:1/1/-1/-1;
 
 			display: flex;
@@ -274,17 +277,12 @@
 		&:is( :hover, :focus, :focus-visible, :focus-within),
 		&:has( input:checked )
 		{  
+			// --col-stroke:var(--col-active);
 			&:before{
 				transition: transform 150ms ease-out, opacity 150ms linear;
 				transform:none;
 				opacity:var(--opacity, 0.3);
 			}
-		}
-
-		// regular selection
-		&:has( input:checked )
-		{  
-			// --col-stroke:var(--col-active);
 		}
 	}
 		
@@ -337,10 +335,6 @@
 			// "advanced-feedback advanced-feedback"
 			// "automation automation"
 		;
-
-		label{
-
-		}
 	}
 }
 
@@ -608,102 +602,105 @@ label[for="toggle-automation-mode"]{
 /////////////////////////////////////////////////////
 #onboard label[for=button-start]{
 
-	// fake the button
-	@include button-with-icon-and-border;
-	--bg:url(/source/assets/icons/music_note-24px.svg);
-	--icon-size:3rem;
-	--space:0px;
-	--col-hover: var(--shade-blue);
-	--button-curve: calc(2* var(--pad));
-	
-	grid-area:buttonStart;
-    grid-template-columns: var(--_col-width) auto;
+	// fake the button!
+	@include button.button-with-icon-and-border;
 
-	z-index:606;
-	max-width: none;
-	width: fit-content;
-	margin: auto;
-	height: 100%;
+	&{
+		// overwrite the var settings
+		--bg:url(/source/assets/icons/music_note-24px.svg);
+		--icon-size:3rem;
+		--space:0px;
+		--col-hover: var(--shade-blue);
+		--button-curve: calc(2* var(--pad));
+		
+		grid-area:buttonStart;
+		grid-template-columns: var(--_col-width) auto;
 
-	animation: CTA 2s infinite;
+		z-index:606;
+		max-width: none;
+		width: fit-content;
+		margin: auto;
+		height: 100%;
 
-	/*
+		animation: CTA 2s infinite;
 
-	// --pos-override:left var(--pad) center;
-	--pos-override:left center;
-	
+		/*
 
-	// animation: CTA 2s infinite;
-	// background-image:linear-gradient(var(--col-top, #ffffff4d), var(--col-bottom, #0000004d));
-	// background-repeat: repeat;
-	// background-size: contain;
-	display: grid;
-	grid-template-areas: "icon label";
-	grid-template-columns: auto 1fr;
-	align-items: center;
-	gap:var(--pad);
-	margin-top:var(--pad);
-	
-	padding: calc(var(--pad)*2 ) calc(var(--pad)*2 );
-	
-	justify-self: center;
+		// --pos-override:left var(--pad) center;
+		--pos-override:left center;
+		
 
-	&::before{
-		content:'';
-		// convert to white
-		@extend %filter-icon;
-		opacity:0.9;
-		background-position: right;
-		display: inline-block;
-		width: var(--icon-size);
-		height:var(--icon-size);
-		background-image: var(--bg);
-		background-repeat: no-repeat;
-		background-size: contain;
-		// padding-left:calc(var(--pad)*3.5);
-		// margin-left:calc(var(--pad));
-		grid-area: icon;
-		// move offset slightly to create depth effect
-		// transform: translateY( calc( var(--shadow-offset-y, 0) * -1px ) ); 
-	}
+		// animation: CTA 2s infinite;
+		// background-image:linear-gradient(var(--col-top, #ffffff4d), var(--col-bottom, #0000004d));
+		// background-repeat: repeat;
+		// background-size: contain;
+		display: grid;
+		grid-template-areas: "icon label";
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		gap:var(--pad);
+		margin-top:var(--pad);
+		
+		padding: calc(var(--pad)*2 ) calc(var(--pad)*2 );
+		
+		justify-self: center;
 
-	&::after{
-		// content:'';
-		// grid-area:1/1/-1/-1;
-		// position: absolute;
-		// left:0;
-		// top:0;
-		// bottom:0;
-		// width:10rem;
-		// gap before suffix
-		// margin-left:0.28rem;
-		// margin-right:calc(var(--pad)*2);
-	}
-
-	// Hide white icon to reveal background icon
-	&:hover,	
-	&:focus{
-		animation-duration: 0.7s;
-		text-shadow: none;
 		&::before{
-			opacity: 0;
+			content:'';
+			// convert to white
+			@extend %filter-icon;
+			opacity:0.9;
+			background-position: right;
+			display: inline-block;
+			width: var(--icon-size);
+			height:var(--icon-size);
+			background-image: var(--bg);
+			background-repeat: no-repeat;
+			background-size: contain;
+			// padding-left:calc(var(--pad)*3.5);
+			// margin-left:calc(var(--pad));
+			grid-area: icon;
+			// move offset slightly to create depth effect
+			// transform: translateY( calc( var(--shadow-offset-y, 0) * -1px ) ); 
+		}
+
+		&::after{
+			// content:'';
+			// grid-area:1/1/-1/-1;
+			// position: absolute;
+			// left:0;
+			// top:0;
+			// bottom:0;
+			// width:10rem;
+			// gap before suffix
+			// margin-left:0.28rem;
+			// margin-right:calc(var(--pad)*2);
+		}
+
+		// Hide white icon to reveal background icon
+		&:hover,	
+		&:focus{
+			animation-duration: 0.7s;
+			text-shadow: none;
+			&::before{
+				opacity: 0;
+			}
+		}
+		*/
+
+		@media  screen and (min-width:480px) {
+			
+			--space:var(--pad, 4px);
+
+			padding: calc(var(--pad)*2 ) calc(var(--pad)*3 );
+			grid-template-areas: "icon label gap";
+			grid-template-columns: calc( var(--icon-size) + var(--space,0px))  1fr var(--icon-size); //var(--icon-size);
+		
+			// &::before{
+			// 	width:calc( var(--icon-size) + var(--space, 0) );
+			// }
 		}
 	}
-	*/
-
-	@media  screen and (min-width:480px) {
-		
-		--space:var(--pad, 4px);
-
-		padding: calc(var(--pad)*2 ) calc(var(--pad)*3 );
-		grid-template-areas: "icon label gap";
-		grid-template-columns: calc( var(--icon-size) + var(--space,0px))  1fr var(--icon-size); //var(--icon-size);
-	
-		// &::before{
-		// 	width:calc( var(--icon-size) + var(--space, 0) );
-		// }
-	}
-
 }
 
 // Selected states for the person amount buttons
@@ -764,7 +761,7 @@ label[for="toggle-automation-mode"]{
 	#onboard label[for="toggle-advanced-mode"]{
 		&::before{
 			opacity:1;
-			animation: Pulse var(--duration-l, 1s) 0s #{$easeOutQuad} infinite both;
+			animation: Pulse var(--duration-l, 1s) 0s #{ease.$easeOutQuad} infinite both;
 		}
 		&::after{
 			opacity:0.5;

@@ -1,6 +1,8 @@
-@import "../_mixins.scss";
-@import "../_ease.scss";
+@use "../_mixins.scss" as *;
+@use "../_ease.scss";
+@use "../_palette.scss";
 
+// Style for the text to create a glowing effect
 %text-glow{
 
 	--fallback:	rgba(var(--shade-white),0.6) 0 0px 1px,
@@ -10,7 +12,18 @@
 
 	text-shadow:var( --text-glow, var(--fallback) );
 }
+
+@mixin text-glow{
+	--fallback:	rgba(var(--shade-white),0.6) 0 0px 1px,
+				rgba(var(--shade-white),0.4) 0 1px 1px,
+				rgba(var(--shade-white),0.24) 0 1px 1px,
+				rgba(var(--shade-white),0.1) 0 2px 1px;
+
+	text-shadow:var( --text-glow, var(--fallback) );
+}
+
 	
+// Style for the text to create a drop shadow effect
 %text-shadow{
 	// FIXME: only for larger sizes?
 	// this softens the border and adds a soft dropshadow
@@ -19,6 +32,7 @@
 	text-shadow: black calc( var(--shadow-offset-x,0) * 1px ) calc( var(--shadow-offset-y, 0) * 1px ) 0px;
 }
 
+// Style for the button border only
 %button-border{
 	// custom border - light from top right
 	border:var(--button-border-size, 0) solid rgba( var(--col-border), 0.8 );
@@ -26,7 +40,7 @@
 	border-right-color: rgba( var(--col-border), 0.7 );
 	border-bottom-color: rgba( var(--col-border), 0.6 );
 	border-radius:var(--button-curve, var(--border-radius, 16px));
-	
+	box-sizing: border-box;
 	// each corner has a gradient too
 	// border-image: 
 	// 	linear-gradient(
@@ -52,7 +66,7 @@
 }
 	
 // Sets the border and background to make a
-// 3d effect soft touch button with stacking
+// simple soft touch button with stacking
 %background-button {
 
 	@extend %button-border;
@@ -101,6 +115,12 @@
 		auto, 
 		auto ;
 	
+	background-size: 
+		calc( var(--icon-visible,1) * var(--icon-size, 22px) ),
+		auto,
+		auto,
+		auto;
+
 	// position the icon shadow
 	background-position: 
 		var( --pos-override, var(--pos, center) ),
@@ -112,6 +132,9 @@
 	// border-image-repeat: repeat;
 }
 
+
+// Sets the border and background to make a
+// 3d effect soft touch button with stacking
 %background-button-border {
 	
 	@extend %button-border;
@@ -139,7 +162,7 @@
 	 
 	// Fancy gradient backgrounds with icon above all
 	background-image: 
-		var(--bg),
+		var(--bg, initial),
 		linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
 		linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
 		linear-gradient( var(--col-back-top), var(--col-back-bottom) );
@@ -182,14 +205,6 @@
 		auto;
 }
 
-@mixin text-glow{
-	--fallback:	rgba(var(--shade-white),0.6) 0 0px 1px,
-				rgba(var(--shade-white),0.4) 0 1px 1px,
-				rgba(var(--shade-white),0.24) 0 1px 1px,
-				rgba(var(--shade-white),0.1) 0 2px 1px;
-
-	text-shadow:var( --text-glow, var(--fallback) );
-}
 
 // make an element white
 %filter-icon{
@@ -204,7 +219,8 @@
 
 	--inset:0;
 	
-	content:'';
+	content:"";//var(--bg);
+
 	grid-area: icon;
 
 	// allow to pop in front
@@ -216,17 +232,23 @@
 
 	// prevent icon squishing
 	flex: none;
-	font-size: 1rem;
 
+	// only ever show it if there is a --bg set!
 	// try and set to the size of the background icon
+	// NB. if ICON is not wanted we simply make this 0 sized
+	// NB. if we use cap as the size, we need to inhgerit font-sized too
 	width:calc( var(--icon-visible,1) * var(--icon-size) );
+	height:calc( var(--icon-visible,1) * var(--icon-size) );
+	
+	// make sure that any "content" is hidden
+	font-size: inherit;
+
+
 	// This one should break but assumes that --bg is ZERO
 	// width: max(
 	// 	calc( (1 + var(--bg, 0)) * var(--icon-visible,1) * var(--icon-size) ),
 	// 	calc( var(--icon-visible,1) * var(--icon-size) )
 	// );
-	
-	height:calc( var(--icon-visible,1) * var(--icon-size) );
 	
 	// also allow the "--space" to accumulate
 	margin:auto;
@@ -234,21 +256,20 @@
 	// prevent interactions
 	pointer-events: none;
 	user-select: none;
-	
-	// background:inherit;
-	// background-image: none;
-	background:transparent var(--bg, "/icons/icon.svg") no-repeat;
+
+	background:transparent var(--bg, initial) no-repeat;
+	// we assume the icon uses the same image as the parent
+	// background: inherit;
+	// background-image:
+	// 	inherit,
+	// 	auto,
+	// 	auto;
 	
 	// where to position the icon inside the element
-	background-position:top center;
-	// background-position:top right;
+	background-position: top center;
 
-	background-size:auto calc( var(--icon-size) * var(--icon-visible,1) );
-			
-	// flip the black to white and desaturate a little to make
-	// it look great - remember this is the hover state
-	// https://codepen.io/sosuke/pen/Pjoqqp
-	// z-index: -1;
+	// as the size is already fixed
+	background-size:contain;
 
 	// put on own layer and rotate as desired
 	transform: 
@@ -261,7 +282,7 @@
 	// always transform it so that it appears above the background
 	transition:
 		opacity var(--fade-speed, var(--ease-q, 42ms)) linear,
-		transform var(--transform-speed, var(--ease-q, 42ms)) $easeOutBack;
+		transform var(--transform-speed, var(--ease-q, 42ms)) ease.$easeOutBack;
 
 	// ensure icon ALWAYS prefixes text
 	order: -1;
@@ -295,7 +316,11 @@
 	// animation-fill-mode: both,both;
 	// animation-iteration-count: 1;
 	//border:var(--button-border-size) solid rgba($col-white, 0.9);
-	transform: scale(0.95) trabslateY( var( --shadow-offset-y,2px));
+	transform: scale(0.95) translateY( var( --shadow-offset-y,2px));
+}
+
+%button-focus{
+
 }
 
 // ============================================================================
@@ -304,20 +329,29 @@
 // and adds all of the custom vars required to style the button
 @mixin button-style{
 
+	--ON: initial;
+	--OFF: ;
+
+	// space hack to allow the bg attribute to set the icon visiblity
+	// https://lea.verou.me/blog/2020/10/the-var-space-hack-to-toggle-multiple-values-with-one-custom-property/
+	// --bg:var(--OFF, 0);
+
+	//  var(--foo, linear-gradient(white, transparent))
 	// some custom boolean controls
-	--icon-visible:1;     // Toggle the icon on/off
-	--label-visible:1;    // Toggle the label on/off
-	--invert:0;           // Toggle to invert the button colours
+	--icon-visible:1;				 // Toggle the icon on/off - default is off
+	--label-visible:1;   			 // Toggle the label on/off - default is on
+	--invert:0;          			 // Toggle to invert the button colours
 	
 	// from ios guidelines :
 	// 44px- 2px gap for AAA
-	// 33px for AA
+	// --_below-fold-flipper for AA
 	// 22 for A
 	// AAA is 44px
 	--min-size:44px;
 
 	--min-font-size:14px;					// Minimum font size in px
 	--max-font-size:17px;					// Maximum font size in px
+
 	--font-stretch:-0.5385rem + 2.2vmax;	// Viewport bound font sizes
 	// -0.5385rem + 7.6923vw
 
@@ -396,6 +430,8 @@
 		var(--col-text, var(--col-fg, var(--shade-light, white) ) )
 	);
 
+	// color:red;
+
 	// dark outline ring then smooth dropshadow
 	box-shadow: 
 		inset 0 0 0 var(--line) var((--col-ring, transparent)),
@@ -427,15 +463,28 @@
 	min-height:max( var(--min-size, 44px), fit-content );
 	
 	max-width:var(--max-width-override, var(--max-width, auto) );
+	max-height:128px;
 		
 	// allow scaling up but not down
 	flex-grow:1;
 	flex-shrink:0;
 
 	// ensure all the stuff inside bears left
-    align-items: center;
+
+	// flex-wrap: wrap;	
+	//flex-wrap: auto;
+	flex-direction: var( --dir-override, var(--direction, row));
+	display: inline-grid;
+	position: relative;
+	box-sizing: border-box;
+	vertical-align: middle;
+
+	// centralised without icon
+	// justify-content: flex-start;
+	justify-content: center;	
+	// justify-content: space-between;
+	align-items: center;
 	align-content: center;
-	justify-content: flex-start;
 
 	// bring in front of other relative elements
 	z-index:1;
@@ -447,21 +496,6 @@
 	// overflow: hidden;
 	overflow: visible;
 
-	// flex-wrap: wrap;	
-	//flex-wrap: auto;
-	flex-direction: var( --dir-override, var(--direction, row));
-	display: inline-grid;
-	
-	position: relative;
-
-	box-sizing: border-box;
-	vertical-align: middle;
-
-	// centralised without icon
-	justify-content: center;	
-	// justify-content: space-between;
-	align-items: center;
-	
 	// prevent pan / zooming when focussed on a button
 	-ms-touch-action: manipulation;	// FIX: IE10
 	touch-action: manipulation;	
@@ -491,7 +525,7 @@
 	// NB. trying to avoid unneccssary paints...
 	// FIXME: remove bg color & text color?
 	transition:
-		transform var(--fade-speed) $easeOutBack,
+		transform var(--fade-speed) ease.$easeOutBack,
 		opacity var(--fade-speed) linear;
 		// background-color var(--fade-speed) linear, 
 		// color var(--fade-speed) linear;
@@ -501,7 +535,7 @@
 	transition-delay:var(--delay-offset, 0), var(--delay-offset, 0);;
 
 	outline:var(--button-outline-size) solid transparent;
-	outline-offset:calc( -1 * var(--button-outline-size) );
+	outline-offset:calc( -2 * var(--button-outline-size) );
 
 	/*
 	// background moves vertically
@@ -537,19 +571,10 @@
 		z-index:-1;
 	}
 
-	/*
-	&:active {
-		&:before{
-			--hue:var(--hue-blue, 45);
-		}
-		--hue:var(--hue-orange, 5);
-		transform: none;
-		box-shadow: inset 0 0 0 var(--line) var((--col-ring));
-	}
-	*/
-
 	// FOCUS ================================================================================
 
+	// FIXME:
+	/*
 	// Tabbed to it only
 	&:is(
 		:focus-visible
@@ -557,6 +582,7 @@
 		outline-color:var(--col-ring, var(--col-accent, black));
 		outline-style: dashed;
 	}
+
 	// checked doesn't change the background colours?
 	// CHECKED OR PRESELECTED
 	// enabled and pressed
@@ -572,76 +598,8 @@
 		// background:red;
 	}
 		
-	// THIS IS THE INVERTED STATE where the text shadow
-	// is used as the main color
-	// focus states? :focus,
-	&:is(
-		:target,
-		:active,
-		:hover, 
-		:focus-visible,
-		:focus-within,
-		:has(:focus-visible)
-	){
-		// --col-fg:var(--shade-dark);
-		--col-top:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%)),  calc( var(--l-selected, var(--l, 30%)) )  );
-		--col-bottom:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%) ), calc( var(--l-selected, var(--l, 30%)) + var(--range,15%) )  );
-		--col-border:var(--shade-light , white );
-		
-		// if you want the icon to appear exactly where the white one was
-		--shadow-offset-y:0;
 
-		outline-color:var(--col-accent);
-	
-		// we use the text-shadow to reveal the text
-		color: transparent;
-
-		// we use the text-shadow to reveal the text
-		text-decoration: none;
-
-		// ICON before is dark and we fade it in...
-		&:after{
-			opacity:0;
-			z-index:1;
-		}
-		
-		select{
-			z-index:909;
-		}
-	}
-
-	// Flashing ring!
-	// When focussed via keyboard or screen reader
-	// Hover and focus states,
-	&:is(
-		:focus,
-		:focus-visible,
-		:focus-within,
-		:target,
-		:has(:target),
-		:focus(:target)
-	){
-		--hue:var(--hue-orange);
-		outline-color:var(--col-ring, var(--col-accent, black));
-		outline-style: dotted;
-		//outline-color:hsl( var(--hue-active), var( --s-active, var( --s, 58%)),  calc( var(--l-active, var(--l, 58%)) )  );
-		// outline-color:var(--col-outline);
-		// outline-offset:calc( -1 * var(--button-border-size) );
-		
-		// pop in front!
-		z-index:909;
-
-		opacity: 1;
-	}
-	
-	// give it an awesome focus ring that animates!
-	&:is(
-		:target, 
-		:focus,
-		:focus-visible
-	){
-		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
-	}
+	*/
 
 	/*
 	// Ensure that this is different enough to make it look highlighted
@@ -696,8 +654,6 @@
 
 	// Active *always* after hover for iOS
 
-
-
 	// FOCUS on press by keyboard activity
 	// &:active:focus-visible{
 		// --col-hover: $col-grey;
@@ -707,19 +663,9 @@
 	// }
 	
 
-	// on press
-	&:active{
-		// --col-top:hsl( var(--hue-active), var( --s-active, var( --s, 58%)),  calc( var(--l-active, var(--l, 58%)) )  );
-		// --col-bottom:hsl( var(--hue-active), var( --s-active, var( --s, 58%)), calc( var(--l-active, var(--l, 58%)) + var(--range,10%) )  );
-		@extend %button-active;
-		
-		// move icons down and to the right if exists
-		// &::before{
-		// 	transform: translateY(10%);
-		// }
-	}
 
 	
+	/*
 	&:is(
 		:active,
 		.checked:hover,
@@ -735,18 +681,98 @@
 		// border-bottom-color: rgba( var(--col-border), 0.6 );
 		// background-color:var(--col-hover);
 	}
+	*/
 	
+	// THIS IS THE INVERTED STATE where the text shadow
+	// is used as the main color
+	// focus states? :focus,
+	&:is(
+		:target,
+		:active,
+		:hover, 
+		:focus-visible,
+		:focus-within,
+		:has(:focus-visible)
+	){
+		// --col-fg:var(--shade-dark);
+		--col-top:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%)),  calc( var(--l-selected, var(--l, 30%)) )  );
+		--col-bottom:hsl( var(--hue-selected), var( --s-selected, var( --s, 58%) ), calc( var(--l-selected, var(--l, 30%)) + var(--range,15%) )  );
+		--col-border:var(--shade-light , white );
+		
+		// if you want the icon to appear exactly where the white one was
+		--shadow-offset-y:0;
+
+		// we use the text-shadow to reveal the text
+		color: transparent;
+
+		// we use the text-shadow to reveal the text
+		text-decoration: none;
+
+		// ICON before is dark and we fade it in...
+		&:after{
+			opacity:0;
+			z-index:1;
+		}
+		
+		select{
+			z-index:909;
+		}
+	}
+
+	// Flashing ring!
+	// When focussed via keyboard or screen reader
+	// Hover and focus states,
+	&:is(
+		:focus,
+		:focus-visible,
+		:focus-within,
+		:target,
+		:has(:target),
+		:focus(:target)
+	){
+		--hue:var(--hue-orange);
+		
+		//outline-color:hsl( var(--hue-active), var( --s-active, var( --s, 58%)),  calc( var(--l-active, var(--l, 58%)) )  );
+		// outline-color:var(--col-outline);
+		// outline-offset:calc( -1 * var(--button-border-size) );
+		
+		// pop in front!
+		z-index:909;
+		opacity: 1;
+	}
+	
+	// 	:focus ,give it an awesome focus ring that animates!
+	&:is(
+		:target, 
+		:focus-visible
+	){
+		outline-color:var(--col-ring, var(--col-accent, black));
+		outline-style: dotted;
+		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
+	}
 
 	// if an anchor has been linked here...
 	&:target{
 		--hue:var(--hue-brown);
-		
 	}
 		
 	// Disabled / prevent access...
 	&:disabled{
 		pointer-events: none;
 		filter:grayscale(100%);
+	}
+
+	// on press
+	&:active{
+		--hue:var(--hue-orange, 5);
+		// --shadow-offset-y
+		// --col-top:hsl( var(--hue-active), var( --s-active, var( --s, 58%)),  calc( var(--l-active, var(--l, 58%)) )  );
+		// --col-bottom:hsl( var(--hue-active), var( --s-active, var( --s, 58%)), calc( var(--l-active, var(--l, 58%)) + var(--range,10%) )  );
+		@extend %button-active;
+		box-shadow: inset 0 0 0 var(--line) var((--col-ring));
+		&:before{
+			--hue:var(--hue-blue, 45);
+		}
 	}
 
 	// ensure this isn't shown if not to be shown
@@ -760,6 +786,7 @@
 
 // Start as a hidden text large centralised icon
 @mixin add-icon-hide-text{
+	--label-visible:0;
 	--col-text:transparent;
 	padding:0;
 	gap:0;
@@ -773,6 +800,8 @@
 	// centralise everything
 	text-align:center;
 	justify-content: center;
+
+	// now the icon won't line up as expected because 
 	background-position: 
 		center top calc( 50% - calc( 1px * var(--shadow-offset-y, 0px))),
 		top left;
@@ -780,7 +809,7 @@
 
 // Stacked in a single column
 @mixin add-icon-text-stack{	
-	--icon-size:33px;
+	--icon-size:max( 2cap, 22px);
 	padding:var(--pad) 0;
 	gap:calc( var( --icon-visible, 1) * var(--pad) * 0.5 ) 0;
 
@@ -830,7 +859,9 @@
 
 // Single row icon + text
 @mixin add-icon-text-row{
-	--icon-size:2cap;
+
+	// we *cannot* use cap for the icon as the icon size
+	--icon-size:max(2cap, var(--button-size, 33px));
 	--pad:3px;
 
 	gap:
@@ -850,9 +881,13 @@
 	justify-content: flex-start;
 	justify-items: center;
 	
+	// as we have background-origin for the padding :D
 	background-position:
-		left calc(var(--pad, 0) + var(--space,0px)) top calc( 50% + 1px * var(--shadow-offset-y, 0px)) ,
+		left calc( var(--space,0px)) top calc( 50% + 1px * var(--shadow-offset-y, 0px)) ,
 		top left;
+	// background-position:
+	// 	left calc(var(--pad, 0) + var(--space,0px)) top calc( 50% + 1px * var(--shadow-offset-y, 0px)) ,
+	// 	top left;
 
 	&::after{
 		margin-right: 0;
@@ -862,9 +897,14 @@
 		// max-width: min-content;
 		gap:0;
 		grid-template-columns: 1fr;
-		background-position:
-			center top calc( 1px * var(--shadow-offset-y, 0px)),
-			top left;
+		// background-position:
+		// 	center top calc( 1px * var(--shadow-offset-y, 0px)),
+		// 	top left;
+
+		// background-position: 
+		// 	center top calc( 50% - calc( 1px * var(--shadow-offset-y, 0px))),
+		// 	top left;
+		background-position-x: center;
 
 		&::after{
 			margin-right: auto;
@@ -886,6 +926,8 @@
 
 // 2 icons both differenty colours
 @mixin button-with-dual-icon-style{
+
+	--icon-size:var( --button-size, max(2cap, 44px) ); 
 	
 	// kill background icon
 	background-image: none;
@@ -897,15 +939,19 @@
 	}
 	
 	// white in front
-	&::after{
+	&::before{
 		z-index: 2;
 	}
 
 	// black behind 
-	&::before{
+	&::after{
 		filter:none;
 		z-index: 1;
-		// margin-top:calc(1 * var(--shadow-offset-y, 0px));
+		// to give it a shadow effect
+		transform: 
+			rotate( calc( 1 * var(--turn, 0)) )
+			translate( calc( 1px * var(--shadow-offset-y, 0px)) ) 
+		;
 	}
 
 	// now hide one icon to let the other one be shown
@@ -923,7 +969,7 @@
 			
 	@include button-style;
 	&{
-		--icon-size:32px;
+		--icon-size:max(2cap, 22px);
 		--fade-speed:var(--ease-q);
 
 		--duration: var(--ease-q);
@@ -936,20 +982,20 @@
 		// --pos-override: top calc(var(--pad) - var(--button-border-size)) center;
 		
 		// gradient background
-		// --col-top:hsl( #{$hue-red}, var( --s, 58%), 30% );
-		// --col-bottom:hsl( #{$hue-red}, var( --s, 58%), 45% );
+		// --col-top:hsl( #{palette.$hue-red}, var( --s, 58%), 30% );
+		// --col-bottom:hsl( #{palette.$hue-red}, var( --s, 58%), 45% );
 		// --col-bg:var(--shade-red);
 
-		// --col-top:#{rgba($col-white, 0.15)};
-		// --col-bottom:#{rgba($col-dark, 0.15)};
+		// --col-top:#{rgba(palette.$col-white, 0.15)};
+		// --col-bottom:#{rgba(palette.$col-dark, 0.15)};
 		
 		padding:0;	
 
-		// cool covering effect
+		// FIXME: cool covering effect?
 		&::before{
 			content: "";
-			position: relative;
-			z-index:-1;
+			// position: relative;
+			// z-index:-1;
 			box-sizing: border-box;
 		}
 		
@@ -990,83 +1036,83 @@
 
 		// extra wide screen
 		@media screen and (min-width:1200px) {
-			--icon-size:33px;
+			// --icon-size:--_below-fold-flipper;
 			font-size:100%;
 		}
 
-		/*
-		// Resizing the screen will alter button behaviour
-		// smallest always hides text so overrides here...
-		@media screen and (max-width:430px){
-			--footer-gap:calc(67px);
-			--icon-size:20px;
-		}
-
-		// scale up
-		@media screen and (max-width:1240px){
-			
-			--footer-gap:calc(74px);
-			--icon-size:26px;
-			--pos:top var(--pad) center;
-			--direction: column;
-
-			// here we set a max width
-			// NB. you can override this with --max-width-override
-			//--max-width:44px;
-			min-width:44px;
-			
-			justify-content: start;
-			padding:var(--pad);
-
-			// --- to hide all text
-			// as there is now no longer any text we 
-			// need to centralise the icon
-			// --pos:center center;
-			// font-size: 0;
-			// gap:0;
-			// text-indent: -9999px;
-			// color:transparent;
-			// //make the icon go in the vertical center
-			// justify-content: end;
-			// ---
 		
-			// FIXME: remove margin
-			&:not(.hide-text):before{
-				margin-right:2px;
-			}
-			&:not(.hide-text){
-				gap:calc(var(--pad) / 2 );
-				//margin-right:calc(var(--pad) / 2 );
-			}
-		}
+		// // Resizing the screen will alter button behaviour
+		// // smallest always hides text so overrides here...
+		// @media screen and (max-width:430px){
+		// 	--footer-gap:calc(67px);
+		// 	--icon-size:20px;
+		// }
 
-		// show even the hidden text > 1960
-		@media screen and (max-width:1960px){
+		// // scale up
+		// @media screen and (max-width:1240px){
+			
+		// 	--footer-gap:calc(74px);
+		// 	--icon-size:26px;
+		// 	--pos:top var(--pad) center;
+		// 	--direction: column;
 
-			&.hide-text{
-				// %image-replacement
-				text-indent: -9999px;
-				overflow:hidden;
-				color:transparent;
-				text-shadow:none;
-				white-space: pre;
-				font-size: 0;
-				display: grid;
-				align-items: center;
-				justify-content: center;
-				background-position: center center;
-				grid-template-columns:1fr;
-				grid-template-rows:1fr 0;
-				gap:0;
+		// 	// here we set a max width
+		// 	// NB. you can override this with --max-width-override
+		// 	//--max-width:44px;
+		// 	min-width:44px;
+			
+		// 	justify-content: start;
+		// 	padding:var(--pad);
+
+		// 	// --- to hide all text
+		// 	// as there is now no longer any text we 
+		// 	// need to centralise the icon
+		// 	// --pos:center center;
+		// 	// font-size: 0;
+		// 	// gap:0;
+		// 	// text-indent: -9999px;
+		// 	// color:transparent;
+		// 	// //make the icon go in the vertical center
+		// 	// justify-content: end;
+		// 	// ---
 		
-				&::before,
-				input{
-					margin: auto;
-					grid-area:1/1/1/-1;
-				}
-			}
-		}
-		*/
+		// 	// FIXME: remove margin
+		// 	&:not(.hide-text):before{
+		// 		margin-right:2px;
+		// 	}
+		// 	&:not(.hide-text){
+		// 		gap:calc(var(--pad) / 2 );
+		// 		//margin-right:calc(var(--pad) / 2 );
+		// 	}
+		// }
+
+		// // show even the hidden text > 1960
+		// @media screen and (max-width:1960px){
+
+		// 	&.hide-text{
+		// 		// %image-replacement
+		// 		text-indent: -9999px;
+		// 		overflow:hidden;
+		// 		color:transparent;
+		// 		text-shadow:none;
+		// 		white-space: pre;
+		// 		font-size: 0;
+		// 		display: grid;
+		// 		align-items: center;
+		// 		justify-content: center;
+		// 		background-position: center center;
+		// 		grid-template-columns:1fr;
+		// 		grid-template-rows:1fr 0;
+		// 		gap:0;
+		
+		// 		&::before,
+		// 		input{
+		// 			margin: auto;
+		// 			grid-area:1/1/1/-1;
+		// 		}
+		// 	}
+		// }
+		
 	}
 }
 
@@ -1119,6 +1165,7 @@
 		min-height: max( var(--min-size, 44px), calc( var( --icon-visible, 1) * var(--icon-size, 22px) ), 4lh );
 
 		justify-content: space-between;
+
 		background-position-y:calc( 50% + 1px * var(--shadow-offset-y, 0px)),0,0,0;
 
 		&:after{	
@@ -1179,6 +1226,12 @@
 				linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
 				linear-gradient( var(--col-back-top), var(--col-back-bottom) );
 
+			// background-size: 
+			// 	calc( var(--icon-visible,1) * var(--icon-size) ),
+			// 	100%,
+			// 	100%,
+			// 	100%;
+
 			border: inherit;
 			border-radius: inherit;
 
@@ -1193,6 +1246,7 @@
 			z-index: -1;
 		}
 	}
+		
 }
 
 

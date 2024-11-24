@@ -1,5 +1,5 @@
-@import "./_button.scss";
-
+@use "./_button.scss";
+	
 // All buttons!
 // :where over :is as otherwise specificity suffers
 :where(
@@ -8,32 +8,38 @@
 	.controls > *:not(div, legend), 
 	.controls .folder-link
 ){
-	@include button-style;
+	@include button.button-style;
 }
 
-// BUTTON WITH ICON
-:is(
+// BUTTON WITH ICON :not(.person-toggle-controls)
+:where(
 	button,
 	.button,
 	.controls > *:not(div, legend), 
 	.controls .folder-link
 ):not(.button-push){
-	@include button-with-icon-style;
+	@include button.button-with-icon-style;
 }
 
 // Custom button with nice background
 // generic close button
-:is(.button, button, a, input, label){
+:where(
+	button,
+	.button,  
+	a, 
+	input, 
+	label
+){
 
 	// Front page buttons with a larger border, rounder edges
 	// and no resizing of contents
 	&.button-push{
-		@include button-with-icon-and-border;
+		@include button.button-with-icon-and-border;
 	}
 	
 	// dual icons (if you want to animate the icon shadow)
 	&.button-icons{
-		@include button-with-dual-icon-style;
+		@include button.button-with-dual-icon-style;
 	}
 
 	// full rounded edges to make a roundish button

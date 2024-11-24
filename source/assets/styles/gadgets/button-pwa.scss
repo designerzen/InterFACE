@@ -1,58 +1,65 @@
-@import "../palette.scss";
-@import "./button.scss";
+@use "../_palette.scss";
+@use "./_button.scss";
 
-
-// an update is available to the app!
-@property --hue {
-	syntax: '<number>';
-	initial-value: 0;
-	inherits: false;
-}
-
-.button-install,
-.button-upgrade{
-	--bg:url(/source/assets/icons/get_app-24px.svg);
-	// --bg:url(/source/assets/icons/download_for_offline_black_24dp.svg);
-	@include button-with-icon-and-border();
-}
-
-.button-upgrade{
-	// --hue:#{$hue-blue};
-	anchor-name:--button-upgrade;
-}
-
-.button-install{
-	//  --hue:#{$hue-green};
-	anchor-name:--button-install;
-}
-
-#button-install{
-	//--logo:url();
-	--overlap:0px;
-	--delay:0s;
-
-	grid-area:1/1;
-	// transform:translateY( calc(-100% + 7px) );
-	animation: none;
-	transition: transform var(--ease-s);
-	transition-timing-function:  var(--ease-out-back);
-
-	&:hover, &:focus-visible, &:active{
-		transform:translateY(-100%);
-	}
-
-	// after a brief while hide this?
-	// animation: 
-	// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
-	// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+// @layer buttons{
 	
-	// &:hover, &:focus{
-	// 	--overlap:40px;
-	// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
-	// }
-
-	// clicked "show me later"
-	&.later{
-		animation: Hide-Install var(--ease-s) $easeOutBack var(--delay) 1 normal both;
+	// an update is available to the app!
+	@property --hue {
+		syntax: '<number>';
+		initial-value: 0;
+		inherits: false;
 	}
-}
+
+	.button-install,
+	.button-upgrade{
+		--bg:url(/source/assets/icons/get_app-24px.svg);
+		// --bg:url(/source/assets/icons/download_for_offline_black_24dp.svg);
+		// @include button.button-with-icon-and-border();
+	}
+
+	.button-upgrade{
+		// --hue:#{$hue-blue};
+		anchor-name:--button-upgrade;
+	}
+
+	.button-install{
+		//  --hue:#{$hue-green};
+		anchor-name:--button-install;
+	}
+
+	#button-install{
+		//--logo:url();
+		--overlap:0px;
+		--delay:0s;
+
+		grid-area:1/1;
+		// transform:translateY( calc(-100% + 7px) );
+		animation: none;
+		transition: transform var(--ease-s);
+		transition-timing-function:  var(--ease-out-back);
+
+		&:is( 
+			:hover, 
+			:focus-visible, 
+			:active 
+		){
+			transform:translateY(-100%);
+		}
+
+		// after a brief while hide this?
+		// animation: 
+		// 			Hide-Install 0.4s $easeOutBack 0s 1 reverse both,
+		// 			Hide-Install 0.4s $easeOutBack var(--delay) 1 normal both;
+		
+		// &:hover, &:focus{
+		// 	--overlap:40px;
+		// 	animation: Hide-Install 0.4s $easeInBack var(--delay) 1 reverse both;
+		// }
+
+		// clicked "show me later"
+		&.later{
+			animation: Hide-Install var(--ease-s) var(--ease-out-back) var(--delay) 1 normal both;
+		}
+	}
+
+// }

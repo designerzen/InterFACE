@@ -1,4 +1,6 @@
 @use "sass:math";
+@use "sass:string";
+@use "sass:list";
 
 @keyframes EyesBlinking{
 	0%{
@@ -492,8 +494,8 @@ $emoji:(
 	$end:6;
 	@for $i from 1 to $end {
         #{math.div(100, $end)*$i + "%"} {
-			$emoji:nth($emoji,$i);
-			content:quote( $emoji );
+			$emoji:list.nth($emoji,$i);
+			content:string.quote( $emoji );
 		}
 	}
 }

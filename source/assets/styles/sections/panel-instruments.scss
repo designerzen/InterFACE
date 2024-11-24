@@ -1,3 +1,5 @@
+@use "../gadgets/_button.scss";
+@use "../_ease.scss";
 
 // Hide icons when they are being concealed
 // unless they are focused then reshow them
@@ -132,39 +134,53 @@
 	user-select: none;
 	cursor:col-resize;
 
-	.person-toggle-controls{
+	button.person-toggle-controls{
 
-		@include button-with-dual-icon-style;
+		@include button.button-with-dual-icon-style;
+
 		--icon-width:var(--button-size);
 		--icon: url(/source/assets/icons/forward_black_24dp.svg);
 		--bg: var(--icon);
 
+		// position in grid
+		grid-area: button; 
+		overflow: hidden;
+		// prevent shrinkage
+		flex:0;
+
+		// centralise in parent
+		margin-top: auto;
+		margin-bottom: auto;
+
 		// vertical text...
 		writing-mode: vertical-rl;
 		text-orientation:mixed;
-		
-		grid-area: button; 
-		grid-template-rows: var(--button-size);
-		grid-template-columns: var(--button-size) auto;
 
-		margin-top: auto;
-		margin-bottom: auto;
+		// fun times... changing direction of text will change 
+		// flow of columns / rows
+		grid-template-rows: var(--button-size) 0 0;
+		grid-template-columns: var(--button-size) 0 0;
+		
+		z-index: -1;
+		
+		justify-content: center;
+		align-items: center;
+
 		height: var(--button-size);
 		width: var(--button-size);
 		padding: 0;
-		
-		transition: transform var(--ease-q, 45ms) $easeInOutBack;
-		
-		display: grid;
-		overflow: hidden;
-		
-		// hide text and text shadow!!!
-		color: transparent;
-		text-shadow: none;
 
-		// z-index: -1;
-		// justify-content: center;
-		// align-items: center;
+		// hide text and text shadow!!!
+		//color: transparent;
+		text-shadow: none;
+		font-size: 0;
+		
+		transition: transform var(--ease-q, 45ms) ease.$easeInOutBack;
+		
+		/*
+		grid-template-columns: var(--button-size) auto;
+		*/
+		
 	
 		// try and hide the actual button text
 		// text-indent: 99ch;
@@ -311,10 +327,10 @@
 
 	// // expanded state
 	details[open] {
+		height: fit-height;
 		@starting-style {
 			height: min-height;
-		  }		
-		  height: fit-height;
+		}  
 	}
 
 	summary{
@@ -542,7 +558,7 @@
 .quartet:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ){
 
 	#person-a,
-	.person-a-panel.expanded{
+	.person-a-panel{
 		z-index: 999;
 	}
 
@@ -562,7 +578,7 @@
 	}
 
 	#person-d,
-	.person-d-panel.expanded{
+	.person-d-panel{
 		z-index: 999;
 	}
 }

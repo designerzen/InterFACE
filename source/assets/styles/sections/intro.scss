@@ -17,6 +17,7 @@
 	flex-direction: column;
 	align-items: stretch;
 	justify-items: center;
+	align-self: center;
 	position: relative;
 	z-index: 909;
 
@@ -235,6 +236,7 @@
 }
 
 #requirements-test {
+	margin-top:var(--pad);
 	width: 100%;
 	grid-area: requirements;
 }

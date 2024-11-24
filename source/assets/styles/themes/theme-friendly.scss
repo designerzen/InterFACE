@@ -1,4 +1,4 @@
-@import "../_palette.scss";
+@use "../_palette.scss";
 
 .theme-friendly{
 	
@@ -12,9 +12,9 @@
 		--range:0%;
 		--button-border-size:4px;
 
-		--hue: #{$hue-red};
-		--hue-selected: #{$hue-blue};
-		--hue-active: #{$hue-yellow};
+		--hue: #{palette.$hue-red};
+		--hue-selected: #{palette.$hue-blue};
+		--hue-active: #{palette.$hue-yellow};
 	
 		--s:8%;
 		--s-selected:58%;

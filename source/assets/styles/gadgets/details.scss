@@ -64,12 +64,14 @@
 		transform: rotate(0deg);
 	}
 }
+// @supports (details::details-content){
+	// handle animating in and out
+	details::details-content {
+		transition: content-visibility, height;
+		transition-behavior: allow-discrete;
+	}
 
-::details-content {
-	transition: content-visibility, height;
-	transition-behavior: allow-discrete;
-}
-
-[open]::details-content { 
-	height: auto; 
-}
+	details[open]::details-content { 
+		height: auto; 
+	}
+// }
