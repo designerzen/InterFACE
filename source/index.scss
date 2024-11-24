@@ -1,76 +1,93 @@
-@import "./assets/styles/_mixins.scss";
-@import "./assets/styles/_ease.scss";
-@import "./assets/styles/_palette.scss";
+// @use "./assets/styles/_mixins.scss";
+@use "./assets/styles/_ease.scss";
+@use "./assets/styles/_palette.scss";
+
+// // Load reset, fonts & set typography
+@use "./assets/styles/settings.scss";
+
+@use "./assets/styles/base/base.scss";
+@use "./assets/styles/base/fonts.scss";
+@use "./assets/styles/base/typography.scss";
+@use "./assets/styles/base/forms.scss";
+@use "./assets/styles/base/scrollbars.scss";
+
+// default form elements
+@use "./assets/styles/gadgets/inputs.scss";
+@use "./assets/styles/gadgets/inputs-checkbox.scss";
+@use "./assets/styles/gadgets/inputs-radio.scss";
+@use "./assets/styles/gadgets/inputs-range.scss";
 
 
-// Load reset, fonts & set typography
-@import "./assets/styles/settings.scss";
-@import "./assets/styles/fonts.scss";
-@import "./assets/styles/base.scss" layer(base);
-@import "./assets/styles/forms.scss" layer(forms);
-@import "./assets/styles/typography.scss" layer(typography);
-@import "./assets/styles/scrollbars.scss";
-@import "./assets/styles/states.scss";
-@import "./assets/styles/domains.scss";
-@import "./assets/styles/utils.scss";
+@use "./assets/styles/states.scss";
+@use "./assets/styles/domains.scss";
+
+@use "./assets/styles/icons.scss";
+@use "./assets/styles/keyframes.scss";
+
+// custom wallpapers depending on page
+@use "./assets/styles/wallpapers.scss";
+
+// alerts
+@use "./assets/styles/feedback.scss";
+
 
 // elements and sections
-@import "./assets/styles/gadgets/audio-player.scss";
-@import "./assets/styles/gadgets/toast.scss";
-@import "./assets/styles/gadgets/progress.scss";
-@import "./assets/styles/gadgets/dialog.scss";
-@import "./assets/styles/gadgets/scrollbars.scss";
-@import "./assets/styles/gadgets/details.scss";
-@import "./assets/styles/gadgets/cursors.scss";
-@import "./assets/styles/gadgets/folder.scss";
-@import "./assets/styles/gadgets/radial-menu.scss";
-@import "./assets/styles/gadgets/tooltips.scss";
+@use "./assets/styles/gadgets/warnings.scss";
+@use "./assets/styles/gadgets/audio-player.scss";
+@use "./assets/styles/gadgets/toast.scss";
+@use "./assets/styles/gadgets/tooltips.scss";
+@use "./assets/styles/gadgets/progress.scss";
+@use "./assets/styles/gadgets/dialog.scss";
+@use "./assets/styles/gadgets/details.scss";
+@use "./assets/styles/gadgets/cursors.scss";
+@use "./assets/styles/gadgets/folder.scss";
+@use "./assets/styles/gadgets/radial-menu.scss";
+@use "./assets/styles/gadgets/menu.scss";
+@use "./assets/styles/gadgets/select.scss";
+@use "./assets/styles/gadgets/gadgets.scss";
+@use "./assets/styles/gadgets/statistics.scss";
+@use "./assets/styles/gadgets/table.scss";
 
-@import "./assets/styles/gadgets/buttons.scss" layer(buttons);
-@import "./assets/styles/gadgets/button-arcade.scss";
-@import "./assets/styles/gadgets/button-pwa.scss";
-@import "./assets/styles/gadgets/button-controls.scss";
-
-@import "./assets/styles/gadgets/inputs.scss";
-@import "./assets/styles/gadgets/menu.scss";
-@import "./assets/styles/gadgets/select.scss";
-@import "./assets/styles/gadgets/gadgets.scss";
-@import "./assets/styles/gadgets/controls.scss";
-@import "./assets/styles/gadgets/table.scss";
-
-@import "./assets/styles/icons.scss";
-@import "./assets/styles/keyframes.scss";
-@import "./assets/styles/wallpapers.scss";
-@import "./assets/styles/feedback.scss";
-@import "./assets/styles/warnings.scss";
+// Buttons (in order)
+@use "./assets/styles/gadgets/buttons.scss";
+@use "./assets/styles/gadgets/button-arcade.scss";
+@use "./assets/styles/gadgets/button-pwa.scss";
+@use "./assets/styles/gadgets/button-controls.scss";
+@use "./assets/styles/gadgets/button-shared-controls.scss";
 
 
-@import "./assets/styles/sections/loading.scss";
-@import "./assets/styles/sections/midi.scss";
-@import "./assets/styles/sections/dialog-fund.scss";
-@import "./assets/styles/sections/footer.scss";
-@import "./assets/styles/sections/interface.scss";
-@import "./assets/styles/sections/intro.scss";
-@import "./assets/styles/sections/onboarding.scss";
+// Sections / Parts
+@use "./assets/styles/sections/recordings.scss";
+@use "./assets/styles/sections/timeline.scss";
+@use "./assets/styles/sections/tutorial.scss";
+@use "./assets/styles/sections/loading.scss";
+@use "./assets/styles/sections/midi.scss";
+@use "./assets/styles/sections/dialog-fund.scss";
+@use "./assets/styles/sections/footer.scss";
+@use "./assets/styles/sections/interface.scss";
+@use "./assets/styles/sections/intro.scss";
+@use "./assets/styles/sections/onboarding.scss";	// <- has button mixin 
 
 
-@import "./assets/styles/sections/panel-instruments.scss";
-@import "./assets/styles/sections/panel-midi.scss";
-@import "./assets/styles/sections/panel-record.scss";
-@import "./assets/styles/sections/panel-volume.scss";
-@import "./assets/styles/sections/panel-tempo.scss";
-
-@import "./assets/styles/sections/recordings.scss";
-@import "./assets/styles/sections/timeline.scss";
-@import "./assets/styles/sections/tutorial.scss";
+// Panels
+@use "./assets/styles/sections/panel-controls.scss";
+@use "./assets/styles/sections/panel-instruments.scss";
+@use "./assets/styles/sections/panel-midi.scss";
+@use "./assets/styles/sections/panel-record.scss";
+@use "./assets/styles/sections/panel-volume.scss";
+@use "./assets/styles/sections/panel-tempo.scss";
 
 
 // Themes that overide colour shemes and borders
-@import "./assets/styles/themes/theme-clash.scss";
-@import "./assets/styles/themes/theme-friendly.scss";
-@import "./assets/styles/themes/theme-high-contrast.scss";
-@import "./assets/styles/themes/theme-neon.scss" ;
-@import "./assets/styles/themes/theme-pastel.scss";
+@use "./assets/styles/themes/theme-clash.scss";
+@use "./assets/styles/themes/theme-friendly.scss";
+@use "./assets/styles/themes/theme-high-contrast.scss";
+@use "./assets/styles/themes/theme-neon.scss" ;
+@use "./assets/styles/themes/theme-pastel.scss";
+
+
+// global utils (at end to overwrite any other rules)
+@use "./assets/styles/utils.scss";
 
 // debug
 // @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');
