@@ -3,13 +3,12 @@ import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQua
 import { isProductionBuild } from '../utils/is-production'
 
 // sample string
-import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
-import { DISPLAY_LOOKING_GLASS_3D } from '../display/display-looking-glass-3d.js'
-import { DISPLAY_MEDIA_VISION_2D } from '../display/display-mediavision-2d.js'
+// import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
+import { INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { TUNING_MODE_MAJOR, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
 import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-factory.js'
 
-const isDevelopmentMode = isProductionBuild()
+const isDevelopmentMode = !isProductionBuild()
 
 export const MAX_CANVAS_WIDTH = 1080
 
@@ -160,6 +159,10 @@ export const DEFAULT_OPTIONS = {
 	
 	// show debug texts
 	debug:isDevelopmentMode,
+	
+	// show the statistics panel overlay!
+	stats:isDevelopmentMode,
+
 	// cancel audio playback (not midi)
 	muted:false,
 
@@ -268,6 +271,7 @@ export const getDomainDefaults = (name = '') => {
 }
 
 import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
+import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
 // console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
 export const INSTRUMENT_OPTIONS = {
 	list:INSTRUMENTS_LIST_LOCATION
@@ -348,7 +352,6 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	fxAController:'happiness',
 	fxBController:'eyebrowsRaisedBy',
-
 
 
 	// if the user has epilepsy, set to true

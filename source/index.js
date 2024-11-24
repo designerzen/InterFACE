@@ -104,8 +104,9 @@ const start = () => {
 	Object.keys(globalOptions).forEach(key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null)
 
 	// determine the language to use
-	const language = getBrowserLocales()[0]
-
+	const languages = getBrowserLocales()
+	const language = languages[languages.length-1]
+	
 	// and the start time for metrics
 	let startLoadTime = Date.now()
 	let failed = false
@@ -193,8 +194,7 @@ const start = () => {
 		)
 
 		
-		console.info("Application loaded ", {store,title})
-
+		
 		const loadTime = Date.now() - startLoadTime
 		
 		// Load in in automation
@@ -257,7 +257,7 @@ const start = () => {
 		if (debugMode) {
 
 			console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
-			console.log({ application, defaultOptions, globalOptions, domainOptions, referer: getReferer() })
+			console.log({ application, store,title, defaultOptions, globalOptions, domainOptions, referer: getReferer() })
 			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 		}
 	}
@@ -433,12 +433,12 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 		const requirementsTable= document.getElementById("requirements-test")
 		requirementsTable.scrollIntoView()
 		requirementsTable.focus()
-		console.warn("essential hardware missing") 
+		console.warn("Essential hardware missing") 
 
 		// showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)
 	
 	}else{
-		console.info("All hardware requirements met")
+		//console.info("All hardware requirements met")
 	}
 
 }, {once:true})

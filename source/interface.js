@@ -1,6 +1,9 @@
 import 'audioworklet-polyfill'
 
 import * as EMOJI from "./models/emoji.js"
+import Capabilities from './capabilities.js'
+
+import { loadInstrumentsList } from './settings/options.instruments.js'
 
 // import {midiLikeEvents} from './timing/rhythm'
 import State, { EVENT_STATE_CHANGE, createStateFromHost } from './utils/state.js'
@@ -52,11 +55,12 @@ import {
 	focusApp
 } from './dom/ui'
 
+import {setupThemeControls} from './theme/theme.js'
+
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
 import setupDialogs from './dom/ui.dialog.js'
 import { showPlayerSelector } from './dom/ui.player-selection.js'
-import {setupThemeControls} from './theme/theme.js'
 
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
@@ -66,17 +70,17 @@ import { setFeedback } from './dom/text.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
 import { connectDropZone } from './dom/drop-zone.js'
-import { copyCanvasToClipboard, canvasElement } from './visual/canvas.js'
-import interact from './utils/inactivity.js'
+import { drawMousePressure } from './dom/mouse-pressure'
+import { setupRecordings } from './dom/ui.recording.js'
+import { setupVolumeInterface } from './dom/ui.volume.js'
+import { toggleFullScreen } from './dom/full-screen.js'
 
 import MusicalKeyboard from './visual/2d.keyboard'
 // import Stave from './visual/2d.stave'
-
 import { setupImage } from './visual/image'
 import { setNodeCount } from './visual/2d'
 import { Quanitiser } from './visual/quantise'
-
-import { drawMousePressure } from './dom/mouse-pressure'
+import { copyCanvasToClipboard, canvasElement } from './visual/canvas.js'
 
 import { getLocationSettings, getShareLink, addToHistory, getRefererHostname } from './utils/location-handler'
 
@@ -96,42 +100,36 @@ import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS,
 import { TAU } from "./maths/maths"
 
 import { convertOptionToObject } from './utils/utils'
+import interact from './utils/inactivity.js'
 
 import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay  } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
 
 import { loadMLModel } from './models/load-model'
+import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 		
-import { toggleFullScreen } from './dom/full-screen.js'
 import { WebMidi } from 'webmidi'
 import { createQRCode } from './utils/barcodes.js'
-
-import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
-import { setupRecordings } from './dom/ui.recording.js'
-import { setupVolumeInterface } from './dom/ui.volume.js'
 
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
 import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
-import Capabilities from './capabilities.js'
-import { loadInstrumentsList } from './settings/options.instruments.js'
+
 import InstrumentFactory from './audio/instrument-factory.js'
 import { PRESETS_KICKS } from './audio/synthesizers/kick.js'
 import { PRESET_HIHATS } from './audio/synthesizers/hihat.js'
 import { PRESET_SNARES } from './audio/synthesizers/snare.js'
+
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
 
 const {DISPLAY_CANVAS_2D,DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
-
-// GAH!?
-// requiredXRSetupForLookingGlass()
 
 let instance = null
 class PhotoSYNTH{
@@ -164,7 +162,6 @@ export const createInterface = (
 	MIDIConnectionClasses = [],
 	language = "en-GB",
 	onLoadProgress = null
-
 ) => new Promise( (resolve,reject) => {
 
 	// Enforce Singleton and return Class with public methods only
@@ -1579,8 +1576,7 @@ export const createInterface = (
 			canvasElement = await restartCanvas( canvasElement, MAX_CANVAS_WIDTH )
 		}
 				
-		console.info("DISPLAY:Creating new", canvasElement, displayType)
-		display = await createDisplay( canvasElement, displayType )
+		display = await createDisplay( canvasElement, displayType, stateMachine.asObject )
 		display.setAnimationLoop( predictionLoop )
 
 		// save the display type for next time
@@ -2975,60 +2971,13 @@ export const createInterface = (
 		// upodate the load progress
 		progressCallback(loadIndex++/loadTotal, "Assembled!")
 		
-		try{
-			// Attempt to Lazy load
-			// Load in our instruction tool kit
-			let instructionTools = await import('./models/instructions.js')
-		
-			
-// save to local space
-// if automated, we show different instructions!
-			// getInstruction = instructionTools.getInstructionForAutomation
-			
-			getInstruction = instructionTools.getInstruction
-			getHelp = instructionTools.getHelp
+		// load in our instructions  & extras from our referer
+		const instructionTools = await import('./models/instructions.js')
+		getInstruction = instructionTools.getInstruction
+		getHelp = instructionTools.getHelp
 
-		
-			switch (referer)
-			{
-				case "ieee":
-					const IEEESpecificInstructions = [
-						`Hello IEEE!`,
-						`Welcome to the`,
-						`1st IEEE International Workshop on the Musical Metaverse =D`,
-						`and the 5th International Symposium...`,
-						`on the Internet of Sounds (IS2 2024)`,
-						`and me, the PhotoSYNTH...`,
-						`A SMILE POWERED SYNTHESIZER...`,
-						`and psychedelic pop video machine!`,
-						`Change instruments and video effects by posing...`,
-						`like your favourite emoji =P`
-					]
-
-					instructionTools.injectHelp(0, ...IEEESpecificInstructions )
-					instructionTools.injectInstructions(0, ...IEEESpecificInstructions)
-					instructionTools.injectInstructionsForAutomation(0, ...IEEESpecificInstructions)		
-					break
-			
-				default:
-					// instructionTools.injectHelp(0, [
-						
-					// ])
-					// instructionTools.injectHelp(0, "BOO!" )
-					// instructionTools.injectInstructions(0, "BOO!")
-					// instructionTools.injectInstructionsForAutomation(0, "Robot in disguise")
-
-					break
-			}
-
-			progressCallback(loadIndex++/loadTotal, "Instructions Found")
-		
-		}catch(error){
-			
-			// backup plan for failed JS loads
-			getInstruction = getHelp = i => ''
-			progressCallback(loadIndex++/loadTotal, "Instructions failed to load")
-		}
+		progressCallback(loadIndex++/loadTotal, "Instructions Available")
+		const instructions = await instructionTools.getInstructions( language, referer )
 
 		// Load tf model and wait
 		// this gets returned then used an the update method
