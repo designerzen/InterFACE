@@ -11,7 +11,7 @@ const supportsPopover = HTMLElement.prototype.hasOwnProperty("popover")
 const tooltips = new Map()
 const tooltipPositions = new Map()
 let tooltipsEnabled = false
-let tooltopPosition = 0
+let tooltipPosition = 0
 let tooltipElement = null
 let bodyMutationObserver
 
@@ -114,21 +114,22 @@ let bodyMutationObserver
  * @param {String} query query selector for finding the elements to bind to
  */
 const toastElement = document.getElementById("toast")
+// const toastElement = document.querySelector(".tooltip")
 // export const setToast = bindTextElement( toastElement, 20, 900, true )
 export const setToast = createTip( toastElement )
 
 
-/**
+/*
  * set the style of the tooltip to the x/y coords
  * of the provided element
  * @param {HTMLElement} target 
  */
-const setToolTipPosition = (target, anchor="") => {
+export const setToolTipCoordinates = ( x, y) => {
 	
 	requestAnimationFrame( e => {
 		toastElement.setAttribute(
 			"style", 
-			`--left: ${target.x ?? target.offsetLeft};--top: ${target.y ??target.offsetTop};` 
+			`--left: ${x};--top: ${y};` 
 		)
 	})
 
@@ -136,6 +137,15 @@ const setToolTipPosition = (target, anchor="") => {
     //     "--left": target.offsetLeft,
     //     "--top": target.offsetLeft
     // })
+}
+
+/**
+ * set the style of the tooltip to the x/y coords
+ * of the provided element
+ * @param {HTMLElement} target 
+ */
+export const setToolTipPosition = (target, anchor="") => {
+	setToolTipCoordinates( target.x ?? target.offsetLeft, target.y ?? target.offsetTop );
 }
 
 // ensure we remove the cursor from the screen!
@@ -149,7 +159,7 @@ export const updateTooltipPositions = () => {
 	// 	const position = tooltipPositions.get( tooltipElement )
 	// 	position && setToolTipPosition(position)
 	// }
-	// console.log("getPositionForTooltip", tooltips)	
+	// console.log("update tooltip positions", {tooltips, tooltipPositions})	
 }
 
 const onWindowResize = event => {
@@ -160,10 +170,11 @@ const onWindowResize = event => {
 // position-anchor
 const getPositionForTooltip = target => {
 	const e = target.getBoundingClientRect().toJSON() 
+	// console.info("setTipSourcePosition", {e, target})
+	//+ Math.min( 14, e.width * 0.2 ) ,  
 	return { ...e, 
-		x:e.x + Math.min( 14, e.width * 0.2 ) + window.scrollX,  
+		x:e.x + window.scrollX,
 		y:e.y + window.scrollY
-		//y:e.y + e.height/2
 	}
 	return {
 		x:target.offsetLeft,
@@ -172,13 +183,34 @@ const getPositionForTooltip = target => {
 }
 
 const setTipSourcePosition = target => {
-	const targetElement = 
-		target.nodeName === "BUTTON" ? 
-			target : target.parentElement 
+
+	let targetElement
+
+	switch(target.nodeName)
+	{
+		case "INPUT":
+			targetElement = target.parentElement
+			break
+
+		default:
+			targetElement = target
+	}
 
 	tooltipElement = targetElement
-	tooltopPosition = getPositionForTooltip(targetElement)
-	tooltipPositions.set( target, tooltopPosition )
+	tooltipPosition = getPositionForTooltip(targetElement)
+	tooltipPositions.set( target, tooltipPosition )
+	// console.info("Setting tip position", tooltipPosition )
+}
+
+// Options for the observer (which mutations to observe)
+const CONFIG = { attributes: true, childList: false, subtree: false };
+
+export const showTooltip = (text) => {
+	// toastElement.innerHTML = toolTip
+	toastElement.textContent = text
+	// setToast(toolTip)
+	// console.error( {toolTip, position} )
+	toastElement.hidden = false
 }
 
 /**
@@ -186,41 +218,8 @@ const setTipSourcePosition = target => {
  * adds a single tooltip to an element where hovering will reveal new info
  * @param {HTMLElement} controls DOM element to search within
  */
-export const addTooltip = element => { 
-	// lazy create our observer
-	if (tooltips.size === 0)
-	{
-		window.addEventListener("resize", onWindowResize )
+export const addTooltip = (element, config=CONFIG) => { 
 	
-		/*
-		// Options for the observer (which mutations to observe)
-		const config = { attributes: true, childList: true, subtree: true };
-
-		// Callback function to execute when mutations are observed
-		const callback = (mutationList, observer) => {
-			for (const mutation of mutationList) {
-				if (mutation.type === "childList") {
-					console.log("MutationObserver A child node has been added or removed.", mutation)
-				} else if (mutation.type === "attributes") {
-					console.log(`MutationObserver The ${mutation.attributeName} attribute was modified.`, mutation )
-				}else{
-					console.log(`MutationObserver was modified.`, mutation )
-					updateTooltipPositions()
-				}
-				
-			}
-		}
-
-		// Create an observer instance linked to the callback function
-		bodyMutationObserver = new MutationObserver(callback)
-
-		// Start observing the target node for configured mutations
-		bodyMutationObserver.observe(document.documentElement, config)
-
-		*/
-		tooltipsEnabled = true
-	}
-
 	// set the initial position
 	// tooltipPositions.set( element, getPositionForTooltip(element) )
 	setTipSourcePosition( element )
@@ -233,9 +232,22 @@ export const addTooltip = element => {
 		}
 
 		tooltipElement = event.target
-		
+
+
 		const toolTip = tooltipElement.getAttribute("aria-label") || tooltipElement.innerText
 		const position = tooltipPositions.get( element )
+		
+		// console.log("Position" , getPositionForTooltip(tooltipElement), position )
+
+				
+		// console.info("showTooltipCallback", {element, toolTip, tooltipElement, position, tooltipPositions})
+		
+		// position was butchered
+		if (position.x === 0 && position.y === 0)
+		{
+			setTipSourcePosition(tooltipElement)
+		}
+
 		if (position)
 		{
 			// console.info("Setting tooltip", {position, toolTip} ) 
@@ -246,11 +258,9 @@ export const addTooltip = element => {
 
 		// Eventually this will work!
 		toastElement.anchor = event.target.id
-		// toastElement.innerHTML = toolTip
-	 	toastElement.textContent = toolTip
-		// setToast(toolTip)
-		// console.error( {toolTip, position} )
-		toastElement.hidden = false
+		
+		showTooltip(toolTip)
+
 		if (supportsPopover)
 		{	
 			toastElement.showPopover()	
@@ -291,6 +301,52 @@ export const addTooltip = element => {
 			element.removeEventListener("mouseout", hideTooltipCallback )	
 		}
 	}	
+	
+	// lazy create our observer
+	if (tooltips.size === 0)
+	{
+		//window.addEventListener("resize", onWindowResize )
+	
+		// Callback function to execute when mutations are observed
+		const callback = (mutationList, observer) => {
+			// console.log("element mutated", mutationList	)
+			for (const mutation of mutationList) {
+				if (mutation.type === "childList") {
+					// console.log("MutationObserver A child node has been added or removed.", mutation)
+				} else if (mutation.type === "attributes") {
+
+					switch(mutation.attributeName)
+					{
+						case "checked":
+						case "hidden":
+							// console.log(`IGNORED MutationObserver The ${mutation.attributeName} attribute was modified.`, mutation )
+							break
+
+						default:
+							// console.log(`MutationObserver The ${mutation.attributeName} attribute was modified.`, mutation )
+					}
+				
+				}else{
+					// console.log(`MutationObserver was modified.`, mutation )
+					// updateTooltipPositions()
+					setTipSourcePosition( element )
+				}
+			}
+		}
+		
+		// Create an observer instance linked to the callback function
+		bodyMutationObserver = new MutationObserver(callback)
+	
+		tooltipsEnabled = true
+	}
+
+	if (bodyMutationObserver)
+	{
+		// Start observing the target node for configured mutations
+		bodyMutationObserver.observe(element, config)
+	}else{
+		throw Error("No MutationObserver found")
+	}
 	
 	tooltips.set( element, cleanUp )
 }
@@ -346,6 +402,7 @@ export const addToolTips = (controls, query="[aria-label]") => {
 
 	// intercept any hover events...
 	buttons.forEach( button => addTooltip(button) )
+	// console.log("addToolTips", {tooltips, tooltipPositions})
 }
 
 export const toggleTooltips = state => {
