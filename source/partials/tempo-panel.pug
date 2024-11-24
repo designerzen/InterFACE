@@ -2,7 +2,7 @@ fieldset.form-tempo
 	legend Set Tempo
 	
 	label(for="tempo-input-text") Enter tempo
-	input(type="number" min="1" max="300")#tempo-input-text
+	input(type="number" min="1" max="300" inputmode="numeric" pattern="[0-9]+")#tempo-input-text
 
 	label(for="tempo-input-range") Set tempo
 	input(type="range" min="1" max="300" step="0.5" list="tempo-input-ticks")#tempo-input-range
