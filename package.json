@@ -218,6 +218,7 @@
     "share-menu": "^5.1.0",
     "stats-gl": "^3.6.0",
     "stats.js": "^0.17.0",
+    "svgo": "^3.3.2",
     "three": "^0.170.0",
     "three-addons": "^1.2.0",
     "three-mesh-bvh": "^0.8.3",
