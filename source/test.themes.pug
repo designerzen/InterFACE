@@ -1,0 +1,41 @@
+extends _base.pug
+
+block title
+	+title('Test:Themes')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#test-themes
+		//- theme selection
+		include partials/theme-selector.pug
+
+
+
+block scripts
+	script(type="module").
+		// 
+		import {addToolTips} from './dom/tooltips.js'		
+		import {Pane} from 'tweakpane'
+		
+		window.addEventListener('keydown', async (event)=>{
+			const isNumber = !isNaN( parseInt(event.key) )
+			const focussedElement = document.activeElement
+
+		})
+
+		addSettings()
+		addToolTips( document.documentElement )
+
+
+block styles 
+	style.
+		#control-panel{
+			z-index:909;
+		}
+		.controls{
+			visibility:visible;
+		}
