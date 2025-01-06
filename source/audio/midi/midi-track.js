@@ -198,4 +198,22 @@ export default class MidiTrack extends AudioTrack
 		const o = this.commands.map( command => command.toJSON() )
 		return o // `[${this.tracks.map( track => track.toString() ).join(",")}]`
 	}
+
+	/**
+	 * Clone the track
+	 */
+	clone()
+	{
+		// 
+		const track = new MidiTrack( this.header )
+		this.commands.forEach( (command, index) => track.addEvent( index, command.clone() ) )
+	}
+
+	/**
+	 * Reverse a copy of this track
+	 */
+	reverse()
+	{
+
+	}
 }

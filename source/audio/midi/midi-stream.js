@@ -59,7 +59,7 @@ export default class MIDIStream {
 	 * @returns {String} X
 	 */
 	readInt8(signed = false) {
-		const result = this.str.charCodeAt(this.position)
+		let result = this.str.charCodeAt(this.position)
 		if (signed && result > 127) {
 			result -= 256
 		}

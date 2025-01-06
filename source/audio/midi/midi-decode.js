@@ -151,10 +151,48 @@ const decodeTracks = ( track, stream ) =>
 			//tracks[i].push(event);
 			track.addEvent(i,event)
 		}
+	}
 
-		// Now re-loop through all events and all 
+	const allInstrumentsUsed = []
+	// Now re-loop through all events and all use noteOffs to determine the duration of each note on...
+	if (track.duration > 0 )
+	{
+		const activemusicalEvents = new Map()
+		let activeInstrument = undefined
+		track.commands.forEach( command => {
 
-		console.error("YO!", track )
+			switch(command.subtype)
+			{
+				case "noteOn":
+					activemusicalEvents.set(command.noteNumber, command)
+					command.programNumber = activeInstrument
+					break
+
+				case "noteOff":
+					// we need to set the previus event 
+					const note = activemusicalEvents.get(command.noteNumber)
+					if (note)
+					{
+						// note off time - note on time
+						note.duration = command.time - note.time
+						note.percentDuration = command.percentDuration = note.duration / track.duration
+						
+						activemusicalEvents.delete(command.noteNumber)
+					}
+					break
+
+				case "programChange":
+					activeInstrument = command.programNumber
+					allInstrumentsUsed.push(activeInstrument)
+					console.info("Instrument changed to", activeInstrument)
+					break
+			}
+
+			// console.info("MIDI Command", {command, activemusicalEvents} ) 
+			command.percentStart = command.time ? command.time / track.duration : -1
+		})
+
+		console.info("MIDI File loaded with duration", track.duration, {track, allInstrumentsUsed} )
 	}
 	return track
 }
@@ -178,6 +216,8 @@ const convertEventToCommand = (stream) =>
 		decodeSystemEvent( stream, event, eventTypeByte) :
 		decodeChannelEvent( stream, event, eventTypeByte)
 }
+
+const formatVelocity = (velocity) => Math.abs(velocity / 127)
 
 /**
  * Control the instrument's 16 voices (timbres, patches),
@@ -219,7 +259,7 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 			//'noteOff';
 			event.noteNumber = firstParameter
 			event.noteName = convertMIDINoteNumberToName(firstParameter)
-			event.velocity = stream.readInt8()
+			event.velocity = formatVelocity(stream.readInt8())
 			//event.raw += `"subtype":${event.subtype},"noteNumber":${firstParameter}`
 			return event
 
@@ -227,7 +267,7 @@ const decodeChannelEvent = (stream, event, eventTypeByte ) =>
 		case 0x09:
 			event.noteNumber = firstParameter
 			event.noteName = convertMIDINoteNumberToName(firstParameter)
-			event.velocity = stream.readInt8()
+			event.velocity = formatVelocity(stream.readInt8() )
 			
 			if (event.velocity === 0)
 			{
