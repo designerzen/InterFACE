@@ -39,7 +39,7 @@ export default class DisplayMediaPipe2D extends Display2D{
 		const hue = person.hue
 		const canvasContext = this.canvasContext
 
-		console.log("drawPerson", person, {hue, options, colours} )
+		// console.log("drawPerson", person, {hue, options, colours} )
 
 		if (!forceRefresh && !prediction && !person.isPlayingBack)
 		{

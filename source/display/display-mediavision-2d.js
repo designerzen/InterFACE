@@ -11,12 +11,18 @@ import { drawInstrument, drawParagraph } from '../visual/2d.text.js'
 
 import { drawEye } from "../visual/2d.eyes"
 
-import { FaceLandmarker, DrawingUtils } from "@mediapipe/tasks-vision"
+import { FaceLandmarker } from "@mediapipe/tasks-vision"
+// import { DrawingUtils } from "@mediapipe/tasks-vision"
 
 import { drawBars } from "../visual/spectrograms"
 import {hasOffscreenCanvasCapability} from '../capabilities'
 
+import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d"
+import { drawEye } from "../visual/2d.eyes"
+import { drawLip } from "../visual/2d.mouth"
+import { drawBars } from "../visual/spectrograms"
 import Display2D from "./display-canvas-2d"
+
 import { drawFace } from "../visual/2d.face"
 
 import MEDIAVISION__WORKER_URI from 'url:./display-mediavision-2d.worker.js'
