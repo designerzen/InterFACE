@@ -13,7 +13,7 @@ const DEFAULT_ENVELOPE_OPTIONS = {
     gain:1
 }
 
-export class EnvelopeNode extends GainNode{
+export default class EnvelopeNode extends GainNode{
 
     attack
     decay
