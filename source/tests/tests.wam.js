@@ -19,8 +19,8 @@ import {
 
 import { initializeWamHost } from "@webaudiomodules/sdk"
 
-import SimplePlugin from "../audio/wam2/simple/index.js"
-import simplePluginURI from "worklet:../audio/wam2/simple/index.js"
+// import SimplePlugin from "../audio/wam2/simple/index.js"
+// import simplePluginURI from "worklet:../audio/wam2/simple/index.js"
 // import simplePluginURI from "url:./audio/wam2/simple/index.js"
 
 // import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
