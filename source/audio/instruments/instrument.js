@@ -41,6 +41,8 @@ export default class Instrument{
 
 	// linked list
 	nextInstrument = null
+
+	loaded = new Promise(this.onAvailable)
 	
 	/**
 	 * @returns {String} of unique Instrument id for this instance
@@ -111,18 +113,21 @@ export default class Instrument{
 		this.options = options
 		this.activeNotes = new Map()
 		this.unique = (Date.now() * Math.random() ) >> 0
-		
-		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
+		this.create().then(()=>{
+			Promise.resolve(this.loaded)
+		})
 	}
 	
 	// Life cycle methods ----------------------------------
 
-	create(){
-
+	async create(){
+		this.available = true
+		return true
 	}
 	
-	destroy(){
-
+	async destroy(){
+		this.available = false
+		return true
 	}
 
 	/**
@@ -163,8 +168,8 @@ export default class Instrument{
 
 	
 	// TODO: 
-	allSoundOff(){}
-	allNotesOff(){	}
+	async allSoundOff(){}
+	async allNotesOff(){	}
 	
 	/**
 	 * Polyphonic Key Pressure
@@ -205,13 +210,12 @@ export default class Instrument{
 	 * This message sent when the patch number changes. 
 	 * @param {Number} programNumber - new program number.
 	 */
-
 	async programChange( programNumber ){}
+
 	// another way to access it
 	async setPatch( programNumber ){
 		this. programChange( programNumber )
 	}
-	
 	
 	/**
 	 * Get a list of all the instrument names available for this
@@ -304,5 +308,10 @@ export default class Instrument{
 			case MIDICommands.TYPE_CHANNEL:
 				return this.doChannelCommand(command)
 		}
+	}
+
+	onAvailable(resolve){
+		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
+		console.log("CREATED:Instrument.onAvailable", this )
 	}
 }

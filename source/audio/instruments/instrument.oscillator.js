@@ -1,12 +1,12 @@
 import Instrument from './instrument'
 import {noteNumberToFrequency} from '../tuning/frequencies.js'
 
-const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
+export const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
 
 const OPTIONS = {
 	
 	// The shape of the wave produced by the node. Valid values are 'sine', 'square', 'sawtooth', 'triangle' and 'custom'. The default is 'sine'.
-	shape:OSCILLATOR_TYPES[3],
+	shape:OSCILLATOR_TYPES[0],
 	
 	// A detuning value (in cents) which will offset the frequency by the given amount. Its default is 0.
 	detune:0,
@@ -26,9 +26,12 @@ const OPTIONS = {
 	// Represents an enumerated value describing the meaning of the channels. This interpretation will define how audio up-mixing and down-mixing will happen. The possible values are "speakers" or "discrete". (See AudioNode.channelCountMode for more information including default values.)
 	// channelInterpretation
 
-	slideDuration:8,
+	slideDuration:6,
 	fadeDuration:18,
 }
+
+
+export const shapeName = string => string[0].toUpperCase() + string.slice(1)
 
 export const INSTRUMENT_TYPE_OSCILLATOR = "OscillatorInstrument"
 
@@ -46,66 +49,74 @@ export default class OscillatorInstrument extends Instrument{
 	envelope
 	oscillator 
 
+	attack = 0.001
+	decay = 0.1
+	sustain = 0.5
+	release = 0.1
+
 	get volume() {
 		return this.gainNode.gain.value
 	}
 
 	set volume(value) {
-		this.gainNode.gain.value = value
+		if (this.gainNode)
+		{
+			this.gainNode.gain.value = value
+		}
+		super.volume = value
 	}
 	
 	get audioNode(){
 		return this.gainNode
 	}
 
-	constructor( audioContext, options={} ){
+	set shape(value){
+		this.oscillator.type = value
+	}
 
-		super(audioContext, { ...OPTIONS, ...options })
+	get shape(){
+		return this.oscillator.type
+	}
 
-		this.gainNode = audioContext.createGain()
-		this.gainNode.gain.value = 1 // this.currentVolume
+	async create(){
+		await super.create()
+		this.gainNode = this.context.createGain()
+		this.gainNode.gain.value = this.currentVolume
 		
-		this.envelope = audioContext.createGain()
-		this.envelope.gain.value = 1 
+		this.envelope = this.context.createGain()
+		this.envelope.gain.value = 0
 		
-		this.oscillator = new OscillatorNode( audioContext, { ...this.options, type:this.options.shape }) 
-		
-		// const bitCrusher = new AudioWorkletNode(audioContext, 'bit-crusher-processor')
-		// bitCrusher.onprocessorerror = () => {
-		// 	console.error('An error from AudioWorkletProcessor.process() was detected.')
-		// }
-		
-		// this.paramBitDepth = bitCrusher.parameters.get('bitDepth')
-		// this.paramReduction = bitCrusher.parameters.get('frequencyReduction')
-	
-		// this.paramBitDepth.setValueAtTime(8, 0)
-		// this.paramReduction.setValueAtTime(0.3, 0)
-
-		// `frequencyReduction` parameters will be automated and changing over time.
-		// Thus its parameter array will have 128 values.
-		// paramReduction.setValueAtTime(0.01, 0)
-		// paramReduction.linearRampToValueAtTime(0.1, 4)
-		// paramReduction.exponentialRampToValueAtTime(0.01, 8)
-
+		this.oscillator = new OscillatorNode( this.context, { ...this.options, type:this.options.shape }) 
 		this.oscillator
-			// .connect(bitCrusher)
 			.connect(this.envelope)
 			.connect(this.gainNode)
 
 		// immediately start as always playing in silent
 		this.oscillator.start()
+		return true
+	}
 
-		const shapeName = string => string[0].toUpperCase() + string.slice(1)
+	async destroy(){
+		return await super.destroy()
+	}
 
-		this.title = `${shapeName(this.options.shape)} Wave Oscillator`
+	constructor( audioContext, options={} ){
+
+		super(audioContext, { ...OPTIONS, ...options })
+		this.create()
+
+		this.title = `${options.name ?? shapeName(this.options.shape)} Wave Oscillator`
 		this.available = true
 	}
 
 	async noteOn( noteNumber, velocity=1 ){
 	
-		console.error("oscillator",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
+		// console.error("oscillator",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
 	
-		this.envelope.gain.setValueAtTime(1, 0)
+		// FIXME
+		
+		// this.envelope.gain.setValueAtTime(1, 0)
+		this.envelope.gain.linearRampToValueAtTime(1, this.context.currentTime+this.attack )
 		// this.oscillator.linearRampToValueAtTime(0.1, 4)
 		// this.oscillator.exponentialRampToValueAtTime(0.01, 8)
 
@@ -113,13 +124,13 @@ export default class OscillatorInstrument extends Instrument{
 		// this.oscillator.frequency.value = noteNumberToFrequency(noteNumber)
 		
 		// slide
-		this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), this.options.slideDuration )
+		this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber)+ (this.options.detune ?? 0), this.options.slideDuration )
 
 		return super.noteOn(noteNumber, velocity)
 	}
 	
 	async noteOff(noteNumber, velocity=0){
-		this.envelope.gain.setValueAtTime( 0, this.options.fadeDuration )
+		this.envelope.gain.setValueAtTime( 0, this.context.currentTime+(velocity ?? this.decay ) )
 		return super.noteOff(noteNumber)
 	}
 
@@ -133,7 +144,7 @@ export default class OscillatorInstrument extends Instrument{
 	 */
 	aftertouch( noteNumber, pressure ){
 		// restart ADSR?
-		super.aftertouch( noteNumber, pressure )
+		return super.aftertouch( noteNumber, pressure )
 	}
 	
 	/**
@@ -150,14 +161,14 @@ export default class OscillatorInstrument extends Instrument{
 	 */
 	pitchBend(pitch){
 		// this.oscillator.frequency.value = noteNumberToFrequencyFast(pitch)
-		this.oscillator.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), this.options.slideDuration )
-		super.pitchBend(pitch)
+		this.oscillator.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
+		return super.pitchBend(pitch)
 	}
 	
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		const index = programNumber%(OSCILLATOR_TYPES.length-1)
-		this.oscillator.type = OSCILLATOR_TYPES[index]
+		this.shape = OSCILLATOR_TYPES[index]
 		return super.programChange( programNumber )
 	}
 	
@@ -171,7 +182,7 @@ export default class OscillatorInstrument extends Instrument{
 
 	// CUSTOM Methods
 	setCustomWaveform(){
-		this.oscillator.setCustomWaveform( periodicWave )
+		this.oscillator.setCustomWaveform( this.createPeriodicWave() )
 	}
 
 	/**
@@ -188,7 +199,7 @@ export default class OscillatorInstrument extends Instrument{
 	 * 
 	 * Here, we only set one component at full volume (1.0) on the fundamental tone, so we get a sine wave.
 	 */
-	setPeriodicWave(){
+	createPeriodicWave(){
 		const real = new Float32Array(2)
 		const imag = new Float32Array(2)
 		
@@ -197,7 +208,29 @@ export default class OscillatorInstrument extends Instrument{
 		real[1] = 1
 		imag[1] = 0
 
+		
+		/* Sine 
+		imaginary[1] = 1; */
+
+		/* Sawtooth 
+		for(x=1;x<n;x++)
+			imaginary[x] = 2.0 / (Math.pow(-1, x) * Math.PI * x); */
+
+		/* Square 
+		for(x=1;x<n;x+=2)
+			imaginary[x] = 4.0 / (Math.PI * x);
+
+
+		/* Triangle
+		for(x=1;x<n;x+=2) 
+			imag[x] = 8.0 / Math.pow(Math.PI, 2) * Math.pow(-1, (x-1)/2) / Math.pow(x, 2) * Math.sin(Math.PI * x);
+		*/
+
 		const periodicWave = this.context.createPeriodicWave(real, imag)
-		this.oscillator.setPeriodicWave( periodicWave )
+		return periodicWave
+	}
+
+	setPeriodicWave(){
+		this.oscillator.setPeriodicWave( this.createPeriodicWave() )
 	}
 }

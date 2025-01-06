@@ -7,7 +7,7 @@ export const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth" ] //,"cus
 const OPTIONS = {
 	
 	// The shape of the wave produced by the node. Valid values are 'sine', 'square', 'sawtooth', 'triangle' and 'custom'. The default is 'sine'.
-	shape:OSCILLATOR_TYPES[3],
+	shape:OSCILLATOR_TYPES[0],
 	
 	// A detuning value (in cents) which will offset the frequency by the given amount. Its default is 0.
 	detune:0,
@@ -27,12 +27,12 @@ const OPTIONS = {
 	// Represents an enumerated value describing the meaning of the channels. This interpretation will define how audio up-mixing and down-mixing will happen. The possible values are "speakers" or "discrete". (See AudioNode.channelCountMode for more information including default values.)
 	// channelInterpretation
 
-	slideDuration:8.04,
+	slideDuration:8.005,
 	
 	fadeDuration:0.01,
 }
 
-export const INSTRUMENT_TYPE_SYNTHESIZER = "VirtualMonotronInstrument"
+export const INSTRUMENT_TYPE_MONOTRON = "VirtualMonotronInstrument"
 	
 export default class MonotronInstrument extends Instrument{
 
@@ -43,7 +43,7 @@ export default class MonotronInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_MONOTRON
 
 	type = "synthesizer"
-	title = "Dual Wave Oscillator"
+	title = "Monotron"
 	
 	envelope
 
@@ -53,12 +53,17 @@ export default class MonotronInstrument extends Instrument{
 	lfo 
 	lfoGain
 
+	gainNode
+
 	get volume() {
 		return this.gainNode.gain.value
 	}
 
 	set volume(value) {
-		this.gainNode.gain.value = value
+		if (this.gainNode)
+		{
+			this.gainNode.gain.value = value
+		}
 		super.volume = value
 	}
 	
@@ -74,39 +79,48 @@ export default class MonotronInstrument extends Instrument{
 	}
 
 	constructor( audioContext, options={} ){
-
 		super(audioContext, { ...OPTIONS, ...options })
+	}
 
-		this.gainNode = audioContext.createGain()
+	async create(){
+		await super.create()
+		this.gainNode = this.context.createGain()
 		this.gainNode.gain.value = 1 // this.currentVolume
 		
-		this.lfoGain = audioContext.createGain()
+		this.lfoGain =  this.context.createGain()
 
-		this.envelope = audioContext.createGain()
+		this.envelope =  this.context.createGain()
 		this.envelope.gain.value = 0  // silence immediately
 
-		this.vco = new OscillatorNode( audioContext, { ...this.options, type:OSCILLATOR_TYPES[0] }) 
-		this.vco.type = options.shape ?? 'sawtooth'
-		this.lfo = new OscillatorNode( audioContext, { ...this.options, type:OSCILLATOR_TYPES[1] }) 
-		this.lfo.type = options.shape ?? 'sawtooth'
+		this.vco = new OscillatorNode(  this.context, { ...this.options, type:OSCILLATOR_TYPES[0] }) 
+		this.vco.type = this.options.shape ?? 'sawtooth'
+		
+		this.lfo = new OscillatorNode(  this.context, { ...this.options, type:OSCILLATOR_TYPES[1] }) 
+		this.lfo.type = this.options.shape ?? 'sawtooth'
 
-		this.vcf = audioContext.createBiquadFilter()
+		this.vcf =  this.context.createBiquadFilter()
 
 		this.vco.connect(this.vcf)
 		this.lfo.connect(this.lfoGain)
 		this.lfoGain.connect(this.vcf.frequency)
 		this.vcf.connect(this.envelope)
-		this.envelope.connect(this.mixer)
-		this.mixer.connect(this.gainNode)
-			
+		this.envelope.connect(this.gainNode)
+
 		// this.delayNode.connect(this.stereoNode)
 		// this.stereoNode.connect(this.mixer)
 
 		// immediately start as always playing in silent
-		this.vco.start(audioContext.currentTime)
-		this.lfo.start(audioContext.currentTime)
-
+		this.vco.start( this.context.currentTime)
+		this.lfo.start( this.context.currentTime)
 		this.available = true
+		return true
+	}
+
+	async destroy(){
+		this.vco.stop()
+		this.lfo.stop()
+		this.available = false
+		return true
 	}
 
 	/**
@@ -118,7 +132,7 @@ export default class MonotronInstrument extends Instrument{
 	async noteOn( noteNumber, velocity=1 ){
 	
 		const frequency = noteNumberToFrequency(noteNumber)
-		const isNewNote = super.noteOn(noteNumber, velocity)
+		const isNewNote = await super.noteOn(noteNumber, velocity)
 		
 		console.info("Oscillator", noteNumber, frequency, this.vco.frequency.value) 
 		// console.error("Oscillator", this, this.options, this.oscillatorA.frequency.value, {frequency, noteNumber, velocity})
@@ -182,11 +196,10 @@ export default class MonotronInstrument extends Instrument{
 	 * @param {Number} pitch 
 	 */
 	pitchBend(pitch){
-		const frequency = noteNumberToFrequency(noteNumber)
 		// this.oscillatorA.frequency.value = noteNumberToFrequencyFast(pitch)
 		// this.oscillatorB.frequency.value = noteNumberToFrequencyFast(pitch)
-		this.vco.exponentialRampToValueAtTime( frequency, this.options.slideDuration )
-		this.lfo.exponentialRampToValueAtTime( frequency, this.options.slideDuration )
+		this.vco.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
+		this.lfo.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
 		super.pitchBend(pitch)
 	}
 	
@@ -206,7 +219,7 @@ export default class MonotronInstrument extends Instrument{
 			programNumber = this.getPresets()[programNumber]
 		}
 
-		switch( programNumber.toLowerCase() ){
+		switch( programNumber ){
 
 			case 'Monotron Sine': 
 				this.vco.type = OSCILLATOR_TYPES[0]
