@@ -76,7 +76,7 @@ importers:
         version: 2.0.5
       '@visualsource/selective-unrealbloompass':
         specifier: ^1.0.1
-        version: 1.0.1(three@0.171.0)
+        version: 1.0.1(three@0.172.0)
       '@webaudiomodules/api':
         specifier: ^2.0.0-alpha.6
         version: 2.0.0-alpha.6
@@ -148,25 +148,25 @@ importers:
         version: 5.1.0
       stats-gl:
         specifier: ^3.6.0
-        version: 3.6.0(three@0.171.0)
+        version: 3.6.0(three@0.172.0)
       svgo:
         specifier: ^3.3.2
         version: 3.3.2
       three:
-        specifier: ^0.171.0
-        version: 0.171.0
+        specifier: ^0.172.0
+        version: 0.172.0
       three-addons:
         specifier: ^1.2.0
         version: 1.2.0
       three-mesh-bvh:
         specifier: ^0.8.3
-        version: 0.8.3(three@0.171.0)
+        version: 0.8.3(three@0.172.0)
       troika-3d:
         specifier: ^0.52.0
-        version: 0.52.0(three@0.171.0)
+        version: 0.52.0(three@0.172.0)
       troika-three-text:
         specifier: ^0.52.3
-        version: 0.52.3(three@0.171.0)
+        version: 0.52.3(three@0.172.0)
       tweakpane:
         specifier: ^4.0.5
         version: 4.0.5
@@ -260,7 +260,7 @@ importers:
         version: 2.13.3(@parcel/core@2.13.3(@swc/helpers@0.5.15))
       '@vituum/vite-plugin-pug':
         specifier: ^1.1.0
-        version: 1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.0)
+        version: 1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.1)
       browser-fs-access:
         specifier: ^0.35.0
         version: 0.35.0
@@ -268,8 +268,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       concurrently:
-        specifier: ^9.1.1
-        version: 9.1.1
+        specifier: ^9.1.2
+        version: 9.1.2
       crypto-browserify:
         specifier: ^3.12.1
         version: 3.12.1
@@ -334,8 +334,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       sass:
-        specifier: ^1.83.0
-        version: 1.83.0
+        specifier: ^1.83.1
+        version: 1.83.1
       showdown:
         specifier: ^2.1.0
         version: 2.1.0
@@ -1652,8 +1652,8 @@ packages:
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20241217':
-    resolution: {integrity: sha512-mX+erSKBu0/ylDa5Y244yxsoGp5d0/DER+z/4v04Hnd0iXU4EruM7P/E/ZMIDC0KB1pPFXUJq561GOMqWmz43g==}
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250106':
+    resolution: {integrity: sha512-lIlj5yDpNlmCXPjCDWQWs1TUOGluYy0E75UfF8aaFxXnmdSkLc9bvH1lgX16jpAKJmRSjCb/HSc5ulmjzicueQ==}
 
   '@maxim_mazurok/gapi.client.discovery-v1@0.1.20200806':
     resolution: {integrity: sha512-Wl6UfmZVDdWbY3PUu8E2ULk9RPLjnMqp/iOA4tcK8Ne+U/GmlnWP/e34IaZNGArfl7iXJNOG+/3Rj9L9jQyF9Q==}
@@ -3493,8 +3493,8 @@ packages:
     resolution: {integrity: sha512-27HBghJxjiZtIk3Ycvn/4kbJk/1uZuJFfuPEns6LaEvpvG1f0hTea8lilrouyo9mVc2GWdcEZ8OLoGmSADlrCw==}
     engines: {'0': node >= 0.8}
 
-  concurrently@9.1.1:
-    resolution: {integrity: sha512-6VX8lrBIycgZKTwBsWS+bLrmkGRkDmvtGsYylRN9b93CygN6CbK46HmnQ3rdSOR8HRjdahDrxb5MqD9cEFOg5Q==}
+  concurrently@9.1.2:
+    resolution: {integrity: sha512-H9MWcoPsYddwbOGM6difjVwVZHl63nwMEwDJG/L7VGtuaJhb12h2caPG2tVPWs7emuYix252iGfqOyrz1GczTQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -6543,8 +6543,8 @@ packages:
   sanitize-filename@1.6.3:
     resolution: {integrity: sha512-y/52Mcy7aw3gRm7IrcGDFx/bCk4AhRh2eI9luHOQM86nZsqwiRkkq2GekHXBBD+SmPidc8i2PqtYZl+pWJ8Oeg==}
 
-  sass@1.83.0:
-    resolution: {integrity: sha512-qsSxlayzoOjdvXMVLkzF84DJFc2HZEL/rFyGIKbbilYtAvlCxyuzUeff9LawTn4btVnLKg75Z8MMr1lxU1lfGw==}
+  sass@1.83.1:
+    resolution: {integrity: sha512-EVJbDaEs4Rr3F0glJzFSOvtg2/oy2V/YrGFPqPY24UqcLDWcI9ZY5sN+qyO3c/QCZwzgfirvhXvINiJCE/OLcA==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -6918,8 +6918,8 @@ packages:
     peerDependencies:
       three: '>= 0.159.0'
 
-  three@0.171.0:
-    resolution: {integrity: sha512-Y/lAXPaKZPcEdkKjh0JOAHVv8OOnv/NDJqm0wjfCzyQmfKxV7zvkwsnBgPBKTzJHToSOhRGQAGbPJObT59B/PQ==}
+  three@0.172.0:
+    resolution: {integrity: sha512-6HMgMlzU97MsV7D/tY8Va38b83kz8YJX+BefKjspMNAv0Vx6dxMogHOrnRl/sbMIs3BPUKijPqDqJ/+UwJbIow==}
 
   three@0.92.0:
     resolution: {integrity: sha512-yQzuwMDEyxc+TFHn8c+LtpK1Sqpy8I3FAr+1EoqqLmNmv6hjfFqB8PlYztRLuM4FMFb4hIbpUoP7Gc9bPQvkCg==}
@@ -8459,7 +8459,7 @@ snapshots:
   '@ionic/utils-object@2.1.6':
     dependencies:
       debug: 4.3.4
-      tslib: 2.6.2
+      tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
@@ -8481,7 +8481,7 @@ snapshots:
       debug: 4.3.4
       signal-exit: 3.0.7
       tree-kill: 1.2.2
-      tslib: 2.6.2
+      tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
@@ -8495,7 +8495,7 @@ snapshots:
   '@ionic/utils-stream@3.1.6':
     dependencies:
       debug: 4.3.4
-      tslib: 2.6.2
+      tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
@@ -8547,7 +8547,7 @@ snapshots:
       slice-ansi: 4.0.0
       string-width: 4.2.3
       strip-ansi: 6.0.1
-      tslib: 2.6.2
+      tslib: 2.8.1
       untildify: 4.0.0
       wrap-ansi: 7.0.0
     transitivePeerDependencies:
@@ -9299,7 +9299,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20241217':
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250106':
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -9923,7 +9923,7 @@ snapshots:
     dependencies:
       '@parcel/plugin': 2.13.3(@parcel/core@2.13.3(@swc/helpers@0.5.15))
       '@parcel/source-map': 2.1.1
-      sass: 1.83.0
+      sass: 1.83.1
     transitivePeerDependencies:
       - '@parcel/core'
 
@@ -10550,7 +10550,7 @@ snapshots:
 
   '@types/gapi.client.androidpublisher@3.0.2':
     dependencies:
-      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.0.20241217
+      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.0.20250106
 
   '@types/gapi.client.discovery-v1@0.0.4':
     dependencies:
@@ -10688,16 +10688,16 @@ snapshots:
       '@types/node': 22.10.1
     optional: true
 
-  '@visualsource/selective-unrealbloompass@1.0.1(three@0.171.0)':
+  '@visualsource/selective-unrealbloompass@1.0.1(three@0.172.0)':
     dependencies:
-      three: 0.171.0
+      three: 0.172.0
 
-  '@vituum/vite-plugin-pug@1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.0)':
+  '@vituum/vite-plugin-pug@1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.1)':
     dependencies:
       fast-glob: 3.3.2
       lodash: 4.17.21
       pug: 3.0.3
-      vituum: 1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.0)
+      vituum: 1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -11545,7 +11545,7 @@ snapshots:
       readable-stream: 2.3.8
       typedarray: '@socketregistry/typedarray@1.0.5'
 
-  concurrently@9.1.1:
+  concurrently@9.1.2:
     dependencies:
       chalk: 4.1.2
       lodash: 4.17.21
@@ -12856,7 +12856,7 @@ snapshots:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -15234,7 +15234,7 @@ snapshots:
     dependencies:
       truncate-utf8-bytes: 1.0.2
 
-  sass@1.83.0:
+  sass@1.83.1:
     dependencies:
       chokidar: 4.0.1
       immutable: 5.0.3
@@ -15365,7 +15365,7 @@ snapshots:
   socks-proxy-agent@7.0.0:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.4.0
       socks: 2.8.3
     transitivePeerDependencies:
       - supports-color
@@ -15443,9 +15443,9 @@ snapshots:
 
   stat-mode@1.0.0: {}
 
-  stats-gl@3.6.0(three@0.171.0):
+  stats-gl@3.6.0(three@0.172.0):
     optionalDependencies:
-      three: 0.171.0
+      three: 0.172.0
 
   stream-browserify@3.0.0:
     dependencies:
@@ -15650,11 +15650,11 @@ snapshots:
     dependencies:
       three: 0.92.0
 
-  three-mesh-bvh@0.8.3(three@0.171.0):
+  three-mesh-bvh@0.8.3(three@0.172.0):
     dependencies:
-      three: 0.171.0
+      three: 0.172.0
 
-  three@0.171.0: {}
+  three@0.172.0: {}
 
   three@0.92.0: {}
 
@@ -15732,11 +15732,11 @@ snapshots:
     dependencies:
       escape-string-regexp: 1.0.5
 
-  troika-3d@0.52.0(three@0.171.0):
+  troika-3d@0.52.0(three@0.172.0):
     dependencies:
-      three: 0.171.0
+      three: 0.172.0
       troika-core: 0.52.0
-      troika-three-utils: 0.52.0(three@0.171.0)
+      troika-three-utils: 0.52.0(three@0.172.0)
     transitivePeerDependencies:
       - react
       - react-dom
@@ -15748,17 +15748,17 @@ snapshots:
       prop-types: 15.8.1
       troika-animation: 0.52.0
 
-  troika-three-text@0.52.3(three@0.171.0):
+  troika-three-text@0.52.3(three@0.172.0):
     dependencies:
       bidi-js: 1.0.3
-      three: 0.171.0
-      troika-three-utils: 0.52.0(three@0.171.0)
+      three: 0.172.0
+      troika-three-utils: 0.52.0(three@0.172.0)
       troika-worker-utils: 0.52.0
       webgl-sdf-generator: 1.1.1
 
-  troika-three-utils@0.52.0(three@0.171.0):
+  troika-three-utils@0.52.0(three@0.172.0):
     dependencies:
-      three: 0.171.0
+      three: 0.172.0
 
   troika-worker-utils@0.52.0: {}
 
@@ -15927,7 +15927,7 @@ snapshots:
       extsprintf: 1.4.1
     optional: true
 
-  vite@5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.0):
+  vite@5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.1):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.49
@@ -15936,15 +15936,15 @@ snapshots:
       '@types/node': 22.10.1
       fsevents: 2.3.3
       lightningcss: 1.28.2
-      sass: 1.83.0
+      sass: 1.83.1
 
-  vituum@1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.0):
+  vituum@1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.1):
     dependencies:
       chokidar: 3.6.0
       fast-glob: 3.3.2
       lodash: 4.17.21
       minimatch: 9.0.5
-      vite: 5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.0)
+      vite: 5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
