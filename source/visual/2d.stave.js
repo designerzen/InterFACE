@@ -27,7 +27,7 @@ console.log( typeof canvas )
 
 		// create a new smaller canvas to draw directly onto?
 		this.canvas = canvas
-		this.context = canvas.get2dContext("2d")
+		this.context = canvas.getContext("2d")
 		this.notes = new Map()
 		this.isHorizontal = horizontal
 		
