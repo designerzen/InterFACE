@@ -1,5 +1,3 @@
-
-import { setFeedback } from '../dom/text'
 import { setToast } from '../dom/tooltips'
 import { createInstallButton } from '../dom/button'
 import { VERSION } from '../version'
@@ -8,9 +6,7 @@ import manifestPath from "url:../manifest.webmanifest"
 
 const body = document.documentElement
 
-
 let deferredPrompt
-
 		   
 let installed = false
 let hasPrompt = false
@@ -30,9 +26,6 @@ export const isAppInstalled = () => {
 	  	return false
 	}
 }
-
-
-
 
 export const installer = async (defer=false) => {
 
@@ -288,7 +281,7 @@ export const installer = async (defer=false) => {
 			button.addEventListener('click', async ()=>{
 			
 				// show overlay with install button or just install directly?
-				setFeedback("Installing",0)
+				console.info("Installing please wait...")
 				try{
 					// installed
 					const success = await install()

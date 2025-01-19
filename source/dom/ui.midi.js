@@ -17,7 +17,6 @@
  * A 
  */
 
-import { setFeedback } from "./text.js"
 import { setToast } from "./tooltips.js"
 
 /**
@@ -77,12 +76,10 @@ const createMIDIDeviceForm = (midiDevice) => {
  * @param {*} inputs 
  * @param {*} event 
  * 
- * 
  * £3100 dividends
  * sip pension
  * £300 for party - Staff welfare
  * 150 for me + 150 for another (£50 )
- * 
  * 
  * @returns 
  */
@@ -99,7 +96,7 @@ const setupMIDIDeviceForm = (outputs, inputs, event) => {
  * Show that MIDI confg and hardware are available / unavailable
  * @param {Array} outputs - MIDI Devices we want to use
  */
-const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, inputs, event)=>{
+const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, inputs, event, setFeedback)=>{
 	
 	const midiDevicesPanel = document.getElementById("midi-panel")
 	const midiChannel = 0 // ui.midiChannel
@@ -298,13 +295,13 @@ export const observeMIDIPortClock = (midiInputPort) => {
  * @param {Array<Person>} people 
  * @returns Array of connections
  */
-export const enableMIDI = async (midiButton, midiManager, MIDIConnectionClasses, people) => {
+export const enableMIDI = async (midiButton, midiManager, MIDIConnectionClasses, people, setFeedback) => {
 
 	const onMIDIUpdate = (outputs, inputs, event) => {
 
 		console.info("Main>MIDI:Devices", {outputs, inputs, event })
 		// 
-		updateMIDIDevicesStatus(midiButton, midiManager, people, outputs, inputs, event) 
+		updateMIDIDevicesStatus(midiButton, midiManager, people, outputs, inputs, event, setFeedback) 
 		
 
 		// conenct to port clock...
@@ -383,10 +380,11 @@ export const setupMIDIButton = (buttonMIDI, callback) => {
 }
 
 /**
+ * FIXME: 
  * Update the GUI to show that MIDI instrument is available
  * NB. MIDI will require a user interaction to initiate
  */
-export const createMIDIButton = async ( midiManager, MIDIConnectionClasses, people ) => {
+export const createMIDIButton = async ( midiManager, MIDIConnectionClasses, people, setFeedback ) => {
 
 	const midiToggleButton = document.getElementById("button-midi")
 
@@ -423,7 +421,7 @@ export const createMIDIButton = async ( midiManager, MIDIConnectionClasses, peop
  * feedback from any probing
  * @param {Object} options 
  */
-export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, people, options ) => {
+export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, people, options, setFeedback ) => {
 
 	// to skip clicking but results in a warning
 	

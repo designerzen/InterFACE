@@ -138,6 +138,7 @@ const setupDialogs = () => {
 		dialog.addEventListener('opened', onDialogOpened)
 		dialog.addEventListener('removed', onDialogRemoved)
 	} )	
+	return dialogs
 }
 
 export default setupDialogs
