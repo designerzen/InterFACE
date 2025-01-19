@@ -14,6 +14,7 @@ import { DISPLAY_TYPES } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 
 import DATA_SOURCE from 'url:/source/tests/test.face.json'
+import { now } from "../timing/timing.js"
 let DATA
 let DATA_KEYS 
 
@@ -38,7 +39,7 @@ const render = () => {
 	{
 		const key = DATA_KEYS[count % DATA_KEYS.length]
 		const data = DATA[key]
-		person.update(data)
+		person.update(data, now() )
 
 		display.clear()
 		display.drawPerson(person, true)
