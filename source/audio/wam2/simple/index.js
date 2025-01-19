@@ -5,9 +5,11 @@ import ParamMgrFactory from '@webaudiomodules/sdk-parammgr/src/ParamMgrFactory.j
 // import { ParamMgrFactory } from '@webaudiomodules/sdk-parammgr/src/index.js'
 
 import { createSimpleEngine } from './simple.wam.js'
+import descriptorJSONURL from 'url:./template.html'
+// import descriptorJSONURL from 'url:./descriptor.json'
 
 // _baseUrl = getBaseUrl(new URL('./descriptor.json', import.meta.url));
-import descriptorJSONURL from 'url:./descriptor.json'
+
 import descriptorJSON from './descriptor.json'
 
 const NAME = "simple"
@@ -17,6 +19,7 @@ const getBaseUrl = relativeUrl => relativeUrl.substring(0, relativeUrl.lastIndex
 export default class SimplePlugin extends WebAudioModule {
 
 	// _baseURL = getBasetUrl(new URL('.', import.meta.url));
+	// _baseUrl = getBaseUrl(new URL('./descriptor.json', import.meta.url));
 
 	// check to see if it running via import or not...
 	_baseUrl = getBaseUrl(descriptorJSONURL)
