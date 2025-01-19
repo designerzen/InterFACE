@@ -38,18 +38,19 @@ const DEFAULT_OPTIONS = {
 
 export const INSTRUMENT_TYPE_SOUNDFONT = "SoundFontInstrument"
 
-
 export default class SoundFontInstrument extends SampleInstrument{
 
 	static get name(){
 		return INSTRUMENT_TYPE_SOUNDFONT
 	}
 
+	// create a super object containing paths and families ands such!
+	static dictionary = createInstruments() 
+
 	name = INSTRUMENT_TYPE_SOUNDFONT
 	title = "SoundFont Sample Player"
 	type = "sample"
-
-	// seperate AudioBuffer holder
+			
 	soundfont
 	
 	// these are the file names and locations of each instrument
@@ -273,7 +274,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	/**
 	 * Load a specific instrument "patch" for this AudioNode
 	 * TODO: Add loading events
-	 * @param {String} presetNameOrObject Name of the standard instrument to load
+	 * @param {String|Object} presetNameOrObject Name of the standard instrument to load
 	 * @param {String} instrumentPack Name of the standard instrument to load
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
@@ -338,7 +339,10 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// Fetch the GM name
 		this.title = presetNameOrObject
 		//this.name = "SampleInstrument"
+
 		
+		console.info("Soundfont preset", SoundFontInstrument.dictionary)
+
 		// this.instrumentMap = {}
 		// TODO: inside out object
 		// convert the instrument map into a number map

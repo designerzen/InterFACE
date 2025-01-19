@@ -27,7 +27,7 @@ const OPTIONS = {
 	// Represents an enumerated value describing the meaning of the channels. This interpretation will define how audio up-mixing and down-mixing will happen. The possible values are "speakers" or "discrete". (See AudioNode.channelCountMode for more information including default values.)
 	// channelInterpretation
 
-	slideDuration:8.005,
+	slideDuration:8.00005,
 	
 	fadeDuration:0.01,
 }
@@ -136,7 +136,8 @@ export default class MonotronInstrument extends Instrument{
 		
 		console.info("Oscillator", noteNumber, frequency, this.vco.frequency.value) 
 		// console.error("Oscillator", this, this.options, this.oscillatorA.frequency.value, {frequency, noteNumber, velocity})
-	
+		const startAtTime = this.context.currentTime + this.options.slideDuration
+			
 		if (isNewNote)
 		{
 			// instantly or with slide?
@@ -146,13 +147,12 @@ export default class MonotronInstrument extends Instrument{
 		}else{
 
 			// slide to pitch at time
-			const startAtTime = this.context.currentTime + this.options.slideDuration
 			this.vco.frequency.exponentialRampToValueAtTime( frequency, startAtTime )
 			// this.lfo.frequency.exponentialRampToValueAtTime( frequency, startAtTime )
 		}
 
 		// this.envelope.gain.setValueAtTime(1, 0)
-		this.envelope.gain.linearRampToValueAtTime(1, this.context.currentTime + this.options.slideDuration )
+		this.envelope.gain.linearRampToValueAtTime(1, this.context.currentTime )
 			
 		return isNewNote
 	}

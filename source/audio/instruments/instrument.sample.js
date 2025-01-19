@@ -7,7 +7,7 @@ import { playTrack, loadInstrumentFromSoundFont } from '../audio'
 import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../tuning/notes'
 
 // Maximum simultaneous tracks to play (will wait for slot)
-const MAX_TRACKS = 16 // AKA one bar
+const MAX_TRACKS = 64 * 4 // AKA 4 bars
 
 export const INSTRUMENT_TYPE_SAMPLE = "SamplePlayerInstrument"
 
@@ -78,11 +78,14 @@ export default class SampleInstrument extends Instrument{
 	async play(audioBuffer, velocity){
 
 		// too many simultaneous samples
-		if (++this.polyphony > MAX_TRACKS)
+		if (this.polyphony + 1 >= MAX_TRACKS)
 		{
-			// return
+			// console.log("Sample skipped due to max tracks reached", this.polyphony )
+			return
 		}
 		
+		++this.polyphony
+
 		// TODO: Send out pitch bend?
 		// if (this.active)
 		// {
@@ -96,12 +99,14 @@ export default class SampleInstrument extends Instrument{
 
 		// FIXME: Add to active so we can remove it later
 		const track = playTrack( this.context, audioBuffer, 0, this.gainNode ).then( ()=>{
-			this.polyphony--
+			
+			--this.polyphony
+
 			if (this.polyphony < 1) {
 				this.active = false
 			}
 		
-			//console.log("Sample completed playback.", track )
+			// console.log("Sample completed playback.", this.polyphony )
 			return true
 		})
 		return track
@@ -263,6 +268,8 @@ export default class SampleInstrument extends Instrument{
 		
 		//this.name = "SampleInstrument"
 		this.instrumentFamily = this.instrument.family
+
+		
 
 		// this.instrumentMap = {}
 		// TODO: inside out object
