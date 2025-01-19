@@ -1,3 +1,6 @@
+/**
+ * Singleton Audio Bus
+ */
 
 import { initializeWamHost } from "@webaudiomodules/sdk"
 
@@ -6,7 +9,7 @@ import {clamp, lerp, TAU} from "../maths/maths"
 import { chain } from './rack'
 import {getInstrumentFamily, loadInstrumentFromSoundFontSamplesViaWorker, loadInstrumentFromSoundFontString, loadInstrumentFromSoundFontStringViaWorker} from './sound-font-instruments'
 // Effects
-import { createReverb, randomReverb, getImpulseList } from './effects/reverb'
+import { createReverb, randomReverb, getImpulseList, createCustomReverb } from './effects/reverb'
 import {createDelay} from './effects/delay'
 import {createDub} from './effects/dub'
 import {createCompressor} from './effects/compressor'
@@ -22,7 +25,46 @@ import {
 import { createLowPassFilter } from "./effects/filter"
 import { createSaturationFilter } from "./effects/saturator"
 
-export const ZERO = 0.0000001
+
+const DEFAULT_OPTIONS = {
+
+	// quantity of reverb
+	reverb:0.2,
+
+	// frequency analyser pulse smoothing (for cool visual effects!)
+	// how quick it drops < 0.85 looks cool
+	smoothingTimeConstant:0.45
+}
+
+	
+export const CUSTOM_REVERB_OPTIONS = {
+	// seconds
+	duration:0.9, 
+
+	gain : 1,
+
+	// as ratios except sustain which is a level
+	attack:0.001, 
+	decay:0.1, 
+	sustain:0.8,
+	release:0.5,
+
+	// booleans
+	
+	// flatten pops and clicks but omg does it cost a lot
+	normalize : true,
+	reverse:false,
+
+	stereo:false,
+	
+	// noise:'white' 
+	// noise:'pink'  
+	noise:'white' 
+}
+
+
+// 
+export const ZERO = 0.0000001 // Math.min
 
 export let audioContext
 export let offlineAudioContext
@@ -30,8 +72,7 @@ export let offlineAudioContext
 export let bufferLength
 export let dataArray
 
-let createAnalyser
-
+// some audio nodes
 let analyser
 let limiter
 let compressor
@@ -127,21 +168,21 @@ export const chooseFilters = async (options) => {
 }
  */
 
-const DEFAULT_OPTIONS = {
-	// quantity of reverb
-	reverb:0.2,
-	// flatten pops and clicks
-	// but omg does it cost a lot
-	normalise:true,
-
-	// frequency analyser pulse smoothing (for cool visual effects!)
-	// how quick it drops < 0.85 looks cool
-	smoothingTimeConstant:0.45
-}
-
-export const setReverb = async (filename) => {
-	const impulse = !filename ? await randomReverb() : filename // await getImpulseList()[0]
-	return reverb.impulseFilter( impulse )
+export const setReverb = async (filenameOrObject) => {
+	
+	if (filenameOrObject === null)
+	{
+		// if it is null pick randomly
+		const impulse = await randomReverb() // await getImpulseList()[0]
+		return reverb.impulseFilter( impulse )
+	}
+	else if (typeof filenameOrObject === "string")
+	{
+		// if a filename has been specified load that file
+		return reverb.impulseFilter( filenameOrObject )
+	}
+	reverb = await createCustomReverb( filenameOrObject )
+	return reverb
 }
 
 /**
@@ -151,12 +192,11 @@ export const setReverb = async (filename) => {
  */
 export const setupAudio = async (settings) => {
 
-	
 	// BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
 	// INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
 	// OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
 	
-	const options = Object.assign ( {}, DEFAULT_OPTIONS, settings )
+	const options = Object.assign ( {}, DEFAULT_OPTIONS, CUSTOM_REVERB_OPTIONS, settings )
 
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
@@ -197,7 +237,11 @@ export const setupAudio = async (settings) => {
    	)
 	// createCompressor( audioContext, -85, 40, 20, 0, 0.3, 0)
 
-	reverb = await createReverb( audioContext, options.reverb, options.normalise  )//, await randomReverb()
+	// TODO: Use offline 
+	// reverb = await createCustomReverb(offlineAudioContext, options )
+	reverb = await createCustomReverb(audioContext, options )
+		
+	//reverb = await createReverb( audioContext, options.reverb, options.normalize  )//, await randomReverb()
 	lowPassFilter = await createLowPassFilter( audioContext )
 	saturator = await createSaturationFilter( audioContext )
 		
@@ -268,7 +312,7 @@ export const setupAudio = async (settings) => {
 		//await createDub(audioContext)
 		//await createDistortion(audioContext)
 		
-		// analyser,
+		analyser,
 
 		mixer,
 

@@ -1,5 +1,9 @@
 /**
  * inspired by https://github.com/GoogleChromeLabs/web-audio-samples/blob/main/drum-machine/main.js
+ * 
+ * Some amazing IR reverbs from OpenAir
+ * www.openair.hosted.york.ac.uk
+ * 
  */
 
 import { easeInCubic, easeInExpo, easeOutSine, linear } from '../../maths/easing'
@@ -395,6 +399,7 @@ export const createCustomReverb = async ( audioContext, options = DEFAULT_CUSTOM
 	reverb.setOptions = async (options) => {
 		// reverb = await createCustomReverb(audioContext, options)
 		reverb.node.buffer = await generateCustomImpulseResponse(audioContext, options)
+		return reverb.node.buffer
 	}
 	return reverb
 }

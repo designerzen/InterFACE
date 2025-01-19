@@ -9,25 +9,15 @@ export const createAmplitude = async (
 	audioContext,
 	volume = 1,
 	// smooth volume fading?
-	fade = false
+	fade = false,
+	fadeDuration = 100
 ) => {
 	
 	const gainNode = audioContext.createGain()
 
 	const fadeVolume = (destinationVolume) => {
-
-		const currentVolume = gainNode.gain.value
-		//gainNode.gain.value = lerp( gain.gain.value, destinationVolume, 0.1 )
-		const newVolume = currentVolume + (destinationVolume - currentVolume) * rate
-		gainNode.gain.value.setValueAtTime(destinationVolume, audioContext.currentTime)
-		
-		if (currentVolume === destinationVolume)
-		{
-	
-		}else{
-			requestAnimationFrame( fadeVolume )
-		}
-		return newVolume
+		gainNode.gain.linearRampToValueAtTime(destinationVolume, audioContext.currentTime + fadeDuration)
+		return gainNode.gain.value
 	}
 	
 	// Set the actual volume
@@ -36,7 +26,9 @@ export const createAmplitude = async (
 		{
 			fadeVolume()
 		}else{
-			gainNode.gain.value = clamp(volume, 0, 1)	
+			const clampedVolume = clamp(vol, 0, 1)	 
+			// gainNode.gain.value = clampedVolume
+			gainNode.gain.setValueAtTime(clampedVolume, audioContext.currentTime)
 		}
 	}
 

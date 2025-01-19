@@ -3,6 +3,7 @@ import {changeParameter} from './effect'
 export const createCompressor = async ( 
 	audioContext,
 	// decibel value above which the compression will start taking effect.
+	// NB. anything less than -24 works well
 	threshold = -100,
 	// decibel value representing the range above the threshold where the curve smoothly transitions to the compressed portion.
 	knee = 40,
@@ -40,4 +41,3 @@ export const createCompressor = async (
 		release:value => changeParameter( compressor, "release", value)
 	}
 }
-
