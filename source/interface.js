@@ -228,6 +228,8 @@ export const createInterface = (
 	let getInstruction, getHelp
 	let textInstructionIndex = 0
 	let textHelpIndex = 0
+	let quantityInstructions = 0
+	let quantityHelp = 0
 
 	let setupReporting, track, trackError, trackExit
 
@@ -3115,7 +3117,6 @@ export const createInterface = (
 		
 		quantityInstructions = instructions.getQuantityOfInstructions()
 		quantityHelp = instructions.getQuantityOfHelp()
-
 
 
 		// Load tf model and wait
