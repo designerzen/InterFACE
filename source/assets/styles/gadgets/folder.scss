@@ -68,7 +68,7 @@ nav#menu
 }
 */
 
-// menu
+// these are sub menus that overlay the main menu
 .folder-content{
 	margin:0;
 	padding:0;
@@ -84,13 +84,18 @@ nav#menu
 	flex-direction:column;
 	visibility:hidden;
 	z-index: -1;
+	z-index:909;
+
 	opacity:0;
 	// pointer-events:none;
 
 	list-style:none;
 
 	// this is the popup background
-	background-color:inherit;
+	// background-color:inherit;
+	background-color:var(--col-bottom);
+	// background-image: 	linear-gradient(var(--col-top, #ffffff4d), var(--col-bottom, #0000004d));
+	background-image: linear-gradient(var(--col-bottom, #0000004d), var(--col-top, #ffffff4d));
 	// background-color: rgba(11,111,11,0.5);
 
 	animation: CloseFolder 495ms linear 0s both;

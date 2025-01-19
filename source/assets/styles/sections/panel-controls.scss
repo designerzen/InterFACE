@@ -80,11 +80,12 @@
 		height:100%;
 	}
 
-	// these are sub menus that overlay the main menu
 	.folder-content{
-		background: inherit;
-		z-index:909;
-
+		// we want the same colours inside here
+		--col-top:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) ) );
+		--col-bottom:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) - var(--range,10%) )  );
+		--col-border:var(--shade-light , white );
+		
 		/*
 		top: auto;
 		bottom: 100%;

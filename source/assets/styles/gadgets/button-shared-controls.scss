@@ -29,20 +29,20 @@
 	label[for="button-quantise"]{
 		--col-select:var(--shade-blue);
 		--col-hover:var(--shade-blue);
-		--bg:url(/source/assets/icons/grid_off-24px.svg);
+		--bg:url(/source/assets/icons/grid_on-24px.svg);
 		anchor-name: --button-quantise;
 		&:has(input:checked),
 		&.checked{
-			--bg:url(/source/assets/icons/grid_on-24px.svg);
+			--bg:url(/source/assets/icons/grid_off-24px.svg);
 		}
 	}
 
 	label[for="button-metronome"]{
-		--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
+		--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
 		anchor-name: --button-metronome;
 		&:has(input:checked),
 		&.checked{
-			--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
+			--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
 		}
 	}
 
@@ -98,11 +98,11 @@
 	label[for="button-disco"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-blue);
-		--bg:url(/source/assets/icons/blur_off-24px.svg);
+		--bg:url(/source/assets/icons/blur_on-24px.svg);
 		anchor-name: --button-disco;
 		&:has(input:checked),
 		&.checked{
-			--bg:url(/source/assets/icons/blur_on-24px.svg);
+			--bg:url(/source/assets/icons/blur_off-24px.svg);
 		}
 	}
 
@@ -198,13 +198,13 @@
 
 	// add beats
 	label[for="button-percussion"]{
+		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-yellow);
-		--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
 		anchor-name: --button-percussion;
 		&:has(input:checked),
 		&.checked{
-			--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
+			--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
 		}
 	}
 
@@ -272,7 +272,7 @@
 
 		&:has(input:checked),
 		&.checked{
-			--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+			--bg:url(/source/assets/icons/graphic_eq_black_off_24dp.svg);
 		}
 	}
 	label[for="select-samples"]{

@@ -686,12 +686,12 @@
 	// THIS IS THE INVERTED STATE where the text shadow
 	// is used as the main color
 	// focus states? :focus,
+	// :focus-within,
 	&:is(
 		:target,
 		:active,
 		:hover, 
 		:focus-visible,
-		:focus-within,
 		:has(:focus-visible)
 	){
 		// --col-fg:var(--shade-dark);
