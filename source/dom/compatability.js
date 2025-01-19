@@ -6,15 +6,14 @@ import { filterVideoCameras } from "../hardware/camera"
  * if the user has a device that will not work 100%
  * then show a FATAL error message
  */
-export const updateCapabalitiesTable = async (capabilities) => {
-	
-	const table = document.getElementById("compatability")
+export const updateCapabalitiesTable = async (table, capabilities) => {
 	
 	const CHECKING = "checking"
 	const RESULT = "result"
 	const NOT_AVAILABLE = "not-available"
 	const AVAILABLE = "available"
 	const UNKNOWN = "unknown"
+
 
 	const updateTable = (permissions, cameras) => {
 		
@@ -223,6 +222,7 @@ export const updateCapabalitiesTable = async (capabilities) => {
 	}catch(error){
 
 		console.info("Compat Table Error", error )
+
 		// remove all "checking" messages...
 		const checkingElements = document.querySelectorAll(CHECKING)
 		checkingElements.forEach( checkingElement => {
