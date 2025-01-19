@@ -197,16 +197,20 @@ export const DEFAULT_OPTIONS = {
 	// choice of different models to use
 	model:"face",
 
+	// show the QR code all the time
+	qr:false,
+
+	// what theme to show on screen
 	theme:"theme-default",
 
 	// TODO: sample set
 	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
-	instrumentPacks:[
-		INSTRUMENT_PACK_OPEN_SF,
-		// INSTRUMENT_PACK_FATBOY,
-		// INSTRUMENT_PACK_FM, 
-		// INSTRUMENT_PACK_MUSYNGKITE
-	].join(","),
+	// instrumentPacks:[
+	// 	INSTRUMENT_PACK_OPEN_SF,
+	// 	// INSTRUMENT_PACK_FATBOY,
+	// 	// INSTRUMENT_PACK_FM, 
+	// 	// INSTRUMENT_PACK_MUSYNGKITE
+	// ].join(","),
 
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
@@ -437,6 +441,10 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// the higher the number the less smooth the output is
 	// 1 or 2 should be more than enough
 	precision:3,
+
+
+	// how long vefore we consider the person has left the playing arena
+	timeToDie:1000,
 
 	// set this to one of the interpolation methods above
 	// IN means that it starts off slowly (prefered)

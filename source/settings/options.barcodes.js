@@ -3,8 +3,8 @@ import QRCode from "easyqrcodejs"
 export const QR_CODE_OPTIONS = {
     // ====== Basic
     text: "https://interface.place",
-    width: 256,
-    height: 256,
+    width: 133,
+    height: 133,
     colorDark : "#000000",
     colorLight : "#ffffff",
     correctLevel : QRCode.CorrectLevel.H, // L, M, Q, H
@@ -127,4 +127,36 @@ export const QR_CODE_OPTIONS = {
     utf8WithoutBOM: true
     */   
 
+}
+
+/*
+
+https://github.com/papnkukn/qrcode-svg
+
+*/
+export const QR_CODE_SVG_OPTIONS = {
+    // content - QR Code content, the only required parameter
+	content: "https://interface.place",
+    // QR Code size in pixels
+	width: 256,
+    height: 256,
+	// padding - white space padding, 4 modules by default, 0 for no border
+	padding: 4,
+	// color - color of modules (squares), color name or hex string, e.g. #000000
+    color : "#000000",
+	// background - color of background, color name or hex string, e.g. white
+    background : "#ffffff",
+
+	// container - wrapping element, default: svg, see below
+    container: "svg-viewbox", 	// Responsive use
+	
+	// join - join modules (squares) into one shape, 
+	// into the SVG path element, recommended for web 
+	// and responsive use, default: false
+	join: true, 					// Crisp rendering and 4-5x reduced file size
+	// ecl - error correction level: L, M, H, Q
+	// predefined - to create a squares as pattern, then populate the canvas, default: false, see the output examples below
+	// pretty - apply indents and new lines, default: true
+	// swap - swap X and Y modules, only if you have issues with some QR readers, default: false
+	// xmlDeclaration - prepend XML declaration to the SVG document, i.e. <?xml version="1.0" standalone="yes"?>, default: true
 }
