@@ -20,22 +20,28 @@ jobs:
         
         steps:
         - name: Checks out this repository using git
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
 
-        # start with node js
-        - name: Install Node.js 14
-          uses: actions/setup-node@v3
+		# Install pnpm
+      	- uses: pnpm/action-setup@v4
+		  name: Install pnpm
+		  with:
+			run_install: false
+
+        # Install node js
+        - name: Install Node.js 22+
+          uses: actions/setup-node@v4
           with:
-            node-version: '14'
-            cache: 'npm'
+            node-version: '22.6.0'
+            cache: 'pnpm'
 
-        # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+		# Install project node dependencies
         - name: Install dependencies
-          run: npm install
+          run: pnpm install
 
-        # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+        # Build command
         - name: Build the app into dist
-          run: npm run build --if-present
+          run: pnpm run build --if-present
 
         # - name: List the current folder contents...
         #   run: ls ./
