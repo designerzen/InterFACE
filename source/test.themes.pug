@@ -13,23 +13,78 @@ block main
 		//- theme selection
 		include partials/theme-selector.pug
 
+		//- tooltip element
+		p(role="status" aria-live="polite" popover="manual")#feedback Loading please wait!
+				
+		include partials/toast.pug	
+
+		//- radial menu
+		include partials/menu-radial-panel.pug
+		
+		//- control panel with multi-levels
+		include partials/control-panel.pug
+
+		include partials/scales-panel.pug
 
 
 block scripts
 	script(type="module").
-		// 
-		import {addToolTips} from './dom/tooltips.js'		
+	
+		import {addToolTips} from './dom/tooltips.js'	
+		import {setupThemeControls} from './theme/theme.js'		
 		import {Pane} from 'tweakpane'
-		
-		window.addEventListener('keydown', async (event)=>{
-			const isNumber = !isNaN( parseInt(event.key) )
-			const focussedElement = document.activeElement
 
+		const updateRootStyle = (style, value)=> {
+			document.documentElement.style.setProperty(style, value)
+			//- document.body.style.setProperty(style, value)
+		}
+
+		const styles={
+			hue:50,
+			hueSelected:10,
+			hueActive:180,
+
+			hueDark:90,
+			hueOrange:90,
+			hueYellow:90,
+			hueGreen:90,
+			hueRed:90,
+			hueBrand:90,
+		}
+
+		const pane = new Pane(new Pane({ title: "Theme Config", expanded: true }))
+		pane.addBinding(styles, 'hue', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue', ev.value )
+		})
+		pane.addBinding(styles, 'hueSelected', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-selected', ev.value )
+		})
+		pane.addBinding(styles, 'hueActive', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-active', ev.value )
+		})
+		pane.addBinding(styles, 'hueDark', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-dark', ev.value )
+		})
+		pane.addBinding(styles, 'hueOrange', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-orange', ev.value )
+		})
+		pane.addBinding(styles, 'hueYellow', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-yellow', ev.value )
+		})
+		pane.addBinding(styles, 'hueGreen', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-green', ev.value )
+		})
+		pane.addBinding(styles, 'hueRed', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-red', ev.value )
+		})
+		pane.addBinding(styles, 'hueBrand', { min: 0, max: 360 }).on('change', (ev) => {
+			updateRootStyle('--hue-brand', ev.value )
 		})
 
-		addSettings()
+		const options = {}
+		setupThemeControls( document.getElementById('select-theme') )
+		
 		addToolTips( document.documentElement )
-
 
 block styles 
 	style.

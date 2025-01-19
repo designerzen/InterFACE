@@ -12,7 +12,7 @@ block main
 		section 
 			article
 				h4 Tests
-				nav
+				nav.internal-links
 					a(href="./test.buttons.pug") Buttons
 					a(href="./test.controls.pug") Controls
 					
@@ -47,13 +47,12 @@ block main
 		section 
 			article
 				h4 Pages
-				nav
+				nav.internal-links
 					a(href="./404.pug") 404
 					a(href="./app.pug") Application
 					a(href="./offline.pug") Offline
 					a(href="./blog.pug") Blog
-					a(href="./changelog.html") Changelog
-					a(href="./changes.html") Changes
+					a(href="./change-log.pug") Changes & Updates
 					a(href="./copyright.pug") Copyright
 					a(href="./credits.pug") Credits
 					a(href="./faq.pug") Frequently Asked Questions
@@ -67,12 +66,13 @@ block main
 		section 
 			article
 				h4 Locations
-				nav
+				nav.internal-links
 					a(href="./locations.pug") Site Locations
-					a(href="./scienceandindustrymuseum.pug") scienceandindustrymuseum
+					a(href="./scienceandindustrymuseum.pug") Science & Industry Museum
 					a(href="./ieee.pug") IEEE
 					a(href="./i2c.pug") I2C
 					a(href="./emf.pug") EMF
+					a(href="./mit.pug") MIT
 					a(href="./beyond.pug") Beyond
 						
 block scripts
@@ -81,4 +81,8 @@ block styles
 	style.
 		body{
 			background-image:none;
+		}
+		.internal-links{
+			display: flex;
+			flex-direction:column;
 		}

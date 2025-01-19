@@ -63,7 +63,7 @@ block scripts
 		import { setupVolumeInterface } from './dom/ui.volume.js'
 		import { setupInterface } from './dom/ui.js'
 		import { setMIDIControls } from './dom/ui.midi.js'
-		import { createFeedbackNode } from "./dom/text.js"
+		import { setupFeedbackControls } from "./dom/text.js"
 
 		import MIDIInstrument from './audio/instruments/instrument.midi.js'
 		
@@ -79,6 +79,8 @@ block scripts
 		const tick = new Audio( AUDIO )
 
 		const start = async () => {
+
+			const setFeedback = setupFeedbackControls( document.getElementById("feedback") )
 
 			// NB. *must* be on user interaction
 			const audioContext = new AudioContext()
@@ -120,7 +122,6 @@ block scripts
 			const outputMIDIInputs = document.getElementById('midi-inputs-output')
 			const outputMIDIOutputs = document.getElementById('midi-outputs-output')
 			
-			const setFeedback = createFeedbackNode( document.getElementById("feedback") )
 			console.log("Fix text", typeof setFeedback, setFeedback, document.getElementById("feedback")  )
 			// bind to buttons
 			const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, [], options  )

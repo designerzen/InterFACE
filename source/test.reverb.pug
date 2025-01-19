@@ -12,14 +12,18 @@ block above
 
 block main
 	main#test-reverb
+		canvas#reverb-canvas( width=320 height=240 )
+		button#button-test-reverb(type="button") Play note
+		button#button-download-reverb(type="button") Download Impulse Filter
 
 block styles 
 	style.
 		#control-panel{
 			z-index:909;
 		}
-		#button-video{
-			z-index:-1;
+		#button-test-reverb{
+			z-index:1080;
+
 		}
 
 block scripts
