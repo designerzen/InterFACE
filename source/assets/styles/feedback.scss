@@ -3,40 +3,157 @@
 // Feedback text on screen all the time
 // NB. ensure font doesn't grow too much
 #feedback{
+	
+	--icon-width:0px;
+	--indicator-width:6px;
+	--bg: /**/;
+
+	transition:opacity var(--ease-m) linear, transform var(--ease-m) linear;
 	padding: calc( var(--pad) * 1.5 ) calc( var(--pad) * 2 );
+	padding-right: calc( var(--indicator-width) + var(--pad) * 2 );
+
 	box-sizing: border-box;
 	position: fixed;
 	z-index: 303;
 	top:var(--pad);
 	bottom: auto;
+
+	// prevent user interaction?
+	user-select: none;
+	// pointer-events: none;
 	
 	// left:50%;
 	// transform: translateX(-50%);
 	text-align: center;
+	text-wrap: balance;
+	text-wrap: pretty; // This will be ignored by browsers that don't support it.
 
 	max-width: calc( 80vw - 2 * var(--pad));
 
-	color:palette.$col-dark;
-	background-color:palette.$col-white;
+	color:var(--shade-dark, black);
+	background-color:var(--shade-white, white);
+
+	// border-width: 2px;
 	border-radius: 3px;
+	border-color:var(--shade-orange, orange);
 	text-align: left;
+
+	// color var(--ease-q) linear,
+	// background-color var(--ease-q) linear,
+	transition: opacity var(--ease-m) linear, 
+				transform var(--ease-m) linear;
+
 	text-shadow : rgba(palette.$col-white,0.96) 0 -1px 2px,
 					rgba(palette.$col-dark, 0.96) 0 0 2px;
-					
-	// cool animating carat
-	&:after{
+			
+	// ICON
+	&::before{
 		display: inline-block;
 		content:'';
-		width: 6px;
+		height:calc(3ch - 6px);
+		// fallback size for when bg is set to a string!
+		width:var(--icon-width);
+		// if the following line fails,
+		// that is because --bg is not set to a number!
+		// width:var(--bg, var(--icon-width) ) ;
+		
+		color:var(--shade-grey);
+		background-image: var(--bg);
+		background-position: top left;
+		background-repeat: no-repeat;
+		background-size: contain;
+		vertical-align:middle;
+	}
+
+	// cool animating carat
+	&::after{
+		
+		display: inline-block;
+		content:'';
+
+		// prevent wrapping...yet keep inline
 		height:calc(2ch - 3px);
-		background-color:palette.$col-orange;
+		width: var(--indicator-width);
+		margin-right: calc( -1 * var(--indicator-width) );
 		margin-left:calc(var(--pad)/2);
+		margin-bottom:1px;
+		background-color:var(--shade-orange, orange);
+		
 		animation: Blink 1150ms 0s infinite normal both;
 		vertical-align:text-bottom;
 	}
 	
 	&:empty{
+		opacity:0;
 		display: none;
+	}
+
+	// variations :
+	&.tempo,
+	&.disco,
+	&.beats,
+	&.metronome,
+	&.silence,
+	&.volume,
+	&.muted,
+	&.unmuted{
+		--bg:url(/source/assets/icons/volume_up-24px.svg);
+		--icon-width:3ch;
+		--indicator-width:calc( var(--icon-width) / 2);
+
+		// hide the indicator!
+		&::after{
+			display: none;
+			animation:none;
+		}
+	}
+
+	&.tempo,
+	&.disco,
+	&.beats,
+	&.metronome,
+	&.silence,
+	&.volume,
+	&.muted,
+	&.unmuted{
+		// invert icon colour & background
+		background-color:var(--shade-dark, black);
+		color:var(--shade-white, white);
+		&::before{
+			filter:invert(100%);
+		}
+	}
+
+	&.beats{
+		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
+	}
+	&.metronome{
+		--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
+	}
+	&.silence{
+		--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
+	}
+	&.muted{
+		--bg:url(/source/assets/icons/volume_mute-24px.svg);
+	}
+	&.unmuted{
+		--bg:url(/source/assets/icons/volume_off-24px.svg);
+	}
+
+	&.disco{
+		--bg:url(/source/assets/icons/blur_on-24px.svg);
+	}
+
+	&.instrument{
+		--bg:url(/source/assets/icons/blur_on-24px.svg);
+	}
+
+	&.tempo{
+		--bg:url(/source/assets/icons/speed-24px.svg);
+	}
+
+	&.hide{
+		opacity: 0;
 	}
 }
 
@@ -44,4 +161,3 @@
 #feedback:hover ~ canvas{
 	opacity:0.5;
 }
-
