@@ -26,6 +26,7 @@ jobs:
               name: Install pnpm
               with:
                 run_install: false
+				version: 9.15.3
 
             # Install node js
             - name: Install Node.js 22+
