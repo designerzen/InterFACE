@@ -1,11 +1,17 @@
+const THEME_PREFIX = "theme-"
+let theme = `${THEME_PREFIX}default`
 
-let theme = "theme-default"
+export const getThemeName = t => t.indexOf(THEME_PREFIX) > -1 ? t : `${THEME_PREFIX}${t}}`
 
 export const setTheme = t => {
 	const body = document.body
 	body.classList.remove( theme )
-	theme = t 
+	theme = getThemeName(t)
 	body.classList.toggle( theme, true )
+}
+
+export const getThemeFromReferer = referer => {
+	return referer ? getThemeName(referer) : theme
 }
 
 export const setupThemeControls = (themeSelector, callback) => {
