@@ -3,6 +3,7 @@
 - const name = `PhotoSYNTH`;
 - const accentColour = "#8d3525";
 - const classes = ``
+- let theme = "theme-default"
 
 mixin title( page="", section="", seperator="©" )
 	- page = page.length ? `${page} ${seperator} ` : page
@@ -83,6 +84,10 @@ html(lang="en-GB", class=classes)
 		//- Humans.txt - https://humanstxt.org/
 		link(type="text/plain" rel="author" href="https://interface.place/humans.txt")
 		
+
+		//- Custom options
+		block options
+
 		//- Custom styles
 		block styles
 

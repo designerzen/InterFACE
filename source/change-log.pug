@@ -1,0 +1,27 @@
+//-
+	a short blog from each of you on our website. 
+	Ideally the blog would be between 300-500 words, 
+	and it could include images and video. 
+	Any images will need to have alt text, and ideally 
+	any video would be captioned (we can assist with this if needed).
+
+extends _base.pug
+
+block headline 
+	| Photo<wbr>Synth 3
+	//- span.sr-only PhotoSynth 3
+	| #Inter<wbr>
+	strong FACE
+
+block tagline 
+	| Changes
+
+block main 
+	main#changes
+		include changelog.html
+	
+block scripts
+	script(type="text/javascript").
+		
+block styles
+	styles.

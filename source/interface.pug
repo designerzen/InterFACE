@@ -16,8 +16,7 @@ block nav
 		li: a(href="#help" aria-label="Show some helpful information" onclick="window.help.showModal()") Help!
 
 
-block preload 
-	block options
+block preload
 	script document.documentElement.classList.add("loading","app")
 	link(rel="preload" href="index.js" as="script") 
 	
