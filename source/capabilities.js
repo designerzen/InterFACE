@@ -13,6 +13,9 @@ export const hasTouchEvents = () => {
 
 export const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
 
+// !window.matchMedia( "(hover: none)" ).matches
+export const hasMouse = () => 'PointerEvent' in window
+
 export const hasFileHandler = () => 'launchQueue' in window && 'files' in LaunchParams.prototype
 
 export const hasOffscreenCanvasCapability = () => 'OffscreenCanvas' in window
@@ -99,7 +102,8 @@ export default class Capabilities {
 
 		this.fileHandlerAvailable = hasFileHandler()
 		this.touchScreen = isTouchDevice() && hasTouchEvents()
-		this.mouse = !window.matchMedia( "(hover: none)" ).matches
+		this.mouse = hasMouse()
+		
 		this.electron = isElectron()
 		this.node = isNode()
 		this.webMIDIAvailable = testForMIDI()
