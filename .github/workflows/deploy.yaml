@@ -17,43 +17,42 @@ permissions:
 jobs:
     build:
         runs-on: ubuntu-latest
-        
         steps:
-        - name: Checks out this repository using git
-          uses: actions/checkout@v4
+			- name: Checks out this repository using git
+			  uses: actions/checkout@v4
 
-		# Install pnpm
-      	- uses: pnpm/action-setup@v4
-		  name: Install pnpm
-		  with:
-			run_install: false
+			# Install pnpm
+			- uses: pnpm/action-setup@v4
+			  name: Install pnpm
+			  with:
+				run_install: false
 
-        # Install node js
-        - name: Install Node.js 22+
-          uses: actions/setup-node@v4
-          with:
-            node-version: '22.6.0'
-            cache: 'pnpm'
+			# Install node js
+			- name: Install Node.js 22+
+			  uses: actions/setup-node@v4
+			  with:
+				node-version: '22.6.0'
+				cache: 'pnpm'
 
-		# Install project node dependencies
-        - name: Install dependencies
-          run: pnpm install
+			# Install project node dependencies
+			- name: Install dependencies
+			  run: pnpm install --frozen-lockfile
 
-        # Build command
-        - name: Build the app into dist
-          run: pnpm run build --if-present
+			# Build command
+			- name: Build the app into dist
+			  run: pnpm run build --if-present
 
-        # - name: List the current folder contents...
-        #   run: ls ./
+			# - name: List the current folder contents...
+			#   run: ls ./
 
-        - name: List the build folder contents...
-          run: ls ./release/web
+			- name: List the build folder contents...
+			  run: ls ./release/web
 
-        - name: Upload artifact
-          uses: actions/upload-pages-artifact@v1
-          with:
-            name: github-pages
-            path: ./release/web
+			- name: Upload artifact
+			  uses: actions/upload-pages-artifact@v1
+			  with:
+				name: github-pages
+				path: ./release/web
 
     deploy:
         # Deploy to the github-pages environment
