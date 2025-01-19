@@ -1,53 +1,97 @@
 // Project FUGU has a Chrome native version of this API...
 // https://developer.chrome.com/articles/idle-detection/
 
-const TIME_OUT = 4000
+const TIME_OUT = 6000	// 6000 is the minimum value for IdleDetector
 
+const hasIdelDetection = () => 'IdleDetector' in window
 
-const main = async ( onActive, onInactive, timeOut = TIME_OUT) => {
+/**
+ * 
+ * @param {Function} onActive 
+ * @param {Function} onInactive 
+ * @param {Number} timeOut 
+ * @returns {Function} cleanup method
+ */
+export const observeInteractivityThroughIdelDetector = async ( onActive, onInactive, timeOut = TIME_OUT) => {
+
 	// Feature detection.
-	if (!('IdleDetector' in window)) {
-		return console.log('IdleDetector is not available.');
+	if (!hasIdelDetection()) 
+	{
+		console.log('IdleDetector is not available.')
+		return false
 	}
+
 	// Request permission to use the feature.
-	if (await IdleDetector.requestPermission() !== 'granted') {
-		return console.log('Idle detection permission not granted.');
+	if (await IdleDetector.requestPermission() !== 'granted')
+	{
+		console.log('Idle detection permission not granted.')
+		return false
 	}
-	try {
-		const controller = new AbortController();
-		const signal = controller.signal;
 
-		const idleDetector = new IdleDetector();
+	const controller = new AbortController()
+
+	try {	
+		const signal = controller.signal
+		const idleDetector = new IdleDetector()
+
 		idleDetector.addEventListener('change', () => {
-			console.log(`Idle change: ${idleDetector.userState}, ${idleDetector.screenState}.`);
+			console.log(`Idle change: ${idleDetector.userState}, ${idleDetector.screenState}.`)
+		
+			// user state
+			// whether the users has interacted with either 
+			// the screen or the device within the threshold
+			// provided to start(), one of "active" or "idle".
+			// This attribute returns null before start() is called.
+			// onActive && onActive()
+			switch(idleDetector.userState)
+			{
+				case "active":
+					break
 
-// const main = async ( onActive, onInactive, timeOut = TIME_OUT) => {
-	
-		});
+				case "idle":
+					break
+			}
+
+			// screen state
+			// whether the screen is locked, one of "locked" or "unlocked". 
+			// This attribute returns null before start() is called.
+			switch(idleDetector.screenState)
+			{
+				case "locked":
+					break
+					
+				case "unlocked":
+					break
+			}
+		})
+
 		await idleDetector.start({
 			threshold: timeOut,
 			signal,
-		});
-		console.log('IdleDetector is active.');
+		})
+		console.log('IdleDetector is active.')
 
-		window.setTimeout(() => {
-			controller.abort();
-			console.log('IdleDetector is stopped.');
-		}, 120000);
 	} catch (err) {
 		// Deal with initialization errors like permission denied,
 		// running outside of top-level frame, etc.
-		console.error(err.name, err.message);
+		console.error(err.name, err.message)
+		return false
+	}
+
+	return () => {
+		controller.abort()
 	}
 }
 
-
-
-
-
-
-
-const interact = (activityElement, onActive, onInactive, timeOut = TIME_OUT) => {
+/**
+ * 
+ * @param {HTMLElement} activityElement 
+ * @param {Function} onActive 
+ * @param {Function} onInactive 
+ * @param {Number} timeOut 
+ * @returns {Function} cleanup method
+ */
+export const observeInteractivityThroughUserEvents = async (activityElement, onActive, onInactive, timeOut = TIME_OUT)=>{
 
 	let isUserActive = true
 	let isUserBusy = true
@@ -109,10 +153,48 @@ const interact = (activityElement, onActive, onInactive, timeOut = TIME_OUT) => 
 		}
 	}, false)
 
+	// Tab hide / reveal
+	window.addEventListener("pageshow", (event) => {
+		// tab revealed
+		console.log("pageshow", event)
+		onActive && onActive()
+	})
+
+	window.addEventListener("pagehide", (event) => {
+		// tab hidden
+		console.log("pagehide", event)
+		onInactive && onInactive()			
+	})
+
 	onActive && onActive()
+
+	// Clean up!
+	return ()=>{
+		// activityElement.removeEventListener("mousemove" )
+		// activityElement.removeEventListener("mouseout", (event) => {
+		// document.removeEventListener("mouseenter", (event) => {
+		// document.removeEventListener("mouseleave", (event) => {
+		// document.removeEventListener("visibilitychange"
+		// window.removeEventListener("pageshow"
+		// window.removeEventListener("pagehide"
+	}
 }
 
+/**
+ * Monitor for user activity and lack thereof
+ */
+export const observeInactivity = async (activityElement, onActive, onInactive, timeOut = TIME_OUT, ignoreIdleDetector=false) => {
 
+	let observer
+	
+	if (!ignoreIdleDetector && hasIdelDetection())
+	{
+		observer = observeInteractivityThroughIdelDetector()
+	}
 
-
-export default interact
+	if (observer)
+	{
+		return observer
+	}
+	return observeInteractivityThroughUserEvents(activityElement, onActive, onInactive, timeOut)
+}
