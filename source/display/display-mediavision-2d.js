@@ -68,7 +68,7 @@ export default class DisplayMediaVision2D extends Display2D{
 	drawPerson( person, beatJustPlayed, colours, options={} ) {
 		const prediction = person.data
 		// let's position our face button
-		if (this.count%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
+		if (prediction && this.count%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
 		{
 			this.movePersonButton(person, person.data )
 		}
