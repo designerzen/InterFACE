@@ -68,6 +68,11 @@ const updateSummaryText = (returning=false) =>{
 	// TODO: Check state to see if this is a fresh session or a return then update the front end accordingly
 	const summaries = document.querySelectorAll('p[aria-label="Summary"]')
 	
+	if(!summaries || summaries.length < 2 )
+	{
+		console.info('No summary field p[aria-label="Summary"] present on DOM')
+		return
+	}
 	// if (returning){ summaries[0].setAttribute("hidden",true); summaries[1].removeAttribute("hidden") }
 	// p(aria-label="Summary" hidden).returning-client.
 
@@ -193,6 +198,7 @@ const start = () => {
 			}
 		)
 
+
 		
 		
 		const loadTime = Date.now() - startLoadTime
@@ -204,6 +210,11 @@ const start = () => {
 		// app to change parameters on it's own
 		const automator = application.setAutomator(new Attractor(application))
 		
+		// watch for user events and things that the user changes
+		// and pass that into the automator to modify behaviour
+		application.addEventListener("load-progress", e => {
+
+		})
 
 		// TODO: This will call the app from external URLs
 		// without reloading the page
@@ -417,8 +428,15 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	// global tooltips!
 	addToolTips( document.querySelector("main") )
 	
+	const table = document.getElementById("compatibility")
+	if (!table)
+	{
+		console.warn("Missing '#compatability' table in DOM")
+		// throw Error("Missing '#compatability' table in DOM")
+	}
+
 	// update the table as soon as it is available
-	const isFatalIssue = await updateCapabalitiesTable( capabilities )
+	const isFatalIssue = await updateCapabalitiesTable( table, capabilities )
 
 	// if we have all the hardware we need to continue...
 	if (isFatalIssue)

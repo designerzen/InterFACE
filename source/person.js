@@ -86,10 +86,8 @@ export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 
 export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
-
-
-// FIXME:
-const FUDGE = 1.0// 1.3
+export const EVENT_PERSON_BORN = "person-born"
+export const EVENT_PERSON_DEAD = "person-dead"
 
 /**
  * Default head control input mechanism
@@ -226,10 +224,29 @@ const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction) => {
 	return convertHeadOrientationIntoNoteData = (prediction, HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH) 
 }
 
+export const getRandomPresetForPerson = (personIndex) => {
+	switch(personIndex)
+	{
+		case 1:
+			return getRandomHarmonicLeadPresetIndex()
+		case 2:
+			return getRandomBasslinePresetIndex()
+		case 3:
+			return getRandomBeatsPresetIndex()
+		default:
+			return getRandomLeadPresetIndex()
+	}
+}	 
+
+const createHSLA = (hue, saturation, luminosity, alpha=1) => {
+	return `hsla(${hue%360},${saturation}%,${luminosity}%,${1-alpha})`
+}
+
 
 export default class Person{
 
 	playerNumber = -1
+	createdAt = -1
 
 	audioContext
 	offlineAudioContext
@@ -504,6 +521,63 @@ export default class Person{
 	}
 
 	/**
+	 * Is this person alive or dead
+	 */
+	get alive(){
+		return this.createdAt > -1
+	}
+
+	/**
+	 * How many milliseconds has this person been "dead"
+	 */
+	get aliveForDuration(){
+		return this.createdAt > -1 ? 
+			this.now - this.createdAt :
+			0
+	}
+
+	/**
+	 * Is this person alive or dead?
+	 */
+	get dead(){
+		return this.createdAt < 0
+	}
+
+	/**
+	 * How long does dying take?
+	 */
+	get dying(){
+		return this.deadForDuration < this.options.timeToDie
+	}
+
+	/**
+	 * How much longer will this person be alive
+	 * @return {Number}
+	 */
+	get percentageDead(){
+		
+		const percentage = this.deadForDuration / this.options.timeToDie
+		// clamp to 0->1
+		return percentage < 0 ? 0 : percentage > 1 ? 1 : percentage 
+	}
+
+	/**
+	 * How many milliseconds has this person been "dead"
+	 * @return {Number}
+	 */
+	get deadForDuration(){
+		if (this.createdAt === -1)
+		{
+			return -1
+		}
+		if (this.createdAt > -1)
+		{
+			return 0
+		}
+		return this.now + this.createdAt
+	}
+
+	/**
 	 * get the time elapsed in milliseconds since
 	 * the Person's instrument last changed
 	 */
@@ -530,10 +604,10 @@ export default class Person{
 	}
 	
 	/**
-	 * Get's the hue but as a colour
+	 * Get's the hue but as an opacity based colour
 	 */
 	get hsla(){
-		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,0.5)`
+		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,${1-this.percentageDead})`
 	}
 
 	/**
@@ -545,12 +619,25 @@ export default class Person{
 		return this.playerNumber%2 === 0
 	}
 	
+	/**
+	 * The current preset instrument name
+	 */
 	get currentPreset(){
 		return this.presetName 
 	}
 	
+	/**
+	 * @return {String}
+	 */
 	get currentPresetTitle(){
 		return this.presetTitle ?? this.activeInstrument.activePreset
+	}
+
+	/**
+	 * Proxy for the button events
+	 */
+	addListener(){
+		return this.button.addEventListener(...arguments)
 	}
 
 	constructor( index, options={}, saveData=undefined ) {
@@ -632,6 +719,8 @@ export default class Person{
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
+
+
 	/**
 	 * TODO:
 	 * Destroy this person - disconnect audio chain
@@ -643,7 +732,8 @@ export default class Person{
 	}
 	
 	/**
-	 * 
+	 * @param {Object} data
+	 * @param {String} prefix
 	 * @returns {Object}
 	 */
 	importData( data, prefix='' ){
@@ -733,14 +823,44 @@ export default class Person{
 		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
 	}
 
+
+	/**
+	 * Person was created then left, so kill it
+	 */
+	kill(){
+		// only kill if not already dead?
+		
+		if (this.createdAt < -1)
+		{
+			// return if actually dead or just dying!
+			return this.percentageDead === 1
+		}
+	
+		this.createdAt = -this.now
+		// return if actually dead or just dying!
+
+		// console.info("KILLING", this)
+		this.active = false
+		this.setState(STATE_INSTRUMENT_SILENT)
+		this.onDeath()
+		return false
+	}
+
 	/** 
 	 * Update Person's Memory state
 	 * Cache data for use in processing later
 	 * @param {Object} prediction data model
 	 */
-	update(prediction, forceRefresh=false){
+	update(prediction, timeNow, forceRefresh=false){
 		
 		this.counter++
+
+		// resurrect the dead
+		if (this.createdAt < 0)
+		{
+			this.createdAt = timeNow
+			this.onBirthed()
+		}
 		
 		// reuse old prediction aka refresh
 		if (!prediction || forceRefresh)
@@ -750,7 +870,7 @@ export default class Person{
 
 		// cache all data
 		this.data = prediction
-		this.lastTimeActive = now()
+		this.lastTimeActive = timeNow
 
 		// save all the parameters for recall later on...
 		if (this.isRecordingParameters)
@@ -766,7 +886,7 @@ export default class Person{
 			// overwrite prediction
 		}
 
-
+		// durations that things have been closed for
 		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
 		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
 		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
@@ -917,9 +1037,11 @@ export default class Person{
 		
 		// update colours...
 		const sl = `${saturation}%, ${luminosity}%`
+		// const col = 
 		// options.dots = hue
 		// options.face = `hsla(${hue},${sl},0.8)`
-		options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
+		options.mouth = createHSLA(hue+30, saturation, luminosity, 1-this.percentageDead ) 
+		// options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
 		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.9)`
 		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
 		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
@@ -1286,7 +1408,7 @@ export default class Person{
 				this.midi.playNote( noteName, midiOptions )
 				//console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 	
-				console.info("MIDI note on", noteName, midiOptions )
+				// console.info("MIDI note on", noteName, midiOptions )
 		
 
 				if (this.isMIDIActive)
@@ -1345,7 +1467,7 @@ export default class Person{
 							release:0.2
 						})
 
-						console.info("MIDI note off", noteName)
+						// console.info("MIDI note off", noteName)
 		
 						// immediate mute, but doesn't block (sounds better)
 						//this.midi.turnSoundOff()
@@ -1438,28 +1560,18 @@ export default class Person{
 	 * @param {Function} progressCallback - method to invoke on loading progress
 	 * @returns instrument
 	 */
-	async loadPresetByMethod(method="loadRandomPreset",progressCallback=null){
+	async loadPresetByMethod(method="loadRandomPreset", progressCallback=null){
 		
 		// NB. IMMEDIATELY set this to prevent multiple calls
 		this.instrumentLoadedAt = this.now
 
 		if (method==="loadRandomPreset")
 		{
-			// const presets = await this.activeInstrument.getPresets()
-			switch(this.playerNumber)
-			{
-				case 1:
-					this.instrument = await this.loadPreset( getRandomHarmonicLeadPresetIndex(), null, progressCallback )
-					break
-				case 2:
-					this.instrument = await this.loadPreset( getRandomBasslinePresetIndex(), null, progressCallback )
-					break
-				case 3:
-					this.instrument = await this.loadPreset( getRandomBeatsPresetIndex(), null, progressCallback )
-					break
-				default:
-					this.instrument = await this.loadPreset( getRandomLeadPresetIndex(), null, progressCallback )
-			}
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:this.instrument.name })
+			this.instrument = await this.loadPreset( getRandomPresetForPerson(this.playerNumber),  null, progressCallback )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:this.instrument.name })
+			
+			// console.info("Person "+this.playerNumber+" instrument changed", this.instrument )
 		}else{
 				
 			// this has lost it's scope...
@@ -1557,9 +1669,11 @@ export default class Person{
 		const instrumentPack = this.options.instrumentPack
 		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName + '>' + instrumentPack + +" via sampleplayer")
 		
+		const details = { instrumentName:instrumentNameRefined, instrumentPack }
+
 		const instrument = await this.samplePlayer.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentNameRefined })
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
 		} )
 
 		// just an index as to which out of all instrument data is this one
@@ -1571,10 +1685,8 @@ export default class Person{
 		// this will repopulate the panel with correct data
 		await this.setupForm()
 
-		this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentNameRefined })
-		
 		// you have to dispatch the event from an element!
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentNameRefined })
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, details )
 		
 		return instrument
 	}
@@ -1703,7 +1815,6 @@ export default class Person{
 			this.outputNode = delayNode
 		}
 
-
 		// now connect this directly to the main mixer
 		this.outputNode.connect(destinationNode)
 
@@ -1788,6 +1899,22 @@ export default class Person{
 			// console.log("PLAY:", methodName, instrument, {values} )
 			//instrument[methodName].apply( null, values )
 		})
+	}
+
+	/**
+	 * Called when this Person is created
+	 * and a prediction has been made abiout the user
+	 */
+	onBirthed(){
+		// console.info("Person Birthed")
+		
+		this.dispatchEvent(EVENT_PERSON_BORN, { person:this })
+	}
+
+
+	onDeath(){
+		// console.info("Person Killed at "+this.deadForDuration )
+		this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
 	}
 
 	/**
