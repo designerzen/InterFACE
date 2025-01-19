@@ -281,18 +281,19 @@ export const createInterface = (
 	}
 
 	// STATE -----------------------------------------------------------------
-
+	
 	const createQRCodeFromURL = async (bookmark) => {
 		shareCodeElement.innerText = "" // clear existing
 		// const hole = document.createElement("div")
 		// const space = shareCodeElement.appendChild( hole )
 		// const qrcode = await createQRCode( space, {text:bookmark} ) 
-		const qrcode = await createQRCode( shareCodeElement, {text:bookmark} ) 
-		// const svg = await createSVGQRCodeFromURL( {content:bookmark} ) 
-		console.info("Created QR code", {bookmark, qrcode}, shareCodeElement.innerHTML )
+		// const qrcode = await createQRCode( shareCodeElement, {text:bookmark} ) 
+		const svg = await createSVGQRCodeFromURL( {content:bookmark} ) 
+		console.info("Created QR code", {bookmark, svg}, shareCodeElement.innerHTML )
+		// console.info("Created QR code", {bookmark, qrcode}, shareCodeElement.innerHTML )
 		// console.info("Created QR code", {bookmark, qrcode, space, hole}, hole.innerHTML )
-		// hole.innerHTML = svg
-		return qrcode
+		shareCodeElement.innerHTML = svg
+		// return qrcode
 	}
 
 	// State management based on HTML globalThis and domain specific options and finally query string overrides
@@ -3149,10 +3150,7 @@ export const createInterface = (
 			const sharer = await import('share-menu')
 			body.classList.add("sharing-enabled")
 
-
-			const dialogShare = document.getElementById("dialog-share")
-			const elementQRCode = dialogShare.querySelector("#qr-code")
-			// const qr = await createQRCode( elementQRCode, {} )
+			// const dialogShare = document.getElementById("dialog-share")
 			// dialogShare.showModal()
 			// dialog.hidden = false
 

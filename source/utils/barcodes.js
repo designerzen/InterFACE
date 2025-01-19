@@ -1,5 +1,6 @@
 
 import QRCode from 'easyqrcodejs'
+import {default as QRCodeSVG} from 'qrcode-svg'
 import { QR_CODE_OPTIONS, QR_CODE_SVG_OPTIONS } from '../settings/options.barcodes.js'
 
 /**
@@ -32,6 +33,6 @@ export const createQRCode = (element, options=QR_CODE_OPTIONS) => new Promise((r
 // element.innerHTML = createQRCodeFromURL()
 export const createSVGQRCodeFromURL = async ( options=QR_CODE_SVG_OPTIONS) => {
 	options = { ...QR_CODE_SVG_OPTIONS, ...options}
-	const qrcode = new QRCode(options)
+	const qrcode = new QRCodeSVG(options)
 	return qrcode.svg()
 }

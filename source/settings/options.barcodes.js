@@ -1,4 +1,5 @@
 import QRCode from "easyqrcodejs"
+import PALETTE from "./palette"
 
 export const QR_CODE_OPTIONS = {
     // ====== Basic
@@ -141,11 +142,13 @@ export const QR_CODE_SVG_OPTIONS = {
 	width: 256,
     height: 256,
 	// padding - white space padding, 4 modules by default, 0 for no border
-	padding: 4,
+	padding: 1,
 	// color - color of modules (squares), color name or hex string, e.g. #000000
-    color : "#000000",
+    color : PALETTE.red,
+    // color : "#000000",
 	// background - color of background, color name or hex string, e.g. white
-    background : "#ffffff",
+    // background : "#ffffff",
+    background : PALETTE.white,
 
 	// container - wrapping element, default: svg, see below
     container: "svg-viewbox", 	// Responsive use
