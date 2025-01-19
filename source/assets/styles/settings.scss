@@ -7,26 +7,33 @@
 	color-scheme: dark;
 
 	// numbers 
+	--hue-white:#{palette.$hue-white};
 	--hue-dark:#{palette.$hue-dark};
-	--hue-orange:#{palette.$hue-orange};
-	--hue-yellow:#{palette.$hue-yellow};
+	--hue-grey:#{palette.$hue-grey};
+	--hue-gray:#{palette.$hue-gray};
+	--hue-cream:#{palette.$hue-cream};
+	--hue-tan:#{palette.$hue-tan};
+	--hue-brown:#{palette.$hue-brown};
+	--hue-blue:#{palette.$hue-blue};
 	--hue-green:#{palette.$hue-green};
+	--hue-yellow:#{palette.$hue-yellow};
+	--hue-orange:#{palette.$hue-orange};
 	--hue-red:#{palette.$hue-red};
 	--hue-brand:var(--hue-red);
 
 	// tints (use anywhere for colour with cpntrols)
-	--shade-white:hsl( #{palette.$hue-white}, var( --s, 27%), var( --l, 87%) );
-	--shade-dark:hsl( #{palette.$hue-dark}, var( --s, 6%), var( --l, 14%) );
-	--shade-grey:hsl( #{palette.$hue-grey}, var( --s, 6%), var( --l, 50%) );
-	--shade-gray:hsl( #{palette.$hue-gray}, var( --s, 6%), var( --l, 55%) );
-	--shade-cream:hsl( #{palette.$hue-cream}, var( --s, 18%), var( --l, 53%) );
-	--shade-tan:hsl( #{palette.$hue-tan}, var( --s, 30%), var( --l, 45%) );
-	--shade-brown:hsl( #{palette.$hue-brown}, var( --s, 22%), var( --l,30%) );
-	--shade-blue:hsl( #{palette.$hue-blue}, var( --s, 18%), var( --l,33%) );
-	--shade-green:hsl( #{palette.$hue-green}, var( --s, 18%), var( --l,33%) );
-	--shade-yellow:hsl( #{palette.$hue-yellow}, var( --s, 34%), var( --l,50%) );
-	--shade-orange:hsl( #{palette.$hue-orange}, var( --s, 69%), var( --l,38%) );
-	--shade-red:hsl( #{palette.$hue-red}, var( --s, 58%), var( --l,35%) );
+	--shade-white:hsl( var(--hue-white), var( --s, 27%), var( --l, 87%) );
+	--shade-dark:hsl( var(--hue-dark), var( --s, 6%), var( --l, 14%) );
+	--shade-grey:hsl( var(--hue-grey), var( --s, 6%), var( --l, 50%) );
+	--shade-gray:hsl( var(--hue-gray), var( --s, 6%), var( --l, 55%) );
+	--shade-cream:hsl( var(--hue-cream), var( --s, 18%), var( --l, 53%) );
+	--shade-tan:hsl( var(--hue-tan), var( --s, 30%), var( --l, 45%) );
+	--shade-brown:hsl( var(--hue-brown), var( --s, 22%), var( --l,30%) );
+	--shade-blue:hsl(  var(--hue-blue), var( --s, 18%), var( --l,33%) );
+	--shade-green:hsl(  var(--hue-green), var( --s, 18%), var( --l,33%) );
+	--shade-yellow:hsl(  var(--hue-yellow), var( --s, 34%), var( --l,50%) );
+	--shade-orange:hsl( var(--hue-orange), var( --s, 69%), var( --l,38%) );
+	--shade-red:hsl(  var(--hue-red), var( --s, 58%), var( --l,35%) );
 
 	--shade-brand:hsl( var(--hue-active, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
 	--shade-active:hsl( var(--hue-active, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
@@ -51,7 +58,7 @@
 
 	--stroke:1px;
 	// --viewport-height:100dvh;
-	--viewport-max-width:1080px;;
+	--viewport-max-width:1080px;
 
 
 	--ease-out-back:#{ease.$easeOutBack};

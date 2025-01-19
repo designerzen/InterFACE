@@ -143,12 +143,14 @@
 
 	// NB: Warning - this MAY trigger a video element not found error
 	// as JS pointer no longer has DOM equivalent
-	canvas,
-	video,
-	fieldset.person-controls{
-		display: none;
+	#app-frame {
+		canvas,
+		video,
+		fieldset.person-controls{
+			display: none;
+		}
 	}
-
+	
 	#help .player-selection-help{
 		display: block;
 	}
@@ -600,10 +602,12 @@ label[for="toggle-automation-mode"]{
 // CTA to begin the app...
 // Glows and entices a click!
 /////////////////////////////////////////////////////
+#button-start-label,
 #onboard label[for=button-start]{
 
 	// fake the button!
 	@include button.button-with-icon-and-border;
+
 
 	&{
 		// overwrite the var settings
@@ -621,7 +625,8 @@ label[for="toggle-automation-mode"]{
 		width: fit-content;
 		margin: auto;
 		height: 100%;
-
+		border-radius: 9px;
+		
 		animation: CTA 2s infinite;
 
 		/*
