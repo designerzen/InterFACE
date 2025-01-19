@@ -51,8 +51,7 @@ export const QUICK_START = [
 	// "CAPS Lock - developer debug",
 	// "TAB - show more info on screen",
 export const INSTRUCTIONS = [
-	"Welcome to the <strong>interFACE</strong>",
-	"This isn't a musical isntrument that you learn to play...",
+	"This isn't a musical instrument that you learn to play...",
 	"This is a musical instrument that plays you!",
 	"Smile at the screen to begin =D",
 	"Open your mouth to make it louder!",
