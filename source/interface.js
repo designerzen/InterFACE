@@ -304,7 +304,7 @@ export const createInterface = (
 	const existingQueries = (new URL(location.href)).search
 	const queryString = new URLSearchParams(globalOptions).toString()
 	const concatenatedQueries = existingQueries.length > 0 ? `${existingQueries.toString()}&${queryString}` : queryString
-	const url = new URL(location.host) // location.href
+	const url = new URL(location.origin) // location.href
 	url.search =  new URLSearchParams(concatenatedQueries)
 	createQRCodeFromURL(url.toString()).then( qr => {
 		console.info("URL for QRCode", {qr, url, href:url.toString()})
