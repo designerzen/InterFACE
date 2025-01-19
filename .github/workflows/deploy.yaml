@@ -31,8 +31,8 @@ jobs:
 			- name: Install Node.js 22+
 			  uses: actions/setup-node@v4
 			  with:
-				node-version: '22.6.0'
-				cache: 'pnpm'
+		        node-version-file: ".nvmrc"
+        		cache: pnpm
 
 			# Install project node dependencies
 			- name: Install dependencies
