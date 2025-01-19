@@ -37,14 +37,16 @@ export const getInstructions = async (language="en-GB", referer="") => {
 			injectInstructions(0, ...instructionsData)
 			injectInstructionsForAutomation(0, ...instructionsData)
 
-			console.log("instructionTools", instructionsData)
+			// console.error("CUSTOM Instructions Loaded", instructionsData)
 		}
 
 		return {
 			getHelp,
 			getInstruction,
 			getNextInstruction,
-			getInstructionForAutomation
+			getInstructionForAutomation,
+			getQuantityOfHelp:() => QUICK_START_GUIDE.length - 1,
+			getQuantityOfInstructions:() => INSTRUCTIONS_GUIDE.length - 1
 		}
 
 	}catch(error){

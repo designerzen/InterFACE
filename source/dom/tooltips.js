@@ -213,6 +213,9 @@ export const showTooltip = (text) => {
 	toastElement.hidden = false
 }
 
+// static constant
+let tooltipIndex = 0
+
 /**
  * 
  * adds a single tooltip to an element where hovering will reveal new info
@@ -220,6 +223,11 @@ export const showTooltip = (text) => {
  */
 export const addTooltip = (element, config=CONFIG) => { 
 	
+	if (!toastElement)
+	{
+		throw Error("Be sure that the DOM has the required element featured")
+	}
+
 	// set the initial position
 	// tooltipPositions.set( element, getPositionForTooltip(element) )
 	setTipSourcePosition( element )
@@ -291,6 +299,12 @@ export const addTooltip = (element, config=CONFIG) => {
 		// tooltips.set( element, callback )
 		// toastElement.popover = "auto"
 		element.popoverTargetElement = toastElement
+
+		if (!toastElement.id)
+		{
+			toastElement.id = "tooltip-"+(tooltipIndex++)
+		}
+		
 		// element.popoverTargetAction = "toggle"
 		element.setAttribute("popovertarget", toastElement.id)
 		element.addEventListener("mouseover", showTooltipCallback)
