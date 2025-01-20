@@ -250,7 +250,7 @@ export default class State {
 		}
 		
 		window.addEventListener("popstate", (event) => {
-			console.log("Previous State received: ", event, event.state)
+			// console.log("Previous State received: ", event, event.state)
 			this.setState(event.state, true)
 		})		  
 	}

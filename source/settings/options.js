@@ -112,6 +112,7 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 }
 
 export const DEFAULT_OPTIONS = {
+
 	
 	display:DISPLAY_MEDIA_VISION_2D,
 	// display:DISPLAY_LOOKING_GLASS_3D,
@@ -198,7 +199,8 @@ export const DEFAULT_OPTIONS = {
 	model:"face",
 
 	// show the QR code all the time
-	qr:false,
+	// and update when settings change?
+	qr:true,
 
 	// what theme to show on screen
 	theme:"theme-default",
@@ -312,6 +314,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// left / right ear stereo panning
 	stereoPan:true,
+
+	// use eyebrows to control pitch bending
+	pitchBend:true,
 
 	// saved BPM that can be shared
 	bpm:90,
