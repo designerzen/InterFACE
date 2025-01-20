@@ -453,9 +453,9 @@ export const loadAudio = async ( context, path, options ) => {
  * @param {Object} options options such as looping
  * @returns {HTMLAudioElement} Audio object
  */
-export const playTrack = (context, audioBuffer, offset=0, destination=delayNode, options={ loop:false } ) => {
+export const playTrack = (context, audioBuffer, offset=0, destination=delayNode, options={ loop:false }, onComplete=()=>{} ) => {
 	
-	return new Promise((resolve, reject)=>{
+	// return new Promise((resolve, reject)=>{
 
 		const trackSource = context.createBufferSource()
 		trackSource.buffer = audioBuffer
@@ -464,8 +464,11 @@ export const playTrack = (context, audioBuffer, offset=0, destination=delayNode,
 		// options
 		trackSource.loop = options.loop
 		// trackSource.detune = options.detune
-		//trackSource.playbackRate = options.playbackRate
-
+		if (options.playbackRate)
+		{
+			trackSource.playbackRate = options.playbackRate
+		}
+		
 		trackSource.connect(destination)
 		// trackSource.connect(audioContext.destination)
 		// console.error("Playing track", {audioBuffer,trackSource} )
@@ -476,12 +479,14 @@ export const playTrack = (context, audioBuffer, offset=0, destination=delayNode,
 		trackSource.onended = () => {
 			trackSource.disconnect()
 			active = false
-			resolve()
+			// resolve(trackSource)
+			onComplete(trackSource)
 		}
 		trackSource.onerror = (error) => {
 			trackSource.disconnect()
 			active = false
-			reject(error)
+			// reject(error)
+			onComplete(null)
 		}
 
 		if (context.state === 'suspended') 
@@ -497,7 +502,8 @@ export const playTrack = (context, audioBuffer, offset=0, destination=delayNode,
 			trackSource.start(0, context.currentTime - offset)
 		}
 		active = true
-	})
+		return trackSource
+	// })
 }
 
 /**

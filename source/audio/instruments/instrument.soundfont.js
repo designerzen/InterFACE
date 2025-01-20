@@ -148,7 +148,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		const audioBuffer = this.instrument[index]
 		if(audioBuffer)
 		{
-			this.play(audioBuffer, velocity)
+			const track = this.play(audioBuffer, velocity)
 		}
 		// console.log("Buffer playing", {index, audioBuffer,noteNumber, velocity},  this.instrument  )
 		return super.noteOn(noteNumber, velocity)
@@ -341,7 +341,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		//this.name = "SampleInstrument"
 
 		
-		console.info("Soundfont preset", SoundFontInstrument.dictionary)
+		// console.info("Soundfont preset", SoundFontInstrument.dictionary)
 
 		// this.instrumentMap = {}
 		// TODO: inside out object

@@ -41,7 +41,16 @@ export default class SampleInstrument extends Instrument{
 
 	// position within the above of the current instrument
 	instrumentIndex = 0
+
+	pitchBendValue = 1
 	
+	// which samples are currently ongoing
+	activeSamples = new Map() // WeakMap?
+
+	get pitchOffset(){
+		return this.pitchBendValue
+	}
+
 	get isLoading(){
 		return this.instrumentLoading
 	}
@@ -85,7 +94,6 @@ export default class SampleInstrument extends Instrument{
 		}
 		
 		++this.polyphony
-
 		// TODO: Send out pitch bend?
 		// if (this.active)
 		// {
@@ -98,17 +106,23 @@ export default class SampleInstrument extends Instrument{
 		//console.error( "PLAYING NOW!" , {audioBuffer}, this.polyphony, this.gainNode )
 
 		// FIXME: Add to active so we can remove it later
-		const track = playTrack( this.context, audioBuffer, 0, this.gainNode ).then( ()=>{
-			
+		const track = playTrack( this.context, audioBuffer, 0, this.gainNode, { playbackRate: this.pitchBendValue }, ()=>{
+			this.activeSamples.delete( this.polyphony )
+			// console.info(this.polyphony, this.activeSamples.size, "this.activeSamples REMOVE", this.activeSamples)
 			--this.polyphony
-
+			
 			if (this.polyphony < 1) {
 				this.active = false
 			}
 		
 			// console.log("Sample completed playback.", this.polyphony )
 			return true
-		})
+		} )
+		// .then( ()=>{})
+		// console.info(this.polyphony, this.activeSamples.size, "this.activeSamples ADD", this.activeSamples)
+		
+		this.activeSamples.set( this.polyphony, track )
+			
 		return track
 	}
 
@@ -129,7 +143,7 @@ export default class SampleInstrument extends Instrument{
 		const audioBuffer = this.instrument[convertMIDINoteNumberToName(noteNumber)]
 		if(audioBuffer)
 		{
-			this.play(audioBuffer, velocity)
+			const track = this.play(audioBuffer, velocity )
 		}
 		// console.log("Buffer playing", {audioBuffer,noteNumber, velocity} )
 		return super.noteOn(noteNumber, velocity)
@@ -146,9 +160,14 @@ export default class SampleInstrument extends Instrument{
 	// 	await super.aftertouch( noteNumber, pressure )
 	// }
 	
-	// async pitchBend(pitch){
-	// 	await super.pitchBend(pitch)
-	// }
+	async pitchBend(pitch){
+		this.pitchBendValue = pitch
+		this.activeSamples.forEach( (sample, key) => {
+			sample.playbackRate.value = pitch
+			// if (pitch !==1) console.log(key, "Pitch bending sample",pitch, sample.playbackRate.value )
+		})
+		return await super.pitchBend(pitch)
+	}
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){

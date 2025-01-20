@@ -135,9 +135,10 @@ import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.pe
 import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
 
 import InstrumentFactory from './audio/instrument-factory.js'
-import { PRESETS_KICKS } from './audio/synthesizers/kick.js'
-import { PRESET_HIHATS } from './audio/synthesizers/hihat.js'
-import { PRESET_SNARES } from './audio/synthesizers/snare.js'
+
+import { getRandomKickPreset, PRESETS_KICKS } from './audio/synthesizers/kick.js'
+import { getRandomHihatPreset, PRESET_HIHATS } from './audio/synthesizers/hihat.js'
+import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
@@ -289,7 +290,7 @@ export const createInterface = (
 		// const qrcode = await createQRCode( space, {text:bookmark} ) 
 		// const qrcode = await createQRCode( shareCodeElement, {text:bookmark} ) 
 		const svg = await createSVGQRCodeFromURL( {content:bookmark} ) 
-		console.info("Created QR code", {bookmark, svg}, shareCodeElement.innerHTML )
+		// console.info("Created QR code", {bookmark, svg}, shareCodeElement.innerHTML )
 		// console.info("Created QR code", {bookmark, qrcode}, shareCodeElement.innerHTML )
 		// console.info("Created QR code", {bookmark, qrcode, space, hole}, hole.innerHTML )
 		shareCodeElement.innerHTML = svg
@@ -310,7 +311,7 @@ export const createInterface = (
 	const url = new URL(location.origin) // location.href
 	url.search =  new URLSearchParams(concatenatedQueries)
 	createQRCodeFromURL(url.toString()).then( qr => {
-		console.info("URL for QRCode", {qr, url, href:url.toString()})
+		// console.info("URL for QRCode", {qr, url, href:url.toString()})
 	})
 
 	// State Machine & Query handler
@@ -334,9 +335,9 @@ export const createInterface = (
 		if (stateMachine.get("qr") && shareCodeElement)
 		{
 			createQRCodeFromURL( stateMachine.asURI )
-			//- console.info("State", state.serialised )
+			console.info("QR State updated", state.serialised ) 
 		}
-		console.info("State Changed", { key,value, stateMachine } )
+		// console.info("State Changed", { key,value, stateMachine } )
 	})
 
 	
@@ -427,23 +428,20 @@ export const createInterface = (
 	let hatTimbreOptions = PRESET_HIHATS[0]
 
 	const setRandomDrumTimbres = () => {
-		const kickIndex = Math.floor(Math.random() * PRESETS_KICKS.length)
-		kickTimbreOptions = PRESETS_KICKS[kickIndex]
-		const snareIndex = Math.floor(Math.random() * PRESET_SNARES.length)
-		snareTimbreOptions = PRESET_SNARES[snareIndex]
-		const hatIndex = Math.floor(Math.random() * PRESET_HIHATS.length)
-		hatTimbreOptions = PRESET_HIHATS[hatIndex]	
-		console.info("Setting drum timbres!", 
-			{
-				kickIndex, kickTimbreOptions,
-				snareIndex, snareTimbreOptions,
-				hatIndex, hatTimbreOptions
-			}
-		)
+		kickTimbreOptions = getRandomKickPreset()
+		snareTimbreOptions = getRandomSnarePreset()
+		hatTimbreOptions = getRandomHihatPreset()
+		// console.info("Setting drum timbres!", 
+		// 	{
+		// 		kickTimbreOptions,
+		// 		snareTimbreOptions,
+		// 		hatTimbreOptions
+		// 	}
+		// )
 		// only show percussion change notification if playing percussion
 		if (stateMachine.get("backingTrack"))
 		{
-			setFeedback( `Percussion REMIX #${kickIndex} ${snareIndex} ${hatIndex}`, 0, 'beats' )	 
+			setFeedback( `Percussion REMIX #${kickTimbreOptions.name} ${snareTimbreOptions.name} ${hatTimbreOptions.name}`, 0, 'beats' )	 
 		}
 	}
 
@@ -871,6 +869,7 @@ export const createInterface = (
 			player.options = { ...player.options, ...p }
 			//console.log("settings player.options", {p,unique}, {result:player.options} 
 		})
+		setFeedback("Updating player options", 0, 'person' )
 	}
 
 	// MIDI --------------------------------------------------------
@@ -981,12 +980,13 @@ export const createInterface = (
 
 		window.addEventListener('keydown', async (event)=>{
 
+
 			const isNumber = !isNaN( parseInt(event.key) )
 			const focussedElement = document.activeElement
 
+			// Allow Tab to continue to perform its default function
 			if ( event.key !== 'Tab' ){
 				event.preventDefault()
-				return
 			}
 			
 			// Contextual hotkeys - if something is focussed then different keys!
@@ -1092,14 +1092,31 @@ export const createInterface = (
 					break
 
 				case 'ArrowUp':
-					clock.totalBars++
-					setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')						
+					if (event.ctrlKey || event.shiftKey)
+					{
+						clock.totalBars++
+						setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')						
+					}else{
+						// get existing pitchbend value
+						const person = getPerson(0)
+						const pitchBend = person.activeInstrument.pitchOffset
+						person.activeInstrument.pitchBend( pitchBend+0.5 )
+						// console.log("Pitchbending UP!", getPerson(0) )
+					}
+
 					break
 
 				// change amount of bars
 				case 'ArrowDown':
-					clock.totalBars--
-					setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')
+					if (event.ctrlKey || event.shiftKey)
+					{
+						clock.totalBars--
+						setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')
+					}else{
+						const person = getPerson(0)
+						const pitchBend = person.activeInstrument.pitchOffset
+						person.activeInstrument.pitchBend( pitchBend-0.5 )
+					}
 					break
 
 				case ',':
@@ -1341,6 +1358,7 @@ export const createInterface = (
 	}
 
 	/**
+	 * 
 	 * play Audio for a Person using their current face status
 	 * TODO: Add WAM2
 	 * @param {Person} person 
@@ -2993,7 +3011,7 @@ export const createInterface = (
 		selects.eyes = connectSelect( 'select-eyes', option => {
 			const items = option.value.split(",")
 			const eye = convertOptionToObject(items)
-			//console.log("Setting eyes", eye, {items} )
+			
 			setPlayerOptions({ 
 				scleraRadius:eye.s,
 				irisRadius:eye.i,
@@ -3165,7 +3183,7 @@ export const createInterface = (
 	// loop until loaded...
 	const loadingLoop = async () => {
 
-		console.log("loading", {isLoading, userLocated: isPersonLocatable, isCameraLoading})
+		// console.log("loading", {isLoading, userLocated: isPersonLocatable, isCameraLoading})
 		if ( isLoading )
 		{ 
 			requestAnimationFrame( loadingLoop ) 
@@ -3431,8 +3449,7 @@ export const createInterface = (
 		}
 
 		//loadProgressMediator(1, "", true)
-		console.log("PhotoSYNTH3D LOADED", startPhotoSYNTH)
-
+		
 		// let's launch it after it has resolved...
 		startPhotoSYNTH()
 
@@ -3457,7 +3474,7 @@ export const createInterface = (
 				}
 				isUserActive = true
 				people.forEach( player => player.isUserActive = true)
-				console.info("user active autohide", stateMachine.get("autoHide"))
+				// console.info("user active autohide", stateMachine.get("autoHide"))
 			}
 
 			function onInactive(){
@@ -3468,7 +3485,8 @@ export const createInterface = (
 				}
 				isUserActive = false
 				people.forEach( player => player.isUserActive = false)
-				console.info("user inactive autohide", stateMachine.get("autoHide"))
+				// setFeedback("Goodbye!", 0, 'person' )
+				// console.info("user inactive autohide", stateMachine.get("autoHide"))
 			}
 
 			observeInactivity( 
@@ -3486,7 +3504,7 @@ export const createInterface = (
 			// try and locally store any changes to the interface and settings
 			const saveSession = Object.assign({}, information, {
 				lastTime:Date.now(),
-				count:information.count++
+				count:(information.count??1)
 			})
 			store.setItem('info', saveSession)
 			//store.setItem(person.name, {instrument})
@@ -3519,7 +3537,7 @@ export const createInterface = (
 			{
 				return
 			}
-			console.log("location: " + document.location, popped, ", state: " + JSON.stringify(event.state))
+			// console.log("location: " + document.location, popped, ", state: " + JSON.stringify(event.state))
 			window.location.reload()
 		})
 
@@ -3536,15 +3554,15 @@ export const createInterface = (
 		updateOfflineStatus()
 
 		// Tab hide / reveal
-		window.addEventListener("pageshow", (event) => {
-			// tab revealed
-			console.log("pageshow", event)
-		})
+		// window.addEventListener("pageshow", (event) => {
+		// 	// tab revealed
+		// 	console.log("pageshow", event)
+		// })
 
-		window.addEventListener("pagehide", (event) => {
-			// tab hidden
-			console.log("pagehide", event)
-		})
+		// window.addEventListener("pagehide", (event) => {
+		// 	// tab hidden
+		// 	console.log("pagehide", event)
+		// })
 	})
 	.catch( error => {
 
