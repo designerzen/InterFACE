@@ -15,7 +15,9 @@ export const updateWebMIDIWithPerson = ( person, overrides={} ) => {
 				// console.log("midi note on", noteNumber, {noteVelocity, MIDIoutput})
 
 				// MONOPHONIC :  in case that the note is already playing
-				MIDIoutput.stopNote( person.lastNoteNumber ) 
+				if (person.lastNoteNumber > -1){
+					MIDIoutput.stopNote( person.lastNoteNumber ) 
+				}
 				MIDIoutput.playNote( person.noteNumber, {attack:person.noteVelocity} ) 
 			})
 			break
