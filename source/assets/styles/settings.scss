@@ -19,6 +19,7 @@
 	--hue-yellow:#{palette.$hue-yellow};
 	--hue-orange:#{palette.$hue-orange};
 	--hue-red:#{palette.$hue-red};
+	--hue-purple:#{palette.$hue-purple};
 	--hue-brand:var(--hue-red);
 
 	// tints (use anywhere for colour with cpntrols)
@@ -34,6 +35,7 @@
 	--shade-yellow:hsl(  var(--hue-yellow), var( --s, 34%), var( --l,50%) );
 	--shade-orange:hsl( var(--hue-orange), var( --s, 69%), var( --l,38%) );
 	--shade-red:hsl(  var(--hue-red), var( --s, 58%), var( --l,35%) );
+	--shade-purple:hsl(  var(--hue-purple), var( --s, 58%), var( --l,35%) );
 
 	--shade-brand:hsl( var(--hue-active, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
 	--shade-active:hsl( var(--hue-active, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
