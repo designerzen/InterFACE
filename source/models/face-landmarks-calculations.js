@@ -249,11 +249,27 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const browDownLeft = landmarks[1].score
 	const browOuterUpLeft = landmarks[4].score
 	
+	const browDown = Math.max(browDownRight, browDownLeft)
+	// as brows are a bit fiddly we use a power law to make them more linear
+	const browPwer = 2
+	const browUp = Math.max( browInnerUp, browOuterUpRight, browOuterUpLeft ) 
+	// const browUp = Math.pow( browPwer, Math.max( browOuterUpRight, browOuterUpLeft) ) - 1
+
 	// -1 -> +1
 	prediction.leftEyebrowRaisedBy = browOuterUpLeft - browDownLeft
 	prediction.rightEyebrowRaisedBy = browOuterUpRight - browDownRight
-	prediction.eyebrowsRaisedBy = browInnerUp
-
+	// -1 -> +1
+	prediction.eyebrows = browDown > 0.01 ? -browDown : browUp
+	// UP
+	prediction.eyebrowsInnerRaisedBy = browInnerUp
+	prediction.eyebrowsRaisedBy = browUp
+	// DOWN
+	prediction.eyebrowsLoweredBy = browDown
+	// normalised and extended
+	prediction.eyebrowExtents = browUp > 0.66 ? 
+		3 * (browUp-0.66) + 1  :
+		browUp < 0.10 ? (browUp * 10) :
+				1
 
 
 	// - MOUTH ------------------------------------------------------
