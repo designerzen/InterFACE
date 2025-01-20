@@ -89,6 +89,8 @@ export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
+
+
 /**
  * Default head control input mechanism
  * Where looking left and right sets the Scale
@@ -122,8 +124,15 @@ const convertHeadOrientationIntoNoteData = (prediction, options) => {
 	const noteSound = getNoteSound(noteFloat, isMinor)	
 	
 	const afterTouch = 0
-	const pitchBend = 0
 
+	// 0 -> 2 : 2 is double speed, 1 is regular speed, 0 is slower
+	// normalise to 0.5 -> 1.5
+	const pitchBend = 0.5 + prediction.eyebrowExtents / 2
+
+	// console.error(pitchBend, "pitchBend", prediction.eyebrowsRaisedBy )
+	
+	// console.info("Both:",prediction.eyebrows, "Raised:",prediction.eyebrowsRaisedBy, prediction.eyebrowsInnerRaisedBy, "lowered:",prediction.eyebrowsLoweredBy )
+	// console.info("l:",prediction.leftEyebrowRaisedBy, "r:",prediction.rightEyebrowRaisedBy )
 	return {
 		octaveNumber,
 		noteNumber,
@@ -241,7 +250,6 @@ export const getRandomPresetForPerson = (personIndex) => {
 const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 	return `hsla(${hue%360},${saturation}%,${luminosity}%,${1-alpha})`
 }
-
 
 export default class Person{
 
@@ -899,6 +907,11 @@ export default class Person{
 			// -1 -> +1
 			this.stereoNode.pan.value = prediction[this.options.stereoController] // * -1
 		}
+
+		if (this.options.pitchBend && this.activeInstrument)
+		{
+			this.activeInstrument.pitchBend( this.pitchBendValue )
+		}
 		
 
 		// TODO:
@@ -1165,7 +1178,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			display.drawInstrument(xMin, yMin , instrumentTitle, 'Loading...')
+			display.drawInstrument(xMin, yMin , instrumentTitle, 'Loading...', '14px' )
 
 		}else{
 
@@ -1173,12 +1186,12 @@ export default class Person{
 			const extra = this.lastNoteFriendlyName 
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `-`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
-			
+			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
 			// eye:${prediction.eyeDirection} 
 			const textX = xMin + thirdHeadWidth
 			const textY = yMin - thirdHeadHeight
 			display.drawInstrument(textX, textY, instrumentTitle, "", '14px' )
-			display.drawInstrument(textX, textY + 24, `${this.emoticon} ${extra} ${suffix}`, "", '28px' )
+			display.drawInstrument(textX, textY + 24, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			if (this.debug )
 			{
@@ -1269,6 +1282,10 @@ export default class Person{
 			afterTouch, pitchBend,
 			isMinor
 		} = this.controlMode(prediction, this.options)
+
+		// for the next note 
+		this.pitchBendValue = pitchBend
+	
 		
 /*
 		// swap em arounnd!??
@@ -1491,6 +1508,7 @@ export default class Person{
 			newVolume = 0
 			this.isMouthOpen = false
 			this.active = false
+			this.pitchBendValue = 1
 			// no instruments in memory yet... play silence?
 		}
 
@@ -2107,5 +2125,4 @@ export default class Person{
 			this.showForm()
 		}
 	}
-
 }
