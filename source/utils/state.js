@@ -64,7 +64,7 @@ export const refreshState = ()=>{
 	return state
 }
 
-const setElementCheckState = (element, value) => {
+export const setElementCheckState = (element, value) => {
 	// resolve element if not an element
 	if (element)
 	{
@@ -76,14 +76,24 @@ const setElementCheckState = (element, value) => {
 	}else{
 		document.querySelector(element)
 	}
+	switch(element.nodeName)
+	{
+		case "INPUT":
+			element.setAttribute("checked", value)
+			break
+		case "SELECT":
+			// element.setAttribute("checked", value)
+			break
+		case "ANCHOR":
+			break
+		default:
+	}
 
 	//elements[key].checked = value
-	element.setAttribute("checked", value)
-	if (element.parentNode.nodeName === "LABEL")
+	if ( typeof value === "boolean" && element.parentNode.nodeName === "LABEL")
 	{
 		element.parentNode.classList.toggle("checked", value )
 	}
-
 }
 
 /**

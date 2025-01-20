@@ -6,7 +6,7 @@ import Capabilities from './capabilities.js'
 import { loadInstrumentsList } from './settings/options.instruments.js'
 
 // import {midiLikeEvents} from './timing/rhythm'
-import State, { EVENT_STATE_CHANGE, createStateFromHost } from './utils/state.js'
+import State, { EVENT_STATE_CHANGE, createStateFromHost, setElementCheckState } from './utils/state.js'
 
 // TODO :lazy load
 import { say, hasSpeech} from './audio/speech.js'
@@ -202,6 +202,7 @@ export const createInterface = (
 	const shareCodeElement = doc.querySelector(".qr")
 	const feedbackElement = doc.getElementById("feedback")
 
+
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
 
@@ -232,6 +233,8 @@ export const createInterface = (
 	let quantityInstructions = 0
 	let quantityHelp = 0
 
+	let hasNavigationOccurred = ('state' in window.history && window.history.state !== null)
+		
 	let setupReporting, track, trackError, trackExit
 
 	// Store for gagdets, widgets and buttons
@@ -327,6 +330,39 @@ export const createInterface = (
 	
 	// Update UI - this will check all the inputs according to our state	
 	// states.updateFrontEnd()
+	const uiMap = new Map()
+	uiMap.set("backingTrack", doc.getElementById("button-percussion") )
+	uiMap.set("clear", doc.querySelector(".qr") )
+	uiMap.set("disco", doc.getElementById("button-disco") )
+	uiMap.set("display", doc.querySelector(".qr") )
+	uiMap.set("eyes", doc.querySelector(".qr") )
+	// uiMap.set("gamePad", doc.querySelector(".qr") )
+	uiMap.set("gamePad", doc.querySelector(".qr") )
+	uiMap.set("metronome", doc.querySelector(".qr") )
+	uiMap.set("midi", doc.querySelector(".qr") )
+	// uiMap.set("midiChannel", doc.querySelector(".qr") )
+	// uiMap.set("model", doc.querySelector(".qr") )
+	// uiMap.set("muted", doc.querySelector(".qr") )
+	// uiMap.set("overlays", doc.querySelector(".qr") )
+	// uiMap.set("photoSensitive", doc.querySelector(".qr") )
+	// uiMap.set("players", doc.querySelector(".qr") )
+	// uiMap.set("qr", doc.querySelector(".qr") )
+	uiMap.set("quantise", doc.querySelector(".qr") )
+	// uiMap.set("showPiano", doc.querySelector(".qr") )
+	// uiMap.set("showSettings", doc.querySelector(".qr") )
+	// uiMap.set("speak", doc.querySelector(".qr") )
+	uiMap.set("spectrogram", doc.querySelector(".qr") )
+	// uiMap.set("stats", doc.querySelector(".qr") )
+	uiMap.set("stats", doc.querySelector(".qr") )
+	uiMap.set("synch", doc.querySelector(".qr") )
+	uiMap.set("text", doc.querySelector(".qr") )
+	uiMap.set("theme", doc.querySelector(".qr") )
+	uiMap.set("tooltips", doc.querySelector(".qr") )
+	
+	// debug
+	// starSize
+	// stereo
+	// stereoPan
 
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
@@ -337,10 +373,15 @@ export const createInterface = (
 			createQRCodeFromURL( stateMachine.asURI )
 			console.info("QR State updated", state.serialised ) 
 		}
+		// TODO: Update GUI with the key value even if toggled manually
 		// console.info("State Changed", { key,value, stateMachine } )
+		// stateMachine.get()
+		// associate inputs and selects with the state keys
+		const method = uiMap.get(key)
+		// setElementCheckState(method, value)
 	})
 
-	
+	// http://localhost:909/?display=DisplayMediaVision2D&tooltips=true&advancedMode=false&showSettings=false&showPiano=false&metronome=true&backingTrack=true&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=false&stats=false&muted=false&players=1&stereo=true&stereoPan=true&midi=true&midiChannel=all&starSize=1&autoHide=true&loadMIDIPerformance=false&gamePad=false&model=face&qr=false&theme=theme-mit&instrumentPack=OpenGM24&photoSensitive=true&automationMode=true&referer=mit&bpm=81.56038486395421
 	const referer = stateMachine.get("referer")
 	
 	const modelOptions = Object.assign( {}, DEFAULT_TENSORFLOW_OPTIONS )
@@ -3449,7 +3490,7 @@ export const createInterface = (
 		}
 
 		//loadProgressMediator(1, "", true)
-		
+
 		// let's launch it after it has resolved...
 		startPhotoSYNTH()
 
@@ -3531,13 +3572,14 @@ export const createInterface = (
 		// IF the user has only just begun to use the app, this popstate should be empty
 		// so rather than go "back" we instead relaod the application to restart 
 		// with the same state as before
-		const popped = ('state' in window.history && window.history.state !== null)
 		window.addEventListener('popstate', (event) => {
-			if (!popped)
+			if (!hasNavigationOccurred || window.location.hash )
 			{
 				return
 			}
-			// console.log("location: " + document.location, popped, ", state: " + JSON.stringify(event.state))
+			
+			// console.log("RELOAD UNLESS IS HASH!", event)
+			// console.log("location: " + document.location, hasNavigationOccurred, ", state: " + JSON.stringify(event.state))
 			window.location.reload()
 		})
 
