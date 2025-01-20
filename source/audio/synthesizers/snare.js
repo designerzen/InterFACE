@@ -2,6 +2,7 @@ import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
 export const DEFAULT_SNARE_OPTIONS = {
+	name:"Default Snare",
 	velocity:1, 
 	length : 0.4,
 	// default bandpawss filter Q
@@ -22,8 +23,9 @@ export const DEFAULT_SNARE_OPTIONS = {
 }
 
 export const PRESET_LONG_SNARE_OPTIONS = {
+	name:"Long Snare",
 	velocity:1, 
-	length : 0.9,
+	length : 1.2,
 	// default bandpawss filter Q
 	bandpassStart:90,
 	bandpassEnd:1000,
@@ -41,6 +43,7 @@ export const PRESET_LONG_SNARE_OPTIONS = {
 }
 
 export const PRESET_HEAVY_SNARE_OPTIONS = {
+	name:"Heavy Snare",
 	velocity:1, 
 	length : 0.9,
 	// default bandpawss filter Q
@@ -61,6 +64,7 @@ export const PRESET_HEAVY_SNARE_OPTIONS = {
 }
 
 export const PRESET_SQUARE_SNARE_OPTIONS = {
+	name:"Square Snare",
 	velocity:1, 
 	length : 0.3,
 	// default bandpawss filter Q
@@ -79,12 +83,38 @@ export const PRESET_SQUARE_SNARE_OPTIONS = {
 	type: "square"
 }
 
+export const PRESET_STRONG_SNARE_OPTIONS = {
+	name:"Strong Snare",
+	velocity:1, 
+	length : 1.1,
+	// default bandpawss filter Q
+	bandpassStart:90,
+	bandpassEnd:1000,
+	// frequency sweep
+	triStart:90,
+	triEnd:50,
+	// filter sweep
+	highpassStart:2000,
+	highpassEnd:600,
+
+	attack:0.009,
+	decay:0.05,
+
+	type: "square"
+}
+
 export const PRESET_SNARES = [
 	DEFAULT_SNARE_OPTIONS,
 	PRESET_HEAVY_SNARE_OPTIONS,
 	PRESET_SQUARE_SNARE_OPTIONS,
-	PRESET_LONG_SNARE_OPTIONS
+	PRESET_LONG_SNARE_OPTIONS,
+	PRESET_STRONG_SNARE_OPTIONS
 ]
+
+export const getRandomSnarePreset = () => {
+	const snareIndex = Math.floor(Math.random() * PRESET_SNARES.length)
+	return PRESET_SNARES[snareIndex]
+}
 
 /**
  * Create an instance of the snare instrument

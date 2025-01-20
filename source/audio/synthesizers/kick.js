@@ -2,6 +2,7 @@ import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
 export const DEFAULT_KICK_OPTIONS = {
+	name:"Default Kick",
 	velocity:1, 
 	length:0.15, 
 	attack:0.0001, 
@@ -21,6 +22,7 @@ export const DEFAULT_KICK_OPTIONS = {
 }
 
 export const PRESET_TECH_HOUSE_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
+	name:"Tech House Kick",
 	velocity:1, 
 	length:0.07, 
 	attack:0.0001, 
@@ -40,6 +42,7 @@ export const PRESET_TECH_HOUSE_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
 })
 
 export const PRESET_BEEFY_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
+	name:"Beefy Kick",
 	velocity:1.2, 
 	length:0.05, 
 	attack:0.001, 
@@ -63,6 +66,13 @@ export const PRESETS_KICKS = [
 	PRESET_TECH_HOUSE_KICK,
 	PRESET_BEEFY_KICK
 ]
+
+
+export const getRandomKickPreset = () => {
+	const kickIndex = Math.floor(Math.random() * PRESETS_KICKS.length)
+	return PRESETS_KICKS[kickIndex]
+}
+
 
 /**
  * Kick me!

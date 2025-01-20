@@ -2,6 +2,7 @@ import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
 export const DEFAULT_OPEN_HIHAT = {
+	name:"Default Open Hihat",
 	velocity:1, 
 	length:0.09, 	
 	fundamental:40,
@@ -18,6 +19,7 @@ export const DEFAULT_OPEN_HIHAT = {
 
 // Closed high hat is a shorter version
 export const DEFAULT_CLOSED_HIHAT = {
+	name:"Default Closed Hihat",
 	velocity:1, 
 	length:0.05, 	
 	fundamental:40,
@@ -33,6 +35,7 @@ export const DEFAULT_CLOSED_HIHAT = {
 } 
 
 export const OPEN_HIHAT_TINY = {
+	name:"Tiny Open Hihat",
 	velocity:1, 
 	length:0.06, 	
 	fundamental:40,
@@ -49,6 +52,7 @@ export const OPEN_HIHAT_TINY = {
 
 // Closed high hat is a shorter version
 export const CLOSED_HIHAT_TINY = {
+	name:"Tiny Closed Hihat",
 	velocity:1, 
 	length:0.03, 	
 	fundamental:40,
@@ -68,6 +72,11 @@ export const PRESET_HIHATS = [
 	CLOSED_HIHAT_TINY,
 	DEFAULT_OPEN_HIHAT
 ]
+
+export const getRandomHihatPreset = () => {
+	const hatIndex = Math.floor(Math.random() * PRESET_HIHATS.length)
+	return PRESET_HIHATS[hatIndex]
+}
 
 /**
  * 
