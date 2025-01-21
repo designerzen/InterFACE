@@ -166,7 +166,21 @@
 	}
 
 	.link-news{
+		&::before{
+			content:'';
+			display: inline-block;
+			vertical-align: middle;
+			width: 33px;
+			height: 27px;
+			background: url(./assets/icons/rss_feed_black_24dp.svg) no-repeat center;
+			background-size: 22px;
+			filter:invert(100%);
+		}
+		font-size: 0;
+	}
 
+	.educate{
+		display: none;
 	}
 
 	a {

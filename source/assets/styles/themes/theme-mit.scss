@@ -31,18 +31,27 @@
 		--l-selected:48%;
 		--l-active:48%;
 	}
-	
+
+
 }
 
 // Force the footer to show with the new creds
-.interface.loaded .theme-mit #foot{
-	visibility: visible;
-	z-index:1;
-	color: var(--shade-yellow);
-	.link-pages{
-		display: none;
+.interface.loaded .theme-mit{
+	#link-about{
+		background-image:url(./assets/logos/mit-realityhack.png);
+		&::after{
+			visibility: hidden;
+		}
 	}
-	.link-copyright::before{
-		filter: invert(1);
+	#foot{
+		visibility: visible;
+		z-index:1;
+		color: var(--shade-yellow);
+		.link-pages{
+			display: none;
+		}
+		.link-copyright::before{
+			filter: invert(1);
+		}
 	}
 }
