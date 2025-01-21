@@ -74,7 +74,7 @@ export default class Attractor{
 				if (this.barCounter%BARS_BEFORE_CHANGING_BPM === 0)
 				{
 					// quantityOfActivePeople
-					this.application.setBPM( 72+Math.random() * 120)
+					this.application.setBPM( parseInt((69 + Math.random() * 80).toFixed(2) ))
 				}	
 			}
 			
