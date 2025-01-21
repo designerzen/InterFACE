@@ -384,6 +384,8 @@ export const createInterface = (
 		// setElementCheckState(method, value)
 	})
 
+	
+
 	// http://localhost:909/?display=DisplayMediaVision2D&tooltips=true&advancedMode=false&showSettings=false&showPiano=false&metronome=true&backingTrack=true&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=false&stats=false&muted=false&players=1&stereo=true&stereoPan=true&midi=true&midiChannel=all&starSize=1&autoHide=true&loadMIDIPerformance=false&gamePad=false&model=face&qr=false&theme=theme-mit&instrumentPack=OpenGM24&photoSensitive=true&automationMode=true&referer=mit&bpm=81.56038486395421
 	const referer = stateMachine.get("referer")
 	
@@ -2434,6 +2436,11 @@ export const createInterface = (
 		const loadTotal = 9
 		let loadIndex = 0
 
+		if (!stateMachine.get("debug"))
+		{
+			doc.querySelector("label[for='select-display']").hidden = true
+		}
+
 		// DISPLAY --------------------------------------------------------------------------------
 
 		let initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
@@ -3138,8 +3145,7 @@ export const createInterface = (
 				try{
 					const displayType = option.value
 					display = await switchDisplay( displayType, predictionLoop )
-					// console.info("Display Changed to", {displayType, display})
-				
+					
 				}catch(error){
 					console.error("Display Issue! Could not initiate display", error)
 				}
