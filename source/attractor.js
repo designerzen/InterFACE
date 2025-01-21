@@ -34,7 +34,7 @@ const BARS_BEFORE_CHANGING_DRUM_PATTERNS = 32 * 1
 const BREAKS_BEFORE_CHANGING_DRUM_TIMBRES = 3
 const BARS_BEFORE_TOGGLING_DISCO = 64 + 8
 // TODO: make it more frenetic every
-const BARS_BEFORE_CHANGING_BPM = 8
+const BARS_BEFORE_CHANGING_BPM = 42
 
 export default class Attractor{
 
@@ -64,23 +64,24 @@ export default class Attractor{
 		{
 			this.barCounter++
 
-			if (this.barCounter+1%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
+			// add percussion and alter beats & timing
+			if (this.application.getState("backingTrack"))
 			{
-				this.application.setRandomDrumTimbres()
-			}
-			if (this.barCounter%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
-			{
-				this.application.setRandomDrumPattern()
-				if (this.barCounter%BARS_BEFORE_CHANGING_BPM === 0)
+				if (this.barCounter+1%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
 				{
-					// quantityOfActivePeople
-					this.application.setBPM( parseInt((69 + Math.random() * 80).toFixed(2) ))
+					this.application.setRandomDrumTimbres()
+					// this.application.setDrumKitOptons("") 
+				}
+				if (this.barCounter%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
+				{
+					this.application.setRandomDrumPattern()
+					if (this.barCounter%BARS_BEFORE_CHANGING_BPM === 0)
+					{
+						// quantityOfActivePeople
+						this.application.setBPM( parseInt((69 + Math.random() * 80).toFixed(2) ))
+					}	
 				}	
-			}
-			
-			
-
-			// this.application.setDrumKitOptons("") 
+			}			
 		}
 		
 		// no users around so turn off disco mode
