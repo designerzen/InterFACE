@@ -221,7 +221,7 @@
     "svgo": "^3.3.2",
     "three": "^0.172.0",
     "three-addons": "^1.2.0",
-    "three-mesh-bvh": "^0.8.3",
+    "three-mesh-bvh": "^0.9.0",
     "troika-3d": "^0.52.0",
     "troika-three-text": "^0.52.3",
     "tweakpane": "^4.0.5",

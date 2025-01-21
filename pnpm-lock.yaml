@@ -162,8 +162,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       three-mesh-bvh:
-        specifier: ^0.8.3
-        version: 0.8.3(three@0.172.0)
+        specifier: ^0.9.0
+        version: 0.9.0(three@0.172.0)
       troika-3d:
         specifier: ^0.52.0
         version: 0.52.0(three@0.172.0)
@@ -6892,8 +6892,8 @@ packages:
   three-addons@1.2.0:
     resolution: {integrity: sha512-tmPGLtcsDb0Bt6bVU82y9KX0rdAzizr7t2rFjBecWq4pvfGMY3l+yCfvntGYeZGJ9cjsli10cHSWHsN1pTy4mA==}
 
-  three-mesh-bvh@0.8.3:
-    resolution: {integrity: sha512-4G5lBaF+g2auKX3P0yqx+MJC6oVt6sB5k+CchS6Ob0qvH0YIhuUk1eYr7ktsIpY+albCqE80/FVQGV190PmiAg==}
+  three-mesh-bvh@0.9.0:
+    resolution: {integrity: sha512-xAwZj0hZknpwVsdK5BBJTIAZDjDPZCRzURY1o+z/JHBON/jc2UetK1CzPeQZiiOVSfI4jV2z7sXnnGtgsgnjaA==}
     peerDependencies:
       three: '>= 0.159.0'
 
@@ -15583,7 +15583,7 @@ snapshots:
     dependencies:
       three: 0.92.0
 
-  three-mesh-bvh@0.8.3(three@0.172.0):
+  three-mesh-bvh@0.9.0(three@0.172.0):
     dependencies:
       three: 0.172.0
 
