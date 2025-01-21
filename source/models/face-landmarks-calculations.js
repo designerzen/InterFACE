@@ -70,7 +70,8 @@ const {PI, abs, sqrt, atan2, tan} = Math
 
 const MIN_MOUTH_VALUE = 0.01
 
-const EYEBROW_DEVIATION_THRESHOLD = 0.66 
+const EYEBROW_DEVIATION_THRESHOLD = 0.7
+const EYEBROW_DEVIATION_FACTOR = 1 / (1 - EYEBROW_DEVIATION_THRESHOLD)
 
 /**
  * TODO: Implement a cache of eyes so that we can learn on the go
@@ -269,9 +270,9 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	prediction.eyebrowsLoweredBy = browDown
 	// normalised and extended
 	prediction.eyebrowExtents = browUp > EYEBROW_DEVIATION_THRESHOLD ? 
-		3 * (browUp - EYEBROW_DEVIATION_THRESHOLD) + 1  :
+	EYEBROW_DEVIATION_FACTOR * (browUp - EYEBROW_DEVIATION_THRESHOLD) + 1  :
 		browDown > EYEBROW_DEVIATION_THRESHOLD ? 
-		1 - (3 * (browDown - EYEBROW_DEVIATION_THRESHOLD)) :
+		1 - (EYEBROW_DEVIATION_FACTOR * (browDown - EYEBROW_DEVIATION_THRESHOLD)) :
 				1
 
 	// console.log("EYEBROWS", prediction.eyebrowExtents, {browUp, browDown} )
