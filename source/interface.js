@@ -199,6 +199,8 @@ export const createInterface = (
 	const buttonClearToggle = doc.getElementById("button-clear")
 	const buttonSpeakToggle = doc.getElementById("button-speak")
 	const buttonMetronomeToggle = doc.getElementById("button-metronome")
+	const buttonPercussion = document.getElementById("button-percussion")
+
 	const shareCodeElement = doc.querySelector(".qr")
 	const feedbackElement = doc.getElementById("feedback")
 
@@ -371,7 +373,7 @@ export const createInterface = (
 		if (stateMachine.get("qr") && shareCodeElement)
 		{
 			createQRCodeFromURL( stateMachine.asURI )
-			console.info("QR State updated", state.serialised ) 
+			console.info("QR State updated", stateMachine.serialised ) 
 		}
 		// TODO: Update GUI with the key value even if toggled manually
 		// console.info("State Changed", { key,value, stateMachine } )
@@ -580,10 +582,7 @@ export const createInterface = (
 	 * Toggle the background synthesized percussion
 	 */
 	const toggleBackgroundPercussion = () => {
-		const buttonPercussion = document.getElementById("button-percussion")
 		const isEnabled = stateMachine.toggle( 'backingTrack', buttonPercussion )
-		// toggle UI also...
-		// setElementCheckState(buttonPercussion, isEnabled )
 		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, 'beats' )	
 	}
 
@@ -1020,7 +1019,6 @@ export const createInterface = (
 		let numberSequence = ""
 
 		window.addEventListener('keydown', async (event)=>{
-
 
 			const isNumber = !isNaN( parseInt(event.key) )
 			const focussedElement = document.activeElement
@@ -2384,7 +2382,44 @@ export const createInterface = (
 		hasBeatJustPlayed = true
 	}
 
-	
+	/**
+	 * Watches for user activity and toggles the user-active class
+	 */
+	const watchForUserActivity = () => {
+		const buttonVideo = document.getElementById("button-video")
+		
+		function onActive(){
+			if ( stateMachine.get("autoHide"))
+			{
+				body.classList.toggle("user-active", true)
+				body.classList.toggle("user-inactive", false)
+			}
+			isUserActive = true
+			people.forEach( player => player.isUserActive = true)
+			// console.info("user active autohide", stateMachine.get("autoHide"))
+		}
+
+		function onInactive(){
+			if ( stateMachine.get("autoHide"))
+			{
+				body.classList.toggle("user-active", false)
+				body.classList.toggle("user-inactive", true)
+			}
+			isUserActive = false
+			people.forEach( player => player.isUserActive = false)
+			// setFeedback("Goodbye!", 0, 'person' )
+			// console.info("user inactive autohide", stateMachine.get("autoHide"))
+		}
+
+		observeInactivity( 
+			buttonVideo,
+			onActive,
+			onInactive,
+			4000, 
+			true
+		)
+	}
+
 	/**
 	 * Wires up all of the individual parts of the app and returns a method
 	 * to begin the actual application
@@ -2408,10 +2443,10 @@ export const createInterface = (
 		if (holographicDisplayQuantity > 0)
 		{
 			initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
-			console.info("PhotoSYNTH Holographic Screens", holographicDisplayQuantity )
+			setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
 			progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
 
-			// show the 3D option
+			// show the 3D option to allow for holographic display selection
 			const option = document.querySelector('option[value="DISPLAY_LOOKING_GLASS_3D"]')
 			if (option){
 
@@ -2422,7 +2457,7 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 		}
 
-		console.info("PhotoSYNTH Screens available", {initialDisplay, settings} ) 
+		// console.info("PhotoSYNTH Screens available", {initialDisplay, settings} ) 
 
 		// MUSICAL INSTRUMENTS --------------------------------------------------------------------------------
 		const instrumentFactory = new InstrumentFactory(audioContext)
@@ -2766,6 +2801,8 @@ export const createInterface = (
 		main.classList.add( inputElement.nodeName.toLowerCase() )
 		body.classList.toggle("initialising", false)
 		
+
+
 		/**
 		 * BEGIN ---------------------------------------------------------
 		 */
@@ -3505,38 +3542,7 @@ export const createInterface = (
 		// so not mobiles!
 		if (capabilities.mouse)
 		{
-			const buttonVideo = document.getElementById("button-video")
-			
-			function onActive(){
-				if ( stateMachine.get("autoHide"))
-				{
-					body.classList.toggle("user-active", true)
-					body.classList.toggle("user-inactive", false)
-				}
-				isUserActive = true
-				people.forEach( player => player.isUserActive = true)
-				// console.info("user active autohide", stateMachine.get("autoHide"))
-			}
-
-			function onInactive(){
-				if ( stateMachine.get("autoHide"))
-				{
-					body.classList.toggle("user-active", false)
-					body.classList.toggle("user-inactive", true)
-				}
-				isUserActive = false
-				people.forEach( player => player.isUserActive = false)
-				// setFeedback("Goodbye!", 0, 'person' )
-				// console.info("user inactive autohide", stateMachine.get("autoHide"))
-			}
-
-			observeInactivity( 
-				buttonVideo,
-				onActive,
-				onInactive,
-				4000, 
-				true
-			)
+			watchForUserActivity()
 		}
 
 		// Exit & save all cookies!
@@ -3547,10 +3553,10 @@ export const createInterface = (
 				lastTime:Date.now(),
 				count:(information.count??1)
 			})
+			// TODO: save ui settings in cookie too?
 			store.setItem('info', saveSession)
 			//store.setItem(person.name, {instrument})
-			
-			// save ui settings in cookie too?
+	
 			trackExit && trackExit()
 			setToast("Goodbye!")
 			setFeedback("<strong>I hope you had fun!</strong>", 0)

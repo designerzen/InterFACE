@@ -65,28 +65,48 @@ export const refreshState = ()=>{
 }
 
 export const setElementCheckState = (element, value) => {
+	console.info("setElementCheckState " + Date.now(), {element, value} )
 	// resolve element if not an element
-	if (element)
+	if (!element)
 	{
 		return
 	}
+
+	// ensure  that the element is a node otherwise search for it
 	if ( 'nodeName' in element )
 	{
 	//console.log( "Setting state", elements[key].checked , elements[key], {elements, ui, key} )
 	}else{
-		document.querySelector(element)
+		element = document.querySelector(element)
+		if (!element)
+		{
+			return
+		}
 	}
+
+	// Now update the node's selected state or option
 	switch(element.nodeName)
 	{
 		case "INPUT":
 			element.setAttribute("checked", value)
 			break
+
 		case "SELECT":
-			// element.setAttribute("checked", value)
+			// if number, set the index directly, otherwise determine index from value
+			if (!isNaN(value))
+			{
+				element.selectedIndex = value
+			}else{
+				// FIXME: Find option with this value
+				element.setAttribute("selectedIndex ", value)
+			}
+			
 			break
 		case "ANCHOR":
 			break
+
 		default:
+			console.info("Unknown element type", element.nodeName )
 	}
 
 	//elements[key].checked = value
@@ -434,8 +454,7 @@ export default class State {
 			})
 			window.history.pushState(options, null, url)
 		}
-		
-		console.log("History", { options, url} , url.toString() )
+		// console.log("History", { options, url} , url.toString() )
 	}
 
 
