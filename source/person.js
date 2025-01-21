@@ -1112,12 +1112,15 @@ export default class Person{
 		const thirdHeadWidth = boxWidth * 0.333
 
 		const instrumentTitle = this.presetTitle ?? this.instrumentTitle
+		const textX = xMin + thirdHeadWidth
+		const textY = yMin - thirdHeadHeight
 
 		// console.log({xMin, xMax, yMin, yMax })
 
 		// Mouse interactions via DOM buttons
 		if ( this.isMouseOver || this.instrumentLoading ){
 
+		
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
 			// user is interacting...
@@ -1144,14 +1147,18 @@ export default class Person{
 
 					display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
-					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`], '9px' )		
-					display.drawParagraph( xMax, yMax + 40, [`Tap to select a random one`], '9px' )		
+					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], '9px' )
 				}
 
 			}else{
 				
 				// No mouse held
-				display.drawInstrument( xMin, yMin , instrumentTitle, 'Hold to choose instrument')
+				display.drawInstrument( textX, textY, instrumentTitle, "", "14px")
+				display.drawParagraph(textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose instrument'], '12px' )		
+				// display.drawParagraph( xMax, textY + 40, [`Tap to select a random one`], '9px' )		
+				// display.drawInstrument(textX, textY + 24, "Press & Hold", "", '28px' )
+				// display.drawInstrument(textX - 10, textY + 24, "to choose instrument", "", '28px' )
+			
 				//drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
 				/*	
 				const offsetX = topLeft[0]
@@ -1178,7 +1185,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			display.drawInstrument(xMin, yMin , instrumentTitle, 'Loading...', '14px' )
+			display.drawInstrument(xMin, yMin , instrumentTitle, 'Loading...', '9px' )
 
 		}else{
 
@@ -1188,8 +1195,7 @@ export default class Person{
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
 			// eye:${prediction.eyeDirection} 
-			const textX = xMin + thirdHeadWidth
-			const textY = yMin - thirdHeadHeight
+			
 			display.drawInstrument(textX, textY, instrumentTitle, "", '14px' )
 			display.drawInstrument(textX, textY + 24, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
