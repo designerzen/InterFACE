@@ -2,6 +2,9 @@
 // App specific
 .interface body{
 
+	color: var( --shade-accent, var(--shade-red, red));
+
+
 	display: grid;
 	align-content: stretch;//space-between;
     justify-content: center;
@@ -82,6 +85,7 @@
 
 #affiliates{
 
+	color: var(--shade-white);
 	background-color: var(--shade-orange);
 	background-color: color-mix(in lch, var(--shade-orange), transparent 50%);
 	grid-area: affiliates;
@@ -479,6 +483,8 @@ p strong{
 	--hue:180;
 	--l:20%;
 	
+	color:var(--shade-white);
+
 	// we only disable this in jumbo mode
 	position: relative;
 	display:flex;
@@ -590,6 +596,78 @@ p strong{
 	}
 }
 
+
+// #version,
+#midi-device{
+	display:none;
+}
+
+
+#control-panel{
+	
+	--panel-width:45%;
+	margin:auto;
+	padding:0;
+	
+	overflow: hidden;
+	position: absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom: 0;
+
+	z-index:808; // NOT top - we have help and about remember!
+
+	// width:100%;
+
+	// prevent the form takin focus
+	pointer-events: none;	
+	
+	
+	display: block;
+
+	// alternate grid layout
+	display: grid;
+
+
+	grid-template-areas: 
+		"sidebar-left . sidebar-right"
+		"settings-panel settings-panel settings-panel"
+		"control-panel control-panel control-panel"
+		;
+
+	grid-template-rows: 
+		1fr
+		auto 
+		auto
+		auto
+	;
+
+	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
+
+	* {
+		pointer-events: auto;
+	}
+
+	/*
+	// we need media queries to complete
+	--ratio:calc( var(--width)/var(--height));
+	max-width:var(--width);
+	max-height:var(--height);
+*/
+
+
+
+	// &::before{
+	// 	display: block;
+	// 	content:'';
+	// 	// width:calc(var(--width) / var(--height) * 100%);
+	// 	// height:calc( 100% );
+	// 	width:100%;
+	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
+	// }
+}
+
 #face-buttons{
 	--aspect-ratio:calc(var(--width) / var(--height)  );
 	margin:auto;
@@ -654,79 +732,6 @@ p strong{
 	}
 }
 
-
-
-// #version,
-#midi-device{
-	display:none;
-}
-
-
-#control-panel{
-	
-	--panel-width:45%;
-	margin:auto;
-	padding:0;
-	
-	overflow: hidden;
-	position: absolute;
-	top:0;
-	left:0;
-	right:0;
-	bottom: 0;
-
-	z-index:808; // NOT top - we have help and about remember!
-
-	// width:100%;
-
-	// prevent the form takin focus
-	pointer-events: none;	
-	
-	
-	display: block;
-
-	// alternate grid layout
-	display: grid;
-
-
-	grid-template-areas: 
-		"sidebar-left . sidebar-right"
-		"settings-panel settings-panel settings-panel"
-		"control-panel control-panel control-panel"
-		;
-
-	grid-template-rows: 
-		1fr
-		auto 
-		auto
-		auto
-	;
-
-	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
-
-
-	*{
-		pointer-events: auto;
-	}
-
-	/*
-	// we need media queries to complete
-	--ratio:calc( var(--width)/var(--height));
-	max-width:var(--width);
-	max-height:var(--height);
-*/
-
-
-
-	// &::before{
-	// 	display: block;
-	// 	content:'';
-	// 	// width:calc(var(--width) / var(--height) * 100%);
-	// 	// height:calc( 100% );
-	// 	width:100%;
-	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
-	// }
-}
 
 // Instrument and user option panels
 
