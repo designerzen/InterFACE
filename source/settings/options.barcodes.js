@@ -157,7 +157,10 @@ export const QR_CODE_SVG_OPTIONS = {
 	join: true, 					// Crisp rendering and 4-5x reduced file size
 	// ecl - error correction level: L, M, H, Q
 	// predefined - to create a squares as pattern, then populate the canvas, default: false, see the output examples below
+	
 	// pretty - apply indents and new lines, default: true
+	pretty:false,
 	// swap - swap X and Y modules, only if you have issues with some QR readers, default: false
 	// xmlDeclaration - prepend XML declaration to the SVG document, i.e. <?xml version="1.0" standalone="yes"?>, default: true
+	xmlDeclaration:false
 }

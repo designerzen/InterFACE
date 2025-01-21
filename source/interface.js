@@ -300,6 +300,7 @@ export const createInterface = (
 		// console.info("Created QR code", {bookmark, qrcode, space, hole}, hole.innerHTML )
 		shareCodeElement.innerHTML = svg
 		// return qrcode
+		return svg
 	}
 
 	// State management based on HTML globalThis and domain specific options and finally query string overrides
@@ -368,18 +369,18 @@ export const createInterface = (
 
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
 	//State.getInstance().addEventListener( event => {
-	stateMachine.addEventListener( (key,value) => {
+	stateMachine.addEventListener( async (key,value) => {
 		
 		if (stateMachine.get("qr") && shareCodeElement)
 		{
-			createQRCodeFromURL( stateMachine.asURI )
-			console.info("QR State updated", stateMachine.serialised ) 
+			const svg = await createQRCodeFromURL( stateMachine.asURI )
+			// console.info("QR State updated", {svg, state:stateMachine.serialised} ) 
 		}
 		// TODO: Update GUI with the key value even if toggled manually
 		// console.info("State Changed", { key,value, stateMachine } )
 		// stateMachine.get()
 		// associate inputs and selects with the state keys
-		const method = uiMap.get(key)
+		// const method = uiMap.get(key)
 		// setElementCheckState(method, value)
 	})
 
