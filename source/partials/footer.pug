@@ -1,11 +1,13 @@
 
-small
+small.link-brand
 	a.link-copyright(href="copyright.pug" target="_blank") Copyright  
-		span#year 2020-#{year||22}
+		span#year 2020-#{year||25}
 
 	a.brand(href="https://designerzen.com/" rel="noopener noreferrer" target="_blank") 
 		include ../assets/logos/designerzen_current-color.svg
 		| designerzen ltd.
+
+	block smallprint
 
 section.associates#associates
 	h4
@@ -41,7 +43,7 @@ section.associates#associates
 		//- 	include ./assets/logos/tensorflow-tf.svg
 
 
-small
+small.link-pages
 	a.educate(href="presentation.pug" target="_blank") ▶<span class="hide-text">Learn more about this project</span>
 	a.link-licenses(href="licenses.pug" target="_blank") Licenses
 	a.link-news(href="blog.pug" target="_blank") News
