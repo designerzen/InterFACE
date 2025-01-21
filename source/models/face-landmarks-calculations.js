@@ -70,6 +70,8 @@ const {PI, abs, sqrt, atan2, tan} = Math
 
 const MIN_MOUTH_VALUE = 0.01
 
+const EYEBROW_DEVIATION_THRESHOLD = 0.66 
+
 /**
  * TODO: Implement a cache of eyes so that we can learn on the go
  * @param {Object} prediction - ML vision-kit model
@@ -266,12 +268,13 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// DOWN
 	prediction.eyebrowsLoweredBy = browDown
 	// normalised and extended
-	prediction.eyebrowExtents = browUp > 0.66 ? 
-		3 * (browUp-0.66) + 1  :
-		browUp < 0.10 ? (browUp * 10) :
+	prediction.eyebrowExtents = browUp > EYEBROW_DEVIATION_THRESHOLD ? 
+		3 * (browUp - EYEBROW_DEVIATION_THRESHOLD) + 1  :
+		browDown > EYEBROW_DEVIATION_THRESHOLD ? 
+		1 - (3 * (browDown - EYEBROW_DEVIATION_THRESHOLD)) :
 				1
 
-
+	// console.log("EYEBROWS", prediction.eyebrowExtents, {browUp, browDown} )
 	// - MOUTH ------------------------------------------------------
 	
 
