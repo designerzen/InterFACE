@@ -171,10 +171,10 @@
 			
 			opacity: 0;
 			padding: var(--pad);
-			transform: translate(-50%, -50%);
+			transform: translate(-50%, calc(-100% + var(--pad,0) ) ); 
 			transition:
 				opacity var(--ease-s) linear,
-				transform var(--ease-m) var(--ease-out-back);
+				transform var(--ease-m) linear;
 			
 			small{
 				display: block;
@@ -189,6 +189,9 @@
 			figcaption{
 				opacity: 1;
 				transform: translate(-50%, calc( -100% - var(--pad,0)));
+				transition:
+					opacity var(--ease-s) linear,
+					transform var(--ease-m) var(--ease-out-back);
 			}
 			img{
 				filter: brightness(50%);
@@ -297,10 +300,7 @@
 		max-height: 100%;
 
 		background: none;
-
-		> *:not(nav){
-			display: none;
-		}
+		display: none;
 	}
 
 	// load bar
