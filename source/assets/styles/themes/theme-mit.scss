@@ -1,27 +1,31 @@
 @use "../_palette.scss";
 
 .theme-mit{
-	
-	--hue-dark:305;
-	
-	// --hue-green:
-	--stroke:2px;
-	--curve:3px;
-	
-	// blues, purples, and yellows in your project
-	--hue: #{palette.$hue-purple};
-	--hue-selected: #{palette.$hue-blue};
-	--hue-active: #{palette.$hue-yellow};
-	--hue-accent: #{palette.$hue-purple};
-	
-	--s:58%;
-	--s-selected:98%;
-	--s-active:98%;
+	// :root{
+		--hue-dark:305;
+		
+		// --hue-green:
+		--stroke:2px;
+		--curve:3px;
+		
+		// blues, purples, and yellows in your project
+		--hue: #{palette.$hue-purple};
+		--hue-selected: #{palette.$hue-blue};
+		--hue-active: #{palette.$hue-yellow};
+		--hue-accent: #{palette.$hue-purple};
+		
+		--s:58%;
+		--s-selected:98%;
+		--s-active:98%;
 
-	--l:24%;
-	--l-selected:48%;
-	--l-active:48%;
+		--l:24%;
+		--l-selected:48%;
+		--l-active:48%;
 
+		--loader-size-small: clamp(59px, 15vmin, 128px);// 
+	
+	// }
+	
 	:is(
 		button,
 		.button,
@@ -32,6 +36,20 @@
 		--range:0%;
 		--button-border-size:4px;
 
+
+		// blues, purples, and yellows in your project
+		--hue: #{palette.$hue-purple};
+		--hue-selected: #{palette.$hue-blue};
+		--hue-active: #{palette.$hue-yellow};
+		--hue-accent: #{palette.$hue-purple};
+		
+		--s:58%;
+		--s-selected:98%;
+		--s-active:98%;
+
+		--l:24%;
+		--l-selected:48%;
+		--l-active:48%;
 	}
 
 
