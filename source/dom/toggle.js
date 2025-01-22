@@ -10,20 +10,25 @@ import {setButton, setPressureButton} from './button'
 export const setToggle = (toggleName, callback, value ) => {
 	
 	const element = setButton( toggleName, ()=>{
-		value = !value
+		
+		// immediately the value is set as expected
+		value = !element.checked
+		
 		// add classes to any associated wrapped label
 		if (element.parentNode.nodeName === "LABEL")
 		{
 			element.parentNode.classList.toggle("checked", value )
 		}
-		//element.setAttribute("checked", value)
+		
+		// console.error("Setting toggle via click to", "element.checked: "+element.checked, {element})
 		callback(value)
 	})
+
 	// preset the button
 	if (value)
 	{
 		// goto parent and add checked classes?
-		element.setAttribute('checked', value)
+		element.checked = value
 		element.parentNode.classList.toggle("checked", value )
 	}
 	return element
@@ -54,7 +59,7 @@ export const setPressureToggle = (toggleName, tapCallback, holdCallback, holding
 	)
 
 	// preset the button
-	element.setAttribute('checked', value)
+	element.checked = value
 	element.parentNode.classList.toggle("checked", value )
 
 	return element

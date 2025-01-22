@@ -65,7 +65,7 @@ export const refreshState = ()=>{
 }
 
 export const setElementCheckState = (element, value) => {
-	console.info("setElementCheckState " + Date.now(), {element, value} )
+	console.info("setElementCheckState " + Date.now(),  typeof value,{element, to:value, from:element.checked} )
 	// resolve element if not an element
 	if (!element)
 	{
@@ -84,11 +84,35 @@ export const setElementCheckState = (element, value) => {
 		}
 	}
 
+	//elements[key].checked = value
+	// if ( typeof value === "boolean" && element.parentNode.nodeName === "LABEL")
+	if ( element.parentNode.nodeName === "LABEL")
+	{
+		element.parentNode.classList.toggle("checked", value )
+	}
+	
+	// if (value === element.checked)
+	// {
+	// 	// nothing to set?
+	// 	console.error("Cannot set input check as already set", element, value)
+	// 	// return false
+	// }
+
 	// Now update the node's selected state or option
 	switch(element.nodeName)
 	{
 		case "INPUT":
-			element.setAttribute("checked", value)
+			
+			// console.error("Toggle checking", element.checked, value, element)
+			element.checked = value
+			// if (value)
+			// {
+			// 	element.setAttribute("checked", value)
+			// }else{
+			// 	element.removeAttribute("checked")
+			// }
+			// console.error("Toggle checked", element.checked, value, element)
+			
 			break
 
 		case "SELECT":
@@ -109,11 +133,7 @@ export const setElementCheckState = (element, value) => {
 			console.info("Unknown element type", element.nodeName )
 	}
 
-	//elements[key].checked = value
-	if ( typeof value === "boolean" && element.parentNode.nodeName === "LABEL")
-	{
-		element.parentNode.classList.toggle("checked", value )
-	}
+	return true
 }
 
 /**
@@ -202,6 +222,7 @@ export default class State {
 	// URL containing the current state
 	url
 
+	// set of callbacks to responfd to
 	callbacks
 
 	// an object with key value pairs that describe the
@@ -220,6 +241,9 @@ export default class State {
 	controlUI = true
 
 	originalClassList
+
+	// how many times has the state changed?
+	stateChangeCount = 0
 
 	set elementForClasses( element ){
 		this.element = element
@@ -280,8 +304,16 @@ export default class State {
 		}
 		
 		window.addEventListener("popstate", (event) => {
-			// console.log("Previous State received: ", event, event.state)
-			this.setState(event.state, true)
+			if (event.state)
+			{
+				this.stateChangeCount++
+				console.info(this.stateChangeCount, "Previous State received: ", event, event.state)
+				
+				this.setState(event.state, true)
+			}else{
+				console.error(this.stateChangeCount, "Previous State - NO STATE: ", event, event.state)
+			}
+			
 		})		  
 	}
 
@@ -308,6 +340,9 @@ export default class State {
 
 	/**
 	 * Fetch a state value
+	 * 
+	 * @param {String} key 
+	 * @returns 
 	 */
 	get( key ){
 		return this.state.get(key)
@@ -320,7 +355,9 @@ export default class State {
 	 * @param {Boolean} dispatchEvent - send out an event on complete
 	 */
 	set( key, value, element=null, dispatchEvent=true ){
+		
 		this.state.set(key,value)
+		
 		if (this.controlUI)
 		{
 			// set flag on main
@@ -331,15 +368,19 @@ export default class State {
 		// see if there is a matching dom element???
 		if (element)
 		{
+			// debugger
 			setElementCheckState(element, value)
+			// element.checked = value
+			//console.error("FSM>state", {key,to:value,checked:element.checked, element})
 		}
+		
 
 		if (this.saveHistory)
 		{
 			const title = ""
 			this.searchParams.set(key, value)
-			window.history.replaceState( this.asObject, title, this.url )
-			// window.history.pushState( this.asObject, title, this.url )
+			// window.history.replaceState( this.asObject, title, this.url )
+			window.history.pushState( this.asObject, title, this.url )
 		}
 		
 		if (dispatchEvent)
@@ -348,6 +389,13 @@ export default class State {
 		}
 	}
 
+	/**
+	 * Change the state of a key from one to the opposite
+	 * @param {String} key 
+	 * @param {HTMLElement} element 
+	 * @param {Boolean} dispatchEvent 
+	 * @returns 
+	 */
 	toggle( key, element=null, dispatchEvent=true ){
 		const newState = !this.state.get(key)
 		this.set( key, newState, element, dispatchEvent )
@@ -439,6 +487,7 @@ export default class State {
 
 	/**
 	 * Updates the URL with an encoded version of the existing state
+	 * @param {Boolean} encode 
 	 */
 	updateLocation( encode=false ){
 		const url = new URL(window.location)
@@ -458,10 +507,11 @@ export default class State {
 		// console.log("History", { options, url} , url.toString() )
 	}
 
-
 	/**
 	 * Reset to the default options provided in
 	 * the constructor
+	 * 
+	 * @param {Boolean} dispatchEvent 
 	 */
 	reset( dispatchEvent=false ){
 		this.setState( this.defaultState, dispatchEvent )
@@ -469,6 +519,7 @@ export default class State {
 
 	/**
 	 * Reload the state and dispatch an optional update
+	 * @param {Boolean} dispatchEvent 
 	 */
 	refresh( dispatchEvent=false ){
 		this.loadFromLocation( null,  dispatchEvent )
@@ -484,6 +535,12 @@ export default class State {
 	}
 
 	// -- EVENTS ---------------------------
+
+	/**
+	 * 
+	 * @param {String} key 
+	 * @param {Boolean|String|Object} value 
+	 */
 	dispatchEvent( key, value ){
 		// TODO: Only send changes?
 		// const detail = { key, value } 

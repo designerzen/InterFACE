@@ -584,12 +584,33 @@ export const createInterface = (
 	/**
 	 * Toggle the background synthesized percussion
 	 */
-	const toggleBackgroundPercussion = () => {
-		const isEnabled = stateMachine.toggle( 'backingTrack', buttonPercussion )
-		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, 'beats' )	
+	const toggleBackgroundPercussion = (updateGUI=true) => {
+		const isEnabled = stateMachine.toggle( 'backingTrack', updateGUI ? buttonPercussion : null )
+		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
 	}
 
 	/**
+	 * Control the "visualiser" feedback
+	 * @param {Boolean} enabled 
+	 */
+	const setDiscoMode = (enabled=null, updateGUI=true) => {
+		if (enabled === null)
+		{
+			enabled = !stateMachine.get("disco")
+		}
+		if (enabled)
+		{
+			setFeedback("Disco Mode UNLOCKED!",0, 'disco')
+			display.nextFilter( )
+		}else{
+			setFeedback("Disco Mode disabled",0, 'disco')
+			display.resetFilter( )
+		}
+		stateMachine.set("disco", enabled, updateGUI ? buttonDiscoModeToggle : null )
+	}
+
+	/**
+	 * FIXME: Update GUI
 	 * This sets the master volume below the compressor
 	 * @param {Number} value 
 	 * @returns volume
@@ -613,7 +634,7 @@ export const createInterface = (
 	 */
 	const setBPM = (bpm) => {
 		clock.BPM = bpm
-		stateMachine.set( 'bpm', bpm )
+		stateMachine.set( 'bpm', bpm, selects.tempo )
 		setFeedback( `Tempo set to ${Math.ceil(bpm)} BPM (Period set at ${Math.ceil(clock.period)} ms between bars)`, 0, 'tempo' )
 		return clock.BPM
 	}
@@ -1182,7 +1203,7 @@ export const createInterface = (
 					break
 
 				case 'd':
-					kit.hat()
+					setDiscoMode()
 					break
 
 				case 'e':
@@ -1377,26 +1398,6 @@ export const createInterface = (
 			// addToHistory(ui, event.key)
 			// console.log("key", ui, event)
 		})
-	}
-
-	/**
-	 * Control the "visualiser" feedback
-	 * @param {Boolean} enabled 
-	 */
-	const setDiscoMode = (enabled=null) => {
-		if (enabled === null)
-		{
-			enabled = !stateMachine.get("disco")
-		}
-		if (enabled)
-		{
-			setFeedback("Disco Mode UNLOCKED!",0, 'disco')
-			display.nextFilter( )
-		}else{
-			setFeedback("Disco Mode disabled",0, 'disco')
-			display.resetFilter( )
-		}
-		stateMachine.set("disco", enabled, buttonDiscoModeToggle )
 	}
 
 	/**
@@ -1708,6 +1709,10 @@ export const createInterface = (
 			setToast( `Recording Encoded!` )	
 		})
 	}
+
+
+	
+
 
 	/**
 	 * switch display to the specifed one and destroy any existing
@@ -2905,8 +2910,7 @@ export const createInterface = (
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
 			// change drums!
 			setRandomDrumPattern()
-			stateMachine.set( 'backingTrack', status )
-			setFeedback( status ? "Backing track starting" : "Ending Backing Track", 0, status ? 'beats' : 'silence' )
+			toggleBackgroundPercussion(false)
 		}, stateMachine.get( 'backingTrack') )
 
 
@@ -2947,7 +2951,7 @@ export const createInterface = (
 		// let discoPreviousState
 		// MTV : Special disco mode!
 		toggles.disco = setToggle( "button-disco", status =>{ 
-			setDiscoMode(status )
+			setDiscoMode(status, false )
 			/*stateMachine.set( 'masks', status )
 			if (status)
 			{
@@ -3111,7 +3115,7 @@ export const createInterface = (
 			const instrumentPack = option.value
 			setPlayerOptions({ instrumentPack })
 			const instrument = await reloadInstrument()
-			stateMachine.set( 'instrumentPack', instrumentPack )
+			stateMachine.set( 'instrumentPack', instrumentPack, selects.samples )
 			//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
 		} )
 
@@ -3591,9 +3595,9 @@ export const createInterface = (
 				return
 			}
 			
-			// console.log("RELOAD UNLESS IS HASH!", event)
-			// console.log("location: " + document.location, hasNavigationOccurred, ", state: " + JSON.stringify(event.state))
-			window.location.reload()
+			console.log("RELOAD UNLESS IS HASH!", event)
+			console.log("location: " + document.location, hasNavigationOccurred, ", state: " + JSON.stringify(event.state))
+			//window.location.reload()
 		})
 
 		// window.addEventListener('deviceorientation' , event => {
