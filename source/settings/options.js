@@ -202,6 +202,9 @@ export const DEFAULT_OPTIONS = {
 	// and update when settings change?
 	qr:true,
 
+	// time before we consider the user inactive
+	timeout:2000,
+
 	// what theme to show on screen
 	theme:"theme-default",
 

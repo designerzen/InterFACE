@@ -2388,7 +2388,7 @@ export const createInterface = (
 	/**
 	 * Watches for user activity and toggles the user-active class
 	 */
-	const watchForUserActivity = () => {
+	const watchForUserActivity = (timeout=4000) => {
 		const buttonVideo = document.getElementById("button-video")
 		
 		function onActive(){
@@ -2418,7 +2418,7 @@ export const createInterface = (
 			buttonVideo,
 			onActive,
 			onInactive,
-			4000, 
+			timeout, 
 			true
 		)
 	}
@@ -3549,7 +3549,7 @@ export const createInterface = (
 		// so not mobiles!
 		if (capabilities.mouse)
 		{
-			watchForUserActivity()
+			watchForUserActivity( stateMachine.get("timeout") )
 		}
 
 		// Exit & save all cookies!

@@ -1,6 +1,8 @@
 // Project FUGU has a Chrome native version of this API...
 // https://developer.chrome.com/articles/idle-detection/
 
+import { abort } from "process"
+
 const TIME_OUT = 6000	// 6000 is the minimum value for IdleDetector
 
 const hasIdelDetection = () => 'IdleDetector' in window
@@ -97,6 +99,8 @@ export const observeInteractivityThroughUserEvents = async (activityElement, onA
 	let isUserBusy = true
 	let interval
 
+	const abortController = new AbortController()
+
 	// after a period of inactivity...
 	activityElement.addEventListener("mousemove", (event) => {
 
@@ -113,11 +117,11 @@ export const observeInteractivityThroughUserEvents = async (activityElement, onA
 			onInactive && onInactive()
 		}, timeOut)
 
-	}, false)
+	}, { signal: abortController.signal } )
 
 	activityElement.addEventListener("mouseout", (event) => {
 		clearInterval(interval)
-	}, false)
+	}, { signal: abortController.signal } )
 
 	document.addEventListener("mouseenter", (event) => {
 
@@ -128,7 +132,7 @@ export const observeInteractivityThroughUserEvents = async (activityElement, onA
 		isUserActive = true
 		//console.error("user active again")
 		onActive && onActive()
-	}, false)
+	}, { signal: abortController.signal } )
 
 	document.addEventListener("mouseleave", (event) => {
 		clearInterval(interval)
@@ -138,7 +142,7 @@ export const observeInteractivityThroughUserEvents = async (activityElement, onA
 			//console.error("user inactive")
 			onInactive && onInactive()
 		}
-	}, false)
+	}, { signal: abortController.signal } )
 
 
 	// NB. can trigger multiple times
@@ -151,32 +155,28 @@ export const observeInteractivityThroughUserEvents = async (activityElement, onA
 		} else {
 			onActive && onActive()
 		}
-	}, false)
+	}, { signal: abortController.signal } )
 
 	// Tab hide / reveal
 	window.addEventListener("pageshow", (event) => {
 		// tab revealed
-		console.log("pageshow", event)
+		// console.log("pageshow", event)
 		onActive && onActive()
-	})
+	}, { signal: abortController.signal } )
 
 	window.addEventListener("pagehide", (event) => {
 		// tab hidden
-		console.log("pagehide", event)
+		// console.log("pagehide", event)
 		onInactive && onInactive()			
-	})
+	}, { signal: abortController.signal } )
 
 	onActive && onActive()
 
 	// Clean up!
 	return ()=>{
-		// activityElement.removeEventListener("mousemove" )
-		// activityElement.removeEventListener("mouseout", (event) => {
-		// document.removeEventListener("mouseenter", (event) => {
-		// document.removeEventListener("mouseleave", (event) => {
-		// document.removeEventListener("visibilitychange"
-		// window.removeEventListener("pageshow"
-		// window.removeEventListener("pagehide"
+		clearInterval(interval)
+		abortController.abort()
+		onActive()
 	}
 }
 
