@@ -197,7 +197,7 @@ export const observeInactivity = async (activityElement, onActive, onInactive, t
 		return observer
 	}
 
-	timeout = isNaN(timeout) ? parseFloat(timeout) : timeout ?? TIME_OUT 
+	timeOut = isNaN(timeOut) ? parseFloat(timeOut) : timeOut ?? TIME_OUT 
 
 	return observeInteractivityThroughUserEvents(activityElement, onActive, onInactive, timeOut)
 }
