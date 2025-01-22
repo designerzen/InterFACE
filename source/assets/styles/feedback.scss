@@ -132,12 +132,16 @@
 	&.beats{
 		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
 	}
+
+	&.silence{
+		--bg:url(/source/assets/icons/auto_fix_off-24px.svg);
+	}
 	&.metronome{
 		--bg:url(/source/assets/icons/hourglass_empty-24px.svg);
 	}
-	&.silence{
-		--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
-	}
+	// &.silence{
+	// 	--bg:url(/source/assets/icons/hourglass_disabled-24px.svg);
+	// }
 	&.muted{
 		--bg:url(/source/assets/icons/volume_mute-24px.svg);
 	}
