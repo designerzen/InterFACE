@@ -312,6 +312,6 @@ export default class Instrument{
 
 	onAvailable(resolve){
 		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
-		console.log("CREATED:Instrument.onAvailable", this )
+		// console.log("CREATED:Instrument.onAvailable", this )
 	}
 }
