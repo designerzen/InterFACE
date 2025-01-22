@@ -2418,7 +2418,7 @@ export const createInterface = (
 			buttonVideo,
 			onActive,
 			onInactive,
-			timeout, 
+			timeout,
 			true
 		)
 	}
@@ -2885,7 +2885,7 @@ export const createInterface = (
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
 			stateMachine.set( 'showSettings', status )
-			setFeedback("Settings " + (status ? 'enabled' : 'disabled'), 0 )
+			setFeedback("Settings " + (status ? 'enabled' : 'disabled'), 0, 'settings' )
 		}, stateMachine.get( 'showSettings') )
 		
 		/*

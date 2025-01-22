@@ -338,7 +338,8 @@ export default class State {
 		{
 			const title = ""
 			this.searchParams.set(key, value)
-			window.history.pushState( this.asObject, title, this.url )
+			window.history.replaceState( this.asObject, title, this.url )
+			// window.history.pushState( this.asObject, title, this.url )
 		}
 		
 		if (dispatchEvent)
