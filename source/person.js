@@ -1147,7 +1147,7 @@ export default class Person{
 
 					display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
-					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], '9px' )
+					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], '11px' )
 				}
 
 			}else{
@@ -1191,13 +1191,13 @@ export default class Person{
 
 			// Main data flow
 			const extra = this.lastNoteFriendlyName 
-			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `-`
+			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
 			// eye:${prediction.eyeDirection} 
 			
 			display.drawInstrument(textX, textY, instrumentTitle, "", '14px' )
-			display.drawInstrument(textX, textY + 24, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
+			display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			if (this.debug )
 			{
