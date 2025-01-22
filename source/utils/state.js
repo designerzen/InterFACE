@@ -386,9 +386,9 @@ export default class State {
 		{
 			return this.state
 		}
-
+		
 		// reset URL to blank hostname
-		this.url = new URL( location.origin )
+		this.url = new URL( location.origin + location.pathname )
 		
 		// this.searchParams = new URLSearchParams()
 		
