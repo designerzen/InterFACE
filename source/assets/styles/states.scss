@@ -5,12 +5,15 @@
 		// opacity:0.9;
 
 		&::after{
-			--opacity:0;
+			--alpha:0.8;
+			--opacity:0.4;
+			--rotation:21deg;
 			display: block;
 			// how long to wait before showing it...
 			animation: 
-				Fade var(--ease-s) 2s 1 both,
-				Pulse var(--ease-s) calc(2s + var(--ease-s)) infinite both;
+				Fade var(--ease-s) 1s 1 both,
+				Sway 8s calc(1s + var(--ease-s) ) infinite ease-in-out alternate-reverse,
+				Pulse 4s calc(2s + var(--ease-s)  ) infinite;
 		}
 	}
 }
