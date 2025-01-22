@@ -43,7 +43,7 @@
 		// 	transparent 200deg 290deg, 
 		// 	var(--shade-yellow) 290deg
 		// );
-		border:3px dashed var(--shade-red);
+		border:3px dashed var(--shade-brand,var(--shade-red)); 
 	}
 
 	&:after{

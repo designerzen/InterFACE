@@ -37,7 +37,7 @@
 	--shade-red:hsl(  var(--hue-red), var( --s, 58%), var( --l,35%) );
 	--shade-purple:hsl(  var(--hue-purple), var( --s, 58%), var( --l,35%) );
 
-	--shade-brand:hsl( var(--hue-active, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
+	--shade-brand:hsl( var(--hue-brand, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
 	--shade-active:hsl( var(--hue-active, #{palette.$hue-red}), var( --s-active, 58%), var( --l-active, 35%) );
 	--shade-selected:hsl( var(--hue-selected, #{palette.$hue-orange}), var( --s-selected, 58%), var( --l-selected, 35%) );
 		

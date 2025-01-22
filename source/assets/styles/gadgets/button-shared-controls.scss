@@ -396,8 +396,8 @@
 		--col-select:var(--shade-yellow);
 		anchor-name:--button-record-audio;
 		&.recording{
-			--col-hover:var(--shade-red);
-			--col-select:var(--shade-red);
+			--col-hover:var(--shade-brand,var(--shade-red)); 
+			--col-select:var(--shade-brand,var(--shade-red)); 
 			&::before{
 				opacity:1;
 				animation: Throb 0.8s 0s both infinite;

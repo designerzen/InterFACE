@@ -321,7 +321,7 @@
 
 	//
 	.unavailable {
-		background-color: var(--shade-red, red);
+		background-color: var(--shade-brand, var(--shade-red, red));
 		color: var(--shade-white, white);
 		&::before {
 			content: "✗";

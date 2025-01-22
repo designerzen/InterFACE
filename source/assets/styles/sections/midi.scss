@@ -46,7 +46,7 @@ main.midi-activated{
 main.midi-connected{
 	#midi-device{
 		display:inline-block;
-		--col: var(--shade-red);
+		--col: var(--shade-brand, var(--shade-red, red));
 	}
 }
 
@@ -55,7 +55,7 @@ main.midi-connected{
 main.midi-no-devices{ 
 	button#button-midi{
 		
-		--col: var(--shade-red);
+		--col: var(--shade-brand, var(--shade-red, red));
 
 		overflow: visible;
 		animation:BGColours 4s linear infinite 0s both;

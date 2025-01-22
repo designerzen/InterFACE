@@ -46,7 +46,7 @@
 		top:0;
 		right:0;
 		border-radius: 99px;
-		background:var(--shade-red);
+		background:var(--shade-brand,var(--shade-red)); 
 		border:var(--border) var(--shade-white) solid;
 		padding:0;//var(--pad);
 		font-size:0;
@@ -66,7 +66,7 @@
 		}
 		&:hover{
 			color:transparent;
-			border-color:var(--shade-red);
+			border-color:var(--shade-brand,var(--shade-red)); 
 		}
 		&:active{
 			animation: none;
@@ -84,7 +84,7 @@
 	.button-close:hover ~ .waveform-wrapper{
 		//opacity:0;
 		//filter:invert(100%);
-		background-color: var(--shade-red);
+		background-color:var(--shade-brand,var(--shade-red)); 
 	}
 }
 

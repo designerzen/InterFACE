@@ -3,10 +3,14 @@
 .no-faces{ 
 	#app-frame{
 		// opacity:0.9;
+
 		&::after{
+			--opacity:0;
 			display: block;
 			// how long to wait before showing it...
-			animation: Fade var(--ease-s) 2s 1 both;
+			animation: 
+				Fade var(--ease-s) 2s 1 both,
+				Pulse var(--ease-s) calc(2s + var(--ease-s)) infinite both;
 		}
 	}
 }
@@ -538,7 +542,7 @@ main:not(.flag-overlays){
 		text-align: center;
 		border-radius: 14px;
 
-		background-color:var(--shade-red);
+		background-color:var(--shade-brand,var(--shade-red)); 
 		background-image:linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.2));
 
 		color:var(--shade-dark);

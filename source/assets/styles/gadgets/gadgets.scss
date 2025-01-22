@@ -182,7 +182,7 @@ a[href="#help"]{
 
 		// aspect-ratio: 1;
 		// background-size: contain;
-		color:var(--shade-red);
+		color:var(--shade-brand, var(--shade-red, red));
 		background-color: rgba(225,225,225,0.2);
 		border-radius: 99%;
 		border:var(--stroke, 4px) solid currentColor;
@@ -272,7 +272,7 @@ a[href="#fund"]{
 	&::after{
 		content:'';	
 		opacity: 0;
-		color:var(--shade-red, red);
+		color:var(--shade-brand, var(--shade-red, red));
 		position: absolute;
 		top:15%;
 		left:0;

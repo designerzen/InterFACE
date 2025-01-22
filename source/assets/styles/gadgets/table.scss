@@ -1,6 +1,6 @@
 table {
 	border-collapse: collapse;
-	border: 1px dotted var(--stroke, var(--shade-red, rgb(200, 200, 200) ) );
+	border: 1px dotted var(--stroke, var(--shade-brand, var(--shade-red, red)) );
 	border-radius: var(--border-radius, 1px);
 }
 

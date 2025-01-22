@@ -9,7 +9,7 @@
 	width: 100%;
 	position: relative;
 	color:var(--shade-white);
-	background:var(--shade-red, red);
+	background:var(--shade-brand, var(--shade-red, red));
 	padding: var(--pad) calc( 2 * var(--pad) ) var(--pad) calc( 4 * var(--pad) );
 	padding-left:calc( var(--pad) * 2 + var(--size) );
 	
@@ -43,7 +43,7 @@
 		left:var(--pad);
 		top:50%;
 		transform: translateY(-50%);
-		color:var(--shade-red);
+		color:var(--shade-brand, var(--shade-red, red));
 		background:var(--shade-white);
 	}
 
@@ -53,7 +53,7 @@
 		&::before{
 			content:'!';
 			clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-			color:var(--shade-red);
+			color:var(--shade-brand, var(--shade-red, red));
 			background:var(--shade-white);
 			animation:Pulse 3s infinite 0s linear both;
 		}

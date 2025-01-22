@@ -228,7 +228,7 @@ button.person,
 // variations
 button.error {
 	--bg:url(/source/assets/icons/person-24px.svg);
-	--col-hover:var(--shade-red);
+	--col-hover:var(--shade-brand,var(--shade-red)); 
 	anchor-name:--button-error;
 } 
 
@@ -236,7 +236,7 @@ button.wait {
 	border-color: Highlight;
 	--bg:url(/source/assets/icons/person-24px.svg);
 	--col-fg:HighlightText;
-	--col-hover:var(--shade-red);
+	--col-hover:var(--shade-brand,var(--shade-red)); 
 	anchor-name:--button-wait;
 } 
 

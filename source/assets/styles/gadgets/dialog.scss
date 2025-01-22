@@ -74,7 +74,7 @@ dialog{
 		// FIXME:
 		text-decoration:underline ;
 		text-decoration-style:dashed;
-		text-decoration-color: var(--shade-red, red);
+		text-decoration-color:var(--shade-brand, var(--shade-red, red));
 		text-underline-offset: 4px;
 		z-index:909;
 		pointer-events: auto;
@@ -303,7 +303,7 @@ dialog[open].error::backdrop {
 
 .failure dialog[open]::backdrop,
 dialog[open].failure::backdrop {
-	background-color: var(--shade-red);
+	background-color: var(--shade-brand, var(--shade-red, red));
 }
 
 @keyframes DialogIn{

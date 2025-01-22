@@ -125,7 +125,7 @@ input[type="checkbox" i].switch{
 
 	--button-border-size:2px;
 	--width:100%;
-	--col-top:var(--shade-red);
+	--col-top:var(--shade-brand, var(--shade-red, red));
 	--col-bottom:var(--shade-grey);
 
 	// margin-left:var(--pad);
@@ -180,8 +180,8 @@ input[type="checkbox" i].switch{
 		border-radius:99px;
 		border:inherit;
 		// border://calc( 0.5 * var(--button-border-size,4px)) solid var(--shade-white);
-		background-color:var( --shade-accent, var(--shade-red));
-		background-image:linear-gradient( var( --shade-accent, var(--shade-red)), var(--shade-dark, palette.$col-dark));
+		background-color:var(--shade-brand, var(--shade-red, red));
+		background-image:linear-gradient( var(--shade-brand, var(--shade-red, red)), var(--shade-dark, palette.$col-dark));
 		transition:transform 195ms ease.$easeInOutQuad;
 	}
 
