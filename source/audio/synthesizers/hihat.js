@@ -67,10 +67,31 @@ export const CLOSED_HIHAT_TINY = {
 	type:"triangle"
 } 
 
+export const OPEN_HIHAT_SHORT = {
+	name:"Short Open Hihat",
+	velocity:5, 
+	length:0.97, 	
+	fundamental:40,
+	ratios:[2, 3, 4.16, 5.43, 6.79, 8.21],
+	attack:0.0001, 
+	decay:0.05, 
+	// sustain is a volume not a time
+	sustain:0.7, 
+	release:0.04,
+	highpass:7000,
+	bandpass:10000,
+	type:"square"
+} 
+
+
 export const PRESET_HIHATS = [
 	DEFAULT_CLOSED_HIHAT,
 	CLOSED_HIHAT_TINY,
-	DEFAULT_OPEN_HIHAT
+
+	DEFAULT_OPEN_HIHAT,
+	OPEN_HIHAT_TINY,
+
+	OPEN_HIHAT_SHORT
 ]
 
 export const getRandomHihatPreset = () => {
@@ -127,7 +148,11 @@ export const createHihat = (audioContext, output ) => {
 
 		options = Object.assign({},DEFAULT_CLOSED_HIHAT,options)
 		
+		bandpassFilter.frequency.cancelScheduledValues(time)
 		bandpassFilter.frequency.value = options.bandpass
+
+		// high pass filter
+		highpassFilter.frequency.cancelScheduledValues(time)
 		highpassFilter.frequency.value = options.highpass
 	
 		// clear anything from previous plays

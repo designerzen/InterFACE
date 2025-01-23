@@ -112,9 +112,6 @@ export const encodeAudioBufferIntoWav = (buffers, settings = {
         // assuming an array of floats...
     }
 
-debugger
-
-
     // add up all space in the array
     const sampleCount = buffers.reduce((memo, buffer) => memo + buffer.length, 0)
 

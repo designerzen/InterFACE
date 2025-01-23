@@ -33,7 +33,10 @@ const DEFAULT_OPTIONS = {
 
 	// frequency analyser pulse smoothing (for cool visual effects!)
 	// how quick it drops < 0.85 looks cool
-	smoothingTimeConstant:0.45
+	smoothingTimeConstant:0.45,
+
+	// pass the raw drums through a compressor
+	drumCompressor:false
 }
 
 	
@@ -55,12 +58,12 @@ export const CUSTOM_REVERB_OPTIONS = {
 	normalize : true,
 	reverse:false,
 
-	stereo:false,
+	stereo:true,
 	
 	// noise:'white' 
 	// noise:'pink'  
 	noise:'white' 
-}
+} 
 
 
 // 
@@ -212,9 +215,9 @@ export const setupAudio = async (settings) => {
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
-	percussion = await createAmplitude(audioContext, 0.1 )
+	percussion = await createAmplitude(audioContext, 0.5 )
 	
-	
+
 	// Creating a compressor but setting a high threshold and 
 	// high ratio so it acts as a limiter. More explanation at 
 	// https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode
@@ -247,9 +250,13 @@ export const setupAudio = async (settings) => {
 		
 	// With added compression set on the drum tracks
 	// RAW drums -> Compressor cos c'mon now!
-	// percussion.node.connect( getMasterMixdown() )
-	percussion.node.connect( compressor.node )
-	compressor.node.connect( getMasterMixdown() )
+	if (options.drumCompressor)
+	{	
+		percussion.node.connect( compressor.node )
+		compressor.node.connect( getMasterMixdown() )
+	}else{
+		percussion.node.connect( getMasterMixdown() )
+	}
 	
 
 	// Web Audio Modules! --------------------------
@@ -305,7 +312,14 @@ export const setupAudio = async (settings) => {
 		// compressor,
 
 		// delay,
-		
+		// await createCompressor( audioContext,
+		// 	-50,
+		// 	40,
+		// 	12,
+		// 	0,
+		// 	0.25
+		// )
+		// ,
 		reverb,
 
 		//await createDelay(audioContext)

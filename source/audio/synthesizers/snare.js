@@ -103,12 +103,32 @@ export const PRESET_STRONG_SNARE_OPTIONS = {
 	type: "square"
 }
 
+export const PRESET_SATURATED_SNARE_OPTIONS = {
+	name:"Strong Snare",
+	velocity:3, 
+	length : 1.75,
+	// default bandpawss filter Q
+	bandpassStart:3000,
+	bandpassEnd:1000,
+	// frequency sweep
+	triStart:87,
+	triEnd:30,
+	// filter sweep
+	highpassStart:7000,
+	highpassEnd:600,
+
+	attack:0.03,
+	decay:0.5,
+
+	type: "square"
+}
 export const PRESET_SNARES = [
 	DEFAULT_SNARE_OPTIONS,
 	PRESET_HEAVY_SNARE_OPTIONS,
 	PRESET_SQUARE_SNARE_OPTIONS,
 	PRESET_LONG_SNARE_OPTIONS,
-	PRESET_STRONG_SNARE_OPTIONS
+	PRESET_STRONG_SNARE_OPTIONS,
+	PRESET_SATURATED_SNARE_OPTIONS
 ]
 
 export const getRandomSnarePreset = () => {

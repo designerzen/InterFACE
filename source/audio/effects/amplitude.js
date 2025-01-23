@@ -15,6 +15,10 @@ export const createAmplitude = async (
 	
 	const gainNode = audioContext.createGain()
 
+	volume = clamp(volume, 0, 1)
+	gainNode.gain.value = volume	 
+	gainNode.gain.setValueAtTime( volume, audioContext.currentTime) 
+
 	const fadeVolume = (destinationVolume) => {
 		gainNode.gain.linearRampToValueAtTime(destinationVolume, audioContext.currentTime + fadeDuration)
 		return gainNode.gain.value
