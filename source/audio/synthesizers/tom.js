@@ -1,8 +1,8 @@
 import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
-export const DEFAULT_KICK_OPTIONS = {
-	name:"Default Kick",
+export const DEFAULT_TOM_OPTIONS = {
+	name:"Default Tom",
 	velocity:1, 
 	length:0.15, 
 	attack:0.0001, 
@@ -21,8 +21,8 @@ export const DEFAULT_KICK_OPTIONS = {
 	sineEnd:50,
 }
 
-export const PRESET_TECH_HOUSE_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Tech House Kick",
+export const PRESET_TECH_HOUSE_TOM = Object.assign({},DEFAULT_TOM_OPTIONS,{
+	name:"Tech House Tom",
 	velocity:1, 
 	length:0.07, 
 	attack:0.0001, 
@@ -41,8 +41,8 @@ export const PRESET_TECH_HOUSE_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
 	sineEnd:20,
 })
 
-export const PRESET_BEEFY_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Beefy Kick",
+export const PRESET_BEEFY_TOM = Object.assign({},DEFAULT_TOM_OPTIONS,{
+	name:"Beefy Tom",
 	velocity:1.2, 
 	length:0.05, 
 	attack:0.001, 
@@ -61,8 +61,8 @@ export const PRESET_BEEFY_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
 	sineEnd:20,
 })
 
-export const PRESET_LOW_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Low Kick",
+export const PRESET_LOW_TOM = Object.assign({},DEFAULT_TOM_OPTIONS,{
+	name:"Low Tom",
 	velocity:1.0, 
 	length:1.08, 
 	attack:0.01, 
@@ -81,58 +81,37 @@ export const PRESET_LOW_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
 	sineEnd:200,
 })
 
-export const PRESET_THUD_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Thud Kick",
-	velocity:2.3, 
-	length:2.1, 
-	attack:0.01, 
-	decay:0.25, 
-	// sustain is a volume not a time
-	sustain:0.77, 
-	release:0.789,
-
-	// frequencies
-	triStart:63,
-	triEnd:37,
-
-	sineStart:209,
-	sineApex:317,
-	sineSustain:14,
-	sineEnd:76,
-})
-
-export const PRESETS_KICKS = [
-	DEFAULT_KICK_OPTIONS,
-	PRESET_TECH_HOUSE_KICK,
-	PRESET_BEEFY_KICK,
-	PRESET_LOW_KICK,
-	PRESET_THUD_KICK
+export const PRESETS_TOMS = [
+	DEFAULT_TOM_OPTIONS,
+	PRESET_TECH_HOUSE_TOM,
+	PRESET_BEEFY_TOM,
+	PRESET_LOW_TOM
 ]
 
-export const getRandomKickPreset = () => {
-	const kickIndex = Math.floor(Math.random() * PRESETS_KICKS.length)
-	return PRESETS_KICKS[kickIndex]
+export const getRandomKTomPreset = () => {
+	const tomIndex = Math.floor(Math.random() * PRESETS_TOMS.length)
+	return PRESETS_TOMS[tomIndex]
 }
 
 /**
  * Kick me!
  * @returns {Function} trigger start method
  */
-export const createKick = (audioContext, output ) => {
+export const createTom = (audioContext, output ) => {
 
-    const triangleOscillator = audioContext.createOscillator()
-    const sineOscillator = audioContext.createOscillator()
-    const gainTriangle = audioContext.createGain()
-    const gainSine = audioContext.createGain()
+	const triangleOscillator = audioContext.createOscillator()
+	const sineOscillator = audioContext.createOscillator()
+	const gainTriangle = audioContext.createGain()
+	const gainSine = audioContext.createGain()
 	let isRunning = false
 
-    triangleOscillator.type = "triangle"
-    sineOscillator.type = "sine"
+	triangleOscillator.type = "triangle"
+	sineOscillator.type = "sine"
 	
 	// sustain measured in volume rather than time
-	const kick = ( options=DEFAULT_KICK_OPTIONS ) => {
+	const tom = ( options=DEFAULT_TOM_OPTIONS ) => {
 
-		options = Object.assign({}, DEFAULT_KICK_OPTIONS, options )
+		options = Object.assign({}, DEFAULT_TOM_OPTIONS, options )
 		const time = audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		
@@ -185,13 +164,13 @@ export const createKick = (audioContext, output ) => {
 		return options
 	}
  
-    triangleOscillator.connect(gainTriangle)
-    gainTriangle.connect(output)
+	triangleOscillator.connect(gainTriangle)
+	gainTriangle.connect(output)
 	
 	sineOscillator.connect(gainSine)
 	gainSine.connect(output)
 
-	return kick
+	return tom
 }
 
 // export const createKicks = (quantity=5) => {
@@ -214,4 +193,4 @@ export const createKick = (audioContext, output ) => {
 // }
 
 // this is just an array of kicks
-export const createKicks = (audioContext, output, quantity=2) => createQueue( audioContext, output , createKick, quantity)
+export const createToms = (audioContext, output, quantity=2) => createQueue( audioContext, output , createTom, quantity)
