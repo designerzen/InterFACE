@@ -307,11 +307,11 @@ export default class State {
 			if (event.state)
 			{
 				this.stateChangeCount++
-				console.info(this.stateChangeCount, "Previous State received: ", event, event.state)
+				// console.info(this.stateChangeCount, "Previous State received: ", event, event.state)
 				
 				this.setState(event.state, true)
 			}else{
-				console.error(this.stateChangeCount, "Previous State - NO STATE: ", event, event.state)
+				// console.error(this.stateChangeCount, "Previous State - NO STATE: ", event, event.state)
 			}
 			
 		})		  
