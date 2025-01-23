@@ -50,22 +50,25 @@ jobs:
               run: ls ./release/web
 
             - name: Upload artifact
-              uses: actions/upload-artifact@v4
+			  id: deployment
+            #   uses: actions/upload-artifact@v4
+			  uses: actions/upload-pages-artifact@v3
               with:
                 name: github-pages
                 path: ./release/web
 
     deploy:
+	
+        # Add a dependency to the build job
+        needs: build
+		    
+		 # Specify runner + deployment step
+        runs-on: ubuntu-latest
+
         # Deploy to the github-pages environment
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
-
-        # Specify runner + deployment step
-        runs-on: ubuntu-latest
-
-        # Add a dependency to the build job
-        needs: build
 
         # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
         permissions:
@@ -75,4 +78,4 @@ jobs:
         steps:
             - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for
+              uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
