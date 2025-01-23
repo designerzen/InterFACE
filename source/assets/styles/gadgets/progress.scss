@@ -421,7 +421,8 @@ progress[value="1"] + label{
 		grid-area:1/1/-1/-1;
 		font-size: 2px;
 		align-self:center;
-		justify-self: flex-start;
+		// justify-self: flex-start;
+		justify-self: center;
 		margin:0;
 		color:transparent;
 		position: absolute;
