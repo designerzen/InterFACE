@@ -487,7 +487,7 @@ export const createInterface = (
 		// only show percussion change notification if playing percussion
 		if (stateMachine.get("backingTrack"))
 		{
-			setFeedback( `Percussion REMIX #${kickTimbreOptions.name} ${snareTimbreOptions.name} ${hatTimbreOptions.name}`, 0, 'beats' )	 
+			setFeedback( `Percussion REMIX [${kickTimbreOptions.name}, ${snareTimbreOptions.name}, ${hatTimbreOptions.name}]`, 0, 'beats' )	 
 		}
 	}
 
@@ -2685,8 +2685,10 @@ export const createInterface = (
 			// //playTrack( audioContext, instrument.A0, 0)
 			// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
 			
-			kit = createDrumkit( audioContext, getPercussionNode() )
+			const percussionAmp = getPercussionNode()
+			kit = createDrumkit( audioContext, percussionAmp )
 			patterns = kitSequence()
+			
 
 			// console.log("Streamin", {video, photo, camera} )
 			progressCallback(loadIndex++/loadTotal, "Audio available...<br>Instrument Sounds ready" )
