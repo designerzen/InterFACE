@@ -65,7 +65,7 @@ export const refreshState = ()=>{
 }
 
 export const setElementCheckState = (element, value) => {
-	console.info("setElementCheckState " + Date.now(),  typeof value,{element, to:value, from:element.checked} )
+	// console.info("setElementCheckState " + Date.now(),  typeof value,{element, to:value, from:element.checked} )
 	// resolve element if not an element
 	if (!element)
 	{
