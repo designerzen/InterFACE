@@ -50,19 +50,19 @@ jobs:
               run: ls ./release/web
 
             - name: Upload artifact
-			  id: deployment
+              id: deployment
             #   uses: actions/upload-artifact@v4
-			  uses: actions/upload-pages-artifact@v3
+              uses: actions/upload-pages-artifact@v3
               with:
                 name: github-pages
                 path: ./release/web
 
     deploy:
-	
+    
         # Add a dependency to the build job
         needs: build
-		    
-		 # Specify runner + deployment step
+            
+         # Specify runner + deployment step
         runs-on: ubuntu-latest
 
         # Deploy to the github-pages environment
