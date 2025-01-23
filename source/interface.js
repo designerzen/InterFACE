@@ -1333,8 +1333,9 @@ export const createInterface = (
 
 				// FIXME: Reset help!
 				case 'z':
-					const predictions = getPerson(0).parameterRecorder.export()
-					console.log(predictions)
+					// const predictions = getPerson(0).parameterRecorder.export()
+					// console.log(predictions)
+					setRandomDrumTimbres()
 					break
 			
 				// Swutch between the various displays

@@ -30,7 +30,7 @@ const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = [
 ]
 
 // in bars
-const BARS_BEFORE_CHANGING_DRUM_PATTERNS = 32 * 1
+const BARS_BEFORE_CHANGING_DRUM_PATTERNS =  32 * 1
 const BREAKS_BEFORE_CHANGING_DRUM_TIMBRES = 3
 const BARS_BEFORE_TOGGLING_DISCO = 64 + 8
 // TODO: make it more frenetic every
@@ -67,7 +67,8 @@ export default class Attractor{
 			// add percussion and alter beats & timing
 			if (this.application.getState("backingTrack"))
 			{
-				if (this.barCounter+1%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
+				// console.info("setRandomDrumTimbres", (this.barCounter+1)%BARS_BEFORE_CHANGING_DRUM_PATTERNS, this.barCounter+1, BARS_BEFORE_CHANGING_DRUM_PATTERNS)
+				if ((this.barCounter+1)%BARS_BEFORE_CHANGING_DRUM_PATTERNS === 0)
 				{
 					this.application.setRandomDrumTimbres()
 					// this.application.setDrumKitOptons("") 
