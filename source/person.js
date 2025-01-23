@@ -1289,10 +1289,10 @@ export default class Person{
 			isMinor
 		} = this.controlMode(prediction, this.options)
 
-		// for the next note 
-		this.pitchBendValue = pitchBend
+		// for the next note  0 -> 2 : 0.5 -> 1.5
+		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
-		
+		// console.info( this.pitchBendValue )
 /*
 		// swap em arounnd!??
 		const octaveNumber = this.options.swapControls ? prediction.roll : prediction.pitch
