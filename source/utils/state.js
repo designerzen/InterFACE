@@ -193,6 +193,9 @@ export const decodeLocation = base64Data => decodeURIComponent(window.atob( base
 export const EVENT_STATE_CHANGE = "global-state-change"
 
 
+let hasNavigationOccurred = ('state' in window.history && window.history.state !== null)
+		
+
 /**
  * If you need to observe state changes, use this class
  * and pass around using singelton pattern. 
@@ -303,6 +306,12 @@ export default class State {
 			this.elementForClasses = main
 		}
 		
+		
+		// URL has been updated internally? 
+		// IF the user has only just begun to use the app, this popstate should be empty
+		// so rather than go "back" we instead relaod the application to restart 
+		// with the same state as before
+
 		window.addEventListener("popstate", (event) => {
 			if (event.state)
 			{
@@ -314,6 +323,15 @@ export default class State {
 				// console.error(this.stateChangeCount, "Previous State - NO STATE: ", event, event.state)
 			}
 			
+			// FIXME: with back
+			if (!hasNavigationOccurred || window.location.hash )
+			{
+				return
+			}
+			
+			// console.log("RELOAD UNLESS IS HASH!", event)
+			// console.log("location: " + document.location, hasNavigationOccurred, ", state: " + JSON.stringify(event.state))
+			//window.location.reload()
 		})		  
 	}
 
