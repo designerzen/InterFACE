@@ -139,6 +139,7 @@ import InstrumentFactory from './audio/instrument-factory.js'
 import { getRandomKickPreset, PRESETS_KICKS } from './audio/synthesizers/kick.js'
 import { getRandomHihatPreset, PRESET_HIHATS } from './audio/synthesizers/hihat.js'
 import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
+import { fetchBrandColor } from './settings/palette.js'
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
@@ -286,19 +287,39 @@ export const createInterface = (
 		}
 	}
 
-	// STATE -----------------------------------------------------------------
+	// COLOURS ---------------------------------------------------------------
+
+	// start with default theme colour
+	let colorBrand = fetchBrandColor()
 	
+	// STATE -----------------------------------------------------------------
+	const barcodeCache = new Map()
 	const createQRCodeFromURL = async (bookmark) => {
-		shareCodeElement.innerText = "" // clear existing
+		
+		let svg
+		if ( barcodeCache.has(bookmark) )
+		{
+			svg = barcodeCache.get(bookmark) 
+		}else{
+			svg = await createSVGQRCodeFromURL( {
+				content:bookmark,
+				color :colorBrand,
+				// background : PALETTE.white, // "#ffffff",		
+			} ) 
+			barcodeCache.set(bookmark, svg)
+		}
+		
+		//shareCodeElement.innerText = "" // clear existing
 		// const hole = document.createElement("div")
 		// const space = shareCodeElement.appendChild( hole )
 		// const qrcode = await createQRCode( space, {text:bookmark} ) 
 		// const qrcode = await createQRCode( shareCodeElement, {text:bookmark} ) 
-		const svg = await createSVGQRCodeFromURL( {content:bookmark} ) 
+				
 		// console.info("Created QR code", {bookmark, svg}, shareCodeElement.innerHTML )
 		// console.info("Created QR code", {bookmark, qrcode}, shareCodeElement.innerHTML )
 		// console.info("Created QR code", {bookmark, qrcode, space, hole}, hole.innerHTML )
 		shareCodeElement.innerHTML = svg
+		
 		// return qrcode
 		return svg
 	}
@@ -316,9 +337,7 @@ export const createInterface = (
 	const concatenatedQueries = existingQueries.length > 0 ? `${existingQueries.toString()}&${queryString}` : queryString
 	const url = new URL(location.origin+location.pathname) // location.href
 	url.search =  new URLSearchParams(concatenatedQueries)
-	createQRCodeFromURL(url.toString()).then( qr => {
-		// console.info("URL for QRCode", {qr, url, href:url.toString()})
-	})
+	
 
 	// State Machine & Query handler
 	const stateMachine = createStateFromHost( main ) // State.getInstance()
@@ -3217,11 +3236,22 @@ export const createInterface = (
 		// add theme controls... also add to state if changing
 		const theme = stateMachine.get("theme") ?? getThemeFromReferer(referer)
 		setTheme(theme)
+
+		// paint next frame immediately
+		colorBrand = fetchBrandColor()
+		createQRCodeFromURL(url.toString()).then( qr => {
+			// console.info("URL for QRCode", {qr, url, href:url.toString()})
+		})
+		console.info("Grepping brand color", colorBrand)
+	
+			
 		setupThemeControls( document.getElementById('select-theme'), newTheme =>{
 			// update state!
 			stateMachine.set("theme", newTheme )
+			// overwrite brand colour and update front end
+			colorBrand = fetchBrandColor()
 		} )
-
+		
 
 		// this takes any existing state from the url and updates our front end
 		// so that any previously saved settings show as if the user is continuing
@@ -3351,7 +3381,7 @@ export const createInterface = (
 		for (let i=0; i< stateMachine.get("players"); ++i)
 		{
 			const person = getPerson(i)
-			console.info(i, "Person created", person)
+			// console.info(i, "Person created", person)
 		}
 		
 		// as we are now "full screen" the positions of the tooltips needs

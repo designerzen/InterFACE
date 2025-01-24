@@ -39,4 +39,15 @@ export const DAMI_KIM_COLOURS = { ...DEFAULT_COLOURS }
 // Simpler colour scheme
 export const PASTEL_COLOURS = { ... DEFAULT_COLOURS }
 
+const REGEX_HSL = /^hsl\(\s*(0|[1-9]\d?|[12]\d\d|3[0-5]\d)\s*,\s*((0|[1-9]\d?|100)%)\s*,\s*((0|[1-9]\d?|100)%)\s*\)$/
+	
+export const fetchBrandColor = ()=> {
+	const styles = window.getComputedStyle(document.body)
+	const hueBrand = styles.getPropertyValue('--hue-brand')
+	const hslBrand = styles.getPropertyValue('--shade-brand')
+	// componentsBrand[1] is hue
+	const componentsBrand = hslBrand.match(REGEX_HSL)
+	return `hsl(${hueBrand},${componentsBrand[3]}%,${componentsBrand[5]}%)`
+}
+
 export default PALETTE
