@@ -36,7 +36,10 @@ const DEFAULT_OPTIONS = {
 	smoothingTimeConstant:0.45,
 
 	// pass the raw drums through a compressor
-	drumCompressor:false
+	drumCompressor:false,
+
+	// default volume for the drum track
+	drumVolume:0.1
 }
 
 	
@@ -215,7 +218,7 @@ export const setupAudio = async (settings) => {
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
-	percussion = await createAmplitude(audioContext, 0.5 )
+	percussion = await createAmplitude(audioContext, options.drumVolume ?? 0.5 )
 	
 
 	// Creating a compressor but setting a high threshold and 

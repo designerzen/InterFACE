@@ -2643,7 +2643,23 @@ export const createInterface = (
 		
 		// VOLUME --------------------------------------------------------------------------------
 		try{
-			audioChain = await setupAudio()
+			const AUDIO_OPTIONS = {
+
+				// quantity of reverb
+				reverb:0.2,
+			
+				// frequency analyser pulse smoothing (for cool visual effects!)
+				// how quick it drops < 0.85 looks cool
+				smoothingTimeConstant:0.45,
+			
+				// pass the raw drums through a compressor
+				drumCompressor:false,
+			
+				// default volume for the drum track
+				drumVolume:0.15
+			}
+			
+			audioChain = await setupAudio( AUDIO_OPTIONS )
 			
 			// audio worklet tests!
 			// NB. run only once per app to load  audio

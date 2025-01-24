@@ -26,6 +26,9 @@
 				animation-delay:calc( var(--offset) + #{$i - 1} * var(--overlap) * var(--duration) );
 			}
 		}
+		.load-percent{
+			animation:inherit;
+		}
 
 		.logo{
 			//@extend %image-replacement;
