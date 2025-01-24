@@ -39,7 +39,7 @@ const DEFAULT_OPTIONS = {
 	drumCompressor:false,
 
 	// default volume for the drum track
-	drumVolume:0.1
+	drumVolume:0.14
 }
 
 	
