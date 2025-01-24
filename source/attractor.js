@@ -45,9 +45,10 @@ export default class Attractor{
 		this.onChange.bind(this)
 		this.application = application
 		this.application.addEventListener(EVENT_INSTRUMENT_LOADING, this.onChange )
+		
+		this.application.addEventListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
 		this.application.addEventListener(EVENT_PERSON_BORN, this.onChange )
 		this.application.addEventListener(EVENT_PERSON_DEAD, this.onChange )
-		this.application.addEventListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
 	}
 
 	/**
@@ -206,13 +207,14 @@ export default class Attractor{
 				break	
 			
 			case EVENT_PERSON_BORN:
-				console.info("Automator:New Person", event.detail, this.application)
+				// console.info("Automator:New Person", event.detail, this.application)
 				break	
 			
 			case EVENT_PERSON_DEAD:
-				console.info("Automator:Person left field of view", event.detail, this.application)
+				// console.info("Automator:Person left field of view", event.detail, this.application)
 				break	
-			
+				
+			default:
 		}
 	}
 }

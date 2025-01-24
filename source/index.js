@@ -48,6 +48,8 @@ body.classList.toggle("interface", true)
 // and what we can do with the tech installed in this device
 const capabilities = new Capabilities()
 
+const versionElement = document.getElementById("version")
+const runningVersion = versionElement.innerText
 
 // FIXME: show updates button
 const showUpgradeDialog = () => {
@@ -267,10 +269,12 @@ const start = () => {
 		// Show hackers message to debuggers
 		if (debugMode) {
 
-			console.log(`InterFACE Version ${VERSION} from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
-			console.log({ application, store,title, defaultOptions, globalOptions, domainOptions, referer: getReferer() })
+			console.info(`InterFACE Version ${VERSION} [${runningVersion}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
+			console.info({ application, store, title, defaultOptions, globalOptions, domainOptions, referer: getReferer(), capabilities, DOMAIN, HOST, LTD })
 			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
+			// console.info("Initialising", runningVersion, { capabilities, DOMAIN, HOST, LTD })
 		}
+			
 	}
 
 	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
@@ -293,9 +297,6 @@ const start = () => {
 // 	const needsUpdate = await update()
 // }
 // test()
-
-const versionElement = document.getElementById("version")
-const runningVersion = versionElement.innerText
 
 const checkPWAUpdates = () => {
 
@@ -408,18 +409,12 @@ const createVersionButton = () => {
 
 // we hang out here until the service worker has comfirmed that everything is ready
 checkPlatformUpdates().finally(() => {
-	if (debugMode) {
-		console.log("Starting PhotoSynth", runningVersion)
-	}
+	// APP STARTING>
 })
 
 
 document.addEventListener("DOMContentLoaded", async(e) => {
 
-	if (debugMode) {
-		console.info("Initialising", runningVersion, { capabilities, DOMAIN, HOST, LTD })
-	}
-	
 	updateSummaryText()
 
 	// allow the version button to link to secret places

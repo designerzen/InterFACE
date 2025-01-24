@@ -236,8 +236,6 @@ export const createInterface = (
 	let quantityInstructions = 0
 	let quantityHelp = 0
 
-	let hasNavigationOccurred = ('state' in window.history && window.history.state !== null)
-		
 	let setupReporting, track, trackError, trackExit
 
 	// Store for gagdets, widgets and buttons
@@ -2675,7 +2673,7 @@ export const createInterface = (
 				drumCompressor:false,
 			
 				// default volume for the drum track
-				drumVolume:0.15
+				drumVolume:0.18
 			}
 			
 			audioChain = await setupAudio( AUDIO_OPTIONS )
@@ -2888,17 +2886,20 @@ export const createInterface = (
 			return true
 		}
 	
+		// Print to console some useful debug data if in debug mode
 		if (stateMachine.get("debug"))
 		{
 			console.info("PhotoSynth 3D - DEBUG")
-			console.info("PhotoSynth Dependents Loaded", start, loadIndex, loadTotal)
-		}else{
 			console.info(
 				"%c ",
-				`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' width='44' height='44' clip-rule='evenodd' viewBox='0 0 3018 2502'%3E%3Cdefs%3E%3C/defs%3E%3Cpath fill='%23000' d='M0 636.628h3017.661v1865.214H.001z'%3E%3C/path%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M3017.65 0H1975.12v636.629h288.113V348.516h754.417V0z'%3E%3C/path%3E%3Cpath fill='%23fff' fill-rule='nonzero' d='M1508.82 2035.531c-257.53 0-466.296-208.78-466.296-466.292 0-257.55 208.767-466.317 466.296-466.317 257.538 0 466.3 208.767 466.3 466.317 0 257.513-208.762 466.292-466.3 466.292m466.3-1398.905V976.15c-128.341-101.05-290.279-161.342-466.3-161.342-416.642 0-754.421 337.767-754.421 754.43 0 416.642 337.779 754.417 754.421 754.417 416.65 0 754.417-337.775 754.417-754.417V636.626H1975.12z'%3E%3C/path%3E%3C/svg%3E")`
+				`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' width='44' height='44' clip-rule='evenodd' viewBox='0 0 3018 2502'%3E%3Cdefs%3E%3C/defs%3E%3Cpath fill='%23000' d='M0 636.628h3017.661v1865.214H.001z'%3E%3C/path%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M3017.65 0H1975.12v636.629h288.113V348.516h754.417V0z'%3E%3C/path%3E%3Cpath fill='%23fff' fill-rule='nonzero' d='M1508.82 2035.531c-257.53 0-466.296-208.78-466.296-466.292 0-257.55 208.767-466.317 466.296-466.317 257.538 0 466.3 208.767 466.3 466.317 0 257.513-208.762 466.292-466.3 466.292m466.3-1398.905V976.15c-128.341-101.05-290.279-161.342-466.3-161.342-416.642 0-754.421 337.767-754.421 754.43 0 416.642 337.779 754.417 754.421 754.417 416.65 0 754.417-337.775 754.417-754.417V636.626H1975.12z'%3E%3C/path%3E%3C/svg%3E")`,
+				"PhotoSynth 3D - DEBUG > Dependencies Loaded", loadIndex, loadTotal
 			)
-			// console.info("PhotoSynth 3D")
-			console.info("PhotoSynth Dependents Loaded", start, loadIndex, loadTotal)
+			// console.info(
+			// 	"%c ",
+			// 	`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`,
+			// 	"State created", {stateMachine}, "Interface:half loaded... waiting for user response"
+			// )
 		}
 
 		if (!start)
@@ -3229,10 +3230,12 @@ export const createInterface = (
 
 		progressCallback(loadIndex++/loadTotal, "Connecting wires")
 
-		// UI -------------------------------------------------------
+		// UI -------------------------------------------------------------
 		// now set up the front end based on this state
 		setupInterfaceUI( settings, progressCallback )
 
+		// UI:THEME -------------------------------------------------------
+		
 		// add theme controls... also add to state if changing
 		const theme = stateMachine.get("theme") ?? getThemeFromReferer(referer)
 		setTheme(theme)
@@ -3242,8 +3245,6 @@ export const createInterface = (
 		createQRCodeFromURL(url.toString()).then( qr => {
 			// console.info("URL for QRCode", {qr, url, href:url.toString()})
 		})
-		console.info("Grepping brand color", colorBrand)
-	
 			
 		setupThemeControls( document.getElementById('select-theme'), newTheme =>{
 			// update state!
@@ -3251,13 +3252,13 @@ export const createInterface = (
 			// overwrite brand colour and update front end
 			colorBrand = fetchBrandColor()
 		} )
-		
+
+		// STATE ---------------------------------------------------------------
 
 		// this takes any existing state from the url and updates our front end
 		// so that any previously saved settings show as if the user is continuing
 		// their project from before - same buttons selected etc
 		stateMachine.refresh()
-
 
 		// upodate the load progress
 		progressCallback(loadIndex++/loadTotal, "Assembled!")
@@ -3268,13 +3269,12 @@ export const createInterface = (
 		progressCallback(loadIndex++/loadTotal, "Instructions Available")
 		const instructions = await instructionTools.getInstructions( language, referer )
 		
-		// cache methods & quantities of data
+		// cache methods & quantities of data for use with text fields later on
 		getInstruction = instructions.getInstruction
 		getHelp = instructions.getHelp
 		
 		quantityInstructions = instructions.getQuantityOfInstructions()
 		quantityHelp = instructions.getQuantityOfHelp()
-
 
 		// Load tf model and wait
 		// this gets returned then used an the update method
@@ -3521,12 +3521,7 @@ export const createInterface = (
 		// whilst the user hits the button!
 		requestAnimationFrame( loadExtras )
 		// body.classList.toggle("loading", false)
-		
-		console.info(
-			"%c ",
-			`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 1024 1024'%3E%3Cpath d='M891.27 380.782H645.133v94.678c0 52.272-42.389 94.678-94.676 94.7-52.29 0-94.662-42.405-94.662-94.678 0-52.288 42.372-94.678 94.662-94.678h94.676V95.127l-.818-.268c-41.648-13.194-84.385-19.784-130.398-19.784C272.604 75.1 77 270.7 77 512s195.6 436.9 436.9 436.9c221.605 0 404.672-164.968 433.094-378.787H701.93l189.34-189.331z' stroke='hsl(30, 6%25, 14%25)' stroke-width='19' fill='hsl(22, 28%25, 87%25)'%3E%3C/path%3E%3C/svg%3E")`,
-			"State created", {stateMachine}, "Interface:half loaded... waiting for user response"
-		)	
+
 		// console.info("State created", {stateMachine, ui}, "Interface:half loaded... waiting for user response" )
 
 		loadProgressMediator(0.5, "Time to pick players!", false)
@@ -3633,21 +3628,6 @@ export const createInterface = (
 			// restart counter?
 			//return false     // cancel default menu
 		}
-
-		// URL has been updated internally? 
-		// IF the user has only just begun to use the app, this popstate should be empty
-		// so rather than go "back" we instead relaod the application to restart 
-		// with the same state as before
-		window.addEventListener('popstate', (event) => {
-			if (!hasNavigationOccurred || window.location.hash )
-			{
-				return
-			}
-			
-			console.log("RELOAD UNLESS IS HASH!", event)
-			console.log("location: " + document.location, hasNavigationOccurred, ", state: " + JSON.stringify(event.state))
-			//window.location.reload()
-		})
 
 		// window.addEventListener('deviceorientation' , event => {
 		// 	//console.log("device orientation", event)
