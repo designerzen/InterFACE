@@ -13,7 +13,7 @@
 			animation: 
 				Fade var(--ease-s) 1s 1 both,
 				Sway 8s calc(1s + var(--ease-s) ) infinite ease-in-out alternate-reverse,
-				Pulse 4s calc(2s + var(--ease-s)  ) infinite;
+				Pulse 4s calc(2s + var(--ease-s)  ) infinite linear alternate-reverse;
 		}
 	}
 }
