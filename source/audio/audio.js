@@ -481,10 +481,10 @@ export const playTrack = (context, audioBuffer, offset=0, destination=delayNode,
 		// options
 		trackSource.loop = options.loop
 		// trackSource.detune = options.detune
-		if (options.playbackRate)
-		{
-			trackSource.playbackRate = options.playbackRate
-		}
+		// if (options.playbackRate)
+		// {
+		// 	trackSource.playbackRate = options.playbackRate
+		// }
 		
 		trackSource.connect(destination)
 		// trackSource.connect(audioContext.destination)
