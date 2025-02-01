@@ -103,10 +103,10 @@ export default class OscillatorInstrument extends Instrument{
 	constructor( audioContext, options={} ){
 
 		super(audioContext, { ...OPTIONS, ...options })
-		this.create()
-
 		this.title = `${options.name ?? shapeName(this.options.shape)} Wave Oscillator`
-		this.available = true
+		this.create().then( e => {
+			this.available = true
+		})
 	}
 
 	async noteOn( noteNumber, velocity=1 ){
@@ -181,8 +181,14 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	// CUSTOM Methods
-	setCustomWaveform(){
-		this.oscillator.setCustomWaveform( this.createPeriodicWave() )
+	setCustomWaveform( customWaveFunction=this.createPeriodicWave ){
+
+		// eg.
+		// sineTerms = new Float32Array([0, 0, 1, 0, 1])
+		// cosineTerms = new Float32Array(sineTerms.length)
+		// customWaveform = this.context.createPeriodicWave(cosineTerms, sineTerms)
+
+		this.oscillator.setCustomWaveform( customWaveFunction() )
 	}
 
 	/**
