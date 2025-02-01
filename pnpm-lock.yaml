@@ -49,7 +49,7 @@ importers:
         version: 7.0.1(@capacitor/core@7.0.1)
       '@electron-toolkit/utils':
         specifier: ^3.0.0
-        version: 3.0.0(electron@34.0.1)
+        version: 3.0.0(electron@34.0.2)
       '@lookingglass/bridge':
         specifier: ^0.0.8-alpha.4
         version: 0.0.8-alpha.4
@@ -76,7 +76,7 @@ importers:
         version: 2.0.5
       '@visualsource/selective-unrealbloompass':
         specifier: ^1.0.1
-        version: 1.0.1(three@0.172.0)
+        version: 1.0.1(three@0.173.0)
       '@webaudiomodules/api':
         specifier: ^2.0.0-alpha.6
         version: 2.0.0-alpha.6
@@ -108,8 +108,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       electron-log:
-        specifier: ^5.2.4
-        version: 5.2.4
+        specifier: ^5.3.0
+        version: 5.3.0
       electron-reloader:
         specifier: ^1.2.3
         version: 1.2.3
@@ -151,25 +151,25 @@ importers:
         version: 5.1.0
       stats-gl:
         specifier: ^3.6.0
-        version: 3.6.0(three@0.172.0)
+        version: 3.6.0(three@0.173.0)
       svgo:
         specifier: ^3.3.2
         version: 3.3.2
       three:
-        specifier: ^0.172.0
-        version: 0.172.0
+        specifier: ^0.173.0
+        version: 0.173.0
       three-addons:
         specifier: ^1.2.0
         version: 1.2.0
       three-mesh-bvh:
         specifier: ^0.9.0
-        version: 0.9.0(three@0.172.0)
+        version: 0.9.0(three@0.173.0)
       troika-3d:
         specifier: ^0.52.0
-        version: 0.52.0(three@0.172.0)
+        version: 0.52.0(three@0.173.0)
       troika-three-text:
         specifier: ^0.52.3
-        version: 0.52.3(three@0.172.0)
+        version: 0.52.3(three@0.173.0)
       tweakpane:
         specifier: ^4.0.5
         version: 4.0.5
@@ -277,8 +277,8 @@ importers:
         specifier: ^3.12.1
         version: 3.12.1
       electron:
-        specifier: ^34.0.1
-        version: 34.0.1
+        specifier: ^34.0.2
+        version: 34.0.2
       electron-builder:
         specifier: ^25.1.8
         version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
@@ -1639,8 +1639,8 @@ packages:
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250123':
-    resolution: {integrity: sha512-vpIoh9L4VxTshyFziSfJkHYyTsltth/Ra+hI7UoYdBEw28eTOMeBA+8TRDSvHuYifLMLOYbwm1nwZu99pwSVFQ==}
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250130':
+    resolution: {integrity: sha512-eRojc+LWmd8M5rRmz0SD3lqdoe61emEkRqnVdD/Fo7yHf36U0VOVZgMMt58OAxtM6zvO7Msyr/LQv7Mf0WiXvA==}
 
   '@maxim_mazurok/gapi.client.discovery-v1@0.1.20200806':
     resolution: {integrity: sha512-Wl6UfmZVDdWbY3PUu8E2ULk9RPLjnMqp/iOA4tcK8Ne+U/GmlnWP/e34IaZNGArfl7iXJNOG+/3Rj9L9jQyF9Q==}
@@ -3926,8 +3926,8 @@ packages:
   electron-localshortcut@3.2.1:
     resolution: {integrity: sha512-DWvhKv36GsdXKnaFFhEiK8kZZA+24/yFLgtTwJJHc7AFgDjNRIBJZ/jq62Y/dWv9E4ypYwrVWN2bVrCYw1uv7Q==}
 
-  electron-log@5.2.4:
-    resolution: {integrity: sha512-iX12WXc5XAaKeHg2QpiFjVwL+S1NVHPFd3V5RXtCmKhpAzXsVQnR3UEc0LovM6p6NkUQxDWnkdkaam9FNUVmCA==}
+  electron-log@5.3.0:
+    resolution: {integrity: sha512-ILgbh2k9IKbSaN8NAbQriVteEhmkdLo/e4J1dg+JIBTFzXS/kO8zNRZBh/4YPwIT/zeyxF1jP6Xz8GLsPE2IBQ==}
     engines: {node: '>= 14'}
 
   electron-publish@25.1.7:
@@ -3946,8 +3946,8 @@ packages:
     resolution: {integrity: sha512-1mNTwCfkolXl3kMf50yW3vE2lZj0y92P/HYWFBrb+v2S/pCka5mdwN3cagKm458A7NjndSwijynXgcLWRodsVg==}
     engines: {node: '>=8.0.0'}
 
-  electron@34.0.1:
-    resolution: {integrity: sha512-aArw5tAM80i3CKwEREnyZSM1SkARf5Jd1yBMTIdOL4pB1M+p/oDeyWSFI9Dl+vujyfJKiK4SS5+j19wna1onMw==}
+  electron@34.0.2:
+    resolution: {integrity: sha512-u3F+DSUlg9NaGS+9qnYmSRN8VjAnc3LJDDk1ye1uISJnh4gjG76y3681qLowsPMx4obvCP2eBINnmbLo0yT5WA==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -6897,8 +6897,8 @@ packages:
     peerDependencies:
       three: '>= 0.159.0'
 
-  three@0.172.0:
-    resolution: {integrity: sha512-6HMgMlzU97MsV7D/tY8Va38b83kz8YJX+BefKjspMNAv0Vx6dxMogHOrnRl/sbMIs3BPUKijPqDqJ/+UwJbIow==}
+  three@0.173.0:
+    resolution: {integrity: sha512-AUwVmViIEUgBwxJJ7stnF0NkPpZxx1aZ6WiAbQ/Qq61h6I9UR4grXtZDmO8mnlaNORhHnIBlXJ1uBxILEKuVyw==}
 
   three@0.92.0:
     resolution: {integrity: sha512-yQzuwMDEyxc+TFHn8c+LtpK1Sqpy8I3FAr+1EoqqLmNmv6hjfFqB8PlYztRLuM4FMFb4hIbpUoP7Gc9bPQvkCg==}
@@ -8156,9 +8156,9 @@ snapshots:
       ajv: 6.12.6
       ajv-keywords: 3.5.2(ajv@6.12.6)
 
-  '@electron-toolkit/utils@3.0.0(electron@34.0.1)':
+  '@electron-toolkit/utils@3.0.0(electron@34.0.2)':
     dependencies:
-      electron: 34.0.1
+      electron: 34.0.2
 
   '@electron/asar@3.2.17':
     dependencies:
@@ -9245,7 +9245,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250123':
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250130':
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -10496,7 +10496,7 @@ snapshots:
 
   '@types/gapi.client.androidpublisher@3.0.2':
     dependencies:
-      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.0.20250123
+      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.0.20250130
 
   '@types/gapi.client.discovery-v1@0.0.4':
     dependencies:
@@ -10630,9 +10630,9 @@ snapshots:
       '@types/node': 22.10.1
     optional: true
 
-  '@visualsource/selective-unrealbloompass@1.0.1(three@0.172.0)':
+  '@visualsource/selective-unrealbloompass@1.0.1(three@0.173.0)':
     dependencies:
-      three: 0.172.0
+      three: 0.173.0
 
   '@vituum/vite-plugin-pug@1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4)':
     dependencies:
@@ -12037,7 +12037,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron-log@5.2.4: {}
+  electron-log@5.3.0: {}
 
   electron-publish@25.1.7:
     dependencies:
@@ -12079,7 +12079,7 @@ snapshots:
       jsonfile: 4.0.0
       mkdirp: 0.5.6
 
-  electron@34.0.1:
+  electron@34.0.2:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 20.17.9
@@ -15376,9 +15376,9 @@ snapshots:
 
   stat-mode@1.0.0: {}
 
-  stats-gl@3.6.0(three@0.172.0):
+  stats-gl@3.6.0(three@0.173.0):
     optionalDependencies:
-      three: 0.172.0
+      three: 0.173.0
 
   stream-browserify@3.0.0:
     dependencies:
@@ -15583,11 +15583,11 @@ snapshots:
     dependencies:
       three: 0.92.0
 
-  three-mesh-bvh@0.9.0(three@0.172.0):
+  three-mesh-bvh@0.9.0(three@0.173.0):
     dependencies:
-      three: 0.172.0
+      three: 0.173.0
 
-  three@0.172.0: {}
+  three@0.173.0: {}
 
   three@0.92.0: {}
 
@@ -15665,11 +15665,11 @@ snapshots:
     dependencies:
       escape-string-regexp: 1.0.5
 
-  troika-3d@0.52.0(three@0.172.0):
+  troika-3d@0.52.0(three@0.173.0):
     dependencies:
-      three: 0.172.0
+      three: 0.173.0
       troika-core: 0.52.0
-      troika-three-utils: 0.52.0(three@0.172.0)
+      troika-three-utils: 0.52.0(three@0.173.0)
     transitivePeerDependencies:
       - react
       - react-dom
@@ -15681,17 +15681,17 @@ snapshots:
       prop-types: 15.8.1
       troika-animation: 0.52.0
 
-  troika-three-text@0.52.3(three@0.172.0):
+  troika-three-text@0.52.3(three@0.173.0):
     dependencies:
       bidi-js: 1.0.3
-      three: 0.172.0
-      troika-three-utils: 0.52.0(three@0.172.0)
+      three: 0.173.0
+      troika-three-utils: 0.52.0(three@0.173.0)
       troika-worker-utils: 0.52.0
       webgl-sdf-generator: 1.1.1
 
-  troika-three-utils@0.52.0(three@0.172.0):
+  troika-three-utils@0.52.0(three@0.173.0):
     dependencies:
-      three: 0.172.0
+      three: 0.173.0
 
   troika-worker-utils@0.52.0: {}
 
