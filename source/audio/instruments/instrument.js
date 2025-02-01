@@ -18,6 +18,8 @@ import * as MIDICommands from "../midi/midi-commands.js"
 // https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
 export default class Instrument{
 
+	static uniqueCounter = 0
+
 	name = "AbstractInstrument"
 	title = "Instrument"
 	type = "abstract"
@@ -42,13 +44,17 @@ export default class Instrument{
 	// linked list
 	nextInstrument = null
 
-	loaded = new Promise(this.onAvailable)
+	loaded = new Promise((resolve,reject)=>this.onAvailable(resolve,reject))
 	
 	/**
 	 * @returns {String} of unique Instrument id for this instance
 	 */
 	get id(){
 		return `${this.name}-${this.unique}`.toLowerCase().replace(" ","_")
+	}
+
+	get audioContext(){
+		return this.context
 	}
 
 	get activePreset(){
@@ -104,17 +110,26 @@ export default class Instrument{
 
 	/**
 	 * All instruments 
-	 * @param {AudioContext} audioContext 
+	 * @param {AudioContext} onlineAudioContext (not offlineAudioContext)
 	 * @param {Object} options 
 	 */
-	constructor( audioContext, options={} ) 
+	constructor( onlineAudioContext, options={} ) 
 	{
-		this.context = audioContext
+		this.context = onlineAudioContext
 		this.options = options
 		this.activeNotes = new Map()
-		this.unique = (Date.now() * Math.random() ) >> 0
+		// each instrument gets a 9 length unique ID
+		this.unique = this.type.toUpperCase()+"-"+String(++Instrument.uniqueCounter).padStart(9, '0')
+	
+		// this.onAvailable = this.onAvailable.bind(this)
+		// this.onUnavailable = this.onUnavailable.bind(this)
+
 		this.create().then(()=>{
 			Promise.resolve(this.loaded)
+			// .then( r => {
+			// 	console.log("Instrument resolved!", this.loaded )
+			// })
+			//console.log("Instrument loaded!!!", this.loaded )
 		})
 	}
 	
@@ -310,8 +325,20 @@ export default class Instrument{
 		}
 	}
 
-	onAvailable(resolve){
-		//console.log("Instrument:CREATED:", { audioContext, destinationNode } )
+	onAvailable(resolve, reject, iteration=0){
+		console.log(iteration, "Instrument:CHECK:", this.loaded, {resolve, reject}, this.available, this)
+		// console.log("CREATED:Instrument.onAvailable", this )
+		//
+		if (!this.available)
+		{
+			requestAnimationFrame(()=>this.onAvailable(resolve, reject, iteration+1))
+		}else{
+			resolve && resolve(this)
+		}
+	}
+
+	onUnavailable(reject){
+		console.error("Instrument:UNAVAILABLE:", reject, this)
 		// console.log("CREATED:Instrument.onAvailable", this )
 	}
 }
