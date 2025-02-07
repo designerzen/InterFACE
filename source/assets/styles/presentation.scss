@@ -1,21 +1,32 @@
+//- link(rel="stylesheet", href="/node_modules/reveal.js/dist/reveal.css")
+//- link(rel="stylesheet", href="/node_modules/reveal.js/dist/theme/black.css")
+//- link(rel="stylesheet" href="/node_modules/reveal.js/dist/theme/sky.css")
+
 .reveal .slides{
 
-	figure{
+	time{
+		position: absolute;
+		top:0;
+		left:0;
+		background-color: black;
+		border-radius: 2px;
+	}
 
+	img{
+		margin-left:auto;
+		margin-right:auto;
+		height: auto;
+		width: auto;
+		object-fit: contain;
+	}
+
+	figure{
 		margin: auto;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		gap:var(--r-block-margin);
-
-		img{
-			margin-left:auto;
-			margin-right:auto;
-			height: auto;
-			width: auto;
-			object-fit: contain;
-		}
 	}
 
 	figure.r-stretch{
@@ -34,7 +45,7 @@
 			margin-top:var(--pad);
 		}
 	}
-	
+
 	video{
 		margin:auto;
 		visibility:visible;
