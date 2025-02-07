@@ -133,7 +133,7 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 		text-size-adjust: 100%;
 		line-height:calc( var(--line-height, 1.6) * var(--zoom, 1) );
 		font-weight: 700;
-		hyphens: auto;
+		hyphens: manual;
 	}
 
 	h1,h2,h3,h4,h5,h6,p{
