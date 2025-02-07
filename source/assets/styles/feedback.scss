@@ -6,7 +6,9 @@
 	
 	--icon-width:0px;
 	--indicator-width:6px;
-	--bg: /**/;
+	--bg: /**/
+	
+	hyphens: auto;
 
 	transition:opacity var(--ease-m) linear, transform var(--ease-m) linear;
 	padding: calc( var(--pad) * 1.5 ) calc( var(--pad) * 2 );
