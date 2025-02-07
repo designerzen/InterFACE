@@ -2,7 +2,7 @@
 form#onboard(action="/") 
 	
 	fieldset#player-selector
-		legend How many people are going to participate?
+		legend Choose Players
 		//- button#button-solo( aria-label="Single player mode" ) <strong>Solo</strong> : 1 Player
 		//- button#button-duet( aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" ) <strong>Duet</strong> : 2 Players
 		//- button#button-trio( aria-label="Swap to <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" ) <strong>Trio</strong> : 3 People
@@ -21,7 +21,7 @@ form#onboard(action="/")
 		input#button-quartet(name="players" type="radio" aria-label="Swap to full <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" hidden)
 		
 	fieldset#complexity-selector
-		legend Would you like to play the simple version?
+		legend Options
 
 		//- Simple / Advanced mode
 		label(for="toggle-advanced-mode" aria-describeby="advanced-mode-feedback" aria-label="Unlock all features and make it complicated to use but very powerfull" ) Use advanced mode? 
