@@ -5,9 +5,13 @@
 		margin: auto;
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 		gap:var(--r-block-margin);
 
 		img{
+			margin-left:auto;
+			margin-right:auto;
 			height: auto;
 			width: auto;
 			object-fit: contain;
@@ -30,4 +34,10 @@
 			margin-top:var(--pad);
 		}
 	}
+	
+	video{
+		margin:auto;
+		visibility:visible;
+	}
+
 }
