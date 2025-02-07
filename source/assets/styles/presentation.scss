@@ -11,7 +11,7 @@
 		left:0;
 		background-color: black;
 		border-radius: 2px;
-		transform: translateY(-50%);
+		// transform: translateY(-50%);
 	}
 
 	img{
@@ -28,7 +28,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap:var(--r-block-margin);
+		gap:var(--pad, var(--r-block-margin));
 	}
 
 	figure.r-stretch{
@@ -53,4 +53,16 @@
 		visibility:visible;
 	}
 
+	#timeline .history{
+		transition:transform 4s ease-in-out 0s infinite alternate-reverse;
+		transform: translateY(calc( -100% + 90vh));
+	}
+
+	blockquote p{
+		font-size:140%;
+	}
+}
+
+html.reveal-print .reveal {
+	min-height: fit-content !important;
 }
