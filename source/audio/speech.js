@@ -1,9 +1,9 @@
 // https://www.chromestatus.com/features/5687444770914304
 const TIME_OUT = 10000
 
-export const hasSpeech = () =>{
-  return ("speechSynthesis" in window)
-}
+export const hasSpeech = () => ("speechSynthesis" in window)
+
+const isSpeechSynthesSupported = hasSpeech()
 
 // we have to loop this with a settimout until voices are available...
 const getVoices = async () => new Promise( (resolve,reject) => {
@@ -60,7 +60,7 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang, 
 
 		try{
 
-			if (!hasSpeech)
+			if (!isSpeechSynthesSupported)
 			{
 				reject("Speech tech not available")
 
