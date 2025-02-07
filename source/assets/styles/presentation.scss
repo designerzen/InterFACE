@@ -1,19 +1,33 @@
 .reveal .slides{
 
 	figure{
-		margin: auto;
 
+		margin: auto;
+		display: flex;
+		flex-direction: column;
+		gap:var(--r-block-margin);
+
+		img{
+			height: auto;
+			width: auto;
+			object-fit: contain;
+		}
+	}
+
+	figure.r-stretch{
+		img{
+			margin: 0 auto;
+		}
+	}
+
+	figure:not(.r-stretch){
+		img{
+			max-width: 100%;
+			max-height: 90vh;
+		}
+	
 		figcaption{
 			margin-top:var(--pad);
 		}
 	}
-
-	img{
-		max-width: 100%;
-		max-height: 90vh;
-		height: auto;
-		width: auto;
-		object-fit: contain;
-	}
-
 }

@@ -14,13 +14,7 @@ block main
 			section
 				h1.r-fit-text _PhotoSYNTH_
 				h2.r-fit-text Smile Powered Music
-				img(src="/source/assets/logos/photosynth.svg")
-
-			//- section
-			//- 	figure
-			//- 		img(src="/mediakit/history/first_flute.png")
-			//- 		figcaption
-			//- 			small Divje babe Flute © Humans 38,000 Before the Wheel
+				img.r-stretch(src="/source/assets/logos/photosynth.svg")
 
 			section
 				blockquote 
@@ -28,21 +22,21 @@ block main
 	
 			section
 				datetime 2011
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/PhotoSynth2-big.png" alt="The second version of the PhotoSynth being shown demonstrated by Gawain Hewitt.")
 					figcaption
 						small Gawain Hewitt plays the PhotoSYNTH II
 
 			section
 				datetime 2020
-				figure
-					img(src="/mediakit/people/prototype-1.jpg" alt="Early prototype for PhotoSYNTH 3.")
+				figure.r-stretch
+					img(src="/mediakit/people/prototype-1.jpg" width="900" height="827" alt="Early prototype for PhotoSYNTH 3.")
 					figcaption
 						small Becky Morris Knight plays with a PhotoSYNTH III Beta during Lockdown
 
 			section
 				datetime 2021
-				figure
+				figure.r-stretch
 					//- img(src="/mediakit/people/john-kelly.png" alt="PhotoSynth being demonstrated by John Kelly playing the Contrabass preset")
 					img(src="/mediakit/people/john-kelly-rockinpaddy.png" alt="PhotoSynth being demonstrated by John Kelly playing the Contrabass preset")
 					figcaption
@@ -50,29 +44,54 @@ block main
 
 			section
 				datetime 2021
-				figure
+				figure.r-stretch
 					img(src="/mediakit/people/louis.jpg" alt="PhotoSynth being demonstrated by Louis playing the harmonic Choir preset.")
 					figcaption
 						small PhotoSYNTH III Beta being demonstrated by Louis from Drake Music
-
+		
+			// Web Audio Conference
 			section
-				datetime 2021
-				figure
+				datetime 2022
+				figure.r-stretch
+					img(src="/mediakit/history/wac22.jpg" alt="Web Audio Conference 2022 demonstrating the PhotoSYNTH 3")
+					figcaption
+						small WAC 2022 showcase of PhotoSYNTH III
+		
+			section
+				datetime 2022
+				figure.r-stretch
 					img(src="/mediakit/history/zoom-zen.png" alt="A Zoom session demonstrating the PhotoSYNTH 3 in action using MIDI.")
 					figcaption
 						small Collaborative MIDI Music over Zoom using PhotoSYNTH III and OP-1
+			
+			// MIDI Innovation Awards
+			section
+				datetime 2022
+				figure.r-stretch
+					img(src="/mediakit/history/midi-finalist.jpg" alt="MIDI Innovation Awards Finalist.")
+					figcaption
+						small PhotoSYNTH at the MIDI Innovation Awards Finals
+			
+			
+			section
+				p.r-fit-text  Constant testing with real people ensured that it evolved in an accessible and ergonomic way 
+				p.r-fit-text  Everyone can make music friends. 
 
 			section
-				p Constant testing with real people ensured that it evolved in an accessible and ergonomic way 
-				p Everyone can make music friends. 
-				
-				p With the broadest demographic covering every diversity and ability...
-				p the PhotoSYNTH levels the playing field for any aspiring creatives!
+				p.r-fit-text  With the broadest demographic covering every diversity and ability...
+				p.r-fit-text  the PhotoSYNTH levels the playing field for any aspiring creatives!
 			
+
+			section
+				include partials/history.pug
+
+			section
+				h3.r-fit-text 2024
+
 			// IEEE
 			section
 				datetime March 2024
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/IEEE.jpg" alt="IEEE showcase of PhotoSYNTH 4D.")
 					figcaption
 						small 1st International Workshop on the Musical Metaverse
@@ -82,21 +101,21 @@ block main
 			// EMF
 			section
 				datetime July 2024
-				figure
+				figure.r-stretch
 					img(src="/mediakit/people/emf.jpg" alt="Electromagnetic Fields demonstration of PhotoSYNTH 4D.")
 					figcaption
 						small Electromagnetic Fields Festival demo of HOLOGRAPHIC PhotoSYNTH 4D
 					
 			section
 				datetime July 2024
-				figure
+				figure.r-stretch
 					img(src="/mediakit/people/emf-posse.jpg" alt="Electromagnetic Fields MIDI demonstration of PhotoSYNTH 4D.")
 					figcaption
 						small Electromagnetic Fields Festival group MIDI demo of PhotoSYNTH 4D
 					
 			section
 				datetime September 2024
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/photosyntn-amic.jpg" alt="Four player version.")
 					figcaption
 						small Accessible Musical Instrument Collection PhotoSYNTH 4D Holographic
@@ -117,7 +136,7 @@ block main
 			// BEYOND
 			section
 				datetime November 2024
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/beyond-demo.jpg" alt="Beyond demonstration of PhotoSYNTH 4.")
 					figcaption
 						small Beyond '24 demonstration of 4-Player PhotoSYNTH IV
@@ -125,7 +144,7 @@ block main
 			// MIT
 			section
 				datetime January 2025
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/mit-public-demo.jpg" alt="MIT demonstration of PhotoSYNTH 3.")
 					figcaption
 						small MIT demonstration of PhotoSYNTH IV in Quartet mode
@@ -137,7 +156,7 @@ block main
 			//- 			small zen and the gang
 						
 			section
-				h4 Scientific Papers based on this research
+				h4 Due to writing scientific papers based on this research...
 				ul 
 					li: p PhotoSYNTH3 - A novel interFACE (2022)
 					li: p Instant Musical Superpowers (preprint) 2023)
@@ -145,7 +164,7 @@ block main
 					li: p Musical Avatars (2024)
 
 			section
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/musica_avatars.png")
 					figcaption
 						small Musical Avatars © 2024 Z. Olenski
@@ -153,7 +172,7 @@ block main
 			section 				
 				h3: em Breaking News!
 				h4 This summer, we wil be presenting the PhotoSYNTH at the Royal Society Summer Exhibition.
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/royal-society-wolfson.jpg")
 					figcaption
 						small  2025 Summer Exhibition @ Royal Society
@@ -164,7 +183,7 @@ block main
 				
 			section
 				datetime July 1st-7th 2025
-				figure
+				figure.r-stretch
 					img(src="/mediakit/history/royal-society-stall.jpg")
 					figcaption
 						small  Royal Society Summer Exhibition 2025
