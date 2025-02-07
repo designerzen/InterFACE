@@ -1,0 +1,160 @@
+extends _base.pug
+
+block title
+	+title('Test:Reverb')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block above 
+
+block main
+	main#test-reverb
+		button#button-initiate(type="button") Start
+		button#button-test-reverb(type="button") Play note
+		include partials/piano.pug
+
+block styles 
+	style.
+		#control-panel{
+			z-index:909;
+		}
+		#button-test-reverb{
+			z-index:1080;
+
+		}
+
+block scripts
+	script(type="module").
+	
+		import {addToolTips} from './dom/tooltips.js'	
+		import {setupThemeControls} from './theme/theme.js'		
+		import WorkletInstrument from './audio/instruments/instrument.processor.js'
+		//- import WorkletInstrument from './audio/instruments/instrument.worklet.js'
+		import SampleAudioWorkletNode, {WORKLET_ID_SAMPLER} from './audio/instruments/worklets/sampler.worklet.js'
+		import SoundFontAudioWorkletNode, {WORKLET_ID_SOUNDFONT} from './audio/instruments/worklets/soundfont.worklet.js'
+		//- import SampleAudioWorkletProcessor from './audio/instruments/worklets/sampler.worklet.js'
+		//- import { WORKLET_SAMPLER } from './audio/processors/sample-processor.js'
+		import WORKLET_SAMPLER_PROCESSOR from 'worklet:./audio/processors/sample-processor.js'
+		import WORKLET_SOUNDFONT_PROCESSOR from 'worklet:./audio/processors/soundfont-processor.js'
+		import { rearrangeArrayBySnake } from "./utils/array-tools"
+
+			console.error( "snaked 0", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 0) )
+			console.error( "snaked 5", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 5) )
+			console.error( "snaked 7", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 7) )
+			console.error( "snaked 9", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 9) )
+
+		const start = async () => {
+
+			// create a new audio context from user click
+			const audioContext = new AudioContext()
+			
+			// register worklet file with audio interface
+			const WORKLET_OPTIONS = {
+				id:"soundfont-processor",
+				location:WORKLET_SOUNDFONT_PROCESSOR,
+				worklet:SoundFontAudioWorkletNode 
+			}
+
+			//- const WORKLET_OPTIONS = {
+			//- 	id:WORKLET_ID_SAMPLER,
+			//- 	location:WORKLET_SAMPLER,
+			//- 	worklet:SampleAudioWorkletNode
+			//- }
+			// maybe should create a new SampleAudioWorkletNode()
+
+			//- const int = new SampleAudioWorkletNode( audioContext, null, WORKLET_OPTIONS )
+			//- const buffer = await int.loadBufferFromURL("/assets/audio/lemmings.wav")
+			
+			// create a new instrument with this worklet
+			const instrument = new WorkletInstrument( audioContext, WORKLET_OPTIONS )
+			await instrument.loaded
+
+			instrument.output.connect(audioContext.destination)
+		
+				// pass in something to load
+			//- instrument.post({type:"load",path:"/assets/audio/lemmings.wav"})
+			//- const buffer = await instrument.worklet.loadAudioFromURL("/assets/audio/lemmings.wav")
+			const buffer = await instrument.worklet.loadFont()
+			console.log("Instrument loaded", {instrument, buffer} , instrument.worklet)
+			// now send the audiobuffers to the sampler worklet
+			//- instrument.worklet.post({type:"load", data:buffer})
+
+			const keyPresses = new Map()
+			// control via keyboard
+			window.addEventListener('keydown', async (event)=>{
+				const isNumber = !isNaN( parseInt(event.key) )
+				const focussedElement = document.activeElement
+
+				if (isNumber){
+					
+				}else{
+					switch(event.key)
+					{
+						//- case 'a':
+
+						//- 	break
+						//- case 'q':
+						
+						//- 	break
+						//- case 'c':
+						
+						//- 	break
+						//- case 'd':
+						
+						//- 	break
+						//- case 'e':
+						
+						//- 	break
+						//- case 's':
+						
+						//- 	break
+						//- case 'w':
+						
+						//- 	break
+						//- case 'r':
+						
+						//- 	break
+						default: 
+							const pitch = parseInt( event.keyCode )
+							if (keyPresses.has(pitch))
+							{
+								console.log("Instrument noteOn ALREADY ON!", {pitch})
+							}else{
+								instrument.noteOn(pitch)
+								keyPresses.set(pitch, performance.now() )
+								console.log("Instrument noteOn", {pitch})
+							}
+					}
+				}
+			})
+
+			window.addEventListener('keyup', async (event)=>{
+				const isNumber = !isNaN( parseInt(event.key) )
+				const focussedElement = document.activeElement
+
+				if (isNumber){
+					
+				}else{
+					
+				}
+
+				switch(event.key)
+				{
+					default: 	
+						// turn off all keys that are still pressed
+						keyPresses.forEach( (keyPressed, index) => {
+							instrument.noteOff(index)
+							const heldFor = performance.now() -keyPressed
+							keyPresses.delete(index)
+							console.log(index, heldFor, "Instrument noteOff", keyPressed, {keyPressed, keyPresses})
+						})
+				}				
+			})
+
+		}
+
+		document.getElementById('button-initiate').addEventListener( "mousedown", e => start() )
+		//- document.addEventListener( "mousedown", e => start() )
