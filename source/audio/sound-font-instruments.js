@@ -350,7 +350,7 @@ export const decodeAudioDataIntoBuffers = async (buffersData, asBuffer=false, on
 		return promised
 	})
 
-	await Promise.all( loading )
+	await Promise.allSettled( loading )
 	return buffers
 }
 

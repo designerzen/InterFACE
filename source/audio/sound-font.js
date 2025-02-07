@@ -24,6 +24,7 @@ import {
 	GENERAL_MIDI_LIBRARY, GENERAL_MIDI_FAMILIES, 
 	GENERAL_MIDI_FAMILY_DICTIONARY 
 } from './midi/general-midi.constants'
+
 import { loadInstrumentFromSoundFont } from "./audio"
 
 export default class SoundFont{
@@ -99,9 +100,11 @@ export default class SoundFont{
 		{
 			// first fetch the description file that contains our instrument names
 			// const descriptorData = 
-			await this.loadDescriptor( options.descriptor, options.descriptorPath ?? './' )
+			return await this.loadDescriptor( options.descriptor, options.descriptorPath ?? './' )
 		}
-		
+
+		// nothing to load!
+		return null
 	}
 
 
@@ -208,8 +211,7 @@ export default class SoundFont{
 	 * @returns 
 	 */
 	async fetchPreset( presetName, options={}, onProgressCallback=null ){
-		let preset = this.getInstrumentData(presetName)
-		return preset
+		return this.getInstrumentData(presetName)
 	}
 
 	/**
@@ -271,12 +273,12 @@ export default class SoundFont{
 		
 		if (!preset)
 		{
-			throw Error( `No "preset" argument provided to soundfont.loadPreset( presetName ) so not sure what you are expecting to load` )
+			throw Error( `No "preset" argument provided to soundfont.loadPreset( required preset ), so not sure what preset you are expecting to load` )
 		}
 
 		// establish the actual name of the preset
 		let presetNameOrNumber
-
+		
 		// check to see what type it is
 		if ( typeof preset === 'object' )
 		{
@@ -389,22 +391,36 @@ export default class SoundFont{
 	async loadPresets( presetNames, options={}, onProgressCallback=null ){
 
 		const simultaneous = options.simultaneous ?? 1
+		
 		const output = []
 
-		for (let i=0, l=presetNames.length; i<l; ++i )
+		// if a single string was provided, convert to array
+		if (typeof presetNames === "string")
 		{
+			presetNames = [presetNames]
+		}
+
+		for (let i=0, l=presetNames.length; i<l; ++i )
+		{	
+			let promises = []
+
 			for (let s=0; s<simultaneous; ++s )
 			{
 				const presetName = presetNames[i]
-				const progress = i / l
-				const preset = await this.loadPreset( presetName, options, 
+				const percent = i / l
+			
+				const presetPromise = this.loadPreset( presetName, options, 
 					onProgressCallback ? 
-						(percent)=>onProgressCallback(progress+percent/l) : 
+						({progress, instrumentName})=>onProgressCallback(percent + (progress/l), progress, instrumentName) : 
 						null 
-				)
-				output.push( preset )
+				).then( preset=>{
+					output.push( preset )
+				})
+				promises.push( presetPromise )
 				i++
 			}
+
+			await Promise.allSettled( promises )
 		}
 		return output
 	}
