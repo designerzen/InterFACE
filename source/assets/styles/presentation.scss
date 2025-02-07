@@ -4,12 +4,14 @@
 
 .reveal .slides{
 
-	time{
+	section > time{
 		position: absolute;
+		padding:var(--pad) calc( 2 * var(--pad) );
 		top:0;
 		left:0;
 		background-color: black;
 		border-radius: 2px;
+		transform: translateY(-50%);
 	}
 
 	img{
