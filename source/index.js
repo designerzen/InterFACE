@@ -147,8 +147,6 @@ const start = () => {
 			(loadProgress, message, hideLoader = false) => {
 
 				// console.info("Loading...", loadProgress, message)
-				
-
 				if (failed) {
 					// already failed so why show more loading?
 					console.error("FATAL : Failed to load", {loadProgress, message, hideLoader} )

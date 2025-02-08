@@ -279,7 +279,8 @@ export const getDomainDefaults = (name = '') => {
 	return getFactoryDefaults()
 }
 
-import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
+import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
+// import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
 import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
 // console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
 export const INSTRUMENT_OPTIONS = {

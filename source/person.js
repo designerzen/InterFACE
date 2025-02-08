@@ -89,8 +89,15 @@ export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
-
-
+// https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
+// equalpower 
+const PANNING_MODEL = "HRTF"
+// This can only be set to linear, inverse, or exponential
+const PANNING_DISTANCE_MODEL = "linear"
+const PANNING_MAX_DISTANCE = 10000
+const PANNING_REF_DISTANCE = 1
+// Then there's the roll-off factor (rolloffFactor) — how quickly does the volume reduce as the panner moves away from the listener. The default value is 1; let's make that a bit bigger to exaggerate our movements.
+const PANNING_ROLL_OFF = 1 // 10
 /**
  * Default head control input mechanism
  * Where looking left and right sets the Scale
@@ -1789,6 +1796,9 @@ export default class Person{
 		if (this.options.stereoPan)
 		{
 			this.stereoNode = audioContext.createStereoPanner()
+			this.stereoNode.dist
+
+
 			this.outputNode.connect(this.stereoNode)
 			// this.stereoNode.connect(this.outputNode)
 			// this.stereoNode.connect(delayNode)

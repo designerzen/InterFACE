@@ -15,8 +15,7 @@ import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/re
 import { 
 	getRecordableOutputNode,
 	active, playing, 
-	setupAudio,	audioContext,
-	offlineAudioContext,
+	setupAudio,
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
@@ -24,15 +23,15 @@ import {
 	stopAudio
 } from './audio/audio.js'
 
-import { 
-	getRandomInstrument, 
-	createInstruments, 
-	getFolderNameForInstrument, 
-	getRandomLeadPresetIndex, 
-	getRandomBasslinePresetIndex, 
-	getRandomBeatsPresetIndex, 
-	getRandomHarmonicLeadPresetIndex
-} from './audio/sound-font-instruments'
+// import { 
+// 	getRandomInstrument, 
+// 	createInstruments, 
+// 	getFolderNameForInstrument, 
+// 	getRandomLeadPresetIndex, 
+// 	getRandomBasslinePresetIndex, 
+// 	getRandomBeatsPresetIndex, 
+// 	getRandomHarmonicLeadPresetIndex
+// } from './audio/sound-font-instruments'
 
 import { createDrumkit } from './audio/drum-kit.js'
 // FIXME: 
@@ -217,13 +216,18 @@ export const createInterface = (
 	// where we extract the face data from
 	let inputElement = video // image
 
-	// JSON object of available instruments
-	let instrumentList
-
 	// dom elements wrapped in js
 	let camera
 	let photo
+
+	let audioContext
+	let offlineAudioContext
 	let audioChain
+	let instrumentFactory 
+
+	// JSON object of available instruments
+	let instrumentList
+
 
 	// canvas / GL adapters for front end
 	let displayType = DISPLAY_CANVAS_2D
@@ -831,7 +835,7 @@ export const createInterface = (
 		// console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
-		person.setupAudio(audioContext, audioChain, offlineAudioContext, preset).then(async()=>{
+		person.setupAudio(audioContext, audioChain, instrumentFactory, offlineAudioContext, preset).then(async()=>{
 			// the above command should initalise a default sample player rendering the following line obsolete
 			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
 			// const presetData = person.getPresets()[0]
@@ -2459,6 +2463,18 @@ export const createInterface = (
 		const loadTotal = 9
 		let loadIndex = 0
 
+		// set up forked web audio context, for multiple browsers
+		// window. is needed otherwise Safari explodes
+		// { latencyHint: 'playback' } tells the context to try and smooth playback
+		audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' })
+
+		// fixes old ios bug about audio not starting until buttons or something
+		// resumeAudioContext()
+
+		// check to see if we have an offline context...
+		offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
+ 
+
 		if (!stateMachine.get("debug"))
 		{
 			doc.querySelector("label[for='select-display']").hidden = true
@@ -2490,20 +2506,6 @@ export const createInterface = (
 
 		// console.info("PhotoSYNTH Screens available", {initialDisplay, settings} ) 
 
-		// MUSICAL INSTRUMENTS --------------------------------------------------------------------------------
-		const instrumentFactory = new InstrumentFactory(audioContext)
-		try{
-			
-			instrumentFactory.loadList(instrumentListURIorObject)
-			instrumentList = instrumentFactory.list
-			progressCallback(loadIndex++/loadTotal, "Loaded Instrument List")
-			console.info("PhotoSYNTH Instruments Available", {instrumentList, instrumentFactory, instrumentListURIorObject} )  
-			
-		}catch(error){
-
-			progressCallback(loadIndex++/loadTotal, "Instrument List Not Found!")
-			console.error("PhotoSYNTH Instruments Unavailable", error, {instrumentListURIorObject})	
-		}
 		
 		// MOTION TRACKING --------------------------------------------------------------------------------
 
@@ -2676,7 +2678,7 @@ export const createInterface = (
 				drumVolume:0.18
 			}
 			
-			audioChain = await setupAudio( AUDIO_OPTIONS )
+			audioChain = await setupAudio( audioContext, offlineAudioContext, AUDIO_OPTIONS )
 			
 			// audio worklet tests!
 			// NB. run only once per app to load  audio
@@ -2751,10 +2753,34 @@ export const createInterface = (
 		// const {startRecording, stopRecording} = record(stream)
 		
 
+		// MUSICAL INSTRUMENTS --------------------------------------------------------------------------------
+		// create our musical instrument factory
+		try{
+			instrumentFactory = new InstrumentFactory(audioContext)
+		}catch(error){
+			console.error("PhotoSYNTH Instruments FACTORY Unavailable", error, {instrumentListURIorObject})	
+		}
+
+		try{
+			// and load in the instrument list
+			await instrumentFactory.loadList(instrumentListURIorObject)
+			// store the loaded instrument list
+			instrumentList = instrumentFactory.list
+			console.info("PhotoSYNTH Instruments Available", {instrumentList, instrumentFactory, instrumentListURIorObject} )  
+			
+			progressCallback(loadIndex++/loadTotal, "Loaded Instrument List")
+			
+		}catch(error){
+
+			progressCallback(loadIndex++/loadTotal, "Instrument List Not Found!")
+			console.error("PhotoSYNTH Instruments Unavailable", error, {instrumentFactory, instrumentListURIorObject})	
+		}
+
 		// AUDIO ------------------------------------------------	
 
 		// Create a new sample player to handle sample sound playback external
 		// to each Person. This is used for example to play orchestrated background MIDI
+		// TODO: FIXME:
 		samplePlayer = new SampleInstrument(audioContext, audioChain, {})
 
 
