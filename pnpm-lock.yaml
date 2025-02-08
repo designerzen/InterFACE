@@ -48,8 +48,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1(@capacitor/core@7.0.1)
       '@electron-toolkit/utils':
-        specifier: ^3.0.0
-        version: 3.0.0(electron@34.0.2)
+        specifier: ^4.0.0
+        version: 4.0.0(electron@34.1.1)
       '@lookingglass/bridge':
         specifier: ^0.0.8-alpha.4
         version: 0.0.8-alpha.4
@@ -229,8 +229,8 @@ importers:
         specifier: ^3.7.1
         version: 3.7.1
       '@mediapipe/tasks-vision':
-        specifier: ^0.10.20
-        version: 0.10.20
+        specifier: ^0.10.21
+        version: 0.10.21
       '@parcel/config-default':
         specifier: ^2.13.3
         version: 2.13.3(@parcel/core@2.13.3(@swc/helpers@0.5.15))(@swc/helpers@0.5.15)(postcss@8.5.1)(svgo@3.3.2)(typescript@5.7.2)
@@ -263,7 +263,7 @@ importers:
         version: 2.13.3(@parcel/core@2.13.3(@swc/helpers@0.5.15))
       '@vituum/vite-plugin-pug':
         specifier: ^1.1.0
-        version: 1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4)
+        version: 1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.84.0)
       browser-fs-access:
         specifier: ^0.35.0
         version: 0.35.0
@@ -277,8 +277,8 @@ importers:
         specifier: ^3.12.1
         version: 3.12.1
       electron:
-        specifier: ^34.0.2
-        version: 34.0.2
+        specifier: ^34.1.1
+        version: 34.1.1
       electron-builder:
         specifier: ^25.1.8
         version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
@@ -337,8 +337,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       sass:
-        specifier: ^1.83.4
-        version: 1.83.4
+        specifier: ^1.84.0
+        version: 1.84.0
       showdown:
         specifier: ^2.1.0
         version: 2.1.0
@@ -893,8 +893,8 @@ packages:
     resolution: {integrity: sha512-0cp4PsWQ/9avqTVMCtZ+GirikIA36ikvjtHweU4/j8yLtgObI0+JUPhYFScgwlteveGB1rt3Cm8UhN04XayDig==}
     engines: {node: '>= 8.9.0'}
 
-  '@electron-toolkit/utils@3.0.0':
-    resolution: {integrity: sha512-GaXHDhiT7KCvMJjXdp/QqpYinq69T/Pdl49Z1XLf8mKGf63dnsODMWyrmIjEQ0z/vG7dO8qF3fvmI6Eb2lUNZA==}
+  '@electron-toolkit/utils@4.0.0':
+    resolution: {integrity: sha512-qXSntwEzluSzKl4z5yFNBknmPGjPa3zFhE4mp9+h0cgokY5ornAeP+CJQDBhKsL1S58aOQfcwkD3NwLZCl+64g==}
     peerDependencies:
       electron: '>=13.0.0'
 
@@ -1639,8 +1639,8 @@ packages:
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250130':
-    resolution: {integrity: sha512-eRojc+LWmd8M5rRmz0SD3lqdoe61emEkRqnVdD/Fo7yHf36U0VOVZgMMt58OAxtM6zvO7Msyr/LQv7Mf0WiXvA==}
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250206':
+    resolution: {integrity: sha512-IlvSYTKrxy9prx2cCYZ8TmZaBLzMO1CuUESnT4LJ5YAthLz+erhB4s7TZ6fPUDbyS2CEFHMWoFpMTAZ1vzAxhQ==}
 
   '@maxim_mazurok/gapi.client.discovery-v1@0.1.20200806':
     resolution: {integrity: sha512-Wl6UfmZVDdWbY3PUu8E2ULk9RPLjnMqp/iOA4tcK8Ne+U/GmlnWP/e34IaZNGArfl7iXJNOG+/3Rj9L9jQyF9Q==}
@@ -1654,8 +1654,8 @@ packages:
   '@mediapipe/pose@0.5.1675469404':
     resolution: {integrity: sha512-DFZsNWTsSphRIZppnUCuunzBiHP2FdJXR9ehc7mMi4KG+oPaOH0Em3d6kr7Py+TSyTXC1doH88KcF28k2sBxsQ==}
 
-  '@mediapipe/tasks-vision@0.10.20':
-    resolution: {integrity: sha512-wYk/9wBjcCZbKcv+ZVEojpKi9f0J9ou0MKRQrG8JdtSVtkkqt/LZMqwdmIMaRIO3DfPJs815BlVPIoestQiWqw==}
+  '@mediapipe/tasks-vision@0.10.21':
+    resolution: {integrity: sha512-TuhKH+credq4zLksGbYrnvJ1aLIWMc5r0UHwzxzql4BHECJwIAoBR61ZrqwGOW6ZmSBIzU1t4VtKj8hbxFaKeA==}
 
   '@mischnic/json-sourcemap@0.1.1':
     resolution: {integrity: sha512-iA7+tyVqfrATAIsIRWQG+a7ZLLD0VaOCKV2Wd/v4mqIU3J9c4jx9p7S0nw1XH3gJCKNBOOwACOPYYSUu9pgT+w==}
@@ -3946,8 +3946,8 @@ packages:
     resolution: {integrity: sha512-1mNTwCfkolXl3kMf50yW3vE2lZj0y92P/HYWFBrb+v2S/pCka5mdwN3cagKm458A7NjndSwijynXgcLWRodsVg==}
     engines: {node: '>=8.0.0'}
 
-  electron@34.0.2:
-    resolution: {integrity: sha512-u3F+DSUlg9NaGS+9qnYmSRN8VjAnc3LJDDk1ye1uISJnh4gjG76y3681qLowsPMx4obvCP2eBINnmbLo0yT5WA==}
+  electron@34.1.1:
+    resolution: {integrity: sha512-1aDYk9Gsv1/fFeClMrxWGoVMl7uCUgl1pe26BiTnLXmAoqEXCa3f3sCKFWV+cuDzUjQGAZcpkWhGYTgWUSQrLA==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -6522,8 +6522,8 @@ packages:
   sanitize-filename@1.6.3:
     resolution: {integrity: sha512-y/52Mcy7aw3gRm7IrcGDFx/bCk4AhRh2eI9luHOQM86nZsqwiRkkq2GekHXBBD+SmPidc8i2PqtYZl+pWJ8Oeg==}
 
-  sass@1.83.4:
-    resolution: {integrity: sha512-B1bozCeNQiOgDcLd33e2Cs2U60wZwjUUXzh900ZyQF5qUasvMdDZYbQ566LJu7cqR+sAHlAfO6RMkaID5s6qpA==}
+  sass@1.84.0:
+    resolution: {integrity: sha512-XDAbhEPJRxi7H0SxrnOpiXFQoUJHwkR2u3Zc4el+fK/Tt5Hpzw5kkQ59qVDfvdaUq6gCrEZIbySFBM2T9DNKHg==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -8156,9 +8156,9 @@ snapshots:
       ajv: 6.12.6
       ajv-keywords: 3.5.2(ajv@6.12.6)
 
-  '@electron-toolkit/utils@3.0.0(electron@34.0.2)':
+  '@electron-toolkit/utils@4.0.0(electron@34.1.1)':
     dependencies:
-      electron: 34.0.2
+      electron: 34.1.1
 
   '@electron/asar@3.2.17':
     dependencies:
@@ -9245,7 +9245,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250130':
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.0.20250206':
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -9261,7 +9261,7 @@ snapshots:
 
   '@mediapipe/pose@0.5.1675469404': {}
 
-  '@mediapipe/tasks-vision@0.10.20': {}
+  '@mediapipe/tasks-vision@0.10.21': {}
 
   '@mischnic/json-sourcemap@0.1.1':
     dependencies:
@@ -9869,7 +9869,7 @@ snapshots:
     dependencies:
       '@parcel/plugin': 2.13.3(@parcel/core@2.13.3(@swc/helpers@0.5.15))
       '@parcel/source-map': 2.1.1
-      sass: 1.83.4
+      sass: 1.84.0
     transitivePeerDependencies:
       - '@parcel/core'
 
@@ -10496,7 +10496,7 @@ snapshots:
 
   '@types/gapi.client.androidpublisher@3.0.2':
     dependencies:
-      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.0.20250130
+      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.0.20250206
 
   '@types/gapi.client.discovery-v1@0.0.4':
     dependencies:
@@ -10634,12 +10634,12 @@ snapshots:
     dependencies:
       three: 0.173.0
 
-  '@vituum/vite-plugin-pug@1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4)':
+  '@vituum/vite-plugin-pug@1.1.0(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.84.0)':
     dependencies:
       fast-glob: 3.3.2
       lodash: 4.17.21
       pug: 3.0.3
-      vituum: 1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4)
+      vituum: 1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.84.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -12079,7 +12079,7 @@ snapshots:
       jsonfile: 4.0.0
       mkdirp: 0.5.6
 
-  electron@34.0.2:
+  electron@34.1.1:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 20.17.9
@@ -15167,7 +15167,7 @@ snapshots:
     dependencies:
       truncate-utf8-bytes: 1.0.2
 
-  sass@1.83.4:
+  sass@1.84.0:
     dependencies:
       chokidar: 4.0.1
       immutable: 5.0.3
@@ -15860,7 +15860,7 @@ snapshots:
       extsprintf: 1.4.1
     optional: true
 
-  vite@5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4):
+  vite@5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.84.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.1
@@ -15869,15 +15869,15 @@ snapshots:
       '@types/node': 22.10.1
       fsevents: 2.3.3
       lightningcss: 1.28.2
-      sass: 1.83.4
+      sass: 1.84.0
 
-  vituum@1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4):
+  vituum@1.1.1(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.84.0):
     dependencies:
       chokidar: 3.6.0
       fast-glob: 3.3.2
       lodash: 4.17.21
       minimatch: 9.0.5
-      vite: 5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.83.4)
+      vite: 5.4.11(@types/node@22.10.1)(lightningcss@1.28.2)(sass@1.84.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
