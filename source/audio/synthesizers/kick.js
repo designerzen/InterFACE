@@ -120,14 +120,14 @@ export const getRandomKickPreset = () => {
  */
 export const createKick = (audioContext, output ) => {
 
-    const triangleOscillator = audioContext.createOscillator()
-    const sineOscillator = audioContext.createOscillator()
+    const mainOscillator = audioContext.createOscillator()
+    const subOscillator = audioContext.createOscillator()
     const gainTriangle = audioContext.createGain()
     const gainSine = audioContext.createGain()
 	let isRunning = false
 
-    triangleOscillator.type = "triangle"
-    sineOscillator.type = "sine"
+    mainOscillator.type = "triangle"
+    subOscillator.type = "sine"
 	
 	// sustain measured in volume rather than time
 	const kick = ( options=DEFAULT_KICK_OPTIONS ) => {
@@ -141,8 +141,8 @@ export const createKick = (audioContext, output ) => {
 		if (!isRunning)
 		{
 			try{
-				triangleOscillator.start(time)
-				sineOscillator.start(time)
+				mainOscillator.start(time)
+				subOscillator.start(time)
 
 				//osc4.stop(time + 0.05)  			
 			}catch(error){
@@ -155,8 +155,8 @@ export const createKick = (audioContext, output ) => {
 		gainTriangle.gain.cancelScheduledValues(time)
 		gainSine.gain.cancelScheduledValues(time)
 		
-		triangleOscillator.frequency.cancelScheduledValues(time)
-		sineOscillator.frequency.cancelScheduledValues(time)
+		mainOscillator.frequency.cancelScheduledValues(time)
+		subOscillator.frequency.cancelScheduledValues(time)
 
 		// set new envelopes
 
@@ -166,8 +166,8 @@ export const createKick = (audioContext, output ) => {
 		gainTriangle.gain.exponentialRampToValueAtTime( options.sustain, time + options.attack + options.decay)
 		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
-		triangleOscillator.frequency.setValueAtTime(options.triStart, time)
-		triangleOscillator.frequency.exponentialRampToValueAtTime(options.triEnd, endAt)
+		mainOscillator.frequency.setValueAtTime(options.triStart, time)
+		mainOscillator.frequency.exponentialRampToValueAtTime(options.triEnd, endAt)
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
@@ -175,20 +175,18 @@ export const createKick = (audioContext, output ) => {
 		gainSine.gain.exponentialRampToValueAtTime( options.sustain, time + options.attack + options.decay)
 		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
-		sineOscillator.frequency.setValueAtTime(options.sineStart, time)
-		sineOscillator.frequency.exponentialRampToValueAtTime(options.sineApex, time + options.attack)
-		sineOscillator.frequency.exponentialRampToValueAtTime(options.sineSustain || options.sineApex, time + options.attack + options.decay)
-		sineOscillator.frequency.exponentialRampToValueAtTime(options.sineEnd, endAt)
+		subOscillator.frequency.setValueAtTime(options.sineStart, time)
+		subOscillator.frequency.exponentialRampToValueAtTime(options.sineApex, time + options.attack)
+		subOscillator.frequency.exponentialRampToValueAtTime(options.sineSustain || options.sineApex, time + options.attack + options.decay)
+		subOscillator.frequency.exponentialRampToValueAtTime(options.sineEnd, endAt)
 
-		//  osc.stop(audioContext.currentTime + duration)
-		//  osc2.stop(audioContext.currentTime + duration)
 		return options
 	}
  
-    triangleOscillator.connect(gainTriangle)
+    mainOscillator.connect(gainTriangle)
     gainTriangle.connect(output)
 	
-	sineOscillator.connect(gainSine)
+	subOscillator.connect(gainSine)
 	gainSine.connect(output)
 
 	return kick
