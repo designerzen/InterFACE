@@ -28,6 +28,7 @@ import { drawFace } from "../visual/2d.face"
 import MEDIAVISION__WORKER_URI from 'url:./display-mediavision-2d.worker.js'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 import { DISPLAY_MEDIA_VISION_2D } from "./display-types.js"
+import { DrawingUtils } from "@mediapipe/tasks-vision"
 
 const DEFAULT_OPTIONS = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
