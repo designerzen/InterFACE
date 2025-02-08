@@ -41,10 +41,20 @@ block scripts
 		import WORKLET_SOUNDFONT_PROCESSOR from 'worklet:./audio/processors/soundfont-processor.js'
 		import { rearrangeArrayBySnake } from "./utils/array-tools"
 
-			console.error( "snaked 0", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 0) )
-			console.error( "snaked 5", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 5) )
-			console.error( "snaked 7", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 7) )
-			console.error( "snaked 9", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 9) )
+		// test array snaking
+		// 1 2 0 3 4 5 6 7 8 9 10
+		console.error( "snaked 1", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 1) )
+		console.error( "snaked 2", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 2) )
+		console.error( "snaked 3", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 3) )
+		console.error( "snaked 4", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 4) )
+		console.error( "snaked 5", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 5) )
+		// 5 6 4 7 3 8 2 9 1 10 0
+		console.error( "snaked 6", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 6) )
+		// 6 7 5 8 4 9 3 10 2 1 0
+		console.error( "snaked 7", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 7) )
+		console.error( "snaked 8", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 8) )
+		console.error( "snaked 9", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] , 9) )
+		console.error( "snaked X", rearrangeArrayBySnake([0,1,2,3,4,5,6,7,8,9] ) )
 
 		const start = async () => {
 

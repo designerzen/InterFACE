@@ -1,20 +1,19 @@
 /**
  * Singleton Audio Bus
  */
-
-import { initializeWamHost } from "@webaudiomodules/sdk"
-
-import {clamp, lerp, TAU} from "../maths/maths"
-
 import { chain } from './rack'
 import {getInstrumentFamily, loadInstrumentFromSoundFontSamplesViaWorker, loadInstrumentFromSoundFontString, loadInstrumentFromSoundFontStringViaWorker} from './sound-font-instruments'
 // Effects
 import { createReverb, randomReverb, getImpulseList, createCustomReverb } from './effects/reverb'
-import {createDelay} from './effects/delay'
-import {createDub} from './effects/dub'
-import {createCompressor} from './effects/compressor'
-import {createDistortion} from './effects/distortion'
-import {createAmplitude} from './effects/amplitude'
+import { createDelay} from './effects/delay'
+import { createDub} from './effects/dub'
+import { createCompressor} from './effects/compressor'
+import { createDistortion} from './effects/distortion'
+import { createAmplitude} from './effects/amplitude'
+import { createLowPassFilter } from "./effects/filter"
+import { createSaturationFilter } from "./effects/saturator"
+
+import { rearrangeArrayBySnake } from "../utils/array-tools"
 
 import {
 	createInstrumentBanks,
@@ -22,9 +21,6 @@ import {
 	// getNoteSound, getNoteText,
 	NOTE_NAMES
 } from './tuning/notes'
-import { createLowPassFilter } from "./effects/filter"
-import { createSaturationFilter } from "./effects/saturator"
-
 
 const DEFAULT_OPTIONS = {
 
@@ -42,7 +38,6 @@ const DEFAULT_OPTIONS = {
 	drumVolume:0.14
 }
 
-	
 export const CUSTOM_REVERB_OPTIONS = {
 	// seconds
 	duration:0.9, 
@@ -67,7 +62,6 @@ export const CUSTOM_REVERB_OPTIONS = {
 	// noise:'pink'  
 	noise:'white' 
 } 
-
 
 // 
 export const ZERO = 0.0000001 // Math.min
@@ -174,6 +168,11 @@ export const chooseFilters = async (options) => {
 }
  */
 
+/**
+ * 
+ * @param {Sting|Object} filenameOrObject 
+ * @returns 
+ */
 export const setReverb = async (filenameOrObject) => {
 	
 	if (filenameOrObject === null)
@@ -192,35 +191,51 @@ export const setReverb = async (filenameOrObject) => {
 }
 
 /**
+ * 
+ * @param {AudioContext} audioContext 
+ * @param {Object} options 
+ */
+export const setupAnalyser = (audioContext, options={}) => {
+	// UI spectrum analyser
+	analyser = audioContext.createAnalyser()
+	analyser.minDecibels = -90
+	analyser.maxDecibels = -10
+	analyser.smoothingTimeConstant = options.smoothingTimeConstant
+
+	bufferLength = analyser.frequencyBinCount
+    dataArray = new Uint8Array(bufferLength)
+}
+
+/**
  * Set up the Audio Engine
  * @param {?Object} settings Options
  * @returns {Promise} Chain of effects
  */
-export const setupAudio = async (settings) => {
+export const setupAudio = async (onlineAudioContext, offlineAudioContext, settings) => {
 
 	// BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
 	// INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
 	// OUTPUT_CHANNELS = 1 // the number of channels for this node's output, defaults to 2
-	
 	const options = Object.assign ( {}, DEFAULT_OPTIONS, CUSTOM_REVERB_OPTIONS, settings )
 
 	// set up forked web audio context, for multiple browsers
   	// window. is needed otherwise Safari explodes
 	// { latencyHint: 'playback' } tells the context to try and smooth playback
-	audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' })
-
+	audioContext = onlineAudioContext 
 	// fixes old ios bug about audio not starting until buttons or something
 	// resumeAudioContext()
 
 	// check to see if we have an offline context...
-	offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
- 
+	offlineAudioContext = offlineAudioContext
+
+	// VU Analyser and data
+	setupAnalyser(audioContext, options)
+
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
 	percussion = await createAmplitude(audioContext, options.drumVolume ?? 0.5 )
 	
-
 	// Creating a compressor but setting a high threshold and 
 	// high ratio so it acts as a limiter. More explanation at 
 	// https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode
@@ -269,15 +284,11 @@ export const setupAudio = async (settings) => {
 	// const samplerPlugin = await samplerWAMPlugin.createInstance(hostGroupId, audioContext, {})
 	// // link the sampler to the output
 	// samplerPlugin.audioNode.connect( compressor.node )
-	
-
 	// samplerPlugin.
 
 	// console.log("Created samplerPlugin Instrument", {samplerPlugin} )
 
 
-	
-	
 	// some space dubs!
 	delay = await createDelay(audioContext)
 	dub = await createDub(audioContext)
@@ -285,21 +296,11 @@ export const setupAudio = async (settings) => {
 	// masher (expensive)
 	// distortion = await createDistortion(audioContext)
 
-	// UI spectrum analyser
-	analyser = audioContext.createAnalyser()
-	analyser.minDecibels = -90
-	analyser.maxDecibels = -10
-	analyser.smoothingTimeConstant = options.smoothingTimeConstant
-
-	bufferLength = analyser.frequencyBinCount
-    dataArray = new Uint8Array(bufferLength)
-	
 	//recorder = audioContext.createScriptProcessor(BUFFER_SIZE, INPUT_CHANNELS, OUTPUT_CHANNELS)
 	
 	// chain( [ delayNode, feedbackNode, delayNode, 
 	// 			gainNode, reverb, 
 	// 				compressor.node, analyser], audioContext )
-
 
 	return chain( [
 
@@ -357,12 +358,12 @@ export const setupAudio = async (settings) => {
  * fftSize *must* be a power of 2 number
  */
 export const updateByteFrequencyData = (fftSize=256)=> {
-	// 
 	analyser.fftSize = fftSize
 	analyser.getByteFrequencyData(dataArray)
 	// for waves?
 	//bufferLength = analyser.fftSize
 	bufferLength = analyser.frequencyBinCount
+	return dataArray
 }
 
 /**
@@ -371,9 +372,9 @@ export const updateByteFrequencyData = (fftSize=256)=> {
  */
 export const updateByteTimeDomainData = (fftSize=2048)=> {
 	analyser.fftSize = fftSize
-	
 	analyser.getByteTimeDomainData(dataArray)
 	bufferLength = analyser.frequencyBinCount
+	return dataArray
 }
 
 /**
@@ -426,7 +427,6 @@ export const getVolume = () => mixer.volume()
  */
 export const setVolume = destinationVolume => mixer.volume(destinationVolume)
 
-
 /**
  * buffer source - to convert back to audio...
  * const song = await audioCtx.createBufferSource()
@@ -434,6 +434,8 @@ export const setVolume = destinationVolume => mixer.volume(destinationVolume)
  * song.connect(audioCtx.destination)
  * 
  * @param {OfflineAudioContext} offlineAudioContext 
+ * @param {Array} arrayBuffer 
+ * @returns {AudioBuffer} Audio buffer
  */
 export const convertArrayToBuffer = async (context, arrayBuffer)=>{
 	return await context.decodeAudioData(arrayBuffer)
@@ -563,14 +565,11 @@ async function loadInstrumentPart (instrumentName, part) {
  * This loads all pitches for one specific sound
  * @param {String} instrumentName Instrument Sample name
  * @param {String} path File path for sample pack
- * @returns {Array<Promise>} Array of instrument load promises
+ * @param {Object} options File path for sample pack
+ * @returns {Array<Promise>} Array of instrument load promises that resolve to AudioBuffers
  */
-export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options ) => {
-	const parts = createInstrumentBanks()
-
-	// console.error("Pack data", {parts, instrumentPath} )
-
-	// array of buffers to pass to playTrack
+export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={} ) => {
+	const parts = rearrangeArrayBySnake( createInstrumentBanks() , options.startIndex )
 	const instruments = parts.map( part => loadAudio(context, `${instrumentPath}/${part}` , options ) )
 	//const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
 	// eg FluidR3_GM

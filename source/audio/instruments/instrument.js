@@ -326,7 +326,7 @@ export default class Instrument{
 	}
 
 	onAvailable(resolve, reject, iteration=0){
-		console.log(iteration, "Instrument:CHECK:", this.loaded, {resolve, reject}, this.available, this)
+		//console.log(iteration, "Instrument:CHECK:", this.loaded, {resolve, reject}, this.available, this)
 		// console.log("CREATED:Instrument.onAvailable", this )
 		//
 		if (!this.available)
