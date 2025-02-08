@@ -14,65 +14,40 @@
  * and with a startIndex of 7 would become
  * 6 7 5 8 4 9 3 10 2 1 0
  * @param {Array} array 
- * @param {Number} startIndex 
+ * @param {Number} startIndex - if none specified use half way point
  */
-/*
 export const rearrangeArrayBySnake = (array, startIndex) => {
+	
+	const output = []
+
 	let extent = 0
 	let flipper = 1
-	const output = []
-	let index
 
+	if (!startIndex)
+	{
+		startIndex = Math.floor( array.length / 2 )
+	}
+	
 	for (let i=0, l=array.length; i<l; ++i)
 	{	
-		if (i===0)
+		const isEven = i%2 === 0
+		const index = startIndex + (extent * flipper)
+		flipper *= -1
+		
+		if (isEven)
 		{
-			index = startIndex
-
-		}else if (i===1){
-
-			extent += 1
-			index = startIndex + extent
-
-		}else{
-
-			flipper *= -1
-			index = array[startIndex + (extent * flipper) ]
-			
-			if (!index)
-			{
-				// that hole was not found
-				extent += 1
-				flipper *= -1
-				index = array[startIndex + (extent * flipper) ]
-		
-			}else{
-				
-				const isEven = i%2 === 0
-		
-				if (isEven)
-				{
-					extent += 1
-				}	
-				
-			}
-
+			extent++
 		}
-	
-		output.push( array[index] )
+
+		if (array[index] !== undefined)
+		{
+			//console.log("add ", i, {index, extent, flipper}, array[index])
+			output.push( array[index] )
+		}else{
+			//console.log("skip", i, {index, extent, flipper}, array[index])
+			// add extra loops
+			l++
+		}
 	}
 	return output
-}
-*/
-
-export const rearrangeArrayBySnake = (arr, startIndex) => {
-    const positions = [];
-    
-    for (let i = arr.length - 1; i >= 0; i--) {
-        positions.push(startIndex + Math.floor((startIndex - i) / 2));
-        
-        // Move forward from the end of the array if necessary
-        if ((positions[positions.length - 1] % 2 !== startIndex % 2 && (arr.length - positions.length)) || positions[positions.length - 1] >= arr.length) break;
-    }
-    return positions
 }
