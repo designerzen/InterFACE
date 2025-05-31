@@ -34,6 +34,7 @@ export const canvasVideoRecorder= (canvas, fps=15 ) => {
 
 // FIXME: Destroy once played?
 export const createVideo = (blob) => {
+	// FIXME: Memory leak - add URL.revokeObjectURL(src)
 	const videoURL = URL.createObjectURL(blob)
 	const video = new Video()
 	video.loop = true
