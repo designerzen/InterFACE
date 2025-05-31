@@ -1,17 +1,36 @@
+/**
+ * 
+C Ionian (major) — CDEFGABC
+(intervals: Whole - Whole - Half - Whole - Whole - Whole - Half)
+
+D Dorian — DEFGABCD
+(intervals: Whole - Half - Whole - Whole - Whole - Half - Whole)
+
+E Phrygian — EFGABCDE
+(intervals: Half - Whole - Whole - Whole - Half - Whole - Whole)
+
+F Lydian — FGABCDEF
+(intervals: Whole - Whole - Whole - Half - Whole - Whole - Half)
+
+G Mixolydian — GABCDEFG
+(intervals: Whole - Whole - Half - Whole - Whole - Half - Whole)
+
+A Aeolian (minor) — ABCDEFGA
+(intervals: Whole - Half - Whole - Whole - Half - Whole - Whole)
+
+B Locrian — BCDEFGAB
+(intervals: Half - Whole - Whole - Half - Whole - Whole - Whole)
+ */
+
 // Heavily inspired by Apotome
 
 // "African","Arabic","Chinese","Columbian","Greek","Indian","Indonesian","Japanese","Mexican","Persian","Peruvian","Singaporean","Spanish","Thai","Turkish","User","Western Experimental","Western Historical"
 // ["tonic","primary","secondary"]
-export const NOTES_ALPHABETICAL = ["Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
-// export const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
-export const NOTES_ALPHABETICAL_FRIENDLY = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
-
-export const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
-export const NOTES_WHITE = ["A", "B", "C", "D", "E", "F", "G" ]
 
 // ["C","C#","Db","D","D#","Eb","E","F","F#","Gb","G","G#","Ab","A","A#","Bb","B"]
 export const SCALE_NAMES = {
-	solfege:["Do","Do #","Re b","Re","Re #","Mi b","Mi","Fa","Fa #","Sol b","Sol","Sol #","La b","La","La #","Si b","Si"],
+	solfege:["Do","Do #","Re","Re #","Mi","Fa","Fa #","Sol","Sol #","La","La #","Si"], 
+	// solfege:["Do","Do #","Re b","Re","Re #","Mi b","Mi","Fa","Fa #","Sol b","Sol","Sol #","La b","La","La #","Si b","Si"],
 	northIndian:["Sa","Re -","Re -","Re","G\u0101 -","G\u0101 -","G\u0101","M\u0101","M\u0101 +","M\u0101 +","P\u0101","Dh\u0101 -","Dh\u0101 -","Dh\u0101","N\u012b -","N\u012b -","N\u012b"],
 	southIndian:["Sa","Ri -","Ri -","Ri","Ri +","G\u0101 -","G\u0101","M\u0101","M\u0101 +","M\u0101 +","Pa","Dh\u0101 -","Dh\u0101 -","Dha","Dha +","Ni -","Ni"],
 	german:["C","Cis","Des","D","Dis","Es","E","F","Fis","Ges","G","Gis","As","A","Ais","B","H"],
@@ -24,10 +43,21 @@ export const SCALE_NAMES = {
 // renamed white notes
 export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
 
+// major: [2, 2, 3, 2, 3],
+// minor: [3, 2, 2, 3, 2],
+// blues: [3, 2, 1, 3, 2],
+// dorian: [2, 3, 2, 2, 3],
+// mixolydian: [2, 2, 3, 2, 3],
+// phrygian: [1, 3, 2, 3, 2],
+// ["harmonic-minor"]: [2, 1, 3, 2, 3],
+// ["melodic-minor"]: [2, 3, 2, 2, 3],
+
+
+// =============================================================================
 
 // there are different scales with custom tunings
 // there are more out there but these are the classics
-export const TUNING_MODE_MAJOR = 'major'
+export const TUNING_MODE_IONIAN = 'ionian'
 export const TUNING_MODE_DORIAN = 'dorian'
 export const TUNING_MODE_PHRYGIAN = 'phrygian'
 export const TUNING_MODE_LYDIAN = 'lydian'
@@ -36,52 +66,127 @@ export const TUNING_MODE_AEOLIAN = 'aeolian'
 export const TUNING_MODE_LOCRIAN = 'locrian'
 
 export const TUNING_MODE_NAMES = [
-	TUNING_MODE_MAJOR,
-	TUNING_MODE_DORIAN,
-	TUNING_MODE_PHRYGIAN,
-	TUNING_MODE_LYDIAN,
-	TUNING_MODE_MIXOLYDIAN,
-	TUNING_MODE_AEOLIAN,
-	TUNING_MODE_LOCRIAN
+	TUNING_MODE_IONIAN,			// Same as major
+	TUNING_MODE_DORIAN,			// Start from second degree of major
+	TUNING_MODE_PHRYGIAN,		// Start from third degree of major
+	TUNING_MODE_LYDIAN,			// Start from fourth degree of major
+	TUNING_MODE_MIXOLYDIAN,		// Start from fifth degree of major
+	TUNING_MODE_AEOLIAN,		// Start from sixth degree (same as natural minor)
+	TUNING_MODE_LOCRIAN			// Start from seventh degree
 ]
 
+export const getModeAsIntegerOffset = (mode) => isNaN(parseInt(mode)) ? TUNING_MODE_NAMES.indexOf(mode) : mode
+  
+export const C_SCALE =  ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 export const C_MAJOR = ["C","D","E","F","G","A","B"]
 
 export const MAJOR_SCALE = [0,2,4,5,7,9,11]
-export const NAT_MINOR_SCALE = [0,2,3,5,7,8,10]
-export const HARM_MINOR_SCALE = [0,2,3,5,7,8,11]
-export const JAZZ_MEL_MINOR = [0,2,3,5,7,9,11]
+export const NATURAL_MINOR_SCALE = [0,2,3,5,7,8,10]
+export const HARMONIC_MINOR_SCALE = [0,2,3,5,7,8,11]
+export const MELODIC_MINOR_SCALE = [0,2,3,5,7,9,11]
 
+export const SCALES_NAMES = [
+	"MAJOR_SCALE",
+	"NATURAL_MINOR_SCALE",
+	"HARMONIC_MINOR_SCALE",
+	"MELODIC_MINOR_SCALE"
+]
 
-export const makeScaleMode = (scaleNotes, modeNum) => {
-  let scaleIndex = 0
-  const modeNotes = []
+export const SCALES = [
+	MAJOR_SCALE,
+	NATURAL_MINOR_SCALE,
+	HARMONIC_MINOR_SCALE,
+	MELODIC_MINOR_SCALE
+]
 
-  for(let i=0; i<scaleNotes.length; i++) 
-  {
-    scaleIndex = (i+modeNum) % scaleNotes.length
-    modeNotes.push(scaleNotes[scaleIndex])
-  }
-  console.log("makeScaleMode="+TUNING_MODE_NAMES[modeNum]+" notes="+modeNotes.toString())
-  return modeNotes
+// inspired by https://www.guitarland.com/MusicTheoryWithToneJS/PlayModes.html
+export const makeScaleMode = (notesInScale, tuningModeIndex) => {
+
+	const notes = []
+
+	for(let i=0; i<notesInScale.length; i++) 
+	{
+		const scaleIndex = (i+tuningModeIndex) % notesInScale.length
+		notes.push(notesInScale[scaleIndex])
+	}
+	console.info("makeScaleMode="+TUNING_MODE_NAMES[tuningModeIndex]+" notes="+notes.toString())
+	return notes
 }
 
-export const makeScaleModeFormula = (parentScaleFormula, modeNum) => {
-  let scaleIndex = 0
+/**
+ * 
+ * @param {Array<Number>} parentScaleFormula 
+ * @param {Number|String} mode 
+ * @returns {Array} of intervals
+ */
+export const createScaleModeIntervalsFormula = (parentScaleFormula, mode) => {
+  
   const modeFormula = []
+  const modeAsIndex = getModeAsIntegerOffset(mode)
+  let scaleIndex = 0
   let modeInterval
+
+  if (modeAsIndex < 0)
+  {
+	throw Error("Invalid tuning mode "+modeAsIndex)
+  }
 
   for(let i=0; i<parentScaleFormula.length; i++) 
   {
-    scaleIndex = (i+modeNum) % parentScaleFormula.length
-    modeInterval = (parentScaleFormula[scaleIndex] - parentScaleFormula[modeNum] +12) % 12
-    modeFormula.push(modeInterval)
-  }  
-  console.log("makeScaleModeFormula="+TUNING_MODE_NAMES[modeNum]+" formula="+modeFormula.toString())
-  return modeFormula;
+	scaleIndex = (i+modeAsIndex) % parentScaleFormula.length
+	modeInterval = (parentScaleFormula[scaleIndex] - parentScaleFormula[modeAsIndex] +12) % 12
+	modeFormula.push(modeInterval)
+  }
+
+  console.log("makeScaleModeFormula="+TUNING_MODE_NAMES[modeAsIndex]+" formula="+modeFormula.toString())
+  return modeFormula
 }
 
 
+const addOctave = (note, howManyOctaves) => {
+    const octaveChange = Number(howManyOctaves)
+    const noteName = note.substring(0 , note.length-1)
+    const startingOctave = note.substring(note.length-1, note.length)
+    const correctNameAndOctave = noteName.concat((Number(startingOctave)+octaveChange).toString()) 
+    return correctNameAndOctave
+}
+
+// var octaveNote = addOctave(myMode[0], 1)
+
+const convertFormulaToNotes = (formula, scale=C_SCALE) => formula.map( note => scale[note%scale.length] )
+// const mode = makeScaleMode(Cmajor, 4) // mode=mixolydian notes=G,A,B,C,D,E,F
+
+const modeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_IONIAN )
+// const modeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_NAMES[0] )
+console.error("modeFormula", TUNING_MODE_NAMES[0], modeFormula)
+// outputs to console: 'mode=mixolydian formula=0,2,4,5,7,9,10'
+
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_MAJOR )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_IONIAN ) ) ) )
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_DORIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_DORIAN ) ) ) )
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_PHRYGIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_PHRYGIAN ) ) ) )
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LYDIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_LYDIAN ) ) ) )
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_MIXOLYDIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_MIXOLYDIAN ) ) ) )
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_AEOLIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_AEOLIAN ) ) ) )
+SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LOCRIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_LOCRIAN ) ) ) )
+
+// console.error("(MAJOR_SCALE, TUNING_MODE_DORIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_DORIAN ) ) )
+// console.error("(MAJOR_SCALE, TUNING_MODE_PHRYGIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_PHRYGIAN ) ) )
+// console.error("(MAJOR_SCALE, TUNING_MODE_LYDIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_LYDIAN ) ) )
+// console.error("(MAJOR_SCALE, TUNING_MODE_MIXOLYDIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_MIXOLYDIAN ) ) )
+// console.error("(MAJOR_SCALE, TUNING_MODE_AEOLIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_AEOLIAN ) ) )
+// console.error("(MAJOR_SCALE, TUNING_MODE_LOCRIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_LOCRIAN ) ) )
+
+
+// TESTS
+// C D E F G A B (C) - Major (Ionian)
+// D E F G A B C (D) - Dorian
+// E F G A B C D (E) - Phrygian
+// F G A B C D E (F) - Lydian
+// G A B C D E F (G) - Mixolydian
+// A B C D E F G (A) - Aeolian
+// B C D E F G A (B) - Locrian
+
+// =============================================================================
 
 
 
@@ -126,15 +231,6 @@ function noteNameToMIDI(noteName)  {
     return Number(MIDInumber); // it should be a number already, but...
 }
 
-function changeOctave(note, howManyOctaves) {
-    var octaveChange = Number(howManyOctaves);
-    var noteName = note.substring(0 , note.length-1)
-    var startingOctave = note.substring(note.length-1, note.length)
-    var correctNameAndOctave = noteName.concat((Number(startingOctave)+octaveChange).toString()) 
-    return correctNameAndOctave;
-}
-
-
 
 var rootNameForMinorScale = {
     "E#": "F",
@@ -150,9 +246,9 @@ var rootNameForMinorScale = {
 
 var scaleNameToFormula = {
     "major": MAJOR_SCALE,
-    "natural_minor": NAT_MINOR_SCALE,
-    "melodic_minor": JAZZ_MEL_MINOR,
-    "harmonic_minor": HARM_MINOR_SCALE,
+    "natural_minor": NATURAL_MINOR_SCALE,
+    "melodic_minor": MELODIC_MINOR_SCALE,
+    "harmonic_minor": HARMONIC_MINOR_SCALE,
 };
 
 function makeScale(scaleFormula, keyNameAndOctave) {

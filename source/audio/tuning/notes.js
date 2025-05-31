@@ -9,7 +9,17 @@
 
 import {clamp} from "../../maths/maths"
 import { noteNumberToFrequency } from "./frequencies"
-import { C_MAJOR, MAJOR_SCALE, NOTES_ALPHABETICAL, NOTES_ALPHABETICAL_FRIENDLY, NOTES_BLACK, NOTES_WHITE, SOLFEGE_SCALE, makeScaleMode, makeScaleModeFormula } from "./scales"
+import { C_MAJOR, MAJOR_SCALE, SOLFEGE_SCALE, makeScaleMode, createScaleModeIntervalsFormula, SCALE_NAMES } from "./scales"
+
+export const NOTES_ALPHABETICAL = ["Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
+// export const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
+export const NOTES_ALPHABETICAL_FRIENDLY = [ "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G"]
+
+export const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
+export const NOTES_WHITE = ["A", "B", "C", "D", "E", "F", "G" ]
+
+// Do re me fah sol...
+const SOLFEGE_SOUNDS = SCALE_NAMES["solfege"]
 
 const NOTES_BLACK_INDEXES = NOTES_BLACK.length - 1
 const NOTES_WHITE_INDEXES = NOTES_WHITE.length - 1
@@ -26,18 +36,20 @@ export const MUSICAL_NOTES = ['𝅗𝅥','𝅘𝅥','♫','𝅘𝅥𝅮','𝅘𝅥𝅯','𝅘𝅥𝅰','𝅘𝅥𝅱','�
 const NOTE_NAME_MAP = {}
 const NOTE_FRIENDLY_NAME_MAP = {}
 
-const MIDI_NOTE_NUMBER_MAP = []
-const MIDI_NOTE_NUMBERS = []
-const MIDI_NOTE_NAMES = []
-const MIDI_NOTE_FRIENDLY_NAMES = []
-const MIDI_NOTE_LETTERS = []
+export const MIDI_NOTE_NUMBER_MAP = []
+export const MIDI_NOTE_NUMBERS = []
+export const MIDI_NOTE_NAMES = []
+export const MIDI_NOTE_FRIENDLY_NAMES = []
+export const MIDI_NOTE_LETTERS = []
 
-const MIDI_NOTE_FREQUENCIES = []
-const GENERAL_MIDI_INSTRUMENTS = []
+export const MIDI_NOTE_FREQUENCIES = []
+export const GENERAL_MIDI_INSTRUMENTS = []
 
 export const GENERAL_MIDI_BY_NAME = new Map()
 export const GENERAL_MIDI_NUMBERS_BY_NAME = new Map()
 export const FREQUENCY_BY_NAME = new Map()
+
+export const FREQUENCY_LIST = new Map()
 
 
 
@@ -138,23 +150,21 @@ export const NOTE_NAMES_POPULAR_FIRST = [...NOTE_NAMES]
  * which musical notes
  * @param {Number} percent 
  * @param {Number} octave - octaves 1-7
- * @param {Boolean} isMinor 
+ * @param {Boolean} facingLeft 
  * @returns A1 Ab1 etc
  */
-export const getNoteName = (percent, octave=3, isMinor=false, scale=[] ) => {
+export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES_BLACK, notesRight=NOTES_WHITE ) => {
 
-	// restrict to 1-7 even though 0 is available for many
-	// octave = clamp(octave, 1, 7)
 	let noteNumber
 	let noteName
-	
-	if (isMinor)
+
+	if (facingLeft)
 	{
-		noteNumber = Math.floor( percent * NOTES_BLACK_INDEXES )
-		noteName = NOTES_BLACK[noteNumber]
+		noteNumber = Math.floor( percent * notesLeft.length )
+		noteName = notesLeft[noteNumber]
 	}else{
-		noteNumber = Math.floor( percent * NOTES_WHITE_INDEXES )
-		noteName = NOTES_WHITE[noteNumber]
+		noteNumber = Math.floor( percent * notesRight.length )
+		noteName = notesRight[noteNumber]
 	}
 
 	// here is where we need to do our majic
@@ -173,14 +183,16 @@ export const getNoteName = (percent, octave=3, isMinor=false, scale=[] ) => {
 	// return noteName ? `${noteName}${clamp(octave, 1, 7)}` : `A0`
 }
 
+
 /**
  * return the relevent do re me fah so lat ti
  * @param {Number} percent 
- * @param {*} isMinor 
+ * @param {Boolean} isMinor 
  * @returns 
  */
 export const getNoteSound = (percent, isMinor=false) => SOLFEGE_SCALE[ Math.floor( percent * (SOLFEGE_SCALE.length-1) ) ]
 
+ 
 // Pass in A0 get out the equivalent friendly name
 export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] || noteName
 
@@ -193,9 +205,7 @@ export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] 
  *
  * This method doesn't take into account diatonic spelling. Always the same
  * pitch class is given for the same midi number.
- *
- * @name midi.note
- * @function
+
  * @param {Integer} midi - the midi number
  * @return {String} the pitch
  */
@@ -233,7 +243,7 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	const midiNoteNameGap = `${key} ${octave}`
 	const midiNoteNameFriendly = `${note}${octave}`
 	const midiNoteNameFriendlyGap = `${note} ${octave}`
-	
+	const sound = SOLFEGE_SOUNDS[(noteNumber)%SOLFEGE_SOUNDS.length]
 	
 	let alt = ""
 
@@ -264,6 +274,8 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	const friendlyName = friendly(midiNoteName, "")
 	const seperatedFriendlyName = friendly(midiNoteName)
 	const frequency = noteNumberToFrequency(noteNumber)
+	// is sharp or flat
+	const isAccidental = midiNoteName.includes("b")
 
 	const midiObject =  {
 		noteIndex,
@@ -275,7 +287,9 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 		noteName:midiNoteName,
 		name:midiNoteName,
 		title:midiNoteName,
-		alt
+		alt,
+		sound,
+		accidental:isAccidental
 	}
 	
 	GENERAL_MIDI_NUMBERS_BY_NAME.set(midiNoteName, noteNumber)		// C#1 42
@@ -296,6 +310,8 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	GENERAL_MIDI_BY_NAME.set(noteNumber, midiObject )
 	
 
+	// SIMPLE frequencies list
+	FREQUENCY_LIST.set(midiNoteName, frequency)
 
 	//console.log( noteNumber, "note", { midiNoteName, friendlyName, octave, key })
 
@@ -303,7 +319,8 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	NOTE_FRIENDLY_NAME_MAP[midiNoteName] = friendlyName
 	NOTE_NAME_MAP[midiNoteName] = noteNumber
 
-	// MIDI_NOTE_NUMBERS[noteNumber] = midiNoteName
+
+	MIDI_NOTE_NUMBERS[noteNumber] = noteNumber
 	MIDI_NOTE_NAMES[noteNumber] = midiNoteName
 	MIDI_NOTE_FRIENDLY_NAMES[noteNumber] = friendlyName
 	MIDI_NOTE_FREQUENCIES[noteNumber] = frequency
@@ -355,11 +372,12 @@ GENERAL_MIDI_NUMBERS_BY_NAME.forEach( (note, key) => {
 	FREQUENCY_BY_NAME.delete(frequency)
 })
 
-console.log("FREQUENCY_BY_NAME", FREQUENCY_BY_NAME)
-console.log("GENERAL_MIDI_BY_NAME", GENERAL_MIDI_BY_NAME)
+console.log("FREQUENCY_BY_NAME", {FREQUENCY_BY_NAME})
+console.log("FREQUENCY_LIST", {FREQUENCY_LIST})
+console.log("GENERAL_MIDI_BY_NAME", {GENERAL_MIDI_BY_NAME})
 
 const musicalMode = makeScaleMode(C_MAJOR, 4)
-const musicalModeFormula = makeScaleModeFormula(MAJOR_SCALE, 4)
+const musicalModeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, 4)
 
 console.info("PhotoSYNTH:NoteMap", {GENERAL_MIDI_MAP: GENERAL_MIDI_BY_NAME, GENERAL_MIDI_NUMBERS_BY_NAME})
 console.info("PhotoSYNTH:Tuning", { 
