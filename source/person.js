@@ -1750,7 +1750,6 @@ export default class Person{
 		// this is where all this user's audio is routed
 		this.outputNode = this.gainNode
 
-		debugger
 		if (this.options.drawEyebrows)
 		{
 			//FIXME:
