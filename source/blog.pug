@@ -18,11 +18,17 @@ block tagline
 
 block main 
 	main#news
+
 		section
 			//- MIT
-			include partials/blog/blog-25-01-24-mit.pug
+			details 
+				summary MIT
+				include partials/blog/blog-25-01-24-mit.pug
+			
 			//- DM Grant
-			include partials/blog/blog-24-10-29-dmgrant.pug
+			details 
+				summary DMLab Funding
+				include partials/blog/blog-24-10-29-dmgrant.pug
 		
 		include partials/history.pug
 	
@@ -78,7 +84,18 @@ block scripts
 		}
 
 block styles
-	styles.
+	style.
+		#intro{
+			color:var(--shade-dark, black);
+		}
+		#news{
+			width:100%;
+			color:var(--shade-dark, black);
+			max-width: var(--viewport-max-width, 1080px);
+		}
+		section{
+			width:100%;
+		}
 
 		@supports(animation-timeline:--page)
 		{
