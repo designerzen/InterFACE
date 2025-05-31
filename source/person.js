@@ -1750,6 +1750,7 @@ export default class Person{
 		// this is where all this user's audio is routed
 		this.outputNode = this.gainNode
 
+		debugger
 		if (this.options.drawEyebrows)
 		{
 			//FIXME:
@@ -1758,9 +1759,9 @@ export default class Person{
 			// this.outputNode.connect(this.eyeBrowsNode)
 			// this.outputNode = this.eyeBrowsNode
 
-			this.eyeBrowsNode = delayNode
-			this.delayNode = delayNode
-			this.feedbackNode = feedbackNode
+			// this.eyeBrowsNode = delayNode
+			// this.delayNode = delayNode
+			// this.feedbackNode = feedbackNode
 
 			// TODO: Set up as a high pass filter
 
@@ -1777,20 +1778,34 @@ export default class Person{
 			// this.outputNode = this.eyeBrowNode
 			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
 		}
+		
+		if (this.options.useDelay)
+		{
+			// DELAY : Feedback smooths out the audio
+			const delayNode = audioContext.createDelay( this.options.delayLength )
+			const feedbackNode = audioContext.createGain()
+			delayNode.delayTime.value = this.options.delayTime
+			feedbackNode.gain.value = this.options.feedback
+			
+			this.outputNode.connect(feedbackNode)
+			// connect gain to delay (delay feeds back)
+			feedbackNode.connect(delayNode)
+			// connect the delay node to the output
+			delayNode.connect( feedbackNode )
+			delayNode.connect( this.outputNode )
+			// and back in tot he feedback?
+			// delayNode.connect(destinationNode)
+			this.delayNode = delayNode
+			this.outputNode = delayNode
+		}
 
 		// allow stereo pannning...
 		// NB. This is actually quite a greedy method
 		if (this.options.stereoPan)
 		{
 			this.stereoNode = audioContext.createStereoPanner()
-			this.stereoNode.dist
-
-
 			this.outputNode.connect(this.stereoNode)
-			// this.stereoNode.connect(this.outputNode)
-			// this.stereoNode.connect(delayNode)
 			this.outputNode = this.stereoNode
-
 			//console.log("stereoNode", this.stereoNode.pan.value )
 		}
 
@@ -1818,24 +1833,6 @@ export default class Person{
 			this.outputNode = this.eyeBrowsNode
 		}
 
-		if (this.options.useDelay)
-		{
-			// DELAY : Feedback smooths out the audio
-			const delayNode = audioContext.createDelay( this.options.delayLength )
-			const feedbackNode = audioContext.createGain()
-			delayNode.delayTime.value = this.options.delayTime
-			feedbackNode.gain.value = this.options.feedback
-			
-			// connect gain to delay (delay feeds back)
-			feedbackNode.connect(delayNode)
-			// connect the delay node to the output
-			delayNode.connect( feedbackNode )
-			delayNode.connect( this.outputNode )
-			// and back in tot he feedback?
-			// delayNode.connect(destinationNode)
-			this.delayNode = delayNode
-			this.outputNode = delayNode
-		}
 
 		// now connect this directly to the main mixer
 		this.outputNode.connect(destinationNode)
