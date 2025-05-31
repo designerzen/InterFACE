@@ -5,7 +5,7 @@ import { isProductionBuild } from '../utils/is-production'
 // sample string
 // import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
-import { TUNING_MODE_MAJOR, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
+import { TUNING_MODE_IONIAN, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
 import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-factory.js'
 
 const isDevelopmentMode = !isProductionBuild()
@@ -193,7 +193,7 @@ export const DEFAULT_OPTIONS = {
 
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio
-	gamePad:false,
+	gamePad:true,
 
 	// choice of different models to use
 	model:"face",
