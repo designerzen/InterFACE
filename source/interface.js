@@ -57,8 +57,7 @@ import Person, {
 
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
-// import { playNextPart, kitSequence } from './timing/patterns.js'
-import { getKitSequence } from './timing/patterns.js'
+import { playNextPart, getKitSequence } from './timing/patterns.js'
 import { tapTempo, convertBPMToPeriod, now } from './timing/timing.js'
 import AudioTimer from './timing/timer.audio.js'
 

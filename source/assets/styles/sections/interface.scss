@@ -675,7 +675,7 @@ p strong{
 	width: 100%;
 	grid-area: 1/1/-1/-1;
 	pointer-events: none;
-
+	position: relative;
 	// padder!
 	&::before{
 		content:'';

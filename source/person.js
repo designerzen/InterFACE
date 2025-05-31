@@ -242,6 +242,7 @@ export default class Person{
 
 	// optional fx
 	stereoNode
+	delayNode
 	eyeBrowsNode	// highpass filter
 	noseNode		// compressor
 
@@ -1757,25 +1758,11 @@ export default class Person{
 			// this.outputNode.connect(this.eyeBrowsNode)
 			// this.outputNode = this.eyeBrowsNode
 
-			const delayNode = audioContext.createDelay( this.options.delayLength )
-			const feedbackNode = audioContext.createGain()
-			delayNode.delayTime.value = 0.1
-			feedbackNode.gain.value = 0.5
-			// connect gain to delay (delay feeds back)
-			feedbackNode.connect(delayNode)
-			// connect the delay node to the output
-			delayNode.connect( feedbackNode )
-			// delayNode.connect( this.outputNode )
-
-
 			this.eyeBrowsNode = delayNode
 			this.delayNode = delayNode
 			this.feedbackNode = feedbackNode
 
 			// TODO: Set up as a high pass filter
-			// for now as delay
-			this.outputNode.connect(delayNode)
-			this.outputNode = delayNode
 
 			// this.eyeBrowNode = audioContext.createDynamicsCompressor()
 			// this.eyeBrowNode.threshold.value = -100
@@ -1846,6 +1833,7 @@ export default class Person{
 			delayNode.connect( this.outputNode )
 			// and back in tot he feedback?
 			// delayNode.connect(destinationNode)
+			this.delayNode = delayNode
 			this.outputNode = delayNode
 		}
 
