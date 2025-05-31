@@ -1,15 +1,14 @@
-import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d"
-import { drawEye } from "../visual/2d.eyes"
-import { drawLip } from "../visual/2d.mouth"
-import { drawBars } from "../visual/spectrograms"
-import Display2D from "./display-canvas-2d"
+import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d.js"
+import { drawEye } from "../visual/2d.eyes.js"
+import { drawLip } from "../visual/2d.mouth.js"
+import { drawBars } from "../visual/spectrograms.js"
+import Display2D from "./display-canvas-2d.js"
 
-import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options"
-import { DISPLAY_MEDIA_PIPE_2D } from "./display-types"
+import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
+import { DISPLAY_MEDIA_PIPE_2D } from "./display-types.js"
 
 export const LOOKING_GLASS_PORTRAIT_WIDTH = 480
 export const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
-
 
 const DEFAULT_OPTIONS = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES

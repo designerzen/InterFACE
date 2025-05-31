@@ -216,7 +216,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		const response = await fetch(DATA_SOURCE)
 		DATA = await response.json()
-		//debugger
 		
 		options = {
 			...DEFAULT_OPTIONS_DISPLAY_WEBGL,
@@ -850,6 +849,9 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.drawText(x, y, paragraph, undefined, undefined, undefined, invertColours)
 	}
 
+	drawEmoticon( x, y, emoji ){
+		this.drawText(x, y, emoji )
+	}
 
 	/**
 	 * Paints an existing element onto our display

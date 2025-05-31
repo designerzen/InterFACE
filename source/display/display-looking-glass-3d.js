@@ -15,14 +15,14 @@
 
  */
 
-import * as HoloPlayCore from '/node_modules/holoplay-core/dist/holoplaycore.module.js'
+// import * as HoloPlayCore from '/node_modules/holoplay-core/dist/holoplaycore.module.js'
 // import {BridgeClient} from "@lookingglass/bridge"
 
-import AbstractDisplay from "./display-abstract"
-import { FaceLandmarker } from "@mediapipe/tasks-vision"
+// import AbstractDisplay from "./display-abstract"
+// import { FaceLandmarker } from "@mediapipe/tasks-vision"
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "/node_modules/@lookingglass/webxr/dist/@lookingglass/webxr.mjs"
-import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr/dist/bundle/webxr.js"
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
+import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr/dist/bundle/webxr.js"
 
 import * as THREE from "three/src/Three.js"
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js"

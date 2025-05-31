@@ -52,6 +52,15 @@ export default class DisplayMediaVision2D extends Display2D{
 		if (this.canvas instanceof OffscreenCanvas)
 		{
 			const worker = new Worker(new URL(MEDIAVISION__WORKER_URI), {type: 'module'})
+			worker.onerror = (error) => {
+				console.error("DISPLAY_MEDIA_VISION_2D Worker Error:", error.message, error.filename, error.lineno, error);
+				// You might want to add logic here to try and recover or display a message
+			}
+	
+			worker.onmessageerror = (event) => {
+				console.error("DISPLAY_MEDIA_VISION_2D Worker Message Error:", event);
+			}
+		  
 			worker.postMessage( {command:"initialise", canvas:this.canvas, canvasContext:this.canvasContext }, [this.canvas] )
 			this.worker = worker
 
@@ -105,7 +114,6 @@ export default class DisplayMediaVision2D extends Display2D{
 			//drawEye( annotations, true, person.isLeftEyeOpen, eyeDirection, eyeOptions)	
 		}
 	
-
 		// this.drawingUtils.drawConnectors(
 		// 	landmarks,
 		// 	FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,

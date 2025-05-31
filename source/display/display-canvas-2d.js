@@ -3,13 +3,13 @@
  */
 import AbstractDisplay from "./display-abstract"
 
-import { drawElement } from "../visual/2d"
+import { drawElement, drawRoundedRect } from "../visual/2d"
 
 // import { drawEye } from "../visual/2d.eyes"
 // import { drawLip } from "../visual/2d.mouth"
 import { hasOffscreenCanvasCapability} from '../capabilities'
 import { drawBars } from "../visual/spectrograms"
-import { drawInstrument, drawParagraph } from "../visual/2d.text"
+import { drawInstrument, drawParagraph, drawText } from "../visual/2d.text"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 import Stats from 'stats-gl'
@@ -171,7 +171,7 @@ export default class Display2D extends AbstractDisplay{
 	}
 
 	/**
-	 * 
+	 * Lazily create the canvasContext
 	 */
 	get canvasContext()
 	{
@@ -199,6 +199,9 @@ export default class Display2D extends AbstractDisplay{
 			// this.getContext
 		}
 
+		// TODO: Load any specified worker
+
+
 		this.create(applicableCanvas, options).then( e=>{
 			this.loadComplete("ready")
 		}).catch(error => {
@@ -212,7 +215,6 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	async create( canvas, options)
 	{
-		
 		canvas.addEventListener("click", e => this.nextFilter() )
 		
 		if (options.debug)
@@ -230,7 +232,6 @@ export default class Display2D extends AbstractDisplay{
 	}
 
 	async destroy(){
-
 		if (stats)
 		{
 			this.removeStats()
@@ -298,6 +299,9 @@ export default class Display2D extends AbstractDisplay{
 		}
 	}
 
+	/**
+	 * Remove the stats panel
+	 */
 	removeStats(){
 		if (stats)
 		{
@@ -407,6 +411,30 @@ export default class Display2D extends AbstractDisplay{
 
 	drawParagraph(x, y,  paragraph, size, lineHeight, invertColours  ){
 		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours  )
+	}
+
+	drawEmoticon( x, y, emoji ){
+		drawText( this.canvasContext, x, y, emoji, 44, "center", "noto-emoji", false )
+	}
+
+	/**
+	 * Draws a background for things to overlay
+	 * @param {Number} x 
+	 * @param {Number} y 
+	 * @param {Number} width 
+	 * @param {Number} height 
+	 * @param {Number} radius 
+	 * @param {Number} fillColour 
+	 * @param {Number} lineColour 
+	 * @param {Number} strokeWidth 
+	 */
+	drawRectangle(x, y, width, height, radius=0, fillColour="#FFFFFF", lineColour="#000000", strokeWidth=1 ){ 
+		
+		this.canvasContext.strokeStyle = lineColour
+		this.canvasContext.fillStyle  = fillColour || lineColour
+		this.canvasContext.strokeWidth = strokeWidth
+
+		drawRoundedRect( this.canvasContext, x, y, width, height, radius, true, true )
 	}
 	
 	/**
