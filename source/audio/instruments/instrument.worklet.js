@@ -122,7 +122,6 @@ export default class WorkletInstrument extends ProcessorInstrument {
 		return super.programChange(programNumber)
 	}
 
-	
 	clone(){
 		return new WorkletInstrument(this.audioContext, this.options)
 	}

@@ -50,3 +50,43 @@ export const generateWhiteNoise = (bufferSize=4096) => {
     }
     return output
 }
+
+
+
+export const generateNoiseBuffer = ( audioContext, channels=1, noiseFunction=generateWhiteNoise ) => {
+
+	// 1. we need a basis noise for our additive blending
+	const frameCount = audioContext.sampleRate * 1.0	// 1 second of pure white noise
+	const whiteNoiseAudioBuffer = noiseFunction( frameCount )
+
+	const noiseBuffer = audioContext.createBuffer(
+		channels,
+		frameCount,
+		audioContext.sampleRate
+	)
+
+	// Fill buffer with noise
+	for (let channel = 0; channel < channels; channel++) 
+	{
+		const nowBuffering = noiseBuffer.getChannelData(channel)
+		for (let i = 0; i < frameCount; i++) 
+		{
+			// audio needs to be in [-1.0; 1.0]
+			nowBuffering[i] = whiteNoiseAudioBuffer[i]
+		}
+	}
+	return noiseBuffer
+}
+
+
+export const generateWhiteNoiseBuffer = ( audioContext, channels=1 ) => {
+	return generateNoiseBuffer( audioContext, channels, generateWhiteNoise )
+}
+
+export const generatePinkNoiseBuffer = ( audioContext, channels=1 ) => {
+	return generateNoiseBuffer( audioContext, channels, generatePinkNoise )
+}
+
+export const generateBrownNoiseBuffer = ( audioContext, channels=1 ) => {
+	return generateNoiseBuffer( audioContext, channels, generateBrownNoise )
+}

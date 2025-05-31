@@ -1,5 +1,5 @@
-import { ZERO } from '../audio'
-import {createQueue} from '../synthesizers'
+import { ZERO } from '../audio.js'
+import {createQueue} from '../synthesizers.js'
 
 export const DEFAULT_KICK_OPTIONS = {
 	name:"Default Kick",
@@ -109,7 +109,16 @@ export const PRESETS_KICKS = [
 	PRESET_THUD_KICK
 ]
 
-export const getRandomKickPreset = () => {
+export function getKickPresets() {
+	return [
+		DEFAULT_KICK_OPTIONS,
+		PRESET_TECH_HOUSE_KICK,
+		PRESET_BEEFY_KICK,
+		PRESET_LOW_KICK,
+		PRESET_THUD_KICK
+	]
+}
+export function getRandomKickPreset() {
 	const kickIndex = Math.floor(Math.random() * PRESETS_KICKS.length)
 	return PRESETS_KICKS[kickIndex]
 }
