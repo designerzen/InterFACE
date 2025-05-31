@@ -11,33 +11,54 @@ factory.loadInstrument(0)
 */
 
 import { fetchJSON } from "../utils/fetch.js"
+import ChordInstrument from "./instruments/chord.instrument.js"
 import MIDIInstrument from "./instruments/instrument.midi.js"
-import SoundFontInstrument from "./instruments/instrument.soundfont"
-// import WAMInstrument from "./instruments/instrument.wam"
-// import WAM2Instrument from "./instruments/instrument.wam2"
+import SoundFontInstrument from "./instruments/instrument.soundfont.js"
+// import TripleOscillatorInstrument from "./instruments/instrument.triple-oscillator.js"
+// import WAMInstrument from "./instruments/instrument.wam.js"
+// import WAM2Instrument from "./instruments/instrument.wam2.js"
 // import OscillatorInstrument from "./instruments/instrument.oscillator.js"
-// import WaveGuideInstrument from "./instruments/instrument.waveguide"
-// import YoshimiInstrument from "./instruments/instrument.yoshimi"
+// import WaveGuideInstrument from "./instruments/instrument.waveguide.js"
+// import YoshimiInstrument from "./instruments/instrument.yoshimi.js"
 
-export const INSTRUMENT_TYPE_MIDI = "midi"
-export const INSTRUMENT_TYPE_OSCILLATOR = "oscillator"
-export const INSTRUMENT_TYPE_SOUNDFONT = "soundfont"
-export const INSTRUMENT_TYPE_WAM = "wam"
-export const INSTRUMENT_TYPE_WAM2 = "wam2"
+export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
+export const INSTRUMENT_TYPE_SOUNDFONT = "SoundFontInstrument"
+export const INSTRUMENT_TYPE_OSCILLATOR = "OscillatorInstrument"
+export const INSTRUMENT_TYPE_DUAL_OSCILLATOR = "DualOscillatorInstrument"
+export const INSTRUMENT_TYPE_TRIPLE_OSCILLATOR = "TripleOscillatorInstrument"
+export const INSTRUMENT_TYPE_WAM = "WAMInstrument"
+export const INSTRUMENT_TYPE_WAM2 = "WAM2Instrument"
+export const INSTRUMENT_TYPE_WAVEGUIDE = "WaveGuideInstrument"
+export const INSTRUMENT_TYPE_SYTHESIZER = "SynthesizerInstrument"
+export const INSTRUMENT_TYPE_MONOTRON = "MonotronInstrument"
+export const INSTRUMENT_TYPE_MIDI = "MIDIInstrument"
+export const INSTRUMENT_TYPE_SPEECH = "SpeechInstrument"
+export const INSTRUMENT_TYPE_KIT = "KitInstrument"
+export const INSTRUMENT_TYPE_DRUMKIT = "DrumkitInstrument"
 
 export const INSTRUMENTS = [
+	INSTRUMENT_TYPE_CHORD,
 	INSTRUMENT_TYPE_SOUNDFONT,
 	INSTRUMENT_TYPE_OSCILLATOR,
+	INSTRUMENT_TYPE_DUAL_OSCILLATOR,
+	INSTRUMENT_TYPE_TRIPLE_OSCILLATOR,
 	INSTRUMENT_TYPE_WAM,
 	INSTRUMENT_TYPE_WAM2,
-	INSTRUMENT_TYPE_MIDI
+	INSTRUMENT_TYPE_WAVEGUIDE,
+	INSTRUMENT_TYPE_SYTHESIZER,
+	INSTRUMENT_TYPE_SPEECH,
+	INSTRUMENT_TYPE_DRUMKIT,
+	INSTRUMENT_TYPE_MIDI,
+	INSTRUMENT_TYPE_KIT
 ]
 
 const instrumentsImported = new Map()
 
-// PRELOAD
+// PRELOAD these types of instrument :
 // set all types that point to these endpoints
-instrumentsImported.set("soundfont", SoundFontInstrument)
+instrumentsImported.set(INSTRUMENT_TYPE_CHORD, ChordInstrument )
+instrumentsImported.set(INSTRUMENT_TYPE_SOUNDFONT, SoundFontInstrument)
+// instrumentsImported.set(INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, TripleOscillatorInstrument)
 
 /**
  * Lazily Load the class required for creating an instrument
@@ -55,35 +76,86 @@ export const lazilyLoadInstrument = async (type) => {
 	// lazily load this instrument into memory?
 	switch( type )
 	{
+		case INSTRUMENT_TYPE_CHORD:
+			const ChordInstrument = (await import("./instruments/chord.instrument.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_CHORD, ChordInstrument)
+			return ChordInstrument
+			
 		case "osc":
 		case INSTRUMENT_TYPE_OSCILLATOR:
 			const OscillatorInstrument = (await import("./instruments/instrument.oscillator.js")).default
-			instrumentsImported.set("oscillator", OscillatorInstrument)
+			instrumentsImported.set(INSTRUMENT_TYPE_OSCILLATOR, OscillatorInstrument)
 			return OscillatorInstrument
+			
+		case "osc2":
+		case INSTRUMENT_TYPE_DUAL_OSCILLATOR:
+			const DualOscillatorInstrument = (await import("./instruments/instrument.dual-oscillator.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_DUAL_OSCILLATOR, DualOscillatorInstrument)
+			return DualOscillatorInstrument
+			
+		case "osc3":
+		case INSTRUMENT_TYPE_TRIPLE_OSCILLATOR:
+			const TripleOscillatorInstrument = (await import("./instruments/instrument.triple-oscillator.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, TripleOscillatorInstrument)
+			return TripleOscillatorInstrument
+			
+		case "synth":
+		case INSTRUMENT_TYPE_SYTHESIZER:
+			const SynthesizerInstrument = (await import("./instruments/instrument.synthesizer.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_SYTHESIZER, SynthesizerInstrument)
+			return SynthesizerInstrument
+			
+		case INSTRUMENT_TYPE_MONOTRON:
+			const MonotronInstrument = (await import("./instruments/instrument.monotron.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_MONOTRON, MonotronInstrument)
+			return MonotronInstrument
+			
+		case "waveguide":
+		case INSTRUMENT_TYPE_WAVEGUIDE:
+			const WaveGuideInstrument = (await import("./instruments/instrument.waveguide.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_WAVEGUIDE, WaveGuideInstrument)
+			return WaveGuideInstrument
 			
 		case "sf":
 		case INSTRUMENT_TYPE_SOUNDFONT:
 			const SoundFontInstrument = (await import( "./instruments/instrument.soundfont.js")).default
-			instrumentsImported.set("soundfont", SoundFontInstrument)
+			instrumentsImported.set(INSTRUMENT_TYPE_SOUNDFONT, SoundFontInstrument)
 			return SoundFontInstrument
 			
 		case INSTRUMENT_TYPE_WAM:
 			const WAMInstrument = (await import( "./instruments/instrument.wam.js")).default
-			instrumentsImported.set(type, WAMInstrument)
+			instrumentsImported.set(INSTRUMENT_TYPE_WAM, WAMInstrument)
 			return WAMInstrument
 
 		case INSTRUMENT_TYPE_WAM2:
 			const WAM2Instrument = (await import( "./instruments/instrument.wam2.js")).default
-			instrumentsImported.set(type, WAM2Instrument)
+			instrumentsImported.set(INSTRUMENT_TYPE_WAM2, WAM2Instrument)
 			return WAM2Instrument
+
+		case INSTRUMENT_TYPE_SPEECH:
+			const SpeechInstrument = (await import( "./instruments/instrument.speech.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_SPEECH, SpeechInstrument)
+			return SpeechInstrument
+
+		case INSTRUMENT_TYPE_DRUMKIT:
+			const DrumkitInstrument = (await import( "./instruments/instrument.drumkit.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_DRUMKIT, DrumkitInstrument)
+			return DrumkitInstrument
+		
+		case INSTRUMENT_TYPE_KIT:
+			const KitInstrument = (await import( "./instruments/instrument.kit.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_KIT, KitInstrument)
+			return KitInstrument
 
 		case INSTRUMENT_TYPE_MIDI:
 			// const MIDIInstrument = (await import( "./instruments/instrument.midi.js")).default
 			// instrumentsImported.set(type, MIDIInstrument)
 			return MIDIInstrument
-	}
 
-	return null
+		default: 
+			console.error("LazilyLoad Instrument", {type} )
+			return MIDIInstrument
+	}
 }
 
 /**
@@ -98,43 +170,40 @@ export const lazilyLoadInstrument = async (type) => {
  */
 export const createInstrumentFromData = async (audioContext, options) => {
 
-	const type = options.type.toLowerCase() 
+	const InstrumentClass = await lazilyLoadInstrument( options.type )
 			
-	// lazily load in data
-	switch( type )
-	{	
-		case INSTRUMENT_TYPE_MIDI:
-			const MIDIInstrument = await lazilyLoadInstrument(type)
-			const midiInstrument = new MIDIInstrument(audioContext, options)
-			return midiInstrument
+	if (!InstrumentClass)
+	{
+		throw Error("Instrument Class "+options.type+" could not be found")
+	}
 
-		case "osc":
-		case INSTRUMENT_TYPE_OSCILLATOR:
-			const OscillatorInstrument = await lazilyLoadInstrument(type)
-			const oscillatorInstrument = new OscillatorInstrument(audioContext, options)
-			return oscillatorInstrument
-			
-		case "sf":
-		case INSTRUMENT_TYPE_SOUNDFONT:
-			const SoundFontInstrument =  await lazilyLoadInstrument(type)
-			const soundfontInstrument = new SoundFontInstrument(audioContext, options)
-			return soundfontInstrument
-			
+	// lazily load in c;ass data if available
+	switch( options.type )
+	{	
+		case "wam":
 		case INSTRUMENT_TYPE_WAM:
 			// await injectJavascript(pluginURL)
-			const WAMInstrument =  await lazilyLoadInstrument(type)
-			const wamInstrument = new WAMInstrument(audioContext, options.pluginURL, options)
+			const wamInstrument = new InstrumentClass(audioContext, options.pluginURL, options)
+			await wamInstrument.loaded
 			return wamInstrument
 
-		case INSTRUMENT_TYPE_WAM2:
-			const WAM2Instrument =  await lazilyLoadInstrument(type)
-			const wam2Instrument = new WAM2Instrument(audioContext, options.pluginURL, options)
-			return wam2Instrument
+		// case "wam2":
+		// case INSTRUMENT_TYPE_WAM2:
+		// 	const wam2Instrument = new InstrumentClass(audioContext, options)
+		// 	await wam2Instrument.loaded
+		// 	return wam2Instrument
+
+		default:
+			const instrumentInstance = new InstrumentClass(audioContext, options)
+			await instrumentInstance.loaded
+			return instrumentInstance
 	}
-	return null
 }
 
-
+/**
+ * Load in a list of instruments and create them
+ * as needed from either an ID or a type
+ */
 export default class InstrumentFactory{
 
 	instruments = new Map()
@@ -203,8 +272,14 @@ export default class InstrumentFactory{
 			// parse the list
 			this.instrumentData = new Map()
 			this.instrumentList.forEach( instrument => {
-				// cache by name?
-				this.instrumentData.set( instrument.type, [...(this.instrumentData.get(instrument.type) ?? []), instrument] )
+
+				// always ensure that the type has Instrument at the end...
+				const type = instrument.type.includes("Instrument") ? instrument.type : instrument.type+"Instrument"
+
+				// cache by name too?
+				const data = [...(this.instrumentData.get(type) ?? []), instrument] 
+				this.instrumentData.set( type, data)
+				this.instrumentData.set( type.toLowerCase(), data)
 				this.instruments.set( instrument.name, instrument )
 			})
 		}else{
@@ -218,7 +293,7 @@ export default class InstrumentFactory{
 	}
 
 	/**
-	 * Create an instrument of type
+	 * Create an instrument instance of 'type'
 	 * @param {String} type 
 	 * @returns 
 	 */
@@ -235,6 +310,12 @@ export default class InstrumentFactory{
 		return Promise.all( t )
 	}
 
+	/**
+	 * 
+	 * @param {Number} index 
+	 * @param {Object} options 
+	 * @returns 
+	 */
 	async loadInstrumentFromList( index=0, options={} ){
 		return await createInstrumentFromData( this.audioContext, { ...this.list[ index % (this.quantity - 1)],  ...options } )
 	}

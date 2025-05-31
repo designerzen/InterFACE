@@ -1,3 +1,5 @@
+import InstrumentFactory from "./instrument-factory"
+
 /**
  * This handles one instrument per Manager is loaded
  * and is responsible for loading the instrument classes
@@ -5,10 +7,13 @@
  */
 export default class InstrumentManager{
 	
+	audioContext
 	activeInstrument
 	instruments = []
 	instrumentPointer = 0
 	instrumentLoadedAt = -1
+
+	factory
 
 	static get instruments(){
 		return []
@@ -46,7 +51,10 @@ export default class InstrumentManager{
 		return this.activeInstrument.isLoading
 	}
 
-	constructor(audioContext){
+	constructor(audioContext, factory=null){
+
+		this.audioContext = audioContext
+		this.factory = factory
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
@@ -91,14 +99,60 @@ export default class InstrumentManager{
 	async reloadInstrument(progressCallback){
 		return this.loadPreset("reloadInstrument", progressCallback)
 	}
+
+	/**
+	 * Replace currently active instrument with the new one
+	 * specified - this destroys the old one 
+	 * @param {Instrument} newInstrument 
+	 */
+	async swapInstrument(newInstrument){
+
+		// ensure that the instrument has actually loaded
+		await newInstrument.loaded
+
+		// Ensure that the instrument has actually changed
+		if (this.activeInstrument === newInstrument)
+		{
+			// nothing to swap to!
+			return false
+		}
+
+		// disconnect the output from the instument,
+		// kill old instrument and ensure garbage collection
+		// deals with the old instrument as soon as possible
+		if (this.activeInstrument)
+		{
+			this.activeInstrument.output.disconnect()
+			this.activeInstrument.destroy()
+		}
+
+		this.activeInstrument = newInstrument
+		
+		// Connect to the mixer
+		if (newInstrument.output)
+		{
+			newInstrument.output.connect( mixer )
+		}else{
+			// no AUDIO output to connect to (could be MIDI output for example)
+		}
+		return true
+	}
 	
 	/**
-	 * Load a specific instrument for this Person
+	 * Load a specific instrument into memory and 
 	 * TODO: Add loading events
 	 * @param {String} instrumentName Name of the standard instrument to load
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadInstrument(instrumentName, progressCallback){
+	
+		// load an instrument and populate the panels
+		const DefaultInstrumentClass = await lazilyLoadInstrument( instrumentName )
+		const defaultInstrument = new DefaultInstrumentClass(this.audioContext)
+		const defaultPresets = await this.swapToInstrument( defaultInstrument )
+	
+		// now populate the PANEL?
+
 
 		const presets = this.samplePlayer.instrumentNames
 
@@ -126,5 +180,13 @@ export default class InstrumentManager{
 		this.instrumentPointer = this.samplePlayer.instrumentIndex
 
 		return instrumentName
+	}
+
+	/**
+	 * Create a replica of this InstrumentManager and share the factory
+	 * @returns {InstrumentManager}
+	 */
+	clone(){
+		return new InstrumentManager(this.audioContext, this.factory)
 	}
 }
