@@ -2,7 +2,13 @@
  * Each mediator controls an instrument
  * through being passed as object
  */
-import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_SUSTAIN } from "../../person"
+import { 
+	STATE_INSTRUMENT_ATTACK, 
+	STATE_INSTRUMENT_DECAY, 
+	STATE_INSTRUMENT_PITCH_BEND, 
+	STATE_INSTRUMENT_SILENT, 
+	STATE_INSTRUMENT_SUSTAIN 
+} from "../../person.js"
 
 /**
  * 
