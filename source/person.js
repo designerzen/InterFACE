@@ -37,44 +37,48 @@ import {
 	NAMES
 } from './settings/options'
 
-import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths"
-import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing"
+import { toKebabCase } from "./utils/utils.js"
+import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths.js"
+import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing.js"
+import { now } from "./timing/timing.js"
 
-// all the different instruments!
-
-// Any instruments you may want to load later on!
-// import simplePluginURI from "url:./audio/wam2/simple/index.js"
-// import samplerPluginURI from "url:./audio/wam2/sampler/index.js"
-
-// import WAM2Instrument from './audio/instruments/instrument.wam2'
-// import SampleInstrument from './audio/instruments/instrument.sample'
-// import SoundFontInstrument from './audio/instruments/instrument.soundfont'
-// import MIDIInstrument from './audio/instruments/instrument-midi'
+// all the different instruments come through the instrument factory!
 import MIDIInstrument from './audio/instruments/instrument.midi.js'
-
-// import OscillatorInstrument from './audio/instruments/instrument.oscillator'
-// import WaveGuideInstrument from "./audio/instruments/instrument.waveguide"
-// import YoshimiInstrument from "./audio/instruments/instrument.yoshimi"
-import InstrumentFactory, { 
+import { 
 	INSTRUMENT_TYPE_SOUNDFONT,
 	INSTRUMENT_TYPE_OSCILLATOR, 
 	INSTRUMENT_TYPE_MIDI 
 } from './audio/instrument-factory.js'
-
 import InstrumentManager from './audio/instrument-manager.js'
-import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
+// import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
 
-import { convertNoteNameToMIDINoteNumber, getNoteText, getNoteName, getNoteSound, getFriendlyNoteName } from './audio/tuning/notes'
-import { getGeneralMIDIInstrumentFolders, getInstrumentTitle, getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex, getRandomLeadPresetIndex } from './audio/sound-font-instruments'
-import { ParamaterRecorder } from './parameter-recorder'
-import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "./dom/ui.panel-instruments.js"
-import { drawMousePressure } from './dom/mouse-pressure'
-
+// Notes, scales and keys
+import Arpeggio from './audio/arpeggio.js'
+import { createKey, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
+import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from './audio/tuning/chords.js'
+import { 
+	convertNoteNameToMIDINoteNumber, 
+	getNoteText, getNoteName, getNoteSound, getFriendlyNoteName, 
+	NOTES_ALPHABETICAL, 
+	MIDI_NOTE_NUMBERS,
+	GENERAL_MIDI_BY_NAME
+} from './audio/tuning/notes.js'
+import { 
+	getGeneralMIDIInstrumentFolders, getInstrumentTitle, 
+	getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex, getRandomLeadPresetIndex 
+} from './audio/sound-font-instruments.js'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
-import { now } from "./timing/timing.js"
-import { toKebabCase } from "./utils/utils.js"
+
+import { ParamaterRecorder } from './parameter-recorder.js'
+
+// UI
+import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "./dom/ui.panel-instruments.js"
+import { drawMousePressure } from './dom/mouse-pressure.js'
+
+// Models
 import { recogniseEmoji } from './models/emoji-detection.js'
 import { EMOJI_NEUTRAL } from './models/emoji.js'
+import { convertHeadOrientationIntoNoteData, convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, convertHeadRollToScaleAndPitchToOctaveAndYawToPitch } from './person.controls.js'
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -84,11 +88,14 @@ export const STATE_INSTRUMENT_PITCH_BEND = "instrument-pitchbend"
 export const STATE_INSTRUMENT_DECAY = "instrument-decay"
 export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 
+// Dispatched events that each person creates
 export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
+
+/*
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
 // equalpower 
 const PANNING_MODEL = "HRTF"
@@ -98,148 +105,15 @@ const PANNING_MAX_DISTANCE = 10000
 const PANNING_REF_DISTANCE = 1
 // Then there's the roll-off factor (rolloffFactor) — how quickly does the volume reduce as the panner moves away from the listener. The default value is 1; let's make that a bit bigger to exaggerate our movements.
 const PANNING_ROLL_OFF = 1 // 10
-/**
- * Default head control input mechanism
- * Where looking left and right sets the Scale
- * Where looking up and down sets the octave
- * Rolling the head left sets the pitch
- * @param {Object} prediction 
- * @param {Object} options 
- * @returns 
- */
-const convertHeadOrientationIntoNoteData = (prediction, options) => {
+*/
 
-	const octaveNumber = prediction[options.octaveController] 
-	const noteNumber = prediction[options.noteController] 
-	
-	// remap -1 -> +1 to 0 -> 1
-	const noteFloat = (1 + noteNumber) * 0.5 
-
-	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
-	// straight at screen to positive below and negative above
-	const newOctave = rangeRounded( octaveNumber , -1, 1, 1, 7 )
-
-	// simple way of selecting the black notes
-	const isMinor = prediction[options.minorController ]
-
-	
-	// console.info(noteNumber, noteFloat, "-> ? ", octaveNumber, "->", newOctave, {isMinor} )
-
-	// eg. A1 Ab1 C3 etc
-	const noteName = getNoteName(noteFloat, newOctave, isMinor)
-	// eg. Do Re Mi
-	const noteSound = getNoteSound(noteFloat, isMinor)	
-	
-	const afterTouch = 0
-
-	// 0 -> 2 : 2 is double speed, 1 is regular speed, 0 is slower
-	// normalise to 0.5 -> 1.5
-	const pitchBend = 0.5 + prediction.eyebrowExtents / 2
-
-	// console.error(pitchBend, "pitchBend", prediction.eyebrowsRaisedBy )
-	
-	// console.info("Both:",prediction.eyebrows, "Raised:",prediction.eyebrowsRaisedBy, prediction.eyebrowsInnerRaisedBy, "lowered:",prediction.eyebrowsLoweredBy )
-	// console.info("l:",prediction.leftEyebrowRaisedBy, "r:",prediction.rightEyebrowRaisedBy )
-	return {
-		octaveNumber,
-		noteNumber,
-		noteName,
-		noteSound,
-		noteFloat,
-		newOctave,
-		afterTouch,
-		pitchBend,
-		isMinor
-	}
-}
-
-// /**
-//  * Default head control input mechanism
-//  * Where looking left and right sets the Scale
-//  * Where looking up and down sets the octave
-//  * Rolling the head left sets the pitch
-//  * @param {Object} prediction 
-//  * @param {Object} options 
-//  * @returns 
-//  */
-// const convertHeadRollToPitchAndPitchToOctaveAndYawToScale = (prediction, options) => {
-
-// 	const octaveNumber = prediction[options.octaveController] 
-// 	const noteNumber = prediction[options.noteController] 
-	
-// 	// remap -1 -> +1 to 0 -> 1
-// 	const noteFloat = (1 + noteNumber) * 0.5 
-
-// 	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
-// 	// straight at screen to positive below and negative above
-// 	const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
-
-// 	// simple way of selecting the black notes
-// 	const isMinor = prediction[options.minorController ]
-
-// 	// eg. A1 Ab1 C3 etc
-// 	const noteName = getNoteName(noteFloat, newOctave, isMinor)
-// 	// eg. Do Re Mi
-// 	const noteSound = getNoteSound(noteFloat, isMinor)	
-	
-// 	const afterTouch = 0
-// 	const pitchBend = 0
-
-// 	return {
-// 		octaveNumber,
-// 		noteNumber,
-// 		noteName,
-// 		noteSound,
-// 		noteFloat,
-// 		newOctave,
-// 		afterTouch,
-// 		pitchBend,
-// 		isMinor
-// 	}
-// }
 
 /**
- * Default head control input mechanism
- * Where looking left and right sets the pitch
- * Where looking up and down sets the octave
- * Rolling the head left sets the scale
- * @param {Object} prediction 
- * @param {Object} options 
- * @returns 
+ * Pass in a person's index to get an instrument preset
+ * for that specific layer of the music
+ * @param {Number} personIndex 
+ * @returns {Preset}
  */
-const HEAD_ROLL_TO_SCALE_AND_PITCH_TO_OCTAVE_AND_YAW_TO_PITCH = {
-	noteController:'pitch',		// up down
-	octaveController:'pitch',	// lean tilt
-	gateController:'mouth',
-	pitchbendController:'eyebrowsRaisedBy',
-	aftertouchController:'rightSmirk',
-	minorController:'isFacingRight'
-}
-const convertHeadRollToScaleAndPitchToOctaveAndYawToPitch = (prediction) => {
-	return convertHeadOrientationIntoNoteData = (prediction, HEAD_ROLL_TO_SCALE_AND_PITCH_TO_OCTAVE_AND_YAW_TO_PITCH) 
-}
-
-/**
- * Default head control input mechanism
- * Where looking left and right sets the pitch
- * Where looking up and down sets the scale
- * Rolling the head left sets the octave
- * @param {Object} prediction 
- * @param {Object} options 
- * @returns 
- */
-const HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH = {
-	noteController:'yaw',		// up down
-	octaveController:'roll',	// lean tilt
-	gateController:'mouth',
-	pitchbendController:'eyebrowsRaisedBy',
-	aftertouchController:'leftSmirk',
-	minorController:'isFacingRight' // 'eyebrowsRaisedBy',
-}
-const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction) => {
-	return convertHeadOrientationIntoNoteData = (prediction, HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH) 
-}
-
 export const getRandomPresetForPerson = (personIndex) => {
 	switch(personIndex)
 	{
@@ -284,6 +158,8 @@ export default class Person{
 	state = STATE_INSTRUMENT_SILENT
 		
 	// Flags
+	useArpeggio = true
+
 	active = false
 	singing = false
 	isMouthOpen = false
@@ -317,6 +193,8 @@ export default class Person{
 
 	// internal person frame counter
 	counter = 0
+
+	arpeggio
 
 	tracks = 0
 
@@ -367,8 +245,11 @@ export default class Person{
 	eyeBrowsNode	// highpass filter
 	noseNode		// compressor
 
-	// this is the mechanism to control the music
-	// and can be set on a per user basis
+	// these are the mechanisms to control the music
+	// and can be set on a per user basis depending on their input needs
+	// controlMode = convertHeadOrientationIntoNoteData
+	// controlMode = convertHeadRollToScaleAndPitchToOctaveAndYawToPitch
+	// controlMode = convertHeadRollToOctaveAndPitchToScaleAndYawToPitch
 	controlMode = convertHeadOrientationIntoNoteData
 
 	/**
@@ -648,13 +529,14 @@ export default class Person{
 		return this.presetTitle ?? this.activeInstrument.activePreset
 	}
 
-	/**
-	 * Proxy for the button events
-	 */
-	addListener(){
-		return this.button.addEventListener(...arguments)
-	}
 
+
+	/**
+	 * 
+	 * @param {Number} index 
+	 * @param {Object} options 
+	 * @param {Boolean} saveData 
+	 */
 	constructor( index, options={}, saveData=undefined ) {
 		
 		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
@@ -734,7 +616,36 @@ export default class Person{
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
 
+	/**
+	 * Proxy for the button events
+	 */
+	addListener(){
+		return this.button.addEventListener(...arguments)
+	}
 
+	/**
+	 * After a user has left the active area, we must
+	 * reset all the states back to their correct 
+	 * start values
+	 */
+	reset(){
+		this.isUserActive = true
+		this.isMouthOpen = false
+		this.isLeftEyeOpen = true
+		this.isRightEyeOpen = true
+		this.singing = false
+		this.active = false
+		this.state = STATE_INSTRUMENT_SILENT
+
+		this.yaw = 0
+		this.pitch = 0
+		this.roll = 0
+
+		this.leftEyeClosedAt = -1
+		this.rightEyeClosedAt = -1
+		this.eyesClosed = false
+		this.emoticon = EMOJI_NEUTRAL
+	}
 
 	/**
 	 * TODO:
@@ -842,9 +753,8 @@ export default class Person{
 	/**
 	 * Person was created then left, so kill it
 	 */
-	kill(){
+	setAsLost(){
 		// only kill if not already dead?
-		
 		if (this.createdAt < -1)
 		{
 			// return if actually dead or just dying!
@@ -854,12 +764,14 @@ export default class Person{
 		this.createdAt = -this.now
 		// return if actually dead or just dying!
 
-		// console.info("KILLING", this)
+		console.info("Person lost", this)
 		this.active = false
 		this.setState(STATE_INSTRUMENT_SILENT)
-		this.onDeath()
+		this.onLost()
 		return false
 	}
+
+	// --- GUI --------------------------------------------------------------
 
 	/** 
 	 * Update Person's Memory state
@@ -871,10 +783,19 @@ export default class Person{
 		this.counter++
 
 		// resurrect the dead
-		if (this.createdAt < 0)
+		if (this.createdAt === -1)
 		{
 			this.createdAt = timeNow
 			this.onBirthed()
+		}
+		else if (this.percentageDead  === 1)
+		{
+			// if a user is lost, then we slowly kill them until they are dead
+			console.info("dead", this.deadForDuration, this.createdAt )
+			this.onDead()
+		}else if (this.deadForDuration  > 0){
+			
+			console.info(this.percentageDead, "dying", this.deadForDuration, this.createdAt )
 		}
 		
 		// reuse old prediction aka refresh
@@ -901,11 +822,7 @@ export default class Person{
 			// overwrite prediction
 		}
 
-		// durations that things have been closed for
-		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
-		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
-		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.max(leftEyeClosedFor, rightEyeClosedFor)
-
+	
 		this.eyeDirection = prediction.eyeDirection
 
 		// stereo eye panning
@@ -968,33 +885,42 @@ export default class Person{
 		{
 			this.onButtonHeld()
 		}
+			
+		// durations that things have been closed for
+		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
+		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
+		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.min(leftEyeClosedFor, rightEyeClosedFor)
 
 		// update any eye states
 		// FIXME: Smooth these out either here or directly in model
-		if (this.isLeftEyeOpen !== !prediction.leftEyeClosed)
+		if (this.isLeftEyeOpen === prediction.leftEyeClosed)
 		{
-			if (prediction.leftEyeClosed)
-			{
-				this.onLeftEyeClose( prediction.time )
-			}else{
-				// open eye
-				this.onLeftEyeOpen( prediction.time - this.leftEyeClosedAt )
-			}
 			// eye state changed
 			this.isLeftEyeOpen = !prediction.leftEyeClosed
+			if (prediction.leftEyeClosed)
+			{
+				this.leftEyeClosedAt = prediction.time 
+				this.onLeftEyeClose( prediction.time )
+			}else{
+				this.leftEyeClosedAt = -1
+				this.onLeftEyeOpen( leftEyeClosedFor )
+			}
 		}
 
-		if (this.isRightEyeOpen !== !prediction.rightEyeClosed)
+		if (this.isRightEyeOpen === prediction.rightEyeClosed)
 		{
+			// eye state changed
+			this.isRightEyeOpen = !prediction.rightEyeClosed
 			if (prediction.rightEyeClosed)
-			{
+			{		
+				this.rightEyeClosedAt = prediction.time
 				this.onRightEyeClose( prediction.time )
 				
 			}else{
-				this.onRightEyeOpen( prediction.time - this.rightEyeClosedAt )
+
+				this.rightEyeClosedAt = -1
+				this.onRightEyeOpen( rightEyeClosedFor )
 			}
-			// eye state changed
-			this.isRightEyeOpen = !prediction.rightEyeClosed
 		}
 		
 		// eyes have been closed for X -period of time
@@ -1017,6 +943,11 @@ export default class Person{
 			this.rightEyeClosedAt = prediction.time
 
 			this.onEyesClosedForTimePeriod()
+			console.info("closed eyes!", {leftEyeClosedFor, rightEyeClosedFor, eyesClosedFor })
+		}else if(leftEyeClosedFor > -1 || rightEyeClosedFor > -1){
+			console.info(prediction.time, "one closed eyes", this.isLeftEyeOpen, leftEyeClosedFor,this.isRightEyeOpen, rightEyeClosedFor, eyesClosedFor ) 
+		}else{
+			//console.info(prediction.time)
 		}
 
 		// const emoji = recogniseEmoji(this)
@@ -1103,7 +1034,7 @@ export default class Person{
 	 * @param {Object} prediction 
 	 * @param {AbstractDisplay} display 
 	 */
-	drawText(prediction, display){
+	drawText(prediction, display, showBackground=true ){
 
 		const boundingBox = prediction.box
 
@@ -1122,6 +1053,12 @@ export default class Person{
 		const textX = xMin + thirdHeadWidth
 		const textY = yMin - thirdHeadHeight
 
+		// draw a background for the text
+		if (showBackground)
+		{
+			display.drawRectangle( xMin, yMin, boxWidth, boxHeight, 4, "rgba(255,0,0,0.5)", "rgba(255,255,255,0.5)" )
+		}
+
 		// console.log({xMin, xMax, yMin, yMax })
 
 		// Mouse interactions via DOM buttons
@@ -1136,8 +1073,7 @@ export default class Person{
 				// user is holding mouse down on user...
 				const remaining = 1 - this.mouseHoldProgress
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
-				
-				
+			
 				//console.error("this.isMouseHeld",this.isMouseHeld,{remaining,percentageRemaining} )
 				if (this.isMouseHeld)
 				{	
@@ -1204,7 +1140,10 @@ export default class Person{
 			// eye:${prediction.eyeDirection} 
 			
 			display.drawInstrument(textX, textY, instrumentTitle, "", '14px' )
-			display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
+			// display.drawInstrument(textX, textY + 26, this.emoticon, "", '28px' )
+			display.drawEmoticon ( textX, textY + 26, this.emoticon )
+
+			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			if (this.debug )
 			{
@@ -1244,6 +1183,8 @@ export default class Person{
 			}
 		}
 	}
+
+	// --- AUDIO --------------------------------------------------------------
 
 	/**
 	 * Sing some songs
@@ -1289,13 +1230,24 @@ export default class Person{
 		// we can exagerate a motion by amplyifying it's signal and clamping its output
 		//const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
 		
-		const {
-			octaveNumber, newOctave,
-			noteNumber, noteName, noteSound, noteFloat,
-			afterTouch, pitchBend,
-			isMinor
-		} = this.controlMode(prediction, this.options)
 
+		const noteData = this.controlMode(prediction, this.options)
+		const { afterTouch, pitchBend, isMinor } = noteData
+		let { octaveNumber, newOctave, noteNumber} = noteData
+
+		const hasNoteChanged = this.lastNote !== noteNumber
+		// const hasNoteChanged = this.lastNoteName !== noteName
+		
+
+	
+		// remap -1 -> +1 to 0 -> 1
+		let noteFloat = (1 + noteNumber) * 0.5 
+
+		// eg. A1 Ab1 C3 etc
+		let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+		// eg. Do Re Mi
+		let noteSound = getNoteSound(noteFloat, isMinor)	
+		
 		// for the next note  0 -> 2 : 0.5 -> 1.5
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
@@ -1322,28 +1274,64 @@ export default class Person{
 		const noteName = getNoteName(noteFloat, newOctave, isMinor)
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(noteFloat, isMinor)
-		
-
-		const afterTouch = 0
-		const pitchBend = 0
-
-
 
 */
 		
-		const hasNoteChanged = this.lastNoteName !== noteName
-			
+		
 		// MIDI Note Number 0-127
-		const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
+		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
+		
+		// Set the root node in the arpeggio and reset the position...
+		if (this.useArpeggio && hasNoteChanged)
+		{
+			// update the arpeggio
+			// this.arpeggio.tonic = noteNumber
+			const forumla = isMinor ? MINOR_CHORD_INTERVALS : MAJOR_CHORD_INTERVALS
+			const mode = 0
+			this.arpeggio.setAllParameters( noteNumberForMIDI, forumla, mode )
+
+			console.info("useArpeggio", this.arpeggio.sequence, {noteNumberForMIDI, forumla, mode, noteName}, this.lastNote , noteNumber )
+
+			// const noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+			// // eg. Do Re Mi
+			// const noteSound = getNoteSound(noteFloat, isMinor)	
+			// // remap -1 -> +1 to 0 -> 1
+			// const noteFloat = (1 + noteNumber) * 0.5 
 	
+			// noteNumber, noteName, noteSound, noteFloat,
+		}else if (this.useArpeggio){
+
+			// note hasn't changed so let's get the next arpeggio note...
+			// noteNumber = 
+			noteNumberForMIDI = this.arpeggio.next()
+			console.info("Arpeggio",  this.arpeggio.sequence, noteNumberForMIDI )
+		}
+		
+		// now fetch the other data...
+		const noteObject = GENERAL_MIDI_BY_NAME.get(noteNumberForMIDI)
+		console.warn("NOTE : ", noteObject )
+
+
+
 		const friendlyNoteName = getFriendlyNoteName( noteName ) 
 	
 		// we want to ignore the 0-5px range too as inconclusive!
 		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness ) 
 				
 		// volume is an log of this
-		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) //- 0.1
+		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) * (1 - this.percentageDead ) //- 0.1
 		
+		
+		
+		console.error("Atemting to augment the audio", {
+			octaveNumber, newOctave,
+			noteNumber,
+			noteName,
+			noteSound,
+			noteNumberForMIDI,
+			friendlyNoteName
+		})
+
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume = amp
 		let note = -1
@@ -1375,7 +1363,7 @@ export default class Person{
 		// console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
 
 		// MOUTH GATE ==========================
-
+		
 		// If we have an instrument and singing is enabled
 		if ( this.instrument && this.singing )
 		{
@@ -1728,7 +1716,7 @@ export default class Person{
 	 * other facial features can 
 	 * @param {AudioContext} audioContext 
 	 */
-	async setupAudio(audioContext, destinationNode, offlineAudioContext=null, presetIndex=0 ){
+	async setupAudio(audioContext, destinationNode, instrumentManager, offlineAudioContext=null, presetIndex=0 ){
 
 		if (!audioContext)
 		{
@@ -1740,6 +1728,12 @@ export default class Person{
 			throw Error("Destination GainNode was not provided")
 		}
 
+		const instrumentFactory = instrumentManager.factory
+		if (!instrumentFactory)
+		{
+			throw Error("An InstrumentFactory instance was not provided")
+		}
+
 		this.audioContext = audioContext
 		this.offlineAudioContext = offlineAudioContext
 		
@@ -1747,6 +1741,12 @@ export default class Person{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
 
+		// so you set the root note every time and
+		// it returns the chord notes following the forumla
+		// bound by the MIDI_NOTE_NUMBERS which 
+		this.arpeggio = new Arpeggio( MIDI_NOTE_NUMBERS, MAJOR_CHORD_INTERVALS, 0 )
+
+		// this is where all this user's audio is routed
 		this.outputNode = this.gainNode
 
 		if (this.options.drawEyebrows)
@@ -1860,9 +1860,6 @@ export default class Person{
 			defaultInstrument:this.options.defaultInstrument
 		}
 
-		const instrumentFactory = new InstrumentFactory(audioContext)
-		await instrumentFactory.loadList( INSTRUMENT_LIST )
-
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
 		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, 0 )	
@@ -1935,19 +1932,31 @@ export default class Person{
 		})
 	}
 
+	// --- EVENTS --------------------------------------------------------------
+
+
 	/**
 	 * Called when this Person is created
 	 * and a prediction has been made abiout the user
 	 */
 	onBirthed(){
-		// console.info("Person Birthed")
-		
+		this.reset()
+		console.info("Person Birthed", this)
 		this.dispatchEvent(EVENT_PERSON_BORN, { person:this })
 	}
 
 
-	onDeath(){
-		// console.info("Person Killed at "+this.deadForDuration )
+	onLost(){
+		console.info("Person Lost at "+this.deadForDuration )
+		//this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
+	}
+
+	/**
+	 * Person has finally died
+	 */
+	onDead(){
+		console.info("Person Killed at "+this.deadForDuration )
+		this.createdAt = -1
 		this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
 	}
 
@@ -2038,32 +2047,33 @@ export default class Person{
 
 	onLeftEyeOpen( timeClosedFor ){
 		// console.error( "onLeftEyeOpen", {timeClosedFor} ) 
-		this.leftEyeClosedAt = -1
+		
 	}
 
 	onLeftEyeClose( timeClosed ){
 		// console.error( "onLeftEyeClose", {timeClosed} ) 
-		this.leftEyeClosedAt = timeClosed
+		
 	}
 
 	onRightEyeOpen( timeClosedFor ){
 		// console.error( "onRightEyeOpen", {timeClosedFor} ) 
 		
-		this.rightEyeClosedAt = -1
+		
 	}
 
 	onRightEyeClose( timeClosed ){
 		// console.error( "onRightEyeClose", {timeClosed}  ) 
 		
-		this.rightEyeClosedAt = timeClosed
 	}
 
 	onEyesClosedForTimePeriod(){
 		// console.error( "onEyesClosedForTimePeriod" ) 
 		this.eyesClosed = true
-		// Eyes closed for X amount of time...
-		this.loadNextPreset( instrumentName => console.log("instrumentName",instrumentName ) )
+	// Eyes closed for X amount of time...
+		this.loadNextPreset( instrumentName => console.log("onEyesClosedForTimePeriod:instrumentName",instrumentName ) )
 	}
+
+	// --- FORM --------------------------------------------------------------
 
 	/**
 	 * Create the instrument panel HTML for this user's instrument
