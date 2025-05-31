@@ -107,4 +107,9 @@ export default class RecordInstrument extends Instrument{
 		})
 		return midiTrack
 	}
+
+	
+	clone(){
+		return new RecordInstrument(this.audioContext, this.options)
+	}
 }

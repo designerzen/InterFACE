@@ -44,7 +44,8 @@ export default class MonotronInstrument extends Instrument{
 
 	type = "synthesizer"
 	title = "Monotron"
-	
+
+	/* 
 	envelope
 
 	// noise making nodes
@@ -54,6 +55,7 @@ export default class MonotronInstrument extends Instrument{
 	lfoGain
 
 	gainNode
+	*/
 
 	get volume() {
 		return this.gainNode.gain.value
@@ -83,7 +85,6 @@ export default class MonotronInstrument extends Instrument{
 	}
 
 	async create(){
-		await super.create()
 		this.gainNode = this.context.createGain()
 		this.gainNode.gain.value = 1 // this.currentVolume
 		
@@ -93,10 +94,10 @@ export default class MonotronInstrument extends Instrument{
 		this.envelope.gain.value = 0  // silence immediately
 
 		this.vco = new OscillatorNode(  this.context, { ...this.options, type:OSCILLATOR_TYPES[0] }) 
-		this.vco.type = this.options.shape ?? 'sawtooth'
+		this.vco.type = this.options.shape ?? OSCILLATOR_TYPES[2]
 		
 		this.lfo = new OscillatorNode(  this.context, { ...this.options, type:OSCILLATOR_TYPES[1] }) 
-		this.lfo.type = this.options.shape ?? 'sawtooth'
+		this.lfo.type = this.options.shape ?? OSCILLATOR_TYPES[2]
 
 		this.vcf =  this.context.createBiquadFilter()
 
@@ -112,8 +113,8 @@ export default class MonotronInstrument extends Instrument{
 		// immediately start as always playing in silent
 		this.vco.start( this.context.currentTime)
 		this.lfo.start( this.context.currentTime)
-		this.available = true
-		return true
+		
+		return await super.create()
 	}
 
 	async destroy(){
@@ -130,19 +131,21 @@ export default class MonotronInstrument extends Instrument{
 	 * @returns 
 	 */
 	async noteOn( noteNumber, velocity=1 ){
-	
+		const now = this.currentTime
+		
 		const frequency = noteNumberToFrequency(noteNumber)
 		const isNewNote = await super.noteOn(noteNumber, velocity)
 		
-		console.info("Oscillator", noteNumber, frequency, this.vco.frequency.value) 
+		// console.info("Oscillator", noteNumber, frequency, this.vco.frequency.value) 
 		// console.error("Oscillator", this, this.options, this.oscillatorA.frequency.value, {frequency, noteNumber, velocity})
 		const startAtTime = this.context.currentTime + this.options.slideDuration
 			
+		this.vco.frequency.cancelScheduledValues(now)
 		if (isNewNote)
 		{
 			// instantly or with slide?
 			// this.vco.frequency.value = frequency
-			this.vco.frequency.setValueAtTime(frequency, this.context.currentTime )
+			this.vco.frequency.setValueAtTime(frequency, now )
 			  
 		}else{
 
@@ -152,7 +155,9 @@ export default class MonotronInstrument extends Instrument{
 		}
 
 		// this.envelope.gain.setValueAtTime(1, 0)
-		this.envelope.gain.linearRampToValueAtTime(1, this.context.currentTime )
+			
+		this.envelope.gain.cancelScheduledValues(now)
+		this.envelope.gain.linearRampToValueAtTime(1, now )
 			
 		return isNewNote
 	}
@@ -166,7 +171,8 @@ export default class MonotronInstrument extends Instrument{
 	async noteOff(noteNumber, velocity=1){
 		// sharp cut / if you want a nice tail
 		// this.envelope.gain.setValueAtTime( 0, this.context.currentTime + this.options.fadeDuration*velocity )
-		this.envelope.gain.linearRampToValueAtTime( 0, this.context.currentTime + this.options.fadeDuration*velocity )
+		this.envelope.gain.cancelScheduledValues(this.currentTime)
+		this.envelope.gain.linearRampToValueAtTime( 0, this.currentTime + this.options.fadeDuration*velocity )
 		return super.noteOff(noteNumber)
 	}
 
@@ -198,8 +204,11 @@ export default class MonotronInstrument extends Instrument{
 	pitchBend(pitch){
 		// this.oscillatorA.frequency.value = noteNumberToFrequencyFast(pitch)
 		// this.oscillatorB.frequency.value = noteNumberToFrequencyFast(pitch)
-		this.vco.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
-		this.lfo.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
+		this.vco.frequency.cancelScheduledValues(this.currentTime)
+		this.vco.frequency.cancelScheduledValues(this.currentTime)
+		
+		this.vco.frequency.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
+		this.lfo.frequency.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
 		super.pitchBend(pitch)
 	}
 	
@@ -260,6 +269,10 @@ export default class MonotronInstrument extends Instrument{
 			'Monotron Triangle',
 			'Monotron Custom'
 		] 
+	}
+
+	clone(){
+		return new MonotronInstrument(this.audioContext, this.options)
 	}
 
 	// CUSTOM Methods 

@@ -194,4 +194,7 @@ export default class CompositeInstrument extends Instrument{
 
 	}
 
+	clone(){
+		return new CompositeInstrument(this.audioContext, this.options)
+	}
 }

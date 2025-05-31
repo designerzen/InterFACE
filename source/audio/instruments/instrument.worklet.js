@@ -1,9 +1,12 @@
 import Instrument from './instrument'
+import ProcessorInstrument from './instrument.processor'
 
-import { registerAudioWorklets } from '../audio'
-import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber } from '../notes'
+const DEFAUT_OPTIONS = {
+	id: "sampler-processor",
+	location:'../audio/instruments/worklets/sampler.worklet.js'
+}
 
-export default class WorkletInstrument extends Instrument {
+export default class WorkletInstrument extends ProcessorInstrument {
 
 	type = "worklet"
 
@@ -22,34 +25,65 @@ export default class WorkletInstrument extends Instrument {
 	}
 
 	constructor(audioContext, options = {}) {
-
-		super(audioContext, options)
-
-		this.gainNode = audioContext.createGain()
-		this.gainNode.gain.value = 1
-	
-		// Run this in instrument.worklet
-		const processor = new AudioWorkletNode(audioContext, options.workletURL || "interface-processor")
-		// receive message
-		processor.port.onmessage = (event) => {
-			// Handling data from the processor.
-			console.log(event.data)
-		}
-
-		processor.connect(destinationNode)
-		
-		// send message
-		this.post('Ready!')
-		
-		this.instrument = processor
-
-		console.log("Worklet", { audioContext, processor })
-
-		this.available = true
+		super(audioContext, {...DEFAUT_OPTIONS, ...options})
+		// this.title = `${options.name ?? shapeName(this.options.shape)} Wave Oscillator`
 	}
 
-	post( message ){
-		this.instrument.port.postMessage(message)
+	async create(){
+		
+		this.gainNode = this.context.createGain()
+		this.gainNode.gain.value = 1
+
+		// TODO Create AudioWorkletNode from Class
+
+		await this.context.resume()
+	
+		await super.create()
+		return true
+	}
+	
+	async destroy(){
+		return await super.destroy()
+	}
+
+	// Overwritten to accept custom Worklet types
+	async registerProcessor( moduleId="hiss-generator", moduleLocation="./audio/worklets/hiss-generator.js" ){
+		let processorNode
+		try {
+			// if processor script is already registered
+			processorNode = new AudioWorkletNode( this.context, moduleId )
+		} catch (e) {
+			try {
+				// lets re-attempt but this time by registering the processor script
+				await this.context.audioWorklet.addModule(moduleLocation)
+				processorNode = new AudioWorkletNode(this.context, moduleId )
+			} catch (e) {
+				console.error(`Error: Unable to create worklet node: ${e}`)
+				return null
+			}
+		}
+
+		// Run this in instrument.worklet
+		// receive message
+		// processorNode.port.onmessage = (event) => {
+		// 	// Handling data from the processor.
+		// 	console.log("From processor", event.data)
+		// }
+
+		processorNode.onprocessorerror = (event) => {
+			console.log('An error from AudioWorkletProcessor.constructor() was detected.')
+		}
+		return processorNode
+	}
+
+	post( data ){
+		if (this.instrument)
+		{
+			this.instrument.post(data)
+			console.log('AudioWorkletProcessor post', data ) 
+		}else{
+			console.error('AudioWorkletProcessor post IGNORED - no port available yet', data ) 
+		}
 	}
 
 	async noteOn(noteNumber, velocity = 1) {
@@ -59,7 +93,7 @@ export default class WorkletInstrument extends Instrument {
 			//console.log("Sample overwriting playback.", noteName )
 		}
 
-		this.post( "noteOn" )
+		this.post( { type:"noteOn", noteNumber, velocity} )
 		this.active = true
 		this.volume = velocity
 		return super.noteOn(noteNumber, velocity)
@@ -68,22 +102,28 @@ export default class WorkletInstrument extends Instrument {
 	async noteOff(noteNumber, velocity = 0) {
 		this.volume = velocity
 		this.active = false
-		this.post('noteOff')
+		this.post({ type:'noteOff', noteNumber, velocity})
 		return super.noteOff(noteNumber)
 	}
 
 	aftertouch(noteNumber, pressure) {
+		this.post({ type:'aftertouch', noteNumber, pressure})
 		super.aftertouch(noteNumber, pressure)
 	}
 
 	pitchBend(pitch) {
-		super.pitchBend(pitch)
+		this.post({ type:'pitchBend', pitch})
+		return super.pitchBend(pitch)
 	}
 
 	// to load a new sample we can also use the midi methods...
 	async programChange(programNumber) {
-		this.post('programChange')
+		this.post({ type:'programChange', programNumber})
 		return super.programChange(programNumber)
 	}
 
+	
+	clone(){
+		return new WorkletInstrument(this.audioContext, this.options)
+	}
 }

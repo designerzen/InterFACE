@@ -24,8 +24,10 @@ export default class Instrument{
 	title = "Instrument"
 	type = "abstract"
 
+	// unique ID set from superclass
 	unique = -1
 
+	// state flags
 	available = false
 	active = false
 
@@ -44,6 +46,7 @@ export default class Instrument{
 	// linked list
 	nextInstrument = null
 
+	// observe this promise to see when the instance is ready
 	loaded = new Promise((resolve,reject)=>this.onAvailable(resolve,reject))
 	
 	/**
@@ -53,15 +56,23 @@ export default class Instrument{
 		return `${this.name}-${this.unique}`.toLowerCase().replace(" ","_")
 	}
 
+	/**
+	 * @returns {AudioContext} 
+	 */
 	get audioContext(){
 		return this.context
 	}
 
+	/**
+	 * Get the current active preset
+	 * @returns {String|Object} of unique Instrument id for this instance
+	 */
 	get activePreset(){
 		return null
 	}
+
 	/**
-	 * @returns {String} of unique Instrument id for this instance
+	 * @returns {Boolean} is a stereo pair
 	 */
 	get isStereo(){
 		return this.channels > 1
@@ -108,6 +119,10 @@ export default class Instrument{
 		return this.modulation
 	}
 
+	get currentTime(){
+		return this.context.currentTime
+	}
+	
 	/**
 	 * All instruments 
 	 * @param {AudioContext} onlineAudioContext (not offlineAudioContext)
@@ -119,24 +134,26 @@ export default class Instrument{
 		this.options = options
 		this.activeNotes = new Map()
 		// each instrument gets a 9 length unique ID
-		this.unique = this.type.toUpperCase()+"-"+String(++Instrument.uniqueCounter).padStart(9, '0')
-	
-		// this.onAvailable = this.onAvailable.bind(this)
-		// this.onUnavailable = this.onUnavailable.bind(this)
+		this.unique = this.generateUniqueName()
 
+		// observe this promise to see when the instance is ready
 		this.create().then(()=>{
+			this.available = true
 			Promise.resolve(this.loaded)
-			// .then( r => {
-			// 	console.log("Instrument resolved!", this.loaded )
-			// })
-			//console.log("Instrument loaded!!!", this.loaded )
 		})
 	}
 	
+	/**
+	 * Create a unique code to represent this instrument
+	 * @returns {String} of unique Instrument id for this instance
+	 */
+	generateUniqueName(){
+		return this.type.toUpperCase()+"-"+String(++Instrument.uniqueCounter).padStart(9, '0')
+	}
+
 	// Life cycle methods ----------------------------------
 
 	async create(){
-		this.available = true
 		return true
 	}
 	
@@ -325,10 +342,18 @@ export default class Instrument{
 		}
 	}
 
+	clone(){
+		return new Instrument(this.audioContext, this.options)
+	}
+
+	/**
+	 * Helps classes to observe the load state of the 
+	 * required resources
+	 * @param {Function} resolve 
+	 * @param {Function} reject 
+	 * @param {Number} iteration 
+	 */
 	onAvailable(resolve, reject, iteration=0){
-		//console.log(iteration, "Instrument:CHECK:", this.loaded, {resolve, reject}, this.available, this)
-		// console.log("CREATED:Instrument.onAvailable", this )
-		//
 		if (!this.available)
 		{
 			requestAnimationFrame(()=>this.onAvailable(resolve, reject, iteration+1))
@@ -337,8 +362,19 @@ export default class Instrument{
 		}
 	}
 
+	/**
+	 * Failure - not available fur use
+	 * @param {Function} reject 
+	 */
 	onUnavailable(reject){
 		console.error("Instrument:UNAVAILABLE:", reject, this)
 		// console.log("CREATED:Instrument.onAvailable", this )
+	}
+
+	/**
+	 * Debug instance and return a string
+	 */
+	toString(){
+		return "AbstractInstrument"
 	}
 }

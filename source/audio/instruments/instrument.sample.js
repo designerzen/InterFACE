@@ -69,18 +69,36 @@ export default class SampleInstrument extends Instrument{
 		return this.instrumentName
 	}
 
+    async create(){    
+
+		this.gainNode = this.context.createGain()
+		this.gainNode.gain.value = this.currentVolume
+		
+		this.envelope = this.context.createGain()
+		this.envelope.gain.value = 0
+		
+		// we add a few extra sample places for the instruments
+		this.polyphony = this.options.polyphony ?? 5
+			
+        return super.create()
+    }
+
+	/**
+	 * TODO:
+	 */
+    async destroy(){
+	
+		this.envelope.disconnect()
+		this.gainNode.disconnect()
+								
+        super.destroy()
+    }
+
 	// allow this itself to load instruments from the system
 	// based on whatever programNumber we set below...
 	constructor( audioContext, options={} )
 	{
 		super(audioContext, options)
-		// we add a few extra sample places for the instruments
-		this.polyphony = options.polyphony ?? 5
-		
-		this.gainNode = audioContext.createGain()
-		this.volume = this.gainNode.gain.value
-
-		this.available = true
 	}
 
 	// Actually make a sound with this sample
@@ -301,5 +319,9 @@ export default class SampleInstrument extends Instrument{
 
 		// this.instrumentOrder = this.instrument
 		return this.instrument
+	}
+
+	clone(){
+		return new SampleInstrument(this.audioContext, this.options)
 	}
 }

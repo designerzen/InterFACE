@@ -158,4 +158,9 @@ export default class ProcessorInstrument extends Instrument {
 	onProcessorError(error) {
 		console.log('An error from AudioWorkletProcessor.constructor() was detected.')
 	}
+
+	
+	clone(){
+		return new ProcessorInstrument(this.audioContext, this.options)
+	}
 }

@@ -68,20 +68,32 @@ export default class WAMInstrument extends Instrument {
 		return true
 	}
 
-	constructor(audioContext, options = {}) {
-		super(audioContext, options)
-
+	/**
+	 * Create the WAM container
+	 * @returns {Boolean} has been created
+	 */
+	async create(){	
+		
 		// main controllable output
-		this.gainNode = audioContext.createGain()
-		this.volume = options.volume || 1
+		this.gainNode = this.context.createGain()
+		this.volume = this.options.volume || 1
 
 		// "wam/yoshimi.js"
-		this.loadWAM(audioContext, options.wamURL, options).then(result => {
+		const result = await this.loadWAM(this.context, this.options.wamURL, this.options)
+		
+		await super.create()
+		console.error("WAM loaded!", result)
+		//this.audioWorkletNode = new AudioWorkletNode(this.context, "sampler-processor")
 
-			console.error("WAM loaded!", result)
-			//this.audioWorkletNode = new AudioWorkletNode(audioContext, "sampler-processor")
-			this.available = true
-		})
+		return true
+	}
+
+	async destroy(){
+		super.destroy()
+	}
+
+	constructor(audioContext, options = {}) {
+		super(audioContext, options)
 	}
 
 	async noteOn(noteNumber, velocity = 1) {
@@ -136,5 +148,9 @@ export default class WAMInstrument extends Instrument {
 
 	async setState() {
 		// TODO: 
+	}
+	
+	clone(){
+		return new WAMInstrument(this.audioContext, this.options)
 	}
 }

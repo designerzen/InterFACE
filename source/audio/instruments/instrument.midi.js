@@ -100,6 +100,11 @@ export default class MIDIInstrument extends Instrument{
 	sendClock(){
 		this.midiPort.sendClock( )
 	}
+
+	
+	clone(){
+		return new MIDIInstrument(this.audioContext, this.options)
+	}
 }
 
 

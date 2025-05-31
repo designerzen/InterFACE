@@ -4,7 +4,7 @@
  */
 import Instrument from './instrument.js'
 import {noteNumberToFrequency} from '../tuning/frequencies.js'
-import { kitSequence, playNextPart } from '../../timing/patterns.js'
+import { getKitSequence, playNextPart } from '../../timing/patterns.js'
 import { createKick } from '../synthesizers/kick.js'
 import { createSnare } from '../synthesizers/snare.js'
 import { createHihat } from '../synthesizers/hihat.js'
@@ -54,24 +54,32 @@ export default class DrumkitInstrument extends Instrument{
 		return this.gainNode
 	}
 
-	constructor( audioContext, options={} ){
-
-		super(audioContext, { ...OPTIONS_DRUMKIT, ...options })
-
-		this.gainNode = audioContext.createGain()
+	async create(){
+		this.gainNode = this.context.createGain()
 		this.gainNode.gain.value = 1 // this.currentVolume
 		
-		this.kick = createKick(audioContext, this.gainNode)
-		this.snare = createSnare(audioContext, this.gainNode)
-		this.hatOpen = createHihat(audioContext, this.gainNode)
-		this.hatClosed = createHihat(audioContext, this.gainNode)
-		this.cowbell = createCowbell(audioContext, this.gainNode)
-		this.clack = createClack(audioContext, this.gainNode)
-		this.clap = createClap(audioContext, this.gainNode)
+		this.kick = createKick(this.context, this.gainNode)
+		this.snare = createSnare(this.context, this.gainNode)
+		this.hatOpen = createHihat(this.context, this.gainNode)
+		this.hatClosed = createHihat(this.context, this.gainNode)
+		this.cowbell = createCowbell(this.context, this.gainNode)
+		this.clack = createClack(this.context, this.gainNode)
+		this.clap = createClap(this.context, this.gainNode)
 		
-		this.patterns = kitSequence()
+		this.patterns = getKitSequence()
 
-		this.available = true
+		//console.info("Drumkit.create() called", this )
+
+		await super.create()
+		return true
+	}
+
+	async destroy(){
+		return await super.destroy()
+	}
+
+	constructor( audioContext, options={} ){
+		super(audioContext, { ...OPTIONS_DRUMKIT, ...options })
 	}
 
 	/**
@@ -93,6 +101,12 @@ export default class DrumkitInstrument extends Instrument{
 		return super.noteOn(noteNumber, velocity)
 	}
 	
+	/**
+	 * 
+	 * @param {Number} noteNumber 
+	 * @param {Number} velocity 
+	 * @returns 
+	 */
 	async noteOff(noteNumber, velocity=0){
 		return super.noteOff(noteNumber)
 	}
@@ -136,6 +150,11 @@ export default class DrumkitInstrument extends Instrument{
 	 * @returns {Array<String>} of Instrument Names
 	 */
 	getPresets(){
-		return OSCILLATOR_TYPES
+		return []
+	}
+
+	
+	clone(){
+		return new DrumkitInstrument(this.audioContext, this.options)
 	}
 }

@@ -99,59 +99,59 @@ export default class SynthesizerInstrument extends Instrument{
 		this.delayNode.delayTime.value = value
 	}
 
-	constructor( audioContext, options={} ){
+    async create(){       
 
-		super(audioContext, { ...OPTIONS, ...options })
-
-		this.gainNode = audioContext.createGain()
-		this.gainNode.gain.value = 1 // this.currentVolume
+		await super.create()
 		
-		this.envelope = audioContext.createGain()
+		this.gainNode = this.context.createGain()
+		this.gainNode.gain.value = 1
+		
+		this.envelope = this.context.createGain()
 		this.envelope.gain.value = 0  // silence immediately
 
-		this.mixer = audioContext.createGain()
-		this.mixer.gain.value = 1 
+		this.mixer = this.context.createGain()
+		this.mixer.gain.value = this.currentVolume
 
-		this.noiseGainNode = audioContext.createGain()
+		this.noiseGainNode = this.context.createGain()
 		this.noiseGainNode.gain.value = 1 
 
 		// we only apply this to one side of the mix
-		this.delayNode = audioContext.createDelay()
+		this.delayNode = this.context.createDelay()
 		this.delayNode.delayTime.value = 0.5
 		
-		this.stereoNode = audioContext.createChannelSplitter()
+		this.stereoNode = this.context.createChannelSplitter()
 		
-		this.oscillatorA = new OscillatorNode( audioContext, { ...this.options, type:OSCILLATOR_TYPES[0] }) 
+		this.oscillatorA = new OscillatorNode( this.context, { ...this.options, type:OSCILLATOR_TYPES[0] }) 
 		this.oscillatorA
 			.connect(this.envelope)
 			.connect(this.mixer)
 
-		this.oscillatorB = new OscillatorNode( audioContext, { ...this.options, type:OSCILLATOR_TYPES[1] }) 
+		this.oscillatorB = new OscillatorNode( this.context, { ...this.options, type:OSCILLATOR_TYPES[1] }) 
 		this.oscillatorB
 			.connect(this.envelope)
 			.connect(this.mixer)
 
 		// notch filter
-		this.bandpass = audioContext.createBiquadFilter()
+		this.bandpass = this.context.createBiquadFilter()
 		this.bandpass.type = "bandpass"
 		this.bandpass.frequency.value = 0.5
 		this.bandpass.connect(this.mixer)
 
 		// just allow the treble through
-		this.highpass = audioContext.createBiquadFilter()
+		this.highpass = this.context.createBiquadFilter()
 		this.highpass.type = "highpass"
 		this.highpass.frequency.value = 0.5
 		this.highpass.connect(this.mixer)
 
 		// just allow the bass through
-		this.lowpass = audioContext.createBiquadFilter()
+		this.lowpass = this.context.createBiquadFilter()
 		this.lowpass.type = "lowpass"
 		this.lowpass.frequency.value = 0.5
 		this.lowpass.connect(this.mixer)
 
 		// create our white noise and attach to the low pass filter
-		this.noise = audioContext.createBufferSource()
-		this.noise.buffer = createNoiseBuffer(audioContext)
+		this.noise = this.context.createBufferSource()
+		this.noise.buffer = createNoiseBuffer(this.context)
 		this.noise.loop = true
 		this.noise.connect(this.mixer)
 		// this.noise.connect(this.noiseGainNode)
@@ -168,7 +168,21 @@ export default class SynthesizerInstrument extends Instrument{
 		this.oscillatorA.start()
 		this.oscillatorB.start()
 
-		this.available = true
+		return true
+	}
+
+	/**
+	 * TODO:
+	 */
+	async destroy(){
+		this.oscillatorA.stop()
+		this.oscillatorB.stop()
+        super.destroy()
+    }
+
+	constructor( audioContext, options={} ){
+
+		super(audioContext, { ...OPTIONS, ...options })
 	}
 
 	/**
@@ -340,6 +354,11 @@ export default class SynthesizerInstrument extends Instrument{
 	 */
 	getPresets(){
 		return [ ...GENERAL_MIDI_INSTRUMENTS ] 
+	}
+
+	
+	clone(){
+		return new SynthesizerInstrument(this.audioContext, this.options)
 	}
 
 	// CUSTOM Methods 

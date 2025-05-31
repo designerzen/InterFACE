@@ -182,7 +182,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// 	options.asString = true
 		// 	descriptorURI = pack
 		// 	console.error("found JS pack.. loading as string")
-		// 	debugger
+
 
 		// }else
 		
@@ -352,5 +352,10 @@ export default class SoundFontInstrument extends SampleInstrument{
 		
 		this.instrumentLoading = false
 		return this.instrument
+	}
+
+	
+	clone(){
+		return new SoundFontInstrument(this.audioContext, this.options)
 	}
 }

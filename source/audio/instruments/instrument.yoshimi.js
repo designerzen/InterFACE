@@ -229,4 +229,9 @@ export default class YoshimiInstrument extends Instrument{
     }
 
     */
+
+	
+	clone(){
+		return new YoshimiInstrument(this.audioContext, this.options)
+	}
 }

@@ -14,6 +14,9 @@ const OPTIONS = {
 	// The frequency (in hertz) of the periodic waveform. Its default is 440.
 	frequency:440,
 
+	// volume of actual note
+	amplitude:0.7,
+
 	// An arbitrary period waveform described by a PeriodicWave object.
 	// periodicWave:,
 
@@ -26,7 +29,7 @@ const OPTIONS = {
 	// Represents an enumerated value describing the meaning of the channels. This interpretation will define how audio up-mixing and down-mixing will happen. The possible values are "speakers" or "discrete". (See AudioNode.channelCountMode for more information including default values.)
 	// channelInterpretation
 
-	slideDuration:6,
+	slideDuration:0.3,
 	fadeDuration:18,
 }
 
@@ -46,12 +49,16 @@ export default class OscillatorInstrument extends Instrument{
 	type = "oscillator"
 	title = "Oscillator Instrument"
 
-	envelope
-	oscillator 
+	// when overriding this, uncommenting this
+	// will overide any instance with undefined!
+	// envelope
+	// oscillator 
+
+	currentVolume = 0.5
 
 	attack = 0.001
 	decay = 0.1
-	sustain = 0.5
+	sustain = 0.8
 	release = 0.1
 
 	get volume() {
@@ -79,7 +86,9 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	async create(){
+		
 		await super.create()
+
 		this.gainNode = this.context.createGain()
 		this.gainNode.gain.value = this.currentVolume
 		
@@ -93,6 +102,8 @@ export default class OscillatorInstrument extends Instrument{
 
 		// immediately start as always playing in silent
 		this.oscillator.start()
+		
+		//console.info("OscillatorInstrument.create() called", this )
 		return true
 	}
 
@@ -101,36 +112,53 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	constructor( audioContext, options={} ){
-
 		super(audioContext, { ...OPTIONS, ...options })
 		this.title = `${options.name ?? shapeName(this.options.shape)} Wave Oscillator`
-		this.create().then( e => {
-			this.available = true
-		})
 	}
 
+	/**
+	 * 
+	 * @param {Number} noteNumber 
+	 * @param {Number} velocity 
+	 * @returns 
+	 */
 	async noteOn( noteNumber, velocity=1 ){
-	
+		const now = this.currentTime
+		const noteAlreadyPlaying = super.noteOn(noteNumber, velocity)
 		// console.error("oscillator",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
 	
-		// FIXME
-		
 		// this.envelope.gain.setValueAtTime(1, 0)
-		this.envelope.gain.linearRampToValueAtTime(1, this.context.currentTime+this.attack )
-		// this.oscillator.linearRampToValueAtTime(0.1, 4)
-		// this.oscillator.exponentialRampToValueAtTime(0.01, 8)
-
-		// instantly or with slide?
-		// this.oscillator.frequency.value = noteNumberToFrequency(noteNumber)
 		
-		// slide
-		this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber)+ (this.options.detune ?? 0), this.options.slideDuration )
-
-		return super.noteOn(noteNumber, velocity)
+		this.envelope.gain.cancelScheduledValues(now)
+		this.envelope.gain.linearRampToValueAtTime( this.options.amplitude, now+this.attack )
+		this.envelope.gain.linearRampToValueAtTime( this.sustain, now+this.attack+this.decay )
+		
+		// this.oscillator.frequency.linearRampToValueAtTime(0.1, 4)
+		
+		// instantly or with slide?
+		this.oscillator.frequency.cancelScheduledValues(now)
+		if (noteAlreadyPlaying)
+		{
+			this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), now + this.options.slideDuration )
+		}else{
+			this.oscillator.frequency.value = noteNumberToFrequency(noteNumber)
+		}
+		this.oscillator.detune.value = this.options.detune ?? 0
+	
+		return noteAlreadyPlaying
 	}
 	
+	/**
+	 * Note OFF
+	 * @param {Number} noteNumber 
+	 * @param {Number} velocity 
+	 * @returns 
+	 */
 	async noteOff(noteNumber, velocity=0){
-		this.envelope.gain.setValueAtTime( 0, this.context.currentTime+(velocity ?? this.decay ) )
+		const now = this.currentTime
+		// this.envelope.gain.setValueAtTime( 0, this.context.currentTime+(velocity ?? this.decay ) )
+		this.envelope.gain.cancelScheduledValues(now)
+		this.envelope.gain.linearRampToValueAtTime( 0, now+(velocity ?? this.decay ) )
 		return super.noteOff(noteNumber)
 	}
 
@@ -160,15 +188,28 @@ export default class OscillatorInstrument extends Instrument{
 	 * @param {number} pitch 
 	 */
 	pitchBend(pitch){
+		const frequency = pitch// - (this.options.detune ?? 0)
 		// this.oscillator.frequency.value = noteNumberToFrequencyFast(pitch)
-		this.oscillator.exponentialRampToValueAtTime( pitch, this.options.slideDuration )
+		this.oscillator.exponentialRampToValueAtTime( frequency, this.options.slideDuration )
 		return super.pitchBend(pitch)
 	}
 	
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
-		const index = programNumber%(OSCILLATOR_TYPES.length-1)
-		this.shape = OSCILLATOR_TYPES[index]
+		if (typeof programNumber === "string")
+		{
+			// determine if it a number or a name
+			const isNumber = !isNaN(programNumber)
+			this.shape = isNumber ? 
+				OSCILLATOR_TYPES[ programNumber%(OSCILLATOR_TYPES.length-1)] : 
+				programNumber
+
+		}else{
+
+			programNumber = 0
+			throw Error("Unexpected Preset type of Object")
+		}
+		
 		return super.programChange( programNumber )
 	}
 	
@@ -178,6 +219,11 @@ export default class OscillatorInstrument extends Instrument{
 	 */
 	getPresets(){
 		return OSCILLATOR_TYPES
+	}
+
+	
+	clone(){
+		return new OscillatorInstrument(this.audioContext, this.options)
 	}
 
 	// CUSTOM Methods

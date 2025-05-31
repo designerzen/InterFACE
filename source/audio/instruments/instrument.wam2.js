@@ -1,5 +1,6 @@
 /**
- * WAM 2 Instrument! (we must also show the GUI!)
+ * WAM 2 Instrument! 
+ * (we must also show the GUI)
  */
 
 import Instrument from './instrument.js'
@@ -18,6 +19,7 @@ export default class WAM2Instrument extends Instrument{
 	initialised = false
 
 	plugin
+
 	// get isLoading(){
 	// 	return this.available
 	// }
@@ -47,7 +49,7 @@ export default class WAM2Instrument extends Instrument{
 		const [hostGroupId] = await initializeWamHost(audioContext)
 		// const { default: WAMPlugin } = await import("/source/audio/wam2/simple/index.js")
 		// const { default: WAMPlugin } = await import("./source/audio/wam2/sampler/index.js")
-		// const { default: WAMPlugin } = await import(pluginURL)
+		const { default: WAMPlugin } = await import(pluginURL)
 		const plugin = await WAMPlugin.createInstance(hostGroupId, audioContext, options )
 			
 		if (!plugin.audioNode || !plugin.audioNode.connect )
@@ -61,7 +63,7 @@ export default class WAM2Instrument extends Instrument{
 
 		// TODO: Fetch from plugin's descriptor file
 		// we add a few extra sample places for the instruments
-		this.polyphony = 5
+		this.polyphony = 1
 
 		// save for use later!
 		this.plugin = plugin
@@ -69,28 +71,34 @@ export default class WAM2Instrument extends Instrument{
 		console.error("Loaded WAM from", pluginURL, {options, plugin, WAMPlugin})
 	}
 
-	constructor( audioContext, options={} )
-	{
-		super(audioContext, options)
-		
-		// main controllable output
-		this.gainNode = audioContext.createGain()
-		this.volume = options.volume || 1
+	async create(){
 
-		// simplePluginURI  || 
-		this.loadWAM2(audioContext, options.wamURL, options ).then( result => {
+		if (!this.options.pluginURL)
+		{
+			throw Error("WAM2 Instrument requires a WAM URL specified in the constructor options")
+		}
+		
+		this.gainNode = this.context.createGain()
+		this.volume = this.options.volume ?? 1
+
+		const result = await this.loadWAM2(this.context, this.options.pluginURL, this.options )
 				
-			this.available = true
-		})
+		await super.create()
+		console.info("WAM2Instrument.create() called", result, pluginURL, this )
+		return true
+	}
+	
+	async destroy(){
+		return await super.destroy()
+	}
+
+
+	constructor( audioContext, options={} ){
+		super(audioContext, options)
 	}
 
 	async noteOn(noteNumber, velocity=1){
 
-		// const audioBuffer = this.instrument[convertMIDINoteNumberToName(noteNumber)]
-		// if(audioBuffer)
-		// {
-		// 	await this.play(audioBuffer, velocity)
-		// }
 		console.log("Instrument:noteOn",this.plugin, this )
 
 		// this.plugin.noteOn(noteNumber, velocity)
@@ -133,11 +141,17 @@ export default class WAM2Instrument extends Instrument{
 	async getState () 
 	{
 		const state = await this.plugin.audioNode.getState()
-		return new Blob([JSON.stringify(state, undefined, 2)])
+		return JSON.stringify(state, undefined, 2)
+		// return new Blob([JSON.stringify(state, undefined, 2)])
 	}
 
 	async setState(){
 		// TODO: 
+	}
+
+	
+	clone(){
+		return new WAM2Instrument(this.audioContext, this.options)
 	}
 
 	/**
@@ -149,5 +163,7 @@ export default class WAM2Instrument extends Instrument{
 		link.href = URL.createObjectURL( this.getState() )
 		link.download = 'state.json'
 		link.click()
+		// Free up memory
+		URL.revokeObjectURL(link.href)
 	}
 }
