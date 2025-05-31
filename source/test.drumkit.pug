@@ -35,7 +35,7 @@ block scripts
 		import {DEFAULT_CLAP_OPTIONS} from './audio/synthesizers/clap.js'
 		import {DEFAULT_COWBELL_OPTIONS} from './audio/synthesizers/cowbell.js'
 		import { createDrumkit } from './audio/drum-kit'
-		import { playNextPart, kitSequence } from './timing/patterns'
+		import { playNextPart, getKitSequence } from './timing/patterns'
 		import GamePad from './hardware/gamepad'
 		import AudioTimer from './timing/timer.audio.js' 
 		import {Pane} from 'tweakpane'
@@ -51,10 +51,10 @@ block scripts
 
 		let timer = new AudioTimer()
 		let kit
-		let patterns = kitSequence()
+		let patterns = getKitSequence()
 		
 		const setRandomDrumPattern = ( floor=17 ) => {
-			patterns = kitSequence( Math.floor( floor + Math.random() * 23 ))
+			patterns = getKitSequence( Math.floor( floor + Math.random() * 23 ))
 		} 
 
 		const advanceDrumSequence = () => {

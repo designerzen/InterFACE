@@ -12,29 +12,54 @@ block main
 	main#app-frame
 		include partials/toast.pug	
 		include partials/control-panel.pug
+
+		label(for="toggle-playback-scale") Play Scale 
+			input#toggle-playback-scale(type="checkbox")
+
+		label(for="select-scale") Scale
+			select#select-scale
+				option(value="0") Major Scale
+				option(value="1") Minor Scale
+				option(value="2") Dorian Scale
+				option(value="3") Fifths Scale
+
+		label(for="select-mode") Mode
+			select#select-mode
+				option(value="0") Major
+				option(value="1") Minor
+				option(value="2") Ionian
+				option(value="3") Dorian
+				option(value="4") Phrygian
+				option(value="5") Lydian
+				option(value="6") Mixolydian
+				option(value="7") Aeolian
+				option(value="8") Locrian
+
+		section#instrument-selector
+			button(type="button" data-instrument="SoundFontInstrument") SoundFontInstrument
+			button(type="button" data-instrument="OscillatorInstrument") Oscillator
+			button(type="button" data-instrument="DualOscillatorInstrument") Dual Oscillator
+			button(type="button" data-instrument="TripleOscillatorInstrument") Triple Oscillator
+			button(type="button" data-instrument="WAMInstrument") WAMInstrument
+			button(type="button" data-instrument="WAM2Instrument") WAM2Instrument
+			button(type="button" data-instrument="WaveGuideInstrument") WaveGuideInstrument
+			button(type="button" data-instrument="MonotronInstrument") MonotronInstrument
+			button(type="button" data-instrument="SpeechInstrument") SpeechInstrument
+			button(type="button" data-instrument="SynthesizerInstrument") Synthesizer
+			button(type="button" data-instrument="DrumkitInstrument") Drumkit
+			button(type="button" data-instrument="KitInstrument") Kit
+
 		include partials/piano.pug
 	
 block scripts
 	script(type="module" src="./tests/tests.instrument.js")
+	//- script(type="module" src="./tests/tests.instro.js")
 	
 block styles 
-	style.
+	style(type="text/scss").
 		#button-video{
 			display:none;
 		}
 		.instrument-panel{
 			
-		}
-		.piano-key-white{
-			background-color:white;
-			fill:white;
-		}
-		.piano-key-white:hover{
-			fill:pink;
-		}
-		.piano-key-black{
-			background-color:black;
-		}
-		.piano-key-black:hover{
-			fill:pink;
 		}

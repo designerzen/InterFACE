@@ -79,24 +79,8 @@ block main
 							li: a(href="#menu") Back to main menu
 
 block scripts
-	script(type="module").
-		// 
-		import { setupTempoInterface } from './dom/ui.tempo.js'
-		import AudioTimer from './timing/timer.audio.js' 
-		import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
-		import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-		import MIDIInstrument from './audio/instruments/instrument.midi.js'
-
-		const MIDIConnectionClasses = [WebMIDIClass]
-		const midiManager = new MIDIConnectionManager()
-		const timer = new AudioTimer()
-		const audioContext = new AudioContext()
-
-		// const instrument = new MIDIInstrument( audioContext )
-
-		// TODO: load in any settings from localstorage
-		setupTempoInterface(timer, midiManager, MIDIConnectionClasses)
-
+	script(src="./tests/test.timing.js" type="module")
+	
 block styles 
 	style.
 		/* See sections/panel-tempo.scss */

@@ -1,0 +1,114 @@
+extends _base.pug
+
+block title
+	+title('Test:Gamepad')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	menu.gamepad
+		
+
+block scripts
+	script(type="module").
+		import GamePad, {GamePadManager, fetchGamePads, COMMANDS, GAME_PAD_CONNECTED, GAME_PAD_DISCONNECTED} from './hardware/gamepad.js'		
+
+		const watchGamePads = () => {
+
+			const gamepadHeld = new Map()
+			const gamePadManager = new GamePadManager()
+			gamePadManager.addEventListener( (button, value, gamePad) => {
+				
+				switch(button)
+				{
+					case GAME_PAD_CONNECTED:
+					case GAME_PAD_DISCONNECTED:
+						break
+				
+					default: 
+						if (value)
+						{
+							gamepadHeld.set(button, value)
+						}else{
+							gamepadHeld.delete(button)
+						}
+				}
+				
+				switch(button)
+				{
+					case GAME_PAD_CONNECTED:
+						console.info("Gamepad connected", button, value, gamePad )
+						break
+
+					case GAME_PAD_DISCONNECTED:
+						console.info("Gamepad disconnected", button, value, gamePad )
+						break
+
+					// open sidebar
+					case COMMANDS.START: 
+						console.info("Gamepad start", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.SELECT: 
+						console.info("Gamepad select", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.A: 
+						console.info("Gamepad A", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.B: 
+						console.info("Gamepad B", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.X: 
+						console.info("Gamepad X", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.Y: 
+						console.info("Gamepad Y", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.LB: 
+						console.info("Gamepad LB", value, { gamePad, gamepadHeld } )
+						break
+					
+					case COMMANDS.LB: 
+						console.info("Gamepad LB", value, { gamePad, gamepadHeld } )
+						break
+
+					case COMMANDS.RB: 
+						console.info("Gamepad RB", value, { gamePad, gamepadHeld } )
+						break
+
+					case COMMANDS.LT: 
+						console.info("Gamepad LT", value, { gamePad, gamepadHeld } )
+						break
+
+					case COMMANDS.RT: 
+						console.info("Gamepad RT", value, { gamePad, gamepadHeld } )
+						break
+
+					default:
+						console.info("Gamepad", { gamePadManager, button, value, gamePad } )
+				}
+			})
+		}
+
+		document.addEventListener( "mousedown", e => watchGamePads(), {once:true} )
+	
+
+block styles 
+	style.
+		.drum-sounds{
+			width:66vw;
+			height:100vh;
+			gap:12px;
+			padding:12px;
+			box-sizing:border-box;
+			display:grid;
+			grid-template-columns:repeat( 4, 1fr );
+		}

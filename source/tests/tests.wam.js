@@ -8,9 +8,12 @@ import * as THREE from "three/src/Three.js"
 
 import {
 	createInstruments, 
-	getRandomInstrument, getInstrumentFamily,
-	instrumentFolders, instrumentNames, loadInstrumentDataPack, 
-	loadInstrumentFromSoundFontString, loadInstrumentFromSoundFontStringViaWorker, INSTRUMENT_PACKS, getNextSoundPackName, getGeneralMIDIInstrumentFolders, getGeneralMIDIInstrumentNames, getGeneralMIDIInstrumentFileFromName
+	INSTRUMENT_PACKS,
+	getRandomInstrument,  
+	getNextSoundPackName, 
+	getGeneralMIDIInstrumentFolders,
+	getGeneralMIDIInstrumentNames, 
+	getGeneralMIDIInstrumentFileFromName
 } from '../audio/sound-font-instruments.js'
 
 // this just uses Parcel to bundle the file locally

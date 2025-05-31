@@ -1,0 +1,30 @@
+extends _base.pug
+
+block title
+	+title('Test:Hand tracking')
+
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#hands
+		video#webcam(autoplay, playsinline, width="640", height="480")
+			p No Video available - unable to playback ;(
+		canvas#canvas-main( width="640", height="480")
+		output#gesture-output
+
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		main{
+			width:100%;
+		}
+
+block scripts
+	script(type="module" src="./tests/test.hands.js")
