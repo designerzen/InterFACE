@@ -1,4 +1,3 @@
-import { RGBA_ASTC_4x4_Format } from 'three'
 import {drawRoundedRect} from './2d'
 
 const whiteKeys = 7
