@@ -1,7 +1,7 @@
 [
 	{
 		"name":"OpenGM24",
-		"type":"soundfont",
+		"type":"SoundFontInstrument",
 		"title":"Open General MIDI 2024 Soundfont",
 		"description":"Open Source General MIDI SoundFont 2",
 		"descriptor":"/assets/audio/OpenGM24.json",
@@ -11,60 +11,36 @@
 	},
 
 	{
-		"name":"Musyngkite",
-		"type":"soundfont",
-		"title":"Musyng Kite Soundfont",
-		"description":"Open Source General MIDI SoundFont 2",
-		"descriptor":"/assets/audio/musyng.json",
-		"formats":{
-			"mp3":"./assets/audio/Musyngkite/",
-			"ogg":"./assets/audio/Musyngkite/",
-			"base64-mp3":" https://paulrosen.github.io/midi-js-soundfonts/MusyngKite/"
-		}
-	},
-
-	{
-		"name":"FatBoy",
-		"type":"soundfont",
-		"title":"FatBoy Soundfont",
-		"description":"Open Source General MIDI SoundFont 2",
-		"descriptor":"/assets/audio/fatboy.json",
-		"formats":{
-			"mp3":"./assets/audio/FatBoy/",
-			"ogg":"./assets/audio/FatBoy/",
-			"base64-mp3":" https://paulrosen.github.io/midi-js-soundfonts/FatBoy/"
-		}
-	},
-
-	{
-		"name":"FluidR3_GM",
-		"type":"soundfont",
-		"title":"FluidR3_GM Soundfont",
-		"description":"Open Source General MIDI SoundFont 2",
-		"descriptor":"/assets/audio/fluid.json",
-		"formats":{
-			"mp3":"./assets/audio/FluidR3_GM/",
-			"ogg":"./assets/audio/FluidR3_GM/",
-			"base64-mp3":" https://paulrosen.github.io/midi-js-soundfonts/FluidR3_GM/"
-		}
-	},
-
-	{
 		"name":"Oscillator",
-		"type":"oscillator",
+		"type":"Oscillator",
 		"title":"Simple Synthesizer",
 		"description":"Single Oscillator Synthesizer",
+		"descriptor":"/assets/audio/oscillator.json",
+		"formats":{}
+	},
+	{
+		"name":"Dual Oscillator",
+		"type":"DualOscillator",
+		"title":"Dual Oscillator",
+		"description":"Dual Oscillator Synthesizer",
+		"descriptor":"/assets/audio/oscillator.json",
+		"formats":{}
+	},
+	{
+		"name":"Triple Oscillator",
+		"type":"TripleOscillator",
+		"title":"Triple Oscillator",
+		"description":"Triple Oscillator Synthesizer",
 		"descriptor":"/assets/audio/oscillator.json",
 		"formats":{}
 	},
 
 	{
 		"name":"Synth101",
-		"type":"wam2",
+		"type":"WAM2Instrument",
 		"title":"",
 		"description":"",
 		"descriptor":"/wam2/synth101/src/descriptor.json",
 		"formats":{}
 	}
-
 ]
