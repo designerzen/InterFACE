@@ -176,7 +176,13 @@
 			background-size: contain;
 			filter:invert(100%);
 		}
+		&:hover{
+			&::before{
+				filter:invert(50%);
+			}
+		}
 		font-size: 0;
+		order: 2;
 	}
 
 	.educate{

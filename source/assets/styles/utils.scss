@@ -10,7 +10,6 @@
 :is(section article){
 	color:var(--shade-dark);
 	background-color:var(--shade-white);
-	max-inline-size: 65ch;
 	border-radius:var(--curve, var(--pad, 24px));
 	padding:calc( var(--pad) * 3) calc(var(--pad) * 4);
 	box-shadow: var(--shadow);

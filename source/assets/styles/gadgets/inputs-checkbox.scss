@@ -165,6 +165,7 @@ input[type="checkbox" i].switch{
 		justify-content: center;
 		content:'SIMPLE';
 		content:'🧸';
+		font-family:"noto-emoji";
 		@extend %drop-shadow;
 		color: var(--shade-white);
 

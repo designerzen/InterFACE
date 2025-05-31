@@ -22,6 +22,13 @@
 		font-display: swap;
 	}
 
+	// EMOJI ------------------------------------------------
+	@font-face {
+		font-family: 'noto-emoji';
+		src: url('./assets/fonts/noto-emoji/NotoEmoji-VariableFont_wght.ttf') format('truetype');
+		font-style: normal;
+		font-display: swap;
+	}
 
 	// DSYLEXIA ------------------------------------------------
 
@@ -42,16 +49,6 @@
 		font-style: normal;
 		font-display: swap;
 	}
-
-	// @font-face {
-	// 	font-family: 'Lexend';
-	// 	src: url('./assets/fonts/lexend/LexendDeca-Regular.ttf') format('truetype');
-	// 	// font-weight: 125 950;
-	// 	// font-stretch: 75% 125%;
-	// 	font-style: normal;
-	// 	font-display: swap;
-	// }
-
 
 	// inherit fonts and set default weight
 	html{

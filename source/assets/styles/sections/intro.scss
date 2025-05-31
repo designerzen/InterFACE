@@ -2,10 +2,11 @@
 #intro {
 
 	max-width: var(--viewport-max-width, 1080px);
+	width: 100%;
+    box-sizing: border-box;
 
 	grid-gap: var(--pad);
 
-	
 	padding: var(--pad);
 	margin: var(--pad);
 

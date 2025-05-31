@@ -873,7 +873,8 @@
 
 	// ensure all new rows created do not change the icon position
 	grid-template-areas: "icon text spacer";
-	grid-template-columns: calc( var( --icon-visible, 1) * var(--icon-size) + var(--space,0px)) 1fr auto;
+	grid-template-columns: calc( var( --icon-visible, 1) * var(--icon-size) + var(--space,0px)) 1fr auto calc( (var( --icon-visible, 0)) * var(--icon-size) );
+	// grid-template-columns: calc( var( --icon-visible, 1) * var(--icon-size) + var(--space,0px)) 1fr calc( (1 - var( --icon-visible, 0)) * var(--icon-size) );
 	grid-template-rows: 1fr;
 	grid-auto-flow: row;
 
@@ -891,6 +892,11 @@
 	// background-position:
 	// 	left calc(var(--pad, 0) + var(--space,0px)) top calc( 50% + 1px * var(--shadow-offset-y, 0px)) ,
 	// 	top left;
+
+	&::before{
+		// grid-area:1/1/-1/-1;
+		position: absolute;
+	}
 
 	&::after{
 		margin-right: 0;

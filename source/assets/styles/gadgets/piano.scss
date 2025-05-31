@@ -1,0 +1,26 @@
+.piano-key{
+	transition: fill 90ms linear;
+	&.active{
+		fill:var(--shade-brand, red);
+	}
+	&:hover{
+		fill:pink;
+	}
+}
+
+.piano-key-white{
+	background-color:white;
+	fill:white;
+}
+
+.piano-key-black{
+	fill:black;
+	background-color:black;
+	background-image:linear-gradient(to bottom, #000, #222);
+}
+
+.piano-note-indicator{
+	stroke:white;
+	stroke-width:0.3;
+	fill:yellow;
+}
