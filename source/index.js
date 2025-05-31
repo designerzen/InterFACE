@@ -5,9 +5,9 @@
  * before showing a UI from those external libs
  * http://localhost:909/?advancedMode=false&showSettings=false&showPiano=false&metronome=false&backingTrack=false&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=true&muted=false&duet=false&stereo=true&stereoPan=true&midiChannel=all&bpm=200&autoHide=false&loadMIDIPerformance=false&useGamePad=true&model=face&instrumentPack=FatBoy&instrumentPacks=FatBoy%2CFluidR3_GM%2CMusyngKite&photoSensitive=false&automationMode=false
  */
+import { VERSION } from './version'
 import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
 import { setLoadProgress } from './dom/load-progress'
-import { VERSION } from './version'
 import { getBrowserLocales } from './locales/i18n.js'
 import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
@@ -16,9 +16,9 @@ import { addToolTips, setToast } from './dom/tooltips'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse'
 import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from './capabilities'
 import { updateCapabalitiesTable } from './dom/compatability.js'
+import { APPLICATION_EVENTS, createInterface } from './interface.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-import { createInterface } from './interface.js'
 
 // TESTING
 // import createAppInterface from './interface.js'
@@ -212,10 +212,24 @@ const start = () => {
 		
 		// watch for user events and things that the user changes
 		// and pass that into the automator to modify behaviour
-		application.addEventListener("load-progress", e => {
-
+		application.addEventListener(APPLICATION_EVENTS.LOADING, e => {
+			console.info("Index is loading app", e )
 		})
 
+		application.addEventListener(APPLICATION_EVENTS.LOADED, async(e) => {
+			
+			// load in our controllers
+			const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
+			const {addGamePadEvents} = (await import('./interface-gamepad.js'))
+
+			// and create our input handlers 
+			addKeyboardEvents(application)
+			addGamePadEvents(application)
+
+			console.info("Index has completed loading app", {e, application} )
+		})
+
+	
 		// TODO: This will call the app from external URLs
 		// without reloading the page
 

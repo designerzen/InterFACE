@@ -7,6 +7,7 @@ import { getDomainDefaults, getFactoryDefaults } from '../settings/options'
 import { addToHistory, getLocationSettings, getRefererHostname } from './location-handler'
 
 
+
 let state = null
 let main
 
@@ -184,10 +185,6 @@ export const setStates = (states, key, value, elements=null, saveHistory=true ) 
 
 }
 
-export const encodeLocation = location => encodeURIComponent(location)
-// export const encodeLocation = location => btoa(encodeURIComponent(location))
-export const decodeLocation = base64Data => decodeURIComponent(window.atob( base64Data))		
-
 // TODO: Make a wrapper createStateStack
 // stack.setState( "advancedMode", advancedMode )
 export const EVENT_STATE_CHANGE = "global-state-change"
@@ -257,21 +254,13 @@ export default class State {
 		return this.element ?? document.documentElement
 	}
 
-	/**
-	 * Set the URL search params
-	 */
-	set searchParams( params ){
-		//
-		this.url.searchParams = params
-	}
-
-	get encoded(){
-		return encodeLocation(this.serialised)
-	}
+	// get encoded(){
+	// 	return encodeLocation(this.serialised)
+	// }
 	
-	get serialised(){
-		return JSON.stringify(this.asObject )
-	}
+	// get serialised(){
+	// 	return JSON.stringify(this.asObject )
+	// }
 
 	get asObject(){
 		return Object.fromEntries( this.state )
@@ -285,16 +274,30 @@ export default class State {
 		return this.url.href
 	}
 
-	get asEncodedURI(){
-		const url = new URL(window.location)
-		this.state.forEach( (value,key) => {
-			url.searchParams.set(key, value)
+	/**
+	 * Set the URL search params from another URLSearchParams object
+	 * @param {URLSearchParams} params
+	 */
+	set searchParams( params ){
+		params.forEach((value, key) => {
+			this.url.searchParams.set(key, value)
 		})
-		return url.pathname + "?b=" + encodeLocation(url.search)
 	}
 
+	/**
+	 * Get the URL search params as a URLSearchParams object	
+	 * @returns {URLSearchParams}
+	 */
 	get searchParams(){
 		return this.url.searchParams
+	}
+
+	/**
+	 * Get the URL search params as a String	
+	 * @returns {String}
+	 */
+	get searchParamsAsString(){
+		return this.url.searchParams.toString()
 	}
 
 	constructor( main ){	
@@ -333,6 +336,18 @@ export default class State {
 			// console.log("location: " + document.location, hasNavigationOccurred, ", state: " + JSON.stringify(event.state))
 			//window.location.reload()
 		})		  
+	}
+
+	/**
+	 * Browsers typically remember scroll position for  history state and
+	 * will auto scroll when the location changes... 
+	 * NB. Does not work on IE
+	 */
+	preventAutoScrolling(){
+		if ("scrollRestoration" in history)
+		{
+			history.scrollRestoration = "manual"
+		}
 	}
 
 	/**
@@ -543,15 +558,6 @@ export default class State {
 		this.loadFromLocation( null,  dispatchEvent )
 	}
 
-	/**
-	 * Provide a base64 encoded string and this will decode it
-	 * @param {String} base64Data 
-	 */
-	decode( base64Data ){
-		const url = new URL(base64Data)
-		decodeLocation( url.search.b )		
-	}
-
 	// -- EVENTS ---------------------------
 
 	/**
@@ -581,24 +587,48 @@ export default class State {
 	}
 }
 
-
-export const createStateFromHost = (elementToAddClassTo) => {
-	
+/**
+ * Determine options for this session from three different
+ * app sources, the query string, the global this and the domain specific options
+ * @returns {Object}
+ */
+export const createStateOptionsFromHost = (extraOptions={}) => {
 	const hostName = getRefererHostname()
 	const globalOptions = Object.assign({}, globalThis._synth)
 	const domainOptions = getDomainDefaults( hostName )
-	const defaultOptions = { ...domainOptions, ...globalOptions }
+	const defaultOptions = { ...domainOptions, ...globalOptions, ...extraOptions }
 
-	const state = State.getInstance(elementToAddClassTo)
+	return defaultOptions
+}
+
+
+/**
+ * 
+ * @param {HTMLElement} elementToAddClassTo 
+ * @param {Object} defaultOptions
+ * @param {Class} StateClass 
+ * @returns 
+ */
+export const createStateFromHost = (elementToAddClassTo, defaultOptions=null, StateClass=State) => {
+	
+	const stateOptions = defaultOptions ?? createStateOptionsFromHost()
+
+	const state = StateClass.getInstance(elementToAddClassTo)
 
 	//state.setDefaults(defaultOptions)
-	state.loadFromLocation(defaultOptions)
+	state.loadFromLocation(stateOptions)
 
 	// updates the URL with the current state (true - encoded)
 	state.updateLocation()
+
+	//state.setDefaults(defaultOptions)
+	// stateMachine.loadFromLocation(defaultOptions)
 	
 	// Update UI - this will check all the inputs according to our state	
 	state.updateFrontEnd()
+	
+	// prevent URL changes from scrolling to that hash
+	state.preventAutoScrolling()
 
 	return state
 }
