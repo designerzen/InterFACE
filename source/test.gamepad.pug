@@ -19,13 +19,13 @@ block scripts
 		const watchGamePads = () => {
 
 			const gamepadHeld = new Map()
-			const gamePadManager = new GamePadManager()
+			const gamePadManager = new GamePad()
 			gamePadManager.addEventListener( (button, value, gamePad) => {
 				
 				switch(button)
 				{
-					case GAME_PAD_CONNECTED:
-					case GAME_PAD_DISCONNECTED:
+					case GAME_PAD_AVAILBLE:
+					case GAME_PAD_UNPLUGGED:
 						break
 				
 					default: 
