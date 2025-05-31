@@ -183,24 +183,23 @@ export const watchMouseCoords = (element, callback ) => {
 	}, false )
 }
 
-	// window.addEventListener('wheel' , event => {
-		
-	// 	return
+// window.addEventListener('wheel' , event => {
+	
+// 	return
 
-	// 	let d = event.detail
-	// 	const w =  event.deltaY || event.wheelDelta
-	// 	let n = 225
-	// 	let n1 = n-1
-	// 	let f
+// 	let d = event.detail
+// 	const w =  event.deltaY || event.wheelDelta
+// 	let n = 225v	`// 	let n1 = n-1
+// 	let f
 
-	// 	// Normalize delta
-	// 	d = d ? w && (f = w/d) ? d/f : -d/1.35 : w/120
-	// 	// Quadratic scale if |d| > 1
-	// 	d = d < 1 ? d < -1 ? (-Math.pow(d, 2) - n1) / n : d : (Math.pow(d, 2) + n1) / n
-	// 	// Delta *should* not be greater than 2...
-	// 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
-	// 	const volume = getVolume()
-	// 	//const result = setMasterVolume(volume + wheel)
+// 	// Normalize delta
+// 	d = d ? w && (f = w/d) ? d/f : -d/1.35 : w/120
+// 	// Quadratic scale if |d| > 1
+// 	d = d < 1 ? d < -1 ? (-Math.pow(d, 2) - n1) / n : d : (Math.pow(d, 2) + n1) / n
+// 	// Delta *should* not be greater than 2...
+// 	const wheel = Math.min(Math.max(d / 2, -1), 1) * 0.1
+// 	const volume = getVolume()
+// 	//const result = setMasterVolume(volume + wheel)
 
-	// 	console.log("mouse wheel",{ wheel, volume, result}, event)	
-	// })
+// 	console.log("mouse wheel",{ wheel, volume, result}, event)	
+// })
