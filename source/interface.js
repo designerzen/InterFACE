@@ -1,17 +1,70 @@
-import 'audioworklet-polyfill'
+// DOM UI
+import { setupFeedbackControls } from './dom/text.js'
+import setupDialogs from './dom/ui.dialog.js'
+import {
+	controlPanel,
+	updateTempo,
+	isVideoVisible, toggleVideoVisiblity,  
+	setupCameraForm, setupInterface,
+	toggleVisibility,
+	focusApp,
+	buttonVideo
+} from './dom/ui.js'
+import { showPlayerSelector } from './dom/ui.player-selection.js'
+import { setToast } from './dom/tooltips.js'
+import { setupRecordings } from './dom/ui.recording.js'
+import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
+import { setToggle, setPressureToggle } from './dom/toggle.js'
+import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
+import { appendPhotographElement } from './dom/photographs.js'
+import { appendAudioElement} from './dom/audio-element.js'
+import { connectDropZone } from './dom/drop-zone.js'
+import { drawMousePressure } from './dom/mouse-pressure'
+import { setupVolumeInterface } from './dom/ui.volume.js'
+import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
+import { setupTempoInterface } from './dom/ui.tempo.js'
+// import { toggleFullScreen } from './dom/full-screen.js'
+// import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
+import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
+import { Quanitiser } from './visual/quantise.js'
 
-import * as EMOJI from "./models/emoji.js"
-import Capabilities from './capabilities.js'
+// SHARE
+import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
+// import { getLocationSettings, getShareLink, addToHistory, getRefererHostname } from './utils/location-handler.js'
 
-import { loadInstrumentsList } from './settings/options.instruments.js'
-
+// STATE
 // import {midiLikeEvents} from './timing/rhythm'
-import State, { EVENT_STATE_CHANGE, createStateFromHost, setElementCheckState } from './utils/state.js'
+import State, { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
+import StateWithIO from './utils/state-io'
 
-// TODO :lazy load
+
+// MODELS
+import { TAU } from "./maths/maths.js"
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
+
+import { loadMLModel } from './models/load-model.js'
+import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
+
+import Person, { 
+	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
+	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
+	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
+	getRandomPresetForPerson,
+	EVENT_PERSON_DEAD,
+	EVENT_PERSON_BORN
+ } from './person.js'
+ 
+
+// TIMING
+// import {midiLikeEvents} from './timing/rhythm'
+// import { playNextPart, kitSequence } from './timing/patterns.js'
+import { getKitSequence } from './timing/patterns.js'
+import { tapTempo, convertBPMToPeriod, now } from './timing/timing.js'
+import AudioTimer from './timing/timer.audio.js'
+
+// AUDIO 
 import { say, hasSpeech} from './audio/speech.js'
 import { recordAudio } from './audio/record/record.audio.js'
-import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
 import { 
 	getRecordableOutputNode,
 	active, playing, 
@@ -22,6 +75,67 @@ import {
 	getVolume, setVolume, getPercussionNode, 
 	stopAudio
 } from './audio/audio.js'
+import { createDrumkit } from './audio/drum-kit.js'
+
+import InstrumentFactory from './audio/instrument-factory.js'
+import InstrumentManager from './audio/instrument-manager.js'
+
+// Different ways of playing sound!
+// TODO: Replace with instrumentFactory
+import SampleInstrument from './audio/instruments/instrument.sample.js'
+// import MIDIInstrument from './audio/instruments/instrument-midi1.js'
+// import OscillatorInstrument from './audio/instruments/instrument.oscillator'
+
+// VIDEO 
+import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
+
+// SYNTHESIS
+import { getRandomHihatPreset, PRESET_HIHATS } from './audio/synthesizers/hihat.js'
+import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
+import { getRandomKickPreset, getKickPresets } from './audio/synthesizers/kick.js'
+
+// HARDWARE
+import { watchMouseCoords  } from './hardware/mouse.js'
+import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera.js'
+import { howManyHolographicDisplaysAreConnected } from './hardware/looking-glass-portrait.js'
+
+// MIDI
+import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
+import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { WebMidi } from 'webmidi'
+
+// FIXME: 
+// import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load.js'
+// import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
+// import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-create.js'
+// import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
+
+// THEME
+import {getThemeFromReferer, setTheme, setupThemeControls} from './theme/theme.js'
+import { fetchBrandColor } from './settings/palette.js'
+
+// DISPLAYS
+import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay  } from './display/display-manager.js'
+import { DISPLAY_TYPES } from './display/display-types.js'
+
+// IO
+import { observeInactivity } from './utils/inactivity.js'
+import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
+
+// INPUTS
+import { addGamePadEvents } from './interface-gamepad.js'
+
+// CONTROLS
+import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
+// import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
+import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
+
+
+/*
+import 'audioworklet-polyfill'
+import * as EMOJI from "./models/emoji.js"
+
+import { loadInstrumentsList } from './settings/options.instruments.js'
 
 // import { 
 // 	getRandomInstrument, 
@@ -33,118 +147,33 @@ import {
 // 	getRandomHarmonicLeadPresetIndex
 // } from './audio/sound-font-instruments'
 
-import { createDrumkit } from './audio/drum-kit.js'
-// FIXME: 
-import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file'
-// import { loadMIDIFile, loadMIDIFileThroughClient } from './audio/midi/midi-file-load'
-import { saveMIDIFile, createMIDIFileFromTrack} from './audio/midi/midi-file-create'
-import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
-// Different ways of playing sound!
-// TODO: Replace with instrumentFactory
-import SampleInstrument from './audio/instruments/instrument.sample.js'
-// import MIDIInstrument from './audio/instruments/instrument-midi1.js'
-// import OscillatorInstrument from './audio/instruments/instrument.oscillator'
+import { createSVGWaveformFromData, createWaveform } from './dom/svg-waveform.js'
 
-// More input mechanisms (per person)
-import GamePad from './hardware/gamepad'
+import MusicalKeyboard from './visual/2d.keyboard.js'
+// import Stave from './visual/2d.stave.js'
+import { setupImage } from './visual/image.js'
+import { setNodeCount } from './visual/2d.js'
 
-// import {midiLikeEvents} from './timing/rhythm'
-import { tapTempo, convertBPMToPeriod, now } from './timing/timing.js'
-import AudioTimer from './timing/timer.audio.js'
 
-import { playNextPart, kitSequence } from './timing/patterns.js'
-	
-import {
-	controlPanel,
-	updateTempo,
-	video, isVideoVisible, toggleVideoVisiblity,  
-	setupCameraForm, setupInterface,
-	toggleVisibility,
-	focusApp,
-	buttonVideo
-} from './dom/ui'
-
-import {getThemeFromReferer, setTheme, setupThemeControls} from './theme/theme.js'
-
-import setupDialogs from './dom/ui.dialog.js'
-import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
-import { setupTempoInterface } from './dom/ui.tempo.js'
-import { showPlayerSelector } from './dom/ui.player-selection.js'
-import { createSVGWaveformFromData, createWaveform } from './dom/svg-waveform'
-
-import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
-import { setToggle, setPressureToggle } from './dom/toggle.js'
-import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
-import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
-import { setupFeedbackControls } from './dom/text.js'
-import { appendPhotographElement } from './dom/photographs.js'
-import { appendAudioElement} from './dom/audio-element.js'
-import { connectDropZone } from './dom/drop-zone.js'
-import { drawMousePressure } from './dom/mouse-pressure'
-import { setupRecordings } from './dom/ui.recording.js'
-import { setupVolumeInterface } from './dom/ui.volume.js'
-import { toggleFullScreen } from './dom/full-screen.js'
-
-import MusicalKeyboard from './visual/2d.keyboard'
-// import Stave from './visual/2d.stave'
-import { setupImage } from './visual/image'
-import { setNodeCount } from './visual/2d'
-import { Quanitiser } from './visual/quantise'
-
-import { getLocationSettings, getShareLink, addToHistory, getRefererHostname } from './utils/location-handler'
-
-// Hardware
-import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera'
-import { watchMouseCoords  } from './hardware/mouse'
-import { howManyHolographicDisplaysAreConnected } from './hardware/looking-glass-portrait.js'
-
-import Person, { 
-	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
-	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
-	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
-	getRandomPresetForPerson,
-	EVENT_PERSON_DEAD,
-	EVENT_PERSON_BORN
- } from './person'
-
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options'
-
-import { TAU } from "./maths/maths"
-
-import { convertOptionToObject } from './utils/utils'
-import { observeInactivity } from './utils/inactivity.js'
-
-import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay  } from './display/display-manager.js'
-import { DISPLAY_TYPES } from './display/display-types.js'
-
-import { loadMLModel } from './models/load-model'
-import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
-
-import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
-import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-		
-import { WebMidi } from 'webmidi'
-import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
-
-import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
-import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
-import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
-
-import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
-
-import InstrumentFactory from './audio/instrument-factory.js'
-
-import { getRandomKickPreset, PRESETS_KICKS } from './audio/synthesizers/kick.js'
-import { getRandomHihatPreset, PRESET_HIHATS } from './audio/synthesizers/hihat.js'
-import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
-import { fetchBrandColor } from './settings/palette.js'
+import { convertOptionToObject } from './utils/utils.js'
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
 // import { setupReporting, track, trackError, trackExit } from './reporting'
+*/
+
 
 const {DISPLAY_CANVAS_2D,DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
+
+export const APPLICATION_EVENTS = {
+	LOADING:"loading",
+	LOADED:"loaded"
+}
+
+const doc = document	// using a reference allows truncation
+const body = doc.documentElement
+const video = doc.querySelector("video")
 
 let instance = null
 class PhotoSYNTH{
@@ -188,9 +217,8 @@ export const createInterface = (
 		return resolve(instance)
 	}
 
+
 	// fetch some elements from the DOM
-	const doc = document	// using a reference allows truncation
-	const body = doc.documentElement
 	const main = doc.querySelector("main")
 
 	// Buttons + Toggles
@@ -223,6 +251,8 @@ export const createInterface = (
 	let audioContext
 	let offlineAudioContext
 	let audioChain
+
+	let instrumentManager 
 	let instrumentFactory 
 
 	// JSON object of available instruments
@@ -279,6 +309,7 @@ export const createInterface = (
 			// lerp towards
 			loadPercent = loadPercent + 0.005 //.toFixed(2)  loadPercent 
 			onLoadProgress(loadPercent, message, hideLoader)
+			dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {loadPercent, message})
 		}
 
 		if (loadPercent < newValue)
@@ -327,33 +358,30 @@ export const createInterface = (
 	}
 
 	// State management based on HTML globalThis and domain specific options and finally query string overrides
-	const hostName = getRefererHostname()
-	const globalOptions = Object.assign({}, globalThis._synth)
-	const domainOptions = getDomainDefaults( hostName )
-	const defaultOptions = { ...domainOptions, ...globalOptions }
+	// const hostName = getRefererHostname()
+	// const globalOptions = Object.assign({}, globalThis._synth)
+	// const domainOptions = getDomainDefaults( hostName )
+	// const defaultOptions = { ...domainOptions, ...globalOptions }
+	const stateOptions = createStateOptionsFromHost(defaultOptions)
 	
 	// Immediately create a QR code and add it to the screen
 	// so that new users watching can continue to play at home
 	const existingQueries = (new URL(location.href)).search
-	const queryString = new URLSearchParams(globalOptions).toString()
+	const queryString = new URLSearchParams( defaultOptions ).toString()
 	const concatenatedQueries = existingQueries.length > 0 ? `${existingQueries.toString()}&${queryString}` : queryString
 	const url = new URL(location.origin+location.pathname) // location.href
 	url.search =  new URLSearchParams(concatenatedQueries)
 	
-
 	// State Machine & Query handler
-	const stateMachine = createStateFromHost( main ) // State.getInstance()
-	
-	//state.setDefaults(defaultOptions)
-	stateMachine.loadFromLocation(defaultOptions)
+	const stateMachine = createStateFromHost( main, stateOptions, StateWithIO ) // State.getInstance()
 
-	// updates the URL with the current state (true - encoded)
-	// this is useful as immediately after loading the page the URL will be the current state
-	// and so can be shared to return to this exact setup
-	// states.updateLocation()
+	// TODO : Export as base 64 URL
+	// now create a sharable compressed URL for reference...
+	// const zipArray = stateMachine.createEncodedString()
+	// const zipArray = stateMachine.createURLAsEncodedString()
+	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
 	
-	// Update UI - this will check all the inputs according to our state	
-	// states.updateFrontEnd()
+
 	const uiMap = new Map()
 	uiMap.set("backingTrack", doc.getElementById("button-percussion") )
 	uiMap.set("clear", doc.querySelector(".qr") )
@@ -490,7 +518,7 @@ export const createInterface = (
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
 
-	let kickTimbreOptions = PRESETS_KICKS[0]  
+	let kickTimbreOptions = getKickPresets()[0]  
 	let snareTimbreOptions = PRESET_SNARES[0]
 	let hatTimbreOptions = PRESET_HIHATS[0]
 
@@ -590,7 +618,7 @@ export const createInterface = (
 	 * and unique style and sound 
 	 */
 	const setRandomDrumPattern = () => {
-		patterns = kitSequence( Math.floor( 17 + Math.random() * 23 ))
+		patterns = getKitSequence( Math.floor( 17 + Math.random() * 23 ))
 		if (stateMachine.get("backingTrack"))
 		{
 			setFeedback( "Backing Track REMIX!", 0, 'beats' )	
@@ -835,7 +863,7 @@ export const createInterface = (
 		// console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
-		person.setupAudio(audioContext, audioChain, instrumentFactory, offlineAudioContext, preset).then(async()=>{
+		person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async()=>{
 			// the above command should initalise a default sample player rendering the following line obsolete
 			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
 			// const presetData = person.getPresets()[0]
@@ -882,11 +910,13 @@ export const createInterface = (
 		*/
 
 		// Each Person can be also controlled via GamePad
-		if (useGamePad)
-		{
-			const gamePad = addGamePadControlToUser( personIndex, person )	
-			person.gamePad = gamePad
-		}
+		// if (useGamePad)
+		// {
+		// 	const gamePad = addGamePadControlToUser( personIndex, person )	
+		// 	person.gamePad = gamePad
+		// }
+
+		
 		
 		//console.error(name, {instrument, person, savedOptions})
 		
@@ -1057,9 +1087,11 @@ export const createInterface = (
 		return gamePad
 	}
 	
+
+
 	/**
 	 *  Add Keyboard listeners and tie in commands
-	 */
+
 	const registerKeyboard = () => {
 		let numberSequence = ""
 
@@ -1421,11 +1453,12 @@ export const createInterface = (
 			// console.log("key", ui, event)
 		})
 	}
+	 */
 
 	/**
 	 * 
-	 * play Audio for a Person using their current face status
-	 * TODO: Add WAM2
+	 * Play Audio for a Person using their current face status
+	 * 
 	 * @param {Person} person 
 	 * @returns {Object} of metadata
 	 */
@@ -2085,7 +2118,7 @@ export const createInterface = (
 					// so we re-use any existing while the person fades away
 					// there is a user created but no prediction to drive it,
 					// however the person may have started their instrument before bouncing
-					if ( person.kill() )
+					if ( person.setAsLost() )
 					{
 						stopPersonAudio( person )
 						//console.info(i, range, "Person "+person.name+" dead", person.percentageDead * 100 + "%", prediction )
@@ -2310,10 +2343,10 @@ export const createInterface = (
 				// console.info("clock: person "+person.name+" alive", person.alive, person)
 
 				// update game pads - events are caught elsewhere
-				if (stateMachine.get("gamePad") && person.gamePad && person.gamePad.connected) 
-				{
-					person.gamePad.update()
-				}
+				// if (stateMachine.get("gamePad") && person.gamePad && person.gamePad.connected) 
+				// {
+				// 	person.gamePad.update()
+				// }
 				
 				// Change filter depending on the user's emoticon!
 				if (stateMachine.get("disco") && person.emoticon === EMOJI.EMOJI_KISS)
@@ -2665,7 +2698,7 @@ export const createInterface = (
 			const AUDIO_OPTIONS = {
 
 				// quantity of reverb
-				reverb:0.2,
+				reverb:1,
 			
 				// frequency analyser pulse smoothing (for cool visual effects!)
 				// how quick it drops < 0.85 looks cool
@@ -2722,7 +2755,7 @@ export const createInterface = (
 			
 			const percussionAmp = getPercussionNode()
 			kit = createDrumkit( audioContext, percussionAmp )
-			patterns = kitSequence()
+			patterns = getKitSequence()
 			
 
 			// console.log("Streamin", {video, photo, camera} )
@@ -2757,23 +2790,19 @@ export const createInterface = (
 		// create our musical instrument factory
 		try{
 			instrumentFactory = new InstrumentFactory(audioContext)
-		}catch(error){
-			console.error("PhotoSYNTH Instruments FACTORY Unavailable", error, {instrumentListURIorObject})	
-		}
-
-		try{
+			instrumentManager = new InstrumentManager(audioContext, instrumentFactory)
 			// and load in the instrument list
 			await instrumentFactory.loadList(instrumentListURIorObject)
 			// store the loaded instrument list
 			instrumentList = instrumentFactory.list
-			console.info("PhotoSYNTH Instruments Available", {instrumentList, instrumentFactory, instrumentListURIorObject} )  
+			console.info("PhotoSYNTH Instruments Available", {instrumentManager, instrumentList, instrumentFactory, instrumentListURIorObject} )  
 			
 			progressCallback(loadIndex++/loadTotal, "Loaded Instrument List")
 			
 		}catch(error){
 
 			progressCallback(loadIndex++/loadTotal, "Instrument List Not Found!")
-			console.error("PhotoSYNTH Instruments Unavailable", error, {instrumentFactory, instrumentListURIorObject})	
+			console.error("PhotoSYNTH Instruments Unavailable", error, {instrumentManager, instrumentFactory, instrumentListURIorObject})	
 		}
 
 		// AUDIO ------------------------------------------------	
@@ -2892,7 +2921,7 @@ export const createInterface = (
 			clock.setCallback( useTiming )
 
 			// VIDEO & DISPLAY ------------------------------------------------
-			displayType = stateMachine.get('display') ?? initialDisplay ?? DISPLAY_MEDIA_VISION_2D // DISPLAY_WEB_GL_3D
+			displayType = stateMachine.get('display') ?? initialDisplay
 			progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
 
 			// REDRAW DOM / CANVAS / WEB GL -------------------------------
@@ -2908,6 +2937,12 @@ export const createInterface = (
 			
 			// Start audio clock metronome
 			clock.startTimer()		
+				
+			// Watch CONTROLLERS
+			if ( stateMachine.get("gamePad") )
+			{
+				addGamePadEvents( this )
+			}
 
 			return true
 		}
@@ -3416,8 +3451,6 @@ export const createInterface = (
 		observeWeblink()
 		notifyObserversThatWeblinkIsAvailable()
 		
-		// monitor keyboard events
-		registerKeyboard()
 
 		speak("I am looking for your face")
 		// wait here until a user shows their face...
@@ -3425,6 +3458,8 @@ export const createInterface = (
 
 		// focus app?
 		loadProgressMediator(1,"complete", true)
+
+		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, true)
 		
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
@@ -3433,10 +3468,18 @@ export const createInterface = (
 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),
-			setState:stateMachine.set,
+			setState:(key,data)=>stateMachine.set(key,data),
+
+			kit,
 
 			addEventListener,
-			setRandomDrumPattern, toggleBackgroundPercussion, setRandomDrumTimbres,
+			
+			// drums
+			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, toggleBackgroundPercussion,
+		
+			// MIDI
+			midiPerformance,
+
 			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers, getQuantityOfPlayers,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
@@ -3448,7 +3491,6 @@ export const createInterface = (
 			setDiscoMode,
 		
 			setBPM, setMasterVolume,
-			changeDrumPattern,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
