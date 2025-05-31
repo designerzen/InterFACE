@@ -87,7 +87,7 @@ export const createInstrumentFormHTML = (instruments, packName="", personName=""
 	let output = `${createInstrumentFamilyTitle(packName, personName)}
 					<legend>Select an instrument</legend>`
 
-	let family = instruments[0].family ?? "Family"
+	let family = instruments && instruments.length && instruments[0].family ? instruments[0].family : "Presets"
 	//const uiOptions = []// instruments.map( (instrument, index) => createInstumentForForm( instrument.location, instrument.name ) ) 
 	// add a title at the start...
 	// uiOptions.unshift("<legend>Select an instrument</legend>")
@@ -96,22 +96,43 @@ export const createInstrumentFormHTML = (instruments, packName="", personName=""
 					${createInstrumentFamilySummary(family)}
 					<ul>`
 
-	// now group them into families...
-	instruments.forEach( (instrument, index) => {
+	
+	// FIXME: Presets come in different styles
+	// if (typeof instruments[0] === "string")
+	// {
 		
-		const form = createInstumentForForm( instrument.location, instrument.name, personName )
-		output += form
-		if (family !== instrument.family)
-		{
-		
-			family = instrument.family
-			output += `</ul></details>`
-			output += `<details open id="${personName}-instrument-family-${family.toLowerCase()}">
-						${createInstrumentFamilySummary(family, personName)}
-						<ul>`
-		}
-	})
+	// }else{
+	// 	// assuming object
 
+	// }
+	const isSimple = typeof instruments[0] === "string"
+	// now group them into families...
+	if (isSimple)
+	{
+		instruments.forEach( (instrument, index) => {
+			const form = createInstumentForForm( instrument, instrument, personName )
+			output += form
+			output += `</ul>`
+			output += `<ul>`
+		})
+
+	}else{
+
+		instruments.forEach( (instrument, index) => {
+			
+			const form = createInstumentForForm( instrument.location, instrument.name, personName )
+			output += form
+			if (family !== instrument.family)
+			{
+				family = instrument.family ?? 'Family'
+				output += `</ul></details>`
+				output += `<details open id="${personName}-instrument-family-${family.toLowerCase()}">
+							${createInstrumentFamilySummary(family, personName)}
+							<ul>`
+			}
+		})	
+	}
+	
 	output += `</ul></details>`
 	return output
 }
@@ -126,13 +147,21 @@ export const hideExistingInstruments = (controls) => {
 export const populateInstrumentPanel = async (controls, instrument, personName="") => {
 	// populate the sidebar
 	let presets = await instrument.getPresets()
-	// FIXME: Presets come in different styles
+
+	if (!presets )
+	{
+		return null
+	} 
+
+	console.info( "Presets available :", typeof presets[0], {presets})
 
 	// FIXME: HACK!
 	if (instrument.type === "sample")
 	{
 		presets = GENERAL_MIDI_INSTRUMENT_LIST
 	}
+
+
 
 	const existing = controls.querySelector(`.person-controls`)
 	const instrumentMenuPanel = existing ? existing : document.createElement("div")
@@ -158,7 +187,7 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) 
 	}
 	
 	const inputs = controls.querySelectorAll('input')
-	inputs.forEach( input => input.addEventListener('change', onInstrumentInput, false) )
+	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e.target.value, e), false) )
 	
 	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
 

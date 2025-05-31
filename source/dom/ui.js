@@ -47,7 +47,6 @@ export const toggleVisibility = element => {
  * @return {Boolean} visibility of video
  */
 
-export const video = doc.querySelector("video")
 export const isVideoVisible = () => isVisible(video) 
 
 /**

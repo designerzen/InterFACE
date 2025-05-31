@@ -41,7 +41,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	audio.className = "audio-file"
 	audio.playbackRate.value = 1
 	audio.onload = e =>{
-		
+		URL.revokeObjectURL(src)
 	}
 	audio.onloadedmetadata = e => {
 		// probably infinity!
