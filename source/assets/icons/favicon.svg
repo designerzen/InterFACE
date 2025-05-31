@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 10240 10240" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g id="DARK-embedded" serif:id="DARK embedded" transform="matrix(1,0,0,1,-927.244,-927.244)">
+        <g id="Royal-Society-Plum" serif:id="Royal Society Plum" transform="matrix(0.847743,0,0,0.847743,927.244,920.737)">
+            <path d="M12094.5,1451.34L12094.5,10643.1C12094.5,11444.2 11444.2,12094.5 10643.1,12094.5L1451.34,12094.5C650.323,12094.5 0,11444.2 0,10643.1L0,1451.34C0,650.323 650.323,0 1451.34,0L10643.1,0C11444.2,0 12094.5,650.323 12094.5,1451.34Z" style="fill:rgb(111,38,61);stroke:rgb(246,246,246);stroke-width:1.18px;"/>
+        </g>
+        <g id="Royal-Society-Red" serif:id="Royal Society Red" transform="matrix(0.847743,0,0,0.847743,927.244,920.737)">
+            <path d="M12094.5,1451.34L12094.5,10643.1C12094.5,11444.2 11444.2,12094.5 10643.1,12094.5L1451.34,12094.5C650.323,12094.5 0,11444.2 0,10643.1L0,1451.34C0,650.323 650.323,0 1451.34,0L10643.1,0C11444.2,0 12094.5,650.323 12094.5,1451.34Z" style="fill:rgb(211,18,69);stroke:rgb(246,246,246);stroke-width:1.18px;"/>
+        </g>
+        <g id="Royal-Society-Gradient" serif:id="Royal Society Gradient" transform="matrix(0.847743,0,0,0.847743,927.244,920.737)">
+            <path d="M12094.5,1451.34L12094.5,10643.1C12094.5,11444.2 11444.2,12094.5 10643.1,12094.5L1451.34,12094.5C650.323,12094.5 0,11444.2 0,10643.1L0,1451.34C0,650.323 650.323,0 1451.34,0L10643.1,0C11444.2,0 12094.5,650.323 12094.5,1451.34Z" style="fill:url(#_Linear1);stroke:rgb(246,246,246);stroke-width:1.18px;"/>
+        </g>
+        <g id="Logo-Light" serif:id="Logo Light" transform="matrix(62.1718,0,0,62.1718,2938.65,4359.09)">
+            <path d="M94.173,29.051C94.173,27.741 93.11,26.678 91.799,26.678L8.201,26.678C6.89,26.678 5.827,27.741 5.827,29.051C5.827,53.431 25.62,73.224 50,73.224C74.38,73.224 94.173,53.431 94.173,29.051ZM53.472,39.849C53.166,39.29 52.845,37.466 52.84,37.134C52.839,37.101 52.839,37.068 52.839,37.034C52.839,34.192 54.58,31.701 56.991,31.701C57.013,31.701 57.034,31.701 57.055,31.702C62.111,31.808 69.469,41.299 69.469,49.311C69.469,59.737 60.745,68.201 50,68.201C39.255,68.201 30.531,59.737 30.531,49.311C30.531,41.299 36.436,31.839 42.945,31.702C42.966,31.701 42.987,31.701 43.009,31.701C45.42,31.701 47.161,34.192 47.161,37.034C47.161,37.067 47.161,37.1 47.16,37.134C47.155,37.467 46.834,39.29 46.529,39.849C45.818,41.151 44.62,42.648 44.601,42.668C43.458,43.885 42.186,45.043 41.191,46.343C39.901,48.028 39.032,49.929 39.032,52.291C39.032,58.491 43.947,63.524 50,63.524C56.053,63.524 60.967,58.491 60.967,52.291C60.967,49.895 60.11,48.075 58.814,46.421C57.854,45.196 56.608,44.074 55.442,42.737C55.367,42.648 54.318,41.4 53.472,39.849Z" style="fill:rgb(235,235,235);"/>
+        </g>
+        <g id="Eyes---Wink-Light" serif:id="Eyes + Wink Light" transform="matrix(4.30883,0,0,4.42535,540.236,391.532)">
+            <g id="wink" transform="matrix(1,0,0,1,-422.945,12.0334)">
+                <g transform="matrix(1,0,0,1,-12.5728,0)">
+                    <path d="M1821.03,876.34L2064.95,711.633" style="fill:none;stroke:rgb(246,246,246);stroke-width:76.32px;"/>
+                </g>
+                <g transform="matrix(0.437908,0.89902,-0.89902,0.437908,1798.86,-1144.56)">
+                    <path d="M1821.03,876.34L2064.95,711.633" style="fill:none;stroke:rgb(246,246,246);stroke-width:75.53px;"/>
+                </g>
+                <g transform="matrix(0.828749,0.55962,-0.55962,0.828749,789.697,-869.012)">
+                    <path d="M1821.03,876.34L2064.95,711.633" style="fill:none;stroke:rgb(246,246,246);stroke-width:75.39px;"/>
+                </g>
+            </g>
+            <g id="Left-Eye" serif:id="Left Eye" transform="matrix(1,0,0,1,162.355,55.0469)">
+                <ellipse cx="851.651" cy="833.592" rx="132.017" ry="318.098" style="fill:rgb(235,235,235);"/>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(7.40574e-13,-12094.5,12094.5,7.40574e-13,6047.24,12094.5)"><stop offset="0" style="stop-color:rgb(110,39,61);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(211,17,69);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>
