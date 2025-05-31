@@ -71,12 +71,13 @@ export default class WebMIDIConnection extends MIDIConnection{
 	connect( port=0, onDeviceListUpdated=null ){
 		return new Promise(async (resolve,reject)=>{
 			try{
+				// midi device connected! huzzah!
 				WebMidi.addListener("connected", e => this.onConnected(e, onDeviceListUpdated) )
 				
 				// Reacting when a device becomes unavailable
 				WebMidi.addListener("disconnected", e => this.onDisconnected(e, onDeviceListUpdated)  )
 	
-				// midi device connected! huzzah!
+				// MIDI access granted andavailable
 				WebMidi.addListener("enabled", event => {
 					WebMidi.inputs.forEach(input => console.log(input.manufacturer, input.name, input))
 					WebMidi.outputs.forEach(output => console.log(output.manufacturer, output.name, output))

@@ -6,7 +6,7 @@
 
 import MIDIStream from './midi-stream'
 import { decodeMIDI } from './midi-decode'
-import { base64DecToArr } from '../../utils/utils'
+import { base64DecToArr } from '../../utils/base64'
 
 /**
  * Clean data
