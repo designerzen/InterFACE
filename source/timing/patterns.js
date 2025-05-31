@@ -4,7 +4,7 @@ import {
 	snareSequences,
 	hatSequences,
 	drumRollSequence
-} from './drum-patterns'
+} from './drum-patterns.js'
 
 // Just a simple factory for creating random repetitive beats
 const subdivisions = 4
@@ -75,7 +75,7 @@ export const snareSequence = pattern(snareSequences[0])
 export const hatSequence = pattern(hatSequences[0])
 
 // should we add ways to randomise this???
-export const kitSequence = (kitIndex=0) => {
+export const getKitSequence = (kitIndex=0) => {
 	return {
 		kick:pattern( kickSequences[kitIndex%(kickSequences.length-1)] ),
 		hat:pattern( hatSequences[kitIndex%(hatSequences.length-1)] ),

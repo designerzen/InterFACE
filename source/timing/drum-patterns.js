@@ -1,4 +1,3 @@
-
 export const kickSequences = [
 	[
 		255,0,0,0,
