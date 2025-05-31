@@ -204,3 +204,5 @@ export default class SampleAudioWorkletNode extends AudioWorkletNode {
 		}
 	}
 }
+
+// https://github.com/google-ai-edge/mediapipe/issues/5284

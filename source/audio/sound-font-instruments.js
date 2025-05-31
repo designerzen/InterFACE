@@ -10,30 +10,41 @@ import {
 	GENERAL_MIDI_FAMILIES
 } from "./midi/general-midi.constants.js"
 
-import { base64Decode } from "../utils/utils.js"
 import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_PART, EVENT_DECODED } from "./fetch.audio.worker"
 // import { convertArrayToBuffer } from "./audio"
 import audioDecoder from 'audio-decode'
 import { convertArrayToBuffer } from "./audio.js"
 
 import { 
-	INSTRUMENT_DATA_PACK_OPEN_SF, INSTRUMENT_DATA_PACK_FATBOY, INSTRUMENT_DATA_PACK_FM, INSTRUMENT_DATA_PACK_MUSYNGKITE, 
-	INSTRUMENT_PACK_OPEN_SF, INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, 
-	SOUNDFONT_OPEN_SF_JSON, SOUNDFONT_FATBOY_JSON, SOUNDFONT_FM_JSON, SOUNDFONT_MUSYNGKITE_JSON 
+	INSTRUMENT_PACK_OPEN_SF, SOUNDFONT_OPEN_SF_JSON 
 } from "../settings/options.instruments.js"
-import { FAMILY_BASS, FAMILY_BRASS, FAMILY_CHROMATIC_PERCUSSION, FAMILY_ENSEMBLE, FAMILY_ETHNIC, FAMILY_GUITAR, FAMILY_ORGAN, FAMILY_PERCUSSIVE, FAMILY_PIANO, FAMILY_PIPE, FAMILY_REED, FAMILY_SOUND_FX, FAMILY_STRINGS, FAMILY_SYNTH_EFFECTS, FAMILY_SYNTH_LEAD, FAMILY_SYNTH_PAD } from "./midi/general-midi-instrument.constants.js"
+
+import { 
+	FAMILY_BASS, 
+	FAMILY_BRASS, 
+	FAMILY_CHROMATIC_PERCUSSION, 
+	FAMILY_ENSEMBLE, 
+	FAMILY_ETHNIC, 
+	FAMILY_GUITAR, 
+	FAMILY_ORGAN, 
+	FAMILY_PERCUSSIVE, 
+	FAMILY_PIANO, 
+	FAMILY_PIPE, 
+	FAMILY_REED, 
+	FAMILY_SOUND_FX, 
+	FAMILY_STRINGS, 
+	FAMILY_SYNTH_EFFECTS, 
+	FAMILY_SYNTH_LEAD, 
+	FAMILY_SYNTH_PAD 
+} from "./midi/general-midi-instrument.constants.js"
+
+import { base64Decode } from "../utils/base64.js"
 
 export const INSTRUMENT_PACKS = [
-	INSTRUMENT_PACK_OPEN_SF,
-	INSTRUMENT_PACK_FM, 
-	INSTRUMENT_PACK_FATBOY, 
-	INSTRUMENT_PACK_MUSYNGKITE
+	INSTRUMENT_PACK_OPEN_SF
 ]
 export const INSTRUMENT_DATA_PACKS = [
-	SOUNDFONT_OPEN_SF_JSON,
-	SOUNDFONT_FM_JSON.filename, 
-	SOUNDFONT_FATBOY_JSON.filename, 
-	SOUNDFONT_MUSYNGKITE_JSON.filename
+	SOUNDFONT_OPEN_SF_JSON
 ]
 
 // actual instrument folder names
@@ -51,7 +62,7 @@ const DEFAULT_SOUNDFONT_HOST = " https://paulrosen.github.io/midi-js-soundfonts/
 
 // https://paulrosen.github.io/midi-js-soundfonts/abcjs/
 const DEFAULT_SOUNDFONT_STRING_OPTIONS = {
-	soundfont : INSTRUMENT_PACK_MUSYNGKITE,
+	soundfont : INSTRUMENT_PACK_OPEN_SF,
 	uri: DEFAULT_SOUNDFONT_HOST,
 	suffix:".js",
 	url:(uri, soundfont, instrumentNameAndFormat, suffix='.js')=>  `${uri}${soundfont}/${instrumentNameAndFormat}${suffix}`
