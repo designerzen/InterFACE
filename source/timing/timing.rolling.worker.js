@@ -1,11 +1,7 @@
-const CMD_START = "start"
-const CMD_STOP  = "stop"
-const CMD_UPDATE  = "update"
-
-const EVENT_READY = "ready"
-const EVENT_STARTING = "starting"
-const EVENT_STOPPING = "stopping"
-const EVENT_TICK = "tick"
+import {
+	CMD_START,CMD_STOP,CMD_UPDATE,
+	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
+} from './timing.events.js'
 
 const GAP_BETWEEN_LOOPS = 0
 

@@ -22,6 +22,10 @@ import {
 import ROLLING_WORKER_URI from 'url:./timing.rolling.worker.js'
 import SETINERVAL_WORKER_URI from 'url:./timing.setinterval.worker.js'
 import SETTIMEOUT_WORKER_URI from 'url:./timing.settimeout.worker.js'
+// import AUDIOTIMER_WORKLET_URI from 'url:./timing.audiocontext.worker.js'
+import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
+
+import { createTimingProcessor } from './timing.audioworklet.js'
 
 // Vite style
 // import ROLLING_WORKER_URI from './timing.rolling.worker.js?worker'
@@ -51,18 +55,26 @@ let barsElapsed = 0
 let divisionsElapsed = 0
 let timingWorker
 
-const loadTimingWorker = type => {
+const loadTimingWorker = async (type, context) => {
 
-	// in the future, we may be able to pass offlineAudioContext to a worker
-	// and at that point, we can finally tie in the actual timing by using the 
-	// context as the global clock
-	return new Worker( new URL( type ), {type: 'module'} )
+	switch(type)
+	{
+		// in the future, we may be able to pass offlineAudioContext to a worker
+		// and at that point, we can finally tie in the actual timing by using the 
+		// context as the global clock
+		case AUDIOTIMER_WORKLET_URI:
+			// add the worklet if available
+			return await createTimingProcessor(context)
+
+		default:
+			return new Worker( new URL( type ), {type: 'module'} )
+	}
 }
 
-export const setTimingWorker = type =>{
+export const setTimingWorker = async (type, context) =>{
 	
 	try{
-		const timer = loadTimingWorker(type)
+		const timer = await loadTimingWorker(type, context)
 		
 		if (timer && timingWorker)
 		{
@@ -86,12 +98,7 @@ export const setTimingWorker = type =>{
 	}	
 }
 
-// setTimingWorker(SETINERVAL_WORKER_URI)
-// setTimingWorker(SETTIMEOUT_WORKER_URI)
-// This tries to check the timing every 1ms
-// and should be the most accurate and the most expensive	
-// setTimingWorker(ROLLING_WORKER_URI)
-setTimingWorker(ROLLING_WORKER_URI)
+
 
 
 /**
@@ -222,6 +229,28 @@ export const setTimeBetween = time => {
     return period
 }
 
+export const establishTimer = async (type=ROLLING_WORKER_URI, context) => {
+
+	// Load default Timer
+	// setTimingWorker(SETINERVAL_WORKER_URI)
+	// setTimingWorker(SETTIMEOUT_WORKER_URI)
+	// This tries to check the timing every 1ms
+	// and should be the most accurate and the most expensive	
+	// setTimingWorker(ROLLING_WORKER_URI)
+
+	// setTimingWorker(ROLLING_WORKER_URI)
+	// setTimingWorker(AUDIOTIMER_WORKLET_URI)
+	await setTimingWorker(type)
+
+	audioContext = context
+	
+	// on Safari macOS/iOS, the audioContext is suspended if it's not created
+	// in the event handler of a user action: we attempt to resume it.
+	if (audioContext.state === 'suspended') {
+		audioContext.resume()
+	}
+}
+
 /**
  * Starts the timer and begins events being dispatched
  * @param {Function} callback Method to call when the timer ticks
@@ -234,12 +263,8 @@ export const startTimer = (callback, timeBetween=200, options={} ) => {
     // lazily initialise a context
     if (audioContext === null)
     {
-        audioContext = new AudioContext()
-        // on Safari macOS/iOS, the audioContext is suspended if it's not created
-        // in the event handler of a user action: we attempt to resume it.
-        if (audioContext.state === 'suspended') {
-            audioContext.resume()
-        }
+		console.error("Timer was started before establishTimer() was initialised")
+        establishTimer( ROLLING_WORKER_URI, new AudioContext() )
     }
 
     period = timeBetween
