@@ -222,9 +222,11 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, settin
   	// window. is needed otherwise Safari explodes
 	// { latencyHint: 'playback' } tells the context to try and smooth playback
 	audioContext = onlineAudioContext 
-	// fixes old ios bug about audio not starting until buttons or something
-	// resumeAudioContext()
 
+	// fixes old ios bug about audio not starting until buttons or something
+	// await resumeAudioContext()
+
+	
 	// check to see if we have an offline context...
 	offlineAudioContext = offlineAudioContext
 
@@ -324,7 +326,7 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, settin
 		// 	0.25
 		// )
 		// ,
-		reverb,
+		// reverb,
 
 		//await createDelay(audioContext)
 		//await createDub(audioContext)

@@ -1,3 +1,4 @@
+import { base64Decode } from "../utils/base64.js"
 import { NOTE_NAMES, NOTE_NAMES_POPULAR_FIRST } from "./tuning/notes.js"
 
 /**
@@ -24,46 +25,6 @@ const DEFAULT_SOUNDFONT_STRING_OPTIONS = {
 	url: (uri, soundfont, instrumentNameAndFormat, suffix = '.js') => `${uri}${soundfont}/${instrumentNameAndFormat}${suffix}`
 }
 
-
-
-const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-
-// https://github.com/davidchambers/Base64.js/blob/master/base64.js
-const base64ToBinary = input => {
-	// save time skip check
-	// const string = (String(input)).replace(/[=]+$/, '')
-	const string = String(input)
-	for (
-		// initialize result and counters
-		var bc = 0, bs, buffer, idx = 0, output = '';
-		// get next character
-		buffer = string.charAt (idx++); // eslint-disable-line no-cond-assign
-		// character found in table? initialize bit storage and add its ascii value;
-		~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-			// and if not first of each 4 characters,
-			// convert the first 8 bits to one ascii character
-			bc++ % 4) ? output += String.fromCharCode (255 & bs >> (-2 * bc & 6)) : 0
-		) {
-		// try to find character in table (0-63, not found => -1)
-		buffer = BASE64_CHARS.indexOf (buffer)
-	}
-	return output
-}
-
-// ATOB does not natively exist inside chrome workers yet!?!
-const base64Decode = base64 => { 
-	const binaryString = base64ToBinary(base64)
-	const len = binaryString.length
-	const bytes = new Uint8Array(len)
-	for (let i = 0; i < len; ++i) {
-	  bytes[i] = binaryString.charCodeAt(i)
-	}
-	return bytes
-}
-
-const typedArrayToBuffer = (array) => {
-	return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset)
-}
 
 /**
  * Allows us to load in instruments saved as base64 without having to execute
