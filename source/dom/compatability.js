@@ -151,6 +151,8 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 		}else{
 			// NONE FATAL ERROR! No MIDI - just hide MIDI stuff!!
 			document.body.classList.toggle("midi-unavailable", true)
+			MIDIAvailability.textContent = "Unavailable in this Browser"
+			MIDIAvailability.classList.remove(CHECKING)
 			console.info("[WARNING] MIDI is not available")
 		}	
 	
