@@ -9,26 +9,36 @@ let lookingGlassPortraitClient = null
 
 
 
-export const howManyHolographicDisplaysAreConnected = async () => { 
+export const howManyHolographicDisplaysAreConnected = () => new Promise( (resolve, reject) => { 
 	// immediately check to see if there is a display available...
+	
 	if (lookingGlassPortraitClient)
 	{
-		return lookingGlassPortraitClient.devices.length
+		resolve( lookingGlassPortraitClient.devices.length )
 	}
+
+	// initCallback, errCallback, closeCallback, debug = false, appId, isGreedy, oncloseBehavior
 	
 	lookingGlassPortraitClient = new Client((msg) => {
+		
 		if (msg.devices.length < 1) 
 		{
-		  return 0
+		  return resolve(0)
 		}
 		if (msg.devices.length > 1) 
 		{
-			 return msg.devices.length
+			return resolve(msg.devices.length)
 		}
-		return 1
+		return resolve(1)
 		// const calibratio = msg.devices[0].calibration
+	}, error=>{
+		console.error("Could not connect to Holographic displays", error )
+		reject(0)
+	},
+	close =>{
+		console.error("Holographic display disconnected", close )
 	})
-}
+})
 
 /*
 const config = LookingGlassConfig

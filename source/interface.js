@@ -2505,27 +2505,39 @@ export const createInterface = (
 
 		let initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 
-		progressCallback( 0, "Checking displays..." )
+		progressCallback( 0, "Checking for holographic displays - Please standby!" )
 
-		const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
-		if (holographicDisplayQuantity > 0)
-		{
-			initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
-			setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
-			progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
+		let holographicDisplayQuantity = 0
+		try{
+			holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+			if (holographicDisplayQuantity > 0)
+			{
+				initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
+				setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
+				progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
 
-			// show the 3D option to allow for holographic display selection
-			const option = document.querySelector('option[value="DISPLAY_LOOKING_GLASS_3D"]')
-			if (option){
+				// show the 3D option to allow for holographic display selection
+				const option = document.querySelector('option[value="DISPLAY_LOOKING_GLASS_3D"]')
+				if (option){
 
-				option.hidden = false
-				option.selected = true
+					option.hidden = false
+					option.selected = true
+				}
+
+				console.error(holographicDisplayQuantity + " ßPhotoSYNTH Holographic Displays", {initialDisplay, settings} ) 
+			}else{
+				progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 			}
-		}else{
-			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
+		}catch(error){
+			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
 		}
 
-		// console.info("PhotoSYNTH Screens available", {initialDisplay, settings} ) 
+		console.error("PhotoSYNTH Screens available", {initialDisplay,holographicDisplayQuantity, settings} ) 
+		
+		// enable the display menu if advanced
+		const displayMenu = document.querySelector('label[for="select-display"]')
+		displayMenu.hidden = false
+		
 
 		
 		// MOTION TRACKING --------------------------------------------------------------------------------
