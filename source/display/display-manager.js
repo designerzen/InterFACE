@@ -55,6 +55,7 @@ export const createDisplay = async (canvasElement, displayType, options ) => {
 	// display = new Display( webGLElement, inputElement.width, inputElement.height )
 	console.warn("DISPLAY:Creating new", canvasElement, displayType, options)
 		
+	canvasElement.setAttribute( "data-display-type",displayType )
 	switch(displayType)
 	{
 		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D:
@@ -164,9 +165,8 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 	}
 
 	// as a context once set can only be one of 2d or webgl
-	const newCanvasElement = await restartCanvas(canvasElement, 720)
+	const newCanvasElement = await restartCanvas(canvasElement, -1)
 
-	
 	// async or load direct
 	// display = await createEmbeddedDisplay(newCanvasElement, displayType)
 	display = await createDisplay(newCanvasElement, displayType, options)
