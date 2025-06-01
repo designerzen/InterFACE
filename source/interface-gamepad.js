@@ -15,12 +15,19 @@ import {
 /**
  * Start monitoring for global gamepad input
  * but ignore them until we are ready
+ * 
+ * 
+ * START will alter the PLAYER INDEX
+ * SELECT will alter the 
+ * 
  */
 export const addGamePadEvents = (application) => {
 	const gamepadHeld = new Map()
 	const gamePadManager = new GamePadManager()
+
 	// enums
 	let gamePadMode = 0
+	let gamePadPlayerIndex = 0
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
 		
@@ -122,7 +129,7 @@ export const addGamePadEvents = (application) => {
 			// If we are in a certain mode...
 			// adapt 
 			case COMMANDS.LB: 
-			application.stateMachine.get("")
+				application.stateMachine.get("")
 				console.info("Gamepad LB", value, { gamePad, gamepadHeld, heldFor } )
 				break
 			
