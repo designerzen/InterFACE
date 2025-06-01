@@ -4,9 +4,9 @@ import WebMIDIClass from '../audio/midi/midi-connection-webmidi.js'
 import EnvelopeNode from '../audio/nodes/envelope-node.js'
 import DualOscillatorInstrument from "../audio/instruments/instrument.dual-oscillator"
 import OscillatorInstrument from "../audio/instruments/instrument.oscillator"
-import MonotronInstrument from "../audio/instruments/instrument.monotron"
-import { createCustomReverb, createReverb } from "../audio/effects/reverb"
-import { encodeAudioBufferIntoWav } from "../audio/record/wave"
+import MonotronInstrument from "../audio/instruments/instrument.monotron.js"
+import { createCustomReverb, createReverb } from "../audio/effects/reverb.js"
+import { encodeAudioBufferIntoWav } from "../audio/record/wave.js"
 
 import { 
 	getRecordableOutputNode,
@@ -50,10 +50,7 @@ const start = async () => {
         sampleSize:16
     }
 	
-	const MIDIConnectionClasses = [WebMIDIClass]
-	const midiManager = new MIDIConnectionManager()
-	const timer = new AudioTimer()
-	
+
 	
 	//- const volume = 0.8
 	//- const {	setVisualVolumeLevel, toggleMute } = setupVolumeInterface( volume, false, function onVolumeChanged(vol){
@@ -71,13 +68,16 @@ const start = async () => {
 	//- addToolTips( controlPanel )
 	
 	// hook unto the audio controls...
-	const audio = await setupAudio()
+	const audio = await setupAudio(audioContext)
 	const mixer = audioContext.createGain()
 	const envelope = new EnvelopeNode(audioContext)
+	const MIDIConnectionClasses = [WebMIDIClass]
+	const midiManager = new MIDIConnectionManager()
+	const timer = new AudioTimer(audioContext)
 	
-	// const instrument = new OscillatorInstrument( audioContext )
+	const instrument = new OscillatorInstrument( audioContext )
 	// const instrument = new DualOscillatorInstrument( audioContext )
-	const instrument = new MonotronInstrument( audioContext )
+	// const instrument = new MonotronInstrument( audioContext )
 	//- instrument.volume = 0.1
 	
 	// const reverb = await createReverb(audioContext, 0.9, true, "./assets/audio/acoustics/sony_walkman_fx_403_mega_bass_+_tube.irs")

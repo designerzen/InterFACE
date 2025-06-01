@@ -35,7 +35,7 @@ export const createKeyFromNote = ( mode, scale, offset=0, accumulate=false) => c
 
 // choose the pattern for playing if not using black / white keys
 // each of these use a root node to specify the starting note
-const mode = 4	// C, "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
+const mode = 1	// C, "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
 export const MAJOR_SCALE_KEYS = createKeyFromNote( mode, MAJOR_SCALE )
 export const MINOR_SCALE_KEYS = createKeyFromNote( mode, NATURAL_MINOR_SCALE )
 
