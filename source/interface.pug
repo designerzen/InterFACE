@@ -6,9 +6,9 @@ extends _base.pug
 //- 		label(for="progress-bar") Please wait <br>loading may take a very long time
 block above 
 	#load-progress
-		label(for="progress-bar") Please wait <br>loading may take a veeeery long time
-			span.load-percent 100%
-		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress")#progress-bar.donut
+		label(for="progress-bar") Please wait <br>loading may take a long time
+			span.load-percent 0%
+		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress" value=0 )#progress-bar.donut
 		
 block nav
 	ul
