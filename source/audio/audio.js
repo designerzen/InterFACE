@@ -326,7 +326,7 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, settin
 		// 	0.25
 		// )
 		// ,
-		// reverb,
+		reverb,
 
 		//await createDelay(audioContext)
 		//await createDub(audioContext)
