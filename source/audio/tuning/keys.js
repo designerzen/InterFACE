@@ -1,5 +1,10 @@
 import { NOTES_ALPHABETICAL } from "./notes"
-import { MAJOR_SCALE, NATURAL_MINOR_SCALE, HARMONIC_MINOR_SCALE, MELODIC_MINOR_SCALE } from "./scales"
+import { 
+	MAJOR_SCALE, 
+	NATURAL_MINOR_SCALE, 
+	HARMONIC_MINOR_SCALE, 
+	MELODIC_MINOR_SCALE 
+} from "./scales"
 
 export const createKey = (notes, scale=MAJOR_SCALE, offset=0, mode=0, cutOff=true, accumulate=false) => {
 	const quantityOfNotes = notes.length
@@ -32,7 +37,9 @@ export const createKeyFromNote = ( mode, scale, offset=0, accumulate=false) => c
 // each of these use a root node to specify the starting note
 const mode = 4	// C, "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
 export const MAJOR_SCALE_KEYS = createKeyFromNote( mode, MAJOR_SCALE )
-export const MINOR_SCALE_KEYS = createKey( mode, NATURAL_MINOR_SCALE )
+export const MINOR_SCALE_KEYS = createKeyFromNote( mode, NATURAL_MINOR_SCALE )
+
+// FIXME:
 export const HARM_MINOR_SCALE_KEYS = createKey(  mode, HARMONIC_MINOR_SCALE )
 export const JAZZ_MINOR_SCALE_KEYS = createKey(  mode, MELODIC_MINOR_SCALE )
 
