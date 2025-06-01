@@ -76,7 +76,7 @@ import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingIn
 import { drawMousePressure } from './dom/mouse-pressure.js'
 
 // Models
-import { recogniseEmoji } from './models/emoji-detection.js'
+import { recogniseEmojiFromFaceModel } from './models/emoji-detection.js'
 import { EMOJI_NEUTRAL } from './models/emoji.js'
 import { convertHeadOrientationIntoNoteData, convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, convertHeadRollToScaleAndPitchToOctaveAndYawToPitch } from './person.controls.js'
 
@@ -953,7 +953,7 @@ export default class Person{
 
 		// const emoji = recogniseEmoji(this)
 		// options.mouthCutOff
-		this.emoticon = recogniseEmoji(prediction, this.options)
+		this.emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
 		// this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
 	}
 
