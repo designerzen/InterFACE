@@ -292,6 +292,16 @@
 		opacity: var(--opacity,1);
 	}
 }
+
+@keyframes Fader{
+	from{
+		opacity: 0;
+	}
+	to{
+		opacity: var(--opacity,1);
+	}
+}
+
 @keyframes Activate{
 	from{
 		opacity: 0.97;

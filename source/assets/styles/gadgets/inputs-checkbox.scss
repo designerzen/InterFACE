@@ -145,6 +145,9 @@ input[type="checkbox" i].switch{
 	border-radius:99px;	
 	flex-grow: 1;
 	order:1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	
 	label{
 		--col-bg:transparent;
@@ -153,8 +156,9 @@ input[type="checkbox" i].switch{
 	
 	&:before, &:after{
 		content:'';
+		position:absolute;
 		box-sizing: border-box;
-		font-weight:900;
+		font-weight:600;
 		color:var(--shade-dark);
 	}
 	
@@ -163,19 +167,20 @@ input[type="checkbox" i].switch{
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		content:'SIMPLE';
+		// content:'SIMPLE';
 		content:'🧸';
 		font-family:"noto-emoji";
 		@extend %drop-shadow;
 		color: var(--shade-white);
 
-		position:absolute;
+		
 		left:0;
 		height:100%;
 		text-align: center;
 		top:0;
 		width:calc( var(--width) / 2 );
 		//margin-left:calc( -1 * var(--width) / 4 );
+		z-index: 1;
 
 		// font-size: 8px;
 		border-radius:99px;
@@ -186,6 +191,16 @@ input[type="checkbox" i].switch{
 		transition:transform 195ms ease.$easeInOutQuad;
 	}
 
+	// just shows the type in the switch space
+	&:after{
+		content:'SIMPLE';
+		mix-blend-mode: normal;
+		right:calc( var(--pad) * 2);
+		left:auto;
+		padding-top:4px;
+		animation:Fade var(--time-quick) 0.2s 1 both;
+	}
+
 	&:checked{
 		// background-color:var(--shade-blue);
 		// background:linear-gradient( to right, $col-green, $col-green );
@@ -194,12 +209,19 @@ input[type="checkbox" i].switch{
 		// border-color:$col-dark;
 		// 
 		&:before{
-			content:'COMPLEX';
+			// content:'COMPLEX';
 			content:'🤓';
 			//border-color:$col-cream;
 			transform: translateX(100%);
 			// background-image:linear-gradient($col-tan, var(--shade-red));
 		}
+		&:after{
+			content:'COMPLEX';
+			left:calc( var(--pad) * 2);
+			right:auto;
+			animation:Fader var(--time-quick) 0.2s 1 both;
+		}
+	
 	}
 
 	// user has higighted it
@@ -219,11 +241,11 @@ input[type="checkbox" i].switch{
 
 	@media screen and (max-width:480px) {
 
-		&:before{
-			content:'SIMPLE';
-		}
-		&:checked::before{
-			content:'COMPLEX';
-		}
+		// &:before{
+		// 	content:'🧸 SIMPLE';
+		// }
+		// &:checked::before{
+		// 	content:'🤓 COMPLEX';
+		// }
 	}
 }
