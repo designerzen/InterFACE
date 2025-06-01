@@ -2242,13 +2242,15 @@ export const createInterface = (
 	 */		
 	const useTiming = values => {
 
-		// console.log( clock.bpm, "PhotoSYNTH3D Clock", clock.divisionsElapsed, clock.totalDivisions, 'qn', clock.isQuarterNote, "start", clock.isAtStart, { clock, values })
 		const { 
 			divisionsElapsed,
 			bar, bars, 
 			barsElapsed, timePassed, 
 			elapsed, expected, drift, level, intervals, lag
 		} = values
+
+		console.log( clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, 'qn', clock.isQuarterNote, "start", clock.isAtStart, { clock }, values)
+		
 
 		const isQuarterNote = clock.isQuarterNote
 		const isHalfNote = clock.isHalfNote
@@ -2532,11 +2534,15 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
 		}
 
-		console.error("PhotoSYNTH Screens available", {initialDisplay,holographicDisplayQuantity, settings} ) 
+		console.error("PhotoSYNTH Screens available", initialDisplay, { holographicDisplayQuantity, settings} ) 
 		
-		// enable the display menu if advanced
 		const displayMenu = document.querySelector('label[for="select-display"]')
-		displayMenu.hidden = false
+		// enable the display menu if advanced
+		displayMenu.hidden = false // holographicDisplayQuantity === 0
+		
+	
+		
+		
 		
 
 		

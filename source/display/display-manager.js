@@ -12,6 +12,7 @@ import {DISPLAY_TYPES} from './display-types.js'
 let display = null
 
 export const loadDisplayClass = async( type ) => {
+	
 	switch(type)
 	{
 		// FIXME: Face detection has dependency clash
@@ -60,7 +61,9 @@ export const createDisplay = async (canvasElement, displayType, options ) => {
 			// NB. Make sure you set this to a WEB_GL context!
 			const {default:DisplayWebGL3D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_WEB_GL_3D )
 			const displayWebGL3D = new DisplayWebGL3D( canvasElement, canvasElement.width, canvasElement.height, options )
+			console.info("DISPLAY_WEB_GL_3D LOADING", displayWebGL3D)
 			await displayWebGL3D.loading
+			console.info("DISPLAY_WEB_GL_3D LOADED", displayWebGL3D.loading)
 			return displayWebGL3D
 
 		case DISPLAY_TYPES.DISPLAY_COMPOSITE:
@@ -173,7 +176,7 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 		display.setAnimationLoop(renderLoop)
 	}
 
-	console.info("createDisplay",displayType, { canvasElement, newCanvasElement, display})
+	console.info("createDisplay",displayType, { renderLoop, canvasElement, newCanvasElement, display})
 
 	return display
 }

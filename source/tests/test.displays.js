@@ -12,9 +12,11 @@ import {
 
 import { DISPLAY_TYPES } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
-
-import DATA_SOURCE from 'url:/source/tests/test.face.json'
 import { now } from "../timing/timing.js"
+
+import DATA_SOURCE from 'raw:/source/tests/test.face.json'
+
+// JSON data from data_source
 let DATA
 let DATA_KEYS 
 
@@ -22,7 +24,9 @@ let count = 0
 let display
 
 
-const person = new Person("PersonA", {} )
+const person = new Person( 0, {} )
+
+// console.log("Person created", person)
 
 const chooseRandomDisplay = () =>{
 	const keys = Object.keys(DISPLAY_TYPES)
@@ -62,17 +66,20 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	// Looking Glass Portrait hardware :
 	// firstly check to see how many holographic displays are connected and modify the default display 
 	// if the hologrpahic display is available and has not been previously set
-	const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
-	if (holographicDisplayQuantity > 1)
-	{
-		initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
-		document.body.classList.add("holographic")
-	}else{
-		console.info("No Looking Glass devices found")
+	let holographicDisplayQuantity 
+	try{
+		holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+		if (holographicDisplayQuantity > 1)
+		{
+			initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
+			document.body.classList.add("holographic")
+		}else{
+			console.info("No Looking Glass devices found")
+		}	
+	}catch(error){
+		console.info("No Looking Glass devices connected")
 	}
 	
-	console.info("Display Initiating...", initialDisplay)
-
 	// immediately set the video display to what was discovered / previously set as an option
 	try{
 		// display = await changeDisplay(canvas, initialDisplay, render)
@@ -93,7 +100,7 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 
 	buttonVideo.addEventListener("click", async(e) => {
 		const newDisplayType = chooseRandomDisplay()
-		console.log("Display change", {canvas, newDisplayType})
+		console.log("Display change to", {canvas, newDisplayType})
 		try{
 			display = await changeDisplay( canvas, newDisplayType, render )
 			canvas = display.canvas
@@ -106,13 +113,21 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 
 async function init(){
 
+	// console.log("Loading face JSON data", DATA_SOURCE )
 	const request = await fetch(DATA_SOURCE)
 	const response = await request.json()
+	// console.log("Loaded face JSON data", response )
 
 	DATA = response
 	DATA_KEYS = Object.keys( DATA )
 
-	await registerDisplays()
+	console.log("Person created", person, "with", {DATA, DATA_KEYS} )
+
+	try{
+		const o = await registerDisplays()
+	}catch(error){
+		console.error("Display error", error )
+	}
 }
 
 window.addEventListener("DOMContentLoaded", init)

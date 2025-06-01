@@ -45,7 +45,8 @@ import FACE_MESH from '/source/assets/actors/generic_neutral_mesh.obj'
 // import PARTICLE_URI from '../assets/particles/particle.png'
 // import PARTICLE_URI from '../assets/particles/voxel.png'
 //import PARTICLE_URI from '../assets/particles/soft-inverted.png'
-import PARTICLE_URI from '../assets/particles/particle.png'
+import PARTICLE_URI from 'url:../assets/particles/particle.png'
+
 
 import { TAU } from "../maths/maths.js"
 
@@ -63,13 +64,14 @@ import {
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
-import DATA_SOURCE from 'url:/source/tests/test.face.json'
 
 // https://stats.renaudrohlinger.com/
 // import Stats from 'three/examples/jsm/libs/stats.module'
 import Stats from 'stats-gl'
 import { DISPLAY_WEB_GL_3D } from "./display-types.js"
+import S from '../models/face-model-data.json'
 
+let data = S["0"]
 
 // if you want post processing
 // import { OverrideMaterialManager } from 'postprocessing'
@@ -90,7 +92,6 @@ const VIEW_CONE_ANGLE_Z = 0.6
 const FACE_SIZE = 0.59 // 0.06
 const FACE_OPACITY = 0.1
 
-let DATA
 
 export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	colour:0xff44ee,
@@ -137,9 +138,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 	count = 0
 
-	// stupid this n that
-	resizeProxy
-
 	get depth(){
 		return 100
 	}
@@ -150,7 +148,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_WEBGL ){
-		console.log("WEBGL Creating Display", { canvas, initialWidth, initialHeight, options} )
 		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_WEBGL, options)
 		super(canvas, initialWidth, initialHeight, options)
 		this.create(options.quantity, options).then( e=>{
@@ -160,17 +157,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				document.body.append( this.renderer.domElement)
 			}	
 
-			fetch(DATA_SOURCE).then(response => {
-				console.info("LOADING DATA FOR WEBGL 3D!")
-				DATA = response.json()
-				this.loadComplete("ready")
-			}).catch(error => {
-				console.error("ERROR loading display root data", error)
-				this.loadComplete("failed")
-			}).finally(() => {
-				console.info("WEBGL Connected and actors intiated", canvas, options, this.particles )
-			})
-
+			this.loadComplete("ready")
 		})	
 	}
 	
@@ -183,7 +170,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 
 	createFace(faceMesh, size=0.06 ){
-
 		// enable face mesh
 		faceMesh.material.morphtargets = true
 		// faceMesh.morphTargetInfluences[0] = 1
@@ -214,9 +200,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		const scene = new THREE.Scene()
 
-		const response = await fetch(DATA_SOURCE)
-		DATA = await response.json()
-		
 		options = {
 			...DEFAULT_OPTIONS_DISPLAY_WEBGL,
 			...options
@@ -260,6 +243,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		// for model loading we want the correct encoding
 		renderer.outputEncoding = THREE.sRGBEncoding
+
 		
 		// we can swap this for the orthogonal camera
 		// for extra style points
@@ -274,6 +258,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		// Add font and text field
 		await preload3dFont(FONT)
+
 		const text = new Text()
 		text.textAlign = "left"	// 'left', 'right', 'center', or 'justify'.		
 		text.maxWidth = 420		
@@ -313,10 +298,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.ambientLight = ambientLight
 		this.directionalLight = directionalLight
 			
-		this.resizeProxy = this.onWindowResize.bind(this)
-		this.onResize( )
-		window.addEventListener("resize", this.resizeProxy)
-
 		if (options.mouse)
 		{
 			this.mouseMoveProxy = this.onPointerMove.bind(this)
@@ -366,7 +347,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.scene.remove( this.ambientLight )
 		this.scene.remove( this.directionalLight )
 
-		window.removeEventListener("resize", this.resizeProxy )
 		document.body.removeEventListener( 'pointermove', this.mouseMoveProxy )
 	
 		// Look into this...
@@ -697,6 +677,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		return new Promise((resolve,reject) => {
 			const loader = new THREE.TextureLoader()
 			loader.colorSpace = THREE.SRGBColorSpace
+			
 			loader.load( PARTICLE_URI, (texture)=>{
 
 				const uniforms = {
@@ -728,9 +709,14 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					// depthWrite: false,
 					// vertexColors: true
 				}
+				
+			
 
 				const particlesMaterial = new THREE.PointsMaterial(materialOptions)
 		
+				console.info("loader", {quantity, size, color, particlesMaterial} )
+			
+
 				// Load in our canonical face
 				const fbxLoader = new FBXLoader()
 				fbxLoader.load( CANONICAL_FACE, ( faceGroup ) => {
@@ -751,9 +737,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					// const randomPoints = GeometryUtils.randomPointsInGeometry( faceMesh )
 					//const randomBufferPoints = GeometryUtils.randomPointsInBufferGeometry( geometry, 3 )
 
-					const data = DATA[0+'']
+					
+					// FIXME: 
 					const { keypoints, facialTransformationMatrixes, box } = data
-					const liveFaceGeometry = createFaceGeometryFromData(keypoints, quantity, 1,  )
+					const liveFaceGeometry = createFaceGeometryFromData(keypoints, quantity, 1 )
 					const tracerParticles = liveFaceGeometry.userData.particles 
 					const positions = liveFaceGeometry.attributes.position.array 
 					// const freeRadicals = 
@@ -1247,6 +1234,7 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 	postProcess( options ){
 
 	}
+
 	/**
 	 * converts the canvas into a PNG / JPEG and adds returns as a blob?
 	 * @param {String} type 
@@ -1369,14 +1357,5 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 		
 		this.camera.aspect = aspectRatio
 		this.camera.updateProjectionMatrix()
-	}
-
-	/**
-	 * EVENT: Triggered by the window being resized
-	 * either by scaling the app or via device rotation
-	 * @param {Event} event 
-	 */
-	onWindowResize(event){
-		this.onResize()
 	}
 }

@@ -35,9 +35,13 @@ export default class AbstractDisplay{
 
 	// Loading ------------------------
 	loadComplete
+	loadFailed
 
 	// private (consume this in the constructor	)
-	loading = new Promise((resolve,reject)=>this.loadComplete = resolve)
+	loading = new Promise((resolve,reject)=>{
+		this.loadComplete = resolve
+		this.loadFailed = reject
+	})
 
 	// Linked List --------------------
 
