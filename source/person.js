@@ -158,7 +158,7 @@ export default class Person{
 	state = STATE_INSTRUMENT_SILENT
 		
 	// Flags
-	useArpeggio = true
+	useArpeggio = false
 
 	active = false
 	singing = false
@@ -1252,7 +1252,8 @@ export default class Person{
 		// for the next note  0 -> 2 : 0.5 -> 1.5
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
-		// console.info( this.pitchBendValue )
+		// console.info( "noteData", {noteFloat, noteSound, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
+		
 /*
 		// swap em arounnd!??
 		const octaveNumber = this.options.swapControls ? prediction.roll : prediction.pitch
@@ -1291,7 +1292,7 @@ export default class Person{
 			const mode = 0
 			this.arpeggio.setAllParameters( noteNumberForMIDI, forumla, mode )
 
-			console.info("useArpeggio", this.arpeggio.sequence, {noteNumberForMIDI, forumla, mode, noteName}, this.lastNote , noteNumber )
+			//console.info("useArpeggio", this.arpeggio.sequence, {noteNumberForMIDI, forumla, mode, noteName}, this.lastNote , noteNumber )
 
 			// const noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
 			// // eg. Do Re Mi
@@ -1305,7 +1306,7 @@ export default class Person{
 			// note hasn't changed so let's get the next arpeggio note...
 			// noteNumber = 
 			noteNumberForMIDI = this.arpeggio.next()
-			console.info("Arpeggio",  this.arpeggio.sequence, noteNumberForMIDI )
+			//console.info("Arpeggio",  this.arpeggio.sequence, noteNumberForMIDI )
 		}
 		
 		// now fetch the other data...

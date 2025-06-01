@@ -167,6 +167,8 @@ export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES
 		noteName = notesRight[noteNumber]
 	}
 
+	console.info( "getNoteName", {percent, octave, facingLeft, noteNumber, noteName, notesLeft, notesRight} )
+
 	// here is where we need to do our majic
 	// const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
 	// play a note from bank (this is the same for every octave?)
