@@ -1,3 +1,7 @@
+// NB. Does *not* work with AudioWorklet
+// import 'audioworklet-polyfill'
+// import * as EMOJI from "./models/emoji.js"
+
 // DOM UI
 import { setupFeedbackControls } from './dom/text.js'
 import setupDialogs from './dom/ui.dialog.js'
@@ -30,18 +34,15 @@ import { Quanitiser } from './visual/quantise.js'
 
 // SHARE
 import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
-// import { getLocationSettings, getShareLink, addToHistory, getRefererHostname } from './utils/location-handler.js'
 
 // STATE
-// import {midiLikeEvents} from './timing/rhythm'
-import State, { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
+import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
 import StateWithIO from './utils/state-io'
 
 
 // MODELS
 import { TAU } from "./maths/maths.js"
 import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
-
 import { loadMLModel } from './models/load-model.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
@@ -50,15 +51,12 @@ import Person, {
 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
 	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
 	getRandomPresetForPerson,
-	EVENT_PERSON_DEAD,
-	EVENT_PERSON_BORN
+	EVENT_PERSON_DEAD, EVENT_PERSON_BORN
  } from './person.js'
  
-
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
-import { tapTempo, convertBPMToPeriod, now } from './timing/timing.js'
 import AudioTimer from './timing/timer.audio.js'
 
 // AUDIO 
@@ -68,18 +66,18 @@ import {
 	getRecordableOutputNode,
 	active, playing, 
 	setupAudio,
+	stopAudio,
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
-	getVolume, setVolume, getPercussionNode, 
-	stopAudio
+	getVolume, setVolume, getPercussionNode
 } from './audio/audio.js'
-import { createDrumkit } from './audio/drum-kit.js'
 
+// Different ways of playing sound!
+import { createDrumkit } from './audio/drum-kit.js'
 import InstrumentFactory from './audio/instrument-factory.js'
 import InstrumentManager from './audio/instrument-manager.js'
 
-// Different ways of playing sound!
 // TODO: Replace with instrumentFactory
 import SampleInstrument from './audio/instruments/instrument.sample.js'
 // import MIDIInstrument from './audio/instruments/instrument-midi1.js'
@@ -110,7 +108,7 @@ import { WebMidi } from 'webmidi'
 // import { COMMAND_NOTE_ON, COMMAND_NOTE_OFF } from './audio/midi/midi-commands'
 
 // THEME
-import {getThemeFromReferer, setTheme, setupThemeControls} from './theme/theme.js'
+import { getThemeFromReferer, setTheme, setupThemeControls } from './theme/theme.js'
 import { fetchBrandColor } from './settings/palette.js'
 
 // DISPLAYS
@@ -129,10 +127,7 @@ import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator
 // import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
-
 /*
-import 'audioworklet-polyfill'
-import * as EMOJI from "./models/emoji.js"
 
 import { loadInstrumentsList } from './settings/options.instruments.js'
 
@@ -146,24 +141,20 @@ import { loadInstrumentsList } from './settings/options.instruments.js'
 // 	getRandomHarmonicLeadPresetIndex
 // } from './audio/sound-font-instruments'
 
-
 import { createSVGWaveformFromData, createWaveform } from './dom/svg-waveform.js'
 
 import MusicalKeyboard from './visual/2d.keyboard.js'
 // import Stave from './visual/2d.stave.js'
 import { setupImage } from './visual/image.js'
 import { setNodeCount } from './visual/2d.js'
-
-
 import { convertOptionToObject } from './utils/utils.js'
+*/
+
+import { setupReporting, track, trackError, trackExit } from './reporting'
+const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
-// import { setupReporting, track, trackError, trackExit } from './reporting'
-*/
-
-
-const {DISPLAY_CANVAS_2D,DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
 export const APPLICATION_EVENTS = {
 	LOADING:"loading",
@@ -268,8 +259,6 @@ export const createInterface = (
 	let textHelpIndex = 0
 	let quantityInstructions = 0
 	let quantityHelp = 0
-
-	let setupReporting, track, trackError, trackExit
 
 	// Store for gagdets, widgets and buttons
 	const toggles = {}
@@ -2030,7 +2019,7 @@ export const createInterface = (
 		// if (hasPredictions)
 		// {
 			const range = hasPredictions ? Math.max(predictions.length, people.length) : people.length
-			const timeNow = now()
+			const timeNow = clock.now
 			// FIXME: If there are fewer people than exist, 
 			// we also need to noteOff for every person
 
