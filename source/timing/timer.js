@@ -122,8 +122,7 @@ export default class Timer {
 	isBypassed = false
 	isActive = false
 
-
-	timingWorker
+	timingWorkHandler
 
 	loaded = new Promise( this.onAvailable, this.onUnavailable)
 	
@@ -391,6 +390,8 @@ export default class Timer {
 		}else{
 			this.loaded = this.setTimingWorker( options.type, options.processor, this.audioContext )
 		}
+
+		console.info("Timer:", options.type, this.timingWorkHandler, {isWorklet, options} )
 	}
 
 	/**
@@ -417,7 +418,7 @@ export default class Timer {
 			if (this.isRunning)
 			{
 				// disconnect but don't destroy
-				this.disconnectWorker( this.timingWorker, false )
+				this.disconnectWorker( this.timingWorkHandler, false )
 				console.info("timer runinng, bypassing... ")
 			}else{
 				console.info("bypassing... ignored")
@@ -457,7 +458,7 @@ export default class Timer {
 		let wasRunning = this.isRunning
 
 		// destroy any existing worklet
-		if (this.timingWorker)
+		if (this.timingWorkHandler)
 		{
 			await this.unsetTimingWorker()
 		}
@@ -471,9 +472,9 @@ export default class Timer {
 
 		// console.error(type, "timer.processor loaded", { type, processor} ) 
 		// const wrklet = await import(type) 
-		const wrklet = await import("../timing/timing.audioworklet.js")
+		const Worklet = await import("../timing/timing.audioworklet.js")
 		// set worker in global space
-		this.timingWorker = new wrklet.default( audioContext )
+		this.timingWorkHandler = new Worklet.default( audioContext )
 			
 		// console.error(type, "timer.audioworklet", wrklet, this.timingWorker ) 
 	
@@ -484,7 +485,7 @@ export default class Timer {
 		{
 			this.startTimer()
 		}
-		return this.timingWorker
+		return this.timingWorkHandler
 	}
 
 	// WORKER ------------------------------------------------------------------------------------
@@ -512,26 +513,26 @@ export default class Timer {
 			let wasRunning = this.isRunning
 
 			// destroy any existing worker
-			if (this.timingWorker)
+			if (this.timingWorkHandler)
 			{
 				await this.unsetTimingWorker()
 			}
 
-			this.timingWorker = await this.loadTimingWorker(type)		
+			this.timingWorkHandler = await this.loadTimingWorker(type)		
 			
-			if (!this.timingWorker)
+			if (!this.timingWorkHandler)
 			{
 				throw Error ("Timing Worker failed to load url:"+url+ " type:" + type)
 			}
 		
-			console.info("Setting timer worker", type, this.timingWorker )
+			console.info("Setting timer worker", type, this.timingWorkHandler )
 
 			if (wasRunning)
 			{
 				this.startTimer()
 			}
 
-			return this.timingWorker
+			return this.timingWorkHandler
 
 		}catch(error){
 
@@ -556,8 +557,8 @@ export default class Timer {
 		// this.timingWorker.onmessage = (e) => {}
 		// this.timingWorker.onerror = (e) => {}
 		this.stopTimer()
-		this.timingWorker.terminate()
-		this.timingWorker = null
+		this.timingWorkHandler.terminate()
+		this.timingWorkHandler = null
 		return true
 	}
 
@@ -627,7 +628,7 @@ export default class Timer {
 	}
 
 	postMessage(payload){
-		this.timingWorker && this.timingWorker.postMessage(payload)
+		this.timingWorkHandler && this.timingWorkHandler.postMessage(payload)
 	}
 
 	/**
@@ -699,7 +700,7 @@ export default class Timer {
 			}
 		}
 
-		this.connectWorker( this.timingWorker )
+		this.connectWorker( this.timingWorkHandler )
 	
 		// send command to worker... options
 		this.postMessage({
@@ -715,7 +716,7 @@ export default class Timer {
 		return {
 			time:currentTime, 
 			interval:this.period,
-			worker:this.timingWorker
+			worker:this.timingWorkHandler
 		}
 	}
 
@@ -730,11 +731,11 @@ export default class Timer {
 		const currentTime = this.now
 		// cancel the thing thrugh the workers first
 		// cancel any scheduled quie noises
-		this.disconnectWorker( this.timingWorker )
+		this.disconnectWorker( this.timingWorkHandler )
 
 		return {
 			currentTime,
-			worker:this.timingWorker
+			worker:this.timingWorkHandler
 		}
 	}
 
@@ -812,11 +813,9 @@ export default class Timer {
 			this.divisionsElapsed = 0
 		}
 
-		
-
+	
 		// let us determine if we are on a swung beat
 		const swung = this.divisionsElapsed%this.swingOffset === 0
-
 
 		this.callback && this.callback({
 			bar:this.currentBar, bars:this.totalBars, 
