@@ -142,7 +142,6 @@ export default class AbstractDisplay{
 	// This varies for each display but here we create a neverending
 	// loop using requestFrame - be sure to overwrite
 	setAnimationLoop( callback ){
-	
 		const looper = ()=>{
 			callback()
 			this.loopId = requestAnimationFrame(looper)

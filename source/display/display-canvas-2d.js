@@ -414,7 +414,8 @@ export default class Display2D extends AbstractDisplay{
 	}
 
 	drawEmoticon( x, y, emoji ){
-		drawText( this.canvasContext, x, y, emoji, 44, "center", "noto-emoji", false )
+		console.info("drawEmoticon", x, y, emoji )
+		drawText( this.canvasContext, x, y, emoji, 88, "center", "noto-emoji", false )
 	}
 
 	/**

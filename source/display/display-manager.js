@@ -6,6 +6,8 @@
  * 
  * The WebXR version has an extra holographic mode too
  */
+// 
+import DisplayLookingGlass3D, { createXRToggleButton } from './display-looking-glass-3d.js'
 
 import {DISPLAY_TYPES} from './display-types.js'
 
@@ -36,7 +38,7 @@ export const loadDisplayClass = async( type ) => {
 			return {default:DisplayWebGL3D}
 
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D: 
-			const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass } = await import( './display-looking-glass-3d.js')
+			const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass, createXRToggleButton } = await import( './display-looking-glass-3d.js')
 			return {
 				default:DisplayLookingGlass3D, 
 				before:requiredXRSetupForLookingGlass
@@ -49,11 +51,11 @@ export const loadDisplayClass = async( type ) => {
  * @param {String} displayType 
  * @returns 
  */
-export const createDisplay = async (canvasElement, displayType, options ) => {
+export const createDisplay = async (canvasElement, displayType, options={} ) => {
 
 	// set the canvas to the size of the video / image
 	// display = new Display( webGLElement, inputElement.width, inputElement.height )
-	console.warn("DISPLAY:Creating new", canvasElement, displayType, options)
+	console.warn("DISPLAY:Creating new",displayType,"on", canvasElement, {options}) 
 		
 	canvasElement.setAttribute( "data-display-type",displayType )
 	switch(displayType)
@@ -64,7 +66,6 @@ export const createDisplay = async (canvasElement, displayType, options ) => {
 			const displayWebGL3D = new DisplayWebGL3D( canvasElement, canvasElement.width, canvasElement.height, options )
 			console.info("DISPLAY_WEB_GL_3D LOADING", displayWebGL3D)
 			await displayWebGL3D.loading
-			console.info("DISPLAY_WEB_GL_3D LOADED", displayWebGL3D.loading)
 			return displayWebGL3D
 
 		case DISPLAY_TYPES.DISPLAY_COMPOSITE:
@@ -77,11 +78,11 @@ export const createDisplay = async (canvasElement, displayType, options ) => {
 
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D:
 			// Looking Glass Portrait hardware
+			// const {default:DisplayLookingGlass3D, before} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
 			const {default:DisplayLookingGlass3D, before} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
-		
-			// TODO: Sniff hardware connected to determine if we want XR?
-			const lookingGlassWebXR = before()
-			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR} )
+			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:createXRToggleButton } )
+
+			// const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:before} )
 			await displayLookingGlass3D.loading
 			return displayLookingGlass3D
 
@@ -91,6 +92,7 @@ export const createDisplay = async (canvasElement, displayType, options ) => {
 			const {default:DisplayMediaVision2D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D )
 			const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, canvasElement.width, canvasElement.height, options )
 			await displayMediaVision2D.loading
+			
 			return displayMediaVision2D
 	}
 }
@@ -126,12 +128,18 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	newCanvasElement.id = id
 	newCanvasElement.className = classNames
 	newCanvasElement.setAttribute("data-id", parseInt(dataId) + 1 ) 
-
-	// remove existing canvas 
-	canvasElement.remove()
 	
 	// re-append new canvas in old canvas location
 	parent.appendChild(newCanvasElement)
+	
+	// remove existing canvas 
+	canvasElement.remove()
+
+	console.info("restartCanvas", {canvasElement, newCanvasElement, display, parent})
+	
+	// kill to prevent side effects
+	canvasElement = null
+
 	return newCanvasElement
 } 
 
@@ -151,17 +159,15 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 	
 	if (!canvasElement.parentNode)
 	{
-		throw Error("No DOM canvas was provided - only orphan")  
+		throw Error("No DOM canvas was provided - only orphan without parent")  
 	}
 
 	// delete any existing connection
 	if (display)
 	{
-		console.warn("Swapping Display", display.id, "for", displayType)
+		console.warn("Destroying Display", display.id, "for", displayType)
 		display.destroy()
 		display = null
-	}else{
-		console.warn("Iniitislising Display", displayType)
 	}
 
 	// as a context once set can only be one of 2d or webgl

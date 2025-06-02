@@ -10,12 +10,11 @@ import {
 	changeDisplay 
 } from "../display/display-manager.js"
 
-import { DISPLAY_TYPES } from '../display/display-types.js'
+import { DISPLAY_TYPES, DISPLAY_IDS } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 import { now } from "../timing/timing.js"
 
 import DATA_SOURCE from 'raw:/source/tests/test.face.json'
-
 // JSON data from data_source
 let DATA
 let DATA_KEYS 
@@ -23,6 +22,7 @@ let DATA_KEYS
 let count = 0
 let display
 
+let canvas = document.querySelector('canvas')
 
 const person = new Person( 0, {} )
 
@@ -47,6 +47,7 @@ const render = () => {
 
 		display.clear()
 		display.drawPerson(person, true)
+		display.drawEmoticon(0,0,":-D")
 		display.drawText(0,0, count + ". Display:"+display.name)
 
 		// required to update the actual GL
@@ -56,10 +57,13 @@ const render = () => {
 	}	
 }
 
+
 const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D) => {
 
-	let canvas = document.querySelector('canvas')
+	const result = document.getElementById('output')
+	
 	const buttonVideo = document.getElementById('button-video')
+	canvas = document.querySelector('canvas')
 	
 	// Sniff hardware connected to determine if we want XR
 
@@ -73,21 +77,22 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 		{
 			initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
 			document.body.classList.add("holographic")
+			result.textContent = "Looking Glass Portrait detected"
 		}else{
 			console.info("No Looking Glass devices found")
+			result.textContent = "NO Looking Glass Portraits detected"
 		}	
 	}catch(error){
 		console.info("No Looking Glass devices connected")
 	}
 	
 	// immediately set the video display to what was discovered / previously set as an option
-	try{
-		// display = await changeDisplay(canvas, initialDisplay, render)
-		display = await createDisplay( canvas, initialDisplay )
-		display.setAnimationLoop( render )		
-	}catch(error){
-		console.error("Display Error", error)
-	}
+	// try{
+		display = await changeDisplay(canvas, initialDisplay, render)
+		canvas = display.canvas
+	// }catch(error){
+	// 	console.error("Cannot change Display Error:", error) 
+	// }
 
 	// Update the DOM UI
 	const selectDisplay = document.getElementById('select-display')
@@ -95,21 +100,31 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 		const newDisplay = DISPLAY_TYPES[selectDisplay.value] 
 		display = await changeDisplay( canvas, newDisplay, render )
 		canvas = display.canvas
+		result.textContent = "Looking Glass Portrait detected " + newDisplay
 	})
 	selectDisplay.value = initialDisplay
 
 	buttonVideo.addEventListener("click", async(e) => {
 		const newDisplayType = chooseRandomDisplay()
-		console.log("Display change to", {canvas, newDisplayType})
+		console.log("Display request", {canvas, newDisplayType}, canvas.parentNode )
 		try{
+			
+			console.log("Display changing", newDisplayType, canvas.parentNode)
 			display = await changeDisplay( canvas, newDisplayType, render )
 			canvas = display.canvas
-			console.log("Display changed", {canvas, display})
+			
+			console.log("Display changed", {canvas, display}, canvas.parentNode)
+
+			result.textContent = "Display updated " + newDisplayType
+
+
 		}catch(error){
-			console.error("Display Error", error)
+			console.error("Display Could not be swapped", error)
 		}
 	})
+	console.info("Registering displays with canvas", canvas, canvas.parentElement)
 }
+
 
 async function init(){
 
@@ -122,6 +137,46 @@ async function init(){
 	DATA_KEYS = Object.keys( DATA )
 
 	console.log("Person created", person, "with", {DATA, DATA_KEYS} )
+
+	// swap canvases numerous times...
+	let counter = 0
+	canvas = document.querySelector('canvas')
+	let display
+	let displayType
+
+	// display = await changeDisplay( canvas, DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D, render )
+	// canvas = display.canvas
+	// console.error("DISPLAY_LOOKING_GLASS_3D", display, canvas.parentElement)
+
+	// // TEST : Looking Glass Portrait
+	// display = await changeDisplay( canvas, DISPLAY_TYPES.DISPLAY_WEB_GL_3D, render )
+	// canvas = display.canvas
+	// console.error("DISPLAY_WEB_GL_3D", display, canvas.parentElement)
+
+
+	/*
+	
+	displayType = DISPLAY_IDS[counter++%DISPLAY_IDS.length]
+	// console.info("ChangeDisplays", displayType, canvas, canvas.parentNode )
+	display = await changeDisplay( canvas, displayType, render )
+	canvas = display.canvas
+
+	
+	displayType = DISPLAY_IDS[counter++%DISPLAY_IDS.length]
+	// console.info("ChangeDisplays", displayType, canvas, canvas.parentNode )
+	display = await changeDisplay( canvas, displayType, render )
+	canvas = display.canvas
+
+	displayType = DISPLAY_IDS[counter++%DISPLAY_IDS.length]
+	// console.info("ChangeDisplays", displayType, canvas, canvas.parentNode )
+	display = await changeDisplay( canvas, displayType, render )
+	canvas = display.canvas
+
+	// displayType = DISPLAY_IDS[counter++%DISPLAY_IDS.length]
+	// // console.info("ChangeDisplays", displayType, canvas, canvas.parentNode )
+	// display = await changeDisplay( canvas, displayType, render )
+	// canvas = display.canvas
+	*/
 
 	try{
 		const o = await registerDisplays()

@@ -27,16 +27,16 @@ import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/web
 import * as THREE from "three/src/Three.js"
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
 
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js'
-import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
+// import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+// import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+// import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+// import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
+// import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+// import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js'
+// import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 
-import DisplayWebGL3D from "./display-webgl-3d"
-import { DISPLAY_LOOKING_GLASS_3D } from './display-types'
+import DisplayWebGL3D from "./display-webgl-3d.js"
+import { DISPLAY_LOOKING_GLASS_3D } from './display-types.js'
 
 // Settings
 const LOOKING_GLASS_PORTRAIT_WIDTH = 480
