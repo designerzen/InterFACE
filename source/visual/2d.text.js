@@ -10,8 +10,9 @@ import PALETTE from "../settings/palette"
  * @param {String} font 
  * @param {Boolean} invertColours - invert the colours (white on black)
  */
-export const drawText = ( canvasContext, x, y, text='', size='10px', align="center", font="Oxanium", invertColours=false) => {
-	canvasContext.font = `900 ${size} ${font}`
+export const drawText = ( canvasContext, x, y, text='', size=10, align="center", font="Oxanium", invertColours=false) => {
+	canvasContext.font = `900 ${size}px ${font}`
+// console.info("drawText FONT", `900 ${size}px ${font}`)
 	canvasContext.textAlign = align
 	canvasContext.fillStyle = invertColours ? PALETTE.dark :  PALETTE.white
 	canvasContext.strokeStyle  = invertColours ? PALETTE.white : PALETTE.dark
@@ -19,6 +20,13 @@ export const drawText = ( canvasContext, x, y, text='', size='10px', align="cent
 	canvasContext.fillText( text, x, y )
 }
 
+export const drawRotatedText = ( canvasContext, x, y, rotation=0, text='', size=10, align="center", font="Oxanium", invertColours=false) => {
+	canvasContext.save()
+	canvasContext.translate( canvasContext.canvas.width / 2, canvasContext.canvas.height / 2 )
+	canvasContext.rotate( rotation )
+	drawText( canvasContext, 0, 0, text, size, align, font, invertColours )
+	canvasContext.restore()
+}
 /**
  * multi line
  * @param {CanvasRenderingContext2D} canvasContext 

@@ -151,6 +151,7 @@ import { convertOptionToObject } from './utils/utils.js'
 */
 
 import { setupReporting, track, trackError, trackExit } from './reporting'
+import { tapTempo } from './timing/timer.js'
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
 // Lazily loaded in load() method
@@ -2249,8 +2250,9 @@ export const createInterface = (
 			elapsed, expected, drift, level, intervals, lag
 		} = values
 
-		console.log( clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, 'qn', clock.isQuarterNote, "start", clock.isAtStart, { clock }, values)
-		
+		const tempo = tapTempo(true, 1000, 3)
+		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
+				
 
 		const isQuarterNote = clock.isQuarterNote
 		const isHalfNote = clock.isHalfNote
@@ -2378,6 +2380,8 @@ export const createInterface = (
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
+			const tempo = tapTempo(true, 1000, 3)
+			console.log("tempo", tempo, {clock} )
 
 			const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 			if ( divisionsElapsed % slower === 0 )
@@ -2683,10 +2687,11 @@ export const createInterface = (
 		try{
 			// NB. at this point we have access to the user events
 			// 		so can create things that depend on audio context
+			const initialBPM = stateMachine.get('bpm') ?? 90
 			clock = new AudioTimer( audioContext )
-			clock.BPM = stateMachine.get('bpm') ?? 90
+			clock.BPM = initialBPM
 
-			console.info("AudioTimer ["+stateMachine.get('bpm')+" BPM] created @", clock.BPM,  clock )
+			console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
 
 			// connect the tempo interface
 			setupTempoInterface(clock, null, null, v =>{

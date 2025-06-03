@@ -1049,16 +1049,22 @@ export default class Person{
 		const boxWidth = xMax - xMin
 		const thirdHeadHeight = boxHeight * 0.333
 		const thirdHeadWidth = boxWidth * 0.333
+		const halfHeadWidth = boxWidth * 0.333
 
 		const instrumentTitle = this.presetTitle ?? this.instrumentTitle
-		const textX = xMin + thirdHeadWidth
+		const textX = xMin + halfHeadWidth - 9
 		const textY = yMin - thirdHeadHeight
 
+	
 		// draw a background for the text
 		if (showBackground)
 		{
-			display.drawRectangle( xMin, yMin, boxWidth, boxHeight, 4, "rgba(255,0,0,0.5)", "rgba(255,255,255,0.5)" )
+		// 	display.drawRectangle( textX, textY - 25, boxWidth, 40, 4, "rgba(28, 75, 85, 0.13)", "rgba(255,255,255,0.5)" )
 		}
+
+
+		// Draw Bounding Box
+		// display.drawRectangle( xMin, yMin, boxWidth, boxHeight, 4, "rgba(255,0,0,0.5)", "rgba(255,255,255,0.5)" )
 
 		// console.log({xMin, xMax, yMin, yMax })
 
@@ -1083,7 +1089,7 @@ export default class Person{
 					
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
-					display.drawParagraph( xMax, yMax + 15, [`Press me`], '9px' )
+					display.drawParagraph( xMax, yMax + 15, [`Press me`], 9 )
 			
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
@@ -1091,14 +1097,14 @@ export default class Person{
 
 					display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
-					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], '11px' )
+					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], 11 )
 				}
 
 			}else{
 				
 				// No mouse held
-				display.drawInstrument( textX, textY, instrumentTitle, "", "14px")
-				display.drawParagraph(textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose instrument'], '12px' )		
+				display.drawInstrument( textX, textY, instrumentTitle, "", 14)
+				display.drawParagraph(textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose instrument'], 12 )		
 				// display.drawParagraph( xMax, textY + 40, [`Tap to select a random one`], '9px' )		
 				// display.drawInstrument(textX, textY + 24, "Press & Hold", "", '28px' )
 				// display.drawInstrument(textX - 10, textY + 24, "to choose instrument", "", '28px' )
@@ -1129,7 +1135,7 @@ export default class Person{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			display.drawInstrument(xMin, yMin , instrumentTitle, 'Loading...', '9px' )
+			display.drawInstrument(textX, textY, instrumentTitle, 'Loading...', 9 )
 
 		}else{
 
@@ -1138,11 +1144,10 @@ export default class Person{
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
-			// eye:${prediction.eyeDirection} 
+		// eye:${prediction.eyeDirection} 
 			
-			display.drawInstrument(textX, textY, instrumentTitle, "", '14px' )
-			// display.drawInstrument(textX, textY + 26, this.emoticon, "", '28px' )
-			display.drawEmoticon ( textX, textY + 26, this.emoticon )
+			display.drawInstrument(textX, textY - 50, instrumentTitle, "", 14 )
+			display.drawEmoticon( textX, textY + 10, this.emoticon, prediction.pitch * Math.PI  )
 
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			

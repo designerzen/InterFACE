@@ -9,7 +9,7 @@ import { drawElement, drawRoundedRect } from "../visual/2d"
 // import { drawLip } from "../visual/2d.mouth"
 import { hasOffscreenCanvasCapability} from '../capabilities'
 import { drawBars } from "../visual/spectrograms"
-import { drawInstrument, drawParagraph, drawText } from "../visual/2d.text"
+import { drawInstrument, drawParagraph, drawRotatedText, drawText } from "../visual/2d.text"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 import Stats from 'stats-gl'
@@ -405,7 +405,7 @@ export default class Display2D extends AbstractDisplay{
 		}
 	}
 
-	drawInstrument(x, y, instrumentName, extra, fontSize='24px' ){
+	drawInstrument(x, y, instrumentName, extra, fontSize=24 ){
 		drawInstrument( this.canvasContext, x, y, instrumentName, extra, fontSize ) 
 	}
 
@@ -413,9 +413,9 @@ export default class Display2D extends AbstractDisplay{
 		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours  )
 	}
 
-	drawEmoticon( x, y, emoji ){
-		console.info("drawEmoticon", x, y, emoji )
-		drawText( this.canvasContext, x, y, emoji, 88, "center", "noto-emoji", false )
+	drawEmoticon( x, y, emoji,rotation=0 ){
+		// console.info("drawEmoticon", x, y, emoji )
+		drawRotatedText( this.canvasContext, x, y, rotation , emoji, 50, "center", "noto-emoji", false )
 	}
 
 	/**
