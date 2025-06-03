@@ -9,9 +9,9 @@ import {
 	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
 } from './timing.events.js'
 
-// import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
-import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
-import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
+import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
+// import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
+// import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
 // import { createTimingProcessor } from './timing.audioworklet.js'
 
 export const MAX_BARS_ALLOWED = 32
@@ -25,8 +25,9 @@ const DEFAULT_TIMER_OPTIONS = {
 	bpm:90,
 
 	contexts:null,
-	type:AUDIOTIMER_WORKLET_URI,
-	processor:AUDIOTIMER_PROCESSOR_URI,
+	type:AUDIOCONTEXT_WORKER_URI,
+	// type:AUDIOTIMER_WORKLET_URI,
+	// processor:AUDIOTIMER_PROCESSOR_URI,
 	callback:null
 }
 
@@ -368,6 +369,7 @@ export default class Timer {
 				case "audioContext":
 					this.audioContext = options.audioContext
 					this.getNow = () => this.audioContext.currentTime * 1000
+					
 					break
 
 				case "contexts":
@@ -384,14 +386,17 @@ export default class Timer {
 		}
 
 		// 
-		const isWorklet = options.type.indexOf("orklet") > -1 && this.audioContext
-		if (isWorklet){
+		const isWorklet = options.type.indexOf("orklet") > -1
+		console.info("Timer:", options.type, this.timingWorkHandler, {isWorklet, options} )
+
+		if (isWorklet)
+		{
 			this.loaded = this.setTimingWorklet( options.type, options.processor, this.audioContext )
 		}else{
 			this.loaded = this.setTimingWorker( options.type, options.processor, this.audioContext )
 		}
 
-		console.info("Timer:", options.type, this.timingWorkHandler, {isWorklet, options} )
+		
 	}
 
 	/**
@@ -525,11 +530,13 @@ export default class Timer {
 				throw Error ("Timing Worker failed to load url:"+url+ " type:" + type)
 			}
 		
-			console.info("Setting timer worker", type, this.timingWorkHandler )
-
+	
 			if (wasRunning)
 			{
+				console.info("Starting timer worker", type, this.timingWorkHandler )
 				this.startTimer()
+			}else{
+				console.info("Awaiting timer worker", type, this.timingWorkHandler )
 			}
 
 			return this.timingWorkHandler
@@ -672,6 +679,7 @@ export default class Timer {
 	 */
 	async startTimer( callback, options={} ){
 
+		
 		await this.loaded
 
 		const currentTime = this.now
@@ -702,16 +710,17 @@ export default class Timer {
 
 		this.connectWorker( this.timingWorkHandler )
 	
-		// send command to worker... options
-		this.postMessage({
+		const payload = {
 			command:CMD_START, 
 			time:currentTime, 
 			interval:this.period,
 			// FIXME:
 			accurateTiming:false
-		})
+		}
+		// send command to worker... options
+		this.postMessage(payload)
 		
-		// console.log("Starting...", { interval:timeBetween, timingWorker} )
+		console.log("Timer Starting...", { payload, timingWorker: this.timingWorkHandler} )
 
 		return {
 			time:currentTime, 

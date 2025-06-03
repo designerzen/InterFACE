@@ -48,7 +48,8 @@ class TimingAudioWorkletProcessor extends AudioWorkletProcessor {
 	 */
 	start(interval=250, accurateTiming=true ){
 		
-		this.gap = interval
+		this.gap = interval * 0.001 // 000
+		console.error("Timer audioWorklet start with interval "+this.gap)
 
 		if (!this.isRunning)
 		{   
@@ -104,10 +105,12 @@ class TimingAudioWorkletProcessor extends AudioWorkletProcessor {
 			}
 		}
 
-		if (this.isRunning && this.nextInterval >= currentTime)
+		if (this.isRunning && currentTime >= this.nextInterval )
 		{
-			// console.info("Processor:BEAT", this.nextInterval, currentTime )
+			// console.info("Timer Processor:BEAT", this.nextInterval, currentTime )
 			this.onTick()
+		// }else{
+			// console.info("Timer WAITING ", this.nextInterval - currentTime )
 		}
 		
 		// check to see the time has elapsed
@@ -155,10 +158,6 @@ class TimingAudioWorkletProcessor extends AudioWorkletProcessor {
 	
 			case CMD_UPDATE:
 				this.start(data.interval)
-				break
-
-			case 'setBPM':
-				// FIXME: 
 				break
 
 			default:

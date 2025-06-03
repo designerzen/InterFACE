@@ -1,11 +1,22 @@
 import Timer from "./timer.js"
 import { createTimingProcessor } from "./timing.audioworklet.js"
+import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
 import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
 
-export const MIDI_DIVISIONS = 24
+import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
+
+const DEFAULT_AUDIO_TIMER_OPTIONS = {
+
+	// keep this at 24 to match MIDI1.0 spec
+	// where there are 24 ticks per quarternote
+	divisions:24
+}
 
 export default class AudioTimer extends Timer {
 	
+	// NB. do *NOT* enable the following line as it will overwrite the var on super()
+	// audioContext
+
 	/**
 	 * Accurate time in milliseconds
 	 * @returns {Number} The current time as of now
@@ -14,13 +25,25 @@ export default class AudioTimer extends Timer {
 		return this.audioContext ? this.audioContext.currentTime : performance.now() 
 	}
 	
-	constructor(audioContext, type=AUDIOTIMER_PROCESSOR_URI){
+	constructor(audioContext, worklet=true){
 		const timerOptions = {
 			audioContext,
-			divisions: MIDI_DIVISIONS,
-			type	
+			...DEFAULT_AUDIO_TIMER_OPTIONS
 		}
+
+		if (!worklet)
+		{
+			timerOptions.type = AUDIOCONTEXT_WORKER_URI
+		}else{
+			timerOptions.type = AUDIOTIMER_WORKLET_URI
+			timerOptions.processor = AUDIOTIMER_PROCESSOR_URI
+		}
+
 		super( timerOptions )
+		if (!this.audioContext)
+		{
+			throw Error('No AudioContext specified')
+		}
 	}
 
 	startTimer( callback, options={} ){
@@ -31,34 +54,6 @@ export default class AudioTimer extends Timer {
 		{
 			this.audioContext.resume()
 		}
-
 		super.startTimer(callback, options)
-	}
-
-	/**
-	 * 
-	 * @param {String} type 
-	 * @returns 
-	 */
-	async loadTimingWorker(type){
-		// in the future, we may be able to pass offlineAudioContext to a worker
-		// and at that point, we can finally tie in the actual timing by using the 
-		// context as the global clock
-		return await createTimingProcessor( this.audioContext )
-	}
-	
-	/**
-	 * 
-	 * @param {String} type 
-	 * @returns Timer Worker or Worklet
-	 */
-	async setTimingWorker(type){
-		
-		if (!this.audioContext)
-		{
-			throw Error('No AudioContext specified')
-		}
-	
-		return super.setTimingWorker(type)
 	}
 }
