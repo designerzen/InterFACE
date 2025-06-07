@@ -11,6 +11,7 @@ release
 *~lock~*
 docs/
 textures/
+/coverage
 app
 *.bak
 *.sf2
