@@ -19,8 +19,16 @@
 	background-image:linear-gradient(to bottom, #000, #222);
 }
 
+// naturally we hide this until they are active
 .piano-note-indicator{
 	stroke:white;
 	stroke-width:0.3;
 	fill:yellow;
+	opacity: 0;
+	transition: opacity var(--ease-medium) linear;
+	
+	&.active{
+		opacity: 1;
+		transition-duration: var(--ease-quick);
+	}
 }
