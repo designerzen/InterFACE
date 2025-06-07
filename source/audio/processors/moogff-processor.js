@@ -12,12 +12,16 @@
  * Ported to C++ for SuperCollider by Dan Stowell - August 2007
  * http://www.mcld.co.uk/
  * 
- * Adapted for AudioWorklet by @designerzen
+ * Adapted for AudioWorklet by @designerzen based on mohayonao's timbre.js
+ * https://raw.githubusercontent.com/mohayonao/timbre.js/refs/heads/master/src/extras/MoogFF.js
  * 
  * @class MoogFFProcessor
  * @extends AudioWorkletProcessor
  */
+import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../tuning/notes'
+
 class MoogFFProcessor extends AudioWorkletProcessor {
+
     static get parameterDescriptors() {
         return [
             {
@@ -40,9 +44,14 @@ class MoogFFProcessor extends AudioWorkletProcessor {
 	name = "MoogFFProcessor"
 
 	constructor() {	
-		console.log("MoogFFProcessor created")
         super()
-        this.s1 = 0
+		this.reset()
+		this.port.onmessage = this.onmessage.bind(this)
+		this.port.postMessage({ type: 'available' })
+    }
+
+	reset(){
+		this.s1 = 0
         this.s2 = 0
         this.s3 = 0
         this.s4 = 0
@@ -50,7 +59,7 @@ class MoogFFProcessor extends AudioWorkletProcessor {
         this.a1 = 0
         this.wcD = 0
         this.prevFreq = -1 // Initialize with a value that ensures the coefficients are calculated on the first run
-    }
+	}
 
     process(inputs, outputs, parameters) {
         const input = inputs[0]
@@ -130,6 +139,33 @@ class MoogFFProcessor extends AudioWorkletProcessor {
 		// Keep the processor alive
         return true 
     }
+	
+	/**
+	 * Pass in the WAV data or URL to load via worklet 
+	 * @param {Event} event 
+	 */
+	onmessage(event) {
+		// Handling data from the node.
+		// console.log("SampleAudioWorkletProcessor:MESSAGE:", {event}, this)
+		switch (event.data.type) {
+
+			case "noteOn":
+				parameters.frequency.setValueAtTime(event.data.data.frequency, this.audioContext.currentTime)
+				break
+			
+			case "noteOff":
+				parameters.frequency.setValueAtTime(event.data.data.frequency, this.audioContext.currentTime)
+				break
+
+			// TODO: Send out after touch?
+			case 'aftertouch':
+				break
+
+			// TODO: Send out pitch bend?
+			case 'pitchBend':
+				break
+		}
+	}
 }
 
 registerProcessor('moogff-processor', MoogFFProcessor)

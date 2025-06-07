@@ -49,16 +49,16 @@ export default class YoshimiInstrument extends Instrument{
 	 * All local idx files available for this instrument
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getInstruments(){
+	async getPresets(){
 		return this.presets.map( preset => {
 			return preset.instruments
 		}).flat()
 	}
 
 	/**
-	 * 
-	 * @param {*} noteNumber 
-	 * @param {*} velocity 
+	 * Note ON - start making sound
+	 * @param {Number} noteNumber 
+	 * @param {Number} velocity 
 	 * @returns 
 	 */
 	async noteOn(noteNumber, velocity=1){
@@ -72,8 +72,8 @@ export default class YoshimiInstrument extends Instrument{
 
 	/**
 	 * FIXME: Fade out the gate
-	 * @param {*} noteNumber 
-	 * @param {*} velocity 
+	 * @param {Number} noteNumber 
+	 * @param {Number} velocity 
 	 * @returns 
 	 */
 	async noteOff(noteNumber, velocity=0){
@@ -104,7 +104,7 @@ export default class YoshimiInstrument extends Instrument{
 	async programChange( programNumber ){
 		super.programChange( programNumber )
 		// bank is the programNumber...
-		const programs = this.getInstruments()
+		const programs = await this.getPresets()
 		const bank = programs[programNumber]
 		const f = this.presets[this.instrumentIndex]
 
@@ -123,8 +123,7 @@ export default class YoshimiInstrument extends Instrument{
 	 * @returns 
 	 */
 	async createEngine(audioContext, origin=`/${WAM_FOLDER}/`){
-
-		//AWPF.origin = origin
+		// AWPF.origin = origin
 		// AWPF.origin = "http://127.0.0.1:44102/dist/"
 		// AWPF.origin = "https://webaudiomodules.org/demos/jariseon/yoshimi/"
 		await WAM.YOSHIMI.importScripts(audioContext, origin)
@@ -227,10 +226,8 @@ export default class YoshimiInstrument extends Instrument{
         }
         this.yoshimi.sendMessage([0xb0 + this.channel, controller, 0x7f & target]);
     }
-
     */
 
-	
 	clone(){
 		return new YoshimiInstrument(this.audioContext, this.options)
 	}

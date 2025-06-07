@@ -68,7 +68,7 @@ export default class DrumkitInstrument extends Instrument{
 		
 		this.patterns = getKitSequence()
 
-		//console.info("Drumkit.create() called", this )
+		console.info("Drumkit.create() called", this )
 
 		await super.create()
 		return true
@@ -149,7 +149,7 @@ export default class DrumkitInstrument extends Instrument{
 	 * TODO: Drum presets! each drum tuning
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
+	async getPresets(){
 		return []
 	}
 

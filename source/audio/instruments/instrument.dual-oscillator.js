@@ -111,11 +111,12 @@ export default class DualOscillatorInstrument extends OscillatorInstrument{
 	 * TODO:
 	 */
     async destroy(){
-		console.error("DESTROYING", this)
-		[this.oscillator, this.oscillator2].forEach( oscillator =>{
+		
+		[this.oscillator, this.oscillator2].forEach( (oscillator, i) =>{
 			oscillator.stop()
 			oscillator.disconnect()
 			oscillator = null
+			console.error(i, "DESTROYING oscillator", this)
 	 	} )
 
 		this.filter.disconnect()
@@ -178,8 +179,8 @@ export default class DualOscillatorInstrument extends OscillatorInstrument{
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
-		return PRESETS.PRESETS_NAMES
+	async getPresets(){
+		return PRESETS
 	}
 
 

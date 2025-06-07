@@ -38,17 +38,20 @@ import {
 } from './settings/options'
 
 import { toKebabCase } from "./utils/utils.js"
-import { rescale, lerp, clamp, range, rangeRounded } from "./maths/maths.js"
+import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "./maths/maths.js"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing.js"
 import { now } from "./timing/timing.js"
 
 // all the different instruments come through the instrument factory!
 import MIDIInstrument from './audio/instruments/instrument.midi.js'
+
+// default instruments
 import { 
 	INSTRUMENT_TYPE_SOUNDFONT,
 	INSTRUMENT_TYPE_OSCILLATOR, 
 	INSTRUMENT_TYPE_MIDI 
-} from './audio/instrument-factory.js'
+} from './audio/instrument-list.js'
+
 import InstrumentManager from './audio/instrument-manager.js'
 // import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
 
@@ -540,7 +543,7 @@ export default class Person{
 	 */
 	constructor( index, options={}, saveData=undefined ) {
 		
-		this.options = Object.assign({}, DEFAULT_PERSON_OPTIONS, options)
+		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
 		// ensure that the name is all lower case and kebabed
 		this.name = toKebabCase( NAMES[index] ?? "person-" + index )
 
@@ -562,7 +565,7 @@ export default class Person{
 		this.parameterRecorder = new ParamaterRecorder()
 		this.isRecordingParameters = options.recordData ?? false
 	
-		this.debug = this.options.debug
+		this.debug = true // this.options.debug
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
@@ -1147,7 +1150,8 @@ export default class Person{
 		// eye:${prediction.eyeDirection} 
 			
 			display.drawInstrument(textX, textY - 50, instrumentTitle, "", 14 )
-			display.drawEmoticon( textX, textY + 10, this.emoticon, prediction.pitch * Math.PI  )
+			const emojiRotation = (-prediction.roll * Math.PI * 0.33)
+			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
 
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
@@ -1217,6 +1221,8 @@ export default class Person{
 		const played = []
 		const prediction = this.data
 		const options = this.options
+
+		
 		
 		// do some checks on data to see if an event
 		// should be triggered via eye left / right
@@ -1244,8 +1250,9 @@ export default class Person{
 		const hasNoteChanged = this.lastNote !== noteNumber
 		// const hasNoteChanged = this.lastNoteName !== noteName
 		
+		const chords = getMusicalDetailsFromEomoji(noteNumber, this.emoticon)
+		console.info( "Sing emotion", chords )
 
-	
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
 

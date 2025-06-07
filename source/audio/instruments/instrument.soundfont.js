@@ -276,16 +276,23 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 * TODO: Add loading events
 	 * @param {String|Object} presetNameOrObject Name of the standard instrument to load
 	 * @param {String} instrumentPack Name of the standard instrument to load
-	 * @param {Function} callback Method to call once the instrument has loaded
+	 * @param {Function} options Settings & config
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadPreset(presetNameOrObject, instrumentPack, options, progressCallback ){
+	async loadPreset(presetNameOrObject, instrumentPack, options={}, progressCallback=()=>{} ){
 	
 		// convert the object into a preset folder string name
 		if (typeof presetNameOrObject === "object")
 		{
 			presetNameOrObject = presetNameOrObject.folder
 		}
-	
+
+		if (!instrumentPack)
+		{
+			throw Error("No instrumentPack name was provided")
+		}	
+		
+		
 		// const index = this.getIndexFromName(presetName)
 		
 		// if (index  === -1)
@@ -322,6 +329,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 				this.instrumentLoading = false
 				throw Error("No instrumentPack name was provided")
 			}	
+
 			if (instrumentPack.indexOf(".json") > -1)
 			{
 				this.instrumentLoading = false

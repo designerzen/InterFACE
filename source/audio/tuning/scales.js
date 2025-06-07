@@ -22,36 +22,26 @@ B Locrian — BCDEFGAB
 (intervals: Half - Whole - Whole - Half - Whole - Whole - Whole)
  */
 
-// Heavily inspired by Apotome
 
-// "African","Arabic","Chinese","Columbian","Greek","Indian","Indonesian","Japanese","Mexican","Persian","Peruvian","Singaporean","Spanish","Thai","Turkish","User","Western Experimental","Western Historical"
-// ["tonic","primary","secondary"]
 
 // ["C","C#","Db","D","D#","Eb","E","F","F#","Gb","G","G#","Ab","A","A#","Bb","B"]
 export const SCALE_NAMES = {
-	solfege:["Do","Do #","Re","Re #","Mi","Fa","Fa #","Sol","Sol #","La","La #","Si"], 
-	// solfege:["Do","Do #","Re b","Re","Re #","Mi b","Mi","Fa","Fa #","Sol b","Sol","Sol #","La b","La","La #","Si b","Si"],
+	english: 	["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+	french: 	["Do", "Do#", "Ré", "Ré#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"],
+  	german: 	["C", "Cis", "D", "Dis", "E", "F", "Fis", "G", "Gis", "A", "Ais", "H"],
+    spanish: 	["Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"],
+    kanji: 		["ド", "ド♯", "レ", "レ♯", "ミ", "ファ", "ファ♯", "ソ", "ソ♯", "ラ", "ラ♯", "シ"],
 	northIndian:["Sa","Re -","Re -","Re","G\u0101 -","G\u0101 -","G\u0101","M\u0101","M\u0101 +","M\u0101 +","P\u0101","Dh\u0101 -","Dh\u0101 -","Dh\u0101","N\u012b -","N\u012b -","N\u012b"],
 	southIndian:["Sa","Ri -","Ri -","Ri","Ri +","G\u0101 -","G\u0101","M\u0101","M\u0101 +","M\u0101 +","Pa","Dh\u0101 -","Dh\u0101 -","Dha","Dha +","Ni -","Ni"],
-	german:["C","Cis","Des","D","Dis","Es","E","F","Fis","Ges","G","Gis","As","A","Ais","B","H"],
-	dutch:["C","Cis","Des","D","Dis","Es","E","F","Fis","Ges","G","Gis","As","A","Ais","Bes","B"],
-	japanese:["Ha","Ei-ha","Hen-ni","Ni","Ei-ni","Hen-ho","Ho","He","Ei-he","Hen-to","To","Ei-to","Hen-i","I","Ei-i","Hen-ro","Ro"],
-	javanese:["Ji","Ji +","Ji + ","Ro","Ro +","Ro +","Lu","Pat","Pat +","Pat +","Ma","Ma +","Ma +","Nem","Nem +","Nem +","Pi"],
-	byzantine:["Ni","Ni #","Pa b","Pa","Pa #","Vu b","Vu","Ga","Ga #","Di b","Di","Di #","Ke b","Ke","Ke #","Zo b","Zo"]
+	dutch:		["C","Cis","Des","D","Dis","Es","E","F","Fis","Ges","G","Gis","As","A","Ais","Bes","B"],
+	japanese:	["Ha","Ei-ha","Hen-ni","Ni","Ei-ni","Hen-ho","Ho","He","Ei-he","Hen-to","To","Ei-to","Hen-i","I","Ei-i","Hen-ro","Ro"],
+	javanese:	["Ji","Ji +","Ji + ","Ro","Ro +","Ro +","Lu","Pat","Pat +","Pat +","Ma","Ma +","Ma +","Nem","Nem +","Nem +","Pi"],
+	byzantine:	["Ni","Ni #","Pa b","Pa","Pa #","Vu b","Vu","Ga","Ga #","Di b","Di","Di #","Ke b","Ke","Ke #","Zo b","Zo"],
+	solfege: 	["Do", "Do#", "Ré", "Ré#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"]
 }
 
 // renamed white notes
 export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
-
-// major: [2, 2, 3, 2, 3],
-// minor: [3, 2, 2, 3, 2],
-// blues: [3, 2, 1, 3, 2],
-// dorian: [2, 3, 2, 2, 3],
-// mixolydian: [2, 2, 3, 2, 3],
-// phrygian: [1, 3, 2, 3, 2],
-// ["harmonic-minor"]: [2, 1, 3, 2, 3],
-// ["melodic-minor"]: [2, 3, 2, 2, 3],
-
 
 // =============================================================================
 
@@ -80,24 +70,45 @@ export const getModeAsIntegerOffset = (mode) => isNaN(parseInt(mode)) ? TUNING_M
 export const C_SCALE =  ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 export const C_MAJOR = ["C","D","E","F","G","A","B"]
 
-export const MAJOR_SCALE = [0,2,4,5,7,9,11]
-export const NATURAL_MINOR_SCALE = [0,2,3,5,7,8,10]
-export const HARMONIC_MINOR_SCALE = [0,2,3,5,7,8,11]
-export const MELODIC_MINOR_SCALE = [0,2,3,5,7,9,11]
+export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
+export const NATURAL_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]
+export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11]
 
-export const SCALES_NAMES = [
-	"MAJOR_SCALE",
-	"NATURAL_MINOR_SCALE",
-	"HARMONIC_MINOR_SCALE",
-	"MELODIC_MINOR_SCALE"
-]
+// these are just modes of the major scale
+export const MELODIC_MINOR_SCALE = [0, 2, 3, 5, 7, 9, 11]
+export const DORIAN_SCALE = [0, 2, 3, 5, 7, 9, 10]
+export const PHRYGIAN_SCALE = [0, 1, 3, 5, 7, 8, 10]
+export const LYDIAN_SCALE = [0, 2, 4, 6, 7, 9, 11]
+export const MIXOLYDIAN_SCALE = [0, 2, 4, 5, 7, 9, 10]
+export const LOCRIAN_SCALE = [0, 1, 3, 5, 6, 8, 10]
+
+// other types of scales!
+export const PENTATONIC_MAJOR_SCALE = [0, 2, 4, 7, 9]
+export const PENTATONIC_MINOR_SCALE = [0, 3, 5, 7, 10]
+export const BLUES_SCALE = [0, 3, 5, 6, 7, 10]
+export const WHOLE_TONE_SCALE = [0, 2, 4, 6, 8, 10]
+export const DIMINISHED_SCALE = [0, 2, 3, 5, 6, 8, 9, 11]
+export const AUGMENTED_SCALE = [0, 3, 4, 7, 8, 11]
 
 export const SCALES = [
 	MAJOR_SCALE,
 	NATURAL_MINOR_SCALE,
 	HARMONIC_MINOR_SCALE,
-	MELODIC_MINOR_SCALE
+	MELODIC_MINOR_SCALE,
+	DORIAN_SCALE,
+	PHRYGIAN_SCALE,
+	LYDIAN_SCALE,
+	MIXOLYDIAN_SCALE,
+	LOCRIAN_SCALE,
+	PENTATONIC_MAJOR_SCALE,
+	PENTATONIC_MINOR_SCALE,
+	BLUES_SCALE,
+	WHOLE_TONE_SCALE,
+	DIMINISHED_SCALE,
+	AUGMENTED_SCALE
 ]
+
+export const SCALES_NAMES = Object.keys(SCALES)
 
 // inspired by https://www.guitarland.com/MusicTheoryWithToneJS/PlayModes.html
 export const makeScaleMode = (notesInScale, tuningModeIndex) => {
@@ -161,13 +172,20 @@ const modeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_ION
 console.error("modeFormula", TUNING_MODE_NAMES[0], modeFormula)
 // outputs to console: 'mode=mixolydian formula=0,2,4,5,7,9,10'
 
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_MAJOR )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_IONIAN ) ) ) )
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_DORIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_DORIAN ) ) ) )
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_PHRYGIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_PHRYGIAN ) ) ) )
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LYDIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_LYDIAN ) ) ) )
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_MIXOLYDIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_MIXOLYDIAN ) ) ) )
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_AEOLIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_AEOLIAN ) ) ) )
-SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LOCRIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_LOCRIAN ) ) ) )
+
+
+/**
+ * We want to preload all scales into memory
+ */
+
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_MAJOR )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_IONIAN ) ) ) )
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_DORIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_DORIAN ) ) ) )
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_PHRYGIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_PHRYGIAN ) ) ) )
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LYDIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_LYDIAN ) ) ) )
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_MIXOLYDIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_MIXOLYDIAN ) ) ) )
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_AEOLIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_AEOLIAN ) ) ) )
+// SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LOCRIAN )`, convertFormulaToNotes( createScaleModeIntervalsFormula(scale, TUNING_MODE_LOCRIAN ) ) ) )
+
 
 // console.error("(MAJOR_SCALE, TUNING_MODE_DORIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_DORIAN ) ) )
 // console.error("(MAJOR_SCALE, TUNING_MODE_PHRYGIAN )", convertFormulaToNotes( createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_PHRYGIAN ) ) )
@@ -190,7 +208,7 @@ SCALES.map( scale => console.error(`(${scale}, TUNING_MODE_LOCRIAN )`, convertFo
 
 
 
-
+/*
 
 
 var MIDI_SHARP_NAMES = ['B#_0',  'C#_1', 'Cx_1', 'D#_1',   'E_1',  'E#_1',  'F#_1', 'Fx_1',  'G#_1', 'Gx_1', 'A#_1', 'B_1',
@@ -331,8 +349,4 @@ function setUpAndPlayMode(){
     document.getElementById("dynamicDisplay").innerHTML = "<h2>Parent scale: "+keyName.substring(0,keyName.length-1)+" "+scaleType+" mode: "+(modeNum+1)+" <br />Mode notes: "+myMode+"</h2>"
 }
 
-
-
-/**
- * We want to preload all scales into memory
- */
+*/

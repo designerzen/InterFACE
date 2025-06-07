@@ -133,11 +133,11 @@ export default class CompositeInstrument extends Instrument{
 	}
 
 	// TODO: 
-	allSoundOff(){
+	async allSoundOff(){
 
 	}
 
-	allNotesOff(){
+	async allNotesOff(){
 
 	}
 

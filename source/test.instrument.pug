@@ -44,12 +44,13 @@ block main
 			button(type="button" data-instrument="WAM2Instrument") WAM2Instrument
 			button(type="button" data-instrument="WaveGuideInstrument") WaveGuideInstrument
 			button(type="button" data-instrument="MonotronInstrument") MonotronInstrument
+			button(type="button" data-instrument="MoogInstrument") MoogInstrument
 			button(type="button" data-instrument="SpeechInstrument") SpeechInstrument
 			button(type="button" data-instrument="SynthesizerInstrument") Synthesizer
 			button(type="button" data-instrument="DrumkitInstrument") Drumkit
 			button(type="button" data-instrument="KitInstrument") Kit
 
-		include partials/piano.pug
+		//- include partials/piano.pug
 	
 block scripts
 	script(type="module" src="./tests/tests.instrument.js")

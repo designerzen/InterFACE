@@ -352,7 +352,7 @@ export default class SynthesizerInstrument extends Instrument{
 	 * instrument preferably 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
+	async getPresets(){
 		return [ ...GENERAL_MIDI_INSTRUMENTS ] 
 	}
 

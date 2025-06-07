@@ -11,6 +11,7 @@ factory.loadInstrument(0)
 */
 
 import { fetchJSON } from "../utils/fetch.js"
+import { INSTRUMENT_TYPE_CHORD, INSTRUMENT_TYPE_DRUMKIT, INSTRUMENT_TYPE_DUAL_OSCILLATOR, INSTRUMENT_TYPE_KIT, INSTRUMENT_TYPE_MIDI, INSTRUMENT_TYPE_MONOTRON, INSTRUMENT_TYPE_MOOG, INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT, INSTRUMENT_TYPE_SPEECH, INSTRUMENT_TYPE_SYTHESIZER, INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, INSTRUMENT_TYPE_WAM, INSTRUMENT_TYPE_WAM2, INSTRUMENT_TYPE_WAVEGUIDE, INSTRUMENTS } from "./instrument-list.js"
 import ChordInstrument from "./instruments/chord.instrument.js"
 import MIDIInstrument from "./instruments/instrument.midi.js"
 import SoundFontInstrument from "./instruments/instrument.soundfont.js"
@@ -20,37 +21,6 @@ import SoundFontInstrument from "./instruments/instrument.soundfont.js"
 // import OscillatorInstrument from "./instruments/instrument.oscillator.js"
 // import WaveGuideInstrument from "./instruments/instrument.waveguide.js"
 // import YoshimiInstrument from "./instruments/instrument.yoshimi.js"
-
-export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
-export const INSTRUMENT_TYPE_SOUNDFONT = "SoundFontInstrument"
-export const INSTRUMENT_TYPE_OSCILLATOR = "OscillatorInstrument"
-export const INSTRUMENT_TYPE_DUAL_OSCILLATOR = "DualOscillatorInstrument"
-export const INSTRUMENT_TYPE_TRIPLE_OSCILLATOR = "TripleOscillatorInstrument"
-export const INSTRUMENT_TYPE_WAM = "WAMInstrument"
-export const INSTRUMENT_TYPE_WAM2 = "WAM2Instrument"
-export const INSTRUMENT_TYPE_WAVEGUIDE = "WaveGuideInstrument"
-export const INSTRUMENT_TYPE_SYTHESIZER = "SynthesizerInstrument"
-export const INSTRUMENT_TYPE_MONOTRON = "MonotronInstrument"
-export const INSTRUMENT_TYPE_MIDI = "MIDIInstrument"
-export const INSTRUMENT_TYPE_SPEECH = "SpeechInstrument"
-export const INSTRUMENT_TYPE_KIT = "KitInstrument"
-export const INSTRUMENT_TYPE_DRUMKIT = "DrumkitInstrument"
-
-export const INSTRUMENTS = [
-	INSTRUMENT_TYPE_CHORD,
-	INSTRUMENT_TYPE_SOUNDFONT,
-	INSTRUMENT_TYPE_OSCILLATOR,
-	INSTRUMENT_TYPE_DUAL_OSCILLATOR,
-	INSTRUMENT_TYPE_TRIPLE_OSCILLATOR,
-	INSTRUMENT_TYPE_WAM,
-	INSTRUMENT_TYPE_WAM2,
-	INSTRUMENT_TYPE_WAVEGUIDE,
-	INSTRUMENT_TYPE_SYTHESIZER,
-	INSTRUMENT_TYPE_SPEECH,
-	INSTRUMENT_TYPE_DRUMKIT,
-	INSTRUMENT_TYPE_MIDI,
-	INSTRUMENT_TYPE_KIT
-]
 
 const instrumentsImported = new Map()
 
@@ -104,6 +74,11 @@ export const lazilyLoadInstrument = async (type) => {
 			const SynthesizerInstrument = (await import("./instruments/instrument.synthesizer.js")).default
 			instrumentsImported.set(INSTRUMENT_TYPE_SYTHESIZER, SynthesizerInstrument)
 			return SynthesizerInstrument
+			
+		case INSTRUMENT_TYPE_MOOG:
+			const MoogInstrument = (await import("./instruments/instrument.moog.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_MOOG, MoogInstrument)
+			return MoogInstrument
 			
 		case INSTRUMENT_TYPE_MONOTRON:
 			const MonotronInstrument = (await import("./instruments/instrument.monotron.js")).default

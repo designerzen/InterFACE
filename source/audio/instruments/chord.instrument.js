@@ -100,11 +100,16 @@ export default class ChordInstrument extends Instrument{
 		return true
 	}
 
-	async chordOn( chordArray){
-		console.info("ChordInstrument:chordOn", chordArray )
+
+	/**
+	 * 
+	 * @param {Array<Chord>} chordArray 
+	 */
+	async chordOn( chordArray ){
+		const chordQuantity = chordArray.length
+		console.info(chordQuantity, "ChordInstrument:chordOn", chordArray )
 		this.instruments.forEach( (instrument, index) => {
-			const i = index%chordArray.length
-			const chord = chordArray[i]
+			const chord = chordArray[index%chordQuantity]
 			if (chord)
 			{
 				this.noteOn( chord.noteNumber, chord.velocity, index )
@@ -114,11 +119,16 @@ export default class ChordInstrument extends Instrument{
 		})
 	}
 
+	
+	/**
+	 * 
+	 * @param {Array<Chord>} chordArray 
+	 */
 	async chordOff( chordArray){
-		console.info("ChordInstrument:chordOff", chordArray )
-		
+		const chordQuantity = chordArray.length
+		console.info(chordQuantity, "ChordInstrument:chordOff", chordArray )
 		this.instruments.forEach( (instrument, index) => {
-			const chord = chordArray[index%chordArray.length]
+			const chord = chordArray[index%chordQuantity]
 			if (chord)
 			{
 				this.noteOff( chord.noteNumber, chord.velocity, index )
@@ -127,6 +137,7 @@ export default class ChordInstrument extends Instrument{
 			}
 		})
 	}
+
 	
 	async aftertouch( noteNumber, pressure ){
 		this.instruments.forEach( (instrument, index) => {
@@ -164,13 +175,20 @@ export default class ChordInstrument extends Instrument{
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
+	async getPresets(){
 
 		const presets = new Set()
-		this.instruments.forEach( instrument => {
-			instrument.getPresets().forEach( preset => presets.add(preset) )
+		const promises = this.instruments.map( async (instrument, index) => {
+			const presetForInstrument = await instrument.getPresets()
+			presetForInstrument.forEach( preset => presets.add(preset) )
+			return presetForInstrument
 		})
 
+		await Promise.allSettled(promises)
+
+		// console.info("getPresets", {presets} )
+
+		// remove duplicates
 		return [...presets]
 	}
 
@@ -214,19 +232,19 @@ export default class ChordInstrument extends Instrument{
 	 * NB. Requires *at least* as many instruments as there
 	 * are 
 	 * 
-	 * @param {Array<Instrument>} instruments 
+	 * @param {Array<Instrument>} instrumentsArray 
 	 */
-	setInstruments( instruments ){
+	setInstruments( instrumentsArray ){
 
 		// disconnect existing!
 		this.destroyInstruments()
 
 		// set new instruments to cache
-		this.instruments = instruments.map( instrument => this.addInstrument(instrument) )
+		this.instruments = instrumentsArray.map( instrument => this.addInstrument(instrument) )
 		
-		this.polyphony = instruments.length
+		this.polyphony = instrumentsArray.length
 	
-		console.error("ChordInstrument:setInstruments", this, {instruments} )
+		console.warn(this.polyphony, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
 	}
 
 	/**

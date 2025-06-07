@@ -1,5 +1,6 @@
 import Instrument from './instrument'
 import {noteNumberToFrequency} from '../tuning/frequencies.js'
+import { loadWaveTableFromArchive, loadWaveTableFromManifest } from '../wave-tables.js'
 
 export const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
 
@@ -217,7 +218,7 @@ export default class OscillatorInstrument extends Instrument{
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
+	async getPresets(){
 		return OSCILLATOR_TYPES
 	}
 
@@ -235,6 +236,49 @@ export default class OscillatorInstrument extends Instrument{
 		// customWaveform = this.context.createPeriodicWave(cosineTerms, sineTerms)
 
 		this.oscillator.setCustomWaveform( customWaveFunction() )
+	}
+
+	/**
+	 * If you pass in either a manifest JSON 
+	 * or a manifest URI, it will load the waveforms
+	 * or if you provide a zip, even better.
+	 * This will create all the extra presets and allows
+	 * the instrument to play entirely new sounds
+	 * @param {String|URI|Object|Array|Map} waveforms 
+	 */
+	async loadCustomWaveforms( waveforms ){
+
+		// JSON.parse( strFromU8( file ) )
+
+		let waves = []
+		switch(typeof waveforms)
+		{
+			case 'object':
+				// assume it is a manifest
+				waves = await loadWaveTableFromManifest( waveforms )
+				break
+
+			case 'string':
+				
+				if (waveforms.endsWith(".zip"))
+				{
+					// assume it is a zip if it ends in .zip
+					waves = await loadWaveTableFromArchive( waveforms )
+				}else{
+					// assume it is a local manifest json file
+					const request = await fetch(MANIFEST_URL)
+					const manifest = await request.json()
+					loadWaveTableFromManifest(manifest)
+					waves = await loadWaveTableFromArchive( waveforms )
+				}
+				
+				break
+			default:
+		}
+
+		// TODO: Add these to the presets
+
+		return waves
 	}
 
 	/**
@@ -259,24 +303,6 @@ export default class OscillatorInstrument extends Instrument{
 		imag[0] = 0
 		real[1] = 1
 		imag[1] = 0
-
-		
-		/* Sine 
-		imaginary[1] = 1; */
-
-		/* Sawtooth 
-		for(x=1;x<n;x++)
-			imaginary[x] = 2.0 / (Math.pow(-1, x) * Math.PI * x); */
-
-		/* Square 
-		for(x=1;x<n;x+=2)
-			imaginary[x] = 4.0 / (Math.PI * x);
-
-
-		/* Triangle
-		for(x=1;x<n;x+=2) 
-			imag[x] = 8.0 / Math.pow(Math.PI, 2) * Math.pow(-1, (x-1)/2) / Math.pow(x, 2) * Math.sin(Math.PI * x);
-		*/
 
 		const periodicWave = this.context.createPeriodicWave(real, imag)
 		return periodicWave

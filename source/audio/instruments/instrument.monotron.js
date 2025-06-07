@@ -261,7 +261,7 @@ export default class MonotronInstrument extends Instrument{
 	 * instrument preferably 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
+	async getPresets(){
 		return [ 
 			'Monotron Original', 
 			'Monotron Sine',

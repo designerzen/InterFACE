@@ -274,8 +274,8 @@ export default class TripleOscillatorInstrument extends OscillatorInstrument{
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
-	getPresets(){
-		return PRESETS.PRESETS_NAMES
+	async getPresets(){
+		return PRESETS
 	}
 
 	/**

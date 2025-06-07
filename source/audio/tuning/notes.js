@@ -221,6 +221,8 @@ export const convertNoteNameToMIDINoteNumber = name => GENERAL_MIDI_NUMBERS_BY_N
 export const convertMIDINoteNumberToName = noteNumber => GENERAL_MIDI_INSTRUMENTS[noteNumber]
 
 
+export const convertMIDINoteNumberToFrequency = midiNoteNumber => noteNumberToFrequency( midiNoteNumber )
+
 // for each name we do a clever thing innit...
 const NOTE_NAMES_FRIENDLY = NOTE_NAMES.map( note => friendly(note) )
 
@@ -245,6 +247,7 @@ for(let noteNumber = 0; noteNumber < 127; noteNumber++)
 	const midiNoteNameGap = `${key} ${octave}`
 	const midiNoteNameFriendly = `${note}${octave}`
 	const midiNoteNameFriendlyGap = `${note} ${octave}`
+	// should these start at A or C?
 	const sound = SOLFEGE_SOUNDS[(noteNumber)%SOLFEGE_SOUNDS.length]
 	
 	let alt = ""
