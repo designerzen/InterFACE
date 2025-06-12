@@ -22,28 +22,41 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// Both eyes are closed -----------------------------------------------
 	if (prediction.leftEyeClosed && prediction.rightEyeClosed)
 	{
-		if (prediction.mouthPucker > 0.93)
+		if (prediction.mouthPucker > 0.91)
 		{
-			return EMOTICONS.EMOJI_KISS_EYES_CLOSED
+			// check eyebrows....
+			return (prediction.eyebrowsRaisedBy < 0.3) ? 
+				EMOTICONS.EMOJI_KISS_EYES_CLOSED : 
+				EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED
 		}
+
+		
 		
 		if (prediction.happiness < 0.01){
 			return EMOTICONS.EMOJI_FROWN_EYES_CLOSED
-		}else if (prediction.happiness < 0.3){
-			return EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED
-		}else if (prediction.happiness < 0.5){
-			return EMOTICONS.EMOJI_SMILING_EYES_CLOSED
-		}else if (prediction.happiness <=0.65){
-			return EMOTICONS.EMOJI_SMILING_GRIN_SQUINT
-		}else if (prediction.happiness <=0.8){
-			return EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN
 		}
+		if (prediction.happiness < 0.3){
+			return EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED
+		}
+		if (prediction.happiness < 0.5){
+			return EMOTICONS.EMOJI_SMILING_EYES_CLOSED
+		}
+		if (prediction.happiness <=0.65){
+			return EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED
+		}
+		if (prediction.happiness <=0.8){
+			return EMOTICONS.EMOJI_SMILING_GRIN_SQUINT
+		}
+		if (prediction.happiness <=0.9){
+			return EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED
+		}
+		return EMOJI_NEUTRAL_EYES_CLOSED
 	}
 
-	// Both eyes are open emoji
+	// Both eyes are open emojis
 	if (!prediction.leftEyeClosed && !prediction.rightEyeClosed)
 	{
-		if (prediction.mouthPucker > 0.9)
+		if (prediction.mouthPucker > 0.91)
 		{
 			return EMOTICONS.EMOJI_KISS
 		}
@@ -65,9 +78,17 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 				// mouth open but no grin
 				if (prediction.mouthRatio > options.mouthCutOff){
 					return EMOTICONS.EMOJI_OPEN_MOUTH
-				}else if (prediction.mouthRatio > 0.4){
+				}else if (prediction.mouthRatio > 0.2){
 					return EMOTICONS.EMOJI_OPEN_MOUTH_BIG
+				}else if (prediction.mouthRatio > 0.4){
+					return EMOTICONS.EMOJI_EXHALING
+				}else if (prediction.mouthRatio > 0.5){
+					return EMOTICONS.EMOJI_SHOCKED
 				}else if (prediction.mouthRatio > 0.6){
+					return EMOTICONS.EMOJI_ANGUISHED
+				}else if (prediction.mouthRatio > 0.7){
+					return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
+				}else if (prediction.mouthRatio > 0.8){
 					return EMOTICONS.EMOJI_WAIL
 				}	
 
@@ -76,11 +97,13 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 				return EMOTICONS.EMOJI_SMILING_SLIGHTLY
 			}else if (prediction.happiness <=0.65){
 				return EMOTICONS.EMOJI_SMILING_GRIN
-			}else if (prediction.happiness <=8){
+			}else if (prediction.happiness <= 0.8){
 				return EMOTICONS.EMOJI_SMILING_BIG_GRIN
+			}else if (prediction.happiness <=0.9){
+				return EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED
 			}
 
-		}else if (prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.1 ){
+		}else if (prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.03 ){
 			return EMOTICONS.EMOJI_SMILING_SLIGHTLY
 		}else if (prediction.leftSmirk > prediction.rightSmirk){
 			return EMOTICONS.EMOJI_DIAGONAL_MOUTH
@@ -131,6 +154,10 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// left wink 😉
 	if (prediction.leftEyeClosed && !prediction.rightEyeClosed)
 	{
+		if (prediction.mouthPucker > 0.91)
+		{
+			return EMOTICONS.EMOJI_KISSING_WINK
+		}
 		// if (prediction.happiness < 0.3)
 		// {
 		// 	return ";-|"
@@ -148,6 +175,11 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// right wink 😉
 	if (!prediction.leftEyeClosed && prediction.rightEyeClosed)
 	{
+		if (prediction.mouthPucker > 0.91)
+		{
+			return EMOTICONS.EMOJI_KISSING_WINK
+		}
+
 		return EMOTICONS.EMOJI_RIGHT_WINK
 
 		if (prediction.happiness < 0.3)

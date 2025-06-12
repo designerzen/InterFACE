@@ -272,10 +272,12 @@ export const EMOJI_DIAGONAL_MOUTH = "🫤"
 export const EMOJI_EYES_ROLLING_UP = "🙄"
 export const EMOJI_SMILING_SLIGHTLY = "🙂"
 export const EMOJI_SMILING_EYES_CLOSED = "😊"
+
 export const EMOJI_SMILING_GRIN = "😀"
-export const EMOJI_SMILING_BIG_GRIN = "😃"
+export const EMOJI_SMILING_BIG_GRIN = "😃"	// bigger eyes
 export const EMOJI_SMILING_GRIN_SQUINT = "😆"
-export const EMOJI_SMILING_BIG_TEETH_GRIN = "😁"
+export const EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED = "😁"
+export const EMOJI_SMILING_GRIN_EYES_CLOSED = "😄"
 export const EMOJI_OPEN_MOUTH = "😯"
 export const EMOJI_OPEN_MOUTH_BIG = "😮"
 export const EMOJI_WAIL = "😩"
@@ -284,6 +286,7 @@ export const EMOJI_GRIMACING = "😬"
 export const EMOJI_ZANY = "🤪"
 export const EMOJI_KISS = "😗"
 export const EMOJI_KISS_EYES_CLOSED = "😙"
+export const EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED = "😚"
 export const EMOJI_SMIRK = "😏"
 export const EMOJI_UNAMUSED = "😒"
 export const EMOJI_RAISED_EYEBROW = "🤨"
@@ -328,7 +331,8 @@ export const EMOJI_RAGE = "🤬"
 export const EMOJI_PLEADING = "🥺"
 export const EMOJI_ANXIOUS = "😰"
 export const EMOJI_FEARFUL = "😨"
-export const EMOJI_ANGUISHED = "😧"
+export const EMOJI_ANGUISHED_EYEBROWS_RAISED = "😧"
+export const EMOJI_ANGUISHED = "😦"
 export const EMOJI_SHOCKED = "😲"
 export const EMOJI_FLUSHED = "😳"
 export const EMOJI_MIND_BLOWN = "🤯"
@@ -400,10 +404,11 @@ export const EMOJI_SEQUENCE_HAPPINESS = [
     EMOJI_HEARTS,
     EMOJI_HEART_EYES,
     EMOJI_PARTY,
-    EMOJI_SMILING_BIG_TEETH_GRIN,
-    EMOJI_SMILING_BIG_GRIN,
+	EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED, 
+   EMOJI_SMILING_GRIN_EYES_CLOSED,
+   EMOJI_SMILING_BIG_GRIN,
     EMOJI_SMILING_GRIN_SQUINT,
-    EMOJI_SMILING_GRIN,
+    EMOJI_SMILING_GRIN, 
     EMOJI_SMILING_EYES_CLOSED,
     EMOJI_SMILING_SLIGHTLY,
     EMOJI_NEUTRAL,
