@@ -1933,7 +1933,10 @@ export const createInterface = (
 		const cameraFeedbackMessage = investigation.saved ? "Found saved camera" : quantityOfCameras > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera"
 		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 	
-		return cameraFeedbackMessage
+		return {
+			success:true,
+			message:cameraFeedbackMessage
+		}
 	}
 
 	/**
