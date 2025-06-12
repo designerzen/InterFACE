@@ -12,9 +12,9 @@ factory.loadInstrument(0)
 
 import { fetchJSON } from "../utils/fetch.js"
 import { INSTRUMENT_TYPE_CHORD, INSTRUMENT_TYPE_DRUMKIT, INSTRUMENT_TYPE_DUAL_OSCILLATOR, INSTRUMENT_TYPE_KIT, INSTRUMENT_TYPE_MIDI, INSTRUMENT_TYPE_MONOTRON, INSTRUMENT_TYPE_MOOG, INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT, INSTRUMENT_TYPE_SPEECH, INSTRUMENT_TYPE_SYTHESIZER, INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, INSTRUMENT_TYPE_WAM, INSTRUMENT_TYPE_WAM2, INSTRUMENT_TYPE_WAVEGUIDE, INSTRUMENTS } from "./instrument-list.js"
-import ChordInstrument from "./instruments/chord.instrument.js"
+// import ChordInstrument from "./instruments/chord.instrument.js"
 import MIDIInstrument from "./instruments/instrument.midi.js"
-import SoundFontInstrument from "./instruments/instrument.soundfont.js"
+// import SoundFontInstrument from "./instruments/instrument.soundfont.js"
 // import TripleOscillatorInstrument from "./instruments/instrument.triple-oscillator.js"
 // import WAMInstrument from "./instruments/instrument.wam.js"
 // import WAM2Instrument from "./instruments/instrument.wam2.js"
@@ -22,13 +22,66 @@ import SoundFontInstrument from "./instruments/instrument.soundfont.js"
 // import WaveGuideInstrument from "./instruments/instrument.waveguide.js"
 // import YoshimiInstrument from "./instruments/instrument.yoshimi.js"
 
+import WAVE_ARCHIVE_GENERAL_MIDI from "url:../assets/audio/wave-tables/general-midi.zip" 
+import { loadWaveTableFromArchive, loadWaveTableFromManifest } from "./wave-tables.js"
+
 const instrumentsImported = new Map()
 
 // PRELOAD these types of instrument :
 // set all types that point to these endpoints
-instrumentsImported.set(INSTRUMENT_TYPE_CHORD, ChordInstrument )
-instrumentsImported.set(INSTRUMENT_TYPE_SOUNDFONT, SoundFontInstrument)
+// instrumentsImported.set(INSTRUMENT_TYPE_CHORD, ChordInstrument )
+// instrumentsImported.set(INSTRUMENT_TYPE_SOUNDFONT, SoundFontInstrument)
 // instrumentsImported.set(INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, TripleOscillatorInstrument)
+
+
+/**
+ * If you pass in either a manifest JSON 
+ * or a manifest URI, it will load the waveforms
+ * or if you provide a zip, even better.
+ * This will create all the extra presets and allows
+ * the instrument to play entirely new sounds
+ * @param {String|URI|Object|Array|Map} waveforms 
+ */
+const loadPresetData = async (waveforms) => { 
+	
+	let waves = []
+	switch(typeof waveforms)
+	{
+		case 'object':
+			// assume it is a manifest JSON
+			waves = await loadWaveTableFromManifest( waveforms )
+			break
+
+		case 'string':
+
+			// assume it is a URL
+			// NEED TO REMOVE HASH QERY!
+			if (waveforms.includes(".zip"))
+			{
+				// assume it is a zip if it ends in .zip
+				waves = await loadWaveTableFromArchive( waveforms )
+			}else{
+				// assume it is a local manifest json file URI
+				const request = await fetch(waveforms)
+				const manifest = request.ok ? await request.json() : null
+				loadWaveTableFromManifest(manifest)
+				waves = await loadWaveTableFromArchive( waveforms )
+			}
+
+			// TODO: If a JSON file was provided
+			// JSON.parse( strFromU8( file ) )
+			break
+
+		default:
+	}
+
+	// waves.forEach( wave => OscillatorInstrument.presetsMap.set( wave.name, wave ) )
+
+	// Add to static so can be loaded by any oscillator
+	// OscillatorInstrument.presets.push( ...waves )
+	return waves
+}
+
 
 /**
  * Lazily Load the class required for creating an instrument
@@ -54,18 +107,24 @@ export const lazilyLoadInstrument = async (type) => {
 		case "osc":
 		case INSTRUMENT_TYPE_OSCILLATOR:
 			const OscillatorInstrument = (await import("./instruments/instrument.oscillator.js")).default
+			const oscillatorPresets = await loadPresetData( WAVE_ARCHIVE_GENERAL_MIDI )
+			OscillatorInstrument.setPresets( oscillatorPresets )
 			instrumentsImported.set(INSTRUMENT_TYPE_OSCILLATOR, OscillatorInstrument)
 			return OscillatorInstrument
 			
 		case "osc2":
 		case INSTRUMENT_TYPE_DUAL_OSCILLATOR:
 			const DualOscillatorInstrument = (await import("./instruments/instrument.dual-oscillator.js")).default
+			const dualOscillatorPresets = await loadPresetData( WAVE_ARCHIVE_GENERAL_MIDI )
+			DualOscillatorInstrument.setPresets( dualOscillatorPresets )
 			instrumentsImported.set(INSTRUMENT_TYPE_DUAL_OSCILLATOR, DualOscillatorInstrument)
 			return DualOscillatorInstrument
 			
 		case "osc3":
 		case INSTRUMENT_TYPE_TRIPLE_OSCILLATOR:
 			const TripleOscillatorInstrument = (await import("./instruments/instrument.triple-oscillator.js")).default
+			const tripleOscillatorPresets = await loadPresetData( WAVE_ARCHIVE_GENERAL_MIDI )
+			TripleOscillatorInstrument.setPresets( tripleOscillatorPresets )
 			instrumentsImported.set(INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, TripleOscillatorInstrument)
 			return TripleOscillatorInstrument
 			

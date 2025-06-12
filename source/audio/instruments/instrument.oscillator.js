@@ -1,8 +1,12 @@
 import Instrument from './instrument'
 import {noteNumberToFrequency} from '../tuning/frequencies.js'
-import { loadWaveTableFromArchive, loadWaveTableFromManifest } from '../wave-tables.js'
 
-export const OSCILLATOR_TYPES = ["sine","square","triangle","sawtooth","custom"]
+export const OSCILLATOR_TYPES = [
+	"sine",
+	"square",
+	"triangle",
+	"sawtooth"
+]
 
 const OPTIONS = {
 	
@@ -34,7 +38,6 @@ const OPTIONS = {
 	fadeDuration:18,
 }
 
-
 export const shapeName = string => string[0].toUpperCase() + string.slice(1)
 
 export const INSTRUMENT_TYPE_OSCILLATOR = "OscillatorInstrument"
@@ -45,10 +48,37 @@ export default class OscillatorInstrument extends Instrument{
 		return INSTRUMENT_TYPE_OSCILLATOR
 	}
 
+	static get presetNames(){
+		return OscillatorInstrument.presetsMap.keys()
+	}
+
+	static presets = []
+	static presetsMap = new Map()
+
+	/**
+	 * If you pass in either a manifest JSON 
+	 * or a manifest URI, it will load the waveforms
+	 * or if you provide a zip, even better.
+	 * This will create all the extra presets and allows
+	 * the instrument to play entirely new sounds
+	 * @param {String|URI|Object|Array|Map} waveforms 
+	 */
+	static setPresets(waveforms){
+		// Add to static so can be loaded by any oscillator	
+		waveforms.forEach( wave => {
+			OscillatorInstrument.presetsMap.set( wave.name, wave ) 
+			OscillatorInstrument.presets.push( wave ) 
+		})
+		return OscillatorInstrument.presets
+	}
+
 	name = INSTRUMENT_TYPE_OSCILLATOR
 
 	type = "oscillator"
 	title = "Oscillator Instrument"
+
+	timbre = OSCILLATOR_TYPES[0]
+	customWave = null
 
 	// when overriding this, uncommenting this
 	// will overide any instance with undefined!
@@ -79,12 +109,60 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	set shape(value){
-		this.oscillator.type = value
+        // there are 3 different sources of shapes :
+        switch (typeof value ){
+
+            case 'string':
+				const isNumber = !isNaN(value)
+				if (isNumber)
+				{
+					this.setWaveTable( OscillatorInstrument.presets[programNumber] )
+				
+				}else if (OSCILLATOR_TYPES.includes(value)){
+
+                    // 1. the oscillator type
+                    // console.info("SynthOscillator::STANDARD"+ this.options, value)
+                    if ( this.oscillator )
+                    {
+                        this.oscillator.type = value
+                    }
+                    this.customWave = null
+
+                }else {
+
+                    // 2. attempt to load in customWave JSON data from a URI
+					const waves = OscillatorInstrument.presetsMap.get( value )
+                    this.setWaveTable( waves )	
+                } 
+                break
+        
+            case 'object':
+                // 3. customWave data with real and imag arrays
+                this.setWaveTable( value )
+                // console.info("SynthOscillator::CUSTOM DATA"+this.options, value )
+                break
+
+            default: 
+			 	if (Array.isArray(programNumber)){
+
+				}
+                console.warn("SynthOscillator::UNKNOWN Shape TYPE", value)
+        }
+    
+        this.options.shape = value
 	}
 
 	get shape(){
-		return this.oscillator.type
+		return this.options.shape
 	}
+
+	set detune(value){
+        this.oscillator.detune.value = value
+    }
+
+    get detune(){
+        return this.oscillator.detune.value
+    }
 
 	async create(){
 		
@@ -101,6 +179,7 @@ export default class OscillatorInstrument extends Instrument{
 			.connect(this.envelope)
 			.connect(this.gainNode)
 
+		this.timbre = this.options.shape
 		// immediately start as always playing in silent
 		this.oscillator.start()
 		
@@ -195,23 +274,10 @@ export default class OscillatorInstrument extends Instrument{
 		return super.pitchBend(pitch)
 	}
 	
-	// to load a new sample we can also use the midi methods...
-	async programChange( programNumber ){
-		if (typeof programNumber === "string")
-		{
-			// determine if it a number or a name
-			const isNumber = !isNaN(programNumber)
-			this.shape = isNumber ? 
-				OSCILLATOR_TYPES[ programNumber%(OSCILLATOR_TYPES.length-1)] : 
-				programNumber
-
-		}else{
-
-			programNumber = 0
-			throw Error("Unexpected Preset type of Object")
-		}
-		
-		return super.programChange( programNumber )
+	// to load a new sample we can use the traditional midi methods...
+	async programChange( programNumberOrName ){
+		this.shape = programNumberOrName
+		return super.programChange( programNumberOrName )
 	}
 	
 	/**
@@ -219,7 +285,7 @@ export default class OscillatorInstrument extends Instrument{
 	 * @returns {Array<String>} of Instrument Names
 	 */
 	async getPresets(){
-		return OSCILLATOR_TYPES
+		return [ ...OSCILLATOR_TYPES, ...OscillatorInstrument.presetNames ]
 	}
 
 	
@@ -238,48 +304,6 @@ export default class OscillatorInstrument extends Instrument{
 		this.oscillator.setCustomWaveform( customWaveFunction() )
 	}
 
-	/**
-	 * If you pass in either a manifest JSON 
-	 * or a manifest URI, it will load the waveforms
-	 * or if you provide a zip, even better.
-	 * This will create all the extra presets and allows
-	 * the instrument to play entirely new sounds
-	 * @param {String|URI|Object|Array|Map} waveforms 
-	 */
-	async loadCustomWaveforms( waveforms ){
-
-		// JSON.parse( strFromU8( file ) )
-
-		let waves = []
-		switch(typeof waveforms)
-		{
-			case 'object':
-				// assume it is a manifest
-				waves = await loadWaveTableFromManifest( waveforms )
-				break
-
-			case 'string':
-				
-				if (waveforms.endsWith(".zip"))
-				{
-					// assume it is a zip if it ends in .zip
-					waves = await loadWaveTableFromArchive( waveforms )
-				}else{
-					// assume it is a local manifest json file
-					const request = await fetch(MANIFEST_URL)
-					const manifest = await request.json()
-					loadWaveTableFromManifest(manifest)
-					waves = await loadWaveTableFromArchive( waveforms )
-				}
-				
-				break
-			default:
-		}
-
-		// TODO: Add these to the presets
-
-		return waves
-	}
 
 	/**
 	 * Here, we create a PeriodicWave with two values. 
@@ -311,4 +335,16 @@ export default class OscillatorInstrument extends Instrument{
 	setPeriodicWave(){
 		this.oscillator.setPeriodicWave( this.createPeriodicWave() )
 	}
+
+	setWaveTable(waveTable){
+        const {real, imag} = waveTable
+        const waveData = this.audioContext.createPeriodicWave(real, imag, { disableNormalization: true })
+        // reshape any playing oscillators
+        if ( this.oscillator)
+        {
+            this.oscillator.setPeriodicWave(waveData)
+        }
+        this.customWave = waveData
+        return waveData
+    }
 }

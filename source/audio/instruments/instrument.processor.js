@@ -87,7 +87,7 @@ export default class ProcessorInstrument extends Instrument {
 		} catch (e) {
 			try {
 				// lets re-attempt but this time by registering the processor script
-				await this.context.audioWorklet.addModule( location ?? worklet )
+				await this.context.audioWorklet.addModule( location )
 				processorNode = createProcessorNode()
 				// console.error("createProcessorNode addModule worklet!", {e,worklets: this.context.audioWorklet} )
 				

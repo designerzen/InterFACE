@@ -331,7 +331,6 @@ export const loadWaveTableFromArchive = (waveTableArchiveURI, onProgress) => new
         }
         
         const fileNames = Object.keys(unzipped)
-   
         const waveTables = [] 
         
         // TODO: multiple streams?

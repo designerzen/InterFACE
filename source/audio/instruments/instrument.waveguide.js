@@ -94,7 +94,7 @@ export default class WaveGuideInstrument extends Instrument{
 		// const whiteNoiseAudioBuffer = generateWhiteNoise( frameCount )
 		
 		const noiseBufferSource = this.context.createBufferSource()
-        noiseBufferSource.buffer =  generateWhiteNoiseBuffer( audioContext, channels )
+        noiseBufferSource.buffer =  generateWhiteNoiseBuffer( this.context, channels )
        
 		// 2. then pass the noise through a gain to lower the volume slightly
 		const feedbackNode = this.context.createGain(0.2)

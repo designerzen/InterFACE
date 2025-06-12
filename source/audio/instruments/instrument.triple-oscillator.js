@@ -63,6 +63,7 @@ export default class TripleOscillatorInstrument extends OscillatorInstrument{
     name = INSTRUMENT_TYPE_TRIPLE_OSCILLATOR
     title = "Triple Oscillator Instrument"
 	// type = "oscillator"
+
    
 	// currentVolume = 0.5
     // oscillator2
@@ -228,54 +229,8 @@ export default class TripleOscillatorInstrument extends OscillatorInstrument{
 	 * @returns 
 	 */
 	async programChange( programNumber ){
-		
-		// This can be a program number that represents one of the
-		// built in presets or it can be a specific preset
-		// 
-		let program = null
-		if (typeof programNumber === "string")
-		{
-			const isOscillatorType = OSCILLATOR_TYPES.includes(programNumber)
-			if (isOscillatorType)
-			{
-				this.shapes = programNumber
-				return
-			}
-			
-			// determine if it a number or a name
-			const isNumber = !isNaN(programNumber)
-			// const index = isNumber ? 
-			// 	programNumber : 
-			// 	PRESETS[ PRESETS_NAMES.indexOf(programNumber) ] 
-			
-			program = isNumber ? PRESETS[ index ] : programNumber
-
-		}else if (typeof programNumber === "object"){
-			
-			program = programNumber
-		
-		}else if (Array.isArray(programNumber)){
-			// FIXME: an array of presets, one programNumber per oscilator
-			
-			this.shape = programNumber[0]
-			this.shape2 = programNumber[1]
-			this.shape3 = programNumber[2]
-			program = {}
-		}
-
-		this.options = { ...program ,...this.options }
-		this.shapes = this.options.shape ?? OSCILLATOR_TYPES[0]
-		console.info("TripleOscillator Loading preset", program, this )
-
+		this.shapes = programNumber
 		return super.programChange( programNumber )
-	}
-	
-	/**
-	 * 
-	 * @returns {Array<String>} of Instrument Names
-	 */
-	async getPresets(){
-		return PRESETS
 	}
 
 	/**

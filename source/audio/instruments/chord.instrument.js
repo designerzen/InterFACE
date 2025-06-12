@@ -23,10 +23,14 @@ export default class ChordInstrument extends Instrument{
 		return this.mixer
 	}
 
+	get audioNode(){
+		return this.mixer
+	}
+
     async create(){    
-		console.error("YO NEW ONE!?")
 		this.instruments = [] 
 		this.mixer = this.context.createGain()
+		console.error("YO NEW ONE!?", this)
 		return super.create()
 	}
 
@@ -217,7 +221,7 @@ export default class ChordInstrument extends Instrument{
 	 * @param {Instrument} instrument 
 	 * @returns 
 	 */
-	addInstrument(instrument){
+	connectInstrument(instrument){
 		if (instrument.output)
 		{
 			instrument.output.connect( this.mixer )
@@ -236,21 +240,68 @@ export default class ChordInstrument extends Instrument{
 	 */
 	setInstruments( instrumentsArray ){
 
+		const quantity = instrumentsArray.length
+		const volume = 1 / quantity
+
 		// disconnect existing!
 		this.destroyInstruments()
 
 		// set new instruments to cache
-		this.instruments = instrumentsArray.map( instrument => this.addInstrument(instrument) )
+		this.instruments = instrumentsArray.map( instrument => {
+			this.connectInstrument(instrument) 
+			instrument.volume = volume
+			return instrument
+		})
 		
-		this.polyphony = instrumentsArray.length
+		this.polyphony = quantity
+
+		debugger
 	
 		console.warn(this.polyphony, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
+	}
+
+	/**
+	 * If we just want to set all instruments to 
+	 * the same type we can either provide a class
+	 * or a type here
+	 */
+	async setInstrument( classOrType, options={}, quantity = 3 ){
+		
+		let instrumentInstance 
+		if (typeof classOrType === "string")
+		{
+			// use the factory to create!
+			instrumentInstance = await createInstrumentFromData( audioContext, {type:classOrType, ...options} )
+		}else if (classOrType instanceof Instrument){
+			// an instrument class
+			console.info("Instrument Instance found", {classOrType})
+			instrumentInstance = classOrType
+		}else if ( typeof classOrType === 'function' && Object.toString.call(classOrType).substring(0, 5) === 'class'){
+			console.info("Instrument Instance Class found")
+			instrumentInstance = new classOrType( this.audioContext, options )
+		}else{
+			throw Error("Could not determine instrument type, neither string, Instrument nor Class")
+		}
+
+		if (!instrumentInstance)
+		{
+			throw Error("Could not create instrument instance")
+		}
+
+		const instrumentsArray = [ instrumentInstance ]		
+		for (let i=1; i<quantity; ++i)
+		{
+			instrumentsArray.push( instrumentInstance.clone() )
+		}
+		console.info("Instrument Instances created", {instrumentsArray})
+		this.setInstruments(instrumentsArray)
 	}
 
 	/**
 	 * Debug instance and return a string
 	 */
 	toString(){
-		return `ChordInstrument [Polyphony:${this.polyphony}]`
+		// ${this.instruments[0].toString()
+		return `ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.instruments.length}}`
 	}
 }

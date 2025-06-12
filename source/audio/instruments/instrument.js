@@ -100,6 +100,7 @@ export default class Instrument{
 
 	// FIXME: Legacy API to work with WAMs
 	get audioNode(){
+		throw Error("Must overwrite audioNode get")
 		return null
 	}
 
