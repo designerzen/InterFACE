@@ -1175,7 +1175,7 @@ export default class Person{
 			display.drawInstrument(textX, textY - 50, instrumentTitle, "", 14 )
 			const emojiRotation = (-prediction.roll * Math.PI * 0.28)
 			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
-			display.drawText(textX, textY + 26, isSelected ? `SELECTED` : `${extra} ${suffix}${bend}`, "", 28 )
+			display.drawText(textX, textY + 26, this.isSelected ? `SELECTED` : `${extra} ${suffix}${bend}`, "", 28 )
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			if (this.debug )
