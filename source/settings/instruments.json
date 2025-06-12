@@ -12,7 +12,7 @@
 
 	{
 		"name":"Oscillator",
-		"type":"Oscillator",
+		"type":"OscillatorInstrument",
 		"title":"Simple Synthesizer",
 		"description":"Single Oscillator Synthesizer",
 		"descriptor":"/assets/audio/oscillator.json",
@@ -20,7 +20,7 @@
 	},
 	{
 		"name":"Dual Oscillator",
-		"type":"DualOscillator",
+		"type":"DualOscillatorInstrument",
 		"title":"Dual Oscillator",
 		"description":"Dual Oscillator Synthesizer",
 		"descriptor":"/assets/audio/oscillator.json",
@@ -28,10 +28,26 @@
 	},
 	{
 		"name":"Triple Oscillator",
-		"type":"TripleOscillator",
+		"type":"TripleOscillatorInstrument",
 		"title":"Triple Oscillator",
 		"description":"Triple Oscillator Synthesizer",
 		"descriptor":"/assets/audio/oscillator.json",
+		"formats":{}
+	},
+	{
+		"name":"Monotron",
+		"type":"MonotronInstrument",
+		"title":"Monotron",
+		"description":"Monotron Style Synthesizer",
+		"descriptor":"/assets/audio/monotron.json",
+		"formats":{}
+	},
+	{
+		"name":"Moog",
+		"type":"MoogInstrument",
+		"title":"Moog",
+		"description":"Moog Style VCO",
+		"descriptor":"/assets/audio/moog.json",
 		"formats":{}
 	},
 
@@ -40,6 +56,15 @@
 		"type":"WAM2Instrument",
 		"title":"",
 		"description":"",
+		"descriptor":"/wam2/synth101/src/descriptor.json",
+		"formats":{}
+	},
+
+	{
+		"name":"Chord",
+		"type":"ChordInstrument",
+		"title":"",
+		"description":"Play multiple other instruments together",
 		"descriptor":"/wam2/synth101/src/descriptor.json",
 		"formats":{}
 	}
