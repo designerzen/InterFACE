@@ -2892,7 +2892,7 @@ export const createInterface = (
 		const SONG_GADGET = "c d D f g D F d f"
 		const song = SONG_GADGET.split(" ")
 		// connect directly to the speaker
-		globalChordPlayer.connect(getMasterMixdown())
+		globalChordPlayer.output.connect(getMasterMixdown())
 
 		const testChords = () => {
 			globalChordPlayer.noteOn( (Math.random() * 128) >> 0, 1 )
