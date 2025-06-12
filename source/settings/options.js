@@ -6,7 +6,9 @@ import { isProductionBuild } from '../utils/is-production'
 // import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { TUNING_MODE_IONIAN, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
-import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-factory.js'
+import { INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-list.js'
+
+// INSTRUMENT_TYPE_SOUNDFONT
 
 const isDevelopmentMode = !isProductionBuild()
 
@@ -113,7 +115,6 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 
 export const DEFAULT_OPTIONS = {
 
-	
 	display:DISPLAY_MEDIA_VISION_2D,
 	// display:DISPLAY_LOOKING_GLASS_3D,
 
@@ -202,6 +203,9 @@ export const DEFAULT_OPTIONS = {
 	// and update when settings change?
 	qr:true,
 
+	// send out the clock to other tabs and windows
+	broadcast:true,
+
 	// time before we consider the user inactive
 	timeout:2000,
 
@@ -282,6 +286,7 @@ export const getDomainDefaults = (name = '') => {
 import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
 // import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
 import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
+import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-list.js'
 // console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
 export const INSTRUMENT_OPTIONS = {
 	list:INSTRUMENTS_LIST_LOCATION
@@ -442,7 +447,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// default person instument when a person is create
 	// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-	defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
+	defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR,
+	// defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
 	// which instrument preset to load?
 	defaultPreset:0,
 
