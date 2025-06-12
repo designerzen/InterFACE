@@ -478,11 +478,7 @@ export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, peopl
 			midiOutput = midiManager.outputs[0]
 			console.info("Main>MIDI registered:Devices",{midiInput, midiOutput}, {outputs, inputs, event }, MIDIConnectionClasses )
 			// connect to a MIDI output's clock
-			if (midiOutput)
-			{
-				midiOutput
-			}
-
+			// TODO: Show all clock sources in tempo selector!
 			if (midiInput)
 			{
 				midiInput.addListener("clock", event => {

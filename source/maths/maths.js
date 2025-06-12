@@ -1,5 +1,6 @@
 export const TAU = 2 * Math.PI
 export const HALF_PI = Math.PI * 0.5
+export const ONE_DEGREE_IN_RADIANS = Math.PI  / 180
 
 const {PI, sqrt, atan2, tan} = Math
 

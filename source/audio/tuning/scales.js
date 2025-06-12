@@ -45,6 +45,9 @@ export const SOLFEGE_SCALE = ['Doe', 'Ray', 'Me', 'Far', 'Sew', 'La', 'Tea' ]
 
 // =============================================================================
 
+export const SCALE_MAJOR = "major"
+export const SCALE_MINOR = "minor"
+
 // there are different scales with custom tunings
 // there are more out there but these are the classics
 export const TUNING_MODE_IONIAN = 'ionian'
@@ -55,6 +58,7 @@ export const TUNING_MODE_MIXOLYDIAN = 'mixolydian'
 export const TUNING_MODE_AEOLIAN = 'aeolian'
 export const TUNING_MODE_LOCRIAN = 'locrian'
 
+// these are at the correct 
 export const TUNING_MODE_NAMES = [
 	TUNING_MODE_IONIAN,			// Same as major
 	TUNING_MODE_DORIAN,			// Start from second degree of major
