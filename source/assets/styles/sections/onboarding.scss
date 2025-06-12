@@ -224,7 +224,7 @@
 		--button-radius:3px;
 		--opacity:0.66;
 	
-	--col-stroke:transparent;
+		--col-stroke:transparent;
 		--col-top:transparent;
 		--col-bottom:transparent;
 		--col-hover:var(--shade-white, white );
@@ -607,7 +607,6 @@ label[for="toggle-automation-mode"]{
 
 	// fake the button!
 	@include button.button-with-icon-and-border;
-
 
 	&{
 		// overwrite the var settings

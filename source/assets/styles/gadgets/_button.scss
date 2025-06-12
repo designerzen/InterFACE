@@ -478,6 +478,8 @@
 	//flex-wrap: auto;
 	flex-direction: var( --dir-override, var(--direction, row));
 	display: inline-grid;
+	
+
 	position: relative;
 	box-sizing: border-box;
 	vertical-align: middle;
@@ -1025,7 +1027,7 @@
 		}
 
 		// stack of vertical items
-		@media screen and (min-width:321px) and (max-width:640px){
+		@media screen and (min-width:321px) {
 			font-size:50%;
 			@include add-icon-text-stack;
 		}
@@ -1040,7 +1042,7 @@
 		@media screen and (min-width:980px) {
 			font-size:90%;
 			// test
-			//@include add-icon-text-row-show-hidden;
+			@include add-icon-text-row-show-hidden;
 		}
 
 		// extra wide screen
