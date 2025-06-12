@@ -1859,7 +1859,6 @@ export const createInterface = (
 		
 		// attempt to get a camera that is suitable for the app
 		try{
-
 			investigation = await findBestCamera(store, video, status => {
 				// console.info("Camera status", status)
 				onProgress && onProgress(status)
@@ -1870,9 +1869,10 @@ export const createInterface = (
 			setToast("No cameras are available on this device", 0, 'camera')
 			// setFeedback("Camera not found", 0, 'camera')
 
-			showError("Camera not found", error, true)
-
-			return "Camera could not be accessed"
+			return {
+				success:false,
+				message:"Camera could not be accessed"
+			}
 		}
 		
 		const quantityOfCameras =  investigation.videoCameraDevices.length
@@ -2646,9 +2646,14 @@ export const createInterface = (
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted", 0, 'camera')
 				progressCallback(loadIndex/loadTotal,"Found cameras..." )
 
-				const cameraFeedbackMessage = await setupCamera( video, status =>{
+				const {message:cameraFeedbackMessage, succes:cameraAvailable} = await setupCamera( video, status =>{
 					progressCallback(loadIndex/loadTotal, status )
 				})  
+
+				if (!cameraAvailable){
+					showError("Camera not found", error, true)
+					return reject( cameraFeedbackMessage )
+				}
 
 				setFeedback( cameraFeedbackMessage, 0, 'camera' )
 				progressCallback(loadIndex/loadTotal, cameraFeedbackMessage)

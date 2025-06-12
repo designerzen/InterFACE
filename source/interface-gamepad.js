@@ -12,6 +12,7 @@ import {
 	GamePadManager
 } from "./hardware/gamepad"
 
+
 /**
  * Start monitoring for global gamepad input
  * but ignore them until we are ready
@@ -27,7 +28,8 @@ export const addGamePadEvents = (application) => {
 
 	// enums
 	let gamePadMode = 0
-	let gamePadPlayerIndex = 0
+	let gamePadPlayerIndex = application.getSelectedPerson()
+
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
 		
