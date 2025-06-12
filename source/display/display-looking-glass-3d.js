@@ -35,7 +35,7 @@ import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
 // import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js'
 // import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 
-import DisplayWebGL3D from "./display-webgl-3d.js"
+import DisplayWebGL3D, { DEFAULT_OPTIONS_DISPLAY_WEBGL } from "./display-webgl-3d.js"
 import { DISPLAY_LOOKING_GLASS_3D } from './display-types.js'
 
 // Settings
@@ -44,6 +44,11 @@ const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
 
 let openXRButton = null
 let connectHardwareButtons = false
+
+export const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS = {
+	...DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	controls:"#shared-controls"
+}
 
 export const createXRToggleButton = (renderer, destination) => {
 	if (openXRButton)
@@ -139,7 +144,8 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		width:0, height:0
 	}
 
-	constructor( canvas, initialWidth=LOOKING_GLASS_PORTRAIT_WIDTH, initialHeight=LOOKING_GLASS_PORTRAIT_HEIGHT, options={} ){
+	constructor( canvas, initialWidth=LOOKING_GLASS_PORTRAIT_WIDTH, initialHeight=LOOKING_GLASS_PORTRAIT_HEIGHT, options=DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS ){
+		options = {...DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS, ...options}
 		super( canvas, initialWidth, initialHeight, options.quantity, options )
 		if (options.lookingGlassWebXR)
 		{
@@ -176,9 +182,14 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 
 		this.renderer.setSize( LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT )
 
+		// this requires a button to be pressed but we can make it a hidden button!
+		const controls = this.options.controls ? document.querySelector(this.options.controls) : document.body.appendChild(document.createElement("div"))
 		// immediately create the VR Button as the Looking Glass will override it
-		createXRToggleButton( this.renderer, document.getElementById("shared-controls") )
-		
+		createXRToggleButton( this.renderer, controls )
+
+		console.info("Adding XR button to", controls )
+
+
 		if (connectHardwareButtons)
 		{
 			this.addSideButtonControls()
@@ -193,6 +204,11 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		if (this.controls)
 		{
 			this.removeSideButtonControls()		
+		}
+		if (openXRButton)
+		{
+			openXRButton.parentNode.removeChild(openXRButton)
+			openXRButton = null
 		}
 
 		// reset canvas size...

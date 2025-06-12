@@ -3,7 +3,7 @@
  */
 import AbstractDisplay from "./display-abstract"
 
-import { drawElement, drawRoundedRect } from "../visual/2d"
+import { drawCircle, drawCircles, drawElement, drawRoundedRect } from "../visual/2d"
 
 // import { drawEye } from "../visual/2d.eyes"
 // import { drawLip } from "../visual/2d.mouth"
@@ -413,9 +413,21 @@ export default class Display2D extends AbstractDisplay{
 		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours  )
 	}
 
-	drawEmoticon( x, y, emoji,rotation=0 ){
+	drawEmoticon( x, y, emoji, rotation=0 ){
 		// console.info("drawEmoticon", x, y, emoji )
 		drawRotatedText( this.canvasContext, x, y, rotation , emoji, 50, "center", "noto-emoji", false )
+		// draw the positions for the actual scales
+		const data = [
+			{x:x-32, y:y},
+			{x:x-22, y:y},
+			{x:x-12, y:y},
+			{x:x-2, y:y},
+			{x:x-12, y:y},
+			{x:x-22, y:y},
+			{x:x+32, y:y},
+			{x:x+42, y:y}
+		]
+		drawCircles( this.canvasContext, [x, y], 24, 2, "red" )
 	}
 
 	/**

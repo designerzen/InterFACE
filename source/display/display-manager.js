@@ -108,8 +108,9 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	const id = canvasElement.id
 	const parent = canvasElement.parentNode
 	const dataId = canvasElement.getAttribute("data-id") ?? 0
-	const width = canvasElement.clientWidth
-	const height = canvasElement.clientHeight
+	// as we modify some in the displays themselves
+	const width = 640 //canvasElement.clientWidth
+	const height = 480 // canvasElement.clientHeight
 	const aspectRatio = width / height
 
 	if (!parent)
@@ -122,11 +123,14 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	Array.from(canvasElement.attributes).forEach(attribute => {
 		newCanvasElement.setAttribute( attribute.nodeName, attribute.nodeValue )
 	})
+
 	// replace some
-	newCanvasElement.width = maxWidth > -1 ? Math.min(maxWidth, width) : width
-	newCanvasElement.height = newCanvasElement.width / aspectRatio
+	newCanvasElement.width = width // maxWidth > -1 ? Math.min(maxWidth, width) : width
+	newCanvasElement.height = height // newCanvasElement.width / aspectRatio
 	newCanvasElement.id = id
 	newCanvasElement.className = classNames
+	// newCanvasElement.setAttribute("width", parseInt(dataId) + 1 ) 
+	// newCanvasElement.setAttribute("height", parseInt(dataId) + 1 ) 
 	newCanvasElement.setAttribute("data-id", parseInt(dataId) + 1 ) 
 	
 	// re-append new canvas in old canvas location
@@ -152,6 +156,7 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
  */
 export const changeDisplay = async(canvasElement, displayType, renderLoop, options ) => {
 	
+	// display type may be a string or an object
 	if (!canvasElement)
 	{
 		throw Error("No embedded canvas was provided")
@@ -162,12 +167,16 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 		throw Error("No DOM canvas was provided - only orphan without parent")  
 	}
 
-	// delete any existing connection
-	if (display)
+	// invert if a key was provided...
+	if (DISPLAY_TYPES[displayType])
 	{
-		console.warn("Destroying Display", display.id, "for", displayType)
-		display.destroy()
-		display = null
+		displayType = DISPLAY_TYPES[displayType]
+	}
+
+	if ( !Object.values(DISPLAY_TYPES).includes(displayType) )
+	{
+		console.warn("Display test", displayType, DISPLAY_TYPES, DISPLAY_TYPES[displayType])
+		throw Error("Display type "+displayType+" is not supported")
 	}
 
 	// as a context once set can only be one of 2d or webgl
@@ -175,14 +184,14 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 
 	// async or load direct
 	// display = await createEmbeddedDisplay(newCanvasElement, displayType)
-	display = await createDisplay(newCanvasElement, displayType, options)
+	const display = await createDisplay(newCanvasElement, displayType, options)
 
 	if (renderLoop)
 	{
 		display.setAnimationLoop(renderLoop)
 	}
 
-	console.info("createDisplay",displayType, { renderLoop, canvasElement, newCanvasElement, display})
+	console.info("createDisplay", { display, displayType, canvasElement, newCanvasElement, renderLoop })
 
 	return display
 }
