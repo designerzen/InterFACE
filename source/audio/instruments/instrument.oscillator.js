@@ -270,7 +270,7 @@ export default class OscillatorInstrument extends Instrument{
 	pitchBend(pitch){
 		const frequency = pitch// - (this.options.detune ?? 0)
 		// this.oscillator.frequency.value = noteNumberToFrequencyFast(pitch)
-		this.oscillator.exponentialRampToValueAtTime( frequency, this.options.slideDuration )
+		this.oscillator.frequency.exponentialRampToValueAtTime( frequency, this.options.slideDuration )
 		return super.pitchBend(pitch)
 	}
 	
