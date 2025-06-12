@@ -1,12 +1,17 @@
 [
 	{
-		"type":"soundfont",
+		"type":"SoundFontInstrument",
 		"name":"SoundFont",
-		"":""
+		"options":{
+			"instrumentPack":"OpenGM24",
+			"defaultPreset":0
+		}
 	},
 	{
-		"type":"midi",
+		"type":"MIDIInstrument",
 		"name":"midi",
-		"":""
+		"options":{
+			"channel":"all"
+		}
 	}
 ]
