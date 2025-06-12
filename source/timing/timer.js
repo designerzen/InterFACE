@@ -117,6 +117,7 @@ export default class Timer {
 	totalBarsElapsed = 0
 
 	lastRecordedTime = 0
+	lastRecordedExternalTime = 0
 	
 	isRunning = false
 	isCompatible = false
@@ -197,6 +198,10 @@ export default class Timer {
 		return this.totalBarsElapsed
 	}
 	
+	get elapsedSinceLastTick(){
+		return this.now - this.lastRecordedTime
+	}
+
 	/**
 	 * Fetch total bar quantity
 	 * @returns {Number} total bars
@@ -394,9 +399,7 @@ export default class Timer {
 			this.loaded = this.setTimingWorklet( options.type, options.processor, this.audioContext )
 		}else{
 			this.loaded = this.setTimingWorker( options.type, options.processor, this.audioContext )
-		}
-
-		
+		}		
 	}
 
 	/**
@@ -418,6 +421,10 @@ export default class Timer {
 	bypass( useExternalClock=true ){
 
 		if (useExternalClock){
+			if (this.isBypassed)
+			{
+				return
+			}
 			// we want to bypass the worker's work
 			this.isBypassed = true
 			if (this.isRunning)
@@ -430,7 +437,10 @@ export default class Timer {
 			}
 			
 		}else{
-
+			if (!this.isBypassed)
+			{
+				return
+			}
 			this.isBypassed = false
 			if (this.isRunning)
 			{
@@ -441,10 +451,9 @@ export default class Timer {
 			}
 		}
 
-		const trigger = ( timePassed, expected, drift, level, intervals, lag ) =>{
-
+		const trigger = ( ) =>{
 			// call callback
-			this.onTick(timePassed, expected, drift, level, intervals, lag)
+			this.externalTrigger()
 		}
 
 		return trigger
@@ -770,18 +779,34 @@ export default class Timer {
 
 	/**
 	 * Use an external device to send clock signals to and through this timer
-	 * @param {Number} timePassed 
-	 * @param {Number} expected 
-	 * @param {Number} drift 
-	 * @param {Number} level 
-	 * @param {Number} intervals 
-	 * @param {Number} lag 
+	 * such as the MIDI clock signal
 	 */
-	externalTrigger(timePassed, expected, drift=0, level=0, intervals=0, lag=0){
+	externalTrigger( ){
+		// How long has elapsed according to our clock
+		const timestamp = this.now
+		this.lastRecordedExternalTime = timestamp
+		
+		// work out the BPOM from the clock...
+		// const BPM = convertPeriodToBPM( period * 24 )
+		
+		// const period = tapTempo(true, 10000, 3)
+		const elapsedSinceLastClock = timestamp - this.lastRecordedExternalTime
+		// Expected time stamp
+		const expected = this.divisionsElapsed * elapsedSinceLastClock
+		// how much spill over the expected timestamp is there
+		const lag = timestamp % elapsedSinceLastClock
+		// should be 0 if the timer is working...
+		const drift = timestamp - expected
+		// deterministic intervals not neccessary
+		const level = Math.floor(timestamp / elapsedSinceLastClock )
+		
+		// console.log("MIDI CLOCK", BPM, period, elapsedSinceLastClock, timestamp )
+	
 		if (this.isRunning && this.isBypassed)
 		{
-			this.onTick(timePassed, expected, drift, level, intervals, lag)
+			this.onTick(elapsedSinceLastClock, expected, drift, level, this.divisionsElapsed, lag)
 		}
+		this.divisionsElapsed++
 	}
 
 	/**
