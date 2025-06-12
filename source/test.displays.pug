@@ -9,6 +9,20 @@ block nav
 block preload 
 
 block main
+	form(action="/")
+		label(for="select-display") Choose Display
+		select#select-display
+			option(value="DisplayMediaVision2D") DisplayMediaVision2D
+			option(value="DisplayMediaPipe2D") DisplayMediaPipe2D
+			option(value="DisplayWebGL3D") DisplayWebGL3D
+			option(value="DisplayLookingGlass3D") DisplayLookingGlass3D
+			option(value="DisplayCanvas2D") DisplayCanvas2D
+			option(value="DisplayComposite") DisplayComposite
+		
+
+
+
+
 	main#hologram
 		result#output
 		canvas(width=720 height=480)
