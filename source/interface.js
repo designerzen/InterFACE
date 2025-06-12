@@ -469,7 +469,9 @@ export const createInterface = (
 	
 	// collection of persons
 	const people = []
-	let selectedPersonIndex = 0
+
+	// nobody is selected by default
+	let selectedPersonIndex = -1
 
 	// MIDI ---
 	const midiManager = new MIDIConnectionManager()
@@ -972,8 +974,21 @@ export const createInterface = (
 	 * such as game pad events
 	 * @param {Number} index 
 	 */
-	const selectPerson = (index) => {
-		selectedPersonIndex = index % people.length
+	const selectPerson = (index=-1) => {
+		if (index < 0)
+		{
+			// deselect everyone
+			selectedPersonIndex = index
+			people.forEach( (person, i) => person.selected = false)
+		}else{
+			selectedPersonIndex = index % people.length
+			people.forEach( (person, i) => person.selected = i === selectedPersonIndex )
+		}
+	}
+
+	
+	const deselectPeople = () => {
+		selectPerson()
 	}
 
 	const getSelectedPerson = () => people[selectedPersonIndex] || null
@@ -1871,7 +1886,7 @@ export const createInterface = (
 
 			return {
 				success:false,
-				message:"Camera could not be accessed"
+				message:"Camera could not be accessed, "+error
 			}
 		}
 		
@@ -1930,9 +1945,14 @@ export const createInterface = (
 			updateCameraSelector( investigation.videoCameraDevices )
 		}
 
-		const cameraFeedbackMessage = investigation.saved ? "Found saved camera" : quantityOfCameras > 1 ? "Located a Camera but you can change it in Settings > Camera" : "Located front facing camera"
+		const cameraFeedbackMessage = investigation.saved ? 
+										"Found saved camera" : 
+										quantityOfCameras > 1 ? 
+											"Located a Camera but you can change it in Settings > Camera" : 
+											"Located front facing camera"
+
 		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-	
+	debugger
 		return {
 			success:true,
 			message:cameraFeedbackMessage
@@ -2649,11 +2669,11 @@ export const createInterface = (
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted", 0, 'camera')
 				progressCallback(loadIndex/loadTotal,"Found cameras..." )
 
-				const {message:cameraFeedbackMessage, succes:cameraAvailable} = await setupCamera( video, status =>{
+				const {message:cameraFeedbackMessage, succes} = await setupCamera( video, status =>{
 					progressCallback(loadIndex/loadTotal, status )
 				})  
 
-				if (!cameraAvailable){
+				if (!succes){
 					showError("Camera not found", cameraFeedbackMessage, true)
 					return reject( cameraFeedbackMessage )
 				}

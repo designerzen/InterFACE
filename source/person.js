@@ -188,6 +188,9 @@ export default class Person{
 
 	// istrument panel connected
 	isInstrumentPanelInteractive = false
+
+	// 
+	isSelected = false
 	
 	// Head orientation
 	yaw = 0
@@ -972,6 +975,8 @@ export default class Person{
 			//console.info(prediction.time)
 		}
 
+		
+
 		// const emoji = recogniseEmoji(this)
 		// options.mouthCutOff
 		this.emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
@@ -1170,7 +1175,7 @@ export default class Person{
 			display.drawInstrument(textX, textY - 50, instrumentTitle, "", 14 )
 			const emojiRotation = (-prediction.roll * Math.PI * 0.28)
 			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
-			display.drawText(textX, textY + 26, `${extra} ${suffix}${bend}`, "", 28 )
+			display.drawText(textX, textY + 26, isSelected ? `SELECTED` : `${extra} ${suffix}${bend}`, "", 28 )
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			if (this.debug )
@@ -1343,10 +1348,6 @@ export default class Person{
 		
 		// now fetch the other data...
 		const noteObject = GENERAL_MIDI_BY_NAME.get(noteNumberForMIDI)
-		console.warn("NOTE : ", noteObject )
-
-
-
 		const friendlyNoteName = getFriendlyNoteName( noteName ) 
 	
 		// we want to ignore the 0-5px range too as inconclusive!
@@ -1363,7 +1364,7 @@ export default class Person{
 			noteName,
 			noteSound,
 			noteNumberForMIDI,
-			friendlyNoteName
+			friendlyNoteName, noteObject
 		})
 
 		// you want the scale to be from 0-1 but from 03-1
@@ -1574,7 +1575,6 @@ export default class Person{
 		this.yaw = yaw
 		this.pitch = octaveNumber
 		this.roll = noteNumber
-
 
 		// TODO: Return all notes played
 		return {

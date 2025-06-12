@@ -81,10 +81,14 @@ export const addGamePadEvents = (application) => {
 				console.info("Gamepad start", value, { gamePad, gamepadHeld } )
 				break
 			
+
+			// This changes the "selected" user by highlighting their outline
+			// this then targets the controller for that specfific person
 			case COMMANDS.SELECT: 
 				gamePadMode = ( gamePadMode + 1 ) % gamePadModes.length
 				const mode = gamePadModes[gamePadMode]
 				application.setFeedback( mode, 0, 'gamepad' )
+				application.selectPerson( application.getSelectedPerson() + 1 )
 
 				if (mode === "vfx"){
 					// etc
@@ -92,9 +96,9 @@ export const addGamePadEvents = (application) => {
 
 				// check to see if another key is held down...
 				if (gamePad.start){
-					application.display.nextFilter( )
+					
 				}else{
-					application.setDiscoMode()
+					// application.setDiscoMode()
 				}
 				
 				
