@@ -1,4 +1,3 @@
-import {drawCircle} from '../visual/2d'
 import { getMouseCoords } from '../hardware/mouse'
 
 

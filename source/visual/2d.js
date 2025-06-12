@@ -42,10 +42,29 @@ export const clearCanvas = (canvasContext,width, height) => {
  * @param {Number} fillColour 
  * @param {Number} strokeColour 
  */
-export const drawCircle = (cx,cy, radius=5, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
+export const drawCircle = (canvasContext, cx,cy, radius=5, strokeWidth=3, fillColour='#FF6A6A', strokeColour="#FF0000") => {
 	
 	canvasContext.beginPath()
     canvasContext.arc(cx, cy, radius, 0, TAU, true)
+    canvasContext.fillStyle = fillColour
+    canvasContext.fill()
+     
+	if (strokeWidth)
+	{
+		// draw the stroke
+		canvasContext.lineWidth = strokeWidth
+		canvasContext.strokeStyle = strokeColour
+		canvasContext.stroke()
+	}
+	canvasContext.closePath()
+}
+
+export const drawCircles = (canvasContext, points, radius=5, strokeWidth=3, fillColour="#FF0000", strokeColour="#FF0000") => {
+	
+	canvasContext.beginPath()
+	points.forEach( point => {
+		canvasContext.arc(point.x, point.y, radius, 0, TAU, true)
+	})
     canvasContext.fillStyle = fillColour
     canvasContext.fill()
      

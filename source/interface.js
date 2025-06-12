@@ -70,18 +70,22 @@ import {
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
-	getVolume, setVolume, getPercussionNode
+	getVolume, setVolume, getPercussionNode,
+	getMasterMixdown
 } from './audio/audio.js'
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
-import InstrumentFactory from './audio/instrument-factory.js'
+import InstrumentFactory, { createInstrumentFromData } from './audio/instrument-factory.js'
 import InstrumentManager from './audio/instrument-manager.js'
 
 // TODO: Replace with instrumentFactory
+// we use this to load in the chord instruments
 import SampleInstrument from './audio/instruments/instrument.sample.js'
 // import MIDIInstrument from './audio/instruments/instrument-midi1.js'
 // import OscillatorInstrument from './audio/instruments/instrument.oscillator'
+// import ChordInstrument from './audio/instruments/chord.instrument.js'
+import { INSTRUMENT_TYPE_CHORD } from './audio/instrument-list.js'
 
 // VIDEO 
 import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
@@ -152,7 +156,14 @@ import { convertOptionToObject } from './utils/utils.js'
 
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { tapTempo } from './timing/timer.js'
+import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
+
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
+
+// Asset Paths
+// assets\audio\wave-tables\general-midi.zip
+// import WAVE_ARCHIVE_GENERAL_MIDI from "url:./assets/audio/wave-tables/general-midi.zip" 
+// import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
@@ -223,14 +234,15 @@ export const createInterface = (
 	const shareCodeElement = doc.querySelector(".qr")
 	const feedbackElement = doc.getElementById("feedback")
 
-
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
 
 	// Fix dialogs and bind them with events
 	const dialogs = setupDialogs()
 
-	let canvasElement = doc.getElementById('photosynth-canvas')
+	let canvasVideoElement = doc.getElementById('photosynth-canvas')
+	let canvasSandwichElement = doc.getElementById('photosynth-sandwich')
+	let canvasOverlayElement = doc.getElementById('photosynth-overlay')
 
 	// where we extract the face data from
 	let inputElement = video // image
@@ -282,6 +294,20 @@ export const createInterface = (
 			details
 		}) )
 	}
+
+
+	// Set the port for the app to communicate to others
+	const broadCast = new BroadcastChannel("photosynth")
+		
+	// if there are any clock messages during boot up we assume
+	// that means another instance is the master and this is the slave
+	broadCast.onmessage = (event) => {
+		console.log(event)
+	}
+
+	// broadCast.postMessage()
+
+
 
 	// update progress gradually like the old flash days!
 	let loadPercent = 0
@@ -442,6 +468,7 @@ export const createInterface = (
 	
 	// collection of persons
 	const people = []
+	let selectedPersonIndex = 0
 
 	// MIDI ---
 	const midiManager = new MIDIConnectionManager()
@@ -454,7 +481,7 @@ export const createInterface = (
 	// MIDI File ---
 	// load MIDI Track model midi track  / save midi track
 	let midiPerformance
-	let samplePlayer
+	let globalChordPlayer
 	let midiPlayer
 	let savedPerformance
 
@@ -937,6 +964,18 @@ export const createInterface = (
 			return people[index]
 		}
 	}
+
+	/**
+	 * For certain actions we need to select a person
+	 * so that the commands can be passed to the correct person
+	 * such as game pad events
+	 * @param {Number} index 
+	 */
+	const selectPerson = (index) => {
+		selectedPersonIndex = index % people.length
+	}
+
+	const getSelectedPerson = () => people[selectedPersonIndex] || null
 
 	/**
 	 * merges all named player options into an array eg. [{ values } , { values }]
@@ -1764,26 +1803,38 @@ export const createInterface = (
 	 * @param {String} displayType 
 	 */
 	const switchDisplay = async (displayType, predictionLoop, saveAndExclaim=true) => {
-		if (!canvasElement)
+		if (!canvasVideoElement)
 		{
 			throw Error("No embedded canvas was provided")
 		}
 		
-		if (!canvasElement.parentNode)
+		if (!canvasVideoElement.parentNode)
 		{
 			throw Error("No DOM canvas was provided - only an orphaned canvas element")  
 		}
 		
+		// if (display)
+		// {
+		// 	// console.info("DISPLAY:destroying existing", display)
+		// 	display.destroy()
+		// 	display = null
+		// 	canvasElement = await restartCanvas( canvasElement, MAX_CANVAS_WIDTH )
+		// }
+				
+		// display = await createDisplay( canvasElement, displayType, stateMachine.asObject )
+		// display.setAnimationLoop( predictionLoop )
+		// delete any existing display
 		if (display)
 		{
-			// console.info("DISPLAY:destroying existing", display)
+			console.warn("Destroying EXISTING display", display.id, "for new", displayType)
 			display.destroy()
 			display = null
-			canvasElement = await restartCanvas( canvasElement, MAX_CANVAS_WIDTH )
 		}
-				
-		display = await createDisplay( canvasElement, displayType, stateMachine.asObject )
-		display.setAnimationLoop( predictionLoop )
+
+		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop)
+		
+		// cache existing
+		canvasVideoElement = display.canvas
 
 		// save the display type for next time
 		if (saveAndExclaim)
@@ -1931,53 +1982,81 @@ export const createInterface = (
 		}
 	
 		let tickerTape = ''
-		
 		const discoMode = stateMachine.get("disco")
 
-		if (discoMode)
-		{	
-			// FUNKY DISCO MODE...
-			// switch effect type?
-			const t = (counter * 0.01) % TAU
-			const discoX = -7 * cameraPan.x + Math.sin(t)
-			const discoY = -4 * cameraPan.y + Math.cos(t)
-			// console.info("DISCO", {t, cameraPan, discoX,discoY})
-			display.postProcess({ 
-				offsetX:discoX, offsetY:discoY
-			})
-	
-			// this will change the filter
-			// if (counter% 100 === 0)
-			// {
-			// 	display.nextFilter()
-			// }
-			
-		}else{
-
-			// do we clear the canvas?
-			// if it is disco mode, we always want it to 
-			// copy the previous frames otherwise it will
-			// just look like it is janking
-			// we also clear if sync is not set to true
-			// as this means the video is playing behind
-			// the canvas on the DOM
-			if (stateMachine.get("clear") || !stateMachine.get("synch"))
-			{
-				// clear for invisible canvas but 
-				// NB. this may cause visual disconnect
-				display.clear()
-			
-			}else if (stateMachine.get("synch")){
+		// no display so nothing visual to update!
+		// so we can have a black mirror mode
+		if (display){
 				
-				// paste video frame if the video is hidden
-				display.drawElement( inputElement )
-				// drawElement( canvasContext, inputElement )
-
+			
+			if (discoMode)
+			{	
+				// FUNKY DISCO MODE...
+				// switch effect type?
+				const t = (counter * 0.01) % TAU
+				const discoX = -7 * cameraPan.x + Math.sin(t)
+				const discoY = -4 * cameraPan.y + Math.cos(t)
+				// console.info("DISCO", {t, cameraPan, discoX,discoY})
+				display.postProcess({ 
+					offsetX:discoX, offsetY:discoY
+				})
+		
+				// this will change the filter
+				// if (counter% 100 === 0)
+				// {
+				// 	display.nextFilter()
+				// }
+				
 			}else{
-				// video is already showing
+
+				// do we clear the canvas?
+				// if it is disco mode, we always want it to 
+				// copy the previous frames otherwise it will
+				// just look like it is janking
+				// we also clear if sync is not set to true
+				// as this means the video is playing behind
+				// the canvas on the DOM
+				if (stateMachine.get("clear") || !stateMachine.get("synch"))
+				{
+					// clear for invisible canvas but 
+					// NB. this may cause visual disconnect
+					display.clear()
+				
+				}else if (stateMachine.get("synch")){
+					
+					// paste video frame if the video is hidden
+					display.drawElement( inputElement )
+					// drawElement( canvasContext, inputElement )
+
+				}else{
+					// video is already showing
+				}
+			}	
+			
+			if (stateMachine.get("spectrogram"))
+			{
+				// BARS
+				updateByteFrequencyData()
+				display.drawVisualiser( dataArray, bufferLength )
+				if (recorder)
+				{
+					waveforms.push(dataArray)
+				}
+				
+				// Lines
+				// updateByteTimeDomainData()
+				// display.drawVisualiser( dataArray, bufferLength, "line" )
+				
+				// global VU
+				// drawBars( canvasContext, dataArray, bufferLength )
+
+				// updateByteTimeDomainData()
+				// analyser.fftSize = 2048
+				// const bufferLength = analyser.frequencyBinCount
+				// const dataArray = new Uint8Array(bufferLength)
 			}
 		}
-		
+
 		// On BEAT if beatjustplayed
 		// TODO: convert this into a per user bar and use the last played note to 
 		// change the colour of the indicator
@@ -1991,29 +2070,6 @@ export const createInterface = (
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
 		
-		if (stateMachine.get("spectrogram"))
-		{
-			// BARS
-			updateByteFrequencyData()
-			display.drawVisualiser( dataArray, bufferLength )
-			if (recorder)
-			{
-				waveforms.push(dataArray)
-			}
-			
-			// Lines
-			// updateByteTimeDomainData()
-			// display.drawVisualiser( dataArray, bufferLength, "line" )
-			
-			// global VU
-			// drawBars( canvasContext, dataArray, bufferLength )
-
-			// updateByteTimeDomainData()
-			// analyser.fftSize = 2048
-			// const bufferLength = analyser.frequencyBinCount
-			// const dataArray = new Uint8Array(bufferLength)
-		}
-
 		let haveFacesBeenDetected = false	
 		const hasPredictions = predictions && predictions.length > 0
 		
@@ -2059,7 +2115,7 @@ export const createInterface = (
 					person.update( prediction, timeNow )
 						
 					// add face overlay
-					if (discoMode || stateMachine.get("overlays"))
+					if (display && discoMode || stateMachine.get("overlays"))
 					{
 						// FIXME:
 						// TODO:
@@ -2114,8 +2170,8 @@ export const createInterface = (
 					}else{
 						//console.info(i, range, "KILLING for time" + person.name, person.percentageDead * 100 + "%", person.deadForDuration * 0.001 )
 					}
-					
 				}
+				
 			}
 		// }
 
@@ -2131,8 +2187,11 @@ export const createInterface = (
 			// TODO: Implement part switching behaviour
 		}
 
-		// update if neccessary on screen now all people are drawn
-		display.render()
+		if (display)
+		{
+			// update if neccessary on screen now all people are drawn
+			display.render()
+		}
 				
 		// }else{
 		// 	// tickerTape += `No prediction`
@@ -2204,6 +2263,7 @@ export const createInterface = (
 			hasBeatJustPlayed = false
 		}
 
+	
 		//console.log(counter, "update", {predictions, tickerTape, userLocated, isCameraLoading} )
 	}
 
@@ -2232,6 +2292,19 @@ export const createInterface = (
 		}
 		
 		usePredictions(peoplePredictions)
+
+		// If we are using MIDI clock and itstops, then there is no
+		// event sent so that we can alter behaviour, so instead we
+		// have a time out that can be used to reinstate automatic
+		// timing and then when MIDI starts again we can reassess
+		// 3 seconds seems like a good amount of time to wait for
+		// set via tempo to 1 period!
+		if ( clock.elapsedSinceLastTick > clock.timePerBar )
+		{
+			clock.bypass(false)
+			console.warn("MIDI CLOCK DISCONNECTED!")
+		}
+
 		return peoplePredictions
 	}
 
@@ -2341,7 +2414,7 @@ export const createInterface = (
 				// }
 				
 				// Change filter depending on the user's emoticon!
-				if (stateMachine.get("disco") && person.emoticon === EMOJI.EMOJI_KISS)
+				if ( stateMachine.get("disco") && person.isKissing )
 				{
 					shouldChangeToNextFilter = true
 				}
@@ -2407,8 +2480,8 @@ export const createInterface = (
 			//midi.setSongPosition( clock.barProgress * 16383 , {})
 			//console.log(midi)
 			// const MIDIoutput = WebMidi.outputs[0]
-			// SEND OUT Midi to every device
-			WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.sendClock() )
+			// SEND OUT Midi to every connected MIDI device
+			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
 		}
 
 		// we can actually play a midi file here as an accompanying voice!
@@ -2502,10 +2575,6 @@ export const createInterface = (
 		offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
  
 
-		if (!stateMachine.get("debug"))
-		{
-			doc.querySelector("label[for='select-display']").hidden = true
-		}
 
 		// DISPLAY --------------------------------------------------------------------------------
 
@@ -2540,20 +2609,21 @@ export const createInterface = (
 
 		console.error("PhotoSYNTH Screens available", initialDisplay, { holographicDisplayQuantity, settings} ) 
 		
+		
 		const displayMenu = document.querySelector('label[for="select-display"]')
 		// enable the display menu if advanced
-		displayMenu.hidden = false // holographicDisplayQuantity === 0
+		if (!stateMachine.get("debug"))
+		{
+			displayMenu.hidden = true // holographicDisplayQuantity === 0
+		}else{
+			displayMenu.hidden = false // holographicDisplayQuantity === 0
+		}
 		
-	
-		
-		
-		
-
-		
+		displayMenu.hidden = false
+				
 		// MOTION TRACKING --------------------------------------------------------------------------------
 
 		fetchPredictionFromEngine = fetchPredictions
-		
 		body.classList.toggle("initialising", true)
 		
 		// VIDEO STREAM / CAMERA -----------------------------------------
@@ -2664,25 +2734,6 @@ export const createInterface = (
 			return reject( errorReason )
 		}
 		
-		// MIDI ---------------------------------------------------------------
-		// FIXME: Hangs here on certain devices....
-		if (capabilities.webMIDIAvailable)
-		{
-			// This occassionaly breaks for no reason that can be tracked
-			try{
-				// FIXME: use the midi manager
-				webMidi = await WebMidi.enable({sysex:false, software:true })
-				// Inputs
-				WebMidi.inputs.forEach(input => console.log("MIDI INPUT", input.manufacturer, input.name))
-				// Outputs
-				WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
-
-			}catch(error){
-
-				console.error("WebMidi is available but a connection cannot be established", error)
-			}
-		}
-
 		// TIMING ----------------------------------------------------------------------
 		try{
 			// NB. at this point we have access to the user events
@@ -2818,14 +2869,44 @@ export const createInterface = (
 
 		// AUDIO ------------------------------------------------	
 
+
 		// Create a new sample player to handle sample sound playback external
 		// to each Person. This is used for example to play orchestrated background MIDI
 		// TODO: FIXME:
-		samplePlayer = new SampleInstrument(audioContext, audioChain, {})
+		const instrumentOptions = {	type:INSTRUMENT_TYPE_CHORD }
+		const instrumentInstance = await createInstrumentFromData( audioContext, instrumentOptions )
+		await instrumentInstance.loaded
+
+		globalChordPlayer = instrumentInstance // new ChordInstrumentInstrument(audioContext, audioChain, {})
+		globalChordPlayer.setInstrument( SampleInstrument,{}, 3 )
+		// samplePlayer = new SampleInstrument(audioContext, audioChain, {})
+
+		
+		// play a little song now to test the instrument!
+		const SONG_GADGET = "c d D f g D F d f"
+		const song = SONG_GADGET.split(" ")
+		// connect directly to the speaker
+		globalChordPlayer.connect(getMasterMixdown())
+
+		const testChords = () => {
+			globalChordPlayer.noteOn( (Math.random() * 128) >> 0, 1 )
+		}
+		
+		setInterval( testChords, 500 )
+		
+		// load in our oscillator presets so that they will be available in 
+		// all oscilllator based instruments 
+		// TODO: move this to the 
+		// await OscillatorInstrument.loadPresets( WAVE_ARCHIVE_GENERAL_MIDI )
+
+		console.error("globalChordPlayer", globalChordPlayer)
+		// console.error("OscillatorInstrument", OscillatorInstrument.presets )
+
+		
 
 
 		// MIDI --------------------------------------------------------------
-
+		
 		// Load any previous performances...
 		if (stateMachine.get("loadMIDIPerformance"))
 		{
@@ -2840,6 +2921,82 @@ export const createInterface = (
 			}
 		}
 		
+		// FIXME: Hangs here on certain devices....
+		if (capabilities.webMIDIAvailable)
+		{
+			const sendMIDIEventToAllDevices = (type, event) => {
+				switch(event.message.type){
+					case "noteon":
+						WebMidi.outputs.forEach(output => output.playNote(event.note.number))
+						break
+					case "noteoff":
+						WebMidi.outputs.forEach(output => output.stopNote(event.note.number))
+						break
+				}
+			}
+
+			// This occassionaly breaks for no reason that can be tracked
+			try{
+				let lastClockTimestamp = 0
+				// FIXME: use the midi manager
+				webMidi = await WebMidi.enable({sysex:false, software:true })
+				// Inputs
+				WebMidi.inputs.forEach(input =>{
+					input.addListener("midimessage", event => {
+						switch(event.message.type){
+							case "clock":
+								// if we want an exclusive clock
+								clock.bypass(true)
+								clock.externalTrigger()
+								break       
+						}
+
+						// TODO: use the midi in and the people to augment
+						// the note played with chords that match the facial expression
+						// const amountOfInputs = WebMidi.inputs.length         
+						const person = getPerson(0)
+						let previousEmoticon = person.emoticon
+						switch(event.type){
+							case "noteon":
+								// depending on how many users there are...
+								// we send each channel to a different person
+								previousEmoticon = person.emoticon
+								
+								// augment note into chord using event.note.number as the tonic
+								const chordsOn = getMusicalDetailsFromEmoji(event.note.number, person.emoticon)
+								globalChordPlayer.noteOn( event.note.number, event.value )
+								console.log("MIDI noteon", event, event.note.identifier, chordsOn)
+								// updateInstrumentWithPerson( samplePlayer, person )
+								// also send out that note
+								sendMIDIEventToAllDevices(event.type, event)
+								break       
+
+							case "noteoff":
+								// we want to use th e previous emoticon otherwise we will miss some on notes
+								const chordsOff = getMusicalDetailsFromEmoji(event.note.number, previousEmoticon ?? person.emoticon)
+								globalChordPlayer.noteOff( event.note.number, event.value )
+								console.log("MIDI noteoff", event, event.note.identifier, chordsOff )
+							
+								// updateInstrumentWithPerson( samplePlayer, person )
+								sendMIDIEventToAllDevices(event.type, event)
+								break     
+
+							default:
+								//console.log("MIDI Message", event)
+						}
+					})
+					console.log("MIDI INPUT", input.manufacturer, input.name)
+				})
+				// Outputs
+				WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
+				// immediately hook into the clock events...
+			}catch(error){
+
+				console.error("WebMidi is available but a connection cannot be established", error)
+			}
+
+		}
+
 		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
 		if (stateMachine.get("midi") && midiManager.available)
@@ -3255,6 +3412,9 @@ export const createInterface = (
 		
 		// allow display type to be changed on the hoof via toggle
 		selects.displays = connectSelect( 'select-display', async(option) => {
+			
+			console.error("Switching display", option.value, {option} )
+			
 			if (option && option.value)
 			{
 				try{
@@ -3476,6 +3636,9 @@ export const createInterface = (
 		resolve( constructPublicClass( { 
 			user,
 			quantityOfActivePeople,
+
+			selectPerson,
+			getSelectedPerson,
 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),

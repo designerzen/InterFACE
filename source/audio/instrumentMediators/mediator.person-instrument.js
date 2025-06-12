@@ -11,7 +11,7 @@ import {
 } from "../../person.js"
 
 /**
- * 
+ * MONODPHONIC
  * FIXME: Don't play the audio directly in Person
 			// but instead extract it and pass it to the audioBus
 			// update the stave with X amount of notes

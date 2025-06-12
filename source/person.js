@@ -49,7 +49,8 @@ import MIDIInstrument from './audio/instruments/instrument.midi.js'
 import { 
 	INSTRUMENT_TYPE_SOUNDFONT,
 	INSTRUMENT_TYPE_OSCILLATOR, 
-	INSTRUMENT_TYPE_MIDI 
+	INSTRUMENT_TYPE_MIDI, 
+	INSTRUMENT_TYPE_CHORD
 } from './audio/instrument-list.js'
 
 import InstrumentManager from './audio/instrument-manager.js'
@@ -80,8 +81,10 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 
 // Models
 import { recogniseEmojiFromFaceModel } from './models/emoji-detection.js'
-import { EMOJI_NEUTRAL } from './models/emoji.js'
+import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_NEUTRAL } from './models/emoji.js'
 import { convertHeadOrientationIntoNoteData, convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, convertHeadRollToScaleAndPitchToOctaveAndYawToPitch } from './person.controls.js'
+import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
+import { createInstrumentFromData } from './audio/instrument-factory.js'
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -145,7 +148,7 @@ export default class Person{
 
 	// instances
 	midiPlayer
-	samplePlayer
+	chordPlayer
 	
 	// the :-) that represents this person!
 	emoticon = EMOJI_NEUTRAL
@@ -268,6 +271,20 @@ export default class Person{
 	 */
 	get isSinging(){
 		return this.singing
+	}
+
+	get isKissing(){
+		switch(this.emoticon)
+		{
+			case EMOJI_KISS:
+			case EMOJI_KISSING_WINK:
+			case EMOJI_CAT_KISSING:
+			case EMOJI_KISS_EYES_CLOSED:
+			case EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED:
+				return true
+			default:
+				return false
+		}
 	}
 
 	/**
@@ -797,6 +814,7 @@ export default class Person{
 			// if a user is lost, then we slowly kill them until they are dead
 			console.info("dead", this.deadForDuration, this.createdAt )
 			this.onDead()
+
 		}else if (this.deadForDuration  > 0){
 			
 			console.info(this.percentageDead, "dying", this.deadForDuration, this.createdAt )
@@ -947,9 +965,9 @@ export default class Person{
 			this.rightEyeClosedAt = prediction.time
 
 			this.onEyesClosedForTimePeriod()
-			console.info("closed eyes!", {leftEyeClosedFor, rightEyeClosedFor, eyesClosedFor })
+			// console.info("closed eyes!", {leftEyeClosedFor, rightEyeClosedFor, eyesClosedFor })
 		}else if(leftEyeClosedFor > -1 || rightEyeClosedFor > -1){
-			console.info(prediction.time, "one closed eyes", this.isLeftEyeOpen, leftEyeClosedFor,this.isRightEyeOpen, rightEyeClosedFor, eyesClosedFor ) 
+			// console.info(prediction.time, "one closed eyes", this.isLeftEyeOpen, leftEyeClosedFor,this.isRightEyeOpen, rightEyeClosedFor, eyesClosedFor ) 
 		}else{
 			//console.info(prediction.time)
 		}
@@ -1150,9 +1168,9 @@ export default class Person{
 		// eye:${prediction.eyeDirection} 
 			
 			display.drawInstrument(textX, textY - 50, instrumentTitle, "", 14 )
-			const emojiRotation = (-prediction.roll * Math.PI * 0.33)
+			const emojiRotation = (-prediction.roll * Math.PI * 0.28)
 			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
-
+			display.drawText(textX, textY + 26, `${extra} ${suffix}${bend}`, "", 28 )
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			if (this.debug )
@@ -1184,8 +1202,9 @@ export default class Person{
 					// `eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
 					// `dims:${(prediction.mouthRatio||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
 					`facing ${prediction.lookingRight ? 'left' : 'right'}`,
+					`Instrument ${this.activeInstrument.toString()}`,
 
-					`note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`
+					`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`
 				]
 
 				display.drawParagraph( xMax, yMin + 40, paragraphs, '14px' )
@@ -1250,8 +1269,9 @@ export default class Person{
 		const hasNoteChanged = this.lastNote !== noteNumber
 		// const hasNoteChanged = this.lastNoteName !== noteName
 		
-		const chords = getMusicalDetailsFromEomoji(noteNumber, this.emoticon)
+		const chords = getMusicalDetailsFromEmoji(noteNumber, this.emoticon)
 		console.info( "Sing emotion", chords )
+
 
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
@@ -1676,7 +1696,7 @@ export default class Person{
 
 		if (Number.isInteger(presetName))
 		{
-			const allPresets = await this.samplePlayer.getPresets()
+			const allPresets = await this.activeInstrument.getPresets()
 			presetName = allPresets[presetName]
 		}
 		
@@ -1704,13 +1724,13 @@ export default class Person{
 		
 		const details = { instrumentName:instrumentNameRefined, instrumentPack }
 
-		const instrument = await this.samplePlayer.loadPreset(instrumentNameRefined, instrumentPack, progress => {
+		const instrument = await this.activeInstrument.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
 		} )
 
 		// just an index as to which out of all instrument data is this one
-		this.instrumentPointer = this.samplePlayer.instrumentIndex
+		this.instrumentPointer = this.activeInstrument.instrumentIndex
 		
 		this.presetTitle = presetTitle
 		this.presetName = presetName
@@ -1845,31 +1865,48 @@ export default class Person{
 			this.outputNode = this.eyeBrowsNode
 		}
 
-
 		// now connect this directly to the main mixer
 		this.outputNode.connect(destinationNode)
 
 		// TODO: 
-		const samplePlayerOptions = {
+		const defaultInstrumentOptions = {
 			...this.options,
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
 			defaultInstrument:this.options.defaultInstrument
 		}
 
+		// create a sample player, oscillator add all other instruments		
+		// Add as manny instruments as you like
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const soundFontInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_SOUNDFONT, samplePlayerOptions, 0 )	
+		const defaultInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
+		const chordInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_CHORD, defaultInstrumentOptions, 0 )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
+		// const defaultInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_OSCILLATOR})
+		// const chordInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_CHORD})
 
-		// create a sample player, oscillator add all other instruments
-		this.samplePlayer = this.setMainInstrument( this.addInstrument( soundFontInstrument ))
-	
+
+		await defaultInstrument.loaded
+		await chordInstrument.loaded
+
+		
+
 		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new WaveGuideInstrument(audioContext, this.gainNode) )
 		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
+
+		// this.samplePlayer = this.setMainInstrument( this.addInstrument( defaultInstrument ))
+		this.setMainInstrument( this.addInstrument( chordInstrument ))
+		// this.setMainInstrument( this.addInstrument( defaultInstrument ))
+		
+		// load an instrument into the chordPlayer
+		chordInstrument.setInstrument( defaultInstrument )
+		debugger
+		console.error("Person created with active instrument", this.activeInstrument, defaultInstrument, {options:this.options, defaultInstrumentOptions} )
+	
 	}
 
 	/**

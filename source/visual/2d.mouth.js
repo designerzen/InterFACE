@@ -1,5 +1,3 @@
-import { drawCircle, drawNode } from './2d'
-
 /**
  * Draw a mouth based on a series of points and close the path
  * with a gradient or fill as required

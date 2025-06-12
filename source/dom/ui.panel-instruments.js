@@ -398,4 +398,6 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		}
 		setDrawerState( !isDrawerOpen )
 	})
+
+	return person
 }

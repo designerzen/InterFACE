@@ -1,14 +1,17 @@
-import { convertNoteNameToMIDINoteNumber } from "../audio/tuning/notes"
-
 export default class SVGKeyboard{
 
 	static uniqueID = 0
 
-	isTouching = false
+	active = new Map()
+	touches = 0
 	keyElements = []
 	htmlElement
 
 	firstNoteNumber = 0
+
+	get isTouching(){
+		return this.touches > 0
+	}
 
 	get svg(){
 		return this.svgString
@@ -45,43 +48,45 @@ export default class SVGKeyboard{
 			throw Error("No keys provided to add interactivity to")
 		}
 
+	
 		keys.forEach( (button, i) => {
-		
-			let previousNote 
-			let noteName 
-		
+
+			const noteNumber = parseInt( button.getAttribute("data-attribute-number") )
+			//const noteName = button.getAttribute("data-attribute-note")
+			const indicator = document.querySelector(`.indicator[data-attribute-number="${noteNumber}"]`)
+
+			const toggleIndicator = (active)=>{
+				indicator?.classList?.toggle("active", active)
+			}
+
 			const onPianoInteractionStarting = (event) => {
+					
+				if (
+					event instanceof KeyboardEvent &&
+					event.key !== "Enter" &&
+					event.key !== " "
+				) {
+					return
+				}
+
 				if (event.preventDefault)
 				{
 					event.preventDefault()
 				}
 		
-				let pressure = 0
-				if ((typeof(event.targetTouches) != 'undefined') && (event.targetTouches.length > 0) && (typeof(event.targetTouches[0].force) != 'undefined')) {
-					pressure = event.targetTouches[0].force
-				} else if (typeof(event.webkitForce) != 'undefined') {
-					pressure = event.webkitForce
-				} else if (typeof(event.pressure) != 'undefined') {
-					pressure = event.pressure
-				}
-		
-				noteName = button.getAttribute("data-attribute-note")
-				// convert name into MIDI note number
-				const note = convertNoteNameToMIDINoteNumber(noteName)
-		
+				const id = event.pointerId ?? 0
+				const pressure = event.pressure ?? 1
+				
 				// console.info("REQUEST START", {note, noteName, GENERAL_MIDI_INSTRUMENTS})
-				this.isTouching = true
+				const starting = noteOn(noteNumber, pressure, id)
+				this.active.set( button, noteNumber )
+				this.touches++
+
+				starting & toggleIndicator(true)
 				
-				const starting = noteOn(note, pressure > 0 ? pressure : 1, this)
-				previousNote = note
-		
-				starting & document.querySelector(`.indicator[data-attribute-note="${noteName}"]`)?.classList?.toggle("active", true)
-			
-				document.addEventListener("mouseleave", onInterationComplete, false)
-				document.addEventListener("mouseup", onInterationComplete, false)
-				
-				document.addEventListener("touchend", onInterationComplete, false)
-				document.addEventListener("touchcancel", onInterationComplete, false)
+				document.addEventListener("pointerleave", onInterationComplete, false)
+				document.addEventListener("pointerup", onInterationComplete, false)
+				document.addEventListener("pointercancel", onInterationComplete, false)
 			}
 		
 			const onInterationComplete = (event) => {
@@ -90,67 +95,56 @@ export default class SVGKeyboard{
 					event.preventDefault()
 				}
 		
+				const id = event.pointerId ?? 0
+				document.removeEventListener("pointerleave", onInterationComplete)
+				document.removeEventListener("pointerup", onInterationComplete)
+				document.removeEventListener("pointercancel", onInterationComplete)
 				
-				document.removeEventListener("mouseleave", onInterationComplete)
-				document.removeEventListener("mouseup", onInterationComplete)
-				
-				document.removeEventListener("touchend", onInterationComplete)
-				document.removeEventListener("touchcancel", onInterationComplete)
-				
+				// const noteNumber = this.active.get( button )
 				// const note = convertNoteNameToMIDINoteNumber(noteName)
-		
 				// console.info("REQUEST END", {previousNote,note})
-				
-				noteOff(previousNote,1,this)
-				this.isTouching = false
-				previousNote = null
-				
-				// document.querySelector(`.indicator[data-attribute-note="${noteName}"]`)?.classList?.toggle("active", false)
+				this.touches--
+
+				noteOff(noteNumber,1,id)
+				toggleIndicator(false)
+				this.active.delete( button )
 			}
 		
-			button.addEventListener("touchstart", onPianoInteractionStarting, false) 
-			button.addEventListener("mousedown", onPianoInteractionStarting , false)
+			button.addEventListener("pointerdown", onPianoInteractionStarting, false) 
 			
 			// if the user has finger down but they change keys...
-			button.addEventListener("mouseenter", event => {
+			button.addEventListener("pointerenter", event => {
+				
 				if (event.preventDefault)
 				{
 					event.preventDefault()
 				}
 		
+				const id = event.pointerId ?? 0
+				// already interacting so update existing
 				if (this.isTouching)
 				{	
-					noteName = button.getAttribute("data-attribute-note")
-		
-					const note = convertNoteNameToMIDINoteNumber(noteName)
-		
-					// document.querySelector(`.indicator[data-attribute-note="${previousNote}"]`)?.classList?.toggle("active", false)
-					// document.querySelector(`.indicator[data-attribute-note="${noteName}"]`)?.classList?.toggle("active", true)
-										
 					// console.info("REQUEST CHANGE", {note, noteName,GENERAL_MIDI_INSTRUMENTS})
 					// pitch bend!
-					noteOn(note, 1, this)
-					previousNote = note
+					noteOn(noteNumber, 1, id)
+					toggleIndicator(true)
+					this.active.set( button, noteNumber )
 				}else{
 					// console.warn("REQUEST CHANGE IGNORED")
 				}
 			})
 		
-			button.addEventListener("mouseleave", event => {
+			button.addEventListener("pointerleave", event => {
 				if (event.preventDefault)
 				{
 					event.preventDefault()
 				}
-				// noteOff(previousNote)
-				document.querySelector(`.indicator[data-attribute-note="${noteName}"]`)?.classList?.toggle("active", false)
+				const id = event.pointerId ?? 0
+				noteOff(noteNumber, 1, id)
+				toggleIndicator( false )
+				this.active.delete( button )
 			})
-		
-			// button.addEventListener("mouseup", event => {
-			// 	console.error(button, event)
-			// 	this.isTouching = false
-			// })
 		})
-		
 	}
 
 	createBlackKey( key, x, y, r=1.5, width=13, height=80 ){
@@ -251,6 +245,7 @@ export default class SVGKeyboard{
 		let y = 20
 
 		const curvedRadius = 2
+		const halfWhiteKeyWidth = whiteKeyWidth / 2
 		const halfBlackKeyWidth = blackKeyWidth / 2
 		const halfIndicatorWidth = indicatorWidth / 2
 		const indicatorRadius = halfIndicatorWidth
@@ -262,6 +257,7 @@ export default class SVGKeyboard{
 		let totalWidth = 0 // 1197.8
 		
 		// Keys as strings
+		const indicatorElements = []
 		const whiteKeyElements = []
 		const blackKeyElements = []
 		const keyElements = keys.map( (key,index)=>{
@@ -280,6 +276,10 @@ export default class SVGKeyboard{
 			 				blackKeyElements.push( keyElement ) :
 			 				whiteKeyElements.push( keyElement )
 			
+			
+			const indicatorOffsetX = isBlack ? halfBlackKeyWidth : halfWhiteKeyWidth
+			const indicator = this.createIndicator(key, x + indicatorRadius + indicatorOffsetX / 2, indicatorRadius, indicatorRadius )
+			indicatorElements.push(indicator)
 
 			//x += whiteKeyWidth
 			x += isBlack ? halfBlackKeyWidth : whiteKeyWidth
@@ -293,13 +293,13 @@ export default class SVGKeyboard{
 
 		// Indicators
 		x = 0 // spaceBetweenIndicators / 2
-		y = 10
+		y = indicatorRadius
 
-		const indicatorElements = keys.map( (key,index)=>{
-			const indicator = this.createIndicator(key, x, y, indicatorRadius )
-			x += spaceBetweenIndicators
-			return indicator
-		})
+		// const indicatorElements = keys.map( (key,index)=>{
+		// 	const indicator = this.createIndicator(key, x, y, indicatorRadius )
+		// 	x += spaceBetweenIndicators
+		// 	return indicator
+		// })
 
 		const keyboard =   `<g class="piano-key-notes piano-keys-white">${whiteKeyElements.join("")}</g>
 							<g class="piano-key-notes piano-keys-black">${blackKeyElements.join("")}</g>`
@@ -326,11 +326,12 @@ export default class SVGKeyboard{
 	 * @param {Number} noteNumber 
 	 */
 	setKeyAsActive( noteNumber ){
-		const key = this.htmlElement.querySelector('[data-attribute-number="'+noteNumber+'"]')
+		const keys = this.htmlElement.querySelectorAll('[data-attribute-number="'+noteNumber+'"]')
 		// const key = this.keyElements[noteNumber - this.firstNoteNumber]
-		if (key)
+		
+		if (keys && keys.length > 0)
 		{
-			key.classList.toggle("active", true)
+			keys.forEach( key => key.classList.toggle("active", true) )
 		}else{
 			console.warn("Key "+noteNumber+" not found")
 		}
@@ -341,13 +342,13 @@ export default class SVGKeyboard{
 	 * @param {Number} noteNumber 
 	 */
 	setKeyAsInactive( noteNumber ){
-		const key = this.htmlElement.querySelector('[data-attribute-number="'+noteNumber+'"]')
+		const keys = this.htmlElement.querySelectorAll('[data-attribute-number="'+noteNumber+'"]')
 		// const key = this.keyElements[noteNumber - this.firstNoteNumber]
-		if (key)
+		if (keys && keys.length > 0)
 		{
-			key.classList.toggle("active", false)
+			keys.forEach( key => key.classList.toggle("active", false) )
 		}else{
-			console.warn("Key "+noteNumber+" not found")
+			console.warn("Key "+noteNumber+" not found", {noteNumber} )
 		}
 	}
 }

@@ -52,6 +52,8 @@ block main
 			//- we clone the video onto the canvas every frame - this has a JS helper
 			//- that deletes this node and re-creates it with a different context
 			canvas#photosynth-canvas.canvas-full-size(width="640", height="480")
+			canvas#photosynth-sandwich.canvas-full-size(width="640", height="480")
+			canvas#photosynth-overlay.canvas-full-size(width="640", height="480")
 			
 			//- In APP CONTROLS ------------------------------------------------------
 			
@@ -79,11 +81,11 @@ block main
 					figure
 						figcaption <small>Available at</small>Accessible Musical Instrument Collection
 						img(src="./assets/logos/amic.svg" alt="Accessible Misical Instrument Collection")
-				
-				li: a(href="https://royalsociety.org/science-events-and-lectures/summer-science-exhibition/all-exhibits/" rel="noopener noreferrer" target="_blank")
+					
+				li: a(href="https://www.drakemusic.org/pages-that-are-currently-not-live-on-the-site/instrument-led-projects/photosynth-by-zenon-olenski/" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Presented at</small> the Royal Society Summer Exhibition 2025
-						img(src="./assets/logos/royal_society-crest.svg" alt="Royal Society Summer Exhibition")
+						figcaption <small>Supported by</small>Drake Music
+						img(src="./assets/logos/drakemusic.svg" alt="Drake Music")
 				
 				li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank")
 					figure
@@ -94,12 +96,7 @@ block main
 					figure
 						figcaption <small>Supported by</small>Browserstack
 						img(src="./assets/logos/browserstack.svg" alt="Browserstack")
-				
-				li: a(href="https://www.drakemusic.org/pages-that-are-currently-not-live-on-the-site/instrument-led-projects/photosynth-by-zenon-olenski/" rel="noopener noreferrer" target="_blank")
-					figure
-						figcaption <small>Supported by</small>Drake Music
-						img(src="./assets/logos/drakemusic.svg" alt="Drake Music")
-				
+			
 				li: a(href="https://www.emfcamp.org/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Presented at</small>Electromagnetic Fields
@@ -140,6 +137,11 @@ block main
 						figcaption <small>Showcased at</small>MIT<br>Massachusetts Institute of Technology
 						img(src="./assets/logos/mit-logo.svg" alt="Massachusetts Institute of Technology")
 
+				li: a(href="https://royalsociety.org/science-events-and-lectures/summer-science-exhibition/all-exhibits/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Presented at</small> the Royal Society Summer Exhibition 2025
+						img(src="./assets/logos/royal_society-crest.svg" alt="Royal Society Summer Exhibition")
+				
 	small#attributions
 		block attributions
 		

@@ -22,7 +22,8 @@ export const drawText = ( canvasContext, x, y, text='', size=10, align="center",
 
 export const drawRotatedText = ( canvasContext, x, y, rotation=0, text='', size=10, align="center", font="Oxanium", invertColours=false) => {
 	canvasContext.save()
-	canvasContext.translate( canvasContext.canvas.width / 2, canvasContext.canvas.height / 2 )
+	// position it in the centre of the x y coords
+	canvasContext.translate( x, y )
 	canvasContext.rotate( rotation )
 	drawText( canvasContext, 0, 0, text, size, align, font, invertColours )
 	canvasContext.restore()
