@@ -157,6 +157,7 @@ import { convertOptionToObject } from './utils/utils.js'
 import { setupReporting, track, trackError, trackExit } from './reporting'
 import { tapTempo } from './timing/timer.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
+import { showError } from './dom/errors.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -1866,6 +1867,11 @@ export const createInterface = (
 
 		}catch(error){
 			console.error("Camera not found SHOW ERROR", error)
+			setToast("No cameras are available on this device", 0, 'camera')
+			// setFeedback("Camera not found", 0, 'camera')
+
+			showError("Camera not found", error, true)
+
 			return "Camera could not be accessed"
 		}
 		

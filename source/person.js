@@ -1904,7 +1904,7 @@ export default class Person{
 		
 		// load an instrument into the chordPlayer
 		chordInstrument.setInstrument( defaultInstrument )
-		debugger
+		
 		console.error("Person created with active instrument", this.activeInstrument, defaultInstrument, {options:this.options, defaultInstrumentOptions} )
 	
 	}

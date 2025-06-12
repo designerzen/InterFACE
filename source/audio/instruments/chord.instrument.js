@@ -255,7 +255,7 @@ export default class ChordInstrument extends Instrument{
 		
 		this.polyphony = quantity
 
-		debugger
+		
 	
 		console.warn(this.polyphony, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
 	}
