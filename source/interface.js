@@ -1952,7 +1952,7 @@ export const createInterface = (
 											"Located front facing camera"
 
 		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-	debugger
+	
 		return {
 			success:true,
 			message:cameraFeedbackMessage
@@ -2669,11 +2669,11 @@ export const createInterface = (
 				setFeedback( "Attempting to locate a camera...<br>Please click accept if you are prompted", 0, 'camera')
 				progressCallback(loadIndex/loadTotal,"Found cameras..." )
 
-				const {message:cameraFeedbackMessage, succes} = await setupCamera( video, status =>{
+				const cameraResult = await setupCamera( video, status =>{
 					progressCallback(loadIndex/loadTotal, status )
 				})  
 
-				if (!succes){
+				if (cameraResult.success === false){
 					showError("Camera not found", cameraFeedbackMessage, true)
 					return reject( cameraFeedbackMessage )
 				}
