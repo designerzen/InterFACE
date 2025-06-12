@@ -2651,7 +2651,7 @@ export const createInterface = (
 				})  
 
 				if (!cameraAvailable){
-					showError("Camera not found", error, true)
+					showError("Camera not found", cameraFeedbackMessage, true)
 					return reject( cameraFeedbackMessage )
 				}
 
