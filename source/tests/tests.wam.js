@@ -36,9 +36,9 @@ import { initializeWamHost } from "@webaudiomodules/sdk"
 // import exampleWAMPlugin from "url:./audio/wam2-external/WamExample/src/index.js"	
 
 // Instruments with common interfaces
-import WAMInstrument from "../audio/instruments/instrument.wam.js"
-import WAM2Instrument from "../audio/instruments/instrument.wam2.js"
-import SoundFontInstrument from "../audio/instruments/instrument.soundfont.js"
+// import WAMInstrument from "../audio/instruments/instrument.wam.js"
+// import WAM2Instrument from "../audio/instruments/instrument.wam2.js"
+// import SoundFontInstrument from "../audio/instruments/instrument.soundfont.js"
 
 import SoundFont from '../audio/sound-font.js'
 import { loadInstrumentFromSoundFont, convertArrayToBuffer } from "../audio/audio.js"

@@ -14,13 +14,17 @@ import { DISPLAY_TYPES, DISPLAY_IDS } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 import { now } from "../timing/timing.js"
 
-import DATA_SOURCE from 'raw:/source/tests/test.face.json'
+// import DATA_SOURCE from 'raw:/source/tests/test.face.json'
+import DATA_SOURCE from 'raw:/source/tests/test.face-stream.json'
 // JSON data from data_source
+
 let DATA
 let DATA_KEYS 
 
 let count = 0
 let display
+let displayType
+let selectDisplay
 
 let canvas = document.querySelector('canvas')
 
@@ -32,6 +36,18 @@ const chooseRandomDisplay = () =>{
 	const keys = Object.keys(DISPLAY_TYPES)
 	const key = keys[ Math.floor( Math.random() * (keys.length-1) ) ]
 	return DISPLAY_TYPES[ key ]
+} 
+
+const chooseNextDisplay = () =>{
+	const displayTypes = Object.values(DISPLAY_TYPES)
+
+	const previousIndex = displayTypes.indexOf(displayType)
+	const displayIndex = previousIndex === -1 ? 
+		0 :
+		(previousIndex + 1 ) % displayTypes.length
+
+	console.info("Choosing next display", {displayType, previousIndex, displayIndex, keys: displayTypes})
+	return displayTypes[displayIndex]
 } 
 
 /**
@@ -58,6 +74,11 @@ const render = () => {
 }
 
 
+/**
+ * Register the displays with the canvas and update the DOM UI with
+ * the specified display type
+ * @param {String} initialDisplay 
+ */
 const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D) => {
 
 	const result = document.getElementById('output')
@@ -89,29 +110,41 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	// immediately set the video display to what was discovered / previously set as an option
 	// try{
 		display = await changeDisplay(canvas, initialDisplay, render)
+		displayType = initialDisplay
 		canvas = display.canvas
 	// }catch(error){
 	// 	console.error("Cannot change Display Error:", error) 
 	// }
 
 	// Update the DOM UI
-	const selectDisplay = document.getElementById('select-display')
+	selectDisplay = document.getElementById('select-display')
 	selectDisplay.addEventListener('change', async(e) => {
-		const newDisplay = DISPLAY_TYPES[selectDisplay.value] 
-		display = await changeDisplay( canvas, newDisplay, render )
+		displayType = selectDisplay.value
+		// delete any existing display
+		if (display){
+			display.destroy()
+		}
+		display = await changeDisplay( canvas, displayType, render )
 		canvas = display.canvas
-		result.textContent = "Looking Glass Portrait detected " + newDisplay
+		result.textContent = "Looking Glass Portrait detected " + displayType
 	})
 	selectDisplay.value = initialDisplay
 
 	buttonVideo.addEventListener("click", async(e) => {
-		const newDisplayType = chooseRandomDisplay()
-		console.log("Display request", {canvas, newDisplayType}, canvas.parentNode )
+		const newDisplayType = chooseNextDisplay()
+		// const newDisplayType = chooseRandomDisplay()
+		console.log("Display CHANGE request from", canvas.getAttribute("data-display-type"), "to", {newDisplayType} )
 		try{
 			
 			console.log("Display changing", newDisplayType, canvas.parentNode)
+			// delete any existing display
+			if (display){
+				display.destroy()
+			}
 			display = await changeDisplay( canvas, newDisplayType, render )
 			canvas = display.canvas
+			displayType = newDisplayType
+			selectDisplay.value = newDisplayType
 			
 			console.log("Display changed", {canvas, display}, canvas.parentNode)
 
@@ -128,22 +161,17 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 
 async function init(){
 
-	// console.log("Loading face JSON data", DATA_SOURCE )
 	const request = await fetch(DATA_SOURCE)
 	const response = await request.json()
-	// console.log("Loaded face JSON data", response )
-
 	DATA = response
 	DATA_KEYS = Object.keys( DATA )
 
+	canvas = document.querySelector('canvas')
+	
 	console.log("Person created", person, "with", {DATA, DATA_KEYS} )
+	
 
 	// swap canvases numerous times...
-	let counter = 0
-	canvas = document.querySelector('canvas')
-	let display
-	let displayType
-
 	// display = await changeDisplay( canvas, DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D, render )
 	// canvas = display.canvas
 	// console.error("DISPLAY_LOOKING_GLASS_3D", display, canvas.parentElement)

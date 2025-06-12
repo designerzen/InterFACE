@@ -7,8 +7,8 @@ import GamePad, { COMMANDS, GAME_PAD_CONNECTED, GAME_PAD_DISCONNECTED, GamePadMa
 import AudioTimer from '../timing/timer.audio.js' 
 import {convertNoteNameToMIDINoteNumber, GENERAL_MIDI_NUMBERS_BY_NAME, MIDI_NOTE_NAMES, MIDI_NOTE_NUMBER_MAP, MIDI_NOTE_NUMBERS}  from '../audio/tuning/notes.js'
 
-import {GENERAL_MIDI_INSTRUMENT_NAMES} from '../audio/midi/general-midi-instrument.constants.js'	 
-import * as GENERAL_MIDI_INSTRUMENTS from '../audio/midi/general-midi-instrument.constants.js'	
+// import {GENERAL_MIDI_INSTRUMENT_NAMES} from '../audio/midi/general-midi-instrument.constants.js'	 
+// import * as GENERAL_MIDI_INSTRUMENTS from '../audio/midi/general-midi-instrument.constants.js'	
 
 import {addInteractivityToInstrumentPanel, createDraggablePanel, createInstrumentFormHTML, populateInstrumentPanel} from '../dom/ui.panel-instruments.js'
 import { 
@@ -34,8 +34,6 @@ import Person from '../person.js'
 import { createInstrumentFromData, lazilyLoadInstrument } from '../audio/instrument-factory.js'
 import { CHORD_INTERVALS_NAMES, CHORD_INTERVALS, createChordsForNoteNumber, createJazzChord, createMajorChord, createMinorChord, getAllChordsForNoteNumber, MODES } from '../audio/tuning/chords.js'
 import SVGKeyboard from '../visual/2d.keyboard-svg.js'
-import MoogInstrument from '../audio/instruments/instrument.moog.js'
-
 import * as INSTRUMENT from '../audio/instrument-list.js'
 
 const keyboards = []
@@ -43,7 +41,7 @@ const keyboards = []
 let audioContext
 let timer
 
-let instrument 
+let instrument = null
 let chordInstrument
 let drumkitInstrument 
 
@@ -76,7 +74,7 @@ const randomPercussion = getRandomPercussivePresetIndex()
 const randomSFX = getRandomSFXPresetIndex()
 
 const pane = new Pane(new Pane({ title: "Config", expanded: true }))		
-console.error( "GENERAL_MIDI_INSTRUMENT_NAMES", {GENERAL_MIDI_INSTRUMENT_NAMES, GENERAL_MIDI_INSTRUMENTS} )
+// console.error( "GENERAL_MIDI_INSTRUMENT_NAMES", {GENERAL_MIDI_INSTRUMENT_NAMES, GENERAL_MIDI_INSTRUMENTS} )
 console.error( "Random presets", {randomSFX, randomPercussion, randomEthnic, randomSynthLead, randomSynthPad, randomSynthFX, randomBass, randomBrass, randomString, randomPiano, randomEnsemble, randomGuitar, randomReed,randomPipe, randomOrgan,randomChromaticPercussive, randomOrgan} )
 
 
@@ -133,7 +131,7 @@ const noteOn = (note, velocity=1, id=0) => {
 	if (!isMuted && instrument){
 		return instrument.noteOn(note, velocity, svgKeyboard)
 	}else{
-		console.error( isMuted ? "No instrument muted" : "No instrument loaded to play" )
+		//console.error( isMuted ? "Instrument muted" : "No instrument loaded to play" )
 	}
 
 	// drumkit
@@ -146,6 +144,7 @@ const noteOn = (note, velocity=1, id=0) => {
 
 
 const noteOff = (note, velocity, id=0) => {
+
 	if (!isMuted && chordInstrument && chord)
 	{
 		// const chord = createMajorChord( MIDI_NOTE_NUMBERS, note, 0)
@@ -192,9 +191,7 @@ const getNextChord = (noteNumber, scale="major", mode="Dorian") => {
 	// })
 
 	const chordSequence = notes.get(scale).get(mode)
-
 	console.info("Creating a scale to test with", {notes, chordSequence} )
-
 	return chordSequence
 }
 
@@ -208,7 +205,6 @@ svgKeyboard = new SVGKeyboard( allNotes, noteOn, noteOff )
 const svgKeyboardElement = document.body.appendChild(svgKeyboard.asElement)
 
 keyboards.push( shortSvgKeyboard, svgKeyboard )
-// ------
 
 
 const addSettings = () => {
@@ -248,7 +244,6 @@ const swapToInstrument = async (controls, newInstrument) => {
 		instrument.destroy()
 	}
 	
-
 	// special case if a chord is loaded
 	if (chordInstrument)
 	{
@@ -261,17 +256,16 @@ const swapToInstrument = async (controls, newInstrument) => {
 		// Already connected
 		// chordInstrument.output.connect( mixer )
 
-		await populateInstrumentPanel( controls, chordInstrument )
+		const presets = await populateInstrumentPanel( controls, chordInstrument )
 
 		addInteractivityToInstrumentPanel( controls, async (preset, event)=>{
 			
 			const t = await chordInstrument.programChange( preset )
-			console.log("Preset selected", {event, preset, instrument, t})
+			console.error("Preset selected", {event, preset, instrument, t, presets})
 		})
 	
 		return true
 	}
-	
 	
 	// cache new instrument
 	instrument = newInstrument
@@ -284,7 +278,6 @@ const swapToInstrument = async (controls, newInstrument) => {
 	 
 	await populateInstrumentPanel( controls, newInstrument )
 	addInteractivityToInstrumentPanel( controls, async (preset, event)=>{
-		
 		const t = chordInstrument ? 
 			await chordInstrument.programChange( preset ) : 
 			await instrument.programChange( preset )
@@ -294,8 +287,9 @@ const swapToInstrument = async (controls, newInstrument) => {
 	return true
 }
 
-
-
+/**
+ * 
+ */
 const setup = async () => {
 
 	if (initialised)
@@ -322,8 +316,6 @@ const setup = async () => {
 		console.error("mode select", modeTypeIndex )
 	})
 
-
-
 	const controlsForLeftSide = document.querySelector(".person-a-panel")
 	const controlsForRightSide = document.querySelector(".person-b-panel") 
 	const controlsForLowerLeftSide = document.querySelector(".person-c-panel") 
@@ -332,8 +324,6 @@ const setup = async () => {
 	console.error("Controls for left side", {controlsForLeftSide, controlsForRightSide, controlsForLowerLeftSide, controlsForLowerRightSide} )
 
 	// console.info("pianoKeys", pianoKeys)
-
-
 	audioContext = new AudioContext()	
 	timer = new AudioTimer( audioContext )
 	
@@ -347,12 +337,8 @@ const setup = async () => {
 		throw Error("Could not find the left side controls")
 	}
 
-	
-
-	const person = new Person(0)
-	
 	//- const audio = await setupAudio()
-	createDraggablePanel(person, controlsForLeftSide)
+	const personA = createDraggablePanel( new Person(0), controlsForLeftSide )
 	// createDraggablePanel(person, controlsForRightSide, false)
 	// createDraggablePanel(person, controlsForLowerLeftSide)
 	// createDraggablePanel(person, controlsForLowerRightSide, false)
@@ -364,25 +350,19 @@ const setup = async () => {
 	// controlsForLowerRightSide.hidden = false
 
 	// load an instrument and populate the panels
-	const DefaultInstrumentClass = await lazilyLoadInstrument( "OscillatorInstrument" )
-	const defaultInstrument = new DefaultInstrumentClass(audioContext)
+	// const DefaultInstrumentClass = await lazilyLoadInstrument( INSTRUMENT.INSTRUMENT_TYPE_OSCILLATOR )
+	// const defaultInstrument = new DefaultInstrumentClass(audioContext)
+	const defaultInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.INSTRUMENT_TYPE_OSCILLATOR})
 	const defaultPresets = await swapToInstrument( controlsForLeftSide, defaultInstrument )
 
 	// test some chords!
 	// we need to wait for loaded to resolve before we continue...
-	chordInstrument = await createInstrumentFromData( audioContext, {type:"ChordInstrument"})
+	chordInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.INSTRUMENT_TYPE_CHORD})
 	// chordInstrument = new (await lazilyLoadInstrument( "ChordInstrument" ))(audioContext)
-	chordInstrument.setInstruments([
-
-		await createInstrumentFromData( audioContext, {type:"OscillatorInstrument"}),
-		await createInstrumentFromData( audioContext, {type:"OscillatorInstrument"}),
-		await createInstrumentFromData( audioContext, {type:"OscillatorInstrument"})
-		// await lazilyLoadInstrument( "OscillatorInstrument" ),
-		// await lazilyLoadInstrument( "OscillatorInstrument" ),
-		// await lazilyLoadInstrument( "OscillatorInstrument" )
-	])
-
+	chordInstrument.setInstrument(defaultInstrument)
 	chordInstrument.output.connect( mixer )
+
+	console.info("ChordInstrument", {chordInstrument, defaultInstrument})
 
 	const loadInstrument = async (instrumentType) => {
 		// TODO: create instrument from the factory
