@@ -1,3 +1,5 @@
+// Test Data available at :
+// https://wormhole.app/vbJKkm#b7KLe57VSoaJ7etTn2R2bQ
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -34,31 +36,31 @@ import RACOON_FACE_MESH from 'url:/source/assets/actors/raccoon_head.glb'
 export const AVATAR_DATA = {
 
 	// this does *not* have blendshapes
-	cyborg:{
-		model:CYBORG_FACE,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// cyborg:{
+	// 	model:CYBORG_FACE,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// no blendshapes 	
-	sushi:{
-		model:SUSHI_FACE_MESH,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// sushi:{
+	// 	model:SUSHI_FACE_MESH,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// no blendshapes 	
-	iris:{
-		model:IRIS_FACE_MESH,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// iris:{
+	// 	model:IRIS_FACE_MESH,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// no blendshapes 	
 	face:{
@@ -80,84 +82,84 @@ export const AVATAR_DATA = {
 	},	
 
 	// no blendshapes 	
-	al:{
-		model:AL_FACE_MESH,
-		size:3,
-		opacity:0.16,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// al:{
+	// 	model:AL_FACE_MESH,
+	// 	size:3,
+	// 	opacity:0.16,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// blendshapes 	
-	sam:{
-		model:SAMANTHA_FACE_MESH,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-3 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// sam:{
+	// 	model:SAMANTHA_FACE_MESH,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-3 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// no blendshapes 	
-	albert:{
-		model:ALBERT_FACE_MESH,
-		size:3,
-		opacity:0.16,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:3*Math.PI/2, y:0, z:0 }
-	},
+	// albert:{
+	// 	model:ALBERT_FACE_MESH,
+	// 	size:3,
+	// 	opacity:0.16,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:3*Math.PI/2, y:0, z:0 }
+	// },
 
 	// NO Blendshapes!
-	anime_male:{
-		model:ANIME_MALE_FACE_MESH,
-		size:11,
-		opacity:1,
-		pos:{ x:0, y:-8, z:-5 },
-		rot:{ x:0, y:Math.PI, z:0 }
-	},
+	// anime_male:{
+	// 	model:ANIME_MALE_FACE_MESH,
+	// 	size:11,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:-8, z:-5 },
+	// 	rot:{ x:0, y:Math.PI, z:0 }
+	// },
 
-	anime_female:{
-		model:ANIME_FEMALE_FACE_MESH,
-		size:3,
-		opacity:0.16,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// anime_female:{
+	// 	model:ANIME_FEMALE_FACE_MESH,
+	// 	size:3,
+	// 	opacity:0.16,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// no blendshapes 	
-	anime_savi:{
-		model:ANIME_SAVI_FACE_MESH,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:Math.PI, z:0 }
-	},
+	// anime_savi:{
+	// 	model:ANIME_SAVI_FACE_MESH,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:Math.PI, z:0 }
+	// },
 
 	// has SOME
-	simple_male:{
-		model:SIMPLE_MALE_FACE_MESH,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// simple_male:{
+	// 	model:SIMPLE_MALE_FACE_MESH,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// has NONE
-	simple_female:{
-		model:SIMPLE_FEMALE_FACE_MESH,
-		size:3,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},
+	// simple_female:{
+	// 	model:SIMPLE_FEMALE_FACE_MESH,
+	// 	size:3,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },
 
 	// no blendshapes 	
-	neutral:{
-		model:NEUTRAL_FACE_MESH,
-		size:3,
-		opacity:0.5,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	}	
+	// neutral:{
+	// 	model:NEUTRAL_FACE_MESH,
+	// 	size:3,
+	// 	opacity:0.5,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// }	
 }
 
 
