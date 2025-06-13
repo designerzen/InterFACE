@@ -17,6 +17,11 @@ export default class ChordInstrument extends Instrument{
 	// instruments = []
 	// chordArray = []
 
+	// this sreplaces the variable
+	// get name(){
+	// 	return this.instruments[0]
+	// }
+
 	// As we don't have an envelope as the
 	// individual instruments
 	get output(){
@@ -254,6 +259,8 @@ export default class ChordInstrument extends Instrument{
 		})
 		
 		this.polyphony = quantity
+		this.name = this.instruments[0].name
+   		this.title = this.instruments[0].title
 
 		console.warn(this.polyphony, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
 	}
