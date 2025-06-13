@@ -189,8 +189,8 @@ export default class SampleInstrument extends Instrument{
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
-		await super.programChange( programNumber )
-		return await this.loadPreset( this.instrumentFolders[programNumber] )
+		const instrument = await this.loadPreset( programNumber, this.instrumentPack )
+		return await super.programChange( instrument )	
 	}
 	
 	/**
@@ -202,8 +202,6 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	
-
-
 	/**
 	 * Pass in an AudioCommand to perform a function...
 
@@ -285,7 +283,7 @@ export default class SampleInstrument extends Instrument{
 
 		try{
 			// FIXME: Send the -mp3 version...
-			this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, "./assets/audio/" + instrumentPack, progressCallback )
+			this.activeInstrument = await loadInstrumentFromSoundFont( this.context, instrumentName, "./assets/audio/" + instrumentPack, progressCallback )
 		
 		}catch(error){
 
@@ -304,7 +302,7 @@ export default class SampleInstrument extends Instrument{
 		this.instrumentTitle = this.title
 		
 		//this.name = "SampleInstrument"
-		this.instrumentFamily = this.instrument.family
+		this.instrumentFamily = this.activeInstrument.family
 
 		
 
@@ -318,7 +316,7 @@ export default class SampleInstrument extends Instrument{
 		this.instrumentLoading = false
 
 		// this.instrumentOrder = this.instrument
-		return this.instrument
+		return this.activeInstrument
 	}
 
 	clone(){

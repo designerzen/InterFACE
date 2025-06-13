@@ -93,6 +93,10 @@ export default class SoundFontInstrument extends SampleInstrument{
 			// as this is an immediate load, we can use the JS rather than MP3s...
 			this.loadFont( this.options.instrumentPack, this.options ).then((font)=>{
 
+				// now load our first preset or a specified one...
+				this.loadPreset( this.options.preset ?? 0, this.options.instrumentPack ).then( preset => {
+					console.error("preset", preset )
+				})
 				this.available = true
 
 				// console.error("soundfont", this, font )
@@ -291,6 +295,14 @@ export default class SoundFontInstrument extends SampleInstrument{
 		{
 			throw Error("No instrumentPack name was provided")
 		}	
+
+		// this might be a number...
+		if (typeof programNumber === "string" && isNaN(programNumber))
+  		{
+			// if it is a string then we need to find the index
+			presetNameOrObject = this.instrumentFolders.indexOf(programNumber)
+		}
+		
 		
 		
 		// const index = this.getIndexFromName(presetName)
@@ -342,6 +354,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		this.instrumentIndex = this.soundfont.instrumentIndex ?? 0
 		this.instrumentName = presetNameOrObject
 		this.instrumentPack = instrumentPack
+		console.error("Soundfont loaded", this.instrumentName, this.instrumentPack, {presetNameOrObject, instrumentPack, options} )
 		this.instrumentFamily = this.instrument.family
 
 		// Fetch the GM name

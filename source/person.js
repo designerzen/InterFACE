@@ -1246,8 +1246,6 @@ export default class Person{
 		const prediction = this.data
 		const options = this.options
 
-		
-		
 		// do some checks on data to see if an event
 		// should be triggered via eye left / right
 
@@ -1275,20 +1273,22 @@ export default class Person{
 		// const hasNoteChanged = this.lastNoteName !== noteName
 		
 		const chords = getMusicalDetailsFromEmoji(noteNumber, this.emoticon)
-		console.info( "Sing emotion", chords )
-
+		
 
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
 
 		// eg. A1 Ab1 C3 etc
 		let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
 		// eg. Do Re Mi
 		let noteSound = getNoteSound(noteFloat, isMinor)	
 		
 		// for the next note  0 -> 2 : 0.5 -> 1.5
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
+		console.info( "Sing emotion", {chords, noteName, noteSound, pitchBendValue} )
+
 		// console.info( "noteData", {noteFloat, noteSound, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
 		
 /*

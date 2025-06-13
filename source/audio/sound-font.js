@@ -27,6 +27,10 @@ import {
 
 import { loadInstrumentFromSoundFont } from "./audio"
 
+const DEFAULT_SOUNDFONT_OPTIONS = {
+	location:"./assets/audio/"
+}
+
 export default class SoundFont{
 
 	name = INSTRUMENT_PACKS[0]
@@ -292,7 +296,7 @@ export default class SoundFont{
 		
 		// console.error("Loading PRESET", { preset, presetName, options, data } )
 
-		const location = "./assets/audio/OpenGM24" //+ data.folder
+		const location = DEFAULT_SOUNDFONT_OPTIONS.location + options.soundfont
 			
 		// console.info("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
 
@@ -342,7 +346,6 @@ export default class SoundFont{
 		}catch(error){
 
 			this.loading = false
-
 
 			console.error(  "failed to get audio from", data.location, this.name, {data} )
 

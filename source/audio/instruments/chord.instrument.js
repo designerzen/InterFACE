@@ -67,7 +67,7 @@ export default class ChordInstrument extends Instrument{
 		instrument.noteOn( noteNumber, velocity )
 		this.active = true
 
-		console.log("noteOn", {noteNumber, instrument}, this.activeNotes )
+		console.log(instrumentIndex, "noteOn", {noteNumber, instrument}, this.activeNotes )
 		
 		if (activeNote)
 		{
@@ -118,7 +118,7 @@ export default class ChordInstrument extends Instrument{
 			{
 				this.noteOn( chord.noteNumber, chord.velocity, index )
 			}else{
-				this.noteOff( chord.noteNumber, chord.velocity, index )
+				this.noteOn( chord.noteNumber, chord.velocity, index )
 			}
 		})
 	}
@@ -255,8 +255,6 @@ export default class ChordInstrument extends Instrument{
 		
 		this.polyphony = quantity
 
-		
-	
 		console.warn(this.polyphony, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
 	}
 
