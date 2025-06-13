@@ -1180,37 +1180,55 @@ export default class Person{
 			
 			if (this.debug )
 			{
-				const paragraphs = [
-					`Hue:${this.defaultHue}`, 
-					// `Pitch:${(prediction.pitch||0).toFixed(3)}`, 
-					// `Roll:${(prediction.roll||0).toFixed(3)}`, 
-					// `Yaw:${(prediction.yaw||0).toFixed(3)}`, 
-					`Pitch:${(prediction.pitch||0).toFixed(3)} Roll:${(prediction.roll||0).toFixed(3)} Yaw:${(prediction.yaw||0).toFixed(3)}`,
-					
-					`Eyes: LEFT:${(prediction.leftEyeDirection||0).toFixed(3)} RIGHT:${(prediction.rightEyeDirection||0).toFixed(3)}`,
-					
-					`Gain:${(this.gainNode.gain.value||0).toFixed(2)}`, 
-					
-					`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
-					`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
-					
-					`mouthOpen:${prediction.isMouthOpen} Singing:${this.singing} shape ${prediction.mouthShape}`, 
-					`mouthRangeVertical:${(prediction.mouthRangeVertical||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
-					`mouthRangeHorizontal:${(prediction.mouthRangeHorizontal||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
-					`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
-					
-					// `noseSneerLeft:${prediction.noseSneerLeft.toFixed(3)} noseSneerRight:${prediction.noseSneerRight.toFixed(3)}`,
+				let paragraphs
+				 
+				if (!this.activeInstrument)
+				{
+					paragraphs = [
+						`Instrument:UNLOADED`,
+						`Preset: ${this.currentPresetTitle} (${this.currentPreset})`,
+						`MIDI: ${this.hasMIDI ? this.MIDIDeviceName : 'not connected'}`,
+						`State: ${this.state}`,
+						`Mouse down for ${this.mouseDownFor.toFixed(2)}ms`
+					]
 
-					`eyes direction:${(prediction.eyeDirection||0).toFixed(3)} left:${(prediction.leftEye||0).toFixed(3)} right:${(prediction.rightEye||0).toFixed(3)}`,
-					`eyes open :${this.areEyesOpen} left:${!prediction.leftEyeClosed} right:${!prediction.rightEyeClosed}`,
+				}else{
 					
-					// `eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
-					// `dims:${(prediction.mouthRatio||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
-					`facing ${prediction.lookingRight ? 'left' : 'right'}`,
-					`Instrument ${this.activeInstrument.toString()}`,
+					paragraphs = [
+						`Instrument ${this.activeInstrument.toString()}`,
 
-					`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`
-				]
+						`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`,
+
+						`Hue:${this.defaultHue}`, 
+						// `Pitch:${(prediction.pitch||0).toFixed(3)}`, 
+						// `Roll:${(prediction.roll||0).toFixed(3)}`, 
+						// `Yaw:${(prediction.yaw||0).toFixed(3)}`, 
+						`Pitch:${(prediction.pitch||0).toFixed(3)} Roll:${(prediction.roll||0).toFixed(3)} Yaw:${(prediction.yaw||0).toFixed(3)}`,
+						
+						`Eyes: LEFT:${(prediction.leftEyeDirection||0).toFixed(3)} RIGHT:${(prediction.rightEyeDirection||0).toFixed(3)}`,
+						
+						`State: ${this.state} / Singing : ${this.singing}`,
+						
+						`Gain:${(this.gainNode.gain.value||0).toFixed(2)}`, 
+						
+						`Happiness:${(prediction.happiness||0).toFixed(3)}`, 
+						`Smirks left:${(prediction.leftSmirk||0).toFixed(3)} / right:${(prediction.rightSmirk||0).toFixed(3)}`, 
+						
+						`mouthOpen:${prediction.isMouthOpen} Singing:${this.singing} shape ${prediction.mouthShape}`, 
+						`mouthRangeVertical:${(prediction.mouthRangeVertical||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
+						`mouthRangeHorizontal:${(prediction.mouthRangeHorizontal||0).toFixed(3)} / mouthRatio:${(prediction.mouthRatio||0).toFixed(3)}`, 
+						`mouthWidth:${(prediction.mouthWidth||0).toFixed(3)} & mouthHeight:${(prediction.mouthHeight||0).toFixed(3)}`, 
+						
+						// `noseSneerLeft:${prediction.noseSneerLeft.toFixed(3)} noseSneerRight:${prediction.noseSneerRight.toFixed(3)}`,
+
+						`eyes direction:${(prediction.eyeDirection||0).toFixed(3)} left:${(prediction.leftEye||0).toFixed(3)} right:${(prediction.rightEye||0).toFixed(3)}`,
+						`eyes open :${this.areEyesOpen} left:${!prediction.leftEyeClosed} right:${!prediction.rightEyeClosed}`,
+						
+						// `eye closed left:${prediction.leftEyeClosed} right:${prediction.rightEyeClosed}`,
+						// `dims:${(prediction.mouthRatio||0).toFixed(2)}x${(prediction.mouthRange||0).toFixed(2)}`,
+						`facing ${prediction.lookingRight ? 'left' : 'right'}`
+					]
+				}
 
 				display.drawParagraph( xMax, yMin + 40, paragraphs, '14px' )
 				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
@@ -1287,8 +1305,7 @@ export default class Person{
 		// for the next note  0 -> 2 : 0.5 -> 1.5
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
-		console.info( "Sing emotion", {chords, noteName, noteSound, pitchBendValue} )
-
+	
 		// console.info( "noteData", {noteFloat, noteSound, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
 		
 /*
@@ -1356,9 +1373,7 @@ export default class Person{
 		// volume is an log of this
 		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) * (1 - this.percentageDead ) //- 0.1
 		
-		
-		
-		console.error("Atemting to augment the audio", {
+		console.info( "Sing emotion", {chords, noteName, noteSound, pitchBend, 
 			octaveNumber, newOctave,
 			noteNumber,
 			noteName,
