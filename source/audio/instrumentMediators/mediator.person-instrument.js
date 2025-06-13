@@ -81,7 +81,7 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 
 		case STATE_INSTRUMENT_SILENT:
 		default:
-			const finished = isChord ?
+			const finished = instrument.type === INSTRUMENT_TYPE_CHORD ?
 				instrument.chordOff( toPlay ) :
 				instrument.noteOff( person.noteNumber )
 			// console.log("Attempting to mute",instrument.type, person.state)
