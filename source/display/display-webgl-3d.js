@@ -75,7 +75,7 @@ export const MAX_WIDTH = 720
 
 export const KEYPOINT_QUANTITY = 478
 
-const VIEW_CONE_ANGLE = TAU / 4
+const VIEW_CONE_ANGLE = TAU / 6
 const VERTICAL_VIEW_CONE_ANGLE = TAU / 32
 const VIEW_CONE_ANGLE_Z = 0.6
 
