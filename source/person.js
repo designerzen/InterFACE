@@ -209,6 +209,8 @@ export default class Person{
 
 	octave = 4
 
+	pitchBendValue = 1
+
 	// now playing
 	note = -1
 	noteName = "C4"
