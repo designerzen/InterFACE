@@ -65,16 +65,17 @@ export const drawCircles = (canvasContext, points, radius=5, strokeWidth=3, fill
 	points.forEach( point => {
 		canvasContext.arc(point.x, point.y, radius, 0, TAU, true)
 	})
-    canvasContext.fillStyle = fillColour
-    canvasContext.fill()
-     
+   
 	if (strokeWidth)
 	{
 		// draw the stroke
 		canvasContext.lineWidth = strokeWidth
 		canvasContext.strokeStyle = strokeColour
 		canvasContext.stroke()
-	}
+	}  
+	
+	canvasContext.fillStyle = fillColour
+    canvasContext.fill()
 	canvasContext.closePath()
 }
 

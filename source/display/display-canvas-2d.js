@@ -427,7 +427,7 @@ export default class Display2D extends AbstractDisplay{
 			{x:x+32, y:y},
 			{x:x+42, y:y}
 		]
-		drawCircles( this.canvasContext, [x, y], 24, 2, "red" )
+		drawCircles( this.canvasContext, [x, y], 24, 2 )
 	}
 
 	/**
