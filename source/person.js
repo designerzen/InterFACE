@@ -1202,7 +1202,7 @@ export default class Person{
 				}else{
 					
 					paragraphs = [
-						`Instrument ${this.activeInstrument.toString()}`,
+						`${this.activeInstrument.toString()}`,
 
 						`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`,
 

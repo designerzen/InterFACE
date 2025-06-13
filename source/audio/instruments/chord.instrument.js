@@ -103,7 +103,6 @@ export default class ChordInstrument extends Instrument{
 		return true
 	}
 
-
 	/**
 	 * 
 	 * @param {Array<Chord>} chordArray 
@@ -301,6 +300,8 @@ export default class ChordInstrument extends Instrument{
 	 */
 	toString(){
 		// ${this.instruments[0].toString()
-		return `ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.keys()}`
+		return this.instruments.length > 1 ?
+			`ChordInstrument ${this.instruments[0].toString()} [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.size}` :
+			`ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.size}`
 	}
 }

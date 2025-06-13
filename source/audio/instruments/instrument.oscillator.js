@@ -125,6 +125,7 @@ export default class OscillatorInstrument extends Instrument{
                     if ( this.oscillator )
                     {
                         this.oscillator.type = value
+						this.name = value
                     }
                     this.customWave = null
 
@@ -132,13 +133,15 @@ export default class OscillatorInstrument extends Instrument{
 
                     // 2. attempt to load in customWave JSON data from a URI
 					const waves = OscillatorInstrument.presetsMap.get( value )
-                    this.setWaveTable( waves )	
+                    this.setWaveTable( waves )
+					this.name = value
                 } 
                 break
         
             case 'object':
                 // 3. customWave data with real and imag arrays
                 this.setWaveTable( value )
+				this.name = "Custom WaveShape"
                 // console.info("SynthOscillator::CUSTOM DATA"+this.options, value )
                 break
 
@@ -230,7 +233,7 @@ export default class OscillatorInstrument extends Instrument{
 	
 	/**
 	 * Note OFF
-	 * @param {Number} noteNumber 
+	 * @param {Number} noteNumber s
 	 * @param {Number} velocity 
 	 * @returns 
 	 */
@@ -348,4 +351,8 @@ export default class OscillatorInstrument extends Instrument{
         this.customWave = waveData
         return waveData
     }
+
+	toString(){
+		return `SynthOscillator ${this.oscillator.type} ${this.name}`
+	}
 }
