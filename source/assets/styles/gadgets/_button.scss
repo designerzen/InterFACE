@@ -1033,7 +1033,7 @@
 		}
 
 		// wide screen inline : icon + text
-		@media screen and (min-width:641px){
+		@media screen and (min-width:841px){
 			font-size:75%;
 			@include add-icon-text-row;
 		}
