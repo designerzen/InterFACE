@@ -10,6 +10,8 @@ import {
 	STATE_INSTRUMENT_SUSTAIN 
 } from "../../person.js"
 
+import { INSTRUMENT_TYPE_CHORD } from "../instrument-list.js"
+
 /**
  * MONODPHONIC
  * FIXME: Don't play the audio directly in Person
@@ -39,11 +41,32 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 		case STATE_INSTRUMENT_SUSTAIN:
 		case STATE_INSTRUMENT_PITCH_BEND:
 			// note off if set...
+			const isChord = instrument.type === INSTRUMENT_TYPE_CHORD
+
+			let toPlay
+			let previouslyPlayed
+
+			if (isChord)
+			{
+				// create the chord object from the emoji...
+				toPlay = [{noteNumber:person.noteNumber, velocity:person.noteVelocity}]
+				previouslyPlayed = person.lastNoteNumber ? 
+					[{noteNumber:person.lastNoteNumber, velocity:1}] :
+					null
+			}
+		
+			// stop any that are have already started playing
 			if ( person.lastNoteNumber >= 0 )
 			{
-				const previously = instrument.noteOff( person.lastNoteNumber )
+				const previously = isChord ? 
+					instrument.chordOff( previouslyPlayed ) :
+					instrument.noteOff( person.lastNoteNumber, 1 )
 			}
-			const latest = instrument.noteOn( person.noteNumber, person.noteVelocity )
+
+			// person.emoticon
+			const latest =  isChord ? 
+				instrument.chordOn( toPlay ) :
+				instrument.noteOn( person.noteNumber, person.noteVelocity )
 			
 			//console.log("Attempting to sing", instrument.name, person.state, {instrument,latest, person})
 			// console.log("Person", person, person.state, {stuff, noteNumber, noteVelocity} )
@@ -58,7 +81,9 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 
 		case STATE_INSTRUMENT_SILENT:
 		default:
-			instrument.noteOff( person.noteNumber )
+			const finished = isChord ?
+				instrument.chordOff( toPlay ) :
+				instrument.noteOff( person.noteNumber )
 			// console.log("Attempting to mute",instrument.type, person.state)
 	
 	}

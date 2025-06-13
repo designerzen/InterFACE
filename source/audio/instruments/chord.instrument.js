@@ -301,6 +301,6 @@ export default class ChordInstrument extends Instrument{
 	 */
 	toString(){
 		// ${this.instruments[0].toString()
-		return `ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.instruments.length}}`
+		return `ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.keys()}`
 	}
 }

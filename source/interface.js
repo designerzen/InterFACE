@@ -158,6 +158,7 @@ import { setupReporting, track, trackError, trackExit } from './reporting'
 import { tapTempo } from './timing/timer.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
+import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -1512,8 +1513,18 @@ export const createInterface = (
 		const modelData = person.sing()
 		
 		// no instruments set in Person - exit now
-		if( !person.instrument )
+		if( !person.hasInstrument )
 		{
+			return modelData
+		}
+		
+
+		// instrument exists but we can't access that part yet
+		// NB. probably still loading...
+		// if (!person.instrument[ noteName ])	
+		if (person.instrumentLoading)
+		{
+			//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
 			return modelData
 		}
 
@@ -1574,13 +1585,13 @@ export const createInterface = (
 		}
 
 
-		// instrument exists but no note with that name exists	
-		// NB. probably still loading...	
-		if (!person.instrument[ noteName ])
-		{
-			//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
-			return modelData
-		}
+		// instrument exists but we can't access that part yet
+		// NB. probably still loading...
+		// if (!person.instrument[ noteName ])	
+		// {
+		// 	//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
+		// 	return modelData
+		// }
 		
 		// console.log("Person:sing", { stuff,noteName,note}, person.instruments )
 
@@ -2144,7 +2155,7 @@ export const createInterface = (
 					person.update( prediction, timeNow )
 						
 					// add face overlay
-					if (display && discoMode || stateMachine.get("overlays"))
+					if (display && (discoMode || stateMachine.get("overlays")))
 					{
 						// FIXME:
 						// TODO:
@@ -2912,7 +2923,8 @@ export const createInterface = (
 		await instrumentInstance.loaded
 
 		globalChordPlayer = instrumentInstance // new ChordInstrumentInstrument(audioContext, audioChain, {})
-		globalChordPlayer.setInstrument( SampleInstrument,{}, 3 )
+		globalChordPlayer.setInstrument( OscillatorInstrument,{}, 3 )
+		// globalChordPlayer.setInstrument( SampleInstrument,{}, 3 )
 		// samplePlayer = new SampleInstrument(audioContext, audioChain, {})
 
 		
@@ -2926,7 +2938,7 @@ export const createInterface = (
 			globalChordPlayer.noteOn( (Math.random() * 128) >> 0, 1 )
 		}
 		
-		setInterval( testChords, 500 )
+		setInterval( testChords, 2500 )
 		
 		// load in our oscillator presets so that they will be available in 
 		// all oscilllator based instruments 

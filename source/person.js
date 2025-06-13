@@ -263,6 +263,13 @@ export default class Person{
 	controlMode = convertHeadOrientationIntoNoteData
 
 	/**
+	 * Does this user have an active instrument that can be played?
+	 */
+	get hasInstrument(){
+		return this.activeInstrument //&& this.activeInstrument.isLoaded
+	}
+
+	/**
 	 *  @returns {Boolean} user comp occurring
 	 */
 	get isActive(){
@@ -550,10 +557,9 @@ export default class Person{
 	 * @return {String}
 	 */
 	get currentPresetTitle(){
-		return this.presetTitle ?? this.activeInstrument.activePreset
+		console.warn("Person:currentPresetTitle",  this.presetTitle, this.activeInstrument)
+		return this.presetTitle ?? this.activeInstrument ? this.activeInstrument.activePreset : 'Unloaded'
 	}
-
-
 
 	/**
 	 * 
@@ -857,7 +863,7 @@ export default class Person{
 			this.stereoNode.pan.value = prediction[this.options.stereoController] // * -1
 		}
 
-		if (this.options.pitchBend && this.activeInstrument)
+		if (this.options.pitchBend && this.pitchBendValue && this.activeInstrument)
 		{
 			this.activeInstrument.pitchBend( this.pitchBendValue )
 		}
@@ -980,6 +986,7 @@ export default class Person{
 		// const emoji = recogniseEmoji(this)
 		// options.mouthCutOff
 		this.emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
+		console.info("Emoticon", this.emoticon, {prediction})
 		// this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
 	}
 
@@ -1199,6 +1206,7 @@ export default class Person{
 
 						`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`,
 
+						`PitchBend : ${this.pitchBendValue.toFixed(2)} ${this.useArpeggio ? 'ARPEGGIO' : ''} ${this.isSinging ? 'SINGING' : ''}`,
 						`Hue:${this.defaultHue}`, 
 						// `Pitch:${(prediction.pitch||0).toFixed(3)}`, 
 						// `Roll:${(prediction.roll||0).toFixed(3)}`, 
@@ -1635,9 +1643,10 @@ export default class Person{
 
 		if (method==="loadRandomPreset")
 		{
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:this.activeInstrument.name })
-			this.activeInstrument = await this.loadPreset( getRandomPresetForPerson(this.playerNumber),  null, progressCallback )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:this.activeInstrument.name })
+			const randomPresetName = getRandomPresetForPerson(this.playerNumber)
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName })
+			this.activeInstrument = await this.loadPreset( randomPresetName,  null, progressCallback )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName })
 			
 			// console.info("Person "+this.playerNumber+" instrument changed", this.activeInstrument )
 		}else{
@@ -1652,7 +1661,7 @@ export default class Person{
 
 		// preset loaded!
 
-		// console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.activeInstrument })
+		console.error(">>> Instrument", method,{ instrument:this.activeInstrument })
 
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
@@ -1709,6 +1718,11 @@ export default class Person{
 
 		// const presets = this.samplePlayer.instrumentNames
 
+		if (!this.activeInstrument)
+		{
+		   throw Error("Person.loadPreset("+presetName+") failed, no active instrument")  
+		}
+
 		if (Number.isInteger(presetName))
 		{
 			const allPresets = await this.activeInstrument.getPresets()
@@ -1756,7 +1770,7 @@ export default class Person{
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, details )
 		
-		return instrument
+		return this.activeInstrument
 	}
 
 	/**
@@ -1895,7 +1909,8 @@ export default class Person{
 		// Add as manny instruments as you like
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const defaultInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
+		const defaultInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
+		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
 		const chordInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_CHORD, defaultInstrumentOptions, 0 )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
 		// const defaultInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_OSCILLATOR})
@@ -1951,7 +1966,9 @@ export default class Person{
 		instrument.audioNode.connect(this.gainNode)
 		
 		// save for later reference
-		this.activeInstrument = instrument
+		this.activeInstrument = this.addInstrument( instrument )
+
+		console.warn("Person setMainInstrument", this.activeInstrument, {instrument} )
 
 		return instrument
 	}
