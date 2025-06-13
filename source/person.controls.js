@@ -28,9 +28,11 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 	// 0 -> 2 : 2 is double speed, 1 is regular speed, 0 is slower
 	// normalise to 0.5 -> 1.5
 	// NB. only pitchbend if eyes are closed
-	const pitchBend = prediction.leftEyeClosed && prediction.rightEyeClosed ? 0.5 + prediction.eyebrowExtents / 2 : 1
+	// const pitchBend = prediction.leftEyeClosed && prediction.rightEyeClosed ? 0.5 + prediction.eyebrowExtents / 2 : 1
+	// always pitchbend!
+	const pitchBend = 0.5 + prediction.eyebrowExtents / 2
 
-	// console.error(pitchBend, "pitchBend", prediction.eyebrowsRaisedBy )
+	console.error(pitchBend, "pitchBend", prediction.eyebrowExtents )
 	// console.info("Both:",prediction.eyebrows, "Raised:",prediction.eyebrowsRaisedBy, prediction.eyebrowsInnerRaisedBy, "lowered:",prediction.eyebrowsLoweredBy )
 	// console.info("l:",prediction.leftEyebrowRaisedBy, "r:",prediction.rightEyebrowRaisedBy )
 	return {

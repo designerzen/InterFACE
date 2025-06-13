@@ -32,7 +32,7 @@ export const addGamePadEvents = (application) => {
 
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
-		
+		console.info("GAMEPAD:", {button, value, gamePad, heldFor} )
 		switch(button)
 		{
 			// ignore caching these
@@ -71,7 +71,7 @@ export const addGamePadEvents = (application) => {
 
 			// open sidebar
 			case COMMANDS.START: 
-			application.setFeedback( "Gamepad START" , 0, 'gamepad' )
+				application.setFeedback( "Gamepad START" , 0, 'gamepad' )
 				// if select is also being held....
 				if (gamePad.select){
 					application.display.nextFilter( )
@@ -88,7 +88,7 @@ export const addGamePadEvents = (application) => {
 				gamePadMode = ( gamePadMode + 1 ) % gamePadModes.length
 				const mode = gamePadModes[gamePadMode]
 				application.setFeedback( mode, 0, 'gamepad' )
-				application.selectPerson( application.getSelectedPerson() + 1 )
+				const selectedId = application.selectPerson( application.getSelectedPerson() + 1 )
 
 				if (mode === "vfx"){
 					// etc
@@ -102,7 +102,7 @@ export const addGamePadEvents = (application) => {
 				}
 				
 				
-				console.info("Gamepad select", value, { gamePad, gamepadHeld, heldFor } )
+				console.info("Gamepad select", selectedId, value, { gamePad, gamepadHeld, heldFor } )
 				break
 			
 			case COMMANDS.A: 

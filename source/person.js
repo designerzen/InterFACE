@@ -1400,11 +1400,11 @@ export default class Person{
 		// MOUTH GATE ==========================
 		
 		// If we have an instrument and singing is enabled
-		if ( this.instrument && this.singing )
+		if ( this.activeInstrument && this.singing )
 		{
 			// here is where we need to do our majic
 			// play a note from the collection
-			note = this.instrument[ noteName ]
+			note = this.activeInstrument[ noteName ]
 			if (note)
 			{
 				played.push(note)
@@ -1620,15 +1620,15 @@ export default class Person{
 
 		if (method==="loadRandomPreset")
 		{
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:this.instrument.name })
-			this.instrument = await this.loadPreset( getRandomPresetForPerson(this.playerNumber),  null, progressCallback )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:this.instrument.name })
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:this.activeInstrument.name })
+			this.activeInstrument = await this.loadPreset( getRandomPresetForPerson(this.playerNumber),  null, progressCallback )
+			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:this.activeInstrument.name })
 			
-			// console.info("Person "+this.playerNumber+" instrument changed", this.instrument )
+			// console.info("Person "+this.playerNumber+" instrument changed", this.activeInstrument )
 		}else{
 				
 			// this has lost it's scope...
-			this.instrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
+			this.activeInstrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
 				progressCallback && progressCallback( progress )
 				this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 			} )
@@ -1637,7 +1637,7 @@ export default class Person{
 
 		// preset loaded!
 
-		// console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.instrument })
+		// console.error(">>>>>>>>>>> Instrument loaded", { instrument:this.activeInstrument })
 
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
@@ -1646,8 +1646,8 @@ export default class Person{
 		this.setupForm()
 		// await this.setupForm()
 
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.instrument, instrumentName:this.instrument.instrumentName })
-		return this.instrument
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
+		return this.activeInstrument
 	}
 
 	/**

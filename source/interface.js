@@ -3672,7 +3672,7 @@ export const createInterface = (
 			quantityOfActivePeople,
 
 			selectPerson,
-			getSelectedPerson,
+			getSelectedPerson, 
 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),
