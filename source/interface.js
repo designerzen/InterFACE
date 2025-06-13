@@ -3139,13 +3139,7 @@ export const createInterface = (
 			
 			// Start audio clock metronome
 			clock.startTimer()		
-				
-			// Watch CONTROLLERS
-			if ( stateMachine.get("gamePad") )
-			{
-				addGamePadEvents( this )
-			}
-
+		
 			return true
 		}
 	
