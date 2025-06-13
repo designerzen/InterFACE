@@ -224,6 +224,13 @@ const start = () => {
 
 			// and create our input handlers 
 			addKeyboardEvents(application)
+					
+			// Watch CONTROLLERS
+			if ( application.getState("gamePad") )
+			{
+				addGamePadEvents( this )
+			}
+
 			addGamePadEvents(application)
 
 			console.info("Index has completed loading app", {e, application} )
