@@ -17,11 +17,6 @@ export default class ChordInstrument extends Instrument{
 	// instruments = []
 	// chordArray = []
 
-	// this sreplaces the variable
-	// get name(){
-	// 	return this.instruments[0]
-	// }
-
 	// As we don't have an envelope as the
 	// individual instruments
 	get output(){
@@ -35,7 +30,6 @@ export default class ChordInstrument extends Instrument{
     async create(){    
 		this.instruments = [] 
 		this.mixer = this.context.createGain()
-		console.error("YO NEW ONE!?", this)
 		return super.create()
 	}
 
@@ -72,7 +66,7 @@ export default class ChordInstrument extends Instrument{
 		instrument.noteOn( noteNumber, velocity )
 		this.active = true
 
-		console.log(instrumentIndex, "noteOn", {noteNumber, instrument}, this.activeNotes )
+		console.log(instrumentIndex, "noteOn", {noteNumber, instrument}, this.activeNotes, this )
 		
 		if (activeNote)
 		{
@@ -105,7 +99,7 @@ export default class ChordInstrument extends Instrument{
 		
 		this.active = false
 		this.activeNotes.delete( noteNumber )
-		console.log("noteOff", noteNumber, this.activeNotes )
+		console.log("noteOff", noteNumber, this.activeNotes, this )
 		return true
 	}
 

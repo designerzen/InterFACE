@@ -1,6 +1,7 @@
 // This is the Looking Glass Factgory Portrait Display SDK API
 // https://docs.lookingglassfactory.com/HoloPlayCore/holoplaycorejs/
 
+import { clear } from "console"
 import { Client } from "holoplay-core"
 // import * as HoloPlayCore from './node_modules/holoplay-core/dist/holoplaycore.module.js'
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
@@ -8,19 +9,23 @@ import { Client } from "holoplay-core"
 let lookingGlassPortraitClient = null
 
 
-
-export const howManyHolographicDisplaysAreConnected = () => new Promise( (resolve, reject) => { 
+/**
+ * 
+ * @returns 
+ */
+export const howManyHolographicDisplaysAreConnected = (timeOut=20000) => new Promise( (resolve, reject) => { 
 	// immediately check to see if there is a display available...
-	
+
 	if (lookingGlassPortraitClient)
 	{
 		resolve( lookingGlassPortraitClient.devices.length )
 	}
 
 	// initCallback, errCallback, closeCallback, debug = false, appId, isGreedy, oncloseBehavior
-	
+	let timeoutId = -1
 	lookingGlassPortraitClient = new Client((msg) => {
 		
+		clearTimeout(timeoutId)
 		if (msg.devices.length < 1) 
 		{
 		  return resolve(0)
@@ -38,6 +43,11 @@ export const howManyHolographicDisplaysAreConnected = () => new Promise( (resolv
 	close =>{
 		console.error("Holographic display disconnected", close )
 	})
+
+	// 20 second timeout
+	timeoutId = setTimeout(() => {
+		reject(-1)
+	}, timeOut )
 })
 
 /*
