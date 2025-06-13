@@ -29,6 +29,9 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 				EMOTICONS.EMOJI_KISS_EYES_CLOSED : 
 				EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED
 		}
+		 if (prediction.mouthRatio > 0.1){
+			return EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED
+		 }
 
 		if (prediction.happiness < 0.01){
 			return EMOTICONS.EMOJI_FROWN_EYES_CLOSED
@@ -71,24 +74,44 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 		if ( prediction.mouthRatio > options.mouthCutOff  )
 		{
 			// mouth open but no grin
-			if (prediction.happiness < 0.26)
+			if (prediction.happiness < 0.4)
 			{
-				// mouth open but no grin
-				if (prediction.mouthRatio > options.mouthCutOff){
-					return EMOTICONS.EMOJI_OPEN_MOUTH
-				}else if (prediction.mouthRatio > 0.2){
-					return EMOTICONS.EMOJI_OPEN_MOUTH_BIG
-				}else if (prediction.mouthRatio > 0.4){
-					return EMOTICONS.EMOJI_EXHALING
-				}else if (prediction.mouthRatio > 0.5){
-					return EMOTICONS.EMOJI_SHOCKED
-				}else if (prediction.mouthRatio > 0.6){
-					return EMOTICONS.EMOJI_ANGUISHED
-				}else if (prediction.mouthRatio > 0.7){
-					return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
-				}else if (prediction.mouthRatio > 0.8){
-					return EMOTICONS.EMOJI_WAIL
-				}	
+				if (prediction.eyebrowsRaisedBy > 0.3)
+				{
+					 if (prediction.mouthRatio < 0.3){
+						return EMOTICONS.EMOJI_OPEN_MOUTH
+					}else if (prediction.mouthRatio < 0.4){
+						return EMOTICONS.EMOJI_EXHALING
+					}else if (prediction.mouthRatio < 0.5){
+						return EMOTICONS.EMOJI_SHOCKED
+					}else if (prediction.mouthRatio < 0.6){
+						return EMOTICONS.EMOJI_ANGUISHED
+					}else if (prediction.mouthRatio < 0.8){
+						return EMOTICONS.EMOJI_ASTONISHED
+					}else if (prediction.mouthRatio < 0.9){
+						return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
+					}
+				}else{
+					// mouth open but no grin
+					if (prediction.mouthRatio < 0.2 ){
+						return EMOTICONS.EMOJI_OPEN_MOUTH
+					}else if (prediction.mouthRatio < 0.3){
+						return EMOTICONS.EMOJI_OPEN_MOUTH_BIG
+					}else if (prediction.mouthRatio < 0.4){
+						return EMOTICONS.EMOJI_EXHALING
+					}else if (prediction.mouthRatio < 0.5){
+						return EMOTICONS.EMOJI_SHOCKED
+					}else if (prediction.mouthRatio < 0.6){
+						return EMOTICONS.EMOJI_ANGUISHED
+					}else if (prediction.mouthRatio < 0.7){
+						return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
+					}else if (prediction.mouthRatio < 0.7){
+						return EMOTICONS.EMOJI_ASTONISHED
+					}else if (prediction.mouthRatio <= 1){
+						return EMOTICONS.EMOJI_WAIL
+					}	
+				}
+			
 
 			// mouth open and smiles
 			}else if (prediction.happiness < 0.5){
@@ -103,7 +126,9 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 
 		}else if (prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.03 ){
 			return EMOTICONS.EMOJI_SMILING_SLIGHTLY
-		}else if (prediction.leftSmirk > prediction.rightSmirk){
+		}else if (prediction.leftSmirk > 0.1 + prediction.rightSmirk){
+			return EMOTICONS.EMOJI_DIAGONAL_MOUTH
+		}else if ( 0.1 +prediction.leftSmirk < prediction.rightSmirk){
 			return EMOTICONS.EMOJI_DIAGONAL_MOUTH
 		}
 	
