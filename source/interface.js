@@ -42,7 +42,7 @@ import StateWithIO from './utils/state-io'
 
 // MODELS
 import { TAU } from "./maths/maths.js"
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults, BROADCAST_KEY } from './settings/options.js'
 import { loadMLModel } from './models/load-model.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
@@ -298,16 +298,7 @@ export const createInterface = (
 	}
 
 
-	// Set the port for the app to communicate to others
-	const broadCast = new BroadcastChannel("photosynth")
-		
-	// if there are any clock messages during boot up we assume
-	// that means another instance is the master and this is the slave
-	broadCast.onmessage = (event) => {
-		console.log(event)
-	}
-
-	// broadCast.postMessage()
+	
 
 
 
@@ -336,6 +327,7 @@ export const createInterface = (
 			loadPercent = newValue
 		}
 	}
+
 
 	// COLOURS ---------------------------------------------------------------
 
@@ -529,6 +521,8 @@ export const createInterface = (
 	// if the user leaves the tab or removes their face from the frame
 	let isUserActive = false
 
+	let isSlave = false
+
 	let recordRequested = false
 	let recordCancelRequested = false
 
@@ -537,6 +531,44 @@ export const createInterface = (
 
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
+
+	
+	// BROADCAST TO PEERS ---------------------------------------------------------------
+
+
+	// Set the port for the app to communicate to others
+	const broadCast = new BroadcastChannel(BROADCAST_KEY)
+		
+	// if there are any clock messages during boot up we assume
+	// that means another instance is the master and this is the slave
+	broadCast.onmessage = (event) => {
+		// if there are any messages received before it has loaded
+		// then we assume that this is a slave device to a master somewhere
+		// else
+		if (!isLoading)
+		{
+			isSlave = true
+			console.log("Received message from master", event)
+			return
+		}
+	
+		// now we have loaded, if we *are* the slave, take the external trigger
+		// and use it to control our timer via externalSync
+		if (isSlave)
+		{
+			switch(event.data.type)
+			{
+				case "clock":
+					// console.log("Received message from master", event)
+					clock.externalSync()
+					break
+			}
+		}
+	}
+
+	// broadCast.postMessage()
+
+
 
 	let kickTimbreOptions = getKickPresets()[0]  
 	let snareTimbreOptions = PRESET_SNARES[0]
@@ -2366,6 +2398,11 @@ export const createInterface = (
 		const tempo = tapTempo(true, 1000, 3)
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
 				
+		// immediately dispatch the signal to any peers
+		if (stateMachine.get("broadcast") && !isSlave)  
+		{
+			broadCast.postMessage(values)
+		}
 
 		const isQuarterNote = clock.isQuarterNote
 		const isHalfNote = clock.isHalfNote

@@ -1,0 +1,42 @@
+extends _base.pug
+
+block title
+	+title('Test:Broadcast')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	menu.gamepad
+
+	div#broadcast-signal SIGNAL
+	output#broadcasting
+		
+block scripts
+	script(type="module").
+		import {BROADCAST_KEY} from "./settings/options.js"
+		
+		const broadCastSignalElement = document.querySelector("##broadcast-signal")
+		const broadCastElement = document.querySelector("#broadcasting")
+		const broadCast = new BroadcastChannel(BROADCAST_KEY)
+			
+		let count = 0
+		// if there are any clock messages during boot up we assume
+		// that means another instance is the master and this is the slave
+		broadCast.onmessage = (event) => {
+			// if there are any messages received before it has loaded
+			// then we assume that this is a slave device to a master somewhere
+			// else
+			console.log("Broadcast message received", event)
+			broadCastElement.textContent = `Broadcast received: ${event.data}`
+
+			broadCastSignalElement.textContent = count%2 ? "" : "SIGNAL"
+		}
+
+		// broadCast.postMessage()
+
+block styles 
+	style.
+	

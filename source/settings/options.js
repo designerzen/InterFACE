@@ -23,6 +23,8 @@ export const LOAD_TIMEOUT = 5 * 60 * 1000 // 5 minutes
 // https://www.midi.org/specifications-old/item/manufacturer-id-numbers
 export const MIDI_ID = "00H 21H 71H"
 
+export const BROADCAST_KEY = "photosynth"
+
 /**
 Option Name 						Description 	Type 	Default
 running_mode 						Sets the running mode for the task. There are two modes: IMAGE: The mode for single image inputs. / VIDEO: The mode for decoded frames of a video or on a livestream of input data, such as from a camera. 	{IMAGE, VIDEO} 	IMAGE
