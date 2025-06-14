@@ -547,6 +547,7 @@ export const createInterface = (
 		// else
 		if (!isLoading)
 		{
+			// slaves never dispatch events
 			isSlave = true
 			console.log("Received message from master", event)
 			return
@@ -559,16 +560,23 @@ export const createInterface = (
 			switch(event.data.type)
 			{
 				case "clock":
-					// console.log("Received message from master", event)
-					clock.externalSync()
+					// if we want an exclusive clock
+					clock.bypass(true)
+					clock.externalTrigger()
+					break
+
+				case "announcement":
+					// if we are a master we may have sent out htis
+					break
+
+				case "demand":
+					// if we are a master we may have sent out htis
 					break
 			}
 		}
 	}
 
-	// broadCast.postMessage()
-
-
+	broadCast.postMessage({type:"announcement"})
 
 	let kickTimbreOptions = getKickPresets()[0]  
 	let snareTimbreOptions = PRESET_SNARES[0]

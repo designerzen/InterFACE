@@ -18,8 +18,8 @@ block scripts
 	script(type="module").
 		import {BROADCAST_KEY} from "./settings/options.js"
 		
-		const broadCastSignalElement = document.querySelector("##broadcast-signal")
-		const broadCastElement = document.querySelector("#broadcasting")
+		const broadCastSignalElement = document.getElementById("broadcast-signal")
+		const broadCastElement = document.getElementById("broadcasting")
 		const broadCast = new BroadcastChannel(BROADCAST_KEY)
 			
 		let count = 0
@@ -29,9 +29,11 @@ block scripts
 			// if there are any messages received before it has loaded
 			// then we assume that this is a slave device to a master somewhere
 			// else
-			console.log("Broadcast message received", event)
-			broadCastElement.textContent = `Broadcast received: ${event.data}`
+			const {divisionsElapsed, bar, bars, timePassed, elapsed, expected, drift, level, intervals, lag} = event.data
 
+			console.log("Broadcast message received", event)
+			broadCastElement.textContent = `Broadcast received: ${bar} : ${divisionsElapsed} ${elapsed}ms`
+			
 			broadCastSignalElement.textContent = count%2 ? "" : "SIGNAL"
 		}
 
