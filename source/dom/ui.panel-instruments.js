@@ -187,7 +187,7 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) 
 	}
 	
 	const inputs = controls.querySelectorAll('input')
-	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e.target.value, e), false) )
+	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e), false) )
 	
 	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
 
