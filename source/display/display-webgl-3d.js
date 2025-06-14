@@ -58,7 +58,7 @@ import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
 
 // select the avatar you want to use
-const avatar = AVATAR_DATA.racoon
+const avatar = AVATAR_DATA.twist
 
 let data = FACE_LANDMARKS_DATA["0"]
 

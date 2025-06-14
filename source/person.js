@@ -1179,13 +1179,12 @@ export default class Person{
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
-		// eye:${prediction.eyeDirection} 
-			
-			display.drawInstrument(textX, textY - 50, instrumentTitle, "", 14 )
 			const emojiRotation = (-prediction.roll * Math.PI * 0.28)
-			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
+		
+			display.drawInstrument(textX, textY - 50, "Instrument:"+ instrumentTitle, "", 14 )			
 			display.drawText(textX, textY + 26, this.isSelected ? `SELECTED` : `${extra} ${suffix}${bend}`, "", 28 )
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
+			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
 			
 			if (this.debug )
 			{
@@ -2106,11 +2105,11 @@ export default class Person{
 	onInstrumentInput(event) {
 		event.preventDefault()
 		const id = event.target.id
-		const value = event.target.value
+		const instrument = event.target.value
 		const title = event.target.textContent
 		this.hideForm()
 		// FIXME: load the instrument first?
-		this.loadPreset(value, title ?? id)
+		this.loadPreset(instrument, title ?? id)
 	}
 
 	onLeftEyeOpen( timeClosedFor ){
@@ -2171,7 +2170,7 @@ export default class Person{
 		const presets = await populateInstrumentPanel(this.instrumentPanel, this.activeInstrument, this.name )
 			
 		// stupid event callback forgets scope!
-		addInteractivityToInstrumentPanel( this.controls, e => this.onInstrumentInput(e) ) 
+		addInteractivityToInstrumentPanel( this.controls, event => this.onInstrumentInput(event) )
 
 		// console.error("ADded interactivity to sidebar", this.toString(), {presets,inputs}, this.controls )
 

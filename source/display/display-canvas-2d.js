@@ -418,16 +418,18 @@ export default class Display2D extends AbstractDisplay{
 		drawRotatedText( this.canvasContext, x, y, rotation , emoji, 50, "center", "noto-emoji", false )
 		// draw the positions for the actual scales
 		const data = [
-			{x:x-32, y:y},
-			{x:x-22, y:y},
-			{x:x-12, y:y},
-			{x:x-2, y:y},
-			{x:x-12, y:y},
-			{x:x-22, y:y},
-			{x:x+32, y:y},
-			{x:x+42, y:y}
+			{ x: x + 29.39, y: y - 40.45 }, // Angle: 54 degrees
+			{ x: x + 21.13, y: y - 45.32 }, // Angle: 64.28 degrees
+			{ x: x + 11.13, y: y - 48.77 }, // Angle: 74.57 degrees
+			{ x: x + 0.00, y: y - 50.00 },  // Angle: 84.86 degrees
+			{ x: x - 11.13, y: y - 48.77 }, // Angle: 95.14 degrees
+			{ x: x - 21.13, y: y - 45.32 }, // Angle: 105.43 degrees
+			{ x: x - 29.39, y: y - 40.45 }, // Angle: 115.72 degrees
+			{ x: x - 35.36, y: y - 35.36 }  // Angle: 126 degrees
 		]
-		drawCircles( this.canvasContext, [x, y], 24, 2 )
+		
+		drawCircles( this.canvasContext, data, 4, 2 )
+		console.log("drawEmoticon", x, y, emoji, rotation, data )
 	}
 
 	/**

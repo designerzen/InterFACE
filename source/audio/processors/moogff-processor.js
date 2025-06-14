@@ -14,6 +14,7 @@
  * 
  * Adapted for AudioWorklet by @designerzen based on mohayonao's timbre.js
  * https://raw.githubusercontent.com/mohayonao/timbre.js/refs/heads/master/src/extras/MoogFF.js
+ * https://doc.sccode.org/Classes/MoogFF.html
  * 
  * @class MoogFFProcessor
  * @extends AudioWorkletProcessor
