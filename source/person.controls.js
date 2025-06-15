@@ -33,7 +33,7 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 	// always pitchbend!
 	const pitchBend = 0.5 + prediction.eyebrowExtents / 2
 
-	console.error(pitchBend, "pitchBend", typeof pitchBend, prediction.eyebrowExtents )
+	// console.error(pitchBend, "pitchBend", typeof pitchBend, prediction.eyebrowExtents )
 	// console.info("Both:",prediction.eyebrows, "Raised:",prediction.eyebrowsRaisedBy, prediction.eyebrowsInnerRaisedBy, "lowered:",prediction.eyebrowsLoweredBy )
 	// console.info("l:",prediction.leftEyebrowRaisedBy, "r:",prediction.rightEyebrowRaisedBy )
 	return {

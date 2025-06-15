@@ -39,7 +39,7 @@ import {
 
 import { toKebabCase } from "./utils/utils.js"
 import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "./maths/maths.js"
-import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad} from "./maths/easing.js"
+import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeInQuad} from "./maths/easing.js"
 import { now } from "./timing/timing.js"
 
 // all the different instruments come through the instrument factory!
@@ -81,7 +81,7 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 
 // Models
 import { recogniseEmojiFromFaceModel } from './models/emoji-detection.js'
-import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_NEUTRAL } from './models/emoji.js'
+import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from './models/emoji.js'
 import { convertHeadOrientationIntoNoteData, convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, convertHeadRollToScaleAndPitchToOctaveAndYawToPitch } from './person.controls.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { createInstrumentFromData } from './audio/instrument-factory.js'
@@ -159,6 +159,8 @@ export default class Person{
 	instrumentLoadedAt = -1
 	presetName
 	presetTitle
+
+	presetPanelConnection
 	
 	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
@@ -1056,9 +1058,6 @@ export default class Person{
 			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
 			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
 			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-			
-
-			
 			this.button.setAttribute( "style", `--${this.name}-x:${x};--${this.name}-y:${y};--${this.name}-w:${width};--${this.name}-h:${height};` );
 			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`		
 	}	}
@@ -1086,9 +1085,11 @@ export default class Person{
 		const thirdHeadWidth = boxWidth * 0.333
 		const halfHeadWidth = boxWidth * 0.333
 
-		const instrumentTitle = this.presetTitle ?? this.instrumentTitle
+		const instrumentTitle = this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
+		
+		// as this should never be negative, we can use this to offset the text
 		const textX = xMin + halfHeadWidth - 9
-		const textY = yMin - thirdHeadHeight
+		const textY = Math.max(0, yMin - thirdHeadHeight - 22)
 
 	
 		// draw a background for the text
@@ -1179,12 +1180,34 @@ export default class Person{
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
-			const emojiRotation = (-prediction.roll * Math.PI * 0.28)
-		
-			display.drawInstrument(textX, textY - 50, "Instrument:"+ instrumentTitle, "", 14 )			
-			display.drawText(textX, textY + 26, this.isSelected ? `SELECTED` : `${extra} ${suffix}${bend}`, "", 28 )
+			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
+			
+			// wecan skip this if it looks too ugly
+			const pitch = 1 - Math.abs(prediction.pitch)
+			const yaw = 1 - Math.abs(prediction.yaw) 
+
+			// we want something floating around the 1.0 area
+			const emojiRotationY = 0.8 + pitch * 0.2 
+			const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
+			
+			// console.info("emojiRotationX", emojiRotationX, "emojiRotationY: ",emojiRotationY) 
+
+			const instrumentText = suffix ? `${extra} ${suffix}${bend}` : extra
+
+			display.drawInstrument(textX, textY - 50, instrumentTitle, this.isSelected ? `*` : "", 8 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
-			display.drawEmoticon( textX, textY + 10, this.emoticon, emojiRotation  )
+			
+			display.drawText(textX, textY - 30, instrumentText, 18 )
+			
+			// Left Side Note
+			// display.drawText(textX + 42, textY, this.lastNoteFriendlyName, 24, "left" )
+			// Right Side Octave?
+			// display.drawText(textX + 25, textY, this.octave, 24 )
+
+			//  5 * -prediction.pitch
+			const noteIndex = this.lastNoteNumber % 12
+			// draw emoticon but we move it up and down when it looks up and down too
+			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, noteIndex )
 			
 			if (this.debug )
 			{
@@ -1239,7 +1262,7 @@ export default class Person{
 					]
 				}
 
-				display.drawParagraph( xMax, yMin + 40, paragraphs, '14px' )
+				display.drawParagraph( xMax, yMin + 40, paragraphs, 9 )
 				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
 			}
 		}
@@ -1305,9 +1328,13 @@ export default class Person{
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
 
+
 		// eg. A1 Ab1 C3 etc
-		let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+		// if we want a circle-of-fifths style yhing we can use this
+		// FIFTHS_SCALE_KEYS
+		// let noteName = getNoteName(noteFloat, newOctave, isMinor, FIFTHS_SCALE_KEYS, FIFTHS_SCALE_KEYS)
 		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+		let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
 		// eg. Do Re Mi
 		let noteSound = getNoteSound(noteFloat, isMinor)	
 		
@@ -1762,6 +1789,7 @@ export default class Person{
 		// just an index as to which out of all instrument data is this one
 		this.instrumentPointer = this.activeInstrument.instrumentIndex
 		
+		// overwrite the instrument info
 		this.presetTitle = presetTitle
 		this.presetName = presetName
 
@@ -1903,14 +1931,15 @@ export default class Person{
 			...this.options,
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
-			defaultInstrument:this.options.defaultInstrument
+			defaultInstrument:this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
 		}
 
 		// create a sample player, oscillator add all other instruments		
 		// Add as manny instruments as you like
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const defaultInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
+		const defaultInstrument = await instrumentFactory.loadInstrumentByType( defaultInstrumentOptions.defaultInstrument, defaultInstrumentOptions, 0 )	
+		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
 		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
 		const chordInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_CHORD, defaultInstrumentOptions, 0 )	
 		// const midiInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_MIDI )
@@ -2166,11 +2195,18 @@ export default class Person{
 			throw Error("The instrument panel is missing the required menu element")
 		}
 		
+		// destroy any existing forms
+		if (this.presetPanelConnection)
+		{
+			this.presetPanelConnection()
+			this.presetPanelConnection = null
+		}
+
 		// fill the sidebar with the presets from this instrument
-		const presets = await populateInstrumentPanel(this.instrumentPanel, this.activeInstrument, this.name )
+		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this.name )
 			
 		// stupid event callback forgets scope!
-		addInteractivityToInstrumentPanel( this.controls, event => this.onInstrumentInput(event) )
+		this.presetPanelConnection = addInteractivityToInstrumentPanel( this.controls, event => this.onInstrumentInput(event) )
 
 		// console.error("ADded interactivity to sidebar", this.toString(), {presets,inputs}, this.controls )
 
