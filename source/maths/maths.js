@@ -147,3 +147,25 @@ export const round = (somenum) => {
 	// Finally, a left bitwise shift.
 	return (0.5 + somenum) << 0
 }
+
+const cacheSine = new Map()
+export const sine = (angle) => {
+	const cached = cacheSine.get(angle)
+	if (cached) {
+		return cached
+	}
+	const value = Math.sin(angle)
+	cacheSine.set(angle, value)
+	return value
+}
+
+const cacheCos = new Map()
+export const cosine = (angle) => {
+	const cached = cacheCos.get(angle)
+	if (cached) {
+		return cached
+	}
+	const value = Math.cos(angle)
+	cacheCos.set(angle, value)
+	return value
+}
