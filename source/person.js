@@ -1683,8 +1683,8 @@ export default class Person{
 		this.presetTitle = presetTitle
 		this.presetName = presetName
 
-		debugger
-
+		console.error("setupInstrumnentForm", presetTitle, presetName, details )
+		
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
 

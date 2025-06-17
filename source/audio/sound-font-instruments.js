@@ -74,7 +74,7 @@ const instrumentFilenames = new Map()
 const instrumentTitles= new Map()
 
 const TITLE_DICTIONARY = {}
-instrumentFolders.forEach( (name,index) =>{
+SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS.forEach( (name,index) =>{
 	TITLE_DICTIONARY[name] = instrumentNames[index] 
 	TITLE_DICTIONARY[name+'-mp3'] = instrumentNames[index] 
 })
