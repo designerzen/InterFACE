@@ -20,11 +20,23 @@ export const drawText = ( canvasContext, x, y, text='', size=10, align="center",
 	canvasContext.fillText( text, x, y )
 }
 
-export const drawRotatedText = ( canvasContext, x, y, rotation=0, text='', size=10, align="center", font="Oxanium", invertColours=false) => {
+export const drawRotatedText = ( canvasContext, x, y, text='', size=10, rotateZ=1, rotateX=1, rotateY=1, align="center", font="Oxanium", invertColours=false) => {
 	canvasContext.save()
 	// position it in the centre of the x y coords
-	canvasContext.translate( x, y )
-	canvasContext.rotate( rotation )
+	// canvasContext.translate( x, y )
+
+	// skew if required
+	const a = 0 //scale x
+    const b = rotateY // Math.sin(rotateY) // skew y
+    const c = rotateX // Math.cos(rotateX) // skew x
+    const d = 0 // scale y
+    const e = x // move x
+    const f = y // move y
+    canvasContext.transform(a, b, c, d, e, f)
+
+	// rotate once skewed
+	canvasContext.rotate( rotateZ )
+
 	drawText( canvasContext, 0, 0, text, size, align, font, invertColours )
 	canvasContext.restore()
 }

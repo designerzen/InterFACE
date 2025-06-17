@@ -60,7 +60,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	// const luminosity = person.luminosity
 
 	// generic face colour
-	const col = person.hsla
+	const color = person.hsla
 
 	//  `hsla(${mouthColours.h},${mouthColours.s},${mouthColours.l},${mouthColours.a}})`
 
@@ -88,7 +88,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 					drawingUtils.drawConnectors(
 						landmarks,
 						FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-						{ color: person.hsl, lineWidth: 1 }
+						{ color, lineWidth: 1 }
 					)
 					
 				} else if(person.isMouthOpen) {
@@ -96,7 +96,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 					drawingUtils.drawConnectors(
 						landmarks,
 						FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-						{ color: person.hsl, lineWidth: 2 }
+						{ color, lineWidth: 2 }
 					)
 				}
 
@@ -113,8 +113,8 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 
 			
 			// just blobs
-			blobStyle.color = col
-			blobStyle.fillColor = col
+			blobStyle.color = color
+			blobStyle.fillColor = color
 
 			// drawPoints( prediction, colours, 3, person.instrumentLoading, this.debug )
 			drawingUtils.drawLandmarks(
@@ -128,7 +128,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 			drawingUtils.drawConnectors(
 				landmarks,
 				FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-				{ color: col, lineWidth: 1 }
+				{ color, lineWidth: 1 }
 			)
 		}
 	}
@@ -146,14 +146,14 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	if (options.drawMouth)
 	{	
 		const mouthColours = {
-			h:col,
+			h:color,
 			s:options.saturation, 
 			l:options.luminosity,
 			a:1
 		}
 
 		const mouthColoursClosed = {
-			h:col,
+			h:color,
 			s:options.saturation, 
 			l:20,
 			a:1
@@ -260,7 +260,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	
 	if (options.drawEyebrows){
 
-		eyeBrowStyle.color = col
+		eyeBrowStyle.color = color
 		eyeBrowStyle.fillColor = options.leftEyebrow
 
 		// FIXME: draw some funky eyebrows!

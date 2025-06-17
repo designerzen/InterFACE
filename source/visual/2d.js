@@ -59,24 +59,36 @@ export const drawCircle = (canvasContext, cx,cy, radius=5, strokeWidth=3, fillCo
 	canvasContext.closePath()
 }
 
+/**
+ * 
+ * @param {CanvasRenderingContext2D} canvasContext  
+ * @param {Array} points 
+ * @param {Number} radius 
+ * @param {Number} strokeWidth 
+ * @param {Number|String} fillColour 
+ * @param {Number|String} strokeColour 
+ */
 export const drawCircles = (canvasContext, points, radius=5, strokeWidth=3, fillColour="#FF0000", strokeColour="#FF0000") => {
 	
-	canvasContext.beginPath()
+	const region = new Path2D()
+	
 	points.forEach( point => {
-		canvasContext.arc(point.x, point.y, radius, 0, TAU, true)
+		region.moveTo(point.x, point.y)
+		region.arc(point.x, point.y, point.radius ?? radius, 0, TAU, true)
 	})
-   
+	
 	if (strokeWidth)
 	{
 		// draw the stroke
-		canvasContext.lineWidth = strokeWidth
-		canvasContext.strokeStyle = strokeColour
-		canvasContext.stroke()
+		region.lineWidth = strokeWidth
+		region.strokeStyle = strokeColour
 	}  
 	
+	region.fillStyle = fillColour
 	canvasContext.fillStyle = fillColour
-    canvasContext.fill()
-	canvasContext.closePath()
+	canvasContext.strokeStyle = strokeColour
+	canvasContext.fill(region)
+	// canvasContext.stroke(region)
 }
 
 /**
