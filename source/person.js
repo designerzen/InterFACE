@@ -152,6 +152,8 @@ export default class Person{
 	
 	// the :-) that represents this person!
 	emoticon = EMOJI_NEUTRAL
+	playingEmoticon = EMOJI_NEUTRAL
+	lastEmoticon = EMOJI_NEUTRAL
 
 	activeInstrument
 	instruments = []
@@ -538,7 +540,7 @@ export default class Person{
 	 * Get's the hue but as an opacity based colour
 	 */
 	get hsla(){
-		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,${1-this.percentageDead})`
+		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,${0.5-this.percentageDead*0.5})`
 	}
 
 	/**
@@ -864,7 +866,7 @@ export default class Person{
 		if (this.options.stereoPan && this.stereoNode)
 		{
 			// -1 -> +1
-			this.stereoNode.pan.value = prediction[this.options.stereoController] // * -1
+			this.stereoNode.pan.value = prediction[this.options.stereoController] * -1
 		}
 
 		if (this.options.pitchBend && this.pitchBendValue && this.activeInstrument)
@@ -1176,7 +1178,9 @@ export default class Person{
 		}else{
 
 			// Main data flow
-			const extra = this.lastNoteFriendlyName 
+			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
+			
+			const extra = playsChords ? Array.from( this.activeInstrument.notes.keys() ) : this.lastNoteFriendlyName 
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
@@ -1194,7 +1198,7 @@ export default class Person{
 
 			const instrumentText = suffix ? `${extra} ${suffix}${bend}` : extra
 
-			display.drawInstrument(textX, textY - 50, instrumentTitle, this.isSelected ? `*` : "", 8 )			
+			display.drawInstrument(textX, textY - 50, this.currentPresetTitle, this.isSelected ? `*` : "", 8 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			display.drawText(textX, textY - 30, instrumentText, 18 )
@@ -1226,6 +1230,7 @@ export default class Person{
 				}else{
 					
 					paragraphs = [
+						this.playingEmoticon,
 						`${this.activeInstrument.toString()}`,
 
 						`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`,
@@ -1322,22 +1327,29 @@ export default class Person{
 		const hasNoteChanged = this.lastNote !== noteNumber
 		// const hasNoteChanged = this.lastNoteName !== noteName
 		
-		const chords = getMusicalDetailsFromEmoji(noteNumber, this.emoticon)
-		
+	
 
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
 
 
+			
+		
 		// eg. A1 Ab1 C3 etc
 		// if we want a circle-of-fifths style yhing we can use this
 		// FIFTHS_SCALE_KEYS
 		// let noteName = getNoteName(noteFloat, newOctave, isMinor, FIFTHS_SCALE_KEYS, FIFTHS_SCALE_KEYS)
-		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
 		let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
 		// eg. Do Re Mi
 		let noteSound = getNoteSound(noteFloat, isMinor)	
 		
+		// MIDI Note Number 0-127
+		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
+		
+		const chords = getMusicalDetailsFromEmoji(noteNumberForMIDI, this.emoticon)
+		// const chord = chords.get("major").get(0)
+
 		// for the next note  0 -> 2 : 0.5 -> 1.5
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
@@ -1370,9 +1382,6 @@ export default class Person{
 */
 		
 		
-		// MIDI Note Number 0-127
-		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
-		
 		// Set the root node in the arpeggio and reset the position...
 		if (this.useArpeggio && hasNoteChanged)
 		{
@@ -1380,6 +1389,7 @@ export default class Person{
 			// this.arpeggio.tonic = noteNumber
 			const forumla = isMinor ? MINOR_CHORD_INTERVALS : MAJOR_CHORD_INTERVALS
 			const mode = 0
+
 			this.arpeggio.setAllParameters( noteNumberForMIDI, forumla, mode )
 
 			//console.info("useArpeggio", this.arpeggio.sequence, {noteNumberForMIDI, forumla, mode, noteName}, this.lastNote , noteNumber )
@@ -1409,7 +1419,7 @@ export default class Person{
 		// volume is an log of this
 		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) * (1 - this.percentageDead ) //- 0.1
 		
-		console.info( "Sing emotion", {chords, noteName, noteSound, pitchBend, 
+		console.info( "Sing emotion",this.emoticon, { chords, noteName, noteSound, pitchBend, 
 			octaveNumber, newOctave,
 			noteNumber,
 			noteName,
@@ -1417,6 +1427,9 @@ export default class Person{
 			noteNumberForMIDI,
 			friendlyNoteName, noteObject
 		})
+
+
+		
 
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume = amp
@@ -1428,14 +1441,17 @@ export default class Person{
 		this.lastNoteSound = this.noteSound 
 		this.lastNoteNumber = this.noteNumber 
 		this.lastNoteFriendlyName = this.noteFriendlyName
-		
+		this.lastEmoticon = this.playingEmoticon
+
+
 		// save new
 		this.note = noteNumber
 		this.noteName = noteName
 		this.noteSound = noteSound
 		this.noteNumber = noteNumberForMIDI
 		this.noteFriendlyName = friendlyNoteName
-		
+		this.playingEmoticon = this.emoticon
+
 		this.octave = newOctave
 
 		this.defaultHue = noteNumber * this.hueRange
@@ -1658,6 +1674,28 @@ export default class Person{
 		}
 	}
 
+	async setupInstrumnentForm(presetTitle,presetName,details ){
+
+		// just an index as to which out of all instrument data is this one
+		this.instrumentPointer = this.activeInstrument.instrumentIndex
+		
+		// overwrite the instrument info
+		this.presetTitle = presetTitle
+		this.presetName = presetName
+
+		debugger
+
+		// FIXME: If automatic demo mode enabled, this will auto hide...
+		this.hideForm()
+
+		// this will repopulate the panel with correct data
+		await this.setupForm()
+
+		// you have to dispatch the event from an element!
+		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, details )
+		
+	}
+
 	/**
 	 * Load a sample using one of the prebuilt methods
 	 * @param {String} method - name of the function to call
@@ -1695,7 +1733,7 @@ export default class Person{
 		this.hideForm()
 
 		// this will repopulate the panel with correct data
-		this.setupForm()
+		await this.setupForm()
 		// await this.setupForm()
 
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
@@ -1766,7 +1804,6 @@ export default class Person{
 		}
 
 		
-
 		// console.log("Loading instrument",instrumentName, presets)
 
 		// ensure that the instrument is accissilbe
@@ -1786,19 +1823,7 @@ export default class Person{
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
 		} )
 
-		// just an index as to which out of all instrument data is this one
-		this.instrumentPointer = this.activeInstrument.instrumentIndex
-		
-		// overwrite the instrument info
-		this.presetTitle = presetTitle
-		this.presetName = presetName
-
-		// this will repopulate the panel with correct data
-		await this.setupForm()
-
-		// you have to dispatch the event from an element!
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, details )
-		
+		await this.setupInstrumnentForm(presetTitle, presetName, details)
 		return this.activeInstrument
 	}
 
@@ -1932,6 +1957,7 @@ export default class Person{
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
 			defaultInstrument:this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
+			,defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
 		}
 
 		// create a sample player, oscillator add all other instruments		
@@ -1946,10 +1972,12 @@ export default class Person{
 		// const defaultInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_OSCILLATOR})
 		// const chordInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_CHORD})
 
-
+		// wait for instrument data to be avaiable
 		await defaultInstrument.loaded
 		await chordInstrument.loaded
 
+		// turn it into an arp
+		chordInstrument.arpeggiate = true
 		
 
 		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
