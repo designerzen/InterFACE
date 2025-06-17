@@ -4,13 +4,21 @@ export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
 
 export default class ChordInstrument extends Instrument{
 	
+	arpeggio = false
+	arpeggioIndex = 0
+	type = INSTRUMENT_TYPE_CHORD
+
 	static get name(){
 		return INSTRUMENT_TYPE_CHORD
 	}
 
-	name = INSTRUMENT_TYPE_CHORD
-	title = "Chord Instrument"
-	type = "chord"
+	get name(){
+		return this.instruments.length > 1 ? this.instruments[0].name : INSTRUMENT_TYPE_CHORD
+	}
+
+	get title(){
+		return this.instruments.length > 1 ? this.instruments[0].title : "Chord Instrument"
+	}
 
 	// DO NOT SPECIFY ANYTHING HERE IT BREAKS STUFF :(
 	// mixer
@@ -27,6 +35,14 @@ export default class ChordInstrument extends Instrument{
 		return this.mixer
 	}
 
+	set arpeggiate( value ){
+		this.arpeggio = value
+	}
+
+	get playsChords(){
+		return true
+	}
+
     async create(){    
 		this.instruments = [] 
 		this.mixer = this.context.createGain()
@@ -41,6 +57,10 @@ export default class ChordInstrument extends Instrument{
 
 	constructor(audioContext, options = {}){
 		super(audioContext, options)
+		if (options.arpeggiate)
+		{
+			this.arpeggiate = true
+		}
 	}
 
 	generateUniqueName(){
@@ -66,7 +86,7 @@ export default class ChordInstrument extends Instrument{
 		instrument.noteOn( noteNumber, velocity )
 		this.active = true
 
-		console.log(instrumentIndex, "noteOn", {noteNumber, instrument}, this.activeNotes, this )
+		// console.log(instrumentIndex, "noteOn", {noteNumber, instrument}, this.activeNotes, this )
 		
 		if (activeNote)
 		{
@@ -97,28 +117,61 @@ export default class ChordInstrument extends Instrument{
 		}
 		instrument.noteOff( noteNumber, velocity )
 		
-		this.active = false
+		
 		this.activeNotes.delete( noteNumber )
-		console.log("noteOff", noteNumber, this.activeNotes, this )
+		this.active = this.activeNotes.size > 0
+		// console.log("noteOff", noteNumber, this.activeNotes, this )
 		return true
 	}
 
 	/**
-	 * 
+	 * Chord On 
 	 * @param {Array<Chord>} chordArray 
 	 */
-	async chordOn( chordArray ){
-		const chordQuantity = chordArray.length
-		console.info(chordQuantity, "ChordInstrument:chordOn", chordArray )
-		this.instruments.forEach( (instrument, index) => {
-			const chord = chordArray[index%chordQuantity]
-			if (chord)
-			{
-				this.noteOn( chord.noteNumber, chord.velocity, index )
+	async chordOn( chordArray, velocity=1 ){
+	
+		console.error("ChordInstrument:chordOn", chordArray, this.arpeggio )
+		
+		if (!this.arpeggio)
+		{
+			const chordQuantity = chordArray.length
+			console.error( "ChordInstrument:chordOn", chordQuantity, chordArray )
+		
+			this.instruments.forEach( (instrument, index) => {
+				const chord = chordArray[index%chordQuantity]
+				if (chord)
+				{
+					this.noteOn( chord.noteNumber, chord.velocity ?? velocity, index )
+				}else{
+					this.noteOn( chord.noteNumber, chord.velocity ?? velocity, index )
+				}
+			})
+
+		}else{
+		
+			let sameChordAgain = true
+
+			// chordArray.map( chord => {
+			// 	const isPlaying = this.activeNotes.has(chord.noteNumber) 
+			// 	if (!isPlaying){
+			// 		sameChordAgain = false
+			// 	}
+			// })
+			
+			if (sameChordAgain){
+				// if they are the same chords again we advance the arp
+				this.arpeggioIndex = (this.arpeggioIndex+1) % this.instruments.length
 			}else{
-				this.noteOn( chord.noteNumber, chord.velocity, index )
+				// if they are the different, we reset the arp
+				this.arpeggioIndex = 0
 			}
-		})
+
+			const chord = chordArray[this.arpeggioIndex]
+				
+			console.error("ChordInstrument:arpeggioOn",this.arpeggioIndex, this.activeNotes, sameChordAgain ? "repeating" : "new chord", chordArray, chord )
+		
+			this.noteOn( chord.noteNumber, chord.velocity ?? velocity, this.arpeggioIndex )
+		}
 	}
 
 	
@@ -126,31 +179,43 @@ export default class ChordInstrument extends Instrument{
 	 * 
 	 * @param {Array<Chord>} chordArray 
 	 */
-	async chordOff( chordArray){
-		const chordQuantity = chordArray.length
-		console.info(chordQuantity, "ChordInstrument:chordOff", chordArray )
-		this.instruments.forEach( (instrument, index) => {
-			const chord = chordArray[index%chordQuantity]
-			if (chord)
-			{
-				this.noteOff( chord.noteNumber, chord.velocity, index )
-			}else{
-				this.noteOff( chord.noteNumber, chord.velocity, index )
-			}
-		})
+	async chordOff( chordArray, velocity=1 ){
+		console.error("ChordInstrument:chordOff", chordArray, this.arpeggio )
+		// if (!this.arpeggio)
+		// {
+
+		// }else{
+			const chordQuantity = chordArray.length
+			// console.info(chordQuantity, "ChordInstrument:chordOff", chordArray )
+			this.instruments.forEach( (instrument, index) => {
+				const chord = chordArray[index%chordQuantity]
+				if (chord)
+				{
+					this.noteOff( chord.noteNumber, chord.velocity ?? velocity, index )
+				}else{
+					this.noteOff( chord.noteNumber, chord.velocity ?? velocity, index )
+				}
+			})	
+		// }
 	}
 
-	
+	async allNotesOff(){
+
+		super.allNotesOff()
+		console.error("ChordInstrument:allNotesOff", this.activeNotes )
+		return 
+	}
+
 	async aftertouch( noteNumber, pressure ){
-		this.instruments.forEach( (instrument, index) => {
-			const chord = chordArray[index%chordArray.length]
-			if (chord)
-			{
-				this.aftertouch( chord.noteNumber, chord.velocity, index )
-			}else{
-				this.noteOff( chord.noteNumber, chord.velocity, index )
-			}
-		})
+		// this.instruments.forEach( (instrument, index) => {
+		// 	const chord = chordArray[index%chordArray.length]
+		// 	if (chord)
+		// 	{
+		// 		this.aftertouch( chord.noteNumber, chord.velocity, index )
+		// 	}else{
+		// 		this.noteOff( chord.noteNumber, chord.velocity, index )
+		// 	}
+		// })
 		return super.aftertouch( noteNumber, pressure )
 	}
 	
@@ -161,14 +226,10 @@ export default class ChordInstrument extends Instrument{
 		return super.pitchBend(pitch)
 	}
 
-	// WHAT SHOULD THIS DO?
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
-		console.info("Program change request from chord instrument", this.instruments)
-			
-		this.instruments.forEach( (instrument, index) => {
-			instrument.programChange(programNumber)
-		})
+		// console.info("Program change request from chord instrument", this.instruments)
+		this.instruments.forEach( (instrument, index) => instrument.programChange(programNumber))
 		return super.programChange( programNumber )
 	}
 
@@ -252,10 +313,8 @@ export default class ChordInstrument extends Instrument{
 		})
 		
 		this.polyphony = quantity
-		this.name = this.instruments[0].name
-   		this.title = this.instruments[0].title
-
-		console.warn(this.polyphony, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
+		
+		console.warn(this.polyphony, this.instruments, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
 	}
 
 	/**
@@ -302,6 +361,6 @@ export default class ChordInstrument extends Instrument{
 		// ${this.instruments[0].toString()
 		return this.instruments.length > 1 ?
 			`ChordInstrument ${this.instruments[0].toString()} [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.size}` :
-			`ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.size}`
+			`ChordInstrument [Polyphony:${this.polyphony}] Instruments:${this.name}} Notes:${this.activeNotes.values()}`
 	}
 }

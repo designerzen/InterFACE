@@ -354,12 +354,13 @@ export default class SoundFontInstrument extends SampleInstrument{
 		this.instrumentIndex = this.soundfont.instrumentIndex ?? 0
 		this.instrumentName = presetNameOrObject
 		this.instrumentPack = instrumentPack
-		console.error("Soundfont loaded", this.instrumentName, this.instrumentPack, {presetNameOrObject, instrumentPack, options} )
 		this.instrumentFamily = this.instrument.family
 
 		// Fetch the GM name
 		this.title = presetNameOrObject
-		//this.name = "SampleInstrument"
+		// this.name = "SampleInstrument:"+presetNameOrObject
+
+		console.error("Soundfont", this, this.instrumentName, this.instrumentPack, this.instrumentFamily, {presetNameOrObject, instrumentPack, options} )
 
 		
 		// console.info("Soundfont preset", SoundFontInstrument.dictionary)

@@ -242,7 +242,7 @@ export const getInstrumentFamily = instrumentName => GENERAL_MIDI_FAMILY_DICTION
  * @param {String} instrumentName 
  * @returns 
  */
-export const getInstrumentTitle = instrumentName => TITLE_DICTIONARY[instrumentName]
+export const getInstrumentTitle = instrumentName => TITLE_DICTIONARY[instrumentName.toLowerCase()]
 
 
 /**

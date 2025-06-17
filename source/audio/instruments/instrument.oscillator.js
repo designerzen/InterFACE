@@ -212,10 +212,7 @@ export default class OscillatorInstrument extends Instrument{
 	
 		// this.envelope.gain.setValueAtTime(1, 0)
 		
-		this.envelope.gain.cancelScheduledValues(now)
-		this.envelope.gain.linearRampToValueAtTime( this.options.amplitude, now+this.attack )
-		this.envelope.gain.linearRampToValueAtTime( this.sustain, now+this.attack+this.decay )
-		
+	
 		// this.oscillator.frequency.linearRampToValueAtTime(0.1, 4)
 		
 		// instantly or with slide?
@@ -224,7 +221,12 @@ export default class OscillatorInstrument extends Instrument{
 		{
 			this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), now + this.options.slideDuration )
 		}else{
-			this.oscillator.frequency.value = noteNumberToFrequency(noteNumber)
+				// shape envelope
+			this.envelope.gain.cancelScheduledValues(now)
+			this.envelope.gain.linearRampToValueAtTime( this.options.amplitude, now+this.attack )
+			this.envelope.gain.linearRampToValueAtTime( this.sustain, now+this.attack+this.decay )
+			
+			this.oscillator.frequency.setValueAtTime( noteNumberToFrequency(noteNumber), now )
 		}
 		this.oscillator.detune.value = this.options.detune ?? 0
 	

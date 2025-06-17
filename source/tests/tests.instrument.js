@@ -32,7 +32,7 @@ import {
 
 import Person from '../person.js'
 import { createInstrumentFromData, lazilyLoadInstrument } from '../audio/instrument-factory.js'
-import { CHORD_INTERVALS_NAMES, CHORD_INTERVALS, createChordsForNoteNumber, createJazzChord, createMajorChord, createMinorChord, getAllChordsForNoteNumber, MODES } from '../audio/tuning/chords.js'
+import { CHORD_INTERVALS_NAMES, CHORD_INTERVALS, createChordsForNoteNumber, createJazzChord, createMajorChord, createMinorChord, getAllChordsForNoteNumber, TUNING_MODE_NAMES } from '../audio/tuning/chords.js'
 import SVGKeyboard from '../visual/2d.keyboard-svg.js'
 import * as INSTRUMENT from '../audio/instrument-list.js'
 

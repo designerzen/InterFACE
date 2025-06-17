@@ -2,6 +2,7 @@
  * Each mediator controls an instrument
  * through being passed as object
  */
+import { getMusicalDetailsFromEmoji } from "../../models/emoji-to-music.js"
 import { 
 	STATE_INSTRUMENT_ATTACK, 
 	STATE_INSTRUMENT_DECAY, 
@@ -11,6 +12,7 @@ import {
 } from "../../person.js"
 
 import { INSTRUMENT_TYPE_CHORD } from "../instrument-list.js"
+import { getAllChordsForNoteNumber } from "../tuning/chords.js"
 
 /**
  * MONODPHONIC
@@ -35,38 +37,53 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 	// 	return
 	// }
 
+	const isChord = instrument.type === INSTRUMENT_TYPE_CHORD
+
 	switch(person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
 		case STATE_INSTRUMENT_SUSTAIN:
 		case STATE_INSTRUMENT_PITCH_BEND:
-			// note off if set...
-			const isChord = instrument.type === INSTRUMENT_TYPE_CHORD
-
-			let toPlay
-			let previouslyPlayed
 
 			if (isChord)
 			{
 				// create the chord object from the emoji...
-				toPlay = [{noteNumber:person.noteNumber, velocity:person.noteVelocity}]
-				previouslyPlayed = person.lastNoteNumber ? 
-					[{noteNumber:person.lastNoteNumber, velocity:1}] :
-					null
+				// const notes = getAllChordsForNoteNumber( person.noteNumber )
+				// const chordSequence = notes.get("major").get("dorian")
+				const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon)
+				// ccidental : false
+				// alt : ""
+				// frequency : 174.61411571650194
+				// key : "F"
+				// name : "F3"
+				// notation : "F"
+				// noteIndex : 5
+				// noteName : "F3"
+				// noteNumber : 53
+				// octave : 3
+				// sound : "Fa"
+				// title : "F3"
+				
+				//console.log("Chord sequence", chordSequence, person.noteNumber, person.emoticon)
+				
+				// stop all notes in the instrument...
+				// instrument.allNotesOff()
+
+				// instrument.chordOn( [{noteNumber:person.noteNumber, velocity:person.noteVelocity}]  )
+				// person.lastNoteNumber >= 0 && instrument.chordOff( [{noteNumber:person.lastNoteNumber, velocity:1}] )
+				
+				instrument.allNotesOff()
+				instrument.chordOn( chordSequence, person.noteVelocity )
+
+			}else{
+
+				instrument.noteOn( person.noteNumber, person.noteVelocity )
+				person.lastNoteNumber >= 0 && instrument.noteOff( person.lastNoteNumber, 1 )
 			}
 		
 			// stop any that are have already started playing
-			if ( person.lastNoteNumber >= 0 )
-			{
-				const previously = isChord ? 
-					instrument.chordOff( previouslyPlayed ) :
-					instrument.noteOff( person.lastNoteNumber, 1 )
-			}
-
+		
 			// person.emoticon
-			const latest =  isChord ? 
-				instrument.chordOn( toPlay ) :
-				instrument.noteOn( person.noteNumber, person.noteVelocity )
 			
 			//console.log("Attempting to sing", instrument.name, person.state, {instrument,latest, person})
 			// console.log("Person", person, person.state, {stuff, noteNumber, noteVelocity} )
@@ -81,10 +98,14 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 
 		case STATE_INSTRUMENT_SILENT:
 		default:
-			const finished = instrument.type === INSTRUMENT_TYPE_CHORD ?
-				instrument.chordOff( toPlay ) :
-				instrument.noteOff( person.noteNumber )
-			// console.log("Attempting to mute",instrument.type, person.state)
-	
+			if (isChord){
+				// const chordSequence = getMusicalDetailsFromEmoji(person.lastNoteNumber, person.lastEmoticon)
+				// const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon)
+				// instrument.chordOff(  )
+				instrument.allNotesOff()
+				console.log("Attempting to mute",instrument.type, person.state)
+			}else{
+				instrument.noteOff( person.noteNumber, person.noteVelocity )
+			}
 	}
 }

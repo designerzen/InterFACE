@@ -123,7 +123,15 @@ export default class Instrument{
 	get currentTime(){
 		return this.context.currentTime
 	}
-	
+
+	// 
+	get playsChords(){
+		return false
+	}
+
+	get notes(){
+		return this.activeNotes
+	}
 	/**
 	 * All instruments 
 	 * @param {AudioContext} onlineAudioContext (not offlineAudioContext)
@@ -202,8 +210,13 @@ export default class Instrument{
 	
 	// TODO: 
 	async allSoundOff(){}
-	async allNotesOff(){	}
-	
+	async allNotesOff(){
+		let i = 0
+		this.activeNotes.forEach( (velocity, noteNumber) => {	
+			this.noteOff( noteNumber, velocity, i++ )
+		})
+	}
+
 	/**
 	 * Polyphonic Key Pressure
 	 * This message is most often sent by pressing down on the key 
