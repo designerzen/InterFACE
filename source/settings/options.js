@@ -449,8 +449,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// default person instument when a person is create
 	// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-	defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR,
-	// defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
+	// defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR,
+	defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
 	// which instrument preset to load?
 	defaultPreset:0,
 
