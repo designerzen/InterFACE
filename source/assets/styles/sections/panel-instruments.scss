@@ -137,9 +137,11 @@
 	button.person-toggle-controls{
 
 		@include button.button-with-dual-icon-style;
+		
 
 		--icon-width:calc( var(--button-size) / 2 );
 		--icon: url(/source/assets/icons/forward_black_24dp.svg);
+		--icon-size:22px;
 		--bg: var(--icon);
 
 		// position in grid
@@ -148,6 +150,8 @@
 		// prevent shrinkage
 		flex:0;
 
+		background-color: transparent;
+		border:var(--stroke, 2px) solid var(--col-dark, white);
 		// centralise in parent
 		margin-top: auto;
 		margin-bottom: auto;
@@ -200,6 +204,7 @@
 		//--bg:red;// url(/source/assets/icons/forward_black_24dp.svg);
 		border-radius: 0 99px 99px 0;	
 		border-left: none;
+		transform: translateX(-1px);
 	}
 
 	// Right hand side
@@ -211,6 +216,7 @@
 		// transform:rotate( 0.5turn );
 		border-radius: 99px 0 0 99px;	
 		border-right: none; 
+		transform: translateX(1px);
 		// background-image: none;
 		// flip horizontally!?
 	}
@@ -594,5 +600,6 @@
 	.person-d-panel.expanded{
 		grid-row-start:  sidebar-right-player-b;
 		grid-row-end:  sidebar-right-player-d;
+		
 	}
 }
