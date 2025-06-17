@@ -16,7 +16,7 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 	
 	// happy / sad
 	let scale = SCALE_MAJOR
-	let mode = TUNING_MODE_IONIAN
+	let mode = 0 // TUNING_MODE_IONIAN
 
 	// first determine if sad (minor)
 	switch(emoji) {
@@ -102,6 +102,7 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 			break
 	
 		case EMOTICONS.EMOJI_ANGRY:
+			mode = TUNING_MODE_LYDIAN
 			break
 		
 		case EMOTICONS.EMOJI_SHAKING_HORIZONTALLY:
@@ -109,6 +110,13 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 			break
 	}
 
-	console.log("getMusicalDetailsFromEmoji", {tonic, emoji, scale, mode, notes})
-	// return notes.get(scale).get(mode)
+	const scales = notes.get(scale) 
+	const chords = scales.get(mode)
+
+	if (!chords){
+		console.error("Sing: No chords found for", {tonic, emoji, scales, mode})
+		return null
+	}
+	// console.log("getMusicalDetailsFromEmoji", {tonic, emoji, scale, mode, notes, scales, chords})
+	return chords
 }
