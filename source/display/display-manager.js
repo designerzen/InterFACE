@@ -79,8 +79,8 @@ export const createDisplay = async (canvasElement, displayType, options={} ) => 
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D:
 			// Looking Glass Portrait hardware
 			// const {default:DisplayLookingGlass3D, before} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
-			const {default:DisplayLookingGlass3D, before} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
-			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:createXRToggleButton } )
+			const {default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass:before } = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
+			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:before } )
 
 			// const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:before} )
 			await displayLookingGlass3D.loading

@@ -14,6 +14,7 @@ import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 import Stats from 'stats-gl'
 import { DISPLAY_CANVAS_2D } from "./display-types.js"
+import { cosine, ONE_DEGREE_IN_RADIANS, sine } from "../maths/maths.js"
 
 
 const DEFAULT_FILTER = {
@@ -413,23 +414,53 @@ export default class Display2D extends AbstractDisplay{
 		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours  )
 	}
 
-	drawEmoticon( x, y, emoji, rotation=0 ){
+	drawText( x, y, text, size=24, align="center", font="oxanium", invertColours=false ){
+		drawText( this.canvasContext, x, y, text, size, align, font, invertColours )
+	}
+
+	
+	/**
+	 * 
+	 * @param {Number} cx 
+	 * @param {Number} cy 
+	 * @param {Number} range 
+	 * @param {Number} numberOfPoints 
+	 */
+	getNoteCircleData( cx, cy, range=90, radius=70, numberOfPoints=12 ){
+
+		const halfRange = range / 2
+		const startAngleDegrees = 90 - halfRange
+		const endAngleDegrees = 90 + halfRange
+
+		const startAngleRadians = startAngleDegrees * ONE_DEGREE_IN_RADIANS
+		const endAngleRadians = endAngleDegrees * ONE_DEGREE_IN_RADIANS
+		const angleIncrement = (endAngleRadians - startAngleRadians) / (numberOfPoints - 1)
+
+		const data = []
+		for (let i = 0; i < numberOfPoints; i++) 
+		{
+			const currentAngle = startAngleRadians + (i * angleIncrement)
+			const pointX = cx + radius * cosine(currentAngle)
+			const pointY = cy - radius * sine(currentAngle)
+			data.push({ x: pointX, y: pointY })
+		}
+
+		return data
+	}
+
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0 , activeCircleIndex=-1){
+		const size = 54
 		// console.info("drawEmoticon", x, y, emoji )
-		drawRotatedText( this.canvasContext, x, y, rotation , emoji, 50, "center", "noto-emoji", false )
+		drawRotatedText( this.canvasContext, x, y+5, emoji, size, rotationZ, rotationX, rotationY, "center", "noto-emoji", false )
+	
 		// draw the positions for the actual scales
-		const data = [
-			{ x: x + 29.39, y: y - 40.45 }, // Angle: 54 degrees
-			{ x: x + 21.13, y: y - 45.32 }, // Angle: 64.28 degrees
-			{ x: x + 11.13, y: y - 48.77 }, // Angle: 74.57 degrees
-			{ x: x + 0.00, y: y - 50.00 },  // Angle: 84.86 degrees
-			{ x: x - 11.13, y: y - 48.77 }, // Angle: 95.14 degrees
-			{ x: x - 21.13, y: y - 45.32 }, // Angle: 105.43 degrees
-			{ x: x - 29.39, y: y - 40.45 }, // Angle: 115.72 degrees
-			{ x: x - 35.36, y: y - 35.36 }  // Angle: 126 degrees
-		]
-		
-		drawCircles( this.canvasContext, data, 4, 2 )
-		console.log("drawEmoticon", x, y, emoji, rotation, data )
+		const data = this.getNoteCircleData( x, y, 90, size )
+		if (activeCircleIndex > -1){
+			// draw the active circle
+			data[activeCircleIndex%data.length].radius = 4
+		}
+		drawCircles( this.canvasContext, data, 2, 0, '#fff' )
+		// console.log("drawEmoticon", x, y, emoji, rotationZ, data )
 	}
 
 	/**

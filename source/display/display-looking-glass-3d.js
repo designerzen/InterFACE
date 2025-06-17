@@ -53,6 +53,7 @@ export const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS = {
 export const createXRToggleButton = (renderer, destination) => {
 	if (openXRButton)
 	{
+		destination.append(openXRButton)
 		return openXRButton
 	}
 	// adapt VRButton styles!
@@ -150,6 +151,7 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		if (options.lookingGlassWebXR)
 		{
 			this.lookingGlassWebXR = options.lookingGlassWebXR
+			this.lookingGlassWebXR()
 		}
 		
 		// save original dimensions for Looking Glass Portrait dimensions
@@ -179,7 +181,6 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 
 		// Neccessary for VR button and for headsets
 		this.renderer.xr.enabled = true
-
 		this.renderer.setSize( LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT )
 
 		// this requires a button to be pressed but we can make it a hidden button!
@@ -188,7 +189,6 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		createXRToggleButton( this.renderer, controls )
 
 		console.info("Adding XR button to", controls )
-
 
 		if (connectHardwareButtons)
 		{
@@ -200,6 +200,10 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		return true
 	}
 
+	/**
+	 * 
+	 * @returns 
+	 */
 	async destroy(){
 		if (this.controls)
 		{
@@ -208,7 +212,6 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		if (openXRButton)
 		{
 			openXRButton.parentNode.removeChild(openXRButton)
-			openXRButton = null
 		}
 
 		// reset canvas size...

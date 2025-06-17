@@ -34,7 +34,7 @@ import {
 } from '../visual/3d.js'
 
 import { Particle, ParticleTracer } from "../visual/3d.particles.js"
-import { AVATAR_DATA, unloadModel, createLoaderForModel, calculateModelScale } from '../models/avatars.js'
+import { AVATAR_DATA, unloadModel, createLoaderForModel, calculateModelScale, improveVRMPerformance } from '../models/avatars.js'
 
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
@@ -58,7 +58,7 @@ import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
 
 // select the avatar you want to use
-const avatar = AVATAR_DATA.twist
+const avatar = AVATAR_DATA.droid
 
 let data = FACE_LANDMARKS_DATA["0"]
 
@@ -118,6 +118,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	composer
 
 	controls
+	container
+	faceMesh
 
 	windowHalfX = 0
 	windowHalfY = 0
@@ -197,11 +199,18 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		if (size)
 		{
 			faceMesh.scale.set(size, size, size)
-			console.info("FaceMesh", {faceMesh, size})
+			// console.info("FaceMesh", {faceMesh, size})
 		}
 
 		// Reposition and rotate
+
+		const Blendshape = faceMesh.blendShapeProxy
+		const PresetName = THREE.VRMSchema.BlendShapePresetName
 		
+		// console.error("Blendshapes", {faceMesh, Blendshape, PresetName} )
+		//, Blendshape.getValue(PresetName.CHEEK_PUFF) )
+
+
 		// position in front the camera but behind the particles
 		faceMesh.position.z = avatar.pos?.z ?? 0
 		faceMesh.position.y = avatar.pos?.y ?? 0
@@ -210,7 +219,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		faceMesh.rotateX( avatar.rot?.x ?? 0 )
 		faceMesh.rotateY( avatar.rot?.y ?? 0 )
 		faceMesh.rotateZ( avatar.rot?.z ?? 0 )
-
+		
 		return new THREE.Box3().setFromObject(faceMesh).getSize(new THREE.Vector3())
 	}
 
@@ -276,12 +285,15 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// camera.position.z = 3.5
 		camera.lookAt( scene.position )
 		
+		// 
 		const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
 
 		const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
-		// Store the face mesh for later use
-		this.faceMesh = faceMesh
+		
+		// Adjust the model's position
+		// faceMesh.position.set(xOffset, yOffset, zOffset) // Set offsets to change the rotation center
+
 		// this.faceMeshSize = this.createFace(faceMesh, this.modelScale)
 
 		// immediately point camera at face mesh...
@@ -304,9 +316,14 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		text.color = THREE.Color.NAMES.white
 		// text.scale.set(0.001)
 	 
+		// Avatar container
+		const container = new THREE.Object3D()
+
 		scene.add( text )
 		scene.add( faceMesh )
 		scene.add( particles )
+		scene.add( container )
+		container.add( faceMesh )
 
 		// for debuggin vectors
 		// const tG = new THREE.BufferGeometry().setFromPoints([ new THREE.Vector3(), new THREE.Vector3() ])
@@ -314,11 +331,11 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// const tracker = new THREE.Line(tG, tM)
 		// scene.add(tracker)
 
+		this.clock = clock
 		this.scene = scene
 		this.renderer = renderer
 		this.camera = camera
-
-		this.clock = clock
+		this.container = container
 		// this.tracker = tracker
 		this.text = text
 		this.particles = particles
@@ -717,9 +734,13 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				if (vrm)
 				{
 					faceMesh = vrm.scene
+					improveVRMPerformance( faceGroup, vrm )
+
+					
+					
 				}
 
-				console.info("Face Model loaded", {faceGroup, faceMesh, vrm })
+				console.info("Face Model loaded", {faceGroup, faceMesh, vrm, expressionManager:faceMesh.expressionManager })
 
 				const particlesGeometry = faceMesh ? 
 											faceMesh.geometry : 
@@ -744,6 +765,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					// morphTargetDictionary
 					const morphableMeshes = faceMesh.children.filter( mesh => mesh.isMesh && mesh.morphTargetInfluences && mesh.morphTargetDictionary ) 
 					faceMesh = morphableMeshes.length > 0 ? morphableMeshes[0] : faceMesh
+					
 					console.error("Morph Target Meshes", morphableMeshes)
 				}
 
@@ -970,13 +992,13 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// 	}
 
 		// rotate face mesh TODO : SMOOTH
-		const rx = avatar.rot?.x + -prediction.pitch * 0.5 + ( this.mouseY * VERTICAL_VIEW_CONE_ANGLE ) - 0.3
-		const ry = avatar.rot?.y + prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
-		const rz = avatar.rot?.z + prediction.roll * VIEW_CONE_ANGLE_Z
+		const rx =  -prediction.pitch * 0.5 + ( this.mouseY * VERTICAL_VIEW_CONE_ANGLE ) - 0.3
+		const ry = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
+		const rz = prediction.roll * VIEW_CONE_ANGLE_Z
 
-		this.faceMesh.rotation.x += (rx - this.faceMesh.rotation.x ) * 0.5
-		this.faceMesh.rotation.y += (ry - this.faceMesh.rotation.y ) * 0.5
-		this.faceMesh.rotation.z += (rz - this.faceMesh.rotation.z ) * 0.5
+		this.container.rotation.x += (rx - this.container.rotation.x ) * 0.3
+		this.container.rotation.y += (ry - this.container.rotation.y ) * 0.3
+		this.container.rotation.z += (rz - this.container.rotation.z ) * 0.3
 		
 		// console.info("drawPerson", person, prediction )
 		this.arrangeParticles( prediction, 1)
@@ -1000,6 +1022,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
 				}
 			})	
+			
 	
 			// console.error( "blendShape categories",this.faceMesh.morphTargetDictionary, this.faceMesh.morphTargetInfluences )
 			// console.error( "blendShapes", { dictionary:this.faceMesh.morphTargetDictionary, blendShapePredictions} )

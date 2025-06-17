@@ -124,5 +124,5 @@ export default class DisplayMediaVision2D extends Display2D{
 		// 	FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
 		// 	{ color: "#FF000070", lineWidth: 3 }
 		// )
-	}	
+	}
 }
