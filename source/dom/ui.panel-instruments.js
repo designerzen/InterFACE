@@ -179,18 +179,19 @@ export const populateInstrumentPanel = async (controls, instrument, personName="
  * @param {HTMLElement} controls 
  * @param {Function} onInstrumentInput 
  */
-export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) => {
+export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, passive=true ) => {
 	
 	if (!controls)
 	{
 		throw Error("The instrument panel does not contain the required menu element")
 	}
 	
+	const controller = new AbortController()
+
 	const inputs = controls.querySelectorAll('input')
-	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e), false) )
+	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e), {signal: controller.signal, passive }) )
 	
 	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
-
 
 	// toggle the accordian modes for the details
 	const legend = controls.querySelector('legend')
@@ -203,7 +204,12 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput ) 
 				shouldOpen ? detail.setAttribute("open", true) : detail.removeAttribute("open")
 			})
 		}
-	})
+	}, {signal: controller.signal, passive })
+
+	// DESTROY
+	return ()=>{
+		controller.abort()
+	}
 }
 
 export const createDraggablePanel = (person, controls, onLeftSide=true, activeClassName="expanded", considerOpenAt=0.5) => {
