@@ -32,8 +32,8 @@ import { VRMLoaderPlugin } from '@pixiv/three-vrm'
 // import CANONICAL_FACE from "url:/source/assets/actors/canonical_face_model.fbx"
 import CANONICAL_FACE from "url:/source/assets/actors/canonical_face_model.obj"
 import RACOON_FACE_MESH from 'url:/source/assets/actors/raccoon_head.glb'
-import TWIST_FACE_MESH from 'url:/source/assets/actors/VRM1_Constraint_Twist_Sample.vrm'
-import VRDROID_FACE_MESH from 'url:/source/assets/actors/vrdroid.vrm'
+// import TWIST_FACE_MESH from 'url:/source/assets/actors/VRM1_Constraint_Twist_Sample.vrm'
+// import VRDROID_FACE_MESH from 'url:/source/assets/actors/vrdroid.vrm'
 import { VRMUtils } from '@pixiv/three-vrm'
 
 export const AVATAR_DATA = {
@@ -83,13 +83,13 @@ export const AVATAR_DATA = {
 		pos:{ x:0, y:0.015, z:-5 },
 		rot:{ x:0, y:0, z:0 }
 	},	
-	droid:{
-		model:VRDROID_FACE_MESH,
-		size:5,
-		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
-		rot:{ x:0, y:0, z:0 }
-	},	
+	// droid:{
+	// 	model:VRDROID_FACE_MESH,
+	// 	size:5,
+	// 	opacity:1,
+	// 	pos:{ x:0, y:0.015, z:-5 },
+	// 	rot:{ x:0, y:0, z:0 }
+	// },	
 
 	// twist:{
 	// 	model:TWIST_FACE_MESH,

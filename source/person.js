@@ -1087,7 +1087,7 @@ export default class Person{
 		const thirdHeadWidth = boxWidth * 0.333
 		const halfHeadWidth = boxWidth * 0.333
 
-		const instrumentTitle = this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
+		const instrumentTitle = this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
 		
 		// as this should never be negative, we can use this to offset the text
 		const textX = xMin + halfHeadWidth - 9
@@ -1198,7 +1198,7 @@ export default class Person{
 
 			const instrumentText = suffix ? `${extra} ${suffix}${bend}` : extra
 
-			display.drawInstrument(textX, textY - 50, this.currentPresetTitle, this.isSelected ? `*` : "", 8 )			
+			display.drawInstrument(textX, textY - 50, instrumentTitle, this.isSelected ? `*` : "", 8 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			display.drawText(textX, textY - 30, instrumentText, 18 )
@@ -1960,7 +1960,7 @@ export default class Person{
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
 			defaultInstrument:this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
-			,defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
+			// ,defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
 		}
 
 		// create a sample player, oscillator add all other instruments		
@@ -1980,7 +1980,7 @@ export default class Person{
 		await chordInstrument.loaded
 
 		// turn it into an arp
-		chordInstrument.arpeggiate = true
+		// chordInstrument.arpeggiate = true
 		
 
 		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
