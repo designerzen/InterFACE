@@ -14,7 +14,7 @@ const hasIdelDetection = () => 'IdleDetector' in window
  * @param {Number} timeOut 
  * @returns {Function} cleanup method
  */
-export const observeInteractivityThroughIdelDetector = async ( onActive, onInactive, timeOut = TIME_OUT) => {
+export const observeInteractivityThroughIdelDetector = async ( onActive, onInactive, timeOut = TIME_OUT, passive=true) => {
 
 	// Feature detection.
 	if (!hasIdelDetection()) 
@@ -65,7 +65,7 @@ export const observeInteractivityThroughIdelDetector = async ( onActive, onInact
 				case "unlocked":
 					break
 			}
-		})
+		},  {signal: controller.signal, passive })
 
 		await idleDetector.start({
 			threshold: timeOut,
