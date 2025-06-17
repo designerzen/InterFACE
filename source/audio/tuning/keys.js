@@ -3,7 +3,8 @@ import {
 	MAJOR_SCALE, 
 	NATURAL_MINOR_SCALE, 
 	HARMONIC_MINOR_SCALE, 
-	MELODIC_MINOR_SCALE 
+	MELODIC_MINOR_SCALE,
+	FIFTHS
 } from "./scales"
 
 export const createKey = (notes, scale=MAJOR_SCALE, offset=0, mode=0, cutOff=true, accumulate=false) => {
@@ -35,13 +36,18 @@ export const createKeyFromNote = ( mode, scale, offset=0, accumulate=false) => c
 
 // choose the pattern for playing if not using black / white keys
 // each of these use a root node to specify the starting note
-const mode = 1	// C, "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
+const mode = 1 // [ "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
 export const MAJOR_SCALE_KEYS = createKeyFromNote( mode, MAJOR_SCALE )
 export const MINOR_SCALE_KEYS = createKeyFromNote( mode, NATURAL_MINOR_SCALE )
+// export const FIFTHS_SCALE_KEYS = createKeyFromNote( mode, FIFTHS, 0, true )
 
 // FIXME:
-export const HARM_MINOR_SCALE_KEYS = createKey(  mode, HARMONIC_MINOR_SCALE )
-export const JAZZ_MINOR_SCALE_KEYS = createKey(  mode, MELODIC_MINOR_SCALE )
+
+const keyNames = [ "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
+export const HARM_MINOR_SCALE_KEYS = createKey( keyNames, HARMONIC_MINOR_SCALE )
+export const JAZZ_MINOR_SCALE_KEYS = createKey( keyNames, MELODIC_MINOR_SCALE )
+// C G D A E B C Gb D Ab Eb Bb F
+export const FIFTHS_SCALE_KEYS = createKey( keyNames, FIFTHS, 4, 0, false, true )
 
 // export const MAJOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MAJOR_SCALE, 0, mode, false )
 // export const MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MINOR_SCALE, 0, mode, false )
@@ -50,4 +56,4 @@ export const JAZZ_MINOR_SCALE_KEYS = createKey(  mode, MELODIC_MINOR_SCALE )
 
 
 
-console.info("Keys in scale", {MINOR_SCALE_KEYS,MAJOR_SCALE_KEYS,HARM_MINOR_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS } )
+console.info("Keys in scale", {MINOR_SCALE_KEYS,MAJOR_SCALE_KEYS,HARM_MINOR_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, FIFTHS_SCALE_KEYS } )

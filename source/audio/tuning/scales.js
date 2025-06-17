@@ -93,6 +93,7 @@ export const BLUES_SCALE = [0, 3, 5, 6, 7, 10]
 export const WHOLE_TONE_SCALE = [0, 2, 4, 6, 8, 10]
 export const DIMINISHED_SCALE = [0, 2, 3, 5, 6, 8, 9, 11]
 export const AUGMENTED_SCALE = [0, 3, 4, 7, 8, 11]
+export const FIFTHS = [0, 7 , 7 , 7 , 7 , 7 ]
 
 export const SCALES = [
 	MAJOR_SCALE,

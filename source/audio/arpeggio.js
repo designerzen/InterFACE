@@ -13,8 +13,8 @@ import {
 	createChord, 
 	MINOR_CHORD_INTERVALS, 
 	MAJOR_CHORD_INTERVALS, 
-	MODES 
 } from "./tuning/chords"
+import { TUNING_MODE_NAMES } from "./tuning/scales"
 
 export default class Arpeggio {
 
@@ -64,7 +64,7 @@ export default class Arpeggio {
 	 * MIXOLYDIC, DORIAN, MAJOR, MINOR, HARMONIC, MELODIC
 	 */
 	set mode(value){
-		this.mode = isNaN(value) ? MODES.indexOf(value) : value
+		this.mode = isNaN(value) ? TUNING_MODE_NAMES.indexOf(value) : value
 		this.reassignNotes()
 	}
 

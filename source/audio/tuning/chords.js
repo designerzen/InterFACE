@@ -6,18 +6,6 @@ import { createKey } from "./keys"
 import { FREQUENCY_LIST, GENERAL_MIDI_INSTRUMENTS, MIDI_NOTE_NAMES, MIDI_NOTE_NUMBER_MAP } from "./notes"
 import { MELODIC_MINOR_SCALE, MAJOR_SCALE, NATURAL_MINOR_SCALE, SCALES, SCALES_NAMES, TUNING_MODE_NAMES } from "./scales"
 
-export const MODES = [
-	"Major", 
-	"Minor", 
-	"Ionian", 
-	"Dorian", 
-	"Phrygian", 
-	"Lydian", 		// Harmonic Minor
-	"Mixolydian",	// Melodic Minor
-	"Aeolian", 
-	"Locrian"
-]
-
 // Shifted intervals...
 // To go from any specific note to any other specific note
 const INTERVAL_SHIFTS = {
@@ -283,7 +271,7 @@ export const createChordsForNoteNumber = (tonic, scale, mode) => {
 	//ensure that the mode is an index
 	if (isNaN(mode))
 	{
-		mode = MODES.indexOf(mode)
+		mode = TUNING_MODE_NAMES.indexOf(mode)
 	}
 
 	if ( mode === undefined || mode === -1)
@@ -305,7 +293,7 @@ export const createAllChordsForNoteNumber = (noteNumber=0) => {
 	CHORD_INTERVALS.forEach((scaleFormula, scaleIndex) => {
 		const scaleName = CHORD_INTERVALS_NAMES[scaleIndex]
 		const modeMap = new Map() 
-		MODES.forEach((modeName, modeIndex) => {
+		TUNING_MODE_NAMES.forEach((modeName, modeIndex) => {
 			const chords = createChordsForNoteNumber(noteNumber, scaleFormula, modeIndex )
 			modeMap.set(modeName, chords)
 			modeMap.set(modeIndex, chords)
