@@ -1798,9 +1798,12 @@ export default class Person{
 		// always remove the suffixes?
 		const instrumentNameRefined = presetName.replace("-mp3", "")
 
+		// if there is no title set, it can mean that either :
+		// a. this preset is NOT one of the instruments
+		// b. the preset is passed in as a number
 		if (!presetTitle)
 		{
-			presetTitle = getInstrumentTitle(presetName)
+			presetTitle = getInstrumentTitle(presetName) ?? presetName
 		}
 
 		
