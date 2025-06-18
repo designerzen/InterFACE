@@ -126,6 +126,7 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 			}
 
 		}else if (prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.03 ){
+		
 			return EMOTICONS.EMOJI_SMILING_SLIGHTLY
 		}else if (prediction.leftSmirk > 0.1 + prediction.rightSmirk){
 			return EMOTICONS.EMOJI_DIAGONAL_MOUTH
@@ -161,7 +162,7 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 			prediction.rightSmirk > AMOUNT_BEFORE_GRIMMACE &&
 			prediction.mouthStretchRight > AMOUNT_BEFORE_GRIMMACE
 		){
-			return EMOTICONS.EMOJI_GRIMACE
+			return EMOTICONS.EMOJI_GRIMACING
 		}
 		
 		if (
@@ -213,15 +214,6 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 		}
 
 		return EMOTICONS.EMOJI_RIGHT_WINK
-
-		if (prediction.happiness < 0.3)
-		{
-			return ":-|"
-		}else if (prediction.happiness < 0.5){
-			return ":-)"
-		}else if (prediction.happiness <=1){
-			return ":-D"
-		}
 	}	
 
 	if (prediction.lookingRight && prediction.rightSmirk > prediction.leftSmirk)
@@ -250,6 +242,18 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// // 
 	// prediction.leftSmirk
 	// prediction.rightSmirk	
+
+	if (prediction.leftEyebrowRaisedBy > 0.1 && prediction.rightEyebrowRaisedBy > 0.1 )
+	{
+		return EMOTICONS.EMOJI_FLUSHED
+	}
+
+
+	if (prediction)
+	{
+		return EMOTICONS.EMOJI_PERSEVERING
+	}
+			
 
 	// No EMOJI detected
 	return EMOTICONS.EMOJI_NEUTRAL

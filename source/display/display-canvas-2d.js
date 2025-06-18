@@ -448,10 +448,13 @@ export default class Display2D extends AbstractDisplay{
 		return data
 	}
 
-	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0 , activeCircleIndex=-1){
+	/**
+	 * 
+	 */
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0 , activeCircleIndex=-1, flipX =false ){
 		const size = 54
 		// console.info("drawEmoticon", x, y, emoji )
-		drawRotatedText( this.canvasContext, x, y+5, emoji, size, rotationZ, rotationX, rotationY, "center", "noto-emoji", false )
+		drawRotatedText( this.canvasContext, x, y+5, emoji, size, rotationZ, rotationX, rotationY, "center", "noto-emoji", false, flipX )
 	
 		// draw the positions for the actual scales
 		const data = this.getNoteCircleData( x, y, 90, size )

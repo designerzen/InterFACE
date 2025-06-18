@@ -268,6 +268,7 @@
 export const EMOJI_NEUTRAL = "😐"
 export const EMOJI_NEUTRAL_EYES_CLOSED = "😑"
 export const EMOJI_LEFT_WINK = "😉"
+export const EMOJI_RIGHT_WINK = "😉"
 export const EMOJI_DIAGONAL_MOUTH = "🫤"
 export const EMOJI_EYES_ROLLING_UP = "🙄"
 export const EMOJI_SMILING_SLIGHTLY = "🙂"
