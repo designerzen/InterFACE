@@ -597,7 +597,7 @@ export default class Person{
 		this.parameterRecorder = new ParamaterRecorder()
 		this.isRecordingParameters = options.recordData ?? false
 	
-		this.debug = true // this.options.debug
+		this.debug = this.options.debug
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
