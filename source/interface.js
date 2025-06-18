@@ -1137,43 +1137,6 @@ export const createInterface = (
 
 	// INTERACTIONS -----------------------------------------------------------------
 
-	const addGamePadControlToUser = (personIndex, person) => {
-		
-		// see if there are any gamepads connected - let's go te whole hog!
-		const gamePad = new GamePad( personIndex )
-		gamePad.on( (buttonName, value) => {
-			switch(buttonName)
-			{
-				case "disconnected":
-					setToast("GamePAD Unplugged")
-					break
-
-				case "connected":
-					setToast(value)
-					break
-
-				// open sidebar
-				case "start": 
-				case "select":	
-					person.showForm() 
-					break
-				
-				case "dup": break
-				case "dright": 
-					person.loadPreviousInstrument()
-					break
-
-				case "ddown": break
-				case "dleft": 
-					person.loadPreviousInstrument()
-					break
-			}
-		})
-		return gamePad
-	}
-	
-
-
 	/**
 	 *  Add Keyboard listeners and tie in commands
 
@@ -1558,7 +1521,6 @@ export const createInterface = (
 			return modelData
 		}
 		
-
 		// instrument exists but we can't access that part yet
 		// NB. probably still loading...
 		// if (!person.instrument[ noteName ])	

@@ -30,6 +30,8 @@ export const addGamePadEvents = (application) => {
 	let gamePadMode = 0
 	let gamePadPlayerIndex = application.getSelectedPerson()
 
+	let selectedPerson = application.getPerson( gamePadPlayerIndex )
+
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
 		console.info("GAMEPAD:", {button, value, gamePad, heldFor} )
@@ -62,6 +64,16 @@ export const addGamePadEvents = (application) => {
 			case GAME_PAD_CONNECTED:
 				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
 				console.info("Gamepad connected", button, value, gamePad )
+				break
+
+			case COMMANDS.LEFT_STICK_Y: 
+			case COMMANDS.RIGHT_STICK_Y: 
+				person.loadNextInstrument()
+				break
+
+			case COMMANDS.LEFT_STICK_X: 
+			case COMMANDS.RIGHT_STICK_X:
+				person.loadPreviousInstrument()
 				break
 
 			case GAME_PAD_DISCONNECTED:

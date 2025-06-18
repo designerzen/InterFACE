@@ -169,14 +169,14 @@ export default class Person{
 		
 	// Flags
 	useArpeggio = false
-
 	active = false
 	singing = false
+
 	isMouthOpen = false
 	isLeftEyeOpen = true
 	isRightEyeOpen = true
 
-	// 
+	// is the user moving around
 	isUserActive = true
 
 	// if we are repeating our bars...
@@ -612,33 +612,17 @@ export default class Person{
 			// Create our side bar and instrument selector for m
 			//this.setupForm().then(()=>{
 				
-				this.button.addEventListener( 'mousedown', e =>{ 
-					//console.log("mouse down")
-					this.onFaceTouchStart(e) 
-					document.addEventListener('mouseup', e => this.onFaceTouchEnd(e), {once:true})
-				})
+				// force scope
+				this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
+				this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
 
-				// this.button.addEventListener( 'mouseup', e => {
-				// 	console.log("mouse up")
-				// 	this.onFaceTouchEnd(e) 
-				// })
+				this.button.addEventListener( 'pointerdown', this.onFaceTouchStart )
 
-				this.button.addEventListener( 'touchstart', e =>{ 
-					//console.log("touch start")
-					this.onFaceTouchStart(e) 
-					document.addEventListener('touchend', e => this.onFaceTouchEnd(e), {once:true})
-				})
-
-				// this.button.addEventListener( 'touchend', e => {
-				// 	console.log("touch end")
-				// 	this.onFaceTouchEnd(e) 
-				// })
-
-				this.button.addEventListener( 'mouseover', event => {
+				this.button.addEventListener( 'pointerenter', event => {
 					this.isMouseOver = true
 				})
 
-				this.button.addEventListener( 'mouseout', event => {
+				this.button.addEventListener( 'pointerleave', event => {
 					this.isMouseOver = false
 				})
 
@@ -1980,7 +1964,7 @@ export default class Person{
 		await chordInstrument.loaded
 
 		// turn it into an arp
-		// chordInstrument.arpeggiate = true
+		chordInstrument.arpeggiate = this.useArpeggio
 		
 
 		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
@@ -2079,11 +2063,12 @@ export default class Person{
 	}
 
 	/**
-	 * Person has finally died
+	 * Person has finally died - change preset?
 	 */
 	onDead(){
 		console.info("Person Killed at "+this.deadForDuration )
 		this.createdAt = -1
+		this.isUserActive = false
 		this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
 	}
 
@@ -2099,6 +2084,9 @@ export default class Person{
 		this.mouseDownAt = this.now
 		this.inputCoordinates.x = event.clientX
 		this.inputCoordinates.y = event.clientY
+
+		document.addEventListener('pointerup',this.onFaceTouchEnd, {once:true})
+		document.addEventListener('pointercancel', this.onFaceTouchEnd, {once:true})
 		
 		// start mouse pressure animation
 		// drawMousePressure( 0, this.options.mouseHoldDuration )
@@ -2112,9 +2100,10 @@ export default class Person{
 			
 		event.preventDefault()
 		
-		document.removeEventListener('touchend', this.onFaceTouchEnd )
-		document.removeEventListener('mouseup', this.onFaceTouchEnd )
-
+		// just in case there are reemnants
+		document.removeEventListener('pointerup', this.onFaceTouchEnd )
+		document.removeEventListener('pointercancel', this.onFaceTouchEnd )
+		
 		// Gestures -----
 		// if someone just keeps the finger on the screen...
 		if (this.isMouseHeld)
