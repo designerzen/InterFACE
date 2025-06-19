@@ -31,7 +31,7 @@ export const addGamePadEvents = (application) => {
 	let gamePadPlayerIndex = application.getSelectedPerson()
 
 	let selectedPerson = application.getPerson( gamePadPlayerIndex )
-
+	const isUnselected = gamePadPlayerIndex === -1
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
 		console.info("GAMEPAD:", {button, value, gamePad, heldFor} )
@@ -68,12 +68,25 @@ export const addGamePadEvents = (application) => {
 
 			case COMMANDS.LEFT_STICK_Y: 
 			case COMMANDS.RIGHT_STICK_Y: 
-				person.loadNextInstrument()
-				break
+				
 
 			case COMMANDS.LEFT_STICK_X: 
 			case COMMANDS.RIGHT_STICK_X:
 				person.loadPreviousInstrument()
+				break
+
+			case COMMANDS.UP: 
+				application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				break
+			case COMMANDS.DOWN: 
+				application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				break
+			case COMMANDS.LEFT: 
+				person.loadPreviousInstrument()
+				break
+
+			case COMMANDS.RIGHT: 
+				person.loadNextInstrument()
 				break
 
 			case GAME_PAD_DISCONNECTED:
@@ -81,7 +94,6 @@ export const addGamePadEvents = (application) => {
 				console.info("Gamepad disconnected", button, value, gamePad )
 				break
 
-			// open sidebar
 			case COMMANDS.START: 
 				application.setFeedback( "Gamepad START" , 0, 'gamepad' )
 				// if select is also being held....
@@ -90,6 +102,7 @@ export const addGamePadEvents = (application) => {
 				}else{
 					application.toggleBackgroundPercussion()
 				}
+				getRandomPresetForPerson(gamePadPlayerIndex)
 				console.info("Gamepad start", value, { gamePad, gamepadHeld } )
 				break
 			
@@ -126,44 +139,88 @@ export const addGamePadEvents = (application) => {
 				// }else{
 				// 	getPerson(0).hideForm() 
 				// }
-				application.getPerson(0).toggleForm() 
+
+				application.setRandomDrumTimbres()
+				// application.getPerson(gamePadPlayerIndex).toggleForm() 
 				break
 			
 			case COMMANDS.B: 
 				console.info("Gamepad B", value, { gamePad, gamepadHeld, heldFor } )
-				application.getPerson(1).toggleForm() 
+				application.setDiscoMode()
 				break
 			
 			case COMMANDS.X: 
 				console.info("Gamepad X", value, { gamePad, gamepadHeld, heldFor } )
-				application.getPerson(2).toggleForm() 
+				// application.getPerson(2).toggleForm() 
+				if (isUnselected)
+				{
+					application.kit.kcik()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				break
 			
 			case COMMANDS.Y: 
 				console.info("Gamepad Y", value, { gamePad, gamepadHeld, heldFor } )
-				application.getPerson(3).toggleForm() 
+				// application.getPerson(3).toggleForm() 
+				if (isUnselected)
+				{
+					application.kit.snare()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				break
 			
 			// If we are in a certain mode...
 			// adapt 
 			case COMMANDS.LB: 
-				application.stateMachine.get("")
+				// application.stateMachine.get("")
 				console.info("Gamepad LB", value, { gamePad, gamepadHeld, heldFor } )
+				if (isUnselected)
+				{
+					application.kit.hat()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				break
 			
 			case COMMANDS.LB: 
+				if (isUnselected)
+				{
+					application.kit.clack()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				console.info("Gamepad LB", value, { gamePad, gamepadHeld, heldFor } )
 				break
 
 			case COMMANDS.RB: 
+				if (isUnselected)
+				{
+					application.kit.hat()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				console.info("Gamepad RB", value, { gamePad, gamepadHeld, heldFor } )
 				break
 
 			case COMMANDS.LT: 
+				if (isUnselected)
+				{
+					application.kit.kick()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				console.info("Gamepad LT", value, { gamePad, gamepadHeld, heldFor } )
 				break
 
 			case COMMANDS.RT: 
+				if (isUnselected)
+				{
+					application.kit.snare()
+				}else{
+					//application.getPerson(gamePadPlayerIndex) 
+				}
 				console.info("Gamepad RT", value, { gamePad, gamepadHeld, heldFor } )
 				break
 

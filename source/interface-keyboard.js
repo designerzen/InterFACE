@@ -301,24 +301,71 @@ const addKeyboardEvents = ( application ) => {
 				application.setRandomDrumTimbres()
 				break
 		
-			// Swutch between the various displays
-			case "F1":
+			// // Swutch between the various displays
+			// case "F1":
+			// 	event.preventDefault()
+			// 	application.switchDisplay( DISPLAY_CANVAS_2D, predictionLoop )
+			// 	break
+			// case "F2":
+			// 	event.preventDefault()
+			// 	application.switchDisplay( DISPLAY_MEDIA_VISION_2D, predictionLoop )
+			// 	break
+			// case "F3":
+			// 	event.preventDefault()
+			// 	application.switchDisplay( DISPLAY_WEB_GL_3D, predictionLoop )
+			// 	break
+			// case "F4":
+			// 	event.preventDefault()
+			// 	application.switchDisplay( DISPLAY_LOOKING_GLASS_3D, predictionLoop )
+			// 	break
+			// case "F5":
+			// 	event.preventDefault()
+			// 	application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
+			// 	break
+
+			// Media Hotkeys
+
+			// Laucnh Media
+			case "LaunchMediaPlayer":
 				event.preventDefault()
-				application.switchDisplay( DISPLAY_CANVAS_2D, predictionLoop )
+				application.nextInstrument() 
 				break
-			case "F2":
+
+			// Previous Track
+			case "MediaTrackPrevious":
 				event.preventDefault()
-				application.switchDisplay( DISPLAY_MEDIA_VISION_2D, predictionLoop )
+				application.previousInstrument()
 				break
-			case "F3":
+
+			// Play / Pause Percussion
+			case "MediaPlayPause":
 				event.preventDefault()
-				application.switchDisplay( DISPLAY_WEB_GL_3D, predictionLoop )
+				application.toggleBackgroundPercussion()
 				break
-			case "F4":
+
+			// Next Track
+			case "MediaTrackNext":
 				event.preventDefault()
-				application.switchDisplay( DISPLAY_LOOKING_GLASS_3D, predictionLoop )
+				application.nextInstrument() 
 				break
-			case "F5":
+				
+
+
+
+			// Previous Track
+			case "F10":
+				event.preventDefault()
+				application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
+				break
+
+			// Play / Pause Percussion
+			case "F11":
+				event.preventDefault()
+				application.toggleBackgroundPercussion()
+				break
+
+			// Next Track
+			case "F12":
 				event.preventDefault()
 				application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
 				break

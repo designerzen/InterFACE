@@ -214,6 +214,11 @@ const start = () => {
 		// and pass that into the automator to modify behaviour
 		application.addEventListener(APPLICATION_EVENTS.LOADING, e => {
 			console.info("Index is loading app", e )
+			// setLoadProgress(
+			// 	loadProgress,
+			// 	"",
+			// 	true
+			// )
 		})
 
 		application.addEventListener(APPLICATION_EVENTS.LOADED, async(e) => {

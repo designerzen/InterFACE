@@ -58,14 +58,15 @@ import InstrumentManager from './audio/instrument-manager.js'
 
 // Notes, scales and keys
 import Arpeggio from './audio/arpeggio.js'
-import { createKey, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
+import { createKey, FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from './audio/tuning/chords.js'
 import { 
 	convertNoteNameToMIDINoteNumber, 
 	getNoteText, getNoteName, getNoteSound, getFriendlyNoteName, 
 	NOTES_ALPHABETICAL, 
 	MIDI_NOTE_NUMBERS,
-	GENERAL_MIDI_BY_NAME
+	GENERAL_MIDI_BY_NAME,
+	getNoteSoundFromNumber
 } from './audio/tuning/notes.js'
 import { 
 	getGeneralMIDIInstrumentFolders, getInstrumentTitle, 
@@ -222,6 +223,7 @@ export default class Person{
 	noteNumber = -1
 	noteFriendlyName = "C-4"
 	noteVelocity = 0
+	noteIndex = 0
 
 	// last played
 	lastNote = -1
@@ -563,7 +565,6 @@ export default class Person{
 	 * @return {String}
 	 */
 	get currentPresetTitle(){
-		console.warn("Person:currentPresetTitle",  this.presetTitle, this.activeInstrument)
 		return this.presetTitle ?? this.activeInstrument ? this.activeInstrument.activePreset : 'Unloaded'
 	}
 
@@ -976,7 +977,7 @@ export default class Person{
 		// const emoji = recogniseEmoji(this)
 		// options.mouthCutOff
 		this.emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
-		console.info("Emoticon", this.emoticon, {prediction})
+		// console.info("Emoticon", this.emoticon, {prediction})
 		// this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
 	}
 
@@ -1193,9 +1194,9 @@ export default class Person{
 			// display.drawText(textX + 25, textY, this.octave, 24 )
 
 			//  5 * -prediction.pitch
-			const noteIndex = this.lastNoteNumber % 12
+			
 			// draw emoticon but we move it up and down when it looks up and down too
-			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, noteIndex, false )
+			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, false )
 			
 			if (this.debug )
 			{
@@ -1301,44 +1302,45 @@ export default class Person{
 		// -1 => +1 -> convert to 
 		// ignore < -0.5 and > 0.5
 		// we can exagerate a motion by amplyifying it's signal and clamping its output
-		//const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
+		// const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
 		
-
 		const noteData = this.controlMode(prediction, this.options)
 		const { afterTouch, pitchBend, isMinor } = noteData
 		let { octaveNumber, newOctave, noteNumber} = noteData
 
+		// to convert the note into circle of fifths...
 		const hasNoteChanged = this.lastNote !== noteNumber
 		// const hasNoteChanged = this.lastNoteName !== noteName
-		
 	
-
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
+				
 
-
-			
-		
 		// eg. A1 Ab1 C3 etc
 		// if we want a circle-of-fifths style yhing we can use this
 		// FIFTHS_SCALE_KEYS
-		// let noteName = getNoteName(noteFloat, newOctave, isMinor, FIFTHS_SCALE_KEYS, FIFTHS_SCALE_KEYS)
-		let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+		let noteName = getNoteName(noteFloat, newOctave, isMinor, FIFTHS_SCALE_KEYS, FIFTHS_SCALE_KEYS)
 		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
-		// eg. Do Re Mi
-		let noteSound = getNoteSound(noteFloat, isMinor)	
+		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
 		
 		// MIDI Note Number 0-127
 		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
 		
+		// eg. Do Re Mi
+		// let noteSound = getNoteSound(noteFloat, isMinor)	
+		let noteSound = getNoteSoundFromNumber(noteNumberForMIDI)	
+		
+		// convert that one note into a chord
 		const chords = getMusicalDetailsFromEmoji(noteNumberForMIDI, this.emoticon)
 		// const chord = chords.get("major").get(0)
 
 		// for the next note  0 -> 2 : 0.5 -> 1.5
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
-	
-		// console.info( "noteData", {noteFloat, noteSound, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
+		// save position on the keyboard for visual purposes ONLY
+		this.noteIndex = Math.round(noteFloat * 12)
+
+		// console.info( "noteData", {noteFloat, noteSou nd, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
 		
 /*
 		// swap em arounnd!??
@@ -1352,17 +1354,13 @@ export default class Person{
 		// straight at screen to positive below and negative above
 		const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
 		
-
 		// FIXME: if we don't want the happy notes...
 		const isMinor = prediction.isFacingRight
-
-
 
 		// eg. A1 Ab1 C3 etc
 		const noteName = getNoteName(noteFloat, newOctave, isMinor)
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(noteFloat, isMinor)
-
 */
 		
 		
@@ -1403,18 +1401,16 @@ export default class Person{
 		// volume is an log of this
 		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) * (1 - this.percentageDead ) //- 0.1
 		
-		console.info( "Sing emotion",this.emoticon, { chords, noteName, noteSound, pitchBend, 
-			octaveNumber, newOctave,
-			noteNumber,
-			noteName,
-			noteSound,
-			noteNumberForMIDI,
-			friendlyNoteName, noteObject
-		})
-
+		// console.info( "Sing emotion",this.emoticon, { chords, noteName, noteSound, pitchBend, 
+		// 	octaveNumber, newOctave,
+		// 	noteNumber,
+		// 	noteName,
+		// 	noteSound,
+		// 	noteNumberForMIDI,
+		// 	friendlyNoteName, noteObject
+		// })
 
 		
-
 		// you want the scale to be from 0-1 but from 03-1
 		let newVolume = amp
 		let note = -1
@@ -1426,7 +1422,6 @@ export default class Person{
 		this.lastNoteNumber = this.noteNumber 
 		this.lastNoteFriendlyName = this.noteFriendlyName
 		this.lastEmoticon = this.playingEmoticon
-
 
 		// save new
 		this.note = noteNumber
@@ -1760,8 +1755,8 @@ export default class Person{
 	
 	/**
 	 * Load a specific patch for this Person's active instrument
-	 * TODO: Add loading events
 	 * @param {String} presetName Name of the standard instrument to load
+	 * @param {String} presetTitle Title of the standard instrument to load
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadPreset(presetName, presetTitle, progressCallback){
