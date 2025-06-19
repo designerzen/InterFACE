@@ -329,7 +329,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			
 			// we load the audio buffers from the soundfont
 			// in the { A4:AudioBuffer} format
-			this.instrument = await this.soundfont.loadPreset( presetNameOrObject, { ...options } )
+			this.instrument = await this.soundfont.loadPreset( presetNameOrObject, { ...options }, progressCallback )
 
 			// FIXME: Send the -mp3 version...
 			//this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, instrumentPack, progressCallback )

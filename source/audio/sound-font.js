@@ -394,9 +394,9 @@ export default class SoundFont{
 	async loadPresets( presetNames, options={}, onProgressCallback=null ){
 
 		const simultaneous = options.simultaneous ?? 1
-		
 		const output = []
-
+		presetNames = rearrangeArrayBySnake( presetNames , options.startIndex ?? 0 )
+			
 		// if a single string was provided, convert to array
 		if (typeof presetNames === "string")
 		{
