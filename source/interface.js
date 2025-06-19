@@ -494,6 +494,9 @@ export const createInterface = (
 	let musicalKeyboard	
 	let quanitiser
 
+	// Comms IO
+	let broadCast
+
 	// Automation & engager for installation booth setup
 	let automator
 	let useAutomator = true
@@ -534,70 +537,49 @@ export const createInterface = (
 
 	
 	// BROADCAST TO PEERS ---------------------------------------------------------------
+	const monitorBroadCastChannel = () => {
 
-
-	// Set the port for the app to communicate to others
-	const broadCast = new BroadcastChannel(BROADCAST_KEY)
-		
-	// if there are any clock messages during boot up we assume
-	// that means another instance is the master and this is the slave
-	broadCast.onmessage = (event) => {
-		// if there are any messages received before it has loaded
-		// then we assume that this is a slave device to a master somewhere
-		// else
-		if (!isLoading)
-		{
-			// slaves never dispatch events
-			isSlave = true
-			console.log("Received message from master", event)
-			return
-		}
-	
-		// now we have loaded, if we *are* the slave, take the external trigger
-		// and use it to control our timer via externalSync
-		if (isSlave)
-		{
-			switch(event.data.type)
+		// Set the port for the app to communicate to others
+		broadCast = new BroadcastChannel(BROADCAST_KEY)
+			
+		// if there are any clock messages during boot up we assume
+		// that means another instance is the master and this is the slave
+		broadCast.onmessage = (event) => {
+			// if there are any messages received before it has loaded
+			// then we assume that this is a slave device to a master somewhere
+			// else
+			if (!isLoading)
 			{
-				case "clock":
-					// if we want an exclusive clock
-					clock.bypass(true)
-					clock.externalTrigger()
-					break
+				// slaves never dispatch events
+				isSlave = true
+				console.log("Received message from master", event)
+				return
+			}
+		
+			// now we have loaded, if we *are* the slave, take the external trigger
+			// and use it to control our timer via externalSync
+			if (isSlave)
+			{
+				switch(event.data.type)
+				{
+					case "clock":
+						// if we want an exclusive clock
+						clock.bypass(true)
+						clock.externalTrigger()
+						break
 
-				case "announcement":
-					// if we are a master we may have sent out htis
-					break
+					case "announcement":
+						// if we are a master we may have sent out htis
+						break
 
-				case "demand":
-					// if we are a master we may have sent out htis
-					break
+					case "demand":
+						// if we are a master we may have sent out htis
+						break
+				}
 			}
 		}
-	}
 
-	broadCast.postMessage({type:"announcement"})
-
-	let kickTimbreOptions = getKickPresets()[0]  
-	let snareTimbreOptions = PRESET_SNARES[0]
-	let hatTimbreOptions = PRESET_HIHATS[0]
-
-	const setRandomDrumTimbres = () => {
-		kickTimbreOptions = getRandomKickPreset()
-		snareTimbreOptions = getRandomSnarePreset()
-		hatTimbreOptions = getRandomHihatPreset()
-		// console.info("Setting drum timbres!", 
-		// 	{
-		// 		kickTimbreOptions,
-		// 		snareTimbreOptions,
-		// 		hatTimbreOptions
-		// 	}
-		// )
-		// only show percussion change notification if playing percussion
-		if (stateMachine.get("backingTrack"))
-		{
-			setFeedback( `Percussion REMIX [${kickTimbreOptions.name}, ${snareTimbreOptions.name}, ${hatTimbreOptions.name}]`, 0, 'beats' )	 
-		}
+		broadCast.postMessage({type:"announcement"})
 	}
 
 	// performance indicators
@@ -649,7 +631,7 @@ export const createInterface = (
 	 * @param {Boolean} clear Immediately end any xisting speech
 	 */
 	const speak = (toSay, clear=true) => {
-		if (  stateMachine.get("speak") && hasSpeech() ) 
+		if ( stateMachine.get("speak") && hasSpeech() ) 
 		{
 			try{
 				say(toSay,clear)
@@ -670,8 +652,29 @@ export const createInterface = (
 		setToast(message,time)
 	}
 
-
 	// AUDIO --------------------------------------------------
+
+	let kickTimbreOptions = getKickPresets()[0]  
+	let snareTimbreOptions = PRESET_SNARES[0]
+	let hatTimbreOptions = PRESET_HIHATS[0]
+
+	const setRandomDrumTimbres = () => {
+		kickTimbreOptions = getRandomKickPreset()
+		snareTimbreOptions = getRandomSnarePreset()
+		hatTimbreOptions = getRandomHihatPreset()
+		// console.info("Setting drum timbres!", 
+		// 	{
+		// 		kickTimbreOptions,
+		// 		snareTimbreOptions,
+		// 		hatTimbreOptions
+		// 	}
+		// )
+		// only show percussion change notification if playing percussion
+		if (stateMachine.get("backingTrack"))
+		{
+			setFeedback( `Percussion REMIX [${kickTimbreOptions.name}, ${snareTimbreOptions.name}, ${hatTimbreOptions.name}]`, 0, 'beats' )	 
+		}
+	}
 
 	/**
 	 * Randomise the drum patterns to create a distinct
@@ -748,6 +751,8 @@ export const createInterface = (
 		return clock.BPM
 	}
 
+	// PRESETS & INSTRUMENTS ==========================================================================================
+
 	/**
 	 * Instruments : Load for all people!
 	 * @param {String} method Name of method to call on Person
@@ -769,6 +774,9 @@ export const createInterface = (
 	const nextInstrument = async (callback) => await loadInstrumentPreset('loadNextPreset', callback)
 	const reloadInstrument = async (callback) => await loadInstrumentPreset('reloadPreset', callback)
 
+
+	// PEOPLE ==========================================================================================
+
 	/**
 	 * Instantiate a Person Class and connect it up accordingly
 	 * @param {Number} index Player's index
@@ -786,14 +794,9 @@ export const createInterface = (
 		const locationOptions = new URLSearchParams(window.location.search)
 		const locationData = Object.fromEntries(locationOptions)
 		const name = NAMES[index]
-		// 
 		const prefix = name + '-'
 		const locationInstrument= locationData[prefix+'instrument' ]
 		const locationPreset= locationData[prefix+'preset' ]
-	
-		// look for preset
-		// console.info(personIndex+" PERSON Creating, Please check DATA", {locationData, locationOptions, locationInstrument, locationPreset} )
-		// const NAMES[personIndex]
 
 		// check URL for saved options
 		// defaultPreset:this.options.defaultPreset,
@@ -839,7 +842,6 @@ export const createInterface = (
 		const person = new Person( index, options, savedData ) 
 
 		// Events dispatched by Person :
-		
 		const markInstrumentProgress = (progress,instrumentName) =>{ 
 			const percent = Math.ceil(progress*100)
 			//setFeedback( `${instrumentName} ${Math.ceil(progress*100)} Loading` )
@@ -849,7 +851,6 @@ export const createInterface = (
 				setToast( `${person.instrumentTitle} Loaded!` )
 			}
 		}
-
 
 		// the instrument has changed / loaded so show some feedback
 		person.addListener( EVENT_PERSON_BORN,  (event) => {
@@ -883,7 +884,6 @@ export const createInterface = (
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
 		})
-
 
 		// We assign certain random instruments from groups to each user
 		// we want this to happen in the background
@@ -1000,9 +1000,7 @@ export const createInterface = (
 		{
 			const useGamePad = stateMachine.get("gamePad") ?? false
 			const person = createPerson( index, EYE_COLOURS[index], index, useGamePad )
-		
 			people.push( person )
-			// console.log("getPerson", {person,people})
 			return person
 		} else{
 			return people[index]
@@ -1026,7 +1024,6 @@ export const createInterface = (
 			people.forEach( (person, i) => person.selected = i === selectedPersonIndex )
 		}
 	}
-
 	
 	const deselectPeople = () => {
 		selectPerson()
@@ -1108,9 +1105,6 @@ export const createInterface = (
 		}
 	}
 
-
-
-
 	/**
 	 * Connect one person to a MIDI port
 	 * NB. start on click as things require gesture for permission
@@ -1135,376 +1129,9 @@ export const createInterface = (
 		return port
 	}
 
-	// INTERACTIONS -----------------------------------------------------------------
+	// AUDIO -----------------------------------------------------------------
 
 	/**
-	 *  Add Keyboard listeners and tie in commands
-
-	const registerKeyboard = () => {
-		let numberSequence = ""
-
-		window.addEventListener('keydown', async (event)=>{
-
-			const isNumber = !isNaN( parseInt(event.key) )
-			const focussedElement = document.activeElement
-
-			// Allow Tab to continue to perform its default function
-			if ( event.key !== 'Tab' ){
-				event.preventDefault()
-			}
-			
-			// Contextual hotkeys - if something is focussed then different keys!
-			if (focussedElement && focussedElement !== document.documentElement )
-			{
-				// not body!
-				switch(focussedElement.nodeName)
-				{
-					case "BUTTON":
-						// see if a sample is focussed and if so do something different
-						if ( focussedElement.classList.contains("button-play-pause") ){
-							// find nearest audio element?
-
-							const audio = focussedElement.parentElement.querySelector("audio")
-							const rate = isNumber ? 
-								parseInt(event.key) : 
-								// check to see if this is a+ or - or up or down
-								event.key === 'ArrowRight' ? 
-									audio.playbackRate + 0.1 :
-									event.key === 'ArrowLeft' ? 
-										audio.playbackRate - 0.1 :
-										0.2 + Math.random() * 3
-
-							const pitch = isNumber ? 
-								parseInt(event.key) : 
-								// check to see if this is a+ or - or up or down
-								event.key === 'ArrowUp' ? 
-									audio.detune.value + 10 :
-									event.key === 'ArrowDown' ? 
-										audio.detune.value - 10 :
-										0.2 + Math.random() * 3
-
-							audio.playbackRate = rate
-
-							// value in cents
-							audio.detune.value = pitch
-							
-							return
-
-						}else{
-							
-						}
-						break
-
-					// 
-					case "DIALOG":
-
-						break
-					
-				}
-
-				// we should quit here?
-			}
-
-			
-			switch(event.key)
-			{
-				case 'CapsLock':
-					const isDebug = stateMachine.toggle( "debug" )
-					people.forEach( person => person.debug = isDebug )
-					// speak( isDebug ? "secret mode unlocked" : "disabling developer mode", true)
-					setFeedback( isDebug ? 'Debug Mode enabled' : 'Debug Mode disabled', 0, 'debug' )
-					break
-
-				case 'Del':
-				case 'Delete':
-					setRandomDrumTimbres()
-					break
-
-				case 'Enter':
-					if (event.ctrlKey)
-					{
-						setFeedback( 'Press ESC to exit Full Screen', 0, 'fullscreen' )
-						toggleFullScreen()
-					}else{
-						loadRandomInstrument() 
-					}
-					break
-
-				case 'Space':
-					if (event.ctrlKey)
-					{
-						setFeedback( 'Press ESC to exit Full Screen', 0, 'fullscreen' )
-						toggleFullScreen()
-					}else{
-						loadRandomInstrument() 
-					}
-					break
-
-				case 'QuestionMark':
-				case '?':
-					// read out last bit of help?
-					speak(feedbackElement.textContent, true)
-					break
-	
-				// Arrows set timing
-				case 'ArrowLeft':
-					setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
-					break
-
-				case 'ArrowRight':
-					setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
-					break
-
-				case 'ArrowUp':
-					if (event.ctrlKey || event.shiftKey)
-					{
-						clock.totalBars++
-						setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')						
-					}else{
-						// get existing pitchbend value
-						const person = getPerson(0)
-						const pitchBend = person.activeInstrument.pitchOffset
-						person.activeInstrument.pitchBend( pitchBend+0.5 )
-						// console.log("Pitchbending UP!", getPerson(0) )
-					}
-
-					break
-
-				// change amount of bars
-				case 'ArrowDown':
-					if (event.ctrlKey || event.shiftKey)
-					{
-						clock.totalBars--
-						setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')
-					}else{
-						const person = getPerson(0)
-						const pitchBend = person.activeInstrument.pitchOffset
-						person.activeInstrument.pitchBend( pitchBend-0.5 )
-					}
-					break
-
-				case ',':
-					setNodeCount(-1)
-					break
-
-				case '.':
-					setNodeCount(1)
-					break
-
-				case 'a':
-					kit.kick()
-					break
-
-				case 'b':
-					toggleBackgroundPercussion()
-					break
-			
-				case 'c':
-					stateMachine.toggle("clear", buttonClearToggle )
-					break
-
-				case 'd':
-					setDiscoMode()
-					break
-
-				case 'e':
-					kit.clack()
-					break
-
-				case 'f':
-					toggleVisibility( controlPanel )
-					break
-
-				case 'g':
-					const isVisisble = toggleVisibility(document.getElementById("feedback") )
-					toggleVisibility(document.getElementById("toast") )
-					stateMachine.set("text", isVisisble )
-					break
-
-				case 'h':
-					toggleVisibility(canvasElement)
-					break
-
-				// Change impulse filter in the reverb
-				case 'i':
-					const reverb = await setReverb()
-					setFeedback( `Reverb : '${reverb}' loaded`, 0, 'tempo')
-					break
-
-				case 'j':
-					previousInstrument()
-					break
-
-				// kid mode / advanced mode toggle
-				// case 'k':
-				// 	//doc.documentElement.classList.toggle('advanced', advancedMode)
-				// 	//doc.documentElement.classList.toggle(CSS_CLASS, false)
-				// 	break
-				case 'k':
-					nextInstrument() 
-					break
-
-				// toggle speech
-				case 'l':
-					stateMachine.toggle("speak", buttonSpeakToggle )
-					setFeedback( stateMachine.get("speak") ? `Reading out instructions` : `Staying quiet`, 0, 'voice' )
-					break
-			
-				case 'm':
-					const isMetronomeEnabled = stateMachine.toggle("metronome", buttonMetronomeToggle )
-					setFeedback( isMetronomeEnabled ? `Quantised enabled` : `Quantise disabled` )
-					break
-
-				case 'n':
-					toggleVideoFrameCopy()
-					break
-
-				case 'o':
-					if (midiPerformance){
-
-					}
-					break
-
-				case 'p':
-					if (midiPerformance){
-						const commands = midiPerformance.getNextCommands()
-						commands.forEach( command => {
-							command.type === COMMAND_NOTE_ON ?
-								samplePlayer.noteOn() : 
-								samplePlayer.noteOff()
-						})
-						
-					}
-					break
-
-				case 'q':
-					// FIXME: 
-					stateMachine.toggle("muted" )
-					break
-			
-				case 'r':
-					toggleRecording()
-					break
-
-				case 's':
-					kit.snare()
-					break
-
-				case 't':
-					stateMachine.toggle("text" )
-					break
-
-				case 'u':
-					setRandomDrumPattern()
-					if (event.ctrlKey)
-					{
-						setRandomDrumTimbres()
-					}else if (event.shiftKey){
-						setRandomDrumTimbres()
-					}else{
-						loadRandomInstrument() 
-					}
-					break
-
-				// Hide video
-				case 'v':
-					// FIXME: Also enable sync?
-					toggleVideoOutput()
-					break
-
-				case 'w':
-					kit.cowbell()
-					break
-			
-				case 'x':
-					// if the time since last one is too great clear?
-					const tappedTempo = tapTempo()
-					if (tappedTempo > 1)
-					{
-						setBPM(tappedTempo)
-					}
-					//console.log("tappedTempo",tappedTempo)
-					break
-
-				// Reset help!
-				case 'y':
-					counter = 0
-					break
-			
-
-				// FIXME: Reset help!
-				case 'z':
-					// const predictions = getPerson(0).parameterRecorder.export()
-					// console.log(predictions)
-					setRandomDrumTimbres()
-					break
-			
-				// Swutch between the various displays
-				case "F1":
-					event.preventDefault()
-					switchDisplay( DISPLAY_CANVAS_2D, predictionLoop )
-					break
-				case "F2":
-					event.preventDefault()
-					switchDisplay( DISPLAY_MEDIA_VISION_2D, predictionLoop )
-					break
-				case "F3":
-					event.preventDefault()
-					switchDisplay( DISPLAY_WEB_GL_3D, predictionLoop )
-					break
-				case "F4":
-					event.preventDefault()
-					switchDisplay( DISPLAY_LOOKING_GLASS_3D, predictionLoop )
-					break
-				case "F5":
-					event.preventDefault()
-					switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
-					break
-
-				// don't hijack tab you numpty!
-				// FILTER
-				case 'Tab':
-					break
-
-				default:
-					// check if it is numerical...
-					// or if it is a media key?
-					if (!isNumber)
-					{
-						// loadRandomInstrument()
-						// speak("Loading random instruments",true)	
-					}
-					console.log("Key pressed", {event,isNumber,activeElement} )
-			}
-
-			// Check to see if it is a number
-			if (isNumber)
-			{
-				numberSequence += event.key
-				// now check to see if it is 3 numbers long
-				if (numberSequence.length === 3)
-				{
-					// this is a tempo!
-					const tempo = parseFloat(numberSequence)
-					setBPM(tempo)
-					// reset
-					numberSequence = ''
-				}
-
-			}else{
-
-				numberSequence = ''
-			}
-
-			// we run this when we want to ???
-			// addToHistory(ui, event.key)
-			// console.log("key", ui, event)
-		})
-	}
-	 */
-
-	/**
-	 * 
 	 * Play Audio for a Person using their current face status
 	 * 
 	 * @param {Person} person 
@@ -1822,9 +1449,8 @@ export const createInterface = (
 		})
 	}
 
-
 	
-
+	// DISPLAYs ===============================================================
 
 	/**
 	 * switch display to the specifed one and destroy any existing
@@ -2369,7 +1995,7 @@ export const createInterface = (
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
 				
 		// immediately dispatch the signal to any peers
-		if (stateMachine.get("broadcast") && !isSlave)  
+		if (broadCast && stateMachine.get("broadcast") && !isSlave)  
 		{
 			broadCast.postMessage(values)
 		}
@@ -3020,7 +2646,7 @@ export const createInterface = (
 								globalChordPlayer.noteOn( event.note.number, event.value )
 								console.log("MIDI noteon", event, event.note.identifier, chordsOn)
 								// updateInstrumentWithPerson( samplePlayer, person )
-								// also send out that note
+								// also send 
 								sendMIDIEventToAllDevices(event.type, event)
 								break       
 
@@ -3566,7 +3192,6 @@ export const createInterface = (
 	// We avoid setting feedback until part 2 of loading...
 	//setFeedback("Initialising...<br> Please wait")
 	loadProgressMediator(0, "Loading... Please wait")
-
 	
 	/**
 	 * loadExtras : load uneccessary files used later in this app
@@ -3590,7 +3215,6 @@ export const createInterface = (
 			// dialogShare.showModal()
 			// dialog.hidden = false
 
-
 		}catch(error){
 			// disable the share menu...
 			body.classList.add("sharing-disabled")
@@ -3600,7 +3224,6 @@ export const createInterface = (
 
 	// loop until loaded...
 	const loadingLoop = async () => {
-
 		// console.log("loading", {isLoading, userLocated: isPersonLocatable, isCameraLoading})
 		if ( isLoading )
 		{ 
@@ -3647,7 +3270,9 @@ export const createInterface = (
 		body.classList.toggle(SEARCHING_FOR_USERS_CLASS, true)
 		waitForUser()
 	}
-	
+		
+	// EVENTS =================================================================
+
 	/**
 	 * Loading COMPLETED
 	 */
@@ -3719,8 +3344,6 @@ export const createInterface = (
 		} ) )
 	}
 
-	// EVENTS =================================================================
-
 	/**
 	 * 
 	 * @param {MIDITrack} midiTrack 
@@ -3772,10 +3395,14 @@ export const createInterface = (
 		return results
 	}
 
+
+
 	// ---------------------------------------------------------
 	// BEGIN APP HERE!
 	// ---------------------------------------------------------
+	
 	let havePlayersBeenSelected = false
+	monitorBroadCastChannel()
 
 	// console.log("PhotoSYNTH3D Waiting to select player...", {options} )
 

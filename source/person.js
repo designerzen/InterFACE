@@ -1195,7 +1195,7 @@ export default class Person{
 			//  5 * -prediction.pitch
 			const noteIndex = this.lastNoteNumber % 12
 			// draw emoticon but we move it up and down when it looks up and down too
-			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, noteIndex )
+			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, noteIndex, false )
 			
 			if (this.debug )
 			{

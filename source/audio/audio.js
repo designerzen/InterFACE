@@ -446,7 +446,7 @@ export const convertArrayToBuffer = async (context, arrayBuffer)=>{
 /**
  * Load an Audio Buffer
  * @param {String} path Instrument Sample path
- * @returns {HTMLAudioElement} Audio buffer
+ * @returns {AudioBuffer} Audio buffer
  */
 export const loadAudio = async ( context, path, options ) => {
 	const response = await fetch(path)
@@ -570,14 +570,44 @@ async function loadInstrumentPart (instrumentName, part) {
  * @param {Object} options File path for sample pack
  * @returns {Array<Promise>} Array of instrument load promises that resolve to AudioBuffers
  */
-export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={} ) => {
+export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={} ) => new Promise( (resolve,reject)=>{
+	
 	const parts = rearrangeArrayBySnake( createInstrumentBanks() , options.startIndex )
-	const instruments = parts.map( part => loadAudio(context, `${instrumentPath}/${part}` , options ) )
+	
+	let i = 0
+	const instruments = []
+
+	const loadNextPart = ()=>{
+		const simultaneous = options.simultaneous ?? 12
+		for (let b=0; b<simultaneous;++b)
+		{
+			const part = parts[i]
+			if (!part)
+			{
+				break
+			}
+			const instrument = loadAudio(context, `${instrumentPath}/${part}` , options )
+			instruments.push( instrument )
+			i++
+		}
+
+		if (i < parts.length)
+		{
+			// chunk this somehow...
+			requestAnimationFrame( loadNextPart)
+		}else{
+			resolve(instruments)
+		}
+	}
+
+	loadNextPart()
+
+	// const instruments = parts.map( part => loadInstrumentPart( context, instrumentPath, part , options ) )
+	
 	//const instruments = parts.map( part => loadInstrumentPart(instrumentPath, part) )
 	// eg FluidR3_GM
-	return instruments
-}
-
+	//return instruments
+})
 
 /**
  * This loads the AudioBuffers for the specified audio samples
@@ -590,10 +620,12 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
  */
 export const loadInstrumentFromSoundFontSamples = async( context=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
 		
+	// console.info("loadInstrumentFromSoundFontSamples", path )
 	// Load as individual parts
-	const partPromises = loadInstrumentParts(context, path, options ) 
+	const partPromises = await loadInstrumentParts(context, path, options ) 
 	const parts = options.asArray ? [] : {}
 
+	// wait for promises to resolve...
 	for (let i=0, l=partPromises.length; i < l; ++i)
 	{
 		const part = await partPromises[i]
