@@ -578,7 +578,7 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 	const instruments = []
 
 	const loadNextPart = ()=>{
-		const simultaneous = options.simultaneous ?? 12
+		const simultaneous = options.simultaneous ?? 6
 		for (let b=0; b<simultaneous;++b)
 		{
 			const part = parts[i]
