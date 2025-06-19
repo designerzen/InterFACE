@@ -130,12 +130,12 @@ export default class ChordInstrument extends Instrument{
 	 */
 	async chordOn( chordArray, velocity=1 ){
 	
-		console.error("ChordInstrument:chordOn", chordArray, this.arpeggio )
+		// console.error("ChordInstrument:chordOn", chordArray, this.arpeggio )
 		
 		if (!this.arpeggio)
 		{
 			const chordQuantity = chordArray.length
-			console.error( "ChordInstrument:chordOn", chordQuantity, chordArray )
+			// console.error( "ChordInstrument:chordOn", chordQuantity, chordArray )
 		
 			this.instruments.forEach( (instrument, index) => {
 				const chord = chordArray[index%chordQuantity]
@@ -168,7 +168,7 @@ export default class ChordInstrument extends Instrument{
 
 			const chord = chordArray[this.arpeggioIndex]
 				
-			console.error("ChordInstrument:arpeggioOn",this.arpeggioIndex, this.activeNotes, sameChordAgain ? "repeating" : "new chord", chordArray, chord )
+			// console.error("ChordInstrument:arpeggioOn",this.arpeggioIndex, this.activeNotes, sameChordAgain ? "repeating" : "new chord", chordArray, chord )
 		
 			this.noteOn( chord.noteNumber, chord.velocity ?? velocity, this.arpeggioIndex )
 		}
@@ -180,7 +180,7 @@ export default class ChordInstrument extends Instrument{
 	 * @param {Array<Chord>} chordArray 
 	 */
 	async chordOff( chordArray, velocity=1 ){
-		console.error("ChordInstrument:chordOff", chordArray, this.arpeggio )
+		// console.error("ChordInstrument:chordOff", chordArray, this.arpeggio )
 		// if (!this.arpeggio)
 		// {
 
@@ -202,7 +202,7 @@ export default class ChordInstrument extends Instrument{
 	async allNotesOff(){
 
 		super.allNotesOff()
-		console.error("ChordInstrument:allNotesOff", this.activeNotes )
+		// console.error("ChordInstrument:allNotesOff", this.activeNotes )
 		return 
 	}
 
@@ -272,7 +272,7 @@ export default class ChordInstrument extends Instrument{
 
 		this.instruments = []
 		this.available = false
-		console.error("ChordInstrument:destroyInstruments", this )
+		// console.error("ChordInstrument:destroyInstruments", this )
 	}
 
 	/**
@@ -314,7 +314,7 @@ export default class ChordInstrument extends Instrument{
 		
 		this.polyphony = quantity
 		
-		console.warn(this.polyphony, this.instruments, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
+		// console.warn(this.polyphony, this.instruments, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
 	}
 
 	/**
@@ -331,10 +331,10 @@ export default class ChordInstrument extends Instrument{
 			instrumentInstance = await createInstrumentFromData( audioContext, {type:classOrType, ...options} )
 		}else if (classOrType instanceof Instrument){
 			// an instrument class
-			console.info("Instrument Instance found", {classOrType})
+			// console.info("Instrument Instance found", {classOrType})
 			instrumentInstance = classOrType
 		}else if ( typeof classOrType === 'function' && Object.toString.call(classOrType).substring(0, 5) === 'class'){
-			console.info("Instrument Instance Class found")
+			// console.info("Instrument Instance Class found")
 			instrumentInstance = new classOrType( this.audioContext, options )
 		}else{
 			throw Error("Could not determine instrument type, neither string, Instrument nor Class")

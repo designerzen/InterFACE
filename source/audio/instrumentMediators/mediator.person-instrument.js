@@ -103,7 +103,7 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 				// const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon)
 				// instrument.chordOff(  )
 				instrument.allNotesOff()
-				console.log("Attempting to mute",instrument.type, person.state)
+				// console.log("Attempting to mute",instrument.type, person.state)
 			}else{
 				instrument.noteOff( person.noteNumber, person.noteVelocity )
 			}

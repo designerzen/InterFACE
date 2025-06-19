@@ -167,7 +167,7 @@ export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES
 		noteName = notesRight[noteNumber]
 	}
 
-	console.info( "getNoteName", {percent, octave, facingLeft, noteNumber, noteName, notesLeft, notesRight} )
+	// console.info( "getNoteName", {percent, octave, facingLeft, noteNumber, noteName, notesLeft, notesRight} )
 
 	// here is where we need to do our majic
 	// const BANKS = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
@@ -193,6 +193,7 @@ export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES
  * @returns 
  */
 export const getNoteSound = (percent, isMinor=false) => SOLFEGE_SCALE[ Math.floor( percent * (SOLFEGE_SCALE.length-1) ) ]
+export const getNoteSoundFromNumber = (noteNumber, offset=0) => SOLFEGE_SCALE[ (noteNumber+offset) % SOLFEGE_SCALE.length ]
 
  
 // Pass in A0 get out the equivalent friendly name
@@ -202,7 +203,7 @@ export const getFriendlyNoteName = noteName => NOTE_FRIENDLY_NAME_MAP[noteName] 
 /**
  * Get the note name (in scientific notation) of the given midi number
  *
- * It uses MIDI's [Tuning Standard](https://en.wikipedia.org/wiki/MIDI_Tuning_Standard)
+ * It uses MIDI's [Tuning Standard](https://en.wiki[]pedia.org/wiki/MIDI_Tuning_Standard)
  * where A4 is 69
  *
  * This method doesn't take into account diatonic spelling. Always the same

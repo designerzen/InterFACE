@@ -81,15 +81,15 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 				{
 					 if (prediction.mouthRatio < 0.3){
 						return EMOTICONS.EMOJI_OPEN_MOUTH
+					// }else if (prediction.mouthRatio < 0.4){
+					// 	return EMOTICONS.EMOJI_EXHALING
 					}else if (prediction.mouthRatio < 0.4){
-						return EMOTICONS.EMOJI_EXHALING
-					}else if (prediction.mouthRatio < 0.5){
 						return EMOTICONS.EMOJI_SHOCKED
-					}else if (prediction.mouthRatio < 0.6){
+					}else if (prediction.mouthRatio < 0.5){
 						return EMOTICONS.EMOJI_ANGUISHED
-					}else if (prediction.mouthRatio < 0.8){
+					}else if (prediction.mouthRatio < 0.7){
 						return EMOTICONS.EMOJI_ASTONISHED
-					}else if (prediction.mouthRatio < 0.9){
+					}else if (prediction.mouthRatio < 0.85){
 						return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
 					}
 				}else{
