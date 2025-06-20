@@ -2078,7 +2078,7 @@ export const createInterface = (
 				// Arps are slower on the half note?
 				let measure = arp ? 
 									(i === 4 ? isBar : isHalfNote) :
-									isQuarterNote
+									isHalfNote // isQuarterNote
 
 				// console.info("quantise:person", person, "measure", measure, "arp", arp )
 
@@ -2137,7 +2137,8 @@ export const createInterface = (
 		// FIXME: Just expand the patterns with longer gaps
 		// a swing of one will offset every second beat
 		//const swing = 1
-		if ( stateMachine.get("backingTrack") && isQuarterNote)
+		// isQuarterNote
+		if ( stateMachine.get("backingTrack") && isHalfNote)
 		{
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
