@@ -224,10 +224,10 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// raise eyebrow 🤨
 	// EMOJI_RAISED_EYEBROW
 
-	if (prediction.yaw > AMOUNT_BEFORE_SHAKE_X || prediction.yaw < -AMOUNT_BEFORE_SHAKE_X)
-	{
-		return EMOTICONS.EMOJI_SHAKING_HORIZONTALLY
-	}
+	// if (prediction.yaw > AMOUNT_BEFORE_SHAKE_X || prediction.yaw < -AMOUNT_BEFORE_SHAKE_X)
+	// {
+	// 	return EMOTICONS.EMOJI_SHAKING_HORIZONTALLY
+	// }
 
 	if (prediction.pitch > AMOUNT_BEFORE_SHAKE_Y || prediction.pitch < -AMOUNT_BEFORE_SHAKE_Y)
 	{
