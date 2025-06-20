@@ -355,19 +355,44 @@ const addKeyboardEvents = ( application ) => {
 			// Previous Track
 			case "F10":
 				event.preventDefault()
-				application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
 				break
 
 			// Play / Pause Percussion
 			case "F11":
 				event.preventDefault()
-				application.toggleBackgroundPercussion()
 				break
 
 			// Next Track
 			case "F12":
 				event.preventDefault()
-				application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
+				break
+
+			case "F13":
+				event.preventDefault()
+				break
+
+			case "F14":
+				event.preventDefault()
+				break
+
+			case "F15":
+				event.preventDefault()
+				break
+
+			case "F16":
+				event.preventDefault()
+				break
+
+			case "F17":
+				event.preventDefault()
+				break
+
+			case "F18":
+				event.preventDefault()
+				break
+
+			case "F19":
+				event.preventDefault()
 				break
 
 			// don't hijack tab you numpty!
