@@ -58,7 +58,7 @@ import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
 
 // select the avatar you want to use
-const avatar = AVATAR_DATA.droid
+const avatar = AVATAR_DATA.racoon
 
 let data = FACE_LANDMARKS_DATA["0"]
 
@@ -204,8 +204,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		// Reposition and rotate
 
-		const Blendshape = faceMesh.blendShapeProxy
-		const PresetName = THREE.VRMSchema.BlendShapePresetName
+		// const Blendshape = faceMesh.blendShapeProxy
+		// const PresetName = THREE.VRMSchema.BlendShapePresetName
 		
 		// console.error("Blendshapes", {faceMesh, Blendshape, PresetName} )
 		//, Blendshape.getValue(PresetName.CHEEK_PUFF) )
@@ -894,7 +894,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			if (color)
 			{
 				// invertColours
-				text.color = color
+				this.text.color = color
 			}
 
 			if (align)
