@@ -2126,7 +2126,7 @@ export const createInterface = (
 				// personParameters.push(stuff)
 			}
 
-			shouldChangeToNextFilter && display.nextFilter()
+			shouldChangeToNextFilter && display && display.nextFilter()
 		}
 	
 		// to add swing to the beats
