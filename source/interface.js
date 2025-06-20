@@ -929,7 +929,7 @@ export const createInterface = (
 			// const presetData = person.getPresets()[0]
 			
 			// now assign the instrument to the person!
-			person.instrument = await person.loadPreset( preset )
+			// person.instrument = await person.loadPreset( preset )
 
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
