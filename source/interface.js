@@ -924,13 +924,6 @@ export const createInterface = (
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
 		person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async()=>{
-			// the above command should initalise a default sample player rendering the following line obsolete
-			// person.addInstrument( new SampleInstrument(audioContext, audio, {}))
-			// const presetData = person.getPresets()[0]
-			
-			// now assign the instrument to the person!
-			// person.instrument = await person.loadPreset( preset )
-
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
 			// console.error("Loaded Preset for Person", { person, personExportData, preset })
@@ -2060,24 +2053,45 @@ export const createInterface = (
 
 		// const notesPlayed = []
 				
-		// sing note and draw to canvas
-		// chcek if quarternote
-		if( stateMachine.get("quantise") && isHalfNote )
+		// Temporal timing
+		if( stateMachine.get("quantise") )
 		{
-			let shouldChangeToNextFilter = false
 		
+
+			let shouldChangeToNextFilter = isBar
 			const amountOfPeople = people.length
 			for ( let i=0; i<amountOfPeople; ++i )
 			{
 				const person = getPerson(i)
-				
-				// this is a promise but we dont care how it resolves
-				if (person.alive)
+					
+				// sing note and draw to canvas
+				// chcek if quarternote
+				const arp = person.activeInstrument ? 
+								person.activeInstrument.arpeggio : 
+								false
+
+				// this varies depending on the type of instrument...
+				// if it is arpegiatted then we don't play it quite so ofter...
+				// Arps are slower on the half note?
+				const measure = arp ? 
+					isHalfNote : 
+					isQuarterNote
+
+				console.info("quantise:person", person, "measure", measure, "arp", arp )
+
+				if (measure === true)
 				{
-					playPersonAudio( person )
-				}else{
-					stopPersonAudio( person )
+					console.info("STEP", person )
+					// this is a promise but we dont care how it resolves
+					if (person.alive)
+					{
+
+						playPersonAudio( person )
+					}else{
+						stopPersonAudio( person )
+					}
 				}
+				
 				// console.info("clock: person "+person.name+" alive", person.alive, person)
 
 				// update game pads - events are caught elsewhere
@@ -2085,14 +2099,13 @@ export const createInterface = (
 				// {
 				// 	person.gamePad.update()
 				// }
-				
+		
 				// Change filter depending on the user's emoticon!
-				if ( stateMachine.get("disco") && person.isKissing )
+				if ( isBar && stateMachine.get("disco") && person.isKissing )
 				{
 					shouldChangeToNextFilter = true
-				}
-							
-					
+				}					
+												
 				// use person 1's eyes to control other stuff too?
 				// in this case the direction of the pan in disco mode
 				if (i===0)
@@ -2110,6 +2123,7 @@ export const createInterface = (
 				// save data to an array to record
 				// personParameters.push(stuff)
 			}
+
 			shouldChangeToNextFilter && display.nextFilter()
 		}
 	
@@ -2127,7 +2141,7 @@ export const createInterface = (
 			// 	bar, bars, 
 			// 	barsElapsed,})
 			const tempo = tapTempo(true, 1000, 3)
-			console.log("tempo", tempo, {clock} )
+			//console.log("tempo", tempo, {clock} )
 
 			const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 			if ( divisionsElapsed % slower === 0 )
@@ -2247,8 +2261,6 @@ export const createInterface = (
 		// check to see if we have an offline context...
 		offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
  
-
-
 		// DISPLAY --------------------------------------------------------------------------------
 
 		let initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
