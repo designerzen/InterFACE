@@ -147,7 +147,9 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 
 	constructor( canvas, initialWidth=LOOKING_GLASS_PORTRAIT_WIDTH, initialHeight=LOOKING_GLASS_PORTRAIT_HEIGHT, options=DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS ){
 		options = {...DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS, ...options}
-		super( canvas, initialWidth, initialHeight, options.quantity, options )
+	
+		super( canvas, initialWidth, initialHeight, options )
+		
 		if (options.lookingGlassWebXR)
 		{
 			this.lookingGlassWebXR = options.lookingGlassWebXR
@@ -188,7 +190,7 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 		// immediately create the VR Button as the Looking Glass will override it
 		createXRToggleButton( this.renderer, controls )
 
-		console.info("Adding XR button to", controls )
+		console.info("Adding XR button to", this.options, controls, DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS )
 
 		if (connectHardwareButtons)
 		{

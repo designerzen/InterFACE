@@ -141,7 +141,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_WEBGL ){
-		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_WEBGL, options)
+		console.log("XR button", options )
+		options = { ...DEFAULT_OPTIONS_DISPLAY_WEBGL, ...options}
+		console.log("XR button", options )
+
 		super(canvas, initialWidth, initialHeight, options)
 		this.create(options.quantity, options).then( e=>{
 			// ensure that the canvas is in the DOM

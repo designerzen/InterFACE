@@ -2774,7 +2774,7 @@ export const createInterface = (
 			// REDRAW DOM / CANVAS / WEB GL -------------------------------
 			// 'predictionLoop' here is a method passed into this function that is called
 			// on every frame to update the visuals and audio of none quanitsed sounds
-			switchDisplay( displayType, predictionLoop, false )
+			display = await switchDisplay( displayType, predictionLoop, false )
 
 			progressCallback(loadIndex/loadTotal, "Loading Complete!") 
 
@@ -3087,14 +3087,13 @@ export const createInterface = (
 		// allow display type to be changed on the hoof via toggle
 		selects.displays = connectSelect( 'select-display', async(option) => {
 			
-			console.error("Switching display", option.value, {option} )
-			
 			if (option && option.value)
 			{
 				try{
 					const displayType = option.value
 					display = await switchDisplay( displayType, predictionLoop )
-					
+					console.error("Switching display", display, option.value, {option} )
+			
 				}catch(error){
 					console.error("Display Issue! Could not initiate display", error)
 				}
