@@ -1966,14 +1966,14 @@ export default class Person{
 
 		// TODO:
 		// give the second player an arpeggio instead of chords!
-		if (this.personIndex === 1)
+		if (this.personIndex === 0)
 		{
+			// turn it into an arp if the person 
 			chordInstrument.arpeggiate = true
 		}
 
 
-		// turn it into an arp if the person 
-		chordInstrument.arpeggiate = true
+		
 		
 
 		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )

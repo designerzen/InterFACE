@@ -179,7 +179,7 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 			return EMOTICONS.EMOJI_SHAKING
 		}
 
-		return EMOTICONS.EMOJI_NEUTRAL
+		// return EMOTICONS.EMOJI_NEUTRAL
 	}
 
 

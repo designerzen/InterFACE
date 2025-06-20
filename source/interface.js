@@ -2063,6 +2063,9 @@ export const createInterface = (
 			for ( let i=0; i<amountOfPeople; ++i )
 			{
 				const person = getPerson(i)
+
+				// fourth person has a special mode
+				// slow mode
 					
 				// sing note and draw to canvas
 				// chcek if quarternote
@@ -2073,15 +2076,14 @@ export const createInterface = (
 				// this varies depending on the type of instrument...
 				// if it is arpegiatted then we don't play it quite so ofter...
 				// Arps are slower on the half note?
-				const measure = arp ? 
-					isHalfNote : 
-					isQuarterNote
+				let measure = arp ? 
+									(i === 4 ? isBar : isHalfNote) :
+									isQuarterNote
 
-				console.info("quantise:person", person, "measure", measure, "arp", arp )
+				// console.info("quantise:person", person, "measure", measure, "arp", arp )
 
 				if (measure === true)
 				{
-					console.info("STEP", person )
 					// this is a promise but we dont care how it resolves
 					if (person.alive)
 					{
