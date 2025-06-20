@@ -229,10 +229,10 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// 	return EMOTICONS.EMOJI_SHAKING_HORIZONTALLY
 	// }
 
-	if (prediction.pitch > AMOUNT_BEFORE_SHAKE_Y || prediction.pitch < -AMOUNT_BEFORE_SHAKE_Y)
-	{
-		return EMOTICONS.EMOJI_SHAKING_VERTICALLY
-	}
+	// if (prediction.pitch > AMOUNT_BEFORE_SHAKE_Y || prediction.pitch < -AMOUNT_BEFORE_SHAKE_Y)
+	// {
+	// 	return EMOTICONS.EMOJI_SHAKING_VERTICALLY
+	// }
 
 	// prediction.leftEyeClosed
 	// prediction.rightEyeClosed
