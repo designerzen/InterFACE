@@ -102,6 +102,34 @@ export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
 }
 
+ const lerpMorphTarget = (target, value, speed = 0.1) => {
+    scene.traverse((child) => {
+		if (child.isSkinnedMesh && child.morphTargetDictionary) {
+			const index = child.morphTargetDictionary[target]
+			if (
+				index === undefined ||
+				child.morphTargetInfluences[index] === undefined
+			) {
+				return
+			}
+
+			// now lerp the shape twoards the target
+			child.morphTargetInfluences[index] = THREE.MathUtils.lerp(
+				child.morphTargetInfluences[index],
+				value,
+				speed
+			)
+
+			if (!setupMode) {
+			try {
+				set({
+					[target]: value,
+				})
+			} catch (e) {}
+			}
+		}
+    })
+}
 	
 /**
  * Three JS Based with Web VR renderer
@@ -313,7 +341,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		text.position.x = 0
 		text.position.y = +0.88
 		text.font = FONT
-		text.fontSize = 0.08
+		text.fontSize = 0.12
 		text.anchorX = 'center'
 		text.anchorY = 'top'
 		text.color = THREE.Color.NAMES.white
@@ -1022,7 +1050,12 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				const blendShapeIndex = this.faceMesh.morphTargetDictionary[blendShape.categoryName] // ?? this.faceMesh.morphTargetDictionary[blendShape.index]
 				if (blendShapeIndex && blendShapeIndex > -1)
 				{
-					this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
+					this.faceMesh.morphTargetInfluences[blendShapeIndex] = THREE.MathUtils.lerp(
+						this.faceMesh.morphTargetInfluences[blendShapeIndex],
+						blendShape.score,
+						0.5
+					)
+					// this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
 				}
 			})	
 			
