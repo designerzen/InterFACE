@@ -159,6 +159,7 @@ import { tapTempo } from './timing/timer.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
+import { FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -931,15 +932,20 @@ export const createInterface = (
 					break
 
 				case 2:
-					// 
+					person.leftFacingKeys = FIFTHS_SCALE_KEYS
+					person.rightFacingKeys = FIFTHS_SCALE_KEYS
 					break
 
 				case 3:
+					person.leftFacingKeys = MAJOR_SCALE_KEYS
+					person.rightFacingKeys = MINOR_SCALE_KEYS
+					
 					break
 						
 				case 0:
 				default:
 					// sympathetic chords 
+					
 					break
 			}
 
