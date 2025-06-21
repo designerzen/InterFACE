@@ -141,10 +141,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_WEBGL ){
-		console.log("XR button", options )
 		options = { ...DEFAULT_OPTIONS_DISPLAY_WEBGL, ...options}
-		console.log("XR button", options )
-
+		
 		super(canvas, initialWidth, initialHeight, options)
 		this.create(options.quantity, options).then( e=>{
 			// ensure that the canvas is in the DOM
@@ -738,9 +736,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				{
 					faceMesh = vrm.scene
 					improveVRMPerformance( faceGroup, vrm )
-
-					
-					
 				}
 
 				console.info("Face Model loaded", {faceGroup, faceMesh, vrm, expressionManager:faceMesh.expressionManager })
@@ -800,12 +795,12 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 				this.morphable = faceMesh.morphTargetInfluences && faceMesh.morphTargetDictionary
 
-				if (this.morphable)
-				{
-					console.info("MORPH geometries", { faceMesh } , this.faceMeshSize ) 
-				}else{
-					console.info("NOMORPH geometries", { faceMesh } , this.faceMeshSize ) 
-				}
+				// if (this.morphable)
+				// {
+				// 	console.info("MORPH geometries", { faceMesh } , this.faceMeshSize ) 
+				// }else{
+				// 	console.info("NOMORPH geometries", { faceMesh } , this.faceMeshSize ) 
+				// }
 				
 				resolve( { faceMesh, faceGroup, geometry:liveFaceGeometry } )
 			} )
