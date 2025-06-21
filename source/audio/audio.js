@@ -570,14 +570,14 @@ async function loadInstrumentPart (instrumentName, part) {
  * @param {Object} options File path for sample pack
  * @returns {Array<Promise>} Array of instrument load promises that resolve to AudioBuffers
  */
-export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={} ) => new Promise( (resolve,reject)=>{
+export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={} ) => new Promise( async (resolve,reject)=>{
 	
 	const parts = rearrangeArrayBySnake( createInstrumentBanks() , options.startIndex )
 	
 	let i = 0
 	const instruments = []
 
-	const loadNextPart = ()=>{
+	const loadNextPart = async ()=>{
 		const simultaneous = options.simultaneous ?? 6
 		for (let b=0; b<simultaneous;++b)
 		{
@@ -591,10 +591,12 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 			i++
 		}
 
+		await Promise.allSettled(instruments)
+
 		if (i < parts.length)
 		{
 			// chunk this somehow...
-			requestAnimationFrame( loadNextPart)
+			requestAnimationFrame( loadNextPart )
 		}else{
 			resolve(instruments)
 		}
