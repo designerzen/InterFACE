@@ -129,11 +129,13 @@ export const getRandomPresetForPerson = (personIndex) => {
 		case 2:
 			return getRandomBasslinePresetIndex()
 		case 3:
-			return getRandomBeatsPresetIndex()
-		default:
 			return getRandomLeadPresetIndex()
+		default:
+			return getRandomBeatsPresetIndex()
 	}
 }	 
+
+
 
 const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 	return `hsla(${hue%360},${saturation}%,${luminosity}%,${1-alpha})`
@@ -186,8 +188,6 @@ export default class Person{
 	isPlayingBack = false
 	// is the instrument panel selection form visibile
 	isFormShowing = false
-	// is a sample based instrument loading still?
-	instrumentLoading = false
 	// is the MIDI port active?
 	isMIDIActive = false
 
@@ -207,12 +207,12 @@ export default class Person{
 
 	// internal person frame counter
 	counter = 0
-
-	arpeggio
-
 	tracks = 0
-
 	octave = 4
+
+	// MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS
+	leftFacingKeys = FIFTHS_SCALE_KEYS
+	rightFacingKeys = FIFTHS_SCALE_KEYS
 
 	pitchBendValue = 1
 
@@ -224,6 +224,8 @@ export default class Person{
 	noteFriendlyName = "C-4"
 	noteVelocity = 0
 	noteIndex = 0
+
+	arpeggio
 
 	// last played
 	lastNote = -1
@@ -417,6 +419,7 @@ export default class Person{
 
 	/**
 	 * Is the instrument currently loading
+	 * is a sample based instrument loading still?
 	 * @returns {Boolean} are samples loading
 	 */
 	get instrumentLoading(){
@@ -1317,12 +1320,9 @@ export default class Person{
 				
 
 		// eg. A1 Ab1 C3 etc
-		// if we want a circle-of-fifths style yhing we can use this
-		// FIFTHS_SCALE_KEYS
-		let noteName = getNoteName(noteFloat, newOctave, isMinor, FIFTHS_SCALE_KEYS, FIFTHS_SCALE_KEYS)
-		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
-		// let noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
-		
+		// if we want a circle-of-fifths style we can use the scales here
+		let noteName = getNoteName(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
+
 		// MIDI Note Number 0-127
 		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
 		
