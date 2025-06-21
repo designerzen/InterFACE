@@ -183,6 +183,14 @@ export const DEFAULT_OPTIONS = {
 	// FIXME:
 	midi:true,
 
+	// The MIDI relay option will send any MIDI messages received back out
+	// to all the channels specified - this can cause infinite loops if misused
+	midiRelay:true,
+
+	// Do we augment the MIDI messages with additional notes
+	// based on the user's current mood
+	midiSympathiser:true,
+
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
 
