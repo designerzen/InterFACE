@@ -242,6 +242,7 @@ export const createInterface = (
 	// Fix dialogs and bind them with events
 	const dialogs = setupDialogs()
 
+	// 
 	let canvasVideoElement = doc.getElementById('photosynth-canvas')
 	let canvasSandwichElement = doc.getElementById('photosynth-sandwich')
 	let canvasOverlayElement = doc.getElementById('photosynth-overlay')
@@ -299,7 +300,6 @@ export const createInterface = (
 
 
 	
-
 
 
 	// update progress gradually like the old flash days!
@@ -1233,7 +1233,7 @@ export const createInterface = (
 			}
 		})
 
-		// FIXME: For quick demo of webmidi
+		// For quick demo of webmidi - send person data to midi
 		if (webMidi)
 		{
 			updateWebMIDIWithPerson(person)
@@ -2171,6 +2171,8 @@ export const createInterface = (
 			//console.log(midi)
 			// const MIDIoutput = WebMidi.outputs[0]
 			// SEND OUT Midi to every connected MIDI device
+			
+			//sendMIDIEventToAllDevices("clock")
 			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
 		}
 
@@ -2618,6 +2620,9 @@ export const createInterface = (
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable)
 		{
+			const relayMIDI = stateMachine.get("midiRelay")
+			const MIDISympathiser = stateMachine.get("midiRelay")
+
 			const sendMIDIEventToAllDevices = (type, event) => {
 				switch(event.message.type){
 					case "noteon":
@@ -2626,6 +2631,9 @@ export const createInterface = (
 					case "noteoff":
 						WebMidi.outputs.forEach(output => output.stopNote(event.note.number))
 						break
+					case "clock":
+						WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
+						break
 				}
 			}
 
@@ -2633,56 +2641,84 @@ export const createInterface = (
 			try{
 				let lastClockTimestamp = 0
 				// FIXME: use the midi manager
+				console.info("WebMidi.enabling...", {sysex:false, software:true })
 				webMidi = await WebMidi.enable({sysex:false, software:true })
+				console.info("WebMidi.enabled", {sysex:false, software:true })
+				
 				// Inputs
 				WebMidi.inputs.forEach(input =>{
+
+					const playingMIDINotes = new Map()
 					input.addListener("midimessage", event => {
 						switch(event.message.type){
+							case "start": break
+							case "stop": break
+							case "continue": break
 							case "clock":
 								// if we want an exclusive clock
+								// NB. this will be sent out to all channels in the loop
 								clock.bypass(true)
 								clock.externalTrigger()
 								break       
 						}
+					})
 
+					input.addListener("noteon", event => {
+						
 						// TODO: use the midi in and the people to augment
 						// the note played with chords that match the facial expression
 						// const amountOfInputs = WebMidi.inputs.length         
 						const person = getPerson(0)
 						let previousEmoticon = person.emoticon
-						switch(event.type){
-							case "noteon":
-								// depending on how many users there are...
-								// we send each channel to a different person
-								previousEmoticon = person.emoticon
-								
-								// augment note into chord using event.note.number as the tonic
-								const chordsOn = getMusicalDetailsFromEmoji(event.note.number, person.emoticon)
-								globalChordPlayer.noteOn( event.note.number, event.value )
-								console.log("MIDI noteon", event, event.note.identifier, chordsOn)
-								// updateInstrumentWithPerson( samplePlayer, person )
-								// also send 
-								sendMIDIEventToAllDevices(event.type, event)
-								break       
+						
 
-							case "noteoff":
-								// we want to use th e previous emoticon otherwise we will miss some on notes
-								const chordsOff = getMusicalDetailsFromEmoji(event.note.number, previousEmoticon ?? person.emoticon)
-								globalChordPlayer.noteOff( event.note.number, event.value )
-								console.log("MIDI noteoff", event, event.note.identifier, chordsOff )
-							
-								// updateInstrumentWithPerson( samplePlayer, person )
-								sendMIDIEventToAllDevices(event.type, event)
-								break     
+						// depending on how many users there are...
+						// we send each channel to a different person
+						
+						// augment note into chord using event.note.number as the tonic
+						const chordDetails = getMusicalDetailsFromEmoji(event.note.number, person.emoticon)
+						
+						playingMIDINotes.set( event.note.number, chordDetails )	
+						// globalChordPlayer.noteOn( event.note.number, event.value )
+						// globalChordPlayer.chordOn( event.note.number, event.value )
 
-							default:
-								//console.log("MIDI Message", event)
+						
+						// updateInstrumentWithPerson( samplePlayer, person )
+						// also send 
+					
+						// send out original event
+						if (relayMIDI)
+						{
+							sendMIDIEventToAllDevices(event.type, event)
+							console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
+						}
+
+						// send out augmented events
+						if (MIDISympathiser)
+						{
+							for (const chord of chordDetails)
+							{
+								//sendMIDIEventToAllDevices(event.type, chord)
+								console.log("MIDISympathiser noteon", chord )
+							}
 						}
 					})
+
+					input.addListener("noteoff", event => {
+						// NOTEOFF
+						// get the chord details
+						const playingChord = playingMIDINotes.get( event.note.number )	
+						globalChordPlayer.noteOff( event.note.number, event.value )
+						console.log("MIDI noteoff", event, event.note.identifier, playingChord )
+					
+						// updateInstrumentWithPerson( samplePlayer, person )
+						sendMIDIEventToAllDevices(event.type, event)
+					})
+
 					console.log("MIDI INPUT", input.manufacturer, input.name)
 				})
 				// Outputs
-				WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
+				// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
 				// immediately hook into the clock events...
 			}catch(error){
 
@@ -2695,6 +2731,9 @@ export const createInterface = (
 		// This first tests for functions to exist
 		if (stateMachine.get("midi") && midiManager.available)
 		{
+			// The MIDI relay option will send any MIDI messages received back out
+			
+
 			// then we attempt to connect to it
 			try{
 				const MIDIConnectionClasses = [WebMIDIClass]
@@ -3106,9 +3145,9 @@ export const createInterface = (
 			{
 				try{
 					const displayType = option.value
-					display = await switchDisplay( displayType, predictionLoop )
-					console.error("Switching display", display, option.value, {option} )
-			
+					const newDisplay = await switchDisplay( displayType, predictionLoop )
+					console.error("Switching display", newDisplay, option.value, {option} )
+					display = newDisplay
 				}catch(error){
 					console.error("Display Issue! Could not initiate display", error)
 				}
