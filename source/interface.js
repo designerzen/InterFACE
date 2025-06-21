@@ -2276,6 +2276,7 @@ export const createInterface = (
 			if (holographicDisplayQuantity > 0)
 			{
 				initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
+				stateMachine.set("display", DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 				setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
 				progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
 
