@@ -1956,26 +1956,11 @@ export default class Person{
 		// const defaultInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_OSCILLATOR})
 		// const chordInstrument = await createInstrumentFromData( audioContext, {type:INSTRUMENT.TYPE_CHORD})
 
-		
-
 		// wait for instrument data to be avaiable
 		await defaultInstrument.loaded
 		await chordInstrument.loaded
 
-		
-
-		// TODO:
-		// give the second player an arpeggio instead of chords!
-		if (this.personIndex === 0)
-		{
-			// turn it into an arp if the person 
-			chordInstrument.arpeggiate = true
-		}
-
-
-		
-		
-
+	
 		// console.warn(samplePlayerOptions.defaultPreset, "Person created with active instrument", this.activeInstrument, {options:this.options, samplePlayerOptions} )
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( new SoundFontInstrument(audioContext, samplePlayerOptions) ) )
 		// this.addInstrument( new OscillatorInstrument(audioContext, this.gainNode) )
@@ -1989,12 +1974,12 @@ export default class Person{
 		// load an instrument into the chordPlayer
 		chordInstrument.setInstrument( defaultInstrument )
 		
-		console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument}, {options:this.options, defaultInstrumentOptions} )	
+		// console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument}, {options:this.options, defaultInstrumentOptions} )	
 
 		// load the default preset
 		const defaultPreset = await this.loadPreset( defaultInstrumentOptions.defaultPreset )
 
-		console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
+		// console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
 	}
 
 	/**

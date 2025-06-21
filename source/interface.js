@@ -914,11 +914,6 @@ export const createInterface = (
 		// const preset = getFolderNameForInstrument( presetName )
 		//console.error("Person created", {instrument}, {person})
 		
-		if (personOptions.debug)
-		{
-			console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
-			console.info(options)
-		}
 		
 		// console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
 		// we need to wait for the instrument to be loaded before we can start
@@ -926,7 +921,33 @@ export const createInterface = (
 		person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async()=>{
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
-			// console.error("Loaded Preset for Person", { person, personExportData, preset })
+
+			// give the second player an arpeggio instead of chords!
+			switch (person.personIndex)
+			{
+				case 1:
+					// turn it into an arp if the person 
+					chordInstrument.arpeggiate = true
+					break
+
+				case 2:
+					// 
+					break
+
+				case 3:
+					break
+						
+				case 0:
+				default:
+					// sympathetic chords 
+					break
+			}
+
+			if (personOptions.debug)
+			{
+				console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
+				console.info(options)
+			}
 		})
 		
 		/*
