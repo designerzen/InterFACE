@@ -423,7 +423,7 @@ export default class Person{
 	 * @returns {Boolean} are samples loading
 	 */
 	get instrumentLoading(){
-		return this.activeInstrument.isLoading
+		return this.activeInstrument ? this.activeInstrument.isLoading : true
 	}
 
 	/**
@@ -530,7 +530,7 @@ export default class Person{
 	 */
 	get hue(){
 		return this.instrumentLoading ? 
-			this.defaultHue + (90+counter % this.hueRange) : 
+			this.defaultHue + (90+this.counter % this.hueRange) : 
 			this.defaultHue
 	}
 

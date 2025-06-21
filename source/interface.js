@@ -2194,7 +2194,7 @@ export const createInterface = (
 			// SEND OUT Midi to every connected MIDI device
 			
 			//sendMIDIEventToAllDevices("clock")
-			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
+			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock({time:clock.now}) )
 		}
 
 		// we can actually play a midi file here as an accompanying voice!

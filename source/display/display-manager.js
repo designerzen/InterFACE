@@ -117,10 +117,12 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	}
 
 	const newCanvasElement = document.createElement('canvas')
-	// clone all current canvas attribtes to the new canvas
-	Array.from(canvasElement.attributes).forEach(attribute => {
-		newCanvasElement.setAttribute( attribute.nodeName, attribute.nodeValue )
-	})
+
+	// DO NOT clone all current canvas attribtes to the new canvas
+	// as this will likely break due to remnants from threejs and webXR
+	// Array.from(canvasElement.attributes).forEach(attribute => {
+	// 	newCanvasElement.setAttribute( attribute.nodeName, attribute.nodeValue )
+	// })
 
 	// replace some
 	newCanvasElement.width = width // maxWidth > -1 ? Math.min(maxWidth, width) : width
