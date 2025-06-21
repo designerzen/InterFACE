@@ -997,7 +997,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		}else{
 			// ERROR
 			// console.error("Face Mesh Material not available", this )
-		}
+		} 
 	
 
 		// Person drawn to screen
