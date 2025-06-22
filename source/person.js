@@ -66,7 +66,8 @@ import {
 	NOTES_ALPHABETICAL, 
 	MIDI_NOTE_NUMBERS,
 	GENERAL_MIDI_BY_NAME,
-	getNoteSoundFromNumber
+	getNoteSoundFromNumber,
+	convertMIDINoteNumberToName
 } from './audio/tuning/notes.js'
 import { 
 	getGeneralMIDIInstrumentFolders, getInstrumentTitle, 
@@ -1175,8 +1176,17 @@ export default class Person{
 
 			// Main data flow
 			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
-			
-			const extra = playsChords ? Array.from( this.activeInstrument.notes.keys() ) : this.lastNoteFriendlyName 
+			let extra = ""
+			if (playsChords)
+			{
+				const chord =this.activeInstrument.notes.keys()
+				chord.forEach( noteName => {
+					extra += convertMIDINoteNumberToName(noteName)
+				})
+			}else{
+  				extra = this.lastNoteFriendlyName 
+			}
+
 			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""

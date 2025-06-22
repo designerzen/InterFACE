@@ -2072,8 +2072,6 @@ export const createInterface = (
 		// Temporal timing
 		if( stateMachine.get("quantise") )
 		{
-		
-
 			let shouldChangeToNextFilter = isBar
 			const amountOfPeople = people.length
 			for ( let i=0; i<amountOfPeople; ++i )
