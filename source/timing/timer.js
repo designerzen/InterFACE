@@ -300,6 +300,9 @@ export default class Timer {
 		return this.swingOffset / this.divisions
 	}
 
+	get isUsingExternalTrigger(){
+		return this.useExternalClock
+	}
 	// Setters
 
 	/**

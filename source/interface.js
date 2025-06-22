@@ -536,6 +536,9 @@ export const createInterface = (
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
 
+	const killMIDI = () =>{
+		WebMidi && WebMidi.outputs.forEach( MIDIoutput => MIDIoutput.sendAllNotesOff() )
+	}
 	
 	// BROADCAST TO PEERS ---------------------------------------------------------------
 	const monitorBroadCastChannel = () => {
@@ -697,11 +700,19 @@ export const createInterface = (
 	/**
 	 * Toggle the background synthesized percussion
 	 */
+	const startBackgroundPercussion = (updateGUI=true) => {
+		const isEnabled = stateMachine.set( 'backingTrack', true, buttonPercussion )
+		setFeedback( "Backing track starting", 0, 'beats'  )
+	}	
+	
+	const stopBackgroundPercussion = (updateGUI=true) => {
+		const isEnabled = stateMachine.set( 'backingTrack', true )
+		setFeedback( "Ending Backing Track", 0, 'silence' )
+	}
 	const toggleBackgroundPercussion = (updateGUI=true) => {
 		const isEnabled = stateMachine.toggle( 'backingTrack', updateGUI ? buttonPercussion : null )
 		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
 	}
-
 	/**
 	 * Control the "visualiser" feedback
 	 * @param {Boolean} enabled 
@@ -1234,6 +1245,7 @@ export const createInterface = (
 		// console.log("Person:sing", { stuff,noteName,note}, person.instruments )
 
 		// SONIFICATION
+		let audioOutput
 		// Make the Person SING!
 		person.instruments.forEach( async (instrument) => {
 
@@ -1241,18 +1253,18 @@ export const createInterface = (
 			switch( instrument.type )
 			{
 				case "percussion":
-					updtateDrumkitWithPerson( instrument, person )
+					audioOutput = updtateDrumkitWithPerson( instrument, person )
 					break
 
 				default:
-					updateInstrumentWithPerson( instrument, person )			
+					audioOutput = updateInstrumentWithPerson( instrument, person )			
 			}
 		})
 
 		// For quick demo of webmidi - send person data to midi
-		if (webMidi)
+		if (WebMidi && stateMachine.get("midiControl"))
 		{
-			updateWebMIDIWithPerson(person, people)
+			updateWebMIDIWithPerson(person, people, audioOutput)
 		}
 
 		// update the stave with X amount of notes
@@ -2178,14 +2190,11 @@ export const createInterface = (
 		// }
 
 		// Send MIDI clock
-		if (isMIDIAvailable && WebMidi)
+		if (isMIDIAvailable && WebMidi && !clock.isUsingExternalTrigger)
 		{
 			// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
-			//midi.setSongPosition( clock.barProgress * 16383 , {})
-			//console.log(midi)
-			// const MIDIoutput = WebMidi.outputs[0]
+			// midi.setSongPosition( clock.barProgress * 16383 , {})
 			// SEND OUT Midi to every connected MIDI device
-			
 			//sendMIDIEventToAllDevices("clock")
 			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() ) // {time:clock.now}
 			// console.info("midi clock",  WebMidi.time)
@@ -2634,7 +2643,7 @@ export const createInterface = (
 		}
 		
 		// FIXME: Hangs here on certain devices....
-		if (capabilities.webMIDIAvailable)
+		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
 			const relayMIDI = stateMachine.get("midiRelay")
 			const MIDISympathiser = stateMachine.get("midiRelay")
@@ -2661,20 +2670,45 @@ export const createInterface = (
 				webMidi = await WebMidi.enable({sysex:false, software:true })
 				console.info("WebMidi.enabled", {sysex:false, software:true })
 				isMIDIAvailable = true
-				// Inputs
-				WebMidi.inputs.forEach(input =>{
+				
+			}catch(error){
 
+				console.error("WebMidi is available but a connection cannot be established", error)
+			}
+
+			// Inputs
+
+			// Outputs
+			// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
+			// immediately hook into the clock events...
+			
+			// if (stateMachine.get("midiInput"))
+			if (stateMachine.get("midiControl"))
+			{
+				
+				debugger
+				console.info("Observing MIDI Messages" )
+				WebMidi.inputs.forEach(input =>{
+					console.info("Observing MIDI device", input )
 					const playingMIDINotes = new Map()
 					input.addListener("midimessage", event => {
+						console.info("MIDI Message", event )
 						switch(event.message.type){
-							case "start": break
-							case "stop": break
-							case "continue": break
+							case "start": 
+								startBackgroundPercussion()
+								break
+							case "stop": 
+								stopBackgroundPercussion()
+								break
+							case "continue": 	
+								toggleBackgroundPercussion()
+								break
 							case "clock":
 								// if we want an exclusive clock
 								// NB. this will be sent out to all channels in the loop
 								clock.bypass(true)
 								clock.externalTrigger()
+								// console.info("clock", clock )
 								break       
 						}
 					})
@@ -2690,7 +2724,7 @@ export const createInterface = (
 						// save this chord for note off later
 						playingMIDINotes.set( event.note.number, chordDetails )	
 
-						console.log("MIDISympathiser noteon", {chordDetails, playingMIDINotes,event, person} )
+						console.log("MIDI noteon", {chordDetails, playingMIDINotes,event, person} )
 
 						// play midi notes using our Audio Engine...
 						// globalChordPlayer.noteOn( event.note.number, event.value )
@@ -2703,7 +2737,7 @@ export const createInterface = (
 						// send out original event to all connected devices
 						if (relayMIDI)
 						{
-							sendMIDIEventToAllDevices(event.type, event)
+							//sendMIDIEventToAllDevices(event.type, event)
 							console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
 						}
 
@@ -2712,8 +2746,9 @@ export const createInterface = (
 						{
 							for (const chord of chordDetails)
 							{
-								//sendMIDIEventToAllDevices(event.type, chord)
-								console.log("MIDISympathiser noteon", chord )
+								// sendMIDIEventToAllDevices( "noteon", chord)
+								WebMidi.outputs.forEach(output => output.playNote(chord.noteNumber))
+								console.log("MIDISympathiser noteon chordDetails", {chord, input} )
 							}
 						}
 					})
@@ -2721,28 +2756,30 @@ export const createInterface = (
 					input.addListener("noteoff", event => {
 						// NOTEOFF
 						// get the chord details
-						const playingChord = playingMIDINotes.get( event.note.number )	
+						const playingChord = playingMIDINotes.get( event.note.number )
+						console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
 						
+						for (const chord of playingChord)
+						{
+							// sendMIDIEventToAllDevices( "noteon", chord)
+							WebMidi.outputs.forEach(output => output.stopNote(chord.noteNumber))
+							console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
+						}
 						// stop midi notes on our Audio Engine...
 						// globalChordPlayer.noteOff( event.note.number, event.value )
 						// globalChordPlayer.chordOff( event.note.number, event.value )
 						
-						console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
-					
+						
 						// updateInstrumentWithPerson( samplePlayer, person )
-						sendMIDIEventToAllDevices(event.type, event)
+						// sendMIDIEventToAllDevices(event.type, event)
+
+						playingMIDINotes.delete( event.note.number )
 					})
 
 					console.log("MIDI INPUT", input.manufacturer, input.name)
 				})
-				// Outputs
-				// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
-				// immediately hook into the clock events...
-			}catch(error){
-
-				console.error("WebMidi is available but a connection cannot be established", error)
 			}
-
+			
 		}
 
 		// FIXME: ONLY Use webmidi?
@@ -3591,6 +3628,8 @@ export const createInterface = (
 
 		// Exit & save all cookies!
 		window.onbeforeunload = ()=>{
+
+			killMIDI()
 
 			// try and locally store any changes to the interface and settings
 			const saveSession = Object.assign({}, information, {

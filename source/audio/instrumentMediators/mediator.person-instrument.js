@@ -8,19 +8,19 @@ import {
 	STATE_INSTRUMENT_DECAY, 
 	STATE_INSTRUMENT_PITCH_BEND, 
 	STATE_INSTRUMENT_SILENT, 
-	STATE_INSTRUMENT_SUSTAIN 
+	STATE_INSTRUMENT_SUSTAIN,
+	STATE_INSTRUMENT_RELEASE
 } from "../../person.js"
 
 import { INSTRUMENT_TYPE_CHORD } from "../instrument-list.js"
 import { getAllChordsForNoteNumber } from "../tuning/chords.js"
 
 /**
- * MONODPHONIC
  * FIXME: Don't play the audio directly in Person
-			// but instead extract it and pass it to the audioBus
-			// update the stave with X amount of notes
-			// stave.draw(stuff)
-			// update the stave with X amount of notes
+// but instead extract it and pass it to the audioBus
+// update the stave with X amount of notes
+// stave.draw(stuff)
+// update the stave with X amount of notes
 			
  * @param {Person} person 
  */
@@ -42,9 +42,6 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 	switch(person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
-		case STATE_INSTRUMENT_SUSTAIN:
-		case STATE_INSTRUMENT_PITCH_BEND:
-
 			if (isChord)
 			{
 				// create the chord object from the emoji...
@@ -74,11 +71,15 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 				
 				instrument.allNotesOff()
 				instrument.chordOn( chordSequence, person.noteVelocity )
+				person.activeNotes.set( person.noteNumber, chordSequence )
+				return chordSequence
 
 			}else{
 
-				instrument.noteOn( person.noteNumber, person.noteVelocity )
 				person.lastNoteNumber >= 0 && instrument.noteOff( person.lastNoteNumber, 1 )
+				instrument.noteOn( person.noteNumber, person.noteVelocity )
+				person.activeNotes.set( person.noteNumber, [ person.noteNumber] )
+				return [person.noteNumber]
 			}
 		
 			// stop any that are have already started playing
@@ -89,7 +90,11 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 			// console.log("Person", person, person.state, {stuff, noteNumber, noteVelocity} )
 			break
 
+		case STATE_INSTRUMENT_SUSTAIN:
+		case STATE_INSTRUMENT_PITCH_BEND:
 		case STATE_INSTRUMENT_DECAY:
+		case STATE_INSTRUMENT_RELEASE:
+			return person.activeNotes.get( person.noteNumber )
 			break
 
 		// case STATE_INSTRUMENT_RELEASE:
@@ -98,14 +103,22 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 
 		case STATE_INSTRUMENT_SILENT:
 		default:
+			const activeNotes = person.activeNotes.get( person.noteNumber )
+			person.activeNotes.delete( person.noteNumber )
 			if (isChord){
-				// const chordSequence = getMusicalDetailsFromEmoji(person.lastNoteNumber, person.lastEmoticon)
-				// const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon)
-				// instrument.chordOff(  )
-				instrument.allNotesOff()
+				if (activeNotes)
+				{
+					instrument.chordOff( activeNotes, person.noteVelocity )
+				}else{
+					instrument.allNotesOff()
+				}
+				return activeNotes
 				// console.log("Attempting to mute",instrument.type, person.state)
 			}else{
 				instrument.noteOff( person.noteNumber, person.noteVelocity )
+				return [person.noteNumber]
 			}
 	}
+
+	return null
 }

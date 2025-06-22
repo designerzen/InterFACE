@@ -217,6 +217,9 @@ export default class Person{
 
 	pitchBendValue = 1
 
+	// all playiong
+	activeNotes = new Map()
+
 	// now playing
 	note = -1
 	noteName = "C4"
