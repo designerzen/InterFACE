@@ -191,6 +191,14 @@ export const DEFAULT_OPTIONS = {
 	// based on the user's current mood
 	midiSympathiser:true,
 
+	// Should a person send out MIDI events?
+	// NB. if this is true and sympathiser is true, you can get
+	// infinite loops
+	midiControl:true,
+
+	// allow midi input to control stuff too
+	midiInput:true,
+
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
 
