@@ -49,6 +49,7 @@ const eyeBrowStyle = {
 
 export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawingUtils, FaceLandmarker ) => {
 
+	// const isSelected = person.isSelected
 	const prediction = person.data
 	const landmarks = prediction.faceLandmarks
 	const options = person.options
