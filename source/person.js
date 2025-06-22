@@ -543,9 +543,12 @@ export default class Person{
 	
 	/**
 	 * Get's the hue but as an opacity based colour
+	 * Selected person is always brighter and more saturated
 	 */
 	get hsla(){
-		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,${0.5-this.percentageDead*0.5})`
+		const opacity = this.isSelected ? 1 : 0.4-this.percentageDead*0.5
+		const saturation = this.isSelected ? 100 : this.saturation
+		return `hsla(${this.hue},${saturation}%,${this.luminosity}%,${opacity})`
 	}
 
 	/**
@@ -620,6 +623,7 @@ export default class Person{
 				this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
 				this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
 
+				// Face button events
 				this.button.addEventListener( 'pointerdown', this.onFaceTouchStart )
 
 				this.button.addEventListener( 'pointerenter', event => {
@@ -627,6 +631,10 @@ export default class Person{
 				})
 
 				this.button.addEventListener( 'pointerleave', event => {
+					this.isMouseOver = false
+				})
+
+				this.button.addEventListener( 'pointercancel', event => {
 					this.isMouseOver = false
 				})
 

@@ -785,8 +785,8 @@ export const createInterface = (
 	 * @param {?Number} personIndex -  Player number
 	 * @returns {Person} Person fully wired
 	 */
-	const createPerson = (index, eyeColour, personIndex=0, useGamePad=false ) => {
-		
+	const createPerson = (index, eyeColour, personIndex=0 ) => {
+			
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
 	
 		// TODO: load in from the URL and players
@@ -914,8 +914,7 @@ export const createInterface = (
 
 		// const preset = getFolderNameForInstrument( presetName )
 		//console.error("Person created", {instrument}, {person})
-		
-		
+	
 		// console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
@@ -989,15 +988,6 @@ export const createInterface = (
 
 		*/
 
-		// Each Person can be also controlled via GamePad
-		// if (useGamePad)
-		// {
-		// 	const gamePad = addGamePadControlToUser( personIndex, person )	
-		// 	person.gamePad = gamePad
-		// }
-
-		
-		
 		//console.error(name, {instrument, person, savedOptions})
 		
 		// if (midi && midi.outputs && midi.outputs.length > 0) 
@@ -1018,8 +1008,7 @@ export const createInterface = (
 	const getPerson = (index) => {
 		if (people[index] == undefined)
 		{
-			const useGamePad = stateMachine.get("gamePad") ?? false
-			const person = createPerson( index, EYE_COLOURS[index], index, useGamePad )
+			const person = createPerson( index, EYE_COLOURS[index], index )
 			people.push( person )
 			return person
 		} else{
@@ -1263,7 +1252,7 @@ export const createInterface = (
 		// For quick demo of webmidi - send person data to midi
 		if (webMidi)
 		{
-			updateWebMIDIWithPerson(person)
+			updateWebMIDIWithPerson(person, people)
 		}
 
 		// update the stave with X amount of notes

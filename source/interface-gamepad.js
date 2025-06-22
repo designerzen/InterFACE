@@ -12,11 +12,9 @@ import {
 	GamePadManager
 } from "./hardware/gamepad"
 
-
 /**
  * Start monitoring for global gamepad input
  * but ignore them until we are ready
- * 
  * 
  * START will alter the PLAYER INDEX
  * SELECT will alter the 
@@ -32,7 +30,9 @@ export const addGamePadEvents = (application) => {
 
 	let selectedPerson = application.getPerson( gamePadPlayerIndex )
 	const isUnselected = gamePadPlayerIndex === -1
+	
 	const gamePadModes = ["beats", "vfx", "instruments"] 
+
 	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
 		console.info("GAMEPAD:", {button, value, gamePad, heldFor} )
 		switch(button)
@@ -61,54 +61,9 @@ export const addGamePadEvents = (application) => {
 		
 		switch(button)
 		{
-			case GAME_PAD_CONNECTED:
-				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
-				console.info("Gamepad connected", button, value, gamePad )
-				break
-
-			case COMMANDS.LEFT_STICK_Y: 
-			case COMMANDS.RIGHT_STICK_Y: 
-				
-
-			case COMMANDS.LEFT_STICK_X: 
-			case COMMANDS.RIGHT_STICK_X:
-				person.loadPreviousInstrument()
-				break
-
-			case COMMANDS.UP: 
-				application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
-				break
-			case COMMANDS.DOWN: 
-				application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
-				break
-			case COMMANDS.LEFT: 
-				person.loadPreviousInstrument()
-				break
-
-			case COMMANDS.RIGHT: 
-				person.loadNextInstrument()
-				break
-
-			case GAME_PAD_DISCONNECTED:
-				application.setFeedback( "Gamepad connection lost" , 0, 'gamepad' )
-				console.info("Gamepad disconnected", button, value, gamePad )
-				break
-
-			case COMMANDS.START: 
-				application.setFeedback( "Gamepad START" , 0, 'gamepad' )
-				// if select is also being held....
-				if (gamePad.select){
-					application.display.nextFilter( )
-				}else{
-					application.toggleBackgroundPercussion()
-				}
-				getRandomPresetForPerson(gamePadPlayerIndex)
-				console.info("Gamepad start", value, { gamePad, gamepadHeld } )
-				break
-			
-
 			// This changes the "selected" user by highlighting their outline
-			// this then targets the controller for that specfific person
+			// this then targets the controller for that specfific person.
+			
 			case COMMANDS.SELECT: 
 				gamePadMode = ( gamePadMode + 1 ) % gamePadModes.length
 				const mode = gamePadModes[gamePadMode]
@@ -129,6 +84,63 @@ export const addGamePadEvents = (application) => {
 				
 				console.info("Gamepad select", selectedId, value, { gamePad, gamepadHeld, heldFor } )
 				break
+
+			case GAME_PAD_CONNECTED:
+				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
+				console.info("Gamepad connected", button, value, gamePad )
+				break
+
+			// case COMMANDS.LEFT_STICK_Y: 
+			// case COMMANDS.RIGHT_STICK_Y: 
+				
+
+			// case COMMANDS.LEFT_STICK_X: 
+			// case COMMANDS.RIGHT_STICK_X:
+			// 	person.loadPreviousInstrument()
+			// 	break
+
+			case COMMANDS.UP: 
+				application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				break
+			case COMMANDS.DOWN: 
+				application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				break
+			case COMMANDS.LEFT: 
+				if (isUnselected)
+				{
+					application.kit.kick()
+				}else{
+					person.loadPreviousInstrument()
+				}
+				break
+
+			case COMMANDS.RIGHT: 
+				if (isUnselected)
+				{
+					application.kit.snare()
+				}else{
+					person.loadNextInstrument()
+				}
+				break
+
+			case GAME_PAD_DISCONNECTED:
+				application.setFeedback( "Gamepad connection lost" , 0, 'gamepad' )
+				console.info("Gamepad disconnected", button, value, gamePad )
+				break
+
+			case COMMANDS.START: 
+				application.setFeedback( "Gamepad START" , 0, 'gamepad' )
+				// if select is also being held....
+				if (gamePad.select){
+					application.display.nextFilter( )
+				}else{
+					application.toggleBackgroundPercussion()
+				}
+				getRandomPresetForPerson(gamePadPlayerIndex)
+				console.info("Gamepad start", value, { gamePad, gamepadHeld } )
+				break
+			
+
 			
 			case COMMANDS.A: 
 				console.info("Gamepad A", value, { gamePad, gamepadHeld, heldFor } )
