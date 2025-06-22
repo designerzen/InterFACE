@@ -13,7 +13,7 @@ export const updateWebMIDIWithPerson = ( person, people ) => {
 	// NB. We send the MIDI to ALL devices but have 4 different channels
 	// that are 1-4
 	const multiplePeople = people.length > 1
-	const multiplMIDIDevices = WebMidi.outputs.length > 1
+	const multipleMIDIDevices = WebMidi.outputs.length > 1
 	const oneMIDIDevicePerPerson = people.length < WebMidi.outputs.length
 
 	// NB. ensure that note off stops all previous notes too
@@ -21,8 +21,30 @@ export const updateWebMIDIWithPerson = ( person, people ) => {
 	{
 		case STATE_INSTRUMENT_ATTACK:
 
-			if (!multiplePeople)
+			if (oneMIDIDevicePerPerson)
 			{
+				// send out one person's midi events to one specific midi device
+				const midiOutputDevice = WebMidi.outputs[person.personIndex]
+				if (midiOutputDevice && person.lastNoteNumber > -1){
+					midiOutputDevice.stopNote( person.lastNoteNumber ) 
+				}
+				midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
+		
+			}else if (multipleMIDIDevices){
+				
+				// send out one person's midi events to all devices on a specific channel
+				WebMidi.outputs.forEach(MIDIoutput =>{
+					const midiOutputDevice = MIDIoutput.channels[person.personIndex]
+					if (midiOutputDevice && person.lastNoteNumber > -1){
+						midiOutputDevice.stopNote( person.lastNoteNumber ) 
+					}
+					midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
+				})
+
+			}else{
+
+				// DEFAULT : send out to all midi devices on all channels
+				// if (!multiplePeople)
 				// send out to all midi channels or all midi devices
 				WebMidi.outputs.forEach(MIDIoutput =>{
 					// console.log("midi note on", noteNumber, {noteVelocity, MIDIoutput})
@@ -33,26 +55,6 @@ export const updateWebMIDIWithPerson = ( person, people ) => {
 					}
 
 					MIDIoutput.playNote( person.noteNumber, {attack:person.noteVelocity} ) 
-				})
-
-			}else if (oneMIDIDevicePerPerson)
-			{
-				// send out one person's midi events to one specific midi device
-				const midiOutputDevice = WebMidi.outputs[person.personIndex]
-				if (midiOutputDevice && person.lastNoteNumber > -1){
-					midiOutputDevice.stopNote( person.lastNoteNumber ) 
-				}
-				midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
-		
-			}else{
-				
-				// send out one person's midi events to all devices on a specific channel
-				WebMidi.outputs.forEach(MIDIoutput =>{
-					const midiOutputDevice = MIDIoutput.channels[person.personIndex]
-					if (midiOutputDevice && person.lastNoteNumber > -1){
-						midiOutputDevice.stopNote( person.lastNoteNumber ) 
-					}
-					midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
 				})
 			}
 			break
@@ -71,24 +73,25 @@ export const updateWebMIDIWithPerson = ( person, people ) => {
 		case STATE_INSTRUMENT_SILENT:
 		case STATE_INSTRUMENT_RELEASE:
 		default:
-			if (!multiplePeople)
-			{
-				WebMidi.outputs.forEach(MIDIoutput =>{
-					MIDIoutput.sendAllNotesOff()
-				})	
-
-			}else if (oneMIDIDevicePerPerson)
+			
+			if (oneMIDIDevicePerPerson)
 			{
 				const midiOutputDevice = WebMidi.outputs[person.personIndex]
 				// console.log("midi note off", noteNumber, {noteVelocity,MIDIoutput})				// MIDIoutput.stopNote( person.lastNoteNumber, {release:noteVelocity} ) 
 				// MIDIoutput.stopNote( noteNumber, {release:noteVelocity} ) 
 				midiOutputDevice.sendAllNotesOff() 
 				
-			}else{
+			}else if (multipleMIDIDevices){
 
 				WebMidi.outputs.forEach(MIDIoutput =>{
 					const midiOutputDevice = MIDIoutput.channels[person.personIndex]
 					midiOutputDevice && midiOutputDevice.sendAllNotesOff()
+				})
+
+			}else{
+				
+				WebMidi.outputs.forEach(MIDIoutput =>{
+					MIDIoutput.sendAllNotesOff()
 				})
 			}
 			break
