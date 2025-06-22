@@ -1970,7 +1970,7 @@ export const createInterface = (
 		
 		usePredictions(peoplePredictions)
 
-		// If we are using MIDI clock and itstops, then there is no
+		// If we are using MIDI clock and it stops, then there is no
 		// event sent so that we can alter behaviour, so instead we
 		// have a time out that can be used to reinstate automatic
 		// timing and then when MIDI starts again we can reassess
@@ -1979,7 +1979,7 @@ export const createInterface = (
 		if ( clock.elapsedSinceLastTick > clock.timePerBar )
 		{
 			clock.bypass(false)
-			console.warn("MIDI CLOCK DISCONNECTED!")
+			// console.warn("MIDI CLOCK DISCONNECTED!")
 		}
 
 		return peoplePredictions
@@ -2687,16 +2687,14 @@ export const createInterface = (
 						// the note played with chords that match the facial expression
 						// const amountOfInputs = WebMidi.inputs.length         
 						const person = getPerson(0)
-						let previousEmoticon = person.emoticon
-						
-
-						// depending on how many users there are...
-						// we send each channel to a different person
-						
 						// augment note into chord using event.note.number as the tonic
 						const chordDetails = getMusicalDetailsFromEmoji(event.note.number, person.emoticon)
-						
+						// save this chord for note off later
 						playingMIDINotes.set( event.note.number, chordDetails )	
+
+						console.log("MIDISympathiser noteon", {chordDetails, playingMIDINotes,event, person} )
+
+						// play midi notes using our Audio Engine...
 						// globalChordPlayer.noteOn( event.note.number, event.value )
 						// globalChordPlayer.chordOn( event.note.number, event.value )
 
@@ -2704,7 +2702,7 @@ export const createInterface = (
 						// updateInstrumentWithPerson( samplePlayer, person )
 						// also send 
 					
-						// send out original event
+						// send out original event to all connected devices
 						if (relayMIDI)
 						{
 							sendMIDIEventToAllDevices(event.type, event)
@@ -2726,8 +2724,12 @@ export const createInterface = (
 						// NOTEOFF
 						// get the chord details
 						const playingChord = playingMIDINotes.get( event.note.number )	
-						globalChordPlayer.noteOff( event.note.number, event.value )
-						console.log("MIDI noteoff", event, event.note.identifier, playingChord )
+						
+						// stop midi notes on our Audio Engine...
+						// globalChordPlayer.noteOff( event.note.number, event.value )
+						// globalChordPlayer.chordOff( event.note.number, event.value )
+						
+						console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
 					
 						// updateInstrumentWithPerson( samplePlayer, person )
 						sendMIDIEventToAllDevices(event.type, event)
