@@ -2191,7 +2191,7 @@ export const createInterface = (
 		// }
 
 		// Send MIDI clock
-		if (isMIDIAvailable && webMidi)
+		if (isMIDIAvailable && WebMidi)
 		{
 			// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
 			//midi.setSongPosition( clock.barProgress * 16383 , {})
@@ -2200,7 +2200,8 @@ export const createInterface = (
 			// SEND OUT Midi to every connected MIDI device
 			
 			//sendMIDIEventToAllDevices("clock")
-			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock({time:clock.now}) )
+			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() ) // {time:clock.now}
+			// console.info("midi clock",  WebMidi.time)
 		}
 
 		// we can actually play a midi file here as an accompanying voice!
@@ -2672,7 +2673,7 @@ export const createInterface = (
 				console.info("WebMidi.enabling...", {sysex:false, software:true })
 				webMidi = await WebMidi.enable({sysex:false, software:true })
 				console.info("WebMidi.enabled", {sysex:false, software:true })
-				
+				isMIDIAvailable = true
 				// Inputs
 				WebMidi.inputs.forEach(input =>{
 
@@ -2793,6 +2794,7 @@ export const createInterface = (
 		}else{
 
 			progressCallback(loadIndex++/loadTotal)
+			isMIDIAvailable = false
 			main.classList.add('midi-unavailable')
 			setToast("MIDI is not available in this browser,<br>It'll work better in Brave, Edge or Chrome", 0)
 		}
