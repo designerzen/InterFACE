@@ -2685,8 +2685,6 @@ export const createInterface = (
 			// if (stateMachine.get("midiInput"))
 			if (stateMachine.get("midiControl"))
 			{
-				
-				debugger
 				console.info("Observing MIDI Messages" )
 				WebMidi.inputs.forEach(input =>{
 					console.info("Observing MIDI device", input )

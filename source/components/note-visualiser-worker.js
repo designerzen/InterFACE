@@ -153,7 +153,6 @@ const determineMirrorSize = (isVertical) => {
 
 const setBlendMode = (blendMode)=> {
     context.globalCompositeOperation = blendMode
-    debugger
 }
 
 onmessage = (evt) => {
