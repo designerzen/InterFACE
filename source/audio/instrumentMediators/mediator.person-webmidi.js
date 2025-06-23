@@ -73,14 +73,11 @@ export const updateWebMIDIWithPerson = ( person, people, audioOutput ) => {
 			// if (!multiplePeople)
 			// send out to all midi channels or all midi devices
 			WebMidi.outputs.forEach(MIDIoutput =>{
-			
 				// MONOPHONIC :  in case that the note is already playing
 				// if (person.lastNoteNumber > -1){
 				// 	MIDIoutput.stopNote( person.lastNoteNumber ) 
 				// }
-
 				MIDIoutput[method]( note.noteNumber, {attack:person.noteVelocity} ) 
-				// MIDIoutput.playNote( person.noteNumber, {attack:person.noteVelocity} ) 
 			})
 		}
 	}
@@ -92,7 +89,7 @@ export const updateWebMIDIWithPerson = ( person, people, audioOutput ) => {
 		return
 	}
 
-	// check toi see if the notes entered are notes that are already playing...
+	// check to see if the notes entered are notes that are already playing...
 	// if they are then 
 	
 	if ( previous && audioOutput[0].noteNumber === previous[0].noteNumber ){

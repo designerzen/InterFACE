@@ -54,7 +54,5 @@ export const FIFTHS_SCALE_KEYS = createKey( keyNames, FIFTHS, 4, 0, false, true 
 // export const HARM_MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, HARM_MINOR_SCALE, 0, mode, false )
 // export const JAZZ_MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, JAZZ_MEL_MINOR, 0, mode, false )
 
-
-
-console.info("Keys in scale", {MINOR_SCALE_KEYS,MAJOR_SCALE_KEYS,HARM_MINOR_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, FIFTHS_SCALE_KEYS } )
-console.info("FIFTHS_SCALE_KEYS", {FIFTHS_SCALE_KEYS } )
+// console.info("Keys in scale", {MINOR_SCALE_KEYS,MAJOR_SCALE_KEYS,HARM_MINOR_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, FIFTHS_SCALE_KEYS } )
+// console.info("FIFTHS_SCALE_KEYS", {FIFTHS_SCALE_KEYS } )
