@@ -20,8 +20,11 @@ export const updateWebMIDIWithPerson = ( person, people, audioOutput ) => {
 	const previous = person.activeNotes.get( person.lastNoteNumber )
 	const existing = person.activeNotes.get( person.noteNumber )
 
+	
 	const stopAll = () => {
 		//console.info("update web midi with no audio?", audioOutput )
+			
+
 		if (oneMIDIDevicePerPerson)
 		{
 			const midiOutputDevice = WebMidi.outputs[person.personIndex]
@@ -40,12 +43,15 @@ export const updateWebMIDIWithPerson = ( person, people, audioOutput ) => {
 			
 			WebMidi.outputs.forEach(MIDIoutput =>{
 				MIDIoutput.sendAllNotesOff()
+				console.info("MIDI updated stopNote",  MIDIoutput, audioOutput )
 			})
 		}
 			
 	}
 
 	const handleNote = (note, method="playNote")=>{
+
+		
 		if (oneMIDIDevicePerPerson)
 		{
 			// send out one person's midi events to one specific midi device
@@ -78,7 +84,11 @@ export const updateWebMIDIWithPerson = ( person, people, audioOutput ) => {
 				// 	MIDIoutput.stopNote( person.lastNoteNumber ) 
 				// }
 				MIDIoutput[method]( note.noteNumber, {attack:person.noteVelocity} ) 
+				console.info("MIDI updated handleNote", MIDIoutput, audioOutput )
+				// MIDIoutput.playNote( person.noteNumber, {attack:person.noteVelocity} ) 
 			})
+			
+
 		}
 	}
 

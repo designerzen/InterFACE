@@ -2190,14 +2190,14 @@ export const createInterface = (
 		// }
 
 		// Send MIDI clock
-		if (isMIDIAvailable && WebMidi && !clock.isUsingExternalTrigger)
+		if (isMIDIAvailable && WebMidi && !clock.isUsingExternalTrigger && stateMachine.get("midiClock"))
 		{
 			// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
 			// midi.setSongPosition( clock.barProgress * 16383 , {})
 			// SEND OUT Midi to every connected MIDI device
 			//sendMIDIEventToAllDevices("clock")
 			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() ) // {time:clock.now}
-			// console.info("midi clock",  WebMidi.time)
+			//console.info("midi clock",  WebMidi.time)
 		}
 
 		// we can actually play a midi file here as an accompanying voice!
@@ -2666,7 +2666,7 @@ export const createInterface = (
 			try{
 				let lastClockTimestamp = 0
 				// FIXME: use the midi manager
-				console.info("WebMidi.enabling...", {sysex:false, software:true })
+				console.info("p.enabling...", {sysex:false, software:true })
 				webMidi = await WebMidi.enable({sysex:false, software:true })
 				console.info("WebMidi.enabled", {sysex:false, software:true })
 				isMIDIAvailable = true
@@ -2683,10 +2683,8 @@ export const createInterface = (
 			// immediately hook into the clock events...
 			
 			// if (stateMachine.get("midiInput"))
-			if (stateMachine.get("midiControl"))
+			if (stateMachine.get("midiInput"))
 			{
-				
-				debugger
 				console.info("Observing MIDI Messages" )
 				WebMidi.inputs.forEach(input =>{
 					console.info("Observing MIDI device", input )

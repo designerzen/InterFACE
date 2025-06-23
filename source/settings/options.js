@@ -197,7 +197,8 @@ export const DEFAULT_OPTIONS = {
 	midiControl:true,
 
 	// allow midi input to control stuff too
-	midiInput:true,
+	midiInput:false,
+	midiClock:false,
 
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",

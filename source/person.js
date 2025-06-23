@@ -1184,7 +1184,7 @@ export default class Person{
 			{
 				const chord =this.activeInstrument.notes.keys()
 				chord.forEach( noteName => {
-					extra += convertMIDINoteNumberToName(noteName)
+					extra += convertMIDINoteNumberToName(noteName) + ", "
 				})
 			}else{
   				extra = this.lastNoteFriendlyName 
