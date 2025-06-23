@@ -253,7 +253,7 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
-    "@biomejs/biome": "^2.0.4",
+    "@biomejs/biome": "^2.0.5",
     "@bubblewrap/cli": "^1.22.7",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^7.4.0",
@@ -282,7 +282,7 @@
     "babel-jest": "30.0.2",
     "browser-fs-access": "^0.38.0",
     "buffer": "^6.0.3",
-    "concurrently": "^9.1.2",
+    "concurrently": "^9.2.0",
     "console-browserify": "^1.2.0",
     "crypto-browserify": "^3.12.1",
     "domain-browser": "^5.7.0",
