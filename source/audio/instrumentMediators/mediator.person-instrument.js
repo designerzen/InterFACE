@@ -91,11 +91,11 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 			const activity = person.activeNotes.get( person.noteNumber )
 			if (!activity)
 			{
-				console.error("playing but no notes???", person.activeNotes, person.noteNumber, person.state )
+				// console.error("playing but no notes???", person.activeNotes, person.noteNumber, person.state )
 				return []
 				
 			}else{
-				console.info("Activity", activity)
+				// console.info("Activity", activity)
 			}
 			return activity
 
@@ -115,7 +115,7 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 				return []
 			}
 		
-			console.log("STOPPING Person.activeNotes", activeNotes )
+			// console.log("STOPPING Person.activeNotes", activeNotes )
 			if (isChord){
 
 				if (activeNotes && activeNotes.length)

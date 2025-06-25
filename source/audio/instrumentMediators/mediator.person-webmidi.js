@@ -1,6 +1,13 @@
 import { WebMidi } from "webmidi"
 import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_RELEASE, STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_SUSTAIN } from "../../person.js"
 
+// This is a dirty hack to fix ROLI piano keyboards
+const peopleNotes = new Map()
+peopleNotes.set( 0, new Map() )
+peopleNotes.set( 1, new Map() )
+peopleNotes.set( 2, new Map() )
+peopleNotes.set( 3, new Map() )
+
 /**
  * 
  * @param {Person} person 
@@ -14,6 +21,7 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 		return
 		//throw Error("Cannot send to MIDI empty activeAudioOutput")
 	}
+
 	// If there are MULTIPLE MIDI devices and MULTIPLE PEOPLE
 	// we need to send the MIDI to the correct channel
 	// NB. We send the MIDI to ALL devices but have 4 different channels
@@ -24,58 +32,90 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 
 	// we have old notes and new notes
 	// const previous = person.activeNotes.get( person.lastNoteNumber )
-	const existing = person.activeNotes.get( person.noteNumber )
-	const hasJustFinished = !existing && activeAudioOutput.length > 0
+	// const existing = person.activeNotes.get( person.noteNumber )
+	// const hasJustFinished = !existing && activeAudioOutput.length > 0
 	
-	console.info("midi mediator", { hasJustFinished, activeAudioOutput, existing, previouslyActiveAudioOutput } , person.activeNotes ) 
+	// console.info("midi mediator", { hasJustFinished, activeAudioOutput, existing, previouslyActiveAudioOutput } , person.activeNotes ) 
 	
-	const stopAll = () => {
-		//console.info("update web midi with no audio?", audioOutput )
-		if (oneMIDIDevicePerPerson)
-		{
-			const midiOutputDevice = WebMidi.outputs[person.personIndex]
-			// console.log("midi note off", noteNumber, {noteVelocity,MIDIoutput})				// MIDIoutput.stopNote( person.lastNoteNumber, {release:noteVelocity} ) 
-			// MIDIoutput.stopNote( noteNumber, {release:noteVelocity} ) 
-			midiOutputDevice.sendAllNotesOff() 
-			// 
+	// Send a single note off
+	// const stop = (noteNumber) => {
+	// 	console.info("MIDI:STOP",noteNumber)
+	// 	if (oneMIDIDevicePerPerson)
+	// 	{
+	// 		const midiOutputDevice = WebMidi.outputs[person.playerNumber]
+	// 		// console.log("midi note off", noteNumber, {noteVelocity,MIDIoutput})				// MIDIoutput.stopNote( person.lastNoteNumber, {release:noteVelocity} ) 
+	// 		// MIDIoutput.stopNote( noteNumber, {release:noteVelocity} ) 
+	// 		midiOutputDevice.stopNote( noteNumber ) 
+
+	// 	}else if (multipleMIDIDevices){
+
+	// 		WebMidi.outputs.forEach(MIDIoutput =>{
+	// 			const midiOutputDevice = MIDIoutput.channels[person.playerNumber+1]
+	// 			midiOutputDevice && midiOutputDevice.stopNote( noteNumber ) 
+	// 		})
+
+	// 	}else{
 			
-		}else if (multipleMIDIDevices){
+	// 		WebMidi.outputs.forEach(MIDIoutput =>{
+	// 			MIDIoutput.stopNote( noteNumber )
+	// 			// console.info("MIDI updated stopNote",  MIDIoutput, activeAudioOutput )
+	// 		})
+	// 	}	
+	// }
 
-			WebMidi.outputs.forEach(MIDIoutput =>{
-				const midiOutputDevice = MIDIoutput.channels[person.personIndex]
-				midiOutputDevice && midiOutputDevice.sendAllNotesOff()
-			})
-
-		}else{
-			
-			WebMidi.outputs.forEach(MIDIoutput =>{
-				MIDIoutput.sendAllNotesOff()
-				// console.info("MIDI updated stopNote",  MIDIoutput, activeAudioOutput )
-			})
-		}		
-	}
-
+	/**
+	 * Note ON / Note OFF
+	 * @param {*} note 
+	 * @param {String} method (playNote / stopNote)
+	 */
 	const handleNote = (note, method="playNote")=>{		
-		console.log("handleNote", method, note )
+		
 		if (oneMIDIDevicePerPerson)
 		{
 			// send out one person's midi events to one specific midi device
-			const midiOutputDevice = WebMidi.outputs[person.personIndex]
+			const midiOutputDevice = WebMidi.outputs[person.playerNumber]
 			// if (midiOutputDevice && person.lastNoteNumber > -1){
 			// 	midiOutputDevice.stopNote( person.lastNoteNumber ) 
 			// }
 			midiOutputDevice && midiOutputDevice[method]( note.noteNumber, {attack:person.noteVelocity} )
 			// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
 	
+			const personNotes = peopleNotes.get( person.playerNumber )
+			switch(method)
+			{
+				case "playNote":
+					personNotes.set( note.noteNumber, note )
+					console.log("playNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
+					break
+				case "stopNote":
+					personNotes.delete( note.noteNumber )
+					console.log("stopNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
+					break
+			}
+
 		}else if (multipleMIDIDevices){
 			
 			// send out one person's midi events to all devices on a specific channel
 			WebMidi.outputs.forEach(MIDIoutput =>{
-				const midiOutputDevice = MIDIoutput.channels[person.personIndex]
+				// ensure it is playerNumber + 1 as MIDI channels start at 1
+				const midiOutputDevice = MIDIoutput.channels[person.playerNumber + 1]
 				// if (midiOutputDevice && person.lastNoteNumber > -1){
 				// 	midiOutputDevice.stopNote( person.lastNoteNumber ) 
 				// }
 				midiOutputDevice && midiOutputDevice[method]( note.noteNumber, {attack:person.noteVelocity} )
+				
+				const personNotes = peopleNotes.get( person.playerNumber )
+				switch(method)
+				{
+					case "playNote":
+						personNotes.set( note.noteNumber, note )
+						console.log("playNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
+						break
+					case "stopNote":
+						personNotes.delete( note.noteNumber )
+						console.log("stopNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
+						break
+				}
 				// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
 			})
 
@@ -89,11 +129,65 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				// 	MIDIoutput.stopNote( person.lastNoteNumber ) 
 				// }
 				MIDIoutput[method]( note.noteNumber, {attack:person.noteVelocity} ) 
+
+				const personNotes = peopleNotes.get( person.playerNumber )
+				switch(method)
+				{
+					case "playNote":
+						personNotes.set( note.noteNumber, note )
+						console.log("playNote all", note, MIDIoutput, personNotes )
+						break
+					case "stopNote":
+						personNotes.delete( note.noteNumber )
+						console.log("stopNote all", note, MIDIoutput, personNotes )
+						break
+				}
+				
 				// console.info("MIDI updated handleNote", MIDIoutput, activeAudioOutput )
 				// MIDIoutput.playNote( person.noteNumber, {attack:person.noteVelocity} ) 
 			})
 		}
 	}
+
+	// GAH: ROLI Piano does *not* have working allNotesOff so we have to do it ourselves
+	// by caching all notes requested and then turning them off sequentially
+	const stopAll = ( useSendAllNotesOff=false ) => {
+		//console.info("update web midi with no audio?", audioOutput )
+		if (useSendAllNotesOff)
+		{
+			if (oneMIDIDevicePerPerson)
+			{
+				const midiOutputDevice = WebMidi.outputs[person.playerNumber]
+				// console.log("midi note off", noteNumber, {noteVelocity,MIDIoutput})				// MIDIoutput.stopNote( person.lastNoteNumber, {release:noteVelocity} ) 
+				// MIDIoutput.stopNote( noteNumber, {release:noteVelocity} ) 
+				midiOutputDevice.sendAllNotesOff() 
+
+			}else if (multipleMIDIDevices){
+
+				WebMidi.outputs.forEach(MIDIoutput =>{
+					const midiOutputDevice = MIDIoutput.channels[person.playerNumber+1]
+					midiOutputDevice && midiOutputDevice.sendAllNotesOff()
+				})
+
+			}else{
+				
+				WebMidi.outputs.forEach(MIDIoutput =>{
+					MIDIoutput.sendAllNotesOff()
+					// console.info("MIDI updated stopNote",  MIDIoutput, activeAudioOutput )
+				})
+			}	
+
+		}else{
+
+			const personNotes = peopleNotes.get( person.playerNumber )
+			personNotes.forEach((note, noteNumber)=>{
+				// stop( noteNumber )
+				handleNote( note, "stopNote" )
+				personNotes.delete( noteNumber )
+			})
+		}
+	}
+
 
 	// no audio to play... stop all
 	if (!activeAudioOutput)
@@ -103,25 +197,19 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 	}
 
 	// check to see if the notes entered are notes that are already playing...
-	// if they are then 
+	// if they are then stop thm
 	
-	// if ( previous && activeAudioOutput[0].noteNumber === previous[0].noteNumber ){
-	// 	//console.info(person.state, "SAME updateWebMIDIWithPerson", audioOutput,previous, existing, person.activeNotes, {person, people, multiplePeople, multipleMIDIDevices, oneMIDIDevicePerPerson} )
-	// }else{
-	// 	//console.info(person.state, "DIFF updateWebMIDIWithPerson", audioOutput,previous, existing, person.activeNotes, {person, people, multiplePeople, multipleMIDIDevices, oneMIDIDevicePerPerson} )
-	// 	// ensure we turn these notes old notes off!
-	// 	stopAll()
-	// }
 
 	// START
 	
-console.log("Person", person.state, {activeAudioOutput} ) 
+	// console.log("Person", person.state, {activeAudioOutput} ) 
 	activeAudioOutput.forEach( note =>{
 			
 		// NB. ensure that note off stops all previous notes too
 		switch(person.state)
 		{
 			case STATE_INSTRUMENT_ATTACK:
+				stopAll()
 				handleNote( note )
 				break
 
@@ -134,9 +222,9 @@ console.log("Person", person.state, {activeAudioOutput} )
 				break
 
 			case STATE_INSTRUMENT_DECAY:
-			case STATE_INSTRUMENT_RELEASE:
 				break
 
+			case STATE_INSTRUMENT_RELEASE:
 			case STATE_INSTRUMENT_SILENT:
 				handleNote( note, "stopNote" )
 				break

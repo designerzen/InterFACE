@@ -2016,14 +2016,15 @@ export default class Person{
 		// now connect this directly to the main mixer
 		this.outputNode.connect(destinationNode)
 
-		// TODO: 
+		// defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
+		const defaultInstrumentType = this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
+		
 		const defaultInstrumentOptions = {
 			...this.options,
 			preload:false,
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
-			defaultInstrument:this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
-			// ,defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
+			defaultInstrument:defaultInstrumentType
 		}		
 
 		// create a sample player, oscillator add all other instruments		

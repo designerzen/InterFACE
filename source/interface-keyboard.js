@@ -323,6 +323,7 @@ const addKeyboardEvents = ( application ) => {
 			// 	application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
 			// 	break
 
+			// Switch Player Modes
 			case "F1":
 				event.preventDefault()
 				const player1 = application.getPerson(0)
@@ -345,6 +346,27 @@ const addKeyboardEvents = ( application ) => {
 				event.preventDefault()
 				const player4 = application.getPerson(3)	
 				application.configurePerson(player4, player4.type+1 )
+				break
+		
+			// Select Players only
+			case "F5":
+				event.preventDefault()
+				application.selectPerson( 0 )
+				break
+
+			case "F6":
+				event.preventDefault()
+				application.selectPerson( 1 )
+				break
+
+			case "F7":
+				event.preventDefault()
+				application.selectPerson( 2 )
+				break
+
+			case "F8":
+				event.preventDefault()
+				application.selectPerson( 3 )
 				break
 		
 			// Media Hotkeys
