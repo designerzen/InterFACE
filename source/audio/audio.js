@@ -639,9 +639,7 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 export const loadInstrumentFromSoundFontSamples = async( context=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
 		
 	// Load as individual parts
-	console.time("loadInstrumentFromSoundFontSamples")
 	const partPromises = await loadInstrumentParts(context, path, options, onProgressCallback ) 
-	console.timeEnd("loadInstrumentFromSoundFontSamples", partPromises )
 	const parts = options.asArray ? [] : {}
 
 	// ensure promises have resolved
@@ -661,8 +659,6 @@ export const loadInstrumentFromSoundFontSamples = async( context=audioContext, p
 		}
 	}
 
-	console.log("loadInstrumentFromSoundFontSamples", parts )
-	
 
 	// await Promise.allSettled( partPromises )
 	return parts
