@@ -22,7 +22,7 @@ export default class SampleInstrument extends Instrument{
 	type = "sample"
 	
 	// Instrument is an Object where each
-	instrument = { A0:"sampleAudioBuffer" }
+	audioBuffers = { A0:"sampleAudioBuffer" }
 	
 	instrumentName = "Unloaded"
 	instrumentTitle = "Unloaded"
@@ -158,10 +158,13 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	async noteOn(noteNumber, velocity=1){
-		const audioBuffer = this.instrument[convertMIDINoteNumberToName(noteNumber)]
+		const key = convertMIDINoteNumberToName(noteNumber)
+		const audioBuffer = this.audioBuffers[key]
 		if(audioBuffer)
 		{
 			const track = this.play(audioBuffer, velocity )
+		}else{
+			console.log("No buffer for", {noteNumber, velocity, key} , this.audioBuffers )
 		}
 		// console.log("Buffer playing", {audioBuffer,noteNumber, velocity} )
 		return super.noteOn(noteNumber, velocity)
@@ -213,7 +216,7 @@ export default class SampleInstrument extends Instrument{
 	
 	/**
 	 * Provide this Person with a random instrument
-	 * @param {Function} progressCallback Method to call once the instrument has loaded
+	 * @param {Function} progressCallback Method to call once the instrument has loadedNAMES
 	 */
 	 async loadRandomPreset(progressCallback){
 		// grab an instrument randomly from the full collection

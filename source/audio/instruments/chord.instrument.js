@@ -8,6 +8,8 @@ export default class ChordInstrument extends Instrument{
 	arpeggioIndex = 0
 	type = INSTRUMENT_TYPE_CHORD
 
+	finishedNotes = new Map()
+
 	static get name(){
 		return INSTRUMENT_TYPE_CHORD
 	}
@@ -35,6 +37,9 @@ export default class ChordInstrument extends Instrument{
 		return this.mixer
 	}
 
+	get arpeggiate( ){
+		return this.arpeggio
+	}
 	set arpeggiate( value ){
 		this.arpeggio = value
 	}
@@ -116,8 +121,6 @@ export default class ChordInstrument extends Instrument{
 			throw Error("No instruments available to stop")
 		}
 		instrument.noteOff( noteNumber, velocity )
-		
-		
 		this.activeNotes.delete( noteNumber )
 		this.active = this.activeNotes.size > 0
 		// console.log("noteOff", noteNumber, this.activeNotes, this )
@@ -174,13 +177,12 @@ export default class ChordInstrument extends Instrument{
 		}
 	}
 
-	
 	/**
 	 * 
 	 * @param {Array<Chord>} chordArray 
 	 */
 	async chordOff( chordArray, velocity=1 ){
-		// console.error("ChordInstrument:chordOff", chordArray, this.arpeggio )
+		console.error("ChordInstrument:chordOff", chordArray, velocity, this.arpeggio )
 		// if (!this.arpeggio)
 		// {
 
@@ -188,48 +190,47 @@ export default class ChordInstrument extends Instrument{
 			const chordQuantity = chordArray.length
 			// console.info(chordQuantity, "ChordInstrument:chordOff", chordArray )
 			this.instruments.forEach( (instrument, index) => {
+				if (index>chordQuantity){
+					return
+				}
 				const chord = chordArray[index%chordQuantity]
 				if (chord)
 				{
 					this.noteOff( chord.noteNumber, chord.velocity ?? velocity, index )
 				}else{
-					this.noteOff( chord.noteNumber, chord.velocity ?? velocity, index )
+					console.error("No chord found for index", index, chordArray )
 				}
 			})	
 		// }
 	}
 
 	async allNotesOff(){
-
+		let index = 0
+		const notesTurned = []
+		this.activeNotes.forEach( (velocity, noteNumber) =>{
+			this.noteOff( noteNumber, velocity, index++ )
+			notesTurned.push(noteNumber)
+		})
+		// this.instruments.forEach( (instrument, index) => instrument.pitchBend(pitch))
 		super.allNotesOff()
 		// console.error("ChordInstrument:allNotesOff", this.activeNotes )
-		return 
+		return notesTurned
 	}
 
 	async aftertouch( noteNumber, pressure ){
-		// this.instruments.forEach( (instrument, index) => {
-		// 	const chord = chordArray[index%chordArray.length]
-		// 	if (chord)
-		// 	{
-		// 		this.aftertouch( chord.noteNumber, chord.velocity, index )
-		// 	}else{
-		// 		this.noteOff( chord.noteNumber, chord.velocity, index )
-		// 	}
-		// })
+		this.instruments.forEach( (instrument) => instrument.aftertouch(noteNumber, pressure) )
 		return super.aftertouch( noteNumber, pressure )
 	}
 	
 	async pitchBend(pitch){
-		this.instruments.forEach( (instrument, index) => {
-			instrument.pitchBend(pitch)
-		})
+		this.instruments.forEach( (instrument) => instrument.pitchBend(pitch))
 		return super.pitchBend(pitch)
 	}
 
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		// console.info("Program change request from chord instrument", this.instruments)
-		this.instruments.forEach( (instrument, index) => instrument.programChange(programNumber))
+		this.instruments.forEach( (instrument) => instrument.programChange(programNumber))
 		return super.programChange( programNumber )
 	}
 

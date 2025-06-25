@@ -45,6 +45,7 @@ export default class SoundFont{
 
 	// loaded assets
 	audioBuffers = new Map()
+
 	instrumentsByName = new Map()
 	instrumentsByPath = new Map()
 	instrumentsByIndex = []
@@ -266,10 +267,40 @@ export default class SoundFont{
 				this.instrumentsByPath.get(presetName.substring(0, presetName.lastIndexOf('-'))) ?? 
 				this.findInstrumentDataFromDetails(presetName)
 	}
+
+	
+	/**
+	 * Load a specific sound for this sound font, but progressively
+	 * replace the output whilst it is loading 
+	 * 
+	 * @param {Number|String|Object} preset 
+	 * @param {Object} options 
+	 * @param {Function} onProgressCallback 
+	 */
+	async loadPresetGradually( audioBuffers, preset, options={ }, onProgressCallback=null){
+		return this.loadPreset(preset, options, async (event) => {
+			const {progress, part, index, audioBuffer } = event
+			const percent = (progress * 100).toFixed(2)
+			const note = part.split('.')[0]
+			const buffer = await audioBuffer
+			
+			// console.error(percent + "%", ">>> PRE Loading loadPresetGradually", { event, note, audioBuffer} )
+			audioBuffers[ note ] = buffer
+
+			// console.error(percent + "%", ">>> POST Loading loadPresetGradually", {event, note, audioBuffer, buffer, preset, progress, part} )  
+			console.info(percent + "%", note, "audioBuffers", {buffer, audioBuffers})
+			
+			// NOTE_NAMES.forEach( (instrument, index) => {
+			// 	output[ instrument.split('.')[0] ] = instrumentAudioBuffers[instrument] ?? instrumentAudioBuffers[index]
+			// })
+
+			onProgressCallback && onProgressCallback( event )
+		})
+	}
 	
 	/**
 	 * Load a specific instrument for this sound font
-	 * @param {Number|String|Object} presetName Name of the standard instrument to load
+	 * @param {Number|String|Object} preset Name of the standard instrument to load
 	 * @param {Object} options how to load and where to load the data from
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
@@ -294,6 +325,7 @@ export default class SoundFont{
 		// immediately attempt to get the instrument data from the descriptor
 		const data = this.getInstrumentData(presetNameOrNumber) 
 		
+
 		// console.error("Loading PRESET", { preset, presetName, options, data } )
 
 		const location = DEFAULT_SOUNDFONT_OPTIONS.location + options.soundfont
@@ -308,6 +340,11 @@ export default class SoundFont{
 			throw Error( `No Preset found with name "${presetNameOrNumber}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
 		}
 
+		if (this.audioBuffers.has( data.name ))
+		{
+			return this.audioBuffers.get( data.name )
+		}
+		
 		// check to see if the pack name is valid...
 		this.loading = true
 
@@ -315,7 +352,7 @@ export default class SoundFont{
 
 		// let's load in all notes for this preset by requesting all the audio buffer
 		// data from either the mp3 or wav or ogg files provided by the pattern
-		try{
+		// try{
 			// we have to send "folder" if loading from a string...
 			// const audioBufferData = await loadInstrumentFromSoundFontStringViaWorker( this.audioContext, data.location, options, onProgressCallback )
 			
@@ -332,22 +369,21 @@ export default class SoundFont{
 			// const reload = await this.loadPack( this.instrumentPack, onProgressCallback  )
 		
 			// TODO: Use fetch-worker to load the array
-
 			// loadInstrumentFromSoundFontSamples
-		
 			this.audioBuffers.set( data.name, audioBufferData )
 
-			// console.error("Instrument loaded",presetName, audioBufferData )
-			
+			console.error("Instrument loaded", presetNameOrNumber, data.name, audioBufferData )
+		
 			this.loading = false
-
 			return audioBufferData
 
+			/*
 		}catch(error){
 
 			this.loading = false
 
-			console.error(  "failed to get audio from", data.location, this.name, {data} )
+			console.error( "*** failed to get audio from", data.location, this.name, {data} )
+			console.error( "*** failed to get audio from", error )
 
 			// try to understand what has failed here and communicate it back to the user...
 
@@ -382,7 +418,7 @@ export default class SoundFont{
 			// }else{
 				throw Error("Not sure what happened there")
 			// }	
-		}
+		}*/
 	}
 	
 	/**
@@ -393,7 +429,8 @@ export default class SoundFont{
 	 */
 	async loadPresets( presetNames, options={}, onProgressCallback=null ){
 
-		const simultaneous = options.simultaneous ?? 1
+		const simultaneous = options.simultaneous ?? 12
+		
 		const output = []
 		presetNames = rearrangeArrayBySnake( presetNames , options.startIndex ?? 0 )
 			

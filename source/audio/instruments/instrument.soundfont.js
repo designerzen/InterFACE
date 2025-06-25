@@ -149,7 +149,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 */
 	async noteOn(noteNumber, velocity=1){
 		const index = convertMIDINoteNumberToName(noteNumber)
-		const audioBuffer = this.instrument[index]
+		const audioBuffer = this.audioBuffers[index]
 		if(audioBuffer)
 		{
 			const track = this.play(audioBuffer, velocity)
@@ -176,7 +176,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	async loadFont( pack, options={}, onProgress=null ){
 
 		let descriptorURI = ""
-
+	
 		onProgress && onProgress(0)
 
 		// FIXME: integrate the soundfont
@@ -241,8 +241,10 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// load in a sound font - this can be either a fully qualified url
 		// a relative uri or the name of the pack
 		// const fontData = await this.soundfont.loadFont( this.instrumentPack, './audio/', p => onProgress && onProgress( p / 2 ) )
+		// console.time("loadSoundFontFont", options)	
 		const fontData = await this.soundfont.load( fontDescriptor, p => onProgress && onProgress( p / 2 ) )
-	
+		// console.endTime("loadFont")	
+
 		// fetch the available presets from the instrument...
 		const availablePresets = this.soundfont.presets
 		// const availablePresets = await this.soundfont.presetTitles
@@ -328,8 +330,11 @@ export default class SoundFontInstrument extends SampleInstrument{
 			}
 			
 			// we load the audio buffers from the soundfont
-			// in the { A4:AudioBuffer} format
-			this.instrument = await this.soundfont.loadPreset( presetNameOrObject, { ...options }, progressCallback )
+			// in the { A4:AudioBuffer} format without waiting for the laod to complete
+			//await 
+			this.soundfont.loadPresetGradually( this.audioBuffers, presetNameOrObject, { ...options }, progressCallback )
+			
+			// this.audioBuffers = await this.soundfont.loadPreset( presetNameOrObject, { ...options }, progressCallback )
 
 			// FIXME: Send the -mp3 version...
 			//this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, instrumentPack, progressCallback )
@@ -354,7 +359,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		this.instrumentIndex = this.soundfont.instrumentIndex ?? 0
 		this.instrumentName = presetNameOrObject
 		this.instrumentPack = instrumentPack
-		this.instrumentFamily = this.instrument.family
+		this.instrumentFamily = this.audioBuffers.family
 
 		// Fetch the GM name
 		this.title = presetNameOrObject
@@ -373,7 +378,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// }
 		
 		this.instrumentLoading = false
-		return this.instrument
+		return this.audioBuffers
 	}
 
 	

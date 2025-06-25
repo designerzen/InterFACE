@@ -570,12 +570,13 @@ async function loadInstrumentPart (instrumentName, part) {
  * @param {Object} options File path for sample pack
  * @returns {Array<Promise>} Array of instrument load promises that resolve to AudioBuffers
  */
-export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={} ) => new Promise( async (resolve,reject)=>{
+export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={}, onProgressCallback=null) => new Promise( async (resolve,reject)=>{
 	
 	const parts = rearrangeArrayBySnake( createInstrumentBanks() , options.startIndex )
 	
 	let i = 0
 	const instruments = []
+	const loading = new Map()
 
 	const loadNextPart = async ()=>{
 		const simultaneous = options.simultaneous ?? 6
@@ -586,17 +587,32 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 			{
 				break
 			}
-			const instrument = loadAudio(context, `${instrumentPath}/${part}` , options )
-			instruments.push( instrument )
+			const audioBuffer = loadAudio(context, `${instrumentPath}/${part}` , options )
+			instruments.push( audioBuffer )
+			loading.set( part, audioBuffer )
 			i++
 		}
 
 		await Promise.allSettled(instruments)
+		let b = simultaneous
+		loading.forEach( (audioBuffer, part) => {
+			const index = i - (b--)
+			const progress = index / parts.length
+			onProgressCallback && onProgressCallback({ 
+				progress, 
+				part, 
+				index,  
+				audioBuffer
+			})
+			//console.info("***", index, progress, "loadInstrumentParts", i, parts.length, b, loading.size, part, audioBuffer )
+			loading.delete( part )
+		})
 
 		if (i < parts.length)
 		{
 			// chunk this somehow...
-			requestAnimationFrame( loadNextPart )
+			// requestAnimationFrame( loadNextPart )
+			loadNextPart()
 		}else{
 			resolve(instruments)
 		}
@@ -622,28 +638,33 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
  */
 export const loadInstrumentFromSoundFontSamples = async( context=audioContext, path="FluidR3_GM", options={}, onProgressCallback=null ) => {
 		
-	// console.info("loadInstrumentFromSoundFontSamples", path )
 	// Load as individual parts
-	const partPromises = await loadInstrumentParts(context, path, options ) 
+	console.time("loadInstrumentFromSoundFontSamples")
+	const partPromises = await loadInstrumentParts(context, path, options, onProgressCallback ) 
+	console.timeEnd("loadInstrumentFromSoundFontSamples", partPromises )
 	const parts = options.asArray ? [] : {}
 
-	// wait for promises to resolve...
+	// ensure promises have resolved
 	for (let i=0, l=partPromises.length; i < l; ++i)
 	{
 		const part = await partPromises[i]
+		let index
 		if (options.asArray === true)
 		{
 			parts.push( part )
+			index = parts.length-1
+
 		}else{
-			parts[ NOTE_NAMES[i] ] = part
+
+			index = NOTE_NAMES[i]
+			parts[ index ] = part
 		}
-		
-		onProgressCallback && onProgressCallback({
-			progress:i/l,
-			instrumentName:name
-		})
 	}
 
+	console.log("loadInstrumentFromSoundFontSamples", parts )
+	
+
+	// await Promise.allSettled( partPromises )
 	return parts
 }
 

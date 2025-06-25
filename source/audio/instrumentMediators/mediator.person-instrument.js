@@ -21,7 +21,6 @@ import { getAllChordsForNoteNumber } from "../tuning/chords.js"
 // update the stave with X amount of notes
 // stave.draw(stuff)
 // update the stave with X amount of notes
-			
  * @param {Person} person 
  */
 export const updateInstrumentWithPerson = ( instrument, person ) => {
@@ -42,6 +41,7 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 	switch(person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
+			// stop any that are have already started playing
 			if (isChord)
 			{
 				// create the chord object from the emoji...
@@ -81,21 +81,23 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 				person.activeNotes.set( person.noteNumber, [ person.noteNumber] )
 				return [person.noteNumber]
 			}
-		
-			// stop any that are have already started playing
-		
 			// person.emoticon
 			
-			//console.log("Attempting to sing", instrument.name, person.state, {instrument,latest, person})
-			// console.log("Person", person, person.state, {stuff, noteNumber, noteVelocity} )
-			break
-
 		case STATE_INSTRUMENT_SUSTAIN:
 		case STATE_INSTRUMENT_PITCH_BEND:
 		case STATE_INSTRUMENT_DECAY:
 		case STATE_INSTRUMENT_RELEASE:
-			return person.activeNotes.get( person.noteNumber )
-			break
+			// NB. this might be null
+			const activity = person.activeNotes.get( person.noteNumber )
+			if (!activity)
+			{
+				console.error("playing but no notes???", person.activeNotes, person.noteNumber, person.state )
+				return []
+				
+			}else{
+				console.info("Activity", activity)
+			}
+			return activity
 
 		// case STATE_INSTRUMENT_RELEASE:
 		// 	instrument.noteOff( person.noteNumber )
@@ -103,16 +105,28 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 
 		case STATE_INSTRUMENT_SILENT:
 		default:
-			const activeNotes = person.activeNotes.get( person.noteNumber )
-			person.activeNotes.delete( person.noteNumber )
+			const currentlyActiveNotes = person.activeNotes.get( person.noteNumber )
+			let activeNotes
+			if (currentlyActiveNotes)
+			{
+				activeNotes = currentlyActiveNotes.slice(0,-1)
+				person.activeNotes.delete( person.noteNumber )
+			}else{
+				return []
+			}
+		
+			console.log("STOPPING Person.activeNotes", activeNotes )
 			if (isChord){
-				if (activeNotes)
+
+				if (activeNotes && activeNotes.length)
 				{
 					instrument.chordOff( activeNotes, person.noteVelocity )
-				}else{
-					instrument.allNotesOff()
+					return activeNotes
 				}
-				return activeNotes
+					
+				instrument.allNotesOff()
+				return []
+				
 				// console.log("Attempting to mute",instrument.type, person.state)
 			}else{
 				instrument.noteOff( person.noteNumber, person.noteVelocity )
@@ -120,5 +134,5 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 			}
 	}
 
-	return null
+	return []
 }
