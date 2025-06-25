@@ -323,9 +323,33 @@ const addKeyboardEvents = ( application ) => {
 			// 	application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
 			// 	break
 
+			case "F1":
+				event.preventDefault()
+				const player1 = application.getPerson(0)
+				application.configurePerson(player1, player1.type+1 )
+				break
+
+			case "F2":
+				event.preventDefault()
+				const player2 = application.getPerson(1)
+				application.configurePerson(player2, player2.type+1 )
+				break
+
+			case "F3":
+				event.preventDefault()
+				const player3 = application.getPerson(2)
+				application.configurePerson(player3, player3.type+1 )
+				break
+
+			case "F4":
+				event.preventDefault()
+				const player4 = application.getPerson(3)	
+				application.configurePerson(player4, player4.type+1 )
+				break
+		
 			// Media Hotkeys
 
-			// Laucnh Media
+			// Launch Media
 			case "LaunchMediaPlayer":
 				event.preventDefault()
 				application.nextInstrument() 

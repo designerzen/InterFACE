@@ -134,9 +134,14 @@ export const addGamePadEvents = (application) => {
 				if (gamePad.select){
 					application.display.nextFilter( )
 				}else{
-					application.toggleBackgroundPercussion()
+					if (isUnselected)
+					{
+						application.toggleBackgroundPercussion()
+					}else{
+						// user is selected so configure it
+						application.configurePerson(person, person.type+1 )
+					}
 				}
-				getRandomPresetForPerson(gamePadPlayerIndex)
 				console.info("Gamepad start", value, { gamePad, gamepadHeld } )
 				break
 			

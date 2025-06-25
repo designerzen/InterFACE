@@ -42,7 +42,7 @@ import StateWithIO from './utils/state-io'
 
 // MODELS
 import { TAU } from "./maths/maths.js"
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults, BROADCAST_KEY } from './settings/options.js'
+import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults, BROADCAST_KEY, IDENTIFIERS } from './settings/options.js'
 import { loadMLModel } from './models/load-model.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
@@ -51,7 +51,11 @@ import Person, {
 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
 	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
 	getRandomPresetForPerson,
-	EVENT_PERSON_DEAD, EVENT_PERSON_BORN
+	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
+	PERSON_TYPE_ARPEGGIO,
+	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
+	PERSON_TYPE_CHROMATIC,
+	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
  } from './person.js'
  
 // TIMING
@@ -789,6 +793,47 @@ export const createInterface = (
 
 	// PEOPLE ==========================================================================================
 
+	const configurePerson = (person, type) => {
+		// ensure type is a valid index
+		person.type = type % 4
+		switch (person.type)
+		{
+			case PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS:
+				// Arp - turn it into an arp if the person has index of 1
+				person.leftFacingKeys = FIFTHS_SCALE_KEYS
+				person.rightFacingKeys = FIFTHS_SCALE_KEYS
+				person.activeInstrument.arpeggiate = true
+				console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
+				break
+
+			case PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS:
+				// Sympathetic chords - all just circle of fifths
+				person.leftFacingKeys = FIFTHS_SCALE_KEYS
+				person.rightFacingKeys = FIFTHS_SCALE_KEYS
+				person.activeInstrument.arpeggiate = false
+				console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
+				break
+
+			case PERSON_TYPE_CHROMATIC:
+				// Sympathetic chords - Chromatic scale
+				person.leftFacingKeys = MAJOR_SCALE_KEYS
+				person.rightFacingKeys = MINOR_SCALE_KEYS
+				person.activeInstrument.arpeggiate = false
+				console.info(">>> PERSON "+person.playerNumber+" Chromatic Scale" ) 
+				break
+					
+			case PERSON_TYPE_ARPEGGIO:
+			default:
+				// Slow COF Arp
+				person.leftFacingKeys = MAJOR_SCALE_KEYS
+				person.rightFacingKeys = MINOR_SCALE_KEYS
+				person.activeInstrument.arpeggiate = true
+				console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
+				break
+		}
+		
+	}
+
 	/**
 	 * Instantiate a Person Class and connect it up accordingly
 	 * @param {Number} index Player's index
@@ -805,7 +850,7 @@ export const createInterface = (
 
 		const locationOptions = new URLSearchParams(window.location.search)
 		const locationData = Object.fromEntries(locationOptions)
-		const name = NAMES[index]
+		const name = IDENTIFIERS[index]
 		const prefix = name + '-'
 		const locationInstrument= locationData[prefix+'instrument' ]
 		const locationPreset= locationData[prefix+'preset' ]
@@ -926,39 +971,17 @@ export const createInterface = (
 		// const preset = getFolderNameForInstrument( presetName )
 		//console.error("Person created", {instrument}, {person})
 	
-		// console.error("Creating Person setupAudio", {person, audioContext, audioChain, offlineAudioContext, preset})
+		// console.error(">>> PERSON Creating Person "+person.playerNumber+" setupAudio", {person, preset})
+		
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
-		person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async()=>{
+		person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async( playerIndex )=>{
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
-
-			// give the second player an arpeggio instead of chords!
-			switch (person.personIndex)
-			{
-				case 1:
-					// turn it into an arp if the person 
-					chordInstrument.arpeggiate = true
-					break
-
-				case 2:
-					person.leftFacingKeys = FIFTHS_SCALE_KEYS
-					person.rightFacingKeys = FIFTHS_SCALE_KEYS
-					break
-
-				case 3:
-					person.leftFacingKeys = MAJOR_SCALE_KEYS
-					person.rightFacingKeys = MINOR_SCALE_KEYS
-					
-					break
-						
-				case 0:
-				default:
-					// sympathetic chords 
-					
-					break
-			}
-
+			
+			// and set up the user in a certain mode
+			configurePerson(person, person.playerNumber)
+			
 			if (personOptions.debug)
 			{
 				console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
@@ -1025,6 +1048,39 @@ export const createInterface = (
 		} else{
 			return people[index]
 		}
+	}
+
+
+	const getNearestPerson = (x,y, peopleArray=people) => {
+		let nearestPersonIndex = 0
+		let distance = Number.MAX_VALUE
+		for (let index=0, l=peopleArray.length; index<l; ++index)
+		{
+			const person = peopleArray[index]
+			const box = person.boundingBox
+
+			if ( !box || person.x === -1 )
+			{
+				//console.error("getNearestPerson skipping as unsure where user is", person)
+				continue
+			}
+
+			const dx = x - person.x
+			const dy = y - person.y
+			const distanceSquared = dx*dx + dy*dy
+					
+			//console.error( index, "getNearestPerson", distanceSquared, person.id, peopleArray.length, {peopleArray,dx,dy} )
+
+			if (distanceSquared < distance)
+			{
+				distance = distanceSquared
+				nearestPersonIndex = index
+			}
+		}
+			
+		// console.info( "getNearestPerson",nearestPersonIndex, distanceSquared, peopleArray.length, {peopleArray,dx,dy} )
+
+		return nearestPersonIndex
 	}
 
 	/**
@@ -1677,7 +1733,6 @@ export const createInterface = (
 		// so we can have a black mirror mode
 		if (display){
 				
-			
 			if (discoMode)
 			{	
 				// FUNKY DISCO MODE...
@@ -1775,15 +1830,28 @@ export const createInterface = (
 			// for (let i=0, l=predictions.length; i < l; ++i)
 			// for (let i=0, l=people.length; i < l; ++i)
 			quantityOfActivePeople = 0
+
+
+			// FIXME: The order of persons will be different
+			// from the order of model predictions
+			// so lets compare the two and tie each prediction 
+			const activePeople = people.slice()
+			// to the person that was nearest in the last prediction
 			for (let i=0, l=range; i < l; ++i)
 			{
 				const prediction = hasPredictions ? predictions[i] : null
-				// create as many people as we need
-				const person = getPerson(i)
-			
+				// console.info(prediction, boundingBox)
+
 				// face available!
 				if (prediction)
 				{
+					const boundingBox = prediction.box
+					// create as many people as we need...
+					// loop through all people and find closest
+					const personIndex = getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
+					const person = activePeople[personIndex]
+					activePeople.splice(personIndex,1)
+					
 					quantityOfActivePeople++
 					//if (!act)
 					//main.classList.toggle("active", true)
@@ -1848,6 +1916,9 @@ export const createInterface = (
 					// console.info(i, "Person "+person.name, person, prediction )
 				
 				}else{
+
+					const person = getPerson(i)
+
 					// Person exists but does not have any matching new prediction
 					// so we re-use any existing while the person fades away
 					// there is a user created but no prediction to drive it,
@@ -2613,7 +2684,7 @@ export const createInterface = (
 			globalChordPlayer.noteOn( (Math.random() * 128) >> 0, 1 )
 		}
 		
-		setInterval( testChords, 2500 )
+		// setInterval( testChords, 2500 )
 		
 		// load in our oscillator presets so that they will be available in 
 		// all oscilllator based instruments 
@@ -3417,6 +3488,7 @@ export const createInterface = (
 			user,
 			quantityOfActivePeople,
 
+			configurePerson,
 			selectPerson,
 			getSelectedPerson, 
 

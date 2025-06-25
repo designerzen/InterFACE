@@ -34,7 +34,8 @@ import {
 	DEFAULT_PERSON_OPTIONS,
 	DEFAULT_PEOPLE_OPTIONS,
 	DEFAULT_VOICE_OPTIONS,
-	NAMES
+	NAMES,
+	IDENTIFIERS
 } from './settings/options'
 
 import { toKebabCase } from "./utils/utils.js"
@@ -102,6 +103,11 @@ export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
+// varieties of users
+export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 0
+export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
+export const PERSON_TYPE_CHROMATIC = 2
+export const PERSON_TYPE_ARPEGGIO = 3
 
 /*
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
@@ -144,6 +150,9 @@ const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 
 export default class Person{
 
+	id
+	name = "unamed"
+
 	playerNumber = -1
 	createdAt = -1
 
@@ -170,7 +179,8 @@ export default class Person{
 	
 	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
-		
+	type = PERSON_TYPE_ARPEGGIO
+
 	// Flags
 	useArpeggio = false
 	active = false
@@ -202,6 +212,9 @@ export default class Person{
 	yaw = 0
 	pitch = 0
 	roll = 0
+
+	// bouding box
+	box = null
 
 	// we can use external inputs here and store the dispatcher here
 	gamePad
@@ -275,6 +288,24 @@ export default class Person{
 	// controlMode = convertHeadRollToScaleAndPitchToOctaveAndYawToPitch
 	// controlMode = convertHeadRollToOctaveAndPitchToScaleAndYawToPitch
 	controlMode = convertHeadOrientationIntoNoteData
+
+	/**
+	 * 
+	 */
+	get boundingBox(){
+		return this.box
+	}
+
+	get x(){ return this.box ? this.box.xMin : -1 }
+	get y(){ return this.box ? this.box.yMin : -1 }
+
+	get centerX(){
+		return this.box ? this.box.xMax - this.box.xMin : -1
+	}
+
+	get centerY(){
+		return this.box ? this.box.yMax - this.box.yMin : -1
+	}
 
 	/**
 	 * Does this user have an active instrument that can be played?
@@ -366,7 +397,7 @@ export default class Person{
 	 * @returns {String} ID name
 	 */
 	get controlsID (){
-		return `.${this.name}-controls`
+		return `.${this.id}-controls`
 	}
 
 	/**
@@ -382,7 +413,7 @@ export default class Person{
 	 * @returns {String} ID name
 	 */
 	get panelID (){
-		return `.${this.name}-panel`
+		return `.${this.id}-panel`
 	}
 
 	/**
@@ -394,7 +425,7 @@ export default class Person{
 	}
 
 	get faceButton(){
-		return document.getElementById(this.name)
+		return document.getElementById(this.id)
 	}
 
 	/**
@@ -588,7 +619,9 @@ export default class Person{
 		
 		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
 		// ensure that the name is all lower case and kebabed
-		this.name = toKebabCase( NAMES[index] ?? "person-" + index )
+		this.id = IDENTIFIERS[index]
+		// this.id = toKebabCase( IDENTIFIERS[index] ?? "person-" + index )
+		this.name = NAMES[index]
 
 		this.playerNumber = index
 
@@ -708,7 +741,7 @@ export default class Person{
 		
 		prefix = prefix.length > 0 ? 
 			prefix+'-' : 
-			this.name+'-'
+			this.id+'-'
 
 		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
 		this.options.defaultInstrument = data[prefix+'instrument']
@@ -729,7 +762,7 @@ export default class Person{
 
 		prefix = prefix.length > 0 ? 
 			prefix+'-' : 
-			this.name+'-'
+			this.id+'-'
 
 		const data = {
 			// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
@@ -751,7 +784,7 @@ export default class Person{
 	 * String representation of this Person
 	 */
 	toString(){
-		return `Person(${this.name})`
+		return `Person(${this.id})`
 	}
 
 	/**
@@ -816,7 +849,10 @@ export default class Person{
 	 */
 	update(prediction, timeNow, forceRefresh=false){
 		
+		const boundingBox = prediction.box
+		
 		this.counter++
+		this.box = prediction.box
 
 		// resurrect the dead
 		if (this.createdAt === -1)
@@ -1056,12 +1092,12 @@ export default class Person{
 		if (this.isUserActive)
 		{
 			// TODO: Profile which is faster...
-			// this.button.style.setProperty(`--${this.name}-x`, bottomRight[0] )
-			// this.button.style.setProperty(`--${this.name}-y`, topLeft[1] )
-			// this.button.style.setProperty(`--${this.name}-w`, boxWidth )
-			// this.button.style.setProperty(`--${this.name}-h`, boxHeight )			
-			this.button.setAttribute( "style", `--${this.name}-x:${x};--${this.name}-y:${y};--${this.name}-w:${width};--${this.name}-h:${height};` );
-			// this.button.cssText = `--${this.name}-x:${bottomRight[0]};--${this.name}-y:${topLeft[1]};--${this.name}-w:${boxWidth};--${this.name}-h:${boxHeight};`		
+			// this.button.style.setProperty(`--${this.id}-x`, bottomRight[0] )
+			// this.button.style.setProperty(`--${this.id}-y`, topLeft[1] )
+			// this.button.style.setProperty(`--${this.id}-w`, boxWidth )
+			// this.button.style.setProperty(`--${this.id}-h`, boxHeight )			
+			this.button.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};` );
+			// this.button.cssText = `--${this.id}-x:${bottomRight[0]};--${this.id}-y:${topLeft[1]};--${this.id}-w:${boxWidth};--${this.id}-h:${boxHeight};`		
 	}	}
 
 	/**
@@ -1179,18 +1215,44 @@ export default class Person{
 
 			// Main data flow
 			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
+			const arpeggiated = this.activeInstrument ? this.activeInstrument.arpeggiate : false
 			let extra = ""
-			if (playsChords)
+			if (playsChords && !arpeggiated)
 			{
 				const chord =this.activeInstrument.notes.keys()
-				chord.forEach( noteName => {
-					extra += convertMIDINoteNumberToName(noteName) + ", "
+				chord.forEach( (noteName, i) => {
+					extra += convertMIDINoteNumberToName(noteName) + " "
 				})
 			}else{
-  				extra = this.lastNoteFriendlyName 
+  				extra = this.noteFriendlyName 
 			}
 
-			const suffix = this.singing ? `| ♫ ${this.lastNoteSound}` : this.isMouthOpen ? `<` : `.`
+			let style = ""
+			switch (this.type)
+			{
+				case PERSON_TYPE_ARPEGGIO:
+					style = "𝆃"
+					break
+
+				case PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS:
+					style = "〇"
+					break
+
+				case PERSON_TYPE_CHROMATIC:
+					style = "12"
+					break
+						
+				case PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS:
+				default:
+					style = "⬠"
+					break
+			}
+
+			const suffix = this.singing ? 
+				`${this.name} ${style} ♫ ${this.noteSound}` : 
+				this.isMouthOpen 
+					? `${this.name} <` : `${this.name}` 
+					
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
 			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
@@ -1207,7 +1269,7 @@ export default class Person{
 
 			const instrumentText = suffix ? `${extra} ${suffix}${bend}` : extra
 
-			display.drawInstrument(textX, textY - 50, instrumentTitle, this.isSelected ? `*` : "", 8 )			
+			display.drawInstrument(textX, textY - 50, instrumentTitle, this.isSelected ? `*` : "", 10 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			display.drawText(textX, textY - 30, instrumentText, 18 )
@@ -1961,9 +2023,7 @@ export default class Person{
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
 			defaultInstrument:this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
 			// ,defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
-		}
-
-		
+		}		
 
 		// create a sample player, oscillator add all other instruments		
 		// Add as manny instruments as you like
@@ -2000,7 +2060,8 @@ export default class Person{
 		// load the default preset
 		const defaultPreset = await this.loadPreset( defaultInstrumentOptions.defaultPreset )
 
-		// console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
+		console.error(">>> PERSON created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
+		return this.playerNumber
 	}
 
 	/**
@@ -2242,7 +2303,7 @@ export default class Person{
 		}
 
 		// fill the sidebar with the presets from this instrument
-		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this.name )
+		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this.id )
 			
 		// stupid event callback forgets scope!
 		this.presetPanelConnection = addInteractivityToInstrumentPanel( this.controls, event => this.onInstrumentInput(event) )
@@ -2268,7 +2329,7 @@ export default class Person{
 	showForm(){
 		if (!this.isFormShowing)
 		{
-			this.isFormShowing = showPersonalControlPanel( this.name, this.instrumentPanel, this.instrumentName )
+			this.isFormShowing = showPersonalControlPanel( this.id, this.instrumentPanel, this.instrumentName )
 		}else{
 			console.error("was told to open form that is already open")
 		}
@@ -2278,8 +2339,8 @@ export default class Person{
 	 * Hide this Person's control panel form
 	 */
 	hideForm(){
-		// console.error( "sidebar hiding...", this.name, "closing side bar", this.name, this.instrumentPanel )
-		this.isFormShowing = hidePersonalControlPanel( this.name, this.instrumentPanel )
+		// console.error( "sidebar hiding...", this.id, "closing side bar", this.id, this.instrumentPanel )
+		this.isFormShowing = hidePersonalControlPanel( this.id, this.instrumentPanel )
 	}
 
 	/**
