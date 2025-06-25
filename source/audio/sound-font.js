@@ -33,6 +33,9 @@ const DEFAULT_SOUNDFONT_OPTIONS = {
 
 export default class SoundFont{
 
+	// global loaded assets
+	static audioBuffers = new Map()
+
 	name = INSTRUMENT_PACKS[0]
 
 	// data describing this data of descriptor
@@ -43,7 +46,7 @@ export default class SoundFont{
 	// 2. remote ftp with https:// at the start
 	location = "./"
 
-	// loaded assets
+	// local loaded assets
 	audioBuffers = new Map()
 
 	instrumentsByName = new Map()
@@ -61,7 +64,7 @@ export default class SoundFont{
 	lazyLoading = false
 	
 	get presetAudioBuffers(){
-		return this.audioBuffers
+		return SoundFont.audioBuffers
 	}	
 
 	get presetNames(){
@@ -283,17 +286,9 @@ export default class SoundFont{
 			const percent = (progress * 100).toFixed(2)
 			const note = part.split('.')[0]
 			const buffer = await audioBuffer
-			
-			// console.error(percent + "%", ">>> PRE Loading loadPresetGradually", { event, note, audioBuffer} )
 			audioBuffers[ note ] = buffer
-
 			// console.error(percent + "%", ">>> POST Loading loadPresetGradually", {event, note, audioBuffer, buffer, preset, progress, part} )  
 			console.info(percent + "%", note, "audioBuffers", {buffer, audioBuffers})
-			
-			// NOTE_NAMES.forEach( (instrument, index) => {
-			// 	output[ instrument.split('.')[0] ] = instrumentAudioBuffers[instrument] ?? instrumentAudioBuffers[index]
-			// })
-
 			onProgressCallback && onProgressCallback( event )
 		})
 	}
@@ -340,9 +335,9 @@ export default class SoundFont{
 			throw Error( `No Preset found with name "${presetNameOrNumber}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
 		}
 
-		if (this.audioBuffers.has( data.name ))
+		if (SoundFont.audioBuffers.has( data.name ))
 		{
-			return this.audioBuffers.get( data.name )
+			return SoundFont.audioBuffers.get( data.name )
 		}
 		
 		// check to see if the pack name is valid...
@@ -370,7 +365,7 @@ export default class SoundFont{
 		
 			// TODO: Use fetch-worker to load the array
 			// loadInstrumentFromSoundFontSamples
-			this.audioBuffers.set( data.name, audioBufferData )
+			SoundFont.audioBuffers.set( data.name, audioBufferData )
 
 			console.error("Instrument loaded", presetNameOrNumber, data.name, audioBufferData )
 		

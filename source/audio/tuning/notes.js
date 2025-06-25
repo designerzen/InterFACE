@@ -160,10 +160,10 @@ export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES
 
 	if (facingLeft)
 	{
-		noteNumber = Math.floor( percent * notesLeft.length )
+		noteNumber = Math.round( percent * (notesLeft.length - 1) )
 		noteName = notesLeft[noteNumber]
 	}else{
-		noteNumber = Math.floor( percent * notesRight.length )
+		noteNumber = Math.round( percent * (notesRight.length - 1) )
 		noteName = notesRight[noteNumber]
 	}
 
@@ -180,8 +180,16 @@ export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES
 	// const noteNumber = Math.floor( lipPercentage * (INSTRUMENT_NAMES.length-1) )
 	// const noteName = NOTE_NAMES[noteNumber]
 
+
+	if (noteName === undefined)
+	{
+		console.error("No note name for this one!", {percent,noteNumber, notesLeft, notesRight} ) 
+		// throw Error("Could not find note name for noteNumber", noteNumber)
+	}
+
+
 	// just in case the note name is not found?
-	return `${noteName}${clamp(octave, 1, 7)}`
+	return `${noteName ?? ''}${clamp(octave, 1, 7)}`
 	// return noteName ? `${noteName}${clamp(octave, 1, 7)}` : `A0`
 }
 

@@ -574,8 +574,6 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 	
 	const banks = createInstrumentBanks()
 	const parts = rearrangeArrayBySnake( banks, options.startIndex )
-	
-	console.error("rearrangeArrayBySnake", banks, parts)
 
 	let i = 0
 	const instruments = []
