@@ -93,11 +93,14 @@ export default class SoundFontInstrument extends SampleInstrument{
 			// as this is an immediate load, we can use the JS rather than MP3s...
 			this.loadFont( this.options.instrumentPack, this.options ).then((font)=>{
 
-				// now load our first preset or a specified one...
-				this.loadPreset( this.options.preset ?? 0, this.options.instrumentPack ).then( preset => {
-					console.error("preset", preset )
-				})
-				this.available = true
+				if (this.options.preload)
+				{
+					// now load our first preset or a specified one...
+					this.loadPreset( this.options.preset ?? 0, this.options.instrumentPack ).then( preset => {
+						console.error("preset", preset )
+					})
+					
+				}
 
 				// console.error("soundfont", this, font )
 			
@@ -304,9 +307,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			// if it is a string then we need to find the index
 			presetNameOrObject = this.instrumentFolders.indexOf(programNumber)
 		}
-		
-		
-		
+	
 		// const index = this.getIndexFromName(presetName)
 		
 		// if (index  === -1)
@@ -317,7 +318,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	
 		// check to see if the pack name is valid...
 		this.instrumentLoading = true
-	
+		
 		try{
 
 			options = {				// URI of the sound font
@@ -378,6 +379,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// }
 		
 		this.instrumentLoading = false
+		this.available = true
 		return this.audioBuffers
 	}
 

@@ -1043,7 +1043,7 @@ export const createInterface = (
 		if (people[index] == undefined)
 		{
 			const person = createPerson( index, EYE_COLOURS[index], index )
-			people.push( person )
+			people[index] = person
 			return person
 		} else{
 			return people[index]
@@ -1839,19 +1839,28 @@ export const createInterface = (
 			// to the person that was nearest in the last prediction
 			for (let i=0, l=range; i < l; ++i)
 			{
+				// const person = getPerson(i)
 				const prediction = hasPredictions ? predictions[i] : null
-				// console.info(prediction, boundingBox)
+				if (!prediction)
+				{
+					console.info("No Prediction for Person", i ) 
+					continue
+				}
+				// const person = getPerson(i)
+				// const prediction = hasPredictions ? predictions[i] : person.data
+				
+				// loop through all people and find closest
+				const boundingBox = prediction.box
+				const personIndex = getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
+				const person = activePeople[personIndex]
+				activePeople.splice(personIndex,1)
+
+				// create as many people as we need...
+				console.info("Binding Prediction to Person", personIndex, i, prediction, person, activePeople[personIndex] )
 
 				// face available!
 				if (prediction)
 				{
-					const boundingBox = prediction.box
-					// create as many people as we need...
-					// loop through all people and find closest
-					const personIndex = getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
-					const person = activePeople[personIndex]
-					activePeople.splice(personIndex,1)
-					
 					quantityOfActivePeople++
 					//if (!act)
 					//main.classList.toggle("active", true)
@@ -1916,8 +1925,6 @@ export const createInterface = (
 					// console.info(i, "Person "+person.name, person, prediction )
 				
 				}else{
-
-					const person = getPerson(i)
 
 					// Person exists but does not have any matching new prediction
 					// so we re-use any existing while the person fades away
@@ -2051,8 +2058,10 @@ export const createInterface = (
 			// console.info("Display:Loop-reuse")
 		}
 		
-		usePredictions(peoplePredictions)
-
+		if (peoplePredictions)
+		{
+			usePredictions(peoplePredictions)
+		}
 		// If we are using MIDI clock and it stops, then there is no
 		// event sent so that we can alter behaviour, so instead we
 		// have a time out that can be used to reinstate automatic

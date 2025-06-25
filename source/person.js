@@ -2019,6 +2019,7 @@ export default class Person{
 		// TODO: 
 		const defaultInstrumentOptions = {
 			...this.options,
+			preload:false,
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
 			defaultInstrument:this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
@@ -2060,7 +2061,7 @@ export default class Person{
 		// load the default preset
 		const defaultPreset = await this.loadPreset( defaultInstrumentOptions.defaultPreset )
 
-		console.error(">>> PERSON created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
+		console.error(presetIndex, ">>> PERSON created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
 		return this.playerNumber
 	}
 

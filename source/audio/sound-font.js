@@ -432,7 +432,7 @@ export default class SoundFont{
 		const simultaneous = options.simultaneous ?? 12
 		
 		const output = []
-		presetNames = rearrangeArrayBySnake( presetNames , options.startIndex ?? 0 )
+		// presetNames = rearrangeArrayBySnake( presetNames , options.startIndex ?? 0 )
 			
 		// if a single string was provided, convert to array
 		if (typeof presetNames === "string")

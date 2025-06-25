@@ -21,8 +21,8 @@ export default class SampleInstrument extends Instrument{
 	title = "Sample Player"
 	type = "sample"
 	
-	// Instrument is an Object where each
-	audioBuffers = { A0:"sampleAudioBuffer" }
+	// Instrument is an Object where A0:"sampleAudioBuffer" 
+	audioBuffers = { }
 	
 	instrumentName = "Unloaded"
 	instrumentTitle = "Unloaded"

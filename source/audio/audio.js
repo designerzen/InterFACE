@@ -572,14 +572,17 @@ async function loadInstrumentPart (instrumentName, part) {
  */
 export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={}, onProgressCallback=null) => new Promise( async (resolve,reject)=>{
 	
-	const parts = rearrangeArrayBySnake( createInstrumentBanks() , options.startIndex )
+	const banks = createInstrumentBanks()
+	const parts = rearrangeArrayBySnake( banks, options.startIndex )
 	
+	console.error("rearrangeArrayBySnake", banks, parts)
+
 	let i = 0
 	const instruments = []
 	const loading = new Map()
 
 	const loadNextPart = async ()=>{
-		const simultaneous = options.simultaneous ?? 6
+		const simultaneous = 12 //options.simultaneous ?? 6
 		for (let b=0; b<simultaneous;++b)
 		{
 			const part = parts[i]
@@ -641,6 +644,8 @@ export const loadInstrumentFromSoundFontSamples = async( context=audioContext, p
 	// Load as individual parts
 	const partPromises = await loadInstrumentParts(context, path, options, onProgressCallback ) 
 	const parts = options.asArray ? [] : {}
+
+
 
 	// ensure promises have resolved
 	for (let i=0, l=partPromises.length; i < l; ++i)
