@@ -85,11 +85,11 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 			{
 				case "playNote":
 					personNotes.set( note.noteNumber, note )
-					console.log("playNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
+					// console.log("playNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
 					break
 				case "stopNote":
 					personNotes.delete( note.noteNumber )
-					console.log("stopNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
+					// console.log("stopNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
 					break
 			}
 
@@ -109,11 +109,11 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				{
 					case "playNote":
 						personNotes.set( note.noteNumber, note )
-						console.log("playNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
+						// console.log("playNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
 						break
 					case "stopNote":
 						personNotes.delete( note.noteNumber )
-						console.log("stopNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
+						// console.log("stopNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
 						break
 				}
 				// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
@@ -135,11 +135,11 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				{
 					case "playNote":
 						personNotes.set( note.noteNumber, note )
-						console.log("playNote all", note, MIDIoutput, personNotes )
+						// console.log("playNote all", note, MIDIoutput, personNotes )
 						break
 					case "stopNote":
 						personNotes.delete( note.noteNumber )
-						console.log("stopNote all", note, MIDIoutput, personNotes )
+						// console.log("stopNote all", note, MIDIoutput, personNotes )
 						break
 				}
 				
@@ -190,17 +190,18 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 
 
 	// no audio to play... stop all
-	if (!activeAudioOutput)
-	{
-		stopAll()
-		return
-	}
+	// if (!activeAudioOutput)
+	// {
+	// 	stopAll()
+	// 	return
+	// }
 
 	// check to see if the notes entered are notes that are already playing...
 	// if they are then stop thm
 	
 
 	// START
+	stopAll()
 	
 	// console.log("Person", person.state, {activeAudioOutput} ) 
 	activeAudioOutput.forEach( note =>{
@@ -209,25 +210,27 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 		switch(person.state)
 		{
 			case STATE_INSTRUMENT_ATTACK:
-				stopAll()
 				handleNote( note )
 				break
 
-			case STATE_INSTRUMENT_SUSTAIN:
-				// WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.noteOn( noteNumber, noteVelocity ) )
-				break
+			// case STATE_INSTRUMENT_SUSTAIN:
+			// 	// WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.noteOn( noteNumber, noteVelocity ) )
+			// 	break
 
-			case STATE_INSTRUMENT_PITCH_BEND:
-				//WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.sendPitchBend( pitch ))
-				break
+			// case STATE_INSTRUMENT_PITCH_BEND:
+			// 	//WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.sendPitchBend( pitch ))
+			// 	break
 
-			case STATE_INSTRUMENT_DECAY:
-				break
-
-			case STATE_INSTRUMENT_RELEASE:
-			case STATE_INSTRUMENT_SILENT:
-				handleNote( note, "stopNote" )
-				break
+			// case STATE_INSTRUMENT_DECAY:
+			// 	break
 		}		
 	})
+
+	switch(person.state)
+	{
+		// case STATE_INSTRUMENT_RELEASE:
+		case STATE_INSTRUMENT_SILENT:
+			stopAll()
+			break
+	}
 }

@@ -103,11 +103,11 @@ export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
-// varieties of users
-export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 0
+// varieties of users (tie them into PlayerNumbers)
+export const PERSON_TYPE_CHROMATIC = 0
 export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
-export const PERSON_TYPE_CHROMATIC = 2
-export const PERSON_TYPE_ARPEGGIO = 3
+export const PERSON_TYPE_ARPEGGIO = 2
+export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
 
 /*
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
@@ -169,7 +169,9 @@ export default class Person{
 	lastEmoticon = EMOJI_NEUTRAL
 
 	activeInstrument
+
 	instruments = []
+	
 	instrumentPointer = 0
 	instrumentLoadedAt = -1
 	presetName

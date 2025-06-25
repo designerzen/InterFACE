@@ -163,7 +163,7 @@ import { tapTempo } from './timing/timer.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
-import { FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
+import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -795,7 +795,7 @@ export const createInterface = (
 
 	const configurePerson = (person, type) => {
 		// ensure type is a valid index
-		person.type = type % 4
+		person.type = type % people.length
 		switch (person.type)
 		{
 			case PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS:
@@ -803,7 +803,7 @@ export const createInterface = (
 				person.leftFacingKeys = FIFTHS_SCALE_KEYS
 				person.rightFacingKeys = FIFTHS_SCALE_KEYS
 				person.activeInstrument.arpeggiate = true
-				console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
+				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
 				break
 
 			case PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS:
@@ -811,15 +811,18 @@ export const createInterface = (
 				person.leftFacingKeys = FIFTHS_SCALE_KEYS
 				person.rightFacingKeys = FIFTHS_SCALE_KEYS
 				person.activeInstrument.arpeggiate = false
-				console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
+				// console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
 				break
 
 			case PERSON_TYPE_CHROMATIC:
 				// Sympathetic chords - Chromatic scale
 				person.leftFacingKeys = MAJOR_SCALE_KEYS
 				person.rightFacingKeys = MINOR_SCALE_KEYS
+				
+				// person.leftFacingKeys = JAZZ_MINOR_SCALE_KEYS
+				// person.rightFacingKeys = JAZZ_MINOR_SCALE_KEYS
 				person.activeInstrument.arpeggiate = false
-				console.info(">>> PERSON "+person.playerNumber+" Chromatic Scale" ) 
+				// console.info(">>> PERSON "+person.playerNumber+" Chromatic Scale" ) 
 				break
 					
 			case PERSON_TYPE_ARPEGGIO:
@@ -828,10 +831,9 @@ export const createInterface = (
 				person.leftFacingKeys = MAJOR_SCALE_KEYS
 				person.rightFacingKeys = MINOR_SCALE_KEYS
 				person.activeInstrument.arpeggiate = true
-				console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
+				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
 				break
 		}
-		
 	}
 
 	/**
@@ -1831,11 +1833,11 @@ export const createInterface = (
 			// for (let i=0, l=people.length; i < l; ++i)
 			quantityOfActivePeople = 0
 
-
-			// FIXME: The order of persons will be different
+			// NB: The order of persons will be different
 			// from the order of model predictions
 			// so lets compare the two and tie each prediction 
 			const activePeople = people.slice()
+
 			// to the person that was nearest in the last prediction
 			for (let i=0, l=range; i < l; ++i)
 			{
@@ -1843,9 +1845,10 @@ export const createInterface = (
 				const prediction = hasPredictions ? predictions[i] : null
 				if (!prediction)
 				{
-					console.info("No Prediction for Person", i ) 
+					// console.info("No Prediction for Person", i ) 
 					continue
 				}
+
 				// const person = getPerson(i)
 				// const prediction = hasPredictions ? predictions[i] : person.data
 				
@@ -1856,7 +1859,7 @@ export const createInterface = (
 				activePeople.splice(personIndex,1)
 
 				// create as many people as we need...
-				console.info("Binding Prediction to Person", personIndex, i, prediction, person, activePeople[personIndex] )
+				// console.info("Binding Prediction to Person", personIndex, i, prediction, person, activePeople[personIndex] )
 
 				// face available!
 				if (prediction)
@@ -2030,7 +2033,6 @@ export const createInterface = (
 			hasBeatJustPlayed = false
 		}
 
-	
 		//console.log(counter, "update", {predictions, tickerTape, userLocated, isCameraLoading} )
 	}
 
@@ -2062,6 +2064,7 @@ export const createInterface = (
 		{
 			usePredictions(peoplePredictions)
 		}
+
 		// If we are using MIDI clock and it stops, then there is no
 		// event sent so that we can alter behaviour, so instead we
 		// have a time out that can be used to reinstate automatic
