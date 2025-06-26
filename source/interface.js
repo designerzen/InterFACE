@@ -1052,6 +1052,21 @@ export const createInterface = (
 		}
 	}
 
+	/**
+	 * Finds the first person that is considered active
+	 * NB. As we drift around 
+	 * @returns Person
+	 */
+	const getActivePerson = () =>{
+		for (let index=0, l=peopleArray.length; index<l; ++index)
+		{
+			const person = peopleArray[index]
+			if (person.isActive)
+			{
+				return person
+			}
+		}
+	}
 
 	const getNearestPerson = (x,y, peopleArray=people) => {
 		let nearestPersonIndex = 0
@@ -2764,11 +2779,9 @@ export const createInterface = (
 			// Outputs
 			// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
 			// immediately hook into the clock events...
-			
-			// if (stateMachine.get("midiInput"))
-			if (stateMachine.get("midiInput"))
+			// midiInput
+			if (stateMachine.get("midi"))
 			{
-				console.info("Observing MIDI Messages" )
 				WebMidi.inputs.forEach(input =>{
 					console.info("Observing MIDI device", input )
 					const playingMIDINotes = new Map()
@@ -2799,13 +2812,14 @@ export const createInterface = (
 						// TODO: use the midi in and the people to augment
 						// the note played with chords that match the facial expression
 						// const amountOfInputs = WebMidi.inputs.length         
-						const person = getPerson(0)
+						const person = getActivePerson()
+
 						// augment note into chord using event.note.number as the tonic
 						const chordDetails = getMusicalDetailsFromEmoji(event.note.number, person.emoticon)
 						// save this chord for note off later
 						playingMIDINotes.set( event.note.number, chordDetails )	
 
-						console.log("MIDI noteon", {chordDetails, playingMIDINotes,event, person} )
+						console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes,event, person} )
 
 						// play midi notes using our Audio Engine...
 						// globalChordPlayer.noteOn( event.note.number, event.value )
@@ -2818,8 +2832,8 @@ export const createInterface = (
 						// send out original event to all connected devices
 						if (relayMIDI)
 						{
-							//sendMIDIEventToAllDevices(event.type, event)
-							console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
+							sendMIDIEventToAllDevices(event.type, event)
+							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
 						}
 
 						// send out augmented events
@@ -2838,13 +2852,13 @@ export const createInterface = (
 						// NOTEOFF
 						// get the chord details
 						const playingChord = playingMIDINotes.get( event.note.number )
-						console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
+						//console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
 						
 						for (const chord of playingChord)
 						{
 							// sendMIDIEventToAllDevices( "noteon", chord)
 							WebMidi.outputs.forEach(output => output.stopNote(chord.noteNumber))
-							console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
+							//console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
 						}
 						// stop midi notes on our Audio Engine...
 						// globalChordPlayer.noteOff( event.note.number, event.value )

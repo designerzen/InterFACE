@@ -185,7 +185,7 @@ export const DEFAULT_OPTIONS = {
 
 	// The MIDI relay option will send any MIDI messages received back out
 	// to all the channels specified - this can cause infinite loops if misused
-	midiRelay:true,
+	midiRelay:false,
 
 	// Do we augment the MIDI messages with additional notes
 	// based on the user's current mood
@@ -197,7 +197,8 @@ export const DEFAULT_OPTIONS = {
 	midiControl:true,
 
 	// allow midi input to control stuff too
-	midiInput:false,
+	midiInput:true,
+
 	midiClock:false,
 
 	// DEFAULT midi channel (0/"all" means send to all)
