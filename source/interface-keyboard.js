@@ -118,28 +118,27 @@ const addKeyboardEvents = ( application ) => {
 				break
 
 			case 'ArrowUp':
-				if (event.ctrlKey || event.shiftKey)
+				if (event.ctrlKey)
 				{
 					application.clock.totalBars++
 					application.setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')						
-				}else{
+				}else if (event.shiftKey){
 					// get existing pitchbend value
-					const person = application.getPerson(0)
+					const person = application.getActivePerson()
 					const pitchBend = person.activeInstrument.pitchOffset
 					person.activeInstrument.pitchBend( pitchBend+0.5 )
 					// console.log("Pitchbending UP!", getPerson(0) )
 				}
-
 				break
 
 			// change amount of bars
 			case 'ArrowDown':
-				if (event.ctrlKey || event.shiftKey)
+				if (event.ctrlKey)
 				{
 					application.clock.totalBars--
 					setFeedback(`Bars : ${clock.totalBars} / BPM : ${clock.BPM}`, 0, 'tempo')
-				}else{
-					const person = application.getPerson(0)
+				}else if (event.shiftKey){
+					const person = application.getActivePerson()
 					const pitchBend = person.activeInstrument.pitchOffset
 					person.activeInstrument.pitchBend( pitchBend-0.5 )
 				}
@@ -178,13 +177,16 @@ const addKeyboardEvents = ( application ) => {
 				break
 
 			case 'g':
-				const isVisisble = application.toggleVisibility(document.getElementById("feedback") )
-				application.toggleVisibility(document.getElementById("toast") )
-				application.stateMachine.set("text", isVisisble )
+				application.toggleVisibility(canvasElement)
 				break
 
+			// Toggle help & overlays
 			case 'h':
-				application.toggleVisibility(canvasElement)
+				const isVisisble = application.toggleVisibility(document.getElementById("feedback") )
+				application.toggleVisibility(document.getElementById("toast") )
+				// reset help
+				application.counter = 0
+				application.stateMachine.set("text", isVisisble )
 				break
 
 			// Change impulse filter in the reverb
@@ -222,9 +224,7 @@ const addKeyboardEvents = ( application ) => {
 				break
 
 			case 'o':
-				if (application.midiPerformance){
-
-				}
+				application.kit.hat()
 				break
 
 			case 'p':
@@ -241,7 +241,8 @@ const addKeyboardEvents = ( application ) => {
 
 			case 'q':
 				// FIXME: 
-				application.stateMachine.toggle("muted" )
+				// application.stateMachine.toggle("muted" )
+				application.stateMachine.toggle("photoSensitive" )
 				break
 		
 			case 'r':
@@ -288,13 +289,11 @@ const addKeyboardEvents = ( application ) => {
 				//console.log("tappedTempo",tappedTempo)
 				break
 
-			// Reset help!
+			// Toggle spectrogram
 			case 'y':
-				application.counter = 0
+				application.stateMachine.toggle( "spectrogram" )
 				break
 		
-
-			// FIXME: Reset help!
 			case 'z':
 				// const predictions = getPerson(0).parameterRecorder.export()
 				// console.log(predictions)
@@ -323,7 +322,7 @@ const addKeyboardEvents = ( application ) => {
 			// 	application.switchDisplay( DISPLAY_COMPOSITE, predictionLoop )
 			// 	break
 
-			// Switch Player Modes
+			// Swit
 			case "F1":
 				event.preventDefault()
 				const player1 = application.getPerson(0)
@@ -368,6 +367,7 @@ const addKeyboardEvents = ( application ) => {
 				event.preventDefault()
 				application.selectPerson( 3 )
 				break
+
 		
 			// Media Hotkeys
 
@@ -397,20 +397,26 @@ const addKeyboardEvents = ( application ) => {
 				
 
 
-
-			// Previous Track
+			case "F9":
+				event.preventDefault()
+				application.getPerson(0).loadRandomPreset()
+				break
+		
 			case "F10":
 				event.preventDefault()
+				application.getPerson(1).loadRandomPreset()
 				break
 
 			// Play / Pause Percussion
 			case "F11":
 				event.preventDefault()
+				application.getPerson(2).loadRandomPreset()
 				break
 
 			// Next Track
 			case "F12":
 				event.preventDefault()
+				application.getPerson(3).loadRandomPreset()
 				break
 
 			case "F13":
