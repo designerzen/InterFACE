@@ -3516,7 +3516,8 @@ export const createInterface = (
 		notifyObserversThatWeblinkIsAvailable()
 		
 
-		speak("I am looking for your face")
+		speak("Welcome, Now looking for a human friends")
+
 		// wait here until a user shows their face...
 		const user = await lookForUser()
 
@@ -3531,8 +3532,7 @@ export const createInterface = (
 			quantityOfActivePeople,
 
 			configurePerson,
-			selectPerson,
-			getSelectedPerson, 
+		
 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),
@@ -3550,6 +3550,8 @@ export const createInterface = (
 
 			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers, getQuantityOfPlayers,
+			getSelectedPerson, selectPerson,
+			getActivePerson,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 			language, 
 			isUserActive:()=>isUserActive,
