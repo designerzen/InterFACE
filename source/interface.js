@@ -164,6 +164,7 @@ import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
+import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -803,6 +804,9 @@ export const createInterface = (
 				person.leftFacingKeys = FIFTHS_SCALE_KEYS
 				person.rightFacingKeys = FIFTHS_SCALE_KEYS
 				person.activeInstrument.arpeggiate = true
+
+				person.leftFacingKeys = NOTES_BLACK
+				person.rightFacingKeys = NOTES_WHITE
 				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
 				break
 
@@ -811,13 +815,16 @@ export const createInterface = (
 				person.leftFacingKeys = FIFTHS_SCALE_KEYS
 				person.rightFacingKeys = FIFTHS_SCALE_KEYS
 				person.activeInstrument.arpeggiate = false
+
+				person.leftFacingKeys = NOTES_BLACK
+				person.rightFacingKeys = NOTES_WHITE
 				// console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
 				break
 
 			case PERSON_TYPE_CHROMATIC:
 				// Sympathetic chords - Chromatic scale
-				person.leftFacingKeys = MAJOR_SCALE_KEYS
-				person.rightFacingKeys = MINOR_SCALE_KEYS
+				person.leftFacingKeys = NOTES_BLACK
+				person.rightFacingKeys = NOTES_WHITE
 				
 				// person.leftFacingKeys = JAZZ_MINOR_SCALE_KEYS
 				// person.rightFacingKeys = JAZZ_MINOR_SCALE_KEYS
@@ -831,6 +838,8 @@ export const createInterface = (
 				person.leftFacingKeys = MAJOR_SCALE_KEYS
 				person.rightFacingKeys = MINOR_SCALE_KEYS
 				person.activeInstrument.arpeggiate = true
+				person.leftFacingKeys = NOTES_BLACK
+				person.rightFacingKeys = NOTES_WHITE
 				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
 				break
 		}
@@ -1058,9 +1067,9 @@ export const createInterface = (
 	 * @returns Person
 	 */
 	const getActivePerson = () =>{
-		for (let index=0, l=peopleArray.length; index<l; ++index)
+		for (let index=0, l=people.length; index<l; ++index)
 		{
-			const person = peopleArray[index]
+			const person = people[index]
 			if (person.isActive)
 			{
 				return person
