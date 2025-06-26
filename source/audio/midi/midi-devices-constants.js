@@ -15,6 +15,8 @@ export const ROLAND_WEBSITE = "roland.com"
 export const ROLAND_S1 = `S-1`
 export const ROLAND_DIAGRAM = `/`
 
+export const ROLI_PIANO = "ROLI Piano"
+
 /**
  * Try and determine some more information about this device
  * @param {String} manufacturer eg. Roland Corp.

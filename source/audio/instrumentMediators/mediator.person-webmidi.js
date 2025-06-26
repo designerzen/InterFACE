@@ -1,6 +1,6 @@
 import { WebMidi } from "webmidi"
 import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_RELEASE, STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_SUSTAIN } from "../../person.js"
-import { ROLI_PIANO } from "../midi/midi-manufacturers-constants.js"
+import { ROLI_PIANO } from "../midi/midi-devices-constants.js"
 
 // This is a dirty hack to fix ROLI piano keyboards
 // we use map rather than arrays as they are not zero indexed
