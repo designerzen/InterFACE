@@ -41,3 +41,5 @@ export const AKAI =                   0X45
 
 // One day!
 // DESIGNERZEN
+
+export const ROLI_PIANO = "ROLI Piano"
