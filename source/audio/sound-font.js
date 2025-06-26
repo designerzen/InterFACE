@@ -33,7 +33,7 @@ const DEFAULT_SOUNDFONT_OPTIONS = {
 
 export default class SoundFont{
 
-	static globalMap = new Map()
+	static audioBuffers = new Map()
 
 	name = INSTRUMENT_PACKS[0]
 
