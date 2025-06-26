@@ -286,7 +286,7 @@
     "console-browserify": "^1.2.0",
     "crypto-browserify": "^3.12.1",
     "domain-browser": "^5.7.0",
-    "electron": "^37.0.0",
+    "electron": "^37.1.0",
     "electron-builder": "^26.0.12",
     "electron-devtools-installer": "^4.0.0",
     "electron-icon-maker": "^0.0.5",
