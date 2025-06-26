@@ -33,8 +33,7 @@ const DEFAULT_SOUNDFONT_OPTIONS = {
 
 export default class SoundFont{
 
-	// global loaded assets
-	static audioBuffers = new Map()
+	static globalMap = new Map()
 
 	name = INSTRUMENT_PACKS[0]
 
@@ -46,7 +45,7 @@ export default class SoundFont{
 	// 2. remote ftp with https:// at the start
 	location = "./"
 
-	// local loaded assets
+	// loaded assets
 	audioBuffers = new Map()
 
 	instrumentsByName = new Map()
@@ -64,7 +63,7 @@ export default class SoundFont{
 	lazyLoading = false
 	
 	get presetAudioBuffers(){
-		return SoundFont.audioBuffers
+		return this.audioBuffers
 	}	
 
 	get presetNames(){
@@ -288,7 +287,7 @@ export default class SoundFont{
 			const buffer = await audioBuffer
 			audioBuffers[ note ] = buffer
 			// console.error(percent + "%", ">>> POST Loading loadPresetGradually", {event, note, audioBuffer, buffer, preset, progress, part} )  
-			console.info(percent + "%", note, "audioBuffers", {buffer, audioBuffers})
+			// console.info(percent + "%", note, "audioBuffers", {buffer, audioBuffers})
 			onProgressCallback && onProgressCallback( event )
 		})
 	}
@@ -332,7 +331,7 @@ export default class SoundFont{
 		if (!data)
 		{
 			console.error("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
-			throw Error( `No Preset found with name "${presetNameOrNumber}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
+			// throw Error( `No Preset found with name "${presetNameOrNumber}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
 		}
 
 		if (SoundFont.audioBuffers.has( data.name ))
@@ -365,9 +364,9 @@ export default class SoundFont{
 		
 			// TODO: Use fetch-worker to load the array
 			// loadInstrumentFromSoundFontSamples
-			SoundFont.audioBuffers.set( data.name, audioBufferData )
+			this.audioBuffers.set( data.name, audioBufferData )
 
-			console.error("Instrument loaded", presetNameOrNumber, data.name, audioBufferData )
+			// console.error("Instrument loaded", presetNameOrNumber, data.name, audioBufferData )
 		
 			this.loading = false
 			return audioBufferData
