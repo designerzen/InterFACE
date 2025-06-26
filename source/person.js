@@ -76,6 +76,12 @@ import {
 } from './audio/sound-font-instruments.js'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
 
+import { 
+	convertHeadOrientationIntoNoteData, 
+	convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, 
+	convertHeadRollToScaleAndPitchToOctaveAndYawToPitch 
+} from './person.controls.js'
+
 import { ParamaterRecorder } from './parameter-recorder.js'
 
 // UI
@@ -85,7 +91,7 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 // Models
 import { recogniseEmojiFromFaceModel } from './models/emoji-detection.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from './models/emoji.js'
-import { convertHeadOrientationIntoNoteData, convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, convertHeadRollToScaleAndPitchToOctaveAndYawToPitch } from './person.controls.js'
+
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { createInstrumentFromData } from './audio/instrument-factory.js'
 
@@ -682,6 +688,10 @@ export default class Person{
 		}else{
 			// console.warn(`Created Person "${name}" but could not find associated markup #${name}`)
 			throw Error(`Created Person "${name}" but could not find associated markup #${name}`)
+		}
+
+		if (this.options.debug){
+			console.info("Person "+this.name+" options", this.options)
 		}
 
 		//console.log("Created new person", this, "connecting to", destinationNode )
@@ -1424,6 +1434,11 @@ export default class Person{
 	
 		// save position on the keyboard for visual purposes ONLY
 		this.noteIndex = Math.round(noteFloat * 12)
+
+		if (this.playerNumber === 1)
+		{
+			console.info( this.noteIndex, "Player 1 noteData",noteFloat, {noteFloat, noteSound, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, hasNoteChanged, prediction, chords }, this )
+		}
 
 		// console.info( "noteData", {noteFloat, noteSou nd, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
 		

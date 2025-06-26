@@ -1,7 +1,9 @@
 import { WebMidi } from "webmidi"
 import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_RELEASE, STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_SUSTAIN } from "../../person.js"
+import { ROLI_PIANO } from "../midi/midi-manufacturers-constants.js"
 
 // This is a dirty hack to fix ROLI piano keyboards
+// we use map rather than arrays as they are not zero indexed
 const peopleNotes = new Map()
 peopleNotes.set( 0, new Map() )
 peopleNotes.set( 1, new Map() )
@@ -9,7 +11,7 @@ peopleNotes.set( 2, new Map() )
 peopleNotes.set( 3, new Map() )
 
 /**
- * 
+ * On every frame 
  * @param {Person} person 
  * @param {[Person]} people 
  */
@@ -65,7 +67,7 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 
 	/**
 	 * Note ON / Note OFF
-	 * @param {*} note 
+	 * @param {Object} note 
 	 * @param {String} method (playNote / stopNote)
 	 */
 	const handleNote = (note, method="playNote")=>{		
@@ -77,7 +79,11 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 			// if (midiOutputDevice && person.lastNoteNumber > -1){
 			// 	midiOutputDevice.stopNote( person.lastNoteNumber ) 
 			// }
-			midiOutputDevice && midiOutputDevice[method]( note.noteNumber, {attack:person.noteVelocity} )
+
+			if (midiOutputDevice){	
+				const velocity = midiOutputDevice.name === ROLI_PIANO ? 1 : person.noteVelocity
+				midiOutputDevice[method]( note.noteNumber, {attack:velocity} )
+			}
 			// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
 	
 			const personNotes = peopleNotes.get( person.playerNumber )
@@ -99,11 +105,12 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 			WebMidi.outputs.forEach(MIDIoutput =>{
 				// ensure it is playerNumber + 1 as MIDI channels start at 1
 				const midiOutputDevice = MIDIoutput.channels[person.playerNumber + 1]
-				// if (midiOutputDevice && person.lastNoteNumber > -1){
-				// 	midiOutputDevice.stopNote( person.lastNoteNumber ) 
-				// }
-				midiOutputDevice && midiOutputDevice[method]( note.noteNumber, {attack:person.noteVelocity} )
 				
+				if (midiOutputDevice){
+					const velocity = midiOutputDevice.name === ROLI_PIANO ? 1 : person.noteVelocity
+					midiOutputDevice[method]( note.noteNumber, {attack:velocity} )				
+				}
+
 				const personNotes = peopleNotes.get( person.playerNumber )
 				switch(method)
 				{
@@ -128,7 +135,8 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				// if (person.lastNoteNumber > -1){
 				// 	MIDIoutput.stopNote( person.lastNoteNumber ) 
 				// }
-				MIDIoutput[method]( note.noteNumber, {attack:person.noteVelocity} ) 
+				const velocity = MIDIoutput.name === ROLI_PIANO ? 1 : person.noteVelocity
+				MIDIoutput[method]( note.noteNumber, {attack:velocity} ) 
 
 				const personNotes = peopleNotes.get( person.playerNumber )
 				switch(method)

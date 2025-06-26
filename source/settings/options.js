@@ -497,7 +497,7 @@ export const DEFAULT_CHILD_OPTIONS = {
 	...DEFAULT_PERSON_OPTIONS
 }
 
-
+// Per Person Options 
 export const DEFAULT_PEOPLE_OPTIONS = [
 	{
 		...DEFAULT_PERSON_OPTIONS,
@@ -511,21 +511,21 @@ export const DEFAULT_PEOPLE_OPTIONS = [
 		// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
 		// eyeSquintLeft, eyeSquintRight, leftSmirk, rightSmirk, 
 		// see models/landmarks
-		noteController:'pitch',
-		octaveController:'roll',
-		gateController:'mouth',
-		// minorController:'isFacingRight',
-		minorController:'eyebrowsRaisedBy',
+		// noteController:'pitch',
+		// octaveController:'roll',
+		// gateController:'mouth',
+		// // minorController:'isFacingRight',
+		// minorController:'eyebrowsRaisedBy',
 
-		pitchbendController:'leftSmirk',
-		aftertouchController:'rightSmirk',
+		// pitchbendController:'leftSmirk',
+		// aftertouchController:'rightSmirk',
 		
-		stereoController:'roll',
-		// stereoController:'eyesHorizontal',
-		// eyeSquintLeft, leftSmirk, rightSmirk, 
+		// stereoController:'roll',
+		// // stereoController:'eyesHorizontal',
+		// // eyeSquintLeft, leftSmirk, rightSmirk, 
 
-		fxAController:'happiness',
-		fxBController:'eyebrowsRaisedBy'
+		// fxAController:'happiness',
+		// fxBController:'eyebrowsRaisedBy'
 	},
 	{
 		...DEFAULT_PERSON_OPTIONS,
