@@ -235,6 +235,36 @@ export default class ChordInstrument extends Instrument{
 
 	
 	/**
+	 * Provide this Person with a random instrument
+	 * @param {Function} progressCallback Method to call once the instrument has loadedNAMES
+	
+	 async loadRandomPreset(progressCallback){
+		// grab an instrument randomly from the full collection
+		this.instruments.forEach( (instrument) => instrument.programChange(programNumber))
+		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
+	}
+	*/
+
+	/**
+	 * Load the previous instrument in the list
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
+	 */
+	async loadPreviousPreset(progressCallback){
+		this.instruments.forEach( (instrument) => instrument.loadPreviousPreset(progressCallback))
+		return 
+	}
+
+	/**
+	 * Load the subsequent instrument in the list
+	 * NB. Does NOT wrap around
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
+	 */
+	async loadNextPreset(progressCallback){
+		this.instruments.forEach( (instrument) => instrument.loadNextPreset(progressCallback))
+		return
+	}
+
+	/**
 	 * 
 	 * @returns {Array<String>} of Instrument Names
 	 */
