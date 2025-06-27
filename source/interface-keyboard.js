@@ -87,7 +87,9 @@ export const addKeyboardEvents = ( application ) => {
 					application.setFeedback( 'Press ESC to exit Full Screen', 0, 'fullscreen' )
 					application.toggleFullScreen()
 				}else{
-					application.loadRandomInstrument() 
+					application.loadRandomInstrument(()=>{
+
+					}, true) 
 				}
 				break
 
@@ -97,7 +99,9 @@ export const addKeyboardEvents = ( application ) => {
 					application.setFeedback( 'Press ESC to exit Full Screen', 0, 'fullscreen' )
 					application.toggleFullScreen()
 				}else{
-					application.loadRandomInstrument() 
+					application.loadRandomInstrument(()=>{
+
+					}, true)
 				}
 				break
 
@@ -195,7 +199,9 @@ export const addKeyboardEvents = ( application ) => {
 				break
 
 			case 'j':
-				application.previousInstrument()
+				application.previousInstrument(()=>{
+
+				}, true)
 				break
 
 			// kid mode / advanced mode toggle
@@ -204,7 +210,9 @@ export const addKeyboardEvents = ( application ) => {
 			// 	//doc.documentElement.classList.toggle(CSS_CLASS, false)
 			// 	break
 			case 'k':
-				application.nextInstrument() 
+				application.nextInstrument(()=>{
+
+				}, true)
 				break
 
 			// toggle speech
