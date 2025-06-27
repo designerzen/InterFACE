@@ -159,9 +159,9 @@ import { setupReporting, track, trackError, trackExit } from './reporting'
 import { tapTempo } from './timing/timer.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
-import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
+import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -805,8 +805,6 @@ export const createInterface = (
 				person.rightFacingKeys = FIFTHS_SCALE_KEYS
 				person.activeInstrument.arpeggiate = true
 
-				person.leftFacingKeys = NOTES_BLACK
-				person.rightFacingKeys = NOTES_WHITE
 				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
 				break
 
@@ -816,8 +814,6 @@ export const createInterface = (
 				person.rightFacingKeys = FIFTHS_SCALE_KEYS
 				person.activeInstrument.arpeggiate = false
 
-				person.leftFacingKeys = NOTES_BLACK
-				person.rightFacingKeys = NOTES_WHITE
 				// console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
 				break
 
@@ -838,8 +834,6 @@ export const createInterface = (
 				person.leftFacingKeys = MAJOR_SCALE_KEYS
 				person.rightFacingKeys = MINOR_SCALE_KEYS
 				person.activeInstrument.arpeggiate = true
-				person.leftFacingKeys = NOTES_BLACK
-				person.rightFacingKeys = NOTES_WHITE
 				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
 				break
 		}
