@@ -15,6 +15,9 @@ export default class YoshimiInstrument extends Instrument{
 	name = YoshimiInstrument.name
 	type = "yoshimi"
 
+	get title(){
+		return "Yoshimi"
+	}
 	yoshimi
 	presets
 

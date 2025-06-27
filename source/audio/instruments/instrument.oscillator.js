@@ -75,7 +75,9 @@ export default class OscillatorInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_OSCILLATOR
 
 	type = "oscillator"
-	title = "Oscillator Instrument"
+	get title(){
+		return "Oscillator Instrument"
+	}
 
 	timbre = OSCILLATOR_TYPES[0]
 	customWave = null

@@ -48,7 +48,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 	static dictionary = createInstruments() 
 
 	name = INSTRUMENT_TYPE_SOUNDFONT
-	title = "SoundFont Sample Player"
+	get title(){
+		return "SoundFont Sample Player"
+	}
 	type = "sample"
 			
 	soundfont

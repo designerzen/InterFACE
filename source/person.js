@@ -1806,7 +1806,7 @@ export default class Person{
 
 		// preset loaded!
 
-		console.error(">>> Instrument", method,{ instrument:this.activeInstrument })
+		//console.error(">>> Instrument", method,{ instrument:this.activeInstrument })
 
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()

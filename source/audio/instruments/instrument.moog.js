@@ -13,6 +13,9 @@ export default class MoogInstrument extends ProcessorInstrument {
 
     instrument
 
+    get title(){
+		return "Moog"
+	}
     get volume() {
         return this.gainNode.gain.value
     }

@@ -18,7 +18,9 @@ export default class SpeechInstrument extends Instrument{
 
 	name = INSTRUMENT_TYPE_SPEECH
 	type = "speech"
-	title = "Speech Synthesis"
+	get title(){
+		return "Speech Synthesis"
+	}
 
 	constructor( audioContext, options={} ){
 		super( audioContext, {...DEFAULT_SINGING_OPTIONS, ...options} )

@@ -50,7 +50,9 @@ export default class DualOscillatorInstrument extends OscillatorInstrument{
     }
     
     name = INSTRUMENT_TYPE_DUAL_OSCILLATOR
-    title = "Dual Oscillator Instrument"
+	get title(){
+		return "Dual Oscillator Instrument"
+	}
 	type = "oscillator"
    
 

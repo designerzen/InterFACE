@@ -14,8 +14,10 @@ export default class WAM2Instrument extends Instrument{
 
 	name = WAM2Instrument.name
 	type = "web audio module 2"
-	title = "WebAudioModule2"
 
+	get title(){
+		return "WebAudioModule2"
+	}
 	initialised = false
 
 	plugin

@@ -11,6 +11,9 @@ export default class MIDIInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_MIDI
 	type = "midi"
 
+	get title(){
+		return "MIDI Device"
+	}
 	get enabled(){
 		return this.sendMIDI
 	}
