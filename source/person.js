@@ -1135,7 +1135,7 @@ export default class Person{
 		const thirdHeadWidth = boxWidth * 0.333
 		const halfHeadWidth = boxWidth * 0.333
 
-		const instrumentTitle = this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
+		const instrumentTitle = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
 		
 		// as this should never be negative, we can use this to offset the text
 		const textX = xMin + halfHeadWidth - 9
