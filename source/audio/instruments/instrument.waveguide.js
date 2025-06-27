@@ -59,11 +59,9 @@ export default class WaveGuideInstrument extends Instrument{
 	name = WaveGuideInstrument.name
 
 	type = "waveguide"
-	name = "WaveGuideInstrument"
 
-	get title(){
-		return "WaveGuide Instrument"
-	}
+	#title = "WaveGuide Instrument"
+	
 	instrument
 
 	get volume(){

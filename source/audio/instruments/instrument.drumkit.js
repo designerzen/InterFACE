@@ -32,9 +32,7 @@ export default class DrumkitInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_DRUMKIT
 
 	type = "percussion"
-	get title(){
-		return "Percussion Instrument"
-	}
+	#title = "Percussion Instrument"
 
 	kick 
 	snare 

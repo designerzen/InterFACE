@@ -9,9 +9,8 @@ const DEFAUT_OPTIONS = {
 export default class WorkletInstrument extends ProcessorInstrument {
 
 	type = "worklet"
-	get title(){
-		return "Worklet"
-	}
+
+	#title = "Worklet"
 	instrument
 
 	get volume() {
@@ -25,8 +24,6 @@ export default class WorkletInstrument extends ProcessorInstrument {
 	get audioNode(){
 		return this.gainNode
 	}
-
-
 
 	constructor(audioContext, options = {}) {
 		super(audioContext, {...DEFAUT_OPTIONS, ...options})

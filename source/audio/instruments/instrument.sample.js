@@ -18,9 +18,7 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	name = INSTRUMENT_TYPE_SAMPLE
-	get title(){
-		return "Sample Player"
-	}
+	#title = "Sample Player"
 	type = "sample"
 	
 	// Instrument is an Object where A0:"sampleAudioBuffer" 

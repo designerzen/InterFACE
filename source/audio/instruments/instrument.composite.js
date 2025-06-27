@@ -20,9 +20,8 @@ export default class CompositeInstrument extends Instrument{
 	}
 
 	name = INSTRUMENT_TYPE_COMPOSITE
-	get title(){
-		return "Composite Instrument"
-	}
+	#title = "Composite Instrument"
+	
 	type = "composite"
 
 	unique = -1

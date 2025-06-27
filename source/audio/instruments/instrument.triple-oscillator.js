@@ -61,9 +61,8 @@ export default class TripleOscillatorInstrument extends OscillatorInstrument{
     }
     
     name = INSTRUMENT_TYPE_TRIPLE_OSCILLATOR
-	get title(){
-		return "Triple Wave Oscillator"
-	}
+    #title = "Triple Oscillator Instrument"
+	
 	// type = "oscillator"
 
    
