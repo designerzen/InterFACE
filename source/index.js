@@ -212,7 +212,7 @@ const start = () => {
 		
 		// watch for user events and things that the user changes
 		// and pass that into the automator to modify behaviour
-		application.addEventListener(APPLICATION_EVENTS.LOADING, e => {
+		application.addListener(APPLICATION_EVENTS.LOADING, e => {
 			// console.info("Index is loading app", e )
 			// setLoadProgress(
 			// 	loadProgress,
@@ -224,11 +224,11 @@ const start = () => {
 			}
 		})
 
-		application.addEventListener(APPLICATION_EVENTS.PARKED, e => {
+		application.addListener(APPLICATION_EVENTS.PARKED, e => {
 console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
 		})
 
-		application.addEventListener(APPLICATION_EVENTS.LOADED, e => {
+		application.addListener(APPLICATION_EVENTS.LOADED, e => {
 			console.error("dispatchCustomEvent Adding game and key events")
 			// load in our controllers
 			// const {addKeyboardEvents} = (await import('./interface-keyboard.js'))

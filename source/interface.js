@@ -293,7 +293,7 @@ export const createInterface = (
 	}, store.getItem('info'))
 
 	// Allow parents to see what is happening
-	const addEventListener = ( type, callback ) => main.addEventListener( type, callback )
+	const addListener = ( type, callback ) => main.addEventListener( type, callback )
 	const dispatchEvent = ( event ) => main.dispatchEvent(event)
 	const dispatchCustomEvent = ( type, detail, cancelable=true, bubbles=true ) => {
 		console.info( "type, detail, cancelable", type, detail, cancelable )
@@ -3535,7 +3535,6 @@ export const createInterface = (
 			quantityOfActivePeople,
 
 			configurePerson,
-		
 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),
@@ -3543,7 +3542,7 @@ export const createInterface = (
 
 			kit,
 
-			addEventListener,
+			addListener,
 			
 			// drums
 			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, toggleBackgroundPercussion,
