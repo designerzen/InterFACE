@@ -44,11 +44,11 @@ export default class Attractor{
 	constructor( application ) {
 		this.onChange.bind(this)
 		this.application = application
-		this.application.addEventListener(EVENT_INSTRUMENT_LOADING, this.onChange )
+		this.application.addListener(EVENT_INSTRUMENT_LOADING, this.onChange )
 		
-		this.application.addEventListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
-		this.application.addEventListener(EVENT_PERSON_BORN, this.onChange )
-		this.application.addEventListener(EVENT_PERSON_DEAD, this.onChange )
+		this.application.addListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
+		this.application.addListener(EVENT_PERSON_BORN, this.onChange )
+		this.application.addListener(EVENT_PERSON_DEAD, this.onChange )
 	}
 
 	/**
