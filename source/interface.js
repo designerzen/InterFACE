@@ -293,14 +293,14 @@ export const createInterface = (
 	}, store.getItem('info'))
 
 	// Allow parents to see what is happening
-	const addListener = ( type, callback ) => main.addEventListener( type, callback )
-	const dispatchEvent = ( event ) => main.dispatchEvent(event)
-	const dispatchCustomEvent = ( type, detail, cancelable=true, bubbles=true ) => {
-		console.info( "type, detail, cancelable", type, detail, cancelable )
-		dispatchEvent( new CustomEvent(type, {
+	const addListener = ( type, callback ) =>{
+	 	main.addEventListener( type, callback )	
+	}
+	const dispatchCustomEvent = ( type, details, cancelable=true, bubbles=false ) => {
+		main.dispatchEvent( new CustomEvent(type, {
 			bubbles,
 			cancelable, // without that flag preventDefault doesn't work
-			detail
+			detail:details
 		}) )
 	}
 
@@ -3525,10 +3525,6 @@ export const createInterface = (
 		loadProgressMediator(1,"complete", true)
 
 		
-		dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
-		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, {available:true} )
-		dispatchCustomEvent(APPLICATION_EVENTS.PARKED, {available:true} )
-		
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 
 			user,
@@ -3567,6 +3563,11 @@ export const createInterface = (
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
 		} ) )
+
+		
+		dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
+		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, {available:true} )
+		dispatchCustomEvent(APPLICATION_EVENTS.PARKED, {available:true} )
 	}
 
 	/**

@@ -86,7 +86,7 @@ const updateSummaryText = (returning=false) =>{
 /**
  * Start loading the app
  */
-const start = () => {
+const start = async() => {
 
 	setLoadProgress(0.5, " ")
 
@@ -197,12 +197,8 @@ const start = () => {
 				}
 			}
 		)
-
-
-		
-		
-		const loadTime = Date.now() - startLoadTime
-		
+	
+		// console.log("Attract mode!", {automator, application})
 		// Load in in automation
 		const Attractor = (await import('./attractor')).default
 
@@ -210,6 +206,20 @@ const start = () => {
 		// app to change parameters on it's own
 		const automator = application.setAutomator(new Attractor(application))
 		
+		// load in our controllers
+		const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
+		
+		// and create our input handlers 
+		addKeyboardEvents(application)
+				
+		// Watch CONTROLLERS
+		const {addGamePadEvents} = (await import('./interface-gamepad.js'))
+		if ( application.getState("gamePad") )
+		{
+			addGamePadEvents( application )
+		}
+
+		/*
 		// watch for user events and things that the user changes
 		// and pass that into the automator to modify behaviour
 		application.addListener(APPLICATION_EVENTS.LOADING, e => {
@@ -225,31 +235,20 @@ const start = () => {
 		})
 
 		application.addListener(APPLICATION_EVENTS.PARKED, e => {
-console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
+			console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
+			debugger
 		})
 
 		application.addListener(APPLICATION_EVENTS.LOADED, e => {
 			console.error("dispatchCustomEvent Adding game and key events")
-			// load in our controllers
-			// const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
-			// const {addGamePadEvents} = (await import('./interface-gamepad.js'))
-
-			// // and create our input handlers 
-			// addKeyboardEvents(application)
-					
-			// // Watch CONTROLLERS
-			// if ( application.getState("gamePad") )
-			// {
-			// 	addGamePadEvents( this )
-			// }
-
-			// addGamePadEvents(application)
+			
 
 			// console.info("Index has completed loading app", {e, application} )
-			
 		})
+		*/
 
-	
+		const loadTime = Date.now() - startLoadTime
+		
 		// TODO: This will call the app from external URLs
 		// without reloading the page
 
@@ -268,10 +267,7 @@ console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
 			})
 		}
 
-
-
-		// console.log("Attract mode!", {automator, application})
-
+		
 		// let installation = null
 		// // at any point we can now trigger the installation
 		// if (installation)
@@ -308,6 +304,7 @@ console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
 		}
 			
 	}
+
 
 	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
 
