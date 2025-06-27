@@ -182,7 +182,6 @@ export default class ChordInstrument extends Instrument{
 	 * @param {Array<Chord>} chordArray 
 	 */
 	async chordOff( chordArray, velocity=1 ){
-		console.error("ChordInstrument:chordOff", chordArray, velocity, this.arpeggio )
 		// if (!this.arpeggio)
 		// {
 
