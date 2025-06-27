@@ -114,7 +114,8 @@ const start = async() => {
 	const languages = getBrowserLocales()
 
 	// we only want the first part before any hyphens
-	const language = (languages[languages.length-1]).split('-')[0]
+	// NB. we *only* have en right now so show that
+	const language = "en" // (languages[languages.length-1]).split('-')[0]
 	
 	// and the start time for metrics
 	let startLoadTime = Date.now()
