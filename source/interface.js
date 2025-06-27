@@ -776,20 +776,29 @@ export const createInterface = (
 	 * @param {Function} callback Method to run once instruments have loaded
 	 * @returns {Function} instrument name (raw)
 	 */
-	const loadInstrumentPreset = async (method, callback) => people.map( async (person) => { 
+	const loadInstrumentPreset = async (method, callback, skipLoading = false) => people.map( async (person) => { 
+		
+		// if the previous instrument hasn't finished loading, 
+		// we don't want to flood everything so we wait for it 
+		// to finish loading before allowing any new ones
+		if (skipLoading && person.activeInstrument && person.activeInstrument.isLoading)
+		{
+			return person.activeInstrument.name
+		}
+
 		const instrument = await person[method](callback)
-		setFeedback(`${person.name} has ${person.instrumentTitle} loaded`, 0, 'instrument')
-		//console.log(`${person.name} has ${instrument} loaded` )
+		setFeedback(`${person.name} has ${person.instrumentTitle} loaded`, 0, 'instrument')	
 		return instrument
+		//console.log(`${person.name} has ${instrument} loaded` )
 	})
 
 	/**
 	 * Be *sure* to make these the identical same as the names in the instrument Interface
 	 */
-	const loadRandomInstrument = async (callback) => await loadInstrumentPreset('loadRandomPreset', callback)
-	const previousInstrument = async (callback) => await loadInstrumentPreset('loadPreviousPreset', callback)
-	const nextInstrument = async (callback) => await loadInstrumentPreset('loadNextPreset', callback)
-	const reloadInstrument = async (callback) => await loadInstrumentPreset('reloadPreset', callback)
+	const loadRandomInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('loadRandomPreset', callback, skipLoading )
+	const previousInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('loadPreviousPreset', callback, skipLoading )
+	const nextInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('loadNextPreset', callback, skipLoading )
+	const reloadInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('reloadPreset', callback, skipLoading )
 
 
 	// PEOPLE ==========================================================================================
