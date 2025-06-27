@@ -19,7 +19,7 @@ export const getNextInstruction = (language="en-GB") => INSTRUCTIONS_GUIDE[(inst
 
 // export const getNextInstruction = () => INSTRUCTIONS[(instructionCount+1)%(INSTRUCTIONS.length-2)]
 
-export const getInstructions = async (language="en-GB", referer="") => {
+export const getInstructions = async (language="en", referer="") => {
 	
 	// TODO: Load in appropriate language
 	
