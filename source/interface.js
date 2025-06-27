@@ -2754,7 +2754,7 @@ export const createInterface = (
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
 			const relayMIDI = stateMachine.get("midiRelay")
-			const MIDISympathiser = stateMachine.get("midiRelay")
+			const MIDISympathiser = stateMachine.get("midiSympathiser")
 
 			const sendMIDIEventToAllDevices = (type, event) => {
 				switch(event.message.type){
@@ -3536,6 +3536,7 @@ export const createInterface = (
 			getState:(key)=>stateMachine.get(key),
 			setState:(key,data)=>stateMachine.set(key,data),
 
+			setFeedback,
 			kit,
 
 			addListener,
