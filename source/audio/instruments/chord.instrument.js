@@ -251,7 +251,8 @@ export default class ChordInstrument extends Instrument{
 	 */
 	async loadPreviousPreset(progressCallback){
 		const presetPromises = this.instruments.map( (instrument) => instrument.loadPreviousPreset(progressCallback))
-		return await presetPromises[0]
+		//  await presetPromises[0]
+		return this
 		// return super.loadPreviousPreset(progressCallback)
 	}
 
@@ -262,7 +263,8 @@ export default class ChordInstrument extends Instrument{
 	 */
 	async loadNextPreset(progressCallback){
 		const presetPromises = this.instruments.map( (instrument) => instrument.loadNextPreset(progressCallback))
-		return await presetPromises[0]
+		// await presetPromises[0]
+		return this
 		// return super.loadNextPreset(progressCallback)
 	}
 
