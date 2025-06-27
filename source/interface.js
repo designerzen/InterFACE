@@ -212,7 +212,7 @@ export const createInterface = (
 	capabilities,
 	instrumentListURIorObject,
 	MIDIConnectionClasses = [],
-	language = "en-GB",
+	language = "en",
 	onLoadProgress = null
 ) => new Promise( (resolve,reject) => {
 
@@ -3387,15 +3387,26 @@ export const createInterface = (
 		const instructionTools = await import('./models/instructions.js')
 		
 		progressCallback(loadIndex++/loadTotal, "Instructions Available")
-		const instructions = await instructionTools.getInstructions( language, referer )
+		let instructions = await instructionTools.getInstructions( language, referer )
 		
-		// cache methods & quantities of data for use with text fields later on
-		getInstruction = instructions.getInstruction
-		getHelp = instructions.getHelp
-		
-		quantityInstructions = instructions.getQuantityOfInstructions()
-		quantityHelp = instructions.getQuantityOfHelp()
-
+		if (!instructions)
+		{
+			// native language instructions missing... should we load english as a fallback
+			// TODO: Load in english as a fallback
+			instructions = await instructionTools.getInstructions( "en", referer )
+		}
+		if (instructions)
+		{
+			// cache methods & quantities of data for use with text fields later on
+			getInstruction = instructions.getInstruction
+			getHelp = instructions.getHelp
+			
+			quantityInstructions = instructions.getQuantityOfInstructions()
+			quantityHelp = instructions.getQuantityOfHelp()	
+		}else{
+			console.error("Couldn't load in languages")
+		}
+	
 		// Load tf model and wait
 		// this gets returned then used an the update method
 		const elementToAnalyse = inputElement
