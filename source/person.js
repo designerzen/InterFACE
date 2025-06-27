@@ -2078,8 +2078,6 @@ export default class Person{
 
 		// load the default preset
 		const defaultPreset = await this.loadPreset( defaultInstrumentOptions.defaultPreset )
-
-		console.error(presetIndex, ">>> PERSON created with active instrument", this.activeInstrument, {defaultInstrument, defaultPreset}, {options:this.options, defaultInstrumentOptions} )	
 		return this.playerNumber
 	}
 

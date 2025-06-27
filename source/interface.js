@@ -3483,7 +3483,7 @@ export const createInterface = (
 				
 				body.classList.toggle(SEARCHING_FOR_USERS_CLASS, false)
 				
-				return getPerson(0)
+				return getActivePerson()
 			}	
 		}
 		
@@ -3565,9 +3565,8 @@ export const createInterface = (
 		} ) )
 
 		
-		dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
+		// dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
 		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, {available:true} )
-		dispatchCustomEvent(APPLICATION_EVENTS.PARKED, {available:true} )
 	}
 
 	/**

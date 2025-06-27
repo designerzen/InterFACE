@@ -2,7 +2,7 @@
 /**
  *  Add Keyboard listeners and tie in commands
  */
-const addKeyboardEvents = ( application ) => {
+export const addKeyboardEvents = ( application ) => {
 	let numberSequence = ""
 
 	window.addEventListener('keydown', async (event)=>{
@@ -459,7 +459,7 @@ const addKeyboardEvents = ( application ) => {
 					// loadRandomInstrument()
 					// speak("Loading random instruments",true)	
 				}
-				console.log("Key pressed", {event,isNumber,activeElement} )
+				console.log("Key pressed", {event,isNumber} )
 		}
 
 		// Check to see if it is a number

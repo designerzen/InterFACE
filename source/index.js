@@ -14,7 +14,7 @@ import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
 import { showError } from './dom/errors'
 import { addToolTips, setToast } from './dom/tooltips'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse'
-import Capabilities, { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT } from './capabilities'
+import Capabilities from './capabilities'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 import { APPLICATION_EVENTS, createInterface } from './interface.js'
 
@@ -117,7 +117,7 @@ const start = async() => {
 	// and the start time for metrics
 	let startLoadTime = Date.now()
 	let failed = false
-
+	
 	const loadInterfaceAndAssembleApplication = async () => {
 
 		// import { createStore} from './store'
@@ -135,7 +135,6 @@ const start = async() => {
 		const store = createStore()
 		const title = document.title
 
-		// const application = await createInterface(
 		const application = await createInterface(
 			defaultOptions,
 			store,
@@ -197,27 +196,30 @@ const start = async() => {
 				}
 			}
 		)
-	
-		// console.log("Attract mode!", {automator, application})
-		// Load in in automation
-		const Attractor = (await import('./attractor')).default
 
-		// This allows for remote control as well as allowing the
-		// app to change parameters on it's own
-		const automator = application.setAutomator(new Attractor(application))
-		
-		// load in our controllers
-		const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
-		
-		// and create our input handlers 
-		addKeyboardEvents(application)
-				
-		// Watch CONTROLLERS
-		const {addGamePadEvents} = (await import('./interface-gamepad.js'))
-		if ( application.getState("gamePad") )
-		{
-			addGamePadEvents( application )
+		const onAvailable = async() => {
+			// console.log("Attract mode!", {automator, application})
+			// Load in in automation
+			const Attractor = (await import('./attractor')).default
+
+			// This allows for remote control as well as allowing the
+			// app to change parameters on it's own
+			const automator = application.setAutomator(new Attractor(application))
+			
+			// load in our controllers
+			const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
+			
+			// and create our input handlers 
+			addKeyboardEvents(application)
+					
+			// Watch CONTROLLERS
+			const {addGamePadEvents} = (await import('./interface-gamepad.js'))
+			if ( application.getState("gamePad") )
+			{
+				addGamePadEvents( application )
+			}
 		}
+		onAvailable()
 
 		/*
 		// watch for user events and things that the user changes
@@ -236,7 +238,6 @@ const start = async() => {
 
 		application.addListener(APPLICATION_EVENTS.PARKED, e => {
 			console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
-			debugger
 		})
 
 		application.addListener(APPLICATION_EVENTS.LOADED, e => {

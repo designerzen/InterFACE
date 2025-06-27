@@ -26,10 +26,10 @@ export const addGamePadEvents = (application) => {
 
 	// enums
 	let gamePadMode = 0
-	let gamePadPlayerIndex = application.getSelectedPerson()
+	let gamePadPlayerIndex = application.getSelectedPerson() ?? -1
 
-	let selectedPerson = application.getPerson( gamePadPlayerIndex )
 	const isUnselected = gamePadPlayerIndex === -1
+	let selectedPerson = isUnselected ? null : application.getPerson( gamePadPlayerIndex )
 	
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 
@@ -100,10 +100,24 @@ export const addGamePadEvents = (application) => {
 			// 	break
 
 			case COMMANDS.UP: 
-				application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				if (isUnselected)
+				{
+					application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				}else{
+					const pitchBend = selectedPerson.activeInstrument.pitchOffset
+					person.activeInstrument.pitchBend( pitchBend+0.5 )
+				}
 				break
-			case COMMANDS.DOWN: 
-				application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+			
+				case COMMANDS.DOWN: 
+				if (isUnselected)
+				{
+					application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				}else{
+					const pitchBend = selectedPerson.activeInstrument.pitchOffset
+					person.activeInstrument.pitchBend( pitchBend-0.5 )
+				}
+				
 				break
 			case COMMANDS.LEFT: 
 				if (isUnselected)
@@ -173,6 +187,7 @@ export const addGamePadEvents = (application) => {
 				{
 					application.kit.kcik()
 				}else{
+					selectedPerson.loadPreviousInstrument()
 					//application.getPerson(gamePadPlayerIndex) 
 				}
 				break

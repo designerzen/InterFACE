@@ -234,15 +234,15 @@ export const createMajorChord =( notes, offset=0, mode=0 )=> createChord( notes,
 export const createMinorChord =( notes, offset=0, mode=0 )=> createChord( notes, MINOR_CHORD_INTERVALS, offset, mode, true, true )
 export const createJazzChord =( notes, offset=0, mode=0 )=> createChord( notes, MELODIC_MINOR_SCALE, offset, mode, true, false )
 
-console.info("GENERAL_MIDI_INSTRUMENTS", GENERAL_MIDI_INSTRUMENTS)
-console.info("CHORDS_LIST", CHORDS_LIST)
-console.log("FREQUENCY_LIST", { FREQUENCY_LIST })
+// console.info("GENERAL_MIDI_INSTRUMENTS", GENERAL_MIDI_INSTRUMENTS)
+// console.info("CHORDS_LIST", CHORDS_LIST)
+// console.log("FREQUENCY_LIST", { FREQUENCY_LIST })
 
 
 
-console.log("GENERAL_MIDI_INSTRUMENTS", createKey( GENERAL_MIDI_INSTRUMENTS, MAJOR_SCALE, 0 ) )
-console.log("MIDI_NOTE_NAMES", createKey( MIDI_NOTE_NAMES, MAJOR_SCALE ) )
-console.log("MIDI_NOTE_NAMES", createKey( MIDI_NOTE_NAMES, MELODIC_MINOR_SCALE ) )
+// console.log("GENERAL_MIDI_INSTRUMENTS", createKey( GENERAL_MIDI_INSTRUMENTS, MAJOR_SCALE, 0 ) )
+// console.log("MIDI_NOTE_NAMES", createKey( MIDI_NOTE_NAMES, MAJOR_SCALE ) )
+// console.log("MIDI_NOTE_NAMES", createKey( MIDI_NOTE_NAMES, MELODIC_MINOR_SCALE ) )
 
 // const test = inversion()
 
@@ -361,7 +361,6 @@ export const createAllChordsInScalesWithModes = () => {
 // Must be run before requesting any data...
 allChords = createAllChordsInScalesWithModes()
 
-console.error("createAllChordsInScalesWithModes", allChords)
-
-const test = getChordsForNoteNumberInMode(64, "major")
-console.error("getChordsForNoteNumberInMode", test )
+// console.error("createAllChordsInScalesWithModes", allChords)
+// const test = getChordsForNoteNumberInMode(64, "major")
+// console.error("getChordsForNoteNumberInMode", test )
