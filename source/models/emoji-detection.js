@@ -52,7 +52,7 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 		if (prediction.happiness <= 1){
 			return EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED
 		}
-		return EMOJI_NEUTRAL_EYES_CLOSED
+		return EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED
 	}
 
 	// Both eyes are open emojis

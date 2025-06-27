@@ -48,6 +48,9 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 			mode = TUNING_MODE_IONIAN
 			break
 		
+		case EMOTICONS.EMOJI_LEFT_WINK:
+		case EMOTICONS.EMOJI_RIGHT_WINK:
+					
 		case EMOTICONS.EMOJI_EYES_ROLLING_UP:
 		case EMOTICONS.EMOJI_FROWN_EYES_CLOSED:
 		case EMOTICONS.EMOJI_TRIPPY:
@@ -60,10 +63,12 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 			mode = TUNING_MODE_PHRYGIAN
 			break
 	
+		case EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED:
 		case EMOTICONS.EMOJI_KISS_EYES_CLOSED:
 		case EMOTICONS.EMOJI_KISS:
-		case EMOTICONS.EMOJI_ASTONISHED:
 		case EMOTICONS.EMOJI_KISSING_WINK:
+		case EMOTICONS.EMOJI_CAT_KISSING:
+		case EMOTICONS.EMOJI_ASTONISHED:
 			mode = TUNING_MODE_LYDIAN
 			break
 
@@ -102,13 +107,12 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 			mode = TUNING_MODE_LOCRIAN
 			break
 	
-		case EMOTICONS.EMOJI_LEFT_WINK:
-		case EMOTICONS.EMOJI_RIGHT_WINK:
-			break
+	
 
-		case EMOTICONS.EMOJI_SHAKING_HORIZONTALLY:
-		case EMOTICONS.EMOJI_SHAKING_VERTICALLY:
-			break
+		// case EMOTICONS.EMOJI_GHOST:
+		// case EMOTICONS.EMOJI_SHAKING_HORIZONTALLY:
+		// case EMOTICONS.EMOJI_SHAKING_VERTICALLY:
+		// 	break
 	}
 
 	const scales = notes.get(scale) 

@@ -352,7 +352,7 @@ export const createAllChordsInScalesWithModes = () => {
 	for (let noteNumber = 0, l=MIDI_NOTE_NUMBER_MAP.length; noteNumber < l; noteNumber++) 
 	{
 		const chordVariations = createAllChordsForNoteNumber(noteNumber)
-		output[noteNumber] = (noteNumber, chordVariations)
+		output[noteNumber] = chordVariations
 		console.info(noteNumber, "Creating chordVariations for note", chordVariations )
 	}
 	return output
