@@ -439,13 +439,16 @@ export class GamePadManager {
 		// fetch any previously registered game pads
 		let pads = fetchGamePads()
 		let quantity = 0
-		 
+		 let intervalID = -1
 		const eventLoop = () => {
-			//console.info("checking buttons for pads", quantity)
+
+			console.info("checking buttons for pads", quantity)
 			this.controllers.forEach( gamePad => gamePad.update() )
 			if (quantity > 0 )
 			{
-				requestAnimationFrame( eventLoop )
+				console.info("Gamepads", { pads }, this )
+				cancelAnimationFrame(intervalID)
+				intervalID = requestAnimationFrame( eventLoop )
 			}
 		}
 
@@ -466,7 +469,7 @@ export class GamePadManager {
 					case GAME_PAD_DISCONNECTED:
 					case COMMANDS.LEFT_STICK_Y: 
 					case COMMANDS.LEFT_STICK_X: 
-					case COMMANDS.RIGHT_STICK_Y: 
+					case COMMANDS.RIGHT_STICK_Y: j
 					case COMMANDS.RIGHT_STICK_X:
 					// case COMMANDS.UP: 
 					// case COMMANDS.DOWN: 
@@ -482,6 +485,7 @@ export class GamePadManager {
 							this.held.delete(buttonName)
 						}
 				}
+				console.info("gamepad message", buttonName, value )
 				this.dispatchEvent( buttonName, value, gamePad, heldFor )
 			})
 						
@@ -512,6 +516,9 @@ export class GamePadManager {
 			this.dispatchEvent( GAME_PAD_DISCONNECTED, gamePad )
 			console.info("Gamepad disconnected", {gamePad, e}, this.controllers )
 	 	} )
+
+		// start jloop for an existing pre-connected gamepads
+		eventLoop()
 	}
 
 	isHeld( buttonName ){
