@@ -194,6 +194,7 @@ export default class SampleInstrument extends Instrument{
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		const instrument = await this.loadPreset( programNumber, this.instrumentPack )
+		this.instrumentIndex = programNumber
 		return await super.programChange( instrument )	
 	}
 	
@@ -222,6 +223,7 @@ export default class SampleInstrument extends Instrument{
 	 async loadRandomPreset(progressCallback){
 		// grab an instrument randomly from the full collection
 		const newIndex = Math.round( Math.random() * this.instrumentFolders.length )
+		this.instrumentIndex = newIndex
 		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
@@ -232,6 +234,7 @@ export default class SampleInstrument extends Instrument{
 	async loadPreviousPreset(progressCallback){
 		const index = this.instrumentIndex-1
 		const newIndex = index < 0 ? this.instrumentFolders.length + index : index
+		this.instrumentIndex = newIndex
 		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
@@ -243,6 +246,7 @@ export default class SampleInstrument extends Instrument{
 	async loadNextPreset(progressCallback){
 		const index = this.instrumentIndex+1 
 		const newIndex = index >= this.instrumentFolders.length ? 0 : index
+		this.instrumentIndex = newIndex
 		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
