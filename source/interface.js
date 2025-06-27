@@ -127,9 +127,6 @@ import { DISPLAY_TYPES } from './display/display-types.js'
 import { observeInactivity } from './utils/inactivity.js'
 import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/instrumentMediators/mediator.weblink-instrument.js'
 
-// INPUTS
-import { addGamePadEvents } from './interface-gamepad.js'
-
 // CONTROLS
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 // import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
@@ -177,8 +174,9 @@ const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DIS
 // import { getInstruction, getHelp } from './models/instructions'
 
 export const APPLICATION_EVENTS = {
-	LOADING:"loading",
-	LOADED:"loaded"
+	LOADING:"application-loading",
+	LOADED:"application-loaded",
+	PARKED:"application-parked",
 }
 
 const doc = document	// using a reference allows truncation
@@ -297,10 +295,12 @@ export const createInterface = (
 	// Allow parents to see what is happening
 	const addEventListener = ( type, callback ) => main.addEventListener( type, callback )
 	const dispatchEvent = ( event ) => main.dispatchEvent(event)
-	const dispatchCustomEvent = ( type, details, cancelable=true ) =>	{
+	const dispatchCustomEvent = ( type, detail, cancelable=true, bubbles=true ) => {
+		console.info( "type, detail, cancelable", type, detail, cancelable )
 		dispatchEvent( new CustomEvent(type, {
+			bubbles,
 			cancelable, // without that flag preventDefault doesn't work
-			details
+			detail
 		}) )
 	}
 
@@ -3524,7 +3524,10 @@ export const createInterface = (
 		// focus app?
 		loadProgressMediator(1,"complete", true)
 
-		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, true)
+		
+		dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
+		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, {available:true} )
+		dispatchCustomEvent(APPLICATION_EVENTS.PARKED, {available:true} )
 		
 		// finish promising with some public method to access
 		resolve( constructPublicClass( { 

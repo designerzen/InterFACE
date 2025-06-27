@@ -6,7 +6,6 @@ const addKeyboardEvents = ( application ) => {
 	let numberSequence = ""
 
 	window.addEventListener('keydown', async (event)=>{
-
 		const isNumber = !isNaN( parseInt(event.key) )
 		const focussedElement = document.activeElement
 

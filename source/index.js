@@ -213,32 +213,40 @@ const start = () => {
 		// watch for user events and things that the user changes
 		// and pass that into the automator to modify behaviour
 		application.addEventListener(APPLICATION_EVENTS.LOADING, e => {
-			console.info("Index is loading app", e )
+			// console.info("Index is loading app", e )
 			// setLoadProgress(
 			// 	loadProgress,
 			// 	"",
 			// 	true
 			// )
+			if (e){
+				console.error("dispatchCustomEvent", APPLICATION_EVENTS.LOADING, "Events", e)
+			}
 		})
 
-		application.addEventListener(APPLICATION_EVENTS.LOADED, async(e) => {
-			
+		application.addEventListener(APPLICATION_EVENTS.PARKED, e => {
+console.error( "dispatchCustomEvent", APPLICATION_EVENTS.PARKED, "Events", e)
+		})
+
+		application.addEventListener(APPLICATION_EVENTS.LOADED, e => {
+			console.error("dispatchCustomEvent Adding game and key events")
 			// load in our controllers
-			const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
-			const {addGamePadEvents} = (await import('./interface-gamepad.js'))
+			// const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
+			// const {addGamePadEvents} = (await import('./interface-gamepad.js'))
 
-			// and create our input handlers 
-			addKeyboardEvents(application)
+			// // and create our input handlers 
+			// addKeyboardEvents(application)
 					
-			// Watch CONTROLLERS
-			if ( application.getState("gamePad") )
-			{
-				addGamePadEvents( this )
-			}
+			// // Watch CONTROLLERS
+			// if ( application.getState("gamePad") )
+			// {
+			// 	addGamePadEvents( this )
+			// }
 
-			addGamePadEvents(application)
+			// addGamePadEvents(application)
 
-			console.info("Index has completed loading app", {e, application} )
+			// console.info("Index has completed loading app", {e, application} )
+			
 		})
 
 	
