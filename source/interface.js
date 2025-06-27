@@ -1075,6 +1075,7 @@ export const createInterface = (
 				return person
 			}
 		}
+		return getPerson(0)
 	}
 
 	const getNearestPerson = (x,y, peopleArray=people) => {
@@ -2834,7 +2835,6 @@ export const createInterface = (
 						// globalChordPlayer.noteOn( event.note.number, event.value )
 						// globalChordPlayer.chordOn( event.note.number, event.value )
 
-						
 						// updateInstrumentWithPerson( samplePlayer, person )
 						// also send 
 					
@@ -2855,6 +2855,10 @@ export const createInterface = (
 								console.log("MIDISympathiser noteon chordDetails", {chord, input} )
 							}
 						}
+
+						if (stateMachine.get("midiOnboard")){
+							globalChordPlayer.chordOn( chordDetails, person.noteVelocity )
+						}
 					})
 
 					input.addListener("noteoff", event => {
@@ -2873,11 +2877,14 @@ export const createInterface = (
 						// globalChordPlayer.noteOff( event.note.number, event.value )
 						// globalChordPlayer.chordOff( event.note.number, event.value )
 						
-						
 						// updateInstrumentWithPerson( samplePlayer, person )
 						// sendMIDIEventToAllDevices(event.type, event)
 
 						playingMIDINotes.delete( event.note.number )
+						if (stateMachine.get("midiOnboard")){
+							globalChordPlayer.allNotesOff()
+						}
+						
 					})
 
 					console.log("MIDI INPUT", input.manufacturer, input.name)

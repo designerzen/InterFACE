@@ -201,6 +201,9 @@ export const DEFAULT_OPTIONS = {
 
 	midiClock:false,
 
+	// allow MIDI to control onboard synth
+	midiOnboard:true,
+
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
 
