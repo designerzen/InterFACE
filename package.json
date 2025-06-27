@@ -163,7 +163,9 @@
     "release:major": "npm run major && npm run build:all",
     "release:app": "npm run patch && npm run assets && npm run push",
     "release": "npm run changes && npm run build",
-    "knip": "knip"
+    "=QUALITY=":"",
+	"knip": "knip",
+	"help": "npx https://github.com/google-gemini/gemini-cli"
   },
   "staticFiles": {
     "staticFiles": [
