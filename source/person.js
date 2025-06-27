@@ -614,7 +614,7 @@ export default class Person{
 	 * @return {String}
 	 */
 	get currentPresetTitle(){
-		return this.presetTitle ?? this.activeInstrument ? this.activeInstrument.activePreset : 'Unloaded'
+		return this.presetTitle ?? (this.activeInstrument ? this.activeInstrument.activePreset : 'Unloaded' )
 	}
 
 	/**
