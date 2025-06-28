@@ -194,7 +194,6 @@ export default class SampleInstrument extends Instrument{
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		const instrument = await this.loadPreset( programNumber, this.instrumentPack )
-		this.instrumentIndex = programNumber
 		return await super.programChange( instrument )	
 	}
 	

@@ -11,7 +11,8 @@ import {
 	getGeneralMIDIInstrumentNames,
 	getGeneralMIDIInstrumentFolders,
 	createInstruments,
-	getRandomInstrument
+	getRandomInstrument,
+	getInstrumentTitle
 } from '../sound-font-instruments'
 
 import SoundFont from "../sound-font"
@@ -123,6 +124,12 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 */
 	getIndexFromName(presetName){
 
+		// already a number
+		if (!isNaN(presetName))
+		{
+			return presetName
+		}
+
 		let index = this.instrumentFolders.indexOf(presetName)
 		if (index > -1)
 		{
@@ -143,6 +150,12 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}
 		
 		return -1
+	}
+	
+	// to load a new sample we can also use the midi methods...
+	async programChange( programNumber ){
+		this.instrumentIndex = this.getIndexFromName(programNumber)
+		return await super.programChange( programNumber )	
 	}
 
 	/**
@@ -358,13 +371,12 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}
 		
 		// FIXME: set the default instrument index if saved
-		this.instrumentIndex = this.soundfont.instrumentIndex ?? 0
 		this.instrumentName = presetNameOrObject
 		this.instrumentPack = instrumentPack
 		this.instrumentFamily = this.audioBuffers.family
 
 		// Fetch the GM name
-		this.title = presetNameOrObject
+		this.title = getInstrumentTitle( presetNameOrObject ) ?? presetNameOrObject
 		// this.name = "SampleInstrument:"+presetNameOrObject
 
 		console.error("Soundfont", this, this.instrumentName, this.instrumentPack, this.instrumentFamily, {presetNameOrObject, instrumentPack, options} )
