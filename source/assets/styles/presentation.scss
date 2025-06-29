@@ -4,6 +4,11 @@
 
 .reveal .slides{
 
+	blockquote > *{
+		padding-left:var(--pad);
+		padding-right:var(--pad);
+	}
+
 	section > time{
 		position: absolute;
 		padding:var(--pad) calc( 2 * var(--pad) );
@@ -20,6 +25,8 @@
 		height: auto;
 		width: auto;
 		object-fit: contain;
+		display: block;
+    	max-height: 100vh;
 	}
 
 	figure{
@@ -39,8 +46,8 @@
 
 	figure:not(.r-stretch){
 		img{
-			max-width: 100%;
-			max-height: 90vh;
+			max-height:calc(100vh - 4lh);
+			max-width:100%;
 		}
 	
 		figcaption{
