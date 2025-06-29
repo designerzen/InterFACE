@@ -11,7 +11,7 @@ import Instrument from './instrument'
 export default class RecordInstrument extends Instrument{
 
 	name = "RecordInstrument"
-	title = "Record Instrument"
+	#title = "Record Instrument"
 	type = "recorder"
 
 	factory

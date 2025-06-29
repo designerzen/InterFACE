@@ -11,7 +11,7 @@ export default class KitInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_PERCUSSION
 
 	type = "KitInstrument"
-	title = "Custom Kit Instrument"
+	#title = "Custom Kit Instrument"
 
 	constructor( audioContext, options={} ){
 		super( audioContext, options )

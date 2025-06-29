@@ -18,7 +18,7 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	name = INSTRUMENT_TYPE_SAMPLE
-	title = "Sample Player"
+	#title = "Sample Player"
 	type = "sample"
 	
 	// Instrument is an Object where A0:"sampleAudioBuffer" 
@@ -194,7 +194,6 @@ export default class SampleInstrument extends Instrument{
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		const instrument = await this.loadPreset( programNumber, this.instrumentPack )
-		this.instrumentIndex = programNumber
 		return await super.programChange( instrument )	
 	}
 	

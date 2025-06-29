@@ -10,6 +10,7 @@ export default class WorkletInstrument extends ProcessorInstrument {
 
 	type = "worklet"
 
+	#title = "Worklet"
 	instrument
 
 	get volume() {

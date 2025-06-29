@@ -439,16 +439,18 @@ export class GamePadManager {
 		// fetch any previously registered game pads
 		let pads = fetchGamePads()
 		let quantity = 0
-		 let intervalID = -1
+		let intervalID = -1
 		const eventLoop = () => {
 
-			console.info("checking buttons for pads", quantity)
+			// console.info("checking buttons for pads", quantity)
 			this.controllers.forEach( gamePad => gamePad.update() )
 			if (quantity > 0 )
 			{
-				console.info("Gamepads", { pads }, this )
+				//console.info("Gamepads", { pads }, this )
 				cancelAnimationFrame(intervalID)
 				intervalID = requestAnimationFrame( eventLoop )
+			}else{
+				console.warn("Gamepads loop exit", { pads }, this )
 			}
 		}
 

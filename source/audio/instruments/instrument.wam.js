@@ -16,7 +16,7 @@ export default class WAMInstrument extends Instrument {
 	workletsRegistered = false
 
 	type = "web audio module 1"
-	title = "WebAudioModule"
+	#title = "WebAudioModule"
 
 	initialised = false
 

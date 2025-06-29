@@ -54,7 +54,7 @@ export default class SynthesizerInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_SYNTHESIZER
 
 	type = "synthesizer"
-	title = "Dual Wave Oscillator"
+	#title = "Dual Wave Oscillator"
 	
 	envelope
 

@@ -43,7 +43,7 @@ export default class MonotronInstrument extends Instrument{
 	name = INSTRUMENT_TYPE_MONOTRON
 
 	type = "synthesizer"
-	title = "Monotron"
+	#title = "Monotron"
 
 	/* 
 	envelope

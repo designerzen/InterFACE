@@ -21,7 +21,15 @@ export default class Instrument{
 	static uniqueCounter = 0
 
 	name = "AbstractInstrument"
-	title = "Instrument"
+	#title = "Instrument"
+
+	get title(){
+		return this.#title
+	}
+	set title( value ){
+		this.#title = value
+	}
+
 	type = "abstract"
 
 	// unique ID set from superclass
