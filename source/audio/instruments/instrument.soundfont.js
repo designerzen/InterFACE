@@ -286,13 +286,6 @@ export default class SoundFontInstrument extends SampleInstrument{
 
 
 	
-	/**
-	 * Provide this Person with a random instrument
-	 * @param {Function} progressCallback Method to call during load and once the instrument has loaded
-	 */
-	async loadRandomPreset(progressCallback){
-		return await this.loadPreset( getRandomInstrument(), this.instrumentPack, {}, progressCallback )
-	}
 
 	/**
 	 * Load a specific instrument "patch" for this AudioNode
@@ -396,6 +389,13 @@ export default class SoundFontInstrument extends SampleInstrument{
 		return this.audioBuffers
 	}
 
+	/**
+	 * Provide this Person with a random instrument
+	 * @param {Function} progressCallback Method to call during load and once the instrument has loaded
+	 */
+	async loadRandomPreset(progressCallback){
+		return await this.loadPreset( getRandomInstrument(), this.instrumentPack, {}, progressCallback )
+	}
 	
 	clone(){
 		return new SoundFontInstrument(this.audioContext, this.options)

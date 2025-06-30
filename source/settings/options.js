@@ -285,7 +285,7 @@ export const IDENTIFIERS = ['a','b','c','d'].map( m => `person-${m}` )
 
 // NB. These must align with the button names
 // 		in the DOM when the app is launched
-export const NAMES = ['⯀','▲','⬣','◉']
+export const NAMES = ['⯀','▲','⬣','◉'] // ♥︎
 // export const NAMES = ['I','II','III','IV']
 
 
