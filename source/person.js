@@ -845,7 +845,7 @@ export default class Person{
 		this.createdAt = -this.now
 		// return if actually dead or just dying!
 
-		console.info("Person lost", this)
+		// console.info("Person lost", this)
 		this.active = false
 		this.setState(STATE_INSTRUMENT_SILENT)
 		this.onLost()
@@ -880,7 +880,7 @@ export default class Person{
 
 		}else if (this.deadForDuration  > 0){
 			
-			console.info(this.percentageDead, "dying", this.deadForDuration, this.createdAt )
+			// console.info(this.percentageDead, "dying", this.deadForDuration, this.createdAt )
 		}
 		
 		// reuse old prediction aka refresh
@@ -1435,11 +1435,6 @@ export default class Person{
 		// save position on the keyboard for visual purposes ONLY
 		this.noteIndex = Math.round(noteFloat * 12)
 
-		if (this.playerNumber === 1)
-		{
-			console.info( this.noteIndex, "Player 1 noteData",noteFloat, {noteFloat, noteSound, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, hasNoteChanged, prediction, chords }, this )
-		}
-
 		// console.info( "noteData", {noteFloat, noteSou nd, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
 		
 /*
@@ -1762,7 +1757,7 @@ export default class Person{
 		this.presetTitle = presetTitle
 		this.presetName = presetName
 
-		console.error("setupInstrumnentForm", presetTitle, presetName, details )
+		// console.error("setupInstrumnentForm", presetTitle, presetName, details )
 		
 		// FIXME: If automatic demo mode enabled, this will auto hide...
 		this.hideForm()
@@ -2110,7 +2105,7 @@ export default class Person{
 		// save for later reference
 		this.activeInstrument = this.addInstrument( instrument )
 
-		console.warn("Person setMainInstrument", this.activeInstrument, {instrument} )
+		// console.warn("Person setMainInstrument", this.activeInstrument, {instrument} )
 
 		return instrument
 	}
@@ -2149,13 +2144,13 @@ export default class Person{
 	 */
 	onBirthed(){
 		this.reset()
-		console.info("Person Birthed", this)
+		// console.info("Person Birthed", this)
 		this.dispatchEvent(EVENT_PERSON_BORN, { person:this })
 	}
 
 
 	onLost(){
-		console.info("Person Lost at "+this.deadForDuration )
+		// console.info("Person Lost at "+this.deadForDuration )
 		//this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
 	}
 
@@ -2163,7 +2158,7 @@ export default class Person{
 	 * Person has finally died - change preset?
 	 */
 	onDead(){
-		console.info("Person Killed at "+this.deadForDuration )
+		// console.info("Person Killed at "+this.deadForDuration )
 		this.createdAt = -1
 		this.isUserActive = false
 		this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
@@ -2283,7 +2278,7 @@ export default class Person{
 		// console.error( "onEyesClosedForTimePeriod" ) 
 		this.eyesClosed = true
 	// Eyes closed for X amount of time...
-		this.loadNextPreset( instrumentName => console.log("onEyesClosedForTimePeriod:instrumentName",instrumentName ) )
+		// this.loadNextPreset( instrumentName => console.log("onEyesClosedForTimePeriod:instrumentName",instrumentName ) )
 	}
 
 	// --- FORM --------------------------------------------------------------
