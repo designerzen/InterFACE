@@ -561,7 +561,7 @@ export const createInterface = (
 			{
 				// slaves never dispatch events
 				isSlave = true
-				console.log("Received message from master", event)
+				// console.log("Received message from master", event)
 				return
 			}
 		
@@ -3705,11 +3705,11 @@ export const createInterface = (
 		// as the models have loaded already at this point...
 		modelOptions.maxFaces = modelOptions.numFaces = stateMachine.get('players')
 		
-		console.info("setFaceLandmarkerOptions", modelOptions )
+		// console.info("setFaceLandmarkerOptions", modelOptions )
 		
 		setFaceLandmarkerOptions( modelOptions )
 
-		console.info("Players", stateMachine.get('players') )
+		// console.info("Players", stateMachine.get('players') )
 		
 		// reset the progress meter for loading the second half
 		loadPercent = 0
@@ -3727,7 +3727,7 @@ export const createInterface = (
 			loadProgressMediator(0.5 + progress/2, message, false)
 		})
 		
-		console.info("Loaded ML model now updating with options", {startApp, modelOptions, stateMachine} )
+		// console.info("Loaded ML model now updating with options", {startApp, modelOptions, stateMachine} )
 		
 		return startApp
 
