@@ -225,7 +225,7 @@ export const DEFAULT_OPTIONS = {
 
 	// show the QR code all the time
 	// and update when settings change?
-	qr:true,
+	qr:false,
 
 	// send out the clock to other tabs and windows
 	broadcast:true,
