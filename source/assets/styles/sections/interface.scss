@@ -460,15 +460,6 @@ main.active{
 	}
 }
 
-// funky text animations where the colour fades...
-// NB. EXPENSIVE, use sparingly
-.loading .logo,
-.loading strong,
-p strong{
-	animation:TextColours 4s linear infinite 0.05s both;
-}
-
-
 .warning strong{
 	animation:TextThrob 4s linear infinite 0.05s both;
 }
