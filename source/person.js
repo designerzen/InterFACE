@@ -104,6 +104,7 @@ export const STATE_INSTRUMENT_DECAY = "instrument-decay"
 export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 
 // Dispatched events that each person creates
+export const EVENT_EMOTION_CHANGED = "emotion-changed"
 export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_PERSON_BORN = "person-born"
@@ -698,7 +699,7 @@ export default class Person{
 	}
 
 	/**
-	 * Proxy for the button events
+	 * Proxy for the event system
 	 */
 	addListener(){
 		return this.button.addEventListener(...arguments)
@@ -1035,11 +1036,14 @@ export default class Person{
 			//console.info(prediction.time)
 		}
 
-		
-
-		// const emoji = recogniseEmoji(this)
 		// options.mouthCutOff
-		this.emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
+		const emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
+		if (this.emoticon !== emoticon)
+		{
+			this.emoticon = emoticon
+			this.dispatchEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
+		}
+
 		// console.info("Emoticon", this.emoticon, {prediction})
 		// this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
 	}

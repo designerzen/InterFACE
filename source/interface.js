@@ -448,7 +448,6 @@ export const createInterface = (
 		// setElementCheckState(method, value)
 	})
 
-	
 
 	// http://localhost:909/?display=DisplayMediaVision2D&tooltips=true&advancedMode=false&showSettings=false&showPiano=false&metronome=true&backingTrack=true&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=false&stats=false&muted=false&players=1&stereo=true&stereoPan=true&midi=true&midiChannel=all&starSize=1&autoHide=true&loadMIDIPerformance=false&gamePad=false&model=face&qr=false&theme=theme-mit&instrumentPack=OpenGM24&photoSensitive=true&automationMode=true&referer=mit&bpm=81.56038486395421
 	const referer = stateMachine.get("referer")
@@ -706,12 +705,12 @@ export const createInterface = (
 	 * Toggle the background synthesized percussion
 	 */
 	const startBackgroundPercussion = (updateGUI=true) => {
-		const isEnabled = stateMachine.set( 'backingTrack', true, buttonPercussion )
+		stateMachine.set( 'backingTrack', true, buttonPercussion )
 		setFeedback( "Backing track starting", 0, 'beats'  )
 	}	
 	
 	const stopBackgroundPercussion = (updateGUI=true) => {
-		const isEnabled = stateMachine.set( 'backingTrack', true )
+		stateMachine.set( 'backingTrack', false )
 		setFeedback( "Ending Backing Track", 0, 'silence' )
 	}
 	const toggleBackgroundPercussion = (updateGUI=true) => {
@@ -930,6 +929,7 @@ export const createInterface = (
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
 		})
+
 		person.addListener( EVENT_PERSON_DEAD,  (event) => {
 			const {detail} = event
 			// console.info("Person has died!", detail)
@@ -954,6 +954,13 @@ export const createInterface = (
 			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
+		})
+
+		person.addListener(EVENT_EMOTION_CHANGED, event => {	
+			const {detail} = event
+			const { emoticon, person } = detail
+			console.log("Emotion changed", detail)
+			// setToast( `${detail.emoticon} Emotion Changed` ) 
 		})
 
 		// We assign certain random instruments from groups to each user
