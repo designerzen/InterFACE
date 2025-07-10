@@ -68,8 +68,30 @@
 	blockquote p{
 		font-size:140%;
 	}
+
+	li::marker,
+	li p {
+		font-size:28px;
+	}
+
+	.split-width{
+		display: flex;
+		flex-direction: row;
+		gap:var(--gap, var(--pad));
+	}
+
+	.font-60{
+		font-size: 60%;
+	}
+	.font-80{
+		font-size: 80%;
+	}
+	.font-90{
+		font-size: 90%;
+	}
 }
 
 html.reveal-print .reveal {
 	min-height: fit-content !important;
 }
+
