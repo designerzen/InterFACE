@@ -490,6 +490,12 @@
 		anchor-name: --button-reload;
 	}
 
+	.button-email{
+		--bg:url(/source/assets/icons/drafts.svg);
+		// --bg:url(/source/assets/icons/email-24px.svg);
+		// --bg:url(/source/assets/icons/email_black_24dp.svg);
+	}
+
 	// This is the upload midi file button and action
 	button.midi-file{
 		--bg:url(/source/assets/icons/face_retouching_off-24px.svg);

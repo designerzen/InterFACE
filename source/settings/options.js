@@ -199,6 +199,8 @@ export const DEFAULT_OPTIONS = {
 	// allow midi input to control stuff too
 	midiInput:true,
 
+	// if there is a midi clock incoming, replace the
+	// internal clock with it
 	midiClock:false,
 
 	// allow MIDI to control onboard synth

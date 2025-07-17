@@ -55,7 +55,8 @@ import Person, {
 	PERSON_TYPE_ARPEGGIO,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_CHROMATIC,
-	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
+	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
+	EVENT_EMOTION_CHANGED
  } from './person.js'
  
 // TIMING
@@ -130,7 +131,7 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 // CONTROLS
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 // import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
-import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
+import { getActiveMIDINotesForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
 /*
 
@@ -447,6 +448,11 @@ export const createInterface = (
 		// const method = uiMap.get(key)
 		// setElementCheckState(method, value)
 	})
+
+	if (!stateMachine.get("qr")){
+		// if the QR code is not enabled, hide the element
+		shareCodeElement.parentElement.style.display = "none"
+	}
 
 
 	// http://localhost:909/?display=DisplayMediaVision2D&tooltips=true&advancedMode=false&showSettings=false&showPiano=false&metronome=true&backingTrack=true&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=false&stats=false&muted=false&players=1&stereo=true&stereoPan=true&midi=true&midiChannel=all&starSize=1&autoHide=true&loadMIDIPerformance=false&gamePad=false&model=face&qr=false&theme=theme-mit&instrumentPack=OpenGM24&photoSensitive=true&automationMode=true&referer=mit&bpm=81.56038486395421
@@ -802,49 +808,12 @@ export const createInterface = (
 
 	// PEOPLE ==========================================================================================
 
-	const configurePerson = (person, type) => {
-		// ensure type is a valid index
-		person.type = type % people.length
-		switch (person.type)
-		{
-			case PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS:
-				// Arp - turn it into an arp if the person has index of 1
-				person.leftFacingKeys = FIFTHS_SCALE_KEYS
-				person.rightFacingKeys = FIFTHS_SCALE_KEYS
-				person.activeInstrument.arpeggiate = true
-
-				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
-				break
-
-			case PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS:
-				// Sympathetic chords - all just circle of fifths
-				person.leftFacingKeys = FIFTHS_SCALE_KEYS
-				person.rightFacingKeys = FIFTHS_SCALE_KEYS
-				person.activeInstrument.arpeggiate = false
-
-				// console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
-				break
-
-			case PERSON_TYPE_CHROMATIC:
-				// Sympathetic chords - Chromatic scale
-				person.leftFacingKeys = NOTES_BLACK
-				person.rightFacingKeys = NOTES_WHITE
-				
-				// person.leftFacingKeys = JAZZ_MINOR_SCALE_KEYS
-				// person.rightFacingKeys = JAZZ_MINOR_SCALE_KEYS
-				person.activeInstrument.arpeggiate = false
-				// console.info(">>> PERSON "+person.playerNumber+" Chromatic Scale" ) 
-				break
-					
-			case PERSON_TYPE_ARPEGGIO:
-			default:
-				// Slow COF Arp
-				person.leftFacingKeys = MAJOR_SCALE_KEYS
-				person.rightFacingKeys = MINOR_SCALE_KEYS
-				person.activeInstrument.arpeggiate = true
-				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
-				break
-		}
+	/**
+	 * set up the user in a certain mode
+	 * @param {Person} person 
+	 */
+	const configurePerson = person => {
+		Person.configurePersonByIndex( person, people)
 	}
 
 	/**
@@ -956,12 +925,15 @@ export const createInterface = (
 			dispatchCustomEvent(event.type, detail)
 		})
 
+		/*
+		// we need this to also update any playing midi notes
 		person.addListener(EVENT_EMOTION_CHANGED, event => {	
 			const {detail} = event
 			const { emoticon, person } = detail
 			console.log("Emotion changed", detail)
 			// setToast( `${detail.emoticon} Emotion Changed` ) 
 		})
+		*/
 
 		// We assign certain random instruments from groups to each user
 		// we want this to happen in the background
@@ -1000,9 +972,8 @@ export const createInterface = (
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
 			
-			// and set up the user in a certain mode
-			configurePerson(person, person.playerNumber)
-			
+			configurePerson(person)
+
 			if (personOptions.debug)
 			{
 				console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
@@ -2759,20 +2730,20 @@ export const createInterface = (
 				setFeedback(error, 0, 'midi')
 			}
 		}
+
+
 		
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
 			const relayMIDI = stateMachine.get("midiRelay")
-			const MIDISympathiser = stateMachine.get("midiSympathiser")
-
-			const sendMIDIEventToAllDevices = (type, event) => {
-				switch(event.message.type){
+		
+			const sendMIDIEventToAllDevices = (type, noteNumber) => {
+				switch(type){
 					case "noteon":
-						WebMidi.outputs.forEach(output => output.playNote(event.note.number))
+						WebMidi.outputs.forEach(output => output.playNote( noteNumber ))
 						break
-					case "noteoff":
-						WebMidi.outputs.forEach(output => output.stopNote(event.note.number))
+						WebMidi.outputs.forEach(output => output.stopNote( noteNumber ))
 						break
 					case "clock":
 						WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
@@ -2784,7 +2755,7 @@ export const createInterface = (
 			try{
 				let lastClockTimestamp = 0
 				// FIXME: use the midi manager
-				console.info("p.enabling...", {sysex:false, software:true })
+				console.info("WebMidi.enabling...", {sysex:false, software:true })
 				webMidi = await WebMidi.enable({sysex:false, software:true })
 				console.info("WebMidi.enabled", {sysex:false, software:true })
 				isMIDIAvailable = true
@@ -2799,14 +2770,133 @@ export const createInterface = (
 			// Outputs
 			// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
 			// immediately hook into the clock events...
-			// midiInput
-			if (stateMachine.get("midi"))
+			const skipMIDI = false
+			if (!skipMIDI && stateMachine.get("midiInput"))
 			{
 				WebMidi.inputs.forEach(input =>{
 					console.info("Observing MIDI device", input )
+					
 					const playingMIDINotes = new Map()
+					const aborter = new AbortController()
+
+					let person
+
+					const playMIDINoteOn = ( noteNumber, velocity=1, monitorEmotion=true ) => {
+
+						// TODO: use the midi in and the people to augment
+						// the note played with chords that match the facial expression
+						// const amountOfInputs = WebMidi.inputs.length         
+						person = getActivePerson()
+
+						console.info("playMIDINoteOn", noteNumber, {person} )
+
+						// augment note into chord us ing event.note.number as the tonic
+						const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon)
+						
+						if (monitorEmotion && playingMIDINotes.size === 0)
+						{
+							// we need this to also update any playing midi notes
+							person.addListener(EVENT_EMOTION_CHANGED, event => {	
+								
+								const {detail} = event
+								const { emoticon } = detail
+								// const { emoticon, person } = detail
+								console.log("Emotion changed", detail)
+								//chordDetails = getMusicalDetailsFromEmoji(noteNumber, emoticon)
+								
+								// now we need to "change" notes
+								
+								// playNoteOff()
+								// setToast( `${detail.emoticon} Emotion Changed` ) 
+								
+								playMIDINoteOff( noteNumber)
+								playMIDINoteOn( noteNumber, velocity, false )
+
+							}, {signal:aborter.signal})
+						}
+
+						// save this chord for note off later
+						playingMIDINotes.set( noteNumber, chordDetails )	
+
+						console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes, person} )
+
+						// play midi notes using our Audio Engine...
+						// globalChordPlayer.noteOn( event.note.number, event.value )
+						// globalChordPlayer.chordOn( event.note.number, event.value )
+
+						// updateInstrumentWithPerson( samplePlayer, person )
+						// also send 
+					
+						// send out original event to all connected devices
+						if (relayMIDI)
+						{
+							sendMIDIEventToAllDevices( "noteon", noteNumber )
+							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
+						}
+
+						// send out augmented events
+						if (stateMachine.get("midiSympathiser"))
+						{
+							for (const chord of chordDetails)
+							{
+								// sendMIDIEventToAllDevices( "noteon", chord)
+								WebMidi.outputs.forEach(output => output.playNote(chord.noteNumber))
+								console.log("MIDISympathiser noteon chordDetails", {chord, input} )
+							}
+						}
+
+						if (stateMachine.get("midiOnboard")){
+							globalChordPlayer.chordOn( chordDetails, person.noteVelocity )
+						}
+					}
+
+					// stop existing note from playing
+					const playMIDINoteOff = (noteNumber, velocity=1) => {
+
+						console.info("playMIDINoteOn", noteNumber, {person} )
+
+
+						// get the chord details
+						const playingChord = playingMIDINotes.get( noteNumber )
+						//console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
+						
+						for (const chord of playingChord)
+						{
+							// sendMIDIEventToAllDevices( "noteon", chord)
+							WebMidi.outputs.forEach(output => output.stopNote(chord.noteNumber))
+							//console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
+						}
+	
+						if (relayMIDI)
+						{
+							// event.type === noteoff
+							sendMIDIEventToAllDevices( "noteoff", noteNumber )
+							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
+						}
+
+						// stop midi notes on our Audio Engine...
+						// globalChordPlayer.noteOff( event.note.number, event.value )
+						// globalChordPlayer.chordOff( event.note.number, event.value )
+						
+						// updateInstrumentWithPerson( samplePlayer, person )
+						// sendMIDIEventToAllDevices(event.type, event)
+
+						playingMIDINotes.delete( noteNumber )
+						
+						// stop watching for emoji changes in this person as there
+						// are no notes playing anymore to update
+						if (playingMIDINotes.size === 0){
+							aborter.abort()
+							person = null
+						}
+						
+						if (stateMachine.get("midiOnboard")){
+							globalChordPlayer.allNotesOff()
+						}
+					}
+
 					input.addListener("midimessage", event => {
-						console.info("MIDI Message", event )
+						// console.info("MIDI Message", event )
 						switch(event.message.type){
 							case "start": 
 								startBackgroundPercussion()
@@ -2827,80 +2917,53 @@ export const createInterface = (
 						}
 					})
 
-					input.addListener("noteon", event => {
+					// FIXME: This NEEDS to ignore notes played by the person!
+					input.addListener("noteon", event => { 
+						// TODO: check to see if these notes are triggered
+						// by this and ignore any note ons that we sent out!!!
 						
-						// TODO: use the midi in and the people to augment
-						// the note played with chords that match the facial expression
-						// const amountOfInputs = WebMidi.inputs.length         
-						const person = getActivePerson()
-
-						// augment note into chord using event.note.number as the tonic
-						const chordDetails = getMusicalDetailsFromEmoji(event.note.number, person.emoticon)
-						// save this chord for note off later
-						playingMIDINotes.set( event.note.number, chordDetails )	
-
-						console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes,event, person} )
-
-						// play midi notes using our Audio Engine...
-						// globalChordPlayer.noteOn( event.note.number, event.value )
-						// globalChordPlayer.chordOn( event.note.number, event.value )
-
-						// updateInstrumentWithPerson( samplePlayer, person )
-						// also send 
-					
-						// send out original event to all connected devices
-						if (relayMIDI)
-						{
-							sendMIDIEventToAllDevices(event.type, event)
-							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
+						if (!person){
+							person = getActivePerson()
 						}
+						
+						const requestedNote = event.note.number
 
-						// send out augmented events
-						if (MIDISympathiser)
+						// const pChord = person.activeNotes.get( person.noteNumber )
+						// const chord = person.activeNotes.get( event.note.number )
+						const chords = getActiveMIDINotesForPerson( person.playerNumber )
+
+						const isPlaying = chords.get( requestedNote) ?? false
+						
+						// for (let c in chord){
+						// 	if (c.noteNumber === requestedNote){
+						// 		isPlaying = true
+						// 		break
+						// 	}
+						// }
+						// for (let c in pChord){
+						// 	if (c.noteNumber === requestedNote ){
+						// 		isPlaying = true
+						// 		break
+						// 	}
+						// }
+
+						if (!isPlaying)
 						{
-							for (const chord of chordDetails)
-							{
-								// sendMIDIEventToAllDevices( "noteon", chord)
-								WebMidi.outputs.forEach(output => output.playNote(chord.noteNumber))
-								console.log("MIDISympathiser noteon chordDetails", {chord, input} )
-							}
-						}
+							//playMIDINoteOn(event.note.number)
+							//console.info("MIDI noteon FRESH", event.note.number, {event, chords} ) 
+						}else{
+							//console.info("MIDI noteon ALTER", event.note.number, {event, chords} ) 
 
-						if (stateMachine.get("midiOnboard")){
-							globalChordPlayer.chordOn( chordDetails, person.noteVelocity )
 						}
 					})
-
-					input.addListener("noteoff", event => {
-						// NOTEOFF
-						// get the chord details
-						const playingChord = playingMIDINotes.get( event.note.number )
-						//console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
-						
-						for (const chord of playingChord)
-						{
-							// sendMIDIEventToAllDevices( "noteon", chord)
-							WebMidi.outputs.forEach(output => output.stopNote(chord.noteNumber))
-							//console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
-						}
-						// stop midi notes on our Audio Engine...
-						// globalChordPlayer.noteOff( event.note.number, event.value )
-						// globalChordPlayer.chordOff( event.note.number, event.value )
-						
-						// updateInstrumentWithPerson( samplePlayer, person )
-						// sendMIDIEventToAllDevices(event.type, event)
-
-						playingMIDINotes.delete( event.note.number )
-						if (stateMachine.get("midiOnboard")){
-							globalChordPlayer.allNotesOff()
-						}
-						
+					input.addListener("noteoff", event => { 
+						//playMIDINoteOff(event.note.number) 
+						//console.info("MIDI noteoff", event.note.number, {event} )
 					})
 
-					console.log("MIDI INPUT", input.manufacturer, input.name)
+					console.log("MIDI INPUT Device", input.manufacturer, input.name)
 				})
 			}
-			
 		}
 
 		// FIXME: ONLY Use webmidi?

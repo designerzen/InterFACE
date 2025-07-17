@@ -9,6 +9,8 @@
     justify-content: center;
 	justify-items: center;
 
+	width: 100%;
+
 	// stretch full width for 1 unit of each
 	grid-template-columns: 100%;
 
@@ -37,11 +39,13 @@
 		auto
 		auto
 		auto
+		auto
 		auto;
 
 	// mmake this big to give adequate room to breathe
 	grid-template-areas: 
 		"hero"
+		"contact"
 		"affiliates"
 		"app"
 		"footer";
@@ -57,6 +61,11 @@
 		// top: 50%;
 		// transform: translateY(-50%);
 	}
+}
+
+
+.link-to-requirements{
+	display: block;
 }
 
 // place items into grid
@@ -75,8 +84,27 @@
 	// top:var(--pad);		
 }
 
+#contact{
+--side:clamp( var(--pad), 25%, 240px);
+	grid-area:contact;
+	box-sizing: border-box;
+	color: var(--shade-white);
+	background-color: var(--shade-dark);
+	
+	padding:calc( 2 * var(--pad)) max( var(--pad) , (100vw - var(--side) ) / 2 );
+	margin-bottom:var(--pad);
+	// margin-left:var(--pad);
+	// margin-right:var(--pad);
+	//border-radius:var(--curve);
+	// max-width: calc(100% - 2 * var(--pad));
+	width: 100%;
+	border-bottom-left-radius: var(--curve, 1rem);
+	border-bottom-right-radius: var(--curve, 1rem);
+	overflow: hidden;
+}
+
 #hero{
-	background-color: #ebebeb;//var(--shade-grey);
+	background-color:#ebebeb;// var(--shade-white);//var(--shade-grey);
 	border-radius:calc( 0.75 * var(--curve) );
 	font-size: 0;
 	user-select: none;
@@ -301,6 +329,10 @@
 		max-height: 100%;
 
 		background: none;
+		display: none;
+	}
+
+	#contact{
 		display: none;
 	}
 

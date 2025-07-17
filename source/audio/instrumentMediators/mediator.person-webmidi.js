@@ -10,6 +10,10 @@ peopleNotes.set( 1, new Map() )
 peopleNotes.set( 2, new Map() )
 peopleNotes.set( 3, new Map() )
 
+export const getActiveMIDINotesForPerson = personIndex => {
+	return peopleNotes.get( personIndex )
+}
+
 /**
  * On every frame 
  * @param {Person} person 
@@ -80,12 +84,6 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 			// 	midiOutputDevice.stopNote( person.lastNoteNumber ) 
 			// }
 
-			if (midiOutputDevice){	
-				const velocity = midiOutputDevice.name === ROLI_PIANO ? 1 : person.noteVelocity
-				midiOutputDevice[method]( note.noteNumber, {attack:velocity} )
-			}
-			// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
-	
 			const personNotes = peopleNotes.get( person.playerNumber )
 			switch(method)
 			{
@@ -99,6 +97,13 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 					break
 			}
 
+			if (midiOutputDevice){	
+				const velocity = midiOutputDevice.name === ROLI_PIANO ? 1 : person.noteVelocity
+				midiOutputDevice[method]( note.noteNumber, {attack:velocity} )
+			}
+			// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
+	
+
 		}else if (multipleMIDIDevices){
 			
 			// send out one person's midi events to all devices on a specific channel
@@ -106,11 +111,6 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				// ensure it is playerNumber + 1 as MIDI channels start at 1
 				const midiOutputDevice = MIDIoutput.channels[person.playerNumber + 1]
 				
-				if (midiOutputDevice){
-					const velocity = midiOutputDevice.name === ROLI_PIANO ? 1 : person.noteVelocity
-					midiOutputDevice[method]( note.noteNumber, {attack:velocity} )				
-				}
-
 				const personNotes = peopleNotes.get( person.playerNumber )
 				switch(method)
 				{
@@ -123,6 +123,12 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 						// console.log("stopNote multipleMIDIDevices", note, WebMidi.outputs, midiOutputDevice, personNotes )
 						break
 				}
+
+				if (midiOutputDevice){
+					const velocity = midiOutputDevice.name === ROLI_PIANO ? 1 : person.noteVelocity
+					midiOutputDevice[method]( note.noteNumber, {attack:velocity} )				
+				}
+
 				// midiOutputDevice && midiOutputDevice.playNote( person.noteNumber, {attack:person.noteVelocity} )
 			})
 
@@ -135,9 +141,7 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				// if (person.lastNoteNumber > -1){
 				// 	MIDIoutput.stopNote( person.lastNoteNumber ) 
 				// }
-				const velocity = MIDIoutput.name === ROLI_PIANO ? 1 : person.noteVelocity
-				MIDIoutput[method]( note.noteNumber, {attack:velocity} ) 
-
+				
 				const personNotes = peopleNotes.get( person.playerNumber )
 				switch(method)
 				{
@@ -150,6 +154,10 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 						// console.log("stopNote all", note, MIDIoutput, personNotes )
 						break
 				}
+
+				const velocity = MIDIoutput.name === ROLI_PIANO ? 1 : person.noteVelocity
+				MIDIoutput[method]( note.noteNumber, {attack:velocity} ) 
+
 				
 				// console.info("MIDI updated handleNote", MIDIoutput, activeAudioOutput )
 				// MIDIoutput.playNote( person.noteNumber, {attack:person.noteVelocity} ) 
@@ -165,7 +173,7 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 		{
 			if (oneMIDIDevicePerPerson)
 			{
-				const midiOutputDevice = WebMidi.outputs[person.playerNumber]
+				const midiOutputDevice = WebMidi.outputs[person.playerNumber+1]
 				// console.log("midi note off", noteNumber, {noteVelocity,MIDIoutput})				// MIDIoutput.stopNote( person.lastNoteNumber, {release:noteVelocity} ) 
 				// MIDIoutput.stopNote( noteNumber, {release:noteVelocity} ) 
 				midiOutputDevice.sendAllNotesOff() 
@@ -184,6 +192,9 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 					// console.info("MIDI updated stopNote",  MIDIoutput, activeAudioOutput )
 				})
 			}	
+
+			// kill all notes for this person
+			personNotes.clear( )
 
 		}else{
 

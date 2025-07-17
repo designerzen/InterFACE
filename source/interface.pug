@@ -15,17 +15,14 @@ block nav
 		li: a#link-about(href="#fund" aria-label="Learn more about this project" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
 		li: a(href="#help" aria-label="Show some helpful information" onclick="window.help.showModal()") Help!
 
-
 block preload
 	script document.documentElement.classList.add("loading","app")
 	link(rel="preload" href="index.js" as="script") 
-	
 
 block scripts
 	script(type="module" src="index.js")
 
 block main
-
 	main#app(aria-describedby="progress-bar")
 		h3(screenreader-only)#title Augmented Reality Synthesizer
 		h4(screenreader-only)#subtitle 
@@ -71,6 +68,11 @@ block main
 			p.
 				This application requires javascript to work unfortunately and doesn't do much without it. 
 				You can install 
+				
+	#contact
+		h4 Contact 
+		p If you have any suggestions, concerns, ideas or feedback, please get in touch!
+		a.email-address.button.button-push.button-email.centralise(href="mailto:radio@awesomething.co.uk") Contact<span class="hide-text"> via Email</span>
 
 	#affiliates
 		block affiliates
@@ -141,7 +143,7 @@ block main
 					figure
 						figcaption <small>Presented at</small> the Royal Society Summer Exhibition 2025
 						img(src="./assets/logos/royal_society-crest.svg" alt="Royal Society Summer Exhibition")
-				
+
 	small#attributions
 		block attributions
 		
