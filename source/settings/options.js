@@ -159,8 +159,10 @@ export const DEFAULT_OPTIONS = {
 	text:true,
 	// audio visualiser is actually helpful to play
 	spectrogram:true,
+	
 	// read out important instructions
-	speak:true,
+	// NB. OFF by default
+	speak:false,
 	
 	// show debug texts
 	debug:isDevelopmentMode,
@@ -421,7 +423,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawEyes:true,
 
 	// extra controls
-	drawEyebrows:true,
+	drawEyebrows:false,
 
 	// use the nostrils to alter the sound
 	// NB. these are still disabled in media-vision

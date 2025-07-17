@@ -974,7 +974,7 @@ export default class Person{
 
 		if (this.options.pitchBend && this.pitchBendValue && this.activeInstrument)
 		{
-			this.activeInstrument.pitchBend( this.pitchBendValue )
+			//this.activeInstrument.pitchBend( this.pitchBendValue )
 		}
 		
 
@@ -1743,7 +1743,7 @@ export default class Person{
 			newVolume = 0
 			this.isMouthOpen = false
 			this.active = false
-			this.pitchBendValue = 1
+			this.Value = 1
 			// no instruments in memory yet... play silence?
 		}
 

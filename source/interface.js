@@ -2687,8 +2687,8 @@ export const createInterface = (
 		await instrumentInstance.loaded
 
 		globalChordPlayer = instrumentInstance // new ChordInstrumentInstrument(audioContext, audioChain, {})
-		globalChordPlayer.setInstrument( OscillatorInstrument,{}, 3 )
-		// globalChordPlayer.setInstrument( SampleInstrument,{}, 3 )
+		//globalChordPlayer.setInstrument( OscillatorInstrument,{}, 3 )
+		 globalChordPlayer.setInstrument( SampleInstrument,{}, 3 )
 		// samplePlayer = new SampleInstrument(audioContext, audioChain, {})
 
 		
@@ -2774,6 +2774,10 @@ export const createInterface = (
 			if (!skipMIDI && stateMachine.get("midiInput"))
 			{
 				WebMidi.inputs.forEach(input =>{
+					
+					let activePerson
+					let activeEmoticon
+
 					console.info("Observing MIDI device", input )
 					
 					const playingMIDINotes = new Map()
@@ -2841,12 +2845,13 @@ export const createInterface = (
 							{
 								// sendMIDIEventToAllDevices( "noteon", chord)
 								WebMidi.outputs.forEach(output => output.playNote(chord.noteNumber))
-								console.log("MIDISympathiser noteon chordDetails", {chord, input} )
+								//console.log("MIDISympathiser noteon chordDetails", {chord, input} )
 							}
 						}
 
 						if (stateMachine.get("midiOnboard")){
-							globalChordPlayer.chordOn( chordDetails, person.noteVelocity )
+							//console.info("Note on onboard midi", chordDetails, activePerson.noteVelocity)
+							globalChordPlayer.chordOn( chordDetails, activePerson.noteVelocity )
 						}
 					}
 
@@ -2860,6 +2865,12 @@ export const createInterface = (
 						const playingChord = playingMIDINotes.get( noteNumber )
 						//console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
 						
+						if (!playingChord)
+						{
+							// no note off to action :/
+							//console.info("trying to turn the chord off")
+						}
+
 						for (const chord of playingChord)
 						{
 							// sendMIDIEventToAllDevices( "noteon", chord)
@@ -3600,7 +3611,7 @@ export const createInterface = (
 		notifyObserversThatWeblinkIsAvailable()
 		
 
-		speak("Welcome, Now looking for a human friends")
+		speak("Welcome, Now looking for a human friend")
 
 		// wait here until a user shows their face...
 		const user = await lookForUser()
