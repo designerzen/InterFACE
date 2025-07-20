@@ -1,15 +1,16 @@
 @layer fonts{
 
 	// headings like the old PhotoSYNTH2 days!
-	@font-face {
-		font-family: 'Ostritch';
-		src: url('./assets/fonts/ostritch/OstrichSans-Bold.woff2') format('woff2');
-		// src: url('./assets/fonts/oxanium/Oxanium.ttf') format('truetype');
-		font-weight: 100 900;
-		// font-stretch: 75% 125%;
-		font-style: normal;
-		font-display: swap;
-	}
+	// NB. We are using SVGs in place
+	// @font-face {
+	// 	font-family: 'Ostritch';
+	// 	src: url('./assets/fonts/ostritch/OstrichSans-Bold.woff2') format('woff2');
+	// 	// src: url('./assets/fonts/oxanium/Oxanium.ttf') format('truetype');
+	// 	font-weight: 100 900;
+	// 	// font-stretch: 75% 125%;
+	// 	font-style: normal;
+	// 	font-display: swap;
+	// }
 
 	// @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@774&display=swap');
 	@font-face {
