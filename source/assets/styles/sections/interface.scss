@@ -85,13 +85,17 @@
 }
 
 #contact{
---side:clamp( var(--pad), 25%, 240px);
+	--side:640px;// clamp( var(--pad), 25%, 240px);
+	--w: calc((100% - var(--side) ) / 2);
 	grid-area:contact;
 	box-sizing: border-box;
 	color: var(--shade-white);
 	background-color: var(--shade-dark);
 	
-	padding:calc( 2 * var(--pad)) max( var(--pad) , (100vw - var(--side) ) / 2 );
+	padding:
+		calc( 2 * var(--pad)) 
+		max( var(--pad), var(--w));
+
 	margin-bottom:var(--pad);
 	// margin-left:var(--pad);
 	// margin-right:var(--pad);

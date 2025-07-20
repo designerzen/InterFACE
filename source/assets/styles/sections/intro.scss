@@ -25,20 +25,101 @@
 	position: relative;
 	z-index: 909;
 
-	.logo {
-		grid-area: heading;
-		gap: var(--pad);
-		flex-direction: row;
-		flex-wrap: wrap;
-		place-content: center;
-		place-items: center;
+	a.logo {
+		
+		--size: 88px;
 
-		border-bottom: 1px dotted currentColor;
-		padding-bottom: var(--pad);
+		display: grid;
+		gap: 0 var(--pad);
+		grid-area: heading;
+		grid-template-areas: 
+			"logo headline"
+			"logo tagline";
+
+		grid-template-columns: auto 1fr;
+		grid-template-rows: min-content min-content;
+
+		justify-content: space-between;
+		align-content: stretch;
+		width: 100%;
+
+		p{
+			grid-area: tagline;
+			color:transparent;
+			margin: 0;
+			font-size: 1pt;
+		}
+		
+		svg{
+			// --aspect-ratio: calc( 3018 / 2502 );
+			grid-area: logo;
+			// min-width: 44px;
+			// min-height: 100%;
+			height: 100%;
+			// max-height: 80%;
+			// width: calc( 100% * var(--aspect-ratio, 1));
+			width: auto;
+			max-width:none;
+		}
+	}
+
+	h1,h2{
+		// color: inherit;
+		color: transparent;
+
+		font-size: 1pt;
+		line-height: 1;
+		
+		// padding:var(--pad) calc(var(--pad) * 2);
+		flex-shrink: 0;
+		flex-grow: 1;
+    	flex-basis: 100%;
+
+		// overwrite any existing
+		min-width: 100%;
+		max-width: 100%;
+		width: 100%;
+
+		display: block;
+		height: fit-content;
+		position: relative;
+		text-align: left;
+
+		// text-align: center;
+		// justify-self: center;
+		
+		&::before{
+			content:'';
+			// uses aspect ratio of SVG background
+			padding-bottom: calc( 100% / var(--aspect-ratio, 1));
+			display: block;
+			background-image: var( --src, url(/source/assets/logos/photosynth-text.svg) );
+			background-repeat: no-repeat;
+			background-size: contain;
+			background-position: center;
+		}
+		
+		// @media screen and (min-width:888px){
+			
+		// 	--size:33%;
+		// 	// logo left
+		// 	&::before{	
+		// 		position: absolute;
+		// 		left:var(--pad);
+		// 		top:50%;
+		// 		min-width:var(--size);
+		// 		// min-height:50%;
+		// 		min-height:50%;
+		// 		transform: translateY(-50%);
+		// 	}
+		// 	padding-left: calc(var(--pad) * 2 + var(--size));
+		// }
 	}
 
 	h1 {
-		--size: 88px;
+		--aspect-ratio: calc( 300 / 53);
+		grid-area: headline;
+		// margin-bottom: auto;
 
 		/*
 		// logo above
@@ -55,41 +136,18 @@
 			background-position: 0 7px;
 			background-repeat: no-repeat;
 		}
-
-		
-		@media screen and (min-width:888px){
-			
-			--size:33%;
-			// logo left
-			&::before{	
-				position: absolute;
-				left:var(--pad);
-				top:50%;
-				min-width:var(--size);
-				// min-height:50%;
-				min-height:50%;
-				transform: translateY(-50%);
-			}
-			padding-left: calc(var(--pad) * 2 + var(--size));
-		}
 		*/
-
-		display: inline-block;
-		// padding:var(--pad) calc(var(--pad) * 2);
-
-		position: relative;
-		justify-self: center;
-
-		text-align: center;
-		background-size: 13%;
-		line-height: 1;
 	}
 
 	h2 {
+		--aspect-ratio: calc( 300 / 23);
+		--src: url(/source/assets/logos/sympathetic-synthesizer-text.svg);
 		grid-area: tagline;
-		color: inherit;
+		align-self: end;
+		// margin-top: auto;
 	}
 
+	
 	> a {
 		color: inherit;
 	}
@@ -163,11 +221,13 @@
 			text-align: left;
 		}
 
-		.logo {
+		a.logo {
 			grid-area: heading;
 			flex-direction: column;
 			// place-content: start;
 			// place-items: start;
+			padding-bottom: var(--pad);
+			border-bottom: 1px dotted currentColor;
 		}
 	}
 
