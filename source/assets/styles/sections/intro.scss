@@ -1,13 +1,17 @@
 // Top section that contains the header text and loader
 #intro {
 
-	max-width: var(--viewport-max-width, 1080px);
-	width: 100%;
+	--multiplier: 1;
+	--space:calc( var(--multiplier) * var(--pad) );
+	
     box-sizing: border-box;
 
-	grid-gap: var(--pad);
+	width: 100%;
+	max-width: min( calc( 100% - 2 * var(--pad) ) , var(--viewport-max-width, 108%) );
+	
+	grid-gap: var(--space);
 
-	padding: var(--pad);
+	padding:var(--space);
 	margin: var(--pad);
 	margin-bottom: 0;
 
@@ -33,11 +37,15 @@
 		gap: 0 var(--pad);
 		grid-area: heading;
 		grid-template-areas: 
+			"logo space"
 			"logo headline"
 			"logo tagline";
 
 		grid-template-columns: auto 1fr;
-		grid-template-rows: min-content min-content;
+		grid-template-rows: 
+			20%,
+			min-content 
+			min-content;
 
 		justify-content: space-between;
 		align-content: stretch;
@@ -204,6 +212,7 @@
 	;
 
 	@media screen and (min-width:640px) {
+		--multiplier: 2;
 		grid-template-areas:
 			"poster heading"
 			"poster summary"
@@ -215,7 +224,7 @@
 		;
 
 		grid-template-columns: minmax(50%, 33vh) minmax(0, 1fr);
-		grid-gap: 0 var(--pad);
+		grid-gap: 0 var(--space);
 
 		h1 {
 			text-align: left;
@@ -228,11 +237,13 @@
 			// place-items: start;
 			padding-bottom: var(--pad);
 			border-bottom: 1px dotted currentColor;
+			margin-top: -6.8%;
 		}
 	}
 
 	@media screen and (min-width:999px) {
 		
+		--multiplier: 3;
 		margin-left: auto;
 		margin-right: auto;
 
@@ -250,6 +261,7 @@
 
 
 	@media screen and (min-width:1210px) {
+		--multiplier: 4;
 		grid-template-areas:
 			"poster heading heading"
 			"poster tagline tagline"

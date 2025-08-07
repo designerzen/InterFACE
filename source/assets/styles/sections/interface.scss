@@ -91,17 +91,28 @@
 	box-sizing: border-box;
 	color: var(--shade-white);
 	background-color: var(--shade-dark);
+	background-image: 
+		linear-gradient(
+			to bottom, 
+			rgba(0,0,0,0.8), 
+			rgba(0,0,0,0) 13%
+		)
+	;
 	
 	padding:
 		calc( 2 * var(--pad)) 
-		max( var(--pad), var(--w));
+		max( 2 * var(--pad), var(--w));
 
-	margin-bottom:var(--pad);
+	padding-bottom: calc( 3 * var(--pad)) ;
+
+	margin:var(--pad);
+	margin-top:0;
 	// margin-left:var(--pad);
 	// margin-right:var(--pad);
 	//border-radius:var(--curve);
-	// max-width: calc(100% - 2 * var(--pad));
+	max-width: var(--viewport-max-width, 108%); //, calc(100% - 2 * var(--pad)) ;
 	width: 100%;
+
 	border-bottom-left-radius: var(--curve, 1rem);
 	border-bottom-right-radius: var(--curve, 1rem);
 	overflow: hidden;
@@ -327,7 +338,6 @@
 	#intro{
 		grid-area:app;
 		pointer-events: none;
-		
 		box-sizing: border-box;
 		max-width: 100%;
 		max-height: 100%;
