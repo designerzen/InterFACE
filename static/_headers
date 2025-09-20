@@ -1,5 +1,18 @@
 # Required for Shared Array Buffer to operate on Safari
 # https://developer.chrome.com/blog/enabling-shared-array-buffer/
+# and for IFrames to be embeddable in other sites
 /*
 	Cross-Origin-Embedder-Policy: require-corp
 	Cross-Origin-Opener-Policy: same-origin
+	X-Frame-Options: ALLOW
+	X-Content-Type-Options: nosniff
+	Referrer-Policy: no-referrer
+	X-xss-protection: 1
+	Strict-transport-security: max-age=31536000; preload
+
+https://1b2773bc.photosynth.pages.dev/*
+	X-Robots-Tag: noindex
+https://interface-4k9c.pages.dev/*
+	X-Robots-Tag: noindex
+https://interface-band.pages.dev/*
+	X-Robots-Tag: noindex
