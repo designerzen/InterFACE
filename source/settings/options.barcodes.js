@@ -1,4 +1,4 @@
-import QRCode from "easyqrcodejs"
+// import QRCode from "easyqrcodejs"
 import PALETTE from "./palette"
 
 export const QR_CODE_OPTIONS = {
@@ -8,7 +8,8 @@ export const QR_CODE_OPTIONS = {
     height: 133,
     colorDark : "#000000",
     colorLight : "#ffffff",
-    correctLevel : QRCode.CorrectLevel.H, // L, M, Q, H
+	// default is H...
+    // correctLevel : QRCode.CorrectLevel.H, // L, M, Q, H
     
     // ====== dotScale
     /*
