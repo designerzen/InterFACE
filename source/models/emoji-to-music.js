@@ -9,7 +9,7 @@ import * as EMOTICONS from './emoji.js'
  * @param {Number} tonic 
  * @param {String} emoji 
  */
-export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
+export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 	
 	// Create all relevant scales
 	const notes = getAllChordsForNoteNumber(tonic)
@@ -120,6 +120,13 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji) => {
 
 	const scales = notes.get(scale) 
 	const chords = scales.get(mode)
+
+	// console.log("getMusicalDetailsFromEmoji", {tonic, emoji, scale, mode, notes, scales, chords})
+	
+	if (includeTonic)
+	{
+
+	}
 
 	if (!chords){
 		console.error("Sing: No chords found for", {tonic, emoji, scales, mode})

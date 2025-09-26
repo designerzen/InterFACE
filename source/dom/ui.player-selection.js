@@ -108,7 +108,7 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 				buttonStart.value = `Start a Quartet`
 				break
 			default:
-				labelForButtonStart.textContent = `Start${addendumText} ${advancedModeText}`
+				labelForButtonStart.textContent = `Start${addendumText} ${advancedModeText} Solo`
 				buttonStart.value = `Solo Start`
 				break
 		}
@@ -131,26 +131,27 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 		// start the animation out.
 		// NB. This is not superflous as the camera
 		// takes a broze age to load into memory
-		panel.classList.add("completed")
+		form.classList.add("completed")
 		body.classList.toggle(BODY_CSS_ID_CLASS, true)
-			
-		// wait for animation to complete
-		setTimeout( ()=> {
-			//console.log({advancedMode})
-			body.classList.toggle('advanced', advancedMode)
-			body.classList.toggle(BODY_CSS_ID_CLASS, false)
-			panel.classList.remove("completed")
-		}, 45 )
 
 		// removeTooltip( start.parentElement )
 		// removeTooltip( automation.parentElement )
 		setQuantityOfPlayers( result )
 
-		resolve({
-			players:result,
-			advancedMode,
-			automationMode
-		})
+		// wait for animation to complete
+		// and for button to be clicked
+		setTimeout( ()=> {
+			//console.log({advancedMode})
+			body.classList.toggle('advanced', advancedMode)
+			body.classList.toggle(BODY_CSS_ID_CLASS, false)
+			panel.classList.remove("completed")
+			
+			resolve({
+				players:result,
+				advancedMode,
+				automationMode
+			})
+		}, 45 )
 	}
 
 	// Each input chooses how many players can interact

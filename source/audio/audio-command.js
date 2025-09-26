@@ -51,12 +51,20 @@ export default class AudioCommand {
 		this.next.previous = this.previous
 	}
 
+	
+	/**
+	 * 
+	 * @returns copy of this
+	 */
 	clone(){
-		const copy = new AudioCommand()
+		return this.copyAllParametersToCommand( new AudioCommand() )
+	}
+
+	copyAllParametersToCommand(command){
 		for (let i in this)
 		{
-			copy[i] = this[i]
+			command[i] = this[i]
 		}
-		return copy
+		return command
 	}
 }
