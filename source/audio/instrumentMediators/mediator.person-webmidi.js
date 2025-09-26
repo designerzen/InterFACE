@@ -239,15 +239,12 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 			// case STATE_INSTRUMENT_PITCH_BEND:
 			// 	//WebMidi.outputs.forEach(MIDIoutput =>MIDIoutput.sendPitchBend( pitch ))
 			// 	break
-
-			// case STATE_INSTRUMENT_DECAY:
-			// 	break
 		}		
 	})
 
 	switch(person.state)
 	{
-		// case STATE_INSTRUMENT_RELEASE:
+		case STATE_INSTRUMENT_RELEASE:
 		case STATE_INSTRUMENT_SILENT:
 			stopAll()
 			break

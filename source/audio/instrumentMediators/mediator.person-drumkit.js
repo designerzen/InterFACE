@@ -6,8 +6,12 @@
 
 /**
  * 
+ * @param {Instrument} drumkit 
  * @param {Person} person 
+ * @param {Boolean} playAudio 
+ * @returns [chord]
  */
-export const updtateDrumkitWithPerson = ( drumkit, person ) => {
+export const updtateDrumkitWithPerson = ( drumkit, person, playAudio=true ) => {
+	
 	
 }

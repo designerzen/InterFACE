@@ -21,9 +21,13 @@ import { getAllChordsForNoteNumber } from "../tuning/chords.js"
 // update the stave with X amount of notes
 // stave.draw(stuff)
 // update the stave with X amount of notes
+
+ * @param {Instrument} instrument 
  * @param {Person} person 
+ * @param {Boolean} playAudio 
+ * @returns [chord]
  */
-export const updateInstrumentWithPerson = ( instrument, person ) => {
+export const updateInstrumentWithPerson = ( instrument, person, playAudio=true ) => {
 	
 	// if (instrument.type !== "oscillator"){
 	// if (instrument.type !== "waveguide"){
@@ -61,7 +65,7 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 				// sound : "Fa"
 				// title : "F3"
 				
-				//console.log("Chord sequence", chordSequence, person.noteNumber, person.emoticon)
+				// console.log("Chord sequence", chordSequence, person.noteNumber, person.emoticon)
 				
 				// stop all notes in the instrument...
 				// instrument.allNotesOff()
@@ -69,15 +73,28 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 				// instrument.chordOn( [{noteNumber:person.noteNumber, velocity:person.noteVelocity}]  )
 				// person.lastNoteNumber >= 0 && instrument.chordOff( [{noteNumber:person.lastNoteNumber, velocity:1}] )
 				
-				instrument.allNotesOff()
-				instrument.chordOn( chordSequence, person.noteVelocity )
-				person.activeNotes.set( person.noteNumber, chordSequence )
+
+				if (playAudio)
+				{
+					instrument.allNotesOff()
+					instrument.chordOn( chordSequence, person.noteVelocity )		
+				}
+
+				chordSequence.forEach( noteNumber => {
+					person.activeNotes.set( noteNumber, chordSequence )
+				})
+				
 				return chordSequence
 
 			}else{
 
 				person.lastNoteNumber >= 0 && instrument.noteOff( person.lastNoteNumber, 1 )
-				instrument.noteOn( person.noteNumber, person.noteVelocity )
+				
+				if (playAudio)
+				{
+					instrument.noteOn( person.noteNumber, person.noteVelocity )
+				}
+
 				person.activeNotes.set( person.noteNumber, [ person.noteNumber] )
 				return [person.noteNumber]
 			}
@@ -118,18 +135,26 @@ export const updateInstrumentWithPerson = ( instrument, person ) => {
 			// console.log("STOPPING Person.activeNotes", activeNotes )
 			if (isChord){
 
-				if (activeNotes && activeNotes.length)
+				if (playAudio && activeNotes && activeNotes.length)
 				{
 					instrument.chordOff( activeNotes, person.noteVelocity )
 					return activeNotes
 				}
 					
-				instrument.allNotesOff()
+				// nothing playing
+				if (playAudio)
+				{
+					instrument.allNotesOff()
+				}
+				
 				return []
 				
 				// console.log("Attempting to mute",instrument.type, person.state)
 			}else{
-				instrument.noteOff( person.noteNumber, person.noteVelocity )
+				if (playAudio)
+				{
+					instrument.noteOff( person.noteNumber, person.noteVelocity )
+				}
 				return [person.noteNumber]
 			}
 	}
