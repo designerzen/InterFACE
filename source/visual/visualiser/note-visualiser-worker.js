@@ -1,4 +1,8 @@
-import { VISUALISER_OPTIONS } from "../settings"
+const VISUALISER_OPTIONS = {
+    backgroundColour:"#fff", 
+    lineColour:"#000",
+    lineWidth:3
+}
 
 let notes
 let firstNoteNumber
@@ -158,21 +162,19 @@ const setBlendMode = (blendMode)=> {
 onmessage = (evt) => {
 
     // console.error("NOTEVIZ worker message", evt)
-
     if (evt.data.canvas)
     {
         canvas = evt.data.canvas
         context = canvas.getContext('2d')
     
         notes = evt.data?.notes ?? []
-        firstNoteNumber = notes[0].number
+        firstNoteNumber = notes[0]
         // console.info("firstNoteNumber", firstNoteNumber, notes[0], {notes})
 
         const mirrorDimensions = determineMirrorSize(vertical)
       
         // clone the canvas
         mirror = new OffscreenCanvas( mirrorDimensions.width, mirrorDimensions.height )
-
         mirrorContext = mirror.getContext('2d')
 
         // setBlendMode()
@@ -189,10 +191,8 @@ onmessage = (evt) => {
             render(time) 
         })
       
-        // 
-        //console.info("mirror created",  context.globalCompositeOperation, CANVAS_BLEND_MODE_DESCRIPTIONS[b] )
+        // console.info("mirror created",  context.globalCompositeOperation, CANVAS_BLEND_MODE_DESCRIPTIONS[b] )
         // console.info("mirror created", canvas.width, canvas.height , notes.length, {firstNoteNumber, mirror, canvas, context, mirrorContext, noteSize, notes })
-        
         return
     }
 
@@ -262,5 +262,9 @@ onmessage = (evt) => {
             noteSize = determineNoteSize(vertical)
             //console.error("mirror", noteSize, evt.data.displayWidth, evt.data.displayHeight, canvas.width, canvas.height )
             break
+
+		case "destroy":
+			// console.info("NOTEVIZ worker destroy", evt.data)
+			loop = false
     }
 }

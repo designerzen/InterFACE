@@ -2,7 +2,7 @@
  * Scrolling note on / off visualisation
  */
 import NOTE_VISUALISER_CANVAS_WORKER from "url:./note-visualiser-worker.js"
-import { ResizeableCanvasWithWorker } from "./resizeable-canvas-with-worker.js"
+import ResizeableCanvasWithWorker from "../resizeable-canvas-with-worker.js"
 
 export default class NoteVisualiser extends ResizeableCanvasWithWorker{
 
@@ -24,7 +24,7 @@ export default class NoteVisualiser extends ResizeableCanvasWithWorker{
 
     set blendMode(value){
         this.#blendMode = value
-        console.error("Blendmode requested", value)
+        // console.error("Blendmode requested", value)
         //this.worker.postMessage({type:"blendMode", blendMode:value})
     }
 
@@ -37,9 +37,9 @@ export default class NoteVisualiser extends ResizeableCanvasWithWorker{
         return this.canvas.style.backgroundColor
     }
 
-    constructor( notes, canvas, vertical=false, wave=0 ){
+    constructor( canvas, notes, vertical=false, wave=0 ){
         
-        super(canvas, NOTE_VISUALISER_CANVAS_WORKER, {vertical, notes})
+        super( canvas, NOTE_VISUALISER_CANVAS_WORKER, {vertical, notes})
 
         this.notes = notes
         this.canvas = canvas
@@ -53,7 +53,13 @@ export default class NoteVisualiser extends ResizeableCanvasWithWorker{
      * @param {number} velocity 
      */
     noteOn( note, velocity=1 ){
-        const payload = { type:"noteOn", note:note.number,colour:note.colour, velocity }
+        const payload = { 
+			type:"noteOn", 
+			note:note.number,
+			colour:note.colour, 
+			velocity 
+		}
+
         // console.info("NOTEVIZ noteOn", {note, velocity, payload} )
         this.notesOn++
         this.worker.postMessage(payload)
@@ -65,7 +71,17 @@ export default class NoteVisualiser extends ResizeableCanvasWithWorker{
      * @param {Number} velocity 
      */
     noteOff( note, velocity=1 ){
+		 const payload = { 
+			type:"noteOff", 
+			note:note.number,
+			colour:note.colour, 
+			velocity 
+		}
         this.notesOn--
-        this.worker.postMessage({ type:"noteOff",  note:note.number, colour:note.colour, velocity })
+        this.worker.postMessage(payload)
     }
+
+	destroy(){
+		super.destroy()
+	}
 }
