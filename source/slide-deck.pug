@@ -1,0 +1,105 @@
+//-
+	a short blog from each of you on our website. 
+	Ideally the blog would be between 300-500 words, 
+	and it could include images and video. 
+	Any images will need to have alt text, and ideally 
+	any video would be captioned (we can assist with this if needed).
+
+extends _base.pug
+
+block headline 
+	| Photo<wbr>Synth 3
+	//- span.sr-only PhotoSynth 3
+	| #Inter<wbr>
+	strong FACE
+
+block tagline 
+	| Blog
+
+block main 
+	.reveal
+		.slides
+
+			//- Title / Tagline / Branding / Image that reflects barand (as background)
+			section
+				h1.r-fit-text _PhotoSynth 4D_
+
+			//- Introduction : Overview of company / Mission / Vision
+			//- Problem : Overview of problem / statistics / quotes 
+			//- Solution : Solves the problem / visuals diagrams / Value proposition
+
+			//- Market Opportunity : Size / Growth Potential / Trends / Charts
+
+			//- Product : Screenshot / Prototypes / Demos / Trials
+			//- Business Model : Revenue Streams / Pricing Models / Sales Strategy / Customer segments ./ Revenue Streams
+			//- Financials : Projections / Funding Needs / Expenses / Revenue / Use of Funds / Charts
+			//- Funding Ask : Use Cases/ Projected Returns / Exit Strategy / Milestones
+			section
+				figure
+					img(src="/mediakit/history/first_flute.png")
+					figcaption
+						small Divje babe Flute © Humans 38,000 Before the Wheel
+
+			section
+			
+block scripts
+	script(type="module").
+		import Reveal from 'reveal.js'
+		import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js'
+
+		let deck = new Reveal({
+			plugins: [Markdown],
+			// Activate the scroll view
+			//- view: 'scroll',
+			// Force the scrollbar to remain visible
+			//- scrollProgress: true,
+		})
+		deck.initialize()
+		console.log("Initialising Presentation", deck)
+
+block styles
+	link(rel="stylesheet", href="/node_modules/reveal.js/dist/reveal.css", type="text/css")
+	link(rel="stylesheet", href="/node_modules/reveal.js/dist/theme/black.css", type="text/css")
+	//- link(rel="stylesheet", href="/node_modules/reveal.js/dist/theme/sky.css", type="text/css")
+	style.
+		:root {
+			--r-background-color: #191919;
+			--r-main-font: 'Oxanium';
+			--r-main-font-size: 42px;
+			--r-main-color: #fff;
+			--r-block-margin: 20px;
+			--r-heading-margin: 0 0 20px 0;
+			--r-heading-font:  'ReadexPro';
+			--r-heading-color: #fff;
+			--r-heading-line-height: 1.2;
+			--r-heading-letter-spacing: normal;
+			--r-heading-text-transform: uppercase;
+			--r-heading-text-shadow: none;
+			--r-heading-font-weight: 600;
+			--r-heading1-text-shadow: none;
+			--r-heading1-size: 2.5em;
+			--r-heading2-size: 1.6em;
+			--r-heading3-size: 1.3em;
+			--r-heading4-size: 1em;
+			--r-code-font: monospace;
+			--r-link-color: #42affa;
+			--r-link-color-dark: #068de9;
+			--r-link-color-hover: #8dcffc;
+			--r-selection-background-color: rgba(66, 175, 250, 0.75);
+			--r-selection-color: #fff;
+			--r-overlay-element-bg-color: 240, 240, 240;
+			--r-overlay-element-fg-color: 0, 0, 0;
+		}
+		#intro{
+			position:absolute;
+			opacity:0;
+		}
+
+		video{
+			margin:auto;
+			visibility:visible;
+		}
+		.reveal img{
+			margin-left:auto;
+			margin-right:auto;
+		}
