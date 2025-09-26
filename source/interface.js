@@ -15,7 +15,7 @@ import {
 	buttonVideo
 } from './dom/ui.js'
 import { showPlayerSelector } from './dom/ui.player-selection.js'
-import { setToast } from './dom/tooltips.js'
+import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
@@ -29,7 +29,7 @@ import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
 // import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
-import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
+
 import { Quanitiser } from './visual/quantise.js'
 
 // SHARE
@@ -42,8 +42,9 @@ import StateWithIO from './utils/state-io'
 
 // MODELS
 import { TAU } from "./maths/maths.js"
-import { NAMES, EYE_COLOURS, DEFAULT_TENSORFLOW_OPTIONS, DEFAULT_PEOPLE_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults, BROADCAST_KEY, IDENTIFIERS } from './settings/options.js'
-import { loadMLModel } from './models/load-model.js'
+import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
+import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
+import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
 import Person, { 
@@ -157,12 +158,13 @@ import { convertOptionToObject } from './utils/utils.js'
 */
 
 import { setupReporting, track, trackError, trackExit } from './reporting'
-import { tapTempo } from './timing/timer.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
+import VisualiserManager from './visual/visualiser/visualiser-manager.js'
+import { tapTempo } from './timing/tap-tempo.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -217,7 +219,7 @@ export const createInterface = (
 	onLoadProgress = null
 ) => new Promise( (resolve,reject) => {
 
-	// Enforce Singleton and return Class with public methods only
+// Enforce Singleton and return Class with public methods only
 	// This allows us to load all the data upfront and then create a single
 	// instance only of this class. Any subsequent instances created will return 
 	// the same original instance.
@@ -269,6 +271,8 @@ export const createInterface = (
 	// JSON object of available instruments
 	let instrumentList
 
+	// VIZ
+	let visualiserManager
 
 	// canvas / GL adapters for front end
 	let displayType = DISPLAY_CANVAS_2D
@@ -475,6 +479,7 @@ export const createInterface = (
 	const people = []
 
 	// nobody is selected by default
+	let highlightedPersonIndex = -1
 	let selectedPersonIndex = -1
 
 	// MIDI ---
@@ -505,9 +510,6 @@ export const createInterface = (
 	let musicalKeyboard	
 	let quanitiser
 
-	// Comms IO
-	let broadCast
-
 	// Automation & engager for installation booth setup
 	let automator
 	let useAutomator = true
@@ -534,8 +536,13 @@ export const createInterface = (
 	let isCameraLoading = true
 	// if the user leaves the tab or removes their face from the frame
 	let isUserActive = false
+	
+	// Comms IO
+	let isBroadcastSlave = false
+	let broadCast
 
-	let isSlave = false
+	// Socket & WebRTC comms
+	let channel
 
 	let recordRequested = false
 	let recordCancelRequested = false
@@ -550,52 +557,6 @@ export const createInterface = (
 		WebMidi && WebMidi.outputs.forEach( MIDIoutput => MIDIoutput.sendAllNotesOff() )
 	}
 	
-	// BROADCAST TO PEERS ---------------------------------------------------------------
-	const monitorBroadCastChannel = () => {
-
-		// Set the port for the app to communicate to others
-		broadCast = new BroadcastChannel(BROADCAST_KEY)
-			
-		// if there are any clock messages during boot up we assume
-		// that means another instance is the master and this is the slave
-		broadCast.onmessage = (event) => {
-			// if there are any messages received before it has loaded
-			// then we assume that this is a slave device to a master somewhere
-			// else
-			if (!isLoading)
-			{
-				// slaves never dispatch events
-				isSlave = true
-				// console.log("Received message from master", event)
-				return
-			}
-		
-			// now we have loaded, if we *are* the slave, take the external trigger
-			// and use it to control our timer via externalSync
-			if (isSlave)
-			{
-				switch(event.data.type)
-				{
-					case "clock":
-						// if we want an exclusive clock
-						clock.bypass(true)
-						clock.externalTrigger()
-						break
-
-					case "announcement":
-						// if we are a master we may have sent out htis
-						break
-
-					case "demand":
-						// if we are a master we may have sent out htis
-						break
-				}
-			}
-		}
-
-		broadCast.postMessage({type:"announcement"})
-	}
-
 	// performance indicators
 	const statistics = {
 		lag:0, 
@@ -637,6 +598,8 @@ export const createInterface = (
 		// console.log("Automator set", {useAutomator, automator} )
 		return automator
 	}
+
+	const setBroadCaster = broadCaster => broadCast = broadCaster
 
 	/**
 	 *  Vocal mode uses speech synthesis to talk the toSay string
@@ -1092,29 +1055,53 @@ export const createInterface = (
 	}
 
 	/**
+	 * This is just a way to visually highlight a person
+	 * in order to signify to the User that there is some
+	 * action specific to this user. Mainly used when using gamepad
+	 * to "select" the highlighted person.
+	 * @param {Number} index 
+	 */
+	const getHighlightPerson = () => people[highlightedPersonIndex] || null
+
+	const highlightPerson = (index=-1) => {
+		if (highlightedPersonIndex >= 0)
+		{
+			people[highlightedPersonIndex].isHighlighted = false
+		}
+		highlightedPersonIndex = index
+		people[highlightedPersonIndex].isHighlighted = true
+		return people[highlightedPersonIndex]
+	}
+	const unhighlightPeople = () => {
+		highlightPerson()
+	}
+
+	/**
 	 * For certain actions we need to select a person
 	 * so that the commands can be passed to the correct person
 	 * such as game pad events
 	 * @param {Number} index 
 	 */
+	const getSelectedPerson = () => people[selectedPersonIndex] || null
+
 	const selectPerson = (index=-1) => {
 		if (index < 0)
 		{
 			// deselect everyone
 			selectedPersonIndex = index
-			people.forEach( (person, i) => person.selected = false)
+			people.forEach( (person, i) => person.isSelected = false)
 		}else{
 			selectedPersonIndex = index % people.length
-			people.forEach( (person, i) => person.selected = i === selectedPersonIndex )
+			people.forEach( (person, i) => person.isSelected = i === selectedPersonIndex )
 		}
+		return getSelectedPerson()
 	}
 	
 	const deselectPeople = () => {
 		selectPerson()
 	}
 
-	const getSelectedPerson = () => people[selectedPersonIndex] || null
-
+	
 	/**
 	 * merges all named player options into an array eg. [{ values } , { values }]
 	 * @param {Array<string>} values Selective player configuration object keys
@@ -1223,10 +1210,10 @@ export const createInterface = (
 	 */
 	const playPersonAudio = async ( person ) => {
 		
-		// yaw, pitch, lipPercentage, eyeDirection
+		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
 		
-		// no instruments set in Person - exit now
+		// no instruments set in Person - exit now - nothing to make sing
 		if( !person.hasInstrument )
 		{
 			return modelData
@@ -1235,39 +1222,27 @@ export const createInterface = (
 		// instrument exists but we can't access that part yet
 		// NB. probably still loading...
 		// if (!person.instrument[ noteName ])	
-		if (person.instrumentLoading)
+		if ( person.instrumentLoading )
 		{
 			//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
 			return modelData
 		}
-
-		// extract some note data
-		let noteName = modelData.noteName
-		let noteNumber = modelData.noteNumberForMIDI
-		// let note = modelData.note
-		let noteVelocity = modelData.volume
-		// let noteFriendlyName = modelData.friendlyNoteName
-		
+	
 		// If there is a MIDI file in memory, we can use the data to overwrite the
 		// person data with the next part from the MIDI file data
 		// we can have some fun here and inercept the output
 		// and replace them with MIDI performance commands :P
-		if ( midiPerformance && person.singing)
+		if ( midiPerformance && person.singing )
 		{
 			const command = midiPerformance.getNextNoteOnCommand()
 			if (command)
 			{
-				//noteName = getMIDINoteNumberAsName(command.noteNumber)
-				noteName = command.noteName
-				noteNumber = command.noteNumber
-				// to use the gate as a throttle for the velocity too...
-				// noteVelocity = command.velocity * 0.01	
-				noteVelocity *= command.velocity * 0.01	
-				//console.log("Intercepted command via MIDI", noteName, command)
-			}else{
-				//console.log("No Interception available", command)
+				person.setNoteDateFromCommand( command )
 			}
+		}
 
+
+		// if (stateMachine.get("midiOnly") && person.singing)
 			// const commands = midiPerformance.getNextCommands() || []
 			// commands.forEach( command => {
 				
@@ -1278,6 +1253,8 @@ export const createInterface = (
 			// 			noteName = getMIDINoteNumberAsName(command.noteNumber)
 			// 			noteNumber = command.noteNumber
 			// 			noteVelocity = command.velocity * 0.01
+			// 			person.setNoteDateFromCommand( command )
+
 			// 			// playTrack( note, 0, audioContext )
 			// 			// samplePlayer.noteOn()
 			// 			console.log("Person:intercept", {commands, noteName, noteNumber, noteVelocity } )
@@ -1291,21 +1268,8 @@ export const createInterface = (
 			// 			break
 			// 	}
 			// })
-			
-		}else{
-			// notesPlayed.push()			
-			//console.log("Person:sing", { stuff,noteName,note})
-		}
-
-
-		// instrument exists but we can't access that part yet
-		// NB. probably still loading...
-		// if (!person.instrument[ noteName ])	
-		// {
-		// 	//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
-		// 	return modelData
 		// }
-		
+			
 		// console.log("Person:sing", { stuff,noteName,note}, person.instruments )
 
 		// SONIFICATION
@@ -1313,20 +1277,33 @@ export const createInterface = (
 		// Make the Person SING!
 		person.instruments.forEach( async (instrument) => {
 
-			// console.log("sing", instrument.type, person.state, { instrument, person } )
 			switch( instrument.type )
 			{
 				case "percussion":
-					audioOutput = updtateDrumkitWithPerson( instrument, person )
+					audioOutput = updtateDrumkitWithPerson( instrument, person, !stateMachine.get("midiOnly") )
 					break
 
 				default:
-					audioOutput = updateInstrumentWithPerson( instrument, person )			
+					audioOutput = updateInstrumentWithPerson( instrument, person, !stateMachine.get("midiOnly") )		
 			}
+			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
 
-		// For quick demo of webmidi - send person data to midi
-		if (WebMidi && stateMachine.get("midiControl"))
+		// Send person created data to midi
+		if (audioOutput && audioOutput.length > 0)
+		{
+			/*
+			audioOutput.forEach( (output, index) => {
+			// console.log("Person:sing", { stuff,noteName,note, output
+				visualiserManager && visualiserManager.noteOn( audioOutput[index] )
+			})
+			*/
+		}else{
+			// no notes to play
+		}
+
+		// dispatch midi to devices based on the above outputs
+		if ( WebMidi && stateMachine.get("midiControl") && !stateMachine.get("midiOnly") )
 		{
 			updateWebMIDIWithPerson(person, people, audioOutput)
 		}
@@ -1334,22 +1311,21 @@ export const createInterface = (
 		// update the stave with X amount of notes
 		// stave.draw(stuff)
 		// update the stave with X amount of notes
-
 		if (stateMachine.get("showPiano"))
 		{
 			// Update visual elements
 			switch(person.state)
 			{
 				case STATE_INSTRUMENT_SILENT:
-					musicalKeyboard.noteOff( noteNumber, noteVelocity )
+					musicalKeyboard.noteOff( person.noteNumber, person.noteVelocity )
 					break
 
 				case STATE_INSTRUMENT_ATTACK:
-					musicalKeyboard.noteOn( noteNumber, noteVelocity )
+					musicalKeyboard.noteOn( person.noteNumber, person.noteVelocity )
 					break
 
 				case STATE_INSTRUMENT_SUSTAIN:
-					musicalKeyboard.noteOn( noteNumber, noteVelocity )
+					musicalKeyboard.noteOn( person.noteNumber, person.noteVelocity )
 					break
 
 				case STATE_INSTRUMENT_PITCH_BEND:
@@ -1359,7 +1335,7 @@ export const createInterface = (
 					break
 
 				case STATE_INSTRUMENT_RELEASE:
-					musicalKeyboard.noteOff( noteNumber, noteVelocity )
+					musicalKeyboard.noteOff( person.noteNumber, person.noteVelocity )
 					break
 			}	
 		}
@@ -1399,7 +1375,7 @@ export const createInterface = (
 		// 	//person.sendMIDI( "noteOff", noteNumber )
 		// }
 		
-		return modelData
+		// return modelData
 	}
 	
 	/**
@@ -1602,7 +1578,7 @@ export const createInterface = (
 				// console.info("Camera status", status)
 				onProgress && onProgress(status)
 			})
-
+		
 		}catch(error){
 			console.error("Camera not found SHOW ERROR", error)
 			setToast("No cameras are available on this device", 0, 'camera')
@@ -1616,6 +1592,11 @@ export const createInterface = (
 		
 		const quantityOfCameras =  investigation.videoCameraDevices.length
 		camera = investigation.camera
+		
+		// resize canvas to fit video
+		canvasVideoElement.width = video.width
+		canvasVideoElement.height = video.height
+
 		isCameraLoading = false
 
 		const onCameraSelected = async (selected) => {
@@ -1624,10 +1605,16 @@ export const createInterface = (
 			try{
 				newCamera = await loadCamera( video, selected.value, selected.label )
 			
+				console.info("New camera selected", newCamera, {video})
 				// if successful store for next time
 				if (newCamera)
 				{
 					camera = newCamera
+					// resize canvvas to match video!
+					// otherwise the aspect-ratio might not be the same
+					canvasVideoElement.width = video.width
+					canvasVideoElement.height = video.height
+
 					// save the name of the camera locally
 					store.setItem('camera', {deviceId:selected.value})
 					//console.log( selected.value , "Camera selected",selected, camera)
@@ -1703,8 +1690,34 @@ export const createInterface = (
 				}
 			})
 		}
-	
 	}
+
+	const establishMIDI = async ( timeOut=5000 ) => new Promise( (resolve,reject) => {
+		const MIDI_OPTIONS =  {sysex:false, software:true }
+		// This occassionaly breaks for no reason that can be tracked
+		// so we run it inside a await with a timeout
+		try{
+			// FIXME: use the midi manager
+			console.info("WebMidi.enabling...",MIDI_OPTIONS)
+
+			// webMidi = await WebMidi.enable(MIDI_OPTIONS)
+			WebMidi.enable(MIDI_OPTIONS).then( lib => {
+				webMidi = lib
+				resolve(true)
+			})
+
+			// for reasons undiagnosed, midi doesn't always load here
+			// so we add a timeout
+			setTimeout( _ => reject(false), timeOut )
+			
+			console.info("WebMidi.enabled", MIDI_OPTIONS )
+			
+		}catch(error){
+
+			console.error("WebMidi is available but a connection cannot be established", error)
+			reject(false)
+		}
+	})
 
 	// TIMING LOOPS -----------------------------------------------------------------
 
@@ -2077,8 +2090,10 @@ export const createInterface = (
 		// timing and then when MIDI starts again we can reassess
 		// 3 seconds seems like a good amount of time to wait for
 		// set via tempo to 1 period!
-		if ( clock.elapsedSinceLastTick > clock.timePerBar )
+		if ( clock.isUsingExternalTrigger && clock.elapsedSinceLastTick > clock.timePerBar )
 		{
+			// we want to undo any external clock as there hasn't 
+			// been a clock tick for a whole bar!
 			clock.bypass(false)
 			// console.warn("MIDI CLOCK DISCONNECTED!")
 		}
@@ -2105,7 +2120,7 @@ export const createInterface = (
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
 				
 		// immediately dispatch the signal to any peers
-		if (broadCast && stateMachine.get("broadcast") && !isSlave)  
+		if (broadCast && stateMachine.get("broadcast") && !isBroadcastSlave)  
 		{
 			broadCast.postMessage(values)
 		}
@@ -2381,17 +2396,13 @@ export const createInterface = (
  
 		// DISPLAY --------------------------------------------------------------------------------
 
-		let initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
-
 		progressCallback( 0, "Checking for holographic displays - Please standby!" )
 
-		let holographicDisplayQuantity = 0
 		try{
-			holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
-			if (holographicDisplayQuantity > 0)
+			let initialDisplay = await getDisplayAvailability( stateMachine.get("display") )
+			stateMachine.set("display", initialDisplay)
+			if (initialDisplay === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 			{
-				initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
-				stateMachine.set("display", DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 				setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
 				progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
 
@@ -2408,10 +2419,11 @@ export const createInterface = (
 				progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 			}
 		}catch(error){
+			
+			// console.error("PhotoSYNTH Screens available", initialDisplay, { holographicDisplayQuantity, settings} ) 
 			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
 		}
 
-		console.error("PhotoSYNTH Screens available", initialDisplay, { holographicDisplayQuantity, settings} ) 
 		
 		
 		const displayMenu = document.querySelector('label[for="select-display"]')
@@ -2564,6 +2576,8 @@ export const createInterface = (
 			console.error('Error initialising audio clock', error)
 		}
 		
+	
+
 		// VOLUME --------------------------------------------------------------------------------
 		try{
 			const AUDIO_OPTIONS = {
@@ -2737,12 +2751,14 @@ export const createInterface = (
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
 			const relayMIDI = stateMachine.get("midiRelay")
+
 		
 			const sendMIDIEventToAllDevices = (type, noteNumber) => {
 				switch(type){
 					case "noteon":
 						WebMidi.outputs.forEach(output => output.playNote( noteNumber ))
 						break
+					case "noteoff":
 						WebMidi.outputs.forEach(output => output.stopNote( noteNumber ))
 						break
 					case "clock":
@@ -2750,21 +2766,18 @@ export const createInterface = (
 						break
 				}
 			}
+			
+			progressCallback(loadIndex, "Attempting to find MIDI instruments")
+			
+			// this has a timeout!
+			isMIDIAvailable = await establishMIDI()
 
-			// This occassionaly breaks for no reason that can be tracked
-			try{
-				let lastClockTimestamp = 0
-				// FIXME: use the midi manager
-				console.info("WebMidi.enabling...", {sysex:false, software:true })
-				webMidi = await WebMidi.enable({sysex:false, software:true })
-				console.info("WebMidi.enabled", {sysex:false, software:true })
-				isMIDIAvailable = true
-				
-			}catch(error){
+			progressCallback(loadIndex, "Attempting to find MIDI instruments")
 
-				console.error("WebMidi is available but a connection cannot be established", error)
+			if (!isMIDIAvailable)
+			{
+				setFeedback("MIDI is NOT available - refresh?")
 			}
-
 			// Inputs
 
 			// Outputs
@@ -2773,6 +2786,7 @@ export const createInterface = (
 			const skipMIDI = false
 			if (!skipMIDI && stateMachine.get("midiInput"))
 			{
+				console.error("WebMidi Inputs", WebMidi.inputs)
 				WebMidi.inputs.forEach(input =>{
 					
 					let activePerson
@@ -2792,13 +2806,17 @@ export const createInterface = (
 						// const amountOfInputs = WebMidi.inputs.length         
 						person = getActivePerson()
 
-						console.info("playMIDINoteOn", noteNumber, {person} )
 
 						// augment note into chord us ing event.note.number as the tonic
-						const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon)
+						const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
 						
+
+						
+						console.info("playMIDINoteOn", noteNumber, chordDetails, {person} )
+
 						if (monitorEmotion && playingMIDINotes.size === 0)
 						{
+							/*
 							// we need this to also update any playing midi notes
 							person.addListener(EVENT_EMOTION_CHANGED, event => {	
 								
@@ -2817,12 +2835,14 @@ export const createInterface = (
 								playMIDINoteOn( noteNumber, velocity, false )
 
 							}, {signal:aborter.signal})
+							*/
 						}
+							
 
 						// save this chord for note off later
 						playingMIDINotes.set( noteNumber, chordDetails )	
 
-						console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes, person} )
+						// console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes, person} )
 
 						// play midi notes using our Audio Engine...
 						// globalChordPlayer.noteOn( event.note.number, event.value )
@@ -2831,14 +2851,14 @@ export const createInterface = (
 						// updateInstrumentWithPerson( samplePlayer, person )
 						// also send 
 					
-						// send out original event to all connected devices
-						if (relayMIDI)
-						{
-							sendMIDIEventToAllDevices( "noteon", noteNumber )
-							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
-						}
+						// FIXME: send out original event to other all connected devices
+						// if (relayMIDI)
+						// {
+						// 	sendMIDIEventToAllDevices( "noteon", noteNumber )
+						// 	//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
+						// }
 
-						// send out augmented events
+						// send out augmented events?
 						if (stateMachine.get("midiSympathiser"))
 						{
 							for (const chord of chordDetails)
@@ -2849,6 +2869,7 @@ export const createInterface = (
 							}
 						}
 
+						// Use onboard sound engine to make the sounds
 						if (stateMachine.get("midiOnboard")){
 							//console.info("Note on onboard midi", chordDetails, activePerson.noteVelocity)
 							globalChordPlayer.chordOn( chordDetails, activePerson.noteVelocity )
@@ -2858,8 +2879,7 @@ export const createInterface = (
 					// stop existing note from playing
 					const playMIDINoteOff = (noteNumber, velocity=1) => {
 
-						console.info("playMIDINoteOn", noteNumber, {person} )
-
+						// console.info("playMIDINoteOn", noteNumber, {person} )
 
 						// get the chord details
 						const playingChord = playingMIDINotes.get( noteNumber )
@@ -2932,7 +2952,9 @@ export const createInterface = (
 					input.addListener("noteon", event => { 
 						// TODO: check to see if these notes are triggered
 						// by this and ignore any note ons that we sent out!!!
-						
+						// console.info("External MIDI noteon", event.note.number, {event} ) 
+						return
+
 						if (!person){
 							person = getActivePerson()
 						}
@@ -2960,7 +2982,7 @@ export const createInterface = (
 
 						if (!isPlaying)
 						{
-							//playMIDINoteOn(event.note.number)
+							playMIDINoteOn(event.note.number)
 							//console.info("MIDI noteon FRESH", event.note.number, {event, chords} ) 
 						}else{
 							//console.info("MIDI noteon ALTER", event.note.number, {event, chords} ) 
@@ -2969,10 +2991,10 @@ export const createInterface = (
 					})
 					input.addListener("noteoff", event => { 
 						//playMIDINoteOff(event.note.number) 
-						//console.info("MIDI noteoff", event.note.number, {event} )
+						// console.info("External MIDI noteoff", event.note.number, {event} )
 					})
 
-					console.log("MIDI INPUT Device", input.manufacturer, input.name)
+					console.log("Available MIDI INPUT Device", input.manufacturer, input.name)
 				})
 			}
 		}
@@ -3073,7 +3095,7 @@ export const createInterface = (
 			clock.setCallback( useTiming )
 
 			// VIDEO & DISPLAY ------------------------------------------------
-			displayType = stateMachine.get('display') ?? initialDisplay
+			displayType = stateMachine.get('display')
 			progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
 
 			// REDRAW DOM / CANVAS / WEB GL -------------------------------
@@ -3420,16 +3442,31 @@ export const createInterface = (
 	 * @param {Function} progressCallback optional method to call on load progress
 	 * @returns {Promise<Boolean>} TensorFlow model load promise
 	 */
-	const load = async (settings, progressCallback) => {
+	const loadApplication = async (settings, progressCallback) => {
 
-		const loadTotal = 5
+		let loadTotal = 5
 		let loadIndex = 0
 		
 		progressCallback(loadIndex++/loadTotal, "Loading Brains")
 
 		// pick the body parts and return the method used to create them
-		const loadModel = await loadMLModel(settings.model)
-
+		const modelTypes = []
+		if (stateMachine.get("trackHands"))
+		{
+			modelTypes.push("hands")
+			loadTotal++
+		}
+		if (stateMachine.get("trackFace"))
+		{
+			modelTypes.push("face")
+			loadTotal++
+		}
+		
+		// load all models
+		const predictors = await loadMLModels( modelTypes, ( progress, modelType ) => {
+			progressCallback(loadIndex++/loadTotal, "Loaded Tracking Model "+modelType )
+		} )
+	
 		progressCallback(loadIndex++/loadTotal, "Loaded Brains" )
 				
 		// set up the instrument selctor etc
@@ -3463,12 +3500,26 @@ export const createInterface = (
 			colorBrand = fetchBrandColor()
 		} )
 
+		// VISUALISERS ------------------------------------------------
+		const notes = Array.from({ length: 129 }, (_, i) => i) 
+		// const NoteVisualiser = (await import("./visual/visualiser/note-visualiser.js")).default
+		// const vizCanvas = document.createElement("canvas")
+		// vizCanvas.width = 800
+		// vizCanvas.height = 600
+		// body.appendChild(vizCanvas)
+		// visualiserManager = new VisualiserManager( vizCanvas, notes, false, 0 )
+		// visualiserManager = new VisualiserManager( canvasSandwichElement, notes, false, 0 )
+		visualiserManager = new VisualiserManager( canvasOverlayElement, notes, false, 0 )
+		await visualiserManager.loaded
+		
+
 		// STATE ---------------------------------------------------------------
 
 		// this takes any existing state from the url and updates our front end
 		// so that any previously saved settings show as if the user is continuing
 		// their project from before - same buttons selected etc
 		stateMachine.refresh()
+
 
 		// upodate the load progress
 		progressCallback(loadIndex++/loadTotal, "Assembled!")
@@ -3501,7 +3552,13 @@ export const createInterface = (
 		// this gets returned then used an the update method
 		const elementToAnalyse = inputElement
 
-		return loadModel(elementToAnalyse, settings, progressCallback)
+		// FIXME: Also load in hand if available...
+		const loadFaceModel = predictors.face
+		const faceModel = loadFaceModel( elementToAnalyse, settings, progressCallback )
+		// const loadHandModel = predictors.hands
+		// const handModel = loadFaceModel( elementToAnalyse, settings, progressCallback )
+		return faceModel
+		// return Promise.all( [faceModel, handModel] )
 	}
 
 	// We avoid setting feedback until part 2 of loading...
@@ -3619,12 +3676,10 @@ export const createInterface = (
 		// focus app?
 		loadProgressMediator(1,"complete", true)
 
-		
-		// finish promising with some public method to access
-		resolve( constructPublicClass( { 
+		const singleton = constructPublicClass( { 
 			user,
 			quantityOfActivePeople,
-
+			
 			configurePerson,
 
 			stateMachine,
@@ -3644,22 +3699,32 @@ export const createInterface = (
 
 			setPlayerOption, setPlayerOptions,
 			getPerson, getPlayers, getQuantityOfPlayers,
-			getSelectedPerson, selectPerson,
+			getSelectedPerson, selectPerson, deselectPeople,
 			getActivePerson,
+			highlightPerson, unhighlightPeople,
 			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 			language, 
 			isUserActive:()=>isUserActive,
+			isLoading:()=>isLoading,
+			isSlave:()=>isBroadcastSlave,
+			setAsSlave:(value=true)=>isBroadcastSlave = value,
+			setBroadCaster,
+
 			options:stateMachine.asObject, 
 			...information,
 			setAutomator,
 			setDiscoMode,
 		
+			clock,
+
 			setBPM, setMasterVolume,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
-		} ) )
-
+		} )
+		
+		// finish promising with some public method to access
+		resolve( singleton )
 		
 		// dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
 		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, {available:true} )
@@ -3716,19 +3781,38 @@ export const createInterface = (
 		return results
 	}
 
+	/**
+	 * Quit the app and save any settings
+	 */
+	const quit = () => {
 
+		killMIDI()
+
+		// try and locally store any changes to the interface and settings
+		const saveSession = Object.assign({}, information, {
+			lastTime:Date.now(),
+			count:(information.count??1)
+		})
+		// TODO: save ui settings in cookie too?
+		store.setItem('info', saveSession)
+		//store.setItem(person.name, {instrument})
+
+		trackExit && trackExit()
+		
+		setToast("Goodbye!")
+		setFeedback("<strong>I hope you had fun!</strong>", 0)
+	}
 
 	// ---------------------------------------------------------
 	// BEGIN APP HERE!
 	// ---------------------------------------------------------
 	
-	let havePlayersBeenSelected = false
-	monitorBroadCastChannel()
 
 	// console.log("PhotoSYNTH3D Waiting to select player...", {options} )
 
 	// NB. To allow this to happen at the same time...
 	// we show selection screen while stuff loads in background
+	let havePlayersBeenSelected = false
 	showPlayerSelectionScreen().then( results =>{ 
 		havePlayersBeenSelected = true 
 		const { advancedMode, automationMode, players } = results
@@ -3745,7 +3829,7 @@ export const createInterface = (
 	//console.warn("Loading machine learning models with options", modelOptions)
 	
 	// now load dependencies and show progress at the SAME time
-	const ML = load(modelOptions, (progress, message) => {
+	const ML = loadApplication(modelOptions, (progress, message) => {
 
 		//console.log("Interface:load -> onLoadProgress", {progress, message })
 
@@ -3839,23 +3923,7 @@ export const createInterface = (
 		}
 
 		// Exit & save all cookies!
-		window.onbeforeunload = ()=>{
-
-			killMIDI()
-
-			// try and locally store any changes to the interface and settings
-			const saveSession = Object.assign({}, information, {
-				lastTime:Date.now(),
-				count:(information.count??1)
-			})
-			// TODO: save ui settings in cookie too?
-			store.setItem('info', saveSession)
-			//store.setItem(person.name, {instrument})
-	
-			trackExit && trackExit()
-			setToast("Goodbye!")
-			setFeedback("<strong>I hope you had fun!</strong>", 0)
-		}
+		window.onbeforeunload = ()=> quit()
 
 		// document.addEventListener( "contextmenu", (e) => {
 		//     console.log(e)
@@ -3876,6 +3944,12 @@ export const createInterface = (
 		// OFFLINE / ONLINE 
 		const updateOfflineStatus = (event) => {
 			isOnline = navigator.onLine
+			body.classList.toggle("offline", !isOnline)
+				
+			if (isOnline)
+			{
+				setFeedback("You are online", 0, 'online')
+			}
 		}
 		window.addEventListener("online", updateOfflineStatus)
 		window.addEventListener("offline", updateOfflineStatus)

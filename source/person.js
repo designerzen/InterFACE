@@ -36,7 +36,7 @@ import {
 	DEFAULT_VOICE_OPTIONS,
 	NAMES,
 	IDENTIFIERS
-} from './settings/options'
+} from './settings/options.people.js'
 
 import { toKebabCase } from "./utils/utils.js"
 import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "./maths/maths.js"
@@ -96,6 +96,7 @@ import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_
 
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { createInstrumentFromData } from './audio/instrument-factory.js'
+import { getCleff, NOTATION, STAVE_SIZES } from './audio/notation.js'
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -218,6 +219,7 @@ export default class Person{
 
 	// 
 	isSelected = false
+	isHighlighted = false
 	
 	// Head orientation
 	yaw = 0
@@ -781,6 +783,12 @@ export default class Person{
 		this.rightEyeClosedAt = -1
 		this.eyesClosed = false
 		this.emoticon = EMOJI_NEUTRAL
+
+		// centralise pan
+		if (this.stereoNode.pan.value)
+		{
+			this.stereoNode.pan.value = 0
+		}
 	}
 
 	/**
@@ -885,7 +893,6 @@ export default class Person{
 		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
 	}
 
-
 	/**
 	 * Person was created then left, so kill it
 	 */
@@ -930,7 +937,7 @@ export default class Person{
 		else if (this.percentageDead  === 1)
 		{
 			// if a user is lost, then we slowly kill them until they are dead
-			console.info("dead", this.deadForDuration, this.createdAt )
+			// console.info("dead", this.deadForDuration, this.createdAt )
 			this.onDead()
 
 		}else if (this.deadForDuration  > 0){
@@ -1097,6 +1104,31 @@ export default class Person{
 			this.emoticon = emoticon
 			this.dispatchEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
 		}
+
+		/*
+		// no singing but we still want to update the UI
+		// so that the user knows what they are about to play
+		if (!this.singing){
+			const noteData = this.controlMode(prediction, this.options)
+			const { afterTouch, pitchBend, isMinor } = noteData
+			let { octaveNumber, newOctave, noteNumber} = noteData
+						// remap -1 -> +1 to 0 -> 1
+			const noteFloat = (1 + noteNumber) * 0.5 
+			const noteName = getNoteName(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
+
+			// MIDI Note Number 0-127
+			const noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
+		
+			const friendlyNoteName = getFriendlyNoteName( noteName ) 
+			const noteSound = getNoteSoundFromNumber(noteNumberForMIDI)	
+		
+			this.note = noteNumber
+			this.noteName = noteName
+			this.noteSound = noteSound
+			this.noteNumber = noteNumberForMIDI
+			this.noteFriendlyName = friendlyNoteName
+		}
+		*/
 
 		// console.info("Emoticon", this.emoticon, {prediction})
 		// this.emoticon !== EMOJI_NEUTRAL && console.info(this.emoticon, prediction) 
@@ -1286,15 +1318,22 @@ export default class Person{
 			// Main data flow
 			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
 			const arpeggiated = this.activeInstrument ? this.activeInstrument.arpeggiate : false
-			let extra = ""
+			const activeNoteNumbers = []
+			let notesPlaying = 0
+			let extra = this.isLoading ? "Loading..." : ""
 			if (playsChords && !arpeggiated)
 			{
 				const chord =this.activeInstrument.notes.keys()
-				chord.forEach( (noteName, i) => {
-					extra += convertMIDINoteNumberToName(noteName) + " "
+				chord.forEach( (noteNumber, i) => {
+					const noteNameWithOctave = convertMIDINoteNumberToName(noteNumber)
+					extra += noteNameWithOctave + " "
+					notesPlaying++
+					activeNoteNumbers.push(noteNumber)
 				})
 			}else{
   				extra = this.noteFriendlyName 
+				activeNoteNumbers.push(this.noteNumber)
+				notesPlaying++
 			}
 
 			let style = ""
@@ -1318,39 +1357,80 @@ export default class Person{
 					break
 			}
 
-			const suffix = this.singing ? 
-				`${this.name} ${style} ♫ ${this.noteSound}` : 
-				this.isMouthOpen 
-					? `${this.name} <` : `${this.name}` 
+			// 
+			const textNotePlaying = this.singing ? 
+				`${this.noteName} ${style} ♫ ${this.noteSound}` : 
+				this.isMouthOpen ? 
+					`${this.noteName} ${style} <` : 
+					`${this.noteName} ${style} -` 
 					
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
-			const bend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
-			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
+			const textPitchBend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
 			
-			// wecan skip this if it looks too ugly
+			// we can skip this if it looks too ugly
 			const pitch = 1 - Math.abs(prediction.pitch)
 			const yaw = 1 - Math.abs(prediction.yaw) 
 
 			// we want something floating around the 1.0 area
 			const emojiRotationY = 0.8 + pitch * 0.2 
 			const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
-			
-			// console.info("emojiRotationX", emojiRotationX, "emojiRotationY: ",emojiRotationY) 
+			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
 
-			const instrumentText = suffix ? `${extra} ${suffix}${bend}` : extra
-
-			display.drawInstrument(textX, textY - 50, instrumentTitle, this.isSelected ? `*` : "", 10 )			
+	
+			display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : "", 10 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
-			display.drawText(textX, textY - 30, instrumentText, 18 )
-			
-			// Left Side Note
-			// display.drawText(textX + 42, textY, this.lastNoteFriendlyName, 24, "left" )
-			// Right Side Octave?
-			// display.drawText(textX + 25, textY, this.octave, 24 )
+	
+			if (this.options.musicTheory)
+			{
+				// visual music mode - so no letters, only musical notes!
 
-			//  5 * -prediction.pitch
+				// this draws a series of notes on a bridge
+				const fontSizeNotation = 28
+				const textNotation = `${getCleff( this.octave )}${STAVE_SIZES[notesPlaying]}`			
+				const notesY = textY - 30 
+				display.drawText( textX, notesY, textNotation, fontSizeNotation )
+				// display.drawText( textX, textY - 30, textNotation, fontSizeNotation, "center", "noto-music'" )
+				
+				// draw our notes
+				activeNoteNumbers.forEach( (noteName, i) => {
+					const noteIndex = noteName%12
+					display.drawText( textX + i * 6, notesY + 12 * noteIndex, NOTATION[noteIndex], fontSizeNotation )
+					// display.drawText( textX + i * 14, textY - 14 * noteIndex, NOTATION[noteIndex], fontSizeNotation, "center", "noto-music'" )
+				})
+					
+				display.drawText( textX, notesY + this.noteIndex, NOTATION[this.noteIndex], fontSizeNotation )
+				// display.drawText( textX, textY - 30 + this.noteIndex, NOTATION[this.noteIndex], fontSizeNotation, "center", "noto-music'" )
 			
+			}else{
+						
+				// console.info("emojiRotationX", emojiRotationX, "emojiRotationY: ",emojiRotationY) 
+				const textInstrument = `${extra}`
+				// const textInstrument = `${textNotePlaying}`
+				// const textInstrument = textNotePlaying ? `${extra} ${textNotePlaying}${textPitchBend}` : extra
+
+				// display.drawText(textX, textY - 30, textInstrument, 18 )
+				
+				// Left Side Note
+				display.drawText(textX, textY - 25, this.lastNoteFriendlyName, 18 )
+				// display.drawText(textX + 42, textY, this.lastNoteFriendlyName + ' ' + this.octave, 24, "left" )
+			
+				// Right Side Octave?
+				// display.drawText(textX + 25, textY, this.octave, 24 )
+				// 
+				// display.drawText(textX, textY - 30, instrumentText, 18 )			
+			}
+
+		
+			// now draw each note independently
+			// for (let i=this.octave; i <notesPlaying;++i)
+			// {
+			// 	//display.drawText( textX, textY - 30, notation, 18, "center", "noto-music'" )
+			// }
+
+			// display.drawText( textX, textY - 30, instrumentText, 18, "center", "noto-music'" )
+		
+			// at the bottom of the text we draw the smiley
 			// draw emoticon but we move it up and down when it looks up and down too
 			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, false )
 			
@@ -1545,15 +1625,18 @@ export default class Person{
 		}
 		
 		// now fetch the other data...
-		const noteObject = GENERAL_MIDI_BY_NAME.get(noteNumberForMIDI)
+		// const noteObject = GENERAL_MIDI_BY_NAME.get(noteNumberForMIDI)
 		const friendlyNoteName = getFriendlyNoteName( noteName ) 
 	
 		// we want to ignore the 0-5px range too as inconclusive!
-		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness ) 
+		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness )// , prediction.sadness ) 
 				
 		// volume is an log of this
 		const amp = clamp( easeInSine(lipPercentage), 0, 1 ) * (1 - this.percentageDead ) //- 0.1
 		
+		this.singing = amp >= options.mouthCutOff
+
+
 		// console.info( "Sing emotion",this.emoticon, { chords, noteName, noteSound, pitchBend, 
 		// 	octaveNumber, newOctave,
 		// 	noteNumber,
@@ -1590,8 +1673,7 @@ export default class Person{
 		
 		this.saturation = 100 * lipPercentage
 		// console.log("lipPercentage", lipPercentage, "amp", amp, "logAmp", logAmp, "cutOff",  options.mouthCutOff, "prediction", prediction)
-		this.singing = amp >= options.mouthCutOff
-
+		
 		// console.log("Person", prediction.yaw , yaw)
 		// console.log("singing",this.singing, {amp,cut: options.mouthCutOff,logAmp}, this)
 		// console.log("Person", {lipPercentage, yaw, pitch, amp, logAmp})
@@ -1804,6 +1886,17 @@ export default class Person{
 			active:this.active,
 			state:this.state
 		}
+	}
+
+	setNoteDateFromCommand(command){
+		
+		//console.log("Person:setNoteDateFromCommand Intercepted command via MIDI", command)
+		//noteName = getMIDINoteNumberAsName(command.noteNumber)
+		this.noteName = command.noteName
+		this.noteNumber = command.noteNumber
+		// to use the gate as a throttle for the velocity too...
+		// this.noteVelocity = command.velocity * 0.01	
+		this.noteVelocity *= command.velocity * 0.01	
 	}
 
 	async setupInstrumnentForm(presetTitle,presetName,details ){

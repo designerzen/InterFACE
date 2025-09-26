@@ -84,9 +84,9 @@ const updateSummaryText = (returning=false) =>{
 }
 
 /**
- * Start loading the app
+ * Start loading the app and dependencies
  */
-const start = async() => {
+const start = async () => {
 
 	setLoadProgress(0.5, " ")
 
@@ -221,7 +221,24 @@ const start = async() => {
 			{
 				addGamePadEvents( application )
 			}
+
+			// Watch for External SYNCHING 
+			// COMMS --------------------------------------------------------------
+		
+			// if we have synching
+			// if we want to load in the realtime synch engine
+			const {monitorBroadCastChannel} = await import("./interface-channel.js")
+
+			if (monitorBroadCastChannel)
+			{
+				// allow the clock to be controlled externally
+				// ensure clock exists before calling this
+				const broadCast = monitorBroadCastChannel( application )
+			}
+			
 		}
+
+		// User has been located and application has begun!
 		onAvailable()
 
 		/*
@@ -251,7 +268,9 @@ const start = async() => {
 		})
 		*/
 
+		
 		const loadTime = Date.now() - startLoadTime
+		console.info("Loading internally", loadTime )
 		
 		// TODO: This will call the app from external URLs
 		// without reloading the page
@@ -306,9 +325,10 @@ const start = async() => {
 			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 			// console.info("Initialising", runningVersion, { capabilities, DOMAIN, HOST, LTD })
 		}
-			
+		
+		
+		return application
 	}
-
 
 	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
 
@@ -316,7 +336,15 @@ const start = async() => {
 	// import('./interface.js').then( loadInterfaceAndAssembleApplication )
 
 	// if not lazily loaded here...
-	loadInterfaceAndAssembleApplication()
+	// console.info("Loading Interface")
+
+	// Load all parts and setup
+	const app = await loadInterfaceAndAssembleApplication()
+
+	// await Promise.all([app])
+	// await app
+
+	console.info("Loaded Interface", {app} )
 }
 
 // import {installer} from './install'
@@ -488,3 +516,19 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	}
 
 }, {once:true})
+
+// Hot Module Reloading
+if (module.hot) 
+{
+	module.hot.dispose(function (data) {
+		// module is about to be replaced.
+		// You can save data that should be accessible to the new asset in `data`
+		data.updated = Date.now()
+	})
+
+	module.hot.accept(function (getParents) {
+		// module or one of its dependencies was just updated.
+		// data stored in `dispose` is available in `module.hot.data`
+		let { updated } = module.hot.data
+	})
+}
