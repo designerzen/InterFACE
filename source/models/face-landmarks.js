@@ -10,8 +10,8 @@
 
 // const FACE_LANDMARK_WASM =  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
 //const FACE_LANDMARK_TASK = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-import FACE_LANDMARK_TASK from "url:./face_landmarker.task"
-import BLAZE_FACE_SHORT_RANGE_MODEL_PATH from "url:./blaze_face_short_range.tflite"
+import FACE_LANDMARK_TASK from "url:./tasks/face_landmarker.task"
+import BLAZE_FACE_SHORT_RANGE_MODEL_PATH from "url:./tasks/blaze_face_short_range.tflite"
 // import FACE_LANDMARK_WORKER from "worker:./face-landmarks-worker.js"
 
 const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
