@@ -2,8 +2,8 @@ import { GestureRecognizer, FilesetResolver, DrawingUtils } from "@mediapipe/tas
 import ResizeableCanvasWithWorker from "../visual/resizeable-canvas-with-worker.js"
 
 // Models
-import HAND_LANDMARK_TASK from "url:../models/hand_landmarker.task"
-import GESTURE_RECOGNIZER_TASK from "url:../models/gesture_recognizer.task"
+import HAND_LANDMARK_TASK from "url:../models/tasks/hand_landmarker.task"
+import GESTURE_RECOGNIZER_TASK from "url:../models/tasks/gesture_recognizer.task"
 
 // Workers
 import WORKER_URI from "worklet:./test.hands-worker.js"
