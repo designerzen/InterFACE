@@ -12,7 +12,7 @@ import PALETTE from "../settings/palette"
  */
 export const drawText = ( canvasContext, x, y, text='', size=10, align="center", font="Oxanium", invertColours=false) => {
 	canvasContext.font = `900 ${size}px ${font}`
-// console.info("drawText FONT", `900 ${size}px ${font}`)
+//  console.info("drawText FONT", `900 ${size}px ${font}`, text )
 	canvasContext.textAlign = align
 	canvasContext.fillStyle = invertColours ? PALETTE.dark :  PALETTE.white
 	canvasContext.strokeStyle  = invertColours ? PALETTE.white : PALETTE.dark
