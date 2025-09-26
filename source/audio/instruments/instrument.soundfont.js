@@ -100,8 +100,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 					// now load our first preset or a specified one...
 					this.loadPreset( this.options.preset ?? 0, this.options.instrumentPack ).then( preset => {
 						console.error("preset", preset )
-					})
-					
+					})	
 				}
 
 				// console.error("soundfont", this, font )
@@ -340,7 +339,11 @@ export default class SoundFontInstrument extends SampleInstrument{
 			// we load the audio buffers from the soundfont
 			// in the { A4:AudioBuffer} format without waiting for the laod to complete
 			//await 
-			this.soundfont.loadPresetGradually( this.audioBuffers, presetNameOrObject, { ...options }, progressCallback )
+
+			// cancel loading any that are already loading...
+			this.soundfont.cancelLoading()
+
+			this.soundfont.loadPresetGradually( this.audioBuffers, presetNameOrObject, options, progressCallback )
 			
 			// this.audioBuffers = await this.soundfont.loadPreset( presetNameOrObject, { ...options }, progressCallback )
 

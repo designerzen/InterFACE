@@ -572,17 +572,31 @@ async function loadInstrumentPart (instrumentName, part) {
  */
 export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./assets/audio/${INSTRUMENT_PACK_FM}`, options={}, onProgressCallback=null) => new Promise( async (resolve,reject)=>{
 	
+	// pass to fetch as an optoin to cancel { signal:abortSignal }
+	const abortSignal = options?.abortController.signal
+	
 	const banks = createInstrumentBanks()
 	const parts = rearrangeArrayBySnake( banks, options.startIndex )
 
 	let i = 0
 	const instruments = []
 	const loading = new Map()
+	
+	if (abortSignal)
+	{
+		abortSignal.addEventListener('abort', () => {
+			// console.error("Aborting loadInstrumentParts", {abortSignal, options})
+			reject("Cancelled loading instrument parts")
+		})
+	}
 
 	const loadNextPart = async ()=>{
-		const simultaneous = 12 //options.simultaneous ?? 6
+		const simultaneous = options.simultaneous ?? 12
 		for (let b=0; b<simultaneous;++b)
 		{
+			if (abortSignal?.aborted === true){
+				return reject("Cancelled before loading")
+			}
 			const part = parts[i]
 			if (!part)
 			{
@@ -605,13 +619,22 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
 				index,  
 				audioBuffer
 			})
+
+			if (abortSignal?.aborted === true){
+				return reject("Cancelled during load")
+			}
+
 			//console.info("***", index, progress, "loadInstrumentParts", i, parts.length, b, loading.size, part, audioBuffer )
 			loading.delete( part )
 		})
 
+		if (abortSignal?.aborted === true){
+			return reject("Cancelled once loaded")
+		}
+
 		if (i < parts.length)
 		{
-			// chunk this somehow...
+			// now start another loop...
 			// requestAnimationFrame( loadNextPart )
 			loadNextPart()
 		}else{
@@ -633,7 +656,7 @@ export const loadInstrumentParts = ( context=audioContext, instrumentPath=`./ass
  * @param {AudioContext} context 
  * @param {String} name 
  * @param {String} path 
- * @param {Object} options 
+ * @param {Object} options such as abortController
  * @param {?Function} onProgressCallback 
  * @returns {Object|Array} [ AudioBuffer ] , { A0:AudioBuffer }
  */
@@ -642,8 +665,6 @@ export const loadInstrumentFromSoundFontSamples = async( context=audioContext, p
 	// Load as individual parts
 	const partPromises = await loadInstrumentParts(context, path, options, onProgressCallback ) 
 	const parts = options.asArray ? [] : {}
-
-
 
 	// ensure promises have resolved
 	for (let i=0, l=partPromises.length; i < l; ++i)
@@ -678,7 +699,7 @@ export const loadInstrumentFromSoundFontSamples = async( context=audioContext, p
  * @returns {Object} Instrument information
  */
 export const loadInstrumentFromSoundFont = async ( context=audioContext, instrumentName="alto_sax-mp3", instrumentURI="./assets/audio/OpenGM24", options={}, onProgressCallback=null ) => {	
-	
+
 	const title = instrumentName
 	// const family = getInstrumentFamily(instrumentName)
 	const name = instrumentName
@@ -704,6 +725,9 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 		asArray : false,
 		// use offline worker if available (may be faster?)
 		offlineAudioContext:null,
+		// prevent double instantiation
+		abortController: options.abortController ?? new AbortController(),
+		// overwrite with specified
 		...options
 	}
 

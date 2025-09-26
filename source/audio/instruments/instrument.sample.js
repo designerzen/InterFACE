@@ -1,8 +1,6 @@
 import Instrument from './instrument'
 // A generic interface for instruments
 
-import { getRandomInstrument } from '../sound-font-instruments'
-
 import { playTrack, loadInstrumentFromSoundFont } from '../audio'
 import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../tuning/notes'
 

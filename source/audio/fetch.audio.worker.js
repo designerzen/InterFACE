@@ -1,6 +1,6 @@
 import { base64Decode } from "../utils/base64.js"
 import { NOTE_NAMES, NOTE_NAMES_POPULAR_FIRST } from "./tuning/notes.js"
-
+import decode, {decoders} from 'audio-decode'
 /**
  * Fetch an audio sample / wave / mp3 / ogg from the server...
  * Try and decode as much as we can in threads...
@@ -116,9 +116,9 @@ self.onmessage = async (e) => {
 			break
 
 		// Load in the instruments & parse their buffers
-		// NB. REQUIRES OfflineAudioContext 
+		// NB. REQUIRES OfflineAudioContext NOT available in workers
 		case CMD_LOAD_SOUNDFONT_PART:
-			const context = data.offlineAudioContext
+			// const context = data.offlineAudioContext
 			const audioSampleBuffers = {}
 			// loop through all nmotes but in the special order	
 			const audioBufferPromises = NOTE_NAMES_POPULAR_FIRST.map( async(note, index) => {
@@ -126,10 +126,16 @@ self.onmessage = async (e) => {
 		
 				const partResponse = await fetch( `${e.data.path}/${note}.${options.format ?? "mp3"}` )
 				const partArrayBuffer = await partResponse.arrayBuffer()
-				const partAudioBuffer = await context.decodeAudioData(arrayBuffer)
+				
+				// convert to the AudioBuffer directly in the Worker :)
+				// const partAudioBuffer = await context.decodeAudioData(arrayBuffer)
+				const partAudioBuffer= await decode(buffer)
+				
 				// console.error("loop", {note, index, partArrayBuffer, partAudioBuffer})
 				
 				audioArrayBuffers[note] = partAudioBuffer
+				audioBuffers[note] = partAudioBuffer
+
 				return partAudioBuffer
 			})
 

@@ -140,6 +140,7 @@ export default class Instrument{
 	get notes(){
 		return this.activeNotes
 	}
+	
 	/**
 	 * All instruments 
 	 * @param {AudioContext} onlineAudioContext (not offlineAudioContext)

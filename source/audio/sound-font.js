@@ -61,6 +61,8 @@ export default class SoundFont{
 	// flags
 	loading = false
 	lazyLoading = false
+
+	abortController
 	
 	get presetAudioBuffers(){
 		return this.audioBuffers
@@ -86,7 +88,6 @@ export default class SoundFont{
 	constructor( audioContext, offlineAudioContext, path="./" ){
 		this.audioContext = audioContext
 		this.offlineAudioContext = offlineAudioContext
-		
 		// create defaults to overwrite
 		this.createInstrumentData( createInstruments(), path )
 	}
@@ -280,9 +281,10 @@ export default class SoundFont{
 	 * @param {Function} onProgressCallback 
 	 */
 	async loadPresetGradually( audioBuffers, preset, options={ }, onProgressCallback=null){
+				
 		return this.loadPreset(preset, options, async (event) => {
 			const {progress, part, index, audioBuffer } = event
-			const percent = (progress * 100).toFixed(2)
+			// const percent = (progress * 100).toFixed(2)
 			const note = part.split('.')[0]
 			const buffer = await audioBuffer
 			audioBuffers[ note ] = buffer
@@ -304,6 +306,12 @@ export default class SoundFont{
 		{
 			throw Error( `No "preset" argument provided to soundfont.loadPreset( required preset ), so not sure what preset you are expecting to load` )
 		}
+			
+		if (!options.abortController)
+		{
+			this.abortController = this.abortController ?? new AbortController()
+			options.abortController = this.abortController
+		}
 
 		// establish the actual name of the preset
 		let presetNameOrNumber
@@ -318,10 +326,8 @@ export default class SoundFont{
 
 		// immediately attempt to get the instrument data from the descriptor
 		const data = this.getInstrumentData(presetNameOrNumber) 
-		
-
+	
 		// console.error("Loading PRESET", { preset, presetName, options, data } )
-
 		const location = DEFAULT_SOUNDFONT_OPTIONS.location + options.soundfont
 			
 		// console.info("PRESET "+presetNameOrNumber+" LOADING", data, "from", location, this )
@@ -334,8 +340,12 @@ export default class SoundFont{
 			// throw Error( `No Preset found with name "${presetNameOrNumber}" in pack "${this.name}" from "${location}" with ${this.instrumentsByName.size} available. Maybe a new preset name should be added or perhaps the pack name has not been loaded yet?` )
 		}
 
+		// FIXME: this can contain holes so quickly checkit has the right size...
 		if (SoundFont.audioBuffers.has( data.name ))
 		{
+			// 
+			console.error("SoundFont.audioBuffers "+ data.name, SoundFont.audioBuffers.get( data.name ), {SFab:SoundFont.audioBuffers} )
+			// if the audio buffer is already loaded, just return it
 			return SoundFont.audioBuffers.get( data.name )
 		}
 		
@@ -357,15 +367,24 @@ export default class SoundFont{
 			// this is nice as it allows data to be streamed into the app in realtime
 			// and we can load the middle most fequently used samples first as a priority
 			// this results in far more requests but lower CPU usage and smoother transition
-			const audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, location, options, onProgressCallback )
 			
+			let audioBufferData 
+			
+			try{
+				audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, location, options, onProgressCallback )
+				// only set it if we have a valid complete audio buffer
+				this.audioBuffers.set( data.name, audioBufferData )
+			}catch(error){
+				// if we fail to load the audio data, we try to load it from the
+				console.info("AudioBufferData catch", error)
+			}
+
 			//this.instrument = await loadInstrumentFromSoundFont( presetName, this.name, this.context, onProgressCallback )
 			// const reload = await this.loadPack( this.instrumentPack, onProgressCallback  )
 		
 			// TODO: Use fetch-worker to load the array
 			// loadInstrumentFromSoundFontSamples
-			this.audioBuffers.set( data.name, audioBufferData )
-
+			
 			// console.error("Instrument loaded", presetNameOrNumber, data.name, audioBufferData )
 		
 			this.loading = false
@@ -468,6 +487,17 @@ export default class SoundFont{
 		return this.loadPresets( this.descriptor, options, onProgressCallback )
 	}
 
+	/**
+	 * Stop loading any files immediately
+	 */
+	cancelLoading(){
+		if (this.abortController)
+		{
+			this.abortController.abort()
+		}
+		this.abortController = new AbortController()
+	}
+
 	// setAudioBuffer( buffer ){
 	// 	audioBuffers.set( key, buffer )
 	// }
@@ -481,10 +511,12 @@ export default class SoundFont{
 	 * so that GC can free up memory
 	 */
 	async destroy(){
+		this.cancelLoading()
 		this.instruments = []
 		delete this.audioBuffers
 		delete this.instrumentsByPath
 		delete this.instrumentsByName
+		this.abortController = null
 		return true
 	}
 

@@ -77,8 +77,6 @@ export default class SoundFontAudioWorkletNode extends SampleAudioWorkletNode {
 		return buffers
 	}
 
-
-
 	async loadPreset( presetName, options={ }, onProgressCallback=null ){
 		return await this.soundfont.loadPreset( presetName, options, onProgressCallback )
 	}
