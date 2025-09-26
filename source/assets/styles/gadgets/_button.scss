@@ -425,10 +425,12 @@
 
 	// ensure text is correct colour and not overwritten
 	color:var(--col-text, var(--col-fg, var(--shade-light, white) ) );
-	color: light-dark(
-		var(--col-text, var(--col-fg, var(--shade-dark, black) ) ),
-		var(--col-text, var(--col-fg, var(--shade-light, white) ) )
-	);
+	
+	// FIXME:	
+	// color: light-dark(
+	// 	var(--col-text, var(--col-fg, var(--shade-dark, black) ) ),
+	// 	var(--col-text, var(--col-fg, var(--shade-light, white) ) )
+	// );
 
 	// color:red;
 

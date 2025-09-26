@@ -58,11 +58,14 @@
 	// animate out again?
 	&.completed{
 
-		button, label{
-			--xb:100%;
+		button, label, input, output, fieldset, #button-start-label{
+			--yb:100%;
+			--opacity:0;
 			//animation-name: Shift, Fade;
-			animation-direction: normal, reverse;
-			//animation:Fade 900ms linear reverse both 1 0s, Shift 900ms ease-out 0s 1 both;
+			//animation-direction: normal, reverse;
+			animation:
+				Fade 900ms linear reverse both 1 0s, 
+				Shift 900ms ease-out 0s 1 both;
 		}
 	}
 }

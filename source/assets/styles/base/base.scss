@@ -12,8 +12,6 @@
 		margin:0;
 		padding:0;
 	}
-
-
 	
 	:where(html){
 		
@@ -27,8 +25,9 @@
 		min-height: -webkit-fill-available;
 		min-height: 100dvh;
 
-		color:var(--shade-white);	
-		background-color:var(--shade-dark);
+		color:var(--shade-dark);	
+		// background-color:var(--shade-dark);
+
 		caret-color: var(--_col-accent );
 		accent-color: var(--_col-accent );
 		scrollbar-color: var(--_col-accent) transparent;
@@ -42,6 +41,7 @@
 		// only allow vertical scrolling
 		overflow-x: hidden;
 		// prevent "overscrolling"
+		overscroll-behavior:contain;
 		overscroll-behavior-y: none;
 		scroll-behavior: smooth;
 

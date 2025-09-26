@@ -193,7 +193,7 @@ input[type="checkbox" i].switch{
 
 	// just shows the type in the switch space
 	&:after{
-		content:'SIMPLE';
+		content:'COMPLEX';
 		mix-blend-mode: normal;
 		right:calc( var(--pad) * 2);
 		left:auto;
@@ -216,7 +216,7 @@ input[type="checkbox" i].switch{
 			// background-image:linear-gradient($col-tan, var(--shade-red));
 		}
 		&:after{
-			content:'COMPLEX';
+			content:'SIMPLE';
 			left:calc( var(--pad) * 2);
 			right:auto;
 			animation:Fader var(--time-quick) 0.2s 1 both;

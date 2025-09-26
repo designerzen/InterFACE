@@ -282,6 +282,7 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 	// fixed
 	details,
 	small{
+		--line-height:1.2;
 		font-weight:400;
 		font-size:80%;
 		font-size:clamp(9px, var(--zoom) * 2vmin, 12px);

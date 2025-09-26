@@ -85,8 +85,9 @@
 }
 
 #contact{
-	--side:640px;// clamp( var(--pad), 25%, 240px);
+	--side:var(--viewport-max-width);// clamp( var(--pad), 25%, 240px);
 	--w: calc((100% - var(--side) ) / 2);
+
 	grid-area:contact;
 	box-sizing: border-box;
 	color: var(--shade-white);
@@ -98,24 +99,31 @@
 			rgba(0,0,0,0) 13%
 		)
 	;
-	
-	padding:
-		calc( 2 * var(--pad)) 
-		max( 2 * var(--pad), var(--w));
 
+	width: 100%;
+	max-width: var(--viewport-max-width,1080px);
+	
+	// padding:
+	// 	calc( 2 * var(--pad)) 
+	// 	max( 2 * var(--pad), var(--w));
+
+	padding:calc( 4 * var(--pad)) ;
 	padding-bottom: calc( 3 * var(--pad)) ;
 
-	margin:var(--pad);
+	margin:0  var(--pad);
 	margin-top:0;
 	// margin-left:var(--pad);
 	// margin-right:var(--pad);
-	//border-radius:var(--curve);
-	max-width: var(--viewport-max-width, 108%); //, calc(100% - 2 * var(--pad)) ;
-	width: 100%;
+	// margin-bottom:var(--pad);
+	// border-radius:var(--curve);
+	max-width: min( var(--viewport-max-width, 1080px), 100%); //, calc(100% - 2 * var(--pad)) ;
+	// width: 100%;
 
 	border-bottom-left-radius: var(--curve, 1rem);
 	border-bottom-right-radius: var(--curve, 1rem);
 	overflow: hidden;
+	position: relative;
+	z-index: 999;
 }
 
 #hero{
@@ -125,11 +133,10 @@
 	user-select: none;
 }
 
-#affiliates{
 
+#affiliates{
 	color: var(--shade-white);
 	background-color: var(--shade-orange);
-	background-color: color-mix(in lch, var(--shade-orange), transparent 50%);
 	grid-area: affiliates;
 	justify-content: center;
 	justify-items: center;
@@ -137,16 +144,19 @@
 	align-items: center;
 	position: relative;
 	z-index: 999;
-	width: fit-content;
-
-	// width: 100%;
+	box-sizing: border-box;
+	// width: fit-content;
+	// max-width: calc(100% - 2 * var(--pad));
+	// 
+	width: 100%;
+	max-width: var(--viewport-max-width,1080px);
+	
+	
 	// margin-top:var(--pad);
 	padding:var(--pad);
-	margin-bottom:var(--pad);
-	margin-left:var(--pad);
-	margin-right:var(--pad);
+	padding-top: calc( 2 * var(--pad) );
+	margin:var(--pad);
 	border-radius:var(--curve);
-	max-width: calc(100% - 2 * var(--pad));
 
 	ul{
 		list-style: none;
@@ -174,6 +184,7 @@
 		}
 		img{
 			filter: invert(1);
+			min-width: 44px;
 		}
 		figcaption{
 			
@@ -248,6 +259,12 @@
 	}
 }
 
+// transparent orange
+@supports (background-color: color-mix(in lch, red, red) ){
+	#affiliates{
+		background-color: color-mix(in lch, var(--shade-orange), transparent 50%);
+	}
+}
 
 
 #hero,
