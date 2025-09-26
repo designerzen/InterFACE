@@ -1,49 +1,4 @@
-const TAP_TIMEOUT = 10000
-const MINIMUM_TEMPOS = 2
-
-/**
- * Converts a series of method calls into a tempo estimate.
- * @param {Boolean} autoReset Start a new estimation session if timeout reached
- * @param {Number} timeOut Time frame before ignoring the event and starting a fresh estimation session
- * @param {Number} minimumTaps Requires at least x taps before estimate set
- * @returns {Number} New Period
- */
-let beatTimes = []
-export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT, minimumTaps = MINIMUM_TEMPOS) => {
-    
-    const currentTime = performance ? performance.now() : Date.now()
-
-    if ( autoReset && beatTimes.length > 0 && currentTime - beatTimes[beatTimes.length-1] > timeOut )
-    {
-        beatTimes = []
-    }
-
-    beatTimes.push(currentTime)
-
-    const quantity = beatTimes.length
-    const x = quantity - 1
-    const y = beatTimes[x] - beatTimes[0]
-    // const time = (y / 1000).toFixed(3)
-   
-    if (quantity >= minimumTaps) 
-    {
-        // const tempo = 60000 * x / y
-        const period = y / x
-        return period
-    }
-    return -1
-}
-
-/**
- * 
- * Linear regression like nayuki
- * https://www.nayuki.io/page/tap-to-measure-tempo-javascript
- * @param {Boolean} autoReset Start a new estimation session if timeout reached
- * @param {Number} timeOut Time frame before ignoring the event and starting a fresh estimation session
- * @param {Number} minimumTaps Requires at least x taps before estimate set
- * @returns {Function} Tap when required -> New Period
- */
-export const tapTempoSmooth = (autoReset=true, timeOut=TAP_TIMEOUT, minimumTaps = MINIMUM_TEMPOS ) => {
+export const tapTempo = (autoReset=true, timeOut=1000, minimumTaps = 2) => {
 
 	let beatTimes = []
 	let xSum  = 0
@@ -158,4 +113,5 @@ export const tapTempoSmooth = (autoReset=true, timeOut=TAP_TIMEOUT, minimumTaps 
 			deviation
 		}
 	}
+
 }

@@ -19,11 +19,11 @@ import {
 } from './timing.events.js'
 
 // Parcel style
-import ROLLING_WORKER_URI from 'url:./timing.rolling.worker.js?worker&url'
-import SETINERVAL_WORKER_URI from 'url:./timing.setinterval.worker.js?worker&url'
-import SETTIMEOUT_WORKER_URI from 'url:./timing.settimeout.worker.js?worker&url'
-// import AUDIOTIMER_WORKLET_URI from 'url:./timing.audiocontext.worker.js?worker&url'
-import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js?worker&url'
+import ROLLING_WORKER_URI from 'url:./timing.rolling.worker.js'
+import SETINERVAL_WORKER_URI from 'url:./timing.setinterval.worker.js'
+import SETTIMEOUT_WORKER_URI from 'url:./timing.settimeout.worker.js'
+// import AUDIOTIMER_WORKLET_URI from 'url:./timing.audiocontext.worker.js'
+import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
 
 import { createTimingProcessor } from './timing.audioworklet.js'
 
@@ -393,4 +393,45 @@ export const stopTimer = () => {
         currentTime,
         timingWorker
     }
+}
+
+
+
+
+// TODO: Implement lienar regression like nayuki
+// https://www.nayuki.io/page/tap-to-measure-tempo-javascript
+let beatTimes = []
+const TAP_TIMEOUT = 10000
+const MINIMUM_TEMPOS = 2
+
+/**
+ * Converts a series of method calls into a tempo estimate.
+ * @param {Boolean} autoReset Start a new estimation session if timeout reached
+ * @param {Number} timeOut Time frame before ignoring the event and starting a fresh estimation session
+ * @param {Number} minimumTaps Requires at least x taps before estimate set
+ * @returns {Number} New Period
+ */
+export const tapTempo = (autoReset=true, timeOut=TAP_TIMEOUT, minimumTaps = MINIMUM_TEMPOS) => {
+    
+    const currentTime = now()
+
+    if ( autoReset && beatTimes.length > 0 && currentTime - beatTimes[beatTimes.length-1] > timeOut )
+    {
+        beatTimes = []
+    }
+
+    beatTimes.push(currentTime)
+
+    const quantity = beatTimes.length
+    const x = quantity - 1
+    const y = beatTimes[x] - beatTimes[0]
+    // const time = (y / 1000).toFixed(3)
+   
+    if (quantity >= minimumTaps) 
+    {
+        // const tempo = 60000 * x / y
+        const period = y / x
+        return period
+    }
+    return -1
 }

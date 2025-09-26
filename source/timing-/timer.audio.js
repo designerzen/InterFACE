@@ -1,18 +1,15 @@
 import Timer from "./timer.js"
-
+import { createTimingProcessor } from "./timing.audioworklet.js"
 import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
 import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
-// FIXME: 
+
 import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
 
 const DEFAULT_AUDIO_TIMER_OPTIONS = {
 
 	// keep this at 24 to match MIDI1.0 spec
 	// where there are 24 ticks per quarternote
-	divisions:24,
-
-	type:AUDIOTIMER_WORKLET_URI,
-	processor:AUDIOTIMER_PROCESSOR_URI,
+	divisions:24
 }
 
 export default class AudioTimer extends Timer {
@@ -49,11 +46,6 @@ export default class AudioTimer extends Timer {
 		}
 	}
 
-	/**
-	 * 
-	 * @param {*} callback 
-	 * @param {*} options 
-	 */
 	startTimer( callback, options={} ){
 		
 		// on Safari macOS/iOS, the audioContext is suspended if it's not created

@@ -10,9 +10,8 @@ import {
 } from './timing.events.js'
 
 import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
-// import AUDIOCONTEXT_WORKER_URI from './timing.audiocontext.worker.js?worker&url'
-// import AUDIOTIMER_WORKLET_URI from './timing.audioworklet.js?worker&url'
-// import AUDIOTIMER_PROCESSOR_URI from './timing.audioworklet-processor.js?worker&url'
+// import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
+// import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
 // import { createTimingProcessor } from './timing.audioworklet.js'
 
 export const MAX_BARS_ALLOWED = 32
@@ -26,7 +25,6 @@ const DEFAULT_TIMER_OPTIONS = {
 	bpm:90,
 
 	contexts:null,
-	// 
 	type:AUDIOCONTEXT_WORKER_URI,
 	// type:AUDIOTIMER_WORKLET_URI,
 	// processor:AUDIOTIMER_PROCESSOR_URI,
@@ -64,18 +62,6 @@ export const convertMIDIClockIntervalToBPM = (millisecondsPerClockEvent, pulsesP
     // BPM = (milliseconds in a minute) / (milliseconds per beat)
     // 1 minute = 60,000 milliseconds
     return convertPeriodToBPM(millisecondsPerQuarterNote)
-}
-
-/**
- * Pass in a Timer, return a formatted time
- * such as HH:MM:SS
- */
-export const formatTimeStampFromSeconds = (seconds) => {
-	const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const remainingSeconds = (seconds % 60)
-    const milliseconds = (remainingSeconds%1).toFixed(2).slice(2)
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(Math.floor(remainingSeconds)).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`
 }
 
 export default class Timer {
@@ -172,7 +158,7 @@ export default class Timer {
 	 * @returns {Number} total bars
 	 */
 	get barsElapsed(){
-		return Math.floor( this.totalBarsElapsed / this.bars )
+		return this.totalBarsElapsed
 	}
 	
 	get elapsedSinceLastTick(){
@@ -361,7 +347,7 @@ export default class Timer {
 					for (let context in options.contexts){
 						this[context] = options.contexts[context]
 					}
-					this.getNow = () => this.audioContext ? this.audioContext.currentTime * 1000 : performance.now()
+					this.getNow = () => this.audioContext.currentTime * 1000
 					break
 
 				default:
@@ -371,7 +357,7 @@ export default class Timer {
 		}
 
 		// 
-		const isWorklet = options.type ? options.type.indexOf("orklet") > -1 : false
+		const isWorklet = options.type.indexOf("orklet") > -1
 		console.info("Timer:", options.type, this.timingWorkHandler, {isWorklet, options} )
 
 		if (isWorklet)
@@ -490,9 +476,7 @@ export default class Timer {
 	 * @returns 
 	 */
 	async loadTimingWorker(type){
-		const url = new URL( type, import.meta.url )
-		const worker = new Worker(url, { type: 'module' })
-		return worker
+		return new Worker( new URL( type ), {type: 'module'} )
 	}
 
 	/**
@@ -618,11 +602,10 @@ export default class Timer {
 			}
 		}
 
-		// Worker Loading Error!
+		// Error!
 		worker.onerror = error =>{
-			const payload = {error:error.message, time:this.now }
-			console.error("error...", payload )
-			worker.postMessage( payload )
+			console.error("error...", {error} )
+			worker.postMessage({error, time:this.audioContext.currentTime })
 		}
 	}
 
@@ -671,6 +654,7 @@ export default class Timer {
 	 */
 	async startTimer( callback, options={} ){
 
+		
 		await this.loaded
 
 		const currentTime = this.now
@@ -711,7 +695,7 @@ export default class Timer {
 		// send command to worker... options
 		this.postMessage(payload)
 		
-		// console.log("Timer Starting...", { payload, timingWorker: this.timingWorkHandler} )
+		console.log("Timer Starting...", { payload, timingWorker: this.timingWorkHandler} )
 
 		return {
 			time:currentTime, 
@@ -817,7 +801,7 @@ export default class Timer {
 	 */
 	onTick(timePassed, expected, drift=0, level=0, intervals=0, lag=0){
 		
-		//console.info("Timer:onTick", {timePassed, expected, drift, level, intervals, lag} )
+		// console.info("Timer:onTick", {timePassed, expected, drift, level, intervals, lag} )
 
 		this.lastRecordedTime = timePassed
 
