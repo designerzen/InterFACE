@@ -4,7 +4,6 @@
  * links to important device information such as manual and
  * drivers as well as having a good known config for SYSEX
  */
-import midi_name, * as midi_id from "midi-manufacturers"
 
 // console.log(midi_id.FOCUSRITE_NOVATION);                // 00 20 29
 

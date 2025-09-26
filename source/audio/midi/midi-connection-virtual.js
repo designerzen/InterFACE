@@ -1,6 +1,8 @@
 
 /**
  * Requires access to node (may have to expose through Electron)
+ * 
+ * IMPLEMENTS INSTRUMENT CONTROLS
  */
 import MIDIConnection from './midi-connection'
 import midi from 'midi'

@@ -64,11 +64,11 @@ export default class WebMIDIConnection extends MIDIConnection{
 	
 	/**
 	 * TODO: Implement timeout
-	 * @param {*} port 
+	 * @param {Number} port 
 	 * @param {Function} onDeviceListUpdated 
 	 * @returns 
 	 */
-	connect( port=0, onDeviceListUpdated=null ){
+	async connect( port=0, onDeviceListUpdated=null ){
 		return new Promise(async (resolve,reject)=>{
 			try{
 				// midi device connected! huzzah!

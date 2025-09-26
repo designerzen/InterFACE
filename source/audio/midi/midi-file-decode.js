@@ -37,6 +37,7 @@ import MIDIStream from './midi-stream'
 import MIDICommand from './midi-command'
 import MIDITrack from './midi-track'
 import * as MIDICommands from './midi-commands'
+// import * as MIDI_EXPRESSIONS from './midi-constants'
 import {convertMIDINoteNumberToName} from '../tuning/notes'
 
 const TIME_CODE_BASED = "time-code-based" 
@@ -342,7 +343,7 @@ const decodeSystemEvent = ( stream, event, eventTypeByte ) =>
 
 		switch(subtypeByte)
 		{
-			case 0x00:
+			case MIDI_COMMANDS.BANK_SELECT:
 				event.subtype = 'sequenceNumber'
 				if (length !== 2) { throw "Expected length for sequenceNumber event is 2, got " + length}
 				event.sequenceNumber = stream.readInt16()

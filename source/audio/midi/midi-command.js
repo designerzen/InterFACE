@@ -54,8 +54,6 @@ export default class MIDICommand extends AudioCommand
 	percentStart
 	percentDuration
 
-	// programNumber
-
 	constructor(){
 		super()
 	}
@@ -96,11 +94,6 @@ export default class MIDICommand extends AudioCommand
 	}
 	
 	clone(){
-		const copy = new MIDICommand()
-		for (const i in this)
-		{
-			copy[i] = this[i]
-		}
-		return copy
+		return this.copyAllParametersToCommand( new MIDICommand() )
 	}
 }

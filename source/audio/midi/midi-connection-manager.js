@@ -6,6 +6,8 @@
  * 
  * Also handles loading and saving existing connections
  * in case you restart and do want to reselect the options
+ * 
+ * IMPLEMENTS INSTRUMENT CONTROLS
  */
 export default class MIDIConnectionManager{
 	
@@ -23,17 +25,23 @@ export default class MIDIConnectionManager{
 
 	deviceChangeCallbacksMap = new Map()
 
-	// 
+	/**
+	 * 
+	 */
 	get inputs(){
 		return this.inputDevices
 	}
 	
+	/**
+	 * 
+	 */
 	get outputs(){
 		return this.outputDevices
 	}
 
-	// FIXME: 
-	// Check devices
+	/**
+	 * FIXME: Check devices
+	 */
 	get available(){
 		return true // capabilities.webMIDIAvailable
 	}
@@ -42,10 +50,16 @@ export default class MIDIConnectionManager{
 
 	}
 
+	/**
+	 * 
+	 */
 	async load(){
 
 	}
 
+	/**
+	 * 
+	 */
 	async save(){
 		
 	}

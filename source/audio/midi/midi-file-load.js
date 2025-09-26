@@ -5,7 +5,7 @@
 // Use         - Load( file.midi, onComplete ) and wait for the callback
 
 import MIDIStream from './midi-stream'
-import { decodeMIDI } from './midi-decode'
+import { decodeMIDI } from './midi-file-decode'
 import { base64DecToArr } from '../../utils/base64'
 
 /**

@@ -71,7 +71,7 @@ export const createMIDICommandFactory = (audioContext, startTime=-0 ) => {
 		return command
 	}
 	const allNotesOff = () => {
-		const command = createTimedCommand( MIDICommands.TYPE_CHANNEL, MIDICommands.COMMAND_NOTE_ON )
+		const command = createTimedCommand( MIDICommands.TYPE_CHANNEL, MIDICommands.COMMAND_NOTE_OFF )
 		return command
 	}
 	
