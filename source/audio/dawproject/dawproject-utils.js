@@ -8,8 +8,10 @@ import {
 	Zip, AsyncZipDeflate, Unzip, AsyncUnzipInflate
 } from 'fflate'
 
+// This can be an XML file or a ZIP file
 export const loadDAWProject = async (file) => {
 	const fileResponse = await fetch(file)
+	// FIXME: Test to see what the type is, if zip unzip as arrayBuffer
 	const arrayBuffer = await fileResponse.arrayBuffer()
 
 	// To use fflate, you need a Uint8Array
@@ -21,16 +23,66 @@ export const loadDAWProject = async (file) => {
 
 
 
-
-export const createDAWProject = (name="PhotoSYNTH", version="1.0.0") => {
-	const xml = document.implementation.createDocument(null, "standalone")
-	const projectElement = xml.createElement("Project")
+/**
+ * <Application name="Bitwig Studio" version="5.0"/>
+ * @param {XMLDocument} projectElement 
+ * @param {String} name 
+ * @param {String} version 
+ * @returns 
+ */
+export const createApplicationElement = (projectElement, name="PhotoSYNTH", version="1.0.0") => {
 	const applicationElement = projectElement.createElement("Application")
 	applicationElement.setAttribute("name", name ?? "Project Title" )
-	applicationElement.setAttribute("version", version)
-	return xml
+	applicationElement.setAttribute("version", version ?? 0)
+	return applicationElement
 }
 
+/**
+ *  <Transport>
+ *      <Tempo max="666.000000" min="20.000000" unit="bpm" value="149.000000" id="id0" name="Tempo"/>
+ *      <TimeSignature denominator="4" numerator="4" id="id1"/>
+ *  </Transport>
+ * @param {XMLDocument} projectElement 
+ * @returns 
+ */
+export const createTransportElement = (projectElement) => {
+	const transportElement = projectElement.createElement("Transport")
+	return transportElement	
+}
+
+/**
+ * <Tempo max="666.000000" min="20.000000" unit="bpm" value="149.000000" id="id0" name="Tempo"/>
+ */
+export const createTempoElement = (transportElement, tempo=90, unit="bpm", maxBPM=300, minBPM=10, id="id", name="Tempo" ) => {
+	const tempoElement = transportElement.createElement("Tempo")
+	tempoElement.setAttribute("max", maxBPM )
+	tempoElement.setAttribute("min", minBPM )
+	tempoElement.setAttribute("unit", unit)
+	tempoElement.setAttribute("value", tempo)
+	tempoElement.setAttribute("id", id)
+	tempoElement.setAttribute("name", name )
+	return tempoElement
+}
+
+/**
+ *  <TimeSignature denominator="4" numerator="4" id="id1"/>
+ * @param {XMLDocument} transportElement 
+ * @param {String|Number} numerator 
+ * @param {String|Number} denominator 
+ * @returns 
+ */
+export const createTimeSignatureElement = (transportElement, numerator=4, denominator=4) => {
+	const timeSignatureElement = transportElement.createElement("TimeSignature")
+	timeSignatureElement.setAttribute("denominator", denominator)
+	timeSignatureElement.setAttribute("numerator", numerator)
+	timeSignatureElement.setAttribute("id", "id")
+	return timeSignatureElement
+}
+
+const createStructureElement = (projectElement) => {
+	const structureElement = projectElement.createElement("Structure")
+	return structureElement
+}
 
 /**
  * All options are optional!
@@ -82,34 +134,12 @@ export const createMetaDataElement = (projectElement, metaData={}) => {
 	return metaDataElement
 }
 
-export const createTempoElement = (transportElement, tempo=90, unit="bpm" ) => {
-	const tempoElement = transportElement.createElement("Tempo")
-	tempoElement.setAttribute("max", "1000")
-	tempoElement.setAttribute("min", "20")
-	tempoElement.setAttribute("unit", unit)
-	tempoElement.setAttribute("value", tempo)
-	tempoElement.setAttribute("id", "id")
-	tempoElement.setAttribute("name", "tempo")
-	return tempoElement
-}
 
-export const createTimeSignatureElement = (transportElement) => {
-	const timeSignatureElement = transportElement.createElement("TimeSignature")
-	timeSignatureElement.setAttribute("denominator", "4")
-	timeSignatureElement.setAttribute("numerator", "4")
-	timeSignatureElement.setAttribute("id", "id")
-	return timeSignatureElement
-}
 
-export const createTransportElement = (projectElement) => {
-	const transportElement = projectElement.createElement("Transport")
-	return transportElement	
-}
 
-const createStructureElement = (projectElement) => {
-	const structureElement = projectElement.createElement("Structure")
-	return structureElement
-}
+
+
+
 
 const createTrackElement = (structureElement) => {
 	const trackElement = structureElement.createElement("Track")
@@ -141,7 +171,6 @@ const createTrackElement = (structureElement) => {
 
 const createArrangementElement = (projectElement) => {
 	const arrangementElement = projectElement.createElement("Arrangement")
-
 	return arrangementElement
 }
 
@@ -179,7 +208,7 @@ const createScenesElement = (projectElement) => {
 
 /**
  * 
- * @param {*} notesElement 
+ * @param {XML} notesElement 
  * @param {*} time 
  * @param {*} duration 
  * @param {*} velocity 
@@ -201,12 +230,33 @@ export const createNoteElement = (notesElement, time, duration, velocity, key, r
 /**
  * 
  * @param {*} trackElement 
- * @param {*} id 
+ * @param {String} id 
  */
 const createNotesElement = (trackElement, id="id" ) => {
 	const notesElement = trackElement.createElement("Notes")
 	notesElement.setAttribute( "id", id )
 	return notesElement
+}
+
+/** * Create a new DAW project XML document
+ * @param {String} name - Name of the application (e.g., "PhotoSYNTH")
+ * @param {String} version - Version of the application (e.g., "1.0.0")
+ * @returns {XMLDocument} - A new XML document representing the DAW project
+ * @example
+ * const project = createDAWProject("PhotoSYNTH", "1.0.0")
+ * const projectElement = project.querySelector("Project")
+ * const applicationElement = project.querySelector("Application")
+ * const transportElement = createTransportElement(projectElement)
+ * const tempoElement = createTempoElement(transportElement)
+ * const timeSignatureElement = createTimeSignatureElement(transportElement)
+ * const notesElement = createNotesElement(projectElement)
+ * const noteElement = createNoteElement(notesElement, 0, 1, 1
+ */
+export const createDAWProject = (name="PhotoSYNTH", version="1.0") => {
+	const xml = document.implementation.createDocument(null, "standalone")
+	const projectElement = xml.createElement("Project")
+	projectElement.setAttribute( "version", version )
+	return xml
 }
 
 /*
@@ -307,6 +357,8 @@ const applicationElement = project.querySelector("Application")
 const transportElement = createTransportElement(projectElement)
 const tempoElement = createTempoElement(transportElement)
 const timeSignatureElement = createTimeSignatureElement(transportElement)
+
+const structureElement = createStructureElement(projectElement)
 
 const notesElement = createNotesElement(projectElement)
 const noteElement = createNoteElement(notesElement, 0, 1, 1, 0)
