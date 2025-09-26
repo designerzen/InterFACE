@@ -42,6 +42,19 @@ export default class ResizeableCanvasWithWorker{
 	post(payload){
 		this.worker.postMessage(payload)
 	}
+
+	destroy(){
+		this.started = false
+		if (this.worker) {
+			this.worker.postMessage({ type: "destroy" })
+			this.worker.terminate()
+			this.worker = null
+		}
+		if (this.element) {
+			this.element = null
+		}
+		// console.warn("ResizeableCanvasWithWorker destroyed")
+	}
     
     /**
      * 
@@ -54,7 +67,6 @@ export default class ResizeableCanvasWithWorker{
         const displayWidth = Math.round(width * dpr)
         const displayHeight = Math.round(height * dpr)
         
-        //console.error( "size",{ displayWidth, displayHeight, dpr, width, height })
         // Get the size the browser is displaying the canvas in device pixels.
         // Check if the canvas is not the same size.
         const needResize = this.element.width !== displayWidth || this.element.height !== displayHeight
@@ -118,7 +130,13 @@ export default class ResizeableCanvasWithWorker{
                 height = entry.contentRect.height
             }
 
-            this.resizeCanvasToDisplaySize(width, height, dpr)
+       
+			if (width === 0 || height === 0) {
+				console.error( "IGNORE resize",{ dpr, width, height })
+			}else{
+				//console.info( "size",{ dpr, width, height })
+				this.resizeCanvasToDisplaySize(width, height, dpr)
+			}
         }
     }
 }
