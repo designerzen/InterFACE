@@ -7,6 +7,7 @@
  * The WebXR version has an extra holographic mode too
  */
 // 
+import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 import DisplayLookingGlass3D, { createXRToggleButton } from './display-looking-glass-3d.js'
 
 import {DISPLAY_TYPES} from './display-types.js'
@@ -146,6 +147,31 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 
 	return newCanvasElement
 } 
+
+/**
+ * checks for certain devices to be connected 
+ * screen sizes and capabilities and return displays
+ * that are available for this device
+ * 
+ * @returns 
+ */
+export const getDisplayAvailability = async( previousDisplay ) => {
+	
+	// assume webGL 3D one if no previous one was provided
+	let suggestedDisplay = previousDisplay ?? DISPLAY_TYPES.DISPLAY_WEB_GL_3D
+	
+	try{
+		const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+		if (holographicDisplayQuantity > 0)
+		{
+			return DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
+		}
+	}catch(error){
+		console.info("Holographic display not connected" , error)
+	}
+
+	return suggestedDisplay
+}
 
 
 /**
