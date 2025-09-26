@@ -32,7 +32,7 @@ export const fetchVideoCameras = async() => {
  * @param {?string} deviceId - Device ID unique to the camera to try to access first if provided
  * @returns {Promise} video stream is returned if successfull
  */
-export const setupCamera = async (video, deviceId, enableAudio=false ) => new Promise( async (resolve,reject) => {
+export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=6000 ) => new Promise( async (resolve,reject) => {
 		
 	let stream
 	video = video ?? document.createElement('video')
@@ -48,11 +48,14 @@ export const setupCamera = async (video, deviceId, enableAudio=false ) => new Pr
 			// will throw some blah blah error so we must wrap and re-act
 			try{
 				video.play()
+
+				// set dom sizes
 				video.width = video.videoWidth
 				video.height = video.videoHeight
+
 				resolve(stream)	
 			}catch(error){
-				reject(stream)
+				reject(error)
 			}
 		}
 	}
@@ -81,9 +84,7 @@ export const setupCamera = async (video, deviceId, enableAudio=false ) => new Pr
 		const BAD_RESULT = "BAD_RESULT"
 		stream = await navigator.mediaDevices.getUserMedia( constraints )
 		//stream = navigator.mediaDevices.getUserMedia( constraints )
-		const timeout = new Promise((complete) => {
-			setTimeout(complete, 5000, BAD_RESULT)
-		})
+		const timeout = new Promise(complete => setTimeout(complete, timeOut, BAD_RESULT))
 		const result = await Promise.race([ timeout, stream ])
 	
 		// FIXME: "Failed to set the 'srcObject' property on 'HTMLMediaElement': 
