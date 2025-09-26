@@ -1,6 +1,6 @@
 // Singleton
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
-import midi from 'midi'
+// import midi from 'midi'
 
 // FIXME: MIDI 2.0
 // import midi2 from './lib/winmidi2/lib/main.js'

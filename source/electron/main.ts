@@ -319,11 +319,11 @@ function createWindow() {
 		// mainWindow.loadURL(`file://${APP_ROOT}/version.html#v${app.getVersion()}`);
 		// mainWindow.loadFile(path.join(APP_ROOT, "dist-electron/main/app.html"))
 
-		mainWindow.webContents.once("dom-ready", async () => {
+		// mainWindow.webContents.once("dom-ready", async () => {
 			
-			// https://github.com/sindresorhus/electron-debug
-			mainWindow.webContents.openDevTools()
-		})
+		// 	// https://github.com/sindresorhus/electron-debug
+		// 	mainWindow.webContents.openDevTools()
+		// })
 	}
 
 	registerMIDI( mainWindow, ipcMain )
