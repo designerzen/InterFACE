@@ -214,7 +214,7 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 
 	if (renderLoop)
 	{
-		display.setAnimationLoop(renderLoop)
+		display.setAnimationLoop(renderLoop, options.autoStart ?? true )
 	}
 
 	console.info("createDisplay", { display, displayType, canvasElement, newCanvasElement, renderLoop })

@@ -1547,7 +1547,7 @@ export const createInterface = (
 			display = null
 		}
 
-		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop)
+		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop, {autoStart:false})
 		
 		// cache existing
 		canvasVideoElement = display.canvas
@@ -1594,8 +1594,11 @@ export const createInterface = (
 		camera = investigation.camera
 		
 		// resize canvas to fit video
-		canvasVideoElement.width = video.width
-		canvasVideoElement.height = video.height
+		// canvasVideoElement.width = video.width
+		// canvasVideoElement.height = video.height
+		
+		display.setSize( video.videoWidth, video.videoHeight )
+
 
 		isCameraLoading = false
 
@@ -1612,8 +1615,9 @@ export const createInterface = (
 					camera = newCamera
 					// resize canvvas to match video!
 					// otherwise the aspect-ratio might not be the same
-					canvasVideoElement.width = video.width
-					canvasVideoElement.height = video.height
+					// canvasVideoElement.width = video.width
+					// canvasVideoElement.height = video.height
+					display.setSize( video.videoWidth, video.videoHeight )
 
 					// save the name of the camera locally
 					store.setItem('camera', {deviceId:selected.value})
@@ -2442,6 +2446,16 @@ export const createInterface = (
 		fetchPredictionFromEngine = fetchPredictions
 		body.classList.toggle("initialising", true)
 		
+		// VIDEO & DISPLAY ------------------------------------------------
+		displayType = stateMachine.get('display')
+		progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
+
+		// REDRAW DOM / CANVAS / WEB GL -------------------------------
+		// 'predictionLoop' here is a method passed into this function that is called
+		// on every frame to update the visuals and audio of none quanitsed sounds
+		display = await switchDisplay( displayType, predictionLoop, false )
+
+		
 		// VIDEO STREAM / CAMERA -----------------------------------------
 		try{
 			
@@ -3088,20 +3102,13 @@ export const createInterface = (
 			//console.log("PhotoSYNTH3D STARTING", {options: modelOptions, clock })
 			// console.info("App running", {display, predictionLoop, clock})
 
+			display.start()
+
 			// Fetch the predictions in a predictable loop as fast as we need
 			// NB. the display itself should return duplicate frame if a new frame
 			// hasn't occurred yet
 			// await fetchPrediction( automaticRepeat,usePredictions )
 			clock.setCallback( useTiming )
-
-			// VIDEO & DISPLAY ------------------------------------------------
-			displayType = stateMachine.get('display')
-			progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
-
-			// REDRAW DOM / CANVAS / WEB GL -------------------------------
-			// 'predictionLoop' here is a method passed into this function that is called
-			// on every frame to update the visuals and audio of none quanitsed sounds
-			display = await switchDisplay( displayType, predictionLoop, false )
 
 			progressCallback(loadIndex/loadTotal, "Loading Complete!") 
 

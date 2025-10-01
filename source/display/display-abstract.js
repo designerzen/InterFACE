@@ -28,6 +28,9 @@ export default class AbstractDisplay{
 	canvasWidth
 	canvasHeight
 
+	// method to run to kickstart unless optoin autoStart:true
+	start
+
 	// Linked List --------------------
 	nextDisplayLink
 	previousDisplayLink
@@ -71,7 +74,6 @@ export default class AbstractDisplay{
 		return i
 	}
 
-
 	get width(){
 		return this.canvasWidth
 	}
@@ -101,15 +103,16 @@ export default class AbstractDisplay{
 		this.canvas.width = this.canvasWidth = initialWidth
 		this.canvas.height = this.canvasHeight = initialHeight
 		this.options = {...options}
-		this.onResize = this.onViewportResize.bind(this) 
+		//
 		this.debug = options.debug || false
 		AbstractDisplay.index++
 		 
-		if (options.resizeable)
+		if (options.resize === true)
 		{
 			// if we want to use the CSS size rather than implicit sizes...
+			this.onViewportResize = this.onViewportResize.bind(this) 
 			const resizeObserver = new ResizeObserver(this.onViewportResize)
-			resizeObserver.observe(canvas, {box: 'content-box'})		
+			resizeObserver.observe(canvas, {box: 'content-box'})	
 		}
 	}
 
@@ -122,6 +125,7 @@ export default class AbstractDisplay{
 	 */
 	async destroy(){
 		// CLEAN UP
+		AbstractDisplay.index--
 	}
 	
 	/**
@@ -141,12 +145,16 @@ export default class AbstractDisplay{
 	
 	// This varies for each display but here we create a neverending
 	// loop using requestFrame - be sure to overwrite
-	setAnimationLoop( callback ){
+	setAnimationLoop( callback, autoStart=false ){
 		const looper = ()=>{
 			callback()
 			this.loopId = requestAnimationFrame(looper)
 		}
-		looper()
+		if (autoStart)
+		{
+			looper()
+		}
+		this.start = looper
 	}
 
 	movePersonButton(person, prediction){
@@ -218,7 +226,16 @@ export default class AbstractDisplay{
 	 */
 	takePhotograph(type="image/png"){}
 
+    /**
+     * Prevents Overgrowth and small sizes too :)
+     * @param {Number} displayWidth 
+     * @param {Number} displayHeight 
+     * @returns 
+     */	
 	setSize(width, height){	
+		this.canvas.width = this.canvasWidth = width
+		this.canvas.height = this.canvasHeight = height
+		
 		this.onResize(width, height)
 	}
 	
@@ -254,9 +271,7 @@ export default class AbstractDisplay{
         {
             this.started = true
 
-            this.canvasWidth = displayWidth
-            this.canvasHeight = displayHeight
-			setSize(displayWidth, displayHeight)
+           this.setSize(displayWidth, displayHeight)
         }
 
         return needResize

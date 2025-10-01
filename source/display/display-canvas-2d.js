@@ -143,7 +143,8 @@ const FILTER_LIBRARY = [
 const DEFAULT_OPTIONS_DISPLAY_CANVAS = {
 	offscreen:false,
 	debug:false,
-	stats:false
+	stats:false,
+	resize:false
 }
 let stats
 
