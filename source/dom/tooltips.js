@@ -234,7 +234,7 @@ export const addTooltip = (element, config=CONFIG) => {
 
 	const showTooltipCallback = (event, popOver=false) => {
 		
-		if (!tooltipsEnabled)
+		if (!tooltipsEnabled || event.pointerType !== "mouse" )
 		{
 			return
 		}
@@ -287,10 +287,10 @@ export const addTooltip = (element, config=CONFIG) => {
 	let cleanUp
 	if (!supportsPopover)
 	{	
-		element.addEventListener("mouseover", showTooltipCallback)
+		element.addEventListener("pointerover", showTooltipCallback)
 		
 		cleanUp = e => {
-			element.removeEventListener("mouseover", showTooltipCallback)
+			element.removeEventListener("pointerover", showTooltipCallback)
 		}
 
 	}else{
@@ -307,12 +307,12 @@ export const addTooltip = (element, config=CONFIG) => {
 		
 		// element.popoverTargetAction = "toggle"
 		element.setAttribute("popovertarget", toastElement.id)
-		element.addEventListener("mouseover", showTooltipCallback)
-		element.addEventListener("mouseout", hideTooltipCallback )
+		element.addEventListener("pointerover", showTooltipCallback)
+		element.addEventListener("pointerout", hideTooltipCallback )
 	
 		cleanUp = e => {
-			element.removeEventListener("mouseover", showTooltipCallback)
-			element.removeEventListener("mouseout", hideTooltipCallback )	
+			element.removeEventListener("pointerover", showTooltipCallback)
+			element.removeEventListener("pointerout", hideTooltipCallback )	
 		}
 	}	
 	
