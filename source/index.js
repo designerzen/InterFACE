@@ -225,6 +225,7 @@ const start = async () => {
 			// Watch for External SYNCHING 
 			// COMMS --------------------------------------------------------------
 		
+			/*
 			// if we have synching
 			// if we want to load in the realtime synch engine
 			const {monitorBroadCastChannel} = await import("./interface-channel.js")
@@ -235,7 +236,7 @@ const start = async () => {
 				// ensure clock exists before calling this
 				const broadCast = monitorBroadCastChannel( application )
 			}
-			
+			*/			
 		}
 
 		// User has been located and application has begun!
