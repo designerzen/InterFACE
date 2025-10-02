@@ -138,7 +138,6 @@
 
 		@include button.button-with-dual-icon-style;
 		
-
 		--icon-width:calc( var(--button-size) / 2 );
 		--icon: url(/source/assets/icons/forward_black_24dp.svg);
 		--icon-size:22px;
@@ -150,8 +149,9 @@
 		// prevent shrinkage
 		flex:0;
 
-		background-color: transparent;
+		background-color: rgba(0,0,0,0.4);
 		border:var(--stroke, 2px) solid var(--col-dark, white);
+
 		// centralise in parent
 		margin-top: auto;
 		margin-bottom: auto;
@@ -179,7 +179,12 @@
 		text-shadow: none;
 		font-size: 0;
 		
-		transition: transform var(--ease-q, 45ms) ease.$easeInOutBack;
+		// transition: 
+		// 	transform var(--ease-q, 45ms) ease.$easeInOutBack;
+		// transition:
+		// 	transform var(--transform-speed, var(--ease-q, 42ms)) ease.$easeOutBack,
+		// 	opacity var(--fade-speed, var(--ease-q, 42ms)) linear;
+
 		
 		/*
 		grid-template-columns: var(--button-size) auto;
@@ -193,6 +198,7 @@
 		&:focus-visible,
 		&:active{
 			// transform: scale(1.2);
+			background-color: rgba(255,255,255,0.4);
 		}
 	}
 
@@ -237,7 +243,7 @@
 			--transform-speed:1s;
 			// give it one edxtra trurn
 			transform:rotate( calc( 0.5turn + var(--turn, 0turn) ) );
-			transition-delay: 0.4s;
+			transition-delay: 0.4s, 0s;
 		}
 	}
 	
