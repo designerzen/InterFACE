@@ -1,0 +1,6 @@
+{
+  "$schema": "https://www.partykit.io/schema.json",
+  "name": "PhotoSYNTH-party",
+  "main": "party/index.js",
+  "compatibilityDate": "2025-10-01"
+}

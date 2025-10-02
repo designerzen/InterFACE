@@ -61,7 +61,9 @@
 		}
 	},
 	"pnpm": {
-		"onlyBuiltDependencies": ["electron"]
+		"onlyBuiltDependencies": [
+			"electron"
+		]
 	},
 	"scripts": {
 		"kill": "npx kill-port 303",
@@ -167,6 +169,7 @@
 		"release:major": "npm run major && npm run build:all",
 		"release:app": "npm run patch && npm run assets && npm run push",
 		"release": "npm run changes && npm run build",
+		"deploy":"npx partykit deploy",
 		"=QUALITY=": "",
 		"knip": "knip",
 		"help": "npx https://github.com/google-gemini/gemini-cli"
@@ -193,12 +196,12 @@
 	"engines": {},
 	"dependencies": {
 		"@babylonjs/assets": "^5.20.0",
-		"@babylonjs/core": "^8.29.1",
-		"@babylonjs/gui-editor": "^8.29.1",
+		"@babylonjs/core": "^8.30.0",
+		"@babylonjs/gui-editor": "^8.30.0",
 		"@babylonjs/havok": "^1.3.10",
-		"@babylonjs/inspector": "^8.29.1",
-		"@babylonjs/loaders": "^8.29.1",
-		"@babylonjs/materials": "^8.29.1",
+		"@babylonjs/inspector": "^8.30.0",
+		"@babylonjs/loaders": "^8.30.0",
+		"@babylonjs/materials": "^8.30.0",
 		"@capacitor/android": "^7.4.3",
 		"@capacitor/core": "^7.4.3",
 		"@capacitor/electron": "^2.5.0",
@@ -261,12 +264,13 @@
 		"workbox-routing": "^7.3.0",
 		"workbox-strategies": "^7.3.0",
 		"workbox-sw": "^7.3.0",
-		"ws": "^8.18.3"
+		"ws": "^8.18.3",
+		"partysocket": "1.1.6"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.28.4",
 		"@babel/preset-env": "^7.28.3",
-		"@biomejs/biome": "^2.2.4",
+		"@biomejs/biome": "^2.2.5",
 		"@bubblewrap/cli": "^1.24.1",
 		"@capacitor/assets": "^3.0.5",
 		"@capacitor/cli": "^7.4.3",
@@ -289,7 +293,7 @@
 		"@parcel/transformer-worklet": "2.16.0",
 		"@parcel/transformer-xml": "2.16.0",
 		"@pixiv/three-vrm": "^3.4.2",
-		"@types/node": "^24.6.1",
+		"@types/node": "^24.6.2",
 		"@vituum/vite-plugin-pug": "^1.1.0",
 		"assert": "^2.1.0",
 		"babel-jest": "30.2.0",
@@ -326,6 +330,7 @@
 		"string_decoder": "^1.3.0",
 		"typescript": "^5.9.3",
 		"util": "^0.12.5",
-		"vm-browserify": "^1.1.2"
+		"vm-browserify": "^1.1.2",
+		"partykit": "0.0.115"
 	}
 }
