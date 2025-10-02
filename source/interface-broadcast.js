@@ -1,9 +1,58 @@
 import { BROADCAST_KEY } from "./settings/options"
+import PartySocket from "partysocket"
+
+export const connectToWebSocketServer = ( roomName="photosynthparlour", host="localhost:1999" ) => {
+		
+	const onMIDIMessage = (message, player=0 ) => {
+		const midiNote = message.data[1]
+		if (message.data[0] === 144 && message.data[2] > 0) {
+			playNote(midiNote, 0)
+			partySocket.send(message.data)
+
+		}else if (message.data[0] === 128 || message.data[2] === 0) {
+			stopNote(midiNote, 0)
+			partySocket.send(message.data)
+		}
+	}
+		
+	const success = (midi) => {
+		const inputs = midi.inputs.values()
+		// inputs is an Iterator 
+		for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+			// each time there is a midi message call the onMIDIMessage function 
+			input.value.onmidimessage = onMIDIMessage
+		}
+	}
+
+	const failure = (error) => { 
+		console.error('No access to your midi devices.', error)
+	}
+
+	// connect to our server
+	const partySocket = new PartySocket({ host, room:roomName })
+
+	// send a message to the server with some data about this client
+	// as this will be then passed to all connected peers
+	partySocket.send("Hello everyone")
+
+	// print each incoming message from the server to console
+	partySocket.addEventListener("message", (e) => {
+		console.log(e)
+		onMIDIMessage(e.data, 1)
+	})
+
+	navigator.requestMIDIAccess().then(success, failure)
+
+	return {
+		send:partySocket.send
+	}
+}
+
 
 // global singletons
 let broadCast = null
 
-// BROADCAST TO PEERS ---------------------------------------------------------------
+// BROADCAST TO PEERS IN THIS BROWSER ONLY! ---------------------------------------------------------------
 export const monitorBroadCastChannel = ( application, key=BROADCAST_KEY ) => {
 
 	if (broadCast)
