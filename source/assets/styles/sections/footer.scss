@@ -2,6 +2,7 @@
 #foot{
 	--spacer:0;
 	--border:1px solid var(--shade-gray);
+	--icon-height:27px;
 
 	color:var(--shade-brown);
 	
@@ -45,7 +46,7 @@
 			background-repeat: no-repeat;
 			background-size: 22px;
 			width:33px;
-			height:27px;
+			height:var(--icon-height);
 			display: inline-block;
 			vertical-align: middle;
 		}
@@ -99,6 +100,9 @@
 		align-items: center;
 		padding-top:var(--pad);
 		
+		// inherit into size of icons too
+		min-height: var(--icon-height);
+
 		// ensure this is in front of the back to top
 		position: relative;
 		z-index: 1;

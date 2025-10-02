@@ -281,8 +281,8 @@
 
 	// always transform it so that it appears above the background
 	transition:
-		opacity var(--fade-speed, var(--ease-q, 42ms)) linear,
-		transform var(--transform-speed, var(--ease-q, 42ms)) ease.$easeOutBack;
+		transform var(--transform-speed, var(--ease-q, 42ms)) ease.$easeOutBack,
+		opacity var(--fade-speed, var(--ease-q, 42ms)) linear;
 
 	// ensure icon ALWAYS prefixes text
 	order: -1;
