@@ -165,6 +165,7 @@ import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 import { tapTempo } from './timing/tap-tempo.js'
+import { observeOrientationChange } from './display/display-abstract.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -1570,6 +1571,7 @@ export const createInterface = (
 	 */
 	const setupCamera = async( video, onProgress ) => {
 
+		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 		let investigation
 		
 		// attempt to get a camera that is suitable for the app
@@ -1593,15 +1595,23 @@ export const createInterface = (
 		const quantityOfCameras =  investigation.videoCameraDevices.length
 		camera = investigation.camera
 		
-		// resize canvas to fit video
-		// canvasVideoElement.width = video.width
-		// canvasVideoElement.height = video.height
-		
-		display.setSize( video.videoWidth, video.videoHeight )
+		// resize canvas to fit video with repect to orientation
+		const resizeCanvasAndVideo = () => {
+			// canvasVideoElement.width = video.width
+			// canvasVideoElement.height = video.height
+			display.setSize( video.videoWidth, video.videoHeight )
+			console.info("Orientation Video size changed",  video.videoWidth, canvasVideoElement.width, video.width, video.videoHeight, canvasVideoElement.height, video.height, { camera, video, canvasVideoElement} )
+		}
 
+		resizeCanvasAndVideo()
+		observeOrientationChange((width, height)=>{
+			console.info("Orientation changed", {width, height, camera, video, canvasVideoElement} )
+			// FIXME: Also resize based on camera
+			// resizeCanvasAndVideo()
+		})
 
 		isCameraLoading = false
-
+		
 		const onCameraSelected = async (selected) => {
 			isCameraLoading = true
 			let newCamera
@@ -1615,9 +1625,7 @@ export const createInterface = (
 					camera = newCamera
 					// resize canvvas to match video!
 					// otherwise the aspect-ratio might not be the same
-					// canvasVideoElement.width = video.width
-					// canvasVideoElement.height = video.height
-					display.setSize( video.videoWidth, video.videoHeight )
+					resizeCanvasAndVideo()
 
 					// save the name of the camera locally
 					store.setItem('camera', {deviceId:selected.value})
@@ -1643,31 +1651,30 @@ export const createInterface = (
 			main.classList.toggle( "multiple-cameras", videoCameraDevices.length > 1 )
 		}
 
-		// now ensure that we update the list when devices are added
-		navigator.mediaDevices.ondevicechange = async (event) => {
-			
-			// FIXME: Sometimes software triggers updates heree where no devices
-			// have been addeed or removed
-			const videoCameraDevices = await fetchVideoCameras()
-			updateCameraSelector( videoCameraDevices )
-			console.info("New Camera Detected", {videoCameraDevices, event })
-			setFeedback( `New cameras detected!`, 0, 'camera' )
-		}
-		
 		// check to see if there are multiple cameras and we want a selector
 		if ( quantityOfCameras > 1)
 		{
 			updateCameraSelector( investigation.videoCameraDevices )
 		}
 
+		// now ensure that we update the list when devices are added
+		navigator.mediaDevices.ondevicechange = async (event) => {
+			
+			// FIXME: Sometimes software triggers updates here where no devices
+			// have been addeed or removed so we should compare first
+			const videoCameraDevices = await fetchVideoCameras()
+			updateCameraSelector( videoCameraDevices )
+			console.info("New Camera Detected", {videoCameraDevices, event })
+			setFeedback( `New cameras detected!`, 0, 'camera' )
+		}
+		
 		const cameraFeedbackMessage = investigation.saved ? 
 										"Found saved camera" : 
 										quantityOfCameras > 1 ? 
 											"Located a Camera but you can change it in Settings > Camera" : 
 											"Located front facing camera"
 
-		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
-	
+		
 		return {
 			success:true,
 			message:cameraFeedbackMessage
