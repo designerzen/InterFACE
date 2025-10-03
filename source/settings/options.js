@@ -245,6 +245,10 @@ export const DEFAULT_OPTIONS = {
 	// send out the clock to other tabs and windows
 	broadcast:true,
 
+	// if we want our tempo and clock to be shared with other
+	// devices, we can set them here to all use webRTC to share data
+	room:'',
+
 	// time before we consider the user inactive
 	timeout:2000,
 
