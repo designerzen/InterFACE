@@ -100,9 +100,6 @@
 		)
 	;
 
-	width: 100%;
-	max-width: var(--viewport-max-width,1080px);
-	
 	// padding:
 	// 	calc( 2 * var(--pad)) 
 	// 	max( 2 * var(--pad), var(--w));
@@ -116,9 +113,6 @@
 	// margin-right:var(--pad);
 	// margin-bottom:var(--pad);
 	// border-radius:var(--curve);
-	max-width: min( var(--viewport-max-width, 1080px), 100%); //, calc(100% - 2 * var(--pad)) ;
-	// width: 100%;
-
 	border-bottom-left-radius: var(--curve, 1rem);
 	border-bottom-right-radius: var(--curve, 1rem);
 	overflow: hidden;
@@ -145,13 +139,7 @@
 	position: relative;
 	z-index: 999;
 	box-sizing: border-box;
-	// width: fit-content;
-	// max-width: calc(100% - 2 * var(--pad));
-	// 
-	width: 100%;
-	max-width: var(--viewport-max-width,1080px);
-	
-	
+
 	// margin-top:var(--pad);
 	padding:var(--pad);
 	padding-top: calc( 2 * var(--pad) );
@@ -257,6 +245,13 @@
 	img{
 		filter:contrast(1000%) grayscale(100%);
 	}
+}
+
+#contact, #affiliates{
+	width: 100%;
+	// width: fit-content;
+	// max-width: calc(100% - 2 * var(--pad));
+	max-width: min( var(--viewport-max-width, 1080px), calc( 100% - 2 * var(--pad))); //, calc(100% - 2 * var(--pad)) ;
 }
 
 // transparent orange
