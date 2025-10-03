@@ -5,24 +5,32 @@
  * it could use the Capacitor engine for the app
  */
 
+import { VERSION } from './version.js'
 // import { Capacitor } from '@capacitor/core'
-import { setLoadProgress } from './dom/load-progress'
-import { VERSION } from './version'
+import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
-import { getDomainDefaults } from './settings/options'
+import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options.js'
 import { createInterface } from './interface.js' 
 import { createStore } from './utils/store.js' 
 import { showError} from './dom/errors.js'
+
+import Capabilities from './capabilities.js'
+import Attractor from './attractor.js'
+
+// import { addToolTips, setToast } from './dom/tooltips'
+// import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse'
+import { addKeyboardEvents } from './interface-keyboard.js'
+import { addGamePadEvents } from './interface-gamepad.js'
 
 // If you have nodeIntegration enabled you can call this directly...
 // import VirtualMIDIClass from './audio/midi/midi-connection-virtual.js'
 // or if you care about security (at the expense of speed) then you can use
 // the following bridge and expose the midi method in electron/preload.ts
-import VirtualMIDIClass from './audio/midi/midi-connection-electron-bridge.js'
+// import VirtualMIDIClass from './audio/midi/midi-connection-electron-bridge.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 	
-import Capabilities from './capabilities'
-import Attractor from './attractor'
+
+const MIDI_CONNECTORS = [WebMIDIClass] // [VirtualMIDIClass, WebMIDIClass]
 
 const body = document.documentElement
 const debugMode = window.electron?.debug || false
@@ -38,6 +46,7 @@ body.classList.add( "interface", "desktop" )
 // and what we can do with the tech installed in this device
 const capabilities = new Capabilities()
 
+const createInterface = () => {}
 // TODO: 
 // ESCAPE - no cameras found on system?
 // ESCAPE - no GPU?
@@ -72,7 +81,8 @@ const start = async () => {
 			defaultOptions, 
 			store, 
 			capabilities, 
-			[VirtualMIDIClass, WebMIDIClass], 
+			INSTRUMENT_OPTIONS.list,
+			MIDI_CONNECTORS, 
 			language, 
 			(loadProgress, message, hideLoader=false) => {
 			
@@ -94,6 +104,15 @@ const start = async () => {
 		// app to change parameters on it's own
 		const automator = application.setAutomator( new Attractor(application) )
 		
+		// and create our input handlers 
+		addKeyboardEvents(application)
+		
+		if ( application.getState("gamePad") )
+		{
+			addGamePadEvents( application )
+		}
+
+
 		// console.log("Attract mode!", {automator, application})
 		console.info(`InterFACE Version ${VERSION} in ${language} used ${application.count} times, last time was ${Math.ceil(application.timeElapsedSinceLastPlay/1000)} seconds ago`, {application, defaultOptions } )	
 

@@ -6,7 +6,7 @@ import url from 'node:url'
 import { writeFile } from 'node:fs'
 import windowStateKeeper from 'electron-window-state'
 import electron from 'electron'
-import { app, protocol, shell, BrowserWindow,  session, dialog, ipcMain, desktopCapturer } from 'electron'
+import { app, protocol, shell, BrowserWindow,  session, dialog, ipcMain, nativeTheme, desktopCapturer } from 'electron'
 import { autoUpdater } from "electron-updater"
 import { nativeImage } from 'electron/common'
 import log from 'electron-log'
@@ -15,6 +15,9 @@ import { isElectronDevMode } from './electron-utils.ts'
 import './menu.ts'
 
 import { destroyMIDI, registerMIDI } from './midi.ts'
+
+// 
+if (require('electron-squirrel-startup')) app.quit()
 
 // import LINUX_ICON from '../../resources/icon.png?asset'
 
@@ -126,7 +129,7 @@ function createWindow() {
 			// NB. LKG Portrait requires access to "process.NODE"
 			// so this needs to be exposed via the contextIsolation else disable it
 			// and enable nodeIntegration which is more dangerous
-			contextIsolation: false,
+			contextIsolation: true,
 			
 			 // false is default value after Electron v5
 			nodeIntegration: true,			// prevent node classes being available cross app
@@ -225,6 +228,20 @@ function createWindow() {
 
 	ipcMain.on("show-dialog", (event, message, type="info") => {
 		showVirtualMIDIPortUnavailableError(  message )
+	})
+
+		
+	ipcMain.handle('dark-mode:toggle', () => {
+	if (nativeTheme.shouldUseDarkColors) {
+		nativeTheme.themeSource = 'light'
+	} else {
+		nativeTheme.themeSource = 'dark'
+	}
+	return nativeTheme.shouldUseDarkColors
+	})
+
+	ipcMain.handle('dark-mode:system', () => {
+	nativeTheme.themeSource = 'system'
 	})
 /*
 	// Extra app goodies

@@ -7,7 +7,7 @@
  */
 import { VERSION } from './version'
 import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
-import { setLoadProgress } from './dom/load-progress'
+import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
 import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
@@ -263,13 +263,10 @@ const start = async () => {
 
 		application.addListener(APPLICATION_EVENTS.LOADED, e => {
 			console.error("dispatchCustomEvent Adding game and key events")
-			
-
 			// console.info("Index has completed loading app", {e, application} )
 		})
 		*/
 
-		
 		const loadTime = Date.now() - startLoadTime
 		console.info("Loading internally", loadTime )
 		
