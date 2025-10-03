@@ -1,8 +1,6 @@
 // Project FUGU has a Chrome native version of this API...
 // https://developer.chrome.com/articles/idle-detection/
 
-import { abort } from "process"
-
 const TIME_OUT = 6000	// 6000 is the minimum value for IdleDetector
 
 const hasIdelDetection = () => 'IdleDetector' in window
