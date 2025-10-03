@@ -16,6 +16,7 @@
 		"xr",
 		"ar"
 	],
+	"main": "dist-electron/electron/main.js",
 	"targets": {
 		"main": false,
 		"electron-preload": {
@@ -68,7 +69,6 @@
 	"scripts": {
 		"kill": "npx kill-port 303",
 		"optional": "node-gyp-build-optional-packages",
-		"postinstall?": "electron-builder install-app-deps",
 		"secure": "npx @socketsecurity/cli optimize",
 		"test": "jest",
 		"test-watch": "jest --watch",
@@ -106,6 +106,7 @@
 		"serve:index": "parcel serve source/index.pug -p 909",
 		"serve:tests": "parcel serve source/tests.pug -p 909",
 		"serve:wam": "parcel serve source/tests.pug -p 909",
+		"party": "npx partykit dev",
 		"=BUILD=": "------------------------------------",
 		"build": "npm run assets && npm run build:web",
 		"report": "parcel build --reporter @parcel/reporter-bundle-analyzer source/index.pug --public-url ./ --target web",
@@ -117,7 +118,6 @@
 		"build:index": "parcel build --public-url ./ source/index.pug --target web",
 		"build:release": "parcel build --target electron-main --target electron-renderer --target web",
 		"build:web": "parcel build --target web",
-		"vite": "vite",
 		"=ELECTRON=": "------------------------------------",
 		"electron:rebuild": "npx electron-rebuild",
 		"electron:clean": "rimraf dist-electron && rimraf release",
@@ -145,6 +145,7 @@
 		"make:electron": "electron-builder -mwl",
 		"=DESKTOP=": "------------------------------------",
 		"desktop:start": "electron-forge start",
+		"desktop:dev": "npm run electron:build && concurrently 'npm:electron:serve' 'npm:desktop:start'",
 		"desktop:package": "electron-forge package",
 		"desktop:make": "electron-forge make",
 		"desktop:publish": "electron-forge publish",
