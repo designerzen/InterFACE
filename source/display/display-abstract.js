@@ -7,6 +7,58 @@
 const DEFAULT_PERFORMANCE_BOUNDARY_SIZE = 1080
 
 /**
+ * 
+ * @returns {String} portrait-primary, portrait-secondary, landscape-primary, or landscape-secondary
+ */
+export const getScreenOrientation = () => {
+	if ('orientation' in screen) 
+	{
+		// console.log('Screen Orientation API is supported')
+		// console.log(`screen Current Orientation: ${screen.orientation.type}`, {video} )
+		// screen.orientation.addEventListener('change', function() {
+		// 	console.log(`screen New Orientation: ${screen.orientation.type}`);
+		// 	// Add custom logic here to handle orientation changes
+		// })
+		return screen.orientation.type
+		
+	} 
+	const isLandscape = window.innerWidth > window.innerHeight
+	console.log('Screen Orientation API is not supported in your browser.', {isLandscape} )
+	return isLandscape ? 'landscape-primary' : 'portrait-primary'
+}
+
+export const isScreenPortrait = () => getScreenOrientation().startsWith('portrait-')
+export const isScreenLandscape = () => getScreenOrientation().startsWith('landscape-')
+
+export const observeOrientationChange = (callback, debounceTime=5 ) => {
+	if ('orientation' in screen && screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+		screen.orientation.addEventListener('change', callback )
+	} else {
+		// Polyfill: listen to window resize and call callback if orientation changes
+		let lastOrientation = getScreenOrientation()
+		let intervalId = -1
+		window.addEventListener('resize', function onResize() {
+
+			const current = getScreenOrientation()
+			if (current === lastOrientation) {
+				// nothing has changed
+				return
+			}
+
+			clearInterval( intervalId )
+			setTimeout( ()=>{
+			
+				lastOrientation = current
+				callback()
+			
+			}, debounceTime )
+		
+		})
+		//console.log('Screen Orientation API is not supported in your browser. Polyfilling orientation change with resize event.');
+	}
+}
+
+/**
  * Overwrite these methods in your own displays
  */
 export default class AbstractDisplay{

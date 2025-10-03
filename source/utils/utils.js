@@ -76,3 +76,13 @@ export const fileSaveAs = async (blob) => {
 		return false
 	}
 }
+
+
+
+export const isBrowser = () => typeof window === "object" && typeof process === "undefined";
+
+export const disableContextMenu = () => {
+	document.documentElement.oncontextmenu = function() {
+		return false
+	}
+}
