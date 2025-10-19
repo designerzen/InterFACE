@@ -8,7 +8,7 @@
  */
 // 
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
-import DisplayLookingGlass3D, { createXRToggleButton } from './display-looking-glass-3d.js'
+// import DisplayLookingGlass3D, { createXRToggleButton } from './display-looking-glass-3d.js'
 
 import {DISPLAY_TYPES} from './display-types.js'
 
@@ -180,7 +180,7 @@ export const getDisplayAvailability = async( previousDisplay ) => {
  * @param {String} displayType 
  * @returns 
  */
-export const changeDisplay = async(canvasElement, displayType, renderLoop, options ) => {
+export const changeDisplay = async(canvasElement, displayType, renderLoop, options={} ) => {
 	
 	// display type may be a string or an object
 	if (!canvasElement)

@@ -24,7 +24,7 @@
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
 import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr/dist/bundle/webxr.js"
 
-import * as THREE from "three/src/Three.js"
+import * as THREE from "three"
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
 
 // import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'

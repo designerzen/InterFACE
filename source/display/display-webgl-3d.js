@@ -1,7 +1,9 @@
 import AbstractDisplay from "./display-abstract"
+import { DISPLAY_WEB_GL_3D } from "./display-types.js"
+
 import { TAU } from "../maths/maths.js"
 
-import * as THREE from "three/src/Three.js"
+import * as THREE from "three"
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
@@ -19,29 +21,22 @@ import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 //- import WebGPU from 'three/addons/capabilities/WebGPU.js'
 //- import WebGL from 'three/addons/capabilities/WebGL.js'
 //- import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js'
-import { FaceLandmarker } from "@mediapipe/tasks-vision"
-
 import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompass'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 
 import {Text, getCaretAtPoint} from 'troika-three-text'
 
-import { 
-	arrangeFaceData,
-	preload3dFont,
-	createFaceGeometryFromData,
-	convertMeshToSimplifiedGeometry
-} from '../visual/3d.js'
+import { preload3dFont } from '../visual/3d.js'
 
 import { Particle, ParticleTracer } from "../visual/3d.particles.js"
 import { AVATAR_DATA, unloadModel, createLoaderForModel, calculateModelScale, improveVRMPerformance } from '../models/avatars.js'
+import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
 
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 // https://stats.renaudrohlinger.com/
 // import Stats from 'three/examples/jsm/libs/stats.module'
 import Stats from 'stats-gl'
-import { DISPLAY_WEB_GL_3D } from "./display-types.js"
 
 // Assets :
 // import FACE_MATERIAL from '/source/assets/actors/ICTFaceModelMaterial.mtl'
@@ -66,7 +61,7 @@ let data = FACE_LANDMARKS_DATA["0"]
 // import { OverrideMaterialManager } from 'postprocessing'
 // OverrideMaterialManager.workaroundEnabled = true
 
-window.THREE = THREE
+// window.THREE = THREE
 
 let stats
 
@@ -102,7 +97,7 @@ export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
 }
 
- const lerpMorphTarget = (target, value, speed = 0.1) => {
+const lerpMorphTarget = (target, value, speed = 0.1) => {
     scene.traverse((child) => {
 		if (child.isSkinnedMesh && child.morphTargetDictionary) {
 			const index = child.morphTargetDictionary[target]
@@ -149,6 +144,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	container
 	faceMesh
 
+	avatar
+
 	windowHalfX = 0
 	windowHalfY = 0
 
@@ -162,6 +159,19 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	get depth(){
 		return 100
 	}
+
+	/**
+	 * return the canvas context directly from three
+	 */
+	get canvasContext()
+	{
+		if (!this.canvas2DContext)
+		{
+			this.canvas2DContext = this.canvas.getContext('2d')
+		}
+		return this.canvas2DContext
+	}
+
 
 	// 0->2	// 0.5 is good, anything more than 1 makes sexy
 	set exposure(value){
@@ -189,67 +199,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 	cancelAnimationLoop(){
 		this.renderer.setAnimationLoop(null)
-	}
-
-	createFace(faceMesh, size=null) {
-		// if there is a face mesh material, activate it
-		const meshes = faceMesh.material ? [faceMesh] : faceMesh.children
-		
-		// try and find all meshes with blendshapes
-		if (this.options.blendShapes)
-		{
-			meshes.forEach( mesh => {
-				if (mesh.material)
-				{
-					if (avatar.opacity < 1)
-					{
-						mesh.material.transparent = true
-						mesh.material.opacity = avatar.opacity
-					} 	 
-
-					if (avatar.HSL)
-					{
-						mesh.material.color.setHSL( 0.5, 0.6, 0.6 )
-					}
-
-					if (this.morphable)
-					{
-						mesh.material.morphtargets = true
-					}
-				}
-
-				// reset to empty!
-				// NB. this breaks the dictionary!
-				// child.updateMorphTargets()
-			})		
-		}
-	
-		// Set scale if provided
-		if (size)
-		{
-			faceMesh.scale.set(size, size, size)
-			// console.info("FaceMesh", {faceMesh, size})
-		}
-
-		// Reposition and rotate
-
-		// const Blendshape = faceMesh.blendShapeProxy
-		// const PresetName = THREE.VRMSchema.BlendShapePresetName
-		
-		// console.error("Blendshapes", {faceMesh, Blendshape, PresetName} )
-		//, Blendshape.getValue(PresetName.CHEEK_PUFF) )
-
-
-		// position in front the camera but behind the particles
-		faceMesh.position.z = avatar.pos?.z ?? 0
-		faceMesh.position.y = avatar.pos?.y ?? 0
-		faceMesh.position.x = avatar.pos?.x ?? 0
-
-		faceMesh.rotateX( avatar.rot?.x ?? 0 )
-		faceMesh.rotateY( avatar.rot?.y ?? 0 )
-		faceMesh.rotateZ( avatar.rot?.z ?? 0 )
-		
-		return new THREE.Box3().setFromObject(faceMesh).getSize(new THREE.Vector3())
 	}
 
 	/**
@@ -305,7 +254,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
 		// for model loading we want the correct encoding
-		renderer.outputEncoding = THREE.sRGBEncoding
+		// NB.. disabled in 2025 due to direct to GL (so now only srgb)
+		// renderer.outputEncoding = THREE.sRGBEncoding
 
 		
 		// we can swap this for the orthogonal camera
@@ -314,8 +264,12 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// camera.position.z = 3.5
 		camera.lookAt( scene.position )
 		
+		const avatarMeta = AVATAR_DATA.racoon
+		this.avatar = new Avatar( avatarMeta.name )
+		const { faceMesh, faceGroup, geometry } = await this.avatar.loadModel( avatarMeta, 1 )
+
 		// 
-		const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
+		// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
 
 		const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
@@ -381,10 +335,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			document.body.addEventListener( 'pointermove', this.mouseMoveProxy ) 
 		}
 
-		const webcamVideo = document.getElementById("webcam")
-		if (webcamVideo) {
-			webcamVideo.hidden = true 
-		}
+		// const webcamVideo = document.getElementById("webcam")
+		// if (webcamVideo) {
+		// 	webcamVideo.hidden = true 
+		// }
 		
 		if (options.debug)
 		{
@@ -454,10 +408,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.directionalLight = null
 
 		// reshow the camera feed
-		const webcamVideo = document.getElementById("webcam")
-		if (webcamVideo) {
-			webcamVideo.hidden = false 
-		}
+		// const webcamVideo = document.getElementById("webcam")
+		// if (webcamVideo) {
+		// 	webcamVideo.hidden = false 
+		// }
 
 		if (stats)
 		{
@@ -598,7 +552,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		controls.target.set(0, 0, 0)
 		controls.enableDamping = true
 		controls.update()
-		this.controls
 	}
 
 	/**
@@ -663,7 +616,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const size = box3.getSize(new THREE.Vector3())
 		// const center = box3.getCenter(new THREE.Vector3())
 		//const zoomLevel = Math.min( this.faceMeshSize.x / size.x, this.faceMeshSize.y / size.y, this.faceMeshSize.z / size.z )
-		const zoomLevel =  1.33 + this.faceMeshSize.x / size.x + this.faceMeshSize.y / size.y + this.faceMeshSize.z / size.z
+		const zoomLevel =  1.33 + this.avatar.faceMeshSize.x / size.x + this.avatar.faceMeshSize.y / size.y + this.avatar.faceMeshSize.z / size.z
 		const zoom = zoomLevel // 4.5
 		
 		const positions = this.particles.geometry.attributes.position.array
@@ -680,7 +633,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			// do action 
 			// const particlePosition = 
 			// if ( i > KEYPOINT_QUANTITY) 
-				particleClass.update()
+			particleClass.update()
 			// if ( i > KEYPOINT_QUANTITY && i % 9 === 0)
 			if ( i === 0 )
 			{
@@ -1040,6 +993,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		{
 			// get blend shape predictions for face 1
 			const blendShapePredictions = prediction.faceBlendshapes.categories
+			
+			// avatar.updateFromPrediction( blendShapePredictions )
 			// const blendMap = new Map()
 			blendShapePredictions.forEach((blendShape,index) => {
 				const blendShapeIndex = this.faceMesh.morphTargetDictionary[blendShape.categoryName] // ?? this.faceMesh.morphTargetDictionary[blendShape.index]
@@ -1251,16 +1206,13 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 				{
 					if (person.instrumentLoading)
 					{
-						FaceLandmarker.FACE_LANDMARKS_TESSELATION
 
 					} else if(person.isMouthOpen) {
 
-						FaceLandmarker.FACE_LANDMARKS_TESSELATION
 					}
 
 				}else{
   
-					FaceLandmarker.FACE_LANDMARKS_FACE_OVAL
 					// default mode is always blobs
 					// drawPoints( prediction, colours, 3, person.instrumentLoading, this.debug )
 				}
@@ -1268,12 +1220,9 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 			} else if (options.drawNodes) {
 
 				// just blobs
-				// drawPoints( prediction, colours, 3, person.instrumentLoading, this.debug )
-				FaceLandmarker.FACE_LANDMARKS_FACE_OVAL
 			
 			} else if (options.drawMesh) {
 
-				FaceLandmarker.FACE_LANDMARKS_TESSELATION
 
 			}
 		}
@@ -1316,15 +1265,10 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 			if (person.isMouthOpen && person.singing)
 			{
 				// Inner
-				// drawLip( annotations.innerLip, lipColours, mouthColours )
-				
-				FaceLandmarker.FACE_LANDMARKS_LIPS
 				
 			}else{
 
 				// Outer
-				// drawLip( annotations.outerLip, lipColours, mouthColoursClosed )
-				FaceLandmarker.FACE_LANDMARKS_LIPS
 				// mouth closed or not singing
 				// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
 			}
@@ -1363,10 +1307,6 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 		
 		if (options.drawEyebrows){
 		
-			// FIXME: draw some funky eyebrows!
-			FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW
-			FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW
-			
 		}else{
 			// default fails
 		}
@@ -1460,7 +1400,7 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 
 	/**
 	 * EVENT : User has interacted with the mouse whilst over this component
-	 * @param {*} event 
+	 * @param {PointerEvent} event 
 	 * @returns 
 	 */
 	onPointerMove(event){

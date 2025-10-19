@@ -149,6 +149,21 @@ export default class AbstractDisplay{
 	get id(){
 		return this.name + "_" + AbstractDisplay.index
 	}
+		
+	/**
+	 * Lazily create the canvasContext
+	 * NB. Ensure you overwrite this in your
+	 * displayas this defaults to 2d whereas
+	 * you may want webGL or WebGPU for example
+	 */
+	get canvasContext()
+	{
+		if (!this.canvas2DContext)
+		{
+			this.canvas2DContext = this.canvas.getContext('2d')
+		}
+		return this.canvas2DContext
+	}
 
 	constructor(canvas, initialWidth, initialHeight, options={} ){
 		this.canvas = canvas
@@ -189,6 +204,20 @@ export default class AbstractDisplay{
 		// navigate to end of chain and append our new display
 		last.nextDisplayLink = display
 		display.previousDisplayLink = last
+	}
+
+	/**
+	 * 
+	 */
+	drawHitArea(x,y,width,height, colour="transparent"){
+		// create path
+		const path = new Path2D()
+		// path.arc(150, 75, 50, 0, 2 * Math.PI)
+		path.rect(x,y,width,height)
+		// draw to canvas
+		this.canvasContext.fillStyle = colour
+		this.canvasContext.fill(path)
+		return path
 	}
 
 	cancelAnimationLoop(){

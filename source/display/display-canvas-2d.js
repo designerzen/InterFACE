@@ -484,6 +484,7 @@ export default class Display2D extends AbstractDisplay{
 		this.canvasContext.fillStyle  = fillColour || lineColour
 		this.canvasContext.strokeWidth = strokeWidth
 
+		console.error( "drawRectangle(", {x, y, width, height, radius} )
 		drawRoundedRect( this.canvasContext, x, y, width, height, radius, true, true )
 	}
 	
