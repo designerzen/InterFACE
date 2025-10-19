@@ -9,7 +9,7 @@ import {
 	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
 } from './timing.events.js'
 
-import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
+// import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
 // import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
 // import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
 // import { createTimingProcessor } from './timing.audioworklet.js'

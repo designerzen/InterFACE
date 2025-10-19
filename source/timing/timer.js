@@ -9,7 +9,7 @@ import {
 	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
 } from './timing.events.js'
 
-import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
+import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js?worker&url'
 // import AUDIOCONTEXT_WORKER_URI from './timing.audiocontext.worker.js?worker&url'
 // import AUDIOTIMER_WORKLET_URI from './timing.audioworklet.js?worker&url'
 // import AUDIOTIMER_PROCESSOR_URI from './timing.audioworklet-processor.js?worker&url'
@@ -26,10 +26,12 @@ const DEFAULT_TIMER_OPTIONS = {
 	bpm:90,
 
 	contexts:null,
-	// 
+
+	// you can use audioworklet if you really want
 	type:AUDIOCONTEXT_WORKER_URI,
 	// type:AUDIOTIMER_WORKLET_URI,
 	// processor:AUDIOTIMER_PROCESSOR_URI,
+
 	callback:null
 }
 
@@ -280,6 +282,11 @@ export default class Timer {
 	get isUsingExternalTrigger(){
 		return this.isBypassed
 	}
+
+	get timeCode(){
+		return `${String(this.bar).padStart(2, '0')}:${this.bars}:${String(this.barsElapsed).padStart(3, '0')} [${String(this.divisionsElapsed).padStart(2, '0')}] ${formatTimeStampFromSeconds(this.timeElapsed)}`
+	}
+
 	// Setters
 
 	/**

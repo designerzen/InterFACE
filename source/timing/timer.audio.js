@@ -1,8 +1,7 @@
 import Timer from "./timer.js"
 
 import AUDIOTIMER_WORKLET_URI from 'url:./timing.audioworklet.js'
-import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js'
-// FIXME: 
+import AUDIOTIMER_PROCESSOR_URI from 'url:./timing.audioworklet-processor.js' 
 import AUDIOCONTEXT_WORKER_URI from 'url:./timing.audiocontext.worker.js'
 
 const DEFAULT_AUDIO_TIMER_OPTIONS = {
