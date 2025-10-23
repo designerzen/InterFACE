@@ -37,7 +37,7 @@ const APP_ROOT = path.resolve( __dirname, isDevelopment ?  "../../dist-electron/
 
 // and ./electron/resources/preload.js for the test build
 const PRELOADER_PATH = path.join(APP_ROOT, 'preload.js' )
-const LINUX_ICON = path.join(APP_ROOT,`../main/icons/png/1024x1024.png`)
+const LINUX_ICON = path.join(APP_ROOT,`../../icons/icon-512.webp`)
 
 let mainWindow:BrowserWindow|null = null
 
@@ -129,8 +129,9 @@ function createWindow() {
 			// NB. LKG Portrait requires access to "process.NODE"
 			// so this needs to be exposed via the contextIsolation else disable it
 			// and enable nodeIntegration which is more dangerous
-			contextIsolation: true,
-			
+			// contextIsolation: true,
+			contextIsolation: false,
+		
 			 // false is default value after Electron v5
 			nodeIntegration: true,			// prevent node classes being available cross app
 			nodeIntegrationInWorker: true,
