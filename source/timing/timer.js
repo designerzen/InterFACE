@@ -72,12 +72,12 @@ export const convertMIDIClockIntervalToBPM = (millisecondsPerClockEvent, pulsesP
  * Pass in a Timer, return a formatted time
  * such as HH:MM:SS
  */
-export const formatTimeStampFromSeconds = (seconds) => {
+export const formatTimeStampFromSeconds = (seconds, showHours=true ) => {
 	const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     const remainingSeconds = (seconds % 60)
     const milliseconds = (remainingSeconds%1).toFixed(2).slice(2)
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(Math.floor(remainingSeconds)).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`
+    return `${ showHours ? String(hours).padStart(2, '0')+":" : "" }${String(minutes).padStart(2, '0')}:${String(Math.floor(remainingSeconds)).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`
 }
 
 export default class Timer {

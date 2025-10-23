@@ -24,6 +24,10 @@ export class Timeout{
 		return this.#duration - this.elapsed
 	}
 
+	get overshoot(){
+		return this.elapsed - this.#duration
+	}
+
 	get hasCompleted(){
 		return this.elapsed > this.#duration
 	}
