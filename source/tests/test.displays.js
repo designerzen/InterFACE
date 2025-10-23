@@ -14,9 +14,11 @@ import { DISPLAY_TYPES, DISPLAY_IDS } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 import { now } from "../timing/timing.js"
 
+// JSON data from data_source
 // import DATA_SOURCE from 'raw:/source/tests/test.face.json'
 import DATA_SOURCE from 'raw:/source/tests/test.face-stream.json'
-// JSON data from data_source
+import { AVATAR_DATA } from "../models/avatars.js"
+import Avatar from "../models/avatar.js"
 
 let DATA
 let DATA_KEYS 
@@ -147,9 +149,7 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 			selectDisplay.value = newDisplayType
 			
 			console.log("Display changed", {canvas, display}, canvas.parentNode)
-
 			result.textContent = "Display updated " + newDisplayType
-
 
 		}catch(error){
 			console.error("Display Could not be swapped", error)
@@ -158,6 +158,11 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	console.info("Registering displays with canvas", canvas, canvas.parentElement)
 }
 
+const loadAvatar = async ( avatarModel ) => {
+	const avatar = new Avatar()
+	const faceModel = await avatar.loadModel( avatarModel )
+	console.log("Avatar created", avatar, "with face", faceModel, "with", avatarModel  )
+}
 
 async function init(){
 
@@ -166,10 +171,40 @@ async function init(){
 	DATA = response
 	DATA_KEYS = Object.keys( DATA )
 
+	console.info("Display Loaded JSON Data", DATA_KEYS )
+
 	canvas = document.querySelector('canvas')
 	
 	console.log("Person created", person, "with", {DATA, DATA_KEYS} )
 	
+	// console.log("\nAvatar Racoon loading", AVATAR_DATA.racoon, "----------------------" )
+	// const model = await loadAvatar( AVATAR_DATA.racoon )
+
+
+	/*
+	// test the Avatar loader
+	console.log("\nAvatar Cyborg loading", AVATAR_DATA.cyborg, "----------------------" )
+	await loadAvatar( AVATAR_DATA.cyborg )
+	
+
+	console.log("\nAvatar Face loading", AVATAR_DATA.face, "----------------------" )
+	await loadAvatar( AVATAR_DATA.face )
+
+	console.log("\nAvatar Albert loading", AVATAR_DATA.albert, "----------------------" )
+	await loadAvatar( AVATAR_DATA.albert )
+
+	console.log("\nAvatar Sam loading", AVATAR_DATA.sam, "----------------------" )
+	await loadAvatar( AVATAR_DATA.sam )
+
+	console.log("\nAvatar Sushi loading", AVATAR_DATA.sushi, "----------------------" )
+	await loadAvatar( AVATAR_DATA.sushi )
+
+	console.log("\nAvatar Droid loading", AVATAR_DATA.droid, "----------------------" )
+	await loadAvatar( AVATAR_DATA.droid )
+
+	console.log("\nAvatar Twist loading", AVATAR_DATA.twist, "----------------------" )
+	await loadAvatar( AVATAR_DATA.twist )
+	*/
 
 	// swap canvases numerous times...
 	// display = await changeDisplay( canvas, DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D, render )
