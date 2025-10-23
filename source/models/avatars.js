@@ -10,12 +10,12 @@ import { VRMLoaderPlugin } from '@pixiv/three-vrm'
 
 // ARKit blendshape facial models
 // import CYBORG_FACE from "url:/source/assets/actors/FaceCapLiveModeAvatar/FaceCapLiveModeAvatar.fbx"
-import OLIVIER_WILDE from "url:/source/assets/actors/Olivia Wilde - 3D Model.fbx"
+// import OLIVIER_WILDE from "url:/source/assets/actors/Olivia Wilde - 3D Model.fbx"
 import BRUNETTE from "url:/source/assets/actors/brunette.glb"
 // import CYBORG_FACE from "url:/source/assets/actors/blender_sushi_virtual_journal_16th_april_2020.glb"
-import CYBORG_FACE from "url:/source/assets/actors/cyborg.glb"
+// import CYBORG_FACE from "url:/source/assets/actors/cyborg.glb"
 
-import SUSHI_FACE_MESH from 'url:/source/assets/actors/blender_sushi_virtual_journal_16th_april_2020.glb'
+// import SUSHI_FACE_MESH from 'url:/source/assets/actors/blender_sushi_virtual_journal_16th_april_2020.glb'
 
 // https://github.com/hinzka/52blendshapes-for-VRoid-face
 // import AL_FACE_MESH from 'url:/source/assets/actors/AL_Standard.fbx'
@@ -33,11 +33,11 @@ import SAMANTHA_FACE_MESH from 'url:/source/assets/actors/Beautiful 3D Model Hea
 // import ANIME_SAVI_FACE_MESH from 'url:/source/assets/actors/savi.vrm'
 
 // import CANONICAL_FACE from "url:/source/assets/actors/canonical_face_model.fbx"
-import CANONICAL_FACE from "url:/source/assets/actors/canonical_face_model.obj"
+// import CANONICAL_FACE from "url:/source/assets/actors/canonical_face_model.obj"
 import RACOON_FACE_MESH from 'url:/source/assets/actors/raccoon_head.glb'
-import TWIST_FACE_MESH from 'url:/source/assets/actors/VRM1_Constraint_Twist_Sample.vrm'
-import VRDROID_FACE_MESH from 'url:/source/assets/actors/vrdroid.vrm'
-import ALIEN_FACE_MESH from 'url:/source/assets/actors/Female Blue Alien Face/Female Blue Alien Face model.fbx'
+// import TWIST_FACE_MESH from 'url:/source/assets/actors/VRM1_Constraint_Twist_Sample.vrm'
+// import VRDROID_FACE_MESH from 'url:/source/assets/actors/vrdroid.vrm'
+// import ALIEN_FACE_MESH from 'url:/source/assets/actors/Female Blue Alien Face/Female Blue Alien Face model.fbx'
 
 import { VRMUtils } from '@pixiv/three-vrm'
 
@@ -57,6 +57,7 @@ export const AVATAR_DATA = {
 		rot:{ x:-Math.PI / 2, y:0, z:0 }
 	},
 
+	/*
 	olivier:{
 		name:"Olivier",
 		model:OLIVIER_WILDE,
@@ -119,6 +120,8 @@ export const AVATAR_DATA = {
 		rot:{ x:3* Math.PI/2, y:0, z:0 }
 	},
 
+	*/
+
 	// All 52!	
 	racoon:{
 		name:"Racoon",
@@ -129,6 +132,7 @@ export const AVATAR_DATA = {
 		rot:{ x:0, y:0, z:0 }
 	},	
 
+	/*
 	droid:{
 		name:"Droid",
 		model:VRDROID_FACE_MESH,
@@ -146,7 +150,7 @@ export const AVATAR_DATA = {
 		pos:{ x:0, y:0, z:0 },
 		rot:{ x:0, y:0, z:0 }
 	},	
-
+	*/
 
 	// no blendshapes 	
 	// al:{
