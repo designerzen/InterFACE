@@ -3,7 +3,7 @@ import { DISPLAY_WEB_GL_3D } from "./display-types.js"
 
 import { TAU } from "../maths/maths.js"
 
-import * as THREE from "three"
+import {AdditiveBlending, AmbientLight, Box3, Color, DirectionalLight, DoubleSide, FogExp2, IcosahedronGeometry, Line, LinearFilter, LineBasicMaterial, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, ReinhardToneMapping, Scene, Sprite, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer} from "three"
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
@@ -50,10 +50,9 @@ import Stats from 'stats-gl'
 import PARTICLE_URI from 'url:../assets/particles/particle.png'
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
 import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
+import { Object3D } from "three"
+import { Clock } from "three"
 
-
-// select the avatar you want to use
-const avatar = AVATAR_DATA.racoon
 
 let data = FACE_LANDMARKS_DATA["0"]
 
@@ -109,7 +108,7 @@ const lerpMorphTarget = (target, value, speed = 0.1) => {
 			}
 
 			// now lerp the shape twoards the target
-			child.morphTargetInfluences[index] = THREE.MathUtils.lerp(
+			child.morphTargetInfluences[index] = MathUtils.lerp(
 				child.morphTargetInfluences[index],
 				value,
 				speed
@@ -153,8 +152,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	mouseY = 0
 
 	count = 0
-
-	morphable = false
 
 	get depth(){
 		return 100
@@ -209,8 +206,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	 */
 	async create( keypointQuantity=478, options={} ){ 
 
-		const scene = new THREE.Scene()
-		const clock = new THREE.Clock()
+		const scene = new Scene()
+		const clock = new Clock()
 
 		options = {
 			...DEFAULT_OPTIONS_DISPLAY_WEBGL,
@@ -218,20 +215,20 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		}
 		
 		// light that illuminates everything
-		const ambientLight = new THREE.AmbientLight( options.lightColour, options.lightIntensity )
+		const ambientLight = new AmbientLight( options.lightColour, options.lightIntensity )
 		scene.add(ambientLight)
 
 		// adding some lights to the scene
-		const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1)
+		const directionalLight = new DirectionalLight(0xFFFFFF, 1)
 		directionalLight.position.set(0, 1, 2)
 		// scene.add(directionalLight)
 	
 		if (options.fog)
 		{
-			scene.fog = new THREE.FogExp2( 0x000000, 0.001 )
+			scene.fog = new FogExp2( 0x000000, 0.001 )
 		}
 
-		// const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+		// const directionalLight = new DirectionalLight(0xffffff, 1)
 		// directionalLight.position.set(3, 3, 3)
 		// scene.add(directionalLight)
 		
@@ -241,33 +238,40 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			// ...options
 		}
 
-		const renderer = new THREE.WebGLRenderer(rendererOptions)
+		const renderer = new WebGLRenderer(rendererOptions)
 		
 		renderer.setPixelRatio(window.devicePixelRatio)
 
 		// renderer.physicallyCorrectLights = true
-		// renderer.toneMapping = THREE.ACESFilmicToneMapping
-		renderer.toneMapping = THREE.ReinhardToneMapping
+		// renderer.toneMapping = ACESFilmicToneMapping
+		renderer.toneMapping = ReinhardToneMapping
 		
 		// renderer.toneMappingExposure = 1
 		// renderer.shadowMap.enabled = true
-		// renderer.shadowMap.type = THREE.PCFSoftShadowMap
+		// renderer.shadowMap.type = PCFSoftShadowMap
 
 		// for model loading we want the correct encoding
 		// NB.. disabled in 2025 due to direct to GL (so now only srgb)
-		// renderer.outputEncoding = THREE.sRGBEncoding
+		// renderer.outputEncoding = sRGBEncoding
 
 		
 		// we can swap this for the orthogonal camera
 		// for extra style points
-		const camera = new THREE.PerspectiveCamera()
+		const camera = new PerspectiveCamera()
 		// camera.position.z = 3.5
 		camera.lookAt( scene.position )
 		
+		
+		// select the avatar you want to use
 		const avatarMeta = AVATAR_DATA.racoon
 		this.avatar = new Avatar( avatarMeta.name )
-		const { faceMesh, faceGroup, geometry } = await this.avatar.loadModel( avatarMeta, 1 )
+		const { faceMesh, faceGroup } = await this.avatar.loadModel( avatarMeta, 1 )
+		
+		const { keypoints, facialTransformationMatrixes, box } = data
 
+		// 478 is the amount of nodes in the mesh?
+		const geometry = createFaceGeometryFromData( keypoints, 478, 1 )
+		
 		// 
 		// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
 
@@ -296,29 +300,24 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		text.fontSize = 0.12
 		text.anchorX = 'center'
 		text.anchorY = 'top'
-		text.color = THREE.Color.NAMES.white
+		text.color = Color.NAMES.white
 		// text.scale.set(0.001)
 	 
 		// Avatar container
-		const container = new THREE.Object3D()
-
 		scene.add( text )
 		scene.add( faceMesh )
 		scene.add( particles )
-		scene.add( container )
-		container.add( faceMesh )
 
 		// for debuggin vectors
-		// const tG = new THREE.BufferGeometry().setFromPoints([ new THREE.Vector3(), new THREE.Vector3() ])
-		// const tM = new THREE.LineBasicMaterial({color: "yellow"})
-		// const tracker = new THREE.Line(tG, tM)
+		// const tG = new BufferGeometry().setFromPoints([ new Vector3(), new Vector3() ])
+		// const tM = new LineBasicMaterial({color: "yellow"})
+		// const tracker = new Line(tG, tM)
 		// scene.add(tracker)
 
 		this.clock = clock
 		this.scene = scene
 		this.renderer = renderer
 		this.camera = camera
-		this.container = container
 		// this.tracker = tracker
 		this.text = text
 		this.particles = particles
@@ -440,7 +439,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			const BLOOM = BLOOM_SCENE
 
 			// SELECTIVE
-			bloomPass = new SelectiveUnrealBloomPass( new THREE.Vector2( this.width, this.height ), 3, 1, 0.01, true, BLOOM, this.scene, this.camera )
+			bloomPass = new SelectiveUnrealBloomPass( new Vector2( this.width, this.height ), 3, 1, 0.01, true, BLOOM, this.scene, this.camera )
 					
 			this.camera.layers.enable(BLOOM)
 			// this.camera.layers.set(BLOOM)
@@ -452,7 +451,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 			// GLOBAL :
 			this.camera.layers.enableAll()
-			bloomPass = new SelectiveUnrealBloomPass( new THREE.Vector2( this.width, this.height ), 3, 1, 0.01)
+			bloomPass = new SelectiveUnrealBloomPass( new Vector2( this.width, this.height ), 3, 1, 0.01)
 		}
 
 
@@ -461,8 +460,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		glitchPass.uniforms[ 'angle' ].value = Math.PI
 		glitchPass.uniforms[ 'distortion_x' ].value = 0
 		glitchPass.uniforms[ 'distortion_y' ].value = 0
-		glitchPass.uniforms[ 'seed_x' ].value = THREE.MathUtils.randFloat(-0.01,0.01)
-		glitchPass.uniforms[ 'seed_y' ].value = THREE.MathUtils.randFloat(-0.01,0.01)
+		glitchPass.uniforms[ 'seed_x' ].value = MathUtils.randFloat(-0.01,0.01)
+		glitchPass.uniforms[ 'seed_y' ].value = MathUtils.randFloat(-0.01,0.01)
 
 		const effectFilm = new FilmPass( 0.8, 0.7, 1448, false )
 		
@@ -497,8 +496,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 
 	addLine(geometry, color=0xff0000){
-		const lineMaterial = new THREE.LineBasicMaterial( { color } )
-		const lines = new THREE.Line( geometry, lineMaterial )
+		const lineMaterial = new LineBasicMaterial( { color } )
+		const lines = new Line( geometry, lineMaterial )
 		this.lines = lines
 	}
 
@@ -506,13 +505,13 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			
 		// create a background video image so we can accurately
 		// synch the video to the overlays
-		const videoTexture = new THREE.Texture(video)
-		videoTexture.minFilter = THREE.LinearFilter
-		const videoSprite = new THREE.Sprite(new THREE.MeshBasicMaterial({
+		const videoTexture = new Texture(video)
+		videoTexture.minFilter = LinearFilter
+		const videoSprite = new Sprite(new MeshBasicMaterial({
 			map: videoTexture,
 			depthWrite: false,
 			// FIXME:
-			side: THREE.DoubleSide
+			side: DoubleSide
 		}))
 		videoSprite.center.set(0.5, 0.5)
 		videoSprite.scale.set(-video.videoWidth, video.videoHeight, 1)
@@ -530,14 +529,14 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 	addDebugElements(){
 		
-		const geometry = new THREE.IcosahedronGeometry( 1, 15 )
+		const geometry = new IcosahedronGeometry( 1, 15 )
 		for ( let i = 0; i < 50; ++i ) 
 		{
-			const color = new THREE.Color()
+			const color = new Color()
 			color.setHSL( Math.random(), 0.7, Math.random() * 0.2 + 0.05 )
 
-			const material = new THREE.MeshBasicMaterial( { color: color } )
-			const sphere = new THREE.Mesh( geometry, material )
+			const material = new MeshBasicMaterial( { color: color } )
+			const sphere = new Mesh( geometry, material )
 			sphere.position.x = Math.random() * 10 - 5
 			sphere.position.y = Math.random() * 10 - 5
 			sphere.position.z = Math.random() * 10 - 5
@@ -612,9 +611,9 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const { keypoints, facialTransformationMatrixes, box } = data
 
 		// Rescale the object to normalized space
-		const box3 = new THREE.Box3().setFromObject( this.particles )
-		const size = box3.getSize(new THREE.Vector3())
-		// const center = box3.getCenter(new THREE.Vector3())
+		const box3 = new Box3().setFromObject( this.particles )
+		const size = box3.getSize(new Vector3())
+		// const center = box3.getCenter(new Vector3())
 		//const zoomLevel = Math.min( this.faceMeshSize.x / size.x, this.faceMeshSize.y / size.y, this.faceMeshSize.z / size.z )
 		const zoomLevel =  1.33 + this.avatar.faceMeshSize.x / size.x + this.avatar.faceMeshSize.y / size.y + this.avatar.faceMeshSize.z / size.z
 		const zoom = zoomLevel // 4.5
@@ -695,114 +694,20 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	}
 
 	/**
-	 * 
-	 * @param {String} faceModel 
-	 * @param {Number} quantity of particles
-	 * @returns 
-	 */
-	async loadAvatar(faceModel, quantity=478){
-		const loader = createLoaderForModel(faceModel)
-
-		return new Promise((resolve,reject)=>{		
-
-			// Load in our canonical face
-			loader.load( faceModel, ( faceGroup ) => {
-				
-				// Attributes added to the 2d geometry
-				let faceMesh = !faceGroup.scene ? faceGroup.children[0] : faceGroup.scene.children[0]
-				
-				// check to see if it a VRM file...
-				const vrm = faceGroup.userData.vrm
-				if (vrm)
-				{
-					faceMesh = vrm.scene
-					improveVRMPerformance( faceGroup, vrm )
-				}
-
-				console.info("Face Model loaded", {faceGroup, faceMesh, vrm, expressionManager:faceMesh.expressionManager })
-
-				const particlesGeometry = faceMesh ? 
-											faceMesh.geometry : 
-											new THREE.SphereGeometry(1, 32, 32)
-
-				console.info("face", {faceGroup, faceMesh}, faceMesh.geometry , { particlesGeometry,faceMesh, faceGroup } )
-
-				// Get uniformly distributed random points in mesh
-				// 	- create array with cumulative sums of face areas
-				//  - pick random number from 0 to total area
-				//  - find corresponding place in area array by binary search
-				//	- get random point in face
-				// const randomPoints = GeometryUtils.randomPointsInGeometry( new THREE.SphereGeometry(1, 32, 32) )
-				// const randomPoints = GeometryUtils.randomPointsInGeometry( faceMesh )
-				//const randomBufferPoints = GeometryUtils.randomPointsInBufferGeometry( geometry, 3 )
-
-				if (faceMesh.children.length > 0)
-				{
-					// there are multiple objects in the mesh so we find the one
-					// that has morph blend shapes (if it exists)
-					// morphTargetInfluences
-					// morphTargetDictionary
-					const morphableMeshes = faceMesh.children.filter( mesh => mesh.isMesh && mesh.morphTargetInfluences && mesh.morphTargetDictionary ) 
-					faceMesh = morphableMeshes.length > 0 ? morphableMeshes[0] : faceMesh
-					
-					console.error("Morph Target Meshes", morphableMeshes)
-				}
-
-				// FIXME: 
-				const { keypoints, facialTransformationMatrixes, box } = data
-				const liveFaceGeometry = createFaceGeometryFromData(keypoints, quantity, 1 )
-				
-				// Model from mesh model
-				// const faceGeom = convertMeshToSimplifiedGeometry(particlesGeometry, quantity)
-
-				// const tracerParticles = liveFaceGeometry.userData.particles 
-				// const positions = liveFaceGeometry.attributes.position.array 
-				
-				// const freeRadicals = 
-				// assign all particles  that arent original positions to be free radicasls
-				// tracerParticles.forEach( (tracerParticle,i)=>{
-				// 	if (i>KEYPOINT_QUANTITY)
-				// 	{
-				// 		tracerParticle.isFreeRadical = true
-				// 	}
-				// })
-				// console.info("geometries", geometry, {faceMesh, faceGroup, particlesGeometry, faceGeom, faceGeometry: liveFaceGeometry} )
-
-				// Calculate and store the scale for this model
-				this.modelScale = calculateModelScale(faceMesh)
-				
-				// Create face with calculated scale
-				this.faceMeshSize = this.createFace(faceMesh, this.modelScale * avatar.size)
-
-				this.morphable = faceMesh.morphTargetInfluences && faceMesh.morphTargetDictionary
-
-				// if (this.morphable)
-				// {
-				// 	console.info("MORPH geometries", { faceMesh } , this.faceMeshSize ) 
-				// }else{
-				// 	console.info("NOMORPH geometries", { faceMesh } , this.faceMeshSize ) 
-				// }
-				
-				resolve( { faceMesh, faceGroup, geometry:liveFaceGeometry } )
-			} )
-		})
-	}
-
-	/**
 	* Create Particles and layout in a 2d grid
 	* @param {Number} quantity 
 	*/
 	async createParticles ( geometry, quantity=478, size=0.01, color=0xefefef88, opacity=1 ) { 
 
 		return new Promise((resolve,reject) => {
-			const loader = new THREE.TextureLoader()
-			loader.colorSpace = THREE.SRGBColorSpace
+			const loader = new TextureLoader()
+			loader.colorSpace = SRGBColorSpace
 			
 			loader.load( PARTICLE_URI, async (texture)=>{
 
 				const uniforms = {
 					diffuseTexture: {
-						value: new THREE.TextureLoader().load('./resources/fire.png')
+						value: new TextureLoader().load('./resources/fire.png')
 					},
 					pointMultiplier: {
 						value: window.innerHeight / (2.0 * Math.tan(0.5 * 60.0 * Math.PI / 180.0))
@@ -818,7 +723,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					map: texture, 
 					color,
 					size,
-					blending: THREE.AdditiveBlending,
+					blending: AdditiveBlending,
 					sizeAttenuation: true,
 					
 					transparent : true,  
@@ -830,8 +735,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				}
 			
 
-				const particlesMaterial = new THREE.PointsMaterial(materialOptions)	
-				const particles = new THREE.Points(geometry, particlesMaterial)
+				const particlesMaterial = new PointsMaterial(materialOptions)	
+				const particles = new Points(geometry, particlesMaterial)
 			
 				console.info("loader", {quantity, size, color, particlesMaterial} )
 			
@@ -944,8 +849,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		{
 			// fade the face mesh material in
 			const faceMeshOpacity = this.faceMesh.material.opacity 
-			if ( faceMeshOpacity !== avatar.opacity ){
-				this.faceMesh.material.opacity += ( avatar.opacity - faceMeshOpacity ) * 0.5
+			if ( faceMeshOpacity !== this.avatar.opacity ){
+				this.faceMesh.material.opacity += ( this.avatar.opacity - faceMeshOpacity ) * 0.5
 			}
 		}else{
 			// ERROR
@@ -960,14 +865,30 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			this.movePersonButton(person, prediction)
 		}
 		
+		
 		this.particles.rotation.x = ( this.mouseY * VIEW_CONE_ANGLE ) + Math.PI
 		this.particles.rotation.y = -( this.mouseX * VIEW_CONE_ANGLE ) //+ Math.PI // + TAU		 
 		// this.particles.rotation.y += 0.01
+
+		// Lerp instead for smoothness
+		MathUtils.lerp(
+			this.particles.rotation.x,
+			( this.mouseY * VIEW_CONE_ANGLE ) + Math.PI,
+			0.5
+		)
+		MathUtils.lerp(
+			this.particles.rotation.y,
+			-( this.mouseX * VIEW_CONE_ANGLE ),
+			0.5
+		)
+
+
+
 		
 		// const faceMatrix = result.facialTransformationMatrixes
 		// 	if (faceMatrix && faceMatrix.length > 0) {
-		// 		const matrix = new THREE.Matrix4().fromArray(faceMatrix[0].data)
-		// 		headRotation =  new THREE.Euler().setFromRotationMatrix(matrix)
+		// 		const matrix = new Matrix4().fromArray(faceMatrix[0].data)
+		// 		headRotation =  new Euler().setFromRotationMatrix(matrix)
 		// 	}
 
 		// rotate face mesh TODO : SMOOTH
@@ -975,10 +896,13 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const ry = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
 		const rz = prediction.roll * VIEW_CONE_ANGLE_Z
 
-		this.container.rotation.x += (rx - this.container.rotation.x ) * 0.3
-		this.container.rotation.y += (ry - this.container.rotation.y ) * 0.3
-		this.container.rotation.z += (rz - this.container.rotation.z ) * 0.3
+		// rotate with inertia
+		// this.faceMesh.rotation.x += (rx - this.faceMesh.rotation.x ) * 0.3
+		// this.faceMesh.rotation.y += (ry - this.faceMesh.rotation.y ) * 0.3
+		// this.faceMesh.rotation.z += (rz - this.faceMesh.rotation.z ) * 0.3
 		
+		this.avatar.rotateAll( rx, ry, rz )
+
 		// console.info("drawPerson", person, prediction )
 		this.arrangeParticles( prediction, 1)
 		this.particles.material.color.setHSL( Math.abs(hue/360),0.6, 0.6 ) 
@@ -989,40 +913,32 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		}
 
 		// update the morph target influences that set the facial rigging
-		if (this.morphable)
+		if (this.avatar.isMorphable)
 		{
 			// get blend shape predictions for face 1
 			const blendShapePredictions = prediction.faceBlendshapes.categories
+			this.avatar.updateFromPrediction( blendShapePredictions )
 			
-			// avatar.updateFromPrediction( blendShapePredictions )
 			// const blendMap = new Map()
-			blendShapePredictions.forEach((blendShape,index) => {
-				const blendShapeIndex = this.faceMesh.morphTargetDictionary[blendShape.categoryName] // ?? this.faceMesh.morphTargetDictionary[blendShape.index]
-				if (blendShapeIndex && blendShapeIndex > -1)
-				{
-					this.faceMesh.morphTargetInfluences[blendShapeIndex] = THREE.MathUtils.lerp(
-						this.faceMesh.morphTargetInfluences[blendShapeIndex],
-						blendShape.score,
-						0.5
-					)
-					// this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
-				}
-			})	
+			// blendShapePredictions.forEach((blendShape,index) => {
+			// 	const blendShapeIndex = this.faceMesh.morphTargetDictionary[blendShape.categoryName] // ?? this.faceMesh.morphTargetDictionary[blendShape.index]
+			// 	if (blendShapeIndex && blendShapeIndex > -1)
+			// 	{
+			// 		this.faceMesh.morphTargetInfluences[blendShapeIndex] = MathUtils.lerp(
+			// 			this.faceMesh.morphTargetInfluences[blendShapeIndex],
+			// 			blendShape.score,
+			// 			0.5
+			// 		)
+			// 		// this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
+			// 	}
+			// })	
 			
-	
 			// console.error( "blendShape categories",this.faceMesh.morphTargetDictionary, this.faceMesh.morphTargetInfluences )
 			// console.error( "blendShapes", { dictionary:this.faceMesh.morphTargetDictionary, blendShapePredictions} )
 			// console.error( "blendShape categories", this.faceMesh.morphTargetInfluences )
 			// console.error(index, blendShapeIndex, "blendShape categories", blendShape, this.faceMesh.morphTargetInfluences, this.faceMesh.morphTargetDictionary )
-			
-			if (blendShapePredictions && blendShapePredictions.length > 0){
-			
-			}else{
-				// console.error("NO blendShape", blendShape.categoryName, blendShape.score)
-			}
 		}
 		
-
 		// if singing project some bubbles out of the mouth!
 		if (prediction.isMouthOpen)
 		{
@@ -1032,14 +948,14 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			const pointQuantity = points.length
 			const voxels = this.particles.geometry.userData.particles
 			const lastVoxelIndex = voxels.length-1
-			const headCenterPoint = new THREE.Vector3()
-			const mouthCenterPoint = new THREE.Vector3()
+			const headCenterPoint = new Vector3()
+			const mouthCenterPoint = new Vector3()
 			
-			const topLipCenter = new THREE.Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
-			const bottomLipCenter = new THREE.Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
+			const topLipCenter = new Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
+			const bottomLipCenter = new Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
 			
-			const rightHeadMidPoint = new THREE.Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
-			const leftHeadMidPoint = new THREE.Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
+			const rightHeadMidPoint = new Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
+			const leftHeadMidPoint = new Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
 			
 			mouthCenterPoint.addVectors( topLipCenter, bottomLipCenter ).divideScalar( 2 )
 			headCenterPoint.addVectors( leftHeadMidPoint, rightHeadMidPoint ).divideScalar( 2 )
@@ -1062,7 +978,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			// this.tracker.rotation.y = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
 			// this.tracker.rotation.z = prediction.roll * VIEW_CONE_ANGLE_Z
 			
-			// const direction = new THREE.Vector3().subVectors( midpoint,throatPoint ).normalize() // direction from A to B is a normalized vector
+			// const direction = new Vector3().subVectors( midpoint,throatPoint ).normalize() // direction from A to B is a normalized vector
 
 			// const Aext = A.clone().addScaledVector(direction, -extend_val)
 			// const Bext = B.clone().addScaledVector(direction, extend_val)
@@ -1075,7 +991,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				
 				const percent = 1 - (( prediction.mouthRatio + i * 0.1 * this.count * 0.05) % 1)
 				const distanceToProject = throatPoint.distanceTo(mouthCenterPoint) * percent // + 0.5
-				const endPoint = (new THREE.Vector3()).subVectors(mouthCenterPoint, throatPoint).normalize().multiplyScalar(distanceToProject).add(throatPoint)
+				const endPoint = (new Vector3()).subVectors(mouthCenterPoint, throatPoint).normalize().multiplyScalar(distanceToProject).add(throatPoint)
 			
 				// voxel.setPosition( midpoint.x, midpoint.y, midpoint.z, true )
 				voxel.setPosition( endPoint.x, endPoint.y, endPoint.z, false )

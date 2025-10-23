@@ -291,6 +291,11 @@ export default class AbstractDisplay{
 	 */
 	nextFilter(){}
 
+	/**
+	 * Reset Filter to none
+	 */
+	resetFilter(){}
+
 	postProcess( options ){}
 
 	/**
