@@ -10,7 +10,7 @@ import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from '
 import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
 import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options'
-import { showChangelog, installOrUpdate, uninstall } from './pwa/pwa'
+import { showChangelog, installOrUpdate, uninstall } from './pwa/installation.js'
 import { showError } from './dom/errors'
 import { addToolTips, setToast } from './dom/tooltips'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse'
@@ -21,8 +21,6 @@ import { APPLICATION_EVENTS, createInterface } from './interface.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 
 // TESTING
-// import createAppInterface from './interface.js'
-
 // for custom path editions rather than on unique domains
 // instead you can have over-rides both in the globalThis._synth space
 // or else via a named route here
@@ -66,12 +64,11 @@ const setTitle = title => {
 	}
 }
 
-const updateSummaryText = (returning=false) =>{
+const updateSummaryText = (returning = false) => {
 	// TODO: Check state to see if this is a fresh session or a return then update the front end accordingly
 	const summaries = document.querySelectorAll('p[aria-label="Summary"]')
-	
-	if(!summaries || summaries.length < 2 )
-	{
+
+	if (!summaries || summaries.length < 2) {
 		console.info('No summary field p[aria-label="Summary"] present on DOM')
 		return
 	}
@@ -80,7 +77,7 @@ const updateSummaryText = (returning=false) =>{
 
 	// Show the returning user message and update as neccessary :)
 	summaries[0].hidden = returning
-	summaries[1].hidden = !returning 
+	summaries[1].hidden = !returning
 }
 
 /**
@@ -115,12 +112,12 @@ const start = async () => {
 
 	// we only want the first part before any hyphens
 	// NB. we *only* have en right now so show that
-	const language = (languages[languages.length-1]).split('-')[0]
-	
+	const language = (languages[languages.length - 1]).split('-')[0]
+
 	// and the start time for metrics
 	let startLoadTime = Date.now()
 	let failed = false
-	
+
 	const loadInterfaceAndAssembleApplication = async () => {
 
 		// import { createStore} from './store'
@@ -134,7 +131,7 @@ const start = async () => {
 		// }
 		// const {createInterface:create} = await import( "./interface.js")
 		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
-		
+
 		const store = createStore()
 		const title = document.title
 
@@ -151,7 +148,7 @@ const start = async () => {
 				// console.info("Loading...", loadProgress, message)
 				if (failed) {
 					// already failed so why show more loading?
-					console.error("FATAL : Failed to load", {loadProgress, message, hideLoader} )
+					console.error("FATAL : Failed to load", { loadProgress, message, hideLoader })
 					throw Error("Failed to load due to an unexpected error")
 				}
 
@@ -200,7 +197,7 @@ const start = async () => {
 			}
 		)
 
-		const onAvailable = async() => {
+		const onAvailable = async () => {
 			// console.log("Attract mode!", {automator, application})
 			// Load in in automation
 			const Attractor = (await import('./attractor')).default
@@ -208,23 +205,22 @@ const start = async () => {
 			// This allows for remote control as well as allowing the
 			// app to change parameters on it's own
 			const automator = application.setAutomator(new Attractor(application))
-			
+
 			// load in our controllers
-			const {addKeyboardEvents} = (await import('./interface-keyboard.js'))
-			
+			const { addKeyboardEvents } = (await import('./interface-keyboard.js'))
+
 			// and create our input handlers 
 			addKeyboardEvents(application)
-					
+
 			// Watch CONTROLLERS
-			const {addGamePadEvents} = (await import('./interface-gamepad.js'))
-			if ( application.getState("gamePad") )
-			{
-				addGamePadEvents( application )
+			const { addGamePadEvents } = (await import('./interface-gamepad.js'))
+			if (application.getState("gamePad")) {
+				addGamePadEvents(application)
 			}
 
 			// Watch for External SYNCHING 
 			// COMMS --------------------------------------------------------------
-		
+
 			/*
 			// if we have synching
 			// if we want to load in the realtime synch engine
@@ -236,7 +232,7 @@ const start = async () => {
 				// ensure clock exists before calling this
 				const broadCast = monitorBroadCastChannel( application )
 			}
-			*/			
+			*/
 		}
 
 		// User has been located and application has begun!
@@ -268,18 +264,16 @@ const start = async () => {
 		*/
 
 		const loadTime = Date.now() - startLoadTime
-		console.info("Loading internally", loadTime )
-		
+		// console.info("Loading internally", loadTime)
+
 		// TODO: This will call the app from external URLs
 		// without reloading the page
 
 		// NB. Set launch to focus-existing in manifest
 		// If the PWA has caused this page to load we can intercept the request here
-		if ("launchQueue" in window) 
-		{
+		if ("launchQueue" in window) {
 			window.launchQueue.setConsumer((launchParams) => {
-				if (launchParams.targetURL) 
-				{
+				if (launchParams.targetURL) {
 					const params = new URL(launchParams.targetURL).searchParams
 					// const track = params.get("track")
 					// queryString = params
@@ -288,7 +282,7 @@ const start = async () => {
 			})
 		}
 
-		
+
 		// let installation = null
 		// // at any point we can now trigger the installation
 		// if (installation)
@@ -313,17 +307,16 @@ const start = async () => {
 		// For automatic stuff...
 		// const attractMode = new Attractor( application )
 
-		const secondsAgo = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now() ) / 1000)
+		const secondsAgo = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now()) / 1000)
 
 		// Show hackers message to debuggers
 		if (debugMode) {
 
-			console.info(`InterFACE Version ${VERSION} [${runningVersion}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime/1000).toFixed(2)} seconds, last time was ${ secondsAgo} seconds ago`)
+			console.info(`InterFACE Version ${VERSION} [${runningVersion}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime / 1000).toFixed(2)} seconds, last time was ${secondsAgo} seconds ago`)
 			console.info({ application, store, title, defaultOptions, globalOptions, domainOptions, referer: getReferer(), capabilities, DOMAIN, HOST, LTD })
 			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 			// console.info("Initialising", runningVersion, { capabilities, DOMAIN, HOST, LTD })
 		}
-		
 		
 		return application
 	}
@@ -342,7 +335,7 @@ const start = async () => {
 	// await Promise.all([app])
 	// await app
 
-	console.info("Loaded Interface", {app} )
+	console.info("Loaded Interface", { app })
 }
 
 // import {installer} from './install'
@@ -366,13 +359,13 @@ const checkPWAUpdates = () => {
 	// loads in the relevant data to determine if the app needs to be 
 	// updated if installed or installed if uninstalled
 
-	return installOrUpdate(debugMode, runningVersion).then(state => {
+	return installOrUpdate(debugMode, runningVersion).then( PWAState => {
 
 		// this is the amount of time to run before we "check" for things
 		// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 		if (debugMode) {
-			console.log("TEST : Fetched install status", { state, debugMode, runningVersion })
-			console.info("PWA", state.log, { state })
+			console.log("TEST : Fetched install status", { state:  PWAState, debugMode, runningVersion })
+			console.info("PWA",  PWAState.log, { state:  PWAState })
 		}
 
 		// add custom classes to elements so that we can 
@@ -384,19 +377,18 @@ const checkPWAUpdates = () => {
 		// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()
 
 		// add some useful classes to <body> element for styling
-		body.classList.toggle("updates-available", state.hasUpdates)
-		body.classList.toggle("first-run", state.isFirstRun)
-		body.classList.toggle("installable", state.isInstallable)
-		body.classList.toggle("installed", state.isRunningAsApp)
+		body.classList.toggle("updates-available",  PWAState.hasUpdates)
+		body.classList.toggle("first-run",  PWAState.isFirstRun)
+		body.classList.toggle("installable",  PWAState.isInstallable)
+		body.classList.toggle("installed",  PWAState.isRunningAsApp)
 
 		// if already installed this wont show the install button
-		if (state.isInstallable) 
-		{
+		if ( PWAState.isInstallable) {
 			// hook into button and show...
 			const installButtons = document.querySelectorAll(".button-install")
 			installButtons.forEach(installButton => {
 				installButton.addEventListener("click", async (event) => {
-					const installed = await state.install(installButton)
+					const installed = await  PWAState.install(installButton)
 					console.log("installed", installed.success, { installed })
 					setToast(installed.success ? "Installed to HomeScreen" : "You can always install again in the future")
 				})
@@ -407,7 +399,7 @@ const checkPWAUpdates = () => {
 				installButton.hidden = false
 			})
 
-		} else if (state.updatesAvailable) {
+		} else if ( PWAState.updatesAvailable) {
 
 			showUpgradeDialog()
 		}
@@ -442,7 +434,6 @@ const checkPlatformUpdates = async (query) => {
 		await checkPWAUpdates()
 
 	} else {
-
 		// probably just a website that doesn't have 
 		// service workers enabled probably for security
 	}
@@ -465,14 +456,21 @@ const createVersionButton = () => {
 }
 
 // START HERE ------------------------------------------------------
+// if ('serviceWorker' in navigator && 'SyncManager' in window) {
+	
+// 	// Register your service worker:?
+// 	// navigator.serviceWorker.register('/sw.js');
+
+// } else {
+// 	// serviceworker/sync not supported
+// }
 
 // we hang out here until the service worker has comfirmed that everything is ready
 checkPlatformUpdates().finally(() => {
 	// APP STARTING>
 })
 
-
-document.addEventListener("DOMContentLoaded", async(e) => {
+document.addEventListener("DOMContentLoaded", async (e) => {
 
 	updateSummaryText()
 
@@ -480,21 +478,19 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 	createVersionButton()
 
 	// global tooltips!
-	addToolTips( document.querySelector("main") )
-	
+	addToolTips(document.querySelector("main"))
+
 	const table = document.getElementById("compatibility")
-	if (!table)
-	{
+	if (!table) {
 		console.warn("Missing '#compatability' table in DOM")
 		// throw Error("Missing '#compatability' table in DOM")
 	}
 
 	// update the table as soon as it is available
-	const isFatalIssue = await updateCapabalitiesTable( table, capabilities )
+	const isFatalIssue = await updateCapabalitiesTable(table, capabilities)
 
 	// if we have all the hardware we need to continue...
-	if (isFatalIssue)
-	{
+	if (isFatalIssue) {
 		// nowhere to go from here :(
 		// TODO: 
 		// ESCAPE - no cameras found on system?
@@ -502,22 +498,21 @@ document.addEventListener("DOMContentLoaded", async(e) => {
 		// remove loading stuff and quit
 
 		// FIXME: improve message to user
-		const requirementsTable= document.getElementById("requirements-test")
+		const requirementsTable = document.getElementById("requirements-test")
 		requirementsTable.scrollIntoView()
 		requirementsTable.focus()
-		console.warn("Essential hardware missing") 
+		console.warn("Essential hardware missing")
 
 		// showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)
-	
-	}else{
+
+	} else {
 		//console.info("All hardware requirements met")
 	}
 
-}, {once:true})
+}, { once: true })
 
 // Hot Module Reloading
-if (module.hot) 
-{
+if (module.hot) {
 	module.hot.dispose(function (data) {
 		// module is about to be replaced.
 		// You can save data that should be accessible to the new asset in `data`

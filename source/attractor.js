@@ -153,8 +153,7 @@ export default class Attractor{
 			
 			// active - just change instruments every now and then
 			if ( clock.barProgress === 0)
-			{
-				
+			{	
 				//this.application.setState( 'backingTrack', true )
 				players.forEach( (player, index) => {
 					const durationBeforeChange = DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE[index]
@@ -181,9 +180,7 @@ export default class Attractor{
 						// })
 					}
 				})
-
-			
-				
+	
 			}else{
 				//this.application.setState( 'backingTrack', false )
 			}

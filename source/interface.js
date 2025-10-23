@@ -162,10 +162,12 @@ import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
-import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 import { tapTempo } from './timing/tap-tempo.js'
+import { Timeout } from './timing/timeout.js'
 import { observeOrientationChange } from './display/display-abstract.js'
+import { formatTimeStampFromSeconds } from './timing/timer.js'
+import { count } from 'console'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -230,6 +232,7 @@ export const createInterface = (
 	}
 
 
+
 	// fetch some elements from the DOM
 	const main = doc.querySelector("main")
 
@@ -243,6 +246,9 @@ export const createInterface = (
 
 	const shareCodeElement = doc.querySelector(".qr")
 	const feedbackElement = doc.getElementById("feedback")
+	const countdownProgressElement = doc.getElementById("countdown-progress")
+	const timeElapsedElement = doc.getElementById("time-elapsed")
+	const timeTotalElement = doc.getElementById("time-total")
 
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
@@ -285,6 +291,7 @@ export const createInterface = (
 	let textHelpIndex = 0
 	let quantityInstructions = 0
 	let quantityHelp = 0
+	let quantityOfActivePlayers = 0
 
 	// Store for gagdets, widgets and buttons
 	const toggles = {}
@@ -390,6 +397,8 @@ export const createInterface = (
 	const existingQueries = (new URL(location.href)).search
 	const queryString = new URLSearchParams( defaultOptions ).toString()
 	const concatenatedQueries = existingQueries.length > 0 ? `${existingQueries.toString()}&${queryString}` : queryString
+	
+	// used in the generation of QR codes
 	const url = new URL(location.origin+location.pathname) // location.href
 	url.search =  new URLSearchParams(concatenatedQueries)
 	
@@ -459,7 +468,6 @@ export const createInterface = (
 		shareCodeElement.parentElement.style.display = "none"
 	}
 
-
 	// http://localhost:909/?display=DisplayMediaVision2D&tooltips=true&advancedMode=false&showSettings=false&showPiano=false&metronome=true&backingTrack=true&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=false&stats=false&muted=false&players=1&stereo=true&stereoPan=true&midi=true&midiChannel=all&starSize=1&autoHide=true&loadMIDIPerformance=false&gamePad=false&model=face&qr=false&theme=theme-mit&instrumentPack=OpenGM24&photoSensitive=true&automationMode=true&referer=mit&bpm=81.56038486395421
 	const referer = stateMachine.get("referer")
 	
@@ -476,7 +484,7 @@ export const createInterface = (
 		downloadRecording
 	} = recordAudio()
 	
-	// collection of persons
+	// collection of active persons
 	const people = []
 
 	// nobody is selected by default
@@ -494,9 +502,19 @@ export const createInterface = (
 	// MIDI File ---
 	// load MIDI Track model midi track  / save midi track
 	let midiPerformance
-	let globalChordPlayer
 	let midiPlayer
 	let savedPerformance
+
+	let globalChordPlayer
+
+	// notify when users have played for more than X amount of time...
+	const TIME_WHILE_PLAYING = stateMachine.get("timeout") ?? 3000
+	const countdown = TIME_WHILE_PLAYING > 0 ? new Timeout( TIME_WHILE_PLAYING ) : null
+	// immediately set the total time element on screen
+	if (countdown ) { 
+		document.getElementById("transport").hidden = false
+		timeTotalElement.textContent = formatTimeStampFromSeconds( countdown.duration * 0.001, false ) // + " @ " + clock.timeCode
+	}
 
 	// timer (24 cycles per tick) metronome
 	let clock
@@ -537,6 +555,8 @@ export const createInterface = (
 	let isCameraLoading = true
 	// if the user leaves the tab or removes their face from the frame
 	let isUserActive = false
+
+	let hasUserStayedAfterTimeout = false
 	
 	// Comms IO
 	let isBroadcastSlave = false
@@ -2018,18 +2038,36 @@ export const createInterface = (
 			// FEEDBACK TEXT --------------------------------------------
 			// we only want to change the instruciton set if the feedback is allowed
 			let textInstruction
-			// No face was detected on either user
-			if (!haveFacesBeenDetected || !predictions)
+
+			// No faces were detected
+			if (quantityOfActivePlayers === 0 || !predictions)
 			{
-				// Need to show instructions to the user...
-				// as no face can be detected
-				textInstruction = getHelp( textHelpIndex )
-				textHelpIndex = (textHelpIndex + 1) % quantityInstructions
+				if (!haveFacesBeenDetected)
+				{
+					// before very first time the user engages					
+					// Need to show instructions to the user...
+					// as no face can be detected
+					textInstruction = getHelp( textHelpIndex )
+					textHelpIndex = (textHelpIndex + 1) % quantityInstructions
 				
+
+				}else{
+				
+					// Between every time users leave the play area
+					// Need to show instructions to the user...
+					// as no face can be detected
+					textInstruction = getHelp( textHelpIndex )
+					textHelpIndex = (textHelpIndex + 1) % quantityInstructions
+					
+				}
+	
 				// textInstruction = getHelp( Math.floor( textHelpIndex * 0.01 ) )
 				// }else if (tickerTape.length){
 				// 	setFeedback(tickerTape)
 				// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
+			}else if (hasUserStayedAfterTimeout){
+				// User has stayed after timeout
+				textInstruction = "Time is up! \nPlease leave the area \nto allow new users to join"
 			}else{
 				// Faces found so show the next set of instructions
 				textInstruction = getInstruction( textInstructionIndex ) 
@@ -2067,10 +2105,13 @@ export const createInterface = (
 	}
 
 	/**
-	 * Application ANIMATION LOOP! - Rejoice!
+	 * Application ANIMATION LOOP!tra - Rejoice!
 	 * @returns 
 	 */
+	const USER_HOGGING_SYSTEM_LIMIT = stateMachine.get("restartAfter") ?? 10_000
 	const predictionLoop = async ()=>{
+
+		const quantityOfActivePlayersPreviously = quantityOfActivePlayers
 
 		if (!isPredictionEngineBusy && shouldLoopBeAllowed())
 		{
@@ -2093,7 +2134,87 @@ export const createInterface = (
 		if (peoplePredictions)
 		{
 			usePredictions(peoplePredictions)
+		
+			// first check to see if we have new people or people have left...
+			if (quantityOfActivePlayers !== peoplePredictions.length )
+			{
+				// a person has joined...
+				if (quantityOfActivePlayers < peoplePredictions.length )
+				{
+					// console.info( "people joined!", peoplePredictions.length )
+				
+				}else{
+					// console.info( "people left!", peoplePredictions.length )
+				}
+				quantityOfActivePlayers = peoplePredictions.length
+			}
+		}else{
+			quantityOfActivePlayers = 0
 		}
+
+		if (quantityOfActivePlayers === 0)
+		{
+			// reset instructions
+			counter = 0
+			textInstructionIndex = 0
+			textHelpIndex = 0
+		}
+		
+
+		if (countdown)
+		{	
+			const variance = quantityOfActivePlayersPreviously - quantityOfActivePlayers
+			// console.info("variance", variance, quantityOfActivePlayersPreviously, quantityOfActivePlayers)
+			// check to see if the timer has completed...
+			const hasCounterCompleted = countdown.update()
+			// if there are no people we should also reset the counter
+			if (hasUserStayedAfterTimeout){
+				// update UI to show TIME HAS CONCLUDED - Move on
+				
+				if ( quantityOfActivePlayers === 0 || countdown.overshoot > USER_HOGGING_SYSTEM_LIMIT)
+				{
+					// all people have left so reset the state if 
+					// there are no people in the view otherwise they
+					// will 
+					hasUserStayedAfterTimeout = false
+					// on the next frame this will reset
+					// console.log( "Completed - now restarting...", peoplePredictions )
+				}else{
+					// console.log( "Completed and waiting for users to leave?",timeUsersHaveHoggedSystem, countdown.overshoot )					
+				}
+	
+			} else if ( quantityOfActivePlayers === 0 || countdown.overshoot > USER_HOGGING_SYSTEM_LIMIT ){
+
+				// users have LEFT the frame
+				hasUserStayedAfterTimeout = false
+				// console.log( "no people - reset countdown" , peoplePredictions )
+				countdown.reset()
+				body.classList.toggle("times-up", false)
+
+				// update UI to show TIMER HAS EXTENDED / No people to play
+				// ATTRACTOR MODE
+				setToast("Song Complete! Top ten!")
+				setFeedback("Let's Go make some music! SMILE! =D", 0, 'start-over')
+				
+
+			} else if ( hasCounterCompleted ){
+				
+				// NB. this occurs ONLY ONCE per flip
+				// console.log( "countdown has completed do we kick people off?", peoplePredictions )
+				//countdown.reset()
+				setToast("Song Complete! Top ten!")
+				setFeedback("Lovely song! \nWell done =D",0, 'game-over')
+				body.classList.toggle("times-up", true)
+
+				hasUserStayedAfterTimeout = quantityOfActivePlayers > 0
+			
+			} else{
+				hasUserStayedAfterTimeout = false
+				
+				//console.log("countdown", countdown.remaining, peoplePredictions.length, {data:peoplePredictions} )
+			}
+		}
+
 
 		// If we are using MIDI clock and it stops, then there is no
 		// event sent so that we can alter behaviour, so instead we
@@ -2177,6 +2298,28 @@ export const createInterface = (
 
 		// }
 
+		// We may have a countdown timer onscreen		
+		if (countdown)
+		{
+			// update the onscreen timecodes... formatTimeStampFromSeconds( countdown.remaining )
+			if (countdown.hasCompleted){
+				timeElapsedElement.textContent = "--:--"
+			}else{
+				timeElapsedElement.textContent = formatTimeStampFromSeconds( countdown.elapsed * 0.001, false )  // + " @ " + clock.timeCode
+			}		
+			// isQuarterNote // isAtStart
+			if (clock.isHalfNote)
+			{
+				// move the ball and the progress bar scrubber position
+				countdownProgressElement.setAttribute("style", `--p:${countdown.percentElapsed}` )
+				countdownProgressElement.setAttribute("value", countdown.percentElapsed )
+			}	
+		}
+
+
+
+		hasBeatJustPlayed = true
+
 		// nothing to play so we exit immediately!
 		if (stateMachine.get("muted"))
 		{
@@ -2251,7 +2394,7 @@ export const createInterface = (
 												
 				// use person 1's eyes to control other stuff too?
 				// in this case the direction of the pan in disco mode
-				if (i===0)
+				if (i===0 && person)
 				{
 					// stuff.eyeDirection
 					cameraPan.x = person.eyeDirection ?? 0
@@ -2340,7 +2483,6 @@ export const createInterface = (
 			*/
 		}
 
-		hasBeatJustPlayed = true
 	}
 
 	/**
@@ -2435,7 +2577,6 @@ export const createInterface = (
 			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
 		}
 
-		
 		
 		const displayMenu = document.querySelector('label[for="select-display"]')
 		// enable the display menu if advanced
@@ -3933,7 +4074,7 @@ export const createInterface = (
 		// so not mobiles!
 		if (capabilities.mouse)
 		{
-			watchForUserActivity( stateMachine.get("timeout") )
+			watchForUserActivity( stateMachine.get("inactiveAfter") )
 		}
 
 		// Exit & save all cookies!
@@ -3951,9 +4092,9 @@ export const createInterface = (
 			//return false     // cancel default menu
 		}
 
-		// window.addEventListener('deviceorientation' , event => {
-		// 	//console.log("device orientation", event)
-		// })
+		window.addEventListener('deviceorientation' , event => {
+			console.log("device orientation", event)
+		})
 
 		// OFFLINE / ONLINE 
 		const updateOfflineStatus = (event) => {
