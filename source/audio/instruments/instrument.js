@@ -23,13 +23,6 @@ export default class Instrument{
 	name = "AbstractInstrument"
 	#title = "Instrument"
 
-	get title(){
-		return this.#title
-	}
-	set title( value ){
-		this.#title = value
-	}
-
 	type = "abstract"
 
 	// unique ID set from superclass
@@ -56,6 +49,11 @@ export default class Instrument{
 
 	// observe this promise to see when the instance is ready
 	loaded = new Promise((resolve,reject)=>this.onAvailable(resolve,reject))
+	
+	
+	get title(){
+		return this.#title
+	}
 	
 	/**
 	 * @returns {String} of unique Instrument id for this instance
@@ -141,6 +139,10 @@ export default class Instrument{
 		return this.activeNotes
 	}
 	
+	set title( value ){
+		this.#title = value
+	}
+
 	/**
 	 * All instruments 
 	 * @param {AudioContext} onlineAudioContext (not offlineAudioContext)

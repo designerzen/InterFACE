@@ -99,7 +99,11 @@ export default class OscillatorInstrument extends Instrument{
 	set volume(value) {
 		if (this.gainNode)
 		{
-			this.gainNode.gain.value = value
+			const now = this.currentTime
+		
+			this.gainNode.gain.cancelScheduledValues( now )
+			this.gainNode.gain.setValueAtTime( value, now )
+			// this.gainNode.gain.value = value
 		}
 		super.volume = value
 	}
@@ -160,7 +164,11 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	set detune(value){
-        this.oscillator.detune.value = value
+		const now = this.currentTime
+		
+        this.oscillator.detune.cancelScheduledValues( now )
+        this.oscillator.detune.setValueAtTime( value, now )
+        // this.oscillator.detune.value = value
     }
 
     get detune(){
@@ -171,11 +179,15 @@ export default class OscillatorInstrument extends Instrument{
 		
 		await super.create()
 
-		this.gainNode = this.context.createGain()
-		this.gainNode.gain.value = this.currentVolume
+		const now = this.currentTime
 		
+		this.gainNode = this.context.createGain()
+		// this.gainNode.gain.value = this.currentVolume
+		this.gainNode.gain.setValueAtTime( this.currentVolume, now )
+
 		this.envelope = this.context.createGain()
-		this.envelope.gain.value = 0
+		this.envelope.gain.setValueAtTime( now )
+		// this.envelope.gain.value = 0
 		
 		this.oscillator = new OscillatorNode( this.context, { ...this.options, type:this.options.shape }) 
 		this.oscillator
@@ -183,6 +195,7 @@ export default class OscillatorInstrument extends Instrument{
 			.connect(this.gainNode)
 
 		this.timbre = this.options.shape
+		
 		// immediately start as always playing in silent
 		this.oscillator.start()
 		
@@ -191,6 +204,7 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	async destroy(){
+		this.oscillator.stop()
 		return await super.destroy()
 	}
 
@@ -200,7 +214,7 @@ export default class OscillatorInstrument extends Instrument{
 	}
 
 	/**
-	 * 
+	 * Start the sound
 	 * @param {Number} noteNumber 
 	 * @param {Number} velocity 
 	 * @returns 
@@ -211,8 +225,6 @@ export default class OscillatorInstrument extends Instrument{
 		// console.error("oscillator",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
 	
 		// this.envelope.gain.setValueAtTime(1, 0)
-		
-	
 		// this.oscillator.frequency.linearRampToValueAtTime(0.1, 4)
 		
 		// instantly or with slide?
@@ -243,7 +255,18 @@ export default class OscillatorInstrument extends Instrument{
 		const now = this.currentTime
 		// this.envelope.gain.setValueAtTime( 0, this.context.currentTime+(velocity ?? this.decay ) )
 		this.envelope.gain.cancelScheduledValues(now)
-		this.envelope.gain.linearRampToValueAtTime( 0, now+(velocity ?? this.decay ) )
+		// this.envelope.gain.linearRampToValueAtTime( 0, now+(velocity ?? this.decay ) )
+
+		// only setting this up as a var to multiply it later - you can hardcode.
+		// initial value is 1 millisecond - experiment with this value if it's not fading
+		// quickly enough.
+		const timeConstant = 0.001
+		this.envelope.gain.setTargetAtTime(0, now, timeConstant)
+
+		// by my quick math, 8x TC should take you to around 2.5% of the original level 
+		// - more than enough to smooth the envelope off.
+		// myBufferSourceNode.stop( ctx.currentTime + (8 * timeConstant) )
+
 		return super.noteOff(noteNumber)
 	}
 
@@ -273,11 +296,13 @@ export default class OscillatorInstrument extends Instrument{
 	 * @param {number} pitch 
 	 */
 	pitchBend(pitch){
+		const now = this.currentTime
 		const frequency = pitch// - (this.options.detune ?? 0)
 		// this.oscillator.frequency.value = noteNumberToFrequencyFast(pitch)
 		// console.error(frequency, "pitchBend", typeof frequency, isFinite(frequency) )
 		// this.oscillator.frequency.exponentialRampToValueAtTime( frequency, this.options.slideDuration )
-		this.oscillator.frequency.linearRampToValueAtTime( frequency, this.options.slideDuration )
+		this.oscillator.frequency.cancelScheduledValues( now )
+		this.oscillator.frequency.linearRampToValueAtTime( frequency, now + this.options.slideDuration )
 		return super.pitchBend(pitch)
 	}
 	

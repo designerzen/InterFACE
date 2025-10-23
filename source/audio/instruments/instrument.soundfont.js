@@ -99,7 +99,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 				{
 					// now load our first preset or a specified one...
 					this.loadPreset( this.options.preset ?? 0, this.options.instrumentPack ).then( preset => {
-						console.error("preset", preset )
+						// console.error("preset", preset )
 					})	
 				}
 
@@ -375,7 +375,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		this.title = getInstrumentTitle( presetNameOrObject ) ?? presetNameOrObject
 		// this.name = "SampleInstrument:"+presetNameOrObject
 
-		console.error("Soundfont", this, this.instrumentName, this.instrumentPack, this.instrumentFamily, {presetNameOrObject, instrumentPack, options} )
+		// console.error("Soundfont", this, this.instrumentName, this.instrumentPack, this.instrumentFamily, {presetNameOrObject, instrumentPack, options} )
 
 		
 		// console.info("Soundfont preset", SoundFontInstrument.dictionary)
