@@ -1,0 +1,30 @@
+extends index.pug
+
+//- custom options go here
+//- We strongly encourage the use of blues, purples, and yellows in your project
+block options
+	script.
+		globalThis._synth = { 
+			advancedMode:false, 
+			text:true, 
+			autoHide:true, 
+			// 3:20 from KLF Das Buch
+			timeout:(60 * 3 + 20) * 1000,
+			inactiveAfter:1000,
+			backingTrack:false, 
+			photoSensitive:true,
+			automationMode:false,
+			referer:'va',
+			theme:'theme-va'
+		}
+
+block headline
+	| Victoria &amp; Albert
+	| #PhotoSynth #Inter
+	strong FACE
+
+block tagline
+	strong Disability and Design Exhibition
+
+block smallprint 
+	a(href="https://https://www.linkedin.com/in/designerzen/" target="_blank") by <strong>Zenon Olenski</strong>
