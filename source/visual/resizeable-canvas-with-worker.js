@@ -32,7 +32,7 @@ export default class ResizeableCanvasWithWorker{
         }
 
 		this.worker.onmessage = optional.onmessage ??( (event) => {
-			console.log("Worker Message Error:", event)
+			// console.log("Worker Message Error:", event)
 		})
       
         const resizeObserver = new ResizeObserver(this.onResize)
@@ -132,7 +132,7 @@ export default class ResizeableCanvasWithWorker{
 
        
 			if (width === 0 || height === 0) {
-				console.error( "IGNORE resize",{ dpr, width, height })
+				// console.error( "IGNORE resize",{ dpr, width, height })
 			}else{
 				//console.info( "size",{ dpr, width, height })
 				this.resizeCanvasToDisplaySize(width, height, dpr)

@@ -514,6 +514,7 @@ export const createInterface = (
 	if (countdown ) { 
 		document.getElementById("transport").hidden = false
 		timeTotalElement.textContent = formatTimeStampFromSeconds( countdown.duration * 0.001, false ) // + " @ " + clock.timeCode
+		
 	}
 
 	// timer (24 cycles per tick) metronome
@@ -863,6 +864,18 @@ export const createInterface = (
 		
 		// Create our person with the specified options
 		const person = new Person( index, options, savedData ) 
+		
+		// state can contain more data than simple the options!
+		// so let us loop through the stateMachine and extract any person data...
+		// &p1=1
+		const personKey = "p"+(personIndex+1)
+		const personMeta = stateMachine.get( personKey )
+		//const personData = person.importData( stateMachine.get("p1") )
+		
+		// Load in any data set in the URL
+		person.importData( personMeta )
+
+		console.info("Person preference", {personKey, personMeta}, {person} )
 
 		// Events dispatched by Person :
 		const markInstrumentProgress = (progress,instrumentName) =>{ 
@@ -890,10 +903,13 @@ export const createInterface = (
 			dispatchCustomEvent(event.type, detail)
 		})
 
+		// A person's instrument has loaded into memory, so we
+		// update the state options to show the user also
 		person.addListener( EVENT_INSTRUMENT_LOADING, (event) => {
 			const {detail} = event
 			const { progress, instrumentName, instrumentPack } = detail
 			markInstrumentProgress( progress, instrumentName )
+
 			// console.info("Person preset ["+instrumentName+"] loading!", Math.floor(progress*100))
 			dispatchCustomEvent(event.type, detail)
 		})
@@ -906,6 +922,15 @@ export const createInterface = (
 			//console.log("External event for ",{ person, detail , cache})
 			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
 			// dispatchEvent(event)
+			const personData = person.exportData()
+			// person.noteIndex
+			// person.personIndex
+			// person.instrumentIndex
+			const test = stateMachine.get( "p"+ person.personIndex )
+			console.error(person.personIndex, "Setting statemachine with person",personData, {person, stateMachine, test} )
+
+			// stateMachine.set("", "")
+			
 			dispatchCustomEvent(event.type, detail)
 		})
 

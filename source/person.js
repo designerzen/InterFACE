@@ -606,6 +606,10 @@ export default class Person{
 		return `hsla(${this.hue},${saturation}%,${this.luminosity}%,${opacity})`
 	}
 
+	get personIndex(){
+		return this.playerNumber
+	}
+
 	/**
 	 * Is the user's side panel on the left or right?
 	 * Users A and C go left, B and D go right
@@ -697,7 +701,7 @@ export default class Person{
 
 		if (saveData)
 		{
-			this.importData(saveData)	
+			this.importJSONData(saveData)	
 		}
 
 		// HSL Colour scheme that can be overwritten
@@ -818,13 +822,32 @@ export default class Person{
 		this.reset()
 	}
 	
+
 	/**
 	 * 
-	 * @param {Object} data
+	 * @param {String} data 
+	 */
+	importData( data){
+		if (!data)
+		{
+			return null
+		}
+		const parts = data.split('|')
+		// part [0] is always PresetIndex
+		// part [1] is always instrumentType
+	}
+
+	exportData(){
+		return `${this.instrumentPointer}|${this.activeInstrument ? this.activeInstrument.type : INSTRUMENT_TYPE_SOUNDFONT}`
+	}
+
+	/**
+	 * 
+	 * @param {Object|String} data
 	 * @param {String} prefix
 	 * @returns {Object}
 	 */
-	importData( data, prefix='' ){
+	importJSONData( data, prefix='' ){
 
 		// convert data.... can be string or object
 		if (typeof data === 'string')
@@ -840,10 +863,10 @@ export default class Person{
 		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
 		// which instrument preset to load?
 		if ( data[prefix+'preset' ]) { this.options.defaultPreset = data[prefix+'preset' ] }
-		if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
-		if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
-		if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
-		if ( data[prefix+'hue' ]) { this.options.defaultHue = data[prefix+'hue' ] }
+		// if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
+		// if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
+		// if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
+		// if ( data[prefix+'hue' ]) { this.options.defaultHue = data[prefix+'hue' ] }
 
 		return this.options
 	}
@@ -852,7 +875,7 @@ export default class Person{
 	 * Save this person as something that can be put in the state
 	 * @returns {String}
 	 */
-	exportData(prefix='', asURL=false){
+	exportJSONData(prefix='', asURL=false){
 
 		prefix = prefix.length > 0 ? 
 			prefix+'-' : 
@@ -865,13 +888,13 @@ export default class Person{
 			// which instrument preset to load?
 			[prefix+'preset']:this.activeInstrument.instrumentIndex ?? this.options.defaultPreset,
 			
-			[prefix+'sat'] : this.saturation,
-			[prefix+'lum'] : this.luminosity,
-			[prefix+'range'] : this.hueRange,
-			[prefix+'hue'] : this.hue,
+			// [prefix+'sat'] : this.saturation,
+			// [prefix+'lum'] : this.luminosity,
+			// [prefix+'range'] : this.hueRange,
+			// [prefix+'hue'] : this.hue,
 		}
 
-		return asURL ?  new URLSearchParams(data)  : data
+		return asURL ? new URLSearchParams(data)  : data
 	}
 
 	/**
