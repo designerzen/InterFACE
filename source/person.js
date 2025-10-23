@@ -832,7 +832,7 @@ export default class Person{
 		{
 			return null
 		}
-		const parts = data.split('|')
+		const parts = String(data).split('|')
 		// part [0] is always PresetIndex
 		// part [1] is always instrumentType
 	}

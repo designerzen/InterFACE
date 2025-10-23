@@ -926,8 +926,9 @@ export const createInterface = (
 			// person.noteIndex
 			// person.personIndex
 			// person.instrumentIndex
-			const test = stateMachine.get( "p"+ person.personIndex )
-			console.error(person.personIndex, "Setting statemachine with person",personData, {person, stateMachine, test} )
+			const key = "p"+ (person.personIndex + 1)
+			const test = stateMachine.get( key )
+			console.error(person.personIndex, "Setting statemachine with person",personData, {person, stateMachine, key, test} )
 
 			// stateMachine.set("", "")
 			
