@@ -8,8 +8,8 @@ import { isProductionBuild } from '../utils/is-production'
 import { INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { TUNING_MODE_IONIAN, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
 import { INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-list.js'
-
-// INSTRUMENT_TYPE_SOUNDFONT
+import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
+import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
 
 const isDevelopmentMode = !isProductionBuild()
 
@@ -20,6 +20,9 @@ export const UPDATE_FACE_BUTTON_AFTER_FRAMES = 750
 
 // timeout for loading as there are some issues with continuation...
 export const LOAD_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+
+// when the game completes and goes back to attractor
+export const GAME_TIMEOUT = (20 + 3 * 60) * 1000
 
 // https://www.midi.org/specifications-old/item/manufacturer-id-numbers
 export const MIDI_ID = "00H 21H 71H"
@@ -231,6 +234,7 @@ export const DEFAULT_OPTIONS = {
 	// load a midi track automatically on app start
 	loadMIDIPerformance:false,
 
+	
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio
 	gamePad:true,
@@ -249,8 +253,12 @@ export const DEFAULT_OPTIONS = {
 	// devices, we can set them here to all use webRTC to share data
 	room:'',
 
+	// how long should each session last?
+	// NB. -1 means no timeout - play forever
+	timeout:-1,
+
 	// time before we consider the user inactive
-	timeout:2000,
+	inactiveAfter:3000,
 
 	// what theme to show on screen
 	theme:"theme-default",
@@ -322,10 +330,7 @@ export const getDomainDefaults = (name = '') => {
 	return getFactoryDefaults()
 }
 
-import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
-// import INSTRUMENTS_LIST_LOCATION from "url:./instruments.json"
-import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
-import { INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-list.js'
+
 // console.error("INSTRUMENTS_LIST_LOCATION", INSTRUMENTS_LIST_LOCATION)
 export const INSTRUMENT_OPTIONS = {
 	list:INSTRUMENTS_LIST_LOCATION

@@ -1,7 +1,5 @@
 // This is the Looking Glass Factgory Portrait Display SDK API
 // https://docs.lookingglassfactory.com/HoloPlayCore/holoplaycorejs/
-
-import { clear } from "console"
 import { Client } from "holoplay-core"
 // import * as HoloPlayCore from './node_modules/holoplay-core/dist/holoplaycore.module.js'
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
