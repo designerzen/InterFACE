@@ -38,7 +38,7 @@ export const testForWebMIDI = () => navigator.requestMIDIAccess === undefined ? 
 export default class WebMIDIConnection extends MIDIConnection{
 
 	midi 
-	midiChannel
+	midiChannel = "all"
 	useMPE = false
 	useSysex = false
 
@@ -64,13 +64,14 @@ export default class WebMIDIConnection extends MIDIConnection{
 	
 	/**
 	 * TODO: Implement timeout
-	 * @param {Number} port 
+	 * @param {Number} options 
 	 * @param {Function} onDeviceListUpdated 
 	 * @returns 
 	 */
-	async connect( port=0, onDeviceListUpdated=null ){
+	async connect( options, onDeviceListUpdated=null ){
 		return new Promise(async (resolve,reject)=>{
 			try{
+				const port = options.port ?? 0
 				// midi device connected! huzzah!
 				WebMidi.addListener("connected", e => this.onConnected(e, onDeviceListUpdated) )
 				
@@ -171,6 +172,22 @@ export default class WebMIDIConnection extends MIDIConnection{
 
 		this.midi = null
 	}
+
+	
+	/**
+	 * These are entry points to handle MIDI commands
+	 */
+	async noteOn( note, velocity ){
+		midiChannel.playNote( note, this.midiChannel, {velocity})
+	}
+	async noteOff( note, velocity ){
+		midiChannel.stopNote( note, this.midiChannel, {velocity})
+	}
+
+	async allNotesOff(){
+
+	}
+
 
 	onConnected(event, onDeviceListUpdated=null){
 		onDeviceListUpdated && onDeviceListUpdated( event, this.inputs, this.outputs )

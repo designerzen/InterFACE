@@ -8,6 +8,8 @@
  */
 export default class MIDIConnection{
 
+	connected = false
+
 	get inputs(){
 		throw new Error("MIDIConnection.inputs not implemented")
 	}
