@@ -280,6 +280,8 @@ export default class Person{
 	rightEyeClosedAt = -1
 	eyesClosed = false
 
+	kissLandedAt = -1
+
 	data = null
 	midi = null
 
@@ -353,6 +355,10 @@ export default class Person{
 			default:
 				return false
 		}
+	}
+
+	get kissDuration(){
+		return this.isKissing ? this.now - this.kissLandedAt : 0 
 	}
 
 	/**
@@ -500,6 +506,7 @@ export default class Person{
 
 	/**
 	 * get the current time in milliseconds
+	 * NB. This is different to this.currentTime
 	 * this.audioContext this.audioContext.currentTime :
 	 */
 	get now(){
@@ -679,6 +686,8 @@ export default class Person{
 	constructor( index, options={}, saveData=undefined ) {
 		
 		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
+		this.debug = this.options.debug
+
 		// ensure that the name is all lower case and kebabed
 		this.id = IDENTIFIERS[index]
 		// this.id = toKebabCase( IDENTIFIERS[index] ?? "person-" + index )
@@ -697,13 +706,31 @@ export default class Person{
 		// probably not neccessary with reverb effect
 		this.precision = Math.pow( 10, parseInt(this.options.precision) )
 		
+		this.create()
+		//console.log("Created new person", this, "connecting to", destinationNode )
+	}
+
+	/**
+	 * Proxy for the event system
+	 */
+	addListener(){
+		return this.button.addEventListener(...arguments)
+	}
+
+	removeListener(){
+		return this.button.removeEventListener(...arguments)
+	}
+
+	/**
+	 * 
+	 */
+	create(){
+
 		// allow us to record the performances (not the audio)
 		// useful for showing recordings of a person
 		this.parameterRecorder = new ParamaterRecorder()
-		this.isRecordingParameters = options.recordData ?? false
+		this.isRecordingParameters = this.options.recordData ?? false
 	
-		this.debug = this.options.debug
-
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
 
@@ -740,28 +767,14 @@ export default class Person{
 			// })
 		}else{
 			// console.warn(`Created Person "${name}" but could not find associated markup #${name}`)
-			throw Error(`Created Person "${name}" but could not find associated markup #${name}`)
+			throw Error(`Created Person "${this.name}" but could not find associated markup #${this.name}`)
 		}
 
 		if (this.options.debug){
 			console.info("Person "+this.name+" options", this.options)
 		}
-
-		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
-
-	/**
-	 * Proxy for the event system
-	 */
-	addListener(){
-		return this.button.addEventListener(...arguments)
-	}
-
-	removeListener(){
-		return this.button.removeEventListener(...arguments)
-	}
-
-	/**
+/**
 	 * After a user has left the active area, we must
 	 * reset all the states back to their correct 
 	 * start values
@@ -784,10 +797,14 @@ export default class Person{
 		this.eyesClosed = false
 		this.emoticon = EMOJI_NEUTRAL
 
-		// centralise pan
-		if (this.stereoNode.pan.value)
+		// centralise pan if set
+		if (this.stereoNode)
 		{
-			this.stereoNode.pan.value = 0
+			const audioContext = this.stereoNode.context
+
+			this.stereoNode.pan.cancelScheduledValues( audioContext.currentTime )
+			// by specifying a time in the past it will happen immeditely
+			this.stereoNode.pan.setValueAtTime( 0,  audioContext.currentTime )
 		}
 	}
 
@@ -797,11 +814,12 @@ export default class Person{
 	 * free up associated memory
 	 */
 	destroy(){
-
 		// kill instrument and disconnect from graph
+		this.reset()
 	}
 	
 	/**
+	 * 
 	 * @param {Object} data
 	 * @param {String} prefix
 	 * @returns {Object}
@@ -819,14 +837,15 @@ export default class Person{
 			this.id+'-'
 
 		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-		this.options.defaultInstrument = data[prefix+'instrument']
+		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
 		// which instrument preset to load?
-		this.options.defaultPreset = data[prefix+'preset' ]
+		if ( data[prefix+'preset' ]) { this.options.defaultPreset = data[prefix+'preset' ] }
+		if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
+		if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
+		if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
+		if ( data[prefix+'hue' ]) { this.options.defaultHue = data[prefix+'hue' ] }
 
-		this.options.saturation = data[prefix+'sat' ]
-		this.options.luminosity = data[prefix+'lum' ]
-		this.options.hueRange = data[prefix+'range' ]
-		this.options.defaultHue = data[prefix+'hue' ]
+		return this.options
 	}
 
 	/**
@@ -1105,6 +1124,20 @@ export default class Person{
 			this.dispatchEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
 		}
 
+
+		if (this.isKissing) 
+		{
+			if ( this.kissLandedAt === -1)
+			{
+				this.kissLandedAt = this.now // prediction.time
+			}else{
+				// NO change
+			}
+			
+		}else{
+			this.kissLandedAt = -1
+		}
+
 		/*
 		// no singing but we still want to update the UI
 		// so that the user knows what they are about to play
@@ -1223,7 +1256,7 @@ export default class Person{
 		const boxWidth = xMax - xMin
 		const thirdHeadHeight = boxHeight * 0.333
 		const thirdHeadWidth = boxWidth * 0.333
-		const halfHeadWidth = boxWidth * 0.333
+		const halfHeadWidth = boxWidth * 0.5
 
 		const instrumentTitle = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
 		
@@ -1241,6 +1274,11 @@ export default class Person{
 
 		// Draw Bounding Box
 		// display.drawRectangle( xMin, yMin, boxWidth, boxHeight, 4, "rgba(255,0,0,0.5)", "rgba(255,255,255,0.5)" )
+		const hitAreaHeight = 500
+		// const hitAreaA = display.drawHitArea( xMin, yMin - hitAreaHeight, boxWidth, hitAreaHeight, "rgba(255,0,0,0.5)", "rgba(255,255,255,0.5)" )
+		// const hitAreaB = display.drawHitArea( xMin, yMin, boxWidth, hitAreaHeight, "pink", "rgba(255,255,255,0.5)" )
+		// const hitAreaC = display.drawHitArea( xMin, yMin + hitAreaHeight, boxWidth, hitAreaHeight, "rgba(255,0,0,0.5)", "rgba(255,255,255,0.5)" )
+		// const isPointInPath = display.context.isPointInPath(hitArea, event.offsetX, event.offsetY)
 
 		// console.log({xMin, xMax, yMin, yMax })
 
@@ -2417,7 +2455,6 @@ export default class Person{
 	onRightEyeOpen( timeClosedFor ){
 		// console.error( "onRightEyeOpen", {timeClosedFor} ) 
 		
-		
 	}
 
 	onRightEyeClose( timeClosed ){
@@ -2428,7 +2465,8 @@ export default class Person{
 	onEyesClosedForTimePeriod(){
 		// console.error( "onEyesClosedForTimePeriod" ) 
 		this.eyesClosed = true
-	// Eyes closed for X amount of time...
+	
+		// Eyes closed for X amount of time...
 		// this.loadNextPreset( instrumentName => console.log("onEyesClosedForTimePeriod:instrumentName",instrumentName ) )
 	}
 
