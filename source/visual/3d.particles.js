@@ -1,5 +1,3 @@
-import { KEYPOINT_QUANTITY } from "../display/display-webgl-3d"
-
 export class Particle{
 
 	x = 0

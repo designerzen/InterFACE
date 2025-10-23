@@ -1,11 +1,8 @@
-import * as THREE from "three/src/Three.js"
-import { Particle, ParticleTracer } from "./3d.particles"
+import { BufferGeometry } from "three"
 import { TRIANGULATION } from "../models/face-mesh-constants"
 import { preloadFont } from "troika-three-text"
-import { FaceLandmarker } from "@mediapipe/tasks-vision"
 
 // Try `npm i --save-dev @types/troika-three-text` if it exists or add a new declaration (.d.ts) file containing `declare module 'troika-three-text';`ts(7016)
-
 export const preload3dFont = async (font, characters='abcdefghijklmnopqrstuvwxyz1234567890-') => new Promise((resolve,reject) => {
 	preloadFont(
 		{
@@ -19,67 +16,6 @@ export const preload3dFont = async (font, characters='abcdefghijklmnopqrstuvwxyz
 	)
 })
 
-// For live data :
-export const arrangeFaceData = (keypointData, positions, scales, scaleFactor = 1) => {
-
-	let count = 0
-	const quantity = positions.length
-
-	for (let i=0; i<quantity;++i)
-	{
-		const p = i % (keypointData.length - 1)
-	
-		const particlePosition = keypointData[ p ]
-
-		positions[count] = particlePosition.x * scaleFactor
-		positions[count+1] = particlePosition.y * scaleFactor
-		positions[count+2] = particlePosition.z * scaleFactor
-
-		scales[i] = 1 
-		
-		count += 3
-	}
-	// console.info("Arranged particles",keypointData, { positions, scales, scaleFactor}) 
-}
-
-// NB. we need to ensure we dots are rotated to the same plane as the face
-export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor = 1) => {
-	// Add layers for holding scale and position data (optional)		
-	const geometry = new THREE.BufferGeometry()
-	const positions = new Float32Array( quantity * 3 )
-	const scales = new Float32Array( quantity )
-	
-	arrangeFaceData(keypointData, positions, scales,scaleFactor)
-	geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) )
-	geometry.setAttribute( 'scale', new THREE.Float32BufferAttribute( scales, 1 ) )
-	
-	const paths = FaceLandmarker.FACE_LANDMARKS_TESSELATION
-
-
-	console.error("Face paths", paths)
-
-	// const particles = Array(quantity).fill(0).map((e,i)=> new ParticleTracer( geometry, TRIANGULATION, i ))
-	const particles = Array(quantity)
-						.fill(0)
-						.map((e,i)=> new ParticleTracer( geometry, null, i, Math.random() * 0.2, true  ))
-	// connect particles....
-	particles.forEach( (particle, i) => {
-		const next = particles[i+1]
-		if (next)
-		{
-			particle.next = next
-			next.previous = particle
-		}
-	})
-
-
-	geometry.userData.particles = particles
-	// geometry.userData.particles = Array(quantity).map((e,i)=>new Particle(positions[i*3],positions[i*3+1],positions[i*3+2]))
-	
-	console.error("Particles Generated", {particles, paths})
-	return geometry
-}
-
 
 /**
  * To take the keypointsw out from another geometry
@@ -89,7 +25,7 @@ export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor =
  * @returns 
  */
 export const convertMeshToSimplifiedGeometry = (particleGeometry, quantity, scaleFactor = 1/20) => {
-	const geometry = new THREE.BufferGeometry()
+	const geometry = new BufferGeometry()
 	const positions = new Float32Array( quantity * 3 )
 	const scales = new Float32Array( quantity )
 			
@@ -115,8 +51,8 @@ export const convertMeshToSimplifiedGeometry = (particleGeometry, quantity, scal
 	}
 	
 	// Add layers for holding scale and position data (optional)		
-	geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) )
-	geometry.setAttribute( 'scale', new THREE.Float32BufferAttribute( scales, 1 ) )
+	geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) )
+	geometry.setAttribute( 'scale', new Float32BufferAttribute( scales, 1 ) )
 	return geometry
 }
 
