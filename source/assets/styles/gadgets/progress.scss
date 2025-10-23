@@ -141,7 +141,8 @@ progress{
 // that weirdly does a KITT
 progress:not(
 	[value],
-	.donut
+	.donut,
+	.progress-bar
 	) {
 
 	--size:clamp( 44px , 50vmin, 88px );

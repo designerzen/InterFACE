@@ -252,6 +252,7 @@ main:not(.flag-overlays){
 	}
 }
 
+
 // when tab is muted
 .tab-hidden{
 
@@ -510,6 +511,14 @@ main:not(.flag-overlays){
 }
 
 
+// When a time out is specified in the URL
+// then this class will get added to body at
+// the point of completition and removed once restarted
+.times-up{
+	#photosynth-canvas{
+		animation:Fade 3s linear 0s 1 reverse both;
+	}
+}
 
 // FAILURE ===================================
 

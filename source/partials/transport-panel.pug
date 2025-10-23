@@ -1,8 +1,22 @@
 fieldset#transport-panel.transport 
-	progress#timing-progress(min="0" max="1" )
 
-	label(for="timer-toggle") Timer
-		input(type="checkbox" value="Timer Started")#timer-toggle.toggle.toggle-play-pause
+	legend.sr-only Transport
 
-	label(for="timing-step") Timing Step
-		input(type="range" min="1" max="4" step="1")#timing-step
+	label(for="time-elapsed") <span class="sr-only">Time elapsed</span>
+		time#time-elapsed 0
+		span.seperator /
+		time#time-total 1
+
+	progress#countdown-progress(min="0" max="1" value="0").progress-bar
+	//- progress#timing-progress(min="0" max="1" value="0")
+
+	div(hidden)
+	
+		label(for="timer-toggle") Timer
+			input(type="checkbox" value="Timer Started")#timer-toggle.toggle.toggle-play-pause
+
+		label(for="timer-toggle") Timer
+			input(type="checkbox" value="Timer Started")#timer-toggle.toggle.toggle-play-pause
+
+		label(for="timing-step") Timing Step
+			input(type="range" min="1" max="4" step="1")#timing-step

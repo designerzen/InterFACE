@@ -1,0 +1,99 @@
+
+#transport{
+	grid-area:control-panel;
+	width: 100%;
+}
+.transport {
+	display: flex;
+	flex-direction: column;
+	min-height: 44px;
+	position: relative;
+	border:0;
+	padding: 0;
+}
+
+
+label[for="timing-elapsed"]{
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+#time-elapsed{
+	color:var( --shade-whitte, white );
+}
+
+#time-total{
+	color:var( --shade-grey, gray );
+}
+
+
+// for the countdown aka "progress"
+.progress-bar{
+
+	--height:8px;	// height of bar
+	--ball:14px;	// radius of ball
+
+	--c:rgba(200,200,200,0.2) ;//var(--shade-orange, red);
+	--b:#ff0033;//var(--shade-red, blue);
+	--bg:linear-gradient(var(--c,red),var(--c,red)) ;
+	--bar:linear-gradient(var(--b,blue),var(--b,blue)) ;
+
+	appearance: none;
+	position: absolute;
+	bottom:100%;
+	display: block;
+	border: none;
+	color:var(--c);
+	background:var(--bg);
+	width:calc( 100% - 2 * var(--pad) );
+	left:var(--pad);
+	// right:var(--pad);
+	height:var(--height);
+
+	// Ball in front of the bar
+	&::after{
+		content:'';
+		//border-radius: 999px;
+		width:100%;
+		// width:var(--ball);
+		height:calc(var(--ball) * 2);
+		// background-color: var(--b);
+		display: block;
+		position: absolute;
+		left:0;//calc( var(--p,0) * 100% );
+		top:calc( var(--height) / 2 - var(--ball) );
+		transform:translateX( calc( min(var(--p,1),1) * (100% - 2 * var(--ball))) );
+		z-index: 1;
+
+		--circle:calc(var(--ball));
+		background: radial-gradient(
+			circle at var(--circle) center, 
+			var(--b) var(--circle),
+			transparent var(--circle)
+		) left center no-repeat;
+	}
+}
+
+
+// bg
+.progress-bar[value]::-webkit-progress-bar {
+	color:var(--c);
+	background:var(--bg);
+}
+
+// bar
+.progress-bar[value]::-webkit-progress-value {
+	color:var(--c);
+	background:var(--bar);
+}
+
+.progress-bar[value]::-moz-progress-bar { 
+	color:var(--bar);
+	background:var(--bar);
+}
+
+.seperator{
+	color:var( --shade-grey, gray );
+	margin:0 var(--pad);
+}
