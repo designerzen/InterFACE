@@ -23,7 +23,6 @@ import{
   offlineFallback
 } from 'workbox-recipes'
 
-import * as googleAnalytics from 'workbox-google-analytics'
 // Used for filtering matches based on status code, header, or both
 import { CacheableResponse, CacheableResponsePlugin } from 'workbox-cacheable-response'
 // Used to limit entries in cache, remove entries after a certain period of time
@@ -144,6 +143,22 @@ registerRoute(
         statuses: [0, 200],
       }),
       new RangeRequestsPlugin()
+    ],
+  }),
+)
+
+registerRoute(
+  /\*.task/,
+  new NetworkFirst({
+    cacheName: 'tf-models-tfhub-tensorflow',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        // one month should be good
+        maxAgeSeconds: ONE_DAY * 30,
+      }),
     ],
   }),
 )
