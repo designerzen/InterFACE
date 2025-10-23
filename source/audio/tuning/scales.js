@@ -69,6 +69,13 @@ export const TUNING_MODE_NAMES = [
 	TUNING_MODE_LOCRIAN			// Start from seventh degree
 ]
 
+export const TUNING_MAJOR_NOMENCLATURE = [
+	"i","ii","iii","IV","V","vi","viio"
+]
+export const TUNING_MINOR_NOMENCLATURE = [
+	"i","iio","iii","IV","V","vi","vii"
+]
+
 export const getModeAsIntegerOffset = (mode) => isNaN(parseInt(mode)) ? TUNING_MODE_NAMES.indexOf(mode) : mode
   
 export const C_SCALE =  ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
