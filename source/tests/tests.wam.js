@@ -3,7 +3,7 @@ import abcjs  from 'abcjs'
 
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "/node_modules/@lookingglass/webxr/dist/@lookingglass/webxr.mjs"
 // import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr"
-import * as THREE from "three/src/Three.js"
+import * as THREE from "three"
 // import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
 
 import {
