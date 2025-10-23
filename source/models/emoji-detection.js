@@ -19,6 +19,12 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// Recognise EMOJI in order of most common ones
 
 	// options.mouthSilence && amp < options.mouthCutOff
+
+	// Tongue out!
+	if (prediction.tongueOut > -0.1)
+	{
+		return prediction.leftEyeClosed && prediction.rightEyeClosed ? EMOTICONS.EMOJI_TONGUE_SQUINT : prediction.leftEyeClosed ? EMOTICONS.EMOJI_TONGUE_WINK : EMOTICONS.EMOJI_TONGUE
+	}
 	
 	// Both eyes are closed -----------------------------------------------
 	if (prediction.leftEyeClosed && prediction.rightEyeClosed)
