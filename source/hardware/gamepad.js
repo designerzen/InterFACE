@@ -492,7 +492,7 @@ export class GamePadManager {
 			})
 						
 			pads = fetchGamePads()
-			this.controllers.set( e.index, gamePad )
+			this.controllers.set( event.index, gamePad )
 			
 			console.info(
 				"Gamepad connected at index %d: %s. %d buttons, %d axes.",
