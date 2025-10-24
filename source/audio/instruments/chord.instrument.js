@@ -48,6 +48,15 @@ export default class ChordInstrument extends Instrument{
 		return true
 	}
 
+	/**
+	 * There might be multiple different presets
+	 * loaded so these are actually just sending the first
+	 * instruments preset which is a bit of a hack
+	 */
+
+	get activePresetIndex(){
+		return this.instruments.length > 0 ?  this.instruments[0].activePresetIndex : -1
+	}
     async create(){    
 		this.instruments = [] 
 		this.mixer = this.context.createGain()
@@ -113,7 +122,7 @@ export default class ChordInstrument extends Instrument{
 	 * @param {Number} veolcity 
 	 */
 	async noteOff( noteNumber, velocity=0, instrumentIndex=0 ){
-		//const activeNote = this.activeNotes.get(noteNumber)
+		//const activeNote = this.activeNotes.get(noteNumber) 
 		const instrument = this.instruments[instrumentIndex % this.instruments.length]
 		
 		if (!instrument)

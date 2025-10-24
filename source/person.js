@@ -119,6 +119,8 @@ export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
 export const PERSON_TYPE_ARPEGGIO = 2
 export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
 
+const EXPORT_DELIMITER = "!"
+
 /*
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
 // equalpower 
@@ -182,7 +184,6 @@ export default class Person{
 
 	instruments = []
 	
-	instrumentPointer = 0
 	instrumentLoadedAt = -1
 	presetName
 	presetTitle
@@ -467,8 +468,8 @@ export default class Person{
 	 * Fetch the index in the instrument array of the current instrument
 	 * @returns {Number} Instrument index
 	 */
-	get instrumentIndex(){
-		return this.instrumentPointer // getGeneralMIDIInstrumentFolders().indexOf(this.instrumentName)
+	get activePresetIndex(){
+		return this.activeInstrument ? this.activeInstrument.activePresetIndex : -1 // ?? getGeneralMIDIInstrumentFolders().indexOf(this.instrumentName)
 	}
 
 	/**
@@ -827,18 +828,33 @@ export default class Person{
 	 * 
 	 * @param {String} data 
 	 */
-	importData( data){
+	parseDataExport( data){
+		
 		if (!data)
 		{
 			return null
 		}
-		const parts = String(data).split('|')
+		const parts = String(data).split( EXPORT_DELIMITER )
 		// part [0] is always PresetIndex
 		// part [1] is always instrumentType
+		return {
+			preset: parseInt(parts[0]) ?? 12,
+			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT
+		}
+	}
+
+	/**
+	 * Create a CSV file from the data
+	 * @param {Number} presetIndex 
+	 * @param {String} instrumentType 
+	 * @returns 
+	 */
+	createDataExport( presetIndex, instrumentType=undefined ){
+		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
 	}
 
 	exportData(){
-		return `${this.instrumentPointer}|${this.activeInstrument ? this.activeInstrument.type : INSTRUMENT_TYPE_SOUNDFONT}`
+		return this.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT )
 	}
 
 	/**
@@ -886,7 +902,7 @@ export default class Person{
 			[prefix+'instrument']:this.options.defaultInstrument, 
 			// FIXME: GET THIS FROM THE ACTIVE INSTRUMENT!
 			// which instrument preset to load?
-			[prefix+'preset']:this.activeInstrument.instrumentIndex ?? this.options.defaultPreset,
+			[prefix+'preset']:this.activeInstrument.activePresetIndex ?? this.options.defaultPreset,
 			
 			// [prefix+'sat'] : this.saturation,
 			// [prefix+'lum'] : this.luminosity,
@@ -1960,14 +1976,13 @@ export default class Person{
 		this.noteVelocity *= command.velocity * 0.01	
 	}
 
-	async setupInstrumnentForm(presetTitle,presetName,details ){
+	async setupInstrumnentForm( details ){
 
-		// just an index as to which out of all instrument data is this one
-		this.instrumentPointer = this.activeInstrument.instrumentIndex
-		
+		// presetTitle,presetName,
+
 		// overwrite the instrument info
-		this.presetTitle = presetTitle
-		this.presetName = presetName
+		this.presetTitle = details.presetTitle
+		this.presetName = details.presetName
 
 		// console.error("setupInstrumnentForm", presetTitle, presetName, details )
 		
@@ -1979,7 +1994,6 @@ export default class Person{
 
 		// you have to dispatch the event from an element!
 		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, details )
-		
 	}
 
 	/**
@@ -2062,34 +2076,38 @@ export default class Person{
 	
 	/**
 	 * Load a specific patch for this Person's active instrument
-	 * @param {String} presetName Name of the standard instrument to load
+	 * @param {String} presetNameOrIndex Name of the standard instrument to load
 	 * @param {String} presetTitle Title of the standard instrument to load
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
-	async loadPreset(presetName, presetTitle, progressCallback){
+	async loadPreset(presetNameOrIndex, presetTitle, progressCallback){
 
-		// const presets = this.samplePlayer.instrumentNames
+		const allPresets = await this.activeInstrument.getPresets()
+		let presetIndex = 0
 
 		if (!this.activeInstrument)
 		{
-		   throw Error("Person.loadPreset("+presetName+") failed, no active instrument")  
+		   throw Error("Person.loadPreset("+presetNameOrIndex+") failed, no active instrument")  
 		}
 
-		if (Number.isInteger(presetName))
+		if (Number.isInteger(presetNameOrIndex))
 		{
-			const allPresets = await this.activeInstrument.getPresets()
-			presetName = allPresets[presetName]
+			presetIndex = presetNameOrIndex
+			presetNameOrIndex = allPresets[presetNameOrIndex]
+			
+		}else{
+			presetIndex = allPresets.indexOf(presetNameOrIndex)
 		}
 		
 		// always remove the suffixes?
-		const instrumentNameRefined = presetName.replace("-mp3", "")
+		const instrumentNameRefined = presetNameOrIndex.replace("-mp3", "")
 
 		// if there is no title set, it can mean that either :
 		// a. this preset is NOT one of the instruments
 		// b. the preset is passed in as a number
 		if (!presetTitle)
 		{
-			presetTitle = getInstrumentTitle(presetName) ?? presetName
+			presetTitle = getInstrumentTitle(presetNameOrIndex) ?? presetNameOrIndex
 		}
 
 		
@@ -2105,14 +2123,19 @@ export default class Person{
 		const instrumentPack = this.options.instrumentPack
 		//console.log(generalMIDIInstrumentId, "Person loading instrument "+instrumentName + '>' + instrumentPack + +" via sampleplayer")
 		
-		const details = { instrumentName:instrumentNameRefined, instrumentPack }
+		const details = { 
+			presetIndex, 
+			presetTitle, 
+			presetName:instrumentNameRefined, 
+			instrumentPack 
+		}
 
 		const instrument = await this.activeInstrument.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
 			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
 		} )
 
-		await this.setupInstrumnentForm(presetTitle, presetName, details)
+		await this.setupInstrumnentForm(details)
 		return this.activeInstrument
 	}
 
@@ -2542,6 +2565,7 @@ export default class Person{
 			createDraggablePanel(this, this.instrumentPanel, this.isLeftSidePanel)
 			this.instrumentPanel.hidden = false
 			this.isInstrumentPanelInteractive = true
+			//debugger
 		}
 
 		return true

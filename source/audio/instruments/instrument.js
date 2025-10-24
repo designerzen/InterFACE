@@ -74,7 +74,11 @@ export default class Instrument{
 	 * @returns {String|Object} of unique Instrument id for this instance
 	 */
 	get activePreset(){
-		return null
+		return -1
+	}
+
+	get activePresetIndex(){
+		return -1
 	}
 
 	/**

@@ -99,6 +99,13 @@ export default class SynthesizerInstrument extends Instrument{
 		this.delayNode.delayTime.value = value
 	}
 
+
+	get activePresetIndex(){
+		const index = OSCILLATOR_TYPES.indexOf( this.activePreset )
+		return index < 0 ? 0 : index
+	}
+
+
     async create(){       
 
 		await super.create()

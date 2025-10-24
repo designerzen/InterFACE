@@ -38,7 +38,7 @@ export default class SampleInstrument extends Instrument{
 	instrumentFolders = []
 
 	// position within the above of the current instrument
-	instrumentIndex = 0
+	presetIndex = 0
 
 	pitchBendValue = 1
 	
@@ -66,6 +66,11 @@ export default class SampleInstrument extends Instrument{
 	get activePreset(){
 		return this.instrumentName
 	}
+
+	get activePresetIndex(){
+		return this.presetIndex
+	}
+
 
     async create(){    
 
@@ -220,7 +225,7 @@ export default class SampleInstrument extends Instrument{
 	 async loadRandomPreset(progressCallback){
 		// grab an instrument randomly from the full collection
 		const newIndex = Math.round( Math.random() * this.instrumentFolders.length )
-		this.instrumentIndex = newIndex
+		this.presetIndex = newIndex
 		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
@@ -229,9 +234,9 @@ export default class SampleInstrument extends Instrument{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadPreviousPreset(progressCallback){
-		const index = this.instrumentIndex-1
+		const index = this.presetIndex-1
 		const newIndex = index < 0 ? this.instrumentFolders.length + index : index
-		this.instrumentIndex = newIndex
+		this.presetIndex = newIndex
 		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
@@ -241,9 +246,9 @@ export default class SampleInstrument extends Instrument{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadNextPreset(progressCallback){
-		const index = this.instrumentIndex+1 
+		const index = this.presetIndex+1 
 		const newIndex = index >= this.instrumentFolders.length ? 0 : index
-		this.instrumentIndex = newIndex
+		this.presetIndex = newIndex
 		return await this.loadPreset( this.instrumentFolders[newIndex], this.instrumentPack, progressCallback )
 	}
 
@@ -254,7 +259,7 @@ export default class SampleInstrument extends Instrument{
 	 * @param {Function} callback Method to call once the instrument has loaded
 	 */
 	async reload(progressCallback){
-		return await this.loadPreset( this.instrumentFolders[this.instrumentIndex], this.instrumentPack, progressCallback )
+		return await this.loadPreset( this.instrumentFolders[this.presetIndex], this.instrumentPack, progressCallback )
 	}
 
 	/**
@@ -301,7 +306,7 @@ export default class SampleInstrument extends Instrument{
 		// Fetch the GM name
 		this.title = this.instrumentTitles[index]
 		
-		this.instrumentIndex = index ?? 0
+		this.presetIndex = index ?? 0
 		this.instrumentName = instrumentName
 		this.instrumentPack = instrumentPack
 		this.instrumentTitle = this.title

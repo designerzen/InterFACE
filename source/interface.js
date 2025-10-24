@@ -812,20 +812,13 @@ export const createInterface = (
 			
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
 	
-		// TODO: load in from the URL and players
-		let savedData = undefined
+		// const locationOptions = new URLSearchParams(window.location.search)
+		// const locationData = Object.fromEntries(locationOptions)
+		// const name = IDENTIFIERS[index]
+		// const prefix = name + '-'
+		// const locationInstrument= locationData[prefix+'instrument' ]
+		// const locationPreset= locationData[prefix+'preset' ]
 
-		const locationOptions = new URLSearchParams(window.location.search)
-		const locationData = Object.fromEntries(locationOptions)
-		const name = IDENTIFIERS[index]
-		const prefix = name + '-'
-		const locationInstrument= locationData[prefix+'instrument' ]
-		const locationPreset= locationData[prefix+'preset' ]
-
-		// check URL for saved options
-		// defaultPreset:this.options.defaultPreset,
-		// defaultInstrument:this.options.defaultInstrument
-		
 		// TODO: Change these per person...
 		const personOptions = { 
 			
@@ -858,25 +851,26 @@ export const createInterface = (
 		}
 
 		// Load any saved settings for this specific user name
-		
-		const savedOptions = store.has(name) ? store.getItem(name) : {}
+		const storageKey = 'p'+(index+1)
+		const savedOptions = store.has(storageKey) ? store.getItem(storageKey) : {}
 		const options = Object.assign ( {}, savedOptions, personOptions ) 
 		
+		const savedData = {
+
+		}
+
 		// Create our person with the specified options
 		const person = new Person( index, options, savedData ) 
-		
+
 		// state can contain more data than simple the options!
 		// so let us loop through the stateMachine and extract any person data...
 		// &p1=1
-		const personKey = "p"+(personIndex+1)
-		const personMeta = stateMachine.get( personKey )
+		const personMeta = stateMachine.get( storageKey )
 		//const personData = person.importData( stateMachine.get("p1") )
-		
+			
 		// Load in any data set in the URL
-		person.importData( personMeta )
-
-		console.info("Person preference", {personKey, personMeta}, {person} )
-
+		const importedData = person.parseDataExport( personMeta )
+		
 		// Events dispatched by Person :
 		const markInstrumentProgress = (progress,instrumentName) =>{ 
 			const percent = Math.ceil(progress*100)
@@ -916,22 +910,21 @@ export const createInterface = (
 
 		person.addListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
 			const {detail} = event
-			const { progress, instrumentName, instrumentPack } = detail
-			// save it for next time
-			const cache = store.setItem(name, {instrument:instrumentName })
+			const { presetIndex, presetName, presetTitle, instrumentPack } = detail
 			//console.log("External event for ",{ person, detail , cache})
-			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
+			setFeedback( `${person.instrumentTitle} Ready!`.toUpperCase(), 0, 'instrument' ) 
 			// dispatchEvent(event)
 			const personData = person.exportData()
-			// person.noteIndex
-			// person.personIndex
-			// person.instrumentIndex
-			const key = "p"+ (person.personIndex + 1)
-			const test = stateMachine.get( key )
-			console.error(person.personIndex, "Setting statemachine with person",personData, {person, stateMachine, key, test} )
-
-			// stateMachine.set("", "")
 			
+			// save it for next time
+			const cache = store.setItem(name, {instrument:presetName })
+			
+			// save this for reloading next time in the URL
+			stateMachine.set( storageKey, personData )
+			
+			const test = stateMachine.get( storageKey )
+			console.error(person.personIndex, "Setting statemachine with person",personData, {person,detail, stateMachine, storageKey, test} )
+
 			dispatchCustomEvent(event.type, detail)
 		})
 
@@ -945,23 +938,25 @@ export const createInterface = (
 		})
 		*/
 
-		// We assign certain random instruments from groups to each user
-		// we want this to happen in the background
-		// see if there is a stored name for the instrument...
-		// FIXME: Look also in the midiPerformance for the first instrument
-		let preset = locationPreset ?? 12
-
-		if (midiPerformance)
+		let preset
+		if (importedData && importedData.preset)
 		{
+			console.info("Importing person data", {personMeta, importedData}, {person} )
+			preset = importedData.preset
+
+		}else if (midiPerformance){
+
+			// override with MIDI performance if available
 			preset = midiPerformance.instruments[0]
 			// TODO: Test this is a valid GM instrument!
-		}else if (locationPreset){
-			// There was a location specified in the location bar 
-			// TODO: I should update this to check the stateMachine really!
-			preset = locationPreset
 		}else{
-			preset = getRandomPresetForPerson(personIndex)	
+			// We assign certain random instruments from groups to each user
+			// we want this to happen in the background
+			// see if there is a stored name for the instrument...
+			preset = getRandomPresetForPerson(person.personIndex)
 		}
+					
+		console.info("Person preference", {storageKey, personMeta, importedData}, {person} )
 
 		// console.info("Person created", {preset}, {person})
 

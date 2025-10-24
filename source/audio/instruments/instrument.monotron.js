@@ -73,6 +73,11 @@ export default class MonotronInstrument extends Instrument{
 		return this.gainNode
 	}
 
+	get activePresetIndex(){
+		const index = OSCILLATOR_TYPES.indexOf( this.lfo.type )
+		return index < 0 ? 0 : index
+	}
+
 	set VCOType(value){
 		this.vco.type = value
 	}

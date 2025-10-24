@@ -86,6 +86,15 @@ export default class TripleOscillatorInstrument extends OscillatorInstrument{
 		return this.oscillator3.type
 	}
 
+	get activePreset(){
+		return this.oscillator.type
+	}
+
+	get activePresetIndex(){
+		const index = OSCILLATOR_TYPES.indexOf( this.activePreset )
+		return index < 0 ? 0 : index
+	}
+
     // set both oscillators to the same shape
 	set shapes(value){
 		this.oscillator.type = value

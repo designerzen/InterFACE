@@ -21,7 +21,7 @@ export default class YoshimiInstrument extends Instrument{
 
 	channel = 0
 	bankIndex = 0
-	instrumentIndex = 0
+	presetIndex = 0
 
 	get volume() {
 		return this.gainNode.gain.value
@@ -107,7 +107,7 @@ export default class YoshimiInstrument extends Instrument{
 		// bank is the programNumber...
 		const programs = await this.getPresets()
 		const bank = programs[programNumber]
-		const f = this.presets[this.instrumentIndex]
+		const f = this.presets[this.presetIndex]
 
 		return await this.loadPreset(f, bank)
 	}
@@ -149,7 +149,7 @@ export default class YoshimiInstrument extends Instrument{
 
 		const bank = presets[this.bankIndex].name
 		const instruments = presets[this.bankIndex].instruments
-		const bankPath = await this.loadPreset(instruments[this.instrumentIndex], bank)
+		const bankPath = await this.loadPreset(instruments[this.presetIndex], bank)
 
 		console.log("presets", {presets, bank, bankPath})
 

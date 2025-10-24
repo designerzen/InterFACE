@@ -39,7 +39,7 @@ export default class InstrumentManager{
 	 * Fetch the index in the instrument array of the current instrument
 	 * @returns {Number} Instrument index
 	 */
-	get instrumentIndex(){
+	get activePresetIndex(){
 		return this.instrumentPointer // getGeneralMIDIInstrumentFolders().indexOf(this.instrumentName)
 	}
 
@@ -177,7 +177,7 @@ export default class InstrumentManager{
 		} )
 
 		// just an index as to which out of all instrument data is this one
-		this.instrumentPointer = this.samplePlayer.instrumentIndex
+		this.instrumentPointer = this.samplePlayer.activePresetIndex
 
 		return instrumentName
 	}

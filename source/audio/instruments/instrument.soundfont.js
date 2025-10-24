@@ -76,9 +76,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// if we have a preset number, set it
 		if (!isNaN(options.defaultPreset))
 		{
-			this.instrumentIndex = options.defaultPreset
+			this.presetIndex = options.defaultPreset
 		}else if (typeof options.defaultPreset === "string"){
-			this.instrumentIndex = this.getIndexFromName( options.defaultPreset)
+			this.presetIndex = this.getIndexFromName( options.defaultPreset)
 		}
 
 		// use the provided soundfont class or else create a new instance
@@ -153,7 +153,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
-		this.instrumentIndex = this.getIndexFromName(programNumber)
+		this.presetIndex = this.getIndexFromName(programNumber)
 		return await super.programChange( programNumber )	
 	}
 
@@ -251,7 +251,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		const fontDescriptor = {
 			descriptor: this.instrumentPack, 
 			descriptorPath:'./assets/audio/',
-			preset:this.instrumentIndex 
+			preset:this.presetIndex 
 		}
 
 		// load in a sound font - this can be either a fully qualified url
@@ -269,7 +269,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// FIXME:
 		// find associated instrument - for GM these should be the same
 		// but there may be descrepencies for
-		const currentPreset = availablePresets[ this.instrumentIndex ]
+		const currentPreset = availablePresets[ this.presetIndex ]
 		
 		// console.error("Found font", { availablePresets })
 		// console.info("Found font", { fontDescriptor, fontData, availablePresets })		

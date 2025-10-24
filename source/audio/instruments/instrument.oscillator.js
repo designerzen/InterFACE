@@ -174,6 +174,11 @@ export default class OscillatorInstrument extends Instrument{
     get detune(){
         return this.oscillator.detune.value
     }
+	
+	get activePresetIndex(){
+		const index = OscillatorInstrument.presets.indexOf( this.shape )
+		return index < 0 ? 0 : index
+	}
 
 	async create(){
 		
@@ -320,7 +325,6 @@ export default class OscillatorInstrument extends Instrument{
 		return [ ...OSCILLATOR_TYPES, ...OscillatorInstrument.presetNames ]
 	}
 
-	
 	clone(){
 		return new OscillatorInstrument(this.audioContext, this.options)
 	}
@@ -335,7 +339,6 @@ export default class OscillatorInstrument extends Instrument{
 
 		this.oscillator.setCustomWaveform( customWaveFunction() )
 	}
-
 
 	/**
 	 * Here, we create a PeriodicWave with two values. 

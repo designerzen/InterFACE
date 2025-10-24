@@ -67,11 +67,17 @@ export default class DualOscillatorInstrument extends OscillatorInstrument{
 		return this.oscillator2.type
 	}
 
+	get activePresetIndex(){
+		const index = OSCILLATOR_TYPES.indexOf( this.oscillator.type )
+		return index < 0 ? 0 : index
+	}
+
     // set both oscillators to the same shape
 	set shapes(value){
 		this.oscillator.type = value
 		this.oscillator2.type = value
 	}
+	
 
     async create(){        
         this.gainNode = this.context.createGain()
