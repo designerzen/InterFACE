@@ -24,11 +24,11 @@ form#onboard(action="/")
 		legend Options
 
 		//- Simple / Advanced mode
-		label(for="toggle-advanced-mode" aria-describeby="advanced-mode-feedback" aria-label="Unlock all features and make it complicated to use but very powerfull" ) Use advanced mode? 
+		label(for="toggle-advanced-mode" aria-describedby="advanced-mode-feedback" aria-label="Unlock all features and make it complicated to use but very powerfull" ) Use advanced mode? 
 		input#toggle-advanced-mode.switch(type="checkbox" role="switch")
 
-		//- feedback
-		output#advanced-mode-feedback
+		//- feedback (use div to avoid output element containing non-phrasing flow like paragraphs/video)
+		div#advanced-mode-feedback
 			p.simple-mode Friendly version with simple interface and instuctions suitable for beginners =P
 			p.advanced-mode For Advanced users who want MIDI connectivity and many more controls
 			
@@ -41,7 +41,7 @@ form#onboard(action="/")
 	label#button-start-label(for="button-start" ) Start
 	input#button-start.button-push( type="submit" value="Begin")
 
-	output.alert-accept-requests
+	div.alert-accept-requests(role="status" aria-live="polite")
 		strong Please accept any permission requests 
 		p To use this software you must allow the camera to look at you, but <em>no data leaves your device</em>. 
 		p If you have MIDI instruments please also accept permission to communicate with them.
