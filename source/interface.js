@@ -168,6 +168,7 @@ import { Timeout } from './timing/timeout.js'
 import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from './timing/timer.js'
 import { count } from 'console'
+import { configurePersonByIndex, configurePersonByOperatingMode } from './person.presets.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -796,9 +797,25 @@ export const createInterface = (
 	/**
 	 * set up the user in a certain mode
 	 * @param {Person} person 
+	 * @param {Object} personOptions
+	 * @param {Object} importedOptions
 	 */
-	const configurePerson = person => {
-		Person.configurePersonByIndex( person, people)
+	const configurePerson = (person, personOptions, importedOptions) => {
+
+		// we use the data from the state machine to configure each person
+		const personData = person.exportData()
+	
+		if (importedOptions && importedOptions.userMode && Number.isInteger(importedOptions.userMode) )
+		{
+			console.error("@@@ Configuring person with URL data", {person, personData, personOptions, importedOptions} )
+		
+			configurePersonByOperatingMode( person, importedOptions.userMode )
+		}else{
+			
+			console.error("@@@ Configuring person by index", {person, personData, personOptions, importedOptions} )
+		
+			configurePersonByIndex( person, people )		
+		}
 	}
 
 	/**
@@ -917,7 +934,7 @@ export const createInterface = (
 			const personData = person.exportData()
 			
 			// save it for next time
-			const cache = store.setItem(name, {instrument:presetName })
+			// const cache = store.setItem( presetName, {instrument:presetName })
 			
 			// save this for reloading next time in the URL
 			stateMachine.set( storageKey, personData )
@@ -977,7 +994,8 @@ export const createInterface = (
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
 			
-			configurePerson(person)
+			// check for imported data
+			configurePerson(person, personOptions, importedData )
 
 			if (personOptions.debug)
 			{
@@ -2644,6 +2662,7 @@ export const createInterface = (
 				})  
 
 				if (cameraResult.success === false){
+					setFeedback( "", 0)
 					showError("Camera not found", cameraResult.message, true)
 					return reject( cameraResult.cameraFeedbackMessage )
 				}

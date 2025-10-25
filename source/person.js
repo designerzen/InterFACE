@@ -97,6 +97,7 @@ import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { createInstrumentFromData } from './audio/instrument-factory.js'
 import { getCleff, NOTATION, STAVE_SIZES } from './audio/notation.js'
+import { configurePersonByOperatingMode } from './person.presets.js'
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -110,6 +111,7 @@ export const STATE_INSTRUMENT_RELEASE = "instrument-release"
 export const EVENT_EMOTION_CHANGED = "emotion-changed"
 export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
+export const EVENT_USER_MODE_CHANGED = "usermode-changed"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
@@ -123,7 +125,8 @@ export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
 // you want something that doesn't encode, but that also
 // won't ruin any filenames or numbers
 // # and ? are taken by the protocol
-const EXPORT_DELIMITER = "!"
+// ~ doesn't work and cuts off te var when parsed
+const EXPORT_DELIMITER = ","
 
 /*
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
@@ -196,12 +199,16 @@ export default class Person{
 	
 	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
+
+	// 
 	type = PERSON_TYPE_ARPEGGIO
+	userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
 
 	// Flags
 	useArpeggio = false
 	active = false
 	singing = false
+	
 
 	isMouthOpen = false
 	isLeftEyeOpen = true
@@ -641,49 +648,11 @@ export default class Person{
 	/**
 	 * Ensure type is a valid index
 	 * 
-	 * @param {Person} person 
-	 * @param {Number} type 
+	 * @param {Person} person
 	 * @param {String} people 
 	 */
 	static configurePersonByIndex(person, people){
-		person.type = person.playerNumber % people.length
-		switch (person.type)
-		{
-			case PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS:
-				// Arp - turn it into an arp if the person has index of 1
-				person.leftFacingKeys = FIFTHS_SCALE_KEYS
-				person.rightFacingKeys = FIFTHS_SCALE_KEYS
-				person.activeInstrument.arpeggiate = true
-				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate") 
-				break
-
-			case PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS:
-				// Sympathetic chords - all just circle of fifths
-				person.leftFacingKeys = FIFTHS_SCALE_KEYS
-				person.rightFacingKeys = FIFTHS_SCALE_KEYS
-				person.activeInstrument.arpeggiate = false
-				// console.info(">>> PERSON "+person.playerNumber+" COF Scales" ) 
-				break
-
-			case PERSON_TYPE_CHROMATIC:
-				// Sympathetic chords - Chromatic scale
-				person.leftFacingKeys = NOTES_BLACK
-				person.rightFacingKeys = NOTES_WHITE
-				// person.leftFacingKeys = JAZZ_MINOR_SCALE_KEYS
-				// person.rightFacingKeys = JAZZ_MINOR_SCALE_KEYS
-				person.activeInstrument.arpeggiate = false
-				// console.info(">>> PERSON "+person.playerNumber+" Chromatic Scale" ) 
-				break
-					
-			case PERSON_TYPE_ARPEGGIO:
-			default:
-				// Slow COF Arp
-				person.leftFacingKeys = MAJOR_SCALE_KEYS
-				person.rightFacingKeys = MINOR_SCALE_KEYS
-				person.activeInstrument.arpeggiate = true
-				// console.info(">>> PERSON "+person.playerNumber+" Arpeggiate COF" ) 
-				break
-		}
+		configurePersonByOperatingMode( person, person.playerNumber % people.length )
 	}
 
 	/**
@@ -783,7 +752,8 @@ export default class Person{
 			console.info("Person "+this.name+" options", this.options)
 		}
 	}
-/**
+	
+	/**
 	 * After a user has left the active area, we must
 	 * reset all the states back to their correct 
 	 * start values
@@ -827,13 +797,11 @@ export default class Person{
 		this.reset()
 	}
 	
-
 	/**
 	 * 
 	 * @param {String} data 
 	 */
 	parseDataExport( data){
-		
 		if (!data)
 		{
 			return null
@@ -841,24 +809,28 @@ export default class Person{
 		const parts = String(data).split( EXPORT_DELIMITER )
 		// part [0] is always PresetIndex
 		// part [1] is always instrumentType
+		// part [2] is always userMode
+		console.error( "parseDataExport", {data, parts} )
 		return {
 			preset: parseInt(parts[0]) ?? 12,
-			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT
+			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
+			userMode: parseInt(parts[2])
 		}
 	}
 
 	/**
-	 * Create a CSV file from the data
+	 * Create a string based URL style file from the data
 	 * @param {Number} presetIndex 
 	 * @param {String} instrumentType 
+	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	createDataExport( presetIndex, instrumentType=undefined ){
+	createDataExport( presetIndex, instrumentType=undefined, userMode=undefined ){
 		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
 	}
 
 	exportData(){
-		return this.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT )
+		return this.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode )
 	}
 
 	/**
@@ -1418,7 +1390,7 @@ export default class Person{
 			}
 
 			let style = ""
-			switch (this.type)
+			switch (this.userMode)
 			{
 				case PERSON_TYPE_ARPEGGIO:
 					style = "𝆃"
