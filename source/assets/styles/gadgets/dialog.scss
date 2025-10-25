@@ -123,6 +123,7 @@ dialog{
 	menu{
 		z-index:9;
 		pointer-events: auto;
+		display: flex;
 	}
 
 	&::after,
