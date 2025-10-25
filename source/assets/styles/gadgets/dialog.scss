@@ -165,8 +165,9 @@ dialog{
 		
 		h5::before{
 			content:'😞';
+			font-family:"noto-emoji";
 			display: inline-block;
-			margin-right:calc( var(--pad) / 2 );
+			margin-right:calc( var(--pad) / 1.5 );
 		}
 
 		&::after,
