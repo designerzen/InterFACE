@@ -119,6 +119,10 @@ export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
 export const PERSON_TYPE_ARPEGGIO = 2
 export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
 
+// used to deliminiate the URL player seperator...
+// you want something that doesn't encode, but that also
+// won't ruin any filenames or numbers
+// # and ? are taken by the protocol
 const EXPORT_DELIMITER = "!"
 
 /*
@@ -163,7 +167,7 @@ const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 export default class Person{
 
 	id
-	name = "unamed"
+	name = "unnamed"
 
 	playerNumber = -1
 	createdAt = -1
