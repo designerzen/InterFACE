@@ -1,7 +1,7 @@
 {
 	"name": "PhotoSYNTH",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical instrument",
-	"version": "0.32.0",
+	"version": "0.32.1",
 	"time": 1737650431301,
 	"author": "designerzen <github@designerzen.com>",
 	"license": "GPL-2.0-only",
@@ -330,7 +330,7 @@
 		"jest-environment-jsdom": "30.2.0",
 		"jsdoc": "^4.0.5",
 		"jstransformer-markdown-it": "^3.0.0",
-		"knip": "^5.66.2",
+		"knip": "^5.66.3",
 		"midible": "^0.1.10",
 		"node-html-parser": "^7.0.1",
 		"parcel": "^2.16.0",
