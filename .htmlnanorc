@@ -1,3 +1,27 @@
 {
-  "minifySvg": false
+    "normalizeAttributeValues": true,
+    "removeEmptyAttributes": true,
+    "collapseAttributeWhitespace": true,
+	
+    "deduplicateAttributeValues": true,
+	
+    "minifyConditionalComments": false,
+    "minifyUrls": false,
+	"minifySvg": false,
+
+    "sortAttributes": false,
+    "sortAttributesWithLists": "alphabetical",
+
+  	"collapseWhitespace": "conservative",
+    "removeComments": "safe",
+    "removeOptionalTags": false,
+    "removeAttributeQuotes": false,
+	"removeUnusedCss": false,
+	"removeRedundantAttributes": false,
+	    "collapseBooleanAttributes": {
+        "amphtml": false
+    },
+
+	"mergeStyles": false,
+    "mergeScripts": false
 }
