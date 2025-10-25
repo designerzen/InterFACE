@@ -179,7 +179,7 @@ export const populateInstrumentPanel = async (controls, instrument, personName="
  * @param {HTMLElement} controls 
  * @param {Function} onInstrumentInput 
  */
-export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, passive=true ) => {
+export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, passive=false ) => {
 	
 	if (!controls)
 	{
