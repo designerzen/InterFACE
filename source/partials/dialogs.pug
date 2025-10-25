@@ -130,10 +130,9 @@ dialog#pwa-updates
 		h5 Updates available!
 		#changelog
 
-		button#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
-		button.close(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
+		button.button-push.text-always#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
+		button.button-push.text-always.close(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
 	
-
 dialog#errors 
 	form(method="dialog")
 		h5 Oh no! An error has occurred!
@@ -147,8 +146,8 @@ dialog#errors
 		audio(src="./assets/audio/lemmings.wav" controls=false)
 
 		menu
-			button.reload-app(autofocus onclick="window.location.reload();" type="button") Reload 
-			button.reset-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
+			button.button.button-push.text-always.reload-app(autofocus onclick="window.location.reload();" type="button") Reload 
+			button.button.button-push.text-always.reset-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
 	
 		button.close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
 
