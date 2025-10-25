@@ -2644,12 +2644,12 @@ export const createInterface = (
 				})  
 
 				if (cameraResult.success === false){
-					showError("Camera not found", cameraResult.cameraFeedbackMessage, true)
+					showError("Camera not found", cameraResult.message, true)
 					return reject( cameraResult.cameraFeedbackMessage )
 				}
 
-				setFeedback( cameraResult.cameraFeedbackMessage, 0, 'camera' )
-				progressCallback(loadIndex/loadTotal, cameraResult.cameraFeedbackMessage)
+				setFeedback( cameraResult.message, 0, 'camera' )
+				progressCallback(loadIndex/loadTotal, cameraResult.message)
 
 				/*
 				const {videoCameraDevices} = investigation

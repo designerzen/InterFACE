@@ -49,18 +49,6 @@
 		"affiliates"
 		"app"
 		"footer";
-
-	// whole page popover
-	> dialog{
-		grid-area: 1 / 1 / -1 / -1;
-		z-index: 1999;	// space
-		// position: sticky;
-		// top:50%;
-		// bottom:25%;
-		position: fixed;
-		// top: 50%;
-		// transform: translateY(-50%);
-	}
 }
 
 

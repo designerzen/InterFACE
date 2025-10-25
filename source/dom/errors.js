@@ -25,6 +25,9 @@ export const showError = (error, solution, fatal=false, details="" ) => {
 		const audioElement = dialog.querySelector("audio")
 		audioElement.setAttribute("autoplay", true)
 		audioElement.setAttribute("start", true)
+
+		// add root class
+		body.classList.add("fatal")
 	}
 
 	// no point closing the error if fatal
@@ -32,7 +35,7 @@ export const showError = (error, solution, fatal=false, details="" ) => {
 	dialog.querySelector("button.close").hidden = fatal
 
 	document.getElementById("error-message").innerText = error
-	document.getElementById("error-solution").innerText = solution
+	document.getElementById("error-solution").innerText = solution ?? "Please refresh the browser or try a different one such as Google's Chrome."
 	
 	const errorDetailsElement = document.getElementById("error-details")
 	if (details.length > 0)
