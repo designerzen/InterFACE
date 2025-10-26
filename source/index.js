@@ -95,6 +95,7 @@ const start = async () => {
 	// interface.band	<- defaults to duet mode
 	// const referer = getReferer()
 
+	
 	// we can also inject specific options through an object set
 	// in a global space in the DOM script for custom html options
 	const globalOptions = Object.assign({}, globalThis._synth)
@@ -106,6 +107,9 @@ const start = async () => {
 	const validOptionKeys = Object.keys(defaultOptions)
 	// favour global options over domain options
 	Object.keys(globalOptions).forEach(key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null)
+
+
+	console.info( "Options:", {globalOptions, domainOptions, defaultOptions, validOptionKeys })
 
 	// determine the language to use
 	const languages = getBrowserLocales()

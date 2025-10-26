@@ -2106,7 +2106,7 @@ export const createInterface = (
 				// 	// setFeedback(`PITCH:${Math.ceil(360*prediction.pitch)} ROLL:${Math.ceil(360*prediction.roll)} YAW:${Math.ceil(360 * prediction.yaw)} MOUTH:${Math.ceil(100*lipPercentage)}% - ${person.instrumentName}`)
 			}else if (hasUserStayedAfterTimeout){
 				// User has stayed after timeout
-				textInstruction = "Time is up! \nPlease leave the area \nto allow new users to join"
+				textInstruction = "Masterpiece complete! \nA lovely composition, very creative \nI hope you had fun =P"
 			}else{
 				// Faces found so show the next set of instructions
 				textInstruction = getInstruction( textInstructionIndex ) 
