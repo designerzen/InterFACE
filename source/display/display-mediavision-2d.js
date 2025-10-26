@@ -6,26 +6,28 @@ import {
 	RIGHT_IRIS_PATH,
 
 } from "../models/face-landmark-constants"
-import { clearCanvas, drawElement } from "../visual/2d"
+
+import Display2D from "./display-canvas-2d.js"
+
+import { clearCanvas, drawElement } from "../visual/2d.js"
 import { drawInstrument, drawParagraph } from '../visual/2d.text.js'
 
 import { FaceLandmarker } from "@mediapipe/tasks-vision"
 // import { DrawingUtils } from "@mediapipe/tasks-vision"
 
-import {hasOffscreenCanvasCapability} from '../capabilities'
+import {hasOffscreenCanvasCapability} from '../capabilities.js'
 
-import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d"
-import { drawEye } from "../visual/2d.eyes"
-import { drawLip } from "../visual/2d.mouth"
-import { drawBars } from "../visual/spectrograms"
-import { drawFace } from "../visual/2d.face"
+import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d.js"
+import { drawEye } from "../visual/2d.eyes.js"
+import { drawLip } from "../visual/2d.mouth.js"
+import { drawBars } from "../visual/spectrograms.js"
+import { drawFace } from "../visual/2d.face.js"
 
-import Display2D from "./display-canvas-2d"
-
-import MEDIAVISION__WORKER_URI from 'url:./display-mediavision-2d.worker.js'
+import MEDIAVISION_WORKER_URI from 'url:./display-mediavision-2d.worker.js'
 import { DISPLAY_MEDIA_VISION_2D } from "./display-types.js"
-import { DrawingUtils } from "@mediapipe/tasks-vision"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
+
+import { DrawingUtils } from "@mediapipe/tasks-vision"
 
 const DEFAULT_OPTIONS = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
@@ -48,7 +50,7 @@ export default class DisplayMediaVision2D extends Display2D{
 		
 		if (this.canvas instanceof OffscreenCanvas)
 		{
-			const worker = new Worker(new URL(MEDIAVISION__WORKER_URI), {type: 'module'})
+			const worker = new Worker(new URL(MEDIAVISION_WORKER_URI), {type: 'module'})
 			worker.onerror = (error) => {
 				console.error("DISPLAY_MEDIA_VISION_2D Worker Error:", error.message, error.filename, error.lineno, error);
 				// You might want to add logic here to try and recover or display a message

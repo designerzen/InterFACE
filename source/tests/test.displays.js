@@ -12,7 +12,7 @@ import { now } from "../timing/timing.js"
 
 // JSON data from data_source
 // import DATA_SOURCE from 'raw:/source/tests/test.face.json'
-import DATA_SOURCE from 'raw:/source/tests/test.face-stream.json'
+import DATA_SOURCE from 'raw:./test.face-stream.json'
 import { AVATAR_DATA } from "../models/avatars.js"
 import Avatar from "../models/avatar.js"
 
