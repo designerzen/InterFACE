@@ -1,4 +1,4 @@
-import { drawEye } from "../visual/2d.eyes"
+import { drawEye } from "../visual/2d.eyes.js"
 // import { drawFace } from "../visual/2d.face"
 
 let drawingUtils

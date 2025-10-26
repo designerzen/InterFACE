@@ -35,8 +35,9 @@ import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
 // import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js'
 // import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 
-import DisplayWebGL3D, { DEFAULT_OPTIONS_DISPLAY_WEBGL } from "./display-webgl-3d.js"
+import DisplayWebGL3D from "./display-webgl-3d.js"
 import { DISPLAY_LOOKING_GLASS_3D } from './display-types.js'
+import { DEFAULT_OPTIONS_DISPLAY_WEBGL } from "../settings/options.displays.js"
 
 // Settings
 const LOOKING_GLASS_PORTRAIT_WIDTH = 480

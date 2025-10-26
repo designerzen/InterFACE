@@ -12,7 +12,6 @@ import { drawInstrument, drawParagraph } from '../visual/2d.text.js'
 import { FaceLandmarker } from "@mediapipe/tasks-vision"
 // import { DrawingUtils } from "@mediapipe/tasks-vision"
 
-import { drawBars } from "../visual/spectrograms"
 import {hasOffscreenCanvasCapability} from '../capabilities'
 
 import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d"
@@ -24,9 +23,9 @@ import { drawFace } from "../visual/2d.face"
 import Display2D from "./display-canvas-2d"
 
 import MEDIAVISION__WORKER_URI from 'url:./display-mediavision-2d.worker.js'
-import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 import { DISPLAY_MEDIA_VISION_2D } from "./display-types.js"
 import { DrawingUtils } from "@mediapipe/tasks-vision"
+import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
 
 const DEFAULT_OPTIONS = {
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES

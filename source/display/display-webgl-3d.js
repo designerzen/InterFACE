@@ -1,10 +1,30 @@
-import AbstractDisplay from "./display-abstract"
+import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_WEB_GL_3D } from "./display-types.js"
-
 import { TAU } from "../maths/maths.js"
 
-import {AdditiveBlending, AmbientLight, Box3, Color, DirectionalLight, DoubleSide, FogExp2, IcosahedronGeometry, Line, LinearFilter, LineBasicMaterial, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, ReinhardToneMapping, Scene, Sprite, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer} from "three"
+import { 
+	UPDATE_FACE_BUTTON_AFTER_FRAMES,
+	DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	KEYPOINT_QUANTITY 
+} from "../settings/options.displays.js"
 
+import { 
+	Clock, 
+	Object3D, 
+	AdditiveBlending, AmbientLight, 
+	Box3, Color, DirectionalLight, 
+	DoubleSide, FogExp2, IcosahedronGeometry, 
+	Line, LinearFilter, LineBasicMaterial, 
+	MathUtils, Mesh, MeshBasicMaterial, 
+	PerspectiveCamera, Points, PointsMaterial, 
+	ReinhardToneMapping, Scene, Sprite, 
+	SRGBColorSpace, Texture, TextureLoader, 
+	Vector2, Vector3, WebGLRenderer
+} from "three"
+
+import {Text, getCaretAtPoint} from 'troika-three-text'
+
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -22,17 +42,12 @@ import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 //- import WebGL from 'three/addons/capabilities/WebGL.js'
 //- import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js'
 import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompass'
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-
-import {Text, getCaretAtPoint} from 'troika-three-text'
-
-import { preload3dFont } from '../visual/3d.js'
 
 import { Particle, ParticleTracer } from "../visual/3d.particles.js"
+import { preload3dFont } from '../visual/3d.js'
+
 import { AVATAR_DATA, unloadModel, createLoaderForModel, calculateModelScale, improveVRMPerformance } from '../models/avatars.js'
 import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
-
-import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
 
 // https://stats.renaudrohlinger.com/
 // import Stats from 'three/examples/jsm/libs/stats.module'
@@ -50,9 +65,6 @@ import Stats from 'stats-gl'
 import PARTICLE_URI from 'url:../assets/particles/particle.png'
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
 import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
-import { Object3D } from "three"
-import { Clock } from "three"
-
 
 let data = FACE_LANDMARKS_DATA["0"]
 
@@ -67,34 +79,13 @@ let stats
 export const MAX_COUNT = 1024
 export const MAX_WIDTH = 720
 
-export const KEYPOINT_QUANTITY = 478
-
 const VIEW_CONE_ANGLE = TAU / 6
 const VERTICAL_VIEW_CONE_ANGLE = TAU / 32
 const VIEW_CONE_ANGLE_Z = 0.6
 
-
 // coord for top lip center
 const TLC = 61 * 3
 const BLC = 308 * 3
-
-export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
-	colour:0xff44ee,
-	quantity: KEYPOINT_QUANTITY * 3,
-	fx:true,
-	antialias: true, 
-	alpha: true,
-	lightColour:0xcccccc,
-	lightIntensity: 0.7,
-	fog:false,
-	particeSize:0.03,
-	opacity:1,
-	mouse:false,
-	debug:false,
-	stats:false,
-	blendShapes:true,
-	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
-}
 
 const lerpMorphTarget = (target, value, speed = 0.1) => {
     scene.traverse((child) => {

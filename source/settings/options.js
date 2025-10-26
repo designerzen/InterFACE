@@ -15,9 +15,6 @@ const isDevelopmentMode = !isProductionBuild()
 
 export const MAX_CANVAS_WIDTH = 1080
 
-// after X amount of frames we move the face button
-export const UPDATE_FACE_BUTTON_AFTER_FRAMES = 750
-
 // timeout for loading as there are some issues with continuation...
 export const LOAD_TIMEOUT = 5 * 60 * 1000 // 5 minutes
 

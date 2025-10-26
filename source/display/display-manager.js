@@ -8,8 +8,6 @@
  */
 // 
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
-// import DisplayLookingGlass3D, { createXRToggleButton } from './display-looking-glass-3d.js'
-
 import {DISPLAY_TYPES} from './display-types.js'
 
 let display = null
@@ -155,10 +153,10 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
  * 
  * @returns 
  */
-export const getDisplayAvailability = async( previousDisplay ) => {
+export const getDisplayAvailability = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
 	
 	// assume webGL 3D one if no previous one was provided
-	let suggestedDisplay = previousDisplay ?? DISPLAY_TYPES.DISPLAY_WEB_GL_3D
+	let suggestedDisplay = previousDisplay ?? defaultDisplay
 	
 	try{
 		const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
@@ -170,6 +168,7 @@ export const getDisplayAvailability = async( previousDisplay ) => {
 		console.info("Holographic display not connected" , error)
 	}
 
+	
 	return suggestedDisplay
 }
 
