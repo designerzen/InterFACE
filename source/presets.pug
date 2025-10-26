@@ -1,0 +1,31 @@
+extends _base.pug
+
+block title
+	+title('Presets')
+
+block nav
+
+block preload 
+
+block main
+	main(style="color:darkcyan;")
+		section 
+			article
+				h4 V&A Presets
+				nav.internal-links
+					a(href="/?timeout=200000&referer=va") 3:20 4xPlayer
+					a(href="/?timeout=120000&referer=va") 120 seconds 4xPlayer
+					a(href="/?timeout=90000&referer=va") 90 seconds 4xPlayer
+					a(href="/?timeout=60000&referer=va") 60 seconds 4xPlayer
+
+block scripts
+
+block styles 
+	style.
+		body{
+			background-image:none;
+		}
+		.internal-links{
+			display: flex;
+			flex-direction:column;
+		}
