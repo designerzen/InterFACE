@@ -80,8 +80,8 @@ export default class AbstractDisplay{
 	canvasWidth
 	canvasHeight
 
-	// method to run to kickstart unless optoin autoStart:true
-	start
+	// method to run to kickstart unless option autoStart:true
+	start = () => { console.info("Display starting", this ) }
 
 	// Linked List --------------------
 	nextDisplayLink

@@ -2261,7 +2261,9 @@ export const createInterface = (
 		// timing and then when MIDI starts again we can reassess
 		// 3 seconds seems like a good amount of time to wait for
 		// set via tempo to 1 period!
-		if ( clock.isUsingExternalTrigger && clock.elapsedSinceLastTick > clock.timePerBar )
+		// NB. Clock may be undefined if the backend is still loading
+		// so we ensure that the clock exists before continuing
+		if ( clock && clock.isUsingExternalTrigger && clock.elapsedSinceLastTick > clock.timePerBar )
 		{
 			// we want to undo any external clock as there hasn't 
 			// been a clock tick for a whole bar!

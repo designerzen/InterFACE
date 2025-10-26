@@ -398,19 +398,19 @@ export default class Avatar{
 		this.#faceMesh.rotateX( rotationVector.rot?.x ?? 0 )
 		this.#faceMesh.rotateY( rotationVector.rot?.y ?? 0 )
 		this.#faceMesh.rotateZ( rotationVector.rot?.z ?? 0 )
-		console.info("FaceMesh Rotate", {rotationVector}, this.#faceMesh )
+		// console.info("FaceMesh Rotate", {rotationVector}, this.#faceMesh )
 	}
 
 	rotateAll(x,y,z, friction=0.3 ){
 		this.#parent.x += (x - this.#parent.rotation.x ) * friction
 		this.#parent.y += (y - this.#parent.rotation.y ) * friction
 		this.#parent.z += (z - this.#parent.rotation.z ) * friction
-		console.info("FaceMesh Rotate", {x,y,z, friction}, this.#parent )
+		// console.info("FaceMesh Rotate", {x,y,z, friction}, this.#parent )
 	}
 
 	scale( size ){
 		this.#parent.scale.set(size, size, size)
-		console.info("FaceMesh Scale", {size}, this.#faceMesh.scale)
+		// console.info("FaceMesh Scale", {size}, this.#faceMesh.scale)
 	}
 
 	async loadAnimation( animationModel ){
