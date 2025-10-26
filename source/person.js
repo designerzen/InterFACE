@@ -97,7 +97,13 @@ import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { createInstrumentFromData } from './audio/instrument-factory.js'
 import { getCleff, NOTATION, STAVE_SIZES } from './audio/notation.js'
-import { configurePersonByOperatingMode } from './person.presets.js'
+import { 
+	configurePersonByOperatingMode,
+	PERSON_TYPE_ARPEGGIO, 
+	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
+	PERSON_TYPE_CHROMATIC, 
+	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
+} from "./person.presets.js"
 
 // States for the audio controlled by the face
 export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
@@ -115,11 +121,7 @@ export const EVENT_USER_MODE_CHANGED = "usermode-changed"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
-// varieties of users (tie them into PlayerNumbers)
-export const PERSON_TYPE_CHROMATIC = 0
-export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
-export const PERSON_TYPE_ARPEGGIO = 2
-export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
+
 
 // used to deliminiate the URL player seperator...
 // you want something that doesn't encode, but that also
@@ -202,7 +204,7 @@ export default class Person{
 
 	// 
 	type = PERSON_TYPE_ARPEGGIO
-	userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
+	#userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
 
 	// Flags
 	useArpeggio = false
@@ -316,8 +318,12 @@ export default class Person{
 	// controlMode = convertHeadRollToOctaveAndPitchToScaleAndYawToPitch
 	controlMode = convertHeadOrientationIntoNoteData
 
+	get userMode(){
+		return this.#userMode
+	}
+
 	/**
-	 * 
+	 * Dimensions and sizes
 	 */
 	get boundingBox(){
 		return this.box
@@ -326,13 +332,23 @@ export default class Person{
 	get x(){ return this.box ? this.box.xMin : -1 }
 	get y(){ return this.box ? this.box.yMin : -1 }
 
-	get centerX(){
+	get width(){
 		return this.box ? this.box.xMax - this.box.xMin : -1
 	}
 
-	get centerY(){
+	get height(){
 		return this.box ? this.box.yMax - this.box.yMin : -1
 	}
+
+	get centerX(){
+		return this.x + this.width / 2
+	}
+
+	get centerY(){
+		return this.y + this.height / 2
+	}
+
+	// FLAGS ---------------------------------------------------------
 
 	/**
 	 * Does this user have an active instrument that can be played?
@@ -646,6 +662,14 @@ export default class Person{
 	}
 
 	/**
+	 * Change the User Operating Mode
+	 */
+	set userMode( mode ){
+		this.#userMode = mode
+		this.dispatchEvent( EVENT_USER_MODE_CHANGED, {mode} )
+	}
+
+	/**
 	 * Ensure type is a valid index
 	 * 
 	 * @param {Person} person
@@ -659,7 +683,7 @@ export default class Person{
 	 * 
 	 * @param {Number} index 
 	 * @param {Object} options 
-	 * @param {Boolean} saveData 
+	 * @param {Object} saveData - JSON data
 	 */
 	constructor( index, options={}, saveData=undefined ) {
 		
@@ -796,105 +820,7 @@ export default class Person{
 		// kill instrument and disconnect from graph
 		this.reset()
 	}
-	
-	/**
-	 * 
-	 * @param {String} data 
-	 */
-	parseDataExport( data){
-		if (!data)
-		{
-			return null
-		}
-		const parts = String(data).split( EXPORT_DELIMITER )
-		// part [0] is always PresetIndex
-		// part [1] is always instrumentType
-		// part [2] is always userMode
-		console.error( "parseDataExport", {data, parts} )
-		return {
-			preset: parseInt(parts[0]) ?? 12,
-			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
-			userMode: parseInt(parts[2])
-		}
-	}
 
-	/**
-	 * Create a string based URL style file from the data
-	 * @param {Number} presetIndex 
-	 * @param {String} instrumentType 
-	 * @param {Number} userMode 
-	 * @returns 
-	 */
-	createDataExport( presetIndex, instrumentType=undefined, userMode=undefined ){
-		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
-	}
-
-	exportData(){
-		return this.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode )
-	}
-
-	/**
-	 * 
-	 * @param {Object|String} data
-	 * @param {String} prefix
-	 * @returns {Object}
-	 */
-	importJSONData( data, prefix='' ){
-
-		// convert data.... can be string or object
-		if (typeof data === 'string')
-		{
-			data = JSON.parse(data)
-		}
-		
-		prefix = prefix.length > 0 ? 
-			prefix+'-' : 
-			this.id+'-'
-
-		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
-		// which instrument preset to load?
-		if ( data[prefix+'preset' ]) { this.options.defaultPreset = data[prefix+'preset' ] }
-		// if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
-		// if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
-		// if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
-		// if ( data[prefix+'hue' ]) { this.options.defaultHue = data[prefix+'hue' ] }
-
-		return this.options
-	}
-
-	/**
-	 * Save this person as something that can be put in the state
-	 * @returns {String}
-	 */
-	exportJSONData(prefix='', asURL=false){
-
-		prefix = prefix.length > 0 ? 
-			prefix+'-' : 
-			this.id+'-'
-
-		const data = {
-			// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-			[prefix+'instrument']:this.options.defaultInstrument, 
-			// FIXME: GET THIS FROM THE ACTIVE INSTRUMENT!
-			// which instrument preset to load?
-			[prefix+'preset']:this.activeInstrument.activePresetIndex ?? this.options.defaultPreset,
-			
-			// [prefix+'sat'] : this.saturation,
-			// [prefix+'lum'] : this.luminosity,
-			// [prefix+'range'] : this.hueRange,
-			// [prefix+'hue'] : this.hue,
-		}
-
-		return asURL ? new URLSearchParams(data)  : data
-	}
-
-	/**
-	 * String representation of this Person
-	 */
-	toString(){
-		return `Person(${this.id})`
-	}
 
 	/**
 	 * Set the internal State for this Person from the constants above
@@ -2480,8 +2406,7 @@ export default class Person{
 	}
 
 	onRightEyeClose( timeClosed ){
-		// console.error( "onRightEyeClose", {timeClosed}  ) 
-		
+		// console.error( "onRightEyeClose", {timeClosed} ) 
 	}
 
 	onEyesClosedForTimePeriod(){
@@ -2577,5 +2502,107 @@ export default class Person{
 		}else{
 			this.showForm()
 		}
+	}
+
+	
+	// DATA Import Export IO --------------------------------------------------------
+	
+	/**
+	 * 
+	 * @param {String} data 
+	 */
+	parseDataExport( data){
+		if (!data)
+		{
+			return null
+		}
+		const parts = String(data).split( EXPORT_DELIMITER )
+		// part [0] is always PresetIndex
+		// part [1] is always instrumentType
+		// part [2] is always userMode
+		console.error( "parseDataExport", {data, parts} )
+		return {
+			preset: parseInt(parts[0]) ?? 12,
+			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
+			userMode: parseInt(parts[2])
+		}
+	}
+
+	/**
+	 * Create a string based URL style file from the data
+	 * @param {Number} presetIndex 
+	 * @param {String} instrumentType 
+	 * @param {Number} userMode 
+	 * @returns 
+	 */
+	createDataExport( presetIndex, instrumentType=undefined, userMode=undefined ){
+		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
+	}
+
+	exportData(){
+		return this.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode )
+	}
+
+	/**
+	 * 
+	 * @param {Object|String} data
+	 * @param {String} prefix
+	 * @returns {Object}
+	 */
+	importJSONData( data, prefix='' ){
+
+		// convert data.... can be string or object
+		if (typeof data === 'string')
+		{
+			data = JSON.parse(data)
+		}
+		
+		prefix = prefix.length > 0 ? 
+			prefix+'-' : 
+			this.id+'-'
+
+		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
+		// which instrument preset to load?
+		if ( data[prefix+'preset' ]) { this.options.defaultPreset = data[prefix+'preset' ] }
+		// if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
+		// if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
+		// if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
+		// if ( data[prefix+'hue' ]) { this.options.defaultHue = data[prefix+'hue' ] }
+
+		return this.options
+	}
+
+	/**
+	 * Save this person as something that can be put in the state
+	 * @returns {String}
+	 */
+	exportJSONData(prefix='', asURL=false){
+
+		prefix = prefix.length > 0 ? 
+			prefix+'-' : 
+			this.id+'-'
+
+		const data = {
+			// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
+			[prefix+'instrument']:this.options.defaultInstrument, 
+			// FIXME: GET THIS FROM THE ACTIVE INSTRUMENT!
+			// which instrument preset to load?
+			[prefix+'preset']:this.activeInstrument.activePresetIndex ?? this.options.defaultPreset,
+			
+			// [prefix+'sat'] : this.saturation,
+			// [prefix+'lum'] : this.luminosity,
+			// [prefix+'range'] : this.hueRange,
+			// [prefix+'hue'] : this.hue,
+		}
+
+		return asURL ? new URLSearchParams(data)  : data
+	}
+
+	/**
+	 * String representation of this Person
+	 */
+	toString(){
+		return `Person(${this.id})`
 	}
 }

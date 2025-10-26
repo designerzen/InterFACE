@@ -1,16 +1,24 @@
 import { FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from "./audio/tuning/keys.js"
 import { NOTES_BLACK, NOTES_WHITE } from "./audio/tuning/notes.js"
-import { 
-	PERSON_TYPE_ARPEGGIO, 
-	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
-	PERSON_TYPE_CHROMATIC, 
-	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
-} from "./person.js"
+
+
+// varieties of users (tie them into PlayerNumbers)
+export const PERSON_TYPE_CHROMATIC = 0
+export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
+export const PERSON_TYPE_ARPEGGIO = 2
+export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
+
+export const PERSON_TYPES = [
+	PERSON_TYPE_CHROMATIC,
+	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
+	PERSON_TYPE_ARPEGGIO,
+	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
+]
 
 /**
  * 
  * @param {Person} person 
- * @param {Number} operatingMode 
+ * @param {Number|String} operatingMode 
  */
 export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 	person.userMode = operatingMode
