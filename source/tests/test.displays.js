@@ -4,11 +4,7 @@
 
 import Person from "../person.js"
 
-import { 
-	loadDisplayClass, 
-	createDisplay, 
-	changeDisplay 
-} from "../display/display-manager.js"
+import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplayAvailability  } from '../display/display-manager.js'
 
 import { DISPLAY_TYPES, DISPLAY_IDS } from '../display/display-types.js'
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
