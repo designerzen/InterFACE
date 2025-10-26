@@ -52,3 +52,29 @@ export const BLENDSHAPE_IDS = [
 	"noseSneerRight",
 	"tongueOut"
 ]
+
+/**
+ * Take in a BlendShape ID and get it's mirror
+ * tihs is useful when trying to "mirror" the user
+ */
+export const swapEyeSide = (feature) =>{
+
+	switch(feature)
+	{
+		case "eyeBlinkLeft": return "eyeBlinkRight"
+		case "eyeLookDownLeft": return "eyeLookDownRight"
+		case "eyeLookInLeft": return "eyeLookInRight"
+		case "eyeLookOutLeft": return "eyeLookOutRight"
+		case "eyeLookUpLeft": return "eyeLookUpRight"
+		case "eyeSquintLeft": return "eyeSquintRight"
+		case "eyeWideLeft": return "eyeWideRight"
+		
+		case "eyeLookInRight": return "eyeLookInLeft"
+		case "eyeLookDownRight": return "eyeLookDownLeft"
+		case "eyeBlinkRight": return "eyeBlinkLeft"
+		case "eyeLookOutRight": return "eyeLookOutLeft"
+		case "eyeLookUpRight": return "eyeLookUpLeft"
+		case "eyeSquintRight": return "eyeSquintLeft"
+		case "eyeWideRight": return "eyeWideLeft"
+	}
+}
