@@ -122,7 +122,7 @@ import { getThemeFromReferer, setTheme, setupThemeControls } from './theme/theme
 import { fetchBrandColor } from './settings/palette.js'
 
 // DISPLAYS
-import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay  } from './display/display-manager.js'
+import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplayAvailability  } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
 
 // IO
@@ -2592,7 +2592,11 @@ export const createInterface = (
 
 		try{
 			let initialDisplay = await getDisplayAvailability( stateMachine.get("display") )
+			
+			console.error("Found display", initialDisplay )
+			
 			stateMachine.set("display", initialDisplay)
+
 			if (initialDisplay === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 			{
 				setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
@@ -2606,7 +2610,7 @@ export const createInterface = (
 					option.selected = true
 				}
 
-				console.error(holographicDisplayQuantity + " ßPhotoSYNTH Holographic Displays", {initialDisplay, settings} ) 
+				console.warn(holographicDisplayQuantity + " PhotoSYNTH Holographic Displays", {initialDisplay, settings} ) 
 			}else{
 				progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 			}
@@ -2619,12 +2623,12 @@ export const createInterface = (
 		
 		const displayMenu = document.querySelector('label[for="select-display"]')
 		// enable the display menu if advanced
-		if (!stateMachine.get("debug"))
-		{
-			displayMenu.hidden = true // holographicDisplayQuantity === 0
-		}else{
-			displayMenu.hidden = false // holographicDisplayQuantity === 0
-		}
+		// if (!stateMachine.get("debug"))
+		// {
+		// 	displayMenu.hidden = true // holographicDisplayQuantity === 0
+		// }else{
+		// 	displayMenu.hidden = false // holographicDisplayQuantity === 0
+		// }
 		
 		displayMenu.hidden = false
 				
@@ -2638,6 +2642,7 @@ export const createInterface = (
 		progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
 
 		// REDRAW DOM / CANVAS / WEB GL -------------------------------
+		
 		// 'predictionLoop' here is a method passed into this function that is called
 		// on every frame to update the visuals and audio of none quanitsed sounds
 		display = await switchDisplay( displayType, predictionLoop, false )
