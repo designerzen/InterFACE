@@ -237,6 +237,12 @@ main:not(.flag-overlays){
 // added when user gives up attention
 .user-inactive{
 
+	// hide cursor until user reacts
+	cursor: none;
+	*{
+		cursor: none !important; 
+	}
+
 	// , :focus
 	.instrument-panel:not(:hover, :focus-within, :focus-visible),
 	.controls:not(:hover, :focus-within,:focus-visible) {
