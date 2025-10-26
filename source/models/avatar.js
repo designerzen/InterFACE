@@ -406,10 +406,10 @@ export default class Avatar{
 	}
 
 	rotateAll(x,y,z, friction=0.3 ){
-		this.#parent.x += (x - this.#parent.rotation.x ) * friction
-		this.#parent.y += (y - this.#parent.rotation.y ) * friction
-		this.#parent.z += (z - this.#parent.rotation.z ) * friction
-		console.info("FaceMesh Rotate", {x,y,z, friction}, this.#parent )
+		this.#parent.rotation.x += (x - this.#parent.rotation.x ) * friction
+		this.#parent.rotation.y += (y - this.#parent.rotation.y ) * friction
+		this.#parent.rotation.z += (z - this.#parent.rotation.z ) * friction
+		console.info("FaceMesh RotateAll", {x,y,z, friction}, this.#parent )
 	}
 
 	scale( size ){
