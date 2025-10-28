@@ -7,9 +7,9 @@
  * 
 */
 import { Box3, Clock, Vector3, BufferGeometry, Float32BufferAttribute, MathUtils, Group } from "three"
+import { FaceLandmarker } from "@mediapipe/tasks-vision"
 import { calculateModelScale, createLoaderForModel, improveVRMPerformance, rescaleAndCenter } from "./avatars.js"
 import { Particle, ParticleTracer } from "../visual/3d.particles.js"
-import { FaceLandmarker } from "@mediapipe/tasks-vision"
 import { BLENDSHAPE_IDS, swapEyeSide } from "./blendshapes.js"
 
 // "LipsLowerClose" => 29}

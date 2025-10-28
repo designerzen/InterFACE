@@ -32,7 +32,6 @@ import CANONICAL_FACE from "../assets/actors/canonical_face_model.fbx"
 import FACE_MESH from '../assets/actors/generic_neutral_mesh.obj'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
-import { GeometryUtils } from "../display/display-looking-glass-3d.js"
 import { preload3dFont } from "../visual/3d.js"
 import {Text, getCaretAtPoint} from 'troika-three-text'
 

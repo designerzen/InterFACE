@@ -8,7 +8,7 @@
  */
 // 
 import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
-import {DISPLAY_TYPES} from './display-types.js'
+import { DISPLAY_TYPES } from './display-types.js'
 
 let display = null
 
@@ -106,8 +106,8 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	const parent = canvasElement.parentNode
 	const dataId = canvasElement.getAttribute("data-id") ?? 0
 	// as we modify some in the displays themselves
-	const width = 640 //canvasElement.clientWidth
-	const height = 480 // canvasElement.clientHeight
+	const width = canvasElement.canvasWidth ?? 640
+	const height = canvasElement.canvasHeight ?? 480
 	const aspectRatio = width / height
 
 	if (!parent)
@@ -138,7 +138,7 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	// remove existing canvas 
 	canvasElement.remove()
 
-	console.info("restartCanvas", {canvasElement, newCanvasElement, display, parent})
+	console.info("DISPLAY:restartCanvas", {canvasElement, newCanvasElement, display, parent})
 	
 	// kill to prevent side effects
 	canvasElement = null
@@ -167,7 +167,6 @@ export const getDisplayAvailability = async( previousDisplay, defaultDisplay= DI
 	}catch(error){
 		console.info("Holographic display not connected" , error)
 	}
-
 	
 	return suggestedDisplay
 }
@@ -216,7 +215,7 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 		display.setAnimationLoop(renderLoop, options.autoStart ?? true )
 	}
 
-	console.info("createDisplay", { display, displayType, canvasElement, newCanvasElement, renderLoop })
+	console.info("DISPLAY:created", { display, displayType, canvasElement, newCanvasElement, renderLoop })
 
 	return display
 }
