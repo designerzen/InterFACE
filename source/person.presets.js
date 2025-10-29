@@ -3,14 +3,14 @@ import { NOTES_BLACK, NOTES_WHITE } from "./audio/tuning/notes.js"
 
 
 // varieties of users (tie them into PlayerNumbers)
-export const PERSON_TYPE_CHROMATIC = 0
-export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 1
+export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 0
+export const PERSON_TYPE_CHROMATIC = 1
 export const PERSON_TYPE_ARPEGGIO = 2
 export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
 
 export const PERSON_TYPES = [
-	PERSON_TYPE_CHROMATIC,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
+	PERSON_TYPE_CHROMATIC,
 	PERSON_TYPE_ARPEGGIO,
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
 ]
@@ -67,5 +67,12 @@ export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
  * @param {Array<Person>} people 
  */
 export const configurePersonByIndex = (person, people) => {
-	configurePersonByOperatingMode( person, person.playerNumber % people.length )
+	// depending on the amount of people playing, we choose appropriate
+	// user modes
+	if (people.length === 1)
+	{
+		configurePersonByOperatingMode( person, PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS )
+	}else{
+		configurePersonByOperatingMode( person, person.playerNumber % people.length )
+	}
 }
