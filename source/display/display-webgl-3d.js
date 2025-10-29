@@ -244,7 +244,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// for model loading we want the correct encoding
 		// NB.. disabled in 2025 due to direct to GL (so now only srgb)
 		// renderer.outputEncoding = sRGBEncoding
-
 		
 		// we can swap this for the orthogonal camera
 		// for extra style points
@@ -252,31 +251,34 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// camera.position.z = 3.5
 		camera.lookAt( scene.position )
 		
-		
-		// select the avatar you want to use
-		const avatarMeta = AVATAR_DATA.racoon
-		this.avatar = new Avatar( avatarMeta.name )
-		const { faceMesh, faceGroup } = await this.avatar.loadModel( avatarMeta, 1 )
-		
-		const { keypoints, facialTransformationMatrixes, box } = data
+		if (options.showAvatar)
+		{
+			// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
+			// select the avatar you want to use
+			const avatarMeta = AVATAR_DATA.albert
+			// const avatarMeta = AVATAR_DATA.racoon
+			this.avatar = new Avatar( avatarMeta.name )
+			const { parent, faceMesh, faceGroup } = await this.avatar.loadModel( avatarMeta, 1 )
+			this.faceMesh = faceMesh
+			this.faceGroup = faceGroup
+			scene.add( parent )
+			// scene.add( faceMesh )
+		}
 
-		// 478 is the amount of nodes in the mesh?
-		const geometry = createFaceGeometryFromData( keypoints, 478, 1 )
+		if (options.showParticles)
+		{
+			const { keypoints, facialTransformationMatrixes, box } = data
+
+			// 478 is the amount of nodes in MediaVision library
+			const geometry = createFaceGeometryFromData( keypoints, 478, 1 )
+			const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
-		// 
-		// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
+			this.texture = texture
+			this.particles = particles
+			scene.add( particles )	
+		}
 
-		const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
-		
-		
-		// Adjust the model's position
-		// faceMesh.position.set(xOffset, yOffset, zOffset) // Set offsets to change the rotation center
-
-		// this.faceMeshSize = this.createFace(faceMesh, this.modelScale)
-
-		// immediately point camera at face mesh...
-		// camera.lookAt( faceMesh.position )
-
+	
 		// Add font and text field
 		await preload3dFont(FONT)
 
@@ -293,11 +295,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		text.anchorY = 'top'
 		text.color = Color.NAMES.white
 		// text.scale.set(0.001)
-	 
-		// Avatar container
 		scene.add( text )
-		scene.add( faceMesh )
-		scene.add( particles )
+	
 
 		// for debuggin vectors
 		// const tG = new BufferGeometry().setFromPoints([ new Vector3(), new Vector3() ])
@@ -311,10 +310,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.camera = camera
 		// this.tracker = tracker
 		this.text = text
-		this.particles = particles
-		this.faceMesh = faceMesh
-		this.faceGroup = faceGroup
-		this.texture = texture
 
 		this.ambientLight = ambientLight
 		this.directionalLight = directionalLight
@@ -362,24 +357,31 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		// clean up
 		this.scene.remove( this.text )
-		this.scene.remove( this.faceMesh )
-		this.scene.remove( this.particles )
+		this.faceMesh && this.scene.remove( this.faceMesh )
+		unloadModel(this.faceMesh)
+
+		if (this.particles)
+		{
+			this.scene.remove( this.particles )
+			this.particles.geometry.dispose()
+		}
 
 		this.scene.remove( this.ambientLight )
 		this.scene.remove( this.directionalLight )
 
 		document.body.removeEventListener( 'pointermove', this.mouseMoveProxy )
 
-		unloadModel(this.faceMesh)
-
-		this.particles.geometry.dispose()
 		this.text.geometry.dispose()
 
-	
 		// geometry.dispose()
 		// material.dispose()
 	
-		this.texture.dispose()
+		if (this.texture)
+		{
+			this.texture.dispose()
+			this.texture = null
+		}
+
 		this.renderer.dispose()
 
 		this.faceGroup = null
@@ -392,7 +394,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.particles = null
 		this.faceMesh = null
 		this.faceGroup = null
-		this.texture = null
 			
 		this.ambientLight = null
 		this.directionalLight = null
@@ -606,8 +607,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const size = box3.getSize(new Vector3())
 		// const center = box3.getCenter(new Vector3())
 		//const zoomLevel = Math.min( this.faceMeshSize.x / size.x, this.faceMeshSize.y / size.y, this.faceMeshSize.z / size.z )
-		const zoomLevel =  1.33 + this.avatar.faceMeshSize.x / size.x + this.avatar.faceMeshSize.y / size.y + this.avatar.faceMeshSize.z / size.z
-		const zoom = zoomLevel // 4.5
+		const zoomLevel =  size.x + size.y + size.z
+		// console.info("zoom", size, zoomLevel)
+		// const zoomLevel =  4.5 // 1.33 + this.avatar.faceMeshSize.x / size.x + this.avatar.faceMeshSize.y / size.y + this.avatar.faceMeshSize.z / size.z
+		const zoom = Math.max( Math.min( zoomLevel * zoomLevel, 5.5 ), 3.14 )
 		
 		const positions = this.particles.geometry.attributes.position.array
 		const scales = this.particles.geometry.attributes.scale.array
@@ -836,7 +839,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const hue = person.hue
 		// const elapsed = person.now
 
-		if ( this.faceMesh && this.faceMesh.material && !Array.isArray(this.faceMesh.material) )
+		// Fade in 3D model
+		if (this.options.showAvatar && this.faceMesh && this.faceMesh.material && !Array.isArray(this.faceMesh.material) )
 		{
 			// fade the face mesh material in
 			const faceMeshOpacity = this.faceMesh.material.opacity 
@@ -848,7 +852,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			// console.error("Face Mesh Material not available", this )
 		} 
 	
-
 		// Person drawn to screen
 		// let's position our face button
 		if (this.count%UPDATE_FACE_BUTTON_AFTER_FRAMES===0)
@@ -856,158 +859,165 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			this.movePersonButton(person, prediction)
 		}
 		
-		
-		this.particles.rotation.x = ( this.mouseY * VIEW_CONE_ANGLE ) + Math.PI
-		this.particles.rotation.y = -( this.mouseX * VIEW_CONE_ANGLE ) //+ Math.PI // + TAU		 
-		// this.particles.rotation.y += 0.01
-
-		// Lerp instead for smoothness
-		MathUtils.lerp(
-			this.particles.rotation.x,
-			( this.mouseY * VIEW_CONE_ANGLE ) + Math.PI,
-			0.5
-		)
-		MathUtils.lerp(
-			this.particles.rotation.y,
-			-( this.mouseX * VIEW_CONE_ANGLE ),
-			0.5
-		)
-
-
-
-		
 		// const faceMatrix = result.facialTransformationMatrixes
 		// 	if (faceMatrix && faceMatrix.length > 0) {
 		// 		const matrix = new Matrix4().fromArray(faceMatrix[0].data)
 		// 		headRotation =  new Euler().setFromRotationMatrix(matrix)
 		// 	}
 
-		// rotate face mesh TODO : SMOOTH
-		const rx =  -prediction.pitch * 0.5 + ( this.mouseY * VERTICAL_VIEW_CONE_ANGLE ) - 0.3
-		const ry = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
-		const rz = prediction.roll * VIEW_CONE_ANGLE_Z
-
-		// rotate with inertia
-		// this.faceMesh.rotation.x += (rx - this.faceMesh.rotation.x ) * 0.3
-		// this.faceMesh.rotation.y += (ry - this.faceMesh.rotation.y ) * 0.3
-		// this.faceMesh.rotation.z += (rz - this.faceMesh.rotation.z ) * 0.3
-		
-		this.avatar.rotateAll( rx, ry, rz )
-
-		// console.info("drawPerson", person, prediction )
-		this.arrangeParticles( prediction, 1)
-		this.particles.material.color.setHSL( Math.abs(hue/360),0.6, 0.6 ) 
-	
-		if (this.faceMesh.material && !Array.isArray(this.faceMesh.material) )
+		if (this.avatar)
 		{
-			this.faceMesh.material.color.setHSL( this.mouseX, this.count%1, Math.min( 1, this.mouseY / 2 + 0.5) ) 
-		}
+			// rotate face mesh TODO : SMOOTH
+			const rx = -prediction.pitch * 0.5 + ( this.mouseY * VERTICAL_VIEW_CONE_ANGLE ) - 0.3
+			const ry = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
+			const rz = prediction.roll * VIEW_CONE_ANGLE_Z
 
-		// update the morph target influences that set the facial rigging
-		if (this.avatar.isMorphable)
-		{
-			// get blend shape predictions for face 1
-			const blendShapePredictions = prediction.faceBlendshapes.categories
-			this.avatar.updateFromPrediction( blendShapePredictions )
-			
-			// const blendMap = new Map()
-			// blendShapePredictions.forEach((blendShape,index) => {
-			// 	const blendShapeIndex = this.faceMesh.morphTargetDictionary[blendShape.categoryName] // ?? this.faceMesh.morphTargetDictionary[blendShape.index]
-			// 	if (blendShapeIndex && blendShapeIndex > -1)
-			// 	{
-			// 		this.faceMesh.morphTargetInfluences[blendShapeIndex] = MathUtils.lerp(
-			// 			this.faceMesh.morphTargetInfluences[blendShapeIndex],
-			// 			blendShape.score,
-			// 			0.5
-			// 		)
-			// 		// this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
-			// 	}
-			// })	
-			
-			// console.error( "blendShape categories",this.faceMesh.morphTargetDictionary, this.faceMesh.morphTargetInfluences )
-			// console.error( "blendShapes", { dictionary:this.faceMesh.morphTargetDictionary, blendShapePredictions} )
-			// console.error( "blendShape categories", this.faceMesh.morphTargetInfluences )
-			// console.error(index, blendShapeIndex, "blendShape categories", blendShape, this.faceMesh.morphTargetInfluences, this.faceMesh.morphTargetDictionary )
-		}
-		
-		// if singing project some bubbles out of the mouth!
-		if (prediction.isMouthOpen)
-		{
-			// const C = new Three.Vector3()
-			// C.lerpVectors(A, B, a)
-			const points = this.particles.geometry.attributes.position.array
-			const pointQuantity = points.length
-			const voxels = this.particles.geometry.userData.particles
-			const lastVoxelIndex = voxels.length-1
-			const headCenterPoint = new Vector3()
-			const mouthCenterPoint = new Vector3()
-			
-			const topLipCenter = new Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
-			const bottomLipCenter = new Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
-			
-			const rightHeadMidPoint = new Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
-			const leftHeadMidPoint = new Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
-			
-			mouthCenterPoint.addVectors( topLipCenter, bottomLipCenter ).divideScalar( 2 )
-			headCenterPoint.addVectors( leftHeadMidPoint, rightHeadMidPoint ).divideScalar( 2 )
-			//.midpoint.lerpVectors(topLipCenter, bottomLipCenter, 0.5 )
-
-			const spitRate = prediction.mouthRatio * 10 ?? 0.01
-			const c = Math.round(this.count * spitRate)%lastVoxelIndex
-
-			// discover the throat point behind the mouth where sound is generaated from
-			const throatPoint = mouthCenterPoint.clone()
-			throatPoint.z -= 0.5
-			throatPoint.y -= 0.0001
-	
-			// this.tracker.geometry.attributes.position.setXYZ(0, throatPoint.x, throatPoint.y, throatPoint.z)
-			// this.tracker.geometry.attributes.position.setXYZ(1, mouthCenterPoint.x, mouthCenterPoint.y, mouthCenterPoint.z)
-			// this.tracker.geometry.attributes.position.needsUpdate = true
-		  
-			// // rotate like face mesh
-			// this.tracker.rotation.x = prediction.pitch + ( this.mouseY * VIEW_CONE_ANGLE ) - 0.3
-			// this.tracker.rotation.y = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
-			// this.tracker.rotation.z = prediction.roll * VIEW_CONE_ANGLE_Z
-			
-			// const direction = new Vector3().subVectors( midpoint,throatPoint ).normalize() // direction from A to B is a normalized vector
-
-			// const Aext = A.clone().addScaledVector(direction, -extend_val)
-			// const Bext = B.clone().addScaledVector(direction, extend_val)
-		
-			for (let i=0; i<3; ++i)
-			{
-				const offset = i * 6
-				const pointIndex = pointQuantity - offset
-				const voxel = voxels[lastVoxelIndex - offset]
+			this.avatar.rotateAll( rx, ry, rz )
 				
-				const percent = 1 - (( prediction.mouthRatio + i * 0.1 * this.count * 0.05) % 1)
-				const distanceToProject = throatPoint.distanceTo(mouthCenterPoint) * percent // + 0.5
-				const endPoint = (new Vector3()).subVectors(mouthCenterPoint, throatPoint).normalize().multiplyScalar(distanceToProject).add(throatPoint)
-			
-				// voxel.setPosition( midpoint.x, midpoint.y, midpoint.z, true )
-				voxel.setPosition( endPoint.x, endPoint.y, endPoint.z, false )
-				voxel.update()
-	
-				// find point at back of throat...
-				// points[ points.length-9 ] = throatPoint.x
-				// points[ points.length-8 ] = throatPoint.y
-				// points[ points.length-7 ] = throatPoint.z
-
-				// find projected point at the front.
-				points[ pointIndex-6 ] = endPoint.x
-				points[ pointIndex-5 ] = endPoint.y
-				points[ pointIndex-4 ] = endPoint.z
-
-				// find point at back of throat...
-				points[ pointIndex-3 ] = voxel.x
-				points[ pointIndex-2 ] = voxel.y
-				points[ pointIndex-1 ] = voxel.z
+			// update the morph target influences that set the facial rigging
+			if (this.avatar.isMorphable)
+			{
+				// get blend shape predictions for face 1
+				const blendShapePredictions = prediction.faceBlendshapes.categories
+				this.avatar.updateFromPrediction( blendShapePredictions )
+				
+				// const blendMap = new Map()
+				// blendShapePredictions.forEach((blendShape,index) => {
+				// 	const blendShapeIndex = this.faceMesh.morphTargetDictionary[blendShape.categoryName] // ?? this.faceMesh.morphTargetDictionary[blendShape.index]
+				// 	if (blendShapeIndex && blendShapeIndex > -1)
+				// 	{
+				// 		this.faceMesh.morphTargetInfluences[blendShapeIndex] = MathUtils.lerp(
+				// 			this.faceMesh.morphTargetInfluences[blendShapeIndex],
+				// 			blendShape.score,
+				// 			0.5
+				// 		)
+				// 		// this.faceMesh.morphTargetInfluences[blendShapeIndex] = blendShape.score
+				// 	}
+				// })	
+				
+				// console.error( "blendShape categories",this.faceMesh.morphTargetDictionary, this.faceMesh.morphTargetInfluences )
+				// console.error( "blendShapes", { dictionary:this.faceMesh.morphTargetDictionary, blendShapePredictions} )
+				// console.error( "blendShape categories", this.faceMesh.morphTargetInfluences )
+				// console.error(index, blendShapeIndex, "blendShape categories", blendShape, this.faceMesh.morphTargetInfluences, this.faceMesh.morphTargetDictionary )
 			}
+					
+			const hasMaterial = this.faceMesh.material && !Array.isArray(this.faceMesh.material)
+			if ( hasMaterial )
+			{
+				// if (person.singing)
+				if (person.instrumentLoading)
+				{
+					this.faceMesh.material.color.setHSL( hue, this.count%100 + "%", Math.min( 1, this.mouseY * 0.5 + 0.5)  ) 
+			
+				} else if (person.isMouthOpen){
+					
+					// TODO: tie this into amplitude?
+					// this.exposure = 0.3 +  prediction.mouthRatio * 0.5
+					this.faceMesh.material.color.setHSL( hue, 0.3 + prediction.mouthRatio, Math.min( 1, this.mouseY / 2 + 0.5)  ) 
+				
+				}else{
 
-			// points[ points.length-3 ] = midpoint.x
-			// points[ points.length-2 ] = midpoint.y
-			// points[ points.length-1 ] = midpoint.z
-			// console.info("mouth", mouthCenterPoint, {topLipCenter, bottomLipCenter} )
+					// this.exposure = 0.4 // + this.count % 1.3
+					this.faceMesh.material.color.setHSL( hue, 0.5, Math.min( 1, this.mouseY * 0.5 + 0.5)  ) 
+				}
+			}
+		}
+		
+		// rotate with inertia
+		if (this.options.showParticles)
+		{
+			// use mouse too for flavour
+			this.particles.rotation.x = ( this.mouseY * VIEW_CONE_ANGLE ) + Math.PI
+			this.particles.rotation.y = -( this.mouseX * VIEW_CONE_ANGLE ) //+ Math.PI // + TAU		 
+			// this.particles.rotation.y += 0.01
+				
+			// console.info("drawPerson", person, prediction )
+			this.arrangeParticles( prediction, 1)
+			this.particles.material.color.setHSL( Math.abs(hue/360),0.6, 0.6 ) 
+		
+			// if singing project some bubbles out of the mouth!
+			if (prediction.isMouthOpen)
+			{
+				// const C = new Three.Vector3()
+				// C.lerpVectors(A, B, a)
+				const points = this.particles.geometry.attributes.position.array
+				const pointQuantity = points.length
+				const voxels = this.particles.geometry.userData.particles
+				const lastVoxelIndex = voxels.length-1
+				const headCenterPoint = new Vector3()
+				const mouthCenterPoint = new Vector3()
+				
+				const topLipCenter = new Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
+				const bottomLipCenter = new Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
+				
+				const rightHeadMidPoint = new Vector3( points[TLC], points[TLC+1], points[TLC+2] ) 
+				const leftHeadMidPoint = new Vector3( points[BLC], points[BLC+1], points[BLC+2] ) 
+				
+				mouthCenterPoint.addVectors( topLipCenter, bottomLipCenter ).divideScalar( 2 )
+				headCenterPoint.addVectors( leftHeadMidPoint, rightHeadMidPoint ).divideScalar( 2 )
+				//.midpoint.lerpVectors(topLipCenter, bottomLipCenter, 0.5 )
+
+				const spitRate = prediction.mouthRatio * 10 ?? 0.01
+				const c = Math.round(this.count * spitRate)%lastVoxelIndex
+
+				// discover the throat point behind the mouth where sound is generaated from
+				const throatPoint = mouthCenterPoint.clone()
+				throatPoint.z -= 0.5
+				throatPoint.y -= 0.0001
+		
+				this.particles.material.color.setHSL( hue, 0.7, 0.9 ) 
+				
+				// this.tracker.geometry.attributes.position.setXYZ(0, throatPoint.x, throatPoint.y, throatPoint.z)
+				// this.tracker.geometry.attributes.position.setXYZ(1, mouthCenterPoint.x, mouthCenterPoint.y, mouthCenterPoint.z)
+				// this.tracker.geometry.attributes.position.needsUpdate = true
+			
+				// // rotate like face mesh
+				// this.tracker.rotation.x = prediction.pitch + ( this.mouseY * VIEW_CONE_ANGLE ) - 0.3
+				// this.tracker.rotation.y = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
+				// this.tracker.rotation.z = prediction.roll * VIEW_CONE_ANGLE_Z
+				
+				// const direction = new Vector3().subVectors( midpoint,throatPoint ).normalize() // direction from A to B is a normalized vector
+
+				// const Aext = A.clone().addScaledVector(direction, -extend_val)
+				// const Bext = B.clone().addScaledVector(direction, extend_val)
+			
+				for (let i=0; i<3; ++i)
+				{
+					const offset = i * 6
+					const pointIndex = pointQuantity - offset
+					const voxel = voxels[lastVoxelIndex - offset]
+					
+					const percent = 1 - (( prediction.mouthRatio + i * 0.1 * this.count * 0.05) % 1)
+					const distanceToProject = throatPoint.distanceTo(mouthCenterPoint) * percent // + 0.5
+					const endPoint = (new Vector3()).subVectors(mouthCenterPoint, throatPoint).normalize().multiplyScalar(distanceToProject).add(throatPoint)
+				
+					// voxel.setPosition( midpoint.x, midpoint.y, midpoint.z, true )
+					voxel.setPosition( endPoint.x, endPoint.y, endPoint.z, false )
+					voxel.update()
+		
+					// find point at back of throat...
+					// points[ points.length-9 ] = throatPoint.x
+					// points[ points.length-8 ] = throatPoint.y
+					// points[ points.length-7 ] = throatPoint.z
+
+					// find projected point at the front.
+					points[ pointIndex-6 ] = endPoint.x
+					points[ pointIndex-5 ] = endPoint.y
+					points[ pointIndex-4 ] = endPoint.z
+
+					// find point at back of throat...
+					points[ pointIndex-3 ] = voxel.x
+					points[ pointIndex-2 ] = voxel.y
+					points[ pointIndex-1 ] = voxel.z
+				}
+
+				// points[ points.length-3 ] = midpoint.x
+				// points[ points.length-2 ] = midpoint.y
+				// points[ points.length-1 ] = midpoint.z
+				// console.info("mouth", mouthCenterPoint, {topLipCenter, bottomLipCenter} )
+			}else{
+				this.particles.material.color.setHSL( hue, 0.6, 0.9 ) 	
+			}
 		}
 
 		
@@ -1023,40 +1033,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			// this.bloom.strength = params.strength
 			this.bloom.radius = prediction.mouthRatio
 		}
-		
-		// if (person.singing)
-		if (prediction.isMouthOpen)
-		{
-			if (person.instrumentLoading)
-			{
-				this.faceMesh.material.color.setHSL( this.mouseX, this.count%1, Math.min( 1, this.mouseY * 0.5 + 0.5)  ) 
-				// TODO: improve
-
-			} else if (person.isMouthOpen){
-				
-				// TODO: tie this into amplitude?
-				// this.exposure = 0.3 +  prediction.mouthRatio * 0.5
-
-				this.particles.material.color.setHSL( hue, 0.7, 0.9 ) 
-				this.faceMesh.material.color.setHSL( hue, 0.5, Math.min( 1, this.mouseY / 2 + 0.5)  ) 
-			
-			}else{
-
-				// this.exposure = 0.4 // + this.count % 1.3
-
-				this.particles.material.color.setHSL( hue, 0.6, 0.9 ) 
-				this.faceMesh.material.color.setHSL( this.mouseX, this.count%1, Math.min( 1, this.mouseY * 0.5 + 0.5)  ) 
-			}
-		
-		}else{
-
-			// TODO: tie this into amplitude?
-			// this.exposure = 1 // + this.count % 1.3
-
-			// this.faceMesh.material.color.setHSL( mouseX, 1-this.count%1, Math.min( 1, mouseY / 2 + 0.5) ) 
-			this.faceMesh.material.color.setHSL( this.mouseX, 1, 1 ) 
-			this.particles.material.color.setHSL( hue, 1, 1 ) 
-		}
+	
 
 		console.info(hue,"drawPerson", person, prediction )
 

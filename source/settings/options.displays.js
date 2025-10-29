@@ -17,6 +17,10 @@ export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	mouse:false,
 	debug:false,
 	stats:false,
+	// voxels
+	showParticles:true,
+	// 3d model
+	showAvatar:false,
 	blendShapes:true,
 	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
 }

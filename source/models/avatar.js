@@ -6,7 +6,7 @@
  * BlendShapes
  * 
 */
-import { Box3, Clock, Vector3, BufferGeometry, Float32BufferAttribute, MathUtils, Group } from "three"
+import { Box3, Clock, Vector3, BufferGeometry, Float32BufferAttribute, MathUtils, Group, Object3D } from "three"
 import { FaceLandmarker } from "@mediapipe/tasks-vision"
 import { calculateModelScale, createLoaderForModel, improveVRMPerformance, rescaleAndCenter } from "./avatars.js"
 import { Particle, ParticleTracer } from "../visual/3d.particles.js"
@@ -153,9 +153,13 @@ export default class Avatar{
 	#clock = null
 	#opacity = 1
 
+	// container
 	#parent
+
+	// face mesh model 
 	#faceMesh
 
+	// numbers
 	modelScale
 	faceMeshSize
 
@@ -316,11 +320,11 @@ export default class Avatar{
 	 * and positions it in the center of the view
 	 * 
 	 * @param {Mesh} faceMesh 
-	 * @param {Vector3} avatar 
+	 * @param {Object} avatarModel 
 	 * @param {Number|Null} size 
 	 * @returns 
 	 */
-	createFace(faceMesh, avatar, size=null) {
+	createFace(faceMesh, avatarModel, size=null) {
 
 		// if there is a face mesh material, activate it
 		const meshes = faceMesh.material ? [faceMesh] : faceMesh.children
@@ -333,13 +337,13 @@ export default class Avatar{
 			meshes.forEach( mesh => {
 				if (mesh.material)
 				{
-					if (avatar.opacity < 1)
+					if (avatarModel.opacity < 1)
 					{
 						mesh.material.transparent = true
-						mesh.material.opacity = avatar.opacity
+						mesh.material.opacity = avatarModel.opacity
 					} 	 
 
-					if (avatar.HSL)
+					if (avatarModel.HSL)
 					{
 						mesh.material.color.setHSL( 0.5, 0.6, 0.6 )
 					}
@@ -361,8 +365,8 @@ export default class Avatar{
 		this.centraliseGeometry()
 
 		// Reposition and rotate
-		this.position( avatar )
-		this.rotate( avatar )
+		this.position( avatarModel )
+		this.rotate( avatarModel )
 
 
 		// Set scale if provided
@@ -388,9 +392,9 @@ export default class Avatar{
 	 */
 	position( positionVector ){
 		// position in front the camera but behind the particles
-		this.#faceMesh.position.z = positionVector.pos?.z ?? 0
-		this.#faceMesh.position.y = positionVector.pos?.y ?? 0
-		this.#faceMesh.position.x = positionVector.pos?.x ?? 0	
+		this.#parent.position.z = positionVector.pos?.z ?? 0
+		this.#parent.position.y = positionVector.pos?.y ?? 0
+		this.#parent.position.x = positionVector.pos?.x ?? 0	
 		//console.info("FaceMesh Position", {positionVector}, this.#faceMesh.position )
 	}
 
@@ -399,22 +403,49 @@ export default class Avatar{
 	 * @param {Vector3} rotationVector 
 	 */
 	rotate(rotationVector){
-		this.#faceMesh.rotateX( rotationVector.rot?.x ?? 0 )
-		this.#faceMesh.rotateY( rotationVector.rot?.y ?? 0 )
-		this.#faceMesh.rotateZ( rotationVector.rot?.z ?? 0 )
-		console.info("FaceMesh Rotate", {rotationVector}, this.#faceMesh )
+		this.#parent.rotateX( rotationVector.rot?.x ?? 0 )
+		this.#parent.rotateY( rotationVector.rot?.y ?? 0 )
+		this.#parent.rotateZ( rotationVector.rot?.z ?? 0 )
+		// console.info("FaceMesh Rotate", {rotationVector}, this.#faceMesh )
 	}
 
 	rotateAll(x,y,z, friction=0.3 ){
+		this.rotateX(x, friction)
+		this.rotateY(y, friction)
+		this.rotateZ(z, friction)
+		// console.info("FaceMesh RotateAll", {x,y,z, friction}, this.#parent )
+	}
+
+	rotateX( x, friction=0.3){
 		this.#parent.rotation.x += (x - this.#parent.rotation.x ) * friction
+		//MathUtils.lerp( this.#parent.rotation.x, x, friction)
+	}
+
+	rotateY( y, friction=0.3){
 		this.#parent.rotation.y += (y - this.#parent.rotation.y ) * friction
+		//MathUtils.lerp( this.#parent.rotation.y, y, friction)
+	}
+
+	rotateZ( z, friction=0.3){
 		this.#parent.rotation.z += (z - this.#parent.rotation.z ) * friction
-		console.info("FaceMesh RotateAll", {x,y,z, friction}, this.#parent )
+		//MathUtils.lerp( this.#parent.rotation.z, z, friction)
+	}
+
+	rotateXBy( x, friction=0.3){
+		this.rotateX( this.#parent.rotation.x + x, friction )
+	}
+
+	rotateYBy( y, friction=0.3){
+		this.rotateX( this.#parent.rotation.x + x, friction )
+	}
+
+	rotateZBy( z, friction=0.3){
+		this.rotateX( this.#parent.rotation.x + x, friction )	
 	}
 
 	scale( size ){
 		this.#parent.scale.set(size, size, size)
-		console.info("FaceMesh Scale", {size}, this.#faceMesh.scale)
+		// console.info("FaceMesh Scale", {size}, this.#faceMesh.scale)
 	}
 
 	async loadAnimation( animationModel ){
@@ -432,7 +463,7 @@ export default class Avatar{
 		// find animations buried
 		// animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name // Check if Idle animation exists otherwise use first animation
 
-		this.#parent = new Group()
+		this.#parent = new Object3D()
 		this.#opacity = faceModel.opacity ?? 1
 
 		const faceModelURI = faceModel.model
@@ -540,7 +571,7 @@ export default class Avatar{
 				// 	console.info("NOMORPH geometries", { faceMesh } , this.faceMeshSize ) 
 				// }
 				
-				resolve( { faceMesh, faceGroup } )
+				resolve( { parent:this.#parent, faceMesh, faceGroup } )
 			} )
 		})
 	}

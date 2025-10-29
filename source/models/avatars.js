@@ -126,9 +126,10 @@ export const AVATAR_DATA = {
 	racoon:{
 		name:"Racoon",
 		model:RACOON_FACE_MESH,
-		size:5,
+		size:10,
 		opacity:1,
-		pos:{ x:0, y:0.015, z:-5 },
+		pos:{ x:0, y:0.5, z:-2 },
+		// pos:{ x:0, y:0.015, z:-5 },
 		rot:{ x:0, y:0, z:0 }
 	},	
 
@@ -175,9 +176,9 @@ export const AVATAR_DATA = {
 	albert:{
 		name:"Albert Einstein",
 		model:ALBERT_FACE_MESH,
-		size:3,
+		size:5,
 		opacity:0.16,
-		pos:{ x:0, y:0.015, z:-5 },
+		pos:{ x:0, y:0.5, z:-1 },
 		rot:{ x:3*Math.PI/2, y:0, z:0 }
 	},
 
