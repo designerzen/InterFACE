@@ -288,8 +288,8 @@
 #share-code{
 	--size:128px;
 	position: fixed;
-	top:var(--pad);
-	right:var(--pad);
+	top:calc( 2.5 * var(--pad) );
+	right:calc( 2.5 * var(--pad) );
 	z-index:808;
 
 	width:var(--size);
