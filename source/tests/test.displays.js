@@ -8,7 +8,7 @@ import { DISPLAY_TYPES, DISPLAY_IDS, DISPLAY_LOOKING_GLASS_3D } from '../display
 import { now } from "../timing/timing.js"
 
 // import { AVATAR_DATA } from "../models/avatars.js"
-import Avatar from "../models/avatar.js"
+// import Avatar from "../models/avatar.js"
 
 import DATA_SOURCE from 'raw:./test.face-stream.json'
 
@@ -92,13 +92,13 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	result.textContent = initialDisplay === DISPLAY_LOOKING_GLASS_3D ? 'Looking Glass Portrait' : "NO Looking Glass Portraits detected"
 	
 	// immediately set the video display to what was discovered / previously set as an option
-	// try{
+	try{
 		display = await changeDisplay(canvas, initialDisplay, render)
 		displayType = initialDisplay
 		canvas = display.canvas
-	// }catch(error){
-	// 	console.error("Cannot change Display Error:", error) 
-	// }
+	}catch(error){
+		console.error("Cannot change Display Error:", error) 
+	}
 
 	// Update the DOM UI
 	selectDisplay = document.getElementById('select-display')
@@ -140,11 +140,11 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	console.info("Registering displays with canvas", canvas, canvas.parentElement)
 }
 
-const loadAvatar = async ( avatarModel ) => {
-	const avatar = new Avatar()
-	const faceModel = await avatar.loadModel( avatarModel )
-	console.log("Avatar created", avatar, "with face", faceModel, "with", avatarModel  )
-}
+// const loadAvatar = async ( avatarModel ) => {
+// 	const avatar = new Avatar()
+// 	const faceModel = await avatar.loadModel( avatarModel )
+// 	console.log("Avatar created", avatar, "with face", faceModel, "with", avatarModel  )
+// }
 
 async function init(){
 
