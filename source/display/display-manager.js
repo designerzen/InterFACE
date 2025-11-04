@@ -7,7 +7,7 @@
  * The WebXR version has an extra holographic mode too
  */
 // 
-import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
+// import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 import { DISPLAY_TYPES } from './display-types.js'
 
 let display = null
@@ -54,7 +54,7 @@ export const createDisplay = async (canvasElement, displayType, options={} ) => 
 
 	// set the canvas to the size of the video / image
 	// display = new Display( webGLElement, inputElement.width, inputElement.height )
-	console.warn("DISPLAY:Creating new",displayType,"on", canvasElement, {options}) 
+	console.info("DISPLAY:Creating new",displayType,"on", canvasElement, {options}) 
 		
 	canvasElement.setAttribute( "data-display-type",displayType )
 	switch(displayType)
@@ -63,7 +63,7 @@ export const createDisplay = async (canvasElement, displayType, options={} ) => 
 			// NB. Make sure you set this to a WEB_GL context!
 			const {default:DisplayWebGL3D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_WEB_GL_3D )
 			const displayWebGL3D = new DisplayWebGL3D( canvasElement, canvasElement.width, canvasElement.height, options )
-			console.info("DISPLAY_WEB_GL_3D LOADING", displayWebGL3D)
+			// console.info("DISPLAY_WEB_GL_3D LOADING", displayWebGL3D)
 			await displayWebGL3D.loading
 			return displayWebGL3D
 
@@ -159,6 +159,7 @@ export const getDisplayAvailability = async( previousDisplay, defaultDisplay= DI
 	let suggestedDisplay = previousDisplay ?? defaultDisplay
 	
 	try{
+		const {howManyHolographicDisplaysAreConnected } = await import( '../hardware/looking-glass-portrait.js' )
 		const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
 		if (holographicDisplayQuantity > 0)
 		{
