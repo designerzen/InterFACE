@@ -3,18 +3,17 @@
  */
 
 import Person from "../person.js"
-
 import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplayAvailability  } from '../display/display-manager.js'
-
-import { DISPLAY_TYPES, DISPLAY_IDS } from '../display/display-types.js'
-import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
+import { DISPLAY_TYPES, DISPLAY_IDS, DISPLAY_LOOKING_GLASS_3D } from '../display/display-types.js'
 import { now } from "../timing/timing.js"
+
+// import { AVATAR_DATA } from "../models/avatars.js"
+import Avatar from "../models/avatar.js"
+
+import DATA_SOURCE from 'raw:./test.face-stream.json'
 
 // JSON data from data_source
 // import DATA_SOURCE from 'raw:/source/tests/test.face.json'
-import DATA_SOURCE from 'raw:./test.face-stream.json'
-import { AVATAR_DATA } from "../models/avatars.js"
-import Avatar from "../models/avatar.js"
 
 let DATA
 let DATA_KEYS 
@@ -89,21 +88,8 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	// Looking Glass Portrait hardware :
 	// firstly check to see how many holographic displays are connected and modify the default display 
 	// if the hologrpahic display is available and has not been previously set
-	let holographicDisplayQuantity 
-	try{
-		holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
-		if (holographicDisplayQuantity > 1)
-		{
-			initialDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
-			document.body.classList.add("holographic")
-			result.textContent = "Looking Glass Portrait detected"
-		}else{
-			console.info("No Looking Glass devices found")
-			result.textContent = "NO Looking Glass Portraits detected"
-		}	
-	}catch(error){
-		console.info("No Looking Glass devices connected")
-	}
+	initialDisplay = await getDisplayAvailability()
+	result.textContent = initialDisplay === DISPLAY_LOOKING_GLASS_3D ? 'Looking Glass Portrait' : "NO Looking Glass Portraits detected"
 	
 	// immediately set the video display to what was discovered / previously set as an option
 	// try{
