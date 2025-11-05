@@ -6,10 +6,16 @@ import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_WEB_GL_3D } from "./display-types.js"
 import { TAU } from "../maths/maths.js"
 
+
+
 import { preload3dFont } from '../visual/3d.fonts.js'
 
+// lazily loaded
 // import { AVATAR_DATA, unloadModel } from '../models/avatars.js'
 // import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+
+import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
+import { AVATAR_DATA } from '../models/avatar-data.js'
 
 import { 
 	UPDATE_FACE_BUTTON_AFTER_FRAMES,
@@ -64,7 +70,6 @@ import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompas
 import PARTICLE_URI from 'url:../assets/particles/particle.png'
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
 
-import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
 let data = FACE_LANDMARKS_DATA["0"]
 
@@ -117,7 +122,6 @@ const lerpMorphTarget = (target, value, speed = 0.1) => {
 }
 
 let AVATAR_IMPORT
-let AVATAR_DATA
 let Avatar
 	
 /**
@@ -356,11 +360,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	async importAvatarClass(){
 		if (AVATAR_IMPORT)
 		{
-			return {Avatar, AVATAR_DATA, AVATAR_IMPORT}
+			return {Avatar, AVATAR_IMPORT}
 		}
 
 		const AVATARS = await import( "../models/avatars.js" )
-		AVATAR_DATA = AVATARS.AVATAR_DATA
 		this.unloadModel = AVATARS.unloadModel
 
 		AVATAR_IMPORT = await import("../models/avatar.js")
@@ -368,7 +371,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.arrangeFaceData = AVATAR_IMPORT.arrangeFaceData
 		this.createFaceGeometryFromData = AVATAR_IMPORT.createFaceGeometryFromData
 
-		return {Avatar, AVATAR_DATA, AVATAR_IMPORT}
+		return {Avatar, AVATAR_IMPORT}
 	}
 
 	/**

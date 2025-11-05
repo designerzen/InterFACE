@@ -7,7 +7,7 @@ import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDispl
 import { DISPLAY_TYPES, DISPLAY_IDS, DISPLAY_LOOKING_GLASS_3D } from '../display/display-types.js'
 import { now } from "../timing/timing.js"
 
-// import { AVATAR_DATA } from "../models/avatars.js"
+import { AVATAR_DATA } from "../models/avatar-data.js"
 // import Avatar from "../models/avatar.js"
 
 import DATA_SOURCE from 'raw:./test.face-stream.json'
