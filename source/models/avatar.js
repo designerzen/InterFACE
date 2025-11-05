@@ -118,6 +118,7 @@ export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor =
 	const particles = Array(quantity)
 						.fill(0)
 						.map((e,i)=> new ParticleTracer( geometry, null, i, Math.random() * 0.2, true  ))
+	
 	// connect particles....
 	particles.forEach( (particle, i) => {
 		const next = particles[i+1]
@@ -128,7 +129,7 @@ export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor =
 		}
 	})
 
-
+	// cache all particles inside userData
 	geometry.userData.particles = particles
 	// geometry.userData.particles = Array(quantity).map((e,i)=>new Particle(positions[i*3],positions[i*3+1],positions[i*3+2]))
 	

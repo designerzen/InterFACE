@@ -8,8 +8,8 @@ import { TAU } from "../maths/maths.js"
 
 import { preload3dFont } from '../visual/3d.fonts.js'
 
-import { AVATAR_DATA, unloadModel } from '../models/avatars.js'
-import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+// import { AVATAR_DATA, unloadModel } from '../models/avatars.js'
+// import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
 
 import { 
 	UPDATE_FACE_BUTTON_AFTER_FRAMES,
@@ -115,6 +115,10 @@ const lerpMorphTarget = (target, value, speed = 0.1) => {
 		}
     })
 }
+
+let AVATAR_IMPORT
+let AVATAR_DATA
+let Avatar
 	
 /**
  * Three JS Based with Web VR renderer
@@ -253,6 +257,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		
 		if (options.showAvatar)
 		{
+			await this.importAvatarClass()
 			// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
 			// select the avatar you want to use
 			const avatarMeta = AVATAR_DATA.albert
@@ -267,10 +272,11 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		if (options.showParticles)
 		{
+			await this.importAvatarClass()
 			const { keypoints, facialTransformationMatrixes, box } = data
 
 			// 478 is the amount of nodes in MediaVision library
-			const geometry = createFaceGeometryFromData( keypoints, 478, 1 )
+			const geometry = this.createFaceGeometryFromData( keypoints, 478, 1 )
 			const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
 			this.texture = texture
@@ -347,6 +353,24 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		return true
 	}
 
+	async importAvatarClass(){
+		if (AVATAR_IMPORT)
+		{
+			return {Avatar, AVATAR_DATA, AVATAR_IMPORT}
+		}
+
+		const AVATARS = await import( "../models/avatars.js" )
+		AVATAR_DATA = AVATARS.AVATAR_DATA
+		this.unloadModel = AVATARS.unloadModel
+
+		AVATAR_IMPORT = await import("../models/avatar.js")
+		Avatar = AVATAR_IMPORT.default
+		this.arrangeFaceData = AVATAR_IMPORT.arrangeFaceData
+		this.createFaceGeometryFromData = AVATAR_IMPORT.createFaceGeometryFromData
+
+		return {Avatar, AVATAR_DATA, AVATAR_IMPORT}
+	}
+
 	/**
 	 * DESTROY this Display & free up memory
 	 */
@@ -358,7 +382,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// clean up
 		this.scene.remove( this.text )
 		this.faceMesh && this.scene.remove( this.faceMesh )
-		unloadModel(this.faceMesh)
+		this.unloadModel(this.faceMesh)
 
 		// this.avatar.dispose()
 
@@ -618,7 +642,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const scales = this.particles.geometry.attributes.scale.array
 		const particleClasses = this.particles.geometry.userData.particles
 		
-		arrangeFaceData( keypoints, positions, scales, zoom * scaleFactor )
+		this.arrangeFaceData( keypoints, positions, scales, zoom * scaleFactor )
 		
 		// now make one go for a walk!
 		let i = 0
