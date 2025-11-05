@@ -1,5 +1,4 @@
 // Test Data available at :
-// https://wormhole.app/vbJKkm#b7KLe57VSoaJ7etTn2R2bQ
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -7,6 +6,8 @@ import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js'
 import { BVHLoader } from 'three/examples/jsm/loaders/BVHLoader.js'
 // import { VRMLLoader } from 'three/examples/jsm/loaders/VRMLLoader.js'
 import { VRMLoaderPlugin } from '@pixiv/three-vrm'
+import { VRMUtils } from '@pixiv/three-vrm'
+import { Box3, Vector3 } from 'three'
 
 // ARKit blendshape facial models
 // import CYBORG_FACE from "url:/source/assets/actors/FaceCapLiveModeAvatar/FaceCapLiveModeAvatar.fbx"
@@ -39,9 +40,6 @@ import RACOON_FACE_MESH from 'url:/source/assets/actors/raccoon_head.glb'
 // import VRDROID_FACE_MESH from 'url:/source/assets/actors/vrdroid.vrm'
 // import ALIEN_FACE_MESH from 'url:/source/assets/actors/Female Blue Alien Face/Female Blue Alien Face model.fbx'
 
-import { VRMUtils } from '@pixiv/three-vrm'
-
-import { Box3, Vector3 } from 'three'
 
 export const AVATAR_DATA = {
 

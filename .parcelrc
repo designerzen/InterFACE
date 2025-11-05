@@ -9,16 +9,10 @@
 	"transformers": {
 		"wam:*": [],
 		"raw:*": ["@parcel/transformer-raw"],
-		"*.obj": ["@parcel/transformer-raw"],
-		"*.fbx": ["@parcel/transformer-raw"],
-		"*.glb": ["@parcel/transformer-raw"],
-		"*.mtl": ["@parcel/transformer-raw"],
+		"*.{obj,fbx,glb,mtl,vrm}": ["@parcel/transformer-raw"],
 		"*.{js,mjs,jsx,cjs,ts,tsx}": [
 			"@parcel/transformer-js",
 			"@parcel/transformer-react-refresh-wrap"
 		]
-	},
-	"optimizers": {
-		"*.js": []
 	}
 }
