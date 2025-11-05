@@ -63,6 +63,7 @@ import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompas
 //import PARTICLE_URI from '../assets/particles/soft-inverted.png'
 import PARTICLE_URI from 'url:../assets/particles/particle.png'
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
+
 import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
 let data = FACE_LANDMARKS_DATA["0"]
@@ -702,7 +703,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 				const uniforms = {
 					diffuseTexture: {
-						value: new TextureLoader().load('./resources/fire.png')
+						// value: new TextureLoader().load('./resources/fire.png')
 					},
 					pointMultiplier: {
 						value: window.innerHeight / (2.0 * Math.tan(0.5 * 60.0 * Math.PI / 180.0))
