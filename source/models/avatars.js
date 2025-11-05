@@ -1,45 +1,83 @@
-// Test Data available at :
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js'
-import { BVHLoader } from 'three/examples/jsm/loaders/BVHLoader.js'
-// import { VRMLLoader } from 'three/examples/jsm/loaders/VRMLLoader.js'
-import { VRMLoaderPlugin } from '@pixiv/three-vrm'
-import { VRMUtils } from '@pixiv/three-vrm'
 import { Box3, Vector3 } from 'three'
 
-export const createLoaderForModel = (modelURI) => {
+// Test Data available at :
+// import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
+// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+// import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js'
+// import { BVHLoader } from 'three/examples/jsm/loaders/BVHLoader.js'
+
+// import { VRMLLoader } from 'three/examples/jsm/loaders/VRMLLoader.js'
+// import { VRMLoaderPlugin } from '@pixiv/three-vrm'
+// import { VRMUtils } from '@pixiv/three-vrm'
+
+const loaders = new Map()
+
+export const createLoaderForModel = async (modelURI) => {
 	let extension = modelURI.split('.').pop()//.split("?")[0]
 	if (extension.indexOf("?") > -1)
 	{
 		extension = extension.split("?")[0]
 	}
-	switch(extension.toLowerCase())
+	const type = extension.toLowerCase()
+	switch(type)
 	{
 		case "dae":
-			return new ColladaLoader()
+			if (!loaders.has(type))
+			{
+				loaders.set( type, (await import('three/examples/jsm/loaders/ColladaLoader.js')).ColladaLoader )
+			}
+			return ( new loaders.get(type) )()
 		// case "vrml":
 		// 	return new VRMLLoader()
 		case "bvh":
-			return new BVHLoader()
+			if (!loaders.has(type))
+			{
+				loaders.set( type, (await import('three/examples/jsm/loaders/BVHLoader.js')).BVHLoader )
+			}
+			return ( new loaders.get(type) )()
+
 		case "glb":
 		case "gltf":
-			return new GLTFLoader()
+			if (!loaders.has(type))
+			{
+				loaders.set( type, (await import('three/examples/jsm/loaders/GLTFLoader.js')).GLTFLoader )
+			}
+			return ( new loaders.get(type) )()
+
 		case "vrm":
-			const loader = new GLTFLoader()
+			if (!loaders.has(type))
+			{
+				const plugin = ( await import('@pixiv/three-vrm') ).VRMLoaderPlugin
+				loaders.set( type, plugin )
+			}
+
+			const loader = ( new loaders.get(type) )()
 			loader.crossOrigin = "anonymous"
 			loader.register(parser => new VRMLoaderPlugin(parser)) 
 			
 			return loader
+
 		case "fbx":
-			return new FBXLoader()
+			if (!loaders.has(type))
+			{
+				loaders.set( type, (await import('three/examples/jsm/loaders/FBXLoader.js')).FBXLoader )
+			}
+			return ( new loaders.get(type) )()
+
 		case "obj":
-			return new OBJLoader()
+			if (!loaders.has(type))
+			{
+				loaders.set( type, (await import('three/examples/jsm/loaders/OBJLoader.js')).OBJLoader )
+			}
+			return ( new loaders.get(type) )()
 	}
 }
 
-export const improveVRMPerformance = ((gltf, vrm) => {
+export const improveVRMPerformance = async(gltf, vrm) => {
+
+	const VRMUtils = ( await import('@pixiv/three-vrm') ).VRMUtils
+				
 	// calling these functions greatly improves the performance
 	VRMUtils.removeUnnecessaryVertices( gltf.scene )
 	VRMUtils.combineSkeletons( gltf.scene )
@@ -51,7 +89,7 @@ export const improveVRMPerformance = ((gltf, vrm) => {
 	vrm.scene.traverse( ( obj ) => {
 		obj.frustumCulled = false
 	} )	
-})
+}
 
 
 export const unloadModel = (target) => { 

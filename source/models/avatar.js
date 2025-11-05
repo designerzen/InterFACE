@@ -468,11 +468,11 @@ export default class Avatar{
 		this.#opacity = faceModel.opacity ?? 1
 
 		const faceModelURI = faceModel.model
-		const loader = createLoaderForModel(faceModelURI)
+		const loader = await createLoaderForModel(faceModelURI)
 
 		return new Promise((resolve,reject)=>{		
 
-			loader.load( faceModelURI, ( faceGroup ) => {
+			loader.load( faceModelURI, async ( faceGroup ) => {
 				
 				// Attributes added to the 2d geometry
 				let faceMesh = !faceGroup.scene ? faceGroup.children[0] : faceGroup.scene.children[0]
@@ -482,7 +482,7 @@ export default class Avatar{
 				if (vrm)
 				{
 					faceMesh = vrm.scene
-					improveVRMPerformance( faceGroup, vrm )
+					await improveVRMPerformance( faceGroup, vrm )
 				}
 
 			
