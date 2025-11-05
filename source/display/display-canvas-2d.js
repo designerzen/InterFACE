@@ -1,8 +1,12 @@
 /**
  * Generic 2D Canvas to override
  */
-
+import Stats from 'stats-gl'
 import AbstractDisplay from "./display-abstract.js"
+import { DISPLAY_CANVAS_2D } from "./display-types.js"
+import { cosine, ONE_DEGREE_IN_RADIANS, sine } from "../maths/maths.js"
+
+import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
 
 import { drawCircle, drawCircles, drawElement, drawRoundedRect } from "../visual/2d.js"
 // import { drawEye } from "../visual/2d.eyes"
@@ -10,11 +14,6 @@ import { drawCircle, drawCircles, drawElement, drawRoundedRect } from "../visual
 import { hasOffscreenCanvasCapability} from '../capabilities.js'
 import { drawBars } from "../visual/spectrograms.js"
 import { drawInstrument, drawParagraph, drawRotatedText, drawText } from "../visual/2d.text.js"
-import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.js"
-import { DISPLAY_CANVAS_2D } from "./display-types.js"
-import { cosine, ONE_DEGREE_IN_RADIANS, sine } from "../maths/maths.js"
-
-import Stats from 'stats-gl'
 
 const DEFAULT_FILTER = {
 	name:"source-over",

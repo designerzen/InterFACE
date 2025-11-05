@@ -1,6 +1,16 @@
+
+// https://stats.renaudrohlinger.com/
+// import Stats from 'three/examples/jsm/libs/stats.module'
+import Stats from 'stats-gl'
 import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_WEB_GL_3D } from "./display-types.js"
 import { TAU } from "../maths/maths.js"
+
+import { Particle, ParticleTracer } from "../visual/3d.particles.js"
+import { preload3dFont } from '../visual/3d.js'
+
+import { AVATAR_DATA, unloadModel } from '../models/avatars.js'
+import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
 
 import { 
 	UPDATE_FACE_BUTTON_AFTER_FRAMES,
@@ -42,16 +52,6 @@ import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js'
 //- import WebGL from 'three/addons/capabilities/WebGL.js'
 //- import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js'
 import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompass'
-
-import { Particle, ParticleTracer } from "../visual/3d.particles.js"
-import { preload3dFont } from '../visual/3d.js'
-
-import { AVATAR_DATA, unloadModel, createLoaderForModel, calculateModelScale, improveVRMPerformance } from '../models/avatars.js'
-import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
-
-// https://stats.renaudrohlinger.com/
-// import Stats from 'three/examples/jsm/libs/stats.module'
-import Stats from 'stats-gl'
 
 // Assets :
 // import FACE_MATERIAL from '/source/assets/actors/ICTFaceModelMaterial.mtl'
@@ -359,6 +359,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.scene.remove( this.text )
 		this.faceMesh && this.scene.remove( this.faceMesh )
 		unloadModel(this.faceMesh)
+
+		// this.avatar.dispose()
 
 		if (this.particles)
 		{
