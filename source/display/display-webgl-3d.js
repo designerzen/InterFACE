@@ -10,12 +10,11 @@ import { TAU } from "../maths/maths.js"
 
 import { preload3dFont } from '../visual/3d.fonts.js'
 
-// lazily loaded
-// import { AVATAR_DATA, unloadModel } from '../models/avatars.js'
-// import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+import { unloadModel } from '../models/avatars.js'
+import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+import { AVATAR_DATA } from '../models/avatar-data.js'
 
 import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
-import { AVATAR_DATA } from '../models/avatar-data.js'
 
 import { 
 	UPDATE_FACE_BUTTON_AFTER_FRAMES,
@@ -121,9 +120,6 @@ const lerpMorphTarget = (target, value, speed = 0.1) => {
     })
 }
 
-let AVATAR_IMPORT
-let Avatar
-	
 /**
  * Three JS Based with Web VR renderer
  * new DisplayWebGL3D( document.getElementById('interface') ) // document.querySelector("canvas")
@@ -261,7 +257,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		
 		if (options.showAvatar)
 		{
-			await this.importAvatarClass()
 			// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
 			// select the avatar you want to use
 			const avatarMeta = AVATAR_DATA.albert
@@ -276,11 +271,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 		if (options.showParticles)
 		{
-			await this.importAvatarClass()
 			const { keypoints, facialTransformationMatrixes, box } = data
 
 			// 478 is the amount of nodes in MediaVision library
-			const geometry = this.createFaceGeometryFromData( keypoints, 478, 1 )
+			const geometry = createFaceGeometryFromData( keypoints, 478, 1 )
 			const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
 			this.texture = texture
@@ -357,23 +351,6 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		return true
 	}
 
-	async importAvatarClass(){
-		if (AVATAR_IMPORT)
-		{
-			return {Avatar, AVATAR_IMPORT}
-		}
-
-		const AVATARS = await import( "../models/avatars.js" )
-		this.unloadModel = AVATARS.unloadModel
-
-		AVATAR_IMPORT = await import("../models/avatar.js")
-		Avatar = AVATAR_IMPORT.default
-		this.arrangeFaceData = AVATAR_IMPORT.arrangeFaceData
-		this.createFaceGeometryFromData = AVATAR_IMPORT.createFaceGeometryFromData
-
-		return {Avatar, AVATAR_IMPORT}
-	}
-
 	/**
 	 * DESTROY this Display & free up memory
 	 */
@@ -387,7 +364,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.faceMesh && this.scene.remove( this.faceMesh )
 		this.unloadModel(this.faceMesh)
 
-		// this.avatar.dispose()
+		await this.avatar.dispose()
 
 		if (this.particles)
 		{

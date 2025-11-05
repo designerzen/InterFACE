@@ -576,4 +576,8 @@ export default class Avatar{
 			} )
 		})
 	}
+
+	async dispose(){
+		return true
+	}
 }
