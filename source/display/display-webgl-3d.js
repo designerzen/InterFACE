@@ -6,8 +6,7 @@ import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_WEB_GL_3D } from "./display-types.js"
 import { TAU } from "../maths/maths.js"
 
-import { Particle, ParticleTracer } from "../visual/3d.particles.js"
-import { preload3dFont } from '../visual/3d.js'
+import { preload3dFont } from '../visual/3d.fonts.js'
 
 import { AVATAR_DATA, unloadModel } from '../models/avatars.js'
 import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"

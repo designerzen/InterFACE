@@ -1,24 +1,8 @@
 import { BufferGeometry } from "three"
 import { TRIANGULATION } from "../models/face-mesh-constants"
-import { preloadFont } from "troika-three-text"
-
-// Try `npm i --save-dev @types/troika-three-text` if it exists or add a new declaration (.d.ts) file containing `declare module 'troika-three-text';`ts(7016)
-export const preload3dFont = async (font, characters='abcdefghijklmnopqrstuvwxyz1234567890-') => new Promise((resolve,reject) => {
-	preloadFont(
-		{
-			font, 
-			characters
-		},
-		(result) => {
-			console.info("3d Font loaded", result, {font} )
-			resolve()
-		}
-	)
-})
-
 
 /**
- * To take the keypointsw out from another geometry
+ * To take the keypoints out from another geometry
  * @param {Geometry} geometry 
  * @param {Number} quantity 
  * @param {Number} scaleFactor 
@@ -68,14 +52,6 @@ export const convertMeshToSimplifiedGeometry = (particleGeometry, quantity, scal
 
 
 
-
-
-
-
-
-
-
-
 const VOXEL_QUANTITY = TRIANGULATION.length / 3
 let camera
 let scene
@@ -84,7 +60,7 @@ let lineMaterial
 let renderer
 
 /**
- * Create the 3D WebGL scene
+ * Create the THREEJS 3D WebGL scene
  * @returns Render Function
  */
 export const createScene = (video) => {
@@ -187,8 +163,6 @@ export const draw3dFaceMesh = (prediction, palette={h:0,s:100,l:100}, strokeWidt
 	}
 }
 
-
-
 /**
  * Draws a specific part by looping through the part array and 
  * connecting the nodes together with paths
@@ -218,6 +192,5 @@ export const draw3dPart = (keypoints, lines=true, fill=true, color="rgba(255,0,0
 	if (lines)
 	{
 		
-	}
-	
+	}	
 }
