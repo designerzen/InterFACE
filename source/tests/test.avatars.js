@@ -1,4 +1,4 @@
-import { AVATAR_DATA } from "../models/avatars.js"
+import { AVATAR_DATA } from "../models/avatar-data.js"
 import { AmbientLight, AxesHelper, Clock, Color, DirectionalLight, PerspectiveCamera, ReinhardToneMapping, Scene, WebGLRenderer } from "three"
 import Avatar from "../models/avatar.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
