@@ -2519,12 +2519,12 @@ export default class Person{
 		const parts = String(data).split( EXPORT_DELIMITER )
 		// part [0] is always PresetIndex
 		// part [1] is always instrumentType
-		// part [2] is always userMode
+		// part [2] is always userMode but may be null or NaN
 		console.error( "parseDataExport", {data, parts} )
 		return {
 			preset: parseInt(parts[0]) ?? 12,
 			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
-			userMode: parseInt(parts[2])
+			userMode: parseInt(parts[2] ?? -1)
 		}
 	}
 

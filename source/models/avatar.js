@@ -284,6 +284,7 @@ export default class Avatar{
 	}
 
 	/**
+	 * FIXME:
 	 * Sometimes Avatar models use Animations rather than 
 	 * BlendShapes - we can still use these but we must
 	 * handle their bones
@@ -374,7 +375,6 @@ export default class Avatar{
 		// NB. scale directly changes parent
 		if (size)
 		{
-			console.info("Avatar "+this.name+" rescale", size)
 			this.scale( size )
 		}
 		
@@ -384,7 +384,10 @@ export default class Avatar{
 		// console.error("Blendshapes", {faceMesh, Blendshape, PresetName} )
 		//, Blendshape.getValue(PresetName.CHEEK_PUFF) )
 		
-		return new Box3().setFromObject(faceMesh).getSize(new Vector3())
+		const box =  new Box3().setFromObject(faceMesh).getSize(new Vector3())
+		console.info("Avatar "+this.name+" data", {avatarModel, box, size})
+			
+		return box
 	}
 
 	/**

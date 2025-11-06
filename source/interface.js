@@ -805,15 +805,14 @@ export const createInterface = (
 		// we use the data from the state machine to configure each person
 		const personData = person.exportData()
 	
-		if (importedOptions && importedOptions.userMode && Number.isInteger(importedOptions.userMode) )
+		if (importedOptions && importedOptions.userMode && Number.isInteger(importedOptions.userMode) && importedOptions.userMode > -1 )
 		{
 			console.error("@@@ Configuring person with URL data", {person, personData, personOptions, importedOptions} )
-		
 			configurePersonByOperatingMode( person, importedOptions.userMode )
+	
 		}else{
 			
 			console.error("@@@ Configuring person by index", {person, personData, personOptions, importedOptions} )
-		
 			configurePersonByIndex( person, people )		
 		}
 	}
