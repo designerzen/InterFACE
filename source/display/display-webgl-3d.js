@@ -622,7 +622,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const scales = this.particles.geometry.attributes.scale.array
 		const particleClasses = this.particles.geometry.userData.particles
 		
-		this.arrangeFaceData( keypoints, positions, scales, zoom * scaleFactor )
+		arrangeFaceData( keypoints, positions, scales, zoom * scaleFactor )
 		
 		// now make one go for a walk!
 		let i = 0
