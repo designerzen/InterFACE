@@ -1632,6 +1632,7 @@ export const createInterface = (
 
 		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 		let investigation
+		let quantityOfCameras = 0
 		
 		// attempt to get a camera that is suitable for the app
 		try{
@@ -1639,6 +1640,8 @@ export const createInterface = (
 				// console.info("Camera status", status)
 				onProgress && onProgress(status)
 			})
+			quantityOfCameras = investigation.videoCameraDevices.length
+		
 		
 		}catch(error){
 			console.error("Camera not found SHOW ERROR", error)
@@ -1651,7 +1654,17 @@ export const createInterface = (
 			}
 		}
 		
-		const quantityOfCameras =  investigation.videoCameraDevices.length
+		if (quantityOfCameras < 1)
+		{
+			console.error( "No Camera found" )
+			setToast("No cameras located on this device", 0, 'camera')
+			
+			return {
+				success:false,
+				message:"No cameras located on this device"
+			}
+		}
+		
 		camera = investigation.camera
 		
 		// resize canvas to fit video with repect to orientation
