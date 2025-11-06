@@ -12,23 +12,23 @@ importers:
         specifier: ^5.20.0
         version: 5.20.0
       '@babylonjs/core':
-        specifier: ^8.34.1
-        version: 8.34.1
+        specifier: ^8.35.0
+        version: 8.35.0
       '@babylonjs/gui-editor':
-        specifier: ^8.34.1
-        version: 8.34.1(@babylonjs/core@8.34.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+        specifier: ^8.35.0
+        version: 8.35.0(@babylonjs/core@8.35.0)(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
       '@babylonjs/havok':
         specifier: ^1.3.10
         version: 1.3.10
       '@babylonjs/inspector':
-        specifier: ^8.34.1
-        version: 8.34.1(@babylonjs/addons@8.33.0(@babylonjs/core@8.34.1))(@babylonjs/core@8.34.1)(@babylonjs/gui-editor@8.34.1(@babylonjs/core@8.34.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2))(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@babylonjs/loaders@8.34.1(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0))(@babylonjs/materials@8.34.1(@babylonjs/core@8.34.1))(@babylonjs/serializers@8.33.0(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+        specifier: ^8.35.0
+        version: 8.35.0(@babylonjs/addons@8.33.0(@babylonjs/core@8.35.0))(@babylonjs/core@8.35.0)(@babylonjs/gui-editor@8.35.0(@babylonjs/core@8.35.0)(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2))(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@babylonjs/loaders@8.35.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0))(@babylonjs/materials@8.35.0(@babylonjs/core@8.35.0))(@babylonjs/serializers@8.33.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
       '@babylonjs/loaders':
-        specifier: ^8.34.1
-        version: 8.34.1(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0)
+        specifier: ^8.35.0
+        version: 8.35.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0)
       '@babylonjs/materials':
-        specifier: ^8.34.1
-        version: 8.34.1(@babylonjs/core@8.34.1)
+        specifier: ^8.35.0
+        version: 8.35.0(@babylonjs/core@8.35.0)
       '@capacitor/android':
         specifier: ^7.4.4
         version: 7.4.4(@capacitor/core@7.4.4)
@@ -45,8 +45,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(electron@39.1.0)
       '@grame/faustwasm':
-        specifier: ^0.12.1
-        version: 0.12.1
+        specifier: ^0.12.2
+        version: 0.12.2
       '@lookingglass/bridge':
         specifier: ^0.0.8-alpha.4
         version: 0.0.8-alpha.4
@@ -183,8 +183,8 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5
       uWebSockets.js:
-        specifier: github:uNetworking/uWebSockets.js#v20.55.0
-        version: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/af546e5c53c957df9c9f6ba6f76f8534fcb6a505
+        specifier: github:uNetworking/uWebSockets.js#v20.56.0
+        version: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/d04e707a1292928d50163ff7545e45c3e84c5ec3
       update-electron-app:
         specifier: ^3.1.1
         version: 3.1.1
@@ -235,8 +235,8 @@ importers:
         specifier: ^7.28.5
         version: 7.28.5(@babel/core@7.28.5)
       '@biomejs/biome':
-        specifier: ^2.3.3
-        version: 2.3.3
+        specifier: ^2.3.4
+        version: 2.3.4
       '@bubblewrap/cli':
         specifier: ^1.24.1
         version: 1.24.1(@types/node@24.10.0)(encoding@0.1.13)
@@ -1056,12 +1056,13 @@ packages:
 
   '@babylonjs/assets@5.20.0':
     resolution: {integrity: sha512-a6Mm519h9XtXg8Of0qC+DmwWp+jcolZv+Z/LSG+b/8Fh7kS3gFjHXctKSrln2zMiTxcbYfeBqtOUpGtlV8F2bA==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
-  '@babylonjs/core@8.34.1':
-    resolution: {integrity: sha512-bkjBGdRbiLRT8qk+AOSubD9UpWrkLExwTnt+W6XRK8hjMmMZXbYJ5J9IGryVsUIupFKHZ4nEYy6MYFTsw0OJ0w==}
+  '@babylonjs/core@8.35.0':
+    resolution: {integrity: sha512-R/EMFBbPtL5umwZdSZuz8vPF/jXLGnLuLKcTYOz39xhg48VsmL2Fd69eaSLFSM6Z/SSaHfllVyPw6xrsyxxWXA==}
 
-  '@babylonjs/gui-editor@8.34.1':
-    resolution: {integrity: sha512-Y2D7e4JitwkFyibL+0AR94sPENyQX2YrrVuDn2irOF1RD6mSIeomIJgD4U9CAmhfxUUnhRPlKRpH4zJDI/lbIg==}
+  '@babylonjs/gui-editor@8.35.0':
+    resolution: {integrity: sha512-WRiCbfqOaFc3bmt1ymRCuWVs44O5B4rT39HrQv9B9RMdJAskTfPDp+MupJ/SPxxc4mL5YOU8mrYJ40Dx4kI4uQ==}
     peerDependencies:
       '@babylonjs/core': ^8.0.0
       '@babylonjs/gui': ^8.0.0
@@ -1076,8 +1077,8 @@ packages:
   '@babylonjs/havok@1.3.10':
     resolution: {integrity: sha512-ddF0LPBVmg+rmPaMmwTPA9FcHyUnrSsQqFoBbYbN51WMhEJQ+7gRFW3J5lML6lN9M/fbknh6bh1ZirZ2bU2B/w==}
 
-  '@babylonjs/inspector@8.34.1':
-    resolution: {integrity: sha512-oJR0SwEeMq+FahftQg+2udVhFglzmsMQDcpElXNvDvTF3TemmDrkBPQd8fga0XgleGFNIh2lrmu7BbbkIzPmPg==}
+  '@babylonjs/inspector@8.35.0':
+    resolution: {integrity: sha512-pB955nkzhQERIaIiFNQhWC8UWCt4d6z2AP9AwO7ml4kzoENATnMraiQJuKm3eTgQOxBpyQbhUCN1zxH5tAZzEg==}
     peerDependencies:
       '@babylonjs/addons': ^8.0.0
       '@babylonjs/core': ^8.0.0
@@ -1089,14 +1090,14 @@ packages:
       '@types/react': '>=16.7.3'
       '@types/react-dom': '>=16.0.9'
 
-  '@babylonjs/loaders@8.34.1':
-    resolution: {integrity: sha512-2ocixrxMIoImgYUETidU+ggTgvif2Gszk/TwpJQH+lxMnu4VN0ZRR1Y7579zr9pecgmR8t0DNoCD3n3h0iE2Cw==}
+  '@babylonjs/loaders@8.35.0':
+    resolution: {integrity: sha512-YX+pyMM/Cr3tWq1PWkoqg4GWk/va46aVT6Y8ibQbZuHwVfSE8MPiYaCKvcptaNMY9Nl0s1X06NxW7ycXOz2fFQ==}
     peerDependencies:
       '@babylonjs/core': ^8.0.0
       babylonjs-gltf2interface: ^8.0.0
 
-  '@babylonjs/materials@8.34.1':
-    resolution: {integrity: sha512-XlYi1nMoBFkp6pZqSMRnvGCYPJQlkLw81RXXK+cQ8yCKq/VbEkEjX+N07hCr22hGhmj7/NUvmSUAtixNfuX0hg==}
+  '@babylonjs/materials@8.35.0':
+    resolution: {integrity: sha512-qU68G+rNMJWLNgv+O/norGcP+RhRYf0s4Pk7CjouZrCDh3PktCppd8p6o0uhiMAk9qOcSmIZ4fM1G7UamnKFmg==}
     peerDependencies:
       '@babylonjs/core': ^8.6.0
 
@@ -1109,55 +1110,55 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@biomejs/biome@2.3.3':
-    resolution: {integrity: sha512-zn/P1pRBCpDdhi+VNSMnpczOz9DnqzOA2c48K8xgxjDODvi5O8gs3a2H233rck/5HXpkFj6TmyoqVvxirZUnvg==}
+  '@biomejs/biome@2.3.4':
+    resolution: {integrity: sha512-TU08LXjBHdy0mEY9APtEtZdNQQijXUDSXR7IK1i45wgoPD5R0muK7s61QcFir6FpOj/RP1+YkPx5QJlycXUU3w==}
     engines: {node: '>=14.21.3'}
     hasBin: true
 
-  '@biomejs/cli-darwin-arm64@2.3.3':
-    resolution: {integrity: sha512-5+JtW6RKmjqL9un0UtHV0ezOslAyYBzyl5ZhYiu7GHesX2x8NCDl6tXYrenv9m7e1RLbkO5E5Kh04kseMtz6lw==}
+  '@biomejs/cli-darwin-arm64@2.3.4':
+    resolution: {integrity: sha512-w40GvlNzLaqmuWYiDU6Ys9FNhJiclngKqcGld3iJIiy2bpJ0Q+8n3haiaC81uTPY/NA0d8Q/I3Z9+ajc14102Q==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [darwin]
 
-  '@biomejs/cli-darwin-x64@2.3.3':
-    resolution: {integrity: sha512-UPmKRalkHicvIpeccuKqq+/gA2HYV8FUnAEDJnqYBlGlycKqe6xrovWqvWTE4TTNpIFf4UQyuaDzLkN6Kz6tbA==}
+  '@biomejs/cli-darwin-x64@2.3.4':
+    resolution: {integrity: sha512-3s7TLVtjJ7ni1xADXsS7x7GMUrLBZXg8SemXc3T0XLslzvqKj/dq1xGeBQ+pOWQzng9MaozfacIHdK2UlJ3jGA==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [darwin]
 
-  '@biomejs/cli-linux-arm64-musl@2.3.3':
-    resolution: {integrity: sha512-KhCDMV+V7Yu72v40ssGJTHuv/j0n7JQ6l0s/c+EMcX5zPYLMLr4XpmI+WXhp4Vfkz0T5Xnh5wbrTBI3f2UTpjQ==}
+  '@biomejs/cli-linux-arm64-musl@2.3.4':
+    resolution: {integrity: sha512-IruVGQRwMURivWazchiq7gKAqZSFs5so6gi0hJyxk7x6HR+iwZbO2IxNOqyLURBvL06qkIHs7Wffl6Bw30vCbQ==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
 
-  '@biomejs/cli-linux-arm64@2.3.3':
-    resolution: {integrity: sha512-zeiKwALNB/hax7+LLhCYqhqzlWdTfgE9BGkX2Z8S4VmCYnGFrf2fON/ec6KCos7mra5MDm6fYICsEWN2+HKZhw==}
+  '@biomejs/cli-linux-arm64@2.3.4':
+    resolution: {integrity: sha512-y7efHyyM2gYmHy/AdWEip+VgTMe9973aP7XYKPzu/j8JxnPHuSUXftzmPhkVw0lfm4ECGbdBdGD6+rLmTgNZaA==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
 
-  '@biomejs/cli-linux-x64-musl@2.3.3':
-    resolution: {integrity: sha512-IyqQ+jYzU5MVy9CK5NV0U+NnUMPUAhYMrB/x4QgL/Dl1MqzBVc61bHeyhLnKM6DSEk73/TQYrk/8/QmVHudLdQ==}
+  '@biomejs/cli-linux-x64-musl@2.3.4':
+    resolution: {integrity: sha512-mzKFFv/w66e4/jCobFmD3kymCqG+FuWE7sVa4Yjqd9v7qt2UhXo67MSZKY9Ih18V2IwPzRKQPCw6KwdZs6AXSA==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
 
-  '@biomejs/cli-linux-x64@2.3.3':
-    resolution: {integrity: sha512-05CjPLbvVVU8J6eaO6iSEoA0FXKy2l6ddL+1h/VpiosCmIp3HxRKLOa1hhC1n+D13Z8g9b1DtnglGtM5U3sTag==}
+  '@biomejs/cli-linux-x64@2.3.4':
+    resolution: {integrity: sha512-gKfjWR/6/dfIxPJCw8REdEowiXCkIpl9jycpNVHux8aX2yhWPLjydOshkDL6Y/82PcQJHn95VCj7J+BRcE5o1Q==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
 
-  '@biomejs/cli-win32-arm64@2.3.3':
-    resolution: {integrity: sha512-NtlLs3pdFqFAQYZjlEHKOwJEn3GEaz7rtR2oCrzaLT2Xt3Cfd55/VvodQ5V+X+KepLa956QJagckJrNL+DmumQ==}
+  '@biomejs/cli-win32-arm64@2.3.4':
+    resolution: {integrity: sha512-5TJ6JfVez+yyupJ/iGUici2wzKf0RrSAxJhghQXtAEsc67OIpdwSKAQboemILrwKfHDi5s6mu7mX+VTCTUydkw==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [win32]
 
-  '@biomejs/cli-win32-x64@2.3.3':
-    resolution: {integrity: sha512-klJKPPQvUk9Rlp0Dd56gQw/+Wt6uUprHdHWtbDC93f3Iv+knA2tLWpcYoOZJgPV+9s+RBmYv0DGy4mUlr20esg==}
+  '@biomejs/cli-win32-x64@2.3.4':
+    resolution: {integrity: sha512-FGCijXecmC4IedQ0esdYNlMpx0Jxgf4zceCaMu6fkjWyjgn50ZQtMiqZZQ0Q/77yqPxvtkgZAvt5uGw0gAAjig==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
@@ -2035,8 +2036,8 @@ packages:
   '@gar/promisify@1.1.3':
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
 
-  '@grame/faustwasm@0.12.1':
-    resolution: {integrity: sha512-lk58sKQnBiNUgd/j5X0rvqPMrUpDOExJrHekmBpTmQpO14KelbVrODHxDp7Y5G+3dO2AeJqSQDgoL1d0s+A0Ww==}
+  '@grame/faustwasm@0.12.2':
+    resolution: {integrity: sha512-WAHaaKdXqW2kHCqu62z6RWraAWlbnxJCsRrlxXKiISez/A6TPtEgy3NOwaCEB/jdKB2Kaiqe4320Qaoh2IV/zw==}
     hasBin: true
 
   '@hutson/parse-repository-url@3.0.2':
@@ -9445,9 +9446,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/af546e5c53c957df9c9f6ba6f76f8534fcb6a505:
-    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/af546e5c53c957df9c9f6ba6f76f8534fcb6a505}
-    version: 20.55.0
+  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/d04e707a1292928d50163ff7545e45c3e84c5ec3:
+    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/d04e707a1292928d50163ff7545e45c3e84c5ec3}
+    version: 20.56.0
 
   uc.micro@1.0.6:
     resolution: {integrity: sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==}
@@ -10777,93 +10778,93 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@babylonjs/addons@8.33.0(@babylonjs/core@8.34.1)':
+  '@babylonjs/addons@8.33.0(@babylonjs/core@8.35.0)':
     dependencies:
-      '@babylonjs/core': 8.34.1
+      '@babylonjs/core': 8.35.0
 
   '@babylonjs/assets@5.20.0': {}
 
-  '@babylonjs/core@8.34.1': {}
+  '@babylonjs/core@8.35.0': {}
 
-  '@babylonjs/gui-editor@8.34.1(@babylonjs/core@8.34.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/gui-editor@8.35.0(@babylonjs/core@8.35.0)(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 8.34.1
-      '@babylonjs/gui': 8.33.0(@babylonjs/core@8.34.1)
+      '@babylonjs/core': 8.35.0
+      '@babylonjs/gui': 8.33.0(@babylonjs/core@8.35.0)
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1)':
+  '@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0)':
     dependencies:
-      '@babylonjs/core': 8.34.1
+      '@babylonjs/core': 8.35.0
 
   '@babylonjs/havok@1.3.10':
     dependencies:
       '@types/emscripten': 1.41.4
 
-  '@babylonjs/inspector@8.34.1(@babylonjs/addons@8.33.0(@babylonjs/core@8.34.1))(@babylonjs/core@8.34.1)(@babylonjs/gui-editor@8.34.1(@babylonjs/core@8.34.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2))(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@babylonjs/loaders@8.34.1(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0))(@babylonjs/materials@8.34.1(@babylonjs/core@8.34.1))(@babylonjs/serializers@8.33.0(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/inspector@8.35.0(@babylonjs/addons@8.33.0(@babylonjs/core@8.35.0))(@babylonjs/core@8.35.0)(@babylonjs/gui-editor@8.35.0(@babylonjs/core@8.35.0)(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2))(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@babylonjs/loaders@8.35.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0))(@babylonjs/materials@8.35.0(@babylonjs/core@8.35.0))(@babylonjs/serializers@8.33.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/addons': 8.33.0(@babylonjs/core@8.34.1)
-      '@babylonjs/core': 8.34.1
-      '@babylonjs/gui': 8.33.0(@babylonjs/core@8.34.1)
-      '@babylonjs/gui-editor': 8.34.1(@babylonjs/core@8.34.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.34.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/loaders': 8.34.1(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0)
-      '@babylonjs/materials': 8.34.1(@babylonjs/core@8.34.1)
-      '@babylonjs/serializers': 8.33.0(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0)
+      '@babylonjs/addons': 8.33.0(@babylonjs/core@8.35.0)
+      '@babylonjs/core': 8.35.0
+      '@babylonjs/gui': 8.33.0(@babylonjs/core@8.35.0)
+      '@babylonjs/gui-editor': 8.35.0(@babylonjs/core@8.35.0)(@babylonjs/gui@8.33.0(@babylonjs/core@8.35.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/loaders': 8.35.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0)
+      '@babylonjs/materials': 8.35.0(@babylonjs/core@8.35.0)
+      '@babylonjs/serializers': 8.33.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0)
       '@fortawesome/fontawesome-svg-core': 6.7.2
       '@fortawesome/free-regular-svg-icons': 6.7.2
       '@fortawesome/free-solid-svg-icons': 6.7.2
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/loaders@8.34.1(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0)':
+  '@babylonjs/loaders@8.35.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0)':
     dependencies:
-      '@babylonjs/core': 8.34.1
+      '@babylonjs/core': 8.35.0
       babylonjs-gltf2interface: 8.33.0
 
-  '@babylonjs/materials@8.34.1(@babylonjs/core@8.34.1)':
+  '@babylonjs/materials@8.35.0(@babylonjs/core@8.35.0)':
     dependencies:
-      '@babylonjs/core': 8.34.1
+      '@babylonjs/core': 8.35.0
 
-  '@babylonjs/serializers@8.33.0(@babylonjs/core@8.34.1)(babylonjs-gltf2interface@8.33.0)':
+  '@babylonjs/serializers@8.33.0(@babylonjs/core@8.35.0)(babylonjs-gltf2interface@8.33.0)':
     dependencies:
-      '@babylonjs/core': 8.34.1
+      '@babylonjs/core': 8.35.0
       babylonjs-gltf2interface: 8.33.0
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@biomejs/biome@2.3.3':
+  '@biomejs/biome@2.3.4':
     optionalDependencies:
-      '@biomejs/cli-darwin-arm64': 2.3.3
-      '@biomejs/cli-darwin-x64': 2.3.3
-      '@biomejs/cli-linux-arm64': 2.3.3
-      '@biomejs/cli-linux-arm64-musl': 2.3.3
-      '@biomejs/cli-linux-x64': 2.3.3
-      '@biomejs/cli-linux-x64-musl': 2.3.3
-      '@biomejs/cli-win32-arm64': 2.3.3
-      '@biomejs/cli-win32-x64': 2.3.3
+      '@biomejs/cli-darwin-arm64': 2.3.4
+      '@biomejs/cli-darwin-x64': 2.3.4
+      '@biomejs/cli-linux-arm64': 2.3.4
+      '@biomejs/cli-linux-arm64-musl': 2.3.4
+      '@biomejs/cli-linux-x64': 2.3.4
+      '@biomejs/cli-linux-x64-musl': 2.3.4
+      '@biomejs/cli-win32-arm64': 2.3.4
+      '@biomejs/cli-win32-x64': 2.3.4
 
-  '@biomejs/cli-darwin-arm64@2.3.3':
+  '@biomejs/cli-darwin-arm64@2.3.4':
     optional: true
 
-  '@biomejs/cli-darwin-x64@2.3.3':
+  '@biomejs/cli-darwin-x64@2.3.4':
     optional: true
 
-  '@biomejs/cli-linux-arm64-musl@2.3.3':
+  '@biomejs/cli-linux-arm64-musl@2.3.4':
     optional: true
 
-  '@biomejs/cli-linux-arm64@2.3.3':
+  '@biomejs/cli-linux-arm64@2.3.4':
     optional: true
 
-  '@biomejs/cli-linux-x64-musl@2.3.3':
+  '@biomejs/cli-linux-x64-musl@2.3.4':
     optional: true
 
-  '@biomejs/cli-linux-x64@2.3.3':
+  '@biomejs/cli-linux-x64@2.3.4':
     optional: true
 
-  '@biomejs/cli-win32-arm64@2.3.3':
+  '@biomejs/cli-win32-arm64@2.3.4':
     optional: true
 
-  '@biomejs/cli-win32-x64@2.3.3':
+  '@biomejs/cli-win32-x64@2.3.4':
     optional: true
 
   '@bubblewrap/cli@1.24.1(@types/node@24.10.0)(encoding@0.1.13)':
@@ -12020,7 +12021,7 @@ snapshots:
 
   '@gar/promisify@1.1.3': {}
 
-  '@grame/faustwasm@0.12.1':
+  '@grame/faustwasm@0.12.2':
     dependencies:
       '@types/emscripten': 1.41.4
 
@@ -20976,7 +20977,7 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/af546e5c53c957df9c9f6ba6f76f8534fcb6a505: {}
+  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/d04e707a1292928d50163ff7545e45c3e84c5ec3: {}
 
   uc.micro@1.0.6: {}
 
