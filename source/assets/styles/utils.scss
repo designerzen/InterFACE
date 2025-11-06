@@ -3,6 +3,9 @@
 :is(span).hide-text{
 	@extend %image-replacement;
 	position: absolute;
+	width:0;
+	overflow: hidden;
+	color:transparent;
 }	
 
 // for sections for enclosing content
