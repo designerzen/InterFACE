@@ -23,7 +23,11 @@ block scripts
 	script(type="module" src="index.js")
 
 block main
+	//- Accessibility options
+	include partials/a11y.pug
+		
 	main#app(aria-describedby="progress-bar")
+		
 		h3(screenreader-only)#title Augmented Reality Synthesizer
 		h4(screenreader-only)#subtitle 
 

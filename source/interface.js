@@ -169,6 +169,7 @@ import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from './timing/timer.js'
 import { count } from 'console'
 import { configurePersonByIndex, configurePersonByOperatingMode } from './person.presets.js'
+import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -189,6 +190,9 @@ export const APPLICATION_EVENTS = {
 const doc = document	// using a reference allows truncation
 const body = doc.documentElement
 const video = doc.querySelector("video")
+
+// accessibility controls
+let a11y
 
 let instance = null
 class PhotoSYNTH{
@@ -3701,6 +3705,10 @@ export const createInterface = (
 		const theme = stateMachine.get("theme") ?? getThemeFromReferer(referer)
 		setTheme(theme)
 
+		// and set up the accessibility
+		a11y = setupAccessibilityControls()
+		// a11y.show()
+		
 		// paint next frame immediately
 		colorBrand = fetchBrandColor()
 		createQRCodeFromURL(url.toString()).then( qr => {
@@ -3987,6 +3995,9 @@ export const createInterface = (
 		// Show the player selection screen!
 		const results = await showPlayerSelector(modelOptions, stateMachine)
 		
+		// hide the a11y features until requested
+		a11y.hide()
+
 		clearInterval( timeOut )
 		setToast( "" )
 
