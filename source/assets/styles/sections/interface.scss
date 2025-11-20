@@ -40,11 +40,13 @@
 		auto
 		auto
 		auto
+		auto
 		auto;
 
 	// mmake this big to give adequate room to breathe
 	grid-template-areas: 
 		"hero"
+		"a11y"
 		"contact"
 		"affiliates"
 		"app"
@@ -377,6 +379,7 @@
 		grid-template-areas: 
 			"hero"
 			"gap"
+			"a11y"
 			"app"
 			"footer";
 	}
@@ -526,6 +529,7 @@ main.active{
 	// we only disable this in jumbo mode
 	position: relative;
 	display:flex;
+	flex-direction: column;
 
 	width: 100%;
 	min-width: fit-content;

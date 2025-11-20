@@ -1,0 +1,18 @@
+menu#accessibility-panel(hidden)
+
+	a(href="#app").sr-only Skip accessibility controls
+	legend.sr-only Accessibility Menu
+
+	//- A collection of themes and widgets to alter 
+	//- how the app looks and feels
+	label(for="select-theme") Select a theme
+		input(name="theme" type="radio" value="Dark")
+		input(name="theme" type="radio" value="Light")
+
+	label(for="select-theme-palette") <span class="hide-text">Choose Application </span>Colours
+		select#select-theme-palette(aria-label="Select different colours" name="select-palette")
+			option(value="s:80,l:80") Neon 
+			option(value="s:30,l:40") Pastel 
+			option(value="s:2,l:80") Monochrome (B&amp;W)
+			option(value="s:100,l:0") Dark
+		

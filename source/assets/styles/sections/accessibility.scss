@@ -1,0 +1,6 @@
+#accessibility-panel{
+	grid-area:a11y;
+	width:100%;
+	max-width:min(100% - 2 * var(--pad), var(--viewport-max-width, 108%));
+    margin: 0 var(--pad);
+}

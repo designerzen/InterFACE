@@ -78,10 +78,13 @@
 	}
 }
 
+
+
 // STATE =============================================================
 // Choose players screen
 // This is the how many people are playing mode
 .player-selection{
+
 
 	// instructions do show periodically so we need to ensure that they
 	// NB. don't cover the buttons
@@ -138,7 +141,29 @@
 	#player-selector{
 		visibility: visible;
 	}
-	
+
+	#player-selector{
+		input[type="radio" i]{	
+			--over:0%;
+			--y:0;
+			background-color: transparent;
+			display:block;
+			top:calc( -1 * var(--over));
+			left:calc( -1 * var(--over));
+			// right:calc( -1 * var(--over));
+			bottom:calc( -1 * var(--over));
+			width:calc( 2 * var(--over) + 100% );
+			height:auto;
+			border:0;
+			border-radius: 0;
+			position: absolute;
+			transition:transform var(--ease-s, 1s ) var(--ease-out-back);
+			transform:scaleX(0);
+			transform-origin: center;
+		}
+
+	}
+		
 	
 	// hide stuff not relevent
 	// Instrument selection panel
@@ -303,6 +328,10 @@
 		// opacity: 0;
 		z-index: -1;
 		position: relative;
+	}
+
+	input[role="switch" i]{
+		border:solid var(--stroke, 2px) var(--shade-white);
 	}
 
 	button, label{

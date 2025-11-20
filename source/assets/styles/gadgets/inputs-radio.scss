@@ -1,25 +1,20 @@
 input[type="radio" i]{
-	
-	--over:0%;
-	--y:0;
-	top:calc( -1 * var(--over));
-	left:calc( -1 * var(--over));
-	// right:calc( -1 * var(--over));
-	bottom:calc( -1 * var(--over));
-	width:calc( 2 * var(--over) + 100% );
-	display:block;
-	transition:transform var(--ease-s, 1s ) var(--ease-out-back);
-	transform:scaleX(0);
-	transform-origin: center;
-	
+
+	display:inline-block;
 	overflow: hidden;
-	//background-color: $col-yellow;
-	position: absolute;
+
+	min-width:48px;
+	min-height:48px;
+
+	background-color: var(--shade-blue);
+	border:var(--stroke) solid var(--shade-white);
+	border-radius: 999px;
+
 	// transform:translateY(var(--y,-10%)) scale(0.8);
 	
 	&:checked{
 		// transform:translateY(0) scale(1);
 		transform:scaleX(1);
-		background-color: var(--shade-blue, black);
+		background-color: var(--shade-accent, var(--shade-yellow, yellow));
 	}
 }
