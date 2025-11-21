@@ -344,7 +344,7 @@ export const createInterface = (
 			dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {loadPercent, message})
 		}
 
-		if (loadPercent < newValue)
+		if ( loadPercent < 1 && (Math.floor(loadPercent * 100 ) < Math.floor(newValue * 100) ) )
 		{
 			requestAnimationFrame( e => loadProgressMediator(newValue) )
 		}else{

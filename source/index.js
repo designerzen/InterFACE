@@ -195,6 +195,7 @@ const start = async () => {
 
 				} else {
 
+					// complete and hide
 					setLoadProgress(1, "Ready!", true)
 					setTitle(title)
 				}

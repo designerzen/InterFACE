@@ -1,7 +1,7 @@
 const THEME_PREFIX = "theme-"
 let theme = `${THEME_PREFIX}default`
 
-export const getThemeName = t => t.indexOf(THEME_PREFIX) > -1 ? t : `${THEME_PREFIX}${t}}`
+export const getThemeName = t => t.indexOf(THEME_PREFIX) > -1 ? t : `${THEME_PREFIX}${t}`
 
 export const setTheme = t => {
 	const body = document.body
