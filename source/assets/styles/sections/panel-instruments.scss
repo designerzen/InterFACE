@@ -399,7 +399,6 @@
 		display:flex;
 	 	border:var(--border,1px) solid var(--shade-white);
 		
-
 		label{    
 			width: 100%;
 			display: block;
@@ -407,6 +406,7 @@
 			border-right:0;
 			border-left:0;
 			line-height: 1;
+			position: relative;
 
 			&:hover{
 				background-color: var(--shade-orange);
@@ -416,6 +416,13 @@
 			}
 		}
 		
+		input[type="radio"]{
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			top:0;
+			left:0;
+		}
 		input[type="radio"]:checked{
 			background-color: var(--shade-orange);
 			border-radius: 0;
