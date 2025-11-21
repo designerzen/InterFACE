@@ -53,8 +53,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	const prediction = person.data
 	const landmarks = prediction.faceLandmarks
 	const options = person.options
-	const flipped = options.flipped
-
+	// const flipped = options.flipped
 
 	// const hue = person.hue
 	// const saturation = person.saturation
@@ -111,7 +110,6 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 			}
 
 		} else if (options.drawNodes) {
-
 			
 			// just blobs
 			blobStyle.color = color
@@ -146,6 +144,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	// now overlay the mouth
 	if (options.drawMouth)
 	{	
+		/*
 		const mouthColours = {
 			h:color,
 			s:options.saturation, 
@@ -166,7 +165,9 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 			l:50,
 			a:1
 		}
+			*/
 
+		// console.info( "Person drawMouth",person, {options}, person.isMouthOpen, person.singing )
 		// This overlays the mouth and the eyes
 		if (person.isMouthOpen && person.singing)
 		{
@@ -196,6 +197,9 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 			// mouth closed or not singing
 			// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
 		}
+	}else{
+		console.info( "Person SKIP drawMouth",person, {options}, person.isMouthOpen, person.singing )
+		
 	}
 
 	// draw silhoette if the user is 
