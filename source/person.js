@@ -1143,7 +1143,7 @@ export default class Person{
 		// const col = 
 		// options.dots = hue
 		// options.face = `hsla(${hue},${sl},0.8)`
-		options.mouth = createHSLA(hue+30, saturation, luminosity, 1-this.percentageDead ) 
+		options.mouth = createHSLA(hue+30, saturation, luminosity, this.percentageDead ) 
 		// options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
 		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.9)`
 		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
@@ -1543,7 +1543,7 @@ export default class Person{
 		let noteSound = getNoteSoundFromNumber(noteNumberForMIDI)	
 		
 		// convert that one note into a chord
-		const chords = getMusicalDetailsFromEmoji(noteNumberForMIDI, this.emoticon)
+		// const chords = getMusicalDetailsFromEmoji(noteNumberForMIDI, this.emoticon)
 		// const chord = chords.get("major").get(0)
 
 		// for the next note  0 -> 2 : 0.5 -> 1.5

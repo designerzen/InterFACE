@@ -3035,9 +3035,7 @@ export const createInterface = (
 						// augment note into chord us ing event.note.number as the tonic
 						const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
 						
-
-						
-						console.info("playMIDINoteOn", noteNumber, chordDetails, {person} )
+						// console.info("playMIDINoteOn", noteNumber, chordDetails, {person} )
 
 						if (monitorEmotion && playingMIDINotes.size === 0)
 						{
