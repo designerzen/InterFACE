@@ -110,9 +110,9 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 						return EMOTICONS.EMOJI_SHOCKED
 					}else if (prediction.mouthRatio < 0.6){
 						return EMOTICONS.EMOJI_ANGUISHED
-					}else if (prediction.mouthRatio < 0.7){
+					}else if (prediction.mouthRatio < 0.75){
 						return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
-					}else if (prediction.mouthRatio < 0.7){
+					}else if (prediction.mouthRatio < 0.9){
 						return EMOTICONS.EMOJI_ASTONISHED
 					}else if (prediction.mouthRatio <= 1){
 						return EMOTICONS.EMOJI_WAIL

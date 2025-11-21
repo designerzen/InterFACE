@@ -1,5 +1,5 @@
 import { getAllChordsForNoteNumber } from '../audio/tuning/chords.js'
-import { PHRYGIAN_SCALE, SCALE_MAJOR, SCALE_MINOR, TUNING_MODE_AEOLIAN, TUNING_MODE_DORIAN, TUNING_MODE_IONIAN, TUNING_MODE_LOCRIAN, TUNING_MODE_LYDIAN, TUNING_MODE_MIXOLYDIAN, TUNING_MODE_PHRYGIAN } from '../audio/tuning/scales.js'
+import { SCALE_MAJOR, SCALE_MINOR, TUNING_MODE_AEOLIAN, TUNING_MODE_DORIAN, TUNING_MODE_IONIAN, TUNING_MODE_LOCRIAN, TUNING_MODE_LYDIAN, TUNING_MODE_MIXOLYDIAN, TUNING_MODE_PHRYGIAN } from '../audio/tuning/scales.js'
 import * as EMOTICONS from './emoji.js'
 
 /**
@@ -40,8 +40,13 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			scale = SCALE_MINOR
 	}
 
+
 	// determine MODE only
+	// NB. The scale we now know as major was originally called
+	// the Ionian mode and its relative minor was known as Aeolian.
 	switch(emoji) {
+
+		// MAJOR - Happy Sounds
 		case EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED:
 		case EMOTICONS.EMOJI_NEUTRAL:
 		default:
@@ -63,6 +68,7 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			mode = TUNING_MODE_PHRYGIAN
 			break
 	
+		// Kissing / arousol
 		case EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED:
 		case EMOTICONS.EMOJI_KISS_EYES_CLOSED:
 		case EMOTICONS.EMOJI_KISS:
@@ -72,19 +78,20 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			mode = TUNING_MODE_LYDIAN
 			break
 
+		// Happy
 		case EMOTICONS.EMOJI_SMILING_GRIN:
 		case EMOTICONS.EMOJI_SMILING_EYES_CLOSED:
 		case EMOTICONS.EMOJI_SMILING_GRIN_SQUINT:
 		case EMOTICONS.EMOJI_SMILING_SLIGHTLY:
-			mode = TUNING_MODE_MIXOLYDIAN
+			mode = TUNING_MODE_IONIAN
 			break
 
+		// SAD Sound, minor chords
 		case EMOTICONS.EMOJI_OPEN_MOUTH:
 		case EMOTICONS.EMOJI_OPEN_MOUTH_BIG:
 		case EMOTICONS.EMOJI_WAIL:
 		case EMOTICONS.EMOJI_FLUSHED: 
 		case EMOTICONS.EMOJI_FEARFUL: 
-		case EMOTICONS.EMOJI_ANGRY:
 		case EMOTICONS.EMOJI_ANGUISHED:
 		case EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED:
 			mode = TUNING_MODE_AEOLIAN
@@ -98,6 +105,7 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			mode = TUNING_MODE_LYDIAN
 			break
 
+		// SUPER Happy!
 		case EMOTICONS.EMOJI_SMILING_BIG_GRIN:
 			mode = TUNING_MODE_MIXOLYDIAN
 			break
@@ -110,8 +118,6 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			mode = TUNING_MODE_LOCRIAN
 			break
 	
-	
-
 		// case EMOTICONS.EMOJI_GHOST:
 		// case EMOTICONS.EMOJI_SHAKING_HORIZONTALLY:
 		// case EMOTICONS.EMOJI_SHAKING_VERTICALLY:
