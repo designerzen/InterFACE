@@ -14,10 +14,10 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 	const AVAILABLE = "available"
 	const UNKNOWN = "unknown"
 
-
 	const updateTable = (permissions, cameras) => {
 		
 		let fatal = false
+		const issues = []
 	
 		// BROWSER
 		const tableBrowser = document.querySelector(".capability-browser")
@@ -50,9 +50,11 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 			{
 				case "Firefox":
 					browsserAvailability.textContent = "Slower Graphics"
+					issues.push("MIDI devices must be connected before loading page")
 					break
 				case "Safari":
 					browsserAvailability.textContent = "No MIDI supported"
+					issues.push("No MIDI supported")
 					break
 				default:
 					browsserAvailability.textContent = `Available`
@@ -109,17 +111,18 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 
 		}else if (!capabilities.cameraAvailable){
 
+			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
 			cameraAvailability.textContent = `${cameras.length} Connected?`
 			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
 			console.warn("[FATAL] No camera available?")
-		}else{
-			// FATAL ERROR! No camera!
-			// fatal = true
-			document.body.classList.toggle("camera-unavailable", true)
-			cameraAvailability.textContent = `${cameras.length} Connected`
-			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
-			console.warn("[FATAL] No camera available")
+		// }else{
+		// 	// FATAL ERROR! No camera!
+		// 	// fatal = true
+		// 	document.body.classList.toggle("camera-unavailable", true)
+		// 	cameraAvailability.textContent = `${cameras.length} Connected`
+		// 	cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
+		// 	console.warn("[FATAL] No camera available")
 		}	
 	
 		// Web MIDI --------------------------------------------------------------------------
@@ -174,24 +177,20 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 
 		// Speakers --------------------------------------------------------------------------
 		const tableSpeakers = document.querySelector(".capability-speakers")
-		if (tableSpeakers && (capabilities.webGL || capabilities.webGPU))
+		if (tableSpeakers)
 		{
 			const speakersAvailability = tableSpeakers.querySelector("td."+RESULT )
 			speakersAvailability.textContent = "Check volume"
 			speakersAvailability.classList.remove(NOT_AVAILABLE)
 			speakersAvailability.classList.toggle(AVAILABLE, true)
 			speakersAvailability.classList.remove(CHECKING)
-		}else{
-			// NONE FATAL ERROR! No WEBGL so use canvas fallback
-			document.body.classList.toggle("speakers-unavailable", true)
-			console.info("[WARNING] No GPU available")
 		}	
 
 		// TODO: Microphone
 
 
 		// Speakers class="capability-speakers"
-		return fatal
+		return {fatal: false, issues}
 	}
 	
 	try{
@@ -205,21 +204,20 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 		if (cameras.length === 0)
 		{
 			// FATAL ERROR! No camera!
-			isFatalIssue = false
+			isFatalIssue = true
 			console.error("Compatability table", table )
 			console.error("Devices", {devices, cameras}) 
 			console.error("Permissions", {isFatalIssue, permissions, capabilities}) 
-		
-		}else{
-			isFatalIssue = updateTable(permissions, cameras)
-			// console.log("Compatability table", table )
-			// console.log("Devices", {devices, cameras}) 
-			// console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
+			return {fatal: isFatalIssue, issues:["No camera available"] }
 		}
-		// console.info( )
-	
+		const {fatal, issues} = updateTable(permissions, cameras)
+		isFatalIssue = fatal
+		// console.log("Compatability table", table )
+		// console.log("Devices", {devices, cameras}) 
+		// console.log("Permissions", {isFatalIssue, permissions, capabilities}) 
+
 		// now update the table based on permissions
-		return isFatalIssue
+		return {fatal: isFatalIssue, issues }
 
 	}catch(error){
 
@@ -232,6 +230,6 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 			checkingElement.classList.toggle(UNKNOWN, true)
 		})
 		
-		return null
+		return {fatal: false, issues: [error.message]}
 	}
 }
