@@ -1,4 +1,4 @@
-import MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR from './face-landmark-constants'
+import {MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR} from './face-landmark-constants'
 
 export const FACE_CONTOURS = MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR
 
