@@ -1,34 +1,56 @@
-# name of your github action - this will help you specify where to run 
-# I hate YAML it is stupid and annoying
-name: Electron
+name: Electron Build
 
 on: 
-    release: 
-        types: 
-         -  created
-        strategy: 
-            matrix: 
-                # TODO: Add linux and windows to the process
-                os: [windows-latest] #, ubuntu-latest, macos-latest]
-                node-version: [ 18.x ] # 14.x, 16.x,
-                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+  release: 
+    types: 
+      - created
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to GitHub releases'
+        required: false
+        default: 'false'
 
 jobs:
-    windows:
-        runs-on: windows-latest 
-        steps: 
-            - name: Check out Git repository Master branch
-              uses: actions/checkout@v3 
-            - name: Install Node.js ${{ matrix.node-version }}, NPM and Yarn crossplatform :)
-              uses: actions/setup-node@v3
-              with: 
-                node-version: ${{ matrix.node-version }}
-                cache: 'npm'
-            - name: Install yarn packages
-              run: yarn install
-            - name: Build the electron app
-              run: yarn make
-            - uses: actions/upload-artifact@v3
-              with: 
-                name: photosynth-interface
-                path: electron
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with: 
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build electron app
+        run: pnpm electron:make
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with: 
+          name: photosynth-${{ matrix.os }}-${{ matrix.node-version }}
+          path: release
+          
+      - name: Create release assets
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.publish == 'true'
+        with:
+          files: release/**/*
+          draft: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
