@@ -42,6 +42,9 @@ jobs:
         
       - name: Build electron app
         run: pnpm electron:make
+        env:
+          SKIP_ELECTRON_REBUILD: true
+          npm_config_build_from_source: false
         
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

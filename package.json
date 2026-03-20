@@ -66,6 +66,7 @@
 		]
 	},
 	"scripts": {
+		"postinstall": "electron-builder install-app-deps",
 		"fix:parcel": "cross-env TEMP=S:/temp",
 		"kill": "npx kill-port 303",
 		"optional": "node-gyp-build-optional-packages",
