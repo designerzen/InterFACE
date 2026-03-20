@@ -1,5 +1,5 @@
 // after X amount of frames we move the face button
-export const UPDATE_FACE_BUTTON_AFTER_FRAMES = 750
+export const UPDATE_FACE_BUTTON_AFTER_FRAMES = 750 * 100
 
 export const KEYPOINT_QUANTITY = 478
 
