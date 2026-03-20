@@ -91,7 +91,7 @@ import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingIn
 import { drawMousePressure } from './dom/mouse-pressure.js'
 
 // Models
-import { recogniseEmojiFromFaceModel } from './models/emoji-detection.js'
+import { EmojiDetector } from './models/emoji-detection.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from './models/emoji.js'
 
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
@@ -708,6 +708,9 @@ export default class Person{
 		// probably not neccessary with reverb effect
 		this.precision = Math.pow( 10, parseInt(this.options.precision) )
 		
+		// Create emoji detector for this person
+		this.emojiDetector = new EmojiDetector()
+		
 		this.create()
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
@@ -799,6 +802,9 @@ export default class Person{
 		this.rightEyeClosedAt = -1
 		this.eyesClosed = false
 		this.emoticon = EMOJI_NEUTRAL
+		
+		// Reset emoji detector state
+		this.emojiDetector.reset()
 
 		// centralise pan if set
 		if (this.stereoNode)
@@ -911,8 +917,6 @@ export default class Person{
 			prediction = this.data
 		}
 
-		// cache all data
-		this.data = prediction
 		this.lastTimeActive = timeNow
 
 		// save all the parameters for recall later on...
@@ -1057,12 +1061,23 @@ export default class Person{
 			//console.info(prediction.time)
 		}
 
-		// options.mouthCutOff
-		const emoticon = recogniseEmojiFromFaceModel(prediction, this.options)
+		// Emoji detection with smoothing
+		const emoticon = this.emojiDetector.detect(prediction, this.options)
+		
+		// cache all data
+		this.data = prediction
+
 		if (this.emoticon !== emoticon)
 		{
 			this.emoticon = emoticon
 			this.dispatchEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
+			
+			// Log emotion changes when debug is enabled
+			if (this.debug)
+			{
+				const state = this.emojiDetector.getState()
+				console.log(`[${this.name}] Emotion changed to: ${emoticon}`, state)
+			}
 		}
 
 
