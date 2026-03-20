@@ -39,6 +39,10 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            # Copy static assets
+            - name: Copy assets
+              run: pnpm run assets
+
             # Build command
             - name: Build the app into dist
               run: pnpm run build --if-present

@@ -56,6 +56,9 @@ copyFolderSync('./node_modules/@mediapipe/tasks-vision/', './static/@mediapipe/t
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 
+// WebGPU tasks
+copyFolderSync('./node_modules/@litertjs/core/wasm/', './static/@litertjs/'  ) 
+
 // handled by static-copy-plugin
 // copyFolderSync('./static/', './dist/') 
 // copyFolderSync('./static/', './dist-electron/main/') 

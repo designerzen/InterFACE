@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
         
+      - name: Copy assets
+        run: pnpm run assets
+        
       - name: Build electron app
         run: pnpm electron:make
         
