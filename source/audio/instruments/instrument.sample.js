@@ -1,4 +1,4 @@
-import Instrument from './instrument'
+import Instrument from './instrument.js'
 // A generic interface for instruments
 
 import { playTrack, loadInstrumentFromSoundFont } from '../audio'

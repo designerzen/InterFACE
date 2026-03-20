@@ -2,7 +2,7 @@
  * connection = new WebMIDIConnection()
  * midi = await connection.connect()
  */
-import MIDIConnection from './midi-connection'
+import MIDIConnection from './midi-connection.js'
 // import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
 import {WebMidi} from "webmidi"
 

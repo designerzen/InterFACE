@@ -1,5 +1,5 @@
-import Instrument from './instrument'
-import ProcessorInstrument from './instrument.processor'
+import Instrument from './instrument.js'
+import ProcessorInstrument from './instrument.processor.js'
 
 const DEFAUT_OPTIONS = {
 	id: "sampler-processor",

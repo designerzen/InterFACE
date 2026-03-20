@@ -1,5 +1,5 @@
 import { noteNumberToFrequency } from "../tuning/frequencies"
-import Instrument from "./instrument"
+import Instrument from "./instrument.js"
 import OscillatorInstrument, { OSCILLATOR_TYPES, shapeName } from "./instrument.oscillator"
 import {PRESETS, PRESETS_NAMES} from "./presets/presets-oscillator.js"
 

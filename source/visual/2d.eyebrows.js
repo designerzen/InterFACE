@@ -1,6 +1,6 @@
-import {canvasContext} from './canvas'
-import { clamp, TAU } from "../maths/maths"
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
+import {canvasContext} from './canvas.js'
+import { clamp, TAU } from "../maths/maths.js"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette.js"
 
 
 const DEFAULT_OPTIONS = {

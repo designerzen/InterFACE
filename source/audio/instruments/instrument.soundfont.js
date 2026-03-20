@@ -3,7 +3,7 @@
  * and if not available we can fall back to other packs located in other
  * origins
  */
-import SampleInstrument from "./instrument.sample"
+import SampleInstrument from "./instrument.sample.js"
 
 import {
 	INSTRUMENT_DATA_PACKS, 
@@ -15,7 +15,7 @@ import {
 	getInstrumentTitle
 } from '../sound-font-instruments'
 
-import SoundFont from "../sound-font"
+import SoundFont from "../sound-font.js"
 import { convertMIDINoteNumberToName } from "../tuning/notes"
 
 // these are the file names and locations of each instrument

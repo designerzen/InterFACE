@@ -267,6 +267,17 @@
 		}
 	}
 
+	// Chrome now supports CUSTOM select
+	// with all kinds of inner styles
+	@supports (appearance: base-select){
+		select, ::picker(select) {
+			appearance: base-select;
+			font-family: inherit;
+			font-size: inherit;
+			color: inherit;
+		}	
+	}
+
 	// Marked text ----------------------------------------------
 	:where(mark){
 		background-color: Highlight;

@@ -5,16 +5,16 @@
  * before showing a UI from those external libs
  * http://localhost:909/?advancedMode=false&showSettings=false&showPiano=false&metronome=false&backingTrack=false&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=true&muted=false&duet=false&stereo=true&stereoPan=true&midiChannel=all&bpm=200&autoHide=false&loadMIDIPerformance=false&useGamePad=true&model=face&instrumentPack=FatBoy&instrumentPacks=FatBoy%2CFluidR3_GM%2CMusyngKite&photoSensitive=false&automationMode=false
  */
-import { VERSION } from './version'
-import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler'
+import { VERSION } from './version.js'
+import { getReferer, getRefererHostname, forceSecure, getEditionFromURL } from './utils/location-handler.js'
 import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
-import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options'
+import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options.js'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/installation.js'
-import { showError } from './dom/errors'
-import { addToolTips, setToast } from './dom/tooltips'
-import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse'
-import Capabilities from './capabilities'
+import { showError } from './dom/errors.js'
+import { addToolTips, setToast } from './dom/tooltips.js'
+import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse.js'
+import Capabilities from './capabilities.js'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 import { APPLICATION_EVENTS, createInterface } from './interface.js'
 
@@ -475,6 +475,15 @@ checkPlatformUpdates().finally(() => {
 	// APP STARTING>
 })
 
+navigation.onnavigate = (event) => {
+	event.intercept({
+		async handler() {
+			// The URL updates automatically!
+			await loadNewContent()
+		}
+	})
+}
+
 document.addEventListener("DOMContentLoaded", async (e) => {
 
 	updateSummaryText()
@@ -492,20 +501,28 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 	}
 
 	// update the table as soon as it is available
-	const isFatalIssue = await updateCapabalitiesTable(table, capabilities)
+	const {fatal, issues} = await updateCapabalitiesTable(table, capabilities)
+	const isFatalIssue = fatal
+
+	const openTable = ()=>{
+		const test = document.getElementById('requirements-test')
+		test.setAttribute('open', true)
+
+		// FIXME: improve message to user
+		const requirementsTable = document.getElementById("requirements-test")
+		requirementsTable.scrollIntoView()
+		// requirementsTable.focus()
+	}
 
 	// if we have all the hardware we need to continue...
-	if (isFatalIssue) {
+	if (isFatalIssue || issues.length) {
 		// nowhere to go from here :(
 		// TODO: 
 		// ESCAPE - no cameras found on system?
 		// ESCAPE - no GPU?
 		// remove loading stuff and quit
-
-		// FIXME: improve message to user
-		const requirementsTable = document.getElementById("requirements-test")
-		requirementsTable.scrollIntoView()
-		requirementsTable.focus()
+		openTable()
+	
 		console.warn("Essential hardware missing")
 
 		// showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)

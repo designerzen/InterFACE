@@ -362,7 +362,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// clean up
 		this.scene.remove( this.text )
 		this.faceMesh && this.scene.remove( this.faceMesh )
-		unloadModel(this.faceMesh)
+		this.unloadModel(this.faceMesh)
 
 		await this.avatar.dispose()
 

@@ -1,7 +1,7 @@
 /**
  * Worklet based Instrument!
  */
-import Instrument from './instrument'
+import Instrument from './instrument.js'
 import {extractZip} from '../../utils/zip'
 
 const WAM_FOLDER = "wam"

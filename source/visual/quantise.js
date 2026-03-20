@@ -3,8 +3,8 @@
  * shows which bar is currently being played and which
  * bars have already been playyed with a fancy visual
  */
-import { clamp, TAU, easeInQuad } from "../maths/maths"
-import PALETTE, { DEFAULT_COLOURS } from "../settings/palette"
+import { clamp, TAU, easeInQuad } from "../maths/maths.js"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette.js"
 
 
 // TODO:

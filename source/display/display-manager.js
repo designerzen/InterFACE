@@ -146,6 +146,50 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	return newCanvasElement
 } 
 
+const isWebGLAvailable = () => {
+  const canvas = document.createElement('canvas');
+  try {
+    return !!(
+      window.WebGLRenderingContext && 
+      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    )
+  } catch(e) {
+    return false
+  }
+}
+
+const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
+	// Default always available display
+	const availableDisplays = [
+		DISPLAY_TYPES.DISPLAY_COMPOSITE,
+		DISPLAY_TYPES.DISPLAY_CANVAS_2D,
+		DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
+	]
+
+	// if WebGL is available
+	if (isWebGLAvailable())
+	{
+		availableDisplays.push(DISPLAY_TYPES.DISPLAY_WEB_GL_3D)
+		availableDisplays.push(DISPLAY_TYPES.DISPLAY_BABYLON_3D)
+	}
+
+	// check for WebGPU
+	if (navigator.gpu)
+	{
+		availableDisplays.push(DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
+		availableDisplays.push(DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE)
+	}
+
+	// hologrpahic displays are connected
+	if (hasHolographicDisplayConnected)
+	{
+		availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
+		navigator.gpu && availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU)
+	}
+
+	return availableDisplays
+}
+
 /**
  * checks for certain devices to be connected 
  * screen sizes and capabilities and return displays
@@ -157,19 +201,25 @@ export const getDisplayAvailability = async( previousDisplay, defaultDisplay= DI
 	
 	// assume webGL 3D one if no previous one was provided
 	let suggestedDisplay = previousDisplay ?? defaultDisplay
+	let holographicDisplayQuantity = 0
 	
+	const available = []
 	try{
 		const {howManyHolographicDisplaysAreConnected } = await import( '../hardware/looking-glass-portrait.js' )
-		const holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+		holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
 		if (holographicDisplayQuantity > 0)
 		{
-			return DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D
+			suggestedDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D	
 		}
+
 	}catch(error){
 		console.info("Holographic display not connected" , error)
 	}
 	
-	return suggestedDisplay
+	return {
+		suggested: suggestedDisplay,
+		available: [...available, ...getAvailableDisplays(holographicDisplayQuantity > 0)]
+	}
 }
 
 

@@ -1,6 +1,6 @@
 import { INSTRUMENT_DATA_PACK_OPEN_SF, INSTRUMENT_PACK_OPEN_SF } from "../../../settings/options.instruments"
-import SoundFont from "../../sound-font"
-import SampleAudioWorkletNode from "./sampler.worklet"
+import SoundFont from "../../sound-font.js"
+import SampleAudioWorkletNode from "./sampler.worklet.js"
 
 export const WORKLET_ID_SOUNDFONT = "soundfont-processor"
 

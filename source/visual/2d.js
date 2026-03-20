@@ -1,7 +1,7 @@
-import { clamp, TAU, HALF_PI } from "../maths/maths"
-import { easeInQuad} from "../maths/easing"
-import PALETTE, { DEFAULT_COLOURS } from "../settings/palette"
-import {TRIANGULATION} from '../models/face-mesh-constants'
+import { clamp, TAU, HALF_PI } from "../maths/maths.js"
+import { easeInQuad} from "../maths/easing.js"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette.js"
+import {TRIANGULATION} from '../models/face-mesh-constants.js'
 
 let cycleCounter = 0
 

@@ -1,5 +1,5 @@
 import { Message } from "webmidi"
-import MIDIConnection from "./midi-connection"
+import MIDIConnection from "./midi-connection.js"
 
 /**
  * This is an interface way to connect to MIDI devices

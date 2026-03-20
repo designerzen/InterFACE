@@ -2,8 +2,8 @@
 // that is updated in real time and can paint new notes
 // on an add hoc basis
 
-import { clamp, TAU, easeInQuad } from "../maths/maths"
-import PALETTE, { DEFAULT_COLOURS } from "../palette"
+import { clamp, TAU, easeInQuad } from "../maths/maths.js"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette.js"
 
 
 

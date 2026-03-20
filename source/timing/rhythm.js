@@ -7,7 +7,7 @@
 // import * as Nestup from '@cutelab/nestup'
 // import { Nestup, Container, Interval, Onset,ParseError,	RhythmParser } from '@cutelab/nestup'
 
-import {FOUR_FOUR} from './rhythm-presets'
+import {FOUR_FOUR} from './rhythm-presets.js'
 // ---
 
 // house music...

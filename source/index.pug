@@ -32,7 +32,7 @@ block header
 			Welcome back old friend! It is so nice to see your face again! Continuing session.
 	
 		p The <strong>original</strong> face-controlled musical instrument! 
-			a.link-to-requirements(href="#requirements-test") Show requirements.
+			a.link-to-requirements(href="#requirements-test" onclick="document.getElementById('requirements-test').open = true") Show requirements.
 	
 	p.info-description
 		| This will grant musical superpowers to anybody nearby.
@@ -54,8 +54,7 @@ block header
 		You do not have all of the requirements to continue
 
 
-	menu#pwa
-
+	nav#pwa
 		a.button.button-push.button-start.text-always#start(href="#button-start-label") Play!
 
 		label(for="install-pwa" hidden).text-always Install this app
@@ -64,10 +63,10 @@ block header
 		label(for="upgrade-pwa" hidden).text-always Upgrade to the latest version v.#{package.version}
 			button#upgrade-pwa.button-upgrade( type="button" hidden title="Upgrade this app to the latest version") Upgrade
 
-
-	#requirements-test
+	details#requirements-test
+		summary Requirements
 		table#compatibility
-			caption Requirements & Compatibility
+			caption.sr-only Requirements for compatibility :
 			
 			//- tr.capability-face
 			//- 	th(scope="row") A Face
@@ -88,7 +87,7 @@ block header
 		
 			//- OR
 			tr.capability-midi
-				th(scope="row") <abbr title="Musical Instrument Digital Interface">MIDI</abbr>
+				th(scope="row") <a href="https://help.ableton.com/hc/en-us/articles/209774225-Setting-up-a-virtual-MIDI-bus"><abbr title="Musical Instrument Digital Interface">MIDI</abbr></a>
 					small Optional Electronic musical instrument with MIDI ports
 				//- td.not-available Unavailable in Safari
 				td.result.checking Checking...

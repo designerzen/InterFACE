@@ -1,5 +1,5 @@
 // import QRCode from "easyqrcodejs"
-import PALETTE from "./palette"
+import PALETTE from "./palette.js"
 
 export const QR_CODE_OPTIONS = {
     // ====== Basic

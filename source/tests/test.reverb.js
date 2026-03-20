@@ -2,8 +2,8 @@ import AudioTimer from '../timing/timer.audio.js'
 import MIDIConnectionManager from '../audio/midi/midi-connection-manager.js'
 import WebMIDIClass from '../audio/midi/midi-connection-webmidi.js'
 import EnvelopeNode from '../audio/nodes/envelope-node.js'
-import DualOscillatorInstrument from "../audio/instruments/instrument.dual-oscillator"
-import OscillatorInstrument from "../audio/instruments/instrument.oscillator"
+import DualOscillatorInstrument from "../audio/instruments/instrument.dual-oscillator.js"
+import OscillatorInstrument from "../audio/instruments/instrument.oscillator.js"
 import MonotronInstrument from "../audio/instruments/instrument.monotron.js"
 import { createCustomReverb, createReverb } from "../audio/effects/reverb.js"
 import { encodeAudioBufferIntoWav } from "../audio/record/wave.js"

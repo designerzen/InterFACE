@@ -23,7 +23,7 @@ import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
 import { connectDropZone } from './dom/drop-zone.js'
-import { drawMousePressure } from './dom/mouse-pressure'
+import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
@@ -37,7 +37,7 @@ import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
 
 // STATE
 import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
-import StateWithIO from './utils/state-io'
+import StateWithIO from './utils/state-io.js'
 
 
 // MODELS
@@ -157,7 +157,7 @@ import { setNodeCount } from './visual/2d.js'
 import { convertOptionToObject } from './utils/utils.js'
 */
 
-import { setupReporting, track, trackError, trackExit } from './reporting'
+import { setupReporting, track, trackError, trackExit } from './reporting.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
@@ -170,8 +170,7 @@ import { formatTimeStampFromSeconds } from './timing/timer.js'
 import { count } from 'console'
 import { configurePersonByIndex, configurePersonByOperatingMode } from './person.presets.js'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
-
-const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
+import { createDisplayOptions } from './dom/ui.display.js'
 
 // Asset Paths
 // assets\audio\wave-tables\general-midi.zip
@@ -287,7 +286,7 @@ export const createInterface = (
 	let visualiserManager
 
 	// canvas / GL adapters for front end
-	let displayType = DISPLAY_CANVAS_2D
+	let initialDisplayType = DISPLAY_TYPES.DISPLAY_CANVAS_2D
 	let display = null
 	
 	// lazy loaded imports
@@ -2604,68 +2603,48 @@ export const createInterface = (
 		// check to see if we have an offline context...
 		offlineAudioContext = OfflineAudioContext ?? new OfflineAudioContext(2, 44100 * 40, 44100) 
  
-		// DISPLAY --------------------------------------------------------------------------------
-
+	
+		// VIDEO & DISPLAY ------------------------------------------------
+	
 		progressCallback( 0, "Checking for holographic displays - Please standby!" )
-
+	
+		initialDisplayType = stateMachine.get('display')
 		try{
-			let initialDisplay = await getDisplayAvailability( stateMachine.get("display") )
+			const {suggested, available} = await getDisplayAvailability( initialDisplayType )
 			
-			console.error("Found display", initialDisplay )
-			
-			stateMachine.set("display", initialDisplay)
+			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
+			initialDisplayType = suggested
 
-			if (initialDisplay === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
+			const t = createDisplayOptions(available)
+			stateMachine.set("display", initialDisplayType)
+		
+			if (suggested === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 			{
-				setFeedback("PhotoSYNTH "+holographicDisplayQuantity+" Holographic Screens detected!", 0, 'display' )
-				progressCallback(loadIndex++/loadTotal, "Holographic Display Discovered!")
-
-				// show the 3D option to allow for holographic display selection
-				const option = document.querySelector('option[value="DISPLAY_LOOKING_GLASS_3D"]')
-				if (option){
-
-					option.hidden = false
-					option.selected = true
-				}
-
-				console.warn(holographicDisplayQuantity + " PhotoSYNTH Holographic Displays", {initialDisplay, settings} ) 
+				console.info("Found display: Holographic displays", t, {available} )
 			}else{
-				progressCallback(loadIndex++/loadTotal, "Display Initisalising")
+				console.info("Found display: Adding",suggested, t, {available} )
 			}
-		}catch(error){
 			
-			// console.error("PhotoSYNTH Screens available", initialDisplay, { holographicDisplayQuantity, settings} ) 
+			// 'predictionLoop' here is a method passed into this function that is called
+			// on every frame to update the visuals and audio of none quanitsed sounds
+			display = await switchDisplay( initialDisplayType, predictionLoop, false )
+					
+			// determine some capabailities for which display to use...
+			console.info("Display set to ", initialDisplayType, {display} )
+		
+		}catch(error){
+			console.error("FAIL: PhotoSYNTH Screens available", error, { initialDisplayType, settings} ) 
 			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
 		}
 
+		progressCallback(loadIndex++/loadTotal, "Loading display " + initialDisplayType)
 		
-		const displayMenu = document.querySelector('label[for="select-display"]')
-		// enable the display menu if advanced
-		// if (!stateMachine.get("debug"))
-		// {
-		// 	displayMenu.hidden = true // holographicDisplayQuantity === 0
-		// }else{
-		// 	displayMenu.hidden = false // holographicDisplayQuantity === 0
-		// }
-		
-		displayMenu.hidden = false
-				
 		// MOTION TRACKING --------------------------------------------------------------------------------
-
 		fetchPredictionFromEngine = fetchPredictions
 		body.classList.toggle("initialising", true)
 		
-		// VIDEO & DISPLAY ------------------------------------------------
-		displayType = stateMachine.get('display')
-		progressCallback(loadIndex++/loadTotal, "Loading display " + displayType)
-
 		// REDRAW DOM / CANVAS / WEB GL -------------------------------
-		
-		// 'predictionLoop' here is a method passed into this function that is called
-		// on every frame to update the visuals and audio of none quanitsed sounds
-		display = await switchDisplay( displayType, predictionLoop, false )
 
-		
 		// VIDEO STREAM / CAMERA -----------------------------------------
 		try{
 			
@@ -3674,7 +3653,9 @@ export const createInterface = (
 		}
 		if (stateMachine.get("trackFace"))
 		{
+			// try and load GPU version too...
 			modelTypes.push("face")
+			modelTypes.push("face-gpu")
 			loadTotal++
 		}
 		

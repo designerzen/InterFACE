@@ -1,7 +1,7 @@
-import { INSTRUMENT_TYPE_SOUNDFONT } from "../audio/instrument-list"
-import { TUNING_MODE_NAMES } from "../audio/tuning/scales"
-import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments"
-import { DEFAULT_COLOURS } from "./palette"
+import { INSTRUMENT_TYPE_SOUNDFONT } from "../audio/instrument-list.js"
+import { TUNING_MODE_NAMES } from "../audio/tuning/scales.js"
+import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments.js"
+import { DEFAULT_COLOURS } from "./palette.js"
 
 // NB. These must align with the button names
 // 		in the DOM when the app is launched

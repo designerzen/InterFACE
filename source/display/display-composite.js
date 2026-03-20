@@ -2,7 +2,7 @@
  * A way to call all displays at once!
  */
 
-import AbstractDisplay from "./display-abstract"
+import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_COMPOSITE } from "./display-types"
 
 export default class DisplayComposite extends AbstractDisplay{

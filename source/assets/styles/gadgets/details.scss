@@ -15,28 +15,34 @@
 	transition: height 0.25s ease-in;
 	
 	> summary{
-		display: grid;
-		grid-template-areas:"marker summary";
+		
+		grid-template-areas:"prefix summary marker space";
+	    grid-template-columns: auto auto auto 1fr;
+		gap:0.5ch;
 
 		cursor:pointer;
 		cursor:copy;
 		
 		user-select:none;
 		pointer-events: auto;
-		display: inline-flex;
+		display: grid;
 		box-sizing:border-box;
 		list-style: none;
 
 		&::before{
+			content:'Show ';
+			display: inline-block;
+			grid-area:prefix;
+		}
+		&::after{
 			content:'×';
-			color:inherit;
 			font-size: inherit;
 			transform: rotate(45deg);
 			transform-origin: center;
 			display: inline-block;
+			transform-origin: center;
 			transition: transform var((--ease-s)) var(--ease-out-back);
 			transition-delay: 0.4s;
-			margin-right: calc( var(--pad) * 0.5 );
 			grid-area:marker; 
 		}
 	
@@ -59,8 +65,12 @@
 	// 	opacity:1;
 	// 	color: inherit;
 	// }
-	
+
 	summary::before{
+		content:'Hide ';
+	}
+	
+	summary::after{
 		transform: rotate(0deg);
 	}
 }

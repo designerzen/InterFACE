@@ -1,6 +1,6 @@
 
 
-import { deflate, unzip } from './zlib'
+import { deflate, unzip } from './zlib.js'
 
 self.onmessage = async ( e ) => {
 	

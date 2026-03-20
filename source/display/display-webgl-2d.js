@@ -1,4 +1,4 @@
-import AbstractDisplay from "./display-abstract"
+import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_WEB_GL } from "./display-types.js"
 
 // Basic vertex and fragment shaders for 2D rendering

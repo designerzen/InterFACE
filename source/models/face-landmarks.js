@@ -11,7 +11,7 @@
 // const FACE_LANDMARK_WASM =  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
 //const FACE_LANDMARK_TASK = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
 import FACE_LANDMARK_TASK from "url:./tasks/face_landmarker.task"
-import BLAZE_FACE_SHORT_RANGE_MODEL_PATH from "url:./tasks/blaze_face_short_range.tflite"
+// import BLAZE_FACE_SHORT_RANGE_MODEL_PATH from "url:./tasks/blaze_face_short_range.tflite"
 // import FACE_LANDMARK_WORKER from "worker:./face-landmarks-worker.js"
 
 const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
@@ -22,7 +22,6 @@ const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { enhanceFaceLandmarksModelPrediction } from './face-landmarks-calculations'
 import { now } from "../timing/timing"
-// import { now } from '../timing/timing'
 
 // This flips to using a seperate thread for the 
 // prediction calculations - dunno if it makes it quicker
@@ -81,7 +80,7 @@ const predict = async (inputElement, detector, flipHorizontally=true ) => {
 	{
 		const time = now()
 		lastVideoTime = inputElement.currentTime
-		const elapsed = time - lastVideoTime
+		//const elapsed = time - lastVideoTime
 		const results = detector.detectForVideo( inputElement, time )
 
 		// results = detector.detectForVideo(inputElement, lastVideoTime)
@@ -149,14 +148,14 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	let loadIndex = 0
 	
 	const faceLandmarkerOptions ={
+		// override defaults
+		...options,
 		baseOptions: {
 			// this needs to be absolute yet relative :/
 			// modelAssetPath: BLAZE_FACE_SHORT_RANGE_MODEL_PATH,
 			modelAssetPath: FACE_LANDMARK_TASK,
 			delegate: "GPU"
-		},
-		// override defaults
-		...options
+		}
 	}
 
 	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")

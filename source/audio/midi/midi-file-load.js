@@ -4,7 +4,7 @@
 // Description - Buffers a .midi file into memory, parse the commands
 // Use         - Load( file.midi, onComplete ) and wait for the callback
 
-import MIDIStream from './midi-stream'
+import MIDIStream from './midi-stream.js'
 import { decodeMIDI } from './midi-file-decode'
 import { base64DecToArr } from '../../utils/base64'
 

@@ -1,4 +1,4 @@
-import {copyBlobToClipboard} from '../utils/clipboard'
+import {copyBlobToClipboard} from '../utils/clipboard.js'
 
 /**
  * Overwrite the existing canvas with the same one but

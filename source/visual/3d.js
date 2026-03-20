@@ -1,5 +1,5 @@
 import { BufferGeometry } from "three"
-import { TRIANGULATION } from "../models/face-mesh-constants"
+import { TRIANGULATION } from "../models/face-mesh-constants.js"
 
 /**
  * To take the keypoints out from another geometry

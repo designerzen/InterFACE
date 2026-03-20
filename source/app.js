@@ -95,7 +95,7 @@ import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
 
 // STATE
 import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
-import StateWithIO from './utils/state-io'
+import StateWithIO from './utils/state-io.js'
 
 // MODELS
 import { TAU } from "./maths/maths.js"

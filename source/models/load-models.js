@@ -17,10 +17,16 @@ export const loadMLModels = async (types=[], loadProgress=()=>{} ) => {
 				return loadHandTrackingModel
 
 			// Face Landmarks
+			case "face-gpu":
+				const faceLandmarkerGPU = await import('./face-landmarks-gpu.js')
+				dictionary[type] = faceLandmarkerGPU.loadFaceLandmarksModel
+				return faceLandmarkerGPU.loadFaceLandmarksModel
+
+			// Face Landmarks
 			default:
-				const {loadFaceLandmarksModel} = await import('./face-landmarks.js')
-				dictionary[type] = loadFaceLandmarksModel
-				return loadFaceLandmarksModel
+				const faceLandmarker = await import('./face-landmarks.js')
+				dictionary[type] = faceLandmarker.loadFaceLandmarksModel
+				return faceLandmarker.loadFaceLandmarksModel
 		}
 	})
 

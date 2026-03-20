@@ -1,5 +1,5 @@
-import { clamp, TAU } from "../maths/maths"
-import PALETTE, { DEFAULT_COLOURS } from "../settings/palette"
+import { clamp, TAU } from "../maths/maths.js"
+import PALETTE, { DEFAULT_COLOURS } from "../settings/palette.js"
 /**
 
 const DEFAULT_OPTIONS = {

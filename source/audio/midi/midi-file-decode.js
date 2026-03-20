@@ -33,9 +33,9 @@ System Exclusive
     MIDI Machine Control
 
 //////////////////////////////////////////////////////////////////////////////*/
-import MIDIStream from './midi-stream'
-import MIDICommand from './midi-command'
-import MIDITrack from './midi-track'
+import MIDIStream from './midi-stream.js'
+import MIDICommand from './midi-command.js'
+import MIDITrack from './midi-track.js'
 import * as MIDICommands from './midi-commands'
 // import * as MIDI_EXPRESSIONS from './midi-constants'
 import {convertMIDINoteNumberToName} from '../tuning/notes'

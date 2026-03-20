@@ -4,7 +4,7 @@
  * 
  * IMPLEMENTS INSTRUMENT CONTROLS
  */
-import MIDIConnection from './midi-connection'
+import MIDIConnection from './midi-connection.js'
 import midi from 'midi'
 
 const MIDI_CLOCK_PER_QUARTER_NOTE = 24 	// From MIDI specification:

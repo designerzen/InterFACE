@@ -1,5 +1,5 @@
-import { LEFT_EYE_PATH, LEFT_IRIS_PATH, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from "../models/face-landmark-constants"
-import { drawEye } from "./2d.eyes"
+import { LEFT_EYE_PATH, LEFT_IRIS_PATH, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from "../models/face-landmark-constants.js"
+import { drawEye } from "./2d.eyes.js"
 
 const faceOvalStyle = {
 	// The color that is used to draw the shape. Defaults to white.

@@ -1,4 +1,4 @@
-import { BROADCAST_KEY } from "./settings/options"
+import { BROADCAST_KEY } from "./settings/options.js"
 import PartySocket from "partysocket"
 
 export const connectToWebSocketServer = ( roomName="photosynthparlour", host="localhost:1999" ) => {

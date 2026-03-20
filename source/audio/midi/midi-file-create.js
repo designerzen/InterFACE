@@ -26,7 +26,7 @@
 // Thanks to 
 // http://grimmdude.com/MidiWriterJS/
 import MidiWriter from 'midi-writer-js'
-import MIDITrack from './midi-track'
+import MIDITrack from './midi-track.js'
 import { 
 	COMMAND_NOTE_ON, COMMAND_NOTE_OFF, COMMAND_PROGRAM_CHANGE,
 	COMMAND_CHANNEL_AFTER_TOUCH, COMMAND_CHANNEL_PRESSURE,	

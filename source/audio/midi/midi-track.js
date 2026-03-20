@@ -3,9 +3,9 @@
  * and a series of super helpful methhods
  */
 
-import AudioTrack from '../audio-track'
+import AudioTrack from '../audio-track.js'
 import { GENERAL_MIDI_INSTRUMENTS } from './general-midi.constants'
-import MIDICommand from './midi-command'
+import MIDICommand from './midi-command.js'
 import * as MIDICommands from './midi-commands'
 
 export default class MidiTrack extends AudioTrack

@@ -1,4 +1,4 @@
-import {debounce} from './utils'
+import {debounce} from './utils.js'
 
 /**
  * little local storage wrapper for storing cached objects

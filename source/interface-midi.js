@@ -1,4 +1,4 @@
-import { getMusicalDetailsFromEmoji } from "./models/emoji-to-music"
+import { getMusicalDetailsFromEmoji } from "./models/emoji-to-music.js"
 
 let isMIDIAvailable = false
 

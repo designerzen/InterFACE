@@ -1,4 +1,4 @@
-import AudioCommand from "../audio-command"
+import AudioCommand from "../audio-command.js"
 
 /**
  * A single musical command.

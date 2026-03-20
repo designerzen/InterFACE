@@ -10,7 +10,7 @@ import {
 	DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
 	COMMANDS,
 	GamePadManager
-} from "./hardware/gamepad"
+} from "./hardware/gamepad.js"
 
 /**
  * Start monitoring for global gamepad input

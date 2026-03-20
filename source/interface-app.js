@@ -23,7 +23,7 @@ import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
 import { connectDropZone } from './dom/drop-zone.js'
-import { drawMousePressure } from './dom/mouse-pressure'
+import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
@@ -37,7 +37,7 @@ import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
 
 // STATE
 import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
-import StateWithIO from './utils/state-io'
+import StateWithIO from './utils/state-io.js'
 
 
 // MODELS
@@ -156,7 +156,7 @@ import { setNodeCount } from './visual/2d.js'
 import { convertOptionToObject } from './utils/utils.js'
 */
 
-import { setupReporting, track, trackError, trackExit } from './reporting'
+import { setupReporting, track, trackError, trackExit } from './reporting.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
@@ -187,9 +187,10 @@ const body = doc.documentElement
 const video = doc.querySelector("video")
 
 let instance = null
-class PhotoSYNTH{
+class PhotoSYNTH extends EventTarget{
 	constructor( publicMethods )
 	{
+		super()
 		const keys = Object.keys(publicMethods)
 		keys.forEach( key => {
 			this[key] = publicMethods[key]
@@ -402,35 +403,6 @@ export const createInterface = (
 	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
 	
 
-	const uiMap = new Map()
-	uiMap.set("backingTrack", doc.getElementById("button-percussion") )
-	uiMap.set("clear", doc.querySelector(".qr") )
-	uiMap.set("disco", doc.getElementById("button-disco") )
-	uiMap.set("display", doc.querySelector(".qr") )
-	uiMap.set("eyes", doc.querySelector(".qr") )
-	// uiMap.set("gamePad", doc.querySelector(".qr") )
-	uiMap.set("gamePad", doc.querySelector(".qr") )
-	uiMap.set("metronome", doc.querySelector(".qr") )
-	uiMap.set("midi", doc.querySelector(".qr") )
-	// uiMap.set("midiChannel", doc.querySelector(".qr") )
-	// uiMap.set("model", doc.querySelector(".qr") )
-	// uiMap.set("muted", doc.querySelector(".qr") )
-	// uiMap.set("overlays", doc.querySelector(".qr") )
-	// uiMap.set("photoSensitive", doc.querySelector(".qr") )
-	// uiMap.set("players", doc.querySelector(".qr") )
-	// uiMap.set("qr", doc.querySelector(".qr") )
-	uiMap.set("quantise", doc.querySelector(".qr") )
-	// uiMap.set("showPiano", doc.querySelector(".qr") )
-	// uiMap.set("showSettings", doc.querySelector(".qr") )
-	// uiMap.set("speak", doc.querySelector(".qr") )
-	uiMap.set("spectrogram", doc.querySelector(".qr") )
-	// uiMap.set("stats", doc.querySelector(".qr") )
-	uiMap.set("stats", doc.querySelector(".qr") )
-	uiMap.set("synch", doc.querySelector(".qr") )
-	uiMap.set("text", doc.querySelector(".qr") )
-	uiMap.set("theme", doc.querySelector(".qr") )
-	uiMap.set("tooltips", doc.querySelector(".qr") )
-	
 	// debug
 	// starSize
 	// stereo
@@ -445,12 +417,6 @@ export const createInterface = (
 			const svg = await createQRCodeFromURL( stateMachine.asURI )
 			// console.info("QR State updated", {svg, state:stateMachine.serialised} ) 
 		}
-		// TODO: Update GUI with the key value even if toggled manually
-		// console.info("State Changed", { key,value, stateMachine } )
-		// stateMachine.get()
-		// associate inputs and selects with the state keys
-		// const method = uiMap.get(key)
-		// setElementCheckState(method, value)
 	})
 
 	if (!stateMachine.get("qr")){

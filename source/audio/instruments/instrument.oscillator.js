@@ -1,4 +1,4 @@
-import Instrument from './instrument'
+import Instrument from './instrument.js'
 import {noteNumberToFrequency} from '../tuning/frequencies.js'
 
 export const OSCILLATOR_TYPES = [

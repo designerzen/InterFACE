@@ -1,4 +1,4 @@
-import MIDICommand from "./midi-command"
+import MIDICommand from "./midi-command.js"
 import * as MIDICommands from "./midi-commands"
 
 /**

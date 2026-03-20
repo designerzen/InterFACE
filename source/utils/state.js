@@ -3,8 +3,8 @@
  * bypassing the need for cookies or local storage or GDPR cookie messages.
  */
 
-import { getDomainDefaults, getFactoryDefaults } from '../settings/options'
-import { addToHistory, getLocationSettings, getRefererHostname } from './location-handler'
+import { getDomainDefaults, getFactoryDefaults } from '../settings/options.js'
+import { addToHistory, getLocationSettings, getRefererHostname } from './location-handler.js'
 
 
 

@@ -1,4 +1,4 @@
-import InstrumentFactory from "./instrument-factory"
+import InstrumentFactory from "./instrument-factory.js"
 
 /**
  * This handles one instrument per Manager is loaded

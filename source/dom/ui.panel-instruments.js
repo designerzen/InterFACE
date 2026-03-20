@@ -112,8 +112,8 @@ export const createInstrumentFormHTML = (instruments, packName="", personName=""
 		instruments.forEach( (instrument, index) => {
 			const form = createInstumentForForm( instrument, instrument, personName )
 			output += form
-			output += `</ul>`
-			output += `<ul>`
+			// output += `</ul>`
+			// output += `<ul>`
 		})
 
 	}else{

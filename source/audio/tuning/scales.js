@@ -20,9 +20,9 @@ A Aeolian (minor) — ABCDEFGA
 
 B Locrian — BCDEFGAB
 (intervals: Half - Whole - Whole - Half - Whole - Whole - Whole)
- */
 
-
+Dorian sounds brighter than Aeolian, but Phrygian and especially Locrian have a much darker sound 
+*/
 
 // ["C","C#","Db","D","D#","Eb","E","F","F#","Gb","G","G#","Ab","A","A#","Bb","B"]
 export const SCALE_NAMES = {
@@ -34,7 +34,7 @@ export const SCALE_NAMES = {
 	northIndian:["Sa","Re -","Re -","Re","G\u0101 -","G\u0101 -","G\u0101","M\u0101","M\u0101 +","M\u0101 +","P\u0101","Dh\u0101 -","Dh\u0101 -","Dh\u0101","N\u012b -","N\u012b -","N\u012b"],
 	southIndian:["Sa","Ri -","Ri -","Ri","Ri +","G\u0101 -","G\u0101","M\u0101","M\u0101 +","M\u0101 +","Pa","Dh\u0101 -","Dh\u0101 -","Dha","Dha +","Ni -","Ni"],
 	dutch:		["C","Cis","Des","D","Dis","Es","E","F","Fis","Ges","G","Gis","As","A","Ais","Bes","B"],
-	japanese:	["Ha","Ei-ha","Hen-ni","Ni","Ei-ni","Hen-ho","Ho","He","Ei-he","Hen-to","To","Ei-to","Hen-i","I","Ei-i","Hen-ro","Ro"],
+	japanese:	["Ha","Ei-ha","Hen-ni ","Ni","Ei-ni","Hen-ho","Ho","He","Ei-he","Hen-to","To","Ei-to","Hen-i","I","Ei-i","Hen-ro","Ro"],
 	javanese:	["Ji","Ji +","Ji + ","Ro","Ro +","Ro +","Lu","Pat","Pat +","Pat +","Ma","Ma +","Ma +","Nem","Nem +","Nem +","Pi"],
 	byzantine:	["Ni","Ni #","Pa b","Pa","Pa #","Vu b","Vu","Ga","Ga #","Di b","Di","Di #","Ke b","Ke","Ke #","Zo b","Zo"],
 	solfege: 	["Do", "Do#", "Ré", "Ré#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"]
@@ -50,7 +50,7 @@ export const SCALE_MINOR = "minor"
 
 // there are different scales with custom tunings
 // there are more out there but these are the classics
-export const TUNING_MODE_IONIAN = 'ionian'
+export const TUNING_MODE_IONIAN = 'ionian'	// major
 export const TUNING_MODE_DORIAN = 'dorian'
 export const TUNING_MODE_PHRYGIAN = 'phrygian'
 export const TUNING_MODE_LYDIAN = 'lydian'
@@ -58,7 +58,6 @@ export const TUNING_MODE_MIXOLYDIAN = 'mixolydian'
 export const TUNING_MODE_AEOLIAN = 'aeolian'
 export const TUNING_MODE_LOCRIAN = 'locrian'
 
-// these are at the correct 
 export const TUNING_MODE_NAMES = [
 	TUNING_MODE_IONIAN,			// Same as major
 	TUNING_MODE_DORIAN,			// Start from second degree of major

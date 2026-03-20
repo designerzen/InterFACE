@@ -1,4 +1,4 @@
-import {drawRoundedRect} from './2d'
+import {drawRoundedRect} from './2d.js'
 
 const whiteKeys = 7
 const blackKeys = 5
