@@ -36,12 +36,14 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install
+        env:
+          npm_config_ignore_scripts: true
         
       - name: Copy assets
         run: pnpm run assets
         
       - name: Build electron app
-        run: pnpm electron:make
+        run: pnpm electron:make -- --publish never
         env:
           SKIP_ELECTRON_REBUILD: true
           npm_config_build_from_source: false
