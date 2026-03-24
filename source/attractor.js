@@ -19,7 +19,7 @@ import {
 	EVENT_INSTRUMENT_LOADING, 
 	EVENT_PERSON_BORN, 
 	EVENT_PERSON_DEAD 
-} from "./person"
+} from "./people/person.js"
 
 // in seconds
 const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = [

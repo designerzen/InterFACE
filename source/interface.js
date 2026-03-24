@@ -39,7 +39,6 @@ import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
 import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
 import StateWithIO from './utils/state-io.js'
 
-
 // MODELS
 import { TAU } from "./maths/maths.js"
 import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
@@ -58,7 +57,7 @@ import Person, {
 	PERSON_TYPE_CHROMATIC,
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
 	EVENT_EMOTION_CHANGED
- } from './person.js'
+ } from './people/person.js'
  
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
@@ -71,8 +70,7 @@ import { recordAudio } from './audio/record/record.audio.js'
 import { 
 	getRecordableOutputNode,
 	active, playing, 
-	setupAudio,
-	stopAudio,
+	setupAudio,stopAudio,
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
@@ -167,10 +165,9 @@ import { tapTempo } from './timing/tap-tempo.js'
 import { Timeout } from './timing/timeout.js'
 import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from './timing/timer.js'
-import { count } from 'console'
-import { configurePersonByIndex, configurePersonByOperatingMode } from './person.presets.js'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 import { createDisplayOptions } from './dom/ui.display.js'
+import { PersonManager } from './people/person-manager.js'
 
 // Asset Paths
 // assets\audio\wave-tables\general-midi.zip
@@ -234,8 +231,6 @@ export const createInterface = (
 	{
 		return resolve(instance)
 	}
-
-
 
 	// fetch some elements from the DOM
 	const main = doc.querySelector("main")
@@ -488,12 +483,7 @@ export const createInterface = (
 		downloadRecording
 	} = recordAudio()
 	
-	// collection of active persons
-	const people = []
-
-	// nobody is selected by default
-	let highlightedPersonIndex = -1
-	let selectedPersonIndex = -1
+	const personManager = new PersonManager()
 
 	// MIDI ---
 	const midiManager = new MIDIConnectionManager()
@@ -518,7 +508,6 @@ export const createInterface = (
 	if (countdown ) { 
 		document.getElementById("transport").hidden = false
 		timeTotalElement.textContent = formatTimeStampFromSeconds( countdown.duration * 0.001, false ) // + " @ " + clock.timeCode
-		
 	}
 
 	// timer (24 cycles per tick) metronome
@@ -770,7 +759,7 @@ export const createInterface = (
 	 * @param {Function} callback Method to run once instruments have loaded
 	 * @returns {Function} instrument name (raw)
 	 */
-	const loadInstrumentPreset = async (method, callback, skipLoading = false) => people.map( async (person) => { 
+	const loadInstrumentPreset = async (method, callback, skipLoading = false) => personManager.people.map( async (person) => { 
 		
 		// if the previous instrument hasn't finished loading, 
 		// we don't want to flood everything so we wait for it 
@@ -796,29 +785,6 @@ export const createInterface = (
 
 
 	// PEOPLE ==========================================================================================
-
-	/**
-	 * set up the user in a certain mode
-	 * @param {Person} person 
-	 * @param {Object} personOptions
-	 * @param {Object} importedOptions
-	 */
-	const configurePerson = (person, personOptions, importedOptions) => {
-
-		// we use the data from the state machine to configure each person
-		const personData = person.exportData()
-	
-		if (importedOptions && importedOptions.userMode && Number.isInteger(importedOptions.userMode) && importedOptions.userMode > -1 )
-		{
-			console.error("@@@ Configuring person with URL data", {person, personData, personOptions, importedOptions} )
-			configurePersonByOperatingMode( person, importedOptions.userMode )
-	
-		}else{
-			
-			console.error("@@@ Configuring person by index", {person, personData, personOptions, importedOptions} )
-			configurePersonByIndex( person, people )		
-		}
-	}
 
 	/**
 	 * Instantiate a Person Class and connect it up accordingly
@@ -873,13 +839,10 @@ export const createInterface = (
 		const storageKey = 'p'+(index+1)
 		const savedOptions = store.has(storageKey) ? store.getItem(storageKey) : {}
 		const options = Object.assign ( {}, savedOptions, personOptions ) 
-		
-		const savedData = {
-
-		}
+		const savedData = {}
 
 		// Create our person with the specified options
-		const person = new Person( index, options, savedData ) 
+		const person = personManager.getPerson(index)
 
 		// state can contain more data than simple the options!
 		// so let us loop through the stateMachine and extract any person data...
@@ -947,15 +910,6 @@ export const createInterface = (
 			dispatchCustomEvent(event.type, detail)
 		})
 
-		/*
-		// we need this to also update any playing midi notes
-		person.addListener(EVENT_EMOTION_CHANGED, event => {	
-			const {detail} = event
-			const { emoticon, person } = detail
-			console.log("Emotion changed", detail)
-			// setToast( `${detail.emoticon} Emotion Changed` ) 
-		})
-		*/
 
 		let preset
 		if (importedData && importedData.preset)
@@ -996,8 +950,8 @@ export const createInterface = (
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
 			
-			// check for imported data
-			configurePerson(person, personOptions, importedData )
+			// check for imported stata
+			personManager.configurePerson(person, personOptions, importedData )
 
 			if (personOptions.debug)
 			{
@@ -1006,39 +960,6 @@ export const createInterface = (
 			}
 		})
 		
-		/*
-		const bindInstrumentPanelToPerson = (personID) => {
-			const panel = doc.querySelector(`.person-${personID}-panel`) 
-			const togglePanelButton = panel.querySelector(`.person-${personID}-toggle-controls` )
-			togglePanelButton.addEventListener("click", e => person.toggleForm() )
-			panel.removeAttribute("hidden")
-		}
-
-		switch(personIndex)
-		{
-			// Person A - left side TOP
-			case 0:
-				bindInstrumentPanelToPerson("a")
-				break
-
-			// Person B - right side TOP
-			case 1:
-				bindInstrumentPanelToPerson("b")
-				break
-
-			// Person C - left side BOTTOM
-			case 2:
-				bindInstrumentPanelToPerson("c")
-				break
-
-			// Person D - right side BOTTOM
-			case 3:
-				bindInstrumentPanelToPerson("d")
-				break
-		}
-
-		*/
-
 		//console.error(name, {instrument, person, savedOptions})
 		
 		// if (midi && midi.outputs && midi.outputs.length > 0) 
@@ -1048,159 +969,7 @@ export const createInterface = (
 		return person
 	}
 
-	const getPlayers = () => people
-	const getQuantityOfPlayers = () => people.length
 
-	/**
-	 * Create / Fetch a user (we cache every new user)
-	 * @param {Number} index Person's at index
-	 * @returns {Function} Player Class 
-	 */
-	const getPerson = (index) => {
-		if (people[index] == undefined)
-		{
-			const person = createPerson( index, EYE_COLOURS[index], index )
-			people[index] = person
-			return person
-		} else{
-			return people[index]
-		}
-	}
-
-	/**
-	 * Finds the first person that is considered active
-	 * NB. As we drift around 
-	 * @returns Person
-	 */
-	const getActivePerson = () =>{
-		for (let index=0, l=people.length; index<l; ++index)
-		{
-			const person = people[index]
-			if (person.isActive)
-			{
-				return person
-			}
-		}
-		return getPerson(0)
-	}
-
-	const getNearestPerson = (x,y, peopleArray=people) => {
-		let nearestPersonIndex = 0
-		let distance = Number.MAX_VALUE
-		for (let index=0, l=peopleArray.length; index<l; ++index)
-		{
-			const person = peopleArray[index]
-			const box = person.boundingBox
-
-			if ( !box || person.x === -1 )
-			{
-				//console.error("getNearestPerson skipping as unsure where user is", person)
-				continue
-			}
-
-			const dx = x - person.x
-			const dy = y - person.y
-			const distanceSquared = dx*dx + dy*dy
-					
-			//console.error( index, "getNearestPerson", distanceSquared, person.id, peopleArray.length, {peopleArray,dx,dy} )
-
-			if (distanceSquared < distance)
-			{
-				distance = distanceSquared
-				nearestPersonIndex = index
-			}
-		}
-			
-		// console.info( "getNearestPerson",nearestPersonIndex, distanceSquared, peopleArray.length, {peopleArray,dx,dy} )
-
-		return nearestPersonIndex
-	}
-
-	/**
-	 * This is just a way to visually highlight a person
-	 * in order to signify to the User that there is some
-	 * action specific to this user. Mainly used when using gamepad
-	 * to "select" the highlighted person.
-	 * @param {Number} index 
-	 */
-	const getHighlightPerson = () => people[highlightedPersonIndex] || null
-
-	const highlightPerson = (index=-1) => {
-		if (highlightedPersonIndex >= 0)
-		{
-			people[highlightedPersonIndex].isHighlighted = false
-		}
-		highlightedPersonIndex = index
-		people[highlightedPersonIndex].isHighlighted = true
-		return people[highlightedPersonIndex]
-	}
-	const unhighlightPeople = () => {
-		highlightPerson()
-	}
-
-	/**
-	 * For certain actions we need to select a person
-	 * so that the commands can be passed to the correct person
-	 * such as game pad events
-	 * @param {Number} index 
-	 */
-	const getSelectedPerson = () => people[selectedPersonIndex] || null
-
-	const selectPerson = (index=-1) => {
-		if (index < 0)
-		{
-			// deselect everyone
-			selectedPersonIndex = index
-			people.forEach( (person, i) => person.isSelected = false)
-		}else{
-			selectedPersonIndex = index % people.length
-			people.forEach( (person, i) => person.isSelected = i === selectedPersonIndex )
-		}
-		return getSelectedPerson()
-	}
-	
-	const deselectPeople = () => {
-		selectPerson()
-	}
-
-	
-	/**
-	 * merges all named player options into an array eg. [{ values } , { values }]
-	 * @param {Array<string>} values Selective player configuration object keys
-	 * @returns {Array<Boolean>} Player configuration object
-	 */
-	 const fetchPlayerOptions = values => people.map( 
-		player => values.reduce((accumulator, currentValue, index, array) => {	
-			accumulator[currentValue] = player.options[currentValue]
-			return accumulator
-		}, {} )
-	)
-
-	/**
-	 * Set all existing player's options to the selected values 
-	 * (change the default for any new players created)
-	 * @param {Number} option Variable to set
-	 * @param {Number} value Value to set the variable to
-	 */
-	const setPlayerOption = (option, value) => {
-		people.forEach( player => player.options[option] = value)
-	}
-
-	/**
-	 * Player options batch Update
-	 * @param {Array<string>|Object} values - Selective player configuration object keys
-	 */
-	const setPlayerOptions = (values) => {
-		const unique = Array.isArray(values) 
-		// change the default for any new players created
-		people.forEach( (player, index) => {
-			// if unique is set, it means different per person
-			const p = unique ? values[index] : values
-			player.options = { ...player.options, ...p }
-			//console.log("settings player.options", {p,unique}, {result:player.options} 
-		})
-		setFeedback("Updating player options", 0, 'person' )
-	}
 
 	// MIDI --------------------------------------------------------
 
@@ -1247,7 +1016,7 @@ export const createInterface = (
 	 * @returns {Number} Port
 	 */
 	const connectMIDIForPerson = (personIndex=0, midiDevices=[], midiChannel=0) => {
-		const person = getPerson(personIndex)
+		const person = personManager.getPerson(personIndex)
 		// try and determine which port the user is expecting
 		//const p = midiChannel === "all" ? 0 : midiChannel
 		// select instrument
@@ -1367,7 +1136,7 @@ export const createInterface = (
 		// dispatch midi to devices based on the above outputs
 		if ( WebMidi && stateMachine.get("midiControl") && !stateMachine.get("midiOnly") )
 		{
-			updateWebMIDIWithPerson(person, people, audioOutput)
+			updateWebMIDIWithPerson(person, personManager.people, audioOutput)
 		}
 
 		// update the stave with X amount of notes
@@ -1534,7 +1303,7 @@ export const createInterface = (
 			buttonRecordAudio.parentElement.classList.remove("recording","progress","cancelling")
 	
 			// get user's instrument names...tempo etc...
-			const person = getPerson(0)
+			const person = personManager.getPerson(0)
 			const fileName = person.instrumentTitle || `Sample`
 			const svg = createSVGWaveformFromData(waveforms)
 			
@@ -1915,7 +1684,7 @@ export const createInterface = (
 			// Start on BAR
 			// show quantise
 			// fetch notes played from user?
-			const barColour = `hsl(${getPerson(0).hue },50%,50%)`
+			const barColour = `hsl(${personManager.getPerson(0).hue },50%,50%)`
 			//drawQuantise( canvasContext, beatJustPlayed, clock.bar, clock.totalBars, barColour)
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
@@ -1925,7 +1694,7 @@ export const createInterface = (
 		
 		// if (hasPredictions)
 		// {
-			const range = hasPredictions ? Math.max(predictions.length, people.length) : people.length
+			const range = hasPredictions ? Math.max(predictions.length, personManager.quantityOfPlayers) : personManager.quantityOfPlayers			
 			const timeNow = clock.now
 			// FIXME: If there are fewer people than exist, 
 			// we also need to noteOff for every person
@@ -1940,12 +1709,12 @@ export const createInterface = (
 			// NB: The order of persons will be different
 			// from the order of model predictions
 			// so lets compare the two and tie each prediction 
-			const activePeople = people.slice()
+			const activePeople = personManager.getPeople()
 
 			// to the person that was nearest in the last prediction
 			for (let i=0, l=range; i < l; ++i)
 			{
-				// const person = getPerson(i)
+				// const person = personManager.getPerson(i)
 				const prediction = hasPredictions ? predictions[i] : null
 				if (!prediction)
 				{
@@ -1953,12 +1722,12 @@ export const createInterface = (
 					continue
 				}
 
-				// const person = getPerson(i)
+				// const person = personManager.getPerson(i)
 				// const prediction = hasPredictions ? predictions[i] : person.data
 				
 				// loop through all people and find closest
 				const boundingBox = prediction.box
-				const personIndex = getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
+				const personIndex = personManager.getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
 				const person = activePeople[personIndex]
 				activePeople.splice(personIndex,1)
 
@@ -2053,7 +1822,7 @@ export const createInterface = (
 		if (!noFacesFound && !hasPredictions)
 		{
 			// no face found! :(
-			people.forEach( person => main.classList.toggle( `${person.name}-active`, false) )
+			personManager.people.forEach( person => main.classList.toggle( `${person.name}-active`, false) )
 			main.classList.toggle( `no-faces`, true)
 			noFacesFound = true
 			// stopAudio()
@@ -2399,10 +2168,10 @@ export const createInterface = (
 		if( stateMachine.get("quantise") )
 		{
 			let shouldChangeToNextFilter = isBar
-			const amountOfPeople = people.length
+			const amountOfPeople = personManager.quantityOfPlayers
 			for ( let i=0; i<amountOfPeople; ++i )
 			{
-				const person = getPerson(i)
+				const person = personManager.getPerson(i)
 
 				// fourth person has a special mode
 				// slow mode
@@ -2554,7 +2323,7 @@ export const createInterface = (
 				body.classList.toggle("user-inactive", false)
 			}
 			isUserActive = true
-			people.forEach( player => player.isUserActive = true)
+			personManager.people.forEach( player => player.isUserActive = true)
 			// console.info("user active autohide", stateMachine.get("autoHide"))
 		}
 
@@ -2565,7 +2334,7 @@ export const createInterface = (
 				body.classList.toggle("user-inactive", true)
 			}
 			isUserActive = false
-			people.forEach( player => player.isUserActive = false)
+			personManager.people.forEach( player => player.isUserActive = false)
 			// setFeedback("Goodbye!", 0, 'person' )
 			// console.info("user inactive autohide", stateMachine.get("autoHide"))
 		}
@@ -2780,7 +2549,6 @@ export const createInterface = (
 			console.error('Error initialising audio clock', error)
 		}
 		
-	
 
 		// VOLUME --------------------------------------------------------------------------------
 		try{
@@ -3008,7 +2776,7 @@ export const createInterface = (
 						// TODO: use the midi in and the people to augment
 						// the note played with chords that match the facial expression
 						// const amountOfInputs = WebMidi.inputs.length         
-						person = getActivePerson()
+						person = personManager.etActivePerson()
 
 
 						// augment note into chord us ing event.note.number as the tonic
@@ -3158,7 +2926,7 @@ export const createInterface = (
 						return
 
 						if (!person){
-							person = getActivePerson()
+							person = personManager.getActivePerson()
 						}
 						
 						const requestedNote = event.note.number
@@ -3213,7 +2981,7 @@ export const createInterface = (
 				const MIDIConnectionClasses = [WebMIDIClass]
 			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, people, setFeedback )
+				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, setFeedback )
 				
 				console.info("MIDIManager", {hasMIDI,midiManager})
 			
@@ -3454,14 +3222,14 @@ export const createInterface = (
 		// Face meshes
 		toggles.masks = setToggle( "button-meshes", status =>{ 
 			const flag = stateMachine.toggle( 'masks' )
-			setPlayerOption("drawMask", flag )
+			personManager.setPlayerOption("drawMask", flag )
 		}, stateMachine.get( 'masks') )
 
 		// hide / show eye overlays
 		// NB. this gets hidden in kid mode?
 		toggles.eyes = setToggle( "button-eyes", status => {
 			const flag = stateMachine.toggle( 'eyes' )
-			setPlayerOption("drawEyes", flag )
+			personManager.setPlayerOption("drawEyes", flag )
 			// setFeedback( flag ? 'Googly eyes' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
 		}, stateMachine.get( 'eyes') )
 
@@ -3566,7 +3334,7 @@ export const createInterface = (
 			const items = option.value.split(",")
 			const eye = convertOptionToObject(items)
 			
-			setPlayerOptions({ 
+			personManager.setPlayerOptions({ 
 				scleraRadius:eye.s,
 				irisRadius:eye.i,
 				pupilRadius:eye.p,
@@ -3577,17 +3345,17 @@ export const createInterface = (
 		// set the master sound font
 		selects.samples = connectSelect( 'select-samples', async (option) => {
 			const instrumentPack = option.value
-			setPlayerOptions({ instrumentPack })
+			personManager.setPlayerOptions({ instrumentPack })
 			const instrument = await reloadInstrument()
 			stateMachine.set( 'instrumentPack', instrumentPack, selects.samples )
-			//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
+			//console.log("Loaded sounds",{instrumentPack, instrument}, personManager.getPerson(0).options.instrumentPack )
 		} )
 
 		selects.palette = connectSelect( 'select-palette', option => {
 			const items = option.value.split(",")
 			const palette = convertOptionToObject(items)
 			
-			setPlayerOptions({
+			personManager.setPlayerOptions({
 				saturation:palette.s,
 				luminosity:palette.l,
 			})
@@ -3833,10 +3601,8 @@ export const createInterface = (
 
 				// change this depending on whether a face is detected
 				speak("Hello! Open your mouth to begin!")
-				
 				body.classList.toggle(SEARCHING_FOR_USERS_CLASS, false)
-				
-				return getActivePerson()
+				return personManager.getActivePerson()
 			}	
 		}
 		
@@ -3858,8 +3624,8 @@ export const createInterface = (
 		// now create all the people we will need!
 		for (let i=0; i< stateMachine.get("players"); ++i)
 		{
-			const person = getPerson(i)
-			// console.info(i, "Person created", person)
+			const person = createPerson()
+			// console.assert( !debug, i, "Person created", person)
 		}
 		
 		// as we are now "full screen" the positions of the tooltips needs
@@ -3868,7 +3634,6 @@ export const createInterface = (
 		observeWeblink()
 		notifyObserversThatWeblinkIsAvailable()
 		
-
 		speak("Welcome, Now looking for a human friend")
 
 		// wait here until a user shows their face...
@@ -3881,7 +3646,7 @@ export const createInterface = (
 			user,
 			quantityOfActivePeople,
 			
-			configurePerson,
+			configurePerson:personManager.configurePerson,
 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),
@@ -3898,12 +3663,20 @@ export const createInterface = (
 			// MIDI
 			midiPerformance,
 
-			setPlayerOption, setPlayerOptions,
-			getPerson, getPlayers, getQuantityOfPlayers,
-			getSelectedPerson, selectPerson, deselectPeople,
-			getActivePerson,
-			highlightPerson, unhighlightPeople,
-			fetchPlayerOptions,setPlayerOption, setPlayerOptions,
+			personManager,
+			fetchPlayerOptions:personManager.getPlayerOptions,
+			setPlayerOption:personManager.setPlayerOption, 
+			setPlayerOptions:personManager.setPlayerOptions, 
+			getPerson:personManager.getPerson, 
+			getPlayers:personManager.getPlayers,
+			getQuantityOfPlayers:personManager.getQuantityOfPlayers,
+			getSelectedPerson:personManager.getSelectedPerson, 
+			selectPerson:personManager.selectPerson, 
+			deselectPeople:personManager.deselectPeople,
+			getActivePerson:personManager.getActivePerson,
+			highlightPerson:personManager.highlightPerson, 
+			unhighlightPeople:personManager.unhighlightPeople,
+		
 			language, 
 			isUserActive:()=>isUserActive,
 			isLoading:()=>isLoading,

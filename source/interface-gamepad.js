@@ -17,7 +17,7 @@ import {
  * but ignore them until we are ready
  * 
  * START will alter the PLAYER INDEX
- * SELECT will alter the 
+ * SELECT will alter the MODE
  * 
  */
 export const addGamePadEvents = (application) => {

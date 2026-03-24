@@ -1,4 +1,4 @@
-import { rangeRounded } from "./maths/maths"
+import { rangeRounded } from "../maths/maths"
 
 /**
  * Default head control input mechanism

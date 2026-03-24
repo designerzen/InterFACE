@@ -43,10 +43,7 @@ jobs:
         run: pnpm run assets
         
       - name: Build electron app
-        run: pnpm electron:make -- --publish never
-        env:
-          SKIP_ELECTRON_REBUILD: true
-          npm_config_build_from_source: false
+        run: pnpm electron:make
         
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

@@ -116,7 +116,7 @@ import Person, {
 	PERSON_TYPE_CHROMATIC,
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
 	EVENT_EMOTION_CHANGED
- } from './person.js'
+ } from './people/person.js'
 
 
 // TIMING

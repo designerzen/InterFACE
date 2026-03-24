@@ -1,5 +1,5 @@
-import { FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from "./audio/tuning/keys.js"
-import { NOTES_BLACK, NOTES_WHITE } from "./audio/tuning/notes.js"
+import { FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from "../audio/tuning/keys.js"
+import { NOTES_BLACK, NOTES_WHITE } from "../audio/tuning/notes.js"
 
 
 // varieties of users (tie them into PlayerNumbers)

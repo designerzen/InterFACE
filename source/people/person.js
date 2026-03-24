@@ -36,15 +36,14 @@ import {
 	DEFAULT_VOICE_OPTIONS,
 	NAMES,
 	IDENTIFIERS
-} from './settings/options.people.js'
+} from '../settings/options.people.js'
 
-import { toKebabCase } from "./utils/utils.js"
-import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "./maths/maths.js"
-import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeInQuad} from "./maths/easing.js"
-import { now } from "./timing/timing.js"
+import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "../maths/maths.js"
+import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeInQuad} from "../maths/easing.js"
+import { now } from "../timing/timing.js"
 
 // all the different instruments come through the instrument factory!
-import MIDIInstrument from './audio/instruments/instrument.midi.js'
+import MIDIInstrument from '../audio/instruments/instrument.midi.js'
 
 // default instruments
 import { 
@@ -52,15 +51,15 @@ import {
 	INSTRUMENT_TYPE_OSCILLATOR, 
 	INSTRUMENT_TYPE_MIDI, 
 	INSTRUMENT_TYPE_CHORD
-} from './audio/instrument-list.js'
+} from '../audio/instrument-list.js'
 
-import InstrumentManager from './audio/instrument-manager.js'
-// import INSTRUMENT_LIST from './assets/audio/instrument-list.json'
+import InstrumentManager from '../audio/instrument-manager.js'
+// import INSTRUMENT_LIST from '../assets/audio/instrument-list.json'
 
 // Notes, scales and keys
-import Arpeggio from './audio/arpeggio.js'
-import { createKey, FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
-import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from './audio/tuning/chords.js'
+import Arpeggio from '../audio/arpeggio.js'
+import { createKey, FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from '../audio/tuning/keys.js'
+import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from '../audio/tuning/chords.js'
 import { 
 	convertNoteNameToMIDINoteNumber, 
 	getNoteText, getNoteName, getNoteSound, getFriendlyNoteName, 
@@ -71,12 +70,12 @@ import {
 	convertMIDINoteNumberToName,
 	NOTES_BLACK,
 	NOTES_WHITE
-} from './audio/tuning/notes.js'
+} from '../audio/tuning/notes.js'
 import { 
 	getGeneralMIDIInstrumentFolders, getInstrumentTitle, 
 	getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex, getRandomLeadPresetIndex 
-} from './audio/sound-font-instruments.js'
-import { GENERAL_MIDI_INSTRUMENT_LIST } from "./audio/midi/general-midi.constants"
+} from '../audio/sound-font-instruments.js'
+import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants"
 
 import { 
 	convertHeadOrientationIntoNoteData, 
@@ -84,19 +83,19 @@ import {
 	convertHeadRollToScaleAndPitchToOctaveAndYawToPitch 
 } from './person.controls.js'
 
-import { ParamaterRecorder } from './parameter-recorder.js'
+import { ParamaterRecorder } from '../parameter-recorder.js'
 
 // UI
-import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "./dom/ui.panel-instruments.js"
-import { drawMousePressure } from './dom/mouse-pressure.js'
+import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "../dom/ui.panel-instruments.js"
+import { drawMousePressure } from '../dom/mouse-pressure.js'
 
 // Models
-import { EmojiDetector } from './models/emoji-detection.js'
-import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from './models/emoji.js'
+import { EmojiDetector } from '../models/emoji-detection.js'
+import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from '../models/emoji.js'
 
-import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
-import { createInstrumentFromData } from './audio/instrument-factory.js'
-import { getCleff, NOTATION, STAVE_SIZES } from './audio/notation.js'
+import { getMusicalDetailsFromEmoji } from '../models/emoji-to-music.js'
+import { createInstrumentFromData } from '../audio/instrument-factory.js'
+import { getCleff, NOTATION, STAVE_SIZES } from '../audio/notation.js'
 import { 
 	configurePersonByOperatingMode,
 	PERSON_TYPE_ARPEGGIO, 
@@ -169,7 +168,7 @@ const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 	return `hsla(${hue%360},${saturation}%,${luminosity}%,${1-alpha})`
 }
 
-export default class Person{
+export default class Person extends EventTarget{
 
 	id
 	name = "unnamed"
@@ -687,6 +686,8 @@ export default class Person{
 	 */
 	constructor( index, options={}, saveData=undefined ) {
 		
+		super()
+
 		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
 		this.debug = this.options.debug
 
@@ -2526,7 +2527,7 @@ export default class Person{
 	 * 
 	 * @param {String} data 
 	 */
-	parseDataExport( data){
+	static parseDataExport( data){
 		if (!data)
 		{
 			return null

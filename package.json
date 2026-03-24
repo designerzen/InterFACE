@@ -66,7 +66,6 @@
 		]
 	},
 	"scripts": {
-		"postinstall": "electron-builder install-app-deps",
 		"fix:parcel": "cross-env TEMP=S:/temp",
 		"kill": "npx kill-port 303",
 		"optional": "node-gyp-build-optional-packages",
@@ -135,7 +134,6 @@
 		"electron:renderer": "parcel build --target electron-renderer --no-content-hash",
 		"electron:serve": "parcel serve --target electron-renderer --no-content-hash -p 303",
 		"electron:dev": "npm run electron:compile && concurrently 'npm:electron:serve' 'npm:electron:test'",
-		"electron:package": "electron-builder",
 		"electron:make": "npm run electron:clean && npm run electron:build && npm run electron:package",
 		"build:electron-main": "parcel build --target electron-main --config ./.parcelnocopyrc",
 		"build:electron-preload": "parcel build --target electron-preload --config ./.parcelnocopyrc",
@@ -146,7 +144,9 @@
 		"open:electron": "npx cap open @capacitor-community/electron",
 		"status:electron": "electron-packager --version",
 		"debug:electron": "electron --inspect",
-		"make:electron": "electron-builder -mwl",
+		"make:electron": "electron-forge make",
+		"electron:make": "electron-forge make",
+		"electron:package": "electron-forge package",
 		"=DESKTOP=": "------------------------------------",
 		"desktop:start": "electron-forge start",
 		"desktop:dev": "npm run fix:parcel && npm run electron:build && concurrently 'npm:electron:serve' 'npm:desktop:start'",
