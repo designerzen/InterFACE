@@ -30,7 +30,7 @@ import {
 	getRandomSynthPadPresetIndex 
 } from '../audio/sound-font-instruments.js'
 
-import Person from '../person.js'
+import Person from '../people/person.js'
 import { createInstrumentFromData, lazilyLoadInstrument } from '../audio/instrument-factory.js'
 import { CHORD_INTERVALS_NAMES, CHORD_INTERVALS, createChordsForNoteNumber, createJazzChord, createMajorChord, createMinorChord, getAllChordsForNoteNumber, TUNING_MODE_NAMES } from '../audio/tuning/chords.js'
 import SVGKeyboard from '../visual/2d.keyboard-svg.js'

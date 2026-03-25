@@ -23,13 +23,14 @@ import {
 export const addGamePadEvents = (application) => {
 	const gamepadHeld = new Map()
 	const gamePadManager = new GamePadManager()
+	const personManager = application.personManager
 
 	// enums
 	let gamePadMode = 0
-	let gamePadPlayerIndex = application.getSelectedPerson() ?? -1
+	let gamePadPlayerIndex = personManager.getSelectedPerson() ?? -1
 
 	const isUnselected = gamePadPlayerIndex === -1
-	let selectedPerson = isUnselected ? null : application.getPerson( gamePadPlayerIndex )
+	let selectedPerson = isUnselected ? null : personManager.getPerson( gamePadPlayerIndex )
 	
 	const gamePadModes = ["beats", "vfx", "instruments"] 
 
@@ -68,7 +69,7 @@ export const addGamePadEvents = (application) => {
 				gamePadMode = ( gamePadMode + 1 ) % gamePadModes.length
 				const mode = gamePadModes[gamePadMode]
 				application.setFeedback( mode, 0, 'gamepad' )
-				const selectedId = application.selectPerson( application.getSelectedPerson() + 1 )
+				const selectedId = personManager.selectPerson( personManager.getSelectedPerson() + 1 )
 
 				if (mode === "vfx"){
 					// etc

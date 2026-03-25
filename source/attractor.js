@@ -19,7 +19,7 @@ import {
 	EVENT_INSTRUMENT_LOADING, 
 	EVENT_PERSON_BORN, 
 	EVENT_PERSON_DEAD 
-} from "./people/person.js"
+} from "./people/person-event.js"
 
 // in seconds
 const DURATION_BEFORE_AUTOMATIC_INSTRUMENT_CHANGE = [
@@ -44,11 +44,11 @@ export default class Attractor{
 	constructor( application ) {
 		this.onChange.bind(this)
 		this.application = application
-		this.application.addListener(EVENT_INSTRUMENT_LOADING, this.onChange )
+		this.application.addEventListener(EVENT_INSTRUMENT_LOADING, this.onChange )
 		
-		this.application.addListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
-		this.application.addListener(EVENT_PERSON_BORN, this.onChange )
-		this.application.addListener(EVENT_PERSON_DEAD, this.onChange )
+		this.application.addEventListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
+		this.application.addEventListener(EVENT_PERSON_BORN, this.onChange )
+		this.application.addEventListener(EVENT_PERSON_DEAD, this.onChange )
 	}
 
 	/**

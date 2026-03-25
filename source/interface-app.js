@@ -821,30 +821,30 @@ export const createInterface = (
 		}
 
 		// the instrument has changed / loaded so show some feedback
-		person.addListener( EVENT_PERSON_BORN,  (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_PERSON_BORN,  (event) => {
+			const {detail} = event.data
 			// console.info("Person has been born!", detail)
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
 		})
 
-		person.addListener( EVENT_PERSON_DEAD,  (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_PERSON_DEAD,  (event) => {
+			const {detail} = event.data
 			// console.info("Person has died!", detail)
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
 		})
 
-		person.addListener( EVENT_INSTRUMENT_LOADING, (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_INSTRUMENT_LOADING, (event) => {
+			const {detail} = event.data
 			const { progress, instrumentName, instrumentPack } = detail
 			markInstrumentProgress( progress, instrumentName )
 			// console.info("Person preset ["+instrumentName+"] loading!", Math.floor(progress*100))
 			dispatchCustomEvent(event.type, detail)
 		})
 
-		person.addListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
+			const {detail} = event.data
 			const { progress, instrumentName, instrumentPack } = detail
 			// save it for next time
 			const cache = store.setItem(name, {instrument:instrumentName })
@@ -857,7 +857,7 @@ export const createInterface = (
 		/*
 		// we need this to also update any playing midi notes
 		person.addListener(EVENT_EMOTION_CHANGED, event => {	
-			const {detail} = event
+			const {detail} = event.data
 			const { emoticon, person } = detail
 			console.log("Emotion changed", detail)
 			// setToast( `${detail.emoticon} Emotion Changed` ) 

@@ -46,23 +46,29 @@ import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './setti
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
+import { PersonManager } from './people/person-manager.js'
 import Person, { 
-	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
-	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
-	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
 	getRandomPresetForPerson,
-	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
 	PERSON_TYPE_ARPEGGIO,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_CHROMATIC,
-	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
-	EVENT_EMOTION_CHANGED
+	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
  } from './people/person.js'
+
+ import { 
+ EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
+ STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
+ STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
+ EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
+ EVENT_EMOTION_CHANGED
+ } from './people/person-event.js'
  
-// TIMING
+ // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
 import AudioTimer from './timing/timer.audio.js'
+import { tapTempo } from './timing/tap-tempo.js'
+import { Timeout } from './timing/timeout.js'
 
 // AUDIO 
 import { say, hasSpeech} from './audio/speech.js'
@@ -122,6 +128,7 @@ import { fetchBrandColor } from './settings/palette.js'
 // DISPLAYS
 import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplayAvailability  } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
+import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 
 // IO
 import { observeInactivity } from './utils/inactivity.js'
@@ -133,7 +140,6 @@ import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator
 import { getActiveMIDINotesForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
 /*
-
 import { loadInstrumentsList } from './settings/options.instruments.js'
 
 // import { 
@@ -160,14 +166,11 @@ import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
-import VisualiserManager from './visual/visualiser/visualiser-manager.js'
-import { tapTempo } from './timing/tap-tempo.js'
-import { Timeout } from './timing/timeout.js'
+
 import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from './timing/timer.js'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 import { createDisplayOptions } from './dom/ui.display.js'
-import { PersonManager } from './people/person-manager.js'
 
 // Asset Paths
 // assets\audio\wave-tables\general-midi.zip
@@ -409,36 +412,6 @@ export const createInterface = (
 	// const zipArray = stateMachine.createEncodedString()
 	// const zipArray = stateMachine.createURLAsEncodedString()
 	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
-	
-
-	const uiMap = new Map()
-	uiMap.set("backingTrack", doc.getElementById("button-percussion") )
-	uiMap.set("clear", doc.querySelector(".qr") )
-	uiMap.set("disco", doc.getElementById("button-disco") )
-	uiMap.set("display", doc.querySelector(".qr") )
-	uiMap.set("eyes", doc.querySelector(".qr") )
-	// uiMap.set("gamePad", doc.querySelector(".qr") )
-	uiMap.set("gamePad", doc.querySelector(".qr") )
-	uiMap.set("metronome", doc.querySelector(".qr") )
-	uiMap.set("midi", doc.querySelector(".qr") )
-	// uiMap.set("midiChannel", doc.querySelector(".qr") )
-	// uiMap.set("model", doc.querySelector(".qr") )
-	// uiMap.set("muted", doc.querySelector(".qr") )
-	// uiMap.set("overlays", doc.querySelector(".qr") )
-	// uiMap.set("photoSensitive", doc.querySelector(".qr") )
-	// uiMap.set("players", doc.querySelector(".qr") )
-	// uiMap.set("qr", doc.querySelector(".qr") )
-	uiMap.set("quantise", doc.querySelector(".qr") )
-	// uiMap.set("showPiano", doc.querySelector(".qr") )
-	// uiMap.set("showSettings", doc.querySelector(".qr") )
-	// uiMap.set("speak", doc.querySelector(".qr") )
-	uiMap.set("spectrogram", doc.querySelector(".qr") )
-	// uiMap.set("stats", doc.querySelector(".qr") )
-	uiMap.set("stats", doc.querySelector(".qr") )
-	uiMap.set("synch", doc.querySelector(".qr") )
-	uiMap.set("text", doc.querySelector(".qr") )
-	uiMap.set("theme", doc.querySelector(".qr") )
-	uiMap.set("tooltips", doc.querySelector(".qr") )
 	
 	// debug
 	// starSize
@@ -848,11 +821,11 @@ export const createInterface = (
 		// so let us loop through the stateMachine and extract any person data...
 		// &p1=1
 		const personMeta = stateMachine.get( storageKey )
-		//const personData = person.importData( stateMachine.get("p1") )
 			
 		// Load in any data set in the URL
-		const importedData = person.parseDataExport( personMeta )
-		
+		const importedData = Person.parseDataExport( personMeta )
+		const personData = person.importJSONData( savedOptions )
+	
 		// Events dispatched by Person :
 		const markInstrumentProgress = (progress,instrumentName) =>{ 
 			const percent = Math.ceil(progress*100)
@@ -865,15 +838,15 @@ export const createInterface = (
 		}
 
 		// the instrument has changed / loaded so show some feedback
-		person.addListener( EVENT_PERSON_BORN,  (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_PERSON_BORN,  (event) => {
+			const {detail} = event.data
 			// console.info("Person has been born!", detail)
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
 		})
 
-		person.addListener( EVENT_PERSON_DEAD,  (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_PERSON_DEAD,  (event) => {
+			const {detail} = event.data
 			// console.info("Person has died!", detail)
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
@@ -881,8 +854,8 @@ export const createInterface = (
 
 		// A person's instrument has loaded into memory, so we
 		// update the state options to show the user also
-		person.addListener( EVENT_INSTRUMENT_LOADING, (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_INSTRUMENT_LOADING, (event) => {
+			const {detail} = event.data
 			const { progress, instrumentName, instrumentPack } = detail
 			markInstrumentProgress( progress, instrumentName )
 
@@ -890,8 +863,8 @@ export const createInterface = (
 			dispatchCustomEvent(event.type, detail)
 		})
 
-		person.addListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
-			const {detail} = event
+		person.addEventListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
+			const {detail} = event.data
 			const { presetIndex, presetName, presetTitle, instrumentPack } = detail
 			//console.log("External event for ",{ person, detail , cache})
 			setFeedback( `${person.instrumentTitle} Ready!`.toUpperCase(), 0, 'instrument' ) 
@@ -2788,7 +2761,7 @@ export const createInterface = (
 						{
 							/*
 							// we need this to also update any playing midi notes
-							person.addListener(EVENT_EMOTION_CHANGED, event => {	
+							person.addEventListener(EVENT_EMOTION_CHANGED, event => {	
 								
 								const {detail} = event
 								const { emoticon } = detail
@@ -3655,7 +3628,7 @@ export const createInterface = (
 			setFeedback,
 			kit,
 
-			addListener,
+			addEventListener:addListener,
 			
 			// drums
 			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, toggleBackgroundPercussion,

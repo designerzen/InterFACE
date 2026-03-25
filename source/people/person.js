@@ -104,23 +104,12 @@ import {
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
 } from "./person.presets.js"
 
-// States for the audio controlled by the face
-export const STATE_INSTRUMENT_SILENT = "instrument-not-playing"
-export const STATE_INSTRUMENT_ATTACK = "instrument-attack"
-export const STATE_INSTRUMENT_SUSTAIN = "instrument-sustain"
-export const STATE_INSTRUMENT_PITCH_BEND = "instrument-pitchbend"
-export const STATE_INSTRUMENT_DECAY = "instrument-decay"
-export const STATE_INSTRUMENT_RELEASE = "instrument-release"
-
-// Dispatched events that each person creates
-export const EVENT_EMOTION_CHANGED = "emotion-changed"
-export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
-export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
-export const EVENT_USER_MODE_CHANGED = "usermode-changed"
-export const EVENT_PERSON_BORN = "person-born"
-export const EVENT_PERSON_DEAD = "person-dead"
-
-
+import PersonEvent, {
+	// States for the audio controlled by the face
+ 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
+	// Dispatched events that each person creates
+ 	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
+} from './person-event.js'
 
 // used to deliminiate the URL player seperator...
 // you want something that doesn't encode, but that also
@@ -161,8 +150,6 @@ export const getRandomPresetForPerson = (personIndex) => {
 			return getRandomBeatsPresetIndex()
 	}
 }	 
-
-
 
 const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 	return `hsla(${hue%360},${saturation}%,${luminosity}%,${1-alpha})`
@@ -317,6 +304,8 @@ export default class Person extends EventTarget{
 	// controlMode = convertHeadRollToOctaveAndPitchToScaleAndYawToPitch
 	controlMode = convertHeadOrientationIntoNoteData
 
+	abortController 
+	
 	get userMode(){
 		return this.#userMode
 	}
@@ -665,7 +654,7 @@ export default class Person extends EventTarget{
 	 */
 	set userMode( mode ){
 		this.#userMode = mode
-		this.dispatchEvent( EVENT_USER_MODE_CHANGED, {mode} )
+		this.dispatchCustomEvent( EVENT_USER_MODE_CHANGED, {mode} )
 	}
 
 	/**
@@ -717,20 +706,12 @@ export default class Person extends EventTarget{
 	}
 
 	/**
-	 * Proxy for the event system
-	 */
-	addListener(){
-		return this.button.addEventListener(...arguments)
-	}
-
-	removeListener(){
-		return this.button.removeEventListener(...arguments)
-	}
-
-	/**
-	 * 
+	 * Create all the resources necessary for the 
+	 * creation of this Person
 	 */
 	create(){
+
+		this.abortController = new AbortController()
 
 		// allow us to record the performances (not the audio)
 		// useful for showing recordings of a person
@@ -747,30 +728,28 @@ export default class Person extends EventTarget{
 		{
 			// make sure it is visible!
 			this.button.hidden = false
-			// Create our side bar and instrument selector for m
-			//this.setupForm().then(()=>{
-				
-				// force scope
-				this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
-				this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
+			
+			// force scope
+			this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
+			this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
 
-				// Face button events
-				this.button.addEventListener( 'pointerdown', this.onFaceTouchStart )
+			// Face button events
+			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )
 
-				this.button.addEventListener( 'pointerenter', event => {
-					this.isMouseOver = true
-				})
+			this.button.addEventListener( 'pointerenter', event => {
+				this.isMouseOver = true
+			}, {signal:this.abortController.signal})
 
-				this.button.addEventListener( 'pointerleave', event => {
-					this.isMouseOver = false
-				})
+			this.button.addEventListener( 'pointerleave', event => {
+				this.isMouseOver = false
+			}, {signal:this.abortController.signal})
 
-				this.button.addEventListener( 'pointercancel', event => {
-					this.isMouseOver = false
-				})
+			this.button.addEventListener( 'pointercancel', event => {
+				this.isMouseOver = false
+			}, {signal:this.abortController.signal})
 
-				this.instrumentLoadedAt = this.now
-			// })
+			this.instrumentLoadedAt = this.now
+		
 		}else{
 			// console.warn(`Created Person "${name}" but could not find associated markup #${name}`)
 			throw Error(`Created Person "${this.name}" but could not find associated markup #${this.name}`)
@@ -824,6 +803,7 @@ export default class Person extends EventTarget{
 	 * free up associated memory
 	 */
 	destroy(){
+		this.abortController.abort()
 		// kill instrument and disconnect from graph
 		this.reset()
 	}
@@ -844,8 +824,8 @@ export default class Person extends EventTarget{
 	 * @param {String} type 
 	 * @param {Object} data 
 	 */
-	dispatchEvent(type, data = {}){
-		this.button.dispatchEvent(new CustomEvent( type, {detail: data}))
+	dispatchCustomEvent(type, data = {}){
+		this.dispatchEvent(new PersonEvent( type, {detail: data}))
 	}
 
 	/**
@@ -1071,7 +1051,7 @@ export default class Person extends EventTarget{
 		if (this.emoticon !== emoticon)
 		{
 			this.emoticon = emoticon
-			this.dispatchEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
+			this.dispatchCustomEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
 			
 			// Log emotion changes when debug is enabled
 			if (this.debug)
@@ -1911,7 +1891,7 @@ export default class Person extends EventTarget{
 		await this.setupForm()
 
 		// you have to dispatch the event from an element!
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, details )
+		this.dispatchCustomEvent(EVENT_INSTRUMENT_CHANGED, details )
 	}
 
 	/**
@@ -1928,9 +1908,9 @@ export default class Person extends EventTarget{
 		if (method==="loadRandomPreset")
 		{
 			const randomPresetName = getRandomPresetForPerson(this.playerNumber)
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName })
+			this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName })
 			this.activeInstrument = await this.loadPreset( randomPresetName,  null, progressCallback )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName })
+			this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName })
 			
 			// console.info("Person "+this.playerNumber+" instrument changed", this.activeInstrument )
 		}else{
@@ -1938,7 +1918,7 @@ export default class Person extends EventTarget{
 			// this has lost it's scope...
 			this.activeInstrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
 				progressCallback && progressCallback( progress )
-				this.dispatchEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+				this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 			} )
 			
 		}
@@ -1952,9 +1932,8 @@ export default class Person extends EventTarget{
 
 		// this will repopulate the panel with correct data
 		await this.setupForm()
-		// await this.setupForm()
 
-		this.dispatchEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
+		this.dispatchCustomEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
 		return this.activeInstrument
 	}
 
@@ -2050,7 +2029,7 @@ export default class Person extends EventTarget{
 
 		const instrument = await this.activeInstrument.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
-			this.dispatchEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
+			this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
 		} )
 
 		await this.setupInstrumnentForm(details)
@@ -2298,7 +2277,7 @@ export default class Person extends EventTarget{
 	onBirthed(){
 		this.reset()
 		// console.info("Person Birthed", this)
-		this.dispatchEvent(EVENT_PERSON_BORN, { person:this })
+		this.dispatchCustomEvent(EVENT_PERSON_BORN, { person:this })
 	}
 
 
@@ -2314,7 +2293,7 @@ export default class Person extends EventTarget{
 		// console.info("Person Killed at "+this.deadForDuration )
 		this.createdAt = -1
 		this.isUserActive = false
-		this.dispatchEvent(EVENT_PERSON_DEAD, { person:this })
+		this.dispatchCustomEvent(EVENT_PERSON_DEAD, { person:this })
 	}
 
 	/**

@@ -144,7 +144,7 @@ export class PersonManager extends EventTarget{
 			configurePersonByOperatingMode( person, importedOptions.userMode )
 		}else{
 			console.info("@@@ Configuring person by index", {person, personData, personOptions, importedOptions} )
-			configurePersonByIndex( person, people )		
+			configurePersonByIndex( person, this.people )		
 		}
 	}
 
@@ -176,7 +176,7 @@ export class PersonManager extends EventTarget{
 	 * @returns Person
 	 */
 	getActivePerson(){
-		for (let index=0, l=people.length; index<l; ++index)
+		for (let index=0, l=this.people.length; index<l; ++index)
 		{
 			const person = this.people[index]
 			if (person && person.isActive)
@@ -335,7 +335,7 @@ export class PersonManager extends EventTarget{
 	 * @param {*} bubbles 
 	 */
 	dispatchCustomEvent(  type, detail, cancelable=true, bubbles=false ){
-		this.dispatchEvent(
+		this.dispatchCustomEvent(
 			new CustomEvent(type, {
 				bubbles,
 				cancelable, // without that flag preventDefault doesn't work
