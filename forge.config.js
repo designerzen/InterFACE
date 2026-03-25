@@ -70,12 +70,12 @@ module.exports = {
 				"darwin"
 			]
 		},
-		// {
-		// 	name: "@electron-forge/maker-squirrel",
-		// 	config: {
-		// 		name: "photosynth"
-		// 	}
-		// },
+		{
+			name: "@electron-forge/maker-squirrel",
+			config: {
+				name: "photosynth"
+			}
+		},
 		// {
 		// 	name: '@electron-forge/maker-deb',
 		// 	config: {

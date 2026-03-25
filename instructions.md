@@ -1,0 +1,5 @@
+make a monochrome woodblock style line drawing of *only four faces* smiling whilst tilting their heads sharply in different directions and staring directly into the camera. They have a lot of space between each other and are not touching, but are all in the same frame. The photograph is taken face-on so it appears as if it was a mirror where all people are looking directly at the mirror and not up or down. The camera is at eye-level and everybody is side by side. The image should be presented as it would appear through the viewfinder of the camera with a slightly rounded square frame. Ensure there are only 4 people and each person is stood side by side and that there is a lot of space between them so that they are not touching. Make each person a different ethnicity and ensure that each person looks different, especially the women. Give one person reading glasses and only one person earrings. Make the style simple - no frame.
+
+
+
+PhotoSYNTH Sympathetic Synthesizer
