@@ -335,7 +335,7 @@ export class PersonManager extends EventTarget{
 	 * @param {*} bubbles 
 	 */
 	dispatchCustomEvent(  type, detail, cancelable=true, bubbles=false ){
-		this.dispatchCustomEvent(
+		this.dispatchEvent(
 			new CustomEvent(type, {
 				bubbles,
 				cancelable, // without that flag preventDefault doesn't work

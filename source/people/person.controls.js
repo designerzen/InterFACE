@@ -126,5 +126,5 @@ const HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH = {
 	minorController:'isFacingRight' // 'eyebrowsRaisedBy',
 }
 export const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction) => {
-	return convertHeadOrientationIntoNoteData = (prediction, HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH) 
+	return convertHeadOrientationIntoNoteData(prediction, HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH) 
 }

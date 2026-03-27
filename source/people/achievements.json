@@ -1,0 +1,668 @@
+{
+  "😐": {
+    "title": "Neutral",
+    "description": "The straight face",
+    "message": "Classic neutral expression!",
+    "score": 5
+  },
+  "😑": {
+    "title": "Eyes Closed",
+    "description": "Neutral with eyes closed",
+    "message": "Taking a moment...",
+    "score": 6
+  },
+  "😉": {
+    "title": "Wink",
+    "description": "A playful wink",
+    "message": "Got one eye on you!",
+    "score": 7
+  },
+  "🫤": {
+    "title": "Diagonal Mouth",
+    "description": "Unsure expression",
+    "message": "Feeling uncertain?",
+    "score": 8
+  },
+  "🙄": {
+    "title": "Eyes Rolling",
+    "description": "Rolling eyes in skepticism",
+    "message": "Yeah, right...",
+    "score": 8
+  },
+  "🙂": {
+    "title": "Smiling Slightly",
+    "description": "A subtle smile",
+    "message": "Keep smiling!",
+    "score": 6
+  },
+  "😊": {
+    "title": "Smiling with Closed Eyes",
+    "description": "Happy and content",
+    "message": "That's genuine happiness!",
+    "score": 7
+  },
+  "😀": {
+    "title": "Grinning",
+    "description": "A wide grin",
+    "message": "Grin away!",
+    "score": 7
+  },
+  "😃": {
+    "title": "Big Grin",
+    "description": "Big grinning smile",
+    "message": "Extra happy!",
+    "score": 8
+  },
+  "😆": {
+    "title": "Grin with Squint",
+    "description": "Laughing with squinted eyes",
+    "message": "Having a laugh!",
+    "score": 8
+  },
+  "😁": {
+    "title": "Big Teeth Grin",
+    "description": "Excited with big teeth",
+    "message": "Show those pearly whites!",
+    "score": 9
+  },
+  "😄": {
+    "title": "Grin Eyes Closed",
+    "description": "Grinning with eyes closed",
+    "message": "Fully committed to joy!",
+    "score": 8
+  },
+  "😯": {
+    "title": "Open Mouth",
+    "description": "Surprised with open mouth",
+    "message": "What a surprise!",
+    "score": 7
+  },
+  "😮": {
+    "title": "Big Open Mouth",
+    "description": "Shocked expression",
+    "message": "Absolutely stunned!",
+    "score": 8
+  },
+  "😩": {
+    "title": "Wailing",
+    "description": "Tired and wailing",
+    "message": "Need some rest?",
+    "score": 6
+  },
+  "😲": {
+    "title": "Astonished",
+    "description": "Deeply astonished",
+    "message": "Jaw-dropping moment!",
+    "score": 9
+  },
+  "😬": {
+    "title": "Grimace",
+    "description": "Painful face",
+    "message": "Nice Grimace!",
+    "score": 9
+  },
+  "🤪": {
+    "title": "Zany",
+    "description": "Crazy playful expression",
+    "message": "Living wild!",
+    "score": 9
+  },
+  "😗": {
+    "title": "Kiss",
+    "description": "Kissing face",
+    "message": "Send some love!",
+    "score": 8
+  },
+  "😙": {
+    "title": "Kiss Eyes Closed",
+    "description": "Kissing with eyes closed",
+    "message": "Eyes shut for a kiss!",
+    "score": 8
+  },
+  "😚": {
+    "title": "Kiss Eyebrows Raised",
+    "description": "Kissing with raised eyebrows",
+    "message": "Surprised kiss!",
+    "score": 8
+  },
+  "😏": {
+    "title": "Smirk",
+    "description": "Smug or sarcastic expression",
+    "message": "Looking smug!",
+    "score": 8
+  },
+  "😒": {
+    "title": "Unamused",
+    "description": "Not amused at all",
+    "message": "That's underwhelming...",
+    "score": 7
+  },
+  "🤨": {
+    "title": "Raised Eyebrow",
+    "description": "Skeptical raised eyebrow",
+    "message": "Questioning everything!",
+    "score": 7
+  },
+  "😕": {
+    "title": "Confused",
+    "description": "Confused expression",
+    "message": "Head scratching moment!",
+    "score": 6
+  },
+  "😟": {
+    "title": "Worried",
+    "description": "Worried and concerned",
+    "message": "Everything will be okay!",
+    "score": 6
+  },
+  "☹️": {
+    "title": "Frowning",
+    "description": "Classic frown",
+    "message": "Don't frown!",
+    "score": 5
+  },
+  "😞": {
+    "title": "Sad",
+    "description": "Very sad expression",
+    "message": "Cheer up!",
+    "score": 5
+  },
+  "😠": {
+    "title": "Angry",
+    "description": "Angry face",
+    "message": "Take a breather!",
+    "score": 6
+  },
+  "😵‍💫": {
+    "title": "Trippy",
+    "description": "Dizzy and confused",
+    "message": "Spinning out!",
+    "score": 9
+  },
+  "🫨": {
+    "title": "Shaking",
+    "description": "Shaking face",
+    "message": "Trembling with excitement!",
+    "score": 8
+  },
+  "🙂‍↔️": {
+    "title": "Shaking Horizontally",
+    "description": "Shaking left and right",
+    "message": "No no no!",
+    "score": 8
+  },
+  "🙂‍↕️": {
+    "title": "Shaking Vertically",
+    "description": "Shaking up and down",
+    "message": "Yes yes yes!",
+    "score": 8
+  },
+  "😭": {
+    "title": "Crying",
+    "description": "Loudly crying",
+    "message": "Let it out!",
+    "score": 7
+  },
+  "😘": {
+    "title": "Kiss Wink",
+    "description": "Kissing with a wink",
+    "message": "Flirty!",
+    "score": 9
+  },
+  "🥰": {
+    "title": "Hearts",
+    "description": "Heart eyes love",
+    "message": "Full of love!",
+    "score": 10
+  },
+  "😍": {
+    "title": "Heart Eyes",
+    "description": "Love and adoration",
+    "message": "Head over heels!",
+    "score": 10
+  },
+  "🤩": {
+    "title": "Star Struck",
+    "description": "Star-struck amazement",
+    "message": "Absolutely starstruck!",
+    "score": 10
+  },
+  "🥳": {
+    "title": "Party",
+    "description": "Celebrating",
+    "message": "Party time!",
+    "score": 10
+  },
+  "🙃": {
+    "title": "Upside Down",
+    "description": "Upside down smile",
+    "message": "Turning things around!",
+    "score": 8
+  },
+  "🥲": {
+    "title": "Happy Tears",
+    "description": "Happy tears",
+    "message": "Tears of joy!",
+    "score": 8
+  },
+  "🥹": {
+    "title": "Holding Tears",
+    "description": "Holding back tears",
+    "message": "Stay strong!",
+    "score": 7
+  },
+  "😋": {
+    "title": "Savoring",
+    "description": "Licking lips deliciously",
+    "message": "Mmm, tasty!",
+    "score": 7
+  },
+  "😛": {
+    "title": "Tongue Out",
+    "description": "Playful tongue out",
+    "message": "Tongue play!",
+    "score": 7
+  },
+  "😜": {
+    "title": "Tongue Wink",
+    "description": "Winking with tongue out",
+    "message": "Just goofing around!",
+    "score": 8
+  },
+  "😝": {
+    "title": "Tongue Squint",
+    "description": "Tongue out with squint",
+    "message": "Silly face!",
+    "score": 8
+  },
+  "😇": {
+    "title": "Halo",
+    "description": "Angelic expression",
+    "message": "Innocent as can be!",
+    "score": 9
+  },
+  "🫡": {
+    "title": "Salute",
+    "description": "Saluting respect",
+    "message": "Yes, sir!",
+    "score": 8
+  },
+  "🤔": {
+    "title": "Thinking",
+    "description": "Thinking deeply",
+    "message": "Using your brain!",
+    "score": 7
+  },
+  "🤫": {
+    "title": "Shushing",
+    "description": "Shushing with finger",
+    "message": "Keeping secrets!",
+    "score": 8
+  },
+  "🫢": {
+    "title": "Hand Over Mouth",
+    "description": "Shocked silence",
+    "message": "Caught off guard!",
+    "score": 8
+  },
+  "🤭": {
+    "title": "Giggling",
+    "description": "Giggling behind hand",
+    "message": "Something funny!",
+    "score": 8
+  },
+  "🥱": {
+    "title": "Yawning",
+    "description": "Tired yawn",
+    "message": "Time for bed?",
+    "score": 6
+  },
+  "🤗": {
+    "title": "Hugging",
+    "description": "Open arms hug",
+    "message": "Spread the love!",
+    "score": 9
+  },
+  "🫣": {
+    "title": "Peeking",
+    "description": "Peeking through fingers",
+    "message": "Peek-a-boo!",
+    "score": 8
+  },
+  "😱": {
+    "title": "Screaming",
+    "description": "Terrified scream",
+    "message": "Totally spooked!",
+    "score": 9
+  },
+  "🧐": {
+    "title": "Monocle",
+    "description": "Monocle investigation",
+    "message": "Examining closely!",
+    "score": 8
+  },
+  "😮‍💨": {
+    "title": "Exhaling",
+    "description": "Exhaling deeply",
+    "message": "Let it go!",
+    "score": 7
+  },
+  "😤": {
+    "title": "Steaming",
+    "description": "Steaming with anger",
+    "message": "Cooling down!",
+    "score": 7
+  },
+  "🤬": {
+    "title": "Rage",
+    "description": "Furious rage",
+    "message": "Exploding with anger!",
+    "score": 6
+  },
+  "🥺": {
+    "title": "Pleading",
+    "description": "Pleading with eyes",
+    "message": "Those puppy eyes!",
+    "score": 8
+  },
+  "😰": {
+    "title": "Anxious",
+    "description": "Anxious and worried",
+    "message": "You've got this!",
+    "score": 6
+  },
+  "😨": {
+    "title": "Fearful",
+    "description": "Fearful expression",
+    "message": "Nothing to fear!",
+    "score": 7
+  },
+  "😧": {
+    "title": "Anguished Eyebrows",
+    "description": "Anguished with raised brows",
+    "message": "Hang in there!",
+    "score": 7
+  },
+  "😦": {
+    "title": "Anguished",
+    "description": "Deeply anguished",
+    "message": "Tough moment!",
+    "score": 6
+  },
+  "😳": {
+    "title": "Flushed",
+    "description": "Flushed and embarrassed",
+    "message": "Blushing away!",
+    "score": 8
+  },
+  "🤯": {
+    "title": "Mind Blown",
+    "description": "Mind literally blown",
+    "message": "Totally mind-blowing!",
+    "score": 10
+  },
+  "😓": {
+    "title": "Downcast Sweat",
+    "description": "Tired with sweat",
+    "message": "Hard work pays off!",
+    "score": 7
+  },
+  "😣": {
+    "title": "Persevering",
+    "description": "Persevering through it",
+    "message": "Keep pushing!",
+    "score": 7
+  },
+  "😫": {
+    "title": "Tired",
+    "description": "Exhausted and tired",
+    "message": "Rest well!",
+    "score": 6
+  },
+  "😵": {
+    "title": "Dizzy",
+    "description": "Dizzy and confused",
+    "message": "Spinning around!",
+    "score": 8
+  },
+  "🫥": {
+    "title": "Dotted Line",
+    "description": "Dotted line face",
+    "message": "Empty expression!",
+    "score": 7
+  },
+  "😴": {
+    "title": "Sleeping",
+    "description": "Sound asleep",
+    "message": "Sweet dreams!",
+    "score": 6
+  },
+  "😪": {
+    "title": "Sleepy",
+    "description": "Very sleepy",
+    "message": "Getting drowsy!",
+    "score": 6
+  },
+  "🤤": {
+    "title": "Drooling",
+    "description": "Drooling face",
+    "message": "Deliciously drooling!",
+    "score": 8
+  },
+  "🌛": {
+    "title": "Moon Face",
+    "description": "Crescent moon face",
+    "message": "Moonlit wonder!",
+    "score": 8
+  },
+  "🌜": {
+    "title": "Moon Face Left",
+    "description": "Left moon face",
+    "message": "Nighttime magic!",
+    "score": 8
+  },
+  "🌚": {
+    "title": "New Moon Face",
+    "description": "New moon face",
+    "message": "Dark and mysterious!",
+    "score": 8
+  },
+  "🌝": {
+    "title": "Full Moon Face",
+    "description": "Full moon face",
+    "message": "Fully illuminated!",
+    "score": 8
+  },
+  "🌞": {
+    "title": "Sun Face",
+    "description": "Sunshine face",
+    "message": "Sunny disposition!",
+    "score": 9
+  },
+  "🫠": {
+    "title": "Melting",
+    "description": "Melting away",
+    "message": "Melting into the moment!",
+    "score": 8
+  },
+  "😶‍🌫︎": {
+    "title": "Fog",
+    "description": "Hidden in fog",
+    "message": "Mysterious!",
+    "score": 8
+  },
+  "🥴": {
+    "title": "Woozy",
+    "description": "Woozy and dizzy",
+    "message": "Need some water!",
+    "score": 7
+  },
+  "🥵": {
+    "title": "Hot",
+    "description": "Overheated hot face",
+    "message": "Feeling the heat!",
+    "score": 7
+  },
+  "🥶": {
+    "title": "Cold",
+    "description": "Freezing cold face",
+    "message": "Brrrr, cold!",
+    "score": 7
+  },
+  "🤢": {
+    "title": "Nauseated",
+    "description": "Feeling nauseous",
+    "message": "Settle your stomach!",
+    "score": 6
+  },
+  "🤮": {
+    "title": "Vomiting",
+    "description": "Vomiting disgust",
+    "message": "That's gross!",
+    "score": 7
+  },
+  "🤧": {
+    "title": "Sneezing",
+    "description": "Sneezing loud",
+    "message": "Bless you!",
+    "score": 7
+  },
+  "🤒": {
+    "title": "Sick",
+    "description": "Sick with thermometer",
+    "message": "Get well soon!",
+    "score": 6
+  },
+  "🤕": {
+    "title": "Injured",
+    "description": "Injured with bandage",
+    "message": "Hope you heal fast!",
+    "score": 6
+  },
+  "😷": {
+    "title": "Mask",
+    "description": "Wearing a mask",
+    "message": "Stay protected!",
+    "score": 7
+  },
+  "🤠": {
+    "title": "Cowboy",
+    "description": "Cowboy hat expression",
+    "message": "Howdy partner!",
+    "score": 9
+  },
+  "🤑": {
+    "title": "Money",
+    "description": "Money loving face",
+    "message": "Show me the money!",
+    "score": 9
+  },
+  "😎": {
+    "title": "Sunglasses",
+    "description": "Cool sunglasses",
+    "message": "Ultra cool!",
+    "score": 10
+  },
+  "🤓": {
+    "title": "Nerd",
+    "description": "Nerdy glasses face",
+    "message": "Embrace your inner nerd!",
+    "score": 8
+  },
+  "🥸": {
+    "title": "Disguised",
+    "description": "Fake nose and glasses",
+    "message": "Great disguise!",
+    "score": 9
+  },
+  "🤥": {
+    "title": "Lying",
+    "description": "Pinocchio liar",
+    "message": "Truth time!",
+    "score": 8
+  },
+  "🤡": {
+    "title": "Clown",
+    "description": "Clown makeup face",
+    "message": "Time to entertain!",
+    "score": 9
+  },
+  "👻": {
+    "title": "Ghost",
+    "description": "Spooky ghost",
+    "message": "Boo!",
+    "score": 9
+  },
+  "💩": {
+    "title": "Poop",
+    "description": "Smiling poop",
+    "message": "Even poop can be happy!",
+    "score": 8
+  },
+  "👽": {
+    "title": "Alien",
+    "description": "Green alien face",
+    "message": "Extraterrestrial visitor!",
+    "score": 9
+  },
+  "🤖": {
+    "title": "Robot",
+    "description": "Robot face",
+    "message": "Beep boop!",
+    "score": 9
+  },
+  "😺": {
+    "title": "Cat Grinning",
+    "description": "Grinning cat face",
+    "message": "Purr-fect!",
+    "score": 8
+  },
+  "😸": {
+    "title": "Cat Happy",
+    "description": "Happy cat",
+    "message": "Cat-titude!",
+    "score": 8
+  },
+  "😹": {
+    "title": "Cat Joy Tears",
+    "description": "Cat laughing with tears",
+    "message": "Laugh like a cat!",
+    "score": 9
+  },
+  "😻": {
+    "title": "Cat Heart Eyes",
+    "description": "Cat with heart eyes",
+    "message": "Cat love!",
+    "score": 9
+  },
+  "😼": {
+    "title": "Cat Smirk",
+    "description": "Smirking cat",
+    "message": "Sly like a cat!",
+    "score": 8
+  },
+  "😽": {
+    "title": "Cat Kissing",
+    "description": "Cat kissing face",
+    "message": "Cat kisses!",
+    "score": 8
+  },
+  "🙀": {
+    "title": "Cat Screaming",
+    "description": "Screaming cat face",
+    "message": "Meow loudly!",
+    "score": 8
+  },
+  "😿": {
+    "title": "Cat Crying",
+    "description": "Crying cat",
+    "message": "Comfort the kitty!",
+    "score": 7
+  },
+  "😾": {
+    "title": "Cat Pouting",
+    "description": "Pouting cat",
+    "message": "Grumpy cat!",
+    "score": 7
+  }
+}

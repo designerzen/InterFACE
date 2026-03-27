@@ -62,7 +62,7 @@ import { createKey, FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from
 import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from '../audio/tuning/chords.js'
 import { 
 	convertNoteNameToMIDINoteNumber, 
-	getNoteText, getNoteName, getNoteSound, getFriendlyNoteName, 
+	getNoteText, chooseNoteNameUsingPercentage as getNoteNameFromPercentage, getNoteSound, getFriendlyNoteName, 
 	NOTES_ALPHABETICAL, 
 	MIDI_NOTE_NUMBERS,
 	GENERAL_MIDI_BY_NAME,
@@ -93,7 +93,6 @@ import { drawMousePressure } from '../dom/mouse-pressure.js'
 import { EmojiDetector } from '../models/emoji-detection.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from '../models/emoji.js'
 
-import { getMusicalDetailsFromEmoji } from '../models/emoji-to-music.js'
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
 import { getCleff, NOTATION, STAVE_SIZES } from '../audio/notation.js'
 import { 
@@ -101,15 +100,17 @@ import {
 	PERSON_TYPE_ARPEGGIO, 
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
 	PERSON_TYPE_CHROMATIC, 
+	PERSON_TYPE_DATA, 
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
 } from "./person.presets.js"
 
+import { STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE } from './person-states.js'
+
 import PersonEvent, {
-	// States for the audio controlled by the face
- 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
 	// Dispatched events that each person creates
  	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
 } from './person-event.js'
+import Achievements from './person-achievements.js'
 
 // used to deliminiate the URL player seperator...
 // you want something that doesn't encode, but that also
@@ -238,8 +239,8 @@ export default class Person extends EventTarget{
 	octave = 4
 
 	// MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS
-	leftFacingKeys = FIFTHS_SCALE_KEYS
-	rightFacingKeys = FIFTHS_SCALE_KEYS
+	leftFacingKeys
+	rightFacingKeys
 
 	pitchBendValue = 1
 
@@ -297,6 +298,8 @@ export default class Person extends EventTarget{
 	eyeBrowsNode	// highpass filter
 	noseNode		// compressor
 
+	personControls
+
 	// these are the mechanisms to control the music
 	// and can be set on a per user basis depending on their input needs
 	// controlMode = convertHeadOrientationIntoNoteData
@@ -308,6 +311,10 @@ export default class Person extends EventTarget{
 	
 	get userMode(){
 		return this.#userMode
+	}
+	
+	get userModeData(){
+		return PERSON_TYPE_DATA[ this.#userMode ]
 	}
 
 	/**
@@ -459,9 +466,10 @@ export default class Person extends EventTarget{
 		return document.querySelector(this.panelID)
 	}
 
-	get faceButton(){
-		return document.getElementById(this.id)
-	}
+	// get faceControls(){
+	// 	return document.getElementById(this.id)
+	// }
+
 
 	/**
 	 * Fetch the instrument name eg. french-horn
@@ -564,7 +572,6 @@ export default class Person extends EventTarget{
 	 * @return {Number}
 	 */
 	get percentageDead(){
-		
 		const percentage = this.deadForDuration / this.options.timeToDie
 		// clamp to 0->1
 		return percentage < 0 ? 0 : percentage > 1 ? 1 : percentage 
@@ -654,7 +661,7 @@ export default class Person extends EventTarget{
 	 */
 	set userMode( mode ){
 		this.#userMode = mode
-		this.dispatchCustomEvent( EVENT_USER_MODE_CHANGED, {mode} )
+		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode} )
 	}
 
 	/**
@@ -679,28 +686,18 @@ export default class Person extends EventTarget{
 
 		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
 		this.debug = this.options.debug
+		this.playerNumber = index
 
 		// ensure that the name is all lower case and kebabed
 		this.id = IDENTIFIERS[index]
 		// this.id = toKebabCase( IDENTIFIERS[index] ?? "person-" + index )
 		this.name = NAMES[index]
 
-		this.playerNumber = index
-
 		if (saveData)
 		{
 			this.importJSONData(saveData)	
 		}
 
-		// HSL Colour scheme that can be overwritten
-		this.setPalette(this.options)
-
-		// probably not neccessary with reverb effect
-		this.precision = Math.pow( 10, parseInt(this.options.precision) )
-		
-		// Create emoji detector for this person
-		this.emojiDetector = new EmojiDetector()
-		
 		this.create()
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
@@ -710,28 +707,45 @@ export default class Person extends EventTarget{
 	 * creation of this Person
 	 */
 	create(){
-
+		
+		// Create emoji detector for this person
+		this.emojiDetector = new EmojiDetector()
 		this.abortController = new AbortController()
-
+		this.achievements = new Achievements()
+		
 		// allow us to record the performances (not the audio)
 		// useful for showing recordings of a person
 		this.parameterRecorder = new ParamaterRecorder()
 		this.isRecordingParameters = this.options.recordData ?? false
 	
+		// probably not neccessary with reverb effect
+		this.precision = Math.pow( 10, parseInt(this.options.precision) )
+
+		// HSL Colour scheme that can be overwritten
+		this.setPalette(this.options)
+
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
 
+		// PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
+		// default props
+		// configurePersonByOperatingMode( this, this.playerNumber )
+
 		// fetch face button dom element and cache
-		this.button = this.faceButton
+		this.personControls = document.getElementById(this.id)
+		
+		this.button = this.personControls.querySelector(".face-button")
+		this.buttonChangeOperatingMode = this.personControls.querySelector(".thoughts-button")
 
 		if (this.button)
 		{
 			// make sure it is visible!
-			this.button.hidden = false
+			this.personControls.hidden = false
 			
 			// force scope
 			this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
 			this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
+			this.onOperatingModeChangeRequested = this.onOperatingModeChangeRequested.bind(this)
 
 			// Face button events
 			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )
@@ -747,6 +761,10 @@ export default class Person extends EventTarget{
 			this.button.addEventListener( 'pointercancel', event => {
 				this.isMouseOver = false
 			}, {signal:this.abortController.signal})
+
+
+			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
+
 
 			this.instrumentLoadedAt = this.now
 		
@@ -785,6 +803,7 @@ export default class Person extends EventTarget{
 		
 		// Reset emoji detector state
 		this.emojiDetector.reset()
+		this.achievements.reset()
 
 		// centralise pan if set
 		if (this.stereoNode)
@@ -804,6 +823,14 @@ export default class Person extends EventTarget{
 	 */
 	destroy(){
 		this.abortController.abort()
+		this.abortController = null
+		
+		this.emojiDetector = null
+		
+		// allow us to record the performances (not the audio)
+		// useful for showing recordings of a person
+		this.parameterRecorder = null
+	
 		// kill instrument and disconnect from graph
 		this.reset()
 	}
@@ -824,7 +851,7 @@ export default class Person extends EventTarget{
 	 * @param {String} type 
 	 * @param {Object} data 
 	 */
-	dispatchCustomEvent(type, data = {}){
+	dispatchPersonEvent(type, data = {}){
 		this.dispatchEvent(new PersonEvent( type, {detail: data}))
 	}
 
@@ -914,7 +941,6 @@ export default class Person extends EventTarget{
 			// overwrite prediction
 		}
 
-	
 		this.eyeDirection = prediction.eyeDirection
 
 		// stereo eye panning
@@ -942,6 +968,7 @@ export default class Person extends EventTarget{
 		// }else{
 		//}
 
+		// AUDIO MODIFIERS USING EXPRESSIONS
 		// eyebrows controls
 		if (this.options.drawEyebrows && this.delayNode)
 		{
@@ -1050,8 +1077,14 @@ export default class Person extends EventTarget{
 
 		if (this.emoticon !== emoticon)
 		{
+			const achivementUnlocked = this.achievements.unlock( emoticon )
+			if (achivementUnlocked)
+			{
+				console.log(`[${this.name}] Achievement Unlocked!: ${this.achievements.score}`)
+			}
+			
 			this.emoticon = emoticon
-			this.dispatchCustomEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
+			this.dispatchPersonEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
 			
 			// Log emotion changes when debug is enabled
 			if (this.debug)
@@ -1160,6 +1193,13 @@ export default class Person extends EventTarget{
 		return options
 	}
 
+	/**
+	 * Move the user control panel over the user's face
+	 * @param {Number} x 
+	 * @param {Number} y 
+	 * @param {Number} width 
+	 * @param {Number} height 
+	 */
 	moveButton(x,y,width,height){
 		if (this.isUserActive)
 		{
@@ -1168,7 +1208,7 @@ export default class Person extends EventTarget{
 			// this.button.style.setProperty(`--${this.id}-y`, topLeft[1] )
 			// this.button.style.setProperty(`--${this.id}-w`, boxWidth )
 			// this.button.style.setProperty(`--${this.id}-h`, boxHeight )			
-			this.button.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};` );
+			requestAnimationFrame( ()=> this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};` ) )
 			// this.button.cssText = `--${this.id}-x:${bottomRight[0]};--${this.id}-y:${topLeft[1]};--${this.id}-w:${boxWidth};--${this.id}-h:${boxHeight};`		
 	}	}
 
@@ -1201,7 +1241,6 @@ export default class Person extends EventTarget{
 		const textX = xMin + halfHeadWidth - 9
 		const textY = Math.max(0, yMin - thirdHeadHeight - 22)
 
-	
 		// draw a background for the text
 		if (showBackground)
 		{
@@ -1294,6 +1333,8 @@ export default class Person extends EventTarget{
 			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
 			const arpeggiated = this.activeInstrument ? this.activeInstrument.arpeggiate : false
 			const activeNoteNumbers = []
+
+			
 			let notesPlaying = 0
 			let extra = this.isLoading ? "Loading..." : ""
 			if (playsChords && !arpeggiated)
@@ -1311,27 +1352,11 @@ export default class Person extends EventTarget{
 				notesPlaying++
 			}
 
-			let style = ""
-			switch (this.userMode)
-			{
-				case PERSON_TYPE_ARPEGGIO:
-					style = "𝆃"
-					break
+			console.log("drawing text", {playsChords,arpeggiated, activeNoteNumbers})
 
-				case PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS:
-					style = "〇"
-					break
-
-				case PERSON_TYPE_CHROMATIC:
-					style = "12"
-					break
-						
-				case PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS:
-				default:
-					style = "⬠"
-					break
-			}
-
+			const personData = this.userModeData
+			let style = personData.name
+		
 			// 
 			const textNotePlaying = this.singing ? 
 				`${this.noteName} ${style} ♫ ${this.noteSound}` : 
@@ -1350,12 +1375,15 @@ export default class Person extends EventTarget{
 			const emojiRotationY = 0.8 + pitch * 0.2 
 			const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
 			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
-
 	
-			display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : "", 10 )			
+			display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
+			// display.drawInstrument(textX, textY - 70, `${this.userModeDescription}`, this.isHighlighted ? "*" : "", 9 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
-	
+			// at the bottom of the text we draw the smiley
+			// draw emoticon but we move it up and down when it looks up and down too
+			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, false )
+		
 			if (this.options.musicTheory)
 			{
 				// visual music mode - so no letters, only musical notes!
@@ -1405,9 +1433,6 @@ export default class Person extends EventTarget{
 
 			// display.drawText( textX, textY - 30, instrumentText, 18, "center", "noto-music'" )
 		
-			// at the bottom of the text we draw the smiley
-			// draw emoticon but we move it up and down when it looks up and down too
-			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, false )
 			
 			if (this.debug )
 			{
@@ -1519,6 +1544,9 @@ export default class Person extends EventTarget{
 		const { afterTouch, pitchBend, isMinor } = noteData
 		let { octaveNumber, newOctave, noteNumber} = noteData
 
+		console.info("note:", noteData)
+
+
 		// to convert the note into circle of fifths...
 		const hasNoteChanged = this.lastNote !== noteNumber
 		// const hasNoteChanged = this.lastNoteName !== noteName
@@ -1529,7 +1557,7 @@ export default class Person extends EventTarget{
 
 		// eg. A1 Ab1 C3 etc
 		// if we want a circle-of-fifths style we can use the scales here
-		let noteName = getNoteName(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
+		let noteName = getNoteNameFromPercentage(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
 
 		// MIDI Note Number 0-127
 		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
@@ -1538,6 +1566,15 @@ export default class Person extends EventTarget{
 		// let noteSound = getNoteSound(noteFloat, isMinor)	
 		let noteSound = getNoteSoundFromNumber(noteNumberForMIDI)	
 		
+
+		console.info("Person plays", {
+			afterTouch, pitchBend, isMinor,
+			octaveNumber, newOctave, 
+			noteNumber,noteNumberForMIDI,
+			noteSound, noteName
+		})
+
+
 		// convert that one note into a chord
 		// const chords = getMusicalDetailsFromEmoji(noteNumberForMIDI, this.emoticon)
 		// const chord = chords.get("major").get(0)
@@ -1891,7 +1928,7 @@ export default class Person extends EventTarget{
 		await this.setupForm()
 
 		// you have to dispatch the event from an element!
-		this.dispatchCustomEvent(EVENT_INSTRUMENT_CHANGED, details )
+		this.dispatchPersonEvent(EVENT_INSTRUMENT_CHANGED, details )
 	}
 
 	/**
@@ -1908,9 +1945,9 @@ export default class Person extends EventTarget{
 		if (method==="loadRandomPreset")
 		{
 			const randomPresetName = getRandomPresetForPerson(this.playerNumber)
-			this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName })
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName })
 			this.activeInstrument = await this.loadPreset( randomPresetName,  null, progressCallback )
-			this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName })
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName })
 			
 			// console.info("Person "+this.playerNumber+" instrument changed", this.activeInstrument )
 		}else{
@@ -1918,7 +1955,7 @@ export default class Person extends EventTarget{
 			// this has lost it's scope...
 			this.activeInstrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
 				progressCallback && progressCallback( progress )
-				this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+				this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
 			} )
 			
 		}
@@ -1933,7 +1970,7 @@ export default class Person extends EventTarget{
 		// this will repopulate the panel with correct data
 		await this.setupForm()
 
-		this.dispatchCustomEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
+		this.dispatchPersonEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
 		return this.activeInstrument
 	}
 
@@ -2029,7 +2066,7 @@ export default class Person extends EventTarget{
 
 		const instrument = await this.activeInstrument.loadPreset(instrumentNameRefined, instrumentPack, progress => {
 			progressCallback && progressCallback( progress )
-			this.dispatchCustomEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
 		} )
 
 		await this.setupInstrumnentForm(details)
@@ -2277,7 +2314,7 @@ export default class Person extends EventTarget{
 	onBirthed(){
 		this.reset()
 		// console.info("Person Birthed", this)
-		this.dispatchCustomEvent(EVENT_PERSON_BORN, { person:this })
+		this.dispatchPersonEvent(EVENT_PERSON_BORN, { person:this })
 	}
 
 
@@ -2293,7 +2330,7 @@ export default class Person extends EventTarget{
 		// console.info("Person Killed at "+this.deadForDuration )
 		this.createdAt = -1
 		this.isUserActive = false
-		this.dispatchCustomEvent(EVENT_PERSON_DEAD, { person:this })
+		this.dispatchPersonEvent(EVENT_PERSON_DEAD, { person:this })
 	}
 
 	/**
@@ -2373,6 +2410,13 @@ export default class Person extends EventTarget{
 		this.mouseHeldAt = this.now
 		// drawMousePressure( 1, this.options.mouseHoldDuration )
 		this.showForm()
+	}
+
+	// the button above a user head was pressed
+	onOperatingModeChangeRequested(){
+		this.userMode++
+		configurePersonByOperatingMode( this, this.userMode )
+		console.info("operating mode updated", this.userMode, this )
 	}
 
 	onInstrumentInput(event) {

@@ -10,7 +10,7 @@ import {
 	STATE_INSTRUMENT_SILENT, 
 	STATE_INSTRUMENT_SUSTAIN,
 	STATE_INSTRUMENT_RELEASE
-} from "../../person.js"
+} from "../../people/person-event.js"
 
 import { INSTRUMENT_TYPE_CHORD } from "../instrument-list.js"
 import { getAllChordsForNoteNumber } from "../tuning/chords.js"
