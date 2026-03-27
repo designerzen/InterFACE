@@ -66,6 +66,7 @@ import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompas
 //import PARTICLE_URI from '../assets/particles/soft-inverted.png'
 import PARTICLE_URI from 'url:../assets/particles/particle.png'
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
+import { BufferGeometry } from 'three'
 
 
 let data = FACE_LANDMARKS_DATA["0"]

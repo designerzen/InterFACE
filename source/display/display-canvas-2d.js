@@ -333,7 +333,7 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	nextFilter(){
 		this.setFilter( this.nextFilterIndex )
-		// console.info("Display filter", this.filter, this.filterDescription )
+		console.info("Display filter", this.filter, this.filterDescription, this.filterModel )
 	}
 
 	/**
