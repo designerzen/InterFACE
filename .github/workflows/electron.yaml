@@ -23,15 +23,15 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.1
         
       - name: Install pnpm
-        uses: pnpm/action-setup@v4.0.0
+        uses: pnpm/action-setup@v4.1.1
         with:
           version: 10
           
       - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4.2.0
+        uses: actions/setup-node@v4.3.0
         with: 
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
@@ -48,7 +48,7 @@ jobs:
         run: pnpm electron:make
         
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v4.3.1
         with: 
           name: photosynth-${{ matrix.os }}-${{ matrix.node-version }}
           path: release
