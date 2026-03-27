@@ -63,7 +63,8 @@ import Person, {
  import { 
  EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
  EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
- EVENT_EMOTION_CHANGED
+ EVENT_EMOTION_CHANGED,
+ EVENT_EMOTION_UNLOCKED
  } from './people/person-event.js'
  
  // TIMING
@@ -841,6 +842,16 @@ export const createInterface = (
 		}
 
 		// the instrument has changed / loaded so show some feedback
+		// person.addEventListener( EVENT_EMOTION_CHANGED,  (event) => {
+			
+		// })
+
+		person.addEventListener( EVENT_EMOTION_UNLOCKED,  (event) => {
+			const {detail} = event.data
+			const {emoticon, person} = detail
+			console.log(`[${person.name}] Achievement ${emoticon} Unlocked!: ${person.achievements.score}`)
+		})
+
 		person.addEventListener( EVENT_PERSON_BORN,  (event) => {
 			const {detail} = event.data
 			// console.info("Person has been born!", detail)

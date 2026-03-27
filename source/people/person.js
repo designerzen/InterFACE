@@ -111,6 +111,7 @@ import { STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUST
 import PersonEvent, {
 	// Dispatched events that each person creates
  	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
+	  EVENT_EMOTION_UNLOCKED,
 } from './person-event.js'
 import Achievements from './person-achievements.js'
 
@@ -1082,7 +1083,8 @@ export default class Person extends EventTarget{
 			const achivementUnlocked = this.achievements.unlock( emoticon )
 			if (achivementUnlocked)
 			{
-				console.log(`[${this.name}] Achievement Unlocked!: ${this.achievements.score}`)
+				// console.log(`[${this.name}] Achievement ${emoticon} Unlocked!: ${this.achievements.score}`)
+				this.dispatchPersonEvent(EVENT_EMOTION_UNLOCKED, { emoticon, person:this })
 			}
 			
 			this.emoticon = emoticon
