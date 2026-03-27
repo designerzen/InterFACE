@@ -4,7 +4,7 @@ import * as EMOTICONS from './emoji.js'
 // ===== CONFIGURATION =====
 // Set to true to use the accurate emoji detection method, false for original
 // Can also use 'smooth' for the new smoothed version
-const USE_ACCURATE_DETECTION = 'smooth'
+const USE_ACCURATE_DETECTION = true
 
 // ===== TEMPORAL SMOOTHING & STABILITY =====
 // Number of consecutive frames before switching to a new emotion (prevents jitter)
@@ -35,7 +35,7 @@ const RAISED_EYEBROW_STABILITY_FRAMES = 8
 const EYEBROW_STABILITY_FRAMES = 6
 
 // Thresholds for accurate emoji detection
-const MOUTH_PUCKER_KISS_THRESHOLD = 0.91
+const MOUTH_PUCKER_KISS_THRESHOLD = 0.98
 const TONGUE_OUT_THRESHOLD = -0.1
 const EYE_VERTICAL_ROLLING_THRESHOLD = -0.1
 const MOUTH_CLOSED_THRESHOLD = 0.1
@@ -64,10 +64,10 @@ const SMIRK_ASYMMETRY_THRESHOLD = 0.1
  * @param {Object} options - configuration options
  * @returns {string} emoji string
  */
-export const recogniseEmoji = (prediction, options) => {
+export const recogniseEmoji = (prediction, options, emotionState) => {
 	// Route to the appropriate implementation
 	if (USE_ACCURATE_DETECTION === true) {
-		return recogniseEmojiFromFaceModelAccurate(prediction, options)
+		return recogniseEmojiFromFaceModelAccurate(prediction, options, emotionState)
 	} else {
 		return recogniseEmojiFromFaceModel(prediction, options)
 	}
@@ -94,7 +94,7 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// Both eyes are closed -----------------------------------------------
 	if (prediction.leftEyeClosed && prediction.rightEyeClosed)
 	{
-		if (prediction.mouthPucker > 0.91)
+		if (prediction.mouthPucker > 0.98)
 		{
 			// check eyebrows....
 			return (prediction.eyebrowsRaisedBy < 0.3) ? 
@@ -129,7 +129,7 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	// Both eyes are open emojis
 	if (!prediction.leftEyeClosed && !prediction.rightEyeClosed)
 	{
-		if (prediction.mouthPucker > 0.91)
+		if (prediction.mouthPucker > 0.98)
 		{
 			return EMOTICONS.EMOJI_KISS
 		}
@@ -352,7 +352,13 @@ export class EmojiDetector {
 		this.frameCount++
 
 		// Get emoji using original logic
-		const currentEmoji = recogniseEmojiFromFaceModel(prediction, options)
+		let currentEmoji = recogniseEmojiFromFaceModel(prediction, options)
+		// const currentEmoji = recogniseEmojiFromFaceModelAccurate(prediction, options, this)
+
+		// Fallback to neutral if detection fails
+		if (!currentEmoji || typeof currentEmoji !== 'string') {
+			currentEmoji = EMOTICONS.EMOJI_NEUTRAL
+		}
 
 		// First frame - initialize
 		if (this.previousEmoji === EMOTICONS.EMOJI_NEUTRAL && this.frameCount === 1) {
@@ -361,13 +367,13 @@ export class EmojiDetector {
 			return currentEmoji
 		}
 
-		// If same emoji as previous, keep it
+		// If same emoji as previous, keep it and increase stability
 		if (currentEmoji === this.previousEmoji) {
-			this.stabilityCounter++
+			this.stabilityCounter = 0  // Reset counter when emoji is confirmed stable
 			return currentEmoji
 		}
 
-		// Different emoji - check if we should switch
+		// Different emoji - check if we should switch based on stability
 		this.stabilityCounter++
 
 		// Different expressions require different stability thresholds to avoid false positives
@@ -389,6 +395,7 @@ export class EmojiDetector {
 			this.previousEmoji = currentEmoji
 			this.previousScores[currentEmoji] = 1.0
 			this.stabilityCounter = 0
+			this.lastSwitchFrame = this.frameCount
 			return currentEmoji
 		}
 
@@ -426,9 +433,10 @@ export class EmojiDetector {
  * Uses composite emotion scoring, temporal smoothing, and stability checks
  * @param {Object} prediction - the ML prediction from mediaPipe 
  * @param {Object} options - configuration options
+ * @param {Object} emotionState - state object tracking emotion changes
  * @param {Object} debugMode - set to true to log prediction values
  */
-export const recogniseEmojiFromFaceModelAccurate = (prediction, options, debugMode = false) => {
+export const recogniseEmojiFromFaceModelAccurate = (prediction, options, emotionState, debugMode = false) => {
 	
 	emotionState.frameCount++
 	
@@ -483,7 +491,7 @@ export const recogniseEmojiFromFaceModelAccurate = (prediction, options, debugMo
 	
 	// ===== MOUTH ANALYSIS =====
 	const mouthOpen = prediction.mouthRatio > mouthCutOff
-	const mouthPuckered = prediction.mouthPucker > MOUTH_PUCKER_KISS_THRESHOLD
+	const mouthPuckered = prediction.mouthPucker !== undefined && prediction.mouthPucker > MOUTH_PUCKER_KISS_THRESHOLD
 	
 	// ===== HAPPINESS ANALYSIS =====
 	const isSad = prediction.happiness <= HAPPINESS_VERY_LOW
@@ -516,14 +524,18 @@ export const recogniseEmojiFromFaceModelAccurate = (prediction, options, debugMo
 	
 	// Kiss detection (high priority when mouth puckered)
 	if (mouthPuckered) {
+		let kissEmoji = EMOTICONS.EMOJI_KISS
+		let kissScore = 0.5  // Lower score to allow other emotions to compete
+		
 		if (eyesClosed) {
-			return eyebrowsRaisedBoth ? EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED : EMOTICONS.EMOJI_KISS_EYES_CLOSED
-		} else if (leftEyeClosed) {
-			return EMOTICONS.EMOJI_KISSING_WINK
-		} else if (rightEyeClosed) {
-			return EMOTICONS.EMOJI_KISSING_WINK
+			kissEmoji = eyebrowsRaisedBoth ? EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED : EMOTICONS.EMOJI_KISS_EYES_CLOSED
+			kissScore = 0.45
+		} else if (leftEyeClosed || rightEyeClosed) {
+			kissEmoji = EMOTICONS.EMOJI_KISSING_WINK
+			kissScore = 0.4
 		}
-		return EMOTICONS.EMOJI_KISS
+		
+		emotionCandidates.push({ emoji: kissEmoji, score: kissScore })
 	}
 	
 	// ===== BOTH EYES CLOSED DETECTION =====
@@ -566,10 +578,10 @@ export const recogniseEmojiFromFaceModelAccurate = (prediction, options, debugMo
 		// ===== PRIORITY 1: SMILE/HAPPINESS (HIGHEST PRIORITY) =====
 		// Strong smile should override almost everything
 		if (prediction.happiness > HAPPINESS_SMILE_THRESHOLD) {
-			let happinessScore = prediction.happiness
+			let happinessScore = Math.min(1, prediction.happiness * SMILE_BOOST_MULTIPLIER * 1.5)  // Boost further
 			
 			// Boost smile score to ensure it dominates over noisy eye detection
-			happinessScore = Math.min(1, happinessScore * SMILE_BOOST_MULTIPLIER)
+			// happinessScore = Math.min(1, happinessScore * SMILE_BOOST_MULTIPLIER)
 			
 			if (mouthOpen) {
 				if (prediction.happiness < HAPPINESS_MEDIUM) {
@@ -590,7 +602,7 @@ export const recogniseEmojiFromFaceModelAccurate = (prediction, options, debugMo
 		// ===== PRIORITY 2: KISS (mouth puckered) =====
 		// Kiss is high priority as it's specific and intentional
 		if (mouthPuckered) {
-			emotionCandidates.push({ emoji: EMOTICONS.EMOJI_KISS, score: 0.95 })
+			emotionCandidates.push({ emoji: EMOTICONS.EMOJI_KISS, score: 0.5 })
 		}
 		
 		// ===== PRIORITY 3: NEGATIVE EMOTIONS =====
