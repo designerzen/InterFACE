@@ -19,10 +19,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checks out this repository using git
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.2.2
 
             # Install pnpm
-            - uses: pnpm/action-setup@v4
+            - uses: pnpm/action-setup@v4.0.0
               name: Install pnpm
               with:
                 run_install: false
@@ -30,7 +30,7 @@ jobs:
 
             # Install node js
             - name: Install Node.js 22+
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v4.2.0
               with:
                 node-version-file: ".nvmrc"
                 cache: pnpm
@@ -82,4 +82,4 @@ jobs:
         steps:
             - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
+              uses: actions/deploy-pages@v4.0.5
