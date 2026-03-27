@@ -55,8 +55,10 @@ export const drawMouthFromSequence = (
  */
 export const drawLip = ( canvasContext, lips, stroke={h:90,s:50,l:50,a:0.6}, fill={h:90,s:50,l:50,a:0.6}, startIndex = 0, endIndex=-1 ) => {
 	
-	const strokeColour = `hsla( ${stroke.h}%, ${stroke.s}%, ${stroke.l}%, ${stroke.a} )`
-	const fillColour = `hsla( ${fill.h}%, ${fill.s}%, ${fill.l}%, ${fill.a} )`
+	const strokeColour = `hsla( ${stroke.h}, ${stroke.s}%, ${stroke.l}%, ${stroke.a} )`
+	const fillColour = `hsla( ${fill.h}, ${fill.s}%, ${fill.l}%, ${fill.a} )`
+	
+	console.log("drawLip colors", { strokeColour, fillColour, stroke, fill, globalAlpha: canvasContext.globalAlpha })
 	
 	// This is fixed at 41
 	const lipsLength = lips.length

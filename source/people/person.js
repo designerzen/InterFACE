@@ -155,7 +155,7 @@ export const getRandomPresetForPerson = (personIndex) => {
 }	 
 
 const createHSLA = (hue, saturation, luminosity, alpha=1) => {
-	return `hsla(${hue%360},${saturation}%,${luminosity}%,${1-alpha})`
+	return `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
 }
 
 export default class Person extends EventTarget{
@@ -1174,9 +1174,10 @@ export default class Person extends EventTarget{
 		// const col = 
 		// options.dots = hue
 		// options.face = `hsla(${hue},${sl},0.8)`
-		options.mouth = createHSLA(hue+30, saturation, luminosity, this.percentageDead ) 
+		options.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${0.1 * (1-this.percentageDead)})`
+		// createHSLA(hue+30, saturation, luminosity, Math.min( 0.2, 0.2 * this.percentageDead) ) 
 		// options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
-		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.9)`
+		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.2)`
 		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
 		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
 		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
@@ -1547,7 +1548,7 @@ export default class Person extends EventTarget{
 		const { afterTouch, pitchBend, isMinor } = noteData
 		let { octaveNumber, newOctave, noteNumber} = noteData
 
-		console.info("note:", noteData)
+		// console.info("note:", noteData)
 
 
 		// to convert the note into circle of fifths...
@@ -1570,12 +1571,12 @@ export default class Person extends EventTarget{
 		let noteSound = getNoteSoundFromNumber(noteNumberForMIDI)	
 		
 
-		console.info("Person plays", {
-			afterTouch, pitchBend, isMinor,
-			octaveNumber, newOctave, 
-			noteNumber,noteNumberForMIDI,
-			noteSound, noteName
-		})
+		// console.info("Person plays", {
+		// 	afterTouch, pitchBend, isMinor,
+		// 	octaveNumber, newOctave, 
+		// 	noteNumber,noteNumberForMIDI,
+		// 	noteSound, noteName
+		// })
 
 
 		// convert that one note into a chord
