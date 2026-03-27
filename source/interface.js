@@ -1354,7 +1354,12 @@ export const createInterface = (
 			display = null
 		}
 
-		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop, {autoStart:false})
+		const displayOptions = {
+			autoStart:false,
+			geometrySubdivisions: stateMachine.set( "divisions" )
+		}
+
+		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop, displayOptions)
 		
 		// cache existing
 		canvasVideoElement = display.canvas
