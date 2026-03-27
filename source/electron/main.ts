@@ -4,11 +4,14 @@
 import path from 'node:path'
 import url from 'node:url'
 import { writeFile } from 'node:fs'
+
 import windowStateKeeper from 'electron-window-state'
 import electron from 'electron'
-import { app, protocol, shell, BrowserWindow,  session, dialog, ipcMain, nativeTheme, desktopCapturer } from 'electron'
+import { app, BrowserWindow, Tray, Menu, nativeTheme, nativeImage, desktopCapturer, session, dialog, protocol, shell, ipcMain, systemPreferences } from 'electron'
+
 import { autoUpdater } from "electron-updater"
 import { nativeImage } from 'electron/common'
+
 import log from 'electron-log'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import { isElectronDevMode } from './electron-utils.ts'
@@ -52,7 +55,6 @@ if (!app.requestSingleInstanceLock())
 	quit()
 }
 
-
 //-------------------------------------------------------------------
 // Logging
 //
@@ -90,6 +92,9 @@ function recordWindow(){
 }
 
 
+/**
+ * 
+ */
 function createWindow() {
 
 	let interval
@@ -233,16 +238,16 @@ function createWindow() {
 
 		
 	ipcMain.handle('dark-mode:toggle', () => {
-	if (nativeTheme.shouldUseDarkColors) {
-		nativeTheme.themeSource = 'light'
-	} else {
-		nativeTheme.themeSource = 'dark'
-	}
-	return nativeTheme.shouldUseDarkColors
+		if (nativeTheme.shouldUseDarkColors) {
+			nativeTheme.themeSource = 'light'
+		} else {
+			nativeTheme.themeSource = 'dark'
+		}
+		return nativeTheme.shouldUseDarkColors
 	})
 
 	ipcMain.handle('dark-mode:system', () => {
-	nativeTheme.themeSource = 'system'
+		nativeTheme.themeSource = 'system'
 	})
 /*
 	// Extra app goodies
@@ -367,6 +372,42 @@ function createWindow() {
 }
 
 
+// If there is already a window on screen,
+// we should focus the existing one rather than
+// creating a new one each time
+function focusOrCreateMainWindow() {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow()
+    return
+  }
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    // On Linux/Wayland, focus() often doesn't take effect (compositor ignores it). Apps like Telegram
+    // work because they receive an XDG activation token via StatusNotifierItem.ProvideXdgActivationToken;
+    // Electron's tray doesn't handle that yet. Workaround: destroy and recreate the HUD so the new
+    // window gets focus (creation path works). Only for HUD, not editor.
+    if (process.platform === 'linux' && !mainWindow.isFocused() ) {
+      const win = mainWindow
+      mainWindow = null
+      win.once('closed', () => focusOrCreateMainWindow())
+      win.destroy()
+      return
+    }
+
+	// Show existing!
+    mainWindow.show()
+    if (mainWindow.isMinimized())
+	{ 
+		mainWindow.restore()
+	}
+    mainWindow.moveTop()
+    mainWindow.focus()
+  }
+}
+
+
+
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -377,7 +418,7 @@ app.whenReady().then(() => {
 
 	if (mainWindow === null) 
 	{
-		createWindow()
+		focusOrCreateMainWindow()
 	}
 
 	// Default open or close DevTools by F12 in development
@@ -392,11 +433,22 @@ app.whenReady().then(() => {
 		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0)
 		{
-			createWindow()
+			focusOrCreateMainWindow()
 		} else{
 			console.error("Not opening a browser window as one already open")
 		}
 	})
+
+	app.on('activate', () => {
+		// On OS X it's common to re-create a window in the app when the
+		// dock icon is clicked and there are no other windows open.
+		focusOrCreateMainWindow()
+	})
+
+	app.on('second-instance', () => {
+		focusOrCreateMainWindow()
+	})
+
 })
 
 
@@ -417,10 +469,6 @@ app.on('web-contents-created', function(event,contents) {
 app.on('window-all-closed', function () {
 	if (process.platform !== 'darwin') quit()
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
 
 // Exit cleanly on request from parent process in development mode.
 // Only do these things when in development
