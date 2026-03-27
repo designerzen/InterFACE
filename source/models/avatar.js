@@ -105,10 +105,19 @@ export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor =
 	const geometry = new BufferGeometry()
 	const positions = new Float32Array( quantity * 3 )
 	const scales = new Float32Array( quantity )
+	const colors = new Float32Array( quantity * 3 )
 	
 	arrangeFaceData(keypointData, positions, scales,scaleFactor)
 	geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) )
 	geometry.setAttribute( 'scale', new Float32BufferAttribute( scales, 1 ) )
+	
+	// Initialize colors to white
+	for (let i = 0; i < colors.length; i += 3) {
+		colors[i] = 1
+		colors[i + 1] = 1
+		colors[i + 2] = 1
+	}
+	geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) )
 	
 	const paths = FaceLandmarker.FACE_LANDMARKS_TESSELATION
 

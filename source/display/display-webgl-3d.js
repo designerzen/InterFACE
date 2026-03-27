@@ -6,8 +6,6 @@ import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_WEB_GL_3D } from "./display-types.js"
 import { TAU } from "../maths/maths.js"
 
-
-
 import { preload3dFont } from '../visual/3d.fonts.js'
 
 import { unloadModel } from '../models/avatars.js'
@@ -147,6 +145,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	mouseY = 0
 
 	count = 0
+	
+	particleColorHelper = new Color()
 
 	get depth(){
 		return 100
@@ -697,6 +697,23 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	* Create Particles and layout in a 2d grid
 	* @param {Number} quantity 
 	*/
+	setParticleColorsFromHSL(hue, saturation = 0.6, lightness = 0.6) {
+		if (!this.particles || !this.particles.geometry.attributes.color) return
+		
+		const colors = this.particles.geometry.attributes.color.array
+		
+		// Set all particles to the same HSL color
+		this.particleColorHelper.setHSL(hue, saturation, lightness)
+		
+		for (let i = 0; i < colors.length; i += 3) {
+			colors[i] = this.particleColorHelper.r
+			colors[i + 1] = this.particleColorHelper.g
+			colors[i + 2] = this.particleColorHelper.b
+		}
+		
+		this.particles.geometry.attributes.color.needsUpdate = true
+	}
+
 	async createParticles ( geometry, quantity=478, size=0.01, color=0xefefef88, opacity=1 ) { 
 
 		return new Promise((resolve,reject) => {
@@ -729,9 +746,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					transparent : true,  
 					opacity,
 					depthTest: true,
-					
+					vertexColors: true
 					// depthWrite: false,
-					// vertexColors: true
 				}
 			
 
@@ -926,6 +942,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					// this.exposure = 0.4 // + this.count % 1.3
 					this.faceMesh.material.color.setHSL( hue, 0.5, Math.min( 1, this.mouseY * 0.5 + 0.5)  ) 
 				}
+			}else{
+				console.info("No material to recolour", hue)
 			}
 		}
 		
@@ -939,7 +957,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				
 			// console.info("drawPerson", person, prediction )
 			this.arrangeParticles( prediction, 1)
-			this.particles.material.color.setHSL( Math.abs(hue/360),0.6, 0.6 ) 
+			this.setParticleColorsFromHSL( Math.abs(hue/360), 0.6, 0.6 )
 		
 			// if singing project some bubbles out of the mouth!
 			if (prediction.isMouthOpen)
@@ -971,7 +989,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				throatPoint.z -= 0.5
 				throatPoint.y -= 0.0001
 		
-				this.particles.material.color.setHSL( hue, 0.7, 0.9 ) 
+				this.setParticleColorsFromHSL( hue, 0.7, 0.9 ) 
 				
 				// this.tracker.geometry.attributes.position.setXYZ(0, throatPoint.x, throatPoint.y, throatPoint.z)
 				// this.tracker.geometry.attributes.position.setXYZ(1, mouthCenterPoint.x, mouthCenterPoint.y, mouthCenterPoint.z)
