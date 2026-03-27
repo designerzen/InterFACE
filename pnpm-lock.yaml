@@ -12,38 +12,38 @@ importers:
         specifier: ^5.20.0
         version: 5.20.0
       '@babylonjs/core':
-        specifier: ^8.56.1
-        version: 8.56.1
+        specifier: ^9.0.0
+        version: 9.0.0
       '@babylonjs/gui-editor':
-        specifier: ^8.56.1
-        version: 8.56.1(@babylonjs/core@8.56.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.56.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+        specifier: ^9.0.0
+        version: 9.0.0(@babylonjs/core@9.0.0)(@babylonjs/gui@8.33.0(@babylonjs/core@9.0.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
       '@babylonjs/havok':
         specifier: ^1.3.12
         version: 1.3.12
       '@babylonjs/inspector':
-        specifier: ^8.56.1
-        version: 8.56.1(38ce10e424fe2193abd59e36d3db458b)
+        specifier: ^9.0.0
+        version: 9.0.0(387d95b1599f5794b13d7e3385b91d0e)
       '@babylonjs/loaders':
-        specifier: ^8.56.1
-        version: 8.56.1(@babylonjs/core@8.56.1)(babylonjs-gltf2interface@8.33.0)
+        specifier: ^9.0.0
+        version: 9.0.0(@babylonjs/core@9.0.0)(babylonjs-gltf2interface@8.33.0)
       '@babylonjs/materials':
-        specifier: ^8.56.1
-        version: 8.56.1(@babylonjs/core@8.56.1)
+        specifier: ^9.0.0
+        version: 9.0.0(@babylonjs/core@9.0.0)
       '@capacitor/android':
-        specifier: ^8.2.0
-        version: 8.2.0(@capacitor/core@8.2.0)
+        specifier: ^8.3.0
+        version: 8.3.0(@capacitor/core@8.3.0)
       '@capacitor/core':
-        specifier: ^8.2.0
-        version: 8.2.0
+        specifier: ^8.3.0
+        version: 8.3.0
       '@capacitor/electron':
         specifier: ^2.5.0
         version: 2.5.0
       '@capacitor/ios':
-        specifier: ^8.2.0
-        version: 8.2.0(@capacitor/core@8.2.0)
+        specifier: ^8.3.0
+        version: 8.3.0(@capacitor/core@8.3.0)
       '@electron-toolkit/utils':
         specifier: ^4.0.0
-        version: 4.0.0(electron@41.0.3)
+        version: 4.0.0(electron@41.1.0)
       '@grame/faustwasm':
         specifier: ^0.15.7
         version: 0.15.7
@@ -87,8 +87,8 @@ importers:
         specifier: ^6.6.2
         version: 6.6.2
       audio-decode:
-        specifier: ^3.3.0
-        version: 3.3.0
+        specifier: ^3.5.0
+        version: 3.5.0
       audioworklet-polyfill:
         specifier: ^1.1.2
         version: 1.1.2
@@ -183,8 +183,8 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5
       uWebSockets.js:
-        specifier: github:uNetworking/uWebSockets.js#v20.60.0
-        version: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a80dda2d22ba32cf174ef78cc8d743e910a9be21
+        specifier: github:uNetworking/uWebSockets.js#v20.61.0
+        version: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cf2e4a85cc7b600ffa5a0729249bc3907e58c89a
       update-electron-app:
         specifier: ^3.1.2
         version: 3.1.2
@@ -225,8 +225,8 @@ importers:
         specifier: ^7.4.0
         version: 7.4.0
       ws:
-        specifier: ^8.19.0
-        version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
+        specifier: ^8.20.0
+        version: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
     devDependencies:
       '@babel/core':
         specifier: ^7.29.0
@@ -235,17 +235,17 @@ importers:
         specifier: ^7.29.2
         version: 7.29.2(@babel/core@7.29.0)
       '@biomejs/biome':
-        specifier: ^2.4.8
-        version: 2.4.8
+        specifier: ^2.4.9
+        version: 2.4.9
       '@bubblewrap/cli':
         specifier: ^1.24.1
         version: 1.24.1(@types/node@25.5.0)(encoding@0.1.13)
       '@capacitor/assets':
         specifier: ^3.0.5
-        version: 3.0.5(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(encoding@0.1.13)(typescript@5.9.3)
+        version: 3.0.5(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(encoding@0.1.13)(typescript@6.0.2)
       '@capacitor/cli':
-        specifier: ^8.2.0
-        version: 8.2.0
+        specifier: ^8.3.0
+        version: 8.3.0
       '@electron-forge/cli':
         specifier: ^7.11.1
         version: 7.11.1(@swc/core@1.13.5(@swc/helpers@0.5.17))(encoding@0.1.13)
@@ -355,8 +355,8 @@ importers:
         specifier: ^5.7.0
         version: 5.7.0
       electron:
-        specifier: ^41.0.3
-        version: 41.0.3
+        specifier: ^41.1.0
+        version: 41.1.0
       electron-builder:
         specifier: ^26.8.1
         version: 26.8.1(electron-builder-squirrel-windows@26.0.12)
@@ -380,7 +380,7 @@ importers:
         version: 1.8.0
       jest:
         specifier: ^30.3.0
-        version: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))
+        version: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))
       jest-environment-jsdom:
         specifier: 30.3.0
         version: 30.3.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
@@ -391,8 +391,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       knip:
-        specifier: ^6.0.1
-        version: 6.0.1
+        specifier: ^6.0.6
+        version: 6.0.6
       midible:
         specifier: ^0.1.10
         version: 0.1.10
@@ -439,8 +439,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.2
+        version: 6.0.2
       util:
         specifier: ^0.12.5
         version: 0.12.5
@@ -471,6 +471,9 @@ packages:
   '@audio/caf-decode@1.0.0':
     resolution: {integrity: sha512-CwvgCA+rm3rI5e811R5cBjl1DYB4+6BiNNUucwWrU2XSX3eiP+H2Tfn5CsBc/IE8+OXzbzkV8YoDuyX9+3UDyQ==}
     engines: {node: '>=16'}
+
+  '@audio/wav-decode@1.0.0':
+    resolution: {integrity: sha512-yscdQDWWUg88ntVqrMP5/GFUW7t/s3W9q1s2m37lL5ZOSHHoS9XK3VfTWtuW6yKRlIVF8xteGH9DHBzpmegT3A==}
 
   '@audio/webm-decode@1.0.0':
     resolution: {integrity: sha512-gie0sXNwbi7H5zVfdeKmAsARIqesXC9iVuPY77tkHA+iemOEbs+Q+pnYK/38YaDPNhByPdP47Ao90FHLlMJ6xg==}
@@ -1107,14 +1110,14 @@ packages:
     resolution: {integrity: sha512-a6Mm519h9XtXg8Of0qC+DmwWp+jcolZv+Z/LSG+b/8Fh7kS3gFjHXctKSrln2zMiTxcbYfeBqtOUpGtlV8F2bA==}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
-  '@babylonjs/core@8.56.1':
-    resolution: {integrity: sha512-oy/wnZifTdNnE4zMIyo8AKF7sYX/HpQjCbAuU18vDqwV4vyD73p0BKEfxsCR17G/p1zGAyaJgsw23gYvY1empg==}
+  '@babylonjs/core@9.0.0':
+    resolution: {integrity: sha512-Y4xbHFUw28X4EC5C7NOSzPCOaenxZQgztCB1QZ64y0C85FjZaq5DfWd6gy+EUYklbigmcMIFzCpLj78Wc8EwVw==}
 
-  '@babylonjs/gui-editor@8.56.1':
-    resolution: {integrity: sha512-nzCQ10x0xr0s2iyndAECTcUN6qHwIK1Iv40fjl3qRaGnZxKlje1esefoP88YZKfPCl9JAYSuVbQm3yOKdAf4OQ==}
+  '@babylonjs/gui-editor@9.0.0':
+    resolution: {integrity: sha512-uUyTj1JEhAenprj3s+BRRm5GhCgpsEJGaV+93tOCCVugeB5TjsR8mTgevhDhpDwUCMN0bVJLhsh+hpmWzqZxEw==}
     peerDependencies:
-      '@babylonjs/core': ^8.0.0
-      '@babylonjs/gui': ^8.0.0
+      '@babylonjs/core': ^9.0.0
+      '@babylonjs/gui': ^9.0.0
       '@types/react': '>=16.7.3'
       '@types/react-dom': '>=16.0.9'
 
@@ -1126,16 +1129,16 @@ packages:
   '@babylonjs/havok@1.3.12':
     resolution: {integrity: sha512-KR5Z7DBkVEgdvHLMDh2VWe/nHvUG8+MdLBiAE0iM19KIHAPqPRVITPAZKx4SQusK5nqm4ZXDcKv5OYtViIxLzA==}
 
-  '@babylonjs/inspector@8.56.1':
-    resolution: {integrity: sha512-XSBXfrT2ucIG820TEI9gZgxhUZq6NAwhYjU6rQMwUv3g8kvd+w6XGCaJ4ZrCKGSUT8xFu1PTNAoVTSHEwjSesw==}
+  '@babylonjs/inspector@9.0.0':
+    resolution: {integrity: sha512-xZvRP4LWehg66K2489Fc/63U/pE5qIhccdDLDcywAlhIIYBKJNksWO9zK9EdHzPINFItTDo+a30ldZE0JX5S+g==}
     peerDependencies:
-      '@babylonjs/addons': ^8.0.0
-      '@babylonjs/core': ^8.0.0
-      '@babylonjs/gui': ^8.0.0
-      '@babylonjs/gui-editor': ^8.0.0
-      '@babylonjs/loaders': ^8.0.0
-      '@babylonjs/materials': ^8.0.0
-      '@babylonjs/serializers': ^8.0.0
+      '@babylonjs/addons': ^9.0.0
+      '@babylonjs/core': ^9.0.0
+      '@babylonjs/gui': ^9.0.0
+      '@babylonjs/gui-editor': ^9.0.0
+      '@babylonjs/loaders': ^9.0.0
+      '@babylonjs/materials': ^9.0.0
+      '@babylonjs/serializers': ^9.0.0
       '@fluentui-contrib/react-virtualizer': ^1.0.0
       '@fluentui/react-components': ^9.70.0
       '@fluentui/react-icons': ^2.0.310
@@ -1143,16 +1146,16 @@ packages:
       react-dom: '>=16.14.0 <20.0.0'
       usehooks-ts: ^3.1.1
 
-  '@babylonjs/loaders@8.56.1':
-    resolution: {integrity: sha512-10zdyCjg02XXOK2bNLjpNbT/I1mgaV9sw20cyb1CojEdUEji8SqqUY2Xw1VIlb8fud/0WYQceVNCK8zk9SKT4g==}
+  '@babylonjs/loaders@9.0.0':
+    resolution: {integrity: sha512-zK8Mh5DmYOj6QILV1ljaEwNqSIxwPLKxFD0U6U8c9x5RbjcMGC0X5KUT05FIVr8tcZI2XCJp6LOd00Xj2NXPIA==}
     peerDependencies:
-      '@babylonjs/core': ^8.0.0
-      babylonjs-gltf2interface: ^8.0.0
+      '@babylonjs/core': ^9.0.0
+      babylonjs-gltf2interface: ^9.0.0
 
-  '@babylonjs/materials@8.56.1':
-    resolution: {integrity: sha512-WJIF7E1PhCvAhDQsSutaso8z/r++uMzQylyMYt5vcrZA/Ppefn5PUMIKbpc5vgwTbWswsQvsc2VqEqYX4ql1Mw==}
+  '@babylonjs/materials@9.0.0':
+    resolution: {integrity: sha512-wATGzT/IQZ9/h9VhjgrZt8W59ZWXZ/mEZdCP2zHdopz3fqKP3gpJlbGt8UpAQUQF6XFKJrGuzVe7Vesrg36vyw==}
     peerDependencies:
-      '@babylonjs/core': ^8.6.0
+      '@babylonjs/core': ^9.0.0
 
   '@babylonjs/serializers@8.33.0':
     resolution: {integrity: sha512-Yx+k010Z2JeeaShUfT7iAyrfgNgR7boygQ1mUc7UK9GTR5AaSZoK2ZycUtSjQpHR/S2TU0rdD5o/eNTxjJlV+A==}
@@ -1163,59 +1166,59 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@biomejs/biome@2.4.8':
-    resolution: {integrity: sha512-ponn0oKOky1oRXBV+rlSaUlixUxf1aZvWC19Z41zBfUOUesthrQqL3OtiAlSB1EjFjyWpn98Q64DHelhA6jNlA==}
+  '@biomejs/biome@2.4.9':
+    resolution: {integrity: sha512-wvZW92FrwitTcacvCBT8xdAbfbxWfDLwjYMmU3djjqQTh7Ni4ZdiWIT/x5VcZ+RQuxiKzIOzi5D+dcyJDFZMsA==}
     engines: {node: '>=14.21.3'}
     hasBin: true
 
-  '@biomejs/cli-darwin-arm64@2.4.8':
-    resolution: {integrity: sha512-ARx0tECE8I7S2C2yjnWYLNbBdDoPdq3oyNLhMglmuctThwUsuzFWRKrHmIGwIRWKz0Mat9DuzLEDp52hGnrxGQ==}
+  '@biomejs/cli-darwin-arm64@2.4.9':
+    resolution: {integrity: sha512-d5G8Gf2RpH5pYwiHLPA+UpG3G9TLQu4WM+VK6sfL7K68AmhcEQ9r+nkj/DvR/GYhYox6twsHUtmWWWIKfcfQQA==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [darwin]
 
-  '@biomejs/cli-darwin-x64@2.4.8':
-    resolution: {integrity: sha512-Jg9/PsB9vDCJlANE8uhG7qDhb5w0Ix69D7XIIc8IfZPUoiPrbLm33k2Ig3NOJ/7nb3UbesFz3D1aDKm9DvzjhQ==}
+  '@biomejs/cli-darwin-x64@2.4.9':
+    resolution: {integrity: sha512-LNCLNgqDMG7BLdc3a8aY/dwKPK7+R8/JXJoXjCvZh2gx8KseqBdFDKbhrr7HCWF8SzNhbTaALhTBoh/I6rf9lA==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [darwin]
 
-  '@biomejs/cli-linux-arm64-musl@2.4.8':
-    resolution: {integrity: sha512-Zo9OhBQDJ3IBGPlqHiTISloo5H0+FBIpemqIJdW/0edJ+gEcLR+MZeZozcUyz3o1nXkVA7++DdRKQT0599j9jA==}
+  '@biomejs/cli-linux-arm64-musl@2.4.9':
+    resolution: {integrity: sha512-8RCww5xnPn2wpK4L/QDGDOW0dq80uVWfppPxHIUg6mOs9B6gRmqPp32h1Ls3T8GnW8Wo5A8u7vpTwz4fExN+sw==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@biomejs/cli-linux-arm64@2.4.8':
-    resolution: {integrity: sha512-5CdrsJct76XG2hpKFwXnEtlT1p+4g4yV+XvvwBpzKsTNLO9c6iLlAxwcae2BJ7ekPGWjNGw9j09T5KGPKKxQig==}
+  '@biomejs/cli-linux-arm64@2.4.9':
+    resolution: {integrity: sha512-4adnkAUi6K4C/emPRgYznMOcLlUqZdXWM6aIui4VP4LraE764g6Q4YguygnAUoxKjKIXIWPteKMgRbN0wsgwcg==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@biomejs/cli-linux-x64-musl@2.4.8':
-    resolution: {integrity: sha512-Gi8quv8MEuDdKaPFtS2XjEnMqODPsRg6POT6KhoP+VrkNb+T2ywunVB+TvOU0LX1jAZzfBr+3V1mIbBhzAMKvw==}
+  '@biomejs/cli-linux-x64-musl@2.4.9':
+    resolution: {integrity: sha512-5TD+WS9v5vzXKzjetF0hgoaNFHMcpQeBUwKKVi3JbG1e9UCrFuUK3Gt185fyTzvRdwYkJJEMqglRPjmesmVv4A==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@biomejs/cli-linux-x64@2.4.8':
-    resolution: {integrity: sha512-PdKXspVEaMCQLjtZCn6vfSck/li4KX9KGwSDbZdgIqlrizJ2MnMcE3TvHa2tVfXNmbjMikzcfJpuPWH695yJrw==}
+  '@biomejs/cli-linux-x64@2.4.9':
+    resolution: {integrity: sha512-L10na7POF0Ks/cgLFNF1ZvIe+X4onLkTi5oP9hY+Rh60Q+7fWzKDDCeGyiHUFf1nGIa9dQOOUPGe2MyYg8nMSQ==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@biomejs/cli-win32-arm64@2.4.8':
-    resolution: {integrity: sha512-LoFatS0tnHv6KkCVpIy3qZCih+MxUMvdYiPWLHRri7mhi2vyOOs8OrbZBcLTUEWCS+ktO72nZMy4F96oMhkOHQ==}
+  '@biomejs/cli-win32-arm64@2.4.9':
+    resolution: {integrity: sha512-aDZr0RBC3sMGJOU10BvG7eZIlWLK/i51HRIfScE2lVhfts2dQTreowLiJJd+UYg/tHKxS470IbzpuKmd0MiD6g==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [win32]
 
-  '@biomejs/cli-win32-x64@2.4.8':
-    resolution: {integrity: sha512-vAn7iXDoUbqFXqVocuq1sMYAd33p8+mmurqJkWl6CtIhobd/O6moe4rY5AJvzbunn/qZCdiDVcveqtkFh1e7Hg==}
+  '@biomejs/cli-win32-x64@2.4.9':
+    resolution: {integrity: sha512-NS4g/2G9SoQ4ktKtz31pvyc/rmgzlcIDCGU/zWbmHJAqx6gcRj2gj5Q/guXhoWTzCUaQZDIqiCQXHS7BcGYc0w==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
@@ -1233,10 +1236,10 @@ packages:
     resolution: {integrity: sha512-i1sR9v1yYPBNnNLoviGfD5iO+FzZiMTSmBwhBrA8rfg8YcvXwF/HY2Nvk3yoa6WCJ1tZDYLhS77RLzbwXrUuaQ==}
     engines: {node: '>=14.15.0'}
 
-  '@capacitor/android@8.2.0':
-    resolution: {integrity: sha512-XLm5OsWLPfXQxDxzFS7SOdMEgGvW+2c7TGLXkTR2cSKdkWK5Abns4imlT5qghKYhjM9r74IrDkBWg/9ALUGNKQ==}
+  '@capacitor/android@8.3.0':
+    resolution: {integrity: sha512-EQy6ByUuKayQBJmMm/e0byJiHavqsQHrvW23BuT2GNVQvenAvipqwaePiJHzrv2PZr7A0T0+se4kgDCeROj0mQ==}
     peerDependencies:
-      '@capacitor/core': ^8.2.0
+      '@capacitor/core': ^8.3.0
 
   '@capacitor/assets@3.0.5':
     resolution: {integrity: sha512-ohz/OUq61Y1Fc6aVSt0uDrUdeOA7oTH4pkWDbv/8I3UrPjH7oPkzYhShuDRUjekNp9RBi198VSFdt0CetpEOzw==}
@@ -1248,24 +1251,24 @@ packages:
     engines: {node: '>=16.0.0'}
     hasBin: true
 
-  '@capacitor/cli@8.2.0':
-    resolution: {integrity: sha512-1cMEk0d/I6tl1U+v/lnJR5Oylpx8ZBIHrvQxD5zK0MkjYOUyQAAGJgh97rkhGJqjAUvrGpa8H4BmyhNQN9a17A==}
+  '@capacitor/cli@8.3.0':
+    resolution: {integrity: sha512-n3QDUimtFNbagoo8kLdjvTz3i3Y4jX1fOjvo6ptUKLzErmuqeamL8kECASoyQvg/OzJisZToGZrgLphBsptJcw==}
     engines: {node: '>=22.0.0'}
     hasBin: true
 
   '@capacitor/core@2.5.0':
     resolution: {integrity: sha512-WUkUnqqLtlEYn6tly8t6VR0ABlSVbXdlD/gBbYxx0P+gEqMF9b46uYb2YqyH+8HBDANzTweEySpLfhiSUvYS7w==}
 
-  '@capacitor/core@8.2.0':
-    resolution: {integrity: sha512-oKaoNeNtH2iIZMDFVrb1atoyRECDGHcfLMunJ5KWN8DtvpVBeeA4c41e20NTuhMxw1cSYbpq2PV2hb+/9CJxlQ==}
+  '@capacitor/core@8.3.0':
+    resolution: {integrity: sha512-S4ajn4G/fS3VJj8salxqH/3LO5PPWv1VxGKQ27OCajnDcLJjEg9VXwgMPnlypgkIOqCJ2fmQLtk8GT+BlI9/rw==}
 
   '@capacitor/electron@2.5.0':
     resolution: {integrity: sha512-8f3vC3nGr8yUGDEf115KxbonbaZjHsNmvxtPLvZRNeT1mmDewqjHyh4wnRd2r5RgjGHFvkfrL7wRV8oGcjjRLQ==}
 
-  '@capacitor/ios@8.2.0':
-    resolution: {integrity: sha512-X2/VtM4qP/R1SM0VQ5W/VotEc6PS/KTooD33EijsfAHWBdee+xmBapW8SeNLnu16wJ+tsfWlvtipaJEyfKbRKQ==}
+  '@capacitor/ios@8.3.0':
+    resolution: {integrity: sha512-5Rtwv8SITKlYTt8lAZG+khnVIdzPtqbocH3eP+JkEmX1vpSMwx4TOKtT8OBz8gpQ+pUJDRp7DBYOv3U6l/obCw==}
     peerDependencies:
-      '@capacitor/core': ^8.2.0
+      '@capacitor/core': ^8.3.0
 
   '@cloudflare/workerd-darwin-64@1.20240718.0':
     resolution: {integrity: sha512-BsPZcSCgoGnufog2GIgdPuiKicYTNyO/Dp++HbpLRH+yQdX3x4aWx83M+a0suTl1xv76dO4g9aw7SIB6OSgIyQ==}
@@ -5237,8 +5240,8 @@ packages:
     resolution: {integrity: sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==}
     engines: {node: '>= 4.0.0'}
 
-  audio-decode@3.3.0:
-    resolution: {integrity: sha512-03xfByMOjjGeD21fMulUDT4LdDV8MFzGs1PH49eEB6N7nVHpRQToL/5+GhUHQXzanzWQeqwHoFShvhLqf554uQ==}
+  audio-decode@3.5.0:
+    resolution: {integrity: sha512-G9McWH9V4ONGuEKKp4QQWDgZpMGu+mcmZ5wDPTTjgIkse7SObPdngyq7E/8IC49VRUloYqP3nW198tR7ndw2Cg==}
 
   audio-type@2.4.0:
     resolution: {integrity: sha512-ugYMgxLpH6gyWUhFWFl2HCJboFL5z/GoqSdonx8ZycfNP8JDHBhRNzYWzrCRa/6htOWfvJAq7qpRloxvx06sRA==}
@@ -6353,8 +6356,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@41.0.3:
-    resolution: {integrity: sha512-IDjx8liW1q+r7+MOip5W1Eo1eMwJzVObmYrd9yz2dPCkS7XlgLq3qPVMR80TpiROFp73iY30kTzMdpA6fEVs3A==}
+  electron@41.1.0:
+    resolution: {integrity: sha512-0XRFyxRqetmqtkkBvV++wGbHYJ7bD++f6EgJW8y9kX4pPRagwlmKDtzqXZhKiu0DIQppm3sXxzHWK9GYP91OKQ==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -6877,8 +6880,8 @@ packages:
     resolution: {integrity: sha512-kVCxPF3vQM/N0B1PmoqVUqgHP+EeVjmZSQn+1oCRPxd2P21P2F19lIgbR3HBosbB1PUhOAoctJnfEn2GbN2eZA==}
     engines: {node: '>=18'}
 
-  get-tsconfig@4.13.6:
-    resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
+  get-tsconfig@4.13.7:
+    resolution: {integrity: sha512-7tN6rFgBlMgpBML5j8typ92BKFi2sFQvIdpAqLA2beia5avZDrMs0FLZiM5etShWq5irVyGcGMEA1jcDaK7A/Q==}
 
   getpass@0.1.7:
     resolution: {integrity: sha512-0fzj9JxOLfJ+XGLhR8ze3unN0KZCgZwiSSDz168VERjK8Wl8kVSdcu2kspd4s4wtAa1y/qrVRiAA0WclVsu0ng==}
@@ -7798,8 +7801,8 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  knip@6.0.1:
-    resolution: {integrity: sha512-qk5m+w6IYEqfRG5546DXZJYl5AXsgFfDD6ULaDvkubqNtLye79sokBg3usURrWFjASMeQtvX19TfldU3jHkMNA==}
+  knip@6.0.6:
+    resolution: {integrity: sha512-PA+r1mTDLHH3eShlffn2ZDyH1hHvmgDj7JsTP3JKuhV/jZTyHbRkGcOd+uaSxfJZmcZyOE5zw3naP33WllTIlA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
@@ -10331,9 +10334,14 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a80dda2d22ba32cf174ef78cc8d743e910a9be21:
-    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a80dda2d22ba32cf174ef78cc8d743e910a9be21}
-    version: 20.60.0
+  typescript@6.0.2:
+    resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cf2e4a85cc7b600ffa5a0729249bc3907e58c89a:
+    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cf2e4a85cc7b600ffa5a0729249bc3907e58c89a}
+    version: 20.61.0
 
   uc.micro@1.0.6:
     resolution: {integrity: sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==}
@@ -10758,8 +10766,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.19.0:
-    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
+  ws@8.20.0:
+    resolution: {integrity: sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -10930,6 +10938,8 @@ snapshots:
   '@audio/amr-decode@1.0.0': {}
 
   '@audio/caf-decode@1.0.0': {}
+
+  '@audio/wav-decode@1.0.0': {}
 
   '@audio/webm-decode@1.0.0':
     dependencies:
@@ -11724,38 +11734,38 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@babylonjs/addons@8.33.0(@babylonjs/core@8.56.1)':
+  '@babylonjs/addons@8.33.0(@babylonjs/core@9.0.0)':
     dependencies:
-      '@babylonjs/core': 8.56.1
+      '@babylonjs/core': 9.0.0
 
   '@babylonjs/assets@5.20.0': {}
 
-  '@babylonjs/core@8.56.1': {}
+  '@babylonjs/core@9.0.0': {}
 
-  '@babylonjs/gui-editor@8.56.1(@babylonjs/core@8.56.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.56.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/gui-editor@9.0.0(@babylonjs/core@9.0.0)(@babylonjs/gui@8.33.0(@babylonjs/core@9.0.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 8.56.1
-      '@babylonjs/gui': 8.33.0(@babylonjs/core@8.56.1)
+      '@babylonjs/core': 9.0.0
+      '@babylonjs/gui': 8.33.0(@babylonjs/core@9.0.0)
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/gui@8.33.0(@babylonjs/core@8.56.1)':
+  '@babylonjs/gui@8.33.0(@babylonjs/core@9.0.0)':
     dependencies:
-      '@babylonjs/core': 8.56.1
+      '@babylonjs/core': 9.0.0
 
   '@babylonjs/havok@1.3.12':
     dependencies:
       '@types/emscripten': 1.41.4
 
-  '@babylonjs/inspector@8.56.1(38ce10e424fe2193abd59e36d3db458b)':
+  '@babylonjs/inspector@9.0.0(387d95b1599f5794b13d7e3385b91d0e)':
     dependencies:
-      '@babylonjs/addons': 8.33.0(@babylonjs/core@8.56.1)
-      '@babylonjs/core': 8.56.1
-      '@babylonjs/gui': 8.33.0(@babylonjs/core@8.56.1)
-      '@babylonjs/gui-editor': 8.56.1(@babylonjs/core@8.56.1)(@babylonjs/gui@8.33.0(@babylonjs/core@8.56.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/loaders': 8.56.1(@babylonjs/core@8.56.1)(babylonjs-gltf2interface@8.33.0)
-      '@babylonjs/materials': 8.56.1(@babylonjs/core@8.56.1)
-      '@babylonjs/serializers': 8.33.0(@babylonjs/core@8.56.1)(babylonjs-gltf2interface@8.33.0)
+      '@babylonjs/addons': 8.33.0(@babylonjs/core@9.0.0)
+      '@babylonjs/core': 9.0.0
+      '@babylonjs/gui': 8.33.0(@babylonjs/core@9.0.0)
+      '@babylonjs/gui-editor': 9.0.0(@babylonjs/core@9.0.0)(@babylonjs/gui@8.33.0(@babylonjs/core@9.0.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/loaders': 9.0.0(@babylonjs/core@9.0.0)(babylonjs-gltf2interface@8.33.0)
+      '@babylonjs/materials': 9.0.0(@babylonjs/core@9.0.0)
+      '@babylonjs/serializers': 8.33.0(@babylonjs/core@9.0.0)(babylonjs-gltf2interface@8.33.0)
       '@fluentui-contrib/react-virtualizer': 1.0.0(@fluentui/react-shared-contexts@9.26.2(@types/react@19.2.2)(react@16.14.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@fluentui/react-components': 9.73.4(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(scheduler@0.19.1)
       '@fluentui/react-icons': 2.0.321(react@16.14.0)
@@ -11763,55 +11773,55 @@ snapshots:
       react-dom: 16.14.0(react@16.14.0)
       usehooks-ts: 3.1.1(react@16.14.0)
 
-  '@babylonjs/loaders@8.56.1(@babylonjs/core@8.56.1)(babylonjs-gltf2interface@8.33.0)':
+  '@babylonjs/loaders@9.0.0(@babylonjs/core@9.0.0)(babylonjs-gltf2interface@8.33.0)':
     dependencies:
-      '@babylonjs/core': 8.56.1
+      '@babylonjs/core': 9.0.0
       babylonjs-gltf2interface: 8.33.0
 
-  '@babylonjs/materials@8.56.1(@babylonjs/core@8.56.1)':
+  '@babylonjs/materials@9.0.0(@babylonjs/core@9.0.0)':
     dependencies:
-      '@babylonjs/core': 8.56.1
+      '@babylonjs/core': 9.0.0
 
-  '@babylonjs/serializers@8.33.0(@babylonjs/core@8.56.1)(babylonjs-gltf2interface@8.33.0)':
+  '@babylonjs/serializers@8.33.0(@babylonjs/core@9.0.0)(babylonjs-gltf2interface@8.33.0)':
     dependencies:
-      '@babylonjs/core': 8.56.1
+      '@babylonjs/core': 9.0.0
       babylonjs-gltf2interface: 8.33.0
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@biomejs/biome@2.4.8':
+  '@biomejs/biome@2.4.9':
     optionalDependencies:
-      '@biomejs/cli-darwin-arm64': 2.4.8
-      '@biomejs/cli-darwin-x64': 2.4.8
-      '@biomejs/cli-linux-arm64': 2.4.8
-      '@biomejs/cli-linux-arm64-musl': 2.4.8
-      '@biomejs/cli-linux-x64': 2.4.8
-      '@biomejs/cli-linux-x64-musl': 2.4.8
-      '@biomejs/cli-win32-arm64': 2.4.8
-      '@biomejs/cli-win32-x64': 2.4.8
+      '@biomejs/cli-darwin-arm64': 2.4.9
+      '@biomejs/cli-darwin-x64': 2.4.9
+      '@biomejs/cli-linux-arm64': 2.4.9
+      '@biomejs/cli-linux-arm64-musl': 2.4.9
+      '@biomejs/cli-linux-x64': 2.4.9
+      '@biomejs/cli-linux-x64-musl': 2.4.9
+      '@biomejs/cli-win32-arm64': 2.4.9
+      '@biomejs/cli-win32-x64': 2.4.9
 
-  '@biomejs/cli-darwin-arm64@2.4.8':
+  '@biomejs/cli-darwin-arm64@2.4.9':
     optional: true
 
-  '@biomejs/cli-darwin-x64@2.4.8':
+  '@biomejs/cli-darwin-x64@2.4.9':
     optional: true
 
-  '@biomejs/cli-linux-arm64-musl@2.4.8':
+  '@biomejs/cli-linux-arm64-musl@2.4.9':
     optional: true
 
-  '@biomejs/cli-linux-arm64@2.4.8':
+  '@biomejs/cli-linux-arm64@2.4.9':
     optional: true
 
-  '@biomejs/cli-linux-x64-musl@2.4.8':
+  '@biomejs/cli-linux-x64-musl@2.4.9':
     optional: true
 
-  '@biomejs/cli-linux-x64@2.4.8':
+  '@biomejs/cli-linux-x64@2.4.9':
     optional: true
 
-  '@biomejs/cli-win32-arm64@2.4.8':
+  '@biomejs/cli-win32-arm64@2.4.9':
     optional: true
 
-  '@biomejs/cli-win32-x64@2.4.8':
+  '@biomejs/cli-win32-x64@2.4.9':
     optional: true
 
   '@bubblewrap/cli@1.24.1(@types/node@25.5.0)(encoding@0.1.13)':
@@ -11876,16 +11886,16 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@capacitor/android@8.2.0(@capacitor/core@8.2.0)':
+  '@capacitor/android@8.3.0(@capacitor/core@8.3.0)':
     dependencies:
-      '@capacitor/core': 8.2.0
+      '@capacitor/core': 8.3.0
 
-  '@capacitor/assets@3.0.5(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(encoding@0.1.13)(typescript@5.9.3)':
+  '@capacitor/assets@3.0.5(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(encoding@0.1.13)(typescript@6.0.2)':
     dependencies:
       '@capacitor/cli': 5.7.8
       '@ionic/utils-array': 2.1.6
       '@ionic/utils-fs': 3.1.7
-      '@trapezedev/project': 7.1.3(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)
+      '@trapezedev/project': 7.1.3(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)
       commander: 8.3.0
       debug: 4.3.4
       fs-extra: 10.1.0
@@ -11927,7 +11937,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/cli@8.2.0':
+  '@capacitor/cli@8.3.0':
     dependencies:
       '@ionic/cli-framework-output': 2.2.8
       '@ionic/utils-subprocess': 3.0.1
@@ -11953,7 +11963,7 @@ snapshots:
     dependencies:
       tslib: 1.14.1
 
-  '@capacitor/core@8.2.0':
+  '@capacitor/core@8.3.0':
     dependencies:
       tslib: 2.8.1
 
@@ -11961,9 +11971,9 @@ snapshots:
     dependencies:
       '@capacitor/core': 2.5.0
 
-  '@capacitor/ios@8.2.0(@capacitor/core@8.2.0)':
+  '@capacitor/ios@8.3.0(@capacitor/core@8.3.0)':
     dependencies:
-      '@capacitor/core': 8.2.0
+      '@capacitor/core': 8.3.0
 
   '@cloudflare/workerd-darwin-64@1.20240718.0':
     optional: true
@@ -12542,9 +12552,9 @@ snapshots:
     dependencies:
       chrome-trace-event: 1.0.4
 
-  '@electron-toolkit/utils@4.0.0(electron@41.0.3)':
+  '@electron-toolkit/utils@4.0.0(electron@41.1.0)':
     dependencies:
-      electron: 41.0.3
+      electron: 41.1.0
 
   '@electron/asar@3.2.18':
     dependencies:
@@ -14407,7 +14417,7 @@ snapshots:
       jest-util: 30.3.0
       slash: 3.0.0
 
-  '@jest/core@30.3.0(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))':
+  '@jest/core@30.3.0(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))':
     dependencies:
       '@jest/console': 30.3.0
       '@jest/pattern': 30.0.1
@@ -14422,7 +14432,7 @@ snapshots:
       exit-x: 0.2.2
       graceful-fs: 4.2.11
       jest-changed-files: 30.3.0
-      jest-config: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))
+      jest-config: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))
       jest-haste-map: 30.3.0
       jest-message-util: 30.3.0
       jest-regex-util: 30.0.1
@@ -16623,7 +16633,7 @@ snapshots:
 
   '@trapezedev/gradle-parse@7.1.3': {}
 
-  '@trapezedev/project@7.1.3(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)':
+  '@trapezedev/project@7.1.3(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)':
     dependencies:
       '@ionic/utils-fs': 3.1.7
       '@ionic/utils-subprocess': 2.1.14
@@ -16645,7 +16655,7 @@ snapshots:
       replace: 1.2.2
       tempy: 1.0.1
       tmp: 0.2.5
-      ts-node: 10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)
+      ts-node: 10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)
       xcode: 3.0.1
       xml-js: 1.6.11
       xpath: 0.0.32
@@ -17368,19 +17378,19 @@ snapshots:
 
   at-least-node@1.0.0: {}
 
-  audio-decode@3.3.0:
+  audio-decode@3.5.0:
     dependencies:
       '@audio/aac-decode': 1.0.2
       '@audio/aiff-decode': 1.0.0
       '@audio/amr-decode': 1.0.0
       '@audio/caf-decode': 1.0.0
+      '@audio/wav-decode': 1.0.0
       '@audio/webm-decode': 1.0.0
       '@audio/wma-decode': 1.0.0
       '@wasm-audio-decoders/flac': 0.2.10
       '@wasm-audio-decoders/ogg-vorbis': 0.1.20
       audio-type: 2.4.0
       mpg123-decoder: 1.0.3
-      node-wav: 0.0.2
       ogg-opus-decoder: 1.7.3
       qoa-format: 1.0.1
 
@@ -18775,7 +18785,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@41.0.3:
+  electron@41.1.0:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 24.10.9
@@ -19368,7 +19378,7 @@ snapshots:
       '@sec-ant/readable-stream': 0.4.1
       is-stream: 4.0.1
 
-  get-tsconfig@4.13.6:
+  get-tsconfig@4.13.7:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
@@ -20119,15 +20129,15 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)):
+  jest-cli@30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)):
     dependencies:
-      '@jest/core': 30.3.0(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))
+      '@jest/core': 30.3.0(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))
       '@jest/test-result': 30.3.0
       '@jest/types': 30.3.0
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))
+      jest-config: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))
       jest-util: 30.3.0
       jest-validate: 30.3.0
       yargs: 17.7.2
@@ -20138,7 +20148,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)):
+  jest-config@30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)):
     dependencies:
       '@babel/core': 7.29.0
       '@jest/get-type': 30.1.0
@@ -20165,7 +20175,7 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 25.5.0
-      ts-node: 10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)
+      ts-node: 10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -20401,12 +20411,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3)):
+  jest@30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2)):
     dependencies:
-      '@jest/core': 30.3.0(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))
+      '@jest/core': 30.3.0(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))
       '@jest/types': 30.3.0
       import-local: 3.2.0
-      jest-cli: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3))
+      jest-cli: 30.3.0(@types/node@25.5.0)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -20495,7 +20505,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -20613,12 +20623,12 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  knip@6.0.1:
+  knip@6.0.6:
     dependencies:
       '@nodelib/fs.walk': 1.2.8
       fast-glob: 3.3.3
       formatly: 0.3.0
-      get-tsconfig: 4.13.6
+      get-tsconfig: 4.13.7
       jiti: 2.6.1
       minimist: 1.2.8
       oxc-parser: 0.120.0
@@ -21066,7 +21076,7 @@ snapshots:
       stoppable: 1.1.0
       undici: 5.29.0
       workerd: 1.20240718.0
-      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.3)
       youch: 3.3.4
       zod: 3.25.76
     transitivePeerDependencies:
@@ -23338,7 +23348,7 @@ snapshots:
 
   ts-dedent@2.2.0: {}
 
-  ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@5.9.3):
+  ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.17))(@types/node@25.5.0)(typescript@6.0.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -23352,7 +23362,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.9.3
+      typescript: 6.0.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     optionalDependencies:
@@ -23405,7 +23415,9 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a80dda2d22ba32cf174ef78cc8d743e910a9be21: {}
+  typescript@6.0.2: {}
+
+  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cf2e4a85cc7b600ffa5a0729249bc3907e58c89a: {}
 
   uc.micro@1.0.6: {}
 
@@ -23864,7 +23876,7 @@ snapshots:
       bufferutil: 4.0.9
       utf-8-validate: 6.0.3
 
-  ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.3):
+  ws@8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.3):
     optionalDependencies:
       bufferutil: 4.0.9
       utf-8-validate: 6.0.3
@@ -23891,12 +23903,12 @@ snapshots:
 
   xml2js@0.5.0:
     dependencies:
-      sax: 1.4.1
+      sax: 1.6.0
       xmlbuilder: 11.0.1
 
   xml2js@0.6.2:
     dependencies:
-      sax: 1.4.1
+      sax: 1.6.0
       xmlbuilder: 11.0.1
 
   xmlbuilder@11.0.1: {}
