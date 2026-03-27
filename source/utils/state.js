@@ -628,7 +628,7 @@ export const createStateFromHost = (elementToAddClassTo, defaultOptions=null, St
 	state.updateFrontEnd()
 	
 	// prevent URL changes from scrolling to that hash
-	// state.preventAutoScrolling()
+	//state.preventAutoScrolling()
 
 	return state
 }

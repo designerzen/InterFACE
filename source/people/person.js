@@ -1352,7 +1352,7 @@ export default class Person extends EventTarget{
 				notesPlaying++
 			}
 
-			console.log("drawing text", {playsChords,arpeggiated, activeNoteNumbers})
+			// console.log("drawing text", {playsChords,arpeggiated, activeNoteNumbers})
 
 			const personData = this.userModeData
 			let style = personData.name
@@ -1408,14 +1408,21 @@ export default class Person extends EventTarget{
 			}else{
 						
 				// console.info("emojiRotationX", emojiRotationX, "emojiRotationY: ",emojiRotationY) 
-				const textInstrument = `${extra}`
+				// const textInstrument = `${extra}`
 				// const textInstrument = `${textNotePlaying}`
 				// const textInstrument = textNotePlaying ? `${extra} ${textNotePlaying}${textPitchBend}` : extra
 
+				let noteText = ''
 				// display.drawText(textX, textY - 30, textInstrument, 18 )
+
+				activeNoteNumbers.forEach( (noteName, i) => {
+					const noteIndex = noteName%12
+					noteText += NOTATION[noteIndex]
+				})
 				
 				// Left Side Note
-				display.drawText(textX, textY - 25, this.lastNoteFriendlyName, 18 )
+				// display.drawText(textX, textY - 25, this.lastNoteFriendlyName, 18 )
+				display.drawText(textX, textY - 25, noteText, 18 )
 				// display.drawText(textX + 42, textY, this.lastNoteFriendlyName + ' ' + this.octave, 24, "left" )
 			
 				// Right Side Octave?

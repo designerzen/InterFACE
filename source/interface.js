@@ -3597,6 +3597,9 @@ export const createInterface = (
 		body.classList.toggle("loaded", true)
 		main.setAttribute("aria-busy", false)
 
+		// prevent state changes from scrolling the page
+		stateMachine.preventAutoScrolling()
+
 		// now create all the people we will need!
 		for (let i=0; i< stateMachine.get("players"); ++i)
 		{

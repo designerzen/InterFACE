@@ -11,7 +11,7 @@ block preload
 	
 block header 
 	
-	a#hero(href="#app-frame") Jump straight to the app
+	a#hero(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})") Jump straight to the app
 		include /assets/diagrams/hero.svg 
 
 	#summary
