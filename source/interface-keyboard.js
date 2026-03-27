@@ -99,8 +99,9 @@ export const addKeyboardEvents = ( application ) => {
 					application.setFeedback( 'Press ESC to exit Full Screen', 0, 'fullscreen' )
 					application.toggleFullScreen()
 				}else{
+					application.setRandomDrumTimbres()
 					application.loadRandomInstrument(()=>{
-
+						
 					}, true)
 				}
 				break
@@ -180,7 +181,7 @@ export const addKeyboardEvents = ( application ) => {
 				break
 
 			case 'g':
-				application.toggleVisibility(canvasElement)
+				application.setRandomDrumTimbres()
 				break
 
 			// Toggle help & overlays
