@@ -41,13 +41,10 @@ export const MAJOR_SCALE_KEYS = createKeyFromNote( mode, MAJOR_SCALE )
 export const MINOR_SCALE_KEYS = createKeyFromNote( mode, NATURAL_MINOR_SCALE )
 // export const FIFTHS_SCALE_KEYS = createKeyFromNote( mode, FIFTHS, 0, true )
 
-// FIXME:
-
-const keyNames = [ "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
-export const HARM_MINOR_SCALE_KEYS = createKey( keyNames, HARMONIC_MINOR_SCALE )
-export const JAZZ_MINOR_SCALE_KEYS = createKey( keyNames, MELODIC_MINOR_SCALE )
-// C G D A E B C Gb D Ab Eb Bb F
-export const FIFTHS_SCALE_KEYS = createKey( keyNames, FIFTHS, 4, 0, false, true )
+export const HARM_MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, HARMONIC_MINOR_SCALE )
+export const JAZZ_MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MELODIC_MINOR_SCALE )
+// FIXME: the following should output [ "F", "C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#"] if it doesn't alter the arguments until it does
+export const FIFTHS_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, FIFTHS, 9, 0, false, true )
 
 // export const MAJOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MAJOR_SCALE, 0, mode, false )
 // export const MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MINOR_SCALE, 0, mode, false )

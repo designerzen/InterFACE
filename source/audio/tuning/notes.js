@@ -153,7 +153,7 @@ export const NOTE_NAMES_POPULAR_FIRST = [...NOTE_NAMES]
  * @param {Boolean} facingLeft 
  * @returns A1 Ab1 etc
  */
-export const getNoteName = (percent, octave=3, facingLeft=false, notesLeft=NOTES_BLACK, notesRight=NOTES_WHITE ) => {
+export const chooseNoteNameUsingPercentage = (percent, octave=3, facingLeft=false, notesLeft=NOTES_BLACK, notesRight=NOTES_WHITE ) => {
 
 	let noteNumber
 	let noteName

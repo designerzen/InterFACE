@@ -263,8 +263,9 @@ let allChords = []
 
 /**
  * Memo-ize all chords for a given note
+ * Creates mode-specific scales and extracts chord notes from them
  * @param {Number} tonic 
- * @param {Number} scale 
+ * @param {Number} scale - chord interval formula (e.g., [0,4,3] for major)
  * @param {Number} mode 
  */
 export const createChordsForNoteNumber = (tonic, scale, mode) => {
@@ -278,8 +279,54 @@ export const createChordsForNoteNumber = (tonic, scale, mode) => {
 	{
 		throw Error("Could not find a mode with the name "+mode)
 	}
-	// Loop through each scale type and mode
-	return createChord( MIDI_NOTE_NUMBER_MAP, scale, tonic, mode, false, true )
+
+	// Create mode-shifted scale by rotating the parent scale
+	// Each mode is a rotation of the parent scale with octave adjustment
+	const modeScale = []
+	for (let i = 0; i < MAJOR_SCALE.length; i++)
+	{
+		const scaleIndex = (i + mode) % MAJOR_SCALE.length
+		let interval = MAJOR_SCALE[scaleIndex]
+		
+		// If we wrapped around (index < mode), add an octave
+		if (scaleIndex < mode)
+		{
+			interval += 12
+		}
+		
+		modeScale.push(interval)
+	}
+	
+	// Normalize: subtract the first interval so scale starts at 0
+	const firstInterval = modeScale[0]
+	const normalizedModeScale = modeScale.map(i => i - firstInterval)
+	
+	// Build the chord using the same accumulation logic but on the mode scale
+	// The chord formula works by accumulating semitone intervals
+	const output = []
+	let accumulator = 0
+	
+	for (let index = 0; index < scale.length; index++)
+	{
+		// Accumulate the chord formula value
+		accumulator += scale[index]
+		
+		// Find which note in the mode scale this corresponds to
+		// We need to find the scale degree at or just below the accumulated value
+		let selectedInterval = normalizedModeScale[0]
+		for (let i = 0; i < normalizedModeScale.length; i++)
+		{
+			if (normalizedModeScale[i] <= accumulator)
+			{
+				selectedInterval = normalizedModeScale[i]
+			}
+		}
+		
+		const finalNote = tonic + selectedInterval
+		output[index] = MIDI_NOTE_NUMBER_MAP[finalNote]
+	}
+	
+	return output
 }
 
 /**
@@ -347,7 +394,7 @@ export const getChordsForNoteNumberInMode = (noteNumber=0, scaleName=TUNING_MODE
  * 
  * @returns {Array<Number>}
  */
-export const createAllChordsInScalesWithModes = () => {
+export const createAllChordsInModes = () => {
 	const output = []
 	for (let noteNumber = 0, l=MIDI_NOTE_NUMBER_MAP.length; noteNumber < l; noteNumber++) 
 	{
@@ -359,7 +406,7 @@ export const createAllChordsInScalesWithModes = () => {
 }
 
 // Must be run before requesting any data...
-allChords = createAllChordsInScalesWithModes()
+allChords = createAllChordsInModes()
 
 // console.error("createAllChordsInScalesWithModes", allChords)
 // const test = getChordsForNoteNumberInMode(64, "major")
