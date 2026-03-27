@@ -1,8 +1,10 @@
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants"
 
-const createInstrumentFamilyTitle = (family, personName) => `<h4>${personName.length ? personName : family.replace("Instrument","")}</h4>`
-const createInstrumentFamilySummary = (family) => `<summary><h5>${family}</h5></summary>`
-const createInstrumentFamilyDetails = family => `<summary><h5>${family}</h5></summary>`
+const INSTRUMENT_CLASS = "btn-select-instrument"
+
+const createInstrumentFamilyTitle = (family, personName) => `<h4 class="instrument-families">${personName.length ? personName : family.replace("Instrument","")}</h4>`
+const createInstrumentFamilySummary = (family) => `<summary><h5 class="instrument-family-title">${family}</h5></summary>`
+const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMENT_CLASS}' id="${personName}-${folder}" name="instrument-selector" type="radio" value="${folder}" />`
 
 /**
  * Create the markup required for one single instrument request
@@ -16,7 +18,7 @@ const createInstumentForForm =
 		`<li class="instrument">
 			<label for="${personName}-${folder}">
 				${instrumentName}
-				<input id="${personName}-${folder}" name="instrument-selector" type="radio" value="${folder}" />
+				${createInstrumentInput(personName, folder)}
 			</label>
 		</li>`
 
@@ -57,6 +59,9 @@ export const showPersonalControlPanel = (playerName, controls, instrumentName, a
 	
 	// FIXME: Add aria-roles
 	controls.classList.toggle(activeClassName,true)
+
+	// toggle class in header
+	// this allows us to close the others too)
 	document.documentElement.classList.toggle(`${playerName}-sidebar-showing`,true)
 
 	return true
@@ -161,8 +166,6 @@ export const populateInstrumentPanel = async (controls, instrument, personName="
 		presets = GENERAL_MIDI_INSTRUMENT_LIST
 	}
 
-
-
 	const existing = controls.querySelector(`.person-controls`)
 	const instrumentMenuPanel = existing ? existing : document.createElement("div")
 	instrumentMenuPanel.innerHTML = createInstrumentFormHTML( presets, instrument.name, personName  )
@@ -188,7 +191,7 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, p
 	
 	const controller = new AbortController()
 
-	const inputs = controls.querySelectorAll('input')
+	const inputs = controls.querySelectorAll('input.'+INSTRUMENT_CLASS)
 	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e), {signal: controller.signal, passive }) )
 	
 	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
