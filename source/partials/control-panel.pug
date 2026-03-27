@@ -8,10 +8,18 @@ menu#control-panel
 	fieldset#face-buttons
 		legend Change the instrument for each player to a random one
 		//- Button is the face of the user
-		button(type="button", hidden).person#person-a Change instrument for the person on the left
-		button(type="button", hidden).person#person-b Change instrument for the person on the right 
-		button(type="button", hidden).person#person-c Change instrument for the person on the lower left 
-		button(type="button", hidden).person#person-d Change instrument for the person on the lower right 
+		#person-a.person(hidden)
+			button(type="button").face-button.person-a-face Change instrument for the person on the left
+			button(type="button").thoughts-button.person-a-thoughts Change play style for the person on the left
+		#person-b.person(hidden)
+			button(type="button").face-button.person-b-face Change instrument for the person on the right 
+			button(type="button").thoughts-button.person-b-thoughts Change play style for the person on the right
+		#person-c.person(hidden)
+			button(type="button").face-button.person-c-face Change instrument for the person on the lower left 
+			button(type="button").thoughts-button.person-c-thoughts Change play style for the person on the lower left
+		#person-d.person(hidden)
+			button(type="button").face-button.person-d-face Change instrument for the person on the lower right 
+			button(type="button").thoughts-button.person-d-thoughts Change play style for the person on the lower right
 
 
 	//- PERSON A ------------------------------------------------------------------------------

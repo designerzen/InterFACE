@@ -10,7 +10,7 @@ import {
 	STATE_INSTRUMENT_SILENT, 
 	STATE_INSTRUMENT_SUSTAIN,
 	STATE_INSTRUMENT_RELEASE
-} from "../../people/person-event.js"
+} from "../../people/person-states.js"
 
 import { INSTRUMENT_TYPE_CHORD } from "../instrument-list.js"
 import { getAllChordsForNoteNumber } from "../tuning/chords.js"
@@ -41,7 +41,6 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 	// }
 
 	const isChord = instrument.type === INSTRUMENT_TYPE_CHORD
-
 	switch(person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
@@ -78,6 +77,8 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 				{
 					instrument.allNotesOff()
 					instrument.chordOn( chordSequence, person.noteVelocity )		
+					
+//  console.error("mediator.person-instrument", isChord ? chordSequence : "monophonic" )
 				}
 
 				chordSequence.forEach( noteNumber => {
