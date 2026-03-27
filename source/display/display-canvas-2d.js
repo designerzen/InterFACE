@@ -19,11 +19,12 @@ const DEFAULT_FILTER = {
 	name:"source-over",
 	description:"This is the default setting and draws new shapes on top of the existing canvas content."
 }
+
 const FILTER_LIBRARY = [
-	// {
-	// 	name:"source-over",
-	// 	description:"This is the default setting and draws new shapes on top of the existing canvas content."
-	// },
+	{
+		name:"source-over",
+		description:"This is the default setting and draws new shapes on top of the existing canvas content."
+	},
 	// {
 	// 	name:"source-in",
 	// 	description:"The new shape is drawn only where both the new shape and the destination canvas overlap. Everything else is made transparent."
