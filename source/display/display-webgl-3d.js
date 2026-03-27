@@ -21,6 +21,7 @@ import {
 } from "../settings/options.displays.js"
 
 import { 
+	BufferGeometry,
 	Clock, 
 	Object3D, 
 	AdditiveBlending, AmbientLight, 
@@ -66,7 +67,6 @@ import { SelectiveUnrealBloomPass } from '@visualsource/selective-unrealbloompas
 //import PARTICLE_URI from '../assets/particles/soft-inverted.png'
 import PARTICLE_URI from 'url:../assets/particles/particle.png'
 import FONT from 'raw:../assets/fonts/oxanium/Oxanium.ttf'
-import { BufferGeometry } from 'three'
 
 
 let data = FACE_LANDMARKS_DATA["0"]
@@ -298,8 +298,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			new Vector3(2, 1, 0),
 			new Vector3(-2, 1, 0)
 		])
-		const topFacet = new Mesh(topGeometry, facetMaterial)
-		scene.add(topFacet)
+		scene.add(new Mesh(topGeometry, facetMaterial))
 		
 		// Bottom facet
 		const bottomGeometry = new BufferGeometry().setFromPoints([
@@ -308,8 +307,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			new Vector3(2, -1 - facetSize, -0.1),
 			new Vector3(-2, -1 - facetSize, -0.1)
 		])
-		const bottomFacet = new Mesh(bottomGeometry, facetMaterial)
-		scene.add(bottomFacet)
+		scene.add(new Mesh(bottomGeometry, facetMaterial))
 		
 		// Left facet
 		const leftGeometry = new BufferGeometry().setFromPoints([
@@ -318,8 +316,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			new Vector3(-2, 1, 0),
 			new Vector3(-2 - facetSize, 1, -0.1)
 		])
-		const leftFacet = new Mesh(leftGeometry, facetMaterial)
-		scene.add(leftFacet)
+		scene.add(new Mesh(leftGeometry, facetMaterial))
 		
 		// Right facet
 		const rightGeometry = new BufferGeometry().setFromPoints([
@@ -328,8 +325,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			new Vector3(2 + facetSize, 1, -0.1),
 			new Vector3(2, 1, 0)
 		])
-		const rightFacet = new Mesh(rightGeometry, facetMaterial)
-		scene.add(rightFacet)
+		scene.add(new Mesh(rightGeometry, facetMaterial))
 
 		// Add font and text field
 		await preload3dFont(FONT)
