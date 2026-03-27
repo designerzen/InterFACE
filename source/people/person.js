@@ -69,7 +69,9 @@ import {
 	getNoteSoundFromNumber,
 	convertMIDINoteNumberToName,
 	NOTES_BLACK,
-	NOTES_WHITE
+	NOTES_WHITE,
+	MIDI_NOTE_NAMES,
+	MIDI_NOTE_FRIENDLY_NAMES
 } from '../audio/tuning/notes.js'
 import { 
 	getGeneralMIDIInstrumentFolders, getInstrumentTitle, 
@@ -1333,7 +1335,6 @@ export default class Person extends EventTarget{
 			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
 			const arpeggiated = this.activeInstrument ? this.activeInstrument.arpeggiate : false
 			const activeNoteNumbers = []
-
 			
 			let notesPlaying = 0
 			let extra = this.isLoading ? "Loading..." : ""
@@ -1405,24 +1406,19 @@ export default class Person extends EventTarget{
 				display.drawText( textX, notesY + this.noteIndex, NOTATION[this.noteIndex], fontSizeNotation )
 				// display.drawText( textX, textY - 30 + this.noteIndex, NOTATION[this.noteIndex], fontSizeNotation, "center", "noto-music'" )
 			
-			}else{
+			}else if (this.state !== STATE_INSTRUMENT_SILENT && activeNoteNumbers.length > 0){
 						
-				// console.info("emojiRotationX", emojiRotationX, "emojiRotationY: ",emojiRotationY) 
-				// const textInstrument = `${extra}`
-				// const textInstrument = `${textNotePlaying}`
-				// const textInstrument = textNotePlaying ? `${extra} ${textNotePlaying}${textPitchBend}` : extra
+				const noteText = activeNoteNumbers.map( (noteNumber, i) => {
+					return MIDI_NOTE_FRIENDLY_NAMES[noteNumber]
+				}).join(", ")
+			
+				// Left Side Note
+				display.drawText(textX, textY - 25, noteText, 18 )
 
-				let noteText = ''
-				// display.drawText(textX, textY - 30, textInstrument, 18 )
-
-				activeNoteNumbers.forEach( (noteName, i) => {
-					const noteIndex = noteName%12
-					noteText += NOTATION[noteIndex]
-				})
+			}else{
 				
 				// Left Side Note
-				// display.drawText(textX, textY - 25, this.lastNoteFriendlyName, 18 )
-				display.drawText(textX, textY - 25, noteText, 18 )
+				display.drawText(textX, textY - 25, this.lastNoteFriendlyName, 18 )
 				// display.drawText(textX + 42, textY, this.lastNoteFriendlyName + ' ' + this.octave, 24, "left" )
 			
 				// Right Side Octave?
