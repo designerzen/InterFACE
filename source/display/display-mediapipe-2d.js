@@ -106,21 +106,21 @@ export default class DisplayMediaPipe2D extends Display2D{
 				h:hue,
 				s:options.saturation, 
 				l:options.luminosity,
-				a:1
+				a:0.4d
 			}
 
 			const mouthColoursClosed = {
 				h:hue,
 				s:options.saturation, 
 				l:20,
-				a:1
+				a:0.8
 			}
 
 			const lipColours = {
 				h:90,
 				s:50, 
 				l:50,
-				a:1
+				a:0.5
 			}
 
 			//drawLip( prediction.annotations.lips, {...colour, h:0}, lipPathOuter )
