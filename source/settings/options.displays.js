@@ -19,6 +19,8 @@ export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	stats:false,
 	// voxels
 	showParticles:true,
+	// geometry subdivision for denser particles (0 = disabled, 1 = double density, 2 = 4x, etc)
+	geometrySubdivisions: 0,
 	// 3d model
 	showAvatar:false,
 	blendShapes:true,

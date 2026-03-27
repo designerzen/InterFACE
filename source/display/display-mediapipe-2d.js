@@ -3,6 +3,7 @@ import { drawEye } from "../visual/2d.eyes.js"
 import { drawLip } from "../visual/2d.mouth.js"
 import { drawBars } from "../visual/spectrograms.js"
 import Display2D from "./display-canvas-2d.js"
+import { subdivideKeypoints } from "../models/avatar.js"
 
 import { DISPLAY_MEDIA_PIPE_2D } from "./display-types.js"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
@@ -33,10 +34,19 @@ export default class DisplayMediaPipe2D extends Display2D{
 	 */
 	drawPerson( person, beatJustPlayed, colours, options={} ){
 
-		const prediction = person.data
+		let prediction = person.data
 		// const personOptions = person.options
 		const hue = person.hue
 		const canvasContext = this.canvasContext
+		
+		// Apply geometry subdivision for denser keypoints if specified
+		const subdivisions = this.options.geometrySubdivisions ?? 0
+		if (subdivisions > 0 && prediction) {
+			prediction = {
+				...prediction,
+				allKeypoints: subdivideKeypoints(prediction.allKeypoints, subdivisions)
+			}
+		}
 
 		// console.log("drawPerson", person, {hue, options, colours} )
 
@@ -102,25 +112,28 @@ export default class DisplayMediaPipe2D extends Display2D{
 		// now overlay the mouth
 		if (options.drawMouth)
 		{	
+			// Extract alpha from colour object if present, otherwise use defaults
+			const colourAlpha = colours?.a ?? 1
+			
 			const mouthColours = {
 				h:hue,
 				s:options.saturation, 
 				l:options.luminosity,
-				a:0.3
+				a:colourAlpha * 0.3  // Scale default by colour alpha
 			}
 
 			const mouthColoursClosed = {
 				h:hue,
 				s:options.saturation, 
 				l:20,
-				a:0.6
+				a:colourAlpha * 0.6  // Scale default by colour alpha
 			}
 
 			const lipColours = {
 				h:90,
 				s:50, 
 				l:50,
-				a:0.5
+				a:colourAlpha * 0.5  // Scale default by colour alpha
 			}
 
 			//drawLip( prediction.annotations.lips, {...colour, h:0}, lipPathOuter )

@@ -274,7 +274,9 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			const { keypoints, facialTransformationMatrixes, box } = data
 
 			// 478 is the amount of nodes in MediaVision library
-			const geometry = createFaceGeometryFromData( keypoints, 478, 1 )
+			// Apply face geometry subdivision for denser particle clouds (0 = no subdivision, 1 = double density, 2 = 4x, etc)
+			const subdivisions = options.geometrySubdivisions ?? 0
+			const geometry = createFaceGeometryFromData( keypoints, 478, 1, subdivisions )
 			const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
 			this.texture = texture
@@ -283,6 +285,51 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		}
 
 	
+		// Add screen edge facets for depth effect
+		const facetSize = 0.05
+		const facetColor = 0x222222
+		const facetMaterial = new MeshBasicMaterial({ color: facetColor })
+		
+		// Top facet
+		const topGeometry = new BufferGeometry().setFromPoints([
+			new Vector3(-2, 1 + facetSize, -0.1),
+			new Vector3(2, 1 + facetSize, -0.1),
+			new Vector3(2, 1, 0),
+			new Vector3(-2, 1, 0)
+		])
+		const topFacet = new Mesh(topGeometry, facetMaterial)
+		scene.add(topFacet)
+		
+		// Bottom facet
+		const bottomGeometry = new BufferGeometry().setFromPoints([
+			new Vector3(-2, -1, 0),
+			new Vector3(2, -1, 0),
+			new Vector3(2, -1 - facetSize, -0.1),
+			new Vector3(-2, -1 - facetSize, -0.1)
+		])
+		const bottomFacet = new Mesh(bottomGeometry, facetMaterial)
+		scene.add(bottomFacet)
+		
+		// Left facet
+		const leftGeometry = new BufferGeometry().setFromPoints([
+			new Vector3(-2 - facetSize, -1, -0.1),
+			new Vector3(-2, -1, 0),
+			new Vector3(-2, 1, 0),
+			new Vector3(-2 - facetSize, 1, -0.1)
+		])
+		const leftFacet = new Mesh(leftGeometry, facetMaterial)
+		scene.add(leftFacet)
+		
+		// Right facet
+		const rightGeometry = new BufferGeometry().setFromPoints([
+			new Vector3(2, -1, 0),
+			new Vector3(2 + facetSize, -1, -0.1),
+			new Vector3(2 + facetSize, 1, -0.1),
+			new Vector3(2, 1, 0)
+		])
+		const rightFacet = new Mesh(rightGeometry, facetMaterial)
+		scene.add(rightFacet)
+
 		// Add font and text field
 		await preload3dFont(FONT)
 

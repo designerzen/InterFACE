@@ -100,14 +100,109 @@ export const arrangeFaceData = (keypointData, positions, scales, scaleFactor = 1
 }
 
 // NB. we need to ensure we dots are rotated to the same plane as the face
-export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor = 1) => {
+/**
+ * Subdivide keypoints by interpolating between them
+ * Works with any array of {x, y, z?} keypoint objects
+ * @param {Array} keypoints - array of keypoint objects with x, y, (z) properties
+ * @param {number} subdivisions - how many times to subdivide (0 = disabled, 1 = double, 2 = 4x, etc)
+ * @returns {Array} subdivided keypoints
+ */
+export const subdivideKeypoints = (keypoints, subdivisions = 0) => {
+	if (!keypoints || subdivisions <= 0) {
+		return keypoints
+	}
+	
+	let current = keypoints
+	
+	for (let sub = 0; sub < subdivisions; sub++) {
+		const subdivided = []
+		
+		for (let i = 0; i < current.length; i++) {
+			subdivided.push(current[i])
+			
+			if (i < current.length - 1) {
+				const next = current[i + 1]
+				const interpolated = {
+					x: (current[i].x + next.x) * 0.5,
+					y: (current[i].y + next.y) * 0.5,
+				}
+				if (current[i].z !== undefined && next.z !== undefined) {
+					interpolated.z = (current[i].z + next.z) * 0.5
+				}
+				subdivided.push(interpolated)
+			}
+		}
+		
+		current = subdivided
+	}
+	
+	return current
+}
+
+/**
+ * Subdivide face geometry by interpolating points between keypoints
+ * Creates denser particle clouds by adding intermediate points
+ * @param {Float32Array} positions - original keypoint positions
+ * @param {Float32Array} scales - original keypoint scales
+ * @param {number} subdivisions - how many times to subdivide (0 = no subdivision, 1 = double points, 2 = 4x points, etc)
+ * @returns {Object} { positions, scales } with subdivided data
+ */
+const subdivideGeometry = (positions, scales, subdivisions = 0) => {
+	if (subdivisions <= 0) {
+		return { positions, scales }
+	}
+	
+	const pointCount = positions.length / 3
+	let newPositions = positions
+	let newScales = scales
+	
+	for (let sub = 0; sub < subdivisions; sub++) {
+		const currentPointCount = newPositions.length / 3
+		const subdivided = new Float32Array((currentPointCount * 2 - 1) * 3)
+		const subdividedScales = new Float32Array(currentPointCount * 2 - 1)
+		
+		let writeIndex = 0
+		
+		for (let i = 0; i < currentPointCount; i++) {
+			// Copy original point
+			subdivided[writeIndex * 3] = newPositions[i * 3]
+			subdivided[writeIndex * 3 + 1] = newPositions[i * 3 + 1]
+			subdivided[writeIndex * 3 + 2] = newPositions[i * 3 + 2]
+			subdividedScales[writeIndex] = newScales[i]
+			writeIndex++
+			
+			// Add interpolated point between this and next
+			if (i < currentPointCount - 1) {
+				subdivided[writeIndex * 3] = (newPositions[i * 3] + newPositions[(i + 1) * 3]) * 0.5
+				subdivided[writeIndex * 3 + 1] = (newPositions[i * 3 + 1] + newPositions[(i + 1) * 3 + 1]) * 0.5
+				subdivided[writeIndex * 3 + 2] = (newPositions[i * 3 + 2] + newPositions[(i + 1) * 3 + 2]) * 0.5
+				subdividedScales[writeIndex] = (newScales[i] + newScales[i + 1]) * 0.5
+				writeIndex++
+			}
+		}
+		
+		newPositions = subdivided
+		newScales = subdividedScales
+	}
+	
+	return { positions: newPositions, scales: newScales }
+}
+
+export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor = 1, subdivisions = 0) => {
 	// Add layers for holding scale and position data (optional)		
 	const geometry = new BufferGeometry()
-	const positions = new Float32Array( quantity * 3 )
-	const scales = new Float32Array( quantity )
+	let positions = new Float32Array( quantity * 3 )
+	let scales = new Float32Array( quantity )
 	const colors = new Float32Array( quantity * 3 )
 	
-	arrangeFaceData(keypointData, positions, scales,scaleFactor)
+	arrangeFaceData(keypointData, positions, scales, scaleFactor)
+	
+	// Apply subdivision if requested
+	if (subdivisions > 0) {
+		const subdivided = subdivideGeometry(positions, scales, subdivisions)
+		positions = subdivided.positions
+		scales = subdivided.scales
+	}
 	geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) )
 	geometry.setAttribute( 'scale', new Float32BufferAttribute( scales, 1 ) )
 	

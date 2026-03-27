@@ -165,6 +165,9 @@ export const DEFAULT_OPTIONS = {
 
 	// track hand movements
 	trackHands:true,
+
+	// we can split the face clouds into more dots
+	divisions:0,
 	
 	// read out important instructions
 	// NB. OFF by default
