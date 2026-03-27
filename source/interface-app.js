@@ -47,10 +47,13 @@ import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './setti
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
+import { 
+	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
+	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
+ } from './people/person-states.js'
+
 import Person, { 
 	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
-	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
-	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
 	getRandomPresetForPerson,
 	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
 	PERSON_TYPE_ARPEGGIO,
@@ -3524,7 +3527,7 @@ export const createInterface = (
 			midiPerformance,
 
 			setPlayerOption, setPlayerOptions,
-			getPerson, getPlayers, getQuantityOfPlayers,
+			getPerson, getQuantityOfPlayers,
 			getSelectedPerson, selectPerson, deselectPeople,
 			getActivePerson,
 			highlightPerson, unhighlightPeople,

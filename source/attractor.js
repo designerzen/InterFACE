@@ -3,7 +3,7 @@
  * This demos the app and allows for a player to totally immerse
  * themselves in play without having to concern with actually
  * interacting
- * getPerson,getPlayers
+ * getPerson,getPeople
 	fetchPlayerOptions,setPlayerOption, setPlayerOptions,
 	language, 
 	...ui, 
@@ -38,12 +38,16 @@ const BARS_BEFORE_CHANGING_BPM = 42
 
 export default class Attractor{
 
+	application
+	personManager
+
 	barCounter = 0
 	discoModeAt = 0
 
 	constructor( application ) {
 		this.onChange.bind(this)
 		this.application = application
+		this.personManager = application.personManager
 		this.application.addEventListener(EVENT_INSTRUMENT_LOADING, this.onChange )
 		
 		this.application.addEventListener(EVENT_INSTRUMENT_CHANGED, this.onChange )
@@ -57,9 +61,9 @@ export default class Attractor{
 	 */
 	tick(elapsed, clock){
 
-		const players = this.application.getPlayers() 
+		const players = this.personManager.getPeople() 
 		const userActive = this.application.isUserActive()
-		const quantityOfActivePeople = this.application.quantityOfActivePeople
+		const quantityOfActivePeople = this.personManager.quantityOfActivePeople
 
 		if ( clock.isAtStart )
 		{

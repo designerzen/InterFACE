@@ -84,7 +84,7 @@ self.addEventListener('message', (event) => {
           debug.warning('>>>> No idea what to do with that message!')
       }
   } else {
-      throw new Error(`Message event handler: event.data=[${event.data}], event.data.message=[${event.data.message}]`)
+      console.warn(`Message event handler: event.data=[${event.data}], event.data.message=[${event.data.message}]`)
   }
 })
 

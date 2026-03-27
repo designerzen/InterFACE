@@ -56,9 +56,12 @@ import Person, {
  } from './people/person.js'
 
  import { 
- EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
  STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
- STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE,
+ STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
+ } from './people/person-states.js'
+
+ import { 
+ EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
  EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
  EVENT_EMOTION_CHANGED
  } from './people/person-event.js'
@@ -1090,7 +1093,7 @@ export const createInterface = (
 				default:
 					audioOutput = updateInstrumentWithPerson( instrument, person, !stateMachine.get("midiOnly") )		
 			}
-			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
+			console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
 
 		// Send person created data to midi
@@ -3641,8 +3644,7 @@ export const createInterface = (
 			setPlayerOption:personManager.setPlayerOption, 
 			setPlayerOptions:personManager.setPlayerOptions, 
 			getPerson:personManager.getPerson, 
-			getPlayers:personManager.getPlayers,
-			getQuantityOfPlayers:personManager.getQuantityOfPlayers,
+			getQuantityOfPlayers:() => personManager.quantityOfPlayers,
 			getSelectedPerson:personManager.getSelectedPerson, 
 			selectPerson:personManager.selectPerson, 
 			deselectPeople:personManager.deselectPeople,
