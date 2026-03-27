@@ -1720,11 +1720,17 @@ export const createInterface = (
 				// loop through all people and find closest
 				const boundingBox = prediction.box
 				const personIndex = personManager.getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
-				const person = activePeople[personIndex]
-				activePeople.splice(personIndex,1)
+				const person = activePeople.splice(personIndex,1)[0] // activePeople[personIndex]
+				
 
 				// create as many people as we need...
 				// console.info("Binding Prediction to Person", personIndex, i, prediction, person, activePeople[personIndex] )
+
+				// a person may have been removed dyring this operation
+				if (!person)
+				{
+					continue
+				}
 
 				// face available!
 				if (prediction)
