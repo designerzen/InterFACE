@@ -106,7 +106,7 @@ export default class DisplayMediaPipe2D extends Display2D{
 				h:hue,
 				s:options.saturation, 
 				l:options.luminosity,
-				a:0.4d
+				a:0.4
 			}
 
 			const mouthColoursClosed = {
