@@ -92,7 +92,9 @@ export const improveVRMPerformance = async(gltf, vrm) => {
 }
 
 
-export const unloadModel = (target) => { 
+export const unloadModel = (target) => {
+	if (!target) return
+	
 	target.removeFromParent()
 	target.traverse((child) => {
 		// disposing materials

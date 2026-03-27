@@ -15,32 +15,8 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 	const notes = getAllChordsForNoteNumber(tonic)
 	
 	// happy / sad
-	let scale = SCALE_MAJOR
 	let mode = TUNING_MODE_IONIAN
 	
-	// first determine if sad (minor)
-	switch(emoji) {
-		case EMOTICONS.EMOJI_EXHALING:
-		case EMOTICONS.EMOJI_SHOCKED:
-		case EMOTICONS.EMOJI_ASTONISHED:
-		case EMOTICONS.EMOJI_ANGUISHED:
-		case EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED:
-		case EMOTICONS.EMOJI_FROWN_EYES_CLOSED:
-		case EMOTICONS.EMOJI_EYES_ROLLING_UP:
-		case EMOTICONS.EMOJI_OPEN_MOUTH:
-		case EMOTICONS.EMOJI_OPEN_MOUTH_BIG:
-		case EMOTICONS.EMOJI_WAIL:
-		case EMOTICONS.EMOJI_ANGRY:
-		case EMOTICONS.EMOJI_GRIMACING:
-		case EMOTICONS.EMOJI_TRIPPY:
-		case EMOTICONS.EMOJI_SHAKING:
-		case EMOTICONS.EMOJI_SHAKING_HORIZONTALLY:
-		case EMOTICONS.EMOJI_SHAKING_VERTICALLY:
-		case EMOTICONS.EMOJI_DIAGONAL_MOUTH:
-			scale = SCALE_MINOR
-	}
-
-
 	// determine MODE only
 	// NB. The scale we now know as major was originally called
 	// the Ionian mode and its relative minor was known as Aeolian.
@@ -49,25 +25,28 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 		// MAJOR - Happy Sounds
 		case EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED:
 		case EMOTICONS.EMOJI_NEUTRAL:
+		case EMOTICONS.EMOJI_SMILING_GRIN:
+		case EMOTICONS.EMOJI_SMILING_EYES_CLOSED:
+		case EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED:
+		case EMOTICONS.EMOJI_SMILING_GRIN_SQUINT:
+		case EMOTICONS.EMOJI_SMILING_SLIGHTLY:
 		default:
 			mode = TUNING_MODE_IONIAN
 			break
 		
 		case EMOTICONS.EMOJI_LEFT_WINK:
 		case EMOTICONS.EMOJI_RIGHT_WINK:
-					
 		case EMOTICONS.EMOJI_EYES_ROLLING_UP:
 		case EMOTICONS.EMOJI_FROWN_EYES_CLOSED:
 		case EMOTICONS.EMOJI_TRIPPY:
+		case EMOTICONS.EMOJI_GIGGLING:
+		case EMOTICONS.EMOJI_HAPPY_TEARS:
+		case EMOTICONS.EMOJI_HOLDING_TEARS:
+		case EMOTICONS.EMOJI_THINKING:
+		case EMOTICONS.EMOJI_ZANY:
 			mode = TUNING_MODE_DORIAN
 			break
-		
-		case EMOTICONS.EMOJI_SHAKING:
-		case EMOTICONS.EMOJI_ANGRY:
-		case EMOTICONS.EMOJI_SMIRK:
-			mode = TUNING_MODE_PHRYGIAN
-			break
-	
+
 		// Kissing / arousol
 		case EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED:
 		case EMOTICONS.EMOJI_KISS_EYES_CLOSED:
@@ -78,12 +57,15 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			mode = TUNING_MODE_LYDIAN
 			break
 
-		// Happy
-		case EMOTICONS.EMOJI_SMILING_GRIN:
-		case EMOTICONS.EMOJI_SMILING_EYES_CLOSED:
-		case EMOTICONS.EMOJI_SMILING_GRIN_SQUINT:
-		case EMOTICONS.EMOJI_SMILING_SLIGHTLY:
-			mode = TUNING_MODE_IONIAN
+		// SUPER Happy! Like SNES games!
+		case EMOTICONS.EMOJI_SMILING_BIG_GRIN:
+		case EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED:
+		case EMOTICONS.EMOJI_KISSING_WINK:
+		case EMOTICONS.EMOJI_HEARTS:
+		case EMOTICONS.EMOJI_HEART_EYES:
+		case EMOTICONS.EMOJI_STAR_STRUCK:
+		case EMOTICONS.EMOJI_PARTY:
+			mode = TUNING_MODE_MIXOLYDIAN
 			break
 
 		// SAD Sound, minor chords
@@ -97,24 +79,28 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 			mode = TUNING_MODE_AEOLIAN
 			break
 	
-		case EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED:
-			mode = TUNING_MODE_DORIAN
-			break
-
-		case EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED:
+		// 
+		case EMOTICONS.EMOJI_FROWNING:
+		case EMOTICONS.EMOJI_FROWN_EYES_CLOSED:
+		case EMOTICONS.EMOJI_WORRIED:
+		case EMOTICONS.EMOJI_OPEN_MOUTH_BIG:
 			mode = TUNING_MODE_LYDIAN
 			break
 
-		// SUPER Happy!
-		case EMOTICONS.EMOJI_SMILING_BIG_GRIN:
-			mode = TUNING_MODE_MIXOLYDIAN
-			break
-
-			
+		// 
+		case EMOTICONS.EMOJI_CONFUSED:
 		case EMOTICONS.EMOJI_SHOCKED:
 		case EMOTICONS.EMOJI_GRIMACING:
 		case EMOTICONS.EMOJI_PERSEVERING:
 		case EMOTICONS.EMOJI_RAISED_EYEBROW:
+			mode = TUNING_MODE_PHRYGIAN
+			break
+
+		// most disjointed
+		case EMOTICONS.EMOJI_SHAKING:
+		case EMOTICONS.EMOJI_ANGRY:
+		case EMOTICONS.EMOJI_SMIRK:
+		case EMOTICONS.EMOJI_RAGE:
 			mode = TUNING_MODE_LOCRIAN
 			break
 	
@@ -124,10 +110,11 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 		// 	break
 	}
 
-	const scales = notes.get(scale) 
-	const chords = scales.get(mode)
+	// Get major chord scale and select the mode from it
+	const majorChords = notes.get(SCALE_MAJOR)
+	const chords = majorChords ? majorChords.get(mode) : null
 
-	// console.log("getMusicalDetailsFromEmoji", {tonic, emoji, scale, mode, notes, scales, chords})
+	// console.log("getMusicalDetailsFromEmoji", {tonic, emoji, mode, chords})
 	
 	if (includeTonic)
 	{
@@ -135,9 +122,9 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true) => {
 	}
 
 	if (!chords){
-		console.error("Sing: No chords found for", {tonic, emoji, scales, mode})
+		console.error("Sing: No chords found for", {tonic, emoji, mode})
 		return null
 	}
-	// console.log("getMusicalDetailsFromEmoji", {tonic, emoji, scale, mode, notes, scales, chords})
+	
 	return chords
 }

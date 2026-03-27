@@ -114,10 +114,10 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 		if (prediction.happiness < 0.5){
 			return EMOTICONS.EMOJI_SMILING_EYES_CLOSED
 		}
-		if (prediction.happiness <=0.65){
+		if (prediction.happiness <=0.6){
 			return EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED
 		}
-		if (prediction.happiness <=0.8){
+		if (prediction.happiness <=0.7){
 			return EMOTICONS.EMOJI_SMILING_GRIN_SQUINT
 		}
 		if (prediction.happiness <= 1){
@@ -158,9 +158,9 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 						return EMOTICONS.EMOJI_SHOCKED
 					}else if (prediction.mouthRatio < 0.5){
 						return EMOTICONS.EMOJI_ANGUISHED
-					}else if (prediction.mouthRatio < 0.7){
+					}else if (prediction.mouthRatio < 0.65){
 						return EMOTICONS.EMOJI_ASTONISHED
-					}else if (prediction.mouthRatio < 0.85){
+					}else if (prediction.mouthRatio < 0.8){
 						return EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED
 					}
 				}else{
@@ -516,7 +516,6 @@ export const recogniseEmojiFromFaceModelAccurate = (prediction, options, debugMo
 	
 	// Kiss detection (high priority when mouth puckered)
 	if (mouthPuckered) {
-		emotionScores.kiss = 1.0
 		if (eyesClosed) {
 			return eyebrowsRaisedBoth ? EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED : EMOTICONS.EMOJI_KISS_EYES_CLOSED
 		} else if (leftEyeClosed) {
