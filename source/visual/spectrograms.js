@@ -35,19 +35,25 @@ export const drawWaves = (canvasContext, dataArray, bufferLength)=>{
 }
 
 
+let colourCycle = 0
 export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 
-	const barWidth = (canvasContext.canvas.width / bufferLength) * 2	// number here is just cos we only care about a really narrow band
+	// just  do the first 60%
+	const section = bufferLength * 0.6
+	const barWidth = (canvasContext.canvas.width / section)	// number here is just cos we only care about a really narrow band
+	const height = canvasContext.canvas.height
 	let barHeight
 	let x = 0
 
-	for(let i = 0; i < bufferLength; i++) 
+	colourCycle = ( colourCycle + 1 ) % 360
+
+	for(let i = 0; i < section; i++) 
 	{
 		barHeight = dataArray[i]
 
-		canvasContext.fillStyle = 'hsla(' + (barHeight/ canvasContext.canvas.height*360 ) + ',50%,50%,0.3)'
-		canvasContext.fillRect(x, 0, barWidth, barHeight )
-// height-barHeight
+		canvasContext.fillStyle = 'hsla(' + ( colourCycle + (barHeight/ height *360 ))%360 + ',50%,50%,0.3)'
+		// canvasContext.fillRect(x, 0, barWidth, barHeight )
+		canvasContext.fillRect(x, height - barHeight, barWidth, barHeight )
 		x += barWidth + 1
 	}
 
