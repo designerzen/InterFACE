@@ -55,7 +55,7 @@
 
 
 .link-to-requirements{
-	display: block;
+	// display: block;
 }
 
 // place items into grid
@@ -719,6 +719,7 @@ main.active{
 	grid-area: 1/1/-1/-1;
 	pointer-events: none;
 	position: relative;
+
 	// padder!
 	&::before{
 		content:'';
@@ -767,13 +768,63 @@ main.active{
 		left:0;
 		white-space: nowrap;
 	}
-	button{
-		pointer-events: auto;
+
+	.person{	
 		padding:0;
 		margin:0;
+		position: absolute;	
+	}
+
+	button{
+		pointer-events: auto;
+		margin: 0;
+		padding: 0;
+		border:0;
+		background: none;
+		width:100%;
+		max-height: 100%;
+		height: 100%;
+		min-width:44px;
+		min-height:44px;
+		display: block;
+		font-size: 0;
+		color:transparent;
+		position: absolute;
+	}
+
+	.face-button{
+
+	}
+
+	.thoughts-button{
+		bottom:100%;
 	}
 }
 
+#person-a{
+	min-width:calc( 100% * var(--person-a-w,0));
+	min-height:calc( 100% * var(--person-a-h,0));
+	top:calc( 100% * var(--person-a-y,0));
+	left:calc( 100% - 100% * var(--person-a-x,0));
+}
+#person-b{
+	min-width:calc( 100% * var(--person-b-w,0));
+	min-height:calc( 100% * var(--person-b-h,0));
+	top:calc( 100% * var(--person-b-y,0));
+	left:calc( 100% - 100% * var(--person-b-x,0));
+}
+#person-c{
+	min-width:calc( 100% * var(--person-c-w,0));
+	min-height:calc( 100% * var(--person-c-h,0));
+	top:calc( 100% * var(--person-c-y,0));
+	left:calc( 100% - 100% * var(--person-c-x,0));
+}
+#person-d{
+	min-width:calc( 100% * var(--person-d-w,0));
+	min-height:calc( 100% * var(--person-d-h,0));
+	top:calc( 100% * var(--person-d-y,0));
+	left:calc( 100% - 100% * var(--person-d-x,0));
+}
 
 // Instrument and user option panels
 

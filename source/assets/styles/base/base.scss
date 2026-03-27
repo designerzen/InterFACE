@@ -256,6 +256,7 @@
 				color:var(--shade-cream);
 			}
 			&:checked {
+				font-weight: 900;
 				background: linear-gradient(hsl(242, 61%, 76%), hsl(242, 61%, 71%));
 				// color: black !important;
 			}
@@ -270,12 +271,25 @@
 	// Chrome now supports CUSTOM select
 	// with all kinds of inner styles
 	@supports (appearance: base-select){
-		select, ::picker(select) {
+		select{
 			appearance: base-select;
 			font-family: inherit;
 			font-size: inherit;
 			color: inherit;
-		}	
+				
+			button{
+				color: inherit;
+				background: inherit;
+			}
+		}
+
+		::picker(select){
+
+		}
+		
+		option{
+		
+		}
 	}
 
 	// Marked text ----------------------------------------------
