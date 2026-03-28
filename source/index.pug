@@ -57,7 +57,7 @@ block header
 
 
 	nav#pwa
-		a.button.button-push.button-start.text-always#start(href="#button-start-label") Play!
+		a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})") Play!
 
 		label(for="install-pwa" hidden).text-always Install this app
 			button#install-pwa.button-install( hidden type="button" title="Install this application to your homescreen") Install
