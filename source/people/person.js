@@ -114,6 +114,7 @@ import PersonEvent, {
 	  EVENT_EMOTION_UNLOCKED,
 } from './person-event.js'
 import Achievements from './person-achievements.js'
+import PersonalProgress from './person-progress.js'
 
 // used to deliminiate the URL player seperator...
 // you want something that doesn't encode, but that also
@@ -311,6 +312,8 @@ export default class Person extends EventTarget{
 	controlMode = convertHeadOrientationIntoNoteData
 
 	abortController 
+
+	personalProgress = new PersonalProgress()
 	
 	get userMode(){
 		return this.#userMode
@@ -696,6 +699,7 @@ export default class Person extends EventTarget{
 		// this.id = toKebabCase( IDENTIFIERS[index] ?? "person-" + index )
 		this.name = NAMES[index]
 
+	
 		if (saveData)
 		{
 			this.importJSONData(saveData)	
@@ -715,7 +719,8 @@ export default class Person extends EventTarget{
 		this.emojiDetector = new EmojiDetector()
 		this.abortController = new AbortController()
 		this.achievements = new Achievements()
-		
+		this.personalProgress = new PersonalProgress()
+
 		// allow us to record the performances (not the audio)
 		// useful for showing recordings of a person
 		this.parameterRecorder = new ParamaterRecorder()
@@ -806,7 +811,7 @@ export default class Person extends EventTarget{
 		
 		// Reset emoji detector state
 		this.emojiDetector.reset()
-		this.achievements.reset()
+		this.personalProgress.reset()
 
 		// centralise pan if set
 		if (this.stereoNode)
@@ -1080,7 +1085,7 @@ export default class Person extends EventTarget{
 
 		if (this.emoticon !== emoticon)
 		{
-			const achivementUnlocked = this.achievements.unlock( emoticon )
+			const achivementUnlocked = this.personalProgress.experienceEmotion( emoticon )
 			if (achivementUnlocked)
 			{
 				// console.log(`[${this.name}] Achievement ${emoticon} Unlocked!: ${this.achievements.score}`)

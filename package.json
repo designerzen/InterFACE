@@ -223,6 +223,7 @@
 		"@capacitor/core": "^8.3.0",
 		"@capacitor/electron": "^2.5.0",
 		"@capacitor/ios": "^8.3.0",
+		"@chenglou/pretext": "^0.0.3",
 		"@electron-toolkit/utils": "^4.0.0",
 		"@grame/faustwasm": "^0.15.7",
 		"@lookingglass/bridge": "^0.0.8-alpha.4",
