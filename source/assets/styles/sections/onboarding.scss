@@ -7,7 +7,7 @@
 
 	visibility:hidden;
 
-	border:var(--border-size, var(--border-radius, 9px )) double var(--shade-white, white);	
+	border:var(--stroke, 9px ) double var(--shade-white, white);	
     border-radius: 22px;
 
 	display: grid;
@@ -18,7 +18,7 @@
 		"automation"
 		"buttonStart"
 	;		
-	grid-template-columns:1fr; 
+grid-template-columns:1fr; 
 	grid-template-rows: 
 		auto 
 		auto 

@@ -48,6 +48,7 @@
 		"hero"
 		"a11y"
 		"contact"
+		"support"
 		"affiliates"
 		"app"
 		"footer";
@@ -61,11 +62,16 @@
 // place items into grid
 #load-progress{
 	grid-area:app;
-	// position: sticky;
-	// bottom:0;
-	// margin:clamp( var(--pad), 25%, 25vmin ); //max-width:440px;	
+	position: sticky;
 	align-self: center;
 	justify-self: center;
+
+	z-index: 0;
+	margin-top: calc(  var(--size) / 2 );
+	margin-bottom: calc(  var(--size) /  2 );
+	bottom:50%;
+	// top: calc( 50% - var(--size) / 2 );
+    transform: translateY(50%);
 }
 
 #intro{
@@ -118,14 +124,22 @@
 }
 
 
+#supported-by{
+	grid-area: support;
+}
+
 #affiliates{
+	grid-area: affiliates;
+}
+
+.connections{
 	color: var(--shade-white);
 	background-color: var(--shade-orange);
-	grid-area: affiliates;
-	justify-content: center;
-	justify-items: center;
-	align-content: center;
-	align-items: center;
+
+	// justify-content: center;
+	// justify-items: center;
+	// align-content: center;
+	// align-items: center;
 	position: relative;
 	z-index: 999;
 	box-sizing: border-box;
@@ -136,17 +150,27 @@
 	margin:var(--pad);
 	border-radius:var(--curve);
 
-	ul{
+	> :first-child{
+		margin-bottom: calc(var(--pad));
+	}
+
+	.connection-list{
 		list-style: none;
 		display: grid;
+		box-sizing: border-box;
 		gap:var(--pad);
 		grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
 		justify-content: center;
 		justify-items: center;
 		align-content: center;
 		align-items: center;
-		padding-left: var(--pad);
-		padding-right: var(--pad);	
+		// padding-left: var(--pad);
+		// padding-right: var(--pad);	
+		padding: var(--pad);	
+		margin: 0;
+		width: 100%;
+		border-top: var(--border);
+		border-top: var(--stroke) double var(--shade-white);
 
 		figure{
 			display: grid;
@@ -237,7 +261,7 @@
 	}
 }
 
-#contact, #affiliates{
+#contact, .connections{
 	width: 100%;
 	// width: fit-content;
 	// max-width: calc(100% - 2 * var(--pad));
@@ -246,7 +270,7 @@
 
 // transparent orange
 @supports (background-color: color-mix(in lch, red, red) ){
-	#affiliates{
+	 .connections{
 		background-color: color-mix(in lch, var(--shade-orange), transparent 50%);
 	}
 }
@@ -316,10 +340,12 @@
 
 // once loaded we hide the #intro
 .interface.loaded{ 
+
 	background-color: black;
 
 	// prevent iOS from accidently scrolling the page
 	touch-action: none;
+
 	body{
 		grid-template-rows: 1fr auto;
 		// grid-template-rows:

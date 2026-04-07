@@ -9,11 +9,7 @@
 
 	max-width: max-content;
 	margin:auto;
-
-	// position:sticky;
-	// top:50%;
-	// // left:50%;
-	// transform: translate(-50%,-50%);
+	// margin:clamp( var(--pad), 25%, 25vmin ); //max-width:440px;	
 	
 	padding: calc(2 * var(--pad));// var(--pad)
 	padding-bottom: var(--pad);
@@ -43,6 +39,7 @@
 		margin-top: 88%;
 		pointer-events: none;
 	}
+
 	progress{
 		// transform: translateY(12.5%);
 		grid-area: 1/1/-1/-1;
@@ -55,7 +52,6 @@
 		background-color: var(--shade-yellow);
 	}
 
-	
 	&[data-loaded="true"],
 	&[data-loaded=true]{
 		opacity: 0;

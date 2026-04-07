@@ -228,6 +228,7 @@
 
 		grid-template-columns: minmax(50%, 33vh) minmax(0, 1fr);
 		grid-gap: 0 var(--space);
+		padding-top: calc(var(--pad) * 5);
 
 		h1 {
 			text-align: left;

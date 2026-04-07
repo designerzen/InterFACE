@@ -62,7 +62,8 @@ p strong{
 		position: relative;
 		pointer-events: none;
 	
-		> *:not(p){
+		> *:not(p),
+		#app-frame{
 			visibility: hidden;
 			opacity:0;
 			display: none;
