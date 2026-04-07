@@ -74,21 +74,15 @@ block main
 				This application requires javascript to work unfortunately and doesn't do much without it. 
 				You can install 
 				
-	#contact
+	section#contact
 		h4 Contact 
 		p If you have any suggestions, concerns, ideas or feedback, please get in touch!
 		a.email-address.button.button-push.button-email.centralise(href="mailto:radio@awesomething.co.uk") Contact<span class="sr-only"> via Email</span> radio@awesomething.co.uk
 
-	#affiliates
-		block affiliates
-			h3 Affiliates & Representatives
-			ul
-				
-				li: a(href="https://accessiblemusicalinstrumentcollection.org/case_studies/photosynth//" rel="noopener noreferrer" target="_blank")
-					figure
-						figcaption <small>Available at</small>Accessible Musical Instrument Collection
-						img(src="./assets/logos/amic.svg" alt="Accessible Misical Instrument Collection")
-					
+	section#supported-by.connections
+		block supported
+			h3 Supported by
+			ul.connection-list
 				//- li: a(href="https://www.drakemusic.org/pages-that-are-currently-not-live-on-the-site/instrument-led-projects/photosynth-by-zenon-olenski/" rel="noopener noreferrer" target="_blank")
 				li: a(href="https://www.drakemusic.org/blog/nickevans/accessible-instrument-development-fund-blog-zen-olenski-and-the-_photosynth-4d_/" rel="noopener noreferrer" target="_blank")
 					figure
@@ -100,6 +94,31 @@ block main
 						figcaption <small>Supported by</small>Sound Connections
 						img(src="./assets/logos/sound-connections.svg" alt="Sound Connections")
 				
+				li: a(href="https://https://midi.org/the-music-accessibility-standard-special-interest-group-massig" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Supported by</small> the MASSIG : MIDI Association Standards Special Interest Group
+						img(src="./assets/logos/massig.svg" alt="MIDI Association Standards Special Interest Group")
+	
+				li: a(href="https://browserstack.com/" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Supported by</small>Browserstack
+						img(src="./assets/logos/browserstack.svg" alt="Browserstack")
+			
+				li: a(href="https://futureeverything.org" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Supported by</small>Future Everything
+						img(src="./assets/logos/future-everything.svg" alt="Future Everything")
+				
+	section#affiliates.connections
+		block affiliates
+			h3 Affiliates & Representatives
+			ul.connection-list
+				
+				li: a(href="https://accessiblemusicalinstrumentcollection.org/case_studies/photosynth//" rel="noopener noreferrer" target="_blank")
+					figure
+						figcaption <small>Available at</small>Accessible Musical Instrument Collection
+						img(src="./assets/logos/amic.svg" alt="Accessible Misical Instrument Collection")
+					
 				li: a(href="https://youtu.be/hRglC84nWoc/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Featured at </small>Audio Developers Conference
@@ -110,10 +129,6 @@ block main
 						figcaption <small>Represented by</small>Audience of the Future
 						img(src="./assets/logos/aotf.svg" alt="Audience of the Future")
 				
-				li: a(href="https://browserstack.com/" rel="noopener noreferrer" target="_blank")
-					figure
-						figcaption <small>Supported by</small>Browserstack
-						img(src="./assets/logos/browserstack.svg" alt="Browserstack")
 			
 				li: a(href="https://www.emfcamp.org/" rel="noopener noreferrer" target="_blank")
 					figure
@@ -140,11 +155,6 @@ block main
 						figcaption <small>Showcased at</small>SXSW21<br>South By South West
 						img(src="./assets/logos/sxsw-logo.svg" alt="South By South West")
 				
-				li: a(href="https://futureeverything.org" rel="noopener noreferrer" target="_blank")
-					figure
-						figcaption <small>Supported by</small>Future Everything
-						img(src="./assets/logos/future-everything.svg" alt="Future Everything")
-				
 				li: a(href="https://wac2022.i3s.univ-cotedazur.fr/node/27" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Showcased at</small>Web Audio Conference
@@ -159,11 +169,6 @@ block main
 					figure
 						figcaption <small>Presented at</small> the Royal Society Summer Exhibition 2025
 						img(src="./assets/logos/royal_society-crest.svg" alt="Royal Society Summer Exhibition")
-
-				li: a(href="https://https://midi.org/the-music-accessibility-standard-special-interest-group-massig" rel="noopener noreferrer" target="_blank")
-					figure
-						figcaption <small>Supported by</small> the MASSIG : MIDI Association Standards Special Interest Group
-						img(src="./assets/logos/massig.svg" alt="MIDI Association Standards Special Interest Group")
 
 	small#attributions
 		block attributions
