@@ -54,11 +54,11 @@ export const loadDisplayClass = async( type ) => {
 			return {default:DisplayMediaVision2D}
 
 		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D: 
-			const { default:DisplayWebGL3D } = await import( './display-webgl-3d-working.js')
+			const { default:DisplayWebGL3D } = await import( './display-webgl-3d-direct.js')
 			return {default:DisplayWebGL3D}
 
 		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
-			const { default:DisplayWebGPU } = await import('./display-webgpu-working.js')
+			const { default:DisplayWebGPU } = await import('./display-webgpu-direct.js')
 			return {default:DisplayWebGPU}
 
 		case DISPLAY_TYPES.DISPLAY_BABYLON_3D:
