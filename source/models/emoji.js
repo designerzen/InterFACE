@@ -424,3 +424,17 @@ export const EMOJI_SEQUENCE_HAPPINESS = [
     EMOJI_CRYING,
     // Unhappiest
 ]
+
+export const isKissingEmoji = emoji => {
+	switch(emoji)
+	{
+		case EMOJI_KISS:
+		case EMOJI_KISSING_WINK:
+		case EMOJI_CAT_KISSING:
+		case EMOJI_KISS_EYES_CLOSED:
+		case EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED:
+			return true
+		default:
+			return false
+	}
+}

@@ -1361,13 +1361,14 @@ export const createInterface = (
 		if (display)
 		{
 			console.warn("Destroying EXISTING display", display.id, "for new", displayType)
+			// disconnect canvas
 			display.destroy()
 			display = null
 		}
 
 		const displayOptions = {
 			autoStart:false,
-			geometrySubdivisions: stateMachine.set( "divisions" )
+			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0
 		}
 
 		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop, displayOptions)
@@ -2165,7 +2166,7 @@ export const createInterface = (
 		// Temporal timing
 		if( stateMachine.get("quantise") )
 		{
-			let shouldChangeToNextFilter = isBar
+			let shouldChangeToNextFilter = false
 			const amountOfPeople = personManager.quantityOfPlayers
 			for ( let i=0; i<amountOfPeople; ++i )
 			{

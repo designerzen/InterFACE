@@ -93,7 +93,7 @@ import { drawMousePressure } from '../dom/mouse-pressure.js'
 
 // Models
 import { EmojiDetector } from '../models/emoji-detection.js'
-import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL } from '../models/emoji.js'
+import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji } from '../models/emoji.js'
 
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
 import { getCleff, NOTATION, STAVE_SIZES } from '../audio/notation.js'
@@ -167,6 +167,7 @@ export default class Person extends EventTarget{
 
 	playerNumber = -1
 	createdAt = -1
+	frameId = -1
 
 	audioContext
 	offlineAudioContext
@@ -277,7 +278,7 @@ export default class Person extends EventTarget{
 	luminosity = 50
 	hueRange = 360
 
-	mouseDownAt = -1
+	pointerDownAt = -1
 	mouseHeldAt = -1
 	inputCoordinates = { x:0, y:0 }
 
@@ -313,7 +314,7 @@ export default class Person extends EventTarget{
 
 	abortController 
 
-	personalProgress = new PersonalProgress()
+	personalProgress
 	
 	get userMode(){
 		return this.#userMode
@@ -373,17 +374,7 @@ export default class Person extends EventTarget{
 	}
 
 	get isKissing(){
-		switch(this.emoticon)
-		{
-			case EMOJI_KISS:
-			case EMOJI_KISSING_WINK:
-			case EMOJI_CAT_KISSING:
-			case EMOJI_KISS_EYES_CLOSED:
-			case EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED:
-				return true
-			default:
-				return false
-		}
+		return isKissingEmoji(this.emoticon)
 	}
 
 	get kissDuration(){
@@ -412,7 +403,7 @@ export default class Person extends EventTarget{
 	 */
 	get mouseDownFor(){
 		return this.isMouseDown ? 
-			this.now - this.mouseDownAt :
+			this.now - this.pointerDownAt :
 			-1
 	}
 		
@@ -421,14 +412,14 @@ export default class Person extends EventTarget{
 	 * @returns {Boolean} Mouse button state
 	 */
 	get isMouseDown(){
-		return this.mouseDownAt > -1
+		return this.pointerDownAt > -1
 	}
 
 	/**
 	 * Checks to see if the user is pressing their face
 	 * @returns {Boolean} has this Person got a finger depressed on their face?
 	 */
-	get isMouseHeld(){
+	get isPointerDown(){
 		return this.mouseDownFor > this.options.mouseHoldDuration
 	}
 
@@ -1008,7 +999,7 @@ export default class Person extends EventTarget{
 		// EVENTS DISPATCH ---------------------------------------
 
 		// check to see if mouse if down
-		if (this.mouseHeldAt === -1 && this.isMouseHeld)
+		if (this.mouseHeldAt === -1 && this.isPointerDown)
 		{
 			this.onButtonHeld()
 		}
@@ -1069,12 +1060,15 @@ export default class Person extends EventTarget{
 			this.leftEyeClosedAt = prediction.time
 			this.rightEyeClosedAt = prediction.time
 
+			this.eyesClosed = true
+
 			this.onEyesClosedForTimePeriod()
 			// console.info("closed eyes!", {leftEyeClosedFor, rightEyeClosedFor, eyesClosedFor })
-		}else if(leftEyeClosedFor > -1 || rightEyeClosedFor > -1){
+		// }else if(leftEyeClosedFor > -1 || rightEyeClosedFor > -1){
 			// console.info(prediction.time, "one closed eyes", this.isLeftEyeOpen, leftEyeClosedFor,this.isRightEyeOpen, rightEyeClosedFor, eyesClosedFor ) 
 		}else{
 			//console.info(prediction.time)
+			this.eyesClosed = false
 		}
 
 		// Emoji detection with smoothing
@@ -1212,13 +1206,9 @@ export default class Person extends EventTarget{
 	 */
 	moveButton(x,y,width,height){
 		if (this.isUserActive)
-		{
-			// TODO: Profile which is faster...
-			// this.button.style.setProperty(`--${this.id}-x`, bottomRight[0] )
-			// this.button.style.setProperty(`--${this.id}-y`, topLeft[1] )
-			// this.button.style.setProperty(`--${this.id}-w`, boxWidth )
-			// this.button.style.setProperty(`--${this.id}-h`, boxHeight )			
-			requestAnimationFrame( ()=> this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};` ) )
+		{	
+			cancelAnimationFrame( this.frameId )		
+			this.frameId = requestAnimationFrame( ()=> this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};` ) )
 			// this.button.cssText = `--${this.id}-x:${bottomRight[0]};--${this.id}-y:${topLeft[1]};--${this.id}-w:${boxWidth};--${this.id}-h:${boxHeight};`		
 	}	}
 
@@ -1282,7 +1272,7 @@ export default class Person extends EventTarget{
 				const percentageRemaining = 100 - Math.ceil(remaining*100)
 			
 				//console.error("this.isMouseHeld",this.isMouseHeld,{remaining,percentageRemaining} )
-				if (this.isMouseHeld)
+				if (this.isPointerDown)
 				{	
 					// user is holding mouse down on user...
 					display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
@@ -1880,6 +1870,9 @@ export default class Person extends EventTarget{
 		this.pitch = octaveNumber
 		this.roll = noteNumber
 
+		// update melodies
+		// this.personalProgress
+
 		// TODO: Return all notes played
 		return {
 			played,
@@ -1912,7 +1905,6 @@ export default class Person extends EventTarget{
 	}
 
 	setNoteDateFromCommand(command){
-		
 		//console.log("Person:setNoteDateFromCommand Intercepted command via MIDI", command)
 		//noteName = getMIDINoteNumberAsName(command.noteNumber)
 		this.noteName = command.noteName
@@ -1923,8 +1915,6 @@ export default class Person extends EventTarget{
 	}
 
 	async setupInstrumnentForm( details ){
-
-		// presetTitle,presetName,
 
 		// overwrite the instrument info
 		this.presetTitle = details.presetTitle
@@ -2350,10 +2340,10 @@ export default class Person extends EventTarget{
 	 * @param {Event} event 
 	 */
 	onFaceTouchStart(event){
-		// console.log("mousedown:currentTime",  audioContext.currentTime )
+		
 		event.preventDefault()
 
-		this.mouseDownAt = this.now
+		this.pointerDownAt = this.now
 		this.inputCoordinates.x = event.clientX
 		this.inputCoordinates.y = event.clientY
 
@@ -2378,7 +2368,7 @@ export default class Person extends EventTarget{
 		
 		// Gestures -----
 		// if someone just keeps the finger on the screen...
-		if (this.isMouseHeld)
+		if (this.isPointerDown)
 		{	
 			// should this trigger something else depending on time?
 			// const elapsed = this.mouseDownFor
@@ -2411,7 +2401,7 @@ export default class Person extends EventTarget{
 		}
 
 		// reset it
-		this.mouseDownAt = -1
+		this.pointerDownAt = -1
 		this.mouseHeldAt = -1
 
 		// drawMousePressure( 1, this.options.mouseHoldDuration )	
@@ -2461,7 +2451,7 @@ export default class Person extends EventTarget{
 
 	onEyesClosedForTimePeriod(){
 		// console.error( "onEyesClosedForTimePeriod" ) 
-		this.eyesClosed = true
+		
 	
 		// Eyes closed for X amount of time...
 		// this.loadNextPreset( instrumentName => console.log("onEyesClosedForTimePeriod:instrumentName",instrumentName ) )
