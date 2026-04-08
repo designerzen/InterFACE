@@ -48,7 +48,6 @@ export default class SoundFontInstrument extends SampleInstrument{
 	// create a super object containing paths and families ands such!
 	static dictionary = createInstruments() 
 
-	name = INSTRUMENT_TYPE_SOUNDFONT
 	#title = "SoundFont Sample Player"
 	
 	type = "sample"
@@ -59,6 +58,10 @@ export default class SoundFontInstrument extends SampleInstrument{
 	instrumentTitles = GM_INSTRUMENT_NAMES
 	instrumentFolders = GM_INSTRUMENT_FOLDERS
 
+	get name() {
+		return INSTRUMENT_TYPE_SOUNDFONT
+	}
+	
 	/**
 	 * This loads in a preset immediately if one is specified
 	 * 
