@@ -1,6 +1,6 @@
 
 import { loadDisplayClass, createDisplay } from "./display-manager.js"
-import Person from "../person.js"
+import Person from "../people/person.js"
 
 import DisplayCanvas2D from './display-canvas-2d.js'
 import DisplayWebGL3D from './display-webgl-3d.js'

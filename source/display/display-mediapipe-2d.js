@@ -23,6 +23,10 @@ export default class DisplayMediaPipe2D extends Display2D{
 	
 	name = DISPLAY_MEDIA_PIPE_2D
 
+	get type() {
+		return DISPLAY_MEDIA_PIPE_2D
+	}
+
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS ){
 		options = Object.assign({}, DEFAULT_OPTIONS, options)
 		super(canvas, initialWidth, initialHeight, options)

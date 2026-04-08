@@ -136,6 +136,10 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 
 	name = DISPLAY_LOOKING_GLASS_3D
 
+	get type() {
+		return DISPLAY_LOOKING_GLASS_3D
+	}
+
 	isButtonFullSize = false
 
 	lookingGlassWebXR

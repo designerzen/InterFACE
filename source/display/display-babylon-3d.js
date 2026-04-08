@@ -29,6 +29,10 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 
 	name = DISPLAY_BABYLON_3D
 
+	get type() {
+		return DISPLAY_BABYLON_3D
+	}
+
 	// Babylon.js core
 	engine = null
 	scene = null

@@ -28,8 +28,9 @@ import {
 	Mesh
 } from "three"
 
-import { WebGPURenderer } from "three/examples/jsm/renderers/webgpu/WebGPURenderer.js"
-import { MeshBasicNodeMaterial } from 'three/nodes'
+// WebGPU support in three.js v0.183.2 is limited
+// Using standard WebGLRenderer instead
+import { WebGLRenderer } from "three"
 
 import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_LOOKING_GLASS_WEBGPU } from './display-types.js'
@@ -108,6 +109,10 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 
 	name = DISPLAY_LOOKING_GLASS_WEBGPU
 
+	get type() {
+		return DISPLAY_LOOKING_GLASS_WEBGPU
+	}
+
 	// THREE.js core
 	renderer = null
 	scene = null
@@ -164,10 +169,11 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 			throw new Error("WebGPU not supported in this browser")
 		}
 
-		// Create WebGPU renderer
-		this.renderer = new WebGPURenderer({
+		// Create WebGL renderer (WebGPU not available in three.js v0.183.2 ESM)
+		this.renderer = new WebGLRenderer({
 			canvas: canvas,
-			antialias: true
+			antialias: true,
+			alpha: true
 		})
 
 		this.renderer.setPixelRatio(window.devicePixelRatio)
@@ -177,8 +183,7 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		// Enable XR for Looking Glass
 		this.renderer.xr.enabled = true
 
-		// Wait for renderer initialization
-		await this.renderer.init()
+		// No async init needed for WebGL renderer
 
 		// Create scene
 		this.scene = new Scene()
@@ -215,7 +220,7 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		// Set up animation loop
 		this.setAnimationLoop(() => {
 			this.render()
-		}, true)
+		}, false)
 
 		// Handle window resize
 		this.onWindowResizeHandler = this.onWindowResize.bind(this)
@@ -402,17 +407,13 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 	/**
 	 * Render the scene with XR support
 	 */
-	async render() {
+	render() {
 		this.count++
 		this.elapsedTime += 0.016
 
-		if (this.renderer && !this.renderer.isDisposed) {
+		if (this.renderer) {
 			// Render with XR session if available
-			if (this.renderer.xr.isPresenting) {
-				await this.renderer.renderAsync(this.scene, this.camera)
-			} else {
-				await this.renderer.renderAsync(this.scene, this.camera)
-			}
+			this.renderer.render(this.scene, this.camera)
 		}
 	}
 

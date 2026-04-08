@@ -9,6 +9,10 @@ export default class DisplayComposite extends AbstractDisplay{
 	
 	name = DISPLAY_COMPOSITE
 
+	get type() {
+		return DISPLAY_COMPOSITE
+	}
+
 	initialDisplay
 
 	get firstDisplay(){

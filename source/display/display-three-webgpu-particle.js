@@ -26,10 +26,9 @@ import {
 	Mesh
 } from "three"
 
-// WebGPU specific imports
-import { WebGPURenderer } from "three/examples/jsm/renderers/webgpu/WebGPURenderer.js"
-import { StorageInstancedBufferAttribute } from "three/examples/jsm/renderers/webgpu/StorageInstancedBufferAttribute.js"
-import { MeshBasicNodeMaterial } from 'three/nodes'
+// WebGPU support in three.js v0.183.2 is limited
+// Using standard WebGL renderer instead
+import { WebGLRenderer, MeshBasicMaterial } from "three"
 
 // Math utilities
 import { ONE_DEGREE_IN_RADIANS } from "../maths/maths.js"
@@ -54,6 +53,10 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 	name = DISPLAY_THREE_WEBGPU_PARTICLE
 
+	get type() {
+		return DISPLAY_THREE_WEBGPU_PARTICLE
+	}
+
 	// THREE.js core
 	renderer = null
 	scene = null
@@ -65,7 +68,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	particleMaterial = null
 	instanceCount = 0
 
-	// Storage buffers for GPU computation
+	// Storage buffers (not used with WebGL, kept for compatibility)
 	positionBuffer = null
 	velocityBuffer = null
 	colourBuffer = null
@@ -104,18 +107,18 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 			throw new Error("WebGPU not supported in this browser")
 		}
 
-		// Create WebGPU renderer
-		this.renderer = new WebGPURenderer({
+		// Create WebGL renderer (WebGPU not available in three.js v0.183.2 ESM)
+		this.renderer = new WebGLRenderer({
 			canvas: canvas,
-			antialias: true
+			antialias: true,
+			alpha: true
 		})
 
 		this.renderer.setPixelRatio(window.devicePixelRatio)
 		this.renderer.setSize(this.canvasWidth, this.canvasHeight)
 		this.renderer.setClearColor(new Color(0x000000))
 
-		// Wait for renderer initialization
-		await this.renderer.init()
+		// No async init needed for WebGL renderer
 
 		// Create scene
 		this.scene = new Scene()
@@ -191,44 +194,22 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		)
 		this.particleGeometry.setAttribute('position', positionAttribute)
 
-		// Create storage buffers on GPU
-		// Position buffer - stores x, y, z for each particle
-		const positionData = new Float32Array(particleCount * 3)
-		this.positionBuffer = new StorageInstancedBufferAttribute(
-			positionData,
-			3
-		)
-
-		// Velocity buffer - stores vx, vy, vz for smooth interpolation
-		const velocityData = new Float32Array(particleCount * 3)
-		this.velocityBuffer = new StorageInstancedBufferAttribute(
-			velocityData,
-			3
-		)
-
-		// Colour buffer - stores RGBA for each particle
-		const colourData = new Float32Array(particleCount * 4)
-		for (let i = 0; i < colourData.length; i += 4) {
-			colourData[i] = 1     // r
-			colourData[i + 1] = 0.8 // g
-			colourData[i + 2] = 0.6 // b
-			colourData[i + 3] = 1   // a
+		// Initialize buffers (WebGL doesn't use storage buffers like WebGPU)
+		this.positionBuffer = new Float32Array(particleCount * 3)
+		this.velocityBuffer = new Float32Array(particleCount * 3)
+		this.colourBuffer = new Float32Array(particleCount * 4)
+		
+		for (let i = 0; i < this.colourBuffer.length; i += 4) {
+			this.colourBuffer[i] = 1     // r
+			this.colourBuffer[i + 1] = 0.8 // g
+			this.colourBuffer[i + 2] = 0.6 // b
+			this.colourBuffer[i + 3] = 1   // a
 		}
-		this.colourBuffer = new StorageInstancedBufferAttribute(
-			colourData,
-			4
-		)
-
-		// Assign storage buffers to geometry
-		this.particleGeometry.setAttribute('particlePosition', this.positionBuffer)
-		this.particleGeometry.setAttribute('particleVelocity', this.velocityBuffer)
-		this.particleGeometry.setAttribute('particleColour', this.colourBuffer)
 
 		// Create material with TLSL shaders
 		this.particleMaterial = this.createTSLParticleMaterial()
 
 		// Create instanced particle mesh
-		const Mesh = nodeProxy(class extends Mesh { })
 		this.particleMesh = new Mesh(
 			this.particleGeometry,
 			this.particleMaterial
@@ -447,7 +428,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 				)
 				particleGeometry.setAttribute('position', positionAttr)
 
-				const particleMaterial = new MeshBasicNodeMaterial({
+				const particleMaterial = new MeshBasicMaterial({
 					transparent: true
 				})
 

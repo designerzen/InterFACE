@@ -127,6 +127,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 
 	name = DISPLAY_WEB_GL_3D
 
+	get type() {
+		return DISPLAY_WEB_GL_3D
+	}
+
 	camera
 	scene
 	renderer

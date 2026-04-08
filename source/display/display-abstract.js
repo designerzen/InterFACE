@@ -341,7 +341,8 @@ export default class AbstractDisplay{
 
         // HALVE if over size, and keep halving it till it is smaller
         // the CSS should automatically scale it up
-        while (displayWidth > this.optional.screenBoundary || displayHeight > this.optional.screenBoundary)
+        const screenBoundary = 1080 // DEFAULT_PERFORMANCE_BOUNDARY_SIZE
+        while (displayWidth > screenBoundary || displayHeight > screenBoundary)
         {
             displayWidth /= 2
             displayHeight /= 2

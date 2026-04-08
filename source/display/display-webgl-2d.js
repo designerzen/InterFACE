@@ -41,6 +41,10 @@ export default class DisplayWebGL extends AbstractDisplay {
     program = null
     startTime = Date.now()
     
+    get type() {
+        return DISPLAY_WEB_GL
+    }
+    
     constructor(canvas, initialWidth, initialHeight, options = {}) {
         super(canvas, initialWidth, initialHeight, options)
         this.initWebGL()

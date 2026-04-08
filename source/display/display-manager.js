@@ -10,16 +10,37 @@
 // import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
 import { DISPLAY_TYPES } from './display-types.js'
 
-let display = null
+const isWebGLAvailable = () => {
+  const canvas = document.createElement('canvas');
+  try {
+    return !!(
+      window.WebGLRenderingContext && 
+      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    )
+  } catch(e) {
+    return false
+  }
+}
 
+
+/**
+ * Lazy load in a Display Class and its deps
+ * @param {String} type 
+ * @returns 
+ */
 export const loadDisplayClass = async( type ) => {
 	
+	try{
 	switch(type)
 	{
 		// FIXME: Face detection has dependency clash
 		// case DISPLAY_CANVAS_2D: 
 		// 	const {Display2D} = await import('./display-canvas-2d.js')
 		// 	return Display2D
+		case DISPLAY_TYPES.DISPLAY_CANVAS_2D:
+			const { default:DisplayCanvas2D} = await import('./display-canvas-2d.js')
+			return {default:DisplayCanvas2D}
+
 		case DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D: 
 			const { default:DisplayMediaPipe2D} = await import('./display-mediapipe-2d.js')
 			return {default:DisplayMediaPipe2D}
@@ -33,15 +54,38 @@ export const loadDisplayClass = async( type ) => {
 			return {default:DisplayMediaVision2D}
 
 		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D: 
-			const { default:DisplayWebGL3D } = await import( './display-webgl-3d.js')
+			const { default:DisplayWebGL3D } = await import( './display-webgl-3d-working.js')
 			return {default:DisplayWebGL3D}
 
+		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
+			const { default:DisplayWebGPU } = await import('./display-webgpu-working.js')
+			return {default:DisplayWebGPU}
+
+		case DISPLAY_TYPES.DISPLAY_BABYLON_3D:
+			const { default:DisplayBabylon3D } = await import('./display-babylon-3d.js')
+			return {default:DisplayBabylon3D}
+
+		case DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE:
+			const { default:DisplayThreeWebGPUParticle } = await import('./display-three-webgpu-particle.js')
+			return {default:DisplayThreeWebGPUParticle}
+
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D: 
-			const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass, createXRToggleButton } = await import( './display-looking-glass-3d.js')
+			const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass } = await import( './display-looking-glass-3d.js')
 			return {
 				default:DisplayLookingGlass3D, 
 				before:requiredXRSetupForLookingGlass
 			}
+
+		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU:
+			const { default:DisplayLookingGlassWebGPU } = await import('./display-looking-glass-webgpu.js')
+			return {default:DisplayLookingGlassWebGPU}
+
+		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL:
+			const { default:DisplayLookingGlassWebGPUTSL } = await import('./display-looking-glass-3d-webgpu-tsl.js')
+			return {default:DisplayLookingGlassWebGPUTSL}
+	}
+	}catch( error ){
+		console.error("Couldn't load Display Library", error)
 	}
 }
 
@@ -138,7 +182,7 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	// remove existing canvas 
 	canvasElement.remove()
 
-	console.info("DISPLAY:restartCanvas", {canvasElement, newCanvasElement, display, parent})
+	console.info("DISPLAY:restartCanvas", {canvasElement, newCanvasElement, parent})
 	
 	// kill to prevent side effects
 	canvasElement = null
@@ -146,19 +190,7 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	return newCanvasElement
 } 
 
-const isWebGLAvailable = () => {
-  const canvas = document.createElement('canvas');
-  try {
-    return !!(
-      window.WebGLRenderingContext && 
-      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-    )
-  } catch(e) {
-    return false
-  }
-}
-
-const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
+export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
 	// Default always available display
 	const availableDisplays = [
 		DISPLAY_TYPES.DISPLAY_COMPOSITE,
@@ -197,7 +229,7 @@ const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
  * 
  * @returns 
  */
-export const getDisplayAvailability = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
+export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
 	
 	// assume webGL 3D one if no previous one was provided
 	let suggestedDisplay = previousDisplay ?? defaultDisplay
@@ -221,6 +253,8 @@ export const getDisplayAvailability = async( previousDisplay, defaultDisplay= DI
 		available: [...available, ...getAvailableDisplays(holographicDisplayQuantity > 0)]
 	}
 }
+
+
 
 
 /**
@@ -269,4 +303,79 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 	console.info("DISPLAY:created", { display, displayType, canvasElement, newCanvasElement, renderLoop })
 
 	return display
+}
+
+
+export default class DisplayManager{
+
+	#display
+	#canvas
+	type
+
+	get display(){
+		return this.#display
+	}
+
+	constructor( canvasVideoElement, initialDisplayType ){
+		this.#canvas = canvasVideoElement
+		this.type = initialDisplayType
+	}
+
+	listAvailable(){
+		return getAvailableDisplays()
+	}
+
+	async create( displayType, options={} ){
+		return await createDisplay( this.#canvas, displayType, options )
+	}
+
+	async switchTo( displayType, renderLoop, options={}){
+
+		// display type may be a string or an object
+		if (!this.#canvas)
+		{
+			throw Error("No embedded canvas was provided")
+		}
+		
+		if (!this.#canvas.parentNode)
+		{
+			throw Error("No DOM canvas was provided - only orphan without parent")  
+		}
+
+		// invert if a key was provided...
+		if (DISPLAY_TYPES[displayType])
+		{
+			displayType = DISPLAY_TYPES[displayType]
+		}
+
+		if ( !Object.values(DISPLAY_TYPES).includes(displayType) )
+		{
+			console.warn("Display test", displayType, DISPLAY_TYPES, DISPLAY_TYPES[displayType])
+			throw Error("Display type "+displayType+" is not supported")
+		}
+
+		// as a context once set can only be one of 2d or webgl
+		const newCanvasElement = await restartCanvas(this.#canvas, -1)
+
+		// async or load direct
+		// display = await createEmbeddedDisplay(newCanvasElement, displayType)
+		const display = await createDisplay(newCanvasElement, displayType, options)
+
+		if (renderLoop)
+		{
+			display.setAnimationLoop(renderLoop, options.autoStart ?? true )
+		}
+
+		console.info("DISPLAY:created", { display, displayType, newCanvasElement }, this )
+
+		this.#display = display
+		this.#canvas = newCanvasElement
+		this.type = displayType
+
+		return display
+	}
+
+	async restart(){
+		return await restartCanvas( this.#canvas )
+	}
 }

@@ -159,6 +159,10 @@ export default class Display2D extends AbstractDisplay{
 
 	filterIndex = 0 % (FILTER_LIBRARY.length-1)
 
+	get type() {
+		return DISPLAY_CANVAS_2D
+	}
+
 	get filterModel(){
 		return FILTER_LIBRARY[this.filterIndex]
 	}
