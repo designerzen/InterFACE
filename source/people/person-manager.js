@@ -326,7 +326,6 @@ export class PersonManager extends EventTarget{
 	}
 
 
-
 	/**
 	 * 
 	 * @param {string} type 

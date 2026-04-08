@@ -3,7 +3,7 @@
  */
 
 import Person from "../people/person.js"
-import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplayAvailability  } from '../display/display-manager.js'
+import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplaysInformation  } from '../display/display-manager.js'
 import { DISPLAY_TYPES, DISPLAY_IDS, DISPLAY_LOOKING_GLASS_3D } from '../display/display-types.js'
 import { now } from "../timing/timing.js"
 
@@ -88,7 +88,7 @@ const registerDisplays = async (initialDisplay = DISPLAY_TYPES.DISPLAY_WEB_GL_3D
 	// Looking Glass Portrait hardware :
 	// firstly check to see how many holographic displays are connected and modify the default display 
 	// if the hologrpahic display is available and has not been previously set
-	initialDisplay = await getDisplayAvailability()
+	initialDisplay = await getDisplaysInformation()
 	result.textContent = initialDisplay === DISPLAY_LOOKING_GLASS_3D ? 'Looking Glass Portrait' : "NO Looking Glass Portraits detected"
 	
 	// immediately set the video display to what was discovered / previously set as an option

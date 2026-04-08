@@ -130,7 +130,7 @@ import { getThemeFromReferer, setTheme, setupThemeControls } from './theme/theme
 import { fetchBrandColor } from './settings/palette.js'
 
 // DISPLAYS
-import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplayAvailability  } from './display/display-manager.js'
+import DisplayManager, { getDisplaysInformation } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 
@@ -262,9 +262,7 @@ export const createInterface = (
 	// Fix dialogs and bind them with events
 	const dialogs = setupDialogs()
 
-	// 
-	let canvasVideoElement = doc.getElementById('photosynth-canvas')
-	let canvasSandwichElement = doc.getElementById('photosynth-sandwich')
+	// let canvasSandwichElement = doc.getElementById('photosynth-sandwich')
 	let canvasOverlayElement = doc.getElementById('photosynth-overlay')
 
 	// where we extract the face data from
@@ -288,8 +286,8 @@ export const createInterface = (
 	let visualiserManager
 
 	// canvas / GL adapters for front end
-	let initialDisplayType = DISPLAY_TYPES.DISPLAY_CANVAS_2D
 	let display = null
+	let displayManager
 	
 	// lazy loaded imports
 	let getInstruction, getHelp
@@ -812,20 +810,21 @@ export const createInterface = (
 			recordData:stateMachine.get('recordData'),
 		}
 
+		// Create our person with the specified options
+		const person = personManager.getPerson(index)
+
 		// Load any saved settings for this specific user name
-		const storageKey = 'p'+(index+1)
+		const storageKey = person.storageKey
 		const savedOptions = store.has(storageKey) ? store.getItem(storageKey) : {}
 		const options = Object.assign ( {}, savedOptions, personOptions ) 
 		const savedData = {}
-
-		// Create our person with the specified options
-		const person = personManager.getPerson(index)
 
 		// state can contain more data than simple the options!
 		// so let us loop through the stateMachine and extract any person data...
 		// &p1=1
 		const personMeta = stateMachine.get( storageKey )
-			
+		console.info("personMeta", storageKey,personMeta)		
+	
 		// Load in any data set in the URL
 		const importedData = Person.parseDataExport( personMeta )
 		const personData = person.importJSONData( savedOptions )
@@ -916,7 +915,7 @@ export const createInterface = (
 			preset = getRandomPresetForPerson(person.personIndex)
 		}
 					
-		console.info("Person preference", {storageKey, personMeta, importedData}, {person} )
+		console.info("Person "+index+" preference", {storageKey, personMeta, importedData}, {person, index} )
 
 		// console.info("Person created", {preset}, {person})
 
@@ -1337,44 +1336,13 @@ export const createInterface = (
 	 * @param {String} displayType 
 	 */
 	const switchDisplay = async (displayType, predictionLoop, saveAndExclaim=true) => {
-		if (!canvasVideoElement)
-		{
-			throw Error("No embedded canvas was provided")
-		}
-		
-		if (!canvasVideoElement.parentNode)
-		{
-			throw Error("No DOM canvas was provided - only an orphaned canvas element")  
-		}
-		
-		// if (display)
-		// {
-		// 	// console.info("DISPLAY:destroying existing", display)
-		// 	display.destroy()
-		// 	display = null
-		// 	canvasElement = await restartCanvas( canvasElement, MAX_CANVAS_WIDTH )
-		// }
-				
-		// display = await createDisplay( canvasElement, displayType, stateMachine.asObject )
-		// display.setAnimationLoop( predictionLoop )
-		// delete any existing display
-		if (display)
-		{
-			console.warn("Destroying EXISTING display", display.id, "for new", displayType)
-			// disconnect canvas
-			display.destroy()
-			display = null
-		}
 
 		const displayOptions = {
 			autoStart:false,
 			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0
 		}
 
-		display = await changeDisplay(canvasVideoElement, displayType, predictionLoop, displayOptions)
-		
-		// cache existing
-		canvasVideoElement = display.canvas
+		const newDisplay = await displayManager.switchTo(displayType, predictionLoop, displayOptions)
 
 		// save the display type for next time
 		if (saveAndExclaim)
@@ -1383,7 +1351,7 @@ export const createInterface = (
 			setFeedback('Display changed to '+displayType, 0, 'display' )
 		}
 		// console.info("Display Created", displayType, display) 
-		return display
+		return newDisplay
 	}
 
 	/**
@@ -1433,15 +1401,13 @@ export const createInterface = (
 		
 		// resize canvas to fit video with repect to orientation
 		const resizeCanvasAndVideo = () => {
-			// canvasVideoElement.width = video.width
-			// canvasVideoElement.height = video.height
-			display.setSize( video.videoWidth, video.videoHeight )
-			console.info("Orientation Video size changed",  video.videoWidth, canvasVideoElement.width, video.width, video.videoHeight, canvasVideoElement.height, video.height, { camera, video, canvasVideoElement} )
+			displayManager.display.setSize( video.videoWidth, video.videoHeight )
 		}
 
 		resizeCanvasAndVideo()
+
 		observeOrientationChange((width, height)=>{
-			console.info("Orientation changed", {width, height, camera, video, canvasVideoElement} )
+			console.info("Orientation changed", {width, height, camera, video } )
 			// FIXME: Also resize based on camera
 			// resizeCanvasAndVideo()
 		})
@@ -2373,19 +2339,18 @@ export const createInterface = (
  
 	
 		// VIDEO & DISPLAY ------------------------------------------------
-	
 		progressCallback( 0, "Checking for holographic displays - Please standby!" )
-	
-		initialDisplayType = stateMachine.get('display')
+		displayManager = new DisplayManager( 
+			doc.getElementById('photosynth-canvas'), 
+			stateMachine.get('display') ?? DISPLAY_TYPES.DISPLAY_CANVAS_2D
+		)
 		try{
-			const {suggested, available} = await getDisplayAvailability( initialDisplayType )
+			const {suggested, available} = await getDisplaysInformation( displayManager.type )
 			
 			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
-			initialDisplayType = suggested
-
+			
 			const t = createDisplayOptions(available)
-			stateMachine.set("display", initialDisplayType)
-		
+			
 			if (suggested === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 			{
 				console.info("Found display: Holographic displays", t, {available} )
@@ -2395,17 +2360,18 @@ export const createInterface = (
 			
 			// 'predictionLoop' here is a method passed into this function that is called
 			// on every frame to update the visuals and audio of none quanitsed sounds
-			display = await switchDisplay( initialDisplayType, predictionLoop, false )
-					
-			// determine some capabailities for which display to use...
-			console.info("Display set to ", initialDisplayType, {display} )
+			display = await switchDisplay( suggested, predictionLoop, false )
+			stateMachine.set("display", display.type )
 		
+			// determine some capabailities for which display to use...
+			console.info("Display set to ", suggested, {display} )
+			
 		}catch(error){
-			console.error("FAIL: PhotoSYNTH Screens available", error, { initialDisplayType, settings} ) 
+			console.error("FAIL: PhotoSYNTH Screens available", error, { settings} ) 
 			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
 		}
 
-		progressCallback(loadIndex++/loadTotal, "Loading display " + initialDisplayType)
+		progressCallback(loadIndex++/loadTotal, "Loading display " + display.type )
 		
 		// MOTION TRACKING --------------------------------------------------------------------------------
 		fetchPredictionFromEngine = fetchPredictions
@@ -3626,7 +3592,7 @@ export const createInterface = (
 		// now create all the people we will need!
 		for (let i=0; i< stateMachine.get("players"); ++i)
 		{
-			const person = createPerson()
+			const person = createPerson( i )
 			// console.assert( !debug, i, "Person created", person)
 		}
 		

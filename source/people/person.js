@@ -316,6 +316,7 @@ export default class Person extends EventTarget{
 
 	personalProgress
 	
+
 	get userMode(){
 		return this.#userMode
 	}
@@ -453,6 +454,10 @@ export default class Person extends EventTarget{
 	 */
 	get panelID (){
 		return `.${this.id}-panel`
+	}
+
+	get storageKey(){
+		return "p-"+(this.personIndex+1)
 	}
 
 	/**
@@ -683,7 +688,7 @@ export default class Person extends EventTarget{
 
 		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
 		this.debug = this.options.debug
-		this.playerNumber = index
+		this.playerNumber = parseInt(index)
 
 		// ensure that the name is all lower case and kebabed
 		this.id = IDENTIFIERS[index]
