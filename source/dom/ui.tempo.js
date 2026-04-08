@@ -1,4 +1,4 @@
-import {tapTempo} from '../timing/tap-tempo.js' 
+import {tapTempo, tapTempoSmooth} from '../timing/tap-tempo.js' 
 
 import ROLLING_WORKER_URI from 'url:../timing/timing.rolling.worker.js'
 import SETINERVAL_WORKER_URI from 'url:../timing/timing.setinterval.worker.js'
@@ -29,7 +29,7 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	
 	let interval
 
-	let estimatedTempo
+	let estimatedTempo = tapTempoSmooth()
 	const estimateTempoFromTap = () => {
 		if (!estimatedTempo)
 		{
