@@ -67,8 +67,8 @@
 	justify-self: center;
 
 	z-index: 0;
-	margin-top: calc(  var(--size) / 2 );
-	margin-bottom: calc(  var(--size) /  2 );
+	margin-top: calc( 100vh / 2 );
+	margin-bottom: calc( 100vh /  2 );
 	bottom:50%;
 	// top: calc( 50% - var(--size) / 2 );
     transform: translateY(50%);

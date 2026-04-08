@@ -60,8 +60,8 @@
 		flex-wrap: nowrap;
 		align-content: stretch;
 		justify-content: space-between;
-		
-		scroll-behavior: smooth;
+		overflow: hidden;
+		overflow: clip;
 	}
 
 	:where(main){	
