@@ -3,8 +3,10 @@
  *  Add Keyboard listeners and tie in commands
  */
 export const addKeyboardEvents = ( application ) => {
-	let numberSequence = ""
 
+	let numberSequence = ""
+	const clock = application.clock
+	
 	window.addEventListener('keydown', async (event)=>{
 		const isNumber = !isNaN( parseInt(event.key) )
 		const focussedElement = document.activeElement
