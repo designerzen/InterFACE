@@ -123,6 +123,13 @@
 		visibility: hidden;
 	}
 
+	video{
+		&.reverse{
+			// flip it around for mirror mode!
+			transform: scaleX(-1);		
+		}
+	}
+
 	abbr{
 		text-decoration: wavy;
 		text-decoration-thickness: 1px;

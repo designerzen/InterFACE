@@ -48,7 +48,7 @@ block main
 			include partials/onboarding.pug
 
 			//- THE video element fed by video camera			
-			video#webcam(autoplay, playsinline, width="640", height="480")
+			video#webcam(autoplay, playsinline, loop, muted="muted", oncanplay="this.muted=true", width="640", height="480")
 				p No Video available - unable to playback emoji
 
 			//- we clone the video onto the canvas every frame - this has a JS helper

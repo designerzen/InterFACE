@@ -14,6 +14,7 @@ import {
 	focusApp,
 	buttonVideo
 } from './dom/ui.js'
+
 import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { setupRecordings } from './dom/ui.recording.js'
@@ -28,7 +29,6 @@ import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
-// import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 
 import { Quanitiser } from './visual/quantise.js'
 
@@ -56,18 +56,17 @@ import Person, {
  } from './people/person.js'
 
  import { 
- STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
- STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
+	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
+	STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE
  } from './people/person-states.js'
 
  import { 
- EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
- EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
- EVENT_EMOTION_CHANGED,
- EVENT_EMOTION_UNLOCKED
+	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
+	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
+	EVENT_EMOTION_CHANGED, EVENT_EMOTION_UNLOCKED
  } from './people/person-event.js'
  
- // TIMING
+// TIMING
 // import {midiLikeEvents} from './timing/rhythm'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
 import AudioTimer from './timing/timer.audio.js'
@@ -112,7 +111,6 @@ import { getRandomKickPreset, getKickPresets } from './audio/synthesizers/kick.j
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
 import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera.js'
-import { howManyHolographicDisplaysAreConnected } from './hardware/looking-glass-portrait.js'
 
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
@@ -168,8 +166,6 @@ import { convertOptionToObject } from './utils/utils.js'
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
-import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
-import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 
 import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from './timing/timer.js'
@@ -185,6 +181,7 @@ import { createDisplayOptions } from './dom/ui.display.js'
 // import { getInstruction, getHelp } from './models/instructions'
 
 export const APPLICATION_EVENTS = {
+	INITIALISING:"initialising",
 	LOADING:"application-loading",
 	LOADED:"application-loaded",
 	PARKED:"application-parked",
@@ -192,6 +189,8 @@ export const APPLICATION_EVENTS = {
 
 const doc = document	// using a reference allows truncation
 const body = doc.documentElement
+
+// this can point to the camera stream or a custom local video
 const video = doc.querySelector("video")
 
 // accessibility controls
@@ -230,7 +229,7 @@ export const createInterface = (
 	onLoadProgress = null
 ) => new Promise( (resolve,reject) => {
 
-// Enforce Singleton and return Class with public methods only
+	// Enforce Singleton and return Class with public methods only
 	// This allows us to load all the data upfront and then create a single
 	// instance only of this class. Any subsequent instances created will return 
 	// the same original instance.
@@ -238,6 +237,9 @@ export const createInterface = (
 	{
 		return resolve(instance)
 	}
+
+	// save timestamp
+	const timeInitialised = Date.now()
 
 	// fetch some elements from the DOM
 	const main = doc.querySelector("main")
@@ -255,6 +257,7 @@ export const createInterface = (
 	const countdownProgressElement = doc.getElementById("countdown-progress")
 	const timeElapsedElement = doc.getElementById("time-elapsed")
 	const timeTotalElement = doc.getElementById("time-total")
+
 
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
@@ -302,12 +305,11 @@ export const createInterface = (
 	const selects = {}
 	const buttons = {}
 
-	// cookie data 
-	// TODO: GDPR
+	// SharedLocal cookie data 
 	const information = Object.assign({
 		lastTime:-1,
 		count:0
-	}, store.getItem('info'))
+	}, store.getItem('meta'))
 
 	// Allow parents to see what is happening
 	const addListener = ( type, callback ) =>{
@@ -986,6 +988,18 @@ export const createInterface = (
 					onMIDIPerformanceAvailable(midiFile)
 					return midiFile
 
+				case "video/mp4":
+				case "video/avi":
+				case "video/m4v":
+				case "video/mkv":
+					// TODO:
+					// disconnect camera stream from video and 
+					// load in the video file dropped by the user
+					// and use that as the source for the predictions
+					destroyCamera(video)
+					setupVideoStream(video, file)
+					break
+
 				default:
 					console.warn("Dropped file", {file} , "Ignoring as not sure how to interpret it")
 			}
@@ -1334,6 +1348,9 @@ export const createInterface = (
 	 * switch display to the specifed one and destroy any existing
 	 * ensuring to wipe the canvas ad recrate a new one if required
 	 * @param {String} displayType 
+	 * @param {Function} predictionLoop 
+	 * @param {Boolean} saveAndExclaim 
+	 * @returns 
 	 */
 	const switchDisplay = async (displayType, predictionLoop, saveAndExclaim=true) => {
 
@@ -1354,26 +1371,79 @@ export const createInterface = (
 		return newDisplay
 	}
 
+	
+	/**
+	 * Use the specified file to start streaming video
+	 * onto the video element
+	 * @param {File} file 
+	 */	
+	const setupVideoStream = (videoStream, file) => {
+		isLoading = true
+		const streamSource = URL.createObjectURL(file)
+		videoStream.src = streamSource
+		videoStream.setAttribute('controls', true)
+		videoStream.classList.toggle("reverse", false)
+		// resize canvas - may have to wait for metadata to be available...
+		videoStream.onloadedmetadata = () =>{ 
+			displayManager.setSize( videoStream.videoWidth, videoStream.videoHeight )
+			isLoading = false
+		}
+		// resize anyways for shits and giggles...
+		displayManager.setSize( videoStream.videoWidth, videoStream.videoHeight )
+		console.info("Video dropped by user", {file, video: videoStream, streamSource})	
+	}
+
+	/**
+	 * Destroy the video stream
+	 */
+	const destroyVideoStream = (videoStream) => {
+		
+		if (!videoStream) {
+			throw Error("No Video Element to target")
+		}
+
+		// Stop all media tracks from the video stream
+		if (videoStream.srcObject) {
+			const tracks = videoStream.srcObject.getTracks()
+			tracks.forEach(track => {
+				track.stop()
+			})
+			videoStream.srcObject = null
+		}
+
+		// Clear src attribute if video element has a file source
+		if (videoStream.src) {
+			URL.revokeObjectURL(videoStream.src)
+			videoStream.src = ''
+		}
+
+		// Pause and reset the video element
+		videoStream.pause()
+		videoStream.currentTime = 0
+		videoStream.setAttribute('controls', false)
+	}
+
 	/**
 	 * Setup the Web Camera in relation to the video element
-	 * @param {VideoElement} video 
+	 * @param {VideoElement} videoStream 
 	 * @param {Function} onProgress 
 	 * @returns {String} Status message
 	 */
-	const setupCamera = async( video, onProgress ) => {
+	const setupCamera = async( videoStream, onProgress ) => {
 
 		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 		let investigation
 		let quantityOfCameras = 0
+
+		videoStream.classList.toggle("reverse", false)
 		
 		// attempt to get a camera that is suitable for the app
 		try{
-			investigation = await findBestCamera(store, video, status => {
+			investigation = await findBestCamera(store, videoStream, status => {
 				// console.info("Camera status", status)
 				onProgress && onProgress(status)
 			})
 			quantityOfCameras = investigation.videoCameraDevices.length
-		
 		
 		}catch(error){
 			console.error("Camera not found SHOW ERROR", error)
@@ -1401,13 +1471,13 @@ export const createInterface = (
 		
 		// resize canvas to fit video with repect to orientation
 		const resizeCanvasAndVideo = () => {
-			displayManager.display.setSize( video.videoWidth, video.videoHeight )
+			displayManager.setSize( videoStream.videoWidth, videoStream.videoHeight )
 		}
 
 		resizeCanvasAndVideo()
 
 		observeOrientationChange((width, height)=>{
-			console.info("Orientation changed", {width, height, camera, video } )
+			console.info("Orientation changed", {width, height, camera, video: videoStream } )
 			// FIXME: Also resize based on camera
 			// resizeCanvasAndVideo()
 		})
@@ -1418,9 +1488,9 @@ export const createInterface = (
 			isCameraLoading = true
 			let newCamera
 			try{
-				newCamera = await loadCamera( video, selected.value, selected.label )
+				newCamera = await loadCamera( videoStream, selected.value, selected.label )
 			
-				console.info("New camera selected", newCamera, {video})
+				console.info("New camera selected", newCamera, {video: videoStream})
 				// if successful store for next time
 				if (newCamera)
 				{
@@ -1466,6 +1536,7 @@ export const createInterface = (
 			// have been addeed or removed so we should compare first
 			const videoCameraDevices = await fetchVideoCameras()
 			updateCameraSelector( videoCameraDevices )
+			
 			console.info("New Camera Detected", {videoCameraDevices, event })
 			setFeedback( `New cameras detected!`, 0, 'camera' )
 		}
@@ -1474,14 +1545,24 @@ export const createInterface = (
 										"Found saved camera" : 
 										quantityOfCameras > 1 ? 
 											"Located a Camera but you can change it in Settings > Camera" : 
-											"Located front facing camera"
-
-		
+											"Located front facing camera"		
 		return {
 			success:true,
 			message:cameraFeedbackMessage
 		}
 	}
+
+	/**
+	 * Destroy any camera connections
+	 * @returns 
+	 */
+	const destroyCamera = ( videoStream ) => {
+		destroyVideoStream( videoStream )
+		camera = null
+	}
+
+
+	// --------------------------------------------------------------
 
 	/**
 	 * Associate file types with actions here
@@ -2997,7 +3078,6 @@ export const createInterface = (
 		quantiserCanvas.className = "quantiser-canvas"
 		quanitiser = new Quanitiser( quantiserCanvasContext )
 
-
 		// Add tooltips to buttons if set in options
 		if (stateMachine.get("tooltips"))
 		{
@@ -3012,38 +3092,9 @@ export const createInterface = (
 		// const stave = new Stave( canvasElement, 0, 0, true )
 		// adds "video" or "image" to main
 		main.classList.add( inputElement.nodeName.toLowerCase() )
-		body.classList.toggle("initialising", false)
+		body.classList.toggle( APPLICATION_EVENTS.INITIALISING, false)
 		
 
-
-		/**
-		 * BEGIN ---------------------------------------------------------
-		 */
-		const start = async() => {
-			//console.log("PhotoSYNTH3D STARTING", {options: modelOptions, clock })
-			// console.info("App running", {display, predictionLoop, clock})
-
-			display.start()
-
-			// Fetch the predictions in a predictable loop as fast as we need
-			// NB. the display itself should return duplicate frame if a new frame
-			// hasn't occurred yet
-			// await fetchPrediction( automaticRepeat,usePredictions )
-			clock.setCallback( useTiming )
-
-			progressCallback(loadIndex/loadTotal, "Loading Complete!") 
-
-			// there is a background loop waiting for this to be set
-			// so that we can show the next app parts  
-			isLoading = false
-			
-			// Start audio clock metronome
-			clock.startTimer()		
-		
-
-			return true
-		}
-	
 		// Print to console some useful debug data if in debug mode
 		if (stateMachine.get("debug"))
 		{
@@ -3060,9 +3111,43 @@ export const createInterface = (
 			// )
 		}
 
+		/**
+		 * BEGIN ---------------------------------------------------------
+		 */
+		const start = async() => {
+			
+			display.start()
+
+			progressCallback(loadIndex/loadTotal, "Loading Complete!") 
+
+			// Fetch the predictions in a predictable loop as fast as we need
+			// NB. the display itself should return duplicate frame if a new frame
+			// hasn't occurred yet
+			// await fetchPrediction( automaticRepeat,usePredictions )
+			clock.setCallback( useTiming )
+			clock.startTimer()		
+
+			if (stateMachine.get("debug"))
+			{
+				console.info(
+					"%c ",
+					`line-height:44px;padding-block:22px;padding-left:44px;background-repeat:no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' width='44' height='44' clip-rule='evenodd' viewBox='0 0 3018 2502'%3E%3Cdefs%3E%3C/defs%3E%3Cpath fill='%23000' d='M0 636.628h3017.661v1865.214H.001z'%3E%3C/path%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M3017.65 0H1975.12v636.629h288.113V348.516h754.417V0z'%3E%3C/path%3E%3Cpath fill='%23fff' fill-rule='nonzero' d='M1508.82 2035.531c-257.53 0-466.296-208.78-466.296-466.292 0-257.55 208.767-466.317 466.296-466.317 257.538 0 466.3 208.767 466.3 466.317 0 257.513-208.762 466.292-466.3 466.292m466.3-1398.905V976.15c-128.341-101.05-290.279-161.342-466.3-161.342-416.642 0-754.421 337.767-754.421 754.43 0 416.642 337.779 754.417 754.421 754.417 416.65 0 754.417-337.775 754.417-754.417V636.626H1975.12z'%3E%3C/path%3E%3C/svg%3E")`,
+					"PhotoSynth > Ready"
+				)
+				//console.log("PhotoSYNTH3D STARTING", {options: modelOptions, clock })
+				// console.info("App running", {display, predictionLoop, clock})
+			}
+			
+			// there is a background loop waiting for this to be set
+			// so that we can show the next app parts  
+			isLoading = false
+
+			return true
+		}
+	
 		if (!start)
 		{
-			throw Error("Total failure")
+			throw Error("Total failure - Cannot load required files")
 		}
 		
 		return start
@@ -3103,13 +3188,11 @@ export const createInterface = (
 			setFeedback("Metronome " + (status ? 'enabled' : 'disabled'), 0, status ? 'metronome' : 'silence'  )
 		}, stateMachine.get( 'metronome') )
 
-
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
 			// change drums!
 			setRandomDrumPattern()
 			toggleBackgroundPercussion(false)
 		}, stateMachine.get( 'backingTrack') )
-
 
 		toggles.spectrogram = setToggle( "button-spectrogram", status =>{
 			stateMachine.set( 'spectrogram', status )
@@ -3213,7 +3296,6 @@ export const createInterface = (
 			setFeedback( status ? 'Advanced' : 'Basic', 0 )
 		})
 	
-
 		// TODO : Set some up with double functions if held
 		// Recording bars by holding...
 		// toggles.recordAudio = setToggle( "button-record-audio", 
@@ -3271,17 +3353,18 @@ export const createInterface = (
 
 		// Upload MIDI File! Secret functions
 		//const uploadMIDIForm = document.getElementById("midi-file") 
-		const uploadMIDIFileInput = document.getElementById("midi-upload-input") 
+		const uploadFileInput = document.getElementById("midi-upload-input") 
 
 		buttons.uploadMIDI = setButton("button-midi-upload", click => {
-			const file = uploadMIDIFileInput.files[0]
+			const file = uploadFileInput.files[0]
 			userUploadMediaFile( file )
 		}, 'click', true)
 		
-		uploadMIDIFileInput.addEventListener( "change", async (e) => {
-			const file = uploadMIDIFileInput.files[0] 
-			userUploadMediaFile( file )
-			// await userUploadMediaFile( file )
+		uploadFileInput.addEventListener( "change", async (e) => {
+			const file = uploadFileInput.files[0] 
+			userUploadMediaFile( file ).then( d => {
+
+			})
 		})
 
 		// allow files to be dragged over the screen
@@ -3341,7 +3424,6 @@ export const createInterface = (
 		
 		// allow display type to be changed on the hoof via toggle
 		selects.displays = connectSelect( 'select-display', async(option) => {
-			
 			if (option && option.value)
 			{
 				try{
@@ -3705,7 +3787,7 @@ export const createInterface = (
 			timeOut = setTimeout(()=>setFeedback( "by clicking either button" ), 15000 )
 		}, showHelpTextAfter )
 
-		// clear help fields
+		// clear any ongoing help fields
 		setFeedback("",0,'hide')
 		setToast("")
 
@@ -3726,32 +3808,30 @@ export const createInterface = (
 	}
 
 	/**
-	 * Quit the app and save any settings
+	 * Quit the app and save any settings locally
 	 */
 	const quit = () => {
 
-		killMIDI()
-
+		const duration = Date.now() - timeInitialised
 		// try and locally store any changes to the interface and settings
 		const saveSession = Object.assign({}, information, {
-			lastTime:Date.now(),
-			count:(information.count??1)
+			lastTime:timeInitialised,
+			count:(information.count??0)+1,
+			duration:(information.duration??0)+duration
 		})
-		// TODO: save ui settings in cookie too?
-		store.setItem('info', saveSession)
-		//store.setItem(person.name, {instrument})
+		store.setItem('meta', saveSession)
+		
+		killMIDI()
 
 		trackExit && trackExit()
-		
 		setToast("Goodbye!")
-		setFeedback("<strong>I hope you had fun!</strong>", 0)
+		setFeedback("<strong>I hope you had fun! Come back soon!</strong>", 0)
 	}
 
 	// ---------------------------------------------------------
 	// BEGIN APP HERE!
 	// ---------------------------------------------------------
 	
-
 	// console.log("PhotoSYNTH3D Waiting to select player...", {options} )
 
 	// NB. To allow this to happen at the same time...
@@ -3867,7 +3947,7 @@ export const createInterface = (
 		}
 
 		// Exit & save all cookies!
-		window.onbeforeunload = ()=> quit()
+		window.onbeforeunload = quit
 
 		// document.addEventListener( "contextmenu", (e) => {
 		//     console.log(e)
