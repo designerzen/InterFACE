@@ -378,4 +378,8 @@ export default class DisplayManager{
 	async restart(){
 		return await restartCanvas( this.#canvas )
 	}
+
+	setSize( width, height ){
+		this.#display?.setSize( width, height )
+	}
 }
