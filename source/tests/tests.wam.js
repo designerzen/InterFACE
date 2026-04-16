@@ -308,10 +308,11 @@ try{
 	const [hostGroupId] = await initializeWamHost(audioContext)
 
 	// load main plugin file
+	// WAM2 imports disabled - they cause Parcel bundler issues with dynamic module loading
 	// const { default: synthWAMPlugin } = await import("./audio/wam2-external/synth101/src/index.tsx")
-	const { default: simpleWAMPlugin } = await import("./audio/wam2/simple/index.js")
-	const { default: pingPongDelayWAMPlugin } = await import("./audio/wam2/pingpongdelay/index.js")
-	const { default: samplerWAMPlugin } = await import("./audio/wam2/sampler/index.js")
+	// const { default: simpleWAMPlugin } = await import("./audio/wam2/simple/index.js")
+	// const { default: pingPongDelayWAMPlugin } = await import("./audio/wam2/pingpongdelay/index.js")
+	// const { default: samplerWAMPlugin } = await import("./audio/wam2/sampler/index.js")
 	
 
 	// You can can optionally specify additional information such as the initial state 
@@ -870,8 +871,9 @@ const init = async () => {
 const test = async () => {
 
 	const audioContext = new AudioContext({ latencyHint: 'playback' })
-	const [hostGroupId] = await initializeWamHost(audioContext)
-	const { default: simpleWAMPlugin } = await import("worklet:../audio/wam2/simple/index.js")
+	// WAM2 imports disabled - they cause Parcel bundler issues with dynamic module loading
+	// const [hostGroupId] = await initializeWamHost(audioContext)
+	// const { default: simpleWAMPlugin } = await import("worklet:../audio/wam2/simple/index.js")
 	
 	// const { default: simpleWAMPlugin } = await import("./audio/wam2/simple/index.js")
 	// const [hostGroupId] = await initializeWamHost(audioContext)
@@ -886,7 +888,7 @@ const test = async () => {
 
 	// const { default: synthWAMPlugin } = await import("url:./audio/wam2-external/tinySynth/src/index.js")
 	// const synthPlugin = await synthWAMPlugin.createInstance(hostGroupId, audioContext, {})
-	const synthPlugin = await simpleWAMPlugin.createInstance(hostGroupId, audioContext, {})
+	// const synthPlugin = await simpleWAMPlugin.createInstance(hostGroupId, audioContext, {})
 	// const { default: synthWAMPlugin } = await import("./audio/wam2-external/synth101/src/index.tsx")
 	// const synthPlugin = await synthWAMPlugin.createInstance(hostGroupId, audioContext, {})
 }

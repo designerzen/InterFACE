@@ -285,7 +285,7 @@ export class PersonManager extends EventTarget{
 			this.selectedPersonIndex = index
 			this.people.forEach( (person, i) => person.isSelected = false)
 		}else{
-			this.selectedPersonIndex = index % people.length
+			this.selectedPersonIndex = index % this.people.length
 			this.people.forEach( (person, i) => person.isSelected = i === this.selectedPersonIndex )
 		}
 		return this.getSelectedPerson()
@@ -316,7 +316,7 @@ export class PersonManager extends EventTarget{
 		{
 			this.people[this.highlightedPersonIndex].isHighlighted = false
 		}
-		this.highlightedPersonIndex = index
+		this.highlightedPersonIndex = index % this.people.length
 		this.people[this.highlightedPersonIndex].isHighlighted = true
 		return this.people[this.highlightedPersonIndex]
 	}

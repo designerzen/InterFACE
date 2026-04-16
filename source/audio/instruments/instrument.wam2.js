@@ -47,9 +47,53 @@ export default class WAM2Instrument extends Instrument{
 	async loadWAM2(audioContext, pluginURL, options={} )
 	{
 		const [hostGroupId] = await initializeWamHost(audioContext)
-		// const { default: WAMPlugin } = await import("/source/audio/wam2/simple/index.js")
-		// const { default: WAMPlugin } = await import("./source/audio/wam2/sampler/index.js")
-		const { default: WAMPlugin } = await import(pluginURL)
+		
+		let WAMPlugin
+		try {
+			// Load WAM module by dynamically creating and executing a module script
+			// Use a Blob URL to load the external module without Parcel interference
+			const response = await fetch(pluginURL)
+			if (!response.ok) {
+				throw Error(`HTTP ${response.status}: Could not fetch ${pluginURL}`)
+			}
+			
+			const code = await response.text()
+			const blob = new Blob([code], { type: 'application/javascript' })
+			const moduleUrl = URL.createObjectURL(blob)
+			
+			try {
+				// Create a script element and set its source dynamically
+				// Use a global reference to avoid Parcel's import() analysis
+				const promise = new Promise((resolve, reject) => {
+					window.__WAM2_RESOLVE__ = resolve
+					window.__WAM2_REJECT__ = reject
+					window.__WAM2_URL__ = moduleUrl
+				})
+				
+				const script = document.createElement('script')
+				script.type = 'module'
+				script.textContent = `
+					try {
+						const url = window.__WAM2_URL__;
+						const mod = await import(url);
+						window.__WAM2_RESOLVE__(mod.default || mod);
+					} catch (e) {
+						window.__WAM2_REJECT__(e);
+					} finally {
+						delete window.__WAM2_RESOLVE__;
+						delete window.__WAM2_REJECT__;
+						delete window.__WAM2_URL__;
+					}
+				`
+				document.head.appendChild(script)
+				WAMPlugin = await promise
+				document.head.removeChild(script)
+			} finally {
+				URL.revokeObjectURL(moduleUrl)
+			}
+		} catch (err) {
+			throw Error(`Failed to load WAM2 plugin from ${pluginURL}: ${err.message}`)
+		}
 		const plugin = await WAMPlugin.createInstance(hostGroupId, audioContext, options )
 			
 		if (!plugin.audioNode || !plugin.audioNode.connect )
@@ -84,7 +128,7 @@ export default class WAM2Instrument extends Instrument{
 		const result = await this.loadWAM2(this.context, this.options.pluginURL, this.options )
 				
 		await super.create()
-		console.info("WAM2Instrument.create() called", result, pluginURL, this )
+		console.info("WAM2Instrument.create() called", result, this.options.pluginURL, this )
 		return true
 	}
 	

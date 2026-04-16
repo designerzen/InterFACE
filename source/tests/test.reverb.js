@@ -1,4 +1,4 @@
-import AudioTimer from '../timing/timer.audio.js' 
+import { AudioTimer } from 'netronome'
 import MIDIConnectionManager from '../audio/midi/midi-connection-manager.js'
 import WebMIDIClass from '../audio/midi/midi-connection-webmidi.js'
 import EnvelopeNode from '../audio/nodes/envelope-node.js'

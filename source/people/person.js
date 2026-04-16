@@ -40,7 +40,6 @@ import {
 
 import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "../maths/maths.js"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeInQuad} from "../maths/easing.js"
-import { now } from "../timing/timing.js"
 
 // all the different instruments come through the instrument factory!
 import MIDIInstrument from '../audio/instruments/instrument.midi.js'
@@ -536,7 +535,7 @@ export default class Person extends EventTarget{
 	 * this.audioContext this.audioContext.currentTime :
 	 */
 	get now(){
-		return now()
+		return performance.now()
 	}
 
 	/**
@@ -694,8 +693,6 @@ export default class Person extends EventTarget{
 		this.id = IDENTIFIERS[index]
 		// this.id = toKebabCase( IDENTIFIERS[index] ?? "person-" + index )
 		this.name = NAMES[index]
-
-	
 		if (saveData)
 		{
 			this.importJSONData(saveData)	
@@ -1613,7 +1610,6 @@ export default class Person extends EventTarget{
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(noteFloat, isMinor)
 */
-		
 		
 		// Set the root node in the arpeggio and reset the position...
 		if (this.useArpeggio && hasNoteChanged)

@@ -1,5 +1,5 @@
 // 
-import AudioTimer from '../timing/timer.audio.js' 
+import { AudioTimer } from 'netronome'
 import MIDIConnectionManager from '../audio/midi/midi-connection-manager.js'
 import WebMIDIClass from '../audio/midi/midi-connection-webmidi.js'
 import MIDIInstrument from '../audio/instruments/instrument.midi.js'

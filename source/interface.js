@@ -6,13 +6,9 @@
 import { setupFeedbackControls } from './dom/text.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
-	controlPanel,
-	updateTempo,
+	controlPanel,updateTempo,focusApp,
 	isVideoVisible, toggleVideoVisiblity,  
-	setupCameraForm, setupInterface,
-	toggleVisibility,
-	focusApp,
-	buttonVideo
+	setupCameraForm, setupInterface
 } from './dom/ui.js'
 
 import { showPlayerSelector } from './dom/ui.player-selection.js'
@@ -47,13 +43,7 @@ import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
 import { PersonManager } from './people/person-manager.js'
-import Person, { 
-	getRandomPresetForPerson,
-	PERSON_TYPE_ARPEGGIO,
-	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
-	PERSON_TYPE_CHROMATIC,
-	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
- } from './people/person.js'
+import Person, { getRandomPresetForPerson } from './people/person.js'
 
  import { 
 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
@@ -68,9 +58,9 @@ import Person, {
  
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
+import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
-import AudioTimer from './timing/timer.audio.js'
-import { tapTempo } from './timing/tap-tempo.js'
+import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
 
 // AUDIO 
@@ -79,11 +69,10 @@ import { recordAudio } from './audio/record/record.audio.js'
 import { 
 	getRecordableOutputNode,
 	active, playing, 
-	setupAudio,stopAudio,
+	setupAudio,stopAudio, getVolume, setVolume, getPercussionNode,
 	setReverb,
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
-	getVolume, setVolume, getPercussionNode,
 	getMasterMixdown
 } from './audio/audio.js'
 
@@ -106,7 +95,7 @@ import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/re
 // SYNTHESIS
 import { getRandomHihatPreset, PRESET_HIHATS } from './audio/synthesizers/hihat.js'
 import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
-import { getRandomKickPreset, getKickPresets } from './audio/synthesizers/kick.js'
+import { getRandomKickPreset, getKickPresets, PRESETS_KICKS } from './audio/synthesizers/kick.js'
 
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
@@ -155,12 +144,10 @@ import { loadInstrumentsList } from './settings/options.instruments.js'
 // } from './audio/sound-font-instruments'
 
 import { createSVGWaveformFromData, createWaveform } from './dom/svg-waveform.js'
-
 import MusicalKeyboard from './visual/2d.keyboard.js'
 // import Stave from './visual/2d.stave.js'
 import { setupImage } from './visual/image.js'
 import { setNodeCount } from './visual/2d.js'
-import { convertOptionToObject } from './utils/utils.js'
 */
 
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
@@ -168,9 +155,11 @@ import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 
 import { observeOrientationChange } from './display/display-abstract.js'
-import { formatTimeStampFromSeconds } from './timing/timer.js'
+import { formatTimeStampFromSeconds } from 'netronome'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 import { createDisplayOptions } from './dom/ui.display.js'
+
+import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STATE_LOADING } from './interface-event.js'
 
 // Asset Paths
 // assets\audio\wave-tables\general-midi.zip
@@ -179,14 +168,6 @@ import { createDisplayOptions } from './dom/ui.display.js'
 
 // Lazily loaded in load() method
 // import { getInstruction, getHelp } from './models/instructions'
-
-export const APPLICATION_EVENTS = {
-	INITIALISING:"initialising",
-	LOADING:"application-loading",
-	LOADED:"application-loaded",
-	PARKED:"application-parked",
-}
-
 const doc = document	// using a reference allows truncation
 const body = doc.documentElement
 
@@ -315,17 +296,12 @@ export const createInterface = (
 	const addListener = ( type, callback ) =>{
 	 	main.addEventListener( type, callback )	
 	}
-	const dispatchCustomEvent = ( type, details, cancelable=true, bubbles=false ) => {
-		main.dispatchEvent( new CustomEvent(type, {
-			bubbles,
-			cancelable, // without that flag preventDefault doesn't work
-			detail:details
-		}) )
+	const dispatchEvent = ( type, details ) => {
+		main.dispatchEvent( new InterfaceEvent(type, details) )
 	}
 
 
 	
-
 
 	// update progress gradually like the old flash days!
 	let loadPercent = 0
@@ -342,7 +318,7 @@ export const createInterface = (
 			// lerp towards
 			loadPercent = loadPercent + 0.005 //.toFixed(2)  loadPercent 
 			onLoadProgress(loadPercent, message, hideLoader)
-			dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {loadPercent, message})
+			dispatchEvent(EVENT_STATE_LOADING, {loadPercent, message})
 		}
 
 		if ( loadPercent < 1 && (Math.floor(loadPercent * 100 ) < Math.floor(newValue * 100) ) )
@@ -410,19 +386,18 @@ export const createInterface = (
 	
 	// State Machine & Query handler
 	const stateMachine = createStateFromHost( main, stateOptions, StateWithIO ) // State.getInstance()
-
-	// TODO : Export as base 64 URL
-	// now create a sharable compressed URL for reference...
-	// const zipArray = stateMachine.createEncodedString()
-	// const zipArray = stateMachine.createURLAsEncodedString()
-	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
 	
 	// debug
 	// starSize
 	// stereo
 	// stereoPan
 
-	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
+	// TODO : Export as base 64 URL
+	// now create a sharable compressed URL for reference...
+	// const zipArray = stateMachine.createEncodedString()
+	// const zipArray = stateMachine.createURLAsEncodedString()
+	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
+
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( async (key,value) => {
 		
@@ -503,6 +478,9 @@ export const createInterface = (
 	// Automation & engager for installation booth setup
 	let automator
 	let useAutomator = true
+
+	// public method to overwrite
+	let callbackUpdate
 
 	// Flags
 	let isLoading = true
@@ -591,6 +569,8 @@ export const createInterface = (
 		return automator
 	}
 
+
+
 	const setBroadCaster = broadCaster => broadCast = broadCaster
 
 	/**
@@ -623,7 +603,7 @@ export const createInterface = (
 
 	// AUDIO --------------------------------------------------
 
-	let kickTimbreOptions = getKickPresets()[0]  
+	let kickTimbreOptions = PRESETS_KICKS[0]  
 	let snareTimbreOptions = PRESET_SNARES[0]
 	let hatTimbreOptions = PRESET_HIHATS[0]
 
@@ -644,24 +624,28 @@ export const createInterface = (
 			setFeedback( `Percussion REMIX [${kickTimbreOptions.name}, ${snareTimbreOptions.name}, ${hatTimbreOptions.name}]`, 0, 'beats' )	 
 		}
 	}
+	
+	/**
+	 * Set the drum pattern number
+	 * @param {Number} program 
+	 */
+	const changeDrumPattern = ( program=0 ) => {
+		patterns = getKitSequence( program )
+		if (stateMachine.get("backingTrack"))
+		{
+			setFeedback( "Backing Track REMIX!", 0, 'beats' )	
+		}
+		return patterns
+	}
 
 	/**
 	 * Randomise the drum patterns to create a distinct
 	 * and unique style and sound 
 	 */
 	const setRandomDrumPattern = () => {
-		patterns = getKitSequence( Math.floor( 17 + Math.random() * 23 ))
-		if (stateMachine.get("backingTrack"))
-		{
-			setFeedback( "Backing Track REMIX!", 0, 'beats' )	
-		}
+		changeDrumPattern( Math.floor( 17 + Math.random() * 23 ))
 	} 
 
-	// TODO: randomise the drum beat
-	const changeDrumPattern = () => {
-
-	}
-	
 	/**
 	 * Toggle the background synthesized percussion
 	 */
@@ -698,6 +682,14 @@ export const createInterface = (
 		stateMachine.set("disco", enabled, updateGUI ? buttonDiscoModeToggle : null )
 	}
 
+	/**
+	 * 
+	 */
+	const toggleDiscoMode = () => {
+		const isEnabled = !stateMachine.get( 'disco' )
+		setDiscoMode( isEnabled )
+		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
+	}
 	/**
 	 * FIXME: Update GUI
 	 * This sets the master volume below the compressor
@@ -857,14 +849,14 @@ export const createInterface = (
 			const {detail} = event.data
 			// console.info("Person has been born!", detail)
 			// dispatchEvent(event)
-			dispatchCustomEvent(event.type, detail)
+			dispatchEvent(event.type, detail)
 		})
 
 		person.addEventListener( EVENT_PERSON_DEAD,  (event) => {
 			const {detail} = event.data
 			// console.info("Person has died!", detail)
 			// dispatchEvent(event)
-			dispatchCustomEvent(event.type, detail)
+			dispatchEvent(event.type, detail)
 		})
 
 		// A person's instrument has loaded into memory, so we
@@ -875,7 +867,7 @@ export const createInterface = (
 			markInstrumentProgress( progress, instrumentName )
 
 			// console.info("Person preset ["+instrumentName+"] loading!", Math.floor(progress*100))
-			dispatchCustomEvent(event.type, detail)
+			dispatchEvent(event.type, detail)
 		})
 
 		person.addEventListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
@@ -895,7 +887,7 @@ export const createInterface = (
 			const test = stateMachine.get( storageKey )
 			console.error(person.personIndex, "Setting statemachine with person",personData, {person,detail, stateMachine, storageKey, test} )
 
-			dispatchCustomEvent(event.type, detail)
+			dispatchEvent(event.type, detail)
 		})
 
 
@@ -1358,20 +1350,29 @@ export const createInterface = (
 			autoStart:false,
 			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0
 		}
-
 		const newDisplay = await displayManager.switchTo(displayType, predictionLoop, displayOptions)
 
 		// save the display type for next time
 		if (saveAndExclaim)
 		{
 			stateMachine.set( "display", displayType )
-			setFeedback('Display changed to '+displayType, 0, 'display' )
+			setFeedback('Display '+displayType+' set', 0, 'display' )
 		}
 		// console.info("Display Created", displayType, display) 
 		return newDisplay
 	}
 
-	
+	/**
+	 * 
+	 * @param {Number} width 
+	 * @param {Number} height 
+	 */
+	const resizeDisplay = (width,height) =>{
+		main.style.setProperty('--width', width )
+		main.style.setProperty('--height', height )
+		displayManager.setSize( width, height )
+	}
+
 	/**
 	 * Use the specified file to start streaming video
 	 * onto the video element
@@ -1385,7 +1386,7 @@ export const createInterface = (
 		videoStream.classList.toggle("reverse", false)
 		// resize canvas - may have to wait for metadata to be available...
 		videoStream.onloadedmetadata = () =>{ 
-			displayManager.setSize( videoStream.videoWidth, videoStream.videoHeight )
+			resizeDisplay( videoStream.videoWidth, videoStream.videoHeight )
 			isLoading = false
 		}
 		// resize anyways for shits and giggles...
@@ -1471,7 +1472,7 @@ export const createInterface = (
 		
 		// resize canvas to fit video with repect to orientation
 		const resizeCanvasAndVideo = () => {
-			displayManager.setSize( videoStream.videoWidth, videoStream.videoHeight )
+			resizeDisplay( videoStream.videoWidth, videoStream.videoHeight )
 		}
 
 		resizeCanvasAndVideo()
@@ -1974,7 +1975,7 @@ export const createInterface = (
 	}
 
 	/**
-	 * Application ANIMATION LOOP!tra - Rejoice!
+	 * Application ANIMATION LOOP! 
 	 * @returns 
 	 */
 	const USER_HOGGING_SYSTEM_LIMIT = stateMachine.get("restartAfter") ?? 10_000
@@ -1987,7 +1988,7 @@ export const createInterface = (
 			// console.info("Display:Loop-RENDER")
 			isPredictionEngineBusy = true
 			//peoplePredictions = await fetchPredictionFromEngine()
-			fetchPredictionFromEngine().then(updatedPrediction=>{
+			fetchPredictionFromEngine( clock.now ).then(updatedPrediction=>{
 				isPredictionEngineBusy = false
 			 	peoplePredictions = updatedPrediction
 			})
@@ -2119,7 +2120,7 @@ export const createInterface = (
 			elapsed, expected, drift, level, intervals, lag
 		} = values
 
-		const tempo = tapTempo(true, 1000, 3)
+		// const tempo = tapTempo(true, 1000, 3)
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
 				
 		// immediately dispatch the signal to any peers
@@ -2186,8 +2187,6 @@ export const createInterface = (
 				countdownProgressElement.setAttribute("value", countdown.percentElapsed )
 			}	
 		}
-
-
 
 		hasBeatJustPlayed = true
 
@@ -2257,6 +2256,7 @@ export const createInterface = (
 				// 	person.gamePad.update()
 				// }
 		
+
 				// Change filter depending on the user's emoticon!
 				if ( isBar && stateMachine.get("disco") && person.isKissing )
 				{
@@ -2298,7 +2298,7 @@ export const createInterface = (
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
-			const tempo = tapTempo(true, 1000, 3)
+			// const tempo = tapTempo(true, 1000, 3)
 			//console.log("tempo", tempo, {clock} )
 
 			const slower = Math.floor( clock.BPM * 0.0005 ) + 1
@@ -2354,6 +2354,12 @@ export const createInterface = (
 			*/
 		}
 
+
+		// 
+		if (callbackUpdate)
+		{
+			callbackUpdate( isBar )
+		}
 	}
 
 	/**
@@ -2449,7 +2455,9 @@ export const createInterface = (
 			
 		}catch(error){
 			console.error("FAIL: PhotoSYNTH Screens available", error, { settings} ) 
-			progressCallback(loadIndex++/loadTotal, "No Holographic display detected")
+			progressCallback(1, "No Holographic display detected")
+			showError("Could not access display code", true)
+			// return reject( "Could not access display code" )
 		}
 
 		progressCallback(loadIndex++/loadTotal, "Loading display " + display.type )
@@ -3092,7 +3100,7 @@ export const createInterface = (
 		// const stave = new Stave( canvasElement, 0, 0, true )
 		// adds "video" or "image" to main
 		main.classList.add( inputElement.nodeName.toLowerCase() )
-		body.classList.toggle( APPLICATION_EVENTS.INITIALISING, false)
+		body.classList.toggle( EVENT_STATE_INITIALISING, false)
 		
 
 		// Print to console some useful debug data if in debug mode
@@ -3422,6 +3430,7 @@ export const createInterface = (
 			}
 		})
 		
+		
 		// allow display type to be changed on the hoof via toggle
 		selects.displays = connectSelect( 'select-display', async(option) => {
 			if (option && option.value)
@@ -3474,7 +3483,7 @@ export const createInterface = (
 			loadTotal++
 		}
 		
-		// load all models
+		// load all models time
 		const predictors = await loadMLModels( modelTypes, ( progress, modelType ) => {
 			progressCallback(loadIndex++/loadTotal, "Loaded Tracking Model "+modelType )
 		} )
@@ -3570,10 +3579,12 @@ export const createInterface = (
 
 		// FIXME: Also load in hand if available...
 		const loadFaceModel = predictors.face
-		const faceModel = loadFaceModel( elementToAnalyse, settings, progressCallback )
+		const faceModel = await loadFaceModel( elementToAnalyse, settings, progressCallback )
+		
 		// const loadHandModel = predictors.hands
 		// const handModel = loadFaceModel( elementToAnalyse, settings, progressCallback )
 		return faceModel
+
 		// return Promise.all( [faceModel, handModel] )
 	}
 
@@ -3698,35 +3709,22 @@ export const createInterface = (
 			
 			configurePerson:personManager.configurePerson,
 
+			language, 
 			stateMachine,
 			getState:(key)=>stateMachine.get(key),
 			setState:(key,data)=>stateMachine.set(key,data),
 
+			setUpdateCallback:(callback) => callbackUpdate = callback,
 			setFeedback,
 			kit,
 
 			addEventListener:addListener,
 			
-			// drums
 			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, toggleBackgroundPercussion,
 		
-			// MIDI
 			midiPerformance,
 
 			personManager,
-			fetchPlayerOptions:personManager.getPlayerOptions,
-			setPlayerOption:personManager.setPlayerOption, 
-			setPlayerOptions:personManager.setPlayerOptions, 
-			getPerson:personManager.getPerson, 
-			getQuantityOfPlayers:() => personManager.quantityOfPlayers,
-			getSelectedPerson:personManager.getSelectedPerson, 
-			selectPerson:personManager.selectPerson, 
-			deselectPeople:personManager.deselectPeople,
-			getActivePerson:personManager.getActivePerson,
-			highlightPerson:personManager.highlightPerson, 
-			unhighlightPeople:personManager.unhighlightPeople,
-		
-			language, 
 			isUserActive:()=>isUserActive,
 			isLoading:()=>isLoading,
 			isSlave:()=>isBroadcastSlave,
@@ -3736,11 +3734,13 @@ export const createInterface = (
 			options:stateMachine.asObject, 
 			...information,
 			setAutomator,
-			setDiscoMode,
+			setDiscoMode,toggleDiscoMode,
 		
 			clock,
+			setBPM,
 
-			setBPM, setMasterVolume,
+			getVolume, setVolume:setMasterVolume, 
+			getMasterMixdown,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
@@ -3749,8 +3749,8 @@ export const createInterface = (
 		// finish promising with some public method to access
 		resolve( singleton )
 		
-		// dispatchCustomEvent(APPLICATION_EVENTS.LOADING, {complete:true}, false)
-		dispatchCustomEvent(APPLICATION_EVENTS.LOADED, {available:true} )
+		// dispatchEvent(LOADING, {complete:true}, false)
+		dispatchEvent(EVENT_STATE_LOADED, {available:true} )
 	}
 
 	/**
@@ -3780,6 +3780,8 @@ export const createInterface = (
 	 */
 	const showPlayerSelectionScreen = async ( showHelpTextAfter=60000 ) => {
 
+		let timeOut 
+		/*
 		// preload completed and now we show the ui
 		// for selecting regular or multi-face mode!
 		let timeOut = setTimeout(()=>{
@@ -3790,15 +3792,14 @@ export const createInterface = (
 		// clear any ongoing help fields
 		setFeedback("",0,'hide')
 		setToast("")
+		*/
 
 		hideLoading()
 
-		// Show the player selection screen!
 		const results = await showPlayerSelector(modelOptions, stateMachine)
 		
-		// hide the a11y features until requested
-		a11y.hide()
-
+		a11y.hide()	// hide the a11y features until requested
+	
 		clearInterval( timeOut )
 		setToast( "" )
 
@@ -3853,7 +3854,7 @@ export const createInterface = (
 	//console.warn("Loading machine learning models with options", modelOptions)
 	
 	// now load dependencies and show progress at the SAME time
-	const ML = loadApplication(modelOptions, (progress, message) => {
+	const predictor = loadApplication(modelOptions, (progress, message) => {
 
 		//console.log("Interface:load -> onLoadProgress", {progress, message })
 
@@ -3961,9 +3962,9 @@ export const createInterface = (
 			//return false     // cancel default menu
 		}
 
-		window.addEventListener('deviceorientation' , event => {
-			console.log("device orientation", event)
-		})
+		// window.addEventListener('deviceorientation' , event => {
+		// 	console.log("device orientation", event)
+		// })
 
 		// OFFLINE / ONLINE 
 		const updateOfflineStatus = (event) => {

@@ -1,4 +1,3 @@
-import { now } from '../timing/timing.js'
 import { addTooltip, removeTooltip } from './tooltips.js'
 import { audioContext, getMasterMixdown } from '../audio/audio.js'
 import {createButton} from './button'
@@ -19,7 +18,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	let isPlaying = false
 
 	const buttons = []
-	const unique = Math.ceil( now() * 10000000 )
+	const unique = Math.ceil( Date.now() * 10000000 )
 	const id = `audio-${unique}`
 	
 	const wrapper = document.createElement("div")

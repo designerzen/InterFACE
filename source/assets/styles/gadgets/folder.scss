@@ -257,6 +257,7 @@ nav#menu
 
 // .folder-content:hover,
 .folder-menu:is(:focus, :focus-within) .folder-content,
+.folder-menu:has(:focus, :focus-within) .folder-content,
 .folder-content:is(:focus,:focus-within, :target),
 // .folder-content:target,
 // .folder-link:hover + .folder-content{

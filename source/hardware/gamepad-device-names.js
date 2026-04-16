@@ -1,0 +1,1 @@
+export const XBOX_ADAPTIVE = "Xbox 360 Controller (XInput STANDARD GAMEPAD)"

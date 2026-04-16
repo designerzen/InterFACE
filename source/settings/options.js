@@ -234,6 +234,7 @@ export const DEFAULT_OPTIONS = {
 	// load a midi track automatically on app start
 	loadMIDIPerformance:false,
 
+	keyboard:true,
 	
 	// allow game pads such as the xbox controller to do cool
 	// stuff as a modifier for the audio

@@ -11,16 +11,27 @@ import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
 import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options.js'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/installation.js'
-import { showError } from './dom/errors.js'
+// import { showError } from './dom/errors.js'
 import { addToolTips, setToast } from './dom/tooltips.js'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse.js'
-import Capabilities from './capabilities.js'
 import { updateCapabalitiesTable } from './dom/compatability.js'
-import { APPLICATION_EVENTS, createInterface } from './interface.js'
+// import { APPLICATION_EVENTS, createInterface } from './interface.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 
-// TESTING
+import Log from './components/console-log.js'
+import Capabilities from './capabilities.js'
+import Title from './dom/window-title.js'
+
+const title = new Title()
+
+// This teaches us which kind of an app this is, can be,
+// and what we can do with the tech installed in this device
+const capabilities = new Capabilities()
+
+// get current version
+const runningVersion = document.getElementById("version")?.innerText ?? "1.0.0"
+
 // for custom path editions rather than on unique domains
 // instead you can have over-rides both in the globalThis._synth space
 // or else via a named route here
@@ -32,22 +43,15 @@ const IS_DEVELOPMENT_MODE = process.env.NODE_ENV === "development"
 const body = document.documentElement
 const debugMode = IS_DEVELOPMENT_MODE || new URLSearchParams(window.location.search).has("debug")
 
-// if on http flip to https and exit
+// if on http flip to https and exit (should be handled by headers)
 forceSecure(IS_DEVELOPMENT_MODE)
 
 // start loading / updating..."loading",
 // NB. see _base.pug for double of this - this is just in case
 body.classList.toggle("loading", true)
-body.classList.add(debugMode ? "debug" : LTD)
 // add a special class to the app to frame it
 body.classList.toggle("interface", true)
-
-// This teaches us which kind of an app this is, can be,
-// and what we can do with the tech installed in this device
-const capabilities = new Capabilities()
-
-const versionElement = document.getElementById("version")
-const runningVersion = versionElement.innerText
+body.classList.add(debugMode ? "debug" : LTD)
 
 // FIXME: show updates button
 const showUpgradeDialog = () => {
@@ -57,23 +61,14 @@ const showUpgradeDialog = () => {
 	updateButton.setAttribute("hidden", false)
 }
 
-// set window.title if it has changed
-const setTitle = title => {
-	if (document.title !== title) {
-		document.title = title
-	}
-}
-
+// TODO: Check state to see if this is a fresh session or a return then update the front end accordingly	
 const updateSummaryText = (returning = false) => {
-	// TODO: Check state to see if this is a fresh session or a return then update the front end accordingly
 	const summaries = document.querySelectorAll('p[aria-label="Summary"]')
 
 	if (!summaries || summaries.length < 2) {
 		console.info('No summary field p[aria-label="Summary"] present on DOM')
 		return
 	}
-	// if (returning){ summaries[0].setAttribute("hidden",true); summaries[1].removeAttribute("hidden") }
-	// p(aria-label="Summary" hidden).returning-client.
 
 	// Show the returning user message and update as neccessary :)
 	summaries[0].hidden = returning
@@ -94,7 +89,6 @@ const start = async () => {
 	// interface.lol	<- defaults to simple 'kid' mode
 	// interface.band	<- defaults to duet mode
 	// const referer = getReferer()
-
 	
 	// we can also inject specific options through an object set
 	// in a global space in the DOM script for custom html options
@@ -107,9 +101,6 @@ const start = async () => {
 	const validOptionKeys = Object.keys(defaultOptions)
 	// favour global options over domain options
 	Object.keys(globalOptions).forEach(key => validOptionKeys.indexOf(key) > -1 ? defaultOptions[key] = globalOptions[key] : null)
-
-
-	console.info( "Options:", {globalOptions, domainOptions, defaultOptions, validOptionKeys })
 
 	// determine the language to use
 	const languages = getBrowserLocales()
@@ -124,21 +115,20 @@ const start = async () => {
 
 	const loadInterfaceAndAssembleApplication = async () => {
 
-		// import { createStore} from './store'
 		const { createStore } = await import('./utils/store')
+		const store = createStore()
 
-		// This is tweaking out on CloudFlare.
-		// I don't know why it is not working, but it might be path related?
+		// This is tweaking out being imported on CloudFlare.
+		// I don't know why it is not working.
+		// It is almost as if it is being lazy loaded twice
 		// if (!WebMIDIClass)
 		// {
-		// 	WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
+			// const WebMIDIClass = await import('./audio/midi/midi-connection-webmidi.js').default
 		// }
-		// const {createInterface:create} = await import( "./interface.js")
-		// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
 
-		const store = createStore()
-		const title = document.title
-
+	// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
+		const {createInterface} = await import( "./interface.js")
+	
 		const application = await createInterface(
 			defaultOptions,
 			store,
@@ -149,7 +139,6 @@ const start = async () => {
 			language,
 			(loadProgress, message, hideLoader = false) => {
 
-				// console.info("Loading...", loadProgress, message)
 				if (failed) {
 					// already failed so why show more loading?
 					console.error("FATAL : Failed to load", { loadProgress, message, hideLoader })
@@ -176,72 +165,21 @@ const start = async () => {
 				// else 
 
 				if (hideLoader) {
-					setLoadProgress(
-						loadProgress,
-						"",
-						true
-					)
-					setTitle(title)
+					setLoadProgress( loadProgress, "", true )
+					title.reset()
 
 				} else if (loadProgress < 1) {
-
 					// const rectifiedProgress = halfLoaded ? loadProgress * 0.5 : 0.5 + loadProgress * 0.5
 					// console.log( "Interface: loaded", {rectifiedProgress} )
-					setLoadProgress(
-						loadProgress,
-						message
-					)
-					setTitle(`${title} - ${Math.ceil(loadProgress * 100)} %`)
-
+					setLoadProgress( loadProgress, message )
+					title.setLoadProgress( loadProgress )
 				} else {
-
 					// complete and hide
 					setLoadProgress(1, "Ready!", true)
-					setTitle(title)
+					title.reset()
 				}
 			}
 		)
-
-		const onAvailable = async () => {
-			// console.log("Attract mode!", {automator, application})
-			// Load in in automation
-			const Attractor = (await import('./attractor')).default
-
-			// This allows for remote control as well as allowing the
-			// app to change parameters on it's own
-			const automator = application.setAutomator(new Attractor(application))
-
-			// load in our controllers
-			const { addKeyboardEvents } = (await import('./interface-keyboard.js'))
-
-			// and create our input handlers 
-			addKeyboardEvents(application)
-
-			// Watch CONTROLLERS
-			const { addGamePadEvents } = (await import('./interface-gamepad.js'))
-			if (application.getState("gamePad")) {
-				addGamePadEvents(application)
-			}
-
-			// Watch for External SYNCHING 
-			// COMMS --------------------------------------------------------------
-
-			/*
-			// if we have synching
-			// if we want to load in the realtime synch engine
-			const {monitorBroadCastChannel} = await import("./interface-channel.js")
-
-			if (monitorBroadCastChannel)
-			{
-				// allow the clock to be controlled externally
-				// ensure clock exists before calling this
-				const broadCast = monitorBroadCastChannel( application )
-			}
-			*/
-		}
-
-		// User has been located and application has begun!
-		onAvailable()
 
 		/*
 		// watch for user events and things that the user changes
@@ -267,13 +205,9 @@ const start = async () => {
 			// console.info("Index has completed loading app", {e, application} )
 		})
 		*/
-
-		const loadTime = Date.now() - startLoadTime
-		// console.info("Loading internally", loadTime)
-
+	
 		// TODO: This will call the app from external URLs
 		// without reloading the page
-
 		// NB. Set launch to focus-existing in manifest
 		// If the PWA has caused this page to load we can intercept the request here
 		if ("launchQueue" in window) {
@@ -286,7 +220,6 @@ const start = async () => {
 				}
 			})
 		}
-
 
 		// let installation = null
 		// // at any point we can now trigger the installation
@@ -307,40 +240,64 @@ const start = async () => {
 		// }else{
 		// 	// console.log("Loaded Webpage")
 		// }
+	
+		
+		// User has been located and application has begun!
+		
+		// console.log("Attract mode!", {automator, application})
+		// Load in in automation
+		const Attractor = (await import('./attractor')).default
 
-		// const Attractor = await import('./attractor.js')
-		// For automatic stuff...
-		// const attractMode = new Attractor( application )
+		// This allows for remote control as well as allowing the
+		// app to change parameters on it's own
+		const automator = application.setAutomator(new Attractor(application))
 
-		const secondsAgo = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now()) / 1000)
+		// User Input handlers 
+		if (application.getState("keyboard")) {
+			const { addKeyboardEvents } = (await import('./interface-keyboard.js'))
+			addKeyboardEvents(application)
+		}
 
-		// Show hackers message to debuggers
+		if (application.getState("gamePad")) {
+			const { addGamePadEvents } = (await import('./interface-gamepad.js'))
+			addGamePadEvents(application)
+		}
+
+		// TODO: Add other inputs such as device orientation
+
+		// Watch for External SYNCHING 
+		// COMMS --------------------------------------------------------------
+
+		/*
+		// if we have synching
+		// if we want to load in the realtime synch engine
+		const {monitorBroadCastChannel} = await import("./interface-channel.js")
+
+		if (monitorBroadCastChannel)
+		{
+			// allow the clock to be controlled externally
+			// ensure clock exists before calling this
+			const broadCast = monitorBroadCastChannel( application )
+		}
+		*/
+		
+		const loadTime = Date.now() - startLoadTime
+		const timeBetweenSessions = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now()) / 1000)
+		
 		if (debugMode) {
-
-			console.info(`InterFACE Version ${VERSION} [${runningVersion}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime / 1000).toFixed(2)} seconds, last time was ${secondsAgo} seconds ago`)
+			console.info(`InterFACE Version ${VERSION} [${runningVersion}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime / 1000).toFixed(2)} seconds, last time was ${timeBetweenSessions} seconds ago`)
 			console.info({ application, store, title, defaultOptions, globalOptions, domainOptions, referer: getReferer(), capabilities, DOMAIN, HOST, LTD })
+			console.info( "Options:", {globalOptions, domainOptions, defaultOptions, validOptionKeys })
 			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
 			// console.info("Initialising", runningVersion, { capabilities, DOMAIN, HOST, LTD })
 		}
-		
-		return application
+
+		return await application
 	}
-
-	// console.log( "Global options" ,  { globalOptions, dominOptions, defaultOptions, validOptionKeys } )
-
-	// Lazy load the main interface code
-	// import('./interface.js').then( loadInterfaceAndAssembleApplication )
-
-	// if not lazily loaded here...
-	// console.info("Loading Interface")
 
 	// Load all parts and setup
 	const app = await loadInterfaceAndAssembleApplication()
-
-	// await Promise.all([app])
-	// await app
-
-	console.info("Loaded Interface", { app })
+	// console.info("Loaded Interface", { app })
 }
 
 // import {installer} from './install'
@@ -363,7 +320,6 @@ const checkPWAUpdates = () => {
 	// needs to be run early on ideally and in a seperate thread
 	// loads in the relevant data to determine if the app needs to be 
 	// updated if installed or installed if uninstalled
-
 	return installOrUpdate(debugMode, runningVersion).then( PWAState => {
 
 		// this is the amount of time to run before we "check" for things
@@ -475,6 +431,7 @@ checkPlatformUpdates().finally(() => {
 	// APP STARTING>
 })
 
+// Kludge: prevent back from leaving site
 navigation.onnavigate = (event) => {
 	event.intercept({
 		async handler() {
@@ -486,12 +443,9 @@ navigation.onnavigate = (event) => {
 
 document.addEventListener("DOMContentLoaded", async (e) => {
 
-	updateSummaryText()
-
 	// allow the version button to link to secret places
 	createVersionButton()
-
-	// global tooltips!
+	updateSummaryText()
 	addToolTips(document.querySelector("main"))
 
 	const table = document.getElementById("compatibility")
@@ -522,9 +476,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 		// ESCAPE - no GPU?
 		// remove loading stuff and quit
 		openTable()
-	
-		console.warn("Essential hardware missing")
-
+		console.error("Essential hardware missing", capabilities)
 		// showError("Fatal issue with hardware detected", "Could not find all the hardware required to operate. Please review the requirements chart", false)
 
 	} else {
@@ -533,7 +485,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
 }, { once: true })
 
-// Hot Module Reloading
+// Hot Module Reloading...
 if (module.hot) {
 	module.hot.dispose(function (data) {
 		// module is about to be replaced.

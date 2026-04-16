@@ -45,10 +45,7 @@ function hasGetUserMedia() {
 	return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
 }
 
-
-
 const now = () => Date.now()	// performance is too precise!
-
 
 const processResult = results => {
 

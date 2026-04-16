@@ -10,6 +10,8 @@ Or...
 
 An augmented reality, real-time motion-capture, machine-learning powered, holographic, accessible general MIDI controller and synthesizer (that comes without a manual). 
 
+learn more about the project at [photosynth.lol]("https://photosynth.lol")
+
 
 ## Abstract - Just what is it?
 
@@ -133,7 +135,7 @@ All commands are run from the root of the project, from a terminal:
 
 
 ## Other links & Supporters
-- [PhotoSYNTH3>InterFACE : DOI 10.5281/zenodo.6794292](https://zenodo.org/record/6794293)
+
 - [GIVE A MAN A RECORD AND THEY DANCE FOR THE DAY, GIVE THAT MAN A SYNTH AND THEY DANCE FOR A LIFETIME - Talk given @ SXSW21](https://youtu.be/3SmpSvRB4XA)
 - [Audience of the Future](https://audienceofthefuture.live/interface/)
 - [MIDI Innnovation Finalists 2022](https://www.midi.org/component/zoo/item/photosynth-interface)
@@ -146,10 +148,10 @@ All commands are run from the root of the project, from a terminal:
 
 ## Accessibilty Checklist :
 
-* Accessible - using high contrast colours to remove visibility barriers, keeping an interface streamlined to remove complexity barriers
+* Accessible - high contrast colours to remove visibility barriers, keeping an interface streamlined to remove complexity barriers
 * Authentic - co-created with disabled folk
 * Affordable - free mode for all courtesy of github
-* Available - online, no password, installable directly
+* Available - online, no password, installable directly, total privacy
 * Adaptable - configurable and mappable
 
 
@@ -166,12 +168,20 @@ All commands are run from the root of the project, from a terminal:
 #### Questions and known unknowns
 
 - head angle causes issues with the calculations 
-
-- put me in touch with the right people at tensorflow
-
-- following human emotions to change / set the instruments / scale
-
-- recording performances to a server / video recording
- 
+- enhanced model precision
+- recording performances as videos
 - analysis of voice commands!
 - recognition of faces and preserving state
+
+
+#### References
+
+- [PhotoSYNTH3>InterFACE : DOI 10.5281/zenodo.6794292](https://zenodo.org/record/6794293)
+
+- [Sentiment-based robot sonification can enhance comprehension, emotional meaning and engagement in the fairy tale listening: A preliminary study
+
+Yeaji Lee a, Sophie Thompsen a, Ziming Fang b, Myounghoon Jeon a b](https://doi.org/10.1016/j.ijhcs.2026.103805)
+
+https://www.sciencedirect.com/science/article/abs/pii/S1071581926000807?via%3Dihub
+
+

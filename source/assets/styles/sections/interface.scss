@@ -741,33 +741,66 @@ main.active{
 	margin:auto;
 	padding:0;
 	border:0;
+
+	aspect-ratio: var(--aspect-ratio);
+
+	// this changes depending on factors
+	// image is full width
 	width: 100%;
+	// height:calc(  100%  / var(--aspect-ratio));
+
+	// // if the video is full height
+    // height: 100vh;
+    // width: calc(100vh * var(--aspect-ratio));
+
+	height: 100%;
+	width: 100%;
+
+	max-width: clamp(var(--width, 44) * 1px, 100vw, 100vh * var(--aspect-ratio));
+  	max-height: clamp(var(--height, 32) * 1px, 100vh, 100vw / var(--aspect-ratio));
+
 	grid-area: 1/1/-1/-1;
 	pointer-events: none;
 	position: relative;
 
 	// padder!
-	&::before{
-		content:'';
-		display: block;
-		width:100%;//calc( var(--aspect-ratio) * 100vh );
-		width:inherit;
-		height:calc( 100%  / var(--aspect-ratio));
-		//height:auto;
+	// &::before{
+	// 	content:'';
+	// 	display: block;
+	// 	width:0;
+	// 	border:0;
+	// 	padding-right:calc(  100%  / var(--aspect-ratio));
+	// 	height:100%;
+	// 	max-width: 100%;
+	// 	max-height: 100%;
+	// 	pointer-events: none;
+	// 	object-fit: contain;
+	// }
+
+	// // padder!
+	// &::before{
+	// 	content:'';
+	// 	display: block;
+	// 	width:100%;//calc( var(--aspect-ratio) * 100vh );
+	// 	width:inherit;
+	// 	height:calc( 100%  / var(--aspect-ratio));
+	// 	//height:auto;
 	
-		// overflow: hidden;
-		border:0;
+	// 	// overflow: hidden;
+	// 	border:0;
 
-		padding-top:calc(  100%  / var(--aspect-ratio));
-		// padding-top:calc( var(--aspect-ratio) * 100% );
-		height:0;
+	// 	padding-top:calc(  100%  / var(--aspect-ratio));
+	// 	// padding-top:calc( var(--aspect-ratio) * 100% );
+	// 	height:0;
 
-		max-width: 100%;
-		max-height: 100%;
-		pointer-events: none;
+	// 	max-width: 100%;
+	// 	max-height: 100%;
+	// 	pointer-events: none;
 
-		object-fit: contain;
-	}
+	// 	object-fit: contain;
+	// }
+
+
 
 
 	// left:50%;

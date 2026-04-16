@@ -3,23 +3,10 @@
 // watch for MIDI connections -> link with timer and show stuff onscreen
 
 import AUDIO from "url:./assets/audio/metronome.wav"
-import { 
-	getElapsed, getBarProgress,
-	getBPM, getBars, getBar, getTimePerBar, getTimeBetween,
-	setBar, setBars, setTimeBetween, setBPM, 
-	startTimer, stopTimer, now, 
-	convertBPMToPeriod,
-	setTimingWorker
-} from './timing/timing.js' 
-
-import AudioTimer from './timing/timer.audio.js' 
+import { AudioTimer, convertBPMToPeriod, TIMER_TYPE_ROLLING, TIMER_TYPE_SET_INTERVAL, TIMER_TYPE_SET_TIMEOUT } from 'netronome'
 
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-
-import ROLLING_WORKER_URI from 'url:./timing/timing.rolling.worker.js'
-import SETINERVAL_WORKER_URI from 'url:./timing/timing.setinterval.worker.js'
-import SETTIMEOUT_WORKER_URI from 'url:./timing/timing.settimeout.worker.js'
 
 import {addToolTips} from './dom/tooltips.js'		
 import {setupThemeControls} from './theme/theme.js'
@@ -155,15 +142,15 @@ const start = async () => {
 		
 		/* output.innerText = `TimePerBar:${getTimePerBar().toFixed(2)} TimePerBetween:${getTimeBetween().toFixed(2)}` */
 		
-		output.innerText = `BPM:${getBPM().toFixed(0)} intervals:${intervals} \nelapsed:${elapsed.toFixed(2)}` 
+		output.innerText = `BPM:${timer.BPM.toFixed(0)} intervals:${intervals} \nelapsed:${elapsed.toFixed(2)}` 
 		
 		outputTempoDrift.innerText = `drift:${drift.toFixed(2)} `
 		outputTempoLag.innerText = `lag:${lag.toFixed(2)} ` 
 		outputBeat.innerText = `Note: ${divisionsElapsed+1}/4 Bar: ${bar+1}/${bars}`
 		outputBar.innerText = `Bars: ${barsElapsed}`	
 			
-		inputTempoField.value = getBPM()
-		inputTempoRange.value = getBPM()
+		inputTempoField.value = timer.BPM
+		inputTempoRange.value = timer.BPM
 
 		inputTempoStep.value = bar + 1
 

@@ -1,4 +1,3 @@
-import { now } from '../timing/timing.js'
 import { takePhotograph } from '../visual/2d'
 
 let photographCounter = 0

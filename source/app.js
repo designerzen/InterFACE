@@ -123,7 +123,7 @@ import Person, {
 
 
 // TIMING
-import {midiLikeEvents} from './timing/rhythm'
+import {midiLikeEvents} from './timing/rhythm.js'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
 
 // FADFDFDSFSFDSFSFDssdsvv
@@ -131,14 +131,9 @@ import { playNextPart, getKitSequence } from './timing/patterns.js'
 // import AudioTimer from './timing/timer.audio.js'
 import {
 	CMD_START,CMD_STOP,CMD_UPDATE,
-	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK
-} from './timing/timing.events.js'
-
-import AUDIOCONTEXT_WORKER_URI from 'url:./timing/timing.audiocontext.worker.js'
-// import AUDIOCONTEXT_WORKER_URI from './timing/timing.audiocontext.worker.js?worker&url'
-// import AUDIOTIMER_WORKLET_URI from './timing/timing.audioworklet.js?worker&url'
-// import AUDIOTIMER_PROCESSOR_URI from './timing/timing.audioworklet-processor.js?worker&url'
-// import { createTimingProcessor } from './timing/timing.audioworklet.js'
+	EVENT_READY, EVENT_STARTING, EVENT_STOPPING, EVENT_TICK,
+	TIMER_TYPE_AUDIO_CONTEXT
+} from 'netronome'
 
 
 
@@ -194,7 +189,7 @@ import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 
 
-import { tapTempo } from './timing/tap-tempo.js'
+import { tapTempo } from 'netronome'
 
 import { observeOrientationChange } from './display/display-abstract.js'
 
