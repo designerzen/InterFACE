@@ -19,7 +19,6 @@ import { updateCapabalitiesTable } from './dom/compatability.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 
-import Log from './components/console-log.js'
 import Capabilities from './capabilities.js'
 import Title from './dom/window-title.js'
 
