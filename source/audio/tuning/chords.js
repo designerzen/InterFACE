@@ -198,12 +198,12 @@ export const inversion = (steps) => {
  * @param {Array} notes 
  * @param {Array} scaleFormula 
  * @param {Number} offset 
- * @param {Number} mode 
+ * @param {Number} rotation 
  * @param {Boolean} cutOff 
  * @param {Boolean} accumulate 
  * @returns {Array<Number>}
  */
-export const createChord = (notes, scaleFormula=MAJOR_SCALE, offset=0, mode=0, cutOff=true, accumulate=false) => {
+export const createChord = (notes, scaleFormula=MAJOR_SCALE, offset=0, rotation=0, cutOff=true, accumulate=false) => {
 	const quantityOfNotes = notes.length
 	const quantityInScale = scaleFormula.length
 	let accumulator = accumulate ? offset : 0
@@ -211,7 +211,7 @@ export const createChord = (notes, scaleFormula=MAJOR_SCALE, offset=0, mode=0, c
 
 	for (let index=0; index<quantityInScale; ++index)
 	{
-		const noteIndex = scaleFormula[(index+mode)%quantityInScale]
+		const noteIndex = scaleFormula[(index+rotation)%quantityInScale]
 		if (accumulate)
 		{
 			accumulator += noteIndex

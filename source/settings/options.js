@@ -239,6 +239,9 @@ export const DEFAULT_OPTIONS = {
 	// stuff as a modifier for the audio
 	gamePad:true,
 
+	// 
+	keyboard:true,
+
 	// choice of different models to use
 	model:"face",
 
