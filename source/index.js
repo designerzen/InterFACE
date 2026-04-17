@@ -15,7 +15,7 @@ import { showChangelog, installOrUpdate, uninstall } from './pwa/installation.js
 import { addToolTips, setToast } from './dom/tooltips.js'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse.js'
 import { updateCapabalitiesTable } from './dom/compatability.js'
-// import { APPLICATION_EVENTS, createInterface } from './interface.js'
+import { APPLICATION_EVENTS, createInterface } from './interface.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 
@@ -127,7 +127,9 @@ const start = async () => {
 		// }
 
 	// const testMIDI = (await import( "./audio/instruments/instrument.midi.js")).default
-		const {createInterface} = await import( "./interface.js")
+		
+		// NEVER LAZILY LOAD THE APP - IT WILL BREAK EVERYTHING
+		// const {createInterface} = await import( "./interface.js")
 	
 		const application = await createInterface(
 			defaultOptions,
