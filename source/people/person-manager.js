@@ -190,7 +190,9 @@ export class PersonManager extends EventTarget{
 	/**
 	 * Loop through all people and find the
 	 * one that is closest to the x,y coords
-	 * provided
+	 * provided. This is used to try and maintain
+	 * similar user locations and cross tracking when
+	 * there are many users and they flick between
 	 * 
 	 * @param {number} x 
 	 * @param {number} y 
@@ -269,15 +271,18 @@ export class PersonManager extends EventTarget{
 	}
 
 	/**
-	 * For certain actions we need to select a person
-	 * so that the commands can be passed to the correct person
-	 * such as game pad events
-	 * @param {Number} index 
+	 * Returns the selected person or null if no selected person
 	 */
 	getSelectedPerson(){
 		return this.people[this.selectedPersonIndex] || null
 	}
 
+	/**
+	 * For certain actions we need to select a person
+	 * so that the commands can be passed to the correct person
+	 * such as game pad events
+	 * @param {Number} index 
+	 */
 	selectPerson = (index=-1) => {
 		if (index < 0)
 		{
@@ -285,7 +290,7 @@ export class PersonManager extends EventTarget{
 			this.selectedPersonIndex = index
 			this.people.forEach( (person, i) => person.isSelected = false)
 		}else{
-			this.selectedPersonIndex = index % people.length
+			this.selectedPersonIndex = index % this.people.length
 			this.people.forEach( (person, i) => person.isSelected = i === this.selectedPersonIndex )
 		}
 		return this.getSelectedPerson()
@@ -308,7 +313,7 @@ export class PersonManager extends EventTarget{
 
 	/**
 	 * 
-	 * @param {*} index 
+	 * @param {Number} index 
 	 * @returns 
 	 */
 	highlightPerson(index=-1){
@@ -316,7 +321,7 @@ export class PersonManager extends EventTarget{
 		{
 			this.people[this.highlightedPersonIndex].isHighlighted = false
 		}
-		this.highlightedPersonIndex = index
+		this.highlightedPersonIndex = index % this.people.length
 		this.people[this.highlightedPersonIndex].isHighlighted = true
 		return this.people[this.highlightedPersonIndex]
 	}
@@ -325,13 +330,12 @@ export class PersonManager extends EventTarget{
 		this.highlightPerson()
 	}
 
-
 	/**
 	 * 
-	 * @param {string} type 
-	 * @param {*} detail 
-	 * @param {*} cancelable 
-	 * @param {*} bubbles 
+	 * @param {String} type 
+	 * @param {Object} detail 
+	 * @param {Boolean} cancelable 
+	 * @param {Boolean} bubbles 
 	 */
 	dispatchCustomEvent(  type, detail, cancelable=true, bubbles=false ){
 		this.dispatchEvent(
