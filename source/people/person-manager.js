@@ -190,12 +190,10 @@ export class PersonManager extends EventTarget{
 	/**
 	 * Loop through all people and find the
 	 * one that is closest to the x,y coords
-	 * provided. This is used to try and maintain
-	 * similar user locations and cross tracking when
-	 * there are many users and they flick between
+	 * provided
 	 * 
-	 * @param {number} x 
-	 * @param {number} y 
+	 * @param {Number} x 
+	 * @param {Number} y 
 	 * @returns person index
 	 */
 	getNearestPerson(x,y){
@@ -271,18 +269,15 @@ export class PersonManager extends EventTarget{
 	}
 
 	/**
-	 * Returns the selected person or null if no selected person
-	 */
-	getSelectedPerson(){
-		return this.people[this.selectedPersonIndex] || null
-	}
-
-	/**
 	 * For certain actions we need to select a person
 	 * so that the commands can be passed to the correct person
 	 * such as game pad events
 	 * @param {Number} index 
 	 */
+	getSelectedPerson(){
+		return this.people[this.selectedPersonIndex] || null
+	}
+
 	selectPerson = (index=-1) => {
 		if (index < 0)
 		{
@@ -313,7 +308,7 @@ export class PersonManager extends EventTarget{
 
 	/**
 	 * 
-	 * @param {Number} index 
+	 * @param {*} index 
 	 * @returns 
 	 */
 	highlightPerson(index=-1){
@@ -330,12 +325,13 @@ export class PersonManager extends EventTarget{
 		this.highlightPerson()
 	}
 
+
 	/**
 	 * 
-	 * @param {String} type 
-	 * @param {Object} detail 
-	 * @param {Boolean} cancelable 
-	 * @param {Boolean} bubbles 
+	 * @param {string} type 
+	 * @param {*} detail 
+	 * @param {*} cancelable 
+	 * @param {*} bubbles 
 	 */
 	dispatchCustomEvent(  type, detail, cancelable=true, bubbles=false ){
 		this.dispatchEvent(
