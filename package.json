@@ -62,7 +62,22 @@
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
-			"electron"
+			"@parcel/watcher",
+			"@serialport/bindings-cpp",
+			"@swc/core",
+			"bufferutil",
+			"core-js",
+			"electron",
+			"electron-winstaller",
+			"esbuild",
+			"lmdb",
+			"midi-writer-js",
+			"msgpackr-extract",
+			"phantomjs-prebuilt",
+			"sharp",
+			"unrs-resolver",
+			"utf-8-validate",
+			"workerd"
 		]
 	},
 	"scripts": {

@@ -41,9 +41,6 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            # Approve build scripts for dependencies
-            - name: Approve build scripts
-              run: pnpm approve-builds
 
             # Copy static assets
             - name: Copy assets
