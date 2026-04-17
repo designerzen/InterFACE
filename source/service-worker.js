@@ -38,7 +38,7 @@ const WORKBOX_DEBUG_LOGGING = process.env.NODE_ENV === "development"
 // Workbox version - update manually when there are new releases.
 const WORKBOX_VERSION = '6.1.5'
 // Cache naming and versioning.
-const APP_CACHE_PREFIX = 'mct'
+const APP_CACHE_PREFIX = 'phs'
 const APP_CACHE_SUFFIX = `v${BUILD_MMR}`
 
 // checks for localhost anyways
@@ -86,6 +86,23 @@ self.addEventListener('message', (event) => {
   } else {
       console.warn(`Message event handler: event.data=[${event.data}], event.data.message=[${event.data.message}]`)
   }
+})
+
+// Clean up old caches on activation
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          // Delete caches that are old versions (start with prefix but not current suffix)
+          if (cacheName.startsWith(APP_CACHE_PREFIX) && !cacheName.includes(APP_CACHE_SUFFIX)) {
+            console.log('Deleting old cache:', cacheName)
+            return caches.delete(cacheName)
+          }
+        })
+      )
+    })
+  )
 })
 
 // Uninstall if b0rked

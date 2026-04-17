@@ -5,13 +5,12 @@
 import './servicewaiting.polyfill'
 import { VERSION } from '../version'
 import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform'
-
 import serviceWorkerPath from "url:../service-worker.js"
 
-// console.error({serviceWorkerPath, manifestPath})
-
+const INSTALLED_VERSION_KEY = 'photosynth'
 // ? made CloudFlare barf up the ServiceWorker so meh!
 const URL_SEPERATOR = "#"
+// console.error({serviceWorkerPath, manifestPath})
 
 const NAME = "pwastillcausingmeheadaches"
 
@@ -180,6 +179,28 @@ export const installOrUpdate = async(debug=false, currentlyRunningVersion='' ) =
 
 	let log = []
 	let output = {}
+
+	const installedVersion = localStorage.getItem(INSTALLED_VERSION_KEY)
+	if (installedVersion && installedVersion !== VERSION) {
+		log.push(`Version changed from ${installedVersion} to ${VERSION}, clearing caches and reloading`)
+
+		if ('caches' in window) {
+			const cacheNames = await caches.keys()
+			await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)))
+		}
+
+		localStorage.setItem(INSTALLED_VERSION_KEY, VERSION)
+
+		if ('serviceWorker' in navigator) {
+			const registrations = await navigator.serviceWorker.getRegistrations()
+			await Promise.all(registrations.map(registration => registration.update()))
+		}
+
+		window.location.reload()
+		return
+	}
+
+	localStorage.setItem(INSTALLED_VERSION_KEY, VERSION)
 
 	// 1. Check browser allows PWAs
 	if (!isSupportingBrowser)

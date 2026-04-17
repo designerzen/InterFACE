@@ -29,8 +29,7 @@ const title = new Title()
 // and what we can do with the tech installed in this device
 const capabilities = new Capabilities()
 
-// get current version
-const runningVersion = document.getElementById("version")?.innerText ?? "1.0.0"
+
 
 // for custom path editions rather than on unique domains
 // instead you can have over-rides both in the globalThis._synth space
@@ -287,7 +286,7 @@ const start = async () => {
 		const timeBetweenSessions = Math.ceil((application.timeElapsedSinceLastPlay ?? Date.now()) / 1000)
 		
 		if (debugMode) {
-			console.info(`InterFACE Version ${VERSION} [${runningVersion}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime / 1000).toFixed(2)} seconds, last time was ${timeBetweenSessions} seconds ago`)
+			console.info(`InterFACE Version ${VERSION}] from ${getReferer()} in ${language} used ${application.count} times, loaded in ${(loadTime / 1000).toFixed(2)} seconds, last time was ${timeBetweenSessions} seconds ago`)
 			console.info({ application, store, title, defaultOptions, globalOptions, domainOptions, referer: getReferer(), capabilities, DOMAIN, HOST, LTD })
 			console.info( "Options:", {globalOptions, domainOptions, defaultOptions, validOptionKeys })
 			// console.log(`Loaded App ${VERSION} ${needsInstall ? "Installable" : needsUpdate ? "Update Available" : ""}` )	
@@ -320,14 +319,15 @@ const checkPWAUpdates = () => {
 
 	// PWA Install / Update / Load from cache
 	// needs to be run early on ideally and in a seperate thread
-	// loads in the relevant data to determine if the app needs to be 
+	// loads in the relevant data to deter
+	// mine if the app needs to be 
 	// updated if installed or installed if uninstalled
-	return installOrUpdate(debugMode, runningVersion).then( PWAState => {
+	return installOrUpdate(debugMode, VERSION).then( PWAState => {
 
 		// this is the amount of time to run before we "check" for things
 		// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 		if (debugMode) {
-			console.log("TEST : Fetched install status", { state:  PWAState, debugMode, runningVersion })
+			console.log("TEST : Fetched install status", { state:  PWAState, debugMode, VERSION })
 			console.info("PWA",  PWAState.log, { state:  PWAState })
 		}
 
