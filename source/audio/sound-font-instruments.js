@@ -10,7 +10,7 @@ import {
 	GENERAL_MIDI_FAMILIES
 } from "./midi/general-midi.constants.js"
 
-import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_PART, EVENT_DECODED } from "./fetch.audio.worker"
+import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_AUDIO_DATA, CMD_CANCEL, EVENT_DECODED } from "./fetch.audio.worker"
 // import { convertArrayToBuffer } from "./audio"
 import audioDecoder from 'audio-decode'
 import { convertArrayToBuffer } from "./audio.js"
@@ -452,35 +452,72 @@ export const loadInstrumentFromSoundFontStringDataViaWorker = async ( audioConte
 
 	// the above but in a worker...
 	const loadFromWorker = (instrumentNameAndFormat, options={} ) => new Promise((resolve,reject) => {
-				
+		const abortSignal = options?.abortController?.signal
+		let settled = false
+
 		const cleanUp = () => {
-			decoderWorker.terminate()
-			decoderWorker = null
+			if (abortSignal)
+			{
+				abortSignal.removeEventListener('abort', onAbort)
+			}
+			if (decoderWorker)
+			{
+				decoderWorker.terminate()
+				decoderWorker = null
+			}
 		}
 
-		decoderWorker.onmessage = (e) => {	
+		const onAbort = () => {
+			if (settled)
+			{
+				return
+			}
+			settled = true
+			if (decoderWorker)
+			{
+				decoderWorker.postMessage({ command: CMD_CANCEL })
+			}
+			cleanUp()
+			reject(new DOMException('Aborted', 'AbortError'))
+		}
+
+		if (abortSignal)
+		{
+			if (abortSignal.aborted)
+			{
+				onAbort()
+				return
+			}
+			abortSignal.addEventListener('abort', onAbort)
+		}
+
+		decoderWorker.onmessage = (e) => { 	
+			if (settled) return
 			const data = e.data
 			switch(data.event)
 			{
 				case EVENT_DECODED: 
-				cleanUp()
-				return resolve(data)
+					settled = true
+					cleanUp()
+					return resolve(data)
 			}
 		}
 
 		decoderWorker.onerror = event => {
+			if (settled) return
+			settled = true
 			cleanUp()
 			return reject(event.message)
 		}
 
-		decoderWorker.postMessage( { command:CMD_DECODE, instrumentNameAndFormat, options } )
+		const workerOptions = { ...options }
+		delete workerOptions.abortController
+		decoderWorker.postMessage( { command:CMD_DECODE, instrumentNameAndFormat, options: workerOptions } )
 	})
-	
+
 	const workerLoadedAudioBuffers = await loadFromWorker(instrumentName, options)
 	return workerLoadedAudioBuffers.audio
 }
-
-
 
 /**
  * Uses FETCH inside a worker that also decodes the samples from mp3 / ogg
@@ -548,61 +585,111 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 
 	onProgressCallback && onProgressCallback(0)
 
+	const workerCommand = options.decodeInWorker ? CMD_LOAD_SOUNDFONT_AUDIO_DATA : CMD_FETCH_SOUNDFONT_PART
+
 	// load in an individual sound
 	const loadSampleViaWorker = (presetSamplePath, options={} ) => new Promise((resolve,reject) => {
-				
+		const abortSignal = options?.abortController?.signal
+		let settled = false
+
 		const cleanUp = () => {
-			decoderWorker.terminate()
-			decoderWorker = null
+			if (abortSignal)
+			{
+				abortSignal.removeEventListener('abort', onAbort)
+			}
+			if (decoderWorker)
+			{
+				decoderWorker.terminate()
+				decoderWorker = null
+			}
 		}
 
-		decoderWorker.onmessage = (e) => {	
+		const onAbort = () => {
+			if (settled)
+			{
+				return
+			}
+			settled = true
+			if (decoderWorker)
+			{
+				decoderWorker.postMessage({ command: CMD_CANCEL })
+			}
+			cleanUp()
+			reject(new DOMException('Aborted', 'AbortError'))
+		}
+
+		if (abortSignal)
+		{
+			if (abortSignal.aborted)
+			{
+				onAbort()
+				return
+			}
+			abortSignal.addEventListener('abort', onAbort)
+		}
+
+		decoderWorker.onmessage = (e) => {
+			if (settled) return
 			const data = e.data
 			switch(data.event)
 			{
-				case EVENT_DECODED: 
-				// console.error("received audio buffers from workers", data.audio )
-				cleanUp()
+				case EVENT_DECODED:
+					settled = true
+					cleanUp()
 
-				const rawAudioArrayBuffers = data.audio
+					if (options.decodeInWorker)
+					{
+						onProgressCallback && onProgressCallback(1)
+						return resolve(data.audio)
+					}
 
-				const audioBufferArray = {}
-				const keys =  Object.keys(rawAudioArrayBuffers)
-				const quantity = keys.length
-				const promises = keys.map( async (key, index) => {
-					
-					// console.error( index,keys.length, "parsing audio buffers from workers", {key, index} )
-		
-					const data =  rawAudioArrayBuffers[key] 
-					const audioBuffer = await convertArrayToBuffer( offlineAudioContext, data )		
-					// console.error(index,keys.length, "parsed audio buffers from workers", { data, audioBuffer, audioBufferArray, promises } )
-			
-					audioBufferArray[key] = audioBuffer
-					onProgressCallback && onProgressCallback(index/quantity)
-					return audioBuffer
-				})
+					const rawAudioArrayBuffers = data.audio
+					const audioBufferArray = {}
+					const keys = Object.keys(rawAudioArrayBuffers)
+					const quantity = keys.length
+					const promises = keys.map(async (key, index) => {
+						const sampleData = rawAudioArrayBuffers[key]
+						const audioBuffer = await convertArrayToBuffer(offlineAudioContext, sampleData)
+						audioBufferArray[key] = audioBuffer
+						onProgressCallback && onProgressCallback((index + 1) / quantity)
+						return audioBuffer
+					})
 
-				// wait for all files to finish loading???
-				Promise.all(promises).then( ()=>{
-					resolve(audioBufferArray)
-				})
+					Promise.all(promises)
+						.then(() => {
+							if (settled) return
+							settled = true
+							resolve(audioBufferArray)
+						})
+						.catch(error => {
+							if (settled) return
+							settled = true
+							cleanUp()
+							reject(error)
+						})
+					break
+				default:
+					break
 			}
 		}
 
 		decoderWorker.onerror = event => {
+			if (settled) return
+			settled = true
 			cleanUp()
 			return reject(event.message)
 		}
 
-		decoderWorker.postMessage( { command:CMD_FETCH_SOUNDFONT_PART, path:presetSamplePath, options }, [  ] )
+		const workerOptions = { ...options }
+		delete workerOptions.abortController
+		decoderWorker.postMessage({ command: workerCommand, path: presetSamplePath, options: workerOptions }, [])
 	})
 
-	const workerLoadedAudioBuffers = await loadSampleViaWorker(path, options)	
+	const workerLoadedAudioBuffers = await loadSampleViaWorker(path, options)
 	onProgressCallback && onProgressCallback(1)
 	// console.error("audio buffers", workerLoadedAudioBuffers )
 	return workerLoadedAudioBuffers
-} 
-
+}
 
 /**
  * Load an instrument from a JS file but using a worker residing in a different

@@ -71,7 +71,6 @@ export default class SampleInstrument extends Instrument{
 		return this.presetIndex
 	}
 
-
     async create(){    
 
 		this.gainNode = this.context.createGain()

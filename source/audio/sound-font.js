@@ -344,7 +344,7 @@ export default class SoundFont{
 		if (SoundFont.audioBuffers.has( data.name ))
 		{
 			// 
-			console.error("SoundFont.audioBuffers "+ data.name, SoundFont.audioBuffers.get( data.name ), {SFab:SoundFont.audioBuffers} )
+			// console.error("SoundFont.audioBuffers "+ data.name, SoundFont.audioBuffers.get( data.name ), {SFab:SoundFont.audioBuffers} )
 			// if the audio buffer is already loaded, just return it
 			return SoundFont.audioBuffers.get( data.name )
 		}

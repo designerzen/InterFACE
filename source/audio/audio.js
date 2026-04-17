@@ -683,12 +683,9 @@ export const loadInstrumentFromSoundFontSamples = async( context=audioContext, p
 		}
 	}
 
-
 	// await Promise.allSettled( partPromises )
 	return parts
 }
-
-
 
 /**
  * Replace the in-memory sample pack with a new pack
@@ -717,22 +714,23 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 		// URI of the sound font
 		soundfont : instrumentURI,
 		// try and use a seperate thread for loading and decoding the data
-		usingWorker : false,
+		usingWorker : true,
+		// if true, the worker will decode raw sources before returning audio data
+		decodeInWorker: true,
 		// load as a single string and convert to individual files
 		// NB. this uses less network but more decoding time
 		loadAsOne : false,
 		// as a collection of elements in an object rather than array { A0: }
 		asArray : false,
-		// use offline worker if available (may be faster?)
-		offlineAudioContext:null,
+		// use offline worker if available (unavailable as of 2026)
+		// offlineAudioContext:null,
 		// prevent double instantiation
 		abortController: options.abortController ?? new AbortController(),
 		// overwrite with specified
 		...options
 	}
-
 	// console.error("loadInstrumentFromSoundFont:" , options ) 
-	
+
 	let instrumentAudioBuffers
 
 	if (options.loadAsOne)
