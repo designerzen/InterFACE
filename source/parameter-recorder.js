@@ -1,6 +1,6 @@
 // Ok, here's a fun one...
 
-import { now } from "./timing/timing"
+const now = () => performance.now()
 
 // RECORD Vars just save it and it will record the time
 export class ParamaterRecorder{
