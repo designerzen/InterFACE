@@ -21,10 +21,10 @@ jobs:
             FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         steps:
             - name: Checks out this repository using git
-              uses: actions/checkout@v4.3.1
+              uses: actions/checkout@v6
 
             # Install pnpm
-            - uses: pnpm/action-setup@v4
+            - uses: pnpm/action-setup@v6
               name: Install pnpm
               with:
                 run_install: false
@@ -32,7 +32,7 @@ jobs:
 
             # Install node js
             - name: Install Node.js 22+
-              uses: actions/setup-node@v4.3.0
+              uses: actions/setup-node@v6
               with:
                 node-version-file: ".nvmrc"
                 cache: pnpm
@@ -86,4 +86,4 @@ jobs:
         steps:
             - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v4.0.5
+              uses: actions/deploy-pages@v5
