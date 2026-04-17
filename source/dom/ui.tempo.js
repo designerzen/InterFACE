@@ -1,10 +1,5 @@
-import {tapTempo, tapTempoSmooth} from '../timing/tap-tempo.js' 
-
-import ROLLING_WORKER_URI from 'url:../timing/timing.rolling.worker.js'
-import SETINERVAL_WORKER_URI from 'url:../timing/timing.setinterval.worker.js'
-import SETTIMEOUT_WORKER_URI from 'url:../timing/timing.settimeout.worker.js'
-
 import { MOUSE_REPEATING, addMouseRepeaterEvents } from '../hardware/mouse.js'
+import { tapTempo, TIMER_TYPE_ROLLING, TIMER_TYPE_SET_INTERVAL, TIMER_TYPE_SET_TIMEOUT } from 'netronome'
 
 export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, onTimerChanged ) => {
 		
@@ -29,7 +24,7 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	
 	let interval
 
-	let estimatedTempo = tapTempoSmooth()
+	let estimatedTempo = tapTempo()
 	const estimateTempoFromTap = () => {
 		if (!estimatedTempo)
 		{

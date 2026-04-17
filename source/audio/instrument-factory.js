@@ -161,10 +161,13 @@ export const lazilyLoadInstrument = async (type) => {
 			instrumentsImported.set(INSTRUMENT_TYPE_WAM, WAMInstrument)
 			return WAMInstrument
 
-		case INSTRUMENT_TYPE_WAM2:
-			const WAM2Instrument = (await import( "./instruments/instrument.wam2.js")).default
-			instrumentsImported.set(INSTRUMENT_TYPE_WAM2, WAM2Instrument)
-			return WAM2Instrument
+		// WAM2 is disabled by default due to Parcel bundler limitations
+		// Dynamic loading of external WAM modules requires runtime module loading
+		// that conflicts with static bundler analysis
+		// case INSTRUMENT_TYPE_WAM2:
+		// 	const WAM2Instrument = (await import( "./instruments/instrument.wam2.js")).default
+		// 	instrumentsImported.set(INSTRUMENT_TYPE_WAM2, WAM2Instrument)
+		// 	return WAM2Instrument
 
 		case INSTRUMENT_TYPE_SPEECH:
 			const SpeechInstrument = (await import( "./instruments/instrument.speech.js")).default

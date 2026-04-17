@@ -66,7 +66,7 @@ import Person, {
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
-import AudioTimer from './timing/timer.audio.js'
+import { AudioTimer } from 'netronome'
 
 // AUDIO 
 import { say, hasSpeech} from './audio/speech.js'
@@ -166,7 +166,7 @@ import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
-import { tapTempo } from './timing/tap-tempo.js'
+import { tapTempo } from 'netronome'
 import { observeOrientationChange } from './display/display-abstract.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
@@ -2396,7 +2396,7 @@ export const createInterface = (
 			// NB. at this point we have access to the user events
 			// 		so can create things that depend on audio context
 			const initialBPM = stateMachine.get('bpm') ?? 90
-			clock = new AudioTimer( audioContext )
+			clock = new AudioTimer( audioContext, false )
 			clock.BPM = initialBPM
 
 			console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 

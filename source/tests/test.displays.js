@@ -5,7 +5,7 @@
 import Person from "../people/person.js"
 import { loadDisplayClass, createDisplay, restartCanvas, changeDisplay, getDisplaysInformation  } from '../display/display-manager.js'
 import { DISPLAY_TYPES, DISPLAY_IDS, DISPLAY_LOOKING_GLASS_3D } from '../display/display-types.js'
-import { now } from "../timing/timing.js"
+const now = () => performance.now()
 
 import { AVATAR_DATA } from "../models/avatar-data.js"
 // import Avatar from "../models/avatar.js"

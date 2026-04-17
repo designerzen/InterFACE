@@ -220,7 +220,11 @@ function createWindow() {
     //     callback({responseHeaders: Object.fromEntries(Object.entries(details.responseHeaders).filter(header => !/x-frame-options/i.test(header[0])))})
     // })
 
-	
+	// Allow loading from localhost dev server
+	mainWindow.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+		details.requestHeaders['Origin'] = 'http://localhost:303'
+		callback({ requestHeaders: details.requestHeaders })
+	})
 
 	ipcMain.on("feedback", (event, state) => {
 		console.log("FEEDBACK>",state)

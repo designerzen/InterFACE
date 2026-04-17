@@ -21,7 +21,6 @@ const FACE_LANDMARK_WASM = "./@mediapipe/tasks-vision/wasm"
 
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { enhanceFaceLandmarksModelPrediction } from './face-landmarks-calculations'
-import { now } from "../timing/timing"
 
 // This flips to using a seperate thread for the 
 // prediction calculations - dunno if it makes it quicker
@@ -64,7 +63,7 @@ const getWorkerEnhancedPrediction = (prediction) => new Promise( (resolve,reject
  * @param {Boolean} flipHorizontally 
  * @returns 
  */
-const predict = async (inputElement, detector, flipHorizontally=true ) => {
+const predict = async (time, inputElement, detector, flipHorizontally=true ) => {
 
 	// const radio = inputElement.videoHeight / inputElement.videoWidth
 	// TODO: Resize video if too large
@@ -78,10 +77,10 @@ const predict = async (inputElement, detector, flipHorizontally=true ) => {
 	// video has been updated!
 	if (lastVideoTime !== inputElement.currentTime) 
 	{
-		const time = now()
+		const currentTime = inputElement.currentTime // time
 		lastVideoTime = inputElement.currentTime
 		//const elapsed = time - lastVideoTime
-		const results = detector.detectForVideo( inputElement, time )
+		const results = detector.detectForVideo( inputElement, currentTime )
 
 		// results = detector.detectForVideo(inputElement, lastVideoTime)
 		const people = []
@@ -184,9 +183,8 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	}
 
 	// now subscribe to events and monitor
-	const fetchModelData = async () => { 
-		// enhance prediction to create our model...
-		const prediction = await predict(inputElement, detector, flipHorizontally) 
+	const fetchModelData = async (time) => { 
+		const prediction = await predict(time, inputElement, detector, flipHorizontally) 
 		// console.error("results.prediction", {prediction} )
 		return prediction
 	}

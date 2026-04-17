@@ -1,4 +1,4 @@
-import { easeInQuint, easeOutQuint, easeOutSine } from '../maths/easing'
+import { easeInQuint, easeOutCirc, easeOutCubic, easeOutExpo, easeOutQuint, easeOutSine } from '../maths/easing'
 import {
 	clamp, 
 	hypoteneuse2D,hypoteneuse3D,
@@ -68,8 +68,7 @@ drawingUtils.drawConnectors(
 // ** === ^ == Math.pow in ECMA22
 const {PI, abs, sqrt, atan2, tan} = Math
 
-const MIN_MOUTH_VALUE = 0.01
-
+const MIN_MOUTH_VALUE = 0.0105
 const EYEBROW_DEVIATION_THRESHOLD = 0.7
 const EYEBROW_DEVIATION_FACTOR = 1 / (1 - EYEBROW_DEVIATION_THRESHOLD)
 
@@ -298,7 +297,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const mouthOpeness = 1 - mouthCloseness
 
 	// get smallest value
-	const mouthRatio = Math.min(jawOpeness, mouthOpeness)
+	const mouthRatio = Math.min( (Math.min(jawOpeness, mouthOpeness) * 0.8), 1 )
 
 	// mouth may be closed whilst jaw is open
 
@@ -314,15 +313,21 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const isMouthOpen = mouthRatio > MIN_MOUTH_VALUE
 	// is wider than tall?
 	const isMouthWide = mouthFunnel > jawOpeness
-	// smooth data
+	// map data to curve
+	//const openCoefficient = (1 - mouthRatio )
 	const openCoefficient = easeOutQuint(1 - mouthRatio )
-	
+	const remaining = Math.max( 0, mouthRatio - MIN_MOUTH_VALUE)
 	// TODO: JawLeft and jawRight for FALSETTO
-	prediction.mouthRatio = easeOutSine( Math.max( 0, mouthRatio - MIN_MOUTH_VALUE) ) 
+	// prediction.mouthRatio = easeOutExpo(remaining)
+	prediction.mouthRatio = easeOutExpo( easeOutSine(remaining) ) 
+	// prediction.mouthRatio = easeOutQuint( easeOutQuint(remaining) )
 	prediction.mouthPucker = mouthPucker
 	prediction.mouthFunnel = mouthFunnel
 	prediction.mouthStretchLeft = mouthStretchLeft
 	prediction.mouthStretchRight = mouthStretchRight
+
+	// console.info("mouth", {isMouthOpen,isMouthWide,openCoefficient, remaining }, prediction.mouthRatio )
+
 
 	prediction.isMouthOpen = isMouthOpen
 	prediction.leftSmirk = mouthSmileLeft

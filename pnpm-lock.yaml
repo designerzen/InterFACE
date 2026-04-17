@@ -143,6 +143,9 @@ importers:
       mpe:
         specifier: ^1.0.4
         version: 1.0.4
+      netronome:
+        specifier: github:designerzen/netronome
+        version: https://codeload.github.com/designerzen/netronome/tar.gz/6acb7951c0cdc988661934c15042e0db7229ae16
       partysocket:
         specifier: 1.1.16
         version: 1.1.16(react@16.14.0)
@@ -8188,6 +8191,10 @@ packages:
 
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
+
+  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/6acb7951c0cdc988661934c15042e0db7229ae16:
+    resolution: {tarball: https://codeload.github.com/designerzen/netronome/tar.gz/6acb7951c0cdc988661934c15042e0db7229ae16}
+    version: 2.6.0
 
   nice-try@1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
@@ -20672,6 +20679,8 @@ snapshots:
   negotiator@1.0.0: {}
 
   neo-async@2.6.2: {}
+
+  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/6acb7951c0cdc988661934c15042e0db7229ae16: {}
 
   nice-try@1.0.5: {}
 
