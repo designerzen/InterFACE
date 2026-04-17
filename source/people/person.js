@@ -41,9 +41,6 @@ import {
 import { rescale, lerp, clamp, range, rangeRounded, HALF_PI } from "../maths/maths.js"
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeInQuad} from "../maths/easing.js"
 
-// all the different instruments come through the instrument factory!
-import MIDIInstrument from '../audio/instruments/instrument.midi.js'
-
 // default instruments
 import { 
 	INSTRUMENT_TYPE_SOUNDFONT,
@@ -51,8 +48,9 @@ import {
 	INSTRUMENT_TYPE_MIDI, 
 	INSTRUMENT_TYPE_CHORD
 } from '../audio/instrument-list.js'
-
+import MIDIInstrument from '../audio/instruments/instrument.midi.js'
 import InstrumentManager from '../audio/instrument-manager.js'
+import { createInstrumentFromData } from '../audio/instrument-factory.js'
 // import INSTRUMENT_LIST from '../assets/audio/instrument-list.json'
 
 // Notes, scales and keys
@@ -61,7 +59,9 @@ import { createKey, FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from
 import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from '../audio/tuning/chords.js'
 import { 
 	convertNoteNameToMIDINoteNumber, 
-	getNoteText, chooseNoteNameUsingPercentage as getNoteNameFromPercentage, getNoteSound, getFriendlyNoteName, 
+	getNoteText, chooseNoteNameUsingPercentage, 
+	getNoteSound, 
+	getFriendlyNoteName, 
 	NOTES_ALPHABETICAL, 
 	MIDI_NOTE_NUMBERS,
 	GENERAL_MIDI_BY_NAME,
@@ -94,8 +94,10 @@ import { drawMousePressure } from '../dom/mouse-pressure.js'
 import { EmojiDetector } from '../models/emoji-detection.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji } from '../models/emoji.js'
 
-import { createInstrumentFromData } from '../audio/instrument-factory.js'
 import { getCleff, NOTATION, STAVE_SIZES } from '../audio/notation.js'
+
+
+
 import { 
 	configurePersonByOperatingMode,
 	PERSON_TYPE_ARPEGGIO, 
@@ -107,13 +109,12 @@ import {
 
 import { STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_RELEASE } from './person-states.js'
 
-import PersonEvent, {
-	// Dispatched events that each person creates
- 	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
-	  EVENT_EMOTION_UNLOCKED,
-} from './person-event.js'
 import Achievements from './person-achievements.js'
 import PersonalProgress from './person-progress.js'
+
+import PersonEvent, {
+ 	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD, EVENT_EMOTION_UNLOCKED
+} from './person-event.js'
 
 // used to deliminiate the URL player seperator...
 // you want something that doesn't encode, but that also
@@ -1560,7 +1561,7 @@ export default class Person extends EventTarget{
 
 		// eg. A1 Ab1 C3 etc
 		// if we want a circle-of-fifths style we can use the scales here
-		let noteName = getNoteNameFromPercentage(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
+		let noteName = chooseNoteNameUsingPercentage(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
 
 		// MIDI Note Number 0-127
 		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
