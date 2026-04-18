@@ -8,7 +8,7 @@
 extends _base.pug
 
 block headline 
-	| Photo<wbr>Synth 3
+	| Photo<wbr>Synth
 	//- span.sr-only PhotoSynth 3
 	| #Inter<wbr>
 	strong FACE
@@ -36,53 +36,7 @@ block main
 
 block scripts
 	script(type="text/javascript").
-		const YT_ID_DMLAB = "yt-dmlab"
-		const tag = document.createElement('script')
-		tag.id = YT_ID_DMLAB
-		tag.src = 'https://www.youtube.com/iframe_api'
-		const firstScriptTag = document.getElementsByTagName('script')[0]
-
-		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-
-		let player
-		function onYouTubeIframeAPIReady() {
-			player = new YT.Player(YT_ID_DMLAB, {
-				events: {
-					'onReady': onPlayerReady,
-					'onStateChange': onPlayerStateChange
-				}
-			})
-		}
-
-		function onPlayerReady(event) {
-			document.getElementById(YT_ID_DMLAB).style.borderColor = '#FF6D00'
-		}
-
-		function changeBorderColor(playerStatus) {
-			let color
-			if (playerStatus == -1) {
-				color = "#37474F"; // unstarted = gray
-			} else if (playerStatus == 0) {
-				color = "#FFFF00"; // ended = yellow
-			} else if (playerStatus == 1) {
-				color = "#33691E"; // playing = green
-			} else if (playerStatus == 2) {
-				color = "#DD2C00"; // paused = red
-			} else if (playerStatus == 3) {
-				color = "#AA00FF"; // buffering = purple
-			} else if (playerStatus == 5) {
-				color = "#FF6DOO"; // video cued = orange
-			}
-			if (color) 
-			{
-				document.getElementById(YT_ID_DMLAB).style.borderColor = color
-			}
-		}
-
-		function onPlayerStateChange(event) {
-			changeBorderColor(event.data)
-		}
-
+		
 block styles
 	style.
 		#intro{

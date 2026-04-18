@@ -29,8 +29,6 @@ const title = new Title()
 // and what we can do with the tech installed in this device
 const capabilities = new Capabilities()
 
-
-
 // for custom path editions rather than on unique domains
 // instead you can have over-rides both in the globalThis._synth space
 // or else via a named route here
@@ -229,19 +227,14 @@ const start = async () => {
 		// 	try{
 		// 		const destination = document.getElementById("shared-controls")
 		// 		const needsInstall = await installation( destination )		
-
 		// 		canBeInstalled = needsInstall
-
 		// 	}catch(error){
-
 		// 		body.classList.add("installation-unavailable")
 		// 		console.error("Install/Update issue", error)
 		// 	}
-
 		// }else{
 		// 	// console.log("Loaded Webpage")
 		// }
-	
 		
 		// User has been located and application has begun!
 		
@@ -340,10 +333,10 @@ const checkPWAUpdates = () => {
 		// isInstallable, isFirstRun, isRunningAsApp, install:(), updatesAvailable, updating, updated, update:()
 
 		// add some useful classes to <body> element for styling
-		body.classList.toggle("updates-available",  PWAState.hasUpdates)
-		body.classList.toggle("first-run",  PWAState.isFirstRun)
-		body.classList.toggle("installable",  PWAState.isInstallable)
-		body.classList.toggle("installed",  PWAState.isRunningAsApp)
+		body.classList.toggle("updates-available", PWAState.hasUpdates)
+		body.classList.toggle("first-run", PWAState.isFirstRun)
+		body.classList.toggle("installable", PWAState.isInstallable)
+		body.classList.toggle("installed", PWAState.isRunningAsApp)
 
 		// if already installed this wont show the install button
 		if ( PWAState.isInstallable) {
