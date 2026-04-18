@@ -46,7 +46,7 @@ jobs:
               run: pnpm run assets
 
             # Build command
-            - name: Build the app into dist
+            - name: Build the app
               run: pnpm run build --if-present
 
             # - name: List the current folder contents...
