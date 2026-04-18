@@ -1,92 +1,74 @@
-import {readFileSync, writeFileSync} from 'fs'
-
-const RSS = require('rss');
+import { readFileSync, writeFileSync } from 'node:fs'
+import { execSync } from 'node:child_process'
+import { Feed } from 'feed'
 
 const packageFile = readFileSync('./package.json')
 const pkg = JSON.parse(packageFile)
-const repositoryURL = pkg.repository.split("/")
-const repoName = repositoryURL.pop().replace(".git","")
-const repoOwner = repositoryURL.pop()
-const serverURL = `https://${repoOwner}.github.io/${repoName}/`
-//  'May 20, 2012 04:00:00 GMT'
-const pubDate = Date.now() 
+const packageVersion = pkg.version
 
-/* lets create an rss feed */
-const feed = new RSS({
-    title: pkg.name,
-    description: pkg.description,
-    feed_url: `${serverURL}rss.xml`,
-    site_url: `${serverURL}`,
-    image_url: `${serverURL}assets/icons/android-chrome-512x512.png`,
-    docs: `${serverURL}docs.html`,
-    managingEditor: pkg.author,
-    webMaster: pkg.author,
-    copyright: pkg.license,
-    language: 'en',
-    categories: ['Category 1','Category 2','Category 3'],
-    pubDate:pubDate,
-    ttl: '60',
-    custom_namespaces: {
-      'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd'
-    },
-    custom_elements: [
-      {'itunes:subtitle': 'A show about everything'},
-      {'itunes:author': 'John Doe'},
-      {'itunes:summary': 'All About Everything is a show about everything. Each week we dive into any subject known to man and talk about it as much as we can. Look for our podcast in the Podcasts app or in the iTunes Store'},
-      {'itunes:owner': [
-        {'itunes:name': 'John Doe'},
-        {'itunes:email': 'john.doe@example.com'}
-      ]},
-      {'itunes:image': {
-        _attr: {
-          href: 'http://example.com/podcasts/everything/AllAboutEverything.jpg'
-        }
-      }},
-      {'itunes:category': [
-        {_attr: {
-          text: 'Technology'
-        }},
-        {'itunes:category': {
-          _attr: {
-            text: 'Gadgets'
-          }
-        }}
-      ]}
-    ]
+// Get git log with commit hashes and messages
+const gitLog = execSync('git log --pretty=format:"%H|%s|%aI" --no-merges').toString().trim()
+const commits = gitLog.split('\n').map(line => {
+  const [hash, message, date] = line.split('|')
+  return { hash: hash.substring(0, 7), message, date: new Date(date) }
 })
- 
-// split by \### 0.52.0 (2021-06-22)\
 
-// loop over data and add to feed
-feed.item({
-
-    title:  'item title',
-    description: 'use this for the content. It can include html.',
-    url: 'http://example.com/article4?this&that', // link to the item
-    // guid: '1123', // optional - defaults to url
-    categories: ['Category 1','Category 2','Category 3','Category 4'], // optional - array of item categories
-    author: 'Guest Author', // optional - defaults to feed author property
-    date: Date.now(), // any format that js Date can parse.
-	// lat: 33.417974, //optional latitude field for GeoRSS
-    // long: -111.933231, //optional longitude field for GeoRSS
-    
-	enclosure: {
-		url:'...', 
-		file:'path-to-file'
-	}, 
-		// optional enclosure
-    custom_elements: [
-      {'itunes:author': 'John Doe'},
-      {'itunes:subtitle': 'A short primer on table spices'},
-      {'itunes:image': {
-        _attr: {
-          href: 'http://example.com/podcasts/everything/AllAboutEverything/Episode1.jpg'
-        }
-      }},
-      {'itunes:duration': '7:04'}
-    ]
+// Create RSS feed
+const feed = new Feed({
+  title: `PhotoSYNTH InterFACE v${packageVersion}`,
+  description: pkg.description,
+  id: 'https://interface.place/',
+  link: 'https://interface.place/',
+  language: 'en',
+  image: 'https://interface.place/favicon.ico',
+  favicon: 'https://interface.place/favicon.ico',
+  copyright: 'All rights reserved 2024, designerzen',
+  generator: 'rss.mjs',
+  feedLinks: {
+    json: 'https://interface.place/feed.json',
+    atom: 'https://interface.place/feed.xml',
+    rss: 'https://interface.place/rss.xml'
+  },
+  author: {
+    name: 'designerzen',
+    email: 'zen@designerzen.com',
+    link: 'https://designerzen.com'
+  }
 })
- 
-// cache the xml to send to clients
-const xml = feed.xml()
-writeFileSync('./source/rss.xml', xml)
+
+// Group commits by day and add to feed
+const groupedByDay = {}
+commits.forEach(commit => {
+  const day = commit.date.toISOString().split('T')[0]
+  if (!groupedByDay[day]) {
+    groupedByDay[day] = []
+  }
+  groupedByDay[day].push(commit)
+})
+
+// Add items in reverse chronological order
+Object.keys(groupedByDay).sort().reverse().forEach(day => {
+  const dayCommits = groupedByDay[day]
+  const content = dayCommits.map(c => `${c.hash} - ${c.message}`).join('\n')
+  
+  feed.addItem({
+    title: `Commits from ${day}`,
+    id: `https://interface.place/commits/${day}`,
+    link: 'https://github.com/designerzen/interface/commits/main',
+    description: `${dayCommits.length} commit(s)`,
+    content: content,
+    author: [{
+      name: 'designerzen',
+      email: 'zen@designerzen.com',
+      link: 'https://designerzen.com'
+    }],
+    date: dayCommits[0].date
+  })
+})
+
+feed.addCategory('Development')
+
+// Write all feed formats
+writeFileSync('./source/rss.xml', feed.rss2())
+writeFileSync('./source/feed.xml', feed.atom1())
+writeFileSync('./source/feed.json', feed.json1())

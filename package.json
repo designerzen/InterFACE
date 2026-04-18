@@ -1,8 +1,8 @@
 {
 	"name": "PhotoSYNTH",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical instrument",
-	"version": "0.46.15",
-	"time": 1776358541597,
+	"version": "0.46.16",
+	"time": 1776516453420,
 	"author": "designerzen <github@designerzen.com>",
 	"license": "GPL-2.0-only",
 	"repository": "https://github.com/designerzen/InterFACE.git",
@@ -102,7 +102,6 @@
 		"mobile:icons": "npx capacitor-assets generate",
 		"icons": "npm run electron:icons && npm run mobile:icons",
 		"analyse": "parcel build source/index.pug --profile --detailed-report",
-		
 		"push:": "git push origin --tags && git push origin",
 		"rss": "node actions/rss.mjs",
 		"zips": "node actions/zips.mjs",
