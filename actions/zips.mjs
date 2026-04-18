@@ -1,7 +1,9 @@
-const fs = require('fs').promises;
-const path = require('path');
-const fflate = require('fflate');
+import fs from 'fs/promises';
+import path from 'path';
+import fflate from 'fflate';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const waveTablesDir = path.join(__dirname, "../", 'source/assets/audio', 'wave-tables');
 
 async function zipWavetableFolders() {
