@@ -152,13 +152,23 @@
 			"description": "Start 2 pro players"
 		},
 		{
+			"name": "Trio Simple",
+			"url": "./index.html?players=3",
+			"description": "Start 3 players"
+		},
+		{
+			"name": "Quartet Simple",
+			"url": "./index.html?players=4",
+			"description": "Start 4 players"
+		},
+		{
 			"name": "Fund",
 			"url": "./funding.html",
 			"description": "Show your support for this project"
 		},
 		{
 			"name": "Release updates & change log",
-			"url": "./changes.html",
+			"url": "./changelog.html",
 			"description": "See all new features and changes with this version"
 		}
 	]

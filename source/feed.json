@@ -1,24 +1,2280 @@
 {
     "version": "https://jsonfeed.org/version/1",
-    "title": "PhotoSYNTH InterFACE v0.20.1",
+    "title": "PhotoSYNTH InterFACE v0.46.15",
     "home_page_url": "https://interface.place/",
     "feed_url": "https://interface.place/feed.json",
-    "description": "News feed and release updates",
+    "description": "Instant Musical Superpowers! Body controllable accessible musical instrument",
     "icon": "https://interface.place/favicon.ico",
     "author": {
-        "name": "zen",
+        "name": "designerzen",
         "url": "https://designerzen.com"
     },
     "items": [
         {
-            "id": "https://interface.place",
-            "content_html": "\nmoved TF copying assets into build script (40c8a187)\n\n\nadded more types to ignore (bc60ece2)\nupdated manifest with new features and data (38566234)\nadded lock files to ignore (09454a00)\nadded new types to gitignore (d9507f0b)\n\n\nupdated all public data (4659b8e5)\n\n\nshaders for 3d display (d1d14411)\nQR codes (97bacb66)\ntheme selector & loader (cf2668e4)\ninstrument from remotes (9b6a42b8)\npatterns & tap to tempo (46c0e92d)\nutils for location, state + flags (e0adff7f)\nutiilities for optimising performance (dbb106f5)\nAdded hardware connections inc LGP (f5f511f8)\nVisual updates including 3D variants (29cbd8fc)\nPiano component for testing instruments (d6b23537)\nsettings defaults for various sections (cd46bdc4)\ntests with javascript (ac607a80)\nmediators for passing person data (ff84261a)\nMIDI handling for external and 2,0 protocol (e49279aa)\nDOM utils, widgets and controls (0c4a39c1)\nicons for use sharing (e8239557)\nshared pug partials (d78ef560)\ninstrument factory (bf73855c)\nmore instruments (2a920ef1)\nup / down arrow icons (7227184b)\n3d face model assets (96a697cb)\ncomponent CSS files (26b01ca4)\nNew styles using grid and overlays + palette (55a165cc)\nPolymorphic builds (899d0fdb)\nCapactior entry point build (c751ef09)\nElectron build (d0be70c4)\nnew static build pipeline (d2c033d6)\nAdded company logos for IEEE and AMIC (cbd7c70e)\nApp store icons and banners (faaa615b)\nFonts inc dyslexic / readable / heading / notation (1ec2f9d6)\n\n\nmodular display system inc. holographic (b6e5553c)\nicons for webstores / favicons (45fcb93e)\nElectron build (1bfdd3c1)\nUI panels for control panel (209df0f9)\ninstrument json (7d7f7075)\nnew options file (e1f67266)\ninstrument factory (ea45b897)\n\n\nElectron main code (253031f8)\n\n\npreparation for cloudflare (ebee6e13)\nUpdated prediction models to work with tf latest (e8b0ccd1)\ntiming now uses micro fractions for better MIDI and for swing (a24685d5)\nnotes and scales improved (39631b78)\nBeats tuning (74156e03)\nsimplified index css as simple gateway (c1fddcfc)\nimproved base markup, headers + a18n (4c6f93e7)\nactions for changelogging (1a95bafb)\nSet node version high with flags (77b93e1e)\nPWA updates (bdf27a2f)\na way to load raw files, skipping processing (f0161aa8)\nSoundFont decoupled from data (c73138f1)\nopt/ error with CI in CF (d83f73c9)\nremoved node requirement (4834387e)\nnpm tripping up because of yarn confusion (f4d5a76d)\n\n\nbuild system simplified (e8a61ee2)\n\n\nv0.21 - simpler build pipeline (e286b96b)\n\n\ntests added for various features (caa63e94)\n\n\nfile locations (c1d555ec)\ndependency locations (bfa052c3)\nmoved all state into utils (22ce8326)\noscillator instrument (f457c69e)\nsmoother timing (ab3ab4c3)\n\n\nmoved state (d1c26276)\n\n",
-            "title": "0.20.2 (2024-09-17)",
-            "summary": "Build System / Dependencies / Chores / Documentation Changes / New Features / Other Changes (feature) / Other Changes (feture) / Bug Fixes / Refactors / Other Changes (release) / Tests / Other Changes (update) / Other Changes (upodate) / ",
-            "image": "http://interface.place/favicon.ico",
-            "date_modified": "2024-09-17T00:00:00.000Z",
+            "id": "https://interface.place/commits/2026-04-17",
+            "content_html": "1ed8ca3 - feat: reloadbr owser ifnew serviceworker\n10ee7a3 - fix: Rix colours\n2dbf07b - fix: reveret CI script!\nc00c7e7 - fix: CI due to build package selection\nadb17ee - fix: deploy to github script\n755ad0f - fix: Worker for AudioData Dercode\nd832018 - fix: upgraded CI actions\n86bb564 - fix: double RS\n2591e1a - fix: lazy load index fix\n5fff7ba - test: index reverted\n6822f1b - test: revert Person\n322810f - fix: disabled Log for now\nd83191b - chore: cleaned Person code\nc59e074 - feat: log lib\n8061dd7 - fix: streamlined index\n547173c - feat: gamepad input types\nf64e8a7 - fix: text for tooltips\nd7555fd - chore: versions bumped\n8a4d2e4 - fix: removed global now from parameter recorder\nb9ea078 - feat: VA representation added\nb148782 - fix: Person has no understanding of time\na6109af - fix: person-manager\n6dd0df2 - feat: RIX inclusion group affiliation\n5d27995 - fix: multi person play\nd3f8fde - fix: gamepad controls\n6e84eb4 - fix: removed shared now\n995aa40 - update: styles and grid\nc3cb1a1 - fix: merge branching begins",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-04-17",
+            "summary": "28 commit(s)",
+            "date_modified": "2026-04-17T21:07:04.000Z",
             "author": {
-                "name": "zen",
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-04-16",
+            "content_html": "67f3afe - fix: branching with broken clientside",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-04-16",
+            "summary": "1 commit(s)",
+            "date_modified": "2026-04-16T21:53:18.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-04-09",
+            "content_html": "9a268a7 - feat: video playback and interpretation\n76d7699 - feat: proxy setSize method\nae9f0b3 - chore: versions bumped\nda6c7cf - fix: clock in interface-keyboard",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-04-09",
+            "summary": "4 commit(s)",
+            "date_modified": "2026-04-09T17:40:09.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-04-08",
+            "content_html": "3fc126a - fox:: display names\n7b509ff - fix: tempo tapping\n67b6881 - feat: more displays but some broken\n10a09fc - fix: added missing name method\nef046aa - fix: styles for affiliates\nd70c0b6 - fix: Person indexes\n2c0b18a - feat: moved emoticon code into emoji",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-04-08",
+            "summary": "7 commit(s)",
+            "date_modified": "2026-04-08T22:29:46.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-04-07",
+            "content_html": "063a42c - feat: split the affiliates & support\n47ab6ef - fix: page was too tall during load and loader is now central and sticky",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-04-07",
+            "summary": "2 commit(s)",
+            "date_modified": "2026-04-07T21:29:41.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-04-05",
+            "content_html": "7d34fcc - feat: PersonalProgress",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-04-05",
+            "summary": "1 commit(s)",
+            "date_modified": "2026-04-05T10:51:26.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-28",
+            "content_html": "1a81089 - fix: multiplayer mode\n3b0f6c6 - fix: button scroll  slide",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-28",
+            "summary": "2 commit(s)",
+            "date_modified": "2026-03-28T21:58:16.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-27",
+            "content_html": "bba329a - feat: added more preset installations\n8710652 - fix: node versions- stable v\n6987a13 - fix: stupid missing imports\nd697a3b - update: CI uses new node\na10f872 - fix: Buffer geometry import added\nbf17215 - fix: person undefined during op\n2c830bc - fix: added tranditional overlay mode back to disco mode\n2c162b1 - feat: Emotion unlocked event!\nc5afb9b - feat: colour cycle in spectrrogram\n5e61727 - update: better emoji detection\n5a420df - fix: some keys were causing errors\n3e9b18e - fix: mouth colour opacity\nff6fc35 - feat: subdivisions set from url\n770de3f - feat: added geomtery subdivisions\n65c7d86 - fix: chords now show friendly names\nfea7ac2 - fix: scroll to button - forced with JS :(\n90223e7 - fix: start button scroll\ne958891 - fix: translucent lips\n837b679 - fix: CI complaints\nd025e2c - fix: syntax error\nfb733ed - fix: CI complaints\nbdb89c6 - fix: toned down lip style\ne5291c5 - chore: v bump\ncd4ea7c - fix: 3D particle colours\n004e9bf - fix: URL mismatch\nb39b59b - chore: version bump\n35de481 - feat: colour utilitiies\n3e8a8b3 - feat: Newham citizen's custom site\n4487195 - feat: liteRT in static\n99f8dc5 - feat: electron main app\n15e15b1 - update: mediators for controls\ne15b56b - fix: improved homepage\n0245091 - update: improved emotion <-> music models\nd3ac809 - fix: improved instrument panel items\n4a103b7 - feat: extended the scales\n44a4954 - fix: style alignments\ne2e9f2a - chore: versions bumped\ndc3bed2 - feat: Person Manager and people dir + achievements",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-27",
+            "summary": "38 commit(s)",
+            "date_modified": "2026-03-27T23:38:23.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-25",
+            "content_html": "f1d594b - feat: electron-forge so we can use new electron versions\nb106180 - feat: PersonManager",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-25",
+            "summary": "2 commit(s)",
+            "date_modified": "2026-03-25T12:18:35.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-24",
+            "content_html": "950b91b - feat: PersonManager",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-24",
+            "summary": "1 commit(s)",
+            "date_modified": "2026-03-24T23:04:26.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-21",
+            "content_html": "3f07638 - fix: electron double build\n1a3c27e - fix: potential CI fix",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-21",
+            "summary": "2 commit(s)",
+            "date_modified": "2026-03-21T12:27:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-20",
+            "content_html": "04ec638 - fix: electron CI\nb9e5b4d - fix: electron assets deployment\n9924759 - chore: upgraded pnpm\nd73be3a - feat: electron builder\nd4d8137 - feat: newham citizens science fair\nb7681ac - fix: slowed down the person dom button\n54c1f45 - chore: version bump\na66363f - feat: humans text\n6f45f32 - update: many new drum patterns\ndc172b7 - fix: emoji stability\ncb38fad - fix: Displays & parcel updating",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-20",
+            "summary": "11 commit(s)",
+            "date_modified": "2026-03-20T22:00:26.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2026-03-19",
+            "content_html": "d3472c2 - feat: more tensorflow models\n833e2fa - fix: compat issues collated",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2026-03-19",
+            "summary": "2 commit(s)",
+            "date_modified": "2026-03-19T19:36:33.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-11-21",
+            "content_html": "cfab803 - fix: logo background in wac theme\n08d1be9 - feat: WAC theme with MASSIG logo\n190cf78 - feat: WAC messaging\ncab05ff - fix: defaults to major\na4b6612 - fix: person colours\nc26dc4d - fix: radio buttons\nc58e54b - fix: mouth dissappearing on open",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-11-21",
+            "summary": "7 commit(s)",
+            "date_modified": "2025-11-21T13:50:26.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-11-20",
+            "content_html": "1aa3260 - feat: WAC demo page\n2d189ab - feat: added a11y menu to index\n6336b85 - chore: versions bumped\nccb28c8 - feat: a11y menu",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-11-20",
+            "summary": "4 commit(s)",
+            "date_modified": "2025-11-20T20:59:26.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-11-06",
+            "content_html": "1b084b5 - fix: logo overhang\nd3bb1fe - fix: svg text fit\ned90452 - fix: userMode NaN\naf0e157 - fix: move face data to Avatar\ndb12dba - fix: hide-text\n4404402 - fix: camera error messages\n82892d0 - chore: packages upgraded\n381742b - fix: email text hidden",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-11-06",
+            "summary": "8 commit(s)",
+            "date_modified": "2025-11-06T19:32:54.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-11-05",
+            "content_html": "0298b0c - fix: removed lazy avatar import\nfcdcb10 - feat: 3D model loaders lazy loaded\n490fca2 - fix: Fail to build due to AVATAR_DATA\n2f1cfc1 - fix: split out AVATAR data to try and find issue\ncf0b15c - fix: relative path breaking Avatars?\na33ae97 - test: Avatars lazy loaded\ndece425 - fix: Texture missing in TextureLoader\n81df4c2 - chore: upgraded parcel\n0d38945 - fix: potential parcel js relative load\n2b8d1ac - fix: reordered the display inports to catch missing one",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-11-05",
+            "summary": "10 commit(s)",
+            "date_modified": "2025-11-05T23:18:25.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-11-04",
+            "content_html": "464b516 - chore: versions bumped\n1563fba - fix: lazy load 3d hardware in try{}\neff166f - fix: test display loader\n4cfed89 - fix: 3D display relative link",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-11-04",
+            "summary": "4 commit(s)",
+            "date_modified": "2025-11-04T21:38:32.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-29",
+            "content_html": "3fec010 - fix: qr va\na00cc32 - update: swapped indexes for userModes\ne11f269 - fix: Looking Glass display",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-29",
+            "summary": "3 commit(s)",
+            "date_modified": "2025-10-29T21:56:48.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-28",
+            "content_html": "e85ec0d - fix: LG portrait libs\n741d4ff - chore: versions bumped",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-28",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-10-28T15:42:03.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-26",
+            "content_html": "a7170e0 - update: better end copy\n08cca7e - feat: Presets!\n6cbc121 - feat: hide cursor on inactive\nd285568 - fix: avatar rotation\n49bccab - feat: swap feature sides for eyes\nc670f62 - fix: Display references\n74bbb01 - feat: person presets in seperate class for userMode\n63f9c0d - fix: LookingGlass3D display\n31e2a37 - fix: to prevent circular imports, extracted certain options\n2a7b183 - chore: version bump\nf39d22e - fix: hologram lib causing headaches\n0688d9b - fix: Importing webXR twice fails",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-26",
+            "summary": "12 commit(s)",
+            "date_modified": "2025-10-26T23:19:32.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-25",
+            "content_html": "97e2a54 - fix: malformed html due to output element?\nc04b130 - fix: html minification chopped off some important parts\nf29968a - fix: removed passive as erros thrown due to event.prevent\n6f07b17 - fix: button layout in dialog\n7f2f7a6 - feat: presets added\nf697309 - feat: saving preset + instrument + userMode\n72fab6e - fix: improved intro copy\n22463b7 - fix: dialog headings\n94d41e7 - feat: border added to dialog for fatal\n42e8856 - fix: emoji on fatal error\ncfdf562 - update: added button styles to dialogs\n546692c - fix: dialog position\na5309a2 - chore: version minor bump\n9e39128 - fix: dialog error messages unseen\na196cf5 - fix: unnamed player\n24d282e - chore: version bump",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-25",
+            "summary": "16 commit(s)",
+            "date_modified": "2025-10-25T23:09:04.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-24",
+            "content_html": "37d46cd - chore: versions bumped\n4d7b5ca - fix: Person instrument in URL and QR",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-24",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-10-24T19:52:46.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-23",
+            "content_html": "810ea16 - chore: version bump to v0.32\n0ca62e7 - feat: Albert Einstein model\n8ad0419 - feat: brunette woman model\nbb05df9 - fix: removed 3d models\nd326eee - feat: FBX sam woman model\n9e131ca - fix: moving back to pnpm\n8460ddb - feat: person preferences in URL\n1b2101a - feat: person string options\n1fb332a - feat: Tongue Out emoji!\n681b809 - feat: Person now has toungue out and kiss duration\n930b773 - feat: implemented countdown timer and youtube gui\n8b45d84 - feat: Electron app main logic code\n052b752 - fix: PWA installation\n6c7f8cd - fix: removed caching google analytics\nf3473c3 - fix: more tests added\n6f349f8 - fix: Circular referencing!\n3659391 - fix: Gamepad disconnect\nad54530 - fix: Electron setup\nf8f32e4 - feat: MASSIG connection added\n487de9f - feat: tunings in scales\n94c2170 - fix: title extendable in Instrument\n650a7e3 - fix: holograms + Avatar class\neeed464 - fix: MIDI connections\nf06d48a - feat: transport panel\n155fa8f - fix: Display modes extend abstract with fallbacks\n264a4be - feat: tests for 3d stuffs + holograms\nc116bac - feat: timeout and counter\nae1ecc1 - feat: custom VA instructions\nf198022 - fix: reverted to npm :(\nf749bb5 - feat: Victoria & Albert Mueseum",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-23",
+            "summary": "30 commit(s)",
+            "date_modified": "2025-10-23T19:58:27.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-19",
+            "content_html": "16357f5 - feat: timeouts\n60e4919 - update: Display mechanisms",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-19",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-10-19T19:21:53.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-03",
+            "content_html": "473e3c8 - fix: node specfic imporrt\n9be5ecf - dix: ADC aspect ratio for logo\nb265465 - feat: room concept for sharing tempo\nc45c747 - fet: swaped out electron-builder for Forge\na75a149 - fix: electron fixes - still not there yet\nb3e8cef - fix: screen flood fill\n427fc69 - feat: electron forge\n92d85df - fix: screen orientation",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-03",
+            "summary": "8 commit(s)",
+            "date_modified": "2025-10-03T21:48:48.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-02",
+            "content_html": "57d311c - feat: added more partykit websockets\nf6b65c7 - fix: video overlay now respects options\nbda90d8 - feat: added partykit!\n084f40d - fix: footer alignment\n208192b - fix: personal button animation",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-02",
+            "summary": "5 commit(s)",
+            "date_modified": "2025-10-02T14:20:19.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-10-01",
+            "content_html": "8fd928f - fix: P2P synch check\nca6c89d - fix: tooltips on touchscreens\nccb46dc - chore: versions bumped\n623adc6 - feat: display now starts and scales to video size",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-10-01",
+            "summary": "4 commit(s)",
+            "date_modified": "2025-10-01T15:25:22.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-09-29",
+            "content_html": "78a9c3a - feat: ADC logo\n2b2b2eb - feat: message to accept cam permissions\n670edbf - chore: webmidi version bump",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-09-29",
+            "summary": "3 commit(s)",
+            "date_modified": "2025-09-29T16:22:46.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-09-26",
+            "content_html": "d381db9 - feat: P2P library\n4d36e09 - fix: cream colour in graphic removed\nee4c663 - feat: test data for dawproject\nacb09b0 - feat: OPFS worker for future stream writes\nb70e5c5 - feat: .dawproject lib\n157d27d - feat: Electron updates\nbd213b3 - fix: EMF logo fixed\n5976354 - feat: person mediators\n8e6beb8 - update: working improvements\ne152d58 - fix: camera size now alters video size\na998e4e - feat: Sound Connections logo\n292dc89 - fix: display manager\n963e433 - feat: instruments augmented\n095de26 - update: tasks for computer vision\nbb887a5 - update: 2d drawings\n1198f54 - fix: CSS updates for main styles\n617388d - feat: MIDI updates\n6764001 - feat: more tests + data files\nb492304 - update: timing code\n5f6e1a9 - feat abstract resizeable canvas\n71e47db - feat: split options for people\ne0c8b39 - feat: visualisers born\n9332967 - update: added Sound Connections\nebb7905 - feat: more controls from external devices\n3e34ea9 - chore: nvm version for node\ndfd847e - chore: packages bumped\n16046a3 - fix: active notes",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-09-26",
+            "summary": "27 commit(s)",
+            "date_modified": "2025-09-26T10:16:38.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-09-20",
+            "content_html": "2b3673c - feat: headers set for iframes",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-09-20",
+            "summary": "1 commit(s)",
+            "date_modified": "2025-09-20T18:21:59.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-08-07",
+            "content_html": "7936233 - chore: packages upgraded\n4554615 - fix: box overflow",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-08-07",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-08-07T19:36:12.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-30",
+            "content_html": "2e264a4 - chore: packages upgraded\n1abeb16 - fix: email address for contact",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-30",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-07-30T17:35:04.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-21",
+            "content_html": "e6ea79f - fix: removed Ostrich from other headings\n9dac4dc - fix: Link locations",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-21",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-07-21T11:39:57.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-20",
+            "content_html": "c61b495 - feat: settings and packages bumped\n870b4ba - update: removed ostrich css link\nf0e232c - feat: removefont, use SVGs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-20",
+            "summary": "3 commit(s)",
+            "date_modified": "2025-07-20T16:29:44.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-17",
+            "content_html": "a796c3a - feat: email link on homepage",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-17",
+            "summary": "1 commit(s)",
+            "date_modified": "2025-07-17T09:31:00.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-10",
+            "content_html": "6d3624f - feat: midi sympathizer",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-10",
+            "summary": "1 commit(s)",
+            "date_modified": "2025-07-10T15:01:10.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-07",
+            "content_html": "2cfafba - feat: added emotion-changed event to person\nff39e1f - update: removed text colour roll",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-07",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-07-07T20:56:30.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-07-04",
+            "content_html": "87c5097 - fix: RS2025",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-07-04",
+            "summary": "1 commit(s)",
+            "date_modified": "2025-07-04T01:03:26.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-30",
+            "content_html": "bdc4d36 - fix: samd name\nc1ad5a1 - feat: MBO slide in talk\n0525ac8 - update: better talk slides\nc00d3e0 - fix: remove logs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-30",
+            "summary": "4 commit(s)",
+            "date_modified": "2025-06-30T23:28:58.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-29",
+            "content_html": "4dbfcbb - fix: MDL Robot War\n5418a68 - fix: person names oprtions\ne9cea61 - feat: home music making image\n641b462 - feat: RS talk",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-29",
+            "summary": "4 commit(s)",
+            "date_modified": "2025-06-29T20:12:00.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-28",
+            "content_html": "d3ad642 - fix: prev / next",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-28",
+            "summary": "1 commit(s)",
+            "date_modified": "2025-06-28T00:04:28.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-27",
+            "content_html": "6049e30 - fix: instrument titles real time\n63056b3 - fix: instrument title now a getter\n288c1e0 - fix: preset numbers for next / prev\na8b1c7e - fix: instrument title not refreshing\n1b726fb - fix: Chord instrument sends itself on preset change\nbcc5ffd - fix: chord prev / next now pass same buffer\n4bfc79e - fix: implemented next + prev in chord,instro\n756b204 - fix: gamepad loop\n485ae7e - fix: rate limiter on keyboard entries\n70854a5 - fix: first we try native lang then fallback to en\n9d7863c - fix: lang forced to en as that is all we have\n0c64bd7 - fix: language on mac has 2 parts\n20f426b - fix: default instruction folder is now simply en\n1ff7b6e - feat: wheel slide\ne499098 - chore: add talk/ to gitignore\n26c7953 - feat: talk slides\n63a4821 - chore: removed chord instrument logs\n0a20d83 - feat: RS talk\n8446521 - fix: unloaded title for person\na8f66d9 - fix: MIDI sympathiser\ne55c663 - feat: RS specific text\ne359911 - fix: keyboard + active user\n36534e0 - fix: gamepad and keyboard\n2d28620 - fix: Attractor events\nc9b8c19 - update: detect more emoji\n8cd1337 - fix: removed ambiguity from event listeners\n3cd48e5 - fix external controller event test\n23ce3a0 - feat: new RS talk\nd0bab98 - fix: emoji to music pipeline\n9a4453a - feat: added gemini cli to tasks",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-27",
+            "summary": "30 commit(s)",
+            "date_modified": "2025-06-27T23:08:31.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-26",
+            "content_html": "ea39aab - fix: MIDI In\n4cf4a99 - fix: improved keynav\n2f45944 - test:simple notes\nae01eff - fix: MIDI Sympathizer\nd97a67e - fix: MIDI constants\ndd74271 - feat: Added custom ROLI midi name\nd57ddca - chore: packages bumped\ne2d784f - fix: standardised per person options\n796d4d9 - fix: Soundfont static cache\n2448f89 - chore: removed loading logs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-26",
+            "summary": "10 commit(s)",
+            "date_modified": "2025-06-26T22:57:02.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-25",
+            "content_html": "1818f91 - chore: removed logs\n1b5b1c2 - feat: mediator fixes\nb78892a - fix: note clamps and loading font improvements\nfac4ac2 - fix: multiple preset loadings avoided\n2519cdb - chore: packages upgraded\n619dc65 - chore: removed logs from audio\nbb47fa4 - fix: stream loading re-added and improved slightly\n7a72f91 - feat: player selector & mode setter",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-25",
+            "summary": "8 commit(s)",
+            "date_modified": "2025-06-25T23:20:23.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-23",
+            "content_html": "fcc961c - chore: packages bump\n160f9d6 - fix: MIDI mediator\n99e5e50 - fix: MIDI clock setting to ignore :)\ndd7de24 - fix: removed midi input\nf8ce671 - fix: removed debugger",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-23",
+            "summary": "5 commit(s)",
+            "date_modified": "2025-06-23T17:43:28.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-22",
+            "content_html": "a3f65a8 - fix: Chords now show note names\n2393d63 - feat: MIDI play\nf247df8 - feat: midi sympathiser\ne67c3b8 - update: better midi fallbacks\n185447b - feat: MIDI now works in a better way with multiple devices\ncf7f58f - fix: MIDI availability flag\ncba18c0 - feat: Multiple MIDI devices force single channels\ndf2e85d - feat: selected person glows\n0166cbe - fix: double import in display\naebc4e9 - fix: removed gamepad from person",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-22",
+            "summary": "10 commit(s)",
+            "date_modified": "2025-06-22T23:58:42.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-21",
+            "content_html": "a0e21d0 - feat: more specific person types\nc24381e - feat: person index now specfies person presets\na385e5a - fix: Hue for person\n9a5565a - fix: clock sent out in send midi clock\n1010979 - fix:display manager attributes\n11d8b66 - feat: removed display logs\n4e72d6d - feat: display morph targets now lerp\ncb10559 - feat: options for midi relay and sympathiser\na0f36b0 - update: person presets\n40afb01 - fix: display doesn't overwrite if failed\n37e1636 - chore: package upgrades\nedf715e - fix: 3d display overrides state\nc6f5308 - fix: Audio load sequence",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-21",
+            "summary": "13 commit(s)",
+            "date_modified": "2025-06-21T23:03:38.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-20",
+            "content_html": "3cac15b - fix:removed shake up\n0e53f7d - fix: if first display fails, allow reconnection\nc332ee5 - fix: removed shake emoji\n19787b9 - fix: beats slowed down to half note\n84c2a3a - feat: extra emoji\n0ed64e3 - fix: instruments multi-loading\n4a5c4bb - fix: display canvas links\na4cb5dd - feat: added more keys to control\n45139a1 - fix: too much loading!",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-20",
+            "summary": "9 commit(s)",
+            "date_modified": "2025-06-20T22:51:58.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-19",
+            "content_html": "71f3d09 - fix: bad variables\nd2f7982 - fix: removed logging\n0a1a356 - fix: prevent flood loading\nf65c95f - feat: new controls + fifths options\n9ce01b0 - fix: sound font snaking\ne51c9e5 - fix: broadcast integration",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-19",
+            "summary": "6 commit(s)",
+            "date_modified": "2025-06-19T22:24:30.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-18",
+            "content_html": "f9bfa74 - fix: grimace typo\n11729c5 - feat: more emojis detected\n1015c43 - fix: added zip build set\n77b3c06 - fix: removed person debug messages\n477f3ff - fix: person activity + gamepad selection\na568ce0 - chore: versions bumped\ncefe238 - feat: missing test data EDIT",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-18",
+            "summary": "7 commit(s)",
+            "date_modified": "2025-06-18T11:29:30.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-17",
+            "content_html": "72a1697 - updatte: emoji detection\nf82bfd1 - fix: preset names\n233a9a5 - fix: fallback for instrument title\n1c1056f - fix: sound font folders\ne3deca0 - feat song canvas vis\n6432f1b - feat: visualisers\na72dc34 - fix: instrument panel selections\n9f800bb - fix: added passive to interactivity\nedef39e - fix: buttons for panels\n0921d89 - update: chords scales and keys\n6165502 - feat: maths fafster\n9ecf205 - update: instrument playChords + notes\nb41a120 - update: emoji detection\n833add6 - feat: display manager + fixes\na47ae90 - fix: cache playing emojis\n3a8f234 - feat: face rotate3d avatar",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-17",
+            "summary": "16 commit(s)",
+            "date_modified": "2025-06-17T22:23:38.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-15",
+            "content_html": "cda0851 - chore: stash person",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-15",
+            "summary": "1 commit(s)",
+            "date_modified": "2025-06-15T23:28:18.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-14",
+            "content_html": "2bd94c8 - fix: event from panel\nc6ab30a - fix: circles around emoticon\nbafb46d - feat inter-browser tempo sharing\n454afa6 - feat: broadcast tests",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-14",
+            "summary": "4 commit(s)",
+            "date_modified": "2025-06-14T23:23:27.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-13",
+            "content_html": "1249f99 - fix: narrower 3d view cone\na645564 - fix: infinite pitchbend value\n93a6b25 - chore: version bump\n668f52d - feat: added toString for chord + osc\n102257a - fix: const issue\nba73851 - feat: chords that play but no sympathy engine yet\ndac0d15 - fix: timeout in LKG portrait search\n8e0aa9e - fix: ChordInstrument now shows instrument title and name\n2ecd94c - fix: buttons stay stacked until wider\n2436557 - feat: Person dynamic debug text\n4670483 - fix: sound font instrument has a default preset and pack\nf54f3a0 - fix: Gamepad proxy\ndad9788 - fix: removed gamepad calls from inside app\nb5ea49c - fix: canvas  circles\ne689c63 - fix: added appearance to base\n4c8b8fa - feat: person selection via gamepad\n0b264b0 - update: added more emoji detection",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-13",
+            "summary": "17 commit(s)",
+            "date_modified": "2025-06-13T22:44:13.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-12",
+            "content_html": "db2aa8d - fix: if user is selected should change text\n65a8796 - fix: pitch bending should work now\nb922f2c - fix: camera messages\naf0726a - fix: camera success / fail\n4ae142d - feat: \"select\" a person (for control)\n3b9d328 - fix: camera success now shows pass message\n0292758 - fix: fatal error also rejects\ndcc0138 - fix: interface showError on no camera fatal\ne6badd8 - fix: ultra wide smile recognised\n5d487a4 - fix: removed debuggers\n87ff9f7 - fix: removed refs to removed files\n7caa50d - fix: trimmed out the none blendshape models\n3659e49 - feat: general midi wavetables\nec1a82f - feat: avatars info\n8133fc1 - chore: code cleaning\ne1f1097 - feat: emoji detection and conversion\n870bfb2 - feat: added new options\n8095665 - feat: external timer trigger\n70b97ac - update: tests\ne202aad - fix: 2d canvas + chord instruments\n15a0065 - feat: racoon 3d avatar\n416b184 - feat added glb functionality\ndf85aa5 - feat: test display selector\n4a7d3d4 - feat: instrument factory\nd4b4950 - feat: displays fixed and updated\n6a75efb - feat: added more instruments to the list\n56f5dbe - feat: added zip action\ne2adf92 - fix: button icons misalignment",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-12",
+            "summary": "28 commit(s)",
+            "date_modified": "2025-06-12T21:18:09.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-07",
+            "content_html": "1b471e1 - update: svg keyboard fades in\nc772d47 - feat: instrument factory\nc9476cb - feat: unit tests",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-07",
+            "summary": "3 commit(s)",
+            "date_modified": "2025-06-07T18:38:17.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-03",
+            "content_html": "3009a05 - fix: Timing precision\n383bded - update: smileys in noto",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-03",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-06-03T11:24:27.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-02",
+            "content_html": "600ca20 - chore: renamed confusing variable\n12c4731 - fix: kinda - cannot lazy load so now always loads the heavist :(",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-02",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-06-02T18:27:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-06-01",
+            "content_html": "71790dc - fix: reverb test functional\nc4ff464 - fix: audio reverb\n96bdf41 - fix: removed max width from condition\naf8afbf - fix: key for minor scale fixed\n8323be6 - feat: disabled arpegio\n6ea3cff - fix: test for 3d displaysd\nefc5d91 - fix: Display menu shows if +1 displays\nc1c86f1 - chore: added comments to gamepad interface\n08c4c06 - chore: renamed method\nb6fff37 - chore: removed analytics\nab5f037 - feat: improved switch\n2465aa5 - update: added more emoticons\n11c243c - fix: Beacon defers to after interaction\nffe1c07 - fix: progress when js fails shows zero",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-06-01",
+            "summary": "14 commit(s)",
+            "date_modified": "2025-06-01T22:12:10.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-05-31",
+            "content_html": "5fe7131 - fix: fix fix fix annoying crest needs to be black anyways\nd3066fd - fix: for the fix - white now hardcoded in crest\n103db9f - fix: white royal crest\n3beadae - fix: removed debugger\n0d9b360 - fix: made royal crest white\n3df1bd9 - feat: more useful icoons for buttons\n76387bf - feat: added royal society affiliation\n7ead5c8 - fix: updating MIDI table when safari fails\nc0acbf7 - fix: test now uses updated gamepads\nc022ddc - fix: test for gamepad variable names\nccb89f0 - fix: raw audio\n7735348 - fix: audio quality and missing getKit\nb0ee1d5 - chore: commented memory leak in rec vid\n32a4b17 - feat: Moog FF processor\n066e607 - fix: midi manager updates\nad79711 - feat: dawproject base\n7aee05d - feat: user interface panels and gadgets\n54ad79d - feat: Speech tracking\n9fe45b8 - feat: instrument factory and manager\n0fb8521 - feat: audio helpers\n4037f65 - feat: more instruments\n1f273c9 - feat: scales, chords and keys\na1eb346 - update: utils for encoding\ne90f8bc - feat: more hardware devices for IO\n8910fe6 - feat: Displays inc canvas 2d\n170585c - feat: State now handled by own class\nf133fda - feat: mediators for people\n4f3bd71 - feat: more drum patterns\ndea0180 - feat: addedmore files to cssindex\nbefb61b - feat: CSS layout and font improvements\na46948a - feat: added more task models\n6334d3b - feat: 2 different ways of drawing a piano\na46cb81 - chore: updated options\n1eb6df8 - feat: extended pug to handle blog + partials\n0aa3b40 - test: added more tests inc hands\n3d79f74 - feat: extracted head controls\nd22cf69 - update: Timer with MIDI and AudioWorklet\n1dfe180 - feat: notevisualiser(requires seperate canvas)\n5f35b2f - update: instruments allfollowsame interface\n9072b21 - fix: removedallunused soundfonts\n44d2762 - refactor: moved external IO into files\ne1c1f6c - feat: abstractcanvasresizer\nf38c0a7 - feat: new emoji font\n0d56070 - chore: packages bumped",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-05-31",
+            "summary": "44 commit(s)",
+            "date_modified": "2025-05-31T20:30:59.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-02-08",
+            "content_html": "e98432c - update: oscillator nanes\n2764611 - fix: a18n\n403d988 - fix: DrawingUtils readded\ncc51f50 - fix: Instrument list\n60e475f - feat: instrument updates + worklets\n53de870 - feature: Array tools for smarter loads\nd4df5cf - chore: Packages upgraded",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-02-08",
+            "summary": "7 commit(s)",
+            "date_modified": "2025-02-08T21:05:45.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-02-07",
+            "content_html": "a8017d5 - fix: QR code bleed\nbbabcd7 - update: simplified slides\n2834d0d - update: Slides export to PDF\nf0b62b5 - fix: Timeline for history doesnt work!\n7836be8 - feature: Better SF loading procedure\n13ea805 - fix: hyphenation simplified\n4aa29e9 - feature: Speech instrument\n4110b3a - feature: Worklet instruments\nb38d841 - feature: Audio Processors\nd1dee5c - feature: Array remixing utils\nd0d6bc5 - fix: IEEE image misnamed\n1c14839 - fix: hidden footer on presentation\n9374bd4 - feature: Added presentations css to index\n4ef05d4 - feature: More updates & mediakit images\n1cc8667 - feature: presentation specific css\n71c1d68 - feature: media kit images\ned8d3eb - fix: simplified copy instructions\nb25af39 - feature: test sampler page\nf969b7c - feature: New pages inc. Updates page",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-02-07",
+            "summary": "19 commit(s)",
+            "date_modified": "2025-02-07T16:44:52.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-02-01",
+            "content_html": "5c46eef - feature: Blog pages\nc89c02a - chore: Package version upgrades\nd675a0f - fix: load event in Oscillator instrument\nc94902e - feature: Workklet Instrument\n4e3c158 - fix: Instrument load event\n4b68d3c - feature: OSS processors\n5f4ae40 - chore: pruned unused workelts",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-02-01",
+            "summary": "7 commit(s)",
+            "date_modified": "2025-02-01T17:56:46.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-25",
+            "content_html": "5816eda - fix:Audio pitchbending with eyebrows\nf4a38a8 - fix Disabled audio pitchbending",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-25",
+            "summary": "2 commit(s)",
+            "date_modified": "2025-01-25T18:57:05.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-24",
+            "content_html": "1b3f41b - feature: moved history-back event into state\n932c16e - fix: logging when none-debug set lower\n22cdaab - chore: raised drum sounds volume by 0.04\nf579541 - feature: reading colours from CSS\n7ba2967 - fix: pulsing now both ways on no-face\ndd77790 - chore: packages upgrade for Electron\n7de4e10 - update: drum volume set lower",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-24",
+            "summary": "7 commit(s)",
+            "date_modified": "2025-01-24T16:12:11.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-23",
+            "content_html": "89bed51 - fix: better feedback for remixed percussions\nd4a7070 - feature: more drum presets\n38195dd - release: MIT RH Version\n647bb7e - Minor Release v0.28.0\n93822df - Minor Release v0.27.0\n7df9f5b - fix: YAML my arch nemesis\n5386c8d - fix: upgrade github flow to v3/v4\n7305cdf - fix: updated upload-artifact to v4\na9b8506 - fix: update gthub action for upload-asset v4\n5be4fc9 - feature: Random drum timbres on break change\n1ec998f - update: new drum sounds\nc42d117 - chore: removed more state logs\n7a4dac5 - fix: Load progress text\n239a2cf - chore: removed logs from state machine\nd2205e2 - fix: Pitchbend range shortened",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-23",
+            "summary": "15 commit(s)",
+            "date_modified": "2025-01-23T21:46:18.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-22",
+            "content_html": "aae21dd - chore: removed logs\nd9e89a2 - fix: Feedback icons improved\n91cbf4c - fix: mismatched state\nd88537f - fix: inactivity timeout\n362e7a1 - feature: user-timeout now part of the state\nd45f016 - fix: Feedback icons for setings\n28f3dde - fix: no-people animation more compelling\n685700d - fix: shade-brand replacing red\n628c488 - fix: browser stack icon lost transparency\nbe2eb00 - update: better text formatiing\n0ec6146 - feature: inactivity event handler removal\n0e04e78 - fix: bigger RH logo\ne4b8e5f - fix: affiliate tips animations\n5b3b49b - fix: state no longer wipes URL before refresh\na8341f2 - chore: Packages upgraded",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-22",
+            "summary": "15 commit(s)",
+            "date_modified": "2025-01-22T23:20:44.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-21",
+            "content_html": "6b57af3 - update: mit theme colous\n3d054d8 - feature: hide displaymodes\nd7ddde0 - fix: video button size\n6653895 - update: better instructions from HAL\nffd9e92 - fix: typesetting\n01f0ef3 - fix: mless annoying BPM timing in automator\ne32b019 - update: new QR settings\n008256b - fix: SVG QR code on every state update!\n192130d - update: MIT homepage copy\n424abd8 - fix: Better overlay text for interactions\n2f7c10d - fix: eyebrow thresholds\nbaab789 - fix: Eyebrow cut offs function better\nca71a36 - fix: Buttons and inputs now auto \"check\"\nf3192b0 - feature: Reality Hack logos + branding\n82df036 - feature: RSS Icon for new feed\ne4c1d58 - fix: New attributions\n2f31ea3 - fix: Better random tempos\n0f498d5 - chore: mesh package upgrade\n787525f - feature: Custom MIT theme!",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-21",
+            "summary": "19 commit(s)",
+            "date_modified": "2025-01-21T23:47:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-20",
+            "content_html": "3adc1a5 - fix: state reloading when menu closed\nb28ffdf - feature: pitch bending with eyebrows\n0e4dad2 - fix: no midi if note is < 0\n8923ced - feature: Custom MIT colours\nf2e875a - feature: More percussion presets\n22c2623 - feature: QR code changes with state + colours\n3682f5e - feature: eyebrow ranges normalised\n0c78a2a - feature: Audio pitch shifting\nc119955 - chore: upgraded packages",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-20",
+            "summary": "9 commit(s)",
+            "date_modified": "2025-01-20T23:21:08.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-19",
+            "content_html": "405b310 - feature: documentation installation options\n669f412 - fix: SVG barcodes as canvas codes didn't work!\na3f5acc - fix: missing vars\n5fd16f6 - fix: origin rather than host for location URL\nb796d55 - fix: I hate YAML\n7584e85 - fix: deploy requir4ed pnpm version set\n02c2e67 - fix: YAML requires spaces not tabs\nd9a9485 - fix: updated deploy to use .nvmrc\nd514757 - fix: yaml issue resolved in deploy\n13aaedd - fix: github action now uses pnpm instead of npm\n6b02e64 - fix: WAM / Parcel fix for descriptor location\na84a7ec - feature: IdleDetector for use in Electron\n2870b8e - feature: Noise Worklet\n3e1a86b - fix: 2D Stave context\n1236b16 - feature: theme from referer / globalThis\n3dbff9d - fix: UI integration improvements\nca20953 - feature: QR code generator (broken)\n4cd6787 - feature: Display tests\n44cc277 - fix: no prediction -> no draw in display\n9b4e243 - update: better default options\nd71a2b3 - fix: Instrument <-> Person mediator\n1e9fe78 - feature: SVG waveform generator\nd2db909 - feature: More ways to draw waveforms\n67f62af - fix: Better sounding instruments\nfed6fd1 - feature: feedback can handle interuptions now\nb6ee3f7 - fix: spellings in locale\n43faabc - feature: reverb + gain effects upgraded + tests\n908c01f - feature: compat table\n98d12b7 - fix: Mouse detection more reliable when touch also present\nb2b46fc - feature: new styles for onboarding and QR\nf89bda3 - feature: Automator has smarter settings\ne838e58 - feature: Custom MIT theme\nfab4b66 - feature: Custom MIT instructions\neec93c8 - feature: feedback now can show icons\nffa13e3 - fix: styles for buttons\n2c03e0d - feature: Updated pages + added new landing pages\n38138e0 - feature: added missing SVG icons\na642b29 - chore: packages upgraded\n9801897 - feature: New tests for reverbs + themes",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-19",
+            "summary": "39 commit(s)",
+            "date_modified": "2025-01-19T21:38:21.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2025-01-06",
+            "content_html": "5ae9b75 - fix: Parcel style worker rather than VITE style\n89ec535 - fix: WAM2 links\nf95e904 - feature: Envelope generator Node\n44a9e68 - feature: Better wave rendering\n38962dd - chore: packages upgraded\n3cff34c - feature: Envelope GainNode for use gating audio\n4639ef7 - feature: MIDI commands now have ratios as well as timings\n4a5e6f2 - feature: Instrument loading promise & new instruments\nee501ea - feature: test for themes\n3bbddca - feature: Custom reverbs & tests\nf45c1c1 - feature: New test for tweaking reverb\nd697ee4 - feature: Beggining to sketch out the dawproject IO\n9091c21 - fix: Remove Display Mediapipe discontinued methods",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2025-01-06",
+            "summary": "13 commit(s)",
+            "date_modified": "2025-01-06T19:27:59.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-12-02",
+            "content_html": "ce96303 - chore: added new conf to history\nfb88b83 - fix: remove npm logs\n0fcc05d - fix: using pnmp over npm",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-12-02",
+            "summary": "3 commit(s)",
+            "date_modified": "2024-12-02T11:34:17.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-11-25",
+            "content_html": "5a7e9e0 - fix: updated copy on homepage\n3da6293 - fix: SVGO implemented",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-11-25",
+            "summary": "2 commit(s)",
+            "date_modified": "2024-11-25T15:28:55.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-11-24",
+            "content_html": "554f644 - fix: CSS cascades properly again without layers\n586b404 - feature: l18n now handles both english versions\nb5523b0 - feature: tooltip mutations\n8cb5017 - feature: Referer instructions\ncbe236d - feature: Added stats to all displays\nf93ecc6 - feature: improved tests\nf481d09 - update: Better landing page copy + associates\n039cdd9 - update: numeric inputmode for tempo on mobiles\n4f8e5bf - feature: Associates logos\nfd70ec1 - chore: packages upgraded\n189e821 - update: Main pages improved + added events pages\n1781ae2 - fix: CSS buttons and gadgets & animated wallpapers",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-11-24",
+            "summary": "12 commit(s)",
+            "date_modified": "2024-11-24T21:35:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-10-20",
+            "content_html": "5aea303 - feat: colour updates for sidebars",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-10-20",
+            "summary": "1 commit(s)",
+            "date_modified": "2024-10-20T21:18:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-10-19",
+            "content_html": "c0d8d22 - fix: colour and cursor improvements in widgets\n0e9ce14 - feat: updted some historic instrument family names\nbbdbce1 - feat: remvoed colour from h5\n3442b11 - fix: Sidebar fixes & improvements\n07fa253 - chore: packages upgraded",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-10-19",
+            "summary": "5 commit(s)",
+            "date_modified": "2024-10-19T20:08:32.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-10-14",
+            "content_html": "cb1d57f - feat: better OG styles",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-10-14",
+            "summary": "1 commit(s)",
+            "date_modified": "2024-10-14T10:16:49.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-10-04",
+            "content_html": "dd6f2d0 - fix: darker avatar",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-10-04",
+            "summary": "1 commit(s)",
+            "date_modified": "2024-10-04T21:13:00.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-10-02",
+            "content_html": "8094ef6 - fix: mid sized onboarding input labels\n64e32a1 - fix: dialog overlay improvements\n7e1c449 - feat: person index can be a string name for backwards compat\na306d6b - fix: better license page styles for articles\ne726b6a - fix: better styles on sitemap\n4e20ffe - feat: added progress reader to blog\n674e197 - fix: icons where missing in text-hide buttons\nb4dd4bb - fix: resolved to base from abstract pug\n25a07b0 - fix: OG image updated with colours\nac98eb9 - chore: update libs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-10-02",
+            "summary": "10 commit(s)",
+            "date_modified": "2024-10-02T11:55:59.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-10-01",
+            "content_html": "90a0bb4 - feat: user-touch set to none when loaded\n95d78fd - fix: compat fatal test redux\n7e14cff - fix: iOS focus on fatal.. FATALING!\n237ae67 - fix: loader inert when in player-selector\n58892fd - fix: Better focus state on the main button\n6b9005e - feat: scales preliminary implementation\n0ef0d75 - fix: better text overlays\n4d1ff20 - fix: Safari cannot access \"Permissions\"\ndc52f2a - fix: Face button in portrait mode\na58fb67 - fix: missing vars",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-10-01",
+            "summary": "10 commit(s)",
+            "date_modified": "2024-10-01T19:32:45.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-30",
+            "content_html": "f9d0989 - fix: fieldset popover hides on load\n774b93c - fix: mouse hold duration set in Performance.now terms\n3de4cf6 - fix: improved help copy\na3d52d2 - fix: tap face / hold face duration resolved\n10a3219 - fix: improved spacing dring automation to smoothen it out\n44f4fbd - feat: tunable random drums\n9bc088c - fix: toggle advanced mode button on Safari width now fills space\n8c92c40 - fix: Fixed typos\n055f1b4 - feat: Longer, better instructions\ndbe5ef8 - fix: Eyes once loaded on mascot\nc6672b8 - fix: Github Pages Update deploy.yaml\n807487d - fix: Timing in attractor\n1a68ee4 - chore: removed logging\ne25f1e0 - fix: Moved the display filter kisser into other loop\na09e47b - fix: fewer TRIPPY emojis\nbd58b14 - feat: more specific instructions + better auto timings\n34a4013 - fix: better ranges and improved ergonomics",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-30",
+            "summary": "17 commit(s)",
+            "date_modified": "2024-09-30T20:16:48.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-29",
+            "content_html": "e75fd2f - fix: Presets as numbers from ranges + families\nccf3cbb - fix: tooltip + feedback upgrades\n72b2f49 - fix: centralised vertically player selection screen\n0061fbe - fix: new forms fieldset was interfering with clicks\n7f55df1 - fix: increased time required before eyes change instrument\n609a206 - chore: removd logs\n057c0f3 - feat: added special instructions for IEEE\n55e5cbc - fix: improved attractor timing and effects\ndcad792 - feature: better gate easing\n10ff17c - fix Safari scrolling on iOS!\nd21d0ac - fix: Feedback text centralised\n417d97b - fix: Feedback is back!\nb358d69 - fix: person buttons now slower and labelled\n9801a1d - fix: button person width flooding\n5323d70 - chore: upgrade packages\n3f5010e - feat: No point moving person button if inactive\n02d84e1 - fix: person button css fix\n59724e0 - feat: added demo button\n0baa903 - fix: MIDI availability in Safari\n46242a7 - fix: Safari small screen wrap\n3475283 - fix: Safari compat tests\n7ae88cf - feat: eyes dissappear when load progress\n4bc9e49 - fix: Summary on Safari marker hidden\n2771d15 - fix: Safari was growing in height!\ndbbb16b - fix: Safari growing in height?\n692a0bd - fix: Safari collapse\n7371cb6 - feat: Added popover to feedback\n1e17c50 - fix: scaled wallpapers bigger\n2a2b01a - fix: Person creating now has a number",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-29",
+            "summary": "29 commit(s)",
+            "date_modified": "2024-09-29T23:04:41.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-28",
+            "content_html": "d12a877 - test: random category presets\nd38156f - chore: enabe tooltips by default\ne4109e6 - chore: update sass\nc53fa26 - feat: Improved floating text\n75aad87 - feat: added extra functionality to sample worker\n5dfa0c5 - feat:simplified the intro page + table\nfb4184a - feat: isHalfNote added to timer\nc9fa2f6 - feat: hidden more controls as default\n69c3550 - feat: Each Person has specific range of presets\nd396345 - fix: sond font loading with presets + audio chain\n725d1b5 - fix: Better people tags\n725d329 - fix: move enhancedPredict to worker",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-28",
+            "summary": "12 commit(s)",
+            "date_modified": "2024-09-28T22:46:35.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-27",
+            "content_html": "dba4ffc - feat: Added person to sidebar methods\n5651009 - fix: advanced / beginner text showing\nfe9a62e - feat stateMachine can now toggle  checked inputs\n3558da5 - fix: CSS button and colour improvements\n48faf34 - feat: Attractor now controls beats too\nd68abd1 - chore: upgraded threejs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-27",
+            "summary": "6 commit(s)",
+            "date_modified": "2024-09-27T14:41:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-26",
+            "content_html": "abe2941 - fix: explanation text on player selection page synch\n371d0c0 - feat: visualiser variations in display\n9c31ab8 - fix: spec trogram bucket size\n945d8d0 - fix: states for main were incorrectly setting all\n908ef62 - feat: smirk only when mouth closed\nc203bd5 - chore: package bump\n6140d27 - chore: better logging\n38b7dc9 - fix: added wbr softwrap to logo\n7930eb5 - feat: webdev target with sourcemaps\nb08da79 - fix: Filter now logs which and description\n5895e59 - feat: Better timing on the attractor\ne49a311 - fix: Improved logging\n64fdc20 - feat: kissing changes disco filtes!\n8c2229d - fix: refactored state -> stateMachine\nf21ce29 - fix: removed duplicate requirements\n9055513 - fix: deprecated ui\nd007d13 - fix: now only shows alternate browsers if naff browser detected\n367f460 - chore: added docs to headers\n65173e7 - fix: typography on iOS kill rescale\n6ee861d - feat: couple of useful resets\n37e522f - fix: added comment to headers\n7ffecc0 - feat: vibrations added to gamepads\n6ce5040 - feat: added next filter method to abstract displays\n850f9df - feat: removed ui for stateMachine\na340494 - fix: statenachine on buttons and selects\n4d52853 - fix: logo in center of avatar",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-26",
+            "summary": "26 commit(s)",
+            "date_modified": "2024-09-26T17:04:59.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-25",
+            "content_html": "e87b3d4 - test: Attempting to see if the fix for CF works...\n624e37e - chore: slowed down the speed of the face button redraw\nebfa452 - feat: tooltips use mouse out events\n5012c5d - feat: camera if failure occurs no longer throws error out\nf54a62d - feat: button hover / select colour inverts\nf2e1fb9 - fix: both fixed position overlays now same size\nf0c4453 - fix: updated typography for table consistency\n7e65bc7 - feat: eye direction affect emoji\n627d93b - fix: hidden select palette\n7df3a4e - feat: moved browser feedback into table\na8508b9 - fix: reinstated dom event to trigger ui\n4c4d20e - fix: removed aria label from video button\n8e545a4 - fix: removed sourcemaps from build\n68c476c - fix minor progress improvements\n9b96254 - feat: load progress is more gradual\n1d77865 - fix: @mediapipe forgot to add their models!\nb0503ee - fix: CF hates lazy loading :( so have removed... does this now work?\n7c9e6f3 - fix: can't dynamically load libs on CF :/\n4ad3d8c - fix: Cloudflare cannot load paths dynamicaly!\n1edb130 - fix: removed tf model for pose that was >25MB\nc66af88 - fix: removed superfuous log\n52cc38d - feat: loader has interim progress updates\n26c3d9f - feat: Open GM 24 part 2\n1b91601 - feat: Open GM 24 soundfont\n14ef7ff - fix: Mysterious - rename method fixes issue\n43d00e7 - fix: lazy load of midi kludge\n618a979 - feat: on mass update, reposition the tooltips in the viewport\n8a179c7 - fix: instrument resolves\n7e8b7bf - fix: MIDI stuff was failing to lazy load\n1147851 - chore: package upgrades\nbf6b55b - fix: was wasm removed from task-vision?\n0e49373 - fix: label was peeking\ncfec263 - fix: IDs unique for every player panel\ne5e5643 - fix: better logging + error catching",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-25",
+            "summary": "34 commit(s)",
+            "date_modified": "2024-09-25T22:41:31.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-24",
+            "content_html": "840f05a - fix: right hand side panels\n30e6726 - feat: more mouth metrics\n0b01449 - feat: some more specific player defaults\n33ee43e - feat: better emoticon detection\n2e202b0 - fix: tooltip ovrtlays",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-24",
+            "summary": "5 commit(s)",
+            "date_modified": "2024-09-24T23:58:50.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-23",
+            "content_html": "b2d112d - feat: emoji prediction in person\naf271d1 - feat: alt browser styles\n617b801 - feat: Emoji detector\ne88bdc5 - fox: multiple panels open simultaneoulsy\n14616ac - feat: alt browsers box\nd29dba9 - feat: browser checks\nc54b07a - feat: basic browser sniffing\n77ed0c5 - fix: better feedback in table\n30835d5 - fix: parent toggle added to state machine\n3b302c2 - fix: buttons + links style\n7ef7d3f - fix: player selection on smaller screens\n61f2884 - fix: overdraw and space + grid layout\n7ef4fa9 - fix: canvas overdraw filters\n8fd389a - feat: implemented stateMachine\nb872f29 - feat: settings panel now has grid area\ncdf2e62 - feat: statemachine\ndb2bb85 - fix: rmeoved debuggers\nc1d8754 - fix: state uses state class",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-23",
+            "summary": "18 commit(s)",
+            "date_modified": "2024-09-23T23:46:32.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-22",
+            "content_html": "068f35a - chore: pruned dead instruments\n0566389 - fix: OpenGM SF 24 replaces other instruments\nb707ac1 - fix: added console logs for debug\n86de2b2 - fix: packname filters through\n1bf957f - fix: Names in presentation\n7bef7d0 - chore: package updates\nb575a76 - fet: started implementing instrument factory",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-22",
+            "summary": "7 commit(s)",
+            "date_modified": "2024-09-22T22:37:03.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-21",
+            "content_html": "eb3ffce - fix: had to remove lazy loading of webmidi for CF\n337bf73 - feat: started added preset loading at instrument load\n71c9a91 - fix: table for compat with useful feeedback\n29a5f65 - fix: removed default font weight\n4571b24 - feat: tooltips without mutation but with prompt in load\n21cb0f3 - fix: better logging to console in app\ne9b0692 - feat: mutationObserver added to tooltips\nd7cf2c3 - fix better link styles\n27b87c5 - feat: text in circle for menu\na2f7a91 - feat: Person imports / exports JSON\ne033f18 - fix: name in constants\n61f84e2 - feat: Filters on display!\n036c262 - feat: envelope SVG\n6a17eea - feat: MIDI manufacturers for name sniffing\nd6f388e - fox: save data to person and from\n8e88948 - fic: small progress\nf803c5b - feat: BLE MIDI update",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-21",
+            "summary": "17 commit(s)",
+            "date_modified": "2024-09-21T22:26:24.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-19",
+            "content_html": "7779bb5 - fix: vision model task\nf16da2a - fix: avatar eyes\ncfb3689 - fix: avatar\n58dca74 - fix: anchor colours\n8dd01eb - fix: compat table now errors too\n3623269 - fix: compat table if no elements error\n17a364e - feat: feedback for denied permission\n9af3721 - feat: icons in compat table\nba5180d - fix: dialog overlay actions\nf8cb49c - fix: footer flooding width\n2056ee4 - fix: dialog backdrop only shows when open\n4d06537 - fix: compat table now uses permissions\nd9c54c6 - fix: dialog recoverable\nf4af5ad - fix: better hardware detection\nfc59963 - fix: error overlays\n62b3156 - fix: error dialog with custom error messages with details\ncf9644d - fix: error catching for requirements\ne1900d6 - fix: warnings show only if required\n720b88d - fix: spacing and tables\n0dae740 - fix: Added speakers to cmpat table\n9a57895 - fix: requirements table all set to \"checking\" as default\n2f1fc57 - chore: upgrade packages\n49eea3b - fix: compat table\n2b48a59 - feat: QR code for blog",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-19",
+            "summary": "24 commit(s)",
+            "date_modified": "2024-09-19T23:22:06.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-18",
+            "content_html": "8d48096 - fix: history timline spacing\nb68221c - fix: button and type colours\na4c3683 - fix: too many messages from extensions\n6cded73 - feat: QR code for portability\n36eecdd - chore: blog updated spelling and flow\nf10aa60 - feat: 1 single sf instrument to upgrade!\nc67f1f0 - feat: dialog can op up without a way to close\ne2e9ae8 - build: new entrypoint\n98e8881 - ops: finished removing fatboy\n27e7f10 - ops: removing kitten sf\n84fa1ba - ops: fluid removal\nb4ad756 - ops: remove more fatboy\ne7809ea - ops: fatboy is big removal\n0386954 - ops: delete more fatboy samps\nd2fa3ca - ops: more fatboy removal\ne54d7d9 - ops: Fatboy removing\n04f12c6 - ops: Fatboy sf deleting\n8bae98b - ops: removed all soundfonts through history\n3ee1eb8 - feat: app icons + branding\nacbe1cd - feat: app icons + branding\n682cf76 - chore: moved assets into static\n7f2a9cf - chore: moved assets into static\n0c122aa - fix: removed @pose until we can host on CDN\n08623bf - fix: removed @pose until we can host on CDN\n39b90b9 - fix: @mediapipe copy action optimised for CF\ndf22035 - fix: @mediapipe copy action optimised for CF\nf75a819 - fix: added webservices as webxr complains on ubuntu!\n3b82bc6 - fix: added webservices as webxr complains on ubuntu!\n0d0b2d6 - fix: Electron lldb ultra fail as usual\n89c0e29 - fix: Electron lldb ultra fail as usual\nd5ceb04 - ops: changed node version again for CF\n2824a9c - ops: changed node version again for CF\n19a2cc5 - fix: test data at moderate scale\n23cf261 - fix: test data at moderate scale\nb608641 - fix: Display url for feed data\nee0446d - fix: Display url for feed data\n109d209 - fix: Default data now fetched to bypass limit\n2280209 - fix: Default data now fetched to bypass limit\n80ffeab - ops: file over 30mb tripping cloudflare GIT\nfdb2560 - ops: file over 30mb tripping cloudflare GIT\n0491f03 - fix: git 30mb file limit for dataset reached\n296a984 - fix: git 30mb file limit for dataset reached\na198c12 - fix: git 30mb file limit for dataset reached\n5ab57c2 - fix: git 30mb file limit for dataset reached\n7a8464e - fix: removed video link for cloudflare\n64d45a8 - fix: removed video link for cloudflare\n8813666 - fix: removed video link for cloudflare\n4b96aa6 - fix: removed video link for cloudflare",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-18",
+            "summary": "48 commit(s)",
+            "date_modified": "2024-09-18T22:53:29.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-09-17",
+            "content_html": "a2e0042 - feat: historic flute\n40f8915 - feat: historic flute\nb00552f - fix: blog link to image format\nbd1b3f6 - fix: blog link to image format\n929f50f - fix: references inside presentation and blog\n97d2957 - fix: references inside presentation and blog\n509aced - fea: Image upscaled\n6b1ac02 - fea: Image upscaled\n90e94d6 - feat: logos in a square format MPU\n5a96823 - feat: logos in a square format MPU\n5b581e6 - feat: Slides from presetation\nae0588c - feat: Slides from presetation\n164cf15 - chore: ignoring design source files\n0756dcb - chore: ignoring design source files\ndaff9df - feat: photo at ElectroMagnetic Fields Festival\n8c49790 - feat: photo at ElectroMagnetic Fields Festival\nbbd708a - fix: changelog without patching\ncc61f8e - fix: changelog without patching\nc3ed30b - build: versiom bump\n7504f3a - build: versiom bump\nff2f384 - build: changelog + rss update\nafa2ad1 - build: changelog + rss update\n26b004f - feat: audio assets and MIDI files\nc914dbb - feat: audio assets and MIDI files\n44f4cb0 - chore: updated licenses\nd7d3d2f - chore: updated licenses\n400feaf - feat: changelog action saves rss feed\n3ec935f - feat: changelog action saves rss feed\nbc344d6 - feat: New release action\n5e6ea0b - feat: New release action\n8ae6f30 - feat: QR codes\nba9ba72 - feat: QR codes\n4cb0b66 - feat: shaders for 3d display\nfe72de4 - feat: shaders for 3d display\n38f5113 - feat: QR codes\nfc9e883 - feat: QR codes\ne432c98 - feat: theme selector & loader\ndf9f3e4 - feat: theme selector & loader\nf0f2f24 - feat: instrument from remotes\n53221b6 - feat: instrument from remotes\n94ce441 - fix: preparation for cloudflare\n32d95ae - fix: preparation for cloudflare\n8c9ffca - chore: added more types to ignore\n82b9eda - chore: added more types to ignore\nae13d5d - feat: patterns & tap to tempo\n8c1bc11 - feat: patterns & tap to tempo\n2b7905f - feat: utils for location, state + flags\n5817ac2 - feat: utils for location, state + flags\n58257f7 - feat: utiilities for optimising performance\n4df6062 - feat: utiilities for optimising performance\nd0c5c41 - fix: Updated prediction models to work with tf latest\n33760c6 - fix: Updated prediction models to work with tf latest\n0f6ef5b - fix: timing now uses micro fractions for better MIDI and for swing\n6beeb2f - fix: timing now uses micro fractions for better MIDI and for swing\n3d41223 - feat: Added hardware connections inc LGP\ne4aa12a - feat: Added hardware connections inc LGP\n6218d37 - feat: Visual updates including 3D variants\n1a8014a - feat: Visual updates including 3D variants\n6107999 - feat: Piano component for testing instruments\nec4b40f - feat: Piano component for testing instruments\n19641a8 - feat: settings defaults for various sections\n22a5d62 - feat: settings defaults for various sections\n113f7d6 - feat: tests with javascript\n57ac99f - feat: tests with javascript\nff84261 - feat: mediators for passing person data\n47be3bb - feat: mediators for passing person data\n39631b7 - fix: notes and scales improved\n4d28bd4 - fix: notes and scales improved\ne49279a - feat: MIDI handling for external and 2,0 protocol\n07a6aab - feat: MIDI handling for external and 2,0 protocol\n03a1a42 - fix Audio filters\nc74013e - fix Audio filters\n0c4a39c - feat: DOM utils, widgets and controls\n10726f9 - feat: DOM utils, widgets and controls\ne823955 - feat: icons for use sharing\nf81cf0c - feat: icons for use sharing\nd78ef56 - feat: shared pug partials\ne7c5bec - feat: shared pug partials\n74156e0 - fix: Beats tuning\n27540bf - fix: Beats tuning\nbf73855 - feat: instrument factory\n0a3e763 - feat: instrument factory\n2a920ef - feat: more instruments\n374f058 - feat: more instruments\n7227184 - feat: up / down arrow icons\n014e098 - feat: up / down arrow icons\nb6e5553 - feature: modular display system inc. holographic\nd6deb8b - feature: modular display system inc. holographic\n96a697c - feat: 3d face model assets\n72f4f56 - feat: 3d face model assets\nc1fddcf - fix: simplified index css as simple gateway\nd2797a9 - fix: simplified index css as simple gateway\n26b01ca - feat: component CSS files\n4747001 - feat: component CSS files\n55a165c - feat: New styles using grid and overlays + palette\nb77b2d6 - feat: New styles using grid and overlays + palette\n899d0fd - feat: Polymorphic builds\n3297879 - feat: Polymorphic builds\nc751ef0 - feat: Capactior entry point build\n192adfb - feat: Capactior entry point build\nd0be70c - feat: Electron build\nf1d682d - feat: Electron build\nd2c033d - feat: new static build pipeline\n6052054 - feat: new static build pipeline\n40c8a18 - build: moved TF copying assets into build script\n8d1c696 - build: moved TF copying assets into build script\ncbd7c70 - feat: Added company logos for IEEE and AMIC\na59c7d5 - feat: Added company logos for IEEE and AMIC\n3856623 - chore: updated manifest with new features and data\nb8557c5 - chore: updated manifest with new features and data\nfaaa615 - feat: App store icons and banners\nb3cbcb4 - feat: App store icons and banners\n09454a0 - chore: added lock files to ignore\naccc3fe - chore: added lock files to ignore\n1ec2f9d - feat: Fonts inc dyslexic / readable / heading / notation\nbb27aaa - feat: Fonts inc dyslexic / readable / heading / notation\ncaa63e9 - test: tests added for various features\n93ec86a - test: tests added for various features\n4c6f93e - fix: improved base markup, headers + a18n\n0243967 - fix: improved base markup, headers + a18n\n45fcb93 - feature: icons for webstores / favicons\n234b38a - feature: icons for webstores / favicons\n1a95baf - fix: actions for changelogging\n69a7224 - fix: actions for changelogging\n4659b8e - docs: updated all public data\n930543f - docs: updated all public data\ne8a61ee - refactor: build system simplified\ne6d3228 - refactor: build system simplified\n77b93e1 - fix: Set node version high with flags\n6ccb5db - fix: Set node version high with flags\nd9507f0 - chore: added new types to gitignore\nd7393f6 - chore: added new types to gitignore",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-09-17",
+            "summary": "132 commit(s)",
+            "date_modified": "2024-09-17T23:00:35.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2024-03-18",
+            "content_html": "253031f - feture: Electron main code\n16a498d - feture: Electron main code\nb9f6279 - feture: Electron main code\n1bfdd3c - feature: Electron build\n22f3fef - feature: Electron build\n209df0f - feature: UI panels for control panel\ne4837d1 - feature: UI panels for control panel\nbdf27a2 - fix: PWA updates\n2d269bb - fix: PWA updates",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2024-03-18",
+            "summary": "9 commit(s)",
+            "date_modified": "2024-03-18T12:19:03.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-11-17",
+            "content_html": "c1d555e - update: file locations\n5dea3f6 - update: file locations\nf0161aa - fix: a way to load raw files, skipping processing\n239a89d - fix: a way to load raw files, skipping processing\n7d7f707 - feature: instrument json\n04cd821 - feature: instrument json\nbfa052c - update: dependency locations\nf69d6bb - update: dependency locations\ne1f6726 - feature: new options file\nc13b644 - feature: new options file\nd1c2627 - upodate: moved state\ne80d766 - upodate: moved state\nc73138f - fix: SoundFont decoupled from data\ne39d136 - fix: SoundFont decoupled from data\n22ce832 - update: moved all state into utils\n824d46e - update: moved all state into utils\nf457c69 - update: oscillator instrument\na1eca28 - update: oscillator instrument\nea45b89 - feature: instrument factory\nc0e3707 - feature: instrument factory\nab3ab4c - update: smoother timing\n7564d48 - update: smoother timing",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-11-17",
+            "summary": "22 commit(s)",
+            "date_modified": "2023-11-17T10:33:07.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-10-02",
+            "content_html": "d83f73c - fix: opt/ error with CI in CF\n37fbe2a - fix: opt/ error with CI in CF\n4834387 - fix: removed node requirement\n6884511 - fix: removed node requirement\nf4d5a76 - fix: npm tripping up because of yarn confusion\n1f21cb8 - fix: npm tripping up because of yarn confusion\ne286b96 - release: v0.21 - simpler build pipeline\nef8a595 - release: v0.21 - simpler build pipeline\n4c6d321 - 0.20.1\nab7a91e - 0.20.1\nc34e1b3 - update: removed es-build\n9315974 - update: removed es-build\n315a715 - fix: CF building - disabled esbuild\n923ebc7 - fix: CF building - disabled esbuild",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-10-02",
+            "summary": "14 commit(s)",
+            "date_modified": "2023-10-02T09:49:25.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-10-01",
+            "content_html": "478156c - update: packages & cf build\n1bdd94c - update: packages & cf build\n0ef50ca - update: Change log\nea6f681 - update: Change log\n4eab88f - fix: Cloudflare build task\nd68d8d0 - fix: Cloudflare build task\na9ea410 - update: New settings\nbe6ba70 - update: New settings\n0cc0665 - feature: Added an instrument factory\n2bd06f7 - feature: Added an instrument factory\nc4b54f6 - test: Loading lazily of instruments from list\na21134c - test: Loading lazily of instruments from list\n5376602 - feature: File handlers set in PWA\nd37b666 - feature: File handlers set in PWA\n5f52e8e - update: Person now has more face expression\na1c30a7 - update: Person now has more face expression",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-10-01",
+            "summary": "16 commit(s)",
+            "date_modified": "2023-10-01T10:16:55.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-09-15",
+            "content_html": "30722b0 - fix: Photo linked to canvas\nea5d148 - fix: Photo linked to canvas\n41774da - feature: Added loading for latest media-vision lib\nc565240 - feature: Added loading for latest media-vision lib\n1e4b42c - fix: Audio clipping +limiter\n930cefc - fix: Audio clipping +limiter\n043ccb6 - feature: person fx audio chain\nf84b1aa - feature: person fx audio chain\n572d00e - feature: Upgraded & altered build system\n4e61e37 - feature: Upgraded & altered build system",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-09-15",
+            "summary": "10 commit(s)",
+            "date_modified": "2023-09-15T10:32:31.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-09-13",
+            "content_html": "b4ba418 - fix: PWA offline.html unavailable!\n070e3aa - fix: PWA offline.html unavailable!\n03fbd24 - fix: Background now jet black once loaded\n251dce7 - fix: Background now jet black once loaded\n9f91357 - fix: Flipped stereo pan direction\n00da2e3 - fix: Flipped stereo pan direction\n1505975 - feature: Added launch_handler to PWA\n761c7a2 - feature: Added launch_handler to PWA\n7d69cf0 - fix: Removed TF models from service-worker\n394557e - fix: Removed TF models from service-worker\naf96bdb - fix: Missing pointer in face-landmarks\nc35413a - fix: Missing pointer in face-landmarks\nc17d88b - fix: Rogue quanitiser reference missing\n23d1caf - fix: Rogue quanitiser reference missing\n02c1a00 - fix: Missing analyser node\naf9b94e - fix: Missing analyser node\nde94519 - fix: Rogue buttonRecord that isn't media specific\n026e3a0 - fix: Rogue buttonRecord that isn't media specific\n73fafcc - fix: buttonInstrument - renegade id\n7c10ba9 - fix: buttonInstrument - renegade id\n6c3aaff - fix: was building very strangely\nf3ef601 - fix: was building very strangely\n2e95bc6 - fix: audio clipping in pwa\n29d0bc2 - fix: audio clipping in pwa",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-09-13",
+            "summary": "24 commit(s)",
+            "date_modified": "2023-09-13T17:57:45.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-09-12",
+            "content_html": "7ab5328 - feature: PWA icons for manifest\n007e94c - feature: PWA icons for manifest\nb46c6de - feature: tests & eyebrows\nc7129d1 - feature: tests & eyebrows\n10b888a - fix: Fallback for if not text provuded to render\na33971b - fix: Fallback for if not text provuded to render\n79232d8 - fix: Preset hunt only happens in soundfont\n1b402c1 - fix: Preset hunt only happens in soundfont\na482eb3 - update: Better mouth curves  instrument fixes i\nb7ae673 - update: Better mouth curves  instrument fixes i\ndd524d9 - fix: removed release action\n7a16c0f - fix: removed release action\nd9bfed1 - fix: removed logs\n28f04cd - fix: removed logs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-09-12",
+            "summary": "14 commit(s)",
+            "date_modified": "2023-09-12T21:20:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-09-11",
+            "content_html": "392eb1f - feature: Long winded entry to Squarepusher comp\n549e912 - feature: Long winded entry to Squarepusher comp\n784a7a4 - fix: deploy script\n91d5a47 - fix: deploy script\n050b033 - release: coin sound added to wam\n25e1aeb - release: coin sound added to wam\n41d374d - 0.20.0\ne800727 - 0.20.0\n37639bc - feature: Clipboard copy to\ne3314ce - feature: Clipboard copy to\n2fd173d - feature: mouse pressure ui\n6d59485 - feature: mouse pressure ui\nce44726 - feature: VSCode debug\ne28cc16 - feature: VSCode debug\nd9a6fe5 - update: UI improvements\nfc59858 - update: UI improvements\n7f5f2b6 - feature: WAM2\nba59eb8 - feature: WAM2\n87051ce - update: Noise and scales\n55b49fe - update: Noise and scales\nbd93a72 - feature: audio / video recording\n79f836d - feature: audio / video recording\n7e4119b - update: Major MIDI improvements\n41a861e - update: Major MIDI improvements\nacaf707 - feature: tests but VScode destroyed them\ncb9c24d - feature: tests but VScode destroyed them\n1fb68f0 - feature: Draw waveforms in SVG\nccc931e - feature: Draw waveforms in SVG\na45f38f - feature: WAM page tests\n1eb9354 - feature: WAM page tests\n3f8eefb - feature: New Instrument interfaces\n39e6f61 - feature: New Instrument interfaces\n34e424b - fix: Bounding box\n464009d - fix: Bounding box\ne71c720 - feature: Soundfont can be loaded new ways\n1aaeb44 - feature: Soundfont can be loaded new ways\n84e3b4a - feature: offscreen canvas\n0b82691 - feature: offscreen canvas\n3b4f00f - fix: Timing updates * new event\n4bb4a83 - fix: Timing updates * new event\nd919789 - update: Zip Worker\n0479a85 - update: Zip Worker\n87b03f3 - update: Stripped out 2d / 3d methods\n3ded118 - update: Stripped out 2d / 3d methods\nfde376b - update: New 'Displays' type for different devices\n7a4f1be - update: New 'Displays' type for different devices\nb70f478 - update: Scss instrument list improvements\nc2b18b7 - update: Scss instrument list improvements\n9aea67f - update: MediaVision rather than @mediapipe\nd5430d2 - update: MediaVision rather than @mediapipe\n018b0b6 - update: Improved markup and title\n00b1f28 - update: Improved markup and title",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-09-11",
+            "summary": "52 commit(s)",
+            "date_modified": "2023-09-11T17:26:00.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-07-28",
+            "content_html": "cbf9d76 - 0.19.0\nb308d2b - 0.19.0\ndb4ba04 - 0.18.0\n06c66c7 - 0.18.0\nb4aa65f - fix: Swapped actions as was getting errors\n02c8ace - fix: Swapped actions as was getting errors\n1afb6b0 - fix: asset deploys now?\n0dbf556 - fix: asset deploys now?",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-07-28",
+            "summary": "8 commit(s)",
+            "date_modified": "2023-07-28T09:36:15.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-07-27",
+            "content_html": "f7f7ab3 - update:deploy pages to v 2\n34a7151 - update:deploy pages to v 2\na38c00f - release: to github pages via action\n28b4f63 - release: to github pages via action\n580b45b - fix: upload artefacts\ne8d8850 - fix: upload artefacts\nda7caaf - fix: Listing dirs in build\neb3e788 - fix: Listing dirs in build\nc783034 - fix: dist /\n331932a - fix: dist /\ndc053b0 - fox: Deploy folder\n90b8183 - fox: Deploy folder\n29837ff - updateL removed unused imports in person\n7bc1fe6 - updateL removed unused imports in person\n7837aa2 - feature: Added wam2 samples\n807f324 - feature: Added wam2 samples\nc52f9e8 - fix: npm ci removed\ne5b9b3b - fix: npm ci removed\n1ca8820 - fix: package lock for auto build\ncbae966 - fix: package lock for auto build\ne420500 - fix: yaml spacing\n730a9e8 - fix: yaml spacing\n062e34d - fix: updated any code that might cause issues\na6f65e3 - fix: updated any code that might cause issues\n2d505dd - fix: Deploy to github pages?\n5cbe588 - fix: Deploy to github pages?\n5dc0d1f - fix: PWA mispelling\n4ed9d06 - fix: PWA mispelling\n47f40fc - fix: Parcel bug so using esbuilder instead\n1c9bb4b - fix: Parcel bug so using esbuilder instead",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-07-27",
+            "summary": "30 commit(s)",
+            "date_modified": "2023-07-27T20:31:46.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-07-26",
+            "content_html": "4cc3e5b - 0.17.0\ne5fc94e - 0.17.0\n3d45556 - release: bump to 0.16.1\n819c7da - release: bump to 0.16.1\n5bfc8fb - 0.16.1\n9e70cad - 0.16.1\ne5dda36 - feature: media-vision models and updates\nd24692b - feature: media-vision models and updates\n20d9aff - fix: icons\na816096 - fix: icons\nbde6d88 - feature: Static files\ne247e95 - feature: Static files\ne582276 - update: Added media-vision\nce340c6 - update: Added media-vision\n998504c - feature: Particles for looking glass\ne4a0d79 - feature: Particles for looking glass\n9f80af7 - update: Styles\n44fd282 - update: Styles\n4143fcf - feature: Displays interchangeable and simultaneous\n17128ef - feature: Displays interchangeable and simultaneous\n64c1817 - update: imrpoved graphics\nb756147 - update: imrpoved graphics\ne69f0d8 - fix: isTouchPad\nf042ffd - fix: isTouchPad\nda6fa83 - feature: Added WAM2 and sampler WAM\n1f28a89 - feature: Added WAM2 and sampler WAM\ncc570c2 - update: Removed yarn\nbadc282 - update: Removed yarn",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-07-26",
+            "summary": "28 commit(s)",
+            "date_modified": "2023-07-26T16:24:53.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-03-24",
+            "content_html": "acc1bfb - update: Added commented commands tp readme\n3dfcbb6 - update: Added commented commands tp readme\n26fc524 - 0.16.0\nddb02c4 - 0.16.0\n4d876d7 - 0.15.0\nd3825c5 - 0.15.0\n92892c1 - update: Error dialog merged with error message\nd931c1e - update: Error dialog merged with error message\n96e8fdc - feature: Local loading of wasm\n5520a5b - feature: Local loading of wasm\ndeaff7b - fixes CSS fixes for dialogs\nb460394 - fixes CSS fixes for dialogs\nc21ad51 - fix: Finally wasm loads from local\ne9f0a75 - fix: Finally wasm loads from local\n88399fc - feature: more wam instruments\n5887ebb - feature: more wam instruments\n80b67d5 - 0.14.0\n242c2a3 - 0.14.0\n53bd286 - 0.13.0\nc136e9e - 0.13.0\n3dde87c - fix: build using yarn\nf8106fd - fix: build using yarn\nad097ba - 0.12.0\ne0238d1 - 0.12.0\na8fc53b - 0.11.0\n9506c38 - 0.11.0\ne3e6300 - 0.10.0\n4d0da0a - 0.10.0\n1f537ec - feature: Yoshimi's famous WAM instrument\n1482ab8 - feature: Yoshimi's famous WAM instrument\n7b2d5c9 - feature: WAM 1 modules & instruments\n269bbd9 - feature: WAM 1 modules & instruments",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-03-24",
+            "summary": "32 commit(s)",
+            "date_modified": "2023-03-24T22:17:35.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2023-03-23",
+            "content_html": "62fdbe7 - update: 3d version ready for video mapping\ne364f37 - update: 3d version ready for video mapping\ne4ba283 - update: 2d speed improvements with Path2D\n3cc735d - update: 2d speed improvements with Path2D\n40fcdcb - update: added checklist to readme\nfe49ef1 - update: added checklist to readme\n3ee0185 - feature: Looking glass portrait lib upgrade\n7af2804 - feature: Looking glass portrait lib upgrade\n06ad7e6 - update: added all new scss libs to index\n2d2a140 - update: added all new scss libs to index\n919c896 - update: More responsive layouts\nff5052e - update: More responsive layouts\n0ba6a6a - update: swapped public/ for static/\ne16c858 - update: swapped public/ for static/\n6b8366c - update: Face mesh model upgraded\nf742a7b - update: Face mesh model upgraded\n869f427 - update: DOM aria ux improvements\nd81d388 - update: DOM aria ux improvements\n5d2d11b - feature: Speech detection\ne65f483 - feature: Speech detection\nd5fc9cd - update: Audio engine can now handle WAMs\nf6800e0 - update: Audio engine can now handle WAMs\n8583b25 - update: Addded custom instructions file\nf37cb88 - update: Addded custom instructions file\ndb68051 - update: State from domains\ndff28e1 - update: State from domains\n7fbfaa8 - feature: State can be passed from DOM\ne3aabbc - feature: State can be passed from DOM\n994f1e9 - update: added readme documentation\n53fa09b - update: added readme documentation\n1fd1b79 - update: pruned unused icons\n08e24b3 - update: pruned unused icons\n14eaa63 - fix: Player selection now starts pre-populated\nfbcd2af - fix: Player selection now starts pre-populated\n2aa733c - feature: New logos and bumpers\n2649bf9 - feature: New logos and bumpers\nd117213 - fix: Inactivity class looks for FUGU  but ignores\n9c61bb6 - fix: Inactivity class looks for FUGU  but ignores\n87e1c8b - fix: tapping and holding face improvements\nb17b515 - fix: tapping and holding face improvements\nccb622a - update: Actions altered and documented\n41b043b - update: Actions altered and documented\n3624b5f - fix: Electron basis\n104ea5b - fix: Electron basis\n9373418 - update: Added capability checks & pwa improvements\n9d11ccc - update: Added capability checks & pwa improvements\ncfaa49c - updates: Added a heaader to the app before start\n9287c33 - updates: Added a heaader to the app before start\nc7c761d - update: CSS colour and UX improvements\n2579bdb - update: CSS colour and UX improvements\nf4edc7b - update: upgrade packages\nb4917fe - update: upgrade packages",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2023-03-23",
+            "summary": "52 commit(s)",
+            "date_modified": "2023-03-23T23:17:56.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-12-14",
+            "content_html": "403d16e - update: Main Electron inserts\nc27414a - update: Main Electron inserts\n9fe36e3 - update: Electron sniffer\n8f449c8 - update: Electron sniffer\n59f3f0b - update: Faster maths rounding\n36b14c5 - update: Faster maths rounding\na72a2dc - update: Basic Electron main\n6d36bf6 - update: Basic Electron main\n1372e35 - fix: Yarn libs\n9a6efbc - fix: Yarn libs\n4b7b007 - fix: Yarn2+ tf still looks for node_modules\n84e9f95 - fix: Yarn2+ tf still looks for node_modules",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-12-14",
+            "summary": "12 commit(s)",
+            "date_modified": "2022-12-14T13:49:13.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-10-03",
+            "content_html": "8548df6 - v0.9.0\nf78697c - v0.9.0\n4aaa13a - fix: Face clicking / holding\ne70cd1c - fix: Face clicking / holding\n236a982 - update: Change log\n8dc4c26 - update: Change log\n6e35290 - update: More contrast on wallpapers\n1e03c04 - update: More contrast on wallpapers\n824a3bf - update: Logs removed\neea0d77 - update: Logs removed\n152ffbc - fix: Timing  fallback for it audiocontext NA\n3861bed - fix: Timing  fallback for it audiocontext NA\n5b578ea - update: Face now works with new model\n3946b60 - update: Face now works with new model\n09ca527 - update: New loading / background designs\n4e49c3e - update: New loading / background designs\n7da9583 - update: Improved loading code - now async\n14b7748 - update: Improved loading code - now async\n1219647 - update: Removed biquad\n425fc41 - update: Removed biquad\ndacbe0c - update: SamplePlayer now only one type of many\nb70ed22 - update: SamplePlayer now only one type of many\n81d93db - update: new lib style had knock on effects\n03774c8 - update: new lib style had knock on effects\n26e539a - fix: Notes now handles ranges larger than samples\n91bd1bf - fix: Notes now handles ranges larger than samples\nf05ae55 - update: SoundFont generator code\n201f75f - update: SoundFont generator code\nf83e203 - update: New libs\n4a66ca3 - update: New libs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-10-03",
+            "summary": "30 commit(s)",
+            "date_modified": "2022-10-03T18:03:41.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-09-19",
+            "content_html": "6dc0f42 - update: Altered draw tools for x,y as objects\n502c0ed - update: Altered draw tools for x,y as objects\n840c5c4 - update: Major CSS additions for BGs\n02a546e - update: Major CSS additions for BGs\n4ab2cab - update: Sitemap\n6727d1b - update: Sitemap\nddcc8fd - update: Assets inc images\na4bcf07 - update: Assets inc images\n3d17082 - update: Zip support\n258a4e4 - update: Zip support\n6054157 - update: Added new instrument worklet audio\n3763c26 - update: Added new instrument worklet audio\n43276bb - update: TF Face Landmarks complete version update\n9ef4e98 - update: TF Face Landmarks complete version update\na7c1ac3 - update: New Instruments & WAM\nbde261a - update: New Instruments & WAM",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-09-19",
+            "summary": "16 commit(s)",
+            "date_modified": "2022-09-19T22:43:54.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-07-18",
+            "content_html": "55e93fe - fix: Clear script added to clean and copy\n7ce2a9e - fix: Clear script added to clean and copy\n48b03ee - update: Build script now copies\ncb8a417 - update: Build script now copies",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-07-18",
+            "summary": "4 commit(s)",
+            "date_modified": "2022-07-18T12:36:43.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-07-17",
+            "content_html": "bab1fee - fix: ADSR mapping to MIDI noteOff trigger\n8198fcf - fix: ADSR mapping to MIDI noteOff trigger",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-07-17",
+            "summary": "2 commit(s)",
+            "date_modified": "2022-07-17T11:20:13.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-07-15",
+            "content_html": "fe961e4 - update: Moved more settings into settings file\nc3df4e5 - update: Moved more settings into settings file\n8810732 - update: Added caching to note generation\nb496792 - update: Added caching to note generation\n146f763 - update: Kids mode has new wallpaper\n067b5da - update: Kids mode has new wallpaper\n6ed0054 - update: New overlay keyboard\n0c7ffe5 - update: New overlay keyboard\n496c647 - update: Added tutorial SVG asset\n4dc7b9a - update: Added tutorial SVG asset\n6660c16 - update: Added memoisation\n8961db3 - update: Added memoisation\nfa641cb - update: Added new instruments & worklets\n43b58da - update: Added new instruments & worklets\nfc0b3d7 - update: Added AudioWorklets\nb454933 - update: Added AudioWorklets",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-07-15",
+            "summary": "16 commit(s)",
+            "date_modified": "2022-07-15T10:35:55.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-07-06",
+            "content_html": "a136a32 - v0.8.30\nf23f446 - v0.8.30\n6544a66 - update: Set percussion volume much lower\n51f9b2e - update: Set percussion volume much lower\n5cc4784 - update: FaceModel improvements\n20fc07b - update: FaceModel improvements\nafde38d - fix: Tempo doesn't ruin beats\n4cd6e76 - fix: Tempo doesn't ruin beats\n458a423 - update: New drum patterns\n5bfb3b0 - update: New drum patterns\ndf74eae - update: Percussion on seperate gainNode\n1be7cb4 - update: Percussion on seperate gainNode",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-07-06",
+            "summary": "12 commit(s)",
+            "date_modified": "2022-07-06T22:49:14.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-07-05",
+            "content_html": "03e417a - v0.8.29\n76f4562 - v0.8.29\na416a68 - update: New drum patterns\n62a022c - update: New drum patterns\n3e31183 - update: AttractMode now changes drum patterns\ne312c1a - update: AttractMode now changes drum patterns\nfc924f4 - update: Progress bar improvements\nfe101b8 - update: Progress bar improvements\nce58bf8 - update: New drum patterns & randomizer\nd262b29 - update: New drum patterns & randomizer\n99bb6ea - v0.8.28\n92b6942 - v0.8.28\n1062a2a - update: New drum randomiser\n8ffa7bc - update: New drum randomiser\ned09db9 - fix: Images in figures now full width\n3c71c41 - fix: Images in figures now full width\n37af8ac - update: Progress smiley now has round face\n8f8a0f0 - update: Progress smiley now has round face\nb87a715 - update: More automation\ndbbc6f8 - update: More automation\n4a075a1 - update: Simplified instructions\ndd8e318 - update: Simplified instructions\n4e343d7 - v0.8.27\n0b54055 - v0.8.27\n3842df8 - v0.8.26\n562d4cf - v0.8.26\nc981221 - v0.8.25\n5633fbb - v0.8.25\n8aaef57 - v0.8.24\ndd06292 - v0.8.24\n309e616 - fix: Mouse hold duration reduced to 0.4s\n7f18a0e - fix: Mouse hold duration reduced to 0.4s\nb6d782f - v0.8.23\n4c3b5af - v0.8.23\n4a34a94 - v0.8.22\n3a0bf69 - v0.8.22\n8b5c703 - update: Added unique MIDI SYSEX ID!\n96301f3 - update: Added unique MIDI SYSEX ID!\n58a57d0 - update: Made the Automator wait longer\n8bada69 - update: Made the Automator wait longer\n5db88a0 - update: Added WAC link to footer\n226ed0d - update: Added WAC link to footer\n7f217db - update: WAC Logo\na58fac9 - update: WAC Logo\nc7123e8 - update: version for WAC\n5ae452a - update: version for WAC\n971dc53 - v0.8.21\n1c30334 - v0.8.21\nc11d198 - v0.8.20\n8841310 - v0.8.20\n9e5bc83 - v0.8.19\n597af2b - v0.8.19\n3072c80 - update: Version bumped\nedf3688 - update: Version bumped\n806214e - v0.8.18\n5b88f30 - v0.8.18\n3bd1dea - update: Version bump\nf25dd80 - update: Version bump\n4df459e - update: Added lemming to Error page\n19048ec - update: Added lemming to Error page\n857ffa8 - update: Cleaned gitignore\n6c4d1bd - update: Cleaned gitignore\nce828ee - update: Added new sections to stylesheet\n87c0399 - update: Added new sections to stylesheet\ncfe91af - update: State service todo -> batching\n917c707 - update: State service todo -> batching\n5bea576 - update: Upgraded libs\nadb5776 - update: Upgraded libs\n840cbd9 - update: AttractorMode changes instruments\na527b16 - update: AttractorMode changes instruments\n3fc6394 - fix: Timing now tracks elapsed times\n4f5ca42 - fix: Timing now tracks elapsed times\n900d3d0 - fix: Clearing canvas now no-longer show stopper\nb232f42 - fix: Clearing canvas now no-longer show stopper\n3f8d083 - update: Removed logs from Instruments\n9af9817 - update: Removed logs from Instruments\ndc861bd - update: Many visual style improvements & upgrades\n9eaf603 - update: Many visual style improvements & upgrades\n7c9c5f5 - fix: Diisco mode now a setting\n893c243 - fix: Diisco mode now a setting\n9a6ba1f - update: Video recording\n1accb85 - update: Video recording\naf0bac3 - update: Person aware how long playing instrument\n3d6e69f - update: Person aware how long playing instrument\n528e166 - update: More encoder modes added\n9cd48c6 - update: More encoder modes added\n5a6576e - update: ontrols re-ordered and added synch\ne4971ac - update: ontrols re-ordered and added synch\nc47e8bb - update: Dropzone added for file uploads\nbe4352d - update: Dropzone added for file uploads\neff0591 - updates: App mode now optional Electron\na57fe98 - updates: App mode now optional Electron\nb814a0f - update: MIDI file optimisations & encoder\ndda2026 - update: MIDI file optimisations & encoder\na868be3 - update: AttractMode added\nfdfb5d0 - update: AttractMode added\nd2445f8 - update: PWA fixes and improvements\n1524fb5 - update: PWA fixes and improvements\n7129544 - update: Instruments added directly to pug\n2beeea3 - update: Instruments added directly to pug\na1d14ac - update: Extra loading messages to show time\n70f631f - update: Extra loading messages to show time",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-07-05",
+            "summary": "102 commit(s)",
+            "date_modified": "2022-07-05T23:30:03.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-26",
+            "content_html": "8498be2 - update: MIDIWorkers!\n2b2eb99 - update: MIDIWorkers!\nc19564f - update: Added useful encode / decode utils\n3a389e7 - update: Added useful encode / decode utils\n92c6973 - update: Button uses mousedown rather than click\n0b5e2a2 - update: Button uses mousedown rather than click\n4ba2c1c - update: Timing events shared\n548a6de - update: Timing events shared\ncd633d3 - update: New icons for media controls\n6016ac6 - update: New icons for media controls\n9f24192 - update: New Social / Favicons\nbbda3a6 - update: New Social / Favicons\n2d385fd - update: Sidebar now accordian\n76c4c1d - update: Sidebar now accordian\n6978e38 - update: Pressure based toggle for record button\n8c2b514 - update: Pressure based toggle for record button\n24f967b - update: GampePad per person\nddb7cc9 - update: GampePad per person\nff46728 - update: Mouse now has a pressure mode\nd2128da - update: Mouse now has a pressure mode\n4caa041 - update: Major MIDI file speed improvements\nd921254 - update: Major MIDI file speed improvements",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-26",
+            "summary": "22 commit(s)",
+            "date_modified": "2022-06-26T16:24:27.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-19",
+            "content_html": "b79e45f - update: Play icon added and progress improved\n22d117e - update: Play icon added and progress improved\n93eac2b - update: MIDI file creation tests\nb24b3b1 - update: MIDI file creation tests\n535f489 - update: Person has better awareness of situation\n55c758f - update: Person has better awareness of situation\nb2a692c - update: Allow buttons to use different click types\n74d452d - update: Allow buttons to use different click types\na233cbd - update: Changelog shown in dialog\nb4c7716 - update: Changelog shown in dialog\n963dc44 - update: Changelog loads only when updated\ne27979d - update: Changelog loads only when updated\nb519150 - update: Note / Sample / GM consistencu improvement\n7466d5e - update: Note / Sample / GM consistencu improvement\n340d923 - update: Added Electron version\n6662c3b - update: Added Electron version\nf916464 - update: Icons for MS Store / Android\ncea7241 - update: Icons for MS Store / Android\nc8e15e6 - update: Instruments now grouped into families\n82d3682 - update: Instruments now grouped into families",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-19",
+            "summary": "20 commit(s)",
+            "date_modified": "2022-06-19T22:18:44.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-18",
+            "content_html": "2c86718 - v0.8.17\nf0032e2 - v0.8.17\n3684d1d - update: Recorder now shows time in Feedback\n3e6c58c - update: Recorder now shows time in Feedback\nd89a7ce - update: Added new icons\na78e678 - update: Added new icons\nae9048d - update: Recorder now shows time recorded\nd20e875 - update: Recorder now shows time recorded\ne5ac2ba - v0.8.16\n50f2107 - v0.8.16\n1201a1b - update: Version bump\n8229dd8 - update: Version bump\n9081349 - update: Readme links added\n04d4788 - update: Readme links added\n2cdae7c - v0.8.15\n3f1bc03 - v0.8.15\nd890da2 - v0.8.14\n64ade33 - v0.8.14\n80b952a - update: Version bump\ne2c1173 - update: Version bump\nb47e2d9 - update: Changed titles for better SEO\n996a611 - update: Changed titles for better SEO\nda3458e - update: Person's eye stereo seperation reduced\n0967758 - update: Person's eye stereo seperation reduced\n9bb3e96 - update: Basic audio player styles\n46590b3 - update: Basic audio player styles\nc47f19f - update: Recorder simplified\n17a0968 - update: Recorder simplified\n162519c - update: Added quarter notes to timing\nb7e8ebd - update: Added quarter notes to timing\nd176c9a - update: Added hats to drum sequence\n9d7eb89 - update: Added hats to drum sequence\n64072b8 - update: Encoder now lives in a Worker\nc69db70 - update: Encoder now lives in a Worker\n412c035 - update: Packages & parcel lib\nc93ea38 - update: Packages & parcel lib",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-18",
+            "summary": "36 commit(s)",
+            "date_modified": "2022-06-18T13:07:35.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-13",
+            "content_html": "145acb2 - v0.8.13\n15e4397 - v0.8.13\nb0a80ff - v0.8.12\nbe9ffb7 - v0.8.12\n0aaca36 - v0.8.11\n665057a - v0.8.11\n9d9d122 - update: Re-enabled stereo panning\n8b2b6e7 - update: Re-enabled stereo panning\n7f7f060 - fix: a18n headline order\n6c8dee0 - fix: a18n headline order\nd07ada4 - v0.8.10\nb08cd43 - v0.8.10\n116f414 - update: Added new sound effects\n94ee1bd - update: Added new sound effects\n88a0ba7 - fix: Extra debug mode for live\n9a6893e - fix: Extra debug mode for live\ne180e51 - fix: Errors now exclaimed\nbaa56a4 - fix: Errors now exclaimed\n3d22708 - v0.8.9\n90f94aa - v0.8.9",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-13",
+            "summary": "20 commit(s)",
+            "date_modified": "2022-06-13T21:52:31.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-12",
+            "content_html": "6b24390 - update: Moree animations for buttons added\n688a486 - update: Moree animations for buttons added\n40d4655 - update: main menu uses grid for stretch\n9fe2174 - update: main menu uses grid for stretch\nbca4368 - v0.8.8\nd9e138d - v0.8.8\nd4a1a00 - update: Better markup\n8d488ee - update: Better markup\n64fb68b - fix: PWA now uses toast\n0b8453a - fix: PWA now uses toast\nb5c20d1 - fix: Tooltip fixes with timing\nea11605 - fix: Tooltip fixes with timing\n2fb7562 - update: Audio element now speed controllable\n05bd087 - update: Audio element now speed controllable\ne27e87f - update: Person now accurately dispatches progress\ndb5ec1d - update: Person now accurately dispatches progress\n3dd64bf - update: Added circuar svg logo\ncc30bd8 - update: Added circuar svg logo",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-12",
+            "summary": "18 commit(s)",
+            "date_modified": "2022-06-12T21:44:04.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-11",
+            "content_html": "5e1381c - v0.8.7\n7ba857a - v0.8.7\nf9dc1c3 - update: Logos added and improved\n405b05c - update: Logos added and improved\n76ab229 - update Added new files to index scss\n0b8c050 - update Added new files to index scss\n51dc055 - update: Markup improvements\ne41334b - update: Markup improvements\ncba45cd - update Better portrait styles\na9ef08c - update Better portrait styles\nfc2e8a1 - update: Audio-player now self contained\nc6b1708 - update: Audio-player now self contained\n4b5efad - update: Added very rudimentary wave SVG drawer\n37988b9 - update: Added very rudimentary wave SVG drawer\nd3adde2 - update: Added isLoading to Instrument\ne264c71 - update: Added isLoading to Instrument\nd91e6de - fix: Person's instrument loading updates\n287cfd6 - fix: Person's instrument loading updates\ne4a83ff - update: From click to mousedown!\n1a3d73d - update: From click to mousedown!\n2558402 - update: Tooltips in seperate class\n73baa48 - update: Tooltips in seperate class\nc1abb5a - fix: added PWA file handlers\nca6cd15 - fix: added PWA file handlers\nb062afc - fix: preload on fonts always needs crossOrigin\n000b32b - fix: preload on fonts always needs crossOrigin",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-11",
+            "summary": "26 commit(s)",
+            "date_modified": "2022-06-11T23:37:52.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-07",
+            "content_html": "b49378b - update: MidiFiles load and record\naa61da1 - update: MidiFiles load and record\n8df972f - update: Added new buttons!\n984356f - update: Added new buttons!\n2daa5f3 - update: Tooltip code prettier\nc2b31b3 - update: Tooltip code prettier",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-07",
+            "summary": "6 commit(s)",
+            "date_modified": "2022-06-07T21:21:00.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-06",
+            "content_html": "347cc30 - update: Added Record button\n6571b6c - update: Added Record button\nfddda52 - fix: Recorder not encodes\n99a6ea1 - fix: Recorder not encodes\nb42d95c - update: MIDI conversion fixed up\n3503c70 - update: MIDI conversion fixed up",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-06",
+            "summary": "6 commit(s)",
+            "date_modified": "2022-06-06T23:53:51.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-05",
+            "content_html": "ef90826 - fix: tooltip not revealing\n4ea1c3c - fix: tooltip not revealing\nd518b70 - update: Major audio improvement + midi files\n016c2b2 - update: Major audio improvement + midi files\n7231768 - v0.8.6\n7eac615 - v0.8.6",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-05",
+            "summary": "6 commit(s)",
+            "date_modified": "2022-06-05T22:35:23.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-06-03",
+            "content_html": "943a623 - v0.8.5\n645bd99 - v0.8.5\n898fb69 - update: CSS improvements\n27f461a - update: CSS improvements\n4ea8372 - fix: Service worker model requested 2\n06d1b6f - fix: Service worker model requested 2\nd4d5a1f - updte: misc js improvements\na2c5dcd - updte: misc js improvements\n05ede53 - update: Camera removes any state that is invalid\n92ac120 - update: Camera removes any state that is invalid\ned4dc10 - update: Shared compat capabilities obj\n907ce91 - update: Shared compat capabilities obj\nd660536 - update: Libs & Readme\ncfa0654 - update: Libs & Readme\n5b3ea86 - update: New options for gamepad and midi files\n64312ff - update: New options for gamepad and midi files\n206642b - update: Markup improvements\nf980c56 - update: Markup improvements\n290e76a - fix: MIDI GM insruments now align\n7c68eb4 - fix: MIDI GM insruments now align\n971eb32 - update: Stripped out synth instruments\n18983f4 - update: Stripped out synth instruments\ne549b57 - update: Gamepad IO begun\n2caa6ed - update: Gamepad IO begun\n3f8f65f - update: Quantiser remembers history\n8ebe374 - update: Quantiser remembers history\ndebdf0a - update: InstrumentPacks & GMidi\n01352e2 - update: InstrumentPacks & GMidi\n0eb84dc - update: MIDI Innovation finalist!\na415afc - update: MIDI Innovation finalist!",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-06-03",
+            "summary": "30 commit(s)",
+            "date_modified": "2022-06-03T16:09:13.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-05-27",
+            "content_html": "263b6a8 - v0.8.4\n455ff46 - v0.8.4\n469204c - fix: Removed log\n5eb562c - fix: Removed log\nde7e953 - update: Backgrounds animate\n9bdb0bd - update: Backgrounds animate\n4c322cb - fix: Made Person louder\n488a6eb - fix: Made Person louder\n1b3c334 - update: Inactivity improvements with timing\n8b311d7 - update: Inactivity improvements with timing\n1087344 - update: Darker theme\n7cbc203 - update: Darker theme\nf8fd36f - update: UI and UX adjustments\n240edc8 - update: UI and UX adjustments\na81c4e6 - update: InactivityClass handles hiding controls\nd0486e5 - update: InactivityClass handles hiding controls\ncd1a67c - update: Markup improvements\n776e034 - update: Markup improvements\nff68b31 - update: removed docs from deploy\n9b16a7b - update: removed docs from deploy\n9ce3758 - update: Added NAMM and MIDI Innovation logos\n2e39790 - update: Added NAMM and MIDI Innovation logos",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-05-27",
+            "summary": "22 commit(s)",
+            "date_modified": "2022-05-27T23:05:38.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-05-26",
+            "content_html": "19b2848 - update: Markup improvements\n31290af - update: Markup improvements\n84e41a9 - update: NAMM logo\n145581c - update: NAMM logo\n479dac6 - update: MIDI finalist fixes\n1f8d502 - update: MIDI finalist fixes\n931808a - update: Theme improved with better UX\n7ddd224 - update: Theme improved with better UX\nc28413b - update: Loading is now smooth with great feedback\n6255525 - update: Loading is now smooth with great feedback\n4b3743b - update: PWA improvements\n1b3f0eb - update: PWA improvements\n9f375e9 - update: Packages & libs\nc6c0cde - update: Packages & libs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-05-26",
+            "summary": "14 commit(s)",
+            "date_modified": "2022-05-26T16:55:44.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-05-04",
+            "content_html": "350e735 - v0.8.3\nfa97a27 - v0.8.3\nf91f071 - fix: Cameras weren't appearing!\n14a9e90 - fix: Cameras weren't appearing!\nf37526f - v0.8.2\n9bd3a1a - v0.8.2\n18be773 - update: hologram library\n889bed8 - update: hologram library\nee674fa - update: holography classes\n3a612b7 - update: holography classes\nce66c63 - update: Progress bar style update\nfbd4587 - update: Progress bar style update\nc5a91f9 - update: genuinely got copyright strike for a logo\n35c2e0f - update: genuinely got copyright strike for a logo",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-05-04",
+            "summary": "14 commit(s)",
+            "date_modified": "2022-05-04T14:50:15.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-05-03",
+            "content_html": "a898845 - v0.8.1\na68ffa1 - v0.8.1\ndaf1d6c - update: WebMIDI v3 lib integration\ndc0107f - update: WebMIDI v3 lib integration\n9ce88f4 - update: Tooltips now work with motion\nc158292 - update: Tooltips now work with motion\n551174f - fix: Person for WebMIDI 3 all channels\nb29a6c4 - fix: Person for WebMIDI 3 all channels\na6d490b - update: Instructions now in seperate file\nddaf87f - update: Instructions now in seperate file\nad5918c - update:CSS colour scheme\na750d53 - update:CSS colour scheme\n1b87280 - update: Default to adult mode with MIDI\n9103279 - update: Default to adult mode with MIDI\nf8d28b0 - fix: MIDI Improvements for disconnected devices\n3952577 - fix: MIDI Improvements for disconnected devices",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-05-03",
+            "summary": "16 commit(s)",
+            "date_modified": "2022-05-03T11:13:20.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-05-02",
+            "content_html": "cbf9ee0 - update: tooltip now tips\n91460fd - update: tooltip now tips\n72c21fa - fix: Assorted code improvements\n1d71ab2 - fix: Assorted code improvements\n53a7172 - fix: Try and precache tensor models\nc4d56cb - fix: Try and precache tensor models\n2d347f1 - update: more docs added\n29864cf - update: more docs added\nd3fabe3 - update: External state\ne54e62c - update: External state\n3e3d3f8 - update: i18n manager\n9cd4dcd - update: i18n manager\n2c70cf0 - update: Camera docs\n355d53d - update: Camera docs\ne13156c - fix: Tempo was acting wonky\nc1e0ffb - fix: Tempo was acting wonky\nacc0d66 - fix: Dialogs for FF and iOS\nd49167f - fix: Dialogs for FF and iOS\n7720bb5 - update: Settings added more options\n8201690 - update: Settings added more options\nd607d16 - update: Massive CSS upgrade\n3171b72 - update: Massive CSS upgrade\n5367dce - update: MIDI lib updates to Person\n54d70e3 - update: MIDI lib updates to Person\n050dfd4 - fix: iOS doesn't do dialogs\n4ec5f92 - fix: iOS doesn't do dialogs\n7962db3 - update: Versioning handled by yarn now\n79ea500 - update: Versioning handled by yarn now\n74d9eed - update: Readme makes more sense\nd16f0ca - update: Readme makes more sense\nfe67483 - update: New library versions\n8c5e376 - update: New library versions\ne118ba8 - update: Pug accessibility\n031f39a - update: Pug accessibility",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-05-02",
+            "summary": "34 commit(s)",
+            "date_modified": "2022-05-02T19:42:24.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-04-03",
+            "content_html": "02dee9d - v0.8.0\n638a405 - v0.8.0\n8cb1bb2 - update: Pug template improved\n7ca5b20 - update: Pug template improved\n26eb572 - fix: Scss math updates\n28842ae - fix: Scss math updates",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-04-03",
+            "summary": "6 commit(s)",
+            "date_modified": "2022-04-03T13:07:23.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-03-29",
+            "content_html": "96d822f - update: adding docs for timing  before fix\n0349926 - update: adding docs for timing  before fix",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-03-29",
+            "summary": "2 commit(s)",
+            "date_modified": "2022-03-29T13:15:17.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-03-23",
+            "content_html": "18b94b2 - v0.7.5\n78d6d8a - v0.7.5\nf3a2ff3 - fix: footer affiliates\n7d8a7dc - fix: footer affiliates\n78ba7ef - fix: Licenses\nc3ae23d - fix: Licenses\na48842c - fix: Version not appearing\n5c9642b - fix: Version not appearing\n6656986 - fix: Version bump and upgrade fixes\nabb3602 - fix: Version bump and upgrade fixes\n33ab9e8 - v0.7.4\ne562021 - v0.7.4\n1502db3 - v0.7.3\nd162e83 - v0.7.3\n258a74c - v0.7.2\n41fa804 - v0.7.2\n470f3dd - update: Added PhotoSynth branding\n9b12c33 - update: Added PhotoSynth branding\n7d9eadb - fix: PWA still not acting like desired\n858bdb6 - fix: PWA still not acting like desired\n8237158 - update: added 2d canvas classes\n80dd833 - update: added 2d canvas classes\n0f75290 - fix: Assets in browserconfig\n69a77d0 - fix: Assets in browserconfig\ne4ab8b7 - fix: Parcel 2 requires  Workers differently\nd40048e - fix: Parcel 2 requires  Workers differently\n83446e6 - update: Persistent states and flag modifiers\n86a5ddf - update: Persistent states and flag modifiers\n7a597b3 - update: Added reverb list and asset\n4fd22ee - update: Added reverb list and asset\n18024c5 - update: CSS\n36c4e7a - update: CSS\n76fcb89 - fix: Upgraded packages and imports\n4940561 - fix: Upgraded packages and imports\n7e01fb2 - update: JSDoc updates\n509831a - update: JSDoc updates",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-03-23",
+            "summary": "36 commit(s)",
+            "date_modified": "2022-03-23T23:40:14.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2022-03-22",
+            "content_html": "bf03798 - update: deleted some unused files\nbfdd707 - update: deleted some unused files\nc0b2639 - update: removed old cam\n786731d - update: removed old cam\n7dc75f9 - update: Camera class documented\n98871cb - update: Camera class documented\nddd6a38 - fix: iOS safari doesnt recognise dialog element\naea966d - fix: iOS safari doesnt recognise dialog element\nea702fb - fix: Parked capactitor integration for now\n31a336d - fix: Parked capactitor integration for now\ne1c10a9 - update: Added more pages\n702e7d7 - update: Added more pages\n318baa9 - update: Actions imrpoved\n8fc4eca - update: Actions imrpoved\n6bb16c7 - fix: DOM utils\nc1dc9a0 - fix: DOM utils\n6764ad4 - update: Face Mesh model coords\n9506811 - update: Face Mesh model coords\nc245e95 - update: Added dynamic pug vars\n91a7cfc - update: Added dynamic pug vars\nea77b78 - update: Started adding jsdocs\nb134722 - update: Started adding jsdocs\ncae4d64 - update: Licenses from packages\nf0e6ba1 - update: Licenses from packages\n9b7a039 - update: Added robots.txt\nc6df9c6 - update: Added robots.txt\na30d182 - update: Added humans.txt\n9ae80a5 - update: Added humans.txt\n5b2416e - fix: Autoprefixer enabled\nb6c7829 - fix: Autoprefixer enabled\n9a651a5 - update: Added bak files to gitignore\n269d058 - update: Added bak files to gitignore\n2335e20 - update: Added .editorconfig for interoperability\n0460576 - update: Added .editorconfig for interoperability",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2022-03-22",
+            "summary": "34 commit(s)",
+            "date_modified": "2022-03-22T14:45:03.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-07-01",
+            "content_html": "d698856 - v0.7.1\n4ffa4c1 - v0.7.1",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-07-01",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-07-01T13:43:49.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-30",
+            "content_html": "60145ee - feat: Version bumped\na355326 - feat: Version bumped\ndec4d1a - fix: Optimised android icons\n5cc6203 - fix: Optimised android icons\nb5a6085 - fix: Timing improvements for control\na5d7300 - fix: Timing improvements for control\nb936401 - feat: Updated screenshots to show art mode\nfe901b4 - feat: Updated screenshots to show art mode\n37c9350 - fix: favicons use rounded style when small\n9b1f9b1 - fix: favicons use rounded style when small",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-30",
+            "summary": "10 commit(s)",
+            "date_modified": "2021-06-30T20:15:28.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-28",
+            "content_html": "f3b8687 - v0.7.0\nd67a2b5 - v0.7.0\nd94635b - v1.0.0\n9f22885 - v1.0.0\n8300ac2 - fix: Select items not recieving label focus\n8133f48 - fix: Select items not recieving label focus\na857c0b - fix: Show Install prompt\nafcfd26 - fix: Show Install prompt\nfe66259 - feat: Added preliminary Android store items\n6945094 - feat: Added preliminary Android store items\n5bb43a4 - fix: Safari timing fix for data-uri inline issue\n1192b93 - fix: Safari timing fix for data-uri inline issue\nd027989 - feat: Changes now compiles with build\n48e5c2c - feat: Changes now compiles with build\n4658204 - fix: Persistnet changes for advancedMode\n8efd307 - fix: Persistnet changes for advancedMode\nc5c8a16 - fix: MS Icons for MS Store\neb0e665 - fix: MS Icons for MS Store\nb628c5b - version bump\n94aa16c - version bump\nce578b2 - fix: Camera selection and saving if corrupted\n7c3dae6 - fix: Camera selection and saving if corrupted",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-28",
+            "summary": "22 commit(s)",
+            "date_modified": "2021-06-28T18:51:55.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-27",
+            "content_html": "53bebee - v0.54.0\n250ca56 - v0.54.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-27",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-06-27T22:52:13.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-26",
+            "content_html": "ae45007 - fix: .gitignore added humans / robots\nb8f24dd - fix: .gitignore added humans / robots\nb05613f - feat: Added mstile assets to browserconfig\ndb8f1a7 - feat: Added mstile assets to browserconfig\nc42d033 - feat: Added robots.txt for crawling\n739aa90 - feat: Added robots.txt for crawling\na077d6a - fix: Added wait patiently text to deploy script\n465354a - fix: Added wait patiently text to deploy script",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-26",
+            "summary": "8 commit(s)",
+            "date_modified": "2021-06-26T10:35:01.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-25",
+            "content_html": "e78638e - v0.53.0\ndb69762 - v0.53.0\n63bd151 - feat: Helper functions for drawing parts\nd118008 - feat: Helper functions for drawing parts\ncf3e563 - fix: Updated packages\n2fc72ea - fix: Updated packages\n3ff3036 - feat: Eyeballs now hot swappable\n3d29d04 - feat: Eyeballs now hot swappable\n8fac443 - feat: PWA augmentor\n9a3d094 - feat: PWA augmentor\nda445e8 - fix: Bumped nodeJS requirement to 14 to fix CF\n499937e - fix: Bumped nodeJS requirement to 14 to fix CF\n2c4e26c - fix: Child animation stagger delays\ndeddeec - fix: Child animation stagger delays\nd072b6b - feat: Added shortcuts and related_apps to manifest\n2d30dfc - feat: Added shortcuts and related_apps to manifest\nd777560 - fix: Quantise does no longer flicker text\nea13bb8 - fix: Quantise does no longer flicker text\n1a8810c - feat: Mouth style looks good in all modes\n63afd86 - feat: Mouth style looks good in all modes\nc964cb4 - fix: Updated title for App\nf681bb0 - fix: Updated title for App\n518a818 - feat: Added offline.pug for use in MicroSoft Store\na2224f3 - feat: Added offline.pug for use in MicroSoft Store\n0a6aac2 - feat: Domain specific styling\n6b19584 - feat: Domain specific styling\n4f847c7 - fix: Eyeballs selectable and disableable\n867eaeb - fix: Eyeballs selectable and disableable\n1133a94 - feat: Stereo mode setting\n4389179 - feat: Stereo mode setting\nb4d0bd8 - fix: Subtitles affecting Eyes\n00ab3cb - fix: Subtitles affecting Eyes",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-25",
+            "summary": "32 commit(s)",
+            "date_modified": "2021-06-25T19:18:42.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-22",
+            "content_html": "5aaa511 - Bump version to 52\nd965bec - Bump version to 52\n897b391 - v0.52.0\n14d1213 - v0.52.0\n62dd84f - v0.51.1\n35368cc - v0.51.1\nd280ddf - v0.51.0\ndf7ddc4 - v0.51.0\n5daede4 - feat: Start time-signature implementations\n41ea2e5 - feat: Start time-signature implementations\nac0d157 - fix: SW now uses imports rather than importScripts\n996ca95 - fix: SW now uses imports rather than importScripts\n2c29b44 - fix: Better accessibility for focus / active style\n5332c10 - fix: Better accessibility for focus / active style\n6dad66d - feat: select elements now specify options in html\n1c816f9 - feat: select elements now specify options in html\n411e5a1 - feat: LTD now has unique options per domain\n9096fa3 - feat: LTD now has unique options per domain\n6e3e900 - feat: Added new eye styles and eyeball toggle\na58fe0d - feat: Added new eye styles and eyeball toggle\n0a7888b - feat: Error methods\n7be3a42 - feat: Error methods\n0fce7e2 - feat: Added screenshots to manifest\n46cd906 - feat: Added screenshots to manifest\nff8c548 - fix: Improved manifest description\nad2c148 - fix: Improved manifest description\n4dea06d - Refactored pug files to force Parcel to rebuild\n1186ec4 - Refactored pug files to force Parcel to rebuild\n4c0b943 - fix: Clean Action now checks folder exists\nded8ead - fix: Clean Action now checks folder exists\nf099b91 - fix: AudioAnalyzer re-added to fix VIZ\n189543e - fix: AudioAnalyzer re-added to fix VIZ\n52098af - fix: HTTPS forced during load\n9938ca9 - fix: HTTPS forced during load\nb32a6cd - feat: PWA install / update mechnism\ne7723ed - feat: PWA install / update mechnism\n916bb22 - feat: Changelog now uses GIT commits\neb821b9 - feat: Changelog now uses GIT commits",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-22",
+            "summary": "38 commit(s)",
+            "date_modified": "2021-06-22T13:22:53.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-21",
+            "content_html": "82d9196 - v0.50.13\nca181f8 - v0.50.13\n6a9495f - v0.50.12\n4255126 - v0.50.12\n37af568 - v0.50.11\n9c9ab5d - v0.50.11\nd938ec6 - v0.50.10\nc495f0d - v0.50.10\nc0e8710 - v0.50.9\n2a44f8a - v0.50.9\n12072c4 - v0.50.8\na12b0d0 - v0.50.8\nc4dbc85 - v0.50.7\nc1ea126 - v0.50.7\na95425d - v0.50.6\ne976747 - v0.50.6\n4c5de97 - v0.50.5\nef758f0 - v0.50.5\nfdf6776 - v0.50.4\n381d1a7 - v0.50.4\naba017c - v0.50.3\n8bda7a9 - v0.50.3\n0f15fa1 - v0.50.2\n5b76923 - v0.50.2\nb75d35e - v0.50.1\n77f7c80 - v0.50.1",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-21",
+            "summary": "26 commit(s)",
+            "date_modified": "2021-06-21T19:46:32.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-15",
+            "content_html": "4442191 - feat: MusyngKite SoundFont\n3b1b605 - feat: MusyngKite SoundFont\n0ec963b - feat: FatBoy SoundFont\n5a3447c - feat: FatBoy SoundFont\n7b234ce - feat: Soundfonts support\n126bf8b - feat: Soundfonts support\n61e8045 - fix: Purged all audio sets\nbbb0f42 - fix: Purged all audio sets\nb97a17c - fix: Install button now seperate from main index\n1afddf6 - fix: Install button now seperate from main index\nb7c4b9a - feat: Added new banks of notes\n2c16e09 - feat: Added new banks of notes\n96461a3 - feat: Beginnings of instrument Interface\nc12d97d - feat: Beginnings of instrument Interface\n4370494 - fix: Video finds own element if not specified\n51c34ea - fix: Video finds own element if not specified\n8ca2dec - feat: DOM element handlers for text\n46eba86 - feat: DOM element handlers for text\nf4e1c36 - feat: Info Model with build / debug data\nbf48980 - feat: Info Model with build / debug data\n3512f90 - feat: Added Soundfont identifiers\n9c6d1b7 - feat: Added Soundfont identifiers\n34e02e8 - feat: Mouse utils for varying interaction times\n76653df - feat: Mouse utils for varying interaction times\nccf03c7 - feat: Changelog auto logger\n8f04191 - feat: Changelog auto logger\nd26137f - feat: Labels and Buttons with new icons\n19f5932 - feat: Labels and Buttons with new icons\n83d6d95 - feat: Workers for face models\n340772a - feat: Workers for face models\n1719f00 - feat: Added new shared controls\nb1bbf4e - feat: Added new shared controls\n2b89626 - refactor: DOM form gadgets now dedicated methods\nf093e38 - refactor: DOM form gadgets now dedicated methods\na6d7276 - feat: Audio fx and chains\n20d667a - feat: Audio fx and chains\nf4369c4 - feat; Colours now can be modified in real time\n1ed4a9a - feat; Colours now can be modified in real time\n31c3a55 - feat: Configurable SoundFonts per person\n2a7612a - feat: Configurable SoundFonts per person\n4358c7d - feat: Mouth and Eyes now have dedicated files\n0b0803c - feat: Mouth and Eyes now have dedicated files",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-15",
+            "summary": "42 commit(s)",
+            "date_modified": "2021-06-15T10:20:58.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-06-14",
+            "content_html": "7285b33 - refactor: Settings now has own file\n22b188a - refactor: Settings now has own file\n7f994d2 - feat: Added build scripts for rest and push\n1b92502 - feat: Added build scripts for rest and push\n005e571 - feat: Soundfont descriptors\n07552d3 - feat: Soundfont descriptors\n90ea256 - feat: added extra icons\n628f8a0 - feat: added extra icons\n47b0236 - fix: removed dist assets from gitignore\na8b7d0d - fix: removed dist assets from gitignore",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-06-14",
+            "summary": "10 commit(s)",
+            "date_modified": "2021-06-14T23:59:11.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-28",
+            "content_html": "67bc56d - referer now adds LTD to classes\ne629f0a - referer now adds LTD to classes\n8bdb8c0 - Added linux target for Electron builds\n2628ee0 - Added linux target for Electron builds\n8d1b621 - simplified some dom functionality\n4a81884 - simplified some dom functionality\n2568fe4 - Softened audio engine output and fx chains\ne9d51eb - Softened audio engine output and fx chains",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-28",
+            "summary": "8 commit(s)",
+            "date_modified": "2021-05-28T12:24:27.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-26",
+            "content_html": "0ab729e - using flex for intro pages\n445f0c0 - using flex for intro pages\n254a156 - install script added help note\nc88f4d1 - install script added help note\n2518d41 - reverb effect impulse convoler\nff30269 - reverb effect impulse convoler\n829115c - Updated abstract page\n4ee69c9 - Updated abstract page\n2a57467 - updated packages\n5dcbf1d - updated packages\nc927dbb - refactored - added i18n & workers for models\n4c716a4 - refactored - added i18n & workers for models",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-26",
+            "summary": "12 commit(s)",
+            "date_modified": "2021-05-26T21:58:30.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-18",
+            "content_html": "f4d4022 - added serviceworker polyfill\nb2e6883 - added serviceworker polyfill",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-18",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-05-18T11:26:28.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-17",
+            "content_html": "d57e22f - v0.50.0\nd0f633d - v0.50.0\n3cfabb0 - improved readability\nb265470 - improved readability\n80f0355 - bump version\n1db2e62 - bump version\nf7ac0dd - added a visual mode using mesh when active\nd895607 - added a visual mode using mesh when active",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-17",
+            "summary": "8 commit(s)",
+            "date_modified": "2021-05-17T23:15:01.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-15",
+            "content_html": "e93ce05 - v0.49.0\nb62e130 - v0.49.0\n38b29bb - v0.48.0\na851f7d - v0.48.0\n84a1713 - CSS fixes for MMF\ne6511fe - CSS fixes for MMF\nf97eeb0 - Font prefetch & cross-origin warm up\n5405025 - Font prefetch & cross-origin warm up\n3536ca8 - bump version\nc29833d - bump version\nb7b27d5 - v0.47.0\n60808af - v0.47.0\ne94902d - Improved some UX ready for MMF\nd835e16 - Improved some UX ready for MMF\n6e79c61 - re-added load progress\n76cd0c2 - re-added load progress\n9ebc1b7 - Added extra icons\nad85ed3 - Added extra icons\n4ad9174 - Updated help files\nd0c4f3b - Updated help files",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-15",
+            "summary": "20 commit(s)",
+            "date_modified": "2021-05-15T17:48:14.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-14",
+            "content_html": "8fcaf6a - bump version\n59c806d - bump version\nf251d64 - typography scss split\ne48b64b - typography scss split\n9b9e254 - v0.46.0\nb1446d7 - v0.46.0\n0ec2269 - v0.45.0\n1c9c0b5 - v0.45.0\n5e7648e - v0.44.0\nf8532a2 - v0.44.0\n8b7220e - split css into more files\n6cd9efc - split css into more files\nabfc2b8 - Even google now suggests local fonts!\n82c5f78 - Even google now suggests local fonts!\n99f8194 - Fixed CSS issues with button states\n87ec231 - Fixed CSS issues with button states\n6a2ddfc - deleted old files\n95a4561 - deleted old files\n329db48 - refactored js files into more folders\n8d084e8 - refactored js files into more folders\n25aacf6 - Added link to readme\n1a9fa03 - Added link to readme\nacc0daf - Updated packages\na35538b - Updated packages\n3b388df - Updated pug files with new abstract\nc2acafe - Updated pug files with new abstract",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-14",
+            "summary": "26 commit(s)",
+            "date_modified": "2021-05-14T23:25:56.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-11",
+            "content_html": "cbe0d9e - updated other html srcs\n0457ea3 - updated other html srcs\n41679b9 - added new logos\nd2cc834 - added new logos\n1e1352c - Updated packages\n95f3d68 - Updated packages\nbd4866c - refactored visuals into 2d / 3d\nfa572d4 - refactored visuals into 2d / 3d",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-11",
+            "summary": "8 commit(s)",
+            "date_modified": "2021-05-11T10:42:30.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-05",
+            "content_html": "869a986 - .nvmrc version setter for pages\nd2307a1 - .nvmrc version setter for pages",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-05",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-05-05T22:28:44.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-05-04",
+            "content_html": "31fb219 - Stripped out gadgets from css\nef96442 - Stripped out gadgets from css\n8c76731 - PWA updates\n3d31382 - PWA updates\nb8a1ef7 - removed original files now moved\nae8822c - removed original files now moved\ncd82d22 - Help button and dialog\na3a789b - Help button and dialog\nf69b649 - Added new html files for help and roadmap\nc7f1f2b - Added new html files for help and roadmap\nf90a22e - added svg icons as black\nbbb2a5a - added svg icons as black\nff0a465 - Added verticlal quantize\n36f13f7 - Added verticlal quantize\n1547c27 - improved actions and tasks\n7941734 - improved actions and tasks\n6dd9bb6 - Stripped some scss files into folder\n57c37e5 - Stripped some scss files into folder\n9f7eeea - Added initial eyelid tracking\n9fef7de - Added initial eyelid tracking\n1f55d32 - Moved timing into folder for maintainability\n17c0aad - Moved timing into folder for maintainability\n3d95709 - Moved visuals to folder and seperated\n3fcd180 - Moved visuals to folder and seperated\n846a3d4 - Moved audio to folder and created Interface\n5ccdfaa - Moved audio to folder and created Interface\n822b15f - Updated readmes / licenses\n085e907 - Updated readmes / licenses\nd9c8cfd - Added node version to package for stricter build\na295f50 - Added node version to package for stricter build",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-05-04",
+            "summary": "30 commit(s)",
+            "date_modified": "2021-05-04T19:37:40.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-04-03",
+            "content_html": "c261517 - Added electron desktop version\n295d708 - Added electron desktop version\nde55121 - Added icon variants\nb6ae382 - Added icon variants\n14c3b9c - Added capacitor config file\n3e5bd4e - Added capacitor config file\n8c2a9f1 - Added SXSW talk to readme\nd81d123 - Added SXSW talk to readme\n3353006 - improved face landmark recognition\nca7fbdb - improved face landmark recognition",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-04-03",
+            "summary": "10 commit(s)",
+            "date_modified": "2021-04-03T13:13:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-03-21",
+            "content_html": "02bcda0 - Just Patreon\n9673f76 - Just Patreon\n765d32e - Create FUNDING.yml\nc49e793 - Create FUNDING.yml",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-03-21",
+            "summary": "4 commit(s)",
+            "date_modified": "2021-03-21T14:24:59.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-03-20",
+            "content_html": "acdbad6 - Updated in app versioning\n0d3d964 - Updated in app versioning\n839343d - Updated version\n9e9aea5 - Updated version\n18fcc26 - MIDI Improvements for individuals\n66fa84e - MIDI Improvements for individuals\ncd4ecd3 - Referer logic added to change behaviour on load\n4026dfa - Referer logic added to change behaviour on load\n849e9b3 - overall improvements\n138f5e8 - overall improvements\n3c14cbb - pre emptive midi testing\nbb09f68 - pre emptive midi testing\n8a87906 - ui now handles dates better\ndfcb8ae - ui now handles dates better\n3decebb - Added much more verbosity in markup\n543113a - Added much more verbosity in markup\n8c4687b - load anim optimisation\n2421321 - load anim optimisation\nfb9fa61 - stripped out queries for devices\n38b8529 - stripped out queries for devices\n8091d52 - Improved useability on buttons\n53477b7 - Improved useability on buttons\n972eca3 - FF doesn't allow raf in workers\n55c2748 - FF doesn't allow raf in workers\ne07e1c1 - Camera errors log to console\n81c2ff5 - Camera errors log to console\nfb6f52f - Added more icons\neda2c0a - Added more icons\n31bc2e4 - v0.43.0\neb6a03a - v0.43.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-03-20",
+            "summary": "30 commit(s)",
+            "date_modified": "2021-03-20T11:11:05.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-03-16",
+            "content_html": "062217e - v0.42.0\nf2b16ae - v0.42.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-03-16",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-03-16T21:48:20.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-03-13",
+            "content_html": "70e02b1 - CNAME added to dist\ne390c18 - CNAME added to dist",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-03-13",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-03-13T11:21:02.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-03-09",
+            "content_html": "54a926a - changed dz logo to stroke for bg icons\nfa98da5 - changed dz logo to stroke for bg icons\na65bf51 - imrpoved MIDI connectivity\n5499efd - imrpoved MIDI connectivity\nabc341a - rawvmore people using it\n2b541c4 - rawvmore people using it\nebd2980 - v0.41.0\n8bb6d9a - v0.41.0\n41090fd - added mute functionality for demo purposes\n65fc68e - added mute functionality for demo purposes\nc9e0fd1 - added and fixed some more logos\nfcdfde2 - added and fixed some more logos\nd71faed - Cleaning up repo\n7946a35 - Cleaning up repo\n22062fe - added screenshots to media\n635e96a - added screenshots to media\n891fe6f - added screenshots to manifest\n3bfb420 - added screenshots to manifest\n97ef06a - Added duet mode\n1a2d458 - Added duet mode\nd6b70de - Improved semantics in html\nf4c003c - Improved semantics in html\nbed401e - Added some reset scripts to fix issues with build\n0133809 - Added some reset scripts to fix issues with build\n84c3a7c - Updated styles to work better on smaller screens\naeda9bd - Updated styles to work better on smaller screens\n3702f19 - added version to app title\n2792d9f - added version to app title\n5e9a4a7 - Lowered kick freq\n5e4c4ef - Lowered kick freq\n8cd71f1 - Added more readme goodness\nd87ac13 - Added more readme goodness\nae2062f - Added a param recorder for later playback\nd8def62 - Added a param recorder for later playback\nbb644eb - Added all logos of associates\n5311cd3 - Added all logos of associates",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-03-09",
+            "summary": "36 commit(s)",
+            "date_modified": "2021-03-09T21:54:21.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-03-04",
+            "content_html": "93c0a87 - added new homepage to readme\n5d277ed - added new homepage to readme\n96491ae - stupid video limit b0rked it\n0b1e007 - stupid video limit b0rked it",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-03-04",
+            "summary": "4 commit(s)",
+            "date_modified": "2021-03-04T13:41:36.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-02-17",
+            "content_html": "1428f73 - Added TODO to check if https is enforced\n4bb9927 - Added TODO to check if https is enforced\n2446aec - updated branding in media material\n0abf3f7 - updated branding in media material\n3678d95 - added louis\n26f52de - added louis\n28bbbfc - A few new screengrabs sent in by fans\n9d43bc1 - A few new screengrabs sent in by fans\n02a317e - added branded variant\n34edfa8 - added branded variant\nbe4b7ce - More images for promotion\n87b50b4 - More images for promotion",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-02-17",
+            "summary": "12 commit(s)",
+            "date_modified": "2021-02-17T13:14:53.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-02-16",
+            "content_html": "de2d79f - Added presskit\nff332ba - Added presskit\nff186f8 - v0.39.1\n25ca9df - v0.39.1",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-02-16",
+            "summary": "4 commit(s)",
+            "date_modified": "2021-02-16T23:35:25.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-02-09",
+            "content_html": "e4fa10f - v0.39.0\n88032bb - v0.39.0\ndb3ecc0 - v0.38.0\nd31abec - v0.38.0\n39785e4 - v0.37.0\n01fea51 - v0.37.0\na3e7573 - v0.36.0\n264b352 - v0.36.0\nbf0652c - Added maskable icons for chrome store\nd7d3a8b - Added maskable icons for chrome store\n74e49ce - Moved tooltips further down execution list\nf6286c2 - Moved tooltips further down execution list\n142f172 - copyright was being read twice on voiceover\n8fc7cdd - copyright was being read twice on voiceover\n67380ba - camera button hides if only 1 camera\n1e81a11 - camera button hides if only 1 camera\n1c8e2c2 - Added extra explanation to readme\n69e9862 - Added extra explanation to readme\n276faff - version updated\ne49179d - version updated\n50ff96d - fix for buttons falling out of the panel\n7350395 - fix for buttons falling out of the panel",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-02-09",
+            "summary": "22 commit(s)",
+            "date_modified": "2021-02-09T18:50:16.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-02-08",
+            "content_html": "9bd288f - v0.35.6\n8527df1 - v0.35.6\nc271cd1 - v0.35.5\n156127a - v0.35.5",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-02-08",
+            "summary": "4 commit(s)",
+            "date_modified": "2021-02-08T23:30:45.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-02-02",
+            "content_html": "475acda - v0.35.4\nbb6a139 - v0.35.4",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-02-02",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-02-02T21:44:37.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-30",
+            "content_html": "bd7f87f - Added speech sythesis\n490aa08 - Added speech sythesis\n409b65e - updated versioning system\n0bc139f - updated versioning system\nfdb26f9 - Updated licenses\naa7107c - Updated licenses",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-30",
+            "summary": "6 commit(s)",
+            "date_modified": "2021-01-30T00:03:19.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-29",
+            "content_html": "82ab742 - v0.35.3\ne0c850c - v0.35.3\n39c8d1e - Moved scripts to actions/\nc8f9f77 - Moved scripts to actions/\nf091726 - cleaning up\na882c64 - cleaning up\ndd59de1 - v0.35.2\n47c94bd - v0.35.2\na2499dd - v0.35.1\n62af915 - v0.35.1",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-29",
+            "summary": "10 commit(s)",
+            "date_modified": "2021-01-29T21:31:22.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-27",
+            "content_html": "4d4f6d6 - v0.35.0\n35f4c9a - v0.35.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-27",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-01-27T15:53:49.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-26",
+            "content_html": "e2b9bb4 - v0.34.0\nbec01c6 - v0.34.0\n35c1cca - v0.33.0\n35df365 - v0.33.0\n19db3c3 - v0.32.0\nedf63b0 - v0.32.0\n394ae2c - Flipped clear button's icons around\n90bd000 - Flipped clear button's icons around\nb0ab727 - v0.31.0\n9dff89a - v0.31.0\nbe0e7e1 - Recoulered logos\n967b3df - Recoulered logos\nae29d49 - Rescaled midi logo to match others\n5289e5a - Rescaled midi logo to match others\nfb7c099 - Added build dates to revisioner\nd1ac763 - Added build dates to revisioner\n5aad18e - v0.30.0\n76eb3a9 - v0.30.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-26",
+            "summary": "18 commit(s)",
+            "date_modified": "2021-01-26T15:10:19.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-25",
+            "content_html": "10c2a1e - v0.29.0\n1b532bd - v0.29.0\nf36c607 - v0.28.0\n57c349a - v0.28.0\n2da7516 - v0.27.0\na37e2b5 - v0.27.0\n5177aa8 - v0.26.2\ne4f545e - v0.26.2\n53f1cb5 - v0.26.1\n24dc5a7 - v0.26.1",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-25",
+            "summary": "10 commit(s)",
+            "date_modified": "2021-01-25T22:28:48.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-24",
+            "content_html": "1dc1f85 - Image snapshots now displayed in ui\nc451327 - Image snapshots now displayed in ui\n94c5953 - v0.26.0\nb14d028 - v0.26.0\n7b72d43 - This fixed the regeneratorRuntime error\n6a98f89 - This fixed the regeneratorRuntime error\n5c4e102 - v0.25.0\n130b845 - v0.25.0\n89807f0 - Added some colours to the scripts\n8961b71 - Added some colours to the scripts\n3028843 - Added boundary box to MIDI 2.0 logo\n3a64e7b - Added boundary box to MIDI 2.0 logo\n3ba983f - v0.24.0\n3ae2608 - v0.24.0\n0c348ec - v0.23.0\n704c681 - v0.23.0\necdef90 - v0.22.0\na3022ca - v0.22.0\n8f24cd3 - v0.21.0\nfdec127 - v0.21.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-24",
+            "summary": "20 commit(s)",
+            "date_modified": "2021-01-24T23:59:47.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-23",
+            "content_html": "bab1ade - v0.20.0\n3b26bfc - v0.20.0\n5213490 - v0.19.0\n69be6aa - v0.19.0\n0ac4e98 - v0.18.0\neb448cc - v0.18.0\n7e4c56e - v0.17.0\n07410b0 - v0.17.0\n782c1ed - v0.16.0\n41c562b - v0.16.0\nce5cf3d - Added a photo button and added sharing with options\nddc3660 - Added a photo button and added sharing with options\ndf70874 - v0.15.0\n176e2cd - v0.15.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-23",
+            "summary": "14 commit(s)",
+            "date_modified": "2021-01-23T21:18:07.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-22",
+            "content_html": "0b508cf - v0.14.0\n3235e98 - v0.14.0\n05d2873 - v0.13.0\nc2afb3f - v0.13.0",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-22",
+            "summary": "4 commit(s)",
+            "date_modified": "2021-01-22T19:59:09.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-21",
+            "content_html": "c117527 - v0.12.0\nea27e26 - v0.12.0\nd477448 - v0.11.0\n3f06c31 - v0.11.0\nb443d10 - v0.10.0\n66a38af - v0.10.0\n3b05a0b - v0.9.0\n210f139 - v0.9.0\nd8b2e96 - v0.9.0\na86f94d - v0.9.0\ne4dddfa - v0.8.0\n94b4fa1 - v0.8.0\n864b0aa - v0.7.0\naa83a17 - v0.7.0\n411f75f - v0.6.0\n1339418 - v0.6.0\n9652d35 - v0.5.0\n3130e31 - v0.5.0\nfa9467d - Upgraded TF & improved FS\nf8b77e9 - Upgraded TF & improved FS",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-21",
+            "summary": "20 commit(s)",
+            "date_modified": "2021-01-21T22:53:48.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-20",
+            "content_html": "96dd39c - v0.4.0\n65472cd - v0.4.0\n6fb44d5 - v0.3.0\n8ce5abf - v0.3.0\nd1dd5eb - v0.2.0\ne1d0cc7 - v0.2.0\ndacf0a0 - refactored CSS to make it more bulletproof\nfb783f4 - refactored CSS to make it more bulletproof\n3ea9f81 - v0.1.0\n61dce06 - v0.1.0\n949f643 - Added control panel\n810f41b - Added control panel",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-20",
+            "summary": "12 commit(s)",
+            "date_modified": "2021-01-20T23:21:37.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-14",
+            "content_html": "afd1a84 - Added pug to allow app compilation\n01f7621 - Added pug to allow app compilation",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-14",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-01-14T18:18:56.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-13",
+            "content_html": "54a3e03 - Improved install and loading\ndeb26c0 - Improved install and loading",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-13",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-01-13T01:56:30.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-10",
+            "content_html": "f285240 - Added camea selector\n2fd1422 - Added camea selector",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-10",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-01-10T14:51:17.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-07",
+            "content_html": "c7c84a5 - v0.0.9\n2b83eca - v0.0.9\nf01cfc6 - v0.0.8\n1cc7542 - v0.0.8\nf65d385 - fixed obscure bug where Parcel confused modules\n6035802 - fixed obscure bug where Parcel confused modules\n8a702a3 - update / install stripped for parts\nb5c18b1 - update / install stripped for parts\n6ed6dd3 - Added better instructions and improved UX\n9cd8ff0 - Added better instructions and improved UX",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-07",
+            "summary": "10 commit(s)",
+            "date_modified": "2021-01-07T18:02:34.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-06",
+            "content_html": "e6a023d - uneeded files\n2e061e5 - uneeded files",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-06",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-01-06T15:11:24.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-05",
+            "content_html": "78e7976 - MIDI pitchbending with your EYEBALLS\nc95c933 - MIDI pitchbending with your EYEBALLS",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-05",
+            "summary": "2 commit(s)",
+            "date_modified": "2021-01-05T00:06:18.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2021-01-04",
+            "content_html": "3cc1251 - Fixed MIDI Output with interim button press\n9b96cbf - Fixed MIDI Output with interim button press\nb46ea23 - NAMM test build with MIDI\n50b0496 - NAMM test build with MIDI",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2021-01-04",
+            "summary": "4 commit(s)",
+            "date_modified": "2021-01-04T17:15:35.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-19",
+            "content_html": "08eaa11 - installed 2.8.1 now need to uninstall due to bugs\nae3bc23 - installed 2.8.1 now need to uninstall due to bugs",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-19",
+            "summary": "2 commit(s)",
+            "date_modified": "2020-12-19T20:42:11.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-16",
+            "content_html": "bf32691 - It's a PWA now\nf3a66f1 - It's a PWA now",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-16",
+            "summary": "2 commit(s)",
+            "date_modified": "2020-12-16T22:30:03.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-13",
+            "content_html": "aa5b59f - Updated build script and added People\n9d630ec - Updated build script and added People",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-13",
+            "summary": "2 commit(s)",
+            "date_modified": "2020-12-13T13:54:25.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-12",
+            "content_html": "a5158e8 - prototype 2 - with ui!\n387f80d - prototype 2 - with ui!",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-12",
+            "summary": "2 commit(s)",
+            "date_modified": "2020-12-12T12:24:42.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-11",
+            "content_html": "d053622 - up ya go\n57b3083 - up ya go",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-11",
+            "summary": "2 commit(s)",
+            "date_modified": "2020-12-11T22:37:20.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-10",
+            "content_html": "55d5521 - first working alpha build to try out at DM lab\n458b80c - first working alpha build to try out at DM lab",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-10",
+            "summary": "2 commit(s)",
+            "date_modified": "2020-12-10T17:35:00.000Z",
+            "author": {
+                "name": "designerzen",
+                "url": "https://designerzen.com"
+            }
+        },
+        {
+            "id": "https://interface.place/commits/2020-12-04",
+            "content_html": "865e76c - Initial commit",
+            "url": "https://github.com/designerzen/interface/commits/main",
+            "title": "Commits from 2020-12-04",
+            "summary": "1 commit(s)",
+            "date_modified": "2020-12-04T13:41:35.000Z",
+            "author": {
+                "name": "designerzen",
                 "url": "https://designerzen.com"
             }
         }
