@@ -1,0 +1,801 @@
+extends _base.pug
+
+block title
+	+title('Test:Picade Max Input')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload 
+
+block main
+	main#test-picade-max-input
+		h4 Picade Plasma Button Test GUI
+		p.subtitle WebSerial LED controller — buttons &amp; matrix modes
+
+		.warning#serialWarning ⚠ WebSerial API is not available in this browser. Use Chrome/Edge with a secure context. Preview-only mode is active.
+
+		.conn-bar
+			.status-dot#statusDot
+			span.label#statusLabel Disconnected
+			span.stats#statsLabel
+			button#btnConnect Connect
+
+		.section-title Serial Diagnostics
+		.diag-bar
+			button#btnTestPattern Send Test Pattern
+			button#btnSendRaw Send Raw Text…
+			label.diag-toggle
+				input#chkHexDump(type="checkbox")
+				| Show TX hex dump
+		.port-info#portInfo
+
+		.section-title Serial Log
+			button#btnClearLog(style="float:right; font-size:10px; padding:2px 8px") Clear
+		.serial-log#serialLog
+
+		.tabs
+			.tab.active(data-tab="buttons") Buttons
+			.tab(data-tab="matrix") Matrix
+
+		//- ═══════════════════════ BUTTONS PANEL ═══════════════════════
+		.panel.active#panelButtons(data-tab="buttons")
+			.row
+				label Num LEDs
+				input#numLeds(type="number" value="16" min="1" max="256")
+				label Refresh Hz
+				input#refreshRate(type="number" value="60" min="1" max="120")
+				button#btnInitButtons Init
+
+			.section-title LED Preview (click to select)
+			.led-grid#ledGrid
+
+			.section-title Selected LED Settings
+			.row
+				label Selected
+				span#selectedIdx(style="color:var(--accent)") 0
+			.row
+				label Mode
+				select#ledMode
+					option(value="normal") normal
+					option(value="blink") blink
+					option(value="fade") fade
+					option(value="fade sweep") fade sweep
+			.row
+				label Color To
+				input#ledColorTo(type="color" value="#ff4400")
+			.row
+				label Color From
+				input#ledColorFrom(type="color" value="#000000")
+			.row
+				label Brightness
+				input#ledBrightness(type="range" min="0" max="31" value="16")
+				span.val#ledBrightnessVal 16
+			.row
+				label Transition (s)
+				input#ledTransition(type="range" min="0" max="5" step="0.1" value="1")
+				span.val#ledTransitionVal 1
+			.btn-row
+				button#btnApplyLed Apply to Selected
+				button#btnSetAll Set All
+				button#btnClearAll.danger Clear All
+
+			.section-title Attract Mode
+			.row
+				label Pattern
+				select#attractPattern
+					option(value="linear") linear
+					option(value="radial") radial
+					option(value="circular") circular
+			.row
+				label Direction
+				select#attractDirection
+					option(value="left_to_right") left_to_right
+					option(value="right_to_left") right_to_left
+					option(value="top_to_bottom") top_to_bottom
+					option(value="bottom_to_top") bottom_to_top
+			.row
+				label Color On
+				input#attractColorOn(type="color" value="#1f1f00")
+			.row
+				label Color Off
+				input#attractColorOff(type="color" value="#000000")
+			.row
+				label Delay (ms)
+				input#attractDelay(type="range" min="10" max="500" step="10" value="50")
+				span.val#attractDelayVal 50
+			.btn-row
+				button#btnAttractStart Start Attract
+				button#btnAttractStop.danger Stop Attract
+
+		//- ═══════════════════════ MATRIX PANEL ═══════════════════════
+		.panel#panelMatrix(data-tab="matrix")
+			.row
+				label Display
+				select#matrixDisplay
+					option(value="0") Galactic Unicorn (53×11)
+					option(value="1") Interstate75 (128×32)
+			.row
+				label Color Order
+				select#matrixColorOrder
+					option(value="RGB") RGB
+					option(value="RBG") RBG
+					option(value="GBR") GBR
+					option(value="GRB") GRB
+					option(value="BGR") BGR
+					option(value="BRG") BRG
+			.row
+				label Draw Color
+				input#matrixColor(type="color" value="#ff0044")
+			.row
+				label Brightness
+				input#matrixBrightness(type="range" min="0" max="31" value="16")
+				span.val#matrixBrightnessVal 16
+			.row
+				label Pixel scale
+				input#matrixScale(type="number" value="8" min="1" max="20" style="width:50px")
+				button#btnInitMatrix Init / Resize
+
+			.section-title Canvas (click / drag to draw)
+			.matrix-wrap#matrixWrap
+				canvas#matrixCanvas
+
+			.btn-row
+				button#btnFillMatrix Fill
+				button#btnClearMatrix.danger Clear
+				button#btnSendMatrix Send to Display
+
+block styles
+	style.
+		#test-picade-max-input {
+			--bg: #121218;
+			--surface: #1a1a24;
+			--surface2: #22222e;
+			--border: #2e2e3e;
+			--textDim: #888;
+			--accent: #4ea8de;
+			--accentDim: #2d6a8e;
+			--danger: #e05050;
+			--ok: #40c060;
+			--mono: 'Consolas', 'Courier New', monospace;
+			font-family: var(--mono);
+			font-size: 13px;
+			padding: 16px;
+			max-width: 1200px;
+		}
+
+		#test-picade-max-input h4 {
+			font-size: 18px;
+			margin-bottom: 4px;
+			color: var(--accent);
+		}
+
+		#test-picade-max-input .subtitle {
+			font-size: 11px;
+			color: var(--textDim);
+			margin-bottom: 12px;
+		}
+
+		#test-picade-max-input .warning {
+			background: #443300;
+			border: 1px solid #886600;
+			color: #ffcc44;
+			padding: 8px 12px;
+			border-radius: 4px;
+			margin-bottom: 12px;
+			font-size: 12px;
+			display: none;
+		}
+
+		#test-picade-max-input .conn-bar {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 10px 14px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			margin-bottom: 14px;
+		}
+
+		#test-picade-max-input .status-dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: var(--danger);
+			flex-shrink: 0;
+
+			&.ok { background: var(--ok); }
+		}
+
+		#test-picade-max-input .conn-bar .label {
+			font-size: 12px;
+			color: var(--textDim);
+			flex: 1;
+		}
+
+		#test-picade-max-input button {
+			font-family: var(--mono);
+			font-size: 12px;
+			padding: 5px 14px;
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			background: var(--surface2);
+			color: var(--text, #d4d4dc);
+			cursor: pointer;
+			transition: .15s;
+
+			&:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+			&.danger:hover { background: var(--danger); border-color: var(--danger); }
+			&:disabled { opacity: .4; cursor: default; background: var(--surface2); color: var(--textDim); border-color: var(--border); }
+		}
+
+		#test-picade-max-input .tabs {
+			display: flex;
+			gap: 2px;
+			margin-bottom: 0;
+		}
+
+		#test-picade-max-input .tab {
+			padding: 7px 20px;
+			background: var(--surface2);
+			border: 1px solid var(--border);
+			border-bottom: none;
+			border-radius: 6px 6px 0 0;
+			cursor: pointer;
+			color: var(--textDim);
+			font-size: 12px;
+
+			&.active { background: var(--surface); color: var(--accent); border-color: var(--border); }
+		}
+
+		#test-picade-max-input .panel {
+			display: none;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 0 6px 6px 6px;
+			padding: 14px;
+
+			&.active { display: block; }
+		}
+
+		#test-picade-max-input .row {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 8px;
+
+			& label { font-size: 11px; color: var(--textDim); min-width: 110px; }
+			& input[type=number] { width: 70px; font-family: var(--mono); font-size: 12px; padding: 3px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text, #d4d4dc); }
+			& select { font-family: var(--mono); font-size: 12px; padding: 3px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text, #d4d4dc); }
+			& input[type=color] { width: 36px; height: 24px; border: 1px solid var(--border); border-radius: 3px; padding: 0; cursor: pointer; background: none; }
+			& input[type=range] { flex: 1; max-width: 180px; accent-color: var(--accent); }
+			& .val { font-size: 11px; color: var(--accent); width: 30px; text-align: right; }
+		}
+
+		#test-picade-max-input .section-title {
+			font-size: 12px;
+			color: var(--accent);
+			margin: 12px 0 6px;
+			border-bottom: 1px solid var(--border);
+			padding-bottom: 3px;
+		}
+
+		#test-picade-max-input .btn-row {
+			display: flex;
+			gap: 6px;
+			flex-wrap: wrap;
+			margin-top: 8px;
+		}
+
+		#test-picade-max-input .stats {
+			font-size: 10px;
+			color: var(--textDim);
+			margin-left: auto;
+		}
+
+		#test-picade-max-input .diag-bar {
+			display: flex;
+			gap: 6px;
+			align-items: center;
+			flex-wrap: wrap;
+			margin-bottom: 8px;
+		}
+
+		#test-picade-max-input .diag-toggle {
+			font-size: 11px;
+			color: var(--textDim);
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 4px;
+			margin-left: auto;
+		}
+
+		#test-picade-max-input .port-info {
+			font-size: 11px;
+			color: var(--textDim);
+			margin-bottom: 8px;
+
+			&:empty { display: none; }
+		}
+
+		#test-picade-max-input .log-hex {
+			color: #7b68ee;
+			font-size: 10px;
+			letter-spacing: 0.5px;
+		}
+
+		#test-picade-max-input .serial-log {
+			background: #0a0a0f;
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			padding: 8px;
+			margin-bottom: 14px;
+			max-height: 160px;
+			overflow-y: auto;
+			font-size: 11px;
+			line-height: 1.5;
+			white-space: pre-wrap;
+			word-break: break-all;
+
+			& .log-in { color: #6be06b; }
+			& .log-out { color: #6ba8e0; }
+			& .log-err { color: #e06b6b; }
+			& .log-info { color: #888; }
+			& .log-time { color: #555; margin-right: 6px; }
+		}
+
+		#test-picade-max-input .led-grid {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 4px;
+			padding: 10px;
+			background: var(--bg);
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			margin: 8px 0;
+			max-height: 260px;
+			overflow-y: auto;
+		}
+
+		#test-picade-max-input .led {
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+			border: 2px solid var(--border);
+			cursor: pointer;
+			transition: .1s;
+			position: relative;
+
+			&.selected { border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
+		}
+
+		#test-picade-max-input .led-idx {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 8px;
+			color: rgba(255,255,255,.5);
+			pointer-events: none;
+		}
+
+		#test-picade-max-input .matrix-wrap {
+			background: var(--bg);
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			padding: 10px;
+			margin: 8px 0;
+			overflow: auto;
+			max-width: 100%;
+
+			& canvas { image-rendering: pixelated; cursor: crosshair; display: block; }
+		}
+
+block scripts
+	script(type="module").
+		import {
+			PlasmaButtons, LedMatrix, RGBl,
+			DISPLAY_GALACTIC_UNICORN, DISPLAY_INTERSTATE75_128x32,
+			COLOR_ORDER_RGB, COLOR_ORDER_RBG, COLOR_ORDER_GBR,
+			COLOR_ORDER_GRB, COLOR_ORDER_BGR, COLOR_ORDER_BRG
+		} from './hardware/picade-max-input.js'
+
+		const hasSerial = 'serial' in navigator
+		if (!hasSerial) document.getElementById('serialWarning').style.display = 'block'
+
+		function hexToRGBl(hex, brightness) {
+			const n = parseInt(hex.slice(1), 16)
+			return RGBl((n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff, brightness)
+		}
+
+		function rgblToHex(c) {
+			return '#' + [c.red, c.green, c.blue].map(v => v.toString(16).padStart(2, '0')).join('')
+		}
+
+		const $ = id => document.getElementById(id)
+
+		const COLOR_ORDERS = { RGB: COLOR_ORDER_RGB, RBG: COLOR_ORDER_RBG, GBR: COLOR_ORDER_GBR, GRB: COLOR_ORDER_GRB, BGR: COLOR_ORDER_BGR, BRG: COLOR_ORDER_BRG }
+		const DISPLAY_MAP = { 0: DISPLAY_GALACTIC_UNICORN, 1: DISPLAY_INTERSTATE75_128x32 }
+
+		let buttons = null
+		let matrix = null
+		let activeTab = 'buttons'
+		let selectedLed = 0
+		let previewColors = []
+		let previewRaf = null
+
+		// tabs
+		document.querySelectorAll('.tab').forEach(tab => {
+			tab.addEventListener('click', () => {
+				document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+				document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+				tab.classList.add('active')
+				document.querySelector(`.panel[data-tab="${tab.dataset.tab}"]`).classList.add('active')
+				activeTab = tab.dataset.tab
+			})
+		})
+
+		// serial log
+		const logEl = $('serialLog')
+		function logEntry(cls, msg) {
+			const time = new Date().toLocaleTimeString('en-GB', { hour12: false, fractionalSecondDigits: 1 })
+			const line = document.createElement('div')
+			line.innerHTML = `<span class="log-time">${time}</span><span class="${cls}">${msg}</span>`
+			logEl.appendChild(line)
+			logEl.scrollTop = logEl.scrollHeight
+		}
+		$('btnClearLog').addEventListener('click', () => logEl.innerHTML = '')
+
+		function updateStats() {
+			const device = buttons || matrix
+			if (!device) { $('statsLabel').textContent = ''; return }
+			const s = device.stats
+			$('statsLabel').textContent = `TX: ${s.bytesWritten} B  RX: ${s.bytesRead} B`
+		}
+		setInterval(updateStats, 500)
+
+		function hexDump(arr, max = 64) {
+			const bytes = Array.from(arr.slice(0, max))
+			const hex = bytes.map(b => b.toString(16).padStart(2, '0')).join(' ')
+			return hex + (arr.length > max ? ` … (${arr.length}B total)` : '')
+		}
+
+		function updatePortInfo(device) {
+			const info = device.portInfo
+			if (!info) { $('portInfo').textContent = ''; return }
+			$('portInfo').textContent = `USB vendor: 0x${(info.vendorId||0).toString(16).padStart(4,'0')}  product: 0x${(info.productId||0).toString(16).padStart(4,'0')}`
+		}
+
+		let txThrottle = 0
+		function attachDeviceListeners(device) {
+			device.on('connect', info => {
+				logEntry('log-info', `✓ Connected  vendor:0x${(info.vendorId||0).toString(16).padStart(4,'0')}  product:0x${(info.productId||0).toString(16).padStart(4,'0')}`)
+				updatePortInfo(device)
+			})
+			device.on('data', ({ raw, text, length }) => {
+				const clean = text.replace(/[^\x20-\x7E\n\r]/g, '·')
+				logEntry('log-in', `← ${length}B: ${clean}`)
+				if ($('chkHexDump').checked) {
+					logEntry('log-hex', `   ${hexDump(raw)}`)
+				}
+			})
+			device.on('tx', ({ raw, length }) => {
+				if (!$('chkHexDump').checked) return
+				const now = Date.now()
+				if (now - txThrottle < 500) return
+				txThrottle = now
+				const prefix = Array.from(raw.slice(0, 15)).map(b => String.fromCharCode(b)).join('')
+				logEntry('log-out', `→ ${length}B  prefix: "${prefix}"`)
+				logEntry('log-hex', `   ${hexDump(raw)}`)
+			})
+			device.on('error', ({ message }) => {
+				logEntry('log-err', `✗ ${message}`)
+			})
+			device.on('disconnect', () => {
+				logEntry('log-info', '○ Disconnected')
+				$('portInfo').textContent = ''
+			})
+		}
+
+		// diagnostics buttons
+		$('btnTestPattern').addEventListener('click', async () => {
+			const device = activeTab === 'buttons' ? buttons : matrix
+			if (!device?.connected) { logEntry('log-err', 'Not connected'); return }
+			// send prefix + 4 LEDs: red, green, blue, white at full brightness
+			const test = new Uint8Array([
+				// "multiverse:data"
+				...new TextEncoder().encode('multiverse:data'),
+				// LED 0: blue=0, green=0, red=255, brightness=31
+				0x00, 0x00, 0xFF, 0x1F,
+				// LED 1: blue=0, green=255, red=0, brightness=31
+				0x00, 0xFF, 0x00, 0x1F,
+				// LED 2: blue=255, green=0, red=0, brightness=31
+				0xFF, 0x00, 0x00, 0x1F,
+				// LED 3: blue=255, green=255, red=255, brightness=31
+				0xFF, 0xFF, 0xFF, 0x1F,
+			])
+			logEntry('log-out', `→ Test pattern: 4 LEDs (R,G,B,W) at max brightness`)
+			logEntry('log-hex', `   ${hexDump(test, 128)}`)
+			await device.sendRaw(test)
+		})
+
+		$('btnSendRaw').addEventListener('click', async () => {
+			const device = activeTab === 'buttons' ? buttons : matrix
+			if (!device?.connected) { logEntry('log-err', 'Not connected'); return }
+			const text = prompt('Enter raw text to send (will be UTF-8 encoded):')
+			if (!text) return
+			logEntry('log-out', `→ Raw: "${text}"`)
+			await device.sendRaw(text)
+		})
+
+		// connection
+		let connectedMode = null
+
+		function updateConnectionUI(connected) {
+			$('statusDot').classList.toggle('ok', connected)
+			$('statusLabel').textContent = connected ? `Connected (${connectedMode})` : 'Disconnected'
+			$('btnConnect').textContent = connected ? 'Disconnect' : 'Connect'
+		}
+
+		$('btnConnect').addEventListener('click', async () => {
+			try {
+				if (activeTab === 'buttons' && buttons?.connected) {
+					await buttons.disconnect(); connectedMode = null; updateConnectionUI(false); return
+				}
+				if (activeTab === 'matrix' && matrix?.connected) {
+					await matrix.disconnect(); connectedMode = null; updateConnectionUI(false); return
+				}
+				if (!hasSerial) { alert('WebSerial not available'); return }
+				if (activeTab === 'buttons') {
+					ensureButtons()
+					attachDeviceListeners(buttons)
+					logEntry('log-info', '… Requesting serial port…')
+					await buttons.connect()
+					connectedMode = 'buttons'
+				} else {
+					ensureMatrix()
+					attachDeviceListeners(matrix)
+					logEntry('log-info', '… Requesting serial port…')
+					await matrix.connect()
+					connectedMode = 'matrix'
+				}
+				updateConnectionUI(true)
+			} catch (e) {
+				if (e.name === 'NotFoundError') {
+					logEntry('log-err', 'No port selected')
+				} else {
+					logEntry('log-err', `Connection failed: ${e.message}`)
+					console.error(e)
+				}
+			}
+		})
+
+		// range value displays
+		function bindRange(sliderId, valId) {
+			const s = $(sliderId), v = $(valId)
+			s.addEventListener('input', () => v.textContent = s.value)
+		}
+		bindRange('ledBrightness', 'ledBrightnessVal')
+		bindRange('ledTransition', 'ledTransitionVal')
+		bindRange('attractDelay', 'attractDelayVal')
+		bindRange('matrixBrightness', 'matrixBrightnessVal')
+
+		// ═══════════════ BUTTONS ═══════════════
+
+		function ensureButtons() {
+			const n = parseInt($('numLeds').value) || 16
+			const r = parseInt($('refreshRate').value) || 60
+			const coordMap = {}
+			const cols = Math.ceil(Math.sqrt(n))
+			for (let i = 0; i < n; i++) {
+				coordMap[`${i % cols},${Math.floor(i / cols)}`] = i
+			}
+			buttons = new PlasmaButtons(n, { refreshRate: r, coordMap })
+			previewColors = Array.from({ length: n }, () => ({ colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, mode: 'normal', transitionTime: 0 }))
+			selectedLed = 0
+			buildLedGrid()
+			startPreviewLoop()
+		}
+
+		function buildLedGrid() {
+			const grid = $('ledGrid')
+			grid.innerHTML = ''
+			for (let i = 0; i < buttons.numLeds; i++) {
+				const el = document.createElement('div')
+				el.className = 'led' + (i === selectedLed ? ' selected' : '')
+				el.innerHTML = `<span class="led-idx">${i}</span>`
+				el.style.background = '#000'
+				el.addEventListener('click', () => selectLed(i))
+				grid.appendChild(el)
+			}
+		}
+
+		function selectLed(i) {
+			selectedLed = i
+			$('selectedIdx').textContent = i
+			document.querySelectorAll('.led').forEach((el, idx) => el.classList.toggle('selected', idx === i))
+			const p = previewColors[i]
+			$('ledColorTo').value = rgblToHex(p.colorTo)
+			$('ledColorFrom').value = rgblToHex(p.colorFrom)
+			$('ledBrightness').value = p.brightness
+			$('ledBrightnessVal').textContent = p.brightness
+			$('ledMode').value = p.mode
+			$('ledTransition').value = p.transitionTime
+			$('ledTransitionVal').textContent = p.transitionTime
+		}
+
+		function getCurrentLedSettings() {
+			const mode = $('ledMode').value
+			const brightness = parseInt($('ledBrightness').value)
+			const transitionTime = parseFloat($('ledTransition').value)
+			const colorTo = hexToRGBl($('ledColorTo').value, brightness)
+			const colorFrom = hexToRGBl($('ledColorFrom').value, brightness)
+			return { mode, colorTo, colorFrom, brightness, transitionTime }
+		}
+
+		function applyToLed(i, settings) {
+			previewColors[i] = { ...settings }
+			buttons.setLedMode(i, settings.mode, {
+				colorTo: settings.colorTo,
+				colorFrom: settings.colorFrom,
+				transitionTime: settings.transitionTime
+			})
+		}
+
+		$('btnInitButtons').addEventListener('click', () => ensureButtons())
+
+		$('btnApplyLed').addEventListener('click', () => {
+			ensureButtons()
+			applyToLed(selectedLed, getCurrentLedSettings())
+		})
+
+		$('btnSetAll').addEventListener('click', () => {
+			ensureButtons()
+			const s = getCurrentLedSettings()
+			for (let i = 0; i < buttons.numLeds; i++) applyToLed(i, s)
+		})
+
+		$('btnClearAll').addEventListener('click', () => {
+			ensureButtons()
+			const off = { mode: 'normal', colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, transitionTime: 0 }
+			for (let i = 0; i < buttons.numLeds; i++) applyToLed(i, off)
+			buttons.setAllLeds('normal', { colorTo: RGBl(0,0,0,0) })
+		})
+
+		$('attractPattern').addEventListener('change', () => {
+			const sel = $('attractDirection')
+			sel.innerHTML = ''
+			const dirs = {
+				linear: ['left_to_right','right_to_left','top_to_bottom','bottom_to_top'],
+				radial: ['clockwise','anticlockwise'],
+				circular: ['outward','inward']
+			}
+			for (const d of dirs[$('attractPattern').value]) {
+				sel.innerHTML += `<option value="${d}">${d}</option>`
+			}
+		})
+
+		$('btnAttractStart').addEventListener('click', () => {
+			ensureButtons()
+			const brightness = parseInt($('ledBrightness').value)
+			const colorOn = hexToRGBl($('attractColorOn').value, brightness)
+			const colorOff = hexToRGBl($('attractColorOff').value, 0)
+			const delay = parseInt($('attractDelay').value)
+			const pattern = $('attractPattern').value
+			const direction = $('attractDirection').value
+			buttons.startAttractMode([[pattern, { direction, colorOn, colorOff, delay }]])
+		})
+
+		$('btnAttractStop').addEventListener('click', () => {
+			if (buttons) buttons.stopAttractMode()
+		})
+
+		// preview loop
+		function startPreviewLoop() {
+			if (previewRaf) cancelAnimationFrame(previewRaf)
+			const leds = document.querySelectorAll('.led')
+			function loop() {
+				if (!buttons) return
+				const buf = buttons.getPreviewBuffer()
+				leds.forEach((el, i) => {
+					const idx = i * 4
+					const b = buf[idx], g = buf[idx+1], r = buf[idx+2], br = buf[idx+3]
+					const s = Math.max(br / 31, 0.04)
+					el.style.background = `rgb(${Math.round(r*s)},${Math.round(g*s)},${Math.round(b*s)})`
+				})
+				previewRaf = requestAnimationFrame(loop)
+			}
+			previewRaf = requestAnimationFrame(loop)
+		}
+
+		ensureButtons()
+
+		// ═══════════════ MATRIX ═══════════════
+
+		let matrixScale = 8
+		let matrixDrawing = false
+
+		function ensureMatrix() {
+			const display = DISPLAY_MAP[parseInt($('matrixDisplay').value)]
+			const colorOrder = COLOR_ORDERS[$('matrixColorOrder').value]
+			matrix = new LedMatrix({ display, colorOrder })
+			matrixScale = parseInt($('matrixScale').value) || 8
+			initMatrixCanvas()
+		}
+
+		function initMatrixCanvas() {
+			if (!matrix) return
+			const canvas = $('matrixCanvas')
+			canvas.width = matrix.width * matrixScale
+			canvas.height = matrix.height * matrixScale
+			renderMatrixPreview()
+		}
+
+		function renderMatrixPreview() {
+			if (!matrix) return
+			const canvas = $('matrixCanvas')
+			const ctx = canvas.getContext('2d')
+			const s = matrixScale
+			ctx.fillStyle = '#000'
+			ctx.fillRect(0, 0, canvas.width, canvas.height)
+			for (let y = 0; y < matrix.height; y++) {
+				for (let x = 0; x < matrix.width; x++) {
+					const p = matrix.getPixel(x, y)
+					const sc = Math.max(p.brightness / 31, 0)
+					ctx.fillStyle = `rgb(${Math.round(p.red*sc)},${Math.round(p.green*sc)},${Math.round(p.blue*sc)})`
+					ctx.fillRect(x * s, y * s, s, s)
+				}
+			}
+			ctx.strokeStyle = 'rgba(255,255,255,0.06)'
+			ctx.lineWidth = 1
+			for (let x = 0; x <= matrix.width; x++) { ctx.beginPath(); ctx.moveTo(x*s+.5, 0); ctx.lineTo(x*s+.5, canvas.height); ctx.stroke() }
+			for (let y = 0; y <= matrix.height; y++) { ctx.beginPath(); ctx.moveTo(0, y*s+.5); ctx.lineTo(canvas.width, y*s+.5); ctx.stroke() }
+		}
+
+		function matrixCanvasXY(e) {
+			const canvas = $('matrixCanvas')
+			const rect = canvas.getBoundingClientRect()
+			const sx = canvas.width / rect.width
+			const sy = canvas.height / rect.height
+			return [Math.floor((e.clientX - rect.left) * sx / matrixScale), Math.floor((e.clientY - rect.top) * sy / matrixScale)]
+		}
+
+		function paintPixel(e) {
+			if (!matrix) return
+			const [x, y] = matrixCanvasXY(e)
+			if (x < 0 || x >= matrix.width || y < 0 || y >= matrix.height) return
+			const brightness = parseInt($('matrixBrightness').value)
+			matrix.setPixel(x, y, hexToRGBl($('matrixColor').value, brightness))
+			renderMatrixPreview()
+		}
+
+		$('matrixCanvas').addEventListener('mousedown', e => { matrixDrawing = true; paintPixel(e) })
+		$('matrixCanvas').addEventListener('mousemove', e => { if (matrixDrawing) paintPixel(e) })
+		window.addEventListener('mouseup', () => matrixDrawing = false)
+
+		$('btnInitMatrix').addEventListener('click', () => ensureMatrix())
+
+		$('btnFillMatrix').addEventListener('click', () => {
+			ensureMatrix()
+			const brightness = parseInt($('matrixBrightness').value)
+			matrix.fill(hexToRGBl($('matrixColor').value, brightness))
+			renderMatrixPreview()
+		})
+
+		$('btnClearMatrix').addEventListener('click', () => {
+			if (!matrix) ensureMatrix()
+			matrix.clear()
+			renderMatrixPreview()
+		})
+
+		$('btnSendMatrix').addEventListener('click', async () => {
+			if (!matrix) { alert('Initialize matrix first'); return }
+			try { await matrix.writeToDisplay() }
+			catch (e) { console.error('Send failed:', e); alert('Send failed – check connection') }
+		})
+
+		ensureMatrix()
