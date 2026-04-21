@@ -39,10 +39,17 @@ export default class DisplayMediaPipe2D extends Display2D{
 	drawPerson( person, beatJustPlayed, colours, options={} ){
 
 		let prediction = person.data
+
 		// const personOptions = person.options
 		const hue = person.hue
 		const canvasContext = this.canvasContext
-		
+			
+		if (!forceRefresh && !prediction && !person.isPlayingBack)
+		{
+			// nothing to (re)draw so exit here
+			return
+		}	
+
 		// Apply geometry subdivision for denser keypoints if specified
 		const subdivisions = this.options.geometrySubdivisions ?? 0
 		if (subdivisions > 0 && prediction) {
@@ -54,11 +61,8 @@ export default class DisplayMediaPipe2D extends Display2D{
 
 		// console.log("drawPerson", person, {hue, options, colours} )
 
-		if (!forceRefresh && !prediction && !person.isPlayingBack)
-		{
-			// nothing to (re)draw so exit here
-			return
-		}
+		
+
 
 		// FIXME:
 		// if (person.isMouseDown)
@@ -73,7 +77,6 @@ export default class DisplayMediaPipe2D extends Display2D{
 			this.movePersonButton(person, prediction)
 		}
 	
-
 		// NB. assumes screen has been previously cleared	
 		// drawBox( prediction )
 		//drawFace( prediction, options, this.singing, this.isMouthOpen, this.debug )

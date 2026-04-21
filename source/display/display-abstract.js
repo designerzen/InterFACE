@@ -281,7 +281,7 @@ export default class AbstractDisplay{
 
 	drawText( x, y, text, size, align, font, invertColours ){}
 	drawParagraph(x, y,  paragraphh, size, lineHeight, invertColours ){}
-	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1 ){}
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false ){}
 
 	
 	setFilter( filterIndex ){}

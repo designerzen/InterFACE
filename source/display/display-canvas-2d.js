@@ -455,20 +455,24 @@ export default class Display2D extends AbstractDisplay{
 	/**
 	 * 
 	 */
-	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0 , activeCircleIndex=-1, flipX =false ){
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false ){
 		const size = 54
 		// console.info("drawEmoticon", x, y, emoji )
 		drawRotatedText( this.canvasContext, x, y+5, emoji, size, rotationZ, rotationX, rotationY, "center", "noto-emoji", false, flipX )
 	
-		// draw the positions for the actual scales
-		const data = this.getNoteCircleData( x, y, 90, size )
-		if (activeCircleIndex > -1){
-			// draw the active circle
-			data[activeCircleIndex%data.length].radius = 4
+		if (numberOfNotesInKey > 0)
+		{
+			// draw the positions for the actual scales
+			const data = this.getNoteCircleData( x, y, 90, size, numberOfNotesInKey )
+			if (activeCircleIndex > -1){
+				// draw the active circle
+				data[ Math.min(activeCircleIndex,data.length - 1)].radius = 4
+			}
+			drawCircles( this.canvasContext, data, 2, 0, '#fff' )
+			// console.log("drawEmoticon", x, y, emoji, rotationZ, data )
 		}
-		drawCircles( this.canvasContext, data, 2, 0, '#fff' )
-		// console.log("drawEmoticon", x, y, emoji, rotationZ, data )
 	}
+
 
 	/**
 	 * Draws a background for things to overlay

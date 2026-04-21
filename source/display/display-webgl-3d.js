@@ -874,7 +874,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.drawText(x, y, paragraph, undefined, undefined, undefined, invertColours)
 	}
 
-	drawEmoticon( x, y, emoji, rotation=0 ){
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false ){
 		this.drawText(x, y, emoji )
 	}
 

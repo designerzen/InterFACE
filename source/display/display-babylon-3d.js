@@ -388,7 +388,7 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 	/**
 	 * Draw emoticon
 	 */
-	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1) {
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
 		// To be implemented if needed
 	}
 

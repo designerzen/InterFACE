@@ -455,7 +455,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	/**
 	 * Draw emoticon - not implemented for WebGPU
 	 */
-	drawEmoticon(x, y, emoji, rotationZ, rotationY, rotationX, activeCircleIndex, flipX) {
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
 		// To be implemented if needed
 	}
 

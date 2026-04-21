@@ -394,7 +394,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * @param {Number} activeCircleIndex - Index of active note circle (-1 for none)
 	 * @param {Boolean} flipX - Whether to flip the emoticon horizontally
 	 */
-	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, flipX = false) {
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
 
 		const emoticonKey = `${emoji}_${x}_${y}`
 		const emoticonSize = 54
