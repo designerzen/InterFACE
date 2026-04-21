@@ -4,7 +4,19 @@ import {
 	NATURAL_MINOR_SCALE, 
 	HARMONIC_MINOR_SCALE, 
 	MELODIC_MINOR_SCALE,
-	FIFTHS
+	DORIAN_SCALE,
+	PHRYGIAN_SCALE,
+	LYDIAN_SCALE,
+	MIXOLYDIAN_SCALE,
+	LOCRIAN_SCALE,
+	PENTATONIC_MAJOR_SCALE,
+	PENTATONIC_MINOR_SCALE,
+	BLUES_SCALE,
+	WHOLE_TONE_SCALE,
+	DIMINISHED_SCALE,
+	AUGMENTED_SCALE,
+	FIFTHS_SCALE,
+	INTERVAL_LIBRARY
 } from "./scales"
 
 export const createKey = (notes, scale=MAJOR_SCALE, offset=0, mode=0, cutOff=true, accumulate=false) => {
@@ -34,17 +46,41 @@ export const createKey = (notes, scale=MAJOR_SCALE, offset=0, mode=0, cutOff=tru
 
 export const createKeyFromNote = ( mode, scale, offset=0, accumulate=false) => createKey( NOTES_ALPHABETICAL, scale, offset, mode, false, accumulate )
 
+// [ "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"] 
+
+export const SCALE_LIBRARY = new Map() 
+Object.keys(INTERVAL_LIBRARY).forEach( value => {
+	const scale = INTERVAL_LIBRARY[value]
+	NOTES_ALPHABETICAL.forEach((note, i)=>{
+		SCALE_LIBRARY.set( `${note} ${value.replace("_SCALE","")}`, createKeyFromNote( i, scale ) )
+	})
+})
+
 // choose the pattern for playing if not using black / white keys
 // each of these use a root node to specify the starting note
-const mode = 1 // [ "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
-export const MAJOR_SCALE_KEYS = createKeyFromNote( mode, MAJOR_SCALE )
-export const MINOR_SCALE_KEYS = createKeyFromNote( mode, NATURAL_MINOR_SCALE )
+const root = 1 // [ "Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
+export const MAJOR_SCALE_KEYS = createKeyFromNote( root, MAJOR_SCALE )
+export const MINOR_SCALE_KEYS = createKeyFromNote( root, NATURAL_MINOR_SCALE )
 // export const FIFTHS_SCALE_KEYS = createKeyFromNote( mode, FIFTHS, 0, true )
 
 export const HARM_MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, HARMONIC_MINOR_SCALE )
 export const JAZZ_MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MELODIC_MINOR_SCALE )
+
+export const DORIAN_SCALE_KEYS = createKeyFromNote( root, DORIAN_SCALE )
+export const PHRYGIAN_SCALE_KEYS = createKeyFromNote( root, PHRYGIAN_SCALE )
+export const LYDIAN_SCALE_KEYS = createKeyFromNote( root, LYDIAN_SCALE )
+export const MIXOLYDIAN_SCALE_KEYS = createKeyFromNote( root, MIXOLYDIAN_SCALE )
+export const LOCRIAN_SCALE_KEYS = createKeyFromNote( root, LOCRIAN_SCALE )
+
+export const PENTATONIC_MAJOR_SCALE_KEYS = createKeyFromNote( root, PENTATONIC_MAJOR_SCALE )
+export const PENTATONIC_MINOR_SCALE_KEYS = createKeyFromNote( root, PENTATONIC_MINOR_SCALE )
+export const BLUES_SCALE_KEYS = createKeyFromNote( root, BLUES_SCALE )
+export const WHOLE_TONE_SCALE_KEYS = createKeyFromNote( root, WHOLE_TONE_SCALE )
+export const DIMINISHED_SCALE_KEYS = createKeyFromNote( root, DIMINISHED_SCALE )
+export const AUGMENTED_SCALE_KEYS = createKeyFromNote( root, AUGMENTED_SCALE )
+
 // FIXME: the following should output [ "F", "C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#"] if it doesn't alter the arguments until it does
-export const FIFTHS_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, FIFTHS, 9, 0, false, true )
+export const FIFTHS_SCALE_KEYS = createKeyFromNote( 0, FIFTHS_SCALE )
 
 // export const MAJOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MAJOR_SCALE, 0, mode, false )
 // export const MINOR_SCALE_KEYS = createKey( NOTES_ALPHABETICAL, MINOR_SCALE, 0, mode, false )

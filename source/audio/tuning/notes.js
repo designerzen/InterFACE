@@ -9,7 +9,7 @@
 
 import {clamp} from "../../maths/maths"
 import { noteNumberToFrequency } from "./frequencies"
-import { C_MAJOR, MAJOR_SCALE, SOLFEGE_SCALE, makeScaleMode, createScaleModeIntervalsFormula, SCALE_NAMES } from "./scales"
+import { MAJOR_SCALE, SOLFEGE_SCALE, makeScaleMode, createScaleModeIntervalsFormula, SCALE_NAMES } from "./scales"
 
 export const NOTES_ALPHABETICAL = ["Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
 // export const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
@@ -17,6 +17,9 @@ export const NOTES_ALPHABETICAL_FRIENDLY = [ "G#", "A", "A#", "B", "C", "C#", "D
 
 export const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
 export const NOTES_WHITE = ["A", "B", "C", "D", "E", "F", "G" ]
+
+export const NOTES_CIRCLE_OF_FIFTHS_SHARPS =  [ "Bb","Eb", "Ab", "Db", "Gb"]
+export const NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS = ["F", "C", "G", "D", "A", "E", "B" ]
 
 // Do re me fah sol...
 const SOLFEGE_SOUNDS = SCALE_NAMES["solfege"]
@@ -390,22 +393,22 @@ console.log("FREQUENCY_BY_NAME", {FREQUENCY_BY_NAME})
 console.log("FREQUENCY_LIST", {FREQUENCY_LIST})
 console.log("GENERAL_MIDI_BY_NAME", {GENERAL_MIDI_BY_NAME})
 
-const musicalMode = makeScaleMode(C_MAJOR, 4)
-const musicalModeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, 4)
+// const musicalMode = makeScaleMode(C_MAJOR, 4)
+// const musicalModeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, 4)
 
-console.info("PhotoSYNTH:NoteMap", {GENERAL_MIDI_MAP: GENERAL_MIDI_BY_NAME, GENERAL_MIDI_NUMBERS_BY_NAME})
-console.info("PhotoSYNTH:Tuning", { 
-	musicalMode, 
-	musicalModeFormula}, 
-	{
-		NOTE_NAMES, 
-		NOTE_NAMES_FRIENDLY, 
-		MIDI_NOTE_FREQUENCIES, 
-		MIDI_NOTE_NAMES, 
-		MIDI_NOTE_NUMBER_MAP, 
-		GENERAL_MIDI_INSTRUMENTS
-	}
-)
+// console.info("PhotoSYNTH:NoteMap", {GENERAL_MIDI_MAP: GENERAL_MIDI_BY_NAME, GENERAL_MIDI_NUMBERS_BY_NAME})
+// console.info("PhotoSYNTH:Tuning", { 
+// 	musicalMode, 
+// 	musicalModeFormula}, 
+// 	{
+// 		NOTE_NAMES, 
+// 		NOTE_NAMES_FRIENDLY, 
+// 		MIDI_NOTE_FREQUENCIES, 
+// 		MIDI_NOTE_NAMES, 
+// 		MIDI_NOTE_NUMBER_MAP, 
+// 		GENERAL_MIDI_INSTRUMENTS
+// 	}
+// )
 
 // MIDI_NOTE_NAMES.forEach( note => 
 // 	console.error("convertNoteNameToMIDINoteNumber", note, convertNoteNameToMIDINoteNumber(note) , {NOTE_NAMES, NOTE_NAME_MAP, MIDI_NOTE_NAMES} ) 

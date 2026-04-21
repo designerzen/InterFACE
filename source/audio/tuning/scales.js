@@ -78,7 +78,6 @@ export const TUNING_MINOR_NOMENCLATURE = [
 export const getModeAsIntegerOffset = (mode) => isNaN(parseInt(mode)) ? TUNING_MODE_NAMES.indexOf(mode) : mode
   
 export const C_SCALE =  ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-export const C_MAJOR = ["C","D","E","F","G","A","B"]
 
 export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
 export const NATURAL_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]
@@ -99,7 +98,7 @@ export const BLUES_SCALE = [0, 3, 5, 6, 7, 10]
 export const WHOLE_TONE_SCALE = [0, 2, 4, 6, 8, 10]
 export const DIMINISHED_SCALE = [0, 2, 3, 5, 6, 8, 9, 11]
 export const AUGMENTED_SCALE = [0, 3, 4, 7, 8, 11]
-export const FIFTHS = [0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+export const FIFTHS_SCALE = [9,4,11,6,1,8,3,10,5,0,7,2]
 
 export const SCALES = [
 	MAJOR_SCALE,
@@ -116,10 +115,31 @@ export const SCALES = [
 	BLUES_SCALE,
 	WHOLE_TONE_SCALE,
 	DIMINISHED_SCALE,
-	AUGMENTED_SCALE
+	AUGMENTED_SCALE,
+	FIFTHS_SCALE
 ]
 
 export const SCALES_NAMES = Object.keys(SCALES)
+
+
+export const INTERVAL_LIBRARY = {
+	MAJOR_SCALE,
+	NATURAL_MINOR_SCALE,
+	HARMONIC_MINOR_SCALE,
+	MELODIC_MINOR_SCALE,
+	DORIAN_SCALE,
+	PHRYGIAN_SCALE,
+	LYDIAN_SCALE,
+	MIXOLYDIAN_SCALE,
+	LOCRIAN_SCALE,
+	PENTATONIC_MAJOR_SCALE,
+	PENTATONIC_MINOR_SCALE,
+	BLUES_SCALE,
+	WHOLE_TONE_SCALE,
+	DIMINISHED_SCALE,
+	AUGMENTED_SCALE,
+	FIFTHS_SCALE
+}
 
 // inspired by https://www.guitarland.com/MusicTheoryWithToneJS/PlayModes.html
 export const makeScaleMode = (notesInScale, tuningModeIndex) => {
