@@ -53,7 +53,8 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
  import { 
 	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
 	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
-	EVENT_EMOTION_CHANGED, EVENT_EMOTION_UNLOCKED
+	EVENT_EMOTION_CHANGED, EVENT_EMOTION_UNLOCKED,
+	EVENT_USER_MODE_CHANGED
  } from './people/person-event.js'
  
 // TIMING
@@ -71,10 +72,14 @@ import {
 	active, playing, 
 	setupAudio,stopAudio, getVolume, setVolume, getPercussionNode,
 	setReverb,
-	updateByteFrequencyData, updateByteTimeDomainData,
-	bufferLength, dataArray, 
 	getMasterMixdown
 } from './audio/audio.js'
+import { 
+	bufferLength, 
+	dataArray, 
+	setupAnalyser, 
+	updateByteFrequencyData, updateByteTimeDomainData
+} from './audio/audio-visual.js'
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
@@ -259,6 +264,7 @@ export const createInterface = (
 	let audioContext
 	let offlineAudioContext
 	let audioChain
+	let analyser
 
 	let instrumentManager 
 	let instrumentFactory 
@@ -764,64 +770,61 @@ export const createInterface = (
 	 */
 	const createPerson = (index, eyeColour, personIndex=0 ) => {
 			
-		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
-	
-		// const locationOptions = new URLSearchParams(window.location.search)
-		// const locationData = Object.fromEntries(locationOptions)
-		// const name = IDENTIFIERS[index]
-		// const prefix = name + '-'
-		// const locationInstrument= locationData[prefix+'instrument' ]
-		// const locationPreset= locationData[prefix+'preset' ]
-
-		// TODO: Change these per person...
-		const personOptions = { 
-			
-			...defaultOptions,
-
-			dots:eyeColour, 
-			leftEyeIris:eyeColour, 
-			rightEyeIris:eyeColour,
-			// FIXME: should probably use a set hue for consistency...
-			// hue:Math.random() * 360,
-			debug:stateMachine.get('debug'),
-			// FIXME: why is this per person? should always set per screen
-			photoSensitive:stateMachine.get('photoSensitive'),
-
-			instrumentPack:stateMachine.get('instrumentPack'),
-
-			stereoPan:stateMachine.get('stereo'),
-
-			// alternate between mesh and blobs depending on mouth
-			// NB. The two above will override this behaviour
-			// meshOnSing:false,
-			// force draw face mesh
-			// drawMesh:false,
-			// force draw face blob nodes
-			drawMask:stateMachine.get('masks'),
-			// drawNodes:ui.masks,
-			drawEyes:stateMachine.get('eyes'),
-
-			recordData:stateMachine.get('recordData'),
-		}
-
-		// Create our person with the specified options
 		const person = personManager.getPerson(index)
-
-		// Load any saved settings for this specific user name
-		const storageKey = person.storageKey
-		const savedOptions = store.has(storageKey) ? store.getItem(storageKey) : {}
-		const options = Object.assign ( {}, savedOptions, personOptions ) 
-		const savedData = {}
+		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
 
 		// state can contain more data than simple the options!
 		// so let us loop through the stateMachine and extract any person data...
 		// &p1=1
-		const personMeta = stateMachine.get( storageKey )
-		console.info("personMeta", storageKey,personMeta)		
-	
-		// Load in any data set in the URL
-		const importedData = Person.parseDataExport( personMeta )
-		const personData = person.importJSONData( savedOptions )
+		const personData = {}
+		let importedData
+		const savedOptions = store.has(person.storageKey) ? store.getItem(person.storageKey) : {}
+		const personMeta = stateMachine.get( person.storageKey )
+		if (personMeta)
+		{
+			importedData = Person.parseDataExport( personMeta )
+			Object.assign( personData, person.importData( importedData ) )
+			// const personData = person.importJSONData( importedData )
+		}else{
+			console.info("No Saved Setttings for User "+ person.storageKey)
+		}
+		
+		const personOptions = Object.assign({},
+			defaultOptions,
+			{ 
+				dots:eyeColour, 
+				leftEyeIris:eyeColour, 
+				rightEyeIris:eyeColour,
+				// FIXME: should probably use a set hue for consistency...
+				// hue:Math.random() * 360,
+				debug:stateMachine.get('debug'),
+				// FIXME: why is this per person? should always set per screen
+				photoSensitive:stateMachine.get('photoSensitive'),
+
+				tonic:stateMachine.get("key") ?? 0,
+				instrumentPack:stateMachine.get('instrumentPack'),
+
+				stereoPan:stateMachine.get('stereo'),
+
+				// alternate between mesh and blobs depending on mouth
+				// NB. The two above will override this behaviour
+				// meshOnSing:false,
+				// force draw face mesh
+				// drawMesh:false,
+				// force draw face blob nodes
+				drawMask:stateMachine.get('masks'),
+				// drawNodes:ui.masks,
+				drawEyes:stateMachine.get('eyes'),
+
+				recordData:stateMachine.get('recordData')				
+			},
+			
+			// overwrite these with any user set
+			savedOptions,
+			personData
+		)
+		
+		console.info("Person", person.storageKey, { personMeta, importedData, personData} )		
 	
 		// Events dispatched by Person :
 		const markInstrumentProgress = (progress,instrumentName) =>{ 
@@ -870,6 +873,7 @@ export const createInterface = (
 			dispatchEvent(event.type, detail)
 		})
 
+
 		person.addEventListener( EVENT_INSTRUMENT_CHANGED,  (event) => {
 			const {detail} = event.data
 			const { presetIndex, presetName, presetTitle, instrumentPack } = detail
@@ -882,14 +886,10 @@ export const createInterface = (
 			// const cache = store.setItem( presetName, {instrument:presetName })
 			
 			// save this for reloading next time in the URL
-			stateMachine.set( storageKey, personData )
+			stateMachine.set( person.storageKey, personData )
 			
-			const test = stateMachine.get( storageKey )
-			console.error(person.personIndex, "Setting statemachine with person",personData, {person,detail, stateMachine, storageKey, test} )
-
 			dispatchEvent(event.type, detail)
 		})
-
 
 		let preset
 		if (importedData && importedData.preset)
@@ -909,7 +909,7 @@ export const createInterface = (
 			preset = getRandomPresetForPerson(person.personIndex)
 		}
 					
-		console.info("Person "+index+" preference", {storageKey, personMeta, importedData}, {person, index} )
+		console.info("Person "+index+" preference", { personMeta}, {person, index} )
 
 		// console.info("Person created", {preset}, {person})
 
@@ -938,6 +938,15 @@ export const createInterface = (
 				console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
 				console.info(options)
 			}
+		})
+
+		// now watch for any future operating mode changes
+		person.addEventListener( EVENT_USER_MODE_CHANGED, event => {
+			const {detail} = event.data
+			const mode = detail.mode
+			const exportData = person.exportData()
+			console.info("Person", person, exportData )
+			setFeedback( `${person.userModeDesicription}`.toUpperCase(), 0, 'userMode' ) 
 		})
 		
 		//console.error(name, {instrument, person, savedOptions})
@@ -1024,6 +1033,7 @@ export const createInterface = (
 	}
 
 	// AUDIO -----------------------------------------------------------------
+
 
 	/**
 	 * Play Audio for a Person using their current face status
@@ -1696,7 +1706,7 @@ export const createInterface = (
 			if (stateMachine.get("spectrogram"))
 			{
 				// BARS
-				updateByteFrequencyData()
+				updateByteFrequencyData( analyser )
 				display.drawVisualiser( dataArray, bufferLength )
 				if (recorder)
 				{
@@ -1704,7 +1714,7 @@ export const createInterface = (
 				}
 				
 				// Lines
-				// updateByteTimeDomainData()
+				// updateByteTimeDomainData( analyser )
 				// display.drawVisualiser( dataArray, bufferLength, "line" )
 				
 				// global VU
@@ -1809,8 +1819,8 @@ export const createInterface = (
 						// FIXME:
 						// TODO:
 						// prediction, forceRefresh=false
-						const colours = person.draw( prediction, false, hasBeatJustPlayed)
-					
+						const colours = person.setColours( prediction, false, hasBeatJustPlayed)
+					// TODO: Add highlighted and selected variants
 						display.drawPerson( person, hasBeatJustPlayed, colours )
 	
 						if (stateMachine.get("text"))
@@ -2622,7 +2632,9 @@ export const createInterface = (
 				drumVolume:0.18
 			}
 			
-			audioChain = await setupAudio( audioContext, offlineAudioContext, AUDIO_OPTIONS )
+			// VU Analyser and data
+			analyser = setupAnalyser(audioContext, AUDIO_OPTIONS)
+			audioChain = await setupAudio( audioContext, offlineAudioContext, analyser, AUDIO_OPTIONS )
 			
 			// audio worklet tests!
 			// NB. run only once per app to load  audio

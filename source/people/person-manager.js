@@ -322,7 +322,7 @@ export class PersonManager extends EventTarget{
 	}
 	
 	unhighlightPeople(){
-		this.highlightPerson()
+		this.highlightPerson( -1 )
 	}
 
 

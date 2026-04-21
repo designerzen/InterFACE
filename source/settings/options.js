@@ -251,7 +251,7 @@ export const DEFAULT_OPTIONS = {
 	qr:false,
 
 	// send out the clock to other tabs and windows
-	broadcast:true,
+	broadcast:false,
 
 	// if we want our tempo and clock to be shared with other
 	// devices, we can set them here to all use webRTC to share data
@@ -267,14 +267,10 @@ export const DEFAULT_OPTIONS = {
 	// what theme to show on screen
 	theme:"theme-default",
 
-	// TODO: sample set
 	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
-	// instrumentPacks:[
-	// 	INSTRUMENT_PACK_OPEN_SF,
-	// 	// INSTRUMENT_PACK_FATBOY,
-	// 	// INSTRUMENT_PACK_FM, 
-	// 	// INSTRUMENT_PACK_MUSYNGKITE
-	// ].join(","),
+
+	// musical key such as F sharp
+	key:0,
 
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false

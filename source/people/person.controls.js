@@ -20,7 +20,7 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 	// const newOctave = rangeRounded( octaveNumber , -1, 1, 1, 7 )
 
 	// simple way of selecting the black notes
-	const isMinor = prediction[ options.minorController ]
+	const isSharp = prediction[ options.sharpController ]
 	
 	// console.info(noteNumber, noteFloat, "-> ? ", octaveNumber, "->", newOctave, {isMinor} )
 
@@ -42,7 +42,7 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 		newOctave,
 		afterTouch,
 		pitchBend,
-		isMinor
+		isSharp
 	}
 }
 
@@ -68,7 +68,7 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 // 	const newOctave = rangeRounded( -octaveNumber , -1, 1, 1, 7 )
 
 // 	// simple way of selecting the black notes
-// 	const isMinor = prediction[options.minorController ]
+// 	const isMinor = prediction[options.sharpController ]
 
 // 	// eg. A1 Ab1 C3 etc
 // 	const noteName = getNoteName(noteFloat, newOctave, isMinor)
@@ -82,7 +82,7 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 // 		octaveNumber, newOctave,
 // 		noteNumber,
 // 		afterTouch,	pitchBend,
-// 		isMinor
+// 		isSharp
 // 	}
 // }
 
@@ -101,7 +101,7 @@ const HEAD_ROLL_TO_SCALE_AND_PITCH_TO_OCTAVE_AND_YAW_TO_PITCH = {
 	gateController:'mouth',
 	pitchbendController:'eyebrowsRaisedBy',
 	aftertouchController:'rightSmirk',
-	minorController:'isFacingRight'
+	sharpController:'isFacingRight'
 }
 
 export const convertHeadRollToScaleAndPitchToOctaveAndYawToPitch = (prediction) => {
@@ -123,7 +123,7 @@ const HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH = {
 	gateController:'mouth',
 	pitchbendController:'eyebrowsRaisedBy',
 	aftertouchController:'leftSmirk',
-	minorController:'isFacingRight' // 'eyebrowsRaisedBy',
+	sharpController:'isFacingRight' // 'eyebrowsRaisedBy',
 }
 export const convertHeadRollToOctaveAndPitchToScaleAndYawToPitch = (prediction) => {
 	return convertHeadOrientationIntoNoteData(prediction, HEAD_ROLL_TO_OCTAVE_AND_PITCH_TO_SCALE_AND_YAW_TO_PITCH) 

@@ -57,7 +57,7 @@ import InstrumentManager from '../audio/instrument-manager.js'
 
 // Notes, scales and keys
 import Arpeggio from '../audio/arpeggio.js'
-import { createKey, FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from '../audio/tuning/keys.js'
+import { createKey } from '../audio/tuning/keys.js'
 import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from '../audio/tuning/chords.js'
 import { 
 	convertNoteNameToMIDINoteNumber, 
@@ -195,6 +195,7 @@ export default class Person extends EventTarget{
 
 	// 
 	type = PERSON_TYPE_ARPEGGIO
+	// inputMode
 	#userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
 
 	// Flags
@@ -206,6 +207,7 @@ export default class Person extends EventTarget{
 	isMouthOpen = false
 	isLeftEyeOpen = true
 	isRightEyeOpen = true
+	isSharp = false
 
 	// is the user moving around
 	isUserActive = true
@@ -242,9 +244,9 @@ export default class Person extends EventTarget{
 	tracks = 0
 	octave = 4
 
-	// MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS
 	leftFacingKeys
 	rightFacingKeys
+	quantityOfPlayableNotes = 0
 
 	pitchBendValue = 1
 
@@ -315,13 +317,16 @@ export default class Person extends EventTarget{
 
 	personalProgress
 	
-
 	get userMode(){
 		return this.#userMode
 	}
 	
 	get userModeData(){
-		return PERSON_TYPE_DATA[ this.#userMode ]
+		return PERSON_TYPE_DATA[ this.#userMode % PERSON_TYPE_DATA.length ]
+	}
+
+	get userModeDesicription(){
+		return this.userModeData.description
 	}
 
 	/**
@@ -538,6 +543,7 @@ export default class Person extends EventTarget{
 		return performance.now()
 	}
 
+
 	/**
 	 * Is this person alive or dead
 	 */
@@ -662,7 +668,8 @@ export default class Person extends EventTarget{
 	 */
 	set userMode( mode ){
 		this.#userMode = mode
-		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode} )
+		this.options.inputMode = mode
+		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode, person:this} )
 	}
 
 	/**
@@ -697,7 +704,6 @@ export default class Person extends EventTarget{
 		{
 			this.importJSONData(saveData)	
 		}
-
 		this.create()
 		//console.log("Created new person", this, "connecting to", destinationNode )
 	}
@@ -727,6 +733,14 @@ export default class Person extends EventTarget{
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
+
+		// if there is a specific usermode specified in the URL or store for example 
+		if (this.options.inputMode > -1)
+		{
+			this.userMode = this.options.inputMode
+		}else{
+			this.userMode = this.playerNumber
+		}
 
 		// PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
 		// default props
@@ -765,8 +779,6 @@ export default class Person extends EventTarget{
 
 
 			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
-
-
 			this.instrumentLoadedAt = this.now
 		
 		}else{
@@ -866,6 +878,14 @@ export default class Person extends EventTarget{
 		this.hueRange = options.hueRange //&& 360
 		this.defaultHue = options.hue ?? Math.random() * this.hueRange
 		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
+	}
+
+	/**
+	 * Always return a 0->1 value that 
+	 * @param {number} rate 
+	 */
+	getPhase(rate=1){
+		return 0.1 * Math.floor(performance.now() / (10 ** (rate - 1))) % 10
 	}
 
 	/**
@@ -1148,7 +1168,7 @@ export default class Person extends EventTarget{
 	 * @param {Boolean} forceRefresh forces the redraw regardless of other settings
 	 * @param {Boolean} beatJustPlayed has the metronome just ticked?
 	 */
-	draw(prediction, forceRefresh=false, beatJustPlayed=false){
+	setColours(prediction, forceRefresh=false, beatJustPlayed=false){
 		
 		if (!forceRefresh && !prediction && !this.prediction && !this.isPlayingBack)
 		{
@@ -1167,22 +1187,31 @@ export default class Person extends EventTarget{
 		// this.areEyesOpen 
 
 		// allows us to use the metronome to shape the colours
-		const saturation = options.saturation
+		const saturation = options.saturation + (this.isMouseOver ? 50 : 0)
 
 		// Extra luminosity on beat just played
 		const luminosity = options.luminosity + (beatJustPlayed ? 33 : 0)
 		
-		// update colours...
+		//console.log( this.getPhase( 1 ), this.getPhase( 2 ), this.getPhase( 3 ), this.getPhase( 4 ))
+	
 		const sl = `${saturation}%, ${luminosity}%`
+		
+		// And we phase alpha if we are selcted
+		const alpha = 
+			this.isMouseOver ? this.getPhase( 4 ) : 
+			this.isHighlighted ? this.getPhase( 3 ) : 
+			this.isSelected ? 1 : 
+			0.1 * (1-this.percentageDead)
+		
 		// const col = 
 		// options.dots = hue
 		// options.face = `hsla(${hue},${sl},0.8)`
-		options.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${0.1 * (1-this.percentageDead)})`
+		options.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
 		// createHSLA(hue+30, saturation, luminosity, Math.min( 0.2, 0.2 * this.percentageDead) ) 
 		// options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
 		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.2)`
-		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl},1)`
-		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},1)`
+		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl}0.9)`
+		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},0.9)`
 		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
 		options.leftEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
 		options.rightEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
@@ -1296,7 +1325,7 @@ export default class Person extends EventTarget{
 				
 				// No mouse held
 				display.drawInstrument( textX, textY, instrumentTitle, "", 14)
-				display.drawParagraph(textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose instrument'], 12 )		
+				display.drawParagraph( textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose instrument'], 12 )		
 				// display.drawParagraph( xMax, textY + 40, [`Tap to select a random one`], '9px' )		
 				// display.drawInstrument(textX, textY + 24, "Press & Hold", "", '28px' )
 				// display.drawInstrument(textX - 10, textY + 24, "to choose instrument", "", '28px' )
@@ -1335,6 +1364,7 @@ export default class Person extends EventTarget{
 			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
 			const arpeggiated = this.activeInstrument ? this.activeInstrument.arpeggiate : false
 			const activeNoteNumbers = []
+
 			
 			let notesPlaying = 0
 			let extra = this.isLoading ? "Loading..." : ""
@@ -1357,6 +1387,13 @@ export default class Person extends EventTarget{
 
 			const personData = this.userModeData
 			let style = personData.name
+
+			
+			// TODO: highlight and select 
+			this.isSelected
+			this.isHighlighted
+
+			// TODO: This
 		
 			// 
 			const textNotePlaying = this.singing ? 
@@ -1377,13 +1414,14 @@ export default class Person extends EventTarget{
 			const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
 			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
 	
+			// flash if selected?
 			display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
 			// display.drawInstrument(textX, textY - 70, `${this.userModeDescription}`, this.isHighlighted ? "*" : "", 9 )			
 			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 			
 			// at the bottom of the text we draw the smiley
 			// draw emoticon but we move it up and down when it looks up and down too
-			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, false )
+			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, false )
 		
 			if (this.options.musicTheory)
 			{
@@ -1398,7 +1436,7 @@ export default class Person extends EventTarget{
 				
 				// draw our notes
 				activeNoteNumbers.forEach( (noteName, i) => {
-					const noteIndex = noteName%12
+					const noteIndex = noteName%this.quantityOfPlayableNotes
 					display.drawText( textX + i * 6, notesY + 12 * noteIndex, NOTATION[noteIndex], fontSizeNotation )
 					// display.drawText( textX + i * 14, textY - 14 * noteIndex, NOTATION[noteIndex], fontSizeNotation, "center", "noto-music'" )
 				})
@@ -1410,7 +1448,7 @@ export default class Person extends EventTarget{
 						
 				const noteText = activeNoteNumbers.map( (noteNumber, i) => {
 					return MIDI_NOTE_FRIENDLY_NAMES[noteNumber]
-				}).join(", ")
+				}).join(", ") + ' ♫'
 			
 				// Left Side Note
 				display.drawText(textX, textY - 25, noteText, 18 )
@@ -1514,7 +1552,7 @@ export default class Person extends EventTarget{
 		{
 			return DEFAULT_VOICE_OPTIONS
 		}
-
+	
 		// only change the note if not active?
 		// if (active)
 		// {
@@ -1544,9 +1582,17 @@ export default class Person extends EventTarget{
 		// const rollRaw = clamp((prediction.roll + 0.5) * this.options.rollSensitivity, 0, 1)
 		
 		const noteData = this.controlMode(prediction, this.options)
-		const { afterTouch, pitchBend, isMinor } = noteData
+		const { afterTouch, pitchBend, isSharp } = noteData
 		let { octaveNumber, newOctave, noteNumber} = noteData
 
+		this.isSharp = isSharp
+		this.quantityOfPlayableNotes = isSharp ? this.leftFacingKeys.length : this.rightFacingKeys.length
+		
+		// the shared root note of our music is :
+		// this.options.tonic
+		// person.options.tonic
+		// 
+		
 		// console.info("note:", noteData)
 
 
@@ -1560,7 +1606,7 @@ export default class Person extends EventTarget{
 
 		// eg. A1 Ab1 C3 etc
 		// if we want a circle-of-fifths style we can use the scales here
-		let noteName = getNoteNameFromPercentage(noteFloat, newOctave, isMinor, this.leftFacingKeys, this.rightFacingKeys )
+		let noteName = getNoteNameFromPercentage(noteFloat, newOctave, isSharp, this.leftFacingKeys, this.rightFacingKeys )
 
 		// MIDI Note Number 0-127
 		let noteNumberForMIDI = convertNoteNameToMIDINoteNumber(noteName)
@@ -1586,9 +1632,9 @@ export default class Person extends EventTarget{
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
 		// save position on the keyboard for visual purposes ONLY
-		this.noteIndex = Math.round(noteFloat * 12)
+		this.noteIndex = Math.round(noteFloat * this.quantityOfPlayableNotes)
 
-		// console.info( "noteData", {noteFloat, noteSou nd, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, hasNoteChanged }, this.pitchBendValue )
+		// console.info( "noteData", {noteFloat, noteSou nd, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, hasNoteChanged }, this.pitchBendValue )
 		
 /*
 		// swap em arounnd!??
@@ -1616,14 +1662,14 @@ export default class Person extends EventTarget{
 		{
 			// update the arpeggio
 			// this.arpeggio.tonic = noteNumber
-			const forumla = isMinor ? MINOR_CHORD_INTERVALS : MAJOR_CHORD_INTERVALS
+			const forumla = isSharp ? MINOR_CHORD_INTERVALS : MAJOR_CHORD_INTERVALS
 			const mode = 0
 
 			this.arpeggio.setAllParameters( noteNumberForMIDI, forumla, mode )
 
 			//console.info("useArpeggio", this.arpeggio.sequence, {noteNumberForMIDI, forumla, mode, noteName}, this.lastNote , noteNumber )
 
-			// const noteName = getNoteName(noteFloat, newOctave, isMinor, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS)
+			// const noteName = getNoteName(noteFloat, newOctave, isMinor)
 			// // eg. Do Re Mi
 			// const noteSound = getNoteSound(noteFloat, isMinor)	
 			// // remap -1 -> +1 to 0 -> 1
@@ -2561,12 +2607,16 @@ export default class Person extends EventTarget{
 		// part [0] is always PresetIndex
 		// part [1] is always instrumentType
 		// part [2] is always userMode but may be null or NaN
-		console.error( "parseDataExport", {data, parts} )
-		return {
+		
+		const shape = {
 			preset: parseInt(parts[0]) ?? 12,
 			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
 			userMode: parseInt(parts[2] ?? -1)
 		}
+				
+		console.error( "parseDataExport", {data, parts, shape} )
+
+		return shape
 	}
 
 	/**
@@ -2576,12 +2626,18 @@ export default class Person extends EventTarget{
 	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	createDataExport( presetIndex, instrumentType=undefined, userMode=undefined ){
+	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined ){
 		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
 	}
 
 	exportData(){
-		return this.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode )
+		return Person.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode )
+	}
+
+	importData( data ){
+		this.options.defaultPreset = data.preset
+		this.options.defaultInstrument = data.instrumentType
+		this.userMode = data.userMode
 	}
 
 	/**
@@ -2592,16 +2648,10 @@ export default class Person extends EventTarget{
 	 */
 	importJSONData( data, prefix='' ){
 
-		// convert data.... can be string or object
-		if (typeof data === 'string')
-		{
-			data = JSON.parse(data)
+		if (!data){
+			throw Error("No data provided for Person to import")
 		}
 		
-		prefix = prefix.length > 0 ? 
-			prefix+'-' : 
-			this.id+'-'
-
 		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
 		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
 		// which instrument preset to load?

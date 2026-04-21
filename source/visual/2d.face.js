@@ -88,7 +88,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 					drawingUtils.drawConnectors(
 						landmarks,
 						FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-						{ color, lineWidth: 1 }
+						{ color:options.mouthClosed , lineWidth: 1 }
 					)
 					
 				} else if(person.isMouthOpen) {

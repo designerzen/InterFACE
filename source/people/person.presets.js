@@ -1,5 +1,5 @@
-import { FIFTHS_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from "../audio/tuning/keys.js"
-import { NOTES_BLACK, NOTES_WHITE } from "../audio/tuning/notes.js"
+import { SCALE_LIBRARY } from "../audio/tuning/keys.js"
+import { NOTES_BLACK, NOTES_WHITE, NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS, NOTES_CIRCLE_OF_FIFTHS_SHARPS } from "../audio/tuning/notes.js"
 
 // varieties of users (tie them into PlayerNumbers)
 export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 0
@@ -13,8 +13,8 @@ export const PERSON_TYPE_DATA = [
 		name:"〇",
 		description:"Sympathetic Circle of Fifths",
 		arpeggiate:false,
-		leftFacingKeys:FIFTHS_SCALE_KEYS,
-		rightFacingKeys:FIFTHS_SCALE_KEYS,
+		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
+		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS,
 	},
 	{
 		name:"12",
@@ -27,15 +27,15 @@ export const PERSON_TYPE_DATA = [
 		name:"𝆃",
 		description:"Arpeggio",
 		arpeggiate:true,
-		leftFacingKeys:MAJOR_SCALE_KEYS,
-		rightFacingKeys:MINOR_SCALE_KEYS,
+		leftFacingKeys:SCALE_LIBRARY.get("C MAJOR"),
+		rightFacingKeys:SCALE_LIBRARY.get("C MINOR"),
 	},
 	{
 		name:"⯂",
 		description:"Arpeggio Circle of Fifths",
 		arpeggiate:true,
-		leftFacingKeys:FIFTHS_SCALE_KEYS,
-		rightFacingKeys:FIFTHS_SCALE_KEYS,
+		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
+		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS
 	}
 ]
 

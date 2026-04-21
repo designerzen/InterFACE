@@ -47,8 +47,15 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// saved BPM that can be shared
 	bpm:90,
 
+	// -1 means that the person index will be used to decide
+	inputMode:-1,
+
 	// scale is confusing as it can mean visual audio or physical
 	tuning:TUNING_MODE_NAMES[0],
+
+	// musical for example F MAjorroot note
+	// F (C=0, CΓÖ»=1, D=2, DΓÖ»=3, E=4, F=5)
+	tonic:0,
 
 	// add a dynamic comp
 	// limiter:true,
@@ -80,7 +87,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	pitchbendController:'leftSmirk',
 	aftertouchController:'rightSmirk',
 	// minorController:'eyebrowsRaisedBy',
-	minorController:'isFacingRight',
+	sharpController:'isFacingRight',
 
 	stereoController:'eyesHorizontal',
 	// eyeSquintLeft, leftSmirk, rightSmirk, 
