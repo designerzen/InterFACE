@@ -39,11 +39,11 @@
 		gap: 0 var(--pad);
 		grid-area: heading;
 		grid-template-areas: 
-			"logo space"
-			"logo headline"
-			"logo tagline";
+			"space logo"
+			"headline logo"
+			"tagline logo";
 
-		grid-template-columns: auto 1fr;
+		grid-template-columns: 1fr auto ;
 		grid-template-rows: 
 			26% 
 			min-content 

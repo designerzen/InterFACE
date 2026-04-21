@@ -123,7 +123,7 @@ input[type="checkbox" i].toggle{
 input[type="checkbox" i][role="switch" i],
 input[type="checkbox" i].switch{
 
-	--button-border-size:2px;
+	--button-border-size:3px;
 	--width:100%;
 	--col-top:var(--shade-brand, var(--shade-red, red));
 	--col-bottom:var(--shade-grey);
@@ -140,6 +140,9 @@ input[type="checkbox" i].switch{
 	//background:linear-gradient( $col-green, $col-gray );
 	background:var(--shade-grey) linear-gradient( to right, rgba(palette.$col-grey, 0.5), rgba( palette.$col-cream, 0.5) );
 	//min-width:var(--width);
+	min-height: 44px;
+	width: 100%;
+	max-width: 42ch;
 	position: relative;
 	box-sizing: border-box;
 	border-radius:99px;	
@@ -168,16 +171,16 @@ input[type="checkbox" i].switch{
 		align-items: center;
 		justify-content: center;
 		// content:'SIMPLE';
-		content:'🧸';
-		font-family:"noto-emoji";
+		content:'OFF';
+		font-family: inherit;
 		@extend %drop-shadow;
 		color: var(--shade-white);
 
-		
-		left:0;
 		height:100%;
+		box-sizing: content-box;
+		top: calc(var(--button-border-size, 2px) * -1 );
+		left: calc(var(--button-border-size, 2px) * -1 );
 		text-align: center;
-		top:0;
 		width:calc( var(--width) / 2 );
 		//margin-left:calc( -1 * var(--width) / 4 );
 		z-index: 1;
@@ -193,12 +196,15 @@ input[type="checkbox" i].switch{
 
 	// just shows the type in the switch space
 	&:after{
-		content:'COMPLEX';
+		content:'ON';
+		font-family: inherit;
 		mix-blend-mode: normal;
 		right:calc( var(--pad) * 2);
 		left:auto;
+		opacity: 80%;
+		mix-blend-mode: color-burn;
 		padding-top:4px;
-		animation:Fade var(--time-quick) 0.2s 1 both;
+		animation:Fade var(--time-slow) 0.2s 1 both;
 	}
 
 	&:checked{
@@ -210,16 +216,15 @@ input[type="checkbox" i].switch{
 		// 
 		&:before{
 			// content:'COMPLEX';
-			content:'🤓';
+			content:'ON';
 			//border-color:$col-cream;
 			transform: translateX(100%);
 			// background-image:linear-gradient($col-tan, var(--shade-red));
 		}
 		&:after{
-			content:'SIMPLE';
+			content:'OFF';
 			left:calc( var(--pad) * 2);
 			right:auto;
-			animation:Fader var(--time-quick) 0.2s 1 both;
 		}
 	
 	}

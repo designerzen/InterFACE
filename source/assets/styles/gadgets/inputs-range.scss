@@ -1,10 +1,7 @@
 // RANGE SLIDERS AND DIALS! ----------------------------
 $track-w: 4.5em;
-
-$track-h: .75em;
-
+$track-h: .75rem;
 $thumb-d: 44px;
-
 
 // NB. The only required properties for the track are the height and background.
 @mixin track() {
@@ -41,13 +38,15 @@ $thumb-d: 44px;
 	// use the following formula and apply it to the margin-top property:
 	// margin-top = (track height in pixels / 2) - (thumb height in pixels /2)
 	@if $o > 0 {
-		margin-top: calc(( #{ $thumb-d} + #{$track-h}) / -2 );
+		transform: translateY( calc(-50% + 6px) );
+		// margin-top: calc(( #{ $thumb-d} + #{$track-h}) / -2 );
 	}
 
 	width: $thumb-d;
 	// height: max( 100%, $thumb-d );
 	// height: $thumb-h;
 	height: calc( #{ $thumb-d} + #{$track-h} );
+	// height: calc( #{ $thumb-d} + #{$track-h} );
 	
 	// outline it!
 	// box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
@@ -78,6 +77,10 @@ $thumb-d: 44px;
 	
 	border:2px solid var(--shade-dark);
 	border-radius:1px;
+
+	&:focus {
+		border-color:colo-mix(var(--share-accent, yellow), transparent 80%) ;
+	}
 }
 
 @mixin vertical-thumb($o: 0) {
@@ -207,8 +210,7 @@ input[type="range" i] {
 
 	&:focus {
 		outline: none;
-		border:0;
-		color: var(--col-accent, red);
+		color: var(--col-accent, yellow);
 		
 		&::-webkit-slider-thumb {
 			@include thumb-focus;

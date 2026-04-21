@@ -404,40 +404,11 @@ label[for="button-quartet"],
 #complexity-selector{
     --border-size: clamp(3px, 20vmax, 4px);
 	grid-area:complexitySelector;
-	display: grid;
-	gap: var(--pad);
-	grid-template-areas: 
-			"legend legend legend"
-			"label label label"
-			"output output output"
-		;
-
-	@media  screen and (min-width:480px) {
-		grid-template-areas: 
-			"legend legend legend"
-			"labelStart label labelEnd"
-			"output output output"
-		;
-
-		grid-template-columns:minmax(44px,0.5fr) 1fr minmax(44px,0.5fr);
-	}
-
-	
-	@media screen and (min-width:980px) {
-		
-		grid-template-areas: 
-			"legend legend legend legend legend"
-			"label label label gap output"
-			"labelStart labelMid labelEnd gap output"
-		;
-
-		grid-template-columns:auto 1fr auto var(--pad,0px) 1fr;
-	}
+	display: block;
 }
 
-
 #toggle-advanced-mode{
-	grid-area: label;
+	
 }
 
 #advanced-mode-feedback{
@@ -463,15 +434,6 @@ label[for="button-quartet"],
 @media screen and (min-width:480px) {
 	// toggle in the middle!
 	#toggle-advanced-mode{
-		// grid-column-start: label;
-		// grid-column-end: label;
-		// grid-row-start: label;
-		// grid-row-end: label;
-		grid-area:label;
-		margin-left: var(--pad);
-		margin-right: var(--pad);
-		box-sizing: border-box;
-		width: calc(100% - 2 * var(--pad));
 	}
 	
 	#advanced-mode-feedback p{
@@ -487,135 +449,31 @@ label[for="toggle-advanced-mode"]{
 	
 	// margin-bottom:var(--pad);	
 	// border-bottom:1px solid var(--shade-white);
-	grid-template-columns: inherit;
-	grid-template-areas: 
-		"label label"	
-		"off on"
-	;
-	grid-area:label; 
+	
 	// align-self: center;
 	// vertical-align: middle;
-	display: grid;
-	align-items: center;
-	width: 100%;
-	flex-basis: 100%;
-	justify-content: stretch;
-	text-align: center;
-
-	// grid-template-rows:1fr;
-	gap: var(--pad);
-	margin:auto ;
-	max-width: none;
-
-	color:transparent;
-
-	&::before{
-		content:"";
-		// order:1;
-		// max-width: calc(33% - var(--pad));
-		grid-area:off;
-		opacity:0.5;
-		text-align: right;
-		animation: none;
-		color:var(--shade-white);
-	}
-
-	// DEFAULT SELECTION
-	&::after{
-		--opacity:0.8;
-		content:"";
-		// max-width: calc(33% - var(--pad));
-		grid-area:on;
-		z-index:1;
-		opacity:1;
-		background:transparent;
-		// order:2;
-		position: relative;
-		top:auto;
-		left: auto;
-		bottom:auto;
-		right:auto;
-		transform: none;
-		color:var(--shade-white);
-	}
-
-	@media screen and (min-width:480px) {
-
-		grid-area:auto; 
-		grid-column-start: labelStart;
-		grid-column-end: labelEnd;
-		grid-row-start: labelStart;
-		grid-row-end: labelEnd;
-		
-		// gives us 44px with text inside
-		padding: 9px;
-		padding-left: 0;
-		padding-right: 0;
-		grid-template-columns: inherit;
-		grid-template-areas: 
-			"off label on"
-		;
-
-		&::before{
-			content:"For Beginners";
-		}
-
-		&::after{
-			content:"For Experts";
-			text-align: left;
-		}
-
-		input{	
-			margin:auto var(--pad);
-		}
-	}
-
-	@media screen and (min-width:920px) {
-		grid-template-columns: 1fr var(--pad) 1fr;
-		color:transparent;
-		font-size:10%;
-		padding-top:0;
-
-		&::before{
-			text-align: left;
-			color:var(--shade-white);
-			font-size:900%;
-		}
-
-		&::after{
-			text-align: right;
-			color:var(--shade-white);
-			font-size:900%;
-		}
-	}
+	display: inline-block;
+	// margin:auto ;
+	// max-width: none;
+	// color:transparent;
 }
 
 label[for="toggle-automation-mode"]{
-	color:var(--shade-dark);
-	grid-area:automation; 
-	background-color: var(--shade-white,white);
-	border-radius: 0px 0 var(--curve,24px) var(--curve,24px);
-	justify-self: center;
-	
 	padding:calc(var(--pad) * 1) calc(var(--pad) * 1);
-	margin-bottom:var(--pad,0);
-	font-size:60%;
-	
-	@media  screen and (min-width:320px) {
-		max-width: calc(100% - var(--pad) * 2);
-	}
-	@media  screen and (min-width:480px) {
-		max-width: 66%;
-		font-size:100%;
-		padding:calc(var(--pad) * 1) calc(var(--pad) * 3);
-	}
 }
 
 // START BUTTON ================================================================================
 
 // set this up as a background!
+#onboard label[for="button-start"]{
+	--col-stroke:var(--shade-active);
+	--bg:url(/source/assets/icons/person-24px.svg);
+	// &:before{
+	// 	content:'Solo ';
+	// }
+}
+
 #button-start{
-	
 	// --bg:inherit;
 	// --icon-size: 44px;
 	// // --inset:calc( var(--pad) * 0.5 );
@@ -636,7 +494,9 @@ label[for="toggle-automation-mode"]{
 	margin: 0;
 	border: 0;
 	min-height: unset;
+
 }
+
 
 /////////////////////////////////////////////////////
 // CTA to begin the app...
