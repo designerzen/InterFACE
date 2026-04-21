@@ -19,6 +19,8 @@ block tagline
 block main 
 	main#news
 
+		photosynth-hero
+
 		section
 			//- MIT
 			details 
@@ -35,7 +37,9 @@ block main
 		a.roadmap(href="roadmap.pug" target="_blank") Roadmap
 
 block scripts
-	script(type="text/javascript").
+	script(type="module").
+		import '@justinribeiro/lite-youtube'
+		import './web-components/photosynth-hero'
 		
 block styles
 	style.

@@ -7,7 +7,7 @@ const CSS = `
 photosynth-hero {
 	color: var(--color, currentColor);
 	--mixer: black;
-	--poster-bg: color-mix(currentColor, var(--mixer) 50%);
+	--bg: color-mix(currentColor, var(--mixer) 50%);
 	--stroke: color-mix(currentColor, var(--mixer) 50%);
 	--duration: 1s;
 	--overlap: 0.25;
@@ -17,11 +17,11 @@ photosynth-hero {
 		--mixer: white;
 	}
 
-	& a {
+	a {
 		text-decoration: none;
 	}
 
-	& figure {
+	figure {
 		display: grid;
 		place-items: center;
 		max-height: 100vh;
@@ -41,7 +41,7 @@ photosynth-hero {
 		}
 	}
 
-	& svg {
+	svg {
 		width: 100%;
 		height: 100%;
 
@@ -54,14 +54,14 @@ photosynth-hero {
 		}
 	}
 
-	& canvas {
+	canvas {
 		z-index: -2;
 	}
 
-	& .poster-wallpaper {
+	& .wallpaper {
 		--duration: 1s;
 		--overlap: 0.87;
-		background-color: var(--poster-bg);
+		background-color: var(--bg);
 		max-width: none;
 		width: auto;
 		height: 100vh;
@@ -74,7 +74,7 @@ photosynth-hero {
 		top: 0;
 	}
 
-	& .poster-wallpaper-path {
+	& .wallpaper-path {
 		fill: currentColor;
 		stroke: var(--stroke);
 		stroke-width: 1px;
@@ -84,21 +84,22 @@ photosynth-hero {
 			RainbowColor calc(3 * var(--duration, 1s)) linear var(--delay, 0s) infinite both;
 	}
 
-	& .poster-bg {
+	& .bg {
 		fill: currentColor;
-		opacity: 0.1;
+		opacity: 0.3;
+        filter: invert(1) brightness(2.5);
 	}
 
-	& .poster-details {
+	& .details {
 		max-height: 100vh;
 		z-index :1;
 	}
 
-	& .poster-content {
+	& .content {
 		padding: 3%;
 	}
 
-	& .poster-text {
+	& .texts {
 		filter: url(#filter-threshold) blur(0.6px);
 
 		& text {
@@ -113,10 +114,11 @@ photosynth-hero {
 		}
 	}
 
-	& .poster-overlay {
+	& .overlay {
 		z-index: 3;
 		position: relative;
 		width: 100%;
+		overflow:visible;
 	}
 
 	& .mouth {
@@ -127,7 +129,7 @@ photosynth-hero {
 		pointer-events: none;
 	}
 
-	& .poster-instructions {
+	& .instructions {
 		--y: 11px;
 		position: absolute;
 		bottom: 9%;
@@ -159,25 +161,25 @@ photosynth-hero {
 }
 
 [data-key="A"], [data-key="A#"] {
-	--col-accent: var(--col-orange);
+	--col-accent: var(--col-orange, orange);
 }
 [data-key="B"] {
-	--col-accent: var(--col-red);
+	--col-accent: var(--col-red, red);
 }
 [data-key="C"], [data-key="C#"] {
-	--col-accent: var(--col-plum);
+	--col-accent: var(--col-plum, purple);
 }
 [data-key="D"], [data-key="D#"] {
-	--col-accent: var(--col-pink);
+	--col-accent: var(--col-pink, hotpink);
 }
 [data-key="E"] {
-	--col-accent: var(--col-purple);
+	--col-accent: var(--col-purple, purple);
 }
 [data-key="F"], [data-key="F#"] {
-	--col-accent: var(--col-blue);
+	--col-accent: var(--col-blue,blue);
 }
 [data-key="G"], [data-key="G#"] {
-	--col-accent: var(--col-green);
+	--col-accent: var(--col-green, green);
 }
 
 .overlaid-notes {
@@ -222,6 +224,7 @@ photosynth-hero {
 
 .note-animated {
 	--size: 44px;
+	opacity: 0;
 	position: absolute;
 	top: 33%;
 	left: 50%;
@@ -229,7 +232,6 @@ photosynth-hero {
 	height: var(--size);
 	z-index: 202;
 	transition: opacity var(--time-quick, 90ms) linear;
-	opacity: 0;
 	offset-path: var(--path, var(--path-wave));
 
 	&::before {
@@ -344,13 +346,18 @@ photosynth-hero {
 
 @keyframes Notation {
     0%{
+        content:"";
+		opacity:0
+    }
+    1%{
         content:"𝅘𝅥𝅯";
+		opacity:1;
     }
     20%{
         content:"𝅘𝅥𝅯";
     }
     40%{
-         content:"𝅘𝅥𝅮";
+    	content:"𝅘𝅥𝅮";
     }
     60%{
         content:"𝅘𝅥";
@@ -366,7 +373,7 @@ photosynth-hero {
 
 `
 const HTML = `
-<a class="poster-content flood">
+<a class="content flood">
 	<figure role="figure">
 		<svg id="filters" hidden>
 			<defs>
@@ -381,23 +388,23 @@ const HTML = `
 			</defs>
 		</svg>
 		
-		<svg class="poster-wallpaper" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="9000" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1.5" clip-rule="evenodd" viewBox="0 0 9000 2160">
-			<path d="M3438.07 2160h-946.6l1443.62-808.29L3438.07 2160" class="poster-wallpaper-path" style="--i:0"/>
-			<path d="M3438.07 2160h-946.6l1443.62-808.29L3438.07 2160" class="poster-wallpaper-path" style="--i:1" transform="rotate(180 4484.315 1078.38)"/>
-			<path d="M0 1699.83V598.155l1223.16 549.075L0 1699.83Z" class="poster-wallpaper-path" style="--i:2" transform="matrix(-3.1051 0 0 -1.22375 8999.98 2363.34)"/>
-			<path d="m2491.47 0 981.39-3.245 571.38 1273.195L2491.47 0Z" class="poster-wallpaper-path" style="--i:3" transform="rotate(180 4484.315 1078.38)"/>
-			<path d="M0 1699.83V598.155l1223.16 549.075L0 1699.83Z" class="poster-wallpaper-path" style="--i:4" transform="matrix(3.1051 0 0 1.22375 -31.35 -206.576)"/>
-			<path d="m2491.47 0 981.39-3.245 571.38 1273.195L2491.47 0Z" class="poster-wallpaper-path" style="--i:5" />
+		<svg class="wallpaper" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="9000" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1.5" clip-rule="evenodd" viewBox="0 0 9000 2160">
+			<path d="M3438.07 2160h-946.6l1443.62-808.29L3438.07 2160" class="wallpaper-path" style="--i:0"/>
+			<path d="M3438.07 2160h-946.6l1443.62-808.29L3438.07 2160" class="wallpaper-path" style="--i:1" transform="rotate(180 4484.315 1078.38)"/>
+			<path d="M0 1699.83V598.155l1223.16 549.075L0 1699.83Z" class="wallpaper-path" style="--i:2" transform="matrix(-3.1051 0 0 -1.22375 8999.98 2363.34)"/>
+			<path d="m2491.47 0 981.39-3.245 571.38 1273.195L2491.47 0Z" class="wallpaper-path" style="--i:3" transform="rotate(180 4484.315 1078.38)"/>
+			<path d="M0 1699.83V598.155l1223.16 549.075L0 1699.83Z" class="wallpaper-path" style="--i:4" transform="matrix(3.1051 0 0 1.22375 -31.35 -206.576)"/>
+			<path d="m2491.47 0 981.39-3.245 571.38 1273.195L2491.47 0Z" class="wallpaper-path" style="--i:5" />
 		</svg>
 
-		<svg class="poster-details" 
+		<svg class="details" 
 			xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
 			xml:space="preserve" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"
 			stroke-miterlimit="1.5" clip-rule="evenodd" width="1313" height="2160" viewBox="0 0 1313 2160">
 
 			<title>Instant Musical Superpowers</title>
 
-			<path class="poster-bg" d="M1312.72,52.508c0,-28.98,-23.533,-52.508,-52.51,-52.508h-1207.7c-28.981,0,-52.511,23.528,-52.511,52.508v2054.99c0,28.977,23.53,52.508,52.51,52.508h1207.7c28.976,0,52.509,-23.531,52.509,-52.508v-2054.99z" />
+			<path class="bg" d="M1312.72,52.508c0,-28.98,-23.533,-52.508,-52.51,-52.508h-1207.7c-28.981,0,-52.511,23.528,-52.511,52.508v2054.99c0,28.977,23.53,52.508,52.51,52.508h1207.7c28.976,0,52.509,-23.531,52.509,-52.508v-2054.99z" />
 			
 			<!-- Eyes -->
 			<ellipse fill="currentColor" class="eye left-eye" cx="851.651" cy="833.592" rx="132.017" ry="318.098" transform="matrix(.69464 0 0 .698 -117.855 -115.526)" />
@@ -419,8 +426,7 @@ const HTML = `
 				class="mouth"
 				d="M1236.22 802.544c0-17.28-13.954-31.3-31.163-31.3h-1097.4c-17.21 0-31.163 14.02-31.163 31.3 0 321.582 259.824 582.66 579.863 582.66 320.039 0 579.863-261.078 579.863-582.66Zm-534.286 142.43c-4.017-7.373-8.23-31.432-8.296-35.812-.013-.435-.013-.87-.013-1.319 0-37.487 22.854-70.344 54.504-70.344.288 0 .564 0 .84.013 66.37 1.398 162.96 126.588 162.96 232.27 0 137.523-114.521 249.166-255.572 249.166-141.05 0-255.572-111.643-255.572-249.166 0-105.682 77.516-230.463 162.96-232.27.276-.013.552-.013.84-.013 31.65 0 54.504 32.857 54.504 70.344 0 .436 0 .87-.013 1.32-.066 4.392-4.28 28.438-8.283 35.811-9.334 17.174-25.06 36.92-25.31 37.184-15.003 16.053-31.701 31.327-44.763 48.475-16.934 22.226-28.341 47.3-28.341 78.456 0 81.78 64.52 148.168 143.978 148.168 79.458 0 143.965-66.387 143.965-148.168 0-31.604-11.25-55.61-28.263-77.427-12.602-16.159-28.958-30.958-44.264-48.594-.985-1.174-14.755-17.635-25.86-38.094Z" />
 
-			<!-- text -->
-			<g class="poster-text">
+			<g class="texts">
 				<!-- INSTANT -->
 				<g>
 					<text x="655.385" y="636.188" font-size="170.833" transform="matrix(.30443 -.72253 .71876 .3063 -443.978 609.644)">I</text>
@@ -449,14 +455,14 @@ const HTML = `
 					fill="none"
 					d="M1706.5 550a1050 1050 0 10-2100 0 1050 1050 0 102100 0" />
 
-				<text textLength="55%"><textPath class="poster-text-h1" font-size="200" xlink:href="#headline-circle-lower" startOffset="70%" textLength="55%" alignment-baseline="bottom">SUPER</textPath></text>
-				<text textLength="94%"><textPath class="poster-text-h2" font-size="280" alignment-baseline="bottom" xlink:href="#headline-circle-upper" startOffset="68.5%" textLength="94%">POWERS</textPath></text>
-				<text textLength="70%"><textPath class="poster-text-h3" font-size="90" alignment-baseline="bottom" xlink:href="#subheadline-circle-lower" startOffset="70.25%" textLength="90%">YO YO YO</textPath></text>
-				<text textLength="1205"><textPath class="poster-text-h4" font-size="84" xlink:href="#subheadline-circle-upper" alignment-baseline="bottom" startOffset="71%" textLength="1205">• TAG •</textPath></text>
+				<text textLength="55%"><textPath class="text-h1" font-size="200" xlink:href="#headline-circle-lower" startOffset="70%" textLength="55%" alignment-baseline="bottom">SUPER</textPath></text>
+				<text textLength="94%"><textPath class="text-h2" font-size="280" alignment-baseline="bottom" xlink:href="#headline-circle-upper" startOffset="68.5%" textLength="94%">POWERS</textPath></text>
+				<text textLength="70%"><textPath class="text-h3" font-size="90" alignment-baseline="bottom" xlink:href="#subheadline-circle-lower" startOffset="70.25%" textLength="90%">YO YO YO</textPath></text>
+				<text textLength="1205"><textPath class="text-h4" font-size="84" xlink:href="#subheadline-circle-upper" alignment-baseline="bottom" startOffset="71%" textLength="1205">• TAG •</textPath></text>
 			</g>
 		</svg>
 
-		<div inert class="poster-overlay overlaid-notes" aria-hidden="true">
+		<div inert class="overlay overlaid-notes" aria-hidden="true">
 			<i class="note-animated" aria-hidden="true"></i>
 			<i class="note-animated" aria-hidden="true"></i>
 			<i class="note-animated" aria-hidden="true"></i>
@@ -469,7 +475,7 @@ const HTML = `
 			<i class="note-animated" aria-hidden="true"></i>
 		</div>
 		
-		<p class="poster-instructions">Click to Learn more!</p>
+		<p class="instructions">Click to Learn more!</p>
 
 		<figcaption class="sr-only"></figcaption>
 	</figure>
@@ -481,11 +487,12 @@ template.innerHTML = `<style>${CSS}</style>${HTML}`
 class PhotoSynthHero extends HTMLElement {
 
 	// Props (get from attributes or defaults)
-	get id() { return this.getAttribute('id') || 'poster-figure' }
+	get id() { return this.getAttribute('id') || 'figure' }
 	get title() { return this.getAttribute('title') || 'The PhotoSYNTH : Smile Powered Music!' }
-	get posterLink() { return this.getAttribute('poster-link') || '/' }
+	get posterLink() { return this.getAttribute('link') || '/' }
 	get showHint() { return this.hasAttribute('show-hint') ? this.getAttribute('show-hint') !== 'false' : true }
 	get showNotes() { return this.hasAttribute('show-notes') ? this.getAttribute('show-notes') !== 'false' : true }
+	get showWallpaper() { return this.hasAttribute('show-walpaper') ? this.getAttribute('show-walpaper') !== 'false' : true }
 	get animateNotes() { return this.hasAttribute('animate-notes') ? this.getAttribute('animate-notes') !== 'false' : true }
 	get h1() { return this.getAttribute('h1')?.split('|').map(s => s.trim()) || ['SUPER'] }
 	get h2() { return this.getAttribute('h2')?.split('|').map(s => s.trim()) || ['POWERS'] }
@@ -523,12 +530,13 @@ class PhotoSynthHero extends HTMLElement {
 		// Apply dynamic attribute values
 		content.querySelector('a').href = this.posterLink
 		content.querySelector('figure').id = this.id
-		content.querySelector('.poster-details title').textContent = this.title
+		content.querySelector('.details title').textContent = this.title
 		content.querySelector('figcaption').textContent = this.title
 
 		// Toggle visibility of optional sections
 		content.querySelector('.overlaid-notes').hidden = !this.showNotes
-		content.querySelector('.poster-instructions').hidden = !this.showHint
+		content.querySelector('.instructions').hidden = !this.showHint
+		content.querySelector('.wallpaper').hidden = !this.showWallpaper
 
 		this.innerHTML = ''
 		this.appendChild(content)
@@ -537,16 +545,16 @@ class PhotoSynthHero extends HTMLElement {
 
 	_updateVisibility() {
 		const notes = this.querySelector('.overlaid-notes')
-		const hint = this.querySelector('.poster-instructions')
+		const hint = this.querySelector('.instructions')
 		if (notes) notes.hidden = !this.showNotes
 		if (hint) hint.hidden = !this.showHint
 	}
 
 	setupAnimations() {
-		const h1 = this.querySelector('.poster-text-h1')
-		const h2 = this.querySelector('.poster-text-h2')
-		const h3 = this.querySelector('.poster-text-h3')
-		const h4 = this.querySelector('.poster-text-h4')
+		const h1 = this.querySelector('.text-h1')
+		const h2 = this.querySelector('.text-h2')
+		const h3 = this.querySelector('.text-h3')
+		const h4 = this.querySelector('.text-h4')
 
 		// Reveal text with animations
 		this.revealText(h1, this.h1, 0, this.delayH1, this.durationH1)
@@ -637,7 +645,7 @@ class PhotoSynthHero extends HTMLElement {
 
 	// Attribute change handling
 	static get observedAttributes() {
-		return ['id', 'title', 'poster-link', 'show-hint', 'show-notes', 'animate-notes', 'h1', 'h2', 'h3', 'h4', 'delay-h1', 'delay-h2', 'delay-h3', 'delay-h4', 'duration-h1', 'duration-h2', 'duration-h3', 'duration-h4']
+		return ['id', 'title', 'link', 'show-hint', 'show-notes', 'animate-notes', 'h1', 'h2', 'h3', 'h4', 'delay-h1', 'delay-h2', 'delay-h3', 'delay-h4', 'duration-h1', 'duration-h2', 'duration-h3', 'duration-h4']
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
