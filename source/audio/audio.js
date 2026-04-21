@@ -25,30 +25,30 @@ import {
 const DEFAULT_OPTIONS = {
 
 	// quantity of reverb
-	reverb:0.2,
+	reverb:0.6,
 
 	// frequency analyser pulse smoothing (for cool visual effects!)
 	// how quick it drops < 0.85 looks cool
-	smoothingTimeConstant:0.45,
+	smoothingTimeConstant:0.25,
 
 	// pass the raw drums through a compressor
-	drumCompressor:false,
+	drumCompressor:true,
 
 	// default volume for the drum track
-	drumVolume:0.14
+	drumVolume:0.24
 }
 
 export const CUSTOM_REVERB_OPTIONS = {
 	// seconds
-	duration:0.9, 
+	duration:1.6, 
 
 	gain : 1,
 
 	// as ratios except sustain which is a level
-	attack:0.001, 
+	attack:0.01, 
 	decay:0.1, 
-	sustain:0.8,
-	release:0.5,
+	sustain:0.9,
+	release:0.8,
 
 	// booleans
 	
@@ -69,11 +69,7 @@ export const ZERO = 0.0000001 // Math.min
 export let audioContext
 export let offlineAudioContext
 
-export let bufferLength
-export let dataArray
-
 // some audio nodes
-let analyser
 let limiter
 let compressor
 let distortion
@@ -100,7 +96,7 @@ export const getPercussionNode = () => {
 /**
  * get Master Output Mixer
  * @returns Post FX -> MIXER
- */
+*/
 export const getMasterMixdown = () => {
 	return mixer.node
 }
@@ -190,28 +186,13 @@ export const setReverb = async (filenameOrObject) => {
 	return reverb
 }
 
-/**
- * 
- * @param {AudioContext} audioContext 
- * @param {Object} options 
- */
-export const setupAnalyser = (audioContext, options={}) => {
-	// UI spectrum analyser
-	analyser = audioContext.createAnalyser()
-	analyser.minDecibels = -90
-	analyser.maxDecibels = -10
-	analyser.smoothingTimeConstant = options.smoothingTimeConstant
-
-	bufferLength = analyser.frequencyBinCount
-    dataArray = new Uint8Array(bufferLength)
-}
 
 /**
  * Set up the Audio Engine
  * @param {?Object} settings Options
  * @returns {Promise} Chain of effects
  */
-export const setupAudio = async (onlineAudioContext, offlineAudioContext, settings) => {
+export const setupAudio = async (onlineAudioContext, offlineAudioContext, analyser, settings) => {
 
 	// BUFFER_SIZE = 2048, // the buffer size in units of sample-frames.
 	// INPUT_CHANNELS = 1, // the number of channels for this node's input, defaults to 2
@@ -225,13 +206,9 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, settin
 
 	// fixes old ios bug about audio not starting until buttons or something
 	// await resumeAudioContext()
-
 	
 	// check to see if we have an offline context...
 	offlineAudioContext = offlineAudioContext
-
-	// VU Analyser and data
-	setupAnalyser(audioContext, options)
 
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
@@ -333,7 +310,6 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, settin
 		//await createDistortion(audioContext)
 		
 		analyser,
-
 		mixer,
 
 	], audioContext )
@@ -346,54 +322,12 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, settin
 	
 	// just rever, delay and compressor
 	//return chain([ gain, analyser ], audioContext )
-	return chain([ gain, compressor, reverb, analyser ], audioContext )
+	// return chain([ gain, compressor, reverb, analyser ], audioContext )
 	
-	return chain([ compressor.node, reverb.node, delay.node, gain.node, analyser ], audioContext )
+	// return chain([ compressor.node, reverb.node, delay.node, gain.node, analyser ], audioContext )
 	
 	// all mod cons
-	return chain( [ gain.node, reverb.node, delay.node, compressor.node, analyser ], audioContext )
-}
-
-/**
- * For bars graphs
- * update the frequency analyser and fetch EQ data in the Frequency Domain
- * fftSize *must* be a power of 2 number
- */
-export const updateByteFrequencyData = (fftSize=256)=> {
-	analyser.fftSize = fftSize
-	analyser.getByteFrequencyData(dataArray)
-	// for waves?
-	//bufferLength = analyser.fftSize
-	bufferLength = analyser.frequencyBinCount
-	return dataArray
-}
-
-/**
- * For string based waveforms
- * update the frequency analyser and fetch EQ data in the Time Domian
- */
-export const updateByteTimeDomainData = (fftSize=2048)=> {
-	analyser.fftSize = fftSize
-	analyser.getByteTimeDomainData(dataArray)
-	bufferLength = analyser.frequencyBinCount
-	return dataArray
-}
-
-/**
- * Automatically Loop and update the frequency analyser and 
- * fetch EQ data in the Frequency Domain
- */
-const monitor = () => {
-
-	const result = requestAnimationFrame(monitor)
-
-	// waves
-	//analyser.getByteTimeDomainData(dataArray)
-	
-	// bars
-	analyser.getByteFrequencyData(dataArray)
-
-	return result
+	// return chain( [ gain.node, reverb.node, delay.node, compressor.node, analyser ], audioContext )
 }
 
 /**
@@ -733,6 +667,7 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 
 	let instrumentAudioBuffers
 
+	// TODO: load from sf2 style
 	if (options.loadAsOne)
 	{
 		// load from a single string  
@@ -759,4 +694,3 @@ export const loadInstrumentFromSoundFont = async ( context=audioContext, instrum
 	
 	return output
 }
-
