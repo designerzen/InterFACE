@@ -24,17 +24,21 @@ form#onboard(action="/")
 		legend Options
 
 		//- Simple / Advanced mode
-		label(for="toggle-advanced-mode" aria-describedby="advanced-mode-feedback" aria-label="Unlock all features and make it complicated to use but very powerfull" ) Use advanced mode? 
+		label(for="toggle-advanced-mode" aria-describedby="advanced-mode-feedback" aria-label="Unlock all features and make it complicated to use but very powerfull" ) Expert mode 
 		input#toggle-advanced-mode.switch(type="checkbox" role="switch")
+	
+		// Game mode!
+		//- label(for="toggle-game-mode" aria-label="Play a game a make music" ) Game mode 
+		//- input#toggle-game-mode.switch(type="checkbox" role="switch")
 
 		//- feedback (use div to avoid output element containing non-phrasing flow like paragraphs/video)
 		div#advanced-mode-feedback
 			p.simple-mode Friendly version with simple interface and instuctions suitable for beginners =P
 			p.advanced-mode For Advanced users who want MIDI connectivity and many more controls
 			
-	//- Demostration - automated mode
-	label(for="toggle-automation-mode" aria-label="Automate instrument selection and modes" ) Demonstration Mode
-		input#toggle-automation-mode.toggle(type="checkbox")
+		//- Demostration - automated mode
+		label(for="toggle-automation-mode" aria-label="Automate instrument selection and modes" ) Demonstration Mode
+			input#toggle-automation-mode.toggle(type="checkbox")
 
 	//- Start buttons
 	//- button#button-start()
