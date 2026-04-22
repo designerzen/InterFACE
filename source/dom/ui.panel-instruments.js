@@ -4,7 +4,7 @@ const INSTRUMENT_CLASS = "btn-select-instrument"
 
 const createInstrumentFamilyTitle = (family, personName) => `<h4 class="instrument-families">${personName.length ? personName : family.replace("Instrument","")}</h4>`
 const createInstrumentFamilySummary = (family) => `<summary><h5 class="instrument-family-title">${family}</h5></summary>`
-const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMENT_CLASS}' id="${personName}-${folder}" name="instrument-selector" type="radio" value="${folder}" />`
+const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMENT_CLASS}' id="${personName}-${folder}" name="instrument-selector-${personName}" type="radio" value="${folder}" />`
 
 /**
  * Create the markup required for one single instrument request
