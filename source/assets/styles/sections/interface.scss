@@ -737,80 +737,20 @@ main.active{
 }
 
 #face-buttons{
-	--aspect-ratio:calc(var(--width) / var(--height)  );
 	margin:auto;
 	padding:0;
 	border:0;
 
+	aspect-ratio: var(--width) / var(--height);
 	width: 100%;
-	height: auto;
+	height: 100%;
 
-	max-width: 100vw;
-  	max-height: 100vh;
+	max-width: min(100vw, calc(100dvh * var(--width) / var(--height)));
+	max-height: min(100dvh, calc(100vw * var(--height) / var(--width)));
 
 	grid-area: 1/1/-1/-1;
 	pointer-events: none;
 	position: relative;
-
-	&::before{
-		content:'';
-		display: block;
-		width: 0;
-		padding-bottom: calc(100% / var(--aspect-ratio));
-	}
-
-	// padder!
-	// &::before{
-	// 	content:'';
-	// 	display: block;
-	// 	width:0;
-	// 	border:0;
-	// 	padding-right:calc(  100%  / var(--aspect-ratio));
-	// 	height:100%;
-	// 	max-width: 100%;
-	// 	max-height: 100%;
-	// 	pointer-events: none;
-	// 	object-fit: contain;
-	// }
-
-	// // padder!
-	// &::before{
-	// 	content:'';
-	// 	display: block;
-	// 	width:100%;//calc( var(--aspect-ratio) * 100vh );
-	// 	width:inherit;
-	// 	height:calc( 100%  / var(--aspect-ratio));
-	// 	//height:auto;
-	
-	// 	// overflow: hidden;
-	// 	border:0;
-
-	// 	padding-top:calc(  100%  / var(--aspect-ratio));
-	// 	// padding-top:calc( var(--aspect-ratio) * 100% );
-	// 	height:0;
-
-	// 	max-width: 100%;
-	// 	max-height: 100%;
-	// 	pointer-events: none;
-
-	// 	object-fit: contain;
-	// }
-
-
-
-
-	// left:50%;
-	// top:50%;
-	// transform: translate(-50%, -50%);
-	// position: absolute;
-
-	// @media (orientation: portrait) {
-	// 	width: 100%;
-	// 	height:calc( 100vw / var(--aspect-ratio) );
-	// 	top:50%;
-	// 	left:auto;
-	// 	transform: translateY(-50%);
-	// }
 
 	legend{
 		color:transparent;

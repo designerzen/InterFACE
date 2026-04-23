@@ -77,12 +77,10 @@ const predict = async (time, inputElement, detector, flipHorizontally=true ) => 
 	// video has been updated!
 	if (lastVideoTime !== inputElement.currentTime) 
 	{
-		const currentTime = inputElement.currentTime // time
 		lastVideoTime = inputElement.currentTime
-		//const elapsed = time - lastVideoTime
-		const results = detector.detectForVideo( inputElement, currentTime )
 
-		// results = detector.detectForVideo(inputElement, lastVideoTime)
+		//const elapsed = time - lastVideoTime
+		const results = detector.detectForVideo( inputElement, lastVideoTime )
 		const people = []
 
 		// console.warn("Prediction:RESULTS", results )
