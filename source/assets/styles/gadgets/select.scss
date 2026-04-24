@@ -15,3 +15,143 @@ select {
 select:not([multiple]):not([size]) {
 	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M4 0h6L7 4'/%3E%3C/svg%3E");
 }
+
+// Customizable select (appearance: base-select)
+// Progressive enhancement — only applies in supporting browsers
+@supports (appearance: base-select) {
+
+	select.select-content {
+
+		&,
+		&::picker(select) {
+			appearance: base-select;
+		}
+
+		// Remove the old fallback arrow since base-select provides its own
+		background-image: none;
+		padding-right: 0;
+
+		// Select button styling
+		border: 1px solid var(--shade-grey);
+		border-radius: var(--curve);
+		background: var(--shade-dark);
+		color: inherit;
+		font: inherit;
+		padding: 0.4em 0.6em;
+		cursor: pointer;
+		transition: border-color var(--duration), background var(--duration);
+
+		&:hover,
+		&:focus-visible {
+			border-color: var(--shade-active);
+			background: hsl(var(--hue-dark), 6%, 20%);
+		}
+
+		// Picker icon (dropdown arrow)
+		&::picker-icon {
+			color: var(--shade-grey);
+			transition: rotate var(--duration);
+		}
+
+		&:open::picker-icon {
+			rotate: 180deg;
+		}
+
+		// Dropdown picker panel
+		&::picker(select) {
+			border: 1px solid var(--shade-grey);
+			border-radius: var(--curve);
+			background: var(--shade-dark);
+			padding: 0.25em 0;
+			box-shadow: var(--shadow);
+			opacity: 0;
+			transition: opacity var(--duration) allow-discrete;
+		}
+
+		&:open::picker(select) {
+			opacity: 1;
+		}
+
+		@starting-style {
+			&:open::picker(select) {
+				opacity: 0;
+			}
+		}
+
+		// Option groups
+		optgroup {
+			padding: 0;
+
+			legend {
+				padding: 0.3em 0.6em;
+				font-size: 0.75em;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--shade-grey);
+			}
+		}
+
+		// Individual options
+		option {
+			display: flex;
+			align-items: center;
+			gap: 0.5em;
+			padding: 0.4em 0.6em;
+			cursor: pointer;
+			transition: background var(--ease-q), color var(--ease-q);
+
+			&:hover,
+			&:focus {
+				background: var(--shade-active);
+				color: var(--shade-white);
+			}
+
+			&:checked {
+				background: hsl(var(--hue-brand), 50%, 25%);
+				color: var(--shade-white);
+			}
+
+			&::checkmark {
+				color: var(--shade-active);
+			}
+		}
+
+		// Icon inside options and group legends
+		.option-icon {
+			flex-shrink: 0;
+			width: 1.2em;
+			height: 1.2em;
+			object-fit: contain;
+			line-height: 1;
+			text-align: center;
+		}
+
+		img.option-icon {
+			vertical-align: middle;
+		}
+
+		// Secondary detail text alongside the label
+		.option-detail {
+			margin-inline-start: auto;
+			font-size: 0.75em;
+			opacity: 0.6;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+		}
+
+		// Rich content inside tempo options
+		.tempo-bpm {
+			font-weight: 700;
+			font-size: 1.1em;
+			min-width: 2.5ch;
+			text-align: right;
+		}
+
+		.tempo-label {
+			font-size: 0.75em;
+			opacity: 0.6;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+		}
+	}
+}

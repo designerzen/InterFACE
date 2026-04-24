@@ -123,24 +123,64 @@ menu#control-panel
 		
 		//- TEMPO -------------------------------------------------------------------------
 		//- Drop up / down list of tempos with typeable option too
+		//- Uses customizable <select> (appearance: base-select) with rich content
 		label(for="select-tempo", hidden) <span class="hide-text">Set </span>Tempo
-			select#select-tempo(aria-label="Choose a tempo from the list" name="select-tempo")
-				//- optgroup Select Tempo
-				option 45 BPM
-				option 60 BPM
-				option 75 BPM
-				option 85 BPM
-				option 90 BPM
-				option 100 BPM
-				option 110 BPM
-				option 120 BPM
-				option 130 BPM
-				option 140 BPM
-				option 150 BPM
-				option 200 BPM
-				option 300 BPM
-				option 400 BPM
-				option 500 BPM
+			select#select-tempo.select-content(aria-label="Choose a tempo from the list" name="select-tempo")
+				button(type="button")
+					selectedcontent
+				optgroup
+					legend Slow
+					option(value="45")
+						span.tempo-bpm 45
+						span.tempo-label BPM
+					option(value="60")
+						span.tempo-bpm 60
+						span.tempo-label BPM
+					option(value="75")
+						span.tempo-bpm 75
+						span.tempo-label BPM
+				optgroup
+					legend Medium
+					option(value="85")
+						span.tempo-bpm 85
+						span.tempo-label BPM
+					option(value="90")
+						span.tempo-bpm 90
+						span.tempo-label BPM
+					option(value="100")
+						span.tempo-bpm 100
+						span.tempo-label BPM
+					option(value="110")
+						span.tempo-bpm 110
+						span.tempo-label BPM
+					option(value="120", selected)
+						span.tempo-bpm 120
+						span.tempo-label BPM
+				optgroup
+					legend Fast
+					option(value="130")
+						span.tempo-bpm 130
+						span.tempo-label BPM
+					option(value="140")
+						span.tempo-bpm 140
+						span.tempo-label BPM
+					option(value="150")
+						span.tempo-bpm 150
+						span.tempo-label BPM
+				optgroup
+					legend Extreme
+					option(value="200")
+						span.tempo-bpm 200
+						span.tempo-label BPM
+					option(value="300")
+						span.tempo-bpm 300
+						span.tempo-label BPM
+					option(value="400")
+						span.tempo-bpm 400
+						span.tempo-label BPM
+					option(value="500")
+						span.tempo-bpm 500
+						span.tempo-label BPM
 
 		#control-panel-tempo.folder-menu.bottom.horizontal.right
 			a.folder-link(href="#folder-tempo" aria-label="Show timing options") <span class="hide-text">Show </span>tempo<span class="hide-text"> options</span>

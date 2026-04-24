@@ -672,31 +672,24 @@ main.active{
 
 
 #control-panel{
-	
 	--panel-width:45%;
 	margin:auto;
 	padding:0;
-	
 	overflow: hidden;
 	position: absolute;
 	top:0;
 	left:0;
 	right:0;
 	bottom: 0;
-
 	z-index:808; // NOT top - we have help and about remember!
 
 	// width:100%;
 
 	// prevent the form takin focus
 	pointer-events: none;	
-	
-	
-	display: block;
 
 	// alternate grid layout
 	display: grid;
-
 
 	grid-template-areas: 
 		"sidebar-left . sidebar-right"
@@ -723,8 +716,6 @@ main.active{
 	max-width:var(--width);
 	max-height:var(--height);
 */
-
-
 
 	// &::before{
 	// 	display: block;
@@ -835,7 +826,6 @@ main.active{
 	grid-area: sidebar-right;
 }
 
-
 .controls{
 	grid-area: control-panel;
 	background-color:var(--shade-dark, black);
@@ -856,7 +846,6 @@ main.active{
 		margin-right:0.25rem;
 		stroke:currentColor;
 	}
-
 }
 
 #LookingGlassWebXRControls{
@@ -872,7 +861,6 @@ main.active{
 	}
 	*{
 		font-family: inherit;
-		
 	}
 }
 
