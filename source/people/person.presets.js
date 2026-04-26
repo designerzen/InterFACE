@@ -27,8 +27,10 @@ export const PERSON_TYPE_DATA = [
 		name:"𝆃",
 		description:"Arpeggio",
 		arpeggiate:true,
-		leftFacingKeys:SCALE_LIBRARY.get("C MAJOR"),
-		rightFacingKeys:SCALE_LIBRARY.get("C MINOR"),
+		// leftFacingKeys:SCALE_LIBRARY.get("C MAJOR"),
+		// rightFacingKeys:SCALE_LIBRARY.get("C MINOR"),
+		leftFacingKeys:NOTES_BLACK,
+		rightFacingKeys:NOTES_WHITE,
 	},
 	{
 		name:"⯂",

@@ -244,8 +244,8 @@ export default class Person extends EventTarget{
 	tracks = 0
 	octave = 4
 
-	leftFacingKeys
-	rightFacingKeys
+	leftFacingKeys = []
+	rightFacingKeys = []
 	quantityOfPlayableNotes = 0
 
 	pitchBendValue = 1
