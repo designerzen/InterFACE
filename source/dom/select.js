@@ -238,7 +238,7 @@ export const connectReverbSelector = (callback) => connectSelect('select-impulse
 
 export const connectTempoControls = (callback) => {
 	connectSelect('select-tempo', (option)=>{
-		const tempo = parseInt( option.innerHTML )
+		const tempo = parseInt( option.value )
 		updateTempo(tempo)
 		callback && callback (tempo)
 	} )
@@ -253,40 +253,32 @@ const path = './assets/audio/acoustics/'
 export const connectReverbControls = (callback) => {
 
 	const ID = 'select-impulse'
-	const dirs = DIRS// REVERB_PATHS
-	// inject
-	const options = document.getElementById( ID )	
-	// TODO: dir should flip depending on the item prefix
-	if (options)
-	{				
-		const createOptionValues = (items, directory) => items.map( item => {
-			item = item.trim()
-			const filePath = item
-			const fileName = item.substring( item.lastIndexOf("/") + 1 )
-			const name = fileName.substring(0, fileName.lastIndexOf('.'))
-			//const option = `<option value="verb">reverbing</option>` 
-			const option = `<option value="${filePath}">${name}</option>` 
-			return option
-		}).join('\n')
-	
-		const maapped = dirs.map( async (dir) => {
-			try{
-				const json = await loadImpulseJSON(dir)
-				const option = createOptionValues( json, dir)
-				return `<optgroup>${dir}</optgroup>${option}`	
-			}catch(error){
-				console.error("Couldn't load reverb impulse json", error )
-				return ''
-			}
-		})
+	const dirs = DIRS
 
-		Promise.all(maapped).then( optionData => {
-			options.innerHTML = optionData.join('')
-		})
-	
-	}else{
-		console.error("Injecting impulse FAILED to ", {options, impulseList})
-	}
+	const maapped = dirs.map( async (dir) => {
+		try {
+			const json = await loadImpulseJSON(dir)
+			const items = json.map( item => {
+				item = item.trim()
+				const fileName = item.substring( item.lastIndexOf("/") + 1 )
+				const name = fileName.substring(0, fileName.lastIndexOf('.'))
+				return { value: item, label: name }
+			})
+			return { group: dir, items }
+		} catch(error) {
+			console.error("Couldn't load reverb impulse json", error)
+			return null
+		}
+	})
+
+	Promise.all(maapped).then( groups => {
+		const validGroups = groups.filter(Boolean)
+		if (validGroups.length) {
+			populateSelect(ID, validGroups)
+		} else {
+			console.error("Injecting impulse FAILED to ", ID)
+		}
+	})
 
 	return connectSelect( ID, (option)=> callback && callback(option) )
 }

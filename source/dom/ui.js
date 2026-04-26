@@ -2,7 +2,7 @@ import {canFullscreen, exitFullscreen,goFullscreen,setFullScreenButtonState,togg
 
 import {formattedDate} from '../models/info'
 import {setToggle} from './toggle'
-import { connectSelect } from './select'
+import { connectSelect, populateSelect } from './select'
 
 const doc = document
 
@@ -84,11 +84,13 @@ export const setupCameraForm = (cameras, callback) => {
 	const cameraForm = doc.getElementById("camera")
 	const select = cameraForm.querySelector('#camera select')
 
-	// loop through cameras and add to list
-	const optionElements = cameras.map( (camera, index) => `<option value="${camera.deviceId}">${camera.label}</option>` )
-			
-	// we only inject into the select field
-	select.innerHTML = `<optgroup label="Detected Cameras">${optionElements.join('')}</optgroup>`
+	const items = cameras.map( camera => ({
+		value: camera.deviceId,
+		label: camera.label,
+		icon: '📷'
+	}))
+
+	populateSelect(select, [{ group: 'Detected Cameras', items }])
 	connectSelect( select, callback )
 }
 
