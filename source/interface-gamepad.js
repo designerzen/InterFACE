@@ -1,6 +1,4 @@
 import { 
-	GAME_PAD_CONNECTED, 
-	GAME_PAD_DISCONNECTED,
 	BUTTON_P1, 
 	BUTTON_P2,
 	BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y,
@@ -8,9 +6,13 @@ import {
 	BUTTON_SELECT, BUTTON_START, 
 	BUTTON_LEFT_SHOULDER, BUTTON_RIGHT_SHOULDER, 
 	DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
-	COMMANDS,
+	COMMANDS
+} from "./hardware/gamepad/gamepad.js"
+import { 
+	GAME_PAD_CONNECTED, 
+	GAME_PAD_DISCONNECTED,
 	GamePadManager
-} from "./hardware/gamepad.js"
+} from "./hardware/gamepad/gamepad-manager.js"
 
 export const GAMEPAD_MODE_PERCUSSION = 'beats'
 export const GAMEPAD_MODE_INSTRUMENT = 'instruments'
@@ -190,7 +192,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			break
 		
 		default:
-			console.info("Gamepad", { gamePadManager, button, value, gamePad, heldFor } )
+			console.info("Gamepad", { button, value, gamePad, heldFor } )
 	}
 }
 
@@ -263,7 +265,7 @@ const convertGamePadActionToPercussion = ( application, gamePad, button, value, 
 		
 		default:
 			application.kit.cowbell()
-			console.info("Gamepad", { gamePadManager, button, value, gamePad, heldFor } )
+			console.info("Gamepad", { button, value, gamePad, heldFor } )
 	}
 }
 
@@ -408,8 +410,8 @@ export const addGamePadEvents = (application) => {
 		return GAMEPAD_MODES[gamePadModeIndex]
 	}
 
-	gamePadManager.addEventListener( (button, value, gamePad, heldFor ) => {
-		console.info("GAMEPAD:", {button, value, gamePad, heldFor} )
+	gamePadManager.addEventListener( ( buttonName, value, gamePad, heldFor ) => {
+		console.info("GAMEPAD:", {buttonName, value, gamePad, heldFor}, arguments )
 		switch(button)
 		{
 			// ignore caching these
