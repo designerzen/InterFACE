@@ -18,30 +18,68 @@ let gestureOutput
 let gestureDetective 
 
 let lastVideoTime = -1
+let previousPrediction = null
 
 
 // Before we can use HandLandmarker class we must wait for it to finish
 // loading. Machine Learning models can be large and take a moment to
 // get everything needed to run.
-const createGestureRecognizer = async () => {
+const createGestureRecognizer = async (options = {}) => {
 
 	const vision = await FilesetResolver.forVisionTasks( TASKS_VISION_WASM )
 	const gestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
+		...options,
 		baseOptions: {
 			// modelAssetPath: "https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/gesture_recognizer.task",
 			modelAssetPath: GESTURE_RECOGNIZER_TASK,
-			delegate: "GPU"
+			delegate: "GPU",
+			...(options.baseOptions || {})
 		},
 		runningMode: "VIDEO",
-		numHands: 2
+		numHands: options.numHands ?? 2
 	})
 	// await gestureRecognizer.setOptions({ runningMode: "video" })
 	return gestureRecognizer
 }
 
+/**
+ * Inference for one frame.
+ * `time` MUST be in the same domain as the rest of the prediction pipeline
+ * (AudioTimer.now → ms since AudioContext start). It is floored to integer
+ * milliseconds before being handed to MediaPipe, which:
+ *   - rejects sub-ms precision ("performance.now is too precise")
+ *   - requires strictly-monotonic timestamps per detector instance
+ *
+ * AudioTimer.now keeps climbing across camera switches, unlike
+ * inputElement.currentTime, so this avoids the "received N, expected M"
+ * regression that fires when a new MediaStream resets the video clock.
+ */
+const predict = (time, inputElement, detector) => {
+	if (lastVideoTime !== inputElement.currentTime) {
+		lastVideoTime = inputElement.currentTime
+		// MediaPipe needs strictly-monotonic timestamps. AudioTimer.now is too
+		// coarse (only ticks per audio render quantum), so use performance.now()
+		// which is browser-guaranteed strictly-monotonic with sub-ms resolution.
+		// API takes ms; scale ×1000 to expose sub-ms precision in MP's internal µs.
+		const timestampUs = performance.now() * 1000
+		previousPrediction = detector.recognizeForVideo(inputElement, timestampUs)
+	}
+	return previousPrediction
+}
+
 export const loadHandTrackingModel = async (inputElement, options, progressCallback, flipHorizontally=true) => {
 
-	progressCallback && progressCallback(1)
+	progressCallback && progressCallback(0.5, "Loading Hands")
+
+	const detector = await createGestureRecognizer(options)
+	gestureDetective = detector
+
+	progressCallback && progressCallback(1, "Hands Ready")
+
+	// Mirror the loadFaceLandmarksModel contract: return a function the
+	// prediction loop can call with a unified timestamp (clock.now).
+	const fetchModelData = async (time) => predict(time, inputElement, detector)
+	return fetchModelData
 }
 
 // Check if webcam access is supported.
@@ -49,7 +87,8 @@ function hasGetUserMedia() {
 	return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
 }
 
-const now = () => Date.now()	// performance is too precise!
+// Sub-ms monotonic ms, same domain as AudioTimer-derived timestamps.
+const now = () => performance.now()
 
 const processResult = results => {
 

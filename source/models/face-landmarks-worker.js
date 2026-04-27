@@ -20,7 +20,7 @@ let lastVideoTime = 0
 // 	await faceLandmarker.setOptions({ runningMode: runningMode });
 //   }
 
-const predict = async (inputElement ) => {
+const predict = async (inputElement, time) => {
 
 	// const radio = inputElement.videoHeight / inputElement.videoWidth
 
@@ -33,9 +33,14 @@ const predict = async (inputElement ) => {
 	// canvasElement.height = video.videoHeight
 	if (lastVideoTime !== inputElement.currentTime) 
 	{
-		const nowInMs = Date.now()
+		// `time` is sub-ms ms passed in from the main thread (AudioTimer.now),
+		// kept in the same time domain as face-landmarks.js. Workers can't use
+		// performance.now() reliably (origin differs from the main thread).
+		// Scale to microseconds, MediaPipe's internal time unit, so successive
+		// frames are always strictly-increasing.
+		const timestampUs = time * 1000
 		lastVideoTime = inputElement.currentTime
-		results = detector.detectForVideo(inputElement, lastVideoTime)
+		results = detector.detectForVideo(inputElement, timestampUs)
 	}
 
 	// if (results.faceLandmarks) {
@@ -59,7 +64,7 @@ self.onmessage = async (e, transferables) => {
     {
 		case "predict":
 			console.warn("FaceLandmarkerWorker:predict", {e,data, transferables, detector})
-			await predict( data.inputElement )
+			await predict( data.inputElement, data.time )
 			postMessage( "predict" )
 			break
 
@@ -73,7 +78,7 @@ self.onmessage = async (e, transferables) => {
 		// create prediction and freak out!
 		default:
 			// magic tricks...
-			const prediction = await predict(transferables) 
+			const prediction = await predict(transferables, data?.time)
 			postMessage( prediction )
     }
 }

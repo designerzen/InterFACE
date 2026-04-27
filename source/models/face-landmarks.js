@@ -79,8 +79,13 @@ const predict = async (time, inputElement, detector, flipHorizontally=true ) => 
 	{
 		lastVideoTime = inputElement.currentTime
 
-		//const elapsed = time - lastVideoTime
-		const results = detector.detectForVideo( inputElement, lastVideoTime )
+		// MediaPipe needs strictly-monotonic timestamps. AudioTimer.now is too
+		// coarse (only ticks per audio render quantum, ~2.67ms), so two close
+		// calls return equal values. performance.now() is browser-guaranteed
+		// strictly-monotonic with sub-ms resolution and survives camera swaps.
+		// API takes ms; scale ×1000 to expose sub-ms precision in MP's internal µs.
+		const timestampUs = performance.now() * 1000
+		const results = detector.detectForVideo( inputElement, timestampUs )
 		const people = []
 
 		// console.warn("Prediction:RESULTS", results )
