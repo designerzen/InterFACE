@@ -484,7 +484,7 @@ export const addGamePadEvents = (application) => {
 			}
 		}
 
-		gamePadMethod( application, gamePad, buttonName, value, heldFor, gamePadPlayerIndex )
+		gamePadMethod( application, gamePad, eventName, value, heldFor, gamePadPlayerIndex )
 	})
 
 	// update game pads on beat

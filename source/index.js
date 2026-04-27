@@ -317,6 +317,10 @@ const checkPWAUpdates = () => {
 	// updated if installed or installed if uninstalled
 	return installOrUpdate(debugMode, VERSION).then( PWAState => {
 
+		// `installOrUpdate` returns undefined when it triggers a version-change
+		// reload — bail out cleanly here, the page is about to navigate.
+		if (!PWAState) return
+
 		// this is the amount of time to run before we "check" for things
 		// const TIME_BEFORE_REFRESH = 24 * 60 * 60 * 1000
 		if (debugMode) {
