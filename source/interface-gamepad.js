@@ -410,9 +410,9 @@ export const addGamePadEvents = (application) => {
 		return GAMEPAD_MODES[gamePadModeIndex]
 	}
 
-	gamePadManager.addEventListener( ( buttonName, value, gamePad, heldFor ) => {
-		console.info("GAMEPAD:", {buttonName, value, gamePad, heldFor}, arguments )
-		switch(button)
+	gamePadManager.addEventListener( ( eventName, value, gamePad, heldFor ) => {
+		console.info("GAMEPAD:", {eventName, value, gamePad, heldFor}, arguments )
+		switch(eventName)
 		{
 			// ignore caching these
 			case GAME_PAD_CONNECTED:
@@ -430,29 +430,29 @@ export const addGamePadEvents = (application) => {
 			default: 
 				if (value)
 				{
-					gamepadHeld.set(button, value)
+					gamepadHeld.set(eventName, value)
 				}else{
-					gamepadHeld.delete(button)
+					gamepadHeld.delete(eventName)
 				}
 		}
 
-		switch(button)
+		switch(eventName)
 		{
 			case GAME_PAD_CONNECTED:
 				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
-				console.info("Gamepad connected", button, value, gamePad )
+				console.info("Gamepad connected", eventName, value, gamePad )
 				break
 
 			case GAME_PAD_DISCONNECTED:
 				application.setFeedback( "Gamepad connection lost" , 0, 'gamepad' )
-				console.info("Gamepad disconnected", button, value, gamePad )
+				console.info("Gamepad disconnected", eventName, value, gamePad )
 				break
 		}
 
 		// on press not release
 		if (value)
 		{
-			switch(button)
+			switch(eventName)
 			{
 				// This changes the "selected" user by highlighting their outline
 				// this then targets the controller for that specfific person.	
@@ -484,7 +484,7 @@ export const addGamePadEvents = (application) => {
 			}
 		}
 
-		gamePadMethod( application, gamePad, button, value, heldFor, gamePadPlayerIndex )
+		gamePadMethod( application, gamePad, buttonName, value, heldFor, gamePadPlayerIndex )
 	})
 
 	// update game pads on beat
