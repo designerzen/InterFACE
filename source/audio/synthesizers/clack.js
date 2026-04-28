@@ -1,11 +1,33 @@
 import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
-export const DEFAULT_CLACK_OPTIONS = { 
-	velocity:1, 
-	length:0.05,
-	ocatave:1
-} 
+// Clack presets live in their own file - re-export for backwards compat
+export {
+	DEFAULT_CLACK_OPTIONS,
+	PRESET_TICK_CLACK,
+	PRESET_HARD_CLACK,
+	PRESET_SOFT_CLACK,
+	PRESET_TIGHT_CLACK,
+	PRESET_WIDE_CLACK,
+	PRESET_RIM_CLACK,
+	PRESET_STICK_CLACK,
+	PRESET_CROSS_STICK,
+	PRESET_CLAVE_CLACK,
+	PRESET_WOODBLOCK_CLACK,
+	PRESET_CASTANET_CLACK,
+	PRESET_SIDE_STICK,
+	PRESET_LOFI_CLACK,
+	PRESET_DISTORTED_CLACK,
+	PRESET_LOW_CLACK,
+	PRESET_HIGH_CLACK,
+	PRESET_PERC_CLACK,
+	PRESET_GLITCH_CLACK,
+	PRESET_CLACKS,
+	getRandomClackPreset,
+	getClackPresets,
+} from './clack-presets.js'
+
+import { DEFAULT_CLACK_OPTIONS } from './clack-presets.js'
 
 /**
  * Create an instance of the clack instrument
@@ -18,17 +40,17 @@ export const createClack = (audioContext, output ) => {
  
     const bandpass = audioContext.createBiquadFilter()
     bandpass.type = "bandpass"
-    bandpass.frequency.value = 2640
-    bandpass.Q.value = 3.5
+    bandpass.frequency.value = DEFAULT_CLACK_OPTIONS.bandpass
+    bandpass.Q.value = DEFAULT_CLACK_OPTIONS.bandpassQ
 
     const highpass = audioContext.createBiquadFilter()
     highpass.type = "highpass"
-    highpass.frequency.value = 7000
+    highpass.frequency.value = DEFAULT_CLACK_OPTIONS.highpass
 
 	const fundamental = 1
-    const ratios = [587,845]
+    const baseRatios = DEFAULT_CLACK_OPTIONS.ratios
 
-    const oscillators = ratios.map((ratio) => {
+    const oscillators = baseRatios.map((ratio) => {
         const oscillator = audioContext.createOscillator()
         oscillator.type = "triangle"
 		oscillator.frequency.value = fundamental * ratio
@@ -44,7 +66,7 @@ export const createClack = (audioContext, output ) => {
 		
 		options = Object.assign({},DEFAULT_CLACK_OPTIONS,options)
 	
-		const time = audioContext.currentTime
+		const time = options.triggerAt || audioContext.currentTime + ZERO
 			
 		if (!isRunning)
 		{
@@ -53,12 +75,19 @@ export const createClack = (audioContext, output ) => {
 			}catch(error){}	
 			isRunning = true
 		}
-		
+
+		// honour bandpass / highpass tweaks if present
+		if (options.bandpass !== undefined) bandpass.frequency.value = options.bandpass
+		if (options.bandpassQ !== undefined) bandpass.Q.value = options.bandpassQ
+		if (options.highpass !== undefined) highpass.frequency.value = options.highpass
+
 		// clear anything from previous plays
 		gainNode.gain.cancelScheduledValues(time)
+		const ratios = options.ratios || baseRatios
 		oscillators.forEach( (oscillator,i) =>{ 
+			const ratio = ratios[i] !== undefined ? ratios[i] : baseRatios[i]
 			oscillator.frequency.cancelScheduledValues(time) 
-			oscillator.frequency.value = (options.octave || 1) * ratios[i]
+			oscillator.frequency.value = (options.octave || 1) * ratio
 		})
 		
 		// set new envelopes
@@ -66,6 +95,11 @@ export const createClack = (audioContext, output ) => {
 		gainNode.gain.exponentialRampToValueAtTime(ZERO, time + options.length)
 
 		return options
+	}
+	clack.cancel = () => {
+		const now = audioContext.currentTime
+		gainNode.gain.cancelScheduledValues(now)
+		gainNode.gain.setValueAtTime(ZERO, now)
 	}
 	return clack
 }

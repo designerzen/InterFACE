@@ -1,19 +1,35 @@
 import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
+// Cowbell presets live in their own file - re-export for backwards compat
+export {
+	DEFAULT_COWBELL_OPTIONS,
+	PRESET_808_COWBELL,
+	PRESET_909_COWBELL,
+	PRESET_CR78_COWBELL,
+	PRESET_LOW_COWBELL,
+	PRESET_HIGH_COWBELL,
+	PRESET_TUNED_LOW_COWBELL,
+	PRESET_TUNED_HIGH_COWBELL,
+	PRESET_DRY_COWBELL,
+	PRESET_RINGING_COWBELL,
+	PRESET_DAMPENED_COWBELL,
+	PRESET_DISTORTED_COWBELL,
+	PRESET_LOFI_COWBELL,
+	PRESET_BRIGHT_COWBELL,
+	PRESET_DARK_COWBELL,
+	PRESET_TIGHT_COWBELL,
+	PRESET_LONG_COWBELL,
+	PRESET_CASCABEL_COWBELL,
+	PRESET_AGOGO_COWBELL,
+	PRESET_TRIANGLE_BELL,
+	PRESET_TUBULAR_BELL,
+	PRESET_COWBELLS,
+	getRandomCowbellPreset,
+	getCowbellPresets,
+} from './cowbell-presets.js'
 
-export const DEFAULT_COWBELL_OPTIONS = {
-	velocity:1, 
-	length:0.5,
-	bandpass:2640,
-	fundamental:1,
-	ratios:[587,845],
-	q:3.5,
-	
-	attack:0.02,
-	decay:0.02,
-	sustain:0.9
-}
+import { DEFAULT_COWBELL_OPTIONS } from './cowbell-presets.js'
 
 /**
  * Create an instance of the cowbell instrument
@@ -47,7 +63,7 @@ export const createCowbell = (audioContext, output ) => {
 		
 		options = Object.assign({}, DEFAULT_COWBELL_OPTIONS, options)
 	
-		const time = audioContext.currentTime
+		const time = options.triggerAt || audioContext.currentTime + ZERO
 		
 		if (!isRunning)
 		{			
@@ -65,7 +81,7 @@ export const createCowbell = (audioContext, output ) => {
 		
 		// clear anything from previous plays
 		oscillators.forEach( (oscillator, i) => {
-			const ratio = options.ratios[i]
+			const ratio = options.ratios[i] !== undefined ? options.ratios[i] : DEFAULT_COWBELL_OPTIONS.ratios[i]
 			oscillator.frequency.cancelScheduledValues(time) 
 			oscillator.frequency.setValueAtTime( options.fundamental * ratio, time)
 		})
@@ -77,6 +93,11 @@ export const createCowbell = (audioContext, output ) => {
 		cowbellGainNode.gain.exponentialRampToValueAtTime(options.sustain, time + options.attack + options.decay)
 		cowbellGainNode.gain.linearRampToValueAtTime(ZERO, time + options.length )	
 		return options
+	}
+	cowbell.cancel = () => {
+		const now = audioContext.currentTime
+		cowbellGainNode.gain.cancelScheduledValues(now)
+		cowbellGainNode.gain.setValueAtTime(ZERO, now)
 	}
 	return cowbell
 }

@@ -35,5 +35,14 @@ export const createDrumkit = ( audioContext, output ) => {
 	// 	}
 	// }
 
+	drumkit.cancel = () => {
+		drumkit.kick.cancel?.()
+		drumkit.snare.cancel?.()
+		drumkit.hat.cancel?.()
+		drumkit.cowbell.cancel?.()
+		drumkit.clack.cancel?.()
+		drumkit.clap.cancel?.()
+	}
+
 	return drumkit
 }

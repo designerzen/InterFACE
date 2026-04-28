@@ -1,127 +1,59 @@
 import { ZERO } from '../audio.js'
 import {createQueue} from '../synthesizers.js'
 
-export const DEFAULT_KICK_OPTIONS = {
-	name:"Default Kick",
-	velocity:1, 
-	length:0.15, 
-	attack:0.0001, 
-	decay:0.01, 
-	// sustain is a volume not a time
-	sustain:0.9, 
-	release:0.001,
-
-	// frequencies
-	triStart:110,
-	triEnd:50,
-
-	sineStart:120,
-	sineApex:150,
-	sineSustain:100,
-	sineEnd:50,
-}
-
-export const PRESET_TECH_HOUSE_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Tech House Kick",
-	velocity:1, 
-	length:0.07, 
-	attack:0.0001, 
-	decay:0.005, 
-	// sustain is a volume not a time
-	sustain:0.8, 
-	release:0.01,
-
-	// frequencies
-	triStart:90,
-	triEnd:50,
-
-	sineStart:80,
-	sineApex:130,
-	sineSustain:90,
-	sineEnd:20,
-})
-
-export const PRESET_BEEFY_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Beefy Kick",
-	velocity:1.2, 
-	length:0.05, 
-	attack:0.001, 
-	decay:0.005, 
-	// sustain is a volume not a time
-	sustain:0.94, 
-	release:0.01,
-
-	// frequencies
-	triStart:90,
-	triEnd:50,
-
-	sineStart:80,
-	sineApex:100,
-	sineSustain:90,
-	sineEnd:20,
-})
-
-export const PRESET_LOW_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Low Kick",
-	velocity:1.0, 
-	length:1.08, 
-	attack:0.01, 
-	decay:0.03, 
-	// sustain is a volume not a time
-	sustain:0.61, 
-	release:0.832,
-
-	// frequencies
-	triStart:53,
-	triEnd:37,
-
-	sineStart:63,
-	sineApex:18,
-	sineSustain:60,
-	sineEnd:200,
-})
-
-export const PRESET_THUD_KICK = Object.assign({},DEFAULT_KICK_OPTIONS,{
-	name:"Thud Kick",
-	velocity:2.3, 
-	length:2.1, 
-	attack:0.01, 
-	decay:0.25, 
-	// sustain is a volume not a time
-	sustain:0.77, 
-	release:0.789,
-
-	// frequencies
-	triStart:63,
-	triEnd:37,
-
-	sineStart:209,
-	sineApex:317,
-	sineSustain:14,
-	sineEnd:76,
-})
-
-export const PRESETS_KICKS = [
+// Presets live in their own file so they can be tweaked / extended
+// without touching the synth engine.  Re-export everything for
+// backwards compatibility with existing imports.
+export {
 	DEFAULT_KICK_OPTIONS,
+	PRESET_808_KICK,
+	PRESET_808_SUB_KICK,
+	PRESET_909_KICK,
+	PRESET_909_PUNCHY_KICK,
+	PRESET_707_KICK,
+	PRESET_LINN_KICK,
+	PRESET_CR78_KICK,
 	PRESET_TECH_HOUSE_KICK,
+	PRESET_DEEP_HOUSE_KICK,
+	PRESET_MINIMAL_TECHNO_KICK,
+	PRESET_DETROIT_KICK,
+	PRESET_BERLIN_KICK,
+	PRESET_ACID_KICK,
+	PRESET_HARDSTYLE_KICK,
+	PRESET_GABBER_KICK,
+	PRESET_INDUSTRIAL_KICK,
+	PRESET_HARDCORE_KICK,
+	PRESET_TRAP_KICK,
+	PRESET_DUBSTEP_KICK,
+	PRESET_HIPHOP_KICK,
+	PRESET_BOOM_BAP_KICK,
+	PRESET_DRILL_KICK,
+	PRESET_JUNGLE_KICK,
+	PRESET_DNB_KICK,
+	PRESET_BREAKBEAT_KICK,
+	PRESET_ELECTRO_KICK,
+	PRESET_SYNTHWAVE_KICK,
+	PRESET_VINTAGE_KICK,
 	PRESET_BEEFY_KICK,
 	PRESET_LOW_KICK,
-	PRESET_THUD_KICK
-]
+	PRESET_THUD_KICK,
+	PRESET_CLICK_KICK,
+	PRESET_LOFI_KICK,
+	PRESET_AMBIENT_KICK,
+	PRESET_CINEMATIC_KICK,
+	PRESET_DUSTY_KICK,
+	PRESET_PUNCH_KICK,
+	PRESET_PILLOW_KICK,
+	PRESET_DISTORTED_KICK,
+	PRESET_RAVE_KICK,
+	PRESET_SUB_BOOMER_KICK,
+	PRESET_TICK_KICK,
+	PRESETS_KICKS,
+	getKickPresets,
+	getRandomKickPreset,
+} from './kick-presets.js'
 
-export function getKickPresets() {
-	return [
-		DEFAULT_KICK_OPTIONS,
-		PRESET_TECH_HOUSE_KICK,
-		PRESET_BEEFY_KICK,
-		PRESET_LOW_KICK,
-		PRESET_THUD_KICK
-	]
-}
-export function getRandomKickPreset() {
-	const kickIndex = Math.floor(Math.random() * PRESETS_KICKS.length)
-	return PRESETS_KICKS[kickIndex]
-}
+import { DEFAULT_KICK_OPTIONS } from './kick-presets.js'
 
 /**
  * Kick me!
@@ -142,7 +74,7 @@ export const createKick = (audioContext, output ) => {
 	const kick = ( options=DEFAULT_KICK_OPTIONS ) => {
 
 		options = Object.assign({}, DEFAULT_KICK_OPTIONS, options )
-		const time = audioContext.currentTime + ZERO
+		const time = options.triggerAt || audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		
 		// console.log("KICK", options )
@@ -159,7 +91,7 @@ export const createKick = (audioContext, output ) => {
 			}
 			isRunning = true
 		}
- 
+  
 		// clear anything from previous plays
 		gainTriangle.gain.cancelScheduledValues(time)
 		gainSine.gain.cancelScheduledValues(time)
@@ -191,34 +123,23 @@ export const createKick = (audioContext, output ) => {
 
 		return options
 	}
- 
+  
     mainOscillator.connect(gainTriangle)
     gainTriangle.connect(output)
 	
 	subOscillator.connect(gainSine)
 	gainSine.connect(output)
 
+	kick.cancel = () => {
+		const now = audioContext.currentTime
+		gainTriangle.gain.cancelScheduledValues(now)
+		gainTriangle.gain.setValueAtTime(ZERO, now)
+		gainSine.gain.cancelScheduledValues(now)
+		gainSine.gain.setValueAtTime(ZERO, now)
+	}
+
 	return kick
 }
-
-// export const createKicks = (quantity=5) => {
-
-// 	const kicks = []
-// 	for (let i=0; i < quantity; ++i)
-// 	{
-// 		const kick = createKick()
-// 		kicks.push( kick )
-// 	}
-
-// 	// interface to play
-// 	let index = 0
-// 	const fetchNextKick = (attack=0.01,duration=0.5) => {
-// 		index = index + 1 < quantity ? index + 1 : 0
-// 		const kick = kicks[index]
-// 		kick(attack, duration)
-// 	}
-// 	return fetchNextKick
-// }
 
 // this is just an array of kicks
 export const createKicks = (audioContext, output, quantity=2) => createQueue( audioContext, output , createKick, quantity)

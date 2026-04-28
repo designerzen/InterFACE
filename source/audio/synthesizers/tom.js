@@ -1,97 +1,45 @@
 import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
-export const DEFAULT_TOM_OPTIONS = {
-	name:"Default Tom",
-	velocity:1, 
-	length:0.15, 
-	attack:0.0001, 
-	decay:0.01, 
-	// sustain is a volume not a time
-	sustain:0.9, 
-	release:0.001,
-
-	// frequencies
-	triStart:110,
-	triEnd:50,
-
-	sineStart:120,
-	sineApex:150,
-	sineSustain:100,
-	sineEnd:50,
-}
-
-export const PRESET_TECH_HOUSE_TOM = Object.assign({},DEFAULT_TOM_OPTIONS,{
-	name:"Tech House Tom",
-	velocity:1, 
-	length:0.07, 
-	attack:0.0001, 
-	decay:0.005, 
-	// sustain is a volume not a time
-	sustain:0.8, 
-	release:0.01,
-
-	// frequencies
-	triStart:90,
-	triEnd:50,
-
-	sineStart:80,
-	sineApex:130,
-	sineSustain:90,
-	sineEnd:20,
-})
-
-export const PRESET_BEEFY_TOM = Object.assign({},DEFAULT_TOM_OPTIONS,{
-	name:"Beefy Tom",
-	velocity:1.2, 
-	length:0.05, 
-	attack:0.001, 
-	decay:0.005, 
-	// sustain is a volume not a time
-	sustain:0.94, 
-	release:0.01,
-
-	// frequencies
-	triStart:90,
-	triEnd:50,
-
-	sineStart:80,
-	sineApex:100,
-	sineSustain:90,
-	sineEnd:20,
-})
-
-export const PRESET_LOW_TOM = Object.assign({},DEFAULT_TOM_OPTIONS,{
-	name:"Low Tom",
-	velocity:1.0, 
-	length:1.08, 
-	attack:0.01, 
-	decay:0.03, 
-	// sustain is a volume not a time
-	sustain:0.61, 
-	release:0.832,
-
-	// frequencies
-	triStart:53,
-	triEnd:37,
-
-	sineStart:63,
-	sineApex:18,
-	sineSustain:60,
-	sineEnd:200,
-})
-
-export const PRESETS_TOMS = [
+// Tom presets live in their own file - re-export for backwards
+// compatibility with existing imports.
+export {
 	DEFAULT_TOM_OPTIONS,
+	PRESET_FLOOR_TOM,
+	PRESET_LOW_TOM,
+	PRESET_MID_TOM,
+	PRESET_HIGH_TOM,
+	PRESET_RACK_TOM,
+	PRESET_DEEP_LOW_TOM,
+	PRESET_808_LOW_TOM,
+	PRESET_808_MID_TOM,
+	PRESET_808_HIGH_TOM,
+	PRESET_909_LOW_TOM,
+	PRESET_909_HIGH_TOM,
+	PRESET_LINN_TOM,
 	PRESET_TECH_HOUSE_TOM,
 	PRESET_BEEFY_TOM,
-	PRESET_LOW_TOM
-]
+	PRESET_TRIBAL_TOM,
+	PRESET_TIMBALE_TOM,
+	PRESET_CONGA_TOM,
+	PRESET_BONGO_TOM,
+	PRESET_JUNGLE_TOM,
+	PRESET_DNB_TOM,
+	PRESET_TRAP_TOM,
+	PRESET_LOFI_TOM,
+	PRESET_AMBIENT_TOM,
+	PRESET_CINEMATIC_TOM,
+	PRESET_DISTORTED_TOM,
+	PRESET_TIGHT_TOM,
+	PRESET_THUD_TOM,
+	PRESET_RAVE_TOM,
+	PRESETS_TOMS,
+	getRandomKTomPreset,
+	getRandomTomPreset,
+	getTomPresets,
+} from './tom-presets.js'
 
-export const getRandomKTomPreset = () => {
-	const tomIndex = Math.floor(Math.random() * PRESETS_TOMS.length)
-	return PRESETS_TOMS[tomIndex]
-}
+import { DEFAULT_TOM_OPTIONS } from './tom-presets.js'
 
 /**
  * Kick me!
@@ -112,7 +60,7 @@ export const createTom = (audioContext, output ) => {
 	const tom = ( options=DEFAULT_TOM_OPTIONS ) => {
 
 		options = Object.assign({}, DEFAULT_TOM_OPTIONS, options )
-		const time = audioContext.currentTime + ZERO
+		const time = options.triggerAt || audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		
 		// console.log("KICK", options )
@@ -173,24 +121,5 @@ export const createTom = (audioContext, output ) => {
 	return tom
 }
 
-// export const createKicks = (quantity=5) => {
-
-// 	const kicks = []
-// 	for (let i=0; i < quantity; ++i)
-// 	{
-// 		const kick = createKick()
-// 		kicks.push( kick )
-// 	}
-
-// 	// interface to play
-// 	let index = 0
-// 	const fetchNextKick = (attack=0.01,duration=0.5) => {
-// 		index = index + 1 < quantity ? index + 1 : 0
-// 		const kick = kicks[index]
-// 		kick(attack, duration)
-// 	}
-// 	return fetchNextKick
-// }
-
-// this is just an array of kicks
+// this is just an array of toms
 export const createToms = (audioContext, output, quantity=2) => createQueue( audioContext, output , createTom, quantity)

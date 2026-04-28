@@ -1,140 +1,58 @@
 import { ZERO } from '../audio'
 import {createQueue} from '../synthesizers'
 
-export const DEFAULT_SNARE_OPTIONS = {
-	name:"Default Snare",
-	velocity:1, 
-	length : 0.4,
-	// default bandpawss filter Q
-	bandpassStart:90,
-	bandpassEnd:1000,
-	// frequency sweep
-	triStart:90,
-	triEnd:50,
-	// filter sweep
-	highpassStart:2000,
-	highpassEnd:600,
-
-	attack:0.05,
-	decay:0.2,
-
-	// type: "square"
-	type: "triangle"
-}
-
-export const PRESET_LONG_SNARE_OPTIONS = {
-	name:"Long Snare",
-	velocity:1, 
-	length : 1.2,
-	// default bandpawss filter Q
-	bandpassStart:90,
-	bandpassEnd:1000,
-	// frequency sweep
-	triStart:90,
-	triEnd:50,
-	// filter sweep
-	highpassStart:2000,
-	highpassEnd:600,
-
-	attack:0.07,
-	decay:0.02,
-
-	type: "triangle"
-}
-
-export const PRESET_HEAVY_SNARE_OPTIONS = {
-	name:"Heavy Snare",
-	velocity:1, 
-	length : 0.9,
-	// default bandpawss filter Q
-	bandpassStart:30,
-	bandpassEnd:1400,
-	// frequency sweep
-	triStart:90,
-	triEnd:50,
-	// filter sweep
-	highpassStart:2000,
-	highpassEnd:600,
-
-	attack:0.07,
-	decay:0.05,
-
-	// type: "square"
-	type: "triangle"
-}
-
-export const PRESET_SQUARE_SNARE_OPTIONS = {
-	name:"Square Snare",
-	velocity:1, 
-	length : 0.3,
-	// default bandpawss filter Q
-	bandpassStart:90,
-	bandpassEnd:1000,
-	// frequency sweep
-	triStart:90,
-	triEnd:50,
-	// filter sweep
-	highpassStart:2000,
-	highpassEnd:600,
-
-	attack:0.07,
-	decay:0.05,
-
-	type: "square"
-}
-
-export const PRESET_STRONG_SNARE_OPTIONS = {
-	name:"Strong Snare",
-	velocity:1, 
-	length : 1.1,
-	// default bandpawss filter Q
-	bandpassStart:90,
-	bandpassEnd:1000,
-	// frequency sweep
-	triStart:90,
-	triEnd:50,
-	// filter sweep
-	highpassStart:2000,
-	highpassEnd:600,
-
-	attack:0.009,
-	decay:0.05,
-
-	type: "square"
-}
-
-export const PRESET_SATURATED_SNARE_OPTIONS = {
-	name:"Strong Snare",
-	velocity:3, 
-	length : 1.75,
-	// default bandpawss filter Q
-	bandpassStart:3000,
-	bandpassEnd:1000,
-	// frequency sweep
-	triStart:87,
-	triEnd:30,
-	// filter sweep
-	highpassStart:7000,
-	highpassEnd:600,
-
-	attack:0.03,
-	decay:0.5,
-
-	type: "square"
-}
-export const PRESET_SNARES = [
+// Snare presets live in their own file - re-export for backwards
+// compatibility with existing import sites.
+export {
 	DEFAULT_SNARE_OPTIONS,
+	PRESET_808_SNARE,
+	PRESET_909_SNARE,
+	PRESET_707_SNARE,
+	PRESET_LINN_SNARE,
+	PRESET_CR78_SNARE,
+	PRESET_ACOUSTIC_SNARE,
+	PRESET_PICCOLO_SNARE,
+	PRESET_BRUSH_SNARE,
+	PRESET_BIG_ROOM_SNARE,
+	PRESET_GATED_SNARE,
+	PRESET_RIM_SHOT_SNARE,
+	PRESET_HEAVY_SNARE,
+	PRESET_LONG_SNARE,
+	PRESET_SQUARE_SNARE,
+	PRESET_STRONG_SNARE,
+	PRESET_SATURATED_SNARE,
+	PRESET_DISTORTED_SNARE,
+	PRESET_TRAP_SNARE,
+	PRESET_DRILL_SNARE,
+	PRESET_HIPHOP_SNARE,
+	PRESET_BOOM_BAP_SNARE,
+	PRESET_LOFI_SNARE,
+	PRESET_HOUSE_SNARE,
+	PRESET_TECH_SNARE,
+	PRESET_CLAP_SNARE,
+	PRESET_JUNGLE_SNARE,
+	PRESET_DNB_SNARE,
+	PRESET_BREAKBEAT_SNARE,
+	PRESET_TIGHT_SNARE,
+	PRESET_FAT_SNARE,
+	PRESET_GHOST_SNARE,
+	PRESET_NOISY_SNARE,
+	PRESET_CINEMATIC_SNARE,
+	PRESET_ELECTRO_SNARE,
+	PRESET_INDUSTRIAL_SNARE,
+	PRESET_AMBIENT_SNARE,
+	// legacy aliases
+	PRESET_LONG_SNARE_OPTIONS,
 	PRESET_HEAVY_SNARE_OPTIONS,
 	PRESET_SQUARE_SNARE_OPTIONS,
-	PRESET_LONG_SNARE_OPTIONS,
 	PRESET_STRONG_SNARE_OPTIONS,
-	PRESET_SATURATED_SNARE_OPTIONS
-]
+	PRESET_SATURATED_SNARE_OPTIONS,
+	PRESET_SNARES,
+	getRandomSnarePreset,
+	getSnarePresets,
+} from './snare-presets.js'
 
-export const getRandomSnarePreset = () => {
-	const snareIndex = Math.floor(Math.random() * PRESET_SNARES.length)
-	return PRESET_SNARES[snareIndex]
-}
+import { DEFAULT_SNARE_OPTIONS } from './snare-presets.js'
 
 /**
  * Create an instance of the snare instrument
@@ -184,7 +102,7 @@ export const createSnare = ( audioContext, output ) => {
 
 		options = Object.assign({}, DEFAULT_SNARE_OPTIONS, options)
 	
-		const time = audioContext.currentTime
+		const time = options.triggerAt || audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		
 		if (!isRunning)
@@ -228,6 +146,13 @@ export const createSnare = ( audioContext, output ) => {
 		highpass.frequency.setValueAtTime( options.highpassStart, time)
 		highpass.frequency.linearRampToValueAtTime( options.highpassEnd, endAt)
 		return options
+	}
+	snare.cancel = () => {
+		const now = audioContext.currentTime
+		filterGain.gain.cancelScheduledValues(now)
+		filterGain.gain.setValueAtTime(ZERO, now)
+		gainTriangle.gain.cancelScheduledValues(now)
+		gainTriangle.gain.setValueAtTime(ZERO, now)
 	}
 	return snare
 }

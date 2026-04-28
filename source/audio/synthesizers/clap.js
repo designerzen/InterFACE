@@ -1,18 +1,36 @@
 import { ZERO, getPercussionNode} from '../audio'
 import {createQueue} from '../synthesizers'
 
+// Clap presets live in their own file - re-export for backwards compat
+export {
+	DEFAULT_CLAP_OPTIONS,
+	PRESET_808_CLAP,
+	PRESET_909_CLAP,
+	PRESET_LINN_CLAP,
+	PRESET_CR78_CLAP,
+	PRESET_TIGHT_CLAP,
+	PRESET_FAT_CLAP,
+	PRESET_STADIUM_CLAP,
+	PRESET_FINGER_SNAP,
+	PRESET_HAND_CLAP,
+	PRESET_HOUSE_CLAP,
+	PRESET_TECHNO_CLAP,
+	PRESET_TRAP_CLAP,
+	PRESET_HIPHOP_CLAP,
+	PRESET_LOFI_CLAP,
+	PRESET_DISTORTED_CLAP,
+	PRESET_GATED_CLAP,
+	PRESET_WIDE_CLAP,
+	PRESET_HUMAN_CLAP,
+	PRESET_AGGRESSIVE_CLAP,
+	PRESET_AMBIENT_CLAP,
+	PRESET_DRY_CLAP,
+	PRESET_CLAPS,
+	getRandomClapPreset,
+	getClapPresets,
+} from './clap-presets.js'
 
-export const DEFAULT_CLAP_OPTIONS = {
-	velocity:1, 
-	length:0.7,
-	highpass:6,
-	frequencyStart:50,
-	frequencyEnd:3000,
-	
-	attack:0.05,
-	decay:0.2,
-	sustain:0.9
-}
+import { DEFAULT_CLAP_OPTIONS } from './clap-presets.js'
 
 /**
  * Create an instance of the snare instrument
@@ -56,7 +74,7 @@ export const createClap = ( audioContext, output ) => {
 	
 		options = Object.assign({},DEFAULT_CLAP_OPTIONS,options)
 	
-		const time = audioContext.currentTime
+		const time = options.triggerAt || audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		if (!isRunning)	
 		{
@@ -87,6 +105,13 @@ export const createClap = ( audioContext, output ) => {
 		filter.frequency.linearRampToValueAtTime( options.frequencyEnd, endAt)
 
 		return options
+	}
+	clap.cancel = () => {
+		const now = audioContext.currentTime
+		filterGain.gain.cancelScheduledValues(now)
+		filterGain.gain.setValueAtTime(ZERO, now)
+		gainTriangle.gain.cancelScheduledValues(now)
+		gainTriangle.gain.setValueAtTime(ZERO, now)
 	}
 	return clap
 }
