@@ -214,7 +214,7 @@ const createPlainOption = ({ value, label, detail, selected, disabled }) => {
 	return option
 }
 
-export const connectSelect = async (element,callback) => {
+export const connectSelect = (element,callback) => {
 	const select = typeof element === "string" ? document.getElementById(element) : element
 	
 	if (!select){
