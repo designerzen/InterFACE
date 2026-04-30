@@ -96,23 +96,51 @@ select:not([multiple]):not([size]) {
 			display: flex;
 			align-items: center;
 			gap: 0.5em;
-			padding: 0.4em 0.6em;
+			padding: 0.4em 0.6em 0.4em 0.4em;
 			cursor: pointer;
-			transition: background var(--ease-q), color var(--ease-q);
+			// reserve a left edge for the "currently selected" indicator
+			// so the layout doesn't shift when selection changes
+			border-inline-start: 3px solid transparent;
+			transition:
+				background var(--ease-q),
+				color var(--ease-q),
+				border-color var(--ease-q);
 
 			&:hover,
 			&:focus {
-				background: var(--shade-active);
+				background: hsl(var(--hue-dark), 6%, 22%);
 				color: var(--shade-white);
 			}
 
+			// CURRENTLY SELECTED option — must be obviously more prominent
+			// than :hover so it remains identifiable while the user mouses
+			// over other options in the open picker.
 			&:checked {
-				background: hsl(var(--hue-brand), 50%, 25%);
+				background: hsl(var(--hue-brand), 60%, 38%);
 				color: var(--shade-white);
+				font-weight: 700;
+				border-inline-start-color: var(--shade-active);
+
+				// keep selected styling dominant even when hovered/focused
+				&:hover,
+				&:focus {
+					background: hsl(var(--hue-brand), 65%, 45%);
+				}
+
+				.option-detail {
+					opacity: 0.95;
+				}
 			}
 
+			// Visible checkmark glyph next to the selected option.
+			// `::checkmark` is only generated for :checked options inside
+			// a customizable <select>; setting `content` ensures something
+			// is actually rendered (browsers don't supply a default glyph).
 			&::checkmark {
-				color: var(--shade-active);
+				content: "✓";
+				color: var(--shade-white);
+				font-weight: 700;
+				margin-inline-end: 0.25em;
 			}
 		}
 
