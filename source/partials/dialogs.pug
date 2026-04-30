@@ -146,7 +146,7 @@ dialog#errors
 		audio(src="./assets/audio/lemmings.wav" controls=false)
 
 		menu
-			button.button.button-push.text-always.reload-app(autofocus onclick="window.location.reload();" type="button") Reload 
+			button.button.button-push.text-always.reload-app(autofocus onclick="setTimeout(()=>window.location.reload(true))" type="button") Reload 
 			button.button.button-push.text-always.reset-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
 	
 		button.close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
