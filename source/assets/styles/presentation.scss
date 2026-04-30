@@ -111,6 +111,10 @@
 	figure.grid{
 		display: grid;
 		grid-template-columns: 1fr 1fr;
+		grid-template-rows: 1fr 1fr;
+		max-height: 100vh;
+		max-height: 100dvh;
+		max-height: 100svh;
 
 		figcaption{
 			grid-area: 1 / 1 / -1 / -1;

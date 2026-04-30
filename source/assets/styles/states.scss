@@ -545,31 +545,6 @@ main:not(.flag-overlays){
 
 		--x:-50%;
 		--y:-45%;
-		animation: 	Fade var(--ease-s) linear 0s 1 normal both,
-					Translate var(--ease-s) linear 0s 1 normal both;
-		// left:var(--pad);
-		// right:var(--pad);
-		top:50%;
-		left:50%;
-		transform: translate(-50%, -50%);
-		
-		max-width: 36ex;
-
-		// bottom:calc(50vh - 0.5rem);
-		text-align: center;
-		border-radius: 14px;
-
-		background-color:var(--shade-brand,var(--shade-red)); 
-		background-image:linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.2));
-
-		color:var(--shade-dark);
-		border:10px solid var(--shade-white);
-		z-index:909;
-
-		filter:none;
-		
-		font-size:140%;
-		font-weight: 900;
 
 		strong{
 			animation-name:TextError;

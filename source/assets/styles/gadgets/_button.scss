@@ -161,8 +161,8 @@
 	// );
 	 
 	// Fancy gradient backgrounds with icon above all
+	//var(--bg, initial),
 	background-image: 
-		var(--bg, initial),
 		linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
 		linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
 		linear-gradient( var(--col-back-top), var(--col-back-bottom) );
@@ -1232,9 +1232,9 @@
 			// 	border-box;
 			//opacity:0.48;
 			background: inherit;
-			
+			//var(--bg),
+				
 			background-image: 
-				var(--bg),
 				linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
 				linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
 				linear-gradient( var(--col-back-top), var(--col-back-bottom) );
