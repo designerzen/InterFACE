@@ -63,7 +63,7 @@ export const createCowbell = (audioContext, output ) => {
 		
 		options = Object.assign({}, DEFAULT_COWBELL_OPTIONS, options)
 	
-		const time = options.triggerAt || audioContext.currentTime + ZERO
+		const time = options.triggerAt ?? audioContext.currentTime + ZERO
 		
 		if (!isRunning)
 		{			

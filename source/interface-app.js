@@ -65,7 +65,7 @@ import Person, {
  
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
-import { playNextPart, getKitSequence } from './timing/patterns.js'
+import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
 import { AudioTimer } from 'netronome'
 
 // AUDIO 
@@ -1480,7 +1480,7 @@ export const createInterface = (
 			const videoCameraDevices = await fetchVideoCameras()
 			updateCameraSelector( videoCameraDevices )
 			console.info("New Camera Detected", {videoCameraDevices, event })
-			setFeedback( `New cameras detected!`, 0, 'camera' )
+			setFeedback( `New cameras detected - change to it in the settings!`, 0, 'camera' )
 		}
 		
 		const cameraFeedbackMessage = investigation.saved ? 
@@ -1942,7 +1942,10 @@ export const createInterface = (
 			elapsed, expected, drift, level, intervals, lag
 		} = values
 
-		const tempo = tapTempo(true, 1000, 3)
+		// NB. do NOT call tapTempo() on every tick — each call pushes a
+		// timestamp onto its internal taps array, polluting future
+		// real tap-tempo measurements and slowly leaking memory.
+		// const tempo = tapTempo(true, 1000, 3)
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
 				
 		// immediately dispatch the signal to any peers
@@ -1992,11 +1995,6 @@ export const createInterface = (
 
 		// }
 
-		// nothing to play so we exit immediately!
-		if (stateMachine.get("muted"))
-		{
-			return
-		}
 
 		// Play metronome!
 		if ( stateMachine.get("metronome") && isBar )
@@ -2099,16 +2097,17 @@ export const createInterface = (
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
-			const tempo = tapTempo(true, 1000, 3)
-			//console.log("tempo", tempo, {clock} )
-
 			const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 			if ( divisionsElapsed % slower === 0 )
 			{
 				//console.log(slower,barsElapsed, clock.BPM * 0.001,  divisionsElapsed % slower )
-				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions )
-				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions )
-				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions )
+				// Anchor scheduling on the metronome tick's true audio-clock
+				// time (so beats stay locked to the clock grid) and add a
+				// small safety lookahead to keep us out of the past.
+				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
+				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
+				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
+				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )
 			}
 			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
@@ -2396,7 +2395,8 @@ export const createInterface = (
 			// NB. at this point we have access to the user events
 			// 		so can create things that depend on audio context
 			const initialBPM = stateMachine.get('bpm') ?? 90
-			clock = new AudioTimer( audioContext, false )
+			clock = new AudioTimer( audioContext, true )
+			clock.options.accurate = true
 			clock.BPM = initialBPM
 
 			console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
@@ -3009,6 +3009,8 @@ export const createInterface = (
 			// change drums!
 			setRandomDrumPattern()
 			toggleBackgroundPercussion(false)
+			// cancel any playing drum sounds immediately
+			if (!status) kit?.cancel()
 		}, stateMachine.get( 'backingTrack') )
 
 

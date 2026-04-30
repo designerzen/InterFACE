@@ -83,7 +83,7 @@ export const createHihat = (audioContext, output ) => {
 
 		options = Object.assign({},DEFAULT_CLOSED_HIHAT,options)
 
-		const time = options.triggerAt || audioContext.currentTime + ZERO
+		const time = options.triggerAt ?? audioContext.currentTime + ZERO
 
 		if (!isRunning)
 		{

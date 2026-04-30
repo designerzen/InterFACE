@@ -170,7 +170,8 @@ export default class YoshimiInstrument extends Instrument{
 	}
 
 	/**
-	 * Load an XML descriptor for this instrument and send
+	 * Load an XML patch descriptor in the idx format
+	 * (zipped xml) for this instrument and send
 	 * it to the worklet to process
 	 * @param {string} filename - filenames[x]
 	 * @param {string} bank - name from object

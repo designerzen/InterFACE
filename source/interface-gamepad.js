@@ -236,8 +236,7 @@ const convertGamePadActionToPercussion = ( application, gamePad, button, value, 
 			application.kit.snare()
 			break
 		
-		// If we are in a certain mode...
-		// adapt 
+		// Left Back Trigger
 		case COMMANDS.LB: 
 			application.kit.snare()
 			break
@@ -363,8 +362,10 @@ const convertGamePadActionToControl = ( application, gamePad, button, value, hel
 			application.setRandomDrumTimbres()
 			break
 		
-		// case COMMANDS.Y: 
-		// 	break
+		case COMMANDS.Y: 
+		
+		application.setRandomDrumPattern()
+			break
 
 		case COMMANDS.LEFT_SHOULDER:
 			application.setVolume( application.getVolume() - 1 )

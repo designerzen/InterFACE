@@ -74,7 +74,7 @@ export const createKick = (audioContext, output ) => {
 	const kick = ( options=DEFAULT_KICK_OPTIONS ) => {
 
 		options = Object.assign({}, DEFAULT_KICK_OPTIONS, options )
-		const time = options.triggerAt || audioContext.currentTime + ZERO
+		const time = options.triggerAt ?? audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		
 		// console.log("KICK", options )

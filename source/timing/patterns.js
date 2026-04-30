@@ -89,16 +89,64 @@ export const combinePatternWithInstrument = (pattern, instrument )=> {
 
 }
 
-export const playNextPart = (pattern, instrument, options )=> {
+export const playNextPart = (pattern, instrument, options, triggerAt )=> {
 	const velocity = pattern.next()
 	if (velocity > 0)
 	{
-		instrument( {...options, velocity: velocity / 255 } )	// velocity
+		instrument( {...options, velocity: velocity / 255, triggerAt } )	// velocity
 		return true
 	}else{
 		// no note but noteOff?
 		return false
 	}
+}
+
+/**
+ * Compute the AudioContext time at which a beat should fire.
+ *
+ * The metronome tick's true audio time (`startTime + expected`) is in
+ * the past by the time the main-thread callback actually runs, because
+ * the worklet → main-thread MessagePort introduces a small dispatch
+ * delay (Δ). Naively `Math.max(gridTime, now + tinySafety)` therefore
+ * collapses to `now + tinySafety` and re-introduces all the
+ * main-thread jitter we were trying to eliminate.
+ *
+ * Instead we add the lookahead to the GRID time, not to `now`. That
+ * way the inter-beat delta is governed purely by the difference of
+ * successive `expected` values (which are perfectly uniform – they're
+ * just `intervals * period` from the worklet), so beats fire at a
+ * rock-steady tempo regardless of when each callback happens to land.
+ *
+ * The whole sequence is shifted into the future by `lookahead` seconds
+ * so the audio engine has enough headroom to render the next note
+ * without being affected by main-thread stalls.
+ *
+ * @param {AudioContext} audioContext
+ * @param {Object} clock - netronome AudioTimer instance (uses clock.startTime ms)
+ * @param {Number} expected - expected elapsed seconds since clock start (from tick)
+ * @param {Number} [lookahead] - scheduling headroom in seconds (defaults to one
+ *   "bar" of the netronome clock, which is one quarter-note in netronome's
+ *   internal naming). Large enough to absorb worst-case main-thread jitter.
+ * @returns {Number} audio-clock time in seconds, suitable for triggerAt
+ */
+export const getBeatTriggerTime = ( audioContext, clock, expected, lookahead ) => {
+	const now = audioContext.currentTime
+	// Sensible default: one beat of headroom, scaled with tempo.
+	if ( lookahead === undefined )
+	{
+		lookahead = clock && clock.timePerBar > 0 ? clock.timePerBar / 1000 : 0.1
+	}
+	// Clock not yet started → fall back to "now + lookahead".
+	if ( !clock || clock.startTime <= 0 )
+	{
+		return now + lookahead
+	}
+	const tickAudioTime = clock.startTime / 1000 + ( expected ?? 0 )
+	const scheduled = tickAudioTime + lookahead
+	// Last-resort safety: never schedule meaningfully in the past
+	// (Web Audio silently drops past-time events). A 5 ms guard is
+	// sufficient and almost never kicks in once the clock is running.
+	return scheduled > now ? scheduled : now + 0.005
 }
 
 // const kickVelocity = patterns.kick.next()

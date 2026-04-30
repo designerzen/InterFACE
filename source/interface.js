@@ -60,7 +60,7 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
 import { AudioTimer } from 'netronome'
-import { playNextPart, getKitSequence } from './timing/patterns.js'
+import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
 import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
 
@@ -1523,6 +1523,7 @@ export const createInterface = (
 			}catch(error){
 				console.error("Camera:Error > ",{selected,error})
 				setToast( `Camera ${selected.label} could not be accessed`, 0 )
+				showError( `Camera ${selected.label} could not be accessed`, "the requested camera appears to either be already in use by other software, or it cannot be directly accessed. Try closing other programs and swapping the USB port if possible.", true)
 			}
 			 
 			isCameraLoading = false
@@ -2200,12 +2201,6 @@ export const createInterface = (
 
 		hasBeatJustPlayed = true
 
-		// nothing to play so we exit immediately!
-		if (stateMachine.get("muted"))
-		{
-			return
-		}
-
 		// Play metronome!
 		if ( stateMachine.get("metronome") && isBar )
 		{
@@ -2308,16 +2303,17 @@ export const createInterface = (
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
-			// const tempo = tapTempo(true, 1000, 3)
-			//console.log("tempo", tempo, {clock} )
-
 			const slower = Math.floor( clock.BPM * 0.0005 ) + 1
 			if ( divisionsElapsed % slower === 0 )
 			{
 				//console.log(slower,barsElapsed, clock.BPM * 0.001,  divisionsElapsed % slower )
-				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions )
-				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions )
-				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions )
+				// Anchor scheduling on the metronome tick's true audio-clock
+				// time (so beats stay locked to the clock grid) and add a
+				// small safety lookahead to keep us out of the past.
+				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
+				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
+				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
+				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )
 			}
 			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
@@ -2466,7 +2462,7 @@ export const createInterface = (
 		}catch(error){
 			console.error("FAIL: PhotoSYNTH Screens available", error, { settings} ) 
 			progressCallback(1, "No Holographic display detected")
-			showError("Could not access display code", true)
+			showError("Could not access display code", "importing code has failed perhaps due to internet connection.", true)
 			// return reject( "Could not access display code" )
 		}
 
@@ -3212,6 +3208,8 @@ export const createInterface = (
 			// change drums!
 			setRandomDrumPattern()
 			toggleBackgroundPercussion(false)
+			// cancel any playing drum sounds immediately
+			if (!status) kit?.cancel()
 		}, stateMachine.get( 'backingTrack') )
 
 		toggles.spectrogram = setToggle( "button-spectrogram", status =>{

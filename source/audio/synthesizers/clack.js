@@ -66,7 +66,7 @@ export const createClack = (audioContext, output ) => {
 		
 		options = Object.assign({},DEFAULT_CLACK_OPTIONS,options)
 	
-		const time = options.triggerAt || audioContext.currentTime + ZERO
+		const time = options.triggerAt ?? audioContext.currentTime + ZERO
 			
 		if (!isRunning)
 		{

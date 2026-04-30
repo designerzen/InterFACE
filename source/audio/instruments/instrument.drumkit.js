@@ -88,13 +88,13 @@ export default class DrumkitInstrument extends Instrument{
 	 * @param {Number} velocity 
 	 * @returns 
 	 */
-	async noteOn( noteNumber, velocity=1 ){
+	async noteOn( noteNumber, velocity=1, triggerAt ){
 
 		// the type of note ?
-		const kick = playNextPart( this.patterns.kick, this.kick )
-		const snare = playNextPart( this.patterns.snare, this.snare )
-		const hat = playNextPart( this.patterns.hat, this.hatOpen )
-		// const hatClosed = playNextPart( this.patterns.hat, this.hatClosed )
+		const kick = playNextPart( this.patterns.kick, this.kick, {}, triggerAt )
+		const snare = playNextPart( this.patterns.snare, this.snare, {}, triggerAt )
+		const hat = playNextPart( this.patterns.hat, this.hatOpen, {}, triggerAt )
+		// const hatClosed = playNextPart( this.patterns.hat, this.hatClosed, {}, triggerAt )
 
 		console.error("noteOn",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
 		// the 

@@ -74,7 +74,7 @@ export const createClap = ( audioContext, output ) => {
 	
 		options = Object.assign({},DEFAULT_CLAP_OPTIONS,options)
 	
-		const time = options.triggerAt || audioContext.currentTime + ZERO
+		const time = options.triggerAt ?? audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		if (!isRunning)	
 		{
