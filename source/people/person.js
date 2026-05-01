@@ -318,11 +318,11 @@ export default class Person extends EventTarget{
 	personalProgress
 	
 	get userMode(){
-		return this.#userMode
+		return this.#userMode % PERSON_TYPE_DATA.length
 	}
 	
 	get userModeData(){
-		return PERSON_TYPE_DATA[ this.#userMode % PERSON_TYPE_DATA.length ]
+		return PERSON_TYPE_DATA[ this.userMode ]
 	}
 
 	get userModeDesicription(){
@@ -1692,7 +1692,7 @@ export default class Person extends EventTarget{
 		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness )// , prediction.sadness ) 
 				
 		// volume is an log of this
-		const amp = clamp( easeInSine(lipPercentage), 0, 0.8 ) * (1 - this.percentageDead ) //- 0.1
+		const amp = clamp( easeInSine(lipPercentage), 0, this.options.maximumAmplitude ) * Math.min(1 - this.percentageDead, 0 ) //- 0.1
 		
 		this.singing = amp >= options.mouthCutOff
 
@@ -1889,10 +1889,7 @@ export default class Person extends EventTarget{
 			// no instruments in memory yet... play silence?
 		}
 
-
 		//console.log("Singing", {newOctave, newVolume, amp,isMinor, noteName, friendlyNoteName, noteSound, noteNumberForMIDI, lipPercentage, pitch, roll, rolled, eyeDirection, hasNoteChanged })
-
-
 		
 		// smooth this down
 		// try and smooth the volume if it is fading out...

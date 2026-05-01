@@ -16,7 +16,7 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 	// console.log("octaveNumber",octaveNumber,"noteNumber",noteNumber)
 	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
 	// straight at screen to positive below and negative above
-	const newOctave = rangeRounded( octaveNumber , -1, 1, 2, 6 )
+	const newOctave = rangeRounded( octaveNumber , -1, 1, options.octaveLow ?? 2, options.octraveHigh ?? 6 )
 	// const newOctave = rangeRounded( octaveNumber , -1, 1, 1, 7 )
 
 	// simple way of selecting the black notes

@@ -52,6 +52,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// scale is confusing as it can mean visual audio or physical
 	tuning:TUNING_MODE_NAMES[0],
+	octaveLow:2,
+	octaveHigh:6,
+	maximumAmplitude:0.6,
 
 	// musical for example F MAjorroot note
 	// F (C=0, CΓÖ»=1, D=2, DΓÖ»=3, E=4, F=5)
@@ -181,8 +184,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// 1 or 2 should be more than enough
 	precision:3,
 
-
-	// how long vefore we consider the person has left the playing arena
+	// how long before we consider the person has left the playing arena
 	timeToDie:1000,
 
 	// set this to one of the interpolation methods above
@@ -204,9 +206,13 @@ export const DEFAULT_PEOPLE_OPTIONS = [
 		...DEFAULT_PERSON_OPTIONS,
 		hue:Math.random() * 360
 	},
+	// Bassline
 	{
 		...DEFAULT_PERSON_OPTIONS,
+		octaveLow:0,
+		octaveHigh:3,
 		hue:Math.random() * 360,
+		
 		// Here we bind which model variables is assigned to
 		// which audio selection mechanism.
 		// can be 'gazeHorizontal', 'pitch', 'roll', 'yaw'
@@ -228,12 +234,18 @@ export const DEFAULT_PEOPLE_OPTIONS = [
 		// fxAController:'happiness',
 		// fxBController:'eyebrowsRaisedBy'
 	},
+	// Melody upper harmonic
 	{
 		...DEFAULT_PERSON_OPTIONS,
+		octaveLow:4,
+		octaveHigh:8,
 		hue:Math.random() * 360
 	},
+	// Percussion - all octaves!
 	{
 		...DEFAULT_PERSON_OPTIONS,
+		octaveLow:0,
+		octaveHigh:8,
 		hue:Math.random() * 360
 	}
 ]
