@@ -1,7 +1,7 @@
 import { MOUSE_REPEATING, addMouseRepeaterEvents } from '../hardware/mouse.js'
 import { tapTempo, TIMER_TYPE_ROLLING, TIMER_TYPE_SET_INTERVAL, TIMER_TYPE_SET_TIMEOUT } from 'netronome'
 
-export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, onTimerChanged ) => {
+export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, onTimerChanged, onUIToggleVisibility ) => {
 		
 	let clockSource
 	let midiOutput
@@ -22,6 +22,17 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	const timingProgress = document.getElementById('timing-progress') 
 	const timingFeedback = document.getElementById('timing-feedback') 
 	
+	const toggleUI = document.querySelector("#folder-tempo")
+	const isMenuVisible = () => document.activeElement === toggleUI
+	toggleUI.addEventListener("pointerdown", e => {
+		onUIToggleVisibility( isMenuVisible() )
+	})
+	document.addEventListener('focusin', () => {
+		if (isMenuVisible()){
+			onUIToggleVisibility(true)
+		}
+	})
+
 	let interval
 
 	let estimatedTempo = tapTempo()
@@ -371,4 +382,24 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 				}
 		}
 	})
+}
+
+/**
+ * Update the BPM on screen
+ * @param {Number} tempo as a quantity of beats per measure
+ */
+export const updateTempo = tempo =>{
+	const b = doc.getElementById('input-tempo')
+	if (b)
+	{
+		b.setAttribute("value", tempo)
+	}
+	console.log("Setting tempo", tempo)
+}
+
+export const connectTempoControls = (callback) => {
+	connectSelect('select-tempo', (option)=>{
+		const tempo = parseInt( option.value )
+		callback && callback (tempo)
+	} )
 }

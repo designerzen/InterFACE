@@ -21,13 +21,14 @@
 			font-family: 'Times New Roman', Times, serif;
 			position: absolute;
 			top:var(--pad,0);
-			line-height: 0;
-			transform: translateY(100%);
+			line-height: 1;
+			// transform: translateY(100%);
 		}
 
 		&::before{
 			content: open-quote;
-			left:0;
+			// left:0;
+			right: 100%;
 		}
 		// &::after{
 		// 	content: close-quote;
@@ -45,6 +46,12 @@
 		height:100dvh;
 		height:100svh;
 		max-height:100svh;
+		display: flex !important;
+		place-items: center; 
+		flex-direction: column;
+		place-content: center;
+		flex-wrap: wrap;
+		
 	}
 
 	section > time{

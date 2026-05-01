@@ -1,5 +1,3 @@
-import {updateTempo} from './ui'
-
 const supportsBaseSelect = CSS.supports("appearance", "base-select")
 
 /**
@@ -236,13 +234,7 @@ export const connectSelect = (element,callback) => {
 export const connectPaletteSelector = (callback) => connectSelect('select-palette', callback )
 export const connectReverbSelector = (callback) => connectSelect('select-impulse', callback )
 
-export const connectTempoControls = (callback) => {
-	connectSelect('select-tempo', (option)=>{
-		const tempo = parseInt( option.value )
-		updateTempo(tempo)
-		callback && callback (tempo)
-	} )
-}
+
 
 
 import {loadImpulseJSON, DIRS, REVERB_PATHS} from '../audio/effects/reverb'

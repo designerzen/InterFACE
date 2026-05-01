@@ -94,18 +94,6 @@ export const setupCameraForm = (cameras, callback) => {
 	connectSelect( select, callback )
 }
 
-/**
- * Update the BPM on screen
- * @param {Number} tempo as a quantity of beats per measure
- */
-export const updateTempo = tempo =>{
-	const b = doc.getElementById('input-tempo')
-	if (b)
-	{
-		b.setAttribute("value", tempo)
-	}
-	console.log("Setting tempo", tempo)
-}
 
 /**
  * DOM elements on main app screen
