@@ -412,6 +412,10 @@ export default class State {
 		{
 			const title = ""
 			this.searchParams.set(key, value)
+			// Preserve the current URL fragment (e.g. #folder-tempo) so
+			// that elements relying on `:target` (drop-down panels, deep
+			// links, etc.) don't get torn down by every state change.
+			this.url.hash = location.hash
 			// window.history.replaceState( this.asObject, title, this.url )
 			window.history.pushState( this.asObject, title, this.url )
 		}
@@ -469,8 +473,10 @@ export default class State {
 			return this.state
 		}
 		
-		// reset URL to blank hostname
-		this.url = new URL( location.origin + location.pathname )
+		// reset URL to blank hostname (preserving the current fragment so
+		// CSS `:target` based UI such as the tempo / folder panels stays
+		// open across state changes)
+		this.url = new URL( location.origin + location.pathname + location.hash )
 		
 		// this.searchParams = new URLSearchParams()
 		
@@ -528,7 +534,9 @@ export default class State {
 		
 		if (encode)
 		{
-			window.history.pushState( this.asObject, null, url.pathname + "?b=" + encodeLocation(url.search) )
+			// Preserve the current fragment (e.g. #folder-tempo) so
+			// `:target` driven UI doesn't collapse on every push.
+			window.history.pushState( this.asObject, null, url.pathname + "?b=" + encodeLocation(url.search) + url.hash )
 		}else{
 
 			this.state.forEach( (value,key) => {
