@@ -7,7 +7,6 @@ import { setupFeedbackControls } from './dom/text.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
 	controlPanel,
-	updateTempo,
 	isVideoVisible, toggleVideoVisiblity,  
 	setupCameraForm, setupInterface,
 	toggleVisibility,
@@ -26,7 +25,7 @@ import { connectDropZone } from './dom/drop-zone.js'
 import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
-import { setupTempoInterface } from './dom/ui.tempo.js'
+import { setupTempoInterface, updateTempo } from './dom/ui.tempo.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
 // import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 
@@ -2104,7 +2103,7 @@ export const createInterface = (
 				// Anchor scheduling on the metronome tick's true audio-clock
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
-				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
+				const triggerAt = getBeatTriggerTime( audioContext, clock, expected, timePassed )
 				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
 				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
 				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )

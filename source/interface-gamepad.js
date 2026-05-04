@@ -2,12 +2,12 @@ import {
 	BUTTON_P1, 
 	BUTTON_P2,
 	BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y,
-	BUTTON_LB, BUTTON_RB, BUTTON_LT, BUTTON_RT, 
+	BUTTON_LEFT_SHOULDER_BUTTON, BUTTON_RIGHT_SHOULDER_BUTTON, BUTTON_LEFT_SHOULDER_TWO, BUTTON_RIGHT_SHOULDER_TWO, 
 	BUTTON_SELECT, BUTTON_START, 
-	BUTTON_LEFT_SHOULDER, BUTTON_RIGHT_SHOULDER, 
-	DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
-	COMMANDS
-} from "./hardware/gamepad/gamepad.js"
+	BUTTON_LEFT_S, BUTTON_RIGHT_S, 
+	DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT
+} from "./hardware/gamepad/gamepad-commands"
+
 import { 
 	GAME_PAD_CONNECTED, 
 	GAME_PAD_DISCONNECTED,
@@ -32,10 +32,10 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 	const person = application.personManager.getSelectedPerson()
 
 	// Instruments need both values
-	switch(button)
-	{
+	// switch(button)
+	// {
 
-	}
+	// }
 
 	// One shots just need triggers
 	if (!value){
@@ -44,15 +44,15 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 	
 	switch(button)
 	{
-		// case COMMANDS.LEFT_STICK_Y: 
-		// case COMMANDS.RIGHT_STICK_Y: 
+		// case LEFT_STICK_Y: 
+		// case RIGHT_STICK_Y: 
 			
-		// case COMMANDS.LEFT_STICK_X: 
-		// case COMMANDS.RIGHT_STICK_X:
+		// case LEFT_STICK_X: 
+		// case RIGHT_STICK_X:
 		// 	person.loadPreviousInstrument()
 		// 	break
 
-		case COMMANDS.UP: 
+		case DIRECTION_UP: 
 			if (isUnselected)
 			{
 				application.setVolume( application.getVolume() + 1 )
@@ -62,7 +62,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 		
-		case COMMANDS.DOWN: 
+		case DIRECTION_DOWN: 
 			if (isUnselected)
 			{
 				application.setVolume( application.getVolume() - 1 )
@@ -72,7 +72,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 
-		case COMMANDS.LEFT: 
+		case DIRECTION_LEFT: 
 			if (isUnselected)
 			{
 				application.setBPM( clock.BPM - 1 )
@@ -81,7 +81,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 
-		case COMMANDS.RIGHT: 
+		case DIRECTION_RIGHT: 
 			if (isUnselected)
 			{
 				application.setBPM( clock.BPM + 1 )
@@ -90,7 +90,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 
-		case COMMANDS.A: 
+		case BUTTON_A: 
 			console.info("Gamepad A", value, { gamePad, heldFor } )
 			// To only activate whilst button is held down...
 			// if ( value )
@@ -103,11 +103,11 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			// application.getPerson(gamePadPlayerIndex).toggleForm() 
 			break
 		
-		case COMMANDS.B: 
+		case BUTTON_B: 
 			console.info("Gamepad B", value, { gamePad, heldFor } )
 			break
 		
-		case COMMANDS.X: 
+		case BUTTON_X: 
 			console.info("Gamepad X", value, { gamePad, heldFor } )
 			// application.getPerson(2).toggleForm() 
 			if (isUnselected)
@@ -119,7 +119,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 		
-		case COMMANDS.Y: 
+		case BUTTON_Y: 
 			console.info("Gamepad Y", value, { gamePad, heldFor } )
 			// application.getPerson(3).toggleForm() 
 			if (isUnselected)
@@ -132,7 +132,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 		
 		// If we are in a certain mode...
 		// adapt 
-		case COMMANDS.LB: 
+		case BUTTON_LEFT_SHOULDER_BUTTON: 
 			// application.stateMachine.get("")
 			console.info("Gamepad LB", value, { gamePad, heldFor } )
 			if (isUnselected)
@@ -143,7 +143,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 
-		case COMMANDS.RB: 
+		case BUTTON_RIGHT_SHOULDER_BUTTON: 
 			if (isUnselected)
 			{
 				application.kit.clap()
@@ -153,7 +153,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			console.info("Gamepad RB", value, { gamePad, heldFor } )
 			break
 
-		case COMMANDS.LT: 
+		case BUTTON_LEFT_SHOULDER_TWO: 
 			if (isUnselected)
 			{
 				application.kit.cowbell()
@@ -163,7 +163,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			console.info("Gamepad LT", value, { gamePad, heldFor } )
 			break
 
-		case COMMANDS.RT: 
+		case BUTTON_RIGHT_SHOULDER_TWO: 
 			if (isUnselected)
 			{
 				application.kit.hat()
@@ -173,7 +173,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			console.info("Gamepad RT", value, { gamePad, heldFor } )
 			break
 
-		case COMMANDS.P1: 
+		case BUTTON_P1: 
 			if (isUnselected)
 			{
 				application.kit.kick()
@@ -182,7 +182,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}
 			break
 
-		case COMMANDS.P2: 
+		case BUTTON_P2: 
 			if (isUnselected)
 			{
 				application.kit.snare()
@@ -204,61 +204,61 @@ const convertGamePadActionToPercussion = ( application, gamePad, button, value, 
 
 	switch(button)
 	{
-		case COMMANDS.UP: 
+		case DIRECTION_UP: 
 			application.kit.hat()
 			break
 		
-		case COMMANDS.DOWN: 
+		case DIRECTION_DOWN: 
 			application.kit.cowbell()
 			break
 
-		case COMMANDS.LEFT: 
+		case DIRECTION_LEFT: 
 			application.kit.kick()
 			break
 
-		case COMMANDS.RIGHT: 
+		case DIRECTION_RIGHT: 
 			application.kit.snare()
 			break
 
-		case COMMANDS.A: 
+		case BUTTON_A: 
 			application.setRandomDrumTimbres()
 			break
 		
-		case COMMANDS.B: 
+		case BUTTON_B: 
 			application.setRandomDrumPattern()
 			break
 		
-		case COMMANDS.X: 
+		case BUTTON_X: 
 			application.kit.kick()
 			break
 		
-		case COMMANDS.Y: 
+		case BUTTON_Y: 
 			application.kit.snare()
 			break
 		
 		// Left Back Trigger
-		case COMMANDS.LB: 
+		case BUTTON_LEFT_SHOULDER_BUTTON: 
 			application.kit.snare()
 			break
 
 		// toggleBackgroundPercussion
-		case COMMANDS.RB: 
+		case BUTTON_RIGHT_SHOULDER_BUTTON: 
 			application.kit.snare()
 			break
 
-		case COMMANDS.LT: 
+		case BUTTON_LEFT_SHOULDER_TWO: 
 			application.kit.cowbell()
 			break
 
-		case COMMANDS.RT: 
+		case BUTTON_RIGHT_SHOULDER_TWO: 
 			application.kit.hat()
 			break
 
-		case COMMANDS.P1: 
+		case BUTTON_P1: 
 			application.kit.kick()
 			break
 
-		case COMMANDS.P2: 
+		case BUTTON_P2: 
 			application.kit.snare()
 			break
 		
@@ -283,14 +283,10 @@ const convertGamePadActionToVFX = ( application, gamePad, button, value, heldFor
 		// ignore caching these
 		case GAME_PAD_CONNECTED:
 		case GAME_PAD_DISCONNECTED:
-		case COMMANDS.LEFT_STICK_Y: 
-		case COMMANDS.LEFT_STICK_X: 
-		case COMMANDS.RIGHT_STICK_Y: 
-		case COMMANDS.RIGHT_STICK_X:
-		// case COMMANDS.UP: 
-		// case COMMANDS.DOWN: 
-		// case COMMANDS.LEFT: 
-		// case COMMANDS.RIGHT: 
+		// case UP: 
+		// case DOWN: 
+		// case LEFT: 
+		// case RIGHT: 
 		default:
 			// if select is also being held....
 			if (gamePad.select){
@@ -319,15 +315,15 @@ const convertGamePadActionToControl = ( application, gamePad, button, value, hel
 
 	switch(button)
 	{
-		case COMMANDS.UP: 
+		case DIRECTION_UP: 
 			application.setVolume( application.getVolume() + 1 )
 			break
 		
-		case COMMANDS.DOWN: 
+		case DIRECTION_DOWN: 
 			application.setVolume( application.getVolume() - 1 )
 			break
 
-		case COMMANDS.LEFT: 
+		case DIRECTION_LEFT: 
 			if (isUnselected)
 			{
 
@@ -336,7 +332,7 @@ const convertGamePadActionToControl = ( application, gamePad, button, value, hel
 			}
 			break
 
-		case COMMANDS.RIGHT: 
+		case DIRECTION_RIGHT: 
 			if (isUnselected)
 			{
 
@@ -345,7 +341,7 @@ const convertGamePadActionToControl = ( application, gamePad, button, value, hel
 			}
 			break
 		
-		case COMMANDS.A: 
+		case BUTTON_A: 
 			if (isUnselected)
 			{
 
@@ -354,24 +350,23 @@ const convertGamePadActionToControl = ( application, gamePad, button, value, hel
 			}
 			break
 		
-		case COMMANDS.B: 
+		case BUTTON_B: 
 			application.setDiscoMode()
 			break
 		
-		case COMMANDS.X: 
+		case BUTTON_X: 
 			application.setRandomDrumTimbres()
 			break
 		
-		case COMMANDS.Y: 
-		
-		application.setRandomDrumPattern()
+		case BUTTON_Y: 
+			application.setRandomDrumPattern()
 			break
 
-		case COMMANDS.LEFT_SHOULDER:
+		case BUTTON_LEFT_SHOULDER_BUTTON:
 			application.setVolume( application.getVolume() - 1 )
 			break
 
-		case COMMANDS.RIGHT_SHOULDER:
+		case BUTTON_RIGHT_SHOULDER_BUTTON:
 			application.setVolume( application.getVolume() + 1 )
 			break
 
@@ -418,14 +413,10 @@ export const addGamePadEvents = (application) => {
 			// ignore caching these
 			case GAME_PAD_CONNECTED:
 			case GAME_PAD_DISCONNECTED:
-			case COMMANDS.LEFT_STICK_Y: 
-			case COMMANDS.LEFT_STICK_X: 
-			case COMMANDS.RIGHT_STICK_Y: 
-			case COMMANDS.RIGHT_STICK_X:
-			// case COMMANDS.UP: 
-			// case COMMANDS.DOWN: 
-			// case COMMANDS.LEFT: 
-			// case COMMANDS.RIGHT: 
+			// case UP: 
+			// case DOWN: 
+			// case LEFT: 
+			// case RIGHT: 
 				break
 		
 			default: 
@@ -457,9 +448,9 @@ export const addGamePadEvents = (application) => {
 			{
 				// This changes the "selected" user by highlighting their outline
 				// this then targets the controller for that specfific person.	
-				case COMMANDS.SELECT: 
+				case BUTTON_SELECT: 
 					// We can check to see if we are deslected
-					const currentlySelected = personManager.getSelectedPerson() 
+					const currentlySelected = personManager.selectedPersonIndex
 					const isLastPersonSelected = currentlySelected >= playerQuantity - 1
 					
 					// the final player is currently selected so we now deselect ALL!
@@ -469,14 +460,15 @@ export const addGamePadEvents = (application) => {
 						personManager.deselectPeople()
 						personManager.unhighlightPeople()
 					}else{
-						gamePadPlayerIndex = personManager.selectPerson( currentlySelected + 1 )
+						personManager.selectPerson( currentlySelected + 1 )
+						gamePadPlayerIndex = personManager.selectedPersonIndex
 						personManager.highlightPerson( gamePadPlayerIndex )
 						application.setFeedback( "Gamepad SELECT "+gamePadPlayerIndex , 0, 'gamepad' )
-						console.info("Gamepad select", selectedId, value, gamePad )
+						console.info("Gamepad select", value, gamePad )
 					}
 					break
 				
-				case COMMANDS.START: 
+				case BUTTON_START: 
 					const mode = setMode( gamePadModeIndex + 1 )
 					application.setFeedback( mode + " mode", 0, 'gamepad' )
 					console.info("Gamepad START", value, gamePad )

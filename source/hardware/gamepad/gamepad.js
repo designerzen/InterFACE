@@ -1,3 +1,5 @@
+import * as GAMEPAD_COMMANDS from './gamepad-commands'
+
 export const getGamePads = () => navigator.getGamepads() || navigator.webkitGetGamepads() 
 
 export const fetchGamePads = () => {
@@ -28,83 +30,26 @@ export const fetchGamePads = () => {
 	return gamepads
 }
 
-export const GAME_PAD_AVAILABLE = "game-pad-available"
-export const GAME_PAD_UNPLUGGED = "game-pad-unplugged"
-
-export const BUTTON_P1 = "p1"
-export const BUTTON_P2 = "p2"
-
-export const BUTTON_A = "a"
-export const BUTTON_B = "b"
-export const BUTTON_X = "x"
-export const BUTTON_Y = "y"
-
-export const BUTTON_LB = "lb"
-export const BUTTON_RB = "rb"
-export const BUTTON_LT = "lt"
-export const BUTTON_RT = "rt"
-
-export const BUTTON_SELECT = "select"
-export const BUTTON_START = "start"
-
-export const BUTTON_LEFT_SHOULDER = "ls"
-export const BUTTON_RIGHT_SHOULDER = "rs"
-
-export const DIRECTION_UP = "dup"
-export const DIRECTION_DOWN = "ddown"
-export const DIRECTION_LEFT = "dleft"		
-export const DIRECTION_RIGHT = "dright"
-
-export const DIRECTION_LEFT_STICK_Y = "leftstickY"
-export const DIRECTION_LEFT_STICK_X = "leftstickX"
-export const DIRECTION_RIGHT_STICK_Y = "rightstickY"
-export const DIRECTION_RIGHT_STICK_X = "rightstickX"
-
-export const COMMANDS = {
-	P1: BUTTON_P1,
-	P2: BUTTON_P2,
-	A: BUTTON_A,
-	B: BUTTON_B,
-	X: BUTTON_X,
-	Y: BUTTON_Y,
-	LB: BUTTON_LB,
-	RB: BUTTON_RB,
-	LT: BUTTON_LT,
-	RT: BUTTON_RT,
-	SELECT: BUTTON_SELECT,
-	START: BUTTON_START,
-	LEFT_SHOULDER: BUTTON_LEFT_SHOULDER,
-	RIGHT_SHOULDER: BUTTON_RIGHT_SHOULDER,
-	UP: DIRECTION_UP,
-	DOWN: DIRECTION_DOWN,
-	LEFT: DIRECTION_LEFT,
-	RIGHT: DIRECTION_RIGHT,
-	LEFT_STICK_Y: DIRECTION_LEFT_STICK_Y,
-	LEFT_STICK_X: DIRECTION_LEFT_STICK_X,
-	RIGHT_STICK_Y: DIRECTION_RIGHT_STICK_Y,	
-	RIGHT_STICK_X: DIRECTION_RIGHT_STICK_X
-}
-
 // Gamepad reference IDs
-const BUTTON_NAMES = [
-	BUTTON_P1,
-	BUTTON_P2,
-	BUTTON_A,
-	BUTTON_B,
-	BUTTON_X,
-	BUTTON_Y,
-	BUTTON_LB,
-	BUTTON_RB,
-	BUTTON_LT,
-	BUTTON_RT,
-	BUTTON_SELECT,
-	BUTTON_START, 
-	BUTTON_LEFT_SHOULDER, 
-	BUTTON_RIGHT_SHOULDER, 
-	DIRECTION_UP, 
-	DIRECTION_DOWN, 
-	DIRECTION_LEFT,	
-	DIRECTION_RIGHT
+const BUTTON_ORDER = [
+	GAMEPAD_COMMANDS.BUTTON_B,
+	GAMEPAD_COMMANDS.BUTTON_A,
+	GAMEPAD_COMMANDS.BUTTON_Y,
+	GAMEPAD_COMMANDS.BUTTON_X,
+	GAMEPAD_COMMANDS.BUTTON_LEFT_SHOULDER_BUTTON,
+	GAMEPAD_COMMANDS.BUTTON_RIGHT_SHOULDER_BUTTON,
+	GAMEPAD_COMMANDS.BUTTON_LEFT_SHOULDER_TWO,
+	GAMEPAD_COMMANDS.BUTTON_RIGHT_SHOULDER_TWO,
+	GAMEPAD_COMMANDS.BUTTON_SELECT,
+	GAMEPAD_COMMANDS.BUTTON_START, 
+	GAMEPAD_COMMANDS.BUTTON_LEFT_S, 
+	GAMEPAD_COMMANDS.BUTTON_RIGHT_S, 
+	GAMEPAD_COMMANDS.DIRECTION_UP, 
+	GAMEPAD_COMMANDS.DIRECTION_DOWN, 
+	GAMEPAD_COMMANDS.DIRECTION_LEFT,	
+	GAMEPAD_COMMANDS.DIRECTION_RIGHT,
+	GAMEPAD_COMMANDS.BUTTON_P1,
+	GAMEPAD_COMMANDS.BUTTON_P2
 ]
 
 // Gamepad reference IDs
@@ -127,7 +72,7 @@ const BUTTON_NAMES = [
 // 	"dright"
 // ]
 
-const BUTTON_QUANTITY = BUTTON_NAMES.length
+const BUTTON_QUANTITY = BUTTON_ORDER.length
 
 export default class GamePad {
 
@@ -208,7 +153,7 @@ export default class GamePad {
 		// })
 	
 		// this.update()
-		this.dispatch(GAME_PAD_AVAILABLE, this.toString() )
+		this.dispatch(GAMEPAD_COMMANDS.GAME_PAD_AVAILABLE, this.toString() )
     }
     
 	/**
@@ -220,7 +165,7 @@ export default class GamePad {
 		this.connected = false
 		this.available = false
 		this.gamepad = null
-		this.dispatch( GAME_PAD_UNPLUGGED, this.toString() )
+		this.dispatch( GAMEPAD_COMMANDS.GAME_PAD_UNPLUGGED, this.toString() )
     }
 
 	/**
@@ -346,20 +291,25 @@ export default class GamePad {
 		
 			const gamepad = gamepads[this.index]
 
-			for (let i = 0, l=gamepad.buttons.length; gamepad && i < l; ++i) 
+			if (gamepad && gamepad.buttons)
 			{
-				const gamepadButton = gamepad.buttons[i]
-				if (gamepadButton)
+				for (let i = 0, l=gamepad.buttons.length; i < l; ++i) 
 				{
-					const newValue = gamepadButton.pressed
-					// if (newValue){
-					// 	console.error("gamepadButton",  this.gamepad.buttons[i].pressed,  getGamePads()[this.index].buttons[i].pressed, this.index )
-					// 	// console.info("gamepadButton", gamepadButton, this.gamepad, navigator.getGamepads()[this.buttonIndex] )
-					// } 
-					this.setBoolean( newValue, BUTTON_NAMES[i] )	
-				}else{
-					console.info("Cannot read gamepad", gamepad)
+					const gamepadButton = gamepad.buttons[i]
+					if (gamepadButton)
+					{
+						const newValue = gamepadButton.pressed
+						// if (newValue){
+						// 	console.error("gamepadButton",  this.gamepad.buttons[i].pressed,  getGamePads()[this.index].buttons[i].pressed, this.index )
+						// 	// console.info("gamepadButton", gamepadButton, this.gamepad, navigator.getGamepads()[this.buttonIndex] )
+						// } 
+						this.setBoolean( newValue, BUTTON_ORDER[i] )	
+					}else{
+						console.info("Cannot read gamepad", gamepad)
+					}
 				}
+			}else{
+				// hmmm ???? gamepad disconnected?
 			}
 
 			//BUTTON_NAMES.forEach( (button, i) => this.setBoolean( this.gamepad, button, i) )
@@ -406,7 +356,7 @@ export default class GamePad {
     }
 
 	toStringState(){
-		return BUTTON_NAMES.map( button => this[button] ).join(" / ")
+		return BUTTON_ORDER.map( button => this[button] ).join(" / ")
 	
 	}
 

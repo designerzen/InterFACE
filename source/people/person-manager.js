@@ -312,13 +312,19 @@ export class PersonManager extends EventTarget{
 	 * @returns 
 	 */
 	highlightPerson(index=-1){
-		if (this.highlightedPersonIndex >= 0)
+		if (this.highlightedPersonIndex >= 0 && this.highlightedPersonIndex < this.people.length)
 		{
 			this.people[this.highlightedPersonIndex].isHighlighted = false
 		}
-		this.highlightedPersonIndex = index % this.people.length
-		this.people[this.highlightedPersonIndex].isHighlighted = true
-		return this.people[this.highlightedPersonIndex]
+		if (index >= 0 && index < this.people.length)
+		{
+			this.highlightedPersonIndex = index
+			this.people[this.highlightedPersonIndex].isHighlighted = true
+			return this.people[this.highlightedPersonIndex]
+		}else{
+			this.highlightedPersonIndex = -1
+			return null
+		}
 	}
 	
 	unhighlightPeople(){

@@ -1,4 +1,5 @@
-import GamePad, { COMMANDS, fetchGamePads } from "./gamepad"
+import GamePad, { fetchGamePads } from "./gamepad"
+import * as COMMANDS from './gamepad-commands'
 
 export const GAME_PAD_CONNECTED = "game-pad-connected"
 export const GAME_PAD_DISCONNECTED = "game-pad-disconnected"

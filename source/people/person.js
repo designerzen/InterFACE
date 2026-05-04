@@ -1692,8 +1692,9 @@ export default class Person extends EventTarget{
 		const lipPercentage = Math.max(prediction.mouthRatio , prediction.happiness )// , prediction.sadness ) 
 				
 		// volume is an log of this
-		const amp = clamp( easeInSine(lipPercentage), 0, this.options.maximumAmplitude ) * Math.min(1 - this.percentageDead, 0 ) //- 0.1
-		
+		// const amp = clamp( easeInSine(lipPercentage), 0, this.options.maximumAmplitude ) * Math.min(1 - this.percentageDead, 0 ) //- 0.1
+		const amp = clamp( easeInSine(lipPercentage), 0, this.options.maximumAmplitude ) * Math.max(1 - this.percentageDead, 0 )
+
 		this.singing = amp >= options.mouthCutOff
 
 
