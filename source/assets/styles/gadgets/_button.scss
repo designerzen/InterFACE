@@ -629,7 +629,7 @@
 	// inverted text and icon modes
 	&:is( 	:focus,
 			:focus-visible,
-			:focus:hover,
+			:hover:focus,
 			:hover	)
 	{
 
@@ -735,7 +735,7 @@
 		:focus-within,
 		:target,
 		:has(:target),
-		:focus(:target)
+		:focus:target
 	){
 		--hue:var(--hue-orange);
 		
@@ -1187,7 +1187,7 @@
 		}
 
 		// this acts as a new background
-		&:focus:before,
+		&:focus::before,
 		&:before{
 			--hue:var(--hue-red);
 				

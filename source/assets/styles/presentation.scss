@@ -77,6 +77,10 @@
     	max-height: calc(96vh - 2lh)
 	}
 
+	video{
+	  filter: grayscale(1) contrast(4) brightness(0.75);
+	}
+
 	figure{
 		margin: auto;
 		display: flex;
