@@ -14,8 +14,9 @@ block main
 
 block scripts
 	script(type="module").
-		import GamePad, {fetchGamePads, COMMANDS, GAME_PAD_AVAILABLE, GAME_PAD_UNPLUGGED} from './hardware/gamepad/gamepad.js'
-		import {GamePadManager} from './hardware/gamepad/gamepad-manager.js'		
+		import GamePad, {fetchGamePads } from './hardware/gamepad/gamepad.js'
+		import {GamePadManager, GAME_PAD_AVAILABLE, GAME_PAD_UNPLUGGED} from './hardware/gamepad/gamepad-manager.js'		
+		import * as COMMANDS from './hardware/gamepad/gamepad-commands.js'		
 
 		const watchGamePads = () => {
 
@@ -24,8 +25,8 @@ block scripts
 				
 				switch(button)
 				{
-					case GAME_PAD_AVAILABLE:
-					case GAME_PAD_UNPLUGGED:
+					case COMMANDS.GAME_PAD_AVAILABLE:
+					case COMMANDS.GAME_PAD_UNPLUGGED:
 						break
 				
 					default: 
@@ -39,11 +40,11 @@ block scripts
 				
 				switch(button)
 				{
-					case GAME_PAD_AVAILABLE:
+					case COMMANDS.GAME_PAD_AVAILABLE:
 						console.info("Gamepad connected", button, value, gamePad )
 						break
 
-					case GAME_PAD_UNPLUGGED:
+					case COMMANDS.GAME_PAD_UNPLUGGED:
 						console.info("Gamepad disconnected", button, value, gamePad )
 						break
 

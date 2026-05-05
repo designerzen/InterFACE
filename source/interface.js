@@ -6,7 +6,7 @@
 import { setupFeedbackControls } from './dom/text.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
-	controlPanel,updateTempo,focusApp,
+	controlPanel,focusApp,
 	isVideoVisible, toggleVideoVisiblity,  
 	setupCameraForm, setupInterface
 } from './dom/ui.js'
@@ -23,7 +23,7 @@ import { connectDropZone } from './dom/drop-zone.js'
 import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
-import { setupTempoInterface } from './dom/ui.tempo.js'
+import { setupTempoInterface, updateTempo } from './dom/ui.tempo.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
 
 import { Quanitiser } from './visual/quantise.js'
@@ -2310,7 +2310,7 @@ export const createInterface = (
 				// Anchor scheduling on the metronome tick's true audio-clock
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
-				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
+				const triggerAt = getBeatTriggerTime( audioContext, clock, expected, timePassed )
 				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
 				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
 				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )
@@ -2596,12 +2596,18 @@ export const createInterface = (
 			clock = new AudioTimer( audioContext )
 			clock.BPM = initialBPM
 
-			console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
+			// console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
 
 			// connect the tempo interface
-			setupTempoInterface(clock, null, null, v =>{
+			setupTempoInterface(clock, null, null, timerChanged =>{
 				// console.log("tempo changed for gui",v, clock )
-				stateMachine.set( 'bpm',  clock.BPM )
+				
+				// FIXME: This changes the URL, stripping the hash and causing
+				// the menu to then hide...
+				//stateMachine.set( 'bpm', clock.BPM )
+			}, visible => {
+				
+				stateMachine.set( 'bpm', clock.BPM )
 				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM`, 0, 'tempo' )
 			})
 
@@ -3389,11 +3395,11 @@ export const createInterface = (
 		connectDropZone( userUploadMediaFile )
 
 		// set the master tempo
-		selects.tempo = connectSelect( 'select-tempo', option => {
-			const tempo = parseInt( option.innerHTML )
-			updateTempo(tempo)
-			setBPM(tempo)
-		} )
+		// selects.tempo = connectSelect( 'select-tempo', option => {
+		// 	const tempo = parseInt( option.innerHTML )
+		// 	updateTempo(tempo)
+		// 	setBPM(tempo)
+		// } )
 
 		// swap out the eyes for some custom ones
 		selects.eyes = connectSelect( 'select-eyes', option => {

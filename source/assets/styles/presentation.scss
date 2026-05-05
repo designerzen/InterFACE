@@ -14,6 +14,9 @@
 		box-shadow: none;
 		quotes: "“" "”" "‘" "’";
 
+		background-color: inherit;
+		border-radius: 12px;;
+		
 		&::before,
 		&::after{
 			color:var(--col-accent, red);
@@ -101,7 +104,7 @@
 	}
 
 	// wallpaper style
-	figure.full-size{
+	.full-size{
 		position: absolute;
 		inset:0;
 		height:100vh;
@@ -113,6 +116,24 @@
 			position: absolute;
 			inset:0;
 		}
+	}
+
+	// stretch to full size
+	.wallpaper{
+		position: absolute;
+		inset:0;
+		img{
+			width: 100%;
+			height: auto;
+			position: relative;
+			inset:auto;
+			object-fit: cover;
+		}
+	}
+
+	.wallpaper + blockquote{
+		margin-top:auto;
+		margin-bottom: 0;
 	}
 
 	figure.grid{
