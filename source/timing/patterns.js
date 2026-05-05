@@ -8,6 +8,7 @@ import {
 
 // Just a simple factory for creating random repetitive beats
 const subdivisions = 4
+const beatTriggerLookaheadState = new WeakMap()
 
 export const createPattern = (preset, bars=16) => {
 
@@ -104,43 +105,43 @@ export const playNextPart = (pattern, instrument, options, triggerAt )=> {
 /**
  * Compute the AudioContext time at which a beat should fire.
  *
- * The metronome tick's true audio time (`startTime + expected`) is in
- * the past by the time the main-thread callback actually runs, because
- * the worklet → main-thread MessagePort introduces a small dispatch
- * delay (Δ). Naively `Math.max(gridTime, now + tinySafety)` therefore
- * collapses to `now + tinySafety` and re-introduces all the
- * main-thread jitter we were trying to eliminate.
+ * `expected` comes from netronome's timer thread and stays transport-
+ * continuous across live tempo changes, so it is the best representation
+ * of the clock grid for audio scheduling.
  *
- * Instead we add the lookahead to the GRID time, not to `now`. That
- * way the inter-beat delta is governed purely by the difference of
- * successive `expected` values (which are perfectly uniform – they're
- * just `intervals * period` from the worklet), so beats fire at a
- * rock-steady tempo regardless of when each callback happens to land.
- *
- * The whole sequence is shifted into the future by `lookahead` seconds
- * so the audio engine has enough headroom to render the next note
- * without being affected by main-thread stalls.
+ * The whole sequence is shifted into the future by `lookahead` seconds so
+ * the audio engine has enough headroom to render the next note without
+ * being affected by main-thread stalls.
  *
  * @param {AudioContext} audioContext
  * @param {Object} clock - netronome AudioTimer instance (uses clock.startTime ms)
- * @param {Number} expected - expected elapsed seconds since clock start (from tick)
- * @param {Number} [lookahead] - scheduling headroom in seconds (defaults to one
- *   "bar" of the netronome clock, which is one quarter-note in netronome's
- *   internal naming). Large enough to absorb worst-case main-thread jitter.
+ * @param {Number} expected - ideal elapsed seconds since clock start (from tick)
+ * @param {Number} [lookahead] - scheduling headroom in seconds. When omitted,
+ *   it defaults to one quarter-note of headroom from the current clock and
+ *   remains stable for the current clock start.
  * @returns {Number} audio-clock time in seconds, suitable for triggerAt
  */
 export const getBeatTriggerTime = ( audioContext, clock, expected, lookahead ) => {
 	const now = audioContext.currentTime
-	// Sensible default: one beat of headroom, scaled with tempo.
+	const cached = clock ? beatTriggerLookaheadState.get(clock) : null
 	if ( lookahead === undefined )
 	{
-		lookahead = clock && clock.timePerBar > 0 ? clock.timePerBar / 1000 : 0.1
+		if (cached && cached.startTime === clock?.startTime && Number.isFinite(cached.lookahead))
+		{
+			lookahead = cached.lookahead
+		}else{
+			lookahead = clock && clock.timePerBar > 0 ? clock.timePerBar / 1000 : 0.1
+		}
 	}
-	// Clock not yet started → fall back to "now + lookahead".
+	// Clock not yet started - fall back to "now + lookahead".
 	if ( !clock || clock.startTime <= 0 )
 	{
 		return now + lookahead
 	}
+	beatTriggerLookaheadState.set(clock, {
+		lookahead,
+		startTime: clock.startTime,
+	})
 	const tickAudioTime = clock.startTime / 1000 + ( expected ?? 0 )
 	const scheduled = tickAudioTime + lookahead
 	// Last-resort safety: never schedule meaningfully in the past

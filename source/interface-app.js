@@ -2103,7 +2103,7 @@ export const createInterface = (
 				// Anchor scheduling on the metronome tick's true audio-clock
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
-				const triggerAt = getBeatTriggerTime( audioContext, clock, expected, timePassed )
+				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
 				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
 				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
 				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )
