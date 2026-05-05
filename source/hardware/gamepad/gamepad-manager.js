@@ -61,14 +61,14 @@ export class GamePadManager {
 					// ignore caching these
 					case GAME_PAD_CONNECTED:
 					case GAME_PAD_DISCONNECTED:
-					case COMMANDS.LEFT_STICK_Y: 
-					case COMMANDS.LEFT_STICK_X: 
-					case COMMANDS.RIGHT_STICK_Y: 
-					case COMMANDS.RIGHT_STICK_X:
-					// case COMMANDS.UP: 
-					// case COMMANDS.DOWN: 
-					// case COMMANDS.LEFT: 
-					// case COMMANDS.RIGHT: 
+					case COMMANDS.DIRECTION_LEFT_STICK_Y: 
+					case COMMANDS.DIRECTION_LEFT_STICK_X: 
+					case COMMANDS.DIRECTION_RIGHT_STICK_Y: 
+					case COMMANDS.DIRECTION_RIGHT_STICK_X:
+					// case COMMANDS.DIRECTION_UP: 
+					// case COMMANDS.DIRECTION_DOWN: 
+					// case COMMANDS.DIRECTION_LEFT: 
+					// case COMMANDS.DIRECTION_RIGHT: 
 						break
 				
 					default: 

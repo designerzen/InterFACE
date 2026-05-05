@@ -461,14 +461,14 @@ document.addEventListener( "mousedown", async (e) => {
 				// ignore caching these
 				case GAME_PAD_CONNECTED:
 				case GAME_PAD_DISCONNECTED:
-				case COMMANDS.LEFT_STICK_Y: 
-				case COMMANDS.LEFT_STICK_X: 
-				case COMMANDS.RIGHT_STICK_Y: 
-				case COMMANDS.RIGHT_STICK_X:
-				// case COMMANDS.UP: 
-				// case COMMANDS.DOWN: 
-				// case COMMANDS.LEFT: 
-				// case COMMANDS.RIGHT: 
+				case COMMANDS.DIRECTION_LEFT_STICK_Y: 
+				case COMMANDS.DIRECTION_LEFT_STICK_X: 
+				case COMMANDS.DIRECTION_RIGHT_STICK_Y: 
+				case COMMANDS.DIRECTION_RIGHT_STICK_X:
+				// case COMMANDS.DIRECTION_UP: 
+				// case COMMANDS.DIRECTION_DOWN: 
+				// case COMMANDS.DIRECTION_LEFT: 
+				// case COMMANDS.DIRECTION_RIGHT: 
 					break
 			
 				default: 
@@ -491,51 +491,51 @@ document.addEventListener( "mousedown", async (e) => {
 					break
 
 				// open sidebar
-				case COMMANDS.START: 
+				case COMMANDS.BUTTON_START: 
 				
 					console.info("Gamepad start", value, { gamePad, gamepadHeld } )
 					break
 				
-				case COMMANDS.SELECT: 
+				case COMMANDS.BUTTON_SELECT: 
 					
 					console.info("Gamepad select", value, { gamePad, gamepadHeld, heldFor } )
 					break
 				
-				case COMMANDS.A: 
+				case COMMANDS.BUTTON_A: 
 					console.info("Gamepad A", value, { gamePad, gamepadHeld, heldFor } )
 					break
 				
-				case COMMANDS.B: 
+				case COMMANDS.BUTTON_B: 
 					console.info("Gamepad B", value, { gamePad, gamepadHeld, heldFor } )
 					break
 				
-				case COMMANDS.X: 
+				case COMMANDS.BUTTON_X: 
 					console.info("Gamepad X", value, { gamePad, gamepadHeld, heldFor } )
 					break
 				
-				case COMMANDS.Y: 
+				case COMMANDS.BUTTON_Y: 
 					console.info("Gamepad Y", value, { gamePad, gamepadHeld, heldFor } )
 					break
 				
 				// If we are in a certain mode...
 				// adapt 
-				case COMMANDS.LB: 
+				case COMMANDS.BUTTON_LEFT_SHOULDER_BUTTON: 
 					console.info("Gamepad LB", value, { gamePad, gamepadHeld, heldFor } )
 					break
 				
-				case COMMANDS.LB: 
+				case COMMANDS.BUTTON_LEFT_SHOULDER_BUTTON: 
 					console.info("Gamepad LB", value, { gamePad, gamepadHeld, heldFor } )
 					break
 
-				case COMMANDS.RB: 
+				case COMMANDS.BUTTON_RIGHT_SHOULDER_BUTTON: 
 					console.info("Gamepad RB", value, { gamePad, gamepadHeld, heldFor } )
 					break
 
-				case COMMANDS.LT: 
+				case COMMANDS.BUTTON_LEFT_SHOULDER_TWO: 
 					console.info("Gamepad LT", value, { gamePad, gamepadHeld, heldFor } )
 					break
 
-				case COMMANDS.RT: 
+				case COMMANDS.BUTTON_RIGHT_SHOULDER_TWO: 
 					console.info("Gamepad RT", value, { gamePad, gamepadHeld, heldFor } )
 					break
 
