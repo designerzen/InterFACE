@@ -39,7 +39,10 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 		--s3:calc( var(--s2) * var(--harmonic) );
 		--s4:calc( var(--s3) * var(--harmonic) );
 		--s5:calc( var(--s4) * var(--harmonic) );
-		
+		--s6:calc( var(--s5) * var(--harmonic) );
+		--s7:calc( var(--s6) * var(--harmonic) );
+		--s8:calc( var(--s7) * var(--harmonic) );
+	
 		// global overall zoom
 		--zoom:1;
 		

@@ -132,7 +132,7 @@
 		}
 		
 		// stretch them out 
-		select, input{
+		select:not(.select-content), input{
 			pointer-events: auto;
 			cursor:pointer;
 			border:0;

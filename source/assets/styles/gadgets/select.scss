@@ -21,6 +21,13 @@ select:not([multiple]):not([size]) {
 @supports (appearance: base-select) {
 
 	select.select-content {
+		--gap: calc(var(--pad) * 0.5);
+		--select-surface-top: hsl(var(--hue-dark), 8%, 20%);
+		--select-surface-bottom: hsl(var(--hue-dark), 8%, 15%);
+		--select-surface-hover-top: hsl(var(--hue-dark), 10%, 24%);
+		--select-surface-hover-bottom: hsl(var(--hue-dark), 9%, 18%);
+		--select-panel-bg: hsl(var(--hue-dark), 7%, 18%);
+		--select-option-hover: hsl(var(--hue-dark), 8%, 24%);
 
 		&,
 		&::picker(select) {
@@ -34,22 +41,52 @@ select:not([multiple]):not([size]) {
 		// Select button styling
 		border: 1px solid var(--shade-grey);
 		border-radius: var(--curve);
-		background: var(--shade-dark);
+		background:
+			linear-gradient(
+				180deg,
+				var(--select-surface-top),
+				var(--select-surface-bottom)
+			);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.06),
+			0 0 0 1px rgba(0, 0, 0, 0.15),
+			var(--shadow);
 		color: inherit;
 		font: inherit;
-		padding: 0.4em 0.6em;
+		font-size: clamp(0.95rem, 1vw + 0.7rem, 1.05rem);
+		min-block-size: calc(var(--pad) * 2.6);
+		padding: calc(var(--pad) * 0.7) calc(var(--pad) * 0.9);
 		cursor: pointer;
-		transition: border-color var(--duration), background var(--duration);
+		transition:
+			border-color var(--duration),
+			background var(--duration),
+			box-shadow var(--duration),
+			transform var(--duration);
 
 		&:hover,
 		&:focus-visible {
 			border-color: var(--shade-active);
-			background: hsl(var(--hue-dark), 6%, 20%);
+			background:
+				linear-gradient(
+					180deg,
+					var(--select-surface-hover-top),
+					var(--select-surface-hover-bottom)
+				);
+			box-shadow:
+				inset 0 1px 0 rgba(255, 255, 255, 0.08),
+				0 0 0 1px color-mix(in srgb, var(--shade-active), transparent 55%),
+				var(--shadow);
+		}
+
+		&:focus-visible {
+			outline: calc(var(--pad) * 0.15) solid color-mix(in srgb, var(--shade-active), white 25%);
+			outline-offset: calc(var(--pad) * 0.15);
 		}
 
 		// Picker icon (dropdown arrow)
 		&::picker-icon {
 			color: var(--shade-grey);
+			margin-inline-start: auto;
 			transition: rotate var(--duration);
 		}
 
@@ -61,9 +98,18 @@ select:not([multiple]):not([size]) {
 		&::picker(select) {
 			border: 1px solid var(--shade-grey);
 			border-radius: var(--curve);
-			background: var(--shade-dark);
-			padding: 0.25em 0;
-			box-shadow: var(--shadow);
+			background:
+				linear-gradient(
+					180deg,
+					color-mix(in srgb, var(--select-panel-bg), white 4%),
+					var(--select-panel-bg)
+				);
+			min-inline-size: max(anchor-size(width), 14rem);
+			max-block-size: min(24rem, 60vh);
+			padding: calc(var(--pad) * 0.35);
+			box-shadow:
+				inset 0 1px 0 rgba(255, 255, 255, 0.05),
+				var(--shadow);
 			opacity: 0;
 			transition: opacity var(--duration) allow-discrete;
 		}
@@ -83,7 +129,10 @@ select:not([multiple]):not([size]) {
 			padding: 0;
 
 			legend {
-				padding: 0.3em 0.6em;
+				display: flex;
+				align-items: center;
+				gap: var(--gap);
+				padding: calc(var(--pad) * 0.45) calc(var(--pad) * 0.6);
 				font-size: 0.75em;
 				text-transform: uppercase;
 				letter-spacing: 0.08em;
@@ -91,32 +140,61 @@ select:not([multiple]):not([size]) {
 			}
 		}
 
-		// Individual options
-		option {
+		button,
+		selectedcontent {
 			display: flex;
 			align-items: center;
-			gap: 0.5em;
-			padding: 0.4em 0.6em 0.4em 0.4em;
+			gap: var(--gap);
+			inline-size: 100%;
+		}
+
+		selectedcontent {
+			min-inline-size: 0;
+		}
+
+		.option-label {
+			flex: 1 1 auto;
+			min-inline-size: 0;
+			font-weight: 600;
+			line-height: 1.2;
+		}
+
+		// Individual options
+		option {
+			--gap: calc(var(--pad) * 0.45);
+			display: flex;
+			align-items: center;
+			gap: var(--gap);
+			margin-block: calc(var(--pad) * 0.15);
+			min-block-size: calc(var(--pad) * 2.4);
+			padding: calc(var(--pad) * 0.6) calc(var(--pad) * 0.8);
 			cursor: pointer;
 			// reserve a left edge for the "currently selected" indicator
 			// so the layout doesn't shift when selection changes
 			border-inline-start: 3px solid transparent;
+			border-radius: calc(var(--curve) * 0.75);
 			transition:
 				background var(--ease-q),
 				color var(--ease-q),
-				border-color var(--ease-q);
+				border-color var(--ease-q),
+				opacity var(--ease-q);
 
 			&:hover,
 			&:focus {
-				background: hsl(var(--hue-dark), 6%, 22%);
+				background: var(--select-option-hover);
 				color: var(--shade-white);
+			}
+
+			&:disabled {
+				opacity: 0.45;
+				cursor: not-allowed;
 			}
 
 			// CURRENTLY SELECTED option — must be obviously more prominent
 			// than :hover so it remains identifiable while the user mouses
 			// over other options in the open picker.
 			&:checked {
-				background: hsl(var(--hue-brand), 60%, 38%);
+				background: color-mix(in srgb, var(--shade-selected), black 8%);
 				color: var(--shade-white);
 				font-weight: 700;
 				border-inline-start-color: var(--shade-active);
@@ -124,7 +202,7 @@ select:not([multiple]):not([size]) {
 				// keep selected styling dominant even when hovered/focused
 				&:hover,
 				&:focus {
-					background: hsl(var(--hue-brand), 65%, 45%);
+					background: color-mix(in srgb, var(--shade-selected), white 8%);
 				}
 
 				.option-detail {
@@ -138,9 +216,10 @@ select:not([multiple]):not([size]) {
 			// is actually rendered (browsers don't supply a default glyph).
 			&::checkmark {
 				content: "✓";
+				inline-size: 1em;
 				color: var(--shade-white);
 				font-weight: 700;
-				margin-inline-end: 0.25em;
+				margin-inline-end: calc(var(--pad) * 0.25);
 			}
 		}
 
@@ -162,9 +241,10 @@ select:not([multiple]):not([size]) {
 		.option-detail {
 			margin-inline-start: auto;
 			font-size: 0.75em;
-			opacity: 0.6;
+			opacity: 0.75;
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
+			white-space: nowrap;
 		}
 
 		// Rich content inside tempo options
