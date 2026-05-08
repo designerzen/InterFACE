@@ -14,6 +14,10 @@ const COMPRESSED_PREFIX = new TextEncoder().encode('multiverse:zdat')
 const BAUD_RATE = 115200
 const COLOR_MASK = 0xFF
 const BRIGHTNESS_MASK = 0x1F
+export const PICADE_MAX_BUTTON_FRAME_LEDS = 128
+export const PICADE_MAX_BUTTON_LED_GROUP_SIZE = 4
+export const PICADE_MAX_BUTTONS = 6
+export const PICADE_MAX_LOGICAL_LEDS = PICADE_MAX_BUTTONS * PICADE_MAX_BUTTON_LED_GROUP_SIZE
 
 // Display types
 export const DISPLAY_GALACTIC_UNICORN = 0
@@ -224,21 +228,29 @@ export class PlasmaButtons extends SerialDevice {
 	#ledStatuses
 	#rafId = null
 	#attractAbort = null
+	#buttonLedGroupSize
+	#flashTimers = new Map()
 
 	/**
 	 * @param {number} numLeds
 	 * @param {Object} [options]
-	 * @param {number} [options.refreshRate=60]
+	 * @param {number} [options.refreshRate=20]
+	 * @param {number} [options.packetLedCount=numLeds]
+	 * @param {number} [options.buttonLedGroupSize=4]
 	 * @param {Object} [options.buttonMap]
 	 * @param {Object} [options.coordMap]
 	 */
-	constructor(numLeds, { refreshRate = 60, buttonMap = {}, coordMap = {} } = {}) {
+	constructor(numLeds, { refreshRate = 20, packetLedCount = numLeds, buttonLedGroupSize = PICADE_MAX_BUTTON_LED_GROUP_SIZE, buttonMap = {}, coordMap = {} } = {}) {
 		super()
 		this.numLeds = numLeds
 		this.refreshRate = refreshRate
+		this.packetLedCount = Math.max(numLeds, packetLedCount)
+		this.packetByteLength = this.packetLedCount * 4
+		this.maxFrameRate = Math.floor(BAUD_RATE / ((PREFIX.length + this.packetByteLength) * 10))
 		this.buttonMap = buttonMap
 		this.coordMap = coordMap
-		this.#ledBuffer = new Uint8Array(numLeds * 4)
+		this.#buttonLedGroupSize = buttonLedGroupSize
+		this.#ledBuffer = new Uint8Array(this.packetByteLength)
 		this.#ledStatuses = Array.from({ length: numLeds }, () => new LEDStatus())
 	}
 
@@ -250,6 +262,7 @@ export class PlasmaButtons extends SerialDevice {
 	async disconnect() {
 		this.stopRefresh()
 		this.stopAttractMode()
+		this.clearFlashEffects()
 		await super.disconnect()
 	}
 
@@ -257,6 +270,7 @@ export class PlasmaButtons extends SerialDevice {
 
 	setLedMode(ledNumber, mode, { colorTo, colorFrom, transitionTime } = {}) {
 		const status = this.#ledStatuses[ledNumber]
+		if (!status) return
 		status.mode = mode
 		status.ticksSinceLastTransition = 0
 
@@ -282,7 +296,9 @@ export class PlasmaButtons extends SerialDevice {
 	}
 
 	setButtonMode(buttonNumber, mode, options = {}) {
-		for (let i = buttonNumber * 4; i < (buttonNumber + 1) * 4; i++) {
+		const start = buttonNumber * this.#buttonLedGroupSize
+		const end = start + this.#buttonLedGroupSize
+		for (let i = start; i < end && i < this.numLeds; i++) {
 			this.setLedMode(i, mode, options)
 		}
 	}
@@ -290,6 +306,39 @@ export class PlasmaButtons extends SerialDevice {
 	setButtonModeByLabel(label, mode, options = {}) {
 		const buttonNumber = this.buttonMap[label]
 		if (buttonNumber != null) this.setButtonMode(buttonNumber, mode, options)
+	}
+
+	triggerLedFade(ledNumber, color, { holdTime = 0, fadeTime = 0.35, colorFrom = OFF } = {}) {
+		if (ledNumber < 0 || ledNumber >= this.numLeds) return
+		this.#clearFlashTimer(`led:${ledNumber}`)
+		this.setLedMode(ledNumber, 'normal', { colorTo: color })
+		this.#flashTimers.set(`led:${ledNumber}`, setTimeout(() => {
+			this.setLedMode(ledNumber, 'fade', {
+				colorFrom: color,
+				colorTo: colorFrom,
+				transitionTime: fadeTime
+			})
+			this.#flashTimers.delete(`led:${ledNumber}`)
+		}, Math.max(0, holdTime) * 1000))
+	}
+
+	triggerButtonFade(buttonNumber, color, options = {}) {
+		const start = buttonNumber * this.#buttonLedGroupSize
+		const end = start + this.#buttonLedGroupSize
+		for (let i = start; i < end && i < this.numLeds; i++) {
+			this.triggerLedFade(i, color, options)
+		}
+	}
+
+	triggerButtonFadeByLabel(label, color, options = {}) {
+		const buttonNumber = this.buttonMap[label]
+		if (buttonNumber != null) this.triggerButtonFade(buttonNumber, color, options)
+	}
+
+	clearFlashEffects() {
+		for (const key of this.#flashTimers.keys()) {
+			this.#clearFlashTimer(key)
+		}
 	}
 
 	// ── Color calculation ─────────────────────────────────────────────────────
@@ -329,10 +378,10 @@ export class PlasmaButtons extends SerialDevice {
 
 	#lerpColor(from, to, ratio) {
 		return RGBl(
-			Math.round(from.red + (to.red - from.red) * ratio),
-			Math.round(from.green + (to.green - from.green) * ratio),
-			Math.round(from.blue + (to.blue - from.blue) * ratio),
-			Math.round(from.brightness + (to.brightness - from.brightness) * ratio)
+			Math.trunc(from.red + (to.red - from.red) * ratio),
+			Math.trunc(from.green + (to.green - from.green) * ratio),
+			Math.trunc(from.blue + (to.blue - from.blue) * ratio),
+			Math.trunc(from.brightness + (to.brightness - from.brightness) * ratio)
 		)
 	}
 
@@ -351,13 +400,20 @@ export class PlasmaButtons extends SerialDevice {
 	}
 
 	async writeToDisplay() {
-		this.#updateLedColors()
-		await this._sendWithPrefix(this.#ledBuffer)
+		await this._sendWithPrefix(this.getPreviewBuffer())
 	}
 
 	getPreviewBuffer() {
 		this.#updateLedColors()
 		return this.#ledBuffer
+	}
+
+	getPacket() {
+		const buffer = this.getPreviewBuffer()
+		const packet = new Uint8Array(PREFIX.length + buffer.length)
+		packet.set(PREFIX, 0)
+		packet.set(buffer, PREFIX.length)
+		return packet
 	}
 
 	#startRefreshLoop() {
@@ -378,6 +434,14 @@ export class PlasmaButtons extends SerialDevice {
 		if (this.#rafId) {
 			cancelAnimationFrame(this.#rafId)
 			this.#rafId = null
+		}
+	}
+
+	#clearFlashTimer(key) {
+		const timer = this.#flashTimers.get(key)
+		if (timer) {
+			clearTimeout(timer)
+			this.#flashTimers.delete(key)
 		}
 	}
 
@@ -569,9 +633,20 @@ export class LedMatrix extends SerialDevice {
 		return out
 	}
 
+	getPreviewBuffer() {
+		return this.#translateBuffer()
+	}
+
+	getPacket() {
+		const buffer = this.getPreviewBuffer()
+		const packet = new Uint8Array(PREFIX.length + buffer.length)
+		packet.set(PREFIX, 0)
+		packet.set(buffer, PREFIX.length)
+		return packet
+	}
+
 	async writeToDisplay() {
-		const buffer = this.#translateBuffer()
-		await this._sendWithPrefix(buffer)
+		await this._sendWithPrefix(this.getPreviewBuffer())
 	}
 
 	/**

@@ -10,103 +10,220 @@ block preload
 
 block main
 	main#test-picade-max-input
-		h4 Picade Plasma Button Test GUI
-		p.subtitle WebSerial LED controller — buttons &amp; matrix modes
+		h4 Picade Button Lighting Console
+		p.subtitle Test the original 6-button Picade panel, preview per-button lighting, and send the same data to the Picade Max controller.
+
+		.hero-card
+			.hero-copy
+				.hero-kicker Original Picade 6-Button Layout
+				p
+					| This page is for the physical arcade panel on your cabinet. Each red arcade button contains four independent corner lights.
+			.workflow
+				.workflow-step
+					strong 1
+					span Click #[code Use Picade Layout] once.
+				.workflow-step
+					strong 2
+					span Connect the controller.
+				.workflow-step
+					strong 3
+					span Click a corner light on the panel to edit it.
+				.workflow-step
+					strong 4
+					span Use button-level fades and patterns to test hardware behaviour.
 
 		.warning#serialWarning ⚠ WebSerial API is not available in this browser. Use Chrome/Edge with a secure context. Preview-only mode is active.
 
 		.conn-bar
 			.status-dot#statusDot
-			span.label#statusLabel Disconnected
+			.conn-main
+				span.label#statusLabel Disconnected
+				span.conn-hint Connect after loading the Picade layout. Electron should auto-approve the known Picade serial device.
 			span.stats#statsLabel
 			button#btnConnect Connect
 
-		.section-title Serial Diagnostics
-		.diag-bar
-			button#btnTestPattern Send Test Pattern
-			button#btnSendRaw Send Raw Text…
-			label.diag-toggle
-				input#chkHexDump(type="checkbox")
-				| Show TX hex dump
-		.port-info#portInfo
-
-		.section-title Serial Log
-			button#btnClearLog(style="float:right; font-size:10px; padding:2px 8px") Clear
-		.serial-log#serialLog
-
 		.tabs
 			.tab.active(data-tab="buttons") Buttons
+			.tab(data-tab="examples") Examples
+			.tab(data-tab="tests") Tests
 			.tab(data-tab="matrix") Matrix
 
 		//- ═══════════════════════ BUTTONS PANEL ═══════════════════════
 		.panel.active#panelButtons(data-tab="buttons")
-			.row
-				label Num LEDs
-				input#numLeds(type="number" value="16" min="1" max="256")
-				label Refresh Hz
-				input#refreshRate(type="number" value="60" min="1" max="120")
-				button#btnInitButtons Init
+			.buttons-layout
+				.control-card.setup-card
+					.card-heading
+						span.card-step Step 1
+						h5 Load the Picade layout
+					p.helper-text
+						| Use the original single-player Picade panel layout: six arcade buttons, four lights per button, padded to the Picade Max firmware transport size.
+					.btn-row
+						button#btnInitPicadeMax Use Picade Layout
+					.meta-grid
+						.meta-item
+							span.meta-label Layout
+							strong#layoutSummary Original 6-button Picade
+						.meta-item
+							span.meta-label Logical lights
+							strong#logicalLedSummary 24
+						.meta-item
+							span.meta-label Transport frame
+							strong#transportLedSummary 128 LEDs
+						.meta-item
+							span.meta-label Safe refresh
+							strong#refreshSummary ~21 fps max
+					details.advanced-inline
+						summary Advanced transport settings
+						p.advanced-copy
+							| Only change these if you are deliberately testing a non-standard layout.
+						.row
+							label Num LEDs
+							input#numLeds(type="number" value="24" min="1" max="256")
+							label Refresh Hz
+							input#refreshRate(type="number" value="20" min="1" max="120")
+							button#btnInitButtons Apply Custom Layout
 
-			.section-title LED Preview (click to select)
-			.led-grid#ledGrid
+				.control-card.preview-card
+					.card-heading
+						span.card-step Step 2
+						h5 Pick a button light
+					p.helper-text
+						| Click one of the four small corner lights inside a red button. The big button label shows the physical arcade button; the small light you click is the individual LED that will be edited.
+					.selection-summary
+						.selection-pill
+							span.summary-label Button
+							strong#selectedButtonLabel Y
+						.selection-pill
+							span.summary-label Light
+							strong#selectedLightLabel Top left
+						.selection-pill
+							span.summary-label LED index
+							strong#selectedIdx 0
+					.led-grid#ledGrid
 
-			.section-title Selected LED Settings
-			.row
-				label Selected
-				span#selectedIdx(style="color:var(--accent)") 0
-			.row
-				label Mode
-				select#ledMode
-					option(value="normal") normal
-					option(value="blink") blink
-					option(value="fade") fade
-					option(value="fade sweep") fade sweep
-			.row
-				label Color To
-				input#ledColorTo(type="color" value="#ff4400")
-			.row
-				label Color From
-				input#ledColorFrom(type="color" value="#000000")
-			.row
-				label Brightness
-				input#ledBrightness(type="range" min="0" max="31" value="16")
-				span.val#ledBrightnessVal 16
-			.row
-				label Transition (s)
-				input#ledTransition(type="range" min="0" max="5" step="0.1" value="1")
-				span.val#ledTransitionVal 1
-			.btn-row
-				button#btnApplyLed Apply to Selected
-				button#btnSetAll Set All
-				button#btnClearAll.danger Clear All
+				.control-card.effects-card
+					.card-heading
+						span.card-step Step 3
+						h5 Choose the lighting behaviour
+					p.helper-text
+						| Use steady color for static tests, or use fade modes to mimic the button-press flash behaviour you want in the final app.
+					.row
+						label Effect
+						select#ledMode
+							option(value="normal") Steady color
+							option(value="blink") Blink
+							option(value="fade") One-way fade
+							option(value="fade sweep") Pulse / sweep
+					.row
+						label Main color
+						input#ledColorTo(type="color" value="#ff4400")
+					.row
+						label Fade to
+						input#ledColorFrom(type="color" value="#000000")
+					.row
+						label Brightness
+						input#ledBrightness(type="range" min="0" max="31" value="16")
+						span.val#ledBrightnessVal 16
+					.row
+						label Fade time (s)
+						input#ledTransition(type="range" min="0" max="5" step="0.1" value="1")
+						span.val#ledTransitionVal 1
+					.btn-row
+						button#btnApplyLed Apply to This Light
+						button#btnApplyButton Apply to Whole Button
+						button#btnFlashButton Preview Fade
+					.btn-row
+						button#btnSetAll Apply to All Lights
+						button#btnClearButton Clear Button
+						button#btnClearAll.danger Blackout All
 
-			.section-title Attract Mode
-			.row
-				label Pattern
-				select#attractPattern
-					option(value="linear") linear
-					option(value="radial") radial
-					option(value="circular") circular
-			.row
-				label Direction
-				select#attractDirection
-					option(value="left_to_right") left_to_right
-					option(value="right_to_left") right_to_left
-					option(value="top_to_bottom") top_to_bottom
-					option(value="bottom_to_top") bottom_to_top
-			.row
-				label Color On
-				input#attractColorOn(type="color" value="#1f1f00")
-			.row
-				label Color Off
-				input#attractColorOff(type="color" value="#000000")
-			.row
-				label Delay (ms)
-				input#attractDelay(type="range" min="10" max="500" step="10" value="50")
-				span.val#attractDelayVal 50
-			.btn-row
-				button#btnAttractStart Start Attract
-				button#btnAttractStop.danger Stop Attract
+		.panel#panelExamples(data-tab="examples")
+			.examples-layout
+				.control-card.examples-card
+					.card-heading
+						span.card-step Picade Examples
+						h5 Upstream demo ports
+					p.helper-text
+						| These are direct browser-side ports of the tested Picade button demos from the upstream reference implementation.
+					.btn-row
+						button#btnRunExamplePyButtons Run Button Demo
+						button#btnRunExamplePy3 Run Extended Demo
+						button#btnStopExamples.danger Stop Demo
+
+		.panel#panelTests(data-tab="tests")
+			.examples-layout
+				.control-card.examples-card
+					.card-heading
+						span.card-step Button Patterns
+						h5 Guided light tests
+					p.helper-text
+						| Use these to test motion, direction, fade timing, and whole-panel coverage without manually editing every light.
+					.row
+						label Quick pattern
+						select#buttonPatternSelect
+							option(value="rainbow_fade") rainbow_fade
+							option(value="sparkle_fade") sparkle_fade
+							option(value="panel_wave") panel_wave
+							option(value="center_out") center_out
+							option(value="edge_in") edge_in
+							option(value="column_scan") column_scan
+							option(value="row_scan") row_scan
+							option(value="alternating_pairs") alternating_pairs
+							option(value="label_cycle") label_cycle
+					.btn-row
+						button#btnRunButtonPattern Run Pattern
+						button#btnStopExamples.danger Stop Demo
+
+				.control-card.examples-card
+					.card-heading
+						span.card-step Attract Mode
+						h5 Whole-panel motion tests
+					p.helper-text
+						| These patterns continuously animate the six-button panel and are useful for checking sequencing, direction, and timing.
+					.row
+						label Motion
+						select#attractPattern
+							option(value="linear") linear
+							option(value="radial") radial
+							option(value="circular") circular
+					.row
+						label Direction
+						select#attractDirection
+							option(value="left_to_right") left_to_right
+							option(value="right_to_left") right_to_left
+							option(value="top_to_bottom") top_to_bottom
+							option(value="bottom_to_top") bottom_to_top
+					.row
+						label Lit color
+						input#attractColorOn(type="color" value="#1f1f00")
+					.row
+						label Dark color
+						input#attractColorOff(type="color" value="#000000")
+					.row
+						label Step delay (ms)
+						input#attractDelay(type="range" min="10" max="500" step="10" value="50")
+						span.val#attractDelayVal 50
+					.btn-row
+						button#btnAttractStart Start Attract Mode
+						button#btnAttractStop.danger Stop Attract Mode
+
+				.control-card.examples-card
+					.card-heading
+						span.card-step Transport Tests
+						h5 Raw protocol tools
+					p.helper-text
+						| Use this only when you need to inspect or prove the exact bytes going to the controller.
+					.diag-bar
+						button#btnTestPattern Send Test Pattern
+						button#btnSendRaw Send Raw Text…
+						label.diag-toggle
+							input#chkHexDump(type="checkbox")
+							| Show TX hex dump
+					.port-info#portInfo
+					.log-header
+						span Serial Log
+						button#btnClearLog Clear
+					.serial-log#serialLog
 
 		//- ═══════════════════════ MATRIX PANEL ═══════════════════════
 		.panel#panelMatrix(data-tab="matrix")
@@ -145,35 +262,114 @@ block main
 				button#btnClearMatrix.danger Clear
 				button#btnSendMatrix Send to Display
 
+			.section-title Matrix Example
+			.btn-row
+				button#btnRunExamplePyMatrix Run examples.py Matrix
+				button#btnStopMatrixExample.danger Stop Demo
+
 block styles
 	style.
 		#test-picade-max-input {
-			--bg: #121218;
-			--surface: #1a1a24;
-			--surface2: #22222e;
-			--border: #2e2e3e;
-			--textDim: #888;
-			--accent: #4ea8de;
-			--accentDim: #2d6a8e;
-			--danger: #e05050;
-			--ok: #40c060;
+			--bg: #111317;
+			--surface: #191d23;
+			--surface2: #222932;
+			--surface3: #2a313c;
+			--border: #38414d;
+			--text: #e8edf2;
+			--textDim: #9ba6b2;
+			--accent: #f7b538;
+			--accentDim: #ab7720;
+			--danger: #e15a4f;
+			--ok: #46c274;
 			--mono: 'Consolas', 'Courier New', monospace;
 			font-family: var(--mono);
 			font-size: 13px;
 			padding: 16px;
-			max-width: 1200px;
+			max-width: 1280px;
+			color: var(--text);
+			background:
+				radial-gradient(circle at top left, rgba(247,181,56,.08), transparent 28%),
+				radial-gradient(circle at top right, rgba(70,194,116,.06), transparent 24%),
+				linear-gradient(180deg, #12151a 0, #0d1014 100%);
 		}
 
 		#test-picade-max-input h4 {
-			font-size: 18px;
-			margin-bottom: 4px;
-			color: var(--accent);
+			font-size: 24px;
+			margin-bottom: 6px;
+			color: #f7f2e8;
+			letter-spacing: .4px;
 		}
 
 		#test-picade-max-input .subtitle {
-			font-size: 11px;
+			font-size: 13px;
 			color: var(--textDim);
-			margin-bottom: 12px;
+			margin-bottom: 18px;
+			max-width: 920px;
+			line-height: 1.5;
+		}
+
+		#test-picade-max-input .hero-card {
+			display: grid;
+			grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+			gap: 16px;
+			padding: 18px;
+			margin-bottom: 16px;
+			border: 1px solid var(--border);
+			border-radius: 14px;
+			background:
+				linear-gradient(135deg, rgba(247,181,56,.13), rgba(247,181,56,0) 35%),
+				linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),
+				var(--surface);
+			box-shadow: 0 16px 36px rgba(0,0,0,.22);
+		}
+
+		#test-picade-max-input .hero-kicker {
+			display: inline-block;
+			margin-bottom: 10px;
+			font-size: 11px;
+			letter-spacing: 1.6px;
+			text-transform: uppercase;
+			color: var(--accent);
+		}
+
+		#test-picade-max-input .hero-copy p {
+			margin: 0;
+			font-size: 13px;
+			line-height: 1.6;
+			color: #d9dee5;
+		}
+
+		#test-picade-max-input .workflow {
+			display: grid;
+			gap: 10px;
+		}
+
+		#test-picade-max-input .workflow-step {
+			display: grid;
+			grid-template-columns: 28px 1fr;
+			gap: 10px;
+			align-items: center;
+			padding: 10px 12px;
+			border: 1px solid rgba(255,255,255,.06);
+			border-radius: 10px;
+			background: rgba(255,255,255,.03);
+		}
+
+		#test-picade-max-input .workflow-step strong {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+			background: var(--accent);
+			color: #17120a;
+			font-size: 13px;
+		}
+
+		#test-picade-max-input .workflow-step span {
+			color: #d6dbe2;
+			line-height: 1.35;
 		}
 
 		#test-picade-max-input .warning {
@@ -190,12 +386,13 @@ block styles
 		#test-picade-max-input .conn-bar {
 			display: flex;
 			align-items: center;
-			gap: 12px;
-			padding: 10px 14px;
+			gap: 14px;
+			padding: 14px 16px;
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 6px;
+			border-radius: 12px;
 			margin-bottom: 14px;
+			box-shadow: 0 10px 24px rgba(0,0,0,.18);
 		}
 
 		#test-picade-max-input .status-dot {
@@ -208,24 +405,35 @@ block styles
 			&.ok { background: var(--ok); }
 		}
 
-		#test-picade-max-input .conn-bar .label {
-			font-size: 12px;
-			color: var(--textDim);
+		#test-picade-max-input .conn-main {
+			display: flex;
+			flex-direction: column;
+			gap: 3px;
 			flex: 1;
+		}
+
+		#test-picade-max-input .conn-bar .label {
+			font-size: 13px;
+			color: #eef3f8;
+		}
+
+		#test-picade-max-input .conn-hint {
+			font-size: 11px;
+			color: var(--textDim);
 		}
 
 		#test-picade-max-input button {
 			font-family: var(--mono);
 			font-size: 12px;
-			padding: 5px 14px;
+			padding: 8px 14px;
 			border: 1px solid var(--border);
-			border-radius: 4px;
+			border-radius: 8px;
 			background: var(--surface2);
-			color: var(--text, #d4d4dc);
+			color: var(--text);
 			cursor: pointer;
 			transition: .15s;
 
-			&:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+			&:hover { background: var(--accent); color: #17120a; border-color: var(--accent); }
 			&.danger:hover { background: var(--danger); border-color: var(--danger); }
 			&:disabled { opacity: .4; cursor: default; background: var(--surface2); color: var(--textDim); border-color: var(--border); }
 		}
@@ -253,10 +461,142 @@ block styles
 			display: none;
 			background: var(--surface);
 			border: 1px solid var(--border);
-			border-radius: 0 6px 6px 6px;
-			padding: 14px;
+			border-radius: 0 10px 10px 10px;
+			padding: 18px;
 
 			&.active { display: block; }
+		}
+
+		#test-picade-max-input .buttons-layout {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 16px;
+			align-items: start;
+		}
+
+		#test-picade-max-input .examples-layout {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 16px;
+			align-items: start;
+		}
+
+		#test-picade-max-input .control-card {
+			padding: 16px;
+			border: 1px solid rgba(255,255,255,.05);
+			border-radius: 14px;
+			background:
+				linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0)),
+				var(--surface2);
+			box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+		}
+
+		#test-picade-max-input .preview-card {
+			grid-column: 1 / -1;
+			grid-row: auto;
+		}
+
+		#test-picade-max-input .setup-card {
+			grid-column: span 1;
+		}
+
+		#test-picade-max-input .effects-card {
+			grid-column: span 2;
+		}
+
+		#test-picade-max-input .examples-card {
+			min-height: 100%;
+		}
+
+		#test-picade-max-input .card-heading {
+			margin-bottom: 10px;
+		}
+
+		#test-picade-max-input .card-heading h5 {
+			margin: 3px 0 0;
+			font-size: 17px;
+			color: #f4f7fa;
+		}
+
+		#test-picade-max-input .card-step {
+			font-size: 11px;
+			text-transform: uppercase;
+			letter-spacing: 1.4px;
+			color: var(--accent);
+		}
+
+		#test-picade-max-input .helper-text,
+		#test-picade-max-input .advanced-copy {
+			margin: 0 0 12px;
+			font-size: 12px;
+			line-height: 1.55;
+			color: var(--textDim);
+		}
+
+		#test-picade-max-input .meta-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 8px;
+			margin-bottom: 12px;
+		}
+
+		#test-picade-max-input .meta-item,
+		#test-picade-max-input .selection-pill {
+			padding: 10px 12px;
+			border-radius: 10px;
+			background: rgba(0,0,0,.16);
+			border: 1px solid rgba(255,255,255,.05);
+		}
+
+		#test-picade-max-input .meta-label,
+		#test-picade-max-input .summary-label {
+			display: block;
+			margin-bottom: 4px;
+			font-size: 10px;
+			text-transform: uppercase;
+			letter-spacing: 1.2px;
+			color: var(--textDim);
+		}
+
+		#test-picade-max-input .meta-item strong,
+		#test-picade-max-input .selection-pill strong {
+			font-size: 13px;
+			color: #f2f6fa;
+		}
+
+		#test-picade-max-input .selection-summary {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 8px;
+			margin-bottom: 12px;
+		}
+
+		#test-picade-max-input details {
+			border: 1px solid rgba(255,255,255,.06);
+			border-radius: 10px;
+			background: rgba(0,0,0,.12);
+		}
+
+		#test-picade-max-input summary {
+			cursor: pointer;
+			padding: 12px 14px;
+			color: #e5ebf2;
+		}
+
+		#test-picade-max-input .advanced-shell {
+			margin-bottom: 14px;
+			background: var(--surface);
+		}
+
+		#test-picade-max-input .advanced-shell[open],
+		#test-picade-max-input .advanced-inline[open] {
+			padding-bottom: 12px;
+		}
+
+		#test-picade-max-input .advanced-shell > :not(summary),
+		#test-picade-max-input .advanced-inline > :not(summary) {
+			padding-left: 14px;
+			padding-right: 14px;
 		}
 
 		#test-picade-max-input .row {
@@ -267,19 +607,21 @@ block styles
 			margin-bottom: 8px;
 
 			& label { font-size: 11px; color: var(--textDim); min-width: 110px; }
-			& input[type=number] { width: 70px; font-family: var(--mono); font-size: 12px; padding: 3px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text, #d4d4dc); }
-			& select { font-family: var(--mono); font-size: 12px; padding: 3px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text, #d4d4dc); }
-			& input[type=color] { width: 36px; height: 24px; border: 1px solid var(--border); border-radius: 3px; padding: 0; cursor: pointer; background: none; }
+			& input[type=number] { width: 80px; font-family: var(--mono); font-size: 12px; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+			& select { font-family: var(--mono); font-size: 12px; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+			& input[type=color] { width: 44px; height: 30px; border: 1px solid var(--border); border-radius: 8px; padding: 0; cursor: pointer; background: none; }
 			& input[type=range] { flex: 1; max-width: 180px; accent-color: var(--accent); }
 			& .val { font-size: 11px; color: var(--accent); width: 30px; text-align: right; }
 		}
 
 		#test-picade-max-input .section-title {
-			font-size: 12px;
+			font-size: 11px;
 			color: var(--accent);
-			margin: 12px 0 6px;
-			border-bottom: 1px solid var(--border);
-			padding-bottom: 3px;
+			margin: 16px 0 8px;
+			border-bottom: 1px solid rgba(255,255,255,.06);
+			padding-bottom: 5px;
+			text-transform: uppercase;
+			letter-spacing: 1.3px;
 		}
 
 		#test-picade-max-input .btn-row {
@@ -290,7 +632,7 @@ block styles
 		}
 
 		#test-picade-max-input .stats {
-			font-size: 10px;
+			font-size: 11px;
 			color: var(--textDim);
 			margin-left: auto;
 		}
@@ -316,9 +658,18 @@ block styles
 		#test-picade-max-input .port-info {
 			font-size: 11px;
 			color: var(--textDim);
-			margin-bottom: 8px;
+			margin-bottom: 10px;
 
 			&:empty { display: none; }
+		}
+
+		#test-picade-max-input .log-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 8px;
+			font-size: 11px;
+			color: #e2e8ef;
 		}
 
 		#test-picade-max-input .log-hex {
@@ -349,13 +700,138 @@ block styles
 
 		#test-picade-max-input .led-grid {
 			display: flex;
+			justify-content: center;
+			padding: 14px;
+			background:
+				linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),
+				#11151a;
+			border: 1px solid rgba(255,255,255,.06);
+			border-radius: 14px;
+			margin: 8px 0 0;
+			min-height: 320px;
+			overflow: auto;
+		}
+
+		#test-picade-max-input .picade-panel {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 48px;
+			width: 100%;
+			min-width: 560px;
+			padding: 12px 16px;
+		}
+
+		#test-picade-max-input .picade-stick {
+			position: relative;
+			width: 180px;
+			height: 180px;
+			border-radius: 18px;
+			background: radial-gradient(circle at 50% 38%, #3e404a 0, #2a2c34 28%, #171821 60%, #101117 100%);
+			border: 1px solid #32333d;
+			box-shadow: inset 0 0 18px rgba(255,255,255,.04);
+		}
+
+		#test-picade-max-input .picade-stick-base {
+			position: absolute;
+			left: 50%;
+			top: 54%;
+			width: 102px;
+			height: 102px;
+			transform: translate(-50%, -50%);
+			border-radius: 50%;
+			background: radial-gradient(circle at 35% 35%, #30323a 0, #1e2027 58%, #0e0f15 100%);
+			border: 1px solid #41424a;
+		}
+
+		#test-picade-max-input .picade-stick-shaft {
+			position: absolute;
+			left: 50%;
+			top: 42%;
+			width: 18px;
+			height: 72px;
+			transform: translateX(-50%);
+			border-radius: 999px;
+			background: linear-gradient(90deg, #111 0, #272931 45%, #0e0f13 100%);
+			border: 1px solid #3b3d46;
+		}
+
+		#test-picade-max-input .picade-stick-ball {
+			position: absolute;
+			left: 50%;
+			top: 20%;
+			width: 56px;
+			height: 56px;
+			transform: translateX(-50%);
+			border-radius: 50%;
+			background: radial-gradient(circle at 35% 30%, #ef5f49 0, #c73c2b 45%, #681714 100%);
+			border: 1px solid #7b1d18;
+			box-shadow: 0 8px 18px rgba(0,0,0,.35);
+		}
+
+		#test-picade-max-input .picade-stick-label {
+			position: absolute;
+			left: 50%;
+			bottom: 14px;
+			transform: translateX(-50%);
+			font-size: 11px;
+			letter-spacing: 1.5px;
+			color: #858999;
+		}
+
+		#test-picade-max-input .picade-buttons {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(92px, 1fr));
+			gap: 18px;
+			width: min(100%, 360px);
+		}
+
+		#test-picade-max-input .picade-button {
+			position: relative;
+			aspect-ratio: 1;
+			padding: 12px;
+			border-radius: 50%;
+			background: radial-gradient(circle at 35% 30%, #ff5f4d 0, #d13d2e 42%, #7b1a14 100%);
+			border: 1px solid #7d2119;
+			box-shadow:
+				inset 0 -10px 18px rgba(0,0,0,.22),
+				0 10px 16px rgba(0,0,0,.26);
+		}
+
+		#test-picade-max-input .picade-button-label {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			font-size: 14px;
+			font-weight: bold;
+			letter-spacing: .5px;
+			color: rgba(255,255,255,.78);
+			pointer-events: none;
+			text-shadow: 0 1px 2px rgba(0,0,0,.5);
+		}
+
+		#test-picade-max-input .picade-button-slot {
+			position: absolute;
+			width: 28px;
+			height: 28px;
+		}
+
+		#test-picade-max-input .picade-button-slot.slot-0 { left: 16px; top: 18px; }
+		#test-picade-max-input .picade-button-slot.slot-1 { right: 16px; top: 18px; }
+		#test-picade-max-input .picade-button-slot.slot-2 { left: 16px; bottom: 18px; }
+		#test-picade-max-input .picade-button-slot.slot-3 { right: 16px; bottom: 18px; }
+
+		#test-picade-max-input .picade-button-slot .led {
+			width: 100%;
+			height: 100%;
+			border-width: 1px;
+		}
+
+		#test-picade-max-input .picade-fallback-grid {
+			display: flex;
 			flex-wrap: wrap;
 			gap: 4px;
-			padding: 10px;
-			background: var(--bg);
-			border: 1px solid var(--border);
-			border-radius: 4px;
-			margin: 8px 0;
 			max-height: 260px;
 			overflow-y: auto;
 		}
@@ -364,12 +840,12 @@ block styles
 			width: 28px;
 			height: 28px;
 			border-radius: 50%;
-			border: 2px solid var(--border);
+			border: 2px solid #5b6470;
 			cursor: pointer;
 			transition: .1s;
 			position: relative;
 
-			&.selected { border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
+			&.selected { border-color: var(--accent); box-shadow: 0 0 10px rgba(247,181,56,.6); }
 		}
 
 		#test-picade-max-input .led-idx {
@@ -381,6 +857,45 @@ block styles
 			font-size: 8px;
 			color: rgba(255,255,255,.5);
 			pointer-events: none;
+		}
+
+		@media (max-width: 760px) {
+			#test-picade-max-input .hero-card,
+			#test-picade-max-input .picade-panel {
+				grid-template-columns: 1fr;
+				flex-direction: column;
+				min-width: 0;
+				gap: 24px;
+			}
+
+			#test-picade-max-input .buttons-layout,
+			#test-picade-max-input .examples-layout {
+				grid-template-columns: 1fr;
+			}
+
+			#test-picade-max-input .preview-card {
+				grid-column: auto;
+				grid-row: auto;
+			}
+
+			#test-picade-max-input .effects-card,
+			#test-picade-max-input .setup-card {
+				grid-column: auto;
+			}
+
+			#test-picade-max-input .selection-summary,
+			#test-picade-max-input .meta-grid {
+				grid-template-columns: 1fr;
+			}
+
+			#test-picade-max-input .picade-stick {
+				width: 150px;
+				height: 150px;
+			}
+
+			#test-picade-max-input .picade-buttons {
+				width: 100%;
+			}
 		}
 
 		#test-picade-max-input .matrix-wrap {
@@ -403,6 +918,19 @@ block scripts
 			COLOR_ORDER_RGB, COLOR_ORDER_RBG, COLOR_ORDER_GBR,
 			COLOR_ORDER_GRB, COLOR_ORDER_BGR, COLOR_ORDER_BRG
 		} from './hardware/gamepad/picade-max-input.js'
+		import {
+			PICADE_MAX_BUTTON_MAP,
+			PICADE_MAX_COORD_MAP,
+			PICADE_6_BUTTON_LABELS,
+			BUTTON_PATTERN_NAMES,
+			PICADE_MAX_NUM_LEDS,
+			PICADE_MAX_PACKET_LED_COUNT,
+			PICADE_MAX_REFRESH_RATE,
+			runExamples3,
+			runExamplesButtonDemo,
+			runButtonPattern,
+			runExamplesMatrixDemo,
+		} from './hardware/gamepad/picade-max-examples.js'
 
 		const hasSerial = 'serial' in navigator
 		if (!hasSerial) document.getElementById('serialWarning').style.display = 'block'
@@ -420,6 +948,7 @@ block scripts
 
 		const COLOR_ORDERS = { RGB: COLOR_ORDER_RGB, RBG: COLOR_ORDER_RBG, GBR: COLOR_ORDER_GBR, GRB: COLOR_ORDER_GRB, BGR: COLOR_ORDER_BGR, BRG: COLOR_ORDER_BRG }
 		const DISPLAY_MAP = { 0: DISPLAY_GALACTIC_UNICORN, 1: DISPLAY_INTERSTATE75_128x32 }
+		const LED_SLOT_NAMES = ['Top left', 'Top right', 'Bottom left', 'Bottom right']
 
 		let buttons = null
 		let matrix = null
@@ -427,6 +956,8 @@ block scripts
 		let selectedLed = 0
 		let previewColors = []
 		let previewRaf = null
+		let buttonExampleAbort = null
+		let matrixExampleAbort = null
 
 		// tabs
 		document.querySelectorAll('.tab').forEach(tab => {
@@ -496,6 +1027,8 @@ block scripts
 				logEntry('log-err', `✗ ${message}`)
 			})
 			device.on('disconnect', () => {
+				stopButtonExample()
+				stopMatrixExample()
 				logEntry('log-info', '○ Disconnected')
 				$('portInfo').textContent = ''
 			})
@@ -505,20 +1038,30 @@ block scripts
 		$('btnTestPattern').addEventListener('click', async () => {
 			const device = activeTab === 'buttons' ? buttons : matrix
 			if (!device?.connected) { logEntry('log-err', 'Not connected'); return }
-			// send prefix + 4 LEDs: red, green, blue, white at full brightness
-			const test = new Uint8Array([
-				// "multiverse:data"
-				...new TextEncoder().encode('multiverse:data'),
-				// LED 0: blue=0, green=0, red=255, brightness=31
-				0x00, 0x00, 0xFF, 0x1F,
-				// LED 1: blue=0, green=255, red=0, brightness=31
-				0x00, 0xFF, 0x00, 0x1F,
-				// LED 2: blue=255, green=0, red=0, brightness=31
-				0xFF, 0x00, 0x00, 0x1F,
-				// LED 3: blue=255, green=255, red=255, brightness=31
-				0xFF, 0xFF, 0xFF, 0x1F,
-			])
-			logEntry('log-out', `→ Test pattern: 4 LEDs (R,G,B,W) at max brightness`)
+			const prefix = new TextEncoder().encode('multiverse:data')
+			let test
+			if (activeTab === 'buttons') {
+				const payload = new Uint8Array(buttons.packetByteLength)
+				payload.set([
+					0x00, 0x00, 0xFF, 0x1F,
+					0x00, 0xFF, 0x00, 0x1F,
+					0xFF, 0x00, 0x00, 0x1F,
+					0xFF, 0xFF, 0xFF, 0x1F,
+				], 0)
+				test = new Uint8Array(prefix.length + payload.length)
+				test.set(prefix, 0)
+				test.set(payload, prefix.length)
+				logEntry('log-out', `→ Test pattern: full ${buttons.packetByteLength / 4} LED transport frame with first 4 logical LEDs set`)
+			} else {
+				test = new Uint8Array([
+					...prefix,
+					0x00, 0x00, 0xFF, 0x1F,
+					0x00, 0xFF, 0x00, 0x1F,
+					0xFF, 0x00, 0x00, 0x1F,
+					0xFF, 0xFF, 0xFF, 0x1F,
+				])
+				logEntry('log-out', '→ Matrix test pattern: first 4 pixels set')
+			}
 			logEntry('log-hex', `   ${hexDump(test, 128)}`)
 			await device.sendRaw(test)
 		})
@@ -535,6 +1078,20 @@ block scripts
 		// connection
 		let connectedMode = null
 
+		function stopButtonExample() {
+			if (buttonExampleAbort) {
+				buttonExampleAbort.abort()
+				buttonExampleAbort = null
+			}
+		}
+
+		function stopMatrixExample() {
+			if (matrixExampleAbort) {
+				matrixExampleAbort.abort()
+				matrixExampleAbort = null
+			}
+		}
+
 		function updateConnectionUI(connected) {
 			$('statusDot').classList.toggle('ok', connected)
 			$('statusLabel').textContent = connected ? `Connected (${connectedMode})` : 'Disconnected'
@@ -544,20 +1101,22 @@ block scripts
 		$('btnConnect').addEventListener('click', async () => {
 			try {
 				if (activeTab === 'buttons' && buttons?.connected) {
+					stopButtonExample()
 					await buttons.disconnect(); connectedMode = null; updateConnectionUI(false); return
 				}
 				if (activeTab === 'matrix' && matrix?.connected) {
+					stopMatrixExample()
 					await matrix.disconnect(); connectedMode = null; updateConnectionUI(false); return
 				}
 				if (!hasSerial) { alert('WebSerial not available'); return }
 				if (activeTab === 'buttons') {
-					ensureButtons()
+					if (!buttons) ensureButtons()
 					attachDeviceListeners(buttons)
 					logEntry('log-info', '… Requesting serial port…')
 					await buttons.connect()
 					connectedMode = 'buttons'
 				} else {
-					ensureMatrix()
+					if (!matrix) ensureMatrix()
 					attachDeviceListeners(matrix)
 					logEntry('log-info', '… Requesting serial port…')
 					await matrix.connect()
@@ -586,38 +1145,155 @@ block scripts
 
 		// ═══════════════ BUTTONS ═══════════════
 
-		function ensureButtons() {
-			const n = parseInt($('numLeds').value) || 16
-			const r = parseInt($('refreshRate').value) || 60
+		function buildFallbackCoordMap(n) {
 			const coordMap = {}
 			const cols = Math.ceil(Math.sqrt(n))
 			for (let i = 0; i < n; i++) {
 				coordMap[`${i % cols},${Math.floor(i / cols)}`] = i
 			}
-			buttons = new PlasmaButtons(n, { refreshRate: r, coordMap })
+			return coordMap
+		}
+
+		function syncPicadeMaxInputs() {
+			$('numLeds').value = String(PICADE_MAX_NUM_LEDS)
+			$('refreshRate').value = String(PICADE_MAX_REFRESH_RATE)
+		}
+
+		function getButtonLabelByNumber(buttonNumber) {
+			for (const [label, value] of Object.entries(buttons?.buttonMap || {})) {
+				if (value === buttonNumber) return label
+			}
+			return null
+		}
+
+		function formatButtonLabel(label) {
+			return label ? label.replace('P1:', '') : 'Unknown'
+		}
+
+		function getSelectedButtonNumber() {
+			return Math.floor(selectedLed / 4)
+		}
+
+		function updateLayoutSummary() {
+			if (!buttons) return
+			$('layoutSummary').textContent = buttons.numLeds === PICADE_MAX_NUM_LEDS ? 'Original 6-button Picade' : 'Custom test layout'
+			$('logicalLedSummary').textContent = String(buttons.numLeds)
+			$('transportLedSummary').textContent = `${buttons.packetLedCount} LEDs`
+			$('refreshSummary').textContent = `~${buttons.maxFrameRate} fps max`
+		}
+
+		function updateSelectionSummary() {
+			const buttonNumber = getSelectedButtonNumber()
+			const label = getButtonLabelByNumber(buttonNumber)
+			$('selectedIdx').textContent = String(selectedLed)
+			$('selectedButtonLabel').textContent = formatButtonLabel(label || `P1:${buttonNumber + 1}`)
+			$('selectedLightLabel').textContent = LED_SLOT_NAMES[selectedLed % 4] || 'Unknown'
+		}
+
+		function applyToButton(buttonNumber, settings) {
+			const start = buttonNumber * 4
+			for (let i = start; i < start + 4 && i < buttons.numLeds; i++) {
+				applyToLed(i, settings)
+			}
+		}
+
+		function ensureButtons() {
+			const n = parseInt($('numLeds').value) || 16
+			const r = parseInt($('refreshRate').value) || 20
+			const usePicadeMaxMaps = n === PICADE_MAX_NUM_LEDS
+			const coordMap = usePicadeMaxMaps ? { ...PICADE_MAX_COORD_MAP } : buildFallbackCoordMap(n)
+			const buttonMap = usePicadeMaxMaps ? { ...PICADE_MAX_BUTTON_MAP } : {}
+			buttons = new PlasmaButtons(n, {
+				refreshRate: r,
+				packetLedCount: usePicadeMaxMaps ? PICADE_MAX_PACKET_LED_COUNT : n,
+				coordMap,
+				buttonMap
+			})
 			previewColors = Array.from({ length: n }, () => ({ colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, mode: 'normal', transitionTime: 0 }))
 			selectedLed = 0
 			buildLedGrid()
+			updateLayoutSummary()
+			updateSelectionSummary()
 			startPreviewLoop()
+			if (usePicadeMaxMaps) {
+				logEntry('log-info', `Loaded Picade Max maps (${Object.keys(buttonMap).length} labels, ${buttons.numLeds} logical LEDs, ${buttons.packetLedCount} transport LEDs, ~${buttons.maxFrameRate}fps max at 115200 baud)`)
+			}
 		}
 
 		function buildLedGrid() {
 			const grid = $('ledGrid')
 			grid.innerHTML = ''
+			const usePicadePanel =
+				buttons.numLeds === PICADE_MAX_NUM_LEDS &&
+				Object.keys(buttons.buttonMap || {}).length === PICADE_6_BUTTON_LABELS.length
+
+			if (usePicadePanel) {
+				const panel = document.createElement('div')
+				panel.className = 'picade-panel'
+
+				const stick = document.createElement('div')
+				stick.className = 'picade-stick'
+				stick.innerHTML = `
+					<div class="picade-stick-ball"></div>
+					<div class="picade-stick-shaft"></div>
+					<div class="picade-stick-base"></div>
+					<div class="picade-stick-label">JOYSTICK</div>
+				`
+				panel.appendChild(stick)
+
+				const buttonPanel = document.createElement('div')
+				buttonPanel.className = 'picade-buttons'
+
+				for (const label of PICADE_6_BUTTON_LABELS) {
+					const buttonNumber = buttons.buttonMap[label]
+					if (typeof buttonNumber !== 'number') continue
+					const button = document.createElement('div')
+					button.className = 'picade-button'
+
+					for (let offset = 0; offset < 4; offset++) {
+						const ledIndex = (buttonNumber * 4) + offset
+						const slot = document.createElement('div')
+						slot.className = `picade-button-slot slot-${offset}`
+						const led = document.createElement('div')
+						led.className = 'led' + (ledIndex === selectedLed ? ' selected' : '')
+						led.dataset.ledIndex = String(ledIndex)
+						led.innerHTML = `<span class="led-idx">${ledIndex}</span>`
+						led.style.background = '#000'
+						led.addEventListener('click', () => selectLed(ledIndex))
+						slot.appendChild(led)
+						button.appendChild(slot)
+					}
+
+					const buttonLabel = document.createElement('span')
+					buttonLabel.className = 'picade-button-label'
+					buttonLabel.textContent = label.replace('P1:', '')
+					button.appendChild(buttonLabel)
+					buttonPanel.appendChild(button)
+				}
+
+				panel.appendChild(buttonPanel)
+				grid.appendChild(panel)
+				return
+			}
+
+			const fallback = document.createElement('div')
+			fallback.className = 'picade-fallback-grid'
 			for (let i = 0; i < buttons.numLeds; i++) {
 				const el = document.createElement('div')
 				el.className = 'led' + (i === selectedLed ? ' selected' : '')
+				el.dataset.ledIndex = String(i)
 				el.innerHTML = `<span class="led-idx">${i}</span>`
 				el.style.background = '#000'
 				el.addEventListener('click', () => selectLed(i))
-				grid.appendChild(el)
+				fallback.appendChild(el)
 			}
+			grid.appendChild(fallback)
 		}
 
 		function selectLed(i) {
 			selectedLed = i
-			$('selectedIdx').textContent = i
-			document.querySelectorAll('.led').forEach((el, idx) => el.classList.toggle('selected', idx === i))
+			document.querySelectorAll('.led').forEach(el => el.classList.toggle('selected', Number(el.dataset.ledIndex) === i))
+			updateSelectionSummary()
 			const p = previewColors[i]
 			$('ledColorTo').value = rgblToHex(p.colorTo)
 			$('ledColorFrom').value = rgblToHex(p.colorFrom)
@@ -647,20 +1323,45 @@ block scripts
 		}
 
 		$('btnInitButtons').addEventListener('click', () => ensureButtons())
+		$('btnInitPicadeMax').addEventListener('click', () => {
+			syncPicadeMaxInputs()
+			ensureButtons()
+		})
 
 		$('btnApplyLed').addEventListener('click', () => {
-			ensureButtons()
+			if (!buttons) ensureButtons()
 			applyToLed(selectedLed, getCurrentLedSettings())
 		})
 
+		$('btnApplyButton').addEventListener('click', () => {
+			if (!buttons) ensureButtons()
+			applyToButton(getSelectedButtonNumber(), getCurrentLedSettings())
+		})
+
+		$('btnFlashButton').addEventListener('click', () => {
+			if (!buttons) ensureButtons()
+			const settings = getCurrentLedSettings()
+			buttons.triggerButtonFade(getSelectedButtonNumber(), settings.colorTo, {
+				colorFrom: settings.colorFrom,
+				fadeTime: settings.transitionTime || 0.35,
+				holdTime: 0.08
+			})
+		})
+
 		$('btnSetAll').addEventListener('click', () => {
-			ensureButtons()
+			if (!buttons) ensureButtons()
 			const s = getCurrentLedSettings()
 			for (let i = 0; i < buttons.numLeds; i++) applyToLed(i, s)
 		})
 
+		$('btnClearButton').addEventListener('click', () => {
+			if (!buttons) ensureButtons()
+			const off = { mode: 'normal', colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, transitionTime: 0 }
+			applyToButton(getSelectedButtonNumber(), off)
+		})
+
 		$('btnClearAll').addEventListener('click', () => {
-			ensureButtons()
+			if (!buttons) ensureButtons()
 			const off = { mode: 'normal', colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, transitionTime: 0 }
 			for (let i = 0; i < buttons.numLeds; i++) applyToLed(i, off)
 			buttons.setAllLeds('normal', { colorTo: RGBl(0,0,0,0) })
@@ -680,7 +1381,7 @@ block scripts
 		})
 
 		$('btnAttractStart').addEventListener('click', () => {
-			ensureButtons()
+			if (!buttons) ensureButtons()
 			const brightness = parseInt($('ledBrightness').value)
 			const colorOn = hexToRGBl($('attractColorOn').value, brightness)
 			const colorOff = hexToRGBl($('attractColorOff').value, 0)
@@ -694,15 +1395,90 @@ block scripts
 			if (buttons) buttons.stopAttractMode()
 		})
 
+		$('btnRunExamplePyButtons').addEventListener('click', async () => {
+			if (!buttons) ensureButtons()
+			if (!buttons?.connected) { logEntry('log-err', 'Connect the Picade Max buttons first'); return }
+			if (buttons.numLeds !== PICADE_MAX_NUM_LEDS) {
+				logEntry('log-err', `examples.py expects ${PICADE_MAX_NUM_LEDS} LEDs. Click "Init Picade Max" and reconnect.`)
+				return
+			}
+			stopButtonExample()
+			buttonExampleAbort = new AbortController()
+			try {
+				await runExamplesButtonDemo(buttons, {
+					signal: buttonExampleAbort.signal,
+					log: msg => logEntry('log-info', msg)
+				})
+			} catch (e) {
+				if (e.name !== 'AbortError') {
+					logEntry('log-err', `Button demo failed: ${e.message}`)
+					console.error(e)
+				}
+			} finally {
+				buttonExampleAbort = null
+			}
+		})
+
+		$('btnRunExamplePy3').addEventListener('click', async () => {
+			if (!buttons) ensureButtons()
+			if (!buttons?.connected) { logEntry('log-err', 'Connect the Picade Max buttons first'); return }
+			if (buttons.numLeds !== PICADE_MAX_NUM_LEDS) {
+				logEntry('log-err', `examples3.py expects ${PICADE_MAX_NUM_LEDS} LEDs. Click "Init Picade Max" and reconnect.`)
+				return
+			}
+			stopButtonExample()
+			buttonExampleAbort = new AbortController()
+			try {
+				await runExamples3(buttons, {
+					signal: buttonExampleAbort.signal,
+					log: msg => logEntry('log-info', msg)
+				})
+			} catch (e) {
+				if (e.name !== 'AbortError') {
+					logEntry('log-err', `Button demo failed: ${e.message}`)
+					console.error(e)
+				}
+			} finally {
+				buttonExampleAbort = null
+			}
+		})
+
+		$('btnStopExamples').addEventListener('click', () => stopButtonExample())
+
+		$('btnRunButtonPattern').addEventListener('click', async () => {
+			if (!buttons) ensureButtons()
+			if (!buttons?.connected) { logEntry('log-err', 'Connect the Picade Max buttons first'); return }
+			const patternName = $('buttonPatternSelect').value
+			if (!BUTTON_PATTERN_NAMES.includes(patternName)) {
+				logEntry('log-err', `Unknown pattern "${patternName}"`)
+				return
+			}
+			stopButtonExample()
+			buttonExampleAbort = new AbortController()
+			try {
+				await runButtonPattern(buttons, patternName, {
+					signal: buttonExampleAbort.signal,
+					log: msg => logEntry('log-info', msg)
+				})
+			} catch (e) {
+				if (e.name !== 'AbortError') {
+					logEntry('log-err', `Pattern failed: ${e.message}`)
+					console.error(e)
+				}
+			} finally {
+				buttonExampleAbort = null
+			}
+		})
+
 		// preview loop
 		function startPreviewLoop() {
 			if (previewRaf) cancelAnimationFrame(previewRaf)
-			const leds = document.querySelectorAll('.led')
 			function loop() {
 				if (!buttons) return
 				const buf = buttons.getPreviewBuffer()
-				leds.forEach((el, i) => {
-					const idx = i * 4
+				document.querySelectorAll('.led').forEach(el => {
+					const ledIndex = Number(el.dataset.ledIndex)
+					const idx = ledIndex * 4
 					const b = buf[idx], g = buf[idx+1], r = buf[idx+2], br = buf[idx+3]
 					const s = Math.max(br / 31, 0.04)
 					el.style.background = `rgb(${Math.round(r*s)},${Math.round(g*s)},${Math.round(b*s)})`
@@ -798,4 +1574,28 @@ block scripts
 			catch (e) { console.error('Send failed:', e); alert('Send failed – check connection') }
 		})
 
+		$('btnRunExamplePyMatrix').addEventListener('click', async () => {
+			if (!matrix) ensureMatrix()
+			if (!matrix?.connected) { logEntry('log-err', 'Connect the matrix display first'); return }
+			stopMatrixExample()
+			matrixExampleAbort = new AbortController()
+			try {
+				await runExamplesMatrixDemo(matrix, {
+					signal: matrixExampleAbort.signal,
+					log: msg => logEntry('log-info', msg)
+				})
+				renderMatrixPreview()
+			} catch (e) {
+				if (e.name !== 'AbortError') {
+					logEntry('log-err', `Matrix demo failed: ${e.message}`)
+					console.error(e)
+				}
+			} finally {
+				matrixExampleAbort = null
+			}
+		})
+
+		$('btnStopMatrixExample').addEventListener('click', () => stopMatrixExample())
+
+		syncPicadeMaxInputs()
 		ensureMatrix()
