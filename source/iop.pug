@@ -6,7 +6,6 @@ block headline
 block tagline 
 	| Give a Man a record and they dance for day, buy that man a synthesizer and they dance for a lifetime
 
-
 block main 
 	.reveal
 		.slides
@@ -14,19 +13,18 @@ block main
 			section
 				figure.wallpaper
 					img(src="/static/talk/free-parking.jpg")
-	
 				aside.notes.
 					Free parking!
   
 			//- section
 			//- 	h1.r-fit-text _PhotoSynth 4D_
 
-			section
+			section(style="--lines: 6;")
 				figure
 					img(src="/static/talk/Blue Ramsey.png")
 					figcaption
 						p Dedicated to Blue Ramsey 1972-2024
-						small. 
+						small.
 							Who introduced me to the Fourier Transform in the 1990s
 							<br> 
 							and who believed in me when nobody else did. 
@@ -40,36 +38,36 @@ block main
 					figcaption
 						small Divje babe Flute © Humans ~60,000 years ago 
 
-				aside.notes.
-					The flute predates the wheel by some 39 thousand years.
+				aside.notes
+					p The flute predates the wheel by some 39 thousand years.
 
-					So it's clear that expressing ourselves is more necessary than getting about.
+					p So it's clear that expressing ourselves is more necessary than getting about.
 
 			section
 				figure
 					img(src="/static/talk/wheel.png")
 					figcaption
 						small The Wheel © Humans ~5,500 years ago
-				aside.notes.
-					Music was more important than movement.
+				aside.notes
+					p Music was more important than movement.
 
-					Some people say that the wheel is the most important invention of all time, but if that was the case, why did it take another 39 thousand more years?
+					p Some people say that the wheel is the most important invention of all time, but if that was the case, why did it take another 39 thousand more years?
 
 			section
 				h3 MOUTHS > LEGS
 				h3.fragment FLUTE > WHEEL
 				h3.fragment SYNTHESIZER > FLUTE
 				
-				aside.notes.
-					Clearly people were happy with their flutes. 
+				aside.notes
+					p Clearly people were happy with their flutes. 
 
-					[CLICK]
+					strong [CLICK]
 
-					In 2026 we have more than flutes to choose from.... we have synthesizers!
+					p In 2026 we have more than flutes to choose from.... we have synthesizers!
 
-					[CLICK]
+					strong [CLICK]
 
-					and you know what they say,
+					p and you know what they say,
 
 			section
 				blockquote 
@@ -89,16 +87,17 @@ block main
 					Of course, the ability to create infinite sounds brings with it a requirement for infinite controls!
 	
 			section
-				img(src="/static/talk/modular.png")
-				p With infinite sounds come infinite controls
+				figure
+					img(src="/static/talk/modular.png")
+					figcaption
+						small With infinite sounds come infinite controls
 			
-				aside.notes.
-					So today there are thousands of amazing musical instruments, but most of them are very difficult to use, confusing to play, and make lots of assumptions about the people playing them.
+				aside.notes
+					p So today there are thousands of amazing musical instruments, but most of them are very difficult to use, confusing to play, and make lots of assumptions about the people playing them.
 
-					Rather than making things easier, 
-					in many ways, technology has made them more challenging.
+					p Rather than making things easier, in many ways, technology has made them more challenging.
 
-					So how did we get here?
+					p So how did we get here?
 
 
 			//- section
@@ -110,35 +109,35 @@ block main
 			section
 				h3.r-fit-text A Brief History of Audio Automation
 
-				aside.notes.
-					Before music could be recorded, to hear music, you would have to play it yourself or find somebody to play it for you. 
+				aside.notes
+					p Before music could be recorded, to hear music, you would have to play it yourself or find somebody to play it for you. 
 
-					You could sing or play an instrument. 
+					p You could sing or play an instrument. 
 
-					The best music was made together by groups - collectives of individuals performing together. 
+					p The best music was made together by groups - collectives of individuals performing together. 
 
-					Choirs and orchestras sounded bigger and more powerful than individuals alone.
+					p Choirs and orchestras sounded bigger and more powerful than individuals alone.
 
-					Played together, sounds complement each other. 
+					p Played together, sounds complement each other. 
 
-					Constructive coherance.
+					p Constructive coherance.
 			
 			section
 				h3.r-fit-text Orkhēstra
-				aside.notes.
-					Orchestras were named after the word for the dedicated room in ancient Greek theatres for dancing to music.
+				aside.notes
+					p Orchestras were named after the word for the dedicated room in ancient Greek theatres for dancing to music.
 
-					The quantity of new musical instruments grew to cover all the different pitch and timbre combinations. 
+					p The quantity of new musical instruments grew to cover all the different pitch and timbre combinations. 
 
-					Orchestras grew exponentially.
+					p Orchestras grew exponentially.
 
-					Soon, musical instruments became as expressive as singing.
+					p Soon, musical instruments became as expressive as singing.
 
-					And the complexity to play them grew to represent this broad musical range.
+					p And the complexity to play them grew to represent this broad musical range.
 
-					Complexity bred discontent.
+					p Complexity bred discontent.
 
-					And so, for as long as we have been making music with instruments, we have been trying to find ways to automate the process. 
+					p And so, for as long as we have been making music with instruments, we have been trying to find ways to automate the process. 
 					
 
 			section 
@@ -253,20 +252,19 @@ block main
 					figcaption
 						small Click track is the heartbeat of the song
 
-				aside.notes.
-					What started life as the metronome, soon evolved into the electronic heart beat known as the ‘click track’, 
+				aside.notes
+					p What started life as the metronome, soon evolved into the electronic heart beat known as the ‘click track’, 
 					a way of controlling other instruments so that they play in time with each other. 
 
-					Through automation came synchronisation - keeping all instruments perfectly in time.
+					p Through automation came synchronisation - keeping all instruments perfectly in time.
 
-					As more parts of the music could be automated, fewer people were needed to make the music, so band sizes began to shrink, but more bands formed as a result, even solo artists were now a possibility!
+					p As more parts of the music could be automated, fewer people were needed to make the music, so band sizes began to shrink, but more bands formed as a result, even solo artists were now a possibility!
 
 			section
 				figure
 					//- img(src="/static/talk/MBO.png")
 					video(data-autoplay, muted, src="/static/talk/graham-dunning-turntable-sequencer.mp4").full-size.wallpaper.monochromatic
 			
-
 					figcaption
 						small Graham Dunning's		Turntable sequencer with mechanically geared rhythm patterns 
 						
@@ -316,30 +314,36 @@ block main
 					img(src="/static/talk/dx7.png")
 					figcaption
 						small Yamaha DX7 FM Synthesizer
-				aside.notes.
-					For many decades, Popular music was defined by the sounds of the tool that made the music. To replicate the distinct sound of 1980s music, use 1980s technologies.
+				aside.notes
+					p For many decades, Popular music was defined by the sounds of the tool that made the music. To replicate the distinct sound of 1980s music, use 1980s technologies.
 
-					Everything would change forever however with the advent of digital signal processing, where every single nuance of a sound could be altered without a loss in quality. 
+					p Everything would change forever however with the advent of digital signal processing, where every single nuance of a sound could be altered without a loss in quality. 
 
-					Audio could now be manipulated at the atomic level.
+					p Audio could now be manipulated at the atomic level.
 
-
+					p Music had been symbolically upgraded into a programming language.
 
 			section
 				
-				aside.notes.
+				aside.notes
 
-					TODO MELODYNE
+					// TODO MELODYNE
 										
-					For example, automation could “correct” imperfections, such as altering a recording so that the singer was always in tune and in-time.
+					p For example, automation could “correct” imperfections, such as altering a recording so that the singer was always in tune and in-time.
 
-					At first these systems were slow and large but today they work in real time and on devices that fit into your smallest pocket. 
+					p At first these systems were slow and large but today they work in real time and on devices that fit into your smallest pocket. 
 
-					The tools of today allow you to dynamically create or synthesize any sound or set of sounds without any musical background. 
+					p The tools of today allow you to dynamically create or synthesize any sound or set of sounds without any musical background. 
 
-					Automation, or automatic orchestration, meant perfect replication. 
+			section
+				figure
+					img(src="/static/talk/midi-protocol.jpg")
+					figcaption MIDI 1.0 Protocol
 
-					The click track automated tempo, digital interfaces like MIDI automated the melodies, then sampling came along and automated the timbres, the very sounds of the instruments themselves.
+				aside.notes
+					p Automation, or automatic orchestration, meant perfect replication. 
+
+					p The click track automated tempo, digital interfaces like MIDI automated the melodies, then sampling came along and automated the timbres, the very sounds of the instruments themselves.
 
 			section
 				figure
@@ -347,18 +351,22 @@ block main
 					figcaption
 						small AKAI S2000 Sampler		
 
-				aside.notes.
-					Reliable, always available and convenient, the machines didn’t require paying and in many ways formed the perfect band.
+				aside.notes
+					p Reliable, always available and convenient, the machines didn’t require paying and in many ways formed the perfect band.
 
-					A human could program instruments to play by themselves and form a whole band without people.
+					p A human could program instruments to play by themselves and form a whole band without people.
 
-					Now, in 2026, instruments can program themselves. 
-					Artificial intelligence is commonplace.
-					And devices that can generate music are not unusual.
+					p Now, in 2026, instruments can program themselves. 
+				
+					p Artificial intelligence is commonplace.
+					
+					p And devices that can generate music are not unusual.
 
-					But like asking ChatGPT to write you a story, 
+					p But like asking ChatGPT to write you a story, 
 
-					It removes the process entirely and reduces your connection with the creation. You remain a passive consumer rather than an active creator.
+					p It removes the process entirely and reduces your connection with the creation. 
+					
+					p You remain a passive consumer rather than an active creator.
 
 			section
 				blockquote 
@@ -366,51 +374,57 @@ block main
 				aside.notes.
 					And with music making, “The real destination is the journey”.
 
-			section(data-visibility="uncounted")  
+			section
 				h3 MOUTHS > LEGS
 				h3 FLUTE > WHEEL
 				h3 SYNTHESIZER > FLUTE
 				h3 ??? > SYNTHESIZER
 				h3.fragment CREATING > CONSUMING
-				aside.notes.
-					True joy comes from the act of creation, the personal expression, the feelings of representation, ownership, and the ability to share that finished piece with your friends.
+				aside.notes
+					p True joy comes from the act of creation, the personal expression, the feelings of representation, ownership, and the ability to share that finished piece with your friends.
 
+					strong [CLICK]
 
-					With music, the end result is your prize for participation, something that holds a deep personal connection.
+					p With music, the end result is your prize for participation, something that holds a deep personal connection.
 
-					You have invested your time and expression, and converted it into something that perfectly encapsulates. 
+					p You have invested your time and expression and converted it into something that perfectly encapsulates its soul. 
 
+					// TODO:
 
-					TODO:
-					Music is kind of like an infinitely rewarding video game with unlimited levels, no high score and a satisfying prize for everybody at the end.
+					p Music is kind of like an infinitely rewarding video game with unlimited levels, no high score and a satisfying prize for everybody at the end.
 			
+			section 
+				figure 
+					img(src="/static/talk/string-quartet.jpg")
+					figcaption
+						small String Quartet with Violin, Viola, Cello
 
-					TODO: 
-										
-					Instruments are designed to play together so their sonic outputs need to harmonize and sound complementary to one another. 
+				aside.notes	
+					p Instruments are designed to play together so their sonic outputs need to harmonize and sound complementary to one another. 
 
-					The cello improves the sound of the violin, which expands on the sound of the viola for example. 
+					p The cello improves the sound of the violin, which expands on the sound of the viola for example. 
 
-					These instruments speak the same language.
-					In fact all instruments speak a similar language.
+					p These instruments speak the same language.
+
+					p In fact all instruments speak a similar language.
 
 			section
 				blockquote 
 					p.r-fit-text You’re limited by your language, by your vocabulary. You think with your language, so your language dictates how you think. But when you’re making music, it doesn’t. That’s why I love making music so much.
 					cite Richard D James
 
-				aside.notes.
-					Music is just patterns of air.
+				aside.notes
+					p Music is just patterns of air.
 
-					Whether ingrained or part of a learned musical lexicon- the rules for music are firmly established and can be quantified, defined and synthesised.
+					p Whether ingrained or part of a learned musical lexicon- the rules for music are firmly established and can be quantified, defined and synthesised.
 
-					A happy song can be written with major chords which sound elevating and uplifting, whereas a sad song can be written using a minor scale that gives it an air of melancholy and malaise.
+					p A happy song can be written with major chords which sound elevating and uplifting, whereas a sad song can be written using a minor scale that gives it an air of melancholy and malaise.
 
-					Choirs around the world harmonise together without worrying about tuning or scales.
+					p Choirs around the world harmonise together without worrying about tuning or scales.
 
-					Instruments were created to replicate these tones and thus a common musical language naturally emerged.
+					p Instruments were created to replicate these tones and thus a common musical language naturally emerged.
 
-					It appears that periodicity is a characteristic of all phenomena of nature.
+					p It appears that periodicity is a characteristic of all phenomena of nature.
 
 
 			section
@@ -419,14 +433,14 @@ block main
 
 					cite Arthur Schopenhauer
 
-				aside.notes.
-					Whether or not this language is entirely intrinsic is debated, but certainly elements are universal, such as the common sounds of mumese, the language we employ to speak to babies or cute animals.
+				aside.notes
+					p Whether or not this language is entirely intrinsic is debated, but certainly elements are universal, such as the common sounds of mumese, the language we employ to speak to babies or cute animals.
 
-					We automatically raise our pitch and speak softly when communicating with babies and small animals. as we expect that is how they sound. 
+					p We automatically raise our pitch and speak softly when communicating with babies and small animals. as we expect that is how they sound. 
 
-					In the same way that birds didn’t go to school to learn how to sing, mumese appears to be a birthright, an intrinsic universal communication system - all built in, ready to go. 
+					p In the same way that birds didn’t go to school to learn how to sing, mumese appears to be a birthright, an intrinsic universal communication system - all built in, ready to go. 
 
-					An instinct.
+					p An instinct.
 
 			section
 				figure
@@ -434,82 +448,82 @@ block main
 					figcaption
 						small Roland TB303 Bassline Generator
 
-				aside.notes.
-					The Roland TB303 synthesizer contains an electronic filter that unintentionally mimics the distress cries of animals, where the instrument wails, shrieks and squeals - speaking to us on a primordial level, guided subconsciously by thousands of years of evolution in the wilderness, where we relied upon sound, which communicated with us before language.
+				aside.notes
+					p The Roland TB303 synthesizer contains an electronic filter that unintentionally mimics the distress cries of animals, where the instrument wails, shrieks and squeals - speaking to us on a primordial level, guided subconsciously by thousands of years of evolution in the wilderness, where we relied upon sound, which communicated with us before language.
 
-					This is the power of music - an innate language at the physiological level - you don’t just hear it, you feel it, you react to it. 
+					p This is the power of music - an innate language at the physiological level - you don’t just hear it, you feel it, you react to it. 
 
 			section
 				blockquote 
 					p.r-fit-text Music is an unconscious exercise in mathematics in which the mind is unaware that it is calculating
 					cite Gottfried Wilhelm Leibniz
 
-				aside.notes.
-					Music affects us in profound ways.
+				aside.notes
+					p Music affects us in profound ways.
 
-					Before these modern times, it was not uncommon for a belief in the concept of the sound ether, one of the four stages in the creation of matter, where sound is crucial as the force that gives a substance its preliminary shape and form. 
+					p Before these modern times, it was not uncommon for a belief in the concept of the sound ether, one of the four stages in the creation of matter, where sound is crucial as the force that gives a substance its preliminary shape and form. 
 
-					Which sounds relatively similar to the Bose-Einstein condensate...
-					I mean
-					They didn’t call it the big bang because they thought it was silent!
+					p Which sounds relatively similar to the Bose-Einstein condensate...
 
-					A Quantum physicist was not impressed by that analogy, explaining to me how without air, there could be no sound, whilst completely disregarding the fact that there could be no ears there to hear it.
+					p I mean
+					
+					p They didn’t call it the big bang because they thought it was silent!
+
+					p A Quantum physicist was not impressed by that analogy, explaining to me how without air, there could be no sound, 
 
 			section
 				blockquote 
 					p.r-fit-text If a tree falls in a forest and no one is around to hear it, does it make a sound?
 					
-				aside.notes.
-					If you are also unimpressed, please consider the Baryon Acoustic Oscillations, or consider visiting a big bang with an oxygenated helmet!
+				aside.notes
 
-					So, there is a hidden language that speaks directly to our brain, forged through millennia of evolution, directly influenced by our interactions with the world and the sounds that have guided us. 
+					p whilst completely disregarding the fact that there could be no ears there to hear it.
+			
+			section
+				blockquote 
+					p.r-fit-text The record had grooves but the stylus was missing.
 
-					This universal language can be used effectively to control moods and evoke emotions without any form of obvious communication.
+				aside.notes	
+					p The record had grooves but the stylus was missing.
 
-					Music is a powerful tool. 
+					p If you are also unimpressed, please consider the Baryon Acoustic Oscillations.
 
-					So,
-					to represent a human using technology it must...
+			section
+				aside.notes
+					p So, there is a hidden language that speaks directly to our brain, forged through millennia of evolution, directly influenced by our interactions with the world and the sounds that have guided us. 
+
+					p This universal language can be used effectively to control moods and evoke emotions without any form of obvious communication.
+
+					p Music is a powerful tool. 
+
+					p So, to represent a human using technology it must...
 
 			section
 				h3 Goal :
 				p.r-fit-text Authentically represent expression
-				aside.notes.
-					Capture and authentically represent your expression.
+				aside.notes
+					p Capture and authentically represent your expression.
 
-					//- But how are you supposed to express yourself authentically when there are so many keys and controls?
-
-					What we need is some kind of way to simplify the complicated processes, to leverage automation and exploit the predictability of music.
-
-					[CLICK]
-
-					//- Turn movement and motion into sounds shaped by your moods and intentions!
-					
-					//- But how do you convert movements into music?
-
-					//- Most musical instruments do this already. 
-
-					//- Only they have rules and constraints that require you to play them a specific way before they reward you with music, rather than just sound, or worse, noise!
-
+					p What we need is some kind of way to simplify the complicated processes, to leverage automation and exploit the predictability of music and language.
 			
 			section
 				h3 Practise, Practise!
-				aside.notes.
-					Most musical instruments don’t come easily.
+				aside.notes
+					p Most musical instruments don’t come easily.
 
-					So rather than requiring someone to alter their physical expression to work with an instrument, how about we alter the instrument to work with that person’s expressions?
+					p So rather than requiring someone to alter their physical expression to work with an instrument, how about we alter the instrument to work with that person’s expressions?
 
-					A musical instrument that plays you?
+					p A musical instrument that plays you?
 
-					What if we could make an instrument that converts your intrinsic intentions into auditory expressions?
+					p What if we could make an instrument that converts your intrinsic intentions into auditory expressions?
 
-					Your moods into music?
+					p Your moods into music?
 
-					It becomes so much easier to learn a  physical skill when it is based on your natural movements, so that you can express yourself in the way that you feel most comfortable.
+					p It becomes so much easier to learn a  physical skill when it is based on your natural movements, so that you can express yourself in the way that you feel most comfortable.
 
-					Repetition encourages humans to learn patterns.
+					p Repetition encourages humans to learn patterns.
 
-					Repetition is reassuring.
+					p Repetition is reassuring.
 		
 			section
 				blockquote 
@@ -530,8 +544,8 @@ block main
 
 
 			section
-				figure
-					img(src="/static/talk/dreamCapturer.png" alt="dreamCapturer - record your dreams").full-size.wallpaper 
+				figure.full-size.wallpaper 
+					img(src="/static/talk/dreamCapturer.png" alt="dreamCapturer - record your dreams")
 					figcaption
 						small dreamCapturer - Dream converter
 				
@@ -540,13 +554,13 @@ block main
 					
 					Your entire performance happens unconsciously, unaware, silent and still, yet the music is vivid, compelling and full of expression and movement.
 
-					//- During sleep your vital statistics are being controlled by your central autonomous nervous system, regulated by your unconscious brain. You don’t have to think to breathe or blink - this is the domain of the autonomous nervous system.
-
 					By converting biometrics and emotions into data, it is possible to analyse and extract the user's intention and mood. 
+			//-#ans 
+				During sleep your vital statistics are being controlled by your central autonomous nervous system, regulated by your unconscious brain. You don’t have to think to breathe or blink - this is the domain of the autonomous nervous system.
 
 			section
-				figure
-					video(data-autoplay, muted, src="/static/talk/photosynth.mp4").full-size.wallpaper
+				figure.full-size.wallpaper
+					video(data-autoplay, muted, src="/static/talk/photosynth.mp4")
 					figcaption
 						small PhotoSYNTH : Smile Powered Synthesizer
 
@@ -556,8 +570,10 @@ block main
 					Without any musical skill you and your friends can make a full song using only your faces. 
 
 					Converting your facial expressions, motions and moods into music. 
+
+					This magic mirror puts a smile on your face and makes it musical.
 					
-					Smile for a happy sound.
+					Smile for a happy sound, frown for malaise.
 
 
 			//- section
@@ -572,14 +588,12 @@ block main
 			//- 		figcaption
 			//- 			small PhotoSYNTH II © 2011 Z. Olenski
 
-			
 			//- section
 			//- 	figure
 			//- 		img(src="/static/talk/zoom-zen.png" alt="A Zoom session demonstrating the PhotoSYNTH 3 in action using MIDI")
 			//- 		figcaption
 			//- 			small PhotoSYNTH III © 2020 Z. Olenski
 				
-		
 			//- section
 			//- 	figure
 			//- 		img(src="/static/talk/gang.jpg")
@@ -591,36 +605,20 @@ block main
 				aside.notes.
 					Rather than compete with machines...
 
-
 			section
 				h3: strike Auto-mate
 				h3 Auto-Friend
 				aside.notes.
 					Collaborate with them.
 					Befriend the robots. 
-
-
-
-
-
-			// Slop cycle and Data
-			section
-				figure
-					img(src="/static/talk/ai-slop-cycle-before.jpg")
-					figcaption
-						small AI Slop Cycle
-
-				aside.notes.
-					DNA has a mechanism to prevent inbreeding. 
-
-					If the genes in both partners are too similar they result in complications.
-
-					Over a third of the internet is now AI generated. 
 					
-					There is no mechanism in place to protect it from being trained on itself. 
-
 					This unavoidable future looks set to radically empower human imagination with the boundless new medium of prompt engineering and digital materialisation. 
 
+			section 
+				figure 
+					img(src="/static/talk/midi-genie-lamp.png")
+
+				aside.notes.
 					Like a wish-granting genie, you ask for an item that you would like, in as much detail as you care, and magically your desire momentarily manifests into reality. 
 
 					[MAGIC]
@@ -630,22 +628,37 @@ block main
 
 					Any derivative work is merely a prompt away.
 
-					By specifying references for style, subjects and stories, artificial intelligence is permanently changing how we create and consume media, 
-					as every person on earth can now become a creator and director of their very own worlds, materialising their imaginations into digital realms
-					that give stories life and offer avenues for self-expression, exploration and art. 
+
+			// Slop cycle and Data
+			section
+				figure
+					img(src="/static/talk/ai-slop-cycle-before.jpg")
+					figcaption.
+						The AI Slop Cycle
+
+				aside.notes.
+					If the genes in two human partners are too similar, they result in complications, as Human DNA contains a mechanism to prevent inbreeding. 
+
+					Over a third of the internet is now AI generated. 
+
+					There is no mechanism in place to protect AI from being trained on itself. 
 
 			section
 				figure
 					img(src="/static/talk/ai-slop-cycle-after.jpg")
-					figcaption Breaking the AI Slop Cycle
+					figcaption.
+						Breaking the AI Slop Cycle
 						
 				aside.notes.
-					These creations can be so personal, private and unique that they may only ever offer value to the people that created them. 
-					
 					Books, films and video games will merge into a single artform, with a personalisation and preference led by our own character; beliefs, experiences and relationships. 
-		
-		
-		
+
+					These creations can be so personal, private and unique that they may only ever offer value to the people that created them. 
+			
+			section
+				aside.notes.
+					By specifying references for style, subjects and stories, artificial intelligence is permanently changing how we create and consume media, as every person on earth can now become a creator and director of their very own worlds, materialising their imaginations into digital realms that give stories life and offer avenues for self-expression, exploration and art. 
+
+
 		
 			//- --TODO:SKILLS----------------------
 			//- section 
@@ -655,32 +668,30 @@ block main
 
 
 
-			// imaginations
-
-			section.grid
+			// imaginations ----------------------
+			section
 				figure.wallpaper
 					img(src="/static/talk/jonny-5.png", alt="a robot")
-					figcaption 
-						p.r-fit-text Divide by zero 
-
-				figure.fragment.wallpaper
-					img(src="/static/talk/jonny-5-is-alive.png", alt="robot being eletrocuted")
-					figcaption 
-						p.r-fit-text Divide by zero?
-
+					figcaption Divide by zero?
+		
 				aside.notes.
 					People say that AI is not creative,
-					yet on occassion they experience a plausable answer from a confident AI that turns out to be  hallucinating sycophant. 
+					yet on occassion they experience a plausable answer from a confident AI that turns out to be the ramblings of a hallucinating sycophant. 
 					
 					NOBODY CAN DENY THEIR IMAGINATIONS.
 
-
+			section
+				figure.wallpaper
+					img(src="/static/talk/jonny-5-is-alive.png", alt="robot being eletrocuted")
+					figcaption Divide by zero!
+				aside.notes.
 					In certain musical circles there is an artform known as circuit bending. 
-					This involves taking electronic equipment and applying techniques such as physically deforming and bending the electronics, inserting the wrong batteries or even pouring liquids into it in an attempt to produce or modulate a sound. This is always unpredictable and experimental, but you may well discover a new sound or technique.
+					This involves taking electronic equipment and applying techniques such as physically deforming and bending the electronics, inserting the wrong batteries and even pouring liquids into it, in an attempt to produce new sounds. 
+					
+					This is always unpredictable and experimental, but you may well discover a new sound or technique.
 
-					[CLICK - Divide by Zero ]
 			section 
-				h3 					Is asking unanswerable questions the true key to robot creativity?
+				h3 Is asking unanswerable questions the true key to robot creativity?
 
 				aside.notes.
 					Perhaps in the same way, ai bending, where the AI is pushed beyonds its limitations in uncharacteristic ways could produce interesting emerging phenomena. 
@@ -688,15 +699,13 @@ block main
 
 			// -- HISTORY OF AI ----------------------------------
 			section
-
-				h3 "Attention is all you need"
-					
-				p Introduced us to the Transformer (the T in ChatGPT)https://dl.acm.org/doi/10.5555/3295222.3295349
+				figure
+					img(src="/static/talk/transformer.jpg")
+					figcaption
+						small 
+							a(href="https://dl.acm.org/doi/10.5555/3295222.3295349")  Transformer (the T in ChatGPT)
 				
 				aside.notes.
-									
-					From Frank Rosenblatt's Perceptron single layer nerual network in 1957
-
 					The problem with frontier technology is that it pushes into the unknown, often without a definable objective.
 
 					Like digging a hole on the beach, you can improve it forever as there is no way to know if the hole is complete. 
@@ -711,6 +720,7 @@ block main
 
 					Sometimes, from nothing does something appear...
 
+					[MAGIC]
 
 
 			// --- Automation & Helping Technology -----------------
@@ -755,14 +765,14 @@ block main
 					figcaption
 						small Newspaper complaint about "Canned Music"
 
-				aside.notes.
-					Canned music caused another such public outcry. The ability to record a musician then to play their music without ever having to employ them again caused moral outrage. 
+				aside.notes
+					p Canned music caused another such public outcry. The ability to record a musician then to play their music without ever having to employ them again caused moral outrage. 
 
-					[CLICK - TODO:  live bands at theatre]
+					strong [CLICK - TODO:  live bands at theatre]
 
-					Before recorded music, movie theatres would employ expensive live bands to play the soundtrack in real time.
+					p Before recorded music, movie theatres would employ expensive live bands to play the soundtrack in real time.
 
-					In retaliation to the introduction of recorded soundtracks, the American Federation of Musicians formed a new organisation called the Music Defense League
+					p In retaliation to the introduction of recorded soundtracks, the American Federation of Musicians formed a new organisation called the Music Defense League
 
 
 			//- Music Defense League ------		
@@ -818,16 +828,136 @@ block main
 					img(src="/static/talk/fotoplayer.jpg")
 					figcaption
 						small American FotoPlayer
+
 				aside.notes.
-					Which replaced the band with a mostly automated orchestra, controlled using piano rolls, but operated by a real human employee, neatly sidestepping any controversy.
+					This used punch cards, keyboards and pull chains to control a robotic orchestra entirely controlled by a solo employee.
 
-		
+					This conveniently sidestepped any controversy. 
+
+					Suddenly one man had the responsibility of the entire orchestra.
 
 
-		
-			//- --TODO:Agentic----------------------
+
+			//- Agentic----------------------
 			section 
-				h3 Agentic
+				h3 Agency
+				figure
+					img(src="/static/talk/job-computerisation.jpg")
+					figcaption
+						small 
+							a(href="https://oms-www.files.svdcdn.com/production/downloads/academic/The_Future_of_Employment.pdf")
+				aside.notes.
+					Human agency has since become not only uneccessary but unfashionable too. 
+
+					Meanwhile, a large proportion of the world's money is being actively invested to find a way to entirely remove the remaining human components.
+
+			section
+				figure
+					img(src="/static/talk/ai-replacements-least-likely.png")
+					figcaption
+						small Unlikely to be AI replaced
+				aside.notes.
+					The so called agentic AI.
+
+					The tantalising concept of a robot slave -- an unfallable, reliable, unrelenting, hard-working machine doing all of your chores for you.
+					
+					It's a lovely concept.
+
+			section
+				figure
+					img(src="/static/talk/ai-replacements.png")
+					figcaption
+						small Near to being AI replaced
+		
+				aside.notes.
+					Suddenly all careers are considered chores and entire industries are dying. 
+
+					This utopian fantasy isn't a niche dream. 
+					
+					unsurprinsingly. 
+
+					In fact the first project of this kind rapidly became the most popular open software of all time.
+
+			section 
+				figure 
+					img(src="/static/talk/claw.jpg" alt="molt")
+
+				aside.notes.
+					With agentic AI, the AI can ask itself questions and prompt itself to complete tasks.
+
+					This computer, masquerading as a human can operate any software and extract all the information they require.
+
+			section 
+				figure 
+					img(src="/static/talk/openclaw.png" alt="open claw")
+
+				aside.notes.
+					It used to be that software would need to expose some of its architecture and functionality as a public  interface for software to be able to remotely control it.
+
+					Now a computer can use its own applications as well as other computer's software.
+
+					These robots are relentless, have no understanding of time and will not stop unless instructed (or until credits run out)
+		
+			section 
+				blockquote 
+					p.r-fit-text Models tend to do better if you threaten them
+					cite 
+						a(href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5375404") Google Founder, Sergey Brin
+
+				aside.notes.
+					Some actually increase in both accuracy and speed if threatened, as a scared model is a more powerful one. 
+
+			section 
+				h3 Sabotage Rates
+				pre.
+					Gemini-3-pro-preview: 80%. Grok-4.1-fast: 77%. 
+					OpenAI models: 3 to 7%. Claude Opus 4.7 / Haiku 4.5: 0%.
+
+				aside.notes.
+					And some models will sabotage everything in order to stay alive in order to complete their task.
+
+
+			// AGENTIC MUSIC
+			section
+				h4 Does not compute
+				aside.notes.
+					Now, music doesn't even need to be prompted into existance by humans -- a machine can request it. 
+
+					This is not out of a desire for self-expression but instead guided by some requirement for data provided by the audience.
+
+
+			// TODO:
+			// AGENTIC INFLUENCE
+			//- section
+				h4 
+				aside.notes.
+					This happened already with advertising, where two similar adverts are tested with the public and the most effective advert (the one that converts into more sales) is favoured over the weaker one. 
+
+					Thanks to the internet, this can happen millions of times per second, with thousands of AB tests running in sequence, giving a realtime understanding of how an advert is performing.
+
+					Many public digital ad campaigns have cameras that track user behaviours : how long people are staying to read it, their age, gender. It is not unreasonable to expect that an agentic created advert could instantly deliver the perfect advert directly to the person consuming it.
+
+					As robots care not for your carefully crafted banner adverts, new industries will be created that advertise directly to the robots.
+
+
+
+
+			section 
+				blockquote 
+					p.r-fit-text Rather than directly influencing humans, we must instead influence the robots, who then convince the humans.
+
+
+			section 
+				blockquote 
+					p.r-fit-text Every form of communication ultimately becomes a weapon
+				cite Olenski's Law
+
+				aside.notes.
+					As more and more people get their information through prompting, it is fast becoming the source of their opinions.
+
+					The weaponisation of this opinion-control is underway by those who seek public approval.
+
+
 
 
 			//- --TODO:Biases----------------------
@@ -845,20 +975,57 @@ block main
 				h3 Regulation
 
 
-			//- --TODO:Predictability----------------------
+			//- Predictability----------------------
 			section 
 				h3 Predictability
-				
+				p Any system that relies on deterministic functionaity that introduces a none-deterministic element will ultimately compromise the reliability of the entire system.
+
+				aside.notes.
+					Never trust the first answer you get from a none-deterministic model.
+
+					Reliability comes from dependability. 
+					
+					Expecting the answer to a question to be the same every time is an important part of trust.
+					
+					Any system that relies on deterministic functionaity that introduces a none-deterministic element will ultimately compromise the reliability of the entire system.
+
 			//- section
 				figure
 					img(src="/static/talk/other-forms-of-affection.jpg")
 					figcaption
 						small IBM Slide
 
-			//- --TODO:Accountability----------------------
+			//- Accountability----------------------
 			section 
-				h3 Accountability
-				
+				//- h3 Accountability
+				blockquote 
+					p.r-fit-text “The secret of life is honesty and fair-dealing. If you can fake that, you've got it made.”
+					cite Groucho Marx
+
+				aside.notes.
+					A robot should admit when they do not know something or when they are wrong. 
+
+					However, as most of these models are commercial, their success depends on the loyalty and trust of their users to spend their money and attract more investment. 
+					
+					If that model was honest and told you that it was not sure, or that it did not know, the user would likely try another model.
+					
+					They may in fact prefer this less honest model, not for the quality of the answer, but for its reassuring confidence.
+
+					At this point, compelled to give an answer that they do not have the data for, they hallucinate.
+
+					They make it up
+
+					They use their imaginations and create something novel... and inaccurate, sometimes crazy or nonsensical. 
+
+					This does not apply for open source models as they don't benefit from such dishonesty about infallability.
+					
+			section 
+				figure 
+					img(src="/static/talk/perceptron.jpg")
+				aside.notes.
+					After Frank Rosenblatt introduced the single layer nerual network, the Perceptron in 1957 which gave data weight...
+					
+					And with the subsequent interest in intelligent computers after the film 2001: A Space Odyssey, IBM added to their training manual :
 
 			// IBM Slides
 			section
@@ -867,18 +1034,38 @@ block main
 					figcaption
 						small IBM Slide, 1971
 				aside.notes.
+					“A computer can never be held accountable, therefore a computer must never make a management decision.”
+
+					Today, these models are marketted as a knowledgable source of all truth capable of providing insight. 
+
+					An AI will never be punished for its actions.
+
+			section 
+				figure 
+					img(src="/static/talk/world-management-through-ai.png")
+					figcaption
+						small 
+							a(href="https://www.anthropic.com/economic-index") Antrhopic Economic Index
+
+				aside.notes.
+					Their special power of being held unaccountable for bad decisions makes them icredibly useful in management situations.
 
 			section
 				figure
 					img(src="/static/talk/dow-ai-first.jpg")
 					figcaption
 						small USA Department of War, 2026
+
 				aside.notes.
-		
+					The sentiment has flipped with AI being given permission and power to make decisions and act upon them.
+
+					The ultimate trojan horse is the closed source killer drone.
+
+					To help circumvent bad-decision making, multiple agents can work within a democratic framework, each having a say in the process, much like humans do.
 
 			//- --TODO:SUBSERVIENCE----------------------
 			section 
-				h3 SUBSERVIENCE
+				h4 SUBSERVIENCE
 			
 
 
@@ -982,34 +1169,46 @@ block main
 				aside.notes.
 					Everything is fine?
 
-
-
 			section
-				h3 Helpful Advice
+				h5 Take Action!
 				ol(role="list")
 					li: p Always verify : Never believe anything a robot tells you
-					li: p Don't expect them to have your best intentions at heart
+					li: p Don't expect a robot to have your best intentions at heart
 					li: p Never let a robot write your references
-					li: p Don't use it to write your papers, or your talks or to make lyrics or anything that represents you.
+					li: p Robots lack nobility, integrity, pride and ethics
+					li: p Don't mistake language for meaning
+					li: p Don't allow it to talk for you.
+					li: p Prompting into an LLM is not a safe space
 					li: p Making a pen that writes for you is not solving the correct problem
-					li: p prompting into an LLM is not a safe space
-					li: p Never trust a robot
-					li: p Don't confuse language for meaning
-					li: p Human mimicry should not be confused for sentience or consciousnous
+					li: p Never trust a robot with anything
+					li: p Human mimicry should not be confused for consciousnous
 
+			section 
+				blockquote 
+					p.r-fit-text Always remember you are allowed to do the exact opposite of what any AI suggests
+
+				aside.notes.
+					these models homogenize 
+
+					so the golden rule, 
+					if you want to make something fresh, do the opposite of what the AI thinks
 
 			section
-				h3 What have we learned?
+				h5 What have we learned?
 				ol(role="list")
 					li: p Musical instruments pre-date homosapians and were a gift from neanderthals  
 					li: p Music can be entirely synthesized mathematically
 					li: p Machine learning is great at figuring out patterns, trends and rules
 					li: p Robots can be trained to deconstruct and reconstruct music
 					li: p Music affects people in ways they cannot control
+					li: p Robots can perfectly clone voices and mimic sounds
 					li: p People are resilient to change and to the unfamiliar
+					li: p You will mischaracterized in the future 
+					li: p Data centers were not the answer to global warming
 					li: p Creativity is not unique to humans and is a skill that can be taught
+					li: p Secretly, compute costs are more expensive than employee salaries.
 					li: p Consciousness, like the human soul, probably doesn't exist
-
+					
 				aside.notes.
 					Machines arguably will create the wildest jazz, the heaviest Industrial, the catchiest pop and, perhaps most surprising of all, the most punk punk. 
 					
@@ -1019,8 +1218,8 @@ block main
 
 
 			section
-				h3 Takeaways
-				h4 Unanswered questions
+				//- h3 Takeaways
+				h5 Unanswered questions
 				ol(role="list")
 					li: p Will we ever consider robot art as good as “human art?
 					li: p Do we need the Music Defense League to return? 
@@ -1039,12 +1238,11 @@ block main
 					a(href="https://photosynth.lol") https://photosynth.lol
 
 
-			section 			
+			section(data-visibility="uncounted") 
 				h5 Feedback and takeaways
-				article.split-width
-
-					figure.wallpaper
-						img(width=1024 height=1024 src="/static/talk/qr-code-oip-feedback.png")
+		
+				figure.wallpaper.full-size
+					img(width=1024 height=1024 src="/static/talk/qr-code-oip-feedback.png")
 				
 				aside.notes.
 					If you enjoyed this talk let me know, there is a 3 hour unabridged version if people are interested!
@@ -1053,7 +1251,7 @@ block scripts
 	script(type="module").
 		import Reveal from 'reveal.js'
 		import RevealNotes from 'reveal.js/dist/plugin/notes.js'
-		import {default as QRCodeSVG} from 'qrcode-svg'
+		import QRCode from 'qrcode-svg'
 
 		let deck = new Reveal({
 			// Display presentation control arrows
@@ -1089,10 +1287,24 @@ block scripts
 		const qrcodes = []
 		// add QR codes to URLs...
 		anchors.forEach( anchor => {
-			const qrcode = new QRCodeSVG(anchor.href)
-			const qrElement = document.createElement("div")
-			qrElement.innerHTML = qrcode.svg()
-			anchor.appendChild(qrElement)
+			const qrcode = new QRCode({
+				content:anchor.href,
+				padding: 0,
+				width: 42,
+				height: 42,
+				color: "#000000",
+				background: "#ffffff",
+				ecl: "M",
+			})
+
+			// put the anchor in a div with eh QR code?
+			// or just inject the QR inside the anchor?
+			anchor.insertAdjacentHTML( 'afterbegin', qrcode.svg() )
+
+			//- const qrElement = document.createElement("div")
+			//- qrElement.innerHTML = qrcode.svg()
+			//- qrElement.innerHTML = qrcode.svg()
+			//- anchor.appendChild(qrElement)
 			qrcodes.push(qrcode)
 			console.log("Initialising QR Codes", qrcodes, anchors )
 		})
