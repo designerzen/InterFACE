@@ -285,7 +285,9 @@ block styles
 			font-family: var(--mono);
 			font-size: 13px;
 			padding: 16px;
-			max-width: 1280px;
+			width: 100%;
+			max-width: none;
+			box-sizing: border-box;
 			color: var(--text);
 			background:
 				radial-gradient(circle at top left, rgba(247,181,56,.08), transparent 28%),
@@ -310,7 +312,7 @@ block styles
 
 		#test-picade-max-input .hero-card {
 			display: grid;
-			grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 			gap: 16px;
 			padding: 18px;
 			margin-bottom: 16px;
@@ -440,6 +442,7 @@ block styles
 
 		#test-picade-max-input .tabs {
 			display: flex;
+			flex-wrap: wrap;
 			gap: 2px;
 			margin-bottom: 0;
 		}
@@ -469,14 +472,14 @@ block styles
 
 		#test-picade-max-input .buttons-layout {
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 			gap: 16px;
 			align-items: start;
 		}
 
 		#test-picade-max-input .examples-layout {
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 			gap: 16px;
 			align-items: start;
 		}
@@ -497,7 +500,7 @@ block styles
 		}
 
 		#test-picade-max-input .setup-card {
-			grid-column: span 1;
+			grid-column: auto;
 		}
 
 		#test-picade-max-input .effects-card {
@@ -535,7 +538,7 @@ block styles
 
 		#test-picade-max-input .meta-grid {
 			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 			gap: 8px;
 			margin-bottom: 12px;
 		}
@@ -566,7 +569,7 @@ block styles
 
 		#test-picade-max-input .selection-summary {
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 			gap: 8px;
 			margin-bottom: 12px;
 		}
@@ -610,7 +613,7 @@ block styles
 			& input[type=number] { width: 80px; font-family: var(--mono); font-size: 12px; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
 			& select { font-family: var(--mono); font-size: 12px; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
 			& input[type=color] { width: 44px; height: 30px; border: 1px solid var(--border); border-radius: 8px; padding: 0; cursor: pointer; background: none; }
-			& input[type=range] { flex: 1; max-width: 180px; accent-color: var(--accent); }
+			& input[type=range] { flex: 1 1 180px; min-width: 140px; accent-color: var(--accent); }
 			& .val { font-size: 11px; color: var(--accent); width: 30px; text-align: right; }
 		}
 
@@ -716,10 +719,11 @@ block styles
 			display: flex;
 			align-items: center;
 			justify-content: center;
+			flex-wrap: wrap;
 			gap: 48px;
 			width: 100%;
-			min-width: 560px;
 			padding: 12px 16px;
+			box-sizing: border-box;
 		}
 
 		#test-picade-max-input .picade-stick {
@@ -783,7 +787,8 @@ block styles
 			display: grid;
 			grid-template-columns: repeat(3, minmax(92px, 1fr));
 			gap: 18px;
-			width: min(100%, 360px);
+			width: 100%;
+			max-width: 420px;
 		}
 
 		#test-picade-max-input .picade-button {
@@ -859,28 +864,30 @@ block styles
 			pointer-events: none;
 		}
 
-		@media (max-width: 760px) {
-			#test-picade-max-input .hero-card,
+		@media (max-width: 980px) {
+			#test-picade-max-input .effects-card,
+			#test-picade-max-input .setup-card {
+				grid-column: auto;
+			}
+
 			#test-picade-max-input .picade-panel {
-				grid-template-columns: 1fr;
-				flex-direction: column;
-				min-width: 0;
 				gap: 24px;
 			}
 
-			#test-picade-max-input .buttons-layout,
-			#test-picade-max-input .examples-layout {
-				grid-template-columns: 1fr;
+			#test-picade-max-input .picade-buttons {
+				max-width: none;
+			}
+		}
+
+		@media (max-width: 760px) {
+			#test-picade-max-input .picade-panel {
+				flex-direction: column;
+				gap: 24px;
 			}
 
 			#test-picade-max-input .preview-card {
 				grid-column: auto;
 				grid-row: auto;
-			}
-
-			#test-picade-max-input .effects-card,
-			#test-picade-max-input .setup-card {
-				grid-column: auto;
 			}
 
 			#test-picade-max-input .selection-summary,
@@ -894,7 +901,7 @@ block styles
 			}
 
 			#test-picade-max-input .picade-buttons {
-				width: 100%;
+				grid-template-columns: repeat(2, minmax(92px, 1fr));
 			}
 		}
 
