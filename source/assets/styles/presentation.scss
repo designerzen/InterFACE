@@ -16,8 +16,31 @@
 		place-content: center;
 		flex-wrap: nowrap;
 		height: inherit;
-		// prevent content buttin up
-		padding:1rem;
+		max-height: 100vh;
+		max-width: 100%;
+
+		// we want a frame around it
+		// &:has(
+		// 	.r-fit-text
+		// ){
+			--frame:var(--pad);
+			height:calc( 100% - var(--frame) * 4) !important;
+			width:calc( 100% - var(--frame) * 4) !important;
+			// prevent content buttin up
+			margin:auto;
+			margin:calc( var(--frame) * 2);
+
+			.r-fit-text{
+				margin-left:auto;
+				margin-right:auto;
+			}
+		// }
+
+		&:has(.wallpaper){
+			height:calc( 100% ) !important;
+			width:calc( 100% ) !important;
+			margin:auto;
+		}
 
 		&.flex{
 			display: flex !important;
@@ -41,10 +64,86 @@
 		// transform: translateY(-50%);
 	}
 
+	a{
+		color:inherit;
+		text-decoration: none;
+		text-align: left;
+		&:hover{
+			text-decoration: dotted;
+		}
+	}
+
+	// QR code inside!
+	a:has(svg){
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+		gap:var(--gap, 1rem);
+		height: min-content;
+
+		svg{
+			align-self:center;
+			justify-self:center;
+			flex: 1 1 100%;
+			height:100%;
+			min-width:42px;
+			min-height:42px;
+			max-height:min(100%, var( --lines, 2lh) );
+			max-width:128px;
+			width:auto;
+			aspect-ratio: 1;
+		}
+	}
+
+	p{
+
+	}
+
+	p + p {
+		margin-top:2lh;
+	}
+
+	figcaption,
+	cite,
+	.cite{
+		font-size:1.3rem;
+		background-color: white;
+		border-radius: 12px;
+		padding:var(--pad) calc( 2 * var(--pad) );
+	}
+
+	cite,
+	.cite{
+		display: flex;
+		place-items:center;
+		gap:var(--pad);
+		margin-left: auto;
+		margin-right: auto;
+   		width: fit-content;
+	}
+
+	:is(cite, .cite)::before{
+		content:"—";
+		color:var(--col-accent, red);
+		opacity:0.75;
+	}
+
+	code,
+	pre{
+		font-size: 1rem;
+		box-shadow: none;
+		padding:0;
+		margin:0;
+		border:0;
+		border-left: 6px solid var(--col-accent);
+	}
+
 	blockquote{
-		--size:5rem;
+		--size:2rem;
 		position: relative;
-		//padding:0 var(--size);
+		padding:0;
+		margin: auto;
+		width: fit-content;
 		box-shadow: none;
 		quotes: "“" "”" "‘" "’";
 
@@ -67,22 +166,25 @@
 			// left:0;
 			right: 100%;
 		}
-		// &::after{
-		// 	content: close-quote;
-		// 	right:0;//var(--pad,0);
-		// }
+		&::after{
+			content: close-quote;
+			left:100%;
+			bottom:0;
+		}
 	}
 
-	blockquote > *{
-		padding-left:var(--pad);
-		padding-right:var(--pad);
+	blockquote p{
+		font-size:1rem;
 	}
 
 	ol[role=list]{
 		list-style:outside;
+		width:fit-content;	// allow centralisation
+		margin:0 auto;
+		padding:0 var(--pad);
 		li::marker,
 		li{
-			font-size:0.5rem;//var( --s8, 28px );
+			font-size:1rem;//var( --s8, 28px );
 		}
 		li p{
 			font-size:inherit;
@@ -100,21 +202,35 @@
 		display: block;
     	max-height:100vh;
 		max-height:calc(100vh - var(--lines,0) * 1lh);
-		max-width: 100vw;
+		max-width: 100%;
 	}
 
 	video{
-		margin:auto;
+		margin:0;//calc(-1 * var(--pad));
 		visibility:visible;
+		object-fit: cover;
+		max-width: max-content;
+
+		&.full-size{
+			width:100%;
+			height:100%;
+			max-width: max-content;
+    		max-height: max-content;
+		}
 	}
 
+	// Filters!
 	// try and make the videos fit the visual style
-	video.monochromatic{
+	.monochromatic{
 		filter:grayscale(1) contrast(2) brightness(2);
 	}
 
-	video.woodblock{
+	.woodblock{
 		filter: grayscale(1) contrast(4) brightness(1.75);
+	}
+
+	.avatar{
+		
 	}
 
 	figure{
@@ -138,7 +254,7 @@
 
 	figure:not(.r-stretch, .full-size){
 		img{
-			max-height:calc(100vh - var(--lines,1) * 1lh);
+			max-height:calc(100vh - var(--lines,3) * 1lh);
 		}
 	
 		figcaption{
@@ -178,7 +294,7 @@
 		// front of the wallpaper...
 		figcaption{
 			position: absolute;
-			bottom:var(--pad);
+			bottom:calc( var(--pad) * 2);
 		}
 	}
 
@@ -190,6 +306,32 @@
 			max-height: 100%;
 			object-fit: cover;
 		}
+
+		&.cover{
+			img{
+				object-fit: cover;
+			}
+		}
+
+		&.contain{
+			img{
+				object-fit: contain;
+			}
+		}
+	}
+
+	p{
+		margin:0;
+		font-size:1rem;
+	}
+
+	figcaption p{
+		font-size:1.5rem;
+	}
+
+	figcaption:has(small) small{
+		margin-top:var(--pad);
+		margin-bottom:var(--pad);
 	}
 
 	small {
@@ -218,6 +360,11 @@
 		border-radius: 0.35rem;
 	}
 
+	.r-fit-text{
+		// margin-left:calc( 2 * var(--pad) );
+		// margin-right:calc( 2 * var(--pad) );
+	}
+
 	.r-stack.r-stretch{
 		width: 100%;
 		height: 100%;
@@ -232,10 +379,6 @@
 	#timeline .history{
 		transition:transform 4s ease-in-out 0s infinite alternate-reverse;
 		transform: translateY(calc( -100% + 90vh));
-	}
-
-	blockquote p{
-		font-size:140%;
 	}
 
 
@@ -254,9 +397,19 @@
 	.font-90{
 		font-size: 90%;
 	}
+
+	.openclaw{
+		transform-origin: top left;
+		animation: Claw 9s ease-in-out 0s infinite both alternate-reverse;
+	}
 }
 
 html.reveal-print .reveal {
 	min-height: fit-content !important;
 }
 
+@keyframes Claw {
+	to{
+		transform: rotate(4deg);
+	}
+}
