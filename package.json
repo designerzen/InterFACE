@@ -270,7 +270,7 @@
 		"midi-manufacturers": "^1.1.0",
 		"midi-writer-js": "^3.2.1",
 		"mpe": "^1.0.4",
-		"netronome": "github:designerzen/netronome#v2.7.1",
+		"netronome": "github:designerzen/netronome",
 		"partysocket": "1.1.18",
 		"qrcode-svg": "^1.1.0",
 		"reveal.js": "^6.0.1",
