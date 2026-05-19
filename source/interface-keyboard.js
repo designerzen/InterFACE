@@ -116,11 +116,25 @@ export const addKeyboardEvents = ( application ) => {
 
 			// Arrows set timing
 			case 'ArrowLeft':
-				application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				if (event.ctrlKey || event.shiftKey) 
+				{
+					clock.swing -= 0.1
+					application.setFeedback(`Swing ${Math.round(clock.swing * 100)}% at ${clock.BPM} BPM`, 0, 'tempo')						
+			
+				}else{
+					application.setBPM( clock.BPM - ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				}
 				break
 
 			case 'ArrowRight':
-				application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				if (event.ctrlKey || event.shiftKey) 
+				{	
+					clock.swing += 0.1
+					application.setFeedback(`Swing ${Math.round(clock.swing * 100)}% at ${clock.BPM} BPM`, 0, 'tempo')						
+			
+				}else{
+					application.setBPM( clock.BPM + ( event.shiftKey ? 10 : event.ctrlKey ? 25 : 1 ) )
+				}
 				break
 
 			case 'ArrowUp':
