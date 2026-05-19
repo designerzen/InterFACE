@@ -303,7 +303,7 @@ export default class Person extends EventTarget{
 	// optional fx
 	stereoNode
 	delayNode
-	lpf				// low pass filter
+	filterNode				// low pass filter
 	eyeBrowsNode	// highpass filter
 	noseNode		// compressor
 
@@ -858,11 +858,11 @@ export default class Person extends EventTarget{
 			this.stereoNode.pan.setValueAtTime( 0, audioContext.currentTime )
 		}
 
-		if (this.lpf)
+		if (this.filterNode)
 		{
-			const audioContext = this.lpf.context
-			this.lpf.frequency.cancelScheduledValues(audioContext.currentTime)
-			this.lpf.Q.cancelScheduledValues(audioContext.currentTime) // resonance (typical 0.1–20)
+			const audioContext = this.filterNode.context
+			this.filterNode.frequency.cancelScheduledValues(audioContext.currentTime)
+			this.filterNode.Q.cancelScheduledValues(audioContext.currentTime) // resonance (typical 0.1–20)
 		}
 	}
 
@@ -1027,8 +1027,8 @@ export default class Person extends EventTarget{
 		if (this.options.lpf)
 		{
 			const cutoffHz = Math.min( this.pitchBendValue * 20000, nyquist) // clamp to audible/Nyquist limits
-			this.lpf.frequency.setValueAtTime(nyquist, currentTime)
-			this.lpf.Q.setValueAtTime( this.pitchBendValue * 2, currentTime ) // resonance (typical 0.1–20)
+			this.filterNode.frequency.setValueAtTime(nyquist, currentTime)
+			this.filterNode.Q.setValueAtTime( this.pitchBendValue * 2, currentTime ) // resonance (typical 0.1–20)
 		}
 		
 
@@ -2278,10 +2278,10 @@ export default class Person extends EventTarget{
 		if (this.options.lpf)
 		{
 			const cutoffHz = Math.min(20000, nyquist) // clamp to audible/Nyquist limits
-			this.lpf = audioContext.createBiquadFilter()
-			this.lpf.type = 'lowpass'
-			this.lpf.frequency.setValueAtTime(nyquist, audioContext.currentTime)
-			this.lpf.Q.setValueAtTime(1, audioContext.currentTime) // resonance (typical 0.1–20)
+			this.filterNode = audioContext.createBiquadFilter()
+			this.filterNode.type = 'lowpass'
+			this.filterNode.frequency.setValueAtTime(nyquist, audioContext.currentTime)
+			this.filterNode.Q.setValueAtTime(1, audioContext.currentTime) // resonance (typical 0.1–20)
 			console.log("lpf",cutoffHz)
 		}
 
