@@ -1,5 +1,5 @@
 import { ZERO } from '../audio.js'
-import {createQueue} from '../synthesizers.js'
+import {createQueue, chokeGains} from '../synthesizers.js'
 
 // Presets live in their own file so they can be tweaked / extended
 // without touching the synth engine.  Re-export everything for
@@ -136,6 +136,9 @@ export const createKick = (audioContext, output ) => {
 		gainTriangle.gain.setValueAtTime(ZERO, now)
 		gainSine.gain.cancelScheduledValues(now)
 		gainSine.gain.setValueAtTime(ZERO, now)
+	}
+	kick.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [gainTriangle.gain, gainSine.gain], duration, chokeAt)
 	}
 
 	return kick

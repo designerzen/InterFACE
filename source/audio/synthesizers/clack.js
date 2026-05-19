@@ -1,5 +1,5 @@
 import { ZERO } from '../audio'
-import {createQueue} from '../synthesizers'
+import {createQueue, chokeGains} from '../synthesizers'
 
 // Clack presets live in their own file - re-export for backwards compat
 export {
@@ -100,6 +100,9 @@ export const createClack = (audioContext, output ) => {
 		const now = audioContext.currentTime
 		gainNode.gain.cancelScheduledValues(now)
 		gainNode.gain.setValueAtTime(ZERO, now)
+	}
+	clack.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [gainNode.gain], duration, chokeAt)
 	}
 	return clack
 }

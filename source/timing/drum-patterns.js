@@ -228,7 +228,10 @@ export const snareSequences = [
 	]
 ]
 
-export const drumRollSequence = new Array(16).map( i => i * 255 / 16 )
+export const drumRollSequence = Array.from(
+	{ length: 16 },
+	(_, i) => Math.round(i * 255 / 15)
+)
 
 export const hatSequences = [
 	// Closed hi-hat eighth notes

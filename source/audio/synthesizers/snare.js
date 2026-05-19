@@ -1,5 +1,5 @@
 import { ZERO } from '../audio'
-import {createQueue} from '../synthesizers'
+import {createQueue, chokeGains} from '../synthesizers'
 
 // Snare presets live in their own file - re-export for backwards
 // compatibility with existing import sites.
@@ -153,6 +153,9 @@ export const createSnare = ( audioContext, output ) => {
 		filterGain.gain.setValueAtTime(ZERO, now)
 		gainTriangle.gain.cancelScheduledValues(now)
 		gainTriangle.gain.setValueAtTime(ZERO, now)
+	}
+	snare.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [filterGain.gain, gainTriangle.gain], duration, chokeAt)
 	}
 	return snare
 }

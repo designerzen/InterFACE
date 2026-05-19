@@ -1,5 +1,5 @@
 import { ZERO } from '../audio'
-import {createQueue} from '../synthesizers'
+import {createQueue, chokeGains} from '../synthesizers'
 
 // Hihat presets live in their own file - re-export everything for
 // backwards compatibility with existing imports.
@@ -122,6 +122,9 @@ export const createHihat = (audioContext, output ) => {
 		const now = audioContext.currentTime
 		gainNode.gain.cancelScheduledValues(now)
 		gainNode.gain.setValueAtTime(ZERO, now)
+	}
+	hihat.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [gainNode.gain], duration, chokeAt)
 	}
 	return hihat
 }

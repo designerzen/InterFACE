@@ -50,7 +50,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 				// create the chord object from the emoji...
 				// const notes = getAllChordsForNoteNumber( person.noteNumber )
 				// const chordSequence = notes.get("major").get("dorian")
-				const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon)
+				const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon, true, person.options)
 				// ccidental : false
 				// alt : ""
 				// frequency : 174.61411571650194
@@ -81,9 +81,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 //  console.error("mediator.person-instrument", isChord ? chordSequence : "monophonic" )
 				}
 
-				chordSequence.forEach( noteNumber => {
-					person.activeNotes.set( noteNumber, chordSequence )
-				})
+				person.activeNotes.set( person.noteNumber, chordSequence )
 				
 				return chordSequence
 

@@ -44,5 +44,14 @@ export const createDrumkit = ( audioContext, output ) => {
 		drumkit.clap.cancel?.()
 	}
 
+	drumkit.choke = (duration, chokeAt) => {
+		drumkit.kick.choke?.(duration, chokeAt)
+		drumkit.snare.choke?.(duration, chokeAt)
+		drumkit.hat.choke?.(duration, chokeAt)
+		drumkit.cowbell.choke?.(duration, chokeAt)
+		drumkit.clack.choke?.(duration, chokeAt)
+		drumkit.clap.choke?.(duration, chokeAt)
+	}
+
 	return drumkit
 }

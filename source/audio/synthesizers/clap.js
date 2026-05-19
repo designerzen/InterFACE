@@ -1,5 +1,5 @@
 import { ZERO, getPercussionNode} from '../audio'
-import {createQueue} from '../synthesizers'
+import {createQueue, chokeGains} from '../synthesizers'
 
 // Clap presets live in their own file - re-export for backwards compat
 export {
@@ -112,6 +112,9 @@ export const createClap = ( audioContext, output ) => {
 		filterGain.gain.setValueAtTime(ZERO, now)
 		gainTriangle.gain.cancelScheduledValues(now)
 		gainTriangle.gain.setValueAtTime(ZERO, now)
+	}
+	clap.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [filterGain.gain, gainTriangle.gain], duration, chokeAt)
 	}
 	return clap
 }

@@ -1,5 +1,5 @@
 import { ZERO } from '../audio'
-import {createQueue} from '../synthesizers'
+import {createQueue, chokeGains} from '../synthesizers'
 
 // Cowbell presets live in their own file - re-export for backwards compat
 export {
@@ -98,6 +98,9 @@ export const createCowbell = (audioContext, output ) => {
 		const now = audioContext.currentTime
 		cowbellGainNode.gain.cancelScheduledValues(now)
 		cowbellGainNode.gain.setValueAtTime(ZERO, now)
+	}
+	cowbell.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [cowbellGainNode.gain], duration, chokeAt)
 	}
 	return cowbell
 }

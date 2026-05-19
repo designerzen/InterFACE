@@ -1,3 +1,4 @@
+import { ZERO } from "./audio"
 
 /**
  * create a fixed amount of instrument instances
@@ -25,5 +26,23 @@
 		instrument(options)
 		//instrument.apply(null, arguments)
 	}
+	fetchNextInstrument.cancel = () => {
+		instruments.forEach(instrument => instrument.cancel?.())
+	}
+	fetchNextInstrument.choke = (duration, chokeAt) => {
+		instruments.forEach(instrument => instrument.choke?.(duration, chokeAt))
+	}
 	return fetchNextInstrument
+}
+
+export const chokeGains = (audioContext, gains, duration = 0.005, chokeAt = audioContext.currentTime) => {
+	const time = Math.max(audioContext.currentTime, chokeAt)
+	const release = Math.max(duration, 0.001)
+
+	gains.forEach(gain => {
+		if (!gain) return
+		gain.cancelScheduledValues(time)
+		gain.setValueAtTime(Math.max(gain.value, ZERO), time)
+		gain.exponentialRampToValueAtTime(ZERO, time + release)
+	})
 }
