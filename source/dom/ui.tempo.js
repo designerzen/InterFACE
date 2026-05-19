@@ -21,19 +21,52 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 
 	const timingProgress = document.getElementById('timing-progress') 
 	const timingFeedback = document.getElementById('timing-feedback') 
+	const outputSwing = document.getElementById('tempo-swing-output')
 	
 	const toggleUI = document.querySelector("#folder-tempo")
-	const isMenuVisible = () => document.activeElement === toggleUI
-	toggleUI.addEventListener("pointerdown", e => {
-		onUIToggleVisibility( isMenuVisible() )
+	const tempoMenu = toggleUI?.closest(".folder-menu")
+	const openTempoUI = document.querySelector('a.folder-link[href="#folder-tempo"]')
+	const closeTempoUI = toggleUI?.querySelector('a[href="#control-panel"]')
+	const setTempoUIOpen = (open, notify=true) => {
+		tempoMenu?.classList.toggle("open", open)
+		if (notify)
+		{
+			onUIToggleVisibility?.(open)
+		}
+	}
+
+	const isOpen = () => window.location.hash === "#folder-tempo"
+
+
+	openTempoUI?.addEventListener("pointerdown", () => {
+		setTempoUIOpen(true, false)
 	})
-	document.addEventListener('focusin', () => {
-		if (isMenuVisible()){
-			onUIToggleVisibility(true)
+	openTempoUI?.addEventListener("click", () => {
+		setTempoUIOpen(true)
+	})
+	toggleUI?.addEventListener("pointerdown", () => {
+		setTempoUIOpen(true, false)
+	}, true)
+	closeTempoUI?.addEventListener("click", () => {
+		setTempoUIOpen(false)
+	})
+	window.addEventListener("hashchange", () => {
+		if (isOpen())
+		{
+			setTempoUIOpen(true, false)
 		}
 	})
+	setTempoUIOpen(isOpen(), false)
 
 	let interval
+
+	const updateSwingOutput = () => {
+		if (outputSwing)
+		{
+			outputSwing.value = `${Math.round(timer.swing * 100)}%`
+			outputSwing.innerText = outputSwing.value
+		}
+	}
 
 	let estimatedTempo = tapTempo()
 	const estimateTempoFromTap = () => {
@@ -204,6 +237,19 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 		timer.BPM = inputTempoRange.value
 		inputTempoField.value = timer.BPM.toFixed(1)
 		onTimerChanged && onTimerChanged( timer.BPM )
+	}
+
+	const inputSwingRange = document.getElementById('tempo-swing-range')
+	if (inputSwingRange)
+	{
+		inputSwingRange.value = timer.swing
+		updateSwingOutput()
+		inputSwingRange.oninput = e => {
+			timer.swing = parseFloat(inputSwingRange.value)
+			inputSwingRange.value = timer.swing
+			updateSwingOutput()
+			onTimerChanged && onTimerChanged( timer.BPM )
+		}
 	}
 
 	const inputClockSelector = document.getElementById('tempo-clock-select')
