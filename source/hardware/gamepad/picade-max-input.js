@@ -218,6 +218,7 @@ class LEDStatus {
 		this.colorFrom = OFF
 		this.colorTo = OFF
 		this.transitionTime = 0
+		this.holdTime = 0
 		this.ticksSinceLastTransition = 0
 	}
 }
@@ -229,7 +230,6 @@ export class PlasmaButtons extends SerialDevice {
 	#rafId = null
 	#attractAbort = null
 	#buttonLedGroupSize
-	#flashTimers = new Map()
 
 	/**
 	 * @param {number} numLeds
@@ -272,6 +272,7 @@ export class PlasmaButtons extends SerialDevice {
 		const status = this.#ledStatuses[ledNumber]
 		if (!status) return
 		status.mode = mode
+		status.holdTime = 0
 		status.ticksSinceLastTransition = 0
 
 		if (mode === 'normal') {
@@ -310,16 +311,13 @@ export class PlasmaButtons extends SerialDevice {
 
 	triggerLedFade(ledNumber, color, { holdTime = 0, fadeTime = 0.35, colorFrom = OFF } = {}) {
 		if (ledNumber < 0 || ledNumber >= this.numLeds) return
-		this.#clearFlashTimer(`led:${ledNumber}`)
-		this.setLedMode(ledNumber, 'normal', { colorTo: color })
-		this.#flashTimers.set(`led:${ledNumber}`, setTimeout(() => {
-			this.setLedMode(ledNumber, 'fade', {
-				colorFrom: color,
-				colorTo: colorFrom,
-				transitionTime: fadeTime
-			})
-			this.#flashTimers.delete(`led:${ledNumber}`)
-		}, Math.max(0, holdTime) * 1000))
+		const status = this.#ledStatuses[ledNumber]
+		status.mode = 'flash'
+		status.colorFrom = color
+		status.colorTo = colorFrom
+		status.holdTime = Math.max(0, holdTime)
+		status.transitionTime = Math.max(0, fadeTime)
+		status.ticksSinceLastTransition = 0
 	}
 
 	triggerButtonFade(buttonNumber, color, options = {}) {
@@ -336,8 +334,14 @@ export class PlasmaButtons extends SerialDevice {
 	}
 
 	clearFlashEffects() {
-		for (const key of this.#flashTimers.keys()) {
-			this.#clearFlashTimer(key)
+		for (let i = 0; i < this.numLeds; i++) {
+			const status = this.#ledStatuses[i]
+			if (status.mode !== 'flash') continue
+			status.mode = 'normal'
+			status.colorTo = this.#calculateFlashColor(status)
+			status.colorFrom = OFF
+			status.holdTime = 0
+			status.transitionTime = 0
 		}
 	}
 
@@ -363,6 +367,17 @@ export class PlasmaButtons extends SerialDevice {
 			return this.#lerpColor(s.colorFrom, s.colorTo, ticks / cycleLength)
 		}
 
+		if (s.mode === 'flash') {
+			const color = this.#calculateFlashColor(s)
+			const holdTicks = Math.max(1, this.refreshRate * s.holdTime)
+			const fadeTicks = this.refreshRate * s.transitionTime
+			if (ticks >= holdTicks + fadeTicks) {
+				this.setLedMode(ledNumber, 'normal', { colorTo: s.colorTo })
+				return s.colorTo
+			}
+			return color
+		}
+
 		if (s.mode === 'fade sweep') {
 			if (ticks >= cycleLength) {
 				s.ticksSinceLastTransition = 0
@@ -374,6 +389,19 @@ export class PlasmaButtons extends SerialDevice {
 		}
 
 		return s.colorTo
+	}
+
+	#calculateFlashColor(status) {
+		const holdTicks = this.refreshRate * status.holdTime
+		const fadeTicks = this.refreshRate * status.transitionTime
+		if (status.ticksSinceLastTransition <= Math.max(1, holdTicks)) {
+			return status.colorFrom
+		}
+		if (fadeTicks <= 0) {
+			return status.colorTo
+		}
+		const fadeProgress = Math.min(1, (status.ticksSinceLastTransition - Math.max(1, holdTicks)) / fadeTicks)
+		return this.#lerpColor(status.colorFrom, status.colorTo, fadeProgress)
 	}
 
 	#lerpColor(from, to, ratio) {
@@ -434,14 +462,6 @@ export class PlasmaButtons extends SerialDevice {
 		if (this.#rafId) {
 			cancelAnimationFrame(this.#rafId)
 			this.#rafId = null
-		}
-	}
-
-	#clearFlashTimer(key) {
-		const timer = this.#flashTimers.get(key)
-		if (timer) {
-			clearTimeout(timer)
-			this.#flashTimers.delete(key)
 		}
 	}
 
