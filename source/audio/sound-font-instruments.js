@@ -433,6 +433,39 @@ export const convertArrayToBuffers = async( audioContext, buffers, onProgress=un
 	}) )
 }
 
+const createAudioBufferFromPCM = (audioContext, pcmData) => {
+	const { channelData = [], sampleRate } = pcmData ?? {}
+	if (!channelData.length || !sampleRate)
+	{
+		throw Error("Decoded PCM data was missing channelData or sampleRate")
+	}
+
+	const audioBuffer = audioContext.createBuffer(
+		channelData.length,
+		channelData[0].length,
+		sampleRate
+	)
+
+	channelData.forEach((channel, index) => {
+		audioBuffer.copyToChannel(channel, index)
+	})
+
+	return audioBuffer
+}
+
+const createAudioBuffersFromPCMMap = async (audioContext, pcmMap, onProgressCallback=null) => {
+	const audioBufferMap = {}
+	const keys = Object.keys(pcmMap)
+	const quantity = keys.length || 1
+
+	keys.forEach((key, index) => {
+		audioBufferMap[key] = createAudioBufferFromPCM(audioContext, pcmMap[key])
+		onProgressCallback && onProgressCallback((index + 1) / quantity)
+	})
+
+	return audioBufferMap
+}
+
 /**
  * Load an instrument from a JS file but using a worker residing in a different
  * thread so should be a bit more soft on the CPU
@@ -634,15 +667,27 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 			switch(data.event)
 			{
 				case EVENT_DECODED:
-					settled = true
-					cleanUp()
-
 					if (options.decodeInWorker)
 					{
-						onProgressCallback && onProgressCallback(1)
-						return resolve(data.audio)
+						const pcmAudioMap = data.audio
+						createAudioBuffersFromPCMMap(offlineAudioContext, pcmAudioMap, onProgressCallback)
+							.then(audioBufferMap => {
+								if (settled) return
+								settled = true
+								cleanUp()
+								resolve(audioBufferMap)
+							})
+							.catch(error => {
+								if (settled) return
+								settled = true
+								cleanUp()
+								reject(error)
+							})
+						return
 					}
 
+					settled = true
+					cleanUp()
 					const rawAudioArrayBuffers = data.audio
 					const audioBufferArray = {}
 					const keys = Object.keys(rawAudioArrayBuffers)

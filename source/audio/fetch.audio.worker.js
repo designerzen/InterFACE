@@ -139,7 +139,7 @@ self.onmessage = async (e) => {
 		case CMD_LOAD_SOUNDFONT_AUDIO_DATA: {
 			currentAbortController = new AbortController()
 			const decodeSignal = currentAbortController.signal
-			const audioArrayBuffers = {}
+			const audioPCMData = {}
 			// loop through all notes but in the special order	
 			const audioBufferPromises = NOTE_NAMES_POPULAR_FIRST.map( async(note, index) => {
 				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
@@ -149,13 +149,16 @@ self.onmessage = async (e) => {
 				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
 				const partAudioBuffer = await decode(partArrayBuffer)
 				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
-				audioArrayBuffers[note] = partAudioBuffer
+				audioPCMData[note] = partAudioBuffer
 				return partAudioBuffer
 			})
 			try {
 				await Promise.all(audioBufferPromises)
 				if (decodeSignal.aborted) return
-				postMessage({ event:EVENT_DECODED, audio:audioArrayBuffers })
+				const transferList = Object.values(audioPCMData).flatMap(({ channelData }) =>
+					channelData.map(channel => channel.buffer)
+				)
+				postMessage({ event:EVENT_DECODED, audio:audioPCMData }, transferList)
 			} catch (error) {
 				if (error.name === 'AbortError') return
 				throw error
