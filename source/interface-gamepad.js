@@ -14,6 +14,13 @@ import {
 	GamePadManager
 } from "./hardware/gamepad/gamepad-manager.js"
 
+import {
+	PIMORONI_PICADE_MAX_CONTROLLER_PLAYER_1,
+	PIMORONI_PICADE_MAX_CONTROLLER_PLAYER_2,
+} from "./hardware/gamepad/gamepad-device-names.js"
+
+import { PicadeLeds, picadeColor } from "./hardware/gamepad/picade-leds.js"
+
 export const GAMEPAD_MODE_PERCUSSION = 'beats'
 export const GAMEPAD_MODE_INSTRUMENT = 'instruments'
 export const GAMEPAD_MODE_VFX = 'vfx'
@@ -25,7 +32,57 @@ export const GAMEPAD_MODES = [
 	GAMEPAD_MODE_VFX
 ]
 
-const convertGamePadActionToMusic = ( application, gamePad, button, value, heldFor, gamePadPlayerIndex ) => {
+const PICADE_GAMEPAD_IDS = new Set([
+	PIMORONI_PICADE_MAX_CONTROLLER_PLAYER_1,
+	PIMORONI_PICADE_MAX_CONTROLLER_PLAYER_2,
+])
+
+const PICADE_BUTTON_MAP = Object.freeze({
+	[BUTTON_Y]: 0,
+	[BUTTON_X]: 1,
+	[BUTTON_LEFT_SHOULDER_BUTTON]: 2,
+	[BUTTON_B]: 3,
+	[BUTTON_A]: 4,
+	[BUTTON_RIGHT_SHOULDER_BUTTON]: 5,
+})
+
+const PICADE_BUTTON_COLORS = Object.freeze({
+	[BUTTON_Y]: picadeColor('#ffd166', 18),
+	[BUTTON_X]: picadeColor('#7bdff2', 18),
+	[BUTTON_LEFT_SHOULDER_BUTTON]: picadeColor('#b8f2e6', 18),
+	[BUTTON_B]: picadeColor('#ff6b6b', 18),
+	[BUTTON_A]: picadeColor('#95d67b', 18),
+	[BUTTON_RIGHT_SHOULDER_BUTTON]: picadeColor('#cdb4db', 18),
+})
+
+const isPicadeGamepad = gamePad => PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
+
+const ensurePicadeLeds = async application => {
+	if (application.picadeLeds) return application.picadeLeds
+	const picadeLeds = new PicadeLeds()
+	application.picadeLeds = picadeLeds
+	try {
+		await picadeLeds.connect()
+		application.setFeedback?.("Picade lights connected", 0, 'gamepad')
+	} catch (error) {
+		console.warn("Unable to connect Picade lights", error)
+		application.setFeedback?.("Picade lights unavailable", 0, 'gamepad')
+	}
+	return picadeLeds
+}
+
+const flashPicadeButton = (application, gamePad, button, isButtonHeld) => {
+	if (!isButtonHeld || !isPicadeGamepad(gamePad) || !application.picadeLeds?.connected) {
+		return
+	}
+	const buttonIndex = PICADE_BUTTON_MAP[button]
+	if (buttonIndex == null) return
+	const color = PICADE_BUTTON_COLORS[button] ?? picadeColor('#ffffff', 18)
+	application.picadeLeds.fadeButton(buttonIndex, color, null, { duration: 0.12 })
+}
+
+
+const convertGamePadActionToMusic = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
 
 	const clock = application.clock
 	const isUnselected = gamePadPlayerIndex === -1
@@ -38,7 +95,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 	// }
 
 	// One shots just need triggers
-	if (!value){
+	if (!isButtonHeld){
 		return
 	}
 	
@@ -91,7 +148,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			break
 
 		case BUTTON_A: 
-			console.info("Gamepad A", value, { gamePad, heldFor } )
+			console.info("Gamepad A", isButtonHeld, { gamePad, heldFor } )
 			// To only activate whilst button is held down...
 			// if ( value )
 			// {
@@ -104,11 +161,11 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			break
 		
 		case BUTTON_B: 
-			console.info("Gamepad B", value, { gamePad, heldFor } )
+			console.info("Gamepad B", isButtonHeld, { gamePad, heldFor } )
 			break
 		
 		case BUTTON_X: 
-			console.info("Gamepad X", value, { gamePad, heldFor } )
+			console.info("Gamepad X", isButtonHeld, { gamePad, heldFor } )
 			// application.getPerson(2).toggleForm() 
 			if (isUnselected)
 			{
@@ -120,7 +177,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			break
 		
 		case BUTTON_Y: 
-			console.info("Gamepad Y", value, { gamePad, heldFor } )
+			console.info("Gamepad Y", isButtonHeld, { gamePad, heldFor } )
 			// application.getPerson(3).toggleForm() 
 			if (isUnselected)
 			{
@@ -134,7 +191,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 		// adapt 
 		case BUTTON_LEFT_SHOULDER_BUTTON: 
 			// application.stateMachine.get("")
-			console.info("Gamepad LB", value, { gamePad, heldFor } )
+			console.info("Gamepad LB", isButtonHeld, { gamePad, heldFor } )
 			if (isUnselected)
 			{
 				application.kit.hat()
@@ -150,7 +207,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}else{
 				//application.getPerson(gamePadPlayerIndex) 
 			}
-			console.info("Gamepad RB", value, { gamePad, heldFor } )
+			console.info("Gamepad RB", isButtonHeld, { gamePad, heldFor } )
 			break
 
 		case BUTTON_LEFT_SHOULDER_TWO: 
@@ -160,7 +217,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}else{
 				//application.getPerson(gamePadPlayerIndex) 
 			}
-			console.info("Gamepad LT", value, { gamePad, heldFor } )
+			console.info("Gamepad LT", isButtonHeld, { gamePad, heldFor } )
 			break
 
 		case BUTTON_RIGHT_SHOULDER_TWO: 
@@ -170,7 +227,7 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			}else{
 				//application.getPerson(gamePadPlayerIndex) 
 			}
-			console.info("Gamepad RT", value, { gamePad, heldFor } )
+			console.info("Gamepad RT", isButtonHeld, { gamePad, heldFor } )
 			break
 
 		case BUTTON_P1: 
@@ -192,89 +249,108 @@ const convertGamePadActionToMusic = ( application, gamePad, button, value, heldF
 			break
 		
 		default:
-			console.info("Gamepad", { button, value, gamePad, heldFor } )
+			console.info("Gamepad", { button, value: isButtonHeld, gamePad, heldFor } )
 	}
 }
 
-const convertGamePadActionToPercussion = ( application, gamePad, button, value, heldFor, gamePadPlayerIndex ) => {
-	// One shots just need triggers
-	if (!value){
-		return
+const convertGamePadActionToPercussion = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
+	const getChokeDuration = heldMilliseconds => {
+		const heldSeconds = Math.max((heldMilliseconds ?? 0) / 1000, 0)
+		return Math.min(Math.max(heldSeconds * 0.25, 0.005), 0.4)
+	}
+
+	const triggerOrChoke = drum => {
+		if (isButtonHeld)
+		{
+			drum()
+		}else{
+			drum.choke?.(getChokeDuration(heldFor))
+		}
 	}
 
 	switch(button)
 	{
 		case DIRECTION_UP: 
-			application.kit.hat()
+			triggerOrChoke(application.kit.hat)
 			break
 		
 		case DIRECTION_DOWN: 
-			application.kit.cowbell()
+			triggerOrChoke(application.kit.cowbell)
 			break
 
 		case DIRECTION_LEFT: 
-			application.kit.kick()
+			triggerOrChoke(application.kit.kick)
 			break
 
 		case DIRECTION_RIGHT: 
-			application.kit.snare()
+			triggerOrChoke(application.kit.snare)
 			break
 
 		case BUTTON_A: 
-			application.setRandomDrumTimbres()
+			if (isButtonHeld)
+			{
+				application.setRandomDrumTimbres()
+			}
 			break
 		
 		case BUTTON_B: 
-			application.setRandomDrumPattern()
+			if (isButtonHeld)
+			{
+				application.setRandomDrumPattern()
+			}
 			break
 		
 		case BUTTON_X: 
-			application.kit.kick()
+			triggerOrChoke(application.kit.kick)
 			break
 		
 		case BUTTON_Y: 
-			application.kit.snare()
+			triggerOrChoke(application.kit.snare)
 			break
 		
 		// Left Back Trigger
 		case BUTTON_LEFT_SHOULDER_BUTTON: 
-			application.kit.snare()
+			triggerOrChoke(application.kit.snare)
 			break
 
-		// toggleBackgroundPercussion
+		// TODO: SWING!
 		case BUTTON_RIGHT_SHOULDER_BUTTON: 
-			application.kit.snare()
+			triggerOrChoke(application.kit.snare)
 			break
 
 		case BUTTON_LEFT_SHOULDER_TWO: 
-			application.kit.cowbell()
+			triggerOrChoke(application.kit.cowbell)
 			break
 
 		case BUTTON_RIGHT_SHOULDER_TWO: 
-			application.kit.hat()
+			triggerOrChoke(application.kit.hat)
 			break
 
 		case BUTTON_P1: 
-			application.kit.kick()
+			triggerOrChoke(application.kit.kick)
 			break
 
 		case BUTTON_P2: 
-			application.kit.snare()
+			triggerOrChoke(application.kit.snare)
 			break
 		
 		default:
-			application.kit.cowbell()
-			console.info("Gamepad", { button, value, gamePad, heldFor } )
+			if (isButtonHeld)
+			{
+				application.kit.cowbell()
+			}
+			console.info("Gamepad", { button, value: isButtonHeld, gamePad, heldFor } )
 	}
 }
 
 // Just alter the visuals!
-const convertGamePadActionToVFX = ( application, gamePad, button, value, heldFor, gamePadPlayerIndex ) => {
+const convertGamePadActionToVFX = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
 	// One shots just need triggers
-	if (!value){
+	if (!isButtonHeld){
 		return
 	}
 
+	const cameraPan = application.cameraPan
 	const clock = application.clock
 	const isUnselected = gamePadPlayerIndex === -1
 					
@@ -283,10 +359,23 @@ const convertGamePadActionToVFX = ( application, gamePad, button, value, heldFor
 		// ignore caching these
 		case GAME_PAD_CONNECTED:
 		case GAME_PAD_DISCONNECTED:
-		// case UP: 
-		// case DOWN: 
-		// case LEFT: 
-		// case RIGHT: 
+		// 
+		case DIRECTION_UP: 
+			cameraPan.y -= .5;
+			break
+		
+		case DIRECTION_DOWN: 
+			cameraPan.y += .5;
+			break
+		
+		case DIRECTION_LEFT: 
+			cameraPan.x -= .5;
+			break
+
+		case DIRECTION_RIGHT: 
+			cameraPan.x += .5;
+			break
+		
 		default:
 			// if select is also being held....
 			if (gamePad.select){
@@ -302,10 +391,10 @@ const convertGamePadActionToVFX = ( application, gamePad, button, value, heldFor
 /**
  * For controlling modes and loading specific instruments
  */
-const convertGamePadActionToControl = ( application, gamePad, button, value, heldFor, gamePadPlayerIndex ) => {
+const convertGamePadActionToControl = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
 
 	// One shots just need triggers
-	if (!value){
+	if (!isButtonHeld){
 		return
 	}	
 
@@ -406,7 +495,7 @@ export const addGamePadEvents = (application) => {
 		return GAMEPAD_MODES[gamePadModeIndex]
 	}
 
-	gamePadManager.addEventListener( ( eventName, value, gamePad, heldFor ) => {
+	gamePadManager.addEventListener( async ( eventName, value, gamePad, heldFor ) => {
 		console.info("GAMEPAD:", {eventName, value, gamePad, heldFor}, arguments )
 		switch(eventName)
 		{
@@ -431,6 +520,9 @@ export const addGamePadEvents = (application) => {
 		switch(eventName)
 		{
 			case GAME_PAD_CONNECTED:
+				if (isPicadeGamepad(gamePad)) {
+					await ensurePicadeLeds(application)
+				}
 				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
 				console.info("Gamepad connected", eventName, value, gamePad )
 				break
@@ -456,27 +548,28 @@ export const addGamePadEvents = (application) => {
 					// the final player is currently selected so we now deselect ALL!
 					if (isLastPersonSelected || gamePad.start){
 						gamePadPlayerIndex = -1
-						application.setFeedback( "Deselect all" , 0, 'gamepad' )
+						application.setFeedback( "NO PLAYER SELECTED" , 0, 'gamepad' )
 						personManager.deselectPeople()
 						personManager.unhighlightPeople()
 					}else{
 						personManager.selectPerson( currentlySelected + 1 )
 						gamePadPlayerIndex = personManager.selectedPersonIndex
 						personManager.highlightPerson( gamePadPlayerIndex )
-						application.setFeedback( "Gamepad SELECT "+gamePadPlayerIndex , 0, 'gamepad' )
+						application.setFeedback( "PLAYER "+gamePadPlayerIndex + " HAS BEEN SELECTED", 0, 'gamepad' )
 						console.info("Gamepad select", value, gamePad )
 					}
 					break
 				
 				case BUTTON_START: 
 					const mode = setMode( gamePadModeIndex + 1 )
-					application.setFeedback( mode + " mode", 0, 'gamepad' )
-					console.info("Gamepad START", value, gamePad )
+					application.setFeedback( GAMEPAD_MODES[mode] + " mode", 0, 'gamepad' )
+					console.info("Gamepad START", value, gamePad, GAMEPAD_MODES[mode], mode )
 					// check to see if another key is held down...
 					break
 			}
 		}
 
+		flashPicadeButton(application, gamePad, eventName, value)
 		gamePadMethod( application, gamePad, eventName, value, heldFor, gamePadPlayerIndex )
 	})
 
