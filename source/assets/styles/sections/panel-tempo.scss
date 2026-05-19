@@ -71,6 +71,15 @@ label[for="tempo-input-text"]{
 	width:100%;
 }
 
+#tempo-swing-range{
+	grid-area:swing;
+	width:100%;
+}
+
+#tempo-swing-output{
+	grid-area:swing-output;
+}
+
 label[for="tempo-input-range"]{
 	grid-area:range;
 	padding-bottom: 0;
@@ -79,6 +88,15 @@ label[for="tempo-input-range"]{
 	height: fit-content;
 	width: fit-content;
 	position: absolute;
+}
+
+label[for="tempo-swing-range"]{
+	grid-area:swing;
+	padding-bottom: 0;
+	background: inherit;
+	z-index: 1;
+	height: fit-content;
+	width: fit-content;
 }
 
 
@@ -90,10 +108,14 @@ label[for="tempo-input-range"]{
 }
 
 .form-tempo{
+	box-sizing:border-box;
 	display:grid;
 	gap:var(--pad, 10px);
 	max-width: 100%;
-	margin:var(--pad);
+	margin:0;
+	min-height:100%;
+	padding:var(--pad);
+	width:100%;
 	grid-template-columns: 1fr 1fr;
 	gap:var(--pad, 1rem);
 	grid-template-areas: 
@@ -101,6 +123,7 @@ label[for="tempo-input-range"]{
 		"input input"
 		"up down"
 		"range range"
+		"swing swing-output"
 		"tap tap"
 	;
 }
@@ -115,6 +138,7 @@ label[for="tempo-input-range"]{
 			"input input input feedback"
 			"input input input tap"
 			"range range range tap "
+			"swing swing swing-output"
 		;
 	}
 }

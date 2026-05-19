@@ -1,14 +1,28 @@
 //- link(rel="stylesheet", href="/node_modules/reveal.js/dist/reveal.css")
 //- link(rel="stylesheet", href="/node_modules/reveal.js/dist/theme/black.css")
 //- link(rel="stylesheet" href="/node_modules/reveal.js/dist/theme/sky.css")
+.squircle {
+  --brm: 1;
+}
+
+@supports (corner-shape: squircle) {
+	.squircle {
+		--brm: 2;
+	}
+}
 
 .reveal .slides{
+
+	cite, figcaption{
+		font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+	}
 
 	height: 100vh;
 	height: 100dvh;
 	height: 100svh;
 
 	section{
+		--frame:var(--pad, 1rem);
 		box-sizing: border-box;
 		display: flex;
 		place-items: center; 
@@ -23,7 +37,7 @@
 		// &:has(
 		// 	.r-fit-text
 		// ){
-			--frame:var(--pad);
+			
 			height:calc( 100% - var(--frame) * 4) !important;
 			width:calc( 100% - var(--frame) * 4) !important;
 			// prevent content buttin up
@@ -88,8 +102,8 @@
 			height:100%;
 			min-width:42px;
 			min-height:42px;
-			max-height:min(100%, var( --lines, 2lh) );
-			max-width:128px;
+			max-height:min( 100%, var( --lines, 3lh) );
+			max-width:min(64px, 3lh);
 			width:auto;
 			aspect-ratio: 1;
 		}
@@ -177,7 +191,11 @@
 		font-size:1rem;
 	}
 
-	ol[role=list]{
+	table{
+		font-size: 0.8rem;
+	}
+
+	:is(ol,ul)[role=list]{
 		list-style:outside;
 		width:fit-content;	// allow centralisation
 		margin:0 auto;
@@ -192,6 +210,10 @@
 			margin-top:var(--pad);
 			line-height:inherit;
 		}
+	}
+
+	ol{
+		list-style-type: decimal;
 	}
 	
 	img{
@@ -228,13 +250,34 @@
 	.woodblock{
 		filter: grayscale(1) contrast(4) brightness(1.75);
 	}
-
+	.two-tone{
+		filter: grayscale(1) brightness(0.7) contrast(2.9);
+	}
+	.crt{
+		filter:grayscale(1) brightness(3);
+	}
 	.avatar{
-		
+		flex: 1 1 100%;
+		min-width:42px;
+		min-height:42px;
+		max-height:min( 100%, var( --lines, 2lh) );
+		max-width:min( 100%, var( --lines, 2lh) );
+		width:auto;
+		height:100%;
+		border-radius:4px;
+		overflow: hidden;
+	}
+
+	:is( ol, ul ).squircle{
+		position: absolute;
+		border-radius: calc(16px * var(--brm));
+		corner-shape: squircle;
+		padding: 2rem;
+		background-color: rgba(255,255,255,0.6);
 	}
 
 	figure{
-		margin: auto;
+		margin: var(--pad) auto;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -278,10 +321,11 @@
 	figure.wallpaper{
 		position: absolute;
 		inset:0;
+		margin:0;
 
 		img{
-			width:100%;
-			height:auto;
+			width:auto;
+			height:100%;
 			max-width: 100%;
 			max-height: 100%;
 			position: relative;
@@ -410,6 +454,6 @@ html.reveal-print .reveal {
 
 @keyframes Claw {
 	to{
-		transform: rotate(4deg);
+		transform: rotate(-3deg);
 	}
 }

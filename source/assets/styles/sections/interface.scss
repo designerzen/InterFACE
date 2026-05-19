@@ -769,7 +769,6 @@ main.active{
 		background: none;
 		width:100%;
 		max-height: 100%;
-		height: 100%;
 		min-width:44px;
 		min-height:44px;
 		display: block;
@@ -779,11 +778,19 @@ main.active{
 	}
 
 	.face-button{
+		height: 100%;
+	}
 
+	.emoji-button{
+		bottom:100%;
+		height: 64px;
+		border-radius: 999px;
+		aspect-ratio: 1;
 	}
 
 	.thoughts-button{
-		bottom:100%;
+		bottom:calc( 100% + var(--pad,1rem) + 64px );
+		height: 100%;
 	}
 }
 

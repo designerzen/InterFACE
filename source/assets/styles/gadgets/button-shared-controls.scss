@@ -185,6 +185,22 @@
 		}
 	}
 
+	// choose musical key
+	label[for="select-key"]{
+		--col-select:var(--shade-yellow);
+		--col-hover:var(--shade-green);
+		--bg:url(/source/assets/icons/key.svg);
+		anchor-name: --select-key;
+	}
+
+	// choose musical mode
+	label[for="select-key-scale"]{
+		--col-select:var(--shade-yellow);
+		--col-hover:var(--shade-green);
+		--bg:url(/source/assets/icons/mode.svg);
+		anchor-name: --select-key-scale;
+	}
+
 	// choose display
 	label[for="select-display"]{
 		--col-select:var(--shade-yellow);

@@ -51,6 +51,7 @@
 	// stretch until we reach x quantity then wrap
 	grid-template-columns: repeat(auto-fit, minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr));
 	gap: var(--grid-gap);
+    padding: 0;
 	
 	align-items: stretch;
 	justify-content: stretch;
@@ -282,17 +283,16 @@
 	}
 }
 
-
+/*
+// FIXME:
 @media screen and (max-width:480px) {
 	.controls{
-		--gap:11px;
-		gap:var(--gap);
-		padding-left:var(--gap);
-		padding-right:var(--gap);
+		// --gap:11px;
+		// padding-left:var(--gap);
+		// padding-right:var(--gap);
 	}
 }
-
-
+*/
 
 // We slip out of grid when the screen can comortably support
 // them all on a single file - this also has the effect of making
@@ -300,6 +300,8 @@
 @media screen and (min-width:641px) {
 	.controls{
 		display: flex;
+		// we keep this in case of emergency        
+		flex-wrap: wrap;
 		> *{
 			flex-grow: 1;
 			flex-shrink: 1;
