@@ -10,15 +10,22 @@ menu#control-panel
 		//- Button is the face of the user
 		#person-a.person(hidden)
 			button(type="button").face-button.person-a-face Change instrument for the person on the left
+			button(type="button").emoji-button.person-a-emoji Change play style for the person
 			button(type="button").thoughts-button.person-a-thoughts Change play style for the person on the left
+
 		#person-b.person(hidden)
 			button(type="button").face-button.person-b-face Change instrument for the person on the right 
+			button(type="button").emoji-button.person-b-emoji Change play style for the person
 			button(type="button").thoughts-button.person-b-thoughts Change play style for the person on the right
+
 		#person-c.person(hidden)
 			button(type="button").face-button.person-c-face Change instrument for the person on the lower left 
+			button(type="button").emoji-button.person-c-emoji Change play style for the person
 			button(type="button").thoughts-button.person-c-thoughts Change play style for the person on the lower left
+
 		#person-d.person(hidden)
 			button(type="button").face-button.person-d-face Change instrument for the person on the lower right 
+			button(type="button").emoji-button.person-d-emoji Change play style for the person
 			button(type="button").thoughts-button.person-d-thoughts Change play style for the person on the lower right
 
 
@@ -188,6 +195,47 @@ menu#control-panel
 				include tempo-panel.pug
 				a(href="#control-panel") Return to the control menu
 
+		label(for="select-key") <span class="hide-text">Choose </span>Key
+			select#select-key(aria-label="Select global musical tonic")
+				option(value="free-range") Free Range
+				option(value="C") C
+				option(value="Db") Db / C#
+				option(value="D") D
+				option(value="Eb") Eb / D#
+				option(value="E") E
+				option(value="F") F
+				option(value="Gb") Gb / F#
+				option(value="G") G
+				option(value="Ab") Ab / G#
+				option(value="A") A
+				option(value="Bb") Bb / A#
+				option(value="B") B
+
+		label(for="select-key-scale") <span class="hide-text">Choose </span>Mode
+			select#select-key-scale(aria-label="Select global musical scale or mode")
+				optgroup(label="Common")
+					option(value="CHROMATIC_SCALE") Chromatic
+					option(value="MAJOR_SCALE") Major / Ionian
+					option(value="NATURAL_MINOR_SCALE") Natural Minor / Aeolian
+					option(value="HARMONIC_MINOR_SCALE") Harmonic Minor
+					option(value="MELODIC_MINOR_SCALE") Melodic Minor
+				optgroup(label="Major Modes")
+					option(value="DORIAN_SCALE") Dorian
+					option(value="PHRYGIAN_SCALE") Phrygian
+					option(value="LYDIAN_SCALE") Lydian
+					option(value="MIXOLYDIAN_SCALE") Mixolydian
+					option(value="LOCRIAN_SCALE") Locrian
+				optgroup(label="Pentatonic")
+					option(value="PENTATONIC_MAJOR_SCALE") Pentatonic Major
+					option(value="PENTATONIC_MINOR_SCALE") Pentatonic Minor
+				optgroup(label="Symmetric")
+					option(value="WHOLE_TONE_SCALE") Whole Tone
+					option(value="DIMINISHED_SCALE") Diminished
+					option(value="AUGMENTED_SCALE") Augmented
+				optgroup(label="Other")
+					option(value="BLUES_SCALE") Blues
+					option(value="FIFTHS_SCALE") Circle of Fifths
+
 		//- put share and full screen at the end
 		button.hide-text#button-share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
 		
@@ -289,7 +337,6 @@ menu#control-panel
 				//- option(value="FluidR3_GM") Fluid
 				//- option(value="MusyngKite") Musyng Kite 
 				option(value="MusyngKite") OpenGM24
-
 
 		//- DISPLAY ---------------------------------------------------------------
 		label(for="select-display") <span class="hide-text">Choose </span>Display

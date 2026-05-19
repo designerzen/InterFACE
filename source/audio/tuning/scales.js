@@ -79,6 +79,7 @@ export const getModeAsIntegerOffset = (mode) => isNaN(parseInt(mode)) ? TUNING_M
   
 export const C_SCALE =  ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
+export const CHROMATIC_SCALE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
 export const NATURAL_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]
 export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11]
@@ -101,6 +102,7 @@ export const AUGMENTED_SCALE = [0, 3, 4, 7, 8, 11]
 export const FIFTHS_SCALE = [9,4,11,6,1,8,3,10,5,0,7,2]
 
 export const SCALES = [
+	CHROMATIC_SCALE,
 	MAJOR_SCALE,
 	NATURAL_MINOR_SCALE,
 	HARMONIC_MINOR_SCALE,
@@ -123,6 +125,7 @@ export const SCALES_NAMES = Object.keys(SCALES)
 
 
 export const INTERVAL_LIBRARY = {
+	CHROMATIC_SCALE,
 	MAJOR_SCALE,
 	NATURAL_MINOR_SCALE,
 	HARMONIC_MINOR_SCALE,
@@ -138,7 +141,8 @@ export const INTERVAL_LIBRARY = {
 	WHOLE_TONE_SCALE,
 	DIMINISHED_SCALE,
 	AUGMENTED_SCALE,
-	FIFTHS_SCALE
+	FIFTHS_SCALE,
+	FIFTHS:FIFTHS_SCALE
 }
 
 // inspired by https://www.guitarland.com/MusicTheoryWithToneJS/PlayModes.html

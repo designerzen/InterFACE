@@ -12,6 +12,14 @@ fieldset.form-tempo
 		option(value="200", label="200")
 		option(value="300", label="300")
 
+	label(for="tempo-swing-range") Set swing
+	input(type="range" min="0" max="1" step="0.01" list="tempo-swing-ticks")#tempo-swing-range
+	datalist#tempo-swing-ticks
+		option(value="0", label="0%")
+		option(value="0.5", label="50%")
+		option(value="1", label="100%")
+	output(for="tempo-swing-range")#tempo-swing-output 0%
+
 	button(type="button")#tempo-increase-button.button-bpm-up Tempo Increase
 	button(type="button")#tempo-decrease-button.button-bpm-down Tempo Decrese
 

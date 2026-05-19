@@ -272,7 +272,8 @@ export const createChordsForNoteNumber = (tonic, scale, mode) => {
 	//ensure that the mode is an index
 	if (isNaN(mode))
 	{
-		mode = TUNING_MODE_NAMES.indexOf(mode)
+		const modeName = String(mode).toLowerCase()
+		mode = modeName === "major" ? 0 : TUNING_MODE_NAMES.indexOf(modeName)
 	}
 
 	if ( mode === undefined || mode === -1)
@@ -404,6 +405,8 @@ export const createAllChordsInModes = () => {
 	}
 	return output
 }
+
+export const createAllChordsInScalesWithModes = createAllChordsInModes
 
 // Must be run before requesting any data...
 allChords = createAllChordsInModes()
