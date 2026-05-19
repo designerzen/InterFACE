@@ -65,6 +65,7 @@ import Person, {
 // TIMING
 // import {midiLikeEvents} from './timing/rhythm'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
+import { createDrumArranger } from './timing/drum-arranger.js'
 import { AudioTimer } from 'netronome'
 
 // AUDIO 
@@ -132,7 +133,7 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 
 // CONTROLS
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
-// import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
+import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { getActiveMIDINotesForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
 /*
@@ -161,7 +162,7 @@ import { convertOptionToObject } from './utils/utils.js'
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
-import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS } from './audio/tuning/keys.js'
+import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
 import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
@@ -411,6 +412,23 @@ export const createInterface = (
 	// stereoPan
 
 	//- window.addEventListener(EVENT_STATE_CHANGE, event => {
+	let pendingHarmonyOptionsUpdate = false
+	const updatePlayerHarmonyOptions = () => {
+		const harmonyOptions = {
+			tonic:stateMachine.get("key") ?? 0,
+			keyScale:stateMachine.get("keyScale"),
+			harmonyMode:stateMachine.get("harmonyMode")
+		}
+		people.forEach(person => person.setOptions(harmonyOptions))
+	}
+	const updateKeyScaleControlVisibility = () => {
+		const keyScaleControl = doc.querySelector('label[for="select-key-scale"]')
+		if (keyScaleControl)
+		{
+			keyScaleControl.hidden = stateMachine.get("harmonyMode") === "free-range"
+		}
+	}
+
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( async (key,value) => {
 		
@@ -418,6 +436,22 @@ export const createInterface = (
 		{
 			const svg = await createQRCodeFromURL( stateMachine.asURI )
 			// console.info("QR State updated", {svg, state:stateMachine.serialised} ) 
+		}
+
+		if (["key", "keyScale", "harmonyMode"].includes(key))
+		{
+			if (key === "harmonyMode")
+			{
+				updateKeyScaleControlVisibility()
+			}
+			if (!pendingHarmonyOptionsUpdate)
+			{
+				pendingHarmonyOptionsUpdate = true
+				queueMicrotask(() => {
+					pendingHarmonyOptionsUpdate = false
+					updatePlayerHarmonyOptions()
+				})
+			}
 		}
 	})
 
@@ -471,6 +505,7 @@ export const createInterface = (
 	// samples and synths
 	let kit
 	let patterns
+	let drumArranger
 	let recorder
 
 	// UI elements
@@ -785,6 +820,10 @@ export const createInterface = (
 			debug:stateMachine.get('debug'),
 			// FIXME: why is this per person? should always set per screen
 			photoSensitive:stateMachine.get('photoSensitive'),
+
+			tonic:stateMachine.get("key") ?? 0,
+			keyScale:stateMachine.get("keyScale"),
+			harmonyMode:stateMachine.get("harmonyMode"),
 
 			instrumentPack:stateMachine.get('instrumentPack'),
 
@@ -2104,9 +2143,12 @@ export const createInterface = (
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
 				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
-				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
-				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
-				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )
+				drumArranger?.setTempo(clock.BPM)
+				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
+				if (parts.kick > 0) kit.kick({ ...kickTimbreOptions, velocity: parts.kick / 255, triggerAt })
+				if (parts.snare > 0) kit.snare({ ...snareTimbreOptions, velocity: parts.snare / 255, triggerAt })
+				if (parts.hat > 0) kit.hat({ ...hatTimbreOptions, velocity: parts.hat / 255, triggerAt })
+				if (parts.clap > 0) kit.clap({ velocity: parts.clap / 255, triggerAt })
 			}
 			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
@@ -2394,9 +2436,11 @@ export const createInterface = (
 			// NB. at this point we have access to the user events
 			// 		so can create things that depend on audio context
 			const initialBPM = stateMachine.get('bpm') ?? 90
+			const initialSwing = stateMachine.get('swing') ?? 0
 			clock = new AudioTimer( audioContext, true )
 			clock.options.accurate = true
 			clock.BPM = initialBPM
+			clock.swing = initialSwing
 
 			console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
 
@@ -2404,7 +2448,8 @@ export const createInterface = (
 			setupTempoInterface(clock, null, null, v =>{
 				// console.log("tempo changed for gui",v, clock )
 				stateMachine.set( 'bpm',  clock.BPM )
-				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM`, 0, 'tempo' )
+				stateMachine.set( 'swing',  clock.swing )
+				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM, swing ${Math.round(clock.swing * 100)}%`, 0, 'tempo' )
 			})
 
 		}catch(error){
@@ -2476,6 +2521,10 @@ export const createInterface = (
 			const percussionAmp = getPercussionNode()
 			kit = createDrumkit( audioContext, percussionAmp )
 			patterns = getKitSequence()
+			drumArranger = createDrumArranger({
+				seed: "backing-track-app",
+				bpm: stateMachine.get('bpm') ?? 0
+			})
 			
 
 			// console.log("Streamin", {video, photo, camera} )
@@ -3217,6 +3266,38 @@ export const createInterface = (
 			stateMachine.set( 'instrumentPack', instrumentPack, selects.samples )
 			//console.log("Loaded sounds",{instrumentPack, instrument}, getPerson(0).options.instrumentPack )
 		} )
+
+		const getSelectedKeyScaleLabel = () => selects.keyScale?.options[selects.keyScale.selectedIndex]?.textContent || stateMachine.get('keyScale')
+		const getSelectedKeyLabel = () => selects.key?.options[selects.key.selectedIndex]?.textContent || normaliseKeyName(stateMachine.get('key'))
+
+		selects.key = connectSelect( 'select-key', option => {
+			if (option.value === "free-range")
+			{
+				stateMachine.set( 'harmonyMode', "free-range" )
+				setFeedback( 'Free range enabled', 0 )
+				return
+			}
+
+			stateMachine.set( 'harmonyMode', "global-key" )
+			stateMachine.set( 'key', option.value, selects.key )
+			setFeedback( `Global key set to ${option.textContent} ${getSelectedKeyScaleLabel()}`, 0 )
+		} )
+		selects.key.value = stateMachine.get('harmonyMode') === "free-range" ?
+			"free-range" :
+			normaliseKeyName(getPitchClassForKey(stateMachine.get('key')))
+
+		selects.keyScale = connectSelect( 'select-key-scale', option => {
+			stateMachine.set( 'keyScale', option.value, selects.keyScale )
+			if (stateMachine.get('harmonyMode') === "free-range")
+			{
+				setFeedback( `Mode set to ${option.textContent}`, 0 )
+				return
+			}
+			stateMachine.set( 'harmonyMode', "global-key" )
+			setFeedback( `Global key set to ${getSelectedKeyLabel()} ${option.textContent}`, 0 )
+		} )
+		selects.keyScale.value = stateMachine.get('keyScale')
+		updateKeyScaleControlVisibility()
 
 		selects.palette = connectSelect( 'select-palette', option => {
 			const items = option.value.split(",")

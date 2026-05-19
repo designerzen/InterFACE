@@ -23,7 +23,7 @@ import { connectDropZone } from './dom/drop-zone.js'
 import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
-import { setupTempoInterface, updateTempo } from './dom/ui.tempo.js'
+import { setupTempoInterface } from './dom/ui.tempo.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
 
 import { Quanitiser } from './visual/quantise.js'
@@ -36,7 +36,7 @@ import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, se
 import StateWithIO from './utils/state-io.js'
 
 // MODELS
-import { TAU } from "./maths/maths.js"
+import { TAU, clamp } from "./maths/maths.js"
 import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
 import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
 import { loadMLModels } from './models/load-models.js'
@@ -61,6 +61,7 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 // import {midiLikeEvents} from './timing/rhythm'
 import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
+import { createDrumArranger } from './timing/drum-arranger.js'
 import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
 
@@ -132,7 +133,7 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 
 // CONTROLS
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
-// import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
+import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { getActiveMIDINotesForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
 /*
@@ -158,6 +159,7 @@ import { setNodeCount } from './visual/2d.js'
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
 import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
+import { getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 
 import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from 'netronome'
@@ -404,6 +406,22 @@ export const createInterface = (
 	// const zipArray = stateMachine.createURLAsEncodedString()
 	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
 
+	let pendingHarmonyOptionsUpdate = false
+	const updatePlayerHarmonyOptions = () => {
+		personManager.setPlayerOptions({
+			tonic:stateMachine.get("key") ?? 0,
+			keyScale:stateMachine.get("keyScale"),
+			harmonyMode:stateMachine.get("harmonyMode")
+		})
+	}
+	const updateKeyScaleControlVisibility = () => {
+		const keyScaleControl = doc.querySelector('label[for="select-key-scale"]')
+		if (keyScaleControl)
+		{
+			keyScaleControl.hidden = stateMachine.get("harmonyMode") === "free-range"
+		}
+	}
+
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( async (key,value) => {
 		
@@ -411,6 +429,21 @@ export const createInterface = (
 		{
 			const svg = await createQRCodeFromURL( stateMachine.asURI )
 			// console.info("QR State updated", {svg, state:stateMachine.serialised} ) 
+		}
+		if (["key", "keyScale", "harmonyMode"].includes(key))
+		{
+			if (key === "harmonyMode")
+			{
+				updateKeyScaleControlVisibility()
+			}
+			if (!pendingHarmonyOptionsUpdate)
+			{
+				pendingHarmonyOptionsUpdate = true
+				queueMicrotask(() => {
+					pendingHarmonyOptionsUpdate = false
+					updatePlayerHarmonyOptions()
+				})
+			}
 		}
 		// TODO: Update GUI with the key value even if toggled manually
 		// console.info("State Changed", { key,value, stateMachine } )
@@ -471,9 +504,12 @@ export const createInterface = (
 	// timer (24 cycles per tick) metronome
 	let clock
 
+	let tempoUI
+
 	// samples and synths
 	let kit
 	let patterns
+	let drumArranger
 	let recorder
 
 	// UI elements
@@ -613,6 +649,85 @@ export const createInterface = (
 	let snareTimbreOptions = PRESET_SNARES[0]
 	let hatTimbreOptions = PRESET_HIHATS[0]
 
+	const scaleDrumValue = (value, amount, min, max) => clamp(value * amount, min, max)
+	const shiftDrumValue = (value, amount, min, max) => clamp(value + amount, min, max)
+	const getFiniteDrumControl = (value) => Number.isFinite(value) ? value : 0
+	const getPersonEyeDrumControls = (person) => {
+		const prediction = person && person.data ? person.data : {}
+		const leftEye = clamp(getFiniteDrumControl(prediction.leftEyeDirection ?? prediction.eyeDirection), -1, 1)
+		const rightEye = clamp(getFiniteDrumControl(prediction.rightEyeDirection ?? prediction.eyeDirection), -1, 1)
+		const leftEyeClosed = prediction.leftEyeClosed ?? (person ? !person.isLeftEyeOpen : false)
+		const rightEyeClosed = prediction.rightEyeClosed ?? (person ? !person.isRightEyeOpen : false)
+
+		return {
+			leftEyeLeft: Math.max(0, -leftEye),
+			leftEyeRight: Math.max(0, leftEye),
+			rightEyeLeft: Math.max(0, -rightEye),
+			rightEyeRight: Math.max(0, rightEye),
+			crossEyed: Math.abs(leftEye - rightEye) * 0.5,
+			leftEyeClosed,
+			rightEyeClosed,
+		}
+	}
+	const playNextEyeControlledDrumPart = (pattern, instrument, options, muted, triggerAt) => {
+		if (muted)
+		{
+			pattern.next()
+			return false
+		}
+		return playNextPart( pattern, instrument, options, triggerAt )
+	}
+	const createEyeControlledDrumTimbres = () => {
+		const person = personManager.getPerson(0)
+		const eyes = getPersonEyeDrumControls(person)
+		const snappy = eyes.leftEyeLeft
+		const roomy = eyes.leftEyeRight
+		const beef = eyes.rightEyeLeft
+		const tight = eyes.rightEyeRight
+		const chatter = eyes.crossEyed
+
+		const kick = Object.assign({}, kickTimbreOptions)
+		const snare = Object.assign({}, snareTimbreOptions)
+		const hat = Object.assign({}, hatTimbreOptions)
+
+		// Left eye sculpts snare length: left snaps, right blooms.
+		snare.length = scaleDrumValue(snare.length, 1 - snappy * 0.55 + roomy * 1.35, 0.035, 1.5)
+		snare.attack = scaleDrumValue(snare.attack, 1 - snappy * 0.9 + roomy * 1.5, 0.0002, 0.09)
+		snare.decay = scaleDrumValue(snare.decay, 1 - snappy * 0.65 + roomy * 1.15, 0.012, 0.6)
+		snare.highpassStart = scaleDrumValue(snare.highpassStart, 1 + snappy * 0.7 - roomy * 0.25, 250, 11000)
+		snare.highpassEnd = scaleDrumValue(snare.highpassEnd, 1 + snappy * 0.45 - roomy * 0.2, 120, 9000)
+		snare.bandpassEnd = scaleDrumValue(snare.bandpassEnd, 1 + snappy * 0.55 + chatter * 0.4, 500, 12000)
+		snare.triStart = scaleDrumValue(snare.triStart, 1 + snappy * 0.3 - roomy * 0.1, 30, 650)
+		snare.type = snappy > 0.65 ? "square" : snare.type
+
+		// Right eye sculpts the kick: left adds body, right tucks it in.
+		kick.length = scaleDrumValue(kick.length, 1 + beef * 1.2 - tight * 0.55, 0.035, 1.8)
+		kick.decay = scaleDrumValue(kick.decay, 1 + beef * 0.8 - tight * 0.45, 0.002, 0.16)
+		kick.sustain = shiftDrumValue(kick.sustain, beef * 0.22 - tight * 0.18, 0.05, 1.25)
+		kick.release = scaleDrumValue(kick.release, 1 + beef * 1.4 - tight * 0.65, 0.001, 1.4)
+		kick.sineSustain = scaleDrumValue(kick.sineSustain || kick.sineApex, 1 - beef * 0.35 + tight * 0.2, 18, 180)
+		kick.sineEnd = scaleDrumValue(kick.sineEnd, 1 - beef * 0.35 + tight * 0.45, 18, 120)
+		kick.triEnd = scaleDrumValue(kick.triEnd, 1 - beef * 0.25 + tight * 0.35, 20, 160)
+		kick.sineApex = scaleDrumValue(kick.sineApex, 1 + tight * 0.22, 35, 260)
+
+		// When the eyes disagree, let the hats fizz and chatter a little.
+		hat.length = scaleDrumValue(hat.length, 1 + roomy * 0.75 - tight * 0.35 + chatter * 0.5, 0.015, 0.7)
+		hat.release = scaleDrumValue(hat.release, 1 + roomy * 1.2 - tight * 0.45 + chatter * 0.8, 0.002, 0.2)
+		hat.decay = scaleDrumValue(hat.decay, 1 + chatter * 0.8, 0.002, 0.2)
+		hat.highpass = scaleDrumValue(hat.highpass, 1 + snappy * 0.25 + tight * 0.18 - beef * 0.22, 1500, 18000)
+		hat.bandpass = scaleDrumValue(hat.bandpass, 1 + snappy * 0.35 + chatter * 0.5, 2500, 22000)
+		hat.fundamental = scaleDrumValue(hat.fundamental, 1 + chatter * 0.7 - beef * 0.15, 20, 95)
+
+		return {
+			kick,
+			snare,
+			hat,
+			muteKick:eyes.rightEyeClosed,
+			muteSnare:eyes.leftEyeClosed,
+			muteHat:eyes.leftEyeClosed && eyes.rightEyeClosed,
+		}
+	}
+
 	const setRandomDrumTimbres = () => {
 		kickTimbreOptions = getRandomKickPreset()
 		snareTimbreOptions = getRandomSnarePreset()
@@ -719,10 +834,13 @@ export const createInterface = (
 	 * @param {Number} bpm Beats per minute
 	 * @returns {Number} New Tempo
 	 */
-	const setBPM = (bpm) => {
+	const setBPM = (bpm, save=true) => {
 		clock.BPM = bpm
-		stateMachine.set( 'bpm', bpm, selects.tempo )
-		setFeedback( `Tempo set to ${Math.ceil(bpm)} BPM (Period set at ${Math.ceil(clock.period)} ms between bars)`, 0, 'tempo' )
+		if (save)
+		{
+			stateMachine.set( 'bpm', bpm, selects.tempo )
+			setFeedback( `Tempo set to ${Math.ceil(bpm)} BPM (Period set at ${Math.ceil(clock.period)} ms between bars)`, 0, 'tempo' )
+		}
 		return clock.BPM
 	}
 
@@ -802,6 +920,8 @@ export const createInterface = (
 				photoSensitive:stateMachine.get('photoSensitive'),
 
 				tonic:stateMachine.get("key") ?? 0,
+				keyScale:stateMachine.get("keyScale"),
+				harmonyMode:stateMachine.get("harmonyMode"),
 				instrumentPack:stateMachine.get('instrumentPack'),
 
 				stereoPan:stateMachine.get('stereo'),
@@ -824,6 +944,7 @@ export const createInterface = (
 			personData
 		)
 		
+		person.setOptions(personOptions)
 		console.info("Person", person.storageKey, { personMeta, importedData, personData} )		
 	
 		// Events dispatched by Person :
@@ -2311,9 +2432,18 @@ export const createInterface = (
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
 				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
-				const kick = playNextPart( patterns.kick, kit.kick, kickTimbreOptions, triggerAt )
-				const snare = playNextPart( patterns.snare, kit.snare, snareTimbreOptions, triggerAt )
-				const hat = playNextPart( patterns.hat, kit.hat, hatTimbreOptions, triggerAt )
+				const eyeControlledTimbres = createEyeControlledDrumTimbres()
+				drumArranger?.setTempo(clock.BPM)
+				drumArranger?.setMutedParts({
+					kick: eyeControlledTimbres.muteKick,
+					snare: eyeControlledTimbres.muteSnare,
+					hat: eyeControlledTimbres.muteHat
+				})
+				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
+				if (parts.kick > 0) kit.kick({ ...eyeControlledTimbres.kick, velocity: parts.kick / 255, triggerAt })
+				if (parts.snare > 0) kit.snare({ ...eyeControlledTimbres.snare, velocity: parts.snare / 255, triggerAt })
+				if (parts.hat > 0) kit.hat({ ...eyeControlledTimbres.hat, velocity: parts.hat / 255, triggerAt })
+				if (parts.clap > 0) kit.clap({ velocity: parts.clap / 255, triggerAt })
 			}
 			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
@@ -2593,27 +2723,32 @@ export const createInterface = (
 			// NB. at this point we have access to the user events
 			// 		so can create things that depend on audio context
 			const initialBPM = stateMachine.get('bpm') ?? 90
+			const initialSwing = stateMachine.get('swing') ?? 0
 			clock = new AudioTimer( audioContext )
 			clock.BPM = initialBPM
+			clock.swing = initialSwing
 
 			// console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
+			const saveTimingState = () => {
+				stateMachine.set( 'bpm', clock.BPM )
+				stateMachine.set( 'swing', clock.swing )
+				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM, swing ${Math.round(clock.swing * 100)}%`, 0, 'tempo' )
+			}
 
 			// connect the tempo interface
-			setupTempoInterface(clock, null, null, timerChanged =>{
-				// console.log("tempo changed for gui",v, clock )
-				
-				// FIXME: This changes the URL, stripping the hash and causing
-				// the menu to then hide...
-				//stateMachine.set( 'bpm', clock.BPM )
+			tempoUI = setupTempoInterface(clock, null, null, timerChanged =>{
+				saveTimingState()
 			}, visible => {
+
+				console.info("toggling tempo ui ", visible, document.activeElement )
 				
-				console.info("toggling tempo ui ", visible )
+				// hide the UI and update the state
 				if (!visible){
-					stateMachine.set( 'bpm', clock.BPM )
+					saveTimingState()
 					stateMachine.removeHash()
 				}
 				
-				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM`, 0, 'tempo' )
+				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM, swing ${Math.round(clock.swing * 100)}%`, 0, 'tempo' )
 			})
 
 		}catch(error){
@@ -2686,6 +2821,10 @@ export const createInterface = (
 			const percussionAmp = getPercussionNode()
 			kit = createDrumkit( audioContext, percussionAmp )
 			patterns = getKitSequence()
+			drumArranger = createDrumArranger({
+				seed: "backing-track",
+				bpm: stateMachine.get('bpm') ?? 0
+			})
 			
 
 			// console.log("Streamin", {video, photo, camera} )
@@ -3429,6 +3568,38 @@ export const createInterface = (
 			//console.log("Loaded sounds",{instrumentPack, instrument}, personManager.getPerson(0).options.instrumentPack )
 		} )
 
+		const getSelectedKeyScaleLabel = () => selects.keyScale?.options[selects.keyScale.selectedIndex]?.textContent || stateMachine.get('keyScale')
+		const getSelectedKeyLabel = () => selects.key?.options[selects.key.selectedIndex]?.textContent || normaliseKeyName(stateMachine.get('key'))
+
+		selects.key = connectSelect( 'select-key', option => {
+			if (option.value === "free-range")
+			{
+				stateMachine.set( 'harmonyMode', "free-range" )
+				setFeedback( 'Free range enabled', 0 )
+				return
+			}
+
+			stateMachine.set( 'harmonyMode', "global-key" )
+			stateMachine.set( 'key', option.value, selects.key )
+			setFeedback( `Global key set to ${option.textContent} ${getSelectedKeyScaleLabel()}`, 0 )
+		} )
+		selects.key.value = stateMachine.get('harmonyMode') === "free-range" ?
+			"free-range" :
+			normaliseKeyName(getPitchClassForKey(stateMachine.get('key')))
+
+		selects.keyScale = connectSelect( 'select-key-scale', option => {
+			stateMachine.set( 'keyScale', option.value, selects.keyScale )
+			if (stateMachine.get('harmonyMode') === "free-range")
+			{
+				setFeedback( `Mode set to ${option.textContent}`, 0 )
+				return
+			}
+			stateMachine.set( 'harmonyMode', "global-key" )
+			setFeedback( `Global key set to ${getSelectedKeyLabel()} ${option.textContent}`, 0 )
+		} )
+		selects.keyScale.value = stateMachine.get('keyScale')
+		updateKeyScaleControlVisibility()
+
 		selects.palette = connectSelect( 'select-palette', option => {
 			const items = option.value.split(",")
 			const palette = convertOptionToObject(items)
@@ -3745,6 +3916,8 @@ export const createInterface = (
 			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, toggleBackgroundPercussion,
 		
 			midiPerformance,
+
+			cameraPan,
 
 			personManager,
 			isUserActive:()=>isUserActive,
