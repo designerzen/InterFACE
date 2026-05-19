@@ -1,5 +1,6 @@
 import { INSTRUMENT_TYPE_SOUNDFONT } from "../audio/instrument-list.js"
 import { TUNING_MODE_NAMES } from "../audio/tuning/scales.js"
+import { HARMONY_MODE_GLOBAL_KEY } from "../people/person.presets.js"
 import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments.js"
 import { DEFAULT_COLOURS } from "./palette.js"
 
@@ -30,6 +31,7 @@ export const DEFAULT_VOICE_OPTIONS = {
 export const DEFAULT_PERSON_OPTIONS = {
 	...DEFAULT_COLOURS,
 
+	// show notes on a stave rather than A4, B7 etc
 	musicTheory:false,
 
 	// Passed to the delay node
@@ -42,10 +44,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	stereoPan:true,
 
 	// use eyebrows to control pitch bending
-	pitchBend:true,
-
-	// saved BPM that can be shared
-	bpm:90,
+	pitchBend:false,
+	lpf:true,
 
 	// -1 means that the person index will be used to decide
 	inputMode:-1,
@@ -59,6 +59,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// musical for example F MAjorroot note
 	// F (C=0, CΓÖ»=1, D=2, DΓÖ»=3, E=4, F=5)
 	tonic:0,
+	keyScale:"MAJOR_SCALE",
+	harmonyMode:HARMONY_MODE_GLOBAL_KEY,
 
 	// add a dynamic comp
 	// limiter:true,
@@ -204,14 +206,14 @@ export const DEFAULT_CHILD_OPTIONS = {
 export const DEFAULT_PEOPLE_OPTIONS = [
 	{
 		...DEFAULT_PERSON_OPTIONS,
-		hue:Math.random() * 360
+		hue:72
 	},
 	// Bassline
 	{
 		...DEFAULT_PERSON_OPTIONS,
 		octaveLow:0,
 		octaveHigh:3,
-		hue:Math.random() * 360,
+		hue:72 * 2,
 		
 		// Here we bind which model variables is assigned to
 		// which audio selection mechanism.
@@ -239,13 +241,13 @@ export const DEFAULT_PEOPLE_OPTIONS = [
 		...DEFAULT_PERSON_OPTIONS,
 		octaveLow:4,
 		octaveHigh:8,
-		hue:Math.random() * 360
+		hue: 72 * 3
 	},
 	// Percussion - all octaves!
 	{
 		...DEFAULT_PERSON_OPTIONS,
 		octaveLow:0,
 		octaveHigh:8,
-		hue:Math.random() * 360
+		hue: 72 * 4
 	}
 ]

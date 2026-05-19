@@ -138,10 +138,11 @@ export class PersonManager extends EventTarget{
 	 */
 	configurePerson(person, personOptions, importedOptions){
 		const personData = person.exportData()
-		if (importedOptions && importedOptions.userMode && Number.isInteger(importedOptions.userMode) && importedOptions.userMode > -1 )
+		const importedUserMode = Number.parseInt(importedOptions?.userMode, 10)
+		if (Number.isInteger(importedUserMode) && importedUserMode > -1 )
 		{
 			console.info("@@@ Configuring person with URL data", {person, personData, personOptions, importedOptions} )
-			configurePersonByOperatingMode( person, importedOptions.userMode )
+			configurePersonByOperatingMode( person, importedUserMode )
 		}else{
 			console.info("@@@ Configuring person by index", {person, personData, personOptions, importedOptions} )
 			configurePersonByIndex( person, this.people )		
@@ -250,7 +251,7 @@ export class PersonManager extends EventTarget{
 	 * @param {Number} value Value to set the variable to
 	 */
 	setPlayerOption(option, value) {
-		this.people.forEach( player => player.options[option] = value)
+		this.people.forEach( player => player.setOptions({ [option]:value }))
 	}
 
 	/**
@@ -263,7 +264,7 @@ export class PersonManager extends EventTarget{
 		this.people.forEach( (player, index) => {
 			// if unique is set, it means different per person
 			const p = unique ? values[index] : values
-			player.options = { ...player.options, ...p }
+			player.setOptions(p)
 			//console.log("settings player.options", {p,unique}, {result:player.options} 
 		})
 	}

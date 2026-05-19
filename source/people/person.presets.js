@@ -1,5 +1,8 @@
-import { SCALE_LIBRARY } from "../audio/tuning/keys.js"
+import { SCALE_LIBRARY, getKeyScaleNotes } from "../audio/tuning/keys.js"
 import { NOTES_BLACK, NOTES_WHITE, NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS, NOTES_CIRCLE_OF_FIFTHS_SHARPS } from "../audio/tuning/notes.js"
+
+export const HARMONY_MODE_GLOBAL_KEY = "global-key"
+export const HARMONY_MODE_FREE_RANGE = "free-range"
 
 // varieties of users (tie them into PlayerNumbers)
 export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 0
@@ -41,6 +44,29 @@ export const PERSON_TYPE_DATA = [
 	}
 ]
 
+export const normalisePersonOperatingMode = (operatingMode=0) => {
+	const parsedMode = Number.parseInt(operatingMode, 10)
+	const safeMode = Number.isFinite(parsedMode) ? parsedMode : 0
+	return ((safeMode % PERSON_TYPE_DATA.length) + PERSON_TYPE_DATA.length) % PERSON_TYPE_DATA.length
+}
+
+export const configurePersonKey = (person) => {
+	if (person.options?.harmonyMode !== HARMONY_MODE_GLOBAL_KEY)
+	{
+		return
+	}
+	const cacheKey = `${person.options.tonic}|${person.options.keyScale}`
+	if (person.harmonyKeyCacheKey === cacheKey)
+	{
+		return
+	}
+	const keyNotes = getKeyScaleNotes(person.options.tonic, person.options.keyScale)
+	person.leftFacingKeys = keyNotes
+	person.rightFacingKeys = keyNotes
+	person.quantityOfPlayableNotes = keyNotes.length
+	person.harmonyKeyCacheKey = cacheKey
+}
+
 /**
  * Configure a Person to act in a certain way.
  * This doesn't affect the control mechanism, only
@@ -51,7 +77,7 @@ export const PERSON_TYPE_DATA = [
  */
 export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 	
-	operatingMode %= PERSON_TYPE_DATA.length
+	operatingMode = normalisePersonOperatingMode(operatingMode)
 	person.userMode = operatingMode
 
 	const data = PERSON_TYPE_DATA[operatingMode]
@@ -63,6 +89,8 @@ export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 
 	person.leftFacingKeys = data.leftFacingKeys
 	person.rightFacingKeys = data.rightFacingKeys
+	person.harmonyKeyCacheKey = null
+	configurePersonKey(person)
 	if (person.activeInstrument) {
 		person.activeInstrument.arpeggiate = data.arpeggiate
 	}

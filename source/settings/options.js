@@ -10,6 +10,7 @@ import { TUNING_MODE_IONIAN, TUNING_MODE_NAMES } from '../audio/tuning/scales.js
 import { INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-list.js'
 import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
 import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
+import { HARMONY_MODE_GLOBAL_KEY } from '../people/person.presets.js'
 
 const isDevelopmentMode = !isProductionBuild()
 
@@ -179,6 +180,10 @@ export const DEFAULT_OPTIONS = {
 	// show the statistics panel overlay!
 	stats:isDevelopmentMode,
 
+	// saved BPM that can be shared
+	bpm:90,
+	swing:0,
+
 	// cancel audio playback (not midi)
 	muted:false,
 
@@ -271,6 +276,8 @@ export const DEFAULT_OPTIONS = {
 
 	// musical key such as F sharp
 	key:0,
+	keyScale:"MAJOR_SCALE",
+	harmonyMode:HARMONY_MODE_GLOBAL_KEY,
 
 	// global mode that get's passed into person too
 	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false

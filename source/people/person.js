@@ -97,7 +97,9 @@ import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
 import { getCleff, NOTATION, STAVE_SIZES } from '../audio/notation.js'
 import { 
+	configurePersonKey,
 	configurePersonByOperatingMode,
+	normalisePersonOperatingMode,
 	PERSON_TYPE_ARPEGGIO, 
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
 	PERSON_TYPE_CHROMATIC, 
@@ -301,6 +303,7 @@ export default class Person extends EventTarget{
 	// optional fx
 	stereoNode
 	delayNode
+	lpf				// low pass filter
 	eyeBrowsNode	// highpass filter
 	noseNode		// compressor
 
@@ -314,11 +317,12 @@ export default class Person extends EventTarget{
 	controlMode = convertHeadOrientationIntoNoteData
 
 	abortController 
+	cancelController
 
 	personalProgress
 	
 	get userMode(){
-		return this.#userMode % PERSON_TYPE_DATA.length
+		return normalisePersonOperatingMode(this.#userMode)
 	}
 	
 	get userModeData(){
@@ -667,9 +671,32 @@ export default class Person extends EventTarget{
 	 * Change the User Operating Mode
 	 */
 	set userMode( mode ){
-		this.#userMode = mode
-		this.options.inputMode = mode
-		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode, person:this} )
+		const normalisedMode = normalisePersonOperatingMode(mode)
+		this.#userMode = normalisedMode
+		this.options.inputMode = normalisedMode
+		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode:normalisedMode, person:this} )
+	}
+
+	setOptions(options={}){
+		const harmonyUnchanged = (
+			!Object.prototype.hasOwnProperty.call(options, "tonic") || options.tonic === this.options.tonic
+		) && (
+			!Object.prototype.hasOwnProperty.call(options, "keyScale") || options.keyScale === this.options.keyScale
+		) && (
+			!Object.prototype.hasOwnProperty.call(options, "harmonyMode") || options.harmonyMode === this.options.harmonyMode
+		)
+		this.options = { ...this.options, ...options }
+		if (harmonyUnchanged)
+		{
+			return this.options
+		}
+		if (Object.prototype.hasOwnProperty.call(options, "harmonyMode") && options.harmonyMode !== "global-key")
+		{
+			configurePersonByOperatingMode(this, this.userMode)
+		}else{
+			configurePersonKey(this)
+		}
+		return this.options
 	}
 
 	/**
@@ -751,6 +778,7 @@ export default class Person extends EventTarget{
 		
 		this.button = this.personControls.querySelector(".face-button")
 		this.buttonChangeOperatingMode = this.personControls.querySelector(".thoughts-button")
+		this.buttonChangeInput = this.personControls.querySelector(".emoji-button")
 
 		if (this.button)
 		{
@@ -761,6 +789,7 @@ export default class Person extends EventTarget{
 			this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
 			this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
 			this.onOperatingModeChangeRequested = this.onOperatingModeChangeRequested.bind(this)
+			this.onInputTypeChangeRequested = this.onInputTypeChangeRequested.bind(this)
 
 			// Face button events
 			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )
@@ -779,6 +808,7 @@ export default class Person extends EventTarget{
 
 
 			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
+			this.buttonChangeInput.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
 			this.instrumentLoadedAt = this.now
 		
 		}else{
@@ -825,7 +855,14 @@ export default class Person extends EventTarget{
 
 			this.stereoNode.pan.cancelScheduledValues( audioContext.currentTime )
 			// by specifying a time in the past it will happen immeditely
-			this.stereoNode.pan.setValueAtTime( 0,  audioContext.currentTime )
+			this.stereoNode.pan.setValueAtTime( 0, audioContext.currentTime )
+		}
+
+		if (this.lpf)
+		{
+			const audioContext = this.lpf.context
+			this.lpf.frequency.cancelScheduledValues(audioContext.currentTime)
+			this.lpf.Q.cancelScheduledValues(audioContext.currentTime) // resonance (typical 0.1–20)
 		}
 	}
 
@@ -838,6 +875,12 @@ export default class Person extends EventTarget{
 		this.abortController.abort()
 		this.abortController = null
 		
+		if (this.cancelController)
+		{
+			this.cancelController.abort()
+			this.cancelController = null
+		}
+
 		this.emojiDetector = null
 		
 		// allow us to record the performances (not the audio)
@@ -919,7 +962,9 @@ export default class Person extends EventTarget{
 	update(prediction, timeNow, forceRefresh=false){
 		
 		const boundingBox = prediction.box
-		
+		const currentTime = this.audioContext.currentTime
+		const nyquist = this.audioContext.sampleRate * 0.5
+
 		this.counter++
 		this.box = prediction.box
 
@@ -971,9 +1016,19 @@ export default class Person extends EventTarget{
 			this.stereoNode.pan.value = prediction[this.options.stereoController] * -1
 		}
 
+		// pitch bend here should be updated to also represent 
 		if (this.options.pitchBend && this.pitchBendValue && this.activeInstrument)
 		{
 			//this.activeInstrument.pitchBend( this.pitchBendValue )
+		}
+
+		// the other types of eyebrow filtering...
+		// mainly LPF
+		if (this.options.lpf)
+		{
+			const cutoffHz = Math.min( this.pitchBendValue * 20000, nyquist) // clamp to audible/Nyquist limits
+			this.lpf.frequency.setValueAtTime(nyquist, currentTime)
+			this.lpf.Q.setValueAtTime( this.pitchBendValue * 2, currentTime ) // resonance (typical 0.1–20)
 		}
 		
 
@@ -1544,6 +1599,7 @@ export default class Person extends EventTarget{
 	 * This is responsible for converting the Face Model into 
 	 * a musical model that we than pass to our Audio Factory
 	 * Triggered on every metronome strike
+	 * NB. the actual audio generation is not part of this class and happens externally
 	 */
 	sing(){
 
@@ -2155,6 +2211,9 @@ export default class Person extends EventTarget{
 		// bound by the MIDI_NOTE_NUMBERS which 
 		this.arpeggio = new Arpeggio( MIDI_NOTE_NUMBERS, MAJOR_CHORD_INTERVALS, 0 )
 
+		// compute Nyquist and choose cutoff safely
+		const nyquist = audioContext.sampleRate * 0.5
+		
 		// this is where all this user's audio is routed
 		this.outputNode = this.gainNode
 
@@ -2216,6 +2275,16 @@ export default class Person extends EventTarget{
 			//console.log("stereoNode", this.stereoNode.pan.value )
 		}
 
+		if (this.options.lpf)
+		{
+			const cutoffHz = Math.min(20000, nyquist) // clamp to audible/Nyquist limits
+			this.lpf = audioContext.createBiquadFilter()
+			this.lpf.type = 'lowpass'
+			this.lpf.frequency.setValueAtTime(nyquist, audioContext.currentTime)
+			this.lpf.Q.setValueAtTime(1, audioContext.currentTime) // resonance (typical 0.1–20)
+			console.log("lpf",cutoffHz)
+		}
+
 		if (this.options.drawNose)
 		{
 			this.noseNode = audioContext.createDynamicsCompressor()
@@ -2230,6 +2299,7 @@ export default class Person extends EventTarget{
 
 		if (this.options.drawEyebrows)
 		{
+			// 
 			this.eyeBrowsNode = audioContext.createDynamicsCompressor()
 			// this.noseNode.threshold.value = -100
 			// this.noseNode.knee.value = 40
@@ -2462,7 +2532,44 @@ export default class Person extends EventTarget{
 	onOperatingModeChangeRequested(){
 		this.userMode++
 		configurePersonByOperatingMode( this, this.userMode )
-		console.info("operating mode updated", this.userMode, this )
+		
+		if (this.cancelController)
+		{
+			this.cancelController.abort()
+		}
+		this.cancelController = new AbortController()
+		document.addEventListener('pointerup',this.onOperatingModeDetermined, {once:true, signal:this.cancelController.signal })
+		document.addEventListener('pointercancel', this.onOperatingModeDetermined, {once:true, signal:this.cancelController.signal })
+		console.info("onOperatingModeDetermined operating mode requested", this.userMode, this )
+
+	}
+
+	onOperatingModeDetermined(event){
+		console.info("onOperatingModeDetermined operating mode updated", this.userMode, this )
+
+	}
+
+	onInputTypeChangeRequested(){
+		// TODO: Emoji was pressed
+		// This should change the 
+		this.userMode++
+		configurePersonByOperatingMode( this, this.userMode )
+			
+		if (this.cancelController)
+		{
+			this.cancelController.abort()
+		}
+		this.cancelController = new AbortController()
+		document.addEventListener('pointerup',this.onInputTypeDetermined, {once:true, signal:this.cancelController.signal })
+		document.addEventListener('pointercancel', this.onInputTypeDetermined, {once:true, signal:this.cancelController.signal })
+		
+		console.info("onInputTypeDetermined person type update requested", this.userMode, this )
+	}
+
+
+	onInputTypeDetermined(){
+		console.info("onInputTypeDetermined person type updated", this.userMode, this )
+			
 	}
 
 	onInstrumentInput(event) {
