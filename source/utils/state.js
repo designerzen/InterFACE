@@ -122,8 +122,7 @@ export const setElementCheckState = (element, value) => {
 			{
 				element.selectedIndex = value
 			}else{
-				// FIXME: Find option with this value
-				element.setAttribute("selectedIndex ", value)
+				element.value = value
 			}
 			
 			break
