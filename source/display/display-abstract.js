@@ -319,10 +319,15 @@ export default class AbstractDisplay{
      * @returns 
      */	
 	setSize(width, height){	
+		if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
+		{
+			return false
+		}
 		this.canvas.width = this.canvasWidth = width
 		this.canvas.height = this.canvasHeight = height
 		
 		this.onResize(width, height)
+		return true
 	}
 	
     /**

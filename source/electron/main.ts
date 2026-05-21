@@ -10,7 +10,6 @@ import electron from 'electron'
 import { app, BrowserWindow, Tray, Menu, nativeTheme, nativeImage, desktopCapturer, session, dialog, protocol, shell, ipcMain, systemPreferences } from 'electron'
 
 import { autoUpdater } from "electron-updater"
-import { nativeImage } from 'electron/common'
 
 import log from 'electron-log'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
@@ -41,6 +40,8 @@ const APP_ROOT = path.resolve( __dirname, isDevelopment ?  "../../dist-electron/
 // and ./electron/resources/preload.js for the test build
 const PRELOADER_PATH = path.join(APP_ROOT, 'preload.js' )
 const LINUX_ICON = path.join(APP_ROOT,`../../icons/icon-512.webp`)
+const PICADE_MAX_VENDOR_ID = 0x2e8a
+const PICADE_MAX_PRODUCT_ID = 0x1098
 
 let mainWindow:BrowserWindow|null = null
 
@@ -198,7 +199,7 @@ function createWindow() {
 
 	// MIDI Permissions - alow immediately if possible!
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
-		if (permission === 'midi' || permission === 'midiSysex') 
+		if (permission === 'midi' || permission === 'midiSysex' || permission === 'serial') 
 		{
 		  	callback(true)
 		} else {
@@ -207,11 +208,47 @@ function createWindow() {
 	})
 	  
 	mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
-		if (permission === 'midi' || permission === 'midiSysex') 
+		if (permission === 'midi' || permission === 'midiSysex' || permission === 'serial') 
 		{
 		  	return true
 		}
 		return false
+	})
+
+	mainWindow.webContents.session.setDevicePermissionHandler((details) => {
+		if (details.deviceType !== 'serial') {
+			return false
+		}
+
+		const device = details.device
+		if (!device) {
+			return false
+		}
+
+		return device.vendorId === PICADE_MAX_VENDOR_ID && device.productId === PICADE_MAX_PRODUCT_ID
+	})
+
+	mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
+		event.preventDefault()
+
+		const picadePort = portList.find((port: any) =>
+			port.vendorId === PICADE_MAX_VENDOR_ID && port.productId === PICADE_MAX_PRODUCT_ID
+		)
+
+		if (picadePort) {
+			log.info(`Auto-selecting Picade Max serial device ${picadePort.portId}`)
+			callback(picadePort.portId)
+			return
+		}
+
+		if (portList.length === 1) {
+			log.info(`Auto-selecting sole serial device ${portList[0].portId}`)
+			callback(portList[0].portId)
+			return
+		}
+
+		log.warn(`No matching Picade Max serial device found. ${portList.length} serial ports available.`)
+		callback('')
 	})
 
 	// From https://github.com/electron/electron/pull/573

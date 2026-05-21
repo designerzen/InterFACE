@@ -408,7 +408,8 @@ label[for="button-quartet"],
 }
 
 #toggle-advanced-mode{
-	
+	margin-left: auto;
+	margin-right:auto;
 }
 
 #advanced-mode-feedback{
@@ -418,8 +419,8 @@ label[for="button-quartet"],
 
 	p{
 		font-size: 60%;
+		text-align: center;
 	}
-
 	
 	> * {
 		grid-area:1/-1;
@@ -453,6 +454,7 @@ label[for="toggle-advanced-mode"]{
 	// align-self: center;
 	// vertical-align: middle;
 	display: inline-block;
+	
 	// margin:auto ;
 	// max-width: none;
 	// color:transparent;

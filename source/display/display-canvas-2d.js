@@ -504,6 +504,10 @@ export default class Display2D extends AbstractDisplay{
 	overdraw( offsetX=0, offsetY=-1) {
 		
 		// ctx.clearRect(0, 0, width, height);
+		if (!this.canvas || this.canvas.width <= 0 || this.canvas.height <= 0)
+		{
+			return false
+		}
 		
 		//this.canvasContext.translate(0, -1)
 		this.canvasContext.drawImage( this.canvas, offsetX, offsetY )
@@ -511,6 +515,7 @@ export default class Display2D extends AbstractDisplay{
 		// 	this.canvasContext.drawImage(img, i * img.width, 0);
 		// }
 		// 
+		return true
 	}
 
 	/**
@@ -529,6 +534,10 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Object} options 
 	 */
 	postProcess( options ){
+		if (!this.canvas || this.canvas.width <= 0 || this.canvas.height <= 0)
+		{
+			return false
+		}
 		if (options.filterIndex && options.filterIndex !== this.filterIndex)
 		{
 			this.filterIndex = options.filterIndex % (FILTER_LIBRARY.length-1)
@@ -538,5 +547,6 @@ export default class Display2D extends AbstractDisplay{
 		// use this filter
 		this.overdraw( options.offsetX ?? 0, options.offsetY ?? 0 )
 		this.canvasContext.restore()
+		return true
 	}
 }

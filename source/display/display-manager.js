@@ -6,12 +6,12 @@
  * 
  * The WebXR version has an extra holographic mode too
  */
-// 
-// import { howManyHolographicDisplaysAreConnected } from '../hardware/looking-glass-portrait.js'
+
+
 import { DISPLAY_TYPES } from './display-types.js'
 
 const isWebGLAvailable = () => {
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement('canvas')
   try {
     return !!(
       window.WebGLRenderingContext && 
@@ -22,6 +22,70 @@ const isWebGLAvailable = () => {
   }
 }
 
+/**
+ * Lazily loaded Display Classes
+ */
+const displayClassLoaders = {
+	[DISPLAY_TYPES.DISPLAY_CANVAS_2D]: async () => {
+		const { default:DisplayCanvas2D } = await import('./display-canvas-2d.js')
+		return {default:DisplayCanvas2D}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D]: async () => {
+		const { default:DisplayMediaPipe2D } = await import('./display-mediapipe-2d.js')
+		return {default:DisplayMediaPipe2D}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_COMPOSITE]: async () => {
+		const { default:DisplayComposite } = await import('./display-composite.js')
+		return {default:DisplayComposite}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D]: async () => {
+		const { default:DisplayMediaVision2D } = await import('./display-mediavision-2d.js')
+		return {default:DisplayMediaVision2D}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_WEB_GL_3D]: async () => {
+		const { default:DisplayWebGL3D } = await import( './display-webgl-3d-direct.js')
+		return {default:DisplayWebGL3D}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_WEB_GPU_3D]: async () => {
+		const { default:DisplayWebGPU } = await import('./display-webgpu-direct.js')
+		return {default:DisplayWebGPU}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_BABYLON_3D]: async () => {
+		const { default:DisplayBabylon3D } = await import('./display-babylon-3d.js')
+		return {default:DisplayBabylon3D}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE]: async () => {
+		const { default:DisplayThreeWebGPUParticle } = await import('./display-three-webgpu-particle.js')
+		return {default:DisplayThreeWebGPUParticle}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D]: async () => {
+		const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass } = await import( './display-looking-glass-3d.js')
+		return {
+			default:DisplayLookingGlass3D,
+			before:requiredXRSetupForLookingGlass
+		}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU]: async () => {
+		const { default:DisplayLookingGlassWebGPU } = await import('./display-looking-glass-webgpu.js')
+		return {default:DisplayLookingGlassWebGPU}
+	},
+
+	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: async () => {
+		const { default:DisplayLookingGlassWebGPUTSL } = await import('./display-looking-glass-3d-webgpu-tsl.js')
+		return {default:DisplayLookingGlassWebGPUTSL}
+	}
+}
+
+const displayClassPromises = new Map()
 
 /**
  * Lazy load in a Display Class and its deps
@@ -31,61 +95,22 @@ const isWebGLAvailable = () => {
 export const loadDisplayClass = async( type ) => {
 	
 	try{
-	switch(type)
-	{
-		// FIXME: Face detection has dependency clash
-		// case DISPLAY_CANVAS_2D: 
-		// 	const {Display2D} = await import('./display-canvas-2d.js')
-		// 	return Display2D
-		case DISPLAY_TYPES.DISPLAY_CANVAS_2D:
-			const { default:DisplayCanvas2D} = await import('./display-canvas-2d.js')
-			return {default:DisplayCanvas2D}
+		const loader = displayClassLoaders[type]
+		if (!loader)
+		{
+			throw Error("Display type "+type+" is not supported")
+		}
 
-		case DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D: 
-			const { default:DisplayMediaPipe2D} = await import('./display-mediapipe-2d.js')
-			return {default:DisplayMediaPipe2D}
+		if (!displayClassPromises.has(type))
+		{
+			displayClassPromises.set(type, loader())
+		}
 
-		case DISPLAY_TYPES.DISPLAY_COMPOSITE: 
-			const { default:DisplayComposite} = await import('./display-composite.js')
-			return {default:DisplayComposite}
-
-		case DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D: 
-			const { default:DisplayMediaVision2D} = await import('./display-mediavision-2d.js')
-			return {default:DisplayMediaVision2D}
-
-		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D: 
-			const { default:DisplayWebGL3D } = await import( './display-webgl-3d-direct.js')
-			return {default:DisplayWebGL3D}
-
-		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
-			const { default:DisplayWebGPU } = await import('./display-webgpu-direct.js')
-			return {default:DisplayWebGPU}
-
-		case DISPLAY_TYPES.DISPLAY_BABYLON_3D:
-			const { default:DisplayBabylon3D } = await import('./display-babylon-3d.js')
-			return {default:DisplayBabylon3D}
-
-		case DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE:
-			const { default:DisplayThreeWebGPUParticle } = await import('./display-three-webgpu-particle.js')
-			return {default:DisplayThreeWebGPUParticle}
-
-		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D: 
-			const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass } = await import( './display-looking-glass-3d.js')
-			return {
-				default:DisplayLookingGlass3D, 
-				before:requiredXRSetupForLookingGlass
-			}
-
-		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU:
-			const { default:DisplayLookingGlassWebGPU } = await import('./display-looking-glass-webgpu.js')
-			return {default:DisplayLookingGlassWebGPU}
-
-		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL:
-			const { default:DisplayLookingGlassWebGPUTSL } = await import('./display-looking-glass-3d-webgpu-tsl.js')
-			return {default:DisplayLookingGlassWebGPUTSL}
+		return await displayClassPromises.get(type)
 	}
-	}catch( error ){
+	catch( error ){
 		console.error("Couldn't load Display Library", error)
+		displayClassPromises.delete(type)
 	}
 }
 
@@ -101,41 +126,16 @@ export const createDisplay = async (canvasElement, displayType, options={} ) => 
 	console.info("DISPLAY:Creating new",displayType,"on", canvasElement, {options}) 
 		
 	canvasElement.setAttribute( "data-display-type",displayType )
-	switch(displayType)
-	{
-		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D:
-			// NB. Make sure you set this to a WEB_GL context!
-			const {default:DisplayWebGL3D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_WEB_GL_3D )
-			const displayWebGL3D = new DisplayWebGL3D( canvasElement, canvasElement.width, canvasElement.height, options )
-			// console.info("DISPLAY_WEB_GL_3D LOADING", displayWebGL3D)
-			await displayWebGL3D.loading
-			return displayWebGL3D
+	const {default:DisplayClass, before} = await loadDisplayClass( displayType )
+	const display = new DisplayClass(
+		canvasElement,
+		canvasElement.width,
+		canvasElement.height,
+		before ? {...options, lookingGlassWebXR:before } : options
+	)
 
-		case DISPLAY_TYPES.DISPLAY_COMPOSITE:
-			// Allows mulltiple displays to be simultaneously powered!
-			const {default:DisplayComposite} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_COMPOSITE )
-			const displayComposite = new DisplayComposite( canvasElement, canvasElement.width, canvasElement.height, options )
-			// display.addDisplay(displayMediaVision2D)
-			// return await loadDisplay( DISPLAY_COMPOSITE )
-			return displayComposite
-
-		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D:
-			// Looking Glass Portrait hardware
-			// const {default:DisplayLookingGlass3D, before} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
-			const {default:DisplayLookingGlass3D, before } = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D )
-			const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:before } )
-			// const displayLookingGlass3D = new DisplayLookingGlass3D( canvasElement, canvasElement.width, canvasElement.height, {...options, lookingGlassWebXR:before} )
-			await displayLookingGlass3D.loading
-			return displayLookingGlass3D
-
-		case DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D:
-		default:
-			// Media Vision ML Model and Canvas 2Ds
-			const {default:DisplayMediaVision2D} = await loadDisplayClass( DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D )
-			const displayMediaVision2D = new DisplayMediaVision2D( canvasElement, canvasElement.width, canvasElement.height, options )
-			await displayMediaVision2D.loading
-			return displayMediaVision2D
-	}
+	await display.loading
+	return display
 }
 
 /**
@@ -182,7 +182,7 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	// remove existing canvas 
 	canvasElement.remove()
 
-	console.info("DISPLAY:restartCanvas", {canvasElement, newCanvasElement, parent})
+	console.info("DISPLAY:RestartCanvas", {canvasElement, newCanvasElement, parent})
 	
 	// kill to prevent side effects
 	canvasElement = null
@@ -190,6 +190,11 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	return newCanvasElement
 } 
 
+/**
+ * Get all available displays
+ * @param {Boolean} hasHolographicDisplayConnected 
+ * @returns 
+ */
 export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
 	// Default always available display
 	const availableDisplays = [
@@ -227,7 +232,7 @@ export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => 
  * screen sizes and capabilities and return displays
  * that are available for this device
  * 
- * @returns 
+ * @returns {Object} - suggested and available
  */
 export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
 	
@@ -305,20 +310,26 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 	return display
 }
 
-
+/**
+ * 
+ */
 export default class DisplayManager{
 
 	#display
 	#canvas
-	type
+	#type
 
 	get display(){
 		return this.#display
 	}
 
+	get type(){
+		return this.#type
+	}
+
 	constructor( canvasVideoElement, initialDisplayType ){
 		this.#canvas = canvasVideoElement
-		this.type = initialDisplayType
+		this.#type = initialDisplayType
 	}
 
 	listAvailable(){
@@ -329,6 +340,9 @@ export default class DisplayManager{
 		return await createDisplay( this.#canvas, displayType, options )
 	}
 
+	/**
+	 * Switch this canvas to this Display
+	 */
 	async switchTo( displayType, renderLoop, options={}){
 
 		// display type may be a string or an object
@@ -370,7 +384,7 @@ export default class DisplayManager{
 
 		this.#display = display
 		this.#canvas = newCanvasElement
-		this.type = displayType
+		this.#type = displayType
 
 		return display
 	}

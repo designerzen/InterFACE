@@ -208,7 +208,8 @@
 
 // make an element white
 %filter-icon{
-	filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%);
+	// white with a black shadow
+	filter: invert(90%) sepia(10%) saturate(395%) hue-rotate(324deg) brightness(105%) contrast(81%) drop-shadow(black calc(var(--shadow-offset-x, 0) * 1px) calc(var(--shadow-offset-y, 0) * 1px) 0px);
 	// slight opacity makes icon blend better
 	opacity:0.9;
 }
@@ -242,7 +243,6 @@
 	
 	// make sure that any "content" is hidden
 	font-size: inherit;
-
 
 	// This one should break but assumes that --bg is ZERO
 	// width: max(

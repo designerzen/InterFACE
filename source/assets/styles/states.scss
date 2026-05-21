@@ -167,7 +167,7 @@
 // We want to copy the video frame so we do not 
 // need to also show it
 .flag-clear,
-.flag-synch{
+main:not(.flag-synch){
 	#webcam{
 		display: none;
 	}
@@ -466,6 +466,20 @@ main:not(.flag-overlays){
 			z-index: 3;
 		}
 
+		#photosynth-canvas{
+			z-index: 1;
+		}
+
+		#photosynth-sandwich{
+			display: none;
+		}
+
+		#photosynth-overlay{
+			z-index: 2;
+			pointer-events: none;
+			background: transparent;
+		}
+
 		#control-panel{
 			
 			// @media (orientation: portrait) {
@@ -485,10 +499,16 @@ main:not(.flag-overlays){
 		}
 	}
 	
-	// #app-frame video,
 	#app-frame canvas{
 		display: block;
 		visibility: visible;
+	}
+
+	&.flag-synch{
+		#app-frame video{
+			display: block;
+			visibility: visible;
+		}
 	}
 
 	#foot{
