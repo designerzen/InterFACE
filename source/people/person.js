@@ -161,6 +161,20 @@ const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 	return `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
 }
 
+const setBooleanViaMouseEntry = (element, flag, abortController ) => {
+	element.addEventListener( 'pointerenter', event => {
+		flag = true
+	}, {signal:abortController.signal})
+
+	element.addEventListener( 'pointerleave', event => {
+		flag = true
+	}, {signal:abortController.signal})
+
+	element.addEventListener( 'pointercancel', event => {
+		flag = true
+	}, {signal:abortController.signal})
+}
+
 export default class Person extends EventTarget{
 
 	id
@@ -284,6 +298,9 @@ export default class Person extends EventTarget{
 	pointerDownAt = -1
 	mouseHeldAt = -1
 	inputCoordinates = { x:0, y:0 }
+
+	isUserSelectingMode = false
+	isUserSelectingInputType = false
 
 	leftEyeClosedAt = -1
 	rightEyeClosedAt = -1
@@ -785,30 +802,24 @@ export default class Person extends EventTarget{
 			// make sure it is visible!
 			this.personControls.hidden = false
 			
-			// force scope
+			// force scopes
 			this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
 			this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
 			this.onOperatingModeChangeRequested = this.onOperatingModeChangeRequested.bind(this)
 			this.onInputTypeChangeRequested = this.onInputTypeChangeRequested.bind(this)
+			this.onOperatingModeDetermined = this.onOperatingModeDetermined.bind(this)
+			this.onInputTypeDetermined = this.onInputTypeDetermined.bind(this)
 
 			// Face button events
-			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )
-
-			this.button.addEventListener( 'pointerenter', event => {
-				this.isMouseOver = true
-			}, {signal:this.abortController.signal})
-
-			this.button.addEventListener( 'pointerleave', event => {
-				this.isMouseOver = false
-			}, {signal:this.abortController.signal})
-
-			this.button.addEventListener( 'pointercancel', event => {
-				this.isMouseOver = false
-			}, {signal:this.abortController.signal})
-
-
+			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )			
 			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
 			this.buttonChangeInput.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
+						
+			// set flags via mouse entering the buttons which changes graphics
+			setBooleanViaMouseEntry( this.button, this.isMouseOver, this.abortController )
+			setBooleanViaMouseEntry( this.buttonChangeOperatingMode, this.isUserSelectingMode, this.abortController )
+			setBooleanViaMouseEntry( this.buttonChangeInput, this.isUserSelectingInputType, this.abortController )
+
 			this.instrumentLoadedAt = this.now
 		
 		}else{
@@ -924,7 +935,8 @@ export default class Person extends EventTarget{
 	}
 
 	/**
-	 * Always return a 0->1 value that 
+	 * Always return a 0->1 value that cycles through time
+	 * like an LFO
 	 * @param {number} rate 
 	 */
 	getPhase(rate=1){
@@ -1255,6 +1267,8 @@ export default class Person extends EventTarget{
 		const alpha = 
 			this.isMouseOver ? this.getPhase( 4 ) : 
 			this.isHighlighted ? this.getPhase( 3 ) : 
+			this.isUserSelectingMode ? this.getPhase( 2 ) : 
+			this.isUserSelectingInputType ? this.getPhase( 1 ) : 
 			this.isSelected ? 1 : 
 			0.1 * (1-this.percentageDead)
 		
@@ -2528,7 +2542,9 @@ export default class Person extends EventTarget{
 		this.showForm()
 	}
 
-	// the button above a user head was pressed
+	/**
+	 * Empoji button above a user head was pressed
+	 */
 	onOperatingModeChangeRequested(){
 		this.userMode++
 		configurePersonByOperatingMode( this, this.userMode )
@@ -2541,14 +2557,19 @@ export default class Person extends EventTarget{
 		document.addEventListener('pointerup',this.onOperatingModeDetermined, {once:true, signal:this.cancelController.signal })
 		document.addEventListener('pointercancel', this.onOperatingModeDetermined, {once:true, signal:this.cancelController.signal })
 		console.info("onOperatingModeDetermined operating mode requested", this.userMode, this )
-
 	}
 
 	onOperatingModeDetermined(event){
 		console.info("onOperatingModeDetermined operating mode updated", this.userMode, this )
-
+		this.cancelController.abort()
+		document.removeEventListener('pointerup',this.onOperatingModeDetermined )
+		document.removeEventListener('pointercancel', this.onOperatingModeDetermined )
+		this.cancelController = null
 	}
 
+	/**
+	 * Text above Emoji was pressed
+	 */
 	onInputTypeChangeRequested(){
 		// TODO: Emoji was pressed
 		// This should change the 
@@ -2563,13 +2584,15 @@ export default class Person extends EventTarget{
 		document.addEventListener('pointerup',this.onInputTypeDetermined, {once:true, signal:this.cancelController.signal })
 		document.addEventListener('pointercancel', this.onInputTypeDetermined, {once:true, signal:this.cancelController.signal })
 		
-		console.info("onInputTypeDetermined person type update requested", this.userMode, this )
+		console.info("onInputTypeDetermined person type updating", this.userMode, this )
 	}
-
 
 	onInputTypeDetermined(){
 		console.info("onInputTypeDetermined person type updated", this.userMode, this )
-			
+		this.cancelController.abort()
+		document.removeEventListener('pointerup',this.onInputTypeDetermined )
+		document.removeEventListener('pointercancel', this.onInputTypeDetermined )
+		this.cancelController = null
 	}
 
 	onInstrumentInput(event) {

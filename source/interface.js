@@ -125,6 +125,7 @@ import { fetchBrandColor } from './settings/palette.js'
 // DISPLAYS
 import DisplayManager, { getDisplaysInformation } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
+import DisplayOverlay2d from './displays/DisplayOverlay2d.ts'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 
 // IO
@@ -280,6 +281,7 @@ export const createInterface = (
 	// canvas / GL adapters for front end
 	let display = null
 	let displayManager
+	let overlayDisplay = canvasOverlayElement ? new DisplayOverlay2d(canvasOverlayElement) : null
 	
 	// lazy loaded imports
 	let getInstruction, getHelp
@@ -1499,9 +1501,15 @@ export const createInterface = (
 	 * @param {Number} height 
 	 */
 	const resizeDisplay = (width,height) =>{
+		if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
+		{
+			return false
+		}
 		main.style.setProperty('--width', width )
 		main.style.setProperty('--height', height )
 		displayManager.setSize( width, height )
+		overlayDisplay?.setSize( width, height )
+		return true
 	}
 
 	/**
@@ -1520,8 +1528,6 @@ export const createInterface = (
 			resizeDisplay( videoStream.videoWidth, videoStream.videoHeight )
 			isLoading = false
 		}
-		// resize anyways for shits and giggles...
-		displayManager.setSize( videoStream.videoWidth, videoStream.videoHeight )
 		console.info("Video dropped by user", {file, video: videoStream, streamSource})	
 	}
 
@@ -1780,6 +1786,7 @@ export const createInterface = (
 		// no display so nothing visual to update!
 		// so we can have a black mirror mode
 		if (display){
+			overlayDisplay?.clearDirty()
 				
 			if (discoMode)
 			{	
@@ -1867,10 +1874,7 @@ export const createInterface = (
 		
 		// if (hasPredictions)
 		// {
-			const range = hasPredictions ? Math.max(predictions.length, personManager.quantityOfPlayers) : personManager.quantityOfPlayers			
 			const timeNow = clock.now
-			// FIXME: If there are fewer people than exist, 
-			// we also need to noteOff for every person
 
 			// console.log(predictions.length, "predictions", predictions)
 			// loop through all predictions...
@@ -1883,12 +1887,50 @@ export const createInterface = (
 			// from the order of model predictions
 			// so lets compare the two and tie each prediction 
 			const activePeople = personManager.getPeople()
+			const assignedPersonIndexes = new Set()
+
+			const getNearestAvailablePersonIndex = (boundingBox) => {
+				let nearestPersonIndex = -1
+				let distance = Number.MAX_VALUE
+				const x = boundingBox.xMin
+				const y = boundingBox.yMin
+
+				for (let index=0, l=activePeople.length; index<l; ++index)
+				{
+					if (assignedPersonIndexes.has(index))
+					{
+						continue
+					}
+
+					const person = activePeople[index]
+					const box = person?.boundingBox
+
+					if ( !box || person.x === -1 )
+					{
+						continue
+					}
+
+					const dx = x - person.x
+					const dy = y - person.y
+					const distanceSquared = dx*dx + dy*dy
+
+					if (distanceSquared < distance)
+					{
+						distance = distanceSquared
+						nearestPersonIndex = index
+					}
+				}
+
+				return nearestPersonIndex
+			}
+
+			const getFirstAvailablePersonIndex = () => activePeople.findIndex( (person, index) => person && !assignedPersonIndexes.has(index) )
 
 			// to the person that was nearest in the last prediction
-			for (let i=0, l=range; i < l; ++i)
+			for (let i=0, l=hasPredictions ? predictions.length : 0; i < l; ++i)
 			{
 				// const person = personManager.getPerson(i)
-				const prediction = hasPredictions ? predictions[i] : null
+				const prediction = predictions[i]
 				if (!prediction)
 				{
 					// console.info("No Prediction for Person", i ) 
@@ -1900,7 +1942,8 @@ export const createInterface = (
 				
 				// loop through all people and find closest
 				const boundingBox = prediction.box
-				const personIndex = personManager.getNearestPerson( boundingBox.xMin, boundingBox.yMin, activePeople )
+				const nearestPersonIndex = getNearestAvailablePersonIndex( boundingBox )
+				const personIndex = nearestPersonIndex > -1 ? nearestPersonIndex : getFirstAvailablePersonIndex()
 				const person = activePeople[personIndex]
 				
 
@@ -1912,6 +1955,8 @@ export const createInterface = (
 				{
 					continue
 				}
+
+				assignedPersonIndexes.add(personIndex)
 
 				// face available!
 				if (prediction)
@@ -1947,7 +1992,7 @@ export const createInterface = (
 	
 						if (stateMachine.get("text"))
 						{
-							person.drawText( prediction, display ) 
+							person.drawText( prediction, overlayDisplay ?? display ) 
 						}
 					}
 	
@@ -1964,7 +2009,7 @@ export const createInterface = (
 						}
 						
 						// add some visual effects to the post processor			
-						if (stateMachine.get("disco") && i===0)
+						if (stateMachine.get("disco") && personIndex===0)
 						{
 							// use person 1's eyes to control other stuff too?
 							// in this case the direction of the pan in disco mode
@@ -1979,22 +2024,26 @@ export const createInterface = (
 					// tickerTape += `<br>PITCH:${Math.ceil(100*prediction.pitch)} ROLL:${Math.ceil(100*prediction.roll)} YAW:${180*prediction.yaw} MOUTH:${Math.ceil(100*prediction.mouthRange/DEFAULT_OPTIONS.LIPS_RANGE)}%`
 					// console.info(i, "Person "+person.name, person, prediction )
 				
-				}else{
-
-					// Person exists but does not have any matching new prediction
-					// so we re-use any existing while the person fades away
-					// there is a user created but no prediction to drive it,
-					// however the person may have started their instrument before bouncing
-					if ( person.setAsLost() )
-					{
-						stopPersonAudio( person )
-						//console.info(i, range, "Person "+person.name+" dead", person.percentageDead * 100 + "%", prediction )
-					}else{
-						//console.info(i, range, "KILLING for time" + person.name, person.percentageDead * 100 + "%", person.deadForDuration * 0.001 )
-					}
 				}
 				
 			}
+
+			activePeople.forEach( (person, index) => {
+				if (!person || assignedPersonIndexes.has(index))
+				{
+					return
+				}
+
+				// Person exists but does not have any matching new prediction,
+				// so let it fade out and stop once it has fully left.
+				if ( person.setAsLost() )
+				{
+					stopPersonAudio( person )
+					//console.info(index, "Person "+person.name+" dead", person.percentageDead * 100 + "%")
+				}else{
+					//console.info(index, "KILLING for time" + person.name, person.deadForDuration * 0.001 )
+				}
+			})
 		// }
 
 		// No predictions to drive the engine...
@@ -2094,8 +2143,11 @@ export const createInterface = (
 			musicalKeyboard.redraw()
 			// this is updated previously by the playPersonAudio
 			// method that set's the general state of the keyboard
-			display.drawElement( musicalKeyboard.canvas, 40, 40, false )
+			const keyboardDisplay = overlayDisplay ?? display
+			keyboardDisplay.drawElement( musicalKeyboard.canvas, 40, 40, false )
 		}
+
+		overlayDisplay?.flushFrame()
 
 		// finallyu reset this flag
 		if (hasBeatJustPlayed)
@@ -2584,6 +2636,7 @@ export const createInterface = (
 			// 'predictionLoop' here is a method passed into this function that is called
 			// on every frame to update the visuals and audio of none quanitsed sounds
 			display = await switchDisplay( suggested, predictionLoop, false )
+			overlayDisplay?.setSize(display.width, display.height)
 			stateMachine.set("display", display.type )
 		
 			// determine some capabailities for which display to use...
@@ -3727,8 +3780,8 @@ export const createInterface = (
 		// body.appendChild(vizCanvas)
 		// visualiserManager = new VisualiserManager( vizCanvas, notes, false, 0 )
 		// visualiserManager = new VisualiserManager( canvasSandwichElement, notes, false, 0 )
-		visualiserManager = new VisualiserManager( canvasOverlayElement, notes, false, 0 )
-		await visualiserManager.loaded
+		// The overlay canvas is reserved for text, emoji, and note labels with dirty-rect clearing.
+		visualiserManager = null
 		
 
 		// STATE ---------------------------------------------------------------
@@ -4092,7 +4145,7 @@ export const createInterface = (
 		
 		// console.info("setFaceLandmarkerOptions", modelOptions )
 		
-		setFaceLandmarkerOptions( modelOptions )
+		await setFaceLandmarkerOptions( modelOptions )
 
 		// console.info("Players", stateMachine.get('players') )
 		
