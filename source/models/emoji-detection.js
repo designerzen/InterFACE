@@ -330,6 +330,99 @@ export const recogniseEmojiFromFaceModel = (prediction, options) => {
 	return EMOTICONS.EMOJI_NEUTRAL
 }
 
+const createEmojiRule = (name, matches, emoji) => ({ name, matches, emoji })
+
+const getEmojiRuleResult = (rule, prediction, options) => 
+	typeof rule.emoji === 'function' ? rule.emoji(prediction, options) : rule.emoji
+
+const bothEyesClosed = prediction => prediction.leftEyeClosed && prediction.rightEyeClosed
+const bothEyesOpen = prediction => !prediction.leftEyeClosed && !prediction.rightEyeClosed
+const leftEyeClosedOnly = prediction => prediction.leftEyeClosed && !prediction.rightEyeClosed
+const rightEyeClosedOnly = prediction => !prediction.leftEyeClosed && prediction.rightEyeClosed
+const mouthIsOpen = (prediction, options) => prediction.mouthRatio > options.mouthCutOff
+
+const emojiLogicRules = [
+	createEmojiRule(
+		'tongue',
+		prediction => prediction.tongueOut > TONGUE_OUT_THRESHOLD,
+		prediction => bothEyesClosed(prediction) ? EMOTICONS.EMOJI_TONGUE_SQUINT : prediction.leftEyeClosed ? EMOTICONS.EMOJI_TONGUE_WINK : EMOTICONS.EMOJI_TONGUE
+	),
+	createEmojiRule(
+		'closed-eye-kiss',
+		prediction => bothEyesClosed(prediction) && prediction.mouthPucker > MOUTH_PUCKER_KISS_THRESHOLD,
+		prediction => prediction.eyebrowsRaisedBy < 0.3 ? EMOTICONS.EMOJI_KISS_EYES_CLOSED : EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED
+	),
+	createEmojiRule('closed-eye-open-mouth-grin', prediction => bothEyesClosed(prediction) && prediction.mouthRatio > MOUTH_CLOSED_THRESHOLD, EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED),
+	createEmojiRule('closed-eye-frown', prediction => bothEyesClosed(prediction) && prediction.happiness < HAPPINESS_VERY_LOW, EMOTICONS.EMOJI_FROWN_EYES_CLOSED),
+	createEmojiRule('closed-eye-neutral', prediction => bothEyesClosed(prediction) && prediction.happiness < HAPPINESS_LOW, EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED),
+	createEmojiRule('closed-eye-smile', prediction => bothEyesClosed(prediction) && prediction.happiness < HAPPINESS_MEDIUM, EMOTICONS.EMOJI_SMILING_EYES_CLOSED),
+	createEmojiRule('closed-eye-grin', prediction => bothEyesClosed(prediction) && prediction.happiness <= 0.6, EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED),
+	createEmojiRule('closed-eye-squint-grin', prediction => bothEyesClosed(prediction) && prediction.happiness <= 0.7, EMOTICONS.EMOJI_SMILING_GRIN_SQUINT),
+	createEmojiRule('closed-eye-big-teeth-grin', prediction => bothEyesClosed(prediction) && prediction.happiness <= 1, EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED),
+	createEmojiRule('closed-eye-fallback', bothEyesClosed, EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED),
+
+	createEmojiRule('open-eye-kiss', prediction => bothEyesOpen(prediction) && prediction.mouthPucker > MOUTH_PUCKER_KISS_THRESHOLD, EMOTICONS.EMOJI_KISS),
+	createEmojiRule('open-eye-rolling-up', prediction => bothEyesOpen(prediction) && prediction.eyeVertical < EYE_VERTICAL_ROLLING_THRESHOLD, EMOTICONS.EMOJI_EYES_ROLLING_UP),
+
+	createEmojiRule('raised-eyebrows-small-open-mouth', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy > 0.3 && prediction.mouthRatio < 0.3, EMOTICONS.EMOJI_OPEN_MOUTH),
+	createEmojiRule('raised-eyebrows-shocked', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy > 0.3 && prediction.mouthRatio < 0.4, EMOTICONS.EMOJI_SHOCKED),
+	createEmojiRule('raised-eyebrows-anguished', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy > 0.3 && prediction.mouthRatio < 0.5, EMOTICONS.EMOJI_ANGUISHED),
+	createEmojiRule('raised-eyebrows-astonished', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy > 0.3 && prediction.mouthRatio < 0.65, EMOTICONS.EMOJI_ASTONISHED),
+	createEmojiRule('raised-eyebrows-anguished-raised', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy > 0.3 && prediction.mouthRatio < 0.8, EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED),
+
+	createEmojiRule('open-mouth-small', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < MOUTH_OPEN_SMALL, EMOTICONS.EMOJI_OPEN_MOUTH),
+	createEmojiRule('open-mouth-big', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < MOUTH_OPEN_MEDIUM, EMOTICONS.EMOJI_OPEN_MOUTH_BIG),
+	createEmojiRule('open-mouth-exhaling', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < MOUTH_OPEN_LARGE, EMOTICONS.EMOJI_EXHALING),
+	createEmojiRule('open-mouth-shocked', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < MOUTH_OPEN_XLARGE, EMOTICONS.EMOJI_SHOCKED),
+	createEmojiRule('open-mouth-anguished', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < 0.6, EMOTICONS.EMOJI_ANGUISHED),
+	createEmojiRule('open-mouth-anguished-raised', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < 0.75, EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED),
+	createEmojiRule('open-mouth-astonished', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio < MOUTH_OPEN_MAX, EMOTICONS.EMOJI_ASTONISHED),
+	createEmojiRule('open-mouth-wail', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < 0.4 && prediction.eyebrowsRaisedBy <= 0.3 && prediction.mouthRatio <= 1, EMOTICONS.EMOJI_WAIL),
+
+	createEmojiRule('open-mouth-slight-smile', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness < HAPPINESS_MEDIUM, EMOTICONS.EMOJI_SMILING_SLIGHTLY),
+	createEmojiRule('open-mouth-grin', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness <= HAPPINESS_HIGH, EMOTICONS.EMOJI_SMILING_GRIN),
+	createEmojiRule('open-mouth-big-grin', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness <= HAPPINESS_VERY_HIGH, EMOTICONS.EMOJI_SMILING_BIG_GRIN),
+	createEmojiRule('open-mouth-big-teeth-grin', (prediction, options) => bothEyesOpen(prediction) && mouthIsOpen(prediction, options) && prediction.happiness <= 1, EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED),
+
+	createEmojiRule('quiet-smile', (prediction, options) => bothEyesOpen(prediction) && prediction.mouthRatio <= options.mouthSilence && prediction.happiness > 0.03, EMOTICONS.EMOJI_SMILING_SLIGHTLY),
+	createEmojiRule('left-diagonal-mouth', prediction => bothEyesOpen(prediction) && prediction.leftSmirk > SMIRK_ASYMMETRY_THRESHOLD + prediction.rightSmirk, EMOTICONS.EMOJI_DIAGONAL_MOUTH),
+	createEmojiRule('right-diagonal-mouth', prediction => bothEyesOpen(prediction) && SMIRK_ASYMMETRY_THRESHOLD + prediction.leftSmirk < prediction.rightSmirk, EMOTICONS.EMOJI_DIAGONAL_MOUTH),
+	createEmojiRule('raised-eyebrow', prediction => bothEyesOpen(prediction) && prediction.eyebrowsRaisedBy > 0.3, EMOTICONS.EMOJI_RAISED_EYEBROW),
+	createEmojiRule('angry', prediction => bothEyesOpen(prediction) && prediction.leftEyebrowRaisedBy < -AMOUNT_BEFORE_ANGRY && prediction.rightEyebrowRaisedBy < -AMOUNT_BEFORE_ANGRY, EMOTICONS.EMOJI_ANGRY),
+	createEmojiRule('fearful', prediction => bothEyesOpen(prediction) && prediction.leftEyebrowRaisedBy > AMOUNT_BEFORE_FEARFUL && prediction.rightEyebrowRaisedBy > AMOUNT_BEFORE_FEARFUL, EMOTICONS.EMOJI_FEARFUL),
+	createEmojiRule('grimacing', prediction => bothEyesOpen(prediction) && prediction.leftSmirk > AMOUNT_BEFORE_GRIMMACE && prediction.mouthStretchLeft > AMOUNT_BEFORE_GRIMMACE && prediction.rightSmirk > AMOUNT_BEFORE_GRIMMACE && prediction.mouthStretchRight > AMOUNT_BEFORE_GRIMMACE, EMOTICONS.EMOJI_GRIMACING),
+	createEmojiRule('trippy', prediction => bothEyesOpen(prediction) && (prediction.rightEyeDirection > EYE_DIRECTION_TRIPPY && prediction.leftEyeDirection < EYE_DIRECTION_TRIPPY || prediction.rightEyeDirection < EYE_DIRECTION_TRIPPY && prediction.leftEyeDirection > EYE_DIRECTION_TRIPPY), EMOTICONS.EMOJI_TRIPPY),
+	createEmojiRule('shaking', prediction => bothEyesOpen(prediction) && (prediction.rightEyeDirection > EYE_DIRECTION_SHAKING && prediction.leftEyeDirection < EYE_DIRECTION_SHAKING || prediction.rightEyeDirection < EYE_DIRECTION_SHAKING && prediction.leftEyeDirection > EYE_DIRECTION_SHAKING), EMOTICONS.EMOJI_SHAKING),
+
+	createEmojiRule('left-wink-kiss', prediction => leftEyeClosedOnly(prediction) && prediction.mouthPucker > 0.91, EMOTICONS.EMOJI_KISSING_WINK),
+	createEmojiRule('left-wink', leftEyeClosedOnly, EMOTICONS.EMOJI_LEFT_WINK),
+	createEmojiRule('right-wink-kiss', prediction => rightEyeClosedOnly(prediction) && prediction.mouthPucker > 0.91, EMOTICONS.EMOJI_KISSING_WINK),
+	createEmojiRule('right-wink', rightEyeClosedOnly, EMOTICONS.EMOJI_RIGHT_WINK),
+	createEmojiRule('smirk', prediction => prediction.lookingRight && prediction.rightSmirk > prediction.leftSmirk, EMOTICONS.EMOJI_SMIRK),
+	createEmojiRule('flushed', prediction => prediction.leftEyebrowRaisedBy > 0.1 && prediction.rightEyebrowRaisedBy > 0.1, EMOTICONS.EMOJI_FLUSHED),
+	createEmojiRule('fallback-expression', prediction => prediction, EMOTICONS.EMOJI_PERSEVERING),
+]
+
+/**
+ * Convert a face model into an emoji using ordered logic rules.
+ * This mirrors the original priority tree while making each decision testable.
+ * @param {Object} prediction - the ML prediction from mediaPipe 
+ * @param {Object} options - configuration options
+ */
+export const recogniseEmojiFromFaceModelLogical = (prediction, options = {}) => {
+	if (!prediction) {
+		return EMOTICONS.EMOJI_NEUTRAL
+	}
+
+	const detectionOptions = {
+		mouthCutOff: options.mouthCutOff ?? MOUTH_OPEN_SMALL,
+		mouthSilence: options.mouthSilence ?? MOUTH_CLOSED_THRESHOLD
+	}
+
+	const matchedRule = emojiLogicRules.find(rule => rule.matches(prediction, detectionOptions))
+	return matchedRule ? getEmojiRuleResult(matchedRule, prediction, detectionOptions) : EMOTICONS.EMOJI_NEUTRAL
+}
+
 /**
  * EmojiDetector class manages emoji detection state per person
  * Each person instance gets their own detector with independent state
@@ -346,13 +439,14 @@ export class EmojiDetector {
 	}
 
 	/**
-	 * Detect emoji using smoothed original method
+	 * Detect emoji using the selected method with smoothing
 	 */
 	detect(prediction, options) {
 		this.frameCount++
 
-		// Get emoji using original logic
-		let currentEmoji = recogniseEmojiFromFaceModel(prediction, options)
+		// Swap these lines to test each detector approach.
+		// let currentEmoji = recogniseEmojiFromFaceModel(prediction, options)
+		let currentEmoji = recogniseEmojiFromFaceModelLogical(prediction, options)
 		// const currentEmoji = recogniseEmojiFromFaceModelAccurate(prediction, options, this)
 
 		// Fallback to neutral if detection fails
@@ -735,5 +829,3 @@ export const recogniseEmojiFromFaceModelAccurate = (prediction, options, emotion
 	// Otherwise stick with previous emoji
 	return emotionState.previousEmoji
 }
-
-
