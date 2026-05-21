@@ -53,6 +53,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 	type = "sample"
 			
 	soundfont
+	activeSoundFontCacheKey = null
+	fallbackAudioBuffers = null
+	presetLoadToken = 0
 	
 	// these are the file names and locations of each instrument
 	instrumentTitles = GM_INSTRUMENT_NAMES
@@ -168,9 +171,10 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 */
 	async noteOn(noteNumber, velocity=1){
 		const index = convertMIDINoteNumberToName(noteNumber)
-		const audioBuffer = this.audioBuffers[index]
+		const audioBuffer = this.audioBuffers[index] ?? this.fallbackAudioBuffers?.[index]
 		if(audioBuffer)
 		{
+			SoundFont.noteUsed(this.activeSoundFontCacheKey, index)
 			const track = this.play(audioBuffer, velocity)
 		}
 		// console.log("Buffer playing", {index, audioBuffer,noteNumber, velocity},  this.instrument  )
@@ -298,6 +302,11 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 * @param {Function} progressCallback Method to call once the instrument has loaded
 	 */
 	async loadPreset(presetNameOrObject, instrumentPack, options={}, progressCallback=()=>{} ){
+		if (typeof options === "function")
+		{
+			progressCallback = options
+			options = {}
+		}
 	
 		// convert the object into a preset folder string name
 		if (typeof presetNameOrObject === "object")
@@ -311,10 +320,26 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}	
 
 		// this might be a number...
-		if (typeof programNumber === "string" && isNaN(programNumber))
+		if (typeof presetNameOrObject === "string" && isNaN(presetNameOrObject))
   		{
 			// if it is a string then we need to find the index
-			presetNameOrObject = this.instrumentFolders.indexOf(programNumber)
+			const presetIndex = this.instrumentFolders.indexOf(presetNameOrObject)
+			if (presetIndex > -1)
+			{
+				this.presetIndex = presetIndex
+			}
+		}
+
+		const presetData = this.soundfont.getInstrumentData(presetNameOrObject)
+		const presetCacheKey = presetData?.name ?? presetNameOrObject
+		const nextPresetName = presetData?.folder ?? presetNameOrObject
+		const previousCacheKey = this.activeSoundFontCacheKey
+		const previousAudioBuffers = this.audioBuffers
+		const loadToken = ++this.presetLoadToken
+
+		if (previousCacheKey === presetCacheKey && Object.keys(this.audioBuffers).length > 0)
+		{
+			return this.audioBuffers
 		}
 	
 		// const index = this.getIndexFromName(presetName)
@@ -339,14 +364,35 @@ export default class SoundFontInstrument extends SampleInstrument{
 				...options
 			}
 			
-			// we load the audio buffers from the soundfont
-			// in the { A4:AudioBuffer} format without waiting for the laod to complete
-			//await 
-
 			// cancel loading any that are already loading...
 			this.soundfont.cancelLoading()
 
-			this.soundfont.loadPresetGradually( this.audioBuffers, presetNameOrObject, options, progressCallback )
+			const nextAudioBuffers = {}
+			this.fallbackAudioBuffers = previousAudioBuffers
+			this.audioBuffers = nextAudioBuffers
+
+			const loadedAudioBuffers = await this.soundfont.loadPresetGradually( nextAudioBuffers, nextPresetName, options, progressCallback )
+			const audioBuffers = Object.keys(nextAudioBuffers).length > 0 ? nextAudioBuffers : loadedAudioBuffers
+
+			if (loadToken !== this.presetLoadToken)
+			{
+				return this.audioBuffers
+			}
+
+			if (!audioBuffers)
+			{
+				throw Error("No audio buffers were loaded")
+			}
+
+			this.audioBuffers = audioBuffers
+			this.fallbackAudioBuffers = null
+			this.activeSoundFontCacheKey = presetCacheKey
+			SoundFont.retainPreset(presetCacheKey)
+
+			if (previousCacheKey && previousCacheKey !== presetCacheKey)
+			{
+				SoundFont.releasePreset(previousCacheKey)
+			}
 			
 			// this.audioBuffers = await this.soundfont.loadPreset( presetNameOrObject, { ...options }, progressCallback )
 
@@ -354,28 +400,32 @@ export default class SoundFontInstrument extends SampleInstrument{
 			//this.instrument = await loadInstrumentFromSoundFont( this.context, instrumentName, instrumentPack, progressCallback )
 		
 		}catch(error){
+			if (loadToken === this.presetLoadToken)
+			{
+				this.instrumentLoading = false
+				this.audioBuffers = previousAudioBuffers
+				this.fallbackAudioBuffers = null
+			}
 
 			if (!instrumentPack)
 			{
-				this.instrumentLoading = false
 				throw Error("No instrumentPack name was provided")
 			}	
 
 			if (instrumentPack.indexOf(".json") > -1)
 			{
-				this.instrumentLoading = false
 				throw Error("You tried to load a soundfont with a descriptor uri! "+instrumentPack)
 			}	
 			throw Error("Soundfont could not load "+error)
 		}
 		
 		// FIXME: set the default instrument index if saved
-		this.instrumentName = presetNameOrObject
+		this.instrumentName = nextPresetName
 		this.instrumentPack = instrumentPack
-		this.instrumentFamily = this.audioBuffers.family
+		this.instrumentFamily = presetData?.family ?? this.audioBuffers.family
 
 		// Fetch the GM name
-		this.title = getInstrumentTitle( presetNameOrObject ) ?? presetNameOrObject
+		this.title = getInstrumentTitle( nextPresetName ) ?? presetData?.title ?? nextPresetName
 		// this.name = "SampleInstrument:"+presetNameOrObject
 
 		// console.error("Soundfont", this, this.instrumentName, this.instrumentPack, this.instrumentFamily, {presetNameOrObject, instrumentPack, options} )
@@ -401,6 +451,17 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 */
 	async loadRandomPreset(progressCallback){
 		return await this.loadPreset( getRandomInstrument(), this.instrumentPack, {}, progressCallback )
+	}
+
+	async destroy(){
+		if (this.activeSoundFontCacheKey)
+		{
+			SoundFont.releasePreset(this.activeSoundFontCacheKey)
+			this.activeSoundFontCacheKey = null
+		}
+		this.fallbackAudioBuffers = null
+		this.soundfont?.cancelLoading()
+		return await super.destroy()
 	}
 	
 	clone(){

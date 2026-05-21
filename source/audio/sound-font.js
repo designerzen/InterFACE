@@ -26,6 +26,7 @@ import {
 } from './midi/general-midi.constants'
 
 import { loadInstrumentFromSoundFont } from "./audio"
+import { NOTE_NAMES_POPULAR_FIRST } from './tuning/notes'
 
 const DEFAULT_SOUNDFONT_OPTIONS = {
 	location:"./assets/audio/"
@@ -34,6 +35,39 @@ const DEFAULT_SOUNDFONT_OPTIONS = {
 export default class SoundFont{
 
 	static audioBuffers = new Map()
+
+	// 4 FULL instruments in memory at one time
+	static maxInactivePresets = 4
+	static maxInactiveNotes = 24
+	static retainPopularNotesForInactivePresets = false
+
+	/**
+	 * Get the amount of RAM used by these buffers
+	 * @param {ArrayBuffer} buffers 
+	 * @returns 
+	 */
+	static estimateAudioBufferBytes(audioBuffer){
+		return audioBuffer?.length && audioBuffer?.numberOfChannels ?
+			audioBuffer.length * audioBuffer.numberOfChannels * 4 :
+			0
+	}
+
+	/**
+	 * This can fill up RAM if you are not careful!
+	 * @param {ArrayBuffer} buffers 
+	 * @returns 
+	 */
+	static estimateAudioBuffersBytes(buffers){
+		if (!buffers)
+		{
+			return 0
+		}
+
+		return Object.values(buffers).reduce(
+			(total, audioBuffer) => total + SoundFont.estimateAudioBufferBytes(audioBuffer),
+			0
+		)
+	}
 
 	name = INSTRUMENT_PACKS[0]
 
@@ -67,6 +101,121 @@ export default class SoundFont{
 	get presetAudioBuffers(){
 		return this.audioBuffers
 	}	
+
+	static createCacheEntry(name, buffers){
+		return {
+			name,
+			buffers,
+			refCount:0,
+			lastUsed:performance.now(),
+			complete:true,
+			decodedBytes:SoundFont.estimateAudioBuffersBytes(buffers),
+			noteHits:new Map()
+		}
+	}
+
+	static getCacheEntry(name){
+		const entry = SoundFont.audioBuffers.get(name)
+		if (entry)
+		{
+			entry.lastUsed = performance.now()
+		}
+		return entry
+	}
+
+	static getCachedBuffers(name){
+		const entry = SoundFont.getCacheEntry(name)
+		return entry?.complete ? entry.buffers : null
+	}
+
+	static retainPreset(name){
+		const entry = SoundFont.getCacheEntry(name)
+		if (!entry)
+		{
+			return null
+		}
+		entry.refCount++
+		entry.lastUsed = performance.now()
+		return entry.buffers
+	}
+
+	static releasePreset(name){
+		const entry = SoundFont.getCacheEntry(name)
+		if (!entry)
+		{
+			return false
+		}
+		entry.refCount = Math.max(0, entry.refCount - 1)
+		entry.lastUsed = performance.now()
+		SoundFont.pruneCache()
+		return true
+	}
+
+	static noteUsed(name, noteName){
+		const entry = SoundFont.getCacheEntry(name)
+		if (!entry || !noteName)
+		{
+			return
+		}
+		entry.noteHits.set(noteName, (entry.noteHits.get(noteName) ?? 0) + 1)
+		entry.lastUsed = performance.now()
+	}
+
+	static storePreset(name, buffers){
+		let entry = SoundFont.audioBuffers.get(name)
+		if (entry)
+		{
+			entry.buffers = buffers
+			entry.complete = true
+			entry.decodedBytes = SoundFont.estimateAudioBuffersBytes(buffers)
+			entry.lastUsed = performance.now()
+		}else{
+			entry = SoundFont.createCacheEntry(name, buffers)
+			SoundFont.audioBuffers.set(name, entry)
+		}
+		SoundFont.pruneCache()
+		return entry.buffers
+	}
+
+	static selectPopularNotes(entry){
+		const byHits = Array.from(entry.noteHits.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([note]) => note)
+		const selected = new Set([...byHits, ...NOTE_NAMES_POPULAR_FIRST].slice(0, SoundFont.maxInactiveNotes))
+		const buffers = {}
+		selected.forEach(note => {
+			if (entry.buffers?.[note])
+			{
+				buffers[note] = entry.buffers[note]
+			}
+		})
+		return buffers
+	}
+
+	static pruneCache(){
+		const inactiveEntries = Array.from(SoundFont.audioBuffers.values())
+			.filter(entry => entry.refCount < 1)
+			.sort((a, b) => a.lastUsed - b.lastUsed)
+
+		while (inactiveEntries.length > SoundFont.maxInactivePresets)
+		{
+			const entry = inactiveEntries.shift()
+			if (!entry)
+			{
+				break
+			}
+
+			if (SoundFont.retainPopularNotesForInactivePresets && entry.complete)
+			{
+				entry.buffers = SoundFont.selectPopularNotes(entry)
+				entry.complete = false
+				entry.decodedBytes = SoundFont.estimateAudioBuffersBytes(entry.buffers)
+				entry.lastUsed = performance.now()
+			}else{
+				SoundFont.audioBuffers.delete(entry.name)
+			}
+		}
+	}
 
 	get presetNames(){
 		return Array.from( this.instrumentsByName.keys() )
@@ -341,12 +490,11 @@ export default class SoundFont{
 		}
 
 		// FIXME: this can contain holes so quickly checkit has the right size...
-		if (SoundFont.audioBuffers.has( data.name ))
+		const cachedAudioBuffers = SoundFont.getCachedBuffers( data.name )
+		if (cachedAudioBuffers)
 		{
-			// 
-			// console.error("SoundFont.audioBuffers "+ data.name, SoundFont.audioBuffers.get( data.name ), {SFab:SoundFont.audioBuffers} )
 			// if the audio buffer is already loaded, just return it
-			return SoundFont.audioBuffers.get( data.name )
+			return cachedAudioBuffers
 		}
 		
 		// check to see if the pack name is valid...
@@ -374,6 +522,7 @@ export default class SoundFont{
 				audioBufferData = await loadInstrumentFromSoundFont( this.audioContext, data.location, location, options, onProgressCallback )
 				// only set it if we have a valid complete audio buffer
 				this.audioBuffers.set( data.name, audioBufferData )
+				SoundFont.storePreset( data.name, audioBufferData )
 			}catch(error){
 				// if we fail to load the audio data, we try to load it from the
 				console.info("AudioBufferData catch", error)

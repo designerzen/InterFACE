@@ -10,7 +10,7 @@ import {
 	GENERAL_MIDI_FAMILIES
 } from "./midi/general-midi.constants.js"
 
-import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_AUDIO_DATA, CMD_CANCEL, EVENT_DECODED } from "./fetch.audio.worker"
+import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_AUDIO_DATA, CMD_CANCEL, EVENT_DECODED, EVENT_DECODED_PART } from "./fetch.audio.worker"
 // import { convertArrayToBuffer } from "./audio"
 import audioDecoder from 'audio-decode'
 import { convertArrayToBuffer } from "./audio.js"
@@ -666,6 +666,36 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 			const data = e.data
 			switch(data.event)
 			{
+				case EVENT_DECODED_PART:
+					if (options.decodeInWorker)
+					{
+						const audioBuffer = createAudioBufferFromPCM(offlineAudioContext, data.audio)
+						onProgressCallback && onProgressCallback({
+							progress: data.progress,
+							part: data.part,
+							index: data.index,
+							audioBuffer
+						})
+						return
+					}
+
+					convertArrayToBuffer(offlineAudioContext, data.audio)
+						.then(audioBuffer => {
+							onProgressCallback && onProgressCallback({
+								progress: data.progress,
+								part: data.part,
+								index: data.index,
+								audioBuffer
+							})
+						})
+						.catch(error => {
+							if (settled) return
+							settled = true
+							cleanUp()
+							reject(error)
+						})
+					return
+
 				case EVENT_DECODED:
 					if (options.decodeInWorker)
 					{

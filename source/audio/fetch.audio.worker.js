@@ -15,6 +15,7 @@ export const CMD_CANCEL = "command-cancel"
 
 
 export const EVENT_DECODED = "decode complete"
+export const EVENT_DECODED_PART = "decode part complete"
 
 // const DEFAULT_SOUNDFONT_HOST = " https://gleitz.github.io/midi-js-soundfonts/"
 const DEFAULT_SOUNDFONT_HOST = " https://paulrosen.github.io/midi-js-soundfonts/"
@@ -119,6 +120,13 @@ self.onmessage = async (e) => {
 				const partResponse = await fetch(partPath, { signal: fetchSignal })
 				const partArrayBuffer = await partResponse.arrayBuffer()
 				audioArrayBuffers[note] = partArrayBuffer
+				postMessage({
+					event: EVENT_DECODED_PART,
+					audio: partArrayBuffer,
+					part: note,
+					index,
+					progress: (index + 1) / NOTE_NAMES_POPULAR_FIRST.length
+				}, [partArrayBuffer.slice(0)])
 				return partArrayBuffer
 			})
 			try {
@@ -150,6 +158,17 @@ self.onmessage = async (e) => {
 				const partAudioBuffer = await decode(partArrayBuffer)
 				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
 				audioPCMData[note] = partAudioBuffer
+				const partAudioBufferForMessage = {
+					...partAudioBuffer,
+					channelData: partAudioBuffer.channelData.map(channel => channel.slice())
+				}
+				postMessage({
+					event: EVENT_DECODED_PART,
+					audio: partAudioBufferForMessage,
+					part: note,
+					index,
+					progress: (index + 1) / NOTE_NAMES_POPULAR_FIRST.length
+				}, partAudioBufferForMessage.channelData.map(channel => channel.buffer))
 				return partAudioBuffer
 			})
 			try {
