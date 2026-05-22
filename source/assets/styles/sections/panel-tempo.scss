@@ -119,11 +119,10 @@ label[for="tempo-swing-range"]{
 	grid-template-columns: 1fr 1fr;
 	gap:var(--pad, 1rem);
 	grid-template-areas: 
-		"feedback feedback"
+		"feedback swing-output"
 		"input input"
 		"up down"
-		"range range"
-		"swing swing-output"
+		"range swing"
 		"tap tap"
 	;
 }
@@ -137,8 +136,7 @@ label[for="tempo-swing-range"]{
 			"input input input down"
 			"input input input feedback"
 			"input input input tap"
-			"range range range tap "
-			"swing swing swing-output"
+			"range swing swing-output tap"
 		;
 	}
 }
