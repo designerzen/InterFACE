@@ -22,6 +22,11 @@ import { convertMIDINoteNumberToName } from "../tuning/notes"
 const GM_INSTRUMENT_NAMES = getGeneralMIDIInstrumentNames()
 const GM_INSTRUMENT_FOLDERS = getGeneralMIDIInstrumentFolders()
 
+const getProgressValue = (progress) => {
+	const value = typeof progress === "object" ? progress?.progress : progress
+	return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0
+}
+
 // If not specified in the constructor, the following options
 // will be used. To load a preset from a specified pack you
 // must provide both
@@ -336,6 +341,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		const previousCacheKey = this.activeSoundFontCacheKey
 		const previousAudioBuffers = this.audioBuffers
 		const loadToken = ++this.presetLoadToken
+		const finalInstrumentTitle = getInstrumentTitle( nextPresetName ) ?? presetData?.title ?? nextPresetName
 
 		if (previousCacheKey === presetCacheKey && Object.keys(this.audioBuffers).length > 0)
 		{
@@ -352,6 +358,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 	
 		// check to see if the pack name is valid...
 		this.instrumentLoading = true
+		this.title = `${finalInstrumentTitle} 0%`
 		
 		try{
 
@@ -371,7 +378,11 @@ export default class SoundFontInstrument extends SampleInstrument{
 			this.fallbackAudioBuffers = previousAudioBuffers
 			this.audioBuffers = nextAudioBuffers
 
-			const loadedAudioBuffers = await this.soundfont.loadPresetGradually( nextAudioBuffers, nextPresetName, options, progressCallback )
+			const loadedAudioBuffers = await this.soundfont.loadPresetGradually( nextAudioBuffers, nextPresetName, options, progress => {
+				const progressValue = getProgressValue(progress)
+				this.title = `${finalInstrumentTitle} ${Math.ceil(progressValue * 100)}%`
+				progressCallback(progress)
+			} )
 			const audioBuffers = Object.keys(nextAudioBuffers).length > 0 ? nextAudioBuffers : loadedAudioBuffers
 
 			if (loadToken !== this.presetLoadToken)
@@ -425,7 +436,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 		this.instrumentFamily = presetData?.family ?? this.audioBuffers.family
 
 		// Fetch the GM name
-		this.title = getInstrumentTitle( nextPresetName ) ?? presetData?.title ?? nextPresetName
+		this.title = finalInstrumentTitle
 		// this.name = "SampleInstrument:"+presetNameOrObject
 
 		// console.error("Soundfont", this, this.instrumentName, this.instrumentPack, this.instrumentFamily, {presetNameOrObject, instrumentPack, options} )

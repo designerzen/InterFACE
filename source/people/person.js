@@ -161,17 +161,22 @@ const createHSLA = (hue, saturation, luminosity, alpha=1) => {
 	return `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
 }
 
-const setBooleanViaMouseEntry = (element, flag, abortController ) => {
+const getProgressValue = (progress) => {
+	const value = typeof progress === "object" ? progress?.progress : progress
+	return Number.isFinite(value) ? clamp(value, 0, 1) : 0
+}
+
+const setBooleanViaMouseEntry = (element, target, flagName, abortController ) => {
 	element.addEventListener( 'pointerenter', event => {
-		flag = true
+		target[flagName] = true
 	}, {signal:abortController.signal})
 
 	element.addEventListener( 'pointerleave', event => {
-		flag = true
+		target[flagName] = false
 	}, {signal:abortController.signal})
 
 	element.addEventListener( 'pointercancel', event => {
-		flag = true
+		target[flagName] = false
 	}, {signal:abortController.signal})
 }
 
@@ -203,6 +208,8 @@ export default class Person extends EventTarget{
 	instrumentLoadedAt = -1
 	presetName
 	presetTitle
+	loadingInstrumentTitle = null
+	loadingInstrumentProgress = 0
 
 	presetPanelConnection
 	
@@ -511,6 +518,10 @@ export default class Person extends EventTarget{
 	 * @returns {String} Instrument title
 	 */
 	get instrumentTitle(){
+		if (this.instrumentLoading && this.loadingInstrumentTitle)
+		{
+			return `${this.loadingInstrumentTitle} ${Math.ceil(this.loadingInstrumentProgress * 100)}%`
+		}
 		return this.activeInstrument ? this.activeInstrument.title : 'loading'
 	}
 
@@ -816,9 +827,9 @@ export default class Person extends EventTarget{
 			this.buttonChangeInput.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
 						
 			// set flags via mouse entering the buttons which changes graphics
-			setBooleanViaMouseEntry( this.button, this.isMouseOver, this.abortController )
-			setBooleanViaMouseEntry( this.buttonChangeOperatingMode, this.isUserSelectingMode, this.abortController )
-			setBooleanViaMouseEntry( this.buttonChangeInput, this.isUserSelectingInputType, this.abortController )
+			setBooleanViaMouseEntry( this.button, this, 'isMouseOver', this.abortController )
+			setBooleanViaMouseEntry( this.buttonChangeOperatingMode, this, 'isUserSelectingMode', this.abortController )
+			setBooleanViaMouseEntry( this.buttonChangeInput, this, 'isUserSelectingInputType', this.abortController )
 
 			this.instrumentLoadedAt = this.now
 		
@@ -2034,6 +2045,8 @@ export default class Person extends EventTarget{
 		// overwrite the instrument info
 		this.presetTitle = details.presetTitle
 		this.presetName = details.presetName
+		this.loadingInstrumentTitle = null
+		this.loadingInstrumentProgress = 0
 
 		// console.error("setupInstrumnentForm", presetTitle, presetName, details )
 		
@@ -2070,8 +2083,9 @@ export default class Person extends EventTarget{
 				
 			// this has lost it's scope...
 			this.activeInstrument = await this.activeInstrument[method]( ({progress,instrumentName}) => {
-				progressCallback && progressCallback( progress )
-				this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress, instrumentName })
+				const progressValue = getProgressValue(progress)
+				progressCallback && progressCallback( progressValue )
+				this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:progressValue, instrumentName })
 			} )
 			
 		}
@@ -2160,6 +2174,9 @@ export default class Person extends EventTarget{
 			presetTitle = getInstrumentTitle(presetNameOrIndex) ?? presetNameOrIndex
 		}
 
+		this.loadingInstrumentTitle = presetTitle
+		this.loadingInstrumentProgress = 0
+
 		
 		// console.log("Loading instrument",instrumentName, presets)
 
@@ -2181,8 +2198,10 @@ export default class Person extends EventTarget{
 		}
 
 		const instrument = await this.activeInstrument.loadPreset(instrumentNameRefined, instrumentPack, progress => {
-			progressCallback && progressCallback( progress )
-			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, {...details, progress})
+			const progressValue = getProgressValue(progress)
+			this.loadingInstrumentProgress = progressValue
+			progressCallback && progressCallback( progressValue )
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, {...details, progress:progressValue})
 		} )
 
 		await this.setupInstrumnentForm(details)
