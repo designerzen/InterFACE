@@ -10,8 +10,8 @@ const EMOJI_FONT_FACE = 'noto-emoji'
 const EMOJI_FONT = `"${EMOJI_FONT_FACE}"`
 const SHADOW_COLOUR = 'rgba(0, 0, 0, 0.9)'
 const SHADOW_BLUR = 0
-const SHADOW_OFFSET_X = 3
-const SHADOW_OFFSET_Y = 3
+const SHADOW_OFFSET_X = 2
+const SHADOW_OFFSET_Y = 2
 const SHADOW_STROKE_COLOUR = '#0a0a0a'
 
 const clampRect = (rect: Rect, width: number, height: number): Rect => {

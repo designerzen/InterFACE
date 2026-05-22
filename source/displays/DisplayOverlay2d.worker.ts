@@ -13,8 +13,8 @@ const EMOJI_FONT = `"${EMOJI_FONT_FACE}"`
 const EMOJI_FONT_URL = new URL('../assets/fonts/noto-emoji/NotoEmoji-VariableFont_wght.ttf', import.meta.url).toString()
 const SHADOW_COLOUR = 'rgba(0, 0, 0, 0.9)'
 const SHADOW_BLUR = 0
-const SHADOW_OFFSET_X = 3
-const SHADOW_OFFSET_Y = 3
+const SHADOW_OFFSET_X = 2
+const SHADOW_OFFSET_Y = 2
 
 let canvas: OffscreenCanvas | null = null
 let context: OffscreenCanvasRenderingContext2D | null = null
