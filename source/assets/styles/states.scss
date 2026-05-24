@@ -173,6 +173,19 @@ main:not(.flag-synch){
 	}
 }
 
+main.flag-transparent{
+	#app-frame #photosynth-canvas,
+	#app-frame #webcam{
+		display: block;
+		visibility: visible;
+	}
+
+	#app-frame #webcam{
+		transform: scaleX(-1);
+		transform-origin: center;
+	}
+}
+
 // this hides the video when in synch mode
 // main:not(.flag-clear.flag-transparent){
 // 	// hide videp as drawing to canvas direct
