@@ -1480,10 +1480,11 @@ export const createInterface = (
 	const switchDisplay = async (displayType, predictionLoop, saveAndExclaim=true) => {
 
 		const displayOptions = {
-			autoStart:false,
+			autoStart:saveAndExclaim,
 			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0
 		}
 		const newDisplay = await displayManager.switchTo(displayType, predictionLoop, displayOptions)
+		main.classList.toggle("flag-transparent", Boolean(newDisplay.transparentCanvas))
 
 		// save the display type for next time
 		if (saveAndExclaim)
@@ -1815,7 +1816,7 @@ export const createInterface = (
 				// we also clear if sync is not set to true
 				// as this means the video is playing behind
 				// the canvas on the DOM
-				if (stateMachine.get("clear") || !stateMachine.get("synch"))
+				if (display.transparentCanvas || stateMachine.get("clear") || !stateMachine.get("synch"))
 				{
 					// clear for invisible canvas but 
 					// NB. this may cause visual disconnect
@@ -2624,7 +2625,7 @@ export const createInterface = (
 			
 			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 			
-			const t = createDisplayOptions(available)
+			const t = createDisplayOptions(available, suggested)
 			
 			if (suggested === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 			{

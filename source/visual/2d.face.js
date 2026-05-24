@@ -1,4 +1,5 @@
 import { LEFT_EYE_PATH, LEFT_IRIS_PATH, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from "../models/face-landmark-constants.js"
+import { subdivideKeypoints } from "../models/avatar.js"
 import { drawEye } from "./2d.eyes.js"
 
 const faceOvalStyle = {
@@ -47,11 +48,14 @@ const eyeBrowStyle = {
 }
 
 
-export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawingUtils, FaceLandmarker ) => {
+export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawingUtils, FaceLandmarker, displayOptions={} ) => {
 
 	// const isSelected = person.isSelected
 	const prediction = person.data
 	const landmarks = prediction.faceLandmarks
+	const pointLandmarks = displayOptions.geometrySubdivisions > 0
+		? subdivideKeypoints(landmarks, displayOptions.geometrySubdivisions)
+		: landmarks
 	const options = person.options
 	// const flipped = options.flipped
 
@@ -117,7 +121,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 
 			// drawPoints( prediction, colours, 3, person.instrumentLoading, this.debug )
 			drawingUtils.drawLandmarks(
-				landmarks,
+				pointLandmarks,
 				blobStyle
 			)
 		

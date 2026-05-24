@@ -19,7 +19,7 @@ import {
 	PIMORONI_PICADE_MAX_CONTROLLER_PLAYER_2,
 } from "./hardware/gamepad/gamepad-device-names.js"
 
-import { PicadeLeds, picadeColor } from "./hardware/gamepad/picade-leds.js"
+import { PicadeLeds, PICADE_MAX_BUTTONS, picadeColor } from "./hardware/gamepad/picade-leds.js"
 
 export const GAMEPAD_MODE_PERCUSSION = 'beats'
 export const GAMEPAD_MODE_INSTRUMENT = 'instruments'
@@ -46,16 +46,53 @@ const PICADE_BUTTON_MAP = Object.freeze({
 	[BUTTON_RIGHT_SHOULDER_BUTTON]: 5,
 })
 
-const PICADE_BUTTON_COLORS = Object.freeze({
-	[BUTTON_Y]: picadeColor('#ffd166', 18),
-	[BUTTON_X]: picadeColor('#7bdff2', 18),
-	[BUTTON_LEFT_SHOULDER_BUTTON]: picadeColor('#b8f2e6', 18),
-	[BUTTON_B]: picadeColor('#ff6b6b', 18),
-	[BUTTON_A]: picadeColor('#95d67b', 18),
-	[BUTTON_RIGHT_SHOULDER_BUTTON]: picadeColor('#cdb4db', 18),
+const PICADE_SOUND_COLORS = Object.freeze({
+	kick: picadeColor('#ff1744', 24),
+	snare: picadeColor('#ffb000', 22),
+	hat: picadeColor('#b6ff00', 18),
+	hatAccent: picadeColor('#ffe600', 20),
+	clap: picadeColor('#fff4a3', 18),
+	cowbell: picadeColor('#00e5ff', 18),
+	timbre: picadeColor('#c77dff', 16),
+	mode: picadeColor('#ffffff', 14),
+})
+
+const PICADE_BUTTON_LIGHTS = Object.freeze({
+	[BUTTON_Y]: { led: 0, color: PICADE_SOUND_COLORS.snare },
+	[BUTTON_X]: { led: 1, color: PICADE_SOUND_COLORS.kick },
+	[BUTTON_LEFT_SHOULDER_BUTTON]: { led: 2, color: PICADE_SOUND_COLORS.hat },
+	[BUTTON_B]: { led: 3, color: PICADE_SOUND_COLORS.clap },
+	[BUTTON_A]: { led: 4, color: PICADE_SOUND_COLORS.timbre },
+	[BUTTON_RIGHT_SHOULDER_BUTTON]: { led: 5, color: PICADE_SOUND_COLORS.clap },
+	[BUTTON_LEFT_SHOULDER_TWO]: { led: 2, color: PICADE_SOUND_COLORS.cowbell },
+	[BUTTON_RIGHT_SHOULDER_TWO]: { led: 5, color: PICADE_SOUND_COLORS.hatAccent },
+	[BUTTON_P1]: { led: 1, color: PICADE_SOUND_COLORS.kick },
+	[BUTTON_P2]: { led: 0, color: PICADE_SOUND_COLORS.snare },
+	[DIRECTION_LEFT]: { led: 1, color: PICADE_SOUND_COLORS.kick },
+	[DIRECTION_RIGHT]: { led: 0, color: PICADE_SOUND_COLORS.snare },
+	[DIRECTION_UP]: { led: 2, color: PICADE_SOUND_COLORS.hat },
+	[DIRECTION_DOWN]: { led: 5, color: PICADE_SOUND_COLORS.cowbell },
 })
 
 const isPicadeGamepad = gamePad => PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
+const getEventGamePad = (value, gamePad) => gamePad ?? (value?.gamepad ? value : null)
+const getPicadeFallbackLed = button => {
+	const name = String(button)
+	let hash = 0
+	for (let index = 0; index < name.length; index++) {
+		hash += name.charCodeAt(index)
+	}
+	return hash % PICADE_MAX_BUTTONS
+}
+const getPicadeReleaseFadeDuration = heldFor => {
+	const heldSeconds = Math.max((heldFor ?? 0) / 1000, 0)
+	return Math.min(Math.max(heldSeconds * 0.6, 0.12), 2.4)
+}
+const getApplicationState = (application, key) => application.getState?.(key) ?? application.stateMachine?.get?.(key)
+const fadePicadeClockButton = (application, buttonIndex, color, options) => {
+	if (application.picadeHeldLights?.has(buttonIndex)) return
+	application.picadeLeds.fadeButton(buttonIndex, color, null, options)
+}
 
 const ensurePicadeLeds = async application => {
 	if (application.picadeLeds) return application.picadeLeds
@@ -71,14 +108,75 @@ const ensurePicadeLeds = async application => {
 	return picadeLeds
 }
 
-const flashPicadeButton = (application, gamePad, button, isButtonHeld) => {
-	if (!isButtonHeld || !isPicadeGamepad(gamePad) || !application.picadeLeds?.connected) {
+const flashPicadeButton = (application, gamePad, button, isButtonHeld, heldFor) => {
+	if (
+		button === GAME_PAD_CONNECTED ||
+		button === GAME_PAD_DISCONNECTED ||
+		!isPicadeGamepad(gamePad) ||
+		!application.picadeLeds?.connected
+	) {
 		return
 	}
-	const buttonIndex = PICADE_BUTTON_MAP[button]
-	if (buttonIndex == null) return
-	const color = PICADE_BUTTON_COLORS[button] ?? picadeColor('#ffffff', 18)
-	application.picadeLeds.fadeButton(buttonIndex, color, null, { duration: 0.12 })
+	const light = PICADE_BUTTON_LIGHTS[button]
+	const buttonIndex = light?.led ?? PICADE_BUTTON_MAP[button] ?? getPicadeFallbackLed(button)
+	const color = light?.color ?? PICADE_SOUND_COLORS.mode
+	application.picadeHeldLights ??= new Set()
+	if (isButtonHeld) {
+		application.picadeHeldLights.add(buttonIndex)
+		application.picadeLeds.setButton(buttonIndex, color)
+	}else{
+		application.picadeHeldLights.delete(buttonIndex)
+		application.picadeLeds.fadeButton(buttonIndex, color, null, {
+			duration: getPicadeReleaseFadeDuration(heldFor),
+		})
+	}
+}
+
+const pulsePicadeClock = (application, isBar) => {
+	const picadeLeds = application.picadeLeds
+	if (!picadeLeds?.connected) return
+
+	const isMetronomeEnabled = getApplicationState(application, 'metronome')
+	const isBackingTrackEnabled = getApplicationState(application, 'backingTrack')
+
+	const clock = application.clock
+	const divisionsElapsed = clock?.divisionsElapsed
+	if (!Number.isFinite(divisionsElapsed) || application.picadeClockLightDivision === divisionsElapsed) {
+		return
+	}
+
+	application.picadeClockLightDivision = divisionsElapsed
+
+	const totalDivisions = Math.max(clock?.totalDivisions ?? 96, 4)
+	const divisionsPerQuarter = Math.max(1, Math.round(totalDivisions / 4))
+	const divisionsPerEighth = Math.max(1, Math.round(divisionsPerQuarter / 2))
+	const quarterIndex = Math.floor(divisionsElapsed / divisionsPerQuarter) % 4
+
+	if ((isMetronomeEnabled || !isBackingTrackEnabled) && (isBar || clock?.isAtStart)) {
+		fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_B], PICADE_SOUND_COLORS.mode, { duration: 0.22 })
+	}
+
+	if (!isBackingTrackEnabled) return
+
+	if (isBar || clock?.isAtStart) {
+		fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_X], PICADE_SOUND_COLORS.kick, { duration: 0.5 })
+		fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_A], PICADE_SOUND_COLORS.kick, { duration: 0.7 })
+		return
+	}
+
+	if (divisionsElapsed % divisionsPerQuarter === 0) {
+		if (quarterIndex === 2) {
+			fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_X], PICADE_SOUND_COLORS.kick, { duration: 0.42 })
+		}else{
+			fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_Y], PICADE_SOUND_COLORS.snare, { duration: 0.34 })
+		}
+	}
+
+	if (divisionsElapsed % divisionsPerEighth === 0) {
+		const color = (divisionsElapsed / divisionsPerEighth) % 2 === 0 ? PICADE_SOUND_COLORS.hat : PICADE_SOUND_COLORS.hatAccent
+		fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_LEFT_SHOULDER_BUTTON], color, { duration: 0.18 })
+		fadePicadeClockButton(application, PICADE_BUTTON_MAP[BUTTON_RIGHT_SHOULDER_BUTTON], color, { duration: 0.18 })
+	}
 }
 
 
@@ -496,7 +594,8 @@ export const addGamePadEvents = (application) => {
 	}
 
 	gamePadManager.addEventListener( async ( eventName, value, gamePad, heldFor ) => {
-		console.info("GAMEPAD:", {eventName, value, gamePad, heldFor}, arguments )
+		const activeGamePad = getEventGamePad(value, gamePad)
+		console.info("GAMEPAD:", {eventName, value, gamePad: activeGamePad, heldFor}, arguments )
 		switch(eventName)
 		{
 			// ignore caching these
@@ -520,16 +619,16 @@ export const addGamePadEvents = (application) => {
 		switch(eventName)
 		{
 			case GAME_PAD_CONNECTED:
-				if (isPicadeGamepad(gamePad)) {
+				if (isPicadeGamepad(activeGamePad)) {
 					await ensurePicadeLeds(application)
 				}
 				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
-				console.info("Gamepad connected", eventName, value, gamePad )
+				console.info("Gamepad connected", eventName, value, activeGamePad )
 				break
 
 			case GAME_PAD_DISCONNECTED:
 				application.setFeedback( "Gamepad connection lost" , 0, 'gamepad' )
-				console.info("Gamepad disconnected", eventName, value, gamePad )
+				console.info("Gamepad disconnected", eventName, value, activeGamePad )
 				break
 		}
 
@@ -562,19 +661,20 @@ export const addGamePadEvents = (application) => {
 				
 				case BUTTON_START: 
 					const mode = setMode( gamePadModeIndex + 1 )
-					application.setFeedback( GAMEPAD_MODES[mode] + " mode", 0, 'gamepad' )
-					console.info("Gamepad START", value, gamePad, GAMEPAD_MODES[mode], mode )
+					application.setFeedback( mode + " mode", 0, 'gamepad' )
+					console.info("Gamepad START", value, activeGamePad, mode )
 					// check to see if another key is held down...
 					break
 			}
 		}
 
-		flashPicadeButton(application, gamePad, eventName, value)
-		gamePadMethod( application, gamePad, eventName, value, heldFor, gamePadPlayerIndex )
+		flashPicadeButton(application, activeGamePad, eventName, value, heldFor)
+		gamePadMethod( application, activeGamePad, eventName, value, heldFor, gamePadPlayerIndex )
 	})
 
 	// update game pads on beat
 	application.setUpdateCallback( (isBar) => {
 		gamePadManager.update()
+		pulsePicadeClock(application, isBar)
 	})
 }
