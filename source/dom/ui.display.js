@@ -5,16 +5,22 @@ import { populateSelect } from './select'
  * this only creates the UI and not the wiring
  * @param {Array<String>} displays 
  */
-export const createDisplayOptions = ( displays )=>{
+export const createDisplayOptions = ( displays, selectedDisplay )=>{
 
 	const items = displays.map( display => ({
 		value: display,
-		label: display
+		label: display,
+		selected: display === selectedDisplay
 	}))
 
-	populateSelect('select-display', items)
+	const select = populateSelect('select-display', items)
+	if (selectedDisplay)
+	{
+		select.value = selectedDisplay
+	}
 
 	// now unhide it
 	const displayMenu = document.querySelector('label[for="select-display"]')
 	displayMenu.hidden = false
+	return select
 }
