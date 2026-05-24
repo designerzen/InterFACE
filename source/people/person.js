@@ -56,14 +56,11 @@ import InstrumentManager from '../audio/instrument-manager.js'
 // import INSTRUMENT_LIST from '../assets/audio/instrument-list.json'
 
 // Notes, scales and keys
-import Arpeggio from '../audio/arpeggio.js'
 import { createKey } from '../audio/tuning/keys.js'
-import { MAJOR_CHORD_INTERVALS, MINOR_CHORD_INTERVALS } from '../audio/tuning/chords.js'
 import { 
 	convertNoteNameToMIDINoteNumber, 
 	getNoteText, chooseNoteNameUsingPercentage as getNoteNameFromPercentage, getNoteSound, getFriendlyNoteName, 
 	NOTES_ALPHABETICAL, 
-	MIDI_NOTE_NUMBERS,
 	GENERAL_MIDI_BY_NAME,
 	getNoteSoundFromNumber,
 	convertMIDINoteNumberToName,
@@ -222,7 +219,6 @@ export default class Person extends EventTarget{
 	#userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
 
 	// Flags
-	useArpeggio = false
 	active = false
 	singing = false
 	
@@ -284,8 +280,6 @@ export default class Person extends EventTarget{
 	noteFriendlyName = "C-4"
 	noteVelocity = 0
 	noteIndex = 0
-
-	arpeggio
 
 	// last played
 	lastNote = -1
@@ -1450,7 +1444,11 @@ export default class Person extends EventTarget{
 			let extra = this.isLoading ? "Loading..." : ""
 			if (playsChords && !arpeggiated)
 			{
-				const chord =this.activeInstrument.notes.keys()
+				const activeChord = this.activeNotes.get(this.noteNumber)
+				const chord = Array.isArray(activeChord) && activeChord.length > 1 ?
+					activeChord.map(note => typeof note === "number" ? note : note?.noteNumber).filter(Number.isFinite) :
+					Array.from(this.activeInstrument.notes.keys()).filter(Number.isFinite)
+
 				chord.forEach( (noteNumber, i) => {
 					const noteNameWithOctave = convertMIDINoteNumberToName(noteNumber)
 					extra += noteNameWithOctave + " "
@@ -1458,8 +1456,9 @@ export default class Person extends EventTarget{
 					activeNoteNumbers.push(noteNumber)
 				})
 			}else{
-  				extra = this.noteFriendlyName 
-				activeNoteNumbers.push(this.noteNumber)
+				const arpeggioNoteNumber = arpeggiated ? this.activeInstrument.notes.keys().next().value : null
+				extra = Number.isFinite(arpeggioNoteNumber) ? convertMIDINoteNumberToName(arpeggioNoteNumber) : this.noteFriendlyName
+				activeNoteNumbers.push(Number.isFinite(arpeggioNoteNumber) ? arpeggioNoteNumber : this.noteNumber)
 				notesPlaying++
 			}
 
@@ -1577,7 +1576,7 @@ export default class Person extends EventTarget{
 
 						`Note [${this.lastNoteNumber}] ${this.lastNoteName} - ${this.lastNoteSound} (${this.lastNoteFriendlyName}) Octave ${this.octave}`,
 
-						`PitchBend : ${this.pitchBendValue.toFixed(2)} ${this.useArpeggio ? 'ARPEGGIO' : ''} ${this.isSinging ? 'SINGING' : ''}`,
+						`PitchBend : ${this.pitchBendValue.toFixed(2)} ${this.activeInstrument?.arpeggiate ? 'ARPEGGIO' : ''} ${this.isSinging ? 'SINGING' : ''}`,
 						`Hue:${this.defaultHue}`, 
 						// `Pitch:${(prediction.pitch||0).toFixed(3)}`, 
 						// `Roll:${(prediction.roll||0).toFixed(3)}`, 
@@ -1737,33 +1736,6 @@ export default class Person extends EventTarget{
 		// eg. Do Re Mi
 		const noteSound = getNoteSound(noteFloat, isMinor)
 */
-		
-		// Set the root node in the arpeggio and reset the position...
-		if (this.useArpeggio && hasNoteChanged)
-		{
-			// update the arpeggio
-			// this.arpeggio.tonic = noteNumber
-			const forumla = isSharp ? MINOR_CHORD_INTERVALS : MAJOR_CHORD_INTERVALS
-			const mode = 0
-
-			this.arpeggio.setAllParameters( noteNumberForMIDI, forumla, mode )
-
-			//console.info("useArpeggio", this.arpeggio.sequence, {noteNumberForMIDI, forumla, mode, noteName}, this.lastNote , noteNumber )
-
-			// const noteName = getNoteName(noteFloat, newOctave, isMinor)
-			// // eg. Do Re Mi
-			// const noteSound = getNoteSound(noteFloat, isMinor)	
-			// // remap -1 -> +1 to 0 -> 1
-			// const noteFloat = (1 + noteNumber) * 0.5 
-	
-			// noteNumber, noteName, noteSound, noteFloat,
-		}else if (this.useArpeggio){
-
-			// note hasn't changed so let's get the next arpeggio note...
-			// noteNumber = 
-			noteNumberForMIDI = this.arpeggio.next()
-			//console.info("Arpeggio",  this.arpeggio.sequence, noteNumberForMIDI )
-		}
 		
 		// now fetch the other data...
 		// const noteObject = GENERAL_MIDI_BY_NAME.get(noteNumberForMIDI)
@@ -2238,11 +2210,6 @@ export default class Person extends EventTarget{
 		// this controls the amplitude and connects to the mouth ui
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
-
-		// so you set the root note every time and
-		// it returns the chord notes following the forumla
-		// bound by the MIDI_NOTE_NUMBERS which 
-		this.arpeggio = new Arpeggio( MIDI_NOTE_NUMBERS, MAJOR_CHORD_INTERVALS, 0 )
 
 		// compute Nyquist and choose cutoff safely
 		const nyquist = audioContext.sampleRate * 0.5

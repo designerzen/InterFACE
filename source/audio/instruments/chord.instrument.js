@@ -6,6 +6,7 @@ export default class ChordInstrument extends Instrument{
 	
 	arpeggio = false
 	arpeggioIndex = 0
+	arpeggioChordKey = ""
 	type = INSTRUMENT_TYPE_CHORD
 
 	finishedNotes = new Map()
@@ -42,6 +43,14 @@ export default class ChordInstrument extends Instrument{
 	}
 	set arpeggiate( value ){
 		this.arpeggio = value
+		this.resetArpeggio()
+	}
+
+	get useArpeggio(){
+		return this.arpeggiate
+	}
+	set useArpeggio(value){
+		this.arpeggiate = value
 	}
 
 	get playsChords(){
@@ -71,7 +80,7 @@ export default class ChordInstrument extends Instrument{
 
 	constructor(audioContext, options = {}){
 		super(audioContext, options)
-		if (options.arpeggiate)
+		if (options.arpeggiate || options.useArpeggio)
 		{
 			this.arpeggiate = true
 		}
@@ -136,6 +145,37 @@ export default class ChordInstrument extends Instrument{
 		return true
 	}
 
+	getArpeggioChordKey(chordArray=[]){
+		return chordArray.map(chord => chord?.noteNumber).join(",")
+	}
+
+	resetArpeggio(){
+		this.arpeggioIndex = 0
+		this.arpeggioChordKey = ""
+	}
+
+	async chordOnArpeggio(chordArray, velocity=1){
+		if (!chordArray?.length)
+		{
+			return
+		}
+
+		const chordKey = this.getArpeggioChordKey(chordArray)
+		this.arpeggioIndex = chordKey === this.arpeggioChordKey ?
+			(this.arpeggioIndex + 1) % chordArray.length :
+			0
+
+		this.arpeggioChordKey = chordKey
+		const chord = chordArray[this.arpeggioIndex]
+		if (!chord)
+		{
+			return
+		}
+
+		await this.allNotesOff()
+		return this.noteOn( chord.noteNumber, chord.velocity ?? velocity, 0 )
+	}
+
 	/**
 	 * Chord On 
 	 * @param {Array<Chord>} chordArray 
@@ -160,29 +200,7 @@ export default class ChordInstrument extends Instrument{
 			})
 
 		}else{
-		
-			let sameChordAgain = true
-
-			// chordArray.map( chord => {
-			// 	const isPlaying = this.activeNotes.has(chord.noteNumber) 
-			// 	if (!isPlaying){
-			// 		sameChordAgain = false
-			// 	}
-			// })
-			
-			if (sameChordAgain){
-				// if they are the same chords again we advance the arp
-				this.arpeggioIndex = (this.arpeggioIndex+1) % this.instruments.length
-			}else{
-				// if they are the different, we reset the arp
-				this.arpeggioIndex = 0
-			}
-
-			const chord = chordArray[this.arpeggioIndex]
-				
-			// console.error("ChordInstrument:arpeggioOn",this.arpeggioIndex, this.activeNotes, sameChordAgain ? "repeating" : "new chord", chordArray, chord )
-		
-			this.noteOn( chord.noteNumber, chord.velocity ?? velocity, this.arpeggioIndex )
+			return this.chordOnArpeggio(chordArray, velocity)
 		}
 	}
 
@@ -213,13 +231,16 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	async allNotesOff(){
-		let index = 0
 		const notesTurned = []
-		this.activeNotes.forEach( (velocity, noteNumber) =>{
-			this.noteOff( noteNumber, velocity, index++ )
+		const activeNotes = [...this.activeNotes.entries()]
+		const noteOffs = []
+		activeNotes.forEach( ([noteNumber, velocity]) =>{
+			this.instruments.forEach( (instrument, index) => {
+				noteOffs.push(this.noteOff( noteNumber, velocity, index ))
+			})
 			notesTurned.push(noteNumber)
 		})
-		// this.instruments.forEach( (instrument, index) => instrument.pitchBend(pitch))
+		await Promise.all(noteOffs)
 		super.allNotesOff()
 		// console.error("ChordInstrument:allNotesOff", this.activeNotes )
 		return notesTurned
