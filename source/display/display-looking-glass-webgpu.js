@@ -1,58 +1,110 @@
 /**
  * Looking Glass WebGPU Display
- * 
- * WebGPU-powered rendering for Looking Glass holographic displays
- * Uses THREE.js with WebGPU renderer and TLSL shaders
- * 
- * Configuration:
- * - `tileHeight` - Height of individual quilt view tile
- * - `numViews` - Number of views to render
- * - `targetX`, `targetY`, `targetZ` - Camera position
- * - `targetDiam` - Camera size/zoom (smaller = bigger)
- * - `fovy` - Vertical field of view in radians
- * - `depthiness` - Depth perception intensity
- * - `inlineView` - Display mode (quilt, centered, or matrix)
+ *
+ * WebGPU-backed Three.js point-cloud display for Looking Glass Portrait.
  */
 
-import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr/dist/bundle/webxr.js"
+import { LookingGlassWebXRPolyfill } from "@lookingglass/webxr/dist/bundle/webxr.js"
 
 import {
-	Scene,
-	PerspectiveCamera,
-	Vector3,
-	Color,
+	AdditiveBlending,
 	AmbientLight,
-	DirectionalLight,
 	BufferGeometry,
-	BufferAttribute,
-	Mesh
-} from "three"
-
-// WebGPU support in three.js v0.183.2 is limited
-// Using standard WebGLRenderer instead
-import { WebGLRenderer } from "three"
+	Color,
+	DoubleSide,
+	Float32BufferAttribute,
+	Group,
+	LineBasicMaterial,
+	LineSegments,
+	Mesh,
+	MeshBasicMaterial,
+	MeshLambertMaterial,
+	PerspectiveCamera,
+	PlaneGeometry,
+	PointLight,
+	Points,
+	PointsMaterial,
+	ReinhardToneMapping,
+	Scene,
+	SRGBColorSpace,
+	TextureLoader,
+	WebGPURenderer
+} from "three/src/Three.WebGPU.js"
 
 import AbstractDisplay from "./display-abstract.js"
-import { DISPLAY_LOOKING_GLASS_WEBGPU } from './display-types.js'
-import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
-import { Particle } from "../visual/3d.particles.js"
+import { DISPLAY_LOOKING_GLASS_WEBGPU } from "./display-types.js"
+import {
+	DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	KEYPOINT_QUANTITY,
+	UPDATE_FACE_BUTTON_AFTER_FRAMES
+} from "../settings/options.displays.js"
+import FACE_LANDMARKS_DATA from "../models/face-model-data.json"
+import { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+import { TAU } from "../maths/maths.js"
+import {
+	DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
+	applyLookingGlassParticleMarch
+} from "./looking-glass-particle-effects.js"
+import {
+	DEFAULT_WALL_OPTIONS,
+	createWallDisplayOptions,
+	createWalls,
+	disposeWalls
+} from "./walls.js"
+import {
+	DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES,
+	disposeLookingGlassEmoticonParticles,
+	updateLookingGlassEmoticonParticles
+} from "./looking-glass-emoticon-particles.js"
+import {
+	centrePositionBuffer,
+	getKeypointZoom,
+	updateMouthNoteBursts
+} from "./particle-coordinate-frame.js"
+import {
+	createLookingGlassXRToggleButton,
+	destroyLookingGlassXRButtons,
+	withLookingGlassXRCompatibility
+} from "./looking-glass-xr.js"
 
-// Default looking glass configuration
+import PARTICLE_URI from "url:../assets/particles/particle.png"
+
 const LOOKING_GLASS_PORTRAIT_WIDTH = 480
 const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
+const VIEW_CONE_ANGLE = TAU / 6
+const VERTICAL_VIEW_CONE_ANGLE = TAU / 32
+const TLC = 61 * 3
+const BLC = 308 * 3
 
+let openXRButton = null
 let hasXRBeenPolyfilled = false
 let lookingGlassWebXR = null
 
 const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU = {
-	debug: false,
-	stats: false,
+	...DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	...DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
+	...DEFAULT_WALL_OPTIONS,
+	...createWallDisplayOptions(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT, {
+		wallAttachToCamera: false,
+		wallFrontZ: -1.35,
+		wallHeight: 8.4,
+		wallDepthMultiplier: 4.8,
+		wallBackScale: 0.72
+	}),
+	...DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES,
+	webgpuParticlePhysics: true,
+	webgpuParticleGravity: 7.2,
+	webgpuParticleArrivalSpring: 96,
+	webgpuParticleArrivalDamping: 8.5,
+	webgpuParticleArrivalKick: 12.5,
+	webgpuParticleArrivalSpread: 1.15,
+	webgpuParticleSettleDistance: 0.022,
+	webgpuParticleSettleVelocity: 0.055,
+	controls: "#shared-controls",
+	fx: false,
+	mouse: false,
 	resize: false,
 	updateFaceButtonAfter: UPDATE_FACE_BUTTON_AFTER_FRAMES,
-	controls: "#shared-controls",
-	particleSize: 2,
-	particleColour: { r: 1, g: 0.8, b: 0.6 },
-	// Looking Glass specific
 	tileHeight: 512,
 	numViews: 45,
 	depthiness: 0.7,
@@ -64,15 +116,14 @@ const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU = {
 	inlineView: "quilt"
 }
 
-/**
- * Set up WebXR polyfill for Looking Glass
- * Must be called before display instantiation
- */
+const getPredictionPoints = prediction => {
+	return prediction?.keypoints ?? prediction?.faceLandmarks ?? prediction?.landmarks ?? []
+}
+
 export const requiredXRSetupForLookingGlass = () => {
 	if (!hasXRBeenPolyfilled) {
 		hasXRBeenPolyfilled = true
-
-		const lookingGlassConfig = {
+		lookingGlassWebXR = new LookingGlassWebXRPolyfill({
 			tileHeight: DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU.tileHeight,
 			numViews: DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU.numViews,
 			depthiness: DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU.depthiness,
@@ -82,76 +133,70 @@ export const requiredXRSetupForLookingGlass = () => {
 			targetDiam: DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU.targetDiam,
 			fovy: DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU.fovy,
 			inlineView: DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU.inlineView
-		}
-
-		lookingGlassWebXR = new LookingGlassWebXRPolyfill(lookingGlassConfig)
+		})
 	}
 	return lookingGlassWebXR
 }
 
-/**
- * Create WebXR toggle button for Looking Glass
- */
 export const createXRToggleButton = (renderer, destination) => {
-	const { VRButton } = require('three/examples/jsm/webxr/VRButton.js')
-	const button = VRButton.createButton(renderer)
-	button.style = ""
-	button.setAttribute("type", "button")
-	destination.append(button)
-	return button
+	destroyLookingGlassXRButtons(openXRButton, renderer)
+	openXRButton = createLookingGlassXRToggleButton(renderer, destination)
+	openXRButton.setAttribute("type", "button")
+	return openXRButton
 }
 
-/**
- * THREE.js WebGPU-powered Looking Glass holographic display
- * Renders face landmarks as particles with WebGPU acceleration
- */
 export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
-
 	name = DISPLAY_LOOKING_GLASS_WEBGPU
 
 	get type() {
 		return DISPLAY_LOOKING_GLASS_WEBGPU
 	}
 
-	// THREE.js core
+	get depth() {
+		return 100
+	}
+
 	renderer = null
 	scene = null
 	camera = null
-
-	// Particle system
-	particles = []
-	particleMeshes = []
-	particleGeometry = null
-	particleMaterial = null
-
-	// XR and Looking Glass
-	xrSession = null
-	lookingGlassWebXR = null
-
-	// Original canvas dimensions
-	originalCanvasSize = {
-		width: LOOKING_GLASS_PORTRAIT_WIDTH,
-		height: LOOKING_GLASS_PORTRAIT_HEIGHT
+	particles = null
+	particlesGroup = null
+	texture = null
+	mouseX = 0
+	mouseY = 0
+	windowHalfX = 0
+	windowHalfY = 0
+	isButtonFullSize = false
+	isRendering = false
+	walls = null
+	lookingGlassEmoticonState = null
+	faceWasDrawnThisFrame = false
+	lastFaceZoom = 3.14
+	lastFaceCenter = { x: 0, y: 0, z: 0 }
+	particlePhysics = {
+		mode: "falling",
+		lastTime: 0,
+		positions: null,
+		velocities: null,
+		targetPositions: null,
+		targetScales: null,
+		randoms: null,
+		frictions: null
 	}
 
-	// Event handlers
-	onWindowResizeHandler = null
-
-	// Time tracking
-	elapsedTime = 0
+	originalCanvasSize = {
+		width: 0,
+		height: 0
+	}
 
 	constructor(canvas, initialWidth = LOOKING_GLASS_PORTRAIT_WIDTH, initialHeight = LOOKING_GLASS_PORTRAIT_HEIGHT, options = DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU) {
-		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU, options)
+		options = { ...DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU, ...options }
 		super(canvas, initialWidth, initialHeight, options)
 
 		this.originalCanvasSize.width = initialWidth
 		this.originalCanvasSize.height = initialHeight
 
-		if (options.lookingGlassWebXR) {
-			this.lookingGlassWebXR = options.lookingGlassWebXR
-		}
-
-		this.create(canvas, options).then(e => {
+		this.create(options.quantity, options).then(() => {
 			this.loadComplete("ready")
 		}).catch(error => {
 			console.error("ERROR loading Looking Glass WebGPU display", error)
@@ -159,386 +204,593 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		})
 	}
 
-	/**
-	 * Initialize WebGPU renderer, scene, camera, and particle system
-	 */
-	async create(canvas, options) {
+	setAnimationLoop(callback) {
+		return this.renderer?.setAnimationLoop(callback)
+	}
 
-		// Check WebGPU support
+	cancelAnimationLoop() {
+		this.renderer?.setAnimationLoop(null)
+	}
+
+	async create(keypointQuantity = KEYPOINT_QUANTITY * 3, options = {}) {
 		if (!navigator.gpu) {
 			throw new Error("WebGPU not supported in this browser")
 		}
 
-		// Create WebGL renderer (WebGPU not available in three.js v0.183.2 ESM)
-		this.renderer = new WebGLRenderer({
-			canvas: canvas,
-			antialias: true,
-			alpha: true
+		if (options.lookingGlassWebXR) {
+			this.lookingGlassWebXR = typeof options.lookingGlassWebXR === "function"
+				? options.lookingGlassWebXR()
+				: options.lookingGlassWebXR
+		}
+
+		const scene = new Scene()
+		const ambientLight = new AmbientLight(options.lightColour, options.lightIntensity)
+		scene.add(ambientLight)
+
+		const renderer = await withLookingGlassXRCompatibility(async () => {
+			const compatibleRenderer = new WebGPURenderer({
+				canvas: this.canvas,
+				antialias: options.antialias,
+				alpha: options.alpha,
+				forceWebGL: true
+			})
+			compatibleRenderer.setPixelRatio(window.devicePixelRatio)
+			compatibleRenderer.setSize(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT)
+			compatibleRenderer.setClearColor(new Color(0x000000), 0)
+			compatibleRenderer.outputColorSpace = SRGBColorSpace
+			compatibleRenderer.toneMapping = ReinhardToneMapping
+			compatibleRenderer.xr.enabled = true
+			await compatibleRenderer.init()
+			return compatibleRenderer
 		})
 
-		this.renderer.setPixelRatio(window.devicePixelRatio)
-		this.renderer.setSize(this.originalCanvasSize.width, this.originalCanvasSize.height)
-		this.renderer.setClearColor(new Color(0x000000))
-
-		// Enable XR for Looking Glass
-		this.renderer.xr.enabled = true
-
-		// No async init needed for WebGL renderer
-
-		// Create scene
-		this.scene = new Scene()
-
-		// Create camera
-		this.camera = new PerspectiveCamera(
-			75,
-			this.originalCanvasSize.width / this.originalCanvasSize.height,
-			0.1,
-			10000
-		)
-		this.camera.position.set(
-			this.originalCanvasSize.width / 2,
-			this.originalCanvasSize.height / 2,
-			-this.originalCanvasSize.height
-		)
-		this.camera.lookAt(this.originalCanvasSize.width / 2, this.originalCanvasSize.height / 2, 0)
-
-		// Add lighting
-		const ambientLight = new AmbientLight(0xffffff, 0.8)
-		this.scene.add(ambientLight)
-
-		const directionalLight = new DirectionalLight(0xffffff, 0.6)
-		directionalLight.position.set(
-			this.originalCanvasSize.width / 2,
-			this.originalCanvasSize.height / 2,
-			-this.originalCanvasSize.height / 2
-		)
-		this.scene.add(directionalLight)
-
-		// Create particle system
-		this.createParticleSystem(468) // MediaPipe face landmarks
-
-		// Set up animation loop
-		this.setAnimationLoop(() => {
-			this.render()
-		}, false)
-
-		// Handle window resize
-		this.onWindowResizeHandler = this.onWindowResize.bind(this)
-		window.addEventListener("resize", this.onWindowResizeHandler)
-
-		// Create XR button if controls specified
-		if (options.controls) {
-			const controlsElement = document.querySelector(options.controls) || document.body
-			try {
-				createXRToggleButton(this.renderer, controlsElement)
-			} catch (e) {
-				console.warn("Could not create XR button:", e)
+		const camera = new PerspectiveCamera(50, LOOKING_GLASS_PORTRAIT_WIDTH / LOOKING_GLASS_PORTRAIT_HEIGHT)
+		camera.lookAt(scene.position)
+		const walls = createWalls({
+			Group,
+			Mesh,
+			MeshBasicMaterial,
+			MeshLambertMaterial,
+			PlaneGeometry,
+			PointLight,
+			LineBasicMaterial,
+			LineSegments,
+			BufferGeometry,
+			Float32BufferAttribute,
+			DoubleSide
+		}, options, camera)
+		if (walls)
+		{
+			if (options.wallAttachToCamera)
+			{
+				camera.add(walls)
+				scene.add(camera)
+			}
+			else
+			{
+				scene.add(walls)
 			}
 		}
 
+		const { keypoints } = FACE_LANDMARKS_DATA["0"]
+		const geometry = createFaceGeometryFromData(
+			keypoints,
+			keypointQuantity,
+			1,
+			options.geometrySubdivisions
+		)
+		centrePositionBuffer(geometry.attributes.position.array)
+		const { particles, texture } = await this.createParticles(
+			geometry,
+			options.particeSize,
+			options.colour,
+			options.opacity
+		)
+		const particlesGroup = new Group()
+		particlesGroup.add(particles)
+		scene.add(particlesGroup)
+
+		this.scene = scene
+		this.renderer = renderer
+		this.camera = camera
+		this.ambientLight = ambientLight
+		this.particles = particles
+		this.particlesGroup = particlesGroup
+		this.texture = texture
+		this.walls = walls
+
+		if (options.mouse) {
+			this.mouseMoveProxy = this.onPointerMove.bind(this)
+			document.body.addEventListener("pointermove", this.mouseMoveProxy)
+		}
+
+		const controls = this.options.controls
+			? document.querySelector(this.options.controls)
+			: document.body.appendChild(document.createElement("div"))
+
+		createXRToggleButton(this.renderer, controls ?? document.body)
+
 		this.available = true
+		console.info("Looking Glass WebGPU Display START", options, { scene, renderer, camera })
 		return true
 	}
 
-	/**
-	 * Handle window resize
-	 */
-	onWindowResize() {
-		const width = window.innerWidth
-		const height = window.innerHeight
-
-		this.camera.aspect = width / height
-		this.camera.updateProjectionMatrix()
-
-		if (this.renderer) {
-			this.renderer.setSize(width, height)
-		}
-	}
-
-	/**
-	 * Create GPU-accelerated particle system
-	 */
-	createParticleSystem(particleCount) {
-
-		// Create base particle geometry
-		this.particleGeometry = new BufferGeometry()
-		const positionAttribute = new BufferAttribute(
-			new Float32Array([0, 0, 0]),
-			3
-		)
-		this.particleGeometry.setAttribute('position', positionAttribute)
-
-		// Create material with TLSL
-		this.particleMaterial = new MeshBasicNodeMaterial({
-			transparent: true,
-			side: 2 // DoubleSide
+	async createParticles(geometry, size = 0.03, color = 0xefefef88, opacity = 1) {
+		return new Promise((resolve, reject) => {
+			const loader = new TextureLoader()
+			loader.load(PARTICLE_URI, texture => {
+				texture.colorSpace = SRGBColorSpace
+				const particlesMaterial = new PointsMaterial({
+					map: texture,
+					color,
+					size,
+					blending: AdditiveBlending,
+					sizeAttenuation: true,
+					transparent: true,
+					opacity,
+					depthTest: true,
+					vertexColors: Boolean(geometry.attributes.color)
+				})
+				resolve({
+					particles: new Points(geometry, particlesMaterial),
+					particlesMaterial,
+					texture
+				})
+			}, undefined, error => {
+				reject(new Error("Couldn't load particle texture " + error))
+			})
 		})
+	}
 
-		// Initialize particle particles array
-		this.particles = []
-		this.particleMeshes = []
-
-		for (let i = 0; i < particleCount; i++) {
-			const particleGeometry = new BufferGeometry()
-			particleGeometry.setAttribute('position', positionAttribute.clone())
-
-			const particleMesh = new Mesh(particleGeometry, this.particleMaterial)
-			this.scene.add(particleMesh)
-			this.particleMeshes.push(particleMesh)
-
-			const particle = new Particle(0, 0, 0, 0.15)
-			particle.mesh = particleMesh
-			this.particles.push(particle)
+	onGeometrySubdivisionsChanged(){
+		if (!this.particles)
+		{
+			return
 		}
+
+		const { keypoints } = FACE_LANDMARKS_DATA["0"]
+		const geometry = createFaceGeometryFromData(
+			keypoints,
+			this.options.quantity ?? KEYPOINT_QUANTITY * 3,
+			1,
+			this.options.geometrySubdivisions ?? 0
+		)
+		centrePositionBuffer(geometry.attributes.position.array)
+		const previousGeometry = this.particles.geometry
+		this.particles.geometry = geometry
+		previousGeometry?.dispose()
+		this.resetParticlePhysics()
 	}
 
-	/**
-	 * Clear the scene
-	 */
-	clear() {
-		// Scene is automatically cleared each frame
-	}
-
-	/**
-	 * Update particle positions from landmarks
-	 */
-	updateParticlePositions(landmarks) {
-
-		for (let i = 0; i < Math.min(landmarks.length, this.particles.length); i++) {
-
-			const landmark = landmarks[i]
-			const particle = this.particles[i]
-			const mesh = this.particleMeshes[i]
-
-			if (!mesh) continue
-
-			// Convert 2D screen coordinates to 3D
-			let x = landmark.x * this.originalCanvasSize.width
-			let y = landmark.y * this.originalCanvasSize.height
-			let z = (landmark.z || 0) * 100
-
-			// Set target position
-			particle.setPosition(x, y, z)
-
-			// Update particle animation
-			particle.update(0.016)
-
-			// Update mesh
-			mesh.position.set(particle.x, particle.y, particle.z)
-			mesh.scale.set(
-				this.options.particleSize,
-				this.options.particleSize,
-				this.options.particleSize
-			)
+	arrangeParticles(data, scaleFactor = 1, centralise = false) {
+		if (!this.particles) {
+			return data
 		}
+
+		const keypoints = getPredictionPoints(data)
+		if (!keypoints.length) {
+			return data
+		}
+
+		const zoom = getKeypointZoom(keypoints, this.lastFaceZoom) * scaleFactor
+		const positions = this.particles.geometry.attributes.position.array
+		const scales = this.particles.geometry.attributes.scale.array
+		const physics = this.ensureParticlePhysics()
+
+		if (this.options.webgpuParticlePhysics === false || !physics)
+		{
+			arrangeFaceData(keypoints, positions, scales, zoom, this.options.geometrySubdivisions ?? 0)
+			this.lastFaceCenter = centrePositionBuffer(positions)
+			applyLookingGlassParticleMarch(this.particles.geometry, this.count, this.options)
+		}
+		else
+		{
+			arrangeFaceData(keypoints, physics.targetPositions, physics.targetScales, zoom, this.options.geometrySubdivisions ?? 0)
+			this.lastFaceCenter = centrePositionBuffer(physics.targetPositions)
+			this.updateParticlePhysicsWithFace()
+		}
+		this.lastFaceZoom = zoom
+
+		if (centralise) {
+			this.lastFaceCenter = centrePositionBuffer(positions)
+		}
+		this.particles.geometry.attributes.position.needsUpdate = true
+		this.particles.geometry.attributes.scale.needsUpdate = true
+
+		return data
 	}
 
-	/**
-	 * Update particle colors
-	 */
-	updateParticleColours(person, hue, colours = {}) {
+	ensureParticlePhysics() {
+		if (!this.particles?.geometry?.attributes?.position)
+		{
+			return null
+		}
 
-		const saturation = colours.s || 100
-		const luminosity = colours.l || 50
-		const alpha = colours.a || 1
+		const positions = this.particles.geometry.attributes.position.array
+		const particleCount = positions.length / 3
+		const physics = this.particlePhysics
 
-		const rgb = this.hslToRgb(hue, saturation, luminosity)
+		if (physics.positions?.length === positions.length)
+		{
+			return physics
+		}
 
-		for (let mesh of this.particleMeshes) {
-			if (mesh && mesh.material) {
-				const color = new Color(rgb.r, rgb.g, rgb.b)
-				mesh.material.color = color
-				mesh.material.opacity = alpha
+		physics.mode = "falling"
+		physics.lastTime = performance.now()
+		physics.positions = new Float32Array(positions.length)
+		physics.velocities = new Float32Array(positions.length)
+		physics.targetPositions = new Float32Array(positions.length)
+		physics.targetScales = new Float32Array(particleCount)
+		physics.randoms = new Float32Array(particleCount)
+		physics.frictions = new Float32Array(particleCount)
+		physics.positions.set(positions)
+
+		for (let i = 0; i < particleCount; i++)
+		{
+			physics.randoms[i] = Math.random()
+			physics.frictions[i] = 0.82 + Math.random() * 0.14
+			physics.velocities[i * 3] = (Math.random() - 0.5) * 0.4
+			physics.velocities[i * 3 + 1] = -Math.random() * 0.5
+			physics.velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.3
+		}
+
+		return physics
+	}
+
+	resetParticlePhysics() {
+		this.particlePhysics = {
+			mode: "falling",
+			lastTime: performance.now(),
+			positions: null,
+			velocities: null,
+			targetPositions: null,
+			targetScales: null,
+			randoms: null,
+			frictions: null
+		}
+		this.lastFaceZoom = 3.14
+		this.lastFaceCenter = { x: 0, y: 0, z: 0 }
+	}
+
+	getParticlePhysicsDelta() {
+		const physics = this.ensureParticlePhysics()
+		if (!physics)
+		{
+			return 1 / 60
+		}
+
+		const now = performance.now()
+		const delta = physics.lastTime ? (now - physics.lastTime) / 1000 : 1 / 60
+		physics.lastTime = now
+		return Math.max(1 / 120, Math.min(delta, 1 / 20))
+	}
+
+	beginParticleArrival() {
+		const physics = this.ensureParticlePhysics()
+		if (!physics || !this.particles)
+		{
+			return
+		}
+
+		const positions = this.particles.geometry.attributes.position.array
+		const particleCount = positions.length / 3
+		const arrivalKick = this.options.webgpuParticleArrivalKick ?? 12.5
+		const spread = this.options.webgpuParticleArrivalSpread ?? 1.15
+
+		for (let i = 0; i < particleCount; i++)
+		{
+			const index = i * 3
+			const random = physics.randoms[i] ?? Math.random()
+			const side = random > 0.5 ? 1 : -1
+
+			physics.positions[index] = Number.isFinite(positions[index]) ? positions[index] : physics.targetPositions[index]
+			physics.positions[index + 1] = Math.max(positions[index + 1] || 0, spread + random * spread)
+			physics.positions[index + 2] = (positions[index + 2] || 0) + (random - 0.5) * spread
+			physics.velocities[index] = side * (0.7 + random * 1.8)
+			physics.velocities[index + 1] = -arrivalKick * (0.7 + random * 0.6)
+			physics.velocities[index + 2] = (random - 0.5) * 2.5
+		}
+
+		physics.mode = "arriving"
+	}
+
+	updateParticlePhysicsWithFace() {
+		const physics = this.ensureParticlePhysics()
+		if (!physics || !this.particles)
+		{
+			return
+		}
+
+		if (physics.mode !== "arriving" && physics.mode !== "settled")
+		{
+			this.beginParticleArrival()
+		}
+
+		const positions = this.particles.geometry.attributes.position.array
+		const scales = this.particles.geometry.attributes.scale.array
+
+		if (physics.mode === "settled")
+		{
+			positions.set(physics.targetPositions)
+			scales.set(physics.targetScales)
+			applyLookingGlassParticleMarch(this.particles.geometry, this.count, this.options)
+			return
+		}
+
+		const delta = this.getParticlePhysicsDelta()
+		const spring = this.options.webgpuParticleArrivalSpring ?? 96
+		const damping = this.options.webgpuParticleArrivalDamping ?? 8.5
+		const settleDistance = this.options.webgpuParticleSettleDistance ?? 0.022
+		const settleVelocity = this.options.webgpuParticleSettleVelocity ?? 0.055
+		const particleCount = positions.length / 3
+		let unsettled = 0
+
+		for (let i = 0; i < particleCount; i++)
+		{
+			const index = i * 3
+			const random = physics.randoms[i] ?? 0
+			const friction = physics.frictions?.[i] ?? 0.9
+			const drag = Math.pow(friction, delta * 60)
+			const particleDamping = damping * (0.75 + (1 - friction) * 2.2)
+			let distanceSquared = 0
+			let velocitySquared = 0
+
+			for (let axis = 0; axis < 3; axis++)
+			{
+				const positionIndex = index + axis
+				const target = physics.targetPositions[positionIndex]
+				const offset = target - physics.positions[positionIndex]
+				const axisSpring = spring * (axis === 1 ? 1.12 : 1)
+				const overArc = axis === 1 ? Math.sin((this.count * 0.18) + random * TAU) * 0.055 * Math.max(0, offset) : 0
+				const acceleration = (offset + overArc) * axisSpring - physics.velocities[positionIndex] * particleDamping
+
+				physics.velocities[positionIndex] += acceleration * delta
+				physics.velocities[positionIndex] *= drag
+				physics.positions[positionIndex] += physics.velocities[positionIndex] * delta
+				distanceSquared += offset * offset
+				velocitySquared += physics.velocities[positionIndex] * physics.velocities[positionIndex]
+				positions[positionIndex] = physics.positions[positionIndex]
+			}
+
+			scales[i] = physics.targetScales[i] * (1 + Math.min(1.5, Math.sqrt(velocitySquared) * 0.08))
+
+			if (distanceSquared > settleDistance * settleDistance || velocitySquared > settleVelocity * settleVelocity)
+			{
+				unsettled++
 			}
 		}
-	}
 
-	/**
-	 * Convert HSL to RGB
-	 */
-	hslToRgb(h, s, l) {
-		h = h % 360
-		s = s / 100
-		l = l / 100
-
-		const c = (1 - Math.abs(2 * l - 1)) * s
-		const hp = h / 60
-		const x = c * (1 - Math.abs((hp % 2) - 1))
-
-		let r = 0, g = 0, b = 0
-
-		if (hp < 1) { r = c; g = x; b = 0 }
-		else if (hp < 2) { r = x; g = c; b = 0 }
-		else if (hp < 3) { r = 0; g = c; b = x }
-		else if (hp < 4) { r = 0; g = x; b = c }
-		else if (hp < 5) { r = x; g = 0; b = c }
-		else if (hp < 6) { r = c; g = 0; b = x }
-
-		const m = l - c / 2
-
-		return {
-			r: Math.max(0, Math.min(1, r + m)),
-			g: Math.max(0, Math.min(1, g + m)),
-			b: Math.max(0, Math.min(1, b + m))
+		if (unsettled === 0)
+		{
+			physics.mode = "settled"
+			positions.set(physics.targetPositions)
+			scales.set(physics.targetScales)
+			applyLookingGlassParticleMarch(this.particles.geometry, this.count, this.options)
 		}
 	}
 
-	/**
-	 * Draw person with particles
-	 */
-	drawPerson(person, beatJustPlayed, colours, options = {}) {
+	updateParticlePhysicsWithoutFace() {
+		const physics = this.ensureParticlePhysics()
+		if (!physics || !this.particles || this.options.webgpuParticlePhysics === false)
+		{
+			return
+		}
+
+		const positions = this.particles.geometry.attributes.position.array
+		const scales = this.particles.geometry.attributes.scale.array
+		const delta = this.getParticlePhysicsDelta()
+		const gravity = this.options.webgpuParticleGravity ?? 7.2
+		const particleCount = positions.length / 3
+
+		if (physics.mode === "settled" || physics.mode === "arriving")
+		{
+			physics.positions.set(positions)
+		}
+
+		physics.mode = "falling"
+
+		for (let i = 0; i < particleCount; i++)
+		{
+			const index = i * 3
+			const random = physics.randoms[i] ?? 0
+			const friction = physics.frictions?.[i] ?? 0.9
+			const drag = Math.pow(friction, delta * 60)
+			physics.velocities[index] += Math.sin((this.count * 0.045) + random * TAU) * delta * 0.35
+			physics.velocities[index + 1] += gravity * delta
+			physics.velocities[index + 2] += Math.cos((this.count * 0.04) + random * TAU) * delta * 0.28
+			physics.velocities[index] *= drag
+			physics.velocities[index + 1] *= drag
+			physics.velocities[index + 2] *= drag
+
+			physics.positions[index] += physics.velocities[index] * delta
+			physics.positions[index + 1] += physics.velocities[index + 1] * delta
+			physics.positions[index + 2] += physics.velocities[index + 2] * delta
+
+			positions[index] = physics.positions[index]
+			positions[index + 1] = physics.positions[index + 1]
+			positions[index + 2] = physics.positions[index + 2]
+			scales[i] = Math.max(0.25, scales[i] * 0.985)
+		}
+
+		this.particles.geometry.attributes.position.needsUpdate = true
+		this.particles.geometry.attributes.scale.needsUpdate = true
+	}
+
+	drawPerson(person, beatJustPlayed, colours, options = DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU) {
+		if (this.available === false || !this.particles) {
+			return
+		}
 
 		const prediction = person.data
-		const hue = person.hue
-
-		if (!prediction) return
+		if (!prediction || !getPredictionPoints(prediction).length) {
+			return
+		}
+		this.faceWasDrawnThisFrame = true
 
 		if (this.count % this.options.updateFaceButtonAfter === 0) {
 			this.movePersonButton(person, prediction)
 		}
 
-		const landmarks = prediction.landmarks || []
-		if (landmarks.length === 0) return
+		const hue = Math.abs((person.hue ?? 0) / 360)
+		this.particles.rotation.x = (this.mouseY * VERTICAL_VIEW_CONE_ANGLE) + Math.PI
+		this.particles.rotation.y = -(this.mouseX * VIEW_CONE_ANGLE)
+		this.arrangeParticles(prediction, 1)
+		updateMouthNoteBursts({
+			host:this,
+			positions:this.particles.geometry.attributes.position.array,
+			scales:this.particles.geometry.attributes.scale?.array,
+			topLipIndex:TLC,
+			bottomLipIndex:BLC,
+			beatJustPlayed,
+			count:this.count,
+			distance:1.9
+		})
+		this.particles.geometry.attributes.position.needsUpdate = true
+		this.particles.geometry.attributes.scale.needsUpdate = true
 
-		this.updateParticlePositions(landmarks)
-		this.updateParticleColours(person, hue, colours)
+		if (this.particles.material) {
+			const saturation = colours?.s ? colours.s / 100 : 0.6
+			const lightness = colours?.l ? colours.l / 100 : prediction.isMouthOpen ? 0.9 : 0.6
+			this.particles.material.color.setHSL(hue, saturation, lightness)
+			this.particles.material.opacity = colours?.a ?? this.options.opacity
+		}
+		this.drawPersonEmoticonParticles(person)
 	}
 
-	/**
-	 * Render the scene with XR support
-	 */
-	render() {
-		this.count++
-		this.elapsedTime += 0.016
+	drawPersonEmoticonParticles(person) {
+		const prediction = person?.data
+		if (!this.particles || !prediction || !person?.emoticon)
+		{
+			return
+		}
 
-		if (this.renderer) {
-			// Render with XR session if available
-			this.renderer.render(this.scene, this.camera)
+		this.drawEmoticon(
+			0,
+			0,
+			person.emoticon,
+			((prediction.roll ?? 0) * Math.PI * 0.28) - (Math.PI * 0.5),
+			0.8 + (1 - Math.abs(prediction.pitch ?? 0)) * 0.2,
+			0.75 + (1 - Math.abs(prediction.yaw ?? 0)) * 0.25,
+			person.noteIndex,
+			person.quantityOfPlayableNotes,
+			false
+		)
+	}
+
+	movePersonButton(person, prediction) {
+		if (!this.isButtonFullSize) {
+			person.moveButton(0, 0, LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT)
+			this.isButtonFullSize = true
 		}
 	}
 
-	/**
-	 * Draw bars
-	 */
-	drawBars(dataArray, bufferLength) {
-		// To be implemented if needed
+	async render() {
+		if (!this.renderer || !this.scene || !this.camera || this.isRendering) {
+			return
+		}
+
+		this.isRendering = true
+		try {
+			if (!this.faceWasDrawnThisFrame)
+			{
+				this.updateParticlePhysicsWithoutFace()
+			}
+			await this.renderer.renderAsync(this.scene, this.camera)
+			this.count = (this.count + 1) % 1024
+			super.render()
+		} finally {
+			this.faceWasDrawnThisFrame = false
+			this.isRendering = false
+		}
 	}
 
-	/**
-	 * Draw visualiser
-	 */
-	drawVisualiser(dataArray, bufferLength, type) {
-		// To be implemented if needed
-	}
+	clear() {}
+	async addFX() {}
 
-	/**
-	 * Draw instrument
-	 */
-	drawInstrument(boundingBox, instrumentName, extra) {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Draw text
-	 */
-	drawText(x, y, text, size, align, font, invertColours) {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Draw paragraph
-	 */
-	drawParagraph(x, y, paragraph, size, lineHeight, invertColours) {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Draw emoticon
-	 */
+	drawText() {}
+	drawParagraph() {}
 	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
-		// To be implemented if needed
+		updateLookingGlassEmoticonParticles(this, {
+			Group,
+			BufferGeometry,
+			Float32BufferAttribute,
+			Points,
+			PointsMaterial
+		}, {
+			emoji,
+			rotationZ,
+			rotationY,
+			rotationX,
+			activeCircleIndex,
+			numberOfNotesInKey,
+			flipX
+		})
 	}
+	drawBars() {}
+	drawVisualiser() {}
+	drawInstrument() {}
+	setFilter() {}
+	nextFilter() {}
+	resetFilter() {}
+	postProcess() {}
 
-	/**
-	 * Set filter
-	 */
-	setFilter(filterIndex) {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Next filter
-	 */
-	nextFilter() {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Reset filter
-	 */
-	resetFilter() {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Post-process
-	 */
-	postProcess(options) {
-		// To be implemented if needed
-	}
-
-	/**
-	 * Take screenshot
-	 */
 	takePhotograph(type = "image/png") {
-		if (this.renderer && this.renderer.domElement) {
-			return this.renderer.domElement.toDataURL(type)
-		}
-		return null
+		return this.canvas.toDataURL(type)
 	}
 
-	/**
-	 * Destroy and clean up
-	 */
-	async destroy() {
-		// Remove event listeners
-		if (this.onWindowResizeHandler) {
-			window.removeEventListener("resize", this.onWindowResizeHandler)
-			this.onWindowResizeHandler = null
-		}
+	onPointerMove(event) {
+		if (!event || event.isPrimary === false) return
+		this.mouseX = (event.clientX - this.windowHalfX) / this.windowHalfX
+		this.mouseY = (event.clientY - this.windowHalfY) / this.windowHalfY
+	}
 
-		// Cancel animation loop
+	onResize() {
+		this.windowHalfX = window.innerWidth * 0.5
+		this.windowHalfY = window.innerHeight * 0.5
+		this.renderer?.setSize(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT)
+		if (this.camera) {
+			this.camera.aspect = LOOKING_GLASS_PORTRAIT_WIDTH / LOOKING_GLASS_PORTRAIT_HEIGHT
+			this.camera.updateProjectionMatrix()
+		}
+	}
+
+	async destroy() {
 		this.cancelAnimationLoop()
 
-		// Dispose particle meshes
-		for (let mesh of this.particleMeshes) {
-			if (mesh) {
-				if (mesh.geometry) mesh.geometry.dispose()
-				if (mesh.material) mesh.material.dispose()
-			}
-		}
-		this.particleMeshes = []
-		this.particles = []
-
-		// Dispose geometry
-		if (this.particleGeometry) {
-			this.particleGeometry.dispose()
+		if (this.mouseMoveProxy) {
+			document.body.removeEventListener("pointermove", this.mouseMoveProxy)
 		}
 
-		// Dispose material
-		if (this.particleMaterial) {
-			this.particleMaterial.dispose()
-		}
+		await destroyLookingGlassXRButtons(openXRButton, this.renderer)
+		openXRButton = null
 
-		// Dispose renderer
-		if (this.renderer) {
-			this.renderer.dispose()
+		if (this.particles) {
+			this.particlesGroup?.remove(this.particles)
+			this.particles.geometry?.dispose?.()
+			this.particles.material?.dispose?.()
 		}
+		if (this.particlesGroup) {
+			this.scene?.remove(this.particlesGroup)
+		}
+		if (this.walls) {
+			this.scene?.remove(this.walls)
+			disposeWalls(this.walls)
+		}
+		disposeLookingGlassEmoticonParticles(this)
 
-		// Clear scene
-		if (this.scene) {
-			this.scene.clear()
-		}
+		this.texture?.dispose()
+		this.renderer?.setSize(this.originalCanvasSize.width, this.originalCanvasSize.height)
+		this.renderer?.dispose()
+		this.scene?.clear()
+
+		this.scene = null
+		this.renderer = null
+		this.camera = null
+		this.particles = null
+		this.particlesGroup = null
+		this.texture = null
+		this.walls = null
+		this.available = false
 
 		return super.destroy()
 	}

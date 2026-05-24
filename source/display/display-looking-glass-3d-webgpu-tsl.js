@@ -18,11 +18,29 @@ import { LookingGlassWebXRPolyfill } from "@lookingglass/webxr/dist/bundle/webxr
 
 import * as THREE from "three"
 // WebGPU support in three.js v0.183.2 is limited - using WebGL renderer instead
-import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
 
 import DisplayWebGPU3D from "./display-webgpu-3d.js"
-import { DISPLAY_LOOKING_GLASS_3D } from './display-types.js'
+import { DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL } from './display-types.js'
 import { DEFAULT_OPTIONS_DISPLAY_WEBGL } from "../settings/options.displays.js"
+import {
+	DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
+	applyLookingGlassParticleMarch
+} from "./looking-glass-particle-effects.js"
+import {
+	DEFAULT_WALL_OPTIONS,
+	createWallDisplayOptions,
+	disposeWalls
+} from "./walls.js"
+import {
+	DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES,
+	disposeLookingGlassEmoticonParticles,
+	updateLookingGlassEmoticonParticles
+} from "./looking-glass-emoticon-particles.js"
+import {
+	createLookingGlassXRToggleButton,
+	destroyLookingGlassXRButtons,
+	withLookingGlassXRCompatibility
+} from "./looking-glass-xr.js"
 
 // Settings
 const LOOKING_GLASS_PORTRAIT_WIDTH = 480
@@ -33,19 +51,23 @@ let connectHardwareButtons = false
 
 export const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU_TSL = {
 	...DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	...DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
+	...DEFAULT_WALL_OPTIONS,
+	...createWallDisplayOptions(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT, {
+		wallAttachToCamera: false,
+		wallFrontZ: -1.35,
+		wallHeight: 8.4,
+		wallDepthMultiplier: 4.8,
+		wallBackScale: 0.72
+	}),
+	...DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES,
 	controls: "#shared-controls"
 }
 
 export const createXRToggleButton = (renderer, destination) => {
-	if (openXRButton) {
-		destination.append(openXRButton)
-		return openXRButton
-	}
-	// adapt VRButton styles
-	openXRButton = VRButton.createButton(renderer)
-	openXRButton.style = ""
+	destroyLookingGlassXRButtons(openXRButton, renderer)
+	openXRButton = createLookingGlassXRToggleButton(renderer, destination)
 	openXRButton.setAttribute("type", "button")
-	destination.append(openXRButton)
 	return openXRButton
 }
 
@@ -93,7 +115,7 @@ export const requiredXRSetupForLookingGlassWebGPU = () => {
  */
 export default class DisplayLookingGlass3DWebGPUTSL extends DisplayWebGPU3D {
 
-	name = DISPLAY_LOOKING_GLASS_3D
+	name = DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL
 
 	get type() {
 		return DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL
@@ -104,6 +126,8 @@ export default class DisplayLookingGlass3DWebGPUTSL extends DisplayWebGPU3D {
 	lookingGlassWebXR = null
 
 	controls = null
+	walls = null
+	lookingGlassEmoticonState = null
 
 	originalCanvasSize = {
 		width: 0, 
@@ -134,7 +158,7 @@ export default class DisplayLookingGlass3DWebGPUTSL extends DisplayWebGPU3D {
 
 	async create(keypointQuantity = 478, options = {}) {
 
-		await super.create(keypointQuantity, options)
+		await withLookingGlassXRCompatibility(() => super.create(keypointQuantity, options))
 
 		// Necessary for VR button and for headsets
 		this.renderer.xr.enabled = true
@@ -166,12 +190,17 @@ export default class DisplayLookingGlass3DWebGPUTSL extends DisplayWebGPU3D {
 		if (this.controls) {
 			this.removeSideButtonControls()		
 		}
-		if (openXRButton) {
-			openXRButton.parentNode.removeChild(openXRButton)
-		}
+		await destroyLookingGlassXRButtons(openXRButton, this.renderer)
+		openXRButton = null
 
 		// Reset canvas size
-		this.renderer.setSize(this.originalCanvasSize.width, this.originalCanvasSize.height)
+		this.renderer?.setSize(this.originalCanvasSize.width, this.originalCanvasSize.height)
+		if (this.walls) {
+			this.scene?.remove(this.walls)
+			disposeWalls(this.walls)
+			this.walls = null
+		}
+		disposeLookingGlassEmoticonParticles(this)
 
 		return await super.destroy()
 	}
@@ -195,6 +224,51 @@ export default class DisplayLookingGlass3DWebGPUTSL extends DisplayWebGPU3D {
 	}
 
 	arrangeParticles(data, scaleFactor = 1, centralise = true) {
-		return super.arrangeParticles(data, scaleFactor, centralise)
+		const arrangedData = super.arrangeParticles(data, scaleFactor, centralise)
+		applyLookingGlassParticleMarch(this.particles?.geometry, this.count, this.options)
+		if (this.particles?.geometry.attributes.position) {
+			this.particles.geometry.attributes.position.needsUpdate = true
+		}
+		if (this.particles?.geometry.attributes.scale) {
+			this.particles.geometry.attributes.scale.needsUpdate = true
+		}
+		return arrangedData
+	}
+
+	drawPerson(person, beatJustPlayed, colours, options = DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU_TSL) {
+		super.drawPerson(person, beatJustPlayed, colours, options)
+		this.drawPersonEmoticonParticles(person)
+	}
+
+	drawPersonEmoticonParticles(person) {
+		const prediction = person?.data
+		if (!this.particles || !prediction || !person?.emoticon)
+		{
+			return
+		}
+
+		this.drawEmoticon(
+			0,
+			0,
+			person.emoticon,
+			((prediction.roll ?? 0) * Math.PI * 0.28) - (Math.PI * 0.5),
+			0.8 + (1 - Math.abs(prediction.pitch ?? 0)) * 0.2,
+			0.75 + (1 - Math.abs(prediction.yaw ?? 0)) * 0.25,
+			person.noteIndex,
+			person.quantityOfPlayableNotes,
+			false
+		)
+	}
+
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
+		updateLookingGlassEmoticonParticles(this, THREE, {
+			emoji,
+			rotationZ,
+			rotationY,
+			rotationX,
+			activeCircleIndex,
+			numberOfNotesInKey,
+			flipX
+		})
 	}
 }

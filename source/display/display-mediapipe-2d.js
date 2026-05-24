@@ -12,7 +12,8 @@ export const LOOKING_GLASS_PORTRAIT_WIDTH = 480
 export const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
 
 const DEFAULT_OPTIONS = {
-	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
+	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES,
+	geometrySubdivisions: 0
 }
 
 /**
@@ -39,6 +40,7 @@ export default class DisplayMediaPipe2D extends Display2D{
 	drawPerson( person, beatJustPlayed, colours, options={} ){
 
 		let prediction = person.data
+		const forceRefresh = options.forceRefresh ?? false
 
 		// const personOptions = person.options
 		const hue = person.hue
@@ -50,14 +52,28 @@ export default class DisplayMediaPipe2D extends Display2D{
 			return
 		}	
 
-		// Apply geometry subdivision for denser keypoints if specified
-		const subdivisions = this.options.geometrySubdivisions ?? 0
-		if (subdivisions > 0 && prediction) {
-			prediction = {
-				...prediction,
-				allKeypoints: subdivideKeypoints(prediction.allKeypoints, subdivisions)
-			}
+		if (!prediction)
+		{
+			return
 		}
+
+		const annotations = prediction.annotations ?? {}
+		const keypoints = {
+			leftEye: annotations.leftEye ?? annotations.leftEyeSocket ?? [],
+			leftPupil: annotations.leftPupil ?? annotations.leftIris?.[0] ?? null,
+			rightEye: annotations.rightEye ?? annotations.rightEyeSocket ?? [],
+			rightPupil: annotations.rightPupil ?? annotations.rightIris?.[0] ?? null
+		}
+		const leftEyebrow = annotations.leftEyebrow ?? annotations.leftEyebrowLower ?? []
+		const rightEyebrow = annotations.rightEyebrow ?? annotations.rightEyebrowLower ?? []
+
+		// Keep mesh drawing on canonical indices, use denser points only for dot rendering.
+		const subdivisions = this.options.geometrySubdivisions ?? 0
+		const pointsPrediction = subdivisions > 0 && Array.isArray(prediction.keypoints) ? {
+				...prediction,
+				keypoints: subdivideKeypoints(prediction.keypoints, subdivisions),
+				allKeypoints: Array.isArray(prediction.allKeypoints) ? subdivideKeypoints(prediction.allKeypoints, subdivisions) : prediction.allKeypoints
+			} : prediction
 
 		// console.log("drawPerson", person, {hue, options, colours} )
 
@@ -91,13 +107,13 @@ export default class DisplayMediaPipe2D extends Display2D{
 					drawFaceMesh( canvasContext, prediction, colours, 0.5, person.instrumentLoading, person.isMouthOpen, this.debug )
 				}else{
 					// default mode is always blobs
-					drawPoints(  canvasContext, prediction, colours, 3, person.instrumentLoading, this.debug )
+					drawPoints(  canvasContext, pointsPrediction, colours, 3, person.instrumentLoading, this.debug )
 				}
 
 			} else if (options.drawNodes) {
 
 				// just blobs
-				drawPoints( canvasContext, prediction, colours, 3, person.instrumentLoading, this.debug )
+				drawPoints( canvasContext, pointsPrediction, colours, 3, person.instrumentLoading, this.debug )
 			
 			} else if (options.drawMesh) {
 
@@ -172,10 +188,13 @@ export default class DisplayMediaPipe2D extends Display2D{
 			// drawNodes( annotations.headVertical[0], annotations.headVertical[1] )
 
 			// This overlays the mouth and the eyes
-			if (person.isMouthOpen && person.singing)
+			const mouthLandmarks = person.isMouthOpen && person.singing ?
+				annotations.innerLip :
+				annotations.outerLip
+			if (Array.isArray(mouthLandmarks) && mouthLandmarks.length > 0 && person.isMouthOpen && person.singing)
 			{
 				// Inner
-				drawLip( canvasContext, annotations.innerLip, lipColours, mouthColours )
+				drawLip( canvasContext, mouthLandmarks, lipColours, mouthColours )
 			
 				//drawLip(prediction.annotations.lips, {...mouthColours, h:0}, 1, 9)
 
@@ -183,10 +202,10 @@ export default class DisplayMediaPipe2D extends Display2D{
 				// drawMouth(prediction.annotations.lips, {...mouthColours, h:180 }, 0, 9)
 				// drawMouth(prediction.annotations.lips, {...mouthColours, h:270 }, 0, 9)
 				
-			}else{
+			}else if (Array.isArray(mouthLandmarks) && mouthLandmarks.length > 0){
 
 				// Outer
-				drawLip( canvasContext, annotations.outerLip, lipColours, mouthColoursClosed )
+				drawLip( canvasContext, mouthLandmarks, lipColours, mouthColoursClosed )
 		
 				// mouth closed or not singing
 				// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
@@ -204,7 +223,7 @@ export default class DisplayMediaPipe2D extends Display2D{
 		{
 	
 
-		}else if (options.drawEyes){
+		}else if (options.drawEyes && keypoints.leftEye.length > 0 && keypoints.leftPupil && keypoints.rightEye.length > 0 && keypoints.rightPupil){
 
 			const eyeOptions = {
 				// colourful part of the eye
@@ -241,7 +260,7 @@ export default class DisplayMediaPipe2D extends Display2D{
 			
 			drawEye( this.canvasContext, rightEyeData, rightPupilData,  person.isRightEyeOpen, eyeDirection, eyeOptions)
 
-		}else if (options.drawEyebrows){
+		}else if (options.drawEyebrows && leftEyebrow.length > 0 && rightEyebrow.length > 0){
 		
 			// FIXME: draw some funky eyebrows!
 			drawPart( this.canvasContext , leftEyebrow, 5)

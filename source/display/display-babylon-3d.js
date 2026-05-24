@@ -6,6 +6,8 @@
 import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_BABYLON_3D } from "./display-types.js"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
+import { subdivideKeypoints } from "../models/avatar.js"
+import { getDisplayColourAlpha, getPredictionLandmarks } from "./display-landmarks.js"
 import { Particle } from "../visual/3d.particles.js"
 
 import * as BABYLON from '@babylonjs/core'
@@ -13,10 +15,11 @@ import * as BABYLON from '@babylonjs/core'
 const DEFAULT_OPTIONS_DISPLAY_BABYLON = {
 	debug: false,
 	stats: false,
-	resize: false,
+	resize: true,
 	updateFaceButtonAfter: UPDATE_FACE_BUTTON_AFTER_FRAMES,
 	particleSize: 2,
 	particleColour: { r: 1, g: 0.8, b: 0.6 },
+	geometrySubdivisions: 0,
 	showMesh: false,
 	wireframe: false
 }
@@ -28,6 +31,7 @@ const DEFAULT_OPTIONS_DISPLAY_BABYLON = {
 export default class DisplayBabylon3D extends AbstractDisplay {
 
 	name = DISPLAY_BABYLON_3D
+	transparentCanvas = true
 
 	get type() {
 		return DISPLAY_BABYLON_3D
@@ -51,8 +55,8 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 	// Event handlers (for cleanup)
 	onWindowResizeHandler = null
 
-	constructor(canvas, initialWidth, initialHeight, options = DEFAULT_OPTIONS_BABYLON) {
-		options = Object.assign({}, DEFAULT_OPTIONS_BABYLON, options)
+	constructor(canvas, initialWidth, initialHeight, options = DEFAULT_OPTIONS_DISPLAY_BABYLON) {
+		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_BABYLON, options)
 		super(canvas, initialWidth, initialHeight, options)
 
 		this.create(canvas, options).then(e => {
@@ -71,20 +75,26 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 		// Create Babylon.js engine
 		this.engine = new BABYLON.Engine(canvas, true, {
 			preserveDrawingBuffer: true,
-			stencil: true
+			stencil: true,
+			premultipliedAlpha: false
 		})
+		this.engine.setHardwareScalingLevel(1)
 
 		// Create scene
 		this.scene = new BABYLON.Scene(this.engine)
-		this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 1)
+		this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
 		this.scene.collisionsEnabled = true
+		this.scene.autoClear = true
 
-		// Create camera
-		this.camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(
-			this.canvasWidth / 2,
-			this.canvasHeight / 2,
-			-this.canvasHeight
-		))
+		// Create camera in the same screen-space shape as the working TS display.
+		const centerX = this.canvasWidth / 2
+		const centerY = this.canvasHeight / 2
+		this.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(centerX, centerY, -1000), this.scene)
+		this.camera.setTarget(new BABYLON.Vector3(centerX, centerY, 0))
+		this.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA
+		this.camera.minZ = -5000
+		this.camera.maxZ = 5000
+		this.updateCameraOrtho()
 		this.camera.attachControl(canvas, true)
 		this.camera.angularSensibility = 1000
 		this.camera.inertia = 0.7
@@ -105,11 +115,6 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 		// Initialize particle array
 		this.particles = []
 
-		// Set up animation loop
-		this.setAnimationLoop(() => {
-			this.render()
-		}, true)
-
 		// Handle window resize with stored reference for cleanup
 		this.onWindowResizeHandler = this.onWindowResize.bind(this)
 		window.addEventListener("resize", this.onWindowResizeHandler)
@@ -125,6 +130,27 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 		if (this.engine) {
 			this.engine.resize()
 		}
+		this.updateCameraOrtho()
+	}
+
+	onResize(width, height) {
+		if (this.engine) {
+			this.engine.resize()
+		}
+		this.updateCameraOrtho()
+	}
+
+	updateCameraOrtho() {
+		if (!this.camera) {
+			return
+		}
+
+		const halfWidth = this.canvasWidth / 2
+		const halfHeight = this.canvasHeight / 2
+		this.camera.orthoLeft = -halfWidth
+		this.camera.orthoRight = halfWidth
+		this.camera.orthoBottom = -halfHeight
+		this.camera.orthoTop = halfHeight
 	}
 
 	/**
@@ -147,11 +173,10 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 		}
 
 		// Render the scene
-		if (this.engine && !this.engine.isDisposed) {
-			this.engine.runRenderLoop(() => {
-				this.scene.render()
-			})
+		if (this.engine && !this.engine.isDisposed && this.scene) {
+			this.scene.render()
 		}
+		super.render()
 	}
 
 	/**
@@ -176,19 +201,23 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 		}
 
 		// Get face landmarks from prediction
-		const landmarks = prediction.landmarks || []
+		const landmarks = getPredictionLandmarks(prediction)
+		const pointLandmarks = this.options.geometrySubdivisions > 0
+			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
+			: landmarks
 
-		if (landmarks.length === 0) {
+		if (pointLandmarks.length === 0) {
 			return
 		}
 
 		// Initialize particles if needed
-		if (this.particles.length === 0) {
-			this.createParticleSystem(landmarks.length, options)
+		if (this.particles.length !== pointLandmarks.length) {
+			this.disposeParticleSystem()
+			this.createParticleSystem(pointLandmarks.length, options)
 		}
 
 		// Update particle positions based on landmarks
-		this.updateParticlePositions(landmarks, person, options)
+		this.updateParticlePositions(pointLandmarks, person, options)
 
 		// Update particle colors
 		this.updateParticleColours(person, hue, colours, options)
@@ -211,6 +240,8 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 			particleColour.g,
 			particleColour.b
 		)
+		particleMaterial.alpha = 1
+		particleMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
 		particleMaterial.backFaceCulling = false
 
 		// Create particles using spheres
@@ -229,6 +260,15 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 			particle.mesh = particleMesh
 			this.particles.push(particle)
 		}
+	}
+
+	disposeParticleSystem() {
+		for (let particle of this.particles) {
+			if (particle.mesh) {
+				particle.mesh.dispose()
+			}
+		}
+		this.particles = []
 	}
 
 	/**
@@ -250,7 +290,7 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 
 			// Convert 2D screen coordinates to 3D scene coordinates
 			let x = landmark.x * this.canvasWidth
-			let y = landmark.y * this.canvasHeight
+			let y = this.canvasHeight - (landmark.y * this.canvasHeight)
 			
 			// Handle optional depth from landmark (for 3D coordinates)
 			let z = 0
@@ -281,7 +321,7 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 
 		const saturation = options.saturation || colours.s || 100
 		const luminosity = options.luminosity || colours.l || 50
-		const alpha = options.alpha || colours.a || 1
+		const alpha = getDisplayColourAlpha(colours, options)
 
 		for (let particle of this.particles) {
 

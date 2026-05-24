@@ -30,7 +30,8 @@ import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js
 import { DrawingUtils } from "@mediapipe/tasks-vision"
 
 const DEFAULT_OPTIONS = {
-	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
+	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES,
+	geometrySubdivisions: 0
 }
 
 /**
@@ -85,7 +86,7 @@ export default class DisplayMediaVision2D extends Display2D{
 		{
 			this.movePersonButton(person, person.data )
 		}
-		drawFace( this.canvasContext, person, beatJustPlayed, colours, this.drawingUtils, FaceLandmarker )
+		drawFace( this.canvasContext, person, beatJustPlayed, colours, this.drawingUtils, FaceLandmarker, this.options )
 		// draw eyes!
 	}
 

@@ -72,6 +72,10 @@ export default class AbstractDisplay{
 	available = false
 
 	count = 0
+	frameRate = 0
+	frameRateStable = true
+	droppedFrames = 0
+	droppedFrameRatio = 0
 
 	// for MTV mode
 	extraVisualMode = false
@@ -170,6 +174,13 @@ export default class AbstractDisplay{
 		this.canvas.width = this.canvasWidth = initialWidth
 		this.canvas.height = this.canvasHeight = initialHeight
 		this.options = {...options}
+		this.frameRateMonitor = {
+			lastFrameTime: 0,
+			windowStartTime: 0,
+			frames: 0,
+			droppedFrames: 0,
+			cooldownUntil: 0
+		}
 		//
 		this.debug = options.debug || false
 		AbstractDisplay.index++
@@ -298,10 +309,124 @@ export default class AbstractDisplay{
 
 	postProcess( options ){}
 
+	updateFrameRateMonitor(now = performance.now()){
+		const monitor = this.frameRateMonitor
+		if (!monitor)
+		{
+			return
+		}
+
+		if (!monitor.lastFrameTime)
+		{
+			monitor.lastFrameTime = now
+			monitor.windowStartTime = now
+			return
+		}
+
+		const delta = now - monitor.lastFrameTime
+		monitor.lastFrameTime = now
+
+		if (delta <= 0 || delta > 1000)
+		{
+			monitor.windowStartTime = now
+			monitor.frames = 0
+			monitor.droppedFrames = 0
+			return
+		}
+
+		const targetFps = this.options.targetFrameRate ?? 60
+		const targetFrameTime = 1000 / targetFps
+		const droppedFrameMultiplier = this.options.droppedFrameMultiplier ?? 1.5
+		monitor.frames++
+
+		if (delta > targetFrameTime * droppedFrameMultiplier)
+		{
+			monitor.droppedFrames++
+		}
+
+		const sampleFrames = this.options.frameRateSampleFrames ?? 90
+		if (monitor.frames < sampleFrames)
+		{
+			return
+		}
+
+		const elapsed = now - monitor.windowStartTime
+		this.frameRate = elapsed > 0 ? (monitor.frames * 1000) / elapsed : 0
+
+		const droppedFrameRatio = monitor.droppedFrames / monitor.frames
+		this.droppedFrames = monitor.droppedFrames
+		this.droppedFrameRatio = droppedFrameRatio
+		const minimumStableFrameRate = this.options.minimumStableFrameRate ?? targetFps * 0.9
+		const maximumDroppedFrameRatio = this.options.maximumDroppedFrameRatio ?? 0.1
+		this.frameRateStable = this.frameRate >= minimumStableFrameRate && droppedFrameRatio <= maximumDroppedFrameRatio
+
+		if (!this.frameRateStable)
+		{
+			this.reduceGeometrySubdivisionsForFrameRate()
+		}
+
+		monitor.windowStartTime = now
+		monitor.frames = 0
+		monitor.droppedFrames = 0
+	}
+
+	reduceGeometrySubdivisionsForFrameRate(){
+		if (this.options.adaptiveGeometrySubdivisions === false)
+		{
+			return false
+		}
+
+		const currentSubdivisions = this.options.geometrySubdivisions ?? 0
+		if (currentSubdivisions <= 0)
+		{
+			return false
+		}
+
+		const now = performance.now()
+		if (now < (this.frameRateMonitor?.cooldownUntil ?? 0))
+		{
+			return false
+		}
+
+		const nextSubdivisions = currentSubdivisions - 1
+		const changed = this.setGeometrySubdivisions(nextSubdivisions, "framerate")
+		if (changed && this.frameRateMonitor)
+		{
+			this.frameRateMonitor.cooldownUntil = now + (this.options.adaptiveSubdivisionCooldown ?? 1500)
+		}
+		return changed
+	}
+
+	setGeometrySubdivisions(value, reason = "manual"){
+		const previous = this.options.geometrySubdivisions ?? 0
+		const next = Math.max(0, Math.floor(Number(value) || 0))
+
+		if (next === previous)
+		{
+			return false
+		}
+
+		this.options.geometrySubdivisions = next
+		this.onGeometrySubdivisionsChanged(next, previous, reason)
+		console.info("Display geometry subdivisions changed", {
+			display:this.name,
+			previous,
+			next,
+			reason,
+			frameRate:this.frameRate,
+			droppedFrames:this.droppedFrames,
+			droppedFrameRatio:this.droppedFrameRatio
+		})
+		return true
+	}
+
+	onGeometrySubdivisionsChanged(value, previous, reason){}
+
 	/**
 	 * Draw to screen?
 	 */
 	render(){ 
+		this.updateFrameRateMonitor()
 		this.onRender()
 	}
 	

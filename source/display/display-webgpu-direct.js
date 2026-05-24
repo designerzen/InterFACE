@@ -6,7 +6,9 @@
 import AbstractDisplay from './display-abstract.js'
 import { DISPLAY_WEB_GPU_3D } from './display-types.js'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from '../settings/options.displays.js'
-import { MEDIAPIPE_FACE_MESH_CONNECTED_KEYPOINTS_PAIRS } from '../models/face-landmark-constants.js'
+import { subdivideKeypoints } from '../models/avatar.js'
+import { getDisplayColourAlpha, getPredictionLandmarks } from './display-landmarks.js'
+import { applyWebGPUParticleMarch } from './webgpu-particle-motion.js'
 
 const DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D = {
 	debug: false,
@@ -14,12 +16,14 @@ const DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D = {
 	resize: true,
 	updateFaceButtonAfter: UPDATE_FACE_BUTTON_AFTER_FRAMES,
 	opacity: 1,
-	dotSize: 5
+	dotSize: 1.75,
+	geometrySubdivisions: 0
 }
 
 export default class DisplayWebGPU extends AbstractDisplay {
 
 	name = DISPLAY_WEB_GPU_3D
+	transparentCanvas = true
 
 	get type() {
 		return DISPLAY_WEB_GPU_3D
@@ -29,20 +33,19 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	context = null
 	device = null
 	pipeline = null
-	linePipeline = null
-	lineIndexBuffer = null
-	lineIndexCount = 0
 	uniformBuffer = null
 	bindGroup = null
 
 	// DPR tracking
 	dpr = 1
+	pointData = null
+	lastColour = '#ffffff'
 
 	constructor(canvas, initialWidth = 1920, initialHeight = 1080, options = DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D) {
 		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D, options)
 		super(canvas, initialWidth, initialHeight, options)
 
-		this.dpr = window.devicePixelRatio || 1
+		this.dpr = 1
 
 		const ctx = canvas.getContext('webgpu')
 		if (ctx) {
@@ -71,17 +74,6 @@ export default class DisplayWebGPU extends AbstractDisplay {
 
 		this.device = await adapter.requestDevice()
 		if (!this.device) throw new Error('Failed to create WebGPU device')
-
-		// Pre-allocate line index buffer
-		const flatIndices = new Uint16Array(MEDIAPIPE_FACE_MESH_CONNECTED_KEYPOINTS_PAIRS.flat())
-		this.lineIndexCount = flatIndices.length
-		this.lineIndexBuffer = this.device.createBuffer({
-			size: flatIndices.byteLength,
-			usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-			mappedAtCreation: true
-		})
-		new Uint16Array(this.lineIndexBuffer.getMappedRange()).set(flatIndices)
-		this.lineIndexBuffer.unmap()
 
 		this.createPipelines()
 
@@ -113,6 +105,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 
 				struct VertexOutput {
 					@builtin(position) position: vec4f,
+					@location(0) local: vec2f,
 				}
 
 				@vertex
@@ -131,22 +124,18 @@ export default class DisplayWebGPU extends AbstractDisplay {
 					
 					var out: VertexOutput;
 					out.position = vec4f(clip_x, -clip_y, 0.0, 1.0);
-					return out;
-				}
-
-				@vertex
-				fn vs_lines(@location(0) l_pos: vec2f) -> VertexOutput {
-					let clip_x = (l_pos.x / uniforms.resolution.x) * 2.0 - 1.0;
-					let clip_y = (l_pos.y / uniforms.resolution.y) * 2.0 - 1.0;
-					
-					var out: VertexOutput;
-					out.position = vec4f(clip_x, -clip_y, 0.0, 1.0);
+					out.local = pos;
 					return out;
 				}
 
 				@fragment
-				fn fs_main() -> @location(0) vec4f {
-					return uniforms.color;
+				fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+					let distanceFromCenter = length(in.local);
+					let alpha = uniforms.color.a * (1.0 - smoothstep(0.72, 1.0, distanceFromCenter));
+					if (alpha <= 0.001) {
+						discard;
+					}
+					return vec4f(uniforms.color.rgb, alpha);
 				}
 			`
 		})
@@ -183,30 +172,6 @@ export default class DisplayWebGPU extends AbstractDisplay {
 			}
 		})
 
-		// Lines Pipeline
-		this.linePipeline = this.device.createRenderPipeline({
-			layout: 'auto',
-			vertex: {
-				module: shaderModule,
-				entryPoint: 'vs_lines',
-				buffers: [{
-					arrayStride: 8,
-					stepMode: 'vertex',
-					attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }]
-				}]
-			},
-			fragment: {
-				module: shaderModule,
-				entryPoint: 'fs_main',
-				targets: [{
-					format: format,
-					blend: blendState
-				}]
-			},
-			primitive: {
-				topology: 'line-list'
-			}
-		})
 	}
 
 	/**
@@ -224,7 +189,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	/**
 	 * Convert HSL to hex color
 	 */
-	hslToHex(h, s, l) {
+	hslToHex(h, s, l, a = 1) {
 		h = h % 360
 		s = s / 100
 		l = l / 100
@@ -247,14 +212,15 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		g = Math.round(Math.max(0, Math.min(1, g + m)) * 255)
 		b = Math.round(Math.max(0, Math.min(1, b + m)) * 255)
 
-		return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
+		const alpha = Math.round(Math.max(0, Math.min(1, a)) * 255)
+		return '#' + [r, g, b, alpha].map(x => x.toString(16).padStart(2, '0')).join('')
 	}
 
 	/**
-	 * Draw landmarks as points and lines
+	 * Draw landmarks as soft points only.
 	 */
 	drawLandmarks(data, colorHex) {
-		if (!this.device || !this.pipeline || !this.linePipeline) return
+		if (!this.device || !this.pipeline) return
 
 		const numPoints = Math.floor(data.length / 2)
 		if (numPoints === 0) return
@@ -263,7 +229,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		const uniformData = new Float32Array([
 			this.canvasWidth,
 			this.canvasHeight,
-			this.options.dotSize * this.dpr,
+			this.options.dotSize,
 			0, // padding
 			...this.hexToRgba(colorHex).map(v => v / 255)
 		])
@@ -285,8 +251,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		new Float32Array(vertexBuffer.getMappedRange()).set(data)
 		vertexBuffer.unmap()
 
-		// Create bind group
-		const bindGroup = this.device.createBindGroup({
+		const dotBindGroup = this.device.createBindGroup({
 			layout: this.pipeline.getBindGroupLayout(0),
 			entries: [{ binding: 0, resource: { buffer: uniformBuffer } }]
 		})
@@ -304,18 +269,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 			}]
 		})
 
-		// Draw lines first
-		if (this.lineIndexBuffer && this.lineIndexCount > 0) {
-			renderPass.setPipeline(this.linePipeline)
-			renderPass.setBindGroup(0, bindGroup)
-			renderPass.setVertexBuffer(0, vertexBuffer)
-			renderPass.setIndexBuffer(this.lineIndexBuffer, 'uint16')
-			renderPass.drawIndexed(this.lineIndexCount, 1, 0, 0, 0)
-		}
-
-		// Draw points on top
 		renderPass.setPipeline(this.pipeline)
-		renderPass.setBindGroup(0, bindGroup)
+		renderPass.setBindGroup(0, dotBindGroup)
 		renderPass.setVertexBuffer(0, vertexBuffer)
 		renderPass.draw(4, numPoints, 0, 0)
 
@@ -354,24 +309,36 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 */
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
 		const prediction = person.data
-		if (!prediction || !prediction.landmarks) return
+		const landmarks = getPredictionLandmarks(prediction)
+		if (!prediction || landmarks.length === 0) return
 
 		if (this.count % this.options.updateFaceButtonAfter === 0) {
 			this.movePersonButton(person, prediction)
 		}
 
-		const landmarks = prediction.landmarks
+		const pointLandmarks = this.options.geometrySubdivisions > 0
+			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
+			: landmarks
 		const hue = person.hue || 0
 
-		// Convert landmarks to Float32Array (2D for WebGPU shader)
-		const landmarkData = new Float32Array(landmarks.length * 2)
-		for (let i = 0; i < landmarks.length; i++) {
-			landmarkData[i * 2] = (landmarks[i].x || 0) * this.canvasWidth
-			landmarkData[i * 2 + 1] = (landmarks[i].y || 0) * this.canvasHeight
+		const pointData = new Float32Array(pointLandmarks.length * 2)
+		for (let i = 0; i < pointLandmarks.length; i++) {
+			pointData[i * 2] = (pointLandmarks[i].x || 0) * this.canvasWidth
+			pointData[i * 2 + 1] = (pointLandmarks[i].y || 0) * this.canvasHeight
 		}
 
-		const hex = this.hslToHex(hue, colours.s || 100, colours.l || 50)
-		this.drawLandmarks(landmarkData, hex)
+		const hex = this.hslToHex(hue, colours.s || 100, colours.l || 50, getDisplayColourAlpha(colours, options))
+		this.lastColour = hex
+		this.pointData = pointData
+
+		applyWebGPUParticleMarch({
+			positions:this.pointData,
+			frame:this.count,
+			options:this.options,
+			dimensions:2
+		})
+
+		this.drawLandmarks(this.pointData, hex)
 	}
 
 	/**
@@ -379,8 +346,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 */
 	onResize(width, height) {
 		if (this.device) {
-			this.canvas.width = Math.floor(width * this.dpr)
-			this.canvas.height = Math.floor(height * this.dpr)
+			this.canvas.width = Math.floor(width)
+			this.canvas.height = Math.floor(height)
 		}
 	}
 
@@ -389,7 +356,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 */
 	render() {
 		this.count++
-		this.onRender()
+		super.render()
 	}
 
 	/**
@@ -417,39 +384,15 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Draw text
 	 */
 	drawText(x, y, text, size, align, font, invertColours) {
-		const canvas = this.canvas
-		if (canvas instanceof HTMLCanvasElement) {
-			const ctx2d = canvas.getContext('2d')
-			if (ctx2d) {
-				ctx2d.font = `${size}px ${font || 'Arial'}`
-				ctx2d.textAlign = align || 'left'
-				ctx2d.textBaseline = 'top'
-				ctx2d.fillStyle = invertColours ? '#000000' : '#FFFFFF'
-				ctx2d.fillText(text, x, y)
-			}
-		}
+		// Text is rendered by DisplayOverlay2d; do not request a 2D context
+		// from a canvas already owned by WebGPU.
 	}
 
 	/**
 	 * Draw paragraph
 	 */
 	drawParagraph(x, y, paragraphs, size, lineHeight, invertColours) {
-		const canvas = this.canvas
-		if (canvas instanceof HTMLCanvasElement) {
-			const ctx2d = canvas.getContext('2d')
-			if (ctx2d) {
-				ctx2d.font = `${size}px Arial`
-				ctx2d.textAlign = 'left'
-				ctx2d.textBaseline = 'top'
-				ctx2d.fillStyle = invertColours ? '#000000' : '#FFFFFF'
-
-				let currentY = y
-				for (const line of paragraphs) {
-					ctx2d.fillText(line, x, currentY)
-					currentY += (lineHeight || size * 1.2)
-				}
-			}
-		}
+		// Text is rendered by DisplayOverlay2d.
 	}
 
 	/**
@@ -502,7 +445,6 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 */
 	async destroy() {
 		if (this.device) {
-			this.lineIndexBuffer?.destroy()
 			this.uniformBuffer?.destroy()
 			this.device = null
 		}

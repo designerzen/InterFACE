@@ -10,6 +10,35 @@
 
 import { DISPLAY_TYPES } from './display-types.js'
 
+const DEFAULT_DISPLAY_TYPE = DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
+
+const normalizeDisplayType = displayType => {
+	if (DISPLAY_TYPES[displayType])
+	{
+		return DISPLAY_TYPES[displayType]
+	}
+	return displayType
+}
+
+const isDisplayRuntimeAvailable = displayType => {
+	switch(displayType)
+	{
+		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D:
+		case DISPLAY_TYPES.DISPLAY_BABYLON_3D:
+		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D:
+		case DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE:
+			return isWebGLAvailable()
+
+		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
+		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU:
+		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL:
+			return Boolean(navigator.gpu)
+
+		default:
+			return true
+	}
+}
+
 const isWebGLAvailable = () => {
   const canvas = document.createElement('canvas')
   try {
@@ -75,13 +104,19 @@ const displayClassLoaders = {
 	},
 
 	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU]: async () => {
-		const { default:DisplayLookingGlassWebGPU } = await import('./display-looking-glass-webgpu.js')
-		return {default:DisplayLookingGlassWebGPU}
+		const { default:DisplayLookingGlassWebGPU, requiredXRSetupForLookingGlass } = await import('./display-looking-glass-webgpu.js')
+		return {
+			default:DisplayLookingGlassWebGPU,
+			before:requiredXRSetupForLookingGlass
+		}
 	},
 
 	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: async () => {
-		const { default:DisplayLookingGlassWebGPUTSL } = await import('./display-looking-glass-3d-webgpu-tsl.js')
-		return {default:DisplayLookingGlassWebGPUTSL}
+		const { default:DisplayLookingGlassWebGPUTSL, requiredXRSetupForLookingGlassWebGPU } = await import('./display-looking-glass-3d-webgpu-tsl.js')
+		return {
+			default:DisplayLookingGlassWebGPUTSL,
+			before:requiredXRSetupForLookingGlassWebGPU
+		}
 	}
 }
 
@@ -150,8 +185,8 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	const parent = canvasElement.parentNode
 	const dataId = canvasElement.getAttribute("data-id") ?? 0
 	// as we modify some in the displays themselves
-	const width = canvasElement.canvasWidth ?? 640
-	const height = canvasElement.canvasHeight ?? 480
+	const width = canvasElement.canvasWidth ?? canvasElement.width ?? 640
+	const height = canvasElement.canvasHeight ?? canvasElement.height ?? 480
 	const aspectRatio = width / height
 
 	if (!parent)
@@ -176,11 +211,8 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	// newCanvasElement.setAttribute("height", parseInt(dataId) + 1 ) 
 	newCanvasElement.setAttribute("data-id", parseInt(dataId) + 1 ) 
 	
-	// re-append new canvas in old canvas location
-	parent.appendChild(newCanvasElement)
-	
-	// remove existing canvas 
-	canvasElement.remove()
+	// replace in-place so display switching does not move the canvas in the DOM
+	parent.replaceChild(newCanvasElement, canvasElement)
 
 	console.info("DISPLAY:RestartCanvas", {canvasElement, newCanvasElement, parent})
 	
@@ -196,32 +228,25 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
  * @returns 
  */
 export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
-	// Default always available display
+	// Default app displays are always offered; unsupported hardware displays are
+	// filtered before startup if they are genuinely unavailable.
 	const availableDisplays = [
 		DISPLAY_TYPES.DISPLAY_COMPOSITE,
 		DISPLAY_TYPES.DISPLAY_CANVAS_2D,
-		DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
+		DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D,
+		DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D,
+		DISPLAY_TYPES.DISPLAY_WEB_GL_3D,
+		DISPLAY_TYPES.DISPLAY_WEB_GPU_3D,
+		DISPLAY_TYPES.DISPLAY_BABYLON_3D,
+		DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE
 	]
-
-	// if WebGL is available
-	if (isWebGLAvailable())
-	{
-		availableDisplays.push(DISPLAY_TYPES.DISPLAY_WEB_GL_3D)
-		availableDisplays.push(DISPLAY_TYPES.DISPLAY_BABYLON_3D)
-	}
-
-	// check for WebGPU
-	if (navigator.gpu)
-	{
-		availableDisplays.push(DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
-		availableDisplays.push(DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE)
-	}
 
 	// hologrpahic displays are connected
 	if (hasHolographicDisplayConnected)
 	{
 		availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 		navigator.gpu && availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU)
+		navigator.gpu && availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL)
 	}
 
 	return availableDisplays
@@ -236,26 +261,34 @@ export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => 
  */
 export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
 	
-	// assume webGL 3D one if no previous one was provided
-	let suggestedDisplay = previousDisplay ?? defaultDisplay
+	const requestedDisplay = normalizeDisplayType(previousDisplay)
+	const fallbackDisplay = normalizeDisplayType(defaultDisplay) ?? DEFAULT_DISPLAY_TYPE
 	let holographicDisplayQuantity = 0
 	
-	const available = []
 	try{
 		const {howManyHolographicDisplaysAreConnected } = await import( '../hardware/looking-glass-portrait.js' )
 		holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
-		if (holographicDisplayQuantity > 0)
-		{
-			suggestedDisplay = DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D	
-		}
-
 	}catch(error){
 		console.info("Holographic display not connected" , error)
 	}
+
+	const available = getAvailableDisplays(holographicDisplayQuantity > 0)
+	const shouldPreferLookingGlass = holographicDisplayQuantity > 0 &&
+		(!requestedDisplay || requestedDisplay === fallbackDisplay)
+	const canUseRequestedDisplay = available.includes(requestedDisplay) && isDisplayRuntimeAvailable(requestedDisplay)
+	const canUseFallbackDisplay = available.includes(fallbackDisplay) && isDisplayRuntimeAvailable(fallbackDisplay)
+	const suggestedDisplay = shouldPreferLookingGlass && available.includes(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D) ?
+		DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D :
+		canUseRequestedDisplay ?
+		requestedDisplay :
+		canUseFallbackDisplay ?
+			fallbackDisplay :
+			available.find(isDisplayRuntimeAvailable) ?? available[0]
 	
 	return {
 		suggested: suggestedDisplay,
-		available: [...available, ...getAvailableDisplays(holographicDisplayQuantity > 0)]
+		available,
+		holographicDisplayQuantity
 	}
 }
 
@@ -282,10 +315,7 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 	}
 
 	// invert if a key was provided...
-	if (DISPLAY_TYPES[displayType])
-	{
-		displayType = DISPLAY_TYPES[displayType]
-	}
+	displayType = normalizeDisplayType(displayType)
 
 	if ( !Object.values(DISPLAY_TYPES).includes(displayType) )
 	{
@@ -357,10 +387,7 @@ export default class DisplayManager{
 		}
 
 		// invert if a key was provided...
-		if (DISPLAY_TYPES[displayType])
-		{
-			displayType = DISPLAY_TYPES[displayType]
-		}
+		displayType = normalizeDisplayType(displayType)
 
 		if ( !Object.values(DISPLAY_TYPES).includes(displayType) )
 		{
@@ -368,12 +395,32 @@ export default class DisplayManager{
 			throw Error("Display type "+displayType+" is not supported")
 		}
 
+		if (this.#display?.destroy)
+		{
+			await this.#display.destroy()
+			this.#display = null
+		}
+
+		const previousCanvasElement = this.#canvas
+
 		// as a context once set can only be one of 2d or webgl
-		const newCanvasElement = await restartCanvas(this.#canvas, -1)
+		const newCanvasElement = await restartCanvas(previousCanvasElement, -1)
+		this.#canvas = newCanvasElement
 
 		// async or load direct
 		// display = await createEmbeddedDisplay(newCanvasElement, displayType)
-		const display = await createDisplay(newCanvasElement, displayType, options)
+		let display
+		try
+		{
+			display = await createDisplay(newCanvasElement, displayType, options)
+		}
+		catch(error)
+		{
+			console.error("DISPLAY:failed to create", displayType, error)
+			this.#display = null
+			this.#type = null
+			throw error
+		}
 
 		if (renderLoop)
 		{
@@ -383,7 +430,6 @@ export default class DisplayManager{
 		console.info("DISPLAY:created", { display, displayType, newCanvasElement }, this )
 
 		this.#display = display
-		this.#canvas = newCanvasElement
 		this.#type = displayType
 
 		return display

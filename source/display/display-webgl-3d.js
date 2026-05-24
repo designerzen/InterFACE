@@ -11,6 +11,20 @@ import { preload3dFont } from '../visual/3d.fonts.js'
 import { unloadModel } from '../models/avatars.js'
 import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
 import { AVATAR_DATA } from '../models/avatar-data.js'
+import {
+	createWalls,
+	disposeWalls
+} from "./walls.js"
+import {
+	centrePositionBuffer,
+	getKeypointZoom,
+	updateMouthNoteBursts
+} from "./particle-coordinate-frame.js"
+import {
+	alignAvatarToParticles,
+	attachAvatarToParticles,
+	configureGhostAvatar
+} from "./avatar-particle-alignment.js"
 
 import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
@@ -23,13 +37,15 @@ import {
 import { 
 	BufferGeometry,
 	Clock, 
+	Float32BufferAttribute,
+	Group,
 	Object3D, 
 	AdditiveBlending, AmbientLight, 
-	Box3, Color, DirectionalLight, 
+	Color, DirectionalLight, 
 	DoubleSide, FogExp2, IcosahedronGeometry, 
-	Line, LinearFilter, LineBasicMaterial, 
-	MathUtils, Mesh, MeshBasicMaterial, 
-	PerspectiveCamera, Points, PointsMaterial, 
+	Line, LineSegments, LinearFilter, LineBasicMaterial, 
+	MathUtils, Mesh, MeshBasicMaterial, MeshLambertMaterial, 
+	PerspectiveCamera, PlaneGeometry, PointLight, Points, PointsMaterial, 
 	ReinhardToneMapping, Scene, Sprite, 
 	SRGBColorSpace, Texture, TextureLoader, 
 	Vector2, Vector3, WebGLRenderer
@@ -126,6 +142,7 @@ const lerpMorphTarget = (target, value, speed = 0.1) => {
 export default class DisplayWebGL3D extends AbstractDisplay{
 
 	name = DISPLAY_WEB_GL_3D
+	transparentCanvas = true
 
 	get type() {
 		return DISPLAY_WEB_GL_3D
@@ -140,8 +157,11 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	controls
 	container
 	faceMesh
+	walls
 
 	avatar
+	lastFaceZoom = 3.14
+	avatarAlignmentState = null
 
 	windowHalfX = 0
 	windowHalfY = 0
@@ -235,12 +255,15 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const rendererOptions = {
 			antialias: true,
 			canvas:this.canvas,
+			alpha: true,
+			premultipliedAlpha: false,
 			// ...options
 		}
 
 		const renderer = new WebGLRenderer(rendererOptions)
+		renderer.setClearColor(0x000000, 0)
 		
-		renderer.setPixelRatio(window.devicePixelRatio)
+		renderer.setPixelRatio(1)
 
 		// renderer.physicallyCorrectLights = true
 		// renderer.toneMapping = ACESFilmicToneMapping
@@ -256,9 +279,34 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		
 		// we can swap this for the orthogonal camera
 		// for extra style points
-		const camera = new PerspectiveCamera()
+		const camera = new PerspectiveCamera(50, (this.width || this.canvas?.width || 1) / (this.height || this.canvas?.height || 1))
 		// camera.position.z = 3.5
 		camera.lookAt( scene.position )
+		this.walls = createWalls({
+			Group,
+			Mesh,
+			MeshBasicMaterial,
+			MeshLambertMaterial,
+			PlaneGeometry,
+			PointLight,
+			LineBasicMaterial,
+			LineSegments,
+			BufferGeometry,
+			Float32BufferAttribute,
+			DoubleSide
+		}, options, camera)
+		if (this.walls)
+		{
+			if (options.wallAttachToCamera)
+			{
+				camera.add(this.walls)
+				scene.add(camera)
+			}
+			else
+			{
+				scene.add(this.walls)
+			}
+		}
 		
 		if (options.showAvatar)
 		{
@@ -270,7 +318,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			const { parent, faceMesh, faceGroup } = await this.avatar.loadModel( avatarMeta, 1 )
 			this.faceMesh = faceMesh
 			this.faceGroup = faceGroup
-			scene.add( parent )
+			configureGhostAvatar(parent, options)
 			// scene.add( faceMesh )
 		}
 
@@ -282,11 +330,20 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			// Apply face geometry subdivision for denser particle clouds (0 = no subdivision, 1 = double density, 2 = 4x, etc)
 			const subdivisions = options.geometrySubdivisions ?? 0
 			const geometry = createFaceGeometryFromData( keypoints, 478, 1, subdivisions )
+			centrePositionBuffer(geometry.attributes.position.array)
 			const { particles, particlesMaterial, texture } = await this.createParticles(geometry, keypointQuantity, options.particeSize, options.colour, options.opacity)		
 		
 			this.texture = texture
 			this.particles = particles
 			scene.add( particles )	
+			if (this.avatar?.scene && !attachAvatarToParticles(this, this.avatar.scene))
+			{
+				scene.add(this.avatar.scene)
+			}
+		}
+		else if (this.avatar?.scene)
+		{
+			scene.add(this.avatar.scene)
 		}
 
 	
@@ -408,24 +465,36 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.cancelAnimationLoop()
 
 		// clean up
-		this.scene.remove( this.text )
-		this.faceMesh && this.scene.remove( this.faceMesh )
-		unloadModel(this.faceMesh)
+		this.scene?.remove( this.text )
+		if (this.faceMesh)
+		{
+			this.scene?.remove( this.faceMesh )
+			unloadModel(this.faceMesh)
+		}
 
-		await this.avatar.dispose()
+		await this.avatar?.dispose?.()
 
 		if (this.particles)
 		{
-			this.scene.remove( this.particles )
-			this.particles.geometry.dispose()
+			this.scene?.remove( this.particles )
+			this.particles.geometry?.dispose?.()
+			this.particles.material?.dispose?.()
+		}
+		if (this.walls)
+		{
+			this.scene?.remove(this.walls)
+			disposeWalls(this.walls)
 		}
 
-		this.scene.remove( this.ambientLight )
-		this.scene.remove( this.directionalLight )
+		this.scene?.remove( this.ambientLight )
+		this.scene?.remove( this.directionalLight )
 
-		document.body.removeEventListener( 'pointermove', this.mouseMoveProxy )
+		if (this.mouseMoveProxy)
+		{
+			document.body.removeEventListener( 'pointermove', this.mouseMoveProxy )
+		}
 
-		this.text.geometry.dispose()
+		this.text?.geometry?.dispose?.()
 
 		// geometry.dispose()
 		// material.dispose()
@@ -436,7 +505,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			this.texture = null
 		}
 
-		this.renderer.dispose()
+		this.renderer?.dispose?.()
 
 		this.faceGroup = null
 		this.scene = null
@@ -448,6 +517,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.particles = null
 		this.faceMesh = null
 		this.faceGroup = null
+		this.walls = null
 			
 		this.ambientLight = null
 		this.directionalLight = null
@@ -650,27 +720,39 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		}
 	}
 
+	onGeometrySubdivisionsChanged(){
+		if (!this.particles)
+		{
+			return
+		}
+
+		const { keypoints } = data
+		const geometry = createFaceGeometryFromData(
+			keypoints,
+			KEYPOINT_QUANTITY,
+			1,
+			this.options.geometrySubdivisions ?? 0
+		)
+		centrePositionBuffer(geometry.attributes.position.array)
+		const previousGeometry = this.particles.geometry
+		this.particles.geometry = geometry
+		previousGeometry?.dispose()
+		this.lastFaceZoom = 3.14
+	}
+
 	// Update the voxel positions with respect to the inverted matrix
 	arrangeParticles( data, scaleFactor=1, centralise=false)  {
 
-		let count = 0
 		const { keypoints, facialTransformationMatrixes, box } = data
-
-		// Rescale the object to normalized space
-		const box3 = new Box3().setFromObject( this.particles )
-		const size = box3.getSize(new Vector3())
-		// const center = box3.getCenter(new Vector3())
-		//const zoomLevel = Math.min( this.faceMeshSize.x / size.x, this.faceMeshSize.y / size.y, this.faceMeshSize.z / size.z )
-		const zoomLevel =  size.x + size.y + size.z
-		// console.info("zoom", size, zoomLevel)
-		// const zoomLevel =  4.5 // 1.33 + this.avatar.faceMeshSize.x / size.x + this.avatar.faceMeshSize.y / size.y + this.avatar.faceMeshSize.z / size.z
-		const zoom = Math.max( Math.min( zoomLevel * zoomLevel, 5.5 ), 3.14 )
+		const zoom = getKeypointZoom(keypoints, this.lastFaceZoom) * scaleFactor
 		
 		const positions = this.particles.geometry.attributes.position.array
 		const scales = this.particles.geometry.attributes.scale.array
 		const particleClasses = this.particles.geometry.userData.particles
 		
-		arrangeFaceData( keypoints, positions, scales, zoom * scaleFactor )
+		arrangeFaceData( keypoints, positions, scales, zoom, this.options.geometrySubdivisions ?? 0 )
+		centrePositionBuffer(positions)
+		this.lastFaceZoom = zoom
 		
 		// now make one go for a walk!
 		let i = 0
@@ -732,7 +814,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// console.log("updateVoxels", zoom, zoomLevel, positions,{size, faceMeshSize, positionMatrix, positionVector, scaleVector} )//, {facialTransformationMatrixes, faceMeshSize,keypoints, matrix}, {positionVector, positionMatrix, rotationMatrix, scaleVector} ) 
 		if (centralise)
 		{
-			this.particles.geometry.center()
+			centrePositionBuffer(positions)
 		}
 		this.particles.geometry.attributes.position.needsUpdate = true
 		this.particles.geometry.attributes.scale.needsUpdate = true
@@ -948,8 +1030,11 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			if (this.avatar.isMorphable)
 			{
 				// get blend shape predictions for face 1
-				const blendShapePredictions = prediction.faceBlendshapes.categories
-				this.avatar.updateFromPrediction( blendShapePredictions )
+				const blendShapePredictions = prediction.faceBlendshapes?.categories
+				if (blendShapePredictions?.length)
+				{
+					this.avatar.updateFromPrediction( blendShapePredictions )
+				}
 				
 				// const blendMap = new Map()
 				// blendShapePredictions.forEach((blendShape,index) => {
@@ -1005,6 +1090,11 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				
 			// console.info("drawPerson", person, prediction )
 			this.arrangeParticles( prediction, 1)
+			if (this.avatar)
+			{
+				attachAvatarToParticles(this, this.avatar.scene)
+				alignAvatarToParticles(this, this.options)
+			}
 			this.setParticleColorsFromHSL( Math.abs(hue/360), 0.6, 0.6 )
 		
 			// if singing project some bubbles out of the mouth!
@@ -1090,6 +1180,18 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			}else{
 				this.particles.material.color.setHSL( hue, 0.6, 0.9 ) 	
 			}
+			updateMouthNoteBursts({
+				host:this,
+				positions:this.particles.geometry.attributes.position.array,
+				scales:this.particles.geometry.attributes.scale?.array,
+				topLipIndex:TLC,
+				bottomLipIndex:BLC,
+				beatJustPlayed,
+				count:this.count,
+				distance:1.9
+			})
+			this.particles.geometry.attributes.position.needsUpdate = true
+			this.particles.geometry.attributes.scale.needsUpdate = true
 		}
 
 		
@@ -1370,9 +1472,8 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 
 	resizeRendererToDisplaySize( maxWidth, maxHeight) {
 		const canvas = this.renderer.domElement
-		const pixelRatio = window.devicePixelRatio
-		const width  = Math.min( maxWidth, Math.floor( canvas.clientWidth * pixelRatio ) )
-		const height = Math.min( maxHeight, Math.floor( canvas.clientHeight * pixelRatio ) )
+		const width  = Math.min( maxWidth, Math.floor( canvas.clientWidth ) )
+		const height = Math.min( maxHeight, Math.floor( canvas.clientHeight ) )
 		const needResize = canvas.width !==  width || canvas.height !== height
 		if (needResize) 
 		{
@@ -1383,7 +1484,7 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 				this.renderer.setSize( width, height, false)
 			}
 			
-		  	console.info("WEBGL Resized", {width, height, MAX_WIDTH, pixelRatio} )
+		  	console.info("WEBGL Resized", {width, height, MAX_WIDTH} )
 		}
 		return needResize
 	}

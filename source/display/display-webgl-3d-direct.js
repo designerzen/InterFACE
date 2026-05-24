@@ -8,6 +8,8 @@ import AbstractDisplay from './display-abstract.js'
 import { DISPLAY_WEB_GL_3D } from './display-types.js'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from '../settings/options.displays.js'
 import { MEDIAPIPE_FACE_MESH_CONNECTED_KEYPOINTS_PAIRS } from '../models/face-landmark-constants.js'
+import { subdivideKeypoints } from '../models/avatar.js'
+import { getDisplayColourAlpha, getPredictionLandmarks } from './display-landmarks.js'
 
 const DEFAULT_OPTIONS_DISPLAY_WEBGL_3D = {
 	debug: false,
@@ -15,12 +17,14 @@ const DEFAULT_OPTIONS_DISPLAY_WEBGL_3D = {
 	resize: true,
 	updateFaceButtonAfter: UPDATE_FACE_BUTTON_AFTER_FRAMES,
 	opacity: 1,
-	dotSize: 2
+	dotSize: 2,
+	geometrySubdivisions: 0
 }
 
 export default class DisplayWebGL3D extends AbstractDisplay {
 
 	name = DISPLAY_WEB_GL_3D
+	transparentCanvas = true
 
 	get type() {
 		return DISPLAY_WEB_GL_3D
@@ -46,7 +50,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_WEBGL_3D, options)
 		super(canvas, initialWidth, initialHeight, options)
 
-		this.dpr = window.devicePixelRatio || 1
+		this.dpr = 1
 
 		this.initWebGL(canvas).then(e => {
 			this.loadComplete('ready')
@@ -97,6 +101,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		// Enable alpha blending
 		this.gl.enable(this.gl.BLEND)
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
+		this.gl.clearColor(0, 0, 0, 0)
 
 		// Get uniform locations
 		this.uProjectionMatrix = this.gl.getUniformLocation(this.program, 'uProjectionMatrix')
@@ -222,6 +227,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		if (!this.gl || !this.program) return
 
 		const numPoints = Math.floor(data.length / 3)
+		if (numPoints === 0) return
 		const transformedData = this.transformData(data, internalScale, regionSize, offsetX, offsetY)
 
 		// Set state
@@ -233,7 +239,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		// Uniforms
 		const [r, g, b, a] = this.hexToRgba(colorHex)
 		this.gl.uniform4f(this.uColor, r / 255, g / 255, b / 255, (a / 255) * this.options.opacity)
-		this.gl.uniform1f(this.uPointSize, this.options.dotSize * this.dpr)
+		this.gl.uniform1f(this.uPointSize, this.options.dotSize)
 
 		// Draw points
 		this.gl.drawArrays(this.gl.POINTS, 0, numPoints)
@@ -244,6 +250,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	 */
 	drawFaceConnections(data, colorHex, internalScale, regionSize, offsetX, offsetY) {
 		if (!this.gl || !this.program || !this.ibo) return
+		if (Math.floor(data.length / 3) === 0) return
 
 		const transformedData = this.transformData(data, internalScale, regionSize, offsetX, offsetY)
 
@@ -278,13 +285,16 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	 */
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
 		const prediction = person.data
-		if (!prediction || !prediction.landmarks) return
+		const landmarks = getPredictionLandmarks(prediction)
+		if (!prediction || landmarks.length === 0) return
 
 		if (this.count % this.options.updateFaceButtonAfter === 0) {
 			this.movePersonButton(person, prediction)
 		}
 
-		const landmarks = prediction.landmarks
+		const pointLandmarks = this.options.geometrySubdivisions > 0
+			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
+			: landmarks
 		const hue = person.hue || 0
 
 		// Convert landmarks to Float32Array
@@ -295,20 +305,27 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 			landmarkData[i * 3 + 2] = landmarks[i].z || 0
 		}
 
+		const pointData = new Float32Array(pointLandmarks.length * 3)
+		for (let i = 0; i < pointLandmarks.length; i++) {
+			pointData[i * 3] = pointLandmarks[i].x || 0
+			pointData[i * 3 + 1] = pointLandmarks[i].y || 0
+			pointData[i * 3 + 2] = pointLandmarks[i].z || 0
+		}
+
 		// HSL to Hex
-		const hex = this.hslToHex(hue, colours.s || 100, colours.l || 50)
+		const hex = this.hslToHex(hue, colours.s || 100, colours.l || 50, getDisplayColourAlpha(colours, options))
 
 		// Draw connections first (so they appear behind points)
 		this.drawFaceConnections(landmarkData, hex, 1, undefined, 0, 0)
 
 		// Draw points on top
-		this.drawLandmarks(landmarkData, hex, 1, undefined, 0, 0)
+		this.drawLandmarks(pointData, hex, 1, undefined, 0, 0)
 	}
 
 	/**
 	 * Convert HSL to hex color
 	 */
-	hslToHex(h, s, l) {
+	hslToHex(h, s, l, a = 1) {
 		h = h % 360
 		s = s / 100
 		l = l / 100
@@ -331,7 +348,8 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		g = Math.round(Math.max(0, Math.min(1, g + m)) * 255)
 		b = Math.round(Math.max(0, Math.min(1, b + m)) * 255)
 
-		return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
+		const alpha = Math.round(Math.max(0, Math.min(1, a)) * 255)
+		return '#' + [r, g, b, alpha].map(x => x.toString(16).padStart(2, '0')).join('')
 	}
 
 	/**
@@ -339,8 +357,8 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	 */
 	onResize(width, height) {
 		if (this.gl) {
-			this.canvas.width = Math.floor(width * this.dpr)
-			this.canvas.height = Math.floor(height * this.dpr)
+			this.canvas.width = Math.floor(width)
+			this.canvas.height = Math.floor(height)
 			this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
 			this.updateProjection()
 		}
@@ -351,7 +369,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	 */
 	render() {
 		this.count++
-		this.onRender()
+		super.render()
 	}
 
 	/**
@@ -375,43 +393,13 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		// To be implemented if needed
 	}
 
-	/**
-	 * Draw text - uses 2D canvas overlay
-	 */
 	drawText(x, y, text, size, align, font, invertColours) {
-		const canvas = this.canvas
-		if (canvas instanceof HTMLCanvasElement) {
-			const ctx2d = canvas.getContext('2d')
-			if (ctx2d) {
-				ctx2d.font = `${size}px ${font || 'Arial'}`
-				ctx2d.textAlign = align || 'left'
-				ctx2d.textBaseline = 'top'
-				ctx2d.fillStyle = invertColours ? '#000000' : '#FFFFFF'
-				ctx2d.fillText(text, x, y)
-			}
-		}
+		// Text is rendered by DisplayOverlay2d; do not request a 2D context
+		// from a canvas already owned by WebGL.
 	}
 
-	/**
-	 * Draw paragraph - uses 2D canvas overlay
-	 */
 	drawParagraph(x, y, paragraphs, size, lineHeight, invertColours) {
-		const canvas = this.canvas
-		if (canvas instanceof HTMLCanvasElement) {
-			const ctx2d = canvas.getContext('2d')
-			if (ctx2d) {
-				ctx2d.font = `${size}px Arial`
-				ctx2d.textAlign = 'left'
-				ctx2d.textBaseline = 'top'
-				ctx2d.fillStyle = invertColours ? '#000000' : '#FFFFFF'
-				
-				let currentY = y
-				for (const line of paragraphs) {
-					ctx2d.fillText(line, x, currentY)
-					currentY += (lineHeight || size * 1.2)
-				}
-			}
-		}
+		// Text is rendered by DisplayOverlay2d.
 	}
 
 	/**

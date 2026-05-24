@@ -9,10 +9,11 @@
 import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_THREE_WEBGPU_PARTICLE } from "./display-types.js"
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
+import { getDisplayColourAlpha, getPredictionLandmarks } from "./display-landmarks.js"
 
 import {
 	Scene,
-	PerspectiveCamera,
+	OrthographicCamera,
 	Vector3,
 	Vector2,
 	Color,
@@ -20,6 +21,8 @@ import {
 	PointLight,
 	BufferGeometry,
 	BufferAttribute,
+	Points,
+	PointsMaterial,
 	Matrix4,
 	Quaternion,
 	Euler,
@@ -32,6 +35,8 @@ import { WebGLRenderer, MeshBasicMaterial } from "three"
 
 // Math utilities
 import { ONE_DEGREE_IN_RADIANS } from "../maths/maths.js"
+import { subdivideKeypoints } from "../models/avatar.js"
+import { applyWebGPUParticleMarch } from "./webgpu-particle-motion.js"
 
 const DEFAULT_OPTIONS_DISPLAY_THREE_WEBGPU = {
 	debug: false,
@@ -42,7 +47,8 @@ const DEFAULT_OPTIONS_DISPLAY_THREE_WEBGPU = {
 	particleSize: 2,
 	particleColour: { r: 1, g: 0.8, b: 0.6 },
 	wireframe: false,
-	showTrace: false
+	showTrace: false,
+	geometrySubdivisions: 0
 }
 
 /**
@@ -52,6 +58,7 @@ const DEFAULT_OPTIONS_DISPLAY_THREE_WEBGPU = {
 export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 	name = DISPLAY_THREE_WEBGPU_PARTICLE
+	transparentCanvas = true
 
 	get type() {
 		return DISPLAY_THREE_WEBGPU_PARTICLE
@@ -85,8 +92,8 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	clock = null
 	elapsedTime = 0
 
-	constructor(canvas, initialWidth, initialHeight, options = DEFAULT_OPTIONS_THREE_WEBGPU) {
-		options = Object.assign({}, DEFAULT_OPTIONS_THREE_WEBGPU, options)
+	constructor(canvas, initialWidth, initialHeight, options = DEFAULT_OPTIONS_DISPLAY_THREE_WEBGPU) {
+		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_THREE_WEBGPU, options)
 		super(canvas, initialWidth, initialHeight, options)
 
 		this.create(canvas, options).then(e => {
@@ -102,21 +109,27 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 */
 	async create(canvas, options) {
 
-		// Check WebGPU support
-		if (!navigator.gpu) {
-			throw new Error("WebGPU not supported in this browser")
+		const probeCanvas = document.createElement("canvas")
+		const canCreateWebGLContext = Boolean(
+			probeCanvas.getContext("webgl2") ||
+			probeCanvas.getContext("webgl") ||
+			probeCanvas.getContext("experimental-webgl")
+		)
+		if (!WebGLRenderer || !canCreateWebGLContext) {
+			throw new Error("Three WebGPU Particle display requires WebGLRenderer and a WebGL-capable canvas")
 		}
 
 		// Create WebGL renderer (WebGPU not available in three.js v0.183.2 ESM)
 		this.renderer = new WebGLRenderer({
 			canvas: canvas,
 			antialias: true,
-			alpha: true
+			alpha: true,
+			premultipliedAlpha: false
 		})
 
-		this.renderer.setPixelRatio(window.devicePixelRatio)
-		this.renderer.setSize(this.canvasWidth, this.canvasHeight)
-		this.renderer.setClearColor(new Color(0x000000))
+		this.renderer.setPixelRatio(1)
+		this.renderer.setSize(this.canvasWidth, this.canvasHeight, false)
+		this.renderer.setClearColor(new Color(0x000000), 0)
 
 		// No async init needed for WebGL renderer
 
@@ -124,18 +137,16 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		this.scene = new Scene()
 
 		// Create camera
-		this.camera = new PerspectiveCamera(
-			75,
-			this.canvasWidth / this.canvasHeight,
-			0.1,
+		this.camera = new OrthographicCamera(
+			0,
+			this.canvasWidth,
+			0,
+			this.canvasHeight,
+			-10000,
 			10000
 		)
-		this.camera.position.set(
-			this.canvasWidth / 2,
-			this.canvasHeight / 2,
-			-this.canvasHeight
-		)
-		this.camera.lookAt(this.canvasWidth / 2, this.canvasHeight / 2, 0)
+		this.camera.position.set(0, 0, 100)
+		this.camera.lookAt(0, 0, 0)
 
 		// Add lighting
 		const ambientLight = new AmbientLight(0xffffff, 0.8)
@@ -147,11 +158,6 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 		// Create particle system
 		this.createParticleSystem(options.particleCount)
-
-		// Set up animation loop
-		this.setAnimationLoop(() => {
-			this.render()
-		}, true)
 
 		// Handle window resize with stored reference
 		this.onWindowResizeHandler = this.onWindowResize.bind(this)
@@ -165,14 +171,18 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * Handle window resize
 	 */
 	onWindowResize() {
-		const width = window.innerWidth
-		const height = window.innerHeight
+		this.onResize(this.canvasWidth, this.canvasHeight)
+	}
 
-		this.camera.aspect = width / height
+	onResize(width, height) {
+		this.camera.left = 0
+		this.camera.right = width
+		this.camera.top = 0
+		this.camera.bottom = height
 		this.camera.updateProjectionMatrix()
 
 		if (this.renderer) {
-			this.renderer.setSize(width, height)
+			this.renderer.setSize(width, height, false)
 		}
 	}
 
@@ -184,18 +194,15 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 		this.instanceCount = particleCount
 
-		// Create particle geometry (single sphere per particle)
 		this.particleGeometry = new BufferGeometry()
 
-		// Position attribute for sphere vertices
 		const positionAttribute = new BufferAttribute(
-			new Float32Array([0, 0, 0]),
+			new Float32Array(particleCount * 3),
 			3
 		)
 		this.particleGeometry.setAttribute('position', positionAttribute)
 
-		// Initialize buffers (WebGL doesn't use storage buffers like WebGPU)
-		this.positionBuffer = new Float32Array(particleCount * 3)
+		this.positionBuffer = positionAttribute
 		this.velocityBuffer = new Float32Array(particleCount * 3)
 		this.colourBuffer = new Float32Array(particleCount * 4)
 		
@@ -209,12 +216,10 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		// Create material with TLSL shaders
 		this.particleMaterial = this.createTSLParticleMaterial()
 
-		// Create instanced particle mesh
-		this.particleMesh = new Mesh(
+		this.particleMesh = new Points(
 			this.particleGeometry,
 			this.particleMaterial
 		)
-		this.particleMesh.count = this.instanceCount
 
 		this.scene.add(this.particleMesh)
 	}
@@ -226,10 +231,15 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 */
 	createTSLParticleMaterial() {
 
-		const material = new MeshBasicNodeMaterial({
+		const material = new PointsMaterial({
+			color: new Color(
+				this.options.particleColour.r,
+				this.options.particleColour.g,
+				this.options.particleColour.b
+			),
+			size: this.options.particleSize,
 			transparent: true,
-			side: 2, // DoubleSide
-			wireframe: this.options.wireframe
+			sizeAttenuation: true
 		})
 
 		return material
@@ -250,43 +260,39 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 		if (!this.positionBuffer) return
 
+		if (landmarks.length !== this.instanceCount) {
+			this.recreateParticleSystem(landmarks.length)
+		}
+
 		const positionData = this.positionBuffer.array
-		const velocityData = this.velocityBuffer.array
 
 		for (let i = 0; i < Math.min(landmarks.length, this.instanceCount); i++) {
 
 			const landmark = landmarks[i]
 
-			// Current position
-			const x0 = positionData[i * 3]
-			const y0 = positionData[i * 3 + 1]
-			const z0 = positionData[i * 3 + 2]
-
-			// Target position from landmark
-			const x1 = landmark.x * this.canvasWidth
-			const y1 = landmark.y * this.canvasHeight
-			const z1 = (landmark.z || 0) * 100
-
-			// Smooth interpolation
-			const speed = 0.15
-			const newX = x0 + (x1 - x0) * speed
-			const newY = y0 + (y1 - y0) * speed
-			const newZ = z0 + (z1 - z0) * speed
-
-			// Store position
-			positionData[i * 3] = newX
-			positionData[i * 3 + 1] = newY
-			positionData[i * 3 + 2] = newZ
-
-			// Store velocity for motion trails
-			velocityData[i * 3] = (newX - x0) / 0.016
-			velocityData[i * 3 + 1] = (newY - y0) / 0.016
-			velocityData[i * 3 + 2] = (newZ - z0) / 0.016
+			positionData[i * 3] = landmark.x * this.canvasWidth
+			positionData[i * 3 + 1] = landmark.y * this.canvasHeight
+			positionData[i * 3 + 2] = (landmark.z || 0) * 100
 		}
+
+		applyWebGPUParticleMarch({
+			positions:positionData,
+			frame:this.count,
+			options:this.options,
+			dimensions:3
+		})
 
 		// Mark buffer as needing update
 		this.positionBuffer.needsUpdate = true
-		this.velocityBuffer.needsUpdate = true
+	}
+
+	recreateParticleSystem(particleCount) {
+		if (this.particleMesh) {
+			this.scene.remove(this.particleMesh)
+			this.particleMesh.geometry.dispose()
+			this.particleMesh.material.dispose()
+		}
+		this.createParticleSystem(particleCount)
 	}
 
 	/**
@@ -299,17 +305,40 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 		if (!this.colourBuffer) return
 
-		const colourData = this.colourBuffer.array
 		const rgb = this.hslToRgb(hue, colours.s || 100, colours.l || 50)
 
-		for (let i = 0; i < this.instanceCount; i++) {
-			colourData[i * 4] = rgb.r
-			colourData[i * 4 + 1] = rgb.g
-			colourData[i * 4 + 2] = rgb.b
-			colourData[i * 4 + 3] = colours.a || 1
+		if (this.particleMaterial) {
+			this.particleMaterial.color.setRGB(rgb.r, rgb.g, rgb.b)
+			this.particleMaterial.opacity = getDisplayColourAlpha(colours)
 		}
+	}
 
-		this.colourBuffer.needsUpdate = true
+	hslToRgb(h, s, l) {
+		h = ((h % 360) + 360) % 360
+		s = s / 100
+		l = l / 100
+
+		const c = (1 - Math.abs(2 * l - 1)) * s
+		const hp = h / 60
+		const x = c * (1 - Math.abs((hp % 2) - 1))
+
+		let r = 0
+		let g = 0
+		let b = 0
+
+		if (hp < 1) { r = c; g = x }
+		else if (hp < 2) { r = x; g = c }
+		else if (hp < 3) { g = c; b = x }
+		else if (hp < 4) { g = x; b = c }
+		else if (hp < 5) { r = x; b = c }
+		else { r = c; b = x }
+
+		const m = l - c / 2
+		return {
+			r: Math.max(0, Math.min(1, r + m)),
+			g: Math.max(0, Math.min(1, g + m)),
+			b: Math.max(0, Math.min(1, b + m))
+		}
 	}
 
 	/**
@@ -327,11 +356,13 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 			this.movePersonButton(person, prediction)
 		}
 
-		const landmarks = prediction.landmarks || []
+		const landmarks = getPredictionLandmarks(prediction)
 		if (landmarks.length === 0) return
+		const pointLandmarks = this.options.geometrySubdivisions > 0
+			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
+			: landmarks
 
-		// Update GPU buffers with new landmark data
-		this.updateParticlePositions(landmarks)
+		this.updateParticlePositions(pointLandmarks)
 		this.updateParticleColours(person, hue, colours)
 	}
 
@@ -343,8 +374,9 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		this.elapsedTime += 0.016
 
 		if (this.renderer && !this.renderer.isDisposed) {
-			await this.renderer.renderAsync(this.scene, this.camera)
+			this.renderer.render(this.scene, this.camera)
 		}
+		super.render()
 	}
 
 	/**
