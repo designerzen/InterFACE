@@ -2,6 +2,42 @@ export const ERROR_NO_CAMERAS = "No Cameras found on this device"
 
 let cameraLoading = false
 
+const CAMERA_PRESETS = [
+	{
+		name: "Razer Kiyo 720p60",
+		deviceIds: [
+			"8e188e28b6a58e20cd2da3444996a643bb020e3b963fa283d33f502fedac3a27"
+		],
+		match: /(?:razer\s+kiyo|usb\s+video\s+device\s+\(1532:0e03\))/i,
+		video: {
+			width: { exact: 1280 },
+			height: { exact: 720 },
+			frameRate: { ideal: 60, max: 60 }
+		}
+	}
+]
+
+const getCameraPreset = camera => {
+	const label = typeof camera === "string" ? camera : camera?.label ?? ""
+	const deviceId = typeof camera === "string" ? "" : camera?.deviceId ?? ""
+	return CAMERA_PRESETS.find(preset =>
+		preset.deviceIds?.includes(deviceId) || preset.match.test(label)
+	)
+}
+
+const createVideoConstraints = (deviceId, cameraLabel) => {
+	const preset = getCameraPreset(cameraLabel)
+	const videoConstraints = preset ? { ...preset.video } : {}
+
+	if (deviceId) {
+		videoConstraints.deviceId = { exact: deviceId }
+	} else {
+		videoConstraints.facingMode = 'user' // 'environment'
+	}
+
+	return { videoConstraints, preset }
+}
+
 /**
  * This returns a list of IDS that you can then feed into the setupCamera,
  * for if you want to select a specific camera
@@ -32,7 +68,7 @@ export const fetchVideoCameras = async() => {
  * @param {?string} deviceId - Device ID unique to the camera to try to access first if provided
  * @returns {Promise} video stream is returned if successfull
  */
-export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=6000 ) => new Promise( async (resolve,reject) => {
+export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=6000, cameraLabel="" ) => new Promise( async (resolve,reject) => {
 		
 	let stream
 	video = video ?? document.createElement('video')
@@ -65,12 +101,7 @@ export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=60
 	video.onloadeddata = (event) => checkVideoAccess()
 	video.onerror = event => reject(stream)
 	
-	const videoConstraints = {}
-	if (deviceId) {
-		videoConstraints.deviceId = { exact: deviceId }
-	} else {
-		videoConstraints.facingMode = 'user' // 'environment'
-	}
+	const { videoConstraints, preset } = createVideoConstraints(deviceId, cameraLabel)
 
 	const constraints = {
 		video: videoConstraints,
@@ -83,6 +114,32 @@ export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=60
 		// and so can hang here - let's add some protection
 		const BAD_RESULT = "BAD_RESULT"
 		stream = await navigator.mediaDevices.getUserMedia( constraints )
+		const streamTrack = stream.getVideoTracks?.()[0]
+		const streamPreset = !preset ? getCameraPreset(streamTrack?.label) : null
+		if (streamPreset)
+		{
+			const streamDeviceId = streamTrack?.getSettings?.().deviceId ?? deviceId
+			const presetConstraints = {
+				video: createVideoConstraints(streamDeviceId, streamTrack?.label).videoConstraints,
+				audio: enableAudio
+			}
+			try{
+				console.info("Camera:Reopening default camera with preset", {
+					preset:streamPreset,
+					label:streamTrack?.label,
+					constraints:presetConstraints
+				})
+				const presetStream = await navigator.mediaDevices.getUserMedia(presetConstraints)
+				stream.getTracks().forEach(track => track.stop())
+				stream = presetStream
+			}catch(presetError){
+				console.warn("Camera:Default camera preset failed, keeping original stream", {
+					preset:streamPreset,
+					label:streamTrack?.label,
+					error:presetError
+				})
+			}
+		}
 		//stream = navigator.mediaDevices.getUserMedia( constraints )
 		const timeout = new Promise(complete => setTimeout(complete, timeOut, BAD_RESULT))
 		const result = await Promise.race([ timeout, stream ])
@@ -95,9 +152,27 @@ export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=60
 			video.srcObject = stream
 		}
 
-		// console.log("setupCamera", {constraints, stream})
+		console.info("Camera:Connected", {constraints, preset, stream})
 		
 	}catch(error){
+
+		if (preset)
+		{
+			try{
+				console.warn("Camera:Preset failed, retrying without preset", {preset, cameraLabel, error})
+				const fallbackConstraints = {
+					video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' },
+					audio: enableAudio
+				}
+				stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints)
+				video.srcObject = stream
+				return
+			}catch(fallbackError){
+				console.error("Camera:Error > ",{constraints,stream,video,error:fallbackError})
+				reject(fallbackError)
+				return
+			}
+		}
 
 		console.error("Camera:Error > ",{constraints,stream,video,error})
 		reject(error)
@@ -121,9 +196,9 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 
 	try{
 		
-		if (deviceId.length > 0)
+		if (deviceId?.length > 0)
 		{
-			newCamera = await setupCamera( video, deviceId )
+			newCamera = await setupCamera( video, deviceId, false, 6000, name )
 		
 			// store.setItem( 'camera', {deviceId} )
 			// console.log( deviceId, "Camera id saved")
@@ -131,8 +206,7 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 			
 		}else{
 
-			console.log( deviceId, "Camera unfound", {video,deviceId})
-			throw Error("Camera Device not specified "+ deviceId )
+			newCamera = await setupCamera( video, undefined, false, 6000, name )
 		}
 		 			
 	}catch(error){
@@ -184,6 +258,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 	let saved = false
 	const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 	const attempts = {}
+	const presetCamera = videoCameraDevices.find(videoCamera => getCameraPreset(videoCamera))
 	
 	// try and find if there is video camera with that ID available...
 	// the deviceId is only a suggestion as the camera may well have been removed
@@ -193,6 +268,20 @@ export const findBestCamera = async (store, video, onStatus) => {
 	// we do not have any device id so attempt to load the default 
 	if (!deviceId || matches.length < 1)
 	{
+		if (presetCamera)
+		{
+			try{
+				onStatus && onStatus(`Attempting to connect to preset camera <strong>${presetCamera.label}</strong>...` )
+				camera = await loadCamera(video, presetCamera.deviceId, presetCamera.label)
+				return {
+					camera, videoCameraDevices, saved, attempts
+				}
+			}catch(error){
+				attempts[presetCamera.deviceId] = false
+				onStatus && onStatus(`Preset camera <strong>${presetCamera.label}</strong> could not be accessed` )
+			}
+		}
+
 		try{
 			camera = await setupCamera( video )
 			return {
@@ -209,7 +298,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 		// a saved device ID was found let's test to see if it works...
 		onStatus && onStatus(`Attempting to connect to saved camera <strong>${matches[0].label}</strong>...` )
 		try{
-			camera = await loadCamera(video, deviceId, "Saved")
+			camera = await loadCamera(video, deviceId, matches[0].label)
 			saved = true
 			return {
 				camera,
@@ -226,7 +315,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 	
 			// bummer! try and use fallback?
 			onStatus && onStatus(`Found saved camera <strong>${matches[0].label}</strong> but could not access it` )
-			console.error("Couldn't access saved camera - removed from store", errorReason )
+			console.error("Couldn't access saved camera - removed from store", error )
 		}
 
 	}else{
@@ -257,7 +346,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 		const videoCameraDevice = filteredDevices[i]
 		try{
 			onStatus && onStatus( `Found another camera <br><strong>${videoCameraDevice.label}</strong>` )
-			camera = await setupCamera( video, videoCameraDevice.deviceId )
+			camera = await setupCamera( video, videoCameraDevice.deviceId, false, 6000, videoCameraDevice.label )
 			return {
 				camera,
 				videoCameraDevices,
