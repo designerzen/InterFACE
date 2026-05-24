@@ -12,23 +12,23 @@ importers:
         specifier: ^5.20.0
         version: 5.20.0
       '@babylonjs/core':
-        specifier: ^9.9.0
-        version: 9.9.0
+        specifier: ^9.9.1
+        version: 9.9.1
       '@babylonjs/gui-editor':
-        specifier: ^9.9.0
-        version: 9.9.0(@babylonjs/core@9.9.0)(@babylonjs/gui@8.33.0(@babylonjs/core@9.9.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+        specifier: ^9.9.1
+        version: 9.9.1(@babylonjs/core@9.9.1)(@babylonjs/gui@8.33.0(@babylonjs/core@9.9.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
       '@babylonjs/havok':
         specifier: ^1.3.12
         version: 1.3.12
       '@babylonjs/inspector':
-        specifier: ^9.9.0
-        version: 9.9.0(e4f73051b14158119e4e7e0701682b1f)
+        specifier: ^9.9.1
+        version: 9.9.1(dd9f70973d7ad37128873d30bb9f7e4e)
       '@babylonjs/loaders':
-        specifier: ^9.9.0
-        version: 9.9.0(@babylonjs/core@9.9.0)(babylonjs-gltf2interface@8.33.0)
+        specifier: ^9.9.1
+        version: 9.9.1(@babylonjs/core@9.9.1)(babylonjs-gltf2interface@8.33.0)
       '@babylonjs/materials':
-        specifier: ^9.9.0
-        version: 9.9.0(@babylonjs/core@9.9.0)
+        specifier: ^9.9.1
+        version: 9.9.1(@babylonjs/core@9.9.1)
       '@capacitor/android':
         specifier: ^8.3.4
         version: 8.3.4(@capacitor/core@8.3.4)
@@ -48,8 +48,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(electron@42.2.0)
       '@grame/faustwasm':
-        specifier: ^0.16.1
-        version: 0.16.1
+        specifier: ^0.16.2
+        version: 0.16.2
       '@justinribeiro/lite-youtube':
         specifier: ^1.9.0
         version: 1.9.0
@@ -99,8 +99,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2
       bonjour-service:
-        specifier: ^1.3.0
-        version: 1.3.0
+        specifier: ^1.4.0
+        version: 1.4.0
       dialog-polyfill:
         specifier: ^0.5.6
         version: 0.5.6
@@ -234,8 +234,8 @@ importers:
         specifier: ^7.4.1
         version: 7.4.1
       ws:
-        specifier: ^8.20.1
-        version: 8.20.1(bufferutil@4.1.0)(utf-8-validate@6.0.3)
+        specifier: ^8.21.0
+        version: 8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.3)
       zxing-wasm:
         specifier: ^3.0.3
         version: 3.0.3(@types/emscripten@1.41.5)
@@ -338,7 +338,7 @@ importers:
         version: 25.9.1
       '@vituum/vite-plugin-pug':
         specifier: ^2.0.1
-        version: 2.0.1(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(vite@8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0))(yaml@2.9.0)
+        version: 2.0.1(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(vite@8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0))(yaml@2.9.0)
       assert:
         specifier: ^2.1.0
         version: 2.1.0
@@ -403,8 +403,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       knip:
-        specifier: ^6.14.1
-        version: 6.14.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
+        specifier: ^6.14.2
+        version: 6.14.2(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
       midible:
         specifier: ^0.1.10
         version: 0.1.10
@@ -439,8 +439,8 @@ importers:
         specifier: ^6.1.3
         version: 6.1.3
       sass:
-        specifier: ^1.99.0
-        version: 1.99.0
+        specifier: ^1.100.0
+        version: 1.100.0
       showdown:
         specifier: ^2.1.0
         version: 2.1.0
@@ -1110,11 +1110,11 @@ packages:
     resolution: {integrity: sha512-a6Mm519h9XtXg8Of0qC+DmwWp+jcolZv+Z/LSG+b/8Fh7kS3gFjHXctKSrln2zMiTxcbYfeBqtOUpGtlV8F2bA==}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
-  '@babylonjs/core@9.9.0':
-    resolution: {integrity: sha512-bvov/9CYT6SnQpv3fOmCL3YZQcvcNEsEKzsHoLna2xnqQpjcUaC2XjPowkj9Wyq3V7AkfwxhsxG1MS2zbiO6Sw==}
+  '@babylonjs/core@9.9.1':
+    resolution: {integrity: sha512-zJf9YQbd+yQRA0se9NccFR9zVsu+pPRCXDqhnBXG9lg7j3XXUgRgmEFybPgyO8TOcnQ0p5+FAz6IsdS9hA63pw==}
 
-  '@babylonjs/gui-editor@9.9.0':
-    resolution: {integrity: sha512-g68C6lzTwm46XPD9AUdNSjphwEW7rKiv6XReH9vqZSZDNdvqXp9+vUcKpRCtrgh+DFTdP14qOIo1tZ5EVkbbjw==}
+  '@babylonjs/gui-editor@9.9.1':
+    resolution: {integrity: sha512-XZEavQjjzCwPDGyQR9LHUc+F6IucP8Hj+2HRCNpMof4mdpxg+MIN186ddUxKsN7vNAwIrS7pQiWCxb0m9j/S8w==}
     peerDependencies:
       '@babylonjs/core': ^9.0.0
       '@babylonjs/gui': ^9.0.0
@@ -1129,8 +1129,8 @@ packages:
   '@babylonjs/havok@1.3.12':
     resolution: {integrity: sha512-KR5Z7DBkVEgdvHLMDh2VWe/nHvUG8+MdLBiAE0iM19KIHAPqPRVITPAZKx4SQusK5nqm4ZXDcKv5OYtViIxLzA==}
 
-  '@babylonjs/inspector@9.9.0':
-    resolution: {integrity: sha512-sB2YzL1KRYYoBK7SIR8Z2PAw0fxJxGLSE5cghyGF98CnSRCxj/cVDILZgNARamUKOyDtK6AYVQSn27qKVz+h7g==}
+  '@babylonjs/inspector@9.9.1':
+    resolution: {integrity: sha512-jBgFIt/2Vq4RJnaMJ5XH43SsimqSLznRlQ8Nus+ZIkjLQS+6hjjYKgO4oyM18GSKig7iTxQbEIfEv9UxCgvzbw==}
     hasBin: true
     peerDependencies:
       '@babylonjs/addons': ^9.0.0
@@ -1148,14 +1148,14 @@ packages:
       react-dom: '>=16.14.0 <20.0.0'
       usehooks-ts: ^3.1.1
 
-  '@babylonjs/loaders@9.9.0':
-    resolution: {integrity: sha512-INDmzfYEwyLPCJZJrlXlFA/590/b0aQfyoQ21BeQh5NBJwtJIwcfODrOfbcCBdBYAzpKzHegHFin9M7/9qyxTg==}
+  '@babylonjs/loaders@9.9.1':
+    resolution: {integrity: sha512-7AKGcORJsEZCHK88+C5JXZIoTp922QPZVemfWfcrlk7D5eSbqQakEXd3FA61pVVLuP2WLlXaOYHkU2oL5VabDw==}
     peerDependencies:
       '@babylonjs/core': ^9.0.0
       babylonjs-gltf2interface: ^9.0.0
 
-  '@babylonjs/materials@9.9.0':
-    resolution: {integrity: sha512-GMHhMHcrFRm2hETzSE8mcmuVTFJw7eCgdBtDOYRv3pFvFge/eoVatk1EB9jsSwK0+feF8gDZyI1QBX9AXrpkiQ==}
+  '@babylonjs/materials@9.9.1':
+    resolution: {integrity: sha512-ojO17HpD65wbrUQqztG0wSurmTFNVCq5hnMZze/xUSSk4RQHsJsws88dHSK9zwbdzKRYdiIKGmoyj0arhN1yhw==}
     peerDependencies:
       '@babylonjs/core': ^9.0.0
 
@@ -2537,8 +2537,8 @@ packages:
   '@gar/promisify@1.1.3':
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
 
-  '@grame/faustwasm@0.16.1':
-    resolution: {integrity: sha512-bc3AbJm4bPyS8ilvTnsbxjrFYqUO73uN5oatfMlJPsSvdzx/50q5ViMilmGdNV/Xrf7pbNdwu8Wka5ZwOraxwA==}
+  '@grame/faustwasm@0.16.2':
+    resolution: {integrity: sha512-1NK7ctlrKdDC/hZaLNF60kbaSQhblzj31LRc8aR6dhNHzOtfQK+XuM4j5UdqDyPC+Ae5JHneRJruXb41rCNUfg==}
     hasBin: true
 
   '@griffel/core@1.21.0':
@@ -5293,8 +5293,8 @@ packages:
   bn.js@5.2.3:
     resolution: {integrity: sha512-EAcmnPkxpntVL+DS7bO1zhcZNvCkxqtkd0ZY53h06GNQ3DEkkGZ/gKgmDv6DdZQGj9BgfSPKtJJ7Dp1GPP8f7w==}
 
-  bonjour-service@1.3.0:
-    resolution: {integrity: sha512-3YuAUiSkWykd+2Azjgyxei8OWf8thdn8AITIog2M4UICzoqfjlqr64WIjEXZllf/W6vK1goqleSR6brGomxQqA==}
+  bonjour-service@1.4.0:
+    resolution: {integrity: sha512-fGQtj1qdR9vIKjFiWPQd52qIqwjaYqhcI40JEiDuvlZ86E7ZBPBwY9fPgHy9r2rYGIjiRfctNPYz6OQU73ww2w==}
 
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
@@ -5500,10 +5500,6 @@ packages:
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
-
-  chokidar@4.0.3:
-    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
-    engines: {node: '>= 14.16.0'}
 
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
@@ -7617,8 +7613,8 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  knip@6.14.1:
-    resolution: {integrity: sha512-SN3Ly0ixzj5CQkY/rc4OPHpWrCC0XRIIjgdP76G9Cni5k72ur5jBYOyvJuF5oPTM14v8eHcMUgPbElHa+lnR0g==}
+  knip@6.14.2:
+    resolution: {integrity: sha512-Vg3JhIINjZew1I7qAFI4UHemW1mc4azP/BxJvsq9eGDfxpGO7oVCuD/bsWkog9TO/ZwwJeAeOMFZ1kd9jnY9+Q==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
@@ -9082,10 +9078,6 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
 
-  readdirp@4.1.2:
-    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
-    engines: {node: '>= 14.18.0'}
-
   readdirp@5.0.0:
     resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
     engines: {node: '>= 20.19.0'}
@@ -9295,9 +9287,9 @@ packages:
   sanitize-filename@1.6.4:
     resolution: {integrity: sha512-9ZyI08PsvdQl2r/bBIGubpVdR3RR9sY6RDiWFPreA21C/EFlQhmgo20UZlNjZMMZNubusLhAQozkA0Od5J21Eg==}
 
-  sass@1.99.0:
-    resolution: {integrity: sha512-kgW13M54DUB7IsIRM5LvJkNlpH+WhMpooUcaWGFARkF1Tc82v9mIWkCbCYf+MBvpIUBSeSOTilpZjEPr2VYE6Q==}
-    engines: {node: '>=14.0.0'}
+  sass@1.100.0:
+    resolution: {integrity: sha512-B5j0rYMlinhhOo9tjQebMVVn0TfyXAF+wB3b2ggZUuJ/is/Y+7+JGjirAMxHZ9Z3hIP98NPfamlAkBHa1lAaXQ==}
+    engines: {node: '>=20.19.0'}
     hasBin: true
 
   sax@1.1.4:
@@ -10471,8 +10463,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.20.1:
-    resolution: {integrity: sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==}
+  ws@8.21.0:
+    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -11421,38 +11413,38 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@babylonjs/addons@8.33.0(@babylonjs/core@9.9.0)':
+  '@babylonjs/addons@8.33.0(@babylonjs/core@9.9.1)':
     dependencies:
-      '@babylonjs/core': 9.9.0
+      '@babylonjs/core': 9.9.1
 
   '@babylonjs/assets@5.20.0': {}
 
-  '@babylonjs/core@9.9.0': {}
+  '@babylonjs/core@9.9.1': {}
 
-  '@babylonjs/gui-editor@9.9.0(@babylonjs/core@9.9.0)(@babylonjs/gui@8.33.0(@babylonjs/core@9.9.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/gui-editor@9.9.1(@babylonjs/core@9.9.1)(@babylonjs/gui@8.33.0(@babylonjs/core@9.9.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 9.9.0
-      '@babylonjs/gui': 8.33.0(@babylonjs/core@9.9.0)
+      '@babylonjs/core': 9.9.1
+      '@babylonjs/gui': 8.33.0(@babylonjs/core@9.9.1)
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/gui@8.33.0(@babylonjs/core@9.9.0)':
+  '@babylonjs/gui@8.33.0(@babylonjs/core@9.9.1)':
     dependencies:
-      '@babylonjs/core': 9.9.0
+      '@babylonjs/core': 9.9.1
 
   '@babylonjs/havok@1.3.12':
     dependencies:
       '@types/emscripten': 1.41.5
 
-  '@babylonjs/inspector@9.9.0(e4f73051b14158119e4e7e0701682b1f)':
+  '@babylonjs/inspector@9.9.1(dd9f70973d7ad37128873d30bb9f7e4e)':
     dependencies:
-      '@babylonjs/addons': 8.33.0(@babylonjs/core@9.9.0)
-      '@babylonjs/core': 9.9.0
-      '@babylonjs/gui': 8.33.0(@babylonjs/core@9.9.0)
-      '@babylonjs/gui-editor': 9.9.0(@babylonjs/core@9.9.0)(@babylonjs/gui@8.33.0(@babylonjs/core@9.9.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/loaders': 9.9.0(@babylonjs/core@9.9.0)(babylonjs-gltf2interface@8.33.0)
-      '@babylonjs/materials': 9.9.0(@babylonjs/core@9.9.0)
-      '@babylonjs/serializers': 8.33.0(@babylonjs/core@9.9.0)(babylonjs-gltf2interface@8.33.0)
+      '@babylonjs/addons': 8.33.0(@babylonjs/core@9.9.1)
+      '@babylonjs/core': 9.9.1
+      '@babylonjs/gui': 8.33.0(@babylonjs/core@9.9.1)
+      '@babylonjs/gui-editor': 9.9.1(@babylonjs/core@9.9.1)(@babylonjs/gui@8.33.0(@babylonjs/core@9.9.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/loaders': 9.9.1(@babylonjs/core@9.9.1)(babylonjs-gltf2interface@8.33.0)
+      '@babylonjs/materials': 9.9.1(@babylonjs/core@9.9.1)
+      '@babylonjs/serializers': 8.33.0(@babylonjs/core@9.9.1)(babylonjs-gltf2interface@8.33.0)
       '@fluentui-contrib/react-resize-handle': 0.8.4(@fluentui/react-components@9.73.4(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(scheduler@0.19.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@fluentui-contrib/react-virtualizer': 1.0.0(@fluentui/react-shared-contexts@9.26.2(@types/react@19.2.2)(react@16.14.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@fluentui/react-components': 9.73.4(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(scheduler@0.19.1)
@@ -11461,18 +11453,18 @@ snapshots:
       react-dom: 16.14.0(react@16.14.0)
       usehooks-ts: 3.1.1(react@16.14.0)
 
-  '@babylonjs/loaders@9.9.0(@babylonjs/core@9.9.0)(babylonjs-gltf2interface@8.33.0)':
+  '@babylonjs/loaders@9.9.1(@babylonjs/core@9.9.1)(babylonjs-gltf2interface@8.33.0)':
     dependencies:
-      '@babylonjs/core': 9.9.0
+      '@babylonjs/core': 9.9.1
       babylonjs-gltf2interface: 8.33.0
 
-  '@babylonjs/materials@9.9.0(@babylonjs/core@9.9.0)':
+  '@babylonjs/materials@9.9.1(@babylonjs/core@9.9.1)':
     dependencies:
-      '@babylonjs/core': 9.9.0
+      '@babylonjs/core': 9.9.1
 
-  '@babylonjs/serializers@8.33.0(@babylonjs/core@9.9.0)(babylonjs-gltf2interface@8.33.0)':
+  '@babylonjs/serializers@8.33.0(@babylonjs/core@9.9.1)(babylonjs-gltf2interface@8.33.0)':
     dependencies:
-      '@babylonjs/core': 9.9.0
+      '@babylonjs/core': 9.9.1
       babylonjs-gltf2interface: 8.33.0
 
   '@bcoe/v8-coverage@0.2.3': {}
@@ -13758,7 +13750,7 @@ snapshots:
 
   '@gar/promisify@1.1.3': {}
 
-  '@grame/faustwasm@0.16.1':
+  '@grame/faustwasm@0.16.2':
     dependencies:
       '@types/emscripten': 1.41.5
 
@@ -15615,7 +15607,7 @@ snapshots:
     dependencies:
       '@parcel/plugin': 2.16.4(@parcel/core@2.16.4(@swc/helpers@0.5.21))
       '@parcel/source-map': 2.1.1
-      sass: 1.99.0
+      sass: 1.100.0
     transitivePeerDependencies:
       - '@parcel/core'
       - napi-wasm
@@ -16489,11 +16481,11 @@ snapshots:
     dependencies:
       three: 0.184.0
 
-  '@vituum/vite-plugin-pug@2.0.1(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(vite@8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0))(yaml@2.9.0)':
+  '@vituum/vite-plugin-pug@2.0.1(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(vite@8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0))(yaml@2.9.0)':
     dependencies:
       pug: 3.0.4
-      vite: 8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0)
-      vituum: 2.0.2(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0)
+      vite: 8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0)
+      vituum: 2.0.2(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -17047,7 +17039,7 @@ snapshots:
 
   bn.js@5.2.3: {}
 
-  bonjour-service@1.3.0:
+  bonjour-service@1.4.0:
     dependencies:
       fast-deep-equal: 3.1.3
       multicast-dns: 7.2.5
@@ -17345,10 +17337,6 @@ snapshots:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
-
-  chokidar@4.0.3:
-    dependencies:
-      readdirp: 4.1.2
 
   chokidar@5.0.0:
     dependencies:
@@ -19836,7 +19824,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.20.1(bufferutil@4.1.0)(utf-8-validate@6.0.3)
+      ws: 8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.3)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -19950,7 +19938,7 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  knip@6.14.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0):
+  knip@6.14.2(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0):
     dependencies:
       fdir: 6.5.0(picomatch@4.0.4)
       formatly: 0.3.0
@@ -20340,7 +20328,7 @@ snapshots:
       stoppable: 1.1.0
       undici: 5.29.0
       workerd: 1.20240718.0
-      ws: 8.20.1(bufferutil@4.1.0)(utf-8-validate@6.0.3)
+      ws: 8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.3)
       youch: 3.3.4
       zod: 3.25.76
     transitivePeerDependencies:
@@ -21620,8 +21608,6 @@ snapshots:
     dependencies:
       picomatch: 2.3.2
 
-  readdirp@4.1.2: {}
-
   readdirp@5.0.0: {}
 
   rechoir@0.8.0:
@@ -21856,9 +21842,9 @@ snapshots:
     dependencies:
       truncate-utf8-bytes: 1.0.2
 
-  sass@1.99.0:
+  sass@1.100.0:
     dependencies:
-      chokidar: 4.0.3
+      chokidar: 5.0.0
       immutable: 5.1.5
       source-map-js: 1.2.1
     optionalDependencies:
@@ -22840,7 +22826,7 @@ snapshots:
       extsprintf: 1.4.1
     optional: true
 
-  vite@8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0):
+  vite@8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -22851,16 +22837,16 @@ snapshots:
       '@types/node': 25.9.1
       fsevents: 2.3.3
       jiti: 2.7.0
-      sass: 1.99.0
+      sass: 1.100.0
       terser: 5.46.2
       yaml: 2.9.0
 
-  vituum@2.0.2(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0):
+  vituum@2.0.2(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0):
     dependencies:
       chokidar: 5.0.0
       picomatch: 4.0.4
       tinyglobby: 0.2.16
-      vite: 8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.99.0)(terser@5.46.2)(yaml@2.9.0)
+      vite: 8.0.10(@types/node@25.9.1)(jiti@2.7.0)(sass@1.100.0)(terser@5.46.2)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -23104,7 +23090,7 @@ snapshots:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.3
 
-  ws@8.20.1(bufferutil@4.1.0)(utf-8-validate@6.0.3):
+  ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.3):
     optionalDependencies:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.3
