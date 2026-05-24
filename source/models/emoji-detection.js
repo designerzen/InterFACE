@@ -342,6 +342,8 @@ const rightEyeClosedOnly = prediction => !prediction.leftEyeClosed && prediction
 const mouthIsOpen = (prediction, options) => prediction.mouthRatio > options.mouthCutOff
 
 const emojiLogicRules = [
+
+	// FIXME: tongue is not recognised as a blendshape the docs are wrong
 	createEmojiRule(
 		'tongue',
 		prediction => prediction.tongueOut > TONGUE_OUT_THRESHOLD,
@@ -400,7 +402,7 @@ const emojiLogicRules = [
 	createEmojiRule('right-wink', rightEyeClosedOnly, EMOTICONS.EMOJI_RIGHT_WINK),
 	createEmojiRule('smirk', prediction => prediction.lookingRight && prediction.rightSmirk > prediction.leftSmirk, EMOTICONS.EMOJI_SMIRK),
 	createEmojiRule('flushed', prediction => prediction.leftEyebrowRaisedBy > 0.1 && prediction.rightEyebrowRaisedBy > 0.1, EMOTICONS.EMOJI_FLUSHED),
-	createEmojiRule('fallback-expression', prediction => prediction, EMOTICONS.EMOJI_PERSEVERING),
+	createEmojiRule('straight-face-default', prediction => prediction, EMOTICONS.EMOJI_NEUTRAL),
 ]
 
 /**

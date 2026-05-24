@@ -77,20 +77,27 @@ const cleanKey = key => {
 
 
 // For live data :
-export const arrangeFaceData = (keypointData, positions, scales, scaleFactor = 1) => {
+export const arrangeFaceData = (keypointData, positions, scales, scaleFactor = 1, subdivisions = 0) => {
 
 	let count = 0
-	const quantity = positions.length
+	const arrangedKeypoints = subdivisions > 0 ? subdivideKeypoints(keypointData, subdivisions) : keypointData
+	const quantity = positions.length / 3
+	const keypointQuantity = arrangedKeypoints?.length ?? 0
+
+	if (keypointQuantity === 0)
+	{
+		return
+	}
 
 	for (let i=0; i<quantity;++i)
 	{
-		const p = i % (keypointData.length - 1)
+		const p = i % keypointQuantity
 	
-		const particlePosition = keypointData[ p ]
+		const particlePosition = arrangedKeypoints[ p ]
 
 		positions[count] = particlePosition.x * scaleFactor
 		positions[count+1] = particlePosition.y * scaleFactor
-		positions[count+2] = particlePosition.z * scaleFactor
+		positions[count+2] = (particlePosition.z ?? 0) * scaleFactor
 
 		scales[i] = 1 
 		
@@ -191,22 +198,18 @@ const subdivideGeometry = (positions, scales, subdivisions = 0) => {
 export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor = 1, subdivisions = 0) => {
 	// Add layers for holding scale and position data (optional)		
 	const geometry = new BufferGeometry()
-	let positions = new Float32Array( quantity * 3 )
-	let scales = new Float32Array( quantity )
-	const colors = new Float32Array( quantity * 3 )
+	const arrangedKeypoints = subdivisions > 0 ? subdivideKeypoints(keypointData, subdivisions) : keypointData
+	const particleQuantity = subdivisions > 0 ? arrangedKeypoints.length : quantity
+	let positions = new Float32Array( particleQuantity * 3 )
+	let scales = new Float32Array( particleQuantity )
 	
-	arrangeFaceData(keypointData, positions, scales, scaleFactor)
-	
-	// Apply subdivision if requested
-	if (subdivisions > 0) {
-		const subdivided = subdivideGeometry(positions, scales, subdivisions)
-		positions = subdivided.positions
-		scales = subdivided.scales
-	}
+	arrangeFaceData(arrangedKeypoints, positions, scales, scaleFactor)
+
 	geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) )
 	geometry.setAttribute( 'scale', new Float32BufferAttribute( scales, 1 ) )
 	
 	// Initialize colors to white
+	const colors = new Float32Array( particleQuantity * 3 )
 	for (let i = 0; i < colors.length; i += 3) {
 		colors[i] = 1
 		colors[i + 1] = 1
@@ -219,7 +222,7 @@ export const createFaceGeometryFromData = (keypointData, quantity, scaleFactor =
 	console.error("Face paths", paths)
 
 	// const particles = Array(quantity).fill(0).map((e,i)=> new ParticleTracer( geometry, TRIANGULATION, i ))
-	const particles = Array(quantity)
+	const particles = Array(particleQuantity)
 						.fill(0)
 						.map((e,i)=> new ParticleTracer( geometry, null, i, Math.random() * 0.2, true  ))
 	
@@ -298,7 +301,7 @@ export default class Avatar{
 		feature = swapEyeSide( feature )
 
 		const blendShapeIndex = this.relationships.get(feature)
-		if (blendShapeIndex && blendShapeIndex > -1)
+		if (blendShapeIndex !== undefined && blendShapeIndex > -1)
 		{
 			this.#morphableMeshes.forEach( morphableMesh => {
 				morphableMesh.morphTargetInfluences[blendShapeIndex] = MathUtils.lerp(
@@ -432,39 +435,50 @@ export default class Avatar{
 	 */
 	createFace(faceMesh, avatarModel, size=null) {
 
-		// if there is a face mesh material, activate it
-		const meshes = faceMesh.material ? [faceMesh] : faceMesh.children
+		const meshes = []
+		faceMesh.traverse?.(object => {
+			if (object.material)
+			{
+				meshes.push(object)
+			}
+		})
+		if (faceMesh.material && meshes.length === 0)
+		{
+			meshes.push(faceMesh)
+		}
 		
 		this.#faceMesh = faceMesh
 
 		// try and find all meshes with blendshapes
-		if (this.#hasBlendShapes)
-		{
-			meshes.forEach( mesh => {
-				if (mesh.material)
-				{
+		meshes.forEach( mesh => {
+			if (mesh.material)
+			{
+				const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+				materials.forEach(material => {
 					if (avatarModel.opacity < 1)
 					{
-						mesh.material.transparent = true
-						mesh.material.opacity = avatarModel.opacity
-					} 	 
+						material.transparent = true
+						material.opacity = avatarModel.opacity
+						material.depthWrite = false
+					}
 
 					if (avatarModel.HSL)
 					{
-						mesh.material.color.setHSL( 0.5, 0.6, 0.6 )
+						material.color?.setHSL?.( 0.5, 0.6, 0.6 )
 					}
 
-					if (this.hasMorphableMeshes)
+					if (this.#hasBlendShapes)
 					{
-						mesh.material.morphtargets = true
+						material.morphTargets = true
+						material.needsUpdate = true
 					}
-				}
+				})
+			}
 
-				// reset to empty!
-				// NB. this breaks the dictionary!
-				// child.updateMorphTargets()
-			})		
-		}
+			// reset to empty!
+			// NB. this breaks the dictionary!
+			// child.updateMorphTargets()
+		})
 	
 		// puts the model at 0,0,0
 		// rescales to a nomalized size
@@ -619,7 +633,13 @@ export default class Avatar{
 						morphableMeshes = [ faceMesh ]
 					}else{
 						// let's traverse the tree through children...
-						morphableMeshes = faceMesh.children.filter( mesh => mesh.isMesh && mesh.morphTargetInfluences && mesh.morphTargetDictionary ) 
+						morphableMeshes = []
+						faceMesh.traverse?.(mesh => {
+							if (mesh.isMesh && mesh.morphTargetInfluences && mesh.morphTargetDictionary)
+							{
+								morphableMeshes.push(mesh)
+							}
+						})
 					}
 					
 					// there are multiple objects in the mesh so we find the one
