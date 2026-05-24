@@ -4,9 +4,10 @@ export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
 
 export default class ChordInstrument extends Instrument{
 	
-	arpeggio = false
+	#arpeggio = false
 	arpeggioIndex = 0
 	arpeggioChordKey = ""
+
 	type = INSTRUMENT_TYPE_CHORD
 
 	finishedNotes = new Map()
@@ -39,10 +40,10 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	get arpeggiate( ){
-		return this.arpeggio
+		return this.#arpeggio
 	}
 	set arpeggiate( value ){
-		this.arpeggio = value
+		this.#arpeggio = value
 		this.resetArpeggio()
 	}
 
@@ -184,7 +185,7 @@ export default class ChordInstrument extends Instrument{
 	
 		// console.error("ChordInstrument:chordOn", chordArray, this.arpeggio )
 		
-		if (!this.arpeggio)
+		if (!this.#arpeggio)
 		{
 			const chordQuantity = chordArray.length
 			// console.error( "ChordInstrument:chordOn", chordQuantity, chordArray )
@@ -350,6 +351,7 @@ export default class ChordInstrument extends Instrument{
 			instrument.output.connect( this.mixer )
 		}else{
 			// no AUDIO output to connect to (could be MIDI output for example)
+			throw Error("No Output specified for this ChordInstrument")
 		}
 		return instrument
 	}
