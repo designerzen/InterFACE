@@ -2,6 +2,7 @@ export const ERROR_NO_CAMERAS = "No Cameras found on this device"
 
 let cameraLoading = false
 
+// We NEED the KIYO to be in 60FPS which is can only do in 720P mode :(
 const CAMERA_PRESETS = [
 	{
 		name: "Razer Kiyo 720p60",
@@ -12,7 +13,7 @@ const CAMERA_PRESETS = [
 		video: {
 			width: { exact: 1280 },
 			height: { exact: 720 },
-			frameRate: { ideal: 60, max: 60 }
+			frameRate: { ideal: 60, max: 120 }
 		}
 	}
 ]
