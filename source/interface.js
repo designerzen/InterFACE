@@ -125,7 +125,7 @@ import { fetchBrandColor } from './settings/palette.js'
 // DISPLAYS
 import DisplayManager, { getDisplaysInformation } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
-import DisplayOverlay2d from './displays/DisplayOverlay2d.ts'
+import DisplayOverlay2d from './display/display-overlay-2d.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 
 // IO
@@ -254,7 +254,6 @@ export const createInterface = (
 	// Fix dialogs and bind them with events
 	const dialogs = setupDialogs()
 
-	// let canvasSandwichElement = doc.getElementById('photosynth-sandwich')
 	let canvasOverlayElement = doc.getElementById('photosynth-overlay')
 
 	// where we extract the face data from
