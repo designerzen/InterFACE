@@ -354,28 +354,31 @@
 		// grid-template-rows:1fr;
 		// grid-template-areas: "app";
 
-		// there are only 2 blocks
-		// grid-template-areas:  
-		// 	"app"
-		// 	"footer";
-		// grid-template-rows: 1fr auto;
-		
-		// overflow: hidden;
-
-		grid-template-rows:
-			auto
-			calc(100vh - var(--footer-gap) - var(--pad) * 2) 
-			auto
-			calc(100vh - var(--footer-gap) - var(--pad) * 2)
-			auto;
-
-		// mmake this big to give adequate room to breathe
-		grid-template-areas: 
-			"hero"
-			"gap"
-			"a11y"
+		// there are only 2 blocks once loaded
+		grid-template-areas:  
 			"app"
-			"footer";		
+			"footer";
+		grid-template-rows: 1fr auto;
+		
+		overflow: hidden;
+
+		// grid-template-rows:
+		// 	auto
+		// 	calc(100vh - var(--footer-gap) - var(--pad) * 2) 
+		// 	auto
+		// 	calc(100vh - var(--footer-gap) - var(--pad) * 2)
+		// 	auto;
+
+		// // mmake this big to give adequate room to breathe
+		// grid-template-areas: 
+		// 	"hero"
+		// 	"gap"
+		// 	"a11y"
+		// 	"app"
+		// 	"footer";	
+			
+			
+
 	}
 
 	#intro{
@@ -777,10 +780,10 @@ main.active{
 	// }
 }
 
+#stage,
 #face-buttons{
 	margin:auto;
 	padding:0;
-	border:0;
 
 	aspect-ratio: var(--width) / var(--height);
 	width: 100%;
@@ -790,8 +793,18 @@ main.active{
 	max-height: min(100dvh, calc(100vw * var(--height) / var(--width)));
 
 	grid-area: 1/1/-1/-1;
-	pointer-events: none;
 	position: relative;
+}
+
+#stage{
+	display: grid;
+	place-items: stretch;
+	pointer-events: none;
+}
+
+#face-buttons{
+	border:0;
+	pointer-events: none;
 
 	legend{
 		color:transparent;

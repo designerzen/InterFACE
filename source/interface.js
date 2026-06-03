@@ -1512,6 +1512,24 @@ export const createInterface = (
 		return true
 	}
 
+	const getMediaDimensions = (mediaElement) => {
+		const width = mediaElement?.videoWidth || mediaElement?.naturalWidth || mediaElement?.width || mediaElement?.clientWidth || 0
+		const height = mediaElement?.videoHeight || mediaElement?.naturalHeight || mediaElement?.height || mediaElement?.clientHeight || 0
+		return { width, height }
+	}
+
+	const syncDisplayToMedia = (mediaElement = inputElement) => {
+		const { width, height } = getMediaDimensions(mediaElement)
+		if (!resizeDisplay(width, height))
+		{
+			return false
+		}
+		main.classList.toggle('landscape', width > height )
+		main.classList.toggle('portrait', width < height )
+		main.classList.toggle('square', width === height )
+		return true
+	}
+
 	/**
 	 * Use the specified file to start streaming video
 	 * onto the video element
@@ -1525,7 +1543,7 @@ export const createInterface = (
 		videoStream.classList.toggle("reverse", false)
 		// resize canvas - may have to wait for metadata to be available...
 		videoStream.onloadedmetadata = () =>{ 
-			resizeDisplay( videoStream.videoWidth, videoStream.videoHeight )
+			syncDisplayToMedia( videoStream )
 			isLoading = false
 		}
 		console.info("Video dropped by user", {file, video: videoStream, streamSource})	
@@ -1609,7 +1627,7 @@ export const createInterface = (
 		
 		// resize canvas to fit video with repect to orientation
 		const resizeCanvasAndVideo = () => {
-			resizeDisplay( videoStream.videoWidth, videoStream.videoHeight )
+			syncDisplayToMedia( videoStream )
 		}
 
 		resizeCanvasAndVideo()
@@ -2636,7 +2654,10 @@ export const createInterface = (
 			// 'predictionLoop' here is a method passed into this function that is called
 			// on every frame to update the visuals and audio of none quanitsed sounds
 			display = await switchDisplay( suggested, predictionLoop, false )
-			overlayDisplay?.setSize(display.width, display.height)
+			if (!syncDisplayToMedia(inputElement))
+			{
+				overlayDisplay?.setSize(display.width, display.height)
+			}
 			stateMachine.set("display", display.type )
 		
 			// determine some capabailities for which display to use...
@@ -2726,11 +2747,7 @@ export const createInterface = (
 			
 			// at this point the video dimensions are accurate
 			// so we add the main style vars
-			main.style.setProperty('--width', video.width )
-			main.style.setProperty('--height', video.height )
-			main.classList.toggle('landscape', video.width > video.height )
-			main.classList.toggle('portrait', video.width < video.height )
-			main.classList.toggle('square', video.width === video.height )
+			syncDisplayToMedia( video )
 			
 			progressCallback(loadIndex++/loadTotal)
 

@@ -180,6 +180,7 @@
 	// NB: Warning - this MAY trigger a video element not found error
 	// as JS pointer no longer has DOM equivalent
 	#app-frame {
+		#stage,
 		canvas,
 		video,
 		fieldset.person-controls{

@@ -47,15 +47,16 @@ block main
 			//- Pick how many people etc
 			include partials/onboarding.pug
 
-			//- THE video element fed by video camera			
-			video#webcam(autoplay, playsinline, loop, muted="muted", oncanplay="this.muted=true", width="640", height="480")
-				p No Video available - unable to playback emoji
+			#stage
+				//- THE video element fed by video camera			
+				video#webcam(autoplay, playsinline, loop, muted="muted", oncanplay="this.muted=true", width="640", height="480")
+					p No Video available - unable to playback emoji
 
-			//- we clone the video onto the canvas every frame - this has a JS helper
-			//- that deletes this node and re-creates it with a different context
-			canvas#photosynth-canvas.canvas-full-size(width="640", height="480")
-			canvas#photosynth-sandwich.canvas-full-size(width="640", height="480")
-			canvas#photosynth-overlay.canvas-full-size(width="640", height="480")
+				//- we clone the video onto the canvas every frame - this has a JS helper
+				//- that deletes this node and re-creates it with a different context
+				canvas#photosynth-canvas.canvas-full-size(width="640", height="480")
+				canvas#photosynth-sandwich.canvas-full-size(width="640", height="480")
+				canvas#photosynth-overlay.canvas-full-size(width="640", height="480")
 			
 			//- In APP CONTROLS ------------------------------------------------------
 			
