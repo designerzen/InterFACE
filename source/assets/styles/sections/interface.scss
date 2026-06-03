@@ -347,20 +347,35 @@
 	touch-action: none;
 
 	body{
-		grid-template-rows: 1fr auto;
 		// grid-template-rows:
 		// 	calc(100vh - var(--footer-gap) - var(--pad) * 2);
 		// grid-template-rows:
 		// 	calc(100dvh - var(--footer-gap) - var(--pad) * 2);
-		grid-template-rows:1fr;
+		// grid-template-rows:1fr;
+		// grid-template-areas: "app";
 
-		// mmake this big to give adequate room to breathe
-		grid-template-areas: "app";
-
+		// there are only 2 blocks
 		// grid-template-areas:  
 		// 	"app"
 		// 	"footer";
-		overflow: hidden;
+		// grid-template-rows: 1fr auto;
+		
+		// overflow: hidden;
+
+		grid-template-rows:
+			auto
+			calc(100vh - var(--footer-gap) - var(--pad) * 2) 
+			auto
+			calc(100vh - var(--footer-gap) - var(--pad) * 2)
+			auto;
+
+		// mmake this big to give adequate room to breathe
+		grid-template-areas: 
+			"hero"
+			"gap"
+			"a11y"
+			"app"
+			"footer";		
 	}
 
 	#intro{
