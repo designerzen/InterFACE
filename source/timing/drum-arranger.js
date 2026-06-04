@@ -5,7 +5,13 @@ import {
 	drumRollSequence
 } from './drum-patterns.js'
 
-const LANES = [ 'kick', 'snare', 'hat', 'clap' ]
+const LANES = [ 
+	'kick', 
+	'snare', 
+	'hat', 
+	'clap' 
+]
+
 const DEFAULT_INTENT = {
 	energy: 0.5,
 	density: 0.5,
@@ -34,6 +40,7 @@ const hashSeed = value => {
 	return hash >>> 0
 }
 
+// deterministic randomness
 const createRandom = seed => {
 	let state = hashSeed(seed)
 	return () => {

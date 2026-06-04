@@ -1,3 +1,8 @@
+export const drumRollSequence = Array.from(
+	{ length: 16 },
+	(_, i) => Math.round(i * 255 / 15)
+)
+
 export const kickSequences = [
 	// Four-on-the-floor
 	[
@@ -228,10 +233,7 @@ export const snareSequences = [
 	]
 ]
 
-export const drumRollSequence = Array.from(
-	{ length: 16 },
-	(_, i) => Math.round(i * 255 / 15)
-)
+
 
 export const hatSequences = [
 	// Closed hi-hat eighth notes
