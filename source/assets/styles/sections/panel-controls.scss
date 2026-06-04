@@ -241,6 +241,9 @@
 	// and sets custom colours
 	> *:not(.folder-menu),
 	> .folder-link {
+		--min-size: 44px;
+		min-width: 44px;
+		min-height: 44px;
 
 		// gradient background
 		// --col-top:hsl( var(--hue), var( --s, 58%), 30% );
@@ -305,6 +308,7 @@
 		> *{
 			flex-grow: 1;
 			flex-shrink: 1;
+			flex-basis: 44px;
 		}
 	}
 }

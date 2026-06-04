@@ -403,7 +403,8 @@ main:not(.flag-overlays){
 			max-width: none;
 			max-height: none;
 			margin:0;
-			object-fit: fill;
+			object-fit: contain;
+			object-position: center;
 			// visibility: hidden;	
 			display: block;
 			grid-area: 1 / 1;

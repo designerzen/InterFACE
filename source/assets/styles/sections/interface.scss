@@ -786,14 +786,17 @@ main.active{
 	padding:0;
 
 	aspect-ratio: var(--width) / var(--height);
-	width: 100%;
-	height: 100%;
+	width: min(100%, var(--stage-display-width, min(100vw, calc(100dvh * var(--width) / var(--height)))));
+	height: min(100%, var(--stage-display-height, min(100dvh, calc(100vw * var(--height) / var(--width)))));
 
 	max-width: min(100vw, calc(100dvh * var(--width) / var(--height)));
 	max-height: min(100dvh, calc(100vw * var(--height) / var(--width)));
 
 	grid-area: 1/1/-1/-1;
 	position: relative;
+	align-self: center;
+	justify-self: center;
+	box-sizing: border-box;
 }
 
 #stage{
