@@ -29,6 +29,13 @@
 		}
 	}
 
+	// hidden label for hiding the menu
+	label[for="button-settings"].button-close{
+		color:transparent;
+		text-shadow: none;
+		padding:0;
+	}
+
 	label[for="button-quantise"]{
 		--col-select:var(--shade-blue);
 		--col-hover:var(--shade-blue);
@@ -86,7 +93,16 @@
 		--bg:url(/source/assets/icons/volume_up-24px.svg);
 	}
 
+	label[for="button-flood"]{
+		--bg:url(/source/assets/icons/volume_mute-24px.svg);
+		anchor-name: --button-flood;
+		&:has(input:checked),
+		&.checked{
+			--bg:url(/source/assets/icons/volume_off-24px.svg);
+		}
+	}
 
+	// Mute / Unmute
 	label[for="button-mute"]{
 		--col-select:var(--shade-blue);
 		--col-hover:var(--shade-blue);

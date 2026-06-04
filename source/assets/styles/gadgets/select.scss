@@ -20,6 +20,20 @@ select:not([multiple]):not([size]) {
 // Progressive enhancement — only applies in supporting browsers
 @supports (appearance: base-select) {
 
+	label select.select-content {		
+		border:0;
+		position: absolute;
+		inset:0;
+		opacity: 0;
+	}	
+
+	label:hover{
+		color:transparent;
+		select.select-content{
+			opacity: 1;
+		}
+	}
+
 	select.select-content {
 		--gap: calc(var(--pad) * 0.5);
 		--select-surface-top: hsl(var(--hue-dark), 8%, 20%);
@@ -36,6 +50,7 @@ select:not([multiple]):not([size]) {
 
 		// Remove the old fallback arrow since base-select provides its own
 		padding-right: 0;
+		
 
 		// Select button styling
 		// border: 1px solid var(--shade-grey);
@@ -131,10 +146,7 @@ select:not([multiple]):not([size]) {
 				display: flex;
 				align-items: center;
 				gap: var(--gap);
-				padding: calc(var(--pad) * 0.45) calc(var(--pad) * 0.6);
-				font-size: 0.75em;
-				text-transform: uppercase;
-				letter-spacing: 0.08em;
+				padding: calc(var(--pad) * 0.5) calc(var(--pad) * 1);
 				color: var(--shade-grey);
 			}
 		}
@@ -174,7 +186,6 @@ select:not([multiple]):not([size]) {
 			flex: 1 1 auto;
 			min-inline-size: 0;
 			font-weight: 600;
-			line-height: 1.2;
 		}
 
 		// Individual options
