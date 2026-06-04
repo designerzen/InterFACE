@@ -23,6 +23,7 @@ app
 *.sf2
 *.7z
 *.zip
+
 *--*
 *~lock~
 *-new
@@ -41,6 +42,7 @@ tstex*
 heap-*
 parcel-bundle-reports/
 source/audio/wam2-external/
+.codex-tmp/
 
 static/@mediapipe/**/*
 # !static/@mediapipe/tasks-vision/*
