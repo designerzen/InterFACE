@@ -63,7 +63,6 @@ import {
 	NOTES_ALPHABETICAL, 
 	GENERAL_MIDI_BY_NAME,
 	getNoteSoundFromNumber,
-	convertMIDINoteNumberToName,
 	NOTES_BLACK,
 	NOTES_WHITE,
 	MIDI_NOTE_NAMES,
@@ -92,7 +91,7 @@ import { EmojiDetector } from '../models/emoji-detection.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji } from '../models/emoji.js'
 
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
-import { getCleff, NOTATION, STAVE_SIZES } from '../audio/notation.js'
+import { getCleff, getNotationForNoteNumber, getStaffSlotForNoteNumber, getStave } from '../audio/notation.js'
 import { 
 	configurePersonKey,
 	configurePersonByOperatingMode,
@@ -120,6 +119,26 @@ import PersonalProgress from './person-progress.js'
 // # and ? are taken by the protocol
 // ~ doesn't work and cuts off te var when parsed
 const EXPORT_DELIMITER = ","
+const CHORD_NAME_BY_INTERVAL_SIGNATURE = new Map([
+	["0", ""],
+	["0,5", "4"],
+	["0,7", "5"],
+	["0,2,7", "sus2"],
+	["0,5,7", "sus4"],
+	["0,3,7", "m"],
+	["0,4,7", ""],
+	["0,3,6", "dim"],
+	["0,4,8", "aug"],
+	["0,2,4,7", "add9"],
+	["0,3,7,9", "m6"],
+	["0,4,7,9", "6"],
+	["0,3,6,9", "dim7"],
+	["0,3,6,10", "m7b5"],
+	["0,3,7,10", "m7"],
+	["0,4,7,10", "7"],
+	["0,4,7,11", "maj7"]
+])
+const CHORD_NAME_CACHE = new Map()
 
 /*
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Web_audio_spatialization_basics
@@ -215,6 +234,7 @@ export default class Person extends EventTarget{
 
 	// 
 	type = PERSON_TYPE_ARPEGGIO
+
 	// inputMode
 	#userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
 
@@ -222,7 +242,6 @@ export default class Person extends EventTarget{
 	active = false
 	singing = false
 	
-
 	isMouthOpen = false
 	isLeftEyeOpen = true
 	isRightEyeOpen = true
@@ -230,7 +249,6 @@ export default class Person extends EventTarget{
 
 	// is the user moving around
 	isUserActive = true
-
 	// if we are repeating our bars...
 	isLooping = false
 	// if we are watching the face perform without interaction
@@ -246,6 +264,10 @@ export default class Person extends EventTarget{
 	// 
 	isSelected = false
 	isHighlighted = false
+	
+	isUserSelectingMode = false
+	isUserSelectingInputType = false
+	isMouseOver = false
 	
 	// Head orientation
 	yaw = 0
@@ -300,12 +322,12 @@ export default class Person extends EventTarget{
 	mouseHeldAt = -1
 	inputCoordinates = { x:0, y:0 }
 
-	isUserSelectingMode = false
-	isUserSelectingInputType = false
 
 	leftEyeClosedAt = -1
 	rightEyeClosedAt = -1
 	eyesClosed = false
+
+	
 
 	kissLandedAt = -1
 
@@ -817,8 +839,8 @@ export default class Person extends EventTarget{
 
 			// Face button events
 			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )			
-			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
-			this.buttonChangeInput.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
+			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
+			this.buttonChangeInput.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
 						
 			// set flags via mouse entering the buttons which changes graphics
 			setBooleanViaMouseEntry( this.button, this, 'isMouseOver', this.abortController )
@@ -1313,9 +1335,111 @@ export default class Person extends EventTarget{
 		if (this.isUserActive)
 		{	
 			cancelAnimationFrame( this.frameId )		
-			this.frameId = requestAnimationFrame( ()=> this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};` ) )
-			// this.button.cssText = `--${this.id}-x:${bottomRight[0]};--${this.id}-y:${topLeft[1]};--${this.id}-w:${boxWidth};--${this.id}-h:${boxHeight};`		
+			this.frameId = requestAnimationFrame( ()=>{
+				this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};`)
+				// this.personControls.cssText = `--${this.id}-x:${bottomRight[0]};--${this.id}-y:${topLeft[1]};--${this.id}-w:${boxWidth};--${this.id}-h:${boxHeight};`	
+			})	
 	}	}
+
+	/**
+	 * Return the notes currently sounding for this Person, suitable for display.
+	 * Chords show the full active voicing, arpeggios show the single sounding note.
+	 *
+	 * @returns {Array<number>}
+	 */
+	getActiveNoteNumbersForDisplay(){
+		if (!this.activeInstrument)
+		{
+			return []
+		}
+
+		const playsChords = this.activeInstrument.playsChords
+		const arpeggiated = this.activeInstrument.arpeggiate
+
+		if (playsChords && !arpeggiated)
+		{
+			const activeChord = this.activeNotes.get(this.noteNumber)
+			return Array.isArray(activeChord) && activeChord.length > 1 ?
+				activeChord.map(note => typeof note === "number" ? note : note?.noteNumber).filter(Number.isFinite) :
+				Array.from(this.activeInstrument.notes.keys()).filter(Number.isFinite)
+		}
+
+		const arpeggioNoteNumber = arpeggiated ? this.activeInstrument.notes.keys().next().value : null
+		return [Number.isFinite(arpeggioNoteNumber) ? arpeggioNoteNumber : this.noteNumber].filter(Number.isFinite)
+	}
+
+	/**
+	 * Return the current preview note for the face position, even when silent.
+	 *
+	 * @returns {Array<number>}
+	 */
+	getPreviewNoteNumbersForDisplay(){
+		return [this.noteNumber].filter(Number.isFinite)
+	}
+
+	getChordLabelForDisplay(noteNumbers=[]){
+		const uniqueNoteNumbers = Array.from(new Set(noteNumbers.filter(Number.isFinite)))
+		if (uniqueNoteNumbers.length === 0)
+		{
+			return ""
+		}
+
+		if (uniqueNoteNumbers.length === 1)
+		{
+			return MIDI_NOTE_FRIENDLY_NAMES[uniqueNoteNumbers[0]] ?? this.noteFriendlyName
+		}
+
+		const uniquePitchClasses = Array.from(new Set(uniqueNoteNumbers.map(noteNumber => ((noteNumber % 12) + 12) % 12)))
+		const cacheKey = uniquePitchClasses.slice().sort((a, b) => a - b).join(",")
+		const cachedLabel = CHORD_NAME_CACHE.get(cacheKey)
+		if (cachedLabel)
+		{
+			return cachedLabel
+		}
+
+		const candidateRoots = [
+			uniqueNoteNumbers[0],
+			...uniqueNoteNumbers.slice(1)
+		]
+
+		for (const rootNoteNumber of candidateRoots)
+		{
+			const rootPitchClass = ((rootNoteNumber % 12) + 12) % 12
+			const intervals = uniquePitchClasses
+				.map(pitchClass => (pitchClass - rootPitchClass + 12) % 12)
+				.sort((a, b) => a - b)
+			const signature = Array.from(new Set(intervals)).join(",")
+			const suffix = CHORD_NAME_BY_INTERVAL_SIGNATURE.get(signature)
+			if (suffix === undefined)
+			{
+				continue
+			}
+
+			const rootLabel = (MIDI_NOTE_FRIENDLY_NAMES[rootNoteNumber] ?? this.noteFriendlyName).replace(/-?\d+$/, "")
+			const label = `${rootLabel}${suffix}`.trim()
+			CHORD_NAME_CACHE.set(cacheKey, label)
+			return label
+		}
+
+		const fallbackRoot = (MIDI_NOTE_FRIENDLY_NAMES[uniqueNoteNumbers[0]] ?? this.noteFriendlyName).replace(/-?\d+$/, "")
+		const fallbackLabel = `${fallbackRoot} cluster`
+		CHORD_NAME_CACHE.set(cacheKey, fallbackLabel)
+		return fallbackLabel
+	}
+
+	getPlayedNotesLabelForDisplay(noteNumbers=[]){
+		if (this.options.showChordNames)
+		{
+			return this.getChordLabelForDisplay(noteNumbers)
+		}
+
+		return noteNumbers.map(noteNumber => MIDI_NOTE_FRIENDLY_NAMES[noteNumber]).join(", ")
+	}
+
+	toggleChordDisplayMode(){
+		this.options.showChordNames = !this.options.showChordNames
+		return this.options.showChordNames
+	}
 
 	/**
 	 * Draw some text onto the screen - used to show text above users and to
@@ -1364,7 +1488,19 @@ export default class Person extends EventTarget{
 		// console.log({xMin, xMax, yMin, yMax })
 
 		// Mouse interactions via DOM buttons
-		if ( this.isMouseOver || this.instrumentLoading ){
+		if ( this.isUserSelectingMode ){
+
+			// User is selecting the mode
+			display.drawInstrument( textX, textY, instrumentTitle, "", 14)
+			display.drawParagraph( textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose mode'], 12 )		
+			
+		} else if ( this.isUserSelectingInputType ){
+
+			// User is selecting the TYPE
+			display.drawInstrument( textX, textY, instrumentTitle, "", 14)
+			display.drawParagraph( textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose type'], 12 )		
+			
+		} else if ( this.isMouseOver || this.instrumentLoading ){
 
 		
 			// draw silhoette directly on the canvas or
@@ -1435,34 +1571,10 @@ export default class Person extends EventTarget{
 		}else{
 
 			// Main data flow
-			const playsChords = this.activeInstrument ? this.activeInstrument.playsChords : false
-			const arpeggiated = this.activeInstrument ? this.activeInstrument.arpeggiate : false
-			const activeNoteNumbers = []
-
-			
-			let notesPlaying = 0
-			let extra = this.isLoading ? "Loading..." : ""
-			if (playsChords && !arpeggiated)
-			{
-				const activeChord = this.activeNotes.get(this.noteNumber)
-				const chord = Array.isArray(activeChord) && activeChord.length > 1 ?
-					activeChord.map(note => typeof note === "number" ? note : note?.noteNumber).filter(Number.isFinite) :
-					Array.from(this.activeInstrument.notes.keys()).filter(Number.isFinite)
-
-				chord.forEach( (noteNumber, i) => {
-					const noteNameWithOctave = convertMIDINoteNumberToName(noteNumber)
-					extra += noteNameWithOctave + " "
-					notesPlaying++
-					activeNoteNumbers.push(noteNumber)
-				})
-			}else{
-				const arpeggioNoteNumber = arpeggiated ? this.activeInstrument.notes.keys().next().value : null
-				extra = Number.isFinite(arpeggioNoteNumber) ? convertMIDINoteNumberToName(arpeggioNoteNumber) : this.noteFriendlyName
-				activeNoteNumbers.push(Number.isFinite(arpeggioNoteNumber) ? arpeggioNoteNumber : this.noteNumber)
-				notesPlaying++
-			}
-
-			// console.log("drawing text", {playsChords,arpeggiated, activeNoteNumbers})
+			const activeNoteNumbers = this.getActiveNoteNumbersForDisplay()
+			const previewNoteNumbers = this.getPreviewNoteNumbersForDisplay()
+			const showPlayingNotes = this.isMouthOpen && this.singing && activeNoteNumbers.length > 0
+			const notesToDisplay = showPlayingNotes ? activeNoteNumbers : previewNoteNumbers
 
 			const personData = this.userModeData
 			let style = personData.name
@@ -1508,26 +1620,21 @@ export default class Person extends EventTarget{
 
 				// this draws a series of notes on a bridge
 				const fontSizeNotation = 28
-				const textNotation = `${getCleff( this.octave )}${STAVE_SIZES[notesPlaying]}`			
+				const notesToDraw = notesToDisplay.length > 0 ? notesToDisplay : previewNoteNumbers
+				const textNotation = `${getCleff( this.octave )}${getStave(notesToDraw.length)}`
 				const notesY = textY - 30 
-				display.drawText( textX, notesY, textNotation, fontSizeNotation )
-				// display.drawText( textX, textY - 30, textNotation, fontSizeNotation, "center", "noto-music'" )
+				display.drawText( textX, notesY, textNotation, fontSizeNotation, "center", "noto-music" )
 				
 				// draw our notes
-				activeNoteNumbers.forEach( (noteName, i) => {
-					const noteIndex = noteName%this.quantityOfPlayableNotes
-					display.drawText( textX + i * 6, notesY + 12 * noteIndex, NOTATION[noteIndex], fontSizeNotation )
-					// display.drawText( textX + i * 14, textY - 14 * noteIndex, NOTATION[noteIndex], fontSizeNotation, "center", "noto-music'" )
+				notesToDraw.forEach( (noteNumber, i) => {
+					const noteIndex = getStaffSlotForNoteNumber(noteNumber)
+					const noteSpacing = 14
+					const noteOffset = (i - (notesToDraw.length - 1) * 0.5) * noteSpacing
+					display.drawText( textX + noteOffset, notesY + 8 * noteIndex, getNotationForNoteNumber(noteNumber), fontSizeNotation, "center", "noto-music" )
 				})
-					
-				display.drawText( textX, notesY + this.noteIndex, NOTATION[this.noteIndex], fontSizeNotation )
-				// display.drawText( textX, textY - 30 + this.noteIndex, NOTATION[this.noteIndex], fontSizeNotation, "center", "noto-music'" )
 			
-			}else if (this.state !== STATE_INSTRUMENT_SILENT && activeNoteNumbers.length > 0){
-						
-				const noteText = activeNoteNumbers.map( (noteNumber, i) => {
-					return MIDI_NOTE_FRIENDLY_NAMES[noteNumber]
-				}).join(", ") + ' ♫'
+			}else if (showPlayingNotes){
+				const noteText = `${this.getPlayedNotesLabelForDisplay(activeNoteNumbers)} ♫`
 			
 				// Left Side Note
 				display.drawText(textX, textY - 25, noteText, 18 )
@@ -1535,7 +1642,7 @@ export default class Person extends EventTarget{
 			}else{
 				
 				// Left Side Note
-				display.drawText(textX, textY - 25, this.lastNoteFriendlyName, 18 )
+				display.drawText(textX, textY - 25, this.noteFriendlyName, 18 )
 				// display.drawText(textX + 42, textY, this.lastNoteFriendlyName + ' ' + this.octave, 24, "left" )
 			
 				// Right Side Octave?
@@ -1546,7 +1653,7 @@ export default class Person extends EventTarget{
 
 		
 			// now draw each note independently
-			// for (let i=this.octave; i <notesPlaying;++i)
+			// for (let i=this.octave; i <activeNoteNumbers.length;++i)
 			// {
 			// 	//display.drawText( textX, textY - 30, notation, 18, "center", "noto-music'" )
 			// }
@@ -2557,10 +2664,7 @@ export default class Person extends EventTarget{
 	 * Text above Emoji was pressed
 	 */
 	onInputTypeChangeRequested(){
-		// TODO: Emoji was pressed
-		// This should change the 
-		this.userMode++
-		configurePersonByOperatingMode( this, this.userMode )
+		this.toggleChordDisplayMode()
 			
 		if (this.cancelController)
 		{
@@ -2570,11 +2674,11 @@ export default class Person extends EventTarget{
 		document.addEventListener('pointerup',this.onInputTypeDetermined, {once:true, signal:this.cancelController.signal })
 		document.addEventListener('pointercancel', this.onInputTypeDetermined, {once:true, signal:this.cancelController.signal })
 		
-		console.info("onInputTypeDetermined person type updating", this.userMode, this )
+		console.info("onInputTypeDetermined chord display updating", this.options.showChordNames, this )
 	}
 
 	onInputTypeDetermined(){
-		console.info("onInputTypeDetermined person type updated", this.userMode, this )
+		console.info("onInputTypeDetermined chord display updated", this.options.showChordNames, this )
 		this.cancelController.abort()
 		document.removeEventListener('pointerup',this.onInputTypeDetermined )
 		document.removeEventListener('pointercancel', this.onInputTypeDetermined )
