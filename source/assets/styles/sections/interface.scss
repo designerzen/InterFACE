@@ -785,12 +785,9 @@ main.active{
 	margin:auto;
 	padding:0;
 
-	aspect-ratio: var(--width) / var(--height);
-	width: min(100%, var(--stage-display-width, min(100vw, calc(100dvh * var(--width) / var(--height)))));
-	height: min(100%, var(--stage-display-height, min(100dvh, calc(100vw * var(--height) / var(--width)))));
-
-	max-width: min(100vw, calc(100dvh * var(--width) / var(--height)));
-	max-height: min(100dvh, calc(100vw * var(--height) / var(--width)));
+	aspect-ratio: var(--width, 640) / var(--height, 480);
+	width: min(100dvw, calc(100dvh * var(--width, 640) / var(--height, 480)));
+	height: auto;
 
 	grid-area: 1/1/-1/-1;
 	position: relative;
@@ -799,10 +796,17 @@ main.active{
 	box-sizing: border-box;
 }
 
+main.flag-flood{
+	#stage,
+	#face-buttons{
+		width: max(100dvw, calc(100dvh * var(--width, 640) / var(--height, 480)));
+	}
+}
+
 #stage{
 	display: grid;
-	place-items: stretch;
 	pointer-events: none;
+	overflow: hidden;
 }
 
 #face-buttons{
@@ -861,28 +865,28 @@ main.active{
 }
 
 #person-a{
-	min-width:calc( 100% * var(--person-a-w,0));
-	min-height:calc( 100% * var(--person-a-h,0));
-	top:calc( 100% * var(--person-a-y,0));
-	left:calc( 100% - 100% * var(--person-a-x,0));
+	width:calc( 100% * var(--person-a-w,0));
+	height:calc( 100% * var(--person-a-h,0));
+	top:calc( ( 100% - 100% * var(--person-a-h,0)) * var(--person-a-y,0));
+	left:calc( ( 100% - 100% * var(--person-a-w,0)) * (var(--person-a-x,0)));
 }
 #person-b{
-	min-width:calc( 100% * var(--person-b-w,0));
-	min-height:calc( 100% * var(--person-b-h,0));
-	top:calc( 100% * var(--person-b-y,0));
-	left:calc( 100% - 100% * var(--person-b-x,0));
+	width:calc( 100% * var(--person-b-w,0));
+	height:calc( 100% * var(--person-b-h,0));
+	top:calc( ( 100% - 100% * var(--person-b-h,0)) * var(--person-b-y,0));
+	left:calc( ( 100% - 100% * var(--person-b-w,0)) * (var(--person-b-x,0)))
 }
 #person-c{
-	min-width:calc( 100% * var(--person-c-w,0));
-	min-height:calc( 100% * var(--person-c-h,0));
-	top:calc( 100% * var(--person-c-y,0));
-	left:calc( 100% - 100% * var(--person-c-x,0));
+	width:calc( 100% * var(--person-c-w,0));
+	height:calc( 100% * var(--person-c-h,0));
+	top:calc( ( 100% - 100% * var(--person-c-h,0)) * var(--person-c-y,0));
+	left:calc( ( 100% - 100% * var(--person-c-w,0)) * (var(--person-c-x,0)))
 }
 #person-d{
-	min-width:calc( 100% * var(--person-d-w,0));
-	min-height:calc( 100% * var(--person-d-h,0));
-	top:calc( 100% * var(--person-d-y,0));
-	left:calc( 100% - 100% * var(--person-d-x,0));
+	width:calc( 100% * var(--person-d-w,0));
+	height:calc( 100% * var(--person-d-h,0));
+	top:calc( (100% - 100% * var(--person-d-h,0)) * var(--person-d-y,0));
+	left:calc( ( 100% - 100% * var(--person-d-w,0)) * (var(--person-d-x,0)))
 }
 
 // Instrument and user option panels

@@ -94,11 +94,11 @@
 	}
 
 	label[for="button-flood"]{
-		--bg:url(/source/assets/icons/volume_mute-24px.svg);
+		--bg:url(/source/assets/icons/settings_overscan_black_24dp.svg);
 		anchor-name: --button-flood;
 		&:has(input:checked),
 		&.checked{
-			--bg:url(/source/assets/icons/volume_off-24px.svg);
+			--bg:url(/source/assets/icons/settings_overscan_black_24dp.svg);
 		}
 	}
 

@@ -10,22 +10,22 @@ menu#control-panel
 		//- Button is the face of the user
 		#person-a.person(hidden)
 			button(type="button").face-button.person-a-face Change instrument for the person on the left
-			button(type="button").emoji-button.person-a-emoji Change play style for the person
+			button(type="button").emoji-button.person-a-emoji Toggle chord display for the person on the left
 			button(type="button").thoughts-button.person-a-thoughts Change play style for the person on the left
 
 		#person-b.person(hidden)
 			button(type="button").face-button.person-b-face Change instrument for the person on the right 
-			button(type="button").emoji-button.person-b-emoji Change play style for the person
+			button(type="button").emoji-button.person-b-emoji Toggle chord display for the person on the right
 			button(type="button").thoughts-button.person-b-thoughts Change play style for the person on the right
 
 		#person-c.person(hidden)
 			button(type="button").face-button.person-c-face Change instrument for the person on the lower left 
-			button(type="button").emoji-button.person-c-emoji Change play style for the person
+			button(type="button").emoji-button.person-c-emoji Toggle chord display for the person on the lower left
 			button(type="button").thoughts-button.person-c-thoughts Change play style for the person on the lower left
 
 		#person-d.person(hidden)
 			button(type="button").face-button.person-d-face Change instrument for the person on the lower right 
-			button(type="button").emoji-button.person-d-emoji Change play style for the person
+			button(type="button").emoji-button.person-d-emoji Toggle chord display for the person on the lower right
 			button(type="button").thoughts-button.person-d-thoughts Change play style for the person on the lower right
 
 
@@ -295,6 +295,9 @@ menu#control-panel
 	
 		label(for="button-sync-video") Synch<br>Video
 			input#button-sync-video(type="checkbox" aria-label="Toggle whether to try to synch video to performance")
+
+		label(for="button-flood") Flood<span class="hide-text"> fill the screen</span>
+			input#button-flood(type="checkbox" aria-label="Scale the live video and overlays to fill the screen without black bars")
 			
 		label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
 			input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
