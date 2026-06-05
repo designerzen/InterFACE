@@ -21,14 +21,17 @@ select:not([multiple]):not([size]) {
 @supports (appearance: base-select) {
 
 	label select.select-content {		
+		padding:0;
 		border:0;
 		position: absolute;
 		inset:0;
 		opacity: 0;
+		text-shadow: none;
 	}	
 
-	label:hover{
+	label:has(select.select-content):hover{
 		color:transparent;
+		text-shadow: none;
 		select.select-content{
 			opacity: 1;
 		}

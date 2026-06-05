@@ -729,8 +729,8 @@
 	// Flashing ring!
 	// When focussed via keyboard or screen reader
 	// Hover and focus states,
+	// :focus,
 	&:is(
-		:focus,
 		:focus-visible,
 		:focus-within,
 		:target,
