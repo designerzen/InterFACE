@@ -314,7 +314,7 @@
 		"@electron-forge/maker-squirrel": "^7.11.2",
 		"@electron-forge/maker-zip": "^7.11.2",
 		"@electron-toolkit/utils": "^4.0.0",
-		"@electron/packager": "^20.0.0",
+		"@electron/packager": "^20.0.1",
 		"@electron/rebuild": "^4.0.4",
 		"@litertjs/core": "^2.5.2",
 		"@litertjs/tfjs-interop": "^6.0.0",
