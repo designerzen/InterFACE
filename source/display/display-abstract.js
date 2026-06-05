@@ -80,6 +80,7 @@ export default class AbstractDisplay{
 	// for MTV mode
 	extraVisualMode = false
 
+
 	canvas
 	canvasWidth
 	canvasHeight
@@ -255,8 +256,19 @@ export default class AbstractDisplay{
 		const boundingBox = prediction.box
 		const boundingBoxWidth = boundingBox.width || boundingBox.xMax - boundingBox.xMin
 		const boundingBoxHeight = boundingBox.height || boundingBox.yMax - boundingBox.yMin
+		const xRange = Math.max(1 - boundingBoxWidth, Number.EPSILON)
+		const yRange = Math.max(1 - boundingBoxHeight, Number.EPSILON)
+		
+		const x = Math.min(Math.max(boundingBox.xMin / xRange, 0), 1)
+		const y = Math.min(Math.max(boundingBox.yMin / yRange, 0), 1)
+		
+		// if we are flipping the display because the video
+		// is not inverted, then the button needs to be flipped
+		const xFlip = this.options.flipX ? 1 - x : x
+		const yFlip = this.options.flipY ? 1 - y : y
+		
 		//console.error("Display", display.width, display.height, {boundingBoxWidth,boundingBoxHeight,boundingBox} )
-		person.moveButton( boundingBox.xMax, boundingBox.yMin, boundingBoxWidth, boundingBoxHeight ) 
+		person.moveButton( xFlip, yFlip, boundingBoxWidth, boundingBoxHeight ) 
 	}
 
 	/**

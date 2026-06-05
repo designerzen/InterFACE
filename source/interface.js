@@ -38,6 +38,7 @@ import StateWithIO from './utils/state-io.js'
 // MODELS
 import { TAU, clamp } from "./maths/maths.js"
 import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
+import { DEFAULT_OPTIONS_DISPLAY_COMPOSITE } from './settings/options.displays.js'
 import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
@@ -126,6 +127,7 @@ import { fetchBrandColor } from './settings/palette.js'
 import DisplayManager, { getDisplaysInformation } from './display/display-manager.js'
 import { DISPLAY_TYPES } from './display/display-types.js'
 import DisplayOverlay2d from './display/display-overlay-2d.js'
+import { createDisplayStageController } from './display/display-stage.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 
 // IO
@@ -232,6 +234,7 @@ export const createInterface = (
 
 	// fetch some elements from the DOM
 	const main = doc.querySelector("main")
+	const appFrame = doc.getElementById("app-frame")
 
 	// Buttons + Toggles
 	const buttonRecordAudio = doc.getElementById("button-record-audio")
@@ -1478,7 +1481,9 @@ export const createInterface = (
 	 */
 	const switchDisplay = async (displayType, predictionLoop, saveAndExclaim=true) => {
 
+		// use the default options and overwrite
 		const displayOptions = {
+			...DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 			autoStart:saveAndExclaim,
 			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0
 		}
@@ -1500,35 +1505,18 @@ export const createInterface = (
 	 * @param {Number} width 
 	 * @param {Number} height 
 	 */
-	const resizeDisplay = (width,height) =>{
-		if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
-		{
-			return false
-		}
-		main.style.setProperty('--width', width )
-		main.style.setProperty('--height', height )
-		displayManager.setSize( width, height )
-		overlayDisplay?.setSize( width, height )
-		return true
-	}
+	const stageController = createDisplayStageController({
+		mainElement: main,
+		frameElement: appFrame,
+		getDisplayManager: () => displayManager,
+		getOverlayDisplay: () => overlayDisplay,
+		getFlood: () => stateMachine.get('flood')
+	})
+	const { syncToMedia: syncDisplayToMedia } = stageController
 
-	const getMediaDimensions = (mediaElement) => {
-		const width = mediaElement?.videoWidth || mediaElement?.naturalWidth || mediaElement?.width || mediaElement?.clientWidth || 0
-		const height = mediaElement?.videoHeight || mediaElement?.naturalHeight || mediaElement?.height || mediaElement?.clientHeight || 0
-		return { width, height }
-	}
-
-	const syncDisplayToMedia = (mediaElement = inputElement) => {
-		const { width, height } = getMediaDimensions(mediaElement)
-		if (!resizeDisplay(width, height))
-		{
-			return false
-		}
-		main.classList.toggle('landscape', width > height )
-		main.classList.toggle('portrait', width < height )
-		main.classList.toggle('square', width === height )
-		return true
-	}
+	window.addEventListener('resize', () => {
+		syncDisplayToMedia( inputElement )
+	})
 
 	/**
 	 * Use the specified file to start streaming video
@@ -3452,6 +3440,12 @@ export const createInterface = (
 			setFeedback( status ? `Video Frame Synching enabled` : 'disabled Frame Synch', 0 ) 
 		}, stateMachine.get( 'synch') )
 
+		toggles.flood = setToggle( "button-flood", status =>{
+			stateMachine.set( 'flood', status )
+			syncDisplayToMedia( inputElement )
+			setFeedback( status ? 'Flood fill enabled' : 'Stage fit enabled', 0 )
+		}, stateMachine.get( 'flood') )
+
 		// Clear canvas between frames
 		// NB. 	there are 2 modes - video frame copy 
 		// 		transparent canvas with video beneath
@@ -3482,7 +3476,7 @@ export const createInterface = (
 				discoPreviousState = fetchPlayerOptions(['drawMask','drawNodes','drawMesh','meshOnSing'])
 				
 				//console.log(ui.masks,"MTV save old state", discoPreviousState)
-				// setPlayerOption("drawMesh", ui.masks)
+	a			// setPlayerOption("drawMesh", ui.masks)
 				setPlayerOptions( {drawMask:true, drawNodes:false, drawMesh:false, meshOnSing:true})
 				
 			}else{

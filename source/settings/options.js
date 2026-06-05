@@ -129,6 +129,8 @@ export const DEFAULT_OPTIONS = {
 	advancedMode:true,
 	// initially show the settings panel
 	showSettings:false,
+	// scale the stage to cover the viewport and crop away black bars
+	flood:false,
 	// overlaid screen keyboard
 	showPiano:false,
 
@@ -146,9 +148,9 @@ export const DEFAULT_OPTIONS = {
 	// start in MTV disco mode
 	disco:false,
 
-
 	// AR mode (without this - just video stream or blank)
 	overlays:true,
+
 
 	// show face overlays
 	masks:true,

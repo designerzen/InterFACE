@@ -34,7 +34,7 @@ import {
 import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_LOOKING_GLASS_WEBGPU } from "./display-types.js"
 import {
-	DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 	KEYPOINT_QUANTITY,
 	UPDATE_FACE_BUTTON_AFTER_FRAMES
 } from "../settings/options.displays.js"
@@ -81,7 +81,7 @@ let hasXRBeenPolyfilled = false
 let lookingGlassWebXR = null
 
 const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU = {
-	...DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	...DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 	...DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
 	...DEFAULT_WALL_OPTIONS,
 	...createWallDisplayOptions(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT, {

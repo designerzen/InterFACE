@@ -3,7 +3,24 @@ export const UPDATE_FACE_BUTTON_AFTER_FRAMES = 750 * 100
 
 export const KEYPOINT_QUANTITY = 478
 
-export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
+export const DEAFULT_OPTIONS_DISPLAY = {
+	debug:false,
+	stats:false,
+	
+	// flip video axis
+	flipX:true,
+	flipY:false,
+
+	targetFrameRate: 60,
+	
+	blendShapes:true,
+	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
+}
+
+// Specific to WebGL / GPU Displays
+export const DEFAULT_OPTIONS_DISPLAY_COMPOSITE = {
+	...DEAFULT_OPTIONS_DISPLAY,
+
 	colour:0xff44ee,
 	quantity: KEYPOINT_QUANTITY * 3,
 	fx:true,
@@ -15,27 +32,26 @@ export const DEFAULT_OPTIONS_DISPLAY_WEBGL = {
 	particeSize:0.03,
 	opacity:1,
 	mouse:false,
-	debug:false,
-	stats:false,
+
 	// voxels
 	showParticles:true,
 	// geometry subdivision for denser particles (0 = disabled, 1 = double density, 2 = 4x, etc)
 	geometrySubdivisions: 0,
+
 	showWalls: false,
 	adaptiveGeometrySubdivisions: true,
-	targetFrameRate: 60,
+	
 	minimumStableFrameRate: 54,
 	frameRateSampleFrames: 90,
 	maximumDroppedFrameRatio: 0.1,
 	droppedFrameMultiplier: 1.5,
 	adaptiveSubdivisionCooldown: 1500,
-	// 3d model
+
+	// 3d model!
 	showAvatar:false,
 	avatarOpacity:0.38,
 	avatarScaleMultiplier:1.35,
 	avatarYOffset:0,
 	avatarZOffset:0.055,
-	avatarAlignmentSmoothing:0.42,
-	blendShapes:true,
-	updateFaceButtonAfter:UPDATE_FACE_BUTTON_AFTER_FRAMES
+	avatarAlignmentSmoothing:0.42
 }

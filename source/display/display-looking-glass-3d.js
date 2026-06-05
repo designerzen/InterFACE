@@ -36,7 +36,7 @@ import * as THREE from "three"
 
 import DisplayWebGL3D from "./display-webgl-3d.js"
 import { DISPLAY_LOOKING_GLASS_3D } from './display-types.js'
-import { DEFAULT_OPTIONS_DISPLAY_WEBGL } from "../settings/options.displays.js"
+import { DEFAULT_OPTIONS_DISPLAY_COMPOSITE } from "../settings/options.displays.js"
 import {
 	DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
 	applyLookingGlassParticleMarch
@@ -65,7 +65,7 @@ let openXRButton = null
 let connectHardwareButtons = false
 
 export const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS = {
-	...DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	...DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 	...DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
 	...DEFAULT_WALL_OPTIONS,
 	...createWallDisplayOptions(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT, {

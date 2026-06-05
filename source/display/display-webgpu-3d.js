@@ -39,7 +39,7 @@ import FACE_LANDMARKS_DATA from '../models/face-model-data.json'
 
 import { 
 	UPDATE_FACE_BUTTON_AFTER_FRAMES,
-	DEFAULT_OPTIONS_DISPLAY_WEBGL,
+	DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 	KEYPOINT_QUANTITY 
 } from "../settings/options.displays.js"
 
@@ -200,8 +200,8 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		//this.renderer.toneMappingExposure = Math.pow( value, 4.0 )
 	}
 
-	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_WEBGL ){
-		options = { ...DEFAULT_OPTIONS_DISPLAY_WEBGL, ...options}
+	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_COMPOSITE ){
+		options = { ...DEFAULT_OPTIONS_DISPLAY_COMPOSITE, ...options}
 		
 		super(canvas, initialWidth, initialHeight, options)
 		this.create(options.quantity, options).then( e=>{
@@ -235,7 +235,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const clock = new Clock()
 
 		options = {
-			...DEFAULT_OPTIONS_DISPLAY_WEBGL,
+			...DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 			...options
 		}
 		
@@ -945,7 +945,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	 * specified in the data
 	 * @param {Person} person 
 	 */
-	drawPerson( person, beatJustPlayed, colours, options=DEFAULT_OPTIONS_DISPLAY_WEBGL ){
+	drawPerson( person, beatJustPlayed, colours, options=DEFAULT_OPTIONS_DISPLAY_COMPOSITE ){
 
 		if (this.available === false)
 		{
