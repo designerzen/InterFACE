@@ -1,22 +1,8 @@
+import { CAMERA_PRESETS } from './camera-presets.js'
+
 export const ERROR_NO_CAMERAS = "No Cameras found on this device"
 
 let cameraLoading = false
-
-// We NEED the KIYO to be in 60FPS which is can only do in 720P mode :(
-const CAMERA_PRESETS = [
-	{
-		name: "Razer Kiyo 720p60",
-		deviceIds: [
-			"8e188e28b6a58e20cd2da3444996a643bb020e3b963fa283d33f502fedac3a27"
-		],
-		match: /(?:razer\s+kiyo|usb\s+video\s+device\s+\(1532:0e03\))/i,
-		video: {
-			width: { exact: 1280 },
-			height: { exact: 720 },
-			frameRate: { ideal: 60, max: 120 }
-		}
-	}
-]
 
 const getCameraPreset = camera => {
 	const label = typeof camera === "string" ? camera : camera?.label ?? ""
@@ -153,7 +139,8 @@ export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=60
 			video.srcObject = stream
 		}
 
-		console.info("Camera:Connected", {constraints, preset, stream})
+		const resolvedSettings = stream.getVideoTracks?.()[0]?.getSettings?.()
+		console.info("Camera:Connected", {constraints, preset, resolvedSettings, stream})
 		
 	}catch(error){
 
