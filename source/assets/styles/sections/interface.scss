@@ -796,18 +796,6 @@ main.active{
 	box-sizing: border-box;
 }
 
-main.flag-flood{
-	#stage,
-	#face-buttons{
-		width: max(100dvw, calc(100dvh * var(--width, 640) / var(--height, 480)));
-	}
-}
-
-#stage{
-	display: grid;
-	pointer-events: none;
-	overflow: hidden;
-}
 
 #face-buttons{
 	border:0;

@@ -216,6 +216,25 @@ main.flag-mirror{
 	
 }
 
+.flag-flood{
+	#stage{
+		width: 100%;
+		height: 100%;
+		aspect-ratio: auto;
+		align-self: stretch;
+		justify-self: stretch;
+	}
+
+	#face-buttons{
+		width: var(--stage-fit-width, 100%);
+		height: var(--stage-fit-height, 100%);
+		aspect-ratio: var(--width, 640) / var(--height, 480);
+		transform: scale(var(--stage-flood-scale, 1));
+		transform-origin: center center;
+	}
+}
+
+
 // If we are not showing overlays, what use is there in the
 // eyes, mask buttons?
 main:not(.flag-overlays){
@@ -354,7 +373,6 @@ main:not(.flag-overlays){
 
 	// wrapper
 	#app-frame{
-
 		// flood width on all si
 		min-width:100%;
 		max-width:100%;
@@ -394,37 +412,14 @@ main:not(.flag-overlays){
 		// 	var(--wig) 23.1px 23.6px hsla(var(--hue), 90%, 10%, 0.112),
 		// 	var(--wig) 50px 51px hsla(var(--hue), 90%, 10%, 0.15);
 		// $col-yellow
+
+		&.flag-synch{
+			#stage video{
+				display: block;
+				visibility: visible;
+			}
+		}
 		
-		#stage{
-			z-index: 0;
-		}
-
-		// elements inside the stage
-		#stage > :is(video, canvas){
-			grid-area: 1 / 1;
-			width: 100%;
-			max-width: none;
-			max-height: none;
-			margin:0;
-			// visibility: hidden;	
-			display: block;
-		}
-
-		#stage > video{
-			height: auto;
-			align-self: center;
-			justify-self: stretch;
-		}
-
-		#stage > canvas{
-			height: 100%;
-			align-self: stretch;
-			justify-self: stretch;
-			min-width: 0;
-			min-height: 0;
-		}
-
-
 		.canvas-full-size{
 			z-index: 1;
 			// position: relative;
@@ -478,35 +473,9 @@ main:not(.flag-overlays){
 			// }
 		}
 
-		// behind canvas (canvas can be transparent at times)
-		#webcam{	
-			// bottom of the stack
-			z-index: 0;
-			// position:absolute;
-			// top:0;
-			// left:0;
-			
-			// width:100%;
-			// height:100%;
-		}
-
 		#interface3D{
 			// above other canvas
 			z-index: 3;
-		}
-
-		#photosynth-canvas{
-			z-index: 1;
-		}
-
-		#photosynth-sandwich{
-			display: none;
-		}
-
-		#photosynth-overlay{
-			z-index: 2;
-			pointer-events: none;
-			background: transparent;
 		}
 
 		#control-panel{
@@ -528,18 +497,6 @@ main:not(.flag-overlays){
 		}
 	}
 	
-	#stage canvas{
-		display: block;
-		visibility: visible;
-	}
-
-	&.flag-synch{
-		#stage video{
-			display: block;
-			visibility: visible;
-		}
-	}
-
 	#foot{
 		z-index:-1;
 		visibility: hidden;

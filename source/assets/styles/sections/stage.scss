@@ -1,0 +1,83 @@
+
+#stage{
+	z-index: 0;
+	display: grid;
+	pointer-events: none;
+	overflow: hidden;
+	overflow: clip;
+}
+
+// elements inside the stage
+#stage > :is(video, canvas){
+	grid-area: 1 / 1;
+	width: 100%;
+	height: 100%;
+	min-width: 48px;
+	min-height: 48px;
+	max-width: none;
+	max-height: none;
+	margin:0;
+	// visibility: hidden;	
+	display: block;
+}
+
+#stage > video{
+	align-self: stretch;
+	justify-self: stretch;
+	// flip video to match mirror format
+	transform: scaleX( -1 );
+}
+
+#stage > canvas{
+	align-self: stretch;
+	justify-self: stretch;
+	visibility: visible;
+}
+
+main.flag-flood{
+	#stage > :is(video, canvas){
+		width: var(--stage-fit-width, 100%);
+		height: var(--stage-fit-height, 100%);
+		align-self: center;
+		justify-self: center;
+	}
+
+	#stage > video{
+		transform: scaleX(-1) scale(var(--stage-flood-scale, 1));
+		transform-origin: center center;
+	}
+
+	#stage > canvas{
+		transform: scale(var(--stage-flood-scale, 1));
+		transform-origin: center center;
+	}
+}
+
+// behind canvas (canvas can be transparent at times)
+#webcam{	
+	// bottom of the stack
+	z-index: 0;
+	// position:absolute;
+	// top:0;
+	// left:0;
+	
+	// width:100%;
+	// height:100%;
+}
+
+// Background Canvas / Video frame copy
+#photosynth-canvas{
+	z-index: 1;
+}
+
+// Main display
+#photosynth-sandwich{
+	display: none;
+}
+
+// Emoji overlay
+#photosynth-overlay{
+	z-index: 2;
+	pointer-events: none;
+	background: transparent;
+}

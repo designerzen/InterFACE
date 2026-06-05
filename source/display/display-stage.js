@@ -60,18 +60,41 @@ export const createDisplayStageController = ({
 
 		const frameWidth = frameElement?.clientWidth || window.innerWidth || width
 		const frameHeight = frameElement?.clientHeight || window.innerHeight || height
-		const stageSize = getStageDisplaySize({
+		const fitStageSize = getStageDisplaySize({
 			frameWidth,
 			frameHeight,
 			mediaWidth: width,
 			mediaHeight: height,
-			flood: getFlood()
+			flood: false
 		})
+		const floodStageSize = getStageDisplaySize({
+			frameWidth,
+			frameHeight,
+			mediaWidth: width,
+			mediaHeight: height,
+			flood: true
+		})
+		const stageSize = getFlood() ? floodStageSize : fitStageSize
 
 		if (stageSize)
 		{
 			mainElement.style.setProperty('--stage-display-width', `${stageSize.width}px`)
 			mainElement.style.setProperty('--stage-display-height', `${stageSize.height}px`)
+		}
+		if (fitStageSize)
+		{
+			mainElement.style.setProperty('--stage-fit-width', `${fitStageSize.width}px`)
+			mainElement.style.setProperty('--stage-fit-height', `${fitStageSize.height}px`)
+		}
+		if (floodStageSize)
+		{
+			mainElement.style.setProperty('--stage-flood-width', `${floodStageSize.width}px`)
+			mainElement.style.setProperty('--stage-flood-height', `${floodStageSize.height}px`)
+		}
+		if (fitStageSize && floodStageSize)
+		{
+			const floodScale = fitStageSize.width > 0 ? floodStageSize.width / fitStageSize.width : 1
+			mainElement.style.setProperty('--stage-flood-scale', String(floodScale))
 		}
 
 		getDisplayManager()?.setSize(width, height)

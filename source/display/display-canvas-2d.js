@@ -355,8 +355,8 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Number} y - default to 0
 	 * @param {Boolean} flip - default to true
 	 */
-	drawElement( element, x=0, y=0, flip=true){	
-		drawElement( this.canvasContext, element, x, y, flip, this.width )
+	drawElement( element, x=0, y=0, flip=true, width, height){	
+		drawElement( this.canvasContext, element, x, y, flip, width, height )
 	}
 
 	/**
