@@ -38,7 +38,7 @@ import StateWithIO from './utils/state-io.js'
 // MODELS
 import { TAU, clamp } from "./maths/maths.js"
 import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
-import { DEFAULT_OPTIONS_DISPLAY_COMPOSITE } from './settings/options.displays.js'
+import { DEFAULT_OPTIONS_DISPLAY_COMPOSITE } from './display/display-options.js'
 import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
@@ -1489,6 +1489,7 @@ export const createInterface = (
 		}
 		const newDisplay = await displayManager.switchTo(displayType, predictionLoop, displayOptions)
 		main.classList.toggle("flag-transparent", Boolean(newDisplay.transparentCanvas))
+		syncDisplayToMedia(inputElement)
 
 		// save the display type for next time
 		if (saveAndExclaim)
@@ -1830,7 +1831,7 @@ export const createInterface = (
 				}else if (stateMachine.get("synch")){
 					
 					// paste video frame if the video is hidden
-					display.drawElement( inputElement )
+					display.drawElement( inputElement, 0, 0, true, display.width, display.height )
 					// drawElement( canvasContext, inputElement )
 
 				}else{

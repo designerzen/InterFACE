@@ -232,18 +232,27 @@ export const drawNodes = (canvasContext, pointA, pointB, radius=5, fill="blue", 
  * @param {Number} x - default to 0
  * @param {Number} y - default to 0
  * @param {Boolean} flip - default to true
- * @param {Number} width - default to 100
+ * @param {Number} width - destination width
+ * @param {Number} height - destination height
  */
-export const drawElement = ( canvasContext, element, x=0, y=0, flip=true, width=100 ) => {	
+export const drawElement = ( canvasContext, element, x=0, y=0, flip=true, width=element?.videoWidth ?? element?.naturalWidth ?? element?.width ?? 100, height=element?.videoHeight ?? element?.naturalHeight ?? element?.height ?? 100 ) => {
+	if (!canvasContext || !element || width <= 0 || height <= 0)
+	{
+		return false
+	}
+
 	canvasContext.save()
 	// invert horizontally (mirror image)
 	if (flip)
 	{
-		canvasContext.translate( width, 0)
+		canvasContext.translate( x + width, y )
 		canvasContext.scale(-1, 1)
+		canvasContext.drawImage(element, 0, 0, width, height)
+	}else{
+		canvasContext.drawImage(element, x, y, width, height)
 	}
-	canvasContext.drawImage(element , x, y)
 	canvasContext.restore()
+	return true
 }
 
 /**

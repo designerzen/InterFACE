@@ -95,11 +95,13 @@ import { getCleff, getNotationForNoteNumber, getStaffSlotForNoteNumber, getStave
 import { 
 	configurePersonKey,
 	configurePersonByOperatingMode,
+	isPlayerOperatingMode,
 	normalisePersonOperatingMode,
 	PERSON_TYPE_ARPEGGIO, 
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
 	PERSON_TYPE_CHROMATIC, 
 	PERSON_TYPE_DATA, 
+	PERSON_TYPE_PLAYER,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
 } from "./person.presets.js"
 
@@ -113,12 +115,32 @@ import PersonEvent, {
 import Achievements from './person-achievements.js'
 import PersonalProgress from './person-progress.js'
 
+export {
+	PERSON_TYPE_ARPEGGIO,
+	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
+	PERSON_TYPE_CHROMATIC,
+	PERSON_TYPE_PLAYER,
+	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
+	isPlayerOperatingMode
+} from "./person.presets.js"
+
+export {
+	EVENT_EMOTION_CHANGED,
+	EVENT_EMOTION_UNLOCKED,
+	EVENT_INSTRUMENT_CHANGED,
+	EVENT_INSTRUMENT_LOADING,
+	EVENT_PERSON_BORN,
+	EVENT_PERSON_DEAD,
+	EVENT_USER_MODE_CHANGED
+} from './person-event.js'
+
 // used to deliminiate the URL player seperator...
 // you want something that doesn't encode, but that also
 // won't ruin any filenames or numbers
 // # and ? are taken by the protocol
 // ~ doesn't work and cuts off te var when parsed
 const EXPORT_DELIMITER = ","
+const ACHIEVEMENT_MESSAGE_DURATION = 3500
 const CHORD_NAME_BY_INTERVAL_SIGNATURE = new Map([
 	["0", ""],
 	["0,5", "4"],
@@ -258,13 +280,14 @@ export default class Person extends EventTarget{
 	// is the MIDI port active?
 	isMIDIActive = false
 
-	// istrument panel connected
-	isInstrumentPanelInteractive = false
-
 	// 
 	isSelected = false
 	isHighlighted = false
 	
+	// istrument panel connected
+	isInstrumentPanelInteractive = false
+
+	// pointer over buttons...
 	isUserSelectingMode = false
 	isUserSelectingInputType = false
 	isMouseOver = false
@@ -360,6 +383,8 @@ export default class Person extends EventTarget{
 	cancelController
 
 	personalProgress
+	recentAchievement = null
+	recentAchievementAt = -1
 	
 	get userMode(){
 		return normalisePersonOperatingMode(this.#userMode)
@@ -369,8 +394,20 @@ export default class Person extends EventTarget{
 		return PERSON_TYPE_DATA[ this.userMode ]
 	}
 
+	get nextUserModeData(){
+		return PERSON_TYPE_DATA[ normalisePersonOperatingMode(this.userMode + 1) ]
+	}
+
 	get userModeDesicription(){
 		return this.userModeData.description
+	}
+
+	get isPlayerMode(){
+		return isPlayerOperatingMode(this.userMode)
+	}
+
+	get achievementPoints(){
+		return this.personalProgress?.achievementPoints ?? 0
 	}
 
 	/**
@@ -715,9 +752,20 @@ export default class Person extends EventTarget{
 	 * Change the User Operating Mode
 	 */
 	set userMode( mode ){
+		const previousMode = this.userMode
 		const normalisedMode = normalisePersonOperatingMode(mode)
 		this.#userMode = normalisedMode
 		this.options.inputMode = normalisedMode
+		if (normalisedMode === PERSON_TYPE_PLAYER && previousMode !== PERSON_TYPE_PLAYER)
+		{
+			this.personalProgress?.markStartTime()
+			this.trackEmotionAchievement(this.emoticon)
+		}
+		if (normalisedMode !== PERSON_TYPE_PLAYER)
+		{
+			this.recentAchievement = null
+			this.recentAchievementAt = -1
+		}
 		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode:normalisedMode, person:this} )
 	}
 
@@ -881,6 +929,8 @@ export default class Person extends EventTarget{
 		this.rightEyeClosedAt = -1
 		this.eyesClosed = false
 		this.emoticon = EMOJI_NEUTRAL
+		this.recentAchievement = null
+		this.recentAchievementAt = -1
 		
 		// Reset emoji detector state
 		this.emojiDetector.reset()
@@ -947,6 +997,31 @@ export default class Person extends EventTarget{
 	 */
 	dispatchPersonEvent(type, data = {}){
 		this.dispatchEvent(new PersonEvent( type, {detail: data}))
+	}
+
+	trackEmotionAchievement(emoticon){
+		if (!this.isPlayerMode)
+		{
+			return false
+		}
+
+		const achievement = this.personalProgress.experienceEmotion( emoticon )
+		if (!achievement)
+		{
+			return false
+		}
+
+		this.recentAchievement = { emoticon, achievement }
+		this.recentAchievementAt = this.now
+		this.dispatchPersonEvent(EVENT_EMOTION_UNLOCKED, {
+			emoticon,
+			achievement,
+			points:achievement.score,
+			totalPoints:this.achievementPoints,
+			progressScore:this.personalProgress.score,
+			person:this
+		})
+		return achievement
 	}
 
 	/**
@@ -1195,12 +1270,7 @@ export default class Person extends EventTarget{
 
 		if (this.emoticon !== emoticon)
 		{
-			const achivementUnlocked = this.personalProgress.experienceEmotion( emoticon )
-			if (achivementUnlocked)
-			{
-				// console.log(`[${this.name}] Achievement ${emoticon} Unlocked!: ${this.achievements.score}`)
-				this.dispatchPersonEvent(EVENT_EMOTION_UNLOCKED, { emoticon, person:this })
-			}
+			this.trackEmotionAchievement( emoticon )
 			
 			this.emoticon = emoticon
 			this.dispatchPersonEvent(EVENT_EMOTION_CHANGED, { emoticon, person:this })
@@ -1442,6 +1512,31 @@ export default class Person extends EventTarget{
 	}
 
 	/**
+	 * Draw the emoji and blobs onto the canvas
+	 * @param {Display} display 
+	 * @param {Number} textX 
+	 * @param {Number} textY 
+	 * @param {Number} pitch 
+	 * @param {Number} yaw 
+	 * @param {Number} roll 
+	 */
+	drawEmojiText(display, textX, textY, pitch, yaw, roll){
+		// we want something floating around the 1.0 area
+		const emojiRotationY = 0.8 + pitch * 0.2 
+		const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
+		const emojiRotationZ = (roll * Math.PI * 0.28) - HALF_PI
+		// at the bottom of the text we draw the smiley
+		// draw emoticon but we move it up and down when it looks up and down too	
+		display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, false )
+	}
+
+	drawInstrumentText(display, textX, textY, instrumentTitle, style){
+		display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
+		// display.drawInstrument(textX, textY - 70, `${this.userModeDescription}`, this.isHighlighted ? "*" : "", 9 )			
+		// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
+	}
+
+	/**
 	 * Draw some text onto the screen - used to show text above users and to
 	 * show debug code in realtime
 	 * 
@@ -1490,18 +1585,15 @@ export default class Person extends EventTarget{
 		// Mouse interactions via DOM buttons
 		if ( this.isUserSelectingMode ){
 
-			// User is selecting the mode
-			display.drawInstrument( textX, textY, instrumentTitle, "", 14)
-			display.drawParagraph( textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose mode'], 12 )		
-			
+			// User is selecting the next operating mode
+			this.drawInstrumentText( display, textX, textY, "Choose Mode", this.nextUserModeData?.description ?? '', 14 ) 
+
 		} else if ( this.isUserSelectingInputType ){
 
 			// User is selecting the TYPE
-			display.drawInstrument( textX, textY, instrumentTitle, "", 14)
-			display.drawParagraph( textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose type'], 12 )		
-			
-		} else if ( this.isMouseOver || this.instrumentLoading ){
+			this.drawInstrumentText( display, textX, textY, "Choose Type", '', 14 ) 
 
+		} else if ( this.isMouseOver || this.instrumentLoading ){
 		
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
@@ -1516,8 +1608,8 @@ export default class Person extends EventTarget{
 				if (this.isPointerDown)
 				{	
 					// user is holding mouse down on user...
-					display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
-					
+					// display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
+					this.drawInstrumentText( display, xMin, yMin - 25, instrumentTitle, `Select`, 14 ) 
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
 					display.drawParagraph( xMax, yMax + 15, [`Press me`], 9 )
@@ -1526,7 +1618,8 @@ export default class Person extends EventTarget{
 					// we use CSS and it is only hidden here?
 				}else{
 
-					display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
+					this.drawInstrumentText( display, xMin, yMin - 25, instrumentTitle, `${100-percentageRemaining}`, 14 ) 
+					// display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
 					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], 11 )
 				}
@@ -1566,8 +1659,8 @@ export default class Person extends EventTarget{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			display.drawInstrument(textX, textY, instrumentTitle, 'Loading...', 9 )
-
+			this.drawInstrumentText( display, textX, textY, instrumentTitle, 'Loading...', 9 ) 
+			
 		}else{
 
 			// Main data flow
@@ -1579,14 +1672,10 @@ export default class Person extends EventTarget{
 			const personData = this.userModeData
 			let style = personData.name
 
-			
 			// TODO: highlight and select 
-			this.isSelected
-			this.isHighlighted
+			// this.isSelected
+			// this.isHighlighted
 
-			// TODO: This
-		
-			// 
 			const textNotePlaying = this.singing ? 
 				`${this.noteName} ${style} ♫ ${this.noteSound}` : 
 				this.isMouthOpen ? 
@@ -1600,21 +1689,29 @@ export default class Person extends EventTarget{
 			const pitch = 1 - Math.abs(prediction.pitch)
 			const yaw = 1 - Math.abs(prediction.yaw) 
 
-			// we want something floating around the 1.0 area
-			const emojiRotationY = 0.8 + pitch * 0.2 
-			const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
-			const emojiRotationZ = (prediction.roll * Math.PI * 0.28) - HALF_PI
-	
 			// flash if selected?
-			display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
-			// display.drawInstrument(textX, textY - 70, `${this.userModeDescription}`, this.isHighlighted ? "*" : "", 9 )			
-			// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
-			
-			// at the bottom of the text we draw the smiley
-			// draw emoticon but we move it up and down when it looks up and down too
-			display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, false )
+			this.drawInstrumentText( display, textX, textY, instrumentTitle, style)
+			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll )
 		
-			if (this.options.musicTheory)
+			if (this.isPlayerMode)
+			{
+				display.drawText(textX, textY - 25, `${this.achievementPoints} pts`, 22 )
+
+				const hasRecentAchievement = this.recentAchievement && this.now - this.recentAchievementAt < ACHIEVEMENT_MESSAGE_DURATION
+				if (hasRecentAchievement)
+				{
+					const { achievement, emoticon } = this.recentAchievement
+					display.drawParagraph(
+						textX - 66,
+						textY + 70,
+						[
+							`+${achievement.score} ${achievement.title}`,
+							achievement.message ?? emoticon
+						],
+						12
+					)
+				}
+			}else if (this.options.musicTheory)
 			{
 				// visual music mode - so no letters, only musical notes!
 

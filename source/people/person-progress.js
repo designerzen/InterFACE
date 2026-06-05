@@ -25,6 +25,10 @@ export default class PersonalProgress{
 		return this.#achievements.score
 	}
 
+	get achievementPoints(){
+		return this.#achievements.score
+	}
+
 	// Quantity of points
 	get score(){
 		return this.quantityOfEmotions * this.timeEngaged

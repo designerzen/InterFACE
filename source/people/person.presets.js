@@ -9,6 +9,7 @@ export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 0
 export const PERSON_TYPE_CHROMATIC = 1
 export const PERSON_TYPE_ARPEGGIO = 2
 export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
+export const PERSON_TYPE_PLAYER = 4
 
 export const PERSON_TYPE_DATA = [
 	{
@@ -41,6 +42,14 @@ export const PERSON_TYPE_DATA = [
 		arpeggiate:true,
 		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
 		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS
+	},
+	{
+		name:"PTS",
+		description:"Player",
+		arpeggiate:false,
+		leftFacingKeys:NOTES_BLACK,
+		rightFacingKeys:NOTES_WHITE,
+		isPlayer:true
 	}
 ]
 
@@ -48,6 +57,10 @@ export const normalisePersonOperatingMode = (operatingMode=0) => {
 	const parsedMode = Number.parseInt(operatingMode, 10)
 	const safeMode = Number.isFinite(parsedMode) ? parsedMode : 0
 	return ((safeMode % PERSON_TYPE_DATA.length) + PERSON_TYPE_DATA.length) % PERSON_TYPE_DATA.length
+}
+
+export const isPlayerOperatingMode = (operatingMode=0) => {
+	return normalisePersonOperatingMode(operatingMode) === PERSON_TYPE_PLAYER
 }
 
 export const configurePersonKey = (person) => {
