@@ -12,17 +12,65 @@ const getCameraPreset = camera => {
 	)
 }
 
-const createVideoConstraints = (deviceId, cameraLabel) => {
-	const preset = getCameraPreset(cameraLabel)
-	const videoConstraints = preset ? { ...preset.video } : {}
+const getPresetVideoModes = preset => {
+	if (Array.isArray(preset?.videoModes) && preset.videoModes.length > 0)
+	{
+		return preset.videoModes
+	}
+	return preset?.video ? [preset.video] : []
+}
+
+const withVideoDeviceConstraint = (deviceId, videoConstraints = {}) => {
+	const constraints = { ...videoConstraints }
 
 	if (deviceId) {
-		videoConstraints.deviceId = { exact: deviceId }
+		constraints.deviceId = { exact: deviceId }
 	} else {
-		videoConstraints.facingMode = 'user' // 'environment'
+		constraints.facingMode = 'user' // 'environment'
 	}
 
-	return { videoConstraints, preset }
+	return constraints
+}
+
+const createVideoConstraints = (deviceId, cameraLabel, modeIndex = 0) => {
+	const preset = getCameraPreset(cameraLabel)
+	const presetVideoModes = getPresetVideoModes(preset)
+	const presetVideoMode = presetVideoModes[modeIndex] ?? presetVideoModes[0] ?? {}
+	const videoConstraints = withVideoDeviceConstraint(deviceId, presetVideoMode)
+
+	return { videoConstraints, preset, presetVideoModes }
+}
+
+const openPresetStream = async (deviceId, enableAudio, preset) => {
+	const presetVideoModes = getPresetVideoModes(preset)
+	let lastError
+
+	for (let modeIndex = 0; modeIndex < presetVideoModes.length; modeIndex++)
+	{
+		const constraints = {
+			video: withVideoDeviceConstraint(deviceId, presetVideoModes[modeIndex]),
+			audio: enableAudio
+		}
+		try{
+			console.info("Camera:Trying preset mode", {
+				preset,
+				modeIndex,
+				constraints
+			})
+			const stream = await navigator.mediaDevices.getUserMedia(constraints)
+			return { stream, constraints, modeIndex }
+		}catch(error){
+			lastError = error
+			console.warn("Camera:Preset mode failed", {
+				preset,
+				modeIndex,
+				constraints,
+				error
+			})
+		}
+	}
+
+	throw lastError ?? Error(`No preset modes could be opened for ${preset?.name ?? "camera"}`)
 }
 
 /**
@@ -58,6 +106,7 @@ export const fetchVideoCameras = async() => {
 export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=6000, cameraLabel="" ) => new Promise( async (resolve,reject) => {
 		
 	let stream
+	let constraints
 	video = video ?? document.createElement('video')
 
 	// stop it if it is already running?
@@ -89,8 +138,7 @@ export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=60
 	video.onerror = event => reject(stream)
 	
 	const { videoConstraints, preset } = createVideoConstraints(deviceId, cameraLabel)
-
-	const constraints = {
+	const genericConstraints = {
 		video: videoConstraints,
 		audio: enableAudio
 	}
@@ -100,25 +148,30 @@ export const setupCamera = async (video, deviceId, enableAudio=false, timeOut=60
 		// NB. FIXME: If the camera is already in use this can take forever
 		// and so can hang here - let's add some protection
 		const BAD_RESULT = "BAD_RESULT"
-		stream = await navigator.mediaDevices.getUserMedia( constraints )
+		if (preset)
+		{
+			const presetResult = await openPresetStream(deviceId, enableAudio, preset)
+			stream = presetResult.stream
+			constraints = presetResult.constraints
+		}else{
+			constraints = genericConstraints
+			stream = await navigator.mediaDevices.getUserMedia( constraints )
+		}
 		const streamTrack = stream.getVideoTracks?.()[0]
 		const streamPreset = !preset ? getCameraPreset(streamTrack?.label) : null
 		if (streamPreset)
 		{
 			const streamDeviceId = streamTrack?.getSettings?.().deviceId ?? deviceId
-			const presetConstraints = {
-				video: createVideoConstraints(streamDeviceId, streamTrack?.label).videoConstraints,
-				audio: enableAudio
-			}
 			try{
+				const presetResult = await openPresetStream(streamDeviceId, enableAudio, streamPreset)
 				console.info("Camera:Reopening default camera with preset", {
 					preset:streamPreset,
 					label:streamTrack?.label,
-					constraints:presetConstraints
+					constraints:presetResult.constraints
 				})
-				const presetStream = await navigator.mediaDevices.getUserMedia(presetConstraints)
 				stream.getTracks().forEach(track => track.stop())
-				stream = presetStream
+				stream = presetResult.stream
+				constraints = presetResult.constraints
 			}catch(presetError){
 				console.warn("Camera:Default camera preset failed, keeping original stream", {
 					preset:streamPreset,

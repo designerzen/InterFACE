@@ -14,5 +14,23 @@ export const CAMERA_PRESETS = [
 			height: { exact: 720 },
 			frameRate: { ideal: 60, max: 120 }
 		}
+	},
+	{
+		name: "Insta360 Link 60fps",
+		match: /(?:insta360\s+link)/i,
+		videoModes: [
+			{
+				width: { ideal: 1920, max: 1920 },
+				height: { ideal: 1080, max: 1080 },
+				frameRate: { ideal: 60, max: 60 },
+				aspectRatio: { ideal: 16 / 9 }
+			},
+			{
+				width: { ideal: 1280, max: 1280 },
+				height: { ideal: 720, max: 720 },
+				frameRate: { ideal: 60, max: 60 },
+				aspectRatio: { ideal: 16 / 9 }
+			}
+		]
 	}
 ]
