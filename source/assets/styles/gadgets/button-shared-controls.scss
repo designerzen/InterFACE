@@ -36,6 +36,17 @@
 		padding:0;
 	}
 
+	label[for="button-toggle-advanced"]{
+		--col-select:var(--shade-orange);
+		--col-hover:var(--shade-yellow);
+		--bg:url(/source/assets/icons/equalizer.svg);
+		anchor-name: --button-toggle-advanced;
+		&:has(input:checked),
+		&.checked{
+			--bg:url(/source/assets/icons/equalizer.svg);
+		}
+	}
+
 	label[for="button-quantise"]{
 		--col-select:var(--shade-blue);
 		--col-hover:var(--shade-blue);

@@ -1,4 +1,13 @@
-export const setupVolumeInterface = ( currentVolume=1, startMuted=false, callback=null ) => {
+import { setToggle } from './toggle.js'
+
+export const setupVolumeInterface = (
+	currentVolume=1,
+	startMuted=false,
+	{
+		onVolumeChanged=null,
+		onMuteChanged=null
+	} = {}
+) => {
 	
 	let muted = startMuted 
 
@@ -42,12 +51,11 @@ export const setupVolumeInterface = ( currentVolume=1, startMuted=false, callbac
 		if (mute)
 		{
 			setVolumeIcon(0)
-			sliderVolume.toggleAttribute("disabled", true)
+			sliderVolume.disabled = true
 		}else{
 			setVolumeIcon(currentVolume)
-			sliderVolume.removeAttribute("disabled")
+			sliderVolume.disabled = false
 		}
-		muteButton.classList.toggle("muted",mute)
 		muted = mute
 	}
 
@@ -60,16 +68,18 @@ export const setupVolumeInterface = ( currentVolume=1, startMuted=false, callbac
 		currentVolume = volume
 		console.log("slider changed volume", e, volume, volumeString )
 		requestAnimationFrame(()=>{
-			callback && callback(volume)
+			onVolumeChanged && onVolumeChanged(volume)
 		})
 	}
 
-	muteButton.addEventListener("click", event=>{
-		toggleMute(!muted)
-	})
+	setToggle( "button-mute", status => {
+		toggleMute(status)
+		onMuteChanged && onMuteChanged(status)
+	}, startMuted )
 
 	setVisualVolumeLevel(currentVolume ?? 1)
 	setMeter(currentVolume ?? 1)
+	toggleMute(startMuted)
 	
 	return {
 		setVolumeIcon,

@@ -1,4 +1,4 @@
-import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants"
+import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
 

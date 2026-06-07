@@ -283,11 +283,11 @@ menu#control-panel
 			//- 	label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
 			//- 		select(aria-label="Select a different camera")#select-camera
 		
-		label(hidden for="button-automate") Automate<span class="hide-text"> in supervised mode</span>
+		label.advanced-only(hidden for="button-automate") Automate<span class="hide-text"> in supervised mode</span>
 			input#button-automate(type="checkbox" aria-label="Automate the buttons and supervise the music")
 	
-		label(hidden for="button-toggle-advanced") Advanced Mode<span class="hide-text"> to use advanced features</span>
-			input#button-toggle-advanced(type="checkbox" aria-label="Automate the buttons and supervise the music")
+		label(for="button-toggle-advanced") Advanced<span class="hide-text">  Controls to unlock more settings</span>
+			input#button-toggle-advanced(type="checkbox" aria-label="Show advanced settings and controls")
 	
 		
 		label(for="button-clear") Clear<span class="hide-text"> Video</span>
@@ -317,7 +317,7 @@ menu#control-panel
 		label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
 			input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
 
-		label(for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> Style</span>
+		label.advanced-only(for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> Style</span>
 			select#select-eyes(aria-label="Select some eyes!")
 				option(value="s:0,i:0,p:0,a:1") Disabled (no eyes)
 				option(value="s:0.2,i:0.1,p:0.05,a:1") Tiny Eyes
@@ -326,7 +326,7 @@ menu#control-panel
 				option(value="s:4,i:3,p:2,a:0.8") Sidebottom
 				option(value="s:7,i:5,p:2,a:0.9") Googly Eyes
 	
-		label(hidden, for="select-palette") <span class="hide-text">Choose </span>Colours
+		label.advanced-only(hidden, for="select-palette") <span class="hide-text">Choose </span>Colours
 			select#select-palette(aria-label="Select different colours" name="select-palette")
 				option(value="s:80,l:80") Neon 
 				option(value="s:30,l:40") Pastel 
@@ -334,7 +334,7 @@ menu#control-panel
 				option(value="s:100,l:0") Dark
 			
 		//- We removed the other soound font options for now
-		label(hidden for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
+		label.advanced-only(hidden for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
 			select#select-samples(aria-label="Select a sound font to change sounds" name="select-samples")
 				//- option(value="FatBoy") FatBoy 
 				//- option(value="FluidR3_GM") Fluid
@@ -352,14 +352,14 @@ menu#control-panel
 
 		include theme-selector.pug
 	
-		label(for="select-impulse") <span class="hide-text">Select </span>Reverb
+		label.advanced-only(for="select-impulse") <span class="hide-text">Select </span>Reverb
 			select#select-impulse(aria-label="Select a different reverb" name="select-impulse")
 				//- options are injected via javascript  
 				
 		label(for="button-speak") <span class="hide-text">Toggle </span>Speech
 			input#button-speak(type="checkbox" aria-label="Read out instructions and help")
 	
-		button#button-reset( type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
+		button#button-reset.advanced-only( type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
 	
 		//- bit of a hack...
 		label.button-close(for="button-settings") Hide Settings

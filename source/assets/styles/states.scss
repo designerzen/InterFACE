@@ -518,6 +518,10 @@ main:not(.flag-overlays){
 	label[for="button-spectrogram"]{
 		display: none;
 	}
+
+	#settings .advanced-only{
+		display: none;
+	}
 }
 
 
