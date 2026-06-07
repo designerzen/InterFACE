@@ -1,12 +1,24 @@
-[
-	"Hello IEEE!",
-	"Welcome to the",
-	"1st IEEE International Workshop on the Musical Metaverse =D",
-	"and the 5th International Symposium...",
-	"on the Internet of Sounds (IS2 2024)",
-	"and me, the PhotoSYNTH...",
-	"A SMILE POWERED SYNTHESIZER...",
-	"and psychedelic pop video machine!",
-	"Change instruments and video effects by posing...",
-	"like your favourite emoji =P"
-]
+{
+	"basic": [
+		"Hello IEEE!",
+		"Welcome to the Internet of Sounds workshop =D",
+		"and me, the PhotoSYNTH...",
+		"A SMILE POWERED SYNTHESIZER...",
+		"Smile or open your mouth to begin!",
+		"Pose like your favourite emoji for new sounds",
+		"Tilt your head to change notes and octaves",
+		"Invite friends to make the music bigger"
+	],
+	"advanced": [
+		"Hello IEEE!",
+		"Welcome to the",
+		"1st IEEE International Workshop on the Musical Metaverse =D",
+		"and the 5th International Symposium...",
+		"on the Internet of Sounds (IS2 2024)",
+		"and me, the PhotoSYNTH...",
+		"A SMILE POWERED SYNTHESIZER...",
+		"and psychedelic pop video machine!",
+		"Change instruments and video effects by posing...",
+		"like your favourite emoji =P"
+	]
+}
