@@ -11,8 +11,8 @@ export const setToggle = (toggleName, callback, value ) => {
 	
 	const element = setButton( toggleName, ()=>{
 		
-		// immediately the value is set as expected
-		value = !element.checked
+		// Read the native checked state after the browser updates it.
+		value = element.checked
 		
 		// add classes to any associated wrapped label
 		if (element.parentNode.nodeName === "LABEL")
@@ -22,15 +22,11 @@ export const setToggle = (toggleName, callback, value ) => {
 		
 		// console.error("Setting toggle via click to", "element.checked: "+element.checked, {element})
 		callback(value)
-	})
+	}, "click")
 
 	// preset the button
-	if (value)
-	{
-		// goto parent and add checked classes?
-		element.checked = value
-		element.parentNode.classList.toggle("checked", value )
-	}
+	element.checked = !!value
+	element.parentNode.classList.toggle("checked", !!value )
 	return element
 }
 
