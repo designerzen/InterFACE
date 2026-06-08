@@ -1,40 +1,105 @@
 {
-	"basic": [
-		"Welcome to the Royal Society",
-		"Summer Exhibition 2025",
-		"I'm a Photo<strong>SYNTH</strong>...",
-		"A SMILE POWERED SYNTHESIZER =D",
-		"Smile or open your mouth to begin!",
-		"Pose like your favourite emoji for new sounds",
-		"Tilt your head to change notes and octaves",
-		"Scan the QR code on the right to continue playing on your own device"
-	],
-	"advanced": [
-		"Welcome to the Royal Society",
-		"Summer Exhibition 2025",
-		"",
-		"I'm a Photo<strong>SYNTH</strong>...",
-		"A SMILE POWERED SYNTHESIZER =D",
-		"Accessible musical instrument",
-		"(and super pop video machine!)",
-		">0_0<",
-		"Part of the Accessible Musical Instrument Collection",
-		"Curated by Drake Music",
-		"Smile or open your mouth to begin!",
-		"Change instruments and video effects by posing...",
-		"like your favourite emoji =P",
-		"Each expression will change the sound",
-		"Be fond and show your affection",
-		"For beautiful VFX",
-		"and remixed visuals",
-		"Tilt, twist and bend your neck",
-		"to change between notes and octaves",
-		"Your job is to make some beautiful music!",
-		"Things are definitely more fun with friends",
-		"And far more musical and interesting too!",
-		"Scan the QR code on the right to continue playing on your own device",
-		"And carry on the fun at home!",
-		"Or you can go to interface.place",
-		"Or photosynth.app to learn more."
-	]
+	"basic": {
+		"default": [
+			"Welcome to the Royal Society",
+			"Summer Exhibition 2025",
+			"I'm a Photo<strong>SYNTH</strong>...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"Smile or open your mouth to begin!",
+			"Pose like your favourite emoji for new sounds",
+			"Tilt your head to change notes and octaves",
+			"Scan the QR code on the right to continue playing on your own device"
+		],
+		"blocks": [
+			{
+				"from": 0,
+				"for": 600,
+				"instructions": [
+					"What face do you make when someone gives you a big cuddle?",
+					"What face do you make when your friend makes you laugh and you can't stop smiling?",
+					"What face do you make when you find your favourite snack just when you were hungry?",
+					"What face do you make when you hear a very funny noise nearby?",
+					"What face do you make when you get a sticker and want everyone to see it?",
+					"What face do you make when someone says surprise out of nowhere?",
+					"What face do you make when you get to jump in a puddle with a big splash?",
+					"What face do you make when you build a very tall tower and it stays up?",
+					"What face do you make when you smell something delicious cooking?"
+				]
+			},
+			{
+				"from": 600,
+				"for": 600,
+				"instructions": [
+					"What face do you make when you drop your ice cream?",
+					"What face do you make when the rain starts just when you want to play outside?",
+					"What face do you make when you lose your teddy?",
+					"What face do you make when someone says it's time to tidy up?",
+					"What face do you make when your tower crashes down?",
+					"What face do you make when you taste something yucky?",
+					"What face do you make when your socks feel wet and cold?",
+					"What face do you make when you can't find your shoe anywhere?"
+				]
+			},
+			{
+				"from": 1200,
+				"for": 600,
+				"instructions": [
+					"What face do you make when you are waiting and waiting for your turn?",
+					"What face do you make when someone takes your toy without asking?",
+					"What face do you make when you are trying not to laugh but the giggles escape?",
+					"What face do you make when someone shares with you?",
+					"What face do you make when someone won't share?",
+					"What face do you make when you hear your favourite song begin?",
+					"What face do you make when you are pretending to be a grumpy bear?",
+					"What face do you make when you are surprised and your eyes go wide?"
+				]
+			},
+			{
+				"from": 1800,
+				"for": 600,
+				"instructions": [
+					"What face do you make when you feel really sleepy?",
+					"What face do you make when you are sleepy but still curious about what's next?",
+					"What face do you make when you see a dog bigger than you expected?",
+					"What face do you make when a monkey steals your banana?",
+					"What face do you make when you see the biggest cake in the world?",
+					"What face do you make when a feather tickles your nose?",
+					"What face do you make when you are a king or queen on a throne?",
+					"What face do you make when you are a dragon trying not to sneeze?",
+					"What face do you make when you are a lion with a sore paw?"
+				]
+			}
+		]
+	},
+	"advanced": {
+		"default": [
+			"Welcome to the Royal Society",
+			"Summer Exhibition 2025",
+			"",
+			"I'm a Photo<strong>SYNTH</strong>...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"Accessible musical instrument",
+			"(and super pop video machine!)",
+			">0_0<",
+			"Part of the Accessible Musical Instrument Collection",
+			"Curated by Drake Music",
+			"Smile or open your mouth to begin!",
+			"Change instruments and video effects by posing...",
+			"like your favourite emoji =P",
+			"Each expression will change the sound",
+			"Be fond and show your affection",
+			"For beautiful VFX",
+			"and remixed visuals",
+			"Tilt, twist and bend your neck",
+			"to change between notes and octaves",
+			"Your job is to make some beautiful music!",
+			"Things are definitely more fun with friends",
+			"And far more musical and interesting too!",
+			"Scan the QR code on the right to continue playing on your own device",
+			"And carry on the fun at home!",
+			"Or you can go to interface.place",
+			"Or photosynth.app to learn more."
+		],
+		"blocks": []
+	}
 }

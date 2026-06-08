@@ -1,27 +1,33 @@
 {
-	"basic": [
-		"Hello Beyond 2024!",
-		"Welcome to Media City!",
-		"I'm a PhotoSYNTH...",
-		"A SMILE POWERED SYNTHESIZER =D",
-		"Smile or open your mouth to begin!",
-		"Move your head to change notes and octaves",
-		"Pull your favourite emoji for new sounds",
-		"Things are definitely more fun with friends"
-	],
-	"advanced": [
-		"Hello Beyond 2024!",
-		"Welcome to Media City!",
-		"I am a PhotoSYNTH...",
-		"A SMILE POWERED SYNTHESIZER =D",
-		"(and psychedelic pop video machine!)",
-		"Change instruments and video effects by posing...",
-		"like your favourite emoji =P",
-		"Each expression will result in a different sound",
-		"Your job is to make some beautiful music!",
-		"Things are definitely more fun with friends",
-		"And far more musical and interesting too!",
-		"Just be careful, don't get too wild",
-		"And be thankful that you don't need VR goggles!"
-	]
+	"basic": {
+		"default": [
+			"Hello Beyond 2024!",
+			"Welcome to Media City!",
+			"I'm a PhotoSYNTH...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"Smile or open your mouth to begin!",
+			"Move your head to change notes and octaves",
+			"Pull your favourite emoji for new sounds",
+			"Things are definitely more fun with friends"
+		],
+		"blocks": []
+	},
+	"advanced": {
+		"default": [
+			"Hello Beyond 2024!",
+			"Welcome to Media City!",
+			"I am a PhotoSYNTH...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"(and psychedelic pop video machine!)",
+			"Change instruments and video effects by posing...",
+			"like your favourite emoji =P",
+			"Each expression will result in a different sound",
+			"Your job is to make some beautiful music!",
+			"Things are definitely more fun with friends",
+			"And far more musical and interesting too!",
+			"Just be careful, don't get too wild",
+			"And be thankful that you don't need VR goggles!"
+		],
+		"blocks": []
+	}
 }

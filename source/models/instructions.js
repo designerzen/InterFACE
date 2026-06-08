@@ -2,9 +2,68 @@
 import { QUICK_START, INSTRUCTIONS, INSTRUCTION_FOR_AUTOMATION } from '../locales/en_GB.js'
 import { fetchJSON } from '../utils/fetch.js'
 
-const getIndexedInstruction = (guide, index) => guide[index % (guide.length - 1)]
+const normaliseGuide = (guide = []) => {
+	const instructions = Array.isArray(guide) ? [...guide] : []
 
-const selectCustomInstructionsForMode = (instructionsData, advancedMode) => {
+	while (instructions.length > 0 && instructions[instructions.length - 1] === '') {
+		instructions.pop()
+	}
+
+	return instructions
+}
+
+const getIndexedInstruction = (guide, index) => {
+	if (!guide.length) {
+		return ''
+	}
+
+	return guide[index % guide.length]
+}
+
+const normaliseModeInstructions = modeInstructions => {
+	if (Array.isArray(modeInstructions)) {
+		return {
+			default: normaliseGuide(modeInstructions),
+			blocks: []
+		}
+	}
+
+	if (!modeInstructions || typeof modeInstructions !== 'object') {
+		return {
+			default: [],
+			blocks: []
+		}
+	}
+
+	return {
+		default: normaliseGuide(modeInstructions.default),
+		blocks: Array.isArray(modeInstructions.blocks) ? modeInstructions.blocks : []
+	}
+}
+
+const getModeInstructionsForElapsedTime = (modeInstructions, elapsedSeconds) => {
+	const { default: defaultInstructions, blocks } = normaliseModeInstructions(modeInstructions)
+	const activeBlock = blocks.find(block => {
+		if (!block || typeof block !== 'object') {
+			return false
+		}
+
+		const from = Number(block.from ?? 0)
+		const duration = Number(block.for ?? 0)
+		const to = from + duration
+
+		return Number.isFinite(from) && Number.isFinite(duration) && elapsedSeconds >= from && elapsedSeconds < to
+	})
+
+	if (!activeBlock) {
+		return defaultInstructions
+	}
+
+	const blockInstructions = normaliseGuide(activeBlock.instructions)
+	return blockInstructions.length ? blockInstructions : defaultInstructions
+}
+
+const selectModeInstructions = (instructionsData, advancedMode) => {
 	if (Array.isArray(instructionsData)) {
 		return instructionsData
 	}
@@ -15,47 +74,57 @@ const selectCustomInstructionsForMode = (instructionsData, advancedMode) => {
 
 	const preferredMode = advancedMode ? 'advanced' : 'basic'
 	const fallbackMode = advancedMode ? 'basic' : 'advanced'
-	const selectedInstructions = instructionsData[preferredMode] ?? instructionsData[fallbackMode] ?? []
-
-	return Array.isArray(selectedInstructions) ? selectedInstructions : []
+	return instructionsData[preferredMode] ?? instructionsData[fallbackMode] ?? []
 }
-
-// export const getNextInstruction = () => INSTRUCTIONS[(instructionCount+1)%(INSTRUCTIONS.length-2)]
 
 export const getInstructions = async (language = 'en', referer = '', options = {}) => {
 	const { advancedMode = true } = options
 
-	const quickStartGuide = [...QUICK_START]
-	const instructionsGuide = [...INSTRUCTIONS]
-	const automationInstructionsGuide = [...INSTRUCTION_FOR_AUTOMATION]
+	let quickStartModeInstructions = {
+		default: normaliseGuide(QUICK_START),
+		blocks: []
+	}
+	let instructionModeInstructions = {
+		default: normaliseGuide(INSTRUCTIONS),
+		blocks: []
+	}
+	let automationModeInstructions = {
+		default: normaliseGuide(INSTRUCTION_FOR_AUTOMATION),
+		blocks: []
+	}
 
 	try {
-		// Attempt to Lazy load
-		// Load in our instruction tool kit
 		if (referer.length) {
 			const instructionLocation = `./locales/${language}/instructions${referer ? `-${referer}` : ''}.json`
 			const instructionsData = await fetchJSON(instructionLocation)
-			const customInstructions = selectCustomInstructionsForMode(instructionsData, advancedMode)
+			const modeInstructions = selectModeInstructions(instructionsData, advancedMode)
+			const normalisedModeInstructions = normaliseModeInstructions(modeInstructions)
 
-			if (customInstructions.length) {
-				quickStartGuide.unshift(...customInstructions)
-				instructionsGuide.unshift(...customInstructions)
-				automationInstructionsGuide.unshift(...customInstructions)
+			if (normalisedModeInstructions.default.length || normalisedModeInstructions.blocks.length) {
+				quickStartModeInstructions = normalisedModeInstructions
+				instructionModeInstructions = normalisedModeInstructions
+				automationModeInstructions = normalisedModeInstructions
 			}
 		}
 
+		const startedAt = performance.now()
+		const getElapsedSeconds = () => (performance.now() - startedAt) * 0.001
 		let instructionCount = 0
 
+		const getActiveGuide = modeInstructions =>
+			getModeInstructionsForElapsedTime(modeInstructions, getElapsedSeconds())
+
 		return {
-			getHelp: index => getIndexedInstruction(quickStartGuide, index),
-			getInstruction: index => getIndexedInstruction(instructionsGuide, index),
+			getHelp: index => getIndexedInstruction(getActiveGuide(quickStartModeInstructions), index),
+			getInstruction: index => getIndexedInstruction(getActiveGuide(instructionModeInstructions), index),
 			getNextInstruction: () => {
 				instructionCount += 1
-				return getIndexedInstruction(instructionsGuide, instructionCount)
+				return getIndexedInstruction(getActiveGuide(instructionModeInstructions), instructionCount)
 			},
-			getInstructionForAutomation: index => getIndexedInstruction(automationInstructionsGuide, index),
-			getQuantityOfHelp: () => quickStartGuide.length - 1,
-			getQuantityOfInstructions: () => instructionsGuide.length - 1
+			getInstructionForAutomation: index =>
+				getIndexedInstruction(getActiveGuide(automationModeInstructions), index),
+			getQuantityOfHelp: () => Math.max(1, getActiveGuide(quickStartModeInstructions).length),
+			getQuantityOfInstructions: () => Math.max(1, getActiveGuide(instructionModeInstructions).length)
 		}
 	} catch (error) {
 		// backup plan for failed JS loads

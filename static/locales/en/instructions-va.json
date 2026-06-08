@@ -1,41 +1,106 @@
 {
-	"basic": [
-		"Welcome to the Victoria & Albert Museum",
-		"and the October Half Term",
-		"Music Making Bonanza!",
-		"I'm a Photo<strong>SYNTH</strong>...",
-		"Smile or open your mouth to begin!",
-		"Pose like your favourite emoji for new sounds",
-		"Tilt your head to change notes and octaves",
-		"And carry on the fun at home!"
-	],
-	"advanced": [
-		"Welcome to the Victoria & Albert Museum",
-		"and the October Half Term",
-		"Music Making Bonanza!",
-		"",
-		"I'm a Photo<strong>SYNTH</strong>...",
-		"A SMILE POWERED SYNTHESIZER =D",
-		"Accessible musical instrument",
-		"(and super pop video machine!)",
-		">0_0<",
-		"Part of the Accessible Musical Instrument Collection",
-		"Curated by Drake Music",
-		"Smile or open your mouth to begin!",
-		"Change instruments and video effects by posing...",
-		"like your favourite emoji =P",
-		"Each expression will change the sound",
-		"Be fond and show your affection",
-		"For beautiful VFX",
-		"and remixed visuals",
-		"Tilt, twist and bend your neck",
-		"to change between notes and octaves",
-		"Your job is to make some beautiful music!",
-		"Things are definitely more fun with friends",
-		"And far more musical and interesting too!",
-		"Scan the QR code on the right to continue playing on your own device",
-		"And carry on the fun at home!",
-		"Or you can go to interface.place",
-		"Or photosynth.app to learn more."
-	]
+	"basic": {
+		"default": [
+			"Welcome to the Victoria & Albert Museum",
+			"and the October Half Term",
+			"Music Making Bonanza!",
+			"I'm a Photo<strong>SYNTH</strong>...",
+			"Smile or open your mouth to begin!",
+			"Pose like your favourite emoji for new sounds",
+			"Tilt your head to change notes and octaves",
+			"And carry on the fun at home!"
+		],
+		"blocks": [
+			{
+				"from": 0,
+				"for": 600,
+				"instructions": [
+					"Let's make music with faces. What face do you make when someone gives you a big cuddle?",
+					"What face do you make when your friend makes you laugh and you can't keep a straight face?",
+					"What face do you make when you find your favourite snack and it is exactly what you wanted?",
+					"What face do you make when you hear a very funny noise and need to know what it was?",
+					"What face do you make when you get a sticker and feel super proud?",
+					"What face do you make when someone says surprise and your eyebrows leap up?",
+					"What face do you make when you get to jump in a puddle and splash everywhere?",
+					"What face do you make when you build a very tall tower all by yourself?",
+					"What face do you make when you smell something yummy and want a taste?"
+				]
+			},
+			{
+				"from": 600,
+				"for": 600,
+				"instructions": [
+					"What face do you make when you drop your ice cream and watch it plop down?",
+					"What face do you make when it starts raining just when you want to play outside?",
+					"What face do you make when you lose your teddy and start looking everywhere?",
+					"What face do you make when someone says it's time to tidy up all the fun?",
+					"What face do you make when your tower falls down just before you show it off?",
+					"What face do you make when you taste something yucky and want to spit it out?",
+					"What face do you make when your socks feel wet and squelchy?",
+					"What face do you make when you can't find your shoe and need to leave soon?"
+				]
+			},
+			{
+				"from": 1200,
+				"for": 600,
+				"instructions": [
+					"What face do you make when you are waiting and waiting for your turn at last?",
+					"What face do you make when someone takes your toy without asking first?",
+					"What face do you make when you are trying not to laugh but the silly feeling grows?",
+					"What face do you make when someone shares with you and it feels kind?",
+					"What face do you make when someone won't share and you feel cross about it?",
+					"What face do you make when you hear your favourite song and want to dance straight away?",
+					"What face do you make when you are pretending to be a grumpy bear with a rumbly tummy?",
+					"What face do you make when you are surprised and don't know what will happen next?"
+				]
+			},
+			{
+				"from": 1800,
+				"for": 600,
+				"instructions": [
+					"What face do you make when you feel really sleepy and your eyelids feel heavy?",
+					"What face do you make when you are sleepy but trying to keep playing just a little longer?",
+					"What face do you make when you see a dog much bigger than you expected?",
+					"What face do you make when a monkey steals your banana and races away?",
+					"What face do you make when you see the biggest cake in the world and want a slice?",
+					"What face do you make when a feather tickles your nose and a sneeze is coming?",
+					"What face do you make when you are a king or queen on a throne and everyone is watching?",
+					"What face do you make when you are a dragon trying not to sneeze a puff of fire?",
+					"What face do you make when you are a lion with a sore paw trying to stay brave?"
+				]
+			}
+		]
+	},
+	"advanced": {
+		"default": [
+			"Welcome to the Victoria & Albert Museum",
+			"and the October Half Term",
+			"Music Making Bonanza!",
+			"",
+			"I'm a Photo<strong>SYNTH</strong>...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"Accessible musical instrument",
+			"(and super pop video machine!)",
+			">0_0<",
+			"Part of the Accessible Musical Instrument Collection",
+			"Curated by Drake Music",
+			"Smile or open your mouth to begin!",
+			"Change instruments and video effects by posing...",
+			"like your favourite emoji =P",
+			"Each expression will change the sound",
+			"Be fond and show your affection",
+			"For beautiful VFX",
+			"and remixed visuals",
+			"Tilt, twist and bend your neck",
+			"to change between notes and octaves",
+			"Your job is to make some beautiful music!",
+			"Things are definitely more fun with friends",
+			"And far more musical and interesting too!",
+			"Scan the QR code on the right to continue playing on your own device",
+			"And carry on the fun at home!",
+			"Or you can go to interface.place",
+			"Or photosynth.app to learn more."
+		],
+		"blocks": []
+	}
 }

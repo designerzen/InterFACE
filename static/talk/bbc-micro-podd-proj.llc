@@ -1,0 +1,12 @@
+{
+  version: 2,
+  mediaFileName: 'bbc-micro-podd.mp4',
+  cutSegments: [
+    {
+      start: 0,
+      end: 39.219896955892985,
+      name: '',
+      selected: true,
+    },
+  ],
+}
