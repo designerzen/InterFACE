@@ -77,11 +77,11 @@ import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
-import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
+import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
 import { connectDropZone } from './dom/drop-zone.js'
-import { drawMousePressure } from './dom/mouse-pressure'
+import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
@@ -123,7 +123,6 @@ import Person, {
 
 
 // TIMING
-import {midiLikeEvents} from './timing/rhythm.js'
 import { playNextPart, getKitSequence } from './timing/patterns.js'
 
 // FADFDFDSFSFDSFSFDssdsvv

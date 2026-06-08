@@ -1,7 +1,7 @@
-import { setToast } from '../dom/tooltips'
-import { createInstallButton } from '../dom/button'
-import { VERSION } from '../version'
-import {isSupportingBrowser} from './pwa'
+import { setToast } from '../dom/tooltips.js'
+import { createInstallButton } from '../dom/button.js'
+import { VERSION } from '../version.js'
+import {isSupportingBrowser} from './installation.js'
 import manifestPath from "url:../manifest.webmanifest"
 
 const body = document.documentElement

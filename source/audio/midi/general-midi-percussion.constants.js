@@ -3,7 +3,7 @@
 //  On MIDI Channel 10, each MIDI Note number ("Key#") corresponds to a different drum sound, as shown below.
 // GM-compatible instruments must have the sounds on the keys shown here.
 
-import { GENERAL_MIDI_INSTRUMENT_NAMES } from "./general-midi-instrument.constants"
+import { GENERAL_MIDI_INSTRUMENT_NAMES } from "./general-midi-instrument.constants.js"
 
 // FIXME: add the other drum sounds...
 export const GENERAL_MIDI_PERCUSSION_FRIENDLY = GENERAL_MIDI_INSTRUMENT_NAMES

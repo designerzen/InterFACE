@@ -3,7 +3,6 @@
  */
 import { fetchMIDIFileData, fetchMIDIFileThroughClient, loadRawFile } from "./midi-file-load"
 import MidiTrack from "./midi-track.js"
-import MIDI_FILE_WORKER_URI from './midi-file-load.worker.js'
 
 const createWorker = () => new Worker(
 	new URL("./midi-file-load.worker.js", import.meta.url ), {type: 'module'}

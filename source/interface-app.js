@@ -18,7 +18,7 @@ import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
-import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
+import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
 import { connectDropZone } from './dom/drop-zone.js'
@@ -284,6 +284,7 @@ export const createInterface = (
 	
 	// lazy loaded imports
 	let getInstruction, getHelp
+	let instructionTools
 	let textInstructionIndex = 0
 	let textHelpIndex = 0
 	let quantityInstructions = 0
@@ -311,6 +312,42 @@ export const createInterface = (
 			cancelable, // without that flag preventDefault doesn't work
 			detail:details
 		}) )
+	}
+
+	const updateInstructionCache = instructions => {
+		getInstruction = instructions.getInstruction
+		getHelp = instructions.getHelp
+		quantityInstructions = instructions.getQuantityOfInstructions()
+		quantityHelp = instructions.getQuantityOfHelp()
+		textInstructionIndex = 0
+		textHelpIndex = 0
+	}
+
+	const loadInstructionSet = async instructionLanguage => {
+		instructionTools ??= await import('./models/instructions.js')
+
+		const selectedLanguage = instructionLanguage ?? language
+		const instructionOptions = {
+			advancedMode: stateMachine.get('advancedMode'),
+			automationMode: stateMachine.get('automationMode')
+		}
+
+		let instructions = await instructionTools.getInstructions( selectedLanguage, referer, instructionOptions )
+
+		if (!instructions && selectedLanguage !== "en")
+		{
+			// native language instructions missing... should we load english as a fallback
+			instructions = await instructionTools.getInstructions( "en", referer, instructionOptions )
+		}
+
+		if (instructions)
+		{
+			updateInstructionCache( instructions )
+			return true
+		}
+
+		console.error("Couldn't load in languages")
+		return false
 	}
 
 
@@ -1244,6 +1281,18 @@ export const createInterface = (
 		})
 	}
 
+	const stopAllPersonAudio = () => {
+		const amountOfPeople = people.length
+		for ( let i=0; i<amountOfPeople; ++i )
+		{
+			const person = getPerson(i)
+			if (person)
+			{
+				stopPersonAudio(person)
+			}
+		}
+	}
+
 	/**
 	 * Toggle Start / Stop of the Recording
 	 * with optional defering where the record
@@ -1995,6 +2044,7 @@ export const createInterface = (
 		const isQuarterNote = clock.isQuarterNote
 		const isHalfNote = clock.isHalfNote
 		const isBar = clock.isAtStart
+		const isMuted = stateMachine.get("muted")
 
 		// const isBarStart = divisionsElapsed===0
 		// TODO: The timer is a good place to determine if the computer
@@ -2035,7 +2085,7 @@ export const createInterface = (
 
 
 		// Play metronome!
-		if ( stateMachine.get("metronome") && isBar )
+		if ( !isMuted && stateMachine.get("metronome") && isBar )
 		{
 			// TODO: change timbre for first & last stroke
 			const metronomeLength = 0.35
@@ -2048,7 +2098,11 @@ export const createInterface = (
 		// const notesPlayed = []
 				
 		// Temporal timing
-		if( stateMachine.get("quantise") )
+		if (isMuted)
+		{
+			stopAllPersonAudio()
+		}
+		else if( stateMachine.get("quantise") )
 		{
 			let shouldChangeToNextFilter = isBar
 			const amountOfPeople = people.length
@@ -2130,7 +2184,7 @@ export const createInterface = (
 		// a swing of one will offset every second beat
 		//const swing = 1
 		// isQuarterNote
-		if ( stateMachine.get("backingTrack") && isHalfNote)
+		if ( !isMuted && stateMachine.get("backingTrack") && isHalfNote)
 		{
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
@@ -2538,17 +2592,25 @@ export const createInterface = (
 		}
 
 		// setup the volume and turn up the amp
-		const onVolumeChanged = vol => {
-			setMasterVolume( vol )
-		}
-
 		const volume = (store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1 ) || 1
 		setVolume( volume )
 
 		const {	
 			setVisualVolumeLevel, 
 			toggleMute 
-		} = setupVolumeInterface( volume, false, onVolumeChanged ) 
+		} = setupVolumeInterface( volume, stateMachine.get( 'muted') ?? false, {
+			onVolumeChanged: vol => {
+				setMasterVolume( vol )
+			},
+			onMuteChanged: status => {
+				stateMachine.set( 'muted', status )
+				if (status)
+				{
+					stopAllPersonAudio()
+				}
+				setFeedback( status ? 'Volume Muted' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
+			}
+		} ) 
 
 		progressCallback(loadIndex/loadTotal, "Volume set to "+Math.ceil(volume*100)+"%")
 
@@ -3023,6 +3085,9 @@ export const createInterface = (
 	 * @param {Function} progressCallback 
 	 */
 	const setupInterfaceUI = (settings, progressCallback) => {
+		const syncAdvancedModeClass = advancedMode => {
+			document.documentElement.classList.toggle("beginner", !advancedMode)
+		}
 
 		// you can toggle any checkbox like...
 		// toggles.quantise.setAttribute('checked', value)
@@ -3089,11 +3154,7 @@ export const createInterface = (
 			setFeedback( flag ? "Hiding video enabled" : 'Hiding video disabled', 0 ) 
 		}, stateMachine.get( 'clear') )
 
-		// toggle mute
-		toggles.muted = setToggle( "button-mute", status =>{ 
-			stateMachine.set( 'muted', status )
-			setFeedback( status ? 'Volume Muted' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
-		}, stateMachine.get( 'muted') )
+		// toggle mute is owned by the volume interface
 
 		// FIXME: This does not work after refresh
 		// let discoPreviousState
@@ -3160,9 +3221,13 @@ export const createInterface = (
 		})
 	
 		toggles.advancedMode = setToggle( "button-toggle-advanced", status =>{
-			stateMachine.toggle( 'advancedMode' ) 
+			const advancedMode = stateMachine.toggle( 'advancedMode' ) 
+			syncAdvancedModeClass( advancedMode )
 			setFeedback( status ? 'Advanced' : 'Basic', 0 )
+			loadInstructionSet().catch( error => console.error("Failed to switch instruction mode", error) )
 		})
+
+		syncAdvancedModeClass( stateMachine.get('advancedMode') )
 	
 
 		// TODO : Set some up with double functions if held
@@ -3435,29 +3500,8 @@ export const createInterface = (
 		// upodate the load progress
 		progressCallback(loadIndex++/loadTotal, "Assembled!")
 		
-		// load in our instructions  & extras from our referer
-		const instructionTools = await import('./models/instructions.js')
-		
 		progressCallback(loadIndex++/loadTotal, "Instructions Available")
-		let instructions = await instructionTools.getInstructions( language, referer )
-		
-		if (!instructions)
-		{
-			// native language instructions missing... should we load english as a fallback
-			// TODO: Load in english as a fallback
-			instructions = await instructionTools.getInstructions( "en", referer )
-		}
-		if (instructions)
-		{
-			// cache methods & quantities of data for use with text fields later on
-			getInstruction = instructions.getInstruction
-			getHelp = instructions.getHelp
-			
-			quantityInstructions = instructions.getQuantityOfInstructions()
-			quantityHelp = instructions.getQuantityOfHelp()	
-		}else{
-			console.error("Couldn't load in languages")
-		}
+		await loadInstructionSet( language )
 	
 		// Load tf model and wait
 		// this gets returned then used an the update method
@@ -3735,6 +3779,7 @@ export const createInterface = (
 		stateMachine.set("players", quantityOfPlayers )
 		stateMachine.set("advancedMode", results.advancedMode  ?? false )
 		stateMachine.set("automationMode", automationMode )
+		loadInstructionSet().catch( error => console.error("Failed to refresh instructions after mode selection", error) )
 	})
 
 	//console.warn("Loading machine learning models with options", modelOptions)

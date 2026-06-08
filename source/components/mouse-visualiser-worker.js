@@ -1,4 +1,4 @@
-import { easeOutSine } from "../easing"
+import { easeOutSine } from "../maths/easing.js"
 
 const TAU = Math.PI * 2
 const FRICTION = 0.3

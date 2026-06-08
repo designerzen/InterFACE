@@ -42,7 +42,7 @@ import { initializeWamHost } from "@webaudiomodules/sdk"
 
 import SoundFont from '../audio/sound-font.js'
 import { loadInstrumentFromSoundFont, convertArrayToBuffer } from "../audio/audio.js"
-import { CMD_DECODE, CMD_LOAD_SOUNDFONT_PART, EVENT_DECODED } from "../audio/fetch.audio.worker.js"
+import { CMD_DECODE, EVENT_DECODED } from "../audio/fetch.audio.worker.js"
 
 import { loadMIDI, loadMIDIFile, loadMIDIFileThroughClient } from '../audio/midi/midi-file.js'
 
@@ -54,7 +54,7 @@ import MIDIInstrument from '../audio/instruments/instrument.midi.js'
 import OscillatorInstrument from '../audio/instruments/instrument.oscillator.js'
 import RecordInstrument from '../audio/instruments/instrument.record.js'
 
-import { unzip } from '../utils/zlib.js'
+import Zlib from '../utils/zlib.js'
 import { extractZip } from '../utils/zip.js'
 import { GENERAL_MIDI_FAMILIES, GENERAL_MIDI_FAMILY_DICTIONARY, GENERAL_MIDI_INSTRUMENT_FAMILIES, GENERAL_MIDI_INSTRUMENTS, GENERAL_MIDI_INSTRUMENT_FAMILY_IDS } from '../audio/midi/general-midi.constants.js'
 
@@ -896,3 +896,4 @@ const test = async () => {
 // Required to start any kind of audio interaction & playback
 document.addEventListener("click", init, {once:true})
 // document.addEventListener("click", test, {once:true})
+const { unzip } = Zlib

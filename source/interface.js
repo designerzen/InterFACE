@@ -16,7 +16,7 @@ import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
-import { setButton, setPressureButton, setupMIDIButton } from './dom/button.js'
+import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
 import { appendAudioElement} from './dom/audio-element.js'
 import { connectDropZone } from './dom/drop-zone.js'
@@ -121,7 +121,7 @@ import { WebMidi } from 'webmidi'
 
 // THEME
 import { getThemeFromReferer, setTheme, setupThemeControls } from './theme/theme.js'
-import { fetchBrandColor } from './settings/palette.js'
+import { fetchBrandColor as fetchBrandColour } from './settings/palette.js'
 
 // DISPLAYS
 import DisplayManager, { getDisplaysInformation } from './display/display-manager.js'
@@ -169,33 +169,28 @@ import { formatTimeStampFromSeconds } from 'netronome'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 import { createDisplayOptions } from './dom/ui.display.js'
 
-import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STATE_LOADING } from './interface-event.js'
+import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STATE_LOADING, EVENT_STATE_PARKED } from './interface-event.js'
 
-// Asset Paths
-// assets\audio\wave-tables\general-midi.zip
-// import WAVE_ARCHIVE_GENERAL_MIDI from "url:./assets/audio/wave-tables/general-midi.zip" 
-// import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
-
-// Lazily loaded in load() method
-// import { getInstruction, getHelp } from './models/instructions'
-const doc = document	// using a reference allows truncation
-const body = doc.documentElement
-
-// this can point to the camera stream or a custom local video
-const video = doc.querySelector("video")
+export const APPLICATION_EVENTS = {
+	LOADING: EVENT_STATE_LOADING,
+	LOADED: EVENT_STATE_LOADED,
+	PARKED: EVENT_STATE_PARKED
+}
 
 // accessibility controls
 let a11y
 
+// Singleton
 let instance = null
 class PhotoSYNTH{
 	constructor( publicMethods )
 	{
-		const keys = Object.keys(publicMethods)
-		keys.forEach( key => {
-			this[key] = publicMethods[key]
-		})
-		// console.log("PhotoSYNTH", this)
+		// const keys = Object.keys(publicMethods)
+		// keys.forEach( key => {
+		// 	this[key] = publicMethods[key]
+		// })
+		Object.assign( this, publicMethods )
+		console.log("PhotoSYNTH Created", this)
 	}
 }
 
@@ -232,9 +227,13 @@ export const createInterface = (
 	// save timestamp
 	const timeInitialised = Date.now()
 
+	const doc = document	// using a reference allows truncation
+	const body = doc.documentElement
+
 	// fetch some elements from the DOM
 	const main = doc.querySelector("main")
 	const appFrame = doc.getElementById("app-frame")
+	const video = main.querySelector("video")	// this can point to the camera stream or a custom local video
 
 	// Buttons + Toggles
 	const buttonRecordAudio = doc.getElementById("button-record-audio")
@@ -249,7 +248,6 @@ export const createInterface = (
 	const countdownProgressElement = doc.getElementById("countdown-progress")
 	const timeElapsedElement = doc.getElementById("time-elapsed")
 	const timeTotalElement = doc.getElementById("time-total")
-
 
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
@@ -287,6 +285,7 @@ export const createInterface = (
 	
 	// lazy loaded imports
 	let getInstruction, getHelp
+	let instructionTools
 	let textInstructionIndex = 0
 	let textHelpIndex = 0
 	let quantityInstructions = 0
@@ -298,8 +297,8 @@ export const createInterface = (
 	const selects = {}
 	const buttons = {}
 
-	// SharedLocal cookie data 
-	const information = Object.assign({
+	// SharedLocal cookie data includes time played for, return visits etc.
+	const applicationMetrics = Object.assign({
 		lastTime:-1,
 		count:0
 	}, store.getItem('meta'))
@@ -310,6 +309,42 @@ export const createInterface = (
 	}
 	const dispatchEvent = ( type, details ) => {
 		main.dispatchEvent( new InterfaceEvent(type, details) )
+	}
+
+	const updateInstructionCache = instructions => {
+		getInstruction = instructions.getInstruction
+		getHelp = instructions.getHelp
+		quantityInstructions = instructions.getQuantityOfInstructions()
+		quantityHelp = instructions.getQuantityOfHelp()
+		textInstructionIndex = 0
+		textHelpIndex = 0
+	}
+
+	const loadInstructionSet = async instructionLanguage => {
+		instructionTools ??= await import('./models/instructions.js')
+
+		const selectedLanguage = instructionLanguage ?? language
+		const instructionOptions = {
+			advancedMode: stateMachine.get('advancedMode'),
+			automationMode: stateMachine.get('automationMode')
+		}
+
+		let instructions = await instructionTools.getInstructions( selectedLanguage, referer, instructionOptions )
+
+		if (!instructions && selectedLanguage !== "en")
+		{
+			// native language instructions missing... should we load english as a fallback
+			instructions = await instructionTools.getInstructions( "en", referer, instructionOptions )
+		}
+
+		if (instructions)
+		{
+			updateInstructionCache( instructions )
+			return true
+		}
+
+		console.error("Couldn't load in languages")
+		return false
 	}
 
 
@@ -345,7 +380,7 @@ export const createInterface = (
 	// COLOURS ---------------------------------------------------------------
 
 	// start with default theme colour
-	let colorBrand = fetchBrandColor()
+	let colourBrand = fetchBrandColour()
 	
 	// STATE -----------------------------------------------------------------
 	const barcodeCache = new Map()
@@ -358,7 +393,7 @@ export const createInterface = (
 		}else{
 			svg = await createSVGQRCodeFromURL( {
 				content:bookmark,
-				color :colorBrand,
+				color :colourBrand,
 				// background : PALETTE.white, // "#ffffff",		
 			} ) 
 			barcodeCache.set(bookmark, svg)
@@ -969,8 +1004,8 @@ export const createInterface = (
 
 		person.addEventListener( EVENT_EMOTION_UNLOCKED,  (event) => {
 			const {detail} = event.data
-			const {emoticon, person} = detail
-			console.log(`[${person.name}] Achievement ${emoticon} Unlocked!: ${person.achievements.score}`)
+			const {achievement, emoticon, person} = detail
+			console.log(`[${person.name}] Achievement ${achievement?.title ?? emoticon} Unlocked!: ${person.achievementPoints}`)
 		})
 
 		person.addEventListener( EVENT_PERSON_BORN,  (event) => {
@@ -1199,6 +1234,8 @@ export const createInterface = (
 			}
 		}
 
+		person.trackNoteAchievement?.(person.noteNumber, person.state)
+
 
 		// if (stateMachine.get("midiOnly") && person.singing)
 			// const commands = midiPerformance.getNextCommands() || []
@@ -1346,6 +1383,18 @@ export const createInterface = (
 			// console.log("sing", instrument.type, person.state, { instrument, person } )
 			instrument.noteOff()
 		})
+	}
+
+	const stopAllPersonAudio = () => {
+		const amountOfPeople = personManager.quantityOfPlayers
+		for ( let i=0; i<amountOfPeople; ++i )
+		{
+			const person = personManager.getPerson(i)
+			if (person)
+			{
+				stopPersonAudio(person)
+			}
+		}
 	}
 
 	/**
@@ -2323,6 +2372,7 @@ export const createInterface = (
 		const isQuarterNote = clock.isQuarterNote
 		const isHalfNote = clock.isHalfNote
 		const isBar = clock.isAtStart
+		const isMuted = stateMachine.get("muted")
 
 		// const isBarStart = divisionsElapsed===0
 		// TODO: The timer is a good place to determine if the computer
@@ -2382,7 +2432,7 @@ export const createInterface = (
 		hasBeatJustPlayed = true
 
 		// Play metronome!
-		if ( stateMachine.get("metronome") && isBar )
+		if ( !isMuted && stateMachine.get("metronome") && isBar )
 		{
 			// TODO: change timbre for first & last stroke
 			const metronomeLength = 0.35
@@ -2395,7 +2445,11 @@ export const createInterface = (
 		// const notesPlayed = []
 				
 		// Temporal timing
-		if( stateMachine.get("quantise") )
+		if (isMuted)
+		{
+			stopAllPersonAudio()
+		}
+		else if( stateMachine.get("quantise") )
 		{
 			let shouldChangeToNextFilter = false
 			const amountOfPeople = personManager.quantityOfPlayers
@@ -2478,7 +2532,7 @@ export const createInterface = (
 		// a swing of one will offset every second beat
 		//const swing = 1
 		// isQuarterNote
-		if ( stateMachine.get("backingTrack") && isHalfNote)
+		if ( !isMuted && stateMachine.get("backingTrack") && isHalfNote)
 		{
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
@@ -2897,17 +2951,25 @@ export const createInterface = (
 		}
 
 		// setup the volume and turn up the amp
-		const onVolumeChanged = vol => {
-			setMasterVolume( vol )
-		}
-
 		const volume = (store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1 ) || 1
 		setVolume( volume )
 
 		const {	
 			setVisualVolumeLevel, 
 			toggleMute 
-		} = setupVolumeInterface( volume, false, onVolumeChanged ) 
+		} = setupVolumeInterface( volume, stateMachine.get( 'muted') ?? false, {
+			onVolumeChanged: vol => {
+				setMasterVolume( vol )
+			},
+			onMuteChanged: status => {
+				stateMachine.set( 'muted', status )
+				if (status)
+				{
+					stopAllPersonAudio()
+				}
+				setFeedback( status ? 'Volume Muted' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
+			}
+		} ) 
 
 		progressCallback(loadIndex/loadTotal, "Volume set to "+Math.ceil(volume*100)+"%")
 
@@ -3384,6 +3446,9 @@ export const createInterface = (
 	 * @param {Function} progressCallback 
 	 */
 	const setupInterfaceUI = (settings, progressCallback) => {
+		const syncAdvancedModeClass = advancedMode => {
+			document.documentElement.classList.toggle("beginner", !advancedMode)
+		}
 
 		// you can toggle any checkbox like...
 		// toggles.quantise.setAttribute('checked', value)
@@ -3455,11 +3520,7 @@ export const createInterface = (
 			setFeedback( flag ? "Hiding video enabled" : 'Hiding video disabled', 0 ) 
 		}, stateMachine.get( 'clear') )
 
-		// toggle mute
-		toggles.muted = setToggle( "button-mute", status =>{ 
-			stateMachine.set( 'muted', status )
-			setFeedback( status ? 'Volume Muted' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
-		}, stateMachine.get( 'muted') )
+		// toggle mute is owned by the volume interface
 
 		// FIXME: This does not work after refresh
 		// let discoPreviousState
@@ -3526,9 +3587,13 @@ export const createInterface = (
 		})
 	
 		toggles.advancedMode = setToggle( "button-toggle-advanced", status =>{
-			stateMachine.toggle( 'advancedMode' ) 
+			const advancedMode = stateMachine.toggle( 'advancedMode' ) 
+			syncAdvancedModeClass( advancedMode )
 			setFeedback( status ? 'Advanced' : 'Basic', 0 )
+			loadInstructionSet().catch( error => console.error("Failed to switch instruction mode", error) )
 		})
+
+		syncAdvancedModeClass( stateMachine.get('advancedMode') )
 	
 		// TODO : Set some up with double functions if held
 		// Recording bars by holding...
@@ -3771,7 +3836,7 @@ export const createInterface = (
 		// a11y.show()
 		
 		// paint next frame immediately
-		colorBrand = fetchBrandColor()
+		colourBrand = fetchBrandColour()
 		createQRCodeFromURL(url.toString()).then( qr => {
 			// console.info("URL for QRCode", {qr, url, href:url.toString()})
 		})
@@ -3780,7 +3845,7 @@ export const createInterface = (
 			// update state!
 			stateMachine.set("theme", newTheme )
 			// overwrite brand colour and update front end
-			colorBrand = fetchBrandColor()
+			colourBrand = fetchBrandColour()
 		} )
 
 		// VISUALISERS ------------------------------------------------
@@ -3807,29 +3872,8 @@ export const createInterface = (
 		// upodate the load progress
 		progressCallback(loadIndex++/loadTotal, "Assembled!")
 		
-		// load in our instructions  & extras from our referer
-		const instructionTools = await import('./models/instructions.js')
-		
 		progressCallback(loadIndex++/loadTotal, "Instructions Available")
-		let instructions = await instructionTools.getInstructions( language, referer )
-		
-		if (!instructions)
-		{
-			// native language instructions missing... should we load english as a fallback
-			// TODO: Load in english as a fallback
-			instructions = await instructionTools.getInstructions( "en", referer )
-		}
-		if (instructions)
-		{
-			// cache methods & quantities of data for use with text fields later on
-			getInstruction = instructions.getInstruction
-			getHelp = instructions.getHelp
-			
-			quantityInstructions = instructions.getQuantityOfInstructions()
-			quantityHelp = instructions.getQuantityOfHelp()	
-		}else{
-			console.error("Couldn't load in languages")
-		}
+		await loadInstructionSet( language )
 	
 		// Load tf model and wait
 		// this gets returned then used an the update method
@@ -3849,37 +3893,38 @@ export const createInterface = (
 	// We avoid setting feedback until part 2 of loading...
 	//setFeedback("Initialising...<br> Please wait")
 	loadProgressMediator(0, "Loading... Please wait")
+
+	const loadSharing = async () => {
+		try{
+			// load the share menu :)
+			const sharer = await import('share-menu')
+			body.classList.add("sharing-enabled")
+			// const dialogShare = document.getElementById("dialog-share")
+			// dialogShare.showModal()
+			// dialog.hidden = false
+			return true
+
+		}catch(error){
+			// disable the share menu...
+			body.classList.add("sharing-disabled")
+			return false
+		}
+	}
 	
 	/**
 	 * loadExtras : load uneccessary files used later in this app
 	 */
 	let extrasLoaded = false
 	const loadExtras = async ()=> {
-
-		if (extrasLoaded)
+		if (!extrasLoaded)
 		{
-			return
-		}
-
-		extrasLoaded = true
-		
-		try{
-			// load the share menu :)
-			const sharer = await import('share-menu')
-			body.classList.add("sharing-enabled")
-
-			// const dialogShare = document.getElementById("dialog-share")
-			// dialogShare.showModal()
-			// dialog.hidden = false
-
-		}catch(error){
-			// disable the share menu...
-			body.classList.add("sharing-disabled")
+			await loadSharing()
+			extrasLoaded = true
 		}
 	}
 
 
-	// loop until loaded...
+	// Loops until loaded...
 	const loadingLoop = async () => {
 		// console.log("loading", {isLoading, userLocated: isPersonLocatable, isCameraLoading})
 		if ( isLoading )
@@ -3906,7 +3951,6 @@ export const createInterface = (
 	 * no music or SPECIAL effects but can be used to guide the users
 	 */
 	const lookForUser = () => {
-
 		const SEARCHING_FOR_USERS_CLASS = "searching-for-user"
 		const waitForUser = () => {
 			if (!isPersonLocatable)
@@ -3932,6 +3976,7 @@ export const createInterface = (
 	 * Loading COMPLETED
 	 */
 	const onLoaded = async () => {
+		const quantityOfPlayers = stateMachine.get("players")
 
 		body.classList.toggle("loading", false)
 		body.classList.toggle("loaded", true)
@@ -3941,7 +3986,7 @@ export const createInterface = (
 		stateMachine.preventAutoScrolling()
 
 		// now create all the people we will need!
-		for (let i=0; i< stateMachine.get("players"); ++i)
+		for (let i=0; i<quantityOfPlayers; ++i)
 		{
 			const person = createPerson( i )
 			// console.assert( !debug, i, "Person created", person)
@@ -3992,7 +4037,7 @@ export const createInterface = (
 			setBroadCaster,
 
 			options:stateMachine.asObject, 
-			...information,
+			...applicationMetrics,
 			setAutomator,
 			setDiscoMode,toggleDiscoMode,
 		
@@ -4072,13 +4117,12 @@ export const createInterface = (
 	 * Quit the app and save any settings locally
 	 */
 	const quit = () => {
-
-		const duration = Date.now() - timeInitialised
+		const playDuration = Date.now() - timeInitialised
 		// try and locally store any changes to the interface and settings
-		const saveSession = Object.assign({}, information, {
+		const saveSession = Object.assign({}, applicationMetrics, {
 			lastTime:timeInitialised,
-			count:(information.count??0)+1,
-			duration:(information.duration??0)+duration
+			count:(applicationMetrics.count??0)+1,
+			duration:(applicationMetrics.duration??0)+playDuration
 		})
 		store.setItem('meta', saveSession)
 		
@@ -4109,6 +4153,7 @@ export const createInterface = (
 		stateMachine.set("players", quantityOfPlayers )
 		stateMachine.set("advancedMode", results.advancedMode  ?? false )
 		stateMachine.set("automationMode", automationMode )
+		loadInstructionSet().catch( error => console.error("Failed to refresh instructions after mode selection", error) )
 	})
 
 	//console.warn("Loading machine learning models with options", modelOptions)
@@ -4154,12 +4199,8 @@ export const createInterface = (
 		// now we can update some of the options in the ML model
 		// as the models have loaded already at this point...
 		modelOptions.maxFaces = modelOptions.numFaces = stateMachine.get('players')
-		
-		// console.info("setFaceLandmarkerOptions", modelOptions )
-		
 		await setFaceLandmarkerOptions( modelOptions )
-
-		// console.info("Players", stateMachine.get('players') )
+		// console.info("Players", stateMachine.get('players'), modelOptions )
 		
 		// reset the progress meter for loading the second half
 		loadPercent = 0
@@ -4227,7 +4268,7 @@ export const createInterface = (
 		// })
 
 		// OFFLINE / ONLINE 
-		const updateOfflineStatus = (event) => {
+		const onInternetConnectionChanged = (event) => {
 			isOnline = navigator.onLine
 			body.classList.toggle("offline", !isOnline)
 				
@@ -4236,9 +4277,10 @@ export const createInterface = (
 				setFeedback("You are online", 0, 'online')
 			}
 		}
-		window.addEventListener("online", updateOfflineStatus)
-		window.addEventListener("offline", updateOfflineStatus)
-		updateOfflineStatus()
+
+		window.addEventListener("online", onInternetConnectionChanged)
+		window.addEventListener("offline", onInternetConnectionChanged)
+		onInternetConnectionChanged()
 
 		// Tab hide / reveal
 		// window.addEventListener("pageshow", (event) => {
@@ -4259,7 +4301,7 @@ export const createInterface = (
 	})
 		
 	/**
-	 * Factory method for creating PhotoSYNTH instances
+	 * Factory method for creating PhotoSYNTH instances as Singletons
 	 * @param {Object} data - whatever
 	 * @returns {PhotoSYNTH} class populated with public methods and events
 	 */

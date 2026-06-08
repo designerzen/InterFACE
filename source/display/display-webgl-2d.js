@@ -1,5 +1,5 @@
 import AbstractDisplay from "./display-abstract.js"
-import { DISPLAY_WEB_GL } from "./display-types.js"
+import { DISPLAY_WEB_GL_3D as DISPLAY_WEB_GL } from "./display-types.js"
 
 // Basic vertex and fragment shaders for 2D rendering
 const VERTEX_SHADER = `

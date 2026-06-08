@@ -2,9 +2,9 @@
 // await checkForUpdates() => { currentVersion:0.0.1, newVersion:0.0.2, updateAvailable:true } 
 
 // Fix some issues with early browsers
-import './servicewaiting.polyfill'
-import { VERSION } from '../version'
-import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform'
+import './servicewaiting.polyfill.js'
+import { VERSION } from '../version.js'
+import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform.js'
 import serviceWorkerPath from "url:../service-worker.js"
 
 const INSTALLED_VERSION_KEY = 'photosynth'

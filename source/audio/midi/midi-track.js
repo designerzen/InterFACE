@@ -4,7 +4,7 @@
  */
 
 import AudioTrack from '../audio-track.js'
-import { GENERAL_MIDI_INSTRUMENTS } from './general-midi.constants'
+import { GENERAL_MIDI_INSTRUMENTS } from './general-midi.constants.js'
 import MIDICommand from './midi-command.js'
 import * as MIDICommands from './midi-commands'
 

@@ -13863,3 +13863,6 @@ zlib=call_me_man('zlib');
 
 },{"zlib":8}]},{},[51]);
 module.exports = zlib;
+export default zlib;
+export const deflate = zlib?.deflate;
+export const unzip = zlib?.unzip;

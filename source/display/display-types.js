@@ -23,3 +23,5 @@ export const DISPLAY_TYPES = {
 	DISPLAY_CANVAS_2D,
 	DISPLAY_COMPOSITE
 }
+
+export const DISPLAY_IDS = Object.values(DISPLAY_TYPES)

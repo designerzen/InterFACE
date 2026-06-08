@@ -2,28 +2,28 @@
 
 // watch for MIDI connections -> link with timer and show stuff onscreen
 
-import AUDIO from "url:./assets/audio/metronome.wav"
+import AUDIO from "url:../assets/audio/metronome.wav"
 import { AudioTimer, convertBPMToPeriod, TIMER_TYPE_ROLLING, TIMER_TYPE_SET_INTERVAL, TIMER_TYPE_SET_TIMEOUT } from 'netronome'
 
-import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
-import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import MIDIConnectionManager from '../audio/midi/midi-connection-manager.js'
+import WebMIDIClass from '../audio/midi/midi-connection-webmidi.js'
 
-import {addToolTips} from './dom/tooltips.js'		
-import {setupThemeControls} from './theme/theme.js'
-import { setupTempoInterface } from './dom/ui.tempo.js'
-import { setupVolumeInterface } from './dom/ui.volume.js'
-import { setupInterface } from './dom/ui.js'
-import { setMIDIControls } from './dom/ui.midi.js'
-import { setupFeedbackControls } from "./dom/text.js"
+import {addToolTips} from '../dom/tooltips.js'		
+import {setupThemeControls} from '../theme/theme.js'
+import { setupTempoInterface } from '../dom/ui.tempo.js'
+import { setupVolumeInterface } from '../dom/ui.volume.js'
+import { setupInterface } from '../dom/ui.js'
+import { setMIDIControls } from '../dom/ui.midi.js'
+import { setupFeedbackControls } from "../dom/text.js"
 
-import MIDIInstrument from './audio/instruments/instrument.midi.js'
+import MIDIInstrument from '../audio/instruments/instrument.midi.js'
 
 import { 
 	getRecordableOutputNode,
 	active, playing, 
 	setupAudio,	audioContext,
 	getVolume, setVolume, getPercussionNode 
-} from './audio/audio.js'
+} from '../audio/audio.js'
 
 const COOKIE = "delicious-cookie"
 

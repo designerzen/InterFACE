@@ -2,7 +2,7 @@
 
 import {Pane} from 'tweakpane'
 import { active, playing, setupAudio } from '../audio/audio.js'
-import { playNextPart, kitSequence } from '../timing/patterns.js'
+import { playNextPart } from '../timing/patterns.js'
 import GamePad from '../hardware/gamepad/gamepad.js'
 import * as COMMANDS from '../hardware/gamepad/gamepad-commands.js'
 import { GAME_PAD_CONNECTED, GAME_PAD_DISCONNECTED, GamePadManager } from '../hardware/gamepad/gamepad-manager.js'
@@ -34,7 +34,8 @@ import {
 
 import Person from '../people/person.js'
 import { createInstrumentFromData, lazilyLoadInstrument } from '../audio/instrument-factory.js'
-import { CHORD_INTERVALS_NAMES, CHORD_INTERVALS, createChordsForNoteNumber, createJazzChord, createMajorChord, createMinorChord, getAllChordsForNoteNumber, TUNING_MODE_NAMES } from '../audio/tuning/chords.js'
+import { CHORD_INTERVALS_NAMES, CHORD_INTERVALS, createChordsForNoteNumber, createJazzChord, createMajorChord, createMinorChord, getAllChordsForNoteNumber } from '../audio/tuning/chords.js'
+import { TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
 import SVGKeyboard from '../visual/2d.keyboard-svg.js'
 import * as INSTRUMENT from '../audio/instrument-list.js'
 

@@ -1,4 +1,4 @@
-import { loadMIDIFile } from './midi-file-load'
+import { loadMIDIFile } from './midi-file.js'
 
 // import midiFileFrontieres from '../../assets/audio/midi_midi-sans-frontieres.mid'
 // import midiFileNyanCat from '../../assets/audio/midi_nyan-cat.mid'
