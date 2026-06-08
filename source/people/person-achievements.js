@@ -1,4 +1,4 @@
-import achievementsData from './achievements.json'
+import { ACHIEVEMENT_DEFINITIONS } from "./person-achievement-definitions.js"
 
 /**
  * This is a way to unlock new activities
@@ -23,20 +23,30 @@ export default class Achievements{
 	/**
 	 * Unlock
 	 */
-	unlock( emoticon ){
-		// find this achievement and unlock it
-		const lockedAchievement = this.locked.get( emoticon )
-		// unlock
+	unlock( id ){
+		const lockedAchievement = this.locked.get( id )
 		if (lockedAchievement)
 		{
-			// achivement unlockd!
-			this.locked.delete( emoticon )
+			this.locked.delete( id )
 			this.unlocked.push( lockedAchievement )
 			this.#score += lockedAchievement.score
 			return lockedAchievement
 		}
 	
 		return false
+	}
+
+	evaluate(stats){
+		const unlockedAchievements = []
+
+		this.locked.forEach((achievement, id) => {
+			if (achievement.test(stats))
+			{
+				unlockedAchievements.push(this.unlock(id))
+			}
+		})
+
+		return unlockedAchievements.filter(Boolean)
 	}
 
 	/**
@@ -47,9 +57,8 @@ export default class Achievements{
 		this.unlocked = []
 		this.locked = new Map()
 
-		// loop through the achievement list
-		Object.entries( achievementsData ).forEach( ([ emoticon, data ]) => {
-			this.locked.set( emoticon, data )
+		ACHIEVEMENT_DEFINITIONS.forEach(achievement => {
+			this.locked.set(achievement.id, achievement)
 		})
 	}
 }

@@ -47,6 +47,10 @@ const eyeBrowStyle = {
 	lineWidth: 1 
 }
 
+const highlightFaceOvalStyle = {
+	color: "white",
+	lineWidth: 4
+}
 
 export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawingUtils, FaceLandmarker, displayOptions={} ) => {
 
@@ -134,6 +138,17 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 				{ color, lineWidth: 1 }
 			)
 		}
+	}
+
+	if (person.isHighlighted || person.isSelected)
+	{
+		const outlineAlpha = person.isSelected ? 1 : 0.5
+		highlightFaceOvalStyle.color = `hsla(${person.hue},${Math.min(100, options.saturation + 20)}%,${Math.max(20, options.luminosity)}%,${outlineAlpha})`
+		drawingUtils.drawConnectors(
+			landmarks,
+			FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
+			highlightFaceOvalStyle
+		)
 	}
 
 

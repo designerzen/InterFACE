@@ -72,7 +72,7 @@ import {
 	getGeneralMIDIInstrumentFolders, getInstrumentTitle, 
 	getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex, getRandomLeadPresetIndex 
 } from '../audio/sound-font-instruments.js'
-import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants"
+import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 
 import { 
 	convertHeadOrientationIntoNoteData, 
@@ -758,11 +758,12 @@ export default class Person extends EventTarget{
 		this.options.inputMode = normalisedMode
 		if (normalisedMode === PERSON_TYPE_PLAYER && previousMode !== PERSON_TYPE_PLAYER)
 		{
-			this.personalProgress?.markStartTime()
+			this.handleUnlockedAchievements(this.personalProgress?.startPlayerMode(this.now), {trigger:"player-mode"})
 			this.trackEmotionAchievement(this.emoticon)
 		}
 		if (normalisedMode !== PERSON_TYPE_PLAYER)
 		{
+			this.handleUnlockedAchievements(this.personalProgress?.stopPlayerMode(this.now), {trigger:"player-mode"})
 			this.recentAchievement = null
 			this.recentAchievementAt = -1
 		}
@@ -999,29 +1000,51 @@ export default class Person extends EventTarget{
 		this.dispatchEvent(new PersonEvent( type, {detail: data}))
 	}
 
+	handleUnlockedAchievements(achievements = [], context = {}){
+		if (!Array.isArray(achievements) || achievements.length === 0)
+		{
+			return false
+		}
+
+		achievements.forEach(achievement => {
+			this.recentAchievement = { emoticon:context.emoticon ?? achievement.emoticon, achievement }
+			this.recentAchievementAt = this.now
+			this.dispatchPersonEvent(EVENT_EMOTION_UNLOCKED, {
+				...context,
+				emoticon:context.emoticon ?? achievement.emoticon,
+				achievement,
+				points:achievement.score,
+				totalPoints:this.achievementPoints,
+				progressScore:this.personalProgress.score,
+				person:this
+			})
+		})
+
+		return achievements
+	}
+
 	trackEmotionAchievement(emoticon){
 		if (!this.isPlayerMode)
 		{
 			return false
 		}
 
-		const achievement = this.personalProgress.experienceEmotion( emoticon )
-		if (!achievement)
+		return this.handleUnlockedAchievements(
+			this.personalProgress.trackExpression(emoticon),
+			{trigger:"expression", emoticon}
+		)
+	}
+
+	trackNoteAchievement(noteNumber = this.noteNumber, state = this.state, time = this.now){
+		if (!this.isPlayerMode)
 		{
 			return false
 		}
 
-		this.recentAchievement = { emoticon, achievement }
-		this.recentAchievementAt = this.now
-		this.dispatchPersonEvent(EVENT_EMOTION_UNLOCKED, {
-			emoticon,
-			achievement,
-			points:achievement.score,
-			totalPoints:this.achievementPoints,
-			progressScore:this.personalProgress.score,
-			person:this
-		})
-		return achievement
+		return this.handleUnlockedAchievements(
+			this.personalProgress.trackNote(noteNumber, state, time),
+			{trigger:"note", noteNumber, state}
+		)
 	}
 
 	/**
@@ -1106,6 +1129,10 @@ export default class Person extends EventTarget{
 		}
 
 		this.lastTimeActive = timeNow
+		if (this.isPlayerMode)
+		{
+			this.handleUnlockedAchievements(this.personalProgress.tick(timeNow ?? this.now), {trigger:"engagement"})
+		}
 
 		// save all the parameters for recall later on...
 		if (this.isRecordingParameters)
@@ -1559,7 +1586,7 @@ export default class Person extends EventTarget{
 		const thirdHeadWidth = boxWidth * 0.333
 		const halfHeadWidth = boxWidth * 0.5
 
-		const instrumentTitle = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
+		let title = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
 		
 		// as this should never be negative, we can use this to offset the text
 		const textX = xMin + halfHeadWidth - 9
@@ -1586,14 +1613,15 @@ export default class Person extends EventTarget{
 		if ( this.isUserSelectingMode ){
 
 			// User is selecting the next operating mode
-			this.drawInstrumentText( display, textX, textY, "Choose Mode", this.nextUserModeData?.description ?? '', 14 ) 
-
+			title = "Change mode to " + (this.nextUserModeData?.description ?? '')
+		
 		} else if ( this.isUserSelectingInputType ){
 
 			// User is selecting the TYPE
-			this.drawInstrumentText( display, textX, textY, "Choose Type", '', 14 ) 
-
-		} else if ( this.isMouseOver || this.instrumentLoading ){
+			title = "Change type to " + (this.nextUserModeData?.description ?? '')
+		} 
+		
+		if ( this.isMouseOver || this.instrumentLoading ){
 		
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
@@ -1609,7 +1637,7 @@ export default class Person extends EventTarget{
 				{	
 					// user is holding mouse down on user...
 					// display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
-					this.drawInstrumentText( display, xMin, yMin - 25, instrumentTitle, `Select`, 14 ) 
+					this.drawInstrumentText( display, xMin, yMin - 25, title, `Select`, 14 ) 
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
 					display.drawParagraph( xMax, yMax + 15, [`Press me`], 9 )
@@ -1618,17 +1646,22 @@ export default class Person extends EventTarget{
 					// we use CSS and it is only hidden here?
 				}else{
 
-					this.drawInstrumentText( display, xMin, yMin - 25, instrumentTitle, `${100-percentageRemaining}`, 14 ) 
+					this.drawInstrumentText( display, xMin, yMin - 25, title, `${100-percentageRemaining}`, 14 ) 
 					// display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
 					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], 11 )
 				}
 
 			}else{
+				const text = [
+					'Tap for a random instrument',
+					'        PRESS & HOLD'
+					, 'to choose instrument'
+				]
 				
 				// No mouse held
-				display.drawInstrument( textX, textY, instrumentTitle, "", 14)
-				display.drawParagraph( textX - 66, textY + 22, ['        PRESS & HOLD', 'to choose instrument'], 12 )		
+				display.drawInstrument( textX, textY, title, "", 14)
+				display.drawParagraph( textX - 66, textY + 22, text, 12 )		
 				// display.drawParagraph( xMax, textY + 40, [`Tap to select a random one`], '9px' )		
 				// display.drawInstrument(textX, textY + 24, "Press & Hold", "", '28px' )
 				// display.drawInstrument(textX - 10, textY + 24, "to choose instrument", "", '28px' )
@@ -1659,8 +1692,8 @@ export default class Person extends EventTarget{
 		}else if (this.instrumentLoading){
 
 			// Instrument loading...
-			this.drawInstrumentText( display, textX, textY, instrumentTitle, 'Loading...', 9 ) 
-			
+			this.drawInstrumentText( display, textX, textY, title, 'Loading...', 9 ) 
+
 		}else{
 
 			// Main data flow
@@ -1690,7 +1723,7 @@ export default class Person extends EventTarget{
 			const yaw = 1 - Math.abs(prediction.yaw) 
 
 			// flash if selected?
-			this.drawInstrumentText( display, textX, textY, instrumentTitle, style)
+			this.drawInstrumentText( display, textX, textY, title, style)
 			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll )
 		
 			if (this.isPlayerMode)
@@ -2421,34 +2454,7 @@ export default class Person extends EventTarget{
 		// this is where all this user's audio is routed
 		this.outputNode = this.gainNode
 
-		if (this.options.drawEyebrows)
-		{
-			//FIXME:
-			// this.eyeBrowsNode = audioContext.createBiquadFilter()
-			// // TODO: Set up as a high pass filter
-			// this.outputNode.connect(this.eyeBrowsNode)
-			// this.outputNode = this.eyeBrowsNode
 
-			// this.eyeBrowsNode = delayNode
-			// this.delayNode = delayNode
-			// this.feedbackNode = feedbackNode
-
-			// TODO: Set up as a high pass filter
-
-			// this.eyeBrowNode = audioContext.createDynamicsCompressor()
-			// this.eyeBrowNode.threshold.value = -100
-			// this.eyeBrowNode.knee.value = 40
-			// this.eyeBrowNode.ratio.value = 12
-			// this.eyeBrowNode.attack.value = 0
-			// this.eyeBrowNode.release.value = 0.25
-			// this.eyeBrowNode.connect(this.eyeBrowsNode)
-
-			// this.outputNode.connect(this.eyeBrowNode)
-			
-			// this.outputNode = this.eyeBrowNode
-			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
-		}
-		
 		if (this.options.useDelay)
 		{
 			// DELAY : Feedback smooths out the audio
@@ -2500,7 +2506,34 @@ export default class Person extends EventTarget{
 			this.outputNode.connect(this.noseNode)
 			this.outputNode = this.noseNode
 		}
+		if (this.options.drawEyebrows)
+		{
+			//FIXME:
+			// this.eyeBrowsNode = audioContext.createBiquadFilter()
+			// // TODO: Set up as a high pass filter
+			// this.outputNode.connect(this.eyeBrowsNode)
+			// this.outputNode = this.eyeBrowsNode
 
+			// this.eyeBrowsNode = delayNode
+			// this.delayNode = delayNode
+			// this.feedbackNode = feedbackNode
+
+			// TODO: Set up as a high pass filter
+
+			// this.eyeBrowNode = audioContext.createDynamicsCompressor()
+			// this.eyeBrowNode.threshold.value = -100
+			// this.eyeBrowNode.knee.value = 40
+			// this.eyeBrowNode.ratio.value = 12
+			// this.eyeBrowNode.attack.value = 0
+			// this.eyeBrowNode.release.value = 0.25
+			// this.eyeBrowNode.connect(this.eyeBrowsNode)
+
+			// this.outputNode.connect(this.eyeBrowNode)
+			
+			// this.outputNode = this.eyeBrowNode
+			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
+		}
+		
 		if (this.options.drawEyebrows)
 		{
 			// 
