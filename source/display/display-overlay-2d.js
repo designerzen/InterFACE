@@ -173,21 +173,22 @@ export default class DisplayOverlay2d {
 		this.markTextDirty(x, y, text, fontSize, 'center')
 	}
 
-	drawParagraph(x, y, paragraph = [], size = 8, lineHeight = 20, invertColours = false) {
-		if (this.queueFrameCommand(() => this.drawParagraph(x, y, paragraph, size, lineHeight, invertColours))) {
+	drawParagraph(x, y, paragraph = [], size = 8, lineHeight = 20, invertColours = false, align = 'center', font = 'oxanium', maxWidth) {
+		if (this.queueFrameCommand(() => this.drawParagraph(x, y, paragraph, size, lineHeight, invertColours, align, font, maxWidth))) {
 			return
 		}
 
 		this.prepareDraw()
 		this.drawWithShadow(() => {
-			drawParagraph(this.canvasContext, x, y, paragraph, size, lineHeight, invertColours)
+			drawParagraph(this.canvasContext, x, y, paragraph, size, lineHeight, invertColours, align, font, maxWidth)
 		})
-		const width = Math.max(...paragraph.map((line) => this.measureTextWidth(line, size)), 0)
+		const lines = Array.isArray(paragraph) ? paragraph : [paragraph]
+		const width = Math.max(...lines.map((line) => this.measureTextWidth(line, size, font)), 0)
 		this.markDirty({
-			x,
+			x: align === 'center' ? x - width * 0.5 : align === 'right' ? x - width : x,
 			y,
 			width,
-			height: paragraph.length * lineHeight + DEFAULT_PADDING
+			height: lines.length * lineHeight + DEFAULT_PADDING
 		})
 	}
 

@@ -414,8 +414,8 @@ export default class Display2D extends AbstractDisplay{
 		drawInstrument( this.canvasContext, x, y, instrumentName, extra, fontSize ) 
 	}
 
-	drawParagraph(x, y,  paragraph, size, lineHeight, invertColours  ){
-		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours  )
+	drawParagraph(x, y,  paragraph, size, lineHeight, invertColours, align="center", font="Oxanium", maxWidth ){
+		drawParagraph( this.canvasContext, x, y, paragraph, size, lineHeight, invertColours, align, font, maxWidth )
 	}
 
 	drawText( x, y, text, size=24, align="center", font="oxanium", invertColours=false ){

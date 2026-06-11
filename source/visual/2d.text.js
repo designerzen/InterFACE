@@ -1,4 +1,58 @@
 import PALETTE from "../settings/palette.js"
+import { layoutWithLines, prepareWithSegments } from "@chenglou/pretext"
+
+const getFontSizeValue = (size=10) => {
+	if (typeof size === "number")
+	{
+		return size
+	}
+
+	const parsed = Number.parseFloat(size)
+	return Number.isFinite(parsed) ? parsed : 10
+}
+
+const getFontString = (size=10, font="Oxanium") => {
+	return `900 ${getFontSizeValue(size)}px ${font || "Oxanium"}`
+}
+
+const applyTextColours = (canvasContext, invertColours=false) => {
+	canvasContext.fillStyle = invertColours ? PALETTE.dark :  PALETTE.white
+	canvasContext.strokeStyle  = invertColours ? PALETTE.white : PALETTE.dark
+}
+
+const drawLaidOutLine = (canvasContext, line, x, y, align="center") => {
+	const lineX = align === "center" ? x - line.width * 0.5 : align === "right" ? x - line.width : x
+	canvasContext.strokeText( line.text, lineX, y )
+	canvasContext.fillText( line.text, lineX, y )
+}
+
+export const drawPretext = ( canvasContext, x, y, text='', size=10, align="center", font="Oxanium", invertColours=false, lineHeight, maxWidth=Number.POSITIVE_INFINITY ) => {
+	const fontString = getFontString(size, font)
+	const fontSize = getFontSizeValue(size)
+	const resolvedLineHeight = lineHeight ?? fontSize * 1.2
+	const prepared = prepareWithSegments(`${text}`, fontString, { whiteSpace:"pre-wrap" })
+	const layoutWidth = Number.isFinite(maxWidth) && maxWidth > 0 ? maxWidth : 100000
+	const { lines } = layoutWithLines(prepared, layoutWidth, resolvedLineHeight)
+
+	canvasContext.save()
+	canvasContext.font = fontString
+	canvasContext.textAlign = "left"
+	canvasContext.textBaseline = "middle"
+	applyTextColours(canvasContext, invertColours)
+
+	for (let i=0; i < lines.length; i++)
+	{
+		drawLaidOutLine(canvasContext, lines[i], x, y + i * resolvedLineHeight, align)
+	}
+
+	canvasContext.restore()
+	return {
+		height: lines.length * resolvedLineHeight,
+		lineCount: lines.length,
+		width: Math.max(...lines.map(line => line.width), 0)
+	}
+}
+
 /**
  * Add a string of text to the canvas
  * @param {CanvasRenderingContext2D} canvasContext 
@@ -11,13 +65,7 @@ import PALETTE from "../settings/palette.js"
  * @param {Boolean} invertColours - invert the colours (white on black)
  */
 export const drawText = ( canvasContext, x, y, text='', size=10, align="center", font="Oxanium", invertColours=false) => {
-	canvasContext.font = `900 ${size}px ${font}`
-//  console.info("drawText FONT", `900 ${size}px ${font}`, text )
-	canvasContext.textAlign = align
-	canvasContext.fillStyle = invertColours ? PALETTE.dark :  PALETTE.white
-	canvasContext.strokeStyle  = invertColours ? PALETTE.white : PALETTE.dark
-	canvasContext.strokeText( text, x,y )
-	canvasContext.fillText( text, x, y )
+	return drawPretext( canvasContext, x, y, text, size, align, font, invertColours )
 }
 
 export const drawRotatedText = ( canvasContext, x, y, text='', size=10, rotateZ=1, rotateX=1, rotateY=1, align="center", font="Oxanium", invertColours=false, flipX=false ) => {
@@ -54,17 +102,10 @@ export const drawRotatedText = ( canvasContext, x, y, text='', size=10, rotateZ=
  * @param {Number} size font size
  * @param {Number} lineHeight gap between lines
  */
-export const drawParagraph = ( canvasContext, x, y, paragraph=[], size='8px', lineHeight=20, invertColours=false) => {
-	let textY = y
-	for (const p of paragraph)
-	{
-		// vertically space out
-		drawText( canvasContext, x, textY, p, size, "left", undefined, invertColours )
-		textY += lineHeight
-	}
-	
-	//console.log("drawParagraph", x,y)
-	return textY
+export const drawParagraph = ( canvasContext, x, y, paragraph=[], size=8, lineHeight=20, invertColours=false, align="center", font="Oxanium", maxWidth=Number.POSITIVE_INFINITY) => {
+	const text = Array.isArray(paragraph) ? paragraph.join("\n") : `${paragraph}`
+	const metrics = drawPretext( canvasContext, x, y, text, size, align, font, invertColours, lineHeight, maxWidth )
+	return y + metrics.height
 }
 
 /**
