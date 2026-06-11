@@ -57,17 +57,21 @@ block main
 				canvas#photosynth-canvas.canvas-full-size(width="640", height="480")
 				canvas#photosynth-sandwich.canvas-full-size(width="640", height="480")
 				canvas#photosynth-overlay.canvas-full-size(width="640", height="480")
-			
-			//- In APP CONTROLS ------------------------------------------------------
-			
+				
+	
 			//- control panel with multi-levels
 			include partials/control-panel.pug
 
+			//- HUD : contains the input types + data
+			aside#input-status-overlay(hidden aria-live="polite" aria-label="Connected input devices")
+				ul#input-status-list
+			
 			//- MIDI FILE Uploader
 			form#upload-midi-form
 				label(for="midi-upload-input") Upload a MIDI backing track!
 				input#midi-upload-input(type="file" hidden name="midi-upload")
 				button#button-midi-upload( type="button" ) Upload MIDI file
+			
 
 		//-  For users with javascript disabled 
 		noscript

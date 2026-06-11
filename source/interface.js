@@ -13,6 +13,7 @@ import {
 
 import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
+import { createInputStatusOverlay } from './dom/ui.input-status.js'
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
@@ -24,7 +25,7 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
-// import { toggleFullScreen } from './dom/full-screen.js'
+import { toggleFullScreen } from './dom/full-screen.js'
 
 import { Quanitiser } from './visual/quantise.js'
 
@@ -137,30 +138,10 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 // CONTROLS
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
-import { getActiveMIDINotesForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
-
-/*
-import { loadInstrumentsList } from './settings/options.instruments.js'
-
-// import { 
-// 	getRandomInstrument, 
-// 	createInstruments, 
-// 	getFolderNameForInstrument, 
-// 	getRandomLeadPresetIndex, 
-// 	getRandomBasslinePresetIndex, 
-// 	getRandomBeatsPresetIndex, 
-// 	getRandomHarmonicLeadPresetIndex
-// } from './audio/sound-font-instruments'
-
-import { createSVGWaveformFromData, createWaveform } from './dom/svg-waveform.js'
-import MusicalKeyboard from './visual/2d.keyboard.js'
-// import Stave from './visual/2d.stave.js'
-import { setupImage } from './visual/image.js'
-import { setNodeCount } from './visual/2d.js'
-*/
+import { stopWebMIDIForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
+import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
 
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
-import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 
@@ -168,14 +149,9 @@ import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from 'netronome'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 import { createDisplayOptions } from './dom/ui.display.js'
+import { observeMIDIInputs, stopMIDIInputForPerson } from './interface-midi.js'
 
 import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STATE_LOADING, EVENT_STATE_PARKED } from './interface-event.js'
-
-export const APPLICATION_EVENTS = {
-	LOADING: EVENT_STATE_LOADING,
-	LOADED: EVENT_STATE_LOADED,
-	PARKED: EVENT_STATE_PARKED
-}
 
 // accessibility controls
 let a11y
@@ -185,12 +161,7 @@ let instance = null
 class PhotoSYNTH{
 	constructor( publicMethods )
 	{
-		// const keys = Object.keys(publicMethods)
-		// keys.forEach( key => {
-		// 	this[key] = publicMethods[key]
-		// })
 		Object.assign( this, publicMethods )
-		console.log("PhotoSYNTH Created", this)
 	}
 }
 
@@ -245,12 +216,26 @@ export const createInterface = (
 
 	const shareCodeElement = doc.querySelector(".qr")
 	const feedbackElement = doc.getElementById("feedback")
+	const inputStatusListElement = doc.getElementById("input-status-list")
 	const countdownProgressElement = doc.getElementById("countdown-progress")
 	const timeElapsedElement = doc.getElementById("time-elapsed")
 	const timeTotalElement = doc.getElementById("time-total")
 
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
+	const inputStatusOverlay = createInputStatusOverlay(inputStatusListElement)
+	inputStatusOverlay.setEnabled(defaultOptions.hud !== false)
+	const stopUnavailablePersonNotes = person => {
+		if (!person)
+		{
+			return false
+		}
+
+		person.stopAllNotes?.()
+		stopMIDIInputForPerson(person)
+		stopWebMIDIForPerson(person, true)
+		return true
+	}
 
 	// Fix dialogs and bind them with events
 	const dialogs = setupDialogs()
@@ -433,6 +418,18 @@ export const createInterface = (
 	
 	// State Machine & Query handler
 	const stateMachine = createStateFromHost( main, stateOptions, StateWithIO ) // State.getInstance()
+	const syncOverlayCanvasVisibility = () => {
+		const showOverlay = stateMachine.get("showOverlay") !== false
+		if (canvasOverlayElement)
+		{
+			canvasOverlayElement.hidden = !showOverlay
+		}
+		if (!showOverlay)
+		{
+			overlayDisplay?.clear()
+		}
+		return showOverlay
+	}
 	
 	// debug
 	// starSize
@@ -463,6 +460,10 @@ export const createInterface = (
 
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( async (key,value) => {
+		if (key === "showOverlay")
+		{
+			syncOverlayCanvasVisibility()
+		}
 		
 		if (stateMachine.get("qr") && shareCodeElement)
 		{
@@ -496,6 +497,7 @@ export const createInterface = (
 		// if the QR code is not enabled, hide the element
 		shareCodeElement.parentElement.style.display = "none"
 	}
+	syncOverlayCanvasVisibility()
 
 	// http://localhost:909/?display=DisplayMediaVision2D&tooltips=true&advancedMode=false&showSettings=false&showPiano=false&metronome=true&backingTrack=true&clear=false&synch=true&disco=false&overlays=true&masks=true&eyes=true&quantise=true&text=true&spectrogram=true&speak=true&debug=false&stats=false&muted=false&players=1&stereo=true&stereoPan=true&midi=true&midiChannel=all&starSize=1&autoHide=true&loadMIDIPerformance=false&gamePad=false&model=face&qr=false&theme=theme-mit&instrumentPack=OpenGM24&photoSensitive=true&automationMode=true&referer=mit&bpm=81.56038486395421
 	const referer = stateMachine.get("referer")
@@ -605,7 +607,7 @@ export const createInterface = (
 	let counter = 0
 
 	const killMIDI = () =>{
-		WebMidi && WebMidi.outputs.forEach( MIDIoutput => MIDIoutput.sendAllNotesOff() )
+		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, 'interface-killMIDI') )
 	}
 	
 	// performance indicators
@@ -1017,6 +1019,8 @@ export const createInterface = (
 
 		person.addEventListener( EVENT_PERSON_DEAD,  (event) => {
 			const {detail} = event.data
+			const deadPerson = detail?.person
+			stopUnavailablePersonNotes(deadPerson)
 			// console.info("Person has died!", detail)
 			// dispatchEvent(event)
 			dispatchEvent(event.type, detail)
@@ -1379,6 +1383,11 @@ export const createInterface = (
 	 * @param {Person} person 
 	 */
 	const stopPersonAudio = async ( person ) => {
+		stopUnavailablePersonNotes(person)
+		if (!person)
+		{
+			return
+		}
 		person.instruments.forEach( async (instrument) => {
 			// console.log("sing", instrument.type, person.state, { instrument, person } )
 			instrument.noteOff()
@@ -1783,6 +1792,30 @@ export const createInterface = (
 
 	const establishMIDI = async ( timeOut=5000 ) => new Promise( (resolve,reject) => {
 		const MIDI_OPTIONS =  {sysex:false, software:true }
+		const timeoutMessage = "MIDI connection timed out<br>Please check your MIDI device and try reconnecting"
+		let didSettle = false
+		let timeoutId
+
+		const resolveOnce = value => {
+			if (didSettle)
+			{
+				return
+			}
+			didSettle = true
+			clearTimeout(timeoutId)
+			resolve(value)
+		}
+
+		const rejectOnce = error => {
+			if (didSettle)
+			{
+				return
+			}
+			didSettle = true
+			clearTimeout(timeoutId)
+			reject(error)
+		}
+
 		// This occassionaly breaks for no reason that can be tracked
 		// so we run it inside a await with a timeout
 		try{
@@ -1792,19 +1825,26 @@ export const createInterface = (
 			// webMidi = await WebMidi.enable(MIDI_OPTIONS)
 			WebMidi.enable(MIDI_OPTIONS).then( lib => {
 				webMidi = lib
-				resolve(true)
+				resolveOnce(true)
+			}).catch( error => {
+				console.error("WebMidi is available but a connection cannot be established", error)
+				rejectOnce(error)
 			})
 
 			// for reasons undiagnosed, midi doesn't always load here
 			// so we add a timeout
-			setTimeout( _ => reject(false), timeOut )
+			timeoutId = setTimeout( _ => {
+				console.warn("WebMidi enable timed out", {timeOut})
+				setFeedback(timeoutMessage, 0, 'midi')
+				resolveOnce(false)
+			}, timeOut )
 			
 			console.info("WebMidi.enabled", MIDI_OPTIONS )
 			
 		}catch(error){
 
 			console.error("WebMidi is available but a connection cannot be established", error)
-			reject(false)
+			rejectOnce(error)
 		}
 	})
 
@@ -1838,11 +1878,15 @@ export const createInterface = (
 	
 		let tickerTape = ''
 		const discoMode = stateMachine.get("disco")
+		const showOverlayCanvas = stateMachine.get("showOverlay") !== false
 
 		// no display so nothing visual to update!
 		// so we can have a black mirror mode
 		if (display){
-			overlayDisplay?.clearDirty()
+			if (showOverlayCanvas)
+			{
+				overlayDisplay?.clearDirty()
+			}
 				
 			if (discoMode)
 			{	
@@ -2048,7 +2092,8 @@ export const createInterface = (
 	
 						if (stateMachine.get("text"))
 						{
-							person.drawText( prediction, overlayDisplay ?? display ) 
+							const textDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
+							textDisplay && person.drawText( prediction, textDisplay ) 
 						}
 					}
 	
@@ -2090,13 +2135,38 @@ export const createInterface = (
 					return
 				}
 
+				const cachedPrediction = person.data
+				if (!cachedPrediction?.box)
+				{
+					return
+				}
+
 				// Person exists but does not have any matching new prediction,
 				// so let it fade out and stop once it has fully left.
+				const wasAvailable = person.alive && person.deadForDuration === 0
 				if ( person.setAsLost() )
 				{
 					stopPersonAudio( person )
 					//console.info(index, "Person "+person.name+" dead", person.percentageDead * 100 + "%")
 				}else{
+					if (wasAvailable)
+					{
+						stopUnavailablePersonNotes(person)
+					}
+
+					person.update(cachedPrediction, timeNow)
+
+					if (display && (discoMode || stateMachine.get("overlays")))
+					{
+						const colours = person.setColours(cachedPrediction, false, hasBeatJustPlayed)
+						display.drawPerson( person, hasBeatJustPlayed, colours )
+
+						if (stateMachine.get("text"))
+						{
+							const textDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
+							textDisplay && person.drawText( cachedPrediction, textDisplay )
+						}
+					}
 					//console.info(index, "KILLING for time" + person.name, person.deadForDuration * 0.001 )
 				}
 			})
@@ -2199,11 +2269,14 @@ export const createInterface = (
 			musicalKeyboard.redraw()
 			// this is updated previously by the playPersonAudio
 			// method that set's the general state of the keyboard
-			const keyboardDisplay = overlayDisplay ?? display
-			keyboardDisplay.drawElement( musicalKeyboard.canvas, 40, 40, false )
+			const keyboardDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
+			keyboardDisplay?.drawElement( musicalKeyboard.canvas, 40, 40, false )
 		}
 
-		overlayDisplay?.flushFrame()
+		if (showOverlayCanvas)
+		{
+			overlayDisplay?.flushFrame()
+		}
 
 		// finallyu reset this flag
 		if (hasBeatJustPlayed)
@@ -2574,7 +2647,7 @@ export const createInterface = (
 			// midi.setSongPosition( clock.barProgress * 16383 , {})
 			// SEND OUT Midi to every connected MIDI device
 			//sendMIDIEventToAllDevices("clock")
-			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() ) // {time:clock.now}
+			WebMidi.outputs.forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-midiClock') ) // {time:clock.now}
 			//console.info("midi clock",  WebMidi.time)
 		}
 
@@ -3055,23 +3128,6 @@ export const createInterface = (
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
-			const relayMIDI = stateMachine.get("midiRelay")
-
-		
-			const sendMIDIEventToAllDevices = (type, noteNumber) => {
-				switch(type){
-					case "noteon":
-						WebMidi.outputs.forEach(output => output.playNote( noteNumber ))
-						break
-					case "noteoff":
-						WebMidi.outputs.forEach(output => output.stopNote( noteNumber ))
-						break
-					case "clock":
-						WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
-						break
-				}
-			}
-			
 			progressCallback(loadIndex, "Attempting to find MIDI instruments")
 			
 			// this has a timeout!
@@ -3081,223 +3137,19 @@ export const createInterface = (
 
 			if (!isMIDIAvailable)
 			{
-				setFeedback("MIDI is NOT available - refresh?")
+				setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
 			}
-			// Inputs
-
-			// Outputs
-			// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
-			// immediately hook into the clock events...
-			const skipMIDI = false
-			if (!skipMIDI && stateMachine.get("midiInput"))
+			if (stateMachine.get("midiInput"))
 			{
-				console.error("WebMidi Inputs", WebMidi.inputs)
-				WebMidi.inputs.forEach(input =>{
-					
-					let activePerson
-					let activeEmoticon
-
-					console.info("Observing MIDI device", input )
-					
-					const playingMIDINotes = new Map()
-					const aborter = new AbortController()
-
-					let person
-
-					const playMIDINoteOn = ( noteNumber, velocity=1, monitorEmotion=true ) => {
-
-						// TODO: use the midi in and the people to augment
-						// the note played with chords that match the facial expression
-						// const amountOfInputs = WebMidi.inputs.length         
-						person = personManager.etActivePerson()
-
-
-						// augment note into chord us ing event.note.number as the tonic
-						const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
-						
-						// console.info("playMIDINoteOn", noteNumber, chordDetails, {person} )
-
-						if (monitorEmotion && playingMIDINotes.size === 0)
-						{
-							/*
-							// we need this to also update any playing midi notes
-							person.addEventListener(EVENT_EMOTION_CHANGED, event => {	
-								
-								const {detail} = event
-								const { emoticon } = detail
-								// const { emoticon, person } = detail
-								console.log("Emotion changed", detail)
-								//chordDetails = getMusicalDetailsFromEmoji(noteNumber, emoticon)
-								
-								// now we need to "change" notes
-								
-								// playNoteOff()
-								// setToast( `${detail.emoticon} Emotion Changed` ) 
-								
-								playMIDINoteOff( noteNumber)
-								playMIDINoteOn( noteNumber, velocity, false )
-
-							}, {signal:aborter.signal})
-							*/
-						}
-							
-
-						// save this chord for note off later
-						playingMIDINotes.set( noteNumber, chordDetails )	
-
-						// console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes, person} )
-
-						// play midi notes using our Audio Engine...
-						// globalChordPlayer.noteOn( event.note.number, event.value )
-						// globalChordPlayer.chordOn( event.note.number, event.value )
-
-						// updateInstrumentWithPerson( samplePlayer, person )
-						// also send 
-					
-						// FIXME: send out original event to other all connected devices
-						// if (relayMIDI)
-						// {
-						// 	sendMIDIEventToAllDevices( "noteon", noteNumber )
-						// 	//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
-						// }
-
-						// send out augmented events?
-						if (stateMachine.get("midiSympathiser"))
-						{
-							for (const chord of chordDetails)
-							{
-								// sendMIDIEventToAllDevices( "noteon", chord)
-								WebMidi.outputs.forEach(output => output.playNote(chord.noteNumber))
-								//console.log("MIDISympathiser noteon chordDetails", {chord, input} )
-							}
-						}
-
-						// Use onboard sound engine to make the sounds
-						if (stateMachine.get("midiOnboard")){
-							//console.info("Note on onboard midi", chordDetails, activePerson.noteVelocity)
-							globalChordPlayer.chordOn( chordDetails, activePerson.noteVelocity )
-						}
-					}
-
-					// stop existing note from playing
-					const playMIDINoteOff = (noteNumber, velocity=1) => {
-
-						// console.info("playMIDINoteOn", noteNumber, {person} )
-
-						// get the chord details
-						const playingChord = playingMIDINotes.get( noteNumber )
-						//console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
-						
-						if (!playingChord)
-						{
-							// no note off to action :/
-							//console.info("trying to turn the chord off")
-						}
-
-						for (const chord of playingChord)
-						{
-							// sendMIDIEventToAllDevices( "noteon", chord)
-							WebMidi.outputs.forEach(output => output.stopNote(chord.noteNumber))
-							//console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
-						}
-	
-						if (relayMIDI)
-						{
-							// event.type === noteoff
-							sendMIDIEventToAllDevices( "noteoff", noteNumber )
-							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
-						}
-
-						// stop midi notes on our Audio Engine...
-						// globalChordPlayer.noteOff( event.note.number, event.value )
-						// globalChordPlayer.chordOff( event.note.number, event.value )
-						
-						// updateInstrumentWithPerson( samplePlayer, person )
-						// sendMIDIEventToAllDevices(event.type, event)
-
-						playingMIDINotes.delete( noteNumber )
-						
-						// stop watching for emoji changes in this person as there
-						// are no notes playing anymore to update
-						if (playingMIDINotes.size === 0){
-							aborter.abort()
-							person = null
-						}
-						
-						if (stateMachine.get("midiOnboard")){
-							globalChordPlayer.allNotesOff()
-						}
-					}
-
-					input.addListener("midimessage", event => {
-						// console.info("MIDI Message", event )
-						switch(event.message.type){
-							case "start": 
-								startBackgroundPercussion()
-								break
-							case "stop": 
-								stopBackgroundPercussion()
-								break
-							case "continue": 	
-								toggleBackgroundPercussion()
-								break
-							case "clock":
-								// if we want an exclusive clock
-								// NB. this will be sent out to all channels in the loop
-								clock.bypass(true)
-								clock.externalTrigger()
-								// console.info("clock", clock )
-								break       
-						}
-					})
-
-					// FIXME: This NEEDS to ignore notes played by the person!
-					input.addListener("noteon", event => { 
-						// TODO: check to see if these notes are triggered
-						// by this and ignore any note ons that we sent out!!!
-						// console.info("External MIDI noteon", event.note.number, {event} ) 
-						return
-
-						if (!person){
-							person = personManager.getActivePerson()
-						}
-						
-						const requestedNote = event.note.number
-
-						// const pChord = person.activeNotes.get( person.noteNumber )
-						// const chord = person.activeNotes.get( event.note.number )
-						const chords = getActiveMIDINotesForPerson( person.playerNumber )
-
-						const isPlaying = chords.get( requestedNote) ?? false
-						
-						// for (let c in chord){
-						// 	if (c.noteNumber === requestedNote){
-						// 		isPlaying = true
-						// 		break
-						// 	}
-						// }
-						// for (let c in pChord){
-						// 	if (c.noteNumber === requestedNote ){
-						// 		isPlaying = true
-						// 		break
-						// 	}
-						// }
-
-						if (!isPlaying)
-						{
-							playMIDINoteOn(event.note.number)
-							//console.info("MIDI noteon FRESH", event.note.number, {event, chords} ) 
-						}else{
-							//console.info("MIDI noteon ALTER", event.note.number, {event, chords} ) 
-
-						}
-					})
-					input.addListener("noteoff", event => { 
-						//playMIDINoteOff(event.note.number) 
-						// console.info("External MIDI noteoff", event.note.number, {event} )
-					})
-
-					console.log("Available MIDI INPUT Device", input.manufacturer, input.name)
+				observeMIDIInputs({
+					stateMachine,
+					personManager,
+					globalChordPlayer,
+					clock,
+					startBackgroundPercussion,
+					stopBackgroundPercussion,
+					toggleBackgroundPercussion,
+					statusAPI: inputStatusOverlay
 				})
 			}
 		}
@@ -3314,7 +3166,7 @@ export const createInterface = (
 				const MIDIConnectionClasses = [WebMIDIClass]
 			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, setFeedback )
+				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, setFeedback, inputStatusOverlay )
 				
 				console.info("MIDIManager", {hasMIDI,midiManager})
 			
@@ -3579,7 +3431,20 @@ export const createInterface = (
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
 			stateMachine.toggle( 'text' )
-		} )
+		}, stateMachine.get( 'text') )
+
+		toggles.hud = setToggle( "button-hud", status => {
+			const hudEnabled = stateMachine.toggle('hud')
+			inputStatusOverlay.setEnabled(hudEnabled)
+		}, stateMachine.get('hud') )
+
+		const showOverlayToggle = document.getElementById("button-toggle-overlay")
+		if (showOverlayToggle)
+		{
+			toggles.showOverlay = setToggle( "button-toggle-overlay", status => {
+				stateMachine.toggle( 'showOverlay' )
+			}, stateMachine.get( 'showOverlay') )
+		}
 
 		toggles.automator = setToggle( "button-automate", status =>{
 			stateMachine.toggle( 'automationMode' ) 
@@ -4019,6 +3884,9 @@ export const createInterface = (
 
 			setUpdateCallback:(callback) => callbackUpdate = callback,
 			setFeedback,
+			setInputStatus: inputStatusOverlay.setDeviceStatus,
+			clearInputStatus: inputStatusOverlay.clearDeviceStatus,
+			pulseInputStatus: inputStatusOverlay.pulseDeviceStatus,
 			kit,
 
 			addEventListener:addListener,
@@ -4048,7 +3916,8 @@ export const createInterface = (
 			getMasterMixdown,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
-			toggleRecording
+			toggleRecording,
+			toggleFullScreen 
 		} )
 		
 		// finish promising with some public method to access

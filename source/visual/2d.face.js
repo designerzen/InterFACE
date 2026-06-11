@@ -56,6 +56,10 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 
 	// const isSelected = person.isSelected
 	const prediction = person.data
+	if (!prediction?.faceLandmarks || !drawingUtils)
+	{
+		return
+	}
 	const landmarks = prediction.faceLandmarks
 	const pointLandmarks = displayOptions.geometrySubdivisions > 0
 		? subdivideKeypoints(landmarks, displayOptions.geometrySubdivisions)

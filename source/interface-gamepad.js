@@ -29,7 +29,8 @@ export const GAMEPAD_MODE_CONTROLS = 'controls'
 export const GAMEPAD_MODES = [
 	GAMEPAD_MODE_PERCUSSION,
 	GAMEPAD_MODE_INSTRUMENT,
-	GAMEPAD_MODE_VFX
+	GAMEPAD_MODE_VFX,
+	GAMEPAD_MODE_CONTROLS
 ]
 
 const PICADE_GAMEPAD_IDS = new Set([
@@ -73,6 +74,33 @@ const PICADE_BUTTON_LIGHTS = Object.freeze({
 	[DIRECTION_UP]: { led: 2, color: PICADE_SOUND_COLORS.hat },
 	[DIRECTION_DOWN]: { led: 5, color: PICADE_SOUND_COLORS.cowbell },
 })
+
+const formatGamePadButtonName = button => String(button)
+	.replace(/^button[-_]?/i, '')
+	.replace(/^direction[-_]?/i, 'D-pad ')
+	.replace(/^game[-_]?pad[-_]?/i, '')
+	.split(/[-_]/)
+	.filter(Boolean)
+	.map(part => part.charAt(0).toUpperCase() + part.slice(1))
+	.join(' ')
+
+const getGamePadStatusId = gamePad => `gamepad-${gamePad?.index ?? gamePad?.gamepad?.index ?? 'unknown'}`
+const getGamePadStatusLabel = gamePad => gamePad?.gamepad?.id ?? 'Gamepad'
+const getGamePadPlayerLabel = gamePadPlayerIndex => gamePadPlayerIndex > -1 ? `Player ${gamePadPlayerIndex + 1}` : 'No player selected'
+const setGamePadStatus = (application, gamePad, gamePadPlayerIndex, detail = '', active = false) => {
+	if (!gamePad) {
+		return
+	}
+
+	application.setInputStatus?.(getGamePadStatusId(gamePad), {
+		type: 'gamepad',
+		label: getGamePadStatusLabel(gamePad),
+		detail: detail || getGamePadPlayerLabel(gamePadPlayerIndex),
+		connected: true,
+		active,
+		ttl: active ? 1400 : undefined,
+	})
+}
 
 const isPicadeGamepad = gamePad => PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
 const getEventGamePad = (value, gamePad) => gamePad ?? (value?.gamepad ? value : null)
@@ -476,11 +504,11 @@ const convertGamePadActionToVFX = ( application, gamePad, button, isButtonHeld, 
 		
 		default:
 			// if select is also being held....
-			if (gamePad.select){
+			if (gamePad?.select){
 				application.toggleDiscoMode()
 			}else{
 			
-				application.display.nextFilter( )
+				application.display?.nextFilter?.( )
 			}
 			break
 	}
@@ -562,12 +590,16 @@ const convertGamePadActionToControl = ( application, gamePad, button, isButtonHe
 	}
 }
 
-const convertMethods = [
-	convertGamePadActionToMusic,
-	convertGamePadActionToPercussion,
-	convertGamePadActionToVFX,
-	convertGamePadActionToControl
-]
+export const GAMEPAD_MODE_METHODS = Object.freeze({
+	[GAMEPAD_MODE_PERCUSSION]: convertGamePadActionToPercussion,
+	[GAMEPAD_MODE_INSTRUMENT]: convertGamePadActionToMusic,
+	[GAMEPAD_MODE_VFX]: convertGamePadActionToVFX,
+	[GAMEPAD_MODE_CONTROLS]: convertGamePadActionToControl,
+})
+
+const wrapModeIndex = index => (index + GAMEPAD_MODES.length) % GAMEPAD_MODES.length
+
+export const getGamePadModeMethod = mode => GAMEPAD_MODE_METHODS[mode] ?? GAMEPAD_MODE_METHODS[GAMEPAD_MODE_PERCUSSION]
 
 /**
  * Start monitoring for global gamepad input
@@ -582,15 +614,16 @@ export const addGamePadEvents = (application) => {
 	const personManager = application.personManager
 	const playerQuantity = personManager.quantityOfPlayers
 	
-	let gamePadModeIndex = 0
-	let gamePadMethod = convertMethods[gamePadModeIndex]
+	let gamePadModeIndex = GAMEPAD_MODES.indexOf(GAMEPAD_MODE_PERCUSSION)
+	let gamePadMethod = getGamePadModeMethod(GAMEPAD_MODES[gamePadModeIndex])
 
 	let gamePadPlayerIndex = personManager.getSelectedPerson() ?? -1
 	
 	const setMode = mode => {
-		gamePadModeIndex = mode % GAMEPAD_MODES.length
-		gamePadMethod = convertMethods[gamePadModeIndex]
-		return GAMEPAD_MODES[gamePadModeIndex]
+		gamePadModeIndex = wrapModeIndex(mode)
+		const modeName = GAMEPAD_MODES[gamePadModeIndex]
+		gamePadMethod = getGamePadModeMethod(modeName)
+		return modeName
 	}
 
 	gamePadManager.addEventListener( async ( eventName, value, gamePad, heldFor ) => {
@@ -623,11 +656,15 @@ export const addGamePadEvents = (application) => {
 					await ensurePicadeLeds(application)
 				}
 				application.setFeedback( "Gamepad connected" , 0, 'gamepad' )
+				setGamePadStatus(application, activeGamePad, gamePadPlayerIndex, `${getGamePadPlayerLabel(gamePadPlayerIndex)} / Connected`)
 				console.info("Gamepad connected", eventName, value, activeGamePad )
 				break
 
 			case GAME_PAD_DISCONNECTED:
 				application.setFeedback( "Gamepad connection lost" , 0, 'gamepad' )
+				if (activeGamePad) {
+					application.clearInputStatus?.(getGamePadStatusId(activeGamePad))
+				}
 				console.info("Gamepad disconnected", eventName, value, activeGamePad )
 				break
 		}
@@ -657,15 +694,32 @@ export const addGamePadEvents = (application) => {
 						application.setFeedback( "PLAYER "+gamePadPlayerIndex + " HAS BEEN SELECTED", 0, 'gamepad' )
 						console.info("Gamepad select", value, gamePad )
 					}
+					setGamePadStatus(application, activeGamePad, gamePadPlayerIndex, `${getGamePadPlayerLabel(gamePadPlayerIndex)} / Select`, true)
 					break
 				
 				case BUTTON_START: 
 					const mode = setMode( gamePadModeIndex + 1 )
 					application.setFeedback( mode + " mode", 0, 'gamepad' )
+					setGamePadStatus(application, activeGamePad, gamePadPlayerIndex, `${getGamePadPlayerLabel(gamePadPlayerIndex)} / ${mode}`, true)
 					console.info("Gamepad START", value, activeGamePad, mode )
 					// check to see if another key is held down...
 					break
 			}
+		}
+
+		if (
+			activeGamePad &&
+			eventName !== GAME_PAD_CONNECTED &&
+			eventName !== GAME_PAD_DISCONNECTED &&
+			value
+		) {
+			setGamePadStatus(
+				application,
+				activeGamePad,
+				gamePadPlayerIndex,
+				`${getGamePadPlayerLabel(gamePadPlayerIndex)} / ${formatGamePadButtonName(eventName)}`,
+				true
+			)
 		}
 
 		flashPicadeButton(application, activeGamePad, eventName, value, heldFor)

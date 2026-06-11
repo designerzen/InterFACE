@@ -16,6 +16,7 @@
 		"playerSelector"
 		"complexitySelector"
 		"automation"
+		"gap"
 		"buttonStart"
 	;		
 	grid-template-columns:1fr; 
@@ -23,8 +24,10 @@
 		auto 
 		auto 
 		auto 
+		var(--gap, var(--pad))
 		1fr
 	;	
+
 	align-items: center;
     justify-items: stretch;
 
@@ -37,7 +40,6 @@
 	// backdrop-filter: grayscale(3) blur(3px);
 	padding: var(--pad);
 	margin:auto;
-
 
 	// do something in wider screens
 	max-width:calc( 100% - var(--side) );
@@ -54,6 +56,7 @@
 		transition-delay: 0s;
 		color: inherit;
 	}
+	
 	.alert-accept-requests{
 		visibility: hidden;
 		grid-area: 1 / 1 / -1 / -1;

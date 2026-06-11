@@ -320,6 +320,17 @@
 		}
 	}
 
+	label[for="button-hud"]{
+		--col-select:var(--shade-blue);
+		--bg:url(/source/assets/icons/sensors_off-24px.svg);
+		anchor-name: --button-hud;
+
+		&:has(input:checked),
+		&.checked{
+			--bg:url(/source/assets/icons/sensors-24px.svg);
+		}
+	}
+
 	label[for="button-spectrogram"]{
 		// --col-hover:$col-dark;
 		--col-hover:var(--shade-green);

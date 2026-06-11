@@ -160,16 +160,21 @@ export const DEFAULT_OPTIONS = {
 	quantise:true,
 	// show the person's texts above them
 	text:true,
+	// show the connected input devices HUD at the bottom of the screen
+	hud:true,
+	// show the separate overlay canvas used for text and other overlay-only drawings
+	showOverlay:true,
 	// audio visualiser is actually helpful to play
 	spectrogram:true,
 
 	// track face movements
 	trackFace:true,
 
-	// track hand movements
+	// TODO: track hand movements
 	trackHands:true,
 
 	// we can split the face clouds into more dots
+	// TODO: if this is negative, that makes it dynamic 
 	divisions:0,
 	
 	// read out important instructions
@@ -190,6 +195,7 @@ export const DEFAULT_OPTIONS = {
 	muted:false,
 
 	// better than using "duet" or whatever - we just specify players
+	// default to one player!
 	players:1,
 	
 	// FIXME: monophonic?
@@ -217,20 +223,28 @@ export const DEFAULT_OPTIONS = {
 	// allow midi input to control stuff too
 	midiInput:true,
 
+	// when a MIDI note is held, use it as the person's root note
+	// instead of the tracked head position
+	midiInputPersonRootNote:true,
+
 	// if there is a midi clock incoming, replace the
 	// internal clock with it
 	midiClock:false,
 
-	// allow MIDI to control onboard synth
+	// allow MIDI to control the onboard sound engine's instrument
 	midiOnboard:true,
 
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
 
-	// Do not make any internal noise - only augment
+	// TODO: Do not make any internal noise - only augment
 	// the midi inputs. Ignore the internal playing and 
 	// just use expressions to augment mdi ins
 	midiOnly:false,
+
+	// load a midi track automatically on app start
+	loadMIDIPerformance:false,
+
 
 	// size of the stars / blobs that overlay the face
 	starSize:1,
@@ -238,8 +252,6 @@ export const DEFAULT_OPTIONS = {
 	// hide menu if mouse outside of screen...
 	autoHide:!isDevelopmentMode,
 
-	// load a midi track automatically on app start
-	loadMIDIPerformance:false,
 
 	keyboard:true,
 	

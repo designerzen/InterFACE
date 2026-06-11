@@ -10,6 +10,8 @@ const supportsPopover = HTMLElement.prototype.hasOwnProperty("popover")
  * @returns {Boolean} split if the user hit duet
  */
 export const bindTextElement = (element, rate=350, clearAfter=0, split=false, popOver=true) => {
+
+	const canUsePopover = () => popOver && supportsPopover && element?.isConnected
 	
 	let cachedMessage = null
 	let interval = -1
@@ -31,7 +33,7 @@ export const bindTextElement = (element, rate=350, clearAfter=0, split=false, po
 	 */
 	const clearText = () => {
 		element.textContent = ''
-		if (popOver && supportsPopover)
+		if (canUsePopover() && element.matches?.(':popover-open'))
 		{
 			element.hidePopover()	
 		}
@@ -140,7 +142,7 @@ export const bindTextElement = (element, rate=350, clearAfter=0, split=false, po
 			cachedMessage = message
 			// console.error("UPDATING MESSAGE", {message} )
 
-			if (popOver && supportsPopover)
+			if (canUsePopover())
 			{
 				element.showPopover()		
 			}

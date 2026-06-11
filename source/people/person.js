@@ -73,6 +73,7 @@ import {
 	getRandomBasslinePresetIndex, getRandomBeatsPresetIndex, getRandomHarmonicLeadPresetIndex, getRandomLeadPresetIndex 
 } from '../audio/sound-font-instruments.js'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
+import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from '../audio/midi/midi-echo-guard.js'
 
 import { 
 	convertHeadOrientationIntoNoteData, 
@@ -114,6 +115,7 @@ import PersonEvent, {
 } from './person-event.js'
 import Achievements from './person-achievements.js'
 import PersonalProgress from './person-progress.js'
+import { PERSON_TEXT_CHANGE_INSTRUMENT, PERSON_TEXT_SWITCH_INSTRUMENT } from './person-text.js'
 
 export {
 	PERSON_TYPE_ARPEGGIO,
@@ -250,6 +252,8 @@ export default class Person extends EventTarget{
 	loadingInstrumentProgress = 0
 
 	presetPanelConnection
+	isInstrumentPanelDirty = true
+	instrumentPanelPresetKey = null
 	
 	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
@@ -325,6 +329,8 @@ export default class Person extends EventTarget{
 	noteFriendlyName = "C-4"
 	noteVelocity = 0
 	noteIndex = 0
+	midiRootNoteOverride = null
+	midiRootNoteOverrides = new Map()
 
 	// last played
 	lastNote = -1
@@ -1097,7 +1103,17 @@ export default class Person extends EventTarget{
 	 * @param {Object} prediction data model
 	 */
 	update(prediction, timeNow, forceRefresh=false){
-		
+		// Reuse the last known frame when tracking temporarily drops out.
+		if (!prediction || forceRefresh)
+		{
+			prediction = this.data
+		}
+
+		if (!prediction)
+		{
+			return
+		}
+
 		const boundingBox = prediction.box
 		const currentTime = this.audioContext.currentTime
 		const nyquist = this.audioContext.sampleRate * 0.5
@@ -1122,12 +1138,6 @@ export default class Person extends EventTarget{
 			// console.info(this.percentageDead, "dying", this.deadForDuration, this.createdAt )
 		}
 		
-		// reuse old prediction aka refresh
-		if (!prediction || forceRefresh)
-		{
-			prediction = this.data
-		}
-
 		this.lastTimeActive = timeNow
 		if (this.isPlayerMode)
 		{
@@ -1559,9 +1569,9 @@ export default class Person extends EventTarget{
 
 	drawInstrumentText(display, textX, textY, instrumentTitle, style){
 		display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
-		// display.drawInstrument(textX, textY - 70, `${this.userModeDescription}`, this.isHighlighted ? "*" : "", 9 )			
-		// display.drawInstrument(textX, textY + 26, `${this.emoticon} ${extra} ${suffix}${bend}`, "", '28px' )
 	}
+
+
 
 	/**
 	 * Draw some text onto the screen - used to show text above users and to
@@ -1571,6 +1581,11 @@ export default class Person extends EventTarget{
 	 * @param {AbstractDisplay} display 
 	 */
 	drawText(prediction, display, showBackground=true ){
+		prediction = prediction ?? this.data
+		if (!prediction?.box || !display)
+		{
+			return
+		}
 
 		const boundingBox = prediction.box
 
@@ -1587,16 +1602,18 @@ export default class Person extends EventTarget{
 		const halfHeadWidth = boxWidth * 0.5
 
 		let title = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
-		
+		let titleSuffix = ""
+		let paragraphs = []
+
 		// as this should never be negative, we can use this to offset the text
 		const textX = xMin + halfHeadWidth - 9
 		const textY = Math.max(0, yMin - thirdHeadHeight - 22)
 
 		// draw a background for the text
-		if (showBackground)
-		{
-		// 	display.drawRectangle( textX, textY - 25, boxWidth, 40, 4, "rgba(28, 75, 85, 0.13)", "rgba(255,255,255,0.5)" )
-		}
+		// if (showBackground)
+		// {
+		// // 	display.drawRectangle( textX, textY - 25, boxWidth, 40, 4, "rgba(28, 75, 85, 0.13)", "rgba(255,255,255,0.5)" )
+		// }
 
 
 		// Draw Bounding Box
@@ -1613,14 +1630,15 @@ export default class Person extends EventTarget{
 		if ( this.isUserSelectingMode ){
 
 			// User is selecting the next operating mode
-			title = "Change mode to " + (this.nextUserModeData?.description ?? '')
+			title = "Change mode -> " + (this.nextUserModeData?.description ?? '')
 		
 		} else if ( this.isUserSelectingInputType ){
 
 			// User is selecting the TYPE
-			title = "Change type to " + (this.nextUserModeData?.description ?? '')
+			title = "Change type -> " + (this.nextUserModeData?.type ?? '')
 		} 
 		
+
 		if ( this.isMouseOver || this.instrumentLoading ){
 		
 			// draw silhoette directly on the canvas or
@@ -1637,66 +1655,39 @@ export default class Person extends EventTarget{
 				{	
 					// user is holding mouse down on user...
 					// display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
-					this.drawInstrumentText( display, xMin, yMin - 25, title, `Select`, 14 ) 
+					titleSuffix = "Select"
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
-					display.drawParagraph( xMax, yMax + 15, [`Press me`], 9 )
-			
+					//display.drawParagraph( xMax, yMax + 15, [`Press me`], 9 )
+					
 					// draw our mouse expanding circles...
 					// we use CSS and it is only hidden here?
 				}else{
-
-					this.drawInstrumentText( display, xMin, yMin - 25, title, `${100-percentageRemaining}`, 14 ) 
+				
+					paragraphs = PERSON_TEXT_SWITCH_INSTRUMENT
+					titleSuffix = `${100-percentageRemaining}`
 					// display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
-					display.drawParagraph( xMax, yMax + 15, [`Hold me to see all instruments`, `Tap to select a random one`], 11 )
 				}
 
 			}else{
-				const text = [
-					'Tap for a random instrument',
-					'        PRESS & HOLD'
-					, 'to choose instrument'
-				]
-				
-				// No mouse held
-				display.drawInstrument( textX, textY, title, "", 14)
-				display.drawParagraph( textX - 66, textY + 22, text, 12 )		
-				// display.drawParagraph( xMax, textY + 40, [`Tap to select a random one`], '9px' )		
-				// display.drawInstrument(textX, textY + 24, "Press & Hold", "", '28px' )
-				// display.drawInstrument(textX - 10, textY + 24, "to choose instrument", "", '28px' )
-			
-				//drawPart( faceOval, 4, `hsla(${hue},50%,50%,0.3)`, true)
-				/*	
-				const offsetX = topLeft[0]
-				const offsetY = topLeft[1]
-				const svgCoord = coord => `${boxWidth - (coord[0] - offsetX)} ${(coord[1] - offsetY)}`
-				const svgPaths = faceOval.map( part => `L${svgCoord(part)}`)
-				const circles = faceOval.map( part =>{
-					const c = svgCoord(part)
-					return `<circle cx="${c[0] - offsetX}" cy="${c[1]}" r="20" />`
-				})
-				// for outline...+ ` Z`
-				const svgPath = `M${svgCoord(faceOval[0])} ` + svgPaths.join(" ")
-				//  height="210" width="400"
-				const silhoetteShape = 
-				`<svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}">
-					<path d="${svgPath}" />
-					${circles.join('')}
-				</svg>`
-				//console.log("SVG",faceOval, silhoetteShape)
-				this.button.innerHTML = silhoetteShape	
-				*/
-			}
-		
-		}else if (this.instrumentLoading){
 
+				paragraphs = PERSON_TEXT_CHANGE_INSTRUMENT
+			}
+
+			this.drawInstrumentText( display, textX, textY, title, titleSuffix, 14 ) 	
+			// we offset to the left
+			display.drawParagraph( xMax, textY, paragraphs, 12 )
+		
+		}else if ( this.instrumentLoading){
+
+			// Math.ceil(this.loadingInstrumentProgress * 100)
 			// Instrument loading...
-			this.drawInstrumentText( display, textX, textY, title, 'Loading...', 9 ) 
+			this.drawInstrumentText( display, textX, textY, this.loadingInstrumentTitle, Math.ceil(this.loadingInstrumentProgress * 100), 14 ) 
 
 		}else{
 
-			// Main data flow
+			// Main data flow -----------------------------
 			const activeNoteNumbers = this.getActiveNoteNumbersForDisplay()
 			const previewNoteNumbers = this.getPreviewNoteNumbersForDisplay()
 			const showPlayingNotes = this.isMouthOpen && this.singing && activeNoteNumbers.length > 0
@@ -1744,8 +1735,8 @@ export default class Person extends EventTarget{
 						12
 					)
 				}
-			}else if (this.options.musicTheory)
-			{
+
+			}else if (this.options.musicTheory){
 				// visual music mode - so no letters, only musical notes!
 
 				// this draws a series of notes on a bridge
@@ -1780,7 +1771,6 @@ export default class Person extends EventTarget{
 				// 
 				// display.drawText(textX, textY - 30, instrumentText, 18 )			
 			}
-
 		
 			// now draw each note independently
 			// for (let i=this.octave; i <activeNoteNumbers.length;++i)
@@ -1912,11 +1902,6 @@ export default class Person extends EventTarget{
 		
 		// console.info("note:", noteData)
 
-
-		// to convert the note into circle of fifths...
-		const hasNoteChanged = this.lastNote !== noteNumber
-		// const hasNoteChanged = this.lastNoteName !== noteName
-	
 		// remap -1 -> +1 to 0 -> 1
 		let noteFloat = (1 + noteNumber) * 0.5 
 				
@@ -1931,7 +1916,23 @@ export default class Person extends EventTarget{
 		// eg. Do Re Mi
 		// let noteSound = getNoteSound(noteFloat, isMinor)	
 		let noteSound = getNoteSoundFromNumber(noteNumberForMIDI)	
-		
+
+		if (Number.isFinite(this.midiRootNoteOverride))
+		{
+			const midiOverride = GENERAL_MIDI_BY_NAME.get(this.midiRootNoteOverride)
+			if (midiOverride)
+			{
+				noteFloat = midiOverride.noteNumber / 127
+				newOctave = midiOverride.octave
+				noteName = midiOverride.noteName
+				noteNumberForMIDI = midiOverride.noteNumber
+				noteSound = getNoteSoundFromNumber(noteNumberForMIDI)
+			}
+		}
+
+		// to convert the note into circle of fifths...
+		const hasNoteChanged = this.lastNoteNumber !== noteNumberForMIDI
+
 
 		// console.info("Person plays", {
 		// 	afterTouch, pitchBend, isMinor,
@@ -2090,7 +2091,7 @@ export default class Person extends EventTarget{
 				}
 
 				// https://webmidijs.org/api/classes/Output#playNote
-				this.midi.playNote( noteName, midiOptions )
+				sendGuardedMIDIOutput(this.midi, 'playNote', noteName, midiOptions, 'person-sendMIDI')
 				//console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 	
 				// console.info("MIDI note on", noteName, midiOptions )
@@ -2146,11 +2147,18 @@ export default class Person extends EventTarget{
 						
 					if (!this.singing)
 					{
-						this.midi.stopNote(noteName, {
+						const midiStopOptions = {
+							release:0.2
+						}
+						if (this.midiChannel !== "all")
+						{
+							midiStopOptions.channel = this.midiChannel
+						}
+						sendGuardedMIDIOutput(this.midi, 'stopNote', noteName, {
 							// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
 							// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
-							release:0.2
-						})
+							...midiStopOptions
+						}, 'person-sendMIDI')
 
 						// console.info("MIDI note off", noteName)
 		
@@ -2249,24 +2257,72 @@ export default class Person extends EventTarget{
 		this.noteVelocity *= command.velocity * 0.01	
 	}
 
-	async setupInstrumnentForm( details ){
+	setMIDIRootNoteOverride(noteNumber, velocity = 1){
+		if (!Number.isFinite(noteNumber))
+		{
+			return this.midiRootNoteOverride
+		}
 
-		// overwrite the instrument info
+		this.midiRootNoteOverrides.delete(noteNumber)
+		this.midiRootNoteOverrides.set(noteNumber, {
+			noteNumber,
+			velocity
+		})
+		this.midiRootNoteOverride = noteNumber
+		return this.midiRootNoteOverride
+	}
+
+	clearMIDIRootNoteOverride(noteNumber = null){
+		if (Number.isFinite(noteNumber))
+		{
+			this.midiRootNoteOverrides.delete(noteNumber)
+		}else{
+			this.midiRootNoteOverrides.clear()
+		}
+
+		let nextOverride = null
+		for (const override of this.midiRootNoteOverrides.values())
+		{
+			nextOverride = override.noteNumber
+		}
+		this.midiRootNoteOverride = nextOverride
+		return this.midiRootNoteOverride
+	}
+
+	getInstrumentPanelPresetKey(details = {}){
+		return [
+			this.activeInstrument?.type ?? "instrument",
+			this.activeInstrument?.name ?? "loading",
+			details.presetName ?? this.presetName ?? "",
+			details.instrumentPack ?? this.options.instrumentPack ?? ""
+		].join(":")
+	}
+
+	markInstrumentPanelDirty(details = {}){
+		const nextPresetKey = this.getInstrumentPanelPresetKey(details)
+		this.isInstrumentPanelDirty = this.instrumentPanelPresetKey !== nextPresetKey
+		return this.isInstrumentPanelDirty
+	}
+
+	setInstrumentDetails(details = {}){
 		this.presetTitle = details.presetTitle
 		this.presetName = details.presetName
 		this.loadingInstrumentTitle = null
 		this.loadingInstrumentProgress = 0
 
-		// console.error("setupInstrumnentForm", presetTitle, presetName, details )
-		
-		// FIXME: If automatic demo mode enabled, this will auto hide...
-		this.hideForm()
-
-		// this will repopulate the panel with correct data
-		await this.setupForm()
-
 		// you have to dispatch the event from an element!
 		this.dispatchPersonEvent(EVENT_INSTRUMENT_CHANGED, details )
+	}
+
+	async setupInstrumnentForm( details ){
+		this.setInstrumentDetails(details)
+		this.markInstrumentPanelDirty(details)
+		this.setupInstrumentPanelShell()
+
+		if (this.isFormShowing)
+		{
+			await this.refreshInstrumentPanelIfDirty()
+		}
 	}
 
 	/**
@@ -2299,17 +2355,16 @@ export default class Person extends EventTarget{
 			
 		}
 
-		// preset loaded!
-
-		//console.error(">>> Instrument", method,{ instrument:this.activeInstrument })
-
-		// FIXME: If automatic demo mode enabled, this will auto hide...
-		this.hideForm()
-
-		// this will repopulate the panel with correct data
-		await this.setupForm()
-
-		this.dispatchPersonEvent(EVENT_INSTRUMENT_CHANGED, { instrument:this.activeInstrument, instrumentName:this.activeInstrument.instrumentName })
+		if (method !== "loadRandomPreset")
+		{
+			await this.setupInstrumnentForm({
+				instrument:this.activeInstrument,
+				instrumentName:this.activeInstrument.instrumentName,
+				instrumentPack:this.options.instrumentPack,
+				presetName:this.activeInstrument.instrumentName,
+				presetTitle:this.activeInstrument.title
+			})
+		}
 		return this.activeInstrument
 	}
 
@@ -2657,6 +2712,34 @@ export default class Person extends EventTarget{
 		})
 	}
 
+	stopAllNotes(){
+		const activeMIDINotes = Array.from(this.activeNotes?.keys?.() ?? [])
+		this.active = false
+		this.singing = false
+		this.setState(STATE_INSTRUMENT_SILENT)
+		this.clearMIDIRootNoteOverride()
+		this.activeNotes.clear()
+
+		this.instruments.forEach(instrument => {
+			instrument?.noteOff?.()
+			instrument?.allNotesOff?.()
+		})
+
+		if (this.midi)
+		{
+			const midiStopOptions = { release: 0 }
+			if (this.midiChannel !== "all")
+			{
+				midiStopOptions.channel = this.midiChannel
+			}
+			for (const noteNumber of activeMIDINotes)
+			{
+				sendGuardedMIDIOutput(this.midi, 'stopNote', noteNumber, midiStopOptions, 'person-stopAllNotes')
+			}
+			stopActiveMIDIOutputNotes(this.midi, 'person-stopAllNotes')
+		}
+	}
+
 	// --- EVENTS --------------------------------------------------------------
 
 
@@ -2859,50 +2942,52 @@ export default class Person extends EventTarget{
 	 * Using ACTIVE instrument - don't assume it's samplePlayer
 	 * and other settings specific to this person. Needs to be done per person
 	 */
-	async setupForm(){
-
-		// hideExistingInstruments(this.instrumentPanel)
-
+	setupInstrumentPanelShell(){
 		if ( !this.instrumentPanel )
 		{
 			throw Error("Instrument panel was not registered so no instument list can be determined")
-		}
-		
-		if ( !this.activeInstrument )
-		{
-			throw Error("Active Instrument was not registered so no presets can be determined")
 		}
 		
 		if (!this.controls)
 		{
 			throw Error("The instrument panel is missing the required menu element")
 		}
-		
-		// destroy any existing forms
-		if (this.presetPanelConnection)
-		{
-			this.presetPanelConnection()
-			this.presetPanelConnection = null
-		}
 
-		// fill the sidebar with the presets from this instrument
-		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this.id )
-			
-		// stupid event callback forgets scope!
-		this.presetPanelConnection = addInteractivityToInstrumentPanel( this.controls, event => this.onInstrumentInput(event) )
-
-		// console.error("ADded interactivity to sidebar", this.toString(), {presets,inputs}, this.controls )
-
-		// if the panel is not interactive yet
-		// lazily instantiate the connection
 		if (!this.isInstrumentPanelInteractive)
 		{
-			// add some extra UX improvements for the sliding panel
+			this.presetPanelConnection = addInteractivityToInstrumentPanel( this.controls, event => this.onInstrumentInput(event) )
 			createDraggablePanel(this, this.instrumentPanel, this.isLeftSidePanel)
 			this.instrumentPanel.hidden = false
 			this.isInstrumentPanelInteractive = true
-			//debugger
 		}
+
+		return true
+	}
+
+	async refreshInstrumentPanelIfDirty(){
+		if (!this.isInstrumentPanelDirty)
+		{
+			return false
+		}
+		return this.setupForm()
+	}
+
+	async setupForm(){
+
+		// hideExistingInstruments(this.instrumentPanel)
+		this.setupInstrumentPanelShell()
+		
+		if ( !this.activeInstrument )
+		{
+			throw Error("Active Instrument was not registered so no presets can be determined")
+		}
+		
+		// fill the sidebar with the presets from this instrument
+		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this.id )
+		this.instrumentPanelPresetKey = this.getInstrumentPanelPresetKey()
+		this.isInstrumentPanelDirty = false
+
+		// console.error("ADded interactivity to sidebar", this.toString(), {presets,inputs}, this.controls )
 
 		return true
 	}
@@ -2913,7 +2998,11 @@ export default class Person extends EventTarget{
 	showForm(){
 		if (!this.isFormShowing)
 		{
+			this.setupInstrumentPanelShell()
 			this.isFormShowing = showPersonalControlPanel( this.id, this.instrumentPanel, this.instrumentName )
+			this.refreshInstrumentPanelIfDirty().catch(error => {
+				console.error("Failed to refresh instrument panel", error)
+			})
 		}else{
 			console.error("was told to open form that is already open")
 		}

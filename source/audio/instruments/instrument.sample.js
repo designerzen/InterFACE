@@ -167,7 +167,7 @@ export default class SampleInstrument extends Instrument{
 			const track = this.play(audioBuffer, velocity )
 		}else{
 			// STILL LOADING THIS BUFFER... What to do?
-			console.log("No buffer for", {noteNumber, velocity, key} , this.audioBuffers )
+			//console.log("No buffer for", {noteNumber, velocity, key} , this.audioBuffers )
 		}
 		// console.log("Buffer playing", {audioBuffer,noteNumber, velocity} )
 		return super.noteOn(noteNumber, velocity)

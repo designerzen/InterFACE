@@ -191,14 +191,22 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, p
 	
 	const controller = new AbortController()
 
-	const inputs = controls.querySelectorAll('input.'+INSTRUMENT_CLASS)
-	inputs.forEach( input => input.addEventListener('change', e => onInstrumentInput(e), {signal: controller.signal, passive }) )
+	controls.addEventListener('change', event => {
+		if (event.target.matches('input.'+INSTRUMENT_CLASS))
+		{
+			onInstrumentInput(event)
+		}
+	}, {signal: controller.signal, passive })
 	
 	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
 
 	// toggle the accordian modes for the details
-	const legend = controls.querySelector('legend')
-	legend.addEventListener("click", event => {
+	controls.addEventListener("click", event => {
+		const legend = event.target.closest('legend')
+		if (!legend || !controls.contains(legend))
+		{
+			return
+		}
 		const details = controls.querySelectorAll('details')
 		if (details.length)
 		{
@@ -225,6 +233,17 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 	let bypass = false
 
 	// console.error("Creating sidebar", {isDrawerOpen, onLeftSide} )
+
+	const refreshDrawerContent = () => {
+		person.isFormShowing = isDrawerOpen
+
+		if (isDrawerOpen)
+		{
+			person.refreshInstrumentPanelIfDirty?.().catch(error => {
+				console.error("Failed to refresh instrument panel", error)
+			})
+		}
+	}
 	
 	const setDrawerState = (open) => {
 
@@ -238,6 +257,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		}else{
 			hidePersonalControlPanel( playerName, controls )
 		}
+		refreshDrawerContent()
 		// controls.classList.toggle(activeClassName, open)
 	}
 
@@ -314,6 +334,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 			controls.classList.toggle(activeClassName, false)
 			controls.setAttribute("style", `--x:${0};`)
 		}
+		refreshDrawerContent()
 	}
 	
 	//- controls.addEventListener("dragstart", (event) => {

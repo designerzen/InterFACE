@@ -45,7 +45,7 @@ export default class Attractor{
 	discoModeAt = 0
 
 	constructor( application ) {
-		this.onChange.bind(this)
+		this.onChange = this.onChange.bind(this)
 		this.application = application
 		this.personManager = application.personManager
 		this.application.addEventListener(EVENT_INSTRUMENT_LOADING, this.onChange )
@@ -211,9 +211,24 @@ export default class Attractor{
 				// console.info("Automator:New Person", event.detail, this.application)
 				break	
 			
-			case EVENT_PERSON_DEAD:
+			case EVENT_PERSON_DEAD: {
+				if (!this.application.getState("automationMode"))
+				{
+					break
+				}
+
+				const person = event.data?.detail?.person
+				if (!person || person.instrumentLoading || person.isFormShowing)
+				{
+					break
+				}
+
+				person.loadRandomPreset().catch(error => {
+					console.error("Automator failed to change dead person's instrument", error, { person })
+				})
 				// console.info("Automator:Person left field of view", event.detail, this.application)
 				break	
+			}
 				
 			default:
 		}

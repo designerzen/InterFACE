@@ -20,4 +20,4 @@ export default class InterfaceEvent extends Event{
 	clone(){
 		return new InterfaceEvent( this.type, this.details, this.cancelable, this.bubbles )
 	}
-}
+} 

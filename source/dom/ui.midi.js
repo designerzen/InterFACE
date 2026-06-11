@@ -19,6 +19,101 @@
 
 import { setToast } from "./tooltips.js"
 
+let connectedMIDIStatusIds = new Set()
+
+const routeMIDIPortsToPeople = (people, outputs, midiChannel = "all") => {
+	const outputDeviceQuantity = outputs.length
+	if (outputDeviceQuantity === 0)
+	{
+		return
+	}
+
+	const multiplePeople = people.length > 1
+	const multipleMIDIDevices = outputDeviceQuantity > 1
+	const useDedicatedMIDIDevicePerPerson = multiplePeople && multipleMIDIDevices
+
+	people.forEach((person, personIndex) => {
+		const port = useDedicatedMIDIDevicePerPerson ?
+			(outputs[personIndex] ?? outputs[0]) :
+			outputs[0]
+
+		if (port)
+		{
+			person.setMIDI(port, midiChannel)
+		}
+	})
+}
+
+const syncMIDIStatusOverlay = (statusAPI, people, outputs, inputs, midiChannel = 0) => {
+	if (!statusAPI?.setDeviceStatus || !statusAPI?.clearDeviceStatus) {
+		return
+	}
+
+	const nextIds = new Set()
+	const deviceMap = new Map()
+	const channelLabel = midiChannel === "all" ? "All Channels" : `Channel ${midiChannel + 1}`
+
+	inputs.forEach((port, index) => {
+		const key = port.id ?? `input-${index}`
+		const existing = deviceMap.get(key) ?? {
+			id: key,
+			label: port.name || `MIDI Device ${index + 1}`,
+			hasInput: false,
+			hasOutput: false,
+			personLabel: '',
+		}
+
+		existing.hasInput = true
+		deviceMap.set(key, existing)
+	})
+
+	outputs.forEach((port, index) => {
+		const key = port.id ?? `output-${index}`
+		const person = people[index < people.length ? index : 0]
+		const existing = deviceMap.get(key) ?? {
+			id: key,
+			label: port.name || `MIDI Device ${index + 1}`,
+			hasInput: false,
+			hasOutput: false,
+			personLabel: '',
+		}
+
+		existing.hasOutput = true
+		existing.personLabel = person?.name ? ` / ${person.name}` : existing.personLabel
+		deviceMap.set(key, existing)
+	})
+
+	Array.from(deviceMap.values()).forEach((device, index) => {
+		const portId = `midi-${device.id ?? index}`
+		const roles = [
+			device.hasInput ? 'In' : '',
+			device.hasOutput ? 'Out' : '',
+		].filter(Boolean).join(' / ')
+		const detail = [
+			roles,
+			device.hasOutput ? channelLabel : '',
+			device.personLabel.replace(/^ \/\s*/, ''),
+		].filter(Boolean).join(' / ')
+
+		nextIds.add(portId)
+		statusAPI.setDeviceStatus(portId, {
+			type: 'midi',
+			label: device.label,
+			detail,
+			connected: true,
+			active: false,
+		})
+	})
+
+	connectedMIDIStatusIds.forEach(statusId => {
+		if (!nextIds.has(statusId)) {
+			statusAPI.clearDeviceStatus(statusId)
+		}
+	})
+
+	connectedMIDIStatusIds = nextIds
+}
+
 /**
  * Create a MIDI dialogue popover with MIDI options and also add
  * each MIDI device to the settings form
@@ -96,12 +191,14 @@ const setupMIDIDeviceForm = (outputs, inputs, event) => {
  * Show that MIDI confg and hardware are available / unavailable
  * @param {Array} outputs - MIDI Devices we want to use
  */
-const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, inputs, event, setFeedback)=>{
+const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, inputs, event, setFeedback, statusAPI = null)=>{
 	
 	const midiDevicesPanel = document.getElementById("midi-panel")
-	const midiChannel = 0 // ui.midiChannel
+	const midiChannel = "all"
 	
 	const outputDeviceQuantity = outputs.length
+	const inputDeviceQuantity = inputs.length
+	const hasAnyMIDIDevices = outputDeviceQuantity > 0 || inputDeviceQuantity > 0
 	const hasOutputs = outputDeviceQuantity>0
 	const main = document.querySelector("main")
 	const noDevicesPanel = document.getElementById("no-midi-devices")
@@ -121,6 +218,7 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 	// update panel options with available devices!
 	setMIDIInputSelector( inputs )
 	setMIDIOutputSelector( outputs )
+	syncMIDIStatusOverlay(statusAPI, people, outputs, inputs, midiChannel)
 
 	if (hasOutputs)
 	{
@@ -131,33 +229,12 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 		
 		switch(outputDeviceQuantity)
 		{
-			// FIXME: 2 instruments have been connected,
-			// we should send one to each instrument presumably?
 			case 1:
-				people.forEach( (person,personIndex) =>{
-
-					//connectMIDIForPerson(i, outputs, ui.midiChannel)
-					const port = outputs[ personIndex < outputs.length ? personIndex : 0 ]
-					if (port)
-					{
-						// FIXME:
-						
-						person.setMIDI(port, midiChannel)	
-						//console.info(ui.midiChannel, person.hasMIDI ? `Replacing` : `Enabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, midiDevices, personIndex, midiChannel}, midi.outputs[midiChannel])
-					}else{
-						console.error("No matching MIDI Instrument availbe for this person", ui.midiChannel, person.hasMIDI ? `Enabling` : `Disabling` , `MIDI #${midiChannel} for ${person.name}` ,{ui, port, portIndex: midiChannel} )
-					}
-				} )
+				routeMIDIPortsToPeople(people, outputs, midiChannel)
 				break
 
 			default:
-				// w00t
-				// console.error("MIDI devices",midiInstrument, midiInstrumentName, outputs)
-						
-				// use this to fill the peoples
-				people.forEach( (person,i) => connectMIDIForPerson(i, outputs, ui.midiChannel) )
-				
-				//midiButton.setText("Click to disable")
+				routeMIDIPortsToPeople(people, outputs, midiChannel)
 		}
 
 
@@ -181,6 +258,16 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 
 	}else{
 
+		if (hasAnyMIDIDevices)
+		{
+			setFeedback("MIDI input connected", 0)
+			setToast("MIDI input connected")
+			main.classList.toggle('midi-available', true)
+			main.classList.toggle('midi-unavailable', false)
+			midiDevicesPanel.hidden = false
+			return false
+		}
+
 		// bugger - either we never had or we lost...
 		setFeedback(hadDevicesPreviously ? "Lost MIDI Device connection" : "MIDI Available but no instruments detected", 0)
 		setToast("No MIDI Devices connected")
@@ -193,6 +280,8 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 		midiDevicesPanel.hidden = true
 
 		midiButton.element.classList.toggle(`connected`, false)
+		connectedMIDIStatusIds.forEach(statusId => statusAPI?.clearDeviceStatus?.(statusId))
+		connectedMIDIStatusIds = new Set()
 	}
 	
 	// FIXME: this changes the behaviour of the button
@@ -295,13 +384,13 @@ export const observeMIDIPortClock = (midiInputPort) => {
  * @param {Array<Person>} people 
  * @returns Array of connections
  */
-export const enableMIDI = async (midiButton, midiManager, MIDIConnectionClasses, people, setFeedback) => {
+export const enableMIDI = async (midiButton, midiManager, MIDIConnectionClasses, people, setFeedback, statusAPI = null) => {
 
 	const onMIDIUpdate = (outputs, inputs, event) => {
 
 		console.info("Main>MIDI:Devices", {outputs, inputs, event })
 		// 
-		updateMIDIDevicesStatus(midiButton, midiManager, people, outputs, inputs, event, setFeedback) 
+		updateMIDIDevicesStatus(midiButton, midiManager, people, outputs, inputs, event, setFeedback, statusAPI)
 		
 
 		// conenct to port clock...
@@ -314,6 +403,16 @@ export const enableMIDI = async (midiButton, midiManager, MIDIConnectionClasses,
 	// defer until awaited?
 	setMIDIInputSelector( midiManager.inputs )
 	setMIDIOutputSelector( midiManager.outputs )
+	updateMIDIDevicesStatus(
+		midiButton,
+		midiManager,
+		people,
+		midiManager.outputs,
+		midiManager.inputs,
+		null,
+		setFeedback,
+		statusAPI
+	)
 
 	console.info("Main>MIDI:enableMIDI", {midiButton, midiManager, MIDIConnectionClasses, people })
 
@@ -421,7 +520,10 @@ export const createMIDIButton = async ( midiManager, MIDIConnectionClasses, peop
  * feedback from any probing
  * @param {Object} options 
  */
-export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, people, options, setFeedback ) => {
+export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, people, optionsOrSetFeedback, maybeSetFeedbackOrStatusAPI, maybeStatusAPI = null ) => {
+	const setFeedback = typeof optionsOrSetFeedback === 'function' ? optionsOrSetFeedback : maybeSetFeedbackOrStatusAPI
+	const options = typeof optionsOrSetFeedback === 'function' ? null : optionsOrSetFeedback
+	const statusAPI = typeof optionsOrSetFeedback === 'function' ? maybeSetFeedbackOrStatusAPI : maybeStatusAPI
 
 	// to skip clicking but results in a warning
 	
@@ -443,7 +545,7 @@ export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, peopl
 		try{
 			
 			// on button click we attempt to connect to midi
-			midiPortAttempts = await enableMIDI( midiToggleGadget, midiManager, MIDIConnectionClasses, people )
+			midiPortAttempts = await enableMIDI( midiToggleGadget, midiManager, MIDIConnectionClasses, people, setFeedback, statusAPI )
 			// this needs a user interaction to trigger
 			console.log("inititiateMIDIConnections", {midiPortAttempts, midiEnabled, MIDIConnectionClasses, midiManager} )
 			setFeedback( midiPortAttempts.length > 0  ?

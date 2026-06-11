@@ -153,6 +153,12 @@
 	display: block;
 }
 
+main:not(.flag-showOverlay){
+	#photosynth-overlay{
+		display: none;
+	}
+}
+
 // Options set by clicking buttons set these flags as classes
 .flag-clear {
 	// FIXME:
@@ -242,7 +248,8 @@ main:not(.flag-overlays){
 	label[for="button-eyes"],
 	label[for="select-eyes"],
 	label[for="select-palette"],
-	label[for="button-subtitles"]{
+	label[for="button-subtitles"],
+	label[for="button-toggle-overlay"]{
 		visibility: hidden;
 	}
 }

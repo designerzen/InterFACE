@@ -155,7 +155,11 @@ export default class ChordInstrument extends Instrument{
 		this.arpeggioChordKey = ""
 	}
 
-	async chordOnArpeggio(chordArray, velocity=1){
+	getChordVelocity(chord, velocity){
+		return velocity ?? chord?.velocity ?? 1
+	}
+
+	async chordOnArpeggio(chordArray, velocity){
 		if (!chordArray?.length)
 		{
 			return
@@ -174,14 +178,14 @@ export default class ChordInstrument extends Instrument{
 		}
 
 		await this.allNotesOff()
-		return this.noteOn( chord.noteNumber, chord.velocity ?? velocity, 0 )
+		return this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), 0 )
 	}
 
 	/**
 	 * Chord On 
 	 * @param {Array<Chord>} chordArray 
 	 */
-	async chordOn( chordArray, velocity=1 ){
+	async chordOn( chordArray, velocity ){
 	
 		// console.error("ChordInstrument:chordOn", chordArray, this.arpeggio )
 		
@@ -194,9 +198,9 @@ export default class ChordInstrument extends Instrument{
 				const chord = chordArray[index%chordQuantity]
 				if (chord)
 				{
-					this.noteOn( chord.noteNumber, chord.velocity ?? velocity, index )
+					this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
 				}else{
-					this.noteOn( chord.noteNumber, chord.velocity ?? velocity, index )
+					this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
 				}
 			})
 
@@ -209,7 +213,7 @@ export default class ChordInstrument extends Instrument{
 	 * 
 	 * @param {Array<Chord>} chordArray 
 	 */
-	async chordOff( chordArray, velocity=1 ){
+	async chordOff( chordArray, velocity ){
 		// if (!this.arpeggio)
 		// {
 
@@ -223,7 +227,7 @@ export default class ChordInstrument extends Instrument{
 				const chord = chordArray[index%chordQuantity]
 				if (chord)
 				{
-					this.noteOff( chord.noteNumber, chord.velocity ?? velocity, index )
+					this.noteOff( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
 				}else{
 					console.error("No chord found for index", index, chordArray )
 				}

@@ -15,6 +15,7 @@ import {
 } from './dom/ui.js'
 import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
+import { createInputStatusOverlay } from './dom/ui.input-status.js'
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
@@ -111,6 +112,7 @@ import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from 
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
 import { WebMidi } from 'webmidi'
 
 // FIXME: 
@@ -246,9 +248,12 @@ export const createInterface = (
 
 	const shareCodeElement = doc.querySelector(".qr")
 	const feedbackElement = doc.getElementById("feedback")
+	const inputStatusListElement = doc.getElementById("input-status-list")
 
 	// pop up infomation box with html content
 	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
+	const inputStatusOverlay = createInputStatusOverlay(inputStatusListElement)
+	inputStatusOverlay.setEnabled(defaultOptions.hud !== false)
 
 	// Fix dialogs and bind them with events
 	const dialogs = setupDialogs()
@@ -594,7 +599,7 @@ export const createInterface = (
 	let counter = 0
 
 	const killMIDI = () =>{
-		WebMidi && WebMidi.outputs.forEach( MIDIoutput => MIDIoutput.sendAllNotesOff() )
+		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, 'interface-app-killMIDI') )
 	}
 	
 	// performance indicators
@@ -1607,6 +1612,30 @@ export const createInterface = (
 
 	const establishMIDI = async ( timeOut=5000 ) => new Promise( (resolve,reject) => {
 		const MIDI_OPTIONS =  {sysex:false, software:true }
+		const timeoutMessage = "MIDI connection timed out<br>Please check your MIDI device and try reconnecting"
+		let didSettle = false
+		let timeoutId
+
+		const resolveOnce = value => {
+			if (didSettle)
+			{
+				return
+			}
+			didSettle = true
+			clearTimeout(timeoutId)
+			resolve(value)
+		}
+
+		const rejectOnce = error => {
+			if (didSettle)
+			{
+				return
+			}
+			didSettle = true
+			clearTimeout(timeoutId)
+			reject(error)
+		}
+
 		// This occassionaly breaks for no reason that can be tracked
 		// so we run it inside a await with a timeout
 		try{
@@ -1616,19 +1645,26 @@ export const createInterface = (
 			// webMidi = await WebMidi.enable(MIDI_OPTIONS)
 			WebMidi.enable(MIDI_OPTIONS).then( lib => {
 				webMidi = lib
-				resolve(true)
+				resolveOnce(true)
+			}).catch( error => {
+				console.error("WebMidi is available but a connection cannot be established", error)
+				rejectOnce(error)
 			})
 
 			// for reasons undiagnosed, midi doesn't always load here
 			// so we add a timeout
-			setTimeout( _ => reject(false), timeOut )
+			timeoutId = setTimeout( _ => {
+				console.warn("WebMidi enable timed out", {timeOut})
+				setFeedback(timeoutMessage, 0, 'midi')
+				resolveOnce(false)
+			}, timeOut )
 			
 			console.info("WebMidi.enabled", MIDI_OPTIONS )
 			
 		}catch(error){
 
 			console.error("WebMidi is available but a connection cannot be established", error)
-			reject(false)
+			rejectOnce(error)
 		}
 	})
 
@@ -1869,7 +1905,25 @@ export const createInterface = (
 					{
 						stopPersonAudio( person )
 						//console.info(i, range, "Person "+person.name+" dead", person.percentageDead * 100 + "%", prediction )
-					}else{
+				}else{
+					const cachedPrediction = person.data
+					if (!cachedPrediction?.box)
+					{
+						return
+					}
+
+						person.update(cachedPrediction, timeNow)
+
+						if (display && (discoMode || stateMachine.get("overlays")))
+						{
+							const colours = person.draw( cachedPrediction, false, hasBeatJustPlayed)
+							display.drawPerson( person, hasBeatJustPlayed, colours )
+	
+							if (stateMachine.get("text"))
+							{
+								person.drawText( cachedPrediction, display ) 
+							}
+						}
 						//console.info(i, range, "KILLING for time" + person.name, person.percentageDead * 100 + "%", person.deadForDuration * 0.001 )
 					}
 				}
@@ -2220,7 +2274,7 @@ export const createInterface = (
 			// midi.setSongPosition( clock.barProgress * 16383 , {})
 			// SEND OUT Midi to every connected MIDI device
 			//sendMIDIEventToAllDevices("clock")
-			WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() ) // {time:clock.now}
+			WebMidi.outputs.forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-app-midiClock') ) // {time:clock.now}
 			//console.info("midi clock",  WebMidi.time)
 		}
 
@@ -2702,13 +2756,13 @@ export const createInterface = (
 			const sendMIDIEventToAllDevices = (type, noteNumber) => {
 				switch(type){
 					case "noteon":
-						WebMidi.outputs.forEach(output => output.playNote( noteNumber ))
+						WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'playNote', noteNumber, undefined, 'interface-app-midi-relay'))
 						break
 					case "noteoff":
-						WebMidi.outputs.forEach(output => output.stopNote( noteNumber ))
+						WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'stopNote', noteNumber, undefined, 'interface-app-midi-relay'))
 						break
 					case "clock":
-						WebMidi.outputs.forEach(MIDIoutput => MIDIoutput.sendClock() )
+						WebMidi.outputs.forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-app-midi-relay') )
 						break
 				}
 			}
@@ -2722,7 +2776,7 @@ export const createInterface = (
 
 			if (!isMIDIAvailable)
 			{
-				setFeedback("MIDI is NOT available - refresh?")
+				setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
 			}
 			// Inputs
 
@@ -2810,7 +2864,7 @@ export const createInterface = (
 							for (const chord of chordDetails)
 							{
 								// sendMIDIEventToAllDevices( "noteon", chord)
-								WebMidi.outputs.forEach(output => output.playNote(chord.noteNumber))
+								WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'playNote', chord.noteNumber, undefined, 'interface-app-midi-sympathiser'))
 								//console.log("MIDISympathiser noteon chordDetails", {chord, input} )
 							}
 						}
@@ -2840,7 +2894,7 @@ export const createInterface = (
 						for (const chord of playingChord)
 						{
 							// sendMIDIEventToAllDevices( "noteon", chord)
-							WebMidi.outputs.forEach(output => output.stopNote(chord.noteNumber))
+							WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'stopNote', chord.noteNumber, undefined, 'interface-app-midi-sympathiser'))
 							//console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
 						}
 	
@@ -2957,7 +3011,7 @@ export const createInterface = (
 				const MIDIConnectionClasses = [WebMIDIClass]
 			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, people, setFeedback )
+				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, people, setFeedback, inputStatusOverlay )
 				
 				console.info("MIDIManager", {hasMIDI,midiManager})
 			
@@ -3214,6 +3268,11 @@ export const createInterface = (
 		toggles.text = setToggle( "button-subtitles", status => {
 			stateMachine.toggle( 'text' )
 		} )
+
+		toggles.hud = setToggle( "button-hud", status => {
+			const hudEnabled = stateMachine.toggle('hud')
+			inputStatusOverlay.setEnabled(hudEnabled)
+		}, stateMachine.get('hud') )
 
 		toggles.automator = setToggle( "button-automate", status =>{
 			stateMachine.toggle( 'automationMode' ) 
@@ -3642,6 +3701,9 @@ export const createInterface = (
 			setState:(key,data)=>stateMachine.set(key,data),
 
 			setFeedback,
+			setInputStatus: inputStatusOverlay.setDeviceStatus,
+			clearInputStatus: inputStatusOverlay.clearDeviceStatus,
+			pulseInputStatus: inputStatusOverlay.pulseDeviceStatus,
 			kit,
 
 			addListener,

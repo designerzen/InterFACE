@@ -1,4 +1,5 @@
 import Instrument from './instrument.js'
+import { logMIDIDebug, sendGuardedMIDIOutput } from '../midi/midi-echo-guard.js'
 
 export const INSTRUMENT_TYPE_MIDI = "MIDIInstrument"
 
@@ -56,7 +57,7 @@ export default class MIDIInstrument extends Instrument{
 		}
 		super.noteOn(noteNumber, this.currentVolume * velocity )
 		//
-		return this.midiPort.playNote( noteNumber, midiOptions )
+		return sendGuardedMIDIOutput(this.midiPort, 'playNote', noteNumber, midiOptions, 'instrument-midi-noteOn')
 	}
 
 	async noteOff(noteNumber){
@@ -68,11 +69,12 @@ export default class MIDIInstrument extends Instrument{
 		//this.midi.sendClock( )
 		//this.midi.setSongPosition( getBarProgress() * 16383 )
 		
-		this.midiPort.stopNote(noteNumber, {
+		sendGuardedMIDIOutput(this.midiPort, 'stopNote', noteNumber, {
+			channels:this.channel,
 			// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
 			// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
 			release:0.2
-		})
+		}, 'instrument-midi-noteOff')
 
 		// immediate mute, but doesn't block (sounds better)
 		// this.midi.turnSoundOff()
@@ -83,7 +85,11 @@ export default class MIDIInstrument extends Instrument{
 		// prevent flooding the off bus
 		this.midiActive = false
 
-		console.log(this.midi, "MIDI turnSoundOff", "Channel:"+this.midiChannel,{ channel:this.midiChannel, hasMIDI:this.hasMIDI, MIDIDeviceName:this.MIDIDeviceName} )
+		logMIDIDebug("MIDI:Instrument noteOff", {
+			channel: this.midiChannel,
+			hasMIDI: this.hasMIDI,
+			MIDIDeviceName: this.MIDIDeviceName
+		}, 'info')
 		return super.noteOff( noteNumber )
 	}
 
@@ -100,7 +106,7 @@ export default class MIDIInstrument extends Instrument{
 	}
 
 	sendClock(){
-		this.midiPort.sendClock( )
+		sendGuardedMIDIOutput(this.midiPort, 'sendClock', 'clock', undefined, 'instrument-midi-clock')
 	}
 
 	

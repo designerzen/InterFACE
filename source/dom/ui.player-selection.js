@@ -115,16 +115,20 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 	}
 
 	const complete = result => {
+		const selectedIndex = Math.max(0, playerQuantities.indexOf(numberOfPlayersAsString(result)))
 
 		// hide / show buttons as relevant
 		playerQuantityButtons.forEach( (button, index) =>{
-			if (index !== result) {
+			if (index !== selectedIndex) {
 				// hide deselected
 				button.hidden = false
 			}else{
 				// show the selected one
 				button.hidden = true
-				body.classList.add(playerQuantities[index])
+				if (playerQuantities[index])
+				{
+					body.classList.add(playerQuantities[index])
+				}
 			}
 		} )
      

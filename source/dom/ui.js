@@ -27,7 +27,7 @@ export const isVisible = (element) => {
  * @return {Boolean} is now visible 
  */
 export const setVisibility = (element, visisble) => {
-	element.style.visibility = !visisble ? "visible" : "hidden"
+	element.style.visibility = visisble ? "visible" : "hidden"
 	return isVisible(element)
 }
 /**

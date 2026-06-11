@@ -38,16 +38,16 @@
 	--total-gap-width: calc(var(--gap-count) * var(--grid-gap));
 	--grid-item--max-width: calc((100% - var(--total-gap-width)) / var(--grid-column-count));
 	
-	min-width:100%;
-	max-width:100%;
+	width:100%;
+	min-width:0;
+	max-width:min(100%, 100vw);
 
 	visibility:hidden;
 
 	box-sizing: border-box;
 
 	display: grid;
-	grid-auto-flow: column;
-    grid-auto-columns: auto;
+	grid-auto-flow: row;
 	// stretch until we reach x quantity then wrap
 	grid-template-columns: repeat(auto-fit, minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr));
 	gap: var(--grid-gap);

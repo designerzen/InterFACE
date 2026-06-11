@@ -5,6 +5,25 @@
 import MIDIConnection from './midi-connection.js'
 // import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi"
 import {WebMidi} from "webmidi"
+import { isMIDIDebugEnabled, logMIDIDebug, sendGuardedMIDIOutput } from './midi-echo-guard.js'
+
+const getMIDIPortSnapshot = () => ({
+	enabled: WebMidi.enabled,
+	inputs: WebMidi.inputs.map(input => ({
+		id: input.id,
+		name: input.name,
+		manufacturer: input.manufacturer,
+		connection: input.connection,
+		state: input.state
+	})),
+	outputs: WebMidi.outputs.map(output => ({
+		id: output.id,
+		name: output.name,
+		manufacturer: output.manufacturer,
+		connection: output.connection,
+		state: output.state
+	}))
+})
 
 // https://mpe.js.org/#Installation
 // import mpeInstrument from 'mpe'
@@ -41,6 +60,8 @@ export default class WebMIDIConnection extends MIDIConnection{
 	midiChannel = "all"
 	useMPE = false
 	useSysex = false
+	connectedListener = null
+	disconnectedListener = null
 
 	get inputs(){
 		return WebMidi.inputs
@@ -68,36 +89,68 @@ export default class WebMIDIConnection extends MIDIConnection{
 	 * @param {Function} onDeviceListUpdated 
 	 * @returns 
 	 */
-	async connect( options, onDeviceListUpdated=null ){
-		return new Promise(async (resolve,reject)=>{
-			try{
-				const port = options.port ?? 0
-				// midi device connected! huzzah!
-				WebMidi.addListener("connected", e => this.onConnected(e, onDeviceListUpdated) )
-				
-				// Reacting when a device becomes unavailable
-				WebMidi.addListener("disconnected", e => this.onDisconnected(e, onDeviceListUpdated)  )
-	
-				// MIDI access granted andavailable
-				WebMidi.addListener("enabled", event => {
-					WebMidi.inputs.forEach(input => console.log(input.manufacturer, input.name, input))
-					WebMidi.outputs.forEach(output => console.log(output.manufacturer, output.name, output))
-					resolve( { status:"MIDI:Connection WebMIDI enabled", event, inputs:WebMidi.inputs, outputs:WebMidi.outputs} )
-				} )	
+	async connect( options={}, onDeviceListUpdated=null ){
+		const port = options?.port ?? 0
+		const startedAt = performance.now()
+		logMIDIDebug("MIDI:WebMIDI connect starting", {
+			port,
+			useSysex: this.useSysex,
+			useMPE: this.useMPE,
+			before: getMIDIPortSnapshot()
+		})
 
-				this.midi = await WebMidi.enable({sysex: this.useSysex })
+		if (this.connectedListener)
+		{
+			logMIDIDebug("MIDI:Removing previous connected listener before reconnect")
+			WebMidi.removeListener("connected", this.connectedListener)
+		}
+		if (this.disconnectedListener)
+		{
+			logMIDIDebug("MIDI:Removing previous disconnected listener before reconnect")
+			WebMidi.removeListener("disconnected", this.disconnectedListener)
+		}
+
+		this.connectedListener = event => this.onConnected(event, onDeviceListUpdated)
+		this.disconnectedListener = event => this.onDisconnected(event, onDeviceListUpdated)
+
+		// midi device connected! huzzah!
+		WebMidi.addListener("connected", this.connectedListener )
+
+		// Reacting when a device becomes unavailable
+		WebMidi.addListener("disconnected", this.disconnectedListener )
+
+		try{
+			this.midi = await WebMidi.enable({sysex: this.useSysex })
+		}catch(error){
+			console.error("MIDI:WebMIDI enable failed", {
+				error,
+				afterMs: Math.round(performance.now() - startedAt),
+				snapshot: getMIDIPortSnapshot()
+			})
+			throw error
+		}
+
+		logMIDIDebug("MIDI:WebMIDI enable complete", {
+			afterMs: Math.round(performance.now() - startedAt),
+			after: getMIDIPortSnapshot()
+		})
+		if (isMIDIDebugEnabled())
+		{
+			WebMidi.inputs.forEach(input => console.log("MIDI:Input", input.manufacturer, input.name, input))
+			WebMidi.outputs.forEach(output => console.log("MIDI:Output", output.manufacturer, output.name, output))
+		}
 				
-				// Retrieving an output port/device using its id, name or index
-				// midiChannel = WebMidi.getOutputById("123456789")
-				// midiChannel = WebMidi.getOutputByName("Axiom Pro 25 Ext Out")
-				// midiChannel = WebMidi.outputs[0]
-				if (isNaN(port))
-				{
-					this.midiChannel = WebMidi.getOutputById(port)
-					// midiChannel = WebMidi.getOutputByName(port)
-				}else{
-					this.midiChannel = WebMidi.outputs[port]
-				}
+		// Retrieving an output port/device using its id, name or index
+		// midiChannel = WebMidi.getOutputById("123456789")
+		// midiChannel = WebMidi.getOutputByName("Axiom Pro 25 Ext Out")
+		// midiChannel = WebMidi.outputs[0]
+		if (isNaN(port))
+		{
+			this.midiChannel = WebMidi.getOutputById(port)
+			// midiChannel = WebMidi.getOutputByName(port)
+		}else{
+			this.midiChannel = WebMidi.outputs[port]
+		}
 	
 				// Display the current time
 				//   console.log(WebMidi.time)
@@ -154,19 +207,24 @@ export default class WebMIDIConnection extends MIDIConnection{
 				// 		.stopNote("G5", 12, {time: 1200});    // After 1.2 s.
 	
 				// }
-			}catch(error){
-				reject(error)
-			}
-		})
+		return { status:"MIDI:Connection WebMIDI enabled", inputs:WebMidi.inputs, outputs:WebMidi.outputs}
 	}
 
 	async disconnect(){
 	
 		// midi device connected! huzzah!
-		WebMidi.removeListener("connected", this.onConnected )
+		if (this.connectedListener)
+		{
+			WebMidi.removeListener("connected", this.connectedListener )
+			this.connectedListener = null
+		}
 		
 		// Reacting when a device becomes unavailable
-		WebMidi.removeListener("disconnected", this.onDisconnected )
+		if (this.disconnectedListener)
+		{
+			WebMidi.removeListener("disconnected", this.disconnectedListener )
+			this.disconnectedListener = null
+		}
 
 		await WebMidi.disable()
 
@@ -178,10 +236,10 @@ export default class WebMIDIConnection extends MIDIConnection{
 	 * These are entry points to handle MIDI commands
 	 */
 	async noteOn( note, velocity ){
-		midiChannel.playNote( note, this.midiChannel, {velocity})
+		sendGuardedMIDIOutput(this.midiChannel, 'playNote', note, {velocity}, 'webmidi-connection-noteOn')
 	}
 	async noteOff( note, velocity ){
-		midiChannel.stopNote( note, this.midiChannel, {velocity})
+		sendGuardedMIDIOutput(this.midiChannel, 'stopNote', note, {velocity}, 'webmidi-connection-noteOff')
 	}
 
 	async allNotesOff(){
@@ -190,10 +248,18 @@ export default class WebMIDIConnection extends MIDIConnection{
 
 
 	onConnected(event, onDeviceListUpdated=null){
+		logMIDIDebug("MIDI:WebMIDI connected event", {
+			event,
+			snapshot: getMIDIPortSnapshot()
+		})
 		onDeviceListUpdated && onDeviceListUpdated( event, this.inputs, this.outputs )
 	}
 
 	onDisconnected(event, onDeviceListUpdated=null){
+		logMIDIDebug("MIDI:WebMIDI disconnected event", {
+			event,
+			snapshot: getMIDIPortSnapshot()
+		})
 		onDeviceListUpdated && onDeviceListUpdated( event, this.inputs, this.outputs )
 	}
 }

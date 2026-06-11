@@ -255,20 +255,6 @@ menu#control-panel
 
 
 
-	//- ALL PLAYER SETTINGS --------------------------------------
-	//- Settings for all players... usually hidden
-	menu#midi-settings.controls
-	
-		legend MIDI Connections and options
-
-		//- Should this be in an options select? 
-		label(for="button-sync-midi") Internal<br>Clock
-			input#button-sync-midi(type="radio" name="midi-synch-to" value="internal" aria-label="Use the internal tempo and clock")
-	
-		label(for="button-sync-midi") Synch<br>MIDI
-			input#button-sync-midi(type="radio" name="midi-synch-to" value="external-1" aria-label="Synchronise the tempo with this MIDI device")
-	
-
 	//- Settings for all users --------------------------------------------------------------- 
 	menu#settings.controls
 
@@ -313,6 +299,12 @@ menu#control-panel
 	
 		label(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
 			input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
+
+		label(for="button-hud") HUD<span class="hide-text"> input device overlay</span>
+			input#button-hud(type="checkbox" aria-label="Toggle the input device HUD")
+
+		label(for="button-toggle-overlay") Overlay<span class="hide-text"> canvas for text and symbols</span>
+			input#button-toggle-overlay(type="checkbox" aria-label="Toggle the overlay canvas for text and symbols")
 		
 		label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
 			input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
