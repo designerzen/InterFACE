@@ -200,6 +200,17 @@
 		}
 	}
 
+	label[for="button-toggle-overlay"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-blue);
+		--bg:url(/source/assets/icons/texture-24px.svg);
+		anchor-name: --button-toggle-overlay;
+		&:has(input:checked),
+		&.checked{
+			--bg:url(/source/assets/icons/subtitles_off_black_24dp.svg);
+		}
+	}
+
 	// choose colour scheme
 	label[for="select-palette"]{
 		--col-select:var(--shade-yellow);
