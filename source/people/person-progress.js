@@ -2,6 +2,7 @@ import Achievements from "./person-achievements"
 import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_SUSTAIN } from "./person-states.js"
 
 const PLAYER_NOTE_EVENT_WINDOW = 5_000
+const POINTS_PER_PLAYED_NOTE = 1
 const PLAYING_NOTE_STATES = new Set([
 	STATE_INSTRUMENT_ATTACK,
 	STATE_INSTRUMENT_PITCH_BEND,
@@ -40,6 +41,7 @@ export default class PersonalProgress{
 	#singleNoteNumber = null
 	#singleNoteStartedAt = 0
 	#singleNoteDuration = 0
+	#notePoints = 0
 
 	// How long has this user been engaged with 
 	get timeEngaged(){
@@ -51,7 +53,7 @@ export default class PersonalProgress{
 	}
 
 	get achievementPoints(){
-		return this.#achievements.score
+		return this.#achievements.score + this.#notePoints
 	}
 
 	// Quantity of points
@@ -131,6 +133,7 @@ export default class PersonalProgress{
 			this.#noteEvents.push({noteNumber, state, time})
 			this.#uniqueNotes.add(noteNumber)
 			this.#totalNotes++
+			this.#notePoints += POINTS_PER_PLAYED_NOTE
 			this.#lowestNoteNumber = Math.min(this.#lowestNoteNumber, noteNumber)
 			this.#highestNoteNumber = Math.max(this.#highestNoteNumber, noteNumber)
 			if (state === STATE_INSTRUMENT_PITCH_BEND)
@@ -195,7 +198,7 @@ export default class PersonalProgress{
 	}
 
 	// 
-	reset(){
+	resetSession(){
 		this.markStartTime()
 		this.#engagedBefore = 0
 		this.#isEngaged = false
@@ -214,6 +217,12 @@ export default class PersonalProgress{
 		this.#singleNoteNumber = null
 		this.#singleNoteStartedAt = 0
 		this.#singleNoteDuration = 0
+	}
+
+	// 
+	reset(){
+		this.resetSession()
+		this.#notePoints = 0
 		this.#achievements.reset()
 	}
 }

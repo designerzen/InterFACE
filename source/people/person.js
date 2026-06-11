@@ -941,7 +941,7 @@ export default class Person extends EventTarget{
 		
 		// Reset emoji detector state
 		this.emojiDetector.reset()
-		this.personalProgress.reset()
+		this.personalProgress.resetSession()
 
 		// centralise pan if set
 		if (this.stereoNode)
@@ -1568,7 +1568,7 @@ export default class Person extends EventTarget{
 	}
 
 	drawInstrumentText(display, textX, textY, instrumentTitle, style){
-		display.drawInstrument(textX, textY - 50, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
+		display.drawInstrument(textX, textY - 55, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
 	}
 
 
@@ -1595,18 +1595,21 @@ export default class Person extends EventTarget{
 		const xMax = display.width - (boundingBox.xMax * display.width) 
 		const yMax = (boundingBox.yMax * display.height) 
 		
+		const boxLeft = Math.min(xMin, xMax)
+		const boxRight = Math.max(xMin, xMax)
 		const boxHeight = yMax - yMin
-		const boxWidth = xMax - xMin
+		const boxWidth = boxRight - boxLeft
 		const thirdHeadHeight = boxHeight * 0.333
 		const thirdHeadWidth = boxWidth * 0.333
 		const halfHeadWidth = boxWidth * 0.5
+		const personTextWidth = Math.max(boxWidth, 180)
 
 		let title = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
 		let titleSuffix = ""
 		let paragraphs = []
 
 		// as this should never be negative, we can use this to offset the text
-		const textX = xMin + halfHeadWidth - 9
+		const textX = boxLeft + halfHeadWidth
 		const textY = Math.max(0, yMin - thirdHeadHeight - 22)
 
 		// draw a background for the text
@@ -1677,7 +1680,7 @@ export default class Person extends EventTarget{
 
 			this.drawInstrumentText( display, textX, textY, title, titleSuffix, 14 ) 	
 			// we offset to the left
-			display.drawParagraph( xMax, textY, paragraphs, 12 )
+			display.drawParagraph( textX, textY, paragraphs, 12, 20, false, "center", "Oxanium", personTextWidth )
 		
 		}else if ( this.instrumentLoading){
 
@@ -1726,13 +1729,18 @@ export default class Person extends EventTarget{
 				{
 					const { achievement, emoticon } = this.recentAchievement
 					display.drawParagraph(
-						textX - 66,
+						textX,
 						textY + 70,
 						[
 							`+${achievement.score} ${achievement.title}`,
 							achievement.message ?? emoticon
 						],
-						12
+						12,
+						20,
+						false,
+						"center",
+						"Oxanium",
+						personTextWidth
 					)
 				}
 
@@ -1835,7 +1843,7 @@ export default class Person extends EventTarget{
 					]
 				}
 
-				display.drawParagraph( xMax, yMin + 40, paragraphs, 9 )
+				display.drawParagraph( textX, yMin + 40, paragraphs, 9, 20, false, "center", "Oxanium", Math.max(personTextWidth, 220) )
 				// drawText(boundingBox.topLeft[0], boundingBox.topLeft[1], extra )
 			}
 		}
