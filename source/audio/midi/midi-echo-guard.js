@@ -1,4 +1,4 @@
-const MIDI_ECHO_GUARD_TTL = 2000
+const MIDI_ECHO_GUARD_TTL = 150
 const MIDI_OUTPUT_LOOP_WINDOW = 250
 const MIDI_OUTPUT_LOOP_LIMIT = 24
 const MIDI_PANIC_LOOP_LIMIT = 2
@@ -121,6 +121,25 @@ const getPortId = port => {
 	return channel === undefined ? id : `${id}:channel-${channel}`
 }
 
+const normalizeMIDIPortName = value => String(value ?? '').trim().toLowerCase()
+
+const isSameMIDIDevice = (input, recentOutput) => {
+	if (!input || !recentOutput)
+	{
+		return true
+	}
+
+	const inputId = normalizeMIDIPortName(input.id)
+	const inputName = normalizeMIDIPortName(input.name)
+	const outputId = normalizeMIDIPortName(recentOutput.portId)
+	const outputName = normalizeMIDIPortName(recentOutput.outputName)
+
+	return Boolean(
+		inputId && (inputId === outputId || inputId === outputName) ||
+		inputName && (inputName === outputId || inputName === outputName)
+	)
+}
+
 const getNoteKeys = note => {
 	const keys = new Set()
 	if (note === undefined || note === null)
@@ -224,7 +243,7 @@ export const recordMIDIOutputForEchoGuard = (output, type, note, source = 'unkno
 	}
 }
 
-export const isRecentMIDIOutputEcho = (event, type) => {
+export const isRecentMIDIOutputEcho = (event, type, input = null) => {
 	const debugState = getMIDIDebugState()
 	const now = performance.now()
 	for (const echoType of getEchoTypes(type))
@@ -232,7 +251,7 @@ export const isRecentMIDIOutputEcho = (event, type) => {
 		for (const noteKey of getEventNoteKeys(event))
 		{
 			const recentOutput = debugState.recentOutputs.get(`${echoType}|${noteKey}`)
-			if (recentOutput && now - recentOutput.at <= MIDI_ECHO_GUARD_TTL)
+			if (recentOutput && now - recentOutput.at <= MIDI_ECHO_GUARD_TTL && isSameMIDIDevice(input, recentOutput))
 			{
 				return recentOutput
 			}
@@ -374,6 +393,22 @@ export const stopActiveMIDIOutputNotes = (output, source = 'unknown', options = 
 			stopped++
 		}
 	}
+
+	return stopped
+}
+
+export const stopAllActiveMIDIOutputNotes = (source = 'unknown', options = { release: 0 }) => {
+	const debugState = getMIDIDebugState()
+	const activeOutputs = new Set(
+		Array.from(debugState.activeNotes.values())
+			.map(activeNote => activeNote.output)
+			.filter(Boolean)
+	)
+	let stopped = 0
+
+	activeOutputs.forEach(output => {
+		stopped += stopActiveMIDIOutputNotes(output, source, options)
+	})
 
 	return stopped
 }

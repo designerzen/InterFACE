@@ -139,7 +139,7 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { stopWebMIDIForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
-import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
+import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes, stopAllActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
 
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
 import { showError } from './dom/errors.js'
@@ -606,8 +606,9 @@ export const createInterface = (
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
 
-	const killMIDI = () =>{
-		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, 'interface-killMIDI') )
+	const killMIDI = (source = 'interface-killMIDI') =>{
+		stopAllActiveMIDIOutputNotes(source)
+		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
 	}
 	
 	// performance indicators
@@ -808,6 +809,35 @@ export const createInterface = (
 		changeDrumPattern( Math.floor( 17 + Math.random() * 23 ))
 	} 
 
+	const playPercussionPart = (part, options={}) => {
+		resumeAudio()
+
+		const triggerAt = audioContext.currentTime + 0.01
+		const eyeControlledTimbres = createEyeControlledDrumTimbres()
+		const triggerOptions = { velocity: 1, triggerAt, ...options }
+
+		switch(part)
+		{
+			case 'kick':
+				return kit.kick({ ...eyeControlledTimbres.kick, ...triggerOptions })
+
+			case 'snare':
+				return kit.snare({ ...eyeControlledTimbres.snare, ...triggerOptions })
+
+			case 'hat':
+				return kit.hat({ ...eyeControlledTimbres.hat, ...triggerOptions })
+
+			case 'clap':
+				return kit.clap(triggerOptions)
+
+			case 'cowbell':
+				return kit.cowbell(triggerOptions)
+
+			default:
+				return null
+		}
+	}
+
 	/**
 	 * Toggle the background synthesized percussion
 	 */
@@ -865,6 +895,14 @@ export const createInterface = (
 		// console.info("Setting volume", volume, "to", percentage + "%")
 		setFeedback(`Volume ${percentage}%`,0, 'volume')
 		return volume
+	}
+
+	const resumeAudio = () => {
+		if (audioContext?.state === 'suspended')
+		{
+			return audioContext.resume()
+		}
+		return Promise.resolve(audioContext?.state)
 	}
 
 	/**
@@ -3891,7 +3929,7 @@ export const createInterface = (
 
 			addEventListener:addListener,
 			
-			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, toggleBackgroundPercussion,
+			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, playPercussionPart, toggleBackgroundPercussion,
 		
 			midiPerformance,
 
@@ -3912,6 +3950,7 @@ export const createInterface = (
 			clock,
 			setBPM,
 
+			resumeAudio,
 			getVolume, setVolume:setMasterVolume, 
 			getMasterMixdown,
 			loadInstruments: loadInstrumentPreset,
@@ -4117,7 +4156,11 @@ export const createInterface = (
 			watchForUserActivity( stateMachine.get("inactiveAfter") )
 		}
 
+		const stopMIDIForWindowUnload = () => killMIDI('interface-window-unload')
+
 		// Exit & save all cookies!
+		window.addEventListener("beforeunload", stopMIDIForWindowUnload)
+		window.addEventListener("pagehide", stopMIDIForWindowUnload)
 		window.onbeforeunload = quit
 
 		// document.addEventListener( "contextmenu", (e) => {

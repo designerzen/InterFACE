@@ -112,7 +112,7 @@ import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from 
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
-import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
+import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes, stopAllActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
 import { WebMidi } from 'webmidi'
 
 // FIXME: 
@@ -136,7 +136,7 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 // CONTROLS
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
-import { getActiveMIDINotesForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
+import { updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
 
 /*
 
@@ -162,7 +162,6 @@ import { convertOptionToObject } from './utils/utils.js'
 */
 
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
-import { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js'
 import { showError } from './dom/errors.js'
 import { FIFTHS_SCALE_KEYS, JAZZ_MINOR_SCALE_KEYS, MAJOR_SCALE_KEYS, MINOR_SCALE_KEYS, getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 import { NOTES_BLACK, NOTES_WHITE } from './audio/tuning/notes.js'
@@ -170,6 +169,7 @@ import OscillatorInstrument from './audio/instruments/instrument.oscillator.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
 import { tapTempo } from 'netronome'
 import { observeOrientationChange } from './display/display-abstract.js'
+import { observeMIDIInputs } from './interface-midi.js'
 
 const {DISPLAY_CANVAS_2D, DISPLAY_MEDIA_VISION_2D, DISPLAY_LOOKING_GLASS_3D, DISPLAY_WEB_GL_3D, DISPLAY_COMPOSITE} = DISPLAY_TYPES
 
@@ -598,8 +598,9 @@ export const createInterface = (
 	// This allows us to determine how long the app has been running for?
 	let counter = 0
 
-	const killMIDI = () =>{
-		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, 'interface-app-killMIDI') )
+	const killMIDI = (source = 'interface-app-killMIDI') =>{
+		stopAllActiveMIDIOutputNotes(source)
+		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
 	}
 	
 	// performance indicators
@@ -2750,23 +2751,6 @@ export const createInterface = (
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
-			const relayMIDI = stateMachine.get("midiRelay")
-
-		
-			const sendMIDIEventToAllDevices = (type, noteNumber) => {
-				switch(type){
-					case "noteon":
-						WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'playNote', noteNumber, undefined, 'interface-app-midi-relay'))
-						break
-					case "noteoff":
-						WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'stopNote', noteNumber, undefined, 'interface-app-midi-relay'))
-						break
-					case "clock":
-						WebMidi.outputs.forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-app-midi-relay') )
-						break
-				}
-			}
-			
 			progressCallback(loadIndex, "Attempting to find MIDI instruments")
 			
 			// this has a timeout!
@@ -2778,223 +2762,20 @@ export const createInterface = (
 			{
 				setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
 			}
-			// Inputs
-
-			// Outputs
-			// WebMidi.outputs.forEach(output => console.log("MIDI OUTPUT", output.manufacturer, output.name))
-			// immediately hook into the clock events...
-			const skipMIDI = false
-			if (!skipMIDI && stateMachine.get("midiInput"))
+			if (stateMachine.get("midiInput"))
 			{
-				console.error("WebMidi Inputs", WebMidi.inputs)
-				WebMidi.inputs.forEach(input =>{
-					
-					let activePerson
-					let activeEmoticon
-
-					console.info("Observing MIDI device", input )
-					
-					const playingMIDINotes = new Map()
-					const aborter = new AbortController()
-
-					let person
-
-					const playMIDINoteOn = ( noteNumber, velocity=1, monitorEmotion=true ) => {
-
-						// TODO: use the midi in and the people to augment
-						// the note played with chords that match the facial expression
-						// const amountOfInputs = WebMidi.inputs.length         
-						person = getActivePerson()
-
-
-						// augment note into chord us ing event.note.number as the tonic
-						const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
-						
-
-						
-						console.info("playMIDINoteOn", noteNumber, chordDetails, {person} )
-
-						if (monitorEmotion && playingMIDINotes.size === 0)
-						{
-							/*
-							// we need this to also update any playing midi notes
-							person.addListener(EVENT_EMOTION_CHANGED, event => {	
-								
-								const {detail} = event
-								const { emoticon } = detail
-								// const { emoticon, person } = detail
-								console.log("Emotion changed", detail)
-								//chordDetails = getMusicalDetailsFromEmoji(noteNumber, emoticon)
-								
-								// now we need to "change" notes
-								
-								// playNoteOff()
-								// setToast( `${detail.emoticon} Emotion Changed` ) 
-								
-								playMIDINoteOff( noteNumber)
-								playMIDINoteOn( noteNumber, velocity, false )
-
-							}, {signal:aborter.signal})
-							*/
-						}
-							
-
-						// save this chord for note off later
-						playingMIDINotes.set( noteNumber, chordDetails )	
-
-						// console.log("MIDI noteon", person.emoticon, {chordDetails, playingMIDINotes, person} )
-
-						// play midi notes using our Audio Engine...
-						// globalChordPlayer.noteOn( event.note.number, event.value )
-						// globalChordPlayer.chordOn( event.note.number, event.value )
-
-						// updateInstrumentWithPerson( samplePlayer, person )
-						// also send 
-					
-						// FIXME: send out original event to other all connected devices
-						// if (relayMIDI)
-						// {
-						// 	sendMIDIEventToAllDevices( "noteon", noteNumber )
-						// 	//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
-						// }
-
-						// send out augmented events?
-						if (stateMachine.get("midiSympathiser"))
-						{
-							for (const chord of chordDetails)
-							{
-								// sendMIDIEventToAllDevices( "noteon", chord)
-								WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'playNote', chord.noteNumber, undefined, 'interface-app-midi-sympathiser'))
-								//console.log("MIDISympathiser noteon chordDetails", {chord, input} )
-							}
-						}
-
-						// Use onboard sound engine to make the sounds
-						if (stateMachine.get("midiOnboard")){
-							//console.info("Note on onboard midi", chordDetails, activePerson.noteVelocity)
-							globalChordPlayer.chordOn( chordDetails, activePerson.noteVelocity )
-						}
-					}
-
-					// stop existing note from playing
-					const playMIDINoteOff = (noteNumber, velocity=1) => {
-
-						// console.info("playMIDINoteOn", noteNumber, {person} )
-
-						// get the chord details
-						const playingChord = playingMIDINotes.get( noteNumber )
-						//console.log("MIDI noteoff", event.note.identifier, {event, playingChord} )
-						
-						if (!playingChord)
-						{
-							// no note off to action :/
-							//console.info("trying to turn the chord off")
-						}
-
-						for (const chord of playingChord)
-						{
-							// sendMIDIEventToAllDevices( "noteon", chord)
-							WebMidi.outputs.forEach(output => sendGuardedMIDIOutput(output, 'stopNote', chord.noteNumber, undefined, 'interface-app-midi-sympathiser'))
-							//console.log("MIDISympathiser noteoff chordDetails", {chord, input} )
-						}
-	
-						if (relayMIDI)
-						{
-							// event.type === noteoff
-							sendMIDIEventToAllDevices( "noteoff", noteNumber )
-							//console.log("relayMIDI noteon", event, event.note.identifier, chordDetails)
-						}
-
-						// stop midi notes on our Audio Engine...
-						// globalChordPlayer.noteOff( event.note.number, event.value )
-						// globalChordPlayer.chordOff( event.note.number, event.value )
-						
-						// updateInstrumentWithPerson( samplePlayer, person )
-						// sendMIDIEventToAllDevices(event.type, event)
-
-						playingMIDINotes.delete( noteNumber )
-						
-						// stop watching for emoji changes in this person as there
-						// are no notes playing anymore to update
-						if (playingMIDINotes.size === 0){
-							aborter.abort()
-							person = null
-						}
-						
-						if (stateMachine.get("midiOnboard")){
-							globalChordPlayer.allNotesOff()
-						}
-					}
-
-					input.addListener("midimessage", event => {
-						// console.info("MIDI Message", event )
-						switch(event.message.type){
-							case "start": 
-								startBackgroundPercussion()
-								break
-							case "stop": 
-								stopBackgroundPercussion()
-								break
-							case "continue": 	
-								toggleBackgroundPercussion()
-								break
-							case "clock":
-								// if we want an exclusive clock
-								// NB. this will be sent out to all channels in the loop
-								clock.bypass(true)
-								clock.externalTrigger()
-								// console.info("clock", clock )
-								break       
-						}
-					})
-
-					// FIXME: This NEEDS to ignore notes played by the person!
-					input.addListener("noteon", event => { 
-						// TODO: check to see if these notes are triggered
-						// by this and ignore any note ons that we sent out!!!
-						// console.info("External MIDI noteon", event.note.number, {event} ) 
-						return
-
-						if (!person){
-							person = getActivePerson()
-						}
-						
-						const requestedNote = event.note.number
-
-						// const pChord = person.activeNotes.get( person.noteNumber )
-						// const chord = person.activeNotes.get( event.note.number )
-						const chords = getActiveMIDINotesForPerson( person.playerNumber )
-
-						const isPlaying = chords.get( requestedNote) ?? false
-						
-						// for (let c in chord){
-						// 	if (c.noteNumber === requestedNote){
-						// 		isPlaying = true
-						// 		break
-						// 	}
-						// }
-						// for (let c in pChord){
-						// 	if (c.noteNumber === requestedNote ){
-						// 		isPlaying = true
-						// 		break
-						// 	}
-						// }
-
-						if (!isPlaying)
-						{
-							playMIDINoteOn(event.note.number)
-							//console.info("MIDI noteon FRESH", event.note.number, {event, chords} ) 
-						}else{
-							//console.info("MIDI noteon ALTER", event.note.number, {event, chords} ) 
-
-						}
-					})
-					input.addListener("noteoff", event => { 
-						//playMIDINoteOff(event.note.number) 
-						// console.info("External MIDI noteoff", event.note.number, {event} )
-					})
-
-					console.log("Available MIDI INPUT Device", input.manufacturer, input.name)
+				observeMIDIInputs({
+					stateMachine,
+					personManager: {
+						getSelectedPerson: () => people[selectedPersonIndex],
+						getActivePerson: () => people.find(person => person.active) ?? people[0]
+					},
+					globalChordPlayer,
+					clock,
+					startBackgroundPercussion,
+					stopBackgroundPercussion,
+					toggleBackgroundPercussion,
+					statusAPI: inputStatusOverlay
 				})
 			}
 		}
@@ -3940,7 +3721,11 @@ export const createInterface = (
 			watchForUserActivity( stateMachine.get("timeout") )
 		}
 
+		const stopMIDIForWindowUnload = () => killMIDI('interface-app-window-unload')
+
 		// Exit & save all cookies!
+		window.addEventListener("beforeunload", stopMIDIForWindowUnload)
+		window.addEventListener("pagehide", stopMIDIForWindowUnload)
 		window.onbeforeunload = ()=> quit()
 
 		// document.addEventListener( "contextmenu", (e) => {

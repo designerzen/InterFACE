@@ -132,10 +132,10 @@ export class GamePadManager {
 	 * @param {String} key 
 	 * @param {Boolean|String|Object} value 
 	 */
-	dispatchEvent( key, value, gamePad ){
+	dispatchEvent( key, value, gamePad, heldFor ){
 		if (this.#callbacks.size)
 		{
-			this.#callbacks.forEach( callback => callback(key,value, gamePad) )
+			this.#callbacks.forEach( callback => callback(key, value, gamePad, heldFor) )
 		}
 	}
 

@@ -2,6 +2,7 @@ import { WebMidi } from "webmidi"
 import { getActiveMIDINotesForPerson, isMIDINoteActive } from "./audio/instrumentMediators/mediator.person-webmidi.js"
 import { isMIDIDebugEnabled, isRecentMIDIOutputEcho, logMIDIDebug, sendGuardedMIDIOutput } from "./audio/midi/midi-echo-guard.js"
 import { getMusicalDetailsFromEmoji } from "./models/emoji-to-music.js"
+import { EVENT_EMOTION_CHANGED } from "./people/person-event.js"
 
 const midiInputCleanupCallbacks = new Set()
 const midiInputObservers = new Map()
@@ -191,26 +192,37 @@ const setMIDIInputStatus = (statusAPI, input, id, detail, active = false, ttl = 
 }
 
 const sendMIDIEventToAllDevices = (type, noteNumber, source = 'input-relay') => {
+	let sent = 0
 	switch(type){
 		case "noteon":
 			WebMidi.outputs.forEach(output => {
 				recordMIDIOutputDebug(output, type, noteNumber, source)
-				sendGuardedMIDIOutput(output, 'playNote', noteNumber, undefined, source)
+				if (sendGuardedMIDIOutput(output, 'playNote', noteNumber, undefined, source))
+				{
+					sent++
+				}
 			})
 			break
 		case "noteoff":
 			WebMidi.outputs.forEach(output => {
 				recordMIDIOutputDebug(output, type, noteNumber, source)
-				sendGuardedMIDIOutput(output, 'stopNote', noteNumber, undefined, source)
+				if (sendGuardedMIDIOutput(output, 'stopNote', noteNumber, undefined, source))
+				{
+					sent++
+				}
 			})
 			break
 		case "clock":
 			WebMidi.outputs.forEach(output => {
 				recordMIDIOutputDebug(output, type, noteNumber, source)
-				sendGuardedMIDIOutput(output, 'sendClock', 'clock', undefined, source)
+				if (sendGuardedMIDIOutput(output, 'sendClock', 'clock', undefined, source))
+				{
+					sent++
+				}
 			})
 			break
 	}
+	return sent
 }
 
 const isNoteAlreadyActiveForPerson = (person, noteNumber) => {
@@ -225,6 +237,8 @@ const isNoteAlreadyActiveForPerson = (person, noteNumber) => {
 const getActivePerson = (personManager) => {
 	return personManager.getSelectedPerson() || personManager.getActivePerson()
 }
+
+const getChordKey = chordDetails => chordDetails.map(chord => chord.noteNumber).join(',')
 
 export const stopMIDIInputForPerson = (person) => {
 	let stopped = false
@@ -314,15 +328,86 @@ export const observeMIDIInputs = ({
 			}
 		}
 
+		const sendChordNotesOn = chordDetails => {
+			if (!stateMachine.get("midiSympathiser"))
+			{
+				return
+			}
+
+			for (const chord of chordDetails)
+			{
+				let sent = 0
+				WebMidi.outputs.forEach(output => {
+					recordMIDIOutputDebug(output, "noteon", chord.noteNumber, 'midi-sympathiser')
+					if (sendGuardedMIDIOutput(output, 'playNote', chord.noteNumber, undefined, 'midi-sympathiser'))
+					{
+						sent++
+					}
+				})
+				if (sent > 0)
+				{
+					retainOutputNote(chord.noteNumber)
+				}
+			}
+		}
+
+		const sendChordNotesOff = chordDetails => {
+			if (!stateMachine.get("midiSympathiser"))
+			{
+				return
+			}
+
+			for (const chord of chordDetails)
+			{
+				releaseOutputNote(chord.noteNumber)
+				WebMidi.outputs.forEach(output => {
+					recordMIDIOutputDebug(output, "noteoff", chord.noteNumber, 'midi-sympathiser')
+					sendGuardedMIDIOutput(output, 'stopNote', chord.noteNumber, undefined, 'midi-sympathiser')
+				})
+			}
+		}
+
+		const refreshPlayingEntryChord = playingEntry => {
+			const nextChordDetails = getMusicalDetailsFromEmoji(playingEntry.noteNumber, playingEntry.person.emoticon, false)
+			const nextChordKey = getChordKey(nextChordDetails)
+			if (nextChordKey === playingEntry.chordKey)
+			{
+				return false
+			}
+
+			sendChordNotesOff(playingEntry.chordDetails)
+			if (stateMachine.get("midiOnboard") && globalChordPlayer)
+			{
+				globalChordPlayer.chordOff(playingEntry.chordDetails, playingEntry.velocity)
+			}
+
+			playingEntry.chordDetails = nextChordDetails
+			playingEntry.chordKey = nextChordKey
+
+			sendChordNotesOn(nextChordDetails)
+			if (stateMachine.get("midiOnboard") && globalChordPlayer)
+			{
+				globalChordPlayer.chordOn(nextChordDetails, playingEntry.person.noteVelocity || playingEntry.velocity)
+			}
+			return true
+		}
+
 		const playMIDINoteOn = (person, noteNumber, velocity = 1) => {
 			const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
-
-			playingMIDINotes.set(noteNumber, {
+			const abortController = new AbortController()
+			const playingEntry = {
+				abortController,
 				chordDetails,
+				chordKey: getChordKey(chordDetails),
 				noteNumber,
 				person,
 				velocity
+			}
+
+			person.addEventListener?.(EVENT_EMOTION_CHANGED, () => refreshPlayingEntryChord(playingEntry), {
+				signal: abortController.signal
 			})
+			playingMIDINotes.set(noteNumber, playingEntry)
 
 			if (stateMachine.get("midiInputPersonRootNote"))
 			{
@@ -331,21 +416,13 @@ export const observeMIDIInputs = ({
 
 			if (stateMachine.get("midiRelay"))
 			{
-				retainOutputNote(noteNumber)
-				sendMIDIEventToAllDevices("noteon", noteNumber, 'midi-relay')
-			}
-
-			if (stateMachine.get("midiSympathiser"))
-			{
-				for (const chord of chordDetails)
+				if (sendMIDIEventToAllDevices("noteon", noteNumber, 'midi-relay') > 0)
 				{
-					retainOutputNote(chord.noteNumber)
-					WebMidi.outputs.forEach(output => {
-						recordMIDIOutputDebug(output, "noteon", chord.noteNumber, 'midi-sympathiser')
-						sendGuardedMIDIOutput(output, 'playNote', chord.noteNumber, undefined, 'midi-sympathiser')
-					})
+					retainOutputNote(noteNumber)
 				}
 			}
+
+			sendChordNotesOn(chordDetails)
 
 			if (stateMachine.get("midiOnboard") && globalChordPlayer)
 			{
@@ -359,15 +436,9 @@ export const observeMIDIInputs = ({
 				return false
 			}
 
-			const { chordDetails, person, noteNumber } = playingEntry
-			for (const chord of chordDetails)
-			{
-				releaseOutputNote(chord.noteNumber)
-				WebMidi.outputs.forEach(output => {
-					recordMIDIOutputDebug(output, "noteoff", chord.noteNumber, 'midi-sympathiser')
-					sendGuardedMIDIOutput(output, 'stopNote', chord.noteNumber, undefined, 'midi-sympathiser')
-				})
-			}
+			const { chordDetails, person, noteNumber, velocity } = playingEntry
+			playingEntry.abortController?.abort()
+			sendChordNotesOff(chordDetails)
 
 			if (stateMachine.get("midiRelay"))
 			{
@@ -384,7 +455,7 @@ export const observeMIDIInputs = ({
 
 			if (stateMachine.get("midiOnboard") && globalChordPlayer)
 			{
-				globalChordPlayer.allNotesOff()
+				globalChordPlayer.chordOff(chordDetails, velocity)
 			}
 
 			return true
@@ -413,7 +484,7 @@ export const observeMIDIInputs = ({
 		midiInputCleanupCallbacks.add(stopNotesForPerson)
 
 		const onMIDIMessage = event => {
-			const recentOutputEcho = isRecentMIDIOutputEcho(event, getMIDIEventType(event))
+			const recentOutputEcho = isRecentMIDIOutputEcho(event, getMIDIEventType(event), input)
 			const debug = recordMIDIInputDebug(input, event, 'midimessage', { recentOutputEcho })
 			if (debug.isLooping)
 			{
@@ -457,7 +528,7 @@ export const observeMIDIInputs = ({
 			const noteNumber = event.note.number
 			const person = getActivePerson(personManager)
 			const isActiveOutputNote = isMIDINoteActive(noteNumber)
-			const recentOutputEcho = isRecentMIDIOutputEcho(event, 'noteon')
+			const recentOutputEcho = isRecentMIDIOutputEcho(event, 'noteon', input)
 			const debug = recordMIDIInputDebug(input, event, 'noteon', {
 				isActiveOutputNote,
 				recentOutputEcho,
@@ -481,9 +552,7 @@ export const observeMIDIInputs = ({
 			}
 
 			const isLoopedNote =
-				activeOutputNotes.has(noteNumber) ||
 				playingMIDINotes.has(noteNumber) ||
-				isActiveOutputNote ||
 				Boolean(recentOutputEcho) ||
 				isNoteAlreadyActiveForPerson(person, noteNumber)
 			if (isLoopedNote)
@@ -506,11 +575,30 @@ export const observeMIDIInputs = ({
 		}
 
 		const onNoteOff = event => {
-			const recentOutputEcho = isRecentMIDIOutputEcho(event, 'noteoff')
-			const debug = recordMIDIInputDebug(input, event, 'noteoff', { recentOutputEcho })
+			const playingEntry = playingMIDINotes.get(event.note.number)
+			const recentOutputEcho = isRecentMIDIOutputEcho(event, 'noteoff', input)
+			const debug = recordMIDIInputDebug(input, event, 'noteoff', {
+				recentOutputEcho,
+				hasPlayingInputNote: Boolean(playingEntry)
+			})
 			if (debug.isLooping)
 			{
 				setMIDIInputStatus(statusAPI, input, statusId, `${getMIDINoteLabel(event)} off loop suppressed`, true)
+				return
+			}
+			if (playingEntry)
+			{
+				if (recentOutputEcho)
+				{
+					logMIDIDebug("MIDI:noteoff echo ignored while input note is held", {
+						input: input.name,
+						noteNumber: event.note.number,
+						recentOutputEcho
+					}, 'info')
+					return
+				}
+				setMIDIInputStatus(statusAPI, input, statusId, `${getMIDINoteLabel(event)} off`, true)
+				playMIDINoteOffEntry(playingEntry)
 				return
 			}
 			if (recentOutputEcho)

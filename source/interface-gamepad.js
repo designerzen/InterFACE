@@ -380,84 +380,77 @@ const convertGamePadActionToMusic = ( application, gamePad, button, isButtonHeld
 }
 
 const convertGamePadActionToPercussion = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
-	const getChokeDuration = heldMilliseconds => {
-		const heldSeconds = Math.max((heldMilliseconds ?? 0) / 1000, 0)
-		return Math.min(Math.max(heldSeconds * 0.25, 0.005), 0.4)
-	}
-
-	const triggerOrChoke = drum => {
-		if (isButtonHeld)
-		{
-			drum()
-		}else{
-			drum.choke?.(getChokeDuration(heldFor))
-		}
+	const triggerDrum = (part, fallback) => {
+		if (!isButtonHeld) return
+		if (application.playPercussionPart?.(part)) return
+		application.resumeAudio?.()
+		fallback?.()
 	}
 
 	switch(button)
 	{
 		case DIRECTION_UP: 
-			triggerOrChoke(application.kit.hat)
+			triggerDrum('hat', application.kit.hat)
 			break
 		
 		case DIRECTION_DOWN: 
-			triggerOrChoke(application.kit.cowbell)
+			triggerDrum('cowbell', application.kit.cowbell)
 			break
 
 		case DIRECTION_LEFT: 
-			triggerOrChoke(application.kit.kick)
+			triggerDrum('kick', application.kit.kick)
 			break
 
 		case DIRECTION_RIGHT: 
-			triggerOrChoke(application.kit.snare)
+			triggerDrum('snare', application.kit.snare)
 			break
 
 		case BUTTON_A: 
+			triggerDrum('kick', application.kit.kick)
+			break
+		
+		case BUTTON_B: 
+			triggerDrum('snare', application.kit.snare)
+			break
+		
+		case BUTTON_X: 
+			triggerDrum('hat', application.kit.hat)
+			break
+		
+		case BUTTON_Y: 
+			triggerDrum('clap', application.kit.clap)
+			break
+		
+		// Left Back Trigger
+		case BUTTON_LEFT_SHOULDER_BUTTON: 
+			triggerDrum('snare', application.kit.snare)
+			break
+
+		// TODO: SWING!
+		case BUTTON_RIGHT_SHOULDER_BUTTON: 
+			triggerDrum('snare', application.kit.snare)
+			break
+
+		case BUTTON_LEFT_SHOULDER_TWO: 
+			triggerDrum('cowbell', application.kit.cowbell)
+			break
+
+		case BUTTON_RIGHT_SHOULDER_TWO: 
+			triggerDrum('hat', application.kit.hat)
+			break
+
+		case BUTTON_P1: 
 			if (isButtonHeld)
 			{
 				application.setRandomDrumTimbres()
 			}
 			break
-		
-		case BUTTON_B: 
-			if (isButtonHeld)
-			{
-				application.setRandomDrumPattern()
-			}
-			break
-		
-		case BUTTON_X: 
-			triggerOrChoke(application.kit.kick)
-			break
-		
-		case BUTTON_Y: 
-			triggerOrChoke(application.kit.snare)
-			break
-		
-		// Left Back Trigger
-		case BUTTON_LEFT_SHOULDER_BUTTON: 
-			triggerOrChoke(application.kit.snare)
-			break
-
-		// TODO: SWING!
-		case BUTTON_RIGHT_SHOULDER_BUTTON: 
-			triggerOrChoke(application.kit.snare)
-			break
-
-		case BUTTON_LEFT_SHOULDER_TWO: 
-			triggerOrChoke(application.kit.cowbell)
-			break
-
-		case BUTTON_RIGHT_SHOULDER_TWO: 
-			triggerOrChoke(application.kit.hat)
-			break
-
-		case BUTTON_P1: 
-			triggerOrChoke(application.kit.kick)
-			break
 
 		case BUTTON_P2: 
-			triggerOrChoke(application.kit.snare)
+			if (isButtonHeld)
+			{
+				application.setRandomDrumTimbres()
+			}
 			break
 		
 		default:
@@ -628,7 +621,7 @@ export const addGamePadEvents = (application) => {
 
 	gamePadManager.addEventListener( async ( eventName, value, gamePad, heldFor ) => {
 		const activeGamePad = getEventGamePad(value, gamePad)
-		console.info("GAMEPAD:", {eventName, value, gamePad: activeGamePad, heldFor}, arguments )
+		console.info("GAMEPAD:", {eventName, value, mode: GAMEPAD_MODES[gamePadModeIndex], gamePad: activeGamePad, heldFor}, arguments )
 		switch(eventName)
 		{
 			// ignore caching these
@@ -710,16 +703,23 @@ export const addGamePadEvents = (application) => {
 		if (
 			activeGamePad &&
 			eventName !== GAME_PAD_CONNECTED &&
-			eventName !== GAME_PAD_DISCONNECTED &&
-			value
+			eventName !== GAME_PAD_DISCONNECTED
 		) {
-			setGamePadStatus(
-				application,
-				activeGamePad,
-				gamePadPlayerIndex,
-				`${getGamePadPlayerLabel(gamePadPlayerIndex)} / ${formatGamePadButtonName(eventName)}`,
-				true
-			)
+			if (value) {
+				setGamePadStatus(
+					application,
+					activeGamePad,
+					gamePadPlayerIndex,
+					`${getGamePadPlayerLabel(gamePadPlayerIndex)} / ${formatGamePadButtonName(eventName)}`,
+					true
+				)
+			}else{
+				setGamePadStatus(
+					application,
+					activeGamePad,
+					gamePadPlayerIndex
+				)
+			}
 		}
 
 		flashPicadeButton(application, activeGamePad, eventName, value, heldFor)
