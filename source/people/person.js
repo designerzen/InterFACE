@@ -143,6 +143,10 @@ export {
 // ~ doesn't work and cuts off te var when parsed
 const EXPORT_DELIMITER = ","
 const ACHIEVEMENT_MESSAGE_DURATION = 3500
+const INSTRUMENT_TITLE_OFFSET_Y = -55
+const EMOJI_OFFSET_Y = 39
+const EMOJI_RADIUS = 54
+const NOTE_TEXT_OFFSET_Y = (INSTRUMENT_TITLE_OFFSET_Y + EMOJI_OFFSET_Y - EMOJI_RADIUS) * 0.5
 const CHORD_NAME_BY_INTERVAL_SIGNATURE = new Map([
 	["0", ""],
 	["0,5", "4"],
@@ -1564,11 +1568,11 @@ export default class Person extends EventTarget{
 		const emojiRotationZ = (roll * Math.PI * 0.28) - HALF_PI
 		// at the bottom of the text we draw the smiley
 		// draw emoticon but we move it up and down when it looks up and down too	
-		display.drawEmoticon( textX, textY + 39 , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, false )
+		display.drawEmoticon( textX, textY + EMOJI_OFFSET_Y , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, false )
 	}
 
 	drawInstrumentText(display, textX, textY, instrumentTitle, style){
-		display.drawInstrument(textX, textY - 55, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
+		display.drawInstrument(textX, textY + INSTRUMENT_TITLE_OFFSET_Y, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
 	}
 
 
@@ -1751,7 +1755,7 @@ export default class Person extends EventTarget{
 				const fontSizeNotation = 28
 				const notesToDraw = notesToDisplay.length > 0 ? notesToDisplay : previewNoteNumbers
 				const textNotation = `${getCleff( this.octave )}${getStave(notesToDraw.length)}`
-				const notesY = textY - 30 
+				const notesY = textY + NOTE_TEXT_OFFSET_Y
 				display.drawText( textX, notesY, textNotation, fontSizeNotation, "center", "noto-music" )
 				
 				// draw our notes
@@ -1766,12 +1770,12 @@ export default class Person extends EventTarget{
 				const noteText = `${this.getPlayedNotesLabelForDisplay(activeNoteNumbers)} ♫`
 			
 				// Left Side Note
-				display.drawText(textX, textY - 25, noteText, 18 )
+				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, noteText, 18 )
 
 			}else{
 				
 				// Left Side Note
-				display.drawText(textX, textY - 25, this.noteFriendlyName, 18 )
+				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, this.noteFriendlyName, 18 )
 				// display.drawText(textX + 42, textY, this.lastNoteFriendlyName + ' ' + this.octave, 24, "left" )
 			
 				// Right Side Octave?
