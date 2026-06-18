@@ -2025,65 +2025,20 @@ export const createInterface = (
 			// from the order of model predictions
 			// so lets compare the two and tie each prediction 
 			const activePeople = personManager.getPeople()
-			const assignedPersonIndexes = new Set()
-
-			const getNearestAvailablePersonIndex = (boundingBox) => {
-				let nearestPersonIndex = -1
-				let distance = Number.MAX_VALUE
-				const x = boundingBox.xMin
-				const y = boundingBox.yMin
-
-				for (let index=0, l=activePeople.length; index<l; ++index)
-				{
-					if (assignedPersonIndexes.has(index))
-					{
-						continue
-					}
-
-					const person = activePeople[index]
-					const box = person?.boundingBox
-
-					if ( !box || person.x === -1 )
-					{
-						continue
-					}
-
-					const dx = x - person.x
-					const dy = y - person.y
-					const distanceSquared = dx*dx + dy*dy
-
-					if (distanceSquared < distance)
-					{
-						distance = distanceSquared
-						nearestPersonIndex = index
-					}
-				}
-
-				return nearestPersonIndex
-			}
-
-			const getFirstAvailablePersonIndex = () => activePeople.findIndex( (person, index) => person && !assignedPersonIndexes.has(index) )
+			const personPredictionMatches = personManager.matchPredictionsToPeople(hasPredictions ? predictions : [], activePeople)
+			const assignedPersonIndexes = new Set(personPredictionMatches.map(match => match.personIndex))
 
 			// to the person that was nearest in the last prediction
-			for (let i=0, l=hasPredictions ? predictions.length : 0; i < l; ++i)
+			for (let i=0, l=personPredictionMatches.length; i < l; ++i)
 			{
-				// const person = personManager.getPerson(i)
-				const prediction = predictions[i]
+				const { prediction, person, personIndex } = personPredictionMatches[i]
 				if (!prediction)
 				{
 					// console.info("No Prediction for Person", i ) 
 					continue
 				}
 
-				// const person = personManager.getPerson(i)
 				// const prediction = hasPredictions ? predictions[i] : person.data
-				
-				// loop through all people and find closest
-				const boundingBox = prediction.box
-				const nearestPersonIndex = getNearestAvailablePersonIndex( boundingBox )
-				const personIndex = nearestPersonIndex > -1 ? nearestPersonIndex : getFirstAvailablePersonIndex()
-				const person = activePeople[personIndex]
-				
 
 				// create as many people as we need...
 				// console.info("Binding Prediction to Person", personIndex, i, prediction, person, activePeople[personIndex] )
@@ -2093,8 +2048,6 @@ export const createInterface = (
 				{
 					continue
 				}
-
-				assignedPersonIndexes.add(personIndex)
 
 				// face available!
 				if (prediction)
