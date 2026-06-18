@@ -1726,7 +1726,7 @@ export default class Person extends EventTarget{
 		
 			if (this.isPlayerMode)
 			{
-				display.drawText(textX, textY - 25, `${this.achievementPoints} pts`, 22 )
+				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, `${this.achievementPoints} pts`, 22 )
 
 				const hasRecentAchievement = this.recentAchievement && this.now - this.recentAchievementAt < ACHIEVEMENT_MESSAGE_DURATION
 				if (hasRecentAchievement)
