@@ -85,7 +85,7 @@
 				"from": 0,
 				"for": 600,
 				"instructions": [
-					"Let's play a face game together. What face do you make when someone gives you a big cuddle?",
+					"Let's play a face game together",
 					"What face do you make when your friend makes you laugh so much your cheeks wobble?",
 					"What face do you make when you find your favourite snack hiding in your bag?",
 					"What face do you make when you hear a very funny noise behind you?",
@@ -93,7 +93,8 @@
 					"What face do you make when someone says surprise and you were not expecting it?",
 					"What face do you make when you get to jump right into a giant puddle?",
 					"What face do you make when you build a very tall tower and it stands up perfectly?",
-					"What face do you make when you smell something yummy floating through the air?"
+					"What face do you make when you smell something yummy floating through the air?",
+					"What face do you make when someone gives you a big cuddle?"
 				]
 			},
 			{
