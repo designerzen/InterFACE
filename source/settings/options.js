@@ -213,7 +213,7 @@ export const DEFAULT_OPTIONS = {
 
 	// Do we augment the MIDI messages with additional notes
 	// based on the user's current mood
-	midiSympathiser:true,
+	midiSympathiser:false,
 
 	// Should a person send out MIDI events?
 	// NB. if this is true and sympathiser is true, you can get
@@ -221,18 +221,18 @@ export const DEFAULT_OPTIONS = {
 	midiControl:true,
 
 	// allow midi input to control stuff too
-	midiInput:true,
+	midiInput:false,
 
 	// when a MIDI note is held, use it as the person's root note
 	// instead of the tracked head position
-	midiInputPersonRootNote:true,
+	midiInputPersonRootNote:false,
 
 	// if there is a midi clock incoming, replace the
 	// internal clock with it
 	midiClock:false,
 
 	// allow MIDI to control the onboard sound engine's instrument
-	midiOnboard:true,
+	midiOnboard:false,
 
 	// DEFAULT midi channel (0/"all" means send to all)
 	midiChannel:"all",
