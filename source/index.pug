@@ -15,9 +15,10 @@ block header
 		include /assets/diagrams/hero.svg 
 
 	#summary
-		p(aria-label="Summary")
-			| It can be hard work playing a musical instrument...
-			| So, how about letting the musical instrument play you instead?
+		p(aria-label="summary")
+			block summary
+				| It can be hard work playing a musical instrument...
+				| So, how about letting the musical instrument play you instead?
 			//- details
 				summary Requirements
 				ul(role="list") 
