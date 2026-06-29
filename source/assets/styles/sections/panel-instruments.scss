@@ -193,7 +193,7 @@
 	
 		// try and hide the actual button text
 		// text-indent: 99ch;
-		
+		// GOTO #control-panel:has( #person-a:hover ) .person-a-panel{
 		&:hover,
 		&:focus-visible,
 		&:active{
@@ -616,4 +616,26 @@
 		grid-row-end:  sidebar-right-player-d;
 		
 	}
+}
+
+
+@mixin panel-highlight{
+	background-color: rgba(255,255,255,0.4);
+	background-color: color-mix( var(--shade-brand, red), rgba(150,150,150,0.5) );
+	scale:1.1;
+}
+
+// Now if the user is hovered over the person's face
+// also illuminate the panel
+#control-panel:has( #person-a:hover ) .person-a-panel button.person-toggle-controls{
+	@include panel-highlight;
+}
+#control-panel:has( #person-b:hover ) .person-b-panel button.person-toggle-controls{
+	@include panel-highlight;
+}
+#control-panel:has( #person-c:hover ) .person-c-panel button.person-toggle-controls{
+	@include panel-highlight;
+}
+#control-panel:has( #person-d:hover ) .person-d-panel button.person-toggle-controls{
+	@include panel-highlight;
 }
