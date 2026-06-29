@@ -35,6 +35,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	pipeline = null
 	uniformBuffer = null
 	bindGroup = null
+	vertexBuffer = null
+	vertexBufferSize = 0
 
 	// DPR tracking
 	dpr = 1
@@ -76,6 +78,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		if (!this.device) throw new Error('Failed to create WebGPU device')
 
 		this.createPipelines()
+		this.createSharedBuffers()
 
 		// Configure context
 		const format = navigator.gpu.getPreferredCanvasFormat()
@@ -174,6 +177,20 @@ export default class DisplayWebGPU extends AbstractDisplay {
 
 	}
 
+	createSharedBuffers() {
+		if (!this.device || !this.pipeline) return
+
+		this.uniformBuffer = this.device.createBuffer({
+			size: 32,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+		})
+
+		this.bindGroup = this.device.createBindGroup({
+			layout: this.pipeline.getBindGroupLayout(0),
+			entries: [{ binding: 0, resource: { buffer: this.uniformBuffer } }]
+		})
+	}
+
 	/**
 	 * Hex color to RGBA
 	 */
@@ -220,12 +237,11 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Draw landmarks as soft points only.
 	 */
 	drawLandmarks(data, colorHex) {
-		if (!this.device || !this.pipeline) return
+		if (!this.device || !this.pipeline || !this.uniformBuffer || !this.bindGroup) return
 
 		const numPoints = Math.floor(data.length / 2)
 		if (numPoints === 0) return
 
-		// Create uniforms
 		const uniformData = new Float32Array([
 			this.canvasWidth,
 			this.canvasHeight,
@@ -234,27 +250,9 @@ export default class DisplayWebGPU extends AbstractDisplay {
 			...this.hexToRgba(colorHex).map(v => v / 255)
 		])
 
-		const uniformBuffer = this.device.createBuffer({
-			size: uniformData.byteLength,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-			mappedAtCreation: true
-		})
-		new Float32Array(uniformBuffer.getMappedRange()).set(uniformData)
-		uniformBuffer.unmap()
-
-		// Create vertex buffer for landmarks
-		const vertexBuffer = this.device.createBuffer({
-			size: data.byteLength,
-			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-			mappedAtCreation: true
-		})
-		new Float32Array(vertexBuffer.getMappedRange()).set(data)
-		vertexBuffer.unmap()
-
-		const dotBindGroup = this.device.createBindGroup({
-			layout: this.pipeline.getBindGroupLayout(0),
-			entries: [{ binding: 0, resource: { buffer: uniformBuffer } }]
-		})
+		this.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData)
+		this.ensureVertexBufferCapacity(data.byteLength)
+		this.device.queue.writeBuffer(this.vertexBuffer, 0, data)
 
 		// Begin render pass
 		const commandEncoder = this.device.createCommandEncoder()
@@ -270,16 +268,27 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		})
 
 		renderPass.setPipeline(this.pipeline)
-		renderPass.setBindGroup(0, dotBindGroup)
-		renderPass.setVertexBuffer(0, vertexBuffer)
+		renderPass.setBindGroup(0, this.bindGroup)
+		renderPass.setVertexBuffer(0, this.vertexBuffer)
 		renderPass.draw(4, numPoints, 0, 0)
 
 		renderPass.end()
 		this.device.queue.submit([commandEncoder.finish()])
+	}
 
-		// Cleanup
-		uniformBuffer.destroy()
-		vertexBuffer.destroy()
+	ensureVertexBufferCapacity(requiredSize) {
+		if (!this.device) return
+
+		if (this.vertexBuffer && this.vertexBufferSize >= requiredSize) {
+			return
+		}
+
+		this.vertexBuffer?.destroy()
+		this.vertexBufferSize = Math.max(requiredSize, this.vertexBufferSize * 2, 1024)
+		this.vertexBuffer = this.device.createBuffer({
+			size: this.vertexBufferSize,
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+		})
 	}
 
 	/**
@@ -444,10 +453,15 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Cleanup and destroy
 	 */
 	async destroy() {
-		if (this.device) {
-			this.uniformBuffer?.destroy()
-			this.device = null
-		}
+		this.vertexBuffer?.destroy()
+		this.vertexBuffer = null
+		this.vertexBufferSize = 0
+		this.uniformBuffer?.destroy()
+		this.uniformBuffer = null
+		this.bindGroup = null
+		this.pipeline = null
+		this.context = null
+		this.device = null
 
 		this.cancelAnimationLoop()
 		return super.destroy()

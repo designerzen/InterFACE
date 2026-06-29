@@ -1045,7 +1045,7 @@ export const createInterface = (
 		person.addEventListener( EVENT_EMOTION_UNLOCKED,  (event) => {
 			const {detail} = event.data
 			const {achievement, emoticon, person} = detail
-			console.log(`[${person.name}] Achievement ${achievement?.title ?? emoticon} Unlocked!: ${person.achievementPoints}`)
+			//console.log(`[${person.name}] Achievement ${achievement?.title ?? emoticon} Unlocked!: ${person.achievementPoints}`)
 		})
 
 		person.addEventListener( EVENT_PERSON_BORN,  (event) => {
