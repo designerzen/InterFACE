@@ -11,6 +11,7 @@ const SHADOW_BLUR = 0
 const SHADOW_OFFSET_X = 2
 const SHADOW_OFFSET_Y = 2
 const SHADOW_STROKE_COLOUR = '#0a0a0a'
+const MAX_PREPARED_TEXT_CACHE_SIZE = 512
 
 const clampRect = (rect, width, height) => {
 	const x = Math.max(0, Math.floor(rect.x))
@@ -86,6 +87,7 @@ export default class DisplayOverlay2d {
 
 	destroy() {
 		this.clear()
+		this.preparedTextCache.clear()
 		this.context = null
 	}
 
@@ -103,6 +105,7 @@ export default class DisplayOverlay2d {
 		this.drewThisFrame = false
 		this.batchingFrame = false
 		this.frameCommands = []
+		this.preparedTextCache.clear()
 	}
 
 	clear() {
@@ -333,6 +336,12 @@ export default class DisplayOverlay2d {
 
 		if (!prepared) {
 			prepared = prepareWithSegments(content, fontDeclaration)
+			if (this.preparedTextCache.size >= MAX_PREPARED_TEXT_CACHE_SIZE) {
+				const oldestKey = this.preparedTextCache.keys().next().value
+				if (oldestKey) {
+					this.preparedTextCache.delete(oldestKey)
+				}
+			}
 			this.preparedTextCache.set(cacheKey, prepared)
 		}
 
