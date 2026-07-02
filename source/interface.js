@@ -25,6 +25,7 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
+import { setupEnsemblePresetPanel } from './dom/ui.panel-ensemble-presets.js'
 import { toggleFullScreen } from './dom/full-screen.js'
 
 import { Quanitiser } from './visual/quantise.js'
@@ -155,6 +156,10 @@ import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STA
 
 // accessibility controls
 let a11y
+const getAccessibilityControls = () => {
+	a11y ??= setupAccessibilityControls()
+	return a11y
+}
 
 // Singleton
 let instance = null
@@ -1247,6 +1252,12 @@ export const createInterface = (
 		
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
+
+		if (person.options?.muted)
+		{
+			stopPersonAudio(person)
+			return modelData
+		}
 		
 		// no instruments set in Person - exit now - nothing to make sing
 		if( !person.hasInstrument )
@@ -3688,7 +3699,7 @@ export const createInterface = (
 		setTheme(theme)
 
 		// and set up the accessibility
-		a11y = setupAccessibilityControls()
+		getAccessibilityControls()
 		// a11y.show()
 		
 		// paint next frame immediately
@@ -3847,6 +3858,10 @@ export const createInterface = (
 			const person = createPerson( i )
 			// console.assert( !debug, i, "Person created", person)
 		}
+
+		setupEnsemblePresetPanel(personManager.people, preset => {
+			setFeedback(`${preset.title} loaded`, 0, "instrument")
+		})
 		
 		// as we are now "full screen" the positions of the tooltips needs
 		// to be recaulated so we do them all here
@@ -3964,7 +3979,7 @@ export const createInterface = (
 
 		const results = await showPlayerSelector(modelOptions, stateMachine)
 		
-		a11y.hide()	// hide the a11y features until requested
+		getAccessibilityControls().hide()	// hide the a11y features until requested
 	
 		clearInterval( timeOut )
 		setToast( "" )

@@ -143,10 +143,31 @@ export {
 // ~ doesn't work and cuts off te var when parsed
 const EXPORT_DELIMITER = ","
 const ACHIEVEMENT_MESSAGE_DURATION = 3500
+const NOTE_SEQUENCE_TO_KEY_SCALE = new Map([
+	["circle-of-fifths", "FIFTHS_SCALE"],
+	["chromatic", "CHROMATIC_SCALE"],
+	["major", "MAJOR_SCALE"],
+	["natural-minor", "NATURAL_MINOR_SCALE"],
+	["pentatonic-major", "PENTATONIC_MAJOR_SCALE"],
+	["pentatonic-minor", "PENTATONIC_MINOR_SCALE"],
+	["blues", "BLUES_SCALE"],
+	["whole-tone", "WHOLE_TONE_SCALE"],
+	["diminished", "DIMINISHED_SCALE"],
+	["augmented", "AUGMENTED_SCALE"]
+])
+const KEY_SCALE_TO_NOTE_SEQUENCE = new Map(
+	Array.from(NOTE_SEQUENCE_TO_KEY_SCALE, ([sequence, keyScale]) => [keyScale, sequence])
+)
 const INSTRUMENT_TITLE_OFFSET_Y = -55
 const EMOJI_OFFSET_Y = 39
 const EMOJI_RADIUS = 54
 const NOTE_TEXT_OFFSET_Y = (INSTRUMENT_TITLE_OFFSET_Y + EMOJI_OFFSET_Y - EMOJI_RADIUS) * 0.5
+const BUTTON_HINT_OFFSET_Y = -36
+const PLAYING_NOTE_TEXT_SIZE = 18
+const PLAYING_NOTE_GLYPH = "♫"
+const PLAYING_NOTE_GLYPH_MIN_SIZE = 7
+const PLAYING_NOTE_GLYPH_MAX_SIZE = 30
+const PLAYING_NOTE_GLYPH_GAP = 4
 const CHORD_NAME_BY_INTERVAL_SIGNATURE = new Map([
 	["0", ""],
 	["0,5", "4"],
@@ -209,6 +230,8 @@ const getProgressValue = (progress) => {
 	const value = typeof progress === "object" ? progress?.progress : progress
 	return Number.isFinite(value) ? clamp(value, 0, 1) : 0
 }
+
+const formatAchievementPoints = (points) => Number.isFinite(points) ? points.toLocaleString("en-US") : "0"
 
 const setBooleanViaMouseEntry = (element, target, flagName, abortController ) => {
 	element.addEventListener( 'pointerenter', event => {
@@ -1552,6 +1575,126 @@ export default class Person extends EventTarget{
 		return this.options.showChordNames
 	}
 
+	get noteSequence(){
+		if (this.options.noteSequence)
+		{
+			return this.options.noteSequence
+		}
+		if (this.userMode === PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS ||
+			this.userMode === PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS)
+		{
+			return "circle-of-fifths"
+		}
+		if (this.userMode === PERSON_TYPE_CHROMATIC ||
+			this.userMode === PERSON_TYPE_ARPEGGIO ||
+			this.userMode === PERSON_TYPE_PLAYER)
+		{
+			return "chromatic"
+		}
+		return KEY_SCALE_TO_NOTE_SEQUENCE.get(this.options.keyScale) ?? "major"
+	}
+
+	get usesCircleOfFifthsSequence(){
+		return this.noteSequence === "circle-of-fifths"
+	}
+
+	setPlayMode(playMode){
+		const useArpeggio = playMode === "arpeggio"
+		const nextMode = useArpeggio ?
+			(this.usesCircleOfFifthsSequence ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
+			(this.usesCircleOfFifthsSequence ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
+		configurePersonByOperatingMode(this, nextMode)
+		if (this.activeInstrument)
+		{
+			this.activeInstrument.arpeggiate = useArpeggio
+		}
+		return useArpeggio
+	}
+
+	setNoteSequence(noteSequence){
+		const keyScale = NOTE_SEQUENCE_TO_KEY_SCALE.get(noteSequence) ?? "MAJOR_SCALE"
+		const useArpeggio = this.activeInstrument?.arpeggiate ?? this.userModeData?.arpeggiate
+		const nextMode = useArpeggio ?
+			(noteSequence === "circle-of-fifths" ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
+			(noteSequence === "circle-of-fifths" ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
+
+		this.setOptions({ noteSequence, keyScale })
+		configurePersonByOperatingMode(this, nextMode)
+		return this.noteSequence
+	}
+
+	parsePanelOptionValue(target){
+		if (target.type === "checkbox")
+		{
+			return target.checked
+		}
+		const value = target.value
+		if (value === "true")
+		{
+			return true
+		}
+		if (value === "false")
+		{
+			return false
+		}
+		return value
+	}
+
+	setPanelOption(option, value){
+		switch(option)
+		{
+			case "octaveLow": {
+				const octaveLow = Number.parseInt(value, 10)
+				if (!Number.isFinite(octaveLow))
+				{
+					return this.options
+				}
+				const octaveHigh = Math.max(Number(this.options.octaveHigh ?? octaveLow), octaveLow)
+				return this.setOptions({ octaveLow, octaveHigh })
+			}
+			case "octaveHigh": {
+				const octaveHigh = Number.parseInt(value, 10)
+				if (!Number.isFinite(octaveHigh))
+				{
+					return this.options
+				}
+				const octaveLow = Math.min(Number(this.options.octaveLow ?? octaveHigh), octaveHigh)
+				return this.setOptions({ octaveLow, octaveHigh })
+			}
+			case "muted":
+				this.setOptions({ muted:value })
+				if (value)
+				{
+					this.instruments.forEach(instrument => {
+						if (typeof instrument.allNotesOff === "function")
+						{
+							instrument.allNotesOff()
+						}else{
+							instrument.noteOff()
+						}
+					})
+				}
+				return this.options
+			default:
+				return this.setOptions({ [option]:value })
+		}
+	}
+
+	setPanelAction(action, value){
+		switch(action)
+		{
+			case "userMode":
+				configurePersonByOperatingMode(this, value)
+				return this.userMode
+			case "playMode":
+				return this.setPlayMode(value)
+			case "noteSequence":
+				return this.setNoteSequence(value)
+			default:
+				return null
+		}
+	}
+
 	/**
 	 * Draw the emoji and blobs onto the canvas
 	 * @param {Display} display 
@@ -1573,6 +1716,84 @@ export default class Person extends EventTarget{
 
 	drawInstrumentText(display, textX, textY, instrumentTitle, style){
 		display.drawInstrument(textX, textY + INSTRUMENT_TITLE_OFFSET_Y, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
+	}
+
+	getPlayingNoteGlyphSize(){
+		const maximumAmplitude = Math.max(this.options.maximumAmplitude ?? 1, 0.001)
+		const amplitude = clamp(this.noteVelocity ?? 0, 0, maximumAmplitude)
+		const amplitudeRatio = clamp(amplitude / maximumAmplitude, 0, 1)
+		return range(amplitudeRatio, 0, 1, PLAYING_NOTE_GLYPH_MIN_SIZE, PLAYING_NOTE_GLYPH_MAX_SIZE)
+	}
+
+	measureDisplayText(display, text, size, font="Oxanium"){
+		if (typeof display.measureTextWidth === "function")
+		{
+			return display.measureTextWidth(text, size, font)
+		}
+
+		const canvasContext = display.canvasContext
+		if (canvasContext?.measureText)
+		{
+			canvasContext.save()
+			canvasContext.font = `900 ${size}px ${font}`
+			const width = canvasContext.measureText(`${text}`).width
+			canvasContext.restore()
+			return width
+		}
+
+		return `${text}`.length * size * 0.56
+	}
+
+	drawPlayingNoteText(display, textX, textY, noteLabel){
+		const noteSize = this.getPlayingNoteGlyphSize()
+		const labelWidth = this.measureDisplayText(display, noteLabel, PLAYING_NOTE_TEXT_SIZE)
+		const noteWidth = this.measureDisplayText(display, PLAYING_NOTE_GLYPH, noteSize)
+		const noteGap = PLAYING_NOTE_GLYPH_GAP
+		const totalWidth = labelWidth + noteGap + noteWidth
+		const leftX = textX - totalWidth * 0.5
+		const noteX = leftX + labelWidth + noteGap
+
+		display.drawText(leftX, textY, noteLabel, PLAYING_NOTE_TEXT_SIZE, "left")
+		display.drawText(noteX, textY, PLAYING_NOTE_GLYPH, noteSize, "left")
+	}
+
+	getAchievementTextPosition(display){
+		const sideMargin = clamp(display.width * 0.17, 92, 150)
+		const row = this.personIndex > 1 ? 0.72 : 0.28
+		const y = clamp(display.height * row, 84, display.height - 84)
+
+		return {
+			x:this.isLeftSidePanel ? sideMargin : display.width - sideMargin,
+			y,
+			width:clamp(display.width * 0.28, 180, 260)
+		}
+	}
+
+	drawAchievementText(display){
+		const hasRecentAchievement = this.recentAchievement && this.now - this.recentAchievementAt < ACHIEVEMENT_MESSAGE_DURATION
+		if (!hasRecentAchievement)
+		{
+			return false
+		}
+
+		const { achievement, emoticon } = this.recentAchievement
+		const { x, y, width } = this.getAchievementTextPosition(display)
+		display.drawParagraph(
+			x,
+			y,
+			[
+				`+${achievement.score} ${achievement.title}`,
+				achievement.message ?? emoticon
+			],
+			12,
+			20,
+			false,
+			"center",
+			"Oxanium",
+			width
+		)
+
+		return true
 	}
 
 
@@ -1645,8 +1866,10 @@ export default class Person extends EventTarget{
 			title = "Change type -> " + (this.nextUserModeData?.type ?? '')
 		} 
 		
+		const pitch = 1 - Math.abs(prediction.pitch)
+		const yaw = 1 - Math.abs(prediction.yaw) 
 
-		if ( this.isMouseOver || this.instrumentLoading ){
+		if ( this.isMouseOver ){
 		
 			// draw silhoette directly on the canvas or
 			// SVG shape in the button for hitarea?
@@ -1663,6 +1886,7 @@ export default class Person extends EventTarget{
 					// user is holding mouse down on user...
 					// display.drawInstrument( xMin, yMin - 25, this.context, instrumentTitle, 'Select')			
 					titleSuffix = "Select"
+					paragraphs = PERSON_TEXT_SWITCH_INSTRUMENT.slice(2)
 					// FIXME: Do we hide the face entirely???
 					// drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,0.1)`, true, false, false)
 					//display.drawParagraph( xMax, yMax + 15, [`Press me`], 9 )
@@ -1671,7 +1895,7 @@ export default class Person extends EventTarget{
 					// we use CSS and it is only hidden here?
 				}else{
 				
-					paragraphs = PERSON_TEXT_SWITCH_INSTRUMENT
+					paragraphs = PERSON_TEXT_SWITCH_INSTRUMENT.slice(2)
 					titleSuffix = `${100-percentageRemaining}`
 					// display.drawInstrument( xMin, yMin - 25 , instrumentTitle, `${100-percentageRemaining}`)			
 					//drawPart( faceOval, 4, `hsla(${hue},50%,${percentageRemaining}%,${remaining})`, true)					
@@ -1679,12 +1903,12 @@ export default class Person extends EventTarget{
 
 			}else{
 
-				paragraphs = PERSON_TEXT_CHANGE_INSTRUMENT
+				paragraphs = PERSON_TEXT_CHANGE_INSTRUMENT.slice(2)
 			}
 
 			this.drawInstrumentText( display, textX, textY, title, titleSuffix, 14 ) 	
-			// we offset to the left
-			display.drawParagraph( textX, textY, paragraphs, 12, 20, false, "center", "Oxanium", personTextWidth )
+			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll )
+			display.drawParagraph( textX, textY + BUTTON_HINT_OFFSET_Y, paragraphs, 12, 20, false, "center", "Oxanium", personTextWidth )
 		
 		}else if ( this.instrumentLoading){
 
@@ -1716,37 +1940,14 @@ export default class Person extends EventTarget{
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const textPitchBend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
 			
-			// we can skip this if it looks too ugly
-			const pitch = 1 - Math.abs(prediction.pitch)
-			const yaw = 1 - Math.abs(prediction.yaw) 
-
 			// flash if selected?
 			this.drawInstrumentText( display, textX, textY, title, style)
 			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll )
 		
 			if (this.isPlayerMode)
 			{
-				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, `${this.achievementPoints} pts`, 22 )
-
-				const hasRecentAchievement = this.recentAchievement && this.now - this.recentAchievementAt < ACHIEVEMENT_MESSAGE_DURATION
-				if (hasRecentAchievement)
-				{
-					const { achievement, emoticon } = this.recentAchievement
-					display.drawParagraph(
-						textX,
-						textY + 70,
-						[
-							`+${achievement.score} ${achievement.title}`,
-							achievement.message ?? emoticon
-						],
-						12,
-						20,
-						false,
-						"center",
-						"Oxanium",
-						personTextWidth
-					)
-				}
+				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, `${formatAchievementPoints(this.achievementPoints)} XP`, 22 )
+				this.drawAchievementText(display)
 
 			}else if (this.options.musicTheory){
 				// visual music mode - so no letters, only musical notes!
@@ -1767,10 +1968,10 @@ export default class Person extends EventTarget{
 				})
 			
 			}else if (showPlayingNotes){
-				const noteText = `${this.getPlayedNotesLabelForDisplay(activeNoteNumbers)} ♫`
+				const noteText = this.getPlayedNotesLabelForDisplay(activeNoteNumbers)
 			
 				// Left Side Note
-				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, noteText, 18 )
+				this.drawPlayingNoteText(display, textX, textY + NOTE_TEXT_OFFSET_Y, noteText)
 
 			}else{
 				
@@ -2912,9 +3113,23 @@ export default class Person extends EventTarget{
 
 	onInstrumentInput(event) {
 		event.preventDefault()
-		const id = event.target.id
-		const instrument = event.target.value
-		const title = event.target.textContent
+		const target = event.target
+		const option = target.dataset.personOption
+		const action = target.dataset.personAction
+		if (option || action)
+		{
+			const value = this.parsePanelOptionValue(target)
+			if (option)
+			{
+				this.setPanelOption(option, value)
+			}else{
+				this.setPanelAction(action, value)
+			}
+			return
+		}
+		const id = target.id
+		const instrument = target.value
+		const title = target.textContent
 		this.hideForm()
 		// FIXME: load the instrument first?
 		this.loadPreset(instrument, title ?? id)
@@ -2995,7 +3210,7 @@ export default class Person extends EventTarget{
 		}
 		
 		// fill the sidebar with the presets from this instrument
-		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this.id )
+		const presets = await populateInstrumentPanel( this.instrumentPanel, this.activeInstrument, this )
 		this.instrumentPanelPresetKey = this.getInstrumentPanelPresetKey()
 		this.isInstrumentPanelDirty = false
 

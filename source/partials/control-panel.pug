@@ -2,6 +2,10 @@
 //- In APP CONTROLS ------------------------------------------------------
 menu#control-panel
 
+	div(hidden, aria-live="polite").ensemble-preset-panel
+		button(type="button" aria-label="Show ensemble instrument presets").ensemble-preset-toggle Ensemble presets
+		menu.ensemble-preset-controls
+
 	div(hidden)#transport
 		include transport-panel.pug
 

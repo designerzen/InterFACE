@@ -230,8 +230,8 @@
 			padding: var(--pad);
 			transform: translate(-50%, calc(-100% + var(--pad,0) ) ); 
 			transition:
-				opacity var(--ease-s) linear,
-				transform var(--ease-m) linear;
+				opacity var(--ease-s) linear 45ms,
+				transform var(--ease-m) linear 45ms;
 			
 			small{
 				display: block;
@@ -240,15 +240,15 @@
 		}
 		a{
 			color:var(--col-white);
-			
 		}
+		
 		a:is(:hover, :focus, :focus-within){
 			figcaption{
 				opacity: 1;
 				transform: translate(-50%, calc( -100% - var(--pad,0)));
 				transition:
-					opacity var(--ease-s) linear,
-					transform var(--ease-m) var(--ease-out-back);
+					opacity var(--ease-s) linear 45ms,
+					transform var(--ease-m) var(--ease-out-back) 45ms;
 			}
 			img{
 				filter: brightness(50%);

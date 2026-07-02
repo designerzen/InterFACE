@@ -1,9 +1,77 @@
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
+import { INTERVAL_LIBRARY } from "../audio/tuning/scales.js"
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
+const PERSON_OPTION_CLASS = "person-option-control"
+
+const OCTAVE_OPTIONS = Array.from({length:9}, (_, octave) => [octave, octave])
+
+const SEQUENCE_OPTIONS = [
+	["circle-of-fifths", "Circle of Fifths", "FIFTHS_SCALE"],
+	["chromatic", "Chromatic", "CHROMATIC_SCALE"],
+	["major", "Major", "MAJOR_SCALE"],
+	["natural-minor", "Natural minor", "NATURAL_MINOR_SCALE"],
+	["pentatonic-major", "Pentatonic major", "PENTATONIC_MAJOR_SCALE"],
+	["pentatonic-minor", "Pentatonic minor", "PENTATONIC_MINOR_SCALE"],
+	["blues", "Blues", "BLUES_SCALE"],
+	["whole-tone", "Whole tone", "WHOLE_TONE_SCALE"],
+	["diminished", "Diminished", "DIMINISHED_SCALE"],
+	["augmented", "Augmented", "AUGMENTED_SCALE"]
+].filter(([, , scale]) => INTERVAL_LIBRARY[scale]).map(([value, label]) => [value, label])
+
+const createOptions = (options, currentValue) => options.map(([value, label]) => {
+	const selected = String(value) === String(currentValue) ? " selected" : ""
+	return `<option value="${value}"${selected}>${label}</option>`
+}).join("")
+
+const createSelectControl = (label, name, currentValue, options, attributes="data-person-option", className="") => `
+	<label class="person-option ${className}">
+		<span class="person-option-label">${label}</span>
+		<select class="${PERSON_OPTION_CLASS}" ${attributes}="${name}">
+			${createOptions(options, currentValue)}
+		</select>
+	</label>`
+
+const createToggleControl = (label, name, currentValue) => `
+	<label class="person-option person-option-toggle">
+		<input class="${PERSON_OPTION_CLASS} toggle" data-person-option="${name}" type="checkbox"${currentValue ? " checked" : ""} />
+		<span class="person-option-label">${label}</span>
+	</label>`
+
+const createSummaryContent = (label) => `<span class="instrument-summary-title">${label}</span>`
+
+const createPersonOptionsHTML = (person) => {
+	if (!person)
+	{
+		return ""
+	}
+
+	const options = person.options ?? {}
+	const playMode = person.activeInstrument?.arpeggiate ? "arpeggio" : "chord"
+	const lowOctave = Number.isFinite(Number(options.octaveLow)) ? Number(options.octaveLow) : 2
+	const highOctave = Number.isFinite(Number(options.octaveHigh)) ? Number(options.octaveHigh) : 6
+
+	return `<details class="person-options">
+		<summary>${createSummaryContent("Options")}</summary>
+		<div class="person-options-grid">
+			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
+			${createSelectControl("Play", "playMode", playMode, [["chord", "Sympathetic Chords"], ["arpeggio", "Arpeggio"]], "data-person-action")}
+			${createSelectControl("Lower octave", "octaveLow", lowOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
+			${createSelectControl("Upper octave", "octaveHigh", highOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
+			${createToggleControl("Mute", "muted", options.muted)}
+			${createToggleControl("Chord labels", "showChordNames", options.showChordNames)}
+			${createToggleControl("Pitch bend", "pitchBend", options.pitchBend)}
+			${createToggleControl("Eyebrows", "drawEyebrows", options.drawEyebrows)}
+			${createToggleControl("Eyes", "drawEyes", options.drawEyes)}
+			${createToggleControl("Mouth", "drawMouth", options.drawMouth)}
+			${createToggleControl("Nose", "drawNose", options.drawNose)}
+			${createToggleControl("Stereo pan", "stereoPan", options.stereoPan)}
+		</div>
+	</details>`
+}
 
 const createInstrumentFamilyTitle = (family, personName) => `<h4 class="instrument-families">${personName.length ? personName : family.replace("Instrument","")}</h4>`
-const createInstrumentFamilySummary = (family) => `<summary><h5 class="instrument-family-title">${family}</h5></summary>`
+const createInstrumentFamilySummary = (family) => `<summary>${createSummaryContent(family)}</summary>`
 const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMENT_CLASS}' id="${personName}-${folder}" name="instrument-selector-${personName}" type="radio" value="${folder}" />`
 
 /**
@@ -87,12 +155,12 @@ export const hidePersonalControlPanel = (playerName, controls,  activeClassName=
  * @param {Function} callback Method to trigger when instument selected
  * @returns {String} HTML
  */
-export const createInstrumentFormHTML = (instruments, packName="", personName="" ) => {
+export const createInstrumentFormHTML = (instruments, packName="", personName="", includeTitle=true ) => {
 
-	let output = `${createInstrumentFamilyTitle(packName, personName)}
-					<legend>Select an instrument</legend>`
+	let output = includeTitle ? createInstrumentFamilyTitle(packName, personName) : ""
+	output += `<legend class="sr-only">Select an instrument</legend>`
 
-	let family = instruments && instruments.length && instruments[0].family ? instruments[0].family : "Presets"
+	let family = instruments && instruments.length && instruments[0].family ? instruments[0].family : "Select a preset"
 	//const uiOptions = []// instruments.map( (instrument, index) => createInstumentForForm( instrument.location, instrument.name ) ) 
 	// add a title at the start...
 	// uiOptions.unshift("<legend>Select an instrument</legend>")
@@ -149,7 +217,9 @@ export const hideExistingInstruments = (controls) => {
 	// allInstruments.forEach( instrument => instrument.classList.add("hide") )
 }
 
-export const populateInstrumentPanel = async (controls, instrument, personName="") => {
+export const populateInstrumentPanel = async (controls, instrument, personOrName="") => {
+	const person = typeof personOrName === "string" ? null : personOrName
+	const personName = person?.id ?? personOrName
 	// populate the sidebar
 	let presets = await instrument.getPresets()
 
@@ -168,7 +238,10 @@ export const populateInstrumentPanel = async (controls, instrument, personName="
 
 	const existing = controls.querySelector(`.person-controls`)
 	const instrumentMenuPanel = existing ? existing : document.createElement("div")
-	instrumentMenuPanel.innerHTML = createInstrumentFormHTML( presets, instrument.name, personName  )
+	instrumentMenuPanel.className = "person-controls"
+	instrumentMenuPanel.innerHTML = createInstrumentFamilyTitle(instrument.name, personName) +
+		createPersonOptionsHTML(person) +
+		createInstrumentFormHTML( presets, instrument.name, personName, false )
 	// instrumentMenuPanel.className = `${instrument.name} person-controls`
 	
 	controls.appendChild(instrumentMenuPanel)
@@ -192,7 +265,7 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, p
 	const controller = new AbortController()
 
 	controls.addEventListener('change', event => {
-		if (event.target.matches('input.'+INSTRUMENT_CLASS))
+		if (event.target.matches('input.'+INSTRUMENT_CLASS) || event.target.matches('.'+PERSON_OPTION_CLASS))
 		{
 			onInstrumentInput(event)
 		}
@@ -231,6 +304,11 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 	
 	let isDrawerOpen = controls.classList.contains(activeClassName) 
 	let bypass = false
+
+	const getDragX = (event) => {
+		const point = event.changedTouches?.[0] ?? event.touches?.[0] ?? event
+		return onLeftSide ? point.clientX : window.innerWidth - point.clientX
+	}
 
 	// console.error("Creating sidebar", {isDrawerOpen, onLeftSide} )
 
@@ -281,15 +359,13 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 			return
 		}
 
-		// FIXME: onLeftSide needs to be pixels from right edge
-		const x = onLeftSide ? 
-			event.clientX :
-			window.innerWidth - event.screenX
+		const x = getDragX(event)
 
 		// now move the controls into position!
 		controls.setAttribute("style", `--x:${x};`)
 		// ensure we can drag it
 		controls.classList.toggle(activeClassName, false)
+		controls.classList.toggle("dragging", true)
 
 		// console.warn("mousemove", x, window.innerWidth , {event, onLeftSide, })
 	}
@@ -307,10 +383,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 			event.preventDefault()
 		}
 		
-		// FIXME: onLeftSide needs to be pixels from right edge
-		const x = onLeftSide ? 
-			event.clientX :
-			window.innerWidth - event.screenX
+		const x = getDragX(event)
 
 		const panelWidth = controls.clientWidth || 25
 		// see if it has been dropped near?
@@ -319,6 +392,9 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 
 		document.removeEventListener("mousemove", onDragControls)
 		document.removeEventListener("mouseup", onDragControlsEnd)
+		document.removeEventListener("touchmove", onDragControls)
+		document.removeEventListener("touchend", onDragControlsEnd)
+		document.removeEventListener("touchcancel", onDragControlsEnd)
 		controls.classList.toggle("dragging", false)
 
 		isDrawerOpen = x >= panelWidth * considerOpenAt
@@ -361,9 +437,28 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		// console.log("controls:mousedown", event)
 		
 		// see if it has been dropped near?
+		controls.classList.toggle("dragging", true)
 		document.addEventListener("mousemove", onDragControls)
 		document.addEventListener("mouseup", onDragControlsEnd)
 	})
+
+	controls.addEventListener("touchstart", (event) => {
+		const nodeType = event.target.nodeName
+		if (nodeType !== "DIV" && nodeType !== "BUTTON")
+		{
+			return
+		}
+
+		if (event.preventDefault)
+		{
+			event.preventDefault()
+		}
+
+		controls.classList.toggle("dragging", true)
+		document.addEventListener("touchmove", onDragControls, {passive:false})
+		document.addEventListener("touchend", onDragControlsEnd)
+		document.addEventListener("touchcancel", onDragControlsEnd)
+	}, {passive:false})
 
 
 	controls.addEventListener("dragstart", (event) => {
@@ -394,6 +489,9 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		
 		document.removeEventListener("mouseleave", onDragCompleteOrCancelled)
 		document.removeEventListener("mouseup", onDragCompleteOrCancelled)
+		document.removeEventListener("touchend", onDragCompleteOrCancelled)
+		document.removeEventListener("touchcancel", onDragCompleteOrCancelled)
+		controls.classList.toggle("dragging", false)
 	
 		bypass = false
 	}
@@ -414,6 +512,19 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		document.addEventListener("mouseleave", onDragCompleteOrCancelled)
 		document.addEventListener("mouseup", onDragCompleteOrCancelled)
 	})
+
+	drawerToggle.addEventListener("touchstart", event => {
+		if (event.preventDefault)
+		{
+			event.preventDefault()
+			event.stopPropagation()
+		}
+		
+		bypass = true
+
+		document.addEventListener("touchend", onDragCompleteOrCancelled)
+		document.addEventListener("touchcancel", onDragCompleteOrCancelled)
+	}, {passive:false})
 	
 	// same as above but anywhere
 	controls.addEventListener("dblclick", (e) => {

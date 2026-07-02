@@ -82,23 +82,22 @@ label[for="tempo-input-text"]{
 
 label[for="tempo-input-range"]{
 	grid-area:range;
-	padding-bottom: 0;
-	background: inherit;
-	z-index: 1;
-	height: fit-content;
-	width: fit-content;
-	position: absolute;
 }
 
 label[for="tempo-swing-range"]{
 	grid-area:swing;
-	padding-bottom: 0;
+}
+
+label[for="tempo-input-range"],
+label[for="tempo-swing-range"]{
+	top:100%;
+	padding: 0;
+	padding-top: var(--pad);
 	background: inherit;
 	z-index: 1;
 	height: fit-content;
 	width: fit-content;
 }
-
 
 .set-tempo{
 	box-sizing: border-box;

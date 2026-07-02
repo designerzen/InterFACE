@@ -37,6 +37,12 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// display active harmonies as chord labels instead of listing each note
 	showChordNames:false,
 
+	// which ordered note set the player chooses from
+	noteSequence:null,
+
+	// silence this Person while leaving the rest of the ensemble active
+	muted:false,
+
 	// Passed to the delay node
 	// NB. There is a global delay too remember
 	useDelay:false,

@@ -1,0 +1,30 @@
+extends index.pug
+
+//- custom options go here
+//- We strongly encourage the use of blues, purples, and yellows in your project
+block options
+	script.
+		globalThis._synth = { 
+			qr:false,
+			advancedMode:true, 
+			text:true, 
+			autoHide:true, 
+			backingTrack:false, 
+			photoSensitive:false,
+			automationMode:false,
+			referer:'allstars',
+			theme:'theme-allstars'
+		}
+
+block headline
+	| Allstars
+	| Music Community
+
+block summary
+	| It can be hard work playing a musical instrument...
+	| So, how about letting the musical instrument play you instead! 
+	| Brought to you by the wonderful people at 
+	a(href="https://www.rixinclusiveresearch.org/about/" target="_blank") RIX inclusive research institue
+		
+block tagline
+	strong Allstars

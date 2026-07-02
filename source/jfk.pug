@@ -1,0 +1,30 @@
+extends index.pug
+
+//- custom options go here
+//- We strongly encourage the use of blues, purples, and yellows in your project
+block options
+	script.
+		globalThis._synth = { 
+			qr:false,
+			advancedMode:false, 
+			text:true, 
+			autoHide:true, 
+			backingTrack:false, 
+			photoSensitive:true,
+			automationMode:false,
+			referer:'jfk',
+			theme:'theme-jfk'
+		}
+
+block headline
+	| Rix
+	| JFK Trial
+
+block summary
+	| It can be hard work playing a musical instrument...
+	| So, how about letting the musical instrument play you instead! 
+	| Brought to you by the wonderful people at 
+	a(href="https://www.rixinclusiveresearch.org/about/" target="_blank") RIX inclusive research institue
+		
+block tagline
+	strong JFK Trial

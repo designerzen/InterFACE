@@ -52,10 +52,11 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 		var(--max-vertical-pixels)
 	);
 	
-	// is this above or below 50vh? - 0 or 1
+	// is the source far enough from the top edge for the tooltip to sit above it?
+	--top-edge-threshold:320;
 	--_ybool:clamp(
-		0, 
-		calc( 999 * (var(--y) / var(--top-half, 50vh)  )), 
+		0,
+		calc( 999 * (var(--top) - var(--top-edge-threshold)) ),
 		1
 	);
 	
@@ -91,7 +92,7 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 	--position-offset-x:calc( var(--triangle-size, 1rem) + .5rem );
 	
 	// booleans : is y > 320px
-	--is-gt-320:clamp( 0, var(--top) / 320 , 1);
+	--is-gt-320:var(--_ybool);
 	--is-lt-320:calc( 1 - var(--is-gt-320) );
 
 	// prevent any kind of interactions
@@ -239,8 +240,10 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 			100% - var(--triangle-size) - var(--pad) * 2
 		);
 
-		--top:calc( 100% + 100% * var(--flipper) );
-		--top:calc( 100% );
+		--top:calc(
+			100% * var(--is-gt-320)
+			- var(--triangle-size) * var(--is-lt-320)
+		);
 		
 		// top:calc( ( var(--_ybool,1)) * 100% );
 		// FIXME: 
@@ -261,10 +264,12 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 		// 	var(--f,0) 100%
 		// );
 
-		// shape the polygon into a triangle
+		// shape the polygon into a triangle, with its base against the tooltip
+		--arrow-base-y:calc( 100% * var(--is-lt-320) );
+		--arrow-tip-y:calc( 100% * var(--is-gt-320) );
 		clip-path: polygon(
-			0 0, 100% 0, 
-			100% 100%
+			0 var(--arrow-base-y), 100% var(--arrow-base-y), 
+			100% var(--arrow-tip-y)
 		);
 
 		// clip-path: polygon(
@@ -299,7 +304,6 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 		// we flip the triangle around if it is close to the left edge
 		transform: 
 			scaleX( calc( var(--scale,1) * var(--_reflect, 1) ) ) 
-			rotate( calc( 180deg * var( --_above-fold-flipper, 0)) ) 
 			translate(var(--left,0),0); 
 
 		// transform: scaleX( calc( -1 * var(--left) / 300 ) );

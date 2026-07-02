@@ -24,6 +24,8 @@
 .instrument-panel{
 	--button-size:44px;
 	--overlap:var(--button-size);
+	--panel-z:909;
+	--panel-active-z:5000;
 
 	// gap:12px;
 	// padding:12px;
@@ -59,7 +61,7 @@
 
 	// prevent causing issues with tooltips
 	// in front of cotnrols
-	z-index:909;
+	z-index:var(--panel-z);
 
 	legend, label{
 		max-width: none;
@@ -87,12 +89,15 @@
 	// user rather than clicking the toggle button is dragging the edge
 	// furiously so we swap modes and instead use te x offset
 	&.dragging{
-		transition: transform 3ms linear;
+		transition: none !important;
+		animation: none !important;
+		z-index:var(--panel-active-z);
 	}
 
 	// force show
 	&.expanded{
 		transform:translateX( 0% ); 
+		z-index:var(--panel-active-z);
 		
 		// allow some stuff to scroll
 		> menu{
@@ -100,6 +105,18 @@
 			overflow-x: hidden;
 			// max-height: 100%;
 		}
+	}
+}
+
+:is(
+	.person-a-sidebar-showing,
+	.person-b-sidebar-showing,
+	.person-c-sidebar-showing,
+	.person-d-sidebar-showing
+){
+	#feedback,
+	#toast{
+		display:none !important;
 	}
 }
 
@@ -133,6 +150,7 @@
 
 	user-select: none;
 	cursor:col-resize;
+	touch-action:none;
 
 	button.person-toggle-controls{
 
@@ -331,6 +349,23 @@
 		z-index:303;
 		text-transform: uppercase;
 	}
+
+	.instrument-summary-title{
+		display: block;
+		margin: 0;
+		font: inherit;
+		line-height: inherit;
+	}
+
+	.instrument-families{
+		font-weight: 900;
+		position: sticky;
+		top: 0;
+		margin: 0;
+		background-color: var(--col-bottom, #455b63);
+		color: var(--shade-white, white);
+		z-index: -1;
+	}
 	
 	// // collapsed state
 	// details{
@@ -380,13 +415,98 @@
 		*/
 
 		&::before{
+			content:'';
 			font-size:186%;
 			order:303;
+		}
+
+		&::after{
+			content:'×';
 		}
 	}
 
 	:where(details + details){
 		border-top:var(--border,1px) solid var(--shade-dark);
+	}
+
+	.person-options{
+		--control-bg: color-mix(in srgb, var(--col-bottom, #455b63) 78%, black);
+		--control-border: color-mix(in srgb, var(--shade-white, white) 55%, transparent);
+		--control-accent: var(--shade-orange, #d9792f);
+		border: 0;
+		border-block-end: var(--border, 2px) solid var(--shade-white, white);
+		margin: 0;
+		padding: 0;
+		accent-color: var(--control-accent);
+	}
+
+	.person-options summary{
+		font-size: 0.95rem;
+		line-height: 1.1;
+		letter-spacing: 0;
+	}
+
+	.person-options-grid{
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+		gap: calc(var(--pad, 1rem) * 0.75);
+		align-items: stretch;
+		padding: calc(var(--pad, 1rem) * 1.25);
+	}
+
+	.person-option{
+		display: grid;
+		gap: 0.35rem;
+		padding: 0;
+		min-width: 0;
+		color: var(--shade-white, white);
+		line-height: 1.1;
+	}
+
+	.person-option-wide{
+		grid-column: 1 / -1;
+	}
+
+	.person-option-compact{
+		grid-template-columns: minmax(0, 1fr) minmax(4.25rem, max-content);
+		align-items: center;
+		column-gap: calc(var(--pad, 1rem) * 0.5);
+	}
+
+	.person-option-label{
+		font-size: 0.72rem;
+		line-height: 1.1;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--shade-white, white) 82%, var(--col-bottom, #455b63));
+		overflow-wrap: anywhere;
+	}
+
+	.person-option select{
+		box-sizing: border-box;
+		inline-size: 100%;
+		min-block-size: 2.7rem;
+		border: var(--border, 2px) solid var(--control-border);
+		border-radius: 0;
+		background-color: var(--control-bg);
+		color: var(--shade-white, white);
+		padding: 0.45rem 2rem 0.45rem 0.65rem;
+		font: inherit;
+		font-size: 0.95rem;
+		line-height: 1.1;
+		text-transform: none;
+	}
+
+	.person-option select:focus-visible,
+	.person-option input[type="checkbox"]:focus-visible{
+		outline: var(--border, 2px) solid var(--control-accent);
+		outline-offset: 2px;
+	}
+
+	.person-option-toggle{
+		grid-template-columns: minmax(44px, max-content) minmax(0, 1fr);
+		align-items: center;
+		column-gap: 0.6rem;
+		min-block-size: 2.35rem;
 	}
 
 	:is(ol,ul){
@@ -621,8 +741,9 @@
 
 @mixin panel-highlight{
 	background-color: rgba(255,255,255,0.4);
-	background-color: color-mix( var(--shade-brand, red), rgba(150,150,150,0.5) );
+	background-color: color-mix( var(--shade-brand, red), rgba(150,150,150,0.8) );
 	scale:1.1;
+	animation:Throb 3s infinite both;
 }
 
 // Now if the user is hovered over the person's face
