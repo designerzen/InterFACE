@@ -50,9 +50,10 @@ export {
 	PRESET_SNARES,
 	getRandomSnarePreset,
 	getSnarePresets,
+	getSnareVoiceLevels,
 } from './snare-presets.js'
 
-import { DEFAULT_SNARE_OPTIONS } from './snare-presets.js'
+import { DEFAULT_SNARE_OPTIONS, getSnareVoiceLevels } from './snare-presets.js'
 
 /**
  * Create an instance of the snare instrument
@@ -63,7 +64,10 @@ export const createSnare = ( audioContext, output ) => {
 	let isRunning = false
     const oscillator = audioContext.createOscillator()
     const gainTriangle = audioContext.createGain()
+	const shellOscillator = audioContext.createOscillator()
+	const shellGain = audioContext.createGain()
     const filterGain = audioContext.createGain()
+	const crackGain = audioContext.createGain()
 	const noise = audioContext.createBufferSource()
 	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
 
@@ -77,14 +81,20 @@ export const createSnare = ( audioContext, output ) => {
 	highpass.type = "highpass"
 	highpass.frequency.value = DEFAULT_SNARE_OPTIONS.highpassStart
 
+	const crackFilter = audioContext.createBiquadFilter()
+	crackFilter.type = "bandpass"
+	crackFilter.frequency.value = DEFAULT_SNARE_OPTIONS.crackFrequency
+	crackFilter.Q.value = DEFAULT_SNARE_OPTIONS.crackQ
+
 	oscillator.frequency.value = DEFAULT_SNARE_OPTIONS.triStart
+	shellOscillator.frequency.value = DEFAULT_SNARE_OPTIONS.triStart * DEFAULT_SNARE_OPTIONS.shellRatio
 
 	// TODO Cache the noise
 	const data = buffer.getChannelData(0)
 	for (var i = 0; i < 4096; i++) 
 	{
 		// top heavy noise
-		data[i] = Math.random() / 2
+		data[i] = Math.random() * 2 - 1
 	}
 
 	noise.buffer = buffer
@@ -92,8 +102,13 @@ export const createSnare = ( audioContext, output ) => {
 	
 	oscillator.connect(gainTriangle)
 	gainTriangle.connect(output )	
+	shellOscillator.connect(shellGain)
+	shellGain.connect(output)
 
-	noise.connect(highpass)
+	noise.connect(bandpass)
+	noise.connect(crackFilter)
+	crackFilter.connect(crackGain)
+	crackGain.connect(output)
 	bandpass.connect(highpass)
 	highpass.connect(filterGain)
 	filterGain.connect( output )
@@ -110,6 +125,7 @@ export const createSnare = ( audioContext, output ) => {
 			//gainNode.gain.value = 1			
 			try{
 				oscillator.start(time)
+				shellOscillator.start(time)
 				//osc3.stop(audioContext.currentTime + 0.2)
 				noise.start(time)
 				//node.stop(audioContext.currentTime + 0.2)	
@@ -120,13 +136,26 @@ export const createSnare = ( audioContext, output ) => {
 
 		// console.log("SNARE",{options})
 
+		const levels = getSnareVoiceLevels(options)
 		filterGain.gain.cancelScheduledValues(time)
-		filterGain.gain.setValueAtTime( options.velocity, time)
+		filterGain.gain.setValueAtTime(levels.noise, time)
 		filterGain.gain.exponentialRampToValueAtTime(ZERO, endAt)
 	
 		gainTriangle.gain.cancelScheduledValues(time)
-		gainTriangle.gain.setValueAtTime(options.velocity, time)
-		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, time + (options.length - options.decay ) )	
+		gainTriangle.gain.setValueAtTime(levels.body, time)
+		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, Math.min(endAt, time + options.bodyLength))
+
+		shellGain.gain.cancelScheduledValues(time)
+		shellGain.gain.setValueAtTime(levels.shell, time)
+		shellGain.gain.exponentialRampToValueAtTime(ZERO, Math.min(endAt, time + options.shellLength))
+
+		crackGain.gain.cancelScheduledValues(time)
+		crackGain.gain.setValueAtTime(levels.crack, time)
+		crackGain.gain.exponentialRampToValueAtTime(ZERO, Math.min(endAt, time + options.crackLength))
+		crackFilter.Q.setValueAtTime(options.crackQ, time)
+		crackFilter.frequency.cancelScheduledValues(time)
+		crackFilter.frequency.setValueAtTime(options.crackFrequency, time)
+		crackFilter.frequency.exponentialRampToValueAtTime(options.crackEnd, Math.min(endAt, time + options.crackLength))
 
 		// bandpassing
 		const geometricMean = Math.sqrt( options.bandpassStart * options.bandpassEnd )
@@ -139,8 +168,20 @@ export const createSnare = ( audioContext, output ) => {
 		// modulate and filter freqs
 		oscillator.type = options.type
 		oscillator.frequency.cancelScheduledValues(time)
-		oscillator.frequency.setValueAtTime( options.triStart, time)
-		oscillator.frequency.linearRampToValueAtTime( options.triEnd, endAt)	
+		// Harder strikes tighten the head slightly, as on an acoustic drum.
+		const pitchResponse = 0.94 + Math.min(1.25, options.velocity) * 0.1
+		oscillator.frequency.setValueAtTime(options.triStart * pitchResponse, time)
+		oscillator.frequency.exponentialRampToValueAtTime(
+			Math.max(20, options.triEnd * pitchResponse),
+			Math.min(endAt, time + 0.09)
+		)
+		shellOscillator.type = options.shellType
+		shellOscillator.frequency.cancelScheduledValues(time)
+		shellOscillator.frequency.setValueAtTime(options.triStart * options.shellRatio * pitchResponse, time)
+		shellOscillator.frequency.exponentialRampToValueAtTime(
+			Math.max(20, options.triEnd * options.shellRatio * pitchResponse),
+			Math.min(endAt, time + options.shellLength)
+		)
 
 		highpass.frequency.cancelScheduledValues(time)
 		highpass.frequency.setValueAtTime( options.highpassStart, time)
@@ -153,9 +194,13 @@ export const createSnare = ( audioContext, output ) => {
 		filterGain.gain.setValueAtTime(ZERO, now)
 		gainTriangle.gain.cancelScheduledValues(now)
 		gainTriangle.gain.setValueAtTime(ZERO, now)
+		shellGain.gain.cancelScheduledValues(now)
+		shellGain.gain.setValueAtTime(ZERO, now)
+		crackGain.gain.cancelScheduledValues(now)
+		crackGain.gain.setValueAtTime(ZERO, now)
 	}
 	snare.choke = (duration, chokeAt) => {
-		chokeGains(audioContext, [filterGain.gain, gainTriangle.gain], duration, chokeAt)
+		chokeGains(audioContext, [filterGain.gain, gainTriangle.gain, shellGain.gain, crackGain.gain], duration, chokeAt)
 	}
 	return snare
 }

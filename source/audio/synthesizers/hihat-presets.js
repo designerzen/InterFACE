@@ -22,6 +22,7 @@ export const DEFAULT_OPEN_HIHAT = {
 	release:0.01,
 	highpass:7000,
 	bandpass:10000,
+	lowpass:11500,
 	type:"triangle",
 	// optional absolute audioContext time to schedule the trigger at
 	// (0 / falsy = play immediately at audioContext.currentTime + ZERO)
@@ -40,6 +41,7 @@ export const DEFAULT_CLOSED_HIHAT = {
 	release:0.01,
 	highpass:7000,
 	bandpass:10000,
+	lowpass:10500,
 	type:"triangle",
 	triggerAt:0
 }

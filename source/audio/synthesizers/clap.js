@@ -31,6 +31,7 @@ export {
 } from './clap-presets.js'
 
 import { DEFAULT_CLAP_OPTIONS } from './clap-presets.js'
+import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
 
 /**
  * Create an instance of the snare instrument
@@ -93,10 +94,11 @@ export const createClap = ( audioContext, output ) => {
 		filterGain.gain.setValueAtTime(options.velocity, time)
 		filterGain.gain.exponentialRampToValueAtTime(ZERO, endAt)
 	
+		const levels = getVelocityEnvelopeLevels(options)
 		gainTriangle.gain.cancelScheduledValues(time)
 		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime(options.velocity, time + options.attack)
-		gainTriangle.gain.exponentialRampToValueAtTime(options.sustain, time + options.attack + options.decay)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainTriangle.gain.linearRampToValueAtTime(ZERO, endAt )	
 	
 		// modulate and filter freqs

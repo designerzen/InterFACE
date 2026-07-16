@@ -54,6 +54,7 @@ export {
 } from './kick-presets.js'
 
 import { DEFAULT_KICK_OPTIONS } from './kick-presets.js'
+import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
 
 /**
  * Kick me!
@@ -100,26 +101,29 @@ export const createKick = (audioContext, output ) => {
 		subOscillator.frequency.cancelScheduledValues(time)
 
 		// set new envelopes
+		const levels = getVelocityEnvelopeLevels(options)
 
 		// TRIANGLE
 		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime( options.velocity, time + options.attack)
-		gainTriangle.gain.exponentialRampToValueAtTime( options.sustain, time + options.attack + options.decay)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
+		const pitchEndAt = Math.min(endAt, time + Math.max(options.attack, options.pitchDecay))
 		mainOscillator.frequency.setValueAtTime(options.triStart, time)
-		mainOscillator.frequency.exponentialRampToValueAtTime(options.triEnd, endAt)
+		mainOscillator.frequency.exponentialRampToValueAtTime(options.triEnd, pitchEndAt)
+		mainOscillator.frequency.setValueAtTime(options.triEnd, endAt)
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
-		gainSine.gain.exponentialRampToValueAtTime( options.velocity, time + options.attack)
-		gainSine.gain.exponentialRampToValueAtTime( options.sustain, time + options.attack + options.decay)
+		gainSine.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
+		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
 		subOscillator.frequency.setValueAtTime(options.sineStart, time)
 		subOscillator.frequency.exponentialRampToValueAtTime(options.sineApex, time + options.attack)
-		subOscillator.frequency.exponentialRampToValueAtTime(options.sineSustain || options.sineApex, time + options.attack + options.decay)
-		subOscillator.frequency.exponentialRampToValueAtTime(options.sineEnd, endAt)
+		subOscillator.frequency.exponentialRampToValueAtTime(options.sineEnd, pitchEndAt)
+		subOscillator.frequency.setValueAtTime(options.sineEnd, endAt)
 
 		return options
 	}

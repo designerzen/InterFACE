@@ -23,6 +23,18 @@ export const DEFAULT_SNARE_OPTIONS = {
 
 	attack:0.05,
 	decay:0.2,
+	noiseLevel:0.52,
+	bodyLevel:0.78,
+	bodyLength:0.16,
+	shellLevel:0.24,
+	shellRatio:1.58,
+	shellLength:0.095,
+	shellType:"sine",
+	crackLevel:0.62,
+	crackLength:0.018,
+	crackFrequency:3200,
+	crackEnd:1850,
+	crackQ:0.75,
 
 	// type: "square"
 	type: "triangle",
@@ -31,6 +43,13 @@ export const DEFAULT_SNARE_OPTIONS = {
 	// (0 / falsy = play immediately at audioContext.currentTime + ZERO)
 	triggerAt:0
 }
+
+export const getSnareVoiceLevels = options => ({
+	noise:options.velocity * options.noiseLevel,
+	body:options.velocity * options.bodyLevel,
+	shell:options.velocity * options.shellLevel,
+	crack:options.velocity * options.crackLevel
+})
 
 const preset = (overrides) => Object.assign({}, DEFAULT_SNARE_OPTIONS, overrides)
 
@@ -160,6 +179,11 @@ export const PRESET_BRUSH_SNARE = preset({
 	attack:0.04,
 	decay:0.25,
 	type:"triangle",
+	noiseLevel:0.62,
+	bodyLevel:0.3,
+	shellLevel:0.1,
+	crackLevel:0.08,
+	crackLength:0.012,
 })
 
 export const PRESET_BIG_ROOM_SNARE = preset({

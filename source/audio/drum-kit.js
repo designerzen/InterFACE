@@ -1,9 +1,11 @@
-import { createKick, createKicks } from './synthesizers/kick' 
+import { createKick, createKicks, DEFAULT_KICK_OPTIONS } from './synthesizers/kick' 
 import { createClack, createClacks } from './synthesizers/clack' 
 import { createHihat, createHihats } from './synthesizers/hihat' 
-import { createCowbell, createCowbells } from './synthesizers/cowbell' 
-import { createSnare, createSnares } from './synthesizers/snare' 
+import { createCowbell, createCowbells, DEFAULT_COWBELL_OPTIONS } from './synthesizers/cowbell' 
+import { createSnare, createSnares, DEFAULT_SNARE_OPTIONS } from './synthesizers/snare' 
 import { createClap, createClaps } from './synthesizers/clap' 
+import { createSnareReverb } from './effects/snare-reverb.js'
+import { tuneCowbellOptions, tuneKickOptions, tuneSnareOptions } from './synthesizers/percussion-tuning.js'
 
 /**
  * Just a drum kit you can play that has one of each of the
@@ -11,12 +13,48 @@ import { createClap, createClaps } from './synthesizers/clap'
  * @returns {Object<Function>} all individual instruments
  */
 export const createDrumkit = ( audioContext, output ) => {
-	
+	let tonic
+	const snareReverb = createSnareReverb(audioContext, output)
+	const rawKick = createKick(audioContext, output)
+	const rawSnare = createSnare(audioContext, snareReverb.input)
+	const rawCowbell = createCowbell(audioContext, output)
+	const wrapTunedVoice = (voice, tune, defaults) => {
+		const tunedVoice = (options={}) => voice(tune({ ...defaults, ...options }, tonic))
+		tunedVoice.cancel = voice.cancel
+		tunedVoice.choke = voice.choke
+		return tunedVoice
+	}
+	const openHat = createHihat(audioContext, output)
+	const closedHat = createHihat(audioContext, output)
+	const hat = (options={}) => {
+		const triggerAt = options.triggerAt ?? audioContext.currentTime
+		const isOpen = options.open ?? /\b(open|ride|crash)\b/i.test(options.name ?? "")
+		if (isOpen)
+		{
+			return openHat(options)
+		}
+
+		// Traditional electronic drum-machine choke group: a closed hat cuts
+		// the ringing open cymbal with a very short, click-free release.
+		openHat.choke(0.006, triggerAt)
+		return closedHat(options)
+	}
+	hat.cancel = () => {
+		openHat.cancel()
+		closedHat.cancel()
+	}
+	hat.choke = (duration, chokeAt) => {
+		openHat.choke(duration, chokeAt)
+		closedHat.choke(duration, chokeAt)
+	}
+	hat.open = openHat
+	hat.closed = closedHat
+
 	const drumkit = {
-		kick : createKick(audioContext, output),
-		snare : createSnare(audioContext, output),
-		hat : createHihat(audioContext, output),
-		cowbell : createCowbell(audioContext, output),
+		kick : wrapTunedVoice(rawKick, tuneKickOptions, DEFAULT_KICK_OPTIONS),
+		snare : wrapTunedVoice(rawSnare, tuneSnareOptions, DEFAULT_SNARE_OPTIONS),
+		hat,
+		cowbell : wrapTunedVoice(rawCowbell, tuneCowbellOptions, DEFAULT_COWBELL_OPTIONS),
 		clack : createClack(audioContext, output),
 		clap : createClap(audioContext, output),
 	}
@@ -52,6 +90,10 @@ export const createDrumkit = ( audioContext, output ) => {
 		drumkit.clack.choke?.(duration, chokeAt)
 		drumkit.clap.choke?.(duration, chokeAt)
 	}
+	drumkit.setSnareReverb = snareReverb.setAmount
+	drumkit.getSnareReverb = snareReverb.getAmount
+	drumkit.setTonic = pitchClass => tonic = Number.isFinite(pitchClass) ? pitchClass : undefined
+	drumkit.getTonic = () => tonic
 
 	return drumkit
 }

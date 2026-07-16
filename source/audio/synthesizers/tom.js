@@ -40,6 +40,7 @@ export {
 } from './tom-presets.js'
 
 import { DEFAULT_TOM_OPTIONS } from './tom-presets.js'
+import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
 
 /**
  * Kick me!
@@ -86,11 +87,12 @@ export const createTom = (audioContext, output ) => {
 		sineOscillator.frequency.cancelScheduledValues(time)
 
 		// set new envelopes
+		const levels = getVelocityEnvelopeLevels(options)
 
 		// TRIANGLE
 		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime( options.velocity, time + options.attack)
-		gainTriangle.gain.exponentialRampToValueAtTime( options.sustain, time + options.attack + options.decay)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
 		triangleOscillator.frequency.setValueAtTime(options.triStart, time)
@@ -98,8 +100,8 @@ export const createTom = (audioContext, output ) => {
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
-		gainSine.gain.exponentialRampToValueAtTime( options.velocity, time + options.attack)
-		gainSine.gain.exponentialRampToValueAtTime( options.sustain, time + options.attack + options.decay)
+		gainSine.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
+		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
 		sineOscillator.frequency.setValueAtTime(options.sineStart, time)

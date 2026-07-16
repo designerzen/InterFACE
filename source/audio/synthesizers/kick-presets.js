@@ -20,6 +20,7 @@ export const DEFAULT_KICK_OPTIONS = {
 	// sustain is a volume not a time
 	sustain:0.9,
 	release:0.001,
+	pitchDecay:0.055,
 
 	// frequencies
 	triStart:110,

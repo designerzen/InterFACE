@@ -5,13 +5,20 @@
 import Instrument from './instrument.js'
 import {noteNumberToFrequency} from '../tuning/frequencies.js'
 import { getKitSequence } from '../../timing/patterns.js'
-import { createDrumArranger } from '../../timing/drum-arranger.js'
-import { createKick } from '../synthesizers/kick.js'
-import { createSnare } from '../synthesizers/snare.js'
-import { createHihat } from '../synthesizers/hihat.js'
+import { applyDrumSubHitEnvelope, createDrumArranger } from '../../timing/drum-arranger.js'
+import { createKick, getRandomKickPreset, PRESETS_KICKS } from '../synthesizers/kick.js'
+import { createSnare, getRandomSnarePreset, PRESET_SNARES } from '../synthesizers/snare.js'
+import {
+	createHihat,
+	getRandomHihatPreset,
+	PRESET_HIHATS,
+	PRESET_HIHATS_CLOSED,
+	PRESET_HIHATS_OPEN,
+} from '../synthesizers/hihat.js'
 import { createCowbell } from '../synthesizers/cowbell.js'
 import { createClack } from '../synthesizers/clack.js'
 import { createClap } from '../synthesizers/clap.js'
+import { createSnareReverb } from '../effects/snare-reverb.js'
 
 export const OPTIONS_DRUMKIT = {
 	
@@ -22,7 +29,8 @@ export const OPTIONS_DRUMKIT = {
 	frequency:440,
 
 	// Optional starting tempo. The arranger will keep estimating live tempo from triggerAt.
-	bpm:0
+	bpm:0,
+	snareReverb:0.24
 }
 
 export const INSTRUMENT_TYPE_DRUMKIT = "DrumkitInstrument"
@@ -47,6 +55,11 @@ export default class DrumkitInstrument extends Instrument{
 	clap 
 	arranger
 	lastTriggerAt = 0
+	kickOptions = PRESETS_KICKS[0]
+	snareOptions = PRESET_SNARES[0]
+	hatOptions = PRESET_HIHATS[0]
+	hatClosedOptions = PRESET_HIHATS_CLOSED[0]
+	hatOpenOptions = PRESET_HIHATS_OPEN[0]
 
 	get volume() {
 		return this.gainNode.gain.value
@@ -65,7 +78,8 @@ export default class DrumkitInstrument extends Instrument{
 		this.gainNode.gain.value = 1 // this.currentVolume
 		
 		this.kick = createKick(this.context, this.gainNode)
-		this.snare = createSnare(this.context, this.gainNode)
+		this.snareReverb = createSnareReverb(this.context, this.gainNode, this.options.snareReverb)
+		this.snare = createSnare(this.context, this.snareReverb.input)
 		this.hatOpen = createHihat(this.context, this.gainNode)
 		this.hatClosed = createHihat(this.context, this.gainNode)
 		this.cowbell = createCowbell(this.context, this.gainNode)
@@ -77,6 +91,7 @@ export default class DrumkitInstrument extends Instrument{
 			seed: this.id,
 			bpm: this.options.bpm ?? 0
 		})
+		this.setHatPair(this.hatOptions)
 
 		console.info("Drumkit.create() called", this )
 
@@ -92,13 +107,97 @@ export default class DrumkitInstrument extends Instrument{
 		super(audioContext, { ...OPTIONS_DRUMKIT, ...options })
 	}
 
-	triggerPart(part, instrument, triggerAt){
+	getHatPair(hat){
+		const isOpen = /open/i.test(hat?.name)
+		const source = isOpen ? PRESET_HIHATS_OPEN : PRESET_HIHATS_CLOSED
+		const counterpart = isOpen ? PRESET_HIHATS_CLOSED : PRESET_HIHATS_OPEN
+		const index = Math.max(0, source.indexOf(hat))
+		return {
+			closed:isOpen ? counterpart[index % counterpart.length] : hat,
+			open:isOpen ? hat : counterpart[index % counterpart.length]
+		}
+	}
+
+	setHatPair(hat){
+		const pair = this.getHatPair(hat)
+		this.hatOptions = hat
+		this.hatClosedOptions = pair.closed
+		this.hatOpenOptions = pair.open
+	}
+
+	randomizeDrumkitPreset(){
+		this.kickOptions = getRandomKickPreset()
+		this.snareOptions = getRandomSnarePreset()
+		this.setHatPair(getRandomHihatPreset())
+		return {
+			kick:this.kickOptions,
+			snare:this.snareOptions,
+			hat:this.hatOptions,
+		}
+	}
+
+	triggerPart(part, instrument, triggerAt, options={}){
 		if (part > 0)
 		{
-			instrument( { velocity: part / 255, triggerAt } )
+			instrument( { ...options, velocity: part / 255, triggerAt } )
 			return true
 		}
 		return false
+	}
+
+	triggerHat(part, isOpen, triggerAt){
+		if (part <= 0)
+		{
+			return false
+		}
+		if (isOpen)
+		{
+			this.hatOpen({ ...this.hatOpenOptions, velocity:part / 255, triggerAt })
+		}else{
+			this.hatOpen.choke(0.006, triggerAt)
+			this.hatClosed({ ...this.hatClosedOptions, velocity:part / 255, triggerAt })
+		}
+		return true
+	}
+
+	playPart(part, options={}){
+		const triggerAt = options.triggerAt ?? this.context.currentTime + 0.005
+		const velocity = options.velocity ?? 1
+		switch(part)
+		{
+			case 'kick':
+				this.kick({ ...this.kickOptions, ...options, velocity, triggerAt })
+				return true
+
+			case 'snare':
+				this.snare({ ...this.snareOptions, ...options, velocity, triggerAt })
+				return true
+
+			case 'hat':
+				if (options.open)
+				{
+					this.hatOpen({ ...this.hatOpenOptions, ...options, velocity, triggerAt })
+				}else{
+					this.hatOpen.choke(0.006, triggerAt)
+					this.hatClosed({ ...this.hatClosedOptions, ...options, velocity, triggerAt })
+				}
+				return true
+
+			case 'clap':
+				this.clap({ ...options, velocity, triggerAt })
+				return true
+
+			case 'cowbell':
+				this.cowbell({ ...options, velocity, triggerAt })
+				return true
+
+			case 'clack':
+				this.clack({ ...options, velocity, triggerAt })
+				return true
+
+			default:
+				return false
+		}
 	}
 
 	updatePerson(person){
@@ -127,10 +226,20 @@ export default class DrumkitInstrument extends Instrument{
 
 		this.updatePerson({ noteNumber, noteVelocity: velocity })
 		const parts = this.arranger.next({ triggerAt })
-		this.triggerPart(parts.kick, this.kick, triggerAt)
-		this.triggerPart(parts.snare, this.snare, triggerAt)
-		this.triggerPart(parts.hat, this.hatOpen, triggerAt)
+		this.triggerPart(parts.kick, this.kick, triggerAt, this.kickOptions)
+		this.triggerPart(parts.snare, this.snare, triggerAt, this.snareOptions)
+		this.triggerHat(parts.hat, parts.hatOpen, triggerAt)
 		this.triggerPart(parts.clap, this.clap, triggerAt)
+		for (const event of parts.events ?? [])
+		{
+			const eventAt = triggerAt + event.offset
+			if (event.lane === 'snare') this.triggerPart(event.velocity, this.snare, eventAt, applyDrumSubHitEnvelope(this.snareOptions, event))
+			if (event.lane === 'hat') {
+				const timbre = applyDrumSubHitEnvelope(this.hatClosedOptions, event)
+				this.hatOpen.choke(0.006, eventAt)
+				this.hatClosed({ ...timbre, velocity:event.velocity / 255, triggerAt:eventAt })
+			}
+		}
 
 		return super.noteOn(noteNumber, velocity)
 	}

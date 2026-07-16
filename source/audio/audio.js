@@ -35,7 +35,7 @@ const DEFAULT_OPTIONS = {
 	drumCompressor:true,
 
 	// default volume for the drum track
-	drumVolume:0.24
+	drumVolume:0.2
 }
 
 export const CUSTOM_REVERB_OPTIONS = {
@@ -213,7 +213,7 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, analys
 	// universal volume setter
 	mixer = await createAmplitude(audioContext, 1)
 	gain = await createAmplitude(audioContext, 1)
-	percussion = await createAmplitude(audioContext, options.drumVolume ?? 0.5 )
+	percussion = await createAmplitude(audioContext, options.drumVolume ?? 0.2 )
 	
 	// Creating a compressor but setting a high threshold and 
 	// high ratio so it acts as a limiter. More explanation at 
@@ -250,10 +250,11 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, analys
 	if (options.drumCompressor)
 	{	
 		percussion.node.connect( compressor.node )
-		compressor.node.connect( getMasterMixdown() )
+		compressor.node.connect( limiter.node )
 	}else{
-		percussion.node.connect( getMasterMixdown() )
+		percussion.node.connect( limiter.node )
 	}
+	limiter.node.connect( getMasterMixdown() )
 	
 
 	// Web Audio Modules! --------------------------

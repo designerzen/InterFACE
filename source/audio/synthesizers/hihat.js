@@ -43,6 +43,7 @@ export {
 } from './hihat-presets.js'
 
 import { DEFAULT_CLOSED_HIHAT } from './hihat-presets.js'
+import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
 
 /**
  * 
@@ -63,7 +64,14 @@ export const createHihat = (audioContext, output ) => {
     highpassFilter.type = "highpass"
     highpassFilter.frequency.value = highpass
 
-	const SATURATE = 5
+	const lowpassFilter = audioContext.createBiquadFilter()
+	lowpassFilter.type = "lowpass"
+	lowpassFilter.frequency.value = DEFAULT_CLOSED_HIHAT.lowpass
+	lowpassFilter.Q.value = 0.45
+
+	// Metallic oscillators sum strongly; retain presence without allowing dense
+	// rolls to multiply into a clipped burst at the percussion bus.
+	const SATURATE = 1.35
 
     const oscillators = ratios.map((ratio) => {
         const oscillator = audioContext.createOscillator()
@@ -76,7 +84,8 @@ export const createHihat = (audioContext, output ) => {
     })
 
 	bandpassFilter.connect(highpassFilter)
-    highpassFilter.connect(gainNode)
+	highpassFilter.connect(lowpassFilter)
+	lowpassFilter.connect(gainNode)
 	gainNode.connect(output)
 	
 	const hihat = ( options=DEFAULT_CLOSED_HIHAT )=>{
@@ -94,26 +103,33 @@ export const createHihat = (audioContext, output ) => {
 		}
 		
 		bandpassFilter.frequency.cancelScheduledValues(time)
-		bandpassFilter.frequency.value = options.bandpass
+		bandpassFilter.frequency.setValueAtTime(options.bandpass, time)
 
 		// high pass filter
 		highpassFilter.frequency.cancelScheduledValues(time)
-		highpassFilter.frequency.value = options.highpass
+		highpassFilter.frequency.setValueAtTime(options.highpass, time)
+
+		// Remove the brittle top octave while retaining the metallic band.
+		const safeLowpass = Math.min(options.lowpass, audioContext.sampleRate * 0.45)
+		lowpassFilter.frequency.cancelScheduledValues(time)
+		lowpassFilter.frequency.setValueAtTime(safeLowpass, time)
 	
 		// clear anything from previous plays
-		// oscillators.forEach( (oscillator,i) =>{
-		// 	const ratio = options.ratios[i]
-		// 	// oscillator.frequency.cancelScheduledValues(time) 
-		// 	//oscillator.frequency.setValueAtTime( options.fundamental * ratio, time)
-		// })
+		oscillators.forEach((oscillator, i) => {
+			const ratio = options.ratios[i] ?? DEFAULT_CLOSED_HIHAT.ratios[i]
+			oscillator.type = options.type
+			oscillator.frequency.cancelScheduledValues(time)
+			oscillator.frequency.setValueAtTime(options.fundamental * ratio, time)
+		})
 			// console.info("hat", {isRunning, options, time, oscillators})
 	
 		// set new ADSR envelopes
+		const levels = getVelocityEnvelopeLevels(options, SATURATE)
 		gainNode.gain.cancelScheduledValues(time)
 		gainNode.gain.setValueAtTime( ZERO, time)
-		gainNode.gain.exponentialRampToValueAtTime( SATURATE * options.velocity, time + options.attack )
-		gainNode.gain.linearRampToValueAtTime( SATURATE * options.sustain, time + options.attack + options.decay)
-		gainNode.gain.linearRampToValueAtTime( SATURATE * options.sustain, time + options.length - options.release)
+		gainNode.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack )
+		gainNode.gain.linearRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
+		gainNode.gain.linearRampToValueAtTime(levels.sustain, time + options.length - options.release)
 		gainNode.gain.linearRampToValueAtTime( ZERO, time + options.length)
 
 		return options

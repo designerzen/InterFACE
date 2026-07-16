@@ -24,12 +24,34 @@ export {
 	PRESET_AGOGO_COWBELL,
 	PRESET_TRIANGLE_BELL,
 	PRESET_TUBULAR_BELL,
+	PRESET_WOODBLOCK_COWBELL,
+	PRESET_SALSA_LOW_COWBELL,
+	PRESET_SALSA_HIGH_COWBELL,
+	PRESET_DEEP_RING_COWBELL,
+	PRESET_MUTED_HAND_COWBELL,
+	PRESET_BENT_COWBELL,
+	PRESET_SOFT_STUDIO_COWBELL,
+	PRESET_BRUSHED_COWBELL,
+	PRESET_WARM_ANALOG_COWBELL,
+	PRESET_GLASS_COWBELL,
+	PRESET_TAPE_COWBELL,
+	PRESET_FUNK_COWBELL,
+	PRESET_DUB_COWBELL,
+	PRESET_MINIMAL_CLICK_COWBELL,
+	PRESET_AFRO_COWBELL,
+	PRESET_ORBITAL_BELL,
+	PRESET_INDUSTRIAL_PLATE,
+	PRESET_ACOUSTIC_SMALL_COWBELL,
 	PRESET_COWBELLS,
+	getCowbellEnvelopeLevels,
+	getCowbellPresetForStyle,
 	getRandomCowbellPreset,
 	getCowbellPresets,
 } from './cowbell-presets.js'
 
-import { DEFAULT_COWBELL_OPTIONS } from './cowbell-presets.js'
+import { DEFAULT_COWBELL_OPTIONS, getCowbellEnvelopeLevels, resolveCowbellHitOptions } from './cowbell-presets.js'
+
+const centsRatio = cents => 2 ** (cents / 1200)
 
 /**
  * Create an instance of the cowbell instrument
@@ -48,11 +70,16 @@ export const createCowbell = (audioContext, output ) => {
 	const fundamental = DEFAULT_COWBELL_OPTIONS.fundamental
     const ratios = DEFAULT_COWBELL_OPTIONS.ratios
 
-    const oscillators = ratios.map((ratio) => {
+	const partialGains = []
+	const oscillators = ratios.map((ratio, index) => {
         const oscillator = audioContext.createOscillator()
-        oscillator.type = "triangle"
+		const partialGain = audioContext.createGain()
+		partialGain.gain.value = DEFAULT_COWBELL_OPTIONS.partialLevels[index] ?? 1
+		partialGains.push(partialGain)
+		oscillator.type = DEFAULT_COWBELL_OPTIONS.waveforms[index] ?? "square"
 		oscillator.frequency.value = fundamental * ratio
-		oscillator.connect(bandpass)
+		oscillator.connect(partialGain)
+		partialGain.connect(bandpass)
 		return oscillator
     })
 
@@ -61,7 +88,7 @@ export const createCowbell = (audioContext, output ) => {
 	
 	const cowbell = ( options=DEFAULT_COWBELL_OPTIONS)=>{
 		
-		options = Object.assign({}, DEFAULT_COWBELL_OPTIONS, options)
+		options = resolveCowbellHitOptions(options)
 	
 		const time = options.triggerAt ?? audioContext.currentTime + ZERO
 		
@@ -76,21 +103,28 @@ export const createCowbell = (audioContext, output ) => {
 			}
 		}
 
-		bandpass.frequency.value = options.bandpass
-		bandpass.Q.value = options.q	
+		bandpass.frequency.cancelScheduledValues(time)
+		bandpass.frequency.setValueAtTime(options.bandpass, time)
+		bandpass.frequency.exponentialRampToValueAtTime(Math.max(40, options.bandpass * options.filterSweep), time + Math.min(options.length, options.filterSweepTime))
+		bandpass.Q.setValueAtTime(options.q, time)
 		
 		// clear anything from previous plays
 		oscillators.forEach( (oscillator, i) => {
 			const ratio = options.ratios[i] !== undefined ? options.ratios[i] : DEFAULT_COWBELL_OPTIONS.ratios[i]
+			const endFrequency = options.fundamental * ratio
+			oscillator.type = options.waveforms[i] ?? DEFAULT_COWBELL_OPTIONS.waveforms[i] ?? "square"
+			partialGains[i].gain.setValueAtTime(options.partialLevels[i] ?? 1, time)
 			oscillator.frequency.cancelScheduledValues(time) 
-			oscillator.frequency.setValueAtTime( options.fundamental * ratio, time)
+			oscillator.frequency.setValueAtTime(endFrequency * centsRatio(options.pitchSweep), time)
+			oscillator.frequency.exponentialRampToValueAtTime(endFrequency, time + Math.min(options.pitchSweepTime, options.length * 0.35))
 		})
 		
 		// set new envelopes
 		cowbellGainNode.gain.cancelScheduledValues(time)
 		cowbellGainNode.gain.setValueAtTime( ZERO, time)
-		cowbellGainNode.gain.exponentialRampToValueAtTime(options.velocity, time + options.attack)
-		cowbellGainNode.gain.exponentialRampToValueAtTime(options.sustain, time + options.attack + options.decay)
+		const levels = getCowbellEnvelopeLevels(options)
+		cowbellGainNode.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
+		cowbellGainNode.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		cowbellGainNode.gain.linearRampToValueAtTime(ZERO, time + options.length )	
 		return options
 	}
