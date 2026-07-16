@@ -117,7 +117,12 @@ class SerialDevice {
 	}
 
 	async connect(filters) {
-		this.#port = await navigator.serial.requestPort({ filters })
+		const port = await navigator.serial.requestPort({ filters })
+		await this.connectPort(port)
+	}
+
+	async connectPort(port) {
+		this.#port = port
 		await this.#port.open({ baudRate: BAUD_RATE })
 		this.#writer = this.#port.writable.getWriter()
 		this.#connected = true
@@ -227,6 +232,7 @@ export class PlasmaButtons extends SerialDevice {
 
 	#ledBuffer
 	#ledStatuses
+	#frameOverrides
 	#rafId = null
 	#attractAbort = null
 	#buttonLedGroupSize
@@ -252,10 +258,16 @@ export class PlasmaButtons extends SerialDevice {
 		this.#buttonLedGroupSize = buttonLedGroupSize
 		this.#ledBuffer = new Uint8Array(this.packetByteLength)
 		this.#ledStatuses = Array.from({ length: numLeds }, () => new LEDStatus())
+		this.#frameOverrides = new Map()
 	}
 
 	async connect(filters) {
 		await super.connect(filters)
+		this.#startRefreshLoop()
+	}
+
+	async connectPort(port) {
+		await super.connectPort(port)
 		this.#startRefreshLoop()
 	}
 
@@ -331,6 +343,24 @@ export class PlasmaButtons extends SerialDevice {
 	triggerButtonFadeByLabel(label, color, options = {}) {
 		const buttonNumber = this.buttonMap[label]
 		if (buttonNumber != null) this.triggerButtonFade(buttonNumber, color, options)
+	}
+
+	/**
+	 * Replaces one transport frame without changing the LED's current mode,
+	 * transition progress, or its next frame. This lets clock feedback sit above
+	 * an existing fade/pulse/flash animation without cancelling it.
+	 */
+	overrideLedFrame(ledNumber, color) {
+		if (ledNumber < 0 || ledNumber >= this.numLeds) return
+		this.#frameOverrides.set(ledNumber, color)
+	}
+
+	overrideButtonFrame(buttonNumber, color) {
+		const start = buttonNumber * this.#buttonLedGroupSize
+		const end = start + this.#buttonLedGroupSize
+		for (let ledNumber = start; ledNumber < end && ledNumber < this.numLeds; ledNumber++) {
+			this.overrideLedFrame(ledNumber, color)
+		}
 	}
 
 	clearFlashEffects() {
@@ -418,7 +448,8 @@ export class PlasmaButtons extends SerialDevice {
 	#updateLedColors() {
 		for (let i = 0; i < this.numLeds; i++) {
 			this.#ledStatuses[i].ticksSinceLastTransition++
-			const color = this.#calculateColor(i)
+			const color = this.#frameOverrides.get(i) ?? this.#calculateColor(i)
+			this.#frameOverrides.delete(i)
 			const idx = i * 4
 			this.#ledBuffer[idx] = color.blue & COLOR_MASK
 			this.#ledBuffer[idx + 1] = color.green & COLOR_MASK

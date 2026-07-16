@@ -173,6 +173,12 @@ function getActiveButtonNumbers(buttons) {
 	return [...buttonNumbers].sort((a, b) => a - b)
 }
 
+async function writeButtons(buttons) {
+	if (buttons?.connected) {
+		await buttons.writeToDisplay()
+	}
+}
+
 function getLedCoordinates(coordMap) {
 	return Object.entries(coordMap).map(([key, ledNumber]) => {
 		const [x, y] = key.split(',').map(Number)
@@ -251,6 +257,7 @@ export async function runExamples3(buttons, {
 			colorTo: RGBl(30, 10, 10, (button % 15) * 2 + 1),
 		})
 	}
+	await writeButtons(buttons)
 	await wait(durationMs, signal)
 }
 
@@ -270,6 +277,7 @@ export async function runExamplesButtonDemo(buttons, {
 			transitionTime: 0.25,
 		})
 	}
+	await writeButtons(buttons)
 	await wait(3000, signal)
 
 	log('examples.py: holding button colors')
@@ -278,6 +286,7 @@ export async function runExamplesButtonDemo(buttons, {
 			colorTo: BUTTON_COLORS[button % BUTTON_COLORS.length],
 		})
 	}
+	await writeButtons(buttons)
 	await wait(3000, signal)
 
 	log('examples.py: fading button groups down')
@@ -287,6 +296,7 @@ export async function runExamplesButtonDemo(buttons, {
 			transitionTime: 2,
 		})
 	}
+	await writeButtons(buttons)
 	await wait(5000, signal)
 
 	log('examples.py: sweeping across Picade Max coordinates')
@@ -296,6 +306,7 @@ export async function runExamplesButtonDemo(buttons, {
 		for (let row = minY; row < maxY; row++) {
 			buttons.setLedModeByCoord([column, row], 'normal', { colorTo: RGBl(31, 31, 31, 5) })
 		}
+		await writeButtons(buttons)
 		await wait(10, signal)
 	}
 	for (let column = minX; column < maxX; column++) {
@@ -303,6 +314,7 @@ export async function runExamplesButtonDemo(buttons, {
 		for (let row = minY; row < maxY; row++) {
 			buttons.setLedModeByCoord([column, row], 'normal', { colorTo: RGBl(15, 15, 0, 5) })
 		}
+		await writeButtons(buttons)
 		await wait(10, signal)
 	}
 	await wait(200, signal)
@@ -312,6 +324,7 @@ export async function runExamplesButtonDemo(buttons, {
 		for (let column = minX; column < maxX; column++) {
 			buttons.setLedModeByCoord([column, row], 'normal', { colorTo: RGBl(31, 31, 31, 5) })
 		}
+		await writeButtons(buttons)
 		await wait(10, signal)
 	}
 	for (let row = minY; row < maxY; row++) {
@@ -319,6 +332,7 @@ export async function runExamplesButtonDemo(buttons, {
 		for (let column = minX; column < maxX; column++) {
 			buttons.setLedModeByCoord([column, row], 'normal', { colorTo: RGBl(0, 15, 15, 5) })
 		}
+		await writeButtons(buttons)
 		await wait(10, signal)
 	}
 	await wait(200, signal)
@@ -332,6 +346,7 @@ export async function runExamplesButtonDemo(buttons, {
 	for (const label of PICADE_6_BUTTON_LABELS.filter(label => label !== 'P1:A')) {
 		buttons.setButtonModeByLabel(label, 'normal', { colorTo: RGBl(15, 15, 63, 15) })
 	}
+	await writeButtons(buttons)
 	await wait(5000, signal)
 
 	log('examples.py: fading active buttons out')
@@ -341,6 +356,7 @@ export async function runExamplesButtonDemo(buttons, {
 			transitionTime: 2,
 		})
 	}
+	await writeButtons(buttons)
 	await wait(3000, signal)
 }
 
@@ -361,6 +377,7 @@ export async function runButtonPattern(buttons, name, {
 			buttons.triggerButtonFade(activeButtons[i], hsvToRGBl(i * (360 / activeButtons.length), 15), {
 				fadeTime: 0.45,
 			})
+			await writeButtons(buttons)
 			await sleepTicks(buttons.refreshRate, 2, signal)
 		}
 		await wait(1200, signal)
@@ -375,6 +392,7 @@ export async function runButtonPattern(buttons, name, {
 			buttons.triggerLedFade(led.ledNumber, hsvToRGBl(i * 41, 12 + (i % 4)), {
 				fadeTime: 0.5,
 			})
+			await writeButtons(buttons)
 			await sleepTicks(buttons.refreshRate, 1, signal)
 		}
 		await wait(1200, signal)
@@ -394,6 +412,7 @@ export async function runButtonPattern(buttons, name, {
 		for (let index = 0; index < PICADE_6_BUTTON_LABELS.length; index++) {
 			const label = PICADE_6_BUTTON_LABELS[index]
 			buttons.triggerButtonFadeByLabel(label, palette[index % palette.length], { fadeTime: 0.7 })
+			await writeButtons(buttons)
 			await sleepTicks(buttons.refreshRate, 1, signal)
 		}
 		await wait(1200, signal)
@@ -408,6 +427,7 @@ export async function runButtonPattern(buttons, name, {
 		for (let i = 0; i < ordered.length; i++) {
 			throwIfAborted(signal)
 			buttons.triggerLedFade(ordered[i].ledNumber, hsvToRGBl(180 + i * 3, 14), { fadeTime: 0.5 })
+			if (i % 4 === 0) await writeButtons(buttons)
 			if (i % 4 === 0) await sleepTicks(buttons.refreshRate, 1, signal)
 		}
 		await wait(1200, signal)
@@ -424,6 +444,7 @@ export async function runButtonPattern(buttons, name, {
 		for (let i = 0; i < ordered.length; i++) {
 			throwIfAborted(signal)
 			buttons.triggerLedFade(ordered[i].ledNumber, RGBl(63, 20, 0, 14), { fadeTime: 0.45 })
+			if (i % 4 === 0) await writeButtons(buttons)
 			if (i % 4 === 0) await sleepTicks(buttons.refreshRate, 1, signal)
 		}
 		await wait(1200, signal)
@@ -439,6 +460,7 @@ export async function runButtonPattern(buttons, name, {
 					buttons.triggerLedFade(led.ledNumber, RGBl(15, 63, 15, 15), { fadeTime: 0.4 })
 				}
 			}
+			await writeButtons(buttons)
 			await sleepTicks(buttons.refreshRate, 2, signal)
 		}
 		await wait(1200, signal)
@@ -454,6 +476,7 @@ export async function runButtonPattern(buttons, name, {
 					buttons.triggerLedFade(led.ledNumber, RGBl(63, 0, 35, 15), { fadeTime: 0.4 })
 				}
 			}
+			await writeButtons(buttons)
 			await sleepTicks(buttons.refreshRate, 2, signal)
 		}
 		await wait(1200, signal)
@@ -466,6 +489,7 @@ export async function runButtonPattern(buttons, name, {
 			throwIfAborted(signal)
 			const color = i % 2 === 0 ? RGBl(63, 63, 0, 15) : RGBl(0, 25, 63, 15)
 			buttons.triggerButtonFade(activeButtons[i], color, { fadeTime: 0.6 })
+			if (i % 2 === 1) await writeButtons(buttons)
 			if (i % 2 === 1) await sleepTicks(buttons.refreshRate, 2, signal)
 		}
 		await wait(1200, signal)
@@ -481,6 +505,7 @@ export async function runButtonPattern(buttons, name, {
 				fadeTime: 0.5,
 				holdTime: 0.03,
 			})
+			await writeButtons(buttons)
 			await sleepTicks(buttons.refreshRate, 1, signal)
 		}
 		await wait(1200, signal)

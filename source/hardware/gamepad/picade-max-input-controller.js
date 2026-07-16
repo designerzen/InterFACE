@@ -1,0 +1,264 @@
+import GamePad, { getGamePads } from './gamepad.js'
+import {
+	BUTTON_SELECT,
+	BUTTON_START,
+	DIRECTION_DOWN,
+	DIRECTION_LEFT,
+	DIRECTION_RIGHT,
+	DIRECTION_UP,
+} from './gamepad-commands.js'
+import {
+	getPicadeMaxGamepadInfo,
+	PICADE_MAX_ACTION_TO_BUTTON,
+	PICADE_MAX_BUTTON_COUNT,
+} from './picade-max-interface.js'
+import { PicadePlasma } from './picade-plasma.js'
+
+export const PICADE_MAX_PLAYER_COUNT = 2
+export const PICADE_MAX_JOYSTICK_UP = 'picade-joystick-up'
+export const PICADE_MAX_JOYSTICK_DOWN = 'picade-joystick-down'
+export const PICADE_MAX_JOYSTICK_LEFT = 'picade-joystick-left'
+export const PICADE_MAX_JOYSTICK_RIGHT = 'picade-joystick-right'
+export const PICADE_MAX_DIGITAL_JOYSTICK_ACTIONS = Object.freeze({
+	[DIRECTION_UP]: PICADE_MAX_JOYSTICK_UP,
+	[DIRECTION_DOWN]: PICADE_MAX_JOYSTICK_DOWN,
+	[DIRECTION_LEFT]: PICADE_MAX_JOYSTICK_LEFT,
+	[DIRECTION_RIGHT]: PICADE_MAX_JOYSTICK_RIGHT,
+})
+export const PICADE_MAX_CONTROL_ACTIONS = Object.freeze([
+	BUTTON_SELECT,
+	BUTTON_START,
+])
+const DEFAULT_BUTTON_LIGHT_MAP = Object.freeze(
+	Array.from({ length: PICADE_MAX_BUTTON_COUNT }, (_, button) => button),
+)
+
+/** Returns true only for the Picade Max Input gamepad interface (USB 2e8a:1098). */
+export function isPicadeMaxInputController(gamepad) {
+	return Boolean(getPicadeMaxGamepadInfo(gamepad))
+}
+
+/** Finds the two independent player gamepads exposed by one Picade Max USB board. */
+export function findPicadeMaxInputGamepads(gamepads = getGamePads()) {
+	return Array.from(gamepads)
+		.filter(gamepad => gamepad?.connected && isPicadeMaxInputController(gamepad))
+		.sort((left, right) => left.index - right.index)
+		.slice(0, PICADE_MAX_PLAYER_COUNT)
+}
+
+/**
+ * Coordinates the Picade Max's two separate player gamepads and its Plasma lights.
+ * Plasma mappings are explicitly supplied per player; player inputs are never merged.
+ */
+export class PicadeMaxController {
+	#gamepads
+	#readers = []
+	#listeners = new Set()
+	#holdTimers = new Map()
+	#frame = null
+	#plasma
+	#plasmaButtonMaps
+	#joystickDirections = new Map()
+
+	constructor(gamepads, {
+		plasma = new PicadePlasma(),
+		plasmaButtonMaps = [DEFAULT_BUTTON_LIGHT_MAP, DEFAULT_BUTTON_LIGHT_MAP],
+		pressColor = '#ffffff',
+		pressBrightness = 31,
+		longPressColor = '#ff0000',
+		fadeTime = 0.45,
+		longPressMs = 500,
+		getButtonLightOptions = null,
+	} = {}) {
+		if (!Array.isArray(gamepads) || gamepads.length !== PICADE_MAX_PLAYER_COUNT) {
+			throw new TypeError('PicadeMaxController requires the two Picade Max player gamepads')
+		}
+		if (!gamepads.every(isPicadeMaxInputController)) {
+			throw new TypeError('Both gamepads must be Picade Max Input interfaces')
+		}
+		if (!Array.isArray(plasmaButtonMaps) || plasmaButtonMaps.length !== PICADE_MAX_PLAYER_COUNT) {
+			throw new TypeError('plasmaButtonMaps must contain one mapping for each player')
+		}
+		this.#gamepads = [...gamepads].sort((left, right) => left.index - right.index)
+		this.#plasma = plasma
+		this.#plasmaButtonMaps = plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
+		this.pressColor = pressColor
+		this.pressBrightness = pressBrightness
+		this.longPressColor = longPressColor
+		this.fadeTime = fadeTime
+		this.longPressMs = longPressMs
+		this.getButtonLightOptions = getButtonLightOptions
+	}
+
+	static fromConnectedGamepads(options = {}) {
+		return new PicadeMaxController(findPicadeMaxInputGamepads(), options)
+	}
+
+	get gamepads() {
+		return [...this.#gamepads]
+	}
+
+	get plasma() {
+		return this.#plasma
+	}
+
+	get plasmaButtonMaps() {
+		return this.#plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
+	}
+
+	onButton(callback) {
+		this.#listeners.add(callback)
+		return () => this.#listeners.delete(callback)
+	}
+
+	/** Triggers the mapped Plasma button for one player with optional colour and intensity. */
+	triggerButtonLight(player, button, { color = this.pressColor, brightness = this.pressBrightness, fadeTime = this.fadeTime } = {}) {
+		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
+		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
+		this.#plasma.light(plasmaButton, color, { brightness })
+		if (fadeTime != null) this.#plasma.fade(plasmaButton, color, { brightness, fadeTime })
+		return true
+	}
+
+	/** Overlay one tempo frame without replacing the button's active animation. */
+	pulseButtonFrame(player, button, color, { brightness = this.pressBrightness } = {}) {
+		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
+		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
+		this.#plasma.overrideButtonFrame(plasmaButton, color, { brightness })
+		return true
+	}
+
+	setButtonLight(player, button, light, color, { brightness = this.pressBrightness } = {}) {
+		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
+		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
+		this.#plasma.setLight(plasmaButton, light, color, { brightness })
+		return true
+	}
+
+	animateButtonLight(player, button, light, mode, color, options = {}) {
+		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
+		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
+		this.#plasma.animateLight(plasmaButton, light, mode, color, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	blendButtonLight(player, button, light, fromColor, toColor, options = {}) {
+		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
+		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
+		this.#plasma.blendLight(plasmaButton, light, fromColor, toColor, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	start() {
+		if (this.#frame != null) return this
+		this.#readers = this.#gamepads.map((gamepad, player) => this.#createReader(gamepad, player))
+		const poll = () => {
+			for (const reader of this.#readers) reader.update()
+			this.#frame = requestAnimationFrame(poll)
+		}
+		this.#frame = requestAnimationFrame(poll)
+		return this
+	}
+
+	stop() {
+		if (this.#frame != null) cancelAnimationFrame(this.#frame)
+		this.#frame = null
+		this.#readers = []
+		this.#joystickDirections.clear()
+		for (const hold of this.#holdTimers.values()) clearTimeout(hold.timer)
+		this.#holdTimers.clear()
+		return this
+	}
+
+	async connectPlasma(filters) {
+		await this.#plasma.connect(filters)
+		return this
+	}
+
+	async disconnect() {
+		this.stop()
+		if (this.#plasma.connected) await this.#plasma.disconnect()
+		return this
+	}
+
+	#createReader(gamepad, player) {
+		const reader = new GamePad(gamepad.index)
+		reader.connect({ gamepad })
+		reader.available = true
+		reader.on((action, pressed, source, heldFor) => {
+			const button = PICADE_MAX_ACTION_TO_BUTTON[action]
+			if (button == null) {
+				this.#handleJoystick(player, action, pressed, source ?? gamepad)
+				if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
+					const event = { player, button: null, action, pressed, heldFor, gamepad: source ?? gamepad }
+					for (const listener of this.#listeners) listener(event)
+				}
+				return
+			}
+			const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
+			if (Number.isInteger(plasmaButton)) this.#setLight(player, button, plasmaButton, pressed)
+			const event = { player, button, action, pressed, heldFor, gamepad: source ?? gamepad }
+			for (const listener of this.#listeners) listener(event)
+		})
+		return reader
+	}
+
+	#handleJoystick(player, action, value, gamepad) {
+		const digitalDirection = PICADE_MAX_DIGITAL_JOYSTICK_ACTIONS[action]
+		if (digitalDirection) {
+			this.#emitJoystick(player, digitalDirection, Boolean(value), gamepad)
+			return
+		}
+
+		const direction = action === 'leftstickY'
+			? value <= -0.5 ? PICADE_MAX_JOYSTICK_UP : value >= 0.5 ? PICADE_MAX_JOYSTICK_DOWN : null
+			: action === 'leftstickX'
+				? value <= -0.5 ? PICADE_MAX_JOYSTICK_LEFT : value >= 0.5 ? PICADE_MAX_JOYSTICK_RIGHT : null
+				: null
+		if (direction == null && action !== 'leftstickX' && action !== 'leftstickY') return
+
+		const key = `${player}:${action}`
+		const previous = this.#joystickDirections.get(key) ?? null
+		if (previous === direction) return
+		if (previous) this.#emitJoystick(player, previous, false, gamepad)
+		if (direction) this.#emitJoystick(player, direction, true, gamepad)
+		this.#joystickDirections.set(key, direction)
+	}
+
+	#emitJoystick(player, action, pressed, gamepad) {
+		const event = { player, button: null, action, pressed, heldFor: 0, gamepad }
+		for (const listener of this.#listeners) listener(event)
+	}
+
+	#setLight(player, button, plasmaButton, pressed) {
+		if (!this.#plasma.connected) return
+		const key = `${player}:${button}`
+		const lightOptions = this.getButtonLightOptions?.({ player, button }) ?? {}
+		const pressColor = lightOptions.color ?? this.pressColor
+		const longPressColor = lightOptions.longPressColor ?? this.longPressColor
+		const brightness = lightOptions.brightness ?? this.pressBrightness
+		const fadeTime = lightOptions.fadeTime ?? this.fadeTime
+		if (pressed) {
+			this.#plasma.light(plasmaButton, pressColor, { brightness })
+			const hold = { color: pressColor, timer: null }
+			hold.timer = setTimeout(() => {
+				hold.color = longPressColor
+				this.#plasma.light(plasmaButton, hold.color, { brightness })
+			}, this.longPressMs)
+			this.#holdTimers.set(key, hold)
+			return
+		}
+		const hold = this.#holdTimers.get(key)
+		clearTimeout(hold?.timer)
+		this.#holdTimers.delete(key)
+		this.#plasma.fade(plasmaButton, hold?.color ?? this.pressColor, {
+			brightness,
+			fadeTime,
+		})
+	}
+}
+
+/** Constructs a two-player Picade Max controller without merging either game's mappings. */
+export function createPicadeMaxController(gamepads, options) {
+	return new PicadeMaxController(gamepads, options)
+}

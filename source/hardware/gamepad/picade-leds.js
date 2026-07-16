@@ -6,9 +6,13 @@ import {
 	PICADE_MAX_BUTTON_LED_GROUP_SIZE,
 	RGBl,
 } from './picade-max-input.js'
+import {
+	PICADE_MAX_USB_PRODUCT_ID,
+	PICADE_MAX_USB_VENDOR_ID,
+} from './picade-max-interface.js'
 
 export const PICADE_DEFAULT_FILTERS = Object.freeze([
-	{ usbVendorId: 0x2e8a, usbProductId: 0x1098 },
+	{ usbVendorId: PICADE_MAX_USB_VENDOR_ID, usbProductId: PICADE_MAX_USB_PRODUCT_ID },
 ])
 export { PICADE_MAX_BUTTONS, PICADE_MAX_BUTTON_FRAME_LEDS, PICADE_MAX_BUTTON_LED_GROUP_SIZE }
 
@@ -61,9 +65,9 @@ function normalizeColor(color, brightness = 31) {
 	throw new Error('Unsupported color value')
 }
 
-function toLedIndex(buttonIndex, ledIndex) {
-	if (!Number.isInteger(buttonIndex) || buttonIndex < 0 || buttonIndex >= PICADE_MAX_BUTTONS) {
-		throw new RangeError(`buttonIndex must be between 0 and ${PICADE_MAX_BUTTONS - 1}`)
+function toLedIndex(buttonIndex, ledIndex, buttonCount) {
+	if (!Number.isInteger(buttonIndex) || buttonIndex < 0 || buttonIndex >= buttonCount) {
+		throw new RangeError(`buttonIndex must be between 0 and ${buttonCount - 1}`)
 	}
 	if (!Number.isInteger(ledIndex) || ledIndex < 0 || ledIndex >= PICADE_MAX_BUTTON_LED_GROUP_SIZE) {
 		throw new RangeError(`ledIndex must be between 0 and ${PICADE_MAX_BUTTON_LED_GROUP_SIZE - 1}`)
@@ -74,9 +78,14 @@ function toLedIndex(buttonIndex, ledIndex) {
 export class PicadeLeds {
 	#buttons
 	#defaultBrightness
+	#buttonCount
 
-	constructor({ refreshRate = 20, brightness = 31 } = {}) {
-		this.#buttons = new PlasmaButtons(PICADE_MAX_LOGICAL_LEDS, {
+	constructor({ refreshRate = 20, brightness = 31, buttonCount = PICADE_MAX_BUTTONS } = {}) {
+		if (!Number.isInteger(buttonCount) || buttonCount < 1) {
+			throw new RangeError('buttonCount must be a positive integer')
+		}
+		this.#buttonCount = buttonCount
+		this.#buttons = new PlasmaButtons(buttonCount * PICADE_MAX_BUTTON_LED_GROUP_SIZE, {
 			refreshRate,
 			packetLedCount: PICADE_MAX_BUTTON_FRAME_LEDS,
 		})
@@ -114,13 +123,18 @@ export class PicadeLeds {
 		return this
 	}
 
+	async connectPort(port) {
+		await this.#buttons.connectPort(port)
+		return this
+	}
+
 	async disconnect() {
 		await this.#buttons.disconnect()
 		return this
 	}
 
 	setLed(buttonIndex, ledIndex, color, { brightness = this.#defaultBrightness } = {}) {
-		const ledNumber = toLedIndex(buttonIndex, ledIndex)
+		const ledNumber = toLedIndex(buttonIndex, ledIndex, this.#buttonCount)
 		this.#buttons.setLedMode(ledNumber, 'normal', {
 			colorTo: normalizeColor(color, brightness),
 		})
@@ -142,6 +156,28 @@ export class PicadeLeds {
 			colorTo: normalizeColor(toColor, brightness),
 			transitionTime: duration,
 		})
+		return this
+	}
+
+	flashLed(buttonIndex, ledIndex, color, { holdTime = 0, fadeTime = 0.35, brightness = this.#defaultBrightness } = {}) {
+		const ledNumber = toLedIndex(buttonIndex, ledIndex, this.#buttonCount)
+		this.#buttons.triggerLedFade(ledNumber, normalizeColor(color, brightness), { holdTime, fadeTime })
+		return this
+	}
+
+	pulseLed(buttonIndex, ledIndex, color, { fromColor = null, duration = 0.7, brightness = this.#defaultBrightness } = {}) {
+		const ledNumber = toLedIndex(buttonIndex, ledIndex, this.#buttonCount)
+		this.#buttons.setLedMode(ledNumber, 'fade sweep', {
+			colorFrom: normalizeColor(fromColor, brightness),
+			colorTo: normalizeColor(color, brightness),
+			transitionTime: duration,
+		})
+		return this
+	}
+
+	/** Render one button in this frame only, preserving any active LED mode. */
+	overrideButtonFrame(buttonIndex, color, { brightness = this.#defaultBrightness } = {}) {
+		this.#buttons.overrideButtonFrame(buttonIndex, normalizeColor(color, brightness))
 		return this
 	}
 
