@@ -1,0 +1,1171 @@
+{
+	"version": 1,
+	"presets": [
+		{
+			"id": "four-choirs",
+			"title": "4 Choirs",
+			"description": "Layered human and synthetic voices arranged for the current number of people.",
+			"tempo": {
+				"bpm": 72,
+				"swing": 0.12
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": false
+			},
+			"voicings": {
+				"1": [
+					"choir_aahs"
+				],
+				"2": [
+					"choir_aahs",
+					"voice_oohs"
+				],
+				"3": [
+					"choir_aahs",
+					"voice_oohs",
+					"synth_choir"
+				],
+				"4": [
+					"choir_aahs",
+					"voice_oohs",
+					"synth_choir",
+					"choir_aahs"
+				]
+			}
+		},
+		{
+			"id": "all-strings",
+			"title": "All Strings",
+			"description": "A small string section that grows from solo cello into quartet voicing.",
+			"tempo": {
+				"bpm": 96,
+				"swing": 0.08
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "DORIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": false
+			},
+			"voicings": {
+				"1": [
+					"cello"
+				],
+				"2": [
+					"violin",
+					"cello"
+				],
+				"3": [
+					"violin",
+					"viola",
+					"cello"
+				],
+				"4": [
+					"violin",
+					"viola",
+					"cello",
+					"contrabass"
+				]
+			}
+		},
+		{
+			"id": "synth-pop",
+			"title": "Synth Pop",
+			"description": "Bright bass, strings, lead and keys with clean mid-tempo pulse.",
+			"tempo": {
+				"bpm": 118,
+				"swing": 0.1
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "synth-pop",
+				"intent": {
+					"energy": 0.62,
+					"density": 0.55,
+					"tension": 0.28,
+					"fillChance": 0.34,
+					"rollChance": 0.12,
+					"chaos": 0.06
+				},
+				"kit": {
+					"kick": "707 Kick",
+					"snare": "LinnDrum Snare",
+					"hat": "808 Closed Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"lead_2_sawtooth"
+				],
+				"2": [
+					"synth_bass_1",
+					"lead_2_sawtooth"
+				],
+				"3": [
+					"synth_bass_1",
+					"synth_strings_1",
+					"lead_2_sawtooth"
+				],
+				"4": [
+					"synth_bass_1",
+					"synth_strings_1",
+					"lead_2_sawtooth",
+					"electric_piano_1"
+				]
+			}
+		},
+		{
+			"id": "brass-band",
+			"title": "Brass Band",
+			"description": "Bold brass voicings, from solo trumpet to full low-and-high band.",
+			"tempo": {
+				"bpm": 104,
+				"swing": 0.18
+			},
+			"harmony": {
+				"key": "Bb",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "brass-band",
+				"intent": {
+					"energy": 0.72,
+					"density": 0.48,
+					"tension": 0.32,
+					"fillChance": 0.3,
+					"rollChance": 0.18,
+					"chaos": 0.08
+				},
+				"kit": {
+					"kick": "Vintage Acoustic Kick",
+					"snare": "Acoustic Snare",
+					"hat": "Default Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"trumpet"
+				],
+				"2": [
+					"trumpet",
+					"tuba"
+				],
+				"3": [
+					"trumpet",
+					"french_horn",
+					"tuba"
+				],
+				"4": [
+					"trumpet",
+					"trombone",
+					"french_horn",
+					"tuba"
+				]
+			}
+		},
+		{
+			"id": "dream-pads",
+			"title": "Dream Pads",
+			"description": "Soft atmospheric pads for floating, low-pressure harmonic playing.",
+			"tempo": {
+				"bpm": 64,
+				"swing": 0.2
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "LYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": false
+			},
+			"voicings": {
+				"1": [
+					"pad_2_warm"
+				],
+				"2": [
+					"pad_2_warm",
+					"pad_7_halo"
+				],
+				"3": [
+					"pad_2_warm",
+					"pad_4_choir",
+					"pad_7_halo"
+				],
+				"4": [
+					"pad_2_warm",
+					"pad_4_choir",
+					"synth_strings_2",
+					"pad_7_halo"
+				]
+			}
+		},
+		{
+			"id": "orchestra",
+			"title": "Orchestra",
+			"description": "A compact orchestral palette with winds, strings and horn.",
+			"tempo": {
+				"bpm": 88,
+				"swing": 0.05
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": false
+			},
+			"voicings": {
+				"1": [
+					"violin"
+				],
+				"2": [
+					"flute",
+					"cello"
+				],
+				"3": [
+					"flute",
+					"violin",
+					"cello"
+				],
+				"4": [
+					"flute",
+					"violin",
+					"cello",
+					"french_horn"
+				]
+			}
+		},
+		{
+			"id": "rock-band",
+			"title": "Rock Band",
+			"description": "Bass, guitars and organ with a direct energetic beat.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0.04
+			},
+			"harmony": {
+				"key": "E",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "rock-band",
+				"intent": {
+					"energy": 0.84,
+					"density": 0.58,
+					"tension": 0.42,
+					"fillChance": 0.28,
+					"rollChance": 0.16,
+					"chaos": 0.05
+				},
+				"kit": {
+					"kick": "Punch Kick",
+					"snare": "Strong Snare",
+					"hat": "Tight Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"overdriven_guitar"
+				],
+				"2": [
+					"electric_bass_pick",
+					"overdriven_guitar"
+				],
+				"3": [
+					"electric_bass_pick",
+					"overdriven_guitar",
+					"rock_organ"
+				],
+				"4": [
+					"electric_bass_pick",
+					"overdriven_guitar",
+					"rock_organ",
+					"distortion_guitar"
+				]
+			}
+		},
+		{
+			"id": "ambient",
+			"title": "Ambient",
+			"description": "Slow evolving textures with soundtrack and halo pads.",
+			"tempo": {
+				"bpm": 58,
+				"swing": 0.16
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "WHOLE_TONE_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "ambient",
+				"intent": {
+					"energy": 0.22,
+					"density": 0.2,
+					"tension": 0.46,
+					"fillChance": 0.08,
+					"rollChance": 0.05,
+					"chaos": 0.18,
+					"muteKick": true
+				},
+				"kit": {
+					"kick": "Pillow Kick",
+					"snare": "Ambient Snare",
+					"hat": "Dark Closed Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"pad_2_warm"
+				],
+				"2": [
+					"pad_2_warm",
+					"fx_2_soundtrack"
+				],
+				"3": [
+					"pad_2_warm",
+					"fx_2_soundtrack",
+					"pad_7_halo"
+				],
+				"4": [
+					"pad_2_warm",
+					"fx_2_soundtrack",
+					"pad_7_halo",
+					"fx_4_atmosphere"
+				]
+			}
+		},
+		{
+			"id": "samba",
+			"title": "Samba",
+			"description": "Bright melodic percussion and nylon guitar with lively syncopation.",
+			"tempo": {
+				"bpm": 112,
+				"swing": 0.32
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "samba",
+				"intent": {
+					"energy": 0.78,
+					"density": 0.72,
+					"tension": 0.28,
+					"fillChance": 0.42,
+					"rollChance": 0.28,
+					"chaos": 0.12
+				},
+				"kit": {
+					"kick": "CR-78 Kick",
+					"snare": "Rim Shot Snare",
+					"hat": "Chattery Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"steel_drums"
+				],
+				"2": [
+					"steel_drums",
+					"acoustic_bass"
+				],
+				"3": [
+					"steel_drums",
+					"acoustic_bass",
+					"agogo"
+				],
+				"4": [
+					"steel_drums",
+					"acoustic_bass",
+					"agogo",
+					"acoustic_guitar_nylon"
+				]
+			}
+		},
+		{
+			"id": "techno",
+			"title": "Techno",
+			"description": "Fast synthetic bass, square lead and tight electronic percussion.",
+			"tempo": {
+				"bpm": 128,
+				"swing": 0.02
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "techno",
+				"intent": {
+					"energy": 0.86,
+					"density": 0.7,
+					"tension": 0.5,
+					"fillChance": 0.24,
+					"rollChance": 0.16,
+					"chaos": 0.04
+				},
+				"kit": {
+					"kick": "Berlin Warehouse Kick",
+					"snare": "Tech Snare",
+					"hat": "Techno Closed Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"synth_bass_2"
+				],
+				"2": [
+					"synth_bass_2",
+					"lead_1_square"
+				],
+				"3": [
+					"synth_bass_2",
+					"lead_1_square",
+					"pad_3_polysynth"
+				],
+				"4": [
+					"synth_bass_2",
+					"lead_1_square",
+					"pad_3_polysynth",
+					"synth_drum"
+				]
+			}
+		},
+		{
+			"id": "jungle",
+			"title": "Jungle",
+			"description": "Fast bass and sharp leads with busier rolling breaks.",
+			"tempo": {
+				"bpm": 164,
+				"swing": 0.18
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "jungle",
+				"intent": {
+					"energy": 0.82,
+					"density": 0.86,
+					"tension": 0.64,
+					"fillChance": 0.5,
+					"rollChance": 0.58,
+					"chaos": 0.16
+				},
+				"kit": {
+					"kick": "Jungle Kick",
+					"snare": "Jungle Snare",
+					"hat": "Chattery Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"synth_bass_1"
+				],
+				"2": [
+					"synth_bass_1",
+					"lead_4_chiff"
+				],
+				"3": [
+					"synth_bass_1",
+					"lead_4_chiff",
+					"melodic_tom"
+				],
+				"4": [
+					"synth_bass_1",
+					"lead_4_chiff",
+					"melodic_tom",
+					"reverse_cymbal"
+				]
+			}
+		},
+		{
+			"id": "sound-fx",
+			"title": "Sound FX",
+			"description": "Atmospheres, echoes and environmental effects for playful texture.",
+			"tempo": {
+				"bpm": 76,
+				"swing": 0.24
+			},
+			"harmony": {
+				"mode": "free-range"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "sound-fx",
+				"intent": {
+					"energy": 0.36,
+					"density": 0.32,
+					"tension": 0.72,
+					"fillChance": 0.22,
+					"rollChance": 0.18,
+					"chaos": 0.42
+				},
+				"kit": {
+					"kick": "Tick Kick",
+					"snare": "Noisy Snare",
+					"hat": "Glass Closed Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"fx_4_atmosphere"
+				],
+				"2": [
+					"fx_4_atmosphere",
+					"fx_7_echoes"
+				],
+				"3": [
+					"fx_4_atmosphere",
+					"fx_7_echoes",
+					"seashore"
+				],
+				"4": [
+					"fx_4_atmosphere",
+					"fx_7_echoes",
+					"seashore",
+					"helicopter"
+				]
+			}
+		},
+		{
+			"id": "hip-hop",
+			"title": "Hip-Hop",
+			"description": "90 BPM groove with 25% swing, steady loop, shuffles, occasional bridges and breakouts.",
+			"tempo": {
+				"bpm": 90,
+				"swing": 0.25
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "hip-hop",
+				"intent": {
+					"energy": 0.64,
+					"density": 0.56,
+					"tension": 0.38,
+					"fillChance": 0.46,
+					"rollChance": 0.34,
+					"chaos": 0.12
+				},
+				"kit": {
+					"kick": "Boom Bap Kick",
+					"snare": "Boom Bap Snare",
+					"hat": "Lo-Fi Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"electric_piano_1"
+				],
+				"2": [
+					"synth_bass_1",
+					"electric_piano_1"
+				],
+				"3": [
+					"synth_bass_1",
+					"electric_piano_1",
+					"lead_6_voice"
+				],
+				"4": [
+					"synth_bass_1",
+					"electric_piano_1",
+					"lead_6_voice",
+					"pad_2_warm"
+				]
+			}
+		},
+		{
+			"id": "reggae",
+			"title": "Reggae",
+			"description": "Laid-back bass, organ and guitar skank with a deep swinging pulse.",
+			"tempo": {
+				"bpm": 78,
+				"swing": 0.34
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "reggae",
+				"intent": {
+					"energy": 0.48,
+					"density": 0.46,
+					"tension": 0.2,
+					"fillChance": 0.22,
+					"rollChance": 0.12,
+					"chaos": 0.08
+				},
+				"kit": {
+					"kick": "Low Kick",
+					"snare": "Rim Shot Snare",
+					"hat": "Short Open Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"drawbar_organ"
+				],
+				"2": [
+					"acoustic_bass",
+					"drawbar_organ"
+				],
+				"3": [
+					"acoustic_bass",
+					"drawbar_organ",
+					"electric_guitar_muted"
+				],
+				"4": [
+					"acoustic_bass",
+					"drawbar_organ",
+					"electric_guitar_muted",
+					"brass_section"
+				]
+			}
+		},
+		{
+			"id": "jazz-club",
+			"title": "Jazz Club",
+			"description": "Upright bass, electric piano, muted brass and clean guitar.",
+			"tempo": {
+				"bpm": 118,
+				"swing": 0.42
+			},
+			"harmony": {
+				"key": "Bb",
+				"scale": "DORIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "jazz-club",
+				"intent": {
+					"energy": 0.5,
+					"density": 0.52,
+					"tension": 0.34,
+					"fillChance": 0.3,
+					"rollChance": 0.22,
+					"chaos": 0.12
+				},
+				"kit": {
+					"kick": "Vintage Acoustic Kick",
+					"snare": "Brushed Snare",
+					"hat": "Ride-style Open Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"electric_piano_2"
+				],
+				"2": [
+					"acoustic_bass",
+					"electric_piano_2"
+				],
+				"3": [
+					"acoustic_bass",
+					"electric_piano_2",
+					"muted_trumpet"
+				],
+				"4": [
+					"acoustic_bass",
+					"electric_piano_2",
+					"muted_trumpet",
+					"electric_guitar_jazz"
+				]
+			}
+		},
+		{
+			"id": "chiptune",
+			"title": "Chiptune",
+			"description": "Square and saw leads with bright synthetic bass.",
+			"tempo": {
+				"bpm": 150,
+				"swing": 0.04
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "PENTATONIC_MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "chiptune",
+				"intent": {
+					"energy": 0.74,
+					"density": 0.62,
+					"tension": 0.42,
+					"fillChance": 0.28,
+					"rollChance": 0.18,
+					"chaos": 0.08
+				},
+				"kit": {
+					"kick": "Click Kick",
+					"snare": "Square Snare",
+					"hat": "Tiny Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"lead_1_square"
+				],
+				"2": [
+					"synth_bass_2",
+					"lead_1_square"
+				],
+				"3": [
+					"synth_bass_2",
+					"lead_1_square",
+					"lead_2_sawtooth"
+				],
+				"4": [
+					"synth_bass_2",
+					"lead_1_square",
+					"lead_2_sawtooth",
+					"lead_8_bass__lead"
+				]
+			}
+		},
+		{
+			"id": "k-pop",
+			"title": "K-Pop",
+			"description": "Glossy pop energy with punchy bass, bright keys, vocal lead and sparkling synth colour.",
+			"tempo": {
+				"bpm": 124,
+				"swing": 0.08
+			},
+			"harmony": {
+				"key": "Db",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "k-pop",
+				"intent": {
+					"energy": 0.82,
+					"density": 0.68,
+					"tension": 0.36,
+					"fillChance": 0.42,
+					"rollChance": 0.2,
+					"chaos": 0.06
+				},
+				"kit": {
+					"kick": "909 Punchy Kick",
+					"snare": "Clap Snare Hybrid",
+					"hat": "House Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"lead_6_voice"
+				],
+				"2": [
+					"synth_bass_1",
+					"lead_6_voice"
+				],
+				"3": [
+					"synth_bass_1",
+					"electric_piano_1",
+					"lead_6_voice"
+				],
+				"4": [
+					"synth_bass_1",
+					"electric_piano_1",
+					"lead_6_voice",
+					"pad_5_bowed"
+				]
+			}
+		},
+		{
+			"id": "outer-space",
+			"title": "Outer Space",
+			"description": "Wide sci-fi textures, crystals and halo pads for floating cosmic improvisation.",
+			"tempo": {
+				"bpm": 66,
+				"swing": 0.18
+			},
+			"harmony": {
+				"key": "Gb",
+				"scale": "WHOLE_TONE_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "outer-space",
+				"intent": {
+					"energy": 0.3,
+					"density": 0.28,
+					"tension": 0.68,
+					"fillChance": 0.14,
+					"rollChance": 0.12,
+					"chaos": 0.32,
+					"muteKick": true
+				},
+				"kit": {
+					"kick": "Ambient Kick",
+					"snare": "Cinematic Snare",
+					"hat": "Shimmer Open Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"fx_8_scifi"
+				],
+				"2": [
+					"fx_8_scifi",
+					"pad_7_halo"
+				],
+				"3": [
+					"fx_8_scifi",
+					"pad_7_halo",
+					"fx_3_crystal"
+				],
+				"4": [
+					"fx_8_scifi",
+					"pad_7_halo",
+					"fx_3_crystal",
+					"synth_choir"
+				]
+			}
+		},
+		{
+			"id": "spooky",
+			"title": "Spooky",
+			"description": "Haunted organ, bells, choir and tremolo strings with uneasy minor movement.",
+			"tempo": {
+				"bpm": 72,
+				"swing": 0.22
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "HARMONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "spooky",
+				"intent": {
+					"energy": 0.42,
+					"density": 0.34,
+					"tension": 0.78,
+					"fillChance": 0.2,
+					"rollChance": 0.26,
+					"chaos": 0.24
+				},
+				"kit": {
+					"kick": "Thud Kick",
+					"snare": "Ghost Snare",
+					"hat": "Dark Open Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"church_organ"
+				],
+				"2": [
+					"church_organ",
+					"tubular_bells"
+				],
+				"3": [
+					"church_organ",
+					"tubular_bells",
+					"choir_aahs"
+				],
+				"4": [
+					"church_organ",
+					"tubular_bells",
+					"choir_aahs",
+					"tremolo_strings"
+				]
+			}
+		},
+		{
+			"id": "disco",
+			"title": "Disco",
+			"description": "Dancefloor bass, clavinet, strings and brass with a bright steady pulse.",
+			"tempo": {
+				"bpm": 120,
+				"swing": 0.12
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "disco",
+				"intent": {
+					"energy": 0.76,
+					"density": 0.66,
+					"tension": 0.26,
+					"fillChance": 0.32,
+					"rollChance": 0.16,
+					"chaos": 0.05
+				},
+				"kit": {
+					"kick": "LinnDrum Kick",
+					"snare": "Clap Snare Hybrid",
+					"hat": "House Open Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"clavinet"
+				],
+				"2": [
+					"electric_bass_finger",
+					"clavinet"
+				],
+				"3": [
+					"electric_bass_finger",
+					"clavinet",
+					"string_ensemble_1"
+				],
+				"4": [
+					"electric_bass_finger",
+					"clavinet",
+					"string_ensemble_1",
+					"brass_section"
+				]
+			}
+		},
+		{
+			"id": "cyberpunk",
+			"title": "Cyberpunk",
+			"description": "Dark synthetic bass, metallic pads and aggressive leads for neon dystopia.",
+			"tempo": {
+				"bpm": 136,
+				"swing": 0.05
+			},
+			"harmony": {
+				"key": "E",
+				"scale": "PHRYGIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "cyberpunk",
+				"intent": {
+					"energy": 0.86,
+					"density": 0.74,
+					"tension": 0.82,
+					"fillChance": 0.34,
+					"rollChance": 0.28,
+					"chaos": 0.16
+				},
+				"kit": {
+					"kick": "Industrial Kick",
+					"snare": "Industrial Snare",
+					"hat": "Metallic Closed Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"lead_8_bass__lead"
+				],
+				"2": [
+					"synth_bass_2",
+					"lead_8_bass__lead"
+				],
+				"3": [
+					"synth_bass_2",
+					"lead_8_bass__lead",
+					"pad_6_metallic"
+				],
+				"4": [
+					"synth_bass_2",
+					"lead_8_bass__lead",
+					"pad_6_metallic",
+					"fx_5_brightness"
+				]
+			}
+		},
+		{
+			"id": "medieval",
+			"title": "Medieval",
+			"description": "Ancient plucked and pipe-like colours for courtly, modal ensemble play.",
+			"tempo": {
+				"bpm": 92,
+				"swing": 0.16
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "DORIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "medieval",
+				"intent": {
+					"energy": 0.48,
+					"density": 0.42,
+					"tension": 0.24,
+					"fillChance": 0.18,
+					"rollChance": 0.1,
+					"chaos": 0.08
+				},
+				"kit": {
+					"kick": "Dusty Kick",
+					"snare": "Rim Shot Snare",
+					"hat": "Tiny Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"dulcimer"
+				],
+				"2": [
+					"dulcimer",
+					"recorder"
+				],
+				"3": [
+					"dulcimer",
+					"recorder",
+					"orchestral_harp"
+				],
+				"4": [
+					"dulcimer",
+					"recorder",
+					"orchestral_harp",
+					"fiddle"
+				]
+			}
+		},
+		{
+			"id": "underwater",
+			"title": "Underwater",
+			"description": "Soft bottles, pads and seashore textures with a slow liquid pulse.",
+			"tempo": {
+				"bpm": 60,
+				"swing": 0.3
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "PENTATONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "underwater",
+				"intent": {
+					"energy": 0.26,
+					"density": 0.24,
+					"tension": 0.38,
+					"fillChance": 0.1,
+					"rollChance": 0.08,
+					"chaos": 0.22,
+					"muteSnare": true
+				},
+				"kit": {
+					"kick": "Pillow Kick",
+					"snare": "Ambient Snare",
+					"hat": "Glass Closed Hihat"
+				},
+				"phraseBars": 8
+			},
+			"voicings": {
+				"1": [
+					"blown_bottle"
+				],
+				"2": [
+					"blown_bottle",
+					"seashore"
+				],
+				"3": [
+					"blown_bottle",
+					"seashore",
+					"pad_1_new_age"
+				],
+				"4": [
+					"blown_bottle",
+					"seashore",
+					"pad_1_new_age",
+					"fx_1_rain"
+				]
+			}
+		},
+		{
+			"id": "cartoon-chase",
+			"title": "Cartoon Chase",
+			"description": "Fast, bouncy comic energy with xylophone, whistle and slapstick percussion colours.",
+			"tempo": {
+				"bpm": 156,
+				"swing": 0.2
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "CHROMATIC_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"seed": "cartoon-chase",
+				"intent": {
+					"energy": 0.88,
+					"density": 0.82,
+					"tension": 0.44,
+					"fillChance": 0.55,
+					"rollChance": 0.38,
+					"chaos": 0.28
+				},
+				"kit": {
+					"kick": "Tick Kick",
+					"snare": "Piccolo Snare",
+					"hat": "Tiny Closed Hihat"
+				},
+				"phraseBars": 4
+			},
+			"voicings": {
+				"1": [
+					"xylophone"
+				],
+				"2": [
+					"xylophone",
+					"whistle"
+				],
+				"3": [
+					"xylophone",
+					"whistle",
+					"woodblock"
+				],
+				"4": [
+					"xylophone",
+					"whistle",
+					"woodblock",
+					"tinkle_bell"
+				]
+			}
+		}
+	]
+}

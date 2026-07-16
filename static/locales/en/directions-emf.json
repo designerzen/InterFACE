@@ -1,0 +1,291 @@
+{
+	"groups": {
+		"solar-smiles": [
+			{ "emoji": "🙂", "points": 6, "congratulation": "Solar panels are warming up!" },
+			{ "emoji": "😊", "points": 9, "congratulation": "A bright orbiting smile!" },
+			{ "emoji": "😀", "points": 11, "congratulation": "Mission control sees your grin!" },
+			{ "emoji": "😃", "points": 13, "congratulation": "That smile reached escape velocity!" },
+			{ "emoji": "😄", "points": 16, "congratulation": "Radiant star power!" },
+			{ "emoji": "😆", "points": 20, "congratulation": "Laughing like a solar flare!" },
+			{ "emoji": "😁", "points": 24, "congratulation": "Full-spectrum teeth beam detected!" },
+			{ "emoji": "🌞", "points": 32, "congratulation": "Actual Sun face unlocked!" }
+		],
+		"moon-faces": [
+			{ "emoji": "🌛", "points": 22, "congratulation": "Crescent Moon face acquired!" },
+			{ "emoji": "🌜", "points": 22, "congratulation": "Left-facing Moon face acquired!" },
+			{ "emoji": "🌚", "points": 26, "congratulation": "New Moon mystery mode!" },
+			{ "emoji": "🌝", "points": 28, "congratulation": "Full Moon illumination!" }
+		],
+		"alien-tech": [
+			{ "emoji": "👽", "points": 28, "congratulation": "Extraterrestrial signal confirmed!" },
+			{ "emoji": "🤖", "points": 24, "congratulation": "Robot probe online!" },
+			{ "emoji": "🤓", "points": 18, "congratulation": "Orbital calculations complete!" },
+			{ "emoji": "🧐", "points": 20, "congratulation": "Deep-space inspection successful!" }
+		],
+		"surprise": [
+			{ "emoji": "😯", "points": 10, "congratulation": "Small telescope gasp!" },
+			{ "emoji": "😮", "points": 14, "congratulation": "Open-mouthed astronomy!" },
+			{ "emoji": "😲", "points": 20, "congratulation": "Astonishment has entered orbit!" },
+			{ "emoji": "😱", "points": 24, "congratulation": "Cosmic scream captured!" }
+		],
+		"mind-blown": [
+			{ "emoji": "🤯", "points": 34, "congratulation": "Mind expanded to galactic scale!" },
+			{ "emoji": "😵‍💫", "points": 28, "congratulation": "Spacetime dizziness detected!" },
+			{ "emoji": "😵", "points": 22, "congratulation": "Dizzy after the gravity assist!" },
+			{ "emoji": "🤪", "points": 26, "congratulation": "Chaotic orbit achieved!" }
+		],
+		"comet-kisses": [
+			{ "emoji": "😗", "points": 12, "congratulation": "Tiny comet kiss launched!" },
+			{ "emoji": "😘", "points": 22, "congratulation": "A comet tail of affection!" },
+			{ "emoji": "😙", "points": 24, "congratulation": "Eyes-smiling comet kiss!" },
+			{ "emoji": "😚", "points": 26, "congratulation": "Perfect perihelion kiss!" },
+			{ "emoji": "😽", "points": 24, "congratulation": "Catstronaut kiss received!" }
+		],
+		"hot-cold": [
+			{ "emoji": "🥵", "points": 22, "congratulation": "Venus-level heat face!" },
+			{ "emoji": "🥶", "points": 22, "congratulation": "Outer-planet cold face!" },
+			{ "emoji": "🫠", "points": 24, "congratulation": "You melted like ice near the Sun!" },
+			{ "emoji": "😮‍💨", "points": 18, "congratulation": "Spacesuit pressure vented!" }
+		],
+		"thinking": [
+			{ "emoji": "🤔", "points": 16, "congratulation": "Mission scientist thinking face!" },
+			{ "emoji": "🤨", "points": 16, "congratulation": "Skeptical telescope alignment!" },
+			{ "emoji": "🙄", "points": 14, "congratulation": "Eye roll completed one orbit!" },
+			{ "emoji": "😐", "points": 8, "congratulation": "Calm astronaut face!" }
+		],
+		"star-party": [
+			{ "emoji": "🤩", "points": 30, "congratulation": "Star-struck stargazer!" },
+			{ "emoji": "🥳", "points": 28, "congratulation": "Space festival mode!" },
+			{ "emoji": "😍", "points": 24, "congratulation": "Heart-eyes for the cosmos!" },
+			{ "emoji": "🥰", "points": 24, "congratulation": "Cosmic affection unlocked!" }
+		],
+		"space-cats": [
+			{ "emoji": "😺", "points": 18, "congratulation": "Catstronaut grin!" },
+			{ "emoji": "😸", "points": 18, "congratulation": "Happy cat in orbit!" },
+			{ "emoji": "😹", "points": 24, "congratulation": "Zero-g cat laughter!" },
+			{ "emoji": "😻", "points": 26, "congratulation": "Cat loves the Milky Way!" },
+			{ "emoji": "🙀", "points": 24, "congratulation": "Screaming cat saw a meteor!" }
+		]
+	},
+	"complete": {
+		"icon": "complete",
+		"message": "Mission complete! You finished the EMF space challenge. Blast off!"
+	},
+	"basic": {
+		"default": [
+			{
+				"id": "solar-smile",
+				"title": "Solar Smile",
+				"icon": "sun",
+				"message": "Sunlight takes about 8 minutes to reach Earth. Beam us a solar smile!",
+				"congratulation": "Solar smile received!",
+				"expects": {
+					"type": "expression",
+					"group": "solar-smiles"
+				}
+			},
+			{
+				"id": "moon-face",
+				"title": "Moon Face",
+				"icon": "moon",
+				"message": "The Moon drifts away from Earth by about 3.8 cm each year. Make a Moon face!",
+				"congratulation": "Moon face locked in!",
+				"expects": {
+					"type": "expression",
+					"group": "moon-faces"
+				}
+			},
+			{
+				"id": "martian-gasp",
+				"title": "Martian Gasp",
+				"icon": "planet",
+				"message": "Mars has Olympus Mons, the tallest volcano in the Solar System. Look amazed!",
+				"congratulation": "Mars mission astonishment logged!",
+				"expects": {
+					"type": "expression",
+					"group": "surprise"
+				}
+			},
+			{
+				"id": "alien-signal",
+				"title": "Alien Signal",
+				"icon": "alien",
+				"message": "Radio waves travel at the speed of light. Send an alien signal face!",
+				"congratulation": "Signal received across the campsite!",
+				"expects": {
+					"type": "expression",
+					"group": "alien-tech"
+				}
+			},
+			{
+				"id": "comet-kiss",
+				"title": "Comet Kiss",
+				"icon": "comet",
+				"message": "Comets are icy leftovers from the early Solar System. Blow a comet kiss!",
+				"congratulation": "Comet tail sparkling behind you!",
+				"expects": {
+					"type": "expression",
+					"group": "comet-kisses"
+				}
+			},
+			{
+				"id": "star-party",
+				"title": "Star Party",
+				"icon": "star",
+				"message": "EMF is under a real sky full of stars. Give us a star-party face!",
+				"congratulation": "Star-party energy detected!",
+				"expects": {
+					"type": "expression",
+					"group": "star-party"
+				}
+			}
+		],
+		"blocks": []
+	},
+	"advanced": {
+		"default": [
+			{
+				"id": "solar-smile",
+				"title": "Solar Smile",
+				"icon": "sun",
+				"message": "The Sun contains more than 99% of the Solar System's mass. Beam a giant solar smile!",
+				"congratulation": "Solar mass smile achieved!",
+				"expects": {
+					"type": "expression",
+					"group": "solar-smiles"
+				}
+			},
+			{
+				"id": "moon-face",
+				"title": "Moon Face",
+				"icon": "moon",
+				"message": "Moon dust is made from tiny sharp grains. Pull a dusty Moon face!",
+				"congratulation": "Lunar regolith expression complete!",
+				"expects": {
+					"type": "expression",
+					"group": "moon-faces"
+				}
+			},
+			{
+				"id": "venus-melt",
+				"title": "Venus Melt",
+				"icon": "sun",
+				"message": "Venus is the hottest planet, hot enough to melt lead. Show a heat-wave face!",
+				"congratulation": "Venus atmosphere survived!",
+				"expects": {
+					"type": "expression",
+					"group": "hot-cold"
+				}
+			},
+			{
+				"id": "jupiter-gasp",
+				"title": "Jupiter Gasp",
+				"icon": "planet",
+				"message": "Jupiter is so large that over 1,300 Earths could fit inside it. Look properly astonished!",
+				"congratulation": "Gas giant gasp registered!",
+				"expects": {
+					"type": "expression",
+					"group": "surprise"
+				}
+			},
+			{
+				"id": "saturn-weird",
+				"title": "Saturn Orbit",
+				"icon": "planet",
+				"message": "Saturn's rings are mostly ice and rock. Pull a weird orbital face!",
+				"congratulation": "Orbital weirdness stable!",
+				"expects": {
+					"type": "expression",
+					"groups": ["mind-blown"],
+					"emoji": [
+						{ "emoji": "🙃", "points": 20, "congratulation": "Upside-down orbit achieved!" },
+						{ "emoji": "😜", "points": 22, "congratulation": "Ring-plane mischief!" },
+						{ "emoji": "😝", "points": 24, "congratulation": "Saturn silliness confirmed!" }
+					]
+				}
+			},
+			{
+				"id": "neptune-winds",
+				"title": "Neptune Winds",
+				"icon": "planet",
+				"message": "Neptune has some of the fastest winds in the Solar System. Make a blown-away face!",
+				"congratulation": "Neptune wind tunnel complete!",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						{ "emoji": "😮‍💨", "points": 20, "congratulation": "Deep-space exhale!" },
+						{ "emoji": "😵‍💫", "points": 30, "congratulation": "Spun by Neptune winds!" },
+						{ "emoji": "🥴", "points": 22, "congratulation": "Woozy outer-planet weather!" }
+					]
+				}
+			},
+			{
+				"id": "black-hole-brain",
+				"title": "Black Hole Brain",
+				"icon": "brain",
+				"message": "Near a black hole, gravity bends light itself. Give us a mind-blown spacetime face!",
+				"congratulation": "Spacetime survived your face!",
+				"expects": {
+					"type": "expression",
+					"group": "mind-blown"
+				}
+			},
+			{
+				"id": "mission-control",
+				"title": "Mission Control",
+				"icon": "science",
+				"message": "Space probes navigate with careful maths and tiny course corrections. Make a thinking face!",
+				"congratulation": "Trajectory correction accepted!",
+				"expects": {
+					"type": "expression",
+					"group": "thinking"
+				}
+			},
+			{
+				"id": "alien-signal",
+				"title": "Alien Signal",
+				"icon": "alien",
+				"message": "The first exoplanets around a Sun-like star were confirmed in 1995. Send an alien-tech face!",
+				"congratulation": "Exoplanet signal decoded!",
+				"expects": {
+					"type": "expression",
+					"group": "alien-tech"
+				}
+			},
+			{
+				"id": "comet-kiss",
+				"title": "Comet Kiss",
+				"icon": "comet",
+				"message": "A comet tail points away from the Sun. Blow a comet-tail kiss!",
+				"congratulation": "The comet tail is glowing!",
+				"expects": {
+					"type": "expression",
+					"group": "comet-kisses"
+				}
+			},
+			{
+				"id": "catstronaut",
+				"title": "Catstronaut",
+				"icon": "rocket",
+				"message": "In space, even a tiny push can send you drifting. Become a catstronaut!",
+				"congratulation": "Catstronaut badge awarded!",
+				"expects": {
+					"type": "expression",
+					"group": "space-cats"
+				}
+			},
+			{
+				"id": "star-party",
+				"title": "Star Party",
+				"icon": "star",
+				"message": "The Milky Way is roughly 100,000 light-years across. Show us galaxy-scale delight!",
+				"congratulation": "Galaxy-scale delight detected!",
+				"expects": {
+					"type": "expression",
+					"group": "star-party"
+				}
+			}
+		],
+		"blocks": []
+	}
+}

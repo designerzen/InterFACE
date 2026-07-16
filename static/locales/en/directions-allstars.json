@@ -1,0 +1,102 @@
+{
+	"groups": {
+		"smiles": [
+			{ "emoji": "🙂", "points": 5, "congratulation": "A gentle smile counts!" },
+			{ "emoji": "😊", "points": 8, "congratulation": "That was a lovely warm smile!" },
+			{ "emoji": "😀", "points": 10, "congratulation": "Bright grin unlocked!" },
+			{ "emoji": "😃", "points": 12, "congratulation": "Big smile energy!" },
+			{ "emoji": "😄", "points": 14, "congratulation": "You lit up the stage!" },
+			{ "emoji": "😆", "points": 18, "congratulation": "Excellent squinty grin!" },
+			{ "emoji": "😁", "points": 22, "congratulation": "Maximum teeth grin achieved!" }
+		],
+		"surprise": [
+			{ "emoji": "😯", "points": 8, "congratulation": "A neat little surprise!" },
+			{ "emoji": "😮", "points": 12, "congratulation": "Wonderful open-mouth surprise!" },
+			{ "emoji": "😲", "points": 18, "congratulation": "Full astonishment unlocked!" }
+		],
+		"kisses": [
+			{ "emoji": "😗", "points": 10, "congratulation": "Sweet little kiss!" },
+			{ "emoji": "😘", "points": 18, "congratulation": "Flying kiss delivered!" },
+			{ "emoji": "😙", "points": 20, "congratulation": "Eyes-smiling kiss achieved!" },
+			{ "emoji": "😚", "points": 22, "congratulation": "A very committed kiss!" }
+		]
+	},
+	"complete": {
+		"message": "Amazing! You completed every challenge!"
+	},
+	"basic": {
+		"default": [
+			{
+				"id": "smile-hard",
+				"title": "Smile Challenge",
+				"message": "Smile hard!",
+				"congratulation": "You nailed the smile!",
+				"expects": {
+					"type": "expression",
+					"group": "smiles"
+				}
+			},
+			{
+				"id": "look-surprised",
+				"title": "Surprise Challenge",
+				"message": "Look surprised!",
+				"congratulation": "Surprise unlocked!",
+				"expects": {
+					"type": "expression",
+					"group": "surprise"
+				}
+			},
+			{
+				"id": "blow-a-kiss",
+				"title": "Kiss Challenge",
+				"message": "Blow a kiss!",
+				"congratulation": "Affection detected!",
+				"expects": {
+					"type": "expression",
+					"group": "kisses"
+				}
+			}
+		],
+		"blocks": []
+	},
+	"advanced": {
+		"default": [
+			{
+				"id": "smile-hard",
+				"title": "Smile Challenge",
+				"message": "Smile hard!",
+				"congratulation": "You nailed the smile!",
+				"expects": {
+					"type": "expression",
+					"group": "smiles"
+				}
+			},
+			{
+				"id": "pull-a-weird-face",
+				"title": "Weird Face Challenge",
+				"message": "Pull a weird face!",
+				"points": 15,
+				"congratulation": "That was gloriously strange!",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						{ "emoji": "😜", "points": 18, "congratulation": "Tongue-out mischief!" },
+						{ "emoji": "😝", "points": 22, "congratulation": "Peak silly face!" },
+						{ "emoji": "🤪", "points": 30, "congratulation": "Rare chaos face unlocked!" }
+					]
+				}
+			},
+			{
+				"id": "blow-a-kiss",
+				"title": "Kiss Challenge",
+				"message": "Blow a kiss!",
+				"congratulation": "Affection detected!",
+				"expects": {
+					"type": "expression",
+					"group": "kisses"
+				}
+			}
+		],
+		"blocks": []
+	}
+}
