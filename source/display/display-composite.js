@@ -63,6 +63,10 @@ export default class DisplayComposite extends AbstractDisplay{
 		}
 	}
 
+	clearFaceFeatures(){
+		this.initialDisplay?.clearFaceFeatures?.()
+	}
+
 	/**
 	 * Draw a Person model to the screen
 	 */
@@ -74,6 +78,10 @@ export default class DisplayComposite extends AbstractDisplay{
 			display.drawPerson( person, beatJustPlayed, colours, options )
 			display = display.nextDisplay
 		}
+	}
+
+	drawFaceFeatures(person, colours){
+		return this.initialDisplay?.drawFaceFeatures?.(person, colours) ?? false
 	}
 
 	/**
@@ -91,4 +99,3 @@ export default class DisplayComposite extends AbstractDisplay{
 	// FIXME: takePhotograph
 	
 }
-

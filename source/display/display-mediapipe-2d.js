@@ -1,5 +1,6 @@
-import { drawFaceMesh, drawPart, drawPoints } from "../visual/2d.js"
+import { drawFaceMesh, drawPoints } from "../visual/2d.js"
 import { drawEye } from "../visual/2d.eyes.js"
+import { drawEyebrows } from '../visual/2d.eyebrows.js'
 import { drawLip } from "../visual/2d.mouth.js"
 import { drawBars } from "../visual/spectrograms.js"
 import Display2D from "./display-canvas-2d.js"
@@ -23,6 +24,7 @@ const DEFAULT_OPTIONS = {
 export default class DisplayMediaPipe2D extends Display2D{
 	
 	name = DISPLAY_MEDIA_PIPE_2D
+	drawsFaceFeaturesOnCanvas = true
 
 	get type() {
 		return DISPLAY_MEDIA_PIPE_2D
@@ -38,6 +40,7 @@ export default class DisplayMediaPipe2D extends Display2D{
 	 * @param {Person} person 
 	 */
 	drawPerson( person, beatJustPlayed, colours, options={} ){
+		options = { ...this.options, ...person.options, ...options }
 
 		let prediction = person.data
 		const forceRefresh = options.forceRefresh ?? false
@@ -260,11 +263,12 @@ export default class DisplayMediaPipe2D extends Display2D{
 			
 			drawEye( this.canvasContext, rightEyeData, rightPupilData,  person.isRightEyeOpen, eyeDirection, eyeOptions)
 
-		}else if (options.drawEyebrows && leftEyebrow.length > 0 && rightEyebrow.length > 0){
+		}
+
+		if (options.drawEyebrows && leftEyebrow.length > 0 && rightEyebrow.length > 0){
 		
-			// FIXME: draw some funky eyebrows!
-			drawPart( this.canvasContext , leftEyebrow, 5)
-			drawPart( this.canvasContext , rightEyebrow, 5)
+			drawEyebrows(this.canvasContext, leftEyebrow, true, options)
+			drawEyebrows(this.canvasContext, rightEyebrow, false, options)
 
 			// console.log("EYES", {annotations} )
 

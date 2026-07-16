@@ -41,6 +41,7 @@ const DEFAULT_OPTIONS = {
 export default class DisplayMediaVision2D extends Display2D{
 
 	name = DISPLAY_MEDIA_VISION_2D
+	drawsFaceFeaturesOnCanvas = true
 	worker
 
 	get type() {

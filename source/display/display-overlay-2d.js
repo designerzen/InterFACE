@@ -1,17 +1,28 @@
 import { measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext'
-import { cosine, ONE_DEGREE_IN_RADIANS, sine } from '../maths/maths.js'
+import { clamp, cosine, ONE_DEGREE_IN_RADIANS, sine, TAU } from '../maths/maths.js'
+import { DEFAULT_NOTE_PARTICLE_OPTIONS } from '../settings/options.people.js'
+import { MIRRORABLE_EMOJIS } from '../models/emoji.js'
 import { drawCircles } from '../visual/2d.js'
 import { drawInstrument, drawParagraph, drawText } from '../visual/2d.text.js'
+import { SpriteSheet } from '../visual/sprite-sheet.js'
 
 const DEFAULT_PADDING = 24
 const EMOJI_FONT_FACE = 'noto-emoji'
 const EMOJI_FONT = `"${EMOJI_FONT_FACE}"`
+const EMOJI_VISUAL_OFFSET_Y = -15
 const SHADOW_COLOUR = 'rgba(0, 0, 0, 0.9)'
 const SHADOW_BLUR = 0
 const SHADOW_OFFSET_X = 2
 const SHADOW_OFFSET_Y = 2
 const SHADOW_STROKE_COLOUR = '#0a0a0a'
 const MAX_PREPARED_TEXT_CACHE_SIZE = 512
+const EMOJI_SPRITE_FONT = `900 54px ${EMOJI_FONT}`
+
+const createEmojiSpriteSheet = () => {
+	const sprites = new SpriteSheet()
+	sprites.preloadMirroredEmojis(MIRRORABLE_EMOJIS, { font:EMOJI_SPRITE_FONT })
+	return sprites
+}
 
 const clampRect = (rect, width, height) => {
 	const x = Math.max(0, Math.floor(rect.x))
@@ -51,6 +62,9 @@ export default class DisplayOverlay2d {
 	renderingBatch = false
 	frameCommands = []
 	preparedTextCache = new Map()
+	noteParticles = []
+	lastParticleFrameTime = 0
+	emojiSprites = null
 
 	get width() {
 		return this.canvasWidth
@@ -67,6 +81,16 @@ export default class DisplayOverlay2d {
 		return this.context
 	}
 
+	getNoteParticleOptions(options = {}) {
+		return {
+			...DEFAULT_NOTE_PARTICLE_OPTIONS,
+			...options,
+			noteParticleGlyphs:Array.isArray(options.noteParticleGlyphs) ?
+				options.noteParticleGlyphs :
+				DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleGlyphs
+		}
+	}
+
 	constructor(canvas, initialWidth = canvas.width, initialHeight = canvas.height) {
 		this.canvas = canvas
 		this.canvasWidth = initialWidth
@@ -79,15 +103,21 @@ export default class DisplayOverlay2d {
 			throw new Error('Could not create overlay canvas context')
 		}
 		this.context = context
+		this.emojiSprites = createEmojiSpriteSheet()
 
-		document.fonts?.load(`900 54px ${EMOJI_FONT}`).catch((error) => {
-			console.warn('Could not load overlay emoji font', error)
-		})
+		document.fonts?.load(`900 54px ${EMOJI_FONT}`)
+			.then(() => {
+				this.emojiSprites = createEmojiSpriteSheet()
+			})
+			.catch((error) => {
+				console.warn('Could not load overlay emoji font', error)
+			})
 	}
 
 	destroy() {
 		this.clear()
 		this.preparedTextCache.clear()
+		this.emojiSprites = null
 		this.context = null
 	}
 
@@ -106,6 +136,8 @@ export default class DisplayOverlay2d {
 		this.batchingFrame = false
 		this.frameCommands = []
 		this.preparedTextCache.clear()
+		this.noteParticles = []
+		this.lastParticleFrameTime = 0
 	}
 
 	clear() {
@@ -115,6 +147,8 @@ export default class DisplayOverlay2d {
 		this.drewThisFrame = false
 		this.batchingFrame = false
 		this.frameCommands = []
+		this.noteParticles = []
+		this.lastParticleFrameTime = 0
 	}
 
 	clearDirty() {
@@ -145,7 +179,8 @@ export default class DisplayOverlay2d {
 			command()
 		}
 		this.renderingBatch = false
-		this.drewThisFrame = commands.length > 0
+		const drewParticles = this.drawNoteParticleFrame()
+		this.drewThisFrame = commands.length > 0 || drewParticles
 	}
 
 	drawElement(element, x = 0, y = 0) {
@@ -214,7 +249,7 @@ export default class DisplayOverlay2d {
 
 		const size = 54
 		this.prepareDraw()
-		this.drawEmoji(x, y + 5, emoji, size, rotationZ, rotationX, rotationY, flipX)
+		this.drawEmoji(x, y + EMOJI_VISUAL_OFFSET_Y, emoji, size, rotationZ, rotationX, rotationY, flipX)
 
 		if (numberOfNotesInKey > 0) {
 			const data = this.getNoteCircleData(x, y, 90, size, numberOfNotesInKey)
@@ -233,6 +268,18 @@ export default class DisplayOverlay2d {
 			width: radius * 2,
 			height: radius * 2
 		})
+	}
+
+	drawNoteParticles(x, y, amplitude = 0, colour = '#fff', options = {}) {
+		if (this.queueFrameCommand(() => this.drawNoteParticles(x, y, amplitude, colour, options))) {
+			return
+		}
+
+		this.spawnNoteParticles(x, y, amplitude, colour, options)
+		if (!this.batchingFrame && !this.renderingBatch) {
+			this.prepareDraw()
+			this.drawNoteParticleFrame()
+		}
 	}
 
 	queueFrameCommand(command) {
@@ -300,20 +347,226 @@ export default class DisplayOverlay2d {
 		const context = this.canvasContext
 		this.drawWithShadow(() => {
 			context.save()
-			if (flipX) {
-				context.scale(-1, 1)
-			}
 			context.transform(0, rotationY, rotationX, 0, x, y)
 			context.rotate(rotationZ)
-			context.font = `900 ${size}px ${EMOJI_FONT}`
-			context.textAlign = 'center'
-			context.strokeStyle = SHADOW_STROKE_COLOUR
-			context.fillStyle = '#fff'
-			context.strokeText(emoji, 0, 0)
-			context.fillText(emoji, 0, 0)
+			const drawnFromSprite = this.emojiSprites?.draw(context, emoji, 0, 0, {
+				font:`900 ${size}px ${EMOJI_FONT}`,
+				mirrored:flipX,
+				fillStyle:'#fff',
+				strokeStyle:SHADOW_STROKE_COLOUR
+			})
+			if (!drawnFromSprite) {
+				context.font = `900 ${size}px ${EMOJI_FONT}`
+				context.textAlign = 'center'
+				context.strokeStyle = SHADOW_STROKE_COLOUR
+				context.fillStyle = '#fff'
+				if (flipX) context.scale(-1, 1)
+				context.strokeText(emoji, 0, 0)
+				context.fillText(emoji, 0, 0)
+			}
 			context.restore()
 		})
 		this.markTextDirty(x, y, emoji, size, 'center', EMOJI_FONT)
+	}
+
+	spawnNoteParticles(x, y, amplitude = 0, colour = '#fff', options = {}) {
+		const particleOptions = this.getNoteParticleOptions(options)
+		const rawAmplitude = Number(amplitude) || 0
+		if (rawAmplitude <= particleOptions.noteParticleAmplitudeThreshold) {
+			return
+		}
+
+		const amplitudeRatio = clamp(rawAmplitude, 0, 1)
+		const quantity = Math.ceil(particleOptions.noteParticleMinQuantity + amplitudeRatio * particleOptions.noteParticleQuantityRange)
+		const baseSize = particleOptions.noteParticleMinSize + amplitudeRatio * particleOptions.noteParticleSizeRange
+		const horizontalForce = particleOptions.noteParticleHorizontalForceMin + amplitudeRatio * particleOptions.noteParticleHorizontalForceRange
+		const verticalForce = particleOptions.noteParticleVerticalForceMin + amplitudeRatio * particleOptions.noteParticleVerticalForceRange
+		const particleColour = colour ?? particleOptions.noteParticleDefaultColour
+		const rawHorizontalBias = clamp(particleOptions.noteParticleHorizontalBias, -1, 1)
+		const horizontalBiasMagnitude = Math.abs(rawHorizontalBias) ** particleOptions.noteParticleHorizontalBiasResponse
+		const horizontalBias = Math.sign(rawHorizontalBias) * horizontalBiasMagnitude
+		const rawVerticalBias = clamp(particleOptions.noteParticleVerticalBias * particleOptions.noteParticlePitchDirection, -1, 1)
+		const verticalBiasResponse = Math.max(Number(particleOptions.noteParticleVerticalBiasResponse) || 1, 0.001)
+		const verticalBiasMagnitude = Math.abs(rawVerticalBias) ** verticalBiasResponse
+		const verticalBias = Math.sign(rawVerticalBias) * verticalBiasMagnitude
+		const verticalForceScale = Math.max(0, 1 + verticalBias * particleOptions.noteParticleVerticalBiasStrength)
+		const effectiveVerticalForce = verticalForce * verticalForceScale
+		const rightFlowChance = clamp(0.5 + horizontalBias * particleOptions.noteParticleHorizontalBiasStrength * 0.5, 0, 1)
+		const amplitudeTravel = particleOptions.noteParticleTravelMin + amplitudeRatio * particleOptions.noteParticleTravelAmplitudeRange
+
+		for (let i = 0; i < quantity; i++) {
+			const direction = Math.random() < rightFlowChance ? 1 : -1
+			const directionMatch = Math.max(0, horizontalBias * direction)
+			const directionBoost = 1 + directionMatch * particleOptions.noteParticleHorizontalBiasStrength
+			const maxTravel = Math.min(
+				particleOptions.noteParticleMaxTravel,
+				amplitudeTravel
+					+ directionMatch * particleOptions.noteParticleTravelDirectionRange
+					+ Math.max(0, verticalBias) * particleOptions.noteParticleTravelPitchRange
+			)
+			const spread = direction * directionBoost * (particleOptions.noteParticleHorizontalSpreadMin + Math.random() * particleOptions.noteParticleHorizontalSpreadRange)
+			const size = baseSize * (particleOptions.noteParticleSizeRandomMin + Math.random() * particleOptions.noteParticleSizeRandomRange)
+			const notesEnabled = particleOptions.noteParticleNotesEnabled !== false
+			const type = notesEnabled && Math.random() >= particleOptions.noteParticleStarProbability ? 'note' : 'star'
+			const glyphs = particleOptions.noteParticleGlyphs
+			const noteRotationLimit = Math.abs(particleOptions.noteParticleNoteRotationLimit)
+			this.noteParticles.push({
+				x,
+				y,
+				originX:x,
+				originY:y,
+				previousX:x,
+				previousY:y,
+				vx:spread * horizontalForce,
+				vy:-(effectiveVerticalForce * (particleOptions.noteParticleVerticalForceRandomMin + Math.random() * particleOptions.noteParticleVerticalForceRandomRange)),
+				size,
+				age:0,
+				life:particleOptions.noteParticleLifeMin + amplitudeRatio * particleOptions.noteParticleLifeRange + Math.random() * particleOptions.noteParticleLifeRandom,
+				rotation:type === 'note' ?
+					(Math.random() - 0.5) * noteRotationLimit * 2 :
+					Math.random() * TAU,
+				spin:type === 'note' ?
+					(Math.random() - 0.5) * particleOptions.noteParticleNoteSpinRange :
+					(Math.random() - 0.5) * particleOptions.noteParticleSpinRange,
+				type,
+				glyph:glyphs[Math.floor(Math.random() * glyphs.length)] ?? DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleGlyphs[0],
+				colour:particleColour,
+				maxTravel,
+				options:particleOptions
+			})
+		}
+
+		if (this.noteParticles.length > particleOptions.noteParticleMaxCount) {
+			this.noteParticles.splice(0, this.noteParticles.length - particleOptions.noteParticleMaxCount)
+		}
+	}
+
+	drawNoteParticleFrame(now = performance.now()) {
+		if (this.noteParticles.length < 1) {
+			this.lastParticleFrameTime = now
+			return false
+		}
+
+		const previousTime = this.lastParticleFrameTime || now
+		const frameOptions = this.noteParticles[0]?.options ?? DEFAULT_NOTE_PARTICLE_OPTIONS
+		const deltaSeconds = clamp(
+			(now - previousTime) / 1000,
+			frameOptions.noteParticleFrameMinSeconds,
+			frameOptions.noteParticleFrameMaxSeconds
+		)
+		this.lastParticleFrameTime = now
+
+		const particles = []
+		for (const particle of this.noteParticles) {
+			particle.previousX = particle.x
+			particle.previousY = particle.y
+			particle.age += deltaSeconds
+
+			if (particle.age >= particle.life) {
+				this.markParticleDirty(particle, 0)
+				continue
+			}
+
+			const particleOptions = particle.options ?? DEFAULT_NOTE_PARTICLE_OPTIONS
+			particle.vy += particleOptions.noteParticleGravity * deltaSeconds
+			particle.vx *= particleOptions.noteParticleHorizontalDrag ** (deltaSeconds * 60)
+			particle.vy *= particleOptions.noteParticleVerticalDrag ** (deltaSeconds * 60)
+			particle.x += particle.vx * deltaSeconds
+			particle.y += particle.vy * deltaSeconds
+			particle.rotation += particle.spin * deltaSeconds
+			if (particle.type === 'note')
+			{
+				particle.rotation = clamp(particle.rotation, -particleOptions.noteParticleNoteRotationLimit, particleOptions.noteParticleNoteRotationLimit)
+			}
+
+			const progress = clamp(particle.age / particle.life, 0, 1)
+			const travel = Math.hypot(particle.x - particle.originX, particle.y - particle.originY)
+			const maxTravel = particle.maxTravel ?? particleOptions.noteParticleMaxTravel
+			const travelFade = 1 - clamp((travel - maxTravel * 0.55) / (maxTravel * 0.45), 0, 1)
+			const growDurationRatio = clamp(Number(particleOptions.noteParticleGrowDurationRatio) || 0.35, 0.001, 0.95)
+			const growResponse = Math.max(Number(particleOptions.noteParticleGrowResponse) || 1, 0.001)
+			const initialSize = Math.max(Number(particleOptions.noteParticleInitialSize) || 1, 0)
+			const growProgress = clamp(progress / growDurationRatio, 0, 1)
+			const grownSize = initialSize + (particle.size - initialSize) * (growProgress ** growResponse)
+			const shrinkProgress = progress <= growDurationRatio ?
+				0 :
+				(progress - growDurationRatio) / (1 - growDurationRatio)
+			const size = grownSize * (1 - shrinkProgress)
+			const alpha = (1 - progress) * travelFade
+
+			this.markParticleDirty(particle, size)
+			this.drawNoteParticle(particle, size, alpha)
+			particles.push(particle)
+		}
+
+		this.noteParticles = particles
+		return true
+	}
+
+	markParticleDirty(particle, size) {
+		const radius = Math.max(particle.size, size) + DEFAULT_PADDING
+		const left = Math.min(particle.previousX, particle.x) - radius
+		const top = Math.min(particle.previousY, particle.y) - radius
+		const right = Math.max(particle.previousX, particle.x) + radius
+		const bottom = Math.max(particle.previousY, particle.y) + radius
+
+		this.markDirty({
+			x:left,
+			y:top,
+			width:right - left,
+			height:bottom - top
+		})
+	}
+
+	drawNoteParticle(particle, size, alpha) {
+		if (size <= 0) {
+			return
+		}
+
+		const context = this.canvasContext
+		context.save()
+		context.translate(particle.x, particle.y)
+		context.rotate(particle.rotation)
+		context.globalAlpha = alpha
+		const particleOptions = particle.options ?? DEFAULT_NOTE_PARTICLE_OPTIONS
+		context.fillStyle = particle.type === 'star' ? particleOptions.noteParticleStarColour : particle.colour ?? particleOptions.noteParticleDefaultColour
+		context.strokeStyle = SHADOW_STROKE_COLOUR
+		context.lineWidth = Math.max(1, size * 0.08)
+
+		if (particle.type === 'star') {
+			const initialSize = Math.max(Number(particleOptions.noteParticleInitialSize) || 1, 0)
+			const starSize = size <= initialSize ?
+				size :
+				initialSize + (size - initialSize) * particleOptions.noteParticleStarSizeScale
+			this.drawStarParticlePath(context, starSize)
+			context.stroke()
+			context.fill()
+		} else {
+			context.font = `900 ${size}px "noto-music", ${EMOJI_FONT}, serif`
+			context.textAlign = 'center'
+			context.textBaseline = 'middle'
+			context.strokeText(particle.glyph, 0, 0)
+			context.fillText(particle.glyph, 0, 0)
+		}
+
+		context.restore()
+	}
+
+	drawStarParticlePath(context, radius) {
+		const innerRadius = radius * 0.45
+		context.beginPath()
+		for (let i = 0; i < 10; i++) {
+			const pointRadius = i % 2 === 0 ? radius : innerRadius
+			const angle = -Math.PI / 2 + i * Math.PI / 5
+			const x = cosine(angle) * pointRadius
+			const y = sine(angle) * pointRadius
+			if (i === 0) {
+				context.moveTo(x, y)
+			} else {
+				context.lineTo(x, y)
+			}
+		}
+		context.closePath()
 	}
 
 	markTextDirty(x, y, text, size, align = 'center', font = 'oxanium') {

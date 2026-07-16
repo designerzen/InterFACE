@@ -14,6 +14,8 @@ import { drawCircle, drawCircles, drawElement, drawRoundedRect } from "../visual
 import { hasOffscreenCanvasCapability} from '../capabilities.js'
 import { drawBars } from "../visual/spectrograms.js"
 import { drawInstrument, drawParagraph, drawRotatedText, drawText } from "../visual/2d.text.js"
+import { SpriteSheet } from '../visual/sprite-sheet.js'
+import { MIRRORABLE_EMOJIS } from '../models/emoji.js'
 
 const DEFAULT_FILTER = {
 	name:"source-over",
@@ -145,6 +147,14 @@ const DEFAULT_OPTIONS_DISPLAY_CANVAS = {
 	stats:false,
 	resize:false
 }
+const EMOJI_SPRITE_FONT = '900 54px "noto-emoji"'
+const EMOJI_VISUAL_OFFSET_Y = -15
+
+const createEmojiSpriteSheet = () => {
+	const sprites = new SpriteSheet()
+	sprites.preloadMirroredEmojis(MIRRORABLE_EMOJIS, { font:EMOJI_SPRITE_FONT })
+	return sprites
+}
 let stats
 
 /**
@@ -156,6 +166,7 @@ export default class Display2D extends AbstractDisplay{
 	name = DISPLAY_CANVAS_2D
 	
 	canvas2DContext = null
+	emojiSprites = null
 
 	filterIndex = 0 % (FILTER_LIBRARY.length-1)
 
@@ -197,6 +208,7 @@ export default class Display2D extends AbstractDisplay{
 		const applicableCanvas = options.offscreen && hasOffscreenCanvasCapability() ? canvas.transferControlToOffscreen() : canvas
 		options = Object.assign( {}, DEFAULT_OPTIONS_DISPLAY_CANVAS, options )
 		super( applicableCanvas, initialWidth, initialHeight, options )
+		this.emojiSprites = createEmojiSpriteSheet()
 		// immediately fetch context?  this is useful for immediate rendering
 		// NB. this will destroy the offscreen canvas
 		if (!options.offscreen) 
@@ -457,8 +469,18 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false ){
 		const size = 54
-		// console.info("drawEmoticon", x, y, emoji )
-		drawRotatedText( this.canvasContext, x, y+5, emoji, size, rotationZ, rotationX, rotationY, "center", "noto-emoji", false, flipX )
+		const context = this.canvasContext
+		context.save()
+		context.transform(0, rotationY, rotationX, 0, x, y + EMOJI_VISUAL_OFFSET_Y)
+		context.rotate(rotationZ)
+		const drawnFromSprite = this.emojiSprites?.draw(context, emoji, 0, 0, {
+			font:`900 ${size}px "noto-emoji"`,
+			mirrored:flipX
+		})
+		context.restore()
+		if (!drawnFromSprite) {
+			drawRotatedText(context, x, y + EMOJI_VISUAL_OFFSET_Y, emoji, size, rotationZ, rotationX, rotationY, "center", "noto-emoji", false, flipX)
+		}
 	
 		if (numberOfNotesInKey > 0)
 		{

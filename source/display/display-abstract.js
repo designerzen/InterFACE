@@ -1,3 +1,5 @@
+import { drawFaceFeatures as drawFaceFeatureOverlays } from '../visual/2d.face-features.js'
+
 // We may want a maximim size
 // that then get's scaled up proportiaonatly
 // so for example, rather than 1000 it may double 500 instead
@@ -84,6 +86,9 @@ export default class AbstractDisplay{
 	canvas
 	canvasWidth
 	canvasHeight
+	drawsFaceFeaturesOnCanvas = false
+	faceFeatureOverlay = null
+	faceFeatureContext = null
 
 	// method to run to kickstart unless option autoStart:true
 	start = () => { console.info("Display starting", this ) }
@@ -204,7 +209,42 @@ export default class AbstractDisplay{
 	 */
 	async destroy(){
 		// CLEAN UP
+		this.faceFeatureOverlay?.remove()
+		this.faceFeatureOverlay = null
+		this.faceFeatureContext = null
 		AbstractDisplay.index--
+	}
+
+	clearFaceFeatures(){
+		this.faceFeatureContext?.clearRect(0, 0, this.faceFeatureOverlay.width, this.faceFeatureOverlay.height)
+	}
+
+	/** Render facial details above renderers that own a WebGL/WebGPU canvas. */
+	drawFaceFeatures(person, colours){
+		if (this.drawsFaceFeaturesOnCanvas || typeof document === 'undefined' || !this.canvas?.parentNode)
+		{
+			return false
+		}
+		if (!this.faceFeatureOverlay)
+		{
+			this.faceFeatureOverlay = document.createElement('canvas')
+			this.faceFeatureOverlay.className = 'canvas-full-size photosynth-face-features'
+			this.faceFeatureOverlay.setAttribute('aria-hidden', 'true')
+			this.faceFeatureOverlay.style.zIndex = '1'
+			this.faceFeatureOverlay.style.pointerEvents = 'none'
+			this.canvas.after(this.faceFeatureOverlay)
+			this.faceFeatureContext = this.faceFeatureOverlay.getContext('2d')
+		}
+		if (!this.faceFeatureContext)
+		{
+			return false
+		}
+		if (this.faceFeatureOverlay.width !== this.canvas.width || this.faceFeatureOverlay.height !== this.canvas.height)
+		{
+			this.faceFeatureOverlay.width = this.canvas.width
+			this.faceFeatureOverlay.height = this.canvas.height
+		}
+		return drawFaceFeatureOverlays(this.faceFeatureContext, person, colours, this.options)
 	}
 	
 	/**
