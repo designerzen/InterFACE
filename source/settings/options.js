@@ -156,6 +156,9 @@ export const DEFAULT_OPTIONS = {
 	masks:true,
 	// show eye tracking
 	eyes:true,
+	// optional face details, applied to every person by the global controls
+	eyebrows:false,
+	lips:true,
 	// synchronise the beats with metronome
 	quantise:true,
 	// show the person's texts above them
@@ -190,6 +193,9 @@ export const DEFAULT_OPTIONS = {
 	// saved BPM that can be shared
 	bpm:90,
 	swing:0,
+	ensemblePreset:"default",
+	// A named drum-kit preset to load during initialisation; empty keeps drums random.
+	drumkit:"",
 
 	// cancel audio playback (not midi)
 	muted:false,

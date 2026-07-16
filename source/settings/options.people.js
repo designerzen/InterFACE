@@ -1,5 +1,6 @@
 import { INSTRUMENT_TYPE_SOUNDFONT } from "../audio/instrument-list.js"
 import { TUNING_MODE_NAMES } from "../audio/tuning/scales.js"
+import { EMOJI_MOOD_ALL } from "../models/emoji.js"
 import { HARMONY_MODE_GLOBAL_KEY } from "../people/person.presets.js"
 import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments.js"
 import { DEFAULT_COLOURS } from "./palette.js"
@@ -28,8 +29,62 @@ export const DEFAULT_VOICE_OPTIONS = {
 	active:false
 }
 
+export const DEFAULT_NOTE_PARTICLE_OPTIONS = {
+	noteParticles:true,
+	noteParticleAmplitudeThreshold:0.05,
+	noteParticleGravity:760,
+	noteParticleHorizontalDrag:0.87,
+	noteParticleVerticalDrag:0.98,
+	noteParticleMaxCount:220,
+	noteParticleMaxTravel:185,
+	noteParticleTravelMin:70,
+	noteParticleTravelAmplitudeRange:115,
+	noteParticleTravelDirectionRange:110,
+	noteParticleTravelPitchRange:75,
+	noteParticleFrameMinSeconds:1 / 120,
+	noteParticleFrameMaxSeconds:1 / 30,
+	noteParticleMinQuantity:1,
+	noteParticleQuantityRange:3,
+	noteParticleMinSize:7,
+	noteParticleSizeRange:34,
+	noteParticleInitialSize:1,
+	noteParticleGrowDurationRatio:0.35,
+	noteParticleGrowResponse:1.8,
+	noteParticleSizeRandomMin:0.72,
+	noteParticleSizeRandomRange:0.56,
+	noteParticleHorizontalForceMin:260,
+	noteParticleHorizontalForceRange:430,
+	noteParticleHorizontalBias:0,
+	noteParticleHorizontalBiasStrength:1,
+	noteParticleHorizontalBiasResponse:0.35,
+	noteParticleHorizontalSpreadMin:0.55,
+	noteParticleHorizontalSpreadRange:0.45,
+	noteParticleVerticalForceMin:210,
+	noteParticleVerticalForceRange:390,
+	noteParticleVerticalForceRandomMin:0.5,
+	noteParticleVerticalForceRandomRange:0.4,
+	noteParticleVerticalBias:0,
+	noteParticleVerticalBiasStrength:1,
+	noteParticleVerticalBiasResponse:2.8,
+	noteParticlePitchDirection:1,
+	noteParticleLifeMin:0.46,
+	noteParticleLifeRange:0.38,
+	noteParticleLifeRandom:0.18,
+	noteParticleSpinRange:8,
+	noteParticleNoteRotationLimit:Math.PI / 6,
+	noteParticleNoteSpinRange:1.2,
+	noteParticleNotesRequireAudio:true,
+	noteParticleAudioActiveWindowMs:180,
+	noteParticleStarProbability:0.48,
+	noteParticleStarSizeScale:0.28,
+	noteParticleStarColour:'#fff',
+	noteParticleDefaultColour:'#fff',
+	noteParticleGlyphs:['♪', '♫', '♬']
+}
+
 export const DEFAULT_PERSON_OPTIONS = {
 	...DEFAULT_COLOURS,
+	...DEFAULT_NOTE_PARTICLE_OPTIONS,
 
 	// show notes on a stave rather than A4, B7 etc
 	musicTheory:false,
@@ -42,6 +97,12 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// silence this Person while leaving the rest of the ensemble active
 	muted:false,
+
+	// re-trigger a held note while the person continues singing
+	autoRepeat:true,
+
+	// limit detected emoji faces before they drive music or UI
+	emojiMood:EMOJI_MOOD_ALL,
 
 	// Passed to the delay node
 	// NB. There is a global delay too remember
@@ -81,6 +142,8 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// send out MIDI per person...
 	// see instrument-midi
 	sendMIDI:true,
+	midiDevice:"auto",
+	midiPort:"auto",
 
 	// if you want the axis to be switched
 	swapControls:false,
