@@ -1,0 +1,26 @@
+blockExoticSubdeps: false
+
+allowBuilds:
+  '@parcel/watcher': false
+  '@serialport/bindings-cpp': false
+  '@swc/core': false
+  bufferutil: false
+  core-js: false
+  electron-winstaller: false
+  esbuild: false
+  lmdb: false
+  midi-writer-js: false
+  msgpackr-extract: false
+  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/3ae1e0eea61247ef6ed81c06ebe2faf9ce47ed97: false
+  phantomjs-prebuilt: false
+  sharp: false
+  unrs-resolver: false
+  utf-8-validate: false
+  workerd: false
+
+minimumReleaseAgeExclude:
+  - '@audio/decode@3.11.1'
+  - abcjs@6.6.4
+  - audio-decode@3.11.2
+  - postcss@8.5.17 || 8.5.19
+  - svgo@4.0.2

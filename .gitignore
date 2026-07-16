@@ -23,6 +23,7 @@ app
 *.sf2
 *.7z
 *.zip
+*.pnpm-store
 
 *--*
 *~lock~
