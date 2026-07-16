@@ -204,7 +204,6 @@ const convertFormulaToNotes = (formula, scale=C_SCALE) => formula.map( note => s
 
 const modeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_IONIAN )
 // const modeFormula = createScaleModeIntervalsFormula(MAJOR_SCALE, TUNING_MODE_NAMES[0] )
-console.error("modeFormula", TUNING_MODE_NAMES[0], modeFormula)
 // outputs to console: 'mode=mixolydian formula=0,2,4,5,7,9,10'
 
 

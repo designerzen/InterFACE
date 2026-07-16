@@ -1017,6 +1017,14 @@ block scripts
 		let buttonExampleAbort = null
 		let matrixExampleAbort = null
 
+		function getActiveTransportMode() {
+			return activeTab === 'matrix' ? 'matrix' : 'buttons'
+		}
+
+		function getActiveTransport() {
+			return getActiveTransportMode() === 'matrix' ? matrix : buttons
+		}
+
 		// tabs
 		document.querySelectorAll('.tab').forEach(tab => {
 			tab.addEventListener('click', () => {
@@ -1025,6 +1033,7 @@ block scripts
 				tab.classList.add('active')
 				document.querySelector(`.panel[data-tab="${tab.dataset.tab}"]`).classList.add('active')
 				activeTab = tab.dataset.tab
+				updateConnectionUI(getActiveTransport()?.connected ?? false)
 			})
 		})
 
@@ -1040,7 +1049,7 @@ block scripts
 		$('btnClearLog').addEventListener('click', () => logEl.innerHTML = '')
 
 		function updateStats() {
-			const device = buttons || matrix
+			const device = getActiveTransport() || buttons || matrix
 			if (!device) { $('statsLabel').textContent = ''; return }
 			const s = device.stats
 			$('statsLabel').textContent = `TX: ${s.bytesWritten} B  RX: ${s.bytesRead} B`
@@ -1073,13 +1082,14 @@ block scripts
 				}
 			})
 			device.on('tx', ({ raw, length }) => {
-				if (!$('chkHexDump').checked) return
 				const now = Date.now()
 				if (now - txThrottle < 500) return
 				txThrottle = now
 				const prefix = Array.from(raw.slice(0, 15)).map(b => String.fromCharCode(b)).join('')
 				logEntry('log-out', `→ ${length}B  prefix: "${prefix}"`)
-				logEntry('log-hex', `   ${hexDump(raw)}`)
+				if ($('chkHexDump').checked) {
+					logEntry('log-hex', `   ${hexDump(raw)}`)
+				}
 			})
 			device.on('error', ({ message }) => {
 				logEntry('log-err', `✗ ${message}`)
@@ -1094,11 +1104,12 @@ block scripts
 
 		// diagnostics buttons
 		$('btnTestPattern').addEventListener('click', async () => {
-			const device = activeTab === 'buttons' ? buttons : matrix
+			const mode = getActiveTransportMode()
+			const device = getActiveTransport()
 			if (!device?.connected) { logEntry('log-err', 'Not connected'); return }
 			const prefix = new TextEncoder().encode('multiverse:data')
 			let test
-			if (activeTab === 'buttons') {
+			if (mode === 'buttons') {
 				const payload = new Uint8Array(buttons.packetByteLength)
 				payload.set([
 					0x00, 0x00, 0xFF, 0x1F,
@@ -1125,7 +1136,7 @@ block scripts
 		})
 
 		$('btnSendRaw').addEventListener('click', async () => {
-			const device = activeTab === 'buttons' ? buttons : matrix
+			const device = getActiveTransport()
 			if (!device?.connected) { logEntry('log-err', 'Not connected'); return }
 			const text = prompt('Enter raw text to send (will be UTF-8 encoded):')
 			if (!text) return
@@ -1152,22 +1163,24 @@ block scripts
 
 		function updateConnectionUI(connected) {
 			$('statusDot').classList.toggle('ok', connected)
-			$('statusLabel').textContent = connected ? `Connected (${connectedMode})` : 'Disconnected'
+			const mode = connected ? (connectedMode || getActiveTransportMode()) : null
+			$('statusLabel').textContent = connected ? `Connected (${mode})` : 'Disconnected'
 			$('btnConnect').textContent = connected ? 'Disconnect' : 'Connect'
 		}
 
 		$('btnConnect').addEventListener('click', async () => {
 			try {
-				if (activeTab === 'buttons' && buttons?.connected) {
+				const mode = getActiveTransportMode()
+				if (mode === 'buttons' && buttons?.connected) {
 					stopButtonExample()
 					await buttons.disconnect(); connectedMode = null; updateConnectionUI(false); return
 				}
-				if (activeTab === 'matrix' && matrix?.connected) {
+				if (mode === 'matrix' && matrix?.connected) {
 					stopMatrixExample()
 					await matrix.disconnect(); connectedMode = null; updateConnectionUI(false); return
 				}
 				if (!hasSerial) { alert('WebSerial not available'); return }
-				if (activeTab === 'buttons') {
+				if (mode === 'buttons') {
 					if (!buttons) ensureButtons()
 					attachDeviceListeners(buttons)
 					logEntry('log-info', '… Requesting serial port…')
@@ -1255,7 +1268,22 @@ block scripts
 			}
 		}
 
+		async function flushButtons(reason = 'buttons') {
+			if (!buttons?.connected) return
+			try {
+				await buttons.writeToDisplay()
+				logEntry('log-out', `→ ${reason}: frame sent`)
+			} catch (e) {
+				logEntry('log-err', `${reason} send failed: ${e.message}`)
+				console.error(e)
+			}
+		}
+
 		function ensureButtons() {
+			if (buttons?.connected) {
+				logEntry('log-info', 'Picade buttons are already connected; disconnect before changing the transport layout.')
+				return
+			}
 			const n = parseInt($('numLeds').value) || 16
 			const r = parseInt($('refreshRate').value) || 20
 			const usePicadeMaxMaps = n === PICADE_MAX_NUM_LEDS
@@ -1389,11 +1417,13 @@ block scripts
 		$('btnApplyLed').addEventListener('click', () => {
 			if (!buttons) ensureButtons()
 			applyToLed(selectedLed, getCurrentLedSettings())
+			flushButtons('Apply LED')
 		})
 
 		$('btnApplyButton').addEventListener('click', () => {
 			if (!buttons) ensureButtons()
 			applyToButton(getSelectedButtonNumber(), getCurrentLedSettings())
+			flushButtons('Apply button')
 		})
 
 		$('btnFlashButton').addEventListener('click', () => {
@@ -1404,18 +1434,21 @@ block scripts
 				fadeTime: settings.transitionTime || 0.35,
 				holdTime: 0.08
 			})
+			flushButtons('Preview fade')
 		})
 
 		$('btnSetAll').addEventListener('click', () => {
 			if (!buttons) ensureButtons()
 			const s = getCurrentLedSettings()
 			for (let i = 0; i < buttons.numLeds; i++) applyToLed(i, s)
+			flushButtons('Apply all')
 		})
 
 		$('btnClearButton').addEventListener('click', () => {
 			if (!buttons) ensureButtons()
 			const off = { mode: 'normal', colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, transitionTime: 0 }
 			applyToButton(getSelectedButtonNumber(), off)
+			flushButtons('Clear button')
 		})
 
 		$('btnClearAll').addEventListener('click', () => {
@@ -1423,6 +1456,7 @@ block scripts
 			const off = { mode: 'normal', colorTo: RGBl(0,0,0,0), colorFrom: RGBl(0,0,0,0), brightness: 0, transitionTime: 0 }
 			for (let i = 0; i < buttons.numLeds; i++) applyToLed(i, off)
 			buttons.setAllLeds('normal', { colorTo: RGBl(0,0,0,0) })
+			flushButtons('Blackout all')
 		})
 
 		$('attractPattern').addEventListener('change', () => {

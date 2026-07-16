@@ -1,0 +1,440 @@
+extends _base.pug
+
+block title
+	+title('Test: Picade Plasma')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block main
+	main#picade-plasma-test
+		header
+			p.eyebrow Hardware test
+			h2 Picade Plasma button lights
+			p Hold a button for half a second to change it from white to red. Releasing it fades the matching Plasma light out.
+
+		section.connection-panel(aria-labelledby="connection-heading")
+			h3#connection-heading Picade test status
+			ol.activation-steps
+				li
+					strong Gamepads
+					span#gamepad-status(role="status" aria-live="polite") Looking for two Picade Max gamepads…
+				li
+					strong Plasma lights
+					span#plasma-serial-status.serial-status(role="status" aria-live="polite") Checking Web Serial permission…
+			p#connection-status(role="status" aria-live="polite") Checking the Picade hardware…
+			button#connect(type="button") Pair Plasma lights
+			button#demo-toggle(type="button" aria-pressed="false" disabled) Start light demo
+
+		section.gamepad-panel(aria-labelledby="gamepad-heading")
+			h3#gamepad-heading Gamepad inventory
+			p#gamepad-inventory-status(role="status" aria-live="polite") Checking browser-visible gamepads…
+			ul#gamepad-list.gamepad-list
+
+		form.light-controls#light-controls
+			fieldset
+				legend Plasma light editor
+				label(for="light-player") Player
+				select#light-player(name="player")
+					option(value="0") Player 1
+					option(value="1") Player 2
+				label(for="light-button") Button
+				select#light-button(name="button")
+					each _, index in Array(8)
+						option(value=index)= index + 1
+				label(for="light-led") Light
+				select#light-led(name="light")
+					each _, index in Array(4)
+						option(value=index)= index + 1
+				label(for="light-mode") Mode
+				select#light-mode(name="mode")
+					option(value="normal") Steady
+					option(value="flash") Flash
+					option(value="pulse") Pulse
+					option(value="fade") Fade
+					option(value="blend") Blend
+				label(for="light-color") Colour
+				input#light-color(name="color" type="color" value="#ffffff")
+				label(for="light-to-color") Blend to
+				input#light-to-color(name="to-color" type="color" value="#ff0000")
+				label(for="light-brightness") Brightness
+				input#light-brightness(name="brightness" type="range" min="0" max="31" value="31")
+				label(for="light-duration") Duration (s)
+				input#light-duration(name="duration" type="number" min="0.1" max="10" step="0.1" value="0.7")
+				button(type="submit") Apply light mode
+
+		details.plasma-command-log
+			summary Plasma transport commands
+			p Every serial frame sent to the paired Picade Plasma controller is listed below.
+			ol#plasma-command-list
+
+		section.button-grid(aria-label="Picade button test panel")
+			each label, index in ['Button 1', 'Button 2', 'Button 3', 'Button 4', 'Button 5', 'Button 6', 'Button 7', 'Button 8']
+				button.plasma-button(type="button" data-button=index aria-describedby="press-help")
+					span.button-number= index + 1
+					span.button-label= label
+		p#press-help.help Short press: white. Hold: red. Release: fade out.
+
+block styles
+	style.
+		#picade-plasma-test {
+			box-sizing: border-box;
+			max-width: 52rem;
+			margin: 2rem auto;
+			padding: clamp(1rem, 4vw, 2rem);
+			color: #f6f7fb;
+			background: #101114;
+			border: 1px solid #343842;
+			border-radius: 1.25rem;
+		}
+		#picade-plasma-test h2 { margin: .15rem 0 .55rem; font-size: clamp(1.8rem, 6vw, 3rem); }
+		#picade-plasma-test p { color: #bec4cf; line-height: 1.5; }
+		#picade-plasma-test .eyebrow { margin: 0; color: #82aaff; font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+		#picade-plasma-test .connection-panel { margin: 1.5rem 0; padding: 1rem; border: 1px solid #444a57; border-radius: .75rem; background: #181b21; }
+		#picade-plasma-test .connection-panel h3 { margin: 0 0 .6rem; font-size: 1rem; }
+		#picade-plasma-test .connection-panel p { margin: .3rem 0; font-size: .9rem; }
+		#picade-plasma-test .activation-steps { display: grid; gap: .65rem; margin: 0; padding-left: 1.25rem; }
+		#picade-plasma-test .activation-steps li { padding-left: .25rem; }
+		#picade-plasma-test .activation-steps strong { display: block; font-size: .85rem; }
+		#picade-plasma-test .activation-steps span { color: #bec4cf; font-size: .9rem; }
+		#picade-plasma-test .serial-status::before { content: '●'; display: inline-block; margin-inline-end: .45rem; color: #d85d5d; }
+		#picade-plasma-test .serial-status.paired::before { color: #e2b755; }
+		#picade-plasma-test .serial-status.connected::before { color: #55bd7b; }
+		#picade-plasma-test .serial-status.failed::before { content: '✕'; color: #ff7373; }
+		#picade-plasma-test .connection-panel button { margin-top: .7rem; padding: .7rem 1rem; border: 1px solid #82aaff; border-radius: .6rem; background: #202838; color: #fff; font: inherit; cursor: pointer; }
+		#picade-plasma-test .connection-panel button:disabled { cursor: not-allowed; opacity: .58; }
+		#picade-plasma-test .connection-panel #demo-toggle[aria-pressed="true"] { background: #b51616; border-color: #ff6464; }
+		#picade-plasma-test .gamepad-panel { margin: 1.5rem 0; padding: 1rem; border: 1px solid #444a57; border-radius: .75rem; background: #181b21; }
+		#picade-plasma-test .gamepad-panel h3 { margin: 0 0 .6rem; font-size: 1rem; }
+		#picade-plasma-test .gamepad-panel p { margin: 0 0 .8rem; font-size: .9rem; }
+		#picade-plasma-test .gamepad-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .7rem; margin: 0; padding: 0; list-style: none; }
+		#picade-plasma-test .gamepad-card { padding: .75rem; border: 1px solid #4b5361; border-radius: .55rem; background: #101216; overflow-wrap: anywhere; }
+		#picade-plasma-test .gamepad-card.connected { border-color: #55bd7b; }
+		#picade-plasma-test .gamepad-card.selected { border-color: #82aaff; box-shadow: inset 0 0 0 1px #82aaff; }
+		#picade-plasma-test .gamepad-card h4 { margin: 0 0 .5rem; font-size: .9rem; }
+		#picade-plasma-test .gamepad-card p { margin: 0; font-size: .82rem; }
+		#picade-plasma-test .gamepad-card button { margin-top: .7rem; padding: .45rem .65rem; border: 1px solid #82aaff; border-radius: .4rem; background: #202838; color: #fff; font: inherit; font-size: .78rem; cursor: pointer; }
+		#picade-plasma-test .gamepad-card dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3rem .55rem; margin: .6rem 0 0; font-family: ui-monospace, Consolas, monospace; font-size: .72rem; }
+		#picade-plasma-test .gamepad-card dt { color: #93a0b3; }
+		#picade-plasma-test .gamepad-card dd { margin: 0; color: #eef2f8; white-space: pre-wrap; }
+		#picade-plasma-test .light-controls { margin: 1.5rem 0; padding: 1rem; border: 1px solid #444a57; border-radius: .75rem; background: #181b21; }
+		#picade-plasma-test .light-controls fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .65rem; border: 0; padding: 0; margin: 0; }
+		#picade-plasma-test .light-controls legend { grid-column: 1 / -1; font-weight: 700; }
+		#picade-plasma-test .light-controls label { font-size: .78rem; color: #bec4cf; }
+		#picade-plasma-test .light-controls input, #picade-plasma-test .light-controls select, #picade-plasma-test .light-controls button { min-height: 2.5rem; font: inherit; color: #fff; background: #101216; border: 1px solid #4b5361; border-radius: .4rem; padding: .35rem; }
+		#picade-plasma-test .plasma-command-log { margin: 1.5rem 0; padding: 1rem; border: 1px solid #444a57; border-radius: .75rem; background: #101216; }
+		#picade-plasma-test .plasma-command-log summary { cursor: pointer; font-weight: 700; }
+		#picade-plasma-test .plasma-command-log p { font-size: .85rem; }
+		#picade-plasma-test #plasma-command-list { max-height: 18rem; overflow: auto; margin: 0; padding-left: 1.5rem; font: .72rem ui-monospace, Consolas, monospace; }
+		#picade-plasma-test #plasma-command-list li { margin-bottom: .35rem; color: #dbe5f2; }
+		#picade-plasma-test .button-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.75rem, 2vw, 1.25rem); }
+		#picade-plasma-test .plasma-button { aspect-ratio: 1; min-height: 5.5rem; display: grid; place-content: center; gap: .3rem; border: .5rem solid #3d0505; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff4d4d, #a70909 55%, #510000); box-shadow: inset 0 .2rem .45rem rgba(255,255,255,.35), inset 0 -.5rem .7rem rgba(0,0,0,.6), 0 .35rem .5rem rgba(0,0,0,.4); color: #fff; font: inherit; cursor: pointer; touch-action: manipulation; transition: background .12s, box-shadow .12s, transform .12s; }
+		#picade-plasma-test .plasma-button.is-white { background: #fff; color: #181818; box-shadow: 0 0 1.8rem .45rem rgba(255,255,255,.9); }
+		#picade-plasma-test .plasma-button.is-red { background: #ff1717; box-shadow: 0 0 1.8rem .45rem rgba(255,0,0,.82); }
+		#picade-plasma-test .plasma-button:active { transform: translateY(.15rem); }
+		#picade-plasma-test .plasma-button:focus-visible, #picade-plasma-test .connection-panel button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+		#picade-plasma-test .button-number { font-weight: 800; font-size: 1.5rem; }
+		#picade-plasma-test .button-label { font-size: .75rem; }
+		#picade-plasma-test .help { margin: 1.3rem 0 0; font-size: .9rem; }
+		@media (max-width: 32rem) { #picade-plasma-test .button-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+		@media (prefers-reduced-motion: reduce) { #picade-plasma-test .plasma-button { transition: none; } }
+
+block scripts
+	script(type="module").
+		import { getPicadeMaxGamepadInfo } from './hardware/gamepad/picade-max-interface.js'
+		import { createPicadeMaxController, findPicadeMaxInputGamepads } from './hardware/gamepad/picade-max-input-controller.js'
+		import { PICADE_LONG_PRESS_COLOR, PICADE_SHORT_PRESS_COLOR } from './hardware/gamepad/picade-plasma.js'
+
+		const LONG_PRESS_MS = 500
+		const FADE_MS = 450
+		let controller = null
+		let controllerKey = null
+		let plasma = null
+		const states = new Map()
+		const buttons = [...document.querySelectorAll('.plasma-button')]
+		const status = document.querySelector('#connection-status')
+		const gamepadStatus = document.querySelector('#gamepad-status')
+		const plasmaSerialStatus = document.querySelector('#plasma-serial-status')
+		const connect = document.querySelector('#connect')
+		const demoToggle = document.querySelector('#demo-toggle')
+		const lightControls = document.querySelector('#light-controls')
+		const plasmaCommandList = document.querySelector('#plasma-command-list')
+		let plasmaCommandCount = 0
+		let plasmaAutoConnecting = false
+		let plasmaConnectionError = null
+		const inventoryStatus = document.querySelector('#gamepad-inventory-status')
+		const gamepadList = document.querySelector('#gamepad-list')
+		let demoTimer = null
+		let demoButton = -1
+
+		function setVisual(button, color = null) {
+			const element = buttons[button]
+			element.classList.toggle('is-white', color === PICADE_SHORT_PRESS_COLOR)
+			element.classList.toggle('is-red', color === PICADE_LONG_PRESS_COLOR)
+		}
+
+		function addGamepadDetail(list, label, value) {
+			const term = document.createElement('dt')
+			term.textContent = label
+			const detail = document.createElement('dd')
+			detail.textContent = value
+			list.append(term, detail)
+		}
+
+		function renderGamepadInventory() {
+			const gamepads = Array.from(navigator.getGamepads?.() ?? [])
+			const slotCount = Math.max(4, gamepads.length)
+			const connectedCount = gamepads.filter(gamepad => gamepad?.connected).length
+			inventoryStatus.textContent = `${connectedCount} connected gamepad${connectedCount === 1 ? '' : 's'} in ${slotCount} browser-visible slot${slotCount === 1 ? '' : 's'}. The test uses the two Picade Max interfaces together through PicadeMaxController. Browsers expose a controller only after it has been used.`
+			gamepadList.replaceChildren()
+
+			for (let slot = 0; slot < slotCount; slot++) {
+				const gamepad = gamepads[slot]
+				const item = document.createElement('li')
+				item.className = `gamepad-card${gamepad?.connected ? ' connected' : ''}`
+				const device = getPicadeMaxGamepadInfo(gamepad)
+				const heading = document.createElement('h4')
+				heading.textContent = `Slot ${slot} — ${gamepad?.connected ? device ? 'Picade Max connected' : 'Connected' : 'Available / waiting'}`
+				item.append(heading)
+
+				if (!gamepad) {
+					const message = document.createElement('p')
+					message.textContent = 'No controller is currently exposed in this slot.'
+					item.append(message)
+					gamepadList.append(item)
+					continue
+				}
+
+				const details = document.createElement('dl')
+				const buttonStates = Array.from(gamepad.buttons, (button, index) => `${index}:${button.pressed ? 'pressed' : button.touched ? 'touched' : button.value.toFixed(2)}`).join('  ')
+				const axisValues = Array.from(gamepad.axes, (axis, index) => `${index}:${axis.toFixed(3)}`).join('  ')
+				addGamepadDetail(details, 'ID', gamepad.id || '(no name supplied)')
+				addGamepadDetail(details, 'Manufacturer', device?.manufacturer ?? '(not identified)')
+				addGamepadDetail(details, 'Product', device?.productName ?? '(not identified)')
+				addGamepadDetail(details, 'USB vendor', device?.usbVendorName ?? '(not identified)')
+				addGamepadDetail(details, 'USB ID', device ? `${device.vendorId.toString(16).padStart(4, '0')}:${device.productId.toString(16).padStart(4, '0')}` : '(not reported)')
+				addGamepadDetail(details, 'Index', String(gamepad.index))
+				addGamepadDetail(details, 'Connected', String(gamepad.connected))
+				addGamepadDetail(details, 'Mapping', gamepad.mapping || '(none)')
+				addGamepadDetail(details, 'Timestamp', String(gamepad.timestamp))
+				addGamepadDetail(details, 'Buttons', `${gamepad.buttons.length}\n${buttonStates || '(none)'}`)
+				addGamepadDetail(details, 'Axes', `${gamepad.axes.length}\n${axisValues || '(none)'}`)
+				addGamepadDetail(details, 'Vibration', gamepad.vibrationActuator?.type ?? (gamepad.hapticActuators?.length ? `${gamepad.hapticActuators.length} haptic actuator(s)` : 'not reported'))
+				item.append(details)
+				gamepadList.append(item)
+			}
+		}
+
+		function press(button, { mirrorLight = true } = {}) {
+			if (states.has(button)) return
+			const state = { color: PICADE_SHORT_PRESS_COLOR, timer: null }
+			states.set(button, state)
+			setVisual(button, state.color)
+			if (mirrorLight && plasma?.connected) plasma.light(button, state.color)
+			else status.textContent = 'Screen test active. Pair the Plasma lights to mirror this on the hardware.'
+			state.timer = setTimeout(() => {
+				if (!states.has(button)) return
+				state.color = PICADE_LONG_PRESS_COLOR
+				setVisual(button, state.color)
+				if (mirrorLight && plasma?.connected) plasma.light(button, state.color)
+			}, LONG_PRESS_MS)
+		}
+
+		function release(button, { mirrorLight = true } = {}) {
+			const state = states.get(button)
+			if (!state) return
+			clearTimeout(state.timer)
+			states.delete(button)
+			setVisual(button)
+			if (mirrorLight && plasma?.connected) plasma.fade(button, state.color, { fadeTime: FADE_MS / 1000 })
+		}
+
+		function initialiseController() {
+			const gamepads = findPicadeMaxInputGamepads()
+			const key = gamepads.map(gamepad => gamepad.index).join(':')
+			if (gamepads.length !== 2) {
+				gamepadStatus.textContent = `Waiting for two Picade Max player gamepads (${gamepads.length}/2 found)…`
+				if (!plasma) setTestAvailability()
+				return
+			}
+			if (key === controllerKey) return
+			controller?.stop()
+			controller = createPicadeMaxController(gamepads)
+			controllerKey = key
+			plasma = controller.plasma
+			updatePlasmaSerialStatus()
+			plasma.on('tx', ({ raw, length }) => {
+				plasmaCommandCount++
+				const item = document.createElement('li')
+				const preview = Array.from(raw.slice(0, 32), byte => byte.toString(16).padStart(2, '0')).join(' ')
+				item.textContent = `#${plasmaCommandCount} ${new Date().toLocaleTimeString()} — ${length} bytes — ${preview}${length > 32 ? ' …' : ''}`
+				plasmaCommandList.append(item)
+			})
+			controller.onButton(({ button, pressed }) => pressed
+				? press(button, { mirrorLight: false })
+				: release(button, { mirrorLight: false }))
+			controller.start()
+			gamepadStatus.textContent = `PicadeMaxController active with player gamepads in slots ${gamepads.map(gamepad => gamepad.index).join(' and ')}.`
+		}
+
+		function setTestAvailability(message) {
+			demoToggle.disabled = !plasma?.connected
+			if (message) status.textContent = message
+		}
+
+		function showPlasmaConnectionFailure(error, { paired = true } = {}) {
+			plasmaConnectionError = error instanceof Error ? error : new Error(String(error))
+			plasmaSerialStatus.className = 'serial-status failed'
+			plasmaSerialStatus.textContent = paired
+				? `Plasma lights are paired but could not connect: ${plasmaConnectionError.message}`
+				: `Plasma lights were not paired: ${plasmaConnectionError.message}`
+			connect.disabled = false
+			connect.textContent = paired ? 'Retry Plasma connection' : 'Pair Plasma lights'
+			setTestAvailability(paired
+				? 'Plasma lights are not ready. Select “Retry Plasma connection”.'
+				: 'Plasma lights are not ready. Select “Pair Plasma lights”.')
+		}
+
+		async function updatePlasmaSerialStatus() {
+			plasmaSerialStatus.className = 'serial-status'
+			if (!plasma) {
+				plasmaSerialStatus.textContent = 'Waiting for both Picade Max player gamepads.'
+				connect.disabled = true
+				connect.textContent = 'Pair Plasma lights'
+				setTestAvailability('Connect both Picade Max player gamepads to activate the light test.')
+				return
+			}
+			if (!('serial' in navigator)) {
+				plasmaSerialStatus.classList.add('failed')
+				plasmaSerialStatus.textContent = 'Web Serial is unavailable in this browser.'
+				connect.disabled = true
+				connect.textContent = 'Web Serial unavailable'
+				setTestAvailability('Use Chrome, Edge, or the Electron app to connect the Plasma lights.')
+				return
+			}
+			if (plasma.connected) {
+				plasmaSerialStatus.classList.add('connected')
+				plasmaSerialStatus.textContent = 'Connected — Plasma lights are ready.'
+				connect.disabled = true
+				connect.textContent = 'Plasma lights connected'
+				plasmaConnectionError = null
+				setTestAvailability('Ready — press a Picade button or start the light demo.')
+				return
+			}
+			let pairedPorts
+			try { pairedPorts = await plasma.getPairedPorts() }
+			catch (error) { showPlasmaConnectionFailure(error); return }
+			if (plasmaConnectionError) {
+				showPlasmaConnectionFailure(plasmaConnectionError, { paired: Boolean(pairedPorts.length) })
+				return
+			}
+			if (pairedPorts.length) {
+				plasmaSerialStatus.classList.add('paired')
+				plasmaSerialStatus.textContent = 'Paired — connecting to Plasma lights…'
+				connect.disabled = true
+				connect.textContent = 'Connecting Plasma lights'
+				setTestAvailability('Connecting to the already paired Plasma lights…')
+				if (!plasmaAutoConnecting) {
+					plasmaAutoConnecting = true
+					try { await controller.connectPlasma(); plasmaConnectionError = null }
+					catch (error) { showPlasmaConnectionFailure(error) }
+					finally { plasmaAutoConnecting = false; updatePlasmaSerialStatus() }
+				}
+			} else {
+				plasmaSerialStatus.textContent = 'Not paired — choose Pair Plasma lights to continue.'
+				connect.disabled = false
+				connect.textContent = 'Pair Plasma lights'
+				setTestAvailability('Action needed — pair the Plasma lights, then the test will be ready.')
+			}
+		}
+
+		function runDemoStep() {
+			if (demoTimer == null) return
+			if (demoButton >= 0) setVisual(demoButton)
+			demoButton = (demoButton + 1) % buttons.length
+			setVisual(demoButton, PICADE_SHORT_PRESS_COLOR)
+			plasma.fade(demoButton, PICADE_SHORT_PRESS_COLOR, { fadeTime: 0.35 })
+			demoTimer = setTimeout(runDemoStep, 450)
+		}
+
+		async function stopDemo() {
+			if (demoTimer == null) return
+			clearTimeout(demoTimer)
+			demoTimer = null
+			if (demoButton >= 0) setVisual(demoButton)
+			demoButton = -1
+			demoToggle.setAttribute('aria-pressed', 'false')
+			demoToggle.textContent = 'Start light demo'
+			await plasma.clear()
+			status.textContent = 'Light demo stopped. Plasma lights are clear.'
+		}
+
+		buttons.forEach((element, button) => {
+			element.addEventListener('pointerdown', event => { event.preventDefault(); element.setPointerCapture(event.pointerId); press(button) })
+			element.addEventListener('pointerup', () => release(button))
+			element.addEventListener('pointercancel', () => release(button))
+			element.addEventListener('keydown', event => { if ((event.key === 'Enter' || event.key === ' ') && !event.repeat) { event.preventDefault(); press(button) } })
+			element.addEventListener('keyup', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); release(button) } })
+		})
+
+		demoToggle.addEventListener('click', async () => {
+			if (demoTimer != null) {
+				await stopDemo()
+				return
+			}
+			if (!plasma?.connected) {
+				status.textContent = 'Pair the Plasma lights before starting the demo.'
+				connect.focus()
+				return
+			}
+			demoToggle.setAttribute('aria-pressed', 'true')
+			demoToggle.textContent = 'Stop light demo'
+			status.textContent = 'Light demo running: flashing buttons 1–8 in sequence.'
+			demoTimer = setTimeout(runDemoStep, 0)
+		})
+		connect.addEventListener('click', async () => {
+			initialiseController()
+			if (!controller) {
+				status.textContent = 'Connect both Picade Max player gamepads before pairing the Plasma lights.'
+				return
+			}
+			if (!('serial' in navigator)) {
+				status.textContent = 'WebSerial is unavailable. Use Chrome, Edge, or the Electron app to pair the Plasma lights.'
+				return
+			}
+			let pairingWasRequired = false
+			try {
+				connect.disabled = true
+				plasmaConnectionError = null
+				const pairedPorts = await plasma.getPairedPorts()
+				pairingWasRequired = !pairedPorts.length
+				status.textContent = pairedPorts.length
+					? 'Retrying the connection to the paired Plasma lights…'
+					: 'Choose the Picade Plasma serial device in the pairing prompt…'
+				await controller.connectPlasma()
+			} catch (error) {
+				showPlasmaConnectionFailure(error, { paired: !pairingWasRequired })
+			} finally {
+				updatePlasmaSerialStatus()
+			}
+		})
+		lightControls.addEventListener('submit', event => {
+			event.preventDefault()
+			if (!controller || !plasma?.connected) { status.textContent = 'Pair the Plasma lights before editing a light.'; return }
+			const data = new FormData(lightControls)
+			const player = Number(data.get('player'))
+			const button = Number(data.get('button'))
+			const light = Number(data.get('light'))
+			const color = data.get('color')
+			const toColor = data.get('to-color')
+			const brightness = Number(data.get('brightness'))
+			const duration = Number(data.get('duration'))
+			const mode = data.get('mode')
+			if (mode === 'blend') controller.blendButtonLight(player, button, light, color, toColor, { brightness, duration })
+			else controller.animateButtonLight(player, button, light, mode, color, { brightness, duration, fadeTime: duration })
+			status.textContent = `Applied ${mode} to Player ${player + 1}, button ${button + 1}, light ${light + 1}.`
+		})
+		renderGamepadInventory()
+		initialiseController()
+		updatePlasmaSerialStatus()
+		setInterval(() => { renderGamepadInventory(); initialiseController() }, 250)
