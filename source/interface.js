@@ -15,7 +15,7 @@ import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { createInputStatusOverlay } from './dom/ui.input-status.js'
 import { setupRecordings } from './dom/ui.recording.js'
-import { connectSelect, connectReverbControls, connectReverbSelector } from './dom/select.js'
+import { connectSelect, connectReverbControls, connectReverbSelector, populateSelect } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
 import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
@@ -64,7 +64,9 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 // import {midiLikeEvents} from './timing/rhythm'
 import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
-import { createDrumArranger } from './timing/drum-arranger.js'
+import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arranger.js'
+import { DRUM_GROOVES } from './timing/drum-patterns.js'
+import { getArpeggioTiming } from './timing/arpeggio.js'
 import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
 
@@ -102,9 +104,16 @@ import { INSTRUMENT_TYPE_CHORD } from './audio/instrument-list.js'
 import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
 
 // SYNTHESIS
-import { getRandomHihatPreset, PRESET_HIHATS } from './audio/synthesizers/hihat.js'
+import {
+	getRandomHihatPreset,
+	PRESET_HIHATS,
+	PRESET_HIHATS_CLOSED,
+	PRESET_HIHATS_OPEN
+} from './audio/synthesizers/hihat.js'
 import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
 import { getRandomKickPreset, getKickPresets, PRESETS_KICKS } from './audio/synthesizers/kick.js'
+import { getCowbellPresetForStyle, getRandomCowbellPreset, PRESET_COWBELLS } from './audio/synthesizers/cowbell-presets.js'
+import { PERCUSSION_PRESETS, getPercussionPreset } from './audio/synthesizers/percussion-presets.js'
 
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
@@ -276,6 +285,8 @@ export const createInterface = (
 	// lazy loaded imports
 	let getInstruction, getHelp
 	let instructionTools
+	let directionTools
+	let directions = null
 	let textInstructionIndex = 0
 	let textHelpIndex = 0
 	let quantityInstructions = 0
@@ -335,6 +346,29 @@ export const createInterface = (
 
 		console.error("Couldn't load in languages")
 		return false
+	}
+
+	const updateDirectionCache = loadedDirections => {
+		directions = loadedDirections
+	}
+
+	const loadDirectionSet = async directionLanguage => {
+		directionTools ??= await import('./models/directions.js')
+
+		const selectedLanguage = directionLanguage ?? language
+		const directionOptions = {
+			advancedMode: stateMachine.get('advancedMode')
+		}
+
+		let loadedDirections = await directionTools.getDirections(selectedLanguage, referer, directionOptions)
+
+		if (!loadedDirections && selectedLanguage !== "en")
+		{
+			loadedDirections = await directionTools.getDirections("en", referer, directionOptions)
+		}
+
+		updateDirectionCache(loadedDirections)
+		return Boolean(loadedDirections)
 	}
 
 
@@ -454,6 +488,11 @@ export const createInterface = (
 			keyScale:stateMachine.get("keyScale"),
 			harmonyMode:stateMachine.get("harmonyMode")
 		})
+		kit?.setTonic(
+			stateMachine.get("harmonyMode") === "global-key"
+				? getPitchClassForKey(stateMachine.get("key"))
+				: undefined
+		)
 	}
 	const updateKeyScaleControlVisibility = () => {
 		const keyScaleControl = doc.querySelector('label[for="select-key-scale"]')
@@ -569,6 +608,7 @@ export const createInterface = (
 
 	// public method to overwrite
 	let callbackUpdate
+	const drumPartListeners = new Set()
 
 	// Flags
 	let isLoading = true
@@ -695,6 +735,25 @@ export const createInterface = (
 	let kickTimbreOptions = PRESETS_KICKS[0]  
 	let snareTimbreOptions = PRESET_SNARES[0]
 	let hatTimbreOptions = PRESET_HIHATS[0]
+	let closedHatTimbreOptions = PRESET_HIHATS_CLOSED[0]
+	let openHatTimbreOptions = PRESET_HIHATS_OPEN[0]
+	let cowbellTimbreOptions = getCowbellPresetForStyle("Organic", "default")
+	const getHatPair = hat => {
+		const isOpen = /open/i.test(hat.name)
+		const source = isOpen ? PRESET_HIHATS_OPEN : PRESET_HIHATS_CLOSED
+		const counterpart = isOpen ? PRESET_HIHATS_CLOSED : PRESET_HIHATS_OPEN
+		const index = Math.max(0, source.indexOf(hat))
+		return {
+			closed:isOpen ? counterpart[index % counterpart.length] : hat,
+			open:isOpen ? hat : counterpart[index % counterpart.length]
+		}
+	}
+	const setHatPair = hat => {
+		const pair = getHatPair(hat)
+		hatTimbreOptions = hat
+		closedHatTimbreOptions = pair.closed
+		openHatTimbreOptions = pair.open
+	}
 
 	const scaleDrumValue = (value, amount, min, max) => clamp(value * amount, min, max)
 	const shiftDrumValue = (value, amount, min, max) => clamp(value + amount, min, max)
@@ -723,6 +782,16 @@ export const createInterface = (
 			return false
 		}
 		return playNextPart( pattern, instrument, options, triggerAt )
+	}
+	const notifyDrumPart = (part, detail={}) => {
+		if (!part) return
+		for (const listener of drumPartListeners) {
+			listener(part, detail)
+		}
+	}
+	const addDrumPartListener = listener => {
+		drumPartListeners.add(listener)
+		return () => drumPartListeners.delete(listener)
 	}
 	const createEyeControlledDrumTimbres = () => {
 		const person = personManager.getPerson(0)
@@ -778,7 +847,8 @@ export const createInterface = (
 	const setRandomDrumTimbres = () => {
 		kickTimbreOptions = getRandomKickPreset()
 		snareTimbreOptions = getRandomSnarePreset()
-		hatTimbreOptions = getRandomHihatPreset()
+		setHatPair(getRandomHihatPreset())
+		cowbellTimbreOptions = getRandomCowbellPreset()
 		// console.info("Setting drum timbres!", 
 		// 	{
 		// 		kickTimbreOptions,
@@ -791,6 +861,120 @@ export const createInterface = (
 		{
 			setFeedback( `Percussion REMIX [${kickTimbreOptions.name}, ${snareTimbreOptions.name}, ${hatTimbreOptions.name}]`, 0, 'beats' )	 
 		}
+	}
+
+	const normalisePercussionPresetName = name => String(name ?? "")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "")
+
+	const findPercussionPreset = (presets, name) => {
+		const presetName = normalisePercussionPresetName(name)
+		return presets.find(preset => normalisePercussionPresetName(preset.name) === presetName)
+	}
+
+	const applyPercussionKitPreset = (kitPreset={}) => {
+		const kick = findPercussionPreset(PRESETS_KICKS, kitPreset.kick)
+		const snare = findPercussionPreset(PRESET_SNARES, kitPreset.snare)
+		const hat = findPercussionPreset(PRESET_HIHATS, kitPreset.hat)
+		const cowbell = findPercussionPreset(PRESET_COWBELLS, kitPreset.cowbell)
+
+		if (kick)
+		{
+			kickTimbreOptions = kick
+		}
+		if (snare)
+		{
+			snareTimbreOptions = snare
+		}
+		if (hat)
+		{
+			setHatPair(hat)
+		}
+		if (cowbell)
+		{
+			cowbellTimbreOptions = cowbell
+		}
+	}
+
+	const applyPercussionPreset = presetName => {
+		const preset = getPercussionPreset(presetName)
+		if (!preset)
+		{
+			return null
+		}
+
+		applyPercussionKitPreset(preset.kit)
+		if (!preset.kit.cowbell)
+		{
+			cowbellTimbreOptions = getCowbellPresetForStyle(preset.group, preset.id)
+		}
+		if (preset.seed || preset.intent)
+		{
+			drumArranger = createDrumArranger({
+				seed:preset.seed ?? preset.id,
+				groove:preset.groove,
+				bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
+				intent:preset.intent ?? {},
+				phraseBars:preset.phraseBars,
+				stepsPerBar:preset.stepsPerBar
+			})
+		}
+		if (preset.intent)
+		{
+			drumArranger?.setIntent(preset.intent)
+		}
+		if (Number.isFinite(preset.program))
+		{
+			changeDrumPattern(preset.program)
+		}
+
+		return preset
+	}
+
+	const previewPercussionPreset = presetName => {
+		const preset = getPercussionPreset(presetName)
+		if (!preset || !kit || !audioContext)
+		{
+			return false
+		}
+
+		const kick = findPercussionPreset(PRESETS_KICKS, preset.kit.kick)
+		const snare = findPercussionPreset(PRESET_SNARES, preset.kit.snare)
+		const hat = findPercussionPreset(PRESET_HIHATS, preset.kit.hat)
+		if (!kick || !snare || !hat)
+		{
+			return false
+		}
+
+		resumeAudio()
+		const pair = getHatPair(hat)
+		const groove = DRUM_GROOVES[preset.groove] ?? {
+			kick:[255,0,0,0,0,0,0,0],
+			snare:[0,0,0,0,230,0,0,0],
+			hat:[170,0,110,0,185,0,120,90]
+		}
+		const stepDuration = 60 / 120 / 4
+		const previewSteps = Math.min(8, groove.kick.length, groove.snare.length, groove.hat.length)
+		const startsAt = audioContext.currentTime + 0.025
+
+		for (let step=0; step<previewSteps; step++)
+		{
+			const triggerAt = startsAt + step * stepDuration
+			if (groove.kick[step] > 0)
+			{
+				kit.kick({ ...kick, velocity:groove.kick[step] / 255 * 0.72, triggerAt })
+			}
+			if (groove.snare[step] > 0)
+			{
+				kit.snare({ ...snare, velocity:groove.snare[step] / 255 * 0.68, triggerAt })
+			}
+			if (groove.hat[step] > 0)
+			{
+				const previewHat = step % 4 === 3 ? pair.open : pair.closed
+				kit.hat({ ...previewHat, velocity:groove.hat[step] / 255 * 0.5, triggerAt })
+			}
+		}
+		return true
 	}
 	
 	/**
@@ -824,19 +1008,28 @@ export const createInterface = (
 		switch(part)
 		{
 			case 'kick':
+				notifyDrumPart('kick', triggerOptions)
 				return kit.kick({ ...eyeControlledTimbres.kick, ...triggerOptions })
 
 			case 'snare':
+				notifyDrumPart('snare', triggerOptions)
 				return kit.snare({ ...eyeControlledTimbres.snare, ...triggerOptions })
 
 			case 'hat':
+				notifyDrumPart('hat', triggerOptions)
 				return kit.hat({ ...eyeControlledTimbres.hat, ...triggerOptions })
 
 			case 'clap':
+				notifyDrumPart('clap', triggerOptions)
 				return kit.clap(triggerOptions)
 
 			case 'cowbell':
-				return kit.cowbell(triggerOptions)
+				notifyDrumPart('cowbell', triggerOptions)
+				return kit.cowbell({ ...cowbellTimbreOptions, ...triggerOptions })
+
+			case 'clack':
+				notifyDrumPart('clack', triggerOptions)
+				return kit.clack(triggerOptions)
 
 			default:
 				return null
@@ -928,6 +1121,119 @@ export const createInterface = (
 		return clock.BPM
 	}
 
+	const syncTempoControls = () => {
+		const tempoRange = document.getElementById("tempo-input-range")
+		const tempoField = document.getElementById("tempo-input-text")
+		const swingRange = document.getElementById("tempo-swing-range")
+		const swingOutput = document.getElementById("tempo-swing-output")
+
+		if (tempoRange)
+		{
+			tempoRange.value = clock.BPM
+		}
+		if (tempoField)
+		{
+			tempoField.value = Number(clock.BPM).toFixed(1)
+		}
+		if (swingRange)
+		{
+			swingRange.value = clock.swing
+		}
+		if (swingOutput)
+		{
+			swingOutput.value = `${Math.round(clock.swing * 100)}%`
+			swingOutput.innerText = swingOutput.value
+		}
+	}
+
+	const applyEnsemblePresetOptions = (preset={}) => {
+		const { tempo, harmony, percussion } = preset
+
+		if (tempo && clock)
+		{
+			if (Number.isFinite(tempo.bpm))
+			{
+				setBPM(tempo.bpm)
+			}
+			if (Number.isFinite(tempo.swing))
+			{
+				clock.swing = tempo.swing
+				stateMachine.set("swing", clock.swing)
+			}
+			syncTempoControls()
+		}
+
+		if (harmony)
+		{
+			if (harmony.mode === "free-range")
+			{
+				stateMachine.set("harmonyMode", "free-range")
+				if (selects.key)
+				{
+					selects.key.value = "free-range"
+				}
+			}else{
+				stateMachine.set("harmonyMode", "global-key")
+				if (harmony.key)
+				{
+					stateMachine.set("key", harmony.key, selects.key)
+					if (selects.key)
+					{
+						selects.key.value = normaliseKeyName(getPitchClassForKey(harmony.key))
+					}
+				}
+				if (harmony.scale)
+				{
+					stateMachine.set("keyScale", harmony.scale, selects.keyScale)
+					if (selects.keyScale)
+					{
+						selects.keyScale.value = harmony.scale
+					}
+				}
+			}
+			updateKeyScaleControlVisibility()
+		}
+
+		if (percussion)
+		{
+			applyPercussionKitPreset(percussion.kit)
+			if (percussion.enabled === false)
+			{
+				stateMachine.set("backingTrack", false, buttonPercussion)
+				setElementCheckState(buttonPercussion, false)
+				kit?.cancel()
+			}
+			if (percussion.enabled === true)
+			{
+				stateMachine.set("backingTrack", true, buttonPercussion)
+				setElementCheckState(buttonPercussion, true)
+			}
+			if (percussion.seed || percussion.intent || percussion.groove)
+			{
+				drumArranger = createDrumArranger({
+					seed:percussion.seed ?? preset.id,
+					groove:percussion.groove,
+					bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
+					intent:percussion.intent ?? {},
+					phraseBars:percussion.phraseBars,
+					stepsPerBar:percussion.stepsPerBar
+				})
+			}
+			if (percussion.intent)
+			{
+				drumArranger?.setIntent(percussion.intent)
+			}
+			if (Number.isFinite(percussion.program))
+			{
+				changeDrumPattern(percussion.program)
+			}
+			if (percussion.fill)
+			{
+				drumArranger?.requestFill(1)
+			}
+		}
+	}
+
 	// PRESETS & INSTRUMENTS ==========================================================================================
 
 	/**
@@ -936,7 +1242,7 @@ export const createInterface = (
 	 * @param {Function} callback Method to run once instruments have loaded
 	 * @returns {Function} instrument name (raw)
 	 */
-	const loadInstrumentPreset = async (method, callback, skipLoading = false) => personManager.people.map( async (person) => { 
+	const loadInstrumentPreset = async (method, callback, skipLoading = true) => personManager.people.map( async (person) => { 
 		
 		// if the previous instrument hasn't finished loading, 
 		// we don't want to flood everything so we wait for it 
@@ -955,10 +1261,10 @@ export const createInterface = (
 	/**
 	 * Be *sure* to make these the identical same as the names in the instrument Interface
 	 */
-	const loadRandomInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('loadRandomPreset', callback, skipLoading )
-	const previousInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('loadPreviousPreset', callback, skipLoading )
-	const nextInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('loadNextPreset', callback, skipLoading )
-	const reloadInstrument = async (callback, skipLoading = false) => await loadInstrumentPreset('reloadPreset', callback, skipLoading )
+	const loadRandomInstrument = async (callback, skipLoading = true) => await loadInstrumentPreset('loadRandomPreset', callback, skipLoading )
+	const previousInstrument = async (callback, skipLoading = true) => await loadInstrumentPreset('loadPreviousPreset', callback, skipLoading )
+	const nextInstrument = async (callback, skipLoading = true) => await loadInstrumentPreset('loadNextPreset', callback, skipLoading )
+	const reloadInstrument = async (callback, skipLoading = true) => await loadInstrumentPreset('reloadPreset', callback, skipLoading )
 
 
 	// PEOPLE ==========================================================================================
@@ -1019,6 +1325,8 @@ export const createInterface = (
 				drawMask:stateMachine.get('masks'),
 				// drawNodes:ui.masks,
 				drawEyes:stateMachine.get('eyes'),
+				drawEyebrows:stateMachine.get('eyebrows'),
+				drawMouth:stateMachine.get('lips'),
 
 				recordData:stateMachine.get('recordData')				
 			},
@@ -1050,6 +1358,11 @@ export const createInterface = (
 		person.addEventListener( EVENT_EMOTION_UNLOCKED,  (event) => {
 			const {detail} = event.data
 			const {achievement, emoticon, person} = detail
+			const completion = directions?.completeExpression?.(emoticon, person)
+			if (completion)
+			{
+				person.applyDirectionCompletion?.(completion)
+			}
 			//console.log(`[${person.name}] Achievement ${achievement?.title ?? emoticon} Unlocked!: ${person.achievementPoints}`)
 		})
 
@@ -1248,11 +1561,25 @@ export const createInterface = (
 	 * @param {Person} person 
 	 * @returns {Object} of metadata
 	 */
-	const playPersonAudio = async ( person ) => {
+	const playPersonAudio = async ( person, timeNow ) => {
 		
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
+		person.markPlayPersonAudioInactive?.()
+		const hasRepeatClock = Number.isFinite(timeNow)
+		const repeatRateMs = person.options?.noteRepeatRateMs ?? 300
+		const isFreshAttack = person.state === STATE_INSTRUMENT_ATTACK
+		if (hasRepeatClock && isFreshAttack)
+		{
+			person.lastNoteRepeatedAt = timeNow
+		}
 
+		const shouldRepeatNote = person.options?.autoRepeat === true &&
+			!isFreshAttack &&
+			person.singing &&
+			person.noteVelocity > 0 &&
+			hasRepeatClock &&
+			timeNow - (person.lastNoteRepeatedAt ?? 0) >= repeatRateMs
 		if (person.options?.muted)
 		{
 			stopPersonAudio(person)
@@ -1273,6 +1600,7 @@ export const createInterface = (
 			//console.warn("SING Exit as no note with that name exists",{noteName,stuff, person:person.instrument})
 			return modelData
 		}
+		person.markPlayPersonAudioActive?.()
 	
 		// If there is a MIDI file in memory, we can use the data to overwrite the
 		// person data with the next part from the MIDI file data
@@ -1332,10 +1660,14 @@ export const createInterface = (
 					break
 
 				default:
-					audioOutput = updateInstrumentWithPerson( instrument, person, !stateMachine.get("midiOnly") )		
+					audioOutput = updateInstrumentWithPerson( instrument, person, !stateMachine.get("midiOnly"), shouldRepeatNote )			
 			}
 			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
+		if (shouldRepeatNote)
+		{
+			person.lastNoteRepeatedAt = timeNow
+		}
 
 		// Send person created data to midi
 		if (audioOutput && audioOutput.length > 0)
@@ -1437,6 +1769,7 @@ export const createInterface = (
 		{
 			return
 		}
+		person.markPlayPersonAudioInactive?.()
 		person.instruments.forEach( async (instrument) => {
 			// console.log("sing", instrument.type, person.state, { instrument, person } )
 			instrument.noteOff()
@@ -1964,6 +2297,7 @@ export const createInterface = (
 				// we also clear if sync is not set to true
 				// as this means the video is playing behind
 				// the canvas on the DOM
+				display.clearFaceFeatures?.()
 				if (display.transparentCanvas || stateMachine.get("clear") || !stateMachine.get("synch"))
 				{
 					// clear for invisible canvas but 
@@ -2091,6 +2425,7 @@ export const createInterface = (
 						const colours = person.setColours( prediction, false, hasBeatJustPlayed)
 					// TODO: Add highlighted and selected variants
 						display.drawPerson( person, hasBeatJustPlayed, colours )
+						display.drawFaceFeatures?.(person, colours)
 	
 						if (stateMachine.get("text"))
 						{
@@ -2106,7 +2441,7 @@ export const createInterface = (
 						// we can "sing" in realtime
 						if (person.alive)
 						{
-							playPersonAudio( person )
+							playPersonAudio( person, timeNow )
 						}else{
 							stopPersonAudio( person )
 						}
@@ -2162,6 +2497,7 @@ export const createInterface = (
 					{
 						const colours = person.setColours(cachedPrediction, false, hasBeatJustPlayed)
 						display.drawPerson( person, hasBeatJustPlayed, colours )
+						display.drawFaceFeatures?.(person, colours)
 
 						if (stateMachine.get("text"))
 						{
@@ -2217,6 +2553,7 @@ export const createInterface = (
 			// FEEDBACK TEXT --------------------------------------------
 			// we only want to change the instruciton set if the feedback is allowed
 			let textInstruction
+			let textInstructionStyle = "none"
 
 			// No faces were detected
 			if (quantityOfActivePlayers === 0 || !predictions)
@@ -2227,7 +2564,7 @@ export const createInterface = (
 					// Need to show instructions to the user...
 					// as no face can be detected
 					textInstruction = getHelp( textHelpIndex )
-					textHelpIndex = (textHelpIndex + 1) % quantityInstructions
+					textHelpIndex = (textHelpIndex + 1) % quantityHelp
 				
 
 				}else{
@@ -2236,7 +2573,7 @@ export const createInterface = (
 					// Need to show instructions to the user...
 					// as no face can be detected
 					textInstruction = getHelp( textHelpIndex )
-					textHelpIndex = (textHelpIndex + 1) % quantityInstructions
+					textHelpIndex = (textHelpIndex + 1) % quantityHelp
 					
 				}
 	
@@ -2249,8 +2586,15 @@ export const createInterface = (
 				textInstruction = "Masterpiece complete! \nA lovely composition, very creative \nI hope you had fun =P"
 			}else{
 				// Faces found so show the next set of instructions
-				textInstruction = getInstruction( textInstructionIndex ) 
-				textInstructionIndex = (textInstructionIndex + 1) % quantityHelp
+				const direction = directions?.getNextDirection?.(personManager.people)
+				if (direction)
+				{
+					textInstruction = direction.message
+					textInstructionStyle = direction.className ?? "direction"
+				}else{
+					textInstruction = getInstruction( textInstructionIndex ) 
+					textInstructionIndex = (textInstructionIndex + 1) % quantityInstructions
+				}
 				
 				// textInstruction = getInstruction( Math.floor( textInstructionIndex * 0.01 ) ) 
 				// console.info("instructions", Math.floor( counter * 0.01 ), getInstruction( Math.floor( counter * 0.01 ) ))
@@ -2258,7 +2602,7 @@ export const createInterface = (
 			}
 			// console.error(textInstructionIndex, "HELP UPDATED TO", textInstruction)
 
-			setFeedback( textInstruction )
+			setFeedback( textInstruction, 2, textInstructionStyle )
 		}else{
 			// something!
 			// console.error("HELP IGNORED!")
@@ -2496,7 +2840,7 @@ export const createInterface = (
 				timeElapsedElement.textContent = formatTimeStampFromSeconds( countdown.elapsed * 0.001, false )  // + " @ " + clock.timeCode
 			}		
 			// isQuarterNote // isAtStart
-			if (clock.isHalfNote)
+			if (isHalfNote)
 			{
 				// move the ball and the progress bar scrubber position
 				countdownProgressElement.setAttribute("style", `--p:${countdown.percentElapsed}` )
@@ -2538,15 +2882,20 @@ export const createInterface = (
 				// sing note and draw to canvas
 				// chcek if quarternote
 				const arp = person.activeInstrument ? 
-								person.activeInstrument.arpeggio : 
+								person.activeInstrument.arpeggiate : 
 								false
 
-				// this varies depending on the type of instrument...
-				// if it is arpegiatted then we don't play it quite so ofter...
-				// Arps are slower on the half note?
-				let measure = arp ? 
-									(i === 4 ? isBar : isHalfNote) :
-									isHalfNote // isQuarterNote
+				const arpeggioTiming = arp ? getArpeggioTiming(clock.BPM, {
+					isBar,
+					isHalfNote,
+					forceBar:i === 4
+				}) : null
+				if (arpeggioTiming)
+				{
+					person.activeInstrument.setArpeggioGate?.(arpeggioTiming.gateMs)
+				}
+
+				let measure = arp ? arpeggioTiming.shouldTrigger : isQuarterNote
 
 				// console.info("quantise:person", person, "measure", measure, "arp", arp )
 
@@ -2556,7 +2905,7 @@ export const createInterface = (
 					if (person.alive)
 					{
 
-						playPersonAudio( person )
+						playPersonAudio( person, clock.now )
 					}else{
 						stopPersonAudio( person )
 					}
@@ -2628,10 +2977,41 @@ export const createInterface = (
 					hat: eyeControlledTimbres.muteHat
 				})
 				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
-				if (parts.kick > 0) kit.kick({ ...eyeControlledTimbres.kick, velocity: parts.kick / 255, triggerAt })
-				if (parts.snare > 0) kit.snare({ ...eyeControlledTimbres.snare, velocity: parts.snare / 255, triggerAt })
-				if (parts.hat > 0) kit.hat({ ...eyeControlledTimbres.hat, velocity: parts.hat / 255, triggerAt })
-				if (parts.clap > 0) kit.clap({ velocity: parts.clap / 255, triggerAt })
+				if (parts.kick > 0) {
+					notifyDrumPart('kick', { velocity: parts.kick / 255, triggerAt, source: 'backingTrack' })
+					kit.kick({ ...eyeControlledTimbres.kick, velocity: parts.kick / 255, triggerAt })
+				}
+				if (parts.snare > 0) {
+					notifyDrumPart('snare', { velocity: parts.snare / 255, triggerAt, source: 'backingTrack' })
+					kit.snare({ ...eyeControlledTimbres.snare, velocity: parts.snare / 255, triggerAt })
+				}
+				if (parts.hat > 0) {
+					const hat = parts.hatOpen ? openHatTimbreOptions : closedHatTimbreOptions
+					notifyDrumPart('hat', { velocity: parts.hat / 255, triggerAt, open: Boolean(parts.hatOpen), source: 'backingTrack' })
+					kit.hat({ ...hat, velocity: parts.hat / 255, triggerAt })
+				}
+				if (parts.clap > 0) {
+					notifyDrumPart('clap', { velocity: parts.clap / 255, triggerAt, source: 'backingTrack' })
+					kit.clap({ velocity: parts.clap / 255, triggerAt })
+				}
+				if (parts.cowbell > 0) {
+					notifyDrumPart('cowbell', { velocity: parts.cowbell / 255, triggerAt, source: 'backingTrack' })
+					kit.cowbell({ ...cowbellTimbreOptions, velocity: parts.cowbell / 255, triggerAt })
+				}
+				for (const event of parts.events ?? []) {
+					const eventAt = triggerAt + event.offset
+					const velocity = event.velocity / 255
+					if (event.lane === 'snare') {
+						const timbre = applyDrumSubHitEnvelope(eyeControlledTimbres.snare, event)
+						notifyDrumPart('snare', { velocity, triggerAt:eventAt, source:'backingTrackFill' })
+						kit.snare({ ...timbre, velocity, triggerAt:eventAt })
+					}
+					if (event.lane === 'hat') {
+						const timbre = applyDrumSubHitEnvelope(closedHatTimbreOptions, event)
+						notifyDrumPart('hat', { velocity, triggerAt:eventAt, open:false, source:'backingTrackFill' })
+						kit.hat({ ...timbre, velocity, triggerAt:eventAt })
+					}
+				}
 			}
 			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
@@ -2785,10 +3165,19 @@ export const createInterface = (
 			console.error("FAIL: PhotoSYNTH Screens available", error, { settings} ) 
 			progressCallback(1, "No Holographic display detected")
 			showError("Could not access display code", "importing code has failed perhaps due to internet connection.", true)
-			// return reject( "Could not access display code" )
+			try
+			{
+				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop, false)
+				stateMachine.set("display", display.type ?? DISPLAY_TYPES.DISPLAY_CANVAS_2D)
+			}
+			catch(fallbackError)
+			{
+				console.error("FAIL: PhotoSYNTH fallback display unavailable", fallbackError)
+				throw fallbackError
+			}
 		}
 
-		progressCallback(loadIndex++/loadTotal, "Loading display " + display.type )
+		progressCallback(loadIndex++/loadTotal, "Loading display " + (display?.type ?? displayManager.type) )
 		
 		// MOTION TRACKING --------------------------------------------------------------------------------
 		fetchPredictionFromEngine = fetchPredictions
@@ -2956,10 +3345,10 @@ export const createInterface = (
 				smoothingTimeConstant:0.45,
 			
 				// pass the raw drums through a compressor
-				drumCompressor:false,
+				drumCompressor:true,
 			
 				// default volume for the drum track
-				drumVolume:0.18
+				drumVolume:0.2
 			}
 			
 			// VU Analyser and data
@@ -3008,6 +3397,30 @@ export const createInterface = (
 			
 			const percussionAmp = getPercussionNode()
 			kit = createDrumkit( audioContext, percussionAmp )
+			kit.setTonic(
+				stateMachine.get("harmonyMode") === "global-key"
+					? getPitchClassForKey(stateMachine.get("key"))
+					: undefined
+			)
+			const snareReverbInput = document.getElementById("snare-reverb-range")
+			const snareReverbOutput = document.getElementById("snare-reverb-value")
+			if (snareReverbInput)
+			{
+				const setSnareReverbAmount = value => {
+					const amount = kit.setSnareReverb(value)
+					snareReverbInput.value = amount
+					if (snareReverbOutput) snareReverbOutput.value = `${Math.round(amount * 100)}%`
+					return amount
+				}
+				setSnareReverbAmount(stateMachine.get("snareReverb") ?? snareReverbInput.value)
+				snareReverbInput.oninput = event => {
+					const amount = setSnareReverbAmount(event.currentTarget.value)
+					stateMachine.set("snareReverb", amount)
+				}
+				snareReverbInput.onchange = () => {
+					setFeedback(`Snare reverb ${snareReverbOutput?.value ?? ""}`, 0, "reverb")
+				}
+			}
 			patterns = getKitSequence()
 			drumArranger = createDrumArranger({
 				seed: "backing-track",
@@ -3333,8 +3746,13 @@ export const createInterface = (
 		}, stateMachine.get( 'metronome') )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
-			// change drums!
-			setRandomDrumTimbres()
+			const drumkitPreset = stateMachine.get("drumkit")
+			if (drumkitPreset)
+			{
+				applyPercussionPreset(drumkitPreset)
+			}else{
+				setRandomDrumTimbres()
+			}
 			setRandomDrumPattern()
 			toggleBackgroundPercussion(false)
 			// cancel any playing drum sounds immediately
@@ -3430,6 +3848,16 @@ export const createInterface = (
 			// setFeedback( flag ? 'Googly eyes' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
 		}, stateMachine.get( 'eyes') )
 
+		toggles.eyebrows = setToggle( "button-eyebrows", status => {
+			const flag = stateMachine.toggle( 'eyebrows' )
+			personManager.setPlayerOption("drawEyebrows", flag )
+		}, stateMachine.get( 'eyebrows') )
+
+		toggles.lips = setToggle( "button-lips", status => {
+			const flag = stateMachine.toggle( 'lips' )
+			personManager.setPlayerOption("drawMouth", flag )
+		}, stateMachine.get( 'lips') )
+
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
 			stateMachine.toggle( 'text' )
@@ -3458,6 +3886,7 @@ export const createInterface = (
 			syncAdvancedModeClass( advancedMode )
 			setFeedback( status ? 'Advanced' : 'Basic', 0 )
 			loadInstructionSet().catch( error => console.error("Failed to switch instruction mode", error) )
+			loadDirectionSet().catch( error => console.error("Failed to switch direction mode", error) )
 		})
 
 		syncAdvancedModeClass( stateMachine.get('advancedMode') )
@@ -3667,9 +4096,7 @@ export const createInterface = (
 		}
 		if (stateMachine.get("trackFace"))
 		{
-			// try and load GPU version too...
 			modelTypes.push("face")
-			modelTypes.push("face-gpu")
 			loadTotal++
 		}
 		
@@ -3741,6 +4168,7 @@ export const createInterface = (
 		
 		progressCallback(loadIndex++/loadTotal, "Instructions Available")
 		await loadInstructionSet( language )
+		await loadDirectionSet( language )
 	
 		// Load tf model and wait
 		// this gets returned then used an the update method
@@ -3859,9 +4287,115 @@ export const createInterface = (
 			// console.assert( !debug, i, "Person created", person)
 		}
 
-		setupEnsemblePresetPanel(personManager.people, preset => {
-			setFeedback(`${preset.title} loaded`, 0, "instrument")
+		const ensemblePresetAPI = await setupEnsemblePresetPanel(personManager.people, {
+			applyOptions:applyEnsemblePresetOptions,
+			onSelected:preset => {
+				stateMachine.set("ensemblePreset", preset.id)
+			},
+			onApplied:preset => setFeedback(`${preset.title} loaded`, 0, "instrument")
 		})
+
+		if (ensemblePresetAPI)
+		{
+			const selectedPresetId = stateMachine.get("ensemblePreset") ?? "default"
+			if (selectedPresetId !== "default")
+			{
+				await ensemblePresetAPI.applyPresetById(selectedPresetId)
+			}
+		}
+
+		const selectedDrumkitPreset = stateMachine.get("drumkit") ?? ""
+		const percussionGroups = PERCUSSION_PRESETS.reduce((groups, preset) => {
+			const group = preset.group ?? "Other"
+			const existing = groups.find(item => item.group === group)
+			const option = { value:preset.id, label:preset.title, selected:selectedDrumkitPreset === preset.id }
+			if (existing) existing.items.push(option)
+			else groups.push({ group, items:[option] })
+			return groups
+		}, [{ group:"Random", items:[{ value:"", label:"Random", selected:!selectedDrumkitPreset }] }])
+		populateSelect("select-percussion-preset", percussionGroups)
+		selects.drumkit = connectSelect("select-percussion-preset", option => {
+			const presetName = option.value
+			stateMachine.set("drumkit", presetName, selects.drumkit)
+			if (!presetName)
+			{
+				return
+			}
+
+			const preset = applyPercussionPreset(presetName)
+			if (preset)
+			{
+				setFeedback(`${preset.title} percussion loaded`, 0, "beats")
+			}
+		})
+		if (selects.drumkit)
+		{
+			selects.drumkit.value = selectedDrumkitPreset
+			let previewTimer
+			let previewOption
+			let lastPreviewName = ""
+			let lastPreviewAt = 0
+			const queuePreview = (option, delay=240) => {
+				if (!option?.value || option.disabled)
+				{
+					return
+				}
+				clearTimeout(previewTimer)
+				previewOption = option
+				previewTimer = setTimeout(() => {
+					const now = performance.now()
+					if (option.value === lastPreviewName && now - lastPreviewAt < 1200)
+					{
+						return
+					}
+					if (previewPercussionPreset(option.value))
+					{
+						lastPreviewName = option.value
+						lastPreviewAt = now
+					}
+				}, delay)
+			}
+
+			// Customizable selects expose their option content to pointer events.
+			// Classic selects retain keyboard preview through the input event.
+			selects.drumkit.addEventListener("pointerover", event => {
+				const option = event.target.closest?.("option")
+				if (option && option !== previewOption)
+				{
+					queuePreview(option)
+				}
+			})
+			selects.drumkit.addEventListener("pointerout", event => {
+				const option = event.target.closest?.("option")
+				if (option && !option.contains(event.relatedTarget))
+				{
+					clearTimeout(previewTimer)
+					previewOption = null
+				}
+			})
+			selects.drumkit.addEventListener("input", () => {
+				queuePreview(selects.drumkit.options[selects.drumkit.selectedIndex], 0)
+			})
+		}
+		if (selectedDrumkitPreset)
+		{
+			const preset = applyPercussionPreset(selectedDrumkitPreset)
+			if (preset)
+			{
+				stateMachine.set("drumkit", preset.id, selects.drumkit)
+				if (selects.drumkit)
+				{
+					selects.drumkit.value = preset.id
+				}
+			}else{
+				console.warn(`Unknown percussion preset: ${selectedDrumkitPreset}`)
+				stateMachine.set("drumkit", "", selects.drumkit)
+				if (selects.drumkit)
+				{
+					selects.drumkit.value = ""
+				}
+			}
+		}
 		
 		// as we are now "full screen" the positions of the tooltips needs
 		// to be recaulated so we do them all here
@@ -3897,7 +4431,7 @@ export const createInterface = (
 
 			addEventListener:addListener,
 			
-			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, playPercussionPart, toggleBackgroundPercussion,
+			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, playPercussionPart, addDrumPartListener, notifyDrumPart, toggleBackgroundPercussion,
 		
 			midiPerformance,
 
@@ -4030,6 +4564,7 @@ export const createInterface = (
 		stateMachine.set("advancedMode", results.advancedMode  ?? false )
 		stateMachine.set("automationMode", automationMode )
 		loadInstructionSet().catch( error => console.error("Failed to refresh instructions after mode selection", error) )
+		loadDirectionSet().catch( error => console.error("Failed to refresh directions after mode selection", error) )
 	})
 
 	//console.warn("Loading machine learning models with options", modelOptions)

@@ -15,10 +15,16 @@ export const getThemeFromReferer = referer => {
 }
 
 export const setupThemeControls = (themeSelector, callback) => {
+	if (!themeSelector)
+	{
+		return null
+	}
+
 	themeSelector.onchange = e => {
 		const requestedTheme = themeSelector.value
 		console.log("Changing theme to ", requestedTheme)
 		setTheme( requestedTheme )
 		callback && callback(requestedTheme)
 	}	
+	return themeSelector
 }

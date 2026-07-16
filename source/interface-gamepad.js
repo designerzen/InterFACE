@@ -20,6 +20,8 @@ import {
 } from "./hardware/gamepad/gamepad-device-names.js"
 
 import { PicadeLeds, PICADE_MAX_BUTTONS, picadeColor } from "./hardware/gamepad/picade-leds.js"
+import { isPicadeMaxInputController } from './hardware/gamepad/picade-max-input-controller.js'
+import { configurePersonByOperatingMode } from './people/person.presets.js'
 
 export const GAMEPAD_MODE_PERCUSSION = 'beats'
 export const GAMEPAD_MODE_INSTRUMENT = 'instruments'
@@ -102,8 +104,22 @@ const setGamePadStatus = (application, gamePad, gamePadPlayerIndex, detail = '',
 	})
 }
 
-const isPicadeGamepad = gamePad => PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
+const isPicadeGamepad = gamePad =>
+	isPicadeMaxInputController(gamePad?.gamepad)
+	|| PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
 const getEventGamePad = (value, gamePad) => gamePad ?? (value?.gamepad ? value : null)
+const cyclePicadePersonMode = (application, person, playerIndex, gamePad) => {
+	if (!person) {
+		application.setFeedback?.(`${getGamePadPlayerLabel(playerIndex)} mode unavailable`, 0, 'gamepad')
+		setGamePadStatus(application, gamePad, playerIndex, `${getGamePadPlayerLabel(playerIndex)} / Mode unavailable`, true)
+		return null
+	}
+	configurePersonByOperatingMode(person, person.userMode + 1)
+	const mode = person.userModeData?.description ?? `Mode ${person.userMode + 1}`
+	application.setFeedback?.(`${getGamePadPlayerLabel(playerIndex)} mode: ${mode}`, 0, 'gamepad')
+	setGamePadStatus(application, gamePad, playerIndex, `${getGamePadPlayerLabel(playerIndex)} / ${mode}`, true)
+	return mode
+}
 const getPicadeFallbackLed = button => {
 	const name = String(button)
 	let hash = 0
@@ -621,6 +637,9 @@ export const addGamePadEvents = (application) => {
 
 	gamePadManager.addEventListener( async ( eventName, value, gamePad, heldFor ) => {
 		const activeGamePad = getEventGamePad(value, gamePad)
+		// Picade Max is handled by interface-keyboard's two-player adapter. This
+		// keeps its player-specific drum routes from being doubled by generic pads.
+		if (application.picadeMaxInputActive && isPicadeGamepad(activeGamePad)) return
 		console.info("GAMEPAD:", {eventName, value, mode: GAMEPAD_MODES[gamePadModeIndex], gamePad: activeGamePad, heldFor}, arguments )
 		switch(eventName)
 		{
@@ -670,6 +689,11 @@ export const addGamePadEvents = (application) => {
 				// This changes the "selected" user by highlighting their outline
 				// this then targets the controller for that specfific person.	
 				case BUTTON_SELECT: 
+					if (isPicadeGamepad(activeGamePad))
+					{
+						cyclePicadePersonMode(application, personManager.getPerson(gamePadPlayerIndex), gamePadPlayerIndex, activeGamePad)
+						break
+					}
 					// We can check to see if we are deslected
 					const currentlySelected = personManager.selectedPersonIndex
 					const isLastPersonSelected = currentlySelected >= playerQuantity - 1
@@ -691,6 +715,12 @@ export const addGamePadEvents = (application) => {
 					break
 				
 				case BUTTON_START: 
+					if (isPicadeGamepad(activeGamePad))
+					{
+						application.setFeedback( `${getGamePadPlayerLabel(gamePadPlayerIndex)} Start`, 0, 'gamepad' )
+						setGamePadStatus(application, activeGamePad, gamePadPlayerIndex, `${getGamePadPlayerLabel(gamePadPlayerIndex)} / Start`, true)
+						break
+					}
 					const mode = setMode( gamePadModeIndex + 1 )
 					application.setFeedback( mode + " mode", 0, 'gamepad' )
 					setGamePadStatus(application, activeGamePad, gamePadPlayerIndex, `${getGamePadPlayerLabel(gamePadPlayerIndex)} / ${mode}`, true)

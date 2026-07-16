@@ -22,6 +22,36 @@ import Attractor from './attractor.js'
 import { addKeyboardEvents } from './interface-keyboard.js'
 import { addGamePadEvents } from './interface-gamepad.js'
 
+// Keep optional Picade hardware outside the main application bundle. The small
+// USB-ID detector is loaded first; the specialised interface is only imported
+// after it positively identifies a Picade Max Input gamepad.
+const loadPicadeMaxInterfaceWhenDetected = application => {
+	let loaded = false
+	let loading = false
+
+	const inspectGamepad = async gamepad => {
+		if (loaded || loading || !gamepad) return
+		loading = true
+		try {
+			const { getPicadeMaxGamepadInfo } = await import('./hardware/gamepad/picade-max-interface.js')
+			const picade = getPicadeMaxGamepadInfo(gamepad)
+				? gamepad
+				: Array.from(navigator.getGamepads?.() ?? []).find(getPicadeMaxGamepadInfo)
+			if (!picade) return
+			const { addPicadeMaxEvents } = await import('./interface-picade-max.js')
+			loaded = true
+			addPicadeMaxEvents(application)
+		} catch (error) {
+			console.warn('Unable to load Picade Max interface', error)
+		} finally {
+			loading = false
+		}
+	}
+
+	window.addEventListener('gamepadconnected', event => inspectGamepad(event.gamepad))
+	for (const gamepad of navigator.getGamepads?.() ?? []) inspectGamepad(gamepad)
+}
+
 // If you have nodeIntegration enabled you can call this directly...
 // import VirtualMIDIClass from './audio/midi/midi-connection-virtual.js'
 // or if you care about security (at the expense of speed) then you can use
@@ -310,6 +340,7 @@ const start = async () => {
 		
 		if ( application.getState("gamePad") )
 		{
+			loadPicadeMaxInterfaceWhenDetected(application)
 			addGamePadEvents( application )
 		}
 
