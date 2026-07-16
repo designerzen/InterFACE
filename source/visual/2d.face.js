@@ -1,6 +1,7 @@
 import { LEFT_EYE_PATH, LEFT_IRIS_PATH, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from "../models/face-landmark-constants.js"
 import { subdivideKeypoints } from "../models/avatar.js"
 import { drawEye } from "./2d.eyes.js"
+import { drawEyebrows } from './2d.eyebrows.js'
 
 const faceOvalStyle = {
 	// The color that is used to draw the shape. Defaults to white.
@@ -35,18 +36,6 @@ const blobStyle = {
 	radius: 0.25
 }
 
-const eyeBrowStyle = { 
-	color: "#FF000070", 
-	/**
-	 * The color that is used to fill the shape. Defaults to `.color` (or black
-	 * if color is not set).
-	 * string | CanvasGradient | CanvasPattern | Callback<LandmarkData, string | CanvasGradient | CanvasPattern>;
-	 */
-	fillColor: "hsls(90,50%,50%, 0.5)",
-
-	lineWidth: 1 
-}
-
 const highlightFaceOvalStyle = {
 	color: "white",
 	lineWidth: 4
@@ -64,7 +53,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	const pointLandmarks = displayOptions.geometrySubdivisions > 0
 		? subdivideKeypoints(landmarks, displayOptions.geometrySubdivisions)
 		: landmarks
-	const options = person.options
+	const options = { ...displayOptions, ...person.options }
 	// const flipped = options.flipped
 
 	// const hue = person.hue
@@ -287,24 +276,10 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	}
 	
 	if (options.drawEyebrows){
-
-		eyeBrowStyle.color = color
-		eyeBrowStyle.fillColor = options.leftEyebrow
-
-		// FIXME: draw some funky eyebrows!
-		drawingUtils.drawConnectors(
-			landmarks,
-			FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
-			eyeBrowStyle
-		)
-
-		eyeBrowStyle.fillColor = options.rightEyebrow
-
-		drawingUtils.drawConnectors(
-			landmarks,
-			FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
-			eyeBrowStyle
-		)
+		const leftEyebrow = FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW.map(connection => landmarks[connection.start])
+		const rightEyebrow = FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW.map(connection => landmarks[connection.start])
+		drawEyebrows(canvasContext, leftEyebrow, true, { ...options, color })
+		drawEyebrows(canvasContext, rightEyebrow, false, { ...options, color })
 
 	}else{
 		// default fails
