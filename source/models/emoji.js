@@ -425,6 +425,98 @@ export const EMOJI_SEQUENCE_HAPPINESS = [
     // Unhappiest
 ]
 
+export const EMOJI_MOOD_ALL = "all"
+export const EMOJI_MOOD_HAPPY = "happy"
+export const EMOJI_MOOD_SAD = "sad"
+
+const HAPPY_EMOJIS = new Set([
+	EMOJI_LEFT_WINK,
+	EMOJI_RIGHT_WINK,
+	EMOJI_SMILING_SLIGHTLY,
+	EMOJI_SMILING_EYES_CLOSED,
+	EMOJI_SMILING_GRIN,
+	EMOJI_SMILING_BIG_GRIN,
+	EMOJI_SMILING_GRIN_SQUINT,
+	EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED,
+	EMOJI_SMILING_GRIN_EYES_CLOSED,
+	EMOJI_KISS,
+	EMOJI_KISS_EYES_CLOSED,
+	EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED,
+	EMOJI_KISSING_WINK,
+	EMOJI_HEARTS,
+	EMOJI_HEART_EYES,
+	EMOJI_STAR_STRUCK,
+	EMOJI_PARTY,
+	EMOJI_HAPPY_TEARS,
+	EMOJI_SAVORING,
+	EMOJI_TONGUE,
+	EMOJI_TONGUE_WINK,
+	EMOJI_TONGUE_SQUINT,
+	EMOJI_HALO,
+	EMOJI_GIGGLING,
+	EMOJI_HUGGING,
+	EMOJI_SUN_FACE,
+	EMOJI_COWBOY,
+	EMOJI_MONEY,
+	EMOJI_SUNGLASSES,
+	EMOJI_CAT_GRINNING,
+	EMOJI_CAT_HAPPY,
+	EMOJI_CAT_TEARS_JOY,
+	EMOJI_CAT_HEART_EYES,
+	EMOJI_CAT_KISSING,
+	EMOJI_PARTY_POPPER,
+	EMOJI_CONFETTI
+])
+
+const SAD_EMOJIS = new Set([
+	EMOJI_CONFUSED,
+	EMOJI_WORRIED,
+	EMOJI_FROWNING,
+	EMOJI_FROWN_EYES_CLOSED,
+	EMOJI_ANGRY,
+	EMOJI_CRYING,
+	EMOJI_UNAMUSED,
+	EMOJI_ANXIOUS,
+	EMOJI_FEARFUL,
+	EMOJI_ANGUISHED_EYEBROWS_RAISED,
+	EMOJI_ANGUISHED,
+	EMOJI_GRIMACING,
+	EMOJI_DOWNCAST_SWEAT,
+	EMOJI_PERSEVERING,
+	EMOJI_TIRED,
+	EMOJI_WAIL,
+	EMOJI_HOLDING_TEARS,
+	EMOJI_PLEADING,
+	EMOJI_CAT_CRYING,
+	EMOJI_CAT_POUTING
+])
+
+export const normaliseEmojiMood = (mood = EMOJI_MOOD_ALL) => {
+	switch(mood)
+	{
+		case EMOJI_MOOD_HAPPY:
+		case EMOJI_MOOD_SAD:
+			return mood
+		default:
+			return EMOJI_MOOD_ALL
+	}
+}
+
+export const isHappyEmoji = emoji => HAPPY_EMOJIS.has(emoji)
+export const isSadEmoji = emoji => SAD_EMOJIS.has(emoji)
+
+export const filterEmojiForMood = (emoji, mood = EMOJI_MOOD_ALL) => {
+	switch(normaliseEmojiMood(mood))
+	{
+		case EMOJI_MOOD_HAPPY:
+			return isHappyEmoji(emoji) ? emoji : EMOJI_SMILING_SLIGHTLY
+		case EMOJI_MOOD_SAD:
+			return isSadEmoji(emoji) ? emoji : EMOJI_FROWNING
+		default:
+			return emoji
+	}
+}
+
 export const isKissingEmoji = emoji => {
 	switch(emoji)
 	{
@@ -438,3 +530,25 @@ export const isKissingEmoji = emoji => {
 			return false
 	}
 }
+
+// These glyphs contain an intentional left/right detail. The renderer keeps
+// both atlas entries so it can match the side of the detected expression.
+export const MIRRORABLE_EMOJIS = Object.freeze([
+	EMOJI_LEFT_WINK,
+	EMOJI_KISSING_WINK,
+	EMOJI_TONGUE_WINK,
+	EMOJI_DIAGONAL_MOUTH,
+	EMOJI_SMIRK,
+	EMOJI_RAISED_EYEBROW,
+	EMOJI_SALUTE,
+	EMOJI_THINKING,
+	EMOJI_SHUSHING,
+	EMOJI_HAND_OVER_MOUTH,
+	EMOJI_GIGGLING,
+	EMOJI_PEEKING,
+	EMOJI_MONOCLE,
+	EMOJI_LYING,
+	EMOJI_DISGUISED,
+	EMOJI_MOON_FACE,
+	EMOJI_MOON_FACE_LEFT
+])

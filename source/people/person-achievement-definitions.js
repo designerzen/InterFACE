@@ -1,4 +1,27 @@
 import expressionAchievements from "./achievements.json"
+import * as EMOJIS from "../models/emoji.js"
+
+const isEmojiConstant = ([name, emoji]) =>
+	name.startsWith("EMOJI_") &&
+	!name.startsWith("EMOJI_MOOD_") &&
+	typeof emoji === "string"
+
+const createDefaultExpressionAchievement = emoticon => ({
+	title:"Emoji Discovery",
+	description:`Unlock ${emoticon}`,
+	message:"New emoji unlocked!",
+	score:8
+})
+
+const expressionAchievementEntries = new Map(Object.entries(expressionAchievements))
+
+Object.entries(EMOJIS)
+	.filter(isEmojiConstant)
+	.forEach(([, emoticon]) => {
+		if (!expressionAchievementEntries.has(emoticon)) {
+			expressionAchievementEntries.set(emoticon, createDefaultExpressionAchievement(emoticon))
+		}
+	})
 
 const createExpressionAchievement = ([emoticon, achievement]) => ({
 	id: `expression:${emoticon}`,
@@ -8,7 +31,7 @@ const createExpressionAchievement = ([emoticon, achievement]) => ({
 	test: stats => stats.expressions.has(emoticon)
 })
 
-export const EXPRESSION_ACHIEVEMENTS = Object.entries(expressionAchievements).map(createExpressionAchievement)
+export const EXPRESSION_ACHIEVEMENTS = Array.from(expressionAchievementEntries).map(createExpressionAchievement)
 
 export const REWARD_ACHIEVEMENTS = [
 	{

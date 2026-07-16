@@ -42,6 +42,7 @@ export default class PersonalProgress{
 	#singleNoteStartedAt = 0
 	#singleNoteDuration = 0
 	#notePoints = 0
+	#bonusPoints = 0
 
 	// How long has this user been engaged with 
 	get timeEngaged(){
@@ -53,7 +54,7 @@ export default class PersonalProgress{
 	}
 
 	get achievementPoints(){
-		return this.#achievements.score + this.#notePoints
+		return this.#achievements.score + this.#notePoints + this.#bonusPoints
 	}
 
 	// Quantity of points
@@ -100,6 +101,25 @@ export default class PersonalProgress{
 			singleNoteNumber:this.#singleNoteNumber,
 			singleNoteDuration:this.#singleNoteDuration
 		}
+	}
+
+	getExperiencedExpressions(){
+		return Array.from(new Set([
+			...this.#expressions,
+			...this.#achievements.unlocked
+				.filter(achievement => achievement.type === "expression" && achievement.emoticon)
+				.map(achievement => achievement.emoticon)
+		]))
+	}
+
+	addBonusPoints(points = 0){
+		if (!Number.isFinite(points) || points <= 0)
+		{
+			return this.#bonusPoints
+		}
+
+		this.#bonusPoints += points
+		return this.#bonusPoints
 	}
 
 	// When an emotion is experienced we check to see if
@@ -223,6 +243,7 @@ export default class PersonalProgress{
 	reset(){
 		this.resetSession()
 		this.#notePoints = 0
+		this.#bonusPoints = 0
 		this.#achievements.reset()
 	}
 }

@@ -30,6 +30,7 @@ import { DEFAULT_PEOPLE_OPTIONS } from "../settings/options.people.js"
 
 const MAX_REASONABLE_FACE_JUMP = 0.18
 const MIN_REASONABLE_FACE_OVERLAP = 0.05
+const SINGLE_FACE_CONTINUITY_LIMIT = 0.42
 
 /**
  * This creates all people, selects one at a time
@@ -298,6 +299,30 @@ export class PersonManager extends EventTarget{
 		}
 	}
 
+	getClosestTrackedPersonIndex(predictionBox, normalisedPeople, activePeople, assignedPersonIndexes){
+		let closestPersonIndex = -1
+		let closestDistance = Number.MAX_VALUE
+
+		normalisedPeople.forEach((personBox, personIndex) => {
+			const person = activePeople[personIndex]
+			if (!personBox || !person || assignedPersonIndexes.has(personIndex) || person.dead)
+			{
+				return
+			}
+
+			const dx = predictionBox.centerX - personBox.centerX
+			const dy = predictionBox.centerY - personBox.centerY
+			const distance = Math.sqrt(dx * dx + dy * dy)
+			if (distance < closestDistance)
+			{
+				closestDistance = distance
+				closestPersonIndex = personIndex
+			}
+		})
+
+		return closestDistance <= SINGLE_FACE_CONTINUITY_LIMIT ? closestPersonIndex : -1
+	}
+
 	/**
 	 * Match this frame's model predictions to stable Person slots.
 	 * Model output order can change, so score every possible pair before assigning.
@@ -362,7 +387,12 @@ export class PersonManager extends EventTarget{
 				return
 			}
 
-			const personIndex = activePeople.findIndex((person, index) => {
+			const predictionBox = normalisedPredictions[predictionIndex]
+			const continuityPersonIndex = predictions.length === 1 && predictionBox ?
+				this.getClosestTrackedPersonIndex(predictionBox, normalisedPeople, activePeople, assignedPersonIndexes) :
+				-1
+
+			const personIndex = continuityPersonIndex > -1 ? continuityPersonIndex : activePeople.findIndex((person, index) => {
 				return person && !assignedPersonIndexes.has(index) && (!normalisedPeople[index] || person.dead)
 			})
 

@@ -1,4 +1,4 @@
-import { easeInQuint, easeOutCirc, easeOutCubic, easeOutExpo, easeOutQuint, easeOutSine } from '../maths/easing'
+import { easeInQuint, easeOutCirc, easeOutCubic, easeOutExpo, easeOutSine } from '../maths/easing'
 import {
 	clamp, 
 	hypoteneuse2D,hypoteneuse3D,
@@ -69,6 +69,8 @@ drawingUtils.drawConnectors(
 const {PI, abs, sqrt, atan2, tan} = Math
 
 const MIN_MOUTH_VALUE = 0.0105
+const MOUTH_GEOMETRY_CLOSED_RATIO = 0.035
+const MOUTH_GEOMETRY_OPEN_RATIO = 0.18
 const EYEBROW_DEVIATION_THRESHOLD = 0.7
 const EYEBROW_DEVIATION_FACTOR = 1 / (1 - EYEBROW_DEVIATION_THRESHOLD)
 
@@ -197,7 +199,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// left is -ve right is +ve
 	// 16 is right eye 0 -> 1 and 14 is 1 -> 0
 	// -1 -> +1
-	prediction.rightEyeDirection = rightEyeLookOut + rightEyeLookIn - 1 
+	prediction.rightEyeDirection = rightEyeLookOut + rightEyeLookIn - 1
 	prediction.leftEyeDirection = leftEyeLookOut + leftEyeLookOut - 1
 	
 	// Up down, 
@@ -210,18 +212,21 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// console.log( "right eye",landmarks[16].score, landmarks[14].score, prediction.rightEyeDirection )
 
 	// -1 -> +1
-	prediction.eyesHorizontal = 0.5 * ( prediction.rightEyeDirection + prediction.leftEyeDirection ) 
+	prediction.eyesHorizontal = 0.5 * ( prediction.rightEyeDirection + prediction.leftEyeDirection )
+	prediction.eyeDirection = prediction.eyesHorizontal
 	
 	// 0 -> 1  
 	prediction.gazeHorizontal = ( 0.5 * prediction.eyeDirection ) + 0.5
 	
 	// -1 -> 1:
-	prediction.eyesVertical =  0.5 * ( prediction.leftEyeVertical + prediction.rightEyeVertical ) 
+	prediction.eyesVertical =  0.5 * ( prediction.leftEyeVertical + prediction.rightEyeVertical )
+	prediction.eyeVertical = prediction.eyesVertical
 	
 	// 0 -> 1  
 	prediction.gazeVertical =  ( 0.5 * prediction.eyesVertical ) + 0.5
 	
 	prediction.isLookingRight = prediction.eyeDirection > 0
+	prediction.lookingRight = prediction.isLookingRight
 	
 	// before an eye blink is the squint!
 	prediction.eyeSquintLeft = leftSquint
@@ -282,6 +287,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// this is when you suck in your lips
 	const mouthRollUpper = landmarks[41].score
 	const mouthRollLower = landmarks[40].score
+	const mouthFrownLeft = landmarks[30].score
+	const mouthFrownRight = landmarks[31].score
 
 	// smirking
 	const mouthSmileLeft = landmarks[44].score
@@ -296,8 +303,22 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const mouthCloseness = landmarks[27].score
 	const mouthOpeness = 1 - mouthCloseness
 
-	// get smallest value
-	const mouthRatio = Math.min( (Math.min(jawOpeness, mouthOpeness) * 0.8), 1 )
+	// The inner-lip gap is measured from the actual face mesh. It remains
+	// reliable when jawOpen/mouthClose blendshapes momentarily lose a smile.
+	const mouthWidth = hypoteneuse2D(keypoints[61], keypoints[291])
+	const mouthOpening = hypoteneuse2D(keypoints[13], keypoints[14])
+	const mouthGeometryRatio = mouthWidth > 0 ? mouthOpening / mouthWidth : 0
+	const mouthGeometryScore = clamp(
+		(mouthGeometryRatio - MOUTH_GEOMETRY_CLOSED_RATIO) / (MOUTH_GEOMETRY_OPEN_RATIO - MOUTH_GEOMETRY_CLOSED_RATIO),
+		0,
+		1
+	)
+
+	// Use the stronger of the blendshape and face-geometry opening signals.
+	const mouthRatio = Math.max(
+		Math.min(Math.min(jawOpeness, mouthOpeness) * 0.8, 1),
+		mouthGeometryScore
+	)
 
 	// mouth may be closed whilst jaw is open
 
@@ -313,28 +334,31 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const isMouthOpen = mouthRatio > MIN_MOUTH_VALUE
 	// is wider than tall?
 	const isMouthWide = mouthFunnel > jawOpeness
-	// map data to curve
-	//const openCoefficient = (1 - mouthRatio )
-	const openCoefficient = easeOutQuint(1 - mouthRatio )
 	const remaining = Math.max( 0, mouthRatio - MIN_MOUTH_VALUE)
 	// TODO: JawLeft and jawRight for FALSETTO
 	// prediction.mouthRatio = easeOutExpo(remaining)
 	prediction.mouthRatio = easeOutExpo( easeOutSine(remaining) ) 
-	// prediction.mouthRatio = easeOutQuint( easeOutQuint(remaining) )
 	prediction.mouthPucker = mouthPucker
 	prediction.mouthFunnel = mouthFunnel
+	prediction.mouthGeometryRatio = mouthGeometryRatio
+	prediction.mouthGeometryScore = mouthGeometryScore
 	prediction.mouthStretchLeft = mouthStretchLeft
 	prediction.mouthStretchRight = mouthStretchRight
+	prediction.mouthFrownLeft = mouthFrownLeft
+	prediction.mouthFrownRight = mouthFrownRight
 
-	// console.info("mouth", {isMouthOpen,isMouthWide,openCoefficient, remaining }, prediction.mouthRatio )
+	// console.info("mouth", {isMouthOpen,isMouthWide,remaining }, prediction.mouthRatio )
 
 
 	prediction.isMouthOpen = isMouthOpen
 	prediction.leftSmirk = mouthSmileLeft
 	prediction.rightSmirk = mouthSmileRight
 	
-	// as mouth opens... happiness falls at the point where the 
-	prediction.happiness = ( ( prediction.rightSmirk + prediction.leftSmirk ) / 2 ) * openCoefficient // mouthSmileLeft
+	// A smile can be signalled by either the mouth opening or the paired
+	// mouthSmile blendshapes. Keep the strongest signal for responsive matching.
+	prediction.mouthSmile = (prediction.rightSmirk + prediction.leftSmirk) / 2
+	prediction.smile = Math.max(prediction.mouthRatio, prediction.mouthSmile)
+	prediction.happiness = prediction.smile
 
 
 

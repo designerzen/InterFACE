@@ -29,6 +29,7 @@ const useWorker = false
 
 // inline 
 let faceLandmarker 
+let faceLandmarkerPromise
 // via worker... preferred but requires re-render
 let faceLandmarksWorker 
 let lastVideoTime = 0 
@@ -162,10 +163,23 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 
 	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Brains")
 	
-	const filesetResolver = await FilesetResolver.forVisionTasks( FACE_LANDMARK_WASM )
-	progressCallback && progressCallback( startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Eyes")
-	
-	const detector = await FaceLandmarker.createFromOptions( filesetResolver, faceLandmarkerOptions )
+	// MediaPipe owns a sizeable WASM heap and copies the task model into its
+	// virtual filesystem. Keep initialization single-flight so repeated or
+	// concurrent application startup cannot allocate a second runtime/model.
+	if (!faceLandmarkerPromise)
+	{
+		faceLandmarkerPromise = (async () => {
+			const filesetResolver = await FilesetResolver.forVisionTasks(FACE_LANDMARK_WASM)
+			progressCallback && progressCallback(startLoadProgress + loadRange * (loadIndex++/loadTotal), "Loading Eyes")
+			return FaceLandmarker.createFromOptions(filesetResolver, faceLandmarkerOptions)
+		})().catch(error => {
+			// Permit a later retry after a genuine initialization failure.
+			faceLandmarkerPromise = undefined
+			throw error
+		})
+	}
+
+	const detector = await faceLandmarkerPromise
 	// direct blazeface
 	// const detector = await FaceDetector.createFromModelPath(vision, BLAZE_FACE_SHORT_RANGE_MODEL_PATH)
 

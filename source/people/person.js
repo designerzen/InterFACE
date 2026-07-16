@@ -74,6 +74,7 @@ import {
 } from '../audio/sound-font-instruments.js'
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from '../audio/midi/midi-echo-guard.js'
+import { WebMidi } from "webmidi"
 
 import { 
 	convertHeadOrientationIntoNoteData, 
@@ -89,7 +90,7 @@ import { drawMousePressure } from '../dom/mouse-pressure.js'
 
 // Models
 import { EmojiDetector } from '../models/emoji-detection.js'
-import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji } from '../models/emoji.js'
+import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji, normaliseEmojiMood } from '../models/emoji.js'
 
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
 import { getCleff, getNotationForNoteNumber, getStaffSlotForNoteNumber, getStave } from '../audio/notation.js'
@@ -142,6 +143,8 @@ export {
 // # and ? are taken by the protocol
 // ~ doesn't work and cuts off te var when parsed
 const EXPORT_DELIMITER = ","
+const MIDI_ROUTING_AUTO = "auto"
+const MIDI_ROUTING_ALL = "all"
 const ACHIEVEMENT_MESSAGE_DURATION = 3500
 const NOTE_SEQUENCE_TO_KEY_SCALE = new Map([
 	["circle-of-fifths", "FIFTHS_SCALE"],
@@ -162,7 +165,7 @@ const INSTRUMENT_TITLE_OFFSET_Y = -55
 const EMOJI_OFFSET_Y = 39
 const EMOJI_RADIUS = 54
 const NOTE_TEXT_OFFSET_Y = (INSTRUMENT_TITLE_OFFSET_Y + EMOJI_OFFSET_Y - EMOJI_RADIUS) * 0.5
-const BUTTON_HINT_OFFSET_Y = -36
+const BUTTON_HINT_OFFSET_Y = INSTRUMENT_TITLE_OFFSET_Y - 40
 const PLAYING_NOTE_TEXT_SIZE = 18
 const PLAYING_NOTE_GLYPH = "♫"
 const PLAYING_NOTE_GLYPH_MIN_SIZE = 7
@@ -306,6 +309,7 @@ export default class Person extends EventTarget{
 	isLooping = false
 	// if we are watching the face perform without interaction
 	isPlayingBack = false
+	playPersonAudioActiveUntil = 0
 	// is the instrument panel selection form visibile
 	isFormShowing = false
 	// is the MIDI port active?
@@ -441,6 +445,10 @@ export default class Person extends EventTarget{
 
 	get achievementPoints(){
 		return this.personalProgress?.achievementPoints ?? 0
+	}
+
+	getExperiencedExpressions(){
+		return this.personalProgress?.getExperiencedExpressions?.() ?? []
 	}
 
 	/**
@@ -604,11 +612,15 @@ export default class Person extends EventTarget{
 	 * @returns {String} Instrument title
 	 */
 	get instrumentTitle(){
+		return this.activeInstrument?.title ?? "Loading..."
+	}
+
+	get instrumentTitleWithLoadProgress(){
 		if (this.instrumentLoading && this.loadingInstrumentTitle)
 		{
 			return `${this.loadingInstrumentTitle} ${Math.ceil(this.loadingInstrumentProgress * 100)}%`
 		}
-		return this.activeInstrument ? this.activeInstrument.title : 'loading'
+		return this.instrumentTitle
 	}
 
 	/**
@@ -633,7 +645,7 @@ export default class Person extends EventTarget{
 	 * @returns {Boolean} does this machine have MIDI set up?
 	 */
 	get hasMIDI(){
-		return this.midi !== null && this.midiChannel && this.midiChannel.length > 0
+		return this.getMIDIOutputsForPlayback().length > 0
 	}
 
 	/**
@@ -642,6 +654,48 @@ export default class Person extends EventTarget{
 	 */
 	get MIDIDeviceName(){
 		return this.midi ? this.midi.name : 'unknown'
+	}
+
+	getMIDIOutputsForPlayback(){
+		const midiDevice = this.options?.midiDevice ?? MIDI_ROUTING_AUTO
+		if (midiDevice === MIDI_ROUTING_AUTO)
+		{
+			return this.midi ? [this.midi] : []
+		}
+		if (midiDevice === MIDI_ROUTING_ALL)
+		{
+			return WebMidi.outputs
+		}
+		const selectedOutput = WebMidi.getOutputById?.(midiDevice) ??
+			WebMidi.getOutputByName?.(midiDevice) ??
+			WebMidi.outputs.find(output => output.id === midiDevice || output.name === midiDevice)
+		return selectedOutput ? [selectedOutput] : (this.midi ? [this.midi] : [])
+	}
+
+	getMIDIPortOptionsForPlayback(options = {}){
+		const midiPort = this.options?.midiPort ?? MIDI_ROUTING_AUTO
+		if (midiPort === MIDI_ROUTING_AUTO)
+		{
+			return this.midiChannel !== MIDI_ROUTING_ALL ?
+				{ ...options, channel:this.midiChannel } :
+				options
+		}
+		if (midiPort === MIDI_ROUTING_ALL)
+		{
+			return options
+		}
+		const channel = Number.parseInt(midiPort, 10)
+		return Number.isInteger(channel) && channel >= 1 && channel <= 16 ?
+			{ ...options, channels:channel } :
+			options
+	}
+
+	sendMIDIToPlaybackOutputs(method, note, options = {}, source = 'person-sendMIDI'){
+		const midiOptions = this.getMIDIPortOptionsForPlayback(options)
+		this.getMIDIOutputsForPlayback().forEach(output => {
+			sendGuardedMIDIOutput(output, method, note, midiOptions, source)
+		})
+		return midiOptions
 	}
 
 	/**
@@ -804,6 +858,11 @@ export default class Person extends EventTarget{
 	}
 
 	setOptions(options={}){
+		const emojiMoodChanged = Object.prototype.hasOwnProperty.call(options, "emojiMood") && options.emojiMood !== this.options.emojiMood
+		if (Object.prototype.hasOwnProperty.call(options, "emojiMood"))
+		{
+			options = { ...options, emojiMood:normaliseEmojiMood(options.emojiMood) }
+		}
 		const harmonyUnchanged = (
 			!Object.prototype.hasOwnProperty.call(options, "tonic") || options.tonic === this.options.tonic
 		) && (
@@ -812,6 +871,13 @@ export default class Person extends EventTarget{
 			!Object.prototype.hasOwnProperty.call(options, "harmonyMode") || options.harmonyMode === this.options.harmonyMode
 		)
 		this.options = { ...this.options, ...options }
+		if (emojiMoodChanged)
+		{
+			this.emojiDetector?.reset()
+			this.emoticon = EMOJI_NEUTRAL
+			this.playingEmoticon = EMOJI_NEUTRAL
+			this.lastEmoticon = EMOJI_NEUTRAL
+		}
 		if (harmonyUnchanged)
 		{
 			return this.options
@@ -1054,6 +1120,26 @@ export default class Person extends EventTarget{
 		})
 
 		return achievements
+	}
+
+	applyDirectionCompletion(completion){
+		if (!completion)
+		{
+			return false
+		}
+
+		this.personalProgress?.addBonusPoints(completion.points ?? 0)
+		this.recentAchievement = {
+			emoticon:completion.emoji,
+			achievement:{
+				title:completion.title,
+				message:completion.message,
+				score:completion.points ?? 0
+			},
+			direction:completion
+		}
+		this.recentAchievementAt = this.now
+		return true
 	}
 
 	trackEmotionAchievement(emoticon){
@@ -1704,18 +1790,107 @@ export default class Person extends EventTarget{
 	 * @param {Number} yaw 
 	 * @param {Number} roll 
 	 */
-	drawEmojiText(display, textX, textY, pitch, yaw, roll){
+	getMouthParticleOrigin(prediction, display, fallbackX, fallbackY){
+		const upperLip = prediction?.keypoints?.[13]
+		const lowerLip = prediction?.keypoints?.[14]
+		const lips = prediction?.annotations?.lips
+		let mouthX
+		let mouthY
+
+		if (upperLip && lowerLip)
+		{
+			mouthX = (upperLip.x + lowerLip.x) * 0.5
+			mouthY = (upperLip.y + lowerLip.y) * 0.5
+		}else if (Array.isArray(lips) && lips.length > 0){
+			const center = lips.reduce((total, lip) => ({
+				x:total.x + (lip.x ?? 0),
+				y:total.y + (lip.y ?? 0)
+			}), {x:0, y:0})
+			mouthX = center.x / lips.length
+			mouthY = center.y / lips.length
+		}
+
+		if (!Number.isFinite(mouthX) || !Number.isFinite(mouthY))
+		{
+			return {x:fallbackX, y:fallbackY}
+		}
+
+		return {
+			x:prediction?.flipped ? mouthX * display.width : display.width - (mouthX * display.width),
+			y:mouthY * display.height
+		}
+	}
+
+	getNoteParticleHorizontalBias(prediction, display){
+		const nose = prediction?.keypoints?.[4]
+		const leftFace = prediction?.keypoints?.[234]
+		const rightFace = prediction?.keypoints?.[447]
+
+		if (nose && leftFace && rightFace)
+		{
+			const mapX = point => prediction?.flipped ?
+				point.x * display.width :
+				display.width - (point.x * display.width)
+			const noseX = mapX(nose)
+			const leftX = mapX(leftFace)
+			const rightX = mapX(rightFace)
+			const centerX = (leftX + rightX) * 0.5
+			const halfWidth = Math.max(Math.abs(rightX - leftX) * 0.5, 1)
+			return clamp((noseX - centerX) / halfWidth, -1, 1)
+		}
+
+		return clamp(prediction?.yaw ?? 0, -1, 1)
+	}
+
+	getNoteParticleVerticalBias(prediction){
+		return clamp(prediction?.pitch ?? 0, -1, 1)
+	}
+
+	getCurrentTime(){
+		return globalThis.performance?.now?.() ?? Date.now()
+	}
+
+	markPlayPersonAudioActive(time = this.getCurrentTime()){
+		this.playPersonAudioActiveUntil = time + (this.options.noteParticleAudioActiveWindowMs ?? 180)
+	}
+
+	markPlayPersonAudioInactive(){
+		this.playPersonAudioActiveUntil = 0
+	}
+
+	isPlayPersonAudioActive(time = this.getCurrentTime()){
+		return this.playPersonAudioActiveUntil >= time
+	}
+
+	drawEmojiText(display, textX, textY, pitch, yaw, roll, prediction){
 		// we want something floating around the 1.0 area
 		const emojiRotationY = 0.8 + pitch * 0.2 
 		const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
 		const emojiRotationZ = (roll * Math.PI * 0.28) - HALF_PI
 		// at the bottom of the text we draw the smiley
 		// draw emoticon but we move it up and down when it looks up and down too	
-		display.drawEmoticon( textX, textY + EMOJI_OFFSET_Y , this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, false )
+		const emojiY = textY + EMOJI_OFFSET_Y
+		const particleOrigin = this.getMouthParticleOrigin(prediction, display, textX, emojiY)
+		display.drawEmoticon( textX, emojiY, this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, this.emojiDetector?.isMirrored ?? false )
+		if (this.options.noteParticles)
+		{
+			display.drawNoteParticles?.(
+				particleOrigin.x,
+				particleOrigin.y,
+				this.noteVelocity ?? 0,
+				this.hsl,
+				{
+					...this.options,
+					noteParticleHorizontalBias:this.getNoteParticleHorizontalBias(prediction, display),
+					noteParticleVerticalBias:this.getNoteParticleVerticalBias(prediction),
+					noteParticleNotesEnabled:!this.options.noteParticleNotesRequireAudio || this.isPlayPersonAudioActive()
+				}
+			)
+		}
 	}
 
 	drawInstrumentText(display, textX, textY, instrumentTitle, style){
-		display.drawInstrument(textX, textY + INSTRUMENT_TITLE_OFFSET_Y, `${instrumentTitle}`, this.isSelected ? `*` : style, 12 )			
+		display.drawInstrument(textX, textY + INSTRUMENT_TITLE_OFFSET_Y, `${instrumentTitle ?? "Loading..."}`, this.isSelected ? `*` : style, 12 )			
 	}
 
 	getPlayingNoteGlyphSize(){
@@ -1757,43 +1932,18 @@ export default class Person extends EventTarget{
 		display.drawText(noteX, textY, PLAYING_NOTE_GLYPH, noteSize, "left")
 	}
 
-	getAchievementTextPosition(display){
-		const sideMargin = clamp(display.width * 0.17, 92, 150)
-		const row = this.personIndex > 1 ? 0.72 : 0.28
-		const y = clamp(display.height * row, 84, display.height - 84)
-
-		return {
-			x:this.isLeftSidePanel ? sideMargin : display.width - sideMargin,
-			y,
-			width:clamp(display.width * 0.28, 180, 260)
-		}
-	}
-
-	drawAchievementText(display){
+	getRecentAchievementLabel(){
 		const hasRecentAchievement = this.recentAchievement && this.now - this.recentAchievementAt < ACHIEVEMENT_MESSAGE_DURATION
 		if (!hasRecentAchievement)
 		{
-			return false
+			return null
 		}
 
 		const { achievement, emoticon } = this.recentAchievement
-		const { x, y, width } = this.getAchievementTextPosition(display)
-		display.drawParagraph(
-			x,
-			y,
-			[
-				`+${achievement.score} ${achievement.title}`,
-				achievement.message ?? emoticon
-			],
-			12,
-			20,
-			false,
-			"center",
-			"Oxanium",
-			width
-		)
-
-		return true
+		return {
+			title:`+${achievement.score} ${achievement.title}`,
+			style:achievement.message ?? emoticon ?? ""
+		}
 	}
 
 
@@ -1907,14 +2057,14 @@ export default class Person extends EventTarget{
 			}
 
 			this.drawInstrumentText( display, textX, textY, title, titleSuffix, 14 ) 	
-			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll )
+			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll, prediction )
 			display.drawParagraph( textX, textY + BUTTON_HINT_OFFSET_Y, paragraphs, 12, 20, false, "center", "Oxanium", personTextWidth )
 		
 		}else if ( this.instrumentLoading){
 
 			// Math.ceil(this.loadingInstrumentProgress * 100)
 			// Instrument loading...
-			this.drawInstrumentText( display, textX, textY, this.loadingInstrumentTitle, Math.ceil(this.loadingInstrumentProgress * 100), 14 ) 
+			this.drawInstrumentText( display, textX, textY, this.instrumentTitleWithLoadProgress, Math.ceil(this.loadingInstrumentProgress * 100), 14 ) 
 
 		}else{
 
@@ -1939,15 +2089,20 @@ export default class Person extends EventTarget{
 					
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const textPitchBend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
+			const recentAchievementLabel = this.isPlayerMode ? this.getRecentAchievementLabel() : null
+			if (recentAchievementLabel)
+			{
+				title = recentAchievementLabel.title
+				style = recentAchievementLabel.style
+			}
 			
 			// flash if selected?
 			this.drawInstrumentText( display, textX, textY, title, style)
-			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll )
+			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll, prediction )
 		
 			if (this.isPlayerMode)
 			{
 				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, `${formatAchievementPoints(this.achievementPoints)} XP`, 22 )
-				this.drawAchievementText(display)
 
 			}else if (this.options.musicTheory){
 				// visual music mode - so no letters, only musical notes!
@@ -2297,14 +2452,8 @@ export default class Person extends EventTarget{
 					//attack:newVolume // amp
 				}
 
-				// if all is specified - leave the channel option empty
-				if (this.midiChannel !== "all")
-				{
-					midiOptions.channel = this.midiChannel
-				}
-
 				// https://webmidijs.org/api/classes/Output#playNote
-				sendGuardedMIDIOutput(this.midi, 'playNote', noteName, midiOptions, 'person-sendMIDI')
+				this.sendMIDIToPlaybackOutputs('playNote', noteName, midiOptions, 'person-sendMIDI')
 				//console.log(this.midi, "MIDI noteOn", noteName, "Channel:"+this.midiChannel, { newVolume, midiOptions, channel:this.midiChannel, hasMIDI:this.hasMIDI} )
 	
 				// console.info("MIDI note on", noteName, midiOptions )
@@ -2363,11 +2512,7 @@ export default class Person extends EventTarget{
 						const midiStopOptions = {
 							release:0.2
 						}
-						if (this.midiChannel !== "all")
-						{
-							midiStopOptions.channel = this.midiChannel
-						}
-						sendGuardedMIDIOutput(this.midi, 'stopNote', noteName, {
+						this.sendMIDIToPlaybackOutputs('stopNote', noteName, {
 							// The velocity at which to release the note (between `0` * and `1`). If the `rawValue` option is `true`, the value should be specified as an integer
 							// between `0` and `127`. An invalid velocity value will silently trigger the default of `0.5`.
 							...midiStopOptions
@@ -2853,7 +2998,7 @@ export default class Person extends EventTarget{
 		// this.addInstrument( new YoshimiInstrument(audioContext, this.gainNode) )
 
 		// this.samplePlayer = this.setMainInstrument( this.addInstrument( defaultInstrument ))
-		this.setMainInstrument( this.addInstrument( chordInstrument ))
+		this.setMainInstrument( chordInstrument )
 		// this.setMainInstrument( this.addInstrument( defaultInstrument ))
 		
 		// load an instrument into the chordPlayer
@@ -2938,18 +3083,18 @@ export default class Person extends EventTarget{
 			instrument?.allNotesOff?.()
 		})
 
-		if (this.midi)
+		if (this.hasMIDI)
 		{
-			const midiStopOptions = { release: 0 }
-			if (this.midiChannel !== "all")
-			{
-				midiStopOptions.channel = this.midiChannel
-			}
+			const midiStopOptions = this.getMIDIPortOptionsForPlayback({ release: 0 })
 			for (const noteNumber of activeMIDINotes)
 			{
-				sendGuardedMIDIOutput(this.midi, 'stopNote', noteNumber, midiStopOptions, 'person-stopAllNotes')
+				this.getMIDIOutputsForPlayback().forEach(output => {
+					sendGuardedMIDIOutput(output, 'stopNote', noteNumber, midiStopOptions, 'person-stopAllNotes')
+				})
 			}
-			stopActiveMIDIOutputNotes(this.midi, 'person-stopAllNotes')
+			this.getMIDIOutputsForPlayback().forEach(output => {
+				stopActiveMIDIOutputNotes(output, 'person-stopAllNotes')
+			})
 		}
 	}
 
