@@ -1,4 +1,4 @@
-import GamePad, { getGamePads } from './gamepad.js'
+import GamePad, { GAMEPAD_BUTTON_ORDER, getGamePads } from './gamepad.js'
 import {
 	BUTTON_SELECT,
 	BUTTON_START,
@@ -15,6 +15,7 @@ import {
 import { PicadePlasma } from './picade-plasma.js'
 
 export const PICADE_MAX_PLAYER_COUNT = 2
+export const PICADE_MAX_PLAYER_AXES = 2
 export const PICADE_MAX_JOYSTICK_UP = 'picade-joystick-up'
 export const PICADE_MAX_JOYSTICK_DOWN = 'picade-joystick-down'
 export const PICADE_MAX_JOYSTICK_LEFT = 'picade-joystick-left'
@@ -32,6 +33,22 @@ export const PICADE_MAX_CONTROL_ACTIONS = Object.freeze([
 const DEFAULT_BUTTON_LIGHT_MAP = Object.freeze(
 	Array.from({ length: PICADE_MAX_BUTTON_COUNT }, (_, button) => button),
 )
+
+const getBrowserGamepad = input => input?.gamepad ?? input
+const getPlayerIndex = (input, fallback = 0) => Number.isInteger(input?.player) ? input.player : fallback
+const getButtonOffset = input => Number.isInteger(input?.buttonOffset) ? input.buttonOffset : 0
+const getAxisOffset = input => Number.isInteger(input?.axisOffset) ? input.axisOffset : 0
+const createPlayerInput = (gamepad, player, options = {}) => ({
+	...options,
+	gamepad,
+	player,
+	index: gamepad.index,
+	connected: gamepad.connected,
+	id: gamepad.id,
+	mapping: gamepad.mapping,
+	buttons: gamepad.buttons,
+	axes: gamepad.axes,
+})
 
 /** Returns true only for the supported Picade Max Input gamepad interfaces. */
 export function isPicadeMaxInputController(gamepad) {
@@ -80,10 +97,43 @@ export function logPicadeMaxInputInventory(label = 'Picade Max input inventory',
 
 /** Finds the two independent player gamepads exposed by one Picade Max USB board. */
 export function findPicadeMaxInputGamepads(gamepads = getGamePads()) {
-	return Array.from(gamepads)
+	const picadeGamepads = Array.from(gamepads)
 		.filter(gamepad => gamepad?.connected && isPicadeMaxInputController(gamepad))
 		.sort((left, right) => left.index - right.index)
-		.slice(0, PICADE_MAX_PLAYER_COUNT)
+
+	if (picadeGamepads.length >= PICADE_MAX_PLAYER_COUNT) {
+		return picadeGamepads.slice(0, PICADE_MAX_PLAYER_COUNT).map((gamepad, player) => ({
+			...createPlayerInput(gamepad, player),
+			buttonOffset: 0,
+			axisOffset: 0,
+			source: 'slot',
+		}))
+	}
+
+	const combined = picadeGamepads[0]
+	if (!combined) return []
+	const buttonCount = combined.buttons?.length ?? 0
+	const axisCount = combined.axes?.length ?? 0
+	const buttonsPerPlayer = Math.floor(buttonCount / PICADE_MAX_PLAYER_COUNT)
+	const axesPerPlayer = Math.floor(axisCount / PICADE_MAX_PLAYER_COUNT)
+	const hasCombinedControls = buttonsPerPlayer >= PICADE_MAX_BUTTON_COUNT || axesPerPlayer >= PICADE_MAX_PLAYER_AXES
+	if (!hasCombinedControls) {
+		return [{
+			...createPlayerInput(combined, 0),
+			buttonOffset: 0,
+			axisOffset: 0,
+			source: 'single',
+		}]
+	}
+
+	return Array.from({ length: PICADE_MAX_PLAYER_COUNT }, (_, player) => ({
+		...createPlayerInput(combined, player),
+		buttonOffset: player * buttonsPerPlayer,
+		axisOffset: player * axesPerPlayer,
+		source: 'combined',
+		buttonsPerPlayer,
+		axesPerPlayer,
+	}))
 }
 
 /**
@@ -113,13 +163,16 @@ export class PicadeMaxController {
 		if (!Array.isArray(gamepads) || gamepads.length !== PICADE_MAX_PLAYER_COUNT) {
 			throw new TypeError('PicadeMaxController requires the two Picade Max player gamepads')
 		}
-		if (!gamepads.every(isPicadeMaxInputController)) {
+		if (!gamepads.every(input => isPicadeMaxInputController(input))) {
 			throw new TypeError('Both gamepads must be Picade Max Input interfaces')
 		}
 		if (!Array.isArray(plasmaButtonMaps) || plasmaButtonMaps.length !== PICADE_MAX_PLAYER_COUNT) {
 			throw new TypeError('plasmaButtonMaps must contain one mapping for each player')
 		}
-		this.#gamepads = [...gamepads].sort((left, right) => left.index - right.index)
+		this.#gamepads = [...gamepads].sort((left, right) =>
+			getBrowserGamepad(left).index - getBrowserGamepad(right).index ||
+			getPlayerIndex(left) - getPlayerIndex(right)
+		)
 		this.#plasma = plasma
 		this.#plasmaButtonMaps = plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
 		this.pressColor = pressColor
@@ -222,25 +275,83 @@ export class PicadeMaxController {
 	}
 
 	#createReader(gamepad, player) {
-		const reader = new GamePad(gamepad.index)
-		reader.connect({ gamepad })
+		if (gamepad?.source === 'combined') return this.#createOffsetReader(gamepad, player)
+		const browserGamepad = getBrowserGamepad(gamepad)
+		const reader = new GamePad(browserGamepad.index)
+		reader.connect({ gamepad: browserGamepad })
 		reader.available = true
 		reader.on((action, pressed, source, heldFor) => {
 			const button = PICADE_MAX_ACTION_TO_BUTTON[action]
 			if (button == null) {
-				this.#handleJoystick(player, action, pressed, source ?? gamepad)
+				this.#handleJoystick(player, action, pressed, source ?? browserGamepad)
 				if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
-					const event = { player, button: null, action, pressed, heldFor, gamepad: source ?? gamepad }
+					const event = { player, button: null, action, pressed, heldFor, gamepad: source ?? browserGamepad }
 					for (const listener of this.#listeners) listener(event)
 				}
 				return
 			}
 			const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
 			if (Number.isInteger(plasmaButton)) this.#setLight(player, button, plasmaButton, pressed)
-			const event = { player, button, action, pressed, heldFor, gamepad: source ?? gamepad }
+			const event = { player, button, action, pressed, heldFor, gamepad: source ?? browserGamepad }
 			for (const listener of this.#listeners) listener(event)
 		})
 		return reader
+	}
+
+	#createOffsetReader(input, player) {
+		const state = new Map()
+		const pressedAt = new Map()
+		const axisState = new Map()
+		const buttonOffset = getButtonOffset(input)
+		const axisOffset = getAxisOffset(input)
+		const browserIndex = getBrowserGamepad(input).index
+		return {
+			update: () => {
+				const gamepad = getGamePads()[browserIndex]
+				if (!gamepad?.connected) return
+				for (let localButton = 0; localButton < GAMEPAD_BUTTON_ORDER.length; localButton++) {
+					const action = GAMEPAD_BUTTON_ORDER[localButton]
+					const button = gamepad.buttons?.[buttonOffset + localButton]
+					if (!button || !action) continue
+					const pressed = Boolean(button.pressed)
+					const previous = state.get(action) ?? false
+					if (pressed === previous) continue
+					const now = performance.now?.() ?? Date.now()
+					let heldFor = -1
+					if (pressed) {
+						pressedAt.set(action, now)
+					}else{
+						heldFor = now - (pressedAt.get(action) ?? now)
+						pressedAt.delete(action)
+					}
+					state.set(action, pressed)
+					const mappedButton = PICADE_MAX_ACTION_TO_BUTTON[action]
+					if (mappedButton == null) {
+						this.#handleJoystick(player, action, pressed, gamepad)
+						if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
+							const event = { player, button: null, action, pressed, heldFor, gamepad }
+							for (const listener of this.#listeners) listener(event)
+						}
+						continue
+					}
+					const plasmaButton = this.#plasmaButtonMaps[player]?.[mappedButton]
+					if (Number.isInteger(plasmaButton)) this.#setLight(player, mappedButton, plasmaButton, pressed)
+					const event = { player, button: mappedButton, action, pressed, heldFor, gamepad }
+					for (const listener of this.#listeners) listener(event)
+				}
+
+				const axes = [
+					['leftstickX', gamepad.axes?.[axisOffset] ?? 0],
+					['leftstickY', gamepad.axes?.[axisOffset + 1] ?? 0],
+				]
+				for (const [action, value] of axes) {
+					const previous = axisState.get(action)
+					if (previous === value) continue
+					axisState.set(action, value)
+					this.#handleJoystick(player, action, value, gamepad)
+				}
+			},
+		}
 	}
 
 	#handleJoystick(player, action, value, gamepad) {

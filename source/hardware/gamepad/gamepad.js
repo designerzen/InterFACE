@@ -31,7 +31,7 @@ export const fetchGamePads = () => {
 }
 
 // Gamepad reference IDs
-const BUTTON_ORDER = [
+export const GAMEPAD_BUTTON_ORDER = [
 	GAMEPAD_COMMANDS.BUTTON_B,
 	GAMEPAD_COMMANDS.BUTTON_A,
 	GAMEPAD_COMMANDS.BUTTON_Y,
@@ -51,6 +51,7 @@ const BUTTON_ORDER = [
 	GAMEPAD_COMMANDS.BUTTON_P1,
 	GAMEPAD_COMMANDS.BUTTON_P2
 ]
+const BUTTON_ORDER = GAMEPAD_BUTTON_ORDER
 
 // Gamepad reference IDs
 // const BUTTON_NAMES = [
