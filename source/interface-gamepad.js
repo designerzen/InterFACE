@@ -139,12 +139,16 @@ const fadePicadeClockButton = (application, buttonIndex, color, options) => {
 }
 
 const ensurePicadeLeds = async application => {
-	if (application.picadeLeds) return application.picadeLeds
-	const picadeLeds = new PicadeLeds()
+	const picadeLeds = application.picadeLeds ?? new PicadeLeds()
 	application.picadeLeds = picadeLeds
+	if (picadeLeds.connected) return picadeLeds
 	try {
-		await picadeLeds.connect()
-		application.setFeedback?.("Picade lights connected", 0, 'gamepad')
+		const connected = await picadeLeds.connectPaired()
+		application.setFeedback?.(
+			connected ? "Picade lights connected" : "Picade lights need pairing",
+			0,
+			'gamepad',
+		)
 	} catch (error) {
 		console.warn("Unable to connect Picade lights", error)
 		application.setFeedback?.("Picade lights unavailable", 0, 'gamepad')

@@ -13,6 +13,18 @@ import {
 export const PICADE_MAX_BUTTON_COUNT = 8
 export const PICADE_MAX_USB_VENDOR_ID = 0x2e8a
 export const PICADE_MAX_USB_PRODUCT_ID = 0x1098
+export const PICADE_MAX_ALTERNATE_USB_VENDOR_ID = 0xcafe
+export const PICADE_MAX_ALTERNATE_USB_PRODUCT_ID = 0x400d
+export const PICADE_MAX_USB_IDS = Object.freeze([
+	{
+		vendorId: PICADE_MAX_USB_VENDOR_ID,
+		productId: PICADE_MAX_USB_PRODUCT_ID,
+	},
+	{
+		vendorId: PICADE_MAX_ALTERNATE_USB_VENDOR_ID,
+		productId: PICADE_MAX_ALTERNATE_USB_PRODUCT_ID,
+	},
+])
 export const PICADE_MAX_USB_VENDOR_NAME = 'Raspberry Pi (Trading) Ltd'
 export const PICADE_MAX_MANUFACTURER = 'Pimoroni Ltd'
 export const PICADE_MAX_PRODUCT_NAME = 'Picade Max Input'
@@ -26,7 +38,10 @@ function parseUsbId(id = '') {
 
 export function getPicadeMaxGamepadInfo(gamepad) {
 	const usb = parseUsbId(gamepad?.id)
-	if (usb?.vendorId !== PICADE_MAX_USB_VENDOR_ID || usb.productId !== PICADE_MAX_USB_PRODUCT_ID) {
+	const supported = PICADE_MAX_USB_IDS.some(id =>
+		usb?.vendorId === id.vendorId && usb.productId === id.productId
+	)
+	if (!supported) {
 		return null
 	}
 	return {

@@ -194,6 +194,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// extra controls
 	drawEyebrows:false,
+	drawOutline:false,
 
 	// use the nostrils to alter the sound
 	// NB. these are still disabled in media-vision

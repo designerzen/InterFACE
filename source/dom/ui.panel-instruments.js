@@ -99,6 +99,7 @@ const createPersonOptionsHTML = (person) => {
 			${createToggleControl("Chord labels", "showChordNames", options.showChordNames)}
 			${createToggleControl("Pitch bend", "pitchBend", options.pitchBend)}
 			${createToggleControl("Eyebrows", "drawEyebrows", options.drawEyebrows)}
+			${createToggleControl("Outline", "drawOutline", options.drawOutline)}
 			${createToggleControl("Eyes", "drawEyes", options.drawEyes)}
 			${createToggleControl("Lips", "drawMouth", options.drawMouth)}
 			${createToggleControl("Nose", "drawNose", options.drawNose)}

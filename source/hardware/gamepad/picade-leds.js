@@ -7,13 +7,15 @@ import {
 	RGBl,
 } from './picade-max-input.js'
 import {
-	PICADE_MAX_USB_PRODUCT_ID,
-	PICADE_MAX_USB_VENDOR_ID,
+	PICADE_MAX_USB_IDS,
 } from './picade-max-interface.js'
 
-export const PICADE_DEFAULT_FILTERS = Object.freeze([
-	{ usbVendorId: PICADE_MAX_USB_VENDOR_ID, usbProductId: PICADE_MAX_USB_PRODUCT_ID },
-])
+export const PICADE_DEFAULT_FILTERS = Object.freeze(
+	PICADE_MAX_USB_IDS.map(({ vendorId, productId }) => ({
+		usbVendorId: vendorId,
+		usbProductId: productId,
+	})),
+)
 export { PICADE_MAX_BUTTONS, PICADE_MAX_BUTTON_FRAME_LEDS, PICADE_MAX_BUTTON_LED_GROUP_SIZE }
 
 const OFF = RGBl(0, 0, 0, 0)
@@ -75,6 +77,15 @@ function toLedIndex(buttonIndex, ledIndex, buttonCount) {
 	return (buttonIndex * PICADE_MAX_BUTTON_LED_GROUP_SIZE) + ledIndex
 }
 
+export function isPicadeSerialPort(port, filters = PICADE_DEFAULT_FILTERS) {
+	const info = port?.getInfo?.()
+	if (!info) return false
+	return filters.some(filter =>
+		info.usbVendorId === filter.usbVendorId &&
+		info.usbProductId === filter.usbProductId
+	)
+}
+
 export class PicadeLeds {
 	#buttons
 	#defaultBrightness
@@ -121,6 +132,14 @@ export class PicadeLeds {
 	async connect(filters = PICADE_DEFAULT_FILTERS) {
 		await this.#buttons.connect(filters)
 		return this
+	}
+
+	async connectPaired(filters = PICADE_DEFAULT_FILTERS) {
+		const ports = await navigator.serial?.getPorts?.() ?? []
+		const port = ports.find(candidate => isPicadeSerialPort(candidate, filters))
+		if (!port) return false
+		await this.connectPort(port)
+		return true
 	}
 
 	async connectPort(port) {

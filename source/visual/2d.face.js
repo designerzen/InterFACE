@@ -133,7 +133,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 		}
 	}
 
-	if (person.isHighlighted || person.isSelected)
+	if (options.drawOutline && (person.isHighlighted || person.isSelected))
 	{
 		const outlineAlpha = person.isSelected ? 1 : 0.5
 		highlightFaceOvalStyle.color = `hsla(${person.hue},${Math.min(100, options.saturation + 20)}%,${Math.max(20, options.luminosity)}%,${outlineAlpha})`
