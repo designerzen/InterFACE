@@ -1,3 +1,8 @@
+#control-panel-tempo{
+	flex:0 1 auto;
+	width:max-content;
+}
+
 label[for="tempo-input-text"]{
 	grid-area:input;
 	color:transparent;

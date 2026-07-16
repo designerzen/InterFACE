@@ -3,7 +3,7 @@
 menu#control-panel
 
 	div(hidden, aria-live="polite").ensemble-preset-panel
-		button(type="button" aria-label="Show ensemble instrument presets").ensemble-preset-toggle Ensemble presets
+		button(type="button" aria-label="Toggle ensemble instrument presets" aria-expanded="false").ensemble-preset-toggle Ensemble presets
 		menu.ensemble-preset-controls
 
 	div(hidden)#transport
@@ -108,6 +108,12 @@ menu#control-panel
 		//- Percussion and background accompanyment 
 		label(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
 			input#button-percussion(type="checkbox" aria-label="Play some background beats")
+		label(for="select-percussion-preset") <span class="hide-text">Choose </span>Drumkit
+			select#select-percussion-preset(aria-label="Select a percussion preset" name="select-percussion-preset")
+				option(value="", selected) Random
+		label.snare-reverb-control(for="snare-reverb-range" hidden) Snare space
+			input#snare-reverb-range(type="range" min="0" max="1" step="0.05" value="0.24" aria-describedby="snare-reverb-value")
+			output#snare-reverb-value(for="snare-reverb-range") 24%
 		
 		//button#button-percussion( aria-label="Toggle the backing track" ) Backing track
 		//button#button-donk( aria-label="Put a donk on it" ) Add Donk
@@ -313,6 +319,12 @@ menu#control-panel
 		label(for="button-eyes") Eye<span class="hide-text"> tracking</span>
 			input#button-eyes(type="checkbox" aria-label="Toggle eye tracking and overlays")
 
+		label(for="button-eyebrows") Brows
+			input#button-eyebrows(type="checkbox" aria-label="Toggle eyebrow overlays")
+
+		label(for="button-lips") Lips
+			input#button-lips(type="checkbox" aria-label="Toggle lip overlays")
+
 		label.advanced-only(for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> Style</span>
 			select#select-eyes(aria-label="Select some eyes!")
 				option(value="s:0,i:0,p:0,a:1") Disabled (no eyes)
@@ -337,7 +349,7 @@ menu#control-panel
 				//- option(value="MusyngKite") Musyng Kite 
 				option(value="MusyngKite") OpenGM24
 
-		//- DISPLAY ---------------------------------------------------------------
+	//- DISPLAY ---------------------------------------------------------------
 		label(for="select-display") <span class="hide-text">Choose </span>Display
 			select#select-display(name="select-display" aria-label="Select the display mode")
 				//- option.hidden(value="DISPLAY_COMPOSITE") DISPLAY_COMPOSITE

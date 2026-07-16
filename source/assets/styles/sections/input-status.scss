@@ -48,6 +48,11 @@
 	background-image: url(/source/assets/icons/gamepad_black_24dp.svg);
 }
 
+.input-status-row[data-type="picade"] .input-status-icon{
+	background-image: url(/source/assets/icons/picade-max-pcb.svg);
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.92));
+}
+
 .input-status-row[data-type="keyboard"] .input-status-icon{
 	background-image: url(/source/assets/icons/keyboard.svg);
 }

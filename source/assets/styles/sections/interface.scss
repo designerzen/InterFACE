@@ -1138,22 +1138,3 @@ svg.hero-bumper{
 		border-color:var(--shade-brand, var(--shade-red, red));
 	}
 }
-
-.link-designerzen{
-	
-	--icon-size:1rem;
-
-	word-break: keep-all;
-	white-space: nowrap;
-	&::before{
-		content:'';
-		vertical-align: middle;
-		display: inline-block;
-		width: var(--icon-size);
-		height:var(--icon-size);
-		background-image: url(/source/assets/logos/designerzen.svg);
-		background-repeat: no-repeat;
-		background-size: contain;
-		// padding-left:calc(var(--pad)*3.5);
-	}
-}

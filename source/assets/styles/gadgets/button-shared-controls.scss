@@ -266,6 +266,36 @@
 	}
 
 
+	label[for="select-percussion-preset"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-yellow);
+		--bg:url(/source/assets/icons/music_note-24px.svg);
+		anchor-name:--select-percussion-preset;
+		min-width:44px;
+		flex:1 1 120px;
+		white-space:nowrap;
+		overflow:hidden;
+
+		select{
+			min-width:0;
+			max-width:100%;
+		}
+	}
+
+	label.snare-reverb-control{
+		flex:1 1 9rem;
+		gap:0.35rem;
+		input[type="range"]{
+			min-width:4rem;
+			width:7rem;
+			accent-color:var(--shade-green);
+		}
+		output{
+			min-width:3ch;
+			font-variant-numeric:tabular-nums;
+		}
+	}
+
 	// recording subfolder
 	a.folder-link[href="#folder-record"]{
 		--col-select:var(--shade-blue);

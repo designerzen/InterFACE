@@ -286,6 +286,7 @@ main:not(.flag-overlays){
 	}
 
 	.instrument-panel:not(:hover):not(:focus-within):not(:focus-visible),
+	.ensemble-preset-panel:not(:hover):not(:focus-within):not(:focus-visible),
 	.controls:not(:hover):not(:focus-within):not(:focus-visible) {
 		visibility: hidden;
 		opacity:0;

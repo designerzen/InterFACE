@@ -17,12 +17,15 @@
 	box-sizing: border-box;
 	position: fixed;
 	z-index: 303;
-	top:var(--pad);
+
+	// need some space for the presets drawer
+	top:calc(2rem + var(--pad, 16px) * 2 );
 	bottom: auto;
 
 	// prevent user interaction?
 	user-select: none;
 	pointer-events: none;
+	white-space: pre-line;
 	
 	// left:50%;
 	// transform: translateX(-50%);
@@ -161,6 +164,48 @@
 
 	&.tempo{
 		--bg:url(/source/assets/icons/speed-24px.svg);
+	}
+
+	&.direction{
+		--bg:url(/source/assets/icons/rocket_launch.svg);
+		--icon-width:3ch;
+		--indicator-width:calc( var(--icon-width) / 2);
+
+		&::after{
+			display: none;
+			animation:none;
+		}
+	}
+
+	&.direction-sun{
+		--bg:url(/source/assets/icons/flare-24px.svg);
+	}
+
+	&.direction-moon{
+		--bg:url(/source/assets/icons/nightlife.svg);
+	}
+
+	&.direction-planet{
+		--bg:url(/source/assets/icons/public.svg);
+	}
+
+	&.direction-alien,
+	&.direction-robot{
+		--bg:url(/source/assets/icons/smart_toy.svg);
+	}
+
+	&.direction-comet,
+	&.direction-star{
+		--bg:url(/source/assets/icons/stars.svg);
+	}
+
+	&.direction-brain,
+	&.direction-science{
+		--bg:url(/source/assets/icons/psychology.svg);
+	}
+
+	&.direction-complete{
+		--bg:url(/source/assets/icons/rocket.svg);
 	}
 	
 	&.hide{
