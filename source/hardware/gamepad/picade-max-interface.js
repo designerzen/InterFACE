@@ -47,7 +47,8 @@ function parseUsbId(id = '') {
 }
 
 export function getPicadeMaxGamepadInfo(gamepad) {
-	const usb = parseUsbId(gamepad?.id)
+	const browserGamepad = gamepad?.gamepad ?? gamepad
+	const usb = parseUsbId(browserGamepad?.id)
 	const supported = PICADE_MAX_USB_IDS.some(id =>
 		usb?.vendorId === id.vendorId && usb.productId === id.productId
 	)
