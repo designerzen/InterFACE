@@ -25,9 +25,10 @@ import { getAllChordsForNoteNumber } from "../tuning/chords.js"
  * @param {Instrument} instrument 
  * @param {Person} person 
  * @param {Boolean} playAudio 
+ * @param {Boolean} repeatNote 
  * @returns [chord]
  */
-export const updateInstrumentWithPerson = ( instrument, person, playAudio=true ) => {
+export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, repeatNote=false ) => {
 	
 	// if (instrument.type !== "oscillator"){
 	// if (instrument.type !== "waveguide"){
@@ -44,6 +45,9 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 	switch(person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
+			// person.emoticon
+			// console.info("Play:ATTACK", {person, isChord, playAudio} )
+				
 			// stop any that are have already started playing
 			if (isChord)
 			{
@@ -97,14 +101,13 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 				person.activeNotes.set( person.noteNumber, [ person.noteNumber] )
 				return [person.noteNumber]
 			}
-			// person.emoticon
 			
 		case STATE_INSTRUMENT_SUSTAIN:
 		case STATE_INSTRUMENT_PITCH_BEND:
-		case STATE_INSTRUMENT_DECAY:
-		case STATE_INSTRUMENT_RELEASE:
+
 			// NB. this might be null
 			const activity = person.activeNotes.get( person.noteNumber )
+			
 			if (!activity)
 			{
 				// console.error("playing but no notes???", person.activeNotes, person.noteNumber, person.state )
@@ -113,7 +116,35 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true )
 			}else{
 				// console.info("Activity", activity)
 			}
+			
+			if (playAudio && repeatNote && person.singing && person.noteVelocity > 0)
+			{
+				// console.info("Play:SUSTAIN", person.noteVelocity, {person, isChord, activity, playAudio, repeatNote}, person.singing, person.noteVelocity )
+			
+				if (isChord)
+				{
+					instrument.chordOn(activity, person.noteVelocity)
+				}else{
+					instrument.noteOn(person.noteNumber, person.noteVelocity)
+				}
+
+			}else{
+
+				// console.info("Ignore:SUSTAIN", person, {activity, playAudio, repeatNote}, person.singing, person.noteVelocity )
+			}
+
 			return activity
+
+		case STATE_INSTRUMENT_DECAY:
+		case STATE_INSTRUMENT_RELEASE:
+			// NB. this might be null
+			const releasingActivity = person.activeNotes.get( person.noteNumber )
+			if (!releasingActivity)
+			{
+				// console.error("playing but no notes???", person.activeNotes, person.noteNumber, person.state )
+				return []
+			}
+			return releasingActivity
 
 		// case STATE_INSTRUMENT_RELEASE:
 		// 	instrument.noteOff( person.noteNumber )
