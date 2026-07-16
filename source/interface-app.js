@@ -3609,12 +3609,12 @@ export const createInterface = (
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
 		} )
-		if (stateMachine.get("gamePad") !== false) {
-			console.info('[Picade Max] starting Picade interface from app interface singleton', { expectedPlayers: PICADE_MAX_PLAYER_COUNT })
-			addPicadeMaxEvents(singleton)
-		}else{
-			console.info('[Picade Max] gamePad state disabled; Picade interface not started')
-		}
+		// Picade Max remains available independently of the generic gamepad option.
+		console.info('[Picade Max] starting Picade interface from app interface singleton', {
+			expectedPlayers: PICADE_MAX_PLAYER_COUNT,
+			genericGamepadEnabled: stateMachine.get("gamePad") !== false,
+		})
+		addPicadeMaxEvents(singleton)
 		
 		// finish promising with some public method to access
 		resolve( singleton )
@@ -3667,11 +3667,10 @@ export const createInterface = (
 		let picadeSerialPairing = null
 		const requestPicadeSerialFromQuantityOfPeople = () => {
 			console.groupCollapsed?.('[Picade Max] quantityOfPeople click serial pairing')
-			const gamePadEnabled = stateMachine.get("gamePad") !== false
 			const visiblePicade = hasVisiblePicadeMaxGamepad()
-			console.info('[Picade Max] serial pairing gate', { gamePadEnabled, visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
-			if (picadeSerialPairing || !gamePadEnabled || !visiblePicade) {
-				console.warn('[Picade Max] serial pairing skipped from quantityOfPeople click', { gamePadEnabled, visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
+			console.info('[Picade Max] serial pairing gate', { visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
+			if (picadeSerialPairing || !visiblePicade) {
+				console.warn('[Picade Max] serial pairing skipped from quantityOfPeople click', { visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
 				console.groupEnd?.()
 				return
 			}

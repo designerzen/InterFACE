@@ -220,15 +220,20 @@ const updatePicadeStatus = (application, detail, active = false) => {
 	})
 }
 
-/**
- * Starts the specialised two-player Picade Max input flow.
- * The module is dynamically loaded by app.js only after the external USB-ID
- * detector recognises the Picade Max gamepad signature.
- */
+/** Starts the specialised two-player Picade Max input flow. */
 export const addPicadeMaxEvents = application => {
 	if (application.picadeMaxInterfaceLoaded) return
 	application.picadeMaxInterfaceLoaded = true
-	console.info('[Picade Max] interface-picade-max loaded; starting test-page style gamepad polling')
+	console.info('[Picade Max] interface-picade-max loaded; starting test-page style gamepad polling', {
+		browserGamepadApi: Boolean(navigator.getGamepads),
+		initialSlots: Array.from(navigator.getGamepads?.() ?? []).map(gamepad => gamepad && ({
+			index: gamepad.index,
+			id: gamepad.id,
+			connected: gamepad.connected,
+			buttons: gamepad.buttons?.length ?? 0,
+			axes: gamepad.axes?.length ?? 0,
+		})),
+	})
 
 	let controller = null
 	let controllerKey = ''
@@ -322,7 +327,13 @@ export const addPicadeMaxEvents = application => {
 		}
 
 		const gamepads = findPicadeMaxInputGamepads()
-		const key = gamepads.map(gamepad => gamepad.index).join(':')
+		const key = gamepads.map(gamepad => [
+			gamepad.index,
+			gamepad.player,
+			gamepad.source,
+			gamepad.buttonOffset,
+			gamepad.axisOffset,
+		].join(':')).join('|')
 		if (gamepads.length !== 2) {
 			if (gamepads.length === 0 && inventory.connectedCount) {
 				console.warn('[Picade Max] connected gamepads are visible but none match Picade Max USB IDs', inventory.slots)
@@ -349,8 +360,12 @@ export const addPicadeMaxEvents = application => {
 			getButtonLightOptions: ({ button }) => PICADE_DRUM_PARTS[button] ?? {},
 		})
 		controllerKey = key
-		console.info('[Picade Max] PicadeMaxController active with player gamepads', gamepads.map(gamepad => ({
+		console.info('[Picade Max] PicadeMaxController active with logical player inputs', gamepads.map(gamepad => ({
 			index: gamepad.index,
+			player: gamepad.player,
+			source: gamepad.source,
+			buttonOffset: gamepad.buttonOffset,
+			axisOffset: gamepad.axisOffset,
 			id: gamepad.id,
 			buttons: gamepad.buttons?.length,
 			axes: gamepad.axes?.length,
@@ -377,7 +392,7 @@ export const addPicadeMaxEvents = application => {
 			updatePicadeStatus(application, `Player ${event.player + 1}: ${playedDrum?.label ?? drum.label ?? drum.part}`, event.pressed)
 		})
 		controller.start()
-		updatePicadeStatus(application, 'Two separate player drum kits detected')
+		updatePicadeStatus(application, 'Picade Max player input ready')
 		ensureDrumPartSubscription()
 		connectPairedPlasma()
 	}
