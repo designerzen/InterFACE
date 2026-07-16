@@ -118,12 +118,20 @@ export function findPicadeMaxInputGamepads(gamepads = getGamePads()) {
 	const axesPerPlayer = Math.floor(axisCount / PICADE_MAX_PLAYER_COUNT)
 	const hasCombinedControls = buttonsPerPlayer >= PICADE_MAX_BUTTON_COUNT || axesPerPlayer >= PICADE_MAX_PLAYER_AXES
 	if (!hasCombinedControls) {
-		return [{
-			...createPlayerInput(combined, 0),
-			buttonOffset: 0,
-			axisOffset: 0,
-			source: 'single',
-		}]
+		return [
+			{
+				...createPlayerInput(combined, 0),
+				buttonOffset: 0,
+				axisOffset: 0,
+				source: 'single',
+			},
+			{
+				...createPlayerInput(combined, 1),
+				buttonOffset: 0,
+				axisOffset: 0,
+				source: 'placeholder',
+			},
+		]
 	}
 
 	return Array.from({ length: PICADE_MAX_PLAYER_COUNT }, (_, player) => ({
@@ -275,6 +283,7 @@ export class PicadeMaxController {
 	}
 
 	#createReader(gamepad, player) {
+		if (gamepad?.source === 'placeholder') return { update: () => null }
 		if (gamepad?.source === 'combined') return this.#createOffsetReader(gamepad, player)
 		const browserGamepad = getBrowserGamepad(gamepad)
 		const reader = new GamePad(browserGamepad.index)
