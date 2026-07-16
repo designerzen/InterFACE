@@ -40,8 +40,14 @@ const APP_ROOT = path.resolve( __dirname, isDevelopment ?  "../../dist-electron/
 // and ./electron/resources/preload.js for the test build
 const PRELOADER_PATH = path.join(APP_ROOT, 'preload.js' )
 const LINUX_ICON = path.join(APP_ROOT,`../../icons/icon-512.webp`)
-const PICADE_MAX_VENDOR_ID = 0x2e8a
-const PICADE_MAX_PRODUCT_ID = 0x1098
+const PICADE_MAX_USB_IDS = [
+	{ vendorId: 0x2e8a, productId: 0x1098 },
+	{ vendorId: 0xcafe, productId: 0x400d },
+]
+const isPicadeMaxUsbDevice = (device:any) =>
+	PICADE_MAX_USB_IDS.some(id =>
+		device?.vendorId === id.vendorId && device?.productId === id.productId
+	)
 
 let mainWindow:BrowserWindow|null = null
 
@@ -225,15 +231,13 @@ function createWindow() {
 			return false
 		}
 
-		return device.vendorId === PICADE_MAX_VENDOR_ID && device.productId === PICADE_MAX_PRODUCT_ID
+		return isPicadeMaxUsbDevice(device)
 	})
 
 	mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
 		event.preventDefault()
 
-		const picadePort = portList.find((port: any) =>
-			port.vendorId === PICADE_MAX_VENDOR_ID && port.productId === PICADE_MAX_PRODUCT_ID
-		)
+		const picadePort = portList.find((port: any) => isPicadeMaxUsbDevice(port))
 
 		if (picadePort) {
 			log.info(`Auto-selecting Picade Max serial device ${picadePort.portId}`)

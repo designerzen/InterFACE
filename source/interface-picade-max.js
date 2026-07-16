@@ -8,6 +8,8 @@ import {
 import {
 	createPicadeMaxController,
 	findPicadeMaxInputGamepads,
+	getPicadeMaxInputInventory,
+	logPicadeMaxInputInventory,
 	PICADE_MAX_JOYSTICK_DOWN,
 	PICADE_MAX_JOYSTICK_LEFT,
 	PICADE_MAX_JOYSTICK_RIGHT,
@@ -226,11 +228,13 @@ const updatePicadeStatus = (application, detail, active = false) => {
 export const addPicadeMaxEvents = application => {
 	if (application.picadeMaxInterfaceLoaded) return
 	application.picadeMaxInterfaceLoaded = true
+	console.info('[Picade Max] interface-picade-max loaded; starting test-page style gamepad polling')
 
 	let controller = null
 	let controllerKey = ''
 	let connectingPlasma = false
 	let lastTempoDivision = null
+	let lastInventoryKey = ''
 	let unsubscribeDrumPart = null
 
 	const pulseDrumPartLights = (part, detail={}) => {
@@ -280,11 +284,15 @@ export const addPicadeMaxEvents = application => {
 		if (!controller || controller.plasma.connected || connectingPlasma) return
 		connectingPlasma = true
 		try {
+			console.info('[Picade Max] checking paired Plasma serial ports')
 			const pairedPorts = await controller.plasma.getPairedPorts()
+			console.info('[Picade Max] paired Plasma serial ports', pairedPorts.map(port => port.getInfo?.()))
 			if (pairedPorts.length) {
+				console.info('[Picade Max] connecting already-paired Plasma lights')
 				await controller.connectPlasma()
 				updatePicadeStatus(application, 'Two player drum kits / Plasma lights ready')
 			}else{
+				console.warn('[Picade Max] no paired Plasma serial ports found; quantityOfPeople click should request pairing')
 				updatePicadeStatus(application, 'Two player drum kits / Plasma lights need pairing')
 			}
 		} catch (error) {
@@ -296,14 +304,42 @@ export const addPicadeMaxEvents = application => {
 	}
 
 	const refreshPicade = () => {
+		const inventory = getPicadeMaxInputInventory()
+		const inventoryKey = JSON.stringify(inventory.slots.map(slot => ({
+			slot: slot.slot,
+			index: slot.index,
+			connected: slot.connected,
+			id: slot.id,
+			mapping: slot.mapping,
+			buttons: slot.buttons,
+			axes: slot.axes,
+			recognised: slot.recognised,
+			usbId: slot.usbId,
+		})))
+		if (inventoryKey !== lastInventoryKey) {
+			lastInventoryKey = inventoryKey
+			logPicadeMaxInputInventory('interface refresh')
+		}
+
 		const gamepads = findPicadeMaxInputGamepads()
 		const key = gamepads.map(gamepad => gamepad.index).join(':')
 		if (gamepads.length !== 2) {
+			if (gamepads.length === 0 && inventory.connectedCount) {
+				console.warn('[Picade Max] connected gamepads are visible but none match Picade Max USB IDs', inventory.slots)
+			}
 			if (controller) controller.stop()
 			controller = null
 			controllerKey = ''
-			application.picadeMaxInputActive = false
-			application.clearInputStatus?.(PICADE_STATUS_ID)
+			application.picadeMaxInputActive = gamepads.length > 0
+			if (gamepads.length) {
+				updatePicadeStatus(
+					application,
+					`Picade Max input detected (${gamepads.length}/2 player gamepads found)`,
+					true
+				)
+			}else{
+				application.clearInputStatus?.(PICADE_STATUS_ID)
+			}
 			return
 		}
 		if (key === controllerKey) return
@@ -313,6 +349,13 @@ export const addPicadeMaxEvents = application => {
 			getButtonLightOptions: ({ button }) => PICADE_DRUM_PARTS[button] ?? {},
 		})
 		controllerKey = key
+		console.info('[Picade Max] PicadeMaxController active with player gamepads', gamepads.map(gamepad => ({
+			index: gamepad.index,
+			id: gamepad.id,
+			buttons: gamepad.buttons?.length,
+			axes: gamepad.axes?.length,
+			mapping: gamepad.mapping,
+		})))
 		application.picadeMaxInputActive = true
 		for (const gamepad of gamepads) application.clearInputStatus?.(`gamepad-${gamepad.index}`)
 		controller.onButton(event => {

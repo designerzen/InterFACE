@@ -22,7 +22,7 @@ const numberOfPlayersAsString = quantityOfPlayers => {
  * @param {Object} stateMachine State object - used for preselecting options
  * @returns {Promise} with an object payload
  */
-export const showPlayerSelector = (options, stateMachine) => new Promise( (resolve,reject)=>{
+export const showPlayerSelector = (options, stateMachine, hooks = {}) => new Promise( (resolve,reject)=>{
 
 	// use this to set the buttons on the form
 	const maxQuantityOfPlayers = options.maxFaces
@@ -87,8 +87,9 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 	let automationMode = stateMachine.get("automationMode") ?? false
 	
 
-	const setQuantityOfPlayers = amount => {
+	const setQuantityOfPlayers = (amount, event = null) => {
 		players = amount
+		hooks.onQuantityOfPeople?.({ quantityOfPeople: amount, event })
 		body.classList.remove(...playerQuantities)
 		body.classList.add( numberOfPlayersAsString(amount) )
 		const addendumText = automationMode ? " with automation" : ""
@@ -159,10 +160,10 @@ export const showPlayerSelector = (options, stateMachine) => new Promise( (resol
 	}
 
 	// Each input chooses how many players can interact
-	buttonSolo.addEventListener("click", event => setQuantityOfPlayers(1) )
-	buttonDuet.addEventListener("click", event => setQuantityOfPlayers(2) )
-	buttonTrio.addEventListener("click", event => setQuantityOfPlayers(3) )
-	buttonQuartet.addEventListener("click", event => setQuantityOfPlayers(4) )
+	buttonSolo.addEventListener("click", event => setQuantityOfPlayers(1, event) )
+	buttonDuet.addEventListener("click", event => setQuantityOfPlayers(2, event) )
+	buttonTrio.addEventListener("click", event => setQuantityOfPlayers(3, event) )
+	buttonQuartet.addEventListener("click", event => setQuantityOfPlayers(4, event) )
 
 	advanced.addEventListener("change", event =>{ 
 		advancedMode = advanced.checked 

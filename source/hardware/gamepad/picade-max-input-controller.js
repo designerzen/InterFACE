@@ -38,6 +38,46 @@ export function isPicadeMaxInputController(gamepad) {
 	return Boolean(getPicadeMaxGamepadInfo(gamepad))
 }
 
+export function getPicadeMaxInputInventory(gamepads = getGamePads()) {
+	const list = Array.from(gamepads ?? [])
+	const slotCount = Math.max(4, list.length)
+	const slots = []
+	for (let slot = 0; slot < slotCount; slot++) {
+		const gamepad = list[slot] ?? null
+		const device = getPicadeMaxGamepadInfo(gamepad)
+		slots.push({
+			slot,
+			index: gamepad?.index ?? null,
+			connected: Boolean(gamepad?.connected),
+			id: gamepad?.id ?? null,
+			mapping: gamepad?.mapping ?? null,
+			buttons: gamepad?.buttons?.length ?? 0,
+			axes: gamepad?.axes?.length ?? 0,
+			recognised: Boolean(device),
+			usbId: device ? `${device.vendorId.toString(16).padStart(4, '0')}:${device.productId.toString(16).padStart(4, '0')}` : null,
+			manufacturer: device?.manufacturer ?? null,
+			productName: device?.productName ?? null,
+			gamepad,
+		})
+	}
+	return {
+		slotCount,
+		connectedCount: slots.filter(slot => slot.connected).length,
+		picadeCount: slots.filter(slot => slot.recognised).length,
+		slots,
+	}
+}
+
+export function logPicadeMaxInputInventory(label = 'Picade Max input inventory', gamepads = getGamePads()) {
+	const inventory = getPicadeMaxInputInventory(gamepads)
+	const rows = inventory.slots.map(({ gamepad, ...slot }) => slot)
+	console.groupCollapsed?.(`[Picade Max] ${label}: ${inventory.picadeCount}/2 recognised, ${inventory.connectedCount} connected`)
+	console.info('[Picade Max] raw inventory', inventory)
+	console.table?.(rows)
+	console.groupEnd?.()
+	return inventory
+}
+
 /** Finds the two independent player gamepads exposed by one Picade Max USB board. */
 export function findPicadeMaxInputGamepads(gamepads = getGamePads()) {
 	return Array.from(gamepads)

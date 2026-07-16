@@ -107,6 +107,12 @@ const setGamePadStatus = (application, gamePad, gamePadPlayerIndex, detail = '',
 const isPicadeGamepad = gamePad =>
 	isPicadeMaxInputController(gamePad?.gamepad)
 	|| PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
+export const shouldUsePicadeMaxInterface = (application, gamePad) => {
+	if (!isPicadeGamepad(gamePad)) return false
+	application.picadeMaxInputActive = true
+	application.clearInputStatus?.(getGamePadStatusId(gamePad))
+	return true
+}
 const getEventGamePad = (value, gamePad) => gamePad ?? (value?.gamepad ? value : null)
 export const getExistingGamePadPersonIndex = (personManager, playerIndex) => {
 	const people = personManager.people ?? personManager.players ?? []
@@ -657,7 +663,7 @@ export const addGamePadEvents = (application) => {
 		const activeGamePad = getEventGamePad(value, gamePad)
 		// Picade Max is handled by interface-keyboard's two-player adapter. This
 		// keeps its player-specific drum routes from being doubled by generic pads.
-		if (application.picadeMaxInputActive && isPicadeGamepad(activeGamePad)) return
+		if (shouldUsePicadeMaxInterface(application, activeGamePad)) return
 		console.info("GAMEPAD:", {eventName, value, mode: GAMEPAD_MODES[gamePadModeIndex], gamePad: activeGamePad, heldFor}, arguments )
 		switch(eventName)
 		{

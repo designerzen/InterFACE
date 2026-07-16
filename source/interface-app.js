@@ -27,6 +27,12 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface, updateTempo } from './dom/ui.tempo.js'
+import {
+	hasVisiblePicadeMaxGamepad,
+	requestPicadeSerialPortFromUserGesture,
+} from './hardware/gamepad/picade-serial-pairing.js'
+import { PICADE_MAX_PLAYER_COUNT } from './hardware/gamepad/picade-max-input-controller.js'
+import { addPicadeMaxEvents } from './interface-picade-max.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
 // import { addToolTips, setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 
@@ -3603,6 +3609,12 @@ export const createInterface = (
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
 		} )
+		if (stateMachine.get("gamePad") !== false) {
+			console.info('[Picade Max] starting Picade interface from app interface singleton', { expectedPlayers: PICADE_MAX_PLAYER_COUNT })
+			addPicadeMaxEvents(singleton)
+		}else{
+			console.info('[Picade Max] gamePad state disabled; Picade interface not started')
+		}
 		
 		// finish promising with some public method to access
 		resolve( singleton )
@@ -3652,7 +3664,45 @@ export const createInterface = (
 		hideLoading()
 
 		// Show the player selection screen!
-		const results = await showPlayerSelector(modelOptions, stateMachine)
+		let picadeSerialPairing = null
+		const requestPicadeSerialFromQuantityOfPeople = () => {
+			console.groupCollapsed?.('[Picade Max] quantityOfPeople click serial pairing')
+			const gamePadEnabled = stateMachine.get("gamePad") !== false
+			const visiblePicade = hasVisiblePicadeMaxGamepad()
+			console.info('[Picade Max] serial pairing gate', { gamePadEnabled, visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
+			if (picadeSerialPairing || !gamePadEnabled || !visiblePicade) {
+				console.warn('[Picade Max] serial pairing skipped from quantityOfPeople click', { gamePadEnabled, visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
+				console.groupEnd?.()
+				return
+			}
+			picadeSerialPairing = requestPicadeSerialPortFromUserGesture()
+				.then(result => {
+					console.info('[Picade Max] serial pairing result', result)
+					if (result.status === 'unavailable') return
+					const detail = result.status === 'paired'
+						? 'Picade Plasma lights already paired'
+						: 'Picade Plasma lights paired'
+					inputStatusOverlay.setDeviceStatus('picade-max', {
+						type: 'picade',
+						label: 'Picade Max PCB',
+						detail,
+						connected: true,
+						active: true,
+						ttl: 1200,
+					})
+				})
+				.catch(error => {
+					if (error?.name === 'NotFoundError') return
+					console.warn('Unable to pair Picade Plasma lights from player selector', error)
+				})
+				.finally(() => {
+					picadeSerialPairing = null
+					console.groupEnd?.()
+				})
+		}
+		const results = await showPlayerSelector(modelOptions, stateMachine, {
+			onQuantityOfPeople: requestPicadeSerialFromQuantityOfPeople,
+		})
 		
 		clearInterval( timeOut )
 		setToast( "" )
