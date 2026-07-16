@@ -1,4 +1,4 @@
-const supportsBaseSelect = CSS.supports("appearance", "base-select")
+const supportsBaseSelect = globalThis.CSS?.supports?.("appearance", "base-select") ?? false
 
 /**
  * Populate a <select> element with options, using the customizable 
@@ -61,7 +61,7 @@ export const populateSelect = (element, items) => {
 	const select = typeof element === "string" ? document.getElementById(element) : element
 
 	if (!select) {
-		throw Error("populateSelect: No element found")
+		return null
 	}
 
 	const isGrouped = items.length > 0 && items[0].group !== undefined
@@ -216,7 +216,7 @@ export const connectSelect = (element,callback) => {
 	const select = typeof element === "string" ? document.getElementById(element) : element
 	
 	if (!select){
-		throw Error("No element found with that spec")
+		return null
 	}
 	// select.addEventListener( 'change', event=>{
 	select.onchange = event =>{
@@ -245,6 +245,11 @@ const path = './assets/audio/acoustics/'
 export const connectReverbControls = (callback) => {
 
 	const ID = 'select-impulse'
+	const select = document.getElementById(ID)
+	if (!select)
+	{
+		return null
+	}
 	const dirs = DIRS
 
 	const maapped = dirs.map( async (dir) => {
@@ -266,11 +271,11 @@ export const connectReverbControls = (callback) => {
 	Promise.all(maapped).then( groups => {
 		const validGroups = groups.filter(Boolean)
 		if (validGroups.length) {
-			populateSelect(ID, validGroups)
+			populateSelect(select, validGroups)
 		} else {
 			console.error("Injecting impulse FAILED to ", ID)
 		}
 	})
 
-	return connectSelect( ID, (option)=> callback && callback(option) )
+	return connectSelect(select, option => callback && callback(option))
 }

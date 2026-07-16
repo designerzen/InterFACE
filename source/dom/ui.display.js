@@ -14,6 +14,10 @@ export const createDisplayOptions = ( displays, selectedDisplay )=>{
 	}))
 
 	const select = populateSelect('select-display', items)
+	if (!select)
+	{
+		return null
+	}
 	if (selectedDisplay)
 	{
 		select.value = selectedDisplay
@@ -21,6 +25,9 @@ export const createDisplayOptions = ( displays, selectedDisplay )=>{
 
 	// now unhide it
 	const displayMenu = document.querySelector('label[for="select-display"]')
-	displayMenu.hidden = false
+	if (displayMenu)
+	{
+		displayMenu.hidden = false
+	}
 	return select
 }

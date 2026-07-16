@@ -23,6 +23,10 @@ export const setToggle = (toggleName, callback, value ) => {
 		// console.error("Setting toggle via click to", "element.checked: "+element.checked, {element})
 		callback(value)
 	}, "click")
+	if (!element)
+	{
+		return null
+	}
 
 	// preset the button
 	element.checked = !!value
@@ -53,6 +57,10 @@ export const setPressureToggle = (toggleName, tapCallback, holdCallback, holding
 		},
 		holdingProgressCallback
 	)
+	if (!element)
+	{
+		return null
+	}
 
 	// preset the button
 	element.checked = value

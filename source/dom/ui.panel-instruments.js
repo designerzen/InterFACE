@@ -1,5 +1,7 @@
+import { WebMidi } from "webmidi"
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 import { INTERVAL_LIBRARY } from "../audio/tuning/scales.js"
+import { EMOJI_MOOD_ALL, EMOJI_MOOD_HAPPY, EMOJI_MOOD_SAD } from "../models/emoji.js"
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
 const PERSON_OPTION_CLASS = "person-option-control"
@@ -18,6 +20,35 @@ const SEQUENCE_OPTIONS = [
 	["diminished", "Diminished", "DIMINISHED_SCALE"],
 	["augmented", "Augmented", "AUGMENTED_SCALE"]
 ].filter(([, , scale]) => INTERVAL_LIBRARY[scale]).map(([value, label]) => [value, label])
+
+const EMOJI_MOOD_OPTIONS = [
+	[EMOJI_MOOD_ALL, "All faces"],
+	[EMOJI_MOOD_HAPPY, "Happy faces"],
+	[EMOJI_MOOD_SAD, "Sad faces"]
+]
+
+const MIDI_DEVICE_AUTO = "auto"
+const MIDI_DEVICE_ALL = "all"
+const MIDI_PORT_AUTO = "auto"
+const MIDI_PORT_ALL = "all"
+
+const MIDI_PORT_OPTIONS = [
+	[MIDI_PORT_AUTO, "Auto"],
+	[MIDI_PORT_ALL, "All ports"],
+	...Array.from({length:16}, (_, index) => {
+		const port = index + 1
+		return [port, `Port ${port}`]
+	})
+]
+
+const createMIDIDeviceOptions = () => [
+	[MIDI_DEVICE_AUTO, "Auto"],
+	[MIDI_DEVICE_ALL, "All MIDI devices"],
+	...WebMidi.outputs.map((output, index) => [
+		output.id,
+		output.name || output.manufacturer || `MIDI device ${index + 1}`
+	])
+]
 
 const createOptions = (options, currentValue) => options.map(([value, label]) => {
 	const selected = String(value) === String(currentValue) ? " selected" : ""
@@ -50,20 +81,26 @@ const createPersonOptionsHTML = (person) => {
 	const playMode = person.activeInstrument?.arpeggiate ? "arpeggio" : "chord"
 	const lowOctave = Number.isFinite(Number(options.octaveLow)) ? Number(options.octaveLow) : 2
 	const highOctave = Number.isFinite(Number(options.octaveHigh)) ? Number(options.octaveHigh) : 6
+	const midiDevice = options.midiDevice ?? MIDI_DEVICE_AUTO
+	const midiPort = options.midiPort ?? MIDI_PORT_AUTO
 
 	return `<details class="person-options">
 		<summary>${createSummaryContent("Options")}</summary>
 		<div class="person-options-grid">
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
 			${createSelectControl("Play", "playMode", playMode, [["chord", "Sympathetic Chords"], ["arpeggio", "Arpeggio"]], "data-person-action")}
+			${createSelectControl("MIDI device", "midiDevice", midiDevice, createMIDIDeviceOptions(), "data-person-option", "person-option-wide")}
+			${createSelectControl("MIDI port", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
+			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}
 			${createSelectControl("Lower octave", "octaveLow", lowOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
 			${createSelectControl("Upper octave", "octaveHigh", highOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
 			${createToggleControl("Mute", "muted", options.muted)}
+			${createToggleControl("Auto-repeat", "autoRepeat", options.autoRepeat)}
 			${createToggleControl("Chord labels", "showChordNames", options.showChordNames)}
 			${createToggleControl("Pitch bend", "pitchBend", options.pitchBend)}
 			${createToggleControl("Eyebrows", "drawEyebrows", options.drawEyebrows)}
 			${createToggleControl("Eyes", "drawEyes", options.drawEyes)}
-			${createToggleControl("Mouth", "drawMouth", options.drawMouth)}
+			${createToggleControl("Lips", "drawMouth", options.drawMouth)}
 			${createToggleControl("Nose", "drawNose", options.drawNose)}
 			${createToggleControl("Stereo pan", "stereoPan", options.stereoPan)}
 		</div>

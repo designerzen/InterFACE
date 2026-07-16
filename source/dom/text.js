@@ -12,12 +12,16 @@ const supportsPopover = HTMLElement.prototype.hasOwnProperty("popover")
 export const bindTextElement = (element, rate=350, clearAfter=0, split=false, popOver=true) => {
 
 	const canUsePopover = () => popOver && supportsPopover && element?.isConnected
+	const normaliseClassTokens = style => `${style ?? 'none'}`
+		.split(/\s+/)
+		.map(token => token.trim())
+		.filter(Boolean)
 	
 	let cachedMessage = null
 	let interval = -1
 	let clearInterval = -1
 	let currentMessage = null
-	let previousStyle = 'empty'
+	let previousStyles = ['empty']
 	
 	/**
 	 * Debounces the writing of the text to prevent multiple uneccesssary writes
@@ -94,21 +98,12 @@ export const bindTextElement = (element, rate=350, clearAfter=0, split=false, po
 			// FIXME: Hide the cursor indicator
 		}
 
-		if (previousStyle !== style)
+		const styleTokens = normaliseClassTokens(style)
+		if (previousStyles.join(' ') !== styleTokens.join(' '))
 		{
-			element.classList.remove(previousStyle)
-			switch (style)
-			{
-				case "flash":
-					element.classList.add(style)
-					break
-
-				case "none":
-				default:
-					element.classList.add(style)
-					break
-			}			
-			previousStyle = style
+			element.classList.remove(...previousStyles)
+			element.classList.add(...styleTokens)
+			previousStyles = styleTokens
 		}
 
 		// save the message to write out in the future?

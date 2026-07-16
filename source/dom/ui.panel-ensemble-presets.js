@@ -1,4 +1,4 @@
-import { ENSEMBLE_INSTRUMENT_PRESETS } from "../people/person.ensemble-presets.js"
+import { loadEnsembleInstrumentPresets } from "../people/person.ensemble-presets.js"
 
 const PANEL_SELECTOR = ".ensemble-preset-panel"
 const TOGGLE_SELECTOR = ".ensemble-preset-toggle"
@@ -6,6 +6,39 @@ const CONTROLS_SELECTOR = ".ensemble-preset-controls"
 const PRESET_INPUT_CLASS = "ensemble-preset-input"
 const ACTIVE_CLASS = "expanded"
 const DRAGGING_CLASS = "dragging"
+
+const PRESET_ICONS = Object.freeze({
+	"four-choirs":"🎶",
+	"all-strings":"🎻",
+	"synth-pop":"🎹",
+	"brass-band":"🎺",
+	"dream-pads":"☁️",
+	"orchestra":"🎼",
+	"rock-band":"🎸",
+	"ambient":"🌫️",
+	"samba":"🪘",
+	"techno":"⚙️",
+	"jungle":"🌴",
+	"sound-fx":"🔊",
+	"hip-hop":"🎤",
+	"reggae":"🌞",
+	"jazz-club":"🎷",
+	"chiptune":"👾",
+	"k-pop":"✨",
+	"outer-space":"🚀",
+	"spooky":"👻",
+	"disco":"🪩",
+	"cyberpunk":"🌃",
+	"medieval":"🏰",
+	"underwater":"🌊",
+	"cartoon-chase":"💨"
+})
+
+const escapeAttribute = (value="") => String(value)
+	.replaceAll("&", "&amp;")
+	.replaceAll("\"", "&quot;")
+	.replaceAll("<", "&lt;")
+	.replaceAll(">", "&gt;")
 
 const getPresetInstruments = (preset, quantityOfPeople=1) => {
 	const voicing = preset.voicings?.[quantityOfPeople]
@@ -32,7 +65,8 @@ const createPresetLineup = (preset, quantityOfPeople) => getPresetInstruments(pr
 
 const createPresetHTML = (preset, index, quantityOfPeople) => `
 	<li class="ensemble-preset">
-		<label for="ensemble-preset-${preset.id}">
+		<label for="ensemble-preset-${preset.id}" title="${escapeAttribute(preset.description ?? preset.title)}">
+			<span class="ensemble-preset-icon" aria-hidden="true">${PRESET_ICONS[preset.id] ?? "🎵"}</span>
 			<strong>${preset.title}</strong>
 			<small>${createPresetLineup(preset, quantityOfPeople)}</small>
 			<input
@@ -48,6 +82,7 @@ const createPresetHTML = (preset, index, quantityOfPeople) => `
 const setPanelState = (panel, open) => {
 	panel.classList.toggle(ACTIVE_CLASS, open)
 	panel.setAttribute("style", open ? "--y:999;" : "--y:0;")
+	panel.querySelector(TOGGLE_SELECTOR)?.setAttribute("aria-expanded", String(open))
 	document.documentElement.classList.toggle("ensemble-preset-panel-showing", open)
 }
 
@@ -89,11 +124,11 @@ const applyEnsemblePreset = async (people, preset, onApplied) => {
 	onApplied?.(preset)
 }
 
-const populateEnsemblePresetPanel = (controls, quantityOfPeople=1) => {
+const populateEnsemblePresetPanel = (controls, presets, quantityOfPeople=1) => {
 	controls.innerHTML = `
 		<h4>Ensemble</h4>
 		<legend>Band presets for ${quantityOfPeople} ${quantityOfPeople === 1 ? "person" : "people"}</legend>
-		<ul>${ENSEMBLE_INSTRUMENT_PRESETS.map((preset, index) => createPresetHTML(preset, index, quantityOfPeople)).join("")}</ul>
+		<ul>${presets.map((preset, index) => createPresetHTML(preset, index, quantityOfPeople)).join("")}</ul>
 	`
 }
 
@@ -245,7 +280,10 @@ const addVerticalDrawerInteractivity = (panel, controls) => {
 	})
 }
 
-export const setupEnsemblePresetPanel = (people, onApplied) => {
+export const setupEnsemblePresetPanel = async (people, optionsOrOnApplied) => {
+	const options = typeof optionsOrOnApplied === "function" ?
+		{ onApplied:optionsOrOnApplied } :
+		(optionsOrOnApplied ?? {})
 	const panel = document.querySelector(PANEL_SELECTOR)
 	if (!panel)
 	{
@@ -258,7 +296,8 @@ export const setupEnsemblePresetPanel = (people, onApplied) => {
 		throw Error("The ensemble preset panel is missing the required menu element")
 	}
 
-	populateEnsemblePresetPanel(controls, people.length)
+	const presets = await loadEnsembleInstrumentPresets(options.url)
+	populateEnsemblePresetPanel(controls, presets, people.length)
 	addVerticalDrawerInteractivity(panel, controls)
 
 	controls.addEventListener("change", event => {
@@ -267,13 +306,15 @@ export const setupEnsemblePresetPanel = (people, onApplied) => {
 			return
 		}
 
-		const preset = ENSEMBLE_INSTRUMENT_PRESETS[Number.parseInt(event.target.value, 10)]
+		const preset = presets[Number.parseInt(event.target.value, 10)]
 		if (!preset)
 		{
 			return
 		}
 
-		applyEnsemblePreset(people, preset, onApplied).catch(error => {
+		options.onSelected?.(preset)
+		options.applyOptions?.(preset)
+		applyEnsemblePreset(people, preset, options.onApplied).catch(error => {
 			console.error("Failed to apply ensemble preset", error)
 		})
 		setPanelState(panel, false)
@@ -282,5 +323,18 @@ export const setupEnsemblePresetPanel = (people, onApplied) => {
 	panel.hidden = false
 	setPanelState(panel, false)
 
-	return panel
+	return {
+		panel,
+		presets,
+		applyPresetById:(id) => {
+			const preset = presets.find(item => item.id === id)
+			if (!preset)
+			{
+				return Promise.resolve(null)
+			}
+			options.onSelected?.(preset)
+			options.applyOptions?.(preset)
+			return applyEnsemblePreset(people, preset, options.onApplied)
+		}
+	}
 }
