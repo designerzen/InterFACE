@@ -33,7 +33,7 @@ const DEFAULT_BUTTON_LIGHT_MAP = Object.freeze(
 	Array.from({ length: PICADE_MAX_BUTTON_COUNT }, (_, button) => button),
 )
 
-/** Returns true only for the Picade Max Input gamepad interface (USB 2e8a:1098). */
+/** Returns true only for the supported Picade Max Input gamepad interfaces. */
 export function isPicadeMaxInputController(gamepad) {
 	return Boolean(getPicadeMaxGamepadInfo(gamepad))
 }

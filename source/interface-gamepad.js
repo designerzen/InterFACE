@@ -108,6 +108,10 @@ const isPicadeGamepad = gamePad =>
 	isPicadeMaxInputController(gamePad?.gamepad)
 	|| PICADE_GAMEPAD_IDS.has(gamePad?.gamepad?.id)
 const getEventGamePad = (value, gamePad) => gamePad ?? (value?.gamepad ? value : null)
+const getExistingGamePadPerson = (personManager, playerIndex) => {
+	if (!Number.isInteger(playerIndex) || playerIndex < 0) return null
+	return personManager.people?.[playerIndex] ?? personManager.players?.[playerIndex] ?? null
+}
 const cyclePicadePersonMode = (application, person, playerIndex, gamePad) => {
 	if (!person) {
 		application.setFeedback?.(`${getGamePadPlayerLabel(playerIndex)} mode unavailable`, 0, 'gamepad')
@@ -695,7 +699,7 @@ export const addGamePadEvents = (application) => {
 				case BUTTON_SELECT: 
 					if (isPicadeGamepad(activeGamePad))
 					{
-						cyclePicadePersonMode(application, personManager.getPerson(gamePadPlayerIndex), gamePadPlayerIndex, activeGamePad)
+						cyclePicadePersonMode(application, getExistingGamePadPerson(personManager, gamePadPlayerIndex), gamePadPlayerIndex, activeGamePad)
 						break
 					}
 					// We can check to see if we are deslected

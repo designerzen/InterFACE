@@ -29,11 +29,21 @@ export const PICADE_MAX_USB_VENDOR_NAME = 'Raspberry Pi (Trading) Ltd'
 export const PICADE_MAX_MANUFACTURER = 'Pimoroni Ltd'
 export const PICADE_MAX_PRODUCT_NAME = 'Picade Max Input'
 
+function parseUsbIdPart(value) {
+	if (!value) return null
+	return parseInt(String(value).replace(/^0x/i, ''), 16)
+}
+
 function parseUsbId(id = '') {
-	const vendor = id.match(/vendor:\s*([\da-f]+)/i)?.[1]
-	const product = id.match(/product:\s*([\da-f]+)/i)?.[1]
+	const vendor = id.match(/(?:vendor|vid)(?:\s*id)?\s*:?\s*(0x)?([\da-f]+)/i)
+		?? id.match(/\bvid[_\s-]*(0x)?([\da-f]+)/i)
+	const product = id.match(/(?:product|pid)(?:\s*id)?\s*:?\s*(0x)?([\da-f]+)/i)
+		?? id.match(/\bpid[_\s-]*(0x)?([\da-f]+)/i)
 	if (!vendor || !product) return null
-	return { vendorId: parseInt(vendor, 16), productId: parseInt(product, 16) }
+	return {
+		vendorId: parseUsbIdPart(`${vendor[1] ?? ''}${vendor[2]}`),
+		productId: parseUsbIdPart(`${product[1] ?? ''}${product[2]}`),
+	}
 }
 
 export function getPicadeMaxGamepadInfo(gamepad) {
