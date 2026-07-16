@@ -7,6 +7,9 @@ export default class ChordInstrument extends Instrument{
 	#arpeggio = false
 	arpeggioIndex = 0
 	arpeggioChordKey = ""
+	arpeggioGateMs = 0
+	arpeggioGateTimeout = null
+	arpeggioGateToken = 0
 
 	type = INSTRUMENT_TYPE_CHORD
 
@@ -74,6 +77,7 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	async destroy(){
+		this.clearArpeggioGate()
 		this.destroyInstruments()
 		this.mixer.disconnect()			
         super.destroy()
@@ -153,10 +157,42 @@ export default class ChordInstrument extends Instrument{
 	resetArpeggio(){
 		this.arpeggioIndex = 0
 		this.arpeggioChordKey = ""
+		this.clearArpeggioGate()
 	}
 
 	getChordVelocity(chord, velocity){
 		return velocity ?? chord?.velocity ?? 1
+	}
+
+	setArpeggioGate(gateMs=0){
+		this.arpeggioGateMs = Number.isFinite(gateMs) && gateMs > 0 ? gateMs : 0
+		return this.arpeggioGateMs
+	}
+
+	clearArpeggioGate(){
+		if (this.arpeggioGateTimeout)
+		{
+			clearTimeout(this.arpeggioGateTimeout)
+			this.arpeggioGateTimeout = null
+		}
+		this.arpeggioGateToken++
+	}
+
+	scheduleArpeggioGate(noteNumber, velocity){
+		this.clearArpeggioGate()
+		if (!this.arpeggioGateMs)
+		{
+			return
+		}
+		const token = this.arpeggioGateToken
+		this.arpeggioGateTimeout = setTimeout(() => {
+			if (token !== this.arpeggioGateToken)
+			{
+				return
+			}
+			this.noteOff(noteNumber, velocity, 0)
+			this.arpeggioGateTimeout = null
+		}, this.arpeggioGateMs)
 	}
 
 	async chordOnArpeggio(chordArray, velocity){
@@ -178,7 +214,10 @@ export default class ChordInstrument extends Instrument{
 		}
 
 		await this.allNotesOff()
-		return this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), 0 )
+		const chordVelocity = this.getChordVelocity(chord, velocity)
+		const started = await this.noteOn( chord.noteNumber, chordVelocity, 0 )
+		this.scheduleArpeggioGate(chord.noteNumber, chordVelocity)
+		return started
 	}
 
 	/**
@@ -236,6 +275,7 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	async allNotesOff(){
+		this.clearArpeggioGate()
 		const notesTurned = []
 		const activeNotes = [...this.activeNotes.entries()]
 		const noteOffs = []

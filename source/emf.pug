@@ -1,24 +1,31 @@
-extends interface.pug
+extends index.pug
 
 //- custom options go here
 block options
 	script.
 		globalThis._synth = { 
 			advancedMode:false, 
-			text:false, 
+			text:true, 
 			autoHide:true, 
 			backingTrack:false, 
 			photoSensitive:true,
 			automationMode:true,
-			instrumentPack:'OpenGM24'
+			referer:'emf',
+			theme:'theme-emf'
 		}
 
 block headline
 	| Electromagnetic Fields 
-	span.sr-only PhotoSynth 4
-	| Inter 
-	strong FACE
+	span.sr-only PhotoSynth 4 
+	strong FACES IN SPACE!
 
+block summary
+	| It can be hard work playing a musical instrument...
+	| So, how about letting the musical instrument play you instead! 
+	| Brought to you by 
+	a(href="https://designerzen.com/" target="_blank") designerzen 
+	| and the wonderful people at 
+	a(href="https://www.rixinclusiveresearch.org/about/" target="_blank") RIX inclusive research institue
 
 block tagline
 	em Smile 
