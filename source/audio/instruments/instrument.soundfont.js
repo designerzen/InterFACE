@@ -37,7 +37,7 @@ const DEFAULT_OPTIONS = {
 	preset:GM_INSTRUMENT_NAMES[0],
 	offlineAudioContext:null,
 	// use a background thread to load / decode the data where possible
-	useWorkers:false,
+	useWorkers:true,
 	// load the initial as a string
 	asString:true
 }
@@ -365,7 +365,7 @@ export default class SoundFontInstrument extends SampleInstrument{
 			options = {				// URI of the sound font
 				soundfont : instrumentPack,
 				// try and use a seperate thread for loading and decoding the data
-				usingWorker : false,
+				usingWorker : this.options.useWorkers,
 				// load as a single string and convert to individual files
 				loadAsOne : false,
 				...options

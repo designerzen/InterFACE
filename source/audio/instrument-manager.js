@@ -32,7 +32,7 @@ export default class InstrumentManager{
 	 * @returns {String} Instrument title
 	 */
 	get instrumentTitle(){
-		return this.activeInstrument ? this.activeInstrument.title : 'loading'
+		return this.activeInstrument?.title ?? "Loading..."
 	}
 
 	/**

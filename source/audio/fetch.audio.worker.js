@@ -2,6 +2,7 @@ import { base64Decode } from "../utils/base64.js"
 import { NOTE_NAMES, NOTE_NAMES_POPULAR_FIRST } from "./tuning/notes.js"
 import decode, {decoders} from 'audio-decode'
 import { typedArrayToBuffer } from "../utils/base64.js"
+import { rearrangeArrayBySnake } from "../utils/array-tools.js"
 /**
  * Fetch an audio sample / wave / mp3 / ogg from the server...
  * Try and decode as much as we can in threads...
@@ -80,6 +81,73 @@ const fetchSoundFontAudioDataPartFromFile = async (path) => {
 
 let currentAbortController = null
 
+const createTransferablePCMMessage = (audioData) => {
+	const channelData = audioData?.channelData ?? []
+	const sampleRate = audioData?.sampleRate
+	if (!channelData.length || !sampleRate)
+	{
+		throw Error("Decoded audio data was missing channelData or sampleRate")
+	}
+
+	const transferList = []
+	const transferredBuffers = new Set()
+	const transferableChannels = channelData.map(channel => {
+		if (!(channel instanceof Float32Array))
+		{
+			return new Float32Array(channel)
+		}
+		return channel
+	})
+
+	transferableChannels.forEach(channel => {
+		if (!transferredBuffers.has(channel.buffer))
+		{
+			transferredBuffers.add(channel.buffer)
+			transferList.push(channel.buffer)
+		}
+	})
+
+	return {
+		audio:{
+			channelData:transferableChannels,
+			sampleRate
+		},
+		transferList
+	}
+}
+
+const getOrderedSoundFontParts = (options = {}) => {
+	return rearrangeArrayBySnake(NOTE_NAMES_POPULAR_FIRST, options.startIndex)
+}
+
+const loadSoundFontPartsInBatches = async (parts, options, abortSignal, loadPart) => {
+	const simultaneous = options.simultaneous ?? 12
+	const total = parts.length || 1
+	let nextIndex = 0
+	let loadedQuantity = 0
+
+	while (nextIndex < parts.length)
+	{
+		if (abortSignal.aborted) throw new DOMException('Aborted', 'AbortError')
+
+		const batch = parts.slice(nextIndex, nextIndex + simultaneous)
+		const batchStartIndex = nextIndex
+		nextIndex += batch.length
+
+		await Promise.all(batch.map(async (note, batchIndex) => {
+			if (abortSignal.aborted) throw new DOMException('Aborted', 'AbortError')
+
+			const index = batchStartIndex + batchIndex
+			await loadPart(note, index, () => {
+				loadedQuantity++
+				return loadedQuantity / total
+			})
+		}))
+	}
+
+	return loadedQuantity
+}
+
 self.onmessage = async (e) => {
 
 	//console.log("worker fetch audio", e)
@@ -114,25 +182,24 @@ self.onmessage = async (e) => {
 			const fetchSignal = currentAbortController.signal
 			const audioArrayBuffers = {}
 			// loop through all notes but in the special order	
-			const filePromises = NOTE_NAMES_POPULAR_FIRST.map( async(note, index) => {
-				if (fetchSignal.aborted) return
-				const partPath = `${e.data.path}/${note}.${options.format ?? "mp3"}`
-				const partResponse = await fetch(partPath, { signal: fetchSignal })
-				const partArrayBuffer = await partResponse.arrayBuffer()
-				audioArrayBuffers[note] = partArrayBuffer
-				postMessage({
-					event: EVENT_DECODED_PART,
-					audio: partArrayBuffer,
-					part: note,
-					index,
-					progress: (index + 1) / NOTE_NAMES_POPULAR_FIRST.length
-				}, [partArrayBuffer.slice(0)])
-				return partArrayBuffer
-			})
+			const parts = getOrderedSoundFontParts(options)
 			try {
-				await Promise.all(filePromises)
+				const loadedQuantity = await loadSoundFontPartsInBatches(parts, options, fetchSignal, async (note, index, getProgress) => {
+					const partPath = `${e.data.path}/${note}.${options.format ?? "mp3"}`
+					const partResponse = await fetch(partPath, { signal: fetchSignal })
+					const partArrayBuffer = await partResponse.arrayBuffer()
+					audioArrayBuffers[note] = partArrayBuffer
+					postMessage({
+						event: EVENT_DECODED_PART,
+						audio: partArrayBuffer,
+						part: note,
+						index,
+						progress: getProgress()
+					})
+					return partArrayBuffer
+				})
 				if (fetchSignal.aborted) return
-				postMessage({ event:EVENT_DECODED, audio:audioArrayBuffers })
+				postMessage({ event:EVENT_DECODED, audio:audioArrayBuffers, decoded:loadedQuantity })
 			} catch (error) {
 				if (error.name === 'AbortError') return
 				throw error
@@ -147,37 +214,28 @@ self.onmessage = async (e) => {
 		case CMD_LOAD_SOUNDFONT_AUDIO_DATA: {
 			currentAbortController = new AbortController()
 			const decodeSignal = currentAbortController.signal
-			const audioPCMData = {}
 			// loop through all notes but in the special order	
-			const audioBufferPromises = NOTE_NAMES_POPULAR_FIRST.map( async(note, index) => {
-				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
-				const partPath = `${e.data.path}/${note}.${options.format ?? "mp3"}`
-				const partResponse = await fetch(partPath, { signal: decodeSignal })
-				const partArrayBuffer = await partResponse.arrayBuffer()
-				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
-				const partAudioBuffer = await decode(partArrayBuffer)
-				if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
-				audioPCMData[note] = partAudioBuffer
-				const partAudioBufferForMessage = {
-					...partAudioBuffer,
-					channelData: partAudioBuffer.channelData.map(channel => channel.slice())
-				}
-				postMessage({
-					event: EVENT_DECODED_PART,
-					audio: partAudioBufferForMessage,
-					part: note,
-					index,
-					progress: (index + 1) / NOTE_NAMES_POPULAR_FIRST.length
-				}, partAudioBufferForMessage.channelData.map(channel => channel.buffer))
-				return partAudioBuffer
-			})
+			const parts = getOrderedSoundFontParts(options)
 			try {
-				await Promise.all(audioBufferPromises)
+				const decodedQuantity = await loadSoundFontPartsInBatches(parts, options, decodeSignal, async (note, index, getProgress) => {
+					const partPath = `${e.data.path}/${note}.${options.format ?? "mp3"}`
+					const partResponse = await fetch(partPath, { signal: decodeSignal })
+					const partArrayBuffer = await partResponse.arrayBuffer()
+					if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
+					const partAudioBuffer = await decode(partArrayBuffer)
+					if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
+					const { audio, transferList } = createTransferablePCMMessage(partAudioBuffer)
+					postMessage({
+						event: EVENT_DECODED_PART,
+						audio,
+						part: note,
+						index,
+						progress: getProgress()
+					}, transferList)
+					return note
+				})
 				if (decodeSignal.aborted) return
-				const transferList = Object.values(audioPCMData).flatMap(({ channelData }) =>
-					channelData.map(channel => channel.buffer)
-				)
-				postMessage({ event:EVENT_DECODED, audio:audioPCMData }, transferList)
+				postMessage({ event:EVENT_DECODED, decoded:decodedQuantity })
 			} catch (error) {
 				if (error.name === 'AbortError') return
 				throw error

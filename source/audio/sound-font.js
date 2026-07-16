@@ -433,6 +433,11 @@ export default class SoundFont{
 				
 		return this.loadPreset(preset, options, async (event) => {
 			const {progress, part, index, audioBuffer } = event
+			if (!part)
+			{
+				onProgressCallback && onProgressCallback( event )
+				return
+			}
 			// const percent = (progress * 100).toFixed(2)
 			const note = part.split('.')[0]
 			const buffer = await audioBuffer

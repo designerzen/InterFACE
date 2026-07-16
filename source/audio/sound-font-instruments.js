@@ -439,10 +439,20 @@ const createAudioBufferFromPCM = (audioContext, pcmData) => {
 	{
 		throw Error("Decoded PCM data was missing channelData or sampleRate")
 	}
+	if (!audioContext?.createBuffer)
+	{
+		throw Error("An AudioContext is required to create an AudioBuffer from decoded PCM data")
+	}
+
+	const length = channelData[0]?.length ?? 0
+	if (!length)
+	{
+		throw Error("Decoded PCM data did not contain any audio samples")
+	}
 
 	const audioBuffer = audioContext.createBuffer(
 		channelData.length,
-		channelData[0].length,
+		length,
 		sampleRate
 	)
 
@@ -451,19 +461,6 @@ const createAudioBufferFromPCM = (audioContext, pcmData) => {
 	})
 
 	return audioBuffer
-}
-
-const createAudioBuffersFromPCMMap = async (audioContext, pcmMap, onProgressCallback=null) => {
-	const audioBufferMap = {}
-	const keys = Object.keys(pcmMap)
-	const quantity = keys.length || 1
-
-	keys.forEach((key, index) => {
-		audioBufferMap[key] = createAudioBufferFromPCM(audioContext, pcmMap[key])
-		onProgressCallback && onProgressCallback((index + 1) / quantity)
-	})
-
-	return audioBufferMap
 }
 
 /**
@@ -623,6 +620,7 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 	// load in an individual sound
 	const loadSampleViaWorker = (presetSamplePath, options={} ) => new Promise((resolve,reject) => {
 		const abortSignal = options?.abortController?.signal
+		const decodedAudioBuffers = {}
 		let settled = false
 
 		const cleanUp = () => {
@@ -670,6 +668,7 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 					if (options.decodeInWorker)
 					{
 						const audioBuffer = createAudioBufferFromPCM(offlineAudioContext, data.audio)
+						decodedAudioBuffers[data.part] = audioBuffer
 						onProgressCallback && onProgressCallback({
 							progress: data.progress,
 							part: data.part,
@@ -699,20 +698,9 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 				case EVENT_DECODED:
 					if (options.decodeInWorker)
 					{
-						const pcmAudioMap = data.audio
-						createAudioBuffersFromPCMMap(offlineAudioContext, pcmAudioMap, onProgressCallback)
-							.then(audioBufferMap => {
-								if (settled) return
-								settled = true
-								cleanUp()
-								resolve(audioBufferMap)
-							})
-							.catch(error => {
-								if (settled) return
-								settled = true
-								cleanUp()
-								reject(error)
-							})
+						settled = true
+						cleanUp()
+						resolve(decodedAudioBuffers)
 						return
 					}
 
@@ -761,7 +749,7 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 	})
 
 	const workerLoadedAudioBuffers = await loadSampleViaWorker(path, options)
-	onProgressCallback && onProgressCallback(1)
+	onProgressCallback && onProgressCallback({progress:1})
 	// console.error("audio buffers", workerLoadedAudioBuffers )
 	return workerLoadedAudioBuffers
 }
