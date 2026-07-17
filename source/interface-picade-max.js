@@ -342,7 +342,14 @@ export const addPicadeMaxEvents = application => {
 			const bridge = new PicadeHidInput()
 			const players = await bridge.connectPaired()
 			if (players.length !== 2) {
+				console.warn('[Picade Max] WebHID did not expose both player interfaces', {
+					players,
+					devices: bridge.devices,
+				})
 				await bridge.disconnect()
+				if (navigator.hid?.getDevices) {
+					updatePicadeStatus(application, 'Mac Player 2 needs both Picade HID interfaces permitted', true)
+				}
 				return
 			}
 			bridge.onInput(event => {

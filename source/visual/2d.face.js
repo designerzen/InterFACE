@@ -210,7 +210,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 			// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
 		}
 	}else{
-		console.info( "Person SKIP drawMouth",person, {options}, person.isMouthOpen, person.singing )
+		// console.info( "Person SKIP drawMouth",person, {options}, person.isMouthOpen, person.singing )
 		
 	}
 

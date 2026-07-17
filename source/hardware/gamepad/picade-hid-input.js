@@ -91,6 +91,16 @@ export class PicadeHidInput {
 		return [...this.#devices.keys()].sort((left, right) => left - right)
 	}
 
+	get devices() {
+		return [...this.#devices.entries()].map(([player, { device }]) => ({
+			player,
+			productName: device.productName,
+			vendorId: device.vendorId,
+			productId: device.productId,
+			collections: device.collections?.length ?? 0,
+		}))
+	}
+
 	async connectPaired(hid = navigator.hid) {
 		const devices = await getPairedPicadeHidDevices(hid)
 		await this.connectDevices(devices)
