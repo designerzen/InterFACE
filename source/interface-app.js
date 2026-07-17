@@ -31,6 +31,10 @@ import {
 	hasVisiblePicadeMaxGamepad,
 	requestPicadeSerialPortFromUserGesture,
 } from './hardware/gamepad/picade-serial-pairing.js'
+import {
+	needsPicadeHidFallback,
+	requestPicadeHidDevicesFromUserGesture,
+} from './hardware/gamepad/picade-hid-input.js'
 import { PICADE_MAX_PLAYER_COUNT } from './hardware/gamepad/picade-max-input-controller.js'
 import { addPicadeMaxEvents } from './interface-picade-max.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
@@ -3665,6 +3669,7 @@ export const createInterface = (
 
 		// Show the player selection screen!
 		let picadeSerialPairing = null
+		let picadeHidPairing = null
 		const requestPicadeSerialFromQuantityOfPeople = () => {
 			console.groupCollapsed?.('[Picade Max] quantityOfPeople click serial pairing')
 			const visiblePicade = hasVisiblePicadeMaxGamepad()
@@ -3673,6 +3678,15 @@ export const createInterface = (
 				console.warn('[Picade Max] serial pairing skipped from quantityOfPeople click', { visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
 				console.groupEnd?.()
 				return
+			}
+			if (needsPicadeHidFallback() && !picadeHidPairing) {
+				console.info('[Picade Max] requesting WebHID access for both macOS player interfaces')
+				picadeHidPairing = requestPicadeHidDevicesFromUserGesture()
+					.then(result => console.info('[Picade Max] WebHID pairing result', result))
+					.catch(error => {
+						if (error?.name !== 'NotFoundError') console.warn('[Picade Max] unable to pair WebHID inputs', error)
+					})
+					.finally(() => { picadeHidPairing = null })
 			}
 			picadeSerialPairing = requestPicadeSerialPortFromUserGesture()
 				.then(result => {

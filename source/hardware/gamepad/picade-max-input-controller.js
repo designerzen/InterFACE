@@ -167,6 +167,7 @@ export class PicadeMaxController {
 	#plasma
 	#plasmaButtonMaps
 	#joystickDirections = new Map()
+	#hidPlayers = new Set()
 
 	constructor(gamepads, {
 		plasma = new PicadePlasma(),
@@ -215,6 +216,32 @@ export class PicadeMaxController {
 
 	get plasmaButtonMaps() {
 		return this.#plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
+	}
+
+	setHidPlayers(players = []) {
+		this.#hidPlayers = new Set(players.filter(player => player === 0 || player === 1))
+		return this
+	}
+
+	handleInput(player, action, pressed, heldFor = 0, gamepad = null) {
+		const mappedButton = PICADE_MAX_ACTION_TO_BUTTON[action]
+		const mappedLight = PICADE_MAX_ACTION_TO_LIGHT[action]
+		const plasmaButton = this.#plasmaButtonMaps[player]?.[mappedLight]
+		if (Number.isInteger(mappedLight) && Number.isInteger(plasmaButton)) {
+			this.#setLight(player, mappedLight, plasmaButton, pressed)
+		}
+		if (mappedButton == null) {
+			this.#handleJoystick(player, action, pressed, gamepad)
+			if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
+				this.#emitButton({ player, button: null, action, pressed, heldFor, gamepad })
+			}
+			return
+		}
+		this.#emitButton({ player, button: mappedButton, action, pressed, heldFor, gamepad })
+	}
+
+	handleAxis(player, action, value, gamepad = null) {
+		this.#handleJoystick(player, action, value, gamepad)
 	}
 
 	onButton(callback) {
@@ -309,6 +336,7 @@ export class PicadeMaxController {
 		const browserIndex = getBrowserGamepad(input).index
 		return {
 			update: () => {
+				if (this.#hidPlayers.has(player)) return
 				const gamepad = getGamePads()[browserIndex]
 				if (!gamepad?.connected) return
 				for (let localButton = 0; localButton < GAMEPAD_BUTTON_ORDER.length; localButton++) {
@@ -327,22 +355,7 @@ export class PicadeMaxController {
 						pressedAt.delete(action)
 					}
 					state.set(action, pressed)
-					const mappedButton = PICADE_MAX_ACTION_TO_BUTTON[action]
-					const mappedLight = PICADE_MAX_ACTION_TO_LIGHT[action]
-					const plasmaButton = this.#plasmaButtonMaps[player]?.[mappedLight]
-					if (Number.isInteger(mappedLight) && Number.isInteger(plasmaButton)) {
-						this.#setLight(player, mappedLight, plasmaButton, pressed)
-					}
-					if (mappedButton == null) {
-						this.#handleJoystick(player, action, pressed, gamepad)
-						if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
-							const event = { player, button: null, action, pressed, heldFor, gamepad }
-							for (const listener of this.#listeners) listener(event)
-						}
-						continue
-					}
-					const event = { player, button: mappedButton, action, pressed, heldFor, gamepad }
-					for (const listener of this.#listeners) listener(event)
+					this.handleInput(player, action, pressed, heldFor, gamepad)
 				}
 
 				const axes = [
@@ -353,7 +366,7 @@ export class PicadeMaxController {
 					const previous = axisState.get(action)
 					if (previous === value) continue
 					axisState.set(action, value)
-					this.#handleJoystick(player, action, value, gamepad)
+					this.handleAxis(player, action, value, gamepad)
 				}
 			},
 		}
@@ -382,7 +395,10 @@ export class PicadeMaxController {
 	}
 
 	#emitJoystick(player, action, pressed, gamepad) {
-		const event = { player, button: null, action, pressed, heldFor: 0, gamepad }
+		this.#emitButton({ player, button: null, action, pressed, heldFor: 0, gamepad })
+	}
+
+	#emitButton(event) {
 		for (const listener of this.#listeners) listener(event)
 	}
 

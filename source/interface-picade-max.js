@@ -15,6 +15,7 @@ import {
 	PICADE_MAX_JOYSTICK_RIGHT,
 	PICADE_MAX_JOYSTICK_UP,
 } from './hardware/gamepad/picade-max-input-controller.js'
+import { PicadeHidInput } from './hardware/gamepad/picade-hid-input.js'
 import { configurePersonByOperatingMode } from './people/person.presets.js'
 
 const PICADE_STATUS_ID = 'picade-max'
@@ -261,6 +262,9 @@ export const addPicadeMaxEvents = application => {
 	let lastTempoDivision = null
 	let lastInventoryKey = ''
 	let unsubscribeDrumPart = null
+	let hidInput = null
+	let connectingHid = false
+	let lastHidProbe = 0
 
 	const pulseDrumPartLights = (part, detail={}) => {
 		if (!controller?.plasma.connected) return
@@ -325,6 +329,37 @@ export const addPicadeMaxEvents = application => {
 			updatePicadeStatus(application, 'Two player drum kits / Plasma lights unavailable')
 		} finally {
 			connectingPlasma = false
+		}
+	}
+
+	const connectPairedHidInputs = async () => {
+		if (!controller || hidInput || connectingHid || !navigator.hid?.getDevices) return
+		const now = Date.now()
+		if (now - lastHidProbe < 3000) return
+		lastHidProbe = now
+		connectingHid = true
+		try {
+			const bridge = new PicadeHidInput()
+			const players = await bridge.connectPaired()
+			if (players.length !== 2) {
+				await bridge.disconnect()
+				return
+			}
+			bridge.onInput(event => {
+				if (event.value != null) {
+					controller?.handleAxis(event.player, event.action, event.value, event.gamepad)
+				} else {
+					controller?.handleInput(event.player, event.action, event.pressed, event.heldFor, event.gamepad)
+				}
+			})
+			controller.setHidPlayers(players)
+			hidInput = bridge
+			console.info('[Picade Max] WebHID recovered both Mac player inputs', { players })
+			updatePicadeStatus(application, 'Picade Max two-player input ready')
+		} catch (error) {
+			console.warn('[Picade Max] unable to connect paired WebHID player inputs', error)
+		} finally {
+			connectingHid = false
 		}
 	}
 
@@ -428,11 +463,13 @@ export const addPicadeMaxEvents = application => {
 		updatePicadeStatus(application, 'Picade Max player input ready')
 		ensureDrumPartSubscription()
 		connectPairedPlasma()
+		connectPairedHidInputs()
 	}
 
 	window.addEventListener('gamepadconnected', refreshPicade)
 	window.addEventListener('gamepaddisconnected', refreshPicade)
 	refreshPicade()
 	setInterval(refreshPicade, 500)
+	setInterval(connectPairedHidInputs, 3000)
 	setInterval(pulseTempoFrame, 50)
 }
