@@ -188,9 +188,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawMask:true,
 
 	// draw these parts over the mesh...
-	drawMouth:true,
+	drawMouth:false,
 	// kid mode turns eyes googly!
-	drawEyes:true,
+	drawEyes:false,
 
 	// extra controls
 	drawEyebrows:false,

@@ -374,22 +374,35 @@ export const addPicadeMaxEvents = application => {
 		application.picadeMaxInputActive = true
 		for (const gamepad of gamepads) application.clearInputStatus?.(`gamepad-${gamepad.index}`)
 		controller.onButton(event => {
-			if (PICADE_PERSON_MODE_ACTIONS.has(event.action)) {
-				cyclePicadePersonMode(application, event)
-				return
+			console.info('[Picade Max] input event', {
+				player: event.player,
+				action: event.action,
+				button: event.button,
+				pressed: event.pressed,
+				heldFor: event.heldFor,
+				gamepad: event.gamepad?.id,
+			})
+			try {
+				if (PICADE_PERSON_MODE_ACTIONS.has(event.action)) {
+					cyclePicadePersonMode(application, event)
+					return
+				}
+				const drum = getPicadeDrumPart(event)
+				if (!drum) return
+				const playedDrum = playPicadeDrumPart(application, event)
+				if (playedDrum && (event.pressed || drum.holdPart)) {
+					pulseDrumPartLights(playedDrum.part, {
+						velocity: playedDrum.velocity ?? 1,
+						open: playedDrum.open,
+						player: event.player,
+						source: 'picade',
+					})
+				}
+				updatePicadeStatus(application, `Player ${event.player + 1}: ${playedDrum?.label ?? drum.label ?? drum.part}`, event.pressed)
+			} catch (error) {
+				console.error('[Picade Max] input event failed; continuing to poll controller', { event, error })
+				updatePicadeStatus(application, `Player ${event.player + 1}: input error`, true)
 			}
-			const drum = getPicadeDrumPart(event)
-			if (!drum) return
-			const playedDrum = playPicadeDrumPart(application, event)
-			if (playedDrum && (event.pressed || drum.holdPart)) {
-				pulseDrumPartLights(playedDrum.part, {
-					velocity: playedDrum.velocity ?? 1,
-					open: playedDrum.open,
-					player: event.player,
-					source: 'picade',
-				})
-			}
-			updatePicadeStatus(application, `Player ${event.player + 1}: ${playedDrum?.label ?? drum.label ?? drum.part}`, event.pressed)
 		})
 		controller.start()
 		updatePicadeStatus(application, 'Picade Max player input ready')

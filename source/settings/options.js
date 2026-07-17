@@ -155,10 +155,10 @@ export const DEFAULT_OPTIONS = {
 	// show face overlays
 	masks:true,
 	// show eye tracking
-	eyes:true,
+	eyes:false,
 	// optional face details, applied to every person by the global controls
 	eyebrows:false,
-	lips:true,
+	lips:false,
 	// synchronise the beats with metronome
 	quantise:true,
 	// show the person's texts above them

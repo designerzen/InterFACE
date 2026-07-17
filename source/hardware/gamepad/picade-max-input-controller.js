@@ -1,4 +1,4 @@
-import GamePad, { GAMEPAD_BUTTON_ORDER, getGamePads } from './gamepad.js'
+import { GAMEPAD_BUTTON_ORDER, getGamePads } from './gamepad.js'
 import {
 	BUTTON_SELECT,
 	BUTTON_START,
@@ -284,27 +284,10 @@ export class PicadeMaxController {
 
 	#createReader(gamepad, player) {
 		if (gamepad?.source === 'placeholder') return { update: () => null }
-		if (gamepad?.source === 'combined') return this.#createOffsetReader(gamepad, player)
-		const browserGamepad = getBrowserGamepad(gamepad)
-		const reader = new GamePad(browserGamepad.index)
-		reader.connect({ gamepad: browserGamepad })
-		reader.available = true
-		reader.on((action, pressed, source, heldFor) => {
-			const button = PICADE_MAX_ACTION_TO_BUTTON[action]
-			if (button == null) {
-				this.#handleJoystick(player, action, pressed, source ?? browserGamepad)
-				if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
-					const event = { player, button: null, action, pressed, heldFor, gamepad: source ?? browserGamepad }
-					for (const listener of this.#listeners) listener(event)
-				}
-				return
-			}
-			const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
-			if (Number.isInteger(plasmaButton)) this.#setLight(player, button, plasmaButton, pressed)
-			const event = { player, button, action, pressed, heldFor, gamepad: source ?? browserGamepad }
-			for (const listener of this.#listeners) listener(event)
-		})
-		return reader
+		// Read the browser's current Gamepad snapshot directly. The legacy wrapper
+		// keeps its original axis snapshot and misplaces heldFor in its callback,
+		// which breaks Picade's single-slot macOS representation.
+		return this.#createOffsetReader(gamepad, player)
 	}
 
 	#createOffsetReader(input, player) {
@@ -322,7 +305,7 @@ export class PicadeMaxController {
 					const action = GAMEPAD_BUTTON_ORDER[localButton]
 					const button = gamepad.buttons?.[buttonOffset + localButton]
 					if (!button || !action) continue
-					const pressed = Boolean(button.pressed)
+					const pressed = Boolean(button.pressed || button.value > 0.5)
 					const previous = state.get(action) ?? false
 					if (pressed === previous) continue
 					const now = performance.now?.() ?? Date.now()
