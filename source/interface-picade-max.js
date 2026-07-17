@@ -334,6 +334,10 @@ export const addPicadeMaxEvents = application => {
 
 	const connectPairedHidInputs = async () => {
 		if (!controller || hidInput || connectingHid || !navigator.hid?.getDevices) return
+		const placeholderPlayers = controller.gamepads
+			.filter(gamepad => gamepad.source === 'placeholder')
+			.map(gamepad => gamepad.player)
+		if (!placeholderPlayers.length) return
 		const now = Date.now()
 		if (now - lastHidProbe < 3000) return
 		lastHidProbe = now
@@ -341,14 +345,16 @@ export const addPicadeMaxEvents = application => {
 		try {
 			const bridge = new PicadeHidInput()
 			const players = await bridge.connectPaired()
-			if (players.length !== 2) {
+			const recoveredPlayers = players.filter(player => placeholderPlayers.includes(player))
+			if (!recoveredPlayers.length) {
 				console.warn('[Picade Max] WebHID did not expose both player interfaces', {
 					players,
+					placeholderPlayers,
 					devices: bridge.devices,
 				})
 				await bridge.disconnect()
 				if (navigator.hid?.getDevices) {
-					updatePicadeStatus(application, 'Mac Player 2 needs both Picade HID interfaces permitted', true)
+					updatePicadeStatus(application, 'Mac Picade input is missing the other player interface', true)
 				}
 				return
 			}
@@ -359,10 +365,14 @@ export const addPicadeMaxEvents = application => {
 					controller?.handleInput(event.player, event.action, event.pressed, event.heldFor, event.gamepad)
 				}
 			})
-			controller.setHidPlayers(players)
+			controller.setHidPlayers(recoveredPlayers)
 			hidInput = bridge
-			console.info('[Picade Max] WebHID recovered both Mac player inputs', { players })
-			updatePicadeStatus(application, 'Picade Max two-player input ready')
+			console.info('[Picade Max] WebHID recovered missing Mac player inputs', {
+				players,
+				placeholderPlayers,
+				recoveredPlayers,
+			})
+			updatePicadeStatus(application, `Picade Max Player ${recoveredPlayers.map(player => player + 1).join(' and ')} input ready`)
 		} catch (error) {
 			console.warn('[Picade Max] unable to connect paired WebHID player inputs', error)
 		} finally {

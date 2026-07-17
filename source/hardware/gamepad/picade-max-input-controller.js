@@ -48,6 +48,10 @@ const getBrowserGamepad = input => input?.gamepad ?? input
 const getPlayerIndex = (input, fallback = 0) => Number.isInteger(input?.player) ? input.player : fallback
 const getButtonOffset = input => Number.isInteger(input?.buttonOffset) ? input.buttonOffset : 0
 const getAxisOffset = input => Number.isInteger(input?.axisOffset) ? input.axisOffset : 0
+const getNamedPicadePlayer = input => {
+	const match = String(getBrowserGamepad(input)?.id ?? '').match(/gamepad\s*([12])\b/i)
+	return match ? Number(match[1]) - 1 : null
+}
 const createPlayerInput = (gamepad, player, options = {}) => ({
 	...options,
 	gamepad,
@@ -112,12 +116,22 @@ export function findPicadeMaxInputGamepads(gamepads = getGamePads()) {
 		.sort((left, right) => left.index - right.index)
 
 	if (picadeGamepads.length >= PICADE_MAX_PLAYER_COUNT) {
-		return picadeGamepads.slice(0, PICADE_MAX_PLAYER_COUNT).map((gamepad, player) => ({
-			...createPlayerInput(gamepad, player),
-			buttonOffset: 0,
-			axisOffset: 0,
-			source: 'slot',
-		}))
+		const assignedPlayers = new Set()
+		return picadeGamepads.slice(0, PICADE_MAX_PLAYER_COUNT)
+			.map((gamepad, fallbackPlayer) => {
+				const namedPlayer = getNamedPicadePlayer(gamepad)
+				const player = namedPlayer != null && !assignedPlayers.has(namedPlayer)
+					? namedPlayer
+					: [0, 1].find(index => !assignedPlayers.has(index)) ?? fallbackPlayer
+				assignedPlayers.add(player)
+				return {
+					...createPlayerInput(gamepad, player),
+					buttonOffset: 0,
+					axisOffset: 0,
+					source: 'slot',
+				}
+			})
+			.sort((left, right) => left.player - right.player)
 	}
 
 	const combined = picadeGamepads[0]
@@ -128,20 +142,13 @@ export function findPicadeMaxInputGamepads(gamepads = getGamePads()) {
 	const axesPerPlayer = Math.floor(axisCount / PICADE_MAX_PLAYER_COUNT)
 	const hasCombinedControls = buttonsPerPlayer >= PICADE_MAX_BUTTON_COUNT || axesPerPlayer >= PICADE_MAX_PLAYER_AXES
 	if (!hasCombinedControls) {
-		return [
-			{
-				...createPlayerInput(combined, 0),
-				buttonOffset: 0,
-				axisOffset: 0,
-				source: 'single',
-			},
-			{
-				...createPlayerInput(combined, 1),
-				buttonOffset: 0,
-				axisOffset: 0,
-				source: 'placeholder',
-			},
-		]
+		const namedPlayer = getNamedPicadePlayer(combined) ?? 0
+		return Array.from({ length: PICADE_MAX_PLAYER_COUNT }, (_, player) => ({
+			...createPlayerInput(combined, player),
+			buttonOffset: 0,
+			axisOffset: 0,
+			source: player === namedPlayer ? 'single' : 'placeholder',
+		}))
 	}
 
 	return Array.from({ length: PICADE_MAX_PLAYER_COUNT }, (_, player) => ({
@@ -189,8 +196,8 @@ export class PicadeMaxController {
 			throw new TypeError('plasmaButtonMaps must contain one mapping for each player')
 		}
 		this.#gamepads = [...gamepads].sort((left, right) =>
-			getBrowserGamepad(left).index - getBrowserGamepad(right).index ||
-			getPlayerIndex(left) - getPlayerIndex(right)
+			getPlayerIndex(left) - getPlayerIndex(right) ||
+			getBrowserGamepad(left).index - getBrowserGamepad(right).index
 		)
 		this.#plasma = plasma
 		this.#plasmaButtonMaps = plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
@@ -289,7 +296,7 @@ export class PicadeMaxController {
 
 	start() {
 		if (this.#frame != null) return this
-		this.#readers = this.#gamepads.map((gamepad, player) => this.#createReader(gamepad, player))
+		this.#readers = this.#gamepads.map(gamepad => this.#createReader(gamepad, getPlayerIndex(gamepad)))
 		const poll = () => {
 			for (const reader of this.#readers) reader.update()
 			this.#frame = requestAnimationFrame(poll)
