@@ -69,6 +69,20 @@ const PICADE_JOYSTICK_PARTS = Object.freeze({
 	[DIRECTION_RIGHT]: PICADE_DRUM_PARTS[5],
 })
 
+const PICADE_CONTROL_LIGHTS = Object.freeze([
+	{ label: 'select', color: '#f15bb5' },
+	{ label: 'start', color: '#9b5de5' },
+	{ label: 'left stick', color: '#00bbf9' },
+	{ label: 'right stick', color: '#00f5d4' },
+	{ label: 'up', color: '#b6ff00' },
+	{ label: 'down', color: '#ffe600' },
+])
+
+const PICADE_LIGHTS = Object.freeze([
+	...PICADE_DRUM_PARTS,
+	...PICADE_CONTROL_LIGHTS,
+])
+
 const PICADE_TEMPO_PULSES = Object.freeze([
 	{ button: 0, division: 'bar' },
 	{ button: 1, division: 'half' },
@@ -78,6 +92,12 @@ const PICADE_TEMPO_PULSES = Object.freeze([
 	{ button: 5, division: 'quarter' },
 	{ button: 6, division: 'bar' },
 	{ button: 7, division: 'bar' },
+	{ button: 8, division: 'bar' },
+	{ button: 9, division: 'half' },
+	{ button: 10, division: 'quarter' },
+	{ button: 11, division: 'bar' },
+	{ button: 12, division: 'quarter' },
+	{ button: 13, division: 'half' },
 ])
 
 export const getPicadeBasePersonIndex = player =>
@@ -280,8 +300,8 @@ export const addPicadeMaxEvents = application => {
 		}
 		for (const { button, division: noteLength } of PICADE_TEMPO_PULSES) {
 			if (division % divisions[noteLength] !== 0) continue
-			const drum = PICADE_DRUM_PARTS[button]
-			controller.pulseButtonFrame(0, button, drum.color, { brightness: 31 })
+			const light = PICADE_LIGHTS[button]
+			controller.pulseButtonFrame(0, button, light.color, { brightness: 31 })
 		}
 	}
 
@@ -357,7 +377,7 @@ export const addPicadeMaxEvents = application => {
 
 		controller?.stop()
 		controller = createPicadeMaxController(gamepads, {
-			getButtonLightOptions: ({ button }) => PICADE_DRUM_PARTS[button] ?? {},
+			getButtonLightOptions: ({ button }) => PICADE_LIGHTS[button] ?? {},
 		})
 		controllerKey = key
 		console.info('[Picade Max] PicadeMaxController active with logical player inputs', gamepads.map(gamepad => ({

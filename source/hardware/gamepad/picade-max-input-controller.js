@@ -12,7 +12,7 @@ import {
 	PICADE_MAX_ACTION_TO_BUTTON,
 	PICADE_MAX_BUTTON_COUNT,
 } from './picade-max-interface.js'
-import { PicadePlasma } from './picade-plasma.js'
+import { PicadePlasma, PICADE_PLASMA_BUTTON_COUNT } from './picade-plasma.js'
 
 export const PICADE_MAX_PLAYER_COUNT = 2
 export const PICADE_MAX_PLAYER_AXES = 2
@@ -31,7 +31,17 @@ export const PICADE_MAX_CONTROL_ACTIONS = Object.freeze([
 	BUTTON_START,
 ])
 const DEFAULT_BUTTON_LIGHT_MAP = Object.freeze(
-	Array.from({ length: PICADE_MAX_BUTTON_COUNT }, (_, button) => button),
+	Array.from({ length: PICADE_PLASMA_BUTTON_COUNT }, (_, button) => button),
+)
+
+// The Picade's physical Gamepad order is also its Plasma button order. The
+// first eight controls play drums; the remaining controls keep their own light.
+export const PICADE_MAX_ACTION_TO_LIGHT = Object.freeze(
+	Object.fromEntries(
+		GAMEPAD_BUTTON_ORDER
+			.slice(0, PICADE_PLASMA_BUTTON_COUNT)
+			.map((action, light) => [action, light]),
+	),
 )
 
 const getBrowserGamepad = input => input?.gamepad ?? input
@@ -318,6 +328,11 @@ export class PicadeMaxController {
 					}
 					state.set(action, pressed)
 					const mappedButton = PICADE_MAX_ACTION_TO_BUTTON[action]
+					const mappedLight = PICADE_MAX_ACTION_TO_LIGHT[action]
+					const plasmaButton = this.#plasmaButtonMaps[player]?.[mappedLight]
+					if (Number.isInteger(mappedLight) && Number.isInteger(plasmaButton)) {
+						this.#setLight(player, mappedLight, plasmaButton, pressed)
+					}
 					if (mappedButton == null) {
 						this.#handleJoystick(player, action, pressed, gamepad)
 						if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
@@ -326,8 +341,6 @@ export class PicadeMaxController {
 						}
 						continue
 					}
-					const plasmaButton = this.#plasmaButtonMaps[player]?.[mappedButton]
-					if (Number.isInteger(plasmaButton)) this.#setLight(player, mappedButton, plasmaButton, pressed)
 					const event = { player, button: mappedButton, action, pressed, heldFor, gamepad }
 					for (const listener of this.#listeners) listener(event)
 				}

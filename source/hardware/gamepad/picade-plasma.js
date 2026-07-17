@@ -5,12 +5,13 @@ import {
 	PicadeLeds,
 } from './picade-leds.js'
 
-export const PICADE_PLASMA_BUTTON_COUNT = 8
+// The Picade Max panel exposes fourteen illuminated controls per player.
+export const PICADE_PLASMA_BUTTON_COUNT = 14
 export const PICADE_SHORT_PRESS_COLOR = '#ffffff'
 export const PICADE_LONG_PRESS_COLOR = '#ff0000'
 
 /**
- * Controls the eight Picade Plasma button lights independently of the Picade input.
+ * Controls all fourteen Picade Plasma button lights independently of the Picade input.
  */
 export class PicadePlasma {
 	#leds
