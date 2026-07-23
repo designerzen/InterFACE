@@ -43,6 +43,18 @@ function cloneDocumentForPdf() {
 	coverSpacer.className = 'pdf-cover-spacer'
 	coverPageBreak.after(coverSpacer)
 
+	for (const section of clone.querySelectorAll('.document-section:not(:first-child)')) {
+		const pageBreak = document.createElement('div')
+		pageBreak.className = 'html2pdf__page-break'
+		section.before(pageBreak)
+	}
+
+	for (const riskCard of clone.querySelectorAll('.risk-card:not([hidden])')) {
+		const pageBreak = document.createElement('div')
+		pageBreak.className = 'html2pdf__page-break'
+		riskCard.before(pageBreak)
+	}
+
 	return clone
 }
 

@@ -365,8 +365,6 @@ html(lang="en-GB", class=classes)
 			.pdf-export-source .pdf-cover-spacer { block-size: 5mm; }
 			.pdf-export-source main { padding: 0; }
 			.pdf-export-source .document-section { margin-block-end: 8mm; }
-			.pdf-export-source .document-section > h2 { break-before: page; }
-			.pdf-export-source .document-section:first-child > h2 { break-before: auto; }
 			.pdf-export-source h2,
 			.pdf-export-source h3,
 			.pdf-export-source h4 { break-after: avoid-page; }
@@ -421,12 +419,11 @@ html(lang="en-GB", class=classes)
 			.document { inline-size: auto; margin: 0; box-shadow: none; }
 			.masthead { min-block-size: 235mm; padding: 22mm 9mm 8mm; break-after: page; }
 			main { padding: 0; }
-			.document-section { margin-block-end: 8mm; }
-			.document-section > h2 { break-before: page; }
-			.document-section:first-child > h2 { break-before: auto; }
+			.document-section { margin-block-end: 8mm; break-before: page; page-break-before: always; }
+			.document-section:first-child { break-before: auto; page-break-before: auto; }
 			h2, h3, h4 { break-after: avoid-page; }
 			p, li { orphans: 3; widows: 3; }
-			.risk-card { break-inside: auto; margin-block: 5mm; padding: 4mm; }
+			.risk-card { break-before: page; break-inside: auto; page-break-before: always; margin-block: 5mm; padding: 4mm; }
 			.table-scroll { overflow: visible; border: 0; }
 			table { font-size: 7.8pt; }
 			thead { display: table-header-group; }
