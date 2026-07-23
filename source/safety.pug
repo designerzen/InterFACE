@@ -46,9 +46,10 @@ doctype html
 html(lang="en-GB", class=classes)
 	head
 		meta(charset="utf-8")
-		meta(name="viewport", content="width=device-width,initial-scale=1")
-		meta(name="description", content="Expanded health and safety risk assessment for the PhotoSYNTH accessible musical instrument.")
+		meta(name="viewport" content="width=device-width,initial-scale=1")
+		meta(name="description" content="Expanded health and safety risk assessment for the PhotoSYNTH accessible musical instrument.")
 		title PhotoSYNTH Accessible Musical Instrument | Risk assessment
+		meta(name="robots" content="noindex")
 		style.
 
 			:root {
@@ -528,7 +529,7 @@ html(lang="en-GB", class=classes)
 					dt Camera privacy
 					dd Real-time processing entirely on device; no video footage is stored or transmitted
 					dt Named staff
-					dd Zenon Olenski, Simon Tew, Kassie Headon, Gavin Wren. 
+					dd Zenon Olenski, Simon Tew, Kassandra Headon, Gavin Wren.
 					dt Organiser
 					dd The Royal Society
 					dt Delivery partner
@@ -590,13 +591,13 @@ html(lang="en-GB", class=classes)
 						dt Festival liaison
 						dd Project & Event Manager: Vicki Smith; Site Manager: Chris White; Site Office Manager: Kim Weiss (use the controlled contractor contact list for mobile numbers)
 						dt Team Lead / deputy
-						dd [NAME] / [NAME]
+						dd Andrew Stephens
 						dt Technical & Privacy Lead
-						dd [NAME]
+						dd Zenon Olenski
 						dt Access & Safeguarding Lead
-						dd [NAME]
+						dd Kassandra Headon
 						dt Operations & Logistics Lead
-						dd [NAME]
+						dd Simon Tew
 						dt First-aid route
 						dd Build/break: contractor’s appointed first aider and festival management on radio channel 2; no on-site medic. Show days: Event Control on channel 1 and festival medical provision.
 					p
@@ -1816,7 +1817,6 @@ html(lang="en-GB", class=classes)
 							span.icon.icon--expand.is-collapse-action#toggle-incident-records-icon(aria-hidden="true")
 							span#toggle-incident-records-label Collapse all
 					.incident-records#incident-records(aria-describedby="incident-storage-note")
-						+incidentRecord("record-1", 1)
 					template#incident-record-template
 						+incidentRecord("template", 0)
 					p
