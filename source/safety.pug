@@ -19,7 +19,8 @@ mixin actionRow(actionId, priority, actionText, owner)
 mixin incidentRecord(recordId, recordNumber)
 	details.incident-record(open, data-record-id=recordId)
 		summary
-			| Record 
+			span.icon.icon--expand.incident-record__summary-icon(aria-hidden="true")
+			span Record Incident
 			span.record-number= recordNumber
 		.incident-record__grid
 			label.record-field.record-field--short(for=`incident-${recordId}-date`)
@@ -143,6 +144,17 @@ html(lang="en-GB", class=classes)
 			color: var(--ink);
 			}
 			.skip-link:focus { translate: 0; }
+			.visually-hidden {
+			position: absolute !important;
+			inline-size: 1px !important;
+			block-size: 1px !important;
+			margin: -1px !important;
+			padding: 0 !important;
+			overflow: hidden !important;
+			border: 0 !important;
+			clip-path: inset(50%) !important;
+			white-space: nowrap !important;
+			}
 
 			.filter-bar {
 			position: sticky;
@@ -156,7 +168,7 @@ html(lang="en-GB", class=classes)
 			padding: .75rem;
 			overflow-x: auto;
 			border-block: .0625rem solid var(--line);
-			background: color-mix(in oklab, var(--page) 93%, transparent);
+			background: var(--page);
 			backdrop-filter: blur(.75rem);
 			white-space: nowrap;
 			}
@@ -183,7 +195,7 @@ html(lang="en-GB", class=classes)
 			cursor: pointer;
 			}
 			.filter-bar__status { color: var(--muted); font-variant-numeric: tabular-nums; }
-			.document-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem clamp(1.25rem, 5vw, 4rem); background: var(--page); }
+			.document-actions { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; padding: .75rem clamp(1.25rem, 5vw, 4rem); background: var(--page); }
 			.document-actions--top { border-block-end: .0625rem solid var(--line); }
 			.document-actions--bottom { justify-content: flex-end; padding-inline: 0; padding-block-end: 0; }
 			.document-actions__label { color: var(--navy); }
@@ -197,6 +209,50 @@ html(lang="en-GB", class=classes)
 			color: var(--page);
 			cursor: pointer;
 			}
+			.icon {
+			--icon: none;
+			display: inline-block;
+			flex: 0 0 auto;
+			inline-size: 1.2em;
+			block-size: 1.2em;
+			background: currentColor;
+			-webkit-mask: var(--icon) center / contain no-repeat;
+			mask: var(--icon) center / contain no-repeat;
+			}
+			.icon--print { --icon: url("/source/assets/icons/local_printshop.svg"); }
+			.icon--download { --icon: url("/source/assets/icons/download_for_offline_black_24dp.svg"); }
+			.icon--theme { --icon: url("/source/assets/icons/dark_mode-24px.svg"); }
+			.icon--theme-light { --icon: url("/source/assets/icons/light_mode-24px.svg"); }
+			.icon--close { --icon: url("/source/assets/icons/close.svg"); }
+			.icon--add { --icon: url("/source/assets/icons/add.svg"); }
+			.icon--expand { --icon: url("/source/assets/icons/expand_more-24px.svg"); }
+			.icon--document { --icon: url("/source/assets/icons/file_present.svg"); }
+			.icon--scope { --icon: url("/source/assets/icons/info.svg"); }
+			.icon--people { --icon: url("/source/assets/icons/groups.svg"); }
+			.icon--assessment { --icon: url("/source/assets/icons/assessment.svg"); }
+			.icon--actions { --icon: url("/source/assets/icons/check_circle_outline.svg"); }
+			.icon--risks { --icon: url("/source/assets/icons/warning_amber.svg"); }
+			.icon--checklist { --icon: url("/source/assets/icons/safety_check.svg"); }
+			.icon--incident { --icon: url("/source/assets/icons/report.svg"); }
+			.icon--approval { --icon: url("/source/assets/icons/verified-24px.svg"); }
+			.button-with-icon { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; }
+			.button-with-icon[aria-busy="true"] { cursor: wait; opacity: .72; }
+			.section-heading__icon { inline-size: 1.05em; block-size: 1.05em; }
+			.pdf-export-status {
+			position: fixed;
+			z-index: 20;
+			inset-inline: 1rem;
+			inset-block-end: 1rem;
+			max-inline-size: 38rem;
+			margin: auto;
+			padding: .75rem 1rem;
+			border: .0625rem solid var(--line);
+			border-radius: .45rem;
+			background: var(--navy);
+			color: var(--page);
+			box-shadow: var(--shadow);
+			}
+			.pdf-export-status:empty { display: none; }
 
 			.document {
 			inline-size: min(74rem, calc(100% - 2rem));
@@ -223,7 +279,7 @@ html(lang="en-GB", class=classes)
 
 			main { padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 5vw, 4rem); }
 			.document-section { min-inline-size: 0; margin-block: 0 3rem; scroll-margin-block-start: 6rem; }
-			.document-section > h2 { padding-block-end: .55rem; border-block-end: .14rem solid var(--blue); }
+			.document-section > h2 { display: flex; align-items: center; gap: .55rem; padding-block-end: .55rem; border-block-end: .14rem solid var(--blue); }
 			.risk-card {
 			margin-block: 1.25rem;
 			padding: 1.1rem;
@@ -264,10 +320,12 @@ html(lang="en-GB", class=classes)
 			.action-status__date input { min-block-size: 2.25rem; inline-size: 100%; padding: .25rem .35rem; border: .0625rem solid var(--line); border-radius: .3rem; background: var(--page); color: var(--ink); }
 			.incident-record-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .65rem; margin-block: 1rem; }
 			.incident-record-actions button { min-block-size: 2.75rem; padding: .55rem .85rem; border: .0625rem solid var(--navy); border-radius: .4rem; background: var(--navy); color: var(--page); cursor: pointer; }
-			.incident-record-actions__icon { display: inline-block; min-inline-size: 1.2em; margin-inline-end: .2rem; text-align: center; }
+			.icon--expand.is-collapse-action { transform: rotate(180deg); }
 			.incident-records { display: grid; gap: 1rem; margin-block: 1rem 1.5rem; }
 			.incident-record { min-inline-size: 0; margin: 0; padding: 1rem; border: .0625rem solid var(--line); border-radius: .45rem; }
-			.incident-record summary { color: var(--navy); font-size: 1.05rem; font-weight: 800; cursor: pointer; }
+			.incident-record summary { display: flex; align-items: center; gap: .4rem; color: var(--navy); font-size: 1.05rem; font-weight: 800; list-style: none; cursor: pointer; }
+			.incident-record summary::-webkit-details-marker { display: none; }
+			.incident-record[open] .incident-record__summary-icon { transform: rotate(180deg); }
 			.incident-record[open] summary { margin-block-end: 1rem; }
 			.incident-record__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
 			.record-field { display: grid; align-content: start; gap: .3rem; min-inline-size: 0; color: var(--ink); font-weight: 700; }
@@ -276,8 +334,64 @@ html(lang="en-GB", class=classes)
 			.record-field input { min-block-size: 2.75rem; }
 			.record-field textarea { min-block-size: 7rem; resize: vertical; }
 			.empty-state { padding: 1rem; border: .125rem dashed var(--line); color: var(--muted); }
-			.source-note { color: var(--muted); font-size: .9rem; }
+			.source-note { color: var(--muted); font-size: .9rem; max-width:none; }
 			footer { padding: 1rem clamp(1.25rem, 5vw, 4rem) 2rem; border-block-start: .0625rem solid var(--line); color: var(--muted); font-size: .85rem; }
+
+			.pdf-export-source.document {
+			inline-size: 184mm !important;
+			margin: 0 !important;
+			background: #fff;
+			box-shadow: none !important;
+			color: #000;
+			color-scheme: light;
+			font-size: 9.5pt;
+			--page: #fff;
+			--canvas: #fff;
+			--ink: #000;
+			--muted: #444;
+			--navy: #17365d;
+			--blue: #2e74b5;
+			--blue-soft: #eef3f8;
+			--line: #aab3bf;
+			}
+			.pdf-export-source .skip-link,
+			.pdf-export-source .filter-bar,
+			.pdf-export-source .toc,
+			.pdf-export-source .document-actions,
+			.pdf-export-source .incident-record-actions { display: none !important; }
+			.pdf-export-source .icon { display: none !important; }
+			.pdf-export-source .masthead { min-block-size: 235mm; padding: 22mm 9mm 8mm; }
+			.pdf-export-source .pdf-cover-spacer { block-size: 5mm; }
+			.pdf-export-source main { padding: 0; }
+			.pdf-export-source .document-section { margin-block-end: 8mm; }
+			.pdf-export-source .document-section > h2 { break-before: page; }
+			.pdf-export-source .document-section:first-child > h2 { break-before: auto; }
+			.pdf-export-source h2,
+			.pdf-export-source h3,
+			.pdf-export-source h4 { break-after: avoid-page; }
+			.pdf-export-source p,
+			.pdf-export-source li { orphans: 3; widows: 3; }
+			.pdf-export-source .risk-card { break-inside: avoid; page-break-inside: avoid; margin-block: 5mm; padding: 4mm; }
+			.pdf-export-source .table-scroll { overflow: visible; border: 0; }
+			.pdf-export-source table { font-size: 7.8pt; }
+			.pdf-export-source thead { display: table-header-group; }
+			.pdf-export-source tr { break-inside: avoid; page-break-inside: avoid; }
+			.pdf-export-source a { color: #000; text-decoration: none; }
+			.pdf-export-source input[type="checkbox"] { appearance: none; inline-size: 3.5mm; block-size: 3.5mm; border: .3mm solid #000; }
+			.pdf-export-source .action-status { min-inline-size: 25mm; gap: 1.5mm; }
+			.pdf-export-source .action-status__date input { min-block-size: 5mm; border-color: #000; }
+			.pdf-export-source .incident-records { gap: 6mm; }
+			.pdf-export-source .incident-record { break-inside: avoid; padding: 4mm; border-color: #000; }
+			.pdf-export-source .incident-record summary { margin-block-end: 4mm; color: #000; list-style: none; }
+			.pdf-export-source .incident-record summary::-webkit-details-marker { display: none; }
+			.pdf-export-source .incident-record > .incident-record__grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4mm; }
+			.pdf-export-source .record-field--wide { grid-column: 1 / -1; }
+			.pdf-export-source .record-field input,
+			.pdf-export-source .record-field textarea { display: none; }
+			.pdf-export-source .record-field::after { content: ""; display: block; inline-size: 100%; }
+			.pdf-export-source .record-field--short::after { min-block-size: 9mm; border-block-end: .3mm solid #000; }
+			.pdf-export-source .record-field--long::after { min-block-size: 24mm; border: .3mm solid #000; }
+			.pdf-export-source footer { padding: 4mm 0 0; }
 
 			@media (max-width: 48rem) {
 			.document { inline-size: 100%; margin-block-start: 0; box-shadow: none; }
@@ -302,7 +416,7 @@ html(lang="en-GB", class=classes)
 			@page { size: A4; margin: 14mm 13mm 16mm; }
 			:root, :root[data-theme] { color-scheme: light; --page: #fff; --canvas: #fff; --ink: #000; --muted: #444; --navy: #17365d; --blue: #2e74b5; --blue-soft: #eef3f8; --line: #aab3bf; }
 			body { background: #fff; font-size: 9.5pt; }
-			.skip-link, .filter-bar, .toc, .document-actions, .incident-record-actions { display: none; }
+			.skip-link, .filter-bar, .toc, .document-actions, .incident-record-actions, .pdf-export-status { display: none; }
 			.document { inline-size: auto; margin: 0; box-shadow: none; }
 			.masthead { min-block-size: 235mm; padding: 22mm 9mm 8mm; break-after: page; }
 			main { padding: 0; }
@@ -312,7 +426,6 @@ html(lang="en-GB", class=classes)
 			h2, h3, h4 { break-after: avoid-page; }
 			p, li { orphans: 3; widows: 3; }
 			.risk-card { break-inside: auto; margin-block: 5mm; padding: 4mm; }
-			.risk-card[hidden] { display: block; }
 			.table-scroll { overflow: visible; border: 0; }
 			table { font-size: 7.8pt; }
 			thead { display: table-header-group; }
@@ -340,11 +453,18 @@ html(lang="en-GB", class=classes)
 		a.skip-link(href="#content") Skip to assessment
 		article.document(aria-labelledby="document-title")
 			
-			menu.document-actions.document-actions--top
-				strong.document-actions__label Document actions
+			menu.document-actions.document-actions--top(aria-labelledby="document-actions-label")
+				strong#document-actions-label.document-actions__label.visually-hidden Document actions
 				.document-actions__controls
-					button#print-document-top(type="button", data-print-document) Print / save PDF
-					button#theme-toggle(type="button", aria-pressed="false") Dark theme
+					button.button-with-icon(type="button", data-download-pdf)
+						span.icon.icon--download(aria-hidden="true")
+						span Download PDF
+					button#print-document-top.button-with-icon(type="button", data-print-document)
+						span.icon.icon--print(aria-hidden="true")
+						span Print
+					button#theme-toggle.button-with-icon(type="button")
+						span#theme-toggle-icon.icon.icon--theme(aria-hidden="true")
+						span#theme-toggle-label Use dark theme
 			
 			header.masthead
 				p.eyebrow RISK ASSESSMENT
@@ -366,7 +486,6 @@ html(lang="en-GB", class=classes)
 							| 2
 							sup nd
 							|  August 2026
-						|  (confirm contracted operating hours)
 					dt Set-up / load-out
 					dd
 						| Working period 
@@ -404,7 +523,7 @@ html(lang="en-GB", class=classes)
 							sup th
 							|  August 2026
 						| ; site 08:00–20:00, deliveries 08:00–18:30
-					dt PhotoSYNTH allocated area
+					dt Allocated area
 					dd 5 × 11 metres nominal within the 10 × 11 metre Royal Society tent; confirm the supplier’s usable internal dimensions and certified occupancy
 					dt Camera privacy
 					dd Real-time processing entirely on device; no video footage is stored or transmitted
@@ -444,7 +563,9 @@ html(lang="en-GB", class=classes)
 						a(href="#9-final-approval") Final approval
 			main#content(tabindex="-1")
 				section.document-section#1-document-control-and-authorisation
-					h2 1. Document control and authorisation
+					h2
+						span.icon.section-heading__icon.icon--document(aria-hidden="true")
+						span 1. Document control and authorisation
 					dl.key-values.key-values--wide
 						dt Version
 						dd 1.4
@@ -485,7 +606,9 @@ html(lang="en-GB", class=classes)
 						strong Stop-work rule: 
 						| Any worker may pause the activity where there is immediate danger or an uncontrolled material change. The Team Lead records the issue, obtains competent help where needed, and authorises restart only after controls are restored.
 				section.document-section#2-scope-assumptions-and-key-corrections
-					h2 2. Scope, assumptions and key corrections
+					h2
+						span.icon.section-heading__icon.icon--scope(aria-hidden="true")
+						span 2. Scope, assumptions and key corrections
 					
 					aside.callout
 						strong Legal status:
@@ -499,7 +622,9 @@ html(lang="en-GB", class=classes)
 						li If anyone under 18 works on the activity, or a worker notifies their employer in writing that they are pregnant, breastfeeding or have given birth within the previous six months, the relevant employer must complete and act on the additional or individual assessment required for that worker before assigning duties.
 			
 				section.document-section#3-responsibilities-and-operating-controls
-					h2 3. Responsibilities and operating controls
+					h2
+						span.icon.section-heading__icon.icon--people(aria-hidden="true")
+						span 3. Responsibilities and operating controls
 					p The four-person PhotoSYNTH team uses the four combined roles below. Each role must be assigned to a named team member before work starts. The Team Lead also names one of the other three people as deputy.
 					.table-scroll(tabindex="0", aria-label="Scrollable table: 3. Responsibilities and operating controls")
 						table
@@ -523,7 +648,9 @@ html(lang="en-GB", class=classes)
 									td Coordinates induction/accreditation, access and deliveries, set-up/pack-down, front of house, capacity and queues, housekeeping, cleaning, inventory and daily checklists. Confirms all four team members follow briefings, report defects/incidents and use stop-work authority.
 					p.source-note These combined team roles do not replace external duties. The Royal Society and each employer remain responsible for their undertaking; the festival retains site access, traffic, emergency, medical, security and fire control; and the tent supplier, competent electrical contractor and data controller retain decisions requiring their authority or competence.
 				section.document-section#4-risk-scoring-and-acceptance
-					h2 4. Risk scoring and acceptance
+					h2
+						span.icon.section-heading__icon.icon--assessment(aria-hidden="true")
+						span 4. Risk scoring and acceptance
 					p
 						strong Method: 
 						| Risk score = likelihood × severity. Scores are recorded before and after the specified controls. Severity is not reduced merely because controls make occurrence less likely.
@@ -600,7 +727,9 @@ html(lang="en-GB", class=classes)
 									td Very high
 									td Do not start or continue. Eliminate/reduce the risk and reassess.
 				section.document-section#5-pre-issue-action-plan
-					h2 5. Pre-issue action plan
+					h2
+						span.icon.section-heading__icon.icon--actions(aria-hidden="true")
+						span 5. Pre-issue action plan
 					aside.callout
 						strong Status gate:
 						|  The document is not ready to sign until every Priority A item below has an owner, evidence and completion date. Unresolved Priority B items require a documented acceptance decision by the Team Lead and relevant dutyholder.
@@ -637,9 +766,11 @@ html(lang="en-GB", class=classes)
 								+actionRow("A17", "A", "Nominate the person in charge for the event; provide the Site Office with crew mobile numbers and a 24-hour contractor emergency number; arrange the required radio in advance; collect its channel list; and brief that the radio must remain active while responsible for event cover.", "Team Lead")
 								+actionRow("A18", "A", "Brief site environmental and welfare rules: bring refillable water bottles; use only designated cleaning/washing points; contain grey water; report spills immediately; use provided sanitation and waste facilities; and arrange any fuel transfer through the Site Office.", "Operations & Logistics Lead")
 								+actionRow("B1", "B", "Confirm equipment inventory, battery/charging plan, cleaning products and manufacturer compatibility. In addition, inventory cleaning chemicals, retain current safety information/SDS where supplied, complete any required COSHH assessment, and verify storage, dilution and spill/first-aid instructions.", "Technical & Privacy Lead")
-								+actionRow("B2", "B", "Confirm employers’/public-liability and equipment/plant insurance, submit any equipment-and-values schedule required for promoter cover, and confirm accident/near-miss, RIDDOR and document-retention arrangements. Name the RIDDOR responsible person and decision route and confirm the enforcing-authority contact route.", "Team Lead + relevant employer")
+								+actionRow("B2", "B", "Confirm accident/near-miss, RIDDOR and document-retention arrangements. Name the RIDDOR responsible person and decision route and confirm the enforcing-authority contact route.", "Team Lead + relevant employer")
 				section.document-section#6-detailed-risk-register
-					h2 6. Detailed risk register
+					h2
+						span.icon.section-heading__icon.icon--risks(aria-hidden="true")
+						span 6. Detailed risk register
 					p.source-note The PhotoSYNTH/Sound Connections hazard table supplied for this assessment is the baseline for this register. Its hazards and practical controls are incorporated below and extended for Camp Bestival Dorset 2026.
 					aside.callout
 						strong Residual-risk condition:
@@ -647,7 +778,9 @@ html(lang="en-GB", class=classes)
 					div.filter-bar
 						label(for="risk-filter") Filter the 22 risks
 						input#risk-filter(type="text", autocomplete="off", placeholder="Electrical, access or weather")
-						button#clear-filter(type="button") Clear filter
+						button#clear-filter.button-with-icon(type="button")
+							span.icon.icon--close(aria-hidden="true")
+							span Clear filter
 						output.filter-bar__status#risk-filter-status(for="risk-filter", aria-live="polite")
 					p#risk-empty.empty-state(hidden) No risks match this filter. Clear the filter to restore the full register.
 					article.risk-card#r01(data-risk="r01 — coordination, competence and uncontrolled change")
@@ -1524,7 +1657,9 @@ html(lang="en-GB", class=classes)
 							strong Owner / verification: 
 							| Team Lead coordinates until Event Control takes command; named first aider/medical team responds.
 				section.document-section#7-daily-opening-monitoring-and-closing-checklist
-					h2 7. Daily opening, monitoring and closing checklist
+					h2
+						span.icon.section-heading__icon.icon--checklist(aria-hidden="true")
+						span 7. Daily opening, monitoring and closing checklist
 					.table-scroll(tabindex="0", aria-label="Scrollable table: 7. Daily opening, monitoring and closing checklist")
 						table
 							caption 7. Daily opening, monitoring and closing checklist
@@ -1668,15 +1803,17 @@ html(lang="en-GB", class=classes)
 											span Incidents and outstanding actions handed over; next-shift/weather briefing updated.
 									td
 				section.document-section#8-dynamic-assessment-and-incident-record
-					h2 8. Dynamic assessment and incident record
+					h2
+						span.icon.section-heading__icon.icon--incident(aria-hidden="true")
+						span 8. Dynamic assessment and incident record
 					p Record any change, hazard, incident or near miss as it occurs. Leave closure blank while action remains outstanding. Do not restart paused work until the named person has confirmed effective controls and entered their authorisation.
 					p#incident-storage-note.source-note(aria-live="polite") Records save automatically to this browser’s local storage on this device and are restored on reload. They are not transmitted; clearing browser site data removes them.
 					.incident-record-actions
-						button#add-incident-record(type="button")
-							span.incident-record-actions__icon(aria-hidden="true") +
+						button#add-incident-record.button-with-icon(type="button")
+							span.icon.icon--add(aria-hidden="true")
 							span Add record
-						button#toggle-incident-records(type="button")
-							span.incident-record-actions__icon#toggle-incident-records-icon(aria-hidden="true") ▴
+						button#toggle-incident-records.button-with-icon(type="button", aria-controls="incident-records", aria-expanded="true")
+							span.icon.icon--expand.is-collapse-action#toggle-incident-records-icon(aria-hidden="true")
 							span#toggle-incident-records-label Collapse all
 					.incident-records#incident-records(aria-describedby="incident-storage-note")
 						+incidentRecord("record-1", 1)
@@ -1688,24 +1825,27 @@ html(lang="en-GB", class=classes)
 
 
 				section.document-section#9-final-approval
-					h2 9. Final approval
+					h2
+						span.icon.section-heading__icon.icon--approval(aria-hidden="true")
+						span 9. Final approval
 					dl.key-values.key-values--wide
 						dt Assessor
-						dd [NAME / SIGNATURE]
+						dd Z.Olenski
 						dt Date
-						dd [DATE]
+						dd 23/07/26
 						dt Organisation approval
-						dd [NAME / ROLE / SIGNATURE]
+						dd 
 						dt Date
-						dd [DATE]
+						dd
 						dt Festival acknowledgement
-						dd [NAME / ROLE / SIGNATURE]
+						dd 
 						dt Date
-						dd [DATE]
+						dd 
 						dt Next review
 						dd Before set-up and daily thereafter
 						dt Document location
-						dd [CONTROLLED COPY LOCATION]
+						dd 
+							a(href="https://interface.place/safety.html") Latest Version
 			footer
 				p Camp Bestival Dorset 2026 • Royal Society Summer Science Exhibits on Tour • Sound Connections
 				p
@@ -1716,16 +1856,26 @@ html(lang="en-GB", class=classes)
 						|  July 2026
 					|  • Complete all Priority A actions and approvals before use.
 				.document-actions.document-actions--bottom
-					button#print-document-bottom(type="button", data-print-document) Print / save PDF
+					button.button-with-icon(type="button", data-download-pdf)
+						span.icon.icon--download(aria-hidden="true")
+						span Download PDF
+					button#print-document-bottom.button-with-icon(type="button", data-print-document)
+						span.icon.icon--print(aria-hidden="true")
+						span Print
+		p#pdf-export-status.pdf-export-status(role="status", aria-live="polite", aria-atomic="true")
+		
 		script.
 			const themeToggle = document.querySelector('#theme-toggle');
+			const themeToggleIcon = document.querySelector('#theme-toggle-icon');
+			const themeToggleLabel = document.querySelector('#theme-toggle-label');
 			const root = document.documentElement;
 			
 			function applyTheme(theme) {
 			const isDark = theme === 'dark';
 			root.dataset.theme = theme;
-			themeToggle.setAttribute('aria-pressed', String(isDark));
-			themeToggle.title = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+			themeToggleLabel.textContent = isDark ? 'Use light theme' : 'Use dark theme';
+			themeToggleIcon.classList.toggle('icon--theme', !isDark);
+			themeToggleIcon.classList.toggle('icon--theme-light', isDark);
 			}
 			
 			let savedTheme = null;
@@ -1822,7 +1972,8 @@ html(lang="en-GB", class=classes)
 			function updateIncidentDisclosureButton() {
 			const records = [...incidentRecords.querySelectorAll('.incident-record')];
 			const allExpanded = records.every((record) => record.open);
-			toggleIncidentRecordsIcon.textContent = allExpanded ? '▴' : '▾';
+			toggleIncidentRecordsIcon.classList.toggle('is-collapse-action', allExpanded);
+			toggleIncidentRecordsButton.setAttribute('aria-expanded', String(allExpanded));
 			toggleIncidentRecordsLabel.textContent = allExpanded ? 'Collapse all' : 'Expand all';
 			}
 			
@@ -1892,3 +2043,4 @@ html(lang="en-GB", class=classes)
 			printButton.addEventListener('click', () => window.print());
 			}
 			applyRiskFilter();
+		script(type="module", src="./safety-pdf.js")

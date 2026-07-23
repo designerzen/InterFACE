@@ -24,10 +24,12 @@ minimumReleaseAgeExclude:
   - audio-decode@3.11.2
   - postcss@8.5.17 || 8.5.19 || 8.5.22
   - svgo@4.0.2
-  - '@babylonjs/core@9.17.1'
-  - '@babylonjs/gui-editor@9.17.1'
-  - '@babylonjs/inspector@9.17.1'
-  - '@babylonjs/loaders@9.17.1'
-  - '@babylonjs/materials@9.17.1'
+  - '@babylonjs/core@9.17.1 || 9.18.0'
+  - '@babylonjs/gui-editor@9.17.1 || 9.18.0'
+  - '@babylonjs/inspector@9.17.1 || 9.18.0'
+  - '@babylonjs/loaders@9.17.1 || 9.18.0'
+  - '@babylonjs/materials@9.17.1 || 9.18.0'
   - electron@43.2.0
-  - knip@6.28.0
+  - knip@6.28.0 || 6.29.0
+  - '@electron/packager@20.0.4'
+  - sass@1.101.6
