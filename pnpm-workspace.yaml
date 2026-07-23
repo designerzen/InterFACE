@@ -22,5 +22,12 @@ minimumReleaseAgeExclude:
   - '@audio/decode@3.11.1'
   - abcjs@6.6.4
   - audio-decode@3.11.2
-  - postcss@8.5.17 || 8.5.19
+  - postcss@8.5.17 || 8.5.19 || 8.5.22
   - svgo@4.0.2
+  - '@babylonjs/core@9.17.1'
+  - '@babylonjs/gui-editor@9.17.1'
+  - '@babylonjs/inspector@9.17.1'
+  - '@babylonjs/loaders@9.17.1'
+  - '@babylonjs/materials@9.17.1'
+  - electron@43.2.0
+  - knip@6.28.0
