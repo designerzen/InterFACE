@@ -1,0 +1,1894 @@
+mixin actionStatus(actionId)
+	.action-status
+		label.action-status__complete(for=`action-${actionId}`)
+			input(id=`action-${actionId}`, type="checkbox", aria-describedby="action-plan-instructions")
+			span Complete #{actionId}
+		label.action-status__date(for=`action-${actionId}-date`)
+			span Completion date
+			input(id=`action-${actionId}-date`, type="date", aria-describedby="action-plan-instructions")
+
+mixin actionRow(actionId, priority, actionText, owner)
+	tr
+		td= actionId
+		td= priority
+		td= actionText
+		td= owner
+		td
+			+actionStatus(actionId)
+
+mixin incidentRecord(recordId, recordNumber)
+	details.incident-record(open, data-record-id=recordId)
+		summary
+			| Record 
+			span.record-number= recordNumber
+		.incident-record__grid
+			label.record-field.record-field--short(for=`incident-${recordId}-date`)
+				span Date and time
+				input(id=`incident-${recordId}-date`, type="datetime-local", data-field="date")
+			label.record-field.record-field--short(for=`incident-${recordId}-closed`)
+				span Closure date and time
+				input(id=`incident-${recordId}-closed`, type="datetime-local", data-field="closed")
+			label.record-field.record-field--long.record-field--wide(for=`incident-${recordId}-hazard`)
+				span Change, hazard or incident
+				textarea(id=`incident-${recordId}-hazard`, rows="4", data-field="hazard")
+			label.record-field.record-field--long(for=`incident-${recordId}-action`)
+				span Immediate action taken
+				textarea(id=`incident-${recordId}-action`, rows="4", data-field="action")
+			label.record-field.record-field--long(for=`incident-${recordId}-control`)
+				span Further controls, action owner and due date
+				textarea(id=`incident-${recordId}-control`, rows="4", data-field="control")
+			label.record-field.record-field--short.record-field--wide(for=`incident-${recordId}-restart`)
+				span Restart authorised by, role and time
+				input(id=`incident-${recordId}-restart`, type="text", data-field="restart")
+
+doctype html
+html(lang="en-GB", class=classes)
+	head
+		meta(charset="utf-8")
+		meta(name="viewport", content="width=device-width,initial-scale=1")
+		meta(name="description", content="Expanded health and safety risk assessment for the PhotoSYNTH accessible musical instrument.")
+		title PhotoSYNTH Accessible Musical Instrument | Risk assessment
+		style.
+
+			:root {
+			color-scheme: light dark;
+			--page: #ffffff;
+			--canvas: #eef3f8;
+			--ink: #202124;
+			--muted: #5f6b7a;
+			--navy: #17365d;
+			--blue: #2e74b5;
+			--blue-soft: #e8eef5;
+			--line: #cbd5e1;
+			--shadow: 0 1.25rem 3.5rem rgb(23 54 93 / 0.13);
+			--low: #dff0d4;
+			--moderate: #fff0b3;
+			--high: #ffd7b5;
+			--very-high: #f4cccc;
+			--focus: #005fcc;
+			font-family: Calibri, "Segoe UI", Arial, sans-serif;
+			line-height: 1.5;
+			}
+
+			@supports (color: light-dark(white, black)) {
+			:root {
+			--page: light-dark(#ffffff, #121b28);
+			--canvas: light-dark(#eef3f8, #0b111b);
+			--ink: light-dark(#202124, #eef3f8);
+			--muted: light-dark(#5f6b7a, #b6c2d0);
+			--navy: light-dark(#17365d, #9cc7f0);
+			--blue: light-dark(#2e74b5, #75b6ee);
+			--blue-soft: light-dark(#e8eef5, #1b2d40);
+			--line: light-dark(#cbd5e1, #435166);
+			--low: light-dark(#dff0d4, #244322);
+			--moderate: light-dark(#fff0b3, #4d4216);
+			--high: light-dark(#ffd7b5, #59351c);
+			--very-high: light-dark(#f4cccc, #5a2528);
+			--focus: light-dark(#005fcc, #8bc8ff);
+			}
+			}
+
+			:root[data-theme="light"] {
+			color-scheme: light;
+			--page: #ffffff;
+			--canvas: #eef3f8;
+			--ink: #202124;
+			--muted: #5f6b7a;
+			--navy: #17365d;
+			--blue: #2e74b5;
+			--blue-soft: #e8eef5;
+			--line: #cbd5e1;
+			--low: #dff0d4;
+			--moderate: #fff0b3;
+			--high: #ffd7b5;
+			--very-high: #f4cccc;
+			--focus: #005fcc;
+			}
+
+			:root[data-theme="dark"] {
+			color-scheme: dark;
+			--page: #121b28;
+			--canvas: #0b111b;
+			--ink: #eef3f8;
+			--muted: #b6c2d0;
+			--navy: #9cc7f0;
+			--blue: #75b6ee;
+			--blue-soft: #1b2d40;
+			--line: #435166;
+			--low: #244322;
+			--moderate: #4d4216;
+			--high: #59351c;
+			--very-high: #5a2528;
+			--focus: #8bc8ff;
+			}
+
+			html { box-sizing: border-box; scroll-behavior: smooth; }
+			*, *::before, *::after { box-sizing: inherit; }
+			body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 1rem; }
+			button, input, textarea { font: inherit; }
+			a { color: var(--blue); text-underline-offset: .18em; overflow-wrap: anywhere; }
+			a:hover { text-decoration-thickness: .14em; }
+			:focus-visible { outline: .2rem solid var(--focus); outline-offset: .2rem; }
+
+			.skip-link {
+			position: fixed;
+			inset-block-start: .5rem;
+			inset-inline-start: .5rem;
+			z-index: 20;
+			translate: 0 -180%;
+			padding: .7rem 1rem;
+			border: .125rem solid currentColor;
+			border-radius: .35rem;
+			background: var(--page);
+			color: var(--ink);
+			}
+			.skip-link:focus { translate: 0; }
+
+			.filter-bar {
+			position: sticky;
+			inset-block-start: 0;
+			z-index: 10;
+			display: flex;
+			flex-wrap: nowrap;
+			align-items: center;
+			gap: .75rem;
+			margin: 0 0 1.25rem;
+			padding: .75rem;
+			overflow-x: auto;
+			border-block: .0625rem solid var(--line);
+			background: color-mix(in oklab, var(--page) 93%, transparent);
+			backdrop-filter: blur(.75rem);
+			white-space: nowrap;
+			}
+			.filter-bar > * { flex: 0 0 auto; }
+			.filter-bar label { color: var(--muted); font-size: .9rem; font-weight: 700; }
+			.filter-bar input[type="text"] {
+			flex: 1 1 24rem;
+			min-inline-size: 12rem;
+			min-block-size: 2.75rem;
+			padding-inline: .8rem;
+			border: .0625rem solid var(--line);
+			border-radius: .45rem;
+			background: var(--page);
+			color: var(--ink);
+			}
+			.filter-bar button {
+			min-block-size: 2.75rem;
+			min-inline-size: 2.75rem;
+			padding: .55rem .95rem;
+			border: .0625rem solid var(--navy);
+			border-radius: .45rem;
+			background: var(--navy);
+			color: var(--page);
+			cursor: pointer;
+			}
+			.filter-bar__status { color: var(--muted); font-variant-numeric: tabular-nums; }
+			.document-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem clamp(1.25rem, 5vw, 4rem); background: var(--page); }
+			.document-actions--top { border-block-end: .0625rem solid var(--line); }
+			.document-actions--bottom { justify-content: flex-end; padding-inline: 0; padding-block-end: 0; }
+			.document-actions__label { color: var(--navy); }
+			.document-actions__controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .65rem; }
+			.document-actions button {
+			min-block-size: 2.75rem;
+			padding: .55rem .95rem;
+			border: .0625rem solid var(--navy);
+			border-radius: .45rem;
+			background: var(--navy);
+			color: var(--page);
+			cursor: pointer;
+			}
+
+			.document {
+			inline-size: min(74rem, calc(100% - 2rem));
+			margin: 1.5rem auto 4rem;
+			background: var(--page);
+			box-shadow: var(--shadow);
+			}
+			.masthead { padding: clamp(2rem, 5vw, 4.5rem) clamp(1.25rem, 5vw, 4rem) 2rem; border-block-start: .55rem solid var(--navy); }
+			.eyebrow { margin: 0 0 .4rem; color: var(--blue); font-size: .85rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+			h1, h2, h3, h4 { color: var(--navy); line-height: 1.18; text-wrap: balance; }
+			h1 { max-inline-size: 22ch; margin: 0; font-size: clamp(2rem, 1.4rem + 3vw, 3.7rem); letter-spacing: -.025em; }
+			.subtitle { margin: .65rem 0 1.8rem; color: var(--blue); font-size: clamp(1.1rem, .95rem + .6vw, 1.45rem); font-weight: 650; }
+			h2 { margin: 0 0 1rem; font-size: clamp(1.55rem, 1.3rem + 1vw, 2.15rem); }
+			h3 { margin: 0 0 .85rem; font-size: clamp(1.15rem, 1rem + .65vw, 1.5rem); }
+			h4 { margin: 1rem 0 .4rem; font-size: 1rem; }
+			p { max-inline-size: 76ch; margin: 0 0 .75rem; text-wrap: pretty; }
+			ul { margin: .4rem 0 1rem; padding-inline-start: 1.4rem; }
+			li { margin-block: .38rem; max-inline-size: 82ch; text-wrap: pretty; overflow-wrap: anywhere; }
+
+			.toc { padding: 1rem clamp(1.25rem, 5vw, 4rem) 1.5rem; border-block: .0625rem solid var(--line); background: var(--blue-soft); }
+			.toc h2 { margin-block-end: .55rem; font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; }
+			.toc ol { columns: 2 18rem; margin: 0; padding-inline-start: 1.35rem; }
+			.toc li { break-inside: avoid; margin-block: .3rem; }
+
+			main { padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 5vw, 4rem); }
+			.document-section { min-inline-size: 0; margin-block: 0 3rem; scroll-margin-block-start: 6rem; }
+			.document-section > h2 { padding-block-end: .55rem; border-block-end: .14rem solid var(--blue); }
+			.risk-card {
+			margin-block: 1.25rem;
+			padding: 1.1rem;
+			border: .0625rem solid var(--line);
+			border-inline-start: .35rem solid var(--risk-outcome, var(--blue));
+			border-radius: .5rem;
+			scroll-margin-block-start: 6rem;
+			}
+			.risk-card[data-residual-risk="low"] { --risk-outcome: var(--low); }
+			.risk-card[data-residual-risk="moderate"] { --risk-outcome: var(--moderate); }
+			.risk-card[data-residual-risk="high"] { --risk-outcome: var(--high); }
+			.risk-card[data-residual-risk="very-high"] { --risk-outcome: var(--very-high); }
+			.risk-card[hidden] { display: none; }
+			.risk-owner { max-inline-size: none; margin-block-start: .85rem; padding-block-start: .6rem; border-block-start: .0625rem solid var(--line); color: var(--muted); font-size: .93rem; }
+
+			.callout { margin: 1rem 0 1.35rem; padding: .9rem 1rem; border: .0625rem solid var(--line); border-inline-start: .35rem solid var(--blue); background: var(--blue-soft); }
+			.key-values { display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(0, 2.7fr); margin: 1rem 0 1.5rem; border-block-start: .0625rem solid var(--line); }
+			.key-values dt, .key-values dd { margin: 0; padding: .62rem .75rem; border-block-end: .0625rem solid var(--line); }
+			.key-values dt { color: var(--navy); background: var(--blue-soft); font-weight: 750; }
+			.key-values--wide { grid-template-columns: minmax(8rem, 1fr) minmax(12rem, 2fr) minmax(8rem, 1fr) minmax(12rem, 2fr); }
+
+			.table-scroll { min-inline-size: 0; max-inline-size: 100%; inline-size: 100%; margin: 1rem 0 1.4rem; overflow-x: auto; border: .0625rem solid var(--line); border-radius: .4rem; }
+			table { inline-size: 100%; border-collapse: collapse; font-size: .91rem; font-variant-numeric: tabular-nums; }
+			caption { padding: .55rem .7rem; color: var(--muted); font-weight: 700; text-align: start; }
+			th, td { padding: .55rem .65rem; border: .0625rem solid var(--line); text-align: start; vertical-align: middle; overflow-wrap: break-word; }
+			thead th { background: var(--navy); color: var(--page); text-wrap: balance; }
+			tbody th { color: var(--navy); background: var(--blue-soft); }
+			.score-low { background: var(--low); font-weight: 800; text-align: center; }
+			.score-moderate { background: var(--moderate); font-weight: 800; text-align: center; }
+			.score-high { background: var(--high); font-weight: 800; text-align: center; }
+			.score-very-high { background: var(--very-high); font-weight: 800; text-align: center; }
+
+			.check-item { display: flex; align-items: flex-start; gap: .55rem; min-block-size: 2.2rem; }
+			input[type="checkbox"] { flex: 0 0 auto; inline-size: 1.2rem; block-size: 1.2rem; margin-block-start: .12rem; accent-color: var(--blue); }
+			.action-status { display: grid; gap: .6rem; min-inline-size: 10rem; }
+			.action-status__complete { display: flex; align-items: center; gap: .45rem; color: var(--ink); font-weight: 700; white-space: nowrap; }
+			.action-status__date { display: grid; gap: .2rem; color: var(--muted); font-size: .82rem; font-weight: 700; }
+			.action-status__date input { min-block-size: 2.25rem; inline-size: 100%; padding: .25rem .35rem; border: .0625rem solid var(--line); border-radius: .3rem; background: var(--page); color: var(--ink); }
+			.incident-record-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .65rem; margin-block: 1rem; }
+			.incident-record-actions button { min-block-size: 2.75rem; padding: .55rem .85rem; border: .0625rem solid var(--navy); border-radius: .4rem; background: var(--navy); color: var(--page); cursor: pointer; }
+			.incident-record-actions__icon { display: inline-block; min-inline-size: 1.2em; margin-inline-end: .2rem; text-align: center; }
+			.incident-records { display: grid; gap: 1rem; margin-block: 1rem 1.5rem; }
+			.incident-record { min-inline-size: 0; margin: 0; padding: 1rem; border: .0625rem solid var(--line); border-radius: .45rem; }
+			.incident-record summary { color: var(--navy); font-size: 1.05rem; font-weight: 800; cursor: pointer; }
+			.incident-record[open] summary { margin-block-end: 1rem; }
+			.incident-record__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+			.record-field { display: grid; align-content: start; gap: .3rem; min-inline-size: 0; color: var(--ink); font-weight: 700; }
+			.record-field--wide { grid-column: 1 / -1; }
+			.record-field input, .record-field textarea { inline-size: 100%; min-inline-size: 0; padding: .55rem; border: .0625rem solid var(--line); border-radius: .3rem; background: var(--page); color: var(--ink); }
+			.record-field input { min-block-size: 2.75rem; }
+			.record-field textarea { min-block-size: 7rem; resize: vertical; }
+			.empty-state { padding: 1rem; border: .125rem dashed var(--line); color: var(--muted); }
+			.source-note { color: var(--muted); font-size: .9rem; }
+			footer { padding: 1rem clamp(1.25rem, 5vw, 4rem) 2rem; border-block-start: .0625rem solid var(--line); color: var(--muted); font-size: .85rem; }
+
+			@media (max-width: 48rem) {
+			.document { inline-size: 100%; margin-block-start: 0; box-shadow: none; }
+			.key-values, .key-values--wide { grid-template-columns: minmax(7.5rem, .9fr) minmax(0, 2fr); }
+			.toc ol { columns: 1; }
+			.risk-card { padding: .85rem; }
+			.incident-record__grid { grid-template-columns: 1fr; }
+			.record-field--wide { grid-column: auto; }
+			}
+
+			@media (pointer: coarse) {
+			.filter-bar button, .filter-bar input, input[type="checkbox"] { min-block-size: 2.75rem; }
+			}
+
+			@media (forced-colors: active) {
+			:root { --line: CanvasText; --focus: Highlight; }
+			.document, .risk-card, .callout, .table-scroll { box-shadow: none; }
+			.score-low, .score-moderate, .score-high, .score-very-high { forced-color-adjust: auto; border: .14rem solid CanvasText; }
+			}
+
+			@media print {
+			@page { size: A4; margin: 14mm 13mm 16mm; }
+			:root, :root[data-theme] { color-scheme: light; --page: #fff; --canvas: #fff; --ink: #000; --muted: #444; --navy: #17365d; --blue: #2e74b5; --blue-soft: #eef3f8; --line: #aab3bf; }
+			body { background: #fff; font-size: 9.5pt; }
+			.skip-link, .filter-bar, .toc, .document-actions, .incident-record-actions { display: none; }
+			.document { inline-size: auto; margin: 0; box-shadow: none; }
+			.masthead { min-block-size: 235mm; padding: 22mm 9mm 8mm; break-after: page; }
+			main { padding: 0; }
+			.document-section { margin-block-end: 8mm; }
+			.document-section > h2 { break-before: page; }
+			.document-section:first-child > h2 { break-before: auto; }
+			h2, h3, h4 { break-after: avoid-page; }
+			p, li { orphans: 3; widows: 3; }
+			.risk-card { break-inside: auto; margin-block: 5mm; padding: 4mm; }
+			.risk-card[hidden] { display: block; }
+			.table-scroll { overflow: visible; border: 0; }
+			table { font-size: 7.8pt; }
+			thead { display: table-header-group; }
+			tr { break-inside: avoid; }
+			a { color: #000; text-decoration: none; }
+			a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 7pt; overflow-wrap: anywhere; }
+			input[type="checkbox"] { appearance: none; inline-size: 3.5mm; block-size: 3.5mm; border: .3mm solid #000; }
+			.action-status { min-inline-size: 25mm; gap: 1.5mm; }
+			.action-status__date input { min-block-size: 5mm; border-color: #000; }
+			.incident-records { gap: 6mm; }
+			.incident-record { break-inside: avoid; padding: 4mm; border-color: #000; }
+			.incident-record summary { margin-block-end: 4mm; color: #000; list-style: none; }
+			.incident-record summary::-webkit-details-marker { display: none; }
+			.incident-record > .incident-record__grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4mm; }
+			.record-field--wide { grid-column: 1 / -1; }
+			.record-field input, .record-field textarea { display: none; }
+			.record-field::after { content: ""; display: block; inline-size: 100%; }
+			.record-field--short::after { min-block-size: 9mm; border-block-end: .3mm solid #000; }
+			.record-field--long::after { min-block-size: 24mm; border: .3mm solid #000; }
+			footer { padding: 4mm 0 0; }
+			}
+		link(type="text/plain" rel="author" href="https://interface.place/humans.txt")
+		
+	body.theme-default
+		a.skip-link(href="#content") Skip to assessment
+		article.document(aria-labelledby="document-title")
+			
+			menu.document-actions.document-actions--top
+				strong.document-actions__label Document actions
+				.document-actions__controls
+					button#print-document-top(type="button", data-print-document) Print / save PDF
+					button#theme-toggle(type="button", aria-pressed="false") Dark theme
+			
+			header.masthead
+				p.eyebrow RISK ASSESSMENT
+				h1#document-title Interactive Accessible Musical Instrument Tent
+				p.subtitle Camp Bestival Dorset 2026 • Lulworth Castle
+				dl.key-values
+					dt Activity
+					dd PhotoSYNTH and other accessible musical instruments in the Royal Society Summer Science Exhibits on Tour tent
+					dt Event
+					dd Royal Society Summer Science Exhibits on Tour at Camp Bestival, Lulworth Castle, Wareham, Dorset BH20 5QS
+					dt Public dates
+					dd
+						time(datetime="2026-07-30")
+							| 30
+							sup th
+							|  July 2026
+						| –
+						time(datetime="2026-08-02")
+							| 2
+							sup nd
+							|  August 2026
+						|  (confirm contracted operating hours)
+					dt Set-up / load-out
+					dd
+						| Working period 
+						time(datetime="2026-07-29")
+							| 29
+							sup th
+							|  July 2026
+						| –
+						time(datetime="2026-08-03")
+							| 3
+							sup rd
+							|  August 2026
+						| ; public operation 
+						time(datetime="2026-07-30")
+							| 30
+							sup th
+							|  July 2026
+						| –
+						time(datetime="2026-08-02")
+							| 2
+							sup nd
+							|  August 2026
+						| ; confirm access, opening and site-release times
+					dt Site access point
+					dd Pink Gate, Lulworth Castle, East Lulworth, Wareham, Dorset BH20 5QS • What3Words: toolkit.redefined.confusion
+					dt Site-wide build/break window
+					dd
+						time(datetime="2026-07-16")
+							| 16
+							sup th
+							|  July 2026
+						|  to 
+						time(datetime="2026-08-11")
+							| 11
+							sup th
+							|  August 2026
+						| ; site 08:00–20:00, deliveries 08:00–18:30
+					dt PhotoSYNTH allocated area
+					dd 5 × 11 metres nominal within the 10 × 11 metre Royal Society tent; confirm the supplier’s usable internal dimensions and certified occupancy
+					dt Camera privacy
+					dd Real-time processing entirely on device; no video footage is stored or transmitted
+					dt Named staff
+					dd Zenon Olenski, Simon Tew, Kassie Headon, Gavin Wren. 
+					dt Organiser
+					dd The Royal Society
+					dt Delivery partner
+					dd Sound Connections
+					dt Organisation Contact
+					dd Andrew Stephens
+
+			aside.callout
+				strong Important:
+				|  This assessment covers the PhotoSYNTH tent activity and its interfaces. It must be read with the festival Event Safety Plan, fire and emergency arrangements, traffic plan, access plan, tent supplier documentation and temporary electrical certification. Where those documents conflict, stop and obtain a coordinated decision from the responsible dutyholders.
+		
+			nav.toc(aria-label="Document contents")
+				h2 Contents
+				ol
+					li
+						a(href="#1-document-control-and-authorisation") Document control and authorisation
+					li
+						a(href="#2-scope-assumptions-and-key-corrections") Scope, assumptions and key corrections
+					li
+						a(href="#3-responsibilities-and-operating-controls") Responsibilities and operating controls
+					li
+						a(href="#4-risk-scoring-and-acceptance") Risk scoring and acceptance
+					li
+						a(href="#5-pre-issue-action-plan") Pre-issue action plan
+					li
+						a(href="#6-detailed-risk-register") Detailed risk register
+					li
+						a(href="#7-daily-opening-monitoring-and-closing-checklist") Daily opening, monitoring and closing checklist
+					li
+						a(href="#8-dynamic-assessment-and-incident-record") Dynamic assessment and incident record
+					li
+						a(href="#9-final-approval") Final approval
+			main#content(tabindex="-1")
+				section.document-section#1-document-control-and-authorisation
+					h2 1. Document control and authorisation
+					dl.key-values.key-values--wide
+						dt Version
+						dd 1.4
+						dt Prepared
+						dd
+							time(datetime="2026-07-22")
+								| 22
+								sup nd
+								|  July 2026
+						dt Prepared by
+						dd Zenon Olenski
+						dt Review date
+						dd Before set-up; daily dynamic review
+						dt Approved by
+						dd Zenon Olenski
+						dt Approval date
+						dd 
+							time(datetime="2026-07-22")
+								| 22
+								sup nd
+								|  July 2026
+						dt Festival liaison
+						dd Project & Event Manager: Vicki Smith; Site Manager: Chris White; Site Office Manager: Kim Weiss (use the controlled contractor contact list for mobile numbers)
+						dt Team Lead / deputy
+						dd [NAME] / [NAME]
+						dt Technical & Privacy Lead
+						dd [NAME]
+						dt Access & Safeguarding Lead
+						dd [NAME]
+						dt Operations & Logistics Lead
+						dd [NAME]
+						dt First-aid route
+						dd Build/break: contractor’s appointed first aider and festival management on radio channel 2; no on-site medic. Show days: Event Control on channel 1 and festival medical provision.
+					p
+						strong Review triggers: 
+						| change in equipment, layout, staffing, participant profile, tent/site conditions, supplier instructions, festival plan or public-health advice; any accident, near miss, safeguarding concern, complaint or emergency; and after adverse weather or power interruption.
+					p
+						strong Stop-work rule: 
+						| Any worker may pause the activity where there is immediate danger or an uncontrolled material change. The Team Lead records the issue, obtains competent help where needed, and authorises restart only after controls are restored.
+				section.document-section#2-scope-assumptions-and-key-corrections
+					h2 2. Scope, assumptions and key corrections
+					
+					aside.callout
+						strong Legal status:
+						|  This is a task-specific working assessment, not a substitute for the festival’s Event Safety Plan, fire-risk assessment, licence conditions, construction-phase arrangements or a competent person’s site inspection. It can support compliance only after the actual employers, self-employed persons, suppliers and persons in control have confirmed their duties, completed the Priority A actions, consulted affected workers and approved the controlled issue. No signature transfers a legal duty from the person or organisation that holds it.
+					
+					ul(role="list")
+						li PhotoSYNTH uses a camera for real-time facial/movement control and can present moving visual content. All camera processing takes place locally and in real time on the device; no video footage is stored or transmitted. The deployed version and visual-effect settings must be verified before opening and after any software, configuration or equipment change.
+						li The assessment records significant findings for the PhotoSYNTH activity and people affected by it. Each employer and self-employed dutyholder remains responsible for a suitable and sufficient assessment of risks arising from its own undertaking, including risks to workers, contractors, volunteers and members of the public.
+						li Controls follow the hierarchy of prevention: avoid the hazard where reasonably practicable, then use engineering and collective controls, safe systems, information/training and supervision; personal protective equipment is a last line of protection and must be provided without charge where legally required.
+						li The Equality Act duty to make reasonable adjustments for disabled service users is anticipatory and continuing. Access must be designed in before opening, reviewed during operation and provided without charging the disabled person for the adjustment.
+						li If anyone under 18 works on the activity, or a worker notifies their employer in writing that they are pregnant, breastfeeding or have given birth within the previous six months, the relevant employer must complete and act on the additional or individual assessment required for that worker before assigning duties.
+			
+				section.document-section#3-responsibilities-and-operating-controls
+					h2 3. Responsibilities and operating controls
+					p The four-person PhotoSYNTH team uses the four combined roles below. Each role must be assigned to a named team member before work starts. The Team Lead also names one of the other three people as deputy.
+					.table-scroll(tabindex="0", aria-label="Scrollable table: 3. Responsibilities and operating controls")
+						table
+							caption 3. Responsibilities and operating controls
+							thead
+								tr
+									th(scope="col") Role
+									th(scope="col") Minimum responsibility
+							tbody
+								tr
+									th(scope="row") Team Lead
+									td Overall control of this assessment, liaison with the Royal Society and festival, staffing and breaks, briefings, opening/closing approval, dynamic decisions, emergency coordination, radio and required records. Acts as person in charge; the named deputy covers absence.
+								tr
+									th(scope="row") Technical & Privacy Lead
+									td Controls equipment configuration, sound and visual limits, batteries, fault isolation and technical records; verifies PhotoSYNTH’s real-time on-device processing with no video storage or transmission; maintains the participant privacy information; and liaises with the competent electrical contractor and data controller.
+								tr
+									th(scope="row") Access & Safeguarding Lead
+									td Protects accessible routes and stations, coordinates reasonable adjustments, oversees consent and participant welfare, receives safeguarding concerns and follows the agreed reporting route.
+								tr
+									th(scope="row") Operations & Logistics Lead
+									td Coordinates induction/accreditation, access and deliveries, set-up/pack-down, front of house, capacity and queues, housekeeping, cleaning, inventory and daily checklists. Confirms all four team members follow briefings, report defects/incidents and use stop-work authority.
+					p.source-note These combined team roles do not replace external duties. The Royal Society and each employer remain responsible for their undertaking; the festival retains site access, traffic, emergency, medical, security and fire control; and the tent supplier, competent electrical contractor and data controller retain decisions requiring their authority or competence.
+				section.document-section#4-risk-scoring-and-acceptance
+					h2 4. Risk scoring and acceptance
+					p
+						strong Method: 
+						| Risk score = likelihood × severity. Scores are recorded before and after the specified controls. Severity is not reduced merely because controls make occurrence less likely.
+					.table-scroll(tabindex="0", aria-label="Scrollable table: 4. Risk scoring and acceptance")
+						table
+							caption 4. Risk scoring and acceptance
+							thead
+								tr
+									th(scope="col") Likelihood / Severity
+									th(scope="col") 1 Negligible
+									th(scope="col") 2 Minor
+									th(scope="col") 3 Moderate
+									th(scope="col") 4 Major
+									th(scope="col") 5 Catastrophic
+							tbody
+								tr
+									td 5 Almost certain
+									td.score-moderate 5
+									td.score-high 10
+									td.score-very-high 15
+									td.score-very-high 20
+									td.score-very-high 25
+								tr
+									td 4 Likely
+									td.score-low 4
+									td.score-moderate 8
+									td.score-high 12
+									td.score-very-high 16
+									td.score-very-high 20
+								tr
+									td 3 Possible
+									td.score-low 3
+									td.score-moderate 6
+									td.score-moderate 9
+									td.score-high 12
+									td.score-very-high 15
+								tr
+									td 2 Unlikely
+									td.score-low 2
+									td.score-low 4
+									td.score-moderate 6
+									td.score-moderate 8
+									td.score-high 10
+								tr
+									td 1 Rare
+									td.score-low 1
+									td.score-low 2
+									td.score-low 3
+									td.score-low 4
+									td.score-moderate 5
+					.table-scroll(tabindex="0", aria-label="Scrollable table: 4. Risk scoring and acceptance")
+						table
+							caption 4. Risk scoring and acceptance
+							thead
+								tr
+									th(scope="col") Score
+									th(scope="col") Band
+									th(scope="col") Required decision
+							tbody
+								tr
+									td 1–4
+									td Low
+									td Proceed with controls; monitor.
+								tr
+									td 5–9
+									td Moderate
+									td Proceed only with named controls and routine supervision.
+								tr
+									td 10–14
+									td High
+									td Further control and named management approval required before starting/continuing.
+								tr
+									td 15–25
+									td Very high
+									td Do not start or continue. Eliminate/reduce the risk and reassess.
+				section.document-section#5-pre-issue-action-plan
+					h2 5. Pre-issue action plan
+					aside.callout
+						strong Status gate:
+						|  The document is not ready to sign until every Priority A item below has an owner, evidence and completion date. Unresolved Priority B items require a documented acceptance decision by the Team Lead and relevant dutyholder.
+					p#action-plan-instructions.source-note
+						strong How to use this table:
+						|  Leave an action unticked while it is outstanding. Tick its “Complete” box only when the required evidence is held, then enter the actual completion date.
+					.table-scroll(tabindex="0", aria-label="Scrollable table: 5. Pre-issue action plan")
+						table
+							caption 5. Pre-issue action plan
+							thead
+								tr
+									th(scope="col") ID
+									th(scope="col") Pri.
+									th(scope="col") Action / evidence
+									th(scope="col") Owner
+									th(scope="col") Done / date
+							tbody
+								+actionRow("A1", "A", "Confirm the 10 × 11 metre Royal Society tent footprint, PhotoSYNTH’s 5 × 11 metre allocation, usable internal dimensions, exact location, public capacity, opening hours and accessible route/threshold. Record Pink Gate as the access point and toolkit.redefined.confusion as the site What3Words reference.", "Team Lead")
+								+actionRow("A2", "A", "Obtain the festival emergency procedures from the Site/Production Office and confirm Event Control, alarm, exits/assembly, fire point, security, severe weather and radio arrangements. Record channel 2 for build/break medical incidents and channel 1 for show-day Event Control.", "Team Lead")
+								+actionRow("A3", "A", "Obtain tent handover/certification, engineering drawings/calculations, anchorage/ballast plan, flame-retardancy evidence, permitted attachments, occupancy, wind limits and adverse-weather plan. Confirm the structural-engineer inspection on the Tuesday and Local Authority inspection on the Wednesday before the event; resolve whether PhotoSYNTH equipment must be installed before those sign-offs.", "Tent supplier")
+								+actionRow("A4", "A", "Submit power requirements in advance; approve the electrical schedule and temporary supply; retain installation verification and equipment inspection/testing evidence. Festival power must not connect non-compliant equipment.", "Electrical competent person")
+								+actionRow("A5", "A", "Approve final layout showing exits, clear route, wheelchair turning space, queue, cable routes, speakers, charging and storage.", "Technical & Privacy Lead + Access & Safeguarding Lead")
+								+actionRow("A6", "A", "Set/test maximum sound level and speaker separation; document quiet/headphone option and alarm audibility.", "Technical & Privacy Lead")
+								+actionRow("A7", "A", "Verify visual effects and disable hazardous flashing; prepare photosensitivity warning and immediate stop/blackout control.", "Technical & Privacy Lead")
+								+actionRow("A8", "A", "Verify and document that the deployed PhotoSYNTH build processes camera frames in real time entirely on device and stores or transmits no video footage. Publish a short, accessible participant notice stating this clearly; identify the controller, purpose and lawful basis for any transient processing; record the software/configuration checked; and keep participant agreement separate from the UK GDPR lawful basis.", "Technical & Privacy Lead + data controller")
+								+actionRow("A9", "A", "Assign the four combined team roles and Team Lead deputy; finalise rota, breaks, competence/DBS requirements and staff briefing record.", "Team Lead")
+								+actionRow("A10", "A", "Complete pre-opening inspection and table-top emergency walk-through with all on-duty staff.", "Team Lead")
+								+actionRow("A11", "A", "Identify every employer, self-employed person, contractor and person in control; agree interfaces in writing, appoint competent assistance and record consultation with affected workers or their representatives. Complete any required young-person, pregnancy/new-mother or disability-related individual assessment.", "Team Lead + relevant employer")
+								+actionRow("A12", "A", "Obtain and integrate the responsible person’s suitable and sufficient fire-risk assessment for the tent/activity, including occupancy, escape capacity, alarm, emergency lighting, fire performance of fabric/furnishings, ignition sources, firefighting arrangements and staff instruction. Confirm applicable premises-licence conditions.", "Fire responsible person + Team Lead")
+								+actionRow("A13", "A", "Complete first-aid needs assessments and name each contractor’s first aider. Brief that there is no on-site medic during build/break: contact festival management on channel 2. For show days confirm Event Control channel 1, festival medical provision, response route, accessibility and handover arrangements.", "Employers + Festival medical lead")
+								+actionRow("A14", "A", "Obtain the festival protective-security plan and brief staff on suspicious behaviour/items, lockdown, invacuation, evacuation and communications. Confirm who is the responsible person for any applicable Terrorism (Protection of Premises) Act duties and check commencement status before the event; do not treat this tent assessment as the festival-level assessment.", "Festival security + Team Lead")
+								+actionRow("A15", "A", "Submit the required contractor pack: company H&S policy; RAMS/safe systems; relevant driver/plant certificates; structure drawings/calculations; flame-retardancy certification; adverse-weather/wind plan; employers’ and public-liability insurance; first-aider details; and crew-boss name/mobile. Use healthandsafety@festivalrepublic.com if no submission request has been received.", "Team Lead + Royal Society")
+								+actionRow("A16", "A", "Obtain induction-confirmation emails, accreditation and Site Office authorisation for every worker/vehicle. Brief Pink Gate routing, prohibited villages, no Sat Nav, 10 mph limit, Hazz-Off rule, Trakway/hard-standing use, banksman requirement, 08:00 show-day vehicle curfew and delivery receiver/collection arrangements.", "Operations & Logistics Lead")
+								+actionRow("A17", "A", "Nominate the person in charge for the event; provide the Site Office with crew mobile numbers and a 24-hour contractor emergency number; arrange the required radio in advance; collect its channel list; and brief that the radio must remain active while responsible for event cover.", "Team Lead")
+								+actionRow("A18", "A", "Brief site environmental and welfare rules: bring refillable water bottles; use only designated cleaning/washing points; contain grey water; report spills immediately; use provided sanitation and waste facilities; and arrange any fuel transfer through the Site Office.", "Operations & Logistics Lead")
+								+actionRow("B1", "B", "Confirm equipment inventory, battery/charging plan, cleaning products and manufacturer compatibility. In addition, inventory cleaning chemicals, retain current safety information/SDS where supplied, complete any required COSHH assessment, and verify storage, dilution and spill/first-aid instructions.", "Technical & Privacy Lead")
+								+actionRow("B2", "B", "Confirm employers’/public-liability and equipment/plant insurance, submit any equipment-and-values schedule required for promoter cover, and confirm accident/near-miss, RIDDOR and document-retention arrangements. Name the RIDDOR responsible person and decision route and confirm the enforcing-authority contact route.", "Team Lead + relevant employer")
+				section.document-section#6-detailed-risk-register
+					h2 6. Detailed risk register
+					p.source-note The PhotoSYNTH/Sound Connections hazard table supplied for this assessment is the baseline for this register. Its hazards and practical controls are incorporated below and extended for Camp Bestival Dorset 2026.
+					aside.callout
+						strong Residual-risk condition:
+						|  Residual scores assume every listed control is in place, effective and verified. If a control is missing or conditions change, use the initial score as the starting point, pause where required and complete a dynamic reassessment.
+					div.filter-bar
+						label(for="risk-filter") Filter the 22 risks
+						input#risk-filter(type="text", autocomplete="off", placeholder="Electrical, access or weather")
+						button#clear-filter(type="button") Clear filter
+						output.filter-bar__status#risk-filter-status(for="risk-filter", aria-live="polite")
+					p#risk-empty.empty-state(hidden) No risks match this filter. Clear the filter to restore the full register.
+					article.risk-card#r01(data-risk="r01 — coordination, competence and uncontrolled change")
+						h3 R01 — Coordination, competence and uncontrolled change
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R01 — Coordination, competence and uncontrolled change")
+							table
+								caption R01 — Coordination, competence and uncontrolled change
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff, contractors, visitors
+										td 3
+										td 4
+										td.score-high 12
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Conflicting instructions, missed controls, unsafe improvisation or delayed emergency response.
+						h4 Required controls
+						ul
+							li Appoint the Team Lead and named deputy for every shift; both must understand this assessment and the festival Event Safety Plan.
+							li Every worker must complete the site safety induction and hold the confirmation email, accreditation and Site Office authorisation before access. Record attendance and brief role boundaries, stop-work authority, welfare, first aid, emergency signals and site rules.
+							li Nominate the event-cover person in charge; ensure the Site Office has crew mobile numbers and a 24-hour contractor emergency number; collect the arranged radio/channel list and keep the radio active while responsible for cover.
+							li Agree in writing the division of responsibility between designerzen/PhotoSYNTH, the Royal Society as host programme/tent, the tent/production supplier and Camp Bestival, including staffing, infrastructure, public operation, emergency interfaces and approval authority.
+							li Each employer appoints competent assistance and consults affected workers or their representatives on this assessment, new equipment/technology, training and material changes; record comments and resulting decisions before issue.
+							li Confirm whether workers include under-18s, agency/temporary staff, disabled workers, volunteers, lone workers, or notified pregnant workers/new mothers and complete the additional or individual assessment, information, supervision and reasonable adjustments their circumstances require.
+							li Use the opening checklist at the start of every operating day and after material change, severe weather, equipment replacement or an incident.
+							li Record new hazards using the dynamic assessment log. Stop the affected activity where the risk cannot immediately be controlled.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead before access to site; daily briefing record and dynamic log.
+					article.risk-card#r02(data-risk="r02 — vehicle movements during load-in and load-out")
+						h3 R02 — Vehicle movements during load-in and load-out
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R02 — Vehicle movements during load-in and load-out")
+							table
+								caption R02 — Vehicle movements during load-in and load-out
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Set-up / break
+										td Crew, contractors, pedestrians
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Collision, crushing, trapping or fatal injury where vehicles and people share routes.
+						h4 Required controls
+						ul
+							li Enter through Pink Gate on the B3070 and follow event road signs, not Sat Nav. Vehicles must not pass through Wool, Coombe Keynes or East Lulworth; this is a licence condition.
+							li Observe the site’s 08:00–20:00 access/working hours and 08:00–18:30 delivery window. On show days there is no on-site traffic movement after 08:00 until Event Control lifts the curfew by radio.
+							li Follow the 10 mph site limit and steward instructions. The site is Hazz-Off: do not use hazard lights while moving; use flashing beacons or headlights as directed.
+							li Keep vehicles and plant on hard standing, hardcore tracks or Trakway. Do not drive on grass without Site Management permission and never block the site’s one-road-in/one-road-out route.
+							li Complete loading activities before public admission wherever practicable and maintain physical separation between pedestrians and vehicles.
+							li Use a trained banksman for reversing or restricted visibility; nobody stands behind or between a moving vehicle and a fixed object.
+							li Secure loads in transit; open doors carefully and unload only on hard standing/Trakway into a stable, segregated area. A named team member must be present to receive each delivery; arrange collection before the contractor leaves site.
+							li Wear high-visibility clothing and protective safety boots throughout build/break; keep emergency vehicle routes clear.
+						p.risk-owner
+							strong Owner / verification: 
+							| Operations & Logistics Lead / festival traffic team at each vehicle movement.
+					article.risk-card#r03(data-risk="r03 — manual handling of instruments, cases and furniture")
+						h3 R03 — Manual handling of instruments, cases and furniture
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R03 — Manual handling of instruments, cases and furniture")
+							table
+								caption R03 — Manual handling of instruments, cases and furniture
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Set-up / break
+										td Crew and authorised helpers
+										td 3
+										td 4
+										td.score-high 12
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Staff may be injured while moving instruments, furniture or equipment. Harm ranges from knocks, scratches, cuts and bruises to sprains, strains, fractures, crush injury or a serious head injury from a dropped or falling item.
+						h4 Required controls
+						ul
+							li Staff lead and direct moving and handling. Brief any person assisting, plan the route and use wheeled cases, trolleys or other suitable aids wherever practicable.
+							li Do not move a heavy, bulky or awkward item alone. Use at least two people unless a suitable mechanical aid removes the need for a team lift; stop and obtain more help whenever the load, route or individual capability requires it.
+							li Keep loads close to the body and avoid twisting, stooping, overhead reaching, large vertical movement, long carries, strenuous pushing/pulling and unnecessary repetition.
+							li Wear suitable closed, supportive footwear while moving instruments, furniture and cases.
+							li Put moved furniture and equipment in a designated safe location. Any stack must be stable, low enough not to fall and free from precariously balanced items.
+							li Check wheels, handles and straps before use; do not use damaged handling equipment.
+							li Allow extra time and breaks. Make individual adjustments for disabled staff or existing injuries without requiring disclosure beyond what is necessary for safety.
+						p.risk-owner
+							strong Owner / verification: 
+							| Operations & Logistics Lead before each handling task; individuals stop and ask for help.
+					article.risk-card#r04(data-risk="r04 — work at height and overhead installation")
+						h3 R04 — Work at height and overhead installation
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R04 — Work at height and overhead installation")
+							table
+								caption R04 — Work at height and overhead installation
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Set-up / break
+										td Crew, contractors, people below
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Falls, head injury or objects falling from ladders, tent frames or overhead mounts.
+						h4 Required controls
+						ul
+							li Design the installation so routine assembly is performed from ground level. Do not climb on chairs, tables, cases or tent framework.
+							li Only competent, authorised persons may use suitable step equipment after a pre-use check and on firm, level ground.
+							li Observe marked hard-hat areas and site notices. Contractors supply their own suitable helmets, harnesses and other task PPE; use a full-body harness where the competent work-at-height plan requires it.
+							li Create an exclusion zone below overhead work; tether or contain small items and never leave tools on frames.
+							li Any suspended speaker, light, display or camera must use manufacturer-rated hardware and an independent secondary safety where applicable.
+							li Stop outdoor work at height in high winds, rain, poor light or when the ground becomes unstable.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead; visual check before the exclusion zone is removed.
+					article.risk-card#r05(data-risk="r05 — tent, temporary structure and severe weather")
+						h3 R05 — Tent, temporary structure and severe weather
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R05 — Tent, temporary structure and severe weather")
+							table
+								caption R05 — Tent, temporary structure and severe weather
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Everyone in or near the tent
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Structural movement or collapse, falling components, flooding, lightning exposure, impact injury or entrapment.
+						h4 Required controls
+						ul
+							li Obtain the tent supplier’s handover/certification, structural engineering drawings/calculations, anchorage plan, flame-retardancy certification, occupancy limit, adverse-weather plan and wind operating limits before opening; only the appointed supplier may alter structure or ballast.
+							li Confirm the structure/installation is complete for the festival structural-engineer inspection on the Tuesday before the event and Local Authority inspection beginning on the Wednesday. Do not open without the required sign-offs.
+							li Do not attach banners, screens, speakers or equipment to the structure unless the supplier has approved the load and method.
+							li Team Lead monitors festival weather communications and follows the festival action levels for wind, lightning, heavy rain, flooding and heat.
+							li Inspect fabric, frames, ballast/anchors, guy lines, water pooling and ground condition before opening and after adverse weather; isolate the area and report defects.
+							li Close and evacuate when instructed by Event Control or when supplier limits are reached; equipment recovery is secondary to life safety.
+						p.risk-owner
+							strong Owner / verification: 
+							| Tent supplier for structure; Team Lead for opening and weather checks.
+					article.risk-card#r06(data-risk="r06 — temporary electrical supply and powered equipment")
+						h3 R06 — Temporary electrical supply and powered equipment
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R06 — Temporary electrical supply and powered equipment")
+							table
+								caption R06 — Temporary electrical supply and powered equipment
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff, participants, contractors
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Staff, partners or participants could suffer electric shock, burns, fire, equipment failure or loss of essential lighting from unsafe, damaged or unverified electronic equipment, assistive music technology, instruments, monitors, leads or the temporary supply.
+						h4 Required controls
+						ul
+							li Submit power requirements to festival production in advance. Use only a festival-approved supply installed and verified by a competent person, with appropriate earthing, overcurrent protection and 30 mA RCD protection where required.
+							li Do not connect equipment that does not meet current regulations; there are no exceptions under the contractor guide. Isolate any rejected item and resolve it through the Technical & Privacy Lead and festival power contractor.
+							li The original assessment identified a possible monitor without current PAT/inspection evidence and proposed relying on visual inspection because participants would not touch it. That exception is not permitted: replace it with compliant equipment or obtain competent inspection/testing evidence before connection.
+							li Provide an equipment inventory and evidence of suitable inspection/testing. Newness, age under two years, visual appearance or being out of reach does not by itself establish electrical safety.
+							li Visually inspect plugs, cables, enclosures and strain relief before each day; quarantine, label and remove damaged, wet, overheated or unreliable equipment.
+							li Use outdoor-rated connectors/enclosures where exposed; keep connections raised, protected from weather and away from public access. Never daisy-chain extension leads or overload outlets.
+							li Route and protect cables without obstructing exits. Keep drinks away from electrical equipment and isolate power before cleaning, repositioning or responding to water ingress.
+							li Before use, staff explain the safe operation of electronic and musical equipment, including controlled volume, safe handling and the immediate stop control; supervise participants throughout.
+							li Know the accessible emergency isolation point. Only the competent electrician may modify or repair the temporary installation.
+						p.risk-owner
+							strong Owner / verification: 
+							| Competent electrical contractor before energisation; Team Lead daily visual check.
+					article.risk-card#r07(data-risk="r07 — rechargeable batteries, chargers and overheating")
+						h3 R07 — Rechargeable batteries, chargers and overheating
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R07 — Rechargeable batteries, chargers and overheating")
+							table
+								caption R07 — Rechargeable batteries, chargers and overheating
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff and visitors
+										td 2
+										td 5
+										td.score-high 10
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Thermal burns, smoke, fire or exposure to damaged battery contents.
+						h4 Required controls
+						ul
+							li Use manufacturer-approved batteries and chargers; inspect for swelling, damage, leakage, unusual heat or odour and quarantine suspect items outdoors in accordance with festival procedure.
+							li Charge only in a supervised, ventilated, non-combustible location away from exits and public reach; do not charge overnight or beneath fabric/soft furnishings.
+							li Do not mix loose batteries with metal objects; protect terminals and transport spares in suitable cases.
+							li Keep charging loads within the electrical plan and disconnect fully charged items when practicable.
+							li If a battery emits heat, smoke or hissing, raise the alarm, evacuate the immediate area and follow Event Control/fire-service instructions; do not handle it.
+						p.risk-owner
+							strong Owner / verification: 
+							| Technical & Privacy Lead; charging log and end-of-day isolation check.
+					article.risk-card#r08(data-risk="r08 — cables, uneven ground, mud and housekeeping")
+						h3 R08 — Cables, uneven ground, mud and housekeeping
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R08 — Cables, uneven ground, mud and housekeeping")
+							table
+								caption R08 — Cables, uneven ground, mud and housekeeping
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff, participants, mobility-aid users
+										td 4
+										td 4
+										td.score-very-high 16
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Cables, leads, bags, cases, paper, furniture, instruments, mud or loose objects may cause trips, slips and falls ranging from bruises and cuts to sprains, fractures or head injury; they may also obstruct wheelchairs, damage cables or delay evacuation.
+						h4 Required controls
+						ul
+							li Design the layout with a continuous, firm and unobstructed accessible route; keep cables out of circulation and evacuation routes wherever possible.
+							li Where a crossing is unavoidable, use low-profile, wheelchair-compatible cable protection with contrasting edges and no abrupt snag point; use Bestival-provided/event-approved matting or trackway where appropriate. Tape alone is not adequate on wet or uneven ground.
+							li Ensure matting and trackway transitions do not create lips, snag points or reduced clear width.
+							li Maintain good lighting and remove packaging, cases, bags and loose items immediately to a designated store.
+							li Monitor leads, instruments and furniture throughout set-up and public use. Remove hazards where safe or warn people and close/protect the affected route until corrected.
+							li Place litter, especially food waste, in the provided bins/skips. Report any spill immediately to the Site Office and protect the area until the festival response is in place.
+							li Do not discharge grey water onto the land or wash equipment/use cleaning agents at drinking-water standpipes. Use designated containment and cleaning points confirmed by the Site Office.
+							li Inspect before opening, at least hourly, after busy periods and after weather changes; record and correct defects or close the affected area.
+						p.risk-owner
+							strong Owner / verification: 
+							| Operations & Logistics Lead; hourly checklist and immediate defect response.
+					article.risk-card#r09(data-risk="r09 — unstable, sharp, pinching or breakable equipment")
+						h3 R09 — Unstable, sharp, pinching or breakable equipment
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R09 — Unstable, sharp, pinching or breakable equipment")
+							table
+								caption R09 — Unstable, sharp, pinching or breakable equipment
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Participants, supporters, staff
+										td 3
+										td 4
+										td.score-high 12
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Cuts, trapped fingers, impact, crush injury or falling displays/instruments.
+						h4 Required controls
+						ul
+							li Set instruments and displays on stable, load-rated supports; secure top-heavy items and position heavy equipment below shoulder height.
+							li Round or guard sharp edges, pinch points, moving mechanisms and hot surfaces; provide cable strain relief.
+							li Do a tactile/visual pre-opening inspection. Remove cracked, splintered, loose or damaged items from use and label the quarantine area.
+							li Supervise public interaction and give short, accessible instructions before use; do not allow climbing, hanging or unsupported transfer onto equipment.
+							li Keep small detachable parts and tools outside public reach, particularly where young children are present.
+						p.risk-owner
+							strong Owner / verification: 
+							| Technical & Privacy Lead before opening and after any impact or fault.
+					article.risk-card#r10(data-risk="r10 — participant use, involuntary movement and unsuitable adjustment")
+						h3 R10 — Participant use, involuntary movement and unsuitable adjustment
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R10 — Participant use, involuntary movement and unsuitable adjustment")
+							table
+								caption R10 — Participant use, involuntary movement and unsuitable adjustment
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Disabled and non-disabled participants, supporters
+										td 3
+										td 3
+										td.score-moderate 9
+										td 1
+										td 3
+										td.score-low 3
+						p
+							strong Potential harm: 
+							| Pain, fatigue, collision, distress or aggravation of an existing condition during interaction.
+						h4 Required controls
+						ul
+							li Ask what access support is helpful and accept the participant’s answer; do not assume capability, diagnosis or need.
+							li Offer a no-touch demonstration first, then adjust sensitivity, volume, position, session length and control method to the user; provide an immediate stop/mute control.
+							li Obtain consent before touching a person, wheelchair, mobility aid or support equipment. Never provide personal care or manual transfer.
+							li Position equipment so head, limb or wheelchair movement does not contact screens, stands, furniture or other users; allow a supporter to remain where safe.
+							li Stop promptly for pain, dizziness, fatigue, distress or loss of control and offer seating, quiet space directions or first aid as appropriate.
+						p.risk-owner
+							strong Owner / verification: 
+							| Facilitator for each interaction; participant controls pace and stopping.
+					article.risk-card#r11(data-risk="r11 — amplified sound and hearing exposure")
+						h3 R11 — Amplified sound and hearing exposure
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R11 — Amplified sound and hearing exposure")
+							table
+								caption R11 — Amplified sound and hearing exposure
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Participants, staff, nearby exhibitors
+										td 3
+										td 4
+										td.score-high 12
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Temporary or permanent hearing damage, tinnitus, sensory overload, communication difficulty or masking of alarms.
+						h4 Required controls
+						ul
+							li Use the lowest effective level and set a locked software/hardware maximum before opening; prevent participants from accessing amplifier gain controls.
+							li Position speakers away from heads and circulation routes, maintain at least 1 m audience separation, and favour near-field/individual monitoring or headphones at controlled levels.
+							li Check levels at the user position and review after configuration changes; coordinate with festival noise management and neighbouring activities.
+							li Offer a quiet/low-volume mode and breaks. Provide hearing protection for staff if exposure assessment indicates it, but prioritise level and exposure-time control.
+							li Ensure alarms, radio messages and spoken safety instructions remain audible; stop sound immediately on an emergency signal.
+						p.risk-owner
+							strong Owner / verification: 
+							| Technical & Privacy Lead before opening and after audio changes; Team Lead monitors exposure.
+					article.risk-card#r12(data-risk="r12 — photosensitivity, flicker, bright imagery and sensory overload")
+						h3 R12 — Photosensitivity, flicker, bright imagery and sensory overload
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R12 — Photosensitivity, flicker, bright imagery and sensory overload")
+							table
+								caption R12 — Photosensitivity, flicker, bright imagery and sensory overload
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Photosensitive or sensory-sensitive participants and staff
+										td 2
+										td 5
+										td.score-high 10
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Seizure, migraine, nausea, disorientation, panic or distress.
+						h4 Required controls
+						ul
+							li Confirm whether any screen, lighting or visual effect flickers, flashes or changes rapidly. Disable strobe-like effects and avoid repeated high-contrast flashes.
+							li Display a prominent warning before entry/use and explain the visual behaviour before activating it; offer a screen-dimmed, static or audio-only alternative where practicable.
+							li Provide an immediate stop/blackout control known to all facilitators and never surprise a participant with a new effect.
+							li Reduce reflections and glare; allow greater viewing distance, seating and a quieter interaction route.
+							li If a seizure occurs, stop the effect, protect the person from injury without restraint, time the seizure, summon festival medical support and follow their direction.
+						p.risk-owner
+							strong Owner / verification: 
+							| Technical & Privacy Lead verifies settings; all team members warn and monitor each user.
+					article.risk-card#r13(data-risk="r13 — accessibility barriers, restricted circulation and poor ergonomics")
+						h3 R13 — Accessibility barriers, restricted circulation and poor ergonomics
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R13 — Accessibility barriers, restricted circulation and poor ergonomics")
+							table
+								caption R13 — Accessibility barriers, restricted circulation and poor ergonomics
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Wheelchair users, ambulant disabled people, people with sensory or cognitive access needs
+										td 3
+										td 4
+										td.score-high 12
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Exclusion, collision, falls, fatigue, inability to use equipment or delayed evacuation.
+						h4 Required controls
+						ul
+							li Complete an access walkthrough with the festival access team before opening, covering approach, threshold, surface, gradients, clear widths, turning space, seating and emergency route. Send worker access/support requirements to dorsetaccess@campbestival.net before arrival.
+							li Provide at least one usable station at wheelchair height with controls, screen and camera position adjustable without unsafe reaching; keep knee/toe clearance where relevant.
+							li Offer seating with backs/arms, rest opportunities, concise verbal and visual instructions, extra processing time and alternative interaction methods.
+							li Keep access features available throughout the day rather than using the space for storage or queues. Do not move mobility aids without permission.
+							li Record requested reasonable adjustments and communicate them between shifts while respecting privacy. Escalate site barriers to the festival access team.
+						p.risk-owner
+							strong Owner / verification: 
+							| Access & Safeguarding Lead before opening and throughout; festival access team for site controls.
+					article.risk-card#r14(data-risk="r14 — crowding, queueing and loss of safe capacity")
+						h3 R14 — Crowding, queueing and loss of safe capacity
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R14 — Crowding, queueing and loss of safe capacity")
+							table
+								caption R14 — Crowding, queueing and loss of safe capacity
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Visitors, staff, mobility-aid users
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Crowding or poor lines of sight may cause collisions, minor injury, crushing, falls, blocked exits, anxiety, equipment damage/loss or displacement of portable equipment, including a speaker left with a wheelchair user.
+						h4 Required controls
+						ul
+							li Set and display a maximum safe tent/interaction capacity based on the tent supplier’s limit, usable floor area, layout and exit capacity; confirm it with the festival.
+							li Use a host separate from demonstrators at busy times to manage entry, queue position and accessible priority without blocking adjacent routes.
+							li The team member not directly demonstrating monitors the whole space. Pause admission before congestion develops and invite people to return after visiting another exhibit; use timed returns or an agreed remote waiting point if needed.
+							li Keep exits, aisles, wheelchair turning spaces and emergency equipment clear. Do not add furniture or displays without reassessing capacity.
+							li Help each participant identify a safe way to handle equipment and supervise its use. Check that portable and wireless items, including Bluetooth speakers, are returned before the participant leaves.
+							li Call festival stewarding/security early if crowd behaviour or external congestion cannot be controlled by the team.
+						p.risk-owner
+							strong Owner / verification: 
+							| Operations & Logistics Lead continuously; festival stewarding for external queue/crowd support.
+					article.risk-card#r15(data-risk="r15 — safeguarding children and adults at risk")
+						h3 R15 — Safeguarding children and adults at risk
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R15 — Safeguarding children and adults at risk")
+							table
+								caption R15 — Safeguarding children and adults at risk
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Children, adults at risk, staff
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Abuse, exploitation, neglect, inappropriate contact, allegation or unsafe one-to-one situation.
+						h4 Required controls
+						ul
+							li Children are not permitted on site during festival build and break. Do not bring children into the worksite; challenge/escalate unauthorised access through the Site Office or security without placing staff at risk.
+							li Confirm before deployment that delivery staff have the enhanced DBS status and current safeguarding training required for their role, with training reviewed at least annually; record any role that does not require an enhanced check and the basis for that decision.
+							li Name the Access & Safeguarding Lead and use the current organisational and festival safeguarding/reporting procedures. All staff must understand their duty of care, immediately make a factual record and report a concern at the first opportunity even when unsure.
+							li No one-to-one working is planned or permitted as standard. Maintain open, observable working within the shared Royal Society exhibition tent; if an exception becomes necessary, stop and complete an additional assessment before it occurs. A parent, carer or supporter remains responsible for supervision unless the formal activity plan states otherwise.
+							li Explain and obtain permission before any necessary physical guidance. Do not provide personal care, lift or transfer a participant.
+							li Proactively challenge or report unauthorised people through the Site Office/security, without confrontation or placing staff at risk.
+							li Do not promise confidentiality. Record facts, exact words and actions taken, preserve information securely and report promptly through the agreed route.
+							li Follow festival lost-child/vulnerable-person procedures; do not independently escort someone away from the public area except to prevent immediate danger and with festival support.
+						p.risk-owner
+							strong Owner / verification: 
+							| Access & Safeguarding Lead each shift; all team members report without delay.
+					article.risk-card#r16(data-risk="r16 — private on-device camera use and participant distress")
+						h3 R16 — Private on-device camera use and participant distress
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R16 — Private on-device camera use and participant distress")
+							table
+								caption R16 — Private on-device camera use and participant distress
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Participants and supporters
+										td 3
+										td 3
+										td.score-moderate 9
+										td 1
+										td 3
+										td.score-low 3
+						p
+							strong Potential harm: 
+							| Distress, loss of trust, safeguarding concern or conflict if participants believe they are being recorded, identified or monitored beyond the live interaction.
+						h4 Required controls
+						ul
+							li Display a short, clear and accessible notice before use: the camera analyses facial movement and expressions in real time entirely on the PhotoSYNTH device; no video footage is recorded, stored or transmitted.
+							li The Technical & Privacy Lead must verify the deployed software and configuration before opening and after any change, and retain a simple data-flow/configuration record showing local real-time processing, no video storage and no video transmission.
+							li The identified data controller must document the limited purpose and lawful basis for any transient personal-data processing and provide accessible information before the camera is activated. Screen for a DPIA and obtain specialist advice if the processing or deployment changes in a way likely to create high risk.
+							li Do not enable recording, image capture, cloud/remote inference, video telemetry, video transmission or retention. Treat any proposal or unexpected indication of those functions as a material change: stop camera operation and complete technical, privacy and safeguarding review before restart.
+							li Obtain informed agreement before activating the camera and provide a meaningful non-camera demonstration or opt-out where practicable.
+							li Record that participant agreement to take part is not, by itself, the documented UK GDPR lawful basis.
+							li Do not photograph or record participants on separate devices without explicit consent under the event/media policy; apply additional safeguards for children and adults at risk.
+							li Aim the camera only at the intended interaction zone and prevent unintended capture of passers-by where practicable.
+							li Stop immediately if a person withdraws consent or appears distressed; direct privacy complaints or data incidents to the named data/privacy contact.
+						p.risk-owner
+							strong Owner / verification: 
+							| Technical & Privacy Lead verifies the deployed on-device configuration, maintains the participant notice and confirms the absence of video storage/transmission; the data controller confirms the proportionate assessment and lawful-basis record; all team members obtain participant agreement and enforce the opt-out.
+					article.risk-card#r17(data-risk="r17 — shared-touch hygiene and respiratory infection")
+						h3 R17 — Shared-touch hygiene and respiratory infection
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R17 — Shared-touch hygiene and respiratory infection")
+							table
+								caption R17 — Shared-touch hygiene and respiratory infection
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Staff, participants, clinically vulnerable people
+										td 3
+										td 3
+										td.score-moderate 9
+										td 1
+										td 3
+										td.score-low 3
+						p
+							strong Potential harm: 
+							| Transmission of COVID-19 or another respiratory, gastrointestinal or skin infection; staff absence; or serious/long-term effects for disabled artists, participants and others with pre-existing health conditions.
+						h4 Required controls
+						ul
+							li Provide hand-cleaning facilities and clean shared touch points, headphones and instruments with manufacturer-compatible products at a defined frequency and when visibly contaminated.
+							li Use detergents, soap, bleach and other cleaning agents only at festival-designated points. Never use drinking-water standpipes for washing equipment or personal hygiene; contain resulting grey water as directed.
+							li Do not share items that cannot be hygienically cleaned between users where there is contact with the face, mouth or broken skin; use replaceable covers where suitable.
+							li Because members of the team include disabled artists who remain vulnerable to COVID-19, each team member takes a lateral-flow test before travelling to site where tests are available. Anyone with a positive result, a high temperature or symptoms that make them unfit for work must not attend and must notify the Team Lead.
+							li Testing supplements rather than replaces ventilation, hygiene, staying away when infectious and current public-health advice; maintain contingency staffing for absence.
+							li Maximise tent ventilation without compromising structural/weather safety and avoid unnecessary crowd density.
+							li Agree individual adjustments for clinically vulnerable staff, such as lower-contact duties, enhanced ventilation, masks or shorter shifts, without stigma.
+						p.risk-owner
+							strong Owner / verification: 
+							| Operations & Logistics Lead sets the cleaning rota; each team member cleans between relevant users.
+					article.risk-card#r18(data-risk="r18 — heat, sun, cold, wind and wet conditions")
+						h3 R18 — Heat, sun, cold, wind and wet conditions
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R18 — Heat, sun, cold, wind and wet conditions")
+							table
+								caption R18 — Heat, sun, cold, wind and wet conditions
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff and visitors, especially people with health conditions
+										td 3
+										td 4
+										td.score-high 12
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Hot temperatures may cause fatigue, overheating, exhaustion, dehydration, heat illness or worsening of a health condition; cold, wind and wet conditions may cause hypothermia, slips or loss of safe equipment operation.
+						h4 Required controls
+						ul
+							li Monitor forecast and festival alerts; brief the team on thresholds and actions for heat, lightning, wind and heavy rain.
+							li Require crew to bring refillable drinking bottles; the festival does not provide single-use bottled water. Provide access to drinking-water refill points, shade, suitable clothing/PPE, rest breaks and task rotation; never rely on disabled staff or visitors having to request basic welfare.
+							li Watch for confusion, faintness, headache, cramps, shivering or loss of coordination; stop work, move to a safe environment and summon medical support when indicated.
+							li Protect equipment and electrical connections from water; isolate power and close the activity if ingress or condensation affects safety.
+							li Use slip-resistant surfaces and footwear, track changes in ground condition and coordinate any closure with Event Control.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead at briefing and during weather changes; all team members report symptoms/conditions.
+					article.risk-card#r19(data-risk="r19 — staff fatigue, long standing, lone working and welfare")
+						h3 R19 — Staff fatigue, long standing, lone working and welfare
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R19 — Staff fatigue, long standing, lone working and welfare")
+							table
+								caption R19 — Staff fatigue, long standing, lone working and welfare
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff and volunteers
+										td 4
+										td 3
+										td.score-high 12
+										td 1
+										td 3
+										td.score-low 3
+						p
+							strong Potential harm: 
+							| Standing for long periods may cause discomfort or worsen disability or injury; fatigue may also reduce judgement, increase stress, delay response or lead to unsafe lone intervention.
+						h4 Required controls
+						ul
+							li Create a rota with adequate staffing for facilitation, crowd oversight and breaks; identify peak periods and cover before the event.
+							li Ensure chairs and accessible rest arrangements are available whenever required. Offer and take regular breaks, allow movement around or time away from the space, and rotate standing and repetitive tasks.
+							li Alcohol and illegal substances are prohibited immediately before and during work. Remove anyone who is impaired from safety-critical duties and follow the festival escalation route.
+							li If crew camp on site, use the allocated contractor camping area, do not camp behind arena units without approval, and avoid camping beneath or beside tree canopies because of falling-branch risk. Do not expect electric or water hook-up.
+							li Do not leave one person to operate the tent while open to the public. Maintain check-in/contact arrangements during setup and close-down.
+							li Encourage early reporting of fatigue, pain or overload and adjust duties without penalty; record agreed disability-related workplace adjustments.
+							li Stop non-essential work when fatigue compromises safe judgement, especially during late load-out or vehicle activity.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead prepares the rota and confirms cover and breaks.
+					article.risk-card#r20(data-risk="r20 — challenging behaviour, harassment, theft and unauthorised access")
+						h3 R20 — Challenging behaviour, harassment, theft and unauthorised access
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R20 — Challenging behaviour, harassment, theft and unauthorised access")
+							table
+								caption R20 — Challenging behaviour, harassment, theft and unauthorised access
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td Public operation
+										td Staff, participants, equipment
+										td 2
+										td 4
+										td.score-moderate 8
+										td 1
+										td 4
+										td.score-low 4
+						p
+							strong Potential harm: 
+							| Assault, distress, discriminatory harassment, conflict, loss/damage or unsafe interference with controls.
+						h4 Required controls
+						ul
+							li Keep high-value, hazardous and configuration controls secured; maintain an inventory and end-of-day check without obstructing exits. Check portable and wireless equipment back in immediately after each participant session.
+							li Set clear behavioural expectations and use calm, non-confrontational communication. Staff do not physically eject or pursue people.
+							li Provide a rapid route to festival security by radio/phone; withdraw to safety and pause the activity if behaviour escalates.
+							li Report discriminatory harassment, threats, assault or theft through festival and organisational procedures and preserve relevant facts/evidence.
+							li Brief staff on the festival’s protective-security procedures, including suspicious items/behaviour and the event-specific instruction for evacuation, invacuation or lockdown. Staff must not investigate, touch suspicious items or contradict Event Control/security instructions.
+							li Do not compromise evacuation or create barriers solely to protect equipment.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead and festival security; Operations & Logistics Lead checks inventory at opening/close.
+					article.risk-card#r21(data-risk="r21 — fire, smoke and combustible materials")
+						h3 R21 — Fire, smoke and combustible materials
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R21 — Fire, smoke and combustible materials")
+							table
+								caption R21 — Fire, smoke and combustible materials
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Everyone in or near the tent
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Burns, smoke inhalation, panic, structural involvement or fatal injury.
+						h4 Required controls
+						ul
+							li Obtain and follow the festival fire plan and tent fire-risk arrangements; confirm alarm method, exits, assembly location, fire points and who may use extinguishers.
+							li The legally responsible person must ensure a suitable and sufficient fire-risk assessment covers the tent/activity and is coordinated with those arrangements; also confirm occupancy, escape-route capacity, emergency lighting and staff instruction.
+							li Use flame-retardant tent fabric/furnishings as specified; keep packaging, waste and other combustibles to a minimum and away from electrics/heat.
+							li No smoking, vaping, naked flames, cooking or unapproved heating/pyrotechnics in the tent.
+							li Maintain clear escape routes and separation from ignition sources. Isolate non-essential power at close and when the tent is unattended.
+							li On smoke/fire: raise the alarm, stop sound, isolate power only if immediately safe, evacuate, call Event Control and do not re-enter until authorised.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead pre-opening/close; festival fire arrangements remain controlling. In addition, the fire responsible person approves the activity fire-risk assessment and coordinated arrangements.
+					article.risk-card#r22(data-risk="r22 — emergency evacuation, medical incident and loss of power")
+						h3 R22 — Emergency evacuation, medical incident and loss of power
+						.table-scroll(tabindex="0", aria-label="Scrollable table: R22 — Emergency evacuation, medical incident and loss of power")
+							table
+								caption R22 — Emergency evacuation, medical incident and loss of power
+								thead
+									tr
+										th(scope="col") Phase
+										th(scope="col") People affected
+										th(scope="col") Initial L
+										th(scope="col") S
+										th(scope="col") R
+										th(scope="col") Residual L
+										th(scope="col") S
+										th(scope="col") R
+								tbody
+									tr
+										td All phases
+										td Staff, participants, disabled visitors
+										td 3
+										td 5
+										td.score-very-high 15
+										td 1
+										td 5
+										td.score-moderate 5
+						p
+							strong Potential harm: 
+							| Fire, flood, structural collapse, terrorist incident, medical emergency or power loss may cause delayed escape or treatment, separation from supporters, panic, injury in darkness, serious injury or unsafe restart.
+						h4 Required controls
+						ul
+							li Obtain the current emergency procedures from the Site/Production Office and integrate them with the tent plan; confirm emergency signals, assembly point, alternative exit, radio channels and command structure before work begins.
+							li Attend the Bestival/Royal Society emergency briefing and follow Event Control, venue fire marshals and festival staff. Team members support participant evacuation only where safe for both parties.
+							li Integrate the festival protective-security procedures as an additional interface; confirm the event-specific invacuation/lockdown instruction and communications route.
+							li Develop an inclusive evacuation method with the festival access team. Never assume a wheelchair user can be carried; ask the person what assistance is helpful and use trained/event resources.
+							li Keep exits and routes available, signed and illuminated. Provide a charged torch for staff use without relying on phone lights.
+							li Evacuate immediately when directed. Do not delay or remain behind to secure instruments, equipment or personal possessions.
+							li During build/break there is no on-site medic: each contractor provides its own appointed first aider and contacts festival management on radio channel 2 for a medical incident. During show operation contact Event Control on channel 1 and use the confirmed festival medical response.
+							li For illness/injury, stop the activity, make the area safe, give first aid only within competence, call the correct response route and record the incident. Report every accident and near miss to the Production/Site Office for entry in the accident book.
+							li Each employer must complete a first-aid needs assessment for its workers and confirm the festival organiser’s suitable medical, ambulance and first-aid provision for participants and the public during show days.
+							li Treat unexpected power loss as a stop condition: mute/isolate equipment, control entry, preserve clear routes and restart only after the supply and equipment are confirmed safe.
+							li Account for staff at the agreed location, pass relevant information to Event Control, and preserve the scene/equipment after a serious incident where safe.
+						p.risk-owner
+							strong Owner / verification: 
+							| Team Lead coordinates until Event Control takes command; named first aider/medical team responds.
+				section.document-section#7-daily-opening-monitoring-and-closing-checklist
+					h2 7. Daily opening, monitoring and closing checklist
+					.table-scroll(tabindex="0", aria-label="Scrollable table: 7. Daily opening, monitoring and closing checklist")
+						table
+							caption 7. Daily opening, monitoring and closing checklist
+							thead
+								tr
+									th(scope="col") Stage
+									th(scope="col") Check
+									th(scope="col") Initial / time
+							tbody
+								tr
+									td Before site work
+									td
+										label.check-item(for="check-site-access")
+											input#check-site-access(type="checkbox")
+											span Induction confirmation, accreditation and Site Office authorisation held; Pink Gate route and 08:00–20:00 access hours briefed; required hi-vis and safety boots worn.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-build-first-aid")
+											input#check-build-first-aid(type="checkbox")
+											span Contractor first aider, channel 2 and absence of a build/break medic briefed; current emergency procedures obtained; crew contacts and 24-hour contractor number supplied.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-site-vehicles")
+											input#check-site-vehicles(type="checkbox")
+											span If vehicles/deliveries are involved: prohibited villages, event signage/no Sat Nav, 10 mph, Hazz-Off, banksman, Trakway and delivery/curfew rules briefed; receiver present.
+									td
+								tr
+									td Before opening
+									td
+										label.check-item(for="check-5595685")
+											input#check-5595685(type="checkbox")
+											span Festival briefing/current weather received; person in charge reported to Site Office; radio active on the issued channel; Event Control, channel 1, medical, security and access contacts confirmed.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-7020390")
+											input#check-7020390(type="checkbox")
+											span Tent handover and required structural/Local Authority sign-offs remain valid; structure, ballast/anchors, flame-retardancy evidence, fabric, ground and weather conditions checked.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-5589224")
+											input#check-5589224(type="checkbox")
+											span Accessible route, threshold, exits, aisles, turning space, seating and queue arrangement clear.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-966741")
+											input#check-966741(type="checkbox")
+											span Electrical supply/RCD status confirmed; equipment/cables visually checked; charging area safe.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-1227660")
+											input#check-1227660(type="checkbox")
+											span Instruments, stands, screens, speaker separation, sound limit, visual settings and emergency stop tested.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-5626595")
+											input#check-5626595(type="checkbox")
+											span Privacy/photosensitivity notices visible; cleaning materials, torch, incident forms and radio available.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-8074430")
+											input#check-8074430(type="checkbox")
+											span Capacity and staff rota adequate; safeguarding lead, deputy and first-aid route briefed.
+									td
+								tr
+									td During operation
+									td
+										label.check-item(for="check-1461970")
+											input#check-1461970(type="checkbox")
+											span Host controls capacity/queue; no exit or accessible space is obstructed.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-4986943")
+											input#check-4986943(type="checkbox")
+											span At least hourly and after busy/weather changes: check cables, matting, ground, equipment stability, sound and housekeeping.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-3184366")
+											input#check-3184366(type="checkbox")
+											span Clean relevant shared-touch items between users and record scheduled cleaning.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-476570")
+											input#check-476570(type="checkbox")
+											span Offer adjustments, seating, lower-volume/visual alternatives and participant-controlled stopping.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-6637609")
+											input#check-6637609(type="checkbox")
+											span Record defects, complaints, illness, safeguarding concerns and dynamic decisions immediately; report every accident and near miss to the Production/Site Office for the accident book.
+									td
+								tr
+									td At close
+									td
+										label.check-item(for="check-7563084")
+											input#check-7563084(type="checkbox")
+											span Public clear; equipment accounted for; faults quarantined and reported.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-9868438")
+											input#check-9868438(type="checkbox")
+											span Non-essential power isolated; batteries/chargers placed in approved supervised/storage condition.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-487583")
+											input#check-487583(type="checkbox")
+											span Waste removed; exits and fire points remain clear; tent secured only as authorised by supplier/festival.
+									td
+								tr
+									td
+									td
+										label.check-item(for="check-3388555")
+											input#check-3388555(type="checkbox")
+											span Incidents and outstanding actions handed over; next-shift/weather briefing updated.
+									td
+				section.document-section#8-dynamic-assessment-and-incident-record
+					h2 8. Dynamic assessment and incident record
+					p Record any change, hazard, incident or near miss as it occurs. Leave closure blank while action remains outstanding. Do not restart paused work until the named person has confirmed effective controls and entered their authorisation.
+					p#incident-storage-note.source-note(aria-live="polite") Records save automatically to this browser’s local storage on this device and are restored on reload. They are not transmitted; clearing browser site data removes them.
+					.incident-record-actions
+						button#add-incident-record(type="button")
+							span.incident-record-actions__icon(aria-hidden="true") +
+							span Add record
+						button#toggle-incident-records(type="button")
+							span.incident-record-actions__icon#toggle-incident-records-icon(aria-hidden="true") ▴
+							span#toggle-incident-records-label Collapse all
+					.incident-records#incident-records(aria-describedby="incident-storage-note")
+						+incidentRecord("record-1", 1)
+					template#incident-record-template
+						+incidentRecord("template", 0)
+					p
+						strong Reporting note: 
+						| Give immediate care and contact festival management on channel 2 during build/break or Event Control on channel 1 during show operation. Report every accident and near miss to the Production/Site Office for the accident book. Keep factual records securely. The relevant dutyholder decides and records whether RIDDOR, insurer, safeguarding, data-breach or other external notification is required.
+
+
+				section.document-section#9-final-approval
+					h2 9. Final approval
+					dl.key-values.key-values--wide
+						dt Assessor
+						dd [NAME / SIGNATURE]
+						dt Date
+						dd [DATE]
+						dt Organisation approval
+						dd [NAME / ROLE / SIGNATURE]
+						dt Date
+						dd [DATE]
+						dt Festival acknowledgement
+						dd [NAME / ROLE / SIGNATURE]
+						dt Date
+						dd [DATE]
+						dt Next review
+						dd Before set-up and daily thereafter
+						dt Document location
+						dd [CONTROLLED COPY LOCATION]
+			footer
+				p Camp Bestival Dorset 2026 • Royal Society Summer Science Exhibits on Tour • Sound Connections
+				p
+					| Controlled working copy • Version 1.4 • Prepared 
+					time(datetime="2026-07-22")
+						| 22
+						sup nd
+						|  July 2026
+					|  • Complete all Priority A actions and approvals before use.
+				.document-actions.document-actions--bottom
+					button#print-document-bottom(type="button", data-print-document) Print / save PDF
+		script.
+			const themeToggle = document.querySelector('#theme-toggle');
+			const root = document.documentElement;
+			
+			function applyTheme(theme) {
+			const isDark = theme === 'dark';
+			root.dataset.theme = theme;
+			themeToggle.setAttribute('aria-pressed', String(isDark));
+			themeToggle.title = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+			}
+			
+			let savedTheme = null;
+			try {
+			savedTheme = localStorage.getItem('safety-theme');
+			} catch {}
+			
+			const preferredTheme = window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : preferredTheme);
+			
+			themeToggle.addEventListener('click', () => {
+			const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+			applyTheme(nextTheme);
+			try {
+			localStorage.setItem('safety-theme', nextTheme);
+			} catch {}
+			});
+			
+			const incidentStorageKey = 'photosynth-safety-incident-records-v1';
+			const incidentFieldNames = ['date', 'closed', 'hazard', 'action', 'control', 'restart'];
+			const incidentRecords = document.querySelector('#incident-records');
+			const incidentRecordTemplate = document.querySelector('#incident-record-template');
+			const incidentStorageNote = document.querySelector('#incident-storage-note');
+			const addIncidentRecordButton = document.querySelector('#add-incident-record');
+			const toggleIncidentRecordsButton = document.querySelector('#toggle-incident-records');
+			const toggleIncidentRecordsIcon = document.querySelector('#toggle-incident-records-icon');
+			const toggleIncidentRecordsLabel = document.querySelector('#toggle-incident-records-label');
+			
+			function createIncidentId() {
+			return `record-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+			}
+			
+			function emptyIncidentRecord(id = createIncidentId()) {
+			return { id, open: true, date: '', closed: '', hazard: '', action: '', control: '', restart: '' };
+			}
+			
+			function normaliseIncidentRecord(record) {
+			const normalised = emptyIncidentRecord(
+			typeof record?.id === 'string' && /^[a-zA-Z0-9_-]+$/.test(record.id) ? record.id : createIncidentId()
+			);
+			normalised.open = record?.open !== false;
+			for (const fieldName of incidentFieldNames) {
+			normalised[fieldName] = typeof record?.[fieldName] === 'string' ? record[fieldName] : '';
+			}
+			return normalised;
+			}
+			
+			function readIncidentRecords() {
+			try {
+			const savedRecords = JSON.parse(localStorage.getItem(incidentStorageKey));
+			if (Array.isArray(savedRecords) && savedRecords.length > 0) {
+			return savedRecords.map(normaliseIncidentRecord);
+			}
+			} catch {}
+			return [emptyIncidentRecord('record-1')];
+			}
+			
+			function createIncidentRecordElement(record, recordNumber) {
+			const fragment = incidentRecordTemplate.content.cloneNode(true);
+			const details = fragment.querySelector('.incident-record');
+			details.dataset.recordId = record.id;
+			details.open = record.open;
+			details.querySelector('.record-number').textContent = String(recordNumber);
+			for (const fieldName of incidentFieldNames) {
+			const control = details.querySelector(`[data-field="${fieldName}"]`);
+			const controlId = `incident-${record.id}-${fieldName}`;
+			control.id = controlId;
+			control.value = record[fieldName];
+			control.closest('label').htmlFor = controlId;
+			}
+			return details;
+			}
+			
+			function collectIncidentRecords() {
+			return [...incidentRecords.querySelectorAll('.incident-record')].map((details) => {
+			const record = emptyIncidentRecord(details.dataset.recordId);
+			record.open = details.open;
+			for (const fieldName of incidentFieldNames) {
+			record[fieldName] = details.querySelector(`[data-field="${fieldName}"]`).value;
+			}
+			return record;
+			});
+			}
+			
+			function saveIncidentRecords() {
+			try {
+			localStorage.setItem(incidentStorageKey, JSON.stringify(collectIncidentRecords()));
+			incidentStorageNote.textContent = 'Records save automatically to this browser’s local storage on this device and are restored on reload. They are not transmitted; clearing browser site data removes them.';
+			} catch {
+			incidentStorageNote.textContent = 'Automatic saving is unavailable in this browser. Print or copy the record before leaving this page.';
+			}
+			}
+			
+			function updateIncidentDisclosureButton() {
+			const records = [...incidentRecords.querySelectorAll('.incident-record')];
+			const allExpanded = records.every((record) => record.open);
+			toggleIncidentRecordsIcon.textContent = allExpanded ? '▴' : '▾';
+			toggleIncidentRecordsLabel.textContent = allExpanded ? 'Collapse all' : 'Expand all';
+			}
+			
+			function renderIncidentRecords(records) {
+			incidentRecords.replaceChildren(...records.map((record, index) => createIncidentRecordElement(record, index + 1)));
+			updateIncidentDisclosureButton();
+			}
+			
+			renderIncidentRecords(readIncidentRecords());
+			
+			addIncidentRecordButton.addEventListener('click', () => {
+			const record = emptyIncidentRecord();
+			const details = createIncidentRecordElement(record, incidentRecords.children.length + 1);
+			incidentRecords.append(details);
+			updateIncidentDisclosureButton();
+			saveIncidentRecords();
+			details.querySelector('[data-field="date"]').focus();
+			});
+			
+			toggleIncidentRecordsButton.addEventListener('click', () => {
+			const records = [...incidentRecords.querySelectorAll('.incident-record')];
+			const shouldExpand = records.some((record) => !record.open);
+			for (const record of records) record.open = shouldExpand;
+			updateIncidentDisclosureButton();
+			saveIncidentRecords();
+			});
+			
+			incidentRecords.addEventListener('input', saveIncidentRecords);
+			incidentRecords.addEventListener('toggle', (event) => {
+			if (event.target.matches('.incident-record')) {
+			updateIncidentDisclosureButton();
+			saveIncidentRecords();
+			}
+			}, true);
+			
+			const filterInput = document.querySelector('#risk-filter');
+			const status = document.querySelector('#risk-filter-status');
+			const emptyState = document.querySelector('#risk-empty');
+			const riskCards = [...document.querySelectorAll('.risk-card')];
+			const riskBands = ['low', 'moderate', 'high', 'very-high'];
+			
+			for (const card of riskCards) {
+			const residualScore = card.querySelector('tbody tr > td:last-child');
+			const residualBand = riskBands.find((band) => residualScore?.classList.contains(`score-${band}`));
+			if (residualBand) card.dataset.residualRisk = residualBand;
+			}
+
+			function applyRiskFilter() {
+			const filterTerm = filterInput.value.trim().toLocaleLowerCase('en-GB');
+			let visible = 0;
+			for (const card of riskCards) {
+			const match = !filterTerm || card.textContent.toLocaleLowerCase('en-GB').includes(filterTerm);
+			card.hidden = !match;
+			if (match) visible += 1;
+			}
+			status.textContent = `${visible} of ${riskCards.length} risks shown`;
+			emptyState.hidden = visible !== 0;
+			}
+
+			filterInput.addEventListener('input', applyRiskFilter);
+			document.querySelector('#clear-filter').addEventListener('click', () => {
+			filterInput.value = '';
+			applyRiskFilter();
+			filterInput.focus();
+			});
+			for (const printButton of document.querySelectorAll('[data-print-document]')) {
+			printButton.addEventListener('click', () => window.print());
+			}
+			applyRiskFilter();
