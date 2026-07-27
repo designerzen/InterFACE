@@ -87,6 +87,7 @@ import { ParamaterRecorder } from '../parameter-recorder.js'
 // UI
 import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "../dom/ui.panel-instruments.js"
 import { drawMousePressure } from '../dom/mouse-pressure.js'
+import { getNoteFeedbackColour } from '../settings/palette.js'
 
 // Models
 import { EmojiDetector } from '../models/emoji-detection.js'
@@ -111,7 +112,7 @@ import { STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUST
 
 import PersonEvent, {
 	// Dispatched events that each person creates
- 	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
+	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_OPTIONS_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
 	  EVENT_EMOTION_UNLOCKED,
 } from './person-event.js'
 import Achievements from './person-achievements.js'
@@ -132,6 +133,7 @@ export {
 	EVENT_EMOTION_UNLOCKED,
 	EVENT_INSTRUMENT_CHANGED,
 	EVENT_INSTRUMENT_LOADING,
+	EVENT_PERSON_OPTIONS_CHANGED,
 	EVENT_PERSON_BORN,
 	EVENT_PERSON_DEAD,
 	EVENT_USER_MODE_CHANGED
@@ -804,8 +806,7 @@ export default class Person extends EventTarget{
 	 */
 	get hsla(){
 		const opacity = this.isSelected ? 1 : 0.4-this.percentageDead*0.5
-		const saturation = this.isSelected ? 100 : this.saturation
-		return `hsla(${this.hue},${saturation}%,${this.luminosity}%,${opacity})`
+		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,${opacity})`
 	}
 
 	get personIndex(){
@@ -949,6 +950,7 @@ export default class Person extends EventTarget{
 
 		// HSL Colour scheme that can be overwritten
 		this.setPalette(this.options)
+		this.setNoteColour(this.noteName)
 
 		// this.range = 1 / ( 1 - this.options.mouthCutOff )
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
@@ -1176,6 +1178,19 @@ export default class Person extends EventTarget{
 		this.hueRange = options.hueRange //&& 360
 		this.defaultHue = options.hue ?? Math.random() * this.hueRange
 		//console.log("Setting palette", this, {options, h:this.hue, s:this.saturation, l:this.luminosity, range:this.hueRange} )
+	}
+
+	setNoteColour(noteName){
+		const colour = getNoteFeedbackColour(noteName)
+		if (!colour)
+		{
+			return false
+		}
+
+		this.defaultHue = colour.h
+		this.saturation = colour.s
+		this.luminosity = colour.l
+		return true
 	}
 
 	/**
@@ -1493,7 +1508,6 @@ export default class Person extends EventTarget{
 		// change colour while loading
 		const hue = this.hue
 
-		// can this just be a reference???
 		const options = this.options
 		
 		// const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
@@ -1501,10 +1515,10 @@ export default class Person extends EventTarget{
 		// this.areEyesOpen 
 
 		// allows us to use the metronome to shape the colours
-		const saturation = options.saturation + (this.isMouseOver ? 50 : 0)
+		const saturation = clamp(this.saturation + (this.isMouseOver ? 50 : 0), 0, 100)
 
 		// Extra luminosity on beat just played
-		const luminosity = options.luminosity + (beatJustPlayed ? 33 : 0)
+		const luminosity = clamp(this.luminosity + (beatJustPlayed ? 33 : 0), 0, 100)
 		
 		//console.log( this.getPhase( 1 ), this.getPhase( 2 ), this.getPhase( 3 ), this.getPhase( 4 ))
 	
@@ -1519,29 +1533,39 @@ export default class Person extends EventTarget{
 			this.isSelected ? 1 : 
 			0.1 * (1-this.percentageDead)
 		
-		// const col = 
-		// options.dots = hue
-		// options.face = `hsla(${hue},${sl},0.8)`
-		options.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
-		// createHSLA(hue+30, saturation, luminosity, Math.min( 0.2, 0.2 * this.percentageDead) ) 
-		// options.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
-		options.mouthClosed = `hsla(${(hue+30)%360},${sl},0.2)`
-		options.lipsUpperInner = `hsla(${(hue+50)%360},${sl}0.9)`
-		options.lipsLowerInner = `hsla(${(hue+50)%360},${sl},0.9)`
-		options.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
-		options.leftEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
-		options.rightEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
-		options.pupil = "rgba(0,0,0,0.8)"
-		// change eye colours if closed...?
-		// options.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
-		// options.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
-		
-		options.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%,${options.luminosity}%, 1)`
-		options.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%, ${options.luminosity}%, 1)`
-		options.leftEyebrow = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%,${options.luminosity}%, 1)`
-		options.rightEyebrow = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${options.saturation}%, ${options.luminosity}%, 1)`
+		const colours = {
+			...options,
+			h:hue%360,
+			s:saturation,
+			l:luminosity,
+			a:alpha,
+			saturation,
+			luminosity
+		}
 
-		return options
+		// const col =
+		// colours.dots = hue
+		// colours.face = `hsla(${hue},${sl},0.8)`
+		colours.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
+		// createHSLA(hue+30, saturation, luminosity, Math.min( 0.2, 0.2 * this.percentageDead) )
+		// colours.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
+		colours.mouthClosed = `hsla(${(hue+30)%360},${sl},0.2)`
+		colours.lipsUpperInner = `hsla(${(hue+50)%360},${sl},0.9)`
+		colours.lipsLowerInner = `hsla(${(hue+50)%360},${sl},0.9)`
+		colours.midwayBetweenEyes = `hsla(${(hue+270)%360},${sl},1)`
+		colours.leftEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
+		colours.rightEyeLower0 = `hsla(${(hue+300)%360},${sl},0.8)`
+		colours.pupil = "rgba(0,0,0,0.8)"
+		// change eye colours if closed...?
+		// colours.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+		// colours.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
+
+		colours.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${saturation}%,${luminosity}%, 1)`
+		colours.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${saturation}%, ${luminosity}%, 1)`
+		colours.leftEyebrow = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${saturation}%,${luminosity}%, 1)`
+		colours.rightEyebrow = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${saturation}%, ${luminosity}%, 1)`
+
+		return colours
 	}
 
 	/**
@@ -1727,6 +1751,10 @@ export default class Person extends EventTarget{
 	}
 
 	setPanelOption(option, value){
+		const persistPanelOption = options => {
+			this.dispatchPersonEvent(EVENT_PERSON_OPTIONS_CHANGED, { person:this, options })
+			return this.options
+		}
 		switch(option)
 		{
 			case "octaveLow": {
@@ -1747,7 +1775,7 @@ export default class Person extends EventTarget{
 				const octaveLow = Math.min(Number(this.options.octaveLow ?? octaveHigh), octaveHigh)
 				return this.setOptions({ octaveLow, octaveHigh })
 			}
-			case "muted":
+		case "muted":
 				this.setOptions({ muted:value })
 				if (value)
 				{
@@ -1760,7 +1788,10 @@ export default class Person extends EventTarget{
 						}
 					})
 				}
-				return this.options
+				return persistPanelOption({ muted:value })
+			case "autoRepeat":
+				this.setOptions({ autoRepeat:value })
+				return persistPanelOption({ autoRepeat:value })
 			default:
 				return this.setOptions({ [option]:value })
 		}
@@ -2389,9 +2420,7 @@ export default class Person extends EventTarget{
 
 		this.octave = newOctave
 
-		this.defaultHue = noteNumber * this.hueRange
-		
-		this.saturation = 100 * lipPercentage
+		this.setNoteColour(noteName)
 		// console.log("lipPercentage", lipPercentage, "amp", amp, "logAmp", logAmp, "cutOff",  options.mouthCutOff, "prediction", prediction)
 		
 		// console.log("Person", prediction.yaw , yaw)
@@ -2610,6 +2639,7 @@ export default class Person extends EventTarget{
 		//noteName = getMIDINoteNumberAsName(command.noteNumber)
 		this.noteName = command.noteName
 		this.noteNumber = command.noteNumber
+		this.setNoteColour(command.noteName)
 		// to use the gate as a throttle for the velocity too...
 		// this.noteVelocity = command.velocity * 0.01	
 		this.noteVelocity *= command.velocity * 0.01	
@@ -3420,7 +3450,8 @@ export default class Person extends EventTarget{
 		const shape = {
 			preset: parseInt(parts[0]) ?? 12,
 			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
-			userMode: parseInt(parts[2] ?? -1)
+			userMode: parseInt(parts[2] ?? -1),
+			autoRepeat: parts[3] === undefined ? undefined : parts[3] === "true"
 		}
 				
 		console.error( "parseDataExport", {data, parts, shape} )
@@ -3435,18 +3466,24 @@ export default class Person extends EventTarget{
 	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined ){
+	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined ){
 		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
 	}
 
 	exportData(){
-		return Person.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode )
+		return Person.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode, this.options.autoRepeat )
 	}
 
 	importData( data ){
-		this.options.defaultPreset = data.preset
-		this.options.defaultInstrument = data.instrumentType
-		this.userMode = data.userMode
+		const options = {
+			defaultPreset:data.preset,
+			defaultInstrument:data.instrumentType
+		}
+		if (typeof data.autoRepeat === "boolean")
+		{
+			options.autoRepeat = data.autoRepeat
+		}
+		return options
 	}
 
 	/**
