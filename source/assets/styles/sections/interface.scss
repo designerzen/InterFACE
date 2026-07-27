@@ -727,7 +727,7 @@ main.active{
 
 #control-panel{
 	--panel-width:45%;
-	margin:auto;
+	margin:0;
 	padding:0;
 	overflow: hidden;
 	position: absolute;
@@ -738,7 +738,6 @@ main.active{
 	z-index:808; // NOT top - we have help and about remember!
 
 	width:100%;
-	max-width:100vw;
 	box-sizing: border-box;
 
 	// prevent the form takin focus
