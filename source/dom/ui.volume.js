@@ -5,11 +5,13 @@ export const setupVolumeInterface = (
 	startMuted=false,
 	{
 		onVolumeChanged=null,
+		onPercussionVolumeChanged=null,
 		onMuteChanged=null
 	} = {}
 ) => {
 	
 	let muted = startMuted 
+	let shiftPressed = false
 
 	const icon = document.querySelector('a.folder-link[href="#folder-volume"]').parentNode
 	const muteButton = document.getElementById("button-mute")
@@ -60,17 +62,55 @@ export const setupVolumeInterface = (
 	}
 
 
-	sliderVolume.onchange = sliderVolume.oninput = e => {
+	const handleVolumeChange = e => {
 
 		const volume = sliderVolume.value
 		const volumeString = setMeter(volume)
 		setVisualVolumeLevel( volume, false )
-		currentVolume = volume
-		console.log("slider changed volume", e, volume, volumeString )
+		const changingPercussion = Boolean(
+			onPercussionVolumeChanged && (shiftPressed || e.shiftKey)
+		)
+		if (!changingPercussion)
+		{
+			currentVolume = volume
+		}
+		console.log(
+			changingPercussion ? "slider changed percussion volume" : "slider changed volume",
+			e,
+			volume,
+			volumeString
+		)
 		requestAnimationFrame(()=>{
-			onVolumeChanged && onVolumeChanged(volume)
+			const callback = changingPercussion
+				? onPercussionVolumeChanged
+				: onVolumeChanged
+			callback && callback(volume)
 		})
 	}
+
+	const handleKeyDown = event => {
+		if (event.key === "Shift")
+		{
+			shiftPressed = true
+		}
+	}
+
+	const handleKeyUp = event => {
+		if (event.key === "Shift" || event.type === "blur")
+		{
+			shiftPressed = false
+			setVisualVolumeLevel(currentVolume)
+			setMeter(currentVolume)
+		}
+	}
+
+	window.addEventListener("keydown", handleKeyDown)
+	window.addEventListener("keyup", handleKeyUp)
+	window.addEventListener("blur", handleKeyUp)
+
+	// The input event covers pointer and keyboard adjustments without firing a
+	// second callback on release, as change would.
+	sliderVolume.oninput = handleVolumeChange
 
 	setToggle( "button-mute", status => {
 		toggleMute(status)
@@ -84,6 +124,12 @@ export const setupVolumeInterface = (
 	return {
 		setVolumeIcon,
 		setVisualVolumeLevel,
-		toggleMute
+		toggleMute,
+		destroy: () => {
+			window.removeEventListener("keydown", handleKeyDown)
+			window.removeEventListener("keyup", handleKeyUp)
+			window.removeEventListener("blur", handleKeyUp)
+			sliderVolume.oninput = null
+		}
 	}
 }
