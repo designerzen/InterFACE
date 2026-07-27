@@ -1,4 +1,5 @@
 import { toggleVisibility } from "./dom/ui"
+import { createCosmosKeyboardHandler } from './interface-cosmos.js'
 
 export const KEYBOARD_MODE_COMMANDS = 'commands'
 export const KEYBOARD_MODE_NOTES = 'notes'
@@ -63,6 +64,58 @@ const KEYBOARD_NOTE_LAYOUT = Object.freeze({
 	']': 79,
 })
 
+const KEYBOARD_NUMBER_ROOT_NOTE = 60
+const KEYBOARD_NUMBER_MINIMUM_OFFSET = -60
+const KEYBOARD_NUMBER_MAXIMUM_OFFSET = 48
+const SHIFTED_NUMBER_FALLBACKS = Object.freeze({
+	')': 0,
+	'!': 1,
+	'@': 2,
+	'"': 2,
+	'#': 3,
+	'£': 3,
+	'$': 4,
+	'%': 5,
+	'^': 6,
+	'&': 7,
+	'*': 8,
+	'(': 9,
+})
+
+// Command-mode number keys double as a compact, ten-voice percussion pad.
+const KEYBOARD_PERCUSSION_PARTS = Object.freeze([
+	'kick', 'snare', 'hat', 'clap', 'cowbell',
+	'clack', 'sub-kick', 'rim', 'low-tom', 'high-tom',
+])
+
+const getKeyboardNumber = event => {
+	const codeMatch = /^(?:Digit|Numpad)([0-9])$/.exec(event.code ?? '')
+	if (codeMatch) return Number.parseInt(codeMatch[1], 10)
+	if (/^[0-9]$/.test(event.key ?? '')) return Number.parseInt(event.key, 10)
+	if (event.shiftKey && event.key in SHIFTED_NUMBER_FALLBACKS) {
+		return SHIFTED_NUMBER_FALLBACKS[event.key]
+	}
+	return null
+}
+
+const getKeyboardNote = event => {
+	const number = getKeyboardNumber(event)
+	if (number != null) {
+		return {
+			heldKey: `number-${number}`,
+			label: String(number),
+			rootNoteNumber: KEYBOARD_NUMBER_ROOT_NOTE + number,
+			numeric: true,
+		}
+	}
+
+	const key = event.key?.toLowerCase?.()
+	const rootNoteNumber = KEYBOARD_NOTE_LAYOUT[key]
+	return Number.isFinite(rootNoteNumber)
+		? { heldKey: key, label: key, rootNoteNumber, numeric: false }
+		: null
+}
+
 const getFeedbackElement = () => document.getElementById('feedback')
 
 const getKeyboardTargetPerson = application =>
@@ -77,8 +130,20 @@ const getKeyboardModeFeedback = mode =>
 
 const KEYBOARD_STATUS_ID = 'keyboard'
 
+const isEditableKeyboardEvent = event => {
+	const path = event.composedPath?.() ?? [event.target]
+	return path.some(element => (
+		element?.isContentEditable === true
+		|| (
+			typeof element?.matches === 'function'
+			&& element.matches('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
+		)
+	))
+}
+
 const formatHeldKeyboardKeys = heldKeyboardNotes => {
-	const heldKeys = Array.from(heldKeyboardNotes.keys()).map(key => key.toUpperCase())
+	const heldKeys = Array.from(heldKeyboardNotes.values())
+		.map(note => note.label.toUpperCase())
 	if (heldKeys.length < 1) {
 		return ''
 	}
@@ -92,7 +157,7 @@ const updateKeyboardStatus = (application, state, lastKey = '', active = false) 
 	const mode = KEYBOARD_MODES[state.keyboardModeIndex]
 	const heldKeys = formatHeldKeyboardKeys(state.heldKeyboardNotes)
 	const detail = mode.type === 'notes'
-		? `${mode.label}${heldKeys ? ` / ${heldKeys} held` : ''}`
+		? `${mode.label} / Number octave C${4 + ((mode.octaveOffset ?? 0) + state.numericOctaveOffset) / 12}${heldKeys ? ` / ${heldKeys} held` : ''}`
 		: `${mode.label}${lastKey ? ` / ${String(lastKey).toUpperCase()}` : ''}`
 
 	application.setInputStatus?.(KEYBOARD_STATUS_ID, {
@@ -125,6 +190,23 @@ const setKeyboardMode = (application, state, nextIndex) => {
 	application.setFeedback?.(getKeyboardModeFeedback(nextMode), 0, KEYBOARD_MODE_FEEDBACK_TYPE)
 	updateKeyboardStatus(application, state)
 	return nextMode
+}
+
+const shiftNumericKeyboardOctave = (application, state, mode, direction) => {
+	clearHeldKeyboardNotes(state.heldKeyboardNotes)
+	const modeOffset = mode.octaveOffset ?? 0
+	const combinedOffset = Math.max(
+		KEYBOARD_NUMBER_MINIMUM_OFFSET,
+		Math.min(
+			KEYBOARD_NUMBER_MAXIMUM_OFFSET,
+			modeOffset + state.numericOctaveOffset + direction * 12,
+		),
+	)
+	state.numericOctaveOffset = combinedOffset - modeOffset
+	const octave = 4 + combinedOffset / 12
+	application.setFeedback?.(`Keyboard number octave: C${octave}`, 0, KEYBOARD_MODE_FEEDBACK_TYPE)
+	updateKeyboardStatus(application, state)
+	return octave
 }
 
 const getContextualHotkeyResult = (event, application) => {
@@ -189,40 +271,51 @@ const handleKeyboardNoteDown = (event, application, state, mode) => {
 		return true
 	}
 
-	const key = event.key?.toLowerCase?.()
-	const rootNoteNumber = KEYBOARD_NOTE_LAYOUT[key]
-	if (!Number.isFinite(rootNoteNumber)) {
+	const note = getKeyboardNote(event)
+	if (!note) {
 		return false
 	}
 
-	const noteNumber = rootNoteNumber + (mode.octaveOffset ?? 0)
+	const noteNumber = note.rootNoteNumber
+		+ (mode.octaveOffset ?? 0)
+		+ (note.numeric ? state.numericOctaveOffset : 0)
 	const person = getKeyboardTargetPerson(application)
 	const instrument = person?.activeInstrument
 
-	if (!instrument || state.heldKeyboardNotes.has(key)) {
+	if (!instrument || state.heldKeyboardNotes.has(note.heldKey)) {
 		return true
 	}
 
-	state.heldKeyboardNotes.set(key, { instrument, noteNumber })
+	state.heldKeyboardNotes.set(note.heldKey, {
+		instrument,
+		noteNumber,
+		label: note.label,
+	})
 	instrument.noteOn?.(noteNumber, 1)
 	return true
 }
 
 const handleKeyboardNoteUp = (event, state) => {
-	const key = event.key?.toLowerCase?.()
-	const heldNote = state.heldKeyboardNotes.get(key)
+	const note = getKeyboardNote(event)
+	if (!note) return false
+	const heldNote = state.heldKeyboardNotes.get(note.heldKey)
 	if (!heldNote) {
 		return false
 	}
 
 	heldNote.instrument?.noteOff?.(heldNote.noteNumber, 0)
-	state.heldKeyboardNotes.delete(key)
+	state.heldKeyboardNotes.delete(note.heldKey)
 	return true
 }
 
 const handleKeyboardCommandMode = async (event, application, state) => {
 	const isNumber = !isNaN(parseInt(event.key))
 	const clock = application.clock
+	const padNumber = getKeyboardNumber(event)
+	if (padNumber != null) {
+		if (!event.repeat) application.playPercussionPart?.(KEYBOARD_PERCUSSION_PARTS[padNumber])
+		return
+	}
 
 	if (getContextualHotkeyResult(event, application)) {
 		updateNumberSequence(application, state, event, isNumber)
@@ -531,7 +624,9 @@ export const addKeyboardEvents = application => {
 		numberSequence: '',
 		keyboardModeIndex: 0,
 		heldKeyboardNotes: new Map(),
+		numericOctaveOffset: 0,
 	}
+	const handleCosmosKeyboardEvent = createCosmosKeyboardHandler(application)
 
 	updateKeyboardStatus(application, state)
 
@@ -556,8 +651,43 @@ export const addKeyboardEvents = application => {
 		}
 	}
 
+	const handleNumericOctaveSwitch = (event, mode) => {
+		if (
+			mode.type !== 'notes'
+			|| !event.shiftKey
+			|| event.ctrlKey
+			|| (event.key !== 'PageUp' && event.key !== 'PageDown')
+		) {
+			return false
+		}
+		if (event.repeat) return true
+		shiftNumericKeyboardOctave(
+			application,
+			state,
+			mode,
+			event.key === 'PageUp' ? 1 : -1,
+		)
+		return true
+	}
+
 	window.addEventListener('keydown', async event => {
-	
+		if (isEditableKeyboardEvent(event)) {
+			state.numberSequence = ''
+			return
+		}
+
+		let mode = KEYBOARD_MODES[state.keyboardModeIndex]
+
+		if (mode.type === 'commands' && handleCosmosKeyboardEvent(event)) {
+			event.preventDefault()
+			return
+		}
+
+		if (handleNumericOctaveSwitch(event, mode)) {
+			event.preventDefault()
+			return
+		}
+
 		// ignore tabbing
 		if (event.key !== 'Tab') {
 			event.preventDefault()
@@ -568,7 +698,7 @@ export const addKeyboardEvents = application => {
 		}
 
 		// get the curent mode
-		const mode = KEYBOARD_MODES[state.keyboardModeIndex]
+		mode = KEYBOARD_MODES[state.keyboardModeIndex]
 
 		if (mode.type === 'notes') {
 			state.numberSequence = ''
@@ -582,6 +712,15 @@ export const addKeyboardEvents = application => {
 	})
 
 	window.addEventListener('keyup', event => {
+		if (handleCosmosKeyboardEvent(event)) {
+			event.preventDefault()
+			return
+		}
+
+		if (isEditableKeyboardEvent(event)) {
+			return
+		}
+
 		const mode = KEYBOARD_MODES[state.keyboardModeIndex]
 		if (mode.type !== 'notes') {
 			updateKeyboardStatus(application, state)
@@ -593,6 +732,7 @@ export const addKeyboardEvents = application => {
 	})
 
 	window.addEventListener('blur', () => {
+		handleCosmosKeyboardEvent({ type: 'blur' })
 		clearHeldKeyboardNotes(state.heldKeyboardNotes)
 		updateKeyboardStatus(application, state)
 	})
