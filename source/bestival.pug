@@ -1,0 +1,26 @@
+extends index.pug
+
+//- custom options go here
+//- We strongly encourage the use of blues, purples, and yellows in your project
+block options
+	script.
+		globalThis._synth = { 
+			advancedMode:false, 
+			text:true, 
+			autoHide:true, 
+			backingTrack:false, 
+			photoSensitive:true,
+			automationMode:false,
+			referer:'bestival',
+			theme:'theme-rs'
+		}
+
+block headline
+	| Royal Society Summer Exhibition 2025
+	| #PhotoSYNTH
+
+block tagline
+	strong Instant Musical Superpowers! 
+
+block smallprint 
+	a(href="https://https://www.linkedin.com/in/designerzen/" target="_blank") by <strong>Zenon Olenski</strong>
