@@ -955,8 +955,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const prediction = person.data
 		// const landmarks = prediction.faceLandmarks
 		// const options = person.options
-		const hue = person.hue
+		const hue = colours?.h ?? person.hue
 		const hueNormalised = Math.abs((hue % 360) / 360)
+		const saturation = (colours?.s ?? 60) / 100
+		const lightness = (colours?.l ?? 60) / 100
 		// const elapsed = person.now
 
 		// Fade in 3D model
@@ -1036,12 +1038,12 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					
 					// TODO: tie this into amplitude?
 					// this.exposure = 0.3 +  prediction.mouthRatio * 0.5
-					this.faceMesh.material.color.setHSL( hueNormalised, 0.3 + prediction.mouthRatio, Math.min( 1, this.mouseY / 2 + 0.5)  ) 
+					this.faceMesh.material.color.setHSL( hueNormalised, saturation, lightness )
 				
 				}else{
 
 					// this.exposure = 0.4 // + this.count % 1.3
-					this.faceMesh.material.color.setHSL( hueNormalised, 0.5, Math.min( 1, this.mouseY * 0.5 + 0.5)  ) 
+					this.faceMesh.material.color.setHSL( hueNormalised, saturation, lightness )
 				}
 			}
 		}
@@ -1062,7 +1064,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				attachAvatarToParticles(this, this.avatar.scene)
 				alignAvatarToParticles(this, this.options)
 			}
-			this.particles.material.color.setHSL( hueNormalised,0.6, 0.6 ) 
+			this.particles.material.color.setHSL( hueNormalised, saturation, lightness )
 		
 			// if singing project some bubbles out of the mouth!
 			if (prediction.isMouthOpen)
@@ -1094,7 +1096,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				throatPoint.z -= 0.5
 				throatPoint.y -= 0.0001
 		
-				this.particles.material.color.setHSL( hueNormalised, 0.7, 0.9 ) 
+				this.particles.material.color.setHSL( hueNormalised, saturation, lightness )
 				
 				// this.tracker.geometry.attributes.position.setXYZ(0, throatPoint.x, throatPoint.y, throatPoint.z)
 				// this.tracker.geometry.attributes.position.setXYZ(1, mouthCenterPoint.x, mouthCenterPoint.y, mouthCenterPoint.z)
@@ -1145,7 +1147,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 				// points[ points.length-1 ] = midpoint.z
 				// console.info("mouth", mouthCenterPoint, {topLipCenter, bottomLipCenter} )
 			}else{
-				this.particles.material.color.setHSL( hueNormalised, 0.6, 0.9 ) 	
+				this.particles.material.color.setHSL( hueNormalised, saturation, lightness )
 			}
 			updateMouthNoteBursts({
 				host:this,

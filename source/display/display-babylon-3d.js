@@ -189,7 +189,7 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
 
 		const prediction = person.data
-		const hue = person.hue
+		const hue = colours?.h ?? person.hue
 
 		if (!prediction) {
 			return
@@ -319,8 +319,8 @@ export default class DisplayBabylon3D extends AbstractDisplay {
 	 */
 	updateParticleColours(person, hue, colours = {}, options = {}) {
 
-		const saturation = options.saturation || colours.s || 100
-		const luminosity = options.luminosity || colours.l || 50
+		const saturation = colours.s ?? options.saturation ?? 100
+		const luminosity = colours.l ?? options.luminosity ?? 50
 		const alpha = getDisplayColourAlpha(colours, options)
 
 		for (let particle of this.particles) {

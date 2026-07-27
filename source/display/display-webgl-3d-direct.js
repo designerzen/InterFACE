@@ -295,7 +295,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		const pointLandmarks = this.options.geometrySubdivisions > 0
 			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
 			: landmarks
-		const hue = person.hue || 0
+		const hue = colours?.h ?? person.hue ?? 0
 
 		// Convert landmarks to Float32Array
 		const landmarkData = new Float32Array(landmarks.length * 3)
@@ -313,7 +313,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		}
 
 		// HSL to Hex
-		const hex = this.hslToHex(hue, colours.s || 100, colours.l || 50, getDisplayColourAlpha(colours, options))
+		const hex = this.hslToHex(hue, colours.s ?? 100, colours.l ?? 50, getDisplayColourAlpha(colours, options))
 
 		// Draw connections first (so they appear behind points)
 		this.drawFaceConnections(landmarkData, hex, 1, undefined, 0, 0)

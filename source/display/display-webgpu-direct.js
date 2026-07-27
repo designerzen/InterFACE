@@ -328,7 +328,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		const pointLandmarks = this.options.geometrySubdivisions > 0
 			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
 			: landmarks
-		const hue = person.hue || 0
+		const hue = colours?.h ?? person.hue ?? 0
 
 		const pointData = new Float32Array(pointLandmarks.length * 2)
 		for (let i = 0; i < pointLandmarks.length; i++) {
@@ -336,7 +336,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 			pointData[i * 2 + 1] = (pointLandmarks[i].y || 0) * this.canvasHeight
 		}
 
-		const hex = this.hslToHex(hue, colours.s || 100, colours.l || 50, getDisplayColourAlpha(colours, options))
+		const hex = this.hslToHex(hue, colours.s ?? 100, colours.l ?? 50, getDisplayColourAlpha(colours, options))
 		this.lastColour = hex
 		this.pointData = pointData
 

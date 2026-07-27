@@ -305,7 +305,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 		if (!this.colourBuffer) return
 
-		const rgb = this.hslToRgb(hue, colours.s || 100, colours.l || 50)
+		const rgb = this.hslToRgb(hue, colours.s ?? 100, colours.l ?? 50)
 
 		if (this.particleMaterial) {
 			this.particleMaterial.color.setRGB(rgb.r, rgb.g, rgb.b)
@@ -347,7 +347,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
 
 		const prediction = person.data
-		const hue = person.hue
+		const hue = colours?.h ?? person.hue
 
 		if (!prediction) return
 

@@ -631,7 +631,7 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 			this.movePersonButton(person, prediction)
 		}
 
-		const hue = Math.abs((person.hue ?? 0) / 360)
+		const hue = Math.abs(((colours?.h ?? person.hue ?? 0) % 360) / 360)
 		this.particles.rotation.x = (this.mouseY * VERTICAL_VIEW_CONE_ANGLE) + Math.PI
 		this.particles.rotation.y = -(this.mouseX * VIEW_CONE_ANGLE)
 		this.arrangeParticles(prediction, 1)
@@ -649,8 +649,8 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		this.particles.geometry.attributes.scale.needsUpdate = true
 
 		if (this.particles.material) {
-			const saturation = colours?.s ? colours.s / 100 : 0.6
-			const lightness = colours?.l ? colours.l / 100 : prediction.isMouthOpen ? 0.9 : 0.6
+			const saturation = (colours?.s ?? 60) / 100
+			const lightness = (colours?.l ?? (prediction.isMouthOpen ? 90 : 60)) / 100
 			this.particles.material.color.setHSL(hue, saturation, lightness)
 			this.particles.material.opacity = colours?.a ?? this.options.opacity
 		}

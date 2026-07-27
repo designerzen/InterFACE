@@ -40,13 +40,13 @@ export default class DisplayMediaPipe2D extends Display2D{
 	 * @param {Person} person 
 	 */
 	drawPerson( person, beatJustPlayed, colours, options={} ){
-		options = { ...this.options, ...person.options, ...options }
+		options = { ...this.options, ...person.options, ...colours, ...options }
 
 		let prediction = person.data
 		const forceRefresh = options.forceRefresh ?? false
 
 		// const personOptions = person.options
-		const hue = person.hue
+		const hue = colours?.h ?? person.hue
 		const canvasContext = this.canvasContext
 			
 		if (!forceRefresh && !prediction && !person.isPlayingBack)
