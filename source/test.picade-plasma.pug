@@ -8,71 +8,96 @@ block nav
 
 block main
 	main#picade-plasma-test
-		header
-			p.eyebrow Hardware test
-			h2 Picade Plasma button lights
-			p Hold a button for half a second to change it from white to red. Releasing it fades the matching Plasma light out.
+		header.test-header
+			div
+				p.eyebrow Hardware test
+				h2 Picade Plasma
+				p Connect the controller, then press a button and move the joystick to align its light.
+			form.global-light-count
+				label(for="machine-light-count") Connected lights
+				select#machine-light-count(name="lights")
+					option(value="2") 2 lights
+					option(value="4") 4 lights
+					option(value="6" selected) 6 lights
+					option(value="7") 7 lights
+					option(value="8") 8 lights
+					option(value="9") 9 lights
+					option(value="10") 10 lights
+					option(value="11") 11 lights
+					option(value="12") 12 lights
+					option(value="13") 13 lights
+					option(value="14") 14 lights
+					option(value="15") 15 lights
+					option(value="16") 16 lights
 
-		section.connection-panel(aria-labelledby="connection-heading")
-			h3#connection-heading Picade test status
-			ol.activation-steps
-				li
-					strong Gamepads
-					span#gamepad-status(role="status" aria-live="polite") Looking for two Picade Max gamepads…
-				li
-					strong Plasma lights
+		section.connection-panel(aria-label="Picade connection")
+			div.connection-states
+				div
+					span.status-label Gamepads
+					span#gamepad-status(role="status" aria-live="polite") Looking for Picade input…
+				div
+					span.status-label Plasma lights
 					span#plasma-serial-status.serial-status(role="status" aria-live="polite") Checking Web Serial permission…
+			div.connection-actions
+				button#connect(type="button") Pair lights
+				button#demo-toggle(type="button" aria-pressed="false" disabled) Start demo
 			p#connection-status(role="status" aria-live="polite") Checking the Picade hardware…
-			button#connect(type="button") Pair Plasma lights
-			button#demo-toggle(type="button" aria-pressed="false" disabled) Start light demo
 
-		section.gamepad-panel(aria-labelledby="gamepad-heading")
-			h3#gamepad-heading Gamepad inventory
+		details.gamepad-panel
+			summary Gamepad inventory
 			p#gamepad-inventory-status(role="status" aria-live="polite") Checking browser-visible gamepads…
 			ul#gamepad-list.gamepad-list
 
-		form.light-controls#light-controls
-			fieldset
-				legend Plasma light editor
-				label(for="light-player") Player
-				select#light-player(name="player")
-					option(value="0") Player 1
-					option(value="1") Player 2
-				label(for="light-button") Button
-				select#light-button(name="button")
-					each _, index in Array(8)
-						option(value=index)= index + 1
-				label(for="light-led") Light
-				select#light-led(name="light")
-					each _, index in Array(4)
-						option(value=index)= index + 1
-				label(for="light-mode") Mode
-				select#light-mode(name="mode")
-					option(value="normal") Steady
-					option(value="flash") Flash
-					option(value="pulse") Pulse
-					option(value="fade") Fade
-					option(value="blend") Blend
-				label(for="light-color") Colour
-				input#light-color(name="color" type="color" value="#ffffff")
-				label(for="light-to-color") Blend to
-				input#light-to-color(name="to-color" type="color" value="#ff0000")
-				label(for="light-brightness") Brightness
-				input#light-brightness(name="brightness" type="range" min="0" max="31" value="31")
-				label(for="light-duration") Duration (s)
-				input#light-duration(name="duration" type="number" min="0.1" max="10" step="0.1" value="0.7")
-				button(type="submit") Apply light mode
+		section.mapping-panel(aria-labelledby="mapping-heading")
+			h3#mapping-heading PhotoSYNTH light mapping
+			p Press a Picade button to select it and preview its assigned Plasma light. Move the joystick left or right to change that button's target light.
+			output#picade-input-hud.picade-input-hud(role="status" aria-live="polite") Waiting for Picade input.
+			ol#light-mapping-slots.mapping-slot-grid(aria-label="Physical Plasma light slots")
+			div.mapping-footer
+				div.mapping-actions
+					button#copy-light-mapping(type="button") Copy mapping
+					button#clear-light-mapping(type="button") Clear mappings
+					div.mapping-query
+						label(for="light-mapping-output") Lights query
+						textarea#light-mapping-output(readonly rows="1" spellcheck="false" aria-label="Current PhotoSYNTH lights query value")
+				output#mapping-selection(role="status" aria-live="polite") Press a Picade button to edit its light position.
+
+		details.light-controls-panel
+			summary Direct LED editor
+			form.light-controls#light-controls
+				fieldset
+					legend Plasma light editor
+					label(for="light-button") Physical light
+					select#light-button(name="button")
+						each _, index in Array(6)
+							option(value=index)= index + 1
+					label(for="light-led") Light
+					select#light-led(name="light")
+						each _, index in Array(4)
+							option(value=index)= index + 1
+					label(for="light-mode") Mode
+					select#light-mode(name="mode")
+						option(value="normal") Steady
+						option(value="flash") Flash
+						option(value="pulse") Pulse
+						option(value="fade") Fade
+						option(value="blend") Blend
+					label(for="light-color") Colour
+					input#light-color(name="color" type="color" value="#ffffff")
+					label(for="light-to-color") Blend to
+					input#light-to-color(name="to-color" type="color" value="#ff0000")
+					label(for="light-brightness") Brightness
+					input#light-brightness(name="brightness" type="range" min="0" max="31" value="31")
+					label(for="light-duration") Duration (s)
+					input#light-duration(name="duration" type="number" min="0.1" max="10" step="0.1" value="0.7")
+					button(type="submit") Apply light mode
 
 		details.plasma-command-log
 			summary Plasma transport commands
 			p Every serial frame sent to the paired Picade Plasma controller is listed below.
 			ol#plasma-command-list
 
-		section.button-grid(aria-label="Picade button test panel")
-			each label, index in ['Button 1', 'Button 2', 'Button 3', 'Button 4', 'Button 5', 'Button 6', 'Button 7', 'Button 8']
-				button.plasma-button(type="button" data-button=index aria-describedby="press-help")
-					span.button-number= index + 1
-					span.button-label= label
+		section#button-grid.button-grid(aria-label="Picade button test panel")
 		p#press-help.help Short press: white. Hold: red. Release: fade out.
 
 block styles
@@ -117,6 +142,25 @@ block styles
 		#picade-plasma-test .gamepad-card dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3rem .55rem; margin: .6rem 0 0; font-family: ui-monospace, Consolas, monospace; font-size: .72rem; }
 		#picade-plasma-test .gamepad-card dt { color: #93a0b3; }
 		#picade-plasma-test .gamepad-card dd { margin: 0; color: #eef2f8; white-space: pre-wrap; }
+		#picade-plasma-test .global-light-count { display: grid; grid-template-columns: max-content minmax(8rem, 12rem); align-items: center; gap: .65rem; margin: 1rem 0 1.5rem; }
+		#picade-plasma-test .global-light-count label { color: #bec4cf; font-size: .82rem; font-weight: 700; }
+		#picade-plasma-test .global-light-count select { min-height: 2.5rem; padding: .35rem; border: 1px solid #82aaff; border-radius: .4rem; background: #101216; color: #fff; font: inherit; }
+		#picade-plasma-test .mapping-panel { margin: 1.5rem 0; padding: 1rem; border: 1px solid #5d7cab; border-radius: .75rem; background: #151b26; }
+		#picade-plasma-test .mapping-panel h3 { margin: 0 0 .6rem; font-size: 1rem; }
+		#picade-plasma-test .mapping-panel p { margin: 0 0 .8rem; font-size: .9rem; }
+		#picade-plasma-test .picade-input-hud { display: block; min-height: 1.5rem; margin: 0 0 .8rem; color: #ffe600; font: .84rem ui-monospace, Consolas, monospace; }
+		#picade-plasma-test .mapping-panel label { display: block; margin-bottom: .35rem; color: #bec4cf; font-size: .78rem; }
+		#picade-plasma-test #light-mapping-output { box-sizing: border-box; width: 100%; min-height: 4.8rem; resize: vertical; padding: .65rem; border: 1px solid #6a84ad; border-radius: .4rem; background: #090c12; color: #e6f0ff; font: .82rem ui-monospace, Consolas, monospace; line-height: 1.45; }
+		#picade-plasma-test .mapping-slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr)); gap: .5rem; margin: .8rem 0; padding: 0; list-style: none; }
+		#picade-plasma-test .mapping-slot { min-width: 0; }
+		#picade-plasma-test .mapping-slot button { display: grid; width: 100%; min-height: 4.4rem; place-content: center; gap: .2rem; border: 1px solid #4b5361; border-radius: .4rem; background: #101216; color: #dce6f5; font: inherit; cursor: pointer; }
+		#picade-plasma-test .mapping-slot button.is-selected { border-color: #ffe600; box-shadow: inset 0 0 0 1px #ffe600; }
+		#picade-plasma-test .mapping-slot button.is-pressed { border-color: #fff; background: #315b8f; color: #fff; box-shadow: 0 0 1rem rgba(130,170,255,.8); }
+		#picade-plasma-test .mapping-slot-index { color: #93a0b3; font: .7rem ui-monospace, Consolas, monospace; }
+		#picade-plasma-test .mapping-slot-control { overflow-wrap: anywhere; font-weight: 700; }
+		#picade-plasma-test .mapping-actions { display: flex; align-items: center; gap: .75rem; margin-top: .7rem; }
+		#picade-plasma-test .mapping-actions button { padding: .55rem .75rem; border: 1px solid #82aaff; border-radius: .4rem; background: #202838; color: #fff; font: inherit; cursor: pointer; }
+		#picade-plasma-test #mapping-selection { color: #d9e6fc; font-size: .84rem; }
 		#picade-plasma-test .light-controls { margin: 1.5rem 0; padding: 1rem; border: 1px solid #444a57; border-radius: .75rem; background: #181b21; }
 		#picade-plasma-test .light-controls fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .65rem; border: 0; padding: 0; margin: 0; }
 		#picade-plasma-test .light-controls legend { grid-column: 1 / -1; font-weight: 700; }
@@ -127,7 +171,7 @@ block styles
 		#picade-plasma-test .plasma-command-log p { font-size: .85rem; }
 		#picade-plasma-test #plasma-command-list { max-height: 18rem; overflow: auto; margin: 0; padding-left: 1.5rem; font: .72rem ui-monospace, Consolas, monospace; }
 		#picade-plasma-test #plasma-command-list li { margin-bottom: .35rem; color: #dbe5f2; }
-		#picade-plasma-test .button-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.75rem, 2vw, 1.25rem); }
+		#picade-plasma-test .button-grid { --button-columns: 3; display: grid; grid-template-columns: repeat(var(--button-columns), minmax(0, 1fr)); gap: clamp(.75rem, 2vw, 1.25rem); }
 		#picade-plasma-test .plasma-button { aspect-ratio: 1; min-height: 5.5rem; display: grid; place-content: center; gap: .3rem; border: .5rem solid #3d0505; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff4d4d, #a70909 55%, #510000); box-shadow: inset 0 .2rem .45rem rgba(255,255,255,.35), inset 0 -.5rem .7rem rgba(0,0,0,.6), 0 .35rem .5rem rgba(0,0,0,.4); color: #fff; font: inherit; cursor: pointer; touch-action: manipulation; transition: background .12s, box-shadow .12s, transform .12s; }
 		#picade-plasma-test .plasma-button.is-white { background: #fff; color: #181818; box-shadow: 0 0 1.8rem .45rem rgba(255,255,255,.9); }
 		#picade-plasma-test .plasma-button.is-red { background: #ff1717; box-shadow: 0 0 1.8rem .45rem rgba(255,0,0,.82); }
@@ -136,22 +180,148 @@ block styles
 		#picade-plasma-test .button-number { font-weight: 800; font-size: 1.5rem; }
 		#picade-plasma-test .button-label { font-size: .75rem; }
 		#picade-plasma-test .help { margin: 1.3rem 0 0; font-size: .9rem; }
+		@media (max-width: 42rem) { #picade-plasma-test .global-light-count { grid-template-columns: 1fr; } }
 		@media (max-width: 32rem) { #picade-plasma-test .button-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 		@media (prefers-reduced-motion: reduce) { #picade-plasma-test .plasma-button { transition: none; } }
+
+		/* Keep the test workflow compact: configure, connect, map, then test. */
+		body:has(#picade-plasma-test) { min-height: 100vh; background: #0d1118; }
+		body:has(#picade-plasma-test) #intro { display: none; }
+		body:has(#picade-plasma-test) #nav-main {
+			width: min(100% - 2rem, 72rem);
+			margin: .8rem auto 0;
+		}
+		body:has(#picade-plasma-test) #nav-main a { color: #b9c8dd; font-size: .85rem; }
+		#picade-plasma-test {
+			width: min(100% - 2rem, 72rem);
+			max-width: none;
+			margin: 1.25rem auto 3rem;
+			padding: clamp(1rem, 3vw, 1.75rem);
+			background: #151b24;
+			border: 1px solid #2d3848;
+			border-radius: .5rem;
+		}
+		#picade-plasma-test .test-header {
+			display: flex;
+			align-items: end;
+			justify-content: space-between;
+			gap: 1.5rem;
+			padding: 0 0 1.25rem;
+			border-bottom: 1px solid #343842;
+		}
+		#picade-plasma-test .test-header > div,
+		#picade-plasma-test .connection-states,
+		#picade-plasma-test .connection-states > div { min-width: 0; }
+		#picade-plasma-test h2 { margin: .15rem 0 .35rem; font-size: clamp(1.75rem, 4vw, 2.5rem); }
+		#picade-plasma-test .test-header p { max-width: 38rem; margin: 0; font-size: .95rem; }
+		#picade-plasma-test .global-light-count {
+			display: flex;
+			flex: 0 0 auto;
+			align-items: center;
+			gap: .6rem;
+			margin: 0;
+		}
+		#picade-plasma-test .global-light-count label { white-space: nowrap; }
+		#picade-plasma-test .global-light-count select { width: 8.5rem; }
+		#picade-plasma-test .connection-panel {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 1rem 1.5rem;
+			align-items: center;
+			margin: 1.25rem 0;
+			padding: 1rem 0;
+			border: 0;
+			border-block: 1px solid #343842;
+			border-radius: 0;
+			background: transparent;
+		}
+		#picade-plasma-test .connection-states { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1.5rem; }
+		#picade-plasma-test .connection-states > div { display: grid; gap: .2rem; }
+		#picade-plasma-test .status-label { color: #93a0b3; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+		#picade-plasma-test .connection-states [role="status"] { overflow-wrap: anywhere; color: #e5eaf2; font-size: .9rem; }
+		#picade-plasma-test .connection-actions { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: end; }
+		#picade-plasma-test .connection-panel button,
+		#picade-plasma-test .mapping-actions button { margin: 0; min-height: 2.5rem; padding: .5rem .75rem; border-radius: .4rem; }
+		#picade-plasma-test .connection-panel button[hidden] { display: none; }
+		#picade-plasma-test #connection-status { grid-column: 1 / -1; margin: 0; color: #93a0b3; font-size: .82rem; overflow-wrap: anywhere; }
+		#picade-plasma-test .gamepad-panel,
+		#picade-plasma-test .light-controls-panel,
+		#picade-plasma-test .plasma-command-log {
+			margin: 1.25rem 0;
+			padding: .9rem 0;
+			border: 0;
+			border-bottom: 1px solid #343842;
+			border-radius: 0;
+			background: transparent;
+		}
+		#picade-plasma-test .gamepad-panel summary,
+		#picade-plasma-test .light-controls-panel summary,
+		#picade-plasma-test .plasma-command-log summary { color: #eef2f8; font-weight: 700; }
+		#picade-plasma-test .mapping-panel {
+			margin: 1.25rem 0;
+			padding: 0;
+			border: 0;
+			border-radius: 0;
+			background: transparent;
+		}
+		#picade-plasma-test .mapping-panel h3 { margin-bottom: .35rem; font-size: 1.2rem; }
+		#picade-plasma-test .mapping-panel p { max-width: 48rem; }
+		#picade-plasma-test .mapping-slot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+		#picade-plasma-test .mapping-slot button { min-height: 5.2rem; border-radius: .4rem; }
+		#picade-plasma-test .mapping-footer { display: grid; gap: .65rem; margin-top: .9rem; }
+		#picade-plasma-test .mapping-actions { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: end; gap: .65rem; margin: 0; }
+		#picade-plasma-test .mapping-query { min-width: 0; display: grid; gap: .25rem; }
+		#picade-plasma-test .mapping-query label { margin: 0; color: #93a0b3; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+		#picade-plasma-test #light-mapping-output { min-height: 2.5rem; height: 2.5rem; padding: .45rem .6rem; resize: none; border-radius: .4rem; white-space: nowrap; overflow: auto hidden; }
+		#picade-plasma-test #mapping-selection { overflow-wrap: anywhere; }
+		#picade-plasma-test .light-controls { margin: .9rem 0 0; padding: 0; border: 0; background: transparent; }
+		#picade-plasma-test .light-controls fieldset { grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); }
+		@media (max-width: 42rem) {
+			#picade-plasma-test .test-header,
+			#picade-plasma-test .connection-panel { grid-template-columns: 1fr; display: grid; }
+			#picade-plasma-test .test-header { align-items: start; }
+			#picade-plasma-test .global-light-count { justify-content: space-between; }
+			#picade-plasma-test .connection-actions { justify-content: start; }
+		}
+		@media (max-width: 28rem) {
+			#picade-plasma-test { width: min(100% - 1rem, 72rem); }
+			#picade-plasma-test .connection-states { grid-template-columns: 1fr; }
+			#picade-plasma-test .mapping-slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			#picade-plasma-test .mapping-actions { grid-template-columns: 1fr; align-items: stretch; }
+		}
 
 block scripts
 	script(type="module").
 		import { getPicadeMaxGamepadInfo } from './hardware/gamepad/picade-max-interface.js'
-		import { createPicadeMaxController, findPicadeMaxInputGamepads } from './hardware/gamepad/picade-max-input-controller.js'
-		import { PICADE_LONG_PRESS_COLOR, PICADE_SHORT_PRESS_COLOR } from './hardware/gamepad/picade-plasma.js'
+		import {
+			createPicadeMaxController,
+			findPicadeMaxInputGamepads,
+			PICADE_RAPID_TAP_COLORS,
+			PICADE_MAX_JOYSTICK_LEFT,
+			PICADE_MAX_JOYSTICK_RIGHT,
+			PICADE_MAX_JOYSTICK_UP,
+			PICADE_MAX_JOYSTICK_DOWN,
+		} from './hardware/gamepad/picade-max-input-controller.js'
+		import { DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP } from './hardware/gamepad/gamepad-commands.js'
+		import {
+			getPicadePlasmaLightPreset,
+			parsePicadePlasmaLightLayout,
+			PicadePlasma,
+			PICADE_LONG_PRESS_COLOR,
+			PICADE_PLASMA_BUTTON_EVENTS,
+			PICADE_SHORT_PRESS_COLOR,
+		} from './hardware/gamepad/picade-plasma.js'
 
 		const LONG_PRESS_MS = 500
 		const FADE_MS = 450
+		const MAPPING_PREVIEW_COLOR = '#ffe600'
+		const RAPID_TAP_WINDOW_MS = 500
 		let controller = null
 		let controllerKey = null
 		let plasma = null
-		const states = new Map()
-		const buttons = [...document.querySelectorAll('.plasma-button')]
+		const buttonGrid = document.querySelector('#button-grid')
+		const lightButtonSelect = document.querySelector('#light-button')
+		let buttons = []
 		const status = document.querySelector('#connection-status')
 		const gamepadStatus = document.querySelector('#gamepad-status')
 		const plasmaSerialStatus = document.querySelector('#plasma-serial-status')
@@ -164,11 +334,310 @@ block scripts
 		let plasmaConnectionError = null
 		const inventoryStatus = document.querySelector('#gamepad-inventory-status')
 		const gamepadList = document.querySelector('#gamepad-list')
+		const mappingOutput = document.querySelector('#light-mapping-output')
+		const mappingSelection = document.querySelector('#mapping-selection')
+		const mappingSlots = document.querySelector('#light-mapping-slots')
+		const copyLightMapping = document.querySelector('#copy-light-mapping')
+		const clearLightMapping = document.querySelector('#clear-light-mapping')
+		const picadeInputHud = document.querySelector('#picade-input-hud')
+		const machineLightCount = document.querySelector('#machine-light-count')
+		const PICADE_MAPPING_STORAGE_KEY = 'photosynth.picade-plasma.mapping.v1'
+		const query = new URLSearchParams(window.location.search)
+		const requestedLightPreset = query.get('lights')
+		function loadSavedMapping() {
+			try {
+				const saved = JSON.parse(window.localStorage.getItem(PICADE_MAPPING_STORAGE_KEY) ?? 'null')
+				if (typeof saved?.mapping !== 'string') return null
+				const layout = parsePicadePlasmaLightLayout(saved.mapping)
+				if (!layout) return null
+				return {
+					layout,
+					physicalLightCount: Number.isInteger(saved.physicalLightCount) && saved.physicalLightCount >= layout.buttonCount
+						? saved.physicalLightCount
+						: layout.buttonCount,
+				}
+			} catch {
+				return null
+			}
+		}
+		const savedMapping = requestedLightPreset == null ? loadSavedMapping() : null
+		const requestedLightLayout = getPicadePlasmaLightPreset(requestedLightPreset)
+		const initialLightLayout = savedMapping?.layout ?? requestedLightLayout
 		let demoTimer = null
 		let demoButton = -1
+		let lightMapping = initialLightLayout.buttonMappings
+			? initialLightLayout.buttonMappings.map(({ player, eventType, index }, position) => ({ player, eventType, lightIndex: index ?? position }))
+			: initialLightLayout.playerButtonEvents.reduce((mappings, events, player) => {
+				events.forEach(eventType => mappings.push({ player, eventType, lightIndex: mappings.length }))
+				return mappings
+			}, [])
+		let physicalLightCount = Math.max(savedMapping?.physicalLightCount ?? 0, initialLightLayout.buttonCount ?? 0, lightMapping.length, ...lightMapping.map(({ lightIndex }) => lightIndex + 1))
+		let selectedMapping = null
+		let mappingPreviewLight = null
+		const mappedStates = new Map()
+		const mappedTapStates = new Map()
+		const activePicadeInputs = new Map()
+		let inputHudFrame = null
+
+		function formatPicadeInputAction(action) {
+			return String(action ?? 'unknown control')
+				.replace(/([a-z])([A-Z])/g, '$1 $2')
+				.replace(/[-_]/g, ' ')
+		}
+
+		function renderPicadeInputHud() {
+			const activeInput = Array.from(activePicadeInputs.values())
+				.sort((left, right) => right.startedAt - left.startedAt)[0]
+			if (!activeInput) {
+				picadeInputHud.textContent = 'Waiting for Picade input.'
+				inputHudFrame = null
+				return
+			}
+			const heldSeconds = (performance.now() - activeInput.startedAt) / 1000
+			picadeInputHud.textContent = `P${activeInput.player + 1} ${formatPicadeInputAction(activeInput.action)} held ${heldSeconds.toFixed(2)}s`
+			inputHudFrame = requestAnimationFrame(renderPicadeInputHud)
+		}
+
+		function recordPicadeInput(player, action, pressed) {
+			const key = `${player}:${action}`
+			if (pressed) {
+				activePicadeInputs.set(key, { player, action, startedAt: performance.now() })
+			} else {
+				activePicadeInputs.delete(key)
+			}
+			if (inputHudFrame == null) renderPicadeInputHud()
+		}
+
+		function getMappingText() {
+			return Array.from({ length: physicalLightCount }, (_, lightIndex) => {
+				const assignedMappings = lightMapping.filter(mapping => mapping.lightIndex === lightIndex)
+				return assignedMappings.length
+					? assignedMappings.map(({ player, eventType }) => player == null ? eventType : `${player + 1}${eventType}`).join('+')
+					: '-'
+			}).join(',')
+		}
+
+		function saveMapping() {
+			try {
+				window.localStorage.setItem(PICADE_MAPPING_STORAGE_KEY, JSON.stringify({
+					mapping: getMappingText(),
+					physicalLightCount,
+				}))
+			} catch {
+				// Storage is optional, for example when a browser disables it for this page.
+			}
+		}
+
+		function getMappingLabel({ player, eventType }) {
+			return player == null ? `System ${eventType.toUpperCase()}` : `P${player + 1} ${eventType}`
+		}
+
+		function getMappedLightIndex(player, eventType) {
+			return lightMapping.find(mapping => mapping.player === player && mapping.eventType === eventType)?.lightIndex ?? null
+		}
+
+		function ensureMappedLightIndex(player, eventType) {
+			const mappedLightIndex = getMappedLightIndex(player, eventType)
+			if (mappedLightIndex != null) return mappedLightIndex
+			const eventIndex = PICADE_PLASMA_BUTTON_EVENTS.indexOf(eventType)
+			if (eventIndex < 0 || physicalLightCount < 1) return null
+			const playerLightIndexes = [...new Set(
+				lightMapping
+					.filter(mapping => mapping.player === player)
+					.map(mapping => mapping.lightIndex),
+			)]
+			const lightIndex = playerLightIndexes.length
+				? playerLightIndexes[eventIndex % playerLightIndexes.length]
+				: eventIndex % physicalLightCount
+			lightMapping.push({ player, eventType, lightIndex })
+			renderMapping()
+			console.info('[Picade mapping] assigned unmapped button to an existing light', {
+				player,
+				eventType,
+				light: lightIndex + 1,
+				mapping: getMappingText(),
+			})
+			return lightIndex
+		}
+
+		function syncMachineControlsToMapping() {
+			machineLightCount.value = String(physicalLightCount)
+		}
+
+		function configureMachineLights() {
+			const total = Math.max(1, Math.min(128, Math.round(Number(machineLightCount.value) || 1)))
+			if (total === physicalLightCount) return
+			// Light count changes must never reorder, drop, or swap button assignments.
+			// A smaller panel simply combines out-of-range targets into its final light.
+			for (const mapping of lightMapping) {
+				mapping.lightIndex = Math.min(mapping.lightIndex, total - 1)
+			}
+			physicalLightCount = total
+			machineLightCount.value = String(total)
+			renderMapping()
+		}
+
+		function renderMapping() {
+			mappingOutput.value = getMappingText()
+			saveMapping()
+			renderTestButtons()
+			mappingSlots.replaceChildren(...Array.from({ length: physicalLightCount }, (_, lightIndex) => {
+				const assignedMappings = lightMapping.filter(mapping => mapping.lightIndex === lightIndex)
+				const item = document.createElement('li')
+				item.className = 'mapping-slot'
+				const button = document.createElement('button')
+				button.type = 'button'
+				button.classList.toggle('is-selected', assignedMappings.some(mapping => selectedMapping?.player === mapping.player && selectedMapping?.eventType === mapping.eventType))
+				button.classList.toggle('is-pressed', assignedMappings.some(({ player, eventType }) => mappedStates.has(`${player}:${eventType}`)))
+				button.setAttribute('aria-label', `Plasma light ${lightIndex + 1}: ${assignedMappings.map(getMappingLabel).join(', ') || 'unassigned'}`)
+				button.addEventListener('click', () => flashPhysicalLight(lightIndex))
+				const index = document.createElement('span')
+				index.className = 'mapping-slot-index'
+				index.textContent = `Light ${lightIndex + 1}`
+				const control = document.createElement('span')
+				control.className = 'mapping-slot-control'
+				control.textContent = assignedMappings.map(getMappingLabel).join(' + ') || 'Unassigned'
+				button.append(index, control)
+				item.append(button)
+				return item
+			}))
+			if (!selectedMapping) return
+			const lightIndex = getMappedLightIndex(selectedMapping.player, selectedMapping.eventType)
+			mappingSelection.textContent = `${getMappingLabel(selectedMapping)}: Plasma light ${lightIndex + 1}. Use joystick left/right to move it.`
+		}
+
+		function selectMapping(player, eventType) {
+			if (getMappedLightIndex(player, eventType) == null) return false
+			if (selectedMapping && (selectedMapping.player !== player || selectedMapping.eventType !== eventType) && mappingPreviewLight != null && plasma?.connected) {
+				plasma.light(mappingPreviewLight, null)
+				mappingPreviewLight = null
+			}
+			selectedMapping = { player, eventType }
+			renderMapping()
+			return true
+		}
+
+		function flashPhysicalLight(lightIndex) {
+			if (!plasma?.connected) {
+				status.textContent = `Plasma light ${lightIndex + 1} selected. Pair the lights to flash it green.`
+				return
+			}
+			plasma.light(lightIndex, '#00ff66')
+			plasma.fade(lightIndex, '#00ff66', { fadeTime: 0.45 })
+			status.textContent = `Flashing Plasma light ${lightIndex + 1} green.`
+		}
+
+		function moveSelectedMapping(direction, source) {
+			if (!selectedMapping) {
+				console.warn('[Picade mapping] joystick navigation ignored: no selected button', { direction, source })
+				mappingSelection.textContent = 'Press a mapped Picade button first, then use the joystick to move its light.'
+				return false
+			}
+			const index = getMappedLightIndex(selectedMapping.player, selectedMapping.eventType)
+			if (index == null || physicalLightCount < 2) {
+				console.warn('[Picade mapping] joystick navigation ignored: selected button has no movable slot', {
+					direction,
+					source,
+					selectedMapping,
+					lightMapping,
+				})
+				return false
+			}
+			const nextIndex = (index + direction + physicalLightCount) % physicalLightCount
+			const activeMapping = lightMapping.find(mapping => mapping.player === selectedMapping.player && mapping.eventType === selectedMapping.eventType)
+			activeMapping.lightIndex = nextIndex
+			if (controller) controller.lightInputFeedback = false
+			renderMapping()
+			const lightIndex = getMappedLightIndex(selectedMapping.player, selectedMapping.eventType)
+			const state = mappedStates.get(`${selectedMapping.player}:${selectedMapping.eventType}`)
+			if (plasma?.connected) {
+				if (mappingPreviewLight != null && mappingPreviewLight !== lightIndex) plasma.light(mappingPreviewLight, null)
+				if (index !== lightIndex && index !== mappingPreviewLight) plasma.light(index, null)
+				plasma.light(lightIndex, MAPPING_PREVIEW_COLOR)
+				mappingPreviewLight = lightIndex
+			}
+			if (state) state.lightIndex = lightIndex
+			console.info('[Picade mapping] moved active light', {
+				source,
+				direction,
+				selectedMapping,
+				fromLight: index + 1,
+				toLight: lightIndex + 1,
+				mapping: getMappingText(),
+				plasmaConnected: Boolean(plasma?.connected),
+			})
+			status.textContent = `${getMappingLabel(selectedMapping)} moved to Plasma light ${lightIndex + 1}.`
+			return true
+		}
+
+		function pressMappedButton(player, eventType) {
+			const lightIndex = ensureMappedLightIndex(player, eventType)
+			if (lightIndex == null || mappedStates.has(`${player}:${eventType}`)) return
+			selectMapping(player, eventType)
+			if (mappingPreviewLight === lightIndex) mappingPreviewLight = null
+			const key = `${player}:${eventType}`
+			const now = performance.now()
+			const previousTap = mappedTapStates.get(key)
+			const tapIndex = previousTap && now - previousTap.at <= RAPID_TAP_WINDOW_MS
+				? (previousTap.index + 1) % PICADE_RAPID_TAP_COLORS.length
+				: 0
+			const color = PICADE_RAPID_TAP_COLORS[tapIndex]
+			mappedTapStates.set(key, { at: now, index: tapIndex })
+			const state = { color, timer: null, lightIndex }
+			mappedStates.set(key, state)
+			renderMapping()
+			if (plasma?.connected) plasma.light(lightIndex, state.color)
+			state.timer = setTimeout(() => {
+				if (!mappedStates.has(key)) return
+				state.color = PICADE_LONG_PRESS_COLOR
+				if (plasma?.connected) plasma.light(state.lightIndex, state.color)
+			}, LONG_PRESS_MS)
+		}
+
+		function releaseMappedButton(player, eventType) {
+			const key = `${player}:${eventType}`
+			const state = mappedStates.get(key)
+			if (!state) return
+			clearTimeout(state.timer)
+			mappedStates.delete(key)
+			renderMapping()
+			if (plasma?.connected) plasma.fade(state.lightIndex, state.color, { fadeTime: FADE_MS / 1000 })
+		}
+
+		function renderTestButtons() {
+			const selectedLight = Math.min(Number(lightButtonSelect.value) || 0, Math.max(0, physicalLightCount - 1))
+			lightButtonSelect.replaceChildren(...Array.from({ length: physicalLightCount }, (_, lightIndex) => {
+				const assignedMappings = lightMapping.filter(mapping => mapping.lightIndex === lightIndex)
+				const option = document.createElement('option')
+				option.value = String(lightIndex)
+				option.textContent = `Light ${lightIndex + 1}: ${assignedMappings.map(getMappingLabel).join(' + ') || 'Unassigned'}`
+				return option
+			}))
+			lightButtonSelect.value = String(selectedLight)
+			buttons = Array.from({ length: physicalLightCount }, (_, button) => {
+				const assignedMappings = lightMapping.filter(mapping => mapping.lightIndex === button)
+				const element = document.createElement('button')
+				element.type = 'button'
+				element.className = 'plasma-button'
+				element.dataset.button = String(button)
+				element.setAttribute('aria-describedby', 'press-help')
+				const number = document.createElement('span')
+				number.className = 'button-number'
+				number.textContent = `Light ${button + 1}`
+				const label = document.createElement('span')
+				label.className = 'button-label'
+				label.textContent = assignedMappings.map(getMappingLabel).join(' + ') || 'Unassigned'
+				element.append(number, label)
+				element.addEventListener('click', () => flashPhysicalLight(button))
+				return element
+			})
+			buttonGrid.style.setProperty('--button-columns', String(Math.max(1, Math.ceil(buttons.length / 2))))
+			buttonGrid.replaceChildren(...buttons)
+		}
 
 		function setVisual(button, color = null) {
 			const element = buttons[button]
+			if (!element) return
 			element.classList.toggle('is-white', color === PICADE_SHORT_PRESS_COLOR)
 			element.classList.toggle('is-red', color === PICADE_LONG_PRESS_COLOR)
 		}
@@ -225,33 +694,16 @@ block scripts
 			}
 		}
 
-		function press(button, { mirrorLight = true } = {}) {
-			if (states.has(button)) return
-			const state = { color: PICADE_SHORT_PRESS_COLOR, timer: null }
-			states.set(button, state)
-			setVisual(button, state.color)
-			if (mirrorLight && plasma?.connected) plasma.light(button, state.color)
-			else status.textContent = 'Screen test active. Pair the Plasma lights to mirror this on the hardware.'
-			state.timer = setTimeout(() => {
-				if (!states.has(button)) return
-				state.color = PICADE_LONG_PRESS_COLOR
-				setVisual(button, state.color)
-				if (mirrorLight && plasma?.connected) plasma.light(button, state.color)
-			}, LONG_PRESS_MS)
-		}
-
-		function release(button, { mirrorLight = true } = {}) {
-			const state = states.get(button)
-			if (!state) return
-			clearTimeout(state.timer)
-			states.delete(button)
-			setVisual(button)
-			if (mirrorLight && plasma?.connected) plasma.fade(button, state.color, { fadeTime: FADE_MS / 1000 })
-		}
-
 		function initialiseController() {
 			const gamepads = findPicadeMaxInputGamepads()
-			const key = gamepads.map(gamepad => gamepad.index).join(':')
+			const key = gamepads.map(gamepad => [
+				gamepad.index,
+				gamepad.player,
+				gamepad.source,
+				gamepad.buttonOffset ?? 0,
+				gamepad.axisOffset ?? 0,
+				gamepad.id,
+			].join(':')).join('|')
 			if (gamepads.length !== 2) {
 				gamepadStatus.textContent = `Waiting for two Picade Max player gamepads (${gamepads.length}/2 found)…`
 				if (!plasma) setTestAvailability()
@@ -259,8 +711,23 @@ block scripts
 			}
 			if (key === controllerKey) return
 			controller?.stop()
-			controller = createPicadeMaxController(gamepads)
+			controller = createPicadeMaxController(gamepads, {
+				plasma: new PicadePlasma({
+					buttonMappings: lightMapping.map(({ player, eventType, lightIndex }) => ({ player, eventType, index: lightIndex })),
+					buttonCount: physicalLightCount,
+					playerCount: 2,
+				}),
+				lightInputFeedback: true,
+			})
 			controllerKey = key
+			console.info('[Picade test] controller player inputs', gamepads.map(gamepad => ({
+				player: gamepad.player + 1,
+				index: gamepad.index,
+				source: gamepad.source,
+				buttonOffset: gamepad.buttonOffset ?? 0,
+				axisOffset: gamepad.axisOffset ?? 0,
+				id: gamepad.id,
+			})))
 			plasma = controller.plasma
 			updatePlasmaSerialStatus()
 			plasma.on('tx', ({ raw, length }) => {
@@ -270,11 +737,36 @@ block scripts
 				item.textContent = `#${plasmaCommandCount} ${new Date().toLocaleTimeString()} — ${length} bytes — ${preview}${length > 32 ? ' …' : ''}`
 				plasmaCommandList.append(item)
 			})
-			controller.onButton(({ button, pressed }) => pressed
-				? press(button, { mirrorLight: false })
-				: release(button, { mirrorLight: false }))
+			controller.onButton(({ player, action, pressed, heldFor, gamepad }) => {
+				recordPicadeInput(player, action, pressed)
+				const eventDetail = { player, action, pressed, heldFor, gamepad: gamepad?.id, selectedMapping }
+				if (action === PICADE_MAX_JOYSTICK_LEFT || action === PICADE_MAX_JOYSTICK_UP) {
+					console.info('[Picade mapping] joystick previous event', eventDetail)
+					if (pressed) return moveSelectedMapping(-1, action)
+					return
+				}
+				if (action === PICADE_MAX_JOYSTICK_RIGHT || action === PICADE_MAX_JOYSTICK_DOWN) {
+					console.info('[Picade mapping] joystick next event', eventDetail)
+					if (pressed) return moveSelectedMapping(1, action)
+					return
+				}
+			if ([DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN].includes(action)) {
+				console.info('[Picade mapping] raw joystick direction event', eventDetail)
+				if (pressed) return moveSelectedMapping(
+					action === DIRECTION_LEFT || action === DIRECTION_UP ? -1 : 1,
+					action,
+				)
+				return
+				}
+				if (!PICADE_PLASMA_BUTTON_EVENTS.includes(action)) return
+				if (pressed) pressMappedButton(player, action)
+				else releaseMappedButton(player, action)
+			})
 			controller.start()
-			gamepadStatus.textContent = `PicadeMaxController active with player gamepads in slots ${gamepads.map(gamepad => gamepad.index).join(' and ')}.`
+			const unavailablePlayers = gamepads.filter(gamepad => gamepad.source === 'placeholder')
+			gamepadStatus.textContent = unavailablePlayers.length
+				? `Player ${unavailablePlayers[0].player + 1} is not exposed by this browser yet. Press a control on that physical side, then check the gamepad inventory.`
+				: `PicadeMaxController active: ${gamepads.map(gamepad => `P${gamepad.player + 1} in slot ${gamepad.index}`).join(', ')}.`
 		}
 
 		function setTestAvailability(message) {
@@ -297,6 +789,7 @@ block scripts
 
 		async function updatePlasmaSerialStatus() {
 			plasmaSerialStatus.className = 'serial-status'
+			connect.hidden = false
 			if (!plasma) {
 				plasmaSerialStatus.textContent = 'Waiting for both Picade Max player gamepads.'
 				connect.disabled = true
@@ -308,6 +801,7 @@ block scripts
 				plasmaSerialStatus.classList.add('failed')
 				plasmaSerialStatus.textContent = 'Web Serial is unavailable in this browser.'
 				connect.disabled = true
+				connect.hidden = true
 				connect.textContent = 'Web Serial unavailable'
 				setTestAvailability('Use Chrome, Edge, or the Electron app to connect the Plasma lights.')
 				return
@@ -316,7 +810,7 @@ block scripts
 				plasmaSerialStatus.classList.add('connected')
 				plasmaSerialStatus.textContent = 'Connected — Plasma lights are ready.'
 				connect.disabled = true
-				connect.textContent = 'Plasma lights connected'
+				connect.hidden = true
 				plasmaConnectionError = null
 				setTestAvailability('Ready — press a Picade button or start the light demo.')
 				return
@@ -332,7 +826,7 @@ block scripts
 				plasmaSerialStatus.classList.add('paired')
 				plasmaSerialStatus.textContent = 'Paired — connecting to Plasma lights…'
 				connect.disabled = true
-				connect.textContent = 'Connecting Plasma lights'
+				connect.hidden = true
 				setTestAvailability('Connecting to the already paired Plasma lights…')
 				if (!plasmaAutoConnecting) {
 					plasmaAutoConnecting = true
@@ -350,6 +844,7 @@ block scripts
 
 		function runDemoStep() {
 			if (demoTimer == null) return
+			if (!buttons.length) return
 			if (demoButton >= 0) setVisual(demoButton)
 			demoButton = (demoButton + 1) % buttons.length
 			setVisual(demoButton, PICADE_SHORT_PRESS_COLOR)
@@ -369,14 +864,6 @@ block scripts
 			status.textContent = 'Light demo stopped. Plasma lights are clear.'
 		}
 
-		buttons.forEach((element, button) => {
-			element.addEventListener('pointerdown', event => { event.preventDefault(); element.setPointerCapture(event.pointerId); press(button) })
-			element.addEventListener('pointerup', () => release(button))
-			element.addEventListener('pointercancel', () => release(button))
-			element.addEventListener('keydown', event => { if ((event.key === 'Enter' || event.key === ' ') && !event.repeat) { event.preventDefault(); press(button) } })
-			element.addEventListener('keyup', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); release(button) } })
-		})
-
 		demoToggle.addEventListener('click', async () => {
 			if (demoTimer != null) {
 				await stopDemo()
@@ -389,7 +876,7 @@ block scripts
 			}
 			demoToggle.setAttribute('aria-pressed', 'true')
 			demoToggle.textContent = 'Stop light demo'
-			status.textContent = 'Light demo running: flashing buttons 1–8 in sequence.'
+			status.textContent = `Light demo running: flashing ${buttons.length} connected light${buttons.length === 1 ? '' : 's'} in sequence.`
 			demoTimer = setTimeout(runDemoStep, 0)
 		})
 		connect.addEventListener('click', async () => {
@@ -422,7 +909,6 @@ block scripts
 			event.preventDefault()
 			if (!controller || !plasma?.connected) { status.textContent = 'Pair the Plasma lights before editing a light.'; return }
 			const data = new FormData(lightControls)
-			const player = Number(data.get('player'))
 			const button = Number(data.get('button'))
 			const light = Number(data.get('light'))
 			const color = data.get('color')
@@ -430,10 +916,50 @@ block scripts
 			const brightness = Number(data.get('brightness'))
 			const duration = Number(data.get('duration'))
 			const mode = data.get('mode')
-			if (mode === 'blend') controller.blendButtonLight(player, button, light, color, toColor, { brightness, duration })
-			else controller.animateButtonLight(player, button, light, mode, color, { brightness, duration, fadeTime: duration })
-			status.textContent = `Applied ${mode} to Player ${player + 1}, button ${button + 1}, light ${light + 1}.`
+			if (!lightMapping[button]) { status.textContent = 'Choose a connected physical light.'; return }
+			if (mode === 'blend') plasma.blendLight(button, light, color, toColor, { brightness, duration })
+			else plasma.animateLight(button, light, mode, color, { brightness, duration, fadeTime: duration })
+			const mapping = lightMapping[button]
+			status.textContent = `Applied ${mode} to Plasma light ${button + 1}: ${getMappingLabel(mapping)}.`
 		})
+		copyLightMapping.addEventListener('click', async () => {
+			mappingOutput.select()
+			try {
+				await navigator.clipboard.writeText(mappingOutput.value)
+				mappingSelection.textContent = 'Mapping copied. Paste it after lights= in a PhotoSYNTH URL.'
+			} catch {
+				mappingSelection.textContent = 'Mapping selected. Copy it with your browser shortcut.'
+			}
+		})
+		clearLightMapping.addEventListener('click', () => {
+			for (const state of mappedStates.values()) clearTimeout(state.timer)
+			mappedStates.clear()
+			mappedTapStates.clear()
+			activePicadeInputs.clear()
+			if (inputHudFrame != null) cancelAnimationFrame(inputHudFrame)
+			inputHudFrame = null
+			renderPicadeInputHud()
+			selectedMapping = null
+			mappingPreviewLight = null
+			lightMapping = []
+			// The controller still has the previous hardware layout, so prevent it
+			// from lighting legacy targets while this fresh mapping is established.
+			if (controller) controller.lightInputFeedback = false
+			if (plasma?.connected) plasma.clear().catch(error => console.warn('[Picade mapping] could not clear Plasma lights', error))
+			renderMapping()
+			mappingSelection.textContent = 'Mappings cleared. Press a Picade button to assign its first light.'
+			status.textContent = `Cleared all button mappings. ${physicalLightCount} physical light${physicalLightCount === 1 ? '' : 's'} retained.`
+		})
+		document.addEventListener('keydown', event => {
+			if (event.repeat || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return
+			const target = event.target
+			if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || target?.isContentEditable) return
+			const direction = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1
+			if (moveSelectedMapping(direction, `keyboard:${event.key}`)) event.preventDefault()
+		})
+		machineLightCount.addEventListener('change', configureMachineLights)
+		syncMachineControlsToMapping()
+		renderMapping()
 		renderGamepadInventory()
 		initialiseController()
 		updatePlasmaSerialStatus()
