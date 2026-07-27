@@ -196,6 +196,8 @@ export const DEFAULT_OPTIONS = {
 	ensemblePreset:"default",
 	// A named drum-kit preset to load during initialisation; empty keeps drums random.
 	drumkit:"",
+	// Picade Plasma light-to-button layout. Use lights=table for the tabletop panel wiring.
+	lights:"default",
 
 	// cancel audio playback (not midi)
 	muted:false,

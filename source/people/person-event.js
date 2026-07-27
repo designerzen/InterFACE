@@ -4,6 +4,7 @@ export const EVENT_EMOTION_UNLOCKED = "emotion-unlocked"
 export const EVENT_INSTRUMENT_CHANGED = "instrument-changed"
 export const EVENT_INSTRUMENT_LOADING = "instrument-loading"
 export const EVENT_USER_MODE_CHANGED = "usermode-changed"
+export const EVENT_PERSON_OPTIONS_CHANGED = "person-options-changed"
 export const EVENT_PERSON_BORN = "person-born"
 export const EVENT_PERSON_DEAD = "person-dead"
 
