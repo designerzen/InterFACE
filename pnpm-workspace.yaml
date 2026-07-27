@@ -22,7 +22,7 @@ minimumReleaseAgeExclude:
   - '@audio/decode@3.11.1'
   - abcjs@6.6.4
   - audio-decode@3.11.2
-  - postcss@8.5.17 || 8.5.19 || 8.5.22
+  - postcss@8.5.17 || 8.5.19 || 8.5.22 || 8.5.23
   - svgo@4.0.2
   - '@babylonjs/core@9.17.1 || 9.18.0'
   - '@babylonjs/gui-editor@9.17.1 || 9.18.0'
@@ -32,4 +32,11 @@ minimumReleaseAgeExclude:
   - electron@43.2.0
   - knip@6.28.0 || 6.29.0
   - '@electron/packager@20.0.4'
-  - sass@1.101.6
+  - sass@1.101.6 || 1.101.7 || 1.102.0
+  - troika-3d@0.53.0
+  - troika-animation@0.53.0
+  - troika-core@0.53.0
+  - troika-three-text@0.53.0
+  - troika-three-utils@0.53.0
+  - troika-worker-utils@0.53.0
+  - concurrently@10.0.4
