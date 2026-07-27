@@ -12,7 +12,7 @@ import {
 	PICADE_MAX_ACTION_TO_BUTTON,
 	PICADE_MAX_BUTTON_COUNT,
 } from './picade-max-interface.js'
-import { PicadePlasma, PICADE_PLASMA_BUTTON_COUNT } from './picade-plasma.js'
+import { getPicadePlasmaLightPreset, PicadePlasma } from './picade-plasma.js'
 
 export const PICADE_MAX_PLAYER_COUNT = 2
 export const PICADE_MAX_PLAYER_AXES = 2
@@ -30,20 +30,10 @@ export const PICADE_MAX_CONTROL_ACTIONS = Object.freeze([
 	BUTTON_SELECT,
 	BUTTON_START,
 ])
-const DEFAULT_BUTTON_LIGHT_MAP = Object.freeze(
-	Array.from({ length: PICADE_PLASMA_BUTTON_COUNT }, (_, button) => button),
-)
-
-// The Picade's physical Gamepad order is also its Plasma button order. The
-// first eight controls play drums; the remaining controls keep their own light.
-export const PICADE_MAX_ACTION_TO_LIGHT = Object.freeze(
-	Object.fromEntries(
-		GAMEPAD_BUTTON_ORDER
-			.slice(0, PICADE_PLASMA_BUTTON_COUNT)
-			.map((action, light) => [action, light]),
-	),
-)
-
+export const PICADE_RAPID_TAP_COLORS = Object.freeze([
+	'#ffffff', '#9f1239', '#c2410c', '#a16207', '#15803d', '#0f766e', '#1d4ed8', '#5b21b6', '#9d174d',
+])
+export const PICADE_RAPID_TAP_WINDOW_MS = 500
 const getBrowserGamepad = input => input?.gamepad ?? input
 const getPlayerIndex = (input, fallback = 0) => Number.isInteger(input?.player) ? input.player : fallback
 const getButtonOffset = input => Number.isInteger(input?.buttonOffset) ? input.buttonOffset : 0
@@ -170,21 +160,22 @@ export class PicadeMaxController {
 	#readers = []
 	#listeners = new Set()
 	#holdTimers = new Map()
+	#tapStates = new Map()
 	#frame = null
 	#plasma
-	#plasmaButtonMaps
 	#joystickDirections = new Map()
-	#hidPlayers = new Set()
 
 	constructor(gamepads, {
-		plasma = new PicadePlasma(),
-		plasmaButtonMaps = [DEFAULT_BUTTON_LIGHT_MAP, DEFAULT_BUTTON_LIGHT_MAP],
+		plasma = null,
+		buttonEvents = null,
+		lightPreset = 'default',
 		pressColor = '#ffffff',
 		pressBrightness = 31,
 		longPressColor = '#ff0000',
 		fadeTime = 0.45,
 		longPressMs = 500,
 		getButtonLightOptions = null,
+		lightInputFeedback = true,
 	} = {}) {
 		if (!Array.isArray(gamepads) || gamepads.length !== PICADE_MAX_PLAYER_COUNT) {
 			throw new TypeError('PicadeMaxController requires the two Picade Max player gamepads')
@@ -192,21 +183,21 @@ export class PicadeMaxController {
 		if (!gamepads.every(input => isPicadeMaxInputController(input))) {
 			throw new TypeError('Both gamepads must be Picade Max Input interfaces')
 		}
-		if (!Array.isArray(plasmaButtonMaps) || plasmaButtonMaps.length !== PICADE_MAX_PLAYER_COUNT) {
-			throw new TypeError('plasmaButtonMaps must contain one mapping for each player')
-		}
 		this.#gamepads = [...gamepads].sort((left, right) =>
 			getPlayerIndex(left) - getPlayerIndex(right) ||
 			getBrowserGamepad(left).index - getBrowserGamepad(right).index
 		)
-		this.#plasma = plasma
-		this.#plasmaButtonMaps = plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
+		const lightLayout = buttonEvents == null
+			? getPicadePlasmaLightPreset(lightPreset)
+			: { buttonEvents }
+		this.#plasma = plasma ?? new PicadePlasma({ ...lightLayout, playerCount: PICADE_MAX_PLAYER_COUNT })
 		this.pressColor = pressColor
 		this.pressBrightness = pressBrightness
 		this.longPressColor = longPressColor
 		this.fadeTime = fadeTime
 		this.longPressMs = longPressMs
 		this.getButtonLightOptions = getButtonLightOptions
+		this.lightInputFeedback = lightInputFeedback
 	}
 
 	static fromConnectedGamepads(options = {}) {
@@ -221,33 +212,35 @@ export class PicadeMaxController {
 		return this.#plasma
 	}
 
-	get plasmaButtonMaps() {
-		return this.#plasmaButtonMaps.map(mapping => mapping == null ? null : [...mapping])
-	}
-
-	setHidPlayers(players = []) {
-		this.#hidPlayers = new Set(players.filter(player => player === 0 || player === 1))
-		return this
-	}
-
 	handleInput(player, action, pressed, heldFor = 0, gamepad = null) {
+		const browserGamepad = getBrowserGamepad(gamepad)
+		console.info('[Picade Max input]', {
+			player,
+			action,
+			pressed,
+			heldFor,
+			gamepadIndex: browserGamepad?.index ?? null,
+			gamepadId: browserGamepad?.id ?? null,
+		})
 		const mappedButton = PICADE_MAX_ACTION_TO_BUTTON[action]
-		const mappedLight = PICADE_MAX_ACTION_TO_LIGHT[action]
-		const plasmaButton = this.#plasmaButtonMaps[player]?.[mappedLight]
-		if (Number.isInteger(mappedLight) && Number.isInteger(plasmaButton)) {
-			this.#setLight(player, mappedLight, plasmaButton, pressed)
-		}
+		if (this.lightInputFeedback && this.#plasma.hasButtonEvent(player, action)) this.#setLight(player, action, pressed)
 		if (mappedButton == null) {
 			this.#handleJoystick(player, action, pressed, gamepad)
-			if (PICADE_MAX_CONTROL_ACTIONS.includes(action)) {
-				this.#emitButton({ player, button: null, action, pressed, heldFor, gamepad })
-			}
+			this.#emitButton({ player, button: null, action, pressed, heldFor, gamepad })
 			return
 		}
 		this.#emitButton({ player, button: mappedButton, action, pressed, heldFor, gamepad })
 	}
 
 	handleAxis(player, action, value, gamepad = null) {
+		const browserGamepad = getBrowserGamepad(gamepad)
+		console.info('[Picade Max axis]', {
+			player,
+			action,
+			value,
+			gamepadIndex: browserGamepad?.index ?? null,
+			gamepadId: browserGamepad?.id ?? null,
+		})
 		this.#handleJoystick(player, action, value, gamepad)
 	}
 
@@ -256,41 +249,89 @@ export class PicadeMaxController {
 		return () => this.#listeners.delete(callback)
 	}
 
-	/** Triggers the mapped Plasma button for one player with optional colour and intensity. */
-	triggerButtonLight(player, button, { color = this.pressColor, brightness = this.pressBrightness, fadeTime = this.fadeTime } = {}) {
-		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
-		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
-		this.#plasma.light(plasmaButton, color, { brightness })
-		if (fadeTime != null) this.#plasma.fade(plasmaButton, color, { brightness, fadeTime })
+	/** Triggers a named Picade button light for one player. */
+	triggerButtonLight(player, eventType, { color = this.pressColor, brightness = this.pressBrightness, fadeTime = this.fadeTime } = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.triggerButtonLight(player, eventType, color, { brightness, fadeTime })
 		return true
 	}
 
 	/** Overlay one tempo frame without replacing the button's active animation. */
-	pulseButtonFrame(player, button, color, { brightness = this.pressBrightness } = {}) {
-		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
-		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
-		this.#plasma.overrideButtonFrame(plasmaButton, color, { brightness })
+	pulseButtonFrame(player, eventType, color, { brightness = this.pressBrightness } = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.pulseButtonFrame(player, eventType, color, { brightness })
 		return true
 	}
 
-	setButtonLight(player, button, light, color, { brightness = this.pressBrightness } = {}) {
-		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
-		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
-		this.#plasma.setLight(plasmaButton, light, color, { brightness })
+	pulseSystemFrame(id, color, { brightness = this.pressBrightness } = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasSystemLight(id)) return false
+		this.#plasma.pulseSystemFrame(id, color, { brightness })
 		return true
 	}
 
-	animateButtonLight(player, button, light, mode, color, options = {}) {
-		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
-		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
-		this.#plasma.animateLight(plasmaButton, light, mode, color, { brightness: this.pressBrightness, ...options })
+	setButtonLight(player, eventType, color, { brightness = this.pressBrightness } = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.setButtonLight(player, eventType, color, { brightness })
 		return true
 	}
 
-	blendButtonLight(player, button, light, fromColor, toColor, options = {}) {
-		const plasmaButton = this.#plasmaButtonMaps[player]?.[button]
-		if (!Number.isInteger(plasmaButton) || !this.#plasma.connected) return false
-		this.#plasma.blendLight(plasmaButton, light, fromColor, toColor, { brightness: this.pressBrightness, ...options })
+	resetButtonLight(player, eventType) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.resetButtonLight(player, eventType)
+		return true
+	}
+
+	setSystemLight(id, color, { brightness = this.pressBrightness } = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasSystemLight(id)) return false
+		this.#plasma.setSystemLight(id, color, { brightness })
+		return true
+	}
+
+	resetSystemLight(id) {
+		if (!this.#plasma.connected || !this.#plasma.hasSystemLight(id)) return false
+		this.#plasma.resetSystemLight(id)
+		return true
+	}
+
+	setAllButtonLights(color, options = {}) {
+		if (!this.#plasma.connected) return false
+		this.#plasma.setAllButtonLights(color, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	resetAllButtonLights() {
+		if (!this.#plasma.connected) return false
+		this.#plasma.resetAllButtonLights()
+		return true
+	}
+
+	animateButtonLight(player, eventType, mode, color, options = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.animateButtonLight(player, eventType, mode, color, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	blendButtonLight(player, eventType, fromColor, toColor, options = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.blendButtonLight(player, eventType, fromColor, toColor, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	fadeButtonLight(player, eventType, fromColor, toColor = null, options = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		this.#plasma.fadeButtonLight(player, eventType, fromColor, toColor, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	animateSystemLight(id, mode, color, options = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasSystemLight(id)) return false
+		this.#plasma.animateSystemLight(id, mode, color, { brightness: this.pressBrightness, ...options })
+		return true
+	}
+
+	fadeSystemLight(id, fromColor, toColor, options = {}) {
+		if (!this.#plasma.connected || !this.#plasma.hasSystemLight(id)) return false
+		this.#plasma.fadeSystemLight(id, fromColor, toColor, { brightness: this.pressBrightness, ...options })
 		return true
 	}
 
@@ -312,6 +353,7 @@ export class PicadeMaxController {
 		this.#joystickDirections.clear()
 		for (const hold of this.#holdTimers.values()) clearTimeout(hold.timer)
 		this.#holdTimers.clear()
+		this.#tapStates.clear()
 		return this
 	}
 
@@ -328,9 +370,9 @@ export class PicadeMaxController {
 
 	#createReader(gamepad, player) {
 		if (gamepad?.source === 'placeholder') return { update: () => null }
-		// Read the browser's current Gamepad snapshot directly. The legacy wrapper
-		// keeps its original axis snapshot and misplaces heldFor in its callback,
-		// which breaks Picade's single-slot macOS representation.
+		// Poll the live browser slot for every Picade side. This is required for
+		// Player 2: the generic GamePad wrapper can retain a stale snapshot when
+		// the OS exposes the two Picade interfaces independently.
 		return this.#createOffsetReader(gamepad, player)
 	}
 
@@ -343,7 +385,6 @@ export class PicadeMaxController {
 		const browserIndex = getBrowserGamepad(input).index
 		return {
 			update: () => {
-				if (this.#hidPlayers.has(player)) return
 				const gamepad = getGamePads()[browserIndex]
 				if (!gamepad?.connected) return
 				for (let localButton = 0; localButton < GAMEPAD_BUTTON_ORDER.length; localButton++) {
@@ -362,6 +403,16 @@ export class PicadeMaxController {
 						pressedAt.delete(action)
 					}
 					state.set(action, pressed)
+					console.info('[Picade Max raw button]', {
+						player,
+						localButton,
+						rawButton: buttonOffset + localButton,
+						action,
+						pressed,
+						value: button.value,
+						gamepadIndex: gamepad.index,
+						gamepadId: gamepad.id,
+					})
 					this.handleInput(player, action, pressed, heldFor, gamepad)
 				}
 
@@ -373,6 +424,13 @@ export class PicadeMaxController {
 					const previous = axisState.get(action)
 					if (previous === value) continue
 					axisState.set(action, value)
+					console.info('[Picade Max raw axis]', {
+						player,
+						action,
+						value,
+						gamepadIndex: gamepad.index,
+						gamepadId: gamepad.id,
+					})
 					this.handleAxis(player, action, value, gamepad)
 				}
 			},
@@ -409,31 +467,58 @@ export class PicadeMaxController {
 		for (const listener of this.#listeners) listener(event)
 	}
 
-	#setLight(player, button, plasmaButton, pressed) {
-		if (!this.#plasma.connected) return
-		const key = `${player}:${button}`
-		const lightOptions = this.getButtonLightOptions?.({ player, button }) ?? {}
+	#setLight(player, eventType, pressed) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return
+		const key = `${player}:${eventType}`
+		const lightOptions = this.getButtonLightOptions?.({ player, eventType }) ?? {}
 		const pressColor = lightOptions.color ?? this.pressColor
 		const longPressColor = lightOptions.longPressColor ?? this.longPressColor
 		const brightness = lightOptions.brightness ?? this.pressBrightness
 		const fadeTime = lightOptions.fadeTime ?? this.fadeTime
 		if (pressed) {
-			this.#plasma.light(plasmaButton, pressColor, { brightness })
-			const hold = { color: pressColor, timer: null }
+			const previousHold = this.#holdTimers.get(key)
+			clearTimeout(previousHold?.timer)
+			clearTimeout(previousHold?.releaseTimer)
+			const now = performance.now?.() ?? Date.now()
+			const previousTap = this.#tapStates.get(key)
+			const tapIndex = previousTap && now - previousTap.at <= PICADE_RAPID_TAP_WINDOW_MS
+				? (previousTap.index + 1) % PICADE_RAPID_TAP_COLORS.length
+				: 0
+			const tapColor = tapIndex === 0 ? pressColor : PICADE_RAPID_TAP_COLORS[tapIndex]
+			this.#tapStates.set(key, { at: now, index: tapIndex })
+			this.#plasma.setButtonLight(player, eventType, tapColor, { brightness })
+			const hold = { color: tapColor, tapIndex, startedAt: now, timer: null, releaseTimer: null }
 			hold.timer = setTimeout(() => {
 				hold.color = longPressColor
-				this.#plasma.light(plasmaButton, hold.color, { brightness })
+				this.#plasma.setButtonLight(player, eventType, hold.color, { brightness })
 			}, this.longPressMs)
 			this.#holdTimers.set(key, hold)
 			return
 		}
 		const hold = this.#holdTimers.get(key)
 		clearTimeout(hold?.timer)
-		this.#holdTimers.delete(key)
-		this.#plasma.fade(plasmaButton, hold?.color ?? this.pressColor, {
+		clearTimeout(hold?.releaseTimer)
+		const now = performance.now?.() ?? Date.now()
+		const heldFor = Math.max(0, now - (hold?.startedAt ?? now))
+		const releaseDuration = Math.min(1.1, Math.max(fadeTime, 0.18 + heldFor / 1600))
+		const releaseIndex = ((hold?.tapIndex ?? -1) + 1) % PICADE_RAPID_TAP_COLORS.length
+		const releaseColor = PICADE_RAPID_TAP_COLORS[releaseIndex]
+		this.#plasma.fadeButtonLight(player, eventType, hold?.color ?? this.pressColor, releaseColor, {
 			brightness,
-			fadeTime,
+			duration: releaseDuration * 0.4,
 		})
+		const release = {
+			...hold,
+			timer: null,
+			releaseTimer: setTimeout(() => {
+				this.#plasma.fadeButtonLight(player, eventType, releaseColor, null, {
+					brightness,
+					duration: releaseDuration * 0.6,
+				})
+				this.#holdTimers.delete(key)
+			}, releaseDuration * 400),
+		}
+		this.#holdTimers.set(key, release)
 	}
 }
 

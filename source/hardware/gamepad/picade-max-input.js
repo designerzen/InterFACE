@@ -16,7 +16,7 @@ const COLOR_MASK = 0xFF
 const BRIGHTNESS_MASK = 0x1F
 export const PICADE_MAX_BUTTON_FRAME_LEDS = 128
 export const PICADE_MAX_BUTTON_LED_GROUP_SIZE = 4
-export const PICADE_MAX_BUTTONS = 6
+export const PICADE_MAX_BUTTONS = 16
 export const PICADE_MAX_LOGICAL_LEDS = PICADE_MAX_BUTTONS * PICADE_MAX_BUTTON_LED_GROUP_SIZE
 
 // Display types
@@ -56,6 +56,7 @@ export function RGBl(red, green, blue, brightness) {
 }
 
 const OFF = RGBl(0, 0, 0, 0)
+const nowMs = () => globalThis.performance?.now?.() ?? Date.now()
 
 /**
  * Base class for WebSerial connection management
@@ -224,16 +225,19 @@ class LEDStatus {
 		this.colorTo = OFF
 		this.transitionTime = 0
 		this.holdTime = 0
-		this.ticksSinceLastTransition = 0
+		this.startedAt = null
 	}
 }
 
 export class PlasmaButtons extends SerialDevice {
 
 	#ledBuffer
+	#transportBuffer
 	#ledStatuses
 	#frameOverrides
 	#rafId = null
+	#writeInFlight = false
+	#dirty = true
 	#attractAbort = null
 	#buttonLedGroupSize
 
@@ -257,6 +261,8 @@ export class PlasmaButtons extends SerialDevice {
 		this.coordMap = coordMap
 		this.#buttonLedGroupSize = buttonLedGroupSize
 		this.#ledBuffer = new Uint8Array(this.packetByteLength)
+		this.#transportBuffer = new Uint8Array(PREFIX.length + this.packetByteLength)
+		this.#transportBuffer.set(PREFIX)
 		this.#ledStatuses = Array.from({ length: numLeds }, () => new LEDStatus())
 		this.#frameOverrides = new Map()
 	}
@@ -285,7 +291,7 @@ export class PlasmaButtons extends SerialDevice {
 		if (!status) return
 		status.mode = mode
 		status.holdTime = 0
-		status.ticksSinceLastTransition = 0
+		status.startedAt = null
 
 		if (mode === 'normal') {
 			status.colorTo = colorTo || OFF
@@ -294,6 +300,7 @@ export class PlasmaButtons extends SerialDevice {
 			if (colorFrom) status.colorFrom = colorFrom
 			if (transitionTime != null) status.transitionTime = transitionTime
 		}
+		this.#dirty = true
 	}
 
 	setAllLeds(mode = 'normal', options = {}) {
@@ -329,7 +336,8 @@ export class PlasmaButtons extends SerialDevice {
 		status.colorTo = colorFrom
 		status.holdTime = Math.max(0, holdTime)
 		status.transitionTime = Math.max(0, fadeTime)
-		status.ticksSinceLastTransition = 0
+		status.startedAt = null
+		this.#dirty = true
 	}
 
 	triggerButtonFade(buttonNumber, color, options = {}) {
@@ -353,6 +361,7 @@ export class PlasmaButtons extends SerialDevice {
 	overrideLedFrame(ledNumber, color) {
 		if (ledNumber < 0 || ledNumber >= this.numLeds) return
 		this.#frameOverrides.set(ledNumber, color)
+		this.#dirty = true
 	}
 
 	overrideButtonFrame(buttonNumber, color) {
@@ -363,45 +372,47 @@ export class PlasmaButtons extends SerialDevice {
 		}
 	}
 
-	clearFlashEffects() {
+	clearFlashEffects(now = nowMs()) {
 		for (let i = 0; i < this.numLeds; i++) {
 			const status = this.#ledStatuses[i]
 			if (status.mode !== 'flash') continue
 			status.mode = 'normal'
-			status.colorTo = this.#calculateFlashColor(status)
+			status.colorTo = this.#calculateFlashColor(status, now)
 			status.colorFrom = OFF
 			status.holdTime = 0
 			status.transitionTime = 0
+			status.startedAt = null
 		}
+		this.#dirty = true
 	}
 
 	// ── Color calculation ─────────────────────────────────────────────────────
 
-	#calculateColor(ledNumber) {
+	#calculateColor(ledNumber, now) {
 		const s = this.#ledStatuses[ledNumber]
-		const ticks = s.ticksSinceLastTransition
+		if (s.startedAt == null) s.startedAt = now
+		const elapsed = Math.max(0, (now - s.startedAt) / 1000)
 
 		if (s.mode === 'normal') return s.colorTo
 
-		const cycleLength = this.refreshRate * s.transitionTime
+		const transitionTime = Math.max(0, s.transitionTime)
 
 		if (s.mode === 'blink') {
-			return (ticks % cycleLength) < (cycleLength / 2) ? s.colorTo : s.colorFrom
+			if (transitionTime === 0) return s.colorTo
+			return (elapsed % transitionTime) < (transitionTime / 2) ? s.colorTo : s.colorFrom
 		}
 
 		if (s.mode === 'fade') {
-			if (ticks >= cycleLength) {
+			if (transitionTime === 0 || elapsed >= transitionTime) {
 				this.setLedMode(ledNumber, 'normal', { colorTo: s.colorTo })
 				return s.colorTo
 			}
-			return this.#lerpColor(s.colorFrom, s.colorTo, ticks / cycleLength)
+			return this.#lerpColor(s.colorFrom, s.colorTo, elapsed / transitionTime)
 		}
 
 		if (s.mode === 'flash') {
-			const color = this.#calculateFlashColor(s)
-			const holdTicks = Math.max(1, this.refreshRate * s.holdTime)
-			const fadeTicks = this.refreshRate * s.transitionTime
-			if (ticks >= holdTicks + fadeTicks) {
+			const color = this.#calculateFlashColor(s, now)
+			if (elapsed >= s.holdTime + transitionTime) {
 				this.setLedMode(ledNumber, 'normal', { colorTo: s.colorTo })
 				return s.colorTo
 			}
@@ -409,28 +420,26 @@ export class PlasmaButtons extends SerialDevice {
 		}
 
 		if (s.mode === 'fade sweep') {
-			if (ticks >= cycleLength) {
-				s.ticksSinceLastTransition = 0
-				return s.colorFrom
-			}
-			const half = cycleLength / 2
-			const ratio = ticks < half ? ticks / half : (cycleLength - ticks) / half
+			if (transitionTime === 0) return s.colorFrom
+			const cyclePosition = elapsed % transitionTime
+			const half = transitionTime / 2
+			const ratio = cyclePosition < half ? cyclePosition / half : (transitionTime - cyclePosition) / half
 			return this.#lerpColor(s.colorFrom, s.colorTo, ratio)
 		}
 
 		return s.colorTo
 	}
 
-	#calculateFlashColor(status) {
-		const holdTicks = this.refreshRate * status.holdTime
-		const fadeTicks = this.refreshRate * status.transitionTime
-		if (status.ticksSinceLastTransition <= Math.max(1, holdTicks)) {
+	#calculateFlashColor(status, now) {
+		if (status.startedAt == null) status.startedAt = now
+		const elapsed = Math.max(0, (now - status.startedAt) / 1000)
+		if (elapsed <= status.holdTime) {
 			return status.colorFrom
 		}
-		if (fadeTicks <= 0) {
+		if (status.transitionTime <= 0) {
 			return status.colorTo
 		}
-		const fadeProgress = Math.min(1, (status.ticksSinceLastTransition - Math.max(1, holdTicks)) / fadeTicks)
+		const fadeProgress = Math.min(1, (elapsed - status.holdTime) / status.transitionTime)
 		return this.#lerpColor(status.colorFrom, status.colorTo, fadeProgress)
 	}
 
@@ -445,30 +454,42 @@ export class PlasmaButtons extends SerialDevice {
 
 	// ── Refresh loop ──────────────────────────────────────────────────────────
 
-	#updateLedColors() {
+	#updateLedColors(now) {
+		let changed = false
 		for (let i = 0; i < this.numLeds; i++) {
-			this.#ledStatuses[i].ticksSinceLastTransition++
-			const color = this.#frameOverrides.get(i) ?? this.#calculateColor(i)
+			const color = this.#frameOverrides.get(i) ?? this.#calculateColor(i, now)
 			this.#frameOverrides.delete(i)
 			const idx = i * 4
-			this.#ledBuffer[idx] = color.blue & COLOR_MASK
-			this.#ledBuffer[idx + 1] = color.green & COLOR_MASK
-			this.#ledBuffer[idx + 2] = color.red & COLOR_MASK
-			this.#ledBuffer[idx + 3] = color.brightness & BRIGHTNESS_MASK
+			const blue = color.blue & COLOR_MASK
+			const green = color.green & COLOR_MASK
+			const red = color.red & COLOR_MASK
+			const brightness = color.brightness & BRIGHTNESS_MASK
+			if (this.#ledBuffer[idx] === blue && this.#ledBuffer[idx + 1] === green && this.#ledBuffer[idx + 2] === red && this.#ledBuffer[idx + 3] === brightness) continue
+			this.#ledBuffer[idx] = blue
+			this.#ledBuffer[idx + 1] = green
+			this.#ledBuffer[idx + 2] = red
+			this.#ledBuffer[idx + 3] = brightness
+			changed = true
 		}
+		return changed
 	}
 
-	async writeToDisplay() {
-		await this._sendWithPrefix(this.getPreviewBuffer())
+	async writeToDisplay(now = nowMs()) {
+		const changed = this.#updateLedColors(now)
+		if (!changed && !this.#dirty) return false
+		this.#dirty = false
+		this.#transportBuffer.set(this.#ledBuffer, PREFIX.length)
+		await this._write(this.#transportBuffer)
+		return true
 	}
 
-	getPreviewBuffer() {
-		this.#updateLedColors()
+	getPreviewBuffer(now = nowMs()) {
+		this.#updateLedColors(now)
 		return this.#ledBuffer
 	}
 
-	getPacket() {
-		const buffer = this.getPreviewBuffer()
+	getPacket(now = nowMs()) {
+		const buffer = this.getPreviewBuffer(now)
 		const packet = new Uint8Array(PREFIX.length + buffer.length)
 		packet.set(PREFIX, 0)
 		packet.set(buffer, PREFIX.length)
@@ -476,14 +497,15 @@ export class PlasmaButtons extends SerialDevice {
 	}
 
 	#startRefreshLoop() {
-		const interval = 1000 / this.refreshRate
-		let last = 0
+		const interval = 1000 / Math.min(this.refreshRate, this.maxFrameRate)
+		let last = -Infinity
 
-		const loop = async (now) => {
+		const loop = now => {
 			this.#rafId = requestAnimationFrame(loop)
-			if (now - last < interval) return
+			if (this.#writeInFlight || now - last < interval) return
 			last = now
-			await this.writeToDisplay()
+			this.#writeInFlight = true
+			void this.writeToDisplay(now).finally(() => { this.#writeInFlight = false })
 		}
 
 		this.#rafId = requestAnimationFrame(loop)

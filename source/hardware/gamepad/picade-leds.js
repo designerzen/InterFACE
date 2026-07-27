@@ -212,12 +212,12 @@ export class PicadeLeds {
 		return this
 	}
 
-	getPacket() {
-		return this.#buttons.getPacket()
+	getPacket(now) {
+		return this.#buttons.getPacket(now)
 	}
 
-	getPreviewBuffer() {
-		return this.#buttons.getPreviewBuffer()
+	getPreviewBuffer(now) {
+		return this.#buttons.getPreviewBuffer(now)
 	}
 
 	async write() {

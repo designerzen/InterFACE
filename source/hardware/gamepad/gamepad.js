@@ -232,7 +232,7 @@ export default class GamePad {
 			this[button] = newValue
 			if (dispatchEvent)
 			{
-				this.dispatch(button, newValue, elapsed)
+				this.dispatch(button, newValue, this.gamepad, elapsed)
 			}
 
 			// }else{
@@ -246,7 +246,7 @@ export default class GamePad {
 	 * @param {String} key 
 	 * @param {String|Number} value 
 	 */
-	setStickPosition(key, value){
+	setStickPosition(key, value, gamepad=this.gamepad){
 		if (!this.available)
 		{	
 			// dont't dispatch if first grep
@@ -256,19 +256,20 @@ export default class GamePad {
 		} else if (this[key] !== value) {
 
 			this[key] = value
-			this.dispatch(key, value)
+			this.dispatch(key, value, gamepad)
 		}
 	}
 
 	/**
 	 * Set all joystick positions
 	 */
-	setAllStickPositions(){
+	setAllStickPositions(gamepad=this.gamepad){
+		const axes = gamepad?.axes ?? []
 
-		this.setStickPosition("leftstickX", this.gamepad.axes[0])
-		this.setStickPosition("leftstickY", this.gamepad.axes[1])
-		this.setStickPosition("rightstickX", this.gamepad.axes[2])
-		this.setStickPosition("rightstickY", this.gamepad.axes[3])
+		this.setStickPosition("leftstickX", axes[0] ?? 0, gamepad)
+		this.setStickPosition("leftstickY", axes[1] ?? 0, gamepad)
+		this.setStickPosition("rightstickX", axes[2] ?? 0, gamepad)
+		this.setStickPosition("rightstickY", axes[3] ?? 0, gamepad)
 
 		// this.leftstickX = this.gamepad.axes[0]
 		// this.leftstickY = this.gamepad.axes[1]
@@ -287,10 +288,10 @@ export default class GamePad {
 		// console.log("Updating gamepad", gamepads, this )
     	if (this.available && this.connected) 
 		{
-			// console.log( "Updating gamepad data",this.gamepad, this)
-			this.setAllStickPositions()
-		
 			const gamepad = gamepads[this.index]
+			if (!gamepad) return
+			this.gamepad = gamepad
+			this.setAllStickPositions(gamepad)
 
 			if (gamepad && gamepad.buttons)
 			{
@@ -299,7 +300,7 @@ export default class GamePad {
 					const gamepadButton = gamepad.buttons[i]
 					if (gamepadButton)
 					{
-						const newValue = gamepadButton.pressed
+						const newValue = Boolean(gamepadButton.pressed || gamepadButton.value > 0.5)
 						// if (newValue){
 						// 	console.error("gamepadButton",  this.gamepad.buttons[i].pressed,  getGamePads()[this.index].buttons[i].pressed, this.index )
 						// 	// console.info("gamepadButton", gamepadButton, this.gamepad, navigator.getGamepads()[this.buttonIndex] )

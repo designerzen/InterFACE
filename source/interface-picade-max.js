@@ -1,10 +1,22 @@
 import {
+	BUTTON_A,
+	BUTTON_B,
+	BUTTON_LEFT_S,
+	BUTTON_LEFT_SHOULDER_BUTTON,
+	BUTTON_LEFT_SHOULDER_TWO,
+	BUTTON_RIGHT_S,
+	BUTTON_RIGHT_SHOULDER_BUTTON,
+	BUTTON_RIGHT_SHOULDER_TWO,
 	BUTTON_SELECT,
+	BUTTON_START,
+	BUTTON_X,
+	BUTTON_Y,
 	DIRECTION_DOWN,
 	DIRECTION_LEFT,
 	DIRECTION_RIGHT,
 	DIRECTION_UP,
 } from './hardware/gamepad/gamepad-commands.js'
+import { PICADE_PLASMA_BUTTON_EVENTS } from './hardware/gamepad/picade-plasma.js'
 import {
 	createPicadeMaxController,
 	findPicadeMaxInputGamepads,
@@ -15,12 +27,34 @@ import {
 	PICADE_MAX_JOYSTICK_RIGHT,
 	PICADE_MAX_JOYSTICK_UP,
 } from './hardware/gamepad/picade-max-input-controller.js'
-import { PicadeHidInput } from './hardware/gamepad/picade-hid-input.js'
+import { createSampleBankPlayer } from './audio/sample-bank-player.js'
 import { configurePersonByOperatingMode } from './people/person.presets.js'
 
 const PICADE_STATUS_ID = 'picade-max'
 const PICADE_PERSON_MODE_ACTIONS = new Set([BUTTON_SELECT])
 export const PICADE_HAT_HOLD_MS = 220
+export const PICADE_MODE_ADVANCE_CONTROL = Object.freeze({
+	player: 0,
+	eventType: BUTTON_LEFT_SHOULDER_BUTTON,
+})
+const PICADE_MODE_SPELL_SAMPLE = Object.freeze({
+	id: 'picade-mode-spell',
+	label: 'Picade mode spell',
+	src: './assets/audio/fx/spells/magic-spell-cast-sound-effect-224173.mp3',
+	interrupt: 'self',
+})
+
+const isPicadeBackingTrackEnabled = application =>
+	Boolean(application.getState?.('backingTrack') ?? application.stateMachine?.get?.('backingTrack'))
+
+/** Netronome resets its 24 MIDI clock divisions after every metronome beat. */
+export const shouldPulsePicadeMetronome = (previousDivision, division) =>
+	Number.isFinite(division)
+	&& (previousDivision == null ? division === 0 : division < previousDivision)
+
+export const isPicadeModeAdvanceEvent = event =>
+	PICADE_PERSON_MODE_ACTIONS.has(event.action)
+	|| (event.player === PICADE_MODE_ADVANCE_CONTROL.player && event.action === PICADE_MODE_ADVANCE_CONTROL.eventType)
 
 export const PICADE_DRUM_PARTS = Object.freeze([
 	{ part: 'kick', label: 'kick', noteNumber: 36, color: '#ff1744', velocity: 1 },
@@ -42,21 +76,25 @@ export const PICADE_DRUM_PARTS = Object.freeze([
 	{ part: 'cowbell', label: 'cowbell', noteNumber: 56, color: '#00e5ff', velocity: 0.78 },
 	{ part: 'clack', label: 'clack', noteNumber: 37, color: '#7bdff2', velocity: 0.72 },
 	{
-		part: 'kick',
+		part: 'sub-kick',
 		label: 'sub kick',
 		noteNumber: 35,
 		color: '#ff5a00',
 		velocity: 0.72,
-		soundOptions: { length: 0.62, triStart: 92, triEnd: 34, sineStart: 110, sineApex: 70, sineEnd: 30 },
 	},
 	{
-		part: 'snare',
+		part: 'rim',
 		label: 'rim snare',
 		noteNumber: 40,
 		color: '#ff80d5',
 		velocity: 0.7,
-		soundOptions: { length: 0.16, attack: 0.001, decay: 0.04, bandpassStart: 2400, bandpassEnd: 5200, highpassStart: 3200 },
 	},
+	{ part: 'low-tom', label: 'low tom', noteNumber: 45, color: '#7c3aed', velocity: 0.82 },
+	{ part: 'mid-tom', label: 'mid tom', noteNumber: 47, color: '#2563eb', velocity: 0.8 },
+	{ part: 'high-tom', label: 'high tom', noteNumber: 50, color: '#0891b2', velocity: 0.78 },
+	{ part: 'shaker', label: 'shaker', noteNumber: 82, color: '#0f766e', velocity: 0.66 },
+	{ part: 'crash', label: 'crash', noteNumber: 49, color: '#ca8a04', velocity: 0.88 },
+	{ part: 'ride', label: 'ride', noteNumber: 51, color: '#be123c', velocity: 0.76 },
 ])
 
 const PICADE_JOYSTICK_PARTS = Object.freeze({
@@ -77,28 +115,46 @@ const PICADE_CONTROL_LIGHTS = Object.freeze([
 	{ label: 'right stick', color: '#00f5d4' },
 	{ label: 'up', color: '#b6ff00' },
 	{ label: 'down', color: '#ffe600' },
+	{ label: 'left', color: '#82aaff' },
+	{ label: 'right', color: '#ff9f1c' },
 ])
 
-const PICADE_LIGHTS = Object.freeze([
-	...PICADE_DRUM_PARTS,
-	...PICADE_CONTROL_LIGHTS,
+const PICADE_LIGHT_EVENT_TYPES = PICADE_PLASMA_BUTTON_EVENTS
+const PICADE_DRUM_EVENT_TYPES = Object.freeze([
+	BUTTON_B,
+	BUTTON_A,
+	BUTTON_Y,
+	BUTTON_X,
+	BUTTON_LEFT_SHOULDER_BUTTON,
+	BUTTON_RIGHT_SHOULDER_BUTTON,
+	BUTTON_LEFT_SHOULDER_TWO,
+	BUTTON_RIGHT_SHOULDER_TWO,
+	BUTTON_START,
+	BUTTON_SELECT,
+	BUTTON_LEFT_S,
+	BUTTON_RIGHT_S,
+	DIRECTION_UP,
+	DIRECTION_DOWN,
 ])
+const PICADE_LIGHTS = Object.freeze(Object.fromEntries(
+	PICADE_DRUM_EVENT_TYPES.map((eventType, index) => [eventType, PICADE_DRUM_PARTS[index]]),
+))
 
 const PICADE_TEMPO_PULSES = Object.freeze([
-	{ button: 0, division: 'bar' },
-	{ button: 1, division: 'half' },
-	{ button: 2, division: 'quarter' },
-	{ button: 3, division: 'quarter' },
-	{ button: 4, division: 'half' },
-	{ button: 5, division: 'quarter' },
-	{ button: 6, division: 'bar' },
-	{ button: 7, division: 'bar' },
-	{ button: 8, division: 'bar' },
-	{ button: 9, division: 'half' },
-	{ button: 10, division: 'quarter' },
-	{ button: 11, division: 'bar' },
-	{ button: 12, division: 'quarter' },
-	{ button: 13, division: 'half' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[0], division: 'bar' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[1], division: 'half' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[2], division: 'quarter' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[3], division: 'quarter' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[4], division: 'half' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[5], division: 'quarter' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[6], division: 'bar' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[7], division: 'bar' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[8], division: 'bar' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[9], division: 'half' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[10], division: 'quarter' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[11], division: 'bar' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[12], division: 'quarter' },
+	{ eventType: PICADE_LIGHT_EVENT_TYPES[13], division: 'half' },
 ])
 
 export const getPicadeBasePersonIndex = player =>
@@ -135,10 +191,12 @@ const getPicadePlayer = (application, player) =>
 	?? application.personManager?.getPerson?.(getPicadePersonIndex(application, player))
 	?? null
 
-const getPicadeDrumPart = event =>
-	Number.isInteger(event.button)
-		? PICADE_DRUM_PARTS[event.button] ?? null
+const getPicadeDrumPart = event => {
+	const eventIndex = PICADE_DRUM_EVENT_TYPES.indexOf(event.action)
+	return eventIndex >= 0
+		? PICADE_DRUM_PARTS[eventIndex]
 		: PICADE_JOYSTICK_PARTS[event.action] ?? null
+}
 
 export const resolvePicadeDrumPart = (drum, event) => {
 	if (!drum?.holdPart || event?.pressed) return drum
@@ -156,7 +214,7 @@ export const resolvePicadeDrumPart = (drum, event) => {
 
 export const getPicadeButtonsForPart = (part, detail={}) =>
 	PICADE_DRUM_PARTS
-		.map((drum, button) => ({ ...drum, button }))
+		.map((drum, button) => ({ ...drum, button, eventType: PICADE_DRUM_EVENT_TYPES[button] }))
 		.filter(drum => {
 			if (drum.part !== part) return false
 			if (part !== 'hat' || detail.open == null) return true
@@ -185,6 +243,17 @@ const playPicadeDrumPart = (application, event) => {
 		if (result !== false) return drum
 	}
 
+	// Picade buttons are always live drum pads.  The backing track only adds
+	// automatic hits; it must not be required for a player to hear the kit.
+	if (typeof application.playPercussionPart === 'function') {
+		const result = application.playPercussionPart(drum.part, {
+			...drum.soundOptions,
+			velocity: drum.velocity ?? 1,
+			open: drum.open,
+		})
+		if (result != null) return drum
+	}
+
 	if (typeof person?.activeInstrument?.playPart === 'function') {
 		application.resumeAudio?.()
 		person.activeInstrument.playPart(drum.part, {
@@ -201,14 +270,6 @@ const playPicadeDrumPart = (application, event) => {
 		return drum
 	}
 
-	if (typeof application.playPercussionPart === 'function') {
-		application.playPercussionPart(drum.part, {
-			...drum.soundOptions,
-			velocity: drum.velocity ?? 1,
-			open: drum.open,
-		})
-		return drum
-	}
 	application.resumeAudio?.()
 	application.kit?.[drum.part]?.()
 	return drum
@@ -228,6 +289,19 @@ export const cyclePicadePersonMode = (application, event) => {
 	application.setFeedback?.(`Player ${player + 1} mode: ${mode}`, 0, 'gamepad')
 	updatePicadeStatus(application, `Player ${player + 1}: ${mode}`, true)
 	return true
+}
+
+const playPicadeModeSpell = application => {
+	const player = application.picadeModeSpellPlayer ?? createSampleBankPlayer({
+		banks: [{ id: 'picade-mode-spell', label: 'Picade mode spell', samples: [PICADE_MODE_SPELL_SAMPLE] }],
+		getContext: () => application.getAudioContext?.(),
+		getDestination: () => application.getMasterMixdown?.(),
+		beforePlay: () => application.resumeAudio?.(),
+		load: application.loadAudioSample,
+		play: application.playAudioSample,
+	})
+	application.picadeModeSpellPlayer = player
+	player.trigger(0).catch(error => console.warn('[Picade Max] mode spell could not play', error))
 }
 
 const updatePicadeStatus = (application, detail, active = false) => {
@@ -258,25 +332,26 @@ export const addPicadeMaxEvents = application => {
 
 	let controller = null
 	let controllerKey = ''
+	let lightPreset = 'default'
 	let connectingPlasma = false
 	let lastTempoDivision = null
 	let lastInventoryKey = ''
 	let unsubscribeDrumPart = null
-	let hidInput = null
-	let connectingHid = false
-	let lastHidProbe = 0
+	let modeAdvanceLightTimers = []
 
 	const pulseDrumPartLights = (part, detail={}) => {
+		// With no backing track, physical button feedback is owned by the controller.
+		if (!isPicadeBackingTrackEnabled(application)) return
 		if (!controller?.plasma.connected) return
 		const velocity = Math.max(0.25, Math.min(1, detail.velocity ?? 1))
 		const brightness = Math.max(8, Math.round(31 * velocity))
 		for (const drum of getPicadeButtonsForPart(part, detail)) {
-			controller.triggerButtonLight(0, drum.button, {
+			controller.triggerButtonLight(0, drum.eventType, {
 				color: drum.color,
 				brightness,
 				fadeTime: part === 'kick' ? 0.42 : 0.24,
 			})
-			controller.triggerButtonLight(1, drum.button, {
+			controller.triggerButtonLight(1, drum.eventType, {
 				color: drum.color,
 				brightness,
 				fadeTime: part === 'kick' ? 0.42 : 0.24,
@@ -294,6 +369,7 @@ export const addPicadeMaxEvents = application => {
 		const clock = application.clock
 		const division = clock?.divisionsElapsed
 		if (!Number.isFinite(division) || division === lastTempoDivision) return
+		const previousDivision = lastTempoDivision
 		lastTempoDivision = division
 
 		const totalDivisions = Math.max(4, clock?.totalDivisions ?? 96)
@@ -302,11 +378,43 @@ export const addPicadeMaxEvents = application => {
 			half: Math.max(1, Math.round(totalDivisions / 2)),
 			quarter: Math.max(1, Math.round(totalDivisions / 4)),
 		}
-		for (const { button, division: noteLength } of PICADE_TEMPO_PULSES) {
-			if (division % divisions[noteLength] !== 0) continue
-			const light = PICADE_LIGHTS[button]
-			controller.pulseButtonFrame(0, button, light.color, { brightness: 31 })
+		if (shouldPulsePicadeMetronome(previousDivision, division)) {
+			// Polling can skip the literal zero division, so detect the clock wrap instead.
+			const pulseOptions = {
+				brightness: 31,
+				holdTime: 0.055,
+				fadeTime: 0.18,
+			}
+			if (lightPreset === 'table') {
+				controller.animateButtonLight(0, BUTTON_LEFT_SHOULDER_BUTTON, 'flash', '#ffffff', pulseOptions)
+			} else {
+				controller.animateSystemLight('s1', 'flash', '#ffffff', pulseOptions)
+			}
 		}
+		// A stopped backing track leaves every mapped button light under the player's hands.
+		if (!isPicadeBackingTrackEnabled(application)) return
+		for (const { eventType, division: noteLength } of PICADE_TEMPO_PULSES) {
+			if (division % divisions[noteLength] !== 0) continue
+			const light = PICADE_LIGHTS[eventType]
+			if (!light) continue
+			controller.pulseButtonFrame(0, eventType, light.color, { brightness: 31 })
+		}
+	}
+
+	const flashModeAdvanceLight = () => {
+		const { player, eventType } = PICADE_MODE_ADVANCE_CONTROL
+		for (const timer of modeAdvanceLightTimers) clearTimeout(timer)
+		modeAdvanceLightTimers = []
+		controller?.setButtonLight(player, eventType, '#ffffff', { brightness: 31 })
+		modeAdvanceLightTimers.push(setTimeout(() => {
+			controller?.resetButtonLight(player, eventType)
+		}, 65))
+		modeAdvanceLightTimers.push(setTimeout(() => {
+			controller?.setButtonLight(player, eventType, '#ff0000', { brightness: 31 })
+		}, 115))
+		modeAdvanceLightTimers.push(setTimeout(() => {
+			controller?.fadeButtonLight(player, eventType, '#ff0000', null, { brightness: 31, duration: 1.25 })
+		}, 190))
 	}
 
 	const connectPairedPlasma = async () => {
@@ -332,55 +440,7 @@ export const addPicadeMaxEvents = application => {
 		}
 	}
 
-	const connectPairedHidInputs = async () => {
-		if (!controller || hidInput || connectingHid || !navigator.hid?.getDevices) return
-		const placeholderPlayers = controller.gamepads
-			.filter(gamepad => gamepad.source === 'placeholder')
-			.map(gamepad => gamepad.player)
-		if (!placeholderPlayers.length) return
-		const now = Date.now()
-		if (now - lastHidProbe < 3000) return
-		lastHidProbe = now
-		connectingHid = true
-		try {
-			const bridge = new PicadeHidInput()
-			const players = await bridge.connectPaired()
-			const recoveredPlayers = players.filter(player => placeholderPlayers.includes(player))
-			if (!recoveredPlayers.length) {
-				console.warn('[Picade Max] WebHID did not expose both player interfaces', {
-					players,
-					placeholderPlayers,
-					devices: bridge.devices,
-				})
-				await bridge.disconnect()
-				if (navigator.hid?.getDevices) {
-					updatePicadeStatus(application, 'Mac Picade input is missing the other player interface', true)
-				}
-				return
-			}
-			bridge.onInput(event => {
-				if (event.value != null) {
-					controller?.handleAxis(event.player, event.action, event.value, event.gamepad)
-				} else {
-					controller?.handleInput(event.player, event.action, event.pressed, event.heldFor, event.gamepad)
-				}
-			})
-			controller.setHidPlayers(recoveredPlayers)
-			hidInput = bridge
-			console.info('[Picade Max] WebHID recovered missing Mac player inputs', {
-				players,
-				placeholderPlayers,
-				recoveredPlayers,
-			})
-			updatePicadeStatus(application, `Picade Max Player ${recoveredPlayers.map(player => player + 1).join(' and ')} input ready`)
-		} catch (error) {
-			console.warn('[Picade Max] unable to connect paired WebHID player inputs', error)
-		} finally {
-			connectingHid = false
-		}
-	}
-
-	const refreshPicade = () => {
+	const refreshPicade = async () => {
 		const inventory = getPicadeMaxInputInventory()
 		const inventoryKey = JSON.stringify(inventory.slots.map(slot => ({
 			slot: slot.slot,
@@ -399,13 +459,14 @@ export const addPicadeMaxEvents = application => {
 		}
 
 		const gamepads = findPicadeMaxInputGamepads()
-		const key = gamepads.map(gamepad => [
+		lightPreset = new URLSearchParams(window.location.search).get('lights') ?? application.options?.lights ?? 'default'
+		const key = [lightPreset, gamepads.map(gamepad => [
 			gamepad.index,
 			gamepad.player,
 			gamepad.source,
 			gamepad.buttonOffset,
 			gamepad.axisOffset,
-		].join(':')).join('|')
+		].join(':')).join('|')].join('|')
 		if (gamepads.length !== 2) {
 			if (gamepads.length === 0 && inventory.connectedCount) {
 				console.warn('[Picade Max] connected gamepads are visible but none match Picade Max USB IDs', inventory.slots)
@@ -427,9 +488,10 @@ export const addPicadeMaxEvents = application => {
 		}
 		if (key === controllerKey) return
 
-		controller?.stop()
+		await controller?.disconnect()
 		controller = createPicadeMaxController(gamepads, {
-			getButtonLightOptions: ({ button }) => PICADE_LIGHTS[button] ?? {},
+			lightPreset,
+			getButtonLightOptions: ({ eventType }) => PICADE_LIGHTS[eventType] ?? {},
 		})
 		controllerKey = key
 		console.info('[Picade Max] PicadeMaxController active with logical player inputs', gamepads.map(gamepad => ({
@@ -455,14 +517,18 @@ export const addPicadeMaxEvents = application => {
 				gamepad: event.gamepad?.id,
 			})
 			try {
-				if (PICADE_PERSON_MODE_ACTIONS.has(event.action)) {
+				if (isPicadeModeAdvanceEvent(event)) {
+					if (event.pressed && event.player === PICADE_MODE_ADVANCE_CONTROL.player && event.action === PICADE_MODE_ADVANCE_CONTROL.eventType) {
+						flashModeAdvanceLight()
+						playPicadeModeSpell(application)
+					}
 					cyclePicadePersonMode(application, event)
 					return
 				}
 				const drum = getPicadeDrumPart(event)
 				if (!drum) return
 				const playedDrum = playPicadeDrumPart(application, event)
-				if (playedDrum && (event.pressed || drum.holdPart)) {
+				if (isPicadeBackingTrackEnabled(application) && playedDrum && (event.pressed || drum.holdPart)) {
 					pulseDrumPartLights(playedDrum.part, {
 						velocity: playedDrum.velocity ?? 1,
 						open: playedDrum.open,
@@ -480,13 +546,11 @@ export const addPicadeMaxEvents = application => {
 		updatePicadeStatus(application, 'Picade Max player input ready')
 		ensureDrumPartSubscription()
 		connectPairedPlasma()
-		connectPairedHidInputs()
 	}
 
 	window.addEventListener('gamepadconnected', refreshPicade)
 	window.addEventListener('gamepaddisconnected', refreshPicade)
 	refreshPicade()
 	setInterval(refreshPicade, 500)
-	setInterval(connectPairedHidInputs, 3000)
 	setInterval(pulseTempoFrame, 50)
 }
