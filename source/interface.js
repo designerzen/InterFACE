@@ -31,10 +31,6 @@ import {
 	hasVisiblePicadeMaxGamepad,
 	requestPicadeSerialPortFromUserGesture,
 } from './hardware/gamepad/picade-serial-pairing.js'
-import {
-	needsPicadeHidFallback,
-	requestPicadeHidDevicesFromUserGesture,
-} from './hardware/gamepad/picade-hid-input.js'
 import { PICADE_MAX_PLAYER_COUNT } from './hardware/gamepad/picade-max-input-controller.js'
 import { addPicadeMaxEvents } from './interface-picade-max.js'
 
@@ -65,6 +61,7 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 
  import { 
 	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
+	EVENT_PERSON_OPTIONS_CHANGED,
 	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
 	EVENT_EMOTION_CHANGED, EVENT_EMOTION_UNLOCKED,
 	EVENT_USER_MODE_CHANGED
@@ -77,6 +74,11 @@ import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patte
 import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arranger.js'
 import { DRUM_GROOVES } from './timing/drum-patterns.js'
 import { getArpeggioTiming } from './timing/arpeggio.js'
+import {
+	createPercussionQuantiser,
+	getIdealTickAudioTime,
+	getPercussionTriggerTime,
+} from './timing/percussion-quantise.js'
 import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
 
@@ -88,7 +90,9 @@ import {
 	active, playing, 
 	setupAudio,stopAudio, getVolume, setVolume, getPercussionNode,
 	setReverb,
-	getMasterMixdown
+	getMasterMixdown,
+	loadAudio,
+	playTrack
 } from './audio/audio.js'
 import { 
 	bufferLength, 
@@ -619,6 +623,7 @@ export const createInterface = (
 	// public method to overwrite
 	let callbackUpdate
 	const drumPartListeners = new Set()
+	const percussionQuantiser = createPercussionQuantiser()
 
 	// Flags
 	let isLoading = true
@@ -1011,35 +1016,88 @@ export const createInterface = (
 	const playPercussionPart = (part, options={}) => {
 		resumeAudio()
 
-		const triggerAt = audioContext.currentTime + 0.01
+		const now = audioContext.currentTime
+		const triggerAt = getPercussionTriggerTime({
+			now,
+			triggerAt: options.triggerAt,
+			quantise: stateMachine.get("quantise"),
+			quantiser: percussionQuantiser,
+		})
 		const eyeControlledTimbres = createEyeControlledDrumTimbres()
-		const triggerOptions = { velocity: 1, triggerAt, ...options }
+		const triggerOptions = { velocity: 1, ...options, triggerAt }
+		const play = (name, trigger, voiceOptions={}) => {
+			const resolvedOptions = { ...voiceOptions, ...triggerOptions }
+			notifyDrumPart(name, resolvedOptions)
+			return trigger(resolvedOptions)
+		}
 
 		switch(part)
 		{
 			case 'kick':
-				notifyDrumPart('kick', triggerOptions)
-				return kit.kick({ ...eyeControlledTimbres.kick, ...triggerOptions })
+				return play('kick', kit.kick, eyeControlledTimbres.kick)
+
+			case 'sub-kick':
+				return play('sub-kick', kit.kick, {
+					...eyeControlledTimbres.kick,
+					length: 0.62, triStart: 92, triEnd: 34, sineStart: 110, sineApex: 70, sineEnd: 30,
+				})
+
+			case 'low-tom':
+				return play('low-tom', kit.kick, {
+					length: 0.42, attack: 0.002, decay: 0.11,
+					triStart: 142, triEnd: 68, sineStart: 126, sineApex: 92, sineEnd: 54,
+				})
+
+			case 'mid-tom':
+				return play('mid-tom', kit.kick, {
+					length: 0.31, attack: 0.002, decay: 0.09,
+					triStart: 236, triEnd: 116, sineStart: 210, sineApex: 162, sineEnd: 96,
+				})
+
+			case 'high-tom':
+				return play('high-tom', kit.kick, {
+					length: 0.22, attack: 0.001, decay: 0.06,
+					triStart: 372, triEnd: 186, sineStart: 338, sineApex: 248, sineEnd: 148,
+				})
 
 			case 'snare':
-				notifyDrumPart('snare', triggerOptions)
-				return kit.snare({ ...eyeControlledTimbres.snare, ...triggerOptions })
+				return play('snare', kit.snare, eyeControlledTimbres.snare)
+
+			case 'rim':
+				return play('rim', kit.snare, {
+					length: 0.13, attack: 0.001, decay: 0.035,
+					bandpassStart: 2600, bandpassEnd: 5600, highpassStart: 3600,
+				})
 
 			case 'hat':
-				notifyDrumPart('hat', triggerOptions)
-				return kit.hat({ ...eyeControlledTimbres.hat, ...triggerOptions })
+				return play('hat', kit.hat, eyeControlledTimbres.hat)
+
+			case 'shaker':
+				return play('shaker', kit.hat, {
+					length: 0.1, attack: 0.001, decay: 0.025, release: 0.045,
+					fundamental: 540, bandpass: 4200, highpass: 1700, lowpass: 7600,
+				})
+
+			case 'crash':
+				return play('crash', kit.hat, {
+					length: 1.15, attack: 0.002, decay: 0.38, release: 0.42,
+					fundamental: 330, bandpass: 3600, highpass: 900, lowpass: 10800,
+				})
+
+			case 'ride':
+				return play('ride', kit.hat, {
+					length: 0.68, attack: 0.001, decay: 0.2, release: 0.24,
+					fundamental: 610, bandpass: 5100, highpass: 2100, lowpass: 9800,
+				})
 
 			case 'clap':
-				notifyDrumPart('clap', triggerOptions)
-				return kit.clap(triggerOptions)
+				return play('clap', kit.clap)
 
 			case 'cowbell':
-				notifyDrumPart('cowbell', triggerOptions)
-				return kit.cowbell({ ...cowbellTimbreOptions, ...triggerOptions })
+				return play('cowbell', kit.cowbell, cowbellTimbreOptions)
 
 			case 'clack':
-				notifyDrumPart('clack', triggerOptions)
-				return kit.clack(triggerOptions)
+				return play('clack', kit.clack)
 
 			default:
 				return null
@@ -1421,6 +1479,10 @@ export const createInterface = (
 			dispatchEvent(event.type, detail)
 		})
 
+		person.addEventListener(EVENT_PERSON_OPTIONS_CHANGED, event => {
+			stateMachine.set(person.storageKey, person.exportData())
+		})
+
 		let preset
 		if (importedData && importedData.preset)
 		{
@@ -1576,20 +1638,8 @@ export const createInterface = (
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
 		person.markPlayPersonAudioInactive?.()
-		const hasRepeatClock = Number.isFinite(timeNow)
-		const repeatRateMs = person.options?.noteRepeatRateMs ?? 300
 		const isFreshAttack = person.state === STATE_INSTRUMENT_ATTACK
-		if (hasRepeatClock && isFreshAttack)
-		{
-			person.lastNoteRepeatedAt = timeNow
-		}
-
-		const shouldRepeatNote = person.options?.autoRepeat === true &&
-			!isFreshAttack &&
-			person.singing &&
-			person.noteVelocity > 0 &&
-			hasRepeatClock &&
-			timeNow - (person.lastNoteRepeatedAt ?? 0) >= repeatRateMs
+		const shouldRepeatNote = person.options?.autoRepeat === true && !isFreshAttack
 		if (person.options?.muted)
 		{
 			stopPersonAudio(person)
@@ -1674,11 +1724,6 @@ export const createInterface = (
 			}
 			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
-		if (shouldRepeatNote)
-		{
-			person.lastNoteRepeatedAt = timeNow
-		}
-
 		// Send person created data to midi
 		if (audioOutput && audioOutput.length > 0)
 		{
@@ -2357,7 +2402,7 @@ export const createInterface = (
 			// Start on BAR
 			// show quantise
 			// fetch notes played from user?
-			const barColour = `hsl(${personManager.getPerson(0).hue },50%,50%)`
+			const barColour = personManager.getPerson(0).hsl
 			//drawQuantise( canvasContext, beatJustPlayed, clock.bar, clock.totalBars, barColour)
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
@@ -2788,6 +2833,12 @@ export const createInterface = (
 			barsElapsed, timePassed, 
 			elapsed, expected, drift, level, intervals, lag
 		} = values
+
+		percussionQuantiser.update({
+			tickAudioTime: getIdealTickAudioTime(audioContext.currentTime, timePassed, expected),
+			divisionsElapsed,
+			tickDuration: clock.timeBetween / 1000,
+		})
 
 		// const tempo = tapTempo(true, 1000, 3)
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
@@ -3458,6 +3509,10 @@ export const createInterface = (
 		} = setupVolumeInterface( volume, stateMachine.get( 'muted') ?? false, {
 			onVolumeChanged: vol => {
 				setMasterVolume( vol )
+			},
+			onPercussionVolumeChanged: vol => {
+				getPercussionNode().gain.value = Number(vol)
+				setFeedback(`Percussion ${Math.ceil(vol * 100)}%`, 0, 'beats')
 			},
 			onMuteChanged: status => {
 				stateMachine.set( 'muted', status )
@@ -4465,6 +4520,9 @@ export const createInterface = (
 			resumeAudio,
 			getVolume, setVolume:setMasterVolume, 
 			getMasterMixdown,
+			getAudioContext: () => audioContext,
+			loadAudioSample: loadAudio,
+			playAudioSample: playTrack,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording,
@@ -4514,7 +4572,6 @@ export const createInterface = (
 
 		let timeOut 
 		let picadeSerialPairing = null
-		let picadeHidPairing = null
 		const requestPicadeSerialFromQuantityOfPeople = () => {
 			console.groupCollapsed?.('[Picade Max] quantityOfPeople click serial pairing')
 			const visiblePicade = hasVisiblePicadeMaxGamepad()
@@ -4523,15 +4580,6 @@ export const createInterface = (
 				console.warn('[Picade Max] serial pairing skipped from quantityOfPeople click', { visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
 				console.groupEnd?.()
 				return
-			}
-			if (needsPicadeHidFallback() && !picadeHidPairing) {
-				console.info('[Picade Max] requesting WebHID access for both macOS player interfaces')
-				picadeHidPairing = requestPicadeHidDevicesFromUserGesture()
-					.then(result => console.info('[Picade Max] WebHID pairing result', result))
-					.catch(error => {
-						if (error?.name !== 'NotFoundError') console.warn('[Picade Max] unable to pair WebHID inputs', error)
-					})
-					.finally(() => { picadeHidPairing = null })
 			}
 			picadeSerialPairing = requestPicadeSerialPortFromUserGesture()
 				.then(result => {

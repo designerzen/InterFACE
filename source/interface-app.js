@@ -31,10 +31,6 @@ import {
 	hasVisiblePicadeMaxGamepad,
 	requestPicadeSerialPortFromUserGesture,
 } from './hardware/gamepad/picade-serial-pairing.js'
-import {
-	needsPicadeHidFallback,
-	requestPicadeHidDevicesFromUserGesture,
-} from './hardware/gamepad/picade-hid-input.js'
 import { PICADE_MAX_PLAYER_COUNT } from './hardware/gamepad/picade-max-input-controller.js'
 import { addPicadeMaxEvents } from './interface-picade-max.js'
 // import { toggleFullScreen } from './dom/full-screen.js'
@@ -91,7 +87,9 @@ import {
 	updateByteFrequencyData, updateByteTimeDomainData,
 	bufferLength, dataArray, 
 	getVolume, setVolume, getPercussionNode,
-	getMasterMixdown
+	getMasterMixdown,
+	loadAudio,
+	playTrack
 } from './audio/audio.js'
 
 // Different ways of playing sound!
@@ -1136,19 +1134,8 @@ export const createInterface = (
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
 		person.markPlayPersonAudioInactive?.()
-		const hasRepeatClock = Number.isFinite(timeNow)
-		const repeatRateMs = person.options?.noteRepeatRateMs ?? 300
 		const isFreshAttack = person.state === STATE_INSTRUMENT_ATTACK
-		if (hasRepeatClock && isFreshAttack)
-		{
-			person.lastNoteRepeatedAt = timeNow
-		}
-		const shouldRepeatNote = person.options?.autoRepeat === true &&
-			!isFreshAttack &&
-			person.singing &&
-			person.noteVelocity > 0 &&
-			hasRepeatClock &&
-			timeNow - (person.lastNoteRepeatedAt ?? 0) >= repeatRateMs
+		const shouldRepeatNote = person.options?.autoRepeat === true && !isFreshAttack
 		
 		// no instruments set in Person - exit now - nothing to make sing
 		if( !person.hasInstrument )
@@ -1226,11 +1213,6 @@ export const createInterface = (
 			}
 			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
-		if (shouldRepeatNote)
-		{
-			person.lastNoteRepeatedAt = timeNow
-		}
-
 		// Send person created data to midi
 		if (audioOutput && audioOutput.length > 0)
 		{
@@ -1827,7 +1809,7 @@ export const createInterface = (
 			// Start on BAR
 			// show quantise
 			// fetch notes played from user?
-			const barColour = `hsl(${getPerson(0).hue },50%,50%)`
+			const barColour = getPerson(0).hsl
 			//drawQuantise( canvasContext, beatJustPlayed, clock.bar, clock.totalBars, barColour)
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
@@ -2737,6 +2719,10 @@ export const createInterface = (
 			onVolumeChanged: vol => {
 				setMasterVolume( vol )
 			},
+			onPercussionVolumeChanged: vol => {
+				getPercussionNode().gain.value = Number(vol)
+				setFeedback(`Percussion ${Math.ceil(vol * 100)}%`, 0, 'beats')
+			},
 			onMuteChanged: status => {
 				stateMachine.set( 'muted', status )
 				if (status)
@@ -3609,6 +3595,10 @@ export const createInterface = (
 			clock,
 
 			setBPM, setMasterVolume,
+			getMasterMixdown,
+			getAudioContext: () => audioContext,
+			loadAudioSample: loadAudio,
+			playAudioSample: playTrack,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording
@@ -3669,7 +3659,6 @@ export const createInterface = (
 
 		// Show the player selection screen!
 		let picadeSerialPairing = null
-		let picadeHidPairing = null
 		const requestPicadeSerialFromQuantityOfPeople = () => {
 			console.groupCollapsed?.('[Picade Max] quantityOfPeople click serial pairing')
 			const visiblePicade = hasVisiblePicadeMaxGamepad()
@@ -3678,15 +3667,6 @@ export const createInterface = (
 				console.warn('[Picade Max] serial pairing skipped from quantityOfPeople click', { visiblePicade, alreadyRequesting: Boolean(picadeSerialPairing) })
 				console.groupEnd?.()
 				return
-			}
-			if (needsPicadeHidFallback() && !picadeHidPairing) {
-				console.info('[Picade Max] requesting WebHID access for both macOS player interfaces')
-				picadeHidPairing = requestPicadeHidDevicesFromUserGesture()
-					.then(result => console.info('[Picade Max] WebHID pairing result', result))
-					.catch(error => {
-						if (error?.name !== 'NotFoundError') console.warn('[Picade Max] unable to pair WebHID inputs', error)
-					})
-					.finally(() => { picadeHidPairing = null })
 			}
 			picadeSerialPairing = requestPicadeSerialPortFromUserGesture()
 				.then(result => {

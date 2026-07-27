@@ -1,0 +1,150 @@
+extends _base.pug
+
+block title
+	+title('Test:Cosmos Samples and MIDI')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block main
+	main#cosmos-test(tabindex="-1")
+		section.cosmos-panel(aria-labelledby="cosmos-title")
+			h2#cosmos-title Cosmos switch sample + MIDI test
+			p
+				| Pair the Cosmos switches, then press any number from 
+				kbd 0
+				|  to 
+				kbd 9
+				| . Each physical press plays one sample and sends MIDI note-on; release sends note-off.
+			p
+				| Shifted numbers and the numpad work too. Use 
+				kbd Ctrl
+				|  + 
+				kbd Page Up
+				|  / 
+				kbd Page Down
+				|  to change sample banks.
+
+			div.connection-row
+				button#enable-midi(type="button") Enable MIDI output
+				output#midi-status(for="enable-midi" aria-live="polite") MIDI is not enabled.
+
+			dl.status-grid
+				dt Sample bank
+				dd#bank-status Magic
+				dt Last event
+				dd#event-status(aria-live="polite") Waiting for a number key.
+
+			ol#cosmos-pads.cosmos-pads(start="0" aria-label="Cosmos number switches")
+				each number in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+					li.cosmos-pad(id=`cosmos-pad-${number}` data-number=number)
+						kbd= number
+						span MIDI #{60 + number}
+
+block styles
+	style.
+		#cosmos-test {
+			box-sizing: border-box;
+			max-width: 72rem;
+			min-height: 70vh;
+			margin: 0 auto;
+			padding: clamp(1rem, 4vw, 3rem);
+			color: #f6f7fb;
+		}
+		.cosmos-panel {
+			padding: clamp(1rem, 3vw, 2rem);
+			border: 1px solid #667085;
+			border-radius: 1rem;
+			background: #121722;
+		}
+		.cosmos-panel p {
+			max-width: 72ch;
+			line-height: 1.6;
+		}
+		.cosmos-panel kbd {
+			font-family: ui-monospace, Consolas, monospace;
+		}
+		.connection-row {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 1rem;
+			margin: 1.5rem 0;
+		}
+		#enable-midi {
+			min-height: 2.75rem;
+			padding: .65rem 1rem;
+			border: 2px solid #a7c7ff;
+			border-radius: .5rem;
+			background: #17345f;
+			color: #fff;
+			font: inherit;
+			cursor: pointer;
+		}
+		#enable-midi:focus-visible {
+			outline: 3px solid #fff;
+			outline-offset: 3px;
+		}
+		#enable-midi:disabled {
+			cursor: not-allowed;
+			opacity: .65;
+		}
+		.status-grid {
+			display: grid;
+			grid-template-columns: max-content minmax(0, 1fr);
+			gap: .4rem 1rem;
+			margin: 1.5rem 0;
+		}
+		.status-grid dt {
+			font-weight: 700;
+		}
+		.status-grid dd {
+			margin: 0;
+			overflow-wrap: anywhere;
+		}
+		.cosmos-pads {
+			display: grid;
+			grid-template-columns: repeat(5, minmax(5rem, 1fr));
+			gap: clamp(.5rem, 2vw, 1rem);
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		.cosmos-pad {
+			display: grid;
+			place-items: center;
+			min-height: 7rem;
+			border: 2px solid #718096;
+			border-radius: .8rem;
+			background: #202938;
+			transition: transform 100ms ease, border-color 100ms ease, background 100ms ease;
+		}
+		.cosmos-pad kbd {
+			display: grid;
+			gap: .35rem;
+			text-align: center;
+			font-size: 2rem;
+			font-weight: 800;
+		}
+		.cosmos-pad span {
+			font-size: .8rem;
+			font-weight: 500;
+		}
+		.cosmos-pad.is-active {
+			transform: translateY(-.2rem);
+			border-color: #fff;
+			background: #a33d72;
+		}
+		@media (max-width: 38rem) {
+			.cosmos-pads {
+				grid-template-columns: repeat(2, minmax(5rem, 1fr));
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.cosmos-pad {
+				transition: none;
+			}
+		}
+
+block scripts
+	script(type="module" src="./tests/test.cosmos.js")
