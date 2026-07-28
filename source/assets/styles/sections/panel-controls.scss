@@ -241,9 +241,16 @@
 	// and sets custom colours
 	> *:not(.folder-menu),
 	> .folder-link {
+
+		// allow them to resize
 		--min-size: 44px;
-		min-width: 44px;
-		min-height: 44px;
+		// ios AAA guidelines
+		min-width: var(--min-size);
+		min-height: var(--min-size);
+    	flex-shrink: 1;
+    	flex-grow: 1;
+    	flex-basis: min-content;
+		width: min-content;
 
 		// gradient background
 		// --col-top:hsl( var(--hue), var( --s, 58%), 30% );
