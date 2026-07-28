@@ -420,7 +420,19 @@ const convertGamePadActionToMusic = ( application, gamePad, button, isButtonHeld
 }
 
 const convertGamePadActionToPercussion = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
+	if (button === GAME_PAD_CONNECTED || button === GAME_PAD_DISCONNECTED) return
+
 	const triggerDrum = (part, fallback) => {
+		const inputId = `${getGamePadStatusId(gamePad)}:${button}`
+		if (typeof application.setPercussionInput === 'function') {
+			application.setPercussionInput(
+				inputId,
+				part,
+				Boolean(isButtonHeld),
+				{ source: 'gamepad' },
+			)
+			return
+		}
 		if (!isButtonHeld) return
 		if (application.playPercussionPart?.(part)) return
 		application.resumeAudio?.()
@@ -653,8 +665,12 @@ export const addGamePadEvents = (application) => {
 	let gamePadPlayerIndex = personManager.getSelectedPerson() ?? -1
 	
 	const setMode = mode => {
+		const previousMode = GAMEPAD_MODES[gamePadModeIndex]
 		gamePadModeIndex = wrapModeIndex(mode)
 		const modeName = GAMEPAD_MODES[gamePadModeIndex]
+		if (previousMode === GAMEPAD_MODE_PERCUSSION && modeName !== previousMode) {
+			application.releasePercussionInputs?.('gamepad-')
+		}
 		gamePadMethod = getGamePadModeMethod(modeName)
 		return modeName
 	}
@@ -700,6 +716,7 @@ export const addGamePadEvents = (application) => {
 				application.setFeedback( "Gamepad connection lost" , 0, 'gamepad' )
 				if (activeGamePad) {
 					application.clearInputStatus?.(getGamePadStatusId(activeGamePad))
+					application.releasePercussionInputs?.(`${getGamePadStatusId(activeGamePad)}:`)
 				}
 				console.info("Gamepad disconnected", eventName, value, activeGamePad )
 				break

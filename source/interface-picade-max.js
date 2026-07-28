@@ -223,12 +223,28 @@ export const getPicadeButtonsForPart = (part, detail={}) =>
 			return detail.open ? supportsOpen : supportsClosed
 		})
 
-const playPicadeDrumPart = (application, event) => {
-	const drum = resolvePicadeDrumPart(getPicadeDrumPart(event), event)
+export const playPicadeDrumPart = (application, event, onPercussionRepeat) => {
+	const pressedDrum = getPicadeDrumPart(event)
+	const drum = resolvePicadeDrumPart(pressedDrum, event)
 	if (!drum) return false
 
 	const person = getPicadePlayer(application, event.player)
 	const data = { ...drum, player: event.player, person, event }
+	if (typeof application.setPercussionInput === 'function') {
+		application.setPercussionInput(
+			`picade:${event.player}:${event.action}`,
+			pressedDrum.part,
+			event.pressed,
+			{
+				...pressedDrum.soundOptions,
+				velocity: pressedDrum.velocity ?? 1,
+				open: pressedDrum.open,
+				source: 'picade',
+				onPercussionRepeat,
+			},
+		)
+		return pressedDrum
+	}
 	if (drum.holdPart && event.pressed) return drum
 
 	if (!event.pressed) {
@@ -337,7 +353,6 @@ export const addPicadeMaxEvents = application => {
 	let lastTempoDivision = null
 	let lastInventoryKey = ''
 	let unsubscribeDrumPart = null
-	let modeAdvanceLightTimers = []
 
 	const pulseDrumPartLights = (part, detail={}) => {
 		// With no backing track, physical button feedback is owned by the controller.
@@ -403,18 +418,11 @@ export const addPicadeMaxEvents = application => {
 
 	const flashModeAdvanceLight = () => {
 		const { player, eventType } = PICADE_MODE_ADVANCE_CONTROL
-		for (const timer of modeAdvanceLightTimers) clearTimeout(timer)
-		modeAdvanceLightTimers = []
-		controller?.setButtonLight(player, eventType, '#ffffff', { brightness: 31 })
-		modeAdvanceLightTimers.push(setTimeout(() => {
-			controller?.resetButtonLight(player, eventType)
-		}, 65))
-		modeAdvanceLightTimers.push(setTimeout(() => {
-			controller?.setButtonLight(player, eventType, '#ff0000', { brightness: 31 })
-		}, 115))
-		modeAdvanceLightTimers.push(setTimeout(() => {
-			controller?.fadeButtonLight(player, eventType, '#ff0000', null, { brightness: 31, duration: 1.25 })
-		}, 190))
+		controller?.triggerButtonLight(player, eventType, {
+			color: PICADE_LIGHTS[eventType]?.color ?? '#ffffff',
+			brightness: 31,
+			fadeTime: 0.35,
+		})
 	}
 
 	const connectPairedPlasma = async () => {
@@ -471,6 +479,7 @@ export const addPicadeMaxEvents = application => {
 			if (gamepads.length === 0 && inventory.connectedCount) {
 				console.warn('[Picade Max] connected gamepads are visible but none match Picade Max USB IDs', inventory.slots)
 			}
+			application.releasePercussionInputs?.('picade:')
 			if (controller) controller.stop()
 			controller = null
 			controllerKey = ''
@@ -488,6 +497,7 @@ export const addPicadeMaxEvents = application => {
 		}
 		if (key === controllerKey) return
 
+		application.releasePercussionInputs?.('picade:')
 		await controller?.disconnect()
 		controller = createPicadeMaxController(gamepads, {
 			lightPreset,
@@ -527,7 +537,11 @@ export const addPicadeMaxEvents = application => {
 				}
 				const drum = getPicadeDrumPart(event)
 				if (!drum) return
-				const playedDrum = playPicadeDrumPart(application, event)
+				const playedDrum = playPicadeDrumPart(
+					application,
+					event,
+					() => controller?.repeatHeldButtonLight(event.player, event.action),
+				)
 				if (isPicadeBackingTrackEnabled(application) && playedDrum && (event.pressed || drum.holdPart)) {
 					pulseDrumPartLights(playedDrum.part, {
 						velocity: playedDrum.velocity ?? 1,

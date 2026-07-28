@@ -4,6 +4,7 @@ import { createCosmosKeyboardHandler } from './interface-cosmos.js'
 export const KEYBOARD_MODE_COMMANDS = 'commands'
 export const KEYBOARD_MODE_NOTES = 'notes'
 export const KEYBOARD_MODE_NOTES_HIGH = 'notes-high'
+export const KEYBOARD_MODE_PERCUSSION = 'percussion'
 
 const KEYBOARD_MODE_FEEDBACK_TYPE = 'keyboard'
 
@@ -24,6 +25,11 @@ const KEYBOARD_MODES = Object.freeze([
 		label: 'Notes +1 Octave',
 		type: 'notes',
 		octaveOffset: 12,
+	},
+	{
+		key: KEYBOARD_MODE_PERCUSSION,
+		label: 'Percussion',
+		type: 'percussion',
 	},
 ])
 
@@ -185,6 +191,9 @@ const setKeyboardMode = (application, state, nextIndex) => {
 	if (previousMode?.type === 'notes' && previousMode.key !== nextMode.key) {
 		clearHeldKeyboardNotes(state.heldKeyboardNotes)
 	}
+	if (previousMode?.type === 'percussion' && nextMode.type !== 'percussion') {
+		application.releasePercussionInputs?.('keyboard:')
+	}
 
 	state.keyboardModeIndex = nextModeIndex
 	application.setFeedback?.(getKeyboardModeFeedback(nextMode), 0, KEYBOARD_MODE_FEEDBACK_TYPE)
@@ -313,7 +322,17 @@ const handleKeyboardCommandMode = async (event, application, state) => {
 	const clock = application.clock
 	const padNumber = getKeyboardNumber(event)
 	if (padNumber != null) {
-		if (!event.repeat) application.playPercussionPart?.(KEYBOARD_PERCUSSION_PARTS[padNumber])
+		const inputId = `keyboard:${event.code ?? padNumber}`
+		if (typeof application.setPercussionInput === 'function') {
+			application.setPercussionInput(
+				inputId,
+				KEYBOARD_PERCUSSION_PARTS[padNumber],
+				true,
+				{ source: 'keyboard' },
+			)
+		}else if (!event.repeat) {
+			application.playPercussionPart?.(KEYBOARD_PERCUSSION_PARTS[padNumber])
+		}
 		return
 	}
 
@@ -616,6 +635,24 @@ const handleKeyboardCommandMode = async (event, application, state) => {
 	updateNumberSequence(application, state, event, isNumber)
 }
 
+const handleKeyboardPercussionDown = (event, application) => {
+	const padNumber = getKeyboardNumber(event)
+	if (padNumber == null) return false
+
+	const inputId = `keyboard:${event.code ?? padNumber}`
+	if (typeof application.setPercussionInput === 'function') {
+		application.setPercussionInput(
+			inputId,
+			KEYBOARD_PERCUSSION_PARTS[padNumber],
+			true,
+			{ source: 'keyboard' },
+		)
+	}else if (!event.repeat) {
+		application.playPercussionPart?.(KEYBOARD_PERCUSSION_PARTS[padNumber])
+	}
+	return true
+}
+
 /**
  * Add keyboard listeners and tie in commands
  */
@@ -707,6 +744,13 @@ export const addKeyboardEvents = application => {
 			return
 		}
 
+		if (mode.type === 'percussion') {
+			state.numberSequence = ''
+			handleKeyboardPercussionDown(event, application)
+			updateKeyboardStatus(application, state, event.key, true)
+			return
+		}
+
 		await handleKeyboardCommandMode(event, application, state)
 		updateKeyboardStatus(application, state, event.key, true)
 	})
@@ -717,11 +761,25 @@ export const addKeyboardEvents = application => {
 			return
 		}
 
+		const mode = KEYBOARD_MODES[state.keyboardModeIndex]
+		const padNumber = (
+			mode.type === 'percussion'
+			|| mode.type === 'commands'
+		) ? getKeyboardNumber(event) : null
+		if (padNumber != null) {
+			application.setPercussionInput?.(
+				`keyboard:${event.code ?? padNumber}`,
+				KEYBOARD_PERCUSSION_PARTS[padNumber],
+				false,
+			)
+			updateKeyboardStatus(application, state)
+			return
+		}
+
 		if (isEditableKeyboardEvent(event)) {
 			return
 		}
 
-		const mode = KEYBOARD_MODES[state.keyboardModeIndex]
 		if (mode.type !== 'notes') {
 			updateKeyboardStatus(application, state)
 			return
@@ -734,6 +792,7 @@ export const addKeyboardEvents = application => {
 	window.addEventListener('blur', () => {
 		handleCosmosKeyboardEvent({ type: 'blur' })
 		clearHeldKeyboardNotes(state.heldKeyboardNotes)
+		application.releasePercussionInputs?.('keyboard:')
 		updateKeyboardStatus(application, state)
 	})
 }

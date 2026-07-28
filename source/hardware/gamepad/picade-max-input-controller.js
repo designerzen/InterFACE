@@ -171,9 +171,7 @@ export class PicadeMaxController {
 		lightPreset = 'default',
 		pressColor = '#ffffff',
 		pressBrightness = 31,
-		longPressColor = '#ff0000',
 		fadeTime = 0.45,
-		longPressMs = 500,
 		getButtonLightOptions = null,
 		lightInputFeedback = true,
 	} = {}) {
@@ -193,9 +191,7 @@ export class PicadeMaxController {
 		this.#plasma = plasma ?? new PicadePlasma({ ...lightLayout, playerCount: PICADE_MAX_PLAYER_COUNT })
 		this.pressColor = pressColor
 		this.pressBrightness = pressBrightness
-		this.longPressColor = longPressColor
 		this.fadeTime = fadeTime
-		this.longPressMs = longPressMs
 		this.getButtonLightOptions = getButtonLightOptions
 		this.lightInputFeedback = lightInputFeedback
 	}
@@ -272,6 +268,17 @@ export class PicadeMaxController {
 	setButtonLight(player, eventType, color, { brightness = this.pressBrightness } = {}) {
 		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
 		this.#plasma.setButtonLight(player, eventType, color, { brightness })
+		return true
+	}
+
+	repeatHeldButtonLight(player, eventType) {
+		if (!this.#plasma.connected || !this.#plasma.hasButtonEvent(player, eventType)) return false
+		const light = this.#holdTimers.get(`${player}:${eventType}`)
+		if (!light) return false
+		this.#plasma.triggerButtonLight(player, eventType, light.color, {
+			brightness: light.brightness,
+			fadeTime: light.fadeTime,
+		})
 		return true
 	}
 
@@ -472,7 +479,6 @@ export class PicadeMaxController {
 		const key = `${player}:${eventType}`
 		const lightOptions = this.getButtonLightOptions?.({ player, eventType }) ?? {}
 		const pressColor = lightOptions.color ?? this.pressColor
-		const longPressColor = lightOptions.longPressColor ?? this.longPressColor
 		const brightness = lightOptions.brightness ?? this.pressBrightness
 		const fadeTime = lightOptions.fadeTime ?? this.fadeTime
 		if (pressed) {
@@ -486,39 +492,24 @@ export class PicadeMaxController {
 				: 0
 			const tapColor = tapIndex === 0 ? pressColor : PICADE_RAPID_TAP_COLORS[tapIndex]
 			this.#tapStates.set(key, { at: now, index: tapIndex })
-			this.#plasma.setButtonLight(player, eventType, tapColor, { brightness })
-			const hold = { color: tapColor, tapIndex, startedAt: now, timer: null, releaseTimer: null }
-			hold.timer = setTimeout(() => {
-				hold.color = longPressColor
-				this.#plasma.setButtonLight(player, eventType, hold.color, { brightness })
-			}, this.longPressMs)
+			this.#plasma.triggerButtonLight(player, eventType, tapColor, { brightness, fadeTime })
+			const hold = {
+				color: tapColor,
+				brightness,
+				fadeTime,
+				tapIndex,
+				startedAt: now,
+				timer: null,
+				releaseTimer: null,
+			}
 			this.#holdTimers.set(key, hold)
 			return
 		}
 		const hold = this.#holdTimers.get(key)
 		clearTimeout(hold?.timer)
 		clearTimeout(hold?.releaseTimer)
-		const now = performance.now?.() ?? Date.now()
-		const heldFor = Math.max(0, now - (hold?.startedAt ?? now))
-		const releaseDuration = Math.min(1.1, Math.max(fadeTime, 0.18 + heldFor / 1600))
-		const releaseIndex = ((hold?.tapIndex ?? -1) + 1) % PICADE_RAPID_TAP_COLORS.length
-		const releaseColor = PICADE_RAPID_TAP_COLORS[releaseIndex]
-		this.#plasma.fadeButtonLight(player, eventType, hold?.color ?? this.pressColor, releaseColor, {
-			brightness,
-			duration: releaseDuration * 0.4,
-		})
-		const release = {
-			...hold,
-			timer: null,
-			releaseTimer: setTimeout(() => {
-				this.#plasma.fadeButtonLight(player, eventType, releaseColor, null, {
-					brightness,
-					duration: releaseDuration * 0.6,
-				})
-				this.#holdTimers.delete(key)
-			}, releaseDuration * 400),
-		}
-		this.#holdTimers.set(key, release)
+		this.#plasma.resetButtonLight(player, eventType)
+		this.#holdTimers.delete(key)
 	}
 }
 

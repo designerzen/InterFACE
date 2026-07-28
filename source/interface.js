@@ -75,6 +75,7 @@ import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arran
 import { DRUM_GROOVES } from './timing/drum-patterns.js'
 import { getArpeggioTiming } from './timing/arpeggio.js'
 import {
+	createPercussionHoldRepeater,
 	createPercussionQuantiser,
 	getIdealTickAudioTime,
 	getPercussionTriggerTime,
@@ -624,6 +625,17 @@ export const createInterface = (
 	let callbackUpdate
 	const drumPartListeners = new Set()
 	const percussionQuantiser = createPercussionQuantiser()
+	let playPercussionPart
+	const percussionHoldRepeater = createPercussionHoldRepeater({
+		onRepeat: (part, options) => {
+			const { onPercussionRepeat, ...soundOptions } = options
+			onPercussionRepeat?.(part, soundOptions)
+			return playPercussionPart?.(part, {
+			...soundOptions,
+			source: 'hold-repeat',
+			})
+		},
+	})
 
 	// Flags
 	let isLoading = true
@@ -1013,7 +1025,7 @@ export const createInterface = (
 		changeDrumPattern( Math.floor( 17 + Math.random() * 23 ))
 	} 
 
-	const playPercussionPart = (part, options={}) => {
+	playPercussionPart = (part, options={}) => {
 		resumeAudio()
 
 		const now = audioContext.currentTime
@@ -1103,6 +1115,20 @@ export const createInterface = (
 				return null
 		}
 	}
+
+	const setPercussionInput = (inputId, part, pressed, options={}) => {
+		if (!pressed) {
+			percussionHoldRepeater.release(inputId)
+			return false
+		}
+		if (!percussionHoldRepeater.press(inputId, part, options)) return false
+		const { onPercussionRepeat, ...soundOptions } = options
+		playPercussionPart(part, soundOptions)
+		return true
+	}
+
+	const releasePercussionInputs = prefix =>
+		percussionHoldRepeater.releasePrefix(prefix)
 
 	/**
 	 * Toggle the background synthesized percussion
@@ -2839,6 +2865,7 @@ export const createInterface = (
 			divisionsElapsed,
 			tickDuration: clock.timeBetween / 1000,
 		})
+		percussionHoldRepeater.advance()
 
 		// const tempo = tapTempo(true, 1000, 3)
 		// console.log( tempo, "start", clock.isAtStart, 'qn', clock.isQuarterNote, clock.now, clock.bpm, "PhotoSYNTH Clock", clock.divisionsElapsed, clock.totalDivisions, { clock }, values)
@@ -4496,7 +4523,9 @@ export const createInterface = (
 
 			addEventListener:addListener,
 			
-			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres, playPercussionPart, addDrumPartListener, notifyDrumPart, toggleBackgroundPercussion,
+			changeDrumPattern, setRandomDrumPattern, setRandomDrumTimbres,
+			playPercussionPart, setPercussionInput, releasePercussionInputs,
+			addDrumPartListener, notifyDrumPart, toggleBackgroundPercussion,
 		
 			midiPerformance,
 
