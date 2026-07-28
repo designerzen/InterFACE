@@ -27,7 +27,7 @@ export {
 	getClackPresets,
 } from './clack-presets.js'
 
-import { DEFAULT_CLACK_OPTIONS } from './clack-presets.js'
+import { DEFAULT_CLACK_OPTIONS, getClackOutputLevel } from './clack-presets.js'
 
 /**
  * Create an instance of the clack instrument
@@ -91,7 +91,7 @@ export const createClack = (audioContext, output ) => {
 		})
 		
 		// set new envelopes
-		gainNode.gain.setValueAtTime( options.velocity, time)
+		gainNode.gain.setValueAtTime(getClackOutputLevel(options), time)
 		gainNode.gain.exponentialRampToValueAtTime(ZERO, time + options.length)
 
 		return options
