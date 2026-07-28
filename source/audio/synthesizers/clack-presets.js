@@ -13,6 +13,7 @@
 export const DEFAULT_CLACK_OPTIONS = {
 	name:"Default Clack",
 	velocity:1,
+	outputGain:1.8,
 	length:0.05,
 	octave:1,
 	// hint values - currently informational, may be honoured by future synth
@@ -24,6 +25,8 @@ export const DEFAULT_CLACK_OPTIONS = {
 	// (0 / falsy = play immediately at audioContext.currentTime + ZERO)
 	triggerAt:0
 }
+
+export const getClackOutputLevel = options => options.velocity * options.outputGain
 
 const preset = (overrides) => Object.assign({}, DEFAULT_CLACK_OPTIONS, overrides)
 
