@@ -22,10 +22,16 @@
 	top:calc(2rem + var(--pad, 16px) * 2 );
 	bottom: auto;
 
-	// prevent user interaction?
+	// The feedback can be dragged vertically without blocking horizontal touch gestures.
 	user-select: none;
-	pointer-events: none;
+	pointer-events: auto;
+	touch-action: pan-x;
+	cursor: ns-resize;
 	white-space: pre-line;
+
+	&.dragging{
+		will-change: top;
+	}
 	
 	// left:50%;
 	// transform: translateX(-50%);

@@ -11,7 +11,7 @@ allowBuilds:
   lmdb: false
   midi-writer-js: false
   msgpackr-extract: false
-  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/3ae1e0eea61247ef6ed81c06ebe2faf9ce47ed97: false
+  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/26cd23d66cec473616130f6b72ba4754058fb82e: true
   phantomjs-prebuilt: false
   sharp: false
   unrs-resolver: false
