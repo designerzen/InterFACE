@@ -35,6 +35,13 @@ block main
 				nav.internal-links
 					a(href="/app?lights=table") Table
 					a(href="/app?lights=picade") Picade
+
+			article
+				h4 MIDI Presets
+				p Play incoming MIDI notes through PhotoSYNTH and quantise accepted notes onto the percussion grid.
+				nav.internal-links
+					a(href="/app?midi=true&midiInput=true&midiOnboard=true&quantise=true&midiRelay=false&midiClock=false&muted=false") Quantised MIDI Input
+					a(href="/bestival?midi=true&midiInput=true&midiOnboard=true&quantise=true&midiRelay=false&midiClock=false&muted=false&harmonyMode=global-key&key=A&keyScale=NATURAL_MINOR_SCALE") Bestival A minor
 			
 	
 block scripts

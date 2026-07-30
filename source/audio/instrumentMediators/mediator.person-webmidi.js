@@ -146,7 +146,7 @@ export const stopWebMIDIForPerson = (person, useSendAllNotesOff = false) => {
 }
 
 const getAutoMIDIOutputsForPerson = (person, people) => {
-	const multiplePeople = people?.length > 1 || person.playerNumber > -1
+	const multiplePeople = people?.length > 1
 	const multipleMIDIDevices = WebMidi.outputs.length > 1
 	const useDedicatedMIDIDevicePerPerson = multiplePeople && multipleMIDIDevices
 	const dedicatedOutput = useDedicatedMIDIDevicePerPerson ?
@@ -157,7 +157,7 @@ const getAutoMIDIOutputsForPerson = (person, people) => {
 		WebMidi.outputs
 }
 
-const resolveMIDIOutputsForPerson = (person, people) => {
+export const resolveMIDIOutputsForPerson = (person, people) => {
 	const midiDevice = person.options?.midiDevice ?? MIDI_ROUTING_AUTO
 	if (midiDevice === MIDI_ROUTING_AUTO)
 	{
@@ -173,7 +173,7 @@ const resolveMIDIOutputsForPerson = (person, people) => {
 	return selectedOutput ? [selectedOutput] : getAutoMIDIOutputsForPerson(person, people)
 }
 
-const resolveMIDIPortOptionsForPerson = (person) => {
+export const resolveMIDIPortOptionsForPerson = (person) => {
 	const midiPort = person.options?.midiPort ?? MIDI_ROUTING_AUTO
 	if (midiPort === MIDI_ROUTING_AUTO || midiPort === MIDI_ROUTING_ALL)
 	{
@@ -183,6 +183,13 @@ const resolveMIDIPortOptionsForPerson = (person) => {
 	return Number.isInteger(channel) && channel >= 1 && channel <= 16 ?
 		{ channels: channel } :
 		{}
+}
+
+const getMIDINoteNumber = note => {
+	const noteNumber = typeof note === "number" ? note : note?.noteNumber
+	return Number.isInteger(noteNumber) && noteNumber >= 0 && noteNumber <= 127 ?
+		noteNumber :
+		null
 }
 
 /**
@@ -246,6 +253,16 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 	 * @param {String} method (playNote / stopNote)
 	 */
 	const handleNote = (note, method="playNote")=>{		
+		const noteNumber = getMIDINoteNumber(note)
+		if (noteNumber === null)
+		{
+			logMIDIDebug("MIDI:Ignoring invalid outbound note", {
+				note,
+				method,
+				personNumber: person.playerNumber
+			}, 'error')
+			return
+		}
 		
 		if (useSingleResolvedOutput)
 		{
@@ -254,24 +271,27 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 			switch(method)
 			{
 				case "playNote":
-					personNotes.set( note.noteNumber, note )
+					personNotes.set( noteNumber, note )
 					// console.log("playNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
 					break
 				case "stopNote":
-					personNotes.delete( note.noteNumber )
+					personNotes.delete( noteNumber )
 					// console.log("stopNote oneMIDIDevicePerPerson", note, midiOutputDevice, personNotes )
 					break
 			}
 
 			if (output){
 				const velocity = output.name === ROLI_PIANO ? 1 : person.noteVelocity
-				recordMIDIOutputDebug(output, method, note.noteNumber, 'updateWebMIDIWithPerson-dedicated', {
+				const noteOptions = method === "playNote" ?
+					{attack:velocity, ...midiPortOptions} :
+					{release:0.2, ...midiPortOptions}
+				recordMIDIOutputDebug(output, method, noteNumber, 'updateWebMIDIWithPerson-dedicated', {
 					personNumber: person.playerNumber,
 					state: person.state,
 					velocity,
 					...midiPortOptions
 				})
-				sendGuardedMIDIOutput(output, method, note.noteNumber, {attack:velocity, ...midiPortOptions}, 'updateWebMIDIWithPerson-dedicated')
+				sendGuardedMIDIOutput(output, method, noteNumber, noteOptions, 'updateWebMIDIWithPerson-dedicated')
 			}
 
 		}else{
@@ -280,23 +300,26 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 				switch(method)
 				{
 					case "playNote":
-						personNotes.set( note.noteNumber, note )
+						personNotes.set( noteNumber, note )
 						// console.log("playNote all", note, MIDIoutput, personNotes )
 						break
 					case "stopNote":
-						personNotes.delete( note.noteNumber )
+						personNotes.delete( noteNumber )
 						// console.log("stopNote all", note, MIDIoutput, personNotes )
 						break
 				}
 
 				const velocity = MIDIoutput.name === ROLI_PIANO ? 1 : person.noteVelocity
-				recordMIDIOutputDebug(MIDIoutput, method, note.noteNumber, 'updateWebMIDIWithPerson-all', {
+				const noteOptions = method === "playNote" ?
+					{attack:velocity, ...midiPortOptions} :
+					{release:0.2, ...midiPortOptions}
+				recordMIDIOutputDebug(MIDIoutput, method, noteNumber, 'updateWebMIDIWithPerson-all', {
 					personNumber: person.playerNumber,
 					state: person.state,
 					velocity,
 					...midiPortOptions
 				})
-				sendGuardedMIDIOutput(MIDIoutput, method, note.noteNumber, {attack:velocity, ...midiPortOptions}, 'updateWebMIDIWithPerson-all')
+				sendGuardedMIDIOutput(MIDIoutput, method, noteNumber, noteOptions, 'updateWebMIDIWithPerson-all')
 
 				
 				// console.info("MIDI updated handleNote", MIDIoutput, activeAudioOutput )
@@ -333,7 +356,11 @@ export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, prev
 	{
 		case STATE_INSTRUMENT_ATTACK: {
 			const personNotes = getMIDINotesForPerson(person.playerNumber)
-			const nextNotes = new Map(activeAudioOutput.map(note => [note.noteNumber, note]))
+			const nextNotes = new Map(
+				activeAudioOutput
+					.map(note => [getMIDINoteNumber(note), note])
+					.filter(([noteNumber]) => noteNumber !== null)
+			)
 
 			personNotes.forEach((note, noteNumber) => {
 				if (!nextNotes.has(noteNumber))

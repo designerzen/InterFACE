@@ -87,7 +87,7 @@ import { ParamaterRecorder } from '../parameter-recorder.js'
 // UI
 import { addInteractivityToInstrumentPanel, createDraggablePanel, hideExistingInstruments, hidePersonalControlPanel, populateInstrumentPanel, showPersonalControlPanel } from "../dom/ui.panel-instruments.js"
 import { drawMousePressure } from '../dom/mouse-pressure.js'
-import { getNoteFeedbackColour } from '../settings/palette.js'
+import { getNoteFeedbackColour, NOTE_FEEDBACK_MAX_OPACITY } from '../settings/palette.js'
 
 // Models
 import { EmojiDetector } from '../models/emoji-detection.js'
@@ -802,10 +802,11 @@ export default class Person extends EventTarget{
 	
 	/**
 	 * Get's the hue but as an opacity based colour
-	 * Selected person is always brighter and more saturated
+	 * Selected people remain visible while preserving the translucent overlay.
 	 */
 	get hsla(){
-		const opacity = this.isSelected ? 1 : 0.4-this.percentageDead*0.5
+		const visibility = this.isSelected ? 1 : Math.max(0, 0.4-this.percentageDead*0.5)
+		const opacity = visibility * NOTE_FEEDBACK_MAX_OPACITY
 		return `hsla(${this.hue},${this.saturation}%,${this.luminosity}%,${opacity})`
 	}
 
@@ -1532,13 +1533,14 @@ export default class Person extends EventTarget{
 			this.isUserSelectingInputType ? this.getPhase( 1 ) : 
 			this.isSelected ? 1 : 
 			0.1 * (1-this.percentageDead)
+		const feedbackAlpha = clamp(alpha, 0, 1) * NOTE_FEEDBACK_MAX_OPACITY
 		
 		const colours = {
 			...options,
 			h:hue%360,
 			s:saturation,
 			l:luminosity,
-			a:alpha,
+			a:feedbackAlpha,
 			saturation,
 			luminosity
 		}
@@ -1546,7 +1548,7 @@ export default class Person extends EventTarget{
 		// const col =
 		// colours.dots = hue
 		// colours.face = `hsla(${hue},${sl},0.8)`
-		colours.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${alpha})`
+		colours.mouth = `hsla(${hue%360},${saturation}%,${luminosity}%,${feedbackAlpha})`
 		// createHSLA(hue+30, saturation, luminosity, Math.min( 0.2, 0.2 * this.percentageDead) )
 		// colours.mouth = `hsla(${(hue+30)%360},${sl},0.8)`
 		colours.mouthClosed = `hsla(${(hue+30)%360},${sl},0.2)`
@@ -3083,8 +3085,14 @@ export default class Person extends EventTarget{
 	setMIDI(midiDevice, channel="all"){
 		this.midiChannel = channel
 		this.midi = midiDevice
-		this.midiPlayer = new MIDIInstrument(this.audioContext, midiDevice, channel)
-		this.addInstrument( this.midiPlayer )
+		if (this.midiPlayer)
+		{
+			this.midiPlayer.channel = channel
+			this.midiPlayer.connectMIDI(midiDevice)
+		}else{
+			this.midiPlayer = new MIDIInstrument(this.audioContext, midiDevice, channel)
+			this.addInstrument( this.midiPlayer )
+		}
 		//console.log("MIDI set for person", this, "Channel:"+channel, {midi,channel, hasMIDI:this.hasMIDI } )
 	}
 

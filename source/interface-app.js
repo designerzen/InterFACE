@@ -113,6 +113,7 @@ import { getRandomHihatPreset, PRESET_HIHATS, PRESET_HIHATS_CLOSED, PRESET_HIHAT
 import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
 import { getRandomKickPreset, getKickPresets } from './audio/synthesizers/kick.js'
 import { getCowbellPresetForStyle, getRandomCowbellPreset } from './audio/synthesizers/cowbell-presets.js'
+import { PRESET_METRONOME_CLACK } from './audio/synthesizers/clack-presets.js'
 
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
@@ -1809,7 +1810,7 @@ export const createInterface = (
 			// Start on BAR
 			// show quantise
 			// fetch notes played from user?
-			const barColour = getPerson(0).hsl
+			const barColour = getPerson(0).hsla
 			//drawQuantise( canvasContext, beatJustPlayed, clock.bar, clock.totalBars, barColour)
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
@@ -2112,7 +2113,8 @@ export const createInterface = (
 			divisionsElapsed,
 			bar, bars, 
 			barsElapsed, timePassed, 
-			elapsed, expected, drift, level, intervals, lag
+			elapsed, expected, drift, level, intervals, lag,
+			scheduledContextTimeSeconds,
 		} = values
 
 		// NB. do NOT call tapTempo() on every tick — each call pushes a
@@ -2173,10 +2175,13 @@ export const createInterface = (
 		// Play metronome!
 		if ( !isMuted && stateMachine.get("metronome") && isBar )
 		{
-			// TODO: change timbre for first & last stroke
-			const metronomeLength = 0.35
-			// click for 3 then clack
-			kit.clack(metronomeLength, bars % 4 === 0 ? 0.8 : 0.5 )
+			const isAccent = bars % 4 === 0
+			kit.clack({
+				...PRESET_METRONOME_CLACK,
+				velocity:isAccent ? 1 : 0.72,
+				octave:isAccent ? 1.2 : 1,
+				triggerAt:scheduledContextTimeSeconds,
+			})
 		}
 
 		// console.log(barsElapsed, "timer", timer)
@@ -2282,7 +2287,11 @@ export const createInterface = (
 				// Anchor scheduling on the metronome tick's true audio-clock
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
-				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
+				const triggerAt = getBeatTriggerTime(
+					audioContext,
+					clock,
+					scheduledContextTimeSeconds
+				)
 				drumArranger?.setTempo(clock.BPM)
 				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
 				if (parts.kick > 0) kit.kick({ ...kickTimbreOptions, velocity: parts.kick / 255, triggerAt })
@@ -3016,6 +3025,20 @@ export const createInterface = (
 		toggles.metronome = setToggle( "button-metronome", status =>{
 			stateMachine.set( 'metronome', status )
 			setFeedback("Metronome " + (status ? 'enabled' : 'disabled'), 0, status ? 'metronome' : 'silence'  )
+			if (status)
+			{
+				const confirmEnabled = () => kit?.clack({
+					...PRESET_METRONOME_CLACK,
+					velocity:1,
+					octave:1.2,
+				})
+				if (audioContext?.state === "suspended")
+				{
+					audioContext.resume().then(confirmEnabled).catch(() => {})
+				}else{
+					confirmEnabled()
+				}
+			}
 		}, stateMachine.get( 'metronome') )
 
 

@@ -256,6 +256,10 @@ export const observeMIDIInputs = ({
 	startBackgroundPercussion,
 	stopBackgroundPercussion,
 	toggleBackgroundPercussion,
+	scheduleMIDIInput = callback => {
+		callback()
+		return () => false
+	},
 	statusAPI = null
 }) => {
 	if (!stateMachine.get("midiInput"))
@@ -375,39 +379,41 @@ export const observeMIDIInputs = ({
 				return false
 			}
 
-			sendChordNotesOff(playingEntry.chordDetails)
-			if (stateMachine.get("midiOnboard") && globalChordPlayer)
+			if (playingEntry.started)
 			{
-				globalChordPlayer.chordOff(playingEntry.chordDetails, playingEntry.velocity)
+				sendChordNotesOff(playingEntry.chordDetails)
+				if (stateMachine.get("midiOnboard") && globalChordPlayer)
+				{
+					globalChordPlayer.chordOff(playingEntry.chordDetails, playingEntry.velocity)
+				}
 			}
 
 			playingEntry.chordDetails = nextChordDetails
 			playingEntry.chordKey = nextChordKey
 
-			sendChordNotesOn(nextChordDetails)
-			if (stateMachine.get("midiOnboard") && globalChordPlayer)
+			if (playingEntry.started)
 			{
-				globalChordPlayer.chordOn(nextChordDetails, playingEntry.person.noteVelocity || playingEntry.velocity)
+				sendChordNotesOn(nextChordDetails)
+				if (stateMachine.get("midiOnboard") && globalChordPlayer)
+				{
+					globalChordPlayer.chordOn(nextChordDetails, playingEntry.person.noteVelocity || playingEntry.velocity)
+				}
 			}
 			return true
 		}
 
-		const playMIDINoteOn = (person, noteNumber, velocity = 1) => {
-			const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
-			const abortController = new AbortController()
-			const playingEntry = {
-				abortController,
-				chordDetails,
-				chordKey: getChordKey(chordDetails),
-				noteNumber,
-				person,
-				velocity
+		const startPlayingEntry = playingEntry => {
+			if (
+				playingEntry.started
+				|| playingMIDINotes.get(playingEntry.noteNumber) !== playingEntry
+			)
+			{
+				return false
 			}
 
-			person.addEventListener?.(EVENT_EMOTION_CHANGED, () => refreshPlayingEntryChord(playingEntry), {
-				signal: abortController.signal
-			})
-			playingMIDINotes.set(noteNumber, playingEntry)
+			const { chordDetails, noteNumber, person, velocity } = playingEntry
+			playingEntry.started = true
+			playingEntry.cancelPendingStart = null
 
 			if (stateMachine.get("midiInputPersonRootNote"))
 			{
@@ -428,6 +434,34 @@ export const observeMIDIInputs = ({
 			{
 				globalChordPlayer.chordOn(chordDetails, person.noteVelocity || velocity)
 			}
+
+			return true
+		}
+
+		const playMIDINoteOn = (person, noteNumber, velocity = 1, inputPerformanceTimeMs) => {
+			const chordDetails = getMusicalDetailsFromEmoji(noteNumber, person.emoticon, false)
+			const abortController = new AbortController()
+			const playingEntry = {
+				abortController,
+				cancelPendingStart: null,
+				chordDetails,
+				chordKey: getChordKey(chordDetails),
+				noteNumber,
+				person,
+				started: false,
+				velocity
+			}
+
+			person.addEventListener?.(EVENT_EMOTION_CHANGED, () => refreshPlayingEntryChord(playingEntry), {
+				signal: abortController.signal
+			})
+			playingMIDINotes.set(noteNumber, playingEntry)
+
+			playingEntry.cancelPendingStart = scheduleMIDIInput(
+				() => startPlayingEntry(playingEntry),
+				inputPerformanceTimeMs
+			)
+			return playingEntry
 		}
 
 		const playMIDINoteOffEntry = (playingEntry) => {
@@ -437,27 +471,32 @@ export const observeMIDIInputs = ({
 			}
 
 			const { chordDetails, person, noteNumber, velocity } = playingEntry
+			playingEntry.cancelPendingStart?.()
+			playingEntry.cancelPendingStart = null
 			playingEntry.abortController?.abort()
-			sendChordNotesOff(chordDetails)
 
-			if (stateMachine.get("midiRelay"))
+			if (playingEntry.started)
 			{
-				releaseOutputNote(noteNumber)
-				sendMIDIEventToAllDevices("noteoff", noteNumber, 'midi-relay')
+				sendChordNotesOff(chordDetails)
+
+				if (stateMachine.get("midiRelay"))
+				{
+					releaseOutputNote(noteNumber)
+					sendMIDIEventToAllDevices("noteoff", noteNumber, 'midi-relay')
+				}
+
+				if (stateMachine.get("midiInputPersonRootNote"))
+				{
+					person.clearMIDIRootNoteOverride(noteNumber)
+				}
+
+				if (stateMachine.get("midiOnboard") && globalChordPlayer)
+				{
+					globalChordPlayer.chordOff(chordDetails, velocity)
+				}
 			}
 
 			playingMIDINotes.delete(noteNumber)
-
-			if (stateMachine.get("midiInputPersonRootNote"))
-			{
-				person.clearMIDIRootNoteOverride(noteNumber)
-			}
-
-			if (stateMachine.get("midiOnboard") && globalChordPlayer)
-			{
-				globalChordPlayer.chordOff(chordDetails, velocity)
-			}
-
 			return true
 		}
 
@@ -571,7 +610,12 @@ export const observeMIDIInputs = ({
 			}
 
 			setMIDIInputStatus(statusAPI, input, statusId, `${getMIDINoteLabel(event)} on`, true)
-			playMIDINoteOn(person, noteNumber, event.value ?? event.velocity ?? 1)
+			playMIDINoteOn(
+				person,
+				noteNumber,
+				event.value ?? event.velocity ?? 1,
+				event.timestamp
+			)
 		}
 
 		const onNoteOff = event => {

@@ -22,19 +22,9 @@ export const PERCUSSION_REPEAT_TICKS = Object.freeze({
 
 const modulo = (value, divisor) => ((value % divisor) + divisor) % divisor
 
-export const getIdealTickAudioTime = (audioTime, timePassed, expected) => {
-	if (
-		Number.isFinite(audioTime)
-		&& Number.isFinite(timePassed)
-		&& Number.isFinite(expected)
-	) {
-		return audioTime - (timePassed - expected)
-	}
-	return audioTime
-}
-
 export const getNextPercussionGridTime = ({
 	now,
+	inputAudioTime = now,
 	tickAudioTime,
 	divisionsElapsed,
 	tickDuration,
@@ -43,6 +33,7 @@ export const getNextPercussionGridTime = ({
 }) => {
 	if (
 		!Number.isFinite(now)
+		|| !Number.isFinite(inputAudioTime)
 		|| !Number.isFinite(tickAudioTime)
 		|| !Number.isFinite(divisionsElapsed)
 		|| !Number.isFinite(tickDuration)
@@ -55,13 +46,17 @@ export const getNextPercussionGridTime = ({
 
 	const gridDuration = tickDuration * ticksPerGrid
 	const divisionInGrid = modulo(divisionsElapsed, ticksPerGrid)
-	const ticksUntilGrid = modulo(ticksPerGrid - divisionInGrid, ticksPerGrid)
-	let triggerAt = tickAudioTime + ticksUntilGrid * tickDuration
+	const gridOrigin = tickAudioTime - divisionInGrid * tickDuration
+	const gridsAfterOrigin = Math.max(
+		0,
+		Math.ceil((inputAudioTime - gridOrigin) / gridDuration)
+	)
+	let triggerAt = gridOrigin + gridsAfterOrigin * gridDuration
 	const earliestTriggerAt = now + Math.max(0, scheduleAhead)
 
 	if (triggerAt < earliestTriggerAt) {
 		const gridsUntilFuture = Math.ceil((earliestTriggerAt - triggerAt) / gridDuration)
-		triggerAt += Math.max(1, gridsUntilFuture) * gridDuration
+		triggerAt += gridsUntilFuture * gridDuration
 	}
 
 	return triggerAt
@@ -74,15 +69,21 @@ export const createPercussionQuantiser = (options={}) => {
 		update(nextTiming) {
 			timing = nextTiming
 		},
-		getTriggerAt(now) {
+		getTriggerAt({ inputAudioTime, now }) {
 			if (!timing) return null
-			return getNextPercussionGridTime({ ...options, ...timing, now })
+			return getNextPercussionGridTime({
+				...options,
+				...timing,
+				inputAudioTime,
+				now,
+			})
 		},
 	}
 }
 
 export const getPercussionTriggerTime = ({
 	now,
+	inputAudioTime = now,
 	triggerAt,
 	quantise,
 	quantiser,
@@ -90,10 +91,40 @@ export const getPercussionTriggerTime = ({
 }) => {
 	if (Number.isFinite(triggerAt)) return triggerAt
 	if (quantise) {
-		const quantisedTriggerAt = quantiser?.getTriggerAt(now)
+		const quantisedTriggerAt = quantiser?.getTriggerAt({ inputAudioTime, now })
 		if (Number.isFinite(quantisedTriggerAt)) return quantisedTriggerAt
 	}
 	return now + immediateDelay
+}
+
+export const scheduleAtAudioTime = ({
+	now,
+	triggerAt,
+	callback,
+	setTimer = globalThis.setTimeout,
+	clearTimer = globalThis.clearTimeout,
+}) => {
+	if (typeof callback !== 'function') return () => false
+
+	const delay = (triggerAt - now) * 1000
+	if (!Number.isFinite(delay) || delay <= 0) {
+		callback()
+		return () => false
+	}
+
+	let pending = true
+	const timer = setTimer(() => {
+		if (!pending) return
+		pending = false
+		callback()
+	}, delay)
+
+	return () => {
+		if (!pending) return false
+		pending = false
+		clearTimer(timer)
+		return true
+	}
 }
 
 export const getPercussionRepeatTicks = part =>

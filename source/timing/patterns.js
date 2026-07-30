@@ -105,23 +105,27 @@ export const playNextPart = (pattern, instrument, options, triggerAt )=> {
 /**
  * Compute the AudioContext time at which a beat should fire.
  *
- * `expected` comes from netronome's timer thread and stays transport-
- * continuous across live tempo changes, so it is the best representation
- * of the clock grid for audio scheduling.
+ * `scheduledContextTimeSeconds` is captured by netronome's AudioWorklet
+ * before the tick message crosses to the main thread.
  *
  * The whole sequence is shifted into the future by `lookahead` seconds so
  * the audio engine has enough headroom to render the next note without
  * being affected by main-thread stalls.
  *
  * @param {AudioContext} audioContext
- * @param {Object} clock - netronome AudioTimer instance (uses clock.startTime ms)
- * @param {Number} expected - ideal elapsed seconds since clock start (from tick)
+ * @param {Object} clock - netronome AudioTimer instance
+ * @param {Number} scheduledContextTimeSeconds - ideal tick time in AudioContext seconds
  * @param {Number} [lookahead] - scheduling headroom in seconds. When omitted,
  *   it defaults to one quarter-note of headroom from the current clock and
  *   remains stable for the current clock start.
  * @returns {Number} audio-clock time in seconds, suitable for triggerAt
  */
-export const getBeatTriggerTime = ( audioContext, clock, expected, lookahead ) => {
+export const getBeatTriggerTime = (
+	audioContext,
+	clock,
+	scheduledContextTimeSeconds,
+	lookahead
+) => {
 	const now = audioContext.currentTime
 	const cached = clock ? beatTriggerLookaheadState.get(clock) : null
 	if ( lookahead === undefined )
@@ -133,17 +137,18 @@ export const getBeatTriggerTime = ( audioContext, clock, expected, lookahead ) =
 			lookahead = clock && clock.timePerBar > 0 ? clock.timePerBar / 1000 : 0.1
 		}
 	}
-	// Clock not yet started - fall back to "now + lookahead".
-	if ( !clock || clock.startTime <= 0 )
+	if ( !Number.isFinite(scheduledContextTimeSeconds) )
 	{
 		return now + lookahead
 	}
-	beatTriggerLookaheadState.set(clock, {
-		lookahead,
-		startTime: clock.startTime,
-	})
-	const tickAudioTime = clock.startTime / 1000 + ( expected ?? 0 )
-	const scheduled = tickAudioTime + lookahead
+	if (clock)
+	{
+		beatTriggerLookaheadState.set(clock, {
+			lookahead,
+			startTime: clock.startTime,
+		})
+	}
+	const scheduled = scheduledContextTimeSeconds + lookahead
 	// Last-resort safety: never schedule meaningfully in the past
 	// (Web Audio silently drops past-time events). A 5 ms guard is
 	// sufficient and almost never kicks in once the clock is running.

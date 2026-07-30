@@ -77,8 +77,8 @@ import { getArpeggioTiming } from './timing/arpeggio.js'
 import {
 	createPercussionHoldRepeater,
 	createPercussionQuantiser,
-	getIdealTickAudioTime,
 	getPercussionTriggerTime,
+	scheduleAtAudioTime,
 } from './timing/percussion-quantise.js'
 import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
@@ -129,6 +129,7 @@ import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.
 import { getRandomKickPreset, getKickPresets, PRESETS_KICKS } from './audio/synthesizers/kick.js'
 import { getCowbellPresetForStyle, getRandomCowbellPreset, PRESET_COWBELLS } from './audio/synthesizers/cowbell-presets.js'
 import { PERCUSSION_PRESETS, getPercussionPreset } from './audio/synthesizers/percussion-presets.js'
+import { PRESET_METRONOME_CLACK } from './audio/synthesizers/clack-presets.js'
 
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
@@ -625,6 +626,17 @@ export const createInterface = (
 	let callbackUpdate
 	const drumPartListeners = new Set()
 	const percussionQuantiser = createPercussionQuantiser()
+	const scheduleMIDIInput = (callback, inputPerformanceTimeMs = clock.performanceTimeMs) => {
+		const now = clock.audioTimeSeconds
+		const inputAudioTime = clock.performanceToAudioTimeSeconds(inputPerformanceTimeMs)
+		const triggerAt = getPercussionTriggerTime({
+			inputAudioTime,
+			now,
+			quantise: stateMachine.get("quantise"),
+			quantiser: percussionQuantiser,
+		})
+		return scheduleAtAudioTime({ now, triggerAt, callback })
+	}
 	let playPercussionPart
 	const percussionHoldRepeater = createPercussionHoldRepeater({
 		onRepeat: (part, options) => {
@@ -1739,14 +1751,19 @@ export const createInterface = (
 		// Make the Person SING!
 		person.instruments.forEach( async (instrument) => {
 
+			let instrumentOutput
 			switch( instrument.type )
 			{
 				case "percussion":
-					audioOutput = updtateDrumkitWithPerson( instrument, person, !stateMachine.get("midiOnly") )
+					instrumentOutput = updtateDrumkitWithPerson( instrument, person, !stateMachine.get("midiOnly") )
 					break
 
 				default:
-					audioOutput = updateInstrumentWithPerson( instrument, person, !stateMachine.get("midiOnly"), shouldRepeatNote )			
+					instrumentOutput = updateInstrumentWithPerson( instrument, person, !stateMachine.get("midiOnly"), shouldRepeatNote )
+			}
+			if (instrument.type !== "midi")
+			{
+				audioOutput = instrumentOutput
 			}
 			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
@@ -1764,7 +1781,7 @@ export const createInterface = (
 		}
 
 		// dispatch midi to devices based on the above outputs
-		if ( WebMidi && stateMachine.get("midiControl") && !stateMachine.get("midiOnly") )
+		if ( WebMidi.enabled && stateMachine.get("midiControl") )
 		{
 			updateWebMIDIWithPerson(person, personManager.people, audioOutput)
 		}
@@ -2428,7 +2445,7 @@ export const createInterface = (
 			// Start on BAR
 			// show quantise
 			// fetch notes played from user?
-			const barColour = personManager.getPerson(0).hsl
+			const barColour = personManager.getPerson(0).hsla
 			//drawQuantise( canvasContext, beatJustPlayed, clock.bar, clock.totalBars, barColour)
 			quanitiser.draw( hasBeatJustPlayed, clock.bar, clock.totalBars, barColour )
 		}
@@ -2857,11 +2874,12 @@ export const createInterface = (
 			divisionsElapsed,
 			bar, bars, 
 			barsElapsed, timePassed, 
-			elapsed, expected, drift, level, intervals, lag
+			elapsed, expected, drift, level, intervals, lag,
+			scheduledContextTimeSeconds,
 		} = values
 
 		percussionQuantiser.update({
-			tickAudioTime: getIdealTickAudioTime(audioContext.currentTime, timePassed, expected),
+			tickAudioTime: scheduledContextTimeSeconds,
 			divisionsElapsed,
 			tickDuration: clock.timeBetween / 1000,
 		})
@@ -2941,10 +2959,13 @@ export const createInterface = (
 		// Play metronome!
 		if ( !isMuted && stateMachine.get("metronome") && isBar )
 		{
-			// TODO: change timbre for first & last stroke
-			const metronomeLength = 0.35
-			// click for 3 then clack
-			kit.clack(metronomeLength, bars % 4 === 0 ? 0.8 : 0.5 )
+			const isAccent = bars % 4 === 0
+			kit.clack({
+				...PRESET_METRONOME_CLACK,
+				velocity:isAccent ? 1 : 0.72,
+				octave:isAccent ? 1.2 : 1,
+				triggerAt:scheduledContextTimeSeconds,
+			})
 		}
 
 		// console.log(barsElapsed, "timer", timer)
@@ -3056,7 +3077,11 @@ export const createInterface = (
 				// Anchor scheduling on the metronome tick's true audio-clock
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
-				const triggerAt = getBeatTriggerTime( audioContext, clock, expected )
+				const triggerAt = getBeatTriggerTime(
+					audioContext,
+					clock,
+					scheduledContextTimeSeconds
+				)
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
 				drumArranger?.setTempo(clock.BPM)
 				drumArranger?.setMutedParts({
@@ -3656,6 +3681,7 @@ export const createInterface = (
 					startBackgroundPercussion,
 					stopBackgroundPercussion,
 					toggleBackgroundPercussion,
+					scheduleMIDIInput,
 					statusAPI: inputStatusOverlay
 				})
 			}
@@ -3835,6 +3861,20 @@ export const createInterface = (
 		toggles.metronome = setToggle( "button-metronome", status =>{
 			stateMachine.set( 'metronome', status )
 			setFeedback("Metronome " + (status ? 'enabled' : 'disabled'), 0, status ? 'metronome' : 'silence'  )
+			if (status)
+			{
+				const confirmEnabled = () => kit?.clack({
+					...PRESET_METRONOME_CLACK,
+					velocity:1,
+					octave:1.2,
+				})
+				if (audioContext?.state === "suspended")
+				{
+					audioContext.resume().then(confirmEnabled).catch(() => {})
+				}else{
+					confirmEnabled()
+				}
+			}
 		}, stateMachine.get( 'metronome') )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
