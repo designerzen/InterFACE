@@ -1,7 +1,7 @@
 import { INSTRUMENT_TYPE_SOUNDFONT } from "../audio/instrument-list.js"
 import { TUNING_MODE_NAMES } from "../audio/tuning/scales.js"
 import { EMOJI_MOOD_ALL } from "../models/emoji.js"
-import { HARMONY_MODE_GLOBAL_KEY } from "../people/person.presets.js"
+import { HARMONY_MODE_FREE_RANGE } from "../people/person.presets.js"
 import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments.js"
 import { DEFAULT_COLOURS } from "./palette.js"
 
@@ -130,7 +130,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// F (C=0, CΓÖ»=1, D=2, DΓÖ»=3, E=4, F=5)
 	tonic:0,
 	keyScale:"MAJOR_SCALE",
-	harmonyMode:HARMONY_MODE_GLOBAL_KEY,
+	harmonyMode:HARMONY_MODE_FREE_RANGE,
 
 	// add a dynamic comp
 	// limiter:true,

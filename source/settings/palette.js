@@ -21,6 +21,8 @@ export const NOTE_FEEDBACK_COLOURS = Object.freeze({
 	B:Object.freeze({ h:325, s:90, l:65 })
 })
 
+export const NOTE_FEEDBACK_MAX_OPACITY = 0.5
+
 export const getNoteFeedbackColour = noteName => {
 	if (typeof noteName !== "string")
 	{

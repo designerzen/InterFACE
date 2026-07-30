@@ -34,10 +34,10 @@ const MIDI_PORT_ALL = "all"
 
 const MIDI_PORT_OPTIONS = [
 	[MIDI_PORT_AUTO, "Auto"],
-	[MIDI_PORT_ALL, "All ports"],
+	[MIDI_PORT_ALL, "All channels"],
 	...Array.from({length:16}, (_, index) => {
 		const port = index + 1
-		return [port, `Port ${port}`]
+		return [port, `Channel ${port}`]
 	})
 ]
 
@@ -90,7 +90,7 @@ const createPersonOptionsHTML = (person) => {
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
 			${createSelectControl("Play", "playMode", playMode, [["chord", "Sympathetic Chords"], ["arpeggio", "Arpeggio"]], "data-person-action")}
 			${createSelectControl("MIDI device", "midiDevice", midiDevice, createMIDIDeviceOptions(), "data-person-option", "person-option-wide")}
-			${createSelectControl("MIDI port", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
+			${createSelectControl("MIDI channel", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
 			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}
 			${createSelectControl("Lower octave", "octaveLow", lowOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
 			${createSelectControl("Upper octave", "octaveHigh", highOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}

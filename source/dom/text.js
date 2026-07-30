@@ -163,6 +163,94 @@ export const bindTextElement = (element, rate=350, clearAfter=0, split=false, po
 let singleton
 
 /**
+ * Allow the feedback element to be repositioned vertically with a pointer.
+ * @param {HTMLElement} feedbackElement element to make draggable
+ * @returns {Function} remove the drag controls
+ */
+export const setupDraggableFeedback = feedbackElement => {
+
+	if (!feedbackElement)
+	{
+		return () => {}
+	}
+
+	let pointerId = null
+	let pointerOffset = 0
+	let hasCustomPosition = false
+
+	const setPosition = top => {
+		const bounds = feedbackElement.getBoundingClientRect()
+		const maximumTop = Math.max(0, window.innerHeight - bounds.height)
+		const clampedTop = Math.min(Math.max(0, top), maximumTop)
+
+		feedbackElement.style.top = `${clampedTop}px`
+		feedbackElement.style.bottom = "auto"
+		hasCustomPosition = true
+	}
+
+	const onPointerDown = event => {
+		if (!event.isPrimary || event.button !== 0)
+		{
+			return
+		}
+
+		if (event.target.closest("a, button, input, select, textarea"))
+		{
+			return
+		}
+
+		const bounds = feedbackElement.getBoundingClientRect()
+		pointerId = event.pointerId
+		pointerOffset = event.clientY - bounds.top
+		feedbackElement.setPointerCapture(pointerId)
+		feedbackElement.classList.add("dragging")
+		event.preventDefault()
+	}
+
+	const onPointerMove = event => {
+		if (event.pointerId === pointerId)
+		{
+			setPosition(event.clientY - pointerOffset)
+		}
+	}
+
+	const stopDragging = event => {
+		if (event.pointerId !== pointerId)
+		{
+			return
+		}
+
+		if (feedbackElement.hasPointerCapture(pointerId))
+		{
+			feedbackElement.releasePointerCapture(pointerId)
+		}
+		pointerId = null
+		feedbackElement.classList.remove("dragging")
+	}
+
+	const keepInViewport = () => {
+		if (hasCustomPosition)
+		{
+			setPosition(feedbackElement.getBoundingClientRect().top)
+		}
+	}
+
+	feedbackElement.addEventListener("pointerdown", onPointerDown)
+	feedbackElement.addEventListener("pointermove", onPointerMove)
+	feedbackElement.addEventListener("pointerup", stopDragging)
+	feedbackElement.addEventListener("pointercancel", stopDragging)
+	window.addEventListener("resize", keepInViewport)
+
+	return () => {
+		feedbackElement.removeEventListener("pointerdown", onPointerDown)
+		feedbackElement.removeEventListener("pointermove", onPointerMove)
+		feedbackElement.removeEventListener("pointerup", stopDragging)
+		feedbackElement.removeEventListener("pointercancel", stopDragging)
+		window.removeEventListener("resize", keepInViewport)
+	}
+}
+
+/**
  * Create a method that controls the feedback element remotely
  * @param {HTMLElement} controls DOM element to search within
  * @param {String} query query selector for finding the elements to bind to
@@ -180,6 +268,7 @@ export const setupFeedbackControls = (feedbackElement, rate=35, clearAfter=0, sp
 	{
 		feedbackElement.removeAttribute("popover")
 	}
+	setupDraggableFeedback(feedbackElement)
 	singleton = setFeedbackText
 	return setFeedbackText
 }

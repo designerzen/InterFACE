@@ -393,7 +393,7 @@ export const drawPoints = (canvasContext, prediction, colour={h:0,s:100,l:100}, 
 		// const depth = size * ( z + 2) * 0.1
 		const depth =  (1 - ( ((z+45) / 45)) )//* 0.1
 		const radius = clamp(size * modifier(depth), 1, size)
-		const alpha = clamp( depth, 0.5, 1)
+		const alpha = clamp( depth, 0.5, 1) * (colour.a ?? 1)
 		// console.log({depth,radius,alpha})
 		// const radius = size * Math.abs(10 - z) * 0.1
 		canvasContext.beginPath()
@@ -431,7 +431,7 @@ export const drawFaceMesh = (canvasContext, prediction, palette={h:0,s:100,l:100
 		const pointA = scaledMesh[ TRIANGULATION[ i ] ]
 		const pointB = scaledMesh[ TRIANGULATION[ i + 1 ] ]
 		const pointC = scaledMesh[ TRIANGULATION[ i + 2 ] ]
-		const alpha = palette.a || 1
+		const alpha = palette.a ?? 1
 		
 		const phase = colourCycle ? (hue + ( 360 * i/q )) % 360 : hue
 		const colour = `hsla(${phase},${palette.s}%,${palette.l}%,${alpha})`

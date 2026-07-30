@@ -3,7 +3,8 @@
 // import Stats from 'three/examples/jsm/libs/stats.module'
 import Stats from 'stats-gl'
 import AbstractDisplay from "./display-abstract.js"
-import { DISPLAY_WEB_GL_3D } from "./display-types.js"
+import { DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL, DISPLAY_WEB_GL_3D } from "./display-types.js"
+import { getHolographicDisplayOpacity } from "./display-landmarks.js"
 import { TAU } from "../maths/maths.js"
 
 
@@ -959,15 +960,20 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		const hueNormalised = Math.abs((hue % 360) / 360)
 		const saturation = (colours?.s ?? 60) / 100
 		const lightness = (colours?.l ?? 60) / 100
+		const isHolographic = this.type === DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL
+		const holographicOpacity = getHolographicDisplayOpacity(person)
 		// const elapsed = person.now
 
 		// Fade in 3D model
 		if (this.options.showAvatar && this.faceMesh && this.faceMesh.material && !Array.isArray(this.faceMesh.material) )
 		{
 			// fade the face mesh material in
-			const faceMeshOpacity = this.faceMesh.material.opacity 
-			if ( faceMeshOpacity !== this.avatar.opacity ){
-				this.faceMesh.material.opacity += ( this.avatar.opacity - faceMeshOpacity ) * 0.5
+			const faceMeshOpacity = this.faceMesh.material.opacity
+			const targetFaceMeshOpacity = isHolographic ?
+				Math.min(this.avatar.opacity, holographicOpacity) :
+				this.avatar.opacity
+			if ( faceMeshOpacity !== targetFaceMeshOpacity ){
+				this.faceMesh.material.opacity += ( targetFaceMeshOpacity - faceMeshOpacity ) * 0.5
 			}
 		}else{
 			// ERROR
@@ -1051,6 +1057,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// rotate with inertia
 		if (this.options.showParticles)
 		{
+			if (isHolographic)
+			{
+				this.particles.material.opacity = holographicOpacity
+			}
 			this.faceWasDrawnThisFrame = true
 			// use mouse too for flavour
 			this.particles.rotation.x = ( this.mouseY * VIEW_CONE_ANGLE ) + Math.PI

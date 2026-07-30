@@ -40,6 +40,7 @@ import {
 } from "../settings/options.displays.js"
 import FACE_LANDMARKS_DATA from "../models/face-model-data.json"
 import { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+import { getHolographicDisplayOpacity } from "./display-landmarks.js"
 import { TAU } from "../maths/maths.js"
 import {
 	DEFAULT_LOOKING_GLASS_PARTICLE_EFFECTS,
@@ -652,7 +653,7 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 			const saturation = (colours?.s ?? 60) / 100
 			const lightness = (colours?.l ?? (prediction.isMouthOpen ? 90 : 60)) / 100
 			this.particles.material.color.setHSL(hue, saturation, lightness)
-			this.particles.material.opacity = colours?.a ?? this.options.opacity
+			this.particles.material.opacity = getHolographicDisplayOpacity(person)
 		}
 		this.drawPersonEmoticonParticles(person)
 	}
