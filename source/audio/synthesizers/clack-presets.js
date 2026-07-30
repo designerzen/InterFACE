@@ -41,6 +41,17 @@ export const PRESET_TICK_CLACK = preset({
 	octave:1.2,
 })
 
+export const PRESET_METRONOME_CLACK = preset({
+	name:"Metronome Clack",
+	velocity:0.8,
+	outputGain:2.2,
+	length:0.08,
+	ratios:[1200, 1800],
+	bandpass:2400,
+	bandpassQ:1.2,
+	highpass:500,
+})
+
 export const PRESET_HARD_CLACK = preset({
 	name:"Hard Clack",
 	velocity:1.4,

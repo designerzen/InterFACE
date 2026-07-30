@@ -5,6 +5,7 @@ import {createQueue, chokeGains} from '../synthesizers'
 export {
 	DEFAULT_CLACK_OPTIONS,
 	PRESET_TICK_CLACK,
+	PRESET_METRONOME_CLACK,
 	PRESET_HARD_CLACK,
 	PRESET_SOFT_CLACK,
 	PRESET_TIGHT_CLACK,
@@ -66,7 +67,10 @@ export const createClack = (audioContext, output ) => {
 		
 		options = Object.assign({},DEFAULT_CLACK_OPTIONS,options)
 	
-		const time = options.triggerAt ?? audioContext.currentTime + ZERO
+		const requestedTime = Number(options.triggerAt)
+		const time = Number.isFinite(requestedTime) && requestedTime > 0
+			? Math.max(requestedTime, audioContext.currentTime)
+			: audioContext.currentTime + ZERO
 			
 		if (!isRunning)
 		{
