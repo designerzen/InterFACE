@@ -24,6 +24,16 @@ B Locrian — BCDEFGAB
 Dorian sounds brighter than Aeolian, but Phrygian and especially Locrian have a much darker sound 
 */
 
+import {
+	AUGMENTED_SCALE, BLUES_SCALE, CHROMATIC_SCALE, DIMINISHED_SCALE,
+	DORIAN_SCALE, FIFTHS_SCALE, HARMONIC_MINOR_SCALE, LOCRIAN_SCALE,
+	LYDIAN_SCALE, MAJOR_SCALE, MELODIC_MINOR_SCALE, MIXOLYDIAN_SCALE,
+	NATURAL_MINOR_SCALE, PENTATONIC_MAJOR_SCALE, PENTATONIC_MINOR_SCALE,
+	PHRYGIAN_SCALE, SCALE_INTERVAL_LIBRARY, WHOLE_TONE_SCALE
+} from "./intervals"
+
+export * from "./intervals"
+
 // ["C","C#","Db","D","D#","Eb","E","F","F#","Gb","G","G#","Ab","A","A#","Bb","B"]
 export const SCALE_NAMES = {
 	english: 	["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
@@ -79,28 +89,6 @@ export const getModeAsIntegerOffset = (mode) => isNaN(parseInt(mode)) ? TUNING_M
   
 export const C_SCALE =  ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
-export const CHROMATIC_SCALE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
-export const NATURAL_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]
-export const HARMONIC_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 11]
-
-// these are just modes of the major scale
-export const MELODIC_MINOR_SCALE = [0, 2, 3, 5, 7, 9, 11]
-export const DORIAN_SCALE = [0, 2, 3, 5, 7, 9, 10]
-export const PHRYGIAN_SCALE = [0, 1, 3, 5, 7, 8, 10]
-export const LYDIAN_SCALE = [0, 2, 4, 6, 7, 9, 11]
-export const MIXOLYDIAN_SCALE = [0, 2, 4, 5, 7, 9, 10]
-export const LOCRIAN_SCALE = [0, 1, 3, 5, 6, 8, 10]
-
-// other types of scales!
-export const PENTATONIC_MAJOR_SCALE = [0, 2, 4, 7, 9]
-export const PENTATONIC_MINOR_SCALE = [0, 3, 5, 7, 10]
-export const BLUES_SCALE = [0, 3, 5, 6, 7, 10]
-export const WHOLE_TONE_SCALE = [0, 2, 4, 6, 8, 10]
-export const DIMINISHED_SCALE = [0, 2, 3, 5, 6, 8, 9, 11]
-export const AUGMENTED_SCALE = [0, 3, 4, 7, 8, 11]
-export const FIFTHS_SCALE = [9,4,11,6,1,8,3,10,5,0,7,2]
-
 export const SCALES = [
 	CHROMATIC_SCALE,
 	MAJOR_SCALE,
@@ -124,26 +112,7 @@ export const SCALES = [
 export const SCALES_NAMES = Object.keys(SCALES)
 
 
-export const INTERVAL_LIBRARY = {
-	CHROMATIC_SCALE,
-	MAJOR_SCALE,
-	NATURAL_MINOR_SCALE,
-	HARMONIC_MINOR_SCALE,
-	MELODIC_MINOR_SCALE,
-	DORIAN_SCALE,
-	PHRYGIAN_SCALE,
-	LYDIAN_SCALE,
-	MIXOLYDIAN_SCALE,
-	LOCRIAN_SCALE,
-	PENTATONIC_MAJOR_SCALE,
-	PENTATONIC_MINOR_SCALE,
-	BLUES_SCALE,
-	WHOLE_TONE_SCALE,
-	DIMINISHED_SCALE,
-	AUGMENTED_SCALE,
-	FIFTHS_SCALE,
-	FIFTHS:FIFTHS_SCALE
-}
+export const INTERVAL_LIBRARY = SCALE_INTERVAL_LIBRARY
 
 // inspired by https://www.guitarland.com/MusicTheoryWithToneJS/PlayModes.html
 export const makeScaleMode = (notesInScale, tuningModeIndex) => {

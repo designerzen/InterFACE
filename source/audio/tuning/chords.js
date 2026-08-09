@@ -4,172 +4,57 @@
  */
 import { createKey } from "./keys"
 import { FREQUENCY_LIST, GENERAL_MIDI_INSTRUMENTS, MIDI_NOTE_NAMES, MIDI_NOTE_NUMBER_MAP } from "./notes"
-import { MELODIC_MINOR_SCALE, MAJOR_SCALE, NATURAL_MINOR_SCALE, SCALES, SCALES_NAMES, TUNING_MODE_NAMES } from "./scales"
+import {
+	MELODIC_MINOR_SCALE,
+	MAJOR_SCALE,
+	NATURAL_MINOR_SCALE,
+	SCALES,
+	SCALES_NAMES,
+	TUNING_MODE_NAMES
+} from "./scales"
+import {
+	AUGMENTED_CHORD_INTERVALS,
+	CHORD_VOICING_INTERVAL_LIBRARY,
+	DIMINISHED_CHORD_INTERVALS,
+	DORIAN_CHORD_INTERVALS,
+	FIFTHS_CHORD_INTERVALS,
+	INTERVAL_SHIFTS,
+	MAJOR_CHORD_INTERVALS,
+	MINOR_CHORD_INTERVALS,
+	SUSPENDED_CHORD_INTERVALS
+} from "./intervals"
 
-// Shifted intervals...
-// To go from any specific note to any other specific note
-const INTERVAL_SHIFTS = {
-	downOctave: -12,
-	minorSecond: 1,
-	majorSecond: 2,
-	minorThird: 3,
-	majorThird: 4,
-	perfectFourth: 5,
-	diminishedFifth: 6,
-	perfectFifth: 7,
-	minorSixth: 8,
-	majorSixth: 9,
-	minorSeventh: 10,
-	majorSeventh: 11,
-	perfectOctave: 12,
-	upOctave: 12
-}
+export {
+	AUGMENTED_CHORD_INTERVALS,
+	AUGMENTED_VOICING_INTERVALS,
+	DIMINISHED_CHORD_INTERVALS,
+	DIMINISHED_7_VOICING_INTERVALS,
+	DIMINISHED_VOICING_INTERVALS,
+	DORIAN_CHORD_INTERVALS,
+	DOMINANT_7_VOICING_INTERVALS,
+	DOMINANT_9_VOICING_INTERVALS,
+	FIFTHS_CHORD_INTERVALS,
+	HALF_DIMINISHED_VOICING_INTERVALS,
+	MAJOR_CHORD_INTERVALS,
+	MAJOR_6_VOICING_INTERVALS,
+	MAJOR_7_VOICING_INTERVALS,
+	MAJOR_9_VOICING_INTERVALS,
+	MAJOR_VOICING_INTERVALS,
+	MINOR_6TH_9_VOICING_INTERVALS,
+	MINOR_6_VOICING_INTERVALS,
+	MINOR_7_VOICING_INTERVALS,
+	MINOR_9_VOICING_INTERVALS,
+	MINOR_MAJOR_7_VOICING_INTERVALS,
+	MINOR_CHORD_INTERVALS,
+	MINOR_VOICING_INTERVALS,
+	SIXTH_9_VOICING_INTERVALS,
+	SUSPENDED_2_VOICING_INTERVALS,
+	SUSPENDED_7_VOICING_INTERVALS,
+	SUSPENDED_CHORD_INTERVALS,
+	SUSPENDED_VOICING_INTERVALS
+} from "./intervals"
 
-// let majorText = ["C", "G", "D", "A", "E", "Cb/B", "Gb/F#", "Db/C#", "Ab", "Eb", "Bb", "F"]
-// let minorText = ["Am", "Em", "Bm", "F#m", "C#m", "Abm/G#m", "Ebm/D#m", "Bbm/A#m", "Fm", "Cm", "Gm", "Dm"]
-// export const pentatonicNotesNumber = 5
-
-/*
-  
-  export const scalePatterns: Record<Scale, ScalePattern> = {
-	major: [2, 2, 1, 2, 2, 2, 1],
-	minor: [2, 1, 2, 2, 1, 2, 2],
-	blues: [3, 2, 1, 1, 3, 2],
-	dorian: [2, 1, 2, 2, 2, 1, 2],
-	mixolydian: [2, 2, 1, 2, 2, 1, 2],
-	phrygian: [1, 2, 2, 2, 1, 2, 2],
-	["harmonic-minor"]: [2, 1, 2, 2, 1, 3, 1],
-	["melodic-minor"]: [2, 1, 2, 2, 2, 2, 1],
-  }
-  
-  export const pentatonicPatterns: Record<Scale, ScalePattern> = {
-	major: [2, 2, 3, 2, 3],
-	minor: [3, 2, 2, 3, 2],
-	blues: [3, 2, 1, 3, 2],
-	dorian: [2, 3, 2, 2, 3],
-	mixolydian: [2, 2, 3, 2, 3],
-	phrygian: [1, 3, 2, 3, 2],
-	["harmonic-minor"]: [2, 1, 3, 2, 3],
-	["melodic-minor"]: [2, 3, 2, 2, 3],
-  }
-  
-  
-   aeolian: ['P1', 'M2', 'm3', 'P4', 'P5', 'm6', 'm7'],
-  blues: ['P1', 'm3', 'P4', 'd5', 'P5', 'm7'],
-  chromatic: ['P1', 'm2', 'M2', 'm3', 'M3', 'P4',
-    'A4', 'P5', 'm6', 'M6', 'm7', 'M7'],
-  dorian: ['P1', 'M2', 'm3', 'P4', 'P5', 'M6', 'm7'],
-  doubleharmonic: ['P1', 'm2', 'M3', 'P4', 'P5', 'm6', 'M7'],
-  harmonicminor: ['P1', 'M2', 'm3', 'P4', 'P5', 'm6', 'M7'],
-  ionian: ['P1', 'M2', 'M3', 'P4', 'P5', 'M6', 'M7'],
-  locrian: ['P1', 'm2', 'm3', 'P4', 'd5', 'm6', 'm7'],
-  lydian: ['P1', 'M2', 'M3', 'A4', 'P5', 'M6', 'M7'],
-  majorpentatonic: ['P1', 'M2', 'M3', 'P5', 'M6'],
-  melodicminor: ['P1', 'M2', 'm3', 'P4', 'P5', 'M6', 'M7'],
-  minorpentatonic: ['P1', 'm3', 'P4', 'P5', 'm7'],
-  mixolydian: ['P1', 'M2', 'M3', 'P4', 'P5', 'M6', 'm7'],
-  phrygian: ['P1', 'm2', 'm3', 'P4', 'P5', 'm6', 'm7'],
-  wholetone: ['P1', 'M2', 'M3', 'A4', 'A5', 'A6']
-*/
-
-// minorpentatonic: ['P1', 'm3', 'P4', 'P5', 'm7'],
-
-// export const Major: ReadonlyArray<int> = [0, 2, 4, 5, 7, 9, 11]
-// export const Minor: ReadonlyArray<int> = [0, 2, 3, 5, 7, 8, 10]
-
-/**
- * Intervals: 1, 2, 3, 4, 5, 6, 7
- * Semitones: 2 - 2 - 1 - 2 - 2 - 2 - 1
- * Formula: Whole, Whole, Half, Whole, Whole, Whole, Half
- * [0,2,4,5,7,9,11]
- * 
- * The Major Chord is the most common chord. 
- * Start with any note. This is the first note in the chord.
- * For the second note, count up four notes.
- * For the third note, count up three more notes.
- * The chord is named after the first note.
- */
-export const MAJOR_CHORD_INTERVALS = [0,4,3]
-
-/**
- * Intervals: 1, 2, b3, 4, 5, b6, b7
- * Semitones: 2 - 1 - 2 - 2 - 1 - 2 - 2
- * Formula: Whole, Half, Whole, Whole, Half, Whole, Whole
- * 
- * 
- * The Minor Chord is similar to the Major Chord except that the second note is one lower:
- * Start with any note. This is the first note in the chord.
- * For the second note, count up three notes.
- * For the third note, count up four more notes.
- * The chord is named after the first note.
- */
-export const MINOR_CHORD_INTERVALS = [0,3,4]
-
-/** Chord qualities that must keep their chromatic shape in every tuning mode. */
-export const SUSPENDED_CHORD_INTERVALS = [0,5,2]
-export const DIMINISHED_CHORD_INTERVALS = [0,3,3]
-export const AUGMENTED_CHORD_INTERVALS = [0,4,4]
-
-/**
- * Absolute semitone offsets for emotion-driven chord voicings. These are
- * separate from the cumulative formulas above so callers can request an exact
- * quality without scale-mode quantisation.
- */
-export const MAJOR_VOICING_INTERVALS = [0,4,7]
-export const MINOR_VOICING_INTERVALS = [0,3,7]
-export const SUSPENDED_VOICING_INTERVALS = [0,5,7]
-export const SUSPENDED_2_VOICING_INTERVALS = [0,2,7]
-export const DIMINISHED_VOICING_INTERVALS = [0,3,6]
-export const AUGMENTED_VOICING_INTERVALS = [0,4,8]
-export const MAJOR_6_VOICING_INTERVALS = [0,4,7,9]
-export const MINOR_6_VOICING_INTERVALS = [0,3,7,9]
-export const MAJOR_7_VOICING_INTERVALS = [0,4,7,11]
-export const MINOR_7_VOICING_INTERVALS = [0,3,7,10]
-export const DOMINANT_7_VOICING_INTERVALS = [0,4,7,10]
-export const MINOR_MAJOR_7_VOICING_INTERVALS = [0,3,7,11]
-export const DIMINISHED_7_VOICING_INTERVALS = [0,3,6,9]
-export const HALF_DIMINISHED_VOICING_INTERVALS = [0,3,6,10]
-export const SUSPENDED_7_VOICING_INTERVALS = [0,5,7,10]
-export const MAJOR_9_VOICING_INTERVALS = [0,4,7,11,14]
-export const MINOR_9_VOICING_INTERVALS = [0,3,7,10,14]
-export const DOMINANT_9_VOICING_INTERVALS = [0,4,7,10,14]
-export const SIXTH_9_VOICING_INTERVALS = [0,4,7,9,14]
-export const MINOR_6TH_9_VOICING_INTERVALS = [0,3,7,9,14]
-
-export const CHORD_VOICINGS = Object.freeze({
-	major:MAJOR_VOICING_INTERVALS,
-	minor:MINOR_VOICING_INTERVALS,
-	suspended:SUSPENDED_VOICING_INTERVALS,
-	suspended2:SUSPENDED_2_VOICING_INTERVALS,
-	diminished:DIMINISHED_VOICING_INTERVALS,
-	augmented:AUGMENTED_VOICING_INTERVALS,
-	major6:MAJOR_6_VOICING_INTERVALS,
-	minor6:MINOR_6_VOICING_INTERVALS,
-	major7:MAJOR_7_VOICING_INTERVALS,
-	minor7:MINOR_7_VOICING_INTERVALS,
-	dominant7:DOMINANT_7_VOICING_INTERVALS,
-	minorMajor7:MINOR_MAJOR_7_VOICING_INTERVALS,
-	diminished7:DIMINISHED_7_VOICING_INTERVALS,
-	halfDiminished:HALF_DIMINISHED_VOICING_INTERVALS,
-	suspended7:SUSPENDED_7_VOICING_INTERVALS,
-	major9:MAJOR_9_VOICING_INTERVALS,
-	minor9:MINOR_9_VOICING_INTERVALS,
-	dominant9:DOMINANT_9_VOICING_INTERVALS,
-	sixth9:SIXTH_9_VOICING_INTERVALS,
-	minor6th9:MINOR_6TH_9_VOICING_INTERVALS
-})
-
-/**
- * FIXME: 
- * Intervals: 1, 2, b3, 4, 5, 6, b7
- * Semitones: 2 - 1 - 2 - 2 - 2 - 1 - 2
- * Formula: Whole, Half, Whole, Whole, Whole, Half, Whole
- * 
- */
-export const DORIAN_CHORD_INTERVALS = [0,2,3,5]
-
-export const FIFTHS_CHORD_INTERVALS = [0,5,5,5,5,5]
-
+export const CHORD_VOICINGS = CHORD_VOICING_INTERVAL_LIBRARY
 export const CHORD_INTERVALS = [
 	MAJOR_CHORD_INTERVALS,
 	MINOR_CHORD_INTERVALS,
