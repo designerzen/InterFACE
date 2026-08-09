@@ -287,8 +287,6 @@ menu#control-panel
 			select#select-percussion-sound(aria-label="Select a percussion sound preset" name="select-percussion-sound")
 				option(value="", selected) Random
 
-		label(for="button-midi-percussion") Send Percussion<span class="hide-text"> to MIDI outputs</span>
-			input#button-midi-percussion(type="checkbox" aria-label="Send percussion to MIDI outputs")
 
 		label(for="button-rapid-percussion") Rapid Hits<span class="hide-text"> including triplets and subdivisions</span>
 			input#button-rapid-percussion(type="checkbox" aria-label="Enable rapid percussion triplets and subdivisions")
@@ -296,6 +294,8 @@ menu#control-panel
 		label(for="button-performance-drums") Performance<span class="hide-text"> controls percussion activity</span>
 			input#button-performance-drums(type="checkbox" aria-label="Allow user performance to affect percussion")
 
+		label(for="button-midi-percussion") Send Percussion<span class="hide-text"> to MIDI outputs</span>
+			input#button-midi-percussion(type="checkbox" aria-label="Send percussion to MIDI outputs")
 
 	//- Settings for all users --------------------------------------------------------------- 
 	menu#settings.controls

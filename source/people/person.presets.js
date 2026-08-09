@@ -10,6 +10,8 @@ export const PERSON_TYPE_CHROMATIC = 1
 export const PERSON_TYPE_ARPEGGIO = 2
 export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
 export const PERSON_TYPE_PLAYER = 4
+export const PERSON_TYPE_HARP = 5
+export const PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS = 6
 
 export const PERSON_TYPE_DATA = [
 	{
@@ -50,6 +52,22 @@ export const PERSON_TYPE_DATA = [
 		leftFacingKeys:NOTES_BLACK,
 		rightFacingKeys:NOTES_WHITE,
 		isPlayer:true
+	},
+	{
+		name:"HARP",
+		description:"Fast multi-octave harp arpeggio",
+		arpeggiate:true,
+		performanceMode:"harp",
+		leftFacingKeys:NOTES_BLACK,
+		rightFacingKeys:NOTES_WHITE
+	},
+	{
+		name:"H◯",
+		description:"Harp Circle of Fifths",
+		arpeggiate:true,
+		performanceMode:"harp",
+		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
+		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS
 	}
 ]
 
@@ -105,7 +123,12 @@ export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 	person.harmonyKeyCacheKey = null
 	configurePersonKey(person)
 	if (person.activeInstrument) {
-		person.activeInstrument.arpeggiate = data.arpeggiate
+		if ("performanceMode" in person.activeInstrument)
+		{
+			person.activeInstrument.performanceMode = data.performanceMode ?? (data.arpeggiate ? "arpeggio" : "chord")
+		}else{
+			person.activeInstrument.arpeggiate = data.arpeggiate
+		}
 	}
 
 	// special cases

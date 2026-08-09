@@ -79,7 +79,8 @@ const createPersonOptionsHTML = (person) => {
 	}
 
 	const options = person.options ?? {}
-	const playMode = person.activeInstrument?.arpeggiate ? "arpeggio" : "chord"
+	const playMode = person.activeInstrument?.performanceMode ??
+		(person.activeInstrument?.arpeggiate ? "arpeggio" : "chord")
 	const lowOctave = Number.isFinite(Number(options.octaveLow)) ? Number(options.octaveLow) : 2
 	const highOctave = Number.isFinite(Number(options.octaveHigh)) ? Number(options.octaveHigh) : 6
 	const midiDevice = options.midiDevice ?? MIDI_DEVICE_AUTO
@@ -89,7 +90,7 @@ const createPersonOptionsHTML = (person) => {
 		<summary>${createSummaryContent("Options")}</summary>
 		<div class="person-options-grid">
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
-			${createSelectControl("Play", "playMode", playMode, [["chord", "Sympathetic Chords"], ["arpeggio", "Arpeggio"]], "data-person-action")}
+			${createSelectControl("Play", "playMode", playMode, [["chord", "Sympathetic Chords"], ["arpeggio", "Arpeggio"], ["harp", "HARP — fast multi-octave"]], "data-person-action")}
 			${createSelectControl("MIDI device", "midiDevice", midiDevice, createMIDIDeviceOptions(), "data-person-option", "person-option-wide")}
 			${createSelectControl("MIDI channel", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
 			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}
