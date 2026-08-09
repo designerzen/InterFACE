@@ -1,5 +1,5 @@
 import { ZERO } from '../audio'
-import {createQueue} from '../synthesizers'
+import {createQueue, chokeGains} from '../synthesizers'
 
 // Tom presets live in their own file - re-export for backwards
 // compatibility with existing imports.
@@ -61,7 +61,8 @@ export const createTom = (audioContext, output ) => {
 	const tom = ( options=DEFAULT_TOM_OPTIONS ) => {
 
 		options = Object.assign({}, DEFAULT_TOM_OPTIONS, options )
-		const time = options.triggerAt ?? audioContext.currentTime + ZERO
+		const requestedTime = options.triggerAt > 0 ? options.triggerAt : audioContext.currentTime + ZERO
+		const time = Math.max(audioContext.currentTime, requestedTime)
 		const endAt = time + options.length
 		
 		// console.log("KICK", options )
@@ -119,6 +120,17 @@ export const createTom = (audioContext, output ) => {
 	
 	sineOscillator.connect(gainSine)
 	gainSine.connect(output)
+
+	tom.cancel = () => {
+		const now = audioContext.currentTime
+		gainTriangle.gain.cancelScheduledValues(now)
+		gainTriangle.gain.setValueAtTime(ZERO, now)
+		gainSine.gain.cancelScheduledValues(now)
+		gainSine.gain.setValueAtTime(ZERO, now)
+	}
+	tom.choke = (duration, chokeAt) => {
+		chokeGains(audioContext, [gainTriangle.gain, gainSine.gain], duration, chokeAt)
+	}
 
 	return tom
 }

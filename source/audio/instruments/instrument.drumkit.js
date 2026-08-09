@@ -19,6 +19,7 @@ import { createCowbell } from '../synthesizers/cowbell.js'
 import { createClack } from '../synthesizers/clack.js'
 import { createClap } from '../synthesizers/clap.js'
 import { createSnareReverb } from '../effects/snare-reverb.js'
+import { sendGeneralMIDIPercussion } from '../midi/general-midi-percussion-output.js'
 
 export const OPTIONS_DRUMKIT = {
 	
@@ -30,6 +31,7 @@ export const OPTIONS_DRUMKIT = {
 
 	// Optional starting tempo. The arranger will keep estimating live tempo from triggerAt.
 	bpm:0,
+	performanceDrums:true,
 	snareReverb:0.24
 }
 
@@ -77,19 +79,32 @@ export default class DrumkitInstrument extends Instrument{
 		this.gainNode = this.context.createGain()
 		this.gainNode.gain.value = 1 // this.currentVolume
 		
-		this.kick = createKick(this.context, this.gainNode)
+		const wrapMIDIVoice = (part, voice) => {
+			const midiVoice = (options={}) => {
+				if (this.options.midiPercussion)
+				{
+					sendGeneralMIDIPercussion(part, options, this.context)
+				}
+				return voice(options)
+			}
+			midiVoice.cancel = voice.cancel
+			midiVoice.choke = voice.choke
+			return midiVoice
+		}
+		this.kick = wrapMIDIVoice("kick", createKick(this.context, this.gainNode))
 		this.snareReverb = createSnareReverb(this.context, this.gainNode, this.options.snareReverb)
-		this.snare = createSnare(this.context, this.snareReverb.input)
-		this.hatOpen = createHihat(this.context, this.gainNode)
-		this.hatClosed = createHihat(this.context, this.gainNode)
-		this.cowbell = createCowbell(this.context, this.gainNode)
-		this.clack = createClack(this.context, this.gainNode)
-		this.clap = createClap(this.context, this.gainNode)
+		this.snare = wrapMIDIVoice("snare", createSnare(this.context, this.snareReverb.input))
+		this.hatOpen = wrapMIDIVoice("hatOpen", createHihat(this.context, this.gainNode))
+		this.hatClosed = wrapMIDIVoice("hatClosed", createHihat(this.context, this.gainNode))
+		this.cowbell = wrapMIDIVoice("cowbell", createCowbell(this.context, this.gainNode))
+		this.clack = wrapMIDIVoice("clack", createClack(this.context, this.gainNode))
+		this.clap = wrapMIDIVoice("clap", createClap(this.context, this.gainNode))
 		
 		this.patterns = getKitSequence()
 		this.arranger = createDrumArranger({
 			seed: this.id,
-			bpm: this.options.bpm ?? 0
+			bpm: this.options.bpm ?? 0,
+			performanceControl: this.options.performanceDrums !== false
 		})
 		this.setHatPair(this.hatOptions)
 
@@ -202,6 +217,11 @@ export default class DrumkitInstrument extends Instrument{
 
 	updatePerson(person){
 		this.arranger?.updatePerson(person)
+	}
+
+	setPerformanceControl(enabled){
+		this.options.performanceDrums = enabled !== false
+		this.arranger?.setPerformanceControl(this.options.performanceDrums)
 	}
 
 	setMutedParts(mutes){

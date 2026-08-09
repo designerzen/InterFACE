@@ -4,28 +4,50 @@ import { createHihat, createHihats } from './synthesizers/hihat'
 import { createCowbell, createCowbells, DEFAULT_COWBELL_OPTIONS } from './synthesizers/cowbell' 
 import { createSnare, createSnares, DEFAULT_SNARE_OPTIONS } from './synthesizers/snare' 
 import { createClap, createClaps } from './synthesizers/clap' 
+import { createTom, PRESET_LOW_TOM, PRESET_MID_TOM, PRESET_HIGH_TOM } from './synthesizers/tom'
 import { createSnareReverb } from './effects/snare-reverb.js'
 import { tuneCowbellOptions, tuneKickOptions, tuneSnareOptions } from './synthesizers/percussion-tuning.js'
+import { sendGeneralMIDIPercussion } from './midi/general-midi-percussion-output.js'
 
 /**
  * Just a drum kit you can play that has one of each of the
  * drum sounds set up in cascades. simply createDrumkit().kick() etc
  * @returns {Object<Function>} all individual instruments
  */
-export const createDrumkit = ( audioContext, output ) => {
+export const createDrumkit = ( audioContext, output, options={} ) => {
 	let tonic
+	const wrapMIDIVoice = (part, voice) => {
+		const midiVoice = (voiceOptions={}) => {
+			if (options.midiPercussion)
+			{
+				sendGeneralMIDIPercussion(part, voiceOptions, audioContext)
+			}
+			return voice(voiceOptions)
+		}
+		midiVoice.cancel = voice.cancel
+		midiVoice.choke = voice.choke
+		return midiVoice
+	}
 	const snareReverb = createSnareReverb(audioContext, output)
 	const rawKick = createKick(audioContext, output)
 	const rawSnare = createSnare(audioContext, snareReverb.input)
 	const rawCowbell = createCowbell(audioContext, output)
-	const wrapTunedVoice = (voice, tune, defaults) => {
-		const tunedVoice = (options={}) => voice(tune({ ...defaults, ...options }, tonic))
+	const wrapTunedVoice = (part, voice, tune, defaults) => {
+		const midiVoice = wrapMIDIVoice(part, voice)
+		const tunedVoice = (options={}) => midiVoice(tune({ ...defaults, ...options }, tonic))
 		tunedVoice.cancel = voice.cancel
 		tunedVoice.choke = voice.choke
 		return tunedVoice
 	}
-	const openHat = createHihat(audioContext, output)
-	const closedHat = createHihat(audioContext, output)
+	const wrapPresetVoice = (part, voice, preset) => {
+		const midiVoice = wrapMIDIVoice(part, voice)
+		const presetVoice = (voiceOptions={}) => midiVoice({ ...preset, ...voiceOptions })
+		presetVoice.cancel = voice.cancel
+		presetVoice.choke = voice.choke
+		return presetVoice
+	}
+	const openHat = wrapMIDIVoice("hatOpen", createHihat(audioContext, output))
+	const closedHat = wrapMIDIVoice("hatClosed", createHihat(audioContext, output))
 	const hat = (options={}) => {
 		const triggerAt = options.triggerAt ?? audioContext.currentTime
 		const isOpen = options.open ?? /\b(open|ride|crash)\b/i.test(options.name ?? "")
@@ -51,12 +73,15 @@ export const createDrumkit = ( audioContext, output ) => {
 	hat.closed = closedHat
 
 	const drumkit = {
-		kick : wrapTunedVoice(rawKick, tuneKickOptions, DEFAULT_KICK_OPTIONS),
-		snare : wrapTunedVoice(rawSnare, tuneSnareOptions, DEFAULT_SNARE_OPTIONS),
+		kick : wrapTunedVoice("kick", rawKick, tuneKickOptions, DEFAULT_KICK_OPTIONS),
+		snare : wrapTunedVoice("snare", rawSnare, tuneSnareOptions, DEFAULT_SNARE_OPTIONS),
 		hat,
-		cowbell : wrapTunedVoice(rawCowbell, tuneCowbellOptions, DEFAULT_COWBELL_OPTIONS),
-		clack : createClack(audioContext, output),
-		clap : createClap(audioContext, output),
+		cowbell : wrapTunedVoice("cowbell", rawCowbell, tuneCowbellOptions, DEFAULT_COWBELL_OPTIONS),
+		clack : wrapMIDIVoice("clack", createClack(audioContext, output)),
+		clap : wrapMIDIVoice("clap", createClap(audioContext, output)),
+		tomLow : wrapPresetVoice("tomLow", createTom(audioContext, output), PRESET_LOW_TOM),
+		tomMid : wrapPresetVoice("tomMid", createTom(audioContext, output), PRESET_MID_TOM),
+		tomHigh : wrapPresetVoice("tomHigh", createTom(audioContext, output), PRESET_HIGH_TOM),
 	}
 
 	// you can set the options on the individual instruments
@@ -80,6 +105,9 @@ export const createDrumkit = ( audioContext, output ) => {
 		drumkit.cowbell.cancel?.()
 		drumkit.clack.cancel?.()
 		drumkit.clap.cancel?.()
+		drumkit.tomLow.cancel?.()
+		drumkit.tomMid.cancel?.()
+		drumkit.tomHigh.cancel?.()
 	}
 
 	drumkit.choke = (duration, chokeAt) => {
@@ -89,11 +117,16 @@ export const createDrumkit = ( audioContext, output ) => {
 		drumkit.cowbell.choke?.(duration, chokeAt)
 		drumkit.clack.choke?.(duration, chokeAt)
 		drumkit.clap.choke?.(duration, chokeAt)
+		drumkit.tomLow.choke?.(duration, chokeAt)
+		drumkit.tomMid.choke?.(duration, chokeAt)
+		drumkit.tomHigh.choke?.(duration, chokeAt)
 	}
 	drumkit.setSnareReverb = snareReverb.setAmount
 	drumkit.getSnareReverb = snareReverb.getAmount
 	drumkit.setTonic = pitchClass => tonic = Number.isFinite(pitchClass) ? pitchClass : undefined
 	drumkit.getTonic = () => tonic
+	drumkit.setMIDIPercussion = enabled => options.midiPercussion = Boolean(enabled)
+	drumkit.getMIDIPercussion = () => Boolean(options.midiPercussion)
 
 	return drumkit
 }

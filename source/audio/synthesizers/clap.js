@@ -31,92 +31,94 @@ export {
 } from './clap-presets.js'
 
 import { DEFAULT_CLAP_OPTIONS } from './clap-presets.js'
-import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
-
 /**
- * Create an instance of the snare instrument
+ * Create an instance of the clap instrument
  * @returns {Function} trigger start method
  */
 export const createClap = ( audioContext, output ) => {
 	
 	let isRunning = false
-    const triangleOscillator = audioContext.createOscillator()
-    const gainTriangle = audioContext.createGain()
-    const filterGain = audioContext.createGain()
+	const noiseGain = audioContext.createGain()
 	const noise = audioContext.createBufferSource()
-	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
+	const buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate)
 
-	// just allow the highs through
-	const filter = audioContext.createBiquadFilter()
-	filter.type = "highpass"
-	filter.gain.value = DEFAULT_CLAP_OPTIONS.highpass
+	// Classic analogue claps are a cluster of short, band-limited noise bursts.
+	const bandpassFilter = audioContext.createBiquadFilter()
+	bandpassFilter.type = "bandpass"
+	bandpassFilter.frequency.value = DEFAULT_CLAP_OPTIONS.bandpass
+	bandpassFilter.Q.value = DEFAULT_CLAP_OPTIONS.bandpassQ
 
-	triangleOscillator.type = "triangle"
-	triangleOscillator.frequency.value = DEFAULT_CLAP_OPTIONS.frequencyStart
+	const highpassFilter = audioContext.createBiquadFilter()
+	highpassFilter.type = "highpass"
+	highpassFilter.frequency.value = DEFAULT_CLAP_OPTIONS.highpass
 
-	// TODO Cache the noise
 	const data = buffer.getChannelData(0)
-	for (var i = 0; i < 4096; i++) 
+	for (let i = 0; i < data.length; i++)
 	{
-		data[i] = Math.random()
+		// Bipolar noise avoids the large DC offset produced by Math.random().
+		data[i] = Math.random() * 2 - 1
 	}
 
 	noise.buffer = buffer
 	noise.loop = true
 	
-	triangleOscillator.connect(gainTriangle)
-	gainTriangle.connect( filter )	
-
-	noise.connect(filter)
-	filter.connect(filterGain)
-	filterGain.connect( output )
+	noise.connect(bandpassFilter)
+	bandpassFilter.connect(highpassFilter)
+	highpassFilter.connect(noiseGain)
+	noiseGain.connect(output)
 
 	const clap = ( options=DEFAULT_CLAP_OPTIONS) => {
 	
 		options = Object.assign({},DEFAULT_CLAP_OPTIONS,options)
 	
-		const time = options.triggerAt ?? audioContext.currentTime + ZERO
+		const requestedTime = options.triggerAt > 0 ? options.triggerAt : audioContext.currentTime + ZERO
+		const time = Math.max(audioContext.currentTime, requestedTime)
 		const endAt = time + options.length
 		if (!isRunning)	
 		{
-			//gainNode.gain.value = 1			
 			try{
-				triangleOscillator.start(time)
-				//osc3.stop(audioContext.currentTime + 0.2)
 				noise.start(time)
-				//node.stop(audioContext.currentTime + 0.2)	
 			}catch(error){
 			}
 			isRunning = true
 		}
-		
-		filterGain.gain.cancelScheduledValues(time)
-		filterGain.gain.setValueAtTime(options.velocity, time)
-		filterGain.gain.exponentialRampToValueAtTime(ZERO, endAt)
-	
-		const levels = getVelocityEnvelopeLevels(options)
-		gainTriangle.gain.cancelScheduledValues(time)
-		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
-		gainTriangle.gain.linearRampToValueAtTime(ZERO, endAt )	
-	
-		// modulate and filter freqs
-		filter.frequency.cancelScheduledValues(time)
-		filter.frequency.setValueAtTime( options.frequencyStart, time)
-		filter.frequency.linearRampToValueAtTime( options.frequencyEnd, endAt)
+
+		// Older presets used `6` as if BiquadFilter.gain controlled a high-pass.
+		// Preserve those presets with a musically useful cutoff instead.
+		const highpass = options.highpass > 20 ? options.highpass : DEFAULT_CLAP_OPTIONS.highpass
+		highpassFilter.frequency.cancelScheduledValues(time)
+		highpassFilter.frequency.setValueAtTime(highpass, time)
+		bandpassFilter.frequency.cancelScheduledValues(time)
+		bandpassFilter.frequency.setValueAtTime(options.bandpass, time)
+		bandpassFilter.Q.cancelScheduledValues(time)
+		bandpassFilter.Q.setValueAtTime(options.bandpassQ, time)
+
+		const peak = Math.max(ZERO, options.velocity * options.noiseLevel)
+		const burstFloor = Math.max(ZERO, peak * options.burstFloor)
+		const burstOffsets = options.burstOffsets.length ? options.burstOffsets : [0]
+		const lastBurstAt = time + burstOffsets[burstOffsets.length - 1]
+		const tailAt = Math.min(endAt, lastBurstAt + options.burstDecay)
+
+		noiseGain.gain.cancelScheduledValues(time)
+		noiseGain.gain.setValueAtTime(ZERO, time)
+		burstOffsets.forEach(offset => {
+			const burstAt = Math.min(endAt, time + offset)
+			const burstEndAt = Math.min(endAt, burstAt + options.burstDecay)
+			noiseGain.gain.setValueAtTime(peak, burstAt)
+			noiseGain.gain.exponentialRampToValueAtTime(burstFloor, burstEndAt)
+		})
+		noiseGain.gain.setValueAtTime(Math.max(ZERO, peak * options.tailLevel), tailAt)
+		noiseGain.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
 		return options
 	}
 	clap.cancel = () => {
 		const now = audioContext.currentTime
-		filterGain.gain.cancelScheduledValues(now)
-		filterGain.gain.setValueAtTime(ZERO, now)
-		gainTriangle.gain.cancelScheduledValues(now)
-		gainTriangle.gain.setValueAtTime(ZERO, now)
+		noiseGain.gain.cancelScheduledValues(now)
+		noiseGain.gain.setValueAtTime(ZERO, now)
 	}
 	clap.choke = (duration, chokeAt) => {
-		chokeGains(audioContext, [filterGain.gain, gainTriangle.gain], duration, chokeAt)
+		chokeGains(audioContext, [noiseGain.gain], duration, chokeAt)
 	}
 	return clap
 }

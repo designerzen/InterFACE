@@ -126,3 +126,43 @@ export const getPercussionPreset = value => {
 			normalisePresetName(preset.title) === presetName
 	}) ?? null
 }
+
+const SOUND_AGGRESSION_HINTS = Object.freeze({
+	pillow:-0.32,
+	ambient:-0.28,
+	brushed:-0.24,
+	ghost:-0.2,
+	glass:-0.14,
+	"lo-fi":-0.12,
+	dark:-0.06,
+	vintage:-0.04,
+	short:-0.03,
+	tight:0.03,
+	breakbeat:0.08,
+	jungle:0.12,
+	electro:0.14,
+	"big room":0.18,
+	gated:0.2,
+	beefy:0.22,
+	heavy:0.26,
+	rave:0.3,
+	industrial:0.34,
+	distorted:0.36,
+	hardstyle:0.4,
+})
+
+export const getPercussionSoundAggression = preset => {
+	const intent = preset?.intent ?? {}
+	const kitName = Object.values(preset?.kit ?? {}).join(" ").toLowerCase()
+	const timbreAdjustment = Object.entries(SOUND_AGGRESSION_HINTS).reduce((total, [hint, weight]) => {
+		return kitName.includes(hint) ? total + weight : total
+	}, 0)
+	return (intent.energy ?? 0.5) * 0.55 +
+		(intent.tension ?? 0.5) * 0.3 +
+		(intent.density ?? 0.5) * 0.15 +
+		timbreAdjustment
+}
+
+export const PERCUSSION_SOUND_PRESETS = PERCUSSION_PRESETS
+	.slice()
+	.sort((a, b) => getPercussionSoundAggression(a) - getPercussionSoundAggression(b))

@@ -9,19 +9,19 @@
 export const DEFAULT_TOM_OPTIONS = {
 	name:"Default Tom",
 	velocity:1,
-	length:0.15,
+	length:0.32,
 	attack:0.0001,
-	decay:0.01,
-	sustain:0.9,
-	release:0.001,
+	decay:0.04,
+	sustain:0.68,
+	release:0.2,
 
-	triStart:110,
-	triEnd:50,
+	triStart:260,
+	triEnd:130,
 
-	sineStart:120,
-	sineApex:150,
-	sineSustain:100,
-	sineEnd:50,
+	sineStart:240,
+	sineApex:220,
+	sineSustain:170,
+	sineEnd:115,
 
 	triggerAt:0,
 }
@@ -56,12 +56,12 @@ export const PRESET_LOW_TOM = preset({
 	decay:0.04,
 	sustain:0.7,
 	release:0.4,
-	triStart:110,
-	triEnd:55,
-	sineStart:130,
-	sineApex:100,
-	sineSustain:75,
-	sineEnd:50,
+	triStart:180,
+	triEnd:90,
+	sineStart:165,
+	sineApex:145,
+	sineSustain:115,
+	sineEnd:82,
 })
 
 export const PRESET_MID_TOM = preset({
@@ -72,12 +72,12 @@ export const PRESET_MID_TOM = preset({
 	decay:0.03,
 	sustain:0.72,
 	release:0.28,
-	triStart:160,
-	triEnd:80,
-	sineStart:185,
-	sineApex:140,
-	sineSustain:100,
-	sineEnd:70,
+	triStart:300,
+	triEnd:150,
+	sineStart:275,
+	sineApex:240,
+	sineSustain:190,
+	sineEnd:135,
 })
 
 export const PRESET_HIGH_TOM = preset({
@@ -88,12 +88,12 @@ export const PRESET_HIGH_TOM = preset({
 	decay:0.025,
 	sustain:0.75,
 	release:0.22,
-	triStart:220,
-	triEnd:115,
-	sineStart:260,
-	sineApex:200,
-	sineSustain:140,
-	sineEnd:100,
+	triStart:480,
+	triEnd:240,
+	sineStart:440,
+	sineApex:380,
+	sineSustain:300,
+	sineEnd:215,
 })
 
 export const PRESET_RACK_TOM = preset({
