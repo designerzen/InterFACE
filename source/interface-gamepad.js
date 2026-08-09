@@ -5,7 +5,8 @@ import {
 	BUTTON_LEFT_SHOULDER_BUTTON, BUTTON_RIGHT_SHOULDER_BUTTON, BUTTON_LEFT_SHOULDER_TWO, BUTTON_RIGHT_SHOULDER_TWO, 
 	BUTTON_SELECT, BUTTON_START, 
 	BUTTON_LEFT_S, BUTTON_RIGHT_S, 
-	DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT
+	DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
+	DIRECTION_LEFT_STICK_X, DIRECTION_LEFT_STICK_Y
 } from "./hardware/gamepad/gamepad-commands"
 
 import { 
@@ -25,15 +26,50 @@ import { configurePersonByOperatingMode } from './people/person.presets.js'
 
 export const GAMEPAD_MODE_PERCUSSION = 'beats'
 export const GAMEPAD_MODE_INSTRUMENT = 'instruments'
+export const GAMEPAD_MODE_CHORDS = 'chords'
 export const GAMEPAD_MODE_VFX = 'vfx'
 export const GAMEPAD_MODE_CONTROLS = 'controls'
 
 export const GAMEPAD_MODES = [
 	GAMEPAD_MODE_PERCUSSION,
 	GAMEPAD_MODE_INSTRUMENT,
+	GAMEPAD_MODE_CHORDS,
 	GAMEPAD_MODE_VFX,
 	GAMEPAD_MODE_CONTROLS
 ]
+
+// A compact I-V-vi-IV loop with inversions chosen for smooth voice leading.
+// Offsets are relative to the selected person's pitch class, centred near C4.
+export const GAMEPAD_DIRECTION_CHORDS = Object.freeze({
+	[DIRECTION_UP]: Object.freeze({ name: 'I', offsets: Object.freeze([0, 4, 7]) }),
+	[DIRECTION_RIGHT]: Object.freeze({ name: 'V', offsets: Object.freeze([-1, 2, 7]) }),
+	[DIRECTION_DOWN]: Object.freeze({ name: 'vi', offsets: Object.freeze([-3, 0, 4]) }),
+	[DIRECTION_LEFT]: Object.freeze({ name: 'IV', offsets: Object.freeze([-3, 0, 5]) }),
+})
+
+// The twelve non-control buttons form a chromatic octave. The selected
+// person's current pitch supplies the starting note until a button is used.
+export const GAMEPAD_TONIC_BUTTON_OFFSETS = Object.freeze({
+	[BUTTON_A]: 0,
+	[BUTTON_B]: 1,
+	[BUTTON_X]: 2,
+	[BUTTON_Y]: 3,
+	[BUTTON_LEFT_SHOULDER_BUTTON]: 4,
+	[BUTTON_RIGHT_SHOULDER_BUTTON]: 5,
+	[BUTTON_LEFT_SHOULDER_TWO]: 6,
+	[BUTTON_RIGHT_SHOULDER_TWO]: 7,
+	[BUTTON_LEFT_S]: 8,
+	[BUTTON_RIGHT_S]: 9,
+	[BUTTON_P1]: 10,
+	[BUTTON_P2]: 11,
+})
+
+const GAMEPAD_CHORD_DIRECTIONS = new Set(Object.keys(GAMEPAD_DIRECTION_CHORDS))
+const GAMEPAD_CHORD_AXIS_EVENTS = new Set([DIRECTION_LEFT_STICK_X, DIRECTION_LEFT_STICK_Y])
+const GAMEPAD_CHORD_DEAD_ZONE = 0.35
+const activeGamePadChords = new Map()
+const activeGamePadTones = new Map()
+const gamePadChordTonics = new Map()
 
 const PICADE_GAMEPAD_IDS = new Set([
 	PIMORONI_PICADE_MAX_CONTROLLER_PLAYER_1,
@@ -514,6 +550,152 @@ const convertGamePadActionToPercussion = ( application, gamePad, button, isButto
 	}
 }
 
+const getGamePadChordKey = gamePad => getGamePadStatusId(gamePad)
+
+const getGamePadChordPerson = (application, gamePadPlayerIndex) => {
+	if (gamePadPlayerIndex?.activeInstrument) return gamePadPlayerIndex
+	if (Number.isInteger(gamePadPlayerIndex) && gamePadPlayerIndex > -1) {
+		return getExistingGamePadPerson(application.personManager, gamePadPlayerIndex)
+	}
+	const selectedPerson = application.personManager.getSelectedPerson?.()
+	if (selectedPerson?.activeInstrument) return selectedPerson
+	if (Number.isInteger(selectedPerson)) {
+		return getExistingGamePadPerson(application.personManager, selectedPerson)
+	}
+	return getExistingGamePadPerson(application.personManager, 0)
+}
+
+const getPersonChordTonic = person => {
+	const noteNumber = Number.isFinite(person?.noteNumber) && person.noteNumber >= 0 ? person.noteNumber : 60
+	const pitchClass = ((Math.round(noteNumber) % 12) + 12) % 12
+	const tonic = 60 + pitchClass
+	return tonic > 66 ? tonic - 12 : tonic
+}
+
+const createGamePadChord = (person, gamePad, direction) => {
+	const tonic = gamePadChordTonics.get(getGamePadChordKey(gamePad)) ?? getPersonChordTonic(person)
+	return GAMEPAD_DIRECTION_CHORDS[direction].offsets.map(noteOffset => ({
+		noteNumber: tonic + noteOffset,
+		velocity: 0.8,
+	}))
+}
+
+const startGamePadChord = (instrument, chord) => {
+	if (typeof instrument.chordOn === 'function') {
+		instrument.chordOn(chord, 0.8)
+		return
+	}
+	chord.forEach(note => instrument.noteOn?.(note.noteNumber, note.velocity))
+}
+
+const stopGamePadChord = activeChord => {
+	if (!activeChord) return
+	const { instrument, chord } = activeChord
+	if (typeof instrument.chordOff === 'function') {
+		instrument.chordOff(chord, 0)
+		return
+	}
+	chord.forEach(note => instrument.noteOff?.(note.noteNumber, 0))
+}
+
+const stopActiveGamePadTone = key => {
+	const activeTone = activeGamePadTones.get(key)
+	if (!activeTone) return
+	activeTone.instrument.noteOff?.(activeTone.noteNumber, 0)
+	activeGamePadTones.delete(key)
+}
+
+const setActiveGamePadChord = (application, gamePad, direction, gamePadPlayerIndex, source = 'dpad') => {
+	const key = getGamePadChordKey(gamePad)
+	const previousChord = activeGamePadChords.get(key)
+	if (previousChord?.direction === direction && previousChord?.source === source) return previousChord
+
+	stopGamePadChord(previousChord)
+	activeGamePadChords.delete(key)
+	if (!direction) return null
+
+	const person = getGamePadChordPerson(application, gamePadPlayerIndex)
+	const instrument = person?.activeInstrument
+	if (!instrument) return null
+
+	stopActiveGamePadTone(key)
+	const chord = createGamePadChord(person, gamePad, direction)
+	const activeChord = { direction, source, instrument, chord }
+	activeGamePadChords.set(key, activeChord)
+	application.resumeAudio?.()
+	startGamePadChord(instrument, chord)
+	application.setFeedback?.(`Chord ${GAMEPAD_DIRECTION_CHORDS[direction].name}`, 0, 'gamepad')
+	return activeChord
+}
+
+export const releaseGamePadChords = (gamePad, resetTonic = false) => {
+	const keyPrefix = gamePad ? getGamePadChordKey(gamePad) : null
+	for (const [key, activeChord] of activeGamePadChords) {
+		if (keyPrefix && key !== keyPrefix) continue
+		stopGamePadChord(activeChord)
+		activeGamePadChords.delete(key)
+	}
+	for (const key of activeGamePadTones.keys()) {
+		if (keyPrefix && key !== keyPrefix) continue
+		stopActiveGamePadTone(key)
+	}
+	if (resetTonic) {
+		if (keyPrefix) gamePadChordTonics.delete(keyPrefix)
+		else gamePadChordTonics.clear()
+	}
+}
+
+const setGamePadTonicFromButton = (application, gamePad, button, isButtonHeld, gamePadPlayerIndex) => {
+	if (!Object.prototype.hasOwnProperty.call(GAMEPAD_TONIC_BUTTON_OFFSETS, button)) return false
+	const key = getGamePadChordKey(gamePad)
+	const activeTone = activeGamePadTones.get(key)
+	if (!isButtonHeld) {
+		if (activeTone?.button === button) stopActiveGamePadTone(key)
+		return true
+	}
+
+	const person = getGamePadChordPerson(application, gamePadPlayerIndex)
+	const instrument = person?.activeInstrument
+	if (!instrument) return true
+
+	stopGamePadChord(activeGamePadChords.get(key))
+	activeGamePadChords.delete(key)
+	stopActiveGamePadTone(key)
+	const noteNumber = getPersonChordTonic(person) + GAMEPAD_TONIC_BUTTON_OFFSETS[button]
+	gamePadChordTonics.set(key, noteNumber)
+	activeGamePadTones.set(key, { button, instrument, noteNumber })
+	application.resumeAudio?.()
+	instrument.noteOn?.(noteNumber, 0.8)
+	application.setFeedback?.(`Tonic ${noteNumber}`, 0, 'gamepad')
+	return true
+}
+
+const getLeftStickChordDirection = gamePad => {
+	const x = gamePad?.leftstickX ?? 0
+	const y = gamePad?.leftstickY ?? 0
+	if (Math.hypot(x, y) < GAMEPAD_CHORD_DEAD_ZONE) return null
+	if (Math.abs(x) > Math.abs(y)) return x < 0 ? DIRECTION_LEFT : DIRECTION_RIGHT
+	return y < 0 ? DIRECTION_UP : DIRECTION_DOWN
+}
+
+const convertGamePadActionToChords = (application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex) => {
+	if (setGamePadTonicFromButton(application, gamePad, button, isButtonHeld, gamePadPlayerIndex)) return
+	if (GAMEPAD_CHORD_AXIS_EVENTS.has(button)) {
+		setActiveGamePadChord(application, gamePad, getLeftStickChordDirection(gamePad), gamePadPlayerIndex, 'axis')
+		return
+	}
+	if (!GAMEPAD_CHORD_DIRECTIONS.has(button)) return
+	if (isButtonHeld) {
+		setActiveGamePadChord(application, gamePad, button, gamePadPlayerIndex)
+		return
+	}
+	const activeChord = activeGamePadChords.get(getGamePadChordKey(gamePad))
+	if (activeChord?.source === 'dpad' && activeChord.direction === button) {
+		const remainingDirection = Object.keys(GAMEPAD_DIRECTION_CHORDS).find(direction => gamePad?.[direction]) ?? null
+		setActiveGamePadChord(application, gamePad, remainingDirection, gamePadPlayerIndex)
+	}
+}
+
 // Just alter the visuals!
 const convertGamePadActionToVFX = ( application, gamePad, button, isButtonHeld, heldFor, gamePadPlayerIndex ) => {
 	// One shots just need triggers
@@ -638,6 +820,7 @@ const convertGamePadActionToControl = ( application, gamePad, button, isButtonHe
 export const GAMEPAD_MODE_METHODS = Object.freeze({
 	[GAMEPAD_MODE_PERCUSSION]: convertGamePadActionToPercussion,
 	[GAMEPAD_MODE_INSTRUMENT]: convertGamePadActionToMusic,
+	[GAMEPAD_MODE_CHORDS]: convertGamePadActionToChords,
 	[GAMEPAD_MODE_VFX]: convertGamePadActionToVFX,
 	[GAMEPAD_MODE_CONTROLS]: convertGamePadActionToControl,
 })
@@ -670,6 +853,9 @@ export const addGamePadEvents = (application) => {
 		const modeName = GAMEPAD_MODES[gamePadModeIndex]
 		if (previousMode === GAMEPAD_MODE_PERCUSSION && modeName !== previousMode) {
 			application.releasePercussionInputs?.('gamepad-')
+		}
+		if (previousMode === GAMEPAD_MODE_CHORDS && modeName !== previousMode) {
+			releaseGamePadChords()
 		}
 		gamePadMethod = getGamePadModeMethod(modeName)
 		return modeName
@@ -717,6 +903,7 @@ export const addGamePadEvents = (application) => {
 				if (activeGamePad) {
 					application.clearInputStatus?.(getGamePadStatusId(activeGamePad))
 					application.releasePercussionInputs?.(`${getGamePadStatusId(activeGamePad)}:`)
+					releaseGamePadChords(activeGamePad, true)
 				}
 				console.info("Gamepad disconnected", eventName, value, activeGamePad )
 				break
