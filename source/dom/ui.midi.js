@@ -44,62 +44,93 @@ const routeMIDIPortsToPeople = (people, outputs, midiChannel = "all") => {
 	})
 }
 
+const getMIDIChannelLabel = channel => channel === "all" ? "All channels (1–16)" : `Channel ${Number(channel) + 1}`
+
+const getPersonLabel = (person, index) => person?.name || `Person ${(person?.playerNumber ?? index) + 1}`
+
+const getPortConnectionLabel = port => {
+	const state = port?.state === 'connected' || !port?.state ? 'Connected' : port.state
+	return port?.connection && port.connection !== 'closed' ? `${state} · ${port.connection}` : state
+}
+
+export const createMIDIStatusEntries = (people = [], outputs = [], inputs = [], midiChannel = "all") => {
+	const entries = []
+	const multiplePeople = people.length > 1
+	const useDedicatedMIDIDevicePerPerson = multiplePeople && outputs.length > 1
+	const outputAssignments = new Map(outputs.map(output => [output, []]))
+
+	people.forEach((person, personIndex) => {
+		const output = useDedicatedMIDIDevicePerPerson ?
+			(outputs[personIndex] ?? outputs[0]) :
+			outputs[0]
+		if (output) {
+			outputAssignments.get(output)?.push({ person, personIndex })
+		}
+	})
+
+	inputs.forEach((port, index) => {
+		const label = port.name || port.manufacturer || `MIDI Input ${index + 1}`
+		const channelLabel = 'All channels (1–16)'
+		const personDetails = people.length > 0 ? people.map((person, personIndex) => ({
+			label: getPersonLabel(person, personIndex),
+			value: `Receives input when active · ${channelLabel}`,
+		})) : [{ label: 'Person', value: `Active person · ${channelLabel}` }]
+
+		entries.push({
+			id: `midi-input-${port.id ?? port.name ?? index}`,
+			label,
+			detail: `Input · ${channelLabel} · ${people.length || 1} ${people.length === 1 ? 'person' : 'people'}`,
+			tooltipDetails: [
+				{ label: 'Port', value: 'MIDI input' },
+				{ label: 'Manufacturer', value: port.manufacturer },
+				{ label: 'Connection', value: `${label} → PhotoSYNTH · ${getPortConnectionLabel(port)}` },
+				{ label: 'Channels', value: channelLabel },
+				...personDetails,
+			],
+		})
+	})
+
+	outputs.forEach((port, index) => {
+		const label = port.name || port.manufacturer || `MIDI Output ${index + 1}`
+		const assignments = outputAssignments.get(port) ?? []
+		const personDetails = assignments.map(({ person, personIndex }) => {
+			const personLabel = getPersonLabel(person, personIndex)
+			const channelLabel = getMIDIChannelLabel(person?.midiChannel ?? midiChannel)
+			return { label: personLabel, value: `${personLabel} → ${label} · ${channelLabel}` }
+		})
+		const channels = [...new Set(assignments.map(({ person }) => getMIDIChannelLabel(person?.midiChannel ?? midiChannel)))]
+		const fallbackChannel = getMIDIChannelLabel(midiChannel)
+
+		entries.push({
+			id: `midi-output-${port.id ?? port.name ?? index}`,
+			label,
+			detail: `Output · ${channels.join(', ') || fallbackChannel} · ${assignments.length} ${assignments.length === 1 ? 'person' : 'people'}`,
+			tooltipDetails: [
+				{ label: 'Port', value: 'MIDI output' },
+				{ label: 'Manufacturer', value: port.manufacturer },
+				{ label: 'Connection', value: `PhotoSYNTH → ${label} · ${getPortConnectionLabel(port)}` },
+				{ label: 'Channels', value: channels.length > 0 ? channels : fallbackChannel },
+				...personDetails,
+			],
+		})
+	})
+
+	return entries
+}
+
 const syncMIDIStatusOverlay = (statusAPI, people, outputs, inputs, midiChannel = 0) => {
 	if (!statusAPI?.setDeviceStatus || !statusAPI?.clearDeviceStatus) {
 		return
 	}
 
 	const nextIds = new Set()
-	const deviceMap = new Map()
-	const channelLabel = midiChannel === "all" ? "All Channels" : `Channel ${midiChannel + 1}`
-
-	inputs.forEach((port, index) => {
-		const key = port.id ?? `input-${index}`
-		const existing = deviceMap.get(key) ?? {
-			id: key,
-			label: port.name || `MIDI Device ${index + 1}`,
-			hasInput: false,
-			hasOutput: false,
-			personLabel: '',
-		}
-
-		existing.hasInput = true
-		deviceMap.set(key, existing)
-	})
-
-	outputs.forEach((port, index) => {
-		const key = port.id ?? `output-${index}`
-		const person = people[index < people.length ? index : 0]
-		const existing = deviceMap.get(key) ?? {
-			id: key,
-			label: port.name || `MIDI Device ${index + 1}`,
-			hasInput: false,
-			hasOutput: false,
-			personLabel: '',
-		}
-
-		existing.hasOutput = true
-		existing.personLabel = person?.name ? ` / ${person.name}` : existing.personLabel
-		deviceMap.set(key, existing)
-	})
-
-	Array.from(deviceMap.values()).forEach((device, index) => {
-		const portId = `midi-${device.id ?? index}`
-		const roles = [
-			device.hasInput ? 'In' : '',
-			device.hasOutput ? 'Out' : '',
-		].filter(Boolean).join(' / ')
-		const detail = [
-			roles,
-			device.hasOutput ? channelLabel : '',
-			device.personLabel.replace(/^ \/\s*/, ''),
-		].filter(Boolean).join(' / ')
-
-		nextIds.add(portId)
-		statusAPI.setDeviceStatus(portId, {
+	createMIDIStatusEntries(people, outputs, inputs, midiChannel).forEach(entry => {
+		nextIds.add(entry.id)
+		statusAPI.setDeviceStatus(entry.id, {
 			type: 'midi',
-			label: device.label,
-			detail,
+			label: entry.label,
+			detail: entry.detail,
+			tooltipDetails: entry.tooltipDetails,
 			connected: true,
 			active: false,
 		})
@@ -218,6 +249,9 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 	// update panel options with available devices!
 	setMIDIInputSelector( inputs )
 	setMIDIOutputSelector( outputs )
+	if (hasOutputs) {
+		routeMIDIPortsToPeople(people, outputs, midiChannel)
+	}
 	syncMIDIStatusOverlay(statusAPI, people, outputs, inputs, midiChannel)
 
 	if (hasOutputs)
@@ -227,17 +261,6 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 			`${midiDevices.length} MIDI Devices Detected!<br>${midiDevices.join( "<br>" )}` :
 			`${midiDevices.length} MIDI Devices Connected :<br>${midiDevices.join( "<br>" )}`
 		
-		switch(outputDeviceQuantity)
-		{
-			case 1:
-				routeMIDIPortsToPeople(people, outputs, midiChannel)
-				break
-
-			default:
-				routeMIDIPortsToPeople(people, outputs, midiChannel)
-		}
-
-
 		main.classList.toggle('midi-no-devices', false)
 		main.classList.toggle('midi-connected', true)
 		main.classList.toggle(`midi-devices-${outputDeviceQuantity}`, true)

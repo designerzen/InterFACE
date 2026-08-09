@@ -62,6 +62,7 @@ import Person, {
 	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
 	getRandomPresetForPerson,
 	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
+	EVENT_PERSON_OPTIONS_CHANGED,
 	PERSON_TYPE_ARPEGGIO,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_CHROMATIC,
@@ -892,7 +893,6 @@ export const createInterface = (
 			harmonyMode:stateMachine.get("harmonyMode"),
 
 			instrumentPack:stateMachine.get('instrumentPack'),
-
 			stereoPan:stateMachine.get('stereo'),
 
 			// alternate between mesh and blobs depending on mouth
@@ -961,6 +961,10 @@ export const createInterface = (
 			setToast( `${person.instrumentTitle} Ready!`.toUpperCase() ) 
 			// dispatchEvent(event)
 			dispatchCustomEvent(event.type, detail)
+		})
+
+		person.addEventListener(EVENT_PERSON_OPTIONS_CHANGED, event => {
+			stateMachine.set(person.storageKey, person.exportData())
 		})
 
 		/*

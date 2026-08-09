@@ -785,7 +785,7 @@ export const createInterface = (
 	let mutedSnare
 	let mutedHat
 	const setHatPair = hat => {
-		const pair = getHatPair(hat)
+		const pair = getHihatPair(hat)
 		hatTimbreOptions = hat
 		closedHatTimbreOptions = pair.closed
 		openHatTimbreOptions = pair.open
@@ -1046,7 +1046,7 @@ export const createInterface = (
 		}
 
 		resumeAudio()
-		const pair = getHatPair(hat)
+		const pair = getHihatPair(hat)
 		const groove = DRUM_GROOVES[preset.groove] ?? {
 			kick:[255,0,0,0,0,0,0,0],
 			snare:[0,0,0,0,230,0,0,0],

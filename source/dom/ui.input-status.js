@@ -1,8 +1,10 @@
 const DEFAULT_ACTIVE_TTL = 1400
+let tooltipIndex = 0
 
 const createRow = document => {
 	const row = document.createElement('li')
 	row.className = 'input-status-row'
+	row.tabIndex = 0
 
 	const icon = document.createElement('span')
 	icon.className = 'input-status-icon'
@@ -17,10 +19,43 @@ const createRow = document => {
 	const detail = document.createElement('span')
 	detail.className = 'input-status-detail'
 
-	content.append(label, detail)
-	row.append(icon, content)
+	const tooltip = document.createElement('div')
+	tooltip.className = 'input-status-tooltip'
+	const tooltipId = `input-status-tooltip-${++tooltipIndex}`
+	tooltip.id = tooltipId
+	tooltip.setAttribute('role', 'tooltip')
 
-	return { row, label, detail }
+	const tooltipLabel = document.createElement('strong')
+	tooltipLabel.className = 'input-status-tooltip-label'
+	tooltipLabel.id = `${tooltipId}-label`
+
+	const tooltipDetail = document.createElement('span')
+	tooltipDetail.className = 'input-status-tooltip-detail'
+
+	const tooltipBody = document.createElement('div')
+	tooltipBody.className = 'input-status-tooltip-body'
+	tooltipBody.id = `${tooltipId}-body`
+
+	const tooltipDetails = document.createElement('dl')
+	tooltipDetails.className = 'input-status-tooltip-details'
+	tooltipDetails.hidden = true
+
+	content.append(label, detail)
+	tooltipBody.append(tooltipDetail, tooltipDetails)
+	tooltip.append(tooltipLabel, tooltipBody)
+	row.append(icon, content, tooltip)
+	row.setAttribute('aria-labelledby', tooltipLabel.id)
+	row.setAttribute('aria-describedby', tooltipBody.id)
+
+	row.addEventListener('keydown', event => {
+		if (event.key === 'Escape') {
+			row.classList.add('is-tooltip-dismissed')
+		}
+	})
+	row.addEventListener('mouseleave', () => row.classList.remove('is-tooltip-dismissed'))
+	row.addEventListener('blur', () => row.classList.remove('is-tooltip-dismissed'))
+
+	return { row, label, detail, tooltipLabel, tooltipDetail, tooltipDetails }
 }
 
 export const createInputStatusOverlay = listElement => {
@@ -75,7 +110,24 @@ export const createInputStatusOverlay = listElement => {
 		view.label.classList.add('sr-only')
 		view.label.textContent = nextState.label ?? 'Input'
 		view.detail.textContent = nextState.detail || (nextState.connected === false ? 'Disconnected' : 'Ready')
-		view.row.title = `${view.label.textContent}${view.detail.textContent ? `: ${view.detail.textContent}` : ''}`
+		view.tooltipLabel.textContent = view.label.textContent
+		view.tooltipDetail.textContent = view.detail.textContent
+
+		const tooltipDetails = Array.isArray(nextState.tooltipDetails) ? nextState.tooltipDetails : []
+		view.tooltipDetails.replaceChildren()
+		view.tooltipDetails.hidden = tooltipDetails.length < 1
+		tooltipDetails.forEach(item => {
+			if (!item?.label || item.value === undefined || item.value === null || item.value === '') {
+				return
+			}
+
+			const term = ownerDocument.createElement('dt')
+			term.textContent = item.label
+			const description = ownerDocument.createElement('dd')
+			description.textContent = Array.isArray(item.value) ? item.value.join(', ') : String(item.value)
+			view.tooltipDetails.append(term, description)
+		})
+		view.tooltipDetails.hidden = view.tooltipDetails.childElementCount < 1
 	}
 
 	const setDeviceStatus = (id, patch = {}) => {

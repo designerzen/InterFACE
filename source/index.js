@@ -43,11 +43,13 @@ const debugMode = IS_DEVELOPMENT_MODE || new URLSearchParams(window.location.sea
 forceSecure(IS_DEVELOPMENT_MODE)
 
 // start loading / updating..."loading",
+const bodyClassList = body.classList
 // NB. see _base.pug for double of this - this is just in case
-body.classList.toggle("loading", true)
+bodyClassList.toggle("loading", true)
 // add a special class to the app to frame it
-body.classList.toggle("interface", true)
-body.classList.add(debugMode ? "debug" : LTD)
+bodyClassList.toggle("interface", true)
+bodyClassList.toggle( "debug", debugMode )
+bodyClassList.add( LTD)
 
 // FIXME: show updates button
 const showUpgradeDialog = () => {

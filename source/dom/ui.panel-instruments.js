@@ -2,6 +2,7 @@ import { WebMidi } from "webmidi"
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 import { INTERVAL_LIBRARY } from "../audio/tuning/scales.js"
 import { EMOJI_MOOD_ALL, EMOJI_MOOD_HAPPY, EMOJI_MOOD_SAD } from "../models/emoji.js"
+import { NOTE_PARTICLE_GRAPHIC_OPTIONS, NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC } from "../settings/options.people.js"
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
 const PERSON_OPTION_CLASS = "person-option-control"
@@ -105,6 +106,12 @@ const createPersonOptionsHTML = (person) => {
 			${createToggleControl("Nose", "drawNose", options.drawNose)}
 			${createToggleControl("Stereo pan", "stereoPan", options.stereoPan)}
 		</div>
+		<details class="person-particle-options">
+			<summary>${createSummaryContent("Particles")}</summary>
+			<div class="person-options-grid">
+				${createSelectControl("Graphics", "noteParticleGraphics", options.noteParticleGraphics ?? NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC, NOTE_PARTICLE_GRAPHIC_OPTIONS, "data-person-option", "person-option-wide")}
+			</div>
+		</details>
 	</details>`
 }
 
