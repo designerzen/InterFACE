@@ -6,6 +6,28 @@
 	kbd { font-size: 0.65em; white-space: nowrap; }
 }
 
+.keyboard-shortcut-control {
+	position: relative;
+
+	> kbd.keyboard-shortcut {
+		position: absolute;
+		top: 0.25rem;
+		right: 0.25rem;
+		z-index: 2;
+		padding: 0.08em 0.32em;
+		font-size: max(0.625rem, 0.55em);
+		font-weight: 700;
+		line-height: 1.2;
+		color: var(--shade-white);
+		text-indent: 0;
+		white-space: nowrap;
+		background: color-mix(in srgb, var(--shade-dark) 70%, transparent);
+		border: 1px solid color-mix(in srgb, var(--shade-white) 45%, transparent);
+		border-radius: 0.25em;
+		pointer-events: none;
+	}
+}
+
 dialog.command-palette {
 	--palette-border: color-mix(in srgb, var(--shade-dark) 22%, transparent);
 	width: min(42rem, calc(100vw - 2 * var(--pad)));

@@ -279,6 +279,13 @@
 		}
 	}
 
+	#button-randomise-percussion{
+		--bg:url(/source/assets/icons/casino.svg);
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-yellow);
+		anchor-name:--button-randomise-percussion;
+	}
+
 
 	label[for="select-percussion-preset"],
 	label[for="select-percussion-pattern"],

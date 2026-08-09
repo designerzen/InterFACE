@@ -1,7 +1,7 @@
-#control-panel-tempo{
-	flex:0 1 auto;
-	width:max-content;
-}
+// #control-panel-tempo{
+// 	flex:0 1 auto;
+// 	width:max-content;
+// }
 
 label[for="tempo-input-text"]{
 	grid-area:input;
@@ -69,6 +69,7 @@ label[for="tempo-input-text"]{
     --icon-size: 44px;
 	--bg:url(/source/assets/icons/fingerprint-24px.svg);
 	grid-area:tap;
+	margin-top: 2rem;
 }
 
 #tempo-input-range{

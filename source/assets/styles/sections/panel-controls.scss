@@ -235,6 +235,19 @@
 		}
 	}
 
+	> * {
+		// allow them to resize
+		--min-size: 44px;
+		// ios AAA guidelines
+		max-width: 14ch;;
+		min-width: var(--min-size);
+		min-height: var(--min-size);
+    	flex-shrink: 1;
+    	flex-grow: 1;
+    	flex-basis: min-content;
+		width: 100%;
+	}
+
 		
 	// Specific to the control panel at the bottom
 	// this adds some right pad to icons on the control bar
@@ -242,15 +255,7 @@
 	> *:not(.folder-menu),
 	> .folder-link {
 
-		// allow them to resize
-		--min-size: 44px;
-		// ios AAA guidelines
-		min-width: var(--min-size);
-		min-height: var(--min-size);
-    	flex-shrink: 1;
-    	flex-grow: 1;
-    	flex-basis: min-content;
-		width: min-content;
+
 
 		// gradient background
 		// --col-top:hsl( var(--hue), var( --s, 58%), 30% );

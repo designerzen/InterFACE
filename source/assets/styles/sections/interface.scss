@@ -944,7 +944,8 @@ main.active{
 	}
 }
 
-#settings{
+#settings,
+#percussion-settings{
 	// visibility: hidden;
 	display: none;
 	transform: translateY( 100% );
@@ -954,6 +955,11 @@ main.active{
 
 	animation: none;
 	grid-area: settings-panel;
+	position: relative;
+	z-index: 1;
+}
+
+#settings{
 	
 	.button-close{
 		position: absolute;

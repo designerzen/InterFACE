@@ -145,6 +145,21 @@
 	// animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
 }
 
+// Show the percussion options above the shared controls while beats are active.
+// Global settings take precedence because both panels occupy the same grid area.
+.flag-backingTrack:not(.flag-showSettings) #percussion-settings,
+#percussion-settings:focus,
+#percussion-settings:focus-visible,
+#percussion-settings:focus-within{
+	display: flex;
+	visibility: visible;
+	transform: translateY( 0 );
+}
+
+.flag-showSettings #percussion-settings{
+	display: none;
+}
+
 #feedback{
 	display: none;
 }

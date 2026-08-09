@@ -9,6 +9,13 @@
 	pointer-events: none;
 }
 
+.user-active #input-status-overlay{
+	top: 0;
+	bottom: auto;
+	padding-top: calc(var(--pad) * 0.3);
+	padding-bottom: 0;
+}
+
 #input-status-list{
 	display: flex;
 	flex-direction: row;
@@ -19,16 +26,25 @@
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	overflow: hidden;
+	overflow: visible;
 	pointer-events: none;
 }
 
 .input-status-row{
+	position: relative;
 	display: inline-grid;
 	grid-template-columns: 0.82rem minmax(0, auto);
 	gap: 0.16rem;
 	align-items: center;
 	max-width: 7.5rem;
+	border-radius: 0.2rem;
+	pointer-events: auto;
+	cursor: help;
+}
+
+.input-status-row:focus-visible{
+	outline: 0.12rem solid currentColor;
+	outline-offset: 0.18rem;
 }
 
 .input-status-icon{
@@ -85,6 +101,110 @@
 	line-height: 1;
 	color: inherit;
 	letter-spacing: 0.015em;
+}
+
+.input-status-tooltip{
+	position: absolute;
+	right: 0;
+	bottom: calc(100% + 0.35rem);
+	z-index: 1;
+	display: grid;
+	gap: 0.2rem;
+	width: max-content;
+	min-width: min(16rem, calc(100vw - var(--pad) * 2));
+	max-width: min(30rem, calc(100vw - var(--pad) * 2));
+	max-height: min(70dvh, 32rem);
+	padding: 0.55rem 0.7rem;
+	border: 1px solid rgba(255, 255, 255, 0.28);
+	border-radius: 0.35rem;
+	background: rgba(14, 17, 22, 0.94);
+	box-shadow: 0 0.3rem 1rem rgba(0, 0, 0, 0.38);
+	color: var(--shade-white);
+	font-size: 0.8rem;
+	line-height: 1.35;
+	text-align: left;
+	text-shadow: none;
+	white-space: normal;
+	overflow-y: auto;
+	scrollbar-gutter: stable;
+	overscroll-behavior: contain;
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 100ms ease-out, visibility 100ms;
+}
+
+.input-status-tooltip::after{
+	position: absolute;
+	top: 100%;
+	right: 0;
+	width: 100%;
+	height: 0.45rem;
+	content: '';
+}
+
+.user-active .input-status-tooltip{
+	top: calc(100% + 0.35rem);
+	bottom: auto;
+}
+
+.user-active .input-status-tooltip::after{
+	top: auto;
+	bottom: 100%;
+}
+
+.input-status-tooltip-label,
+.input-status-tooltip-detail{
+	display: block;
+}
+
+.input-status-tooltip-label{
+	font-size: 0.9rem;
+}
+
+.input-status-tooltip-detail{
+	color: rgba(255, 255, 255, 0.82);
+}
+
+.input-status-tooltip-body{
+	display: grid;
+	gap: 0.45rem;
+}
+
+.input-status-tooltip-details{
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: 0.2rem 0.65rem;
+	margin: 0;
+	padding-top: 0.4rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.input-status-tooltip-details[hidden]{
+	display: none;
+}
+
+.input-status-tooltip-details dt{
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.input-status-tooltip-details dd{
+	min-width: 0;
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.input-status-row:not(.is-tooltip-dismissed):is(:hover, :focus-visible) .input-status-tooltip{
+	visibility: visible;
+	opacity: 1;
+	pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce){
+	.input-status-tooltip{
+		transition: none;
+	}
 }
 
 @media (max-width: 42rem){

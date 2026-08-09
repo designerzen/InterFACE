@@ -412,6 +412,13 @@
 
 	@extend %text-shadow;
 	@extend %background-button;
+		
+	// FIXME:	
+	// color: light-dark(
+	// 	var(--col-text, var(--col-fg, var(--shade-dark, black) ) ),
+	// 	var(--col-text, var(--col-fg, var(--shade-light, white) ) )
+	// );
+
 	
 	// turn any element into a pseudo button
 	cursor: pointer;
@@ -425,14 +432,8 @@
 
 	// ensure text is correct colour and not overwritten
 	color:var(--col-text, var(--col-fg, var(--shade-light, white) ) );
-	
-	// FIXME:	
-	// color: light-dark(
-	// 	var(--col-text, var(--col-fg, var(--shade-dark, black) ) ),
-	// 	var(--col-text, var(--col-fg, var(--shade-light, white) ) )
-	// );
-
-	// color:red;
+	// set the button text to the corresponding color
+	color: contrast-color( var(--col-text, var(--col-fg, var(--shade-light) ) ), var(--col-top) );
 
 	// allow mtext wrapping mid-word
 	hyphens: auto;

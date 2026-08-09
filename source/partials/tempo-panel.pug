@@ -20,10 +20,13 @@ fieldset.form-tempo
 		option(value="1", label="100%")
 	output(for="tempo-swing-range")#tempo-swing-output 0%
 
-	button(type="button")#tempo-increase-button.button-bpm-up Tempo Increase
-	button(type="button")#tempo-decrease-button.button-bpm-down Tempo Decrese
+	button(type="button")#tempo-increase-button.button-bpm-up.keyboard-shortcut-control Tempo Increase
+		kbd.keyboard-shortcut(aria-hidden="true") →
+	button(type="button")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrese
+		kbd.keyboard-shortcut(aria-hidden="true") ←
 
-	button(type="button")#tempo-tap-button.button-bpm-tap.round Tap Tempo
+	button(type="button")#tempo-tap-button.button-bpm-tap.round.keyboard-shortcut-control Tap Tempo
+		kbd.keyboard-shortcut(aria-hidden="true") X
 
 	output#timing-feedback 
 
