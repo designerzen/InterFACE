@@ -62,14 +62,14 @@
 				],
 				"3": [
 					"violin",
-					"viola",
-					"cello"
+					"cello",
+					"viola"
 				],
 				"4": [
 					"violin",
+					"contrabass",
 					"viola",
-					"cello",
-					"contrabass"
+					"cello"
 				]
 			}
 		},
@@ -108,18 +108,18 @@
 					"lead_2_sawtooth"
 				],
 				"2": [
-					"synth_bass_1",
-					"lead_2_sawtooth"
+					"lead_2_sawtooth",
+					"synth_bass_1"
 				],
 				"3": [
+					"lead_2_sawtooth",
 					"synth_bass_1",
-					"synth_strings_1",
-					"lead_2_sawtooth"
+					"synth_strings_1"
 				],
 				"4": [
+					"lead_2_sawtooth",
 					"synth_bass_1",
 					"synth_strings_1",
-					"lead_2_sawtooth",
 					"electric_piano_1"
 				]
 			}
@@ -164,14 +164,14 @@
 				],
 				"3": [
 					"trumpet",
-					"french_horn",
-					"tuba"
+					"tuba",
+					"french_horn"
 				],
 				"4": [
 					"trumpet",
+					"tuba",
 					"trombone",
-					"french_horn",
-					"tuba"
+					"french_horn"
 				]
 			}
 		},
@@ -236,13 +236,13 @@
 				],
 				"3": [
 					"flute",
-					"violin",
-					"cello"
+					"cello",
+					"violin"
 				],
 				"4": [
 					"flute",
-					"violin",
 					"cello",
+					"violin",
 					"french_horn"
 				]
 			}
@@ -282,17 +282,17 @@
 					"overdriven_guitar"
 				],
 				"2": [
-					"electric_bass_pick",
-					"overdriven_guitar"
+					"overdriven_guitar",
+					"electric_bass_pick"
 				],
 				"3": [
-					"electric_bass_pick",
 					"overdriven_guitar",
+					"electric_bass_pick",
 					"rock_organ"
 				],
 				"4": [
-					"electric_bass_pick",
 					"overdriven_guitar",
+					"electric_bass_pick",
 					"rock_organ",
 					"distortion_guitar"
 				]
@@ -436,17 +436,17 @@
 					"synth_bass_2"
 				],
 				"2": [
-					"synth_bass_2",
-					"lead_1_square"
+					"lead_1_square",
+					"synth_bass_2"
 				],
 				"3": [
-					"synth_bass_2",
 					"lead_1_square",
+					"synth_bass_2",
 					"pad_3_polysynth"
 				],
 				"4": [
-					"synth_bass_2",
 					"lead_1_square",
+					"synth_bass_2",
 					"pad_3_polysynth",
 					"synth_drum"
 				]
@@ -487,17 +487,17 @@
 					"synth_bass_1"
 				],
 				"2": [
-					"synth_bass_1",
-					"lead_4_chiff"
+					"lead_4_chiff",
+					"synth_bass_1"
 				],
 				"3": [
-					"synth_bass_1",
 					"lead_4_chiff",
+					"synth_bass_1",
 					"melodic_tom"
 				],
 				"4": [
-					"synth_bass_1",
 					"lead_4_chiff",
+					"synth_bass_1",
 					"melodic_tom",
 					"reverse_cymbal"
 				]
@@ -588,18 +588,18 @@
 					"electric_piano_1"
 				],
 				"2": [
+					"electric_piano_1",
+					"synth_bass_1"
+				],
+				"3": [
+					"lead_6_voice",
 					"synth_bass_1",
 					"electric_piano_1"
 				],
-				"3": [
-					"synth_bass_1",
-					"electric_piano_1",
-					"lead_6_voice"
-				],
 				"4": [
+					"lead_6_voice",
 					"synth_bass_1",
 					"electric_piano_1",
-					"lead_6_voice",
 					"pad_2_warm"
 				]
 			}
@@ -639,17 +639,17 @@
 					"drawbar_organ"
 				],
 				"2": [
-					"acoustic_bass",
-					"drawbar_organ"
+					"drawbar_organ",
+					"acoustic_bass"
 				],
 				"3": [
-					"acoustic_bass",
 					"drawbar_organ",
+					"acoustic_bass",
 					"electric_guitar_muted"
 				],
 				"4": [
-					"acoustic_bass",
 					"drawbar_organ",
+					"acoustic_bass",
 					"electric_guitar_muted",
 					"brass_section"
 				]
@@ -690,18 +690,18 @@
 					"electric_piano_2"
 				],
 				"2": [
+					"electric_piano_2",
+					"acoustic_bass"
+				],
+				"3": [
+					"muted_trumpet",
 					"acoustic_bass",
 					"electric_piano_2"
 				],
-				"3": [
-					"acoustic_bass",
-					"electric_piano_2",
-					"muted_trumpet"
-				],
 				"4": [
+					"muted_trumpet",
 					"acoustic_bass",
 					"electric_piano_2",
-					"muted_trumpet",
 					"electric_guitar_jazz"
 				]
 			}
@@ -741,17 +741,17 @@
 					"lead_1_square"
 				],
 				"2": [
-					"synth_bass_2",
-					"lead_1_square"
+					"lead_1_square",
+					"synth_bass_2"
 				],
 				"3": [
-					"synth_bass_2",
 					"lead_1_square",
+					"synth_bass_2",
 					"lead_2_sawtooth"
 				],
 				"4": [
-					"synth_bass_2",
 					"lead_1_square",
+					"synth_bass_2",
 					"lead_2_sawtooth",
 					"lead_8_bass__lead"
 				]
@@ -792,18 +792,18 @@
 					"lead_6_voice"
 				],
 				"2": [
-					"synth_bass_1",
-					"lead_6_voice"
+					"lead_6_voice",
+					"synth_bass_1"
 				],
 				"3": [
+					"lead_6_voice",
 					"synth_bass_1",
-					"electric_piano_1",
-					"lead_6_voice"
+					"electric_piano_1"
 				],
 				"4": [
+					"lead_6_voice",
 					"synth_bass_1",
 					"electric_piano_1",
-					"lead_6_voice",
 					"pad_5_bowed"
 				]
 			}
@@ -946,17 +946,17 @@
 					"clavinet"
 				],
 				"2": [
-					"electric_bass_finger",
-					"clavinet"
+					"clavinet",
+					"electric_bass_finger"
 				],
 				"3": [
-					"electric_bass_finger",
 					"clavinet",
+					"electric_bass_finger",
 					"string_ensemble_1"
 				],
 				"4": [
-					"electric_bass_finger",
 					"clavinet",
+					"electric_bass_finger",
 					"string_ensemble_1",
 					"brass_section"
 				]
@@ -997,17 +997,17 @@
 					"lead_8_bass__lead"
 				],
 				"2": [
-					"synth_bass_2",
-					"lead_8_bass__lead"
+					"lead_8_bass__lead",
+					"synth_bass_2"
 				],
 				"3": [
-					"synth_bass_2",
 					"lead_8_bass__lead",
+					"synth_bass_2",
 					"pad_6_metallic"
 				],
 				"4": [
-					"synth_bass_2",
 					"lead_8_bass__lead",
+					"synth_bass_2",
 					"pad_6_metallic",
 					"fx_5_brightness"
 				]
