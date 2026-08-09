@@ -1,149 +1,361 @@
 extends _base.pug
 
 block title
-	+title('Test:Cosmos Samples and MIDI')
+	+title('COSMO Test Lab')
 
 block nav
 	a(href="./tests.pug") All Tests
 
 block main
 	main#cosmos-test(tabindex="-1")
-		section.cosmos-panel(aria-labelledby="cosmos-title")
-			h2#cosmos-title Cosmos switch sample + MIDI test
-			p
-				| Pair the Cosmos switches, then press any number from 
-				kbd 0
-				|  to 
-				kbd 9
-				| . Each physical press plays one sample and sends MIDI note-on; release sends note-off.
-			p
-				| Shifted numbers and the numpad work too. Use 
-				kbd Ctrl
-				|  + 
-				kbd Page Up
-				|  / 
-				kbd Page Down
-				|  to change sample banks.
+		section.cosmos-lab(aria-labelledby="cosmos-title")
+			header.lab-header
+				div
+					p.eyebrow COSMO TEST LAB
+					h2#cosmos-title Press a COSMO. Make a sound.
+					p.intro Each COSMO sends its number to this computer. Press a connected switch, the matching number key, or a circle below.
+				div.lab-actions
+					div#midi-summary.status-pill(data-state="off")
+						span.status-dot(aria-hidden="true")
+						span MIDI off
+					button#open-midi-settings.secondary-button(type="button") MIDI settings
 
-			div.connection-row
-				button#enable-midi(type="button") Enable MIDI output
-				output#midi-status(for="enable-midi" aria-live="polite") MIDI is not enabled.
+			section.control-strip(aria-label="Audio controls")
+				label.volume-control(for="cosmos-volume")
+					span.label-row
+						span Volume
+						output#volume-value(for="cosmos-volume") 80%
+					input#cosmos-volume(type="range" min="0" max="100" step="1" value="80")
+				div.pack-summary
+					span.label Current sound pack
+					strong#current-pack Family favourites
+					span#pack-description Eight playful, familiar sounds
+				button#next-sound-pack.secondary-button.pack-switch(type="button")
+					span Next sound pack
+					kbd Space
 
-			dl.status-grid
-				dt Sample bank
-				dd#bank-status Magic
-				dt Last event
-				dd#event-status(aria-live="polite") Waiting for a number key.
+			section.pad-section(aria-labelledby="pads-title")
+				div.section-heading
+					div
+						h3#pads-title Your COSMOs
+						p Press and hold any circle, or use number keys 1–8.
+					span.connection-count
+						span.status-dot(aria-hidden="true")
+						| 8 ready
 
-			ol#cosmos-pads.cosmos-pads(start="0" aria-label="Cosmos number switches")
-				each number in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-					li.cosmos-pad(id=`cosmos-pad-${number}` data-number=number)
-						kbd= number
-						span MIDI #{60 + number}
+				ol#cosmos-pads.cosmos-pads(aria-label="Eight COSMO switches")
+					each number in [1, 2, 3, 4, 5, 6, 7, 8]
+						li
+							button.cosmos-pad(id=`cosmos-pad-${number}` type="button" data-number=number aria-describedby=`cosmos-sound-${number}`)
+								span.pad-orbit(aria-hidden="true")
+								span.pad-number= number
+								span.pad-key Key #{number}
+							span.pad-meta
+								strong COSMO #{number}
+								span(id=`cosmos-sound-${number}`) Sound #{number}
+
+				p#event-status.event-status(aria-live="polite") Ready — press any COSMO to begin.
+
+			fieldset.pack-bank
+				legend Sound packs & presets
+				p Choose one set of eight sounds. Sample packs and synthesized presets can be switched at any time.
+				div.pack-options
+					label.pack-card
+						input(type="radio" name="cosmos-pack" value="family" checked)
+						span.pack-card-body
+							span.pack-icon(aria-hidden="true") ★
+							strong Family favourites
+							small Playful reactions and celebrations
+					label.pack-card
+						input(type="radio" name="cosmos-pack" value="magic")
+						span.pack-card-body
+							span.pack-icon(aria-hidden="true") ✦
+							strong Magic & wonder
+							small Sparkles, spells and whooshes
+					label.pack-card
+						input(type="radio" name="cosmos-pack" value="percussion")
+						span.pack-card-body
+							span.pack-icon(aria-hidden="true") ◉
+							strong Percussion lab
+							small Synthesized drums and rhythm sounds
+					label.pack-card
+						input(type="radio" name="cosmos-pack" value="synth")
+						span.pack-card-body
+							span.pack-icon(aria-hidden="true") ∿
+							strong PhotoSYNTH oscillator
+							small The main app’s default oscillator instrument
+
+		dialog#midi-settings(aria-labelledby="midi-title")
+			form#default-midi-settings
+				header.dialog-header
+					div
+						p.eyebrow WEB MIDI
+						h2#midi-title MIDI settings
+					button.icon-button(type="button" data-close-dialog aria-label="Close MIDI settings") ×
+				p Configure the messages sent whenever a COSMO is pressed and released.
+				div#midi-dialog-status.dialog-status(aria-live="polite") MIDI access has not been enabled.
+				button#enable-midi.primary-button(type="button") Enable Web MIDI
+				div.settings-grid
+					label(for="midi-output")
+						span Output device
+						select#midi-output(disabled)
+							option(value="") No output selected
+					label(for="midi-channel")
+						span MIDI channel
+						select#midi-channel
+							each channel in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+								option(value=channel)= channel
+					label(for="midi-root-note")
+						span First note (COSMO 1)
+						input#midi-root-note(type="number" min="0" max="120" step="1" value="60")
+						small COSMOs 2–8 use the next seven notes.
+					label(for="midi-velocity")
+						span.label-row
+							span Note velocity
+							output#midi-velocity-value(for="midi-velocity") 100
+						input#midi-velocity(type="range" min="1" max="127" step="1" value="100")
+				footer.dialog-actions
+					button.secondary-button(type="button" data-close-dialog) Cancel
+					button#save-midi-settings.primary-button(type="submit") Save settings
 
 block styles
-	style.
+	style(type="text/scss").
+		:root {
+			--cosmos-ink: #172238;
+			--cosmos-muted: #65718a;
+			--cosmos-surface: #f8f7fc;
+			--cosmos-panel: #ffffff;
+			--cosmos-line: #d9dcea;
+			--cosmos-purple: #6357d9;
+			--cosmos-purple-dark: #463bb5;
+			--cosmos-mint: #2db98b;
+			--cosmos-ring: #c9c3ff;
+		}
+		body.theme-default {
+			background: var(--cosmos-surface);
+			color: var(--cosmos-ink);
+		}
+		#cosmos-test, #cosmos-test * { box-sizing: border-box; }
 		#cosmos-test {
-			box-sizing: border-box;
-			max-width: 72rem;
-			min-height: 70vh;
+			width: min(100%, 82rem);
 			margin: 0 auto;
-			padding: clamp(1rem, 4vw, 3rem);
-			color: #f6f7fb;
+			padding: clamp(1rem, 3vw, 2.5rem);
+			font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 		}
-		.cosmos-panel {
-			padding: clamp(1rem, 3vw, 2rem);
-			border: 1px solid #667085;
-			border-radius: 1rem;
-			background: #121722;
+		.cosmos-lab {
+			display: grid;
+			gap: 1.5rem;
 		}
-		.cosmos-panel p {
-			max-width: 72ch;
-			line-height: 1.6;
-		}
-		.cosmos-panel kbd {
-			font-family: ui-monospace, Consolas, monospace;
-		}
-		.connection-row {
+		.lab-header, .section-heading, .control-strip, .lab-actions, .label-row, .dialog-header, .dialog-actions {
 			display: flex;
-			flex-wrap: wrap;
 			align-items: center;
+			justify-content: space-between;
 			gap: 1rem;
-			margin: 1.5rem 0;
 		}
-		#enable-midi {
-			min-height: 2.75rem;
-			padding: .65rem 1rem;
-			border: 2px solid #a7c7ff;
-			border-radius: .5rem;
-			background: #17345f;
-			color: #fff;
-			font: inherit;
+		.lab-header { align-items: flex-start; }
+		.lab-header h2 {
+			margin: .2rem 0 .55rem;
+			font-size: clamp(2rem, 5vw, 4.25rem);
+			line-height: 1;
+			letter-spacing: -.045em;
+			color: var(--cosmos-ink);
+		}
+		.eyebrow {
+			margin: 0;
+			color: var(--cosmos-purple-dark);
+			font-size: .78rem;
+			font-weight: 800;
+			letter-spacing: .16em;
+		}
+		.intro, .pad-section p, .pack-bank > p, dialog > form > p {
+			max-width: 66ch;
+			margin: 0;
+			color: var(--cosmos-muted);
+			line-height: 1.55;
+		}
+		.lab-actions { flex-wrap: wrap; justify-content: flex-end; }
+		.status-pill, .connection-count {
+			display: inline-flex;
+			align-items: center;
+			gap: .5rem;
+			white-space: nowrap;
+			font-size: .88rem;
+			font-weight: 750;
+		}
+		.status-pill {
+			padding: .58rem .8rem;
+			border: 1px solid var(--cosmos-line);
+			border-radius: 999px;
+			background: var(--cosmos-panel);
+		}
+		.status-dot {
+			width: .58rem;
+			height: .58rem;
+			border-radius: 50%;
+			background: #9ca4b5;
+			box-shadow: 0 0 0 .2rem rgb(156 164 181 / .16);
+		}
+		.status-pill[data-state="on"] .status-dot, .connection-count .status-dot {
+			background: var(--cosmos-mint);
+			box-shadow: 0 0 0 .2rem rgb(45 185 139 / .16);
+		}
+		button, input, select { font: inherit; }
+		button { touch-action: manipulation; }
+		.primary-button, .secondary-button, .icon-button {
+			border-radius: .7rem;
+			font-weight: 750;
 			cursor: pointer;
 		}
-		#enable-midi:focus-visible {
-			outline: 3px solid #fff;
-			outline-offset: 3px;
+		.primary-button, .secondary-button { min-height: 2.75rem; padding: .65rem 1rem; }
+		.primary-button { border: 1px solid var(--cosmos-purple); background: var(--cosmos-purple); color: #fff; }
+		.secondary-button { border: 1px solid var(--cosmos-line); background: var(--cosmos-panel); color: var(--cosmos-ink); }
+		.icon-button { width: 2.5rem; height: 2.5rem; border: 0; background: #eeedf6; color: var(--cosmos-ink); font-size: 1.5rem; }
+		button:focus-visible, input:focus-visible, select:focus-visible {
+			outline: .2rem solid var(--cosmos-purple);
+			outline-offset: .2rem;
 		}
-		#enable-midi:disabled {
-			cursor: not-allowed;
-			opacity: .65;
+		.control-strip {
+			padding: 1rem 1.2rem;
+			border: 1px solid var(--cosmos-line);
+			border-radius: 1rem;
+			background: var(--cosmos-panel);
 		}
-		.status-grid {
-			display: grid;
-			grid-template-columns: max-content minmax(0, 1fr);
-			gap: .4rem 1rem;
-			margin: 1.5rem 0;
+		.volume-control { width: min(100%, 28rem); font-weight: 750; }
+		.volume-control input, #midi-velocity { width: 100%; accent-color: var(--cosmos-purple); }
+		.label-row output { color: var(--cosmos-purple-dark); font-variant-numeric: tabular-nums; }
+		.pack-summary { display: grid; min-width: 16rem; text-align: right; }
+		.pack-summary .label { color: var(--cosmos-muted); font-size: .75rem; }
+		.pack-summary strong { color: var(--cosmos-ink); }
+		.pack-summary span:last-child { color: var(--cosmos-muted); font-size: .82rem; }
+		.pack-switch { display: inline-flex; align-items: center; justify-content: center; gap: .75rem; white-space: nowrap; }
+		.pack-switch kbd {
+			padding: .18rem .45rem;
+			border: 1px solid #c4c8d6;
+			border-bottom-width: .16rem;
+			border-radius: .35rem;
+			background: #f3f2f8;
+			color: var(--cosmos-muted);
+			font: 700 .7rem/1.2 ui-monospace, Consolas, monospace;
 		}
-		.status-grid dt {
-			font-weight: 700;
+		.pad-section {
+			padding: clamp(1rem, 3vw, 2rem);
+			border: 1px solid var(--cosmos-line);
+			border-radius: 1.4rem;
+			background: var(--cosmos-panel);
+			box-shadow: 0 1.2rem 3rem rgb(39 43 74 / .08);
 		}
-		.status-grid dd {
-			margin: 0;
-			overflow-wrap: anywhere;
+		.section-heading { align-items: flex-start; margin-bottom: 1.5rem; }
+		.section-heading h3, .pack-bank legend {
+			margin: 0 0 .25rem;
+			font-size: 1.25rem;
+			font-weight: 800;
+			color: var(--cosmos-ink);
 		}
+		.connection-count { color: #177557; }
 		.cosmos-pads {
 			display: grid;
-			grid-template-columns: repeat(5, minmax(5rem, 1fr));
-			gap: clamp(.5rem, 2vw, 1rem);
+			grid-template-columns: repeat(8, minmax(5.7rem, 1fr));
+			gap: clamp(.55rem, 1.4vw, 1rem);
 			margin: 0;
 			padding: 0;
 			list-style: none;
 		}
+		.cosmos-pads li { min-width: 0; text-align: center; }
 		.cosmos-pad {
+			position: relative;
 			display: grid;
 			place-items: center;
-			min-height: 7rem;
-			border: 2px solid #718096;
-			border-radius: .8rem;
-			background: #202938;
-			transition: transform 100ms ease, border-color 100ms ease, background 100ms ease;
+			width: 100%;
+			aspect-ratio: 1;
+			border: .38rem solid #eceaf8;
+			border-radius: 50%;
+			background: linear-gradient(145deg, #fff 15%, #e7e4fb);
+			color: var(--cosmos-purple-dark);
+			box-shadow: inset 0 0 0 1px #d4d0ef, 0 .55rem 1rem rgb(55 43 139 / .14);
+			cursor: pointer;
+			transition: transform 120ms ease, box-shadow 120ms ease, color 120ms ease;
 		}
-		.cosmos-pad kbd {
-			display: grid;
-			gap: .35rem;
-			text-align: center;
-			font-size: 2rem;
-			font-weight: 800;
+		.pad-orbit {
+			position: absolute;
+			inset: .35rem;
+			border: 1px dashed var(--cosmos-ring);
+			border-radius: inherit;
 		}
-		.cosmos-pad span {
-			font-size: .8rem;
-			font-weight: 500;
-		}
+		.pad-number { font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 850; line-height: 1; }
+		.pad-key { font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 		.cosmos-pad.is-active {
-			transform: translateY(-.2rem);
-			border-color: #fff;
-			background: #a33d72;
+			transform: scale(.93);
+			background: linear-gradient(145deg, #7469e8, #493ebd);
+			color: #fff;
+			box-shadow: inset 0 0 0 1px #342a9e, 0 .2rem .45rem rgb(55 43 139 / .2);
 		}
-		@media (max-width: 38rem) {
-			.cosmos-pads {
-				grid-template-columns: repeat(2, minmax(5rem, 1fr));
-			}
+		.cosmos-pad.is-active .pad-orbit { border-color: rgb(255 255 255 / .55); }
+		.pad-meta { display: grid; gap: .12rem; margin-top: .7rem; }
+		.pad-meta strong { color: var(--cosmos-ink); font-size: .8rem; }
+		.pad-meta span { min-height: 2.4em; color: var(--cosmos-muted); font-size: .72rem; line-height: 1.2; }
+		.event-status {
+			min-height: 1.6em;
+			margin: 1.25rem 0 0 !important;
+			padding-top: 1rem;
+			border-top: 1px solid var(--cosmos-line);
+			text-align: center;
+			font-weight: 700;
+		}
+		.pack-bank { margin: 0; padding: 0; border: 0; }
+		.pack-bank > p { margin-bottom: 1rem; }
+		.pack-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; }
+		.pack-card { position: relative; cursor: pointer; }
+		.pack-card input { position: absolute; opacity: 0; pointer-events: none; }
+		.pack-card-body {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			grid-template-rows: auto auto;
+			column-gap: .75rem;
+			min-height: 100%;
+			padding: 1rem;
+			border: 2px solid var(--cosmos-line);
+			border-radius: 1rem;
+			background: var(--cosmos-panel);
+		}
+		.pack-icon { grid-row: 1 / 3; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: .7rem; background: #eeecff; color: var(--cosmos-purple-dark); font-size: 1.25rem; }
+		.pack-card strong { align-self: end; color: var(--cosmos-ink); }
+		.pack-card small { align-self: start; color: var(--cosmos-muted); line-height: 1.3; }
+		.pack-card input:checked + .pack-card-body { border-color: var(--cosmos-purple); box-shadow: 0 0 0 .2rem rgb(99 87 217 / .12); }
+		.pack-card input:focus-visible + .pack-card-body { outline: .2rem solid var(--cosmos-purple); outline-offset: .2rem; }
+		#midi-settings {
+			width: min(calc(100% - 2rem), 38rem);
+			padding: 0;
+			border: 0;
+			border-radius: 1.25rem;
+			background: var(--cosmos-panel);
+			color: var(--cosmos-ink);
+			box-shadow: 0 2rem 6rem rgb(16 20 45 / .3);
+		}
+		#midi-settings::backdrop { background: rgb(20 23 43 / .62); backdrop-filter: blur(.25rem); }
+		#midi-settings form { display: grid; gap: 1.1rem; padding: clamp(1.2rem, 4vw, 2rem); }
+		.dialog-header h2 { margin: .15rem 0 0; color: var(--cosmos-ink); }
+		.dialog-status { padding: .8rem 1rem; border-radius: .7rem; background: #f0eff8; color: var(--cosmos-muted); }
+		.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+		.settings-grid label { display: grid; align-content: start; gap: .4rem; color: var(--cosmos-ink); font-weight: 700; }
+		.settings-grid label:first-child { grid-column: 1 / -1; }
+		.settings-grid select, .settings-grid input[type="number"] { width: 100%; min-height: 2.75rem; padding: .55rem .65rem; border: 1px solid #aeb5c7; border-radius: .55rem; background: #fff; color: var(--cosmos-ink); }
+		.settings-grid small { color: var(--cosmos-muted); font-weight: 400; }
+		.dialog-actions { justify-content: flex-end; padding-top: .25rem; }
+		@media (max-width: 64rem) {
+			.cosmos-pads { grid-template-columns: repeat(4, minmax(5.8rem, 1fr)); row-gap: 1.2rem; }
+			.pack-options { grid-template-columns: repeat(2, 1fr); }
+		}
+		@media (max-width: 42rem) {
+			.lab-header, .control-strip { align-items: stretch; flex-direction: column; }
+			.lab-actions { justify-content: flex-start; }
+			.pack-summary { min-width: 0; text-align: left; }
+			.pack-switch { width: 100%; }
+			.cosmos-pads { grid-template-columns: repeat(2, minmax(6rem, 1fr)); }
+			.pack-options, .settings-grid { grid-template-columns: 1fr; }
+			.settings-grid label:first-child { grid-column: auto; }
 		}
 		@media (prefers-reduced-motion: reduce) {
-			.cosmos-pad {
-				transition: none;
-			}
+			.cosmos-pad { transition: none; }
 		}
 
 block scripts
