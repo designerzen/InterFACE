@@ -112,6 +112,7 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 	top:0;
 	position: absolute;
 	
+	border-width: var(--stroke, 3px);
 	// squish all the way down left as fallback for without clamp
 	// or stop at min-width
 	// --upper-y: var(--is-gt-320,1) * (100% + var(--pad) ) * -1;
@@ -287,7 +288,7 @@ $ang: 90deg; // arrow tip angle, may have jagged edges if != 90deg
 
 		border: inherit;
 		border-top:0;	// for arrow on base
-
+		border-bottom-width: calc( var(--flopper) * var(--stroke, 3px) ); 	// upside down looks gash otherwise
 		// now we have a special case of when on the right hand side...
 		left:var(--left,0);
 		top:var(--top,0);

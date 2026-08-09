@@ -188,6 +188,20 @@
 		}
 	}
 
+	label[for="button-eyebrows"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-blue);
+		--bg:url(/source/assets/icons/gesture.svg);
+		anchor-name: --button-eyebrows;
+	}
+
+	label[for="button-lips"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-blue);
+		--bg:url(/source/assets/icons/mood.svg);
+		anchor-name: --button-lips;
+	}
+
 	// 
 	label[for="button-subtitles"]{
 		--col-select:var(--shade-green);
@@ -266,11 +280,12 @@
 	}
 
 
-	label[for="select-percussion-preset"]{
+	label[for="select-percussion-preset"],
+	label[for="select-percussion-pattern"],
+	label[for="select-percussion-sound"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-yellow);
 		--bg:url(/source/assets/icons/music_note-24px.svg);
-		anchor-name:--select-percussion-preset;
 		min-width:44px;
 		flex:1 1 120px;
 		white-space:nowrap;
@@ -280,6 +295,40 @@
 			min-width:0;
 			max-width:100%;
 		}
+	}
+
+	label[for="select-percussion-preset"]{
+		anchor-name:--select-percussion-preset;
+	}
+
+	label[for="select-percussion-pattern"]{
+		--bg:url(/source/assets/icons/grid_on-24px.svg);
+		anchor-name:--select-percussion-pattern;
+	}
+
+	label[for="select-percussion-sound"]{
+		anchor-name:--select-percussion-sound;
+	}
+
+	label[for="button-midi-percussion"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-yellow);
+		--bg:url(/source/assets/icons/send.svg);
+		anchor-name:--button-midi-percussion;
+	}
+
+	label[for="button-rapid-percussion"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-yellow);
+		--bg:url(/source/assets/icons/speed-24px.svg);
+		anchor-name:--button-rapid-percussion;
+	}
+
+	label[for="button-performance-drums"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-yellow);
+		--bg:url(/source/assets/icons/emoji_emotions-24px.svg);
+		anchor-name:--button-performance-drums;
 	}
 
 	label.snare-reverb-control{
