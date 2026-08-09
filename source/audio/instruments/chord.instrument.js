@@ -1,10 +1,15 @@
 import Instrument from "./instrument.js"
 
 export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
+export const CHORD_PLAY_MODE = "chord"
+export const ARPEGGIO_PLAY_MODE = "arpeggio"
+export const HARP_PLAY_MODE = "harp"
+export const HARP_OCTAVES = 4
 
 export default class ChordInstrument extends Instrument{
 	
 	#arpeggio = false
+	#harp = false
 	arpeggioIndex = 0
 	arpeggioChordKey = ""
 	arpeggioGateMs = 0
@@ -46,7 +51,26 @@ export default class ChordInstrument extends Instrument{
 		return this.#arpeggio
 	}
 	set arpeggiate( value ){
-		this.#arpeggio = value
+		this.#arpeggio = Boolean(value)
+		this.#harp = false
+		this.resetArpeggio()
+	}
+
+	get harp(){
+		return this.#harp
+	}
+	set harp(value){
+		this.performanceMode = value ? HARP_PLAY_MODE : CHORD_PLAY_MODE
+	}
+
+	get performanceMode(){
+		return this.#harp ? HARP_PLAY_MODE : (this.#arpeggio ? ARPEGGIO_PLAY_MODE : CHORD_PLAY_MODE)
+	}
+	set performanceMode(value){
+		const mode = value === HARP_PLAY_MODE ? HARP_PLAY_MODE :
+			(value === ARPEGGIO_PLAY_MODE ? ARPEGGIO_PLAY_MODE : CHORD_PLAY_MODE)
+		this.#harp = mode === HARP_PLAY_MODE
+		this.#arpeggio = mode !== CHORD_PLAY_MODE
 		this.resetArpeggio()
 	}
 
@@ -85,7 +109,11 @@ export default class ChordInstrument extends Instrument{
 
 	constructor(audioContext, options = {}){
 		super(audioContext, options)
-		if (options.arpeggiate || options.useArpeggio)
+		if (options.performanceMode === HARP_PLAY_MODE || options.harp)
+		{
+			this.performanceMode = HARP_PLAY_MODE
+		}
+		else if (options.arpeggiate || options.useArpeggio)
 		{
 			this.arpeggiate = true
 		}
@@ -154,6 +182,27 @@ export default class ChordInstrument extends Instrument{
 		return chordArray.map(chord => chord?.noteNumber).join(",")
 	}
 
+	getArpeggioSequence(chordArray=[]){
+		if (!this.#harp)
+		{
+			return chordArray
+		}
+
+		const sequence = []
+		for (let octave=0; octave<HARP_OCTAVES; ++octave)
+		{
+			const octaveOffset = octave * 12
+			chordArray.forEach(chord => {
+				const noteNumber = chord?.noteNumber + octaveOffset
+				if (Number.isFinite(noteNumber) && noteNumber <= 127)
+				{
+					sequence.push({ ...chord, noteNumber })
+				}
+			})
+		}
+		return sequence
+	}
+
 	resetArpeggio(){
 		this.arpeggioIndex = 0
 		this.arpeggioChordKey = ""
@@ -200,14 +249,19 @@ export default class ChordInstrument extends Instrument{
 		{
 			return
 		}
+		const arpeggioSequence = this.getArpeggioSequence(chordArray)
+		if (!arpeggioSequence.length)
+		{
+			return
+		}
 
-		const chordKey = this.getArpeggioChordKey(chordArray)
+		const chordKey = this.getArpeggioChordKey(arpeggioSequence)
 		this.arpeggioIndex = chordKey === this.arpeggioChordKey ?
-			(this.arpeggioIndex + 1) % chordArray.length :
+			(this.arpeggioIndex + 1) % arpeggioSequence.length :
 			0
 
 		this.arpeggioChordKey = chordKey
-		const chord = chordArray[this.arpeggioIndex]
+		const chord = arpeggioSequence[this.arpeggioIndex]
 		if (!chord)
 		{
 			return
