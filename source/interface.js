@@ -4,6 +4,7 @@
 
 // DOM UI
 import { setupFeedbackControls } from './dom/text.js'
+import { setupCommandPalette } from './dom/command-palette.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
 	controlPanel,focusApp,
@@ -121,6 +122,7 @@ import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/re
 // SYNTHESIS
 import {
 	getRandomHihatPreset,
+	getHihatPair,
 	PRESET_HIHATS,
 	PRESET_HIHATS_CLOSED,
 	PRESET_HIHATS_OPEN
@@ -128,7 +130,7 @@ import {
 import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
 import { getRandomKickPreset, getKickPresets, PRESETS_KICKS } from './audio/synthesizers/kick.js'
 import { getCowbellPresetForStyle, getRandomCowbellPreset, PRESET_COWBELLS } from './audio/synthesizers/cowbell-presets.js'
-import { PERCUSSION_PRESETS, getPercussionPreset } from './audio/synthesizers/percussion-presets.js'
+import { PERCUSSION_PRESETS, PERCUSSION_SOUND_PRESET_GROUPS, getPercussionPreset } from './audio/synthesizers/percussion-presets.js'
 import { PRESET_METRONOME_CLACK } from './audio/synthesizers/clack-presets.js'
 
 // HARDWARE
@@ -777,16 +779,11 @@ export const createInterface = (
 	let closedHatTimbreOptions = PRESET_HIHATS_CLOSED[0]
 	let openHatTimbreOptions = PRESET_HIHATS_OPEN[0]
 	let cowbellTimbreOptions = getCowbellPresetForStyle("Organic", "default")
-	const getHatPair = hat => {
-		const isOpen = /open/i.test(hat.name)
-		const source = isOpen ? PRESET_HIHATS_OPEN : PRESET_HIHATS_CLOSED
-		const counterpart = isOpen ? PRESET_HIHATS_CLOSED : PRESET_HIHATS_OPEN
-		const index = Math.max(0, source.indexOf(hat))
-		return {
-			closed:isOpen ? counterpart[index % counterpart.length] : hat,
-			open:isOpen ? hat : counterpart[index % counterpart.length]
-		}
-	}
+	let eyeControlledDrumTimbreCache
+	let mutedPartsArranger
+	let mutedKick
+	let mutedSnare
+	let mutedHat
 	const setHatPair = hat => {
 		const pair = getHatPair(hat)
 		hatTimbreOptions = hat
@@ -797,6 +794,7 @@ export const createInterface = (
 	const scaleDrumValue = (value, amount, min, max) => clamp(value * amount, min, max)
 	const shiftDrumValue = (value, amount, min, max) => clamp(value + amount, min, max)
 	const getFiniteDrumControl = (value) => Number.isFinite(value) ? value : 0
+	const eyeDrumControls = {}
 	const getPersonEyeDrumControls = (person) => {
 		const prediction = person && person.data ? person.data : {}
 		const leftEye = clamp(getFiniteDrumControl(prediction.leftEyeDirection ?? prediction.eyeDirection), -1, 1)
@@ -804,15 +802,14 @@ export const createInterface = (
 		const leftEyeClosed = prediction.leftEyeClosed ?? (person ? !person.isLeftEyeOpen : false)
 		const rightEyeClosed = prediction.rightEyeClosed ?? (person ? !person.isRightEyeOpen : false)
 
-		return {
-			leftEyeLeft: Math.max(0, -leftEye),
-			leftEyeRight: Math.max(0, leftEye),
-			rightEyeLeft: Math.max(0, -rightEye),
-			rightEyeRight: Math.max(0, rightEye),
-			crossEyed: Math.abs(leftEye - rightEye) * 0.5,
-			leftEyeClosed,
-			rightEyeClosed,
-		}
+		eyeDrumControls.leftEyeLeft = Math.max(0, -leftEye)
+		eyeDrumControls.leftEyeRight = Math.max(0, leftEye)
+		eyeDrumControls.rightEyeLeft = Math.max(0, -rightEye)
+		eyeDrumControls.rightEyeRight = Math.max(0, rightEye)
+		eyeDrumControls.crossEyed = Math.abs(leftEye - rightEye) * 0.5
+		eyeDrumControls.leftEyeClosed = leftEyeClosed
+		eyeDrumControls.rightEyeClosed = rightEyeClosed
+		return eyeDrumControls
 	}
 	const playNextEyeControlledDrumPart = (pattern, instrument, options, muted, triggerAt) => {
 		if (muted)
@@ -840,6 +837,18 @@ export const createInterface = (
 		const beef = eyes.rightEyeLeft
 		const tight = eyes.rightEyeRight
 		const chatter = eyes.crossEyed
+		const cached = eyeControlledDrumTimbreCache
+		if (cached &&
+			cached.kickPreset === kickTimbreOptions &&
+			cached.snarePreset === snareTimbreOptions &&
+			cached.hatPreset === hatTimbreOptions &&
+			cached.snappy === snappy && cached.roomy === roomy &&
+			cached.beef === beef && cached.tight === tight && cached.chatter === chatter &&
+			cached.leftEyeClosed === eyes.leftEyeClosed &&
+			cached.rightEyeClosed === eyes.rightEyeClosed)
+		{
+			return cached.timbres
+		}
 
 		const kick = Object.assign({}, kickTimbreOptions)
 		const snare = Object.assign({}, snareTimbreOptions)
@@ -873,7 +882,7 @@ export const createInterface = (
 		hat.bandpass = scaleDrumValue(hat.bandpass, 1 + snappy * 0.35 + chatter * 0.5, 2500, 22000)
 		hat.fundamental = scaleDrumValue(hat.fundamental, 1 + chatter * 0.7 - beef * 0.15, 20, 95)
 
-		return {
+		const timbres = {
 			kick,
 			snare,
 			hat,
@@ -881,9 +890,36 @@ export const createInterface = (
 			muteSnare:eyes.leftEyeClosed,
 			muteHat:eyes.leftEyeClosed && eyes.rightEyeClosed,
 		}
+		eyeControlledDrumTimbreCache = {
+			kickPreset:kickTimbreOptions,
+			snarePreset:snareTimbreOptions,
+			hatPreset:hatTimbreOptions,
+			snappy,
+			roomy,
+			beef,
+			tight,
+			chatter,
+			leftEyeClosed:eyes.leftEyeClosed,
+			rightEyeClosed:eyes.rightEyeClosed,
+			timbres
+		}
+		return timbres
+	}
+	const syncDrumMutedParts = timbres => {
+		if (mutedPartsArranger !== drumArranger ||
+			mutedKick !== timbres.muteKick ||
+			mutedSnare !== timbres.muteSnare ||
+			mutedHat !== timbres.muteHat)
+		{
+			mutedPartsArranger = drumArranger
+			mutedKick = timbres.muteKick
+			mutedSnare = timbres.muteSnare
+			mutedHat = timbres.muteHat
+			drumArranger?.setMutedParts({ kick:mutedKick, snare:mutedSnare, hat:mutedHat })
+		}
 	}
 
-	const setRandomDrumTimbres = () => {
+	const setRandomDrumTimbres = (notify=true) => {
 		kickTimbreOptions = getRandomKickPreset()
 		snareTimbreOptions = getRandomSnarePreset()
 		setHatPair(getRandomHihatPreset())
@@ -896,19 +932,21 @@ export const createInterface = (
 		// 	}
 		// )
 		// only show percussion change notification if playing percussion
-		if (stateMachine.get("backingTrack"))
+		if (notify && stateMachine.get("backingTrack"))
 		{
 			setFeedback( `Percussion REMIX [${kickTimbreOptions.name}, ${snareTimbreOptions.name}, ${hatTimbreOptions.name}]`, 0, 'beats' )	 
 		}
 	}
 
-	const normalisePercussionPresetName = name => String(name ?? "")
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "")
+	const percussionPresetIndexes = new Map([
+		[PRESETS_KICKS, new Map(PRESETS_KICKS.map(preset => [preset.name, preset]))],
+		[PRESET_SNARES, new Map(PRESET_SNARES.map(preset => [preset.name, preset]))],
+		[PRESET_HIHATS, new Map(PRESET_HIHATS.map(preset => [preset.name, preset]))],
+		[PRESET_COWBELLS, new Map(PRESET_COWBELLS.map(preset => [preset.name, preset]))]
+	])
 
 	const findPercussionPreset = (presets, name) => {
-		const presetName = normalisePercussionPresetName(name)
-		return presets.find(preset => normalisePercussionPresetName(preset.name) === presetName)
+		return percussionPresetIndexes.get(presets)?.get(name)
 	}
 
 	const applyPercussionKitPreset = (kitPreset={}) => {
@@ -933,9 +971,13 @@ export const createInterface = (
 		{
 			cowbellTimbreOptions = cowbell
 		}
+		else if (kitPreset.cowbell === false)
+		{
+			cowbellTimbreOptions = null
+		}
 	}
 
-	const applyPercussionPreset = presetName => {
+	const applyPercussionSoundPreset = presetName => {
 		const preset = getPercussionPreset(presetName)
 		if (!preset)
 		{
@@ -943,16 +985,28 @@ export const createInterface = (
 		}
 
 		applyPercussionKitPreset(preset.kit)
-		if (!preset.kit.cowbell)
+		if (preset.kit.cowbell === undefined)
 		{
 			cowbellTimbreOptions = getCowbellPresetForStyle(preset.group, preset.id)
 		}
+		return preset
+	}
+
+	const applyPercussionPatternPreset = presetName => {
+		const preset = getPercussionPreset(presetName)
+		if (!preset)
+		{
+			return null
+		}
+
 		if (preset.seed || preset.intent)
 		{
 			drumArranger = createDrumArranger({
 				seed:preset.seed ?? preset.id,
 				groove:preset.groove,
 				bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
+				rapidPercussion:stateMachine.get("rapidPercussion") === true,
+				performanceControl:stateMachine.get("performanceDrums") !== false,
 				intent:preset.intent ?? {},
 				phraseBars:preset.phraseBars,
 				stepsPerBar:preset.stepsPerBar
@@ -964,10 +1018,16 @@ export const createInterface = (
 		}
 		if (Number.isFinite(preset.program))
 		{
-			changeDrumPattern(preset.program)
+			changeDrumPattern(preset.program, false)
 		}
 
 		return preset
+	}
+
+	const applyPercussionPreset = presetName => {
+		const soundPreset = applyPercussionSoundPreset(presetName)
+		const patternPreset = applyPercussionPatternPreset(presetName)
+		return soundPreset && patternPreset ? soundPreset : null
 	}
 
 	const previewPercussionPreset = presetName => {
@@ -1020,9 +1080,9 @@ export const createInterface = (
 	 * Set the drum pattern number
 	 * @param {Number} program 
 	 */
-	const changeDrumPattern = ( program=0 ) => {
+	const changeDrumPattern = ( program=0, notify=true ) => {
 		patterns = getKitSequence( program )
-		if (stateMachine.get("backingTrack"))
+		if (notify && stateMachine.get("backingTrack"))
 		{
 			setFeedback( "Backing Track REMIX!", 0, 'beats' )	
 		}
@@ -1033,8 +1093,15 @@ export const createInterface = (
 	 * Randomise the drum patterns to create a distinct
 	 * and unique style and sound 
 	 */
-	const setRandomDrumPattern = () => {
-		changeDrumPattern( Math.floor( 17 + Math.random() * 23 ))
+	const setRandomDrumPattern = (notify=true) => {
+		const randomProgram = Math.floor( 17 + Math.random() * 23 )
+		drumArranger = createDrumArranger({
+			seed:`random-${Date.now()}-${randomProgram}`,
+			bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
+			rapidPercussion:stateMachine.get("rapidPercussion") === true,
+			performanceControl:stateMachine.get("performanceDrums") !== false
+		})
+		changeDrumPattern(randomProgram, notify)
 	} 
 
 	playPercussionPart = (part, options={}) => {
@@ -1067,22 +1134,13 @@ export const createInterface = (
 				})
 
 			case 'low-tom':
-				return play('low-tom', kit.kick, {
-					length: 0.42, attack: 0.002, decay: 0.11,
-					triStart: 142, triEnd: 68, sineStart: 126, sineApex: 92, sineEnd: 54,
-				})
+				return play('low-tom', kit.tomLow)
 
 			case 'mid-tom':
-				return play('mid-tom', kit.kick, {
-					length: 0.31, attack: 0.002, decay: 0.09,
-					triStart: 236, triEnd: 116, sineStart: 210, sineApex: 162, sineEnd: 96,
-				})
+				return play('mid-tom', kit.tomMid)
 
 			case 'high-tom':
-				return play('high-tom', kit.kick, {
-					length: 0.22, attack: 0.001, decay: 0.06,
-					triStart: 372, triEnd: 186, sineStart: 338, sineApex: 248, sineEnd: 148,
-				})
+				return play('high-tom', kit.tomHigh)
 
 			case 'snare':
 				return play('snare', kit.snare, eyeControlledTimbres.snare)
@@ -1118,7 +1176,7 @@ export const createInterface = (
 				return play('clap', kit.clap)
 
 			case 'cowbell':
-				return play('cowbell', kit.cowbell, cowbellTimbreOptions)
+				return cowbellTimbreOptions ? play('cowbell', kit.cowbell, cowbellTimbreOptions) : false
 
 			case 'clack':
 				return play('clack', kit.clack)
@@ -1320,6 +1378,8 @@ export const createInterface = (
 					seed:percussion.seed ?? preset.id,
 					groove:percussion.groove,
 					bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
+					rapidPercussion:stateMachine.get("rapidPercussion") === true,
+					performanceControl:stateMachine.get("performanceDrums") !== false,
 					intent:percussion.intent ?? {},
 					phraseBars:percussion.phraseBars,
 					stepsPerBar:percussion.stepsPerBar
@@ -1419,6 +1479,8 @@ export const createInterface = (
 				keyScale:stateMachine.get("keyScale"),
 				harmonyMode:stateMachine.get("harmonyMode"),
 				instrumentPack:stateMachine.get('instrumentPack'),
+				midiPercussion:stateMachine.get('midi') && stateMachine.get('midiPercussion'),
+				performanceDrums:stateMachine.get('performanceDrums') !== false,
 
 				stereoPan:stateMachine.get('stereo'),
 
@@ -3083,12 +3145,7 @@ export const createInterface = (
 					scheduledContextTimeSeconds
 				)
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
-				drumArranger?.setTempo(clock.BPM)
-				drumArranger?.setMutedParts({
-					kick: eyeControlledTimbres.muteKick,
-					snare: eyeControlledTimbres.muteSnare,
-					hat: eyeControlledTimbres.muteHat
-				})
+				syncDrumMutedParts(eyeControlledTimbres)
 				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
 				if (parts.kick > 0) {
 					notifyDrumPart('kick', { velocity: parts.kick / 255, triggerAt, source: 'backingTrack' })
@@ -3107,7 +3164,7 @@ export const createInterface = (
 					notifyDrumPart('clap', { velocity: parts.clap / 255, triggerAt, source: 'backingTrack' })
 					kit.clap({ velocity: parts.clap / 255, triggerAt })
 				}
-				if (parts.cowbell > 0) {
+				if (parts.cowbell > 0 && cowbellTimbreOptions) {
 					notifyDrumPart('cowbell', { velocity: parts.cowbell / 255, triggerAt, source: 'backingTrack' })
 					kit.cowbell({ ...cowbellTimbreOptions, velocity: parts.cowbell / 255, triggerAt })
 				}
@@ -3509,7 +3566,9 @@ export const createInterface = (
 			// setFeedback( instrumentName.name + " Samples available...<br>Instrument Sounds downloaded")
 			
 			const percussionAmp = getPercussionNode()
-			kit = createDrumkit( audioContext, percussionAmp )
+			kit = createDrumkit( audioContext, percussionAmp, {
+				midiPercussion:stateMachine.get('midi') && stateMachine.get('midiPercussion')
+			} )
 			kit.setTonic(
 				stateMachine.get("harmonyMode") === "global-key"
 					? getPitchClassForKey(stateMachine.get("key"))
@@ -3537,7 +3596,9 @@ export const createInterface = (
 			patterns = getKitSequence()
 			drumArranger = createDrumArranger({
 				seed: "backing-track",
-				bpm: stateMachine.get('bpm') ?? 0
+				bpm: stateMachine.get('bpm') ?? 0,
+				rapidPercussion: stateMachine.get('rapidPercussion') === true,
+				performanceControl: stateMachine.get('performanceDrums') !== false
 			})
 			
 
@@ -3878,18 +3939,75 @@ export const createInterface = (
 		}, stateMachine.get( 'metronome') )
 
 		toggles.backingTrack = setToggle( "button-percussion", status =>{
-			const drumkitPreset = stateMachine.get("drumkit")
-			if (drumkitPreset)
+			if (status && stateMachine.get('showSettings'))
 			{
-				applyPercussionPreset(drumkitPreset)
-			}else{
-				setRandomDrumTimbres()
+				toggles.settings?.click()
 			}
-			setRandomDrumPattern()
+			const drumkitPreset = stateMachine.get("drumkit")
+			const percussionSound = stateMachine.get("percussionSound") ?? (drumkitPreset || "random")
+			const percussionPattern = stateMachine.get("percussionPattern") ?? (drumkitPreset || "random")
+			if (percussionSound === "random")
+			{
+				setRandomDrumTimbres(false)
+			}else{
+				applyPercussionSoundPreset(percussionSound)
+			}
+			if (percussionPattern === "random")
+			{
+				setRandomDrumPattern(false)
+			}else{
+				applyPercussionPatternPreset(percussionPattern)
+			}
 			toggleBackgroundPercussion(false)
 			// cancel any playing drum sounds immediately
 			if (!status) kit?.cancel()
 		}, stateMachine.get( 'backingTrack') )
+
+		toggles.midiPercussion = setToggle( "button-midi-percussion", status => {
+			stateMachine.set( 'midiPercussion', status )
+			const enabled = stateMachine.get('midi') && status
+			kit?.setMIDIPercussion?.(enabled)
+
+			const updateInstrument = instrument => {
+				if (!instrument)
+				{
+					return
+				}
+				if (instrument.options)
+				{
+					instrument.options.midiPercussion = enabled
+				}
+				instrument.instruments?.forEach(updateInstrument)
+			}
+			personManager.people.forEach(person => {
+				person.setOptions({ midiPercussion:enabled })
+				person.instruments?.forEach(updateInstrument)
+			})
+
+			setFeedback(`Percussion MIDI ${enabled ? 'enabled' : 'disabled'}`, 0, 'beats')
+		}, stateMachine.get( 'midiPercussion') )
+
+		toggles.rapidPercussion = setToggle( "button-rapid-percussion", status => {
+			stateMachine.set('rapidPercussion', status)
+			drumArranger?.setRapidPercussion?.(status)
+			setFeedback(`Rapid percussion ${status ? 'enabled' : 'disabled'}`, 0, 'beats')
+		}, stateMachine.get('rapidPercussion') )
+
+		toggles.performanceDrums = setToggle( "button-performance-drums", status => {
+			stateMachine.set('performanceDrums', status)
+			drumArranger?.setPerformanceControl?.(status)
+
+			const updateInstrument = instrument => {
+				instrument?.setPerformanceControl?.(status)
+				instrument?.instruments?.forEach(updateInstrument)
+			}
+			personManager.people.forEach(person => {
+				person.setOptions({ performanceDrums:status })
+				person.instruments?.forEach(updateInstrument)
+			})
+
+			setFeedback(`Performance-controlled percussion ${status ? 'enabled' : 'disabled'}`, 0, 'beats')
+		}, stateMachine.get('performanceDrums') )
 
 		toggles.spectrogram = setToggle( "button-spectrogram", status =>{
 			stateMachine.set( 'spectrogram', status )
@@ -4250,6 +4368,7 @@ export const createInterface = (
 		// UI -------------------------------------------------------------
 		// now set up the front end based on this state
 		setupInterfaceUI( settings, progressCallback )
+		setupCommandPalette()
 
 		// UI:THEME -------------------------------------------------------
 		
@@ -4437,27 +4556,111 @@ export const createInterface = (
 		}
 
 		const selectedDrumkitPreset = stateMachine.get("drumkit") ?? ""
-		const percussionGroups = PERCUSSION_PRESETS.reduce((groups, preset) => {
-			const group = preset.group ?? "Other"
-			const existing = groups.find(item => item.group === group)
-			const option = { value:preset.id, label:preset.title, selected:selectedDrumkitPreset === preset.id }
-			if (existing) existing.items.push(option)
-			else groups.push({ group, items:[option] })
+		const selectedPercussionPattern = stateMachine.get("percussionPattern") ?? (selectedDrumkitPreset || "random")
+		const selectedPercussionSound = stateMachine.get("percussionSound") ?? (selectedDrumkitPreset || "random")
+		const createPercussionGroups = (selectedValue, randomValue="") => {
+			const groups = [{ group:"Random", items:[{ value:randomValue, label:"Random", selected:selectedValue === randomValue }] }]
+			const groupsByName = new Map()
+			for (const preset of PERCUSSION_PRESETS)
+			{
+				const groupName = preset.group ?? "Other"
+				let group = groupsByName.get(groupName)
+				if (!group)
+				{
+					group = { group:groupName, items:[] }
+					groupsByName.set(groupName, group)
+					groups.push(group)
+				}
+				group.items.push({ value:preset.id, label:preset.title, selected:selectedValue === preset.id })
+			}
 			return groups
-		}, [{ group:"Random", items:[{ value:"", label:"Random", selected:!selectedDrumkitPreset }] }])
-		populateSelect("select-percussion-preset", percussionGroups)
+		}
+
+		populateSelect("select-percussion-preset", createPercussionGroups(selectedDrumkitPreset))
+		populateSelect("select-percussion-pattern", createPercussionGroups(selectedPercussionPattern, "random"))
+		populateSelect("select-percussion-sound", [
+			{ group:"Random", items:[{ value:"random", label:"Random", selected:selectedPercussionSound === "random" }] },
+			...PERCUSSION_SOUND_PRESET_GROUPS
+				.filter(group => group.presets.length > 0)
+				.map(group => ({
+					group:group.group,
+					items:group.presets.map(preset => ({
+						value:preset.id,
+						label:preset.title,
+						selected:selectedPercussionSound === preset.id
+					}))
+				}))
+		])
+
+		const selectPercussionPattern = (presetName, notify=true) => {
+			if (presetName === "random")
+			{
+				setRandomDrumPattern(false)
+				if (notify) setFeedback("Random percussion pattern loaded", 0, "beats")
+				return null
+			}
+			const preset = applyPercussionPatternPreset(presetName)
+			if (preset && notify) setFeedback(`${preset.title} percussion pattern loaded`, 0, "beats")
+			return preset
+		}
+
+		const selectPercussionSound = (presetName, notify=true) => {
+			if (presetName === "random")
+			{
+				setRandomDrumTimbres(false)
+				if (notify) setFeedback("Random percussion sound loaded", 0, "beats")
+				return null
+			}
+			const preset = applyPercussionSoundPreset(presetName)
+			if (preset && notify) setFeedback(`${preset.title} percussion sound loaded`, 0, "beats")
+			return preset
+		}
+
+		selects.percussionPattern = connectSelect("select-percussion-pattern", option => {
+			const presetName = option.value
+			stateMachine.set("percussionPattern", presetName, selects.percussionPattern)
+			selectPercussionPattern(presetName)
+		})
+		selects.percussionSound = connectSelect("select-percussion-sound", option => {
+			const presetName = option.value
+			stateMachine.set("percussionSound", presetName, selects.percussionSound)
+			selectPercussionSound(presetName)
+		})
+		if (selects.percussionPattern) selects.percussionPattern.value = selectedPercussionPattern
+		if (selects.percussionSound) selects.percussionSound.value = selectedPercussionSound
+
+		buttons.randomisePercussion = setButton("button-randomise-percussion", () => {
+			stateMachine.set("drumkit", "", selects.drumkit)
+			stateMachine.set("percussionPattern", "random", selects.percussionPattern)
+			stateMachine.set("percussionSound", "random", selects.percussionSound)
+			if (selects.drumkit) selects.drumkit.value = ""
+			if (selects.percussionPattern) selects.percussionPattern.value = "random"
+			if (selects.percussionSound) selects.percussionSound.value = "random"
+			setRandomDrumPattern(false)
+			setRandomDrumTimbres(false)
+			setFeedback("All percussion sounds and patterns randomised", 0, "beats")
+		}, "click")
+
 		selects.drumkit = connectSelect("select-percussion-preset", option => {
 			const presetName = option.value
 			stateMachine.set("drumkit", presetName, selects.drumkit)
+			const dependentPresetName = presetName || "random"
+			stateMachine.set("percussionPattern", dependentPresetName, selects.percussionPattern)
+			stateMachine.set("percussionSound", dependentPresetName, selects.percussionSound)
+			if (selects.percussionPattern) selects.percussionPattern.value = dependentPresetName
+			if (selects.percussionSound) selects.percussionSound.value = dependentPresetName
 			if (!presetName)
 			{
+				selectPercussionPattern("random", false)
+				selectPercussionSound("random", false)
+				setFeedback("Random percussion preset loaded; pattern and sound updated", 0, "beats")
 				return
 			}
 
 			const preset = applyPercussionPreset(presetName)
 			if (preset)
 			{
-				setFeedback(`${preset.title} percussion loaded`, 0, "beats")
+				setFeedback(`${preset.title} percussion preset loaded; pattern and sound updated`, 0, "beats")
 			}
 		})
 		if (selects.drumkit)
@@ -4511,15 +4714,9 @@ export const createInterface = (
 		}
 		if (selectedDrumkitPreset)
 		{
-			const preset = applyPercussionPreset(selectedDrumkitPreset)
-			if (preset)
+			const preset = getPercussionPreset(selectedDrumkitPreset)
+			if (!preset)
 			{
-				stateMachine.set("drumkit", preset.id, selects.drumkit)
-				if (selects.drumkit)
-				{
-					selects.drumkit.value = preset.id
-				}
-			}else{
 				console.warn(`Unknown percussion preset: ${selectedDrumkitPreset}`)
 				stateMachine.set("drumkit", "", selects.drumkit)
 				if (selects.drumkit)
@@ -4527,6 +4724,26 @@ export const createInterface = (
 					selects.drumkit.value = ""
 				}
 			}
+		}
+
+		if (selectedPercussionPattern === "random")
+		{
+			selectPercussionPattern("random", false)
+		}else if (!selectPercussionPattern(selectedPercussionPattern, false)){
+			console.warn(`Unknown percussion pattern: ${selectedPercussionPattern}`)
+			stateMachine.set("percussionPattern", "random", selects.percussionPattern)
+			if (selects.percussionPattern) selects.percussionPattern.value = "random"
+			selectPercussionPattern("random", false)
+		}
+
+		if (selectedPercussionSound === "random")
+		{
+			selectPercussionSound("random", false)
+		}else if (!selectPercussionSound(selectedPercussionSound, false)){
+			console.warn(`Unknown percussion sound: ${selectedPercussionSound}`)
+			stateMachine.set("percussionSound", "random", selects.percussionSound)
+			if (selects.percussionSound) selects.percussionSound.value = "random"
+			selectPercussionSound("random", false)
 		}
 		
 		// as we are now "full screen" the positions of the tooltips needs

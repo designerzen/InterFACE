@@ -100,6 +100,154 @@ export const PRESET_CR78_COWBELL = preset({
 	sustain:0.8,
 })
 
+export const PRESET_505_COWBELL = preset({
+	name:"505 Cowbell",
+	velocity:0.88,
+	length:0.24,
+	bandpass:2550,
+	ratios:[560, 820],
+	q:3.4,
+	waveforms:["triangle", "square"],
+	partialLevels:[0.84, 0.42],
+	outputGain:0.42,
+	pitchSweep:3,
+	pitchVariation:1.5,
+	lengthVariation:0.012,
+	attack:0.003,
+	decay:0.025,
+	sustain:0.74,
+})
+
+export const PRESET_CASIO_RZ1_COWBELL = preset({
+	name:"Casio RZ-1 Cowbell",
+	velocity:0.92,
+	length:0.22,
+	bandpass:2250,
+	ratios:[505, 755],
+	q:3.1,
+	waveforms:["square", "square"],
+	partialLevels:[0.78, 0.48],
+	outputGain:0.4,
+	pitchSweep:2,
+	pitchVariation:1,
+	lengthVariation:0.008,
+	filterSweep:0.82,
+	attack:0.002,
+	decay:0.02,
+	sustain:0.7,
+})
+
+export const PRESET_KORG_DDD1_COWBELL = preset({
+	name:"Korg DDD-1 Cowbell",
+	velocity:0.9,
+	length:0.28,
+	bandpass:2850,
+	ratios:[610, 900],
+	q:3.8,
+	waveforms:["triangle", "sine"],
+	partialLevels:[0.86, 0.38],
+	outputGain:0.43,
+	pitchSweep:2,
+	pitchVariation:1.25,
+	lengthVariation:0.01,
+	filterSweep:0.88,
+	attack:0.003,
+	decay:0.028,
+	sustain:0.76,
+})
+
+export const PRESET_707_COWBELL = preset({
+	name:"707 Cowbell",
+	velocity:0.9,
+	length:0.25,
+	bandpass:2500,
+	ratios:[550, 805],
+	q:3.5,
+	waveforms:["triangle", "square"],
+	partialLevels:[0.82, 0.44],
+	outputGain:0.42,
+	pitchSweep:2,
+	pitchVariation:1,
+	lengthVariation:0.008,
+	filterSweep:0.86,
+	attack:0.002,
+	decay:0.024,
+	sustain:0.72,
+})
+
+export const PRESET_KORG_KR55_COWBELL = preset({
+	name:"Korg KR-55 Cowbell",
+	velocity:0.82,
+	length:0.27,
+	bandpass:2300,
+	ratios:[525, 775],
+	q:3.1,
+	waveforms:["square", "triangle"],
+	partialLevels:[0.78, 0.38],
+	outputGain:0.39,
+	pitchSweep:6,
+	pitchVariation:2,
+	lengthVariation:0.015,
+	filterSweep:0.72,
+	attack:0.004,
+	decay:0.03,
+	sustain:0.72,
+})
+
+export const PRESET_LINNDRUM_COWBELL = preset({
+	name:"LinnDrum Cowbell",
+	velocity:0.92,
+	length:0.3,
+	bandpass:2670,
+	ratios:[585, 880],
+	q:3.7,
+	waveforms:["triangle", "sine"],
+	partialLevels:[0.86, 0.4],
+	outputGain:0.43,
+	pitchSweep:2,
+	pitchVariation:1,
+	lengthVariation:0.008,
+	filterSweep:0.9,
+	attack:0.002,
+	decay:0.026,
+	sustain:0.76,
+})
+
+export const PRESET_OBERHEIM_DMX_COWBELL = preset({
+	name:"Oberheim DMX Cowbell", velocity:0.98, length:0.28, bandpass:2720,
+	ratios:[590, 870], q:3.8, waveforms:["square", "triangle"], partialLevels:[0.88, 0.48],
+	outputGain:0.45, pitchSweep:2, pitchVariation:1, lengthVariation:0.008,
+	filterSweep:0.86, attack:0.002, decay:0.026, sustain:0.76,
+})
+
+export const PRESET_DRUMTRAKS_COWBELL = preset({
+	name:"Sequential DrumTraks Cowbell", velocity:0.94, length:0.3, bandpass:2620,
+	ratios:[575, 850], q:3.6, waveforms:["triangle", "sine"], partialLevels:[0.84, 0.4],
+	outputGain:0.43, pitchSweep:2, pitchVariation:1.2, lengthVariation:0.01,
+	filterSweep:0.88, attack:0.003, decay:0.028, sustain:0.75,
+})
+
+export const PRESET_SP1200_COWBELL = preset({
+	name:"E-mu SP-1200 Cowbell", velocity:0.96, length:0.27, bandpass:2320,
+	ratios:[525, 790], q:3.2, waveforms:["square", "square"], partialLevels:[0.82, 0.5],
+	outputGain:0.42, pitchSweep:1, pitchVariation:0.8, lengthVariation:0.006,
+	filterSweep:0.78, attack:0.002, decay:0.024, sustain:0.72,
+})
+
+export const PRESET_YAMAHA_RX5_COWBELL = preset({
+	name:"Yamaha RX5 Cowbell", velocity:1, length:0.32, bandpass:3060,
+	ratios:[640, 940], q:4, waveforms:["triangle", "sine"], partialLevels:[0.9, 0.4],
+	outputGain:0.45, pitchSweep:1.5, pitchVariation:0.8, lengthVariation:0.007,
+	filterSweep:0.92, attack:0.002, decay:0.028, sustain:0.79,
+})
+
+export const PRESET_ALESIS_HR16_COWBELL = preset({
+	name:"Alesis HR-16 Cowbell", velocity:0.98, length:0.34, bandpass:2920,
+	ratios:[615, 910], q:3.9, waveforms:["triangle", "sine"], partialLevels:[0.88, 0.38],
+	outputGain:0.44, pitchSweep:1.5, pitchVariation:0.8, lengthVariation:0.008,
+	filterSweep:0.94, attack:0.002, decay:0.03, sustain:0.78,
+})
+
 // ============================================================
 // PITCH VARIANTS
 // ============================================================
@@ -420,6 +568,17 @@ export const PRESET_COWBELLS = [
 	PRESET_808_COWBELL,
 	PRESET_909_COWBELL,
 	PRESET_CR78_COWBELL,
+	PRESET_505_COWBELL,
+	PRESET_CASIO_RZ1_COWBELL,
+	PRESET_KORG_DDD1_COWBELL,
+	PRESET_707_COWBELL,
+	PRESET_KORG_KR55_COWBELL,
+	PRESET_LINNDRUM_COWBELL,
+	PRESET_OBERHEIM_DMX_COWBELL,
+	PRESET_DRUMTRAKS_COWBELL,
+	PRESET_SP1200_COWBELL,
+	PRESET_YAMAHA_RX5_COWBELL,
+	PRESET_ALESIS_HR16_COWBELL,
 
 	// Pitch variants
 	PRESET_LOW_COWBELL,
@@ -476,7 +635,9 @@ const STYLE_COWBELLS = {
 	Breaks:[PRESET_TAPE_COWBELL, PRESET_DRY_COWBELL, PRESET_FUNK_COWBELL],
 	"Classic Breaks":[PRESET_FUNK_COWBELL, PRESET_DRY_COWBELL, PRESET_CR78_COWBELL],
 	"Classic Styles":[PRESET_SOFT_STUDIO_COWBELL, PRESET_FUNK_COWBELL, PRESET_WARM_ANALOG_COWBELL],
-	World:[PRESET_AFRO_COWBELL, PRESET_SALSA_LOW_COWBELL, PRESET_SALSA_HIGH_COWBELL],
+	Brazilian:[PRESET_SALSA_LOW_COWBELL, PRESET_SALSA_HIGH_COWBELL, PRESET_AFRO_COWBELL],
+	Jamaican:[PRESET_DUB_COWBELL, PRESET_DARK_COWBELL, PRESET_WOODBLOCK_COWBELL],
+	"West African":[PRESET_AFRO_COWBELL, PRESET_AGOGO_COWBELL, PRESET_HIGH_COWBELL],
 	Jazz:[PRESET_BRUSHED_COWBELL, PRESET_SOFT_STUDIO_COWBELL, PRESET_WOODBLOCK_COWBELL],
 	Rock:[PRESET_ACOUSTIC_SMALL_COWBELL, PRESET_DAMPENED_COWBELL, PRESET_DRY_COWBELL],
 	Organic:[PRESET_WOODBLOCK_COWBELL, PRESET_BRUSHED_COWBELL, PRESET_SOFT_STUDIO_COWBELL],

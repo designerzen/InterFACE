@@ -161,54 +161,32 @@ const chooseWeighted = (items, score, random) => {
 	return weighted[weighted.length - 1].item
 }
 
+const TEMPO_PROFILES = Object.freeze({
+	unknown:Object.freeze({ name:'unknown', density:0.5, fillChance:0.9, rollChance:0.8, stability:0.9 }),
+	slow:Object.freeze({ name:'slow', density:0.7, fillChance:1.2, rollChance:1.1, stability:0.75 }),
+	medium:Object.freeze({ name:'medium', density:0.55, fillChance:1, rollChance:0.9, stability:0.9 }),
+	fast:Object.freeze({ name:'fast', density:0.42, fillChance:0.75, rollChance:0.65, stability:1.05 }),
+	veryFast:Object.freeze({ name:'very-fast', density:0.32, fillChance:0.55, rollChance:0.45, stability:1.2 })
+})
+
 const getTempoProfile = bpm => {
 	if (!Number.isFinite(bpm) || bpm <= 0)
 	{
-		return {
-			name: 'unknown',
-			density: 0.5,
-			fillChance: 0.9,
-			rollChance: 0.8,
-			stability: 0.9
-		}
+		return TEMPO_PROFILES.unknown
 	}
 	if (bpm < 72)
 	{
-		return {
-			name: 'slow',
-			density: 0.7,
-			fillChance: 1.2,
-			rollChance: 1.1,
-			stability: 0.75
-		}
+		return TEMPO_PROFILES.slow
 	}
 	if (bpm < 118)
 	{
-		return {
-			name: 'medium',
-			density: 0.55,
-			fillChance: 1,
-			rollChance: 0.9,
-			stability: 0.9
-		}
+		return TEMPO_PROFILES.medium
 	}
 	if (bpm < 154)
 	{
-		return {
-			name: 'fast',
-			density: 0.42,
-			fillChance: 0.75,
-			rollChance: 0.65,
-			stability: 1.05
-		}
+		return TEMPO_PROFILES.fast
 	}
-	return {
-		name: 'very-fast',
-		density: 0.32,
-		fillChance: 0.55,
-		rollChance: 0.45,
-		stability: 1.2
-	}
+	return TEMPO_PROFILES.veryFast
 }
 
 const createFill = (lane, stepInPhrase, phraseLength, tempoProfile, intent) => {
@@ -279,14 +257,15 @@ export const createDrumArranger = (options={}) => {
 		fillUntilStep: -1,
 		rollUntilStep: -1,
 		lastFillPhrase: -8,
-		phrase: -1
+		phrase: -1,
+		rapidPercussion: options.rapidPercussion === true,
+		performanceControl: options.performanceControl !== false
 	}
 
 	const phraseLength = () => state.phraseBars * state.stepsPerBar
 	const currentTempoProfile = () => getTempoProfile(state.bpm)
 
-	const selectCell = lane => {
-		const tempo = currentTempoProfile()
+	const selectCell = (lane, tempo) => {
 		const intent = state.intent
 		const targetDensity = clamp((intent.density * 0.65) + (tempo.density * 0.35))
 		const targetEnergy = clamp((intent.energy * 0.75) + (targetDensity * 0.25))
@@ -304,8 +283,8 @@ export const createDrumArranger = (options={}) => {
 
 	const choosePhrase = () => {
 		state.phrase++
-		LANES.forEach(lane => state.current[lane] = selectCell(lane))
 		const tempo = currentTempoProfile()
+		LANES.forEach(lane => state.current[lane] = selectCell(lane, tempo))
 		const phraseDistance = state.phrase - state.lastFillPhrase
 		const phraseAccent = state.phrase % 4 === 3 ? 1.4 : state.phrase % 2 === 1 ? 1 : 0.55
 		const fillChance = clamp(0.08 * phraseAccent * tempo.fillChance + state.intent.fillChance * 0.18 + state.intent.tension * 0.08)
@@ -342,11 +321,10 @@ export const createDrumArranger = (options={}) => {
 		state.lastTriggerAt = triggerAt
 	}
 
-	const transformVelocity = (lane, velocity, stepInPhrase) => {
+	const transformVelocity = (lane, velocity, stepInPhrase, tempo, phraseLengthValue) => {
 		const intent = state.intent
-		const tempo = currentTempoProfile()
 		const cell = state.current[lane]
-		const phraseEndWindow = phraseLength() - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
+		const phraseEndWindow = phraseLengthValue - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
 		const inFill = state.step < state.fillUntilStep && phraseEndWindow
 		const inRoll = state.step < state.rollUntilStep && phraseEndWindow
 
@@ -358,7 +336,7 @@ export const createDrumArranger = (options={}) => {
 		let output = velocity
 		if (inFill)
 		{
-			output = Math.max(output, createFill(lane, stepInPhrase, phraseLength(), tempo, intent))
+			output = Math.max(output, createFill(lane, stepInPhrase, phraseLengthValue, tempo, intent))
 		}
 		if (inRoll && (lane === 'hat' || lane === 'snare'))
 		{
@@ -401,19 +379,22 @@ export const createDrumArranger = (options={}) => {
 		maybeEstimateTempo(context.triggerAt)
 
 		state.step++
-		const stepInPhrase = wrap(state.step, phraseLength())
+		const phraseLengthValue = phraseLength()
+		const stepInPhrase = wrap(state.step, phraseLengthValue)
 		if (stepInPhrase === 0 || LANES.some(lane => !state.current[lane]))
 		{
 			choosePhrase()
 		}
 		state.bar = Math.floor(state.step / state.stepsPerBar)
 
-		const parts = LANES.reduce((parts, lane) => {
+		const tempo = currentTempoProfile()
+		const parts = {}
+		for (const lane of LANES)
+		{
 			const cell = state.current[lane]
 			const velocity = cell?.sequence?.[wrap(state.step, cell.length)] ?? 0
-			parts[lane] = transformVelocity(lane, velocity, stepInPhrase)
-			return parts
-		}, {})
+			parts[lane] = transformVelocity(lane, velocity, stepInPhrase, tempo, phraseLengthValue)
+		}
 
 		// Closed hats choke the shared voice; an occasional offbeat open hat is
 		// allowed to ring only until the following closed hit.
@@ -428,11 +409,11 @@ export const createDrumArranger = (options={}) => {
 			? clampVelocity(90 + state.intent.energy * 105 + random() * 35)
 			: 0
 
-		const phraseEndWindow = phraseLength() - stepInPhrase <= (currentTempoProfile().name === 'very-fast' ? 4 : 8)
+		const phraseEndWindow = phraseLengthValue - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
 		const presetTiming = selectedGroove?.timing
 		const presetSubdivisionStep = presetTiming &&
 			wrap(state.step - (presetTiming.phase ?? 0), presetTiming.every ?? 4) === 0
-		parts.events = createDrumSubHits({
+		parts.events = state.rapidPercussion ? createDrumSubHits({
 			inFill:presetSubdivisionStep || (state.step < state.fillUntilStep && phraseEndWindow),
 			inRoll:state.step < state.rollUntilStep && phraseEndWindow,
 			stepInPhrase,
@@ -440,7 +421,7 @@ export const createDrumArranger = (options={}) => {
 			intent:state.intent,
 			style:presetSubdivisionStep ? presetTiming.style : 'auto',
 			random
-		})
+		}) : []
 
 		return parts
 	}
@@ -449,6 +430,9 @@ export const createDrumArranger = (options={}) => {
 		next,
 		getStep: () => state.step,
 		getBPM: () => state.bpm,
+		getIntent: () => ({ ...state.intent }),
+		setRapidPercussion: enabled => state.rapidPercussion = enabled === true,
+		setPerformanceControl: enabled => state.performanceControl = enabled !== false,
 		setTempo: bpm => {
 			if (Number.isFinite(bpm) && bpm > 0)
 			{
@@ -462,6 +446,10 @@ export const createDrumArranger = (options={}) => {
 			state.intent.muteClap = !!mutes.clap
 		},
 		updatePerson: (person={}) => {
+			if (!state.performanceControl)
+			{
+				return
+			}
 			const velocity = Number.isFinite(person.noteVelocity) ? person.noteVelocity : person.velocity
 			const activity = Number.isFinite(velocity) ? clamp(velocity) : state.intent.energy
 			state.intent = {

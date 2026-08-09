@@ -196,6 +196,10 @@ export const DEFAULT_OPTIONS = {
 	ensemblePreset:"default",
 	// A named drum-kit preset to load during initialisation; empty keeps drums random.
 	drumkit:"",
+	// Add rapid percussion subdivisions such as triplets, sextuplets, and rolls.
+	rapidPercussion:false,
+	// Allow the player's activity and expression to shape percussion intensity.
+	performanceDrums:true,
 	// Picade Plasma light-to-button layout. Use lights=table for the tabletop panel wiring.
 	lights:"default",
 
@@ -227,6 +231,10 @@ export const DEFAULT_OPTIONS = {
 	// NB. if this is true and sympathiser is true, you can get
 	// infinite loops
 	midiControl:true,
+
+	// Send every percussion hit to all MIDI outputs using the General MIDI
+	// drum convention when global MIDI is enabled.
+	midiPercussion:true,
 
 	// allow midi input to control stuff too
 	midiInput:false,

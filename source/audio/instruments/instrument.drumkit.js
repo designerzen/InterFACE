@@ -10,10 +10,9 @@ import { createKick, getRandomKickPreset, PRESETS_KICKS } from '../synthesizers/
 import { createSnare, getRandomSnarePreset, PRESET_SNARES } from '../synthesizers/snare.js'
 import {
 	createHihat,
+	getHihatPair,
 	getRandomHihatPreset,
 	PRESET_HIHATS,
-	PRESET_HIHATS_CLOSED,
-	PRESET_HIHATS_OPEN,
 } from '../synthesizers/hihat.js'
 import { createCowbell } from '../synthesizers/cowbell.js'
 import { createClack } from '../synthesizers/clack.js'
@@ -122,19 +121,8 @@ export default class DrumkitInstrument extends Instrument{
 		super(audioContext, { ...OPTIONS_DRUMKIT, ...options })
 	}
 
-	getHatPair(hat){
-		const isOpen = /open/i.test(hat?.name)
-		const source = isOpen ? PRESET_HIHATS_OPEN : PRESET_HIHATS_CLOSED
-		const counterpart = isOpen ? PRESET_HIHATS_CLOSED : PRESET_HIHATS_OPEN
-		const index = Math.max(0, source.indexOf(hat))
-		return {
-			closed:isOpen ? counterpart[index % counterpart.length] : hat,
-			open:isOpen ? hat : counterpart[index % counterpart.length]
-		}
-	}
-
 	setHatPair(hat){
-		const pair = this.getHatPair(hat)
+		const pair = getHihatPair(hat)
 		this.hatOptions = hat
 		this.hatClosedOptions = pair.closed
 		this.hatOpenOptions = pair.open

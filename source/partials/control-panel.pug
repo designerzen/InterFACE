@@ -110,7 +110,8 @@ menu#control-panel
 
 	
 		//- Percussion and background accompanyment 
-		label(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
+		label.keyboard-shortcut-control(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
+			kbd.keyboard-shortcut(aria-hidden="true") B
 			input#button-percussion(type="checkbox" aria-label="Play some background beats" aria-controls="percussion-settings")
 		label.snare-reverb-control(for="snare-reverb-range" hidden) Snare space
 			input#snare-reverb-range(type="range" min="0" max="1" step="0.05" value="0.24" aria-describedby="snare-reverb-value")
@@ -120,10 +121,12 @@ menu#control-panel
 		//button#button-donk( aria-label="Put a donk on it" ) Add Donk
 		//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
 
-		label(for="button-disco") MTV Mode
+		label.keyboard-shortcut-control(for="button-disco") MTV Mode
+			kbd.keyboard-shortcut(aria-hidden="true") D
 			input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
 		
-		label(for="button-spectrogram") V.U<span class="hide-text"> Spectro&shy;gram</span>
+		label.keyboard-shortcut-control(for="button-spectrogram") V.U<span class="hide-text"> Spectro&shy;gram</span>
+			kbd.keyboard-shortcut(aria-hidden="true") Y
 			input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
 	
 		//- Volumes -------------------------------------------------------------------------------
@@ -136,7 +139,8 @@ menu#control-panel
 		//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 		
 		//- Metronome ---------------------------------------------------------------------
-		label(for="button-metronome") <span class="hide-text">Toggle </span>Metro&shy;nome
+		label.keyboard-shortcut-control(for="button-metronome") <span class="hide-text">Toggle </span>Metro&shy;nome
+			kbd.keyboard-shortcut(aria-hidden="true") M
 			input#button-metronome(type="checkbox" aria-label="Play a metronome to help you keep time")
 		
 		//- TEMPO -------------------------------------------------------------------------
@@ -250,13 +254,15 @@ menu#control-panel
 		//- put share and full screen at the end
 		button.hide-text#button-share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
 		
-		label.hide-text(for="button-fullscreen") Toggle Fullscreen
+		label.hide-text.keyboard-shortcut-control(for="button-fullscreen") Toggle Fullscreen
+			kbd.keyboard-shortcut(aria-hidden="true") F
 			input#button-fullscreen(type="checkbox"  aria-label="Toggle full screen mode")
 	
 
 	//- This covers the entire video and canvas elements
 	//- aria-label="Click screen to change instruments"
-	button#button-video(type="button" ) Swap instruments for all people
+	button#button-video.keyboard-shortcut-control(type="button" ) Swap instruments for all people
+		kbd.keyboard-shortcut(aria-hidden="true") Enter
 	
 	//- Once the user has taken some photos they appear here
 	output(hidden for="folder-record").recordings
@@ -268,6 +274,7 @@ menu#control-panel
 
 	//- Percussion settings for all users ----------------------------------------------------
 	menu#percussion-settings.controls(aria-label="Beat and drum settings")
+		button#button-randomise-percussion(type="button") Randomise All
 		label(for="select-percussion-preset") <span class="hide-text">Choose </span>Percussion
 			select#select-percussion-preset(aria-label="Select a percussion preset" name="select-percussion-preset")
 				option(value="", selected) Random
@@ -311,15 +318,20 @@ menu#control-panel
 			input#button-toggle-advanced(type="checkbox" aria-label="Show advanced settings and controls")
 	
 		
-		label(for="button-clear") Clear<span class="hide-text"> Video</span>
+		label.keyboard-shortcut-control(for="button-clear") Clear<span class="hide-text"> Video</span>
+			kbd.keyboard-shortcut(aria-hidden="true") C
 			input#button-clear(type="checkbox" aria-label="Clear visuals & video")
 	
-		label(for="button-sync-video") Synch<br>Video
+		label.keyboard-shortcut-control(for="button-sync-video") Synch<br>Video
+			kbd.keyboard-shortcut(aria-hidden="true") N
 			input#button-sync-video(type="checkbox" aria-label="Toggle whether to try to synch video to performance")
 
 		label(for="button-flood") Flood<span class="hide-text"> fill the screen</span>
 			input#button-flood(type="checkbox" aria-label="Scale the live video and overlays to fill the screen without black bars")
-			
+
+		label(for="button-hud") HUD<span class="hide-text"> input device overlay</span>
+			input#button-hud(type="checkbox" aria-label="Toggle the input device HUD")
+
 		label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
 			input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
 
@@ -332,11 +344,9 @@ menu#control-panel
 		label(for="button-meshes") Faces<span class="hide-text"> have overlays</span>
 			input#button-meshes(type="checkbox" aria-label="Toggle Face overlays")
 	
-		label(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
+		label.keyboard-shortcut-control(for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
+			kbd.keyboard-shortcut(aria-hidden="true") T
 			input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
-
-		label(for="button-hud") HUD<span class="hide-text"> input device overlay</span>
-			input#button-hud(type="checkbox" aria-label="Toggle the input device HUD")
 
 		label(for="button-toggle-overlay") Overlay<span class="hide-text"> canvas for text and symbols</span>
 			input#button-toggle-overlay(type="checkbox" aria-label="Toggle the overlay canvas for text and symbols")
@@ -389,7 +399,8 @@ menu#control-panel
 			select#select-impulse(aria-label="Select a different reverb" name="select-impulse")
 				//- options are injected via javascript  
 				
-		label(for="button-speak") <span class="hide-text">Toggle </span>Speech
+		label.keyboard-shortcut-control(for="button-speak") <span class="hide-text">Toggle </span>Speech
+			kbd.keyboard-shortcut(aria-hidden="true") L
 			input#button-speak(type="checkbox" aria-label="Read out instructions and help")
 	
 		button#button-reset.advanced-only( type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>

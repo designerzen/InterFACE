@@ -93,13 +93,13 @@ export const PERCUSSION_PRESETS = [
 	{ id:"dubstep-triplet-roll", group:"Electronic", title:"Dubstep Triplet Roll", groove:"dubstep-triplet-roll", kit:{kick:"808 Sub Kick",snare:"Heavy Snare",hat:"Dark Closed Hihat"}, seed:"dubstep-triplet-roll", intent:{energy:0.9,density:0.52,tension:0.9,fillChance:0.3,rollChance:0.3,chaos:0.12}, phraseBars:4, stepsPerBar:16 },
 	{ id:"breakstep", group:"Electronic", title:"Breakstep", groove:"breakstep", kit:{kick:"Electro Kick",snare:"Electro Snare",hat:"Metallic Closed Hihat"}, seed:"breakstep", intent:{energy:0.82,density:0.7,tension:0.72,fillChance:0.2,rollChance:0.22,chaos:0.16}, phraseBars:4, stepsPerBar:16 },
 	{ id:"electro-funk", group:"Electronic", title:"Electro Funk", groove:"electro", kit:{kick:"Electro Kick",snare:"Electro Snare",hat:"808 Closed Hihat"}, seed:"electro-funk", intent:{energy:0.72,density:0.56,tension:0.48,fillChance:0.14,rollChance:0.12,chaos:0.08}, phraseBars:4, stepsPerBar:16 },
-	{ id:"samba-batucada", group:"World", title:"Samba Batucada", groove:"samba", kit:{kick:"Vintage Acoustic Kick",snare:"Acoustic Snare",hat:"Short Open Hihat"}, seed:"samba-batucada", intent:{energy:0.76,density:0.82,tension:0.3,fillChance:0.16,rollChance:0.14,chaos:0.08}, phraseBars:4, stepsPerBar:16 },
-	{ id:"one-drop-reggae", group:"World", title:"One Drop Reggae", groove:"reggae", kit:{kick:"Pillow Kick",snare:"Rim Shot Snare",hat:"Dark Open Hihat"}, seed:"one-drop-reggae", intent:{energy:0.38,density:0.28,tension:0.2,fillChance:0.06,rollChance:0.04,chaos:0.04}, phraseBars:8, stepsPerBar:16 },
+	{ id:"samba-batucada", group:"Brazilian", title:"Samba Batucada", groove:"samba", kit:{kick:"Vintage Acoustic Kick",snare:"Acoustic Snare",hat:"Short Open Hihat"}, seed:"samba-batucada", intent:{energy:0.76,density:0.82,tension:0.3,fillChance:0.16,rollChance:0.14,chaos:0.08}, phraseBars:4, stepsPerBar:16 },
+	{ id:"one-drop-reggae", group:"Jamaican", title:"One Drop Reggae", groove:"reggae", kit:{kick:"Pillow Kick",snare:"Rim Shot Snare",hat:"Dark Open Hihat"}, seed:"one-drop-reggae", intent:{energy:0.38,density:0.28,tension:0.2,fillChance:0.06,rollChance:0.04,chaos:0.04}, phraseBars:8, stepsPerBar:16 },
 	{ id:"jazz-swing", group:"Jazz", title:"Jazz Swing", groove:"jazz-swing", kit:{kick:"Pillow Kick",snare:"Brushed Snare",hat:"Ride-style Open Hihat"}, seed:"jazz-swing", intent:{energy:0.36,density:0.56,tension:0.18,fillChance:0.1,rollChance:0.08,chaos:0.06}, phraseBars:8, stepsPerBar:24 },
 	{ id:"bossa-nova", group:"Jazz", title:"Bossa Nova", groove:"bossa-nova", kit:{kick:"Vintage Acoustic Kick",snare:"Rim Shot Snare",hat:"Lo-Fi Closed Hihat"}, seed:"bossa-nova", intent:{energy:0.34,density:0.5,tension:0.16,fillChance:0.06,rollChance:0.04,chaos:0.04}, phraseBars:8, stepsPerBar:16 },
 	{ id:"studio-54-disco", group:"Classic Styles", title:"Studio 54 Disco", groove:"disco", kit:{kick:"909 Punchy Kick",snare:"Clap Snare Hybrid",hat:"Sizzle Open Hihat"}, seed:"studio-54-disco", intent:{energy:0.72,density:0.6,tension:0.34,fillChance:0.12,rollChance:0.08,chaos:0.04}, phraseBars:8, stepsPerBar:16 },
 	{ id:"motown-pocket", group:"Classic Styles", title:"Motown Pocket", groove:"motown", kit:{kick:"Vintage Acoustic Kick",snare:"Acoustic Snare",hat:"Short Open Hihat"}, seed:"motown-pocket", intent:{energy:0.48,density:0.5,tension:0.2,fillChance:0.06,rollChance:0.04,chaos:0.04}, phraseBars:8, stepsPerBar:16 },
-	{ id:"afrobeat", group:"World", title:"Afrobeat", groove:"afrobeat", kit:{kick:"Vintage Acoustic Kick",snare:"Rim Shot Snare",hat:"Short Open Hihat"}, seed:"afrobeat", intent:{energy:0.62,density:0.74,tension:0.3,fillChance:0.1,rollChance:0.08,chaos:0.06}, phraseBars:8, stepsPerBar:16 },
+	{ id:"afrobeat", group:"West African", title:"Afrobeat", groove:"afrobeat", kit:{kick:"Vintage Acoustic Kick",snare:"Rim Shot Snare",hat:"Short Open Hihat"}, seed:"afrobeat", intent:{energy:0.62,density:0.74,tension:0.3,fillChance:0.1,rollChance:0.08,chaos:0.06}, phraseBars:8, stepsPerBar:16 },
 	{ id:"trap", group:"Electronic", title:"Trap", groove:"trap", kit:{kick:"Trap Kick",snare:"Trap Snare",hat:"Trap Closed Hihat"}, seed:"trap", intent:{energy:0.72,density:0.48,tension:0.7,fillChance:0.16,rollChance:0.34,chaos:0.12}, phraseBars:4, stepsPerBar:16 },
 	{ id:"chicago-footwork", group:"Electronic", title:"Chicago Footwork", groove:"footwork", kit:{kick:"Electro Kick",snare:"Tight Snare",hat:"Chattery Closed Hihat"}, seed:"chicago-footwork", intent:{energy:0.88,density:0.78,tension:0.78,fillChance:0.18,rollChance:0.3,chaos:0.14}, phraseBars:4, stepsPerBar:16 },
 	{ id:"punk-rock", group:"Rock", title:"Punk Rock", groove:"punk-rock", kit:{kick:"Beefy Kick",snare:"Strong Snare",hat:"Short Open Hihat"}, seed:"punk-rock", intent:{energy:0.92,density:0.76,tension:0.62,fillChance:0.18,rollChance:0.14,chaos:0.08}, phraseBars:4, stepsPerBar:16 },
@@ -110,21 +110,54 @@ export const PERCUSSION_PRESETS = [
 	{ id:"hardstyle-impact", group:"Heavy", title:"Hardstyle Impact", kit:{kick:"Hardstyle Kick",snare:"Heavy Snare",hat:"Metallic Closed Hihat"}, seed:"hardstyle-impact", intent:{energy:0.98,density:0.76,tension:0.84,fillChance:0.3,rollChance:0.24,chaos:0.28}, phraseBars:4 }
 ]
 
-const normalisePresetName = value => String(value ?? "")
+// Sound-only machine kits. They deliberately live outside PERCUSSION_PRESETS,
+// so choosing one changes timbre without replacing the selected arrangement.
+export const PERCUSSION_MACHINE_PRESETS = [
+	{ id:"korg-kr-55", group:"Korg", title:"Korg KR-55", soundOnly:true, kit:{kick:"Korg KR-55 Kick",snare:"Korg KR-55 Snare",hat:"Korg KR-55 Closed Hihat",cowbell:"Korg KR-55 Cowbell"}, intent:{energy:0.28,density:0.3,tension:0.18} },
+	{ id:"roland-cr-78", group:"Roland", title:"Roland CR-78", soundOnly:true, kit:{kick:"CR-78 Kick",snare:"CR-78 Snare",hat:"CR-78 Closed Hihat",cowbell:"CR-78 Cowbell"}, intent:{energy:0.32,density:0.32,tension:0.2} },
+	{ id:"boss-dr-55", group:"Boss", title:"Boss DR-55", soundOnly:true, kit:{kick:"Boss DR-55 Kick",snare:"Boss DR-55 Snare",hat:"Boss DR-55 Closed Hihat",cowbell:false}, intent:{energy:0.34,density:0.34,tension:0.24} },
+	{ id:"roland-tr-606", group:"Roland", title:"Roland TR-606", soundOnly:true, kit:{kick:"606 Kick",snare:"606 Snare",hat:"606 Closed Hihat",cowbell:false}, intent:{energy:0.44,density:0.46,tension:0.34} },
+	{ id:"roland-tr-505", group:"Roland", title:"Roland TR-505", soundOnly:true, kit:{kick:"505 Kick",snare:"505 Snare",hat:"505 Closed Hihat",cowbell:"505 Cowbell"}, intent:{energy:0.5,density:0.48,tension:0.38} },
+	{ id:"casio-rz-1", group:"Casio", title:"Casio RZ-1", soundOnly:true, kit:{kick:"Casio RZ-1 Kick",snare:"Casio RZ-1 Snare",hat:"Casio RZ-1 Closed Hihat",cowbell:"Casio RZ-1 Cowbell"}, intent:{energy:0.56,density:0.5,tension:0.44} },
+	{ id:"emu-sp-1200", group:"E-mu", title:"E-mu SP-1200", soundOnly:true, kit:{kick:"E-mu SP-1200 Kick",snare:"E-mu SP-1200 Snare",hat:"E-mu SP-1200 Closed Hihat",cowbell:"E-mu SP-1200 Cowbell"}, intent:{energy:0.58,density:0.5,tension:0.4} },
+	{ id:"linndrum", group:"Linn", title:"LinnDrum", soundOnly:true, kit:{kick:"LinnDrum Kick",snare:"LinnDrum Snare",hat:"LinnDrum Closed Hihat",cowbell:"LinnDrum Cowbell"}, intent:{energy:0.6,density:0.5,tension:0.42} },
+	{ id:"sequential-drumtraks", group:"Sequential", title:"Sequential DrumTraks", soundOnly:true, kit:{kick:"Sequential DrumTraks Kick",snare:"Sequential DrumTraks Snare",hat:"Sequential DrumTraks Closed Hihat",cowbell:"Sequential DrumTraks Cowbell"}, intent:{energy:0.61,density:0.52,tension:0.44} },
+	{ id:"roland-tr-707", group:"Roland", title:"Roland TR-707", soundOnly:true, kit:{kick:"707 Kick",snare:"707 Snare",hat:"707 Closed Hihat",cowbell:"707 Cowbell"}, intent:{energy:0.62,density:0.54,tension:0.48} },
+	{ id:"alesis-hr-16", group:"Alesis", title:"Alesis HR-16", soundOnly:true, kit:{kick:"Alesis HR-16 Kick",snare:"Alesis HR-16 Snare",hat:"Alesis HR-16 Closed Hihat",cowbell:"Alesis HR-16 Cowbell"}, intent:{energy:0.64,density:0.54,tension:0.48} },
+	{ id:"korg-ddd-1", group:"Korg", title:"Korg DDD-1", soundOnly:true, kit:{kick:"Korg DDD-1 Kick",snare:"Korg DDD-1 Snare",hat:"Korg DDD-1 Closed Hihat",cowbell:"Korg DDD-1 Cowbell"}, intent:{energy:0.66,density:0.56,tension:0.5} },
+	{ id:"oberheim-dmx", group:"Oberheim", title:"Oberheim DMX", soundOnly:true, kit:{kick:"Oberheim DMX Kick",snare:"Oberheim DMX Snare",hat:"Oberheim DMX Closed Hihat",cowbell:"Oberheim DMX Cowbell"}, intent:{energy:0.7,density:0.57,tension:0.52} },
+	{ id:"roland-tr-808", group:"Roland", title:"Roland TR-808", soundOnly:true, kit:{kick:"808 Sub Kick",snare:"808 Snare",hat:"808 Closed Hihat",cowbell:"808 Cowbell"}, intent:{energy:0.72,density:0.58,tension:0.54} },
+	{ id:"yamaha-rx5", group:"Yamaha", title:"Yamaha RX5", soundOnly:true, kit:{kick:"Yamaha RX5 Kick",snare:"Yamaha RX5 Snare",hat:"Yamaha RX5 Closed Hihat",cowbell:"Yamaha RX5 Cowbell"}, intent:{energy:0.74,density:0.6,tension:0.58} },
+	{ id:"roland-tr-909", group:"Roland", title:"Roland TR-909", soundOnly:true, kit:{kick:"909 Punchy Kick",snare:"909 Snare",hat:"909 Closed Hihat",cowbell:false}, intent:{energy:0.82,density:0.66,tension:0.64} },
+	{ id:"simmons-sds-v", group:"Simmons", title:"Simmons SDS-V", soundOnly:true, kit:{kick:"Simmons SDS-V Kick",snare:"Simmons SDS-V Snare",hat:"Simmons SDS-V Closed Hihat",cowbell:false}, intent:{energy:0.86,density:0.62,tension:0.7} },
+]
+
+const ALL_PERCUSSION_PRESETS = [...PERCUSSION_PRESETS, ...PERCUSSION_MACHINE_PRESETS]
+
+const createPresetLookupKey = value => String(value ?? "")
 	.toLowerCase()
 	.replace(/[^a-z0-9]+/g, "")
 
+const PERCUSSION_PRESETS_BY_VALUE = new Map()
+const PERCUSSION_PRESET_ALIASES = new Map()
+
+for (const preset of ALL_PERCUSSION_PRESETS)
+{
+	PERCUSSION_PRESETS_BY_VALUE.set(preset.id, preset)
+	PERCUSSION_PRESETS_BY_VALUE.set(preset.title, preset)
+	PERCUSSION_PRESET_ALIASES.set(createPresetLookupKey(preset.id), preset)
+	PERCUSSION_PRESET_ALIASES.set(createPresetLookupKey(preset.title), preset)
+}
+
 export const getPercussionPreset = value => {
-	const presetName = normalisePresetName(value)
-	if (!presetName)
+	if (typeof value !== "string" || !value)
 	{
 		return null
 	}
 
-	return PERCUSSION_PRESETS.find(preset => {
-		return normalisePresetName(preset.id) === presetName ||
-			normalisePresetName(preset.title) === presetName
-	}) ?? null
+	return PERCUSSION_PRESETS_BY_VALUE.get(value) ??
+		PERCUSSION_PRESET_ALIASES.get(createPresetLookupKey(value)) ??
+		null
 }
 
 const SOUND_AGGRESSION_HINTS = Object.freeze({
@@ -163,6 +196,46 @@ export const getPercussionSoundAggression = preset => {
 		timbreAdjustment
 }
 
-export const PERCUSSION_SOUND_PRESETS = PERCUSSION_PRESETS
+const PERCUSSION_SOUND_AGGRESSION = new Map(
+	ALL_PERCUSSION_PRESETS.map(preset => [preset, getPercussionSoundAggression(preset)])
+)
+
+export const PERCUSSION_SOUND_PRESETS = ALL_PERCUSSION_PRESETS
 	.slice()
-	.sort((a, b) => getPercussionSoundAggression(a) - getPercussionSoundAggression(b))
+	.sort((a, b) => PERCUSSION_SOUND_AGGRESSION.get(a) - PERCUSSION_SOUND_AGGRESSION.get(b))
+
+const SOUND_GROUP_BY_STYLE = new Map([
+	["Space", "Ambient & Space"],
+	["Organic", "Acoustic & Organic"],
+	["Jazz", "Acoustic & Organic"],
+	["Rock", "Acoustic & Organic"],
+	["Classic Styles", "Classic & Regional"],
+	["Brazilian", "Classic & Regional"],
+	["Jamaican", "Classic & Regional"],
+	["West African", "Classic & Regional"],
+	["Breaks", "Breaks & Hip-Hop"],
+	["Classic Breaks", "Breaks & Hip-Hop"],
+	["Electronic", "Electronic"],
+	["Heavy", "Heavy & Experimental"],
+])
+
+export const PERCUSSION_SOUND_PRESET_GROUPS = [
+	{ group:"Drum Machines", presets:[] },
+	{ group:"Ambient & Space", presets:[] },
+	{ group:"Acoustic & Organic", presets:[] },
+	{ group:"Classic & Regional", presets:[] },
+	{ group:"Breaks & Hip-Hop", presets:[] },
+	{ group:"Electronic", presets:[] },
+	{ group:"Heavy & Experimental", presets:[] },
+	{ group:"Other", presets:[] },
+]
+
+const SOUND_PRESET_GROUPS_BY_NAME = new Map(
+	PERCUSSION_SOUND_PRESET_GROUPS.map(group => [group.group, group])
+)
+
+for (const preset of PERCUSSION_SOUND_PRESETS)
+{
+	const groupName = preset.soundOnly ? "Drum Machines" : (SOUND_GROUP_BY_STYLE.get(preset.group) ?? "Other")
+	SOUND_PRESET_GROUPS_BY_NAME.get(groupName).presets.push(preset)
+}
