@@ -1,23 +1,20 @@
 import { base64Decode } from "../utils/base64.js"
-import { NOTE_NAMES, NOTE_NAMES_POPULAR_FIRST } from "./tuning/notes.js"
 import decode, {decoders} from 'audio-decode'
 import { typedArrayToBuffer } from "../utils/base64.js"
-import { rearrangeArrayBySnake } from "../utils/array-tools.js"
+import {
+	CMD_DECODE,
+	CMD_FETCH_SOUNDFONT_PART,
+	CMD_LOAD_SOUNDFONT,
+	CMD_LOAD_SOUNDFONT_AUDIO_DATA,
+	CMD_CANCEL,
+	EVENT_DECODED,
+	EVENT_DECODED_PART
+} from "./fetch.audio.protocol.js"
 /**
  * Fetch an audio sample / wave / mp3 / ogg from the server...
  * Try and decode as much as we can in threads...
  * 
  */
-export const CMD_DECODE = "command-decode"
-export const CMD_FETCH_SOUNDFONT_PART = "command-fetch-soundfont"
-export const CMD_LOAD_SOUNDFONT = "command-load-soundfont"
-export const CMD_LOAD_SOUNDFONT_AUDIO_DATA = "command-load-soundfont-part"
-export const CMD_CANCEL = "command-cancel"
-
-
-export const EVENT_DECODED = "decode complete"
-export const EVENT_DECODED_PART = "decode part complete"
-
 // const DEFAULT_SOUNDFONT_HOST = " https://gleitz.github.io/midi-js-soundfonts/"
 const DEFAULT_SOUNDFONT_HOST = " https://paulrosen.github.io/midi-js-soundfonts/"
 
@@ -81,6 +78,40 @@ const fetchSoundFontAudioDataPartFromFile = async (path) => {
 
 let currentAbortController = null
 
+const createSoundFontNoteNames = () => {
+	const notes = []
+	const keys = ["Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G"]
+
+	keys.forEach(key => {
+		if (key === "A" || key === "B") notes.push(`${key}0`)
+		for (let octave = 1; octave < 8; octave++) notes.push(`${key}${octave}`)
+		if (key === "C") notes.push("C8")
+	})
+
+	return notes
+}
+
+const rearrangeNotesBySnake = (notes, requestedStartIndex) => {
+	const output = []
+	const startIndex = requestedStartIndex ?? Math.floor(notes.length / 2)
+	let extent = 0
+	let direction = 1
+	let iteration = 0
+
+	while (output.length < notes.length)
+	{
+		const index = startIndex + (extent * direction)
+		direction *= -1
+		if (iteration % 2 === 0) extent++
+		if (notes[index] !== undefined) output.push(notes[index])
+		iteration++
+	}
+
+	return output
+}
+
+const SOUNDFONT_NOTE_NAMES = createSoundFontNoteNames()
+
 const createTransferablePCMMessage = (audioData) => {
 	const channelData = audioData?.channelData ?? []
 	const sampleRate = audioData?.sampleRate
@@ -117,7 +148,7 @@ const createTransferablePCMMessage = (audioData) => {
 }
 
 const getOrderedSoundFontParts = (options = {}) => {
-	return rearrangeArrayBySnake(NOTE_NAMES_POPULAR_FIRST, options.startIndex)
+	return rearrangeNotesBySnake(SOUNDFONT_NOTE_NAMES, options.startIndex)
 }
 
 const loadSoundFontPartsInBatches = async (parts, options, abortSignal, loadPart) => {
