@@ -1,3 +1,21 @@
+dialog#command-palette.command-palette(aria-labelledby="command-palette-title" aria-describedby="command-palette-description")
+	form.command-palette-shell(method="dialog")
+		header.command-palette-header
+			h4#command-palette-title Commands
+			p#command-palette-description Search for a section, control, or action.
+			label.sr-only(for="command-palette-search") Search commands
+			input#command-palette-search.command-palette-search(type="search" autocomplete="off" spellcheck="false" placeholder="Type a command…" role="combobox" aria-autocomplete="list" aria-controls="command-palette-results" aria-expanded="true" autofocus)
+		div#command-palette-results.command-palette-results(role="listbox" aria-label="Available commands")
+		p.command-palette-empty(role="status" hidden) No matching commands
+		footer.command-palette-footer(aria-hidden="true")
+			span: kbd ↑↓
+			|  Navigate
+			span: kbd Enter
+			|  Run
+			span: kbd Esc
+			|  Close
+		button.command-palette-close(type="submit" value="close" aria-label="Close command palette") ×
+
 dialog#help 
 	form(method="dialog")
 		h4 Don't Panic!

@@ -77,6 +77,10 @@ menu#control-panel
 		//- button.button-upgrade#button-upgrade( type="button" hidden aria-label="Upgrade this app to the latest version") Upgrade
 
 		button#button-help( type="button" aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
+		
+		button#button-command-palette.command-palette-launcher(type="button" aria-haspopup="dialog" aria-controls="command-palette" aria-label="Open command palette" hidden)
+			| Commands
+			kbd(aria-hidden="true") Ctrl K
 				
 		//- Equipment Settings 
 		//- TODO: Put into a dialog?
@@ -107,10 +111,7 @@ menu#control-panel
 	
 		//- Percussion and background accompanyment 
 		label(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
-			input#button-percussion(type="checkbox" aria-label="Play some background beats")
-		label(for="select-percussion-preset") <span class="hide-text">Choose </span>Drumkit
-			select#select-percussion-preset(aria-label="Select a percussion preset" name="select-percussion-preset")
-				option(value="", selected) Random
+			input#button-percussion(type="checkbox" aria-label="Play some background beats" aria-controls="percussion-settings")
 		label.snare-reverb-control(for="snare-reverb-range" hidden) Snare space
 			input#snare-reverb-range(type="range" min="0" max="1" step="0.05" value="0.24" aria-describedby="snare-reverb-value")
 			output#snare-reverb-value(for="snare-reverb-range") 24%
@@ -263,6 +264,30 @@ menu#control-panel
 		#recorded-audio
 		button(type="button")#toggle-recordings.hide-text Toggle Recordings
 
+
+
+	//- Percussion settings for all users ----------------------------------------------------
+	menu#percussion-settings.controls(aria-label="Beat and drum settings")
+		label(for="select-percussion-preset") <span class="hide-text">Choose </span>Percussion
+			select#select-percussion-preset(aria-label="Select a percussion preset" name="select-percussion-preset")
+				option(value="", selected) Random
+
+		label(for="select-percussion-pattern") <span class="hide-text">Choose percussion </span>Pattern
+			select#select-percussion-pattern(aria-label="Select a percussion pattern" name="select-percussion-pattern")
+				option(value="", selected) Random
+
+		label(for="select-percussion-sound") <span class="hide-text">Choose percussion </span>Sound
+			select#select-percussion-sound(aria-label="Select a percussion sound preset" name="select-percussion-sound")
+				option(value="", selected) Random
+
+		label(for="button-midi-percussion") Send Percussion<span class="hide-text"> to MIDI outputs</span>
+			input#button-midi-percussion(type="checkbox" aria-label="Send percussion to MIDI outputs")
+
+		label(for="button-rapid-percussion") Rapid Hits<span class="hide-text"> including triplets and subdivisions</span>
+			input#button-rapid-percussion(type="checkbox" aria-label="Enable rapid percussion triplets and subdivisions")
+
+		label(for="button-performance-drums") Performance<span class="hide-text"> controls percussion activity</span>
+			input#button-performance-drums(type="checkbox" aria-label="Allow user performance to affect percussion")
 
 
 	//- Settings for all users --------------------------------------------------------------- 
