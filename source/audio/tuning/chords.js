@@ -105,6 +105,60 @@ export const MAJOR_CHORD_INTERVALS = [0,4,3]
  */
 export const MINOR_CHORD_INTERVALS = [0,3,4]
 
+/** Chord qualities that must keep their chromatic shape in every tuning mode. */
+export const SUSPENDED_CHORD_INTERVALS = [0,5,2]
+export const DIMINISHED_CHORD_INTERVALS = [0,3,3]
+export const AUGMENTED_CHORD_INTERVALS = [0,4,4]
+
+/**
+ * Absolute semitone offsets for emotion-driven chord voicings. These are
+ * separate from the cumulative formulas above so callers can request an exact
+ * quality without scale-mode quantisation.
+ */
+export const MAJOR_VOICING_INTERVALS = [0,4,7]
+export const MINOR_VOICING_INTERVALS = [0,3,7]
+export const SUSPENDED_VOICING_INTERVALS = [0,5,7]
+export const SUSPENDED_2_VOICING_INTERVALS = [0,2,7]
+export const DIMINISHED_VOICING_INTERVALS = [0,3,6]
+export const AUGMENTED_VOICING_INTERVALS = [0,4,8]
+export const MAJOR_6_VOICING_INTERVALS = [0,4,7,9]
+export const MINOR_6_VOICING_INTERVALS = [0,3,7,9]
+export const MAJOR_7_VOICING_INTERVALS = [0,4,7,11]
+export const MINOR_7_VOICING_INTERVALS = [0,3,7,10]
+export const DOMINANT_7_VOICING_INTERVALS = [0,4,7,10]
+export const MINOR_MAJOR_7_VOICING_INTERVALS = [0,3,7,11]
+export const DIMINISHED_7_VOICING_INTERVALS = [0,3,6,9]
+export const HALF_DIMINISHED_VOICING_INTERVALS = [0,3,6,10]
+export const SUSPENDED_7_VOICING_INTERVALS = [0,5,7,10]
+export const MAJOR_9_VOICING_INTERVALS = [0,4,7,11,14]
+export const MINOR_9_VOICING_INTERVALS = [0,3,7,10,14]
+export const DOMINANT_9_VOICING_INTERVALS = [0,4,7,10,14]
+export const SIXTH_9_VOICING_INTERVALS = [0,4,7,9,14]
+export const MINOR_6TH_9_VOICING_INTERVALS = [0,3,7,9,14]
+
+export const CHORD_VOICINGS = Object.freeze({
+	major:MAJOR_VOICING_INTERVALS,
+	minor:MINOR_VOICING_INTERVALS,
+	suspended:SUSPENDED_VOICING_INTERVALS,
+	suspended2:SUSPENDED_2_VOICING_INTERVALS,
+	diminished:DIMINISHED_VOICING_INTERVALS,
+	augmented:AUGMENTED_VOICING_INTERVALS,
+	major6:MAJOR_6_VOICING_INTERVALS,
+	minor6:MINOR_6_VOICING_INTERVALS,
+	major7:MAJOR_7_VOICING_INTERVALS,
+	minor7:MINOR_7_VOICING_INTERVALS,
+	dominant7:DOMINANT_7_VOICING_INTERVALS,
+	minorMajor7:MINOR_MAJOR_7_VOICING_INTERVALS,
+	diminished7:DIMINISHED_7_VOICING_INTERVALS,
+	halfDiminished:HALF_DIMINISHED_VOICING_INTERVALS,
+	suspended7:SUSPENDED_7_VOICING_INTERVALS,
+	major9:MAJOR_9_VOICING_INTERVALS,
+	minor9:MINOR_9_VOICING_INTERVALS,
+	dominant9:DOMINANT_9_VOICING_INTERVALS,
+	sixth9:SIXTH_9_VOICING_INTERVALS,
+	minor6th9:MINOR_6TH_9_VOICING_INTERVALS
+})
+
 /**
  * FIXME: 
  * Intervals: 1, 2, b3, 4, 5, 6, b7
@@ -119,6 +173,9 @@ export const FIFTHS_CHORD_INTERVALS = [0,5,5,5,5,5]
 export const CHORD_INTERVALS = [
 	MAJOR_CHORD_INTERVALS,
 	MINOR_CHORD_INTERVALS,
+	SUSPENDED_CHORD_INTERVALS,
+	DIMINISHED_CHORD_INTERVALS,
+	AUGMENTED_CHORD_INTERVALS,
 	DORIAN_CHORD_INTERVALS,
 	FIFTHS_CHORD_INTERVALS
 ]
@@ -126,6 +183,9 @@ export const CHORD_INTERVALS = [
 export const CHORD_INTERVALS_NAMES = [
 	"major",
 	"minor",
+	"suspended",
+	"diminished",
+	"augmented",
 	"dorian",
 	"fifths"
 ]
@@ -234,6 +294,18 @@ export const createMajorChord =( notes, offset=0, mode=0 )=> createChord( notes,
 export const createMinorChord =( notes, offset=0, mode=0 )=> createChord( notes, MINOR_CHORD_INTERVALS, offset, mode, true, true )
 export const createJazzChord =( notes, offset=0, mode=0 )=> createChord( notes, MELODIC_MINOR_SCALE, offset, mode, true, false )
 
+export const getChordVoicingForNoteNumber = (tonic, chordType="major") => {
+	const intervals = CHORD_VOICINGS[chordType]
+	if (!intervals)
+	{
+		throw Error(`Unknown chord voicing: ${chordType}`)
+	}
+
+	return intervals
+		.map(interval => MIDI_NOTE_NUMBER_MAP[tonic + interval])
+		.filter(Boolean)
+}
+
 // console.info("GENERAL_MIDI_INSTRUMENTS", GENERAL_MIDI_INSTRUMENTS)
 // console.info("CHORDS_LIST", CHORDS_LIST)
 // console.log("FREQUENCY_LIST", { FREQUENCY_LIST })
@@ -246,18 +318,6 @@ export const createJazzChord =( notes, offset=0, mode=0 )=> createChord( notes, 
 
 // const test = inversion()
 
-MIDI_NOTE_NAMES.forEach( note => {
-	// console.log("convertNoteNameToMIDINoteNumber", note, convertNoteNameToMIDINoteNumber(note) ) 
-})
-
-
-// Create all the chords for each note number...
-MIDI_NOTE_NUMBER_MAP.forEach( (note, index) => {
-
-	const chord = ''
-	// console.log( index, "MIDI_NOTE_NUMBER_MAP", {note, chord} ) 
-})
-
 
 let allChords = []
 
@@ -269,6 +329,14 @@ let allChords = []
  * @param {Number} mode 
  */
 export const createChordsForNoteNumber = (tonic, scale, mode) => {
+	const exactChordType = scale === SUSPENDED_CHORD_INTERVALS ? "suspended" :
+		(scale === DIMINISHED_CHORD_INTERVALS ? "diminished" :
+			(scale === AUGMENTED_CHORD_INTERVALS ? "augmented" : null))
+	if (exactChordType)
+	{
+		return getChordVoicingForNoteNumber(tonic, exactChordType)
+	}
+
 	//ensure that the mode is an index
 	if (isNaN(mode))
 	{
