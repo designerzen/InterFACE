@@ -57,6 +57,9 @@ static/assets/audio/*
 !static/assets/audio/acoustics/*
 !static/assets/audio/*.json
 !static/assets/audio/OpenGM24/
+!static/assets/audio/fx/
+!static/assets/audio/fx/meme/
+!static/assets/audio/fx/meme/*.mp3
 
 Hi Roger,.md
 .nvmrc-new

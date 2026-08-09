@@ -41,7 +41,12 @@ Can be used as a controller for other hardware MIDI devices and in duet-mode all
 
 In single player mode, the MIDI events currently get broadcast to all channels.
 
-The prototype has only basic note on / note off / pitch bend MIDI interaction but I would like to add after touch to the interface, perhaps eye brow control? Eye direction currently controls pitch bend on MIDI but stereo panning on the synth.
+## Picade Plasma light mappings
+
+Set the global `lights` query option to select the physical Plasma LED order. `?lights=default` uses the standard Picade Max layout, `?lights=table` uses the tabletop layout, and `?lights=picade` uses the six-light `a,b,lb,rb,y,x` Picade order.
+
+Custom mappings are comma-separated physical light slots ordered left-to-right across the panel. Prefix every button with its one-based player number, for example `?lights=1x,2rb,1y,2lb,1a,2b`; the first item is light 1, the second is light 2, and so on. Join controls with `+` to assign several buttons to one light, such as `?lights=1a+1b,-,-,-,-,1x`; use `-` for an unassigned physical light. Both raw `+` and encoded `%2B` separators are accepted in the query string. Supported button names are `a`, `b`, `x`, `y`, `lb`, `rb`, `lt`, `rt`, `start`, `select`, `ls`, `rs`, `dup`, `ddown`, `dleft`, and `dright`; `l1`, `r1`, `l2`, `r2`, `up`, and `down` are accepted aliases. Use uniquely indexed system lights such as `s1`, `s2`, and `s3` for programmable lights with no gamepad button, for example `?lights=1a,1b,1lb,1rb,1y,1x,s1`; target one with `setSystemLight('s1', colour)`. The `table` preset has fifteen physical lights, including `s1` at light 8.
+
 
 I would also like to develop certain different modes - as well as the expressive mode which works in direct relation with facial movements (as it currently works) would be a more fun but equally satisfying pop music factory mode where the mouth controls the playback and amplitude of the next phrase in a sequence (loaded from a MIDI file) whilst a backing track supports you. I think that would be a lot of fun and smooths over the latency issues. 
 
