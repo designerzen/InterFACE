@@ -14,7 +14,10 @@ const pageIds = Object.freeze({
 	home: 'DB46784D-474F-4B3C-A1BB-9FB25D8CCE13',
 	players: '6B19584D-66C6-4C13-9B25-56E168A99467',
 	visuals: '1133A94E-3F72-4A57-8A99-3CE0A705C727',
-	performance: '63AFD86E-4218-4F14-B6B8-13C597A23B0B',
+	notes: '63AFD86E-4218-4F14-B6B8-13C597A23B0B',
+	chords: 'A5E4A9C1-42D7-4BE5-985A-A1D8824F3349',
+	percussion: '29D46B46-17E4-46AA-9B84-8D1120AF0984',
+	samples: 'E49AE621-9E86-45E5-9D68-75C4B35C68A0',
 	sound: 'D777560A-8FC7-4E63-854B-712B324B8DB4',
 })
 
@@ -25,6 +28,11 @@ const palette = Object.freeze({
 	timing: '#f29c38',
 	visual: '#38b87c',
 	performance: '#5078e8',
+	chord: '#9b5de5',
+	'percussion-low': '#ff5a36',
+	'percussion-cymbal': '#f2c94c',
+	'percussion-tom': '#38bdf8',
+	sample: '#d45eb5',
 	sound: '#d45eb5',
 	system: '#6f7b8d',
 })
@@ -69,20 +77,21 @@ const modes = [
 	plain('F15', 'Notes High', 'mode', '♪+'),
 	plain('F16', 'Chords', 'mode', '♬'),
 	plain('F17', 'Percussion', 'mode', 'DRM'),
+	plain('F18', 'Samples', 'mode', 'SMP'),
 ]
 
 const instruments = {
-	previous: plain('F18', 'Previous\nInstrument', 'instrument', '◀'),
-	next: plain('F20', 'Next\nInstrument', 'instrument', '▶'),
-	random: plain('F19', 'Random\nInstrument', 'instrument', '◆'),
+	previous: plain('F19', 'Previous\nInstrument', 'instrument', '◀'),
+	next: plain('F21', 'Next\nInstrument', 'instrument', '▶'),
+	random: plain('F20', 'Random\nInstrument', 'instrument', '◆'),
 }
 
 const common = {
 	drumPattern: primary('KeyD', 'Random Drum\nPattern', 'sound', 'PAT'),
 	drumSounds: primary('KeyE', 'Random Drum\nSounds', 'sound', 'SND'),
-	backing: plain('F21', 'Backing\nBeat', 'timing', 'BEAT'),
-	quantise: plain('F22', 'Quantise', 'timing', 'Q'),
-	metronome: plain('F23', 'Metronome', 'timing', 'MET'),
+	backing: plain('F22', 'Backing\nBeat', 'timing', 'BEAT'),
+	quantise: plain('F23', 'Quantise', 'timing', 'Q'),
+	metronome: primary('KeyH', 'Metronome', 'timing', 'MET'),
 	fullscreen: primary('KeyI', 'Fullscreen', 'system', '⛶'),
 	disco: primary('KeyJ', 'MTV Mode', 'visual', 'MTV'),
 	spectrogram: primary('KeyK', 'V.U. Display', 'visual', 'VU'),
@@ -124,10 +133,68 @@ const pads = Object.fromEntries('0123456789'.split('').map(number => [
 	plain(`Digit${number}`, `Pad ${number}`, 'performance', number),
 ]))
 
-const notes = Object.fromEntries('zsxdcvgbhnjmqwertyui'.split('').map(letter => [
-	letter,
-	plain(`Key${letter.toUpperCase()}`, `Note ${letter.toUpperCase()}`, 'performance', letter.toUpperCase()),
-]))
+const performanceKeyCodes = [
+	...'1234567890'.split('').map(number => `Digit${number}`),
+	...'QWERTYUIOP'.split('').map(letter => `Key${letter}`),
+	...'ASDFGHJKL'.split('').map(letter => `Key${letter}`),
+	...'ZXCVBNM'.split('').map(letter => `Key${letter}`),
+]
+const performanceKeyLabels = '1234567890QWERTYUIOPASDFGHJKLZXCVBNM'.split('')
+const musicalNoteNames = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B']
+const midiNoteName = noteNumber => (
+	`${musicalNoteNames[noteNumber % 12]}${Math.floor(noteNumber / 12) - 1}`
+)
+const keyboardNotes = performanceKeyCodes.map((code, index) => {
+	const noteName = midiNoteName(48 + index)
+	return plain(code, `${performanceKeyLabels[index]}\n${noteName}`, 'performance', noteName)
+})
+const chordFamilies = [
+	{ end: 10, suffix: '', category: 'chord' },
+	{ end: 20, suffix: 'm', category: 'chord' },
+	{ end: 29, suffix: '7', category: 'chord' },
+	{ end: 36, suffix: 'sus2', category: 'chord' },
+]
+const keyboardChords = performanceKeyCodes.map((code, index) => {
+	const family = chordFamilies.find(item => index < item.end)
+	const chordName = `${musicalNoteNames[(48 + index) % 12]}${family.suffix}`
+	return plain(code, `${performanceKeyLabels[index]}\n${chordName}`, family.category, chordName)
+})
+const drumLabels = [
+	['Sub Kick', 'SUB', 'percussion-low'], ['Kick', 'KICK', 'percussion-low'],
+	['Punch Kick', 'PUNCH', 'percussion-low'], ['Low Tom', 'TOM L', 'percussion-low'],
+	['Mid Tom', 'TOM M', 'percussion-low'], ['High Tom', 'TOM H', 'percussion-low'],
+	['Snare', 'SNARE', 'percussion-low'], ['Rim', 'RIM', 'percussion-low'],
+	['Clap', 'CLAP', 'percussion-low'], ['Clack', 'CLACK', 'percussion-low'],
+	['Closed Hat', 'HAT', 'percussion-cymbal'], ['Open Hat', 'OPEN', 'percussion-cymbal'],
+	['Shaker', 'SHAKE', 'percussion-cymbal'], ['Ride', 'RIDE', 'percussion-cymbal'],
+	['Crash', 'CRASH', 'percussion-cymbal'], ['Short Hat', 'TICK', 'percussion-cymbal'],
+	['Loose Hat', 'LOOSE', 'percussion-cymbal'], ['Bright Ride', 'RIDE+', 'percussion-cymbal'],
+	['Dark Crash', 'CRASH−', 'percussion-cymbal'], ['Cowbell', 'BELL', 'percussion-cymbal'],
+	['Low Tom Soft', 'LT SOFT', 'percussion-tom'], ['Low Tom Hard', 'LT HARD', 'percussion-tom'],
+	['Mid Tom Soft', 'MT SOFT', 'percussion-tom'], ['Mid Tom Hard', 'MT HARD', 'percussion-tom'],
+	['High Tom Soft', 'HT SOFT', 'percussion-tom'], ['High Tom Hard', 'HT HARD', 'percussion-tom'],
+	['Soft Snare', 'SN SOFT', 'percussion-tom'], ['Hard Snare', 'SN HARD', 'percussion-tom'],
+	['Dry Rim', 'DRY RIM', 'percussion-tom'], ['Long Kick FX', 'KICK FX', 'percussion-low'],
+	['Noise Snare FX', 'SN FX', 'percussion-low'], ['Soft Clap', 'CLAP−', 'percussion-low'],
+	['Low Bell', 'BELL L', 'percussion-cymbal'], ['Wood Block', 'WOOD', 'percussion-low'],
+	['Long Shaker', 'SHAKE+', 'percussion-cymbal'], ['Splash', 'SPLASH', 'percussion-cymbal'],
+]
+const keyboardDrums = performanceKeyCodes.map((code, index) => {
+	const [label, symbol, category] = drumLabels[index]
+	return plain(code, `${performanceKeyLabels[index]}\n${label}`, category, symbol)
+})
+const sampleLabels = [
+	['Anime Wow', 'WOW'], ['Applause', 'CLAP'], ['Ba Dum Tss', 'TSS'], ['Air Horn', 'HORN'],
+	['Dramatic Thud', 'THUD'], ['Good', 'GOOD'], ['Sad Trombone', 'SAD'], ['Pop', 'POP'],
+	['Roblox Death', 'OOF'], ['Coin Low', 'COIN'],
+	...Array.from({ length: 10 }, (_, index) => [`Magic ${index + 1}`, `MAG ${index + 1}`]),
+	...Array.from({ length: 9 }, (_, index) => [`Coin Pitch ${index + 2}`, `COIN ${index + 2}`]),
+	...Array.from({ length: 7 }, (_, index) => [`Magic Cut ${index + 1}`, `CUT ${index + 1}`]),
+]
+const keyboardSamples = performanceKeyCodes.map((code, index) => {
+	const [label, symbol] = sampleLabels[index]
+	return plain(code, `${performanceKeyLabels[index]}\n${label}`, 'sample', symbol)
+})
 
 const pageDefinitions = [
 	{
@@ -138,7 +205,7 @@ const pageDefinitions = [
 			...players.map(item => item.select), ...players.map(item => item.preset),
 			common.backing, common.quantise, common.metronome, common.tapTempo,
 			common.tempoDown, common.tempoUp, common.drumPattern, common.drumSounds,
-			common.fullscreen, common.disco, common.spectrogram, common.subtitles, common.speech,
+			common.fullscreen, common.disco, common.spectrogram, common.subtitles,
 		],
 	},
 	{
@@ -147,7 +214,7 @@ const pageDefinitions = [
 		actions: [
 			...players.map(item => item.select), ...players.map(item => item.type),
 			...players.map(item => item.preset), instruments.previous, instruments.random, instruments.next, common.reverb,
-			...modes, common.octaveDown, common.octaveUp, common.fullscreen,
+			...modes, common.octaveDown, common.octaveUp,
 			common.drumPattern, common.drumSounds, common.backing, common.quantise, common.metronome,
 		],
 	},
@@ -165,14 +232,24 @@ const pageDefinitions = [
 		],
 	},
 	{
-		id: pageIds.performance,
-		name: 'Performance',
-		actions: [
-			...modes, common.octaveDown, common.octaveUp, instruments.random,
-			pads['1'], pads['2'], pads['3'], pads['4'], pads['5'], pads['6'], pads['7'], pads['8'],
-			pads['9'], pads['0'], notes.z, notes.s, notes.x, notes.d, notes.c, notes.v,
-			notes.g, notes.b, notes.h, notes.n, notes.j,
-		],
+		id: pageIds.notes,
+		name: 'Musical Keyboard',
+		actions: [modes[1], ...keyboardNotes.slice(0, 28)],
+	},
+	{
+		id: pageIds.chords,
+		name: 'Chord Keyboard',
+		actions: [modes[3], ...keyboardChords.slice(0, 28)],
+	},
+	{
+		id: pageIds.percussion,
+		name: 'Percussion Keyboard',
+		actions: [modes[4], ...keyboardDrums.slice(0, 28)],
+	},
+	{
+		id: pageIds.samples,
+		name: 'Sample Keyboard',
+		actions: [modes[5], ...keyboardSamples.slice(0, 28)],
 	},
 	{
 		id: pageIds.sound,

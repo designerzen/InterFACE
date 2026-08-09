@@ -24,12 +24,12 @@ export const STREAM_DECK_DIRECT_COMMANDS = Object.freeze({
 	F15: 'Digit3',
 	F16: 'Digit4',
 	F17: 'Digit5',
-	F18: 'KeyA',
-	F19: 'KeyC',
-	F20: 'KeyB',
-	F21: 'KeyF',
-	F22: 'KeyG',
-	F23: 'KeyH',
+	F18: 'ModeSamples',
+	F19: 'KeyA',
+	F20: 'KeyC',
+	F21: 'KeyB',
+	F22: 'KeyF',
+	F23: 'KeyG',
 	F24: 'Digit0',
 })
 
@@ -118,6 +118,7 @@ const handlePrimaryCommand = (
 		case 'Digit3': return selectKeyboardMode(2).label
 		case 'Digit4': return selectKeyboardMode(3).label
 		case 'Digit5': return selectKeyboardMode(4).label
+		case 'ModeSamples': return selectKeyboardMode(5).label
 		case 'Digit6': return selectAdjacentCosmosBank(handleCosmosKeyboardEvent, -1)
 		case 'Digit7': return selectAdjacentCosmosBank(handleCosmosKeyboardEvent, 1)
 		case 'Digit8': return changeTempo(application, -1)
