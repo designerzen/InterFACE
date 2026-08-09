@@ -34,6 +34,7 @@ import {
 	DEFAULT_PERSON_OPTIONS,
 	DEFAULT_PEOPLE_OPTIONS,
 	DEFAULT_VOICE_OPTIONS,
+	NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC,
 	NAMES,
 	IDENTIFIERS
 } from '../settings/options.people.js'
@@ -1794,6 +1795,9 @@ export default class Person extends EventTarget{
 			case "autoRepeat":
 				this.setOptions({ autoRepeat:value })
 				return persistPanelOption({ autoRepeat:value })
+			case "noteParticleGraphics":
+				this.setOptions({ noteParticleGraphics:value || NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC })
+				return persistPanelOption({ noteParticleGraphics:this.options.noteParticleGraphics })
 			default:
 				return this.setOptions({ [option]:value })
 		}
@@ -1916,7 +1920,8 @@ export default class Person extends EventTarget{
 					...this.options,
 					noteParticleHorizontalBias:this.getNoteParticleHorizontalBias(prediction, display),
 					noteParticleVerticalBias:this.getNoteParticleVerticalBias(prediction),
-					noteParticleNotesEnabled:!this.options.noteParticleNotesRequireAudio || this.isPlayPersonAudioActive()
+					noteParticleNotesEnabled:!this.options.noteParticleNotesRequireAudio || this.isPlayPersonAudioActive(),
+					noteParticleFaceGlyph:this.emoticon
 				}
 			)
 		}
@@ -3459,7 +3464,8 @@ export default class Person extends EventTarget{
 			preset: parseInt(parts[0]) ?? 12,
 			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
 			userMode: parseInt(parts[2] ?? -1),
-			autoRepeat: parts[3] === undefined ? undefined : parts[3] === "true"
+			autoRepeat: parts[3] === undefined ? undefined : parts[3] === "true",
+			noteParticleGraphics:parts[4]
 		}
 				
 		console.error( "parseDataExport", {data, parts, shape} )
@@ -3474,12 +3480,18 @@ export default class Person extends EventTarget{
 	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined ){
+	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined ){
 		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
 	}
 
 	exportData(){
-		return Person.createDataExport( this.activeInstrument?.activePresetIndex ?? -1, this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT, this.userMode, this.options.autoRepeat )
+		return Person.createDataExport(
+			this.activeInstrument?.activePresetIndex ?? -1,
+			this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT,
+			this.userMode,
+			this.options.autoRepeat,
+			this.options.noteParticleGraphics
+		)
 	}
 
 	importData( data ){
@@ -3490,6 +3502,10 @@ export default class Person extends EventTarget{
 		if (typeof data.autoRepeat === "boolean")
 		{
 			options.autoRepeat = data.autoRepeat
+		}
+		if (data.noteParticleGraphics)
+		{
+			options.noteParticleGraphics = data.noteParticleGraphics
 		}
 		return options
 	}
@@ -3510,6 +3526,7 @@ export default class Person extends EventTarget{
 		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
 		// which instrument preset to load?
 		if ( data[prefix+'preset' ]) { this.options.defaultPreset = data[prefix+'preset' ] }
+		if ( data[prefix+'particles' ]) { this.options.noteParticleGraphics = data[prefix+'particles' ] }
 		// if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
 		// if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
 		// if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
@@ -3534,6 +3551,7 @@ export default class Person extends EventTarget{
 			// FIXME: GET THIS FROM THE ACTIVE INSTRUMENT!
 			// which instrument preset to load?
 			[prefix+'preset']:this.activeInstrument.activePresetIndex ?? this.options.defaultPreset,
+			[prefix+'particles']:this.options.noteParticleGraphics,
 			
 			// [prefix+'sat'] : this.saturation,
 			// [prefix+'lum'] : this.luminosity,

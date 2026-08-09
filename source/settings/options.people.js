@@ -29,8 +29,37 @@ export const DEFAULT_VOICE_OPTIONS = {
 	active:false
 }
 
+export const NOTE_PARTICLE_GRAPHICS_MUSIC_AND_STARS = "music-and-stars"
+export const NOTE_PARTICLE_GRAPHICS_NONE = "none"
+export const NOTE_PARTICLE_GRAPHICS_RANDOM = "random"
+export const NOTE_PARTICLE_GRAPHICS_MUSIC = "music"
+export const NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC = "amplitude-music"
+export const NOTE_PARTICLE_GRAPHICS_STARS = "stars"
+export const NOTE_PARTICLE_GRAPHICS_SHAPES = "shapes"
+export const NOTE_PARTICLE_GRAPHICS_BUBBLES = "bubbles"
+export const NOTE_PARTICLE_GRAPHICS_BEES = "bees"
+export const NOTE_PARTICLE_GRAPHICS_DINOSAURS = "dinosaurs"
+export const NOTE_PARTICLE_GRAPHICS_FACE = "face"
+export const NOTE_PARTICLE_GRAPHICS_NUMBERS = "numbers"
+
+export const NOTE_PARTICLE_GRAPHIC_OPTIONS = [
+	[NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC, "Music duration"],
+	[NOTE_PARTICLE_GRAPHICS_RANDOM, "Random"],
+	[NOTE_PARTICLE_GRAPHICS_NONE, "None"],
+	[NOTE_PARTICLE_GRAPHICS_MUSIC_AND_STARS, "Music and stars"],
+	[NOTE_PARTICLE_GRAPHICS_MUSIC, "Musical notes"],
+	[NOTE_PARTICLE_GRAPHICS_STARS, "Stars"],
+	[NOTE_PARTICLE_GRAPHICS_SHAPES, "Shapes"],
+	[NOTE_PARTICLE_GRAPHICS_BUBBLES, "Bubbles"],
+	[NOTE_PARTICLE_GRAPHICS_BEES, "Bees"],
+	[NOTE_PARTICLE_GRAPHICS_DINOSAURS, "Dinosaurs"],
+	[NOTE_PARTICLE_GRAPHICS_FACE, "Current face"],
+	[NOTE_PARTICLE_GRAPHICS_NUMBERS, "Amplitude numbers"]
+]
+
 export const DEFAULT_NOTE_PARTICLE_OPTIONS = {
 	noteParticles:true,
+	noteParticleGraphics:NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC,
 	noteParticleAmplitudeThreshold:0.05,
 	noteParticleGravity:760,
 	noteParticleHorizontalDrag:0.87,
@@ -79,7 +108,11 @@ export const DEFAULT_NOTE_PARTICLE_OPTIONS = {
 	noteParticleStarSizeScale:0.28,
 	noteParticleStarColour:'#fff',
 	noteParticleDefaultColour:'#fff',
-	noteParticleGlyphs:['♪', '♫', '♬']
+	noteParticleDefaultFaceGlyph:'🙂',
+	noteParticleBeeGlyph:'🐝',
+	noteParticleGlyphs:['♪', '♫', '♬'],
+	noteParticleDinosaurGlyphs:['🦕', '🦖'],
+	noteParticleAmplitudeNoteGlyphs:['♩', '♩', '♩', '♪', '♪', '♫', '♫', '♬', '𝅗𝅥']
 }
 
 export const DEFAULT_PERSON_OPTIONS = {
