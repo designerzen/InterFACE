@@ -54,7 +54,9 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 				// create the chord object from the emoji...
 				// const notes = getAllChordsForNoteNumber( person.noteNumber )
 				// const chordSequence = notes.get("major").get("dorian")
-				const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon, true, person.options)
+				const previousChord = person.activeNotes.get(person.lastNoteNumber) ?? Array.from(person.activeNotes.values()).at(-1) ?? []
+				const harmonyOptions = { ...person.options, previousChord }
+				const chordSequence = getMusicalDetailsFromEmoji(person.noteNumber, person.playingEmoticon, true, harmonyOptions)
 				// ccidental : false
 				// alt : ""
 				// frequency : 174.61411571650194
