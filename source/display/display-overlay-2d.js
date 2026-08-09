@@ -1,6 +1,20 @@
 import { measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext'
 import { clamp, cosine, ONE_DEGREE_IN_RADIANS, sine, TAU } from '../maths/maths.js'
-import { DEFAULT_NOTE_PARTICLE_OPTIONS } from '../settings/options.people.js'
+import {
+	DEFAULT_NOTE_PARTICLE_OPTIONS,
+	NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC,
+	NOTE_PARTICLE_GRAPHICS_BEES,
+	NOTE_PARTICLE_GRAPHICS_BUBBLES,
+	NOTE_PARTICLE_GRAPHICS_DINOSAURS,
+	NOTE_PARTICLE_GRAPHICS_FACE,
+	NOTE_PARTICLE_GRAPHICS_MUSIC,
+	NOTE_PARTICLE_GRAPHICS_MUSIC_AND_STARS,
+	NOTE_PARTICLE_GRAPHICS_NONE,
+	NOTE_PARTICLE_GRAPHICS_NUMBERS,
+	NOTE_PARTICLE_GRAPHICS_RANDOM,
+	NOTE_PARTICLE_GRAPHICS_SHAPES,
+	NOTE_PARTICLE_GRAPHICS_STARS
+} from '../settings/options.people.js'
 import { MIRRORABLE_EMOJIS } from '../models/emoji.js'
 import { drawCircles } from '../visual/2d.js'
 import { drawInstrument, drawParagraph, drawText } from '../visual/2d.text.js'
@@ -407,9 +421,13 @@ export default class DisplayOverlay2d {
 			const spread = direction * directionBoost * (particleOptions.noteParticleHorizontalSpreadMin + Math.random() * particleOptions.noteParticleHorizontalSpreadRange)
 			const size = baseSize * (particleOptions.noteParticleSizeRandomMin + Math.random() * particleOptions.noteParticleSizeRandomRange)
 			const notesEnabled = particleOptions.noteParticleNotesEnabled !== false
-			const type = notesEnabled && Math.random() >= particleOptions.noteParticleStarProbability ? 'note' : 'star'
-			const glyphs = particleOptions.noteParticleGlyphs
+			const graphics = this.getResolvedNoteParticleGraphics(particleOptions)
+			const type = this.getNoteParticleType(particleOptions, notesEnabled, graphics)
+			const glyph = this.getNoteParticleGlyph(type, amplitudeRatio, particleOptions, graphics)
 			const noteRotationLimit = Math.abs(particleOptions.noteParticleNoteRotationLimit)
+			if (!type) {
+				continue
+			}
 			this.noteParticles.push({
 				x,
 				y,
@@ -429,7 +447,9 @@ export default class DisplayOverlay2d {
 					(Math.random() - 0.5) * particleOptions.noteParticleNoteSpinRange :
 					(Math.random() - 0.5) * particleOptions.noteParticleSpinRange,
 				type,
-				glyph:glyphs[Math.floor(Math.random() * glyphs.length)] ?? DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleGlyphs[0],
+				graphics,
+				shape:this.getNoteParticleShape(),
+				glyph,
 				colour:particleColour,
 				maxTravel,
 				options:particleOptions
@@ -439,6 +459,93 @@ export default class DisplayOverlay2d {
 		if (this.noteParticles.length > particleOptions.noteParticleMaxCount) {
 			this.noteParticles.splice(0, this.noteParticles.length - particleOptions.noteParticleMaxCount)
 		}
+	}
+
+	getResolvedNoteParticleGraphics(particleOptions) {
+		if (particleOptions.noteParticleGraphics !== NOTE_PARTICLE_GRAPHICS_RANDOM)
+		{
+			return particleOptions.noteParticleGraphics
+		}
+		const options = [
+			NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC,
+			NOTE_PARTICLE_GRAPHICS_MUSIC_AND_STARS,
+			NOTE_PARTICLE_GRAPHICS_MUSIC,
+			NOTE_PARTICLE_GRAPHICS_STARS,
+			NOTE_PARTICLE_GRAPHICS_SHAPES,
+			NOTE_PARTICLE_GRAPHICS_BUBBLES,
+			NOTE_PARTICLE_GRAPHICS_BEES,
+			NOTE_PARTICLE_GRAPHICS_DINOSAURS,
+			NOTE_PARTICLE_GRAPHICS_FACE,
+			NOTE_PARTICLE_GRAPHICS_NUMBERS
+		]
+		return options[Math.floor(Math.random() * options.length)]
+	}
+
+	getNoteParticleType(particleOptions, notesEnabled = true, graphics = particleOptions.noteParticleGraphics) {
+		switch (graphics)
+		{
+			case NOTE_PARTICLE_GRAPHICS_NONE:
+				return null
+			case NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC:
+			case NOTE_PARTICLE_GRAPHICS_MUSIC:
+				return notesEnabled ? 'note' : null
+			case NOTE_PARTICLE_GRAPHICS_MUSIC_AND_STARS:
+				return notesEnabled && Math.random() >= particleOptions.noteParticleStarProbability ? 'note' : 'star'
+			case NOTE_PARTICLE_GRAPHICS_STARS:
+				return 'star'
+			case NOTE_PARTICLE_GRAPHICS_SHAPES:
+				return 'shape'
+			case NOTE_PARTICLE_GRAPHICS_BUBBLES:
+				return 'bubble'
+			case NOTE_PARTICLE_GRAPHICS_BEES:
+				return 'bee'
+			case NOTE_PARTICLE_GRAPHICS_DINOSAURS:
+				return 'dinosaur'
+			case NOTE_PARTICLE_GRAPHICS_FACE:
+				return 'face'
+			case NOTE_PARTICLE_GRAPHICS_NUMBERS:
+				return 'number'
+			default:
+				return notesEnabled && Math.random() >= particleOptions.noteParticleStarProbability ? 'note' : 'star'
+		}
+	}
+
+	getNoteParticleGlyph(type, amplitudeRatio, particleOptions, graphics = particleOptions.noteParticleGraphics) {
+		switch (type)
+		{
+			case 'bee':
+				return particleOptions.noteParticleBeeGlyph ?? DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleBeeGlyph
+			case 'dinosaur':
+				return this.getRandomGlyph(particleOptions.noteParticleDinosaurGlyphs, DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleDinosaurGlyphs)
+			case 'face':
+				return particleOptions.noteParticleFaceGlyph ?? particleOptions.noteParticleDefaultFaceGlyph
+			case 'number':
+				return String(clamp(Math.ceil(amplitudeRatio * 9), 1, 9))
+			case 'note':
+				if (graphics === NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC)
+				{
+					return this.getAmplitudeGlyph(amplitudeRatio, particleOptions.noteParticleAmplitudeNoteGlyphs, DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleAmplitudeNoteGlyphs)
+				}
+				return this.getRandomGlyph(particleOptions.noteParticleGlyphs, DEFAULT_NOTE_PARTICLE_OPTIONS.noteParticleGlyphs)
+			default:
+				return ''
+		}
+	}
+
+	getAmplitudeGlyph(amplitudeRatio, glyphs, fallbackGlyphs) {
+		const options = Array.isArray(glyphs) && glyphs.length > 0 ? glyphs : fallbackGlyphs
+		const index = clamp(Math.ceil(amplitudeRatio * options.length) - 1, 0, options.length - 1)
+		return options[index]
+	}
+
+	getRandomGlyph(glyphs, fallbackGlyphs) {
+		const options = Array.isArray(glyphs) && glyphs.length > 0 ? glyphs : fallbackGlyphs
+		return options[Math.floor(Math.random() * options.length)] ?? ''
+	}
+
+	getNoteParticleShape() {
+		const shapes = ['circle', 'triangle', 'diamond', 'square', 'pentagon', 'hexagon', 'cross', 'plus', 'ring', 'line', 'crescent', 'heart']
+		return shapes[Math.floor(Math.random() * shapes.length)]
 	}
 
 	drawNoteParticleFrame(now = performance.now()) {
@@ -529,11 +636,12 @@ export default class DisplayOverlay2d {
 		context.rotate(particle.rotation)
 		context.globalAlpha = alpha
 		const particleOptions = particle.options ?? DEFAULT_NOTE_PARTICLE_OPTIONS
-		context.fillStyle = particle.type === 'star' ? particleOptions.noteParticleStarColour : particle.colour ?? particleOptions.noteParticleDefaultColour
+		context.fillStyle = particle.type === 'note' ? particle.colour ?? particleOptions.noteParticleDefaultColour : particleOptions.noteParticleDefaultColour
 		context.strokeStyle = SHADOW_STROKE_COLOUR
 		context.lineWidth = Math.max(1, size * 0.08)
 
 		if (particle.type === 'star') {
+			context.fillStyle = particleOptions.noteParticleStarColour
 			const initialSize = Math.max(Number(particleOptions.noteParticleInitialSize) || 1, 0)
 			const starSize = size <= initialSize ?
 				size :
@@ -541,14 +649,137 @@ export default class DisplayOverlay2d {
 			this.drawStarParticlePath(context, starSize)
 			context.stroke()
 			context.fill()
+		} else if (particle.type === 'shape') {
+			this.drawShapeParticlePath(context, particle.shape, size * 0.5)
+			context.stroke()
+			context.fill()
+		} else if (particle.type === 'bubble') {
+			context.fillStyle = 'rgba(255, 255, 255, 0.18)'
+			context.strokeStyle = particle.colour ?? particleOptions.noteParticleDefaultColour
+			context.lineWidth = Math.max(1, size * 0.1)
+			this.drawBubbleParticlePath(context, size * 0.48)
+			context.fill()
+			context.stroke()
+		} else if (['bee', 'dinosaur', 'face', 'number'].includes(particle.type)) {
+			this.drawTextParticleGlyph(context, particle.glyph, size, ['bee', 'dinosaur', 'face'].includes(particle.type))
 		} else {
-			context.font = `900 ${size}px "noto-music", ${EMOJI_FONT}, serif`
-			context.textAlign = 'center'
-			context.textBaseline = 'middle'
-			context.strokeText(particle.glyph, 0, 0)
-			context.fillText(particle.glyph, 0, 0)
+			this.drawTextParticleGlyph(context, particle.glyph, size, false)
 		}
 
+		context.restore()
+	}
+
+	drawTextParticleGlyph(context, glyph, size, emoji = false) {
+		context.font = emoji ?
+			`900 ${size}px ${EMOJI_FONT}, "Segoe UI Emoji", "Apple Color Emoji", sans-serif` :
+			`900 ${size}px "noto-music", ${EMOJI_FONT}, serif`
+		context.textAlign = 'center'
+		context.textBaseline = 'middle'
+		if (!emoji)
+		{
+			context.strokeText(glyph, 0, 0)
+		}
+		context.fillText(glyph, 0, 0)
+	}
+
+	drawBubbleParticlePath(context, radius) {
+		context.beginPath()
+		context.arc(0, 0, radius, 0, TAU)
+		context.moveTo(radius * 0.35, -radius * 0.35)
+		context.arc(radius * 0.22, -radius * 0.22, radius * 0.18, -Math.PI * 0.4, Math.PI * 0.85)
+	}
+
+	drawShapeParticlePath(context, shape, radius) {
+		context.beginPath()
+		switch (shape)
+		{
+			case 'triangle':
+				context.moveTo(0, -radius)
+				context.lineTo(radius * 0.9, radius * 0.65)
+				context.lineTo(-radius * 0.9, radius * 0.65)
+				break
+			case 'diamond':
+				context.moveTo(0, -radius)
+				context.lineTo(radius, 0)
+				context.lineTo(0, radius)
+				context.lineTo(-radius, 0)
+				break
+			case 'square':
+				context.rect(-radius, -radius, radius * 2, radius * 2)
+				return
+			case 'pentagon':
+				this.drawRegularPolygonPath(context, 5, radius)
+				return
+			case 'hexagon':
+				this.drawRegularPolygonPath(context, 6, radius)
+				return
+			case 'cross':
+				this.drawCrossParticlePath(context, radius, true)
+				return
+			case 'plus':
+				this.drawCrossParticlePath(context, radius, false)
+				return
+			case 'ring':
+				context.arc(0, 0, radius, 0, TAU)
+				context.arc(0, 0, radius * 0.52, 0, TAU, true)
+				return
+			case 'line':
+				context.moveTo(-radius, 0)
+				context.lineTo(radius, 0)
+				return
+			case 'crescent':
+				context.arc(-radius * 0.18, 0, radius, Math.PI * 0.22, Math.PI * 1.78)
+				context.arc(radius * 0.28, 0, radius * 0.78, Math.PI * 1.72, Math.PI * 0.28, true)
+				break
+			case 'heart':
+				context.moveTo(0, radius * 0.75)
+				context.bezierCurveTo(-radius * 1.25, -radius * 0.05, -radius * 0.78, -radius, 0, -radius * 0.45)
+				context.bezierCurveTo(radius * 0.78, -radius, radius * 1.25, -radius * 0.05, 0, radius * 0.75)
+				break
+			default:
+				context.arc(0, 0, radius, 0, TAU)
+				return
+		}
+		context.closePath()
+	}
+
+	drawRegularPolygonPath(context, points, radius) {
+		context.beginPath()
+		for (let i = 0; i < points; i++) {
+			const angle = -Math.PI / 2 + i * TAU / points
+			const x = cosine(angle) * radius
+			const y = sine(angle) * radius
+			if (i === 0) {
+				context.moveTo(x, y)
+			}else{
+				context.lineTo(x, y)
+			}
+		}
+		context.closePath()
+	}
+
+	drawCrossParticlePath(context, radius, diagonal = false) {
+		const arm = radius * 0.36
+		const outer = radius
+		const points = [
+			[-arm, -outer], [arm, -outer], [arm, -arm], [outer, -arm],
+			[outer, arm], [arm, arm], [arm, outer], [-arm, outer],
+			[-arm, arm], [-outer, arm], [-outer, -arm], [-arm, -arm]
+		]
+		context.save()
+		if (diagonal)
+		{
+			context.rotate(Math.PI / 4)
+		}
+		context.beginPath()
+		points.forEach(([x, y], index) => {
+			if (index === 0) {
+				context.moveTo(x, y)
+			}else{
+				context.lineTo(x, y)
+			}
+		})
+		context.closePath()
 		context.restore()
 	}
 
