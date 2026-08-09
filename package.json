@@ -170,6 +170,8 @@
 		"android:open": "npx cap open android",
 		"android:run": "npx cap run android",
 		"android": "npm run clear && npm run build:android && node actions/app.mjs && npm run android:add && npm run android:open",
+		"=STREAMDECK=": "------------------------------------",
+		"streamdeck:build": "node source/hardware/streamdeck/build-profile.mjs",
 		"=LICENSES=": "------------------------------------",
 		"copyrights:list": "NODE_ENV=production yarn licenses list && node license.mjs",
 		"license:summary": "npx license-checker --summary > LICENSES.md && npx license-checker --summary > source/licenses.md",
