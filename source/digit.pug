@@ -1,0 +1,29 @@
+extends index.pug
+
+//- custom options go here
+//- We strongly encourage the use of blues, purples, and yellows in your project
+block options
+	script.
+		globalThis._synth = { 
+			qr:false,
+			advancedMode:true, 
+			text:true, 
+			autoHide:true, 
+			backingTrack:false, 
+			photoSensitive:true,
+			automationMode:false,
+			referer:'digit',
+			theme:'theme-digit'
+		}
+
+block headline
+	| DIGIT
+	| CMPSR x PhotoSYNTH
+
+block summary
+	| It can be hard work playing a musical instrument...
+	| So, how about letting the musical instrument play you instead! 
+	| Or how about playing with a new instrument that looks like something you may already love?
+	
+block tagline
+	strong DIGIT x Awesomething
