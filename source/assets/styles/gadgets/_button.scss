@@ -430,10 +430,12 @@
 	// allow the button to respond to light and dark themes
 	color-scheme: light dark;
 
+	--_color : var(--col-text, var(--col-fg, var(--shade-light, white) ) );
+
 	// ensure text is correct colour and not overwritten
-	color:var(--col-text, var(--col-fg, var(--shade-light, white) ) );
+	color: var(--_color, black);
 	// set the button text to the corresponding color
-	color: contrast-color( var(--col-text, var(--col-fg, var(--shade-light) ) ), var(--col-top) );
+	color: contrast-color( var(--col-top) );
 
 	// allow mtext wrapping mid-word
 	hyphens: auto;
