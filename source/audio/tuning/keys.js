@@ -1,4 +1,4 @@
-import { NOTES_ALPHABETICAL } from "./notes"
+import { NOTES_ALPHABETICAL } from "./note-constants.js"
 import { 
 	CHROMATIC_SCALE,
 	MAJOR_SCALE, 

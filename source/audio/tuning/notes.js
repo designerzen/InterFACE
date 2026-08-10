@@ -10,10 +10,9 @@
 import {clamp} from "../../maths/maths"
 import { noteNumberToFrequency } from "./frequencies"
 import { MAJOR_SCALE, SOLFEGE_SCALE, makeScaleMode, createScaleModeIntervalsFormula, SCALE_NAMES } from "./scales"
+import { NOTES_ALPHABETICAL, NOTES_ALPHABETICAL_FRIENDLY } from "./note-constants.js"
 
-export const NOTES_ALPHABETICAL = ["Ab","A","Bb","B","C","Db", "D","Eb", "E", "F", "Gb","G"]
-// export const NOTES_ALPHABETICAL = ["A","Ab","B","Bb","C","D", "Db","E", "Eb", "F", "G","Gb"]
-export const NOTES_ALPHABETICAL_FRIENDLY = [ "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G"]
+export { NOTES_ALPHABETICAL, NOTES_ALPHABETICAL_FRIENDLY }
 
 export const NOTES_BLACK = ["Ab", "Bb", "Db", "Eb", "Gb"]
 export const NOTES_WHITE = ["A", "B", "C", "D", "E", "F", "G" ]
