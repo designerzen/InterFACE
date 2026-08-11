@@ -5,11 +5,15 @@
 import './servicewaiting.polyfill.js'
 import { VERSION } from '../version.js'
 import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform.js'
-import serviceWorkerPath from "url:../service-worker.js"
+import bundledServiceWorkerPath from "url:../service-worker.js"
 
 const INSTALLED_VERSION_KEY = 'photosynth'
 // ? made CloudFlare barf up the ServiceWorker so meh!
 const URL_SEPERATOR = "#"
+const serviceWorkerPath = location.origin === "https://interface.place"
+  ? new URL("/service-worker.js", location.origin).href
+  : bundledServiceWorkerPath
+
 // console.error({serviceWorkerPath, manifestPath})
 
 const NAME = "pwastillcausingmeheadaches"

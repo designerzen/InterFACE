@@ -59,6 +59,15 @@
 			"publicUrl": "./",
 			"context": "browser",
 			"sourceMap": true
+		},
+		"service-worker": {
+			"source": "source/service-worker.js",
+			"distDir": "./release/web/",
+			"publicUrl": "./",
+			"context": "service-worker",
+			"outputFormat": "esmodule",
+			"sourceMap": false,
+			"scopeHoist": false
 		}
 	},
 	"pnpm": {
@@ -133,7 +142,7 @@
 		"build:wam": "parcel build --no-content-hash --public-url ./ source/wam.pug --target web",
 		"build:index": "parcel build --public-url ./ source/index.pug --target web",
 		"build:release": "parcel build --target electron-main --target electron-renderer --target web",
-		"build:web": "parcel build --public-url ./ --target web",
+		"build:web": "parcel build --public-url ./ --target web --target service-worker",
 		"=ELECTRON=": "------------------------------------",
 		"electron:rebuild": "npx electron-rebuild",
 		"electron:clean": "rimraf dist-electron && rimraf release",
