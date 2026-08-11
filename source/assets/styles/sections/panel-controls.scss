@@ -239,10 +239,11 @@
 		// allow them to resize
 		--min-size: 44px;
 		// ios AAA guidelines
-		max-width: 14ch;;
 		min-width: var(--min-size);
 		min-height: var(--min-size);
-    	flex-shrink: 1;
+    	max-width: 14ch;
+		
+		flex-shrink: 1;
     	flex-grow: 1;
     	flex-basis: min-content;
 		width: 100%;

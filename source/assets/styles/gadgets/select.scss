@@ -32,6 +32,13 @@ select:not([multiple]):not([size]) {
 	label:has(select.select-content):hover{
 		color:transparent;
 		text-shadow: none;
+
+		// The customizable select supplies its own picker icon.
+		// Hide the label's legacy chevron while the select is visible.
+		&::before {
+			opacity: 0;
+		}
+
 		select.select-content{
 			opacity: 1;
 		}
@@ -183,6 +190,15 @@ select:not([multiple]):not([size]) {
 
 		selectedcontent {
 			min-inline-size: 0;
+			justify-content: center;
+			padding-inline-start: 1em;
+
+			// Rich option icons/details belong in the open picker. In the
+			// compact control they crowd and overlap the tile label.
+			.option-icon,
+			.option-detail {
+				display: none;
+			}
 		}
 
 		.option-label {

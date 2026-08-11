@@ -260,9 +260,9 @@ input[type=range].vertical{
 	width:100%;
 
 	// fix the width
-	max-width:100px;
-	max-height: 66vh;
-	max-height: 66svh;
+	max-width: min(100px, 50vmin);
+	max-height: min(100px, 50vmin);
+
 	min-width: auto;
 	min-height: auto;
 
