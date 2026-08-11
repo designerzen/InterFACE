@@ -12,13 +12,13 @@ const PALETTE = {
 }
 
 export const NOTE_FEEDBACK_COLOURS = Object.freeze({
-	C:Object.freeze({ h:353, s:78, l:54 }),
-	D:Object.freeze({ h:20, s:81, l:62 }),
-	E:Object.freeze({ h:54, s:83, l:68 }),
-	F:Object.freeze({ h:69, s:54, l:65 }),
-	G:Object.freeze({ h:177, s:67, l:41 }),
-	A:Object.freeze({ h:256, s:39, l:46 }),
-	B:Object.freeze({ h:325, s:90, l:65 })
+	C: Object.freeze({ h: 353, s: 78, l: 54 }),
+	D: Object.freeze({ h: 20, s: 81, l: 62 }),
+	E: Object.freeze({ h: 54, s: 83, l: 68 }),
+	F: Object.freeze({ h: 69, s: 54, l: 65 }),
+	G: Object.freeze({ h: 177, s: 67, l: 41 }),
+	A: Object.freeze({ h: 256, s: 39, l: 46 }),
+	B: Object.freeze({ h: 325, s: 90, l: 65 }),
 })
 
 export const NOTE_FEEDBACK_MAX_OPACITY = 0.5

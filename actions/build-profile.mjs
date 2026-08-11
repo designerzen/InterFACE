@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { zipSync } from 'fflate'
+import { NOTE_FEEDBACK_COLOURS } from '../source/settings/palette.js'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const controlBarIconsRoot = join(projectRoot, 'source', 'assets', 'icons')
@@ -170,9 +171,18 @@ const musicalNoteNames = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭
 const midiNoteName = noteNumber => (
 	`${musicalNoteNames[noteNumber % 12]}${Math.floor(noteNumber / 12) - 1}`
 )
+const noteFeedbackColour = noteName => {
+	const noteLetter = noteName.charAt(0).toUpperCase()
+	const colour = NOTE_FEEDBACK_COLOURS[noteLetter]
+	if (!colour) throw new Error(`Missing PhotoSYNTH note colour for ${noteName}`)
+	return `hsl(${colour.h}, ${colour.s}%, ${colour.l}%)`
+}
 const keyboardNotes = performanceKeyCodes.map((code, index) => {
 	const noteName = midiNoteName(48 + index)
-	return plain(code, `${performanceKeyLabels[index]}\n${noteName}`, 'performance', noteName)
+	return {
+		...plain(code, `${performanceKeyLabels[index]}\n${noteName}`, 'performance', noteName),
+		colour: noteFeedbackColour(noteName),
+	}
 })
 const chordFamilies = [
 	{ end: 10, suffix: '', category: 'chord' },
@@ -260,22 +270,22 @@ const pageDefinitions = [
 	{
 		id: pageIds.notes,
 		name: 'Musical Keyboard',
-		actions: [modes[1], ...keyboardNotes.slice(0, 28)],
+		actions: [modes[1], ...keyboardNotes],
 	},
 	{
 		id: pageIds.chords,
 		name: 'Chord Keyboard',
-		actions: [modes[3], ...keyboardChords.slice(0, 28)],
+		actions: [modes[3], ...keyboardChords],
 	},
 	{
 		id: pageIds.percussion,
 		name: 'Percussion Keyboard',
-		actions: [modes[4], ...keyboardDrums.slice(0, 28)],
+		actions: [modes[4], ...keyboardDrums],
 	},
 	{
 		id: pageIds.samples,
 		name: 'Sample Keyboard',
-		actions: [modes[5], ...keyboardSamples.slice(0, 28)],
+		actions: [modes[5], ...keyboardSamples],
 	},
 	{
 		id: pageIds.sound,
@@ -325,7 +335,7 @@ const embedControlBarIcon = async (filename, accent) => {
 }
 
 const createIcon = async (path, action) => {
-	const accent = palette[action.category] ?? palette.system
+	const accent = action.colour ?? palette[action.category] ?? palette.system
 	const titleLines = action.title.split('\n').slice(0, 2)
 	const title = titleLines.map((line, index) => (
 		`<text x="72" y="${108 + index * 17}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${titleLines.length > 1 ? 14 : 16}" font-weight="700" fill="#ffffff">${escapeXml(line)}</text>`
@@ -490,8 +500,8 @@ const collectFiles = async (root, outputRoot, files = {}) => {
 
 const pagesForTarget = target => {
 	const pageSize = controlsPerPage(target)
-	if (pageSize === 29) return pageDefinitions
 	return pageDefinitions.flatMap(page => {
+		if (page.actions.length <= pageSize) return page
 		const pageCount = Math.ceil(page.actions.length / pageSize)
 		return Array.from({ length: pageCount }, (_, index) => ({
 			id: stableUuid(`photosynth:${target.key}:${page.id}:${index}`).toUpperCase(),
