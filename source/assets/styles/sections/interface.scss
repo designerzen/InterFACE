@@ -41,6 +41,8 @@
 		auto
 		auto
 		auto
+		auto
+		auto
 		auto;
 
 	// mmake this big to give adequate room to breathe
@@ -48,6 +50,7 @@
 		"hero"
 		"a11y"
 		"contact"
+		"hardware"
 		"support"
 		"affiliates"
 		"app"
@@ -126,6 +129,10 @@
 
 #supported-by{
 	grid-area: support;
+}
+
+#hardware-integration{
+	grid-area: hardware;
 }
 
 #affiliates{
@@ -261,7 +268,7 @@
 	}
 }
 
-#contact, .connections{
+#contact, #hardware-integration, .connections{
 	width: 100%;
 	// width: fit-content;
 	// max-width: calc(100% - 2 * var(--pad));
@@ -394,6 +401,10 @@
 
 	#contact{
 		display: none;
+	}
+
+	#hardware-integration{
+		display:none;
 	}
 
 	// load bar

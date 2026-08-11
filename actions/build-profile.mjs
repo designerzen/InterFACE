@@ -4,11 +4,33 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { zipSync } from 'fflate'
 
-const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
-const outputRoot = join(projectRoot, 'static', 'PhotoSYNTH')
-const archivePath = join(projectRoot, 'static', 'PhotoSYNTH.streamDeckProfile')
-const profileId = '485CBCF2-1D0D-4E5E-99C2-C316CF7D1A1D'
-const defaultProfileId = 'D6B45F35-C5A8-4ED5-8108-75D626225E84'
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const profileTargets = Object.freeze([
+	{
+		key: 'xl',
+		name: 'PhotoSYNTH — Stream Deck XL',
+		outputRoot: join(projectRoot, 'static', 'PhotoSYNTH'),
+		archivePath: join(projectRoot, 'static', 'PhotoSYNTH.streamDeckProfile'),
+		profileId: '485CBCF2-1D0D-4E5E-99C2-C316CF7D1A1D',
+		defaultProfileId: 'D6B45F35-C5A8-4ED5-8108-75D626225E84',
+		deviceModel: '20GAT9901',
+		deviceUuid: 'd8d6453a-1bf6-4a95-ab39-8ad70177a72c',
+		columns: 8,
+		rows: 4,
+	},
+	{
+		key: 'standard',
+		name: 'PhotoSYNTH — Stream Deck',
+		outputRoot: join(projectRoot, 'static', 'PhotoSYNTH-Stream-Deck'),
+		archivePath: join(projectRoot, 'static', 'PhotoSYNTH-Stream-Deck.streamDeckProfile'),
+		profileId: 'E48337B1-793A-45E1-9F25-3AD942F1A3C8',
+		defaultProfileId: '056C55EB-CFB8-4F79-A9F1-1D70ADDBB888',
+		deviceModel: '20GAA9902',
+		deviceUuid: '55ee4fd3-2f18-44f8-a9e2-b095c75f43c1',
+		columns: 5,
+		rows: 3,
+	},
+])
 
 const pageIds = Object.freeze({
 	home: 'DB46784D-474F-4B3C-A1BB-9FB25D8CCE13',
@@ -390,33 +412,39 @@ const makeIndicatorAction = pageId => ({
 	UUID: 'com.elgato.streamdeck.page.indicator',
 })
 
-const coordinateForActionIndex = index => {
-	if (index < 24) return `${index % 8},${Math.floor(index / 8)}`
-	return `${index - 21},3`
+const controlsPerPage = target => target.columns * target.rows - 3
+
+const coordinateForActionIndex = (index, target) => {
+	const lastRow = target.rows - 1
+	const controlsAboveNavigation = target.columns * lastRow
+	if (index < controlsAboveNavigation) {
+		return `${index % target.columns},${Math.floor(index / target.columns)}`
+	}
+	return `${index - controlsAboveNavigation + 3},${lastRow}`
 }
 
 const writeJson = (path, value) => writeFile(path, `${JSON.stringify(value, null, '\t')}\n`)
 
-const buildPage = async page => {
-	if (page.actions.length !== 29) {
-		throw new Error(`${page.name} must define exactly 29 controls; received ${page.actions.length}`)
+const buildPage = async (page, target) => {
+	if (page.actions.length > controlsPerPage(target)) {
+		throw new Error(`${page.name} exceeds the ${target.columns}x${target.rows} canvas`)
 	}
-	const pageRoot = join(outputRoot, 'Profiles', `${profileId}.sdProfile`, 'Profiles', page.id)
+	const pageRoot = join(target.outputRoot, 'Profiles', `${target.profileId}.sdProfile`, 'Profiles', page.id)
 	const imagesRoot = join(pageRoot, 'Images')
 	await mkdir(imagesRoot, { recursive: true })
 
+	const navigationRow = target.rows - 1
 	const actions = {
-		'0,3': makeNavigationAction('previous', 'Previous Page', page.id),
-		'1,3': makeNavigationAction('next', 'Next Page', page.id),
-		'2,3': makeIndicatorAction(page.id),
+		[`0,${navigationRow}`]: makeNavigationAction('previous', 'Previous Page', page.id),
+		[`1,${navigationRow}`]: makeNavigationAction('next', 'Next Page', page.id),
+		[`2,${navigationRow}`]: makeIndicatorAction(page.id),
 	}
 	for (const [index, action] of page.actions.entries()) {
-		const coordinate = coordinateForActionIndex(index)
+		const coordinate = coordinateForActionIndex(index, target)
 		const image = iconFilename(page.name, index, action)
 		await createIcon(join(imagesRoot, image), action)
 		actions[coordinate] = makeHotkeyAction(action, image)
 	}
-	if (Object.keys(actions).length !== 32) throw new Error(`${page.name} does not fill the XL canvas`)
 
 	await writeJson(join(pageRoot, 'manifest.json'), {
 		Controllers: [{ Actions: actions, Type: 'Keypad' }],
@@ -425,11 +453,11 @@ const buildPage = async page => {
 	})
 }
 
-const collectFiles = async (root, files = {}) => {
+const collectFiles = async (root, outputRoot, files = {}) => {
 	for (const entry of await readdir(root, { withFileTypes: true })) {
 		const path = join(root, entry.name)
 		if (entry.isDirectory()) {
-			await collectFiles(path, files)
+			await collectFiles(path, outputRoot, files)
 		}else{
 			files[relative(outputRoot, path).replaceAll('\\', '/')] = new Uint8Array(await readFile(path))
 		}
@@ -437,16 +465,30 @@ const collectFiles = async (root, files = {}) => {
 	return files
 }
 
-const build = async () => {
-	if (resolve(outputRoot) !== resolve(projectRoot, 'static', 'PhotoSYNTH')) {
-		throw new Error(`Refusing to replace unexpected profile path: ${outputRoot}`)
-	}
-	await rm(outputRoot, { recursive: true, force: true })
-	await mkdir(outputRoot, { recursive: true })
+const pagesForTarget = target => {
+	const pageSize = controlsPerPage(target)
+	if (pageSize === 29) return pageDefinitions
+	return pageDefinitions.flatMap(page => {
+		const pageCount = Math.ceil(page.actions.length / pageSize)
+		return Array.from({ length: pageCount }, (_, index) => ({
+			id: stableUuid(`photosynth:${target.key}:${page.id}:${index}`).toUpperCase(),
+			name: `${page.name} ${index + 1}/${pageCount}`,
+			actions: page.actions.slice(index * pageSize, (index + 1) * pageSize),
+		}))
+	})
+}
 
-	await writeJson(join(outputRoot, 'package.json'), {
+const buildTarget = async target => {
+	const expectedRoot = resolve(projectRoot, 'static', target.key === 'xl' ? 'PhotoSYNTH' : 'PhotoSYNTH-Stream-Deck')
+	if (resolve(target.outputRoot) !== expectedRoot) {
+		throw new Error(`Refusing to replace unexpected profile path: ${target.outputRoot}`)
+	}
+	await rm(target.outputRoot, { recursive: true, force: true })
+	await mkdir(target.outputRoot, { recursive: true })
+
+	await writeJson(join(target.outputRoot, 'package.json'), {
 		AppVersion: '7.4.2.22730',
-		DeviceModel: '20GAT9901',
+		DeviceModel: target.deviceModel,
 		DeviceSettings: null,
 		FormatVersion: 1,
 		OSType: 'Windows',
@@ -454,30 +496,31 @@ const build = async () => {
 		RequiredPlugins: ['com.elgato.streamdeck.system.hotkey'],
 	})
 
-	const profileRoot = join(outputRoot, 'Profiles', `${profileId}.sdProfile`)
-	await mkdir(join(profileRoot, 'Profiles', defaultProfileId), { recursive: true })
+	const pages = pagesForTarget(target)
+	const profileRoot = join(target.outputRoot, 'Profiles', `${target.profileId}.sdProfile`)
+	await mkdir(join(profileRoot, 'Profiles', target.defaultProfileId), { recursive: true })
 	await writeJson(join(profileRoot, 'manifest.json'), {
-		Device: { Model: '20GAT9901', UUID: 'd8d6453a-1bf6-4a95-ab39-8ad70177a72c' },
-		Name: 'PhotoSYNTH',
+		Device: { Model: target.deviceModel, UUID: target.deviceUuid },
+		Name: target.name,
 		Pages: {
 			Current: '00000000-0000-0000-0000-000000000000',
-			Default: defaultProfileId.toLowerCase(),
-			Pages: pageDefinitions.map(page => page.id.toLowerCase()),
+			Default: target.defaultProfileId.toLowerCase(),
+			Pages: pages.map(page => page.id.toLowerCase()),
 		},
 		Version: '3.0',
 	})
-	await writeJson(join(profileRoot, 'Profiles', defaultProfileId, 'manifest.json'), {
+	await writeJson(join(profileRoot, 'Profiles', target.defaultProfileId, 'manifest.json'), {
 		Controllers: [{ Actions: null, Type: 'Keypad' }], Icon: '', Name: '',
 	})
 
-	for (const page of pageDefinitions) await buildPage(page)
+	for (const page of pages) await buildPage(page, target)
 
-	const files = await collectFiles(outputRoot)
-	await writeFile(archivePath, Buffer.from(zipSync(files, {
+	const files = await collectFiles(target.outputRoot, target.outputRoot)
+	await writeFile(target.archivePath, Buffer.from(zipSync(files, {
 		level: 9,
 		mtime: new Date('2026-01-01T00:00:00Z'),
 	})))
-	console.info(`Built ${pageDefinitions.length} pages, ${pageDefinitions.length * 29} hotkeys and ${Object.keys(files).length} files`)
+	console.info(`Built ${target.name}: ${pages.length} pages, ${pages.reduce((total, page) => total + page.actions.length, 0)} hotkeys and ${Object.keys(files).length} files`)
 }
 
-await build()
+for (const target of profileTargets) await buildTarget(target)

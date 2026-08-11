@@ -30,7 +30,7 @@ minimumReleaseAgeExclude:
   - '@babylonjs/loaders@9.17.1 || 9.18.0'
   - '@babylonjs/materials@9.17.1 || 9.18.0'
   - electron@43.2.0
-  - knip@6.28.0 || 6.29.0
+  - knip@6.28.0 || 6.29.0 || 6.32.1
   - '@electron/packager@20.0.4'
   - sass@1.101.6 || 1.101.7 || 1.102.0
   - troika-3d@0.53.0
