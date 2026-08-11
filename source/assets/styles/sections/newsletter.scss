@@ -3,9 +3,10 @@
 	--newsletter-text: var(--shade-dark, #242122);
 	--newsletter-accent: var(--shade-brand, #8d3525);
 	box-sizing: border-box;
-	inline-size: min(calc(100% - 2 * var(--pad)), var(--viewport-max-width, 1080px));
-	margin: var(--pad) auto;
-	padding: clamp(var(--pad), 4vw, calc(var(--pad) * 2));
+	inline-size: 100%;
+	max-inline-size: none;
+	margin: calc(var(--pad) * 3) 0 0;
+	padding: 0;
 	color: var(--newsletter-text);
 
 	&, *, *::before, *::after { box-sizing: border-box; }
@@ -199,7 +200,7 @@
 		a { color: inherit; opacity: .7; }
 	}
 
-	@media (width <= 40rem) {
+	@media (width <= 640px) {
 		.subscribe-fields { grid-template-columns: minmax(0, 1fr); }
 		#mc-embedded-subscribe { inline-size: 100%; }
 		.mailchimp-referral { justify-self: start; }
