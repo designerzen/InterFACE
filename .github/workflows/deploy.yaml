@@ -41,13 +41,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            # Copy static assets
-            - name: Copy assets
-              run: pnpm run assets
-
-            # Build command
+            # Build assets and the application
             - name: Build the app
-              run: pnpm run build --if-present
+              run: pnpm run build
 
             # - name: List the current folder contents...
             #   run: ls ./
