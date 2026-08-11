@@ -11,6 +11,7 @@ import {
 	NOTE_PARTICLE_GRAPHICS_MUSIC_AND_STARS,
 	NOTE_PARTICLE_GRAPHICS_NONE,
 	NOTE_PARTICLE_GRAPHICS_NUMBERS,
+	NOTE_PARTICLE_GRAPHICS_POPPING_BUBBLES,
 	NOTE_PARTICLE_GRAPHICS_RANDOM,
 	NOTE_PARTICLE_GRAPHICS_SHAPES,
 	NOTE_PARTICLE_GRAPHICS_STARS
@@ -473,6 +474,7 @@ export default class DisplayOverlay2d {
 			NOTE_PARTICLE_GRAPHICS_STARS,
 			NOTE_PARTICLE_GRAPHICS_SHAPES,
 			NOTE_PARTICLE_GRAPHICS_BUBBLES,
+			NOTE_PARTICLE_GRAPHICS_POPPING_BUBBLES,
 			NOTE_PARTICLE_GRAPHICS_BEES,
 			NOTE_PARTICLE_GRAPHICS_DINOSAURS,
 			NOTE_PARTICLE_GRAPHICS_FACE,
@@ -497,6 +499,8 @@ export default class DisplayOverlay2d {
 				return 'shape'
 			case NOTE_PARTICLE_GRAPHICS_BUBBLES:
 				return 'bubble'
+			case NOTE_PARTICLE_GRAPHICS_POPPING_BUBBLES:
+				return 'popping-bubble'
 			case NOTE_PARTICLE_GRAPHICS_BEES:
 				return 'bee'
 			case NOTE_PARTICLE_GRAPHICS_DINOSAURS:
@@ -602,7 +606,7 @@ export default class DisplayOverlay2d {
 			const alpha = (1 - progress) * travelFade
 
 			this.markParticleDirty(particle, size)
-			this.drawNoteParticle(particle, size, alpha)
+			this.drawNoteParticle(particle, size, alpha, progress)
 			particles.push(particle)
 		}
 
@@ -625,7 +629,7 @@ export default class DisplayOverlay2d {
 		})
 	}
 
-	drawNoteParticle(particle, size, alpha) {
+	drawNoteParticle(particle, size, alpha, progress = 0) {
 		if (size <= 0) {
 			return
 		}
@@ -660,6 +664,18 @@ export default class DisplayOverlay2d {
 			this.drawBubbleParticlePath(context, size * 0.48)
 			context.fill()
 			context.stroke()
+		} else if (particle.type === 'popping-bubble') {
+			const popProgress = clamp((progress - 0.72) / 0.28, 0, 1)
+			context.strokeStyle = particle.colour ?? particleOptions.noteParticleDefaultColour
+			context.lineWidth = Math.max(1, size * 0.1 * (1 - popProgress * 0.65))
+			if (popProgress <= 0) {
+				context.fillStyle = 'rgba(255, 255, 255, 0.18)'
+				this.drawBubbleParticlePath(context, size * 0.48)
+				context.fill()
+				context.stroke()
+			}else{
+				this.drawPoppingBubbleParticle(context, size * 0.5, popProgress)
+			}
 		} else if (['bee', 'dinosaur', 'face', 'number'].includes(particle.type)) {
 			this.drawTextParticleGlyph(context, particle.glyph, size, ['bee', 'dinosaur', 'face'].includes(particle.type))
 		} else {
@@ -687,6 +703,25 @@ export default class DisplayOverlay2d {
 		context.arc(0, 0, radius, 0, TAU)
 		context.moveTo(radius * 0.35, -radius * 0.35)
 		context.arc(radius * 0.22, -radius * 0.22, radius * 0.18, -Math.PI * 0.4, Math.PI * 0.85)
+	}
+
+	drawPoppingBubbleParticle(context, radius, progress) {
+		const ringRadius = radius * (1 + progress * 0.6)
+		context.save()
+		context.globalAlpha *= 1 - progress
+		context.beginPath()
+		context.arc(0, 0, ringRadius, 0, TAU)
+		context.stroke()
+		for (let i = 0; i < 8; i++) {
+			const angle = i * TAU / 8
+			const inner = radius * (0.65 + progress * 0.35)
+			const outer = radius * (0.95 + progress * 0.9)
+			context.beginPath()
+			context.moveTo(cosine(angle) * inner, sine(angle) * inner)
+			context.lineTo(cosine(angle) * outer, sine(angle) * outer)
+			context.stroke()
+		}
+		context.restore()
 	}
 
 	drawShapeParticlePath(context, shape, radius) {
