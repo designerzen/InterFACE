@@ -16,7 +16,7 @@ import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { createInputStatusOverlay } from './dom/ui.input-status.js'
 import { setupRecordings } from './dom/ui.recording.js'
-import { connectSelect, connectReverbControls, connectReverbSelector, populateSelect } from './dom/select.js'
+import { connectSelect, connectSelectPreview, connectReverbControls, connectReverbSelector, populateSelect } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
 import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
@@ -4631,6 +4631,61 @@ export const createInterface = (
 		})
 		if (selects.percussionPattern) selects.percussionPattern.value = selectedPercussionPattern
 		if (selects.percussionSound) selects.percussionSound.value = selectedPercussionSound
+
+		let patternPreviewSnapshot
+		connectSelectPreview(selects.percussionPattern, {
+			preview:option => {
+				patternPreviewSnapshot ??= { drumArranger, patterns }
+				if (option.value === "random")
+				{
+					setRandomDrumPattern(false)
+				}else{
+					applyPercussionPatternPreset(option.value)
+				}
+			},
+			restore:() => {
+				if (!patternPreviewSnapshot) return
+				drumArranger = patternPreviewSnapshot.drumArranger
+				patterns = patternPreviewSnapshot.patterns
+				patternPreviewSnapshot = null
+			},
+			commit:() => {
+				patternPreviewSnapshot = null
+			}
+		})
+
+		let soundPreviewSnapshot
+		connectSelectPreview(selects.percussionSound, {
+			preview:option => {
+				soundPreviewSnapshot ??= {
+					kick:kickTimbreOptions,
+					snare:snareTimbreOptions,
+					hat:hatTimbreOptions,
+					closedHat:closedHatTimbreOptions,
+					openHat:openHatTimbreOptions,
+					cowbell:cowbellTimbreOptions,
+				}
+				if (option.value === "random")
+				{
+					setRandomDrumTimbres(false)
+				}else{
+					applyPercussionSoundPreset(option.value)
+				}
+			},
+			restore:() => {
+				if (!soundPreviewSnapshot) return
+				kickTimbreOptions = soundPreviewSnapshot.kick
+				snareTimbreOptions = soundPreviewSnapshot.snare
+				hatTimbreOptions = soundPreviewSnapshot.hat
+				closedHatTimbreOptions = soundPreviewSnapshot.closedHat
+				openHatTimbreOptions = soundPreviewSnapshot.openHat
+				cowbellTimbreOptions = soundPreviewSnapshot.cowbell
+				soundPreviewSnapshot = null
+			},
+			commit:() => {
+				soundPreviewSnapshot = null
+			}
+		})
 
 		buttons.randomisePercussion = setButton("button-randomise-percussion", () => {
 			stateMachine.set("drumkit", "", selects.drumkit)

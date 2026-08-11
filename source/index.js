@@ -433,6 +433,12 @@ checkPlatformUpdates().finally(() => {
 
 // Kludge: prevent back from leaving site
 navigation.onnavigate = (event) => {
+	// Let the browser handle downloads and navigations the SPA cannot intercept.
+	// Intercepting a download turns it into an in-page navigation and prevents
+	// the file from reaching the user's download manager.
+	if (!event.canIntercept || ('downloadRequest' in event && event.downloadRequest !== null)) {
+		return
+	}
 	event.intercept({
 		async handler() {
 			// The URL updates automatically!
