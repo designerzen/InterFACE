@@ -1,0 +1,79 @@
+extends _base.pug
+
+block title
+	+title('Test: Progress bar')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block main
+	main#progress-test
+		h1 Progress bar responsiveness test
+		p Drag the bottom-right corner of the panel to resize the app progress bar.
+
+		#load-progress(data-loaded="false")
+			label(for="progress-bar") Loading responsiveness test
+				span.load-percent 0%
+			progress#progress-bar.donut(max="1" value="0" role="progressbar" aria-label="Test progress")
+
+block scripts
+	script(type="module").
+		const progressBar = document.getElementById('progress-bar')
+		const progressPanel = document.getElementById('load-progress')
+		const percentage = progressPanel.querySelector('.load-percent')
+		const startedAt = performance.now()
+		const duration = 6000
+
+		function animate(now) {
+			const progress = ((now - startedAt) % duration) / duration
+			const value = progress.toFixed(3)
+
+			progressBar.setAttribute('value', value)
+			progressPanel.setAttribute('style', `--progress: ${value}`)
+			percentage.textContent = `${Math.round(progress * 100)}%`
+
+			requestAnimationFrame(animate)
+		}
+
+		requestAnimationFrame(animate)
+
+block styles
+	style.
+		body {
+			background-image: none;
+		}
+
+		#progress-test {
+			display: grid;
+			justify-items: center;
+			gap: var(--pad);
+			padding: calc(2 * var(--pad));
+		}
+
+		#progress-test > p {
+			margin: 0;
+			text-align: center;
+		}
+
+		#load-progress {
+			container-type: inline-size;
+			width: 320px;
+			height: 360px;
+			min-width: 150px;
+			min-height: 190px;
+			max-width: min(80vw, 640px);
+			max-height: 70vh;
+			margin: 0;
+			overflow: auto;
+			resize: both;
+			place-items: center;
+		}
+
+		#load-progress progress.donut {
+			--size: min(70cqi, 250px);
+			--stroke: min(20cqi, 70px);
+		}
+
+		#load-progress label {
+			margin-top: min(62cqi, 220px);
+		}
