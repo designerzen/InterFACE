@@ -50,7 +50,8 @@
 			"distDir": "./release/web/",
 			"publicUrl": "./",
 			"context": "browser",
-			"sourceMap": false
+			"sourceMap": false,
+			"scopeHoist": false
 		},
 		"dev": {
 			"source": "source/sitemap.pug",
