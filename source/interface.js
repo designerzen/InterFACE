@@ -74,7 +74,7 @@ import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
 import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arranger.js'
 import { DRUM_GROOVES } from './timing/drum-patterns.js'
-import { getArpeggioTiming, getHarpTiming } from './timing/arpeggio.js'
+import { getArpeggioTiming } from './timing/arpeggio.js'
 import {
 	createPercussionHoldRepeater,
 	createPercussionQuantiser,
@@ -3055,15 +3055,14 @@ export const createInterface = (
 				const performanceMode = person.activeInstrument?.performanceMode ??
 					(person.activeInstrument?.arpeggiate ? "arpeggio" : "chord")
 				const arp = performanceMode !== "chord"
-				const arpeggioTiming = performanceMode === "harp" ? getHarpTiming(clock.BPM, {
+				const arpeggioTiming = arp ? (person.activeInstrument.getArpeggioTiming?.(clock.BPM, {
 					divisionsElapsed,
 					totalDivisions:clock.totalDivisions,
-					tickDurationMs:clock.timeBetween
-				}) : (arp ? getArpeggioTiming(clock.BPM, {
+					tickDurationMs:clock.timeBetween,
 					isBar,
 					isHalfNote,
 					forceBar:i === 4
-				}) : null)
+				}) ?? getArpeggioTiming(clock.BPM, { isBar, isHalfNote, forceBar:i === 4 })) : null
 				if (arpeggioTiming)
 				{
 					person.activeInstrument.setArpeggioGate?.(arpeggioTiming.gateMs)

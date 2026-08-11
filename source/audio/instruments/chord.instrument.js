@@ -1,15 +1,13 @@
 import Instrument from "./instrument.js"
+import Arpeggio, { ARPEGGIO_VARIATION } from "./arpeggio.js"
 
 export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
 export const CHORD_PLAY_MODE = "chord"
 export const ARPEGGIO_PLAY_MODE = "arpeggio"
-export const HARP_PLAY_MODE = "harp"
-export const HARP_OCTAVES = 4
 
 export default class ChordInstrument extends Instrument{
 	
-	#arpeggio = false
-	#harp = false
+	#arpeggio = new Arpeggio()
 	arpeggioIndex = 0
 	arpeggioChordKey = ""
 	arpeggioGateMs = 0
@@ -48,30 +46,29 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	get arpeggiate( ){
-		return this.#arpeggio
+		return this.#arpeggio.enabled
 	}
 	set arpeggiate( value ){
-		this.#arpeggio = Boolean(value)
-		this.#harp = false
+		this.#arpeggio.configure(value ? ARPEGGIO_VARIATION : false)
 		this.resetArpeggio()
-	}
-
-	get harp(){
-		return this.#harp
-	}
-	set harp(value){
-		this.performanceMode = value ? HARP_PLAY_MODE : CHORD_PLAY_MODE
 	}
 
 	get performanceMode(){
-		return this.#harp ? HARP_PLAY_MODE : (this.#arpeggio ? ARPEGGIO_PLAY_MODE : CHORD_PLAY_MODE)
+		return this.#arpeggio.enabled ? this.#arpeggio.variation : CHORD_PLAY_MODE
 	}
 	set performanceMode(value){
-		const mode = value === HARP_PLAY_MODE ? HARP_PLAY_MODE :
-			(value === ARPEGGIO_PLAY_MODE ? ARPEGGIO_PLAY_MODE : CHORD_PLAY_MODE)
-		this.#harp = mode === HARP_PLAY_MODE
-		this.#arpeggio = mode !== CHORD_PLAY_MODE
+		this.#arpeggio.configure(value)
 		this.resetArpeggio()
+	}
+
+	configureArpeggio(config){
+		const configured = this.#arpeggio.configure(config)
+		this.resetArpeggio()
+		return configured
+	}
+
+	getArpeggioTiming(bpm, options={}){
+		return this.#arpeggio.getTiming(bpm, options)
 	}
 
 	get useArpeggio(){
@@ -109,9 +106,9 @@ export default class ChordInstrument extends Instrument{
 
 	constructor(audioContext, options = {}){
 		super(audioContext, options)
-		if (options.performanceMode === HARP_PLAY_MODE || options.harp)
+		if (options.performanceMode && options.performanceMode !== CHORD_PLAY_MODE)
 		{
-			this.performanceMode = HARP_PLAY_MODE
+			this.performanceMode = options.performanceMode
 		}
 		else if (options.arpeggiate || options.useArpeggio)
 		{
@@ -183,24 +180,7 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	getArpeggioSequence(chordArray=[]){
-		if (!this.#harp)
-		{
-			return chordArray
-		}
-
-		const sequence = []
-		for (let octave=0; octave<HARP_OCTAVES; ++octave)
-		{
-			const octaveOffset = octave * 12
-			chordArray.forEach(chord => {
-				const noteNumber = chord?.noteNumber + octaveOffset
-				if (Number.isFinite(noteNumber) && noteNumber <= 127)
-				{
-					sequence.push({ ...chord, noteNumber })
-				}
-			})
-		}
-		return sequence
+		return this.#arpeggio.getSequence(chordArray)
 	}
 
 	resetArpeggio(){
@@ -282,7 +262,7 @@ export default class ChordInstrument extends Instrument{
 	
 		// console.error("ChordInstrument:chordOn", chordArray, this.arpeggio )
 		
-		if (!this.#arpeggio)
+		if (!this.#arpeggio.enabled)
 		{
 			const chordQuantity = chordArray.length
 			// console.error( "ChordInstrument:chordOn", chordQuantity, chordArray )

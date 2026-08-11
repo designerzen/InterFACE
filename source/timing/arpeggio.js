@@ -1,7 +1,7 @@
 export const ARPEGGIO_FAST_BPM_THRESHOLD = 90
 export const ARPEGGIO_GRID_HALF_NOTE = "half-note"
 export const ARPEGGIO_GRID_BAR = "bar"
-export const HARP_GRID_CLOCK = "clock"
+export const ARPEGGIO_GRID_CLOCK = "clock"
 export const DEFAULT_CLOCK_DIVISIONS_PER_BAR = 24
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
@@ -37,6 +37,26 @@ export const getArpeggioGateMs = (bpm, {
 }
 
 export const getArpeggioTiming = (bpm, options={}) => {
+	const clockStep = Number(options.clockStep)
+	if (Number.isInteger(clockStep) && clockStep > 0)
+	{
+		const numericTickDurationMs = Number(options.tickDurationMs)
+		const divisionsElapsed = Number(options.divisionsElapsed)
+		const totalDivisions = Number.isFinite(Number(options.totalDivisions)) && Number(options.totalDivisions) > 0 ?
+			Number(options.totalDivisions) : DEFAULT_CLOCK_DIVISIONS_PER_BAR
+		const fallbackBarMs = getArpeggioTriggerIntervalMs(bpm, ARPEGGIO_GRID_HALF_NOTE) * 2
+		const tickDurationMs = Number.isFinite(numericTickDurationMs) && numericTickDurationMs > 0 ?
+			numericTickDurationMs : fallbackBarMs / totalDivisions
+		const intervalMs = tickDurationMs * clockStep
+		const minimumRestMs = Math.min(12, intervalMs * 0.18)
+		return {
+			grid:ARPEGGIO_GRID_CLOCK,
+			intervalMs,
+			gateMs:Math.max(8, Math.round(intervalMs - minimumRestMs)),
+			shouldTrigger:Number.isInteger(divisionsElapsed) && divisionsElapsed % clockStep === 0
+		}
+	}
+
 	const grid = getArpeggioGridForBPM(bpm, options.forceBar)
 	const intervalMs = getArpeggioTriggerIntervalMs(bpm, grid)
 	const gateMs = getArpeggioGateMs(bpm, { ...options, grid })
@@ -45,23 +65,5 @@ export const getArpeggioTiming = (bpm, options={}) => {
 		intervalMs,
 		gateMs,
 		shouldTrigger: grid === ARPEGGIO_GRID_BAR ? Boolean(options.isBar) : Boolean(options.isHalfNote)
-	}
-}
-
-export const getHarpTiming = (bpm, options={}) => {
-	const numericTickDurationMs = Number(options.tickDurationMs)
-	const totalDivisions = Number.isFinite(Number(options.totalDivisions)) && Number(options.totalDivisions) > 0 ?
-		Number(options.totalDivisions) : DEFAULT_CLOCK_DIVISIONS_PER_BAR
-	const fallbackBarMs = 4 * getArpeggioTriggerIntervalMs(bpm, ARPEGGIO_GRID_HALF_NOTE) / 2
-	const intervalMs = Number.isFinite(numericTickDurationMs) && numericTickDurationMs > 0 ?
-		numericTickDurationMs : fallbackBarMs / totalDivisions
-	const minimumRestMs = Math.min(12, intervalMs * 0.18)
-	const gateMs = Math.max(8, Math.round(intervalMs - minimumRestMs))
-
-	return {
-		grid:HARP_GRID_CLOCK,
-		intervalMs,
-		gateMs,
-		shouldTrigger:Number.isFinite(Number(options.divisionsElapsed))
 	}
 }

@@ -105,8 +105,6 @@ import {
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
 	PERSON_TYPE_CHROMATIC, 
 	PERSON_TYPE_DATA, 
-	PERSON_TYPE_HARP,
-	PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_PLAYER,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
 } from "./person.presets.js"
@@ -126,8 +124,6 @@ export {
 	PERSON_TYPE_ARPEGGIO,
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_CHROMATIC,
-	PERSON_TYPE_HARP,
-	PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_PLAYER,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
 	isPlayerOperatingMode
@@ -1698,14 +1694,12 @@ export default class Person extends EventTarget{
 			return this.options.noteSequence
 		}
 		if (this.userMode === PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS ||
-			this.userMode === PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS ||
-			this.userMode === PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS)
+			this.userMode === PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS)
 		{
 			return "circle-of-fifths"
 		}
 		if (this.userMode === PERSON_TYPE_CHROMATIC ||
 			this.userMode === PERSON_TYPE_ARPEGGIO ||
-			this.userMode === PERSON_TYPE_HARP ||
 			this.userMode === PERSON_TYPE_PLAYER)
 		{
 			return "chromatic"
@@ -1718,12 +1712,10 @@ export default class Person extends EventTarget{
 	}
 
 	setPlayMode(playMode){
-		const performanceMode = ["chord", "arpeggio", "harp"].includes(playMode) ? playMode : "chord"
-		const nextMode = performanceMode === "harp" ?
-			(this.usesCircleOfFifthsSequence ? PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS : PERSON_TYPE_HARP) :
-			(performanceMode === "arpeggio" ?
+		const performanceMode = typeof playMode === "string" ? playMode : "chord"
+		const nextMode = performanceMode !== "chord" ?
 				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
-				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC))
+				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
 		configurePersonByOperatingMode(this, nextMode)
 		if (this.activeInstrument)
 		{
@@ -1741,14 +1733,16 @@ export default class Person extends EventTarget{
 		const keyScale = NOTE_SEQUENCE_TO_KEY_SCALE.get(noteSequence) ?? "MAJOR_SCALE"
 		const performanceMode = this.activeInstrument?.performanceMode ??
 			((this.activeInstrument?.arpeggiate ?? this.userModeData?.arpeggiate) ? "arpeggio" : "chord")
-		const nextMode = performanceMode === "harp" ?
-			(noteSequence === "circle-of-fifths" ? PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS : PERSON_TYPE_HARP) :
-			(performanceMode === "arpeggio" ?
+		const nextMode = performanceMode !== "chord" ?
 				(noteSequence === "circle-of-fifths" ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
-				(noteSequence === "circle-of-fifths" ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC))
+				(noteSequence === "circle-of-fifths" ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
 
 		this.setOptions({ noteSequence, keyScale })
 		configurePersonByOperatingMode(this, nextMode)
+		if (this.activeInstrument && "performanceMode" in this.activeInstrument)
+		{
+			this.activeInstrument.performanceMode = performanceMode
+		}
 		return this.noteSequence
 	}
 
@@ -2126,7 +2120,8 @@ export default class Person extends EventTarget{
 			const activeNoteNumbers = this.getActiveNoteNumbersForDisplay()
 			const previewNoteNumbers = this.getPreviewNoteNumbersForDisplay()
 			const showPlayingNotes = this.isMouthOpen && this.singing && activeNoteNumbers.length > 0
-			const notesToDisplay = showPlayingNotes ? activeNoteNumbers : previewNoteNumbers
+			const displayNoteNumbers = showPlayingNotes ? activeNoteNumbers : previewNoteNumbers
+			const notesToDisplay = displayNoteNumbers
 
 			const personData = this.userModeData
 			let style = personData.name

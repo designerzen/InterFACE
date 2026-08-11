@@ -90,7 +90,7 @@ const createPersonOptionsHTML = (person) => {
 		<summary>${createSummaryContent("Options")}</summary>
 		<div class="person-options-grid">
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
-			${createSelectControl("Play", "playMode", playMode, [["chord", "Sympathetic Chords"], ["arpeggio", "Arpeggio"], ["harp", "HARP — fast multi-octave"]], "data-person-action")}
+			${createSelectControl("Play", "playMode", playMode, [["chord", "Chords"], ["arpeggio", "Arpeggio"], ["harp", "Harp"]], "data-person-action")}
 			${createSelectControl("MIDI device", "midiDevice", midiDevice, createMIDIDeviceOptions(), "data-person-option", "person-option-wide")}
 			${createSelectControl("MIDI channel", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
 			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}
