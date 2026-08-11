@@ -1,0 +1,207 @@
+#mc_embed_shell {
+	--newsletter-bg: var(--shade-white, #e8e6df);
+	--newsletter-text: var(--shade-dark, #242122);
+	--newsletter-accent: var(--shade-brand, #8d3525);
+	box-sizing: border-box;
+	inline-size: min(calc(100% - 2 * var(--pad)), var(--viewport-max-width, 1080px));
+	margin: var(--pad) auto;
+	padding: clamp(var(--pad), 4vw, calc(var(--pad) * 2));
+	color: var(--newsletter-text);
+
+	&, *, *::before, *::after { box-sizing: border-box; }
+
+	#mc_embed_signup {
+		inline-size: 100%;
+		font: inherit;
+	}
+
+	#mc-embedded-subscribe-form {
+		position: relative;
+		display: grid;
+		gap: var(--pad);
+		inline-size: 100%;
+		margin: 0;
+		padding: clamp(var(--pad), 4vw, calc(var(--pad) * 2));
+		overflow: hidden;
+		border: var(--stroke, 2px) solid var(--newsletter-accent);
+		border-radius: var(--curve, 12px);
+		background: color-mix(in srgb, var(--newsletter-bg) 94%, transparent);
+		color: var(--newsletter-text);
+		text-align: start;
+	}
+
+	#mc_embed_signup_scroll,
+	.newsletter-header,
+	.mc-field-group {
+		display: grid;
+	}
+
+	#mc_embed_signup_scroll { gap: var(--pad); }
+	.newsletter-header { gap: calc(var(--pad) / 3); }
+
+	.newsletter-header h6,
+	.newsletter-header p {
+		inline-size: auto;
+		max-inline-size: 62ch;
+		margin: 0;
+		padding: 0;
+		color: inherit;
+		text-align: start;
+		text-shadow: none;
+	}
+
+	.newsletter-header h6 {
+		color: var(--newsletter-accent);
+		font-size: clamp(1.75rem, 4vw, 3rem);
+		line-height: 1;
+		text-wrap: balance;
+	}
+
+	#newsletter-description {
+		font-size: clamp(1rem, 2vw, 1.25rem);
+		font-weight: 600;
+		line-height: 1.45;
+		text-wrap: pretty;
+	}
+
+	.subscribe-fields {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: var(--pad);
+		align-items: end;
+	}
+
+	.mc-field-group {
+		gap: calc(var(--pad) / 3);
+		min-inline-size: 0;
+
+		label {
+			inline-size: auto;
+			margin: 0;
+			padding: 0;
+			color: inherit;
+			font: inherit;
+			font-weight: 800;
+			line-height: 1.3;
+			text-align: start;
+			text-shadow: none;
+			cursor: default;
+		}
+
+		input[type="email"] {
+			appearance: none;
+			display: block;
+			inline-size: 100%;
+			min-inline-size: 0;
+			min-block-size: 3rem;
+			margin: 0;
+			padding: calc(var(--pad) * .75) var(--pad);
+			border: 2px solid color-mix(in srgb, var(--newsletter-text) 35%, var(--newsletter-bg));
+			border-radius: var(--curve, 12px);
+			background: #fff;
+			box-shadow: none;
+			color: var(--newsletter-text);
+			font: inherit;
+			font-size: max(1rem, 1em);
+			line-height: 1.25;
+			text-align: start;
+
+			&:hover { border-color: var(--newsletter-accent); }
+			&:focus-visible {
+				border-color: var(--newsletter-accent);
+				outline: 3px solid var(--newsletter-accent);
+				outline-offset: 3px;
+			}
+			&:user-invalid,
+			&.mce_inline_error { border-color: #b00020; }
+		}
+
+		div.mce_inline_error { display: none !important; }
+
+		.indicates-required {
+			display: none;
+			margin: calc(var(--pad) / 3) 0 0;
+			padding: 0;
+			border: 0;
+			background: none;
+			color: #b00020;
+			font-size: .875rem;
+			font-weight: 800;
+			line-height: 1.35;
+		}
+
+		#mce-EMAIL:user-invalid ~ .indicates-required,
+		#mce-EMAIL.mce_inline_error ~ .indicates-required { display: block; }
+	}
+
+	#mce-responses {
+		display: block;
+		inline-size: 100%;
+		min-block-size: 0;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+	}
+
+	.response {
+		inline-size: 100%;
+		margin: 0;
+		padding: calc(var(--pad) / 2) var(--pad);
+		border: 0;
+		border-inline-start: 2px solid currentColor;
+		background: none;
+		box-shadow: none;
+		color: #b00020;
+		font-size: .875rem;
+		font-weight: 800;
+		line-height: 1.35;
+	}
+
+	#mce-success-response { color: var(--newsletter-accent); }
+	.mc-honeypot { position: absolute !important; inset-inline-start: -5000px !important; display: block; }
+
+	#mc-embedded-subscribe {
+		appearance: none;
+		display: block;
+		inline-size: fit-content;
+		min-inline-size: 8rem;
+		min-block-size: 3rem;
+		margin: 0;
+		padding: calc(var(--pad) * .75) calc(var(--pad) * 1.5);
+		border: 2px solid var(--newsletter-accent);
+		border-radius: var(--curve, 12px);
+		background: var(--newsletter-accent);
+		box-shadow: none;
+		color: #fff;
+		font: inherit;
+		font-weight: 900;
+		line-height: 1.2;
+		text-align: center;
+		text-shadow: none;
+		white-space: nowrap;
+		cursor: pointer;
+
+		&::before,
+		&::after { display: none; content: none; }
+		&:focus-visible { outline: 3px solid var(--newsletter-text); outline-offset: 3px; }
+	}
+
+	.mailchimp-referral {
+		justify-self: end;
+		inline-size: auto;
+		margin: 0;
+		padding: 0;
+		font-size: .75rem;
+		line-height: 1.3;
+		text-align: start;
+
+		a { color: inherit; opacity: .7; }
+	}
+
+	@media (width <= 40rem) {
+		.subscribe-fields { grid-template-columns: minmax(0, 1fr); }
+		#mc-embedded-subscribe { inline-size: 100%; }
+		.mailchimp-referral { justify-self: start; }
+	}
+}

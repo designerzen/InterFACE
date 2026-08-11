@@ -50,6 +50,7 @@
 		"hero"
 		"a11y"
 		"contact"
+		"newsletter"
 		"hardware"
 		"support"
 		"affiliates"
@@ -129,6 +130,10 @@
 
 #supported-by{
 	grid-area: support;
+}
+
+#mc_embed_shell{
+	grid-area:newsletter;
 }
 
 #hardware-integration{
@@ -399,7 +404,8 @@
 		display: none;
 	}
 
-	#contact{
+	#contact,
+	#mc_embed_shell{
 		display: none;
 	}
 

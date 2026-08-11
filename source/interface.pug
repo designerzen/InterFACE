@@ -84,6 +84,21 @@ block main
 		p If you have any suggestions, concerns, ideas or feedback, please get in touch!
 		a.email-address.button.button-push.button-email.centralise(href="mailto:radio@awesomething.co.uk") Email radio@awesomething.co.uk
 
+	include partials/newsletter.pug
+
+	section#hardware-integration.connections.mixed-content(aria-labelledby="hardware-integration-title")
+		h3#hardware-integration-title Stream Deck profiles
+		p Turn your Stream Deck into a labelled PhotoSYNTH control surface for instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
+		p Install the profile for your key layout to make PhotoSYNTH quicker to learn and easier to perform live, without memorising keyboard shortcuts.
+		a.button.button-push.button-download.text-always(
+			href="../static/PhotoSYNTH.streamDeckProfile"
+			download="PhotoSYNTH.streamDeckProfile"
+		) Download XL profile — 32 keys
+		a.button.button-push.button-download.text-always(
+			href="../static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
+			download="PhotoSYNTH-Stream-Deck.streamDeckProfile"
+		) Download standard profile — 15 keys
+
 	section#supported-by.connections
 		block supported
 			h3 Supported by
