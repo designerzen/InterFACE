@@ -17,8 +17,8 @@ import {
 	DIMINISHED_SCALE,
 	AUGMENTED_SCALE,
 	FIFTHS_SCALE,
-	INTERVAL_LIBRARY
-} from "./scales"
+	SCALE_INTERVAL_LIBRARY as INTERVAL_LIBRARY
+} from "./intervals.js"
 
 const PITCH_CLASS_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 
