@@ -1,5 +1,5 @@
 import Instrument from "./instrument.js"
-import Arpeggio, { ARPEGGIO_VARIATION } from "./arpeggio.js"
+import { Arpeggio, ARPEGGIO_VARIATION } from "../../timing/arpeggio.js"
 
 export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
 export const CHORD_PLAY_MODE = "chord"
