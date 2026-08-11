@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { zipSync } from 'fflate'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const controlBarIconsRoot = join(projectRoot, 'source', 'assets', 'icons')
 const profileTargets = Object.freeze([
 	{
 		key: 'xl',
@@ -80,74 +81,77 @@ const keyCodes = code => {
 	throw new Error(`Unsupported generated hotkey code: ${code}`)
 }
 
-const primary = (code, title, category, symbol) => ({
+const primary = (code, title, category, symbol, icon) => ({
 	type: 'hotkey', code, title, category, symbol,
+	icon,
 	modifiers: { ctrl: true, alt: true, shift: true },
 })
-const player = (code, title, symbol) => ({
+const player = (code, title, symbol, icon) => ({
 	type: 'hotkey', code, title, category: 'player', symbol,
+	icon,
 	modifiers: { ctrl: true, alt: true, shift: false },
 })
-const plain = (code, title, category = 'performance', symbol = title) => ({
+const plain = (code, title, category = 'performance', symbol = title, icon) => ({
 	type: 'hotkey', code, title, category, symbol,
+	icon,
 	modifiers: { ctrl: false, alt: false, shift: false },
 })
 
 const modes = [
-	plain('F13', 'Commands', 'mode', 'CMD'),
-	plain('F14', 'Notes', 'mode', '♪'),
-	plain('F15', 'Notes High', 'mode', '♪+'),
-	plain('F16', 'Chords', 'mode', '♬'),
-	plain('F17', 'Percussion', 'mode', 'DRM'),
-	plain('F18', 'Samples', 'mode', 'SMP'),
+	plain('F13', 'Commands', 'mode', 'CMD', 'settings-24px.svg'),
+	plain('F14', 'Notes', 'mode', '♪', 'music_note-24px.svg'),
+	plain('F15', 'Notes High', 'mode', '♪+', 'music_note-24px.svg'),
+	plain('F16', 'Chords', 'mode', '♬', 'piano-24px.svg'),
+	plain('F17', 'Percussion', 'mode', 'DRM', 'auto_fix_high-24px.svg'),
+	plain('F18', 'Samples', 'mode', 'SMP', 'audiotrack-24px.svg'),
 ]
 
 const instruments = {
-	previous: plain('F19', 'Previous\nInstrument', 'instrument', '◀'),
-	next: plain('F21', 'Next\nInstrument', 'instrument', '▶'),
-	random: plain('F20', 'Random\nInstrument', 'instrument', '◆'),
+	previous: plain('F19', 'Previous\nInstrument', 'instrument', '◀', 'arrow_back.svg'),
+	next: plain('F21', 'Next\nInstrument', 'instrument', '▶', 'forward_black_24dp.svg'),
+	random: plain('F20', 'Random\nInstrument', 'instrument', '◆', 'casino.svg'),
 }
 
 const common = {
-	drumPattern: primary('KeyD', 'Random Drum\nPattern', 'sound', 'PAT'),
-	drumSounds: primary('KeyE', 'Random Drum\nSounds', 'sound', 'SND'),
-	backing: plain('F22', 'Backing\nBeat', 'timing', 'BEAT'),
-	quantise: plain('F23', 'Quantise', 'timing', 'Q'),
-	metronome: primary('KeyH', 'Metronome', 'timing', 'MET'),
-	fullscreen: primary('KeyI', 'Fullscreen', 'system', '⛶'),
-	disco: primary('KeyJ', 'MTV Mode', 'visual', 'MTV'),
-	spectrogram: primary('KeyK', 'V.U. Display', 'visual', 'VU'),
+	drumPattern: primary('KeyD', 'Random Drum\nPattern', 'sound', 'PAT', 'grid_on-24px.svg'),
+	drumSounds: primary('KeyE', 'Random Drum\nSounds', 'sound', 'SND', 'music_note-24px.svg'),
+	backing: plain('F22', 'Backing\nBeat', 'timing', 'BEAT', 'auto_fix_high-24px.svg'),
+	quantise: plain('F23', 'Quantise', 'timing', 'Q', 'grid_on-24px.svg'),
+	metronome: primary('KeyH', 'Metronome', 'timing', 'MET', 'hourglass_empty-24px.svg'),
+	fullscreen: primary('KeyI', 'Fullscreen', 'system', '⛶', 'fullscreen-24px.svg'),
+	disco: primary('KeyJ', 'MTV Mode', 'visual', 'MTV', 'blur_on-24px.svg'),
+	spectrogram: primary('KeyK', 'V.U. Display', 'visual', 'VU', 'graphic_eq_black_24dp.svg'),
 	photosensitive: primary('KeyL', 'Safe Visuals', 'visual', 'SAFE'),
-	clear: primary('KeyM', 'Clear Video', 'visual', 'CLR'),
-	overlay: primary('KeyN', 'AR Overlay', 'visual', 'AR'),
-	faces: primary('KeyO', 'Face\nOverlays', 'visual', 'FACE'),
-	eyes: primary('KeyP', 'Eye\nOverlays', 'visual', 'EYE'),
-	brows: primary('KeyQ', 'Eyebrow\nOverlays', 'visual', 'BROW'),
-	lips: primary('KeyR', 'Lip\nOverlays', 'visual', 'LIPS'),
-	subtitles: primary('KeyS', 'Subtitles', 'visual', 'TXT'),
-	speech: primary('KeyT', 'Speech', 'system', 'VOICE'),
-	hud: primary('KeyU', 'Input HUD', 'system', 'HUD'),
-	automation: primary('KeyV', 'Automation', 'system', 'AUTO'),
-	advanced: primary('KeyW', 'Advanced\nControls', 'system', 'ADV'),
-	octaveDown: primary('KeyX', 'Number Octave\nDown', 'mode', 'OCT−'),
-	octaveUp: primary('KeyY', 'Number Octave\nUp', 'mode', 'OCT+'),
-	reverb: primary('KeyZ', 'Random\nReverb', 'sound', 'REV'),
+	clear: primary('KeyM', 'Clear Video', 'visual', 'CLR', 'videocam_off-24px.svg'),
+	overlay: primary('KeyN', 'AR Overlay', 'visual', 'AR', 'visibility-24px.svg'),
+	faces: primary('KeyO', 'Face\nOverlays', 'visual', 'FACE', 'face_retouching_off-24px.svg'),
+	eyes: primary('KeyP', 'Eye\nOverlays', 'visual', 'EYE', 'motion_photos_off-24px.svg'),
+	brows: primary('KeyQ', 'Eyebrow\nOverlays', 'visual', 'BROW', 'gesture.svg'),
+	lips: primary('KeyR', 'Lip\nOverlays', 'visual', 'LIPS', 'mood.svg'),
+	subtitles: primary('KeyS', 'Subtitles', 'visual', 'TXT', 'speaker_notes-24px.svg'),
+	speech: primary('KeyT', 'Speech', 'system', 'VOICE', 'voice_over_off_black_24dp.svg'),
+	hud: primary('KeyU', 'Input HUD', 'system', 'HUD', 'sensors_off-24px.svg'),
+	automation: primary('KeyV', 'Automation', 'system', 'AUTO', 'autorenew_black_24dp.svg'),
+	advanced: primary('KeyW', 'Advanced\nControls', 'system', 'ADV', 'equalizer.svg'),
+	octaveDown: primary('KeyX', 'Number Octave\nDown', 'mode', 'OCT−', 'down_arrow_black_24dp.svg'),
+	octaveUp: primary('KeyY', 'Number Octave\nUp', 'mode', 'OCT+', 'up_arrow_black_24dp.svg'),
+	reverb: primary('KeyZ', 'Random\nReverb', 'sound', 'REV', 'extension-24px.svg'),
 	cosmosPrevious: primary('Digit6', 'Previous COSMO\nBank', 'sound', 'BANK−'),
 	cosmosNext: primary('Digit7', 'Next COSMO\nBank', 'sound', 'BANK+'),
-	tempoDown: primary('Digit8', 'Tempo Down', 'timing', 'BPM−'),
-	tempoUp: primary('Digit9', 'Tempo Up', 'timing', 'BPM+'),
-	tapTempo: plain('F24', 'Tap Tempo', 'timing', 'TAP'),
-	videoFrame: player('KeyA', 'Video Frame\nCopy', 'FRAME'),
-	videoOutput: player('KeyB', 'Video Output', 'VIDEO'),
-	record: player('KeyC', 'Record Audio', 'REC'),
-	nodesDown: player('KeyD', 'Fewer Visual\nNodes', 'NODE−'),
-	nodesUp: player('KeyF', 'More Visual\nNodes', 'NODE+'),
+	tempoDown: primary('Digit8', 'Tempo Down', 'timing', 'BPM−', 'down_arrow_black_24dp.svg'),
+	tempoUp: primary('Digit9', 'Tempo Up', 'timing', 'BPM+', 'up_arrow_black_24dp.svg'),
+	tapTempo: plain('F24', 'Tap Tempo', 'timing', 'TAP', 'fingerprint-24px.svg'),
+	videoFrame: player('KeyA', 'Video Frame\nCopy', 'FRAME', 'camera_enhance-24px.svg'),
+	videoOutput: player('KeyB', 'Video Output', 'VIDEO', 'videocam-24px.svg'),
+	record: player('KeyC', 'Record Audio', 'REC', 'voicemail-24px.svg'),
+	nodesDown: player('KeyD', 'Fewer Visual\nNodes', 'NODE−', 'down_arrow_black_24dp.svg'),
+	nodesUp: player('KeyF', 'More Visual\nNodes', 'NODE+', 'up_arrow_black_24dp.svg'),
 }
 
 const players = [0, 1, 2, 3].map(index => ({
-	select: player(`Digit${index + 1}`, `Select Player ${index + 1}`, `P${index + 1}`),
-	type: player(`Digit${index + 5}`, `Player ${index + 1}\nType`, `P${index + 1} TYPE`),
-	preset: player(['KeyQ', 'KeyW', 'KeyE', 'KeyR'][index], `Player ${index + 1}\nPreset`, `P${index + 1} ◆`),
+	select: player(`Digit${index + 1}`, `Select Player ${index + 1}`, `P${index + 1}`, 'person-24px.svg'),
+	type: player(`Digit${index + 5}`, `Player ${index + 1}\nType`, `P${index + 1} TYPE`, 'mode.svg'),
+	preset: player(['KeyQ', 'KeyW', 'KeyE', 'KeyR'][index], `Player ${index + 1}\nPreset`, `P${index + 1} ◆`, 'casino.svg'),
 }))
 
 const pads = Object.fromEntries('0123456789'.split('').map(number => [
@@ -303,19 +307,38 @@ const iconFilename = (pageName, index, action) => {
 	return `${hash}.svg`
 }
 
+const controlBarIconCache = new Map()
+
+const embedControlBarIcon = async (filename, accent) => {
+	let source = controlBarIconCache.get(filename)
+	if (!source) {
+		source = await readFile(join(controlBarIconsRoot, filename), 'utf8')
+		controlBarIconCache.set(filename, source)
+	}
+	const match = source.match(/<svg\b([^>]*)>([\s\S]*?)<\/svg>/)
+	if (!match) throw new Error(`Invalid control-bar SVG: ${filename}`)
+	const viewBox = /viewBox="([^"]+)"/.exec(match[1])?.[1] ?? '0 0 24 24'
+	const content = match[2]
+		.replaceAll('#000000', accent)
+		.replaceAll('#000', accent)
+	return `<svg x="43" y="27" width="58" height="58" viewBox="${escapeXml(viewBox)}" fill="${accent}">${content}</svg>`
+}
+
 const createIcon = async (path, action) => {
 	const accent = palette[action.category] ?? palette.system
 	const titleLines = action.title.split('\n').slice(0, 2)
 	const title = titleLines.map((line, index) => (
 		`<text x="72" y="${108 + index * 17}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${titleLines.length > 1 ? 14 : 16}" font-weight="700" fill="#ffffff">${escapeXml(line)}</text>`
 	)).join('')
+	const graphic = action.icon
+		? await embedControlBarIcon(action.icon, accent)
+		: `<circle cx="72" cy="59" r="31" fill="${accent}" opacity="0.18"/><text x="72" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="${String(action.symbol).length > 4 ? 20 : 29}" font-weight="800" fill="${accent}">${escapeXml(action.symbol)}</text>`
 	const svg = `
 		<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
 			<rect width="144" height="144" rx="18" fill="#11141b"/>
 			<rect x="5" y="5" width="134" height="134" rx="15" fill="#171c26" stroke="${accent}" stroke-width="4"/>
 			<rect x="14" y="14" width="116" height="7" rx="3.5" fill="${accent}"/>
-			<circle cx="72" cy="59" r="31" fill="${accent}" opacity="0.18"/>
-			<text x="72" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="${String(action.symbol).length > 4 ? 20 : 29}" font-weight="800" fill="${accent}">${escapeXml(action.symbol)}</text>
+			${graphic}
 			${title}
 		</svg>`
 	await writeFile(path, svg)
