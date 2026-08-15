@@ -18,8 +18,51 @@
  */
 
 import { setToast } from "./tooltips.js"
+import { getMIDIPortDisplayName, isDigitCMPSRPort } from "../hardware/digit/cmpsr.js"
+import { dispatchMIDIActivity, MIDI_ACTIVITY_EVENT } from "../audio/midi/midi-echo-guard.js"
 
 let connectedMIDIStatusIds = new Set()
+const monitoredInputs = new WeakSet()
+const MIDI_MONITOR_LIMIT = 80
+
+const createRoutingOptions = (options, selected) => options.map(([value, label]) => `<option value="${value}"${String(value) === String(selected) ? ' selected' : ''}>${label}</option>`).join('')
+const renderPersonMIDIRouting = (people, outputs) => {
+	const container = document.getElementById('midi-person-routing')
+	if (!container) return
+	const devices = [['auto', 'Auto'], ['all', 'All MIDI devices'], ...outputs.map((output, index) => [output.id, output.name || output.manufacturer || `MIDI device ${index + 1}`])]
+	const channels = [['auto', 'Auto'], ['all', 'All channels'], ...Array.from({length:16}, (_, index) => [index + 1, `Channel ${index + 1}`])]
+	container.innerHTML = people.map((person, index) => `<fieldset class="midi-person-route" data-person-index="${index}"><legend>${getPersonLabel(person, index)}</legend><label>Device<select data-midi-person-option="midiDevice">${createRoutingOptions(devices, person.options?.midiDevice ?? 'auto')}</select></label><label>Channel<select data-midi-person-option="midiPort">${createRoutingOptions(channels, person.options?.midiPort ?? 'auto')}</select></label></fieldset>`).join('') || '<p class="info">No people are active.</p>'
+}
+const monitorMIDIInputs = inputs => inputs.forEach(input => {
+	if (monitoredInputs.has(input) || !input?.addListener) return
+	monitoredInputs.add(input)
+	input.addListener('midimessage', event => dispatchMIDIActivity({direction:'input', type:event.message?.type ?? event.type ?? 'message', note:event.note?.number ?? event.message?.dataBytes?.[0], value:event.value ?? event.rawValue ?? event.message?.dataBytes?.[1], channel:event.message?.channel, port:input.name ?? input.id}))
+})
+const setupMIDIMenu = people => {
+	const routing = document.getElementById('midi-person-routing')
+	if (!routing || routing.dataset.ready) return
+	routing.dataset.ready = 'true'
+	routing.addEventListener('change', event => {
+		const option = event.target.dataset.midiPersonOption
+		const person = people[Number(event.target.closest('[data-person-index]')?.dataset.personIndex)]
+		if (option && person) {
+			person.setPanelOption?.(option, event.target.value)
+			person.controls?.querySelectorAll(`[data-person-option="${option}"]`).forEach(control => { control.value = event.target.value })
+		}
+	})
+	const list = document.getElementById('midi-monitor-events'), empty = document.getElementById('midi-monitor-empty')
+	globalThis.addEventListener(MIDI_ACTIVITY_EVENT, event => {
+		const detail = event.detail, parts = [detail.direction.toUpperCase(), detail.port, detail.type]
+		if (detail.note !== undefined) parts.push(`note ${detail.note}`)
+		if (detail.channel !== undefined) parts.push(`ch ${detail.channel}`)
+		if (detail.value !== undefined) parts.push(`value ${detail.value}`)
+		const item = document.createElement('li'); item.className = 'midi-monitor-event'; item.dataset.direction = detail.direction
+		item.textContent = `${new Date().toLocaleTimeString([], {hour12:false})}  ${parts.filter(Boolean).join(' · ')}`; list.prepend(item)
+		while (list.children.length > MIDI_MONITOR_LIMIT) list.lastElementChild.remove()
+		empty.hidden = true
+	})
+	document.getElementById('midi-monitor-clear')?.addEventListener('click', () => { list.replaceChildren(); empty.hidden = false })
+}
 
 const routeMIDIPortsToPeople = (people, outputs, midiChannel = "all") => {
 	const outputDeviceQuantity = outputs.length
@@ -69,7 +112,8 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = [], 
 	})
 
 	inputs.forEach((port, index) => {
-		const label = port.name || port.manufacturer || `MIDI Input ${index + 1}`
+		const isCMPSR = isDigitCMPSRPort(port)
+		const label = getMIDIPortDisplayName(port, `MIDI Input ${index + 1}`)
 		const channelLabel = 'All channels (1–16)'
 		const personDetails = people.length > 0 ? people.map((person, personIndex) => ({
 			label: getPersonLabel(person, personIndex),
@@ -79,9 +123,10 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = [], 
 		entries.push({
 			id: `midi-input-${port.id ?? port.name ?? index}`,
 			label,
-			detail: `Input · ${channelLabel} · ${people.length || 1} ${people.length === 1 ? 'person' : 'people'}`,
+			detail: `${isCMPSR ? 'Available · ' : ''}Input · ${channelLabel} · ${people.length || 1} ${people.length === 1 ? 'person' : 'people'}`,
 			tooltipDetails: [
 				{ label: 'Port', value: 'MIDI input' },
+				{ label: 'Device', value: isCMPSR ? 'DIGIT CMPSR' : null },
 				{ label: 'Manufacturer', value: port.manufacturer },
 				{ label: 'Connection', value: `${label} → PhotoSYNTH · ${getPortConnectionLabel(port)}` },
 				{ label: 'Channels', value: channelLabel },
@@ -91,7 +136,8 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = [], 
 	})
 
 	outputs.forEach((port, index) => {
-		const label = port.name || port.manufacturer || `MIDI Output ${index + 1}`
+		const isCMPSR = isDigitCMPSRPort(port)
+		const label = getMIDIPortDisplayName(port, `MIDI Output ${index + 1}`)
 		const assignments = outputAssignments.get(port) ?? []
 		const personDetails = assignments.map(({ person, personIndex }) => {
 			const personLabel = getPersonLabel(person, personIndex)
@@ -104,9 +150,10 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = [], 
 		entries.push({
 			id: `midi-output-${port.id ?? port.name ?? index}`,
 			label,
-			detail: `Output · ${channels.join(', ') || fallbackChannel} · ${assignments.length} ${assignments.length === 1 ? 'person' : 'people'}`,
+			detail: `${isCMPSR ? 'Available · ' : ''}Output · ${channels.join(', ') || fallbackChannel} · ${assignments.length} ${assignments.length === 1 ? 'person' : 'people'}`,
 			tooltipDetails: [
 				{ label: 'Port', value: 'MIDI output' },
+				{ label: 'Device', value: isCMPSR ? 'DIGIT CMPSR' : null },
 				{ label: 'Manufacturer', value: port.manufacturer },
 				{ label: 'Connection', value: `PhotoSYNTH → ${label} · ${getPortConnectionLabel(port)}` },
 				{ label: 'Channels', value: channels.length > 0 ? channels : fallbackChannel },
@@ -249,6 +296,8 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 	// update panel options with available devices!
 	setMIDIInputSelector( inputs )
 	setMIDIOutputSelector( outputs )
+	renderPersonMIDIRouting(people, outputs)
+	monitorMIDIInputs(inputs)
 	if (hasOutputs) {
 		routeMIDIPortsToPeople(people, outputs, midiChannel)
 	}
@@ -300,7 +349,7 @@ const updateMIDIDevicesStatus = (midiButton, midiManager, people, outputs, input
 		main.classList.toggle( 'midi-available', false )
 		main.classList.toggle( 'midi-unavailable', true )
 		
-		midiDevicesPanel.hidden = true
+		midiDevicesPanel.hidden = false
 
 		midiButton.element.classList.toggle(`connected`, false)
 		connectedMIDIStatusIds.forEach(statusId => statusAPI?.clearDeviceStatus?.(statusId))
@@ -547,6 +596,8 @@ export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, peopl
 	const setFeedback = typeof optionsOrSetFeedback === 'function' ? optionsOrSetFeedback : maybeSetFeedbackOrStatusAPI
 	const options = typeof optionsOrSetFeedback === 'function' ? null : optionsOrSetFeedback
 	const statusAPI = typeof optionsOrSetFeedback === 'function' ? maybeSetFeedbackOrStatusAPI : maybeStatusAPI
+	setupMIDIMenu(people)
+	renderPersonMIDIRouting(people, midiManager.outputs ?? [])
 
 	// to skip clicking but results in a warning
 	
@@ -618,7 +669,7 @@ export const setMIDIControls = async ( midiManager, MIDIConnectionClasses, peopl
 
 	// this is something else
 	midiToggleButton.onchange = e =>{
-		if (inputMIDICheckbox.checked)
+		if (midiToggleButton.checked)
 		{
 			connectMIDI()
 		}else{
