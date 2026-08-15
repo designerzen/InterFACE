@@ -455,6 +455,7 @@ export const createDrumArranger = (options={}) => {
 		next,
 		getStep: () => state.step,
 		getStepsPerBar: () => state.stepsPerBar,
+		getActiveLanes: () => [...activeLanes, 'cowbell'],
 		getBeatSequence,
 		getBPM: () => state.bpm,
 		getIntent: () => ({ ...state.intent }),

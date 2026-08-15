@@ -198,6 +198,8 @@ export const DEFAULT_OPTIONS = {
 	drumkit:"",
 	// Add rapid percussion subdivisions such as triplets, sextuplets, and rolls.
 	rapidPercussion:false,
+	// Percussion overlay: summary, instrument rows, falling columns, central ripples, or disabled.
+	beatViz:"summary",
 	// Allow the player's activity and expression to shape percussion intensity.
 	performanceDrums:true,
 	// Picade Plasma light-to-button layout. Use lights=table for the tabletop panel wiring.

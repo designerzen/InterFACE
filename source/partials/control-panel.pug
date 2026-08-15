@@ -292,6 +292,14 @@ menu#control-panel
 		label(for="button-rapid-percussion") Rapid Hits<span class="hide-text"> including triplets and subdivisions</span>
 			input#button-rapid-percussion(type="checkbox" aria-label="Enable rapid percussion triplets and subdivisions")
 
+		label(for="select-beat-viz") Beat Viz<span class="hide-text"> layout</span>
+			select#select-beat-viz(name="beat-viz" aria-label="Choose the percussion beat visualization")
+				option(value="summary") Beat Summary
+				option(value="grid") Instrument Rows
+				option(value="vertical") Falling Columns
+				option(value="ripples") Drum Ripples
+				option(value="disabled") Disabled
+
 		label(for="button-performance-drums") Performance<span class="hide-text"> controls percussion activity</span>
 			input#button-performance-drums(type="checkbox" aria-label="Allow user performance to affect percussion")
 
