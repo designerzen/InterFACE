@@ -52,7 +52,7 @@ import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './setti
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
-import { PersonManager } from './people/person-manager.js'
+import { MAX_PERSON_TRIM, PersonManager } from './people/person-manager.js'
 import Person, { getRandomPresetForPerson } from './people/person.js'
 
  import { 
@@ -1372,7 +1372,7 @@ export const createInterface = (
 	const setMasterVolume = value => {
 		const volume = setVolume(value)
 		const percentage = Math.ceil(volume * 100)
-		store.setItem('audio', { volume })
+		store.setItem('audio', { ...(store.getItem('audio') ?? {}), volume })
 		// console.info("Setting volume", volume, "to", percentage + "%")
 		setFeedback(`Volume ${percentage}%`,0, 'volume')
 		return volume
@@ -2898,13 +2898,17 @@ export const createInterface = (
 			keyboardDisplay?.drawElement( musicalKeyboard.canvas, 40, 40, false )
 		}
 
-		if (showOverlayCanvas && stateMachine.get('backingTrack') && !stateMachine.get('muted'))
+		const beatVizMode = stateMachine.get('beatViz') ?? 'summary'
+		if (showOverlayCanvas && stateMachine.get('backingTrack') && !stateMachine.get('muted') && beatVizMode !== 'disabled')
 		{
 			const beatCount = Math.max(16, drumArranger?.getStepsPerBar?.() ?? 16)
 			const arrangerStep = Math.max(0, drumArranger?.getStep?.() ?? 0)
 			const halfBeatProgress = ((clock.beatProgress % 0.5) + 0.5) % 0.5 * 2
 			const beatProgress = ((arrangerStep % beatCount) + halfBeatProgress) / beatCount
-			overlayDisplay?.drawBeatProgress(beatProgress, drumArranger?.getBeatSequence?.(beatCount) ?? beatCount)
+			overlayDisplay?.drawBeatProgress(beatProgress, drumArranger?.getBeatSequence?.(beatCount) ?? beatCount, {
+				mode:beatVizMode,
+				lanes:drumArranger?.getActiveLanes?.()
+			})
 		}
 
 		if (showOverlayCanvas)
@@ -3756,19 +3760,30 @@ export const createInterface = (
 		}
 
 		// setup the volume and turn up the amp
-		const volume = (store.getItem('audio') ? parseFloat(store.getItem('audio').volume) : 1 ) || 1
+		const storedAudio = store.getItem('audio') ?? {}
+		const volume = parseFloat(storedAudio.volume) || 1
+		const storedTrim = parseFloat(storedAudio.trim)
+		const personTrim = personManager.setTrim(Number.isFinite(storedTrim) ? storedTrim : 1)
 		setVolume( volume )
 
 		const {	
 			setVisualVolumeLevel, 
 			toggleMute 
 		} = setupVolumeInterface( volume, stateMachine.get( 'muted') ?? false, {
+			currentPercussionVolume:getPercussionNode().gain.value,
+			currentTrimVolume:personTrim / MAX_PERSON_TRIM,
+			trimVolumeScale:MAX_PERSON_TRIM,
 			onVolumeChanged: vol => {
 				setMasterVolume( vol )
 			},
 			onPercussionVolumeChanged: vol => {
 				getPercussionNode().gain.value = Number(vol)
 				setFeedback(`Percussion ${Math.ceil(vol * 100)}%`, 0, 'beats')
+			},
+			onTrimVolumeChanged: vol => {
+				const trim = personManager.setTrim(Number(vol) * MAX_PERSON_TRIM)
+				store.setItem('audio', { ...(store.getItem('audio') ?? {}), trim })
+				setFeedback(`Trim ${Math.ceil(trim * 100)}%`, 0, 'volume')
 			},
 			onMuteChanged: status => {
 				stateMachine.set( 'muted', status )
@@ -4135,6 +4150,15 @@ export const createInterface = (
 			drumArranger?.setRapidPercussion?.(status)
 			setFeedback(`Rapid percussion ${status ? 'enabled' : 'disabled'}`, 0, 'beats')
 		}, stateMachine.get('rapidPercussion') )
+
+		const beatVizModes = new Set(['summary', 'grid', 'vertical', 'ripples', 'disabled'])
+		const selectedBeatViz = beatVizModes.has(stateMachine.get('beatViz')) ? stateMachine.get('beatViz') : 'summary'
+		selects.beatViz = connectSelect('select-beat-viz', option => {
+			const mode = beatVizModes.has(option.value) ? option.value : 'summary'
+			stateMachine.set('beatViz', mode, selects.beatViz)
+			setFeedback(`Percussion display changed to ${option.textContent}`, 0, 'beats')
+		})
+		if (selects.beatViz) selects.beatViz.value = selectedBeatViz
 
 		toggles.performanceDrums = setToggle( "button-performance-drums", status => {
 			stateMachine.set('performanceDrums', status)

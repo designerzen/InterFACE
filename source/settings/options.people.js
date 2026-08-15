@@ -160,6 +160,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	octaveLow:2,
 	octaveHigh:6,
 	maximumAmplitude:0.6,
+	trim:1,
 
 	// musical for example F MAjorroot note
 	// F (C=0, CΓÖ»=1, D=2, DΓÖ»=3, E=4, F=5)
