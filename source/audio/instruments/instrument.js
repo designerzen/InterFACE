@@ -345,9 +345,12 @@ export default class Instrument{
 		
 			case MIDICommands.COMMAND_NOTE_AFTER_TOUCH:
 				return this.aftertouch( command.noteNumber, command.amount  )
+
+			case MIDICommands.COMMAND_CHANNEL_AFTER_TOUCH:
+				return this.aftertouch( undefined, command.amount )
 		
 			case MIDICommands.COMMAND_PITCH_BEND:
-				return this.pitchBend( command.amount )
+				return this.pitchBend( command.amount ?? command.value )
 				
 			case MIDICommands.COMMAND_PROGRAM_CHANGE:
 				return this.programChange( command.programNumber )

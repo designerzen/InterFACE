@@ -5,6 +5,11 @@ const MIDI_PANIC_LOOP_LIMIT = 2
 const MIDI_DEBUG_ENABLED_STORAGE_KEY = 'photosynth-midi-debug-enabled'
 const MIDI_DEBUG_STORAGE_KEY = 'photosynth-midi-debug-log'
 const MIDI_DEBUG_STORAGE_LIMIT = 80
+export const MIDI_ACTIVITY_EVENT = 'photosynth-midi-activity'
+
+export const dispatchMIDIActivity = detail => {
+	globalThis.dispatchEvent?.(new CustomEvent(MIDI_ACTIVITY_EVENT, { detail:{ at:performance.now(), ...detail } }))
+}
 
 export const isMIDIDebugEnabled = () => {
 	if (globalThis.__photosynthMIDIDebugEnabled === true)
@@ -347,6 +352,7 @@ export const sendGuardedMIDIOutput = (output, method, note, options, source = 'u
 	{
 		return false
 	}
+	dispatchMIDIActivity({ direction:'app', type:method, note, options, source })
 
 	if (note === undefined && options === undefined)
 	{
@@ -356,6 +362,7 @@ export const sendGuardedMIDIOutput = (output, method, note, options, source = 'u
 	}else{
 		output[method](note, options)
 	}
+	dispatchMIDIActivity({ direction:'output', type:method, note, options, source, port:output?.name ?? output?.id })
 
 	if (method === 'playNote')
 	{
