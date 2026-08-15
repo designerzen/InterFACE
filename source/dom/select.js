@@ -231,59 +231,6 @@ export const connectSelect = (element,callback) => {
 	return select
 }
 
-export const connectSelectPreview = (element, { preview, restore, commit, delay=160 }={}) => {
-	const select = typeof element === "string" ? document.getElementById(element) : element
-	if (!select)
-	{
-		return null
-	}
-
-	let previewTimer
-	let previewActive = false
-	let committedValue = select.value
-	const selectedOption = () => select.options[select.selectedIndex]
-	const queuePreview = (option, wait=delay) => {
-		clearTimeout(previewTimer)
-		if (!option || option.disabled)
-		{
-			return
-		}
-		previewTimer = setTimeout(() => {
-			previewActive = true
-			preview?.(option)
-		}, wait)
-	}
-	const restorePreview = () => {
-		clearTimeout(previewTimer)
-		if (!previewActive)
-		{
-			return
-		}
-		restore?.()
-		previewActive = false
-		select.value = committedValue
-	}
-
-	select.addEventListener("pointerover", event => {
-		const option = event.target.closest?.("option")
-		if (option)
-		{
-			queuePreview(option)
-		}
-	})
-	select.addEventListener("pointerleave", restorePreview)
-	select.addEventListener("input", () => queuePreview(selectedOption(), 0))
-	select.addEventListener("blur", restorePreview)
-	select.addEventListener("change", () => {
-		clearTimeout(previewTimer)
-		previewActive = false
-		committedValue = select.value
-		commit?.()
-	})
-
-	return select
-}
-
 export const connectPaletteSelector = (callback) => connectSelect('select-palette', callback )
 export const connectReverbSelector = (callback) => connectSelect('select-impulse', callback )
 
