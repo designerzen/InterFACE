@@ -101,15 +101,15 @@ const DRUM_ROWS = Object.freeze([
 		createDrum('cowbell', 'Cowbell', 'BELL', 'Hats & cymbals'),
 	]),
 	Object.freeze([
-		createDrum('low-tom', 'Low Tom Soft', 'LT SOFT', 'Toms & snares', { velocity: 0.5 }),
-		createDrum('low-tom', 'Low Tom Hard', 'LT HARD', 'Toms & snares', { velocity: 1.2 }),
-		createDrum('mid-tom', 'Mid Tom Soft', 'MT SOFT', 'Toms & snares', { velocity: 0.5 }),
-		createDrum('mid-tom', 'Mid Tom Hard', 'MT HARD', 'Toms & snares', { velocity: 1.2 }),
-		createDrum('high-tom', 'High Tom Soft', 'HT SOFT', 'Toms & snares', { velocity: 0.5 }),
-		createDrum('high-tom', 'High Tom Hard', 'HT HARD', 'Toms & snares', { velocity: 1.2 }),
-		createDrum('snare', 'Soft Snare', 'SN SOFT', 'Toms & snares', { velocity: 0.5 }),
-		createDrum('snare', 'Hard Snare', 'SN HARD', 'Toms & snares', { velocity: 1.2 }),
-		createDrum('rim', 'Dry Rim', 'DRY RIM', 'Toms & snares', { decay: 0.018, highpassStart: 4800 }),
+		createDrum('low-bongo', 'Low Bongo', 'BONGO L', 'Hand percussion'),
+		createDrum('high-bongo', 'High Bongo', 'BONGO H', 'Hand percussion'),
+		createDrum('low-conga', 'Low Conga', 'CONGA L', 'Hand percussion'),
+		createDrum('high-conga', 'Open High Conga', 'CONGA H', 'Hand percussion'),
+		createDrum('mute-conga', 'Muted High Conga', 'CONGA M', 'Hand percussion'),
+		createDrum('cabasa', 'Cabasa', 'CABASA', 'Hand percussion'),
+		createDrum('maracas', 'Maracas', 'MARACA', 'Hand percussion'),
+		createDrum('mute-triangle', 'Muted Triangle', 'TRI M', 'Hand percussion'),
+		createDrum('open-triangle', 'Open Triangle', 'TRI O', 'Hand percussion'),
 	]),
 	Object.freeze([
 		createDrum('kick', 'Long Kick FX', 'KICK FX', 'Percussion FX', { length: 0.9, sineEnd: 24 }),
@@ -123,6 +123,59 @@ const DRUM_ROWS = Object.freeze([
 ])
 
 export const KEYBOARD_PERCUSSION_ASSIGNMENTS = Object.freeze(DRUM_ROWS.flat())
+
+const EXPANDED_DRUM_ROWS = Object.freeze([
+	Object.freeze([
+		createDrum('rimshot', 'Rimshot', 'RIMSHOT', 'Sticks & blocks'),
+		createDrum('crossStick', 'Cross Stick', 'CROSS', 'Sticks & blocks'),
+		createDrum('claves', 'Claves', 'CLAVES', 'Sticks & blocks'),
+		createDrum('woodblockHigh', 'High Woodblock', 'WOOD H', 'Sticks & blocks'),
+		createDrum('woodblockLow', 'Low Woodblock', 'WOOD L', 'Sticks & blocks'),
+		createDrum('castanets', 'Castanets', 'CAST', 'Sticks & blocks'),
+		createDrum('fingerSnap', 'Finger Snap', 'SNAP', 'Sticks & blocks'),
+		createDrum('tambourine', 'Tambourine', 'TAMB', 'Shaken percussion'),
+		createDrum('chekere', 'Chekere', 'CHEK', 'Shaken percussion'),
+		createDrum('quijada', 'Quijada', 'QUIJ', 'Shaken percussion'),
+	]),
+	Object.freeze([
+		createDrum('crash', 'Crash Cymbal', 'CRASH', 'Cymbals & bells'),
+		createDrum('ride', 'Ride Cymbal', 'RIDE', 'Cymbals & bells'),
+		createDrum('splash', 'Splash Cymbal', 'SPLASH', 'Cymbals & bells'),
+		createDrum('china', 'China Cymbal', 'CHINA', 'Cymbals & bells'),
+		createDrum('agogoHigh', 'High Agogo', 'AGOGO H', 'Cymbals & bells'),
+		createDrum('agogoLow', 'Low Agogo', 'AGOGO L', 'Cymbals & bells'),
+		createDrum('starChime', 'Star Chime', 'STAR', 'Cymbals & bells'),
+		createDrum('windChime', 'Wind Chime', 'WIND', 'Cymbals & bells'),
+		createDrum('metalHit', 'Metallic Hit', 'METAL', 'Cymbals & bells'),
+		createDrum('whistleShort', 'Short Whistle', 'WHIST S', 'Cymbals & bells'),
+	]),
+	Object.freeze([
+		createDrum('timbaleHigh', 'High Timbale', 'TIMB H', 'Latin drums'),
+		createDrum('timbaleLow', 'Low Timbale', 'TIMB L', 'Latin drums'),
+		createDrum('guiroShort', 'Short Guiro', 'GUIRO S', 'Latin drums'),
+		createDrum('guiroLong', 'Long Guiro', 'GUIRO L', 'Latin drums'),
+		createDrum('cuicaMute', 'Muted Cuica', 'CUICA M', 'Latin drums'),
+		createDrum('cuicaOpen', 'Open Cuica', 'CUICA O', 'Latin drums'),
+		createDrum('surdoMute', 'Muted Surdo', 'SURDO M', 'Latin drums'),
+		createDrum('surdoOpen', 'Open Surdo', 'SURDO O', 'Latin drums'),
+		createDrum('whistleLong', 'Long Whistle', 'WHIST L', 'Latin drums'),
+	]),
+	Object.freeze([
+		createDrum('syndrum', 'Syndrum', 'SYNDRUM', 'Electronic percussion'),
+		createDrum('laserTom', 'Laser Tom', 'LASER', 'Electronic percussion'),
+	]),
+])
+
+export const KEYBOARD_PERCUSSION_SHIFT_ASSIGNMENTS = Object.freeze(EXPANDED_DRUM_ROWS.flat())
+export const KEYBOARD_PERCUSSION_LAYERS = Object.freeze([
+	KEYBOARD_PERCUSSION_ASSIGNMENTS,
+	KEYBOARD_PERCUSSION_SHIFT_ASSIGNMENTS,
+])
+
+export const getKeyboardPercussionAssignment = (performanceKey, shifted=false) => {
+	if (!performanceKey) return null
+	return (shifted ? KEYBOARD_PERCUSSION_SHIFT_ASSIGNMENTS : KEYBOARD_PERCUSSION_ASSIGNMENTS)[performanceKey.index] ?? null
+}
 
 const meme = (id, label, filename, symbol = label) => Object.freeze({
 	id, label, symbol, src: `./assets/audio/fx/meme/${filename}`, interrupt: 'self',
