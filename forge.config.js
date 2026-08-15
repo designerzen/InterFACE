@@ -1,113 +1,70 @@
-// import { readFileSync, writeFileSync } from 'fs'
+const path = require('node:path')
+const packageMetadata = require('./package.json')
 
-// const packageFile = readFileSync('./package.json')
-// const pkg = JSON.parse(packageFile)
-const pkg = {
-	name:"PhotoSYNTH",
-	version:"0.0.1"
-}
-
-/*
-export default class ParcelPlugin extends PluginBase {
-	getHooks() {
-		return {
-			prePackage: [this.prePackage]
-		}
-	}
-
-	prePackage() {
-		console.log('running prePackage hook')
-	}
-
-	// appPath?: string;
-	// args?: (string | number)[];
-	// dir?: string;
-	// enableLogging?: boolean;
-	// inspect?: boolean;
-	// inspectBrk?: boolean;
-	// interactive?: boolean;
-	// runAsNode?: boolean;
-	async startLogic(opts) {
-
-		return null
-	}
-}
-*/
+const iconBase = path.resolve(__dirname, 'static/icons')
 
 module.exports = {
-
-	// https://electron.github.io/packager/main/interfaces/Options.html
+	outDir: path.resolve(__dirname, 'releases'),
 	packagerConfig: {
-		name: pkg.name,
-		// The source directory
-		dir: 'dist-electron/',
-		sourcedir: 'dist-electron/',
-		extraResource:[
-			"source/assets/splash/"
-		],
-		icon: 'icons',
+		name: 'PhotoSYNTH',
+		executableName: 'PhotoSYNTH',
+		appBundleId: 'com.designerzen.photosynth',
+		appCategoryType: 'public.app-category.music',
+		appCopyright: `Copyright ${new Date().getFullYear()} designerzen`,
+		appVersion: packageMetadata.version,
+		buildVersion: packageMetadata.version,
 		asar: true,
-		appCopyright:"Copyright 2025 designerzen",
-		appVersion:pkg.version,
-		executableName:"PhotoSYNTH",
-		osxSign: {},
-		appCategoryType: 'public.app-category.audio-tools',
-		out:"release"
+		icon: process.platform === 'win32'
+			? path.join(iconBase, 'win/icon.ico')
+			: path.join(iconBase, 'mac/icon.icns'),
+		ignore: pathName => {
+			if (!pathName) return false
+			return !/^\/(dist-electron(?:\/|$)|package\.json$|LICENSE(?:S)?\.md$)/.test(pathName)
+		},
 	},
-
+	rebuildConfig: {
+		force: true,
+	},
 	plugins: [
-		// {
-		// 	name: '@electron-forge/plugin-electronegativity',
-		// 	config: {
-		// 		isSarif: true
-		// 	}
-		// }
+		{
+			name: '@electron-forge/plugin-auto-unpack-natives',
+			config: {},
+		},
 	],
 	makers: [
 		{
-			name: "@electron-forge/maker-zip",
-			platforms: [
-				"darwin"
-			]
+			name: '@electron-forge/maker-squirrel',
+			config: {
+				name: 'photosynth',
+				setupExe: `PhotoSYNTH-${packageMetadata.version}-Windows-Setup.exe`,
+				setupIcon: path.join(iconBase, 'win/icon.ico'),
+			},
 		},
 		{
-			name: "@electron-forge/maker-squirrel",
-			config: {
-				name: "photosynth"
-			}
+			name: '@electron-forge/maker-zip',
+			platforms: ['darwin'],
 		},
-		// {
-		// 	name: '@electron-forge/maker-deb',
-		// 	config: {
-		// 		options: {
-		// 			icon: '/icons/icon-512.webp'
-		// 		}
-		// 	}
-		// },
-		// {
-		// 	name: "@electron-forge/maker-rpm",
-		// 	config: {}
-		// }
-		//  {
-		// name: `@electron-forge/maker-dmg`,
-		// config: {
-		// 	format: 'ULFO'
-		// }
-		// }
+		{
+			name: '@electron-forge/maker-deb',
+			config: {
+				options: {
+					name: 'photosynth',
+					productName: 'PhotoSYNTH',
+					genericName: 'Accessible musical instrument',
+					categories: ['Audio', 'Music'],
+				},
+			},
+		},
 	],
 	publishers: [
 		{
 			name: '@electron-forge/publisher-github',
 			config: {
-				repository: {
-					owner: 'designerzen',
-					name: 'InterFACE'
-				},
+				repository: { owner: 'designerzen', name: 'InterFACE' },
 				draft: true,
 				prerelease: false,
-				generateReleaseNotes: true
-			}
-		}
+				generateReleaseNotes: true,
+			},
+		},
 	],
-	outDir: 'dist-electron/'
 }
