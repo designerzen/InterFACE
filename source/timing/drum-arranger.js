@@ -3,10 +3,11 @@ import {
 	snareSequences,
 	hatSequences,
 	drumRollSequence,
-	DRUM_GROOVES
+	DRUM_GROOVES,
+	AUXILIARY_DRUM_LANES,
 } from './drum-patterns.js'
 
-const LANES = [ 
+const CORE_LANES = [
 	'kick', 
 	'snare', 
 	'hat', 
@@ -238,11 +239,19 @@ const shouldKeepMutedHit = (lane, step, velocity, intent) => {
 export const createDrumArranger = (options={}) => {
 	const random = createRandom(options.seed)
 	const selectedGroove = typeof options.groove === 'string' ? DRUM_GROOVES[options.groove] : options.groove
+	const auxiliaryLanes = selectedGroove
+		? AUXILIARY_DRUM_LANES.filter(lane => Array.isArray(selectedGroove[lane]))
+		: []
+	const activeLanes = [...CORE_LANES, ...auxiliaryLanes]
 	const cells = {
 		kick: createCells('kick', selectedGroove ? [selectedGroove.kick] : kickSequences),
 		snare: createCells('snare', selectedGroove ? [selectedGroove.snare] : snareSequences),
 		hat: createCells('hat', selectedGroove ? [selectedGroove.hat] : hatSequences),
 		clap: createCells('clap', selectedGroove ? [selectedGroove.clap] : snareSequences)
+	}
+	for (const lane of auxiliaryLanes)
+	{
+		cells[lane] = createCells(lane, [selectedGroove[lane]])
 	}
 	const state = {
 		step: -1,
@@ -259,7 +268,8 @@ export const createDrumArranger = (options={}) => {
 		lastFillPhrase: -8,
 		phrase: -1,
 		rapidPercussion: options.rapidPercussion === true,
-		performanceControl: options.performanceControl !== false
+		performanceControl: options.performanceControl !== false,
+		lastParts: {}
 	}
 
 	const phraseLength = () => state.phraseBars * state.stepsPerBar
@@ -284,7 +294,7 @@ export const createDrumArranger = (options={}) => {
 	const choosePhrase = () => {
 		state.phrase++
 		const tempo = currentTempoProfile()
-		LANES.forEach(lane => state.current[lane] = selectCell(lane, tempo))
+		activeLanes.forEach(lane => state.current[lane] = selectCell(lane, tempo))
 		const phraseDistance = state.phrase - state.lastFillPhrase
 		const phraseAccent = state.phrase % 4 === 3 ? 1.4 : state.phrase % 2 === 1 ? 1 : 0.55
 		const fillChance = clamp(0.08 * phraseAccent * tempo.fillChance + state.intent.fillChance * 0.18 + state.intent.tension * 0.08)
@@ -381,7 +391,7 @@ export const createDrumArranger = (options={}) => {
 		state.step++
 		const phraseLengthValue = phraseLength()
 		const stepInPhrase = wrap(state.step, phraseLengthValue)
-		if (stepInPhrase === 0 || LANES.some(lane => !state.current[lane]))
+		if (stepInPhrase === 0 || activeLanes.some(lane => !state.current[lane]))
 		{
 			choosePhrase()
 		}
@@ -389,7 +399,7 @@ export const createDrumArranger = (options={}) => {
 
 		const tempo = currentTempoProfile()
 		const parts = {}
-		for (const lane of LANES)
+		for (const lane of activeLanes)
 		{
 			const cell = state.current[lane]
 			const velocity = cell?.sequence?.[wrap(state.step, cell.length)] ?? 0
@@ -423,12 +433,29 @@ export const createDrumArranger = (options={}) => {
 			random
 		}) : []
 
+		state.lastParts = parts
 		return parts
+	}
+
+	const getBeatSequence = (count=state.stepsPerBar) => {
+		const beatCount = Math.max(1, Math.floor(count))
+		const firstStep = Math.floor(Math.max(0, state.step) / beatCount) * beatCount
+		return Array.from({ length:beatCount }, (_, index) => {
+			const step = firstStep + index
+			const beat = Object.fromEntries(activeLanes.map(lane => {
+				const cell = state.current[lane]
+				const velocity = cell?.sequence?.[wrap(step, cell.length)] ?? 0
+				return [lane, shouldKeepMutedHit(lane, step, velocity, state.intent) ? velocity : 0]
+			}))
+			return step === state.step ? { ...beat, ...state.lastParts } : beat
+		})
 	}
 
 	return {
 		next,
 		getStep: () => state.step,
+		getStepsPerBar: () => state.stepsPerBar,
+		getBeatSequence,
 		getBPM: () => state.bpm,
 		getIntent: () => ({ ...state.intent }),
 		setRapidPercussion: enabled => state.rapidPercussion = enabled === true,
