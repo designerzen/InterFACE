@@ -1,6 +1,14 @@
 blockExoticSubdeps: false
 
+packages:
+  - source/electron/lib/macos-coremidi
+  - source/electron/lib/windows-midi-services
+
+nodeLinker: hoisted
+
 allowBuilds:
+  '@photosynth/macos-coremidi': true
+  '@photosynth/windows-midi-services': true
   '@parcel/watcher': false
   '@serialport/bindings-cpp': false
   '@swc/core': false
@@ -21,17 +29,17 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@audio/decode@3.11.1'
   - abcjs@6.6.4
-  - audio-decode@3.11.2
+  - audio-decode@3.11.2 || 3.12.0
   - postcss@8.5.17 || 8.5.19 || 8.5.22 || 8.5.23
   - svgo@4.0.2
-  - '@babylonjs/core@9.17.1 || 9.18.0'
-  - '@babylonjs/gui-editor@9.17.1 || 9.18.0'
-  - '@babylonjs/inspector@9.17.1 || 9.18.0'
-  - '@babylonjs/loaders@9.17.1 || 9.18.0'
-  - '@babylonjs/materials@9.17.1 || 9.18.0'
-  - electron@43.2.0
-  - knip@6.28.0 || 6.29.0 || 6.32.1
-  - '@electron/packager@20.0.4'
+  - '@babylonjs/core@9.17.1 || 9.18.0 || 9.21.1'
+  - '@babylonjs/gui-editor@9.17.1 || 9.18.0 || 9.21.1'
+  - '@babylonjs/inspector@9.17.1 || 9.18.0 || 9.21.1'
+  - '@babylonjs/loaders@9.17.1 || 9.18.0 || 9.21.1'
+  - '@babylonjs/materials@9.17.1 || 9.18.0 || 9.21.1'
+  - electron@43.2.0 || 43.4.0
+  - knip@6.28.0 || 6.29.0 || 6.32.1 || 6.32.2
+  - '@electron/packager@20.0.4 || 20.3.0'
   - sass@1.101.6 || 1.101.7 || 1.102.0
   - troika-3d@0.53.0
   - troika-animation@0.53.0
