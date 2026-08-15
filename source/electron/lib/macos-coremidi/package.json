@@ -1,0 +1,20 @@
+{
+	"name": "@photosynth/macos-coremidi",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Native CoreMIDI MIDI 2.0 UMP binding for PhotoSYNTH",
+	"main": "loader.js",
+	"gypfile": true,
+	"os": ["darwin"],
+	"cpu": ["x64", "arm64"],
+	"scripts": {
+		"install": "node-gyp rebuild",
+		"build": "node-gyp rebuild"
+	},
+	"dependencies": {
+		"node-addon-api": "^8.5.0"
+	},
+	"devDependencies": {
+		"node-gyp": "^11.4.2"
+	}
+}

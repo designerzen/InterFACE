@@ -1,0 +1,21 @@
+{
+	"name": "@photosynth/windows-midi-services",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Optional Node-API binding for Microsoft Windows MIDI Services",
+	"main": "loader.js",
+	"gypfile": true,
+	"os": ["win32"],
+	"cpu": ["x64", "arm64"],
+	"scripts": {
+		"install": "node scripts/build-if-available.js",
+		"build": "node-gyp rebuild",
+		"build:electron": "electron-rebuild -f -w @photosynth/windows-midi-services"
+	},
+	"dependencies": {
+		"node-addon-api": "^8.5.0"
+	},
+	"devDependencies": {
+		"node-gyp": "^11.4.2"
+	}
+}

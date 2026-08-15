@@ -34,12 +34,14 @@ const isKiosk = process.argv[2] === '--kiosk' ?? false
 
 // FIXME: this __dirname gets transcoded to a location once built
 // remove first slash
-const APP_ROOT = path.resolve( __dirname, isDevelopment ?  "../../dist-electron/electron/" : "../../app/dist-electron/electron/" )
+const APP_ROOT = isDevelopment
+	? path.resolve('dist-electron')
+	: path.join(app.getAppPath(), 'dist-electron')
 //.substring(1)
 
 // and ./electron/resources/preload.js for the test build
-const PRELOADER_PATH = path.join(APP_ROOT, 'preload.js' )
-const LINUX_ICON = path.join(APP_ROOT,`../../icons/icon-512.webp`)
+const PRELOADER_PATH = path.join(APP_ROOT, 'electron/preload.js')
+const LINUX_ICON = path.join(app.getAppPath(), 'static/icons/icon-512.webp')
 const PICADE_MAX_USB_IDS = [
 	{ vendorId: 0x2e8a, productId: 0x1098 },
 	{ vendorId: 0xcafe, productId: 0x400d },
@@ -142,11 +144,10 @@ function createWindow() {
 			// so this needs to be exposed via the contextIsolation else disable it
 			// and enable nodeIntegration which is more dangerous
 			// contextIsolation: true,
-			contextIsolation: false,
-		
-			 // false is default value after Electron v5
-			nodeIntegration: true,			// prevent node classes being available cross app
-			nodeIntegrationInWorker: true,
+			contextIsolation: true,
+			nodeIntegration: false,
+			nodeIntegrationInWorker: false,
+			sandbox: true,
 
 			// pass arbitrary data to the preloader
 			preload:PRELOADER_PATH,
@@ -383,7 +384,7 @@ function createWindow() {
 		// and load the index.html of the app.?port=1337 #v${app.getVersion()}
 		// mainWindow.loadFile( `dist-electron/main/app.html` )
 		// mainWindow.loadFile( `${path.resolve(APP_ROOT,"../main/app.html")}` )
-		mainWindow.loadFile( `../main/app.html` )
+		mainWindow.loadFile(path.join(APP_ROOT, 'main/app.html'))
 		// mainWindow.loadURL(`file://${APP_ROOT}/version.html#v${app.getVersion()}`);
 		// mainWindow.loadFile(path.join(APP_ROOT, "dist-electron/main/app.html"))
 
