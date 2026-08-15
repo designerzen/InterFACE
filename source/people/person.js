@@ -264,6 +264,25 @@ export default class Person extends EventTarget{
 
 	audioContext
 	offlineAudioContext
+	trimLevel = 1
+	trimNode
+
+	get trim(){
+		return this.trimLevel
+	}
+
+	set trim(value){
+		const trim = Number(value)
+		if (!Number.isFinite(trim))
+		{
+			return
+		}
+		this.trimLevel = clamp(trim, 0, 4)
+		if (this.trimNode)
+		{
+			this.trimNode.gain.setValueAtTime(this.trimLevel, this.audioContext.currentTime)
+		}
+	}
 
 	// instances
 	midiPlayer
@@ -874,6 +893,10 @@ export default class Person extends EventTarget{
 			!Object.prototype.hasOwnProperty.call(options, "harmonyMode") || options.harmonyMode === this.options.harmonyMode
 		)
 		this.options = { ...this.options, ...options }
+		if (Object.prototype.hasOwnProperty.call(options, "trim"))
+		{
+			this.trim = options.trim
+		}
 		if (emojiMoodChanged)
 		{
 			this.emojiDetector?.reset()
@@ -915,6 +938,7 @@ export default class Person extends EventTarget{
 		super()
 
 		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
+		this.trim = this.options.trim ?? 1
 		this.debug = this.options.debug
 		this.playerNumber = parseInt(index)
 
@@ -3008,8 +3032,13 @@ export default class Person extends EventTarget{
 			this.outputNode = this.eyeBrowsNode
 		}
 
-		// now connect this directly to the main mixer
-		this.outputNode.connect(destinationNode)
+		// Keep expression gain separate from user trim: expression is rewritten
+		// every prediction frame, while trim must remain stable.
+		this.trimNode = audioContext.createGain()
+		this.trimNode.gain.value = this.trimLevel
+		this.outputNode.connect(this.trimNode)
+		this.trimNode.connect(destinationNode)
+		this.outputNode = this.trimNode
 
 		// defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
 		const defaultInstrumentType = this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
