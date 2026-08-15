@@ -3,7 +3,7 @@ import { getActiveMIDINotesForPerson, isMIDINoteActive } from "./audio/instrumen
 import { isMIDIDebugEnabled, isRecentMIDIOutputEcho, logMIDIDebug, sendGuardedMIDIOutput } from "./audio/midi/midi-echo-guard.js"
 import { getMusicalDetailsFromEmoji } from "./models/emoji-to-music.js"
 import { EVENT_EMOTION_CHANGED } from "./people/person-event.js"
-import { getMIDIPortDisplayName, isDigitCMPSRPort } from "./hardware/midi/cmpsr.js"
+import { getMIDIPortDisplayName, isDigitCMPSRPort } from "./hardware/digit/cmpsr.js"
 
 const midiInputCleanupCallbacks = new Set()
 const midiInputObservers = new Map()
