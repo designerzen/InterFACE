@@ -15,7 +15,7 @@ TO_DELETE.forEach( async (directory) => {
 
     try {
         // Node 12+
-        rmSync(directory, { recursive: true })
+        rmSync(directory, { recursive: true, force: true })
         //rmdirSync(directory, { recursive: true })
         console.log("\x1b[32m", `${directory} was deleted`)
     } catch (err) {

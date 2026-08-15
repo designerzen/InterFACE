@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { setTimeout as delay } from 'node:timers/promises'
 import { zipSync } from 'fflate'
 import { NOTE_FEEDBACK_COLOURS } from '../source/settings/palette.js'
 
@@ -458,6 +459,19 @@ const coordinateForActionIndex = (index, target) => {
 
 const writeJson = (path, value) => writeFile(path, `${JSON.stringify(value, null, '\t')}\n`)
 
+const writeArchive = async (path, contents) => {
+	const retryableCodes = new Set(['UNKNOWN', 'EPERM', 'EBUSY'])
+	for (let attempt = 1; ; attempt++) {
+		try {
+			await writeFile(path, contents)
+			return
+		} catch (error) {
+			if (!retryableCodes.has(error.code) || attempt === 5) throw error
+			await delay(attempt * 250)
+		}
+	}
+}
+
 const buildPage = async (page, target) => {
 	if (page.actions.length > controlsPerPage(target)) {
 		throw new Error(`${page.name} exceeds the ${target.columns}x${target.rows} canvas`)
@@ -549,7 +563,7 @@ const buildTarget = async target => {
 	for (const page of pages) await buildPage(page, target)
 
 	const files = await collectFiles(target.outputRoot, target.outputRoot)
-	await writeFile(target.archivePath, Buffer.from(zipSync(files, {
+	await writeArchive(target.archivePath, Buffer.from(zipSync(files, {
 		level: 9,
 		mtime: new Date('2026-01-01T00:00:00Z'),
 	})))
