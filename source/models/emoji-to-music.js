@@ -52,7 +52,18 @@ import { SCALE_MAJOR, TUNING_MODE_AEOLIAN, TUNING_MODE_DORIAN, TUNING_MODE_IONIA
 import { HARMONY_MODE_GLOBAL_KEY } from '../people/person.presets.js'
 import * as EMOTICONS from './emoji.js'
 
-const emotionalProfile = (title, intervals) => Object.freeze({ title, intervals })
+const DEFAULT_CHORD_VOICE_COUNT = 3
+const MAX_CHORD_VOICE_COUNT = 5
+const normaliseVoiceCount = voiceCount => Math.min(
+	Math.max(Math.round(Number(voiceCount)) || DEFAULT_CHORD_VOICE_COUNT, 1),
+	MAX_CHORD_VOICE_COUNT
+)
+
+const emotionalProfile = (title, intervals) => Object.freeze({
+	title,
+	intervals,
+	candidateIntervals:intervals
+})
 
 export const CHORD_EMOTIONAL_PROFILES = Object.freeze({
 	rest:emotionalProfile("still / neutral", CHROMATIC_REST_INTERVALS),
@@ -272,6 +283,33 @@ export const EMOJI_INTERVAL_CHOICES = new Map([
 	[EMOTICONS.EMOJI_HEART_CLASSIC, EMOTION_INTERVAL_PROFILES.heart]
 ])
 
+// Density describes the expression, not the chord formula. Any emoji omitted
+// here sounds as a triad, even when its ordered candidate pool contains richer
+// sixths, sevenths or extensions for key-aware substitution.
+export const EMOJI_CHORD_VOICE_COUNTS = new Map([
+	[EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED, 1],
+	[EMOTICONS.EMOJI_EYES_ROLLING_UP, 4],
+	[EMOTICONS.EMOJI_SMILING_BIG_GRIN, 4],
+	[EMOTICONS.EMOJI_SMILING_GRIN_SQUINT, 4],
+	[EMOTICONS.EMOJI_SMILING_GRIN_EYES_CLOSED, 4],
+	[EMOTICONS.EMOJI_HOLDING_TEARS, 4],
+	[EMOTICONS.EMOJI_CRYING, 4],
+	[EMOTICONS.EMOJI_OPEN_MOUTH_BIG, 4],
+	[EMOTICONS.EMOJI_FLUSHED, 4],
+	[EMOTICONS.EMOJI_ANXIOUS, 4],
+	[EMOTICONS.EMOJI_ANGUISHED, 4],
+	[EMOTICONS.EMOJI_PLEADING, 4],
+	[EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED, 5],
+	[EMOTICONS.EMOJI_WAIL, 5],
+	[EMOTICONS.EMOJI_RAGE, 5],
+	[EMOTICONS.EMOJI_SCREAMING, 5],
+	[EMOTICONS.EMOJI_MIND_BLOWN, 5]
+])
+
+export const getVoiceCountForEmoji = emoji => normaliseVoiceCount(
+	EMOJI_CHORD_VOICE_COUNTS.get(emoji) ?? DEFAULT_CHORD_VOICE_COUNT
+)
+
 const scaleContextCache = new Map()
 const globalChordCache = new Map()
 const MAX_GLOBAL_CHORD_CACHE_SIZE = 2048
@@ -409,13 +447,40 @@ const getNoteNumbers = chord => (chord ?? [])
 	.map(note => typeof note === "number" ? note : note?.noteNumber)
 	.filter(Number.isFinite)
 
-const getVoiceLeadingCost = (tonic, intervals, previousChord) => {
+const getResolvedNotesForProfile = (tonic, profile, voiceCount=DEFAULT_CHORD_VOICE_COUNT, harmonyOptions={}) => {
+	const targetVoiceCount = normaliseVoiceCount(voiceCount)
+	if (harmonyOptions.harmonyMode === HARMONY_MODE_GLOBAL_KEY)
+	{
+		return getChordFromIntervalsInKey(
+			tonic,
+			harmonyOptions.tonic,
+			harmonyOptions.keyScale,
+			profile.candidateIntervals,
+			targetVoiceCount
+		)
+	}
+
+	const completionIntervals = [
+		...profile.candidateIntervals,
+		...CHROMATIC_MAJOR_TRIAD_INTERVALS,
+		12, 16, 19, 24
+	]
+	const selectedIntervals = [...new Set(completionIntervals)]
+		.slice(0, targetVoiceCount)
+		.sort((a, b) => a - b)
+
+	return selectedIntervals
+		.map(interval => MIDI_NOTE_NUMBER_MAP[tonic + interval])
+		.filter(Boolean)
+}
+
+const getVoiceLeadingCost = (nextChord, previousChord) => {
 	const previousNotes = getNoteNumbers(previousChord)
 	if (!previousNotes.length)
 	{
 		return 0
 	}
-	const nextNotes = intervals.map(interval => tonic + interval)
+	const nextNotes = getNoteNumbers(nextChord)
 	const movement = nextNotes.reduce((cost, note) => {
 		return cost + Math.min(...previousNotes.map(previousNote => Math.abs(note - previousNote)))
 	}, 0)
@@ -423,27 +488,34 @@ const getVoiceLeadingCost = (tonic, intervals, previousChord) => {
 }
 
 export const getIntervalChoicesForEmoji = emoji => {
-	return getEmotionalProfileChoicesForEmoji(emoji).map(profile => profile.intervals)
+	return getEmotionalProfileChoicesForEmoji(emoji).map(profile => profile.candidateIntervals)
 }
 
 export const getEmotionalProfileChoicesForEmoji = emoji => EMOJI_INTERVAL_CHOICES.get(emoji) ?? []
 
-export const selectIntervalsForEmoji = (tonic, emoji, previousChord=[]) => {
-	const choices = getIntervalChoicesForEmoji(emoji)
-	return choices.reduce((best, intervals) => {
+export const selectEmotionalProfileForEmoji = (tonic, emoji, previousChord=[], harmonyOptions={}) => {
+	const choices = getEmotionalProfileChoicesForEmoji(emoji)
+	const voiceCount = getVoiceCountForEmoji(emoji)
+	return choices.reduce((best, profile) => {
 		if (!best)
 		{
-			return intervals
+			return profile
 		}
-		return getVoiceLeadingCost(tonic, intervals, previousChord) < getVoiceLeadingCost(tonic, best, previousChord) ? intervals : best
+		const profileChord = getResolvedNotesForProfile(tonic, profile, voiceCount, harmonyOptions)
+		const bestChord = getResolvedNotesForProfile(tonic, best, voiceCount, harmonyOptions)
+		return getVoiceLeadingCost(profileChord, previousChord) < getVoiceLeadingCost(bestChord, previousChord) ? profile : best
 	}, null)
 }
 
-export const getChordQualityForEmoji = (emoji, tonic=60, previousChord=[]) => {
-	const selectedIntervals = selectIntervalsForEmoji(tonic, emoji, previousChord)
-	if (selectedIntervals)
+export const selectIntervalsForEmoji = (tonic, emoji, previousChord=[], harmonyOptions={}) => {
+	return selectEmotionalProfileForEmoji(tonic, emoji, previousChord, harmonyOptions)?.candidateIntervals ?? null
+}
+
+export const getChordQualityForEmoji = (emoji, tonic=60, previousChord=[], harmonyOptions={}) => {
+	const selectedProfile = selectEmotionalProfileForEmoji(tonic, emoji, previousChord, harmonyOptions)
+	if (selectedProfile)
 	{
-		return getChordQualityForIntervals(selectedIntervals)
+		return getChordQualityForIntervals(selectedProfile.candidateIntervals)
 	}
 
 	return null
@@ -470,28 +542,51 @@ export const getChromaticIntervalsForEmoji = (emoji) => {
 	return getPrimaryIntervalsForEmoji(emoji)
 }
 
-export const getChordFromIntervalsInKey = (tonic, key=0, scale="MAJOR_SCALE", intervals=CHROMATIC_MAJOR_TRIAD_INTERVALS) => {
+export function getChordFromIntervalsInKey(tonic, key=0, scale="MAJOR_SCALE", intervals=CHROMATIC_MAJOR_TRIAD_INTERVALS, voiceCount=DEFAULT_CHORD_VOICE_COUNT) {
 	const { pitchClasses } = getScaleContext(key, scale)
 	const rootPitchClass = getNearestPitchClass(tonic % 12, pitchClasses)
 	const rootNote = getNearestMidiNote(tonic, rootPitchClass)
-	let previousNote = Number.NEGATIVE_INFINITY
+	const allowedPitchClasses = new Set(pitchClasses)
+	const targetVoiceCount = normaliseVoiceCount(voiceCount)
+	const selectedNotes = []
+	const selectedNoteNumbers = new Set()
 
-	return intervals.map(interval => {
+	for (const interval of intervals)
+	{
 		const desiredNote = rootNote + interval
-		const desiredPitchClass = desiredNote % 12
-		const pitchClass = pitchClasses.reduce((nearest, candidate) => {
-			const candidateDistance = (candidate - desiredPitchClass + 12) % 12
-			const nearestDistance = (nearest - desiredPitchClass + 12) % 12
-			return candidateDistance < nearestDistance ? candidate : nearest
-		}, pitchClasses[0])
-		let noteNumber = getMidiNoteAtOrAbove(desiredNote, pitchClass)
-		while (noteNumber <= previousNote)
+		const desiredPitchClass = ((desiredNote % 12) + 12) % 12
+		const note = MIDI_NOTE_NUMBER_MAP[desiredNote]
+		if (!allowedPitchClasses.has(desiredPitchClass) || !note || selectedNoteNumbers.has(desiredNote))
 		{
-			noteNumber += 12
+			continue
 		}
-		previousNote = noteNumber
-		return MIDI_NOTE_NUMBER_MAP[noteNumber]
-	}).filter(Boolean)
+
+		selectedNotes.push(note)
+		selectedNoteNumbers.add(desiredNote)
+		if (selectedNotes.length === targetVoiceCount)
+		{
+			return selectedNotes
+		}
+	}
+
+	const degreeOffsets = Array.from({ length:targetVoiceCount }, (_, index) => index * 2)
+	const diatonicFallback = getDiatonicChordInKey(tonic, key, scale, degreeOffsets)
+	for (const note of diatonicFallback)
+	{
+		if (!selectedNoteNumbers.has(note.noteNumber))
+		{
+			selectedNotes.push(note)
+			selectedNoteNumbers.add(note.noteNumber)
+		}
+		if (selectedNotes.length === targetVoiceCount)
+		{
+			break
+		}
+	}
+
+	return selectedNotes
+		.sort((a, b) => a.noteNumber - b.noteNumber)
+		.slice(0, targetVoiceCount)
 }
 
 export const getDiatonicChordInKey = (tonic, key=0, scale="MAJOR_SCALE", degreeOffsets=DIATONIC_TRIAD_INTERVALS) => {
@@ -518,16 +613,18 @@ export const getDiatonicChordInKey = (tonic, key=0, scale="MAJOR_SCALE", degreeO
  * @param {String} emoji 
  */
 export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true, harmonyOptions={}) => {
+	const selectedProfile = selectEmotionalProfileForEmoji(tonic, emoji, harmonyOptions.previousChord, harmonyOptions)
+	const voiceCount = getVoiceCountForEmoji(emoji)
 	if (harmonyOptions.harmonyMode === HARMONY_MODE_GLOBAL_KEY)
 	{
-		const intervals = selectIntervalsForEmoji(tonic, emoji, harmonyOptions.previousChord) ?? CHROMATIC_MAJOR_TRIAD_INTERVALS
-		const cacheKey = `${tonic}|${emoji}|${harmonyOptions.tonic}|${harmonyOptions.keyScale}|${intervals.join(",")}`
+		const intervals = selectedProfile?.candidateIntervals ?? CHROMATIC_MAJOR_TRIAD_INTERVALS
+		const cacheKey = `${tonic}|${emoji}|${harmonyOptions.tonic}|${harmonyOptions.keyScale}|${voiceCount}|${intervals.join(",")}`
 		const cached = globalChordCache.get(cacheKey)
 		if (cached)
 		{
 			return cached
 		}
-		const chord = getChordFromIntervalsInKey(tonic, harmonyOptions.tonic, harmonyOptions.keyScale, intervals)
+		const chord = getChordFromIntervalsInKey(tonic, harmonyOptions.tonic, harmonyOptions.keyScale, intervals, voiceCount)
 		if (globalChordCache.size > MAX_GLOBAL_CHORD_CACHE_SIZE)
 		{
 			globalChordCache.clear()
@@ -536,10 +633,9 @@ export const getMusicalDetailsFromEmoji = (tonic, emoji, includeTonic=true, harm
 		return chord
 	}
 	
-	const selectedIntervals = selectIntervalsForEmoji(tonic, emoji, harmonyOptions.previousChord)
-	if (selectedIntervals)
+	if (selectedProfile)
 	{
-		return selectedIntervals.map(interval => MIDI_NOTE_NUMBER_MAP[tonic + interval]).filter(Boolean)
+		return getResolvedNotesForProfile(tonic, selectedProfile, voiceCount)
 	}
 
 	// Create all relevant scales
