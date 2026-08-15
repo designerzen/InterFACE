@@ -4,7 +4,20 @@
 
 #midi-panel{
 	box-shadow: none;
+	min-inline-size: min(38rem, 88vw);
+	display: grid;
+	gap: var(--pad);
 }
+
+#midi-person-routing{ display: grid; gap: calc(var(--pad) * .75); }
+.midi-person-route{ display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(10rem, 2fr) minmax(8rem, 1fr); gap: calc(var(--pad) * .5); align-items: end; }
+.midi-person-route label{ display: grid; gap: .25rem; }
+#midi-monitor{ border-block-start: 1px solid currentColor; padding-block-start: var(--pad); }
+#midi-monitor-events{ block-size: 10rem; overflow: auto; margin: .5rem 0; padding-inline-start: 2rem; font-family: ui-monospace, monospace; font-size: .8rem; }
+.midi-monitor-event[data-direction="input"]{ color: var(--green, #70df91); }
+.midi-monitor-event[data-direction="app"]{ color: var(--yellow, #ffd76a); }
+.midi-monitor-event[data-direction="output"]{ color: var(--blue, #7fc8ff); }
+@media (max-width: 36rem){ .midi-person-route{ grid-template-columns: 1fr; } }
 
 #no-midi-devices{
 	display: flex;

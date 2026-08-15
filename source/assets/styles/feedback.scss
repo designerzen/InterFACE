@@ -104,6 +104,9 @@
 	&.tempo,
 	&.disco,
 	&.beats,
+	&.gamepad-percussion,
+	&.gamepad-notes,
+	&.gamepad-chords,
 	&.metronome,
 	&.silence,
 	&.volume,
@@ -124,6 +127,9 @@
 	&.tempo,
 	&.disco,
 	&.beats,
+	&.gamepad-percussion,
+	&.gamepad-notes,
+	&.gamepad-chords,
 	&.metronome,
 	&.silence,
 	&.volume,
@@ -142,6 +148,18 @@
 
 	&.beats{
 		--bg:url(/source/assets/icons/auto_fix_high-24px.svg);
+	}
+
+	&.gamepad-percussion{
+		--bg:url(/source/assets/icons/graphic_eq_black_24dp.svg);
+	}
+
+	&.gamepad-notes{
+		--bg:url(/source/assets/icons/music_note-24px.svg);
+	}
+
+	&.gamepad-chords{
+		--bg:url(/source/assets/icons/piano-24px.svg);
 	}
 
 	&.silence{
