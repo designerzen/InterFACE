@@ -32,6 +32,28 @@ const SHADOW_OFFSET_Y = 2
 const SHADOW_STROKE_COLOUR = '#0a0a0a'
 const MAX_PREPARED_TEXT_CACHE_SIZE = 512
 const EMOJI_SPRITE_FONT = `900 54px ${EMOJI_FONT}`
+const BEAT_COLOURS = Object.freeze({
+	kick:'#ff633f',
+	snare:'#ff4f9a',
+	cymbal:'#ffd84a',
+	drum:'#42bff5',
+	shaker:'#55df91',
+	metal:'#b68cff',
+	wood:'#ff9f43',
+	other:'#7ce7ff'
+})
+
+const getPercussionColour = lane => {
+	const name = String(lane).toLowerCase()
+	if (name.includes('kick') || name.includes('surdo')) return BEAT_COLOURS.kick
+	if (name.includes('snare') || name.includes('clap') || name.includes('rim') || name.includes('stick') || name.includes('snap')) return BEAT_COLOURS.snare
+	if (name.includes('hat') || name.includes('crash') || name.includes('ride') || name.includes('splash') || name.includes('china')) return BEAT_COLOURS.cymbal
+	if (name.includes('tom') || name.includes('conga') || name.includes('bongo') || name.includes('timbale') || name.includes('cuica')) return BEAT_COLOURS.drum
+	if (name.includes('shak') || name.includes('maraca') || name.includes('cabasa') || name.includes('tambourine') || name.includes('chekere') || name.includes('guiro') || name.includes('quijada')) return BEAT_COLOURS.shaker
+	if (name.includes('bell') || name.includes('triangle') || name.includes('agogo') || name.includes('metal') || name.includes('chime') || name.includes('whistle')) return BEAT_COLOURS.metal
+	if (name.includes('wood') || name.includes('clave') || name.includes('castanet')) return BEAT_COLOURS.wood
+	return BEAT_COLOURS.other
+}
 
 const createEmojiSpriteSheet = () => {
 	const sprites = new SpriteSheet()
@@ -171,6 +193,69 @@ export default class DisplayOverlay2d {
 		this.drewThisFrame = false
 		this.batchingFrame = true
 		this.frameCommands = []
+	}
+
+	drawBeatProgress(progress=0, beats=16) {
+		const context = this.canvasContext
+		const sequence = Array.isArray(beats) ? beats : []
+		const count = Math.max(1, sequence.length || Math.floor(beats) || 16)
+		const normalisedProgress = ((Number(progress) || 0) % 1 + 1) % 1
+		const currentStep = Math.min(count - 1, Math.floor(normalisedProgress * count))
+		const stepProgress = normalisedProgress * count - currentStep
+		const radius = clamp(Math.min(this.width * 0.86 / (count * 3.1), this.height * 0.022), 4.5, 14)
+		const gap = radius * 3.05
+		const startX = this.width * 0.5 - gap * (count - 1) * 0.5
+		const y = Math.max(radius * 3, this.height - radius * 3.4)
+		const bounds = { x:startX - radius * 3, y:y - radius * 3, width:gap * (count - 1) + radius * 6, height:radius * 6 }
+		const draw = () => {
+			context.save()
+			for (let index = 0; index < count; index++) {
+				const isCurrent = index === currentStep
+				const attack = Math.min(1, stepProgress / 0.12)
+				const attackPulse = 1 - Math.pow(1 - attack, 4)
+				const decay = Math.max(0, (stepProgress - 0.12) / 0.88)
+				const pulse = isCurrent ? (stepProgress < 0.12 ? attackPulse : 1 - decay) : 0
+				const beatRadius = radius * (1 + pulse * 0.62)
+				const x = startX + index * gap
+				const colours = [...new Set(Object.entries(sequence[index] ?? {})
+					.filter(([, velocity]) => Number(velocity) > 0)
+					.map(([lane]) => getPercussionColour(lane)))]
+				const isFuture = index > currentStep
+				const alpha = isCurrent ? 1 : isFuture ? 0.82 : 0.26
+
+				context.save()
+				context.globalAlpha = alpha
+				context.shadowColor = isCurrent ? (colours[0] ?? '#ffffff') : 'rgba(0, 0, 0, 0.8)'
+				context.shadowBlur = isCurrent ? radius * (0.8 + pulse * 1.4) : radius * 0.45
+				context.beginPath()
+				context.arc(x, y, beatRadius, 0, TAU)
+				context.fillStyle = 'rgba(12, 16, 24, 0.72)'
+				context.fill()
+
+				if (colours.length) {
+					const slice = TAU / colours.length
+					colours.forEach((colour, colourIndex) => {
+						context.beginPath()
+						context.moveTo(x, y)
+						context.arc(x, y, beatRadius, -Math.PI * 0.5 + colourIndex * slice, -Math.PI * 0.5 + (colourIndex + 1) * slice)
+						context.closePath()
+						context.fillStyle = colour
+						context.fill()
+					})
+				}
+
+				context.beginPath()
+				context.arc(x, y, beatRadius, 0, TAU)
+				context.strokeStyle = isCurrent ? '#ffffff' : index % 4 === 0 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.48)'
+				context.lineWidth = isCurrent ? Math.max(2, radius * 0.24) : index % 4 === 0 ? Math.max(1.5, radius * 0.18) : Math.max(1, radius * 0.12)
+				context.stroke()
+				context.restore()
+			}
+			context.restore()
+			this.markDirty(bounds)
+		}
+		if (this.batchingFrame && !this.renderingBatch) this.frameCommands.push(draw)
+		else draw()
 	}
 
 	flushFrame() {
