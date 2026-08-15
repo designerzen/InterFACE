@@ -55,6 +55,33 @@ const getPercussionColour = lane => {
 	return BEAT_COLOURS.other
 }
 
+const getBeatPulse = progress => {
+	const attack = Math.min(1, progress / 0.12)
+	if (progress < 0.12) return 1 - Math.pow(1 - attack, 4)
+	return 1 - Math.max(0, (progress - 0.12) / 0.88)
+}
+
+const formatPercussionLane = lane => String(lane)
+	.replace(/([a-z])([A-Z])/g, '$1 $2')
+	.replace(/[-_]/g, ' ')
+	.toUpperCase()
+	.slice(0, 11)
+
+const getPercussionLanes = (sequence, requestedLanes=[]) => [...new Set([
+	...(requestedLanes ?? []),
+	...sequence.flatMap(beat => Object.keys(beat ?? {}))
+])].filter(lane => !['events', 'hatOpen'].includes(lane))
+
+const getPercussionVelocity = (beat, lane) => lane === 'hat'
+	? Math.max(Number(beat.hat) || 0, Number(beat.hatOpen) || 0)
+	: Number(beat[lane]) || 0
+
+const getPercussionRippleColour = lane => {
+	let hash = 0
+	for (const character of String(lane)) hash = (Math.imul(hash, 31) + character.charCodeAt(0)) | 0
+	return `hsl(${Math.abs(hash) % 360} 92% 65%)`
+}
+
 const createEmojiSpriteSheet = () => {
 	const sprites = new SpriteSheet()
 	sprites.preloadMirroredEmojis(MIRRORABLE_EMOJIS, { font:EMOJI_SPRITE_FONT })
@@ -101,6 +128,10 @@ export default class DisplayOverlay2d {
 	preparedTextCache = new Map()
 	noteParticles = []
 	lastParticleFrameTime = 0
+	beatRipples = []
+	lastBeatRipplePosition = null
+	lastBeatRippleStep = null
+	beatVizMode = null
 	emojiSprites = null
 
 	get width() {
@@ -175,6 +206,9 @@ export default class DisplayOverlay2d {
 		this.preparedTextCache.clear()
 		this.noteParticles = []
 		this.lastParticleFrameTime = 0
+		this.beatRipples = []
+		this.lastBeatRipplePosition = null
+		this.lastBeatRippleStep = null
 	}
 
 	clear() {
@@ -186,6 +220,9 @@ export default class DisplayOverlay2d {
 		this.frameCommands = []
 		this.noteParticles = []
 		this.lastParticleFrameTime = 0
+		this.beatRipples = []
+		this.lastBeatRipplePosition = null
+		this.lastBeatRippleStep = null
 	}
 
 	clearDirty() {
@@ -195,13 +232,30 @@ export default class DisplayOverlay2d {
 		this.frameCommands = []
 	}
 
-	drawBeatProgress(progress=0, beats=16) {
+	drawBeatProgress(progress=0, beats=16, options={}) {
+		const mode = options.mode ?? 'summary'
+		if (this.beatVizMode !== mode) {
+			this.beatRipples = []
+			this.lastBeatRipplePosition = null
+			this.lastBeatRippleStep = null
+			this.beatVizMode = mode
+		}
+		if (mode === 'disabled') return
 		const context = this.canvasContext
 		const sequence = Array.isArray(beats) ? beats : []
 		const count = Math.max(1, sequence.length || Math.floor(beats) || 16)
 		const normalisedProgress = ((Number(progress) || 0) % 1 + 1) % 1
 		const currentStep = Math.min(count - 1, Math.floor(normalisedProgress * count))
 		const stepProgress = normalisedProgress * count - currentStep
+		if (mode === 'grid') {
+			return this.drawBeatGrid(sequence, currentStep, stepProgress, options.lanes)
+		}
+		if (mode === 'vertical') {
+			return this.drawBeatColumns(sequence, currentStep, stepProgress, options.lanes)
+		}
+		if (mode === 'ripples') {
+			return this.drawBeatRipples(sequence, currentStep, stepProgress, options.lanes)
+		}
 		const radius = clamp(Math.min(this.width * 0.86 / (count * 3.1), this.height * 0.022), 4.5, 14)
 		const gap = radius * 3.05
 		const startX = this.width * 0.5 - gap * (count - 1) * 0.5
@@ -211,10 +265,7 @@ export default class DisplayOverlay2d {
 			context.save()
 			for (let index = 0; index < count; index++) {
 				const isCurrent = index === currentStep
-				const attack = Math.min(1, stepProgress / 0.12)
-				const attackPulse = 1 - Math.pow(1 - attack, 4)
-				const decay = Math.max(0, (stepProgress - 0.12) / 0.88)
-				const pulse = isCurrent ? (stepProgress < 0.12 ? attackPulse : 1 - decay) : 0
+				const pulse = isCurrent ? getBeatPulse(stepProgress) : 0
 				const beatRadius = radius * (1 + pulse * 0.62)
 				const x = startX + index * gap
 				const colours = [...new Set(Object.entries(sequence[index] ?? {})
@@ -251,6 +302,256 @@ export default class DisplayOverlay2d {
 				context.stroke()
 				context.restore()
 			}
+			context.restore()
+			this.markDirty(bounds)
+		}
+		if (this.batchingFrame && !this.renderingBatch) this.frameCommands.push(draw)
+		else draw()
+	}
+
+	drawBeatGrid(sequence=[], currentStep=0, stepProgress=0, requestedLanes=[]) {
+		const context = this.canvasContext
+		const count = Math.max(16, sequence.length)
+		const lanes = getPercussionLanes(sequence, requestedLanes)
+		if (!lanes.length) return
+
+		const padding = 7
+		const maxPanelHeight = this.height * 0.34
+		const rowGap = clamp(maxPanelHeight / lanes.length, 4.25, 8)
+		const columnGap = clamp(Math.min(this.width * 0.34 / count, 8), 5.25, 8)
+		const labelWidth = clamp(this.width * 0.09, 42, 68)
+		const gridWidth = columnGap * (count - 1)
+		const panelWidth = labelWidth + gridWidth + padding * 2
+		const panelHeight = rowGap * Math.max(0, lanes.length - 1) + padding * 2
+		const panelX = this.width * 0.5 - panelWidth * 0.5
+		const panelY = Math.max(padding, this.height - panelHeight - padding * 2)
+		const dotsX = panelX + padding + labelWidth
+		const dotsY = panelY + padding
+		const pulse = getBeatPulse(stepProgress)
+		const bounds = { x:panelX - padding, y:panelY - padding, width:panelWidth + padding * 2, height:panelHeight + padding * 2 }
+		const draw = () => {
+			context.save()
+
+			for (let column = 0; column < count; column += 4) {
+				const x = dotsX + column * columnGap
+				context.beginPath()
+				context.moveTo(x, panelY + 3)
+				context.lineTo(x, panelY + panelHeight - 3)
+				context.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+				context.lineWidth = 1
+				context.stroke()
+			}
+
+			lanes.forEach((lane, row) => {
+				const y = dotsY + row * rowGap
+				const colour = getPercussionColour(lane)
+				context.globalAlpha = 0.86
+				context.fillStyle = colour
+				context.font = `600 ${clamp(rowGap * 0.68, 5, 7.5)}px sans-serif`
+				context.textAlign = 'right'
+				context.textBaseline = 'middle'
+				context.fillText(formatPercussionLane(lane), dotsX - 6, y)
+
+				for (let column = 0; column < count; column++) {
+					const beat = sequence[column] ?? {}
+					const velocity = getPercussionVelocity(beat, lane)
+					const hasHit = velocity > 0
+					const isCurrent = column === currentStep
+					const isFuture = column > currentStep
+					const baseRadius = hasHit ? 1.35 + Math.min(1, velocity / 255) * 1.35 : 0.72
+					const dotRadius = baseRadius * (isCurrent ? 1 + pulse * 0.72 : 1)
+					const x = dotsX + column * columnGap
+
+					context.save()
+					context.globalAlpha = isCurrent ? 1 : isFuture ? (hasHit ? 0.82 : 0.38) : (hasHit ? 0.2 : 0.1)
+					context.shadowColor = isCurrent ? colour : 'transparent'
+					context.shadowBlur = isCurrent ? 2 + pulse * 4 : 0
+					context.beginPath()
+					context.arc(x, y, dotRadius, 0, TAU)
+					context.fillStyle = hasHit ? colour : '#ffffff'
+					context.fill()
+					if (isCurrent) {
+						context.strokeStyle = '#ffffff'
+						context.lineWidth = 0.65
+						context.stroke()
+					}
+					context.restore()
+				}
+			})
+
+			context.restore()
+			this.markDirty(bounds)
+		}
+		if (this.batchingFrame && !this.renderingBatch) this.frameCommands.push(draw)
+		else draw()
+	}
+
+	drawBeatColumns(sequence=[], currentStep=0, stepProgress=0, requestedLanes=[]) {
+		const context = this.canvasContext
+		const count = Math.max(16, sequence.length)
+		const lanes = getPercussionLanes(sequence, requestedLanes)
+		if (!lanes.length) return
+
+		const margin = clamp(this.width * 0.015, 10, 20)
+		const columnGap = clamp(Math.min(this.width * 0.28 / lanes.length, 8), 5, 8)
+		const rowGap = clamp(Math.min(this.height * 0.28 / count, 9), 5, 9)
+		const labelHeight = clamp(this.height * 0.075, 34, 56)
+		const gridWidth = columnGap * Math.max(0, lanes.length - 1)
+		const gridHeight = rowGap * Math.max(0, count - 1)
+		const dotsX = this.width - margin - gridWidth
+		const dotsY = margin + labelHeight
+		const pulse = getBeatPulse(stepProgress)
+		const playheadY = dotsY + (currentStep + stepProgress) * rowGap
+		const bounds = {
+			x:dotsX - margin,
+			y:margin * 0.5,
+			width:gridWidth + margin * 2,
+			height:labelHeight + gridHeight + rowGap + margin
+		}
+		const draw = () => {
+			context.save()
+
+			for (let row = 0; row < count; row += 4) {
+				const y = dotsY + row * rowGap
+				context.beginPath()
+				context.moveTo(dotsX - 3, y)
+				context.lineTo(dotsX + gridWidth + 3, y)
+				context.strokeStyle = 'rgba(255, 255, 255, 0.18)'
+				context.lineWidth = 1
+				context.stroke()
+			}
+
+			lanes.forEach((lane, column) => {
+				const x = dotsX + column * columnGap
+				const colour = getPercussionColour(lane)
+				context.save()
+				context.translate(x, dotsY - 6)
+				context.rotate(-Math.PI * 0.5)
+				context.globalAlpha = 0.86
+				context.fillStyle = colour
+				context.font = `600 ${clamp(columnGap * 0.86, 5, 7)}px sans-serif`
+				context.textAlign = 'left'
+				context.textBaseline = 'middle'
+				context.shadowColor = 'rgba(0, 0, 0, 0.9)'
+				context.shadowBlur = 2
+				context.fillText(formatPercussionLane(lane), 0, 0)
+				context.restore()
+
+				for (let row = 0; row < count; row++) {
+					const beat = sequence[row] ?? {}
+					const velocity = getPercussionVelocity(beat, lane)
+					const hasHit = velocity > 0
+					const isCurrent = row === currentStep
+					const isFuture = row > currentStep
+					const baseRadius = hasHit ? 1.35 + Math.min(1, velocity / 255) * 1.35 : 0.72
+					const dotRadius = baseRadius * (isCurrent ? 1 + pulse * 0.72 : 1)
+					const y = dotsY + row * rowGap
+
+					context.save()
+					context.globalAlpha = isCurrent ? 1 : isFuture ? (hasHit ? 0.82 : 0.38) : (hasHit ? 0.2 : 0.1)
+					context.shadowColor = isCurrent ? colour : 'transparent'
+					context.shadowBlur = isCurrent ? 2 + pulse * 4 : 0
+					context.beginPath()
+					context.arc(x, y, dotRadius, 0, TAU)
+					context.fillStyle = hasHit ? colour : '#ffffff'
+					context.fill()
+					if (isCurrent) {
+						context.strokeStyle = '#ffffff'
+						context.lineWidth = 0.65
+						context.stroke()
+					}
+					context.restore()
+				}
+			})
+
+			context.beginPath()
+			context.moveTo(dotsX - 5, playheadY)
+			context.lineTo(dotsX + gridWidth + 5, playheadY)
+			context.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+			context.lineWidth = 1.25
+			context.shadowColor = 'rgba(0, 0, 0, 0.9)'
+			context.shadowBlur = 3
+			context.stroke()
+
+			context.restore()
+			this.markDirty(bounds)
+		}
+		if (this.batchingFrame && !this.renderingBatch) this.frameCommands.push(draw)
+		else draw()
+	}
+
+	drawBeatRipples(sequence=[], currentStep=0, stepProgress=0, requestedLanes=[]) {
+		const context = this.canvasContext
+		const count = Math.max(16, sequence.length)
+		const position = currentStep + stepProgress
+		const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+		let elapsedSteps = 0
+		if (Number.isFinite(this.lastBeatRipplePosition)) {
+			elapsedSteps = position - this.lastBeatRipplePosition
+			if (elapsedSteps < 0) elapsedSteps += count
+			if (elapsedSteps > count * 0.5) elapsedSteps = 0
+		}
+
+		this.beatRipples ??= []
+		if (!reducedMotion && elapsedSteps > 0) {
+			this.beatRipples.forEach(ripple => ripple.age += elapsedSteps)
+		}
+		this.beatRipples = this.beatRipples.filter(ripple => ripple.age < 2.4)
+
+		if (this.lastBeatRippleStep !== currentStep) {
+			if (reducedMotion) this.beatRipples = []
+			const beat = sequence[currentStep] ?? {}
+			const lanes = getPercussionLanes([beat], requestedLanes)
+			for (const lane of lanes) {
+				const velocity = getPercussionVelocity(beat, lane)
+				if (velocity <= 0) continue
+				this.beatRipples.push({
+					lane,
+					velocity:Math.min(255, velocity),
+					age:reducedMotion ? 0.7 : stepProgress,
+					colour:getPercussionRippleColour(lane)
+				})
+			}
+			this.lastBeatRippleStep = currentStep
+		}
+		this.lastBeatRipplePosition = position
+
+		const x = this.width * 0.5
+		const y = this.height * 0.5
+		const minDimension = Math.min(this.width, this.height)
+		const maximumRadius = minDimension * 0.32
+		const bounds = {
+			x:x - maximumRadius,
+			y:y - maximumRadius,
+			width:maximumRadius * 2,
+			height:maximumRadius * 2
+		}
+		const draw = () => {
+			context.save()
+			for (const ripple of this.beatRipples) {
+				const ageProgress = clamp(ripple.age / 2.4, 0, 1)
+				const expansion = 1 - Math.pow(1 - ageProgress, 3)
+				const velocityRatio = ripple.velocity / 255
+				const targetRadius = minDimension * (0.035 + velocityRatio * 0.265)
+				const radius = 1 + targetRadius * expansion
+				context.save()
+				context.globalAlpha = Math.pow(1 - ageProgress, 1.35)
+				context.beginPath()
+				context.arc(x, y, radius, 0, TAU)
+				context.strokeStyle = ripple.colour
+				context.lineWidth = 1.25 + velocityRatio * 2
+				context.shadowColor = ripple.colour
+				context.shadowBlur = 4 + velocityRatio * 8
+				context.stroke()
+				context.restore()
+			}
+
+			context.beginPath()
+			context.arc(x, y, 2.2, 0, TAU)
+			context.fillStyle = '#ffffff'
+			context.shadowColor = 'rgba(0, 0, 0, 0.9)'
+			context.shadowBlur = 3
+			context.fill()
 			context.restore()
 			this.markDirty(bounds)
 		}
