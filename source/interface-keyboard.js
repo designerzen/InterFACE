@@ -5,8 +5,8 @@ import { createStreamDeckKeyboardHandler } from './hardware/streamdeck/streamdec
 import {
 	getKeyboardChordAssignment,
 	getKeyboardNoteAssignment,
+	getKeyboardPercussionAssignment,
 	getKeyboardPerformanceKey,
-	KEYBOARD_PERCUSSION_ASSIGNMENTS,
 	KEYBOARD_SAMPLE_ASSIGNMENTS,
 } from './hardware/keyboard/keyboard-performance.js'
 
@@ -142,6 +142,8 @@ const updateKeyboardStatus = (application, state, lastKey = '', active = false) 
 			? `${mode.label} / ${lastKey || 'Numbers: major / Q row: minor / A row: dominant / Z row: sus2'}${heldKeys ? ` / ${heldKeys} held` : ''}`
 			: mode.type === 'samples'
 				? `${mode.label}${lastKey ? ` / ${lastKey}` : ' / 36 sample triggers'}`
+			: mode.type === 'percussion'
+				? `${mode.label}${lastKey ? ` / ${String(lastKey).toUpperCase()}` : ' / hold Shift for expanded kit'}`
 		: `${mode.label}${lastKey ? ` / ${String(lastKey).toUpperCase()}` : ''}`
 
 	application.setInputStatus?.(KEYBOARD_STATUS_ID, {
@@ -185,6 +187,7 @@ const setKeyboardMode = (application, state, nextIndex) => {
 	}
 	if (previousMode?.type === 'percussion' && nextMode.type !== 'percussion') {
 		application.releasePercussionInputs?.('keyboard:')
+		state.heldKeyboardPercussion.clear()
 	}
 	if (previousMode?.type === 'samples' && nextMode.type !== 'samples') {
 		state.heldKeyboardSamples.clear()
@@ -681,12 +684,14 @@ const handleKeyboardCommandMode = async (event, application, state) => {
 	updateNumberSequence(application, state, event, isNumber)
 }
 
-const handleKeyboardPercussionDown = (event, application) => {
+const handleKeyboardPercussionDown = (event, application, state) => {
 	const performanceKey = getKeyboardPerformanceKey(event)
 	if (!performanceKey) return null
-	const drum = KEYBOARD_PERCUSSION_ASSIGNMENTS[performanceKey.index]
+	const drum = getKeyboardPercussionAssignment(performanceKey, event.shiftKey)
+	if (!drum) return null
 
-	const inputId = `keyboard:${performanceKey.code}`
+	const inputId = `keyboard:${event.shiftKey ? 'shift:' : ''}${performanceKey.code}`
+	state.heldKeyboardPercussion.set(inputId, drum.part)
 	if (typeof application.setPercussionInput === 'function') {
 		application.setPercussionInput(
 			inputId,
@@ -744,6 +749,7 @@ export const addKeyboardEvents = application => {
 		keyboardModeIndex: 0,
 		heldKeyboardNotes: new Map(),
 		heldKeyboardSamples: new Set(),
+		heldKeyboardPercussion: new Map(),
 		numericOctaveOffset: 0,
 	}
 	state.keyboardSamplePlayer = createKeyboardSamplePlayer(application)
@@ -857,7 +863,7 @@ export const addKeyboardEvents = application => {
 
 		if (mode.type === 'percussion') {
 			state.numberSequence = ''
-			const drum = handleKeyboardPercussionDown(event, application)
+			const drum = handleKeyboardPercussionDown(event, application, state)
 			updateKeyboardStatus(application, state, drum?.label ?? event.key, Boolean(drum))
 			return
 		}
@@ -891,13 +897,18 @@ export const addKeyboardEvents = application => {
 		const commandPadNumber = mode.type === 'commands' ? getKeyboardNumber(event) : null
 		if (performanceKey || commandPadNumber != null) {
 			const inputId = performanceKey?.code ?? (event.code ?? commandPadNumber)
+			const baseInputId = `keyboard:${inputId}`
+			const shiftedInputId = `keyboard:shift:${inputId}`
+			const heldInputId = state.heldKeyboardPercussion.has(shiftedInputId) ? shiftedInputId : baseInputId
+			const heldPart = state.heldKeyboardPercussion.get(heldInputId)
 			application.setPercussionInput?.(
-				`keyboard:${inputId}`,
+				heldInputId,
 				performanceKey
-					? KEYBOARD_PERCUSSION_ASSIGNMENTS[performanceKey.index].part
+					? heldPart
 					: KEYBOARD_COMMAND_PERCUSSION_PARTS[commandPadNumber],
 				false,
 			)
+			state.heldKeyboardPercussion.delete(heldInputId)
 			updateKeyboardStatus(application, state)
 			return
 		}
@@ -947,6 +958,7 @@ export const addKeyboardEvents = application => {
 		handleCosmosKeyboardEvent({ type: 'blur' })
 		clearHeldKeyboardNotes(state.heldKeyboardNotes)
 		state.heldKeyboardSamples.clear()
+		state.heldKeyboardPercussion.clear()
 		state.keyboardSamplePlayer.stopAll()
 		application.releasePercussionInputs?.('keyboard:')
 		updateKeyboardStatus(application, state)

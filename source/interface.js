@@ -16,7 +16,7 @@ import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { createInputStatusOverlay } from './dom/ui.input-status.js'
 import { setupRecordings } from './dom/ui.recording.js'
-import { connectSelect, connectSelectPreview, connectReverbControls, connectReverbSelector, populateSelect } from './dom/select.js'
+import { connectSelect, connectReverbControls, connectReverbSelector, populateSelect } from './dom/select.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
 import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
@@ -73,7 +73,7 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
 import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arranger.js'
-import { DRUM_GROOVES } from './timing/drum-patterns.js'
+import { AUXILIARY_DRUM_LANES, DRUM_GROOVES, createCompositeDrumGroove } from './timing/drum-patterns.js'
 import { getArpeggioTiming } from './timing/arpeggio.js'
 import {
 	createPercussionHoldRepeater,
@@ -105,6 +105,7 @@ import {
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
+import { getPerformanceDrumStereoPan } from './audio/performance-drum-stereo.js'
 import InstrumentFactory, { createInstrumentFromData } from './audio/instrument-factory.js'
 import InstrumentManager from './audio/instrument-manager.js'
 
@@ -125,13 +126,72 @@ import {
 	getHihatPair,
 	PRESET_HIHATS,
 	PRESET_HIHATS_CLOSED,
-	PRESET_HIHATS_OPEN
+	PRESET_HIHATS_OPEN,
+	OPEN_HIHAT_CRASH, OPEN_HIHAT_RIDE, OPEN_HIHAT_SPLASH, OPEN_HIHAT_CHINA,
 } from './audio/synthesizers/hihat.js'
 import { getRandomSnarePreset, PRESET_SNARES } from './audio/synthesizers/snare.js'
 import { getRandomKickPreset, getKickPresets, PRESETS_KICKS } from './audio/synthesizers/kick.js'
-import { getCowbellPresetForStyle, getRandomCowbellPreset, PRESET_COWBELLS } from './audio/synthesizers/cowbell-presets.js'
+import { getCowbellPresetForStyle, getRandomCowbellPreset, PRESET_COWBELLS, PRESET_727_HIGH_AGOGO, PRESET_727_LOW_AGOGO } from './audio/synthesizers/cowbell-presets.js'
+import {
+	PRESET_BONGOS, PRESET_CONGAS,
+	PRESET_LOW_BONGOS, PRESET_HIGH_BONGOS,
+	PRESET_LOW_CONGAS, PRESET_HIGH_CONGAS, PRESET_MUTE_CONGAS,
+} from './audio/synthesizers/hand-drum-presets.js'
+import {
+	PRESET_SHAKERS, PRESET_MARACAS, PRESET_CABASAS,
+} from './audio/synthesizers/shaker-presets.js'
+import {
+	PRESET_TRIANGLES, PRESET_MUTED_TRIANGLES, PRESET_OPEN_TRIANGLES,
+} from './audio/synthesizers/triangle-presets.js'
+import { PRESET_CLACKS, PRESET_METRONOME_CLACK, PRESET_RIM_CLACK, PRESET_CROSS_STICK, PRESET_CLAVE_CLACK, PRESET_WOODBLOCK_CLACK, PRESET_CASTANET_CLACK } from './audio/synthesizers/clack-presets.js'
+import { PRESET_CLAPS, PRESET_FINGER_SNAP } from './audio/synthesizers/clap-presets.js'
+import { PRESETS_TOMS, PRESET_727_HIGH_TIMBALE, PRESET_727_LOW_TIMBALE, PRESET_OPEN_SURDO, PRESET_MUTED_SURDO } from './audio/synthesizers/tom-presets.js'
+import { PRESET_JINGLES, PRESET_707_TAMBOURINE, PRESET_CHEKERE } from './audio/synthesizers/jingle-presets.js'
+import { PRESET_SCRAPES, PRESET_SHORT_GUIRO, PRESET_LONG_GUIRO, PRESET_727_QUIJADA } from './audio/synthesizers/scrape-presets.js'
+import { PRESET_FRICTION_DRUMS, PRESET_MUTED_CUICA, PRESET_OPEN_CUICA } from './audio/synthesizers/friction-drum-presets.js'
+import { PRESET_WHISTLES, PRESET_727_SHORT_WHISTLE, PRESET_727_LONG_WHISTLE } from './audio/synthesizers/whistle-presets.js'
+import { PRESET_CHIMES, PRESET_727_STAR_CHIME, PRESET_WIND_CHIME } from './audio/synthesizers/chime-presets.js'
+import { PRESET_ELECTRONIC_PERCUSSION, PRESET_SYNDRUM, PRESET_LASER_TOM, PRESET_METALLIC_HIT } from './audio/synthesizers/electronic-percussion-presets.js'
 import { PERCUSSION_PRESETS, PERCUSSION_SOUND_PRESET_GROUPS, getPercussionPreset } from './audio/synthesizers/percussion-presets.js'
-import { PRESET_METRONOME_CLACK } from './audio/synthesizers/clack-presets.js'
+
+const EXTENDED_PERCUSSION_PRESET_COLLECTIONS = Object.freeze({
+	rimshot:PRESET_CLACKS, crossStick:PRESET_CLACKS, claves:PRESET_CLACKS,
+	woodblockHigh:PRESET_CLACKS, woodblockLow:PRESET_CLACKS, castanets:PRESET_CLACKS,
+	crash:PRESET_HIHATS_OPEN, ride:PRESET_HIHATS_OPEN, splash:PRESET_HIHATS_OPEN, china:PRESET_HIHATS_OPEN,
+	tambourine:PRESET_JINGLES, chekere:PRESET_JINGLES,
+	agogoHigh:PRESET_COWBELLS, agogoLow:PRESET_COWBELLS,
+	timbaleHigh:PRESETS_TOMS, timbaleLow:PRESETS_TOMS,
+	guiroShort:PRESET_SCRAPES, guiroLong:PRESET_SCRAPES,
+	cuicaMute:PRESET_FRICTION_DRUMS, cuicaOpen:PRESET_FRICTION_DRUMS,
+	whistleShort:PRESET_WHISTLES, whistleLong:PRESET_WHISTLES,
+	surdoMute:PRESETS_TOMS, surdoOpen:PRESETS_TOMS,
+	quijada:PRESET_SCRAPES, starChime:PRESET_CHIMES, windChime:PRESET_CHIMES,
+	fingerSnap:PRESET_CLAPS,
+	syndrum:PRESET_ELECTRONIC_PERCUSSION, laserTom:PRESET_ELECTRONIC_PERCUSSION, metalHit:PRESET_ELECTRONIC_PERCUSSION,
+})
+
+const DEFAULT_EXTENDED_PERCUSSION_TIMBRES = Object.freeze({
+	rimshot:PRESET_RIM_CLACK, crossStick:PRESET_CROSS_STICK, claves:PRESET_CLAVE_CLACK,
+	woodblockHigh:PRESET_WOODBLOCK_CLACK, woodblockLow:{ ...PRESET_WOODBLOCK_CLACK, name:"Low Woodblock", octave:0.76 }, castanets:PRESET_CASTANET_CLACK,
+	crash:OPEN_HIHAT_CRASH, ride:OPEN_HIHAT_RIDE, splash:OPEN_HIHAT_SPLASH, china:OPEN_HIHAT_CHINA,
+	tambourine:PRESET_707_TAMBOURINE, chekere:PRESET_CHEKERE,
+	agogoHigh:PRESET_727_HIGH_AGOGO, agogoLow:PRESET_727_LOW_AGOGO,
+	timbaleHigh:PRESET_727_HIGH_TIMBALE, timbaleLow:PRESET_727_LOW_TIMBALE,
+	guiroShort:PRESET_SHORT_GUIRO, guiroLong:PRESET_LONG_GUIRO,
+	cuicaMute:PRESET_MUTED_CUICA, cuicaOpen:PRESET_OPEN_CUICA,
+	whistleShort:PRESET_727_SHORT_WHISTLE, whistleLong:PRESET_727_LONG_WHISTLE,
+	surdoMute:PRESET_MUTED_SURDO, surdoOpen:PRESET_OPEN_SURDO,
+	quijada:PRESET_727_QUIJADA, starChime:PRESET_727_STAR_CHIME, windChime:PRESET_WIND_CHIME,
+	fingerSnap:PRESET_FINGER_SNAP,
+	syndrum:PRESET_SYNDRUM, laserTom:PRESET_LASER_TOM, metalHit:PRESET_METALLIC_HIT,
+})
+
+const EXTENDED_PERCUSSION_PART_ALIASES = Object.freeze(Object.fromEntries(
+	Object.keys(DEFAULT_EXTENDED_PERCUSSION_TIMBRES).flatMap(part => {
+		const kebab = part.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)
+		return [[part, part], [kebab, part]]
+	})
+))
 
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
@@ -170,7 +230,7 @@ import { stopWebMIDIForPerson, updateWebMIDIWithPerson } from './audio/instrumen
 import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes, stopAllActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
 
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
-import { showError } from './dom/errors.js'
+import { getCameraErrorCode, showError, showErrorCode } from './dom/errors.js'
 import { getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 
 import { observeOrientationChange } from './display/display-abstract.js'
@@ -779,6 +839,31 @@ export const createInterface = (
 	let closedHatTimbreOptions = PRESET_HIHATS_CLOSED[0]
 	let openHatTimbreOptions = PRESET_HIHATS_OPEN[0]
 	let cowbellTimbreOptions = getCowbellPresetForStyle("Organic", "default")
+	let bongoLowTimbreOptions = PRESET_LOW_BONGOS[0]
+	let bongoHighTimbreOptions = PRESET_HIGH_BONGOS[0]
+	let congaLowTimbreOptions = PRESET_LOW_CONGAS[0]
+	let congaHighTimbreOptions = PRESET_HIGH_CONGAS[0]
+	let congaMuteTimbreOptions = PRESET_MUTE_CONGAS[0]
+	let cabasaTimbreOptions = PRESET_CABASAS[0]
+	let maracasTimbreOptions = PRESET_MARACAS[0]
+	let triangleMuteTimbreOptions = PRESET_MUTED_TRIANGLES[0]
+	let triangleOpenTimbreOptions = PRESET_OPEN_TRIANGLES[1]
+	const extendedPercussionTimbreOptions = { ...DEFAULT_EXTENDED_PERCUSSION_TIMBRES }
+	const getAuxiliaryPercussionTimbre = part => {
+		switch (part) {
+			case 'bongoLow': return bongoLowTimbreOptions
+			case 'bongoHigh': return bongoHighTimbreOptions
+			case 'congaLow': return congaLowTimbreOptions
+			case 'congaHigh': return congaHighTimbreOptions
+			case 'congaMute': return congaMuteTimbreOptions
+			case 'cabasa': return cabasaTimbreOptions
+			case 'maracas': return maracasTimbreOptions
+			case 'triangleMute': return triangleMuteTimbreOptions
+			case 'triangleOpen': return triangleOpenTimbreOptions
+			default: return extendedPercussionTimbreOptions[part]
+		}
+	}
+	const percussionPatternPresets = PERCUSSION_PRESETS.filter(preset => preset.groove)
 	let eyeControlledDrumTimbreCache
 	let mutedPartsArranger
 	let mutedKick
@@ -920,10 +1005,23 @@ export const createInterface = (
 	}
 
 	const setRandomDrumTimbres = (notify=true) => {
+		const randomPreset = presets => presets[Math.floor(Math.random() * presets.length)]
 		kickTimbreOptions = getRandomKickPreset()
 		snareTimbreOptions = getRandomSnarePreset()
 		setHatPair(getRandomHihatPreset())
 		cowbellTimbreOptions = getRandomCowbellPreset()
+		bongoLowTimbreOptions = randomPreset(PRESET_LOW_BONGOS)
+		bongoHighTimbreOptions = randomPreset(PRESET_HIGH_BONGOS)
+		congaLowTimbreOptions = randomPreset(PRESET_LOW_CONGAS)
+		congaHighTimbreOptions = randomPreset(PRESET_HIGH_CONGAS)
+		congaMuteTimbreOptions = randomPreset(PRESET_MUTE_CONGAS)
+		cabasaTimbreOptions = randomPreset(PRESET_CABASAS)
+		maracasTimbreOptions = randomPreset(PRESET_MARACAS)
+		triangleMuteTimbreOptions = randomPreset(PRESET_MUTED_TRIANGLES)
+		triangleOpenTimbreOptions = randomPreset(PRESET_OPEN_TRIANGLES)
+		for (const [part, presets] of Object.entries(EXTENDED_PERCUSSION_PRESET_COLLECTIONS)) {
+			extendedPercussionTimbreOptions[part] = randomPreset(presets)
+		}
 		// console.info("Setting drum timbres!", 
 		// 	{
 		// 		kickTimbreOptions,
@@ -942,8 +1040,17 @@ export const createInterface = (
 		[PRESETS_KICKS, new Map(PRESETS_KICKS.map(preset => [preset.name, preset]))],
 		[PRESET_SNARES, new Map(PRESET_SNARES.map(preset => [preset.name, preset]))],
 		[PRESET_HIHATS, new Map(PRESET_HIHATS.map(preset => [preset.name, preset]))],
-		[PRESET_COWBELLS, new Map(PRESET_COWBELLS.map(preset => [preset.name, preset]))]
+		[PRESET_COWBELLS, new Map(PRESET_COWBELLS.map(preset => [preset.name, preset]))],
+		[PRESET_BONGOS, new Map(PRESET_BONGOS.map(preset => [preset.name, preset]))],
+		[PRESET_CONGAS, new Map(PRESET_CONGAS.map(preset => [preset.name, preset]))],
+		[PRESET_SHAKERS, new Map(PRESET_SHAKERS.map(preset => [preset.name, preset]))],
+		[PRESET_TRIANGLES, new Map(PRESET_TRIANGLES.map(preset => [preset.name, preset]))],
 	])
+	for (const presets of Object.values(EXTENDED_PERCUSSION_PRESET_COLLECTIONS)) {
+		if (!percussionPresetIndexes.has(presets)) {
+			percussionPresetIndexes.set(presets, new Map(presets.map(preset => [preset.name, preset])))
+		}
+	}
 
 	const findPercussionPreset = (presets, name) => {
 		return percussionPresetIndexes.get(presets)?.get(name)
@@ -954,6 +1061,15 @@ export const createInterface = (
 		const snare = findPercussionPreset(PRESET_SNARES, kitPreset.snare)
 		const hat = findPercussionPreset(PRESET_HIHATS, kitPreset.hat)
 		const cowbell = findPercussionPreset(PRESET_COWBELLS, kitPreset.cowbell)
+		const bongoLow = findPercussionPreset(PRESET_BONGOS, kitPreset.bongoLow)
+		const bongoHigh = findPercussionPreset(PRESET_BONGOS, kitPreset.bongoHigh)
+		const congaLow = findPercussionPreset(PRESET_CONGAS, kitPreset.congaLow)
+		const congaHigh = findPercussionPreset(PRESET_CONGAS, kitPreset.congaHigh)
+		const congaMute = findPercussionPreset(PRESET_CONGAS, kitPreset.congaMute)
+		const cabasa = findPercussionPreset(PRESET_SHAKERS, kitPreset.cabasa)
+		const maracas = findPercussionPreset(PRESET_SHAKERS, kitPreset.maracas)
+		const triangleMute = findPercussionPreset(PRESET_TRIANGLES, kitPreset.triangleMute)
+		const triangleOpen = findPercussionPreset(PRESET_TRIANGLES, kitPreset.triangleOpen)
 
 		if (kick)
 		{
@@ -975,6 +1091,19 @@ export const createInterface = (
 		{
 			cowbellTimbreOptions = null
 		}
+		if (bongoLow) bongoLowTimbreOptions = bongoLow
+		if (bongoHigh) bongoHighTimbreOptions = bongoHigh
+		if (congaLow) congaLowTimbreOptions = congaLow
+		if (congaHigh) congaHighTimbreOptions = congaHigh
+		if (congaMute) congaMuteTimbreOptions = congaMute
+		if (cabasa) cabasaTimbreOptions = cabasa
+		if (maracas) maracasTimbreOptions = maracas
+		if (triangleMute) triangleMuteTimbreOptions = triangleMute
+		if (triangleOpen) triangleOpenTimbreOptions = triangleOpen
+		for (const [part, presets] of Object.entries(EXTENDED_PERCUSSION_PRESET_COLLECTIONS)) {
+			const selected = findPercussionPreset(presets, kitPreset[part])
+			if (selected) extendedPercussionTimbreOptions[part] = selected
+		}
 	}
 
 	const applyPercussionSoundPreset = presetName => {
@@ -992,37 +1121,38 @@ export const createInterface = (
 		return preset
 	}
 
-	const applyPercussionPatternPreset = presetName => {
-		const preset = getPercussionPreset(presetName)
-		if (!preset)
-		{
-			return null
-		}
-
-		if (preset.seed || preset.intent)
-		{
-			drumArranger = createDrumArranger({
-				seed:preset.seed ?? preset.id,
-				groove:preset.groove,
-				bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
-				rapidPercussion:stateMachine.get("rapidPercussion") === true,
-				performanceControl:stateMachine.get("performanceDrums") !== false,
-				intent:preset.intent ?? {},
-				phraseBars:preset.phraseBars,
-				stepsPerBar:preset.stepsPerBar
-			})
-		}
-		if (preset.intent)
-		{
-			drumArranger?.setIntent(preset.intent)
-		}
-		if (Number.isFinite(preset.program))
-		{
-			changeDrumPattern(preset.program, false)
-		}
-
-		return preset
+	const readPercussionPatternSelection = value => {
+		const values = Array.isArray(value) ? value : String(value ?? '').split(',')
+		const selected = [...new Set(values.filter(Boolean))].slice(0, 3)
+		return selected.length ? selected : ['random']
 	}
+
+	const applyPercussionPatternPresets = presetNames => {
+		const presets = readPercussionPatternSelection(presetNames)
+			.map(getPercussionPreset)
+			.filter(preset => preset?.groove)
+		if (!presets.length) return []
+
+		const groove = createCompositeDrumGroove(presets.map(preset => DRUM_GROOVES[preset.groove]))
+		const intent = presets[0].intent ?? {}
+		drumArranger = createDrumArranger({
+			seed:presets.map(preset => preset.seed ?? preset.id).join('+'),
+			groove,
+			bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
+			rapidPercussion:stateMachine.get("rapidPercussion") === true,
+			performanceControl:stateMachine.get("performanceDrums") !== false,
+			intent,
+			phraseBars:Math.max(...presets.map(preset => preset.phraseBars ?? 1)),
+			stepsPerBar:Math.max(...presets.map(preset => preset.stepsPerBar ?? 16))
+		})
+		drumArranger.setIntent(intent)
+
+		const program = presets.find(preset => Number.isFinite(preset.program))?.program
+		if (Number.isFinite(program)) changeDrumPattern(program, false)
+		return presets
+	}
+
+	const applyPercussionPatternPreset = presetName => applyPercussionPatternPresets([presetName])[0] ?? null
 
 	const applyPercussionPreset = presetName => {
 		const soundPreset = applyPercussionSoundPreset(presetName)
@@ -1030,52 +1160,6 @@ export const createInterface = (
 		return soundPreset && patternPreset ? soundPreset : null
 	}
 
-	const previewPercussionPreset = presetName => {
-		const preset = getPercussionPreset(presetName)
-		if (!preset || !kit || !audioContext)
-		{
-			return false
-		}
-
-		const kick = findPercussionPreset(PRESETS_KICKS, preset.kit.kick)
-		const snare = findPercussionPreset(PRESET_SNARES, preset.kit.snare)
-		const hat = findPercussionPreset(PRESET_HIHATS, preset.kit.hat)
-		if (!kick || !snare || !hat)
-		{
-			return false
-		}
-
-		resumeAudio()
-		const pair = getHihatPair(hat)
-		const groove = DRUM_GROOVES[preset.groove] ?? {
-			kick:[255,0,0,0,0,0,0,0],
-			snare:[0,0,0,0,230,0,0,0],
-			hat:[170,0,110,0,185,0,120,90]
-		}
-		const stepDuration = 60 / 120 / 4
-		const previewSteps = Math.min(8, groove.kick.length, groove.snare.length, groove.hat.length)
-		const startsAt = audioContext.currentTime + 0.025
-
-		for (let step=0; step<previewSteps; step++)
-		{
-			const triggerAt = startsAt + step * stepDuration
-			if (groove.kick[step] > 0)
-			{
-				kit.kick({ ...kick, velocity:groove.kick[step] / 255 * 0.72, triggerAt })
-			}
-			if (groove.snare[step] > 0)
-			{
-				kit.snare({ ...snare, velocity:groove.snare[step] / 255 * 0.68, triggerAt })
-			}
-			if (groove.hat[step] > 0)
-			{
-				const previewHat = step % 4 === 3 ? pair.open : pair.closed
-				kit.hat({ ...previewHat, velocity:groove.hat[step] / 255 * 0.5, triggerAt })
-			}
-		}
-		return true
-	}
-	
 	/**
 	 * Set the drum pattern number
 	 * @param {Number} program 
@@ -1095,11 +1179,16 @@ export const createInterface = (
 	 */
 	const setRandomDrumPattern = (notify=true) => {
 		const randomProgram = Math.floor( 17 + Math.random() * 23 )
+		const preset = percussionPatternPresets[Math.floor(Math.random() * percussionPatternPresets.length)]
 		drumArranger = createDrumArranger({
-			seed:`random-${Date.now()}-${randomProgram}`,
+			seed:`random-${Date.now()}-${preset.id}`,
+			groove:preset.groove,
 			bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
 			rapidPercussion:stateMachine.get("rapidPercussion") === true,
-			performanceControl:stateMachine.get("performanceDrums") !== false
+			performanceControl:stateMachine.get("performanceDrums") !== false,
+			intent:preset.intent ?? {},
+			phraseBars:preset.phraseBars,
+			stepsPerBar:preset.stepsPerBar,
 		})
 		changeDrumPattern(randomProgram, notify)
 	} 
@@ -1115,11 +1204,22 @@ export const createInterface = (
 			quantiser: percussionQuantiser,
 		})
 		const eyeControlledTimbres = createEyeControlledDrumTimbres()
+		const prediction = personManager.getPerson(0)?.data ?? {}
+		const performancePan = getPerformanceDrumStereoPan(
+			prediction.eyesHorizontal ?? prediction.eyeDirection,
+			stateMachine.get('performanceDrums') !== false && stateMachine.get('stereo') !== false
+		)
 		const triggerOptions = { velocity: 1, ...options, triggerAt }
 		const play = (name, trigger, voiceOptions={}) => {
 			const resolvedOptions = { ...voiceOptions, ...triggerOptions }
 			notifyDrumPart(name, resolvedOptions)
 			return trigger(resolvedOptions)
+		}
+		const extendedPart = EXTENDED_PERCUSSION_PART_ALIASES[part]
+		if (extendedPart) {
+			if (extendedPart === 'cuicaMute') kit.cuicaOpen.choke(0.006, triggerAt)
+			if (extendedPart === 'surdoMute') kit.surdoOpen.choke(0.006, triggerAt)
+			return play(part, kit[extendedPart], extendedPercussionTimbreOptions[extendedPart])
 		}
 
 		switch(part)
@@ -1134,43 +1234,62 @@ export const createInterface = (
 				})
 
 			case 'low-tom':
+				kit.setTomPan?.(performancePan.tom, triggerAt)
 				return play('low-tom', kit.tomLow)
 
 			case 'mid-tom':
+				kit.setTomPan?.(performancePan.tom, triggerAt)
 				return play('mid-tom', kit.tomMid)
 
 			case 'high-tom':
+				kit.setTomPan?.(performancePan.tom, triggerAt)
 				return play('high-tom', kit.tomHigh)
 
 			case 'snare':
+				kit.setSnarePan?.(performancePan.snare, triggerAt)
 				return play('snare', kit.snare, eyeControlledTimbres.snare)
 
 			case 'rim':
-				return play('rim', kit.snare, {
-					length: 0.13, attack: 0.001, decay: 0.035,
-					bandpassStart: 2600, bandpassEnd: 5600, highpassStart: 3600,
-				})
+				return play('rim', kit.rimshot, extendedPercussionTimbreOptions.rimshot)
 
 			case 'hat':
 				return play('hat', kit.hat, eyeControlledTimbres.hat)
 
 			case 'shaker':
-				return play('shaker', kit.hat, {
-					length: 0.1, attack: 0.001, decay: 0.025, release: 0.045,
-					fundamental: 540, bandpass: 4200, highpass: 1700, lowpass: 7600,
-				})
+			case 'maracas':
+				return play('maracas', kit.maracas, maracasTimbreOptions)
+
+			case 'cabasa':
+				return play('cabasa', kit.cabasa, cabasaTimbreOptions)
+
+			case 'high-bongo':
+				return play('high-bongo', kit.bongoHigh, bongoHighTimbreOptions)
+
+			case 'low-bongo':
+				return play('low-bongo', kit.bongoLow, bongoLowTimbreOptions)
+
+			case 'mute-conga':
+				return play('mute-conga', kit.congaMute, congaMuteTimbreOptions)
+
+			case 'high-conga':
+				return play('high-conga', kit.congaHigh, congaHighTimbreOptions)
+
+			case 'low-conga':
+				return play('low-conga', kit.congaLow, congaLowTimbreOptions)
+
+			case 'mute-triangle':
+				kit.triangleOpen.choke(0.006, triggerAt)
+				return play('mute-triangle', kit.triangleMute, triangleMuteTimbreOptions)
+
+			case 'open-triangle':
+			case 'triangle':
+				return play('open-triangle', kit.triangleOpen, triangleOpenTimbreOptions)
 
 			case 'crash':
-				return play('crash', kit.hat, {
-					length: 1.15, attack: 0.002, decay: 0.38, release: 0.42,
-					fundamental: 330, bandpass: 3600, highpass: 900, lowpass: 10800,
-				})
+				return play('crash', kit.crash, extendedPercussionTimbreOptions.crash)
 
 			case 'ride':
-				return play('ride', kit.hat, {
-					length: 0.68, attack: 0.001, decay: 0.2, release: 0.24,
-					fundamental: 610, bandpass: 5100, highpass: 2100, lowpass: 9800,
-				})
+				return play('ride', kit.ride, extendedPercussionTimbreOptions.ride)
 
 			case 'clap':
 				return play('clap', kit.clap)
@@ -2197,7 +2316,7 @@ export const createInterface = (
 
 			return {
 				success:false,
-				message:"Camera could not be accessed, "+error
+				error
 			}
 		}
 		
@@ -2208,7 +2327,7 @@ export const createInterface = (
 			
 			return {
 				success:false,
-				message:"No cameras located on this device"
+				error:new DOMException('No cameras located on this device', 'NotFoundError')
 			}
 		}
 		
@@ -2779,6 +2898,11 @@ export const createInterface = (
 			keyboardDisplay?.drawElement( musicalKeyboard.canvas, 40, 40, false )
 		}
 
+		if (showOverlayCanvas && stateMachine.get('performanceDrums') !== false)
+		{
+			overlayDisplay?.drawBeatProgress(clock.barProgress, 4)
+		}
+
 		if (showOverlayCanvas)
 		{
 			overlayDisplay?.flushFrame()
@@ -3170,6 +3294,16 @@ export const createInterface = (
 					notifyDrumPart('cowbell', { velocity: parts.cowbell / 255, triggerAt, source: 'backingTrack' })
 					kit.cowbell({ ...cowbellTimbreOptions, velocity: parts.cowbell / 255, triggerAt })
 				}
+				for (const part of AUXILIARY_DRUM_LANES) {
+					const partVelocity = parts[part]
+					if (!(partVelocity > 0) || !kit[part]) continue
+					if (part === 'triangleMute') kit.triangleOpen.choke(0.006, triggerAt)
+					if (part === 'cuicaMute') kit.cuicaOpen.choke(0.006, triggerAt)
+					if (part === 'surdoMute') kit.surdoOpen.choke(0.006, triggerAt)
+					const velocity = partVelocity / 255
+					notifyDrumPart(part, { velocity, triggerAt, source:'backingTrack' })
+					kit[part]({ ...getAuxiliaryPercussionTimbre(part), velocity, triggerAt })
+				}
 				for (const event of parts.events ?? []) {
 					const eventAt = triggerAt + event.offset
 					const velocity = event.velocity / 255
@@ -3377,8 +3511,11 @@ export const createInterface = (
 
 				if (cameraResult.success === false){
 					setFeedback( "", 0)
-					showError("Camera not found", cameraResult.message, true)
-					return reject( cameraResult.cameraFeedbackMessage )
+					showErrorCode(getCameraErrorCode(cameraResult.error), {
+						fatal:true,
+						details:String(cameraResult.error?.message ?? cameraResult.error ?? '')
+					})
+					return reject(cameraResult.error)
 				}
 
 				setFeedback( cameraResult.message, 0, 'camera' )
@@ -3947,7 +4084,7 @@ export const createInterface = (
 			}
 			const drumkitPreset = stateMachine.get("drumkit")
 			const percussionSound = stateMachine.get("percussionSound") ?? (drumkitPreset || "random")
-			const percussionPattern = stateMachine.get("percussionPattern") ?? (drumkitPreset || "random")
+			const percussionPattern = readPercussionPatternSelection(stateMachine.get("percussionPattern") ?? (drumkitPreset || "random"))[0]
 			if (percussionSound === "random")
 			{
 				setRandomDrumTimbres(false)
@@ -4558,7 +4695,7 @@ export const createInterface = (
 		}
 
 		const selectedDrumkitPreset = stateMachine.get("drumkit") ?? ""
-		const selectedPercussionPattern = stateMachine.get("percussionPattern") ?? (selectedDrumkitPreset || "random")
+		const selectedPercussionPattern = readPercussionPatternSelection(stateMachine.get("percussionPattern") ?? (selectedDrumkitPreset || "random"))[0]
 		const selectedPercussionSound = stateMachine.get("percussionSound") ?? (selectedDrumkitPreset || "random")
 		const createPercussionGroups = (selectedValue, randomValue="") => {
 			const groups = [{ group:"Random", items:[{ value:randomValue, label:"Random", selected:selectedValue === randomValue }] }]
@@ -4631,61 +4768,6 @@ export const createInterface = (
 		if (selects.percussionPattern) selects.percussionPattern.value = selectedPercussionPattern
 		if (selects.percussionSound) selects.percussionSound.value = selectedPercussionSound
 
-		let patternPreviewSnapshot
-		connectSelectPreview(selects.percussionPattern, {
-			preview:option => {
-				patternPreviewSnapshot ??= { drumArranger, patterns }
-				if (option.value === "random")
-				{
-					setRandomDrumPattern(false)
-				}else{
-					applyPercussionPatternPreset(option.value)
-				}
-			},
-			restore:() => {
-				if (!patternPreviewSnapshot) return
-				drumArranger = patternPreviewSnapshot.drumArranger
-				patterns = patternPreviewSnapshot.patterns
-				patternPreviewSnapshot = null
-			},
-			commit:() => {
-				patternPreviewSnapshot = null
-			}
-		})
-
-		let soundPreviewSnapshot
-		connectSelectPreview(selects.percussionSound, {
-			preview:option => {
-				soundPreviewSnapshot ??= {
-					kick:kickTimbreOptions,
-					snare:snareTimbreOptions,
-					hat:hatTimbreOptions,
-					closedHat:closedHatTimbreOptions,
-					openHat:openHatTimbreOptions,
-					cowbell:cowbellTimbreOptions,
-				}
-				if (option.value === "random")
-				{
-					setRandomDrumTimbres(false)
-				}else{
-					applyPercussionSoundPreset(option.value)
-				}
-			},
-			restore:() => {
-				if (!soundPreviewSnapshot) return
-				kickTimbreOptions = soundPreviewSnapshot.kick
-				snareTimbreOptions = soundPreviewSnapshot.snare
-				hatTimbreOptions = soundPreviewSnapshot.hat
-				closedHatTimbreOptions = soundPreviewSnapshot.closedHat
-				openHatTimbreOptions = soundPreviewSnapshot.openHat
-				cowbellTimbreOptions = soundPreviewSnapshot.cowbell
-				soundPreviewSnapshot = null
-			},
-			commit:() => {
-				soundPreviewSnapshot = null
-			}
-		})
-
 		buttons.randomisePercussion = setButton("button-randomise-percussion", () => {
 			stateMachine.set("drumkit", "", selects.drumkit)
 			stateMachine.set("percussionPattern", "random", selects.percussionPattern)
@@ -4723,51 +4805,6 @@ export const createInterface = (
 		if (selects.drumkit)
 		{
 			selects.drumkit.value = selectedDrumkitPreset
-			let previewTimer
-			let previewOption
-			let lastPreviewName = ""
-			let lastPreviewAt = 0
-			const queuePreview = (option, delay=240) => {
-				if (!option?.value || option.disabled)
-				{
-					return
-				}
-				clearTimeout(previewTimer)
-				previewOption = option
-				previewTimer = setTimeout(() => {
-					const now = performance.now()
-					if (option.value === lastPreviewName && now - lastPreviewAt < 1200)
-					{
-						return
-					}
-					if (previewPercussionPreset(option.value))
-					{
-						lastPreviewName = option.value
-						lastPreviewAt = now
-					}
-				}, delay)
-			}
-
-			// Customizable selects expose their option content to pointer events.
-			// Classic selects retain keyboard preview through the input event.
-			selects.drumkit.addEventListener("pointerover", event => {
-				const option = event.target.closest?.("option")
-				if (option && option !== previewOption)
-				{
-					queuePreview(option)
-				}
-			})
-			selects.drumkit.addEventListener("pointerout", event => {
-				const option = event.target.closest?.("option")
-				if (option && !option.contains(event.relatedTarget))
-				{
-					clearTimeout(previewTimer)
-					previewOption = null
-				}
-			})
-			selects.drumkit.addEventListener("input", () => {
-				queuePreview(selects.drumkit.options[selects.drumkit.selectedIndex], 0)
-			})
 		}
 		if (selectedDrumkitPreset)
 		{

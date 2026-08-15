@@ -38,13 +38,30 @@ export const GAMEPAD_MODES = [
 	GAMEPAD_MODE_CONTROLS
 ]
 
+export const GAMEPAD_DIRECTION_UP_RIGHT = 'dup-dright'
+export const GAMEPAD_DIRECTION_DOWN_RIGHT = 'ddown-dright'
+export const GAMEPAD_DIRECTION_DOWN_LEFT = 'ddown-dleft'
+export const GAMEPAD_DIRECTION_UP_LEFT = 'dup-dleft'
+
+const CHORD_I = Object.freeze([0, 4, 7])
+const CHORD_V = Object.freeze([-1, 2, 7])
+const CHORD_VI = Object.freeze([-3, 0, 4])
+const CHORD_IV = Object.freeze([-3, 0, 5])
+const combineChordOffsets = (...chords) => Object.freeze(
+	[...new Set(chords.flat())].sort((left, right) => left - right)
+)
+
 // A compact I-V-vi-IV loop with inversions chosen for smooth voice leading.
 // Offsets are relative to the selected person's pitch class, centred near C4.
 export const GAMEPAD_DIRECTION_CHORDS = Object.freeze({
-	[DIRECTION_UP]: Object.freeze({ name: 'I', offsets: Object.freeze([0, 4, 7]) }),
-	[DIRECTION_RIGHT]: Object.freeze({ name: 'V', offsets: Object.freeze([-1, 2, 7]) }),
-	[DIRECTION_DOWN]: Object.freeze({ name: 'vi', offsets: Object.freeze([-3, 0, 4]) }),
-	[DIRECTION_LEFT]: Object.freeze({ name: 'IV', offsets: Object.freeze([-3, 0, 5]) }),
+	[DIRECTION_UP]: Object.freeze({ name: 'I', offsets: CHORD_I }),
+	[DIRECTION_RIGHT]: Object.freeze({ name: 'V', offsets: CHORD_V }),
+	[DIRECTION_DOWN]: Object.freeze({ name: 'vi', offsets: CHORD_VI }),
+	[DIRECTION_LEFT]: Object.freeze({ name: 'IV', offsets: CHORD_IV }),
+	[GAMEPAD_DIRECTION_UP_RIGHT]: Object.freeze({ name: 'I + V', offsets: combineChordOffsets(CHORD_I, CHORD_V) }),
+	[GAMEPAD_DIRECTION_DOWN_RIGHT]: Object.freeze({ name: 'V + vi', offsets: combineChordOffsets(CHORD_V, CHORD_VI) }),
+	[GAMEPAD_DIRECTION_DOWN_LEFT]: Object.freeze({ name: 'vi + IV', offsets: combineChordOffsets(CHORD_VI, CHORD_IV) }),
+	[GAMEPAD_DIRECTION_UP_LEFT]: Object.freeze({ name: 'IV + I', offsets: combineChordOffsets(CHORD_IV, CHORD_I) }),
 })
 
 // The twelve non-control buttons form a chromatic octave. The selected
@@ -674,6 +691,10 @@ const getLeftStickChordDirection = gamePad => {
 	const x = gamePad?.leftstickX ?? 0
 	const y = gamePad?.leftstickY ?? 0
 	if (Math.hypot(x, y) < GAMEPAD_CHORD_DEAD_ZONE) return null
+	if (Math.abs(x) >= GAMEPAD_CHORD_DEAD_ZONE && Math.abs(y) >= GAMEPAD_CHORD_DEAD_ZONE) {
+		if (y < 0) return x < 0 ? GAMEPAD_DIRECTION_UP_LEFT : GAMEPAD_DIRECTION_UP_RIGHT
+		return x < 0 ? GAMEPAD_DIRECTION_DOWN_LEFT : GAMEPAD_DIRECTION_DOWN_RIGHT
+	}
 	if (Math.abs(x) > Math.abs(y)) return x < 0 ? DIRECTION_LEFT : DIRECTION_RIGHT
 	return y < 0 ? DIRECTION_UP : DIRECTION_DOWN
 }

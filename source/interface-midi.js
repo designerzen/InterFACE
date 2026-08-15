@@ -3,6 +3,7 @@ import { getActiveMIDINotesForPerson, isMIDINoteActive } from "./audio/instrumen
 import { isMIDIDebugEnabled, isRecentMIDIOutputEcho, logMIDIDebug, sendGuardedMIDIOutput } from "./audio/midi/midi-echo-guard.js"
 import { getMusicalDetailsFromEmoji } from "./models/emoji-to-music.js"
 import { EVENT_EMOTION_CHANGED } from "./people/person-event.js"
+import { getMIDIPortDisplayName, isDigitCMPSRPort } from "./hardware/midi/cmpsr.js"
 
 const midiInputCleanupCallbacks = new Set()
 const midiInputObservers = new Map()
@@ -181,10 +182,11 @@ const getMIDINoteLabel = event => {
 }
 
 const setMIDIInputStatus = (statusAPI, input, id, detail, active = false, ttl = MIDI_INPUT_STATUS_TTL) => {
+	const isCMPSR = isDigitCMPSRPort(input)
 	statusAPI?.setDeviceStatus?.(id, {
 		type: 'midi',
-		label: input.name || input.manufacturer || 'MIDI Input',
-		detail,
+		label: getMIDIPortDisplayName(input),
+		detail: isCMPSR && detail === 'Ready' ? 'Available · MIDI input ready' : detail,
 		connected: true,
 		active,
 		ttl
