@@ -10,6 +10,9 @@
 	X-xss-protection: 1
 	Strict-transport-security: max-age=31536000; preload
 
+/service-worker.js
+	Cache-Control: no-cache, must-revalidate
+
 https://1b2773bc.photosynth.pages.dev/*
 	X-Robots-Tag: noindex
 https://interface-4k9c.pages.dev/*
