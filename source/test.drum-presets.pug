@@ -1,0 +1,437 @@
+extends _base.pug
+
+block title
+	+title('Test: Drum Preset Lab')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block main
+	main#drum-preset-lab.drum-lab
+		header.drum-lab-header
+			p.eyebrow Audio test
+			h2 Drum Preset Lab
+			p Choose a percussion type, select one of its instruments, then play and shape the sound.
+
+		div.lab-browser
+			section.browser-panel.family-panel(aria-labelledby="family-heading")
+				header.panel-heading
+					div
+						p.step-label Step 1
+						h3#family-heading Type
+						p Select a family to play its first instrument.
+				nav#instrument-list.choice-list(aria-label="Percussion types")
+
+			section.browser-panel.sound-panel(aria-labelledby="sound-heading")
+				header.panel-heading
+					div
+						p.step-label Step 2
+						h3#sound-heading Instrument
+						p#sound-family-name Select a sound in Kick to play it.
+				nav#preset-list.choice-list.sound-list(aria-label="Sounds in selected percussion type")
+				div.transport
+					button#play-drum.primary(type="button") ▶ Play sound
+					button#reset-preset(type="button") Reset changes
+				output#drum-lab-status(role="status" aria-live="polite") Ready to play Default Kick.
+				p.keyboard-hint
+					strong Keyboard pitch:
+					|  1–0, Q–P, A–L and Z–M play chromatic notes from C3 to B5.
+
+			section.browser-panel.editor-panel(aria-labelledby="editor-heading")
+				header.panel-heading
+					div
+						p.step-label Step 3
+						h3#editor-heading Controls
+						p Use the slider for broad changes or type an exact value.
+				form#preset-editor(action="./test.drum-presets.pug" method="get")
+					fieldset
+						legend#editor-legend Current preset
+						div#option-controls.option-controls
+
+		section.code-panel(aria-labelledby="code-heading")
+			header.panel-heading
+				div
+					h3#code-heading Copy the preset
+					p The code updates as you adjust the sound.
+				button#copy-preset(type="button") Copy code
+			textarea#preset-code(readonly rows="18" spellcheck="false" aria-label="Generated JavaScript preset code")
+
+block scripts
+	script(type="module").
+		import {
+			DRUM_LAB_INSTRUMENTS,
+			clonePreset,
+			createPresetCode,
+			getNumericRange,
+			getPitchedPresetOptions,
+		} from './tests/drum-preset-lab.js'
+		import {
+			getKeyboardNoteAssignment,
+			getKeyboardPerformanceKey,
+		} from './hardware/keyboard/keyboard-performance.js'
+
+		const instrumentList = document.querySelector('#instrument-list')
+		const presetList = document.querySelector('#preset-list')
+		const soundFamilyName = document.querySelector('#sound-family-name')
+		const optionControls = document.querySelector('#option-controls')
+		const editorLegend = document.querySelector('#editor-legend')
+		const codeOutput = document.querySelector('#preset-code')
+		const status = document.querySelector('#drum-lab-status')
+		const playButton = document.querySelector('#play-drum')
+		const resetButton = document.querySelector('#reset-preset')
+		const copyButton = document.querySelector('#copy-preset')
+		const editor = document.querySelector('#preset-editor')
+
+		let audioContext
+		let output
+		let voiceFactory
+		let voices = []
+		let nextVoiceIndex = 0
+		let selectedInstrument = DRUM_LAB_INSTRUMENTS[0]
+		let selectedPreset = selectedInstrument.presets[0]
+		let options = clonePreset(selectedPreset.value)
+		const heldKeyboardKeys = new Set()
+		const MAX_PREVIEW_VOICES = 8
+
+		const formatLabel = property => property
+			.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+			.replace(/^./, letter => letter.toUpperCase())
+
+		const ensureAudio = async () => {
+			if (!audioContext) {
+				audioContext = new AudioContext()
+				output = audioContext.createGain()
+				output.gain.value = 0.72
+				output.connect(audioContext.destination)
+			}
+			await audioContext.resume()
+			if (!voiceFactory) {
+				const loadingInstrument = selectedInstrument
+				const module = await loadingInstrument.load()
+				if (loadingInstrument !== selectedInstrument) return ensureAudio()
+				const createVoice = module[loadingInstrument.factory]
+				if (typeof createVoice !== 'function') throw new Error(`${loadingInstrument.factory} is unavailable`)
+				voiceFactory = createVoice
+			}
+			return voiceFactory
+		}
+
+		const getNextVoice = async () => {
+			const createVoice = await ensureAudio()
+			if (voices.length < MAX_PREVIEW_VOICES) {
+				const nextVoice = createVoice(audioContext, output)
+				voices.push(nextVoice)
+				return nextVoice
+			}
+			const nextVoice = voices[nextVoiceIndex]
+			nextVoiceIndex = (nextVoiceIndex + 1) % voices.length
+			nextVoice.cancel?.()
+			return nextVoice
+		}
+
+		const resetVoices = () => {
+			voices.forEach(activeVoice => activeVoice.cancel?.())
+			voices = []
+			nextVoiceIndex = 0
+			voiceFactory = null
+		}
+
+		const updateCode = () => {
+			codeOutput.value = createPresetCode(selectedInstrument, options)
+		}
+
+		const setOption = (property, value) => {
+			options[property] = value
+			updateCode()
+		}
+
+		const createNumberControl = (property, value) => {
+			const field = document.createElement('div')
+			field.className = 'option-field number-option'
+			const id = `option-${property}`
+			const label = document.createElement('label')
+			label.htmlFor = id
+			label.textContent = formatLabel(property)
+			const range = document.createElement('input')
+			range.type = 'range'
+			range.id = id
+			range.name = property
+			const number = document.createElement('input')
+			number.type = 'number'
+			number.name = `${property}-value`
+			number.setAttribute('aria-label', `${formatLabel(property)} exact value`)
+			const bounds = getNumericRange(property, selectedInstrument.presets.map(preset => preset.value), value)
+			for (const input of [range, number]) {
+				input.min = bounds.min
+				input.max = bounds.max
+				input.step = bounds.step
+				input.value = value
+			}
+			const update = (source, target) => {
+				const next = Number(source.value)
+				if (!Number.isFinite(next)) return
+				target.value = next
+				setOption(property, next)
+			}
+			range.addEventListener('input', () => update(range, number))
+			number.addEventListener('input', () => update(number, range))
+			field.append(label, range, number)
+			return field
+		}
+
+		const createArrayControl = (property, value) => {
+			const field = document.createElement('div')
+			field.className = 'option-field array-option'
+			const id = `option-${property}`
+			const label = document.createElement('label')
+			label.htmlFor = id
+			label.textContent = formatLabel(property)
+			const input = document.createElement('textarea')
+			input.id = id
+			input.name = property
+			input.rows = 2
+			input.spellcheck = false
+			input.value = value.join(', ')
+			const error = document.createElement('span')
+			error.className = 'field-error'
+			error.id = `${id}-error`
+			input.setAttribute('aria-describedby', error.id)
+			input.addEventListener('input', () => {
+				const values = input.value.split(',').map(item => Number(item.trim()))
+				const valid = values.length > 0 && values.every(Number.isFinite)
+				input.setCustomValidity(valid ? '' : 'Enter comma-separated numbers.')
+				error.textContent = valid ? '' : 'Enter comma-separated numbers.'
+				if (valid) setOption(property, values)
+			})
+			field.append(label, input, error)
+			return field
+		}
+
+		const createTextControl = (property, value) => {
+			const field = document.createElement('div')
+			field.className = 'option-field'
+			const id = `option-${property}`
+			const label = document.createElement('label')
+			label.htmlFor = id
+			label.textContent = formatLabel(property)
+			const choices = [...new Set(selectedInstrument.presets.map(preset => preset.value[property]))]
+				.filter(choice => typeof choice === 'string')
+			let input
+			if (property !== 'name' && choices.length > 1 && choices.length <= 8) {
+				input = document.createElement('select')
+				for (const choice of choices) input.add(new Option(choice, choice))
+			}else{
+				input = document.createElement('input')
+				input.type = 'text'
+			}
+			input.id = id
+			input.name = property
+			input.value = value
+			input.addEventListener('input', () => {
+				setOption(property, input.value)
+				if (property === 'name') editorLegend.textContent = input.value || 'Untitled preset'
+			})
+			field.append(label, input)
+			return field
+		}
+
+		const createBooleanControl = (property, value) => {
+			const field = document.createElement('div')
+			field.className = 'option-field boolean-option'
+			const id = `option-${property}`
+			const input = document.createElement('input')
+			input.type = 'checkbox'
+			input.id = id
+			input.name = property
+			input.checked = value
+			const label = document.createElement('label')
+			label.htmlFor = id
+			label.textContent = formatLabel(property)
+			input.addEventListener('change', () => setOption(property, input.checked))
+			field.append(input, label)
+			return field
+		}
+
+		const renderEditor = () => {
+			optionControls.replaceChildren()
+			editorLegend.textContent = options.name
+			for (const [property, value] of Object.entries(options)) {
+				const control = Array.isArray(value)
+					? createArrayControl(property, value)
+					: typeof value === 'number'
+						? createNumberControl(property, value)
+						: typeof value === 'boolean'
+							? createBooleanControl(property, value)
+							: createTextControl(property, String(value ?? ''))
+				optionControls.append(control)
+			}
+			updateCode()
+		}
+
+		const choosePreset = preset => {
+			selectedPreset = preset
+			options = clonePreset(preset.value)
+			renderPresets()
+			renderEditor()
+			status.textContent = `Ready to play ${options.name}.`
+		}
+
+		const renderPresets = () => {
+			presetList.replaceChildren()
+			for (const preset of selectedInstrument.presets) {
+				const button = document.createElement('button')
+				button.type = 'button'
+				button.className = 'choice-button'
+				button.dataset.preset = preset.exportName
+				button.textContent = preset.value.name
+				const active = preset === selectedPreset
+				button.setAttribute('aria-pressed', String(active))
+				if (active) button.setAttribute('aria-current', 'true')
+				button.addEventListener('click', () => {
+					choosePreset(preset)
+					playSound()
+				})
+				presetList.append(button)
+			}
+			soundFamilyName.textContent = `Select a sound in ${selectedInstrument.label} to play it.`
+		}
+
+		const chooseInstrument = instrument => {
+			resetVoices()
+			selectedInstrument = instrument
+			selectedPreset = instrument.presets[0]
+			options = clonePreset(selectedPreset.value)
+			renderInstruments()
+			renderPresets()
+			renderEditor()
+			status.textContent = `Ready to play ${options.name}.`
+		}
+
+		const renderInstruments = () => {
+			instrumentList.replaceChildren()
+			for (const instrument of DRUM_LAB_INSTRUMENTS) {
+				const button = document.createElement('button')
+				button.type = 'button'
+				button.className = 'choice-button family-button'
+				button.dataset.instrument = instrument.id
+				button.innerHTML = `<span>${instrument.label}</span><small>${instrument.presets.length}</small>`
+				const active = instrument === selectedInstrument
+				button.setAttribute('aria-pressed', String(active))
+				if (active) button.setAttribute('aria-current', 'true')
+				button.addEventListener('click', () => {
+					chooseInstrument(instrument)
+					playSound()
+				})
+				instrumentList.append(button)
+			}
+		}
+
+		const playSound = async (playOptions=options, keyboardNote='') => {
+			try {
+				const currentVoice = await getNextVoice()
+				currentVoice(playOptions)
+				status.textContent = keyboardNote
+					? `Playing ${options.name} at ${keyboardNote}`
+					: `Playing ${selectedInstrument.label}: ${options.name}`
+			}catch (error) {
+				console.error(error)
+				status.textContent = `Could not play sound: ${error.message}`
+			}
+		}
+
+		const isEditableKeyboardTarget = event => event.composedPath().some(element => (
+			element?.isContentEditable === true
+			|| element?.matches?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
+		))
+
+		window.addEventListener('keydown', event => {
+			if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || isEditableKeyboardTarget(event)) return
+			const performanceKey = getKeyboardPerformanceKey(event)
+			if (!performanceKey || heldKeyboardKeys.has(performanceKey.code)) return
+			const assignment = getKeyboardNoteAssignment(performanceKey)
+			heldKeyboardKeys.add(performanceKey.code)
+			event.preventDefault()
+			const pitchedOptions = getPitchedPresetOptions(selectedInstrument.id, options, assignment.noteNumber)
+			playSound(pitchedOptions, `${assignment.noteName} · ${performanceKey.label}`)
+		})
+		window.addEventListener('keyup', event => {
+			const performanceKey = getKeyboardPerformanceKey(event)
+			if (performanceKey) heldKeyboardKeys.delete(performanceKey.code)
+		})
+		window.addEventListener('blur', () => heldKeyboardKeys.clear())
+
+		playButton.addEventListener('click', () => playSound())
+		resetButton.addEventListener('click', () => choosePreset(selectedPreset))
+		editor.addEventListener('submit', event => event.preventDefault())
+		copyButton.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(codeOutput.value)
+				status.textContent = `${options.name} code copied.`
+			}catch (error) {
+				codeOutput.focus()
+				codeOutput.select()
+				status.textContent = 'Clipboard unavailable; the code is selected for manual copying.'
+			}
+		})
+
+		renderInstruments()
+		renderPresets()
+		renderEditor()
+
+block styles
+	style.
+		html { overflow-y: auto; overscroll-behavior-y: auto; }
+		body.theme-default { display: block; min-height: 100%; overflow-x: hidden; overflow-y: visible; background: #090b10; color: #f5f7fb; }
+		body.theme-default > #intro, body.theme-default > #foot { display: none; }
+		body.theme-default > #nav-main { position: static; width: auto; min-height: 0; padding: .75rem clamp(1rem, 3vw, 2.5rem) 0; }
+		body.theme-default > #nav-main a { display: inline-block; }
+		main#drum-preset-lab.drum-lab { display: block; justify-content: initial; align-items: initial; width: min(100%, 110rem); min-width: 0; min-height: 100vh; margin: 0 auto; padding: clamp(1rem, 3vw, 2.5rem); box-sizing: border-box; }
+		.drum-lab-header { position: static; max-width: 72rem; padding: 1rem 0 1.25rem; }
+		.panel-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+		.drum-lab h2, .drum-lab h3, .drum-lab p { margin: 0; }
+		.drum-lab h2 { font-size: clamp(1.8rem, 4vw, 3.4rem); }
+		.eyebrow { color: #68e1fd; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+		.lab-browser { display: grid; grid-template-columns: minmax(14rem, .72fr) minmax(16rem, .9fr) minmax(32rem, 1.65fr); gap: 1rem; margin-top: 1rem; align-items: start; }
+		.browser-panel, .code-panel { min-width: 0; padding: clamp(1rem, 2vw, 1.5rem); border: 1px solid #343947; border-radius: .8rem; background: #0f121a; }
+		.browser-panel { display: flex; flex-direction: column; height: clamp(36rem, calc(100dvh - 10rem), 52rem); }
+		.panel-heading { flex: 0 0 auto; }
+		.step-label { color: #68e1fd !important; font-size: .72rem !important; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+		.choice-list { display: grid; flex: 1 1 auto; align-content: start; gap: .4rem; min-height: 0; margin-top: 1rem; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
+		#preset-editor { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
+		.choice-button.drum-lab-button, .drum-lab .choice-button { display: flex; width: 100%; min-height: 3rem; align-items: center; justify-content: flex-start; padding: .65rem .75rem; border-color: #30394b; background: #141a25; text-align: start; }
+		.drum-lab .family-button { justify-content: space-between; gap: .75rem; }
+		.family-button small { display: grid; flex: 0 0 2rem; min-width: 2rem; min-height: 2rem; place-items: center; border-radius: 999px; background: #232c3b; color: #b9c7dc; font-weight: 800; }
+		.drum-lab .choice-button[aria-pressed="true"] { border-color: #68e1fd; background: #0f6d83; box-shadow: inset .25rem 0 0 #ffd166; font-weight: 800; }
+		.drum-lab .choice-button[aria-pressed="true"] small { background: #081f29; color: #fff; }
+		.transport { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: .65rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #30394b; }
+		.sound-panel output { display: block; flex: 0 0 auto; min-height: 2.5rem; margin-top: .75rem; color: #b7c2d8; }
+		.keyboard-hint { flex: 0 0 auto; padding: .65rem .75rem; border-radius: .45rem; background: #0a0e15; color: #aebbd1; font-size: .78rem; line-height: 1.4; }
+		.keyboard-hint strong { color: #68e1fd; }
+		.drum-lab button, .drum-lab input, .drum-lab select, .drum-lab textarea { min-height: 3rem; box-sizing: border-box; border: 1px solid #4b5365; border-radius: .45rem; background: #141823; color: inherit; font: inherit; font-size: 1rem; line-height: 1.25; }
+		.drum-lab button { width: auto; min-width: 0; height: auto; margin: 0; padding: .65rem .9rem; cursor: pointer; }
+		.drum-lab button::before, .drum-lab button::after { display: none; }
+		.transport button { flex: 0 0 auto; max-width: 12rem; }
+		.drum-lab button:hover { border-color: #68e1fd; background: #202d3c; }
+		.drum-lab button.primary { border-color: #68e1fd; background: #0f6d83; font-weight: 800; }
+		.drum-lab :focus-visible { outline: .2rem solid #ffd166; outline-offset: .15rem; }
+		.panel-heading p { color: #98a5bd; font-size: .82rem; }
+		#preset-editor fieldset { margin: 1rem 0 0; padding: 0; border: 0; }
+		#preset-editor legend { margin-bottom: 1rem; font-size: 1.2rem; font-weight: 800; }
+		.option-controls { display: grid; gap: .85rem; }
+		.option-field { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "control" "label"; gap: .4rem .75rem; align-items: center; }
+		.option-field > label { grid-area: label; padding-top: .15rem; font-weight: 700; text-align: center; }
+		.option-field input, .option-field select, .option-field textarea { width: 100%; padding: .55rem; }
+		.option-field > input, .option-field > select, .option-field > textarea { grid-area: control; }
+		.number-option { grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 7rem); grid-template-areas: "range exact" "label label"; }
+		.number-option > input[type="range"] { grid-area: range; padding: 0; accent-color: #68e1fd; }
+		.number-option > input[type="number"] { grid-area: exact; }
+		.array-option { grid-template-areas: "control" "label" "error"; }
+		.array-option textarea { resize: vertical; }
+		.boolean-option { justify-items: center; }
+		.boolean-option input { width: 1.5rem; min-height: 1.5rem; accent-color: #68e1fd; }
+		.field-error { grid-area: error; color: #ff8f9d; font-size: .8rem; text-align: center; }
+		.code-panel { margin-top: 1rem; }
+		#preset-code { width: 100%; margin-top: 1rem; padding: 1rem; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; line-height: 1.45; }
+		@media (max-width: 78rem) { .lab-browser { grid-template-columns: 1fr; } .browser-panel { height: auto; min-height: 0; } #preset-editor { overflow: visible; } .choice-list { max-height: 24rem; } .family-panel .choice-list { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); max-height: none; overflow: visible; scrollbar-gutter: auto; } }
+		@media (max-width: 42rem) { .panel-heading { align-items: stretch; flex-direction: column; } .family-panel .choice-list { grid-template-columns: 1fr; } }
+		@media (prefers-reduced-motion: reduce) { .drum-lab * { scroll-behavior: auto !important; } }
