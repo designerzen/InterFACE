@@ -18,6 +18,6 @@ if (missingHeaders.length) {
 	process.exit(0)
 }
 
-const nodeGyp = path.join(packageRoot, 'node_modules', 'node-gyp', 'bin', 'node-gyp.js')
+const nodeGyp = require.resolve('node-gyp/bin/node-gyp.js', { paths:[packageRoot] })
 const result = spawnSync(process.execPath, [nodeGyp, 'rebuild'], { cwd:packageRoot, stdio:'inherit' })
 process.exit(result.status ?? 1)
