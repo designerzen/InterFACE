@@ -16,6 +16,13 @@
 		"xr",
 		"ar"
 	],
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": "^24.11.0",
+			"onFail": "download"
+		}
+	},
 	"main": "dist-electron/electron/main.js",
 	"targets": {
 		"main": false,
@@ -47,7 +54,7 @@
 		},
 		"web": {
 			"source": "source/sitemap.pug",
-			"distDir": "./release/web/",
+			"distDir": "./releases/web/",
 			"publicUrl": "./",
 			"context": "browser",
 			"sourceMap": false,
@@ -55,40 +62,20 @@
 		},
 		"dev": {
 			"source": "source/sitemap.pug",
-			"distDir": "./release/web/",
+			"distDir": "./releases/web/",
 			"publicUrl": "./",
 			"context": "browser",
 			"sourceMap": true
 		},
 		"service-worker": {
 			"source": "source/service-worker.js",
-			"distDir": "./release/web/",
+			"distDir": "./releases/web/",
 			"publicUrl": "./",
 			"context": "service-worker",
 			"outputFormat": "esmodule",
 			"sourceMap": false,
 			"scopeHoist": false
 		}
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"@parcel/watcher",
-			"@serialport/bindings-cpp",
-			"@swc/core",
-			"bufferutil",
-			"core-js",
-			"electron",
-			"electron-winstaller",
-			"esbuild",
-			"lmdb",
-			"midi-writer-js",
-			"msgpackr-extract",
-			"phantomjs-prebuilt",
-			"sharp",
-			"unrs-resolver",
-			"utf-8-validate",
-			"workerd"
-		]
 	},
 	"scripts": {
 		"optional": "node-gyp-build-optional-packages",

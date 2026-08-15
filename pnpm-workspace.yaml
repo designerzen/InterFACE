@@ -6,6 +6,16 @@ packages:
 
 nodeLinker: hoisted
 
+# pnpm may need to recreate node_modules after a pnpm or linker change. Dev and
+# build commands run without an interactive TTY, so allow that refresh instead
+# of aborting while waiting for confirmation.
+confirmModulesPurge: false
+
+# pnpm 11 otherwise runs an implicit install before every script when its
+# dependency metadata differs. Keep dev/build commands from mutating
+# node_modules inside a non-interactive subprocess.
+verifyDepsBeforeRun: false
+
 allowBuilds:
   '@photosynth/macos-coremidi': true
   '@photosynth/windows-midi-services': true
