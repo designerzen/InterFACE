@@ -2898,9 +2898,13 @@ export const createInterface = (
 			keyboardDisplay?.drawElement( musicalKeyboard.canvas, 40, 40, false )
 		}
 
-		if (showOverlayCanvas && stateMachine.get('performanceDrums') !== false)
+		if (showOverlayCanvas && stateMachine.get('backingTrack') && !stateMachine.get('muted'))
 		{
-			overlayDisplay?.drawBeatProgress(clock.barProgress, 4)
+			const beatCount = Math.max(16, drumArranger?.getStepsPerBar?.() ?? 16)
+			const arrangerStep = Math.max(0, drumArranger?.getStep?.() ?? 0)
+			const halfBeatProgress = ((clock.beatProgress % 0.5) + 0.5) % 0.5 * 2
+			const beatProgress = ((arrangerStep % beatCount) + halfBeatProgress) / beatCount
+			overlayDisplay?.drawBeatProgress(beatProgress, drumArranger?.getBeatSequence?.(beatCount) ?? beatCount)
 		}
 
 		if (showOverlayCanvas)
