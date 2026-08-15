@@ -77,20 +77,20 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $addon = Get-ChildItem out -Recurse -Filter photosynth_windows_midi.node | Select-Object -First 1
+          $addon = Get-ChildItem releases -Recurse -Filter photosynth_windows_midi.node | Select-Object -First 1
           if (!$addon) { throw 'Packaged application does not contain the native MIDI addon' }
           Write-Host "Packaged native MIDI addon: $($addon.FullName)"
 
       - name: Verify packaged macOS CoreMIDI 2.0 native addon
         if: runner.os == 'macOS'
         shell: bash
-        run: find out -name photosynth_macos_coremidi.node -print -quit | grep .
+        run: find releases -name photosynth_macos_coremidi.node -print -quit | grep .
 
       - name: Upload installers
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: out/make/**/*
+          path: releases/make/**/*
           if-no-files-found: error
           retention-days: 14
 
