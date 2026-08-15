@@ -151,6 +151,22 @@ const getOrderedSoundFontParts = (options = {}) => {
 	return rearrangeNotesBySnake(SOUNDFONT_NOTE_NAMES, options.startIndex)
 }
 
+const fetchSoundFontPart = async (partPath, signal) => {
+	let response
+	try {
+		response = await fetch(partPath, {signal})
+	} catch (error) {
+		throw new Error(`Failed to fetch SoundFont sample ${partPath}: ${error.message}`, {cause:error})
+	}
+
+	if (!response.ok)
+	{
+		throw new Error(`Failed to fetch SoundFont sample ${partPath}: HTTP ${response.status} ${response.statusText}`)
+	}
+
+	return response
+}
+
 const loadSoundFontPartsInBatches = async (parts, options, abortSignal, loadPart) => {
 	const simultaneous = options.simultaneous ?? 12
 	const total = parts.length || 1
@@ -217,7 +233,7 @@ self.onmessage = async (e) => {
 			try {
 				const loadedQuantity = await loadSoundFontPartsInBatches(parts, options, fetchSignal, async (note, index, getProgress) => {
 					const partPath = `${e.data.path}/${note}.${options.format ?? "mp3"}`
-					const partResponse = await fetch(partPath, { signal: fetchSignal })
+					const partResponse = await fetchSoundFontPart(partPath, fetchSignal)
 					const partArrayBuffer = await partResponse.arrayBuffer()
 					audioArrayBuffers[note] = partArrayBuffer
 					postMessage({
@@ -250,7 +266,7 @@ self.onmessage = async (e) => {
 			try {
 				const decodedQuantity = await loadSoundFontPartsInBatches(parts, options, decodeSignal, async (note, index, getProgress) => {
 					const partPath = `${e.data.path}/${note}.${options.format ?? "mp3"}`
-					const partResponse = await fetch(partPath, { signal: decodeSignal })
+					const partResponse = await fetchSoundFontPart(partPath, decodeSignal)
 					const partArrayBuffer = await partResponse.arrayBuffer()
 					if (decodeSignal.aborted) throw new DOMException('Aborted', 'AbortError')
 					const partAudioBuffer = await decode(partArrayBuffer)

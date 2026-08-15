@@ -2,6 +2,8 @@
  * Singleton Audio Bus
  */
 import { chain } from './rack'
+import { ZERO } from './audio-constants.js'
+export { ZERO } from './audio-constants.js'
 import {getInstrumentFamily, loadInstrumentFromSoundFontSamplesViaWorker, loadInstrumentFromSoundFontString, loadInstrumentFromSoundFontStringViaWorker} from './sound-font-instruments'
 // Effects
 import { createReverb, randomReverb, getImpulseList, createCustomReverb } from './effects/reverb'
@@ -64,8 +66,6 @@ export const CUSTOM_REVERB_OPTIONS = {
 } 
 
 // 
-export const ZERO = 0.0000001 // Math.min
-
 export let audioContext
 export let offlineAudioContext
 

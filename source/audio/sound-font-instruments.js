@@ -745,7 +745,8 @@ export const loadInstrumentFromSoundFontSamplesViaWorker = async( offlineAudioCo
 
 		const workerOptions = { ...options }
 		delete workerOptions.abortController
-		decoderWorker.postMessage({ command: workerCommand, path: presetSamplePath, options: workerOptions }, [])
+		const absolutePresetSamplePath = new URL(presetSamplePath, globalThis.location.href).href.replace(/\/$/, '')
+		decoderWorker.postMessage({ command: workerCommand, path: absolutePresetSamplePath, options: workerOptions }, [])
 	})
 
 	const workerLoadedAudioBuffers = await loadSampleViaWorker(path, options)

@@ -1,4 +1,4 @@
-import { ZERO } from "./audio"
+import { ZERO } from "./audio-constants.js"
 
 /**
  * create a fixed amount of instrument instances
