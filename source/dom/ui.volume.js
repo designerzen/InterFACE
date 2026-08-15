@@ -6,12 +6,17 @@ export const setupVolumeInterface = (
 	{
 		onVolumeChanged=null,
 		onPercussionVolumeChanged=null,
+		onTrimVolumeChanged=null,
+		currentPercussionVolume=null,
+		currentTrimVolume=null,
+		trimVolumeScale=4,
 		onMuteChanged=null
 	} = {}
 ) => {
 	
 	let muted = startMuted 
 	let shiftPressed = false
+	let controlPressed = false
 
 	const icon = document.querySelector('a.folder-link[href="#folder-volume"]').parentNode
 	const muteButton = document.getElementById("button-mute")
@@ -62,28 +67,58 @@ export const setupVolumeInterface = (
 	}
 
 
+	const getVolumeMode = event => {
+		if (onTrimVolumeChanged && (controlPressed || event?.ctrlKey))
+		{
+			return "trim"
+		}
+		if (onPercussionVolumeChanged && (shiftPressed || event?.shiftKey))
+		{
+			return "percussion"
+		}
+		return "master"
+	}
+
+	const showVolumeMode = mode => {
+		const volume = mode === "trim"
+			? currentTrimVolume
+			: mode === "percussion"
+				? currentPercussionVolume
+				: currentVolume
+		if (volume == null)
+		{
+			return
+		}
+		setVisualVolumeLevel(volume)
+		setMeter(mode === "trim" ? volume * trimVolumeScale : volume)
+	}
+
 	const handleVolumeChange = e => {
 
 		const volume = sliderVolume.value
-		const volumeString = setMeter(volume)
+		const mode = getVolumeMode(e)
+		const volumeString = setMeter(mode === "trim" ? volume * trimVolumeScale : volume)
 		setVisualVolumeLevel( volume, false )
-		const changingPercussion = Boolean(
-			onPercussionVolumeChanged && (shiftPressed || e.shiftKey)
-		)
-		if (!changingPercussion)
+		if (mode === "master")
 		{
 			currentVolume = volume
+		}else if (mode === "percussion"){
+			currentPercussionVolume = volume
+		}else{
+			currentTrimVolume = volume
 		}
 		console.log(
-			changingPercussion ? "slider changed percussion volume" : "slider changed volume",
+			`slider changed ${mode} volume`,
 			e,
 			volume,
 			volumeString
 		)
 		requestAnimationFrame(()=>{
-			const callback = changingPercussion
-				? onPercussionVolumeChanged
-				: onVolumeChanged
+			const callback = mode === "trim"
+				? onTrimVolumeChanged
+				: mode === "percussion"
+					? onPercussionVolumeChanged
+					: onVolumeChanged
 			callback && callback(volume)
 		})
 	}
@@ -92,16 +127,26 @@ export const setupVolumeInterface = (
 		if (event.key === "Shift")
 		{
 			shiftPressed = true
+		}else if (event.key === "Control"){
+			controlPressed = true
+		}
+		if (document.activeElement === sliderVolume)
+		{
+			showVolumeMode(getVolumeMode(event))
 		}
 	}
 
 	const handleKeyUp = event => {
-		if (event.key === "Shift" || event.type === "blur")
+		if (event.type === "blur")
 		{
 			shiftPressed = false
-			setVisualVolumeLevel(currentVolume)
-			setMeter(currentVolume)
+			controlPressed = false
+		}else if (event.key === "Shift"){
+			shiftPressed = false
+		}else if (event.key === "Control"){
+			controlPressed = false
 		}
+		showVolumeMode(getVolumeMode(event))
 	}
 
 	window.addEventListener("keydown", handleKeyDown)
