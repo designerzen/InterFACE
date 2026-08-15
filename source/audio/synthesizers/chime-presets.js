@@ -1,0 +1,6 @@
+export const DEFAULT_CHIME_OPTIONS=Object.freeze({name:"Star Chime",velocity:1,length:0.8,attack:0.001,frequency:980,partialRatios:[1,1.51,2.08,2.77,3.64],partialLevels:[1,.64,.42,.27,.16],stagger:0.012,highpass:900,outputGain:.2,pitchVariation:22,triggerAt:0})
+const preset=(name,options)=>Object.freeze({...DEFAULT_CHIME_OPTIONS,name,...options})
+export const PRESET_727_STAR_CHIME=preset("727-style Star Chime",{frequency:1120,length:.72,stagger:.008,outputGain:.19})
+export const PRESET_WIND_CHIME=preset("Wind Chime",{frequency:720,length:1.35,stagger:.045,partialRatios:[1,1.34,1.83,2.31,3.09],partialLevels:[.72,1,.58,.34,.2],outputGain:.16,pitchVariation:45})
+export const PRESET_METAL_CHIME=preset("Metal Chime",{frequency:540,length:.52,stagger:.006,highpass:420,outputGain:.23})
+export const PRESET_CHIMES=Object.freeze([PRESET_727_STAR_CHIME,PRESET_WIND_CHIME,PRESET_METAL_CHIME])

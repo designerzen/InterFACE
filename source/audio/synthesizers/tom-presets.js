@@ -296,6 +296,30 @@ export const PRESET_TIMBALE_TOM = preset({
 	sineEnd:140,
 })
 
+export const PRESET_727_HIGH_TIMBALE = preset({
+	name:"727-style High Timbale", velocity:1.05, length:0.16, attack:0.0003, decay:0.011,
+	sustain:0.78, release:0.08, triStart:520, triEnd:285,
+	sineStart:610, sineApex:480, sineSustain:350, sineEnd:250,
+})
+
+export const PRESET_727_LOW_TIMBALE = preset({
+	name:"727-style Low Timbale", velocity:1.08, length:0.2, attack:0.0003, decay:0.014,
+	sustain:0.8, release:0.1, triStart:360, triEnd:185,
+	sineStart:420, sineApex:320, sineSustain:235, sineEnd:165,
+})
+
+export const PRESET_OPEN_SURDO = preset({
+	name:"Open Surdo", velocity:1, length:0.72, attack:0.0015, decay:0.055,
+	sustain:0.72, release:0.5, triStart:105, triEnd:48,
+	sineStart:118, sineApex:88, sineSustain:62, sineEnd:42,
+})
+
+export const PRESET_MUTED_SURDO = preset({
+	name:"Muted Surdo", velocity:1, length:0.2, attack:0.0008, decay:0.022,
+	sustain:0.48, release:0.1, triStart:125, triEnd:62,
+	sineStart:138, sineApex:102, sineSustain:78, sineEnd:55,
+})
+
 export const PRESET_CONGA_TOM = preset({
 	name:"Conga-style Tom",
 	velocity:1.0,
@@ -520,6 +544,10 @@ export const PRESETS_TOMS = [
 	PRESET_BEEFY_TOM,
 	PRESET_TRIBAL_TOM,
 	PRESET_TIMBALE_TOM,
+	PRESET_727_HIGH_TIMBALE,
+	PRESET_727_LOW_TIMBALE,
+	PRESET_OPEN_SURDO,
+	PRESET_MUTED_SURDO,
 	PRESET_CONGA_TOM,
 	PRESET_BONGO_TOM,
 	PRESET_JUNGLE_TOM,

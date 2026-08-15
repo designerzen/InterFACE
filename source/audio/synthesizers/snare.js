@@ -1,4 +1,4 @@
-import { ZERO } from '../audio'
+import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers'
 
 // Snare presets live in their own file - re-export for backwards

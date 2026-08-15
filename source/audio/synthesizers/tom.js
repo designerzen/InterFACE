@@ -1,4 +1,4 @@
-import { ZERO } from '../audio'
+import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers'
 
 // Tom presets live in their own file - re-export for backwards
@@ -21,6 +21,10 @@ export {
 	PRESET_BEEFY_TOM,
 	PRESET_TRIBAL_TOM,
 	PRESET_TIMBALE_TOM,
+	PRESET_727_HIGH_TIMBALE,
+	PRESET_727_LOW_TIMBALE,
+	PRESET_OPEN_SURDO,
+	PRESET_MUTED_SURDO,
 	PRESET_CONGA_TOM,
 	PRESET_BONGO_TOM,
 	PRESET_JUNGLE_TOM,

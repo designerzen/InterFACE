@@ -758,6 +758,18 @@ export const OPEN_HIHAT_RIDE = open({
 	type:"triangle",
 })
 
+export const OPEN_HIHAT_SPLASH = open({
+	name:"Splash Cymbal", velocity:1.05, length:0.72, fundamental:64,
+	attack:0.0002, decay:0.08, sustain:0.78, release:0.38,
+	highpass:7200, bandpass:11200, ratios:[2.1,3.3,4.8,6.2,8.1,10.4], type:"square",
+})
+
+export const OPEN_HIHAT_CHINA = open({
+	name:"China Cymbal", velocity:1.18, length:1.35, fundamental:43,
+	attack:0.0002, decay:0.13, sustain:0.82, release:0.7,
+	highpass:4300, bandpass:7600, ratios:[1.7,2.65,4.2,5.45,7.2,9.8], type:"square",
+})
+
 // ============================================================
 // COLLECTIONS
 // ============================================================
@@ -825,6 +837,8 @@ export const PRESET_HIHATS_OPEN = [
 	OPEN_HIHAT_DARK,
 	OPEN_HIHAT_CRASH,
 	OPEN_HIHAT_RIDE,
+	OPEN_HIHAT_SPLASH,
+	OPEN_HIHAT_CHINA,
 ]
 
 export const PRESET_HIHATS = [

@@ -436,6 +436,18 @@ export const PRESET_AGOGO_COWBELL = preset({
 	sustain:0.88,
 })
 
+export const PRESET_727_HIGH_AGOGO = preset({
+	name:"727-style High Agogo", velocity:0.95, length:0.31, bandpass:3900,
+	ratios:[880,1320], q:7.4, waveforms:["triangle","sine"], partialLevels:[0.84,0.34],
+	outputGain:0.36, pitchSweep:4, pitchVariation:3, attack:0.0015, decay:0.02, sustain:0.82,
+})
+
+export const PRESET_727_LOW_AGOGO = preset({
+	name:"727-style Low Agogo", velocity:0.98, length:0.38, bandpass:2850,
+	ratios:[590,885], q:6.8, waveforms:["triangle","sine"], partialLevels:[0.9,0.38],
+	outputGain:0.39, pitchSweep:5, pitchVariation:3, attack:0.0018, decay:0.024, sustain:0.84,
+})
+
 export const PRESET_TRIANGLE_BELL = preset({
 	name:"Triangle Bell",
 	velocity:0.9,
@@ -600,6 +612,8 @@ export const PRESET_COWBELLS = [
 	// Exotic / tuned bell-style
 	PRESET_CASCABEL_COWBELL,
 	PRESET_AGOGO_COWBELL,
+	PRESET_727_HIGH_AGOGO,
+	PRESET_727_LOW_AGOGO,
 	PRESET_TRIANGLE_BELL,
 	PRESET_TUBULAR_BELL,
 	PRESET_WOODBLOCK_COWBELL,

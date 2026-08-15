@@ -1,4 +1,4 @@
-import { ZERO } from '../audio'
+import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers'
 
 // Cowbell presets live in their own file - re-export for backwards compat
@@ -18,6 +18,8 @@ export {
 	PRESET_SP1200_COWBELL,
 	PRESET_YAMAHA_RX5_COWBELL,
 	PRESET_ALESIS_HR16_COWBELL,
+	PRESET_727_HIGH_AGOGO,
+	PRESET_727_LOW_AGOGO,
 	PRESET_LOW_COWBELL,
 	PRESET_HIGH_COWBELL,
 	PRESET_TUNED_LOW_COWBELL,

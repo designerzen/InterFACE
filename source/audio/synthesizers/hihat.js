@@ -1,4 +1,4 @@
-import { ZERO } from '../audio'
+import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers'
 
 // Hihat presets live in their own file - re-export everything for
@@ -63,6 +63,8 @@ export {
 	OPEN_HIHAT_DARK,
 	OPEN_HIHAT_CRASH,
 	OPEN_HIHAT_RIDE,
+	OPEN_HIHAT_SPLASH,
+	OPEN_HIHAT_CHINA,
 	PRESET_HIHATS,
 	PRESET_HIHATS_CLOSED,
 	PRESET_HIHATS_OPEN,

@@ -1,4 +1,4 @@
-import { ZERO } from '../audio.js'
+import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers.js'
 
 // Presets live in their own file so they can be tweaked / extended

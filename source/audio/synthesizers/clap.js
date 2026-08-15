@@ -1,4 +1,4 @@
-import { ZERO, getPercussionNode} from '../audio'
+import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers'
 
 // Clap presets live in their own file - re-export for backwards compat

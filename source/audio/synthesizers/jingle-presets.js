@@ -1,0 +1,7 @@
+export const DEFAULT_JINGLE_OPTIONS=Object.freeze({name:"Tambourine",velocity:1,length:.28,attack:.001,decay:.08,frequencies:[2850,3640,4720,6150],levels:[1,.72,.48,.3],noiseLevel:.22,bandpass:5800,bandpassQ:.8,highpass:1800,outputGain:.24,triggerAt:0})
+const preset=(name,options)=>Object.freeze({...DEFAULT_JINGLE_OPTIONS,name,...options})
+export const PRESET_707_TAMBOURINE=preset("707-style Tambourine",{length:.2,frequencies:[3100,3980,5150,6800],noiseLevel:.3,outputGain:.23})
+export const PRESET_626_TAMBOURINE=preset("626-style Tambourine",{length:.24,frequencies:[2700,3560,4600,6040],noiseLevel:.36,bandpass:5200,outputGain:.25})
+export const PRESET_CHEKERE=preset("Chekere",{length:.34,frequencies:[1750,2380,3260,4480],levels:[.35,.28,.2,.12],noiseLevel:.75,bandpass:3400,highpass:700,outputGain:.25})
+export const PRESET_SOFT_TAMBOURINE=preset("Soft Tambourine",{length:.4,attack:.004,noiseLevel:.18,outputGain:.18})
+export const PRESET_JINGLES=Object.freeze([PRESET_SOFT_TAMBOURINE,PRESET_707_TAMBOURINE,PRESET_626_TAMBOURINE,PRESET_CHEKERE])
