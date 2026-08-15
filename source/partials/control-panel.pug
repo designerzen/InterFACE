@@ -99,7 +99,7 @@ menu#control-panel
 
 		//- label(for="button-midi-menu" ) MIDI<span class="hide-text"> Menu</span>
 		//- 	input#button-midi-menu(type="checkbox" aria-label="Show MIDI Options")
-		#control-panel-midi(hidden).folder-menu.bottom.horizontal.right
+		#control-panel-midi.advanced-only.folder-menu.bottom.horizontal.right
 			a.folder-link(href="#folder-midi" aria-label="Show MIDI instruments") <span class="hide-text">Show </span>MIDI<span class="hide-text"> options</span>
 			menu.folder-content#folder-midi
 				include midi-panel.pug
@@ -129,12 +129,6 @@ menu#control-panel
 			kbd.keyboard-shortcut(aria-hidden="true") Y
 			input#button-spectrogram(type="checkbox" aria-label="Show a funky bar chart of frequencies")
 	
-		//- Volumes -------------------------------------------------------------------------------
-		#control-panel-volume.folder-menu.inline.up
-			a.folder-link(href="#folder-volume" aria-label="Show volume controls") Volume
-			menu.folder-content#folder-volume
-				include volume-panel.pug
-				a(href="#control-panel") Return to the control menu
 
 		//- button#toggle-synth( aria-label="Swap between synth and samples" ) Swap Engines
 		
@@ -203,7 +197,6 @@ menu#control-panel
 					option(value="500")
 						span.tempo-bpm 500
 						span.tempo-label BPM
-
 		#control-panel-tempo.folder-menu.bottom.horizontal.right
 			a.folder-link(href="#folder-tempo" aria-label="Show timing options") <span class="hide-text">Show </span>tempo<span class="hide-text"> options</span>
 			menu.folder-content#folder-tempo
@@ -250,6 +243,14 @@ menu#control-panel
 				optgroup(label="Other")
 					option(value="BLUES_SCALE") Blues
 					option(value="FIFTHS_SCALE") Circle of Fifths
+
+
+		//- Volumes -------------------------------------------------------------------------------
+		#control-panel-volume.folder-menu.inline.up
+			a.folder-link(href="#folder-volume" aria-label="Show volume controls") Volume
+			menu.folder-content#folder-volume
+				include volume-panel.pug
+				a(href="#control-panel") Return to the control menu
 
 		//- put share and full screen at the end
 		button.hide-text#button-share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>

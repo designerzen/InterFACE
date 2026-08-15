@@ -1,10 +1,14 @@
-fieldset#midi-panel(hidden)
+fieldset#midi-panel
+	legend MIDI routing
 
 	//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 
 	//- Toggle MIDI ON / OFF
-	label(for="toggle-midi")
+	label.midi-enable(for="toggle-midi") Enable MIDI
 		input#toggle-midi.toggle(type="checkbox" value="Toggle MIDI" aria-label="Toggle MIDI devices" )
+
+	#midi-person-routing(aria-live="polite")
+		p.info Connect MIDI to configure each person.
 
 	//- MIDI Input options
 	#midi-input-gadgets(hidden)
@@ -15,6 +19,12 @@ fieldset#midi-panel(hidden)
 	#midi-output-gadgets(hidden)
 		label(for="midi-outputs" hidden) MIDI Devices Outputs
 			select#midi-outputs(name="midi-outputs" multiple) 
+
+	section#midi-monitor(aria-labelledby="midi-monitor-title")
+		h3#midi-monitor-title MIDI monitor
+		p#midi-monitor-empty.info No MIDI signals yet.
+		ol#midi-monitor-events(aria-live="off" aria-label="Recent MIDI signals")
+		button#midi-monitor-clear(type="button") Clear monitor
 
 
 //- If there are no devices show this item instead

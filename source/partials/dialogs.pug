@@ -151,21 +151,27 @@ dialog#pwa-updates
 		button.button-push.text-always#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
 		button.button-push.text-always.close(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
 	
-dialog#errors 
+dialog#errors(aria-labelledby="error-title" aria-describedby="error-message error-solution")
 	form(method="dialog")
-		h5 Oh no! An error has occurred!
-		p#error-message Hopefully this is a one time problem
-		p#error-solution Click the button to reload and try again
+		h5#error-title Something went wrong
+		p#error-message PhotoSYNTH could not continue.
+		p#error-solution Please try again.
 		
-		details 
-			summary More information 
+		details#error-help
+			summary#error-help-label Camera help
+			p#error-help-text
+
+		details#error-technical
+			summary#error-details-label Technical details
 			p#error-details
 
 		audio(src="./assets/audio/lemmings.wav" controls=false)
 
 		menu
-			button.button.button-push.text-always.reload-app(autofocus onclick="setTimeout(()=>window.location.reload(true))" type="button") Reload 
-			button.button.button-push.text-always.reset-app(autofocus onclick="history.replaceState( null, null, '?' ); window.location.reload();" type="button") Reset 
+			button.button.button-push.text-always.reload-app(autofocus type="button")
+				span#error-primary-label Try again
+			button.button.button-push.text-always.camera-help(type="button")
+				span#error-secondary-label Camera help
 	
 		button.close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
 
