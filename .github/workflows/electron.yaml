@@ -1,63 +1,119 @@
-name: Electron Build
+name: Electron Release
 
-on: 
-  release: 
-    types: 
-      - created
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
-    inputs:
-      publish:
-        description: 'Publish to GitHub releases'
-        required: false
-        default: 'false'
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-        node-version: [22.x]
+        include:
+          - name: Windows x64
+            os: windows-latest
+            artifact: photosynth-windows-x64
+          - name: macOS x64
+            os: macos-15-intel
+            artifact: photosynth-macos-x64
+          - name: Linux x64
+            os: ubuntu-latest
+            artifact: photosynth-linux-x64
 
     steps:
-      - name: Check out Git repository
+      - name: Check out repository
         uses: actions/checkout@v6
-        
+
       - name: Install pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 10
-          
-      - name: Install Node.js ${{ matrix.node-version }}
+          version: 11
+
+      - name: Install Node.js
         uses: actions/setup-node@v6
-        with: 
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-          
-      - name: Install dependencies
-        run: pnpm install
-        env:
-          npm_config_ignore_scripts: true
-        
-      - name: Copy assets
-        run: pnpm run assets
-        
-      - name: Build electron app
-        run: pnpm electron:make
-        
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with: 
-          name: photosynth-${{ matrix.os }}-${{ matrix.node-version }}
-          path: release
-          
-      - name: Create release assets
-        uses: softprops/action-gh-release@v3
-        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.publish == 'true'
         with:
-          files: release/**/*
-          draft: ${{ github.event_name == 'workflow_dispatch' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 22.12.0
+          cache: pnpm
+
+      - name: Prepare Windows MIDI Services SDK
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./actions/prepare-windows-midi-sdk.ps1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify Windows MIDI native addon
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $addon = 'source/electron/lib/windows-midi-services/build/Release/photosynth_windows_midi.node'
+          if (!(Test-Path $addon)) { throw "Native MIDI addon was not built: $addon" }
+
+      - name: Verify macOS CoreMIDI 2.0 native addon
+        if: runner.os == 'macOS'
+        shell: bash
+        run: test -f source/electron/lib/macos-coremidi/build/Release/photosynth_macos_coremidi.node
+
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+
+      - name: Test
+        run: pnpm test -- --runInBand
+
+      - name: Build installers
+        run: pnpm run electron:make
+
+      - name: Verify packaged Windows MIDI native addon
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $addon = Get-ChildItem out -Recurse -Filter photosynth_windows_midi.node | Select-Object -First 1
+          if (!$addon) { throw 'Packaged application does not contain the native MIDI addon' }
+          Write-Host "Packaged native MIDI addon: $($addon.FullName)"
+
+      - name: Verify packaged macOS CoreMIDI 2.0 native addon
+        if: runner.os == 'macOS'
+        shell: bash
+        run: find out -name photosynth_macos_coremidi.node -print -quit | grep .
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: out/make/**/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Create GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@v8
+        with:
+          pattern: photosynth-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: release-assets/**/*
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
