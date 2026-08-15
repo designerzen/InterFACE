@@ -1,6 +1,35 @@
-import { createReloadButton } from '../dom/button'
+import { ERROR_INTERFACE, ERROR_MESSAGES } from '../locales/errors.en-GB.js'
 
-export const showError = (error, solution, fatal=false, details="" ) => {
+export const getErrorMessage = code => ERROR_MESSAGES[code] ?? null
+
+export const getCameraErrorCode = error => {
+	switch (error?.name) {
+		case 'NotAllowedError':
+		case 'SecurityError': return 'camera-permission-denied'
+		case 'NotFoundError':
+		case 'DevicesNotFoundError': return 'camera-not-found'
+		case 'NotReadableError':
+		case 'TrackStartError':
+		case 'AbortError': return 'camera-in-use'
+		default: return 'camera-unavailable'
+	}
+}
+
+const setText = (id, text) => {
+	const element = document.getElementById(id)
+	if (element) element.textContent = text
+}
+
+export const showErrorCode = (code, { fatal=true, details='' }={}) => {
+	const message = getErrorMessage(code) ?? ERROR_MESSAGES['camera-unavailable']
+	showError(message.problem, message.solution, fatal, details, {
+		title:message.title,
+		primaryAction:message.primaryAction,
+		secondaryAction:message.secondaryAction,
+	})
+}
+
+export const showError = (error, solution, fatal=false, details="", options={} ) => {
  
 	const body = document.documentElement
 
@@ -9,7 +38,10 @@ export const showError = (error, solution, fatal=false, details="" ) => {
 
 	// TODO: show the error messages on screen in a dialog
 	const dialog = document.getElementById("errors")
-	dialog.open = true
+	if (!dialog.open) {
+		if (typeof dialog.showModal === 'function') dialog.showModal()
+		else dialog.open = true
+	}
 
 	if (fatal)
 	{
@@ -34,8 +66,21 @@ export const showError = (error, solution, fatal=false, details="" ) => {
 	dialog.classList.toggle("fatal", fatal)
 	dialog.querySelector("button.close").hidden = fatal
 
-	document.getElementById("error-message").innerText = error
-	document.getElementById("error-solution").innerText = solution ?? "Please refresh the browser or try a different one such as Google's Chrome."
+	setText('error-title', options.title ?? 'Something went wrong')
+	setText('error-message', error)
+	setText('error-solution', solution ?? 'Try again. If the problem continues, check your device settings.')
+	setText('error-primary-label', options.primaryAction ?? 'Try again')
+	setText('error-secondary-label', options.secondaryAction ?? ERROR_INTERFACE.cameraHelpLabel)
+	setText('error-help-label', ERROR_INTERFACE.cameraHelpLabel)
+	setText('error-help-text', ERROR_INTERFACE.cameraHelp)
+	setText('error-details-label', ERROR_INTERFACE.detailsLabel)
+
+	dialog.querySelector('.reload-app').onclick = () => window.location.reload()
+	const help = document.getElementById('error-help')
+	dialog.querySelector('.camera-help').onclick = () => {
+		help.open = true
+		help.querySelector('summary')?.focus()
+	}
 	
 	const errorDetailsElement = document.getElementById("error-details")
 	if (details.length > 0)
