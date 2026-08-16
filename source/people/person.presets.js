@@ -9,7 +9,8 @@ export const PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS = 0
 export const PERSON_TYPE_CHROMATIC = 1
 export const PERSON_TYPE_ARPEGGIO = 2
 export const PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS = 3
-export const PERSON_TYPE_PLAYER = 4
+export const PERSON_TYPE_HARP = 4
+export const PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS = 5
 
 export const PERSON_TYPE_DATA = [
 	{
@@ -17,6 +18,7 @@ export const PERSON_TYPE_DATA = [
 		name:"〇",
 		description:"Sympathetic Circle of Fifths",
 		arpeggiate:false,
+		noteSequence:"circle-of-fifths",
 		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
 		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS,
 	},
@@ -24,6 +26,7 @@ export const PERSON_TYPE_DATA = [
 		name:"12",
 		description:"Classical Chromatic",
 		arpeggiate:false,
+		noteSequence:"chromatic",
 		leftFacingKeys:NOTES_BLACK,
 		rightFacingKeys:NOTES_WHITE,
 	},
@@ -31,6 +34,7 @@ export const PERSON_TYPE_DATA = [
 		name:"ARP",
 		description:"Arpeggio",
 		arpeggiate:true,
+		noteSequence:"chromatic",
 		// leftFacingKeys:SCALE_LIBRARY.get("C MAJOR"),
 		// rightFacingKeys:SCALE_LIBRARY.get("C MINOR"),
 		leftFacingKeys:NOTES_BLACK,
@@ -40,16 +44,27 @@ export const PERSON_TYPE_DATA = [
 		name:"⯂",
 		description:"Arpeggio Circle of Fifths",
 		arpeggiate:true,
+		noteSequence:"circle-of-fifths",
 		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
 		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS
 	},
 	{
-		name:"PTS",
-		description:"Player",
-		arpeggiate:false,
+		name:"HARP",
+		description:"Harp arpeggio",
+		arpeggiate:true,
+		performanceMode:"harp",
+		noteSequence:"chromatic",
 		leftFacingKeys:NOTES_BLACK,
-		rightFacingKeys:NOTES_WHITE,
-		isPlayer:true
+		rightFacingKeys:NOTES_WHITE
+	},
+	{
+		name:"H◯",
+		description:"Harp Circle of Fifths",
+		arpeggiate:true,
+		performanceMode:"harp",
+		noteSequence:"circle-of-fifths",
+		leftFacingKeys:NOTES_CIRCLE_OF_FIFTHS_SHARPS,
+		rightFacingKeys:NOTES_CIRCLE_OF_FIFTHS_NO_SHARPS
 	}
 ]
 
@@ -57,10 +72,6 @@ export const normalisePersonOperatingMode = (operatingMode=0) => {
 	const parsedMode = Number.parseInt(operatingMode, 10)
 	const safeMode = Number.isFinite(parsedMode) ? parsedMode : 0
 	return ((safeMode % PERSON_TYPE_DATA.length) + PERSON_TYPE_DATA.length) % PERSON_TYPE_DATA.length
-}
-
-export const isPlayerOperatingMode = (operatingMode=0) => {
-	return normalisePersonOperatingMode(operatingMode) === PERSON_TYPE_PLAYER
 }
 
 export const configurePersonKey = (person) => {
@@ -102,6 +113,10 @@ export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 
 	person.leftFacingKeys = data.leftFacingKeys
 	person.rightFacingKeys = data.rightFacingKeys
+	if (person.options)
+	{
+		person.options.noteSequence = data.noteSequence
+	}
 	person.harmonyKeyCacheKey = null
 	configurePersonKey(person)
 	if (person.activeInstrument) {

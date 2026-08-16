@@ -35,6 +35,8 @@ import {
 	DEFAULT_PEOPLE_OPTIONS,
 	DEFAULT_VOICE_OPTIONS,
 	NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC,
+	normalisePointsOverride,
+	resolvePointsEnabled,
 	NAMES,
 	IDENTIFIERS
 } from '../settings/options.people.js'
@@ -99,13 +101,13 @@ import { getCleff, getNotationForNoteNumber, getStaffSlotForNoteNumber, getStave
 import { 
 	configurePersonKey,
 	configurePersonByOperatingMode,
-	isPlayerOperatingMode,
 	normalisePersonOperatingMode,
 	PERSON_TYPE_ARPEGGIO, 
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS, 
 	PERSON_TYPE_CHROMATIC, 
 	PERSON_TYPE_DATA, 
-	PERSON_TYPE_PLAYER,
+	PERSON_TYPE_HARP,
+	PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS 
 } from "./person.presets.js"
 
@@ -118,15 +120,15 @@ import PersonEvent, {
 } from './person-event.js'
 import Achievements from './person-achievements.js'
 import PersonalProgress from './person-progress.js'
-import { PERSON_TEXT_CHANGE_INSTRUMENT, PERSON_TEXT_SWITCH_INSTRUMENT } from './person-text.js'
+import { getRecentAchievementLabel, PERSON_TEXT_CHANGE_INSTRUMENT, PERSON_TEXT_SWITCH_INSTRUMENT } from './person-text.js'
 
 export {
 	PERSON_TYPE_ARPEGGIO,
 	PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS,
 	PERSON_TYPE_CHROMATIC,
-	PERSON_TYPE_PLAYER,
-	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS,
-	isPlayerOperatingMode
+	PERSON_TYPE_HARP,
+	PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS,
+	PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
 } from "./person.presets.js"
 
 export {
@@ -148,7 +150,6 @@ export {
 const EXPORT_DELIMITER = ","
 const MIDI_ROUTING_AUTO = "auto"
 const MIDI_ROUTING_ALL = "all"
-const ACHIEVEMENT_MESSAGE_DURATION = 3500
 const NOTE_SEQUENCE_TO_KEY_SCALE = new Map([
 	["circle-of-fifths", "FIFTHS_SCALE"],
 	["chromatic", "CHROMATIC_SCALE"],
@@ -461,12 +462,30 @@ export default class Person extends EventTarget{
 		return this.userModeData.description
 	}
 
-	get isPlayerMode(){
-		return isPlayerOperatingMode(this.userMode)
+	get pointsEnabled(){
+		return resolvePointsEnabled(this.options?.showPoints, this.options?.showPointsOverride)
 	}
 
 	get achievementPoints(){
 		return this.personalProgress?.achievementPoints ?? 0
+	}
+
+	syncPointsTracking(pointsWereEnabled = false){
+		if (!this.personalProgress || pointsWereEnabled === this.pointsEnabled)
+		{
+			return this.pointsEnabled
+		}
+
+		if (this.pointsEnabled)
+		{
+			this.handleUnlockedAchievements(this.personalProgress.startPlayerMode(this.now), {trigger:"points-mode"})
+			this.trackEmotionAchievement(this.emoticon)
+		}else{
+			this.handleUnlockedAchievements(this.personalProgress.stopPlayerMode(this.now), {trigger:"points-mode"})
+			this.recentAchievement = null
+			this.recentAchievementAt = -1
+		}
+		return this.pointsEnabled
 	}
 
 	getExperiencedExpressions(){
@@ -861,29 +880,22 @@ export default class Person extends EventTarget{
 	 * Change the User Operating Mode
 	 */
 	set userMode( mode ){
-		const previousMode = this.userMode
 		const normalisedMode = normalisePersonOperatingMode(mode)
 		this.#userMode = normalisedMode
 		this.options.inputMode = normalisedMode
-		if (normalisedMode === PERSON_TYPE_PLAYER && previousMode !== PERSON_TYPE_PLAYER)
-		{
-			this.handleUnlockedAchievements(this.personalProgress?.startPlayerMode(this.now), {trigger:"player-mode"})
-			this.trackEmotionAchievement(this.emoticon)
-		}
-		if (normalisedMode !== PERSON_TYPE_PLAYER)
-		{
-			this.handleUnlockedAchievements(this.personalProgress?.stopPlayerMode(this.now), {trigger:"player-mode"})
-			this.recentAchievement = null
-			this.recentAchievementAt = -1
-		}
 		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode:normalisedMode, person:this} )
 	}
 
 	setOptions(options={}){
+		const pointsWereEnabled = this.pointsEnabled
 		const emojiMoodChanged = Object.prototype.hasOwnProperty.call(options, "emojiMood") && options.emojiMood !== this.options.emojiMood
 		if (Object.prototype.hasOwnProperty.call(options, "emojiMood"))
 		{
 			options = { ...options, emojiMood:normaliseEmojiMood(options.emojiMood) }
+		}
+		if (Object.prototype.hasOwnProperty.call(options, "showPointsOverride"))
+		{
+			options = { ...options, showPointsOverride:normalisePointsOverride(options.showPointsOverride) }
 		}
 		const harmonyUnchanged = (
 			!Object.prototype.hasOwnProperty.call(options, "tonic") || options.tonic === this.options.tonic
@@ -893,6 +905,7 @@ export default class Person extends EventTarget{
 			!Object.prototype.hasOwnProperty.call(options, "harmonyMode") || options.harmonyMode === this.options.harmonyMode
 		)
 		this.options = { ...this.options, ...options }
+		this.syncPointsTracking(pointsWereEnabled)
 		if (Object.prototype.hasOwnProperty.call(options, "trim"))
 		{
 			this.trim = options.trim
@@ -965,6 +978,7 @@ export default class Person extends EventTarget{
 		this.abortController = new AbortController()
 		this.achievements = new Achievements()
 		this.personalProgress = new PersonalProgress()
+		this.syncPointsTracking(false)
 
 		// allow us to record the performances (not the audio)
 		// useful for showing recordings of a person
@@ -1171,7 +1185,7 @@ export default class Person extends EventTarget{
 	}
 
 	trackEmotionAchievement(emoticon){
-		if (!this.isPlayerMode)
+		if (!this.pointsEnabled)
 		{
 			return false
 		}
@@ -1183,7 +1197,7 @@ export default class Person extends EventTarget{
 	}
 
 	trackNoteAchievement(noteNumber = this.noteNumber, state = this.state, time = this.now){
-		if (!this.isPlayerMode)
+		if (!this.pointsEnabled)
 		{
 			return false
 		}
@@ -1293,7 +1307,7 @@ export default class Person extends EventTarget{
 		}
 		
 		this.lastTimeActive = timeNow
-		if (this.isPlayerMode)
+		if (this.pointsEnabled)
 		{
 			this.handleUnlockedAchievements(this.personalProgress.tick(timeNow ?? this.now), {trigger:"engagement"})
 		}
@@ -1717,16 +1731,9 @@ export default class Person extends EventTarget{
 		{
 			return this.options.noteSequence
 		}
-		if (this.userMode === PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS ||
-			this.userMode === PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS)
+		if (this.userModeData?.noteSequence)
 		{
-			return "circle-of-fifths"
-		}
-		if (this.userMode === PERSON_TYPE_CHROMATIC ||
-			this.userMode === PERSON_TYPE_ARPEGGIO ||
-			this.userMode === PERSON_TYPE_PLAYER)
-		{
-			return "chromatic"
+			return this.userModeData.noteSequence
 		}
 		return KEY_SCALE_TO_NOTE_SEQUENCE.get(this.options.keyScale) ?? "major"
 	}
@@ -1829,6 +1836,11 @@ export default class Person extends EventTarget{
 			case "autoRepeat":
 				this.setOptions({ autoRepeat:value })
 				return persistPanelOption({ autoRepeat:value })
+			case "showPointsOverride": {
+				const showPointsOverride = normalisePointsOverride(value)
+				this.setOptions({ showPointsOverride })
+				return persistPanelOption({ showPointsOverride })
+			}
 			case "noteParticleGraphics":
 				this.setOptions({ noteParticleGraphics:value || NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC })
 				return persistPanelOption({ noteParticleGraphics:this.options.noteParticleGraphics })
@@ -2005,17 +2017,7 @@ export default class Person extends EventTarget{
 	}
 
 	getRecentAchievementLabel(){
-		const hasRecentAchievement = this.recentAchievement && this.now - this.recentAchievementAt < ACHIEVEMENT_MESSAGE_DURATION
-		if (!hasRecentAchievement)
-		{
-			return null
-		}
-
-		const { achievement, emoticon } = this.recentAchievement
-		return {
-			title:`+${achievement.score} ${achievement.title}`,
-			style:achievement.message ?? emoticon ?? ""
-		}
+		return getRecentAchievementLabel(this.recentAchievement, this.recentAchievementAt, this.now)
 	}
 
 
@@ -2162,20 +2164,29 @@ export default class Person extends EventTarget{
 					
 			// const suffix = this.singing ? MUSICAL_NOTES[this.counter%(MUSICAL_NOTES.length-1)] : this.isMouthOpen ? `<` : ` ${this.lastNoteSound}`
 			const textPitchBend = this.pitchBendValue && this.pitchBendValue !== 1 ? " / ↝ "+(Math.ceil(this.pitchBendValue* 100) - 100) : ""
-			const recentAchievementLabel = this.isPlayerMode ? this.getRecentAchievementLabel() : null
-			if (recentAchievementLabel)
-			{
-				title = recentAchievementLabel.title
-				style = recentAchievementLabel.style
-			}
 			
 			// flash if selected?
 			this.drawInstrumentText( display, textX, textY, title, style)
 			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll, prediction )
 		
-			if (this.isPlayerMode)
+			if (this.pointsEnabled)
 			{
 				display.drawText(textX, textY + NOTE_TEXT_OFFSET_Y, `${formatAchievementPoints(this.achievementPoints)} XP`, 22 )
+				const recentAchievementLabel = this.getRecentAchievementLabel()
+				if (recentAchievementLabel)
+				{
+					display.drawParagraph(
+						textX,
+						textY + BUTTON_HINT_OFFSET_Y,
+						[recentAchievementLabel.title, recentAchievementLabel.style].filter(Boolean),
+						12,
+						16,
+						false,
+						"center",
+						"Oxanium",
+						Math.max(personTextWidth, 220)
+					)
+				}
 
 			}else if (this.options.musicTheory){
 				// visual music mode - so no letters, only musical notes!
@@ -3505,7 +3516,8 @@ export default class Person extends EventTarget{
 			instrumentType: parts[1] ?? INSTRUMENT_TYPE_SOUNDFONT,
 			userMode: parseInt(parts[2] ?? -1),
 			autoRepeat: parts[3] === undefined ? undefined : parts[3] === "true",
-			noteParticleGraphics:parts[4]
+			noteParticleGraphics:parts[4],
+			showPointsOverride:parts[5] === undefined ? undefined : normalisePointsOverride(parts[5])
 		}
 				
 		console.error( "parseDataExport", {data, parts, shape} )
@@ -3520,7 +3532,7 @@ export default class Person extends EventTarget{
 	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined ){
+	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined, showPointsOverride=undefined ){
 		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
 	}
 
@@ -3530,7 +3542,8 @@ export default class Person extends EventTarget{
 			this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT,
 			this.userMode,
 			this.options.autoRepeat,
-			this.options.noteParticleGraphics
+			this.options.noteParticleGraphics,
+			this.options.showPointsOverride
 		)
 	}
 
@@ -3546,6 +3559,10 @@ export default class Person extends EventTarget{
 		if (data.noteParticleGraphics)
 		{
 			options.noteParticleGraphics = data.noteParticleGraphics
+		}
+		if (data.showPointsOverride)
+		{
+			options.showPointsOverride = normalisePointsOverride(data.showPointsOverride)
 		}
 		return options
 	}

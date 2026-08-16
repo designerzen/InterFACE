@@ -15,6 +15,35 @@ export const IDENTIFIERS = ['a','b','c','d'].map( m => `person-${m}` )
 
 export const EYE_COLOURS = ['blue','green','brown','orange']
 
+export const POINTS_OVERRIDE_INHERIT = "inherit"
+export const POINTS_OVERRIDE_ON = "on"
+export const POINTS_OVERRIDE_OFF = "off"
+
+export const normalisePointsOverride = value => {
+	if (value === true || value === POINTS_OVERRIDE_ON)
+	{
+		return POINTS_OVERRIDE_ON
+	}
+	if (value === false || value === POINTS_OVERRIDE_OFF)
+	{
+		return POINTS_OVERRIDE_OFF
+	}
+	return POINTS_OVERRIDE_INHERIT
+}
+
+export const resolvePointsEnabled = (globalValue, override=POINTS_OVERRIDE_INHERIT) => {
+	const normalisedOverride = normalisePointsOverride(override)
+	if (normalisedOverride === POINTS_OVERRIDE_ON)
+	{
+		return true
+	}
+	if (normalisedOverride === POINTS_OVERRIDE_OFF)
+	{
+		return false
+	}
+	return Boolean(globalValue)
+}
+
 export const DEFAULT_VOICE_OPTIONS = {
 	yaw:0, pitch:0, roll:0,
 	hue:90,
@@ -126,6 +155,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// display active harmonies as chord labels instead of listing each note
 	showChordNames:false,
+
+	// inherit the global points display, or explicitly use "on" / "off"
+	showPointsOverride:POINTS_OVERRIDE_INHERIT,
 
 	// which ordered note set the player chooses from
 	noteSequence:null,

@@ -163,6 +163,8 @@ export const DEFAULT_OPTIONS = {
 	quantise:true,
 	// show the person's texts above them
 	text:true,
+	// show and track achievement points independently of the musical play style
+	showPoints:false,
 	// show the connected input devices HUD at the bottom of the screen
 	hud:true,
 	// show the separate overlay canvas used for text and other overlay-only drawings
