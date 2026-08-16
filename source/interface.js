@@ -1600,6 +1600,7 @@ export const createInterface = (
 				instrumentPack:stateMachine.get('instrumentPack'),
 				midiPercussion:stateMachine.get('midi') && stateMachine.get('midiPercussion'),
 				performanceDrums:stateMachine.get('performanceDrums') !== false,
+				showPoints:stateMachine.get('showPoints') === true,
 
 				stereoPan:stateMachine.get('stereo'),
 
@@ -2901,7 +2902,9 @@ export const createInterface = (
 		const beatVizMode = stateMachine.get('beatViz') ?? 'summary'
 		if (showOverlayCanvas && stateMachine.get('backingTrack') && !stateMachine.get('muted') && beatVizMode !== 'disabled')
 		{
-			const beatCount = Math.max(16, drumArranger?.getStepsPerBar?.() ?? 16)
+			const baseBeatCount = Math.max(16, drumArranger?.getStepsPerBar?.() ?? 16)
+			const verticalBars = (overlayDisplay?.height ?? 0) >= baseBeatCount * 3 * 5 + 40 ? 3 : 2
+			const beatCount = beatVizMode === 'vertical' ? baseBeatCount * verticalBars : baseBeatCount
 			const arrangerStep = Math.max(0, drumArranger?.getStep?.() ?? 0)
 			const halfBeatProgress = ((clock.beatProgress % 0.5) + 0.5) % 0.5 * 2
 			const beatProgress = ((arrangerStep % beatCount) + halfBeatProgress) / beatCount
@@ -4062,6 +4065,12 @@ export const createInterface = (
 			stateMachine.set( 'quantise', status )
 			setFeedback("Quantise " + (stateMachine.get( 'quantise') ? 'Enabled' : 'Disabled'), 0, stateMachine.get( 'quantise') ? 'quantised' : 'unquantised'  )
 		}, stateMachine.get( 'quantise') )
+
+		toggles.points = setToggle("button-points", status => {
+			stateMachine.set('showPoints', status)
+			personManager.setPlayerOption('showPoints', status)
+			setFeedback(`Points ${status ? 'enabled' : 'disabled'}`, 0, 'points')
+		}, stateMachine.get('showPoints'))
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
