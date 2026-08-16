@@ -22,6 +22,9 @@
 	grid-auto-flow: column;
 	grid-template-rows: auto minmax(auto,42ch) min-content;
 	gap:var(--pad, 1rem);
+	
+	// FIXME: WOOLY
+	max-height: calc( 85vh - 44px );
 }
 
 label[for="volume-input-range"]{

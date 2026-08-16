@@ -108,6 +108,9 @@ menu#control-panel
 		label(for="button-quantise") Quantise
 			input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
 
+		label(for="button-points") Points<span class="hide-text"> and achievements</span>
+			input#button-points(type="checkbox" aria-label="Show and track points for players")
+
 	
 		//- Percussion and background accompanyment 
 		label.keyboard-shortcut-control(for="button-percussion") Beats <span class="hide-text"> to jam along to</span>
@@ -275,19 +278,19 @@ menu#control-panel
 
 	//- Percussion settings for all users ----------------------------------------------------
 	menu#percussion-settings.controls(aria-label="Beat and drum settings")
-		button#button-randomise-percussion(type="button") Randomise All
-		label(for="select-percussion-preset") <span class="hide-text">Choose </span>Percussion
+		button#button-randomise-percussion(type="button") Remix<span class="hide-text"> backing beats</span>
+		
+		label(for="select-percussion-preset") <span class="hide-text">Choose </span>Drum Preset
 			select#select-percussion-preset(aria-label="Select a percussion preset" name="select-percussion-preset")
 				option(value="", selected) Random
 
-		label(for="select-percussion-pattern") <span class="hide-text">Choose percussion </span>Pattern
+		label(for="select-percussion-pattern") <span class="hide-text">Choose </span>Drum Sounds
 			select#select-percussion-pattern(aria-label="Select a percussion pattern" name="select-percussion-pattern")
 				option(value="", selected) Random
 
-		label(for="select-percussion-sound") <span class="hide-text">Choose percussion </span>Sound
+		label(for="select-percussion-sound") <span class="hide-text">Choose </span>Drum Sounds
 			select#select-percussion-sound(aria-label="Select a percussion sound preset" name="select-percussion-sound")
 				option(value="", selected) Random
-
 
 		label(for="button-rapid-percussion") Rapid Hits<span class="hide-text"> including triplets and subdivisions</span>
 			input#button-rapid-percussion(type="checkbox" aria-label="Enable rapid percussion triplets and subdivisions")
@@ -303,13 +306,23 @@ menu#control-panel
 		label(for="button-performance-drums") Performance<span class="hide-text"> controls percussion activity</span>
 			input#button-performance-drums(type="checkbox" aria-label="Allow user performance to affect percussion")
 
-		label(for="button-midi-percussion") Send Percussion<span class="hide-text"> to MIDI outputs</span>
+		label(for="button-midi-percussion") Send MIDI<span class="hide-text"> drum arrangements</span>
 			input#button-midi-percussion(type="checkbox" aria-label="Send percussion to MIDI outputs")
 
 	//- Settings for all users --------------------------------------------------------------- 
 	menu#settings.controls
 
 		legend Global settings and options
+
+		label(for="select-keyboard-mode") Keyboard Mode
+			select#select-keyboard-mode(name="keyboard-mode" required aria-describedby="keyboard-mode-help")
+				option(value="operational") Operational
+				option(value="notes") Notes
+				option(value="notes-high") Notes +1 Octave
+				option(value="chords") Chords
+				option(value="percussion") Percussion
+				option(value="samples") Samples
+			small#keyboard-mode-help.sr-only Page Up and Page Down also change keyboard mode.
 
 		//- only appears when there are multiple cameras on the computer?
 		//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?

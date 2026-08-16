@@ -214,6 +214,13 @@
 		}
 	}
 
+	label[for="button-points"]{
+		--col-select:var(--shade-yellow);
+		--col-hover:var(--shade-green);
+		--bg:url(/source/assets/icons/star_rate-24px.svg);
+		anchor-name:--button-points;
+	}
+
 	label[for="button-toggle-overlay"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-blue);
@@ -289,7 +296,8 @@
 
 	label[for="select-percussion-preset"],
 	label[for="select-percussion-pattern"],
-	label[for="select-percussion-sound"]{
+	label[for="select-percussion-sound"],
+	label[for="select-beat-viz"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-yellow);
 		--bg:url(/source/assets/icons/music_note-24px.svg);
@@ -329,6 +337,13 @@
 		--col-hover:var(--shade-yellow);
 		--bg:url(/source/assets/icons/speed-24px.svg);
 		anchor-name:--button-rapid-percussion;
+	}
+
+	label[for="select-beat-viz"]{
+		--col-select:var(--shade-green);
+		--col-hover:var(--shade-yellow);
+		--bg:url(/source/assets/icons/grid_on-24px.svg);
+		anchor-name:--select-beat-viz;
 	}
 
 	label[for="button-performance-drums"]{

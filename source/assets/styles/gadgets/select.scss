@@ -12,7 +12,7 @@ select {
 	padding-right: 1em;
 }
   
-select:not([multiple]):not([size]) {
+select:not(.select-content):not([multiple]):not([size]) {
 	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M4 0h6L7 4'/%3E%3C/svg%3E");
 }
 
@@ -25,24 +25,11 @@ select:not([multiple]):not([size]) {
 		border:0;
 		position: absolute;
 		inset:0;
+		background: none;
+		color: transparent;
 		opacity: 0;
 		text-shadow: none;
 	}	
-
-	label:has(select.select-content):hover{
-		color:transparent;
-		text-shadow: none;
-
-		// The customizable select supplies its own picker icon.
-		// Hide the label's legacy chevron while the select is visible.
-		&::before {
-			opacity: 0;
-		}
-
-		select.select-content{
-			opacity: 1;
-		}
-	}
 
 	select.select-content {
 		--gap: calc(var(--pad) * 0.5);
@@ -111,11 +98,19 @@ select:not([multiple]):not([size]) {
 		&::picker-icon {
 			color: var(--shade-grey);
 			margin-inline-start: auto;
+			opacity: 0;
 			transition: rotate var(--duration);
 		}
 
 		&:open::picker-icon {
 			rotate: 180deg;
+		}
+
+		// Keep the full-tile trigger visually hidden when closed. Revealing
+		// only the open control allows its top-layer picker to remain visible
+		// without replacing or resizing the surrounding tile label.
+		&:open {
+			opacity: 1;
 		}
 
 		// Dropdown picker panel
@@ -165,6 +160,7 @@ select:not([multiple]):not([size]) {
 			border:0;
 			background: none;
 			color:inherit;
+			opacity: 0;
 			outline:none;
 			border-radius: 0;
 			box-shadow: none;

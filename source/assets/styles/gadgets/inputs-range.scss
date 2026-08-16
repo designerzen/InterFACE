@@ -1,6 +1,6 @@
 // RANGE SLIDERS AND DIALS! ----------------------------
-$track-w: 4.5em;
-$track-h: .75rem;
+$track-w: 5em;
+$track-h: 1rem;
 $thumb-d: 44px;
 
 // NB. The only required properties for the track are the height and background.
@@ -38,8 +38,8 @@ $thumb-d: 44px;
 	// use the following formula and apply it to the margin-top property:
 	// margin-top = (track height in pixels / 2) - (thumb height in pixels /2)
 	@if $o > 0 {
-		transform: translateY( calc(-50% + 6px) );
-		// margin-top: calc(( #{ $thumb-d} + #{$track-h}) / -2 );
+		//transform: translateY( calc(-50% + 6px) );
+		margin-top: calc(( #{ $thumb-d} + #{$track-h}) / -2 );
 	}
 
 	width: $thumb-d;
@@ -353,7 +353,8 @@ input[type=range].vertical{
 
 // if the input is directly inside the label we assume the label is the correct size
 label > input[type=range].vertical{
-	height: 100%;
+	min-height: 100%;
+	height:max-content;
 }
 
 /*

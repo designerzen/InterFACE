@@ -70,6 +70,9 @@ nav#menu
 
 // these are sub menus that overlay the main menu
 .folder-content{
+
+	--bg:url(/source/assets/icons/expand_more-24px-white.svg);
+		
 	margin:0;
 	padding:0;
 	// padding-top:100%;
@@ -139,19 +142,19 @@ nav#menu
 	// }
 	
 
-	// close button
+	// close buttons
+	&::after,
 	a:last-of-type{
 		--size:44px;
-		--bg:url(/source/assets/icons/expand_more-24px-white.svg);
 		// content:'X';
 		// outline:3px solid green;
 		position:absolute;
+		
 		top:0;//calc( -1 * var(--height, 1rem) );
 		left:0;
 		bottom:0;
 		right:0;
 
-		
 		color:transparent;
 		text-align: center;
 		
@@ -180,6 +183,12 @@ nav#menu
 			animation:Pulse 0.9s infinite 0s both alternate;
 		}
 	}
+
+	&::after{
+		// left:auto;
+		// right:auto;
+		pointer-events: none;
+	}
 }
 
 .folder-menu.inline.up{
@@ -189,11 +198,19 @@ nav#menu
 	.folder-content{
 		left:0;
 		right:0;
-		padding-bottom:100%;
-
+		// padding-bottom:100%;
+		// margin-bottom:-100%;
 		bottom:0;
 		bottom:100%;
-		margin-bottom:-100%;
+
+		// place a fake close button below it
+		&::after{
+			content:'';
+			top:100%;
+			bottom: auto;
+			height: 0;
+			padding-bottom: 100%;
+		}
 	}
 }
 
