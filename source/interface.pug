@@ -29,8 +29,8 @@ block main
 		
 	main#app(aria-describedby="progress-bar")
 		
-		h3(screenreader-only)#title Augmented Reality Synthesizer
-		h4(screenreader-only)#subtitle 
+		h3(screenreader-only)#title Emotionally Controlled Synthesizer
+		h4(screenreader-only)#subtitle Use your moods to make music.
 
 		p(role="status" aria-live="polite" popover="manual")#feedback Loading please wait!
 		include partials/toast.pug		
@@ -40,7 +40,7 @@ block main
 			.qr 
 				img(src="/source/assets/qr/interface.place-red.png" alt="QR code linking to the PhotoSYNTH website")
 			
-			p Share with friends
+			p Share this app with friends
 
 		#app-frame
 
@@ -90,12 +90,13 @@ block main
 		include partials/newsletter.pug
 
 	section#hardware-integration.connections.mixed-content(aria-labelledby="hardware-integration-title")
-		details(name="hardware")
-			summary 
-				h4 Hardware Integration
+		h3 Hardware Integration
+		
+		details(name="hardware")#stream-deck
+			summary Stream Deck (& XL)
 
-			h3#hardware-integration-title Stream Deck profiles
-			p Turn your Stream Deck into a labelled PhotoSYNTH control surface for instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
+			h4 Stream Deck profiles
+			p Turn your Stream Deck into a PhotoSYNTH control surface for control instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
 			p Install the profile for your key layout to make PhotoSYNTH quicker to learn and easier to perform live, without memorising keyboard shortcuts.
 			a.button.button-push.button-download.text-always(
 				href="../static/PhotoSYNTH.streamDeckProfile"
@@ -105,6 +106,14 @@ block main
 				href="../static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
 				download="PhotoSYNTH-Stream-Deck.streamDeckProfile"
 			) Download standard profile — 15 keys
+
+		details(name="hardware")#cosmo-dots
+			summary Cosmo Dots
+
+			h4 Cosmo Dots 
+			p Use your Cosmo Dots with the PhotoSYNTH to trigger notes, chords and samples!
+			p Set up each Dot so that it sends out a unique numerical number from 0-9.
+
 
 	section#supported-by.connections
 		block supported

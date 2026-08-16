@@ -10,20 +10,20 @@ import {
 	KEYBOARD_SAMPLE_ASSIGNMENTS,
 } from './hardware/keyboard/keyboard-performance.js'
 
-export const KEYBOARD_MODE_COMMANDS = 'commands'
 export const KEYBOARD_MODE_NOTES = 'notes'
 export const KEYBOARD_MODE_NOTES_HIGH = 'notes-high'
 export const KEYBOARD_MODE_CHORDS = 'chords'
 export const KEYBOARD_MODE_PERCUSSION = 'percussion'
 export const KEYBOARD_MODE_SAMPLES = 'samples'
+export const KEYBOARD_MODE_OPERATIONAL = 'operational'
 
 const KEYBOARD_MODE_FEEDBACK_TYPE = 'keyboard'
 
 const KEYBOARD_MODES = Object.freeze([
 	{
-		key: KEYBOARD_MODE_COMMANDS,
-		label: 'Commands',
-		type: 'commands',
+		key: KEYBOARD_MODE_OPERATIONAL,
+		label: 'Operational',
+		type: 'operational',
 	},
 	{
 		key: KEYBOARD_MODE_NOTES,
@@ -89,9 +89,10 @@ const getKeyboardNumber = event => {
 
 const getKeyboardNote = event => {
 	const performanceKey = getKeyboardPerformanceKey(event)
-	if (!performanceKey) return null
+	if (!performanceKey || performanceKey.row === 'numbers') return null
 	return {
 		...performanceKey,
+		index: performanceKey.index - 10,
 		heldKey: performanceKey.code,
 	}
 }
@@ -109,6 +110,99 @@ const getKeyboardModeFeedback = mode =>
 	`Keyboard mode: ${mode.label}`
 
 const KEYBOARD_STATUS_ID = 'keyboard'
+const OPERATIONAL_SHORTCUTS = Object.freeze([
+	{ key: 'a', display: 'A', controlId: 'button-automate', label: 'Automate' },
+	{ key: 'b', display: 'B', controlId: 'button-percussion', label: 'Beats' },
+	{ key: 'c', display: 'C', controlId: 'button-clear', label: 'Clear' },
+	{ key: 'd', display: 'D', controlId: 'button-disco', label: 'Disco' },
+	{ key: 'e', display: 'E', controlId: 'button-eyes', label: 'Eyes' },
+	{ key: 'f', display: 'F', controlId: 'button-fullscreen', label: 'Fullscreen' },
+	{ key: 'g', display: 'G', controlId: 'button-performance-drums', label: 'Performance drums' },
+	{ key: 'h', display: 'H', controlId: 'button-hud', label: 'HUD' },
+	{ key: 'i', display: 'I', controlId: 'button-lips', label: 'Lips' },
+	{ key: 'j', display: 'J', controlId: 'button-midi-percussion', label: 'MIDI percussion' },
+	{ key: 'k', display: 'K', controlId: 'button-toggle-overlay', label: 'Overlay canvas' },
+	{ key: 'l', display: 'L', controlId: 'button-speak', label: 'Speech' },
+	{ key: 'm', display: 'M', controlId: 'button-metronome', label: 'Metronome' },
+	{ key: 'n', display: 'N', controlId: 'button-sync-video', label: 'Sync video' },
+	{ key: 'o', display: 'O', controlId: 'button-overlay', label: 'AR overlay' },
+	{ key: 'p', display: 'P', controlId: 'button-points', label: 'Points' },
+	{ key: 'q', display: 'Q', controlId: 'button-quantise', label: 'Quantise' },
+	{ key: 'r', display: 'R', controlId: 'button-record-audio', label: 'Record audio' },
+	{ key: 's', display: 'S', controlId: 'button-settings', label: 'Settings' },
+	{ key: 't', display: 'T', controlId: 'button-subtitles', label: 'Subtitles' },
+	{ key: 'u', display: 'U', controlId: 'button-rapid-percussion', label: 'Rapid hits' },
+	{ key: 'v', display: 'V', controlId: 'button-record-video', label: 'Record video' },
+	{ key: 'w', display: 'W', controlId: 'button-eyebrows', label: 'Brows' },
+	{ key: 'x', display: 'X', controlId: 'button-meshes', label: 'Faces' },
+	{ key: 'y', display: 'Y', controlId: 'button-spectrogram', label: 'Spectrogram' },
+	{ key: 'z', display: 'Z', controlId: 'button-flood', label: 'Flood' },
+	{ key: 'shift+a', display: 'Shift A', controlId: 'button-toggle-advanced', label: 'Advanced' },
+	{ key: 'shift+i', display: 'Shift I', controlId: 'toggle-midi', label: 'MIDI' },
+	{ key: 'shift+m', display: 'Shift M', controlId: 'button-mute', label: 'Mute' },
+	{ key: 'shift+t', display: 'Shift T', controlId: 'tempo-midi-synch', label: 'MIDI sync' },
+])
+
+const getOperationalShortcutKey = event => {
+	const key = event.key?.toLowerCase?.()
+	if (!key || key.length !== 1 || !/[a-z]/u.test(key)) return ''
+	return event.shiftKey ? `shift+${key}` : key
+}
+
+const getOperationalShortcut = event => {
+	const shortcutKey = getOperationalShortcutKey(event)
+	return OPERATIONAL_SHORTCUTS.find(shortcut => shortcut.key === shortcutKey) ?? null
+}
+
+const installOperationalShortcutHints = () => {
+	OPERATIONAL_SHORTCUTS.forEach(shortcut => {
+		const control = document.getElementById(shortcut.controlId)
+		if (!control) return
+		const label = document.querySelector(`label[for="${shortcut.controlId}"]`) ?? control.closest('label')
+		const host = label ?? control
+		host.classList.add('keyboard-shortcut-control')
+		let hint = Array.from(host.children).find(element => element.matches?.('kbd.keyboard-shortcut'))
+		if (!hint) {
+			hint = document.createElement('kbd')
+			hint.className = 'keyboard-shortcut'
+			host.insertBefore(hint, control)
+		}
+		hint.textContent = shortcut.display
+		hint.setAttribute('aria-hidden', 'true')
+		control.dataset.keyboardShortcut = shortcut.display
+	})
+}
+
+const KEYBOARD_GUIDE_ROWS = Object.freeze([
+	Object.freeze([
+		Object.freeze({ code: 'Escape', key: 'Escape', label: 'Esc' }),
+		Object.freeze({ code: 'PageUp', key: 'PageUp', label: 'PgUp' }),
+		Object.freeze({ code: 'PageDown', key: 'PageDown', label: 'PgDn' }),
+	]),
+	Object.freeze('1234567890'.split('').map(key => Object.freeze({
+		code: `Digit${key}`,
+		key,
+		label: key,
+	}))),
+	Object.freeze('qwertyuiop'.split('').map(key => Object.freeze({
+		code: `Key${key.toUpperCase()}`,
+		key,
+		label: key.toUpperCase(),
+	}))),
+	Object.freeze('asdfghjkl'.split('').map(key => Object.freeze({
+		code: `Key${key.toUpperCase()}`,
+		key,
+		label: key.toUpperCase(),
+	}))),
+	Object.freeze('zxcvbnm'.split('').map(key => Object.freeze({
+		code: `Key${key.toUpperCase()}`,
+		key,
+		label: key.toUpperCase(),
+	}))),
+	Object.freeze([
+		Object.freeze({ code: 'Space', key: ' ', label: 'Space' }),
+	]),
+])
 
 const isEditableKeyboardEvent = event => {
 	const path = event.composedPath?.() ?? [event.target]
@@ -139,7 +233,7 @@ const updateKeyboardStatus = (application, state, lastKey = '', active = false) 
 	const detail = mode.type === 'notes'
 		? `${mode.label} / C${3 + ((mode.octaveOffset ?? 0) + state.numericOctaveOffset) / 12}${heldKeys ? ` / ${heldKeys} held` : ''}`
 		: mode.type === 'chords'
-			? `${mode.label} / ${lastKey || 'Numbers: major / Q row: minor / A row: dominant / Z row: sus2'}${heldKeys ? ` / ${heldKeys} held` : ''}`
+			? `${mode.label} / ${lastKey || 'Diatonic progressions in C major'}${heldKeys ? ` / ${heldKeys} held` : ''}`
 			: mode.type === 'samples'
 				? `${mode.label}${lastKey ? ` / ${lastKey}` : ' / 36 sample triggers'}`
 			: mode.type === 'percussion'
@@ -154,6 +248,7 @@ const updateKeyboardStatus = (application, state, lastKey = '', active = false) 
 		active,
 		ttl: active ? 1200 : undefined,
 	})
+	state.keyboardGuide?.render(mode, state)
 }
 
 const clearHeldKeyboardNotes = heldKeyboardNotes => {
@@ -195,6 +290,8 @@ const setKeyboardMode = (application, state, nextIndex) => {
 	}
 
 	state.keyboardModeIndex = nextModeIndex
+	const modeSelect = document.getElementById('select-keyboard-mode')
+	if (modeSelect && modeSelect.value !== nextMode.key) modeSelect.value = nextMode.key
 	application.setFeedback?.(getKeyboardModeFeedback(nextMode), 0, KEYBOARD_MODE_FEEDBACK_TYPE)
 	updateKeyboardStatus(application, state)
 	return nextMode
@@ -326,7 +423,7 @@ const hasHeldInstrumentNote = (heldKeyboardNotes, instrument, noteNumber) =>
 
 const handleKeyboardChordDown = (event, application, state) => {
 	const performanceKey = getKeyboardPerformanceKey(event)
-	if (!performanceKey) return false
+	if (!performanceKey || performanceKey.row === 'numbers') return false
 	const chord = getKeyboardChordAssignment(performanceKey)
 	if (event.repeat) return chord
 
@@ -352,7 +449,7 @@ const handleKeyboardChordDown = (event, application, state) => {
 
 const handleKeyboardChordUp = (event, state) => {
 	const performanceKey = getKeyboardPerformanceKey(event)
-	if (!performanceKey) return false
+	if (!performanceKey || performanceKey.row === 'numbers') return false
 	const heldKey = performanceKey.code
 	const heldChord = state.heldKeyboardNotes.get(heldKey)
 	if (!heldChord?.noteNumbers) return false
@@ -686,8 +783,11 @@ const handleKeyboardCommandMode = async (event, application, state) => {
 
 const handleKeyboardPercussionDown = (event, application, state) => {
 	const performanceKey = getKeyboardPerformanceKey(event)
-	if (!performanceKey) return null
-	const drum = getKeyboardPercussionAssignment(performanceKey, event.shiftKey)
+	if (!performanceKey || performanceKey.row === 'numbers') return null
+	const drum = getKeyboardPercussionAssignment(
+		{ ...performanceKey, index: performanceKey.index - 10 },
+		event.shiftKey,
+	)
 	if (!drum) return null
 
 	const inputId = `keyboard:${event.shiftKey ? 'shift:' : ''}${performanceKey.code}`
@@ -720,12 +820,13 @@ const createKeyboardSamplePlayer = application => createSampleBankPlayer({
 
 const handleKeyboardSampleDown = (event, application, state) => {
 	const performanceKey = getKeyboardPerformanceKey(event)
-	if (!performanceKey) return null
-	const sample = KEYBOARD_SAMPLE_ASSIGNMENTS[performanceKey.index]
+	if (!performanceKey || performanceKey.row === 'numbers') return null
+	const sampleIndex = performanceKey.index - 10
+	const sample = KEYBOARD_SAMPLE_ASSIGNMENTS[sampleIndex]
 	if (event.repeat || state.heldKeyboardSamples.has(performanceKey.code)) return sample
 
 	state.heldKeyboardSamples.add(performanceKey.code)
-	state.keyboardSamplePlayer.trigger(performanceKey.index).catch(error => {
+	state.keyboardSamplePlayer.trigger(sampleIndex).catch(error => {
 		console.error(`Could not play keyboard sample ${sample.label}`, error)
 		application.setFeedback?.(`Sample unavailable: ${sample.label}`, 0, KEYBOARD_MODE_FEEDBACK_TYPE)
 	})
@@ -734,10 +835,127 @@ const handleKeyboardSampleDown = (event, application, state) => {
 
 const handleKeyboardSampleUp = (event, state) => {
 	const performanceKey = getKeyboardPerformanceKey(event)
-	if (!performanceKey || !state.heldKeyboardSamples.has(performanceKey.code)) return false
+	if (!performanceKey || performanceKey.row === 'numbers' || !state.heldKeyboardSamples.has(performanceKey.code)) return false
 	state.heldKeyboardSamples.delete(performanceKey.code)
-	state.keyboardSamplePlayer.release(performanceKey.index)
+	state.keyboardSamplePlayer.release(performanceKey.index - 10)
 	return true
+}
+
+const getGuideAction = (definition, mode, state) => {
+	if (definition.code === 'Escape') return 'Close'
+	if (definition.code === 'PageUp') return 'Previous mode'
+	if (definition.code === 'PageDown') return 'Next mode'
+	if (definition.code === 'Space') return 'Show keyboard'
+	if (definition.code.startsWith('Digit')) return `Cosmo ${definition.key}`
+
+	const performanceKey = getKeyboardPerformanceKey(definition)
+	if (!performanceKey) return ''
+	if (mode.type === 'notes') {
+		return getKeyboardNoteAssignment(
+			{ ...performanceKey, index: performanceKey.index - 10 },
+			(mode.octaveOffset ?? 0) + state.numericOctaveOffset,
+		)?.noteName ?? ''
+	}
+	if (mode.type === 'chords') return getKeyboardChordAssignment(performanceKey)?.label ?? ''
+	if (mode.type === 'percussion') {
+		const letterKey = { ...performanceKey, index: performanceKey.index - 10 }
+		const drum = getKeyboardPercussionAssignment(letterKey)
+		return drum?.label ?? ''
+	}
+	if (mode.type === 'operational') {
+		const regular = OPERATIONAL_SHORTCUTS.find(shortcut => shortcut.key === definition.key)
+		const shifted = OPERATIONAL_SHORTCUTS.find(shortcut => shortcut.key === `shift+${definition.key}`)
+		return [regular?.label, shifted ? `⇧ ${shifted.label}` : ''].filter(Boolean).join(' / ')
+	}
+	if (mode.type === 'samples') {
+		return KEYBOARD_SAMPLE_ASSIGNMENTS[performanceKey.index - 10]?.label
+			?.replace(/[\s_-]+\d{5,}$/u, '')
+			?? ''
+	}
+	return ''
+}
+
+const createKeyboardGuide = (state, selectMode) => {
+	const dialog = document.getElementById('keyboard-guide')
+	const mount = document.getElementById('keyboard-guide-keys')
+	if (!dialog || !mount) {
+		return {
+			render: () => null,
+			show: () => false,
+			press: () => null,
+			release: () => null,
+			close: () => false,
+			isOpen: () => false,
+		}
+	}
+
+	const keyViews = new Map()
+	const normaliseCode = event => event.code?.replace(/^Numpad([0-9])$/, 'Digit$1') ?? ''
+	KEYBOARD_GUIDE_ROWS.forEach(rowDefinitions => {
+		const row = document.createElement('div')
+		row.className = 'keyboard-row'
+		rowDefinitions.forEach(definition => {
+			const button = document.createElement('button')
+			button.type = 'button'
+			button.className = 'keyboard-key'
+			button.dataset.code = definition.code
+			const keyLabel = document.createElement('kbd')
+			keyLabel.textContent = definition.label
+			const action = document.createElement('span')
+			action.className = 'keyboard-key-action'
+			button.append(keyLabel, action)
+			button.addEventListener('click', () => {
+				for (const type of ['keydown', 'keyup']) {
+					window.dispatchEvent(new KeyboardEvent(type, {
+						key: definition.key,
+						code: definition.code,
+						bubbles: true,
+						cancelable: true,
+					}))
+				}
+			})
+			keyViews.set(definition.code, { button, action, definition })
+			row.appendChild(button)
+		})
+		mount.appendChild(row)
+	})
+
+	dialog.querySelectorAll('[data-keyboard-mode]').forEach(button => {
+		button.addEventListener('click', () => selectMode(Number.parseInt(button.dataset.keyboardMode, 10)))
+	})
+
+	const render = mode => {
+		dialog.querySelector('.keyboard-guide-current').textContent = `${mode.label} mode`
+		dialog.querySelectorAll('[data-keyboard-mode]').forEach(button => {
+			button.setAttribute('aria-pressed', String(Number.parseInt(button.dataset.keyboardMode, 10) === state.keyboardModeIndex))
+		})
+		keyViews.forEach(view => {
+			const action = getGuideAction(view.definition, mode, state)
+			view.action.textContent = action
+			view.button.classList.toggle('is-unmapped', !action)
+			view.button.setAttribute('aria-label', `${view.definition.label}: ${action || 'No action'}`)
+		})
+	}
+	const show = () => {
+		if (dialog.open) return true
+		try { dialog.showModal() } catch (_error) { dialog.setAttribute('open', '') }
+		return true
+	}
+	const close = () => {
+		if (!dialog.open) return false
+		if (typeof dialog.close === 'function') dialog.close()
+		else dialog.removeAttribute('open')
+		return true
+	}
+
+	return {
+		render,
+		show,
+		close,
+		isOpen: () => dialog.open,
+		press: event => keyViews.get(normaliseCode(event))?.button.classList.add('is-pressed'),
+		release: event => keyViews.get(normaliseCode(event))?.button.classList.remove('is-pressed'),
+	}
 }
 
 /**
@@ -752,6 +970,16 @@ export const addKeyboardEvents = application => {
 		heldKeyboardPercussion: new Map(),
 		numericOctaveOffset: 0,
 	}
+	const heldHintKeys = new Set()
+	installOperationalShortcutHints()
+	const keyboardModeSelect = document.getElementById('select-keyboard-mode')
+	if (keyboardModeSelect) {
+		keyboardModeSelect.value = KEYBOARD_MODES[state.keyboardModeIndex].key
+		keyboardModeSelect.addEventListener('change', () => {
+			const modeIndex = KEYBOARD_MODES.findIndex(mode => mode.key === keyboardModeSelect.value)
+			if (modeIndex >= 0) setKeyboardMode(application, state, modeIndex)
+		})
+	}
 	state.keyboardSamplePlayer = createKeyboardSamplePlayer(application)
 	const handleCosmosKeyboardEvent = createCosmosKeyboardHandler(application)
 	const streamDeckKeyboard = createStreamDeckKeyboardHandler(application, {
@@ -764,6 +992,10 @@ export const addKeyboardEvents = application => {
 		},
 		handleCosmosKeyboardEvent,
 	})
+	state.keyboardGuide = createKeyboardGuide(
+		state,
+		modeIndex => setKeyboardMode(application, state, modeIndex),
+	)
 
 	updateKeyboardStatus(application, state)
 
@@ -808,6 +1040,11 @@ export const addKeyboardEvents = application => {
 	}
 
 	window.addEventListener('keydown', async event => {
+		const hintKey = event.code || event.key
+		if (hintKey) heldHintKeys.add(hintKey)
+		document.documentElement.classList.toggle('keyboard-input-active', heldHintKeys.size > 0)
+
+		state.keyboardGuide.press(event)
 		if (streamDeckKeyboard.handleKeyDown(event)) {
 			event.preventDefault()
 			return
@@ -817,10 +1054,15 @@ export const addKeyboardEvents = application => {
 			state.numberSequence = ''
 			return
 		}
+		if (event.key === 'Escape' && state.keyboardGuide.close()) {
+			event.preventDefault()
+			return
+		}
 
 		let mode = KEYBOARD_MODES[state.keyboardModeIndex]
 
-		if (mode.type === 'commands' && handleCosmosKeyboardEvent(event)) {
+		// The Cosmo number row is stable in every keyboard mode.
+		if (handleCosmosKeyboardEvent(event)) {
 			event.preventDefault()
 			return
 		}
@@ -830,10 +1072,9 @@ export const addKeyboardEvents = application => {
 			return
 		}
 
-		// ignore tabbing
-		if (event.key !== 'Tab') {
-			event.preventDefault()
-		}
+		// Preserve native focus navigation; every other app key is owned here.
+		if (event.key === 'Tab') return
+		event.preventDefault()
 
 		if (handleModeSwitch(event)) {
 			return
@@ -844,18 +1085,20 @@ export const addKeyboardEvents = application => {
 
 		if (mode.type === 'notes') {
 			state.numberSequence = ''
-			handleKeyboardNoteDown(event, application, state, mode)
-			updateKeyboardStatus(application, state, event.key, state.heldKeyboardNotes.size > 0)
+			const handled = handleKeyboardNoteDown(event, application, state, mode)
+			if (!handled) state.keyboardGuide.show()
+			updateKeyboardStatus(application, state, handled ? event.key : '', state.heldKeyboardNotes.size > 0)
 			return
 		}
 
 		if (mode.type === 'chords') {
 			state.numberSequence = ''
 			const chord = handleKeyboardChordDown(event, application, state)
+			if (!chord) state.keyboardGuide.show()
 			updateKeyboardStatus(
 				application,
 				state,
-				chord?.label ?? event.key,
+				chord?.label ?? '',
 				state.heldKeyboardNotes.size > 0,
 			)
 			return
@@ -864,22 +1107,43 @@ export const addKeyboardEvents = application => {
 		if (mode.type === 'percussion') {
 			state.numberSequence = ''
 			const drum = handleKeyboardPercussionDown(event, application, state)
-			updateKeyboardStatus(application, state, drum?.label ?? event.key, Boolean(drum))
+			if (!drum) state.keyboardGuide.show()
+			updateKeyboardStatus(application, state, drum?.label ?? '', Boolean(drum))
 			return
 		}
 
 		if (mode.type === 'samples') {
 			state.numberSequence = ''
 			const sample = handleKeyboardSampleDown(event, application, state)
-			updateKeyboardStatus(application, state, sample?.label ?? event.key, Boolean(sample))
+			if (!sample) state.keyboardGuide.show()
+			updateKeyboardStatus(application, state, sample?.label ?? '', Boolean(sample))
 			return
 		}
 
-		await handleKeyboardCommandMode(event, application, state)
-		updateKeyboardStatus(application, state, event.key, true)
+		if (mode.type === 'operational') {
+			state.numberSequence = ''
+			const shortcut = getOperationalShortcut(event)
+			const control = shortcut ? document.getElementById(shortcut.controlId) : null
+			if (shortcut && control && !event.repeat) {
+				control.click()
+				updateKeyboardStatus(application, state, shortcut.label, true)
+			}else if (!shortcut || !control) {
+				state.keyboardGuide.show()
+				updateKeyboardStatus(application, state)
+			}
+			return
+		}
+
+		state.keyboardGuide.show()
+		updateKeyboardStatus(application, state)
 	})
 
 	window.addEventListener('keyup', event => {
+		const hintKey = event.code || event.key
+		if (hintKey) heldHintKeys.delete(hintKey)
+		document.documentElement.classList.toggle('keyboard-input-active', heldHintKeys.size > 0)
+
+		state.keyboardGuide.release(event)
 		if (streamDeckKeyboard.handleKeyUp(event)) {
 			event.preventDefault()
 			return
@@ -894,18 +1158,15 @@ export const addKeyboardEvents = application => {
 		const performanceKey = mode.type === 'percussion'
 			? getKeyboardPerformanceKey(event)
 			: null
-		const commandPadNumber = mode.type === 'commands' ? getKeyboardNumber(event) : null
-		if (performanceKey || commandPadNumber != null) {
-			const inputId = performanceKey?.code ?? (event.code ?? commandPadNumber)
+		if (performanceKey && performanceKey.row !== 'numbers') {
+			const inputId = performanceKey.code
 			const baseInputId = `keyboard:${inputId}`
 			const shiftedInputId = `keyboard:shift:${inputId}`
 			const heldInputId = state.heldKeyboardPercussion.has(shiftedInputId) ? shiftedInputId : baseInputId
 			const heldPart = state.heldKeyboardPercussion.get(heldInputId)
 			application.setPercussionInput?.(
 				heldInputId,
-				performanceKey
-					? heldPart
-					: KEYBOARD_COMMAND_PERCUSSION_PARTS[commandPadNumber],
+				heldPart,
 				false,
 			)
 			state.heldKeyboardPercussion.delete(heldInputId)
@@ -954,6 +1215,8 @@ export const addKeyboardEvents = application => {
 	})
 
 	window.addEventListener('blur', () => {
+		heldHintKeys.clear()
+		document.documentElement.classList.remove('keyboard-input-active')
 		streamDeckKeyboard.reset()
 		handleCosmosKeyboardEvent({ type: 'blur' })
 		clearHeldKeyboardNotes(state.heldKeyboardNotes)
