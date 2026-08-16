@@ -394,19 +394,17 @@ export default class DisplayOverlay2d {
 
 		const margin = clamp(this.width * 0.015, 10, 20)
 		const columnGap = clamp(Math.min(this.width * 0.28 / lanes.length, 8), 5, 8)
-		const rowGap = clamp(Math.min(this.height * 0.28 / count, 9), 5, 9)
-		const labelHeight = clamp(this.height * 0.075, 34, 56)
+		const rowGap = clamp((this.height - margin * 2) / Math.max(1, count - 1), 4, 7)
 		const gridWidth = columnGap * Math.max(0, lanes.length - 1)
 		const gridHeight = rowGap * Math.max(0, count - 1)
 		const dotsX = this.width - margin - gridWidth
-		const dotsY = margin + labelHeight
+		const dotsY = margin
 		const pulse = getBeatPulse(stepProgress)
-		const playheadY = dotsY + (currentStep + stepProgress) * rowGap
 		const bounds = {
 			x:dotsX - margin,
-			y:margin * 0.5,
+			y:0,
 			width:gridWidth + margin * 2,
-			height:labelHeight + gridHeight + rowGap + margin
+			height:gridHeight + margin * 2
 		}
 		const draw = () => {
 			context.save()
@@ -416,26 +414,14 @@ export default class DisplayOverlay2d {
 				context.beginPath()
 				context.moveTo(dotsX - 3, y)
 				context.lineTo(dotsX + gridWidth + 3, y)
-				context.strokeStyle = 'rgba(255, 255, 255, 0.18)'
-				context.lineWidth = 1
+				context.strokeStyle = row % 16 === 0 ? 'rgba(255, 255, 255, 0.24)' : 'rgba(255, 255, 255, 0.1)'
+				context.lineWidth = row % 16 === 0 ? 1.25 : 0.75
 				context.stroke()
 			}
 
 			lanes.forEach((lane, column) => {
 				const x = dotsX + column * columnGap
 				const colour = getPercussionColour(lane)
-				context.save()
-				context.translate(x, dotsY - 6)
-				context.rotate(-Math.PI * 0.5)
-				context.globalAlpha = 0.86
-				context.fillStyle = colour
-				context.font = `600 ${clamp(columnGap * 0.86, 5, 7)}px sans-serif`
-				context.textAlign = 'left'
-				context.textBaseline = 'middle'
-				context.shadowColor = 'rgba(0, 0, 0, 0.9)'
-				context.shadowBlur = 2
-				context.fillText(formatPercussionLane(lane), 0, 0)
-				context.restore()
 
 				for (let row = 0; row < count; row++) {
 					const beat = sequence[row] ?? {}
@@ -448,30 +434,16 @@ export default class DisplayOverlay2d {
 					const y = dotsY + row * rowGap
 
 					context.save()
-					context.globalAlpha = isCurrent ? 1 : isFuture ? (hasHit ? 0.82 : 0.38) : (hasHit ? 0.2 : 0.1)
+					context.globalAlpha = isCurrent ? 0.96 : isFuture ? (hasHit ? 0.76 : 0.34) : (hasHit ? 0.58 : 0.24)
 					context.shadowColor = isCurrent ? colour : 'transparent'
 					context.shadowBlur = isCurrent ? 2 + pulse * 4 : 0
 					context.beginPath()
 					context.arc(x, y, dotRadius, 0, TAU)
 					context.fillStyle = hasHit ? colour : '#ffffff'
 					context.fill()
-					if (isCurrent) {
-						context.strokeStyle = '#ffffff'
-						context.lineWidth = 0.65
-						context.stroke()
-					}
 					context.restore()
 				}
 			})
-
-			context.beginPath()
-			context.moveTo(dotsX - 5, playheadY)
-			context.lineTo(dotsX + gridWidth + 5, playheadY)
-			context.strokeStyle = 'rgba(255, 255, 255, 0.9)'
-			context.lineWidth = 1.25
-			context.shadowColor = 'rgba(0, 0, 0, 0.9)'
-			context.shadowBlur = 3
-			context.stroke()
 
 			context.restore()
 			this.markDirty(bounds)
