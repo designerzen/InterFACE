@@ -2,7 +2,14 @@ import { WebMidi } from "webmidi"
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 import { INTERVAL_LIBRARY } from "../audio/tuning/scales.js"
 import { EMOJI_MOOD_ALL, EMOJI_MOOD_HAPPY, EMOJI_MOOD_SAD } from "../models/emoji.js"
-import { NOTE_PARTICLE_GRAPHIC_OPTIONS, NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC } from "../settings/options.people.js"
+import {
+	NOTE_PARTICLE_GRAPHIC_OPTIONS,
+	NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC,
+	POINTS_OVERRIDE_INHERIT,
+	POINTS_OVERRIDE_OFF,
+	POINTS_OVERRIDE_ON,
+	normalisePointsOverride
+} from "../settings/options.people.js"
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
 const PERSON_OPTION_CLASS = "person-option-control"
@@ -91,6 +98,7 @@ const createPersonOptionsHTML = (person) => {
 		<div class="person-options-grid">
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
 			${createSelectControl("Play", "playMode", playMode, [["chord", "Chords"], ["arpeggio", "Arpeggio"], ["harp", "Harp"]], "data-person-action")}
+			${createSelectControl("Points", "showPointsOverride", normalisePointsOverride(options.showPointsOverride), [[POINTS_OVERRIDE_INHERIT, "Use global setting"], [POINTS_OVERRIDE_ON, "On"], [POINTS_OVERRIDE_OFF, "Off"]], "data-person-option", "person-option-wide")}
 			${createSelectControl("MIDI device", "midiDevice", midiDevice, createMIDIDeviceOptions(), "data-person-option", "person-option-wide")}
 			${createSelectControl("MIDI channel", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
 			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}

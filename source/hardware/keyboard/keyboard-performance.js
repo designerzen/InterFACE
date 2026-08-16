@@ -52,17 +52,30 @@ export const getKeyboardNoteAssignment = (performanceKey, octaveOffset = 0) => {
 	})
 }
 
-const CHORD_FAMILIES = Object.freeze({
-	numbers: Object.freeze({ suffix: '', intervals: Object.freeze([0, 4, 7]), family: 'Major' }),
-	upper: Object.freeze({ suffix: 'm', intervals: Object.freeze([0, 3, 7]), family: 'Minor' }),
-	home: Object.freeze({ suffix: '7', intervals: Object.freeze([0, 4, 7, 10]), family: 'Dominant' }),
-	lower: Object.freeze({ suffix: 'sus2', intervals: Object.freeze([0, 2, 7]), family: 'Suspended' }),
+// The letter rows repeat complementary diatonic progressions in C major. This
+// keeps neighbouring and arbitrarily sequenced keys harmonically compatible.
+const CHORD_PROGRESSIONS = Object.freeze({
+	upper: Object.freeze([0, 7, 9, 5, 0, 9, 5, 7, 2, 7]),
+	home: Object.freeze([9, 5, 0, 7, 2, 9, 7, 4, 0]),
+	lower: Object.freeze([5, 7, 4, 9, 2, 7, 0]),
+})
+
+const DIATONIC_CHORDS = Object.freeze({
+	0: Object.freeze({ suffix: '', intervals: Object.freeze([0, 4, 7]), family: 'I' }),
+	2: Object.freeze({ suffix: 'm', intervals: Object.freeze([0, 3, 7]), family: 'ii' }),
+	4: Object.freeze({ suffix: 'm', intervals: Object.freeze([0, 3, 7]), family: 'iii' }),
+	5: Object.freeze({ suffix: '', intervals: Object.freeze([0, 4, 7]), family: 'IV' }),
+	7: Object.freeze({ suffix: '', intervals: Object.freeze([0, 4, 7]), family: 'V' }),
+	9: Object.freeze({ suffix: 'm', intervals: Object.freeze([0, 3, 7]), family: 'vi' }),
 })
 
 export const getKeyboardChordAssignment = performanceKey => {
 	if (!performanceKey) return null
-	const rootNoteNumber = 48 + performanceKey.index
-	const chord = CHORD_FAMILIES[performanceKey.row]
+	const progression = CHORD_PROGRESSIONS[performanceKey.row]
+	if (!progression) return null
+	const rootOffset = progression[performanceKey.rowKeyIndex % progression.length]
+	const rootNoteNumber = 48 + rootOffset
+	const chord = DIATONIC_CHORDS[rootOffset]
 	return Object.freeze({
 		...performanceKey,
 		label: `${NOTE_NAMES[rootNoteNumber % 12]}${chord.suffix}`,

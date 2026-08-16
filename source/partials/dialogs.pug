@@ -16,6 +16,32 @@ dialog#command-palette.command-palette(aria-labelledby="command-palette-title" a
 			|  Close
 		button.command-palette-close(type="submit" value="close" aria-label="Close command palette") ×
 
+dialog#keyboard-guide.keyboard-guide(aria-labelledby="keyboard-guide-title" aria-describedby="keyboard-guide-description")
+	form.keyboard-guide-shell(method="dialog")
+		header.keyboard-guide-header
+			h4#keyboard-guide-title Keyboard
+			p.keyboard-guide-current(role="status" aria-live="polite")
+		p#keyboard-guide-description.sr-only Select a sound mode, then press any key shown below to perform its labelled action.
+		div.keyboard-mode-heading
+			span Sound mode
+			small PgUp / PgDn change mode · Number keys always play Cosmo sounds
+		nav.keyboard-mode-picker(aria-label="Keyboard modes")
+			button(type="button" data-keyboard-mode="0")
+				span Operational
+			button(type="button" data-keyboard-mode="1")
+				span Notes
+			button(type="button" data-keyboard-mode="2")
+				span Notes +1
+			button(type="button" data-keyboard-mode="3")
+				span Chords
+			button(type="button" data-keyboard-mode="4")
+				span Percussion
+			button(type="button" data-keyboard-mode="5")
+				span Samples
+		section.keyboard-layout(aria-label="QWERTY keyboard shortcut map")
+			div#keyboard-guide-keys
+		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Keyboard
+
 dialog#help 
 	form(method="dialog")
 		h4 Don't Panic!
