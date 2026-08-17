@@ -67,9 +67,6 @@ jobs:
         shell: bash
         run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
 
-		#   - name: Test
-		#     run: pnpm test -- --runInBand
-
       - name: Build installers
         run: pnpm run electron:make
 
