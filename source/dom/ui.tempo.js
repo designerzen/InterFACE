@@ -411,7 +411,7 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 			case "INPUT":
 				break
 			default:
-				if (isNumber)
+				if (isNumber && isOpen())
 				{
 					numberSequence += event.key
 					// now check to see if it is 3 numbers long
