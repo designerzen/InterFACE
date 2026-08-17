@@ -35,7 +35,7 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 		}
 	}
 
-	const isOpen = () => window.location.hash === "#folder-tempo"
+	const isOpen = () => window.location.hash === "#folder-tempo" || tempoMenu?.classList.contains("open")
 
 
 	openTempoUI?.addEventListener("pointerdown", () => {

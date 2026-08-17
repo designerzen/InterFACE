@@ -360,7 +360,8 @@ const getContextualHotkeyResult = (event, application) => {
 }
 
 const updateNumberSequence = (application, state, event, isNumber) => {
-	if (isNumber && window.location.hash === '#folder-tempo') {
+	const tempoPanel = document.querySelector('#folder-tempo')?.closest('.folder-menu')
+	if (isNumber && (window.location.hash === '#folder-tempo' || tempoPanel?.classList.contains('open'))) {
 		state.numberSequence += event.key
 		if (state.numberSequence.length === 3) {
 			application.setBPM(parseFloat(state.numberSequence))
