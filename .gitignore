@@ -25,6 +25,7 @@ app
 *.7z
 *.zip
 *.pnpm-store
+ *.streamDeckProfile
 
 *--*
 *~lock~

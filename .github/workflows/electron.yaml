@@ -50,6 +50,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Stream Deck profiles
+        shell: bash
+        run: node actions/build-profile.mjs
+
       - name: Verify Windows MIDI native addon
         if: runner.os == 'Windows'
         shell: pwsh
