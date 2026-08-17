@@ -245,6 +245,7 @@
 		min-height: var(--min-size);
     	
 		max-width: 20ch;
+		// we want the buttons to consume as much as is available
 		max-width: none;
 		
 		flex-shrink: 1;
