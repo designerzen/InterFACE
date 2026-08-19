@@ -99,11 +99,22 @@ const getCosmosNumber = event => {
 	return null
 }
 
+const isTextInputElement = element => {
+	if (!element?.matches?.('input')) return false
+	const type = (element.type || 'text').toLowerCase()
+	return 'text number search email password url tel'.includes(type)
+}
+
 const isEditableEvent = event => {
 	const path = event.composedPath?.() ?? [event.target]
-	return path.some(element =>
-		element?.matches?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
-	)
+	return path.some(element => (
+		element?.isContentEditable === true
+		|| (
+			typeof element?.matches === 'function'
+			&& element.matches('textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
+		)
+		|| isTextInputElement(element)
+	))
 }
 
 const runSwitchHook = (hook, index, event) => {

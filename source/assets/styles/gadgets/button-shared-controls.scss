@@ -260,6 +260,14 @@
 		anchor-name: --select-key-scale;
 	}
 
+	// keyboard mode
+	label[for="select-keyboard-mode"]{
+		--col-select:var(--shade-yellow);
+		--col-hover:var(--shade-green);
+		--bg:url(/source/assets/icons/keyboard.svg);
+		anchor-name: --select-keyboard-mode;
+	}
+
 	// choose display
 	label[for="select-display"]{
 		--col-select:var(--shade-yellow);

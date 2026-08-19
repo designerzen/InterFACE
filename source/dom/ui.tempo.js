@@ -402,8 +402,12 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 		timer.startTimer()
 	}
 
+	// TODO: Tempo number key input disabled pending reimplementation
+	// Retains original code structure for easy re-enablement.
 	let numberSequence = ""
+	const ENABLE_NUMBER_KEY_TEMPO_INPUT = false
 	window.addEventListener("keydown", event => {
+		if (!ENABLE_NUMBER_KEY_TEMPO_INPUT) return
 		const isNumber = !isNaN( parseInt(event.key) )
 		const focussedElement = document.activeElement
 		switch(focussedElement.nodeName)

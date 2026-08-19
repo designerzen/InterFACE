@@ -316,13 +316,13 @@ menu#control-panel
 
 		label(for="select-keyboard-mode") Keyboard Mode
 			select#select-keyboard-mode(name="keyboard-mode" required aria-describedby="keyboard-mode-help")
-				option(value="operational") Operational
-				option(value="notes") Notes
-				option(value="notes-high") Notes +1 Octave
-				option(value="chords") Chords
-				option(value="percussion") Percussion
-				option(value="samples") Samples
-			small#keyboard-mode-help.sr-only Page Up and Page Down also change keyboard mode.
+				option(value="operational") <kbd>F1</kbd> Operational
+				option(value="notes") <kbd>F2</kbd> Notes
+				option(value="notes-high") <kbd>F3</kbd> Notes +1 Octave
+				option(value="chords") <kbd>F4</kbd> Chords
+				option(value="percussion") <kbd>F5</kbd> Percussion
+				option(value="samples") <kbd>F6</kbd> Samples
+			small#keyboard-mode-help.sr-only F1–F6, Page Up and Page Down also change keyboard mode.
 
 		//- only appears when there are multiple cameras on the computer?
 		//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?

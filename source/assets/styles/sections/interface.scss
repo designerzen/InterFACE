@@ -973,7 +973,8 @@ main.active{
 }
 
 #settings{
-	
+	flex-wrap:wrap;
+	flex-wrap:balance;
 	.button-close{
 		position: absolute;
 		left:0;

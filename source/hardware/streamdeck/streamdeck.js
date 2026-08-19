@@ -95,22 +95,11 @@ const changeTempo = (application, direction) => {
 	return `Tempo ${direction < 0 ? 'Down' : 'Up'}`
 }
 
-const selectAdjacentCosmosBank = (handleCosmosKeyboardEvent, direction) => {
-	handleCosmosKeyboardEvent({
-		type: 'keydown',
-		key: direction < 0 ? 'PageUp' : 'PageDown',
-		ctrlKey: true,
-		repeat: false,
-	})
-	return `COSMO Bank ${direction < 0 ? 'Previous' : 'Next'}`
-}
-
 const handlePrimaryCommand = (
 	code,
 	application,
 	selectKeyboardMode,
 	shiftNumericOctave,
-	handleCosmosKeyboardEvent,
 ) => {
 	switch (code) {
 		case 'Digit1': return selectKeyboardMode(0).label
@@ -119,8 +108,6 @@ const handlePrimaryCommand = (
 		case 'Digit4': return selectKeyboardMode(3).label
 		case 'Digit5': return selectKeyboardMode(4).label
 		case 'ModeSamples': return selectKeyboardMode(5).label
-		case 'Digit6': return selectAdjacentCosmosBank(handleCosmosKeyboardEvent, -1)
-		case 'Digit7': return selectAdjacentCosmosBank(handleCosmosKeyboardEvent, 1)
 		case 'Digit8': return changeTempo(application, -1)
 		case 'Digit9': return changeTempo(application, 1)
 		case 'Digit0': return tapTempo(application)
@@ -245,7 +232,6 @@ const handlePlayerCommand = (code, application) => {
 export const createStreamDeckKeyboardHandler = (application, {
 	selectKeyboardMode,
 	shiftNumericOctave,
-	handleCosmosKeyboardEvent,
 }) => {
 	let lastAction = null
 
@@ -270,7 +256,6 @@ export const createStreamDeckKeyboardHandler = (application, {
 				application,
 				selectKeyboardMode,
 				shiftNumericOctave,
-				handleCosmosKeyboardEvent,
 			)
 		}else if (hasExactModifiers(event, STREAM_DECK_PRIMARY_MODIFIERS)) {
 			label = handlePrimaryCommand(
@@ -278,7 +263,6 @@ export const createStreamDeckKeyboardHandler = (application, {
 				application,
 				selectKeyboardMode,
 				shiftNumericOctave,
-				handleCosmosKeyboardEvent,
 			)
 		}else if (hasExactModifiers(event, STREAM_DECK_PLAYER_MODIFIERS)) {
 			label = handlePlayerCommand(event.code, application)

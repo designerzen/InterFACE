@@ -55,6 +55,7 @@ export const getKeyboardNoteAssignment = (performanceKey, octaveOffset = 0) => {
 // The letter rows repeat complementary diatonic progressions in C major. This
 // keeps neighbouring and arbitrarily sequenced keys harmonically compatible.
 const CHORD_PROGRESSIONS = Object.freeze({
+	numbers: Object.freeze([0, 7, 9, 5, 0, 9, 5, 7, 2, 7]),
 	upper: Object.freeze([0, 7, 9, 5, 0, 9, 5, 7, 2, 7]),
 	home: Object.freeze([9, 5, 0, 7, 2, 9, 7, 4, 0]),
 	lower: Object.freeze([5, 7, 4, 9, 2, 7, 0]),
