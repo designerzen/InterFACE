@@ -5,6 +5,13 @@
 import {
     MAJOR_CHORD_INTERVALS,
     MINOR_CHORD_INTERVALS,
+    SUSPENDED_CHORD_INTERVALS,
+    DIMINISHED_CHORD_INTERVALS,
+    AUGMENTED_CHORD_INTERVALS,
+    CHORD_VOICINGS,
+    MAJOR_7_VOICING_INTERVALS,
+    DIMINISHED_7_VOICING_INTERVALS,
+    SUSPENDED_7_VOICING_INTERVALS,
     DORIAN_CHORD_INTERVALS,
     FIFTHS_CHORD_INTERVALS,
     CHORD_INTERVALS,
@@ -18,7 +25,9 @@ import {
     createAllChordsForNoteNumber,
     getChordsForNoteNumberInScale,
     getChordsForNoteNumberInMode,
-    createAllChordsInScalesWithModes
+    createAllChordsInScalesWithModes,
+    createAllChordsInModes,
+    getChordVoicingForNoteNumber
 } from '../source/audio/tuning/chords.js';
 
 import { MAJOR_SCALE, MELODIC_MINOR_SCALE, NATURAL_MINOR_SCALE } from '../source/audio/tuning/scales.js';
@@ -45,6 +54,9 @@ describe('Chord Intervals', () => {
         expect(CHORD_INTERVALS).toEqual([
             MAJOR_CHORD_INTERVALS,
             MINOR_CHORD_INTERVALS,
+            SUSPENDED_CHORD_INTERVALS,
+            DIMINISHED_CHORD_INTERVALS,
+            AUGMENTED_CHORD_INTERVALS,
             DORIAN_CHORD_INTERVALS,
             FIFTHS_CHORD_INTERVALS
         ]);
@@ -58,6 +70,9 @@ describe('Chord Intervals', () => {
         expect(CHORD_INTERVALS_NAMES).toEqual([
             "major",
             "minor",
+            "suspended",
+            "diminished",
+            "augmented",
             "dorian",
             "fifths"
         ]);
@@ -77,10 +92,32 @@ describe('createChord function', () => {
 
     test('should create a chord with default parameters', () => {
         const chord = createChord(mockNotes);
-        expect(chord).toHaveLength(MAJOR_SCALE.length);
+        expect(chord).toHaveLength(5);
         expect(chord[0]).toEqual(mockNotes[0]);
         expect(chord[1]).toEqual(mockNotes[2]);
         expect(chord[2]).toEqual(mockNotes[4]);
+        expect(chord[3]).toEqual(mockNotes[5]);
+        expect(chord[4]).toEqual(mockNotes[0]);
+    });
+
+    test('creates exact emotion-driven chord qualities and extensions', () => {
+        const noteNumbers = type => getChordVoicingForNoteNumber(60, type).map(note => note.noteNumber);
+
+        expect(noteNumbers('suspended')).toEqual([60, 65, 67]);
+        expect(noteNumbers('diminished')).toEqual([60, 63, 66]);
+        expect(noteNumbers('halfDiminished')).toEqual([60, 63, 66, 70]);
+        expect(noteNumbers('diminished7')).toEqual([60, 63, 66, 69]);
+        expect(noteNumbers('augmented')).toEqual([60, 64, 68]);
+        expect(noteNumbers('major7')).toEqual([60, 64, 67, 71]);
+        expect(noteNumbers('minorMajor7')).toEqual([60, 63, 67, 71]);
+        expect(noteNumbers('suspended7')).toEqual([60, 65, 67, 70]);
+        expect(noteNumbers('dominant9')).toEqual([60, 64, 67, 70, 74]);
+    });
+
+    test('builds the voicing lookup from reusable interval constants', () => {
+        expect(CHORD_VOICINGS.major7).toBe(MAJOR_7_VOICING_INTERVALS);
+        expect(CHORD_VOICINGS.diminished7).toBe(DIMINISHED_7_VOICING_INTERVALS);
+        expect(CHORD_VOICINGS.suspended7).toBe(SUSPENDED_7_VOICING_INTERVALS);
     });
 
     test('should create a chord with custom scale formula', () => {
@@ -88,19 +125,19 @@ describe('createChord function', () => {
         expect(chord).toHaveLength(MINOR_CHORD_INTERVALS.length);
         expect(chord[0]).toEqual(mockNotes[0]);
         expect(chord[1]).toEqual(mockNotes[3]);
-        expect(chord[2]).toEqual(mockNotes[3 + 4]);
+        expect(chord[2]).toEqual(mockNotes[4]);
     });
 
-    test('should create a chord with offset', () => {
+    test('should ignore offset unless accumulating intervals', () => {
         const chord = createChord(mockNotes, MAJOR_SCALE, 1);
-        expect(chord[0]).toEqual(mockNotes[1]);
+        expect(chord[0]).toEqual(mockNotes[0]);
     });
 
     test('should create a chord with mode', () => {
         const chord = createChord(mockNotes, MAJOR_SCALE, 0, 1);
         // Mode 1 shifts the scale formula by 1
-        expect(chord[0]).toEqual(mockNotes[0]);
-        expect(chord[1]).toEqual(mockNotes[2]);
+        expect(chord[0]).toEqual(mockNotes[2]);
+        expect(chord[1]).toEqual(mockNotes[4]);
     });
 
     test('should handle cutOff parameter', () => {
@@ -148,7 +185,7 @@ describe('Chord creation helper functions', () => {
 
     test('createJazzChord should create a jazz chord', () => {
         const chord = createJazzChord(mockNotes);
-        expect(chord).toHaveLength(MELODIC_MINOR_SCALE.length);
+        expect(chord).toHaveLength(5);
         // Jazz chord uses the melodic minor scale
         expect(chord[0]).toEqual(mockNotes[0]);
     });
@@ -168,11 +205,20 @@ describe('createChordsForNoteNumber function', () => {
     test('should accept mode as string', () => {
         const tonic = 60; // C4
         const scale = MAJOR_CHORD_INTERVALS;
-        const mode = 'Major';
+        const mode = 'major';
         
         const chords = createChordsForNoteNumber(tonic, scale, mode);
         expect(chords).toBeDefined();
         expect(Array.isArray(chords)).toBe(true);
+    });
+
+    test('keeps chromatic chord qualities exact across modal lookups', () => {
+        expect(createChordsForNoteNumber(60, SUSPENDED_CHORD_INTERVALS, 'ionian').map(note => note.noteNumber))
+            .toEqual([60, 65, 67]);
+        expect(createChordsForNoteNumber(60, DIMINISHED_CHORD_INTERVALS, 'dorian').map(note => note.noteNumber))
+            .toEqual([60, 63, 66]);
+        expect(createChordsForNoteNumber(60, AUGMENTED_CHORD_INTERVALS, 'locrian').map(note => note.noteNumber))
+            .toEqual([60, 64, 68]);
     });
 
     test('should throw error for invalid mode', () => {
@@ -224,7 +270,7 @@ describe('Chord retrieval functions', () => {
         // This is more of an integration test and might need mocking
         const noteNumber = 60; // C4
         const scaleName = 'major';
-        const modeName = 'Major';
+        const modeName = 'ionian';
         
         // Mock the global allChords if needed
         global.allChords = global.allChords || [];
@@ -236,6 +282,10 @@ describe('Chord retrieval functions', () => {
 });
 
 describe('createAllChordsInScalesWithModes function', () => {
+    test('should preserve the old exported name as an alias', () => {
+        expect(createAllChordsInScalesWithModes).toBe(createAllChordsInModes);
+    });
+
     test('should create all chords for all notes', () => {
         // This function initializes the global allChords array
         // It's a heavy operation so we might want to mock parts of it
