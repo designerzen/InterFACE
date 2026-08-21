@@ -21,6 +21,12 @@ import { createFrictionDrum, PRESET_MUTED_CUICA, PRESET_OPEN_CUICA } from './syn
 import { createWhistle, PRESET_727_SHORT_WHISTLE, PRESET_727_LONG_WHISTLE } from './synthesizers/whistle.js'
 import { createChime, PRESET_727_STAR_CHIME, PRESET_WIND_CHIME } from './synthesizers/chime.js'
 import { createElectronicPercussion, PRESET_SYNDRUM, PRESET_LASER_TOM, PRESET_METALLIC_HIT } from './synthesizers/electronic-percussion.js'
+import {
+	PRESET_ACOUSTIC_BASS_DRUM, PRESET_ELECTRIC_SNARE,
+	PRESET_LOW_FLOOR_TOM, PRESET_HIGH_FLOOR_TOM, PRESET_HIGH_MID_TOM,
+	PRESET_PEDAL_HIHAT, PRESET_RIDE_BELL, PRESET_CRASH_CYMBAL_2,
+	PRESET_RIDE_CYMBAL_2, PRESET_VIBRASLAP, PRESET_JINGLE_BELL,
+} from './synthesizers/general-midi-percussion-presets.js'
 import { createSnareReverb } from './effects/snare-reverb.js'
 import { tuneCowbellOptions, tuneKickOptions, tuneSnareOptions } from './synthesizers/percussion-tuning.js'
 import { sendGeneralMIDIPercussion } from './midi/general-midi-percussion-output.js'
@@ -32,6 +38,7 @@ import { sendGeneralMIDIPercussion } from './midi/general-midi-percussion-output
  */
 export const createDrumkit = ( audioContext, output, options={} ) => {
 	let tonic
+	const partPanBuses = new Map()
 	const createPanBus = destination => {
 		if (typeof audioContext.createStereoPanner !== 'function')
 		{
@@ -48,6 +55,11 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 			}
 		}
 	}
+	const createPartPanBus = (part, destination=output) => {
+		const bus = createPanBus(destination)
+		partPanBuses.set(part, bus)
+		return bus
+	}
 	const wrapMIDIVoice = (part, voice) => {
 		const midiVoice = (voiceOptions={}) => {
 			if (options.midiPercussion)
@@ -61,8 +73,15 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		return midiVoice
 	}
 	const snareReverb = createSnareReverb(audioContext, output)
-	const snarePanBus = createPanBus(snareReverb.input)
-	const tomPanBus = createPanBus(output)
+	const snarePanBus = createPartPanBus('snare', snareReverb.input)
+	const tomLowPanBus = createPartPanBus('tomLow')
+	const tomMidPanBus = createPartPanBus('tomMid')
+	const tomHighPanBus = createPartPanBus('tomHigh')
+	const hatPanBus = createPartPanBus('hat')
+	const crashPanBus = createPartPanBus('crash')
+	const ridePanBus = createPartPanBus('ride')
+	const splashPanBus = createPartPanBus('splash')
+	const chinaPanBus = createPartPanBus('china')
 	const rawKick = createKick(audioContext, output)
 	const rawSnare = createSnare(audioContext, snarePanBus.input)
 	const rawCowbell = createCowbell(audioContext, output)
@@ -80,8 +99,8 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		presetVoice.choke = voice.choke
 		return presetVoice
 	}
-	const openHat = wrapMIDIVoice("hatOpen", createHihat(audioContext, output))
-	const closedHat = wrapMIDIVoice("hatClosed", createHihat(audioContext, output))
+	const openHat = wrapMIDIVoice("hatOpen", createHihat(audioContext, hatPanBus.input))
+	const closedHat = wrapMIDIVoice("hatClosed", createHihat(audioContext, hatPanBus.input))
 	const hat = (options={}) => {
 		const triggerAt = options.triggerAt ?? audioContext.currentTime
 		const isOpen = options.open ?? /\b(open|ride|crash)\b/i.test(options.name ?? "")
@@ -108,14 +127,20 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 
 	const drumkit = {
 		kick : wrapTunedVoice("kick", rawKick, tuneKickOptions, DEFAULT_KICK_OPTIONS),
+		kickAcoustic : wrapPresetVoice("kickAcoustic", createKick(audioContext, output), PRESET_ACOUSTIC_BASS_DRUM),
 		snare : wrapTunedVoice("snare", rawSnare, tuneSnareOptions, DEFAULT_SNARE_OPTIONS),
+		snareElectric : wrapPresetVoice("snareElectric", createSnare(audioContext, output), PRESET_ELECTRIC_SNARE),
 		hat,
+		hatPedal : wrapPresetVoice("hatPedal", createHihat(audioContext, hatPanBus.input), PRESET_PEDAL_HIHAT),
 		cowbell : wrapTunedVoice("cowbell", rawCowbell, tuneCowbellOptions, DEFAULT_COWBELL_OPTIONS),
 		clack : wrapMIDIVoice("clack", createClack(audioContext, output)),
 		clap : wrapMIDIVoice("clap", createClap(audioContext, output)),
-		tomLow : wrapPresetVoice("tomLow", createTom(audioContext, tomPanBus.input), PRESET_LOW_TOM),
-		tomMid : wrapPresetVoice("tomMid", createTom(audioContext, tomPanBus.input), PRESET_MID_TOM),
-		tomHigh : wrapPresetVoice("tomHigh", createTom(audioContext, tomPanBus.input), PRESET_HIGH_TOM),
+		tomLow : wrapPresetVoice("tomLow", createTom(audioContext, tomLowPanBus.input), PRESET_LOW_TOM),
+		tomMid : wrapPresetVoice("tomMid", createTom(audioContext, tomMidPanBus.input), PRESET_MID_TOM),
+		tomHigh : wrapPresetVoice("tomHigh", createTom(audioContext, tomHighPanBus.input), PRESET_HIGH_TOM),
+		tomFloorLow : wrapPresetVoice("tomFloorLow", createTom(audioContext, output), PRESET_LOW_FLOOR_TOM),
+		tomFloorHigh : wrapPresetVoice("tomFloorHigh", createTom(audioContext, output), PRESET_HIGH_FLOOR_TOM),
+		tomMidHigh : wrapPresetVoice("tomMidHigh", createTom(audioContext, output), PRESET_HIGH_MID_TOM),
 		bongoHigh : wrapPresetVoice("bongoHigh", createHandDrum(audioContext, output), PRESET_727_HIGH_BONGO),
 		bongoLow : wrapPresetVoice("bongoLow", createHandDrum(audioContext, output), PRESET_727_LOW_BONGO),
 		congaMute : wrapPresetVoice("congaMute", createHandDrum(audioContext, output), PRESET_808_MUTE_CONGA),
@@ -131,10 +156,13 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		woodblockHigh : wrapPresetVoice("woodblockHigh", createClack(audioContext, output), PRESET_WOODBLOCK_CLACK),
 		woodblockLow : wrapPresetVoice("woodblockLow", createClack(audioContext, output), { ...PRESET_WOODBLOCK_CLACK, name:"Low Woodblock", octave:0.76 }),
 		castanets : wrapPresetVoice("castanets", createClack(audioContext, output), PRESET_CASTANET_CLACK),
-		crash : wrapPresetVoice("crash", createHihat(audioContext, output), OPEN_HIHAT_CRASH),
-		ride : wrapPresetVoice("ride", createHihat(audioContext, output), OPEN_HIHAT_RIDE),
-		splash : wrapPresetVoice("splash", createHihat(audioContext, output), OPEN_HIHAT_SPLASH),
-		china : wrapPresetVoice("china", createHihat(audioContext, output), OPEN_HIHAT_CHINA),
+		crash : wrapPresetVoice("crash", createHihat(audioContext, crashPanBus.input), OPEN_HIHAT_CRASH),
+		ride : wrapPresetVoice("ride", createHihat(audioContext, ridePanBus.input), OPEN_HIHAT_RIDE),
+		rideBell : wrapPresetVoice("rideBell", createCowbell(audioContext, output), PRESET_RIDE_BELL),
+		ride2 : wrapPresetVoice("ride2", createHihat(audioContext, ridePanBus.input), PRESET_RIDE_CYMBAL_2),
+		crash2 : wrapPresetVoice("crash2", createHihat(audioContext, crashPanBus.input), PRESET_CRASH_CYMBAL_2),
+		splash : wrapPresetVoice("splash", createHihat(audioContext, splashPanBus.input), OPEN_HIHAT_SPLASH),
+		china : wrapPresetVoice("china", createHihat(audioContext, chinaPanBus.input), OPEN_HIHAT_CHINA),
 		tambourine : wrapPresetVoice("tambourine", createJingle(audioContext, output), PRESET_707_TAMBOURINE),
 		chekere : wrapPresetVoice("chekere", createJingle(audioContext, output), PRESET_CHEKERE),
 		agogoHigh : wrapPresetVoice("agogoHigh", createCowbell(audioContext, output), PRESET_727_HIGH_AGOGO),
@@ -152,6 +180,8 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		quijada : wrapPresetVoice("quijada", createScrape(audioContext, output), PRESET_727_QUIJADA),
 		starChime : wrapPresetVoice("starChime", createChime(audioContext, output), PRESET_727_STAR_CHIME),
 		windChime : wrapPresetVoice("windChime", createChime(audioContext, output), PRESET_WIND_CHIME),
+		jingleBell : wrapPresetVoice("jingleBell", createJingle(audioContext, output), PRESET_JINGLE_BELL),
+		vibraslap : wrapPresetVoice("vibraslap", createScrape(audioContext, output), PRESET_VIBRASLAP),
 		fingerSnap : wrapPresetVoice("fingerSnap", createClap(audioContext, output), PRESET_FINGER_SNAP),
 		syndrum : wrapPresetVoice("syndrum", createElectronicPercussion(audioContext, output), PRESET_SYNDRUM),
 		laserTom : wrapPresetVoice("laserTom", createElectronicPercussion(audioContext, output), PRESET_LASER_TOM),
@@ -183,7 +213,21 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 	drumkit.setSnareReverb = snareReverb.setAmount
 	drumkit.getSnareReverb = snareReverb.getAmount
 	drumkit.setSnarePan = snarePanBus.setPan
-	drumkit.setTomPan = tomPanBus.setPan
+	drumkit.setTomPan = (value, triggerAt) => {
+		for (const part of ['tomLow', 'tomMid', 'tomHigh'])
+		{
+			partPanBuses.get(part)?.setPan(value, triggerAt)
+		}
+		return value
+	}
+	const panPartAliases = Object.freeze({
+		'low-tom':'tomLow',
+		'mid-tom':'tomMid',
+		'high-tom':'tomHigh',
+	})
+	drumkit.setPartPan = (part, value, triggerAt) => partPanBuses
+		.get(panPartAliases[part] ?? part)
+		?.setPan(value, triggerAt) ?? 0
 	drumkit.setTonic = pitchClass => tonic = Number.isFinite(pitchClass) ? pitchClass : undefined
 	drumkit.getTonic = () => tonic
 	drumkit.setMIDIPercussion = enabled => options.midiPercussion = Boolean(enabled)

@@ -6,17 +6,20 @@ export const drumRollSequence = Array.from(
 const groove = (kick, snare, hat, clap=kick.map(() => 0)) => ({ kick, snare, hat, clap })
 
 export const AUXILIARY_DRUM_LANES = Object.freeze([
+	'kickAcoustic', 'snareElectric',
+	'tomFloorLow', 'tomFloorHigh', 'tomMidHigh',
+	'hatPedal',
 	'bongoHigh', 'bongoLow',
 	'congaMute', 'congaHigh', 'congaLow',
 	'cabasa', 'maracas',
 	'triangleMute', 'triangleOpen',
 	'rimshot', 'crossStick', 'claves', 'woodblockHigh', 'woodblockLow', 'castanets',
-	'crash', 'ride', 'splash', 'china',
+	'crash', 'crash2', 'ride', 'ride2', 'rideBell', 'splash', 'china',
 	'tambourine', 'chekere', 'agogoHigh', 'agogoLow',
 	'timbaleHigh', 'timbaleLow', 'guiroShort', 'guiroLong',
 	'cuicaMute', 'cuicaOpen', 'whistleShort', 'whistleLong',
 	'surdoMute', 'surdoOpen', 'quijada', 'starChime', 'windChime',
-	'fingerSnap', 'syndrum', 'laserTom', 'metalHit',
+	'fingerSnap', 'jingleBell', 'vibraslap', 'syndrum', 'laserTom', 'metalHit',
 ])
 
 const COMPOSITE_DRUM_LANES = Object.freeze(['kick', 'snare', 'hat', 'clap', ...AUXILIARY_DRUM_LANES])
@@ -375,6 +378,17 @@ export const DRUM_GROOVES = {
 		whistleLong:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,95],
 		windChime:[0,0,0,0,0,0,0,0,80,0,0,0,0,0,0,0],
 		fingerSnap:[0,0,0,0,120,0,0,0,0,0,0,0,125,0,0,0],
+		kickAcoustic:[130,0,0,0,0,0,0,0,120,0,0,0,0,0,0,0],
+		snareElectric:[0,0,0,0,0,0,0,0,0,0,0,0,105,0,0,0],
+		tomFloorLow:[0,0,0,0,0,0,0,0,0,0,0,0,0,115,0,0],
+		tomFloorHigh:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,125,0],
+		tomMidHigh:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,135],
+		hatPedal:[0,0,70,0,0,0,75,0,0,0,70,0,0,0,80,0],
+		crash2:[0,0,0,0,0,0,0,0,130,0,0,0,0,0,0,0],
+		ride2:[0,0,0,0,0,0,0,0,0,0,88,0,92,0,88,0],
+		rideBell:[0,0,0,0,0,0,0,0,0,0,0,0,105,0,0,0],
+		vibraslap:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,82],
+		jingleBell:[0,0,0,0,0,0,0,0,72,0,0,0,0,0,0,0],
 	},
 	"electronic-percussion":{
 		...groove(

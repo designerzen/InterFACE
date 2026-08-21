@@ -419,6 +419,59 @@ export const createDrumArranger = (options={}) => {
 			? clampVelocity(90 + state.intent.energy * 105 + random() * 35)
 			: 0
 
+		// Phrase orchestration keeps the wider GM kit audible even when the
+		// selected groove only defines kick/snare/hat lanes. Explicit groove
+		// lanes always win; these accents fill only otherwise-silent voices.
+		if (options.percussionColours !== false)
+		{
+			const stepInBar = wrap(state.step, state.stepsPerBar)
+			const barInPhrase = Math.floor(stepInPhrase / state.stepsPerBar)
+			const addColour = (lane, velocity) => {
+				if (!parts[lane] && !selectedGroove?.[lane]) parts[lane] = clampVelocity(velocity)
+			}
+
+			if (stepInPhrase === 0)
+			{
+				addColour(state.phrase % 2 === 0 ? 'crash' : 'crash2', 150 + state.intent.energy * 70)
+			}
+
+			// A short ride passage in the latter half of alternate phrases makes
+			// the ride a recognisable arrangement change, rather than random fizz.
+			const ridePassage = state.phrase % 2 === 1 && barInPhrase >= Math.floor(state.phraseBars / 2)
+			if (ridePassage && stepInBar % 4 === 0)
+			{
+				addColour(state.phrase % 4 === 1 ? 'ride' : 'ride2', 76 + state.intent.energy * 48)
+			}
+			if (ridePassage && stepInBar === Math.max(1, state.stepsPerBar - 4))
+			{
+				addColour('rideBell', 92 + state.intent.tension * 55)
+			}
+
+			// Rotate dry backbeat colours so rimshots, claves and snaps appear in
+			// every normal session without all three cluttering the same bar.
+			const backbeat = stepInBar === Math.max(1, Math.floor(state.stepsPerBar / 4)) ||
+				stepInBar === Math.max(1, Math.floor(state.stepsPerBar * 3 / 4))
+			if (backbeat)
+			{
+				const dryColours = ['rimshot', 'claves', 'fingerSnap', 'snareElectric']
+				addColour(dryColours[wrap(state.bar, dryColours.length)], 82 + state.intent.energy * 58)
+			}
+
+			if (stepInBar === Math.max(1, Math.floor(state.stepsPerBar * 3 / 8)))
+			{
+				addColour('hatPedal', 58 + state.intent.density * 42)
+			}
+
+			// GM tom articulations form a compact phrase-end fill. The two novelty
+			// colours are deliberately much rarer than the time-keeping voices.
+			const stepsRemaining = phraseLengthValue - stepInPhrase
+			if (stepsRemaining === 3) addColour('tomFloorLow', 105 + state.intent.energy * 55)
+			if (stepsRemaining === 2) addColour('tomFloorHigh', 112 + state.intent.energy * 55)
+			if (stepsRemaining === 1) addColour('tomMidHigh', 120 + state.intent.energy * 60)
+			if (state.phrase % 4 === 3 && stepsRemaining === 2) addColour('vibraslap', 92)
+			if (state.phrase % 4 === 3 && stepsRemaining === 1) addColour('jingleBell', 84)
+		}
+
 		const phraseEndWindow = phraseLengthValue - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
 		const presetTiming = selectedGroove?.timing
 		const presetSubdivisionStep = presetTiming &&
