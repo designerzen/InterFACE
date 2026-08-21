@@ -249,8 +249,10 @@ menu#control-panel
 
 
 		//- Volumes -------------------------------------------------------------------------------
-		#control-panel-volume.folder-menu.inline.up
-			a.folder-link(href="#folder-volume" aria-label="Show volume controls") Volume
+		#control-panel-volume.folder-menu.bottom.horizontal.right
+			a.folder-link(href="#folder-volume" aria-label="Show volume or mixer controls")
+				span.volume-control-name Volume
+				span.mixer-control-name Mixer
 			menu.folder-content#folder-volume
 				include volume-panel.pug
 				a(href="#control-panel") Return to the control menu
@@ -302,6 +304,15 @@ menu#control-panel
 				option(value="vertical") Falling Columns
 				option(value="ripples") Drum Ripples
 				option(value="disabled") Disabled
+
+		label.advanced-only(for="select-percussion-panning") Drum Pan<span class="hide-text"> stereo layout</span>
+			select#select-percussion-panning(name="percussion-panning" aria-label="Choose the percussion stereo panning style")
+				option(value="vintage-jazz") Old Jazz Record
+				option(value="drummer") Drummer's Perspective
+				option(value="audience") Audience Perspective
+				option(value="seventies-wide") 70s Hard Pan
+				option(value="modern") Modern Balanced
+				option(value="mono") Mono / Centre
 
 		label(for="button-performance-drums") Performance<span class="hide-text"> controls percussion activity</span>
 			input#button-performance-drums(type="checkbox" aria-label="Allow user performance to affect percussion")

@@ -104,6 +104,10 @@
 		--bg:url(/source/assets/icons/volume_up-24px.svg);
 	}
 
+	html:not(.beginner) #control-panel-volume a.folder-link[href="#folder-volume"]{
+		--bg:url(/source/assets/icons/equalizer.svg);
+	}
+
 	label[for="button-flood"]{
 		--bg:url(/source/assets/icons/settings_overscan_black_24dp.svg);
 		anchor-name: --button-flood;

@@ -1,4 +1,4 @@
-fieldset#volume-panel.volume 
+fieldset#volume-panel.volume.volume-compact
 	legend Volume
 	//- label(for="volume-input-range") 
 	//- 	input(type="range" min="0" max="1" step="0.05" list="volume-input-ticks")#volume-input-range
@@ -24,7 +24,29 @@ fieldset#volume-panel.volume
 			option(value=i style=`--idx: ${i}` label=i%major ? null : i)
 
 	output(for="volume-input-range")#volumeoutput 0
-		
-	label(for="button-mute" ) Mute
-		input#button-mute(type="checkbox" role="switch" aria-label="Toggle mute")
-			
+
+fieldset#mixer-panel.volume-mixer
+	legend Mixer
+
+	.mixer-channel
+		label(for="mixer-master-volume") Master
+		input#mixer-master-volume.vertical(type="range" min="0" max="1" step="0.01" list="volume-input-ticks" name="master-volume")
+		output#mixer-master-output(for="mixer-master-volume") 0%
+
+	.mixer-channel
+		label(for="mixer-percussion-volume") Percussion
+		input#mixer-percussion-volume.vertical(type="range" min="0" max="1" step="0.01" list="volume-input-ticks" name="percussion-volume")
+		output#mixer-percussion-output(for="mixer-percussion-volume") 0%
+
+	.mixer-channel
+		label(for="mixer-sample-volume") Samples
+		input#mixer-sample-volume.vertical(type="range" min="0" max="1" step="0.01" list="volume-input-ticks" name="sample-volume")
+		output#mixer-sample-output(for="mixer-sample-volume") 0%
+
+	.mixer-channel
+		label(for="mixer-trim-volume") Person Trim
+		input#mixer-trim-volume.vertical(type="range" min="0" max="1" step="0.01" list="volume-input-ticks" name="person-trim-volume")
+		output#mixer-trim-output(for="mixer-trim-volume") 0%
+
+label.volume-mute-control(for="button-mute") Mute
+	input#button-mute(type="checkbox" role="switch" aria-label="Toggle mute")

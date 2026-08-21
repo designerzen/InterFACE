@@ -542,7 +542,8 @@ main:not(.flag-overlays){
 		display: none;
 	}
 
-	#settings .advanced-only{
+	#settings .advanced-only,
+	#percussion-settings .advanced-only{
 		display: none;
 	}
 }
