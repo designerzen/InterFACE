@@ -39,6 +39,12 @@ import { createFrictionDrum, PRESET_FRICTION_DRUMS, PRESET_MUTED_CUICA, PRESET_O
 import { createWhistle, PRESET_WHISTLES, PRESET_727_SHORT_WHISTLE, PRESET_727_LONG_WHISTLE } from '../synthesizers/whistle.js'
 import { createChime, PRESET_CHIMES, PRESET_727_STAR_CHIME, PRESET_WIND_CHIME } from '../synthesizers/chime.js'
 import { createElectronicPercussion, PRESET_ELECTRONIC_PERCUSSION, PRESET_SYNDRUM, PRESET_LASER_TOM, PRESET_METALLIC_HIT } from '../synthesizers/electronic-percussion.js'
+import {
+	PRESET_ACOUSTIC_BASS_DRUM, PRESET_ELECTRIC_SNARE,
+	PRESET_LOW_FLOOR_TOM, PRESET_HIGH_FLOOR_TOM, PRESET_HIGH_MID_TOM,
+	PRESET_PEDAL_HIHAT, PRESET_RIDE_BELL, PRESET_CRASH_CYMBAL_2,
+	PRESET_RIDE_CYMBAL_2, PRESET_VIBRASLAP, PRESET_JINGLE_BELL,
+} from '../synthesizers/general-midi-percussion-presets.js'
 import { PERCUSSION_SOUND_PRESETS, getPercussionPreset } from '../synthesizers/percussion-presets.js'
 import { createSnareReverb } from '../effects/snare-reverb.js'
 import { sendGeneralMIDIPercussion } from '../midi/general-midi-percussion-output.js'
@@ -72,6 +78,12 @@ export const drumPitchBendToRatio = pitch => {
 }
 
 const PRESETS_BY_PART = Object.freeze({
+	kickAcoustic:[PRESET_ACOUSTIC_BASS_DRUM],
+	snareElectric:[PRESET_ELECTRIC_SNARE],
+	tomFloorLow:[PRESET_LOW_FLOOR_TOM],
+	tomFloorHigh:[PRESET_HIGH_FLOOR_TOM],
+	tomMidHigh:[PRESET_HIGH_MID_TOM],
+	hatPedal:[PRESET_PEDAL_HIHAT],
 	kick:PRESETS_KICKS,
 	snare:PRESET_SNARES,
 	hat:PRESET_HIHATS,
@@ -93,6 +105,9 @@ const PRESETS_BY_PART = Object.freeze({
 	castanets:PRESET_CLACKS,
 	crash:PRESET_HIHATS,
 	ride:PRESET_HIHATS,
+	rideBell:[PRESET_RIDE_BELL],
+	ride2:[PRESET_RIDE_CYMBAL_2],
+	crash2:[PRESET_CRASH_CYMBAL_2],
 	splash:PRESET_HIHATS,
 	china:PRESET_HIHATS,
 	tambourine:PRESET_JINGLES,
@@ -113,6 +128,8 @@ const PRESETS_BY_PART = Object.freeze({
 	starChime:PRESET_CHIMES,
 	windChime:PRESET_CHIMES,
 	fingerSnap:PRESET_CLAPS,
+	jingleBell:[PRESET_JINGLE_BELL],
+	vibraslap:[PRESET_VIBRASLAP],
 	syndrum:PRESET_ELECTRONIC_PERCUSSION,
 	laserTom:PRESET_ELECTRONIC_PERCUSSION,
 	metalHit:PRESET_ELECTRONIC_PERCUSSION,
@@ -216,6 +233,12 @@ export default class DrumkitInstrument extends Instrument{
 			presetVoice.choke = voice.choke
 			return presetVoice
 		}
+		this.kickAcoustic = createPresetVoice("kickAcoustic", createKick, PRESET_ACOUSTIC_BASS_DRUM)
+		this.snareElectric = createPresetVoice("snareElectric", createSnare, PRESET_ELECTRIC_SNARE)
+		this.tomFloorLow = createPresetVoice("tomFloorLow", createTom, PRESET_LOW_FLOOR_TOM)
+		this.tomFloorHigh = createPresetVoice("tomFloorHigh", createTom, PRESET_HIGH_FLOOR_TOM)
+		this.tomMidHigh = createPresetVoice("tomMidHigh", createTom, PRESET_HIGH_MID_TOM)
+		this.hatPedal = createPresetVoice("hatPedal", createHihat, PRESET_PEDAL_HIHAT)
 		this.bongoHigh = createPresetVoice("bongoHigh", createHandDrum, PRESET_727_HIGH_BONGO)
 		this.bongoLow = createPresetVoice("bongoLow", createHandDrum, PRESET_727_LOW_BONGO)
 		this.congaMute = createPresetVoice("congaMute", createHandDrum, PRESET_808_MUTE_CONGA)
@@ -233,6 +256,9 @@ export default class DrumkitInstrument extends Instrument{
 		this.castanets = createPresetVoice("castanets", createClack, PRESET_CASTANET_CLACK)
 		this.crash = createPresetVoice("crash", createHihat, OPEN_HIHAT_CRASH)
 		this.ride = createPresetVoice("ride", createHihat, OPEN_HIHAT_RIDE)
+		this.rideBell = createPresetVoice("rideBell", createCowbell, PRESET_RIDE_BELL)
+		this.ride2 = createPresetVoice("ride2", createHihat, PRESET_RIDE_CYMBAL_2)
+		this.crash2 = createPresetVoice("crash2", createHihat, PRESET_CRASH_CYMBAL_2)
 		this.splash = createPresetVoice("splash", createHihat, OPEN_HIHAT_SPLASH)
 		this.china = createPresetVoice("china", createHihat, OPEN_HIHAT_CHINA)
 		this.tambourine = createPresetVoice("tambourine", createJingle, PRESET_707_TAMBOURINE)
@@ -252,6 +278,8 @@ export default class DrumkitInstrument extends Instrument{
 		this.quijada = createPresetVoice("quijada", createScrape, PRESET_727_QUIJADA)
 		this.starChime = createPresetVoice("starChime", createChime, PRESET_727_STAR_CHIME)
 		this.windChime = createPresetVoice("windChime", createChime, PRESET_WIND_CHIME)
+		this.jingleBell = createPresetVoice("jingleBell", createJingle, PRESET_JINGLE_BELL)
+		this.vibraslap = createPresetVoice("vibraslap", createScrape, PRESET_VIBRASLAP)
 		this.fingerSnap = createPresetVoice("fingerSnap", createClap, PRESET_FINGER_SNAP)
 		this.syndrum = createPresetVoice("syndrum", createElectronicPercussion, PRESET_SYNDRUM)
 		this.laserTom = createPresetVoice("laserTom", createElectronicPercussion, PRESET_LASER_TOM)

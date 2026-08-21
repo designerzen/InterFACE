@@ -99,9 +99,9 @@ export default class ChordInstrument extends Instrument{
 
 	async destroy(){
 		this.clearArpeggioGate()
-		this.destroyInstruments()
+		await this.destroyInstruments()
 		this.mixer.disconnect()			
-        super.destroy()
+		return await super.destroy()
     }
 
 	constructor(audioContext, options = {}){
@@ -360,7 +360,7 @@ export default class ChordInstrument extends Instrument{
 	 */
 	async loadPreviousPreset(progressCallback){
 		const presetPromises = this.instruments.map( (instrument) => instrument.loadPreviousPreset(progressCallback))
-		//  await presetPromises[0]
+		await Promise.all(presetPromises)
 		return this
 		// return super.loadPreviousPreset(progressCallback)
 	}
@@ -372,7 +372,7 @@ export default class ChordInstrument extends Instrument{
 	 */
 	async loadNextPreset(progressCallback){
 		const presetPromises = this.instruments.map( (instrument) => instrument.loadNextPreset(progressCallback))
-		// await presetPromises[0]
+		await Promise.all(presetPromises)
 		return this
 		// return super.loadNextPreset(progressCallback)
 	}
@@ -408,14 +408,20 @@ export default class ChordInstrument extends Instrument{
 			throw Error("No instruments to destroy")
 		}
 
-		this.instruments.forEach( instrument => {
-			instrument.output?.disconnect()
-			instrument.destroy()
-		})
-
+		const instrumentsToDestroy = this.instruments
 		this.instruments = []
+		this.activeNotes.clear()
+		this.active = false
 		this.available = false
+
+		const destructionPromises = instrumentsToDestroy.map(async instrument => {
+			// allNotesOff stops sample sources synchronously before its first await.
+			await instrument.allNotesOff?.()
+			instrument.output?.disconnect()
+			await instrument.destroy()
+		})
 		// console.error("ChordInstrument:destroyInstruments", this )
+		return Promise.all(destructionPromises)
 	}
 
 	/**
@@ -447,7 +453,7 @@ export default class ChordInstrument extends Instrument{
 		const volume = 1 / quantity
 
 		// disconnect existing!
-		this.destroyInstruments()
+		const destroyedInstruments = this.destroyInstruments()
 
 		// set new instruments to cache
 		this.instruments = instrumentsArray.map( instrument => {
@@ -459,6 +465,7 @@ export default class ChordInstrument extends Instrument{
 		this.polyphony = quantity
 		
 		// console.warn(this.polyphony, this.instruments, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
+		return destroyedInstruments.then(() => this.instruments)
 	}
 
 	/**
@@ -495,7 +502,8 @@ export default class ChordInstrument extends Instrument{
 			instrumentsArray.push( instrumentInstance.clone() )
 		}
 		console.info("Instrument Instances created", {instrumentsArray})
-		this.setInstruments(instrumentsArray)
+		await this.setInstruments(instrumentsArray)
+		return this
 	}
 
 	/**

@@ -175,15 +175,17 @@ export default class SoundFontInstrument extends SampleInstrument{
 	 * @returns 
 	 */
 	async noteOn(noteNumber, velocity=1){
+		return super.noteOn(noteNumber, velocity)
+	}
+
+	getAudioBufferForNoteNumber(noteNumber){
 		const index = convertMIDINoteNumberToName(noteNumber)
 		const audioBuffer = this.audioBuffers[index] ?? this.fallbackAudioBuffers?.[index]
-		if(audioBuffer)
+		if (audioBuffer)
 		{
 			SoundFont.noteUsed(this.activeSoundFontCacheKey, index)
-			const track = this.play(audioBuffer, velocity)
 		}
-		// console.log("Buffer playing", {index, audioBuffer,noteNumber, velocity},  this.instrument  )
-		return super.noteOn(noteNumber, velocity)
+		return audioBuffer
 	}
 
 	// FIXME: Fade out the gate
@@ -347,6 +349,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 		{
 			return this.audioBuffers
 		}
+
+		await this.allNotesOff()
 	
 		// const index = this.getIndexFromName(presetName)
 		

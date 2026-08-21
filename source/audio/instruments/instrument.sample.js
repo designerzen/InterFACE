@@ -44,6 +44,7 @@ export default class SampleInstrument extends Instrument{
 	
 	// which samples are currently ongoing
 	activeSamples = new Map() // WeakMap?
+	activeNoteSamples = new Map()
 
 	get pitchOffset(){
 		return this.pitchBendValue
@@ -89,12 +90,26 @@ export default class SampleInstrument extends Instrument{
 	 * TODO:
 	 */
     async destroy(){
-	
+		await this.allNotesOff()
+		this.stopTrackedAudioSources(this.activeSamples)
 		this.envelope.disconnect()
 		this.gainNode.disconnect()
 								
-        super.destroy()
-    }
+		return await super.destroy()
+	}
+
+	stopTrackedAudioSources(audioSources){
+		audioSources.forEach(audioSource => {
+			try
+			{
+				audioSource?.stop?.()
+			}catch (error)
+			{
+				// The source may already have ended or been stopped by noteOff.
+			}
+		})
+		audioSources.clear()
+	}
 
 	// allow this itself to load instruments from the system
 	// based on whatever programNumber we set below...
@@ -146,6 +161,10 @@ export default class SampleInstrument extends Instrument{
 		return track
 	}
 
+	getAudioBufferForNoteNumber(noteNumber){
+		return this.audioBuffers[convertMIDINoteNumberToName(noteNumber)]
+	}
+
 	/**
 	 * Like note on but using names!
 	 * 
@@ -160,23 +179,66 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	async noteOn(noteNumber, velocity=1){
-		const key = convertMIDINoteNumberToName(noteNumber)
-		const audioBuffer = this.audioBuffers[key]
-		if(audioBuffer)
+		const started = await super.noteOn(noteNumber, velocity)
+		if (!started)
 		{
-			const track = this.play(audioBuffer, velocity )
-		}else{
-			// STILL LOADING THIS BUFFER... What to do?
-			//console.log("No buffer for", {noteNumber, velocity, key} , this.audioBuffers )
+			return false
 		}
-		// console.log("Buffer playing", {audioBuffer,noteNumber, velocity} )
-		return super.noteOn(noteNumber, velocity)
+		// noteOff may have run while an asynchronous noteOn was yielding.
+		if (!this.activeNotes.has(noteNumber))
+		{
+			return false
+		}
+
+		const audioBuffer = this.getAudioBufferForNoteNumber(noteNumber)
+		if (audioBuffer)
+		{
+			this.active = true
+			this.volume = velocity
+			let track
+			track = playTrack(
+				this.context,
+				audioBuffer,
+				0,
+				this.gainNode,
+				{ loop:true, playbackRate:this.pitchBendValue },
+				() => {
+					if (this.activeNoteSamples.get(noteNumber) === track)
+					{
+						this.activeNoteSamples.delete(noteNumber)
+					}
+				},
+			)
+			this.activeNoteSamples.set(noteNumber, track)
+		}
+
+		return started
 	}
 
-	// FIXME: Fade out the gate
 	async noteOff(noteNumber, velocity=0){
-		this.volume = velocity
-		return super.noteOff(noteNumber)
+		const track = this.activeNoteSamples.get(noteNumber)
+		this.activeNoteSamples.delete(noteNumber)
+		try
+		{
+			track?.stop?.()
+		}catch (error)
+		{
+			// An external cleanup may already have stopped this source.
+		}
+		const stopped = await super.noteOff(noteNumber, velocity)
+		this.active = this.activeNotes.size > 0 || this.activeNoteSamples.size > 0 || this.activeSamples.size > 0
+		return stopped
+	}
+
+	async allNotesOff(){
+		const activeNoteNumbers = [...this.activeNotes.keys()]
+		const noteOffPromises = activeNoteNumbers.map(noteNumber => this.noteOff(noteNumber, 0))
+		// Stop any source whose bookkeeping outlived its active-note entry.
+		this.stopTrackedAudioSources(this.activeNoteSamples)
+		this.activeNotes.clear()
+		this.active = this.activeSamples.size > 0
+		await Promise.all(noteOffPromises)
+		return activeNoteNumbers
 	}
 
 
@@ -186,10 +248,11 @@ export default class SampleInstrument extends Instrument{
 	
 	async pitchBend(pitch){
 		this.pitchBendValue = pitch
-		this.activeSamples.forEach( (sample, key) => {
+		const updatePlaybackRate = sample => {
 			sample.playbackRate.value = pitch
-			// if (pitch !==1) console.log(key, "Pitch bending sample",pitch, sample.playbackRate.value )
-		})
+		}
+		this.activeSamples.forEach(updatePlaybackRate)
+		this.activeNoteSamples.forEach(updatePlaybackRate)
 		return await super.pitchBend(pitch)
 	}
 
@@ -286,6 +349,8 @@ export default class SampleInstrument extends Instrument{
 		{
 			throw Error( `No Preset found with name "${instrumentName}" in pack "${instrumentPack}" with ${ this.instrumentFolders.length} presets available` )
 		}
+
+		await this.allNotesOff()
 
 		// check to see if the pack name is valid...
 		this.instrumentLoading = true
