@@ -1,257 +1,215 @@
 import { VERSION } from './version'
-
-// is there a way to save and cache this locally?
-// When offline it freaks out and tries to connec to the internet?
-// importScripts(`https://storage.googleapis.com/workbox-cdn/releases/${WORKBOX_VERSION}/workbox-sw.js`);
-import { registerRoute } from 'workbox-routing'
-import {
-  NetworkFirst,
-  StaleWhileRevalidate,
-  CacheFirst,
-} from 'workbox-strategies'
-
-import {
-	setConfig,
-	setCacheNameDetails
-} from 'workbox-core'
-
-import{
-  pageCache,
-  imageCache,
-  staticResourceCache,
-//   googleFontsCache,
-  offlineFallback
-} from 'workbox-recipes'
-
-// Used for filtering matches based on status code, header, or both
-import { CacheableResponse, CacheableResponsePlugin } from 'workbox-cacheable-response'
-// Used to limit entries in cache, remove entries after a certain period of time
+import { CacheableResponsePlugin } from 'workbox-cacheable-response'
+import { clientsClaim, setCacheNameDetails } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
+import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { RangeRequestsPlugin } from 'workbox-range-requests'
-import { precacheAndRoute } from 'workbox-precaching'
+import { registerRoute, setCatchHandler } from 'workbox-routing'
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
 
-// Not compiled so best add the ; to the es5
+const CACHE_PREFIX = 'phs'
+const CACHE_VERSION = `v${VERSION}`
+const CORE_AUDIO_MANIFEST = 'offline-audio.json'
+const CORE_AUDIO_CACHE = `${CACHE_PREFIX}-core-audio-${CACHE_VERSION}`
+const RUNTIME_AUDIO_CACHE = `${CACHE_PREFIX}-runtime-audio-${CACHE_VERSION}`
+const CORE_AUDIO_PATH = '/assets/audio/OpenGM24/acoustic_grand_piano-mp3/'
+const OWNED_CACHE_PREFIXES = [`${CACHE_PREFIX}-`, 'static-media']
+const AUDIO_FILE_PATTERN = /\.(?:aac|flac|m4a|mp3|oga|ogg|opus|wav|webm)(?:$|\?)/i
+const MODEL_FILE_PATTERN = /\.(?:task|tflite|wasm)(?:$|\?)/i
 const ONE_DAY = 60 * 60 * 24
-const REVISION = VERSION
-const BUILD_MMR = VERSION
-const WORKBOX_DEBUG_LOGGING = process.env.NODE_ENV === "development"
-// Workbox version - update manually when there are new releases.
-const WORKBOX_VERSION = '6.1.5'
-// Cache naming and versioning.
-const APP_CACHE_PREFIX = 'phs'
-const APP_CACHE_SUFFIX = `v${BUILD_MMR}`
+let audioCachePromise = null
 
-// checks for localhost anyways
-// setConfig({debug: WORKBOX_DEBUG_LOGGING})
-self.__WB_DISABLE_DEV_LOGS = !WORKBOX_DEBUG_LOGGING
-
-// https://love2dev.com/blog/how-to-uninstall-a-service-worker/
-const uninstall = () => {
-	navigator.serviceWorker.getRegistrations()
-		.then( registrations => { 
-			for(let registration of registrations) 
-			{ 
-				registration.unregister()
-				.then(()=>self.clients.matchAll())
-				.then(clients => { 
-					clients.forEach(client => { 
-						if (client.url && "navigate" in client){ 
-							client.navigate(client.url)
-						} 
-					})
-				})
-			}
-		})
-}
+self.__WB_DISABLE_DEV_LOGS = process.env.NODE_ENV !== 'development'
 
 setCacheNameDetails({
-    prefix: APP_CACHE_PREFIX,
-    suffix: APP_CACHE_SUFFIX,
-    precache: 'installtime',
-    runtime: 'runtime',
+	prefix: CACHE_PREFIX,
+	suffix: CACHE_VERSION,
+	precache: 'installtime',
+	runtime: 'runtime',
 })
 
-// console.log(`>>> Workbox`,REVISION, {WORKBOX_DEBUG_LOGGING});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.message) {
-     console.log(`>>> Message received from client: `, event.data)
-      if (event.data.message === 'SKIP_WAITING') {
-          self.skipWaiting()
-      } else if (event.data.message === 'CLIENTS_CLAIM') {
-          self.clients.claim()
-      } else {
-          debug.warning('>>>> No idea what to do with that message!')
-      }
-  } else {
-      console.warn(`Message event handler: event.data=[${event.data}], event.data.message=[${event.data.message}]`)
-  }
+// Replaced with the production asset manifest by actions/offline.mjs.
+// A failed download keeps the previous service worker active.
+precacheAndRoute(self.__WB_MANIFEST, {
+	ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
 })
+cleanupOutdatedCaches()
+clientsClaim()
 
-// Clean up old caches on activation
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          // Delete caches that are old versions (start with prefix but not current suffix)
-          if (cacheName.startsWith(APP_CACHE_PREFIX) && !cacheName.includes(APP_CACHE_SUFFIX)) {
-            console.log('Deleting old cache:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    })
-  )
-})
-
-// Uninstall if b0rked
-// self.addEventListener("activate", event => {
-// 	uninstall()
-// })
-
-
-// Load caching routines
-
-// CacheFirst - an implementation of a cache-first request strategy.
-// A cache first strategy is useful for assets that have been revisioned, such as URLs like /styles/example.a8f5f1.css, since they can be cached for long periods of time.
-// If the network request fails, and there is no cache match, this will throw a WorkboxError exception.
-
-// Include offline.html in the manifest__WB_MANIFEST
-// precacheAndRoute(self.origin);
-precacheAndRoute([ {url: 'index.html', revision:REVISION }])
-
-pageCache()
-
-staticResourceCache()
-
-// so this aint working...
-imageCache()
-
-// allow for this to work offline too
-offlineFallback()
-
-// intercept offline analytics and cache for later salvaging
-// googleAnalytics.initialize()
-
-// Add Music files!
-const CACHE_MEDIA = 'static-media'
-const catchMedia = (match) =>{
-  const { request } = match
-  const isMedia = 
-  request.destination === 'mp3' || 
-  request.destination === 'wav' || 
-  request.destination === 'media' ||
-  request.destination === 'audio' || 
-  request.url.indexOf(".mp3") === request.url.length - 4
-  request.url.indexOf(".wav") === request.url.length - 4
-  
-  // console.error(isMedia, "matchCallback", {match, request, pos:request.url.indexOf(".mp3") })
-  
-  return isMedia
+const broadcast = async message => {
+	const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+	clients.forEach(client => client.postMessage(message))
 }
 
+const cacheCoreAudio = async () => {
+	const manifestURL = new URL(CORE_AUDIO_MANIFEST, self.registration.scope)
+	const response = (await matchPrecache(CORE_AUDIO_MANIFEST)) ||
+		await fetch(manifestURL, { cache: 'no-cache' })
+	if (!response.ok) throw new Error(`Unable to load ${manifestURL}: ${response.status}`)
+
+	const manifest = await response.json()
+	if (!Array.isArray(manifest.files) || manifest.files.length === 0) {
+		throw new Error('The core offline audio manifest is empty')
+	}
+
+	const cache = await caches.open(CORE_AUDIO_CACHE)
+	const files = manifest.files.map(file => new URL(file.url, self.registration.scope))
+	let completed = 0
+
+	for (const url of files) {
+		if (await cache.match(url)) completed++
+	}
+	await broadcast({
+		type: 'OFFLINE_AUDIO_PROGRESS',
+		completed,
+		total: files.length,
+		totalBytes: manifest.totalBytes,
+	})
+
+	// Store full 200 responses so RangeRequestsPlugin can serve offline seeks.
+	for (let index = 0; index < files.length; index += 4) {
+		await Promise.all(files.slice(index, index + 4).map(async url => {
+			const request = new Request(url, { credentials: 'same-origin' })
+			if (await cache.match(request)) return
+			const audioResponse = await fetch(request)
+			if (!audioResponse.ok || audioResponse.status !== 200) {
+				throw new Error(`Unable to cache core audio ${url}: ${audioResponse.status}`)
+			}
+			await cache.put(request, audioResponse)
+			completed++
+			await broadcast({
+				type: 'OFFLINE_AUDIO_PROGRESS',
+				completed,
+				total: files.length,
+				totalBytes: manifest.totalBytes,
+			})
+		}))
+	}
+
+	await broadcast({
+		type: 'OFFLINE_AUDIO_READY',
+		completed,
+		total: files.length,
+		totalBytes: manifest.totalBytes,
+	})
+}
+
+self.addEventListener('message', event => {
+	if (event.data?.type === 'SKIP_WAITING') {
+		event.waitUntil(self.skipWaiting())
+	}
+	if (event.data?.type === 'CACHE_OFFLINE_AUDIO') {
+		if (!audioCachePromise) {
+			audioCachePromise = cacheCoreAudio()
+			.catch(error => broadcast({
+				type: 'OFFLINE_AUDIO_ERROR',
+				message: error.message,
+			}))
+			.finally(() => { audioCachePromise = null })
+		}
+		event.waitUntil(audioCachePromise)
+	}
+})
+
+self.addEventListener('activate', event => {
+	event.waitUntil((async () => {
+		const cacheNames = await caches.keys()
+		await Promise.all(cacheNames.map(cacheName => {
+			const owned = OWNED_CACHE_PREFIXES.some(prefix => cacheName.startsWith(prefix))
+			const current = cacheName.includes(CACHE_VERSION)
+			return owned && !current ? caches.delete(cacheName) : Promise.resolve(false)
+		}))
+	})())
+})
+
+const pageStrategy = new NetworkFirst({
+	cacheName: `${CACHE_PREFIX}-pages-${CACHE_VERSION}`,
+	networkTimeoutSeconds: 3,
+	plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+})
+
 registerRoute(
-  catchMedia,
-  new CacheFirst({
-    cacheName: CACHE_MEDIA,
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new RangeRequestsPlugin()
-    ],
-  }),
+	({ request }) => request.mode === 'navigate',
+	async options => {
+		try {
+			return await pageStrategy.handle(options)
+		} catch {
+			return (await matchPrecache('index.html')) || Response.error()
+		}
+	},
 )
 
 registerRoute(
-  /\*.task/,
-  new NetworkFirst({
-    cacheName: 'tf-models-tfhub-tensorflow',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new ExpirationPlugin({
-        // one month should be good
-        maxAgeSeconds: ONE_DAY * 30,
-      }),
-    ],
-  }),
+	({ request }) => ['script', 'style', 'worker'].includes(request.destination),
+	new StaleWhileRevalidate({
+		cacheName: `${CACHE_PREFIX}-static-${CACHE_VERSION}`,
+		plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+	}),
 )
 
-// workbox.loadModule('workbox-range-requests');
-// RangeRequestsPlugin
-// registerRoute(
-//   catchMedia,
-//   new StaleWhileRevalidate({
-//     cacheName: CACHE_MEDIA,
-//     plugins: [
-//       new CacheableResponsePlugin({
-//         statuses: [0, 200],
-//       }),
-//     ],
-//   }),
-// );
-
-
-// TF json
-// https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/facemesh/1/default/1/model.json
-
-// Now the TF models...
-// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
-// https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1/model.json?tfjs-format=file
-
-/*
-
-// Cache the cloud hosted TF models as they are heavy and not local!
 registerRoute(
-  /^https:\/\/storage\.googleapis\.com\/tfhub-tfjs-modules/,
-  new NetworkFirst({
-    cacheName: 'tf-models-googleapi',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new ExpirationPlugin({
-        // one month should be good
-        maxAgeSeconds: ONE_DAY * 30,
-      }),
-    ],
-  }),
+	({ url }) => url.pathname.includes(CORE_AUDIO_PATH),
+	new CacheFirst({
+		cacheName: CORE_AUDIO_CACHE,
+		plugins: [
+			new CacheableResponsePlugin({ statuses: [200] }),
+			new RangeRequestsPlugin(),
+		],
+	}),
 )
 
-// https://tfhub.dev/mediapipe/tfjs-model/iris/1/default/2/model.json?tfjs-format=file
 registerRoute(
-  /^https:\/\/tfhub\.dev\/mediapipe\/tfjs-model/,
-  new NetworkFirst({
-    cacheName: 'tf-models-tfhub-mediapipe',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new ExpirationPlugin({
-        // one month should be good
-        maxAgeSeconds: ONE_DAY * 30,
-      }),
-    ],
-  }),
+	({ request, url }) =>
+		request.destination === 'audio' ||
+		request.destination === 'video' ||
+		AUDIO_FILE_PATTERN.test(url.pathname),
+	new CacheFirst({
+		cacheName: RUNTIME_AUDIO_CACHE,
+		plugins: [
+			new CacheableResponsePlugin({ statuses: [200] }),
+			new RangeRequestsPlugin(),
+			new ExpirationPlugin({
+				maxEntries: 512,
+				maxAgeSeconds: ONE_DAY * 90,
+				purgeOnQuotaError: true,
+			}),
+		],
+	}),
 )
 
-// // https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1/model.json?tfjs-format=file
-// registerRoute(
-//   /^https:\/\/tfhub\.dev\/tensorflow\/tfjs-model/,
-//   new NetworkFirst({
-//     cacheName: 'tf-models-tfhub-tensorflow',
-//     plugins: [
-//       new CacheableResponsePlugin({
-//         statuses: [0, 200],
-//       }),
-//       new ExpirationPlugin({
-//         // one month should be good
-//         maxAgeSeconds: ONE_DAY * 30,
-//       }),
-//     ],
-//   }),
-// )
-*/
+registerRoute(
+	({ url }) => MODEL_FILE_PATTERN.test(url.pathname),
+	new CacheFirst({
+		cacheName: `${CACHE_PREFIX}-models-${CACHE_VERSION}`,
+		plugins: [
+			new CacheableResponsePlugin({ statuses: [0, 200] }),
+			new ExpirationPlugin({
+				maxEntries: 80,
+				maxAgeSeconds: ONE_DAY * 90,
+				purgeOnQuotaError: true,
+			}),
+		],
+	}),
+)
+
+registerRoute(
+	({ request }) => request.destination === 'image',
+	new CacheFirst({
+		cacheName: `${CACHE_PREFIX}-images-${CACHE_VERSION}`,
+		plugins: [
+			new CacheableResponsePlugin({ statuses: [0, 200] }),
+			new ExpirationPlugin({
+				maxEntries: 120,
+				maxAgeSeconds: ONE_DAY * 30,
+				purgeOnQuotaError: true,
+			}),
+		],
+	}),
+)
+
+setCatchHandler(async ({ request }) => {
+	if (request.destination === 'document') {
+		return (await matchPrecache('index.html')) || Response.error()
+	}
+	return Response.error()
+})

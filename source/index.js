@@ -51,12 +51,27 @@ bodyClassList.toggle("interface", true)
 bodyClassList.toggle( "debug", debugMode )
 bodyClassList.add( LTD)
 
-// FIXME: show updates button
-const showUpgradeDialog = () => {
+let installWaitingUpdate = null
+
+const showUpgradeDialog = updateAction => {
+	if (updateAction) installWaitingUpdate = updateAction
+
 	const updateButton = document.getElementById("button-update")
-	const changes = showChangelog(document.getElementById("changelog"))
-	document.getElementById("pwa").setAttribute("open", true)
-	updateButton.setAttribute("hidden", false)
+	const updateDialog = document.getElementById("pwa-updates")
+	showChangelog(document.getElementById("changelog")).catch(error => {
+		console.warn('Unable to load the changelog', error)
+	})
+
+	if (updateButton) {
+		updateButton.hidden = false
+		updateButton.disabled = !installWaitingUpdate
+		if (!updateButton.dataset.updateBound) {
+			updateButton.dataset.updateBound = 'true'
+			updateButton.addEventListener('click', () => installWaitingUpdate?.())
+		}
+	}
+
+	if (updateDialog && !updateDialog.open) updateDialog.showModal()
 }
 
 // TODO: Check state to see if this is a fresh session or a return then update the front end accordingly	
@@ -343,27 +358,39 @@ const checkPWAUpdates = () => {
 		body.classList.toggle("installable", PWAState.isInstallable)
 		body.classList.toggle("installed", PWAState.isRunningAsApp)
 
-		// if already installed this wont show the install button
-		if ( PWAState.isInstallable) {
-			// hook into button and show...
+		const revealInstallButtons = () => {
+			body.classList.add("installable")
 			const installButtons = document.querySelectorAll(".button-install")
 			installButtons.forEach(installButton => {
-				installButton.addEventListener("click", async (event) => {
-					const installed = await  PWAState.install(installButton)
-					console.log("installed", installed.success, { installed })
-					setToast(installed.success ? "Installed to HomeScreen" : "You can always install again in the future")
-				})
+				if (!installButton.dataset.installBound) {
+					installButton.dataset.installBound = 'true'
+					installButton.addEventListener("click", async () => {
+						const installed = await PWAState.install(installButton)
+						setToast(installed.success ? "Installed to HomeScreen" : "You can always install again in the future")
+					})
+				}
 
-				// find associated label if it exists...
 				const installButtonLabel = document.querySelectorAll(`label[for="${installButton.id}"]`)
-				installButtonLabel.hidden = false
+				installButtonLabel.forEach(label => { label.hidden = false })
 				installButton.hidden = false
 			})
-
-		} else if ( PWAState.updatesAvailable) {
-
-			showUpgradeDialog()
 		}
+
+		if (PWAState.isInstallable) revealInstallButtons()
+		if (PWAState.updatesAvailable) showUpgradeDialog(PWAState.update)
+
+		window.addEventListener('photosynth:install-available', revealInstallButtons)
+		window.addEventListener('photosynth:update-ready', () => {
+			body.classList.add('updates-available')
+			showUpgradeDialog(PWAState.update)
+		})
+		window.addEventListener('photosynth:offline-ready', () => {
+			body.classList.add('offline-ready')
+		})
+		window.addEventListener('photosynth:offline-progress', event => {
+			const { completed, total } = event.detail
+			body.style.setProperty('--offline-progress', `${Math.round((completed / total) * 100)}%`)
+		})
 
 		//setToast( canBeInstalled ? "You can install this as an app...<br>Click install when prompted!" : "" )
 
