@@ -152,7 +152,7 @@ export const createCosmosKeyboardHandler = (application, {
 	const samplePlayer = player ?? createSampleBankPlayer({
 		banks,
 		getContext: () => application.getAudioContext?.(),
-		getDestination: () => application.getMasterMixdown?.(),
+		getDestination: () => application.getSampleOutput?.() ?? application.getMasterMixdown?.(),
 		beforePlay: () => application.resumeAudio?.(),
 		load: application.loadAudioSample,
 		play: application.playAudioSample,

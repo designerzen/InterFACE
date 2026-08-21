@@ -204,11 +204,15 @@ export const DEFAULT_OPTIONS = {
 	beatViz:"summary",
 	// Allow the player's activity and expression to shape percussion intensity.
 	performanceDrums:true,
+	// Stereo layout for the synthetic drum kit and its expressive pan movement.
+	percussionPanning:"vintage-jazz",
 	// Picade Plasma light-to-button layout. Use lights=table for the tabletop panel wiring.
 	lights:"default",
 
 	// cancel audio playback (not midi)
 	muted:false,
+	// Output level for triggered sample banks (keyboard and Cosmo).
+	sampleVolume:0.2,
 
 	// better than using "duet" or whatever - we just specify players
 	// default to one player!

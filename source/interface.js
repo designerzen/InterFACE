@@ -105,7 +105,12 @@ import {
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
-import { getPerformanceDrumStereoPan } from './audio/performance-drum-stereo.js'
+import {
+	DEFAULT_PERCUSSION_PANNING_PRESET,
+	PERCUSSION_PANNING_PRESETS,
+	getPercussionStereoPositions,
+	getPerformanceDrumStereoPan,
+} from './audio/performance-drum-stereo.js'
 import InstrumentFactory, { createInstrumentFromData } from './audio/instrument-factory.js'
 import InstrumentManager from './audio/instrument-manager.js'
 
@@ -152,12 +157,23 @@ import { PRESET_FRICTION_DRUMS, PRESET_MUTED_CUICA, PRESET_OPEN_CUICA } from './
 import { PRESET_WHISTLES, PRESET_727_SHORT_WHISTLE, PRESET_727_LONG_WHISTLE } from './audio/synthesizers/whistle-presets.js'
 import { PRESET_CHIMES, PRESET_727_STAR_CHIME, PRESET_WIND_CHIME } from './audio/synthesizers/chime-presets.js'
 import { PRESET_ELECTRONIC_PERCUSSION, PRESET_SYNDRUM, PRESET_LASER_TOM, PRESET_METALLIC_HIT } from './audio/synthesizers/electronic-percussion-presets.js'
+import {
+	PRESET_ACOUSTIC_BASS_DRUM, PRESET_ELECTRIC_SNARE,
+	PRESET_LOW_FLOOR_TOM, PRESET_HIGH_FLOOR_TOM, PRESET_HIGH_MID_TOM,
+	PRESET_PEDAL_HIHAT, PRESET_RIDE_BELL, PRESET_CRASH_CYMBAL_2,
+	PRESET_RIDE_CYMBAL_2, PRESET_VIBRASLAP, PRESET_JINGLE_BELL,
+} from './audio/synthesizers/general-midi-percussion-presets.js'
 import { PERCUSSION_PRESETS, PERCUSSION_SOUND_PRESET_GROUPS, getPercussionPreset } from './audio/synthesizers/percussion-presets.js'
 
 const EXTENDED_PERCUSSION_PRESET_COLLECTIONS = Object.freeze({
+	kickAcoustic:[PRESET_ACOUSTIC_BASS_DRUM], snareElectric:[PRESET_ELECTRIC_SNARE],
+	tomFloorLow:[PRESET_LOW_FLOOR_TOM], tomFloorHigh:[PRESET_HIGH_FLOOR_TOM], tomMidHigh:[PRESET_HIGH_MID_TOM],
+	hatPedal:[PRESET_PEDAL_HIHAT],
 	rimshot:PRESET_CLACKS, crossStick:PRESET_CLACKS, claves:PRESET_CLACKS,
 	woodblockHigh:PRESET_CLACKS, woodblockLow:PRESET_CLACKS, castanets:PRESET_CLACKS,
-	crash:PRESET_HIHATS_OPEN, ride:PRESET_HIHATS_OPEN, splash:PRESET_HIHATS_OPEN, china:PRESET_HIHATS_OPEN,
+	crash:PRESET_HIHATS_OPEN, crash2:[PRESET_CRASH_CYMBAL_2],
+	ride:PRESET_HIHATS_OPEN, ride2:[PRESET_RIDE_CYMBAL_2], rideBell:[PRESET_RIDE_BELL],
+	splash:PRESET_HIHATS_OPEN, china:PRESET_HIHATS_OPEN,
 	tambourine:PRESET_JINGLES, chekere:PRESET_JINGLES,
 	agogoHigh:PRESET_COWBELLS, agogoLow:PRESET_COWBELLS,
 	timbaleHigh:PRESETS_TOMS, timbaleLow:PRESETS_TOMS,
@@ -167,13 +183,19 @@ const EXTENDED_PERCUSSION_PRESET_COLLECTIONS = Object.freeze({
 	surdoMute:PRESETS_TOMS, surdoOpen:PRESETS_TOMS,
 	quijada:PRESET_SCRAPES, starChime:PRESET_CHIMES, windChime:PRESET_CHIMES,
 	fingerSnap:PRESET_CLAPS,
+	jingleBell:[PRESET_JINGLE_BELL], vibraslap:[PRESET_VIBRASLAP],
 	syndrum:PRESET_ELECTRONIC_PERCUSSION, laserTom:PRESET_ELECTRONIC_PERCUSSION, metalHit:PRESET_ELECTRONIC_PERCUSSION,
 })
 
 const DEFAULT_EXTENDED_PERCUSSION_TIMBRES = Object.freeze({
+	kickAcoustic:PRESET_ACOUSTIC_BASS_DRUM, snareElectric:PRESET_ELECTRIC_SNARE,
+	tomFloorLow:PRESET_LOW_FLOOR_TOM, tomFloorHigh:PRESET_HIGH_FLOOR_TOM, tomMidHigh:PRESET_HIGH_MID_TOM,
+	hatPedal:PRESET_PEDAL_HIHAT,
 	rimshot:PRESET_RIM_CLACK, crossStick:PRESET_CROSS_STICK, claves:PRESET_CLAVE_CLACK,
 	woodblockHigh:PRESET_WOODBLOCK_CLACK, woodblockLow:{ ...PRESET_WOODBLOCK_CLACK, name:"Low Woodblock", octave:0.76 }, castanets:PRESET_CASTANET_CLACK,
-	crash:OPEN_HIHAT_CRASH, ride:OPEN_HIHAT_RIDE, splash:OPEN_HIHAT_SPLASH, china:OPEN_HIHAT_CHINA,
+	crash:OPEN_HIHAT_CRASH, crash2:PRESET_CRASH_CYMBAL_2,
+	ride:OPEN_HIHAT_RIDE, ride2:PRESET_RIDE_CYMBAL_2, rideBell:PRESET_RIDE_BELL,
+	splash:OPEN_HIHAT_SPLASH, china:OPEN_HIHAT_CHINA,
 	tambourine:PRESET_707_TAMBOURINE, chekere:PRESET_CHEKERE,
 	agogoHigh:PRESET_727_HIGH_AGOGO, agogoLow:PRESET_727_LOW_AGOGO,
 	timbaleHigh:PRESET_727_HIGH_TIMBALE, timbaleLow:PRESET_727_LOW_TIMBALE,
@@ -183,6 +205,7 @@ const DEFAULT_EXTENDED_PERCUSSION_TIMBRES = Object.freeze({
 	surdoMute:PRESET_MUTED_SURDO, surdoOpen:PRESET_OPEN_SURDO,
 	quijada:PRESET_727_QUIJADA, starChime:PRESET_727_STAR_CHIME, windChime:PRESET_WIND_CHIME,
 	fingerSnap:PRESET_FINGER_SNAP,
+	jingleBell:PRESET_JINGLE_BELL, vibraslap:PRESET_VIBRASLAP,
 	syndrum:PRESET_SYNDRUM, laserTom:PRESET_LASER_TOM, metalHit:PRESET_METALLIC_HIT,
 })
 
@@ -344,6 +367,7 @@ export const createInterface = (
 	let audioContext
 	let offlineAudioContext
 	let audioChain
+	let sampleOutput
 	let analyser
 
 	let instrumentManager 
@@ -1193,6 +1217,36 @@ export const createInterface = (
 		changeDrumPattern(randomProgram, notify)
 	} 
 
+	const percussionPanAliases = Object.freeze({
+		'low-tom':'tomLow',
+		'mid-tom':'tomMid',
+		'high-tom':'tomHigh',
+	})
+	const getCurrentPercussionPanPositions = () => {
+		const prediction = personManager.getPerson(0)?.data ?? {}
+		const stereoEnabled = stateMachine.get('stereo') !== false
+		const performancePan = getPerformanceDrumStereoPan(
+			prediction.eyesHorizontal ?? prediction.eyeDirection,
+			stateMachine.get('performanceDrums') !== false && stereoEnabled
+		)
+		return getPercussionStereoPositions(
+			stateMachine.get('percussionPanning') ?? DEFAULT_PERCUSSION_PANNING_PRESET,
+			performancePan,
+			stereoEnabled
+		)
+	}
+	const setPercussionPartPan = (part, positions, triggerAt) => {
+		const panPart = percussionPanAliases[part] ?? part
+		const pan = positions[panPart]
+		if (Number.isFinite(pan)) kit?.setPartPan?.(panPart, pan, triggerAt)
+		return pan
+	}
+	const applyPercussionPanning = () => {
+		const positions = getCurrentPercussionPanPositions()
+		for (const part of Object.keys(positions)) setPercussionPartPan(part, positions)
+		return positions
+	}
+
 	playPercussionPart = (part, options={}) => {
 		resumeAudio()
 
@@ -1204,14 +1258,11 @@ export const createInterface = (
 			quantiser: percussionQuantiser,
 		})
 		const eyeControlledTimbres = createEyeControlledDrumTimbres()
-		const prediction = personManager.getPerson(0)?.data ?? {}
-		const performancePan = getPerformanceDrumStereoPan(
-			prediction.eyesHorizontal ?? prediction.eyeDirection,
-			stateMachine.get('performanceDrums') !== false && stateMachine.get('stereo') !== false
-		)
+		const panningPositions = getCurrentPercussionPanPositions()
 		const triggerOptions = { velocity: 1, ...options, triggerAt }
 		const play = (name, trigger, voiceOptions={}) => {
 			const resolvedOptions = { ...voiceOptions, ...triggerOptions }
+			setPercussionPartPan(name, panningPositions, triggerAt)
 			notifyDrumPart(name, resolvedOptions)
 			return trigger(resolvedOptions)
 		}
@@ -1234,19 +1285,15 @@ export const createInterface = (
 				})
 
 			case 'low-tom':
-				kit.setTomPan?.(performancePan.tom, triggerAt)
 				return play('low-tom', kit.tomLow)
 
 			case 'mid-tom':
-				kit.setTomPan?.(performancePan.tom, triggerAt)
 				return play('mid-tom', kit.tomMid)
 
 			case 'high-tom':
-				kit.setTomPan?.(performancePan.tom, triggerAt)
 				return play('high-tom', kit.tomHigh)
 
 			case 'snare':
-				kit.setSnarePan?.(performancePan.snare, triggerAt)
 				return play('snare', kit.snare, eyeControlledTimbres.snare)
 
 			case 'rim':
@@ -3284,16 +3331,19 @@ export const createInterface = (
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
 				syncDrumMutedParts(eyeControlledTimbres)
 				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
+				const panningPositions = getCurrentPercussionPanPositions()
 				if (parts.kick > 0) {
 					notifyDrumPart('kick', { velocity: parts.kick / 255, triggerAt, source: 'backingTrack' })
 					kit.kick({ ...eyeControlledTimbres.kick, velocity: parts.kick / 255, triggerAt })
 				}
 				if (parts.snare > 0) {
+					setPercussionPartPan('snare', panningPositions, triggerAt)
 					notifyDrumPart('snare', { velocity: parts.snare / 255, triggerAt, source: 'backingTrack' })
 					kit.snare({ ...eyeControlledTimbres.snare, velocity: parts.snare / 255, triggerAt })
 				}
 				if (parts.hat > 0) {
 					const hat = parts.hatOpen ? openHatTimbreOptions : closedHatTimbreOptions
+					setPercussionPartPan('hat', panningPositions, triggerAt)
 					notifyDrumPart('hat', { velocity: parts.hat / 255, triggerAt, open: Boolean(parts.hatOpen), source: 'backingTrack' })
 					kit.hat({ ...hat, velocity: parts.hat / 255, triggerAt })
 				}
@@ -3312,6 +3362,7 @@ export const createInterface = (
 					if (part === 'cuicaMute') kit.cuicaOpen.choke(0.006, triggerAt)
 					if (part === 'surdoMute') kit.surdoOpen.choke(0.006, triggerAt)
 					const velocity = partVelocity / 255
+					setPercussionPartPan(part, panningPositions, triggerAt)
 					notifyDrumPart(part, { velocity, triggerAt, source:'backingTrack' })
 					kit[part]({ ...getAuxiliaryPercussionTimbre(part), velocity, triggerAt })
 				}
@@ -3320,11 +3371,13 @@ export const createInterface = (
 					const velocity = event.velocity / 255
 					if (event.lane === 'snare') {
 						const timbre = applyDrumSubHitEnvelope(eyeControlledTimbres.snare, event)
+						setPercussionPartPan('snare', panningPositions, eventAt)
 						notifyDrumPart('snare', { velocity, triggerAt:eventAt, source:'backingTrackFill' })
 						kit.snare({ ...timbre, velocity, triggerAt:eventAt })
 					}
 					if (event.lane === 'hat') {
 						const timbre = applyDrumSubHitEnvelope(closedHatTimbreOptions, event)
+						setPercussionPartPan('hat', panningPositions, eventAt)
 						notifyDrumPart('hat', { velocity, triggerAt:eventAt, open:false, source:'backingTrackFill' })
 						kit.hat({ ...timbre, velocity, triggerAt:eventAt })
 					}
@@ -3766,6 +3819,16 @@ export const createInterface = (
 		const storedAudio = store.getItem('audio') ?? {}
 		const volume = parseFloat(storedAudio.volume) || 1
 		const storedTrim = parseFloat(storedAudio.trim)
+		const storedSampleVolume = parseFloat(storedAudio.sampleVolume)
+		const configuredSampleVolume = Number(stateMachine.get('sampleVolume'))
+		const sampleVolume = Number.isFinite(storedSampleVolume)
+			? storedSampleVolume
+			: Number.isFinite(configuredSampleVolume)
+				? configuredSampleVolume
+				: 0.2
+		sampleOutput = audioContext.createGain()
+		sampleOutput.gain.value = Math.min(1, Math.max(0, sampleVolume))
+		sampleOutput.connect(getMasterMixdown())
 		const personTrim = personManager.setTrim(Number.isFinite(storedTrim) ? storedTrim : 1)
 		setVolume( volume )
 
@@ -3775,6 +3838,7 @@ export const createInterface = (
 		} = setupVolumeInterface( volume, stateMachine.get( 'muted') ?? false, {
 			currentPercussionVolume:getPercussionNode().gain.value,
 			currentTrimVolume:personTrim / MAX_PERSON_TRIM,
+			currentSampleVolume:sampleOutput.gain.value,
 			trimVolumeScale:MAX_PERSON_TRIM,
 			onVolumeChanged: vol => {
 				setMasterVolume( vol )
@@ -3787,6 +3851,13 @@ export const createInterface = (
 				const trim = personManager.setTrim(Number(vol) * MAX_PERSON_TRIM)
 				store.setItem('audio', { ...(store.getItem('audio') ?? {}), trim })
 				setFeedback(`Trim ${Math.ceil(trim * 100)}%`, 0, 'volume')
+			},
+			onSampleVolumeChanged: vol => {
+				const sampleVolume = Math.min(1, Math.max(0, Number(vol)))
+				sampleOutput.gain.value = sampleVolume
+				stateMachine.set('sampleVolume', sampleVolume)
+				store.setItem('audio', { ...(store.getItem('audio') ?? {}), sampleVolume })
+				setFeedback(`Samples ${Math.ceil(sampleVolume * 100)}%`, 0, 'volume')
 			},
 			onMuteChanged: status => {
 				stateMachine.set( 'muted', status )
@@ -4169,9 +4240,30 @@ export const createInterface = (
 		})
 		if (selects.beatViz) selects.beatViz.value = selectedBeatViz
 
+		const percussionPanningPresetIds = new Set(PERCUSSION_PANNING_PRESETS.map(preset => preset.id))
+		const storedPercussionPanning = stateMachine.get('percussionPanning')
+		const selectedPercussionPanning = percussionPanningPresetIds.has(storedPercussionPanning)
+			? storedPercussionPanning
+			: DEFAULT_PERCUSSION_PANNING_PRESET
+		selects.percussionPanning = connectSelect('select-percussion-panning', option => {
+			const presetId = percussionPanningPresetIds.has(option.value)
+				? option.value
+				: DEFAULT_PERCUSSION_PANNING_PRESET
+			stateMachine.set('percussionPanning', presetId, selects.percussionPanning)
+			applyPercussionPanning()
+			setFeedback(`Percussion panning changed to ${option.textContent}`, 0, 'beats')
+		})
+		if (selects.percussionPanning)
+		{
+			selects.percussionPanning.value = selectedPercussionPanning
+			stateMachine.set('percussionPanning', selectedPercussionPanning, selects.percussionPanning)
+			applyPercussionPanning()
+		}
+
 		toggles.performanceDrums = setToggle( "button-performance-drums", status => {
 			stateMachine.set('performanceDrums', status)
 			drumArranger?.setPerformanceControl?.(status)
+			applyPercussionPanning()
 
 			const updateInstrument = instrument => {
 				instrument?.setPerformanceControl?.(status)
@@ -4937,6 +5029,7 @@ export const createInterface = (
 			resumeAudio,
 			getVolume, setVolume:setMasterVolume, 
 			getMasterMixdown,
+			getSampleOutput: () => sampleOutput,
 			getAudioContext: () => audioContext,
 			loadAudioSample: loadAudio,
 			playAudioSample: playTrack,

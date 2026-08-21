@@ -177,6 +177,11 @@ const EXPANDED_DRUM_ROWS = Object.freeze([
 	Object.freeze([
 		createDrum('syndrum', 'Syndrum', 'SYNDRUM', 'Electronic percussion'),
 		createDrum('laserTom', 'Laser Tom', 'LASER', 'Electronic percussion'),
+		createDrum('hatPedal', 'Pedal Hi-hat', 'PEDAL', 'GM percussion'),
+		createDrum('rideBell', 'Ride Bell', 'RIDE B', 'GM percussion'),
+		createDrum('crash2', 'Crash Cymbal 2', 'CRASH 2', 'GM percussion'),
+		createDrum('vibraslap', 'Vibraslap', 'VSLAP', 'GM percussion'),
+		createDrum('jingleBell', 'Jingle Bell', 'JINGLE', 'GM percussion'),
 	]),
 ])
 

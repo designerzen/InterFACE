@@ -23,6 +23,7 @@ export const KEYBOARD_TYPE_SAMPLES = 'samples'
 export const KEYBOARD_TYPE_OPERATIONAL = 'operational'
 
 const KEYBOARD_MODE_FEEDBACK_TYPE = 'keyboard'
+const MODIFIER_KEYS = new Set(['Alt', 'AltGraph', 'Control', 'Meta', 'Shift'])
 
 const KEYBOARD_MODES = Object.freeze([
 	{
@@ -850,7 +851,7 @@ const createKeyboardSamplePlayer = application => createSampleBankPlayer({
 		samples: KEYBOARD_SAMPLE_ASSIGNMENTS,
 	}],
 	getContext: () => application.getAudioContext?.(),
-	getDestination: () => application.getMasterMixdown?.(),
+	getDestination: () => application.getSampleOutput?.() ?? application.getMasterMixdown?.(),
 	beforePlay: () => application.resumeAudio?.(),
 	load: application.loadAudioSample,
 	play: application.playAudioSample,
@@ -1138,6 +1139,9 @@ export const addKeyboardEvents = application => {
 			state.numberSequence = ''
 			return
 		}
+		// Modifiers select alternate controls (including volume channels), but are
+		// not commands by themselves and must never open the modal keyboard guide.
+		if (MODIFIER_KEYS.has(event.key)) return
 		if (event.key === 'Escape' && state.keyboardGuide.close()) {
 			state.guideKey = null
 			event.preventDefault()
