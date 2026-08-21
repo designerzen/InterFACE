@@ -8,6 +8,7 @@
 	"repository": "https://github.com/designerzen/InterFACE.git",
 	"bugs": "https://github.com/designerzen/InterFACE/issues",
 	"homepage": "https://interface.place",
+	"service-worker": "releases/web/service-worker.bundle.js",
 	"keywords": [
 		"music",
 		"accessibility",
@@ -53,7 +54,7 @@
 			"sourceMap": true
 		},
 		"web": {
-			"source": "source/sitemap.pug",
+			"source": "source/index.pug",
 			"distDir": "./releases/web/",
 			"publicUrl": "./",
 			"context": "browser",
@@ -129,7 +130,7 @@
 		"build:wam": "parcel build --no-content-hash --public-url ./ source/wam.pug --target web",
 		"build:index": "parcel build --public-url ./ source/index.pug --target web",
 		"build:release": "parcel build --target electron-main --target electron-renderer --target web",
-		"build:web": "cross-env PARCEL_WORKERS=1 parcel build --public-url ./ --target web --target service-worker",
+		"build:web": "node actions/clean-web.mjs && cross-env PARCEL_WORKERS=1 parcel build --public-url ./ --target web --target service-worker && node actions/offline.mjs",
 		"=ELECTRON=": "------------------------------------",
 		"electron:rebuild": "electron-rebuild -f",
 		"electron:clean": "rimraf dist-electron && rimraf releases",
@@ -224,12 +225,12 @@
 	"engines": {},
 	"dependencies": {
 		"@babylonjs/assets": "^5.20.0",
-		"@babylonjs/core": "^9.21.2",
-		"@babylonjs/gui-editor": "^9.21.2",
+		"@babylonjs/core": "^9.22.0",
+		"@babylonjs/gui-editor": "^9.22.0",
 		"@babylonjs/havok": "^1.3.14",
-		"@babylonjs/inspector": "^9.21.2",
-		"@babylonjs/loaders": "^9.21.2",
-		"@babylonjs/materials": "^9.21.2",
+		"@babylonjs/inspector": "^9.22.0",
+		"@babylonjs/loaders": "^9.22.0",
+		"@babylonjs/materials": "^9.22.0",
 		"@capacitor/android": "^8.5.0",
 		"@capacitor/core": "^8.5.0",
 		"@capacitor/electron": "^2.5.0",
@@ -352,7 +353,7 @@
 		"cross-env": "^10.1.0",
 		"crypto-browserify": "^3.12.1",
 		"domain-browser": "^5.7.0",
-		"electron": "^43.4.0",
+		"electron": "^43.4.1",
 		"electron-devtools-installer": "^4.0.0",
 		"electron-icon-maker": "^0.0.5",
 		"electron-winstaller": "^5.4.4",
@@ -376,12 +377,13 @@
 		"postcss-preset-env": "^11.4.0",
 		"process": "^0.11.10",
 		"rimraf": "^6.1.3",
-		"sass": "^1.102.0",
+		"sass": "^1.103.0",
 		"showdown": "^2.1.0",
 		"stream-browserify": "^3.0.0",
 		"string_decoder": "^1.3.0",
 		"typescript": "^7.0.2",
 		"util": "^0.12.5",
-		"vm-browserify": "^1.1.2"
+		"vm-browserify": "^1.1.2",
+		"workbox-build": "^7.4.1"
 	}
 }
