@@ -46,6 +46,9 @@ heap-*
 parcel-bundle-reports/
 source/audio/wam2-external/
 .codex-tmp/
+*tmp/
+dist/
+dist-electron/
 
 static/@mediapipe/**/*
 # !static/@mediapipe/tasks-vision/*
