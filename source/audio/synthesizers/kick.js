@@ -1,5 +1,4 @@
 import { ZERO } from '../audio-constants.js'
-import {createQueue, chokeGains} from '../synthesizers.js'
 
 // Presets live in their own file so they can be tweaked / extended
 // without touching the synth engine.  Re-export everything for
@@ -60,6 +59,8 @@ export {
 	PRESET_RAVE_KICK,
 	PRESET_SUB_BOOMER_KICK,
 	PRESET_TICK_KICK,
+	PRESET_PITCH_DIVE_KICK,
+	PRESET_ELASTIC_KICK,
 	PRESETS_KICKS,
 	getKickPresets,
 	getRandomKickPreset,
@@ -67,98 +68,178 @@ export {
 
 import { DEFAULT_KICK_OPTIONS } from './kick-presets.js'
 import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
+import { resolvePercussionPitchEnvelope, schedulePercussionPitchEnvelope } from './percussion-pitch-envelope.js'
+
+export const DEFAULT_KICK_VOICES = 8
+const VOICE_STEAL_RELEASE = 0.005
+
+const clampPositive = (value, fallback=ZERO) => Math.max(Number(value) || fallback, fallback)
+const interpolateExponential = (from, to, progress) =>
+	from * ((to / from) ** Math.min(1, Math.max(0, progress)))
+
+const getEnvelopeValueAtTime = (voice, time) => {
+	const { startAt, attackEndAt, decayEndAt, releaseStartAt, endAt, levels } = voice
+	if (time <= startAt || time >= endAt) return ZERO
+	if (time < attackEndAt) {
+		return interpolateExponential(ZERO, levels.peak, (time - startAt) / (attackEndAt - startAt))
+	}
+	if (time < decayEndAt) {
+		return interpolateExponential(levels.peak, levels.sustain, (time - attackEndAt) / (decayEndAt - attackEndAt))
+	}
+	if (time < releaseStartAt) return levels.sustain
+	return interpolateExponential(levels.sustain, ZERO, (time - releaseStartAt) / (endAt - releaseStartAt))
+}
 
 /**
  * Kick me!
  * @returns {Function} trigger start method
  */
-export const createKick = (audioContext, output ) => {
+export const createKick = (audioContext, output, poolOptions={}) => {
+	const requestedVoices = Number(poolOptions.maxVoices ?? DEFAULT_KICK_VOICES)
+	const maxVoices = Number.isFinite(requestedVoices)
+		? Math.max(1, Math.floor(requestedVoices))
+		: DEFAULT_KICK_VOICES
+	const activeVoices = []
 
-    const mainOscillator = audioContext.createOscillator()
-    const subOscillator = audioContext.createOscillator()
-    const gainTriangle = audioContext.createGain()
-    const gainSine = audioContext.createGain()
-	let isRunning = false
+	const removeVoice = voice => {
+		const index = activeVoices.indexOf(voice)
+		if (index >= 0) activeVoices.splice(index, 1)
+	}
 
-    mainOscillator.type = "triangle"
-    subOscillator.type = "sine"
-	
+	const stopVoice = (voice, fadeStartAt, fadeDuration=VOICE_STEAL_RELEASE) => {
+		if (voice.stopped) return
+		const startAt = Math.max(audioContext.currentTime, fadeStartAt)
+		if (voice.endAt <= startAt) {
+			removeVoice(voice)
+			return
+		}
+		const stopAt = Math.min(voice.endAt, startAt + Math.max(fadeDuration, ZERO))
+		const level = getEnvelopeValueAtTime(voice, startAt)
+
+		voice.gains.forEach(gain => {
+			gain.cancelScheduledValues(startAt)
+			gain.setValueAtTime(Math.max(level, ZERO), startAt)
+			gain.exponentialRampToValueAtTime(ZERO, stopAt)
+		})
+		voice.oscillators.forEach(oscillator => oscillator.stop(stopAt))
+		voice.endAt = stopAt
+		voice.stopped = true
+		removeVoice(voice)
+	}
+
+	const reserveVoice = requestedTime => {
+		for (const voice of [...activeVoices]) {
+			if (voice.endAt <= requestedTime) removeVoice(voice)
+		}
+		if (activeVoices.length < maxVoices) return requestedTime
+
+		const oldest = activeVoices.reduce((first, voice) =>
+			voice.startAt < first.startAt ? voice : first
+		)
+		const scheduledFadeAt = requestedTime - VOICE_STEAL_RELEASE
+		if (scheduledFadeAt >= audioContext.currentTime) {
+			stopVoice(oldest, scheduledFadeAt, VOICE_STEAL_RELEASE)
+			return requestedTime
+		}
+
+		const replacementTime = audioContext.currentTime + VOICE_STEAL_RELEASE
+		stopVoice(oldest, audioContext.currentTime, VOICE_STEAL_RELEASE)
+		return Math.max(requestedTime, replacementTime)
+	}
+
 	// sustain measured in volume rather than time
 	const kick = ( options=DEFAULT_KICK_OPTIONS ) => {
 
 		options = Object.assign({}, DEFAULT_KICK_OPTIONS, options )
-		const time = options.triggerAt ?? audioContext.currentTime + ZERO
-		const endAt = time + options.length
-		
-		// console.log("KICK", options )
+		const requestedTime = Number.isFinite(options.triggerAt) && options.triggerAt > 0
+			? Math.max(audioContext.currentTime, options.triggerAt)
+			: audioContext.currentTime + ZERO
+		const time = reserveVoice(requestedTime)
+		const length = clampPositive(options.length)
+		const endAt = time + length
+		const attackEndAt = time + Math.min(length, clampPositive(options.attack))
+		const decayEndAt = attackEndAt + Math.min(endAt - attackEndAt, clampPositive(options.decay))
+		const releaseStartAt = Math.max(decayEndAt, endAt - Math.max(Number(options.release) || 0, ZERO))
 
-		if (!isRunning)
-		{
-			try{
-				mainOscillator.start(time)
-				subOscillator.start(time)
-
-				//osc4.stop(time + 0.05)  			
-			}catch(error){
-	
-			}
-			isRunning = true
-		}
-  
-		// clear anything from previous plays
-		gainTriangle.gain.cancelScheduledValues(time)
-		gainSine.gain.cancelScheduledValues(time)
-		
-		mainOscillator.frequency.cancelScheduledValues(time)
-		subOscillator.frequency.cancelScheduledValues(time)
+		const mainOscillator = audioContext.createOscillator()
+		const subOscillator = audioContext.createOscillator()
+		const gainTriangle = audioContext.createGain()
+		const gainSine = audioContext.createGain()
+		mainOscillator.type = "triangle"
+		subOscillator.type = "sine"
+		mainOscillator.connect(gainTriangle)
+		gainTriangle.connect(output)
+		subOscillator.connect(gainSine)
+		gainSine.connect(output)
 
 		// set new envelopes
 		const levels = getVelocityEnvelopeLevels(options)
+		const voice = {
+			startAt:time,
+			attackEndAt,
+			decayEndAt,
+			releaseStartAt,
+			endAt,
+			levels,
+			gains:[gainTriangle.gain, gainSine.gain],
+			oscillators:[mainOscillator, subOscillator],
+			stopped:false,
+		}
+		activeVoices.push(voice)
 
 		// TRIANGLE
 		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, attackEndAt)
+		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, decayEndAt)
+		gainTriangle.gain.setValueAtTime(levels.sustain, releaseStartAt)
 		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
-		const pitchEndAt = Math.min(endAt, time + Math.max(options.attack, options.pitchDecay))
-		mainOscillator.frequency.setValueAtTime(options.triStart, time)
-		mainOscillator.frequency.exponentialRampToValueAtTime(options.triEnd, pitchEndAt)
-		mainOscillator.frequency.setValueAtTime(options.triEnd, endAt)
+		const pitch = resolvePercussionPitchEnvelope(options, time, endAt)
+		schedulePercussionPitchEnvelope(mainOscillator.frequency, {
+			start:options.triStart,
+			end:options.triEnd,
+		}, { ...pitch, startAt:time, attack:options.attack, decay:options.decay })
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
-		gainSine.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
-		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
+		gainSine.gain.exponentialRampToValueAtTime(levels.peak, attackEndAt)
+		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, decayEndAt)
+		gainSine.gain.setValueAtTime(levels.sustain, releaseStartAt)
 		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
-		subOscillator.frequency.setValueAtTime(options.sineStart, time)
-		subOscillator.frequency.exponentialRampToValueAtTime(options.sineApex, time + options.attack)
-		subOscillator.frequency.exponentialRampToValueAtTime(options.sineEnd, pitchEndAt)
-		subOscillator.frequency.setValueAtTime(options.sineEnd, endAt)
+		schedulePercussionPitchEnvelope(subOscillator.frequency, {
+			start:options.sineStart,
+			apex:options.sineApex,
+			sustain:options.sineSustain,
+			end:options.sineEnd,
+		}, { ...pitch, startAt:time, attack:options.attack, decay:options.decay })
 
-		return options
+		mainOscillator.start(time)
+		subOscillator.start(time)
+		mainOscillator.stop(endAt)
+		subOscillator.stop(endAt)
+		mainOscillator.onended = () => {
+			removeVoice(voice)
+			mainOscillator.disconnect()
+			subOscillator.disconnect()
+			gainTriangle.disconnect()
+			gainSine.disconnect()
+		}
+
+		return { ...options, triggerAt:time }
 	}
-  
-    mainOscillator.connect(gainTriangle)
-    gainTriangle.connect(output)
-	
-	subOscillator.connect(gainSine)
-	gainSine.connect(output)
 
 	kick.cancel = () => {
-		const now = audioContext.currentTime
-		gainTriangle.gain.cancelScheduledValues(now)
-		gainTriangle.gain.setValueAtTime(ZERO, now)
-		gainSine.gain.cancelScheduledValues(now)
-		gainSine.gain.setValueAtTime(ZERO, now)
+		for (const voice of [...activeVoices]) stopVoice(voice, audioContext.currentTime)
 	}
-	kick.choke = (duration, chokeAt) => {
-		chokeGains(audioContext, [gainTriangle.gain, gainSine.gain], duration, chokeAt)
+	kick.choke = (duration=VOICE_STEAL_RELEASE, chokeAt=audioContext.currentTime) => {
+		for (const voice of [...activeVoices]) stopVoice(voice, chokeAt, duration)
 	}
+	Object.defineProperty(kick, 'activeVoiceCount', { get:() => activeVoices.length })
+	Object.defineProperty(kick, 'maxVoices', { value:maxVoices })
 
 	return kick
 }
 
-// this is just an array of kicks
-export const createKicks = (audioContext, output, quantity=2) => createQueue( audioContext, output , createKick, quantity)
+export const createKicks = (audioContext, output, quantity=DEFAULT_KICK_VOICES) =>
+	createKick(audioContext, output, { maxVoices:quantity })

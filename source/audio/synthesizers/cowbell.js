@@ -103,7 +103,10 @@ export const createCowbell = (audioContext, output ) => {
 		
 		options = resolveCowbellHitOptions(options)
 	
-		const time = options.triggerAt ?? audioContext.currentTime + ZERO
+		const requestedTime = Number(options.triggerAt)
+		const time = Number.isFinite(requestedTime) && requestedTime > 0
+			? Math.max(audioContext.currentTime, requestedTime)
+			: audioContext.currentTime + ZERO
 		
 		if (!isRunning)
 		{			

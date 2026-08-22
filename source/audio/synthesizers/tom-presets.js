@@ -14,6 +14,9 @@ export const DEFAULT_TOM_OPTIONS = {
 	decay:0.04,
 	sustain:0.68,
 	release:0.2,
+	pitchDecay:0.16,
+	pitchStartRatio:1,
+	pitchEndRatio:1,
 
 	triStart:260,
 	triEnd:130,
@@ -516,6 +519,44 @@ export const PRESET_RAVE_TOM = preset({
 	sineEnd:55,
 })
 
+export const PRESET_PITCH_DROP_TOM = preset({
+	name:"Pitch Drop Tom",
+	velocity:1.12,
+	length:0.52,
+	attack:0.0015,
+	decay:0.045,
+	sustain:0.7,
+	release:0.3,
+	pitchStartRatio:3.5,
+	pitchEndRatio:1,
+	pitchDecay:0.075,
+	triStart:250,
+	triEnd:105,
+	sineStart:285,
+	sineApex:330,
+	sineSustain:155,
+	sineEnd:92,
+})
+
+export const PRESET_LASER_DROP_TOM = preset({
+	name:"Laser Drop Tom",
+	velocity:1.08,
+	length:0.38,
+	attack:0.0008,
+	decay:0.025,
+	sustain:0.65,
+	release:0.22,
+	pitchStartRatio:5.5,
+	pitchEndRatio:0.9,
+	pitchDecay:0.045,
+	triStart:310,
+	triEnd:130,
+	sineStart:360,
+	sineApex:430,
+	sineSustain:190,
+	sineEnd:112,
+})
+
 // ============================================================
 // COLLECTIONS
 // ============================================================
@@ -562,6 +603,8 @@ export const PRESETS_TOMS = [
 	PRESET_TIGHT_TOM,
 	PRESET_THUD_TOM,
 	PRESET_RAVE_TOM,
+	PRESET_PITCH_DROP_TOM,
+	PRESET_LASER_DROP_TOM,
 ]
 
 export const getRandomKTomPreset = () => {

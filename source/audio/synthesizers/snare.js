@@ -67,6 +67,18 @@ export {
 
 import { DEFAULT_SNARE_OPTIONS, getSnareVoiceLevels } from './snare-presets.js'
 
+const SATURATION_CURVE_SIZE = 4096
+
+export const createSnareSaturationCurve = (size=SATURATION_CURVE_SIZE) => {
+	const curve = new Float32Array(size)
+	const normalizer = Math.tanh(2.2)
+	for (let index=0; index<size; index++) {
+		const input = index * 2 / (size - 1) - 1
+		curve[index] = Math.tanh(input * 2.2) / normalizer
+	}
+	return curve
+}
+
 /**
  * Create an instance of the snare instrument
  * @returns {Function} trigger start method
@@ -80,6 +92,13 @@ export const createSnare = ( audioContext, output ) => {
 	const shellGain = audioContext.createGain()
     const filterGain = audioContext.createGain()
 	const crackGain = audioContext.createGain()
+	const snareBus = audioContext.createGain()
+	const dryGain = audioContext.createGain()
+	const crunchDrive = audioContext.createGain()
+	const crunchShaper = audioContext.createWaveShaper()
+	const crunchTone = audioContext.createBiquadFilter()
+	const crunchGain = audioContext.createGain()
+	const outputGain = audioContext.createGain()
 	const noise = audioContext.createBufferSource()
 	const buffer = audioContext.createBuffer(1, 4096, audioContext.sampleRate)
 
@@ -97,6 +116,9 @@ export const createSnare = ( audioContext, output ) => {
 	crackFilter.type = "bandpass"
 	crackFilter.frequency.value = DEFAULT_SNARE_OPTIONS.crackFrequency
 	crackFilter.Q.value = DEFAULT_SNARE_OPTIONS.crackQ
+	crunchShaper.curve = createSnareSaturationCurve()
+	crunchShaper.oversample = '2x'
+	crunchTone.type = 'lowpass'
 
 	oscillator.frequency.value = DEFAULT_SNARE_OPTIONS.triStart
 	shellOscillator.frequency.value = DEFAULT_SNARE_OPTIONS.triStart * DEFAULT_SNARE_OPTIONS.shellRatio
@@ -113,23 +135,37 @@ export const createSnare = ( audioContext, output ) => {
 	noise.loop = true
 	
 	oscillator.connect(gainTriangle)
-	gainTriangle.connect(output )	
+	gainTriangle.connect(snareBus)
 	shellOscillator.connect(shellGain)
-	shellGain.connect(output)
+	shellGain.connect(snareBus)
 
 	noise.connect(bandpass)
 	noise.connect(crackFilter)
 	crackFilter.connect(crackGain)
-	crackGain.connect(output)
+	crackGain.connect(snareBus)
 	bandpass.connect(highpass)
 	highpass.connect(filterGain)
-	filterGain.connect( output )
+	filterGain.connect(snareBus)
+
+	// Preserve the unprocessed transient while blending in harmonics from a
+	// driven soft clipper. Output trim keeps high-drive presets level-matched.
+	snareBus.connect(dryGain)
+	dryGain.connect(outputGain)
+	snareBus.connect(crunchDrive)
+	crunchDrive.connect(crunchShaper)
+	crunchShaper.connect(crunchTone)
+	crunchTone.connect(crunchGain)
+	crunchGain.connect(outputGain)
+	outputGain.connect(output)
 
 	const snare = ( options = DEFAULT_SNARE_OPTIONS ) => {
 
 		options = Object.assign({}, DEFAULT_SNARE_OPTIONS, options)
 	
-		const time = options.triggerAt ?? audioContext.currentTime + ZERO
+		const requestedTime = Number(options.triggerAt)
+		const time = Number.isFinite(requestedTime) && requestedTime > 0
+			? Math.max(audioContext.currentTime, requestedTime)
+			: audioContext.currentTime + ZERO
 		const endAt = time + options.length
 		
 		if (!isRunning)
@@ -149,6 +185,24 @@ export const createSnare = ( audioContext, output ) => {
 		// console.log("SNARE",{options})
 
 		const levels = getSnareVoiceLevels(options)
+		const mix = Math.min(1, Math.max(0, Number(options.crunchMix) || 0))
+		const drive = Math.max(1, Number(options.drive) || 1)
+		const tone = Math.min(audioContext.sampleRate * 0.45, Math.max(300, Number(options.crunchTone) || 7200))
+		const level = Number.isFinite(Number(options.outputGain))
+			? Math.max(0, Number(options.outputGain))
+			: 1
+		for (const [parameter, value] of [
+			[dryGain.gain, 1 - mix],
+			[crunchDrive.gain, drive],
+			[crunchGain.gain, mix],
+			[outputGain.gain, level],
+		]) {
+			parameter.cancelScheduledValues(time)
+			parameter.setValueAtTime(value, time)
+		}
+		crunchTone.frequency.cancelScheduledValues(time)
+		crunchTone.frequency.setValueAtTime(tone, time)
+
 		filterGain.gain.cancelScheduledValues(time)
 		filterGain.gain.setValueAtTime(levels.noise, time)
 		filterGain.gain.exponentialRampToValueAtTime(ZERO, endAt)

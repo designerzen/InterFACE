@@ -21,6 +21,10 @@ export const DEFAULT_KICK_OPTIONS = {
 	sustain:0.9,
 	release:0.001,
 	pitchDecay:0.055,
+	// Multipliers make a pitch dive easy to shape without recalculating every
+	// oscillator frequency. 1 is the explicitly configured pitch range.
+	pitchStartRatio:1,
+	pitchEndRatio:1,
 
 	// frequencies
 	triStart:110,
@@ -943,6 +947,44 @@ export const PRESET_TICK_KICK = preset({
 	sineEnd:80,
 })
 
+export const PRESET_PITCH_DIVE_KICK = preset({
+	name:"Pitch Dive Kick",
+	velocity:1.12,
+	length:0.42,
+	attack:0.0015,
+	decay:0.035,
+	sustain:0.78,
+	release:0.25,
+	pitchStartRatio:4.5,
+	pitchEndRatio:1,
+	pitchDecay:0.045,
+	triStart:145,
+	triEnd:46,
+	sineStart:175,
+	sineApex:205,
+	sineSustain:72,
+	sineEnd:38,
+})
+
+export const PRESET_ELASTIC_KICK = preset({
+	name:"Elastic Pitch Kick",
+	velocity:1.05,
+	length:0.58,
+	attack:0.003,
+	decay:0.065,
+	sustain:0.72,
+	release:0.34,
+	pitchStartRatio:2.25,
+	pitchEndRatio:0.82,
+	pitchDecay:0.12,
+	triStart:125,
+	triEnd:52,
+	sineStart:155,
+	sineApex:178,
+	sineSustain:82,
+	sineEnd:44,
+})
+
 // ============================================================
 // COLLECTIONS
 // ============================================================
@@ -1017,6 +1059,8 @@ export const PRESETS_KICKS = [
 	PRESET_RAVE_KICK,
 	PRESET_SUB_BOOMER_KICK,
 	PRESET_TICK_KICK,
+	PRESET_PITCH_DIVE_KICK,
+	PRESET_ELASTIC_KICK,
 ]
 
 export function getKickPresets() {
@@ -1076,6 +1120,8 @@ export const PRESETS_KICKS_LOOP = [
 	PRESET_DISTORTED_KICK,
 	PRESET_RAVE_KICK,
 	PRESET_TICK_KICK,
+	PRESET_PITCH_DIVE_KICK,
+	PRESET_ELASTIC_KICK,
 ]
 
 export function getRandomKickPreset() {

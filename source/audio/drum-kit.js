@@ -1,4 +1,4 @@
-import { createKick, createKicks, DEFAULT_KICK_OPTIONS } from './synthesizers/kick' 
+import { createKick, DEFAULT_KICK_OPTIONS } from './synthesizers/kick'
 import { createClack, createClacks, PRESET_RIM_CLACK, PRESET_CROSS_STICK, PRESET_CLAVE_CLACK, PRESET_WOODBLOCK_CLACK, PRESET_CASTANET_CLACK } from './synthesizers/clack'
 import { createHihat, createHihats, OPEN_HIHAT_CRASH, OPEN_HIHAT_RIDE, OPEN_HIHAT_SPLASH, OPEN_HIHAT_CHINA } from './synthesizers/hihat'
 import { createCowbell, createCowbells, DEFAULT_COWBELL_OPTIONS, PRESET_727_HIGH_AGOGO, PRESET_727_LOW_AGOGO } from './synthesizers/cowbell'

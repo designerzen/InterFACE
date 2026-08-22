@@ -37,6 +37,8 @@ export {
 	PRESET_TIGHT_TOM,
 	PRESET_THUD_TOM,
 	PRESET_RAVE_TOM,
+	PRESET_PITCH_DROP_TOM,
+	PRESET_LASER_DROP_TOM,
 	PRESETS_TOMS,
 	getRandomKTomPreset,
 	getRandomTomPreset,
@@ -45,6 +47,7 @@ export {
 
 import { DEFAULT_TOM_OPTIONS } from './tom-presets.js'
 import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
+import { resolvePercussionPitchEnvelope, schedulePercussionPitchEnvelope } from './percussion-pitch-envelope.js'
 
 /**
  * Kick me!
@@ -100,8 +103,11 @@ export const createTom = (audioContext, output ) => {
 		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
-		triangleOscillator.frequency.setValueAtTime(options.triStart, time)
-		triangleOscillator.frequency.exponentialRampToValueAtTime(options.triEnd, endAt)
+		const pitch = resolvePercussionPitchEnvelope(options, time, endAt)
+		schedulePercussionPitchEnvelope(triangleOscillator.frequency, {
+			start:options.triStart,
+			end:options.triEnd,
+		}, { ...pitch, startAt:time, attack:options.attack, decay:options.decay })
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
@@ -109,10 +115,12 @@ export const createTom = (audioContext, output ) => {
 		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
 		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
-		sineOscillator.frequency.setValueAtTime(options.sineStart, time)
-		sineOscillator.frequency.exponentialRampToValueAtTime(options.sineApex, time + options.attack)
-		sineOscillator.frequency.exponentialRampToValueAtTime(options.sineSustain || options.sineApex, time + options.attack + options.decay)
-		sineOscillator.frequency.exponentialRampToValueAtTime(options.sineEnd, endAt)
+		schedulePercussionPitchEnvelope(sineOscillator.frequency, {
+			start:options.sineStart,
+			apex:options.sineApex,
+			sustain:options.sineSustain || options.sineApex,
+			end:options.sineEnd,
+		}, { ...pitch, startAt:time, attack:options.attack, decay:options.decay })
 
 		//  osc.stop(audioContext.currentTime + duration)
 		//  osc2.stop(audioContext.currentTime + duration)
