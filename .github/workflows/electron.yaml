@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - name: Windows x64
-            os: windows-latest
+            os: windows-2022
             artifact: photosynth-windows-x64
           - name: macOS x64
             os: macos-15-intel
@@ -46,6 +46,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./actions/prepare-windows-midi-sdk.ps1
+
+      - name: Select Visual Studio 2022 build tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
