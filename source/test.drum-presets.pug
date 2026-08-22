@@ -29,9 +29,6 @@ block main
 						h3#sound-heading Instrument
 						p#sound-family-name Select a sound in Kick to play it.
 				nav#preset-list.choice-list.sound-list(aria-label="Sounds in selected percussion type")
-				div.transport
-					button#play-drum.primary(type="button") ▶ Play sound
-					button#reset-preset(type="button") Reset changes
 				output#drum-lab-status(role="status" aria-live="polite") Ready to play Default Kick.
 				p.keyboard-hint
 					strong Keyboard pitch:
@@ -47,6 +44,11 @@ block main
 					fieldset
 						legend#editor-legend Current preset
 						div#option-controls.option-controls
+				div.editor-actions
+					button#reset-preset(type="button") Reset changes
+
+		div.play-actions
+			button#play-drum.primary(type="button") ▶ Play sound
 
 		section.code-panel(aria-labelledby="code-heading")
 			header.panel-heading
@@ -403,14 +405,15 @@ block styles
 		.family-button small { display: grid; flex: 0 0 2rem; min-width: 2rem; min-height: 2rem; place-items: center; border-radius: 999px; background: #232c3b; color: #b9c7dc; font-weight: 800; }
 		.drum-lab .choice-button[aria-pressed="true"] { border-color: #68e1fd; background: #0f6d83; box-shadow: inset .25rem 0 0 #ffd166; font-weight: 800; }
 		.drum-lab .choice-button[aria-pressed="true"] small { background: #081f29; color: #fff; }
-		.transport { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: .65rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #30394b; }
+		.editor-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #30394b; }
+		.play-actions { display: grid; margin-top: 1rem; }
 		.sound-panel output { display: block; flex: 0 0 auto; min-height: 2.5rem; margin-top: .75rem; color: #b7c2d8; }
 		.keyboard-hint { flex: 0 0 auto; padding: .65rem .75rem; border-radius: .45rem; background: #0a0e15; color: #aebbd1; font-size: .78rem; line-height: 1.4; }
 		.keyboard-hint strong { color: #68e1fd; }
 		.drum-lab button, .drum-lab input, .drum-lab select, .drum-lab textarea { min-height: 3rem; box-sizing: border-box; border: 1px solid #4b5365; border-radius: .45rem; background: #141823; color: inherit; font: inherit; font-size: 1rem; line-height: 1.25; }
 		.drum-lab button { width: auto; min-width: 0; height: auto; margin: 0; padding: .65rem .9rem; cursor: pointer; }
 		.drum-lab button::before, .drum-lab button::after { display: none; }
-		.transport button { flex: 0 0 auto; max-width: 12rem; }
+		.play-actions .primary { width: 100%; }
 		.drum-lab button:hover { border-color: #68e1fd; background: #202d3c; }
 		.drum-lab button.primary { border-color: #68e1fd; background: #0f6d83; font-weight: 800; }
 		.drum-lab :focus-visible { outline: .2rem solid #ffd166; outline-offset: .15rem; }
