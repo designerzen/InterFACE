@@ -24,7 +24,7 @@ allowBuilds:
   '@swc/core': false
   bufferutil: false
   core-js: false
-  electron-winstaller: false
+  electron-winstaller: true
   esbuild: false
   lmdb: false
   midi-writer-js: false
