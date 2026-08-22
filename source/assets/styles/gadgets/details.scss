@@ -30,7 +30,7 @@
 		list-style: none;
 
 		&::before{
-			content:'Show ';
+			content:'';
 			display: inline-block;
 			grid-area:prefix;
 		}
@@ -85,3 +85,8 @@
 		height: auto; 
 	}
 // }
+
+.details{
+	padding:var(--pad);
+	border:dashed var(--stroke,1px) var(--col-accent, white);
+}
