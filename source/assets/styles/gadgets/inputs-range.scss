@@ -79,7 +79,7 @@ $thumb-d: 44px;
 	border-radius:1px;
 
 	&:focus {
-		border-color:colo-mix(var(--share-accent, yellow), transparent 80%) ;
+		//border-color:colo-mix(var(--share-accent, yellow), transparent 80%) ;
 	}
 }
 
@@ -260,8 +260,8 @@ input[type=range].vertical{
 	width:100%;
 
 	// fix the width
-	max-width: min(100px, 50vmin);
-	max-height: min(100px, 50vmin);
+	// max-width: min(100px, 50vmin);
+	// max-height: min(100px, 50vmin);
 
 	min-width: auto;
 	min-height: auto;
