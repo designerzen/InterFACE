@@ -391,7 +391,7 @@ block styles
 		.drum-lab h2, .drum-lab h3, .drum-lab p { margin: 0; }
 		.drum-lab h2 { font-size: clamp(1.8rem, 4vw, 3.4rem); }
 		.eyebrow { color: #68e1fd; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-		.lab-browser { display: grid; grid-template-columns: minmax(14rem, .72fr) minmax(16rem, .9fr) minmax(32rem, 1.65fr); gap: 1rem; margin-top: 1rem; align-items: start; }
+		.lab-browser { display: grid; grid-template-columns: minmax(9rem, .72fr) minmax(12rem, .9fr) minmax(18rem, 1.65fr); gap: clamp(.6rem, 1vw, 1rem); margin-top: 1rem; align-items: stretch; }
 		.browser-panel, .code-panel { min-width: 0; padding: clamp(1rem, 2vw, 1.5rem); border: 1px solid #343947; border-radius: .8rem; background: #0f121a; }
 		.browser-panel { display: flex; flex-direction: column; height: clamp(36rem, calc(100dvh - 10rem), 52rem); }
 		.panel-heading { flex: 0 0 auto; }
@@ -432,6 +432,6 @@ block styles
 		.field-error { grid-area: error; color: #ff8f9d; font-size: .8rem; text-align: center; }
 		.code-panel { margin-top: 1rem; }
 		#preset-code { width: 100%; margin-top: 1rem; padding: 1rem; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; line-height: 1.45; }
-		@media (max-width: 78rem) { .lab-browser { grid-template-columns: 1fr; } .browser-panel { height: auto; min-height: 0; } #preset-editor { overflow: visible; } .choice-list { max-height: 24rem; } .family-panel .choice-list { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); max-height: none; overflow: visible; scrollbar-gutter: auto; } }
+		@media (max-width: 48rem) { .lab-browser { grid-template-columns: 1fr; } .browser-panel { height: auto; min-height: 0; } #preset-editor { overflow: visible; } .choice-list { max-height: 24rem; } .family-panel .choice-list { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); max-height: none; overflow: visible; scrollbar-gutter: auto; } }
 		@media (max-width: 42rem) { .panel-heading { align-items: stretch; flex-direction: column; } .family-panel .choice-list { grid-template-columns: 1fr; } }
 		@media (prefers-reduced-motion: reduce) { .drum-lab * { scroll-behavior: auto !important; } }
