@@ -12,23 +12,23 @@ importers:
         specifier: ^5.20.0
         version: 5.20.0
       '@babylonjs/core':
-        specifier: ^9.22.0
-        version: 9.22.0
+        specifier: ^9.22.1
+        version: 9.22.1
       '@babylonjs/gui-editor':
-        specifier: ^9.22.0
-        version: 9.22.0(@babylonjs/core@9.22.0)(@babylonjs/gui@9.18.0(@babylonjs/core@9.22.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+        specifier: ^9.22.1
+        version: 9.22.1(@babylonjs/core@9.22.1)(@babylonjs/gui@9.18.0(@babylonjs/core@9.22.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
       '@babylonjs/havok':
         specifier: ^1.3.14
         version: 1.3.14
       '@babylonjs/inspector':
-        specifier: ^9.22.0
-        version: 9.22.0(3a23e1e3804c07e113328e167ab67f7b)
+        specifier: ^9.22.1
+        version: 9.22.1(ceb3616872570ae8be18a28782822969)
       '@babylonjs/loaders':
-        specifier: ^9.22.0
-        version: 9.22.0(@babylonjs/core@9.22.0)(babylonjs-gltf2interface@9.18.0)
+        specifier: ^9.22.1
+        version: 9.22.1(@babylonjs/core@9.22.1)(babylonjs-gltf2interface@9.18.0)
       '@babylonjs/materials':
-        specifier: ^9.22.0
-        version: 9.22.0(@babylonjs/core@9.22.0)
+        specifier: ^9.22.1
+        version: 9.22.1(@babylonjs/core@9.22.1)
       '@capacitor/android':
         specifier: ^8.5.0
         version: 8.5.0(@capacitor/core@8.5.0)
@@ -48,8 +48,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(electron@43.4.1(supports-color@10.2.2))
       '@grame/faustwasm':
-        specifier: ^0.16.7
-        version: 0.16.7
+        specifier: ^0.16.8
+        version: 0.16.8
       '@justinribeiro/lite-youtube':
         specifier: ^1.9.0
         version: 1.9.0
@@ -119,9 +119,6 @@ importers:
       electron-squirrel-startup:
         specifier: ^1.0.1
         version: 1.0.1(supports-color@10.2.2)
-      electron-updater:
-        specifier: ^6.8.9
-        version: 6.8.9(supports-color@10.2.2)
       electron-window-state:
         specifier: ^5.0.3
         version: 5.0.3
@@ -250,8 +247,8 @@ importers:
         specifier: ^8.0.2
         version: 8.0.2(@babel/core@8.0.1)
       '@biomejs/biome':
-        specifier: ^2.5.9
-        version: 2.5.9
+        specifier: ^2.5.10
+        version: 2.5.10
       '@bubblewrap/cli':
         specifier: ^1.25.0
         version: 1.25.0(@types/node@26.2.0)(debug@4.4.3(supports-color@10.2.2))(encoding@0.1.13)(supports-color@10.2.2)
@@ -347,7 +344,7 @@ importers:
         version: 26.2.0
       '@vituum/vite-plugin-pug':
         specifier: ^2.0.1
-        version: 2.0.1(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0)
+        version: 2.0.1(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0)
       assert:
         specifier: ^2.1.0
         version: 2.1.0
@@ -451,8 +448,8 @@ importers:
         specifier: ^6.1.3
         version: 6.1.3
       sass:
-        specifier: ^1.103.0
-        version: 1.103.0
+        specifier: ^1.103.1
+        version: 1.103.1
       showdown:
         specifier: ^2.1.0
         version: 2.1.0
@@ -1653,11 +1650,11 @@ packages:
     resolution: {integrity: sha512-a6Mm519h9XtXg8Of0qC+DmwWp+jcolZv+Z/LSG+b/8Fh7kS3gFjHXctKSrln2zMiTxcbYfeBqtOUpGtlV8F2bA==}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
-  '@babylonjs/core@9.22.0':
-    resolution: {integrity: sha512-rbQJWF9bUiVAMpUxGnEPQvqg/ZMzoKFZ8bahlzXs35vHyGENRSLPYRT14k5GtMPQGIerbWwkLVW8wNob3Kj6ug==}
+  '@babylonjs/core@9.22.1':
+    resolution: {integrity: sha512-Aa27Ngp3nGSAei4MKBOMpvy/qoXp+Pb0Ds4+peLCXTAO3NKkKL2jZj74zaD2EONefX41yttzMYdrInpKvZm/oQ==}
 
-  '@babylonjs/gui-editor@9.22.0':
-    resolution: {integrity: sha512-u4zKhLpF33i3iT/g+vjTdVQayVkyNVccxnnsz5XJQEvOZ/J+U7dKk31+i3amm/0F7gUDP7kuXPHOQr7lLjQAQQ==}
+  '@babylonjs/gui-editor@9.22.1':
+    resolution: {integrity: sha512-qOzlpbAUQ6VDvk5jsvd/bPV4AbriQvZJFvnYxLM+mb1a5FoBOsSoKjD4P48Y0XcA9QsijJnxajptn+9ZeFOXXg==}
     peerDependencies:
       '@babylonjs/core': ^9.0.0
       '@babylonjs/gui': ^9.0.0
@@ -1672,8 +1669,8 @@ packages:
   '@babylonjs/havok@1.3.14':
     resolution: {integrity: sha512-+j2FDwLtkh5Gb//KizE8Ks3GIB/3vH8Yx9cQsMvZQpsKkH5gn089wIlJ9Yt8dJxbwBmWKGpMTIXxZE7YdOHUnQ==}
 
-  '@babylonjs/inspector@9.22.0':
-    resolution: {integrity: sha512-5q2xWHS/nou8MqQDSJToEmF2g9mOi3sCyigjV2HOA5GcQcUUc9b9/FWRVtqMTyy8yx5SSW3dm1RDgTJUbzns1Q==}
+  '@babylonjs/inspector@9.22.1':
+    resolution: {integrity: sha512-N607gWP9gEVPsSpFHueAGzh4RiIKqgF1dNbN4h1OCYTdATYSXpsAe0g+oJoHemw4rrc3If9bTu+rw0fmtBD3vA==}
     hasBin: true
     peerDependencies:
       '@babylonjs/addons': ^9.0.0
@@ -1697,14 +1694,14 @@ packages:
       react-dom: '>=16.14.0 <20.0.0'
       usehooks-ts: ^3.1.1
 
-  '@babylonjs/loaders@9.22.0':
-    resolution: {integrity: sha512-Wt0DzjEVH+I31IdyArEXW3/4Z3yy3GEutDPsPohh39LFeL4EIygqTuAKMt2BLpH3GC95X+joW1rN2Jo5H9nudQ==}
+  '@babylonjs/loaders@9.22.1':
+    resolution: {integrity: sha512-Ecjaxa0/R/tWM7if3p/YwpcXwBHu8UtJr8y0u7Ka/2QsF0hH05T0TOSjZG1DYH5I1lwcmupJQfSG8CiGulsc2Q==}
     peerDependencies:
       '@babylonjs/core': ^9.0.0
       babylonjs-gltf2interface: ^9.0.0
 
-  '@babylonjs/materials@9.22.0':
-    resolution: {integrity: sha512-zWOv7JOWvwufJd2dPXnQ7FPQFl8akj7UO3/dgt0OgA6Oha+OINglelVpOy3Nj9Ynwx+mJN3J6g2F5necPFB4Hw==}
+  '@babylonjs/materials@9.22.1':
+    resolution: {integrity: sha512-RxeKO13MW3QHed1xf5Kz78dSh+/LTi/SLcYJZrn1mJhqW3a9aJ+AqTn8HW512ubrFAXbNCdSDPhY65vwu7ouQQ==}
     peerDependencies:
       '@babylonjs/core': ^9.0.0
 
@@ -1743,59 +1740,59 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@biomejs/biome@2.5.9':
-    resolution: {integrity: sha512-KkgCvdHB4IhtpHpF564plA9jo6fDOwWGQ/3jvreLzgOtRLEDoPqr7QO9qejNA8jKwDsSkAKr77hqBHnyUbIw4g==}
+  '@biomejs/biome@2.5.10':
+    resolution: {integrity: sha512-WRKXARA3kTuiV5sxqTpobJ/I0MVd4vk3pOL6wnp5az4LntFIhWTj1RWZq3DI9PCEN3lXcqy7p5aqUHzvq8AXyQ==}
     engines: {node: '>=14.21.3'}
     hasBin: true
 
-  '@biomejs/cli-darwin-arm64@2.5.9':
-    resolution: {integrity: sha512-am22pX2aBqznqq1eMyIj/bZ++riF3Lk6ct7cbv+gQK0csFhr+d8O0RkOi2FF2qSgFgANbqNkIZ0/PxlnW2pLFg==}
+  '@biomejs/cli-darwin-arm64@2.5.10':
+    resolution: {integrity: sha512-ItCrxKK6SXVT6flYs0qIuBd4AA3TTTl4d66Re6YI2FuGZnN85NmuYNzkiTJUyYw8qBLv69L5zTUB6uyWd++h3Q==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [darwin]
 
-  '@biomejs/cli-darwin-x64@2.5.9':
-    resolution: {integrity: sha512-l44KWDHLDvEnD0N/XcrVs7VXb3A18xL7QS3WB0eL93wbmk529ffIG55vleGCqaunpRUjLrdnjK05Qki1dsjylg==}
+  '@biomejs/cli-darwin-x64@2.5.10':
+    resolution: {integrity: sha512-yLsPU9pAmtChXDu8vhKAzErqe+LeeYuwuUB2FZMkRitsmdodxsYRa9KHrFispsUHzzOu+9HB3nP/TQxyia+Sjw==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [darwin]
 
-  '@biomejs/cli-linux-arm64-musl@2.5.9':
-    resolution: {integrity: sha512-7ImVPwBLCtkmpR5esd8RHhTqW94f0JLJQum6AneYcy94jRm18TaPPm7slaigGzFhfgt3QiD1Vj52LKmBAnKizA==}
+  '@biomejs/cli-linux-arm64-musl@2.5.10':
+    resolution: {integrity: sha512-t1QAKZwQJRB4dvgJSgFiQ4BNfNPChg69BNonz854qLVxnjT3UvDzQg9mbkTJRu35ZqU0Rw10A73J8Urgbg2RPw==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@biomejs/cli-linux-arm64@2.5.9':
-    resolution: {integrity: sha512-ICaK+IYaVZvKbBxX2rwrPT0DdUDMnE9Vm3nQGe+mltQPmUg19pONzkPWGdY4FCsoreDETWDynvdt4ysCbF5gNQ==}
+  '@biomejs/cli-linux-arm64@2.5.10':
+    resolution: {integrity: sha512-VG8uQW/86a1roLaIFvtIbEigxIdzdJ190oGyg1tV7VYeQtOS+x10sflk7WbuXgw91EtZX5DlIIIej1YqkNLlcg==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@biomejs/cli-linux-x64-musl@2.5.9':
-    resolution: {integrity: sha512-RXGaD0o1/pTTguYw1aeDJh9ad6Lfrui0fI7mBderTyGr7WuUJkBIttgLkR3XJyoxOkkgfBDspaUT8wXArTqLZw==}
+  '@biomejs/cli-linux-x64-musl@2.5.10':
+    resolution: {integrity: sha512-pgDDqp9JybHm2I0KRgzN6i4+lt8xu4iqxUwLzglUMmOmyRTU1AYBGKzh9sNMOtIjah7xoWvKHlLVetvyifzoiQ==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@biomejs/cli-linux-x64@2.5.9':
-    resolution: {integrity: sha512-z22Q/zFYSvbIJfW1CbfZPu4X8PddS6Qd2ORbc6h+aT6EcwAxUF3m6fA4HjNvA3TU4X0dTJRwNPB165ES3PJXzg==}
+  '@biomejs/cli-linux-x64@2.5.10':
+    resolution: {integrity: sha512-4O6T0eq2heoHZN0a9UX+rWQoxXEBaKf+lRi2hbsGlHneUz9BWXM76nEWMK7Eeq8gzMxR1khQB6BFpAASpeXqGg==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@biomejs/cli-win32-arm64@2.5.9':
-    resolution: {integrity: sha512-nHK+/HHC+D0ogAHUxomgoSTdjImb6fmNNVTKmf0tyu4eDL1DqPKIHc+i+UL8+b0RnAu8224qo8F2tCVnaT0A3w==}
+  '@biomejs/cli-win32-arm64@2.5.10':
+    resolution: {integrity: sha512-pxAbxduPO4xq/Cvgaa2lOrs9BB0hEXmmDqfMNP4ZOffGOkUrD1/QGw9UAMpFQpX2P8MqTIIRuQKcmetum4Oa6A==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [win32]
 
-  '@biomejs/cli-win32-x64@2.5.9':
-    resolution: {integrity: sha512-Yiq0H56LjXSSw/hd9YkXgSLQfzyDJzbzU2TezozxyNw+uKWAqOtqGVvBfzKRRDiaFF5avGAhHdWKx7LtDOShUw==}
+  '@biomejs/cli-win32-x64@2.5.10':
+    resolution: {integrity: sha512-M+2dgBsl3lXRiTfgPVc2p3anS4Tocojke4rzFLScZ2Y/wmF+36dRb1iHCLiyGqOzQGyTplZH1HnEYviiAqi3nA==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
@@ -3131,8 +3128,8 @@ packages:
   '@gar/promisify@1.1.3':
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
 
-  '@grame/faustwasm@0.16.7':
-    resolution: {integrity: sha512-hLMCFuZFBvDOOAftFJKJEbc+p0GcXQLlswSgK6zOoMhrOV5zZdp39Qz4VSmdDQjTeiRNboNSvsy1FgB4nuJQRw==}
+  '@grame/faustwasm@0.16.8':
+    resolution: {integrity: sha512-AKCb2TPC2Ybm5R6Uq4OICv6TGmmc/11wOgKBhz4iuJx/P33WW89U9G+ibcJo/cUg0w/JUczntl73yq4+FTKXzQ==}
     hasBin: true
 
   '@griffel/core@1.21.0':
@@ -3813,8 +3810,8 @@ packages:
     resolution: {integrity: sha512-1DpKU0Z5ThltBwjNySMC14g0CkbyhCaz9FkhxqNsZI6uAPJXFS8cMXlBKo26FJ8ZuW6S9GCMcR9IO5k2X5/9Fg==}
     engines: {node: '>= 12.13.0'}
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20260819':
-    resolution: {integrity: sha512-9lWj9PDVgQHIKoL9qOS+6Z/Go5dkzq0tSs+x4x0jhSNjbPrcEoWuz988uJsLGNK7wy4xfdUb8DaJWlz5xA5Xqw==}
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20260820':
+    resolution: {integrity: sha512-OXrVp1H+OubRfY+Omsv8CudkO9qjIReCGqM8RxeMbTVtYKEe3ddqBheUS4iEur1q3aLGgHcQphCF5FmUT0S9Zg==}
 
   '@maxim_mazurok/gapi.client.discovery-v1@0.6.20200806':
     resolution: {integrity: sha512-QN6aGmIbLXcJW0SEf8tz9UWCpQTBMy2u4xSuZ04YofzMGknhWwMeUecySLntCZYAEstHzDoSgwxCf5Gb8GqIRQ==}
@@ -6345,10 +6342,6 @@ packages:
     resolution: {integrity: sha512-ZMANVnAixE6AWWnPzlW2KpUrxhm9woycYvPOo67jWHyFowASTEd9s+QN1EIMsSDtwhIxN4sWE1jotpuDUIgyIw==}
     engines: {node: '>=6.14.2'}
 
-  builder-util-runtime@9.7.0:
-    resolution: {integrity: sha512-g/kR520giAFYkSXTzcmF3kqQq7wi8F6N6SzeDgZrqTBN+VHdmgWOyTdD1yD7AATDId/yXLvuP34CxW46/BwCdw==}
-    engines: {node: '>=12.0.0'}
-
   cacache@16.1.3:
     resolution: {integrity: sha512-/+Emcj9DAXxX4cwlLmRI9c166RuL3w30zp4R7Joiv2cQTtTtA+jeuCAjH3ZlGnYS3tKENSrKhAzVVP9GVyzeYQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
@@ -7155,9 +7148,6 @@ packages:
 
   electron-to-chromium@1.5.396:
     resolution: {integrity: sha512-yHiw2Y3C3H9U6TMbOfoWK/BPreiOPXRfTWPBwQBoZG6/8TB6eOPnsy5oaRYuatR7Fw2SJ4kKforgufeo7fq0EQ==}
-
-  electron-updater@6.8.9:
-    resolution: {integrity: sha512-ZhVxM9iGONUpZGI1FxdMRgJjUFXi7AYGVa5PwKlO1tV1/4zDxQmfKpXOHVztKrd6L9rLcFjERvi1Mf2vxyTkig==}
 
   electron-window-state@5.0.3:
     resolution: {integrity: sha512-1mNTwCfkolXl3kMf50yW3vE2lZj0y92P/HYWFBrb+v2S/pCka5mdwN3cagKm458A7NjndSwijynXgcLWRodsVg==}
@@ -8585,10 +8575,6 @@ packages:
     resolution: {integrity: sha512-ttBQIIQPDeLjpPOohtUdXuXUVoA2uIB6fEH9HyJ7234s5mBJ5wTx20njxplLZQgLaOfpmPQA7X2t5AX6tIPbog==}
     hasBin: true
 
-  js-yaml@4.3.0:
-    resolution: {integrity: sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q==}
-    hasBin: true
-
   js2xmlparser@4.0.2:
     resolution: {integrity: sha512-6n4D8gLlLf1n5mNLQPRfViYzu9RATblzPEtm1SthMX1Pjao0r9YI9nw7ZIfRxQMERS87mcswrg+r/OYrPRX6jA==}
 
@@ -8732,9 +8718,6 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  lazy-val@1.0.5:
-    resolution: {integrity: sha512-0/BnGCCfyUMkBpeDgWihanIAF9JmZhHBgUhEqzvf+adhNGLoP6TaiI5oF8oyb3I45P+PcnrqihSf01M0l0G5+Q==}
-
   lcid@1.0.0:
     resolution: {integrity: sha512-YiGkH6EnGrDGqLMITnGjXtGmNtjoXw9SVUzcaos8RBi7Ps0VBylkq+vOcY9QE5poLasPCR849ucFUkl0UzUyOw==}
     engines: {node: '>=0.10.0'}
@@ -8870,16 +8853,9 @@ packages:
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
 
-  lodash.escaperegexp@4.1.2:
-    resolution: {integrity: sha512-TM9YBvyC84ZxE3rgfefxUWiQKLilstD6k7PTGt6wfbtXF8ixIJLOL3VYyV/z+ZiPLsVxAsKAFVwWlWeb2Y8Yyw==}
-
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
     deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
-
-  lodash.isequal@4.5.0:
-    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
-    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.ismatch@4.4.0:
     resolution: {integrity: sha512-fPMfXjGQEV9Xsq/8MTSgUf255gawYRbjwMyDbcvDhXgV7enSZA0hynz6vMPnpAb5iONEzBHBPsT+0zes5Z301g==}
@@ -10579,13 +10555,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  sass@1.102.0:
-    resolution: {integrity: sha512-NSOyTnaQF7rTAEOtI2fwb386vL+akyiQLBZu8Na7hXCb+umJy0GAqlcMIaqACZ6Z1VgTBS4K9PG6B3IdjHGJsw==}
-    engines: {node: '>=20.19.0'}
-    hasBin: true
-
-  sass@1.103.0:
-    resolution: {integrity: sha512-+QpdXUDw19lVqRDlYIyje1Lq/0gHsnNHIl4x1CqeUg13zRhaQN11UvTvouwHWLXc9Q3rQVT6oBhFGRYJ5Z8gHw==}
+  sass@1.103.1:
+    resolution: {integrity: sha512-9icZURbP51S6S0QGoyaeqk9uB06GNWxsFYWfH5RgpFgqK5FA8tJcM3AdVxrZEVJ7dz+L87nG95gBKf4VuaMHGw==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -10619,11 +10590,6 @@ packages:
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
-    hasBin: true
-
-  semver@7.7.4:
-    resolution: {integrity: sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==}
-    engines: {node: '>=10'}
     hasBin: true
 
   semver@7.8.5:
@@ -11163,9 +11129,6 @@ packages:
 
   tiny-each-async@2.0.3:
     resolution: {integrity: sha512-5ROII7nElnAirvFn8g7H7MtpfV1daMcyfTGQwsn/x2VtyV+VPiO5CjReCJtWLvoKTDEDmZocf3cNPraiMnBXLA==}
-
-  tiny-typed-emitter@2.1.0:
-    resolution: {integrity: sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==}
 
   tinycolor2@1.6.0:
     resolution: {integrity: sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==}
@@ -13512,42 +13475,42 @@ snapshots:
       '@babel/helper-string-parser': 8.0.0
       '@babel/helper-validator-identifier': 8.0.4
 
-  '@babylonjs/addons@9.18.0(@babylonjs/core@9.22.0)':
+  '@babylonjs/addons@9.18.0(@babylonjs/core@9.22.1)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
 
   '@babylonjs/assets@5.20.0': {}
 
-  '@babylonjs/core@9.22.0': {}
+  '@babylonjs/core@9.22.1': {}
 
-  '@babylonjs/gui-editor@9.22.0(@babylonjs/core@9.22.0)(@babylonjs/gui@9.18.0(@babylonjs/core@9.22.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/gui-editor@9.22.1(@babylonjs/core@9.22.1)(@babylonjs/gui@9.18.0(@babylonjs/core@9.22.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 9.22.0
-      '@babylonjs/gui': 9.18.0(@babylonjs/core@9.22.0)
+      '@babylonjs/core': 9.22.1
+      '@babylonjs/gui': 9.18.0(@babylonjs/core@9.22.1)
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/gui@9.18.0(@babylonjs/core@9.22.0)':
+  '@babylonjs/gui@9.18.0(@babylonjs/core@9.22.1)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
 
   '@babylonjs/havok@1.3.14':
     dependencies:
       '@types/emscripten': 1.41.5
 
-  '@babylonjs/inspector@9.22.0(3a23e1e3804c07e113328e167ab67f7b)':
+  '@babylonjs/inspector@9.22.1(ceb3616872570ae8be18a28782822969)':
     dependencies:
-      '@babylonjs/addons': 9.18.0(@babylonjs/core@9.22.0)
-      '@babylonjs/core': 9.22.0
-      '@babylonjs/gui': 9.18.0(@babylonjs/core@9.22.0)
-      '@babylonjs/gui-editor': 9.22.0(@babylonjs/core@9.22.0)(@babylonjs/gui@9.18.0(@babylonjs/core@9.22.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/loaders': 9.22.0(@babylonjs/core@9.22.0)(babylonjs-gltf2interface@9.18.0)
-      '@babylonjs/materials': 9.22.0(@babylonjs/core@9.22.0)
-      '@babylonjs/node-editor': 9.21.2(@babylonjs/core@9.22.0)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/node-geometry-editor': 9.21.2(@babylonjs/core@9.22.0)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/node-particle-editor': 9.21.2(@babylonjs/core@9.22.0)
-      '@babylonjs/node-render-graph-editor': 9.21.2(@babylonjs/core@9.22.0)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
-      '@babylonjs/serializers': 9.18.0(@babylonjs/core@9.22.0)(babylonjs-gltf2interface@9.18.0)
+      '@babylonjs/addons': 9.18.0(@babylonjs/core@9.22.1)
+      '@babylonjs/core': 9.22.1
+      '@babylonjs/gui': 9.18.0(@babylonjs/core@9.22.1)
+      '@babylonjs/gui-editor': 9.22.1(@babylonjs/core@9.22.1)(@babylonjs/gui@9.18.0(@babylonjs/core@9.22.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/loaders': 9.22.1(@babylonjs/core@9.22.1)(babylonjs-gltf2interface@9.18.0)
+      '@babylonjs/materials': 9.22.1(@babylonjs/core@9.22.1)
+      '@babylonjs/node-editor': 9.21.2(@babylonjs/core@9.22.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/node-geometry-editor': 9.21.2(@babylonjs/core@9.22.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/node-particle-editor': 9.21.2(@babylonjs/core@9.22.1)
+      '@babylonjs/node-render-graph-editor': 9.21.2(@babylonjs/core@9.22.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)
+      '@babylonjs/serializers': 9.18.0(@babylonjs/core@9.22.1)(babylonjs-gltf2interface@9.18.0)
       '@fluentui-contrib/react-resize-handle': 0.8.4(@fluentui/react-components@9.73.4(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(scheduler@0.19.1))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@fluentui-contrib/react-virtualizer': 1.0.0(@fluentui/react-shared-contexts@9.26.2(@types/react@19.2.2)(react@16.14.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@fluentui/react-components': 9.73.4(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(scheduler@0.19.1)
@@ -13558,77 +13521,77 @@ snapshots:
       react-dom: 16.14.0(react@16.14.0)
       usehooks-ts: 3.1.1(react@16.14.0)
 
-  '@babylonjs/loaders@9.22.0(@babylonjs/core@9.22.0)(babylonjs-gltf2interface@9.18.0)':
+  '@babylonjs/loaders@9.22.1(@babylonjs/core@9.22.1)(babylonjs-gltf2interface@9.18.0)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
       babylonjs-gltf2interface: 9.18.0
 
-  '@babylonjs/materials@9.22.0(@babylonjs/core@9.22.0)':
+  '@babylonjs/materials@9.22.1(@babylonjs/core@9.22.1)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
 
-  '@babylonjs/node-editor@9.21.2(@babylonjs/core@9.22.0)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/node-editor@9.21.2(@babylonjs/core@9.22.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/node-geometry-editor@9.21.2(@babylonjs/core@9.22.0)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/node-geometry-editor@9.21.2(@babylonjs/core@9.22.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/node-particle-editor@9.21.2(@babylonjs/core@9.22.0)':
+  '@babylonjs/node-particle-editor@9.21.2(@babylonjs/core@9.22.1)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
 
-  '@babylonjs/node-render-graph-editor@9.21.2(@babylonjs/core@9.22.0)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
+  '@babylonjs/node-render-graph-editor@9.21.2(@babylonjs/core@9.22.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
 
-  '@babylonjs/serializers@9.18.0(@babylonjs/core@9.22.0)(babylonjs-gltf2interface@9.18.0)':
+  '@babylonjs/serializers@9.18.0(@babylonjs/core@9.22.1)(babylonjs-gltf2interface@9.18.0)':
     dependencies:
-      '@babylonjs/core': 9.22.0
+      '@babylonjs/core': 9.22.1
       babylonjs-gltf2interface: 9.18.0
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@biomejs/biome@2.5.9':
+  '@biomejs/biome@2.5.10':
     optionalDependencies:
-      '@biomejs/cli-darwin-arm64': 2.5.9
-      '@biomejs/cli-darwin-x64': 2.5.9
-      '@biomejs/cli-linux-arm64': 2.5.9
-      '@biomejs/cli-linux-arm64-musl': 2.5.9
-      '@biomejs/cli-linux-x64': 2.5.9
-      '@biomejs/cli-linux-x64-musl': 2.5.9
-      '@biomejs/cli-win32-arm64': 2.5.9
-      '@biomejs/cli-win32-x64': 2.5.9
+      '@biomejs/cli-darwin-arm64': 2.5.10
+      '@biomejs/cli-darwin-x64': 2.5.10
+      '@biomejs/cli-linux-arm64': 2.5.10
+      '@biomejs/cli-linux-arm64-musl': 2.5.10
+      '@biomejs/cli-linux-x64': 2.5.10
+      '@biomejs/cli-linux-x64-musl': 2.5.10
+      '@biomejs/cli-win32-arm64': 2.5.10
+      '@biomejs/cli-win32-x64': 2.5.10
 
-  '@biomejs/cli-darwin-arm64@2.5.9':
+  '@biomejs/cli-darwin-arm64@2.5.10':
     optional: true
 
-  '@biomejs/cli-darwin-x64@2.5.9':
+  '@biomejs/cli-darwin-x64@2.5.10':
     optional: true
 
-  '@biomejs/cli-linux-arm64-musl@2.5.9':
+  '@biomejs/cli-linux-arm64-musl@2.5.10':
     optional: true
 
-  '@biomejs/cli-linux-arm64@2.5.9':
+  '@biomejs/cli-linux-arm64@2.5.10':
     optional: true
 
-  '@biomejs/cli-linux-x64-musl@2.5.9':
+  '@biomejs/cli-linux-x64-musl@2.5.10':
     optional: true
 
-  '@biomejs/cli-linux-x64@2.5.9':
+  '@biomejs/cli-linux-x64@2.5.10':
     optional: true
 
-  '@biomejs/cli-win32-arm64@2.5.9':
+  '@biomejs/cli-win32-arm64@2.5.10':
     optional: true
 
-  '@biomejs/cli-win32-x64@2.5.9':
+  '@biomejs/cli-win32-x64@2.5.10':
     optional: true
 
   '@bubblewrap/cli@1.25.0(@types/node@26.2.0)(debug@4.4.3(supports-color@10.2.2))(encoding@0.1.13)(supports-color@10.2.2)':
@@ -15946,7 +15909,7 @@ snapshots:
 
   '@gar/promisify@1.1.3': {}
 
-  '@grame/faustwasm@0.16.7':
+  '@grame/faustwasm@0.16.8':
     dependencies:
       '@types/emscripten': 1.41.5
 
@@ -16992,7 +16955,7 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20260819':
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20260820':
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -17879,7 +17842,7 @@ snapshots:
     dependencies:
       '@parcel/plugin': 2.16.4(@parcel/core@2.16.4(@swc/helpers@0.5.23))
       '@parcel/source-map': 2.1.1
-      sass: 1.102.0
+      sass: 1.103.1
     transitivePeerDependencies:
       - '@parcel/core'
       - napi-wasm
@@ -18584,24 +18547,24 @@ snapshots:
 
   '@types/babel__core@7.20.5':
     dependencies:
-      '@babel/parser': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
       '@types/babel__generator': 7.27.0
       '@types/babel__template': 7.4.4
       '@types/babel__traverse': 7.28.0
 
   '@types/babel__generator@7.27.0':
     dependencies:
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
 
   '@types/babel__traverse@7.28.0':
     dependencies:
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
 
   '@types/cacheable-request@6.0.3':
     dependencies:
@@ -18641,7 +18604,7 @@ snapshots:
 
   '@types/gapi.client.androidpublisher@3.0.2':
     dependencies:
-      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.5.20260819
+      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.5.20260820
 
   '@types/gapi.client.discovery-v1@0.0.4':
     dependencies:
@@ -18924,11 +18887,11 @@ snapshots:
     dependencies:
       three: 0.185.1
 
-  '@vituum/vite-plugin-pug@2.0.1(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0)':
+  '@vituum/vite-plugin-pug@2.0.1(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0)':
     dependencies:
       pug: 3.0.4
-      vite: 8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0)
-      vituum: 2.0.2(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0)
+      vite: 8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0)
+      vituum: 2.0.2(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -19593,13 +19556,6 @@ snapshots:
   bufferutil@4.1.0:
     dependencies:
       node-gyp-build: 4.8.4
-
-  builder-util-runtime@9.7.0(supports-color@10.2.2):
-    dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
-      sax: 1.6.1
-    transitivePeerDependencies:
-      - supports-color
 
   cacache@16.1.3(bluebird@3.7.2):
     dependencies:
@@ -20527,19 +20483,6 @@ snapshots:
       - supports-color
 
   electron-to-chromium@1.5.396: {}
-
-  electron-updater@6.8.9(supports-color@10.2.2):
-    dependencies:
-      builder-util-runtime: 9.7.0(supports-color@10.2.2)
-      fs-extra: 10.1.0
-      js-yaml: 4.3.0
-      lazy-val: 1.0.5
-      lodash.escaperegexp: 4.1.2
-      lodash.isequal: 4.5.0
-      semver: 7.7.4
-      tiny-typed-emitter: 2.1.0
-    transitivePeerDependencies:
-      - supports-color
 
   electron-window-state@5.0.3:
     dependencies:
@@ -22385,10 +22328,6 @@ snapshots:
       argparse: 1.0.10
       esprima: 4.0.1
 
-  js-yaml@4.3.0:
-    dependencies:
-      argparse: 2.0.1
-
   js2xmlparser@4.0.2:
     dependencies:
       xmlcreate: 2.0.4
@@ -22576,8 +22515,6 @@ snapshots:
       yaml: 2.9.0
       zod: 4.4.3
 
-  lazy-val@1.0.5: {}
-
   lcid@1.0.0:
     dependencies:
       invert-kv: 1.0.0
@@ -22723,11 +22660,7 @@ snapshots:
 
   lodash.debounce@4.0.8: {}
 
-  lodash.escaperegexp@4.1.2: {}
-
   lodash.get@4.4.2: {}
-
-  lodash.isequal@4.5.0: {}
 
   lodash.ismatch@4.4.0: {}
 
@@ -24576,15 +24509,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass@1.102.0:
-    dependencies:
-      chokidar: 5.0.0
-      immutable: 5.1.9
-      source-map-js: 1.2.1
-    optionalDependencies:
-      '@parcel/watcher': 2.6.0
-
-  sass@1.103.0:
+  sass@1.103.1:
     dependencies:
       chokidar: 5.0.0
       immutable: 5.1.9
@@ -24620,8 +24545,6 @@ snapshots:
   semver@5.7.2: {}
 
   semver@6.3.1: {}
-
-  semver@7.7.4: {}
 
   semver@7.8.5: {}
 
@@ -25263,8 +25186,6 @@ snapshots:
   tiny-each-async@2.0.3:
     optional: true
 
-  tiny-typed-emitter@2.1.0: {}
-
   tinycolor2@1.6.0: {}
 
   tinyglobby@0.2.17:
@@ -25712,7 +25633,7 @@ snapshots:
       core-util-is: 1.0.2
       extsprintf: 1.4.1
 
-  vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0):
+  vite@8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
@@ -25723,16 +25644,16 @@ snapshots:
       '@types/node': 26.2.0
       fsevents: 2.3.3
       jiti: 2.7.0
-      sass: 1.103.0
+      sass: 1.103.1
       terser: 5.49.0
       yaml: 2.9.0
 
-  vituum@2.0.2(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0):
+  vituum@2.0.2(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0):
     dependencies:
       chokidar: 5.0.0
       picomatch: 4.0.5
       tinyglobby: 0.2.17
-      vite: 8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.0)(terser@5.49.0)(yaml@2.9.0)
+      vite: 8.1.5(@types/node@26.2.0)(jiti@2.7.0)(sass@1.103.1)(terser@5.49.0)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'

@@ -2,6 +2,7 @@ const path = require('node:path')
 const packageMetadata = require('./package.json')
 
 const iconBase = path.resolve(__dirname, 'static/icons')
+const previousWindowsReleases = process.env.PHOTOSYNTH_WINDOWS_UPDATE_URL
 
 module.exports = {
 	outDir: path.resolve(__dirname, 'releases'),
@@ -38,6 +39,7 @@ module.exports = {
 				name: 'photosynth',
 				setupExe: `PhotoSYNTH-${packageMetadata.version}-Windows-Setup.exe`,
 				setupIcon: path.join(iconBase, 'win/icon.ico'),
+				...(previousWindowsReleases ? { remoteReleases: previousWindowsReleases } : {}),
 			},
 		},
 		{
