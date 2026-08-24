@@ -29,10 +29,6 @@ block main
 						h3#sound-heading Instrument
 						p#sound-family-name Select a sound in Kick to play it.
 				nav#preset-list.choice-list.sound-list(aria-label="Sounds in selected percussion type")
-				output#drum-lab-status(role="status" aria-live="polite") Ready to play Default Kick.
-				p.keyboard-hint
-					strong Keyboard pitch:
-					|  1–0, Q–P, A–L and Z–M play chromatic notes from C3 to B5.
 
 			section.browser-panel.editor-panel(aria-labelledby="editor-heading")
 				header.panel-heading
@@ -47,8 +43,13 @@ block main
 				div.editor-actions
 					button#reset-preset(type="button") Reset changes
 
-		div.play-actions
+		section.play-menu(aria-label="Playback")
 			button#play-drum.primary(type="button") ▶ Play sound
+			div.play-menu-copy
+				output#drum-lab-status(role="status" aria-live="polite") Ready to play Default Kick.
+				p.keyboard-hint
+					strong Keyboard pitch:
+					|  1–0, Q–P, A–L and Z–M play chromatic notes from C3 to B5.
 
 		section.code-panel(aria-labelledby="code-heading")
 			header.panel-heading
@@ -406,14 +407,15 @@ block styles
 		.drum-lab .choice-button[aria-pressed="true"] { border-color: #68e1fd; background: #0f6d83; box-shadow: inset .25rem 0 0 #ffd166; font-weight: 800; }
 		.drum-lab .choice-button[aria-pressed="true"] small { background: #081f29; color: #fff; }
 		.editor-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #30394b; }
-		.play-actions { display: grid; margin-top: 1rem; }
-		.sound-panel output { display: block; flex: 0 0 auto; min-height: 2.5rem; margin-top: .75rem; color: #b7c2d8; }
+		.play-menu { display: grid; grid-template-columns: minmax(10rem, 18rem) minmax(0, 1fr); gap: 1rem; align-items: stretch; margin-top: 1rem; padding: 1rem; border: 1px solid #343947; border-radius: .8rem; background: #0f121a; }
+		.play-menu-copy { display: grid; min-width: 0; align-content: center; gap: .4rem; }
+		.play-menu output { display: block; color: #e8edf7; font-weight: 800; }
 		.keyboard-hint { flex: 0 0 auto; padding: .65rem .75rem; border-radius: .45rem; background: #0a0e15; color: #aebbd1; font-size: .78rem; line-height: 1.4; }
 		.keyboard-hint strong { color: #68e1fd; }
 		.drum-lab button, .drum-lab input, .drum-lab select, .drum-lab textarea { min-height: 3rem; box-sizing: border-box; border: 1px solid #4b5365; border-radius: .45rem; background: #141823; color: inherit; font: inherit; font-size: 1rem; line-height: 1.25; }
 		.drum-lab button { width: auto; min-width: 0; height: auto; margin: 0; padding: .65rem .9rem; cursor: pointer; }
 		.drum-lab button::before, .drum-lab button::after { display: none; }
-		.play-actions .primary { width: 100%; }
+		.play-menu .primary { width: 100%; }
 		.drum-lab button:hover { border-color: #68e1fd; background: #202d3c; }
 		.drum-lab button.primary { border-color: #68e1fd; background: #0f6d83; font-weight: 800; }
 		.drum-lab :focus-visible { outline: .2rem solid #ffd166; outline-offset: .15rem; }
@@ -435,6 +437,6 @@ block styles
 		.field-error { grid-area: error; color: #ff8f9d; font-size: .8rem; text-align: center; }
 		.code-panel { margin-top: 1rem; }
 		#preset-code { width: 100%; margin-top: 1rem; padding: 1rem; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; line-height: 1.45; }
-		@media (max-width: 48rem) { .lab-browser { grid-template-columns: 1fr; } .browser-panel { height: auto; min-height: 0; } #preset-editor { overflow: visible; } .choice-list { max-height: 24rem; } .family-panel .choice-list { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); max-height: none; overflow: visible; scrollbar-gutter: auto; } }
+		@media (max-width: 48rem) { .lab-browser, .play-menu { grid-template-columns: 1fr; } .browser-panel { height: auto; min-height: 0; } #preset-editor { overflow: visible; } .choice-list { max-height: 24rem; } .family-panel .choice-list { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); max-height: none; overflow: visible; scrollbar-gutter: auto; } }
 		@media (max-width: 42rem) { .panel-heading { align-items: stretch; flex-direction: column; } .family-panel .choice-list { grid-template-columns: 1fr; } }
 		@media (prefers-reduced-motion: reduce) { .drum-lab * { scroll-behavior: auto !important; } }
