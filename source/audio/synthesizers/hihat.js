@@ -62,6 +62,10 @@ export {
 	OPEN_HIHAT_LOFI,
 	OPEN_HIHAT_DARK,
 	OPEN_HIHAT_CRASH,
+	OPEN_HIHAT_CRASH_WARM,
+	OPEN_HIHAT_CRASH_THIN,
+	OPEN_HIHAT_CRASH_DARK,
+	OPEN_HIHAT_CRASH_SUSPENDED,
 	OPEN_HIHAT_RIDE,
 	OPEN_HIHAT_SPLASH,
 	OPEN_HIHAT_CHINA,
@@ -86,6 +90,7 @@ import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
 export const createHihat = (audioContext, output ) => {
 
 	let isRunning = false
+	let activeNoiseGain = null
     const gainNode = audioContext.createGain()
     const {ratios, fundamental, bandpass, highpass, type} = DEFAULT_CLOSED_HIHAT
 
@@ -105,6 +110,14 @@ export const createHihat = (audioContext, output ) => {
 	// Metallic oscillators sum strongly; retain presence without allowing dense
 	// rolls to multiply into a clipped burst at the percussion bus.
 	const SATURATE = 1.35
+	let noiseBuffer = null
+	const getNoiseBuffer = () => {
+		if (noiseBuffer) return noiseBuffer
+		noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * 4), audioContext.sampleRate)
+		const noiseData = noiseBuffer.getChannelData(0)
+		for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1
+		return noiseBuffer
+	}
 
     const oscillators = ratios.map((ratio) => {
         const oscillator = audioContext.createOscillator()
@@ -140,6 +153,8 @@ export const createHihat = (audioContext, output ) => {
 		
 		bandpassFilter.frequency.cancelScheduledValues(time)
 		bandpassFilter.frequency.setValueAtTime(options.bandpass, time)
+		bandpassFilter.Q.cancelScheduledValues(time)
+		bandpassFilter.Q.setValueAtTime(options.bandpassQ, time)
 
 		// high pass filter
 		highpassFilter.frequency.cancelScheduledValues(time)
@@ -160,7 +175,7 @@ export const createHihat = (audioContext, output ) => {
 			// console.info("hat", {isRunning, options, time, oscillators})
 	
 		// set new ADSR envelopes
-		const levels = getVelocityEnvelopeLevels(options, SATURATE)
+		const levels = getVelocityEnvelopeLevels(options, SATURATE * options.metallicGain)
 		gainNode.gain.cancelScheduledValues(time)
 		gainNode.gain.setValueAtTime( ZERO, time)
 		gainNode.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack )
@@ -168,15 +183,49 @@ export const createHihat = (audioContext, output ) => {
 		gainNode.gain.linearRampToValueAtTime(levels.sustain, time + options.length - options.release)
 		gainNode.gain.linearRampToValueAtTime( ZERO, time + options.length)
 
+		if (options.noiseGain > 0) {
+			const noise = audioContext.createBufferSource()
+			const noiseHighpass = audioContext.createBiquadFilter()
+			const noiseLowpass = audioContext.createBiquadFilter()
+			const noiseGain = audioContext.createGain()
+			const noisePeak = options.velocity * options.noiseGain
+			const noiseSustain = noisePeak * options.sustain
+			const noiseAttackEnd = time + options.noiseAttack
+			const noiseDecayEnd = Math.min(time + options.length - options.release, noiseAttackEnd + options.noiseDecay)
+
+			noise.buffer = getNoiseBuffer()
+			noiseHighpass.type = "highpass"
+			noiseHighpass.frequency.setValueAtTime(options.noiseHighpass, time)
+			noiseLowpass.type = "lowpass"
+			noiseLowpass.frequency.setValueAtTime(
+				Math.min(options.noiseLowpass, audioContext.sampleRate * 0.45), time
+			)
+			noiseLowpass.Q.value = 0.35
+			noiseGain.gain.setValueAtTime(ZERO, time)
+			noiseGain.gain.linearRampToValueAtTime(noisePeak, noiseAttackEnd)
+			noiseGain.gain.linearRampToValueAtTime(noiseSustain, noiseDecayEnd)
+			noiseGain.gain.linearRampToValueAtTime(ZERO, time + options.length)
+
+			noise.connect(noiseHighpass)
+			noiseHighpass.connect(noiseLowpass)
+			noiseLowpass.connect(noiseGain)
+			noiseGain.connect(output)
+			noise.start(time)
+			noise.stop?.(time + options.length)
+			activeNoiseGain = noiseGain.gain
+		}
+
 		return options
 	}
 	hihat.cancel = () => {
 		const now = audioContext.currentTime
 		gainNode.gain.cancelScheduledValues(now)
 		gainNode.gain.setValueAtTime(ZERO, now)
+		activeNoiseGain?.cancelScheduledValues(now)
+		activeNoiseGain?.setValueAtTime(ZERO, now)
 	}
 	hihat.choke = (duration, chokeAt) => {
-		chokeGains(audioContext, [gainNode.gain], duration, chokeAt)
+		chokeGains(audioContext, [gainNode.gain, activeNoiseGain].filter(Boolean), duration, chokeAt)
 	}
 	return hihat
 }
