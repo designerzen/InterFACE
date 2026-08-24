@@ -2,16 +2,14 @@
 
 // Modules to control application life and create native browser window
 import path from 'node:path'
-import url from 'node:url'
 import { writeFile } from 'node:fs'
 
 import windowStateKeeper from 'electron-window-state'
 import electron from 'electron'
 import { app, BrowserWindow, Tray, Menu, nativeTheme, nativeImage, desktopCapturer, session, dialog, protocol, shell, ipcMain, systemPreferences } from 'electron'
 
-import { autoUpdater } from "electron-updater"
-
 import log from 'electron-log'
+import { updateElectronApp, UpdateSourceType } from 'update-electron-app'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import { isElectronDevMode } from './electron-utils.ts'
 import './menu.ts'
@@ -42,6 +40,19 @@ const APP_ROOT = isDevelopment
 // and ./electron/resources/preload.js for the test build
 const PRELOADER_PATH = path.join(APP_ROOT, 'electron/preload.js')
 const LINUX_ICON = path.join(app.getAppPath(), 'static/icons/icon-512.webp')
+const WEB_APP_URL = 'https://interface.place/app.html'
+const UPDATE_FEED_ROOT = 'https://interface.place/updates'
+const TRUSTED_RENDERER_ORIGINS = new Set([
+	new URL(WEB_APP_URL).origin,
+	'http://localhost:303',
+])
+const isTrustedRendererUrl = (value:string) => {
+	try {
+		return TRUSTED_RENDERER_ORIGINS.has(new URL(value).origin)
+	} catch {
+		return false
+	}
+}
 const PICADE_MAX_USB_IDS = [
 	{ vendorId: 0x2e8a, productId: 0x1098 },
 	{ vendorId: 0xcafe, productId: 0x400d },
@@ -64,16 +75,14 @@ if (!app.requestSingleInstanceLock())
 	quit()
 }
 
-//-------------------------------------------------------------------
-// Logging
-//
-// THIS SECTION IS NOT REQUIRED
-//
-// This logging setup is not required for auto-updates to work,
-// but it sure makes debugging easier :)
-//-------------------------------------------------------------------
-autoUpdater.logger = log
-// autoUpdater.logger.transports.file.level = 'info'
+updateElectronApp({
+	updateSource: {
+		type: UpdateSourceType.StaticStorage,
+		baseUrl: `${UPDATE_FEED_ROOT}/${process.platform}/${process.arch}`,
+	},
+	updateInterval: '1 hour',
+	logger: log,
+})
 
 
 const showVirtualMIDIPortUnavailableError = ( message, title="Oh no!" ) => {
@@ -170,7 +179,16 @@ function createWindow() {
 
 	// open windows via interception
 	mainWindow.webContents.setWindowOpenHandler((details) => {
-		//shell.openExternal(details.url)
+		let targetOrigin = ''
+		try {
+			targetOrigin = new URL(details.url).origin
+		} catch {}
+
+		if (details.url !== 'about:blank' && !TRUSTED_RENDERER_ORIGINS.has(targetOrigin)) {
+			void shell.openExternal(details.url)
+			return { action: 'deny' }
+		}
+
 		switch(details.url){
 
 			case 'about:blank':
@@ -204,9 +222,19 @@ function createWindow() {
 		}
 	})
 
+	mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+		let targetOrigin = ''
+		try {
+			targetOrigin = new URL(navigationUrl).origin
+		} catch {}
+		if (TRUSTED_RENDERER_ORIGINS.has(targetOrigin)) return
+		event.preventDefault()
+		void shell.openExternal(navigationUrl)
+	})
+
 	// MIDI Permissions - alow immediately if possible!
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
-		if (permission === 'midi' || permission === 'midiSysex' || permission === 'serial') 
+		if (isTrustedRendererUrl(details.requestingUrl) && (permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
 		{
 		  	callback(true)
 		} else {
@@ -215,7 +243,7 @@ function createWindow() {
 	})
 	  
 	mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
-		if (permission === 'midi' || permission === 'midiSysex' || permission === 'serial') 
+		if (isTrustedRendererUrl(requestingOrigin) && (permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
 		{
 		  	return true
 		}
@@ -223,7 +251,7 @@ function createWindow() {
 	})
 
 	mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-		if (details.deviceType !== 'serial') {
+		if (!isTrustedRendererUrl(details.origin) || details.deviceType !== 'serial') {
 			return false
 		}
 
@@ -237,6 +265,10 @@ function createWindow() {
 
 	mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
 		event.preventDefault()
+		if (!isTrustedRendererUrl(webContents.getURL())) {
+			callback('')
+			return
+		}
 
 		const picadePort = portList.find((port: any) => isPicadeMaxUsbDevice(port))
 
@@ -261,12 +293,6 @@ function createWindow() {
     // mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     //     callback({responseHeaders: Object.fromEntries(Object.entries(details.responseHeaders).filter(header => !/x-frame-options/i.test(header[0])))})
     // })
-
-	// Allow loading from localhost dev server
-	mainWindow.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
-		details.requestHeaders['Origin'] = 'http://localhost:303'
-		callback({ requestHeaders: details.requestHeaders })
-	})
 
 	ipcMain.on("feedback", (event, state) => {
 		console.log("FEEDBACK>",state)
@@ -379,20 +405,7 @@ function createWindow() {
 		})
 
 	}else{
-		
-		// mainWindow.loadFile( path.join(APP_ROOT, "dist/app.html") )
-		// and load the index.html of the app.?port=1337 #v${app.getVersion()}
-		// mainWindow.loadFile( `dist-electron/main/app.html` )
-		// mainWindow.loadFile( `${path.resolve(APP_ROOT,"../main/app.html")}` )
-		mainWindow.loadFile(path.join(APP_ROOT, 'main/app.html'))
-		// mainWindow.loadURL(`file://${APP_ROOT}/version.html#v${app.getVersion()}`);
-		// mainWindow.loadFile(path.join(APP_ROOT, "dist-electron/main/app.html"))
-
-		// mainWindow.webContents.once("dom-ready", async () => {
-			
-		// 	// https://github.com/sindresorhus/electron-debug
-		// 	mainWindow.webContents.openDevTools()
-		// })
+		mainWindow.loadURL(WEB_APP_URL)
 	}
 
 	registerMIDI( mainWindow, ipcMain )
@@ -541,52 +554,3 @@ if (isDevelopment) {
 	}
 }
 
-//-------------------------------------------------------------------
-// Auto updates - Option 2 - More control
-//
-// For details about these events, see the Wiki:
-// https://github.com/electron-userland/electron-builder/wiki/Auto-Update#events
-//
-// The app doesn't need to listen to any events except `update-downloaded`
-//
-// Uncomment any of the below events to listen for them.  Also,
-// look in the previous section to see them being used.
-//-------------------------------------------------------------------
-// app.on('ready', function()  {
-//   autoUpdater.checkForUpdates();
-// });
-// autoUpdater.on('checking-for-update', () => {
-// })
-// autoUpdater.on('update-available', (info) => {
-// })
-// autoUpdater.on('update-not-available', (info) => {
-// })
-// autoUpdater.on('error', (err) => {
-// })
-// autoUpdater.on('download-progress', (progressObj) => {
-// })
-// autoUpdater.on('update-downloaded', (info) => {
-//   autoUpdater.quitAndInstall();
-// })
-
-// autoUpdater.on('checking-for-update', () => {
-//   sendStatusToWindow('Checking for update...');
-// })
-// autoUpdater.on('update-available', (info) => {
-//   sendStatusToWindow('Update available.');
-// })
-// autoUpdater.on('update-not-available', (info) => {
-//   sendStatusToWindow('Update not available.');
-// })
-// autoUpdater.on('error', (err) => {
-//   sendStatusToWindow('Error in auto-updater. ' + err);
-// })
-// autoUpdater.on('download-progress', (progressObj) => {
-//   let log_message = "Download speed: " + progressObj.bytesPerSecond;
-//   log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-//   log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-//   sendStatusToWindow(log_message);
-// })
-// autoUpdater.on('update-downloaded', (info) => {
-//   sendStatusToWindow('Update downloaded');
-// });
