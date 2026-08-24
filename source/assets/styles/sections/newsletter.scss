@@ -139,26 +139,10 @@
 	.mc-honeypot { position: absolute !important; inset-inline-start: -5000px !important; }
 
 	#mc-embedded-subscribe {
-		appearance: none;
-		display: block;
 		inline-size: auto;
 		min-block-size: 2.75rem;
 		margin: 0;
 		padding: calc(var(--pad) / 2) var(--pad);
-		border: 2px solid var(--shade-white);
-		border-radius: calc(var(--curve) / 2);
-		background: var(--shade-brand);
-		box-shadow: none;
-		color: var(--shade-white);
-		font: inherit;
-		font-size: .875rem;
-		font-weight: 900;
-		line-height: 1.2;
-		text-align: center;
-		text-shadow: none;
-		white-space: nowrap;
-		cursor: pointer;
-
 		&::before,
 		&::after { display: none; content: none; }
 	}

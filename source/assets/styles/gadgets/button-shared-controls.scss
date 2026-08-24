@@ -309,6 +309,7 @@
 	label[for="select-percussion-preset"],
 	label[for="select-percussion-pattern"],
 	label[for="select-percussion-sound"],
+	label[for="select-percussion-panning"],
 	label[for="select-beat-viz"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-yellow);
@@ -335,6 +336,11 @@
 
 	label[for="select-percussion-sound"]{
 		anchor-name:--select-percussion-sound;
+	}
+
+	label[for="select-percussion-panning"]{
+		--bg:url(/source/assets/icons/surround_sound.svg);
+		anchor-name:--select-percussion-panning;
 	}
 
 	label[for="button-midi-percussion"]{
