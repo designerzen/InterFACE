@@ -15,6 +15,10 @@ permissions:
     pages: write
     id-token: write
 
+concurrency:
+    group: github-pages
+    cancel-in-progress: false
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -43,6 +47,19 @@ jobs:
             # Build assets and the application
             - name: Build the app
               run: pnpm run build
+
+            - name: Preserve the latest Electron update feed
+              shell: bash
+              env:
+                GH_TOKEN: ${{ github.token }}
+              run: |
+                mkdir -p releases/web/updates/win32/x64 releases/web/updates/darwin/x64
+                if gh release download --pattern RELEASES --pattern RELEASES.json --dir electron-update-feed --clobber; then
+                  cp electron-update-feed/RELEASES releases/web/updates/win32/x64/RELEASES
+                  cp electron-update-feed/RELEASES.json releases/web/updates/darwin/x64/RELEASES.json
+                else
+                  echo "No published Electron update feed exists yet."
+                fi
 
             # - name: List the current folder contents...
             #   run: ls ./
