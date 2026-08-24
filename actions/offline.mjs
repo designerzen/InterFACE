@@ -70,7 +70,7 @@ await writeFile(
 // JS strings. Walk those references so linked demo/test pages are not installed.
 const allOutputFiles = await listFiles(outputRoot)
 const outputByUrl = new Map(allOutputFiles.map(path => [toOutputUrl(path), path]))
-const installUrls = new Set(['index.html', 'manifest.webmanifest', 'offline-audio.json'])
+const installUrls = new Set(['index.html', 'app.html', 'manifest.webmanifest', 'offline-audio.json'])
 const pendingUrls = [...installUrls]
 const runtimeDirectoryPrefixes = [
 	'@mediapipe/tasks-vision/wasm/',
