@@ -178,8 +178,12 @@ const noteFeedbackColour = noteName => {
 	if (!colour) throw new Error(`Missing PhotoSYNTH note colour for ${noteName}`)
 	return `hsl(${colour.h}, ${colour.s}%, ${colour.l}%)`
 }
+const numberRowNoteOffsets = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16]
 const keyboardNotes = performanceKeyCodes.map((code, index) => {
-	const noteName = midiNoteName(48 + index)
+	const noteOffset = index < numberRowNoteOffsets.length
+		? numberRowNoteOffsets[index]
+		: index - numberRowNoteOffsets.length
+	const noteName = midiNoteName(48 + noteOffset)
 	return {
 		...plain(code, `${performanceKeyLabels[index]}\n${noteName}`, 'performance', noteName),
 		colour: noteFeedbackColour(noteName),
