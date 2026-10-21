@@ -252,18 +252,12 @@ export const loadCamera = async (video, deviceId, name="Default") => {
 		 			
 	}catch(error){
 
-		// Error: NotReadableError: Could not start video source
-		// NotAllowedError: Permission denied
-		const errorReason = String(error)
-								.replace("NotAllowedError: ",'')
-								.replace("NotReadableError: ",'')
-	
-		// console.error( deviceId, "Camera errored", error)
-		// trackError( `${name} camera could not be accessed`, deviceId, "Camera" )
-		throw Error(errorReason)
+		// Preserve the browser error name so startup can distinguish a missing
+		// camera from blocked permission or a camera in use.
+		throw error
+	} finally {
+		cameraLoading = false
 	}
-	
-	cameraLoading = false
 	return newCamera
 }
 
@@ -286,16 +280,17 @@ export const findBestCamera = async (store, video, onStatus) => {
 		videoCameraDevices = await fetchVideoCameras()
 	}catch(error){
 		// Could not access *any* devices
-		throw Error(error)
+		throw error
 	}
 
 	// 1st point of failure is if there are no cameras at all...
 	if (videoCameraDevices.length < 1)
 	{
-		throw Error(ERROR_NO_CAMERAS)
+		throw new DOMException(ERROR_NO_CAMERAS, 'NotFoundError')
 	}
 
 	let camera
+	let lastError
 	let saved = false
 	const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 	const attempts = {}
@@ -329,7 +324,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 				camera, videoCameraDevices, saved, attempts
 			}
 		}catch(error){
-			
+			lastError = error
 			onStatus && onStatus("default camera not found")
 		}
 	}
@@ -348,6 +343,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 			}
 		
 		}catch( error ) {
+			lastError = error
 
 			// delete saved key as was invalid...
 			store.removeItem('camera')
@@ -376,6 +372,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 			saved, attempts
 		}
 	}catch(error){
+		lastError = error
 		onStatus && onStatus("No front facing camera found on this device" )
 	}
 
@@ -394,6 +391,7 @@ export const findBestCamera = async (store, video, onStatus) => {
 				saved, attempts
 			}
 		}catch(error){
+			lastError = error
 			attempts[videoCameraDevice.deviceId] = false
 			//console.error(error)
 			onStatus && onStatus(`Camera <strong>${videoCameraDevice.label}</strong> was denied access` )
@@ -407,5 +405,5 @@ export const findBestCamera = async (store, video, onStatus) => {
 	// we tried the forward facing cam, that didn't work
 	// then we tried the remaining cameras too!
 	onStatus && onStatus( "No cameras accessible!" )
-	throw Error("There was no access to the cameras on this machine, <strong>suspect the permission was denied</strong>")
+	throw lastError ?? Error("There was no access to the cameras on this machine")
 }

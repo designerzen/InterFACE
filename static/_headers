@@ -11,7 +11,9 @@
 	Strict-transport-security: max-age=31536000; preload
 
 /service-worker.js
-	Cache-Control: no-cache, must-revalidate
+	Cache-Control: no-store
+	CDN-Cache-Control: no-store
+	Cloudflare-CDN-Cache-Control: no-store
 
 https://1b2773bc.photosynth.pages.dev/*
 	X-Robots-Tag: noindex

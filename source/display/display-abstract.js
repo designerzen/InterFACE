@@ -1,4 +1,4 @@
-import { drawFaceFeatures as drawFaceFeatureOverlays } from '../visual/2d.face-features.js'
+import { drawFaceFeatures } from '../visual/2d.face-features.js'
 
 // We may want a maximim size
 // that then get's scaled up proportiaonatly
@@ -230,7 +230,6 @@ export default class AbstractDisplay{
 			this.faceFeatureOverlay = document.createElement('canvas')
 			this.faceFeatureOverlay.className = 'canvas-full-size photosynth-face-features'
 			this.faceFeatureOverlay.setAttribute('aria-hidden', 'true')
-			this.faceFeatureOverlay.style.zIndex = '1'
 			this.faceFeatureOverlay.style.pointerEvents = 'none'
 			this.canvas.after(this.faceFeatureOverlay)
 			this.faceFeatureContext = this.faceFeatureOverlay.getContext('2d')
@@ -244,7 +243,7 @@ export default class AbstractDisplay{
 			this.faceFeatureOverlay.width = this.canvas.width
 			this.faceFeatureOverlay.height = this.canvas.height
 		}
-		return drawFaceFeatureOverlays(this.faceFeatureContext, person, colours, this.options)
+		return drawFaceFeatures(this.faceFeatureContext, person, colours, this.options)
 	}
 	
 	/**
@@ -338,13 +337,14 @@ export default class AbstractDisplay{
 	 * @param {FFT} dataArray 
 	 * @param {Number} bufferLength 
 	 */
-	drawVisualiser( dataArray, bufferLength ){}
+	drawVisualiser( dataArray, bufferLength, type, timeData, notes ){}
 
 	drawInstrument(boundingBox, instrumentName, extra){}
 
 	drawText( x, y, text, size, align, font, invertColours ){}
 	drawParagraph(x, y,  paragraphh, size, lineHeight, invertColours ){}
-	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false ){}
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false, noteRangeDegrees=90, activeNoteColour='#fff' ){}
+	drawOctaveIndicator( x, y, octave, octaveLow, octaveHigh, height=54 ){}
 
 	
 	setFilter( filterIndex ){}

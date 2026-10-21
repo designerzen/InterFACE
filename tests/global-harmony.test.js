@@ -53,6 +53,7 @@ describe('global key controls', () => {
 	const personPanel = readFileSync('source/dom/ui.panel-instruments.js', 'utf8')
 	const personSource = readFileSync('source/people/person.js', 'utf8')
 	const presetPage = readFileSync('source/presets.pug', 'utf8')
+	const interfaceSource = readFileSync('source/interface.js', 'utf8')
 
 	test('uses free range harmony for application and person defaults', () => {
 		expect(applicationOptions).toContain('harmonyMode:HARMONY_MODE_FREE_RANGE')
@@ -108,6 +109,11 @@ describe('global key controls', () => {
 		].forEach(value => {
 			expect(controlPanel).toContain(`option(value="${value}")`)
 		})
+	})
+
+	test('describes selected keys and explains free range mode in feedback', () => {
+		expect(interfaceSource).toContain('Key selected: ${option.textContent} ${getSelectedKeyScaleLabel()}. All players will use this shared key.')
+		expect(interfaceSource).toContain('Free Range selected. Notes and chords are no longer restricted to one shared key: each played note can become its own chord root, so every player can move independently through the full chromatic range.')
 	})
 
 	test('offers every named scale variant', () => {

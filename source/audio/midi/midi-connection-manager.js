@@ -1,3 +1,4 @@
+import { setMIDIPortTransport } from './midi-routing.js'
 import { isMIDIDebugEnabled, logMIDIDebug } from './midi-echo-guard.js'
 
 /**
@@ -26,6 +27,8 @@ export default class MIDIConnectionManager{
 	outputDeviceMap = new Map()
 
 	deviceChangeCallbacksMap = new Map()
+	portSnapshots = new Map()
+	enabled = false
 	debugCounters = {
 		enableCalls: 0,
 		updateCalls: 0,
@@ -112,6 +115,8 @@ export default class MIDIConnectionManager{
 		}
 
 		this.observe(onUpdate)
+		if (this.enabled && this.connections?.length) return this.connections
+		this.enabled = true
 		
 		const midiConnections = await Promise.all(MIDIConnectionClasses.map( async(MIDIConnectionClass) =>{
 			
@@ -134,7 +139,11 @@ export default class MIDIConnectionManager{
 					})
 
 					// midi device dis/connected! huzzah!
-					const updates = this.updateDeviceList(outputs, inputs, event)
+					if (!this.enabled) return
+					const name = midiPortConnection.constructor.name
+					const transport = /Bluetooth/.test(name) ? 'Bluetooth MIDI' : /Bridge/.test(name) ? 'Native MIDI' : /Virtual/.test(name) ? 'Virtual MIDI' : 'System MIDI (USB / Bluetooth / virtual transport not reported)'
+					;[...outputs, ...inputs].filter(Boolean).forEach(port => setMIDIPortTransport(port, transport))
+					const updates = this.updateDeviceList(outputs, inputs, event, midiPortConnection)
 
 
 					if (event){
@@ -154,7 +163,7 @@ export default class MIDIConnectionManager{
 					outputs: midiConnection.outputs?.map(output => ({ id: output.id, name: output.name })) ?? []
 				}, 'info')
 				
-				return midiConnection
+				return midiPortConnection
 
 			}catch(error){	
 	
@@ -182,65 +191,38 @@ export default class MIDIConnectionManager{
 	 * 
 	 * @param {Function} onUpdate 
 	 */
-	async disable( onUpdate=null ){
+	async disable(onUpdate = null){
+		this.enabled = false
+		await Promise.allSettled((this.connections ?? []).map(connection => connection.disconnect?.()))
+		this.connections = []
+		this.portSnapshots.clear()
 		this.inputDeviceMap.clear()
 		this.outputDeviceMap.clear()
-		this.updateDeviceList([],[])
+		this.inputDevices = []
+		this.outputDevices = []
+		this.onDeviceListUpdated([], [], [], null)
+		onUpdate?.([], [])
 	}
 
-	updateDeviceList(portOutputs, portInputs, event=null){
+	updateDeviceList(portOutputs, portInputs, event = null, source = 'default'){
 		this.debugCounters.updateCalls++
-		
-		const updated = []
-
-		// FIXME: Handle removals too!
-
-		portInputs.forEach(input => {
-			if (!this.inputDeviceMap.has( input.id ))
-			{
-				this.inputDeviceMap.set( input.id, input )  
-				updated.push( input )
-				logMIDIDebug("MIDI:Found new input device", {
-					manufacturer: input.manufacturer,
-					name: input.name,
-					id: input.id
-				}, 'info')
-			}
+		const before = [...this.inputs, ...this.outputs]
+		this.portSnapshots.set(source, {
+			inputs: portInputs.filter(port => port && port.state !== 'disconnected'),
+			outputs: portOutputs.filter(port => port && port.state !== 'disconnected'),
 		})
-
-		this.inputDevices = Array.from(this.inputDeviceMap.values())
-		
-		portOutputs.forEach(output => {
-			if (!this.outputDeviceMap.has( output.id ))
-			{
-				this.outputDeviceMap.set( output.id, output )  
-				updated.push( output )
-				logMIDIDebug("MIDI:Found new output device", {
-					manufacturer: output.manufacturer,
-					name: output.name,
-					id: output.id
-				}, 'info')
-			}
-		})
-		this.outputDevices = Array.from(this.outputDeviceMap.values())
-
-		// on midi device list has changed
-		if (updated.length)
-		{
-			this.onDeviceListUpdated(portOutputs, portInputs, updated, null) 
-			
-			// onUpdate && onUpdate( this.outputs, this.inputs, updates, event  )
-		}else{
-			this.debugCounters.noChangeUpdates++
-			logMIDIDebug("MIDI:Device update produced no changes", {
-				eventType: event?.type,
-				noChangeUpdates: this.debugCounters.noChangeUpdates,
-				updateCalls: this.debugCounters.updateCalls,
-				inputs: this.inputDevices.map(input => ({ id: input.id, name: input.name })),
-				outputs: this.outputDevices.map(output => ({ id: output.id, name: output.name }))
-			})
+		this.inputDeviceMap.clear()
+		this.outputDeviceMap.clear()
+		for (const snapshot of this.portSnapshots.values()) {
+			snapshot.inputs.forEach(port => this.inputDeviceMap.set(port.id ?? port.name, port))
+			snapshot.outputs.forEach(port => this.outputDeviceMap.set(port.id ?? port.name, port))
 		}
-		
+		this.inputDevices = [...this.inputDeviceMap.values()]
+		this.outputDevices = [...this.outputDeviceMap.values()]
+		const after = [...this.inputs, ...this.outputs]
+		const updated = [...before.filter(port => !after.includes(port)), ...after.filter(port => !before.includes(port))]
+		// Notify even for an empty snapshot so the zero-device state stays accurate.
+		this.onDeviceListUpdated(this.outputs, this.inputs, updated, event)
 		return updated
 	}
 

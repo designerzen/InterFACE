@@ -12,6 +12,7 @@
  */
 
 import * as MIDICommands from "../midi/midi-commands.js"
+import { observeInstrument } from '../../storage/observe-instrument.js'
 
 // we always have the same exposed methods
 // based on the MIDI implementations
@@ -89,7 +90,7 @@ export default class Instrument{
 	}
 	
 	get isLoading(){
-		return this.available
+		return !this.available
 	}
 
 	get isMonophonic(){
@@ -98,6 +99,39 @@ export default class Instrument{
 
 	get isPolyphonic(){
 		return this.polyphony > 1
+	}
+
+	/**
+	 * Number of 24 PPQ clock ticks between held-note retriggers. Zero disables
+	 * repetition. Concrete instruments can derive this from their active preset.
+	 */
+	get repetitionRate(){
+		const value = Number(this.options?.repetitionRate ?? this.options?.noteRepeatTicks)
+		return Number.isInteger(value) && value > 0 ? value : 0
+	}
+
+	get playbackMode(){
+		return this.options?.playbackMode ?? "continuous"
+	}
+
+	get isOneShot(){
+		return this.playbackMode === "one-shot"
+	}
+
+	get isContinuous(){
+		return !this.isOneShot
+	}
+
+	get reverbSettings(){
+		return this.options?.reverb ?? false
+	}
+
+	get lpfSettings(){
+		return this.options?.lpf ?? false
+	}
+
+	get compressorSettings(){
+		return this.options?.compressor ?? false
 	}
 	
 	get volume(){
@@ -131,7 +165,12 @@ export default class Instrument{
 	}
 
 	get currentTime(){
-		return this.context.currentTime
+		return Number.isFinite(this.scheduledTime) ? Math.max(this.context.currentTime, this.scheduledTime) : this.context.currentTime
+	}
+
+	scheduleAt(time){
+		this.scheduledTime = Number.isFinite(time) ? time : undefined
+		this.instruments?.forEach(instrument => instrument.scheduleAt?.(time))
 	}
 
 	// 
@@ -162,8 +201,11 @@ export default class Instrument{
 
 		// observe this promise to see when the instance is ready
 		this.create().then(()=>{
+			observeInstrument(this)
 			this.available = true
 			Promise.resolve(this.loaded)
+		}, error => {
+			this.initialisationError = error
 		})
 	}
 	
@@ -263,7 +305,7 @@ export default class Instrument{
 	 */
 	async loadPreset( programNumber ){
 		// find number in list?
-		this.programChange(programNumber)
+		return await this.programChange(programNumber)
 	}
 
 	/**
@@ -386,6 +428,11 @@ export default class Instrument{
 	 * @param {Number} iteration 
 	 */
 	onAvailable(resolve, reject, iteration=0){
+		if (this.initialisationError)
+		{
+			reject(this.initialisationError)
+			return
+		}
 		if (!this.available)
 		{
 			requestAnimationFrame(()=>this.onAvailable(resolve, reject, iteration+1))

@@ -87,10 +87,23 @@ import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
  * Create an instance of the hi-hat instrument
  * @returns {Function} trigger start method
  */
+const noiseBuffers = new WeakMap()
+const MAX_NOISE_VOICES = 4
+
+const getNoiseBuffer = audioContext => {
+	let noiseBuffer = noiseBuffers.get(audioContext)
+	if (noiseBuffer) return noiseBuffer
+	noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * 4), audioContext.sampleRate)
+	const noiseData = noiseBuffer.getChannelData(0)
+	for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1
+	noiseBuffers.set(audioContext, noiseBuffer)
+	return noiseBuffer
+}
+
 export const createHihat = (audioContext, output ) => {
 
 	let isRunning = false
-	let activeNoiseGain = null
+	const noiseVoices = []
     const gainNode = audioContext.createGain()
     const {ratios, fundamental, bandpass, highpass, type} = DEFAULT_CLOSED_HIHAT
 
@@ -110,13 +123,27 @@ export const createHihat = (audioContext, output ) => {
 	// Metallic oscillators sum strongly; retain presence without allowing dense
 	// rolls to multiply into a clipped burst at the percussion bus.
 	const SATURATE = 1.35
-	let noiseBuffer = null
-	const getNoiseBuffer = () => {
-		if (noiseBuffer) return noiseBuffer
-		noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * 4), audioContext.sampleRate)
-		const noiseData = noiseBuffer.getChannelData(0)
-		for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1
-		return noiseBuffer
+	const createNoiseVoice = () => {
+		const highpass = audioContext.createBiquadFilter()
+		const lowpass = audioContext.createBiquadFilter()
+		const gain = audioContext.createGain()
+		highpass.type = 'highpass'
+		lowpass.type = 'lowpass'
+		lowpass.Q.value = 0.35
+		highpass.connect(lowpass)
+		lowpass.connect(gain)
+		gain.connect(output)
+		const voice = { highpass, lowpass, gain, source:null, availableAt:0 }
+		noiseVoices.push(voice)
+		return voice
+	}
+	const reserveNoiseVoice = time => {
+		const available = noiseVoices.find(voice => voice.availableAt <= time)
+		if (available) return available
+		if (noiseVoices.length < MAX_NOISE_VOICES) return createNoiseVoice()
+		const oldest = noiseVoices.reduce((first, voice) => voice.availableAt < first.availableAt ? voice : first)
+		oldest.source?.stop?.(time)
+		return oldest
 	}
 
     const oscillators = ratios.map((ratio) => {
@@ -184,35 +211,33 @@ export const createHihat = (audioContext, output ) => {
 		gainNode.gain.linearRampToValueAtTime( ZERO, time + options.length)
 
 		if (options.noiseGain > 0) {
+			const noiseVoice = reserveNoiseVoice(time)
 			const noise = audioContext.createBufferSource()
-			const noiseHighpass = audioContext.createBiquadFilter()
-			const noiseLowpass = audioContext.createBiquadFilter()
-			const noiseGain = audioContext.createGain()
+			const noiseHighpass = noiseVoice.highpass
+			const noiseLowpass = noiseVoice.lowpass
+			const noiseGain = noiseVoice.gain
 			const noisePeak = options.velocity * options.noiseGain
 			const noiseSustain = noisePeak * options.sustain
 			const noiseAttackEnd = time + options.noiseAttack
 			const noiseDecayEnd = Math.min(time + options.length - options.release, noiseAttackEnd + options.noiseDecay)
 
-			noise.buffer = getNoiseBuffer()
-			noiseHighpass.type = "highpass"
+			noise.buffer = getNoiseBuffer(audioContext)
 			noiseHighpass.frequency.setValueAtTime(options.noiseHighpass, time)
-			noiseLowpass.type = "lowpass"
 			noiseLowpass.frequency.setValueAtTime(
 				Math.min(options.noiseLowpass, audioContext.sampleRate * 0.45), time
 			)
-			noiseLowpass.Q.value = 0.35
+			noiseGain.gain.cancelScheduledValues(time)
 			noiseGain.gain.setValueAtTime(ZERO, time)
 			noiseGain.gain.linearRampToValueAtTime(noisePeak, noiseAttackEnd)
 			noiseGain.gain.linearRampToValueAtTime(noiseSustain, noiseDecayEnd)
 			noiseGain.gain.linearRampToValueAtTime(ZERO, time + options.length)
 
 			noise.connect(noiseHighpass)
-			noiseHighpass.connect(noiseLowpass)
-			noiseLowpass.connect(noiseGain)
-			noiseGain.connect(output)
 			noise.start(time)
 			noise.stop?.(time + options.length)
-			activeNoiseGain = noiseGain.gain
+			noise.onended = () => noise.disconnect?.()
+			noiseVoice.source = noise
+			noiseVoice.availableAt = time + options.length
 		}
 
 		return options
@@ -221,11 +246,13 @@ export const createHihat = (audioContext, output ) => {
 		const now = audioContext.currentTime
 		gainNode.gain.cancelScheduledValues(now)
 		gainNode.gain.setValueAtTime(ZERO, now)
-		activeNoiseGain?.cancelScheduledValues(now)
-		activeNoiseGain?.setValueAtTime(ZERO, now)
+		for (const voice of noiseVoices) {
+			voice.gain.gain.cancelScheduledValues(now)
+			voice.gain.gain.setValueAtTime(ZERO, now)
+		}
 	}
 	hihat.choke = (duration, chokeAt) => {
-		chokeGains(audioContext, [gainNode.gain, activeNoiseGain].filter(Boolean), duration, chokeAt)
+		chokeGains(audioContext, [gainNode.gain, ...noiseVoices.map(voice => voice.gain.gain)], duration, chokeAt)
 	}
 	return hihat
 }

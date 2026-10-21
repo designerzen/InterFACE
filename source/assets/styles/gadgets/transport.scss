@@ -1,17 +1,21 @@
 
 #transport{
-	grid-area:control-panel;
+	grid-area:transport;
 	width: 100%;
-}
-.transport {
+	height: min-content;
+	min-width: 0;
+	// Keep face overlays below the toolbar, and shared-control menus above it.
+	position: relative;
+	z-index:  909;
+	background: var(--shade-dark, black);
 	display: flex;
-	flex-direction: column;
+	align-items:stretch;
+	justify-content:stretch;
 	min-height: 44px;
 	position: relative;
-	border:0;
 	padding: 0;
+	margin: 0;
 }
-
 
 label[for="timing-elapsed"]{
 	display: flex;
@@ -19,11 +23,11 @@ label[for="timing-elapsed"]{
 	align-items: center;
 }
 
-#time-elapsed{
+.time-elapsed{
 	color:var( --shade-whitte, white );
 }
 
-#time-total{
+.time-total{
 	color:var( --shade-grey, gray );
 }
 
@@ -97,3 +101,59 @@ label[for="timing-elapsed"]{
 	color:var( --shade-grey, gray );
 	margin:0 var(--pad);
 }
+
+.transport-session-controls,
+.transport-replay-controls{
+	display:flex;
+	min-width:0;
+	gap:1px;
+}
+.transport-session-controls{flex-wrap:wrap}
+
+.transport [hidden]{display:none !important}
+.transport .session-dialog:not([open]){display:none}
+
+#session-media-library, #session-storage-status, #session-recording-status{
+	flex-basis:100%;
+	overflow-wrap:anywhere;
+}
+#session-media-library video, #session-media-library audio{
+	display:block;
+	max-width:100%;
+}
+#session-library{ max-width:100%; min-width:0; }
+
+#button-record-session[aria-pressed="true"]{
+	animation:session-record-pulse var(--record-beat-duration, 500ms) ease-out infinite;
+}
+
+@keyframes session-record-pulse{
+	0%{box-shadow:0 0 0 0 rgba(220,40,55,.65);filter:brightness(1.3)}
+	75%,100%{box-shadow:0 0 0 .6rem transparent;filter:brightness(1)}
+}
+@media(prefers-reduced-motion:reduce){
+	#button-record-session[aria-pressed="true"]{animation:none}
+}
+.transport-duration{align-self:center;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:5ch}
+#session-replay-progress{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+#session-replay-position{flex:1;min-width:8rem}
+#session-replay-time{font-variant-numeric:tabular-nums}
+.session-dialog{
+	// These dialogs use explicit Close/Cancel buttons, not the shared close overlay.
+	&::after{display:none;pointer-events:none}
+	width:min(32rem, calc(100vw - 2rem));
+	max-height:85dvh;
+	overflow:auto;
+	label{display:block;margin-block:.75rem .25rem}
+	select,input[type="text"]{box-sizing:border-box;width:100%;min-width:0}
+	[data-session-error]{color:#c22}
+	[data-session-error]:empty{display:none}
+}
+
+#session-export-loading{display:flex;align-items:center;justify-content:center;gap:.75rem;min-height:12rem}
+.session-export-spinner{
+	width:1.5rem;height:1.5rem;border:3px solid currentColor;border-right-color:transparent;
+	border-radius:50%;animation:session-export-spin .8s linear infinite;
+}
+@keyframes session-export-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.session-export-spinner{animation:none}}

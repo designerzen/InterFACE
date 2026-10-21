@@ -3,11 +3,7 @@
 import { 
 	SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS,
 	GENERAL_MIDI_INSTRUMENTS, 
-	GENERAL_MIDI_LIBRARY,
-	GENERAL_MIDI_FAMILY_DICTIONARY, GENERAL_MIDI_INSTRUMENTS_FRIENDLY, 
-	GENERAL_MIDI_INSTRUMENT_FAMILY_IDS,
-	GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID,
-	GENERAL_MIDI_FAMILIES
+	GENERAL_MIDI_FAMILY_DICTIONARY
 } from "./midi/general-midi.constants.js"
 
 import { CMD_DECODE, CMD_FETCH_SOUNDFONT_PART, CMD_LOAD_SOUNDFONT_AUDIO_DATA, CMD_CANCEL, EVENT_DECODED, EVENT_DECODED_PART } from "./fetch.audio.protocol.js"
@@ -39,6 +35,10 @@ import {
 } from "./midi/general-midi-instrument.constants.js"
 
 import { base64Decode } from "../utils/base64.js"
+import {
+	GENERAL_MIDI_INSTRUMENT_DATA,
+	getGeneralMIDIInstrumentData
+} from "./general-midi-instruments.data.js"
 
 export const INSTRUMENT_PACKS = [
 	INSTRUMENT_PACK_OPEN_SF
@@ -48,9 +48,9 @@ export const INSTRUMENT_DATA_PACKS = [
 ]
 
 // actual instrument folder names
-export let instrumentFolders = SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS.map( instrumentFolder => instrumentFolder+`-mp3`)
+export let instrumentFolders = GENERAL_MIDI_INSTRUMENT_DATA.map(instrument => instrument.location)
 // nice names for the above
-export let instrumentNames = instrumentFolders.map( (instrument, index) => GENERAL_MIDI_INSTRUMENTS[index] )
+export let instrumentNames = GENERAL_MIDI_INSTRUMENT_DATA.map(instrument => instrument.name)
 
 /**
  * https://paulrosen.github.io/midi-js-soundfonts/abcjs/
@@ -120,6 +120,7 @@ export const loadRemoteSoundfonts = async ( offlineAudioContext ) => {
 
 export const getGeneralMIDIInstrumentFolders = () => instrumentFolders
 export const getGeneralMIDIInstrumentNames = () => instrumentNames
+export const getInstrumentData = preset => getGeneralMIDIInstrumentData(preset)
 
 // we fall back to the name if the name was already provided and exists!
 export const getGeneralMIDIInstrumentFileFromName = name => instrumentFilenames.get(name) ?? instrumentTitles.get(name)
@@ -142,11 +143,9 @@ export const getNextSoundPackName = ( soundPack=INSTRUMENT_DATA_PACKS[0] ) => {
 
 export const getRandomPresetIndex = (family) => 
 {
-	const familyIndex = GENERAL_MIDI_INSTRUMENT_FAMILY_BY_ID[family]
-	const allInstrumentsInFamily = GENERAL_MIDI_FAMILIES.get(family)
-	// console.log("getRandomPresetIndex",{family, familyIndex, allInstrumentsInFamily})
-	return family ?
-		familyIndex + Math.floor( Math.random() * allInstrumentsInFamily.length ) :
+	const matchingInstruments = GENERAL_MIDI_INSTRUMENT_DATA.filter(instrument => instrument.family === family)
+	return matchingInstruments.length ?
+		matchingInstruments[Math.floor(Math.random() * matchingInstruments.length)].program :
 		-1
 }
  
@@ -235,14 +234,14 @@ export const getRandomBasslinePresetIndex = type => bassPresetMethods[randomBass
  * @param {String} instrumentName - name of the instrument
  * @returns 
  */
-export const getInstrumentFamily = instrumentName => GENERAL_MIDI_FAMILY_DICTIONARY[instrumentName]
+export const getInstrumentFamily = instrumentName => getGeneralMIDIInstrumentData(instrumentName)?.family ?? GENERAL_MIDI_FAMILY_DICTIONARY[instrumentName]
 
 /**
  * 
  * @param {String} instrumentName 
  * @returns 
  */
-export const getInstrumentTitle = instrumentName => TITLE_DICTIONARY[instrumentName.toLowerCase()]
+export const getInstrumentTitle = instrumentName => getGeneralMIDIInstrumentData(instrumentName)?.title ?? TITLE_DICTIONARY[instrumentName?.toLowerCase()]
 
 
 /**
@@ -251,21 +250,10 @@ export const getInstrumentTitle = instrumentName => TITLE_DICTIONARY[instrumentN
  * but also used in the side bar for each user
  * @returns 
  */
-export const createInstruments = () => SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS.map( (folder, index) => {
-		const name = GENERAL_MIDI_INSTRUMENTS[index]
-		const title = GENERAL_MIDI_INSTRUMENTS_FRIENDLY[index]
-		const family = GENERAL_MIDI_FAMILY_DICTIONARY[name]
-		const location = instrumentFolders[index]
-
-		return {
-			folder,
-			name,
-			title,
-			family,
-			location
-		}
-	}
-)
+export const createInstruments = () => GENERAL_MIDI_INSTRUMENT_DATA.map(instrument => ({
+	...instrument,
+	folder:instrument.location.replace(/-mp3$/, "")
+}))
 
 /*
 // TODO: Which of these are loops?

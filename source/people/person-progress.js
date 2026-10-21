@@ -43,6 +43,7 @@ export default class PersonalProgress{
 	#singleNoteDuration = 0
 	#notePoints = 0
 	#bonusPoints = 0
+	#activity
 
 	// How long has this user been engaged with 
 	get timeEngaged(){
@@ -57,12 +58,17 @@ export default class PersonalProgress{
 		return this.#achievements.score + this.#notePoints + this.#bonusPoints
 	}
 
+	get achievements(){
+		return this.#achievements
+	}
+
 	// Quantity of points
 	get score(){
 		return this.quantityOfEmotions * this.timeEngaged
 	}
 
-	constructor(){
+	constructor(activity=null){
+		this.#activity = activity
 		this.#achievements = new Achievements()
 		this.markStartTime()
 	}
@@ -84,6 +90,7 @@ export default class PersonalProgress{
 		const recentExpressionEvents = this.#expressionEvents.filter(event => now - event.time <= 10_000)
 		return {
 			now,
+			activity:this.#activity,
 			engagedTime:this.getEngagedTime(now),
 			expressions:this.#expressions,
 			expressionEvents:this.#expressionEvents,

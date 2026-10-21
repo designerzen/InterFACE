@@ -36,12 +36,14 @@
 
 
 // elements and sections
+@use "./assets/styles/gadgets/summary.scss";
 @use "./assets/styles/gadgets/warnings.scss";
 @use "./assets/styles/gadgets/audio-player.scss";
 @use "./assets/styles/gadgets/toast.scss";
 @use "./assets/styles/gadgets/tooltips.scss";
 @use "./assets/styles/gadgets/progress.scss";
 @use "./assets/styles/gadgets/dialog.scss";
+@use "./assets/styles/sections/person-report.scss";
 @use "./assets/styles/gadgets/command-palette.scss";
 @use "./assets/styles/gadgets/keyboard-guide.scss";
 @use "./assets/styles/gadgets/details.scss";
@@ -53,6 +55,7 @@
 @use "./assets/styles/gadgets/gadgets.scss";
 @use "./assets/styles/gadgets/statistics.scss";
 @use "./assets/styles/gadgets/table.scss";
+@use "./assets/styles/gadgets/tabs.scss";
 
 // Buttons (in order)
 @use "./assets/styles/gadgets/buttons.scss";
@@ -81,8 +84,10 @@
 
 // Panels
 @use "./assets/styles/sections/panel-controls.scss";
+@use "./assets/styles/sections/controls-list.scss";
 @use "./assets/styles/sections/panel-ensemble-presets.scss";
 @use "./assets/styles/sections/panel-instruments.scss";
+@use "./assets/styles/sections/control-panel.scss";
 @use "./assets/styles/sections/panel-midi.scss";
 @use "./assets/styles/sections/panel-record.scss";
 @use "./assets/styles/sections/panel-volume.scss";

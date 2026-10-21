@@ -20,63 +20,34 @@ block preload
 	link(rel="preload" href="index.js" as="script") 
 
 block scripts
+	script(type="module" src="accessibility/start-accessibility.js")
+	script(type="module" src="dom/start-background.js")
 	script(type="module" src="index.js")
 	script(type="module").
-		import { PicadePlasma } from './hardware/gamepad/picade-plasma.js'
-		const PICADE_RAINBOW = [
-			'#ff0000', '#ff8800', '#ffff00', '#88ff00',
-			'#00ff00', '#00ff88', '#00ffff', '#0088ff',
-			'#0000ff', '#8800ff', '#ff00ff', '#ff0088',
-			'#ffffff', '#ff6666', '#66ff66', '#6666ff',
-		]
 		const plasmaBtn = document.querySelector('#picade-plasma-test-btn')
 		const plasmaStatus = document.querySelector('#picade-plasma-status')
+		const plasmaConfigBtn = document.querySelector('#picade-plasma-config-btn')
 		if (plasmaBtn) {
-			let plasma = null
-			let flashTimer = null
 			plasmaBtn.addEventListener('click', async () => {
-				if (plasma?.connected) {
-					clearTimeout(flashTimer)
-					await plasma.clear()
-					plasmaStatus.textContent = 'Lights cleared.'
-					plasmaBtn.textContent = 'Connect & Test Lights'
-					return
-				}
-				if (!('serial' in navigator)) {
-					plasmaStatus.textContent = 'WebSerial is unavailable. Use Chrome, Edge, or the Electron app.'
-					return
-				}
 				plasmaBtn.disabled = true
-				plasmaBtn.textContent = 'Connecting…'
-				plasmaStatus.textContent = 'Choose the Picade Plasma serial device…'
 				try {
-					plasma = new PicadePlasma({ buttonCount: 16, playerCount: 2 })
-					await plasma.connect()
+					const { testPicadePlasmaLights } = await import('./hardware/gamepad/picade-plasma-test.js')
 					plasmaBtn.disabled = false
-					plasmaBtn.textContent = 'Clear Lights'
-					plasmaStatus.textContent = 'Connected! Flashing lights in order…'
-					await flashSequence()
+					await testPicadePlasmaLights(plasmaBtn, plasmaStatus)
 				} catch (error) {
-					plasmaStatus.textContent = `Connection failed: ${error.message}`
+					plasmaStatus.textContent = 'PhotoSYNTH could not load Picade Plasma support. Please try again.'
+					plasmaStatus.dataset.state = 'error'
 					plasmaBtn.disabled = false
-					plasmaBtn.textContent = 'Connect & Test Lights'
+					console.warn('Unable to load Picade Plasma light support', error)
 				}
 			})
-			async function flashSequence() {
-				const count = plasma.buttonCount
-				for (let i = 0; i < count; i++) {
-					const color = PICADE_RAINBOW[i % PICADE_RAINBOW.length]
-					plasma.light(i, color)
-					await new Promise(resolve => { flashTimer = setTimeout(resolve, 180) })
-				}
-				await new Promise(resolve => { flashTimer = setTimeout(resolve, 600) })
-				for (let i = count - 1; i >= 0; i--) {
-					const color = PICADE_RAINBOW[i % PICADE_RAINBOW.length]
-					plasma.light(i, null)
-					await new Promise(resolve => { flashTimer = setTimeout(resolve, 80) })
-				}
-				plasmaStatus.textContent = `Flashed ${count} lights in order. Press again to replay.`
-			}
+		}
+		if (plasmaConfigBtn) {
+			plasmaConfigBtn.addEventListener('click', async event => {
+				event.preventDefault()
+				const { getPicadeConfiguratorUrl } = await import('./hardware/gamepad/picade-config-navigation.js')
+				window.location.href = getPicadeConfiguratorUrl(window.location.href, plasmaConfigBtn.href)
+			})
 		}
 
 block main
@@ -89,7 +60,7 @@ block main
 		h3(screenreader-only)#title Emotionally Controlled Synthesizer
 		h4(screenreader-only)#subtitle Use your moods to make music.
 
-		p(role="status" aria-live="polite" popover="manual")#feedback Loading please wait!
+		p(role="status" aria-live="polite" popover="manual")#feedback
 		include partials/toast.pug		
 
 		a(href="/")#share-code
@@ -146,39 +117,133 @@ block main
 
 		include partials/newsletter.pug
 
-	section#hardware-integration.connections.mixed-content(aria-labelledby="hardware-integration-title")
-		h3 Hardware Integration
+	section#integration.connections.mixed-content
+		h3 Use with other musical devices & software.
+		p The PhotoSYNTH can control, and be controlled, by your outboard MIDI gear as well as any DAW and MIDI software. Some common setups are outlined below.
+	
+		details#integration-software.accordion
+			summary
+				h4 Software Integration
+				p You can control your DAW or record the output audio or MIDI.
+				
+			.details 
+				p
+				
+			details(name="software")#ableton
+				summary.with-image
+					img.hardware-summary-photo(src="./assets/hardware/cosmo-dot.jpg" width="1000" height="800" loading="lazy" decoding="async" alt="" aria-hidden="true")
+					span.hardware-summary-name Ableton
+				.details
+					h4: a(href="https://www.ableton.com/" rel="noopener noreferrer" target="_blank") Ableton
+					p Ableton Live can be used to record both the audio and the note commands (MIDI) from the software. For this to work, a virtual MIDI port needs to be created!
+			
+			details(name="software")#opendaw
+				summary.with-image
+					img.hardware-summary-photo(src="./assets/hardware/cosmo-dot.jpg" width="1000" height="800" loading="lazy" decoding="async" alt="" aria-hidden="true")
+					span.hardware-summary-name OpenDAW
+				.details
+					h4: a(href="https://opendaw.studio/" rel="noopener noreferrer" target="_blank") OpenDAW
+					p OpenDAW is a free, open source audio workstation that integrates with the PhotoSYNTH!
+					
+		details#integration-hardware.accordion
+			summary
+				h4 Hardware : Use External Gear
+				p Synchronise with your external gear, musical devices and hardware.
+				
+			.details
+				p All MIDI devices work natively both as controllers and as receivers of MIDI data. 
+				p Certain external hardware works directly and is supported, with the following devices adding new functionality and interactivity.
 		
-		details(name="hardware")#stream-deck
-			summary Stream Deck (& XL)
-			.details
-				h4 Stream Deck profiles
-				p Turn your Stream Deck into a PhotoSYNTH control surface for control instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
-				p Install the profile for your key layout to make PhotoSYNTH quicker to learn and easier to perform live, without memorising keyboard shortcuts.
-				a.button.button-push.button-download.text-always(
-					href="../static/PhotoSYNTH.streamDeckProfile"
-					download="PhotoSYNTH.streamDeckProfile"
-				) Download XL profile — 32 keys
-				a.button.button-push.button-download.text-always(
-					href="../static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
-					download="PhotoSYNTH-Stream-Deck.streamDeckProfile"
-				) Download standard profile — 15 keys
+				details(name="hardware")#gamepads
+					summary.with-image
+						img.hardware-summary-photo(src="./assets/icons/gamepad_black_24dp.svg" width="24" height="24" loading="lazy" decoding="async" alt="" aria-hidden="true")
+						span.hardware-summary-name Gamepads
+					.details
+						h4 Gamepads
+						p Use a compatible gamepad to play beats, instruments and chords, control visual effects, and adjust performance controls.
+						p Connect your controller to your computer or device, then press a button while PhotoSYNTH is open so it can detect the gamepad.
 
-		details(name="hardware")#cosmo-dots
-			summary Cosmo Dots
-			.details
-				h4 Cosmo Dots 
-				p Use your Cosmo Dots with the PhotoSYNTH to trigger notes, chords and samples!
-				p Set up each Dot so that it sends out a unique numerical number from 0-9.
+				details(name="hardware")#qwerty-keyboards
+					summary.with-image
+						img.hardware-summary-photo(src="./assets/icons/keyboard.svg" width="24" height="24" loading="lazy" decoding="async" alt="" aria-hidden="true")
+						span.hardware-summary-name QWERTY Keyboards
+					.details
+						h4 QWERTY Keyboards
+						p Turn your computer keyboard into a musical controller to play notes, chords, percussion and samples, or use operational shortcuts to control PhotoSYNTH.
+						p Choose a Keyboard Mode in the controls, or use F1–F6 to switch between Operational, Notes, Notes +1 Octave, Chords, Percussion and Samples. Page Up and Page Down also change keyboard mode.
 
-		details(name="hardware")#picade-plasma-lights
-			summary Picade Max Input Plasma Lights
-			.details
-				p Connect your Picade Max controller to test the plasma button lights and see their order.
-				p#picade-plasma-status(role="status" aria-live="polite") Press the button below to connect and flash the lights.
-				button#picade-plasma-test-btn(type="button") Connect & Test Lights
-
-
+				details(name="hardware")#stream-deck
+					summary.with-image
+						img.hardware-summary-photo(src="./assets/hardware/stream-deck-xl.jpg" width="2814" height="1984" loading="lazy" decoding="async" alt="" aria-hidden="true")
+						span.hardware-summary-name Stream Deck (& XL)
+					.details
+						h4
+							a(href="https://www.elgato.com/us/en/p/stream-deck-xl" rel="noopener noreferrer" target="_blank") Stream Deck
+							|  profiles
+						p Turn your Stream Deck into a PhotoSYNTH control surface for control instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
+						p Install the profile for your key layout to make PhotoSYNTH quicker to learn and easier to perform live, without memorising keyboard shortcuts.
+						a.button.button-push.button-download.text-always(
+							href="../static/PhotoSYNTH.streamDeckProfile"
+							download="PhotoSYNTH.streamDeckProfile"
+						) Download XL profile — 32 keys
+						a.button.button-push.button-download.text-always(
+							href="../static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
+							download="PhotoSYNTH-Stream-Deck.streamDeckProfile"
+						) Download standard profile — 15 keys
+		
+				details(name="hardware")#cosmo-dots
+					summary
+						img.hardware-summary-photo(src="./assets/hardware/cosmo-dot.jpg" width="1000" height="800" loading="lazy" decoding="async" alt="" aria-hidden="true")
+						span.hardware-summary-name Cosmo Dots
+					.details
+						h4: a(href="https://www.explorecosmo.com/cosmo-dot/" rel="noopener noreferrer" target="_blank") Cosmo Dots
+						p Use your Cosmo Dots with the PhotoSYNTH to trigger notes, chords and samples!
+						p Set up each Dot so that it sends a unique number from 1–9. In musical keyboard mode, the number keys play natural notes without the black piano keys.
+						figure.cosmo-note-guide
+							ol.cosmo-note-dots(aria-label="Cosmo Dot number, pitch, and color guide")
+								li.cosmo-note-dot(style="--note-hue: 353; --note-saturation: 78%; --note-lightness: 54%" title="C")
+									span.cosmo-note-number 1
+									span.cosmo-note-name C
+								li.cosmo-note-dot(style="--note-hue: 20; --note-saturation: 81%; --note-lightness: 62%" title="D")
+									span.cosmo-note-number 2
+									span.cosmo-note-name D
+								li.cosmo-note-dot(style="--note-hue: 54; --note-saturation: 83%; --note-lightness: 68%" title="E")
+									span.cosmo-note-number 3
+									span.cosmo-note-name E
+								li.cosmo-note-dot(style="--note-hue: 69; --note-saturation: 54%; --note-lightness: 65%" title="F")
+									span.cosmo-note-number 4
+									span.cosmo-note-name F
+								li.cosmo-note-dot(style="--note-hue: 177; --note-saturation: 67%; --note-lightness: 41%" title="G")
+									span.cosmo-note-number 5
+									span.cosmo-note-name G
+								li.cosmo-note-dot(style="--note-hue: 256; --note-saturation: 39%; --note-lightness: 46%" title="A")
+									span.cosmo-note-number 6
+									span.cosmo-note-name A
+								li.cosmo-note-dot(style="--note-hue: 325; --note-saturation: 90%; --note-lightness: 65%" title="B")
+									span.cosmo-note-number 7
+									span.cosmo-note-name B
+								li.cosmo-note-dot(style="--note-hue: 353; --note-saturation: 78%; --note-lightness: 54%" title="C")
+									span.cosmo-note-number 8
+									span.cosmo-note-name C
+								li.cosmo-note-dot(style="--note-hue: 20; --note-saturation: 81%; --note-lightness: 62%" title="D")
+									span.cosmo-note-number 9
+									span.cosmo-note-name D
+							figcaption Numbers 1–8 play the complete C3–C4 octave; number 9 continues to D4. The pitch names also identify the colors without relying on color alone.
+		
+				details(name="hardware")#picade-plasma-lights
+					summary.with-image
+						img.hardware-summary-photo(src="./assets/hardware/picade-max-controller.jpg" width="480" height="480" loading="lazy" decoding="async" alt="" aria-hidden="true")
+						span.hardware-summary-name Picade Max Input Plasma Lights
+					.details
+						h4: a(href="https://shop.pimoroni.com/products/picade-max-usb-controller" rel="noopener noreferrer" target="_blank") Picade Max USB Controller
+						p Connect your Picade Max controller to test the Plasma button lights, or configure their physical order without connecting.
+						p#picade-plasma-status.picade-plasma-feedback(role="status" aria-live="polite") Connect your Picade-Max Input controller with Plasma lights then use the configurator to set the button / light layout.
+						.picade-plasma-actions
+							button#picade-plasma-test-btn.button-push.text-always(type="button") Connect & Test Lights
+							a#picade-plasma-config-btn.picade-plasma-config-link(href="./test.picade-plasma.pug")
+								img(src="./assets/icons/build.svg" alt="" aria-hidden="true")
+								| Configure Plasma Lights
+	
 	section#supported-by.connections
 		block supported
 			h3 Supported by

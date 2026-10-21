@@ -355,6 +355,43 @@ describe('picade-max-input-controller', () => {
 		expect(controller.repeatHeldButtonLight(0, 'a')).toBe(false)
 	})
 
+	test('keeps mapped Select mode indicators lit through rapid presses and mode changes', async () => {
+		const { PICADE_GAMEPAD_MODES, PICADE_GAMEPAD_MODE_COLORS } = await import('../source/interface-picade-max.js')
+		const { BUTTON_SELECT } = await import('../source/hardware/gamepad/gamepad-commands.js')
+		const plasma = {
+			connected: true,
+			hasButtonEvent: jest.fn(player => player === 0),
+			triggerButtonLight: jest.fn(),
+			resetButtonLight: jest.fn(),
+			setButtonLight: jest.fn(),
+		}
+		let modeIndex = 0
+		const color = () => PICADE_GAMEPAD_MODE_COLORS[PICADE_GAMEPAD_MODES[modeIndex]]
+		const controller = createPicadeMaxController([], {
+			plasma,
+			getButtonLightOptions: () => ({ color: color(), brightness: 16, persistent: true }),
+		})
+		controller.onButton(event => {
+			if (event.pressed) return
+			modeIndex = (modeIndex + 1) % PICADE_GAMEPAD_MODES.length
+			controller.setButtonLight(event.player, BUTTON_SELECT, color(), { brightness: 16 })
+		})
+		for (let index = 0; index < PICADE_GAMEPAD_MODES.length; index++) {
+			controller.handleInput(0, BUTTON_SELECT, true)
+			expect(plasma.setButtonLight).toHaveBeenLastCalledWith(0, BUTTON_SELECT, color(), { brightness: 16 })
+			controller.handleInput(0, BUTTON_SELECT, false)
+			expect(plasma.setButtonLight).toHaveBeenLastCalledWith(0, BUTTON_SELECT, color(), { brightness: 16 })
+		}
+		expect(modeIndex).toBe(0)
+		expect(new Set(Object.values(PICADE_GAMEPAD_MODE_COLORS)).size).toBe(PICADE_GAMEPAD_MODES.length)
+		expect(plasma.triggerButtonLight).not.toHaveBeenCalled()
+		expect(plasma.resetButtonLight).not.toHaveBeenCalled()
+		plasma.setButtonLight.mockClear()
+		controller.handleInput(1, BUTTON_SELECT, true)
+		controller.handleInput(1, BUTTON_SELECT, false)
+		expect(plasma.setButtonLight).not.toHaveBeenCalled()
+	})
+
 	test('maps Picade D-pad button directions to joystick percussion actions', () => {
 		expect(PICADE_MAX_DIGITAL_JOYSTICK_ACTIONS[DIRECTION_UP]).toBe(PICADE_MAX_JOYSTICK_UP)
 		expect(PICADE_MAX_DIGITAL_JOYSTICK_ACTIONS[DIRECTION_DOWN]).toBe(PICADE_MAX_JOYSTICK_DOWN)

@@ -1,18 +1,53 @@
-menu#accessibility-panel(hidden)
+button#accessibility-tab.tab-horizontal(type="button" aria-controls="accessibility-panel" aria-expanded="false" aria-haspopup="dialog") Accessibility
+dialog#accessibility-panel(aria-labelledby="a11y-title")
+	form.a11y-content(method="dialog")
+		h4#a11y-title(tabindex="-1" autofocus) Display & accessibility
+		p Personalise the interface. Changes apply immediately and are saved on this device.
+		fieldset
+			legend Colours
+			label(for="a11y-theme") Interface theme
+			select#a11y-theme(data-preference="theme")
+				option(value="original") Original app colours
+				option(value="system") Follow device light / dark
+				option(value="light") Light — paper
+				option(value="dark") Dark — midnight
+				option(value="contrast-dark") High contrast — white on black
+				option(value="contrast-light") High contrast — black on white
+				option(value="sepia") Warm — sepia
+				option(value="ocean") Cool — ocean
+				option(value="monochrome") Monochrome — graphite
+			p.a11y-hint Themes change interface colours; camera and performance visuals keep their original colours.
+		fieldset
+			legend Reading
+			label(for="a11y-text-size") Text size
+			select#a11y-text-size(data-preference="textSize")
+				option(value="100") Standard — 100%
+				option(value="125") Larger — 125%
+				option(value="150") Large — 150%
+				option(value="200") Extra large — 200%
+			label.a11y-check
+				input(type="checkbox" data-preference="readableFont")
+				span Use a plain, readable font
+			label.a11y-check
+				input(type="checkbox" data-preference="textSpacing")
+				span Increase text and line spacing
+		fieldset
+			legend Interaction
+			label.a11y-check
+				input(type="checkbox" data-preference="largeTargets")
+				span Larger buttons and touch targets
+			label.a11y-check
+				input(type="checkbox" data-preference="underlineLinks")
+				span Always underline links
+			label.a11y-check
+				input(type="checkbox" data-preference="strongFocus")
+				span Extra visible keyboard focus
+			label(for="a11y-motion") Interface motion
+			select#a11y-motion(data-preference="motion" aria-describedby="a11y-motion-hint")
+				option(value="system") Follow device preference
+				option(value="reduce") Reduce motion
+			p#a11y-motion-hint.a11y-hint Reduces interface animation and hides the animated wallpaper. Live camera and musical visualisations continue.
+		button(type="button" data-reset-accessibility) Reset accessibility preferences
+		p.a11y-hint(role="status" aria-live="polite")
+		button.close(type="submit" value="close" data-close-accessibility title="Close dialog" aria-label="Close accessibility settings") Close Accessibility
 
-	a(href="#app").sr-only Skip accessibility controls
-	legend.sr-only Accessibility Menu
-
-	//- A collection of themes and widgets to alter 
-	//- how the app looks and feels
-	label(for="select-theme") Select a theme
-		input(name="theme" type="radio" value="Dark")
-		input(name="theme" type="radio" value="Light")
-
-	label(for="select-theme-palette") <span class="hide-text">Choose Application </span>Colours
-		select#select-theme-palette(aria-label="Select different colours" name="select-palette")
-			option(value="s:80,l:80") Neon 
-			option(value="s:30,l:40") Pastel 
-			option(value="s:2,l:80") Monochrome (B&amp;W)
-			option(value="s:100,l:0") Dark
-		

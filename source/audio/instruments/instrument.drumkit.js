@@ -1,3 +1,4 @@
+import { recordPercussion } from '../../storage/session-percussion.js'
 /**
  * This is a special type of instrument that combines the face
  * 
@@ -210,7 +211,9 @@ export default class DrumkitInstrument extends Instrument{
 				{
 					sendGeneralMIDIPercussion(part, performedOptions, this.context)
 				}
-				return voice(performedOptions)
+				const result=voice(performedOptions)
+				if(result!==false) recordPercussion(part,performedOptions,this.context,this.id)
+				return result
 			}
 			midiVoice.cancel = voice.cancel
 			midiVoice.choke = voice.choke

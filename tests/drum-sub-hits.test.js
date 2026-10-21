@@ -34,6 +34,14 @@ describe('drum fill subdivisions', () => {
 		expect(envelope.release).toBeLessThan(envelope.length)
 	})
 
+	test('can reuse a caller-owned envelope object for dense scheduled fills', () => {
+		const output = {}
+		const event = createDrumSubHits({ inFill:true, inRoll:false, stepInPhrase:3, bpm:120, intent, random:() => 0.5 })[0]
+
+		expect(applyDrumSubHitEnvelope({ length:0.4, attack:0.01, decay:0.2 }, event, output)).toBe(output)
+		expect(output.length).toBeLessThan(0.15)
+	})
+
 	test('named timing grooves schedule their subdivisions without requesting a fill', () => {
 		const arranger = createDrumArranger({ groove:'garage-triplets', bpm:120, seed:'timed-preset', rapidPercussion:true })
 		arranger.next({ bpm:120 })
@@ -87,6 +95,18 @@ describe('drum fill subdivisions', () => {
 		expect(arranger.getIntent()).not.toEqual(initialIntent)
 	})
 
+	test('scales performance transition dynamics from the performer intensity', () => {
+		const quiet = createDrumArranger({ groove:'performance-crescendo', seed:'performance-response' })
+		quiet.updatePerson({ noteVelocity:0, pitchBend:0 })
+		const quietKick = quiet.next().kick
+
+		const loud = createDrumArranger({ groove:'performance-crescendo', seed:'performance-response' })
+		loud.updatePerson({ noteVelocity:1, pitchBend:1 })
+		const loudKick = loud.next().kick
+
+		expect(loudKick).toBeGreaterThan(quietKick * 2)
+	})
+
 	test('never creates snare subdivisions for fills or rolls', () => {
 		for (const mode of [
 			{ inFill:true, inRoll:false, style:'triplet' },
@@ -135,10 +155,15 @@ describe('drum fill subdivisions', () => {
 
 		expect(arranger.getStepsPerBar()).toBe(16)
 		expect(arranger.getActiveLanes()).toEqual(expect.arrayContaining(['kick', 'snare', 'hat', 'congaLow', 'cowbell']))
+		expect(arranger.getActiveLanes()).toBe(arranger.getActiveLanes())
+		expect(arranger.getBeatSequence()).toBe(beats)
 		expect(beats).toHaveLength(16)
 		expect(arranger.getBeatSequence(48)).toHaveLength(48)
 		expect(beats.some(beat => beat.kick > 0)).toBe(true)
 		expect(beats.some(beat => beat.congaLow > 0)).toBe(true)
 		expect(beats.some(beat => beat.triangleMute > 0 || beat.triangleOpen > 0)).toBe(true)
+
+		arranger.next({ bpm:112 })
+		expect(arranger.getBeatSequence()).not.toBe(beats)
 	})
 })

@@ -1,3 +1,4 @@
+import { recordMIDIOutput } from '../../storage/session-midi-output.js'
 const MIDI_ECHO_GUARD_TTL = 150
 const MIDI_OUTPUT_LOOP_WINDOW = 250
 const MIDI_OUTPUT_LOOP_LIMIT = 24
@@ -363,6 +364,7 @@ export const sendGuardedMIDIOutput = (output, method, note, options, source = 'u
 		output[method](note, options)
 	}
 	dispatchMIDIActivity({ direction:'output', type:method, note, options, source, port:output?.name ?? output?.id })
+	recordMIDIOutput(output,method,note,options)
 
 	if (method === 'playNote')
 	{

@@ -83,6 +83,15 @@
 		// grid-template-columns: 1fr 1fr auto;
 	}
 
+	// Folder links fill a wrapper rather than being direct grid items. In the
+	// stacked layout their `auto` icon row otherwise stretches into the spare
+	// wrapper height and pushes the label down.
+	@media screen and (min-width:321px) and (max-width:840px){
+		.folder-link{
+			grid-template-rows: var(--icon-size) min-content;
+		}
+	}
+
 	.folder-content{
 		// we want the same colours inside here
 		--col-top:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) ) );
@@ -104,6 +113,7 @@
 		}*/
 	}
 
+	/*
 	legend{
 		position: absolute;
 		left:0;
@@ -121,8 +131,9 @@
 			visibility: visible;
 			z-index:909;
 		}
+			
 	}
-
+*/
 	// sometimes the label takes focus making interaction difficult
 	label{
 		// pointer-events: none;
@@ -162,8 +173,8 @@
 			content:'';
 			display: block;
 			position: absolute;
-			left:0;
-			right:0;
+			left:1px;
+			right:1px;
 			bottom:0;
 			height:8px;
 			transform-origin: center bottom;
@@ -177,10 +188,11 @@
 			// background-color: var(--col-select);
 			
 			// toggled state each one can have unique color
-			// &::before{
-			// 	opacity:1;
-			// 	transform:translateY(20%);
-			// }
+			&::before{
+				opacity:1;
+				// leave some room for biynce back effect
+				transform:translateY(20%);
+			}
 			
 			// FIXME: Change depending on theme
 			// hover when selected still turns orange!

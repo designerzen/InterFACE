@@ -372,7 +372,8 @@ export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = 
 	const rollY = pointLeftEyeSocketOuter.y - pointRightEyeSocketOuter.y
 	const rollRegular = atan2(rollX, rollY) 
 	const rawRoll = flipHorizontally ? -rollRegular : rollRegular
-	const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
+	const headRollRadians = rawRoll + Math.PI * 0.5
+	const regulatedRoll = headRollRadians * 1.3
 	const roll = clamp( regulatedRoll, -1, 1 )
 	
 	// we use two lengths to determine the angles
@@ -639,6 +640,7 @@ export const enhanceFaceModelPrediction = (prediction, time, flipHorizontally = 
 	prediction.pitch = pitch
 	// tilting head towards shoulders
 	prediction.roll = roll
+	prediction.headRollRadians = headRollRadians
 	// regular left right neck rotational movement
 	prediction.yaw = yaw
 

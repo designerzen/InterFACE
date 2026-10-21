@@ -7,17 +7,9 @@ import * as EMOTICONS from './emoji.js'
 const USE_ACCURATE_DETECTION = true
 
 // ===== TEMPORAL SMOOTHING & STABILITY =====
-// Number of consecutive frames before switching to a new emotion (prevents jitter)
-// Higher = more stable but less responsive. 2-4 is recommended.
-const STABILITY_FRAMES = 4
-
 // Hysteresis: stick with current emoji unless new emotion scores this much higher
 // Reduced to 0.05 to allow smile detection to override neutral
 const SWITCH_HYSTERESIS = 0.05
-
-// Emoji "persistence": how long to hold an emoji before allowing rapid switches
-// Useful for brief expressions that shouldn't flicker
-const EMOJI_HOLD_FRAMES = 5
 
 // Smile detection boost: if any smile is detected, boost its score
 const SMILE_BOOST_MULTIPLIER = 2.0 
@@ -26,18 +18,9 @@ const AMOUNT_BEFORE_ANGRY = 0.55
 const AMOUNT_BEFORE_FEARFUL = 0.4
 const AMOUNT_BEFORE_FROWN = 0.15
 
-// Winks need higher stability to avoid false positives from noisy eye tracking
-const WINK_STABILITY_FRAMES = 6
-
-// Raised eyebrow is very noisy, needs maximum stability
-const RAISED_EYEBROW_STABILITY_FRAMES = 8
-
-// Other eyebrow expressions need higher stability to avoid false positives
-const EYEBROW_STABILITY_FRAMES = 6
-
 // Thresholds for accurate emoji detection
 const MOUTH_PUCKER_KISS_THRESHOLD = 0.98
-const TONGUE_OUT_THRESHOLD = -0.1
+const TONGUE_OUT_THRESHOLD = 0.55
 const EYE_VERTICAL_ROLLING_THRESHOLD = -0.1
 const MOUTH_CLOSED_THRESHOLD = 0.1
 const MOUTH_OPEN_SMALL = 0.2
@@ -52,9 +35,10 @@ const HAPPINESS_LOW = 0.3
 const HAPPINESS_MEDIUM = 0.5
 const HAPPINESS_HIGH = 0.65
 const HAPPINESS_VERY_HIGH = 0.8
-// Paired mouthSmile blendshapes are quiet at rest. This low, hand-tuned
-// threshold makes a deliberate smile responsive without catching idle noise.
-const HAPPINESS_SMILE_THRESHOLD = 0.01
+// Values below this are treated as ambiguous model noise. The lower exit
+// threshold provides hysteresis so a held smile does not phase out.
+const HAPPINESS_SMILE_THRESHOLD = 0.12
+const HAPPINESS_SMILE_EXIT_THRESHOLD = 0.07
 const SMILE_EMOJIS = new Set([
 	EMOTICONS.EMOJI_SMILING_SLIGHTLY,
 	EMOTICONS.EMOJI_SMILING_GRIN,
@@ -71,8 +55,7 @@ const SMIRK_ASYMMETRY_THRESHOLD = 0.1
 const getFilteredEmoji = (emoji, options = {}) => EMOTICONS.filterEmojiForMood(emoji, options.emojiMood)
 const finiteSignal = value => Number.isFinite(value) ? value : 0
 const getSmileSignal = prediction => Math.max(
-	finiteSignal(prediction?.mouthRatio),
-	finiteSignal(prediction?.mouthGeometryScore),
+	finiteSignal(prediction?.smileEvidence),
 	finiteSignal(prediction?.mouthSmile),
 	finiteSignal(prediction?.smile),
 	finiteSignal(prediction?.happiness)
@@ -99,7 +82,7 @@ const getMouthGeometryRatio = prediction => {
 }
 const hasOpenFaceMouth = prediction =>
 	prediction?.isMouthOpen === true ||
-	getSmileSignal(prediction) >= HAPPINESS_SMILE_THRESHOLD ||
+	finiteSignal(prediction?.mouthRatio) >= MOUTH_OPEN_SMALL ||
 	getMouthGeometryRatio(prediction) >= MOUTH_OPEN_GEOMETRY_RATIO
 
 const getOpenMouthSmileEmoji = prediction => {
@@ -111,9 +94,6 @@ const getOpenMouthSmileEmoji = prediction => {
 		? EMOTICONS.EMOJI_SMILING_GRIN
 		: EMOTICONS.EMOJI_SMILING_SLIGHTLY
 }
-
-const isClosedMouthNeutralEmoji = emoji =>
-	emoji === EMOTICONS.EMOJI_NEUTRAL || emoji === EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED
 
 // Preserve the hand-tuned thresholds, while making the otherwise unreachable
 // low-happiness expressions explicit and cheap to evaluate.
@@ -526,6 +506,202 @@ export const recogniseEmojiFromFaceModelLogical = (prediction, options = {}) => 
 	return getFilteredEmoji(emoji, options)
 }
 
+const EXPRESSION_FILTER_FIELDS = [
+	'happiness', 'sadness', 'anger', 'fear', 'surprise', 'disgust', 'neutralExpression',
+	'smile', 'smileEvidence', 'mouthSmile', 'mouthSmileLeft', 'mouthSmileRight',
+	'cheekSquintLeft', 'cheekSquintRight', 'mouthRatio', 'mouthGeometryScore', 'mouthPucker',
+	'mouthFrownLeft', 'mouthFrownRight', 'mouthStretchLeft', 'mouthStretchRight',
+	'leftSmirk', 'rightSmirk', 'leftEyeClosedBy', 'rightEyeClosedBy',
+	'leftEyebrowRaisedBy', 'rightEyebrowRaisedBy', 'eyebrowsInnerRaisedBy', 'eyebrowsRaisedBy',
+	'rightEyeDirection', 'leftEyeDirection', 'eyeVertical', 'tongueOut',
+]
+
+const SMILE_FAMILY = 'smile'
+const NEUTRAL_FAMILY = 'neutral'
+const WINK_FAMILY = 'wink'
+const KISS_FAMILY = 'kiss'
+const OPEN_MOUTH_FAMILY = 'open-mouth'
+const NEGATIVE_FAMILY = 'negative'
+const ASYMMETRIC_FAMILY = 'asymmetric'
+const OTHER_FAMILY = 'other'
+
+const NEUTRAL_EMOJIS = new Set([EMOTICONS.EMOJI_NEUTRAL, EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED])
+const WINK_EMOJIS = new Set([EMOTICONS.EMOJI_LEFT_WINK, EMOTICONS.EMOJI_RIGHT_WINK])
+const KISS_EMOJIS = new Set([
+	EMOTICONS.EMOJI_KISS,
+	EMOTICONS.EMOJI_KISS_EYES_CLOSED,
+	EMOTICONS.EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED,
+	EMOTICONS.EMOJI_KISSING_WINK,
+])
+const OPEN_MOUTH_EMOJIS = new Set([
+	EMOTICONS.EMOJI_OPEN_MOUTH,
+	EMOTICONS.EMOJI_OPEN_MOUTH_BIG,
+	EMOTICONS.EMOJI_EXHALING,
+	EMOTICONS.EMOJI_SHOCKED,
+	EMOTICONS.EMOJI_ANGUISHED,
+	EMOTICONS.EMOJI_ANGUISHED_EYEBROWS_RAISED,
+	EMOTICONS.EMOJI_ASTONISHED,
+	EMOTICONS.EMOJI_WAIL,
+])
+const NEGATIVE_EMOJIS = new Set([
+	EMOTICONS.EMOJI_FROWNING,
+	EMOTICONS.EMOJI_FROWN_EYES_CLOSED,
+	EMOTICONS.EMOJI_WORRIED,
+	EMOTICONS.EMOJI_FEARFUL,
+	EMOTICONS.EMOJI_ANGRY,
+	EMOTICONS.EMOJI_GRIMACING,
+	EMOTICONS.EMOJI_PERSEVERING,
+])
+const ASYMMETRIC_EMOJIS = new Set([
+	EMOTICONS.EMOJI_DIAGONAL_MOUTH,
+	EMOTICONS.EMOJI_SMIRK,
+	EMOTICONS.EMOJI_RAISED_EYEBROW,
+])
+
+const getExpressionFamily = emoji => {
+	if (SMILE_EMOJIS.has(emoji)) return SMILE_FAMILY
+	if (NEUTRAL_EMOJIS.has(emoji)) return NEUTRAL_FAMILY
+	if (WINK_EMOJIS.has(emoji)) return WINK_FAMILY
+	if (KISS_EMOJIS.has(emoji)) return KISS_FAMILY
+	if (OPEN_MOUTH_EMOJIS.has(emoji)) return OPEN_MOUTH_FAMILY
+	if (NEGATIVE_EMOJIS.has(emoji)) return NEGATIVE_FAMILY
+	if (ASYMMETRIC_EMOJIS.has(emoji)) return ASYMMETRIC_FAMILY
+	return OTHER_FAMILY
+}
+
+const getInferredParameter = (prediction, parameter, fallback) => Number.isFinite(prediction?.[parameter])
+	? prediction[parameter]
+	: fallback
+
+const recogniseEmojiFromBlendshapeParameters = (prediction, options = {}) => {
+	if (!prediction) return EMOTICONS.EMOJI_NEUTRAL
+
+	const happiness = getSmileSignal(prediction)
+	const sadness = getInferredParameter(
+		prediction,
+		'sadness',
+		0.72 * ((finiteSignal(prediction.mouthFrownLeft) + finiteSignal(prediction.mouthFrownRight)) * 0.5) +
+		0.28 * finiteSignal(prediction.eyebrowsInnerRaisedBy)
+	)
+	const anger = getInferredParameter(
+		prediction,
+		'anger',
+		Math.max(0, -0.5 * (finiteSignal(prediction.leftEyebrowRaisedBy) + finiteSignal(prediction.rightEyebrowRaisedBy)))
+	)
+	const fear = getInferredParameter(prediction, 'fear', 0)
+	const surprise = getInferredParameter(
+		prediction,
+		'surprise',
+		0.45 * finiteSignal(prediction.eyebrowsRaisedBy) + 0.55 * finiteSignal(prediction.mouthRatio)
+	)
+	const disgust = getInferredParameter(
+		prediction,
+		'disgust',
+		0.5 * (finiteSignal(prediction.noseSneerLeft) + finiteSignal(prediction.noseSneerRight))
+	)
+	const mouthOpen = hasOpenFaceMouth(prediction)
+	const eyesClosed = bothEyesClosed(prediction)
+
+	if (finiteSignal(prediction.tongueOut) > TONGUE_OUT_THRESHOLD) {
+		return getFilteredEmoji(
+			eyesClosed ? EMOTICONS.EMOJI_TONGUE_SQUINT : prediction.leftEyeClosed ? EMOTICONS.EMOJI_TONGUE_WINK : EMOTICONS.EMOJI_TONGUE,
+			options
+		)
+	}
+
+	if (finiteSignal(prediction.mouthPucker) > 0.72) {
+		const kiss = eyesClosed
+			? EMOTICONS.EMOJI_KISS_EYES_CLOSED
+			: (prediction.leftEyeClosed || prediction.rightEyeClosed)
+				? EMOTICONS.EMOJI_KISSING_WINK
+				: EMOTICONS.EMOJI_KISS
+		return getFilteredEmoji(kiss, options)
+	}
+
+	if (leftEyeClosedOnly(prediction)) return getFilteredEmoji(EMOTICONS.EMOJI_LEFT_WINK, options)
+	if (rightEyeClosedOnly(prediction)) return getFilteredEmoji(EMOTICONS.EMOJI_RIGHT_WINK, options)
+
+	if (eyesClosed) {
+		if (happiness >= HAPPINESS_SMILE_THRESHOLD) {
+			return getFilteredEmoji(
+				happiness >= 0.55 ? EMOTICONS.EMOJI_SMILING_GRIN_SQUINT : EMOTICONS.EMOJI_SMILING_EYES_CLOSED,
+				options
+			)
+		}
+		if (sadness >= 0.28) return getFilteredEmoji(EMOTICONS.EMOJI_FROWN_EYES_CLOSED, options)
+		return getFilteredEmoji(EMOTICONS.EMOJI_NEUTRAL_EYES_CLOSED, options)
+	}
+
+	if (happiness >= HAPPINESS_SMILE_THRESHOLD) {
+		let emoji = EMOTICONS.EMOJI_SMILING_SLIGHTLY
+		if (mouthOpen && happiness >= 0.7) emoji = EMOTICONS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED
+		else if (mouthOpen && happiness >= 0.48) emoji = EMOTICONS.EMOJI_SMILING_BIG_GRIN
+		else if (mouthOpen || happiness >= 0.3) emoji = EMOTICONS.EMOJI_SMILING_GRIN
+		return getFilteredEmoji(emoji, options)
+	}
+
+	if (anger >= 0.38) return getFilteredEmoji(EMOTICONS.EMOJI_ANGRY, options)
+	if (fear >= 0.42 && fear > surprise + 0.04) return getFilteredEmoji(EMOTICONS.EMOJI_FEARFUL, options)
+	if (sadness >= 0.28) {
+		return getFilteredEmoji(
+			finiteSignal(prediction.eyebrowsInnerRaisedBy) >= 0.25 ? EMOTICONS.EMOJI_WORRIED : EMOTICONS.EMOJI_FROWNING,
+			options
+		)
+	}
+	if (disgust >= 0.42) return getFilteredEmoji(EMOTICONS.EMOJI_GRIMACING, options)
+	if (surprise >= 0.34 && mouthOpen) {
+		return getFilteredEmoji(
+			finiteSignal(prediction.mouthRatio) >= 0.55 ? EMOTICONS.EMOJI_ASTONISHED : EMOTICONS.EMOJI_OPEN_MOUTH,
+			options
+		)
+	}
+
+	if (finiteSignal(prediction.leftSmirk) > SMIRK_ASYMMETRY_THRESHOLD + finiteSignal(prediction.rightSmirk) ||
+		finiteSignal(prediction.rightSmirk) > SMIRK_ASYMMETRY_THRESHOLD + finiteSignal(prediction.leftSmirk)) {
+		return getFilteredEmoji(EMOTICONS.EMOJI_DIAGONAL_MOUTH, options)
+	}
+	if (mouthOpen) return getFilteredEmoji(EMOTICONS.EMOJI_OPEN_MOUTH, options)
+	return getFilteredEmoji(EMOTICONS.EMOJI_NEUTRAL, options)
+}
+
+// A high-alpha asymmetric filter removes isolated blendshape spikes while
+// following intentional facial motion within one or two inference samples.
+class ResponsiveSignalFilter {
+	constructor(riseAlpha = 0.85, fallAlpha = 0.75) {
+		this.riseAlpha = riseAlpha
+		this.fallAlpha = fallAlpha
+		this.value = undefined
+	}
+
+	filter(value) {
+		if (!Number.isFinite(value)) return value
+		if (!Number.isFinite(this.value)) {
+			this.value = value
+			return value
+		}
+		const alpha = value >= this.value ? this.riseAlpha : this.fallAlpha
+		this.value += alpha * (value - this.value)
+		return this.value
+	}
+}
+
+const getObservationTime = suppliedTime => Number.isFinite(suppliedTime)
+	? suppliedTime
+	: (globalThis.performance?.now?.() ?? Date.now())
+
+const getSourceTimestamp = (prediction, observationTime) => Number.isFinite(prediction?.time)
+	? prediction.time * 1000
+	: Number.isFinite(prediction?.timestamp)
+		? prediction.timestamp
+		: observationTime
+
+const hasExplicitSourceTimestamp = prediction => Number.isFinite(prediction?.time) || Number.isFinite(prediction?.timestamp)
+
+const getStableEyeClosed = (wasClosed, amount, fallback) => {
+	if (!Number.isFinite(amount)) return Boolean(fallback)
+	return wasClosed ? amount >= 0.45 : amount >= 0.65
+}
+
 /**
  * EmojiDetector class manages emoji detection state per person
  * Each person instance gets their own detector with independent state
@@ -533,84 +709,116 @@ export const recogniseEmojiFromFaceModelLogical = (prediction, options = {}) => 
 export class EmojiDetector {
 	constructor() {
 		this.previousEmoji = EMOTICONS.EMOJI_NEUTRAL
-		this.previousScores = {}
 		this.frameCount = 0
-		this.stabilityCounter = 0
-		this.emojiHoldCounter = 0
-		this.lastSwitchFrame = -999
-		this.eyeDirectionCounter = 0
+		this.candidateEmoji = null
+		this.candidateSamples = 0
+		this.lastSwitchAt = 0
+		this.lastSourceTimestamp = undefined
+		this.lastFreshObservationAt = undefined
+		this.signalFilters = new Map()
+		this.filteredPrediction = undefined
+		this.leftEyeClosed = false
+		this.rightEyeClosed = false
 		this.isMirrored = false
 	}
 
+	filterPrediction(prediction) {
+		const filtered = { ...prediction }
+		for (const field of EXPRESSION_FILTER_FIELDS) {
+			if (!Number.isFinite(prediction[field])) continue
+			let signalFilter = this.signalFilters.get(field)
+			if (!signalFilter) {
+				signalFilter = new ResponsiveSignalFilter()
+				this.signalFilters.set(field, signalFilter)
+			}
+			filtered[field] = signalFilter.filter(prediction[field])
+		}
+
+		this.leftEyeClosed = getStableEyeClosed(this.leftEyeClosed, filtered.leftEyeClosedBy, prediction.leftEyeClosed)
+		this.rightEyeClosed = getStableEyeClosed(this.rightEyeClosed, filtered.rightEyeClosedBy, prediction.rightEyeClosed)
+		filtered.leftEyeClosed = this.leftEyeClosed
+		filtered.rightEyeClosed = this.rightEyeClosed
+		filtered.eyesClosed = this.leftEyeClosed && this.rightEyeClosed
+		return filtered
+	}
+
+	getRequiredSamples(currentEmoji, smileEvidence) {
+		const currentFamily = getExpressionFamily(currentEmoji)
+		const previousFamily = getExpressionFamily(this.previousEmoji)
+		if (currentFamily === NEUTRAL_FAMILY) return 2
+		if (currentFamily === previousFamily) return 2
+		if (currentFamily === SMILE_FAMILY && smileEvidence < 0.24) return 2
+		return 1
+	}
+
+	handleStalePrediction(observationTime) {
+		if (!Number.isFinite(this.lastFreshObservationAt)) return this.previousEmoji
+		if (observationTime - this.lastFreshObservationAt < 900) return this.previousEmoji
+		this.previousEmoji = EMOTICONS.EMOJI_DOTTED_LINE
+		this.candidateEmoji = null
+		this.isMirrored = false
+		return this.previousEmoji
+	}
+
 	/**
-	 * Detect emoji using the selected method with smoothing
+	 * Detect an emoji from a new model sample. Strong expressions react on the
+	 * first sample; ambiguous changes use one extra fresh inference sample.
+	 * Repeated cached render frames do not vote.
 	 */
-	detect(prediction, options) {
+	detect(prediction, options = {}, suppliedObservationTime) {
+		const observationTime = getObservationTime(suppliedObservationTime)
+		if (!prediction) return this.handleStalePrediction(observationTime)
+
+		const sourceTimestamp = getSourceTimestamp(prediction, observationTime)
+		if (hasExplicitSourceTimestamp(prediction) && sourceTimestamp === this.lastSourceTimestamp) {
+			return this.handleStalePrediction(observationTime)
+		}
+
+		this.lastSourceTimestamp = sourceTimestamp
+		this.lastFreshObservationAt = observationTime
 		this.frameCount++
+		const filteredPrediction = this.filterPrediction(prediction)
+		this.filteredPrediction = filteredPrediction
 
-		// The original ordered decision tree contains the hand-tuned limits
-		// established against real camera input. Keep it as the live detector.
-		let currentEmoji = recogniseEmojiFromFaceModel(prediction, options)
-		// const currentEmoji = recogniseEmojiFromFaceModelAccurate(prediction, options, this)
+		let currentEmoji = recogniseEmojiFromBlendshapeParameters(filteredPrediction, options)
+		if (!currentEmoji || typeof currentEmoji !== 'string') currentEmoji = EMOTICONS.EMOJI_NEUTRAL
 
-		// Never keep a closed-mouth neutral emoji when the face mesh reports an
-		// open mouth. This remains after the decision tree so it also protects
-		// against incomplete or noisy blendshape frames.
-		if (isClosedMouthNeutralEmoji(currentEmoji) && hasOpenFaceMouth(prediction)) {
-			currentEmoji = getFilteredEmoji(getOpenMouthSmileEmoji(prediction), options)
+		const previousFamily = getExpressionFamily(this.previousEmoji)
+		let currentFamily = getExpressionFamily(currentEmoji)
+		const smileEvidence = getSmileSignal(filteredPrediction)
+
+		// Expression-family hysteresis: a momentary dip may alter smile intensity,
+		// but cannot demote a held smile to neutral while smile evidence remains.
+		if (previousFamily === SMILE_FAMILY && currentFamily !== SMILE_FAMILY && smileEvidence >= HAPPINESS_SMILE_EXIT_THRESHOLD) {
+			currentEmoji = this.previousEmoji
+			currentFamily = SMILE_FAMILY
+		} else if (previousFamily !== SMILE_FAMILY && currentFamily === SMILE_FAMILY && smileEvidence < HAPPINESS_SMILE_THRESHOLD) {
+			currentEmoji = this.previousEmoji
+			currentFamily = previousFamily
 		}
 
-		// Fallback to neutral if detection fails
-		if (!currentEmoji || typeof currentEmoji !== 'string') {
-			currentEmoji = EMOTICONS.EMOJI_NEUTRAL
-		}
-		const shouldMirror = isRightWinkExpression(prediction, currentEmoji) || isMirroredAsymmetricExpression(prediction, currentEmoji)
-
-		// First frame - initialize
-		if (this.previousEmoji === EMOTICONS.EMOJI_NEUTRAL && this.frameCount === 1) {
-			this.previousEmoji = currentEmoji
-			this.previousScores[currentEmoji] = 1.0
-			this.isMirrored = shouldMirror
-			return currentEmoji
-		}
-
-		// If same emoji as previous, keep it and increase stability
+		const shouldMirror = isRightWinkExpression(filteredPrediction, currentEmoji) || isMirroredAsymmetricExpression(filteredPrediction, currentEmoji)
 		if (currentEmoji === this.previousEmoji) {
-			this.stabilityCounter = 0  // Reset counter when emoji is confirmed stable
+			this.candidateEmoji = null
+			this.candidateSamples = 0
 			this.isMirrored = shouldMirror
-			return currentEmoji
+			return this.previousEmoji
 		}
 
-		// Different emoji - check if we should switch based on stability
-		this.stabilityCounter++
-
-		// Different expressions require different stability thresholds to avoid false positives
-		const isWink = currentEmoji === EMOTICONS.EMOJI_LEFT_WINK || currentEmoji === EMOTICONS.EMOJI_RIGHT_WINK
-		const isSmile = SMILE_EMOJIS.has(currentEmoji)
-		const isRaisedEyebrow = currentEmoji === EMOTICONS.EMOJI_RAISED_EYEBROW
-		const isEyebrowExpression = currentEmoji === EMOTICONS.EMOJI_ANGRY || currentEmoji === EMOTICONS.EMOJI_FEARFUL
-		
-		let requiredFrames = STABILITY_FRAMES
-		if (isSmile || isWink) {
-			// Smile blendshapes are stable enough to reflect immediately.
-			requiredFrames = 1
-		} else if (isRaisedEyebrow) {
-			requiredFrames = RAISED_EYEBROW_STABILITY_FRAMES
-		} else if (isEyebrowExpression) {
-			requiredFrames = EYEBROW_STABILITY_FRAMES
+		if (currentEmoji !== this.candidateEmoji) {
+			this.candidateEmoji = currentEmoji
+			this.candidateSamples = 1
+		} else {
+			this.candidateSamples++
 		}
 
-		// Require some stability before switching
-		if (this.stabilityCounter >= requiredFrames) {
-			this.previousEmoji = currentEmoji
-			this.previousScores[currentEmoji] = 1.0
-			this.stabilityCounter = 0
-			this.lastSwitchFrame = this.frameCount
-			this.isMirrored = shouldMirror
-			return currentEmoji
-		}
+		if (this.candidateSamples < this.getRequiredSamples(currentEmoji, smileEvidence)) return this.previousEmoji
 
-		// Not stable yet, stick with previous
+		this.previousEmoji = currentEmoji
+		this.candidateEmoji = null
+		this.candidateSamples = 0
+		this.lastSwitchAt = observationTime
+		this.isMirrored = shouldMirror
 		return this.previousEmoji
 	}
 
@@ -619,12 +827,16 @@ export class EmojiDetector {
 	 */
 	reset() {
 		this.previousEmoji = EMOTICONS.EMOJI_NEUTRAL
-		this.previousScores = {}
 		this.frameCount = 0
-		this.stabilityCounter = 0
-		this.emojiHoldCounter = 0
-		this.lastSwitchFrame = -999
-		this.eyeDirectionCounter = 0
+		this.candidateEmoji = null
+		this.candidateSamples = 0
+		this.lastSwitchAt = 0
+		this.lastSourceTimestamp = undefined
+		this.lastFreshObservationAt = undefined
+		this.signalFilters.clear()
+		this.filteredPrediction = undefined
+		this.leftEyeClosed = false
+		this.rightEyeClosed = false
 		this.isMirrored = false
 	}
 
@@ -635,7 +847,10 @@ export class EmojiDetector {
 		return {
 			previousEmoji: this.previousEmoji,
 			frameCount: this.frameCount,
-			stabilityCounter: this.stabilityCounter
+			candidateEmoji: this.candidateEmoji,
+			candidateSamples: this.candidateSamples,
+			lastSwitchAt: this.lastSwitchAt,
+			smileEvidence: getSmileSignal(this.filteredPrediction),
 		}
 	}
 }

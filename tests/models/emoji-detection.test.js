@@ -37,6 +37,20 @@ const prediction = overrides => ({
 	...overrides,
 })
 
+const detectAt = (detector, facePrediction, timeMs, detectionOptions = options) => detector.detect(
+	{ ...facePrediction, time:timeMs / 1000 },
+	detectionOptions,
+	timeMs,
+)
+
+const holdPrediction = (detector, facePrediction, fromMs, toMs, detectionOptions = options, stepMs = 40) => {
+	let emoji
+	for (let timeMs = fromMs; timeMs <= toMs; timeMs += stepMs) {
+		emoji = detectAt(detector, facePrediction, timeMs, detectionOptions)
+	}
+	return emoji
+}
+
 const createEmotionState = () => ({
 	previousEmoji: EMOJIS.EMOJI_NEUTRAL,
 	previousScores: {},
@@ -77,7 +91,7 @@ describe('emoji detection methods', () => {
 		expect(recogniseEmojiFromFaceModelLogical(prediction({}), options)).toBe(EMOJIS.EMOJI_NEUTRAL)
 	})
 
-	test('an open mouth in the face mesh cannot resolve to a closed-mouth neutral emoji', () => {
+	test('legacy geometry fallback remains available without making the stable detector invent a smile', () => {
 		const keypoints = []
 		keypoints[13] = { x:0.5, y:0.45 }
 		keypoints[14] = { x:0.5, y:0.65 }
@@ -91,7 +105,8 @@ describe('emoji detection methods', () => {
 
 		expect(recogniseEmojiFromFaceModel(facePrediction, options)).toBe(EMOJIS.EMOJI_SMILING_GRIN_EYES_CLOSED)
 		expect(recogniseEmojiFromFaceModelLogical(facePrediction, options)).toBe(EMOJIS.EMOJI_SMILING_GRIN_EYES_CLOSED)
-		expect(new EmojiDetector().detect(facePrediction, options)).toBe(EMOJIS.EMOJI_SMILING_GRIN_EYES_CLOSED)
+		const detector = new EmojiDetector()
+		expect(holdPrediction(detector, facePrediction, 0, 160)).toBe(EMOJIS.EMOJI_NEUTRAL_EYES_CLOSED)
 	})
 
 	test('emoji mood option can limit logical detection to happy faces', () => {
@@ -112,15 +127,87 @@ describe('emoji detection methods', () => {
 			happiness: 0.7,
 		})
 
-		expect(detector.detect(facePrediction, { ...options, emojiMood:EMOJIS.EMOJI_MOOD_SAD })).toBe(EMOJIS.EMOJI_FROWNING)
+		expect(holdPrediction(detector, facePrediction, 0, 240, { ...options, emojiMood:EMOJIS.EMOJI_MOOD_SAD })).toBe(EMOJIS.EMOJI_FROWNING)
 	})
 
 	test('detector marks right-side winks for mirrored rendering', () => {
 		const detector = new EmojiDetector()
 		const facePrediction = prediction({ rightEyeClosed:true })
-		detector.detect(prediction({}), options)
-		expect(detector.detect(facePrediction, options)).toBe(EMOJIS.EMOJI_RIGHT_WINK)
+		detectAt(detector, prediction({}), 0)
+		expect(holdPrediction(detector, facePrediction, 40, 200)).toBe(EMOJIS.EMOJI_RIGHT_WINK)
 		expect(detector.isMirrored).toBe(true)
+	})
+
+	test('mouth opening without smile evidence is not classified as a smile', () => {
+		const emoji = recogniseEmojiFromFaceModelLogical(prediction({
+			mouthRatio:0.65,
+			isMouthOpen:true,
+			happiness:0,
+			smileEvidence:0,
+		}), options)
+
+		expect([
+			EMOJIS.EMOJI_SMILING_SLIGHTLY,
+			EMOJIS.EMOJI_SMILING_GRIN,
+			EMOJIS.EMOJI_SMILING_BIG_GRIN,
+			EMOJIS.EMOJI_SMILING_BIG_TEETH_GRIN_EYES_CLOSED,
+		]).not.toContain(emoji)
+	})
+
+	test('a held strong smile does not phase to neutral on isolated weak frames', () => {
+		const detector = new EmojiDetector()
+		const smile = prediction({ happiness:0.82, smileEvidence:0.82, mouthSmile:0.82, mouthRatio:0.35, isMouthOpen:true })
+		const weakFrame = prediction({ happiness:0, smileEvidence:0, mouthSmile:0, mouthRatio:0.35, isMouthOpen:true })
+		let emoji = holdPrediction(detector, smile, 0, 200)
+		expect(emoji).not.toBe(EMOJIS.EMOJI_NEUTRAL)
+
+		for (let timeMs = 240, frame = 0; timeMs <= 3240; timeMs += 40, frame++) {
+			emoji = detectAt(detector, frame % 8 === 0 ? weakFrame : smile, timeMs)
+			expect(emoji).not.toBe(EMOJIS.EMOJI_NEUTRAL)
+		}
+	})
+
+	test('neutral replaces a released smile within a few fresh inference samples', () => {
+		const detector = new EmojiDetector()
+		const smile = prediction({ happiness:0.75, smileEvidence:0.75, mouthSmile:0.75, mouthRatio:0.25, isMouthOpen:true })
+		const neutral = prediction({ happiness:0, smileEvidence:0, mouthSmile:0, mouthRatio:0 })
+		holdPrediction(detector, smile, 0, 200)
+
+		expect(holdPrediction(detector, neutral, 240, 400)).toBe(EMOJIS.EMOJI_NEUTRAL)
+	})
+
+	test('an isolated weak smile does not switch the face', () => {
+		const detector = new EmojiDetector()
+		const neutral = prediction({})
+		const weakSmile = prediction({ happiness:0.18, smileEvidence:0.18, mouthSmile:0.18 })
+		detectAt(detector, neutral, 0)
+		expect(detectAt(detector, weakSmile, 40)).toBe(EMOJIS.EMOJI_NEUTRAL)
+		expect(detectAt(detector, neutral, 80)).toBe(EMOJIS.EMOJI_NEUTRAL)
+	})
+
+	test('repeated cached predictions do not vote as new inference frames', () => {
+		const detector = new EmojiDetector()
+		const smile = prediction({ happiness:0.18, smileEvidence:0.18, mouthSmile:0.18, time:1 })
+		expect(detector.detect(smile, options, 0)).toBe(EMOJIS.EMOJI_NEUTRAL)
+		expect(detector.detect(smile, options, 400)).toBe(EMOJIS.EMOJI_NEUTRAL)
+	})
+
+	test('strong blendshape expressions react immediately and opposite expressions replace them quickly', () => {
+		const detector = new EmojiDetector()
+		const smile = prediction({ happiness:0.8, smileEvidence:0.8, mouthSmile:0.8 })
+		const sad = prediction({ happiness:0, smileEvidence:0, mouthSmile:0, sadness:0.8, mouthFrownLeft:0.8, mouthFrownRight:0.8 })
+
+		expect(detectAt(detector, smile, 0)).toBe(EMOJIS.EMOJI_SMILING_GRIN)
+		expect(holdPrediction(detector, sad, 40, 160)).toBe(EMOJIS.EMOJI_FROWNING)
+	})
+
+	test('brief prediction loss holds the expression and prolonged loss reports unknown', () => {
+		const detector = new EmojiDetector()
+		const smile = prediction({ happiness:0.8, smileEvidence:0.8, mouthSmile:0.8 })
+		const smilingEmoji = holdPrediction(detector, smile, 0, 160)
+
+		expect(detector.detect(undefined, options, 600)).toBe(smilingEmoji)
+		expect(detector.detect(undefined, options, 1200)).toBe(EMOJIS.EMOJI_DOTTED_LINE)
 	})
 
 	test.each([

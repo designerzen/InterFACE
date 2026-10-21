@@ -1,13 +1,16 @@
 import Instrument from "./instrument.js"
-import { Arpeggio, ARPEGGIO_VARIATION } from "../../timing/arpeggio.js"
+import { Arpeggio, ARPEGGIO_VARIATION, HARP_ARPEGGIO_VARIATION } from "../../timing/arpeggio.js"
 
 export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
 export const CHORD_PLAY_MODE = "chord"
 export const ARPEGGIO_PLAY_MODE = "arpeggio"
+export const HARP_PLAY_MODE = HARP_ARPEGGIO_VARIATION
+export const SINGLE_NOTE_PLAY_MODE = "single-note"
 
 export default class ChordInstrument extends Instrument{
 	
 	#arpeggio = new Arpeggio()
+	#singleNote = false
 	arpeggioIndex = 0
 	arpeggioChordKey = ""
 	arpeggioGateMs = 0
@@ -45,18 +48,47 @@ export default class ChordInstrument extends Instrument{
 		return this.mixer
 	}
 
+	get repetitionRate(){
+		return this.instruments?.[0]?.repetitionRate ?? super.repetitionRate
+	}
+
+	get playbackMode(){
+		return this.instruments?.[0]?.playbackMode ?? super.playbackMode
+	}
+
+	get reverbSettings(){
+		return this.instruments?.[0]?.reverbSettings ?? super.reverbSettings
+	}
+
+	get lpfSettings(){
+		return this.instruments?.[0]?.lpfSettings ?? super.lpfSettings
+	}
+
+	get compressorSettings(){
+		return this.instruments?.[0]?.compressorSettings ?? super.compressorSettings
+	}
+
 	get arpeggiate( ){
 		return this.#arpeggio.enabled
 	}
 	set arpeggiate( value ){
+		this.#singleNote = false
 		this.#arpeggio.configure(value ? ARPEGGIO_VARIATION : false)
 		this.resetArpeggio()
 	}
 
 	get performanceMode(){
-		return this.#arpeggio.enabled ? this.#arpeggio.variation : CHORD_PLAY_MODE
+		return this.#arpeggio.enabled ? this.#arpeggio.variation : (this.#singleNote ? SINGLE_NOTE_PLAY_MODE : CHORD_PLAY_MODE)
 	}
 	set performanceMode(value){
+		if (value === SINGLE_NOTE_PLAY_MODE)
+		{
+			this.#singleNote = true
+			this.#arpeggio.configure(false)
+			this.resetArpeggio()
+			return
+		}
+		this.#singleNote = false
 		this.#arpeggio.configure(value)
 		this.resetArpeggio()
 	}
@@ -79,7 +111,7 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	get playsChords(){
-		return true
+		return !this.#singleNote
 	}
 
 	/**
@@ -173,6 +205,20 @@ export default class ChordInstrument extends Instrument{
 		this.active = this.activeNotes.size > 0
 		// console.log("noteOff", noteNumber, this.activeNotes, this )
 		return true
+	}
+
+	async retrigger(noteNumber, velocity=1, instrumentIndex=0){
+		const instrument = this.instruments[instrumentIndex % this.instruments.length]
+		if (!instrument)
+		{
+			throw Error("No instruments available to retrigger")
+		}
+		if (instrument.retrigger)
+		{
+			return instrument.retrigger(noteNumber, velocity)
+		}
+		await instrument.noteOff(noteNumber, velocity)
+		return instrument.noteOn(noteNumber, velocity)
 	}
 
 	getArpeggioChordKey(chordArray=[]){
@@ -338,8 +384,20 @@ export default class ChordInstrument extends Instrument{
 	// to load a new sample we can also use the midi methods...
 	async programChange( programNumber ){
 		// console.info("Program change request from chord instrument", this.instruments)
-		this.instruments.forEach( (instrument) => instrument.programChange(programNumber))
-		return super.programChange( programNumber )
+		await Promise.all(this.instruments.map(instrument => instrument.programChange(programNumber)))
+		return await super.programChange( programNumber )
+	}
+
+	/**
+	 * Load the requested preset in every voice. Sample-backed instruments need
+	 * loadPreset() itself: programChange() only selects their program index and
+	 * does not fetch/decode the SoundFont samples.
+	 */
+	async loadPreset(presetNameOrIndex, ...args){
+		await Promise.all(this.instruments.map(instrument =>
+			instrument.loadPreset(presetNameOrIndex, ...args)
+		))
+		return this
 	}
 
 	
@@ -412,15 +470,16 @@ export default class ChordInstrument extends Instrument{
 		this.instruments = []
 		this.activeNotes.clear()
 		this.active = false
-		this.available = false
+		return this.destroyInstrumentArray(instrumentsToDestroy)
+	}
 
+	destroyInstrumentArray(instrumentsToDestroy=[]){
 		const destructionPromises = instrumentsToDestroy.map(async instrument => {
 			// allNotesOff stops sample sources synchronously before its first await.
 			await instrument.allNotesOff?.()
 			instrument.output?.disconnect()
-			await instrument.destroy()
+			await instrument.destroy?.()
 		})
-		// console.error("ChordInstrument:destroyInstruments", this )
 		return Promise.all(destructionPromises)
 	}
 
@@ -447,25 +506,46 @@ export default class ChordInstrument extends Instrument{
 	 * 
 	 * @param {Array<Instrument>} instrumentsArray 
 	 */
-	setInstruments( instrumentsArray ){
+	async setInstruments( instrumentsArray ){
+		if (!Array.isArray(instrumentsArray) || instrumentsArray.length === 0)
+		{
+			throw Error("ChordInstrument requires at least one instrument")
+		}
+
+		// Cloned instruments initialise their Web Audio nodes asynchronously.
+		// Keep the current voices connected until every replacement is ready.
+		await Promise.all(instrumentsArray.map(instrument => instrument?.loaded ?? true))
+		instrumentsArray.forEach(instrument => {
+			if (!instrument?.output)
+			{
+				throw Error("No Output specified for this ChordInstrument")
+			}
+		})
 
 		const quantity = instrumentsArray.length
 		const volume = 1 / quantity
+		const previousInstruments = this.instruments
+		const connectedInstruments = []
+		try{
+			instrumentsArray.forEach(instrument => {
+				this.connectInstrument(instrument)
+				connectedInstruments.push(instrument)
+				instrument.volume = volume
+			})
+		}catch(error){
+			connectedInstruments.forEach(instrument => instrument.output?.disconnect())
+			throw error
+		}
 
-		// disconnect existing!
-		const destroyedInstruments = this.destroyInstruments()
-
-		// set new instruments to cache
-		this.instruments = instrumentsArray.map( instrument => {
-			this.connectInstrument(instrument) 
-			instrument.volume = volume
-			return instrument
-		})
+		// Swap synchronously only after the complete replacement is connected.
+		this.clearArpeggioGate()
+		this.instruments = instrumentsArray
+		this.activeNotes.clear()
+		this.active = false
 		
 		this.polyphony = quantity
-		
-		// console.warn(this.polyphony, this.instruments, "ChordInstrument:setInstruments", this, {instruments: instrumentsArray} )
-		return destroyedInstruments.then(() => this.instruments)
+		await this.destroyInstrumentArray(previousInstruments)
+		return this.instruments
 	}
 
 	/**
@@ -502,8 +582,21 @@ export default class ChordInstrument extends Instrument{
 			instrumentsArray.push( instrumentInstance.clone() )
 		}
 		console.info("Instrument Instances created", {instrumentsArray})
+		await Promise.all(instrumentsArray.map(instrument => instrument.loaded ?? true))
 		await this.setInstruments(instrumentsArray)
 		return this
+	}
+
+	async chordRetrigger(chordArray, velocity){
+		if (!chordArray?.length)
+		{
+			return []
+		}
+		const chordQuantity = chordArray.length
+		return Promise.all(this.instruments.map((instrument, index) => {
+			const chord = chordArray[index % chordQuantity]
+			return this.retrigger(chord.noteNumber, this.getChordVelocity(chord, velocity), index)
+		}))
 	}
 
 	/**

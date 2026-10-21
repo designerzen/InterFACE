@@ -242,6 +242,7 @@ const getActivePerson = (personManager) => {
 
 const getChordKey = chordDetails => chordDetails.map(chord => chord.noteNumber).join(',')
 
+
 export const stopMIDIInputForPerson = (person) => {
 	let stopped = false
 	midiInputCleanupCallbacks.forEach(callback => {
@@ -554,6 +555,7 @@ export const observeMIDIInputs = ({
 					toggleBackgroundPercussion()
 					break
 				case "clock":
+					if (clock.networkTimingActive) break
 					if (performance.now() - lastClockStatusAt > MIDI_CLOCK_STATUS_TTL)
 					{
 						lastClockStatusAt = performance.now()

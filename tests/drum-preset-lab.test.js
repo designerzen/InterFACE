@@ -31,7 +31,8 @@ describe('drum preset lab catalogue', () => {
 		})).toBe(true)
 		const cymbals = DRUM_LAB_INSTRUMENTS.find(item => item.id === 'hihat').presets
 		expect(cymbals.map(preset => preset.value.name)).toEqual(expect.arrayContaining([
-			'Crash-style Open Hihat', 'Ride-style Open Hihat', 'Splash Cymbal', 'China Cymbal',
+			'Crash-style Open Hihat', 'Warm Studio Crash', 'Thin Jazz Crash', 'Vintage Dark Crash',
+			'Suspended Cymbal Swell', 'Ride-style Open Hihat', 'Splash Cymbal', 'China Cymbal',
 		]))
 		expect(DRUM_LAB_INSTRUMENTS.find(item => item.id === 'clack').presets
 			.map(preset => preset.value.name)).toContain('Metronome Clack')

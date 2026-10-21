@@ -227,10 +227,6 @@ main.flag-mirror{
 // }
 
 
-.flag-eyes label[for="select-eyes"]{
-	
-}
-
 // if we are showing the flag-overlay we are showing all 
 // XR overlays
 .flag-overlays{
@@ -256,15 +252,9 @@ main.flag-mirror{
 }
 
 
-// If we are not showing overlays, what use is there in the
-// eyes, mask buttons?
+// Hide controls for overlay features while overlays are disabled.
 main:not(.flag-overlays){
-	label[for="button-meshes"],
-	label[for="button-eyes"],
-	label[for="select-eyes"],
-	label[for="select-palette"],
-	label[for="button-subtitles"],
-	label[for="button-toggle-overlay"]{
+	[data-overlay-control]{
 		visibility: hidden;
 	}
 }
@@ -536,14 +526,12 @@ main:not(.flag-overlays){
 	#button-reset,
 	label[for="select-impulse"],
 	label[for="button-install"],
-	label[for="button-quantise"],
-	label[for="button-quantise"],
-	label[for="button-spectrogram"]{
+	label[for="select-viz"]{
 		display: none;
 	}
 
-	#settings .advanced-only,
-	#percussion-settings .advanced-only{
+	#settings [data-advanced-mode-only],
+	#percussion-settings [data-advanced-mode-only]{
 		display: none;
 	}
 }

@@ -1,5 +1,7 @@
 import { WebMidi } from "webmidi"
+import { INSTRUMENT_TYPE_FM } from "../audio/instrument-list.js"
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
+import { INSTRUMENT_TYPE_COMPOSITE, INSTRUMENT_TYPE_SOUNDFONT, PERSON_INSTRUMENT_OPTIONS } from "../audio/instrument-list.js"
 import { INTERVAL_LIBRARY } from "../audio/tuning/scales.js"
 import { EMOJI_MOOD_ALL, EMOJI_MOOD_HAPPY, EMOJI_MOOD_SAD } from "../models/emoji.js"
 import {
@@ -10,9 +12,20 @@ import {
 	POINTS_OVERRIDE_ON,
 	normalisePointsOverride
 } from "../settings/options.people.js"
+import {
+	HEAD_NOTE_RANGE_INHERIT,
+	HEAD_VERTICAL_RANGE_INHERIT,
+	MAX_HEAD_NOTE_RANGE_DEGREES,
+	MIN_HEAD_NOTE_RANGE_DEGREES,
+	normaliseHeadNoteRangeOverride,
+	normaliseHeadVerticalRangeOverride
+} from "../people/head-note-range.js"
+import { debounce } from "../utils/utils.js"
+import { openPersonReportDialog } from './person-report-dialog.js'
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
 const PERSON_OPTION_CLASS = "person-option-control"
+const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[character]))
 
 const OCTAVE_OPTIONS = Array.from({length:9}, (_, octave) => [octave, octave])
 
@@ -77,6 +90,23 @@ const createToggleControl = (label, name, currentValue) => `
 		<span class="person-option-label">${label}</span>
 	</label>`
 
+const createRangeControl = (
+	label,
+	name,
+	currentValue,
+	id,
+	disabled=false,
+	min=MIN_HEAD_NOTE_RANGE_DEGREES,
+	max=MAX_HEAD_NOTE_RANGE_DEGREES
+) => `
+	<div class="person-option person-option-range person-option-wide">
+		<label class="person-option-label" for="${id}">${label}</label>
+		<div class="person-option-range-row">
+			<input class="${PERSON_OPTION_CLASS}" data-person-option="${name}" id="${id}" type="range" min="${min}" max="${max}" step="1" value="${currentValue}" aria-describedby="${id}-output"${disabled ? " disabled" : ""} />
+			<output id="${id}-output" for="${id}">${currentValue}°</output>
+		</div>
+	</div>`
+
 const createSummaryContent = (label) => `<span class="instrument-summary-title">${label}</span>`
 
 const createPersonOptionsHTML = (person) => {
@@ -92,10 +122,25 @@ const createPersonOptionsHTML = (person) => {
 	const highOctave = Number.isFinite(Number(options.octaveHigh)) ? Number(options.octaveHigh) : 6
 	const midiDevice = options.midiDevice ?? MIDI_DEVICE_AUTO
 	const midiPort = options.midiPort ?? MIDI_PORT_AUTO
+	const headNoteRangeOverride = normaliseHeadNoteRangeOverride(options.headNoteRangeOverride)
+	const hasHeadNoteRangeOverride = headNoteRangeOverride !== HEAD_NOTE_RANGE_INHERIT
+	const headNoteRange = hasHeadNoteRangeOverride ? headNoteRangeOverride : person.headNoteRangeDegrees
+	const headNoteRangeId = `${person.id}-head-note-range`
+	const headVerticalRangeOverride = normaliseHeadVerticalRangeOverride(options.headVerticalRangeOverride)
+	const hasHeadVerticalRangeOverride = headVerticalRangeOverride !== HEAD_VERTICAL_RANGE_INHERIT
+	const headVerticalRange = hasHeadVerticalRangeOverride ? headVerticalRangeOverride : person.headVerticalRangeDegrees
+	const headVerticalRangeId = `${person.id}-head-vertical-range`
 
 	return `<details class="person-options">
 		<summary>${createSummaryContent("Options")}</summary>
 		<div class="person-options-grid">
+			<button class="person-option-wide" type="button" data-person-report aria-haspopup="dialog">Progress &amp; data</button>
+			${createSelectControl("Instrument", "instrumentType", person.instrumentType, PERSON_INSTRUMENT_OPTIONS, "data-person-action", "person-option-wide")}
+			${person.instrumentType === INSTRUMENT_TYPE_FM ? `${createSelectControl("Preset bank", "fmBank", person.activeInstrument?.instruments?.[0]?.isGeneralMIDIBank === false ? "dx7" : "gm", [["gm", "General MIDI (128)"], ...(person.fmImportedPresets ? [["dx7", "Imported DX7"]] : [])], "data-person-action", "person-option-wide")}
+			<label class="person-option person-option-wide">
+				<span class="person-option-label">Load DX7 voice or bank</span>
+				<input class="${PERSON_OPTION_CLASS}" type="file" accept=".syx,.dx7" data-person-action="dx7File" />
+			</label><p class="person-option-wide" data-dx7-status role="status" aria-live="polite"></p>` : ''}
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
 			${createSelectControl("Play", "playMode", playMode, [["chord", "Chords"], ["arpeggio", "Arpeggio"], ["harp", "Harp"]], "data-person-action")}
 			${createSelectControl("Points", "showPointsOverride", normalisePointsOverride(options.showPointsOverride), [[POINTS_OVERRIDE_INHERIT, "Use global setting"], [POINTS_OVERRIDE_ON, "On"], [POINTS_OVERRIDE_OFF, "Off"]], "data-person-option", "person-option-wide")}
@@ -104,29 +149,28 @@ const createPersonOptionsHTML = (person) => {
 			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}
 			${createSelectControl("Lower octave", "octaveLow", lowOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
 			${createSelectControl("Upper octave", "octaveHigh", highOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
+			${createToggleControl("Override global head range", "headNoteRangeOverrideEnabled", hasHeadNoteRangeOverride)}
+			${createRangeControl("Head note range", "headNoteRangeOverride", headNoteRange, headNoteRangeId, !hasHeadNoteRangeOverride)}
+			${createToggleControl("Override global vertical range", "headVerticalRangeOverrideEnabled", hasHeadVerticalRangeOverride)}
+			${createRangeControl("Vertical range", "headVerticalRangeOverride", headVerticalRange, headVerticalRangeId, !hasHeadVerticalRangeOverride)}
 			${createToggleControl("Mute", "muted", options.muted)}
 			${createToggleControl("Auto-repeat", "autoRepeat", options.autoRepeat)}
 			${createToggleControl("Chord labels", "showChordNames", options.showChordNames)}
-			${createToggleControl("Pitch bend", "pitchBend", options.pitchBend)}
-			${createToggleControl("Eyebrows", "drawEyebrows", options.drawEyebrows)}
-			${createToggleControl("Outline", "drawOutline", options.drawOutline)}
-			${createToggleControl("Eyes", "drawEyes", options.drawEyes)}
-			${createToggleControl("Lips", "drawMouth", options.drawMouth)}
-			${createToggleControl("Nose", "drawNose", options.drawNose)}
-			${createToggleControl("Stereo pan", "stereoPan", options.stereoPan)}
+			${createToggleControl("Eyebrow expression", "pitchBend", options.pitchBend)}
+			${createToggleControl("Show cartoon eyebrows", "drawEyebrows", options.drawEyebrows)}
+			${createToggleControl("Show face outline", "drawOutline", options.drawOutline)}
+			${createToggleControl("Show cartoon eyes", "drawEyes", options.drawEyes)}
+			${createToggleControl("Add lipstick", "drawMouth", options.drawMouth)}
+			${createToggleControl("Draw nose", "drawNose", options.drawNose)}
+			${createToggleControl("Use eye direction to stereo pan", "stereoPan", options.stereoPan)}
+			${createSelectControl("Particles", "noteParticleGraphics", options.noteParticleGraphics ?? NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC, NOTE_PARTICLE_GRAPHIC_OPTIONS, "data-person-option", "person-option-wide")}
 		</div>
-		<details class="person-particle-options">
-			<summary>${createSummaryContent("Particles")}</summary>
-			<div class="person-options-grid">
-				${createSelectControl("Graphics", "noteParticleGraphics", options.noteParticleGraphics ?? NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC, NOTE_PARTICLE_GRAPHIC_OPTIONS, "data-person-option", "person-option-wide")}
-			</div>
-		</details>
 	</details>`
 }
 
 const createInstrumentFamilyTitle = (family, personName) => `<h4 class="instrument-families">${personName.length ? personName : family.replace("Instrument","")}</h4>`
 const createInstrumentFamilySummary = (family) => `<summary>${createSummaryContent(family)}</summary>`
-const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMENT_CLASS}' id="${personName}-${folder}" name="instrument-selector-${personName}" type="radio" value="${folder}" />`
+const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMENT_CLASS}' id="${escapeHTML(personName)}-${escapeHTML(folder)}" name="instrument-selector-${escapeHTML(personName)}" type="radio" value="${escapeHTML(folder)}" />`
 
 /**
  * Create the markup required for one single instrument request
@@ -138,8 +182,8 @@ const createInstrumentInput = (personName, folder) => `<input class='${INSTRUMEN
 const createInstumentForForm = 
 	( folder, instrumentName, personName ) => 
 		`<li class="instrument">
-			<label for="${personName}-${folder}">
-				${instrumentName}
+			<label for="${escapeHTML(personName)}-${escapeHTML(folder)}">
+				${escapeHTML(instrumentName)}
 				${createInstrumentInput(personName, folder)}
 			</label>
 		</li>`
@@ -285,20 +329,22 @@ export const populateInstrumentPanel = async (controls, instrument, personOrName
 	console.info( "Presets available :", typeof presets[0], {presets})
 
 	// FIXME: HACK!
-	if (instrument.type === "sample")
+	if (instrument.type === "sample" || [INSTRUMENT_TYPE_COMPOSITE, INSTRUMENT_TYPE_SOUNDFONT].includes(person?.instrumentType))
 	{
 		presets = GENERAL_MIDI_INSTRUMENT_LIST
 	}
 
 	const existing = controls.querySelector(`.person-controls`)
 	const instrumentMenuPanel = existing ? existing : document.createElement("div")
-	instrumentMenuPanel.className = "person-controls"
-	instrumentMenuPanel.innerHTML = createInstrumentFamilyTitle(instrument.name, personName) +
+	instrumentMenuPanel.classList.add("person-controls")
+	instrumentMenuPanel.innerHTML = (person ? `<h4 class="instrument-families"><input class="${PERSON_OPTION_CLASS} player-name-title" type="text" data-person-action="displayName" aria-label="Player ${person.playerNumber + 1} name" maxlength="60" autocomplete="off" spellcheck="false" placeholder="Player ${person.playerNumber + 1}" value="${escapeHTML(person.displayName || `Player ${person.playerNumber + 1}`)}" /></h4>` : createInstrumentFamilyTitle(instrument.name, escapeHTML(personName))) +
 		createPersonOptionsHTML(person) +
 		createInstrumentFormHTML( presets, instrument.name, personName, false )
 	// instrumentMenuPanel.className = `${instrument.name} person-controls`
 	
 	controls.appendChild(instrumentMenuPanel)
+	const reportButton = instrumentMenuPanel.querySelector('[data-person-report]')
+	if (reportButton) reportButton.addEventListener('click', () => openPersonReportDialog(person, reportButton))
 	return presets
 }
 
@@ -317,17 +363,43 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, p
 	}
 	
 	const controller = new AbortController()
+	const onRangeInput = debounce(onInstrumentInput, 150)
 
 	controls.addEventListener('change', event => {
-		if (event.target.matches('input.'+INSTRUMENT_CLASS) || event.target.matches('.'+PERSON_OPTION_CLASS))
+		if ((event.target.matches('input.'+INSTRUMENT_CLASS) || event.target.matches('.'+PERSON_OPTION_CLASS)) && event.target.type !== 'range')
 		{
 			onInstrumentInput(event)
 		}
 	}, {signal: controller.signal, passive })
+
+	controls.addEventListener('input', event => {
+		if (event.target.matches('[data-person-action="displayName"]'))
+		{
+			onInstrumentInput(event)
+		}
+		if (event.target.matches(`input.${PERSON_OPTION_CLASS}[type="range"]`))
+		{
+			const output = controls.querySelector(`#${event.target.id}-output`)
+			if (output)
+			{
+				output.value = `${event.target.value}°`
+			}
+			onRangeInput(event)
+		}
+	}, {signal: controller.signal, passive })
+
+	controls.addEventListener('keydown', event => {
+		if (event.key === 'Enter' && event.target.matches('[data-person-action="displayName"]'))
+		{
+			event.preventDefault()
+			onInstrumentInput(event)
+			event.target.blur()
+		}
+	}, {signal: controller.signal })
 	
 	// console.error("addInteractivityToInstrumentPanel", {controls, inputs} )
 
-	// toggle the accordian modes for the details
+	// toggle the accordion modes for the details
 	controls.addEventListener("click", event => {
 		const legend = event.target.closest('legend')
 		if (!legend || !controls.contains(legend))

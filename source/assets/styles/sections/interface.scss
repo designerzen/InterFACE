@@ -131,8 +131,98 @@
 	grid-area: support;
 }
 
-#hardware-integration{
+#integration{
 	grid-area: hardware;
+}
+
+#cosmo-dots{
+	.cosmo-note-guide{
+		margin: calc(1.5 * var(--pad, 1rem)) 0 0;
+	}
+
+	.cosmo-note-dots{
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(4.5rem, 1fr));
+		gap: var(--pad, 1rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.cosmo-note-dot{
+		display: grid;
+		place-content: center;
+		place-items: center;
+		aspect-ratio: 1;
+		min-width: 0;
+		border: 0.2rem solid rgb(255 255 255 / 0.82);
+		border-radius: 50%;
+		color: #17120f;
+		background: hsl(var(--note-hue) var(--note-saturation) var(--note-lightness));
+		box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18), 0 0.35rem 0.7rem rgb(65 22 0 / 0.22);
+		text-align: center;
+	}
+
+	.cosmo-note-number{
+		font-size: clamp(1.6rem, 4vw, 2.5rem);
+		font-weight: 800;
+		line-height: 1;
+	}
+
+	.cosmo-note-name{
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+
+	figcaption{
+		max-width: 70ch;
+		margin-top: var(--pad, 1rem);
+	}
+}
+
+#picade-plasma-lights{
+	.picade-plasma-feedback{
+		max-width: 52rem;
+		padding: 0.75rem 1rem;
+		border: 1px solid rgba(255, 255, 255, 0.38);
+		border-radius: calc(var(--curve, 1rem) * 0.5);
+		background: rgba(0, 0, 0, 0.18);
+	}
+
+	.picade-plasma-feedback[data-state="cancelled"],
+	.picade-plasma-feedback[data-state="error"]{
+		border-color: #fff0a6;
+		background: rgba(72, 26, 0, 0.48);
+	}
+
+	.picade-plasma-feedback[data-state="success"]{
+		border-color: #b9ffd0;
+		background: rgba(0, 54, 30, 0.4);
+	}
+
+	.picade-plasma-actions{
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--pad, 1rem);
+		align-items: stretch;
+	}
+
+	#picade-plasma-test-btn{
+		--bg: url(/source/assets/icons/lightbulb.svg);
+	}
+
+	.picade-plasma-config-link{
+		display: inline-flex;
+		gap: 0.5rem;
+		align-items: center;
+		align-self: center;
+		font-weight: 700;
+
+		img{
+			width: 1.4em;
+			height: 1.4em;
+		}
+	}
 }
 
 #affiliates{
@@ -297,6 +387,7 @@
 	// top:0;
 	// grid-area: 1 / 2 / -1 / 3;
 	grid-area:app;
+	// pointer-events: none;
 }
 
 
@@ -736,63 +827,6 @@ main.active{
 }
 
 
-#control-panel{
-	--panel-width:45%;
-	margin:0;
-	padding:0;
-	overflow: hidden;
-	position: absolute;
-	top:0;
-	left:0;
-	right:0;
-	bottom: 0;
-	z-index:808; // NOT top - we have help and about remember!
-
-	width:100%;
-	box-sizing: border-box;
-
-	// prevent the form takin focus
-	pointer-events: none;	
-
-	// alternate grid layout
-	display: grid;
-
-	grid-template-areas: 
-		"sidebar-left . sidebar-right"
-		"settings-panel settings-panel settings-panel"
-		"control-panel control-panel control-panel"
-		;
-
-	grid-template-rows: 
-		1fr
-		auto 
-		auto
-		auto
-	;
-
-	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
-
-	* {
-		pointer-events: auto;
-	}
-
-	/*
-	// we need media queries to complete
-	--ratio:calc( var(--width)/var(--height));
-	max-width:var(--width);
-	max-height:var(--height);
-*/
-
-	// &::before{
-	// 	display: block;
-	// 	content:'';
-	// 	// width:calc(var(--width) / var(--height) * 100%);
-	// 	// height:calc( 100% );
-	// 	width:100%;
-	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
-	// }
-}
-
 #stage,
 #face-buttons{
 	margin:auto;
@@ -809,7 +843,7 @@ main.active{
 	box-sizing: border-box;
 }
 
-
+// wrapper for the person buttons
 #face-buttons{
 	border:0;
 	pointer-events: none;
@@ -826,10 +860,28 @@ main.active{
 		white-space: nowrap;
 	}
 
-	.person{	
+	// This is the wrapper for each person
+	// that contains all the buttons and toggles
+	.person{
 		padding:0;
 		margin:0;
-		position: absolute;	
+		position: absolute;
+		// Emoji controls sit above the face and must remain visible and clickable.
+		overflow: visible;
+		display: grid;
+		grid-template-areas:
+			"info-button"
+			"notes-button"
+			"emoji-button"
+			"face-button"
+			"mode-button"
+		;
+		grid-template-rows:
+			auto
+			auto
+			auto
+			100%
+			auto;
 	}
 
 	button{
@@ -845,77 +897,96 @@ main.active{
 		display: block;
 		font-size: 0;
 		color:transparent;
-		position: absolute;
+		// position: absolute;
 	}
 
 	.face-button{
-		height: 100%;
+		// height: 100%;
+		grid-area: face-button;
+	}
+
+	.emoji-controls{
+		--gap:3px;
+		grid-area: emoji-button;
+		position: absolute;
+		gap:var(--gap,1px);
+		// done by eye to get it inline with the emoji
+		bottom:calc( 100% + 22px );
+		min-width:calc( (44px + var(--gap,1px)) * 3 );
+		margin-left: -44px;
+		z-index: 2;
+		display: grid;
+		grid-template-columns: 44px minmax(44px, 1fr) 44px;
+		align-items: center;
 	}
 
 	.emoji-button{
-		bottom:100%;
-		// height: 64px;
-		// border-radius: 999px;
-		aspect-ratio: 1;
-		z-index:2;
-		&::before{
+		height: 100%;
+		//min-width: 0;
+		// aspect-ratio:1;
+
+		// aspect ratio hack
+		&::after{
 			content:'';
 			width:100%;
+			height:0;
 			padding-bottom:100%;
 			display: block;
 		}
 	}
 
-	.thoughts-button{
-		// FIXME: this should be above the emoji button
-		// so instead we hide it behind
-		bottom:calc( 100% + var(--pad,1rem) );
-		height: 200%;
-		left:-44px;
-		right:-44px;
-		width: auto;
-		z-index:1;
+	.previous-operating-mode-button,
+	.next-operating-mode-button{
+		opacity: 0;
+		pointer-events: none;
+		color: var(--col-cream, white);
+		font-size: 24px;
+		text-shadow: 0 1px 3px black;
+	}
+
+	.person:hover,
+	.person:focus-within{
+		opacity: 0.9;
+
+		.previous-operating-mode-button,
+		.next-operating-mode-button{
+			opacity: 1;
+			pointer-events: auto;
+		}
+	}
+
+	.emoji-controls button:focus-visible{
+		outline: 2px solid var(--col-cream, white);
+		outline-offset: -2px;
+	}
+
+	// .note-button,
+	// .instrument-button{
+	// 	height: 100%;
+	// 	left:-44px;
+	// 	right:-44px;
+	// 	width: auto;
+	// 	z-index:1;
+	// }
+
+	.note-button{
+		grid-area: notes-button;
+		position: absolute;
+		// bottom:calc( 100% + var(--pad,1rem) );
+	}
+
+	.instrument-button{
+		grid-area: info-button;
+		position: absolute;
+		// bottom:calc( 200% + var(--pad,1rem) );
+	}
+
+	// below face
+	.mode-button{
+		grid-area: mode-button;
 	}
 }
 
-#person-a{
-	width:calc( 100% * var(--person-a-w,0));
-	height:calc( 100% * var(--person-a-h,0));
-	top:calc( ( 100% - 100% * var(--person-a-h,0)) * var(--person-a-y,0));
-	left:calc( ( 100% - 100% * var(--person-a-w,0)) * (var(--person-a-x,0)));
-}
-#person-b{
-	width:calc( 100% * var(--person-b-w,0));
-	height:calc( 100% * var(--person-b-h,0));
-	top:calc( ( 100% - 100% * var(--person-b-h,0)) * var(--person-b-y,0));
-	left:calc( ( 100% - 100% * var(--person-b-w,0)) * (var(--person-b-x,0)))
-}
-#person-c{
-	width:calc( 100% * var(--person-c-w,0));
-	height:calc( 100% * var(--person-c-h,0));
-	top:calc( ( 100% - 100% * var(--person-c-h,0)) * var(--person-c-y,0));
-	left:calc( ( 100% - 100% * var(--person-c-w,0)) * (var(--person-c-x,0)))
-}
-#person-d{
-	width:calc( 100% * var(--person-d-w,0));
-	height:calc( 100% * var(--person-d-h,0));
-	top:calc( (100% - 100% * var(--person-d-h,0)) * var(--person-d-y,0));
-	left:calc( ( 100% - 100% * var(--person-d-w,0)) * (var(--person-d-x,0)))
-}
-
-// Instrument and user option panels
-
-// left drag
-.person-a-panel,
-.person-c-panel{
-	grid-area: sidebar-left;
-}
-
-// Drag from the right
-.person-b-panel,
-.person-d-panel{
-	grid-area: sidebar-right;
-}
 
 .controls{
 	grid-area: control-panel;

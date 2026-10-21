@@ -21,7 +21,7 @@ async function zipWavetableFolders() {
 
                 try {
                     const filesInSubDir = await fs.readdir(subDirPath);
-                    const jsonFiles = filesInSubDir.filter(file => path.extname(file).toLowerCase() === '.json');
+                    const jsonFiles = filesInSubDir.filter(file => path.extname(file).toLowerCase() === '.json').sort();
 
                     if (jsonFiles.length === 0) {
                         console.log(`  No JSON files found in ${entry.name}, skipping.`);
@@ -37,12 +37,13 @@ async function zipWavetableFolders() {
                             filesToZip[jsonFile] = content;
                         } catch (readErr) {
                             console.error(`  Error reading file ${jsonFilePath}:`, readErr);
+                            throw readErr;
                         }
                     }
 
                     if (Object.keys(filesToZip).length > 0) {
                         console.log(`  Zipping ${Object.keys(filesToZip).length} JSON files into ${zipFileName}...`);
-                        const zippedData = fflate.zipSync(filesToZip, { level: 9 }); // Use sync version for simplicity here, async is also available
+                        const zippedData = fflate.zipSync(filesToZip, { level: 9, mtime: new Date('2026-01-01T00:00:00Z') });
                         await fs.writeFile(zipFilePath, zippedData);
                         console.log(`  Successfully created ${zipFilePath}`);
                     } else {
@@ -51,6 +52,7 @@ async function zipWavetableFolders() {
 
                 } catch (subDirErr) {
                     console.error(`  Error processing directory ${subDirPath}:`, subDirErr);
+                    throw subDirErr;
                 }
             }
         }

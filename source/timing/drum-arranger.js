@@ -27,6 +27,17 @@ const DEFAULT_INTENT = {
 	muteClap: false
 }
 
+export const DRUM_PERFORMANCE_PRESETS = Object.freeze({
+	steady:Object.freeze({ id:'steady', title:'Steady' }),
+	crescendo:Object.freeze({ id:'crescendo', title:'Crescendo' }),
+	bridge:Object.freeze({ id:'bridge', title:'Bridge' }),
+	'snare-roll':Object.freeze({ id:'snare-roll', title:'Snare Roll' }),
+	breakdown:Object.freeze({ id:'breakdown', title:'Breakdown' }),
+	drop:Object.freeze({ id:'drop', title:'Drop' }),
+})
+
+const PERFORMANCE_PRESET_IDS = new Set(['auto', ...Object.keys(DRUM_PERFORMANCE_PRESETS)])
+
 const clamp = (value, min=0, max=1) => Math.min(max, Math.max(min, value))
 const clampVelocity = value => Math.round(Math.min(255, Math.max(0, value)))
 const wrap = (index, length) => ((index % length) + length) % length
@@ -84,18 +95,18 @@ export const createDrumSubHits = ({ inFill, inRoll, stepInPhrase, bpm, intent, s
 		.sort((a, b) => a.offset - b.offset)
 }
 
-export const applyDrumSubHitEnvelope = (options, event) => {
+export const applyDrumSubHitEnvelope = (options, event, output) => {
 	const minimumLength = event.lane === 'hat' ? 0.025 : 0.04
 	const length = Math.max(minimumLength, options.length * (event.lengthScale ?? 1))
-	const scaled = {
-		...options,
-		length,
-		attack:Math.min(options.attack, length * 0.15),
-		decay:Math.min(options.decay, length * 0.3)
-	}
+	const scaled = Object.assign(output ?? {}, options)
+	scaled.length = length
+	scaled.attack = Math.min(options.attack, length * 0.15)
+	scaled.decay = Math.min(options.decay, length * 0.3)
 	if (Number.isFinite(options.release))
 	{
 		scaled.release = Math.min(options.release, length * 0.35)
+	}else if (output){
+		delete scaled.release
 	}
 	return scaled
 }
@@ -243,6 +254,8 @@ export const createDrumArranger = (options={}) => {
 		? AUXILIARY_DRUM_LANES.filter(lane => Array.isArray(selectedGroove[lane]))
 		: []
 	const activeLanes = [...CORE_LANES, ...auxiliaryLanes]
+	const exposedActiveLanes = Object.freeze([...activeLanes, 'cowbell'])
+	const beatSequenceCache = new Map()
 	const cells = {
 		kick: createCells('kick', selectedGroove ? [selectedGroove.kick] : kickSequences),
 		snare: createCells('snare', selectedGroove ? [selectedGroove.snare] : snareSequences),
@@ -269,6 +282,12 @@ export const createDrumArranger = (options={}) => {
 		phrase: -1,
 		rapidPercussion: options.rapidPercussion === true,
 		performanceControl: options.performanceControl !== false,
+		performancePreset: PERFORMANCE_PRESET_IDS.has(options.performancePreset) ? options.performancePreset : 'auto',
+		performanceTechnique: options.performancePreset && options.performancePreset !== 'auto' ? options.performancePreset : 'steady',
+		techniqueStartedAtStep: 0,
+		lastActivity: clamp(options.intent?.energy ?? DEFAULT_INTENT.energy),
+		activityReserve: 0,
+		lastPersonUpdateAt: null,
 		lastParts: {}
 	}
 
@@ -381,6 +400,102 @@ export const createDrumArranger = (options={}) => {
 		return clampVelocity(output)
 	}
 
+	const setPerformanceTechnique = technique => {
+		if (!DRUM_PERFORMANCE_PRESETS[technique] || state.performanceTechnique === technique)
+		{
+			return state.performanceTechnique
+		}
+		state.performanceTechnique = technique
+		state.techniqueStartedAtStep = Math.max(0, state.step + 1)
+		return technique
+	}
+
+	const applyPerformanceTechnique = parts => {
+		if (!state.performanceControl)
+		{
+			return parts
+		}
+
+		const technique = state.performanceTechnique
+		const stepInBar = wrap(state.step, state.stepsPerBar)
+		const techniqueProgress = clamp(
+			(state.step - state.techniqueStartedAtStep) / Math.max(1, state.stepsPerBar - 1)
+		)
+		const scalePart = (lane, multiplier) => {
+			if (Number.isFinite(parts[lane]) && parts[lane] > 0)
+			{
+				parts[lane] = clampVelocity(parts[lane] * multiplier)
+			}
+		}
+		const scaleAll = multiplier => Object.keys(parts).forEach(lane => scalePart(lane, multiplier))
+		const accent = (lane, velocity) => {
+			parts[lane] = Math.max(parts[lane] ?? 0, clampVelocity(velocity))
+		}
+
+		// Every groove follows the performer dynamically before a technique adds
+		// its own arrangement. Disabling Performance bypasses this entire layer.
+		scaleAll(0.5 + state.intent.energy * 0.5)
+
+		switch(technique)
+		{
+			case 'crescendo':
+				scaleAll(0.45 + techniqueProgress * 0.75)
+				if (stepInBar >= state.stepsPerBar - 3)
+				{
+					accent(['tomFloorLow', 'tomFloorHigh', 'tomMidHigh'][stepInBar - (state.stepsPerBar - 3)], 105 + techniqueProgress * 100)
+				}
+				break
+
+			case 'bridge':
+				scalePart('hat', 0.55)
+				if (stepInBar % Math.max(1, Math.floor(state.stepsPerBar / 4)) === 0)
+				{
+					accent('ride', 105 + state.intent.energy * 75)
+				}
+				if (stepInBar >= state.stepsPerBar - 3)
+				{
+					accent(['tomFloorLow', 'tomFloorHigh', 'tomMidHigh'][stepInBar - (state.stepsPerBar - 3)], 130 + state.intent.tension * 80)
+				}
+				break
+
+			case 'snare-roll':
+				scalePart('kick', 0.82)
+				scalePart('hat', 0.68)
+				scalePart('clap', 0.6)
+				if (!state.intent.muteSnare)
+				{
+					accent('snare', 80 + techniqueProgress * 175)
+				}
+				break
+
+			case 'breakdown': {
+				const halfBar = Math.max(1, Math.floor(state.stepsPerBar / 2))
+				const quarterBar = Math.max(1, Math.floor(state.stepsPerBar / 4))
+				for (const lane of Object.keys(parts))
+				{
+					if (!Number.isFinite(parts[lane])) continue
+					const keep = lane === 'kick' ? stepInBar % halfBar === 0 :
+						(lane === 'snare' || lane === 'clap') ? stepInBar === quarterBar || stepInBar === quarterBar * 3 :
+						lane === 'hat' ? stepInBar % quarterBar === 0 : false
+					parts[lane] = keep ? clampVelocity(parts[lane] * 0.72) : 0
+				}
+				break
+			}
+
+			case 'drop':
+				if (state.step === state.techniqueStartedAtStep)
+				{
+					accent('kick', 255)
+					accent('snare', 230)
+					accent('hat', 205)
+					accent('crash', 255)
+				}
+				break
+		}
+
+		return parts
+	}
+
 	const next = (context={}) => {
 		if (Number.isFinite(context.bpm) && context.bpm > 0)
 		{
@@ -472,6 +587,8 @@ export const createDrumArranger = (options={}) => {
 			if (state.phrase % 4 === 3 && stepsRemaining === 1) addColour('jingleBell', 84)
 		}
 
+		applyPerformanceTechnique(parts)
+
 		const phraseEndWindow = phraseLengthValue - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
 		const presetTiming = selectedGroove?.timing
 		const presetSubdivisionStep = presetTiming &&
@@ -487,13 +604,17 @@ export const createDrumArranger = (options={}) => {
 		}) : []
 
 		state.lastParts = parts
+		beatSequenceCache.clear()
 		return parts
 	}
 
 	const getBeatSequence = (count=state.stepsPerBar) => {
 		const beatCount = Math.max(1, Math.floor(count))
+		const cached = beatSequenceCache.get(beatCount)
+		if (cached) return cached
+
 		const firstStep = Math.floor(Math.max(0, state.step) / beatCount) * beatCount
-		return Array.from({ length:beatCount }, (_, index) => {
+		const sequence = Array.from({ length:beatCount }, (_, index) => {
 			const step = firstStep + index
 			const beat = Object.fromEntries(activeLanes.map(lane => {
 				const cell = state.current[lane]
@@ -502,18 +623,36 @@ export const createDrumArranger = (options={}) => {
 			}))
 			return step === state.step ? { ...beat, ...state.lastParts } : beat
 		})
+		beatSequenceCache.set(beatCount, sequence)
+		return sequence
 	}
 
 	return {
 		next,
 		getStep: () => state.step,
 		getStepsPerBar: () => state.stepsPerBar,
-		getActiveLanes: () => [...activeLanes, 'cowbell'],
+		getActiveLanes: () => exposedActiveLanes,
 		getBeatSequence,
 		getBPM: () => state.bpm,
 		getIntent: () => ({ ...state.intent }),
-		setRapidPercussion: enabled => state.rapidPercussion = enabled === true,
-		setPerformanceControl: enabled => state.performanceControl = enabled !== false,
+		getPerformancePreset: () => state.performancePreset,
+		getPerformanceTechnique: () => state.performanceTechnique,
+		setRapidPercussion: enabled => {
+			state.rapidPercussion = enabled === true
+			beatSequenceCache.clear()
+		},
+		setPerformanceControl: enabled => {
+			state.performanceControl = enabled !== false
+			state.activityReserve = 0
+			state.lastPersonUpdateAt = null
+			beatSequenceCache.clear()
+		},
+		setPerformancePreset: preset => {
+			state.performancePreset = PERFORMANCE_PRESET_IDS.has(preset) ? preset : 'auto'
+			const technique = setPerformanceTechnique(state.performancePreset === 'auto' ? 'steady' : state.performancePreset)
+			beatSequenceCache.clear()
+			return technique
+		},
 		setTempo: bpm => {
 			if (Number.isFinite(bpm) && bpm > 0)
 			{
@@ -525,24 +664,65 @@ export const createDrumArranger = (options={}) => {
 			state.intent.muteSnare = !!mutes.snare
 			state.intent.muteHat = !!mutes.hat
 			state.intent.muteClap = !!mutes.clap
+			beatSequenceCache.clear()
 		},
-		updatePerson: (person={}) => {
+		updatePerson: (person={}, updateAt=performance.now() / 1000) => {
 			if (!state.performanceControl)
 			{
 				return
 			}
 			const velocity = Number.isFinite(person.noteVelocity) ? person.noteVelocity : person.velocity
-			const activity = Number.isFinite(velocity) ? clamp(velocity) : state.intent.energy
+			const inputActivity = Number.isFinite(velocity) ? clamp(velocity) : state.lastActivity
+			const elapsed = state.lastPersonUpdateAt === null ? 0 : Math.max(0, updateAt - state.lastPersonUpdateAt)
+			state.lastPersonUpdateAt = updateAt
+			// Only sustained energetic playing earns a tail. Use elapsed seconds
+			// so its duration is independent of tempo and input update frequency.
+			const reserveTarget = clamp((inputActivity - 0.45) / 0.55)
+			const releaseSeconds = state.activityReserve * 3
+			const activity = state.activityReserve > 0.02
+				? Math.max(inputActivity, state.intent.energy * Math.exp(-elapsed / releaseSeconds))
+				: inputActivity
+			const reserveSeconds = reserveTarget > state.activityReserve ? 2 : 4
+			state.activityReserve += (reserveTarget - state.activityReserve) * (1 - Math.exp(-elapsed / reserveSeconds))
+			const tension = clamp(Math.abs(person.pitchBend ?? person.bend ?? 0))
+			const previousActivity = state.intent.energy
 			state.intent = {
 				...state.intent,
 				energy: clamp(activity),
 				density: clamp(0.25 + activity * 0.65),
-				tension: clamp(Math.abs(person.pitchBend ?? person.bend ?? 0)),
+				tension,
 				fillChance: clamp(0.15 + activity * 0.6),
 				rollChance: clamp(0.08 + activity * 0.45)
 			}
+
+			if (state.performancePreset === 'auto')
+			{
+				const techniqueAge = state.step - state.techniqueStartedAtStep
+				if (activity <= 0.18)
+				{
+					setPerformanceTechnique('breakdown')
+				}else if (previousActivity <= 0.3 && activity >= 0.72){
+					setPerformanceTechnique('drop')
+				}else if (tension >= 0.72 && activity >= 0.5){
+					setPerformanceTechnique('snare-roll')
+				}else if (tension >= 0.36){
+					setPerformanceTechnique('bridge')
+				}else if (
+					activity > previousActivity + 0.06 ||
+					(state.performanceTechnique === 'crescendo' && techniqueAge < state.stepsPerBar)
+				){
+					setPerformanceTechnique('crescendo')
+				}else{
+					setPerformanceTechnique('steady')
+				}
+			}
+			state.lastActivity = inputActivity
+			beatSequenceCache.clear()
 		},
-		setIntent: intent => state.intent = { ...state.intent, ...intent },
+		setIntent: intent => {
+			state.intent = { ...state.intent, ...intent }
+			beatSequenceCache.clear()
+		},
 		requestFill: (amount=1) => {
 			if (amount > 0)
 			{

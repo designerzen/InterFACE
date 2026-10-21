@@ -385,7 +385,8 @@
 	--col-top:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) ) );
 	--col-bottom:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) - var(--range,10%) )  );
 
-	--col-fg:var(--col-text, var(--shade-light, white));// --col-fg
+	--col-bg:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) - var(--range,10%)  / 2)  );
+	--col-fg:color-contrast( var(--col-bg, var(--shade-light, white)) );// --col-fg
 	
 	// --col-active:
 	// --col-active:
@@ -462,7 +463,7 @@
 	line-height: 1.05;		// prevent double lines from drifting apart
 
 	text-rendering: optimizeLegibility;	// override just in case
-	text-transform: uppercase;
+	text-transform: none;
 	text-decoration: none;
 
 	// allow for container queries
@@ -470,7 +471,8 @@
 	min-width:max( var(--min-size, 44px), min-content );
 	min-height:max( var(--min-size, 44px), fit-content );
 	
-	max-width:var(--max-width-override, var(--max-width, auto) );
+	// max width here can actually change the min width!
+	max-width:var(--max-width-override, var(--max-width, fit-content) );
 	max-height:128px;
 		
 	// allow scaling up but not down
@@ -1151,6 +1153,7 @@
 		--max-font-size:24px;
 		--duration: var(--ease-q);
 		--button-border-size:var(--bevel);
+		--max-width-override: stretch;
 		
 		// Colours --------------------------------------------
 		--hue:var(--hue-brand, 90);
@@ -1167,7 +1170,7 @@
 		// this is for the outline shader
 		border: solid var(--bevel) transparent;
 		padding: calc( var(--bevel) + var(--line) );
-			
+		
 		display: inline-grid;
 
 		gap:calc( var( --icon-visible, 1) * var(--pad) * 0.5 );

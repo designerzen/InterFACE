@@ -135,6 +135,26 @@
 	#onboard{
 		--side:clamp( var(--pad), 25%, 240px);
 		z-index:1;
+		position: relative;
+		isolation: isolate;
+
+		// Keep labels readable independently of the selected wallpaper colours and scale.
+		&::before,
+		&::after{
+			content: '';
+			position: absolute;
+			inset: 0;
+			border-radius: inherit;
+			pointer-events: none;
+		}
+		&::before{
+			z-index: -2;
+			background: linear-gradient(160deg, rgba(25, 23, 28, 0.88), rgba(12, 16, 21, 0.96));
+		}
+		&::after{
+			z-index: -1;
+			background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 45%, rgba(0, 0, 0, 0.18));
+		}
 	}
 
 	// show this
@@ -144,6 +164,7 @@
 	}
 
 	#player-selector{
+		// hide the inputs
 		input[type="radio" i]{	
 			--over:0%;
 			--y:0;

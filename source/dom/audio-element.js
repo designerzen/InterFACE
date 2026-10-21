@@ -38,7 +38,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	// console.log("Creating an audio element...", audio, {src,fileName, duration, currentTime})
 	
 	audio.className = "audio-file"
-	audio.playbackRate.value = 1
+	audio.playbackRate = 1
 	audio.onload = e =>{
 		URL.revokeObjectURL(src)
 	}
@@ -100,6 +100,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 		audio.ontimeupdate = audio.onloadedmetadata = audio.onload = null
 		audio.currentTime = 0
 		URL.revokeObjectURL(audio.src)
+		proxy.disconnect()
 		audio = null
 		wrapper.parentElement.removeChild(wrapper)
 		buttons.forEach( button => removeTooltip( button) )
@@ -109,8 +110,9 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 
 	const anchor = document.createElement("a")
 	anchor.className = "audio-downloader"
-	anchor.textContent = `Click to download this audio file as WAVE`
-	anchor.download = fileName
+	const extension=src.type?.includes('mp4')?'mp4':src.type?.includes('ogg')?'ogg':src.type?.includes('wav')?'wav':'webm'
+	anchor.textContent = `Download this audio file (${extension.toUpperCase()})`
+	anchor.download = `${fileName}.${extension}`
 	anchor.href = audio.src
 		
 	wrapper.appendChild(anchor)
@@ -119,7 +121,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	wrapper.appendChild(menu)
 	wrapper.appendChild(exitButton)
 
-	const fileTypes = ["mp3", "ogg", "wave"]
+	const fileTypes = [extension]
 
 	fileTypes.forEach( buttonName => {
 		const button = document.createElement("button")

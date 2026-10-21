@@ -1,3 +1,5 @@
+import { getPersonMIDIOutputs, getPersonMIDIChannel } from '../midi/midi-routing.js'
+import { stopMIDIEyebrowsForPerson, updateMIDIEyebrowsForPerson } from '../midi/person-eyebrow-expression.js'
 import { WebMidi } from "webmidi"
 import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_RELEASE, STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_SUSTAIN } from "../../people/person-states.js"
 import { ROLI_PIANO } from "../midi/midi-devices-constants.js"
@@ -6,6 +8,7 @@ import { isMIDIDebugEnabled, sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } 
 // This is a dirty hack to fix ROLI piano keyboards
 // we use map rather than arrays as they are not zero indexed
 const peopleNotes = new Map()
+const lastRoutes = new WeakMap()
 peopleNotes.set( 0, new Map() )
 peopleNotes.set( 1, new Map() )
 peopleNotes.set( 2, new Map() )
@@ -112,14 +115,16 @@ export const stopWebMIDIForPerson = (person, useSendAllNotesOff = false) => {
 		return false
 	}
 
+	stopMIDIEyebrowsForPerson(person)
 	const personNotes = getMIDINotesForPerson(person.playerNumber)
 	if (!personNotes)
 	{
 		return false
 	}
 
-	const outputs = resolveMIDIOutputsForPerson(person, null)
-	const midiPortOptions = resolveMIDIPortOptionsForPerson(person)
+	const previousRoute = lastRoutes.get(person)
+	const outputs = previousRoute?.outputs ?? resolveMIDIOutputsForPerson(person, null)
+	const midiPortOptions = previousRoute?.options ?? resolveMIDIPortOptionsForPerson(person)
 
 	personNotes.forEach((_, noteNumber) => {
 		outputs.forEach(output => {
@@ -145,44 +150,11 @@ export const stopWebMIDIForPerson = (person, useSendAllNotesOff = false) => {
 	return true
 }
 
-const getAutoMIDIOutputsForPerson = (person, people) => {
-	const multiplePeople = people?.length > 1
-	const multipleMIDIDevices = WebMidi.outputs.length > 1
-	const useDedicatedMIDIDevicePerPerson = multiplePeople && multipleMIDIDevices
-	const dedicatedOutput = useDedicatedMIDIDevicePerPerson ?
-		WebMidi.outputs[person.playerNumber] ?? WebMidi.outputs[0] :
-		null
-	return useDedicatedMIDIDevicePerPerson ?
-		[dedicatedOutput].filter(Boolean) :
-		WebMidi.outputs
-}
+export const resolveMIDIOutputsForPerson = person => getPersonMIDIOutputs(person, WebMidi.outputs)
 
-export const resolveMIDIOutputsForPerson = (person, people) => {
-	const midiDevice = person.options?.midiDevice ?? MIDI_ROUTING_AUTO
-	if (midiDevice === MIDI_ROUTING_AUTO)
-	{
-		return getAutoMIDIOutputsForPerson(person, people)
-	}
-	if (midiDevice === MIDI_ROUTING_ALL)
-	{
-		return WebMidi.outputs
-	}
-	const selectedOutput = WebMidi.getOutputById?.(midiDevice) ??
-		WebMidi.getOutputByName?.(midiDevice) ??
-		WebMidi.outputs.find(output => output.id === midiDevice || output.name === midiDevice)
-	return selectedOutput ? [selectedOutput] : getAutoMIDIOutputsForPerson(person, people)
-}
-
-export const resolveMIDIPortOptionsForPerson = (person) => {
-	const midiPort = person.options?.midiPort ?? MIDI_ROUTING_AUTO
-	if (midiPort === MIDI_ROUTING_AUTO || midiPort === MIDI_ROUTING_ALL)
-	{
-		return {}
-	}
-	const channel = Number.parseInt(midiPort, 10)
-	return Number.isInteger(channel) && channel >= 1 && channel <= 16 ?
-		{ channels: channel } :
-		{}
+export const resolveMIDIPortOptionsForPerson = (person, people = []) => {
+	const channel = getPersonMIDIChannel(person, WebMidi.outputs, people)
+	return channel === 'all' ? {} : { channels: channel }
 }
 
 const getMIDINoteNumber = note => {
@@ -197,21 +169,21 @@ const getMIDINoteNumber = note => {
  * @param {Person} person 
  * @param {[Person]} people 
  */
-export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, previouslyActiveAudioOutput ) => {
-
-	if (!activeAudioOutput)
-	{
-		// note requested but 
-		return
-		//throw Error("Cannot send to MIDI empty activeAudioOutput")
-	}
+export const updateWebMIDIWithPerson = ( person, people, activeAudioOutput, previouslyActiveAudioOutput, eyebrowSettings ) => {
 
 	// If there are MULTIPLE MIDI devices and MULTIPLE PEOPLE
 	// we need to send the MIDI to the correct channel
 	// NB. We send the MIDI to ALL devices but have 4 different channels
 	// that are 1-4
 	const outputs = resolveMIDIOutputsForPerson(person, people)
-	const midiPortOptions = resolveMIDIPortOptionsForPerson(person)
+	const midiPortOptions = resolveMIDIPortOptionsForPerson(person, people)
+	const previousRoute = lastRoutes.get(person)
+	if (previousRoute && (JSON.stringify(previousRoute.options) !== JSON.stringify(midiPortOptions) || previousRoute.outputs.length !== outputs.length || previousRoute.outputs.some((output, index) => output !== outputs[index]))) {
+		stopWebMIDIForPerson(person)
+	}
+	lastRoutes.set(person, {outputs, options:midiPortOptions})
+	updateMIDIEyebrowsForPerson(person, outputs, midiPortOptions, eyebrowSettings)
+	if (!activeAudioOutput) return
 	const useSingleResolvedOutput = outputs.length === 1
 
 	// we have old notes and new notes

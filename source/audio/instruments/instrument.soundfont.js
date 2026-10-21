@@ -12,7 +12,8 @@ import {
 	getGeneralMIDIInstrumentFolders,
 	createInstruments,
 	getRandomInstrument,
-	getInstrumentTitle
+	getInstrumentTitle,
+	getInstrumentData
 } from '../sound-font-instruments'
 
 import SoundFont from "../sound-font.js"
@@ -69,6 +70,30 @@ export default class SoundFontInstrument extends SampleInstrument{
 	get name() {
 		return INSTRUMENT_TYPE_SOUNDFONT
 	}
+
+	get audioNode(){
+		return this.effectOutput ?? this.gainNode
+	}
+
+	get repetitionRate(){
+		return this.activePresetData?.repetitionRate ?? super.repetitionRate
+	}
+
+	get playbackMode(){
+		return this.activePresetData?.playbackMode ?? super.playbackMode
+	}
+
+	get reverbSettings(){
+		return this.activePresetData?.reverb ?? false
+	}
+
+	get lpfSettings(){
+		return this.activePresetData?.lpf ?? false
+	}
+
+	get compressorSettings(){
+		return this.activePresetData?.compressor ?? false
+	}
 	
 	/**
 	 * This loads in a preset immediately if one is specified
@@ -79,6 +104,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 	constructor( audioContext, options={} ){
 
 		super(audioContext, {...DEFAULT_OPTIONS, ...options})
+		this.activePresetData = getInstrumentData(options.preset ?? options.defaultPreset ?? 0)
+		this.setupEffectChain()
+		this.configurePresetEffects()
 
 		// console.error( "zen look here", DEFAULT_OPTIONS, options)
 
@@ -127,6 +155,102 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}
 	}
 
+	setupEffectChain(){
+		if (!this.gainNode?.connect || !this.context?.createGain)
+		{
+			return false
+		}
+
+		this.lpfNode = this.context.createBiquadFilter?.()
+		this.compressorNode = this.context.createDynamicsCompressor?.()
+		this.reverbNode = this.context.createConvolver?.()
+		this.dryGainNode = this.context.createGain()
+		this.reverbGainNode = this.context.createGain()
+		this.effectOutput = this.context.createGain()
+
+		let source = this.gainNode
+		if (this.lpfNode)
+		{
+			source.connect(this.lpfNode)
+			source = this.lpfNode
+		}
+		if (this.compressorNode)
+		{
+			source.connect(this.compressorNode)
+			source = this.compressorNode
+		}
+
+		source.connect(this.dryGainNode)
+		this.dryGainNode.connect(this.effectOutput)
+		if (this.reverbNode)
+		{
+			source.connect(this.reverbNode)
+			this.reverbNode.connect(this.reverbGainNode)
+			this.reverbGainNode.connect(this.effectOutput)
+		}
+		return true
+	}
+
+	setAudioParam(parameter, value){
+		if (!parameter || !Number.isFinite(value)) return
+		if (typeof parameter.setValueAtTime === "function")
+		{
+			parameter.setValueAtTime(value, this.context.currentTime)
+		}else{
+			parameter.value = value
+		}
+	}
+
+	createReverbImpulse({ duration=1.5, decay=2 }={}){
+		if (!this.context?.createBuffer) return null
+		const sampleRate = this.context.sampleRate || 44100
+		const length = Math.max(1, Math.floor(sampleRate * duration))
+		const impulse = this.context.createBuffer(2, length, sampleRate)
+		for (let channel = 0; channel < impulse.numberOfChannels; channel++)
+		{
+			const samples = impulse.getChannelData(channel)
+			for (let index = 0; index < length; index++)
+			{
+				samples[index] = (Math.random() * 2 - 1) * Math.pow(1 - index / length, decay)
+			}
+		}
+		return impulse
+	}
+
+	configurePresetEffects(){
+		const lpf = this.lpfSettings
+		if (this.lpfNode)
+		{
+			this.lpfNode.type = lpf ? "lowpass" : "allpass"
+			this.setAudioParam(this.lpfNode.frequency, lpf ? lpf.frequency : Math.min(20000, (this.context.sampleRate || 44100) / 2))
+			this.setAudioParam(this.lpfNode.Q, lpf ? (lpf.Q ?? 0.0001) : 0.0001)
+		}
+
+		const compressor = this.compressorSettings
+		if (this.compressorNode)
+		{
+			this.setAudioParam(this.compressorNode.threshold, compressor ? compressor.threshold : 0)
+			this.setAudioParam(this.compressorNode.knee, compressor ? compressor.knee : 0)
+			this.setAudioParam(this.compressorNode.ratio, compressor ? compressor.ratio : 1)
+			this.setAudioParam(this.compressorNode.attack, compressor ? compressor.attack : 0)
+			this.setAudioParam(this.compressorNode.release, compressor ? compressor.release : 0.25)
+		}
+
+		const reverb = this.reverbSettings
+		const mix = reverb ? Math.max(0, Math.min(1, reverb.mix ?? 0.15)) : 0
+		this.setAudioParam(this.dryGainNode?.gain, 1 - mix)
+		this.setAudioParam(this.reverbGainNode?.gain, mix)
+		if (this.reverbNode && reverb)
+		{
+			const impulseKey = `${reverb.duration ?? 1.5}:${reverb.decay ?? 2}`
+			if (this.reverbImpulseKey !== impulseKey)
+			{
+				this.reverbNode.buffer = this.createReverbImpulse(reverb)
+				this.reverbImpulseKey = impulseKey
+			}
+		}
+	}
+
 	/**
 	 * Try and determine the index of the preset within the range
 	 * @param {String} presetName 
@@ -166,6 +290,15 @@ export default class SoundFontInstrument extends SampleInstrument{
 	async programChange( programNumber ){
 		this.presetIndex = this.getIndexFromName(programNumber)
 		return await super.programChange( programNumber )	
+	}
+
+	/**
+	 * SoundFont patches are exposed by their loadable folder names. This keeps
+	 * the common Instrument/ChordInstrument preset API usable when a Person
+	 * switches directly to the SoundFont engine.
+	 */
+	async getPresets(){
+		return [...this.instrumentFolders]
 	}
 
 	/**
@@ -338,6 +471,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}
 
 		const presetData = this.soundfont.getInstrumentData(presetNameOrObject)
+		const instrumentData = getInstrumentData(presetNameOrObject) ??
+			getInstrumentData(presetData?.folder) ??
+			getInstrumentData(presetData?.name)
 		const presetCacheKey = presetData?.name ?? presetNameOrObject
 		const nextPresetName = presetData?.folder ?? presetNameOrObject
 		const previousCacheKey = this.activeSoundFontCacheKey
@@ -437,7 +573,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 		// FIXME: set the default instrument index if saved
 		this.instrumentName = nextPresetName
 		this.instrumentPack = instrumentPack
-		this.instrumentFamily = presetData?.family ?? this.audioBuffers.family
+		this.activePresetData = instrumentData
+		this.instrumentFamily = instrumentData?.family ?? presetData?.family ?? this.audioBuffers.family
+		this.configurePresetEffects()
 
 		// Fetch the GM name
 		this.title = finalInstrumentTitle
@@ -476,6 +614,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}
 		this.fallbackAudioBuffers = null
 		this.soundfont?.cancelLoading()
+		;[this.lpfNode, this.compressorNode, this.reverbNode, this.dryGainNode, this.reverbGainNode, this.effectOutput]
+			.forEach(node => node?.disconnect?.())
 		return await super.destroy()
 	}
 	

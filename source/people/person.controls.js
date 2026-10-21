@@ -1,4 +1,10 @@
 import { rangeRounded } from "../maths/maths"
+import {
+	normaliseHeadPitchForRange,
+	normaliseHeadRollForRange,
+	resolveHeadNoteRangeDegrees,
+	resolveHeadVerticalRangeDegrees
+} from "./head-note-range.js"
 
 /**
  * Default head control input mechanism
@@ -11,8 +17,25 @@ import { rangeRounded } from "../maths/maths"
  */
 export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 
-	const octaveNumber = prediction[options.octaveController] 
-	const noteNumber = prediction[options.noteController] 
+	const getControllerValue = controller => {
+		switch(controller)
+		{
+			case 'roll':
+				return normaliseHeadRollForRange(
+					prediction,
+					resolveHeadNoteRangeDegrees(options.headNoteRangeDegrees, options.headNoteRangeOverride)
+				)
+			case 'pitch':
+				return normaliseHeadPitchForRange(
+					prediction,
+					resolveHeadVerticalRangeDegrees(options.headVerticalRangeDegrees, options.headVerticalRangeOverride)
+				)
+			default:
+				return prediction[controller]
+		}
+	}
+	const octaveNumber = getControllerValue(options.octaveController)
+	const noteNumber = getControllerValue(options.noteController)
 	// console.log("octaveNumber",octaveNumber,"noteNumber",noteNumber)
 	// pitch goes from -1 -> +1 and we want to map to 1 -> 7
 	// straight at screen to positive below and negative above
@@ -45,6 +68,47 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 		isSharp
 	}
 }
+
+export const PERSON_INPUT_MODE_HEAD_UP_DOWN_OCTAVE = 0
+export const PERSON_INPUT_MODE_HEAD_LEFT_RIGHT_OCTAVE = 1
+
+export const PERSON_INPUT_MODE_DATA = Object.freeze([
+	Object.freeze({
+		name:"UD",
+		description:"Head up/down controls octave",
+		controlMode:convertHeadOrientationIntoNoteData,
+		options:Object.freeze({
+			noteController:"roll",
+			octaveController:"pitch",
+			gateController:"mouth",
+			pitchbendController:"leftSmirk",
+			aftertouchController:"rightSmirk",
+			sharpController:"isFacingRight"
+		})
+	}),
+	Object.freeze({
+		name:"LR",
+		description:"Head left/right controls octave",
+		controlMode:convertHeadOrientationIntoNoteData,
+		options:Object.freeze({
+			noteController:"pitch",
+			octaveController:"roll",
+			gateController:"mouth",
+			pitchbendController:"leftSmirk",
+			aftertouchController:"rightSmirk",
+			sharpController:"isFacingRight"
+		})
+	})
+])
+
+export const normalisePersonInputMode = (inputMode=0) => {
+	const parsedMode = Number.parseInt(inputMode, 10)
+	const safeMode = Number.isFinite(parsedMode) ? parsedMode : 0
+	return ((safeMode % PERSON_INPUT_MODE_DATA.length) + PERSON_INPUT_MODE_DATA.length) % PERSON_INPUT_MODE_DATA.length
+}
+
+export const getPersonInputModeData = (inputMode=0) =>
+	PERSON_INPUT_MODE_DATA[normalisePersonInputMode(inputMode)]
 
 // /**
 //  * Default head control input mechanism

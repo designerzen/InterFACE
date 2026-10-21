@@ -20,6 +20,10 @@ export default class SpeechInstrument extends Instrument{
 	type = "speech"
 	#title = "Speech Synthesis"
 
+	get repetitionRate(){
+		return super.repetitionRate || 48
+	}
+
 	constructor( audioContext, options={} ){
 		super( audioContext, {...DEFAULT_SINGING_OPTIONS, ...options} )
 		this.available = hasSpeech()

@@ -15,7 +15,7 @@ block header
 		include /assets/diagrams/hero.svg 
 
 	#summary
-		p(aria-label="summary")
+		p(aria-label="summary").new-client
 			block summary
 				| It can be hard work playing a musical instrument...
 				| So, how about letting the musical instrument play you instead?
@@ -58,13 +58,9 @@ block header
 
 
 	nav#pwa
-		a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})") Play!
-
-		label(for="install-pwa" hidden).text-always Install this app
-			button#install-pwa.button-install( hidden type="button" title="Install this application to your homescreen") Install
-		
-		label(for="upgrade-pwa" hidden).text-always Upgrade to the latest version v.#{package.version}
-			button#upgrade-pwa.button-upgrade( type="button" hidden title="Upgrade this app to the latest version") Upgrade
+		a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})") Play Online!
+		button#install-pwa.button-push.button-install.icon-right.text-always(hidden type="button" title="Install this application to your homescreen") Install
+		button#upgrade-pwa.button-push.button-upgrade.icon-right.text-always(hidden type="button" title="Upgrade to the latest version v.#{package.version}") Upgrade
 
 	details#requirements-test
 		summary Requirements

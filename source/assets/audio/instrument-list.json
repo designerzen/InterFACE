@@ -1,5 +1,13 @@
 [
 	{
+		"type":"CompositeInstrument",
+		"name":"Composite",
+		"options":{
+			"instrumentPack":"OpenGM24",
+			"defaultPreset":0
+		}
+	},
+	{
 		"type":"SoundFontInstrument",
 		"name":"SoundFont",
 		"options":{

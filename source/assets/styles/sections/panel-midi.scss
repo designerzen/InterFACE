@@ -1,23 +1,149 @@
 #folder-midi{
-
+	box-sizing: border-box;
+	inline-size: min(58rem, 100vw);
+	max-inline-size: 100%;
+	max-block-size: calc(100dvh - env(safe-area-inset-top, 0px));
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
 }
 
 #midi-panel{
 	box-shadow: none;
-	min-inline-size: min(38rem, 88vw);
+	inline-size: min(56rem, calc(100vw - (var(--pad) * 2)));
+	min-inline-size: 0;
+	max-inline-size: 100%;
+	margin-inline: auto;
 	display: grid;
-	gap: var(--pad);
+	align-content: start;
+	gap: calc(var(--pad) * .65);
+	color: var(--shade-white, #fff);
 }
 
-#midi-person-routing{ display: grid; gap: calc(var(--pad) * .75); }
-.midi-person-route{ display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(10rem, 2fr) minmax(8rem, 1fr); gap: calc(var(--pad) * .5); align-items: end; }
-.midi-person-route label{ display: grid; gap: .25rem; }
-#midi-monitor{ border-block-start: 1px solid currentColor; padding-block-start: var(--pad); }
-#midi-monitor-events{ block-size: 10rem; overflow: auto; margin: .5rem 0; padding-inline-start: 2rem; font-family: ui-monospace, monospace; font-size: .8rem; }
-.midi-monitor-event[data-direction="input"]{ color: var(--green, #70df91); }
-.midi-monitor-event[data-direction="app"]{ color: var(--yellow, #ffd76a); }
-.midi-monitor-event[data-direction="output"]{ color: var(--blue, #7fc8ff); }
-@media (max-width: 36rem){ .midi-person-route{ grid-template-columns: 1fr; } }
+#midi-monitor{ display: grid; align-content: start; gap: calc(var(--pad) * .6); border-block-start: 1px solid currentColor; padding-block-start: calc(var(--pad) * .6); }
+#midi-monitor-title{
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	margin: 0;
+	padding-block: .25rem;
+	background: var(--col-bottom, #090505);
+	font-size: clamp(1rem, 2vw, 1.35rem);
+}
+#midi-monitor-devices{
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	grid-auto-rows: max-content;
+	align-content: start;
+	align-items: start;
+	gap: calc(var(--pad) * .45);
+}
+.midi-device-card{
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(12rem, 1fr) minmax(20rem, auto);
+	align-items: center;
+	align-content: start;
+	gap: calc(var(--pad) * .75);
+	min-inline-size: 0;
+	padding: calc(var(--pad) * .6) calc(var(--pad) * .75);
+	border: 1px solid color-mix(in srgb, var(--shade-white, #fff) 32%, transparent);
+	border-radius: calc(var(--curve, .5rem) * .75);
+	background: color-mix(in srgb, #090505 94%, var(--shade-white, #fff));
+	color: var(--shade-white, #fff);
+	overflow: hidden;
+}
+.midi-device-card[data-midi-direction="input"]{ grid-template-columns: minmax(0, 1fr); }
+.midi-device-card header{ display: flex; align-items: start; justify-content: space-between; gap: var(--pad); }
+.midi-device-name{ min-inline-size: 0; }
+.midi-device-card h4{ margin: 0; color: inherit; font-size: clamp(1rem, 1.5vw, 1.35rem); line-height: 1.05; overflow-wrap: anywhere; }
+.midi-device-status{ display: grid; justify-items: end; flex: 0 0 auto; gap: .35rem; }
+.midi-device-kind{ font-size: .68rem; letter-spacing: .08em; text-transform: none; color: color-mix(in srgb, currentColor 72%, transparent); }
+.midi-device-manufacturer{ margin: .2rem 0 0; color: color-mix(in srgb, currentColor 72%, transparent); font-size: .74rem; line-height: 1.15; }
+.midi-device-activity{
+	display: flex;
+	align-items: center;
+	gap: .4rem;
+	min-block-size: 1rem;
+	max-inline-size: 15rem;
+	font: .7rem/1 ui-monospace, monospace;
+	color: color-mix(in srgb, currentColor 68%, transparent);
+}
+.midi-device-activity::before{
+	content: "";
+	inline-size: .55rem;
+	block-size: .55rem;
+	flex: 0 0 auto;
+	border-radius: 50%;
+	background: currentColor;
+	box-shadow: 0 0 0 0 currentColor;
+}
+.midi-device-activity span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.midi-device-card[data-activity="input"] .midi-device-activity{ color: var(--green, #70df91); }
+.midi-device-card[data-activity="output"] .midi-device-activity{ color: var(--blue, #7fc8ff); }
+.midi-device-card.is-active .midi-device-activity::before{ animation: midi-device-pulse .55s ease-out; }
+.midi-device-routing{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 10rem); align-items: end; gap: calc(var(--pad) * .6); margin: 0; padding: 0; border: 0; }
+.midi-device-assignment{ display: grid; min-inline-size: 0; gap: .35rem; }
+.midi-device-routing-label{ color: color-mix(in srgb, currentColor 78%, transparent); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: none; }
+.midi-device-people{ display: flex; flex-wrap: wrap; gap: .4rem; }
+.midi-device-person{
+	display: inline-flex;
+	align-items: center;
+	gap: .35rem;
+	min-block-size: 2rem;
+	padding: .3rem .5rem;
+	border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+	border-radius: calc(var(--curve, .5rem) * .5);
+	background: color-mix(in srgb, currentColor 6%, transparent);
+	color: inherit;
+	font-size: .78rem;
+	cursor: pointer;
+}
+.controls #folder-midi .midi-device-person::before,
+.controls #folder-midi .midi-device-channel::before{ display: none; }
+.midi-device-person:has(input:checked){ border-color: var(--shade-active, #7fc8ff); background: color-mix(in srgb, var(--shade-active, #7fc8ff) 24%, transparent); }
+.controls #folder-midi .midi-device-person input{
+	position: static;
+	inset: auto;
+	inline-size: 1rem;
+	block-size: 1rem;
+	min-inline-size: 1rem;
+	max-inline-size: 1rem;
+	margin: 0;
+	border: revert;
+	appearance: auto;
+	opacity: 1;
+	overflow: visible;
+}
+.midi-device-channel{ display: grid; gap: .35rem; color: inherit; }
+.controls #folder-midi .midi-device-channel select:not(.select-content){
+	display: block;
+	position: static;
+	inset: auto;
+	inline-size: 100%;
+	min-inline-size: 0;
+	max-inline-size: none;
+	min-block-size: 2.1rem;
+	padding: .35rem 1.6rem .35rem .55rem;
+	border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+	border-radius: calc(var(--curve, .5rem) * .5);
+	background-color: #171313;
+	color: var(--shade-white, #fff);
+	font: inherit;
+	font-size: .78rem;
+	appearance: auto;
+	opacity: 1;
+	overflow: visible;
+}
+.midi-device-channel option{ background: #171313; color: var(--shade-white, #fff); }
+@keyframes midi-device-pulse{ 50%{ transform: scale(1.7); box-shadow: 0 0 .8rem currentColor; } }
+@media (prefers-reduced-motion: reduce){ .midi-device-card.is-active .midi-device-activity::before{ animation: none; } }
+@media (max-width: 48rem){
+	.midi-device-card{ grid-template-columns: minmax(0, 1fr); }
+	.midi-device-routing{ grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 10rem); }
+}
+@media (max-width: 30rem){ .midi-device-routing{ grid-template-columns: 1fr; } }
 
 #no-midi-devices{
 	display: flex;
@@ -25,6 +151,10 @@
 	align-items: center;
 	gap:var(--pad);
 	box-shadow: none;
+}
+
+#no-midi-devices[hidden]{
+	display: none;
 }
 
 #toggle-midi{
@@ -41,3 +171,194 @@ label[for="waiting-for-midi-devices"]{
 #waiting-for-midi-devices{
 	--size:1rem; 
 }
+
+#midi-monitor-empty[hidden]{ display: none; }
+#midi-monitor-empty{ padding: 1.5rem; border: 1px dashed currentColor; border-radius: .5rem; text-align: center; }
+#midi-routing-summary{ margin: 0; line-height: 1.5; }
+.midi-device-card{ grid-template-columns: minmax(0, 1fr); }
+.midi-device-connection{ margin: 0; font-size: .8rem; opacity: .8; overflow-wrap: anywhere; }
+.midi-device-routes{ border-block-start: 1px solid #ffffff30; padding-block-start: .5rem; }
+.midi-device-routes p{ margin: .25rem 0; font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
+.midi-person-routing{ display: grid; gap: 1rem; margin-block-start: 1rem; }
+.midi-person-routing h4{ margin: 0; }
+.midi-person-route{ display: grid; grid-template-columns: minmax(5rem, .7fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .65rem; padding-block: .75rem; border-block-end: 1px solid #ffffff30; }
+.midi-person-route strong{ overflow-wrap: anywhere; }
+.controls #folder-midi .midi-person-route select:not(.select-content){ min-block-size: 2.75rem; font-size: .9rem; }
+@media(max-width: 36rem){
+	.midi-person-route{ grid-template-columns: minmax(0, 1fr); }
+	.midi-person-route > span{ display: none; }
+}
+
+.midi-presets, .midi-connection-map{ display: grid; gap: .8rem; min-inline-size: 0; }
+.midi-presets h4, .midi-presets p, .midi-connection-map p{ margin: 0; }
+.midi-presets p, .midi-connection-map > p{ font-size: .85rem; line-height: 1.5; opacity: .85; }
+.midi-preset-grid{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.controls #folder-midi button.midi-preset{
+ display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
+ inline-size: 100%; min-inline-size: 0; block-size: auto; min-block-size: 9rem; margin: 0;
+ padding: .9rem; gap: .45rem; border: 1px solid #ffffff40; border-radius: .65rem;
+ background: #191723; color: #fff; text-align: start; white-space: normal;
+ font: inherit; text-transform: none; letter-spacing: normal; box-shadow: none;
+}
+.controls #folder-midi button.midi-preset::before, .controls #folder-midi button.midi-preset::after{ display: none; }
+.controls #folder-midi button.midi-preset[aria-pressed="true"]{ border-color: #90caff; background: #203347; box-shadow: inset 0 0 0 1px #90caff; }
+.controls #folder-midi button.midi-preset:disabled{ opacity: .5; cursor: not-allowed; }
+.controls #folder-midi button.midi-preset:focus-visible{ outline: 3px solid #ffce86; outline-offset: 3px; }
+.midi-preset > span:not(.midi-preset-sketch), .midi-preset small{ font-size: .8rem; line-height: 1.4; }
+.midi-preset-sketch{ font: 1rem ui-monospace, monospace; color: #90caff; }
+.midi-shared-target{ max-inline-size: 25rem; }
+.midi-preset-status{ color: #90caff; }
+.midi-connection-map{ margin: .5rem 0; padding: 1rem; border: 1px solid #ffffff30; border-radius: .65rem; background: #11101b; }
+.midi-connection-map figcaption{ font-size: 1.1rem; font-weight: 700; }
+.midi-map-row{ --route-colour: #b2bdd3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(7rem, .65fr) minmax(0, 1fr); align-items: center; padding-block: .6rem; }
+.midi-map-node{ display: grid; align-content: center; min-inline-size: 0; gap: .35rem; padding: .8rem; border: 1px solid var(--route-colour, #ffffff40); border-radius: .5rem; background: #211e30; overflow-wrap: anywhere; }
+.midi-map-person{ border-inline-start: .3rem solid var(--route-colour); }
+.midi-map-node strong{ font-size: .9rem; }
+.midi-map-node small{ font-size: .73rem; line-height: 1.4; opacity: .8; }
+.midi-map-targets{ display: grid; gap: .5rem; }
+.midi-map-wire{ min-inline-size: 0; color: var(--route-colour); text-align: center; }
+.midi-map-wire span{ display: block; font-size: .75rem; padding: 0 .4rem .4rem; }
+.midi-map-wire i{ position: relative; display: block; border-block-start: 2px solid currentColor; }
+.midi-map-wire i::after{ content: ''; position: absolute; right: 0; top: -5px; border-block: 4px solid transparent; border-inline-start: 7px solid currentColor; }
+.midi-map-row.is-unrouted .midi-map-wire i{ border-block-start-style: dashed; opacity: .5; }
+.midi-map-unused{ display: grid; gap: .5rem; border-block-start: 1px solid #ffffff25; padding-block-start: .75rem; font-size: .8rem; }
+.midi-person-routing > summary{ cursor: pointer; padding-block: .8rem; font-weight: 700; }
+.midi-person-routing[open]{ margin-block-end: 1rem; }
+@media(max-width: 36rem){
+ .midi-preset-grid{ grid-template-columns: minmax(0, 1fr); }
+ .controls #folder-midi button.midi-preset{ min-block-size: 0; }
+ .midi-map-row{ grid-template-columns: minmax(0, 1fr); }
+ .midi-map-wire{ display: flex; align-items: center; justify-content: center; gap: .6rem; min-block-size: 3rem; }
+ .midi-map-wire span{ padding: 0; }
+ .midi-map-wire i{ block-size: 2rem; border-block-start: 0; border-inline-start: 2px solid currentColor; }
+ .midi-map-wire i::after{ top: auto; bottom: 0; right: -3px; border-inline: 4px solid transparent; border-block-start: 7px solid currentColor; border-block-end: 0; }
+ .midi-map-row.is-unrouted .midi-map-wire i{ border-inline-start-style: dashed; }
+}
+
+// Keep the connection map and common setup actions within easy reach.
+.midi-presets, .midi-connection-map{ gap: .5rem; }
+.controls #folder-midi button.midi-preset{ min-block-size: 0; padding: .65rem .8rem; gap: .3rem; }
+.midi-presets > p:first-of-type{ font-size: .78rem; }
+.midi-preset-grid{ gap: .5rem; }
+.midi-connection-map{ padding: .75rem; margin: .25rem 0; }
+.midi-map-row{ padding-block: .25rem; }
+.midi-map-node{ padding: .55rem .65rem; gap: .2rem; }
+.midi-map-node small{ font-size: .68rem; }
+.midi-map-wire span{ font-size: .7rem; }
+.midi-person-routing, .midi-port-details{ margin: 0; }
+.midi-person-routing > summary, .midi-port-details > summary{ padding: .65rem .2rem; font-size: .9rem; cursor: pointer; }
+.midi-port-cards{ display: grid; gap: .5rem; padding-block: .5rem; }
+.midi-map-unused{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.midi-map-unused > span{ grid-column: 1 / -1; }
+@media(max-width: 36rem){
+ .midi-preset-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .controls #folder-midi button.midi-preset{ padding: .6rem; }
+ .midi-preset strong{ font-size: .85rem; }
+ .midi-preset > span:not(.midi-preset-sketch), .midi-preset small{ font-size: .72rem; }
+ .midi-map-row{ grid-template-columns: minmax(0, .8fr) minmax(3.8rem, .65fr) minmax(0, 1.2fr); }
+ .midi-map-node{ padding: .45rem; }
+ .midi-map-node strong{ font-size: .8rem; }
+ .midi-map-node small{ font-size: .63rem; }
+ .midi-map-wire{ display: block; min-block-size: 0; }
+ .midi-map-wire span{ font-size: .65rem; padding: 0 .15rem .3rem; }
+ .midi-map-wire i{ block-size: auto; border-inline-start: 0; border-block-start: 2px solid currentColor; }
+ .midi-map-wire i::after{ top: -5px; bottom: auto; right: 0; border-block: 4px solid transparent; border-inline-start: 7px solid currentColor; border-inline-end: 0; }
+ .midi-map-row.is-unrouted .midi-map-wire i{ border-block-start-style: dashed; }
+}
+
+// MIDI owns its frame; generic folder animations and close overlays must not
+// turn the whole panel into a scroll container or cover its controls.
+.controls #folder-midi{
+ position: fixed; inset: max(.5rem, env(safe-area-inset-top)) .5rem max(.5rem, env(safe-area-inset-bottom)) auto;
+ inline-size: min(56rem, calc(100vw - 1rem)); max-inline-size: calc(100vw - 1rem);
+ block-size: auto; max-block-size: none; min-block-size: 0;
+ display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+ margin: 0; padding: 0; overflow: hidden; scrollbar-gutter: auto;
+ background: #15121b; color: #fff; border: 1px solid #ffffff50; border-radius: .65rem;
+ font-size: 16px; line-height: 1.4; text-shadow: none;
+}
+.controls #folder-midi::after{ display: none; }
+.controls #folder-midi > *{ flex-grow: 0; min-inline-size: 0; }
+.controls #folder-midi .midi-panel-header{
+ display: flex; align-items: center; gap: .75rem; padding: .65rem .8rem;
+ border-block-end: 1px solid #ffffff40; background: #211c2b; z-index: 3;
+}
+.controls #folder-midi .midi-panel-header h2{ margin: 0; margin-inline-end: auto; font-size: 1rem; line-height: 1.2; }
+.controls #folder-midi .midi-enable{ display: flex; align-items: center; gap: .4rem; padding: 0; font-size: .8rem; min-block-size: 44px; white-space: nowrap; }
+.controls #folder-midi .midi-enable::before{ display: none; }
+.controls #folder-midi #toggle-midi{ position: static; inset: auto; order: 0; inline-size: 1.1rem; block-size: 1.1rem; min-width: 1.1rem; max-width: 1.1rem; margin: 0; appearance: auto; opacity: 1; }
+.controls #folder-midi .midi-panel-scroll{
+ min-block-size: 0; overflow-y: scroll; overflow-x: hidden; overscroll-behavior: contain;
+ scrollbar-width: auto; scrollbar-color: #b9accb #282130; scrollbar-gutter: stable;
+ padding: .75rem; scroll-padding-block: .75rem; touch-action: pan-y; position: relative;
+}
+.controls #folder-midi .midi-panel-scroll::-webkit-scrollbar{ width: 12px; }
+.controls #folder-midi .midi-panel-scroll::-webkit-scrollbar-thumb{ background: #b9accb; border: 3px solid #282130; border-radius: 8px; }
+.controls #folder-midi .midi-panel-scroll::-webkit-scrollbar-track{ background: #282130; }
+.controls #folder-midi #midi-panel{ inline-size: 100%; padding: 0; margin: 0; border: 0; min-inline-size: 0; }
+.controls #folder-midi #midi-monitor{ border: 0; padding: 0; }
+.controls #folder-midi #midi-monitor-title{ position: static; background: none; font-size: .95rem; }
+.controls #folder-midi .midi-panel-footer{ display: flex; align-items: center; gap: .5rem; padding: .4rem .75rem; border-block-start: 1px solid #ffffff40; background: #211c2b; z-index: 3; }
+.controls #folder-midi #midi-scroll-status{ margin-inline-end: auto; font-size: .75rem; }
+.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button{
+ display: inline-flex; align-items: center; justify-content: center; position: static;
+ min-width: 44px; min-height: 44px; width: auto; height: auto; margin: 0; padding: .4rem .65rem;
+ border: 1px solid #ffffff70; border-radius: .4rem; color: #fff; background: #352c44;
+ font: 600 .85rem/1.2 system-ui, sans-serif; text-shadow: none; letter-spacing: normal; box-shadow: none;
+}
+.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button::before,
+.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button::after{ display: none; }
+.controls #folder-midi button:disabled{ opacity: .45; }
+.controls #folder-midi :focus-visible{ outline: 2px solid #ffce86; outline-offset: 2px; }
+#control-panel-midi.midi-dismissed #folder-midi{ visibility: hidden; opacity: 0; pointer-events: none; animation: none; }
+#control-panel-midi.midi-dismissed #folder-midi *{ visibility: hidden; pointer-events: none; }
+@media(max-width: 380px){
+ .controls #folder-midi .midi-panel-header{ gap: .4rem; padding: .5rem; }
+ .controls #folder-midi .midi-panel-scroll{ padding: .5rem; }
+}
+
+// Open on activation, not on pointer focus: focus-triggered folders can cover
+// their own launcher before the click finishes on small screens.
+#control-panel-midi:not(.midi-open) #folder-midi,
+#control-panel-midi:not(.midi-open) #folder-midi *{ visibility: hidden; pointer-events: none; }
+#control-panel-midi:not(.midi-open) #folder-midi{ opacity: 0; animation: none; }
+#control-panel-midi.midi-open #folder-midi{ visibility: visible; opacity: 1; pointer-events: auto; animation: none; transform: none; }
+#control-panel-midi.midi-open #folder-midi > *{ visibility: visible; }
+
+.controls #folder-midi button[data-midi-reset]{
+ display: inline-flex; align-items: center; justify-content: center; min-width: 0; max-width: 100%;
+ width: auto; height: auto; min-height: 44px; margin: .5rem 0; padding: .5rem .75rem;
+ border: 1px solid #ffffff70; border-radius: .4rem; background: #352c44; color: #fff;
+ font: 600 .85rem/1.3 system-ui, sans-serif; text-shadow: none; letter-spacing: normal; white-space: normal;
+}
+.controls #folder-midi button[data-midi-reset]::before,
+.controls #folder-midi button[data-midi-reset]::after{ display: none; }
+.controls #folder-midi button.midi-preset{ max-width: none; }
+.controls #folder-midi .midi-device-channel{ font-size: .8rem; }
+.controls #folder-midi .midi-device-channel select:not(.select-content){ order: 0; }
+
+// MIDI CC reference shares the routing panel's colours with a compact table.
+dialog#midi-cc-dialog{
+ width: min(54rem, calc(100vw - 2rem)); max-width: calc(100vw - 2rem);
+ max-height: calc(100dvh - 2rem); height: auto; padding: 1rem;
+ background: #15121b; background-image: none; color: #fff;
+ border: 1px solid #ffffff50; border-radius: .75rem;
+ font: 14px/1.5 system-ui, sans-serif; text-shadow: none; overflow: auto;
+}
+#midi-cc-dialog form{ display: grid; gap: .8rem; margin: 0; padding: 0; }
+#midi-cc-dialog .midi-cc-dialog-header{ display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+#midi-cc-dialog h2{ margin: 0; font: 700 1.15rem/1.3 system-ui, sans-serif; }
+#midi-cc-dialog p{ margin: 0; }
+#midi-cc-dialog .midi-cc-hint{ color: #c5bbd3; font-size: .8rem; }
+#midi-cc-dialog button{ position: static; width: auto; height: auto; min-height: 44px; margin: 0; padding: .4rem .7rem; border: 1px solid #ffffff70; border-radius: .4rem; background: #352c44; color: #fff; font: 600 .85rem/1.2 system-ui, sans-serif; box-shadow: none; letter-spacing: normal; }
+#midi-cc-dialog button::before, #midi-cc-dialog button::after{ display: none; }
+#midi-cc-dialog :focus-visible{ outline: 2px solid #ffce86; outline-offset: 2px; }
+#midi-cc-dialog .midi-cc-table-scroll{ max-height: 58dvh; overflow: auto; overscroll-behavior: contain; border: 1px solid #ffffff30; border-radius: .4rem; }
+#midi-cc-dialog table{ width: 100%; border-collapse: collapse; text-align: start; font-size: .85rem; }
+#midi-cc-dialog caption{ padding: .6rem .75rem; text-align: start; color: #c5bbd3; }
+#midi-cc-dialog th, #midi-cc-dialog td{ padding: .6rem .75rem; border-bottom: 1px solid #ffffff20; vertical-align: top; text-align: start; }
+#midi-cc-dialog thead th{ position: sticky; top: 0; background: #352c44; z-index: 1; }
+#midi-cc-dialog tbody th{ color: #90caff; font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+#midi-cc-dialog tbody tr:nth-child(even){ background: #ffffff05; }
+#midi-cc-dialog td:nth-child(2){ min-width: 7rem; }
+#midi-cc-dialog td:last-child{ overflow-wrap: anywhere; }

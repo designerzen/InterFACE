@@ -3,6 +3,7 @@ export const EVENT_STATE_INITIALISING = "initialising"
 export const EVENT_STATE_LOADING = "application-loading"
 export const EVENT_STATE_LOADED = "application-loaded"
 export const EVENT_STATE_PARKED = "application-parked"
+export const EVENT_VIDEO_STARTED = "onVideoStarted"
 
 export default class InterfaceEvent extends Event{
 
@@ -20,4 +21,4 @@ export default class InterfaceEvent extends Event{
 	clone(){
 		return new InterfaceEvent( this.type, this.details, this.cancelable, this.bubbles )
 	}
-} 
+}

@@ -2,6 +2,7 @@ node_modules
 node_modules*
 .cache
 .parcel-cache
+.turbo/
 *.DS_Store
 # there are things already committed in dist/ mainly the smaples
 dist-electron/*

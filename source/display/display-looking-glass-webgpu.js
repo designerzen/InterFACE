@@ -674,7 +674,9 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 			0.75 + (1 - Math.abs(prediction.yaw ?? 0)) * 0.25,
 			person.noteIndex,
 			person.quantityOfPlayableNotes,
-			false
+			false,
+			person.headNoteRangeDegrees,
+			person.hsl
 		)
 	}
 
@@ -710,7 +712,7 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 
 	drawText() {}
 	drawParagraph() {}
-	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false, noteRangeDegrees = 90, activeNoteColour = '#fff') {
 		updateLookingGlassEmoticonParticles(this, {
 			Group,
 			BufferGeometry,
@@ -724,7 +726,9 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 			rotationX,
 			activeCircleIndex,
 			numberOfNotesInKey,
-			flipX
+			flipX,
+			noteRangeDegrees,
+			activeNoteColour
 		})
 	}
 	drawBars() {}

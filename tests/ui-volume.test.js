@@ -6,8 +6,6 @@ describe('volume slider', () => {
 			<div class="volume-icon">
 				<a class="folder-link" href="#folder-volume">Volume</a>
 			</div>
-			<output id="volumeoutput"></output>
-			<input id="volume-input-range" type="range" min="0" max="1" step="0.05">
 			<input id="mixer-master-volume" type="range" min="0" max="1" step="0.01">
 			<output id="mixer-master-output"></output>
 			<input id="mixer-percussion-volume" type="range" min="0" max="1" step="0.01">
@@ -20,7 +18,10 @@ describe('volume slider', () => {
 				<input id="button-mute" type="checkbox">
 			</label>
 		`
+        document.documentElement.classList.add('beginner')
 	})
+
+    afterEach(() => document.documentElement.classList.remove('beginner'))
 
 	test('routes Shift to percussion, Control to Person trim, and Alt to samples', async () => {
 		const onVolumeChanged = jest.fn()
@@ -37,7 +38,7 @@ describe('volume slider', () => {
 			currentSampleVolume:0.2,
 			trimVolumeScale:4
 		})
-		const slider = document.getElementById('volume-input-range')
+		const slider = document.getElementById('mixer-master-volume')
 
 		slider.value = '0.6'
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
@@ -53,19 +54,19 @@ describe('volume slider', () => {
 
 		window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift' }))
 		expect(slider.value).toBe('0.6')
-		expect(document.getElementById('volumeoutput').innerText).toBe('60%')
+		expect(document.getElementById('mixer-master-output').innerText).toBe('60%')
 
 		slider.focus()
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control' }))
 		expect(slider.value).toBe('0.25')
-		expect(document.getElementById('volumeoutput').innerText).toBe('100%')
+		expect(document.getElementById('mixer-master-output').innerText).toBe('100%')
 		slider.value = '1'
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		await new Promise(resolve => requestAnimationFrame(resolve))
 
 		expect(onTrimVolumeChanged).toHaveBeenCalledTimes(1)
 		expect(onTrimVolumeChanged).toHaveBeenCalledWith('1')
-		expect(document.getElementById('volumeoutput').innerText).toBe('400%')
+		expect(document.getElementById('mixer-master-output').innerText).toBe('400%')
 		expect(onVolumeChanged).toHaveBeenCalledTimes(1)
 		window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Control' }))
 		expect(slider.value).toBe('0.6')
@@ -78,7 +79,7 @@ describe('volume slider', () => {
 		expect(onSampleVolumeChanged).toHaveBeenCalledWith('0.3')
 		window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }))
 		expect(slider.value).toBe('0.6')
-		expect(document.getElementById('volumeoutput').innerText).toBe('60%')
+		expect(document.getElementById('mixer-master-output').innerText).toBe('60%')
 		slider.value = '0.4'
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		await new Promise(resolve => requestAnimationFrame(resolve))
@@ -89,6 +90,7 @@ describe('volume slider', () => {
 	})
 
 	test('initialises and routes every advanced mixer channel', async () => {
+        document.documentElement.classList.remove('beginner')
 		const callbacks = {
 			onVolumeChanged: jest.fn(),
 			onPercussionVolumeChanged: jest.fn(),
@@ -122,8 +124,8 @@ describe('volume slider', () => {
 		await new Promise(resolve => requestAnimationFrame(resolve))
 
 		changes.forEach(([, value, callback]) => expect(callback).toHaveBeenCalledWith(value))
-		expect(document.getElementById('volume-input-range').value).toBe('0.7')
-		expect(document.getElementById('volumeoutput').innerText).toBe('70%')
+		expect(document.getElementById('mixer-master-volume').value).toBe('0.7')
+		expect(document.getElementById('mixer-master-output').innerText).toBe('70%')
 		expect(document.getElementById('mixer-trim-output').innerText).toBe('200%')
 
 		controls.toggleMute(true)

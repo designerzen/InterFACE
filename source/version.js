@@ -1,1 +1,2 @@
-export const VERSION="0.49.10";export const DATE=1786271335986;
+export const VERSION="0.60.0";
+export const DATE=1786271335986;

@@ -82,6 +82,16 @@ describe('percussion presets', () => {
 		expect(PERCUSSION_PRESETS.filter(preset => preset.groove).length).toBeGreaterThanOrEqual(24)
 	})
 
+	test('offers transition patterns designed for live performance', () => {
+		const performancePresets = PERCUSSION_PRESETS.filter(preset => preset.group === 'Performance')
+		expect(performancePresets.map(preset => preset.id)).toEqual([
+			'performance-crescendo', 'performance-bridge', 'performance-snare-roll',
+			'performance-breakdown', 'performance-drop',
+		])
+		expect(performancePresets.every(preset => preset.stepsPerBar === 16)).toBe(true)
+		expect(performancePresets.every(preset => DRUM_GROOVES[preset.groove]?.performance)).toBe(true)
+	})
+
 	test('every pattern collection references a defined groove', () => {
 		for (const preset of PERCUSSION_PRESETS) {
 			if (preset.groove) expect(DRUM_GROOVES[preset.groove]).toBeDefined()

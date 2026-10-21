@@ -58,6 +58,11 @@ const PICADE_GAMEPAD_MODE_STYLES = Object.freeze({
 	[PICADE_GAMEPAD_MODE_NOTES]:'gamepad-notes',
 	[PICADE_GAMEPAD_MODE_CHORDS]:'gamepad-chords',
 })
+export const PICADE_GAMEPAD_MODE_COLORS = Object.freeze({
+	[PICADE_GAMEPAD_MODE_PERCUSSION]:'#ffb000',
+	[PICADE_GAMEPAD_MODE_NOTES]:'#00e5ff',
+	[PICADE_GAMEPAD_MODE_CHORDS]:'#c77dff',
+})
 export const PICADE_HAT_HOLD_MS = 220
 
 const isPicadeBackingTrackEnabled = application =>
@@ -551,6 +556,15 @@ export const addPicadeMaxEvents = application => {
 	const playerJoystickDirections = [new Set(), new Set()]
 	const playerJoystickActions = [null, null]
 	const activePicadeNotes = new Map()
+	const getModeLightOptions = player => ({
+		color: PICADE_GAMEPAD_MODE_COLORS[PICADE_GAMEPAD_MODES[playerGamepadModes[player]]],
+		brightness: 16,
+		persistent: true,
+	})
+	const paintModeLight = player => {
+		const options = getModeLightOptions(player)
+		controller?.setButtonLight(player, BUTTON_SELECT, options.color, options)
+	}
 	const stopPicadeNotes = player => {
 		for (const [key, active] of activePicadeNotes) {
 			if (!key.startsWith(`${player}:`)) continue
@@ -562,6 +576,7 @@ export const addPicadeMaxEvents = application => {
 		const previous = PICADE_GAMEPAD_MODES[playerGamepadModes[player]]
 		playerGamepadModes[player] = getNextPicadeGamepadModeIndex(playerGamepadModes[player])
 		const mode = PICADE_GAMEPAD_MODES[playerGamepadModes[player]]
+		paintModeLight(player)
 		if (previous === PICADE_GAMEPAD_MODE_PERCUSSION) application.releasePercussionInputs?.(`picade:${player}:`)
 		if (previous === PICADE_GAMEPAD_MODE_NOTES) stopPicadeNotes(player)
 		if (previous === PICADE_GAMEPAD_MODE_CHORDS) releaseGamePadChords(gamepad)
@@ -683,6 +698,8 @@ export const addPicadeMaxEvents = application => {
 				await controller.connectPlasma()
 				paintDrumBank(0)
 				paintDrumBank(1)
+				paintModeLight(0)
+				paintModeLight(1)
 				updatePicadeStatus(application, 'Two player drum kits / Plasma lights ready')
 			}else{
 				console.warn('[Picade Max] no paired Plasma serial ports found; quantityOfPeople click should request pairing')
@@ -751,7 +768,9 @@ export const addPicadeMaxEvents = application => {
 		await controller?.disconnect()
 		controller = createPicadeMaxController(gamepads, {
 			lightPreset,
-			getButtonLightOptions: ({ player, eventType }) => getPlayerDrum(player, eventType) ?? PICADE_LIGHTS[eventType] ?? {},
+			getButtonLightOptions: ({ player, eventType }) => eventType === BUTTON_SELECT
+				? getModeLightOptions(player)
+				: getPlayerDrum(player, eventType) ?? PICADE_LIGHTS[eventType] ?? {},
 		})
 		controllerKey = key
 		console.info('[Picade Max] PicadeMaxController active with logical player inputs', gamepads.map(gamepad => ({

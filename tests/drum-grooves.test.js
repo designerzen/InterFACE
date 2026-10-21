@@ -37,6 +37,24 @@ describe('named drum grooves', () => {
 		expect(DRUM_GROOVES.electro.maracas.some(Boolean)).toBe(true)
 	})
 
+	test('includes performance transitions with complete musical arcs', () => {
+		expect(Object.keys(DRUM_GROOVES)).toEqual(expect.arrayContaining([
+			'performance-crescendo', 'performance-bridge', 'performance-snare-roll',
+			'performance-breakdown', 'performance-drop',
+		]))
+
+		const crescendo = DRUM_GROOVES['performance-crescendo']
+		const earlyEnergy = crescendo.snare.slice(0, 16).reduce((sum, velocity) => sum + velocity, 0)
+		const finalEnergy = crescendo.snare.slice(-16).reduce((sum, velocity) => sum + velocity, 0)
+		expect(finalEnergy).toBeGreaterThan(earlyEnergy * 4)
+
+		const roll = DRUM_GROOVES['performance-snare-roll'].snare.slice(-8)
+		expect(roll.every(Boolean)).toBe(true)
+		expect(roll).toEqual(roll.slice().sort((a, b) => a - b))
+		expect(DRUM_GROOVES['performance-bridge'].ride.some(Boolean)).toBe(true)
+		expect(DRUM_GROOVES['performance-drop'].kick.slice(16, 28).every(value => value === 0)).toBe(true)
+	})
+
 	test('overlays patterns at a shared cycle without adding their velocities', () => {
 		const composite = createCompositeDrumGroove([
 			{ kick:[200, 0, 0, 0], snare:[0, 0, 0, 0], hat:[80, 0, 0, 0], clap:[0, 0, 0, 0] },

@@ -1,4 +1,4 @@
-import { cosine, ONE_DEGREE_IN_RADIANS, sine } from "../maths/maths.js"
+import { createNoteCircleData } from "./note-circle.js"
 
 const EMOJI_FONT_FACE = "noto-emoji"
 const EMOJI_FONT = `"${EMOJI_FONT_FACE}"`
@@ -16,27 +16,7 @@ export const DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES = {
 	lookingGlassEmoticonMaxParticles: 1500
 }
 
-const getNoteCircleData = (cx, cy, range = 90, radius = 56, numberOfPoints = 12) => {
-	const halfRange = range / 2
-	const startAngleRadians = (90 - halfRange) * ONE_DEGREE_IN_RADIANS
-	const endAngleRadians = (90 + halfRange) * ONE_DEGREE_IN_RADIANS
-	const angleIncrement = (endAngleRadians - startAngleRadians) / Math.max(1, numberOfPoints - 1)
-	const data = []
-
-	for (let i = 0; i < numberOfPoints; i++)
-	{
-		const currentAngle = startAngleRadians + (i * angleIncrement)
-		data.push({
-			x: cx + radius * cosine(currentAngle),
-			y: cy - radius * sine(currentAngle),
-			radius: 2.4
-		})
-	}
-
-	return data
-}
-
-const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 12) => {
+const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 12, noteRangeDegrees = 90, activeNoteColour = '#fff') => {
 	const canvas = document.createElement("canvas")
 	canvas.width = CANVAS_SIZE
 	canvas.height = CANVAS_SIZE
@@ -68,7 +48,8 @@ const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 
 
 	if (numberOfNotesInKey > 0)
 	{
-		const notes = getNoteCircleData(CANVAS_HALF, CANVAS_HALF - 1, 90, 56, numberOfNotesInKey)
+		const notes = createNoteCircleData(CANVAS_HALF, CANVAS_HALF - 1, noteRangeDegrees, 56, numberOfNotesInKey)
+		notes.forEach(note => { note.radius = 2.4 })
 		if (activeCircleIndex > -1 && notes.length)
 		{
 			notes[Math.min(activeCircleIndex, notes.length - 1)].radius = 5
@@ -85,13 +66,24 @@ const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 
 			context.fill()
 		})
 		context.restore()
+
+		if (activeCircleIndex > -1 && notes.length)
+		{
+			const activeNote = notes[Math.min(activeCircleIndex, notes.length - 1)]
+			context.save()
+			context.fillStyle = activeNoteColour
+			context.beginPath()
+			context.arc(activeNote.x, activeNote.y, 2.7, 0, Math.PI * 2)
+			context.fill()
+			context.restore()
+		}
 	}
 
 	return context.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE).data
 }
 
-const createEmoticonGeometry = (THREE, emoji, activeCircleIndex, numberOfNotesInKey, options) => {
-	const pixels = drawEmoticonCanvas(emoji, activeCircleIndex, numberOfNotesInKey)
+const createEmoticonGeometry = (THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, options) => {
+	const pixels = drawEmoticonCanvas(emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour)
 	if (!pixels)
 	{
 		return null
@@ -192,7 +184,9 @@ export const updateLookingGlassEmoticonParticles = (host, THREE, {
 	rotationX = 0,
 	activeCircleIndex = -1,
 	numberOfNotesInKey = 12,
-	flipX = false
+	flipX = false,
+	noteRangeDegrees = 90,
+	activeNoteColour = '#fff'
 } = {}) => {
 	if (!host?.particles || !host?.scene || !emoji || host.options?.lookingGlassEmoticons === false)
 	{
@@ -212,7 +206,7 @@ export const updateLookingGlassEmoticonParticles = (host, THREE, {
 	}
 
 	const state = host.lookingGlassEmoticonState
-	const key = `${emoji}:${activeCircleIndex}:${numberOfNotesInKey}`
+	const key = `${emoji}:${activeCircleIndex}:${numberOfNotesInKey}:${noteRangeDegrees}:${activeNoteColour}`
 	if (state.key !== key)
 	{
 		state.points?.geometry?.dispose?.()
@@ -222,7 +216,7 @@ export const updateLookingGlassEmoticonParticles = (host, THREE, {
 			state.group.remove(state.points)
 		}
 
-		const geometry = createEmoticonGeometry(THREE, emoji, activeCircleIndex, numberOfNotesInKey, host.options ?? {})
+		const geometry = createEmoticonGeometry(THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, host.options ?? {})
 		if (!geometry)
 		{
 			return

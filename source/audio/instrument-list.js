@@ -1,5 +1,6 @@
 
 export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
+export const INSTRUMENT_TYPE_COMPOSITE = "CompositeInstrument"
 export const INSTRUMENT_TYPE_SOUNDFONT = "SoundFontInstrument"
 export const INSTRUMENT_TYPE_OSCILLATOR = "OscillatorInstrument"
 export const INSTRUMENT_TYPE_DUAL_OSCILLATOR = "DualOscillatorInstrument"
@@ -8,6 +9,7 @@ export const INSTRUMENT_TYPE_WAM = "WAMInstrument"
 export const INSTRUMENT_TYPE_WAM2 = "WAM2Instrument"
 export const INSTRUMENT_TYPE_WAVEGUIDE = "WaveGuideInstrument"
 export const INSTRUMENT_TYPE_SYTHESIZER = "SynthesizerInstrument"
+export const INSTRUMENT_TYPE_FM = "FMInstrument"
 export const INSTRUMENT_TYPE_MONOTRON = "MonotronInstrument"
 export const INSTRUMENT_TYPE_MOOG = "MoogInstrument"
 export const INSTRUMENT_TYPE_MIDI = "MIDIInstrument"
@@ -15,18 +17,32 @@ export const INSTRUMENT_TYPE_SPEECH = "SpeechInstrument"
 export const INSTRUMENT_TYPE_KIT = "KitInstrument"
 export const INSTRUMENT_TYPE_DRUMKIT = "DrumkitInstrument"
 
+export const PERSON_INSTRUMENT_OPTIONS = [
+	[INSTRUMENT_TYPE_COMPOSITE, "Composite"],
+	[INSTRUMENT_TYPE_SOUNDFONT, "SoundFont"],
+	[INSTRUMENT_TYPE_OSCILLATOR, "Oscillator"],
+	[INSTRUMENT_TYPE_SYTHESIZER, "Synthesizer"],
+	[INSTRUMENT_TYPE_FM, "FM Synth (DX7)"]
+]
+
+export const normalisePersonInstrumentType = type =>
+	PERSON_INSTRUMENT_OPTIONS.some(([instrumentType]) => instrumentType === type) ?
+		type : INSTRUMENT_TYPE_COMPOSITE
+
 export const INSTRUMENTS = [
 	INSTRUMENT_TYPE_OSCILLATOR,
 	INSTRUMENT_TYPE_DUAL_OSCILLATOR,
 	INSTRUMENT_TYPE_TRIPLE_OSCILLATOR,
 	
 	INSTRUMENT_TYPE_CHORD,
+	INSTRUMENT_TYPE_COMPOSITE,
 	INSTRUMENT_TYPE_SOUNDFONT,
 	
 	INSTRUMENT_TYPE_WAM,
 	INSTRUMENT_TYPE_WAM2,
 	INSTRUMENT_TYPE_WAVEGUIDE,
 	INSTRUMENT_TYPE_SYTHESIZER,
+	INSTRUMENT_TYPE_FM,
 	INSTRUMENT_TYPE_MONOTRON,
 	INSTRUMENT_TYPE_MOOG,
 	INSTRUMENT_TYPE_SPEECH,

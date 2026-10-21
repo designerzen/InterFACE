@@ -55,9 +55,6 @@ export const DEFAULT_COLOURS = {
 	rightEyeIris:'yellow',
 }
 
-// Dami kim special mode
-export const DAMI_KIM_COLOURS = { ...DEFAULT_COLOURS }
-
 // Simpler colour scheme
 export const PASTEL_COLOURS = { ... DEFAULT_COLOURS }
 

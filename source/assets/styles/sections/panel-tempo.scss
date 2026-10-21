@@ -1,3 +1,27 @@
+#folder-tempo {
+	box-sizing: border-box;
+	max-block-size: calc(100dvh - 1rem);
+}
+
+#tempo-tabs {
+	max-block-size: calc(100dvh - var(--height, 88px) - 2rem);
+	> .tabs-panel { min-height: 0; }
+}
+
+.form-network-timing {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	min-width: 0;
+	input { width: 100%; box-sizing: border-box; }
+	.timing-room-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+	button { min-height: 44px; }
+	#timing-room-share:not([hidden]) { display: grid; justify-items: start; gap: 0.75rem; }
+	#timing-room-link { overflow-wrap: anywhere; }
+	#timing-room-qr { background: white; max-width: 100%; padding: 8px; }
+	#timing-room-qr svg { display: block; width: 220px; max-width: 100%; height: auto; }
+}
+
 // #control-panel-tempo{
 // 	flex:0 1 auto;
 // 	width:max-content;

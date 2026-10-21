@@ -347,7 +347,7 @@
   	 	// bottom: 0;
   	 	// top: 0;
 		z-index:303;
-		text-transform: uppercase;
+		text-transform: none;
 	}
 
 	.instrument-summary-title{
@@ -364,7 +364,24 @@
 		margin: 0;
 		background-color: var(--col-bottom, #455b63);
 		color: var(--shade-white, white);
-		z-index: -1;
+		z-index: 1;
+	}
+
+	.player-name-title{
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		inline-size: 100%;
+		min-inline-size: 0;
+		font: inherit;
+		color: inherit;
+		text-align: start;
+		cursor: text;
+	}
+
+	.player-name-title:focus-visible{
+		outline: var(--border, 2px) solid var(--control-accent);
+		outline-offset: 2px;
 	}
 	
 	// // collapsed state
@@ -476,12 +493,13 @@
 	.person-option-label{
 		font-size: 0.72rem;
 		line-height: 1.1;
-		text-transform: uppercase;
+		text-transform: none;
 		color: color-mix(in srgb, var(--shade-white, white) 82%, var(--col-bottom, #455b63));
 		overflow-wrap: anywhere;
 	}
 
-	.person-option select{
+	.person-option select,
+	.person-option input[type="text"]{
 		box-sizing: border-box;
 		inline-size: 100%;
 		min-block-size: 2.7rem;
@@ -497,9 +515,27 @@
 	}
 
 	.person-option select:focus-visible,
-	.person-option input[type="checkbox"]:focus-visible{
+	.person-option input[type="text"]:focus-visible,
+	.person-option input[type="checkbox"]:focus-visible,
+	.person-option input[type="range"]:focus-visible{
 		outline: var(--border, 2px) solid var(--control-accent);
 		outline-offset: 2px;
+	}
+
+	.person-option-range-row{
+		display:grid;
+		grid-template-columns:minmax(0, 1fr) minmax(4ch, max-content);
+		align-items:center;
+		gap:0.75rem;
+	}
+
+	.person-option-range input[type="range"]{
+		inline-size:100%;
+		accent-color:var(--control-accent);
+	}
+
+	.person-option-range output{
+		font-variant-numeric:tabular-nums;
 	}
 
 	.person-option-toggle{
@@ -592,152 +628,6 @@
 // .person-d-sidebar-showing .person-d-toggle-controls{
 
 // }
-
-.solo{
-	.person-b-panel,
-	.person-c-panel,
-	.person-d-panel{
-		// transform: translateX(0%);
-		display: none;
-	}
-}
-
-.duet{
-	.person-c-panel,
-	.person-d-panel{
-		// transform: translateX(0%);
-		display: none;
-	}
-}
-
-// this is the three player version
-// Body states
-// .solo{ }
-// .duet{ }
-.trio{
-
-	#control-panel{
-		grid-template-areas: 
-			"sidebar-left-player-a . sidebar-right"
-			"sidebar-left-player-c . sidebar-right"
-			"settings-panel settings-panel settings-panel"
-			"control-panel control-panel control-panel"
-			;
-				
-		grid-template-rows: 
-			1fr
-			1fr
-			auto
-			auto
-		;
-
-}
-	// left drag
-	.person-a-panel{
-		grid-area: sidebar-left-player-a;
-	}
-	.person-c-panel{
-		grid-area: sidebar-left-player-c;
-	}
-	.person-d-panel{
-		// transform: translateX(0%);
-		display: none;
-	}
-}
-
-// Four Player Mode
-.quartet{
-
-	#control-panel{
-		grid-template-areas: 
-			"sidebar-left-player-a . sidebar-right-player-b"
-			"sidebar-left-player-c . sidebar-right-player-d"
-			"settings-panel settings-panel settings-panel"
-			"control-panel control-panel control-panel"
-			;
-				
-		grid-template-rows: 
-			1fr
-			1fr
-			auto
-		;
-	}		
-	
-	.person-a-panel{
-		grid-area: sidebar-left-player-a;
-	}
-	.person-b-panel{
-		grid-area: sidebar-right-player-b;
-	}
-	.person-c-panel{
-		grid-area: sidebar-left-player-c;
-	}
-	.person-d-panel{
-		grid-area: sidebar-right-player-d;
-	}
-}
-
-
-// Single side panel open on the left side upper
-.trio:has(.person-a-panel.expanded):not(:has(.person-c-panel.expanded)),
-.quartet:has(.person-a-panel.expanded):not(:has(.person-c-panel.expanded)){
-
-	.person-a-panel.expanded{
-		grid-row-start:  sidebar-left-player-a;
-		grid-row-end:  sidebar-left-player-c;
-	}
-
-	#person-c,
-	.person-c-panel.expanded{
-		z-index: 999;
-	}
-}
-
-// Single side panel open on the left side lower
-.trio:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ),
-.quartet:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ){
-
-	#person-a,
-	.person-a-panel{
-		z-index: 999;
-	}
-
-	.person-c-panel.expanded{
-		grid-row-start:  sidebar-left-player-a;
-		grid-row-end:  sidebar-left-player-c;
-	}
-}
-
-
-// Single side panel open on the right side upper
-.quartet:has(.person-b-panel.expanded):not(:has(.person-d-panel.expanded)){
-
-	.person-b-panel.expanded{
-		grid-row-start:  sidebar-right-player-b;
-		grid-row-end:  sidebar-right-player-d;
-	}
-
-	#person-d,
-	.person-d-panel{
-		z-index: 999;
-	}
-}
-
-// Single side panel open on the right side lower
-.quartet:has(.person-d-panel.expanded):not(:has(.person-b-panel.expanded)){
-
-	#person-b,
-	.person-b-panel.expanded{
-		z-index: 999;
-	}
-
-	.person-d-panel.expanded{
-		grid-row-start:  sidebar-right-player-b;
-		grid-row-end:  sidebar-right-player-d;
-		
-	}
-}
-
 
 @mixin panel-highlight{
 	background-color: rgba(255,255,255,0.4);

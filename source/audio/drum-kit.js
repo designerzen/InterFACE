@@ -29,7 +29,9 @@ import {
 } from './synthesizers/general-midi-percussion-presets.js'
 import { createSnareReverb } from './effects/snare-reverb.js'
 import { tuneCowbellOptions, tuneKickOptions, tuneSnareOptions } from './synthesizers/percussion-tuning.js'
-import { sendGeneralMIDIPercussion } from './midi/general-midi-percussion-output.js'
+import { GENERAL_MIDI_PERCUSSION_NOTES, sendGeneralMIDIPercussion } from './midi/general-midi-percussion-output.js'
+import { createPercussionPanBus } from './performance-drum-stereo.js'
+import { recordPercussion } from '../storage/session-percussion.js'
 
 /**
  * Just a drum kit you can play that has one of each of the
@@ -38,38 +40,43 @@ import { sendGeneralMIDIPercussion } from './midi/general-midi-percussion-output
  */
 export const createDrumkit = ( audioContext, output, options={} ) => {
 	let tonic
-	const partPanBuses = new Map()
-	const createPanBus = destination => {
-		if (typeof audioContext.createStereoPanner !== 'function')
-		{
-			return { input:destination, setPan:() => 0 }
-		}
-		const panner = audioContext.createStereoPanner()
-		panner.connect(destination)
-		return {
-			input:panner,
-			setPan:(value=0, triggerAt=audioContext.currentTime) => {
-				const pan = Math.max(-1, Math.min(1, Number(value) || 0))
-				panner.pan.setValueAtTime(pan, triggerAt)
-				return pan
+	const emptyTriggerOptions = Object.freeze({})
+	const createCachedTrigger = invoke => {
+		let sourceOptions
+		let triggerOptions
+		return (nextOptions, velocity=1, triggerAt) => {
+			nextOptions ??= emptyTriggerOptions
+			if (sourceOptions !== nextOptions) {
+				sourceOptions = nextOptions
+				triggerOptions = { ...nextOptions }
 			}
+			triggerOptions.velocity = velocity
+			triggerOptions.triggerAt = triggerAt
+			return invoke(triggerOptions)
 		}
 	}
-	const createPartPanBus = (part, destination=output) => {
-		const bus = createPanBus(destination)
+	const partPanBuses = new Map()
+	const createPartPanBus = (part, destination=output, panOptions={}) => {
+		const bus = createPercussionPanBus(audioContext, destination, {
+			stereoEnabled:options.stereo !== false,
+			...panOptions,
+		})
 		partPanBuses.set(part, bus)
 		return bus
 	}
 	const wrapMIDIVoice = (part, voice) => {
 		const midiVoice = (voiceOptions={}) => {
+			const result=voice(voiceOptions)
+			if(result!==false) recordPercussion(part,voiceOptions,audioContext)
 			if (options.midiPercussion)
 			{
 				sendGeneralMIDIPercussion(part, voiceOptions, audioContext)
 			}
-			return voice(voiceOptions)
+			return result
 		}
 		midiVoice.cancel = voice.cancel
 		midiVoice.choke = voice.choke
+		midiVoice.trigger = createCachedTrigger(midiVoice)
 		return midiVoice
 	}
 	const snareReverb = createSnareReverb(audioContext, output)
@@ -78,7 +85,7 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 	const tomMidPanBus = createPartPanBus('tomMid')
 	const tomHighPanBus = createPartPanBus('tomHigh')
 	const hatPanBus = createPartPanBus('hat')
-	const crashPanBus = createPartPanBus('crash')
+	const crashPanBus = createPartPanBus('crash', output, { modulate:true })
 	const ridePanBus = createPartPanBus('ride')
 	const splashPanBus = createPartPanBus('splash')
 	const chinaPanBus = createPartPanBus('china')
@@ -90,6 +97,8 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		const tunedVoice = (options={}) => midiVoice(tune({ ...defaults, ...options }, tonic))
 		tunedVoice.cancel = voice.cancel
 		tunedVoice.choke = voice.choke
+		const trigger = createCachedTrigger(triggerOptions => midiVoice(tune(triggerOptions, tonic)))
+		tunedVoice.trigger = (voiceOptions, velocity, triggerAt) => trigger(voiceOptions ?? defaults, velocity, triggerAt)
 		return tunedVoice
 	}
 	const wrapPresetVoice = (part, voice, preset) => {
@@ -97,6 +106,8 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		const presetVoice = (voiceOptions={}) => midiVoice({ ...preset, ...voiceOptions })
 		presetVoice.cancel = voice.cancel
 		presetVoice.choke = voice.choke
+		const trigger = createCachedTrigger(midiVoice)
+		presetVoice.trigger = (voiceOptions, velocity, triggerAt) => trigger(voiceOptions ?? preset, velocity, triggerAt)
 		return presetVoice
 	}
 	const openHat = wrapMIDIVoice("hatOpen", createHihat(audioContext, hatPanBus.input))
@@ -122,6 +133,7 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		openHat.choke(duration, chokeAt)
 		closedHat.choke(duration, chokeAt)
 	}
+	hat.trigger = createCachedTrigger(hat)
 	hat.open = openHat
 	hat.closed = closedHat
 
@@ -228,6 +240,14 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 	drumkit.setPartPan = (part, value, triggerAt) => partPanBuses
 		.get(panPartAliases[part] ?? part)
 		?.setPan(value, triggerAt) ?? 0
+	drumkit.setStereoEnabled = (enabled, triggerAt) => {
+		const nextEnabled = Boolean(enabled)
+		if (options.stereo === nextEnabled) return nextEnabled
+		for (const bus of partPanBuses.values()) bus.setStereoEnabled(nextEnabled, triggerAt)
+		options.stereo = nextEnabled
+		return options.stereo
+	}
+	drumkit.getStereoEnabled = () => options.stereo !== false
 	drumkit.setTonic = pitchClass => tonic = Number.isFinite(pitchClass) ? pitchClass : undefined
 	drumkit.getTonic = () => tonic
 	drumkit.setMIDIPercussion = enabled => options.midiPercussion = Boolean(enabled)

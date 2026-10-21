@@ -56,7 +56,7 @@ describe('generated Stream Deck XL profile', () => {
 			Array.from({ length: 12 }, (_, index) => 16777276 + index),
 		)
 		expect(pageTitles.get('Musical Keyboard')).toEqual(expect.arrayContaining([
-			'Notes', '1 C3', '2 C♯3',
+			'Notes', '1 C3', '2 D3', '8 C4', '9 D4',
 		]))
 		expect(pageTitles.get('Chord Keyboard')).toEqual(expect.arrayContaining([
 			'Chords', '1 C', 'Q B♭m', 'A A♭7',

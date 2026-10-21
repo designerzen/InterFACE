@@ -56,6 +56,17 @@ const activateControl = (controlId, fallback) => {
 	return false
 }
 
+const cycleSelectControl = (controlId, fallback) => {
+	const control = document.getElementById(controlId)
+	if (control instanceof HTMLSelectElement && !control.disabled && control.options.length) {
+		control.selectedIndex = (control.selectedIndex + 1) % control.options.length
+		control.dispatchEvent(new Event('change', { bubbles:true }))
+		return true
+	}
+	fallback?.()
+	return false
+}
+
 const activatePressureControl = (controlId, fallback) => {
 	const control = document.getElementById(controlId)
 	if (control && !control.disabled) {
@@ -158,7 +169,7 @@ const handlePrimaryCommand = (
 			activateControl('button-meshes', () => application.stateMachine?.toggle?.('masks'))
 			return 'Face Overlays'
 		case 'KeyP':
-			activateControl('button-eyes', () => application.stateMachine?.toggle?.('eyes'))
+			cycleSelectControl('select-eyes', () => application.stateMachine?.toggle?.('eyes'))
 			return 'Eye Overlays'
 		case 'KeyQ':
 			activateControl('button-eyebrows', () => application.stateMachine?.toggle?.('eyebrows'))

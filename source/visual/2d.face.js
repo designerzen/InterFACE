@@ -1,6 +1,6 @@
 import { LEFT_EYE_PATH, LEFT_IRIS_PATH, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from "../models/face-landmark-constants.js"
 import { subdivideKeypoints } from "../models/avatar.js"
-import { drawEye } from "./2d.eyes.js"
+import { drawEyes } from "./2d.eyes.js"
 import { drawEyebrows } from './2d.eyebrows.js'
 
 const faceOvalStyle = {
@@ -53,7 +53,7 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 	const pointLandmarks = displayOptions.geometrySubdivisions > 0
 		? subdivideKeypoints(landmarks, displayOptions.geometrySubdivisions)
 		: landmarks
-	const options = { ...displayOptions, ...person.options }
+	const options = { ...displayOptions, ...person.options, ...colours }
 	// const flipped = options.flipped
 
 	// const hue = person.hue
@@ -220,14 +220,10 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 
 	// EYES ===================================================================
 	
-	// eyes have been closed for X -period of time
-	if (person.areEyesClosed)
-	{
-		// Draw eyes closed?
-		
-	}else if (options.drawEyes){
+	if (options.drawEyes){
 
 		const eyeOptions = {
+			eyeDesign:options.eyeDesign,
 			// colourful part of the eye
 			iris:options.leftEyeIris, 
 			// size of the colourful part
@@ -268,11 +264,16 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 		// Draw the eyes over the face
 		const eyeDirection = prediction.eyeDirection
 	
-		drawEye( canvasContext, leftEyeData, leftPupilData, person.isLeftEyeOpen, eyeDirection, eyeOptions)	
-	
-		eyeOptions.iris = options.rightEyeIris
-	
-		drawEye( canvasContext, rightEyeData, rightPupilData, person.isRightEyeOpen, eyeDirection, eyeOptions)
+		drawEyes(canvasContext, {
+			leftEye:leftEyeData,
+			leftPupil:leftPupilData,
+			rightEye:rightEyeData,
+			rightPupil:rightPupilData,
+			expression:prediction,
+			leftOpen:person.isLeftEyeOpen,
+			rightOpen:person.isRightEyeOpen,
+			eyeDirection
+		}, { ...eyeOptions, rightIris:options.rightEyeIris })
 	}
 	
 	if (options.drawEyebrows){

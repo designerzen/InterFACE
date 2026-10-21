@@ -2,6 +2,7 @@
 // https://web.dev/building-a-dialog-component/
 // https://github.com/argyleink/gui-challenges/tree/main/dialog
 import dialogPolyfill from 'dialog-polyfill'
+import { setupTabs } from './tabs.js'
 
 // custom events to be added to <dialog>
 const dialogClosingEvent = new Event('closing')
@@ -39,8 +40,8 @@ const dialogDeleteObserver = new MutationObserver((mutations, observer) => {
   mutations.forEach(mutation => {
     mutation.removedNodes.forEach(removedNode => {
       if (removedNode.nodeName === 'DIALOG') {
-        dialog.removeEventListener('click', lightDismiss)
-        dialog.removeEventListener('close', dialogClose)
+        removedNode.removeEventListener('click', lightDismiss)
+        removedNode.removeEventListener('close', dialogClose)
         removedNode.dispatchEvent(dialogRemovedEvent)
       }
     })
@@ -52,7 +53,12 @@ const animationsComplete = element =>
   Promise.allSettled(element.getAnimations().map(animation => animation.finished))
 
 // click outside the dialog handler
-const lightDismiss = ({target:dialog}) => {
+const lightDismiss = ({target:dialog, clientX, clientY}) => {
+  if (dialog.nodeName === 'DIALOG' && dialog.classList.contains('session-dialog')) {
+    const bounds = dialog.getBoundingClientRect()
+    if (clientX >= bounds.left && clientX <= bounds.right &&
+        clientY >= bounds.top && clientY <= bounds.bottom) return
+  }
   if (dialog.nodeName === 'DIALOG')
     dialog.close('dismiss')
 }
@@ -125,6 +131,7 @@ const onDialogRemoved = ({target:dialog}) => {
 
 // adds extra events and glosss to dialogs
 const setupDialogs = () => {
+	document.querySelectorAll('dialog .tabs').forEach(setupTabs)
 
 	const dialogs = document.querySelectorAll('dialog')
 	dialogs.forEach( dialog => {

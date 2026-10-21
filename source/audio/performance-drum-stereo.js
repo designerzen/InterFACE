@@ -114,3 +114,74 @@ export const getPercussionStereoPositions = (
 	}
 	return positions
 }
+
+/**
+ * Create a percussion pan bus with an optional, oscillator-driven shimmer.
+ * The LFO is created lazily so mono playback and static pan buses carry no
+ * additional oscillator cost.
+ */
+export const createPercussionPanBus = (
+	audioContext,
+	destination,
+	{ modulate=false, stereoEnabled=true, rate=2.2, depth=0.62 }={}
+) => {
+	if (typeof audioContext.createStereoPanner !== 'function')
+	{
+		return {
+			input:destination,
+			setPan:() => 0,
+			setStereoEnabled:() => false,
+		}
+	}
+
+	const panner = audioContext.createStereoPanner()
+	panner.connect(destination)
+	let enabled = Boolean(stereoEnabled)
+	let requestedPan = 0
+	let lfo = null
+	let lfoDepth = null
+
+	const ensureModulator = () => {
+		if (lfo || !modulate
+			|| typeof audioContext.createOscillator !== 'function'
+			|| typeof audioContext.createGain !== 'function') return Boolean(lfo)
+
+		lfo = audioContext.createOscillator()
+		lfoDepth = audioContext.createGain()
+		lfo.type = 'sine'
+		lfo.frequency.setValueAtTime(rate, audioContext.currentTime)
+		lfoDepth.gain.setValueAtTime(0, audioContext.currentTime)
+		lfo.connect(lfoDepth)
+		lfoDepth.connect(panner.pan)
+		lfo.start(audioContext.currentTime)
+		return true
+	}
+
+	const applyPan = (triggerAt=audioContext.currentTime) => {
+		// A zero-valued crash pan is the explicit Mono / Centre preset, so it
+		// must also suppress modulation even while global stereo is enabled.
+		const shouldShimmer = enabled && modulate && requestedPan !== 0 && ensureModulator()
+		const modulationDepth = shouldShimmer ? depth : 0
+		const staticPan = enabled ? requestedPan * (1 - modulationDepth) : 0
+		panner.pan.setValueAtTime(staticPan, triggerAt)
+		lfoDepth?.gain.setValueAtTime(modulationDepth, triggerAt)
+		return enabled ? requestedPan : 0
+	}
+
+	return {
+		input:panner,
+		setPan:(value=0, triggerAt=audioContext.currentTime) => {
+			const nextPan = clamp(Number(value) || 0, -1, 1)
+			if (nextPan === requestedPan) return enabled ? requestedPan : 0
+			requestedPan = nextPan
+			return applyPan(triggerAt)
+		},
+		setStereoEnabled:(value, triggerAt=audioContext.currentTime) => {
+			const nextEnabled = Boolean(value)
+			if (nextEnabled === enabled) return enabled
+			enabled = nextEnabled
+			applyPan(triggerAt)
+			return enabled
+		},
+	}
+}

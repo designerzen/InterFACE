@@ -1,201 +1,282 @@
-/**
- * Composite Instrument allows you to use a single instrument
- * to control many other instruments. You can set them up in 
- * various ways :
- * 
- * - Play all notes
- * - Each channel can be a different instrument
- * - Note numbers can trigger different instruments
- * - Different presets trigger differetn instruments
- * 
- */
 import Instrument from "./instrument.js"
+import {
+	GENERAL_MIDI_INSTRUMENT_LIST,
+	GENERAL_MIDI_INSTRUMENTS,
+	GENERAL_MIDI_INSTRUMENTS_FRIENDLY,
+	SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS
+} from "../midi/general-midi.constants.js"
+import { INSTRUMENT_TYPE_SOUNDFONT } from "../instrument-list.js"
+import { getGeneralMIDISynthPreset } from "./presets/presets-general-midi-synth.js"
 
 export const INSTRUMENT_TYPE_COMPOSITE = "CompositeInstrument"
 
-// https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
+const resolveGeneralMIDIPreset = preset => {
+	let program = Number.isInteger(preset) ? preset : -1
+	if (program < 0 && typeof preset === "string")
+	{
+		const normalised = preset.toLowerCase()
+		program = /^\d+$/.test(normalised) ? Number(normalised) :
+			GENERAL_MIDI_INSTRUMENTS.findIndex(name => name.toLowerCase() === normalised)
+		if (program < 0)
+		{
+			program = GENERAL_MIDI_INSTRUMENTS_FRIENDLY.findIndex(name => name.toLowerCase() === normalised)
+		}
+		if (program < 0)
+		{
+			program = SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS.indexOf(normalised.replace(/-mp3$/, ""))
+		}
+	}
+	program = program >= 0 && program < GENERAL_MIDI_INSTRUMENTS.length ? program : 0
+	return {
+		program,
+		name:GENERAL_MIDI_INSTRUMENTS[program],
+		title:GENERAL_MIDI_INSTRUMENTS_FRIENDLY[program],
+		location:SOUNDFONT_DEFAULT_INSTRUMENT_FOLDERS[program],
+		family:GENERAL_MIDI_INSTRUMENT_LIST[program]?.family
+	}
+}
+
 export default class CompositeInstrument extends Instrument{
 	static get name(){
 		return INSTRUMENT_TYPE_COMPOSITE
 	}
 
 	name = INSTRUMENT_TYPE_COMPOSITE
-	#title = "Composite Instrument"
-	
 	type = "composite"
+	activePresetProgram = 0
+	instrumentFamily = GENERAL_MIDI_INSTRUMENT_LIST[0]?.family
+	changePromise = Promise.resolve()
 
-	unique = -1
-
-	available = false
-	active = false
-
-	// monophonic by default
-	polyphony = 1
-
-	currentVolume = 1
-	channels = 1
-
-	/**
-	 * All instruments 
-	 * @param {AudioContext} audioContext 
-	 * @param {Object} options 
-	 */
-	constructor( audioContext, options={} ) 
-	{
-		super(audioContext, options)
+	get audioNode(){
+		return this.outputNode
 	}
 
-	addInstrument( instrument ){
-
+	get activePreset(){
+		return GENERAL_MIDI_INSTRUMENTS[this.activePresetProgram]
 	}
 
-	// Life cycle methods ----------------------------------
-
-	create(){
-
+	get activePresetIndex(){
+		return this.activePresetProgram
 	}
 
-	destroy(){
-
+	get activeInstrument(){
+		return this.instruments?.[0] ?? null
 	}
-	
-	/**
-	 * This message is sent when a note is depressed (start).
-	 * @param {Number} noteNumber 
-	 * @param {Number} velocity 
-	 * @returns {Boolean} has the sample started or is it already playing?
-	 */
-	 async noteOn( noteNumber, velocity=1 ){
-		
-		const activeNote = this.activeNotes.get(noteNumber)
-		this.active = true
-		
-		if (activeNote)
+
+	get backendType(){
+		return this.activeInstrument?.constructor?.name ?? null
+	}
+
+	get repetitionRate(){
+		return this.activeInstrument?.repetitionRate ?? super.repetitionRate
+	}
+
+	get playbackMode(){
+		return this.activeInstrument?.playbackMode ?? super.playbackMode
+	}
+
+	get reverbSettings(){
+		return this.activeInstrument?.reverbSettings ?? super.reverbSettings
+	}
+
+	get lpfSettings(){
+		return this.activeInstrument?.lpfSettings ?? super.lpfSettings
+	}
+
+	get compressorSettings(){
+		return this.activeInstrument?.compressorSettings ?? super.compressorSettings
+	}
+
+	get volume(){
+		return this.outputNode?.gain?.value ?? this.currentVolume
+	}
+
+	set volume(value){
+		this.currentVolume = value
+		if (this.outputNode)
 		{
-			// already playing
-			//console.log(activeNote, "retrigger noteOn", noteNumber, this.activeNotes )
-			return false
-		}else{
-
-			// set it not to true but to the velocity?
-			this.activeNotes.set( noteNumber, velocity )
-			//console.log("noteOn", noteNumber, this.activeNotes )
-			return true
+			this.outputNode.gain.value = value
 		}
 	}
-	
-	/**
-	 * This message is sent when a note is released (ended). 
-	 * @param {Number} noteNumber 
-	 * @param {Number} veolcity 
-	 */
-	 async noteOff( noteNumber, veolcity=0 ){
-		this.active = false
-		this.activeNotes.delete( noteNumber )
-		//console.log("noteOff", noteNumber, this.activeNotes )
+
+	async create(){
+		this.instruments = []
+		this.registeredInstruments = new Map()
+		this.outputNode = this.context.createGain()
+		this.outputNode.gain.value = this.currentVolume
 		return true
 	}
-	
-	/**
-	 * Polyphonic Key Pressure
-	 * This message is most often sent by pressing down on the key 
-	 * after it "bottoms out". noteNumber is the key (note) number. 
-	 * pressure is the pressure value.
-	 * @param {Number} noteNumber - is the key (note) number
-	 * @param {Number} pressure 
-	 */
-	async aftertouch( noteNumber, pressure ){
 
+	async destroyInstrument(instrument){
+		if (!instrument)
+		{
+			return false
+		}
+		await instrument.allNotesOff?.()
+		instrument.output?.disconnect()
+		await instrument.destroy?.()
+		return true
 	}
-	
-	/**
-	 * Pitch Bend Change. 
-	 * This message is sent to indicate a change
-	 * in the pitch bender (wheel or lever, typically). 
-	 * The pitch bender is measured by a fourteen bit value. 
-	 * Center (no pitch change) is 2000H. 
-	 * Sensitivity is a function of the receiver, 
-	 * but may be set using RPN 0. 
-	 * (lllllll) are the least significant 7 bits. 
-	 * (mmmmmmm) are the most significant 7 bits.
-	 * @param {number} pitch 
-	 */
+
+	async destroy(){
+		const instruments = [...new Set(this.registeredInstruments?.values() ?? [])]
+		this.instruments = []
+		this.registeredInstruments?.clear()
+		await Promise.all(instruments.map(instrument => this.destroyInstrument(instrument)))
+		this.outputNode?.disconnect()
+		return await super.destroy()
+	}
+
+	addInstrument(type, instrument){
+		if (!type || !instrument?.output)
+		{
+			throw Error("CompositeInstrument requires a type and an instrument instance with an output")
+		}
+		this.registeredInstruments.set(type, instrument)
+		return instrument
+	}
+
+	applySynthOptions(instrument, preset){
+		instrument.options = { ...instrument.options, ...preset.options }
+		if (preset.options.shape !== undefined)
+		{
+			if ("shapes" in instrument)
+			{
+				instrument.shapes = preset.options.shape
+			}else if ("shape" in instrument){
+				instrument.shape = preset.options.shape
+			}
+		}
+		return instrument
+	}
+
+	async applyPreset(preset){
+		const descriptor = resolveGeneralMIDIPreset(preset)
+		const synthPreset = getGeneralMIDISynthPreset(descriptor.program)
+		const backendType = synthPreset?.type ?? INSTRUMENT_TYPE_SOUNDFONT
+		const backend = this.registeredInstruments.get(backendType)
+		if (!backend)
+		{
+			throw Error(`CompositeInstrument has no registered ${backendType} instance`)
+		}
+
+		if (backendType === INSTRUMENT_TYPE_SOUNDFONT)
+		{
+			await backend.loadPreset(descriptor.location, this.options.instrumentPack, {}, this.options.progressCallback)
+		}else{
+			this.applySynthOptions(backend, synthPreset)
+			if (backendType.endsWith("SynthesizerInstrument"))
+			{
+			const presets = await backend.getPresets()
+			if (presets.includes(descriptor.name))
+			{
+				await backend.loadPreset(descriptor.name)
+			}
+			}
+		}
+
+		if (backend !== this.activeInstrument)
+		{
+			const previousInstrument = this.activeInstrument
+			await previousInstrument?.allNotesOff?.()
+			previousInstrument?.output?.disconnect()
+			backend.output.connect(this.outputNode)
+			this.instruments = [backend]
+		}
+
+		this.activePresetProgram = descriptor.program
+		this.instrumentFamily = descriptor.family
+		this.title = descriptor.title
+		return this
+	}
+
+	programChange(programNumber){
+		const change = this.changePromise.then(
+			() => this.applyPreset(programNumber),
+			() => this.applyPreset(programNumber)
+		)
+		this.changePromise = change.catch(() => {})
+		return change
+	}
+
+	async loadPreset(programNumber){
+		return this.programChange(programNumber)
+	}
+
+	async noteOn(noteNumber, velocity=1){
+		if (!this.activeInstrument)
+		{
+			return false
+		}
+		const started = await this.activeInstrument.noteOn(noteNumber, velocity)
+		await super.noteOn(noteNumber, velocity)
+		return started
+	}
+
+	async retrigger(noteNumber, velocity=1){
+		if (!this.activeInstrument)
+		{
+			return false
+		}
+		if (this.activeInstrument.retrigger)
+		{
+			return this.activeInstrument.retrigger(noteNumber, velocity)
+		}
+		await this.activeInstrument.noteOff(noteNumber, velocity)
+		return this.activeInstrument.noteOn(noteNumber, velocity)
+	}
+
+	async noteOff(noteNumber, velocity=0){
+		await this.activeInstrument?.noteOff(noteNumber, velocity)
+		return super.noteOff(noteNumber, velocity)
+	}
+
+	async aftertouch(noteNumber, pressure){
+		return this.activeInstrument?.aftertouch(noteNumber, pressure)
+	}
+
 	async pitchBend(pitch){
-
-	}
-
-	/**
-	 * Program Change. 
-	 * This message sent when the patch number changes. 
-	 * @param {Number} programNumber - new program number.
-	 */
-	async programChange( programNumber ){
-
-	}
-
-	// TODO: 
-	async allSoundOff(){
-
+		return this.activeInstrument?.pitchBend(pitch)
 	}
 
 	async allNotesOff(){
-
+		await this.activeInstrument?.allNotesOff?.()
+		this.activeNotes.clear()
+		this.active = false
+		return true
 	}
 
-	/**
-	 * Get a list of all the instrument names available for this
-	 * instrument preferably at the no
-	 * @returns {Array<String>} of Instrument Names
-	 */
+	async allSoundOff(){
+		return this.allNotesOff()
+	}
+
+	async getPresets(){
+		return [...GENERAL_MIDI_INSTRUMENTS]
+	}
+
 	async getInstruments(){
-		return []
-		
+		return this.instruments ?? []
 	}
 
-
-	/**
-	 * Provide this Person with a random instrument
-	 * @param {Function} progressCallback Method to call once the instrument has loaded
-	 */
-	async loadRandomPreset(progressCallback){
-		// return await this.loadInstrument(  )
+	async loadRandomPreset(){
+		return this.loadPreset(Math.floor(Math.random() * GENERAL_MIDI_INSTRUMENTS.length))
 	}
 
-	/**
-	 * Load the previous instrument in the list
-	 * @param {Function} progressCallback Method to call once the instrument has loaded
-	 */
-	async loadPreviousPreset(progressCallback){
-		// const index = this.instrumentPointer-1
-		// const newIndex = index < 0 ? instrumentFolders.length + index : index
-		// return await this.loadInstrument( instrumentFolders[newIndex], this.instrumentPack, progressCallback )
+	async loadPreviousPreset(){
+		return this.loadPreset((this.activePresetProgram - 1 + GENERAL_MIDI_INSTRUMENTS.length) % GENERAL_MIDI_INSTRUMENTS.length)
 	}
 
-	/**
-	 * Load the subsequent instrument in the list
-	 * @param {Function} progressCallback Method to call once the instrument has loaded
-	 */
-	async loadNextPreset(progressCallback){
-		// const index = this.instrumentPointer+1 
-		// const newIndex = index >= instrumentFolders.length ? 0 : index
-		// return await this.loadInstrument( instrumentFolders[newIndex], this.instrumentPack, progressCallback )
+	async loadNextPreset(){
+		return this.loadPreset((this.activePresetProgram + 1) % GENERAL_MIDI_INSTRUMENTS.length)
 	}
 
-	/**
-	 * Reload ALL instruments for this user
-	 * NB. If we have swapped the instrument pack we can use this method
-	 * to reload the same instrument but with the new samples
-	 * @param {Function} callback Method to call once the instrument has loaded
-	 */
-	async reload(progressCallback){
-		// return await this.loadInstrument( instrumentFolders[this.instrumentPointer], this.instrumentPack, progressCallback )
-	}
-
-	async load(instrumentName, instrumentPack, progressCallback ){
-
+	async reloadPreset(){
+		return this.loadPreset(this.activePresetProgram)
 	}
 
 	clone(){
 		return new CompositeInstrument(this.audioContext, this.options)
 	}
 }
+
+export { resolveGeneralMIDIPreset }

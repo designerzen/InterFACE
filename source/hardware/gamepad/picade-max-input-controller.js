@@ -481,6 +481,11 @@ export class PicadeMaxController {
 		const pressColor = lightOptions.color ?? this.pressColor
 		const brightness = lightOptions.brightness ?? this.pressBrightness
 		const fadeTime = lightOptions.fadeTime ?? this.fadeTime
+		// Mode indicators stay lit through presses and releases, without tap animations.
+		if (lightOptions.persistent) {
+			this.#plasma.setButtonLight(player, eventType, pressColor, { brightness })
+			return
+		}
 		if (pressed) {
 			const previousHold = this.#holdTimers.get(key)
 			clearTimeout(previousHold?.timer)

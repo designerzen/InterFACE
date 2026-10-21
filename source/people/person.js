@@ -1,3 +1,4 @@
+import PersonDirections from './person-directions.js'
 /**
  * each person in the app has their own instrument and face
  * and each has a unique input mechanism based on the options 
@@ -52,7 +53,10 @@ import {
 	INSTRUMENT_TYPE_SOUNDFONT,
 	INSTRUMENT_TYPE_OSCILLATOR, 
 	INSTRUMENT_TYPE_MIDI, 
-	INSTRUMENT_TYPE_CHORD
+	INSTRUMENT_TYPE_CHORD,
+	INSTRUMENT_TYPE_COMPOSITE,
+	INSTRUMENT_TYPE_FM,
+	normalisePersonInstrumentType
 } from '../audio/instrument-list.js'
 
 import InstrumentManager from '../audio/instrument-manager.js'
@@ -81,9 +85,15 @@ import { WebMidi } from "webmidi"
 
 import { 
 	convertHeadOrientationIntoNoteData, 
-	convertHeadRollToOctaveAndPitchToScaleAndYawToPitch, 
-	convertHeadRollToScaleAndPitchToOctaveAndYawToPitch 
+	getPersonInputModeData,
+	normalisePersonInputMode
 } from './person.controls.js'
+import {
+	exportPersonQueryOptions,
+	getPersonQueryOptionMap,
+	getPersonQueryOptions,
+	getPersonQueryPrefixes
+} from './person.query.js'
 
 import { ParamaterRecorder } from '../parameter-recorder.js'
 
@@ -97,7 +107,7 @@ import { EmojiDetector } from '../models/emoji-detection.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji, normaliseEmojiMood } from '../models/emoji.js'
 
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
-import { getCleff, getNotationForNoteNumber, getStaffSlotForNoteNumber, getStave } from '../audio/notation.js'
+import { drawNotation } from '../audio/notation.js'
 import { 
 	configurePersonKey,
 	configurePersonByOperatingMode,
@@ -118,9 +128,21 @@ import PersonEvent, {
 	EVENT_EMOTION_CHANGED, EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING, EVENT_USER_MODE_CHANGED, EVENT_PERSON_OPTIONS_CHANGED, EVENT_PERSON_BORN, EVENT_PERSON_DEAD,
 	  EVENT_EMOTION_UNLOCKED,
 } from './person-event.js'
-import Achievements from './person-achievements.js'
 import PersonalProgress from './person-progress.js'
 import { getRecentAchievementLabel, PERSON_TEXT_CHANGE_INSTRUMENT, PERSON_TEXT_SWITCH_INSTRUMENT } from './person-text.js'
+import {
+	getHeadNoteIndex,
+	HEAD_NOTE_RANGE_INHERIT,
+	HEAD_VERTICAL_RANGE_INHERIT,
+	normaliseHeadNoteRangeDegrees,
+	normaliseHeadNoteRangeOverride,
+	normaliseHeadVerticalRangeDegrees,
+	normaliseHeadVerticalRangeOverride,
+	resolveHeadNoteRangeDegrees,
+	resolveHeadVerticalRangeDegrees
+} from './head-note-range.js'
+import PersonActivity from './person-activity.js'
+import PersonMotion from './person-motion.js'
 
 export {
 	PERSON_TYPE_ARPEGGIO,
@@ -169,6 +191,8 @@ const INSTRUMENT_TITLE_OFFSET_Y = -55
 const EMOJI_OFFSET_Y = 39
 const EMOJI_RADIUS = 54
 const NOTE_TEXT_OFFSET_Y = (INSTRUMENT_TITLE_OFFSET_Y + EMOJI_OFFSET_Y - EMOJI_RADIUS) * 0.5
+const MUSIC_THEORY_NOTATION_OFFSET_Y = NOTE_TEXT_OFFSET_Y + 14
+const MUSIC_THEORY_EMOJI_OFFSET_Y = EMOJI_OFFSET_Y + 18
 const BUTTON_HINT_OFFSET_Y = INSTRUMENT_TITLE_OFFSET_Y - 40
 const PLAYING_NOTE_TEXT_SIZE = 18
 const PLAYING_NOTE_GLYPH = "♫"
@@ -258,6 +282,7 @@ export default class Person extends EventTarget{
 
 	id
 	name = "unnamed"
+	displayName = ""
 
 	playerNumber = -1
 	createdAt = -1
@@ -265,6 +290,7 @@ export default class Person extends EventTarget{
 
 	audioContext
 	offlineAudioContext
+	instrumentFactory
 	trimLevel = 1
 	trimNode
 
@@ -307,6 +333,7 @@ export default class Person extends EventTarget{
 	presetPanelConnection
 	isInstrumentPanelDirty = true
 	instrumentPanelPresetKey = null
+	instrumentChangePromise = Promise.resolve()
 	
 	// default state is audio off
 	state = STATE_INSTRUMENT_SILENT
@@ -316,6 +343,7 @@ export default class Person extends EventTarget{
 
 	// inputMode
 	#userMode = PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS
+	#inputMode = 0
 
 	// Flags
 	active = false
@@ -347,7 +375,10 @@ export default class Person extends EventTarget{
 
 	// pointer over buttons...
 	isUserSelectingMode = false
+	isUserSelectingInputMode = false
 	isUserSelectingInputType = false
+	hoveredPersonButton = null
+	focusedPersonButton = null
 	isMouseOver = false
 	
 	// Head orientation
@@ -394,7 +425,7 @@ export default class Person extends EventTarget{
 	lastNoteNumber
 
 	lastTimeActive = -1
-	
+
 	// real time colour settings
 	defaultHue = 0
 	saturation = 50
@@ -443,27 +474,95 @@ export default class Person extends EventTarget{
 	cancelController
 
 	personalProgress
+	directionsProgress = new PersonDirections()
 	recentAchievement = null
 	recentAchievementAt = -1
 	
 	get userMode(){
 		return normalisePersonOperatingMode(this.#userMode)
 	}
-	
+
+	get inputMode(){
+		return normalisePersonInputMode(this.#inputMode)
+	}
+
 	get userModeData(){
 		return PERSON_TYPE_DATA[ this.userMode ]
+	}
+
+	get inputModeData(){
+		return getPersonInputModeData(this.inputMode)
 	}
 
 	get nextUserModeData(){
 		return PERSON_TYPE_DATA[ normalisePersonOperatingMode(this.userMode + 1) ]
 	}
 
+	get nextInputModeData(){
+		return getPersonInputModeData(this.inputMode + 1)
+	}
+
 	get userModeDesicription(){
 		return this.userModeData.description
 	}
 
+	get playMode(){
+		const activePerformanceMode = this.activeInstrument?.performanceMode
+		if (activePerformanceMode)
+		{
+			return activePerformanceMode
+		}
+		return (this.activeInstrument?.arpeggiate ?? this.userModeData?.arpeggiate) ?
+			(this.userModeData?.performanceMode ?? "arpeggio") :
+			"chord"
+	}
+
+	get nextPlayMode(){
+		const playModes = ["arpeggio", "harp", "chord", "single-note"]
+		const currentIndex = Math.max(playModes.indexOf(this.playMode), 0)
+		return playModes[(currentIndex + 1) % playModes.length]
+	}
+
+	get personButtonHint(){
+		// Clicking a button leaves DOM focus behind after the pointer has left.
+		// Only keyboard focus should keep an action hint visible without hover.
+		const focusedButton = this.focusedPersonButton?.matches(':focus-visible') ? this.focusedPersonButton : null
+		const button = this.hoveredPersonButton ?? focusedButton
+		if (!button) return null
+
+		const classes = button.classList
+		if (classes.contains("face-button")) return "Random instrument (hold to choose)"
+		if (classes.contains("instrument-button")) return "Next instrument"
+		if (classes.contains("emoji-button")) return `Input -> ${this.nextInputModeData.description}`
+		if (classes.contains("note-button")) return this.options.showChordNames ? "Labels -> notes" : "Labels -> chords"
+		if (classes.contains("mode-button")) return `Play mode -> ${this.nextPlayMode}`
+
+		const direction = classes.contains("previous-operating-mode-button") ? -1 :
+			classes.contains("next-operating-mode-button") ? 1 : 0
+		if (direction)
+		{
+			const mode = PERSON_TYPE_DATA[normalisePersonOperatingMode(this.userMode + direction)]
+			return `${direction < 0 ? "Previous" : "Next"} mode -> ${mode.description}`
+		}
+		return null
+	}
+
 	get pointsEnabled(){
 		return resolvePointsEnabled(this.options?.showPoints, this.options?.showPointsOverride)
+	}
+
+	get headNoteRangeDegrees(){
+		return resolveHeadNoteRangeDegrees(
+			this.options?.headNoteRangeDegrees,
+			this.options?.headNoteRangeOverride
+		)
+	}
+
+	get headVerticalRangeDegrees(){
+		return resolveHeadVerticalRangeDegrees(
+			this.options?.headVerticalRangeDegrees,
+			this.options?.headVerticalRangeOverride
+		)
 	}
 
 	get achievementPoints(){
@@ -627,6 +726,13 @@ export default class Person extends EventTarget{
 		return "p-"+(this.personIndex+1)
 	}
 
+	setDisplayName(value){
+		this.displayName = typeof value === "string" ? value.trim().slice(0, 60) : ""
+		const input = this.controls?.querySelector('[data-person-action="displayName"]')
+		if (input && input !== document.activeElement) input.value = this.displayName || `Player ${this.playerNumber + 1}`
+		return this.displayName
+	}
+
 	/**
 	 * Fetch the form controls on the DOM that matches this Person
 	 * @returns {HTMLElement} Form element for this Person
@@ -710,7 +816,7 @@ export default class Person extends EventTarget{
 		const selectedOutput = WebMidi.getOutputById?.(midiDevice) ??
 			WebMidi.getOutputByName?.(midiDevice) ??
 			WebMidi.outputs.find(output => output.id === midiDevice || output.name === midiDevice)
-		return selectedOutput ? [selectedOutput] : (this.midi ? [this.midi] : [])
+		return selectedOutput ? [selectedOutput] : []
 	}
 
 	getMIDIPortOptionsForPlayback(options = {}){
@@ -718,7 +824,7 @@ export default class Person extends EventTarget{
 		if (midiPort === MIDI_ROUTING_AUTO)
 		{
 			return this.midiChannel !== MIDI_ROUTING_ALL ?
-				{ ...options, channel:this.midiChannel } :
+				{ ...options, channels:this.midiChannel } :
 				options
 		}
 		if (midiPort === MIDI_ROUTING_ALL)
@@ -771,6 +877,14 @@ export default class Person extends EventTarget{
 		return this.createdAt > -1 ? 
 			this.now - this.createdAt :
 			0
+	}
+
+	get currentActivity(){
+		return this.activity.currentActivity
+	}
+
+	get sessionActivity(){
+		return this.activity.sessionActivity
 	}
 
 	/**
@@ -882,8 +996,17 @@ export default class Person extends EventTarget{
 	set userMode( mode ){
 		const normalisedMode = normalisePersonOperatingMode(mode)
 		this.#userMode = normalisedMode
-		this.options.inputMode = normalisedMode
 		this.dispatchPersonEvent( EVENT_USER_MODE_CHANGED, {mode:normalisedMode, person:this} )
+	}
+
+	set inputMode(mode){
+		const normalisedMode = normalisePersonInputMode(mode)
+		const modeData = getPersonInputModeData(normalisedMode)
+		this.#inputMode = normalisedMode
+		this.controlMode = modeData.controlMode ?? convertHeadOrientationIntoNoteData
+		this.options.inputMode = normalisedMode
+		Object.assign(this.options, modeData.options ?? {})
+		this.dispatchPersonEvent(EVENT_PERSON_OPTIONS_CHANGED, { person:this, options:{ inputMode:normalisedMode } })
 	}
 
 	setOptions(options={}){
@@ -897,6 +1020,22 @@ export default class Person extends EventTarget{
 		{
 			options = { ...options, showPointsOverride:normalisePointsOverride(options.showPointsOverride) }
 		}
+		if (Object.prototype.hasOwnProperty.call(options, "headNoteRangeDegrees"))
+		{
+			options = { ...options, headNoteRangeDegrees:normaliseHeadNoteRangeDegrees(options.headNoteRangeDegrees) }
+		}
+		if (Object.prototype.hasOwnProperty.call(options, "headNoteRangeOverride"))
+		{
+			options = { ...options, headNoteRangeOverride:normaliseHeadNoteRangeOverride(options.headNoteRangeOverride) }
+		}
+		if (Object.prototype.hasOwnProperty.call(options, "headVerticalRangeDegrees"))
+		{
+			options = { ...options, headVerticalRangeDegrees:normaliseHeadVerticalRangeDegrees(options.headVerticalRangeDegrees) }
+		}
+		if (Object.prototype.hasOwnProperty.call(options, "headVerticalRangeOverride"))
+		{
+			options = { ...options, headVerticalRangeOverride:normaliseHeadVerticalRangeOverride(options.headVerticalRangeOverride) }
+		}
 		const harmonyUnchanged = (
 			!Object.prototype.hasOwnProperty.call(options, "tonic") || options.tonic === this.options.tonic
 		) && (
@@ -905,6 +1044,16 @@ export default class Person extends EventTarget{
 			!Object.prototype.hasOwnProperty.call(options, "harmonyMode") || options.harmonyMode === this.options.harmonyMode
 		)
 		this.options = { ...this.options, ...options }
+		if (
+			Object.prototype.hasOwnProperty.call(options, "headNoteRangeDegrees") ||
+			Object.prototype.hasOwnProperty.call(options, "headNoteRangeOverride") ||
+			Object.prototype.hasOwnProperty.call(options, "headVerticalRangeDegrees") ||
+			Object.prototype.hasOwnProperty.call(options, "headVerticalRangeOverride")
+		)
+		{
+			this.syncHeadNoteRangeControls()
+			this.syncHeadVerticalRangeControls()
+		}
 		this.syncPointsTracking(pointsWereEnabled)
 		if (Object.prototype.hasOwnProperty.call(options, "trim"))
 		{
@@ -928,6 +1077,27 @@ export default class Person extends EventTarget{
 			configurePersonKey(this)
 		}
 		return this.options
+	}
+
+	syncHeadNoteRangeControls(){
+		const rangeControl = this.controls?.querySelector('[data-person-option="headNoteRangeOverride"]')
+		const overrideToggle = this.controls?.querySelector('[data-person-option="headNoteRangeOverrideEnabled"]')
+		const isOverridden = normaliseHeadNoteRangeOverride(this.options?.headNoteRangeOverride) !== HEAD_NOTE_RANGE_INHERIT
+		if (overrideToggle)
+		{
+			overrideToggle.checked = isOverridden
+		}
+		if (rangeControl)
+		{
+			rangeControl.disabled = !isOverridden
+			rangeControl.value = this.headNoteRangeDegrees
+			const output = this.controls.querySelector(`#${rangeControl.id}-output`)
+			if (output)
+			{
+				output.value = `${this.headNoteRangeDegrees}°`
+			}
+		}
+		return this.headNoteRangeDegrees
 	}
 
 	/**
@@ -976,8 +1146,10 @@ export default class Person extends EventTarget{
 		// Create emoji detector for this person
 		this.emojiDetector = new EmojiDetector()
 		this.abortController = new AbortController()
-		this.achievements = new Achievements()
-		this.personalProgress = new PersonalProgress()
+		this.activity = new PersonActivity(this.options)
+		this.motion = new PersonMotion(this.options)
+		this.personalProgress = new PersonalProgress(this.activity)
+		this.achievements = this.personalProgress.achievements
 		this.syncPointsTracking(false)
 
 		// allow us to record the performances (not the audio)
@@ -996,23 +1168,26 @@ export default class Person extends EventTarget{
 		this.mouthScale = rescale(this.options.mouthCutOff,  0.99 )
 
 		// if there is a specific usermode specified in the URL or store for example 
-		if (this.options.inputMode > -1)
-		{
-			this.userMode = this.options.inputMode
-		}else{
-			this.userMode = this.playerNumber
-		}
+		this.inputMode = this.options.inputMode > -1 ? this.options.inputMode : 0
+		this.userMode = this.playerNumber
 
-		// PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS
-		// default props
-		// configurePersonByOperatingMode( this, this.playerNumber )
+		// Note preview starts before the asynchronous instrument setup completes.
+		// Seed only the scale data here: the manager applies the full operating
+		// mode (including events and instrument changes) once loading is ready.
+		const initialMode = this.userModeData
+		this.leftFacingKeys = initialMode?.leftFacingKeys ?? NOTES_BLACK
+		this.rightFacingKeys = initialMode?.rightFacingKeys ?? NOTES_WHITE
+		this.quantityOfPlayableNotes = this.rightFacingKeys.length
+		this.options.noteSequence = initialMode?.noteSequence ?? this.options.noteSequence
 
 		// fetch face button dom element and cache
 		this.personControls = document.getElementById(this.id)
 		
 		this.button = this.personControls.querySelector(".face-button")
-		this.buttonChangeOperatingMode = this.personControls.querySelector(".thoughts-button")
-		this.buttonChangeInput = this.personControls.querySelector(".emoji-button")
+		this.buttonChangeInstrument = this.personControls.querySelector(".instrument-button")
+		this.buttonChangeInputMode = this.personControls.querySelector(".emoji-button")
+		this.buttonToggleChordDisplay = this.personControls.querySelector(".note-button")
+		this.buttonChangeOperatingMode = this.personControls.querySelector(".mode-button")
 
 		if (this.button)
 		{
@@ -1022,20 +1197,69 @@ export default class Person extends EventTarget{
 			// force scopes
 			this.onFaceTouchStart = this.onFaceTouchStart.bind(this)
 			this.onFaceTouchEnd = this.onFaceTouchEnd.bind(this)
+			this.onInstrumentChangeRequested = this.onInstrumentChangeRequested.bind(this)
 			this.onOperatingModeChangeRequested = this.onOperatingModeChangeRequested.bind(this)
+			this.onInputModeChangeRequested = this.onInputModeChangeRequested.bind(this)
 			this.onInputTypeChangeRequested = this.onInputTypeChangeRequested.bind(this)
 			this.onOperatingModeDetermined = this.onOperatingModeDetermined.bind(this)
+			this.onInputModeDetermined = this.onInputModeDetermined.bind(this)
 			this.onInputTypeDetermined = this.onInputTypeDetermined.bind(this)
 
 			// Face button events
 			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )			
-			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
-			this.buttonChangeInput.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
+			this.buttonChangeInstrument.addEventListener( 'pointerdown', this.onInstrumentChangeRequested, {signal:this.abortController.signal} )
+			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
+			this.buttonChangeInputMode.addEventListener( 'pointerdown', this.onInputModeChangeRequested, {signal:this.abortController.signal} )
+			this.buttonToggleChordDisplay.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
 						
+			for (const [selector, direction] of [
+				[".previous-operating-mode-button", -1],
+				[".next-operating-mode-button", 1]
+			])
+			{
+				this.personControls.querySelector(selector)?.addEventListener('click', () => {
+					configurePersonByOperatingMode(this, this.userMode + direction)
+				}, {signal:this.abortController.signal})
+			}
+
+			for (const button of this.personControls.querySelectorAll('button'))
+			{
+				const options = {signal:this.abortController.signal}
+				button.addEventListener('pointerenter', () => { this.hoveredPersonButton = button }, options)
+				const clearHover = () => {
+					if (this.hoveredPersonButton === button) this.hoveredPersonButton = null
+				}
+				button.addEventListener('pointerleave', clearHover, options)
+				button.addEventListener('pointercancel', clearHover, options)
+				button.addEventListener('pointerup', event => {
+					if (event.pointerType === 'touch') clearHover()
+				}, options)
+				button.addEventListener('focus', () => { this.focusedPersonButton = button }, options)
+				button.addEventListener('blur', () => {
+					if (this.focusedPersonButton === button) this.focusedPersonButton = null
+				}, options)
+			}
+
+			const clearButtonHints = () => {
+				this.hoveredPersonButton = null
+				this.focusedPersonButton = null
+				this.isMouseOver = false
+				this.isUserSelectingInputMode = false
+				this.isUserSelectingMode = false
+				this.isUserSelectingInputType = false
+			}
+			const hintOptions = {signal:this.abortController.signal}
+			document.documentElement.addEventListener('pointerleave', clearButtonHints, hintOptions)
+			window.addEventListener('blur', clearButtonHints, hintOptions)
+			document.addEventListener('visibilitychange', () => {
+				if (document.hidden) clearButtonHints()
+			}, hintOptions)
+
 			// set flags via mouse entering the buttons which changes graphics
 			setBooleanViaMouseEntry( this.button, this, 'isMouseOver', this.abortController )
+			setBooleanViaMouseEntry( this.buttonChangeInputMode, this, 'isUserSelectingInputMode', this.abortController )
 			setBooleanViaMouseEntry( this.buttonChangeOperatingMode, this, 'isUserSelectingMode', this.abortController )
-			setBooleanViaMouseEntry( this.buttonChangeInput, this, 'isUserSelectingInputType', this.abortController )
+			setBooleanViaMouseEntry( this.buttonToggleChordDisplay, this, 'isUserSelectingInputType', this.abortController )
 
 			this.instrumentLoadedAt = this.now
 		
@@ -1073,6 +1297,8 @@ export default class Person extends EventTarget{
 		this.emoticon = EMOJI_NEUTRAL
 		this.recentAchievement = null
 		this.recentAchievementAt = -1
+		this.activity.reset()
+		this.motion.reset()
 		
 		// Reset emoji detector state
 		this.emojiDetector.reset()
@@ -1094,6 +1320,27 @@ export default class Person extends EventTarget{
 			this.filterNode.frequency.cancelScheduledValues(audioContext.currentTime)
 			this.filterNode.Q.cancelScheduledValues(audioContext.currentTime) // resonance (typical 0.1–20)
 		}
+	}
+
+	syncHeadVerticalRangeControls(){
+		const rangeControl = this.controls?.querySelector('[data-person-option="headVerticalRangeOverride"]')
+		const overrideToggle = this.controls?.querySelector('[data-person-option="headVerticalRangeOverrideEnabled"]')
+		const isOverridden = normaliseHeadVerticalRangeOverride(this.options?.headVerticalRangeOverride) !== HEAD_VERTICAL_RANGE_INHERIT
+		if (overrideToggle)
+		{
+			overrideToggle.checked = isOverridden
+		}
+		if (rangeControl)
+		{
+			rangeControl.disabled = !isOverridden
+			rangeControl.value = this.headVerticalRangeDegrees
+			const output = this.controls.querySelector(`#${rangeControl.id}-output`)
+			if (output)
+			{
+				output.value = `${this.headVerticalRangeDegrees}°`
+			}
+		}
+		return this.headVerticalRangeDegrees
 	}
 
 	/**
@@ -1130,6 +1377,10 @@ export default class Person extends EventTarget{
 		// console.log(state)
 		// Vocal state machine ASDR
 		this.state = state
+		if (state === STATE_INSTRUMENT_ATTACK)
+		{
+			this.activity?.trackNote(this.noteNumber)
+		}
 	}
 	
 	/**
@@ -1246,6 +1497,7 @@ export default class Person extends EventTarget{
 	 * Person was created then left, so kill it
 	 */
 	setAsLost(){
+		this.motion.invalidate()
 		// only kill if not already dead?
 		if (this.createdAt < -1)
 		{
@@ -1271,6 +1523,11 @@ export default class Person extends EventTarget{
 	 * @param {Object} prediction data model
 	 */
 	update(prediction, timeNow, forceRefresh=false){
+		const shouldTrackActivity = !!prediction && !forceRefresh
+		if (!prediction){
+			this.motion.invalidate()
+		}
+
 		// Reuse the last known frame when tracking temporarily drops out.
 		if (!prediction || forceRefresh)
 		{
@@ -1307,6 +1564,15 @@ export default class Person extends EventTarget{
 		}
 		
 		this.lastTimeActive = timeNow
+		if (shouldTrackActivity)
+		{
+			this.activity.update(prediction, timeNow)
+			if (prediction !== this.data || this.deadForDuration <= 0)
+			{
+				// Motion uses monotonic milliseconds; the audio transport may use seconds.
+				this.motion.update(prediction, this.now)
+			}
+		}
 		if (this.pointsEnabled)
 		{
 			this.handleUnlockedAchievements(this.personalProgress.tick(timeNow ?? this.now), {trigger:"engagement"})
@@ -1469,6 +1735,10 @@ export default class Person extends EventTarget{
 
 		// Emoji detection with smoothing
 		const emoticon = this.emojiDetector.detect(prediction, this.options)
+		if (shouldTrackActivity && !this.dead)
+		{
+			this.directionsProgress.observeExpression(emoticon)
+		}
 		
 		// cache all data
 		this.data = prediction
@@ -1601,8 +1871,8 @@ export default class Person extends EventTarget{
 		// colours.leftEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
 		// colours.rightEyeIris = `hsla(${(hue+90)%360},${saturation}%,50%,1)`
 
-		colours.leftEyeIris = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${saturation}%,${luminosity}%, 1)`
-		colours.rightEyeIris = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${saturation}%, ${luminosity}%, 1)`
+		colours.leftEyeIris = this.hsl
+		colours.rightEyeIris = this.hsl
 		colours.leftEyebrow = `hsla(${(this.isLeftEyeOpen ? hue+90 : hue-90)%360},${saturation}%,${luminosity}%, 1)`
 		colours.rightEyebrow = `hsla(${(this.isRightEyeOpen ? hue+90 : hue-90)%360},${saturation}%, ${luminosity}%, 1)`
 
@@ -1744,7 +2014,9 @@ export default class Person extends EventTarget{
 
 	setPlayMode(playMode){
 		const performanceMode = typeof playMode === "string" ? playMode : "chord"
-		const nextMode = performanceMode !== "chord" ?
+		const nextMode = performanceMode === "harp" ?
+			(this.usesCircleOfFifthsSequence ? PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS : PERSON_TYPE_HARP) :
+			performanceMode === "arpeggio" ?
 				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
 				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
 		configurePersonByOperatingMode(this, nextMode)
@@ -1754,17 +2026,18 @@ export default class Person extends EventTarget{
 			{
 				this.activeInstrument.performanceMode = performanceMode
 			}else{
-				this.activeInstrument.arpeggiate = performanceMode !== "chord"
+				this.activeInstrument.arpeggiate = performanceMode === "arpeggio" || performanceMode === "harp"
 			}
 		}
-		return performanceMode !== "chord"
+		return performanceMode
 	}
 
 	setNoteSequence(noteSequence){
 		const keyScale = NOTE_SEQUENCE_TO_KEY_SCALE.get(noteSequence) ?? "MAJOR_SCALE"
-		const performanceMode = this.activeInstrument?.performanceMode ??
-			((this.activeInstrument?.arpeggiate ?? this.userModeData?.arpeggiate) ? "arpeggio" : "chord")
-		const nextMode = performanceMode !== "chord" ?
+		const performanceMode = this.playMode
+		const nextMode = performanceMode === "harp" ?
+			(noteSequence === "circle-of-fifths" ? PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS : PERSON_TYPE_HARP) :
+			performanceMode === "arpeggio" ?
 				(noteSequence === "circle-of-fifths" ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
 				(noteSequence === "circle-of-fifths" ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
 
@@ -1841,6 +2114,37 @@ export default class Person extends EventTarget{
 				this.setOptions({ showPointsOverride })
 				return persistPanelOption({ showPointsOverride })
 			}
+			case "headNoteRangeOverrideEnabled": {
+				const headNoteRangeOverride = value ? this.headNoteRangeDegrees : HEAD_NOTE_RANGE_INHERIT
+				this.setOptions({ headNoteRangeOverride })
+				const rangeControl = this.controls?.querySelector('[data-person-option="headNoteRangeOverride"]')
+				if (rangeControl)
+				{
+					rangeControl.disabled = !value
+					rangeControl.value = this.headNoteRangeDegrees
+					const output = this.controls.querySelector(`#${rangeControl.id}-output`)
+					if (output)
+					{
+						output.value = `${this.headNoteRangeDegrees}°`
+					}
+				}
+				return persistPanelOption({ headNoteRangeOverride })
+			}
+			case "headNoteRangeOverride": {
+				const headNoteRangeOverride = normaliseHeadNoteRangeDegrees(value)
+				this.setOptions({ headNoteRangeOverride })
+				return persistPanelOption({ headNoteRangeOverride })
+			}
+			case "headVerticalRangeOverrideEnabled": {
+				const headVerticalRangeOverride = value ? this.headVerticalRangeDegrees : HEAD_VERTICAL_RANGE_INHERIT
+				this.setOptions({ headVerticalRangeOverride })
+				return persistPanelOption({ headVerticalRangeOverride })
+			}
+			case "headVerticalRangeOverride": {
+				const headVerticalRangeOverride = normaliseHeadVerticalRangeDegrees(value)
+				this.setOptions({ headVerticalRangeOverride })
+				return persistPanelOption({ headVerticalRangeOverride })
+			}
 			case "noteParticleGraphics":
 				this.setOptions({ noteParticleGraphics:value || NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC })
 				return persistPanelOption({ noteParticleGraphics:this.options.noteParticleGraphics })
@@ -1849,9 +2153,53 @@ export default class Person extends EventTarget{
 		}
 	}
 
+	async loadDX7File(file){
+		if (!file) return
+		if (file.size > 1024*1024) throw Error('DX7 files must be smaller than 1 MB.')
+		const { parseDX7Presets } = await import('../audio/instruments/presets/dx7.js')
+		const presets = parseDX7Presets(await file.arrayBuffer())
+		return this.applyFMPresetBank(presets, true)
+	}
+
+	async setFMPresetBank(bank){
+		const { FM_FACTORY_PRESETS } = await import('../audio/instruments/presets/dx7.js')
+		const presets = bank === 'gm' ? FM_FACTORY_PRESETS : this.fmImportedPresets
+		if (!presets) throw Error('Load a DX7 file first.')
+		return this.applyFMPresetBank(presets)
+	}
+
+	async applyFMPresetBank(presets, imported=false){
+		const apply = async () => {
+			const voices = this.activeInstrument?.instruments
+			if (!voices?.length || !voices.every(voice => typeof voice.setDX7Presets === 'function'))
+				throw Error('Select FM Synth (DX7) before loading a bank.')
+			await this.activeInstrument.allNotesOff()
+			await Promise.all(voices.map(voice => voice.allSoundOff()))
+			voices.forEach(voice => voice.setDX7Presets(presets))
+			this.fmPresets = presets
+			if (imported) this.fmImportedPresets = presets
+			this.setOptions({ defaultPreset:0 })
+			await this.loadPreset(0)
+			this.isInstrumentPanelDirty = true
+			await this.refreshInstrumentPanelIfDirty()
+			return presets.length
+		}
+		const change = this.instrumentChangePromise.then(apply, apply)
+		this.instrumentChangePromise = change.catch(() => {})
+		return change
+	}
+
 	setPanelAction(action, value){
 		switch(action)
 		{
+			case "displayName":
+				this.setDisplayName(value)
+				this.dispatchPersonEvent(EVENT_PERSON_OPTIONS_CHANGED, { person:this, displayName:this.displayName })
+				return this.displayName
+			case "fmBank":
+				return this.setFMPresetBank(value)
+			case "instrumentType":
+				return this.setInstrumentType(value)
 			case "userMode":
 				configurePersonByOperatingMode(this, value)
 				return this.userMode
@@ -1945,16 +2293,24 @@ export default class Person extends EventTarget{
 		return this.playPersonAudioActiveUntil >= time
 	}
 
-	drawEmojiText(display, textX, textY, pitch, yaw, roll, prediction){
+	drawEmojiText(display, textX, textY, pitch, yaw, roll, prediction, offsetY=EMOJI_OFFSET_Y){
 		// we want something floating around the 1.0 area
 		const emojiRotationY = 0.8 + pitch * 0.2 
 		const emojiRotationX = 0.75 + easeInSine(yaw) * 0.25	// up and down
 		const emojiRotationZ = (roll * Math.PI * 0.28) - HALF_PI
 		// at the bottom of the text we draw the smiley
 		// draw emoticon but we move it up and down when it looks up and down too	
-		const emojiY = textY + EMOJI_OFFSET_Y
+		const emojiY = textY + offsetY
 		const particleOrigin = this.getMouthParticleOrigin(prediction, display, textX, emojiY)
-		display.drawEmoticon( textX, emojiY, this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, this.emojiDetector?.isMirrored ?? false )
+		display.drawEmoticon( textX, emojiY, this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, this.emojiDetector?.isMirrored ?? false, this.headNoteRangeDegrees, this.hsl )
+		display.drawOctaveIndicator?.(
+			textX,
+			emojiY,
+			this.octave,
+			this.options.octaveLow ?? 2,
+			this.options.octaveHigh ?? 6,
+			54 * emojiRotationY
+		)
 		if (this.options.noteParticles)
 		{
 			display.drawNoteParticles?.(
@@ -1964,6 +2320,7 @@ export default class Person extends EventTarget{
 				this.hsl,
 				{
 					...this.options,
+					noteParticleNoteName:this.noteName,
 					noteParticleHorizontalBias:this.getNoteParticleHorizontalBias(prediction, display),
 					noteParticleVerticalBias:this.getNoteParticleVerticalBias(prediction),
 					noteParticleNotesEnabled:!this.options.noteParticleNotesRequireAudio || this.isPlayPersonAudioActive(),
@@ -1974,6 +2331,12 @@ export default class Person extends EventTarget{
 	}
 
 	drawInstrumentText(display, textX, textY, instrumentTitle, style){
+		const hint = this.personButtonHint
+		if (hint)
+		{
+			instrumentTitle = hint
+			style = ""
+		}
 		display.drawInstrument(textX, textY + INSTRUMENT_TITLE_OFFSET_Y, `${instrumentTitle ?? "Loading..."}`, this.isSelected ? `*` : style, 12 )			
 	}
 
@@ -2053,13 +2416,15 @@ export default class Person extends EventTarget{
 		const halfHeadWidth = boxWidth * 0.5
 		const personTextWidth = Math.max(boxWidth, 180)
 
-		let title = this.instrumentTitle // this.currentPresetTitle ?? this.presetTitle ?? this.instrumentTitle ?? this.activeInstrument.toString() 
+		let title = this.displayName ? `${this.displayName} · ${this.instrumentTitle}` : this.instrumentTitle
 		let titleSuffix = ""
 		let paragraphs = []
 
-		// as this should never be negative, we can use this to offset the text
+		// Reserve the full emoji height so the whole overlay clears the face.
 		const textX = boxLeft + halfHeadWidth
-		const textY = Math.max(0, yMin - thirdHeadHeight - 22)
+		const emojiOffsetY = this.options.musicTheory ? MUSIC_THEORY_EMOJI_OFFSET_Y : EMOJI_OFFSET_Y
+		const overlayBottom = emojiOffsetY + EMOJI_RADIUS * 0.5 + 12
+		const textY = yMin - Math.max(thirdHeadHeight + 22, overlayBottom)
 
 		// draw a background for the text
 		// if (showBackground)
@@ -2078,20 +2443,14 @@ export default class Person extends EventTarget{
 
 		// console.log({xMin, xMax, yMin, yMax })
 
-		// Mouse interactions via DOM buttons
-		if ( this.isUserSelectingMode ){
-
-			// User is selecting the next operating mode
-			title = "Change mode -> " + (this.nextUserModeData?.description ?? '')
-		
-		} else if ( this.isUserSelectingInputType ){
-
-			// User is selecting the TYPE
-			title = "Change type -> " + (this.nextUserModeData?.type ?? '')
-		} 
-		
 		const pitch = 1 - Math.abs(prediction.pitch)
 		const yaw = 1 - Math.abs(prediction.yaw) 
+
+		// Hover changes the labels, but keeps the emoji and its indicators in place.
+		if (this.isMouseOver || !this.instrumentLoading)
+		{
+			this.drawEmojiText(display, textX, textY, pitch, yaw, prediction.roll, prediction, emojiOffsetY)
+		}
 
 		if ( this.isMouseOver ){
 		
@@ -2131,14 +2490,13 @@ export default class Person extends EventTarget{
 			}
 
 			this.drawInstrumentText( display, textX, textY, title, titleSuffix, 14 ) 	
-			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll, prediction )
 			display.drawParagraph( textX, textY + BUTTON_HINT_OFFSET_Y, paragraphs, 12, 20, false, "center", "Oxanium", personTextWidth )
 		
 		}else if ( this.instrumentLoading){
 
 			// Math.ceil(this.loadingInstrumentProgress * 100)
 			// Instrument loading...
-			this.drawInstrumentText( display, textX, textY, this.instrumentTitleWithLoadProgress, Math.ceil(this.loadingInstrumentProgress * 100), 14 ) 
+			this.drawInstrumentText( display, textX, textY, this.displayName ? `${this.displayName} · ${this.instrumentTitleWithLoadProgress}` : this.instrumentTitleWithLoadProgress, Math.ceil(this.loadingInstrumentProgress * 100), 14 )
 
 		}else{
 
@@ -2167,7 +2525,6 @@ export default class Person extends EventTarget{
 			
 			// flash if selected?
 			this.drawInstrumentText( display, textX, textY, title, style)
-			this.drawEmojiText( display, textX, textY, pitch, yaw, prediction.roll, prediction )
 		
 			if (this.pointsEnabled)
 			{
@@ -2192,19 +2549,14 @@ export default class Person extends EventTarget{
 				// visual music mode - so no letters, only musical notes!
 
 				// this draws a series of notes on a bridge
-				const fontSizeNotation = 28
 				const notesToDraw = notesToDisplay.length > 0 ? notesToDisplay : previewNoteNumbers
-				const textNotation = `${getCleff( this.octave )}${getStave(notesToDraw.length)}`
-				const notesY = textY + NOTE_TEXT_OFFSET_Y
-				display.drawText( textX, notesY, textNotation, fontSizeNotation, "center", "noto-music" )
-				
-				// draw our notes
-				notesToDraw.forEach( (noteNumber, i) => {
-					const noteIndex = getStaffSlotForNoteNumber(noteNumber)
-					const noteSpacing = 14
-					const noteOffset = (i - (notesToDraw.length - 1) * 0.5) * noteSpacing
-					display.drawText( textX + noteOffset, notesY + 8 * noteIndex, getNotationForNoteNumber(noteNumber), fontSizeNotation, "center", "noto-music" )
-				})
+				const notesY = textY + MUSIC_THEORY_NOTATION_OFFSET_Y
+				if (typeof display.drawNotation === "function")
+				{
+					display.drawNotation(textX, notesY, notesToDraw, this.octave, 18)
+				}else{
+					drawNotation(display, textX, notesY, notesToDraw, this.octave, 18)
+				}
 			
 			}else if (showPlayingNotes){
 				const noteText = this.getPlayedNotesLabelForDisplay(activeNoteNumbers)
@@ -2402,7 +2754,7 @@ export default class Person extends EventTarget{
 		this.pitchBendValue = 1 + ((pitchBend-1) * 0.5)
 	
 		// save position on the keyboard for visual purposes ONLY
-		this.noteIndex = Math.round(noteFloat * this.quantityOfPlayableNotes)
+		this.noteIndex = getHeadNoteIndex(noteFloat * 2 - 1, this.quantityOfPlayableNotes)
 
 		// console.info( "noteData", {noteFloat, noteSou nd, noteName, octaveNumber, newOctave, noteNumber, afterTouch, pitchBend, isMinor, hasNoteChanged }, this.pitchBendValue )
 		
@@ -2732,11 +3084,77 @@ export default class Person extends EventTarget{
 
 	getInstrumentPanelPresetKey(details = {}){
 		return [
-			this.activeInstrument?.type ?? "instrument",
+			this.instrumentType,
 			this.activeInstrument?.name ?? "loading",
 			details.presetName ?? this.presetName ?? "",
 			details.instrumentPack ?? this.options.instrumentPack ?? ""
 		].join(":")
+	}
+
+	get instrumentType(){
+		return normalisePersonInstrumentType(this.options.defaultInstrument)
+	}
+
+	setInstrumentType(type){
+		const instrumentType = normalisePersonInstrumentType(type)
+		const changeInstrument = async () => {
+			if (!this.activeInstrument?.setInstrument || instrumentType === this.instrumentType)
+			{
+				return this.activeInstrument
+			}
+
+			const performanceMode = this.activeInstrument.performanceMode
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:instrumentType })
+
+			const instrumentOptions = {
+				...this.options,
+				fmPresets:this.fmPresets,
+				preload:false,
+				offlineAudioContext:this.offlineAudioContext,
+				defaultInstrument:instrumentType,
+				defaultPreset:0
+			}
+			const polyphony = Math.max(1, this.activeInstrument.polyphony || 3)
+			const instruments = instrumentType === INSTRUMENT_TYPE_COMPOSITE ?
+				await Promise.all(Array.from({length:polyphony}, () => this.instrumentFactory.createCompositeInstrument(instrumentOptions))) :
+				null
+			const instrument = instruments?.[0] ?? await createInstrumentFromData(this.audioContext, {
+				...instrumentOptions,
+				type:instrumentType
+			})
+			const presets = await instrument.getPresets()
+			const firstPreset = presets[0]
+			if (instruments)
+			{
+				await this.activeInstrument.setInstruments(instruments)
+			}else{
+				await this.activeInstrument.setInstrument(instrument, {}, polyphony)
+			}
+			this.activeInstrument.performanceMode = performanceMode
+			this.setOptions({ defaultInstrument:instrumentType, defaultPreset:0 })
+
+			if (firstPreset !== undefined)
+			{
+				await this.loadPreset(firstPreset)
+			}else{
+				await this.setupInstrumnentForm({
+					instrument:this.activeInstrument,
+					instrumentName:instrumentType,
+					presetName:"",
+					presetTitle:instrumentType
+				})
+			}
+			this.dispatchPersonEvent(EVENT_PERSON_OPTIONS_CHANGED, {
+				person:this,
+				options:{ defaultInstrument:instrumentType, defaultPreset:0 }
+			})
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:instrumentType })
+			return this.activeInstrument
+		}
+
+		const instrumentChange = this.instrumentChangePromise.then(changeInstrument, changeInstrument)
+		this.instrumentChangePromise = instrumentChange.catch(() => {})
+		return instrumentChange
 	}
 
 	markInstrumentPanelDirty(details = {}){
@@ -2773,6 +3191,16 @@ export default class Person extends EventTarget{
 	 * @returns instrument
 	 */
 	async loadPresetByMethod(method="loadRandomPreset", progressCallback=null){
+		if (this.instrumentType === INSTRUMENT_TYPE_FM)
+		{
+			const presets = await this.activeInstrument.getPresets()
+			const current = Math.max(0, this.activeInstrument.activePresetIndex)
+			const index = method === 'loadRandomPreset' ? Math.floor(Math.random()*presets.length) :
+				method === 'loadNextPreset' ? (current+1)%presets.length :
+				method === 'loadPreviousPreset' ? (current+presets.length-1)%presets.length : current
+			this.instrumentLoadedAt = this.now
+			return this.loadPreset(index, presets[index], progressCallback)
+		}
 		
 		// NB. IMMEDIATELY set this to prevent multiple calls
 		this.instrumentLoadedAt = this.now
@@ -2780,9 +3208,12 @@ export default class Person extends EventTarget{
 		if (method==="loadRandomPreset")
 		{
 			const randomPresetName = getRandomPresetForPerson(this.playerNumber)
-			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName })
-			this.activeInstrument = await this.loadPreset( randomPresetName,  null, progressCallback )
-			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName })
+			const randomPresetTitle = getInstrumentTitle(randomPresetName) ?? `${randomPresetName}`
+			this.loadingInstrumentTitle = randomPresetTitle
+			this.loadingInstrumentProgress = 0
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:0, instrumentName:randomPresetName, presetTitle:randomPresetTitle })
+			this.activeInstrument = await this.loadPreset( randomPresetName, randomPresetTitle, progressCallback )
+			this.dispatchPersonEvent(EVENT_INSTRUMENT_LOADING, { progress:1, instrumentName:randomPresetName, presetTitle:randomPresetTitle })
 			
 			// console.info("Person "+this.playerNumber+" instrument changed", this.activeInstrument )
 		}else{
@@ -2869,7 +3300,8 @@ export default class Person extends EventTarget{
 		}
 		
 		// always remove the suffixes?
-		const instrumentNameRefined = presetNameOrIndex.replace("-mp3", "")
+		const instrumentNameRefined = this.instrumentType === INSTRUMENT_TYPE_FM ?
+			presetNameOrIndex : presetNameOrIndex.replace("-mp3", "")
 
 		// if there is no title set, it can mean that either :
 		// a. this preset is NOT one of the instruments
@@ -2939,6 +3371,7 @@ export default class Person extends EventTarget{
 
 		this.audioContext = audioContext
 		this.offlineAudioContext = offlineAudioContext
+		this.instrumentFactory = instrumentFactory
 		
 		// this controls the amplitude and connects to the mouth ui
 		this.gainNode = audioContext.createGain()
@@ -3052,7 +3485,7 @@ export default class Person extends EventTarget{
 		this.outputNode = this.trimNode
 
 		// defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR
-		const defaultInstrumentType = this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR
+		const defaultInstrumentType = normalisePersonInstrumentType(this.options.defaultInstrument)
 		
 		const defaultInstrumentOptions = {
 			...this.options,
@@ -3066,7 +3499,10 @@ export default class Person extends EventTarget{
 		// Add as manny instruments as you like
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const defaultInstrument = await instrumentFactory.loadInstrumentByType( defaultInstrumentOptions.defaultInstrument, defaultInstrumentOptions, 0 )	
+		const defaultInstruments = defaultInstrumentType === INSTRUMENT_TYPE_COMPOSITE ?
+			await Promise.all(Array.from({length:3}, () => instrumentFactory.createCompositeInstrument(defaultInstrumentOptions))) :
+			[await instrumentFactory.loadInstrumentByType(defaultInstrumentType, defaultInstrumentOptions, 0)]
+		const defaultInstrument = defaultInstruments[0]
 		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
 		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
 		const chordInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_CHORD, defaultInstrumentOptions, 0 )	
@@ -3090,7 +3526,12 @@ export default class Person extends EventTarget{
 		// this.setMainInstrument( this.addInstrument( defaultInstrument ))
 		
 		// load an instrument into the chordPlayer
-		chordInstrument.setInstrument( defaultInstrument )
+		if (defaultInstrumentType === INSTRUMENT_TYPE_COMPOSITE)
+		{
+			await chordInstrument.setInstruments(defaultInstruments)
+		}else{
+			await chordInstrument.setInstrument(defaultInstrument)
+		}
 		
 		// console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument}, {options:this.options, defaultInstrumentOptions} )	
 
@@ -3300,12 +3741,15 @@ export default class Person extends EventTarget{
 		this.showForm()
 	}
 
+	onInstrumentChangeRequested(){
+		this.loadNextPreset()
+	}
+
 	/**
-	 * Empoji button above a user head was pressed
+	 * Mode button below a user head was pressed
 	 */
 	onOperatingModeChangeRequested(){
-		this.userMode++
-		configurePersonByOperatingMode( this, this.userMode )
+		this.setPlayMode(this.nextPlayMode)
 		
 		if (this.cancelController)
 		{
@@ -3314,11 +3758,11 @@ export default class Person extends EventTarget{
 		this.cancelController = new AbortController()
 		document.addEventListener('pointerup',this.onOperatingModeDetermined, {once:true, signal:this.cancelController.signal })
 		document.addEventListener('pointercancel', this.onOperatingModeDetermined, {once:true, signal:this.cancelController.signal })
-		console.info("onOperatingModeDetermined operating mode requested", this.userMode, this )
+		console.info("onOperatingModeDetermined play mode requested", this.playMode, this )
 	}
 
 	onOperatingModeDetermined(event){
-		console.info("onOperatingModeDetermined operating mode updated", this.userMode, this )
+		console.info("onOperatingModeDetermined play mode updated", this.playMode, this )
 		this.cancelController.abort()
 		document.removeEventListener('pointerup',this.onOperatingModeDetermined )
 		document.removeEventListener('pointercancel', this.onOperatingModeDetermined )
@@ -3326,7 +3770,32 @@ export default class Person extends EventTarget{
 	}
 
 	/**
-	 * Text above Emoji was pressed
+	 * Emoji button above a user head was pressed
+	 */
+	onInputModeChangeRequested(){
+		this.inputMode++
+		
+		if (this.cancelController)
+		{
+			this.cancelController.abort()
+		}
+		this.cancelController = new AbortController()
+		document.addEventListener('pointerup',this.onInputModeDetermined, {once:true, signal:this.cancelController.signal })
+		document.addEventListener('pointercancel', this.onInputModeDetermined, {once:true, signal:this.cancelController.signal })
+		
+		console.info("onInputModeDetermined input mode updating", this.inputModeData?.description, this )
+	}
+
+	onInputModeDetermined(){
+		console.info("onInputModeDetermined input mode updated", this.inputModeData?.description, this )
+		this.cancelController.abort()
+		document.removeEventListener('pointerup',this.onInputModeDetermined )
+		document.removeEventListener('pointercancel', this.onInputModeDetermined )
+		this.cancelController = null
+	}
+
+	/**
+	 * Note text button above a user head was pressed
 	 */
 	onInputTypeChangeRequested(){
 		this.toggleChordDisplayMode()
@@ -3355,14 +3824,38 @@ export default class Person extends EventTarget{
 		const target = event.target
 		const option = target.dataset.personOption
 		const action = target.dataset.personAction
+		if (action === 'dx7File')
+		{
+			const file = target.files?.[0]
+			if (!file) return
+			const setStatus = message => {
+				const status = this.controls?.querySelector('[data-dx7-status]')
+				if (status) status.textContent = message
+			}
+			target.disabled = true
+			setStatus('Loading DX7 presets…')
+			this.loadDX7File(file).then(count => {
+				setStatus(`Loaded ${count} DX7 preset${count === 1 ? '' : 's'}.`)
+			}).catch(error => setStatus(error.message)).finally(() => {
+				target.disabled = false
+				target.value = ''
+			})
+			return
+		}
 		if (option || action)
 		{
-			const value = this.parsePanelOptionValue(target)
+			const value = action === "displayName" ? target.value : this.parsePanelOptionValue(target)
 			if (option)
 			{
 				this.setPanelOption(option, value)
 			}else{
-				this.setPanelAction(action, value)
+				Promise.resolve(this.setPanelAction(action, value)).catch(error => {
+					console.error(`Failed to apply Person panel action "${action}"`, error)
+					this.markInstrumentPanelDirty()
+					this.refreshInstrumentPanelIfDirty().catch(refreshError => {
+						console.error("Failed to restore instrument panel", refreshError)
+					})
+				})
 			}
 			return
 		}
@@ -3517,7 +4010,9 @@ export default class Person extends EventTarget{
 			userMode: parseInt(parts[2] ?? -1),
 			autoRepeat: parts[3] === undefined ? undefined : parts[3] === "true",
 			noteParticleGraphics:parts[4],
-			showPointsOverride:parts[5] === undefined ? undefined : normalisePointsOverride(parts[5])
+			showPointsOverride:parts[5] === undefined ? undefined : normalisePointsOverride(parts[5]),
+			headNoteRangeOverride:parts[6] === undefined ? undefined : normaliseHeadNoteRangeOverride(parts[6]),
+			headVerticalRangeOverride:parts[7] === undefined ? undefined : normaliseHeadVerticalRangeOverride(parts[7])
 		}
 				
 		console.error( "parseDataExport", {data, parts, shape} )
@@ -3532,18 +4027,32 @@ export default class Person extends EventTarget{
 	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined, showPointsOverride=undefined ){
+	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined, showPointsOverride=undefined, headNoteRangeOverride=undefined, headVerticalRangeOverride=undefined ){
 		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
+	}
+
+	static getQueryPrefixes(personOrIndex=0){
+		return getPersonQueryPrefixes(personOrIndex)
+	}
+
+	static getQueryOptionMap(){
+		return getPersonQueryOptionMap()
+	}
+
+	static getQueryOptions(data, prefixes=[]){
+		return getPersonQueryOptions(data, prefixes)
 	}
 
 	exportData(){
 		return Person.createDataExport(
 			this.activeInstrument?.activePresetIndex ?? -1,
-			this.activeInstrument?.type ?? INSTRUMENT_TYPE_SOUNDFONT,
+			this.instrumentType,
 			this.userMode,
 			this.options.autoRepeat,
 			this.options.noteParticleGraphics,
-			this.options.showPointsOverride
+			this.options.showPointsOverride,
+			this.options.headNoteRangeOverride,
+			this.options.headVerticalRangeOverride
 		)
 	}
 
@@ -3564,6 +4073,14 @@ export default class Person extends EventTarget{
 		{
 			options.showPointsOverride = normalisePointsOverride(data.showPointsOverride)
 		}
+		if (data.headNoteRangeOverride !== undefined)
+		{
+			options.headNoteRangeOverride = normaliseHeadNoteRangeOverride(data.headNoteRangeOverride)
+		}
+		if (data.headVerticalRangeOverride !== undefined)
+		{
+			options.headVerticalRangeOverride = normaliseHeadVerticalRangeOverride(data.headVerticalRangeOverride)
+		}
 		return options
 	}
 
@@ -3578,16 +4095,10 @@ export default class Person extends EventTarget{
 		if (!data){
 			throw Error("No data provided for Person to import")
 		}
-		
-		// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-		if ( data[prefix+'instrument' ]) { this.options.defaultInstrument = data[prefix+'instrument'] }
-		// which instrument preset to load?
-		if ( data[prefix+'preset' ]) { this.options.defaultPreset = data[prefix+'preset' ] }
-		if ( data[prefix+'particles' ]) { this.options.noteParticleGraphics = data[prefix+'particles' ] }
-		// if ( data[prefix+'sat' ]) { this.options.saturation = data[prefix+'sat' ] }
-		// if ( data[prefix+'lum' ]) { this.options.luminosity = data[prefix+'lum' ] }
-		// if ( data[prefix+'range' ]) { this.options.hueRange = data[prefix+'range' ] }
-		// if ( data[prefix+'hue' ]) { this.options.defaultHue = data[prefix+'hue' ] }
+		const prefixes = prefix ?
+			[prefix.endsWith('-') ? prefix.slice(0, -1) : prefix] :
+			Person.getQueryPrefixes(this)
+		Object.assign(this.options, getPersonQueryOptions(data, prefixes))
 
 		return this.options
 	}
@@ -3597,23 +4108,13 @@ export default class Person extends EventTarget{
 	 * @returns {String}
 	 */
 	exportJSONData(prefix='', asURL=false){
-
-		prefix = prefix.length > 0 ? 
-			prefix+'-' : 
-			this.id+'-'
-
-		const data = {
-			// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
-			[prefix+'instrument']:this.options.defaultInstrument, 
-			// FIXME: GET THIS FROM THE ACTIVE INSTRUMENT!
-			// which instrument preset to load?
-			[prefix+'preset']:this.activeInstrument.activePresetIndex ?? this.options.defaultPreset,
-			[prefix+'particles']:this.options.noteParticleGraphics,
-			
-			// [prefix+'sat'] : this.saturation,
-			// [prefix+'lum'] : this.luminosity,
-			// [prefix+'range'] : this.hueRange,
-			// [prefix+'hue'] : this.hue,
+		const prefixes = prefix.length > 0 ?
+			[prefix.endsWith('-') ? prefix.slice(0, -1) : prefix] :
+			Person.getQueryPrefixes(this)
+		const data = exportPersonQueryOptions(this, prefixes[0])
+		if (prefixes.length > 1)
+		{
+			Object.assign(data, ...prefixes.slice(1).map(personPrefix => exportPersonQueryOptions(this, personPrefix)))
 		}
 
 		return asURL ? new URLSearchParams(data)  : data
@@ -3623,6 +4124,6 @@ export default class Person extends EventTarget{
 	 * String representation of this Person
 	 */
 	toString(){
-		return `Person(${this.id})`
+		return `Person(${this.id}) ${this.activity.toString()} ${this.achievements.toString()}`
 	}
 }

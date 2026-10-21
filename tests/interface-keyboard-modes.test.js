@@ -101,6 +101,15 @@ describe('keyboard performance modes', () => {
 		expect(application.setFeedback).toHaveBeenCalledWith('Keyboard mode: Notes', 0, 'keyboard')
 		expect(document.getElementById('select-keyboard-mode').value).toBe('notes')
 
+		application.instrument.noteOn.mockClear()
+		for (const key of '123456789') {
+			dispatchKey('keydown', { key, code: `Digit${key}` })
+			dispatchKey('keyup', { key, code: `Digit${key}` })
+		}
+		expect(application.instrument.noteOn.mock.calls.map(([noteNumber]) => noteNumber)).toEqual([
+			48, 50, 52, 53, 55, 57, 59, 60, 62,
+		])
+
 		dispatchKey('keydown', { key: '2', code: 'Digit2' })
 		dispatchKey('keyup', { key: '2', code: 'Digit2' })
 		dispatchKey('keydown', { key: 'q', code: 'KeyQ' })

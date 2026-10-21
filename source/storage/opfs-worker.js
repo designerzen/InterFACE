@@ -11,6 +11,7 @@
 //   offset 10 : uint8    velocity (0-127)
 //   offset 11 : uint8    channel  (0-15)
 
+import { createSessionStore } from './session-store.js'
 const RECORD_SIZE = 12
 
 const textEncoder = new TextEncoder()
@@ -136,6 +137,34 @@ const readText = (name) => {
 	return textDecoder.decode(buffer)
 }
 
+const writeBytes = (name, buffer, { append = true } = {}) => {
+	const entry = requireFile(name)
+	const bytes = new Uint8Array(buffer)
+	const at = append ? entry.accessHandle.getSize() : 0
+	if (!append) entry.accessHandle.truncate(0)
+	let written = 0
+	while (written < bytes.byteLength) {
+		const count = entry.accessHandle.write(bytes.subarray(written), { at: at + written })
+		if (!count) throw new Error('OPFS write made no progress')
+		written += count
+	}
+	entry.offset = at + written
+	return written
+}
+
+const readBytes = (name) => {
+	const entry = requireFile(name)
+	const size = entry.accessHandle.getSize()
+	const buffer = new ArrayBuffer(size)
+	let read = 0
+	while (read < size) {
+		const count = entry.accessHandle.read(new Uint8Array(buffer, read), { at: read })
+		if (!count) break
+		read += count
+	}
+	return buffer
+}
+
 const flushFile = (name) => {
 	const entry = requireFile(name)
 	entry.accessHandle.flush()
@@ -165,10 +194,19 @@ const listFiles = async () => {
 	return names
 }
 
-self.addEventListener('message', async (event) => {
+const sessions = createSessionStore(ensureRoot)
+let requests = Promise.resolve()
+const dispatch = async (event) => {
 	const { id, type, payload = {} } = event.data || {}
 	try {
 		let result
+		if (type.startsWith('session:')) {
+			const method = type.slice(8)
+			if (!Object.hasOwn(sessions, method)) throw new Error('Unknown session operation')
+			result = await sessions[method](payload)
+			self.postMessage({ id, ok:true, result })
+			return
+		}
 		switch (type) {
 			case 'open':
 				result = await openFile(payload.name, { append: payload.append })
@@ -197,6 +235,12 @@ self.addEventListener('message', async (event) => {
 			case 'readText':
 				result = readText(payload.name)
 				break
+			case 'writeBytes':
+				result = writeBytes(payload.name, payload.buffer, { append: payload.append })
+				break
+			case 'readBytes':
+				result = readBytes(payload.name)
+				break
 			case 'flush':
 				flushFile(payload.name)
 				break
@@ -219,4 +263,9 @@ self.addEventListener('message', async (event) => {
 	} catch (error) {
 		self.postMessage({ id, ok: false, error: error.message })
 	}
+}
+self.addEventListener('message', event => {
+	requests = requests.then(() => dispatch(event)).catch(error => {
+		self.postMessage({ id:event.data?.id, ok:false, error:error.message })
+	})
 })

@@ -33,6 +33,10 @@ const OPTIONS = {
 }
 
 export const INSTRUMENT_TYPE_SYNTHESIZER = "SynthesizerInstrument"
+export const SYNTHESIZER_PRESETS = [
+	GENERAL_MIDI_INSTRUMENTS[0],
+	...GENERAL_MIDI_INSTRUMENTS.slice(80, 89)
+]
 
 const createNoiseBuffer = (audioContext, length=4096) => {
 	const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate)
@@ -71,6 +75,11 @@ export default class SynthesizerInstrument extends Instrument{
 	noiseGainNode
 	delayNode
 	stereoNode
+	preset = SYNTHESIZER_PRESETS[0]
+
+	get activePreset(){
+		return this.preset
+	}
 
 	get volume() {
 		return this.gainNode.gain.value
@@ -101,7 +110,7 @@ export default class SynthesizerInstrument extends Instrument{
 
 
 	get activePresetIndex(){
-		const index = OSCILLATOR_TYPES.indexOf( this.activePreset )
+		const index = SYNTHESIZER_PRESETS.indexOf( this.activePreset )
 		return index < 0 ? 0 : index
 	}
 
@@ -199,25 +208,26 @@ export default class SynthesizerInstrument extends Instrument{
 	 * @returns 
 	 */
 	async noteOn( noteNumber, velocity=1 ){
+		const now = this.currentTime
 	
 		const frequency = noteNumberToFrequency(noteNumber)
-		const isNewNote = super.noteOn(noteNumber, velocity)
+		const isNewNote = await super.noteOn(noteNumber, velocity)
 		
 		console.error("Oscillator", noteNumber, frequency, this.oscillatorA.frequency.value) 
 		// console.error("Oscillator", this, this.options, this.oscillatorA.frequency.value, {frequency, noteNumber, velocity})
 	
-		this.envelope.gain.setValueAtTime(1, 0)
+		this.envelope.gain.setValueAtTime(1, now)
 	
 		if (isNewNote)
 		{
 			// instantly or with slide?
-			this.oscillatorA.frequency.value = frequency
-			this.oscillatorB.frequency.value = frequency
+			this.oscillatorA.frequency.setValueAtTime(frequency, now)
+			this.oscillatorB.frequency.setValueAtTime(frequency, now)
 		
 		}else{
 
 			// slide to pitch at time
-			const startAtTime = this.context.currentTime + this.options.slideDuration
+			const startAtTime = now + this.options.slideDuration
 			this.oscillatorA.frequency.exponentialRampToValueAtTime( frequency, startAtTime )
 			this.oscillatorB.frequency.exponentialRampToValueAtTime( frequency, startAtTime )
 		}
@@ -235,7 +245,7 @@ export default class SynthesizerInstrument extends Instrument{
 	 */
 	async noteOff(noteNumber, velocity=1){
 		// if you want a nice tail
-		this.envelope.gain.setValueAtTime( 0, this.context.currentTime + this.options.fadeDuration*velocity )
+		this.envelope.gain.setValueAtTime( 0, this.currentTime + this.options.fadeDuration*velocity )
 		// this.envelope.gain.value =  0
 		
 		return super.noteOff(noteNumber)
@@ -284,12 +294,16 @@ export default class SynthesizerInstrument extends Instrument{
 	 */
 	async programChange( programNumber ){
 
-		// check if it is a number or a string
-		if (!Number.isNaN(programNumber))
+		if (Number.isInteger(programNumber) || (typeof programNumber === "string" && /^\d+$/.test(programNumber)))
 		{
-			// find preset number and return as instrument name string
-			programNumber = this.getPresets()[programNumber]
+			programNumber = SYNTHESIZER_PRESETS[Number(programNumber)]
 		}
+		if (typeof programNumber !== "string" || !SYNTHESIZER_PRESETS.includes(programNumber))
+		{
+			return false
+		}
+		this.preset = programNumber
+		this.title = programNumber
 
 		switch( programNumber.toLowerCase() ){
 
@@ -308,7 +322,7 @@ export default class SynthesizerInstrument extends Instrument{
 			case 81:
 			case "lead 2 (sawtooth)":
 				this.oscillatorAType = OSCILLATOR_TYPES[3]
-				this.oscillatorBType = OSCILLATOR_TYPES[4]
+				this.oscillatorBType = OSCILLATOR_TYPES[3]
 				break
 
 			// tube instrument like a baby church organ or magix roundabout
@@ -360,7 +374,7 @@ export default class SynthesizerInstrument extends Instrument{
 	 * @returns {Array<String>} of Instrument Names
 	 */
 	async getPresets(){
-		return [ ...GENERAL_MIDI_INSTRUMENTS ] 
+		return [ ...SYNTHESIZER_PRESETS ]
 	}
 
 	

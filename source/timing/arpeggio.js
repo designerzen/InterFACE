@@ -1,17 +1,56 @@
 export const ARPEGGIO_FAST_BPM_THRESHOLD = 90
+export const ARPEGGIO_GRID_QUARTER_NOTE = "quarter-note"
 export const ARPEGGIO_GRID_HALF_NOTE = "half-note"
 export const ARPEGGIO_GRID_BAR = "bar"
 export const ARPEGGIO_GRID_CLOCK = "clock"
 export const DEFAULT_CLOCK_DIVISIONS_PER_BAR = 24
 export const ARPEGGIO_VARIATION = "arpeggio"
 export const HARP_ARPEGGIO_VARIATION = "harp"
+export const ARPEGGIO_RATE_AUTO = "auto"
+export const ARPEGGIO_RATE_SLOW = "slow"
+export const ARPEGGIO_RATE_MEDIUM = "medium"
+export const ARPEGGIO_RATE_FAST = "fast"
+
+const ARPEGGIO_GRIDS = new Set([
+	ARPEGGIO_GRID_QUARTER_NOTE,
+	ARPEGGIO_GRID_HALF_NOTE,
+	ARPEGGIO_GRID_BAR,
+	ARPEGGIO_GRID_CLOCK
+])
+
+const ARPEGGIO_RATE_LABELS = Object.freeze({
+	[ARPEGGIO_RATE_AUTO]:"Auto",
+	[ARPEGGIO_RATE_SLOW]:"Slow",
+	[ARPEGGIO_RATE_MEDIUM]:"Medium",
+	[ARPEGGIO_RATE_FAST]:"Fast"
+})
 
 const ARPEGGIO_VARIATIONS = Object.freeze({
 	[ARPEGGIO_VARIATION]:Object.freeze({ octaveSpan:1, clockStep:0 }),
-	[HARP_ARPEGGIO_VARIATION]:Object.freeze({ octaveSpan:4, clockStep:3 })
+	[HARP_ARPEGGIO_VARIATION]:Object.freeze({ octaveSpan:4, clockStep:4 })
 })
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+const normaliseArpeggioGrid = grid => ARPEGGIO_GRIDS.has(grid) ? grid : null
+
+export const normaliseArpeggioRate = rate => ARPEGGIO_RATE_LABELS[rate] ? rate : ARPEGGIO_RATE_AUTO
+export const getArpeggioRateLabel = rate => ARPEGGIO_RATE_LABELS[normaliseArpeggioRate(rate)]
+export const isArpeggioPlayMode = playMode => playMode === ARPEGGIO_VARIATION || playMode === HARP_ARPEGGIO_VARIATION
+export const hasPresentArpeggioPlayer = (people=[]) => people.some(person => person?.alive && isArpeggioPlayMode(person?.playMode))
+
+export const getArpeggioTimingOptionsForRate = (rate, playMode=ARPEGGIO_VARIATION) => {
+	switch (normaliseArpeggioRate(rate))
+	{
+		case ARPEGGIO_RATE_SLOW:
+			return playMode === HARP_ARPEGGIO_VARIATION ? { clockStep:8 } : { grid:ARPEGGIO_GRID_BAR }
+		case ARPEGGIO_RATE_MEDIUM:
+			return playMode === HARP_ARPEGGIO_VARIATION ? { clockStep:4 } : { grid:ARPEGGIO_GRID_HALF_NOTE }
+		case ARPEGGIO_RATE_FAST:
+			return playMode === HARP_ARPEGGIO_VARIATION ? { clockStep:2 } : { grid:ARPEGGIO_GRID_QUARTER_NOTE }
+		default:
+			return {}
+	}
+}
 
 export const getArpeggioGridForBPM = (bpm, forceBar=false) => {
 	const numericBPM = Number(bpm)
@@ -20,15 +59,16 @@ export const getArpeggioGridForBPM = (bpm, forceBar=false) => {
 		return ARPEGGIO_GRID_BAR
 	}
 	return Number.isFinite(numericBPM) && numericBPM > ARPEGGIO_FAST_BPM_THRESHOLD ?
-		ARPEGGIO_GRID_BAR :
-		ARPEGGIO_GRID_HALF_NOTE
+		ARPEGGIO_GRID_HALF_NOTE :
+		ARPEGGIO_GRID_QUARTER_NOTE
 }
 
 export const getArpeggioTriggerIntervalMs = (bpm, grid=getArpeggioGridForBPM(bpm)) => {
 	const numericBPM = Number(bpm)
 	const safeBPM = Number.isFinite(numericBPM) && numericBPM > 0 ? numericBPM : ARPEGGIO_FAST_BPM_THRESHOLD
 	const quarterNoteMs = 60000 / safeBPM
-	return grid === ARPEGGIO_GRID_BAR ? quarterNoteMs * 4 : quarterNoteMs * 2
+	return grid === ARPEGGIO_GRID_BAR ? quarterNoteMs * 4 :
+		grid === ARPEGGIO_GRID_HALF_NOTE ? quarterNoteMs * 2 : quarterNoteMs
 }
 
 export const getArpeggioGateMs = (bpm, {
@@ -64,14 +104,15 @@ export const getArpeggioTiming = (bpm, options={}) => {
 		}
 	}
 
-	const grid = getArpeggioGridForBPM(bpm, options.forceBar)
+	const grid = normaliseArpeggioGrid(options.grid) ?? getArpeggioGridForBPM(bpm, options.forceBar)
 	const intervalMs = getArpeggioTriggerIntervalMs(bpm, grid)
 	const gateMs = getArpeggioGateMs(bpm, { ...options, grid })
 	return {
 		grid,
 		intervalMs,
 		gateMs,
-		shouldTrigger: grid === ARPEGGIO_GRID_BAR ? Boolean(options.isBar) : Boolean(options.isHalfNote)
+		shouldTrigger: grid === ARPEGGIO_GRID_BAR ? Boolean(options.isBar) :
+			grid === ARPEGGIO_GRID_HALF_NOTE ? Boolean(options.isHalfNote) : Boolean(options.isQuarterNote)
 	}
 }
 
@@ -115,6 +156,6 @@ export class Arpeggio {
 	}
 
 	getTiming(bpm, options={}){
-		return getArpeggioTiming(bpm, { ...options, clockStep:this.config.clockStep })
+		return getArpeggioTiming(bpm, { clockStep:this.config.clockStep, ...options })
 	}
 }

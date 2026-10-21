@@ -1,4 +1,5 @@
 import Instrument from './instrument.js'
+import { recordInstrumentRelease } from '../../storage/observe-instrument.js'
 // A generic interface for instruments
 
 import { playTrack, loadInstrumentFromSoundFont } from '../audio'
@@ -6,6 +7,9 @@ import { convertMIDINoteNumberToName, convertNoteNameToMIDINoteNumber} from '../
 
 // Maximum simultaneous tracks to play (will wait for slot)
 const MAX_TRACKS = 64 * 4 // AKA 4 bars
+
+// Balance sample playback (including SoundFonts) with the other instruments.
+const SAMPLE_OUTPUT_GAIN = 5
 
 export const INSTRUMENT_TYPE_SAMPLE = "SamplePlayerInstrument"
 
@@ -55,7 +59,7 @@ export default class SampleInstrument extends Instrument{
 	}
 	
 	set volume( value ){
-		this.gainNode.gain.value = value
+		this.gainNode.gain.value = value * SAMPLE_OUTPUT_GAIN
 		this.currentVolume = value
 	}
 
@@ -72,10 +76,15 @@ export default class SampleInstrument extends Instrument{
 		return this.presetIndex
 	}
 
+	get repetitionRate(){
+		const configuredRate = super.repetitionRate
+		return configuredRate > 0 ? configuredRate : 12
+	}
+
     async create(){    
 
 		this.gainNode = this.context.createGain()
-		this.gainNode.gain.value = this.currentVolume
+		this.volume = this.currentVolume
 		
 		this.envelope = this.context.createGain()
 		this.envelope.gain.value = 0
@@ -179,6 +188,7 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	async noteOn(noteNumber, velocity=1){
+		const triggerAt = this.currentTime
 		const started = await super.noteOn(noteNumber, velocity)
 		if (!started)
 		{
@@ -191,6 +201,11 @@ export default class SampleInstrument extends Instrument{
 		}
 
 		const audioBuffer = this.getAudioBufferForNoteNumber(noteNumber)
+		if (!audioBuffer) {
+			this.activeNotes.delete(noteNumber)
+			this.active = this.activeNotes.size > 0
+			return false
+		}
 		if (audioBuffer)
 		{
 			this.active = true
@@ -201,11 +216,12 @@ export default class SampleInstrument extends Instrument{
 				audioBuffer,
 				0,
 				this.gainNode,
-				{ loop:true, playbackRate:this.pitchBendValue },
+				{ loop:this.isContinuous, playbackRate:this.pitchBendValue, triggerAt },
 				() => {
 					if (this.activeNoteSamples.get(noteNumber) === track)
 					{
 						this.activeNoteSamples.delete(noteNumber)
+						recordInstrumentRelease(this,noteNumber)
 					}
 				},
 			)
@@ -215,12 +231,59 @@ export default class SampleInstrument extends Instrument{
 		return started
 	}
 
+	/**
+	 * Start a fresh attack for a note which remains logically held. The old
+	 * source is stopped only after its replacement has started, leaving the
+	 * downstream reverb tail intact without accumulating looping sources.
+	 */
+	async retrigger(noteNumber, velocity=1){
+		if (!this.activeNotes.has(noteNumber))
+		{
+			return this.noteOn(noteNumber, velocity)
+		}
+
+		const audioBuffer = this.getAudioBufferForNoteNumber(noteNumber)
+		if (!audioBuffer)
+		{
+			return false
+		}
+
+		const previousTrack = this.activeNoteSamples.get(noteNumber)
+		this.volume = velocity
+		let track
+		track = playTrack(
+			this.context,
+			audioBuffer,
+			0,
+			this.gainNode,
+			{ loop:this.isContinuous, playbackRate:this.pitchBendValue, triggerAt:this.currentTime },
+			() => {
+				if (this.activeNoteSamples.get(noteNumber) === track)
+				{
+					this.activeNoteSamples.delete(noteNumber)
+					recordInstrumentRelease(this,noteNumber)
+				}
+			},
+		)
+		this.activeNoteSamples.set(noteNumber, track)
+		this.active = true
+
+		try
+		{
+			previousTrack?.stop?.(this.currentTime)
+		}catch (error)
+		{
+			// The previous source may already have ended during replacement.
+		}
+		return true
+	}
+
 	async noteOff(noteNumber, velocity=0){
 		const track = this.activeNoteSamples.get(noteNumber)
 		this.activeNoteSamples.delete(noteNumber)
 		try
 		{
-			track?.stop?.()
+			track?.stop?.(this.currentTime)
 		}catch (error)
 		{
 			// An external cleanup may already have stopped this source.

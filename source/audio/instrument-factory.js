@@ -11,9 +11,9 @@ factory.loadInstrument(0)
 */
 
 import { fetchJSON } from "../utils/fetch.js"
-import { INSTRUMENT_TYPE_CHORD, INSTRUMENT_TYPE_DRUMKIT, INSTRUMENT_TYPE_DUAL_OSCILLATOR, INSTRUMENT_TYPE_KIT, INSTRUMENT_TYPE_MIDI, INSTRUMENT_TYPE_MONOTRON, INSTRUMENT_TYPE_MOOG, INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT, INSTRUMENT_TYPE_SPEECH, INSTRUMENT_TYPE_SYTHESIZER, INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, INSTRUMENT_TYPE_WAM, INSTRUMENT_TYPE_WAM2, INSTRUMENT_TYPE_WAVEGUIDE, INSTRUMENTS } from "./instrument-list.js"
+import { INSTRUMENT_TYPE_FM } from "./instrument-list.js"
+import { INSTRUMENT_TYPE_CHORD, INSTRUMENT_TYPE_COMPOSITE, INSTRUMENT_TYPE_DRUMKIT, INSTRUMENT_TYPE_DUAL_OSCILLATOR, INSTRUMENT_TYPE_KIT, INSTRUMENT_TYPE_MIDI, INSTRUMENT_TYPE_MONOTRON, INSTRUMENT_TYPE_MOOG, INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT, INSTRUMENT_TYPE_SPEECH, INSTRUMENT_TYPE_SYTHESIZER, INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, INSTRUMENT_TYPE_WAM, INSTRUMENT_TYPE_WAM2, INSTRUMENT_TYPE_WAVEGUIDE, INSTRUMENTS } from "./instrument-list.js"
 // import ChordInstrument from "./instruments/chord.instrument.js"
-import MIDIInstrument from "./instruments/instrument.midi.js"
 // import SoundFontInstrument from "./instruments/instrument.soundfont.js"
 // import TripleOscillatorInstrument from "./instruments/instrument.triple-oscillator.js"
 // import WAMInstrument from "./instruments/instrument.wam.js"
@@ -26,6 +26,7 @@ import WAVE_ARCHIVE_GENERAL_MIDI from "url:../assets/audio/wave-tables/general-m
 import { loadWaveTableFromArchive, loadWaveTableFromManifest } from "./wave-tables.js"
 
 const instrumentsImported = new Map()
+const instrumentImportPromises = new Map()
 
 // PRELOAD these types of instrument :
 // set all types that point to these endpoints
@@ -88,7 +89,7 @@ const loadPresetData = async (waveforms) => {
  * @param {String} type 
  * @returns Class that extends Instrument
  */
-export const lazilyLoadInstrument = async (type) => {
+const loadInstrumentClass = async (type) => {
 	
 	// already loaded
 	if (instrumentsImported.has(type))
@@ -99,6 +100,11 @@ export const lazilyLoadInstrument = async (type) => {
 	// lazily load this instrument into memory?
 	switch( type )
 	{
+		case INSTRUMENT_TYPE_COMPOSITE:
+			const CompositeInstrument = (await import("./instruments/instrument.composite.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_COMPOSITE, CompositeInstrument)
+			return CompositeInstrument
+
 		case INSTRUMENT_TYPE_CHORD:
 			const ChordInstrument = (await import("./instruments/chord.instrument.js")).default
 			instrumentsImported.set(INSTRUMENT_TYPE_CHORD, ChordInstrument)
@@ -114,6 +120,9 @@ export const lazilyLoadInstrument = async (type) => {
 			
 		case "osc2":
 		case INSTRUMENT_TYPE_DUAL_OSCILLATOR:
+			// Parcel can evaluate sibling split bundles before their shared base.
+			// Load that dependency lazily before evaluating the derived instrument.
+			await lazilyLoadInstrument(INSTRUMENT_TYPE_OSCILLATOR)
 			const DualOscillatorInstrument = (await import("./instruments/instrument.dual-oscillator.js")).default
 			const dualOscillatorPresets = await loadPresetData( WAVE_ARCHIVE_GENERAL_MIDI )
 			DualOscillatorInstrument.setPresets( dualOscillatorPresets )
@@ -122,12 +131,20 @@ export const lazilyLoadInstrument = async (type) => {
 			
 		case "osc3":
 		case INSTRUMENT_TYPE_TRIPLE_OSCILLATOR:
+			await lazilyLoadInstrument(INSTRUMENT_TYPE_OSCILLATOR)
 			const TripleOscillatorInstrument = (await import("./instruments/instrument.triple-oscillator.js")).default
 			const tripleOscillatorPresets = await loadPresetData( WAVE_ARCHIVE_GENERAL_MIDI )
 			TripleOscillatorInstrument.setPresets( tripleOscillatorPresets )
 			instrumentsImported.set(INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, TripleOscillatorInstrument)
 			return TripleOscillatorInstrument
 			
+		case INSTRUMENT_TYPE_FM:
+			await import("./instruments/instrument.js")
+			await import("./midi/general-midi.constants.js")
+			const FMInstrument = (await import("./instruments/instrument.fm.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_FM, FMInstrument)
+			return FMInstrument
+
 		case "synth":
 		case INSTRUMENT_TYPE_SYTHESIZER:
 			const SynthesizerInstrument = (await import("./instruments/instrument.synthesizer.js")).default
@@ -185,13 +202,52 @@ export const lazilyLoadInstrument = async (type) => {
 			return KitInstrument
 
 		case INSTRUMENT_TYPE_MIDI:
-			// const MIDIInstrument = (await import( "./instruments/instrument.midi.js")).default
-			// instrumentsImported.set(type, MIDIInstrument)
+			const MIDIInstrument = (await import("./instruments/instrument.midi.js")).default
+			instrumentsImported.set(INSTRUMENT_TYPE_MIDI, MIDIInstrument)
 			return MIDIInstrument
 
 		default: 
 			console.error("LazilyLoad Instrument", {type} )
-			return MIDIInstrument
+			return lazilyLoadInstrument(INSTRUMENT_TYPE_MIDI)
+	}
+}
+
+/**
+ * Share an in-flight dynamic import between every instrument being created.
+ * Composite voices are created concurrently, so checking only the completed
+ * class cache allows Parcel to request the same split bundle several times.
+ */
+export const lazilyLoadInstrument = async (type) => {
+	// Aliases must share the same completed and in-flight import caches.
+	type = ({
+		osc:INSTRUMENT_TYPE_OSCILLATOR,
+		osc2:INSTRUMENT_TYPE_DUAL_OSCILLATOR,
+		osc3:INSTRUMENT_TYPE_TRIPLE_OSCILLATOR,
+		synth:INSTRUMENT_TYPE_SYTHESIZER,
+		fm:INSTRUMENT_TYPE_FM,
+		dx7:INSTRUMENT_TYPE_FM,
+		sf:INSTRUMENT_TYPE_SOUNDFONT,
+		waveguide:INSTRUMENT_TYPE_WAVEGUIDE
+	})[type] ?? type
+	if (instrumentsImported.has(type))
+	{
+		return instrumentsImported.get(type)
+	}
+
+	let importPromise = instrumentImportPromises.get(type)
+	if (!importPromise)
+	{
+		importPromise = loadInstrumentClass(type)
+		instrumentImportPromises.set(type, importPromise)
+	}
+
+	try{
+		return await importPromise
+	}finally{
+		if (instrumentImportPromises.get(type) === importPromise)
+		{
+			instrumentImportPromises.delete(type)
+		}
 	}
 }
 
@@ -260,6 +316,27 @@ export default class InstrumentFactory{
 
 	constructor(audioContext){
 		this.audioContext = audioContext
+	}
+
+	async createCompositeInstrument(options={}){
+		const composite = await createInstrumentFromData(this.audioContext, {
+			...options,
+			type:INSTRUMENT_TYPE_COMPOSITE
+		})
+		const backendTypes = [
+			INSTRUMENT_TYPE_SOUNDFONT,
+			INSTRUMENT_TYPE_OSCILLATOR,
+			INSTRUMENT_TYPE_DUAL_OSCILLATOR,
+			INSTRUMENT_TYPE_TRIPLE_OSCILLATOR,
+			INSTRUMENT_TYPE_SYTHESIZER
+		]
+		const backends = await Promise.all(backendTypes.map(type => createInstrumentFromData(this.audioContext, {
+			...options,
+			preload:false,
+			type
+		})))
+		backendTypes.forEach((type, index) => composite.addInstrument(type, backends[index]))
+		return composite
 	}
 
 	/**

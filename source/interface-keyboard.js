@@ -61,6 +61,7 @@ const KEYBOARD_MODES = Object.freeze([
 ])
 const KEYBOARD_NUMBER_MINIMUM_OFFSET = -60
 const KEYBOARD_NUMBER_MAXIMUM_OFFSET = 48
+const KEYBOARD_NUMBER_ROW_NOTE_OFFSETS = Object.freeze([0, 2, 4, 5, 7, 9, 11, 12, 14, 16])
 
 const SHIFTED_NUMBER_FALLBACKS = Object.freeze({
 	')': 0,
@@ -98,7 +99,9 @@ const getKeyboardNote = event => {
 	if (!performanceKey) return null
 	return {
 		...performanceKey,
-		index: performanceKey.index - 10,
+		index: performanceKey.row === 'numbers'
+			? KEYBOARD_NUMBER_ROW_NOTE_OFFSETS[performanceKey.rowKeyIndex]
+			: performanceKey.index - 10,
 		heldKey: performanceKey.code,
 	}
 }
@@ -121,7 +124,7 @@ const OPERATIONAL_SHORTCUTS = Object.freeze([
 	{ key: 'b', display: 'B', controlId: 'button-percussion', label: 'Beats' },
 	{ key: 'c', display: 'C', controlId: 'button-clear', label: 'Clear' },
 	{ key: 'd', display: 'D', controlId: 'button-disco', label: 'Disco' },
-	{ key: 'e', display: 'E', controlId: 'button-eyes', label: 'Eyes' },
+	{ key: 'e', display: 'E', controlId: 'select-eyes', label: 'Eyes' },
 	{ key: 'f', display: 'F', controlId: 'button-fullscreen', label: 'Fullscreen' },
 	{ key: 'g', display: 'G', controlId: 'button-performance-drums', label: 'Performance drums' },
 	{ key: 'h', display: 'H', controlId: 'button-hud', label: 'HUD' },
@@ -141,7 +144,7 @@ const OPERATIONAL_SHORTCUTS = Object.freeze([
 	{ key: 'v', display: 'V', controlId: 'button-record-video', label: 'Record video' },
 	{ key: 'w', display: 'W', controlId: 'button-eyebrows', label: 'Brows' },
 	{ key: 'x', display: 'X', controlId: 'button-meshes', label: 'Faces' },
-	{ key: 'y', display: 'Y', controlId: 'button-spectrogram', label: 'Spectrogram' },
+	{ key: 'y', display: 'Y', controlId: 'select-viz', label: 'Audio visualisation' },
 	{ key: 'z', display: 'Z', controlId: 'button-flood', label: 'Flood' },
 	{ key: 'shift+a', display: 'Shift A', controlId: 'button-toggle-advanced', label: 'Advanced' },
 	{ key: 'shift+i', display: 'Shift I', controlId: 'toggle-midi', label: 'MIDI' },
@@ -1225,7 +1228,12 @@ export const addKeyboardEvents = application => {
 			const shortcut = getOperationalShortcut(event)
 			const control = shortcut ? document.getElementById(shortcut.controlId) : null
 			if (shortcut && control && !event.repeat) {
-				control.click()
+				if (control instanceof HTMLSelectElement) {
+					control.selectedIndex = (control.selectedIndex + 1) % control.options.length
+					control.dispatchEvent(new Event('change', { bubbles:true }))
+				}else{
+					control.click()
+				}
 				updateKeyboardStatus(application, state, shortcut.label, true)
 			}else if (!shortcut || !control) {
 				showGuide()

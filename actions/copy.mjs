@@ -6,10 +6,10 @@
  * specific stuff such as downloading API data, copying
  * files from 
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, lstatSync, copyFileSync, constants } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, lstatSync, copyFileSync } from 'node:fs'
 import * as path from 'path'
 
-const copyFolderSync = (from, to, overwrite=false ) => {
+const copyFolderSync = (from, to, preserveWasm = false) => {
 
 	if (existsSync(to))
 	{ 
@@ -20,6 +20,8 @@ const copyFolderSync = (from, to, overwrite=false ) => {
 	}
 
 	readdirSync(from).forEach(element => {
+		// This runtime is checked into static/ separately from the npm package.
+		if (preserveWasm && element === 'wasm') return
 		if (lstatSync(path.join(from, element)).isFile()) {
 
 			// FILES!
@@ -27,12 +29,13 @@ const copyFolderSync = (from, to, overwrite=false ) => {
 			// ensure that the destination folders are craeted
 
 			//console.log("Copying File...", path.join(from, element), path.join(to, element) )
-			try{
-				copyFileSync(path.join(from, element), path.join(to, element), overwrite ? constants.COPYFILE_FICLONE_FORCE : constants.COPYFILE_EXCL)
-				console.info("Copied ", from, to, element )
-			}catch(error){
-				console.info("Skipped ", from, element )
-			}
+			// Refresh installed assets after dependency upgrades. A failed copy must
+			// fail the task so Turborepo cannot cache an incomplete asset directory.
+			const source = path.join(from, element)
+			const destination = path.join(to, element)
+			if (existsSync(destination) && readFileSync(source).equals(readFileSync(destination))) return
+			copyFileSync(source, destination)
+			console.info("Copied ", from, to, element )
 			
 		} else {
 			copyFolderSync(path.join(from, element), path.join(to, element))
@@ -52,7 +55,7 @@ copyFolderSync('./node_modules/@mediapipe/face_mesh/', './static/@mediapipe/face
 // POSE IS 26MB! Larger than the cloudflare limit of 25MB!
 // copyFolderSync('./node_modules/@mediapipe/pose/', './static/@mediapipe/pose/') 
 
-copyFolderSync('./node_modules/@mediapipe/tasks-vision/', './static/@mediapipe/tasks-vision/') 
+copyFolderSync('./node_modules/@mediapipe/tasks-vision/', './static/@mediapipe/tasks-vision/', true)
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 
@@ -61,4 +64,4 @@ copyFolderSync('./node_modules/@litertjs/core/wasm/', './static/@litertjs/'  )
 
 // handled by static-copy-plugin
 // copyFolderSync('./static/', './dist/') 
-// copyFolderSync('./static/', './dist-electron/main/') 
+// copyFolderSync('./static/', './dist-electron/main/')

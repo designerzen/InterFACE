@@ -1,3 +1,5 @@
+import DirectionsSession from './models/directions-session.js'
+import {createDirectionsFeedback} from './dom/directions-feedback.js'
 // NB. Does *not* work with AudioWorklet
 // import 'audioworklet-polyfill'
 // import * as EMOJI from "./models/emoji.js"
@@ -5,6 +7,7 @@
 // DOM UI
 import { setupFeedbackControls } from './dom/text.js'
 import { setupCommandPalette } from './dom/command-palette.js'
+import { setupControlsList } from './dom/controls-list.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
 	controlPanel,focusApp,
@@ -26,6 +29,7 @@ import { drawMousePressure } from './dom/mouse-pressure.js'
 import { setupVolumeInterface } from './dom/ui.volume.js'
 import { setMIDIControls, createMIDIButton } from './dom/ui.midi.js'
 import { setupTempoInterface } from './dom/ui.tempo.js'
+import { setupNetworkTiming } from './dom/ui.network-timing.js'
 import { setupEnsemblePresetPanel } from './dom/ui.panel-ensemble-presets.js'
 import { toggleFullScreen } from './dom/full-screen.js'
 import {
@@ -39,6 +43,7 @@ import { Quanitiser } from './visual/quantise.js'
 
 // SHARE
 import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
+import { convertOptionToObject, debounce } from './utils/utils.js'
 
 // STATE
 import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
@@ -48,12 +53,13 @@ import StateWithIO from './utils/state-io.js'
 import { TAU, clamp } from "./maths/maths.js"
 import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
 import { DEFAULT_OPTIONS_DISPLAY_COMPOSITE } from './display/display-options.js'
-import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
+import { DEFAULT_PEOPLE_OPTIONS, DEFAULT_PERSON_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
 import { MAX_PERSON_TRIM, PersonManager } from './people/person-manager.js'
 import Person, { getRandomPresetForPerson } from './people/person.js'
+import { normaliseHeadNoteRangeDegrees, normaliseHeadVerticalRangeDegrees } from './people/head-note-range.js'
 
  import { 
 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
@@ -64,7 +70,7 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 	EVENT_INSTRUMENT_CHANGED, EVENT_INSTRUMENT_LOADING,
 	EVENT_PERSON_OPTIONS_CHANGED,
 	EVENT_PERSON_DEAD, EVENT_PERSON_BORN,
-	EVENT_EMOTION_CHANGED, EVENT_EMOTION_UNLOCKED,
+	EVENT_EMOTION_CHANGED,
 	EVENT_USER_MODE_CHANGED
  } from './people/person-event.js'
  
@@ -73,8 +79,15 @@ import Person, { getRandomPresetForPerson } from './people/person.js'
 import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
 import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arranger.js'
-import { AUXILIARY_DRUM_LANES, DRUM_GROOVES, createCompositeDrumGroove } from './timing/drum-patterns.js'
-import { getArpeggioTiming } from './timing/arpeggio.js'
+import { DRUM_GROOVES, createCompositeDrumGroove } from './timing/drum-patterns.js'
+import {
+	getArpeggioRateLabel,
+	getArpeggioTiming,
+	getArpeggioTimingOptionsForRate,
+	hasPresentArpeggioPlayer,
+	normaliseArpeggioRate
+} from './timing/arpeggio.js'
+import { isPersonNoteRepeatDue } from './timing/person-note-repeat.js'
 import {
 	createPercussionHoldRepeater,
 	createPercussionQuantiser,
@@ -85,10 +98,9 @@ import { tapTempo } from 'netronome'
 import { Timeout } from './timing/timeout.js'
 
 // AUDIO 
-import { say, hasSpeech} from './audio/speech.js'
+import { say, hasSpeech, stopSpeaking} from './audio/speech.js'
 import { recordAudio } from './audio/record/record.audio.js'
 import { 
-	getRecordableOutputNode,
 	active, playing, 
 	setupAudio,stopAudio, getVolume, setVolume, getPercussionNode,
 	setReverb,
@@ -96,12 +108,14 @@ import {
 	loadAudio,
 	playTrack
 } from './audio/audio.js'
-import { 
-	bufferLength, 
-	dataArray, 
-	setupAnalyser, 
-	updateByteFrequencyData, updateByteTimeDomainData
+import {
+	setupAnalyser,
+	sampleVisualiserAudio
 } from './audio/audio-visual.js'
+import { normaliseVisualiser, getVisualiserMode, VISUALISER_MODES } from './visual/visualiser-modes.js'
+import { createVisualiserNotes } from './visual/visualiser-notes.js'
+import { createButterchurnVisualiser } from './visual/butterchurn-visualiser.js'
+import { observeSessionEvents } from './storage/session-events.js'
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
@@ -124,6 +138,9 @@ import { INSTRUMENT_TYPE_CHORD } from './audio/instrument-list.js'
 
 // VIDEO 
 import { canvasVideoRecorder, createVideo, encodeVideo } from './audio/record/record.video.js'
+import { createSessionController } from './storage/session-controller.js'
+import { setupSessionRecordingUI } from './dom/ui.session-recording.js'
+import { downloadBlob } from './dom/download.js'
 
 // SYNTHESIS
 import {
@@ -219,6 +236,8 @@ const EXTENDED_PERCUSSION_PART_ALIASES = Object.freeze(Object.fromEntries(
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
 import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera.js'
+import { waitForCamera } from './hardware/wait-for-camera.js'
+import { setLoadWaitingMessage } from './dom/load-progress.js'
 
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
@@ -250,6 +269,7 @@ import { notifyObserversThatWeblinkIsAvailable, observeWeblink } from './audio/i
 import { updateInstrumentWithPerson } from './audio/instrumentMediators/mediator.person-instrument.js'
 import { updtateDrumkitWithPerson } from './audio/instrumentMediators/mediator.person-drumkit.js'
 import { stopWebMIDIForPerson, updateWebMIDIWithPerson } from './audio/instrumentMediators/mediator.person-webmidi.js'
+import { stopMIDIEyebrowsForPerson } from './audio/midi/person-eyebrow-expression.js'
 import { sendGuardedMIDIOutput, stopActiveMIDIOutputNotes, stopAllActiveMIDIOutputNotes } from './audio/midi/midi-echo-guard.js'
 
 import { setupReporting, track, trackError, trackExit } from './reporting.js'
@@ -261,8 +281,17 @@ import { formatTimeStampFromSeconds } from 'netronome'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
 import { createDisplayOptions } from './dom/ui.display.js'
 import { observeMIDIInputs, stopMIDIInputForPerson } from './interface-midi.js'
+import { setupMIDICC } from './interface-midi-cc.js'
 
-import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STATE_LOADING, EVENT_STATE_PARKED } from './interface-event.js'
+import InterfaceEvent, { EVENT_STATE_INITIALISING, EVENT_STATE_LOADED, EVENT_STATE_LOADING, EVENT_STATE_PARKED, EVENT_VIDEO_STARTED } from './interface-event.js'
+
+export const APPLICATION_EVENTS = {
+	INITIALISING: EVENT_STATE_INITIALISING,
+	LOADING: EVENT_STATE_LOADING,
+	LOADED: EVENT_STATE_LOADED,
+	PARKED: EVENT_STATE_PARKED,
+	VIDEO_STARTED: EVENT_VIDEO_STARTED
+}
 
 // accessibility controls
 let a11y
@@ -337,7 +366,24 @@ export const createInterface = (
 	const timeTotalElement = doc.getElementById("time-total")
 
 	// pop up infomation box with html content
-	const setFeedback = setupFeedbackControls( feedbackElement, 42, 200, false )
+	const setFeedbackText = setupFeedbackControls( feedbackElement, 42, 200, false )
+	let feedbackSpeechEnabled = false
+	let lastSpokenFeedback = ''
+	let directionOwnsFeedback = false
+	const setFeedback = (message, rate, style, announce=true, directionMessage=false) => {
+		if (message) directionOwnsFeedback = directionMessage
+		const result = setFeedbackText(message, rate, style)
+		if (announce && message && feedbackSpeechEnabled && hasSpeech())
+		{
+			const text = feedbackElement.textContent.trim()
+			if (text && text !== lastSpokenFeedback)
+			{
+				lastSpokenFeedback = text
+				say(text, false).catch(error => console.error("Speech Synthesis Error", error))
+			}
+		}
+		return result
+	}
 	const inputStatusOverlay = createInputStatusOverlay(inputStatusListElement)
 	inputStatusOverlay.setEnabled(defaultOptions.hud !== false)
 	const stopUnavailablePersonNotes = person => {
@@ -372,12 +418,27 @@ export const createInterface = (
 
 	let instrumentManager 
 	let instrumentFactory 
-
+	let sessionUI
+	const reportSessionRecordingError = error => {
+		console.error('Session recording error', error)
+		setFeedback(error?.message ?? 'Session recording failed', 0)
+	}
 	// JSON object of available instruments
 	let instrumentList
 
 	// VIZ
 	let visualiserManager
+	const visualiserNotes = createVisualiserNotes()
+	const butterchurnVisualiser = createButterchurnVisualiser({ onError:error => {
+		console.error('Butterchurn visualisation failed', error)
+		setFeedback('Butterchurn could not start. WebGL 2 is required.', 0)
+	} })
+	const stopVisualiserNotes = observeSessionEvents(event => visualiserNotes.record(event))
+	window.addEventListener('pagehide', event => {
+		butterchurnVisualiser.stop()
+		if (!event.persisted) butterchurnVisualiser.destroy()
+		if (!event.persisted) stopVisualiserNotes()
+	})
 
 	// canvas / GL adapters for front end
 	let display = null
@@ -389,6 +450,11 @@ export const createInterface = (
 	let instructionTools
 	let directionTools
 	let directions = null
+	let directionsSession = null
+	const directionsFeedback = createDirectionsFeedback(setFeedback, () => directionOwnsFeedback)
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) directionsSession?.pause()
+	})
 	let textInstructionIndex = 0
 	let textHelpIndex = 0
 	let quantityInstructions = 0
@@ -405,6 +471,24 @@ export const createInterface = (
 		lastTime:-1,
 		count:0
 	}, store.getItem('meta'))
+
+	const sessionController = createSessionController({
+		getContext:()=>audioContext, getOutput:getMasterMixdown, getCanvas:()=>display?.canvas,
+		getTempo:()=>clock?.BPM, onChange:state=>sessionUI?.update(state),
+		onError:error=>sessionUI ? sessionUI.fail(error) : reportSessionRecordingError(error)
+	})
+	const startSessionRecording = () => sessionController.start()
+	const stopSessionRecording = () => sessionController.stop()
+	const exportSessionMIDI = async (fileName='photosynth.mid', options={}) => {
+		const blob=await sessionController.exportMIDI(undefined,options)
+		if(options.download!==false) downloadBlob(blob,fileName)
+		return blob
+	}
+	const flushSessionOnLifecycle = () => sessionController.flush()
+	window.addEventListener('pagehide', flushSessionOnLifecycle)
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'hidden') flushSessionOnLifecycle()
+	})
 
 	// Allow parents to see what is happening
 	const addListener = ( type, callback ) =>{
@@ -452,6 +536,13 @@ export const createInterface = (
 
 	const updateDirectionCache = loadedDirections => {
 		directions = loadedDirections
+		if (directions) {
+			if (directionsSession) directionsSession.setEngine(directions)
+			else directionsSession = new DirectionsSession(directions)
+		} else {
+			directionsSession = null
+			directionsFeedback.render(null)
+		}
 	}
 
 	const loadDirectionSet = async directionLanguage => {
@@ -459,7 +550,8 @@ export const createInterface = (
 
 		const selectedLanguage = directionLanguage ?? language
 		const directionOptions = {
-			advancedMode: stateMachine.get('advancedMode')
+			advancedMode: stateMachine.get('advancedMode'),
+			progress:directions?.progress
 		}
 
 		let loadedDirections = await directionTools.getDirections(selectedLanguage, referer, directionOptions)
@@ -478,6 +570,7 @@ export const createInterface = (
 
 	// update progress gradually like the old flash days!
 	let loadPercent = 0
+	let loadProgressFrame
 	let loadProgressMediator = ( newValue, message, hideLoader )=>{
 		
 		if (!onLoadProgress)
@@ -485,18 +578,28 @@ export const createInterface = (
 			return
 		}
 
+		cancelAnimationFrame(loadProgressFrame)
+		newValue = Math.max(0, Math.min(1, newValue))
+		if (newValue === 1 && hideLoader)
+		{
+			loadPercent = 1
+			onLoadProgress(1, message, true)
+			dispatchEvent(EVENT_STATE_LOADING, {loadPercent, message})
+			return
+		}
+
 		if (loadPercent < newValue)
 		{
 			// loadPercent = newValue
 			// lerp towards
-			loadPercent = loadPercent + 0.005 //.toFixed(2)  loadPercent 
+			loadPercent = Math.min(newValue, loadPercent + 0.005)
 			onLoadProgress(loadPercent, message, hideLoader)
 			dispatchEvent(EVENT_STATE_LOADING, {loadPercent, message})
 		}
 
-		if ( loadPercent < 1 && (Math.floor(loadPercent * 100 ) < Math.floor(newValue * 100) ) )
+		if (loadPercent < newValue)
 		{
-			requestAnimationFrame( e => loadProgressMediator(newValue) )
+			loadProgressFrame = requestAnimationFrame(() => loadProgressMediator(newValue, message, hideLoader))
 		}else{
 			loadPercent = newValue
 		}
@@ -547,18 +650,15 @@ export const createInterface = (
 	// const defaultOptions = { ...domainOptions, ...globalOptions }
 	const stateOptions = createStateOptionsFromHost(defaultOptions)
 	
-	// Immediately create a QR code and add it to the screen
-	// so that new users watching can continue to play at home
-	const existingQueries = (new URL(location.href)).search
-	const queryString = new URLSearchParams( defaultOptions ).toString()
-	const concatenatedQueries = existingQueries.length > 0 ? `${existingQueries.toString()}&${queryString}` : queryString
-	
-	// used in the generation of QR codes
-	const url = new URL(location.origin+location.pathname) // location.href
-	url.search =  new URLSearchParams(concatenatedQueries)
-	
 	// State Machine & Query handler
 	const stateMachine = createStateFromHost( main, stateOptions, StateWithIO ) // State.getInstance()
+	feedbackSpeechEnabled = Boolean(stateMachine.get('speak'))
+	stateMachine.addEventListener((key, value) => {
+		if (key !== 'speak') return
+		feedbackSpeechEnabled = Boolean(value)
+		lastSpokenFeedback = ''
+		if (!feedbackSpeechEnabled) stopSpeaking()
+	})
 	const syncOverlayCanvasVisibility = () => {
 		const showOverlay = stateMachine.get("showOverlay") !== false
 		if (canvasOverlayElement)
@@ -582,6 +682,9 @@ export const createInterface = (
 	// const zipArray = stateMachine.createEncodedString()
 	// const zipArray = stateMachine.createURLAsEncodedString()
 	// const unzippedData = stateMachine.loadFromEncodedString(zipArray)
+	const getShareableStateURL = () => typeof stateMachine.createEncodedURL === 'function'
+		? stateMachine.createEncodedURL()
+		: stateMachine.asURI
 
 	let pendingHarmonyOptionsUpdate = false
 	const updatePlayerHarmonyOptions = () => {
@@ -613,8 +716,14 @@ export const createInterface = (
 		
 		if (stateMachine.get("qr") && shareCodeElement)
 		{
-			const svg = await createQRCodeFromURL( stateMachine.asURI )
+			const svg = await createQRCodeFromURL( getShareableStateURL() )
 			// console.info("QR State updated", {svg, state:stateMachine.serialised} ) 
+		}
+		const shareElement = doc.querySelector("share-menu")
+		if (shareElement)
+		{
+			// Both URL formats are valid landing links; avoid compressing every edit.
+			shareElement.url = stateMachine.asURI
 		}
 		if (["key", "keyScale", "harmonyMode"].includes(key))
 		{
@@ -656,10 +765,8 @@ export const createInterface = (
 		isRecordingAvailable, 
 		isRecording, 
 		startRecording, 
-		stopRecording, 
-		encodeRecording, 
-		downloadRecording
-	} = recordAudio()
+		stopRecording
+	} = recordAudio(sessionController)
 	
 	const personManager = new PersonManager()
 
@@ -692,12 +799,16 @@ export const createInterface = (
 	let clock
 
 	let tempoUI
+	let networkTiming
 
 	// samples and synths
 	let kit
 	let patterns
 	let drumArranger
 	let recorder
+	let percussionPanKit
+	let appliedPercussionStereoEnabled
+	const appliedPercussionPan = new Map()
 
 	// UI elements
 	let waveforms = []
@@ -711,6 +822,7 @@ export const createInterface = (
 	// public method to overwrite
 	let callbackUpdate
 	const drumPartListeners = new Set()
+	const primaryBackingDrumParts = new Set(['kick', 'snare', 'hat', 'hatOpen', 'clap', 'cowbell', 'events'])
 	const percussionQuantiser = createPercussionQuantiser()
 	const scheduleMIDIInput = (callback, inputPerformanceTimeMs = clock.performanceTimeMs) => {
 		const now = clock.audioTimeSeconds
@@ -777,6 +889,7 @@ export const createInterface = (
 	let counter = 0
 
 	const killMIDI = (source = 'interface-killMIDI') =>{
+		personManager.people.forEach(stopMIDIEyebrowsForPerson)
 		stopAllActiveMIDIOutputNotes(source)
 		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
 	}
@@ -837,7 +950,7 @@ export const createInterface = (
 		if ( stateMachine.get("speak") && hasSpeech() ) 
 		{
 			try{
-				say(toSay,clear)
+				say(toSay,clear).catch(error => console.error("Speech Synthesis Error", error))
 			}catch(error){
 				console.error("Speech Synthesis Error", error)	
 			}
@@ -872,6 +985,8 @@ export const createInterface = (
 	let maracasTimbreOptions = PRESET_MARACAS[0]
 	let triangleMuteTimbreOptions = PRESET_MUTED_TRIANGLES[0]
 	let triangleOpenTimbreOptions = PRESET_OPEN_TRIANGLES[1]
+	const backingSnareSubHitTimbre = {}
+	const backingHatSubHitTimbre = {}
 	const extendedPercussionTimbreOptions = { ...DEFAULT_EXTENDED_PERCUSSION_TIMBRES }
 	const getAuxiliaryPercussionTimbre = part => {
 		switch (part) {
@@ -933,6 +1048,12 @@ export const createInterface = (
 		for (const listener of drumPartListeners) {
 			listener(part, detail)
 		}
+	}
+	const notifyBackingDrumPart = (part, velocity, triggerAt, source='backingTrack', open) => {
+		if (!drumPartListeners.size) return
+		const detail = { velocity, triggerAt, source }
+		if (open !== undefined) detail.open = open
+		notifyDrumPart(part, detail)
 	}
 	const addDrumPartListener = listener => {
 		drumPartListeners.add(listener)
@@ -1225,6 +1346,15 @@ export const createInterface = (
 	const getCurrentPercussionPanPositions = () => {
 		const prediction = personManager.getPerson(0)?.data ?? {}
 		const stereoEnabled = stateMachine.get('stereo') !== false
+		if (percussionPanKit !== kit) {
+			percussionPanKit = kit
+			appliedPercussionStereoEnabled = undefined
+			appliedPercussionPan.clear()
+		}
+		if (appliedPercussionStereoEnabled !== stereoEnabled) {
+			kit?.setStereoEnabled?.(stereoEnabled)
+			appliedPercussionStereoEnabled = stereoEnabled
+		}
 		const performancePan = getPerformanceDrumStereoPan(
 			prediction.eyesHorizontal ?? prediction.eyeDirection,
 			stateMachine.get('performanceDrums') !== false && stereoEnabled
@@ -1238,8 +1368,15 @@ export const createInterface = (
 	const setPercussionPartPan = (part, positions, triggerAt) => {
 		const panPart = percussionPanAliases[part] ?? part
 		const pan = positions[panPart]
-		if (Number.isFinite(pan)) kit?.setPartPan?.(panPart, pan, triggerAt)
+		if (Number.isFinite(pan) && Math.abs((appliedPercussionPan.get(panPart) ?? Infinity) - pan) > 0.001) {
+			kit?.setPartPan?.(panPart, pan, triggerAt)
+			appliedPercussionPan.set(panPart, pan)
+		}
 		return pan
+	}
+	const triggerDrumVoice = (voice, timbre, velocity, triggerAt) => {
+		if (typeof voice?.trigger === 'function') return voice.trigger(timbre, velocity, triggerAt)
+		return voice?.({ ...(timbre ?? {}), velocity, triggerAt })
 	}
 	const applyPercussionPanning = () => {
 		const positions = getCurrentPercussionPanPositions()
@@ -1418,6 +1555,7 @@ export const createInterface = (
 	 */
 	const setMasterVolume = value => {
 		const volume = setVolume(value)
+		stateMachine.set('volume', volume)
 		const percentage = Math.ceil(volume * 100)
 		store.setItem('audio', { ...(store.getItem('audio') ?? {}), volume })
 		// console.info("Setting volume", volume, "to", percentage + "%")
@@ -1442,13 +1580,27 @@ export const createInterface = (
 	 * @returns {Number} New Tempo
 	 */
 	const setBPM = (bpm, save=true) => {
+		if (networkTiming?.room.active) {
+			const requested = Number(bpm)
+			if (networkTiming.room.canEdit && Number.isFinite(requested) && requested >= 10 && requested <= 300) networkTiming.room.setTransport({ bpm: requested })
+			return clock.BPM
+		}
 		clock.BPM = bpm
+		sessionController.setTempo(bpm)
 		if (save)
 		{
 			stateMachine.set( 'bpm', bpm, selects.tempo )
 			setFeedback( `Tempo set to ${Math.ceil(bpm)} BPM (Period set at ${Math.ceil(clock.period)} ms between bars)`, 0, 'tempo' )
 		}
 		return clock.BPM
+	}
+
+	const getGlobalArpeggioRate = () => normaliseArpeggioRate(stateMachine.get('arpRate'))
+	const getArpeggioRateFeedbackMessage = rate => {
+		const label = getArpeggioRateLabel(rate)
+		return hasPresentArpeggioPlayer(personManager.people) ?
+			`ARP rate set to ${label}` :
+			`ARP rate set to ${label}. To hear it, someone present needs to be set to ARP mode.`
 	}
 
 	const syncTempoControls = () => {
@@ -1487,7 +1639,8 @@ export const createInterface = (
 			}
 			if (Number.isFinite(tempo.swing))
 			{
-				clock.swing = tempo.swing
+				if (networkTiming?.room.active) networkTiming.room.setTransport({ swing: tempo.swing })
+				else clock.swing = tempo.swing
 				stateMachine.set("swing", clock.swing)
 			}
 			syncTempoControls()
@@ -1574,21 +1727,64 @@ export const createInterface = (
 	 * @param {Function} callback Method to run once instruments have loaded
 	 * @returns {Function} instrument name (raw)
 	 */
-	const loadInstrumentPreset = async (method, callback, skipLoading = true) => personManager.people.map( async (person) => { 
-		
-		// if the previous instrument hasn't finished loading, 
-		// we don't want to flood everything so we wait for it 
-		// to finish loading before allowing any new ones
-		if (skipLoading && person.activeInstrument && person.activeInstrument.isLoading)
+	let instrumentFeedbackBatch = null
+	const formatInstrumentFeedback = (entries, loading=true) => {
+		const descriptions = entries.map(({person, title}) => loading ?
+			`${person.name} is loading ${title}` :
+			`${person.name} has loaded ${title}`
+		)
+		if (descriptions.length < 2)
 		{
-			return person.activeInstrument.name
+			return `${descriptions[0] ?? "No instruments are loading"}.`
+		}
+		return `${descriptions.slice(0, -1).join(", ")}, and ${descriptions.at(-1)}.`
+	}
+	const loadInstrumentPreset = async (method, callback, skipLoading = true) => {
+		if (skipLoading && instrumentFeedbackBatch)
+		{
+			setFeedback(formatInstrumentFeedback(instrumentFeedbackBatch.entries), 0, 'instrument')
+			return instrumentFeedbackBatch.promise
 		}
 
-		const instrument = await person[method](callback)
-		setFeedback(`${person.name} has ${person.instrumentTitle} loaded`, 0, 'instrument')	
-		return instrument
-		//console.log(`${person.name} has ${instrument} loaded` )
-	})
+		const batch = { people:new Set(), entries:[], promise:null }
+		instrumentFeedbackBatch = batch
+		const loads = personManager.people.map(person => {
+			// if the previous instrument hasn't finished loading,
+			// we don't want to flood everything so we wait for it
+			// to finish loading before allowing any new ones
+			if (skipLoading && person.activeInstrument && person.activeInstrument.isLoading)
+			{
+				batch.entries.push({ person, title:person.loadingInstrumentTitle ?? person.instrumentTitle })
+				return Promise.resolve(person.activeInstrument.name)
+			}
+
+			batch.people.add(person)
+			const load = person[method](callback)
+			batch.entries.push({ person, title:person.loadingInstrumentTitle ?? person.instrumentTitle })
+			return load
+		})
+
+		setFeedback(formatInstrumentFeedback(batch.entries), 0, 'instrument')
+		if (batch.people.size === 0)
+		{
+			instrumentFeedbackBatch = null
+			return Promise.all(loads)
+		}
+
+		batch.promise = Promise.all(loads).then(instruments => {
+			if (instrumentFeedbackBatch === batch)
+			{
+				setFeedback(formatInstrumentFeedback(batch.entries, false), 0, 'instrument')
+			}
+			return instruments
+		}).finally(() => {
+			if (instrumentFeedbackBatch === batch)
+			{
+				instrumentFeedbackBatch = null
+			}
+		})
+		return batch.promise
+	}
 
 	/**
 	 * Be *sure* to make these the identical same as the names in the instrument Interface
@@ -1612,6 +1808,39 @@ export const createInterface = (
 			
 		const person = personManager.getPerson(index)
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
+		const queryPersonOptions = Person.getQueryOptions(
+			stateMachine.asObject,
+			Person.getQueryPrefixes(person)
+		)
+
+		const syncPersonQueryState = () => {
+			const compactData = person.exportData()
+			stateMachine.state.set(person.storageKey, compactData)
+			stateMachine.searchParams.set(person.storageKey, compactData)
+
+			const exportedQueryOptions = person.exportJSONData()
+			Object.keys(DEFAULT_PERSON_OPTIONS).forEach(optionKey => {
+				Person.getQueryPrefixes(person).forEach(prefix => {
+					stateMachine.state.delete(`${prefix}-${optionKey}`)
+					stateMachine.searchParams.delete(`${prefix}-${optionKey}`)
+					stateMachine.state.delete(`${prefix}.${optionKey}`)
+					stateMachine.searchParams.delete(`${prefix}.${optionKey}`)
+				})
+			})
+			;["instrument", "preset", "particles"].forEach(aliasKey => {
+				Person.getQueryPrefixes(person).forEach(prefix => {
+					stateMachine.state.delete(`${prefix}-${aliasKey}`)
+					stateMachine.searchParams.delete(`${prefix}-${aliasKey}`)
+					stateMachine.state.delete(`${prefix}.${aliasKey}`)
+					stateMachine.searchParams.delete(`${prefix}.${aliasKey}`)
+				})
+			})
+			Object.entries(exportedQueryOptions).forEach(([key, value]) => {
+				stateMachine.state.set(key, value)
+				stateMachine.searchParams.set(key, value)
+			})
+			stateMachine.updateLocation()
+		}
 
 		// state can contain more data than simple the options!
 		// so let us loop through the stateMachine and extract any person data...
@@ -1619,6 +1848,7 @@ export const createInterface = (
 		const personData = {}
 		let importedData
 		const savedOptions = store.has(person.storageKey) ? store.getItem(person.storageKey) : {}
+		person.setDisplayName(store.getItem('playerNames')?.[person.storageKey])
 		const personMeta = stateMachine.get( person.storageKey )
 		if (personMeta)
 		{
@@ -1648,6 +1878,8 @@ export const createInterface = (
 				midiPercussion:stateMachine.get('midi') && stateMachine.get('midiPercussion'),
 				performanceDrums:stateMachine.get('performanceDrums') !== false,
 				showPoints:stateMachine.get('showPoints') === true,
+				headNoteRangeDegrees:normaliseHeadNoteRangeDegrees(stateMachine.get('headNoteRangeDegrees')),
+				headVerticalRangeDegrees:normaliseHeadVerticalRangeDegrees(stateMachine.get('headVerticalRangeDegrees')),
 
 				stereoPan:stateMachine.get('stereo'),
 
@@ -1668,7 +1900,8 @@ export const createInterface = (
 			
 			// overwrite these with any user set
 			savedOptions,
-			personData
+			personData,
+			queryPersonOptions
 		)
 		
 		person.setOptions(personOptions)
@@ -1690,15 +1923,11 @@ export const createInterface = (
 			
 		// })
 
-		person.addEventListener( EVENT_EMOTION_UNLOCKED,  (event) => {
-			const {detail} = event.data
-			const {achievement, emoticon, person} = detail
-			const completion = directions?.completeExpression?.(emoticon, person)
-			if (completion)
-			{
-				person.applyDirectionCompletion?.(completion)
-			}
-			//console.log(`[${person.name}] Achievement ${achievement?.title ?? emoticon} Unlocked!: ${person.achievementPoints}`)
+		person.addEventListener(EVENT_EMOTION_CHANGED, event => {
+			const {emoticon, person} = event.data.detail
+			const completion = directionsSession?.respond(emoticon, person)
+			if (completion) person.applyDirectionCompletion?.(completion)
+			if (directionsSession && stateMachine.get('text')) directionsFeedback.render(directionsSession.getSnapshot())
 		})
 
 		person.addEventListener( EVENT_PERSON_BORN,  (event) => {
@@ -1721,8 +1950,8 @@ export const createInterface = (
 		// update the state options to show the user also
 		person.addEventListener( EVENT_INSTRUMENT_LOADING, (event) => {
 			const {detail} = event.data
-			const { progress, instrumentName, instrumentPack } = detail
-			markInstrumentProgress( progress, instrumentName )
+			const { progress, instrumentName, instrumentPack, presetTitle } = detail
+			markInstrumentProgress( progress, presetTitle ?? instrumentName )
 
 			// console.info("Person preset ["+instrumentName+"] loading!", Math.floor(progress*100))
 			dispatchEvent(event.type, detail)
@@ -1733,21 +1962,23 @@ export const createInterface = (
 			const {detail} = event.data
 			const { presetIndex, presetName, presetTitle, instrumentPack } = detail
 			//console.log("External event for ",{ person, detail , cache})
-			setFeedback( `${person.instrumentTitle} Ready!`.toUpperCase(), 0, 'instrument' ) 
+			if (!instrumentFeedbackBatch?.people.has(person))
+			{
+				setFeedback( `${person.instrumentTitle} Ready!`.toUpperCase(), 0, 'instrument' )
+			}
 			// dispatchEvent(event)
-			const personData = person.exportData()
-			
-			// save it for next time
-			// const cache = store.setItem( presetName, {instrument:presetName })
-			
-			// save this for reloading next time in the URL
-			stateMachine.set( person.storageKey, personData )
+			syncPersonQueryState()
 			
 			dispatchEvent(event.type, detail)
 		})
 
 		person.addEventListener(EVENT_PERSON_OPTIONS_CHANGED, event => {
-			stateMachine.set(person.storageKey, person.exportData())
+			if (Object.prototype.hasOwnProperty.call(event.data.detail, 'displayName'))
+			{
+				store.setItem('playerNames', { [person.storageKey]:person.displayName })
+				return
+			}
+			syncPersonQueryState()
 		})
 
 		let preset
@@ -1785,7 +2016,7 @@ export const createInterface = (
 		
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
-		person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async( playerIndex )=>{
+		person.ready = person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async( playerIndex )=>{
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
 			
@@ -1794,9 +2025,14 @@ export const createInterface = (
 
 			if (personOptions.debug)
 			{
-				console.info("Created Person", {midiPerformance, locationPreset, person, preset, options})
-				console.info(options)
+				console.info("Created Person", {midiPerformance, person, preset, options:personOptions})
+				console.info(personOptions)
 			}
+			return person
+		}).catch(error => {
+			console.error(`Failed to initialise ${person.name}'s instrument`, error)
+			setFeedback(`${person.name} instrument failed to load`, 0, 'instrument')
+			throw error
 		})
 
 		// now watch for any future operating mode changes
@@ -1804,6 +2040,7 @@ export const createInterface = (
 			const {detail} = event.data
 			const mode = detail.mode
 			const exportData = person.exportData()
+			syncPersonQueryState()
 			console.info("Person", person, exportData )
 			setFeedback( `${person.userModeDesicription}`.toUpperCase(), 0, 'userMode' ) 
 		})
@@ -1900,13 +2137,17 @@ export const createInterface = (
 	 * @param {Person} person 
 	 * @returns {Object} of metadata
 	 */
-	const playPersonAudio = async ( person, timeNow ) => {
+	const playPersonAudio = async ( person, repeatTick, scheduledTime ) => {
 		
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
 		person.markPlayPersonAudioInactive?.()
 		const isFreshAttack = person.state === STATE_INSTRUMENT_ATTACK
-		const shouldRepeatNote = person.options?.autoRepeat === true && !isFreshAttack
+		if (Number.isInteger(repeatTick) && isFreshAttack)
+		{
+			person.lastNoteRepeatedTick = repeatTick
+		}
+		const shouldRepeatNote = !isFreshAttack && isPersonNoteRepeatDue(person, repeatTick)
 		if (person.options?.muted)
 		{
 			stopPersonAudio(person)
@@ -1979,6 +2220,7 @@ export const createInterface = (
 		let audioOutput
 		// Make the Person SING!
 		person.instruments.forEach( async (instrument) => {
+			instrument.scheduleAt?.(scheduledTime)
 
 			let instrumentOutput
 			switch( instrument.type )
@@ -1996,6 +2238,10 @@ export const createInterface = (
 			}
 			// console.log("sing", stateMachine.get("midiOnly") ? "ONLY MIDI OUTPUT": "MIDI + ENGINE", audioOutput, instrument.type, person.state, { instrument, person } )
 		})
+		if (shouldRepeatNote)
+		{
+			person.lastNoteRepeatedTick = repeatTick
+		}
 		// Send person created data to midi
 		if (audioOutput && audioOutput.length > 0)
 		{
@@ -2012,7 +2258,10 @@ export const createInterface = (
 		// dispatch midi to devices based on the above outputs
 		if ( WebMidi.enabled && stateMachine.get("midiControl") )
 		{
-			updateWebMIDIWithPerson(person, personManager.people, audioOutput)
+			updateWebMIDIWithPerson(person, personManager.people, audioOutput, undefined, {
+				mode:stateMachine.get('midiEyebrowMode'),
+				cc:stateMachine.get('midiEyebrowCC')
+			})
 		}
 
 		// update the stave with X amount of notes
@@ -2169,11 +2418,6 @@ export const createInterface = (
 			return
 		}
 		
-		// pipe in some data from the MASTER BUS gain node
-		const recordingNode = audioContext.createMediaStreamDestination()
-		const masterOutput = getRecordableOutputNode()
-		masterOutput.connect(recordingNode)
-		
 		// empty waveform collector
 		waveforms = []
 		
@@ -2181,10 +2425,10 @@ export const createInterface = (
 		
 		setToast("Recording STARTED")
 
-		startRecording(recordingNode.stream).then( recorderInstance => {
+		startRecording().then( recorderInstance => {
 			recorder = recorderInstance 
 			buttonRecordAudio.classList.toggle("progress", true)
-		})
+		}).catch(reportSessionRecordingError)
 	}
 
 	/**
@@ -2203,36 +2447,16 @@ export const createInterface = (
 			
 			// first thing we do before encoding is add it to our output window
 			// along with our photos and video recordings
-			appendAudioElement( recording, fileName, downloadType => {
-					
-				//console.log("Download", downloadType, {recording})
-				// variations to trigger download
-				switch(downloadType)
-				{
-					case "ogg":
-						//encodeRecording("audio", "ogg", "opus")
-						downloadRecording("magnum", "audio", "ogg", "opus")
-						break
-
-					case "mp3":
-						//encodeRecording("audio","mp3")
-						downloadRecording("emmpeethree", "audio", "mp3")
-						break
-
-					default:
-					case "wave":
-						//encodeRecording( 'audio','wav')
-						downloadRecording("wave","audio","wav")
-						break
-				}
-			}, svg)
+			appendAudioElement(recording,fileName,extension=>{
+				downloadBlob(recording,`${fileName}.${extension}`)
+			},svg)
 
 			// console.error("Recording END", {recording, ogg})
 			// console.error("Recording END", {recording, mp3})
 			// clear memory
 			recorder = null
-			setToast( `Recording Encoded!` )	
-		})
+			setToast( `Recording saved` )
+		}).catch(reportSessionRecordingError)
 	}
 
 	
@@ -2351,9 +2575,13 @@ export const createInterface = (
 		
 		// attempt to get a camera that is suitable for the app
 		try{
-			investigation = await findBestCamera(store, videoStream, status => {
+			investigation = await waitForCamera(() => findBestCamera(store, videoStream, status => {
 				// console.info("Camera status", status)
 				onProgress && onProgress(status)
+			}), waiting => {
+				const message = waiting ? 'No camera found. Connect or enable a camera to continue. Loading will resume automatically.' : ''
+				setLoadWaitingMessage(message)
+				if (waiting) setFeedback(message, 0, 'camera')
 			})
 			quantityOfCameras = investigation.videoCameraDevices.length
 		
@@ -2644,25 +2872,16 @@ export const createInterface = (
 			
 			if (stateMachine.get("spectrogram"))
 			{
-				// BARS
-				updateByteFrequencyData( analyser )
-				display.drawVisualiser( dataArray, bufferLength )
-				if (recorder)
-				{
-					waveforms.push(dataArray)
+				const mode = getVisualiserMode(stateMachine.get("visualiser"))
+				const audioFrame = sampleVisualiserAudio(analyser, mode, !!recorder)
+				if (mode.id === 'butterchurn') {
+					const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height)
+					if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height)
+				} else {
+					butterchurnVisualiser.stop()
+					display.drawVisualiser(audioFrame.frequency, audioFrame.length, mode.id, audioFrame.time, visualiserNotes.update())
 				}
-				
-				// Lines
-				// updateByteTimeDomainData( analyser )
-				// display.drawVisualiser( dataArray, bufferLength, "line" )
-				
-				// global VU
-				// drawBars( canvasContext, dataArray, bufferLength )
-
-				// updateByteTimeDomainData()
-				// analyser.fftSize = 2048
-				// const bufferLength = analyser.frequencyBinCount
-				// const dataArray = new Uint8Array(bufferLength)
+				if (recorder && waveforms.length < 3600) waveforms.push(audioFrame.frequency.slice())
 			}
 		}
 
@@ -2699,6 +2918,13 @@ export const createInterface = (
 			const activePeople = personManager.getPeople()
 			const personPredictionMatches = personManager.matchPredictionsToPeople(hasPredictions ? predictions : [], activePeople)
 			const assignedPersonIndexes = new Set(personPredictionMatches.map(match => match.personIndex))
+			if (directionsSession) {
+				const challengeSnapshot = directionsSession.update(personPredictionMatches.map(match => match.person), {
+					paused:document.hidden || isRecording() || hasUserStayedAfterTimeout || !stateMachine.get('text') || !!document.querySelector('dialog[open]') || (setFeedback() && !directionOwnsFeedback)
+				})
+				directionsFeedback.render(stateMachine.get('text') ? challengeSnapshot : null)
+			}
+
 
 			// to the person that was nearest in the last prediction
 			for (let i=0, l=personPredictionMatches.length; i < l; ++i)
@@ -2768,7 +2994,7 @@ export const createInterface = (
 						// we can "sing" in realtime
 						if (person.alive)
 						{
-							playPersonAudio( person, timeNow )
+							playPersonAudio( person )
 						}else{
 							stopPersonAudio( person )
 						}
@@ -2849,11 +3075,6 @@ export const createInterface = (
 			// TODO: Implement part switching behaviour
 		}
 
-		if (display)
-		{
-			// update if neccessary on screen now all people are drawn
-			display.render()
-		}
 				
 		// }else{
 		// 	// tickerTape += `No prediction`
@@ -2873,7 +3094,7 @@ export const createInterface = (
 			const milliseconds = (seconds % 1) * 1000
 			//const recordString = (minutes>>0) + ':' + (seconds>>0)
 			const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
-			setFeedback(recordString, false)
+			setFeedback(recordString, false, 'none', false)
 
 		}else if ( !setFeedback() ){
 
@@ -2913,15 +3134,11 @@ export const createInterface = (
 				textInstruction = "Masterpiece complete! \nA lovely composition, very creative \nI hope you had fun =P"
 			}else{
 				// Faces found so show the next set of instructions
-				const direction = directions?.getNextDirection?.(personManager.people)
-				if (direction)
-				{
-					textInstruction = direction.message
-					textInstructionStyle = direction.className ?? "direction"
-				}else{
-					textInstruction = getInstruction( textInstructionIndex ) 
+				if (!directionsSession) {
+					textInstruction = getInstruction(textInstructionIndex)
 					textInstructionIndex = (textInstructionIndex + 1) % quantityInstructions
 				}
+
 				
 				// textInstruction = getInstruction( Math.floor( textInstructionIndex * 0.01 ) ) 
 				// console.info("instructions", Math.floor( counter * 0.01 ), getInstruction( Math.floor( counter * 0.01 ) ))
@@ -2963,8 +3180,12 @@ export const createInterface = (
 
 		if (showOverlayCanvas)
 		{
-			overlayDisplay?.flushFrame()
+			overlayDisplay?.flushFrame(display?.canvas2DContext ?? null)
 		}
+
+		// Present after the particles have joined the faces and audio visualiser
+		// on the main canvas, ready for the next MTV feedback frame.
+		display?.render()
 
 		// finallyu reset this flag
 		if (hasBeatJustPlayed)
@@ -3095,7 +3316,7 @@ export const createInterface = (
 		// set via tempo to 1 period!
 		// NB. Clock may be undefined if the backend is still loading
 		// so we ensure that the clock exists before continuing
-		if ( clock && clock.isUsingExternalTrigger && clock.elapsedSinceLastTick > clock.timePerBar )
+		if ( clock && !networkTiming?.room.active && clock.isUsingExternalTrigger && clock.elapsedSinceLastTick > clock.timePerBar )
 		{
 			// we want to undo any external clock as there hasn't 
 			// been a clock tick for a whole bar!
@@ -3139,6 +3360,7 @@ export const createInterface = (
 		}
 
 		const isQuarterNote = clock.isQuarterNote
+		if(isQuarterNote)sessionUI?.pulse()
 		const isHalfNote = clock.isHalfNote
 		const isBar = clock.isAtStart
 		const isMuted = stateMachine.get("muted")
@@ -3237,20 +3459,25 @@ export const createInterface = (
 				const performanceMode = person.activeInstrument?.performanceMode ??
 					(person.activeInstrument?.arpeggiate ? "arpeggio" : "chord")
 				const arp = performanceMode !== "chord"
+				const arpeggioRateOptions = getArpeggioTimingOptionsForRate(getGlobalArpeggioRate(), performanceMode)
 				const arpeggioTiming = arp ? (person.activeInstrument.getArpeggioTiming?.(clock.BPM, {
 					divisionsElapsed,
 					totalDivisions:clock.totalDivisions,
 					tickDurationMs:clock.timeBetween,
 					isBar,
 					isHalfNote,
-					forceBar:i === 4
-				}) ?? getArpeggioTiming(clock.BPM, { isBar, isHalfNote, forceBar:i === 4 })) : null
+					isQuarterNote,
+					forceBar:i === 4,
+					...arpeggioRateOptions
+				}) ?? getArpeggioTiming(clock.BPM, { isBar, isHalfNote, isQuarterNote, forceBar:i === 4, ...arpeggioRateOptions })) : null
 				if (arpeggioTiming)
 				{
 					person.activeInstrument.setArpeggioGate?.(arpeggioTiming.gateMs)
 				}
 
-				let measure = arp ? arpeggioTiming.shouldTrigger : isQuarterNote
+				const repeatPulse = clock.totalBarsElapsed * clock.totalDivisions + divisionsElapsed
+				const mouthRepeatDue = isPersonNoteRepeatDue(person, repeatPulse)
+				let measure = arp ? arpeggioTiming.shouldTrigger || mouthRepeatDue : isQuarterNote || mouthRepeatDue
 
 				// console.info("quantise:person", person, "measure", measure, "arp", arp )
 
@@ -3260,7 +3487,7 @@ export const createInterface = (
 					if (person.alive)
 					{
 
-						playPersonAudio( person, clock.now )
+						playPersonAudio( person, repeatPulse, networkTiming?.room.active ? scheduledContextTimeSeconds : undefined )
 					}else{
 						stopPersonAudio( person )
 					}
@@ -3326,36 +3553,48 @@ export const createInterface = (
 				const triggerAt = getBeatTriggerTime(
 					audioContext,
 					clock,
-					scheduledContextTimeSeconds
+					scheduledContextTimeSeconds,
+					networkTiming?.room.active ? 0 : undefined
 				)
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
 				syncDrumMutedParts(eyeControlledTimbres)
+				const drumPerformer = personManager.getPerson(0)
+				drumArranger?.updatePerson({
+					noteVelocity:drumPerformer?.noteVelocity,
+					pitchBend:Number.isFinite(drumPerformer?.pitchBendValue) ? drumPerformer.pitchBendValue - 1 : 0
+				}, triggerAt)
 				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
 				const panningPositions = getCurrentPercussionPanPositions()
 				if (parts.kick > 0) {
-					notifyDrumPart('kick', { velocity: parts.kick / 255, triggerAt, source: 'backingTrack' })
-					kit.kick({ ...eyeControlledTimbres.kick, velocity: parts.kick / 255, triggerAt })
+					const velocity = parts.kick / 255
+					notifyBackingDrumPart('kick', velocity, triggerAt)
+					triggerDrumVoice(kit.kick, eyeControlledTimbres.kick, velocity, triggerAt)
 				}
 				if (parts.snare > 0) {
+					const velocity = parts.snare / 255
 					setPercussionPartPan('snare', panningPositions, triggerAt)
-					notifyDrumPart('snare', { velocity: parts.snare / 255, triggerAt, source: 'backingTrack' })
-					kit.snare({ ...eyeControlledTimbres.snare, velocity: parts.snare / 255, triggerAt })
+					notifyBackingDrumPart('snare', velocity, triggerAt)
+					triggerDrumVoice(kit.snare, eyeControlledTimbres.snare, velocity, triggerAt)
 				}
 				if (parts.hat > 0) {
 					const hat = parts.hatOpen ? openHatTimbreOptions : closedHatTimbreOptions
+					const velocity = parts.hat / 255
 					setPercussionPartPan('hat', panningPositions, triggerAt)
-					notifyDrumPart('hat', { velocity: parts.hat / 255, triggerAt, open: Boolean(parts.hatOpen), source: 'backingTrack' })
-					kit.hat({ ...hat, velocity: parts.hat / 255, triggerAt })
+					notifyBackingDrumPart('hat', velocity, triggerAt, 'backingTrack', Boolean(parts.hatOpen))
+					triggerDrumVoice(kit.hat, hat, velocity, triggerAt)
 				}
 				if (parts.clap > 0) {
-					notifyDrumPart('clap', { velocity: parts.clap / 255, triggerAt, source: 'backingTrack' })
-					kit.clap({ velocity: parts.clap / 255, triggerAt })
+					const velocity = parts.clap / 255
+					notifyBackingDrumPart('clap', velocity, triggerAt)
+					triggerDrumVoice(kit.clap, undefined, velocity, triggerAt)
 				}
 				if (parts.cowbell > 0 && cowbellTimbreOptions) {
-					notifyDrumPart('cowbell', { velocity: parts.cowbell / 255, triggerAt, source: 'backingTrack' })
-					kit.cowbell({ ...cowbellTimbreOptions, velocity: parts.cowbell / 255, triggerAt })
+					const velocity = parts.cowbell / 255
+					notifyBackingDrumPart('cowbell', velocity, triggerAt)
+					triggerDrumVoice(kit.cowbell, cowbellTimbreOptions, velocity, triggerAt)
 				}
-				for (const part of AUXILIARY_DRUM_LANES) {
+				for (const part in parts) {
+					if (primaryBackingDrumParts.has(part)) continue
 					const partVelocity = parts[part]
 					if (!(partVelocity > 0) || !kit[part]) continue
 					if (part === 'triangleMute') kit.triangleOpen.choke(0.006, triggerAt)
@@ -3363,23 +3602,23 @@ export const createInterface = (
 					if (part === 'surdoMute') kit.surdoOpen.choke(0.006, triggerAt)
 					const velocity = partVelocity / 255
 					setPercussionPartPan(part, panningPositions, triggerAt)
-					notifyDrumPart(part, { velocity, triggerAt, source:'backingTrack' })
-					kit[part]({ ...getAuxiliaryPercussionTimbre(part), velocity, triggerAt })
+					notifyBackingDrumPart(part, velocity, triggerAt)
+					triggerDrumVoice(kit[part], getAuxiliaryPercussionTimbre(part), velocity, triggerAt)
 				}
 				for (const event of parts.events ?? []) {
 					const eventAt = triggerAt + event.offset
 					const velocity = event.velocity / 255
 					if (event.lane === 'snare') {
-						const timbre = applyDrumSubHitEnvelope(eyeControlledTimbres.snare, event)
+						const timbre = applyDrumSubHitEnvelope(eyeControlledTimbres.snare, event, backingSnareSubHitTimbre)
 						setPercussionPartPan('snare', panningPositions, eventAt)
-						notifyDrumPart('snare', { velocity, triggerAt:eventAt, source:'backingTrackFill' })
-						kit.snare({ ...timbre, velocity, triggerAt:eventAt })
+						notifyBackingDrumPart('snare', velocity, eventAt, 'backingTrackFill')
+						triggerDrumVoice(kit.snare, timbre, velocity, eventAt)
 					}
 					if (event.lane === 'hat') {
-						const timbre = applyDrumSubHitEnvelope(closedHatTimbreOptions, event)
+						const timbre = applyDrumSubHitEnvelope(closedHatTimbreOptions, event, backingHatSubHitTimbre)
 						setPercussionPartPan('hat', panningPositions, eventAt)
-						notifyDrumPart('hat', { velocity, triggerAt:eventAt, open:false, source:'backingTrackFill' })
-						kit.hat({ ...timbre, velocity, triggerAt:eventAt })
+						notifyBackingDrumPart('hat', velocity, eventAt, 'backingTrackFill', false)
+						triggerDrumVoice(kit.hat, timbre, velocity, eventAt)
 					}
 				}
 			}
@@ -3680,13 +3919,21 @@ export const createInterface = (
 
 			// console.info("AudioTimer ["+initialBPM+" BPM] created @", clock.BPM, {audioContext, clock} ) 
 			const saveTimingState = () => {
+				sessionController.setTempo(clock.BPM)
 				stateMachine.set( 'bpm', clock.BPM )
 				stateMachine.set( 'swing', clock.swing )
 				setFeedback( `Tempo set to ${Math.ceil(clock.BPM)} BPM, swing ${Math.round(clock.swing * 100)}%`, 0, 'tempo' )
 			}
 
 			// connect the tempo interface
-			tempoUI = setupTempoInterface(clock, null, null, timerChanged =>{
+			networkTiming = setupNetworkTiming(clock, stateMachine, transport => {
+				sessionController.setTempo(transport.bpm)
+				stateMachine.set('bpm', transport.bpm)
+				stateMachine.set('swing', transport.swing)
+				syncTempoControls()
+				if (!transport.playing) personManager.people.forEach(person => stopPersonAudio(person))
+			})
+			tempoUI = setupTempoInterface(networkTiming?.tempoClock ?? clock, null, null, timerChanged =>{
 				saveTimingState()
 			}, visible => {
 
@@ -3770,7 +4017,8 @@ export const createInterface = (
 			
 			const percussionAmp = getPercussionNode()
 			kit = createDrumkit( audioContext, percussionAmp, {
-				midiPercussion:stateMachine.get('midi') && stateMachine.get('midiPercussion')
+				midiPercussion:stateMachine.get('midi') && stateMachine.get('midiPercussion'),
+				stereo:stateMachine.get('stereo') !== false,
 			} )
 			kit.setTonic(
 				stateMachine.get("harmonyMode") === "global-key"
@@ -3845,10 +4093,12 @@ export const createInterface = (
 			},
 			onPercussionVolumeChanged: vol => {
 				getPercussionNode().gain.value = Number(vol)
+				stateMachine.set('percussionVolume', Number(vol))
 				setFeedback(`Percussion ${Math.ceil(vol * 100)}%`, 0, 'beats')
 			},
 			onTrimVolumeChanged: vol => {
 				const trim = personManager.setTrim(Number(vol) * MAX_PERSON_TRIM)
+				stateMachine.set('trimVolume', trim / MAX_PERSON_TRIM)
 				store.setItem('audio', { ...(store.getItem('audio') ?? {}), trim })
 				setFeedback(`Trim ${Math.ceil(trim * 100)}%`, 0, 'volume')
 			},
@@ -3953,12 +4203,12 @@ export const createInterface = (
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
-			progressCallback(loadIndex, "Attempting to find MIDI instruments")
+			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
 			
 			// this has a timeout!
 			isMIDIAvailable = await establishMIDI()
 
-			progressCallback(loadIndex, "Attempting to find MIDI instruments")
+			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
 
 			if (!isMIDIAvailable)
 			{
@@ -4083,14 +4333,15 @@ export const createInterface = (
 			
 			display.start()
 
-			progressCallback(loadIndex/loadTotal, "Loading Complete!") 
+			progressCallback(loadIndex/loadTotal, "Starting playback")
 
 			// Fetch the predictions in a predictable loop as fast as we need
 			// NB. the display itself should return duplicate frame if a new frame
 			// hasn't occurred yet
 			// await fetchPrediction( automaticRepeat,usePredictions )
 			clock.setCallback( useTiming )
-			clock.startTimer()		
+			await clock.startTimer()
+			await networkTiming?.autoJoin()
 
 			if (stateMachine.get("debug"))
 			{
@@ -4137,11 +4388,85 @@ export const createInterface = (
 			setFeedback("Quantise " + (stateMachine.get( 'quantise') ? 'Enabled' : 'Disabled'), 0, stateMachine.get( 'quantise') ? 'quantised' : 'unquantised'  )
 		}, stateMachine.get( 'quantise') )
 
+		selects.arpRate = connectSelect('select-arp-rate', option => {
+			const rate = normaliseArpeggioRate(option.value)
+			stateMachine.set('arpRate', rate, selects.arpRate)
+			setFeedback(getArpeggioRateFeedbackMessage(rate), 0, 'arpeggio')
+		})
+		if (selects.arpRate)
+		{
+			selects.arpRate.value = getGlobalArpeggioRate()
+		}
+
 		toggles.points = setToggle("button-points", status => {
 			stateMachine.set('showPoints', status)
 			personManager.setPlayerOption('showPoints', status)
 			setFeedback(`Points ${status ? 'enabled' : 'disabled'}`, 0, 'points')
 		}, stateMachine.get('showPoints'))
+
+		const headNoteRangeInput = document.getElementById('head-note-range')
+		const headNoteRangeOutput = document.getElementById('head-note-range-output')
+		if (headNoteRangeInput)
+		{
+			const previewHeadNoteRange = value => {
+				const headNoteRangeDegrees = normaliseHeadNoteRangeDegrees(value)
+				headNoteRangeInput.value = headNoteRangeDegrees
+				if (headNoteRangeOutput)
+				{
+					headNoteRangeOutput.value = `${headNoteRangeDegrees}°`
+				}
+				return headNoteRangeDegrees
+			}
+			const applyHeadNoteRange = value => {
+				const headNoteRangeDegrees = normaliseHeadNoteRangeDegrees(value)
+				stateMachine.set('headNoteRangeDegrees', headNoteRangeDegrees)
+				personManager.setPlayerOption('headNoteRangeDegrees', headNoteRangeDegrees)
+			}
+			const setHeadNoteRange = debounce(applyHeadNoteRange, 150)
+			const initialHeadNoteRange = previewHeadNoteRange(stateMachine.get('headNoteRangeDegrees'))
+			applyHeadNoteRange(initialHeadNoteRange)
+			headNoteRangeInput.addEventListener('input', event => {
+				previewHeadNoteRange(event.target.value)
+				setHeadNoteRange(event.target.value)
+			})
+			headNoteRangeInput.addEventListener('change', event => {
+				const degrees = previewHeadNoteRange(event.target.value)
+				setHeadNoteRange(degrees)
+				setFeedback(`Head note range set to ${degrees} degrees`, 0)
+			})
+		}
+
+		const headVerticalRangeInput = document.getElementById('head-vertical-range')
+		const headVerticalRangeOutput = document.getElementById('head-vertical-range-output')
+		if (headVerticalRangeInput)
+		{
+			const previewHeadVerticalRange = value => {
+				const headVerticalRangeDegrees = normaliseHeadVerticalRangeDegrees(value)
+				headVerticalRangeInput.value = headVerticalRangeDegrees
+				if (headVerticalRangeOutput)
+				{
+					headVerticalRangeOutput.value = `${headVerticalRangeDegrees}°`
+				}
+				return headVerticalRangeDegrees
+			}
+			const applyHeadVerticalRange = value => {
+				const headVerticalRangeDegrees = normaliseHeadVerticalRangeDegrees(value)
+				stateMachine.set('headVerticalRangeDegrees', headVerticalRangeDegrees)
+				personManager.setPlayerOption('headVerticalRangeDegrees', headVerticalRangeDegrees)
+			}
+			const setHeadVerticalRange = debounce(applyHeadVerticalRange, 150)
+			const initialHeadVerticalRange = previewHeadVerticalRange(stateMachine.get('headVerticalRangeDegrees'))
+			applyHeadVerticalRange(initialHeadVerticalRange)
+			headVerticalRangeInput.addEventListener('input', event => {
+				previewHeadVerticalRange(event.target.value)
+				setHeadVerticalRange(event.target.value)
+			})
+			headVerticalRangeInput.addEventListener('change', event => {
+				const degrees = previewHeadVerticalRange(event.target.value)
+				setHeadVerticalRange(degrees)
+				setFeedback(`Vertical head range set to ${degrees} degrees`, 0)
+			})
+		}
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
@@ -4231,7 +4556,7 @@ export const createInterface = (
 			setFeedback(`Rapid percussion ${status ? 'enabled' : 'disabled'}`, 0, 'beats')
 		}, stateMachine.get('rapidPercussion') )
 
-		const beatVizModes = new Set(['summary', 'grid', 'vertical', 'ripples', 'disabled'])
+		const beatVizModes = new Set(['summary', 'grid', 'vertical', 'clock', 'ripples', 'disabled'])
 		const selectedBeatViz = beatVizModes.has(stateMachine.get('beatViz')) ? stateMachine.get('beatViz') : 'summary'
 		selects.beatViz = connectSelect('select-beat-viz', option => {
 			const mode = beatVizModes.has(option.value) ? option.value : 'summary'
@@ -4281,6 +4606,26 @@ export const createInterface = (
 			stateMachine.set( 'spectrogram', status )
 			setFeedback("Spectrogram " + (status ? 'enabled' : 'disabled'), 0  )
 		}, stateMachine.get( 'spectrogram') )
+
+		const visualiserSelect = populateSelect("select-viz", [
+			...VISUALISER_MODES.map(mode => ({ value:mode.id, label:mode.label })),
+			{ value:"off", label:"Off" },
+		])
+		const syncVisualiserSelect = () => {
+			if (!stateMachine.get('spectrogram') || stateMachine.get('visualiser') !== 'butterchurn') butterchurnVisualiser.stop()
+			if (toggles.spectrogram) toggles.spectrogram.checked = !!stateMachine.get("spectrogram")
+			if (visualiserSelect) visualiserSelect.value = stateMachine.get("spectrogram")
+				? normaliseVisualiser(stateMachine.get("visualiser")) : "off"
+		}
+		visualiserSelect?.addEventListener("change", () => {
+			const enabled = visualiserSelect.value !== "off"
+			if (enabled) stateMachine.set("visualiser", normaliseVisualiser(visualiserSelect.value))
+			stateMachine.set("spectrogram", enabled)
+		})
+		stateMachine.addEventListener(key => {
+			if (key === "spectrogram" || key === "visualiser") syncVisualiserSelect()
+		})
+		syncVisualiserSelect()
 
 		toggles.speak = setToggle( "button-speak", status =>{
 			kit.cowbell()
@@ -4358,14 +4703,6 @@ export const createInterface = (
 			personManager.setPlayerOption("drawMask", flag )
 		}, stateMachine.get( 'masks') )
 
-		// hide / show eye overlays
-		// NB. this gets hidden in kid mode?
-		toggles.eyes = setToggle( "button-eyes", status => {
-			const flag = stateMachine.toggle( 'eyes' )
-			personManager.setPlayerOption("drawEyes", flag )
-			// setFeedback( flag ? 'Googly eyes' : 'Unmuted', 0,  status ? 'muted' : 'unmuted' )
-		}, stateMachine.get( 'eyes') )
-
 		toggles.eyebrows = setToggle( "button-eyebrows", status => {
 			const flag = stateMachine.toggle( 'eyebrows' )
 			personManager.setPlayerOption("drawEyebrows", flag )
@@ -4434,7 +4771,8 @@ export const createInterface = (
 			setFeedback('Photograph taken!', 0 )
 			kit.cowbell()
 		} )
-	
+
+
 		// reset to factory defaults
 		buttons.resetSettings = setButton( "button-reset", status =>{ 
 			stateMachine.reset()
@@ -4490,18 +4828,41 @@ export const createInterface = (
 		// 	setBPM(tempo)
 		// } )
 
-		// swap out the eyes for some custom ones
-		selects.eyes = connectSelect( 'select-eyes', option => {
+		// Swap the tracked eyes for one of the playful canvas presets.
+		const applyEyePreset = (option, announce=false) => {
 			const items = option.value.split(",")
 			const eye = convertOptionToObject(items)
-			
+			const drawEyes = eye.s > 0
+
+			if (stateMachine.get('eyes') !== drawEyes)
+			{
+				stateMachine.set('eyes', drawEyes)
+			}
 			personManager.setPlayerOptions({ 
+				drawEyes,
+				eyeDesign:option.dataset.eyeDesign || 'round',
+				eyeDesign:option.dataset.eyeDesign || 'round',
 				scleraRadius:eye.s,
 				irisRadius:eye.i,
 				pupilRadius:eye.p,
 				eyeRatio:eye.a || 1
 			})
-		} )
+
+			if (announce)
+			{
+				setFeedback(drawEyes ? `${option.textContent} selected` : 'Eye overlays disabled', 0)
+			}
+		}
+
+		selects.eyes = connectSelect('select-eyes', option => applyEyePreset(option, true))
+		if (selects.eyes)
+		{
+			const initialEyeOption = stateMachine.get('eyes')
+				? selects.eyes.querySelector('[data-default-eye-preset]')
+				: selects.eyes.options[0]
+			initialEyeOption.selected = true
+			applyEyePreset(initialEyeOption)
+		}
 
 		// set the master sound font
 		selects.samples = connectSelect( 'select-samples', async (option) => {
@@ -4519,13 +4880,13 @@ export const createInterface = (
 			if (option.value === "free-range")
 			{
 				stateMachine.set( 'harmonyMode', "free-range" )
-				setFeedback( 'Free range enabled', 0 )
+				setFeedback( 'Free Range selected. Notes and chords are no longer restricted to one shared key: each played note can become its own chord root, so every player can move independently through the full chromatic range.', 0 )
 				return
 			}
 
 			stateMachine.set( 'harmonyMode', "global-key" )
 			stateMachine.set( 'key', option.value, selects.key )
-			setFeedback( `Global key set to ${option.textContent} ${getSelectedKeyScaleLabel()}`, 0 )
+			setFeedback( `Key selected: ${option.textContent} ${getSelectedKeyScaleLabel()}. All players will use this shared key.`, 0 )
 		} )
 		selects.key.value = stateMachine.get('harmonyMode') === "free-range" ?
 			"free-range" :
@@ -4539,7 +4900,7 @@ export const createInterface = (
 				return
 			}
 			stateMachine.set( 'harmonyMode', "global-key" )
-			setFeedback( `Global key set to ${getSelectedKeyLabel()} ${option.textContent}`, 0 )
+			setFeedback( `Key selected: ${getSelectedKeyLabel()} ${option.textContent}. All players will use this shared key.`, 0 )
 		} )
 		selects.keyScale.value = stateMachine.get('keyScale')
 		updateKeyScaleControlVisibility()
@@ -4568,6 +4929,24 @@ export const createInterface = (
 		})
 		
 		
+		selects.subdivisions = connectSelect('select-subdivisions', option => {
+			const subdivisions = Number(option.value)
+			display?.setGeometrySubdivisions(subdivisions)
+			stateMachine.set('divisions', subdivisions)
+			setFeedback(`Subdivisions: ${option.textContent}`, 0)
+		})
+		if (selects.subdivisions)
+		{
+			const savedSubdivisions = Number(stateMachine.get('divisions') ?? 0)
+			const subdivisions = Number.isFinite(savedSubdivisions) ? Math.max(0, Math.floor(savedSubdivisions)) : 0
+			// Preserve existing URL settings beyond the standard density choices.
+			if (!Array.from(selects.subdivisions.options).some(option => Number(option.value) === subdivisions))
+			{
+				selects.subdivisions.add(new Option(`${subdivisions} subdivisions`, String(subdivisions)))
+			}
+			selects.subdivisions.value = String(subdivisions)
+		}
+
 		// allow display type to be changed on the hoof via toggle
 		selects.displays = connectSelect( 'select-display', async(option) => {
 			if (option && option.value)
@@ -4636,7 +5015,10 @@ export const createInterface = (
 		// UI -------------------------------------------------------------
 		// now set up the front end based on this state
 		setupInterfaceUI( settings, progressCallback )
+		setupMIDICC({ stateMachine })
 		setupCommandPalette()
+		setupControlsList()
+		sessionUI = setupSessionRecordingUI(sessionController, reportSessionRecordingError)
 
 		// UI:THEME -------------------------------------------------------
 		
@@ -4650,8 +5032,8 @@ export const createInterface = (
 		
 		// paint next frame immediately
 		colourBrand = fetchBrandColour()
-		createQRCodeFromURL(url.toString()).then( qr => {
-			// console.info("URL for QRCode", {qr, url, href:url.toString()})
+		createQRCodeFromURL(getShareableStateURL()).then( qr => {
+			// console.info("URL for QRCode", {qr, href:getShareableStateURL()})
 		})
 			
 		setupThemeControls( document.getElementById('select-theme'), newTheme =>{
@@ -4792,19 +5174,25 @@ export const createInterface = (
 	const onLoaded = async () => {
 		const quantityOfPlayers = stateMachine.get("players")
 
-		body.classList.toggle("loading", false)
-		body.classList.toggle("loaded", true)
-		main.setAttribute("aria-busy", false)
-
 		// prevent state changes from scrolling the page
 		stateMachine.preventAutoScrolling()
 
 		// now create all the people we will need!
+		const peopleLoading = []
 		for (let i=0; i<quantityOfPlayers; ++i)
 		{
-			const person = createPerson( i )
+			const person = createPerson(i, EYE_COLOURS[i % EYE_COLOURS.length])
+			peopleLoading.push(person.ready)
 			// console.assert( !debug, i, "Person created", person)
 		}
+		body.classList.toggle("loading", false)
+		body.classList.toggle("loaded", true)
+		main.setAttribute("aria-busy", false)
+		loadProgressMediator(1, "Ready!", true)
+
+		// Show the video while each player's instrument loads. Presets still
+		// need the instruments to be ready before they can be applied.
+		await Promise.all(peopleLoading)
 
 		const ensemblePresetAPI = await setupEnsemblePresetPanel(personManager.people, {
 			applyOptions:applyEnsemblePresetOptions,
@@ -4980,9 +5368,6 @@ export const createInterface = (
 		// wait here until a user shows their face...
 		const user = await lookForUser()
 
-		// focus app?
-		loadProgressMediator(1,"complete", true)
-
 		const singleton = constructPublicClass( { 
 			user,
 			quantityOfActivePeople,
@@ -5033,6 +5418,11 @@ export const createInterface = (
 			getAudioContext: () => audioContext,
 			loadAudioSample: loadAudio,
 			playAudioSample: playTrack,
+			startSessionRecording,
+			stopSessionRecording,
+			startMediaRecording:sessionController.startMedia,
+			stopMediaRecording:sessionController.stopMedia,
+			exportSessionMIDI,
 			loadInstruments: loadInstrumentPreset,
 			loadRandomInstrument, previousInstrument, nextInstrument,
 			toggleRecording,
@@ -5248,7 +5638,8 @@ export const createInterface = (
 		const startApp = await setup( fetchPrediction, modelOptions, (progress,message) => {
 			
 			//console.log("Loading B Side", progress )
-			loadProgressMediator(0.5 + progress/2, message, false)
+			// Reserve completion for the point where the app becomes visible.
+			loadProgressMediator(Math.min(0.99, 0.5 + progress/2), message, false)
 		})
 		
 		// console.info("Loaded ML model now updating with options", {startApp, modelOptions, stateMachine} )

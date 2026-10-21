@@ -1,6 +1,7 @@
 // TODO: load appropriate language...
 import { QUICK_START, INSTRUCTIONS, INSTRUCTION_FOR_AUTOMATION } from '../locales/en_GB.js'
 import { fetchJSON } from '../utils/fetch.js'
+import { readActiveGuide } from './guide-editor.js'
 
 const normaliseGuide = (guide = []) => {
 	const instructions = Array.isArray(guide) ? [...guide] : []
@@ -94,17 +95,21 @@ export const getInstructions = async (language = 'en', referer = '', options = {
 	}
 
 	try {
-		if (referer.length) {
-			const instructionLocation = `./locales/${language}/instructions${referer ? `-${referer}` : ''}.json`
-			const instructionsData = await fetchJSON(instructionLocation)
-			const modeInstructions = selectModeInstructions(instructionsData, advancedMode)
-			const normalisedModeInstructions = normaliseModeInstructions(modeInstructions)
+		const instructionLocation = `./locales/${language}/instructions${referer ? `-${referer}` : ''}.json`
+		const customGuide = readActiveGuide()
+		const instructionsData = customGuide?.instructions ?? await fetchJSON(instructionLocation)
+		const modeInstructions = selectModeInstructions(instructionsData, advancedMode)
+		const normalisedModeInstructions = normaliseModeInstructions(modeInstructions)
+		if (Array.isArray(instructionsData?.quickStart) && instructionsData.quickStart.length) {
+			quickStartModeInstructions = {default:normaliseGuide(instructionsData.quickStart), blocks:[]}
+		}
 
-			if (normalisedModeInstructions.default.length || normalisedModeInstructions.blocks.length) {
+		if (normalisedModeInstructions.default.length || normalisedModeInstructions.blocks.length) {
+			if (referer.length && !customGuide) {
 				quickStartModeInstructions = normalisedModeInstructions
-				instructionModeInstructions = normalisedModeInstructions
-				automationModeInstructions = normalisedModeInstructions
 			}
+			instructionModeInstructions = normalisedModeInstructions
+			automationModeInstructions = normalisedModeInstructions
 		}
 
 		const startedAt = performance.now()

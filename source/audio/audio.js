@@ -452,7 +452,7 @@ export const playTrack = (context, audioBuffer, offset=0, destination=delayNode,
 		
 		if (offset == 0) 
 		{
-			trackSource.start()
+			trackSource.start(Number.isFinite(options.triggerAt) ? Math.max(context.currentTime, options.triggerAt) : 0)
 		//offset = audioContext.currentTime
 		} else {
 			trackSource.start(0, context.currentTime - offset)

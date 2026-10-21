@@ -3,9 +3,9 @@
 	--overlap:var(--button-size);
 	--_y:calc(var(--y, 0) * 1px - 100% + var(--overlap));
 
-	grid-area: 1/1/-2/-1;
+	grid-area: 2/1/-2/-1;
 	position: absolute;
-	z-index:1080;
+	z-index:909;
 	top:0;
 	left:50%;
 	width:min( 100%, 66vw );
@@ -31,7 +31,7 @@
 
 	&.expanded{
 		transform:translateX(-50%) translateY(0);
-		z-index:999999;
+		//z-index:999999;
 	}
 
 	&.dragging,
@@ -50,34 +50,14 @@
 	align-self:start;
 	width:max-content;
 	min-width:max-content;
-	max-width:calc(100vw - var(--pad) * 2);
-	height:var(--button-size);
-	min-height:var(--button-size);
-	max-height:var(--button-size);
-	padding:0 calc(var(--pad) * 1.25);
+	max-width:calc(100% - var(--pad) * 2);
 	margin:0;
 	display:flex;
 	align-items:center;
 	justify-content:center;
-	gap:calc(var(--pad) * 0.75);
-	overflow:hidden;
-	background-color:var(--shade-orange, #b46018);
-	background-image:none;
-	background-clip:border-box;
-	box-shadow:inset 0 0 0 999px var(--shade-orange, #b46018);
-	border:var(--stroke, 2px) solid var(--col-dark, white);
 	border-top:none;
 	border-radius:0 0 calc(var(--button-size) * 0.5) calc(var(--button-size) * 0.5);
-	color:var(--shade-white, white);
-	font-size:1rem;
-	font-weight:900;
-	line-height:var(--button-size);
-	text-shadow:2px 2px 0 var(--shade-dark, black);
-	text-transform:uppercase;
-	letter-spacing:0;
 	position:relative;
-	white-space:nowrap;
-	text-indent:0;
 
 	&::before{
 		content:"";
@@ -139,7 +119,7 @@
 		box-sizing:border-box;
 		padding:var(--pad);
 		margin:0;
-		text-transform:uppercase;
+		text-transform:none;
 	}
 
 	h4{
@@ -218,7 +198,7 @@
 
 	strong{
 		font-size:1rem;
-		text-transform:uppercase;
+		text-transform:none;
 	}
 
 	small{

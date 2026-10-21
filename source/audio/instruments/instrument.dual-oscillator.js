@@ -144,7 +144,7 @@ export default class DualOscillatorInstrument extends OscillatorInstrument{
 
     async noteOn( noteNumber, velocity=1 ){
 		const now = this.currentTime
-		const slideTo = super.noteOn(noteNumber, velocity)
+		const slideTo = await super.noteOn(noteNumber, velocity)
 		const filterPeak = this.options.filterCutOff * this.options.filterOverdrive
         const filterSustain =  this.options.filterCutOff + (filterPeak - this.options.filterCutOff) * this.options.filterSustain
        

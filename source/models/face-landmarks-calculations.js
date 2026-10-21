@@ -23,6 +23,7 @@ import {
 	EYE_CLOSED_AT,
 	PITCH_SCALE
 } from './face-model-constants'
+import { createBlendshapeScoreReader, inferExpressionParameters } from './blendshapes'
 
 /*
 const drawingUtils = new DrawingUtils(canvasCtx);
@@ -87,6 +88,11 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// https://developer.apple.com/documentation/arkit/arfaceanchor/blendshapelocation/
 	const keypoints = faceLandmarks
 	const landmarks = faceBlendshapes.categories
+	// Category order is an implementation detail of the MediaPipe model. Read by
+	// name first so model updates cannot silently wire one facial action to
+	// another, while retaining the legacy index as a compatibility fallback.
+	const blendshape = createBlendshapeScoreReader(landmarks)
+	const expressionParameters = inferExpressionParameters(landmarks)
 
 	if(	flipHorizontally )
 	{
@@ -161,23 +167,25 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// const eyeDirection = widthLeftEye / widthRightEye
 
 	// eye blink!
-	const leftBlink = landmarks[9].score
-	const rightBlink = landmarks[10].score
+	const leftBlink = blendshape('eyeBlinkLeft', 9)
+	const rightBlink = blendshape('eyeBlinkRight', 10)
 
 	// eye blink!
-	const leftSquint = landmarks[19].score
-	const rightSquint = landmarks[20].score
+	const leftSquint = blendshape('eyeSquintLeft', 19)
+	const rightSquint = blendshape('eyeSquintRight', 20)
+	const leftEyeWide = blendshape('eyeWideLeft', 21)
+	const rightEyeWide = blendshape('eyeWideRight', 22)
 
 	// eye directions!
-	const leftEyeLookDown = landmarks[11].score
-	const rightEyeLookDown = landmarks[12].score
+	const leftEyeLookDown = blendshape('eyeLookDownLeft', 11)
+	const rightEyeLookDown = blendshape('eyeLookDownRight', 12)
 
-	const leftEyeLookIn = landmarks[13].score
+	const leftEyeLookIn = blendshape('eyeLookInLeft', 13)
 	const leftEyeLookInReversed = 1 - leftEyeLookIn
-	const rightEyeLookIn = landmarks[14].score
+	const rightEyeLookIn = blendshape('eyeLookInRight', 14)
 
-	const leftEyeLookOut = landmarks[15].score
-	const rightEyeLookOut = landmarks[16].score
+	const leftEyeLookOut = blendshape('eyeLookOutLeft', 15)
+	const rightEyeLookOut = blendshape('eyeLookOutRight', 16)
 
 	const pointLeftEyeSocketOuter = keypoints[362]
 	const pointLeftEyeCaruncle = keypoints[263]
@@ -200,7 +208,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// 16 is right eye 0 -> 1 and 14 is 1 -> 0
 	// -1 -> +1
 	prediction.rightEyeDirection = rightEyeLookOut + rightEyeLookIn - 1
-	prediction.leftEyeDirection = leftEyeLookOut + leftEyeLookOut - 1
+	prediction.leftEyeDirection = leftEyeLookOut + leftEyeLookIn - 1
 	
 	// Up down, 
 	prediction.leftEyeVertical =  2 * leftEyeLookDown - 1
@@ -231,6 +239,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// before an eye blink is the squint!
 	prediction.eyeSquintLeft = leftSquint
 	prediction.eyeSquintRight = rightSquint
+	prediction.eyeWideLeft = leftEyeWide
+	prediction.eyeWideRight = rightEyeWide
 
 	//	
 	prediction.leftEyeClosedBy = leftBlink
@@ -248,13 +258,13 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	
 	// - EYEBROWS ---------------------------------------------------
 	
-	const browInnerUp = landmarks[3].score
+	const browInnerUp = blendshape('browInnerUp', 3)
 
-	const browDownRight = landmarks[2].score
-	const browOuterUpRight = landmarks[5].score
+	const browDownRight = blendshape('browDownRight', 2)
+	const browOuterUpRight = blendshape('browOuterUpRight', 5)
 
-	const browDownLeft = landmarks[1].score
-	const browOuterUpLeft = landmarks[4].score
+	const browDownLeft = blendshape('browDownLeft', 1)
+	const browOuterUpLeft = blendshape('browOuterUpLeft', 4)
 	
 	const browDown = Math.max(browDownRight, browDownLeft)
 	// as brows are a bit fiddly we use a power law to make them more linear
@@ -285,22 +295,24 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 
 	// mouth roll (can be used instead of jaw!)
 	// this is when you suck in your lips
-	const mouthRollUpper = landmarks[41].score
-	const mouthRollLower = landmarks[40].score
-	const mouthFrownLeft = landmarks[30].score
-	const mouthFrownRight = landmarks[31].score
+	const mouthRollUpper = blendshape('mouthRollUpper', 41)
+	const mouthRollLower = blendshape('mouthRollLower', 40)
+	const mouthFrownLeft = blendshape('mouthFrownLeft', 30)
+	const mouthFrownRight = blendshape('mouthFrownRight', 31)
 
 	// smirking
-	const mouthSmileLeft = landmarks[44].score
-	const mouthSmileRight = landmarks[45].score
+	const mouthSmileLeft = blendshape('mouthSmileLeft', 44)
+	const mouthSmileRight = blendshape('mouthSmileRight', 45)
+	const cheekSquintLeft = blendshape('cheekSquintLeft', 7)
+	const cheekSquintRight = blendshape('cheekSquintRight', 8)
 
 	// gurning
-	const mouthStretchLeft = landmarks[46].score
-	const mouthStretchRight = landmarks[47].score
+	const mouthStretchLeft = blendshape('mouthStretchLeft', 46)
+	const mouthStretchRight = blendshape('mouthStretchRight', 47)
 
-	const jawOpeness = landmarks[25].score
+	const jawOpeness = blendshape('jawOpen', 25)
 	const jawCloseness = 1 - jawOpeness
-	const mouthCloseness = landmarks[27].score
+	const mouthCloseness = blendshape('mouthClose', 27)
 	const mouthOpeness = 1 - mouthCloseness
 
 	// The inner-lip gap is measured from the actual face mesh. It remains
@@ -323,9 +335,9 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// mouth may be closed whilst jaw is open
 
 	// ooooooo
-	const mouthFunnel = landmarks[32].score
+	const mouthFunnel = blendshape('mouthFunnel', 32)
 	// kissing
-	const mouthPucker = landmarks[38].score
+	const mouthPucker = blendshape('mouthPucker', 38)
 
 	
 	// Calculate some mouth info :
@@ -354,11 +366,21 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	prediction.leftSmirk = mouthSmileLeft
 	prediction.rightSmirk = mouthSmileRight
 	
-	// A smile can be signalled by either the mouth opening or the paired
-	// mouthSmile blendshapes. Keep the strongest signal for responsive matching.
-	prediction.mouthSmile = (prediction.rightSmirk + prediction.leftSmirk) / 2
-	prediction.smile = Math.max(prediction.mouthRatio, prediction.mouthSmile)
-	prediction.happiness = prediction.smile
+	prediction.mouthSmileLeft = mouthSmileLeft
+	prediction.mouthSmileRight = mouthSmileRight
+	prediction.cheekSquintLeft = cheekSquintLeft
+	prediction.cheekSquintRight = cheekSquintRight
+	prediction.mouthSmile = expressionParameters.mouthSmile
+	prediction.smileEvidence = expressionParameters.happiness
+	prediction.smile = expressionParameters.happiness
+	prediction.happiness = expressionParameters.happiness
+	prediction.sadness = expressionParameters.sadness
+	prediction.anger = expressionParameters.anger
+	prediction.fear = expressionParameters.fear
+	prediction.surprise = expressionParameters.surprise
+	prediction.disgust = expressionParameters.disgust
+	prediction.neutralExpression = expressionParameters.neutral
+	prediction.tongueOut = blendshape('tongueOut', 52)
 
 
 
@@ -376,8 +398,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 							
 	// - NOSE! -------------------------------------------------------
 	
-	prediction.noseSneerLeft = landmarks[50].score
-	prediction.noseSneerRight = landmarks[51].score
+	prediction.noseSneerLeft = blendshape('noseSneerLeft', 50)
+	prediction.noseSneerRight = blendshape('noseSneerRight', 51)
 
 	// - BOUNDING BOX ------------------------------------------------
 	
@@ -414,7 +436,8 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	const rollY = pointLeftEyeSocketOuter.y - pointRightEyeSocketOuter.y
 	const rollRegular = atan2(rollX, rollY) 
 	const rawRoll = flipHorizontally ? -rollRegular : rollRegular
-	const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
+	const headRollRadians = rawRoll + Math.PI * 0.5
+	const regulatedRoll = headRollRadians * 1.3
 	// const regulatedRoll = ( rawRoll + Math.PI * 0.5) * 1.3
 	const roll = clamp( regulatedRoll, -1, 1 )
 	
@@ -439,6 +462,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	prediction.pitch = pitch
 	// tilting head towards shoulders
 	prediction.roll = roll
+	prediction.headRollRadians = headRollRadians
 	// regular left right neck rotational movement
 	prediction.yaw = yaw
 

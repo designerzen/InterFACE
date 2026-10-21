@@ -1,28 +1,21 @@
+@use "./_button.scss";
 
 // Details & Summary ----------------------------------------
-
-
 :where(details){
 	pointer-events: auto;
 	display: block;
-	
+
 	align-self: center;
 	justify-self: stretch;
 
-	// FIX: allow transitions for visibilty and auto
-	interpolate-size: allow-keywords; 
-
-	transition: height 0.25s ease-in;
-	
 	> summary{
-		
+
 		grid-template-areas:"prefix summary marker space";
 	    grid-template-columns: auto auto auto 1fr;
 		gap:0.5ch;
 
 		cursor:pointer;
-		cursor:copy;
-		
+
 		user-select:none;
 		pointer-events: auto;
 		display: grid;
@@ -41,20 +34,19 @@
 			transform-origin: center;
 			display: inline-block;
 			transform-origin: center;
-			transition: transform var((--ease-s)) var(--ease-out-back);
-			transition-delay: 0.4s;
-			grid-area:marker; 
+			transition: transform 250ms ease;
+			grid-area:marker;
 		}
-	
-		&:is( 
-			::marker, 
-			::-webkit-details-marker 
-		){
+
+		&::marker{
+			content:'';
+		}
+		&::-webkit-details-marker{
 			content:'';
 			display:none;
-			grid-area:marker; 
+			grid-area:marker;
 		}
-	}	
+	}
 }
 
 :where(details[open]) {
@@ -66,27 +58,123 @@
 	// 	color: inherit;
 	// }
 
-	summary::before{
+	> summary::before{
 		content:'';
 	}
-	
-	summary::after{
+
+	> summary::after{
 		transform: rotate(0deg);
 	}
 }
-// @supports (details::details-content){
-	// handle animating in and out
+// Keep native disclosure behaviour in browsers without intrinsic-size transitions.
+@supports selector(details::details-content) and (interpolate-size: allow-keywords) and (transition-behavior: allow-discrete){
 	details::details-content {
-		transition: content-visibility, height;
-		transition-behavior: allow-discrete;
+		interpolate-size: allow-keywords;
+		block-size: 0;
+		opacity: 0;
+		overflow: clip;
+		transition:
+			block-size 250ms ease,
+			opacity 250ms ease,
+			content-visibility 250ms allow-discrete;
 	}
 
-	details[open]::details-content { 
-		height: auto; 
+	details[open]::details-content {
+		block-size: auto;
+		opacity: 1;
 	}
-// }
+}
 
 .details{
 	padding:var(--pad);
 	border:dashed var(--stroke,1px) var(--col-accent, white);
+}
+
+// A special type of accordion which
+// uses the same name to create a single
+// open accordion so the summary becomes
+// a two tone button
+details.accordion{
+	margin:0;
+	padding:0;
+
+	> summary{
+		@include button.button-style;
+		--icon: none;
+		margin:0;
+		padding:var(--pad, 1rem);
+		display: grid;
+		grid-template-areas: none;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap:0.5em 1em;
+		min-width:0;
+		max-width: none;
+		max-height: none;
+		box-sizing: border-box;
+		border-radius:var(--button-curve);
+		text-align:start;
+		box-shadow:var(--box-shadow);
+		transition:transform 150ms ease, box-shadow 150ms ease;
+
+		> *{
+			grid-column:1;
+			min-width:0;
+			margin:0;
+			color:inherit;
+		}
+
+		&::before{
+			display:none;
+		}
+
+		&::after{
+			grid-area:1 / 2 / span 2;
+			align-self:center;
+			font-size:1.5em;
+		}
+
+		// The shared button hides its icon on hover; the disclosure stays visible.
+		&:is(:hover, :focus-visible, :active, :target, :has(:focus-visible))::after{
+			opacity:1;
+		}
+
+		&:focus-visible{
+			outline:2px solid currentColor;
+			outline-offset:3px;
+			animation:none;
+		}
+	}
+
+	&[open] > summary{
+		--col-top:hsl(var(--hue-selected), var(--s-selected), var(--l-selected));
+		--col-bottom:hsl(var(--hue-selected), var(--s-selected), calc(var(--l-selected) + var(--range)));
+		--shadow-offset-y:0;
+		color:var(--shade-dark, #222);
+		text-shadow:none;
+		box-shadow:inset 4px 0 0 currentColor, var(--box-shadow);
+	}
+
+	> summary:is(:hover, :focus-visible){
+		color:var(--shade-dark, #222);
+		text-shadow:none;
+		box-shadow:inset 0 0 0 2px currentColor, var(--box-shadow);
+	}
+
+	> summary:active{
+		--col-top:hsl(var(--hue-active), var(--s-active), var(--l-active));
+		--col-bottom:hsl(var(--hue-active), var(--s-active), calc(var(--l-active) - var(--range)));
+		color:var(--shade-dark, #222);
+		text-shadow:none;
+		transform:translateY(2px);
+		box-shadow:inset 0 2px 4px rgb(0 0 0 / 35%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce){
+	details::details-content,
+	details > summary,
+	details > summary::after{
+		transition:none !important;
+		animation:none !important;
+	}
 }

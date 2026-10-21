@@ -1,6 +1,6 @@
 import { LEFT_EYE_PATH, LEFT_IRIS_PATH, MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR, MESH_ANNOTATIONS, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from '../models/face-landmark-constants.js'
 import { drawEyebrows } from './2d.eyebrows.js'
-import { drawEye } from './2d.eyes.js'
+import { drawEyes } from './2d.eyes.js'
 import { drawLip } from './2d.mouth.js'
 
 const toCanvasPoints = (points, canvas) => {
@@ -66,10 +66,11 @@ export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOpt
 			{ h:person.hue ?? 0, s:options.saturation ?? 80, l:person.isMouthOpen ? options.luminosity ?? 50 : 20, a:alpha * (person.isMouthOpen ? 0.3 : 0.6) })
 	}
 
-	if (options.drawEyes && !person.areEyesClosed)
+	if (options.drawEyes)
 	{
 		const eyeOptions = {
-			iris:options.leftEyeIris ?? 'rgba(100,255,100,0.8)',
+			eyeDesign:options.eyeDesign,
+			iris:person.hsl ?? options.leftEyeIris ?? 'rgba(100,255,100,0.8)',
 			irisRadius:options.irisRadius ?? 0.8,
 			pupil:options.pupil ?? 'rgba(0,0,0,0.8)',
 			pupilRadius:options.pupilRadius ?? 0.3,
@@ -79,16 +80,16 @@ export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOpt
 			scaleX:1,
 			scaleY:1
 		}
-		const leftPupil = getPupil(features.leftPupil, features.leftEye)
-		const rightPupil = getPupil(features.rightPupil, features.rightEye)
-		if (features.leftEye.length > 0 && leftPupil)
-		{
-			drawEye(canvasContext, features.leftEye, leftPupil, person.isLeftEyeOpen, prediction.eyeDirection ?? 0, eyeOptions)
-		}
-		if (features.rightEye.length > 0 && rightPupil)
-		{
-			drawEye(canvasContext, features.rightEye, rightPupil, person.isRightEyeOpen, prediction.eyeDirection ?? 0, { ...eyeOptions, iris:options.rightEyeIris ?? eyeOptions.iris })
-		}
+		drawEyes(canvasContext, {
+			leftEye:features.leftEye,
+			leftPupil:getPupil(features.leftPupil, features.leftEye),
+			rightEye:features.rightEye,
+			rightPupil:getPupil(features.rightPupil, features.rightEye),
+			expression:prediction,
+			leftOpen:person.isLeftEyeOpen,
+			rightOpen:person.isRightEyeOpen,
+			eyeDirection:prediction.eyeDirection ?? 0
+		}, { ...eyeOptions, rightIris:person.hsl ?? options.rightEyeIris ?? eyeOptions.iris })
 	}
 
 	if (options.drawEyebrows)

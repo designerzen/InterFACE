@@ -228,7 +228,7 @@ a[href="#fund"]{
 	background-size: 72%;
 	background-repeat: no-repeat;
 	
-	text-transform: uppercase;
+	text-transform: none;
 	text-decoration: none;
 	color:transparent;
 
@@ -270,23 +270,15 @@ a[href="#fund"]{
 
 	// some animations to bring character!
 	&::after{
-		content:'';	
-		opacity: 0;
+		content:'O O';
+		opacity: 1;
+		animation: EyesBlinking 2s ease-in-out 0s both infinite;
 		color:var(--shade-brand, var(--shade-red, red));
 		position: absolute;
 		top:15%;
 		left:0;
 		right:0;
 		text-align: center;
-	}
-}
-
-.loading{
-	a[href="#fund"]{
-		&::after{
-			content:'';	
-			animation:none;
-		}
 	}
 }
 
@@ -308,6 +300,14 @@ a[href="#fund"]{
 			animation: EyesBlinking 2s ease-in-out 0s both infinite;
 		}
 	}
+}
+
+// The small player-selection progress indicator overlays the logo.
+// Match its visible states; at 0.5 and 1 the progress indicator is transparent.
+html.player-selection:not(.loaded):has(#load-progress:not([data-loaded="true"]) progress:not([value="0.5"]):not([value="1"])) a[href="#fund"]::after{
+	content: '';
+	opacity: 0;
+	animation: none;
 }
 
 // show / hide tag at top right	

@@ -1,5 +1,12 @@
 [
 	{
+		"name":"Composite",
+		"type":"CompositeInstrument",
+		"title":"General MIDI Composite Instrument",
+		"description":"Routes General MIDI presets to SoundFont and oscillator synthesizers",
+		"formats":{}
+	},
+	{
 		"name":"OpenGM24",
 		"type":"SoundFontInstrument",
 		"title":"Open General MIDI 2024 Soundfont",
@@ -60,6 +67,13 @@
 		"formats":{}
 	},
 
+	{
+		"name":"FM Synth (DX7)",
+		"type":"FMInstrument",
+		"title":"FM Synth (DX7)",
+		"description":"Six-operator FM synthesizer with DX7 SysEx voice and bank loading",
+		"formats":{}
+	},
 	{
 		"name":"Chord",
 		"type":"ChordInstrument",

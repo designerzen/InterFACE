@@ -1,34 +1,60 @@
-fieldset.form-tempo
-	legend Set Tempo
+#tempo-tabs.tabs
+	div.tabs-list(role="tablist" aria-label="Tempo settings")
+		button#tempo-tab.tab(type="button" role="tab" aria-selected="true" aria-controls="tempo-regular-panel" tabindex="0") Tempo
+		button#tempo-sync-tab.tab(type="button" role="tab" aria-selected="false" aria-controls="network-timing" tabindex="-1") Sync
+	fieldset#tempo-regular-panel.form-tempo.tabs-panel(role="tabpanel" aria-labelledby="tempo-tab")
+		legend Set Tempo
 	
-	label(for="tempo-input-text") Enter tempo
-	input(type="number" min="1" max="300" inputmode="numeric" pattern="[0-9]+")#tempo-input-text
+		label(for="tempo-input-text") Enter tempo
+		input(type="number" min="1" max="300" inputmode="numeric" pattern="[0-9]+")#tempo-input-text
 
-	label(for="tempo-input-range") Set tempo
-	input(type="range" min="1" max="300" step="0.5" list="tempo-input-ticks")#tempo-input-range
-	datalist#tempo-input-ticks
-		option(value="1", label="1")
-		option(value="100", label="100")
-		option(value="200", label="200")
-		option(value="300", label="300")
+		label(for="tempo-input-range") Set tempo
+		input(type="range" min="1" max="300" step="0.5" list="tempo-input-ticks")#tempo-input-range
+		datalist#tempo-input-ticks
+			option(value="1", label="1")
+			option(value="100", label="100")
+			option(value="200", label="200")
+			option(value="300", label="300")
 
-	label(for="tempo-swing-range") Set swing
-	input(type="range" min="0" max="1" step="0.01" list="tempo-swing-ticks")#tempo-swing-range
-	datalist#tempo-swing-ticks
-		option(value="0", label="0%")
-		option(value="0.5", label="50%")
-		option(value="1", label="100%")
-	output(for="tempo-swing-range")#tempo-swing-output 0%
+		label(for="tempo-swing-range") Set swing
+		input(type="range" min="0" max="1" step="0.01" list="tempo-swing-ticks")#tempo-swing-range
+		datalist#tempo-swing-ticks
+			option(value="0", label="0%")
+			option(value="0.5", label="50%")
+			option(value="1", label="100%")
+		output(for="tempo-swing-range")#tempo-swing-output 0%
 
-	button(type="button")#tempo-increase-button.button-bpm-up.keyboard-shortcut-control Tempo Increase
-		kbd.keyboard-shortcut(aria-hidden="true") →
-	button(type="button")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrese
-		kbd.keyboard-shortcut(aria-hidden="true") ←
+		button(type="button")#tempo-increase-button.button-bpm-up.keyboard-shortcut-control Tempo Increase
+			kbd.keyboard-shortcut(aria-hidden="true") →
+		button(type="button")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrese
+			kbd.keyboard-shortcut(aria-hidden="true") ←
 
-	button(type="button")#tempo-tap-button.button-bpm-tap.round.keyboard-shortcut-control Tap Tempo
-		kbd.keyboard-shortcut(aria-hidden="true") X
+		button(type="button")#tempo-tap-button.button-bpm-tap.round.keyboard-shortcut-control Tap Tempo
+			kbd.keyboard-shortcut(aria-hidden="true") X
 
-	output#timing-feedback 
+		output#timing-feedback
+
+	fieldset#network-timing.form-network-timing.tabs-panel(role="tabpanel" aria-labelledby="tempo-sync-tab" hidden)
+		legend Play together
+		p Share one tempo with other machines in the room.
+		label(for="timing-room-server") Room server
+		input#timing-room-server(type="text" placeholder="room-server.example.com" autocomplete="off" spellcheck="false")
+		label(for="timing-room-id") Room code
+		input#timing-room-id(type="text" minlength="6" maxlength="80" autocomplete="off" spellcheck="false")
+		div.timing-room-actions
+			button#timing-room-host(type="button") Host a room
+			button#timing-room-join(type="button") Join room
+			button#timing-room-leave(type="button" disabled) Leave room
+		output#timing-room-status(role="status" aria-live="polite") Playing on my own
+		ul#timing-room-peers(aria-label="Connected machines")
+		div.timing-room-actions
+			button#timing-room-start(type="button" disabled) Start together
+			button#timing-room-pause(type="button" disabled) Pause together
+		p The host controls tempo and swing. Changes take effect together at the next shared boundary.
+		div#timing-room-share(hidden)
+			div#timing-room-qr(role="img" aria-label="Scan to join this room")
+			a#timing-room-link
+			button#timing-room-copy(type="button") Copy room link
 
 fieldset(hidden).form-tempo-synch
 	label(for="tempo-clock-select") Synch Clock To

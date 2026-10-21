@@ -41,7 +41,7 @@ const getVoices = async () => new Promise( (resolve,reject) => {
 })
 
 const getSpecificVoice = async (lang = "en-US", name ="Zira") =>{
-  const voices = getVoices()
+  const voices = await getVoices()
   const filtered = voices.filter( voice => {
     // first we check to see if the language is the same...
     return (voice.lang === lang && voice.name.indexOf(name) > -1 )
@@ -53,6 +53,7 @@ const thingsBeingSaid = new Set()
 
 let isSpeaking = false
 let fixer = null
+let speechGeneration = 0
 
 ////////////////////////////////////////////////////////////
 // Speak this out loud
@@ -60,8 +61,11 @@ let fixer = null
 // pitch    0 to 2
 ////////////////////////////////////////////////////////////
 export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='en-US', name=undefined ) =>{
-
-  	return new Promise( async (resolve,reject)=>{
+	const generation = speechGeneration
+	if (!isSpeechSynthesSupported) throw new Error("Speech tech not available")
+	const voices = (lang && name) ? await getSpecificVoice(lang, name) : await getVoices()
+	if (generation !== speechGeneration) return
+  	return new Promise( (resolve,reject)=>{
 
 		if (!isSpeechSynthesSupported)
 		{
@@ -70,9 +74,8 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='
 		}else{
 
 			// now pause whilst we attempt to list...
-			const talk = async () => {
+			const talk = () => {
 
-				const voices = (lang && name) ? await getSpecificVoice(lang, name) : await getVoices()
 				const person = voices[0]
 				const speech = new SpeechSynthesisUtterance()
 
@@ -98,6 +101,7 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='
 						case "interrupted":
 						case "canceled":
 							// console.info("interrupted!")
+							resolve(event)
 							break
 						default:
 							// console.error("SpeechSynthesis Error", {event},  window.speechSynthesis )
@@ -131,7 +135,7 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='
 
 			}
 
-			await talk()
+			talk()
 		}
 	
 	})
@@ -141,8 +145,9 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='
  * Force the voice to stop speaking
  */
 export const stopSpeaking = ()=>{
-
-  return window.speechSynthesis.cancel()
+  speechGeneration++
+  isSpeaking = false
+  if (hasSpeech()) return window.speechSynthesis.cancel()
 }
 
 /**

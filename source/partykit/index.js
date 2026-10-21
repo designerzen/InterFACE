@@ -1,64 +1,22 @@
-/* eslint-env browser */
-
-// @ts-check
-// Optional JS type checking, powered by TypeScript.
-/** @typedef {import("partykit/server").Room} Room */
-/** @typedef {import("partykit/server").Server} Server */
-/** @typedef {import("partykit/server").Connection} Connection */
-/** @typedef {import("partykit/server").ConnectionContext} ConnectionContext */
-
-/**
- * @implements {Server}
- */
+// Signaling and fallback transport; audio timing runs in each client.
 export default class PartyServer {
-
-	/**
-	 * @param {Room} room - The Room object.
-	 */
-	constructor(room) {
-		/** @type {Room} */
-		this.room = room
-	}
-
-	/**
-	 * @param {Connection} connection - The connection object.
-	 * @param {ConnectionContext} ctx - The context object.
-	 */
-	onConnect(connection, ctx) {
-		// A websocket just connected!
-		console.log(
-			`Connected:
-			id: ${connection.id}
-			room: ${this.room.id}
-			url: ${new URL(ctx.request.url).pathname}`
-		)
-
-		// const country = ctx.request.cf?.country ?? null
-
-		// Stash the country in the websocket attachment
-		// connection.serializeAttachment({
-		// ...connection.deserializeAttachment(),
-		// country: country
-		// })
-
-		// Send a message to the connection
-		connection.send(`Welcome, ${connection.id}`)
-		// let everyone else know that a new connection joined
-		this.room.broadcast(`user-connected`, [connection.id])
-	}
-
-	/**
-	 * @param {string} message
-	 * @param {Connection} sender
-	 */
-	onMessage(message, sender) {
-		console.log(`connection ${sender.id} sent message: ${message}`)
-		// Broadcast the received message to all other connections in the room except the sender
-		this.room.broadcast(`${sender.id}: ${message}`, [sender.id])
-		// for (const conn of this.room.getConnections()) {
-		//   if (conn.id !== sender.id) {
-		//     conn.send(`${sender.id} says: ${message}`)
-		//   }
-		// }
-	}
+ constructor(room) { this.room = room; this.leaderId = null }
+ roster() { return { type: 'roster', leaderId: this.leaderId, peers: [...this.room.getConnections()].map(c => c.id) } }
+ onConnect(connection, context) {
+  if (!this.leaderId && new URL(context.request.url).searchParams.get('host') === 'true') this.leaderId = connection.id
+  this.room.broadcast(JSON.stringify(this.roster()))
+ }
+ onClose(connection) {
+  if (this.leaderId === connection.id) this.leaderId = null
+  this.room.broadcast(JSON.stringify(this.roster()))
+ }
+ onMessage(raw, sender) {
+  if (typeof raw !== 'string' || raw.length > 32768) return
+  let message
+  try { message = JSON.parse(raw) } catch { return }
+  if (!message || !['signal', 'data', 'probe', 'probe-reply'].includes(message.type)) return
+  if (typeof message.to !== 'string' || message.to === sender.id) return
+  const target = this.room.getConnection(message.to)
+  if (target) target.send(JSON.stringify({ type: message.type, from: sender.id, payload: message.payload }))
+ }
 }

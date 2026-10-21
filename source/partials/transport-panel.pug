@@ -1,22 +1,73 @@
-fieldset#transport-panel.transport 
+fieldset#transport.transport
 
 	legend.sr-only Transport
+	a#network-timing-summary(href="#folder-tempo" hidden) Play together
 
-	label(for="time-elapsed") <span class="sr-only">Time elapsed</span>
-		time#time-elapsed 0
-		span.seperator /
-		time#time-total 1
+	div.transport-session-controls(aria-label="Recording and replay")
+		button#button-record-session(type="button" aria-pressed="false" aria-haspopup="dialog") Record
+		div.transport-replay-controls(role="group" aria-label="Saved note replay")
+			button#session-rewind(type="button" disabled aria-label="Rewind replay 10 seconds" title="Rewind 10 seconds") Rewind
+			button#session-replay(type="button" disabled aria-pressed="false") Replay saved notes
+			button#session-forward(type="button" disabled aria-label="Fast forward replay 10 seconds" title="Forward 10 seconds") Forward
+		button#button-save-midi(type="button" hidden aria-haspopup="dialog") Export
+		span.transport-duration
+			span.sr-only Recording duration
+			time#session-recording-duration(datetime="PT0S" aria-label="Recording duration") 00:00
+	div#session-replay-progress(hidden)
+		button#session-replay-choose(type="button" aria-haspopup="dialog") Choose recording
+		label(for="session-replay-position") Replay position
+		input#session-replay-position(type="range" min="0" max="0" step="100" value="0")
+		output#session-replay-time 00:00 / 00:00
+	output#session-recording-status.sr-only(aria-live="polite") Initialising recording…
 
-	progress#countdown-progress(min="0" max="1" value="0").progress-bar
-	//- progress#timing-progress(min="0" max="1" value="0")
+	dialog#session-record-dialog.session-dialog(aria-labelledby="session-record-title")
+		h2#session-record-title Record a performance
+		p(data-session-error role="alert")
+		p MIDI notes are saved automatically. Choose what else to record.
+		label(for="session-record-audio") Audio
+			input#session-record-audio(type="checkbox" checked)
+		label(for="session-record-video") Video
+			input#session-record-video(type="checkbox")
+		label(for="session-auto-midi") Keep MIDI recording automatically
+			input#session-auto-midi(type="checkbox" checked)
+		button#session-record-confirm(type="button") Start recording
+		button(type="button" data-session-close="session-record-dialog") Cancel
 
+	dialog#session-replay-dialog.session-dialog(aria-labelledby="session-replay-title")
+		h2#session-replay-title Replay saved notes
+		p(data-session-error role="alert")
+		label(for="session-replay-library") Recording
+		select#session-replay-library
+		p Note preview uses a simple synthesizer, not the original instrument sounds.
+		button#session-replay-confirm(type="button") Replay notes
+		button(type="button" data-session-close="session-replay-dialog") Cancel
+
+	dialog#session-export-dialog.session-dialog(aria-labelledby="session-export-title")
+		h2#session-export-title Export recording
+		p(data-session-error role="alert")
+		div#session-export-loading(role="status" hidden)
+			span.session-export-spinner(aria-hidden="true")
+			span Preparing export options…
+		div#session-export-menu
+			label(for="session-library") Recording
+			select#session-library
+			label(for="session-export-type") Export type
+			select#session-export-type
+			label(for="session-export-take") Take
+			select#session-export-take
+			label(for="session-export-name") File name
+			input#session-export-name(type="text" value="photosynth" maxlength="120")
+			button#session-export-confirm(type="button") Export
+			button#session-refresh(type="button") Refresh recordings
+		button(type="button" data-session-close="session-export-dialog") Close
+		div#session-media-library
+		output#session-storage-status
+
+	//- Existing countdown hooks remain separate from recording duration.
 	div(hidden)
-	
-		label(for="timer-toggle") Timer
-			input(type="checkbox" value="Timer Started")#timer-toggle.toggle.toggle-play-pause
-
-		label(for="timer-toggle") Timer
-			input(type="checkbox" value="Timer Started")#timer-toggle.toggle.toggle-play-pause
-
-		label(for="timing-step") Timing Step
-			input(type="range" min="1" max="4" step="1")#timing-step
+		label(for="time-elapsed")
+			time.time-elapsed 0
+			time.time-total 1
+		progress#countdown-progress(min="0" max="1" value="0")
+		input(type="checkbox")#timer-toggle
+		input(type="range" min="1" max="4" step="1")#timing-step

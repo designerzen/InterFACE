@@ -1,5 +1,6 @@
 import { createDirections } from '../source/models/directions.js'
 import PersonalProgress from '../source/people/person-progress.js'
+import PersonDirections from '../source/people/person-directions.js'
 
 describe('directions', () => {
 	const directionsData = {
@@ -51,9 +52,8 @@ describe('directions', () => {
 
 	test('returns prompts whose expected emojis have not already been achieved', () => {
 		const directions = createDirections(directionsData, {advancedMode:false, now:() => 0})
-		const person = {
-			getExperiencedExpressions:() => ['🙂']
-		}
+		const person = {directionsProgress:new PersonDirections()}
+		person.directionsProgress.observeExpression('🙂')
 
 		expect(directions.getNextDirection([person]).id).toBe('make-a-face')
 	})
@@ -61,7 +61,7 @@ describe('directions', () => {
 	test('normalises direction icons into feedback classes', () => {
 		const directions = createDirections(directionsData, {advancedMode:false, now:() => 0})
 
-		expect(directions.getNextDirection([])).toEqual(expect.objectContaining({
+		expect(directions.getNextDirection()).toEqual(expect.objectContaining({
 			className:'direction direction-sun'
 		}))
 	})
@@ -69,7 +69,7 @@ describe('directions', () => {
 	test('completes a direction with the matched emoji score and congratulation', () => {
 		const directions = createDirections(directionsData, {advancedMode:false, now:() => 0})
 
-		expect(directions.getNextDirection([]).id).toBe('smile-hard')
+		expect(directions.getNextDirection().id).toBe('smile-hard')
 		const completion = directions.completeExpression('😁')
 
 		expect(completion).toEqual(expect.objectContaining({
@@ -85,9 +85,9 @@ describe('directions', () => {
 	test('uses the highest points when direct emoji and group entries overlap', () => {
 		const directions = createDirections(directionsData, {advancedMode:false, now:() => 0})
 
-		directions.getNextDirection([])
+		directions.getNextDirection()
 		directions.completeExpression('🙂')
-		expect(directions.getNextDirection([]).id).toBe('make-a-face')
+		expect(directions.getNextDirection().id).toBe('make-a-face')
 
 		const completion = directions.completeExpression('🤪')
 		expect(completion.points).toBe(40)
@@ -102,11 +102,11 @@ describe('directions', () => {
 		expect(progress.achievementPoints).toBe(20)
 	})
 
-	test('shows the all-complete message once and resets the prompt cycle', () => {
+	test('retains completion until explicitly reset', () => {
 		const directions = createDirections(directionsData, {advancedMode:false, now:() => 0})
-		const person = {
-			getExperiencedExpressions:() => ['😁', '🤪']
-		}
+		const person = {directionsProgress:new PersonDirections()}
+		person.directionsProgress.observeExpression('😁')
+		person.directionsProgress.observeExpression('🤪')
 
 		const completed = directions.getNextDirection([person])
 		expect(completed).toEqual(expect.objectContaining({
@@ -115,8 +115,9 @@ describe('directions', () => {
 			className:'direction direction-complete',
 			complete:true
 		}))
-		expect(directions.getCompletedDirectionIds().size).toBe(0)
+		expect(directions.getCompletedDirectionIds().size).toBe(2)
 		expect(directions.getNextDirection([person])).toBe(null)
-		expect(directions.getNextDirection([]).id).toBe('smile-hard')
+		directions.reset()
+		expect(directions.getNextDirection([person]).id).toBe('smile-hard')
 	})
 })

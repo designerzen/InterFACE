@@ -61,4 +61,8 @@ export default class Achievements{
 			this.locked.set(achievement.id, achievement)
 		})
 	}
+
+	toString(){
+		return `Achievements(score:${this.score}, unlocked:${this.unlocked.length}, locked:${this.locked.size})`
+	}
 }

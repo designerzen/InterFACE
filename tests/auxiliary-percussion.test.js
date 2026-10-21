@@ -10,6 +10,7 @@ import {
 	PRESET_SOFT_SHAKER,
 	PRESET_808_MARACAS,
 	PRESET_727_CABASA,
+	PRESET_SHAKERS,
 } from '../source/audio/synthesizers/shaker-presets.js'
 import { createShaker } from '../source/audio/synthesizers/shaker.js'
 import { PRESET_MUTED_TRIANGLE, PRESET_OPEN_TRIANGLE, PRESET_TRIANGLES } from '../source/audio/synthesizers/triangle-presets.js'
@@ -21,6 +22,7 @@ import { createWhistle, PRESET_727_LONG_WHISTLE } from '../source/audio/synthesi
 import { createChime, PRESET_WIND_CHIME } from '../source/audio/synthesizers/chime.js'
 import { createElectronicPercussion, PRESET_SYNDRUM } from '../source/audio/synthesizers/electronic-percussion.js'
 import { AUXILIARY_DRUM_LANES, DRUM_GROOVES } from '../source/timing/drum-patterns.js'
+import { ZERO } from '../source/audio/audio-constants.js'
 import { KEYBOARD_PERCUSSION_ASSIGNMENTS, KEYBOARD_PERCUSSION_SHIFT_ASSIGNMENTS } from '../source/hardware/keyboard/keyboard-performance.js'
 
 jest.mock('../source/audio/audio.js', () => ({ ZERO:0.0001 }))
@@ -32,17 +34,21 @@ const createAudioParam = () => ({
 	setValueAtTime:jest.fn(),
 	exponentialRampToValueAtTime:jest.fn(),
 })
-const createNode = properties => ({ connect:jest.fn(), ...properties })
+const createNode = properties => ({ connect:jest.fn(), disconnect:jest.fn(), ...properties })
 const createAudioContext = () => {
 	const oscillators = []
 	const bufferSources = []
 	const gains = []
+	const filters = []
+	const panners = []
 	return {
 		currentTime:1,
 		sampleRate:8000,
 		oscillators,
 		bufferSources,
 		gains,
+		filters,
+		panners,
 		createOscillator:jest.fn(() => {
 			const node = createNode({ frequency:createAudioParam(), start:jest.fn() })
 			oscillators.push(node)
@@ -53,15 +59,24 @@ const createAudioContext = () => {
 			gains.push(node)
 			return node
 		}),
-		createBiquadFilter:jest.fn(() => createNode({ frequency:createAudioParam(), Q:createAudioParam() })),
+		createBiquadFilter:jest.fn(() => {
+			const node = createNode({ frequency:createAudioParam(), Q:createAudioParam() })
+			filters.push(node)
+			return node
+		}),
+		createStereoPanner:jest.fn(() => {
+			const node = createNode({ pan:createAudioParam() })
+			panners.push(node)
+			return node
+		}),
 		createDelay:jest.fn(() => createNode({ delayTime:createAudioParam() })),
 		createConvolver:jest.fn(() => createNode({ buffer:null, normalize:true })),
 		createBuffer:jest.fn((channels, length) => {
 			const data = new Float32Array(length)
-			return { getChannelData:jest.fn(() => data) }
+			return { duration:length / 8000, getChannelData:jest.fn(() => data) }
 		}),
 		createBufferSource:jest.fn(() => {
-			const node = createNode({ start:jest.fn() })
+			const node = createNode({ playbackRate:createAudioParam(), start:jest.fn() })
 			bufferSources.push(node)
 			return node
 		}),
@@ -101,27 +116,62 @@ describe('auxiliary percussion voices', () => {
 		expect(context.bufferSources.every(source => source.start.mock.calls.length === 1)).toBe(true)
 	})
 
+	test('renders shaker hits as cached, overlapping particle voices', () => {
+		const context = createAudioContext()
+		const voice = createShaker(context, createNode(), () => 0.5)
+		voice({ ...PRESET_727_CABASA, velocity:0.7, triggerAt:1.25 })
+		const buffersAfterFirstHit = context.createBuffer.mock.calls.length
+		voice({ ...PRESET_727_CABASA, velocity:0.7, triggerAt:1.3 })
+
+		expect(buffersAfterFirstHit).toBe(PRESET_727_CABASA.bufferVariants * 2)
+		expect(context.createBuffer).toHaveBeenCalledTimes(buffersAfterFirstHit)
+		expect(context.bufferSources).toHaveLength(4)
+		expect(context.bufferSources[0].start).toHaveBeenCalledWith(1.25)
+		expect(context.bufferSources[2].start).toHaveBeenCalledWith(1.3)
+		expect(context.filters.map(filter => filter.type)).toEqual([
+			'highpass', 'bandpass', 'lowpass', 'bandpass', 'bandpass',
+			'highpass', 'bandpass', 'lowpass', 'bandpass', 'bandpass',
+		])
+		expect(context.panners[0].pan.value).toBeGreaterThan(0)
+		expect(context.panners[1].pan.value).toBeLessThan(0)
+	})
+
+	test('gives softer shaker hits fewer, darker and disproportionately quieter particles', () => {
+		const softContext = createAudioContext()
+		const loudContext = createAudioContext()
+		createShaker(softContext, createNode(), () => 0.5)({ ...PRESET_808_MARACAS, velocity:0.25 })
+		createShaker(loudContext, createNode(), () => 0.5)({ ...PRESET_808_MARACAS, velocity:1 })
+
+		expect(softContext.filters[0].frequency.value).toBeLessThan(loudContext.filters[0].frequency.value)
+		expect(softContext.gains[3].gain.value).toBeCloseTo(
+			PRESET_808_MARACAS.outputGain * 0.25 ** PRESET_808_MARACAS.velocityCurve
+		)
+		expect(loudContext.gains[3].gain.value).toBe(PRESET_808_MARACAS.outputGain)
+		expect(Math.max(...PRESET_SHAKERS.map(preset => preset.outputGain))).toBeLessThanOrEqual(0.16)
+	})
+
 	test('models triangle damping independently of pitch', () => {
 		expect(PRESET_MUTED_TRIANGLE.length).toBeLessThan(PRESET_OPEN_TRIANGLE.length)
 		expect(PRESET_MUTED_TRIANGLE.sustain).toBeLessThan(PRESET_OPEN_TRIANGLE.sustain)
 		expect(PRESET_OPEN_TRIANGLE.frequency).toBeGreaterThanOrEqual(3300)
 		expect(PRESET_OPEN_TRIANGLE.outputGain).toBeLessThanOrEqual(0.04)
-		expect(PRESET_OPEN_TRIANGLE.length).toBeLessThanOrEqual(0.32)
+		expect(PRESET_OPEN_TRIANGLE.length).toBeGreaterThanOrEqual(0.45)
+		expect(PRESET_OPEN_TRIANGLE.length).toBeLessThanOrEqual(0.5)
 		expect(PRESET_OPEN_TRIANGLE.reverb).toBeGreaterThan(0)
 		expect(Math.min(...PRESET_TRIANGLES.map(preset => preset.frequency))).toBeGreaterThanOrEqual(2800)
 		expect(Math.max(...PRESET_TRIANGLES.map(preset => preset.outputGain))).toBeLessThanOrEqual(0.043)
-		expect(Math.max(...PRESET_TRIANGLES.map(preset => preset.length))).toBeLessThanOrEqual(0.4)
+		expect(Math.max(...PRESET_TRIANGLES.map(preset => preset.length))).toBeLessThanOrEqual(0.6)
 
 		const context = createAudioContext()
 		const voice = createTriangle(context, createNode(), () => 0.5)
 		voice(PRESET_OPEN_TRIANGLE)
 		expect(context.oscillators).toHaveLength(PRESET_OPEN_TRIANGLE.partialRatios.length)
 		expect(context.oscillators[1].frequency.setValueAtTime).toHaveBeenCalledWith(
-			PRESET_OPEN_TRIANGLE.frequency * PRESET_OPEN_TRIANGLE.partialRatios[1], 1.0001
+			PRESET_OPEN_TRIANGLE.frequency * PRESET_OPEN_TRIANGLE.partialRatios[1], 1 + ZERO
 		)
 		expect(context.createConvolver).toHaveBeenCalledTimes(1)
 		expect(context.createConvolver.mock.results[0].value.normalize).toBe(true)
-		expect(context.gains[1].gain.setValueAtTime).toHaveBeenCalledWith(PRESET_OPEN_TRIANGLE.reverb, 1.0001)
+		expect(context.gains[1].gain.setValueAtTime).toHaveBeenCalledWith(PRESET_OPEN_TRIANGLE.reverb, 1 + ZERO)
 	})
 
 	test('varies triangle pitch, modes, levels and decay within preset bounds', () => {

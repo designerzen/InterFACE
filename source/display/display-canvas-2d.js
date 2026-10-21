@@ -4,15 +4,17 @@
 import Stats from 'stats-gl'
 import AbstractDisplay from "./display-abstract.js"
 import { DISPLAY_CANVAS_2D } from "./display-types.js"
-import { cosine, ONE_DEGREE_IN_RADIANS, sine } from "../maths/maths.js"
+import { createNoteCircleData } from "./note-circle.js"
+import { createOctaveLineData, drawOctaveLines } from "./octave-indicator.js"
 
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from "../settings/options.displays.js"
+import { drawNotation as drawTraditionalNotation } from '../audio/notation.js'
 
 import { drawCircle, drawCircles, drawElement, drawRoundedRect } from "../visual/2d.js"
 // import { drawEye } from "../visual/2d.eyes"
 // import { drawLip } from "../visual/2d.mouth"
 import { hasOffscreenCanvasCapability} from '../capabilities.js'
-import { drawBars } from "../visual/spectrograms.js"
+import { drawBars, drawWaves, drawVisualiser } from "../visual/spectrograms.js"
 import { drawInstrument, drawParagraph, drawRotatedText, drawText } from "../visual/2d.text.js"
 import { SpriteSheet } from '../visual/sprite-sheet.js'
 import { MIRRORABLE_EMOJIS } from '../models/emoji.js'
@@ -403,23 +405,16 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	drawWaves( dataArray, bufferLength ){
 
-		drawBars( this.canvasContext, dataArray, bufferLength )
+		drawWaves( this.canvasContext, dataArray, bufferLength )
 	}
 		
 	/**
-	 * TODO: Fancier visualiser
+	 * Audio and played-note visualisation
 	 * @param {FFT} dataArray 
 	 * @param {Number} bufferLength 
 	 */
-	drawVisualiser( dataArray, bufferLength, type ){
-		// FIXME:
-		switch(type){
-			case "line":
-				drawBars( this.canvasContext, dataArray, bufferLength )
-				break
-			default:
-				drawBars( this.canvasContext, dataArray, bufferLength )
-		}
+	drawVisualiser( dataArray, bufferLength, type = "vu", timeData = null, notes = null ){
+		drawVisualiser(this.canvasContext, dataArray, bufferLength, type, timeData, notes)
 	}
 
 	drawInstrument(x, y, instrumentName, extra, fontSize=24 ){
@@ -434,6 +429,16 @@ export default class Display2D extends AbstractDisplay{
 		drawText( this.canvasContext, x, y, text, size, align, font, invertColours )
 	}
 
+	drawNotation(x, y, noteNumbers = [], octave, size = 32) {
+		this.canvasContext.save()
+		this.canvasContext.shadowColor = 'rgba(0, 0, 0, 0.9)'
+		this.canvasContext.shadowBlur = 0
+		this.canvasContext.shadowOffsetX = 2
+		this.canvasContext.shadowOffsetY = 2
+		drawTraditionalNotation(this, x, y, noteNumbers, octave, size)
+		this.canvasContext.restore()
+	}
+
 	
 	/**
 	 * 
@@ -443,31 +448,13 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Number} numberOfPoints 
 	 */
 	getNoteCircleData( cx, cy, range=90, radius=70, numberOfPoints=12 ){
-
-		const halfRange = range / 2
-		const startAngleDegrees = 90 - halfRange
-		const endAngleDegrees = 90 + halfRange
-
-		const startAngleRadians = startAngleDegrees * ONE_DEGREE_IN_RADIANS
-		const endAngleRadians = endAngleDegrees * ONE_DEGREE_IN_RADIANS
-		const angleIncrement = (endAngleRadians - startAngleRadians) / (numberOfPoints - 1)
-
-		const data = []
-		for (let i = 0; i < numberOfPoints; i++) 
-		{
-			const currentAngle = startAngleRadians + (i * angleIncrement)
-			const pointX = cx + radius * cosine(currentAngle)
-			const pointY = cy - radius * sine(currentAngle)
-			data.push({ x: pointX, y: pointY })
-		}
-
-		return data
+		return createNoteCircleData(cx, cy, range, radius, numberOfPoints)
 	}
 
 	/**
 	 * 
 	 */
-	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false ){
+	drawEmoticon( x, y, emoji, rotationZ=0, rotationY=0, rotationX=0, activeCircleIndex=-1, numberOfNotesInKey=12, flipX=false, noteRangeDegrees=90, activeNoteColour='#fff' ){
 		const size = 54
 		const context = this.canvasContext
 		context.save()
@@ -485,12 +472,18 @@ export default class Display2D extends AbstractDisplay{
 		if (numberOfNotesInKey > 0)
 		{
 			// draw the positions for the actual scales
-			const data = this.getNoteCircleData( x, y, 90, size, numberOfNotesInKey )
+			const data = this.getNoteCircleData( x, y + EMOJI_VISUAL_OFFSET_Y - 4, noteRangeDegrees, size * 0.67, numberOfNotesInKey )
+			let activeCircle
 			if (activeCircleIndex > -1){
 				// draw the active circle
-				data[ Math.min(activeCircleIndex,data.length - 1)].radius = 4
+				activeCircle = data[ Math.min(activeCircleIndex,data.length - 1)]
+				activeCircle.radius = 4
 			}
 			drawCircles( this.canvasContext, data, 2, 0, '#fff' )
+			if (activeCircle)
+			{
+				drawCircle(this.canvasContext, activeCircle.x, activeCircle.y, 2.25, 0, activeNoteColour)
+			}
 			// console.log("drawEmoticon", x, y, emoji, rotationZ, data )
 		}
 	}
@@ -538,6 +531,11 @@ export default class Display2D extends AbstractDisplay{
 		// }
 		// 
 		return true
+	}
+
+	drawOctaveIndicator(x, y, octave, octaveLow, octaveHigh, height=54) {
+		const lines = createOctaveLineData(x + 38, y + EMOJI_VISUAL_OFFSET_Y - 2, octave, octaveLow, octaveHigh, {height})
+		drawOctaveLines(this.canvasContext, lines)
 	}
 
 	/**

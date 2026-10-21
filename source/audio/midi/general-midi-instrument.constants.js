@@ -23,9 +23,9 @@ export const ROCK_ORGAN = "Rock Organ"
 export const CHURCH_ORGAN = "Church Organ"
 export const REED_ORGAN = "Reed Organ"
 
-export const ACCORDIAN = "Accordion"
+export const ACCORDION = "Accordion"
 export const HARMONICA = "Harmonica"
-export const TANGO_ACCORDIAN = "Tango accordion"
+export const TANGO_ACCORDION = "Tango accordion"
 
 export const ACOUSTIC_GUITAR_NYLON = "Acoustic guitar (nylon)"
 export const ACOUSTIC_GUITAR_STEEL = "Acoustic guitar (steel)"
@@ -187,9 +187,9 @@ export const GENERAL_MIDI_INSTRUMENT_NAMES = [
 	CHURCH_ORGAN,
 	REED_ORGAN,
 
-	ACCORDIAN,
+	ACCORDION,
 	HARMONICA,
-	TANGO_ACCORDIAN,
+	TANGO_ACCORDION,
 
 	ACOUSTIC_GUITAR_NYLON,
 	ACOUSTIC_GUITAR_STEEL,

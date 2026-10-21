@@ -2,6 +2,7 @@ import { VERSION } from '../version.js'
 import { isInWebAppiOS, isIOS, isTWAAndroid, isMicrosoftStore, isFirefox } from './platform.js'
 
 const SERVICE_WORKER_URL = '/service-worker.js'
+const SERVICE_WORKER_ENABLED = process.env.NODE_ENV !== 'development'
 const DISPLAY_MODES = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay']
 const INSTALLED_VERSION_KEY = 'photosynth'
 
@@ -69,7 +70,7 @@ const watchForUpdate = registration => {
 }
 
 const registerServiceWorker = async () => {
-	if (!isSupportingBrowser) return null
+	if (!isSupportingBrowser || !SERVICE_WORKER_ENABLED) return null
 
 	const registration = await navigator.serviceWorker.register(SERVICE_WORKER_URL, {
 		type: 'module',
@@ -158,7 +159,7 @@ export const showChangelog = async domElement => {
 }
 
 export const installOrUpdate = async (debug = false) => {
-	const isFirstRun = isSupportingBrowser && navigator.serviceWorker.controller === null
+	const isFirstRun = isSupportingBrowser && SERVICE_WORKER_ENABLED && navigator.serviceWorker.controller === null
 	const registration = await registerServiceWorker()
 	const updatesAvailable = Boolean(registration?.waiting && navigator.serviceWorker.controller)
 	const previousVersion = localStorage.getItem(INSTALLED_VERSION_KEY)

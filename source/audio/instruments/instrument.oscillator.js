@@ -163,6 +163,10 @@ export default class OscillatorInstrument extends Instrument{
 		return this.options.shape
 	}
 
+	get activePreset(){
+		return this.shape
+	}
+
 	set detune(value){
 		const now = this.currentTime
 		
@@ -176,7 +180,7 @@ export default class OscillatorInstrument extends Instrument{
     }
 	
 	get activePresetIndex(){
-		const index = OscillatorInstrument.presets.indexOf( this.shape )
+		const index = [...OSCILLATOR_TYPES, ...OscillatorInstrument.presetNames].indexOf(this.shape)
 		return index < 0 ? 0 : index
 	}
 
@@ -191,7 +195,7 @@ export default class OscillatorInstrument extends Instrument{
 		this.gainNode.gain.setValueAtTime( this.currentVolume, now )
 
 		this.envelope = this.context.createGain()
-		this.envelope.gain.setValueAtTime( now )
+		this.envelope.gain.setValueAtTime(0, now)
 		// this.envelope.gain.value = 0
 		
 		this.oscillator = new OscillatorNode( this.context, { ...this.options, type:this.options.shape }) 
@@ -226,7 +230,7 @@ export default class OscillatorInstrument extends Instrument{
 	 */
 	async noteOn( noteNumber, velocity=1 ){
 		const now = this.currentTime
-		const noteAlreadyPlaying = super.noteOn(noteNumber, velocity)
+		const noteStarted = await super.noteOn(noteNumber, velocity)
 		// console.error("oscillator",this,  this.options, this.oscillator.frequency.value, {noteNumber, velocity})
 	
 		// this.envelope.gain.setValueAtTime(1, 0)
@@ -234,12 +238,13 @@ export default class OscillatorInstrument extends Instrument{
 		
 		// instantly or with slide?
 		this.oscillator.frequency.cancelScheduledValues(now)
-		if (noteAlreadyPlaying)
+		if (!noteStarted)
 		{
 			this.oscillator.frequency.exponentialRampToValueAtTime( noteNumberToFrequency(noteNumber), now + this.options.slideDuration )
 		}else{
 				// shape envelope
 			this.envelope.gain.cancelScheduledValues(now)
+			if (Number.isFinite(this.scheduledTime)) this.envelope.gain.setValueAtTime(0, now)
 			this.envelope.gain.linearRampToValueAtTime( this.options.amplitude, now+this.attack )
 			this.envelope.gain.linearRampToValueAtTime( this.sustain, now+this.attack+this.decay )
 			
@@ -247,7 +252,7 @@ export default class OscillatorInstrument extends Instrument{
 		}
 		this.oscillator.detune.value = this.options.detune ?? 0
 	
-		return noteAlreadyPlaying
+		return noteStarted
 	}
 	
 	/**

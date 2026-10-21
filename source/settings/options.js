@@ -11,6 +11,7 @@ import { INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT } from '../audio/
 import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
 import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
 import { HARMONY_MODE_FREE_RANGE } from '../people/person.presets.js'
+import { DEFAULT_HEAD_NOTE_RANGE_DEGREES, DEFAULT_HEAD_VERTICAL_RANGE_DEGREES } from '../people/head-note-range.js'
 
 const isDevelopmentMode = !isProductionBuild()
 
@@ -133,6 +134,10 @@ export const DEFAULT_OPTIONS = {
 	flood:false,
 	// overlaid screen keyboard
 	showPiano:false,
+	// Total head-roll angle used to travel from the first note to the last.
+	headNoteRangeDegrees:DEFAULT_HEAD_NOTE_RANGE_DEGREES,
+	// Total up/down head angle used to travel across the vertical control range.
+	headVerticalRangeDegrees:DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
 
 	// play a constant beat
 	metronome:false,
@@ -171,6 +176,7 @@ export const DEFAULT_OPTIONS = {
 	showOverlay:true,
 	// audio visualiser is actually helpful to play
 	spectrogram:true,
+	visualiser:"vu",
 
 	// track face movements
 	trackFace:true,
@@ -246,6 +252,12 @@ export const DEFAULT_OPTIONS = {
 
 	// allow midi input to control stuff too
 	midiInput:false,
+
+	// Bidirectional app control uses a dedicated channel, separate from note input.
+	midiCC:true,
+	midiCCChannel:16,
+	midiEyebrowMode:'cc',
+	midiEyebrowCC:74,
 
 	// when a MIDI note is held, use it as the person's root note
 	// instead of the tracked head position

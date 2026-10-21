@@ -1,4 +1,6 @@
 import { fetchJSON } from '../utils/fetch.js'
+import { readActiveGuide } from './guide-editor.js'
+import DirectionsProgress from './directions-progress.js'
 
 const normaliseEmojiEntry = (entry, fallbackPoints = 0, fallbackCongratulation = '') => {
 	if (typeof entry === 'string') {
@@ -16,7 +18,7 @@ const normaliseEmojiEntry = (entry, fallbackPoints = 0, fallbackCongratulation =
 	const points = Number(entry.points ?? fallbackPoints)
 	return {
 		emoji:entry.emoji,
-		points:Number.isFinite(points) ? points : fallbackPoints,
+		points:Number.isFinite(points) ? Math.max(0, points) : fallbackPoints,
 		congratulation:entry.congratulation ?? fallbackCongratulation
 	}
 }
@@ -152,10 +154,6 @@ const getModeDirectionsForElapsedTime = (modeDirections, elapsedSeconds) => {
 	return activeBlock?.directions?.length ? activeBlock.directions : modeDirections.default
 }
 
-const getPeopleExpressions = people => {
-	return new Set((people ?? []).flatMap(person => person?.getExperiencedExpressions?.() ?? []))
-}
-
 const getCompletionMessage = completionData => {
 	if (typeof completionData === 'string') {
 		return completionData
@@ -176,119 +174,97 @@ export const createDirections = (directionsData, options = {}) => {
 	const groups = directionsData?.groups ?? {}
 	const selectedDirections = selectModeDirections(directionsData, advancedMode)
 	const modeDirections = normaliseModeDirections(selectedDirections, groups)
-	const startedAt = now()
-	const completedDirectionIds = new Set()
-	const defaultCompletion = directionsData?.complete ?? null
-	let directionIndex = 0
+	let startedAt = now()
+	const progress = options.progress ?? new DirectionsProgress()
+	const anonymousPerson = {}
 	let currentDirection = null
-	let completionMessageShownFor = null
-
-	const getElapsedSeconds = () => (now() - startedAt) * 0.001
-	const getActiveDirections = () => getModeDirectionsForElapsedTime(modeDirections, getElapsedSeconds())
-	const resetDirectionCycle = () => {
-		completedDirectionIds.clear()
-		currentDirection = null
-		directionIndex = 0
+	let completionShown = false
+	const getActiveDirections = () => getModeDirectionsForElapsedTime(modeDirections, (now() - startedAt) * 0.001)
+	const allDirections = [...modeDirections.default, ...modeDirections.blocks.flatMap(block => block.directions)]
+	const getCurrentDirection = () => {
+		if (!currentDirection) return null
+		const status = progress.getDirectionProgress(currentDirection.id)
+		return {...currentDirection, progress:status,
+			className:`${currentDirection.className ?? 'direction'}${status.completed ? status.complete ? ' direction-completed' : ' direction-partial' : ''}`}
 	}
-	const isDirectionCompletedByPeople = (direction, people) => {
-		const expressions = getPeopleExpressions(people)
-		return Array.from(direction.expectedEmojis).some(emoji => expressions.has(emoji))
-	}
-
-	const isDirectionAvailable = (direction, people) =>
-		!completedDirectionIds.has(direction.id) && !isDirectionCompletedByPeople(direction, people)
-
-	const getCompletionSignature = (activeDirections, people) => {
-		const expressions = Array.from(getPeopleExpressions(people)).sort().join(',')
-		const directionIds = activeDirections.map(direction => direction.id).sort().join(',')
-		return `${directionIds}|${expressions}`
-	}
-
-	const getCompletedMessageDirection = (activeDirections, people) => {
-		if (activeDirections.length === 0) {
-			return null
-		}
-
-		const completionMessage = getCompletionMessage(modeDirections.complete) ?? getCompletionMessage(defaultCompletion)
-		const completionClassName = getFeedbackClass(modeDirections.complete) ?? getFeedbackClass(defaultCompletion)
-		if (!completionMessage) {
-			return null
-		}
-
-		const hasCompletedAllDirections = activeDirections.every(direction =>
-			completedDirectionIds.has(direction.id) || isDirectionCompletedByPeople(direction, people)
-		)
-		if (!hasCompletedAllDirections) {
-			return null
-		}
-
-		const completionSignature = getCompletionSignature(activeDirections, people)
-		if (completionSignature === completionMessageShownFor) {
-			return null
-		}
-
-		completionMessageShownFor = completionSignature
-		resetDirectionCycle()
-		return {
-			id:'directions-complete',
-			message:completionMessage,
-			className:completionClassName,
-			complete:true
+	const observe = (emoji, person) => {
+		const personal = progress.getPersonProgress(person)
+		if (!personal) return
+		personal.observeExpression(emoji)
+		for (const direction of allDirections) {
+			if (direction.expectedEmojis.has(emoji)) {
+				personal.complete(direction.id, {emoji, time:now(), prompted:false})
+			}
 		}
 	}
-
-	const createCompletion = (direction, emoji, person) => {
-		const reward = direction.emojiRewards.get(emoji)
-		if (!reward) {
-			return null
-		}
-
-		completedDirectionIds.add(direction.id)
-		return {
-			directionId:direction.id,
-			title:direction.title ?? direction.message,
-			emoji,
-			points:reward.points,
-			message:reward.congratulation || direction.congratulation || '',
-			person
+	const setPeople = people => {
+		progress.setPeople(people)
+		for (const person of people) {
+			for (const emoji of progress.getPersonProgress(person)?.getExperiencedExpressions() ?? []) observe(emoji, person)
 		}
 	}
 
 	return {
-		getNextDirection:(people = []) => {
+		progress,
+		setPeople,
+		observeExpression:observe,
+		getCurrentDirection,
+		getNextDirection:(people = [anonymousPerson]) => {
+			setPeople(people)
 			const activeDirections = getActiveDirections()
-			const availableDirections = activeDirections.filter(direction => isDirectionAvailable(direction, people))
-			if (availableDirections.length === 0) {
-				currentDirection = null
-				return getCompletedMessageDirection(activeDirections, people)
+			currentDirection = progress.next(activeDirections)
+			if (currentDirection) {
+				completionShown = false
+				return getCurrentDirection()
 			}
-
-			currentDirection = availableDirections[directionIndex % availableDirections.length]
-			directionIndex += 1
-			return currentDirection
+			if (!people.length || !activeDirections.length || completionShown) return null
+			completionShown = true
+			const complete = modeDirections.complete ?? directionsData?.complete
+			return {id:'directions-complete', message:getCompletionMessage(complete) ?? 'All directions complete!',
+				className:getFeedbackClass(complete), complete:true}
 		},
-		completeExpression:(emoji, person = null) => {
-			if (currentDirection && !completedDirectionIds.has(currentDirection.id) && currentDirection.expectedEmojis.has(emoji)) {
-				return createCompletion(currentDirection, emoji, person)
-			}
-
-			const direction = getActiveDirections().find(candidate =>
-				!completedDirectionIds.has(candidate.id) && candidate.expectedEmojis.has(emoji)
-			)
-			return direction ? createCompletion(direction, emoji, person) : null
+		completeExpression:(emoji, person = anonymousPerson) => {
+			const personal = progress.getPersonProgress(person)
+			if (!personal || !progress.isActive(person)) return null
+			const direction = currentDirection
+			const reward = direction?.emojiRewards.get(emoji)
+			const completed = reward && personal.complete(direction.id, {emoji, time:now(), points:reward.points})
+			observe(emoji, person)
+			if (!completed) return null
+			return {directionId:direction.id, title:direction.title ?? direction.message, emoji,
+				points:reward.points, message:reward.congratulation || direction.congratulation || '', person,
+				progress:progress.getDirectionProgress(direction.id)}
 		},
 		getQuantityOfDirections:() => Math.max(1, getActiveDirections().length),
-		getCompletedDirectionIds:() => new Set(completedDirectionIds),
-		reset:resetDirectionCycle
+		getCompletedDirectionIds:() => new Set(allDirections.filter(direction => progress.getDirectionProgress(direction.id).complete).map(direction => direction.id)),
+		getProgress:() => progress.getSnapshot(getActiveDirections()),
+		resetPerson:person => {
+			progress.resetPerson(person)
+			completionShown = false
+		},
+		reset:() => {
+			progress.reset()
+			currentDirection = null
+			completionShown = false
+			startedAt = now()
+		}
 	}
 }
 
 export const getDirections = async (language = 'en', referer = '', options = {}) => {
-	if (!referer.length) {
-		return null
+	const customGuide = readActiveGuide()
+	if (customGuide) return createDirections(customGuide.directions, options)
+	const languages = [...new Set([language, 'en'])]
+	const locations = [
+		...(referer ? languages.map(locale => `./locales/${locale}/directions-${referer}.json`) : []),
+		...languages.map(locale => `./locales/${locale}/directions.json`)
+	]
+	for (const location of locations) {
+		const data = await fetchJSON(location)
+		const mode = normaliseModeDirections(selectModeDirections(data, options.advancedMode ?? true), data?.groups ?? {})
+		if (data && (mode.default.length || mode.blocks.some(block => block.directions.length))) {
+			return createDirections(data, options)
+		}
 	}
-
-	const directionsLocation = `./locales/${language}/directions-${referer}.json`
-	const directionsData = await fetchJSON(directionsLocation)
-	return directionsData ? createDirections(directionsData, options) : null
+	return null
 }

@@ -42,7 +42,7 @@ var ENVIRONMENT_IS_NODE = globalThis.process?.versions?.node && globalThis.proce
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-var arguments_ = [];
+var programArgs = [];
 
 var thisProgram = "./this.program";
 
@@ -92,7 +92,7 @@ if (ENVIRONMENT_IS_NODE) {
   if (process.argv.length > 1) {
     thisProgram = process.argv[1].replace(/\\/g, "/");
   }
-  arguments_ = process.argv.slice(2);
+  programArgs = process.argv.slice(2);
   quit_ = (status, toThrow) => {
     process.exitCode = status;
     throw toThrow;
@@ -218,10 +218,10 @@ function updateMemoryViews() {
   HEAP16 = new Int16Array(b);
   Module["HEAPU8"] = HEAPU8 = new Uint8Array(b);
   HEAPU16 = new Uint16Array(b);
-  HEAP32 = new Int32Array(b);
-  HEAPU32 = new Uint32Array(b);
+  Module["HEAP32"] = HEAP32 = new Int32Array(b);
+  Module["HEAPU32"] = HEAPU32 = new Uint32Array(b);
   HEAPF32 = new Float32Array(b);
-  HEAPF64 = new Float64Array(b);
+  Module["HEAPF64"] = HEAPF64 = new Float64Array(b);
 }
 
 // include: memoryprofiler.js
@@ -6634,6 +6634,7 @@ var WebGPU = {
     20: "texture-formats-tier2",
     21: "primitive-index",
     22: "texture-component-swizzle",
+    23: "subgroup-size-control",
     327692: "chromium-experimental-unorm16-texture-formats",
     327729: "chromium-experimental-multi-draw-indirect"
   },
@@ -6662,7 +6663,7 @@ var WebGPU = {
   ToneMappingMode: [ , "standard", "extended" ],
   VertexFormat: [ , "uint8", "uint8x2", "uint8x4", "sint8", "sint8x2", "sint8x4", "unorm8", "unorm8x2", "unorm8x4", "snorm8", "snorm8x2", "snorm8x4", "uint16", "uint16x2", "uint16x4", "sint16", "sint16x2", "sint16x4", "unorm16", "unorm16x2", "unorm16x4", "snorm16", "snorm16x2", "snorm16x4", "float16", "float16x2", "float16x4", "float32", "float32x2", "float32x3", "float32x4", "uint32", "uint32x2", "uint32x3", "uint32x4", "sint32", "sint32x2", "sint32x3", "sint32x4", "unorm10-10-10-2", "unorm8x4-bgra" ],
   VertexStepMode: [ , "vertex", "instance" ],
-  WGSLLanguageFeatureName: [ , "readonly_and_readwrite_storage_textures", "packed_4x8_integer_dot_product", "unrestricted_pointer_parameters", "pointer_composite_access", "uniform_buffer_standard_layout", "subgroup_id", "texture_and_sampler_let", "subgroup_uniformity", "texture_formats_tier1", "linear_indexing" ]
+  WGSLLanguageFeatureName: [ , "readonly_and_readwrite_storage_textures", "packed_4x8_integer_dot_product", "unrestricted_pointer_parameters", "pointer_composite_access", "uniform_buffer_standard_layout", "subgroup_id", "texture_and_sampler_let", "subgroup_uniformity", "texture_formats_tier1", "linear_indexing", "immediate_address_space" ]
 };
 
 var _emscripten_webgpu_get_device = () => {
@@ -6845,7 +6846,7 @@ _emwgpuWaitAny.isAsync = true;
 
 var ENV = {};
 
-var getExecutableName = () => thisProgram ?? "./this.program";
+var getExecutableName = () => thisProgram;
 
 var getEnvStrings = () => {
   if (!getEnvStrings.strings) {
@@ -7256,7 +7257,8 @@ var _wgpuDeviceCreatePipelineLayout = (devicePtr, descriptor) => {
   }
   var desc = {
     "label": WebGPU.makeStringFromOptionalStringView(descriptor + 4),
-    "bindGroupLayouts": bgls
+    "bindGroupLayouts": bgls,
+    "immediateSize": HEAPU32[(((descriptor) + (20)) >> 2)]
   };
   var device = WebGPU.getJsObject(devicePtr);
   var ptr = _emwgpuCreatePipelineLayout(0);
@@ -7385,6 +7387,10 @@ var _wgpuTextureCreateView = (texturePtr, descriptor) => {
   return ptr;
 };
 
+var _wgpuTextureDestroy = texturePtr => {
+  WebGPU.getJsObject(texturePtr).destroy();
+};
+
 var _wgpuTextureGetDepthOrArrayLayers = texturePtr => {
   var texture = WebGPU.getJsObject(texturePtr);
   return texture.depthOrArrayLayers;
@@ -7483,7 +7489,7 @@ init_RegisteredPointer();
   if (Module["printErr"]) err = Module["printErr"];
   if (Module["wasmBinary"]) wasmBinary = Module["wasmBinary"];
   // End ATMODULES hooks
-  if (Module["arguments"]) arguments_ = Module["arguments"];
+  if (Module["arguments"]) programArgs = Module["arguments"];
   if (Module["thisProgram"]) thisProgram = Module["thisProgram"];
   if (Module["preInit"]) {
     if (typeof Module["preInit"] == "function") Module["preInit"] = [ Module["preInit"] ];
@@ -7517,7 +7523,7 @@ Module["WebGPU"] = WebGPU;
 // End JS library exports
 // end include: postlibrary.js
 var ASM_CONSTS = {
-  672778: $0 => {
+  705364: $0 => {
     const device = WebGPU.getJsObject($0);
     return device.features.has("subgroups");
   }
@@ -7550,6 +7556,29 @@ function custom_emscripten_dbgn(str, len) {
 }
 
 custom_emscripten_dbgn.sig = "vii";
+
+function __asyncjs__CallStreamWeightsOnWeb(tfl_ids, wgpu_buffers, offsets, lengths, count) {
+  return Asyncify.handleAsync(async () => {
+    const callback = Module.getStreamWeightsCallback();
+    if (typeof callback !== "function") {
+      console.error("Stream weights callback is not registered or is not a function");
+      return 1;
+    }
+    const tflIdsArray = new Int32Array(Module.HEAP32.buffer, tfl_ids, count);
+    const wgpuBuffersArray = new Uint32Array(Module.HEAPU32.buffer, wgpu_buffers, count);
+    const offsetsArray = new Float64Array(Module.HEAPF64.buffer, offsets, count);
+    const lengthsArray = new Float64Array(Module.HEAPF64.buffer, lengths, count);
+    try {
+      await callback(new Int32Array(tflIdsArray), new Uint32Array(wgpuBuffersArray), new Float64Array(offsetsArray), new Float64Array(lengthsArray));
+    } catch (e) {
+      console.error("Error in streamWeightsOnWeb:", e);
+      return 1;
+    }
+    return 0;
+  });
+}
+
+__asyncjs__CallStreamWeightsOnWeb.sig = "iiiiii";
 
 function __asyncjs__CreateContext(options_handle) {
   return Asyncify.handleAsync(async () => {
@@ -7860,7 +7889,7 @@ function __asyncjs__ReadBufferDataJs(buffer_handle, data_ptr) {
 __asyncjs__ReadBufferDataJs.sig = "vii";
 
 // Imports from the Wasm binary.
-var _malloc, _wgpuDeviceAddRef, _free, _emwgpuCreateBindGroup, _emwgpuCreateBindGroupLayout, _emwgpuCreateCommandBuffer, _emwgpuCreateCommandEncoder, _emwgpuCreateComputePassEncoder, _emwgpuCreateComputePipeline, _emwgpuCreateExternalTexture, _emwgpuCreatePipelineLayout, _emwgpuCreateQuerySet, _emwgpuCreateRenderBundle, _emwgpuCreateRenderBundleEncoder, _emwgpuCreateRenderPassEncoder, _emwgpuCreateRenderPipeline, _emwgpuCreateSampler, _emwgpuCreateSurface, _emwgpuCreateTexture, _emwgpuCreateTextureView, _emwgpuCreateAdapter, _emwgpuImportBuffer, _emwgpuCreateDevice, _emwgpuCreateQueue, _emwgpuCreateShaderModule, _emwgpuOnCreateComputePipelineCompleted, _emwgpuOnWorkDoneCompleted, ___getTypeName, _emscripten_builtin_memalign, _memalign, __emscripten_tempret_set, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, dynCall_iij, dynCall_ji, dynCall_vij, dynCall_jii, dynCall_iiiijj, dynCall_viijj, dynCall_viiijjj, dynCall_viji, dynCall_iiiijij, dynCall_jjj, dynCall_jiii, dynCall_viijii, dynCall_vijjj, dynCall_vj, dynCall_viij, dynCall_jiji, dynCall_iiiiij, dynCall_iiiiijj, dynCall_iiiiiijj, memory, _kVersionStampBuildChangelistStr, _kVersionStampCitcSnapshotStr, _kVersionStampCitcWorkspaceIdStr, _kVersionStampSourceUriStr, _kVersionStampBuildClientStr, _kVersionStampBuildClientMintStatusStr, _kVersionStampBuildCompilerStr, _kVersionStampBuildDateTimePstStr, _kVersionStampBuildDepotPathStr, _kVersionStampBuildIdStr, _kVersionStampBuildInfoStr, _kVersionStampBuildLabelStr, _kVersionStampBuildTargetStr, _kVersionStampBuildTimestampStr, _kVersionStampBuildToolStr, _kVersionStampG3BuildTargetStr, _kVersionStampVerifiableStr, _kVersionStampBuildFdoTypeStr, _kVersionStampBuildBaselineChangelistStr, _kVersionStampBuildLtoTypeStr, _kVersionStampBuildPropellerTypeStr, _kVersionStampBuildPghoTypeStr, _kVersionStampBuildUsernameStr, _kVersionStampBuildHostnameStr, _kVersionStampBuildDirectoryStr, _kVersionStampBuildChangelistInt, _kVersionStampCitcSnapshotInt, _kVersionStampBuildClientMintStatusInt, _kVersionStampBuildTimestampInt, _kVersionStampVerifiableInt, _kVersionStampBuildCoverageEnabledInt, _kVersionStampBuildBaselineChangelistInt, _kVersionStampPrecookedTimestampStr, _kVersionStampPrecookedClientInfoStr, __indirect_function_table, _kVersionStampBuildHasHardeningProtobuf, wasmMemory, wasmTable;
+var _malloc, _wgpuDeviceAddRef, _free, _emwgpuCreateBindGroup, _emwgpuCreateBindGroupLayout, _emwgpuCreateCommandBuffer, _emwgpuCreateCommandEncoder, _emwgpuCreateComputePassEncoder, _emwgpuCreateComputePipeline, _emwgpuCreateExternalTexture, _emwgpuCreatePipelineLayout, _emwgpuCreateQuerySet, _emwgpuCreateRenderBundle, _emwgpuCreateRenderBundleEncoder, _emwgpuCreateRenderPassEncoder, _emwgpuCreateRenderPipeline, _emwgpuCreateSampler, _emwgpuCreateSurface, _emwgpuCreateTexture, _emwgpuCreateTextureView, _emwgpuCreateAdapter, _emwgpuImportBuffer, _emwgpuCreateDevice, _emwgpuCreateQueue, _emwgpuCreateShaderModule, _emwgpuOnCreateComputePipelineCompleted, _emwgpuOnWorkDoneCompleted, ___getTypeName, _emscripten_builtin_memalign, _memalign, __emscripten_tempret_set, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, dynCall_ji, dynCall_vij, dynCall_iij, dynCall_iiiijj, dynCall_viijj, dynCall_viiijjj, dynCall_ijj, dynCall_jjj, dynCall_jiii, dynCall_viji, dynCall_iiiijij, dynCall_jii, dynCall_viijii, dynCall_vijjj, dynCall_vj, dynCall_viij, dynCall_jiji, dynCall_iiiiij, dynCall_iiiiijj, dynCall_iiiiiijj, memory, _kVersionStampBuildChangelistStr, _kVersionStampCitcSnapshotStr, _kVersionStampCitcWorkspaceIdStr, _kVersionStampSourceUriStr, _kVersionStampBuildClientStr, _kVersionStampBuildClientMintStatusStr, _kVersionStampBuildCompilerStr, _kVersionStampBuildDateTimePstStr, _kVersionStampBuildDepotPathStr, _kVersionStampBuildIdStr, _kVersionStampBuildInfoStr, _kVersionStampBuildLabelStr, _kVersionStampBuildTargetStr, _kVersionStampBuildTimestampStr, _kVersionStampBuildToolStr, _kVersionStampG3BuildTargetStr, _kVersionStampVerifiableStr, _kVersionStampBuildFdoTypeStr, _kVersionStampBuildBaselineChangelistStr, _kVersionStampBuildLtoTypeStr, _kVersionStampBuildPropellerTypeStr, _kVersionStampBuildPghoTypeStr, _kVersionStampBuildFdoProfileChangelistStr, _kVersionStampBuildMemprofProfileChangelistStr, _kVersionStampBuildUsernameStr, _kVersionStampBuildHostnameStr, _kVersionStampBuildDirectoryStr, _kVersionStampBuildChangelistInt, _kVersionStampCitcSnapshotInt, _kVersionStampBuildClientMintStatusInt, _kVersionStampBuildTimestampInt, _kVersionStampVerifiableInt, _kVersionStampBuildCoverageEnabledInt, _kVersionStampBuildBaselineChangelistInt, _kVersionStampPrecookedTimestampStr, _kVersionStampPrecookedClientInfoStr, __indirect_function_table, _kVersionStampBuildHasHardeningProtobuf, wasmMemory, wasmTable;
 
 function assignWasmExports(wasmExports) {
   _malloc = Module["_malloc"] = wasmExports["malloc"];
@@ -7897,17 +7926,18 @@ function assignWasmExports(wasmExports) {
   __emscripten_stack_restore = wasmExports["_emscripten_stack_restore"];
   __emscripten_stack_alloc = wasmExports["_emscripten_stack_alloc"];
   _emscripten_stack_get_current = wasmExports["emscripten_stack_get_current"];
-  dynCall_iij = dynCalls["iij"] = wasmExports["dynCall_iij"];
   dynCall_ji = dynCalls["ji"] = wasmExports["dynCall_ji"];
   dynCall_vij = dynCalls["vij"] = wasmExports["dynCall_vij"];
-  dynCall_jii = dynCalls["jii"] = wasmExports["dynCall_jii"];
+  dynCall_iij = dynCalls["iij"] = wasmExports["dynCall_iij"];
   dynCall_iiiijj = dynCalls["iiiijj"] = wasmExports["dynCall_iiiijj"];
   dynCall_viijj = dynCalls["viijj"] = wasmExports["dynCall_viijj"];
   dynCall_viiijjj = dynCalls["viiijjj"] = wasmExports["dynCall_viiijjj"];
-  dynCall_viji = dynCalls["viji"] = wasmExports["dynCall_viji"];
-  dynCall_iiiijij = dynCalls["iiiijij"] = wasmExports["dynCall_iiiijij"];
+  dynCall_ijj = dynCalls["ijj"] = wasmExports["dynCall_ijj"];
   dynCall_jjj = dynCalls["jjj"] = wasmExports["dynCall_jjj"];
   dynCall_jiii = dynCalls["jiii"] = wasmExports["dynCall_jiii"];
+  dynCall_viji = dynCalls["viji"] = wasmExports["dynCall_viji"];
+  dynCall_iiiijij = dynCalls["iiiijij"] = wasmExports["dynCall_iiiijij"];
+  dynCall_jii = dynCalls["jii"] = wasmExports["dynCall_jii"];
   dynCall_viijii = dynCalls["viijii"] = wasmExports["dynCall_viijii"];
   dynCall_vijjj = dynCalls["vijjj"] = wasmExports["dynCall_vijjj"];
   dynCall_vj = dynCalls["vj"] = wasmExports["dynCall_vj"];
@@ -7939,6 +7969,8 @@ function assignWasmExports(wasmExports) {
   _kVersionStampBuildLtoTypeStr = Module["_kVersionStampBuildLtoTypeStr"] = wasmExports["kVersionStampBuildLtoTypeStr"].value;
   _kVersionStampBuildPropellerTypeStr = Module["_kVersionStampBuildPropellerTypeStr"] = wasmExports["kVersionStampBuildPropellerTypeStr"].value;
   _kVersionStampBuildPghoTypeStr = Module["_kVersionStampBuildPghoTypeStr"] = wasmExports["kVersionStampBuildPghoTypeStr"].value;
+  _kVersionStampBuildFdoProfileChangelistStr = Module["_kVersionStampBuildFdoProfileChangelistStr"] = wasmExports["kVersionStampBuildFdoProfileChangelistStr"].value;
+  _kVersionStampBuildMemprofProfileChangelistStr = Module["_kVersionStampBuildMemprofProfileChangelistStr"] = wasmExports["kVersionStampBuildMemprofProfileChangelistStr"].value;
   _kVersionStampBuildUsernameStr = Module["_kVersionStampBuildUsernameStr"] = wasmExports["kVersionStampBuildUsernameStr"].value;
   _kVersionStampBuildHostnameStr = Module["_kVersionStampBuildHostnameStr"] = wasmExports["kVersionStampBuildHostnameStr"].value;
   _kVersionStampBuildDirectoryStr = Module["_kVersionStampBuildDirectoryStr"] = wasmExports["kVersionStampBuildDirectoryStr"].value;
@@ -7965,6 +7997,7 @@ var wasmImports = {
   /** @export */ ThrowError,
   /** @export */ WebNNDestroyTensors,
   /** @export */ __asyncjs__BuildGraphInternal,
+  /** @export */ __asyncjs__CallStreamWeightsOnWeb,
   /** @export */ __asyncjs__CopyFromRGBATexture,
   /** @export */ __asyncjs__CopyToRGBATexture,
   /** @export */ __asyncjs__CreateContext,
@@ -8092,6 +8125,7 @@ var wasmImports = {
   /** @export */ wgpuQueueWriteBuffer: _wgpuQueueWriteBuffer,
   /** @export */ wgpuQueueWriteTexture: _wgpuQueueWriteTexture,
   /** @export */ wgpuTextureCreateView: _wgpuTextureCreateView,
+  /** @export */ wgpuTextureDestroy: _wgpuTextureDestroy,
   /** @export */ wgpuTextureGetDepthOrArrayLayers: _wgpuTextureGetDepthOrArrayLayers,
   /** @export */ wgpuTextureGetFormat: _wgpuTextureGetFormat,
   /** @export */ wgpuTextureGetHeight: _wgpuTextureGetHeight,

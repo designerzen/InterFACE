@@ -78,6 +78,65 @@
 	}
 }
 
+// Partner pages use the same in-app logo treatment as the MIT page.
+.interface.loaded :is(
+	.theme-va,
+	.theme-rix,
+	.theme-purplestars,
+	.theme-lib,
+	.theme-rs,
+	.theme-emf,
+	.theme-ieee,
+	.theme-massig
+){
+	#link-about::after{
+		visibility: hidden;
+	}
+	#foot{
+		visibility: visible;
+		z-index:1;
+		color: var(--shade-yellow);
+		.link-pages{
+			display: none;
+		}
+		.link-copyright::before{
+			filter: invert(1);
+		}
+	}
+}
+
+.interface.loaded .theme-va #link-about{
+	background-image:url(./assets/logos/va.svg);
+}
+
+.interface.loaded .theme-rix #link-about{
+	background-image:url(./assets/logos/rix.svg);
+}
+
+.interface.loaded .theme-purplestars #link-about{
+	background-image:url(./assets/logos/purple-stars.svg);
+}
+
+.interface.loaded .theme-lib #link-about{
+	background-image:url("./assets/logos/newham-digital/Digital Inclusion Logo - Primary - RGB (medium).png");
+}
+
+.interface.loaded .theme-rs #link-about{
+	background-image:url(./assets/logos/royal_society-crest.svg);
+}
+
+.interface.loaded .theme-emf #link-about{
+	background-image:url(./assets/logos/emf.svg);
+}
+
+.interface.loaded .theme-ieee #link-about{
+	background-image:url(./assets/logos/ieee-logo.svg);
+}
+
+.interface.loaded .theme-massig #link-about{
+	background-image:url(./assets/logos/massig.svg);
+}
+
 // Force the footer to show with the new creds
 .interface.loaded .theme-wac{
 	#link-about{

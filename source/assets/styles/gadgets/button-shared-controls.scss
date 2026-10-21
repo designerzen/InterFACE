@@ -15,6 +15,13 @@
 	}
 
 
+	label[for="select-arp-rate"]{
+		--bg:url(/source/assets/icons/speed-24px.svg);
+		--col-hover:var(--shade-blue);
+		--col-select:var(--shade-yellow);
+		anchor-name: --select-arp-rate;
+	}
+
 	label[for="button-settings"]{
 		order:-1;
 		grid-area:1/1;
@@ -108,6 +115,79 @@
 		--bg:url(/source/assets/icons/equalizer.svg);
 	}
 
+	.head-note-range-control,
+	.head-vertical-range-control{
+		position:relative;
+		overflow:visible;
+		padding:0;
+
+		> label.button{
+			--col-select:var(--shade-green);
+			--col-hover:var(--shade-blue);
+			--bg:url(/source/assets/icons/swap_horiz.svg);
+			box-sizing:border-box;
+			width:100%;
+			min-width:44px;
+			height:100%;
+			min-height:44px;
+		}
+
+		.head-note-range-fader,
+		.head-vertical-range-fader{
+			box-sizing:border-box;
+			position:absolute;
+			inset-inline-start:50%;
+			inset-block-end:calc(100% + 0.5rem);
+			z-index:20;
+			transform:translateX(-50%);
+			width:5.5rem;
+			max-width:min(5.5rem, 90vw);
+			height:min(16rem, 45vh);
+			padding:0.75rem 0.5rem;
+			display:none;
+			grid-template-rows:auto minmax(0, 1fr);
+			justify-items:center;
+			gap:car(--gap, 0.5rem);
+			border:2px solid currentColor;
+			border-radius:0.5rem;
+			background:var(--col-bottom, #222);
+			box-shadow:0 0.5rem 1.5rem rgb(0 0 0 / 45%);
+			accent-color:var(--shade-green);
+
+			label{
+				box-sizing:border-box;
+				width:100%;
+				height:100%;
+				min-height:0;
+				display:flex;
+				place-content:center;
+				overflow:hidden;
+			}
+
+			label > input[type="range"].vertical{
+				box-sizing:border-box;
+				width:100%;
+				max-width:100%;
+				height:100%;
+				min-height:8rem;
+			}
+
+			output{
+				font-weight:900;
+				font-variant-numeric:tabular-nums;
+			}
+		}
+
+		&:has(#button-head-note-range:checked) .head-note-range-fader,
+		&:has(#button-head-vertical-range:checked) .head-vertical-range-fader{
+			display:grid;
+		}
+	}
+
+	.head-vertical-range-control > label.button{
+		--bg:url(/source/assets/icons/swap_vert.svg);
+	}
+
 	label[for="button-flood"]{
 		--bg:url(/source/assets/icons/settings_overscan_black_24dp.svg);
 		anchor-name: --button-flood;
@@ -165,31 +245,11 @@
 	}
 
 	// Eye overlays
-	label[for="button-eyes"],
 	label[for="select-eyes"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-blue);
 		--bg:url(/source/assets/icons/adjust-24px.svg);
-		&:has(input:checked),
-		&.checked{
-			//--bg:url(/source/assets/icons/extension_off-24px.svg);
-		}
-	}
-
-	label[for="select-eyes"]{
-		// visibility: hidden;
-		display: none;
 		anchor-name: --select-eyes;
-	}
-		
-	// Toggle show eyes or hide eyes
-	label[for="button-eyes"]{
-		--bg:url(/source/assets/icons/motion_photos_off-24px.svg);
-		anchor-name: --button-eyes;
-		&:has(input:checked),
-		&.checked{
-			--bg:url(/source/assets/icons/motion_photos_on-24px.svg);
-		}
 	}
 
 	label[for="button-eyebrows"]{
@@ -450,7 +510,7 @@
 		}
 	}
 
-	label[for="button-spectrogram"]{
+	label[for="select-viz"]{
 		// --col-hover:$col-dark;
 		--col-hover:var(--shade-green);
 		--col-select:var(--shade-orange);
@@ -483,7 +543,7 @@
 		// }
 	}
 
-	// label[for="button-spectrogram"]{
+	// label[for="select-viz"]{
 	// 	// --col-hover:$col-dark;
 	// 	--col-hover:var(--shade-green);
 	// 	--col-select:var(--shade-green);

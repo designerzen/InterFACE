@@ -306,11 +306,13 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 			0.75 + (1 - Math.abs(prediction.yaw ?? 0)) * 0.25,
 			person.noteIndex,
 			person.quantityOfPlayableNotes,
-			false
+			false,
+			person.headNoteRangeDegrees,
+			person.hsl
 		)
 	}
 
-	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false, noteRangeDegrees = 90, activeNoteColour = '#fff') {
 		updateLookingGlassEmoticonParticles(this, THREE, {
 			emoji,
 			rotationZ,
@@ -318,7 +320,9 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 			rotationX,
 			activeCircleIndex,
 			numberOfNotesInKey,
-			flipX
+			flipX,
+			noteRangeDegrees,
+			activeNoteColour
 		})
 	}
 	/*

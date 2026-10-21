@@ -1,48 +1,74 @@
-fieldset#midi-panel
-	legend MIDI routing
-
-	//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
-
-	//- Toggle MIDI ON / OFF
+header.midi-panel-header
+	h2 MIDI routing
 	label.midi-enable(for="toggle-midi") Enable MIDI
-		input#toggle-midi.toggle(type="checkbox" value="Toggle MIDI" aria-label="Toggle MIDI devices" )
+		input#toggle-midi(type="checkbox" aria-label="Enable MIDI devices")
+	button#midi-cc-open(type="button" aria-haspopup="dialog" aria-controls="midi-cc-dialog") CC codes
+	button.midi-panel-close(type="button" data-midi-close aria-label="Close MIDI panel") Close ×
 
-	#midi-person-routing(aria-live="polite")
-		p.info Connect MIDI to configure each person.
+.midi-panel-scroll(tabindex="0" role="region" aria-label="MIDI connections and routing" aria-describedby="midi-scroll-status")
+	fieldset#midi-panel
+		legend.sr-only MIDI routing
 
-	//- MIDI Input options
-	#midi-input-gadgets(hidden)
-		label(for="midi-inputs" hidden) MIDI Devices Inputs
-			select#midi-inputs(name="midi-inputs") 
-		
-	//- MIDI Output options
-	#midi-output-gadgets(hidden)
-		label(for="midi-outputs" hidden) MIDI Devices Outputs
-			select#midi-outputs(name="midi-outputs" multiple) 
+		//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 
-	section#midi-monitor(aria-labelledby="midi-monitor-title")
-		h3#midi-monitor-title MIDI monitor
-		p#midi-monitor-empty.info No MIDI signals yet.
-		ol#midi-monitor-events(aria-live="off" aria-label="Recent MIDI signals")
-		button#midi-monitor-clear(type="button") Clear monitor
+		//- MIDI Input options
+		#midi-input-gadgets(hidden)
+			label(for="midi-inputs" hidden) MIDI Devices Inputs
+				select#midi-inputs(name="midi-inputs")
+
+		//- MIDI Output options
+		#midi-output-gadgets(hidden)
+			label(for="midi-outputs" hidden) MIDI Devices Outputs
+				select#midi-outputs(name="midi-outputs" multiple)
+
+		section#midi-monitor(aria-labelledby="midi-monitor-title")
+			h3#midi-monitor-title Connected MIDI devices
+			p#midi-monitor-empty.info Connect MIDI devices - zero devices found.
+			p#midi-routing-summary.info(hidden) Connect a MIDI output to send music.
+			#midi-monitor-devices(aria-live="polite" aria-label="Connected MIDI devices")
+
+		section(aria-labelledby="midi-eyebrow-title")
+			h3#midi-eyebrow-title Eyebrow expression
+			label(for="midi-eyebrow-mode") Eyebrow MIDI output
+				select#midi-eyebrow-mode
+					option(value="cc") MIDI CC
+					option(value="pitchbend") Pitch bend
+			label(for="midi-eyebrow-cc") Eyebrow CC number
+				input#midi-eyebrow-cc(type="number" min="0" max="119" value="74")
+			p Enable Eyebrow expression in each person's instrument settings. Output follows that person's MIDI device and channel. CC values span 0–127 with relaxed eyebrows at 64; pitch bend centres at 0.
+
+		section(aria-labelledby="midi-cc-title")
+			h3#midi-cc-title MIDI app controls
+			label(for="midi-cc-enabled") Enable two-way CC control
+				input#midi-cc-enabled(type="checkbox" checked)
+			label(for="midi-cc-channel") App control channel
+				input#midi-cc-channel(type="number" min="1" max="16" value="16")
+			p Use values 0–63 for off and 64–127 for on. Faders span their full range. Selectors span their options in order. Changes send CC to all connected outputs on this channel.
+			button#midi-cc-sync(type="button") Send current controls
 
 
-//- If there are no devices show this item instead
-fieldset#no-midi-devices(hidden)
 
-	//- p#no-midi-suggestion.info Please connect a MIDI device
+	//- If there are no devices show this item instead
+	fieldset#no-midi-devices(hidden)
 
-	p#no-midi-inputs.warning(hidden) No MIDI Input Devices were located!
-	p#no-midi-outputs.warning(hidden) No MIDI Output Devices were located!
-	
-	label(for="waiting-for-midi-devices" hidden) Please connect a MIDI Device
-		progress#waiting-for-midi-devices
-	
-	//- FIXME:
-	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+		//- p#no-midi-suggestion.info Please connect a MIDI device
 
-	//- label(for="midi-inputs-output") MIDI Devices Inputs
-	//- output#midi-inputs-output	
+		p#no-midi-inputs.warning(hidden) No MIDI Input Devices were located!
+		p#no-midi-outputs.warning(hidden) No MIDI Output Devices were located!
 
-	//- label(for="midi-outputs-output") MIDI Devices Outputs
-	//- output#midi-outputs-output
+		label(for="waiting-for-midi-devices" hidden) Please connect a MIDI Device
+			progress#waiting-for-midi-devices
+
+		//- FIXME:
+		//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
+
+		//- label(for="midi-inputs-output") MIDI Devices Inputs
+		//- output#midi-inputs-output
+
+		//- label(for="midi-outputs-output") MIDI Devices Outputs
+		//- output#midi-outputs-output
+
+footer.midi-panel-footer
+	span#midi-scroll-status Scroll to explore connections and settings
+	button(type="button" data-midi-scroll="-1" aria-label="Scroll MIDI panel up") ↑
+	button(type="button" data-midi-scroll="1" aria-label="Scroll MIDI panel down") ↓

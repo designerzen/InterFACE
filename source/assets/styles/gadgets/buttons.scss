@@ -30,11 +30,23 @@
 	input, 
 	label
 ){
-
 	// Front page buttons with a larger border, rounder edges
 	// and no resizing of contents
 	&.button-push{
 		@include button.button-with-icon-and-border;
+
+		&.icon-right{
+			background-size:0, auto, auto, auto;
+			grid-template-areas:"text icon";
+			grid-template-columns:minmax(0, 1fr) calc(var(--icon-size) + var(--pad));
+			justify-content:stretch;
+			text-align:center;
+
+			&:is(:target, :active, :hover, :focus-visible, :has(:focus-visible))::after{
+				opacity:1;
+				filter:none;
+			}
+		}
 	}
 	
 	// dual icons (if you want to animate the icon shadow)
@@ -55,4 +67,34 @@
 			content:'×';
 		}
 	}
+	
+	// variations
+	&.error {
+		--bg:url(/source/assets/icons/person-24px.svg);
+		--col-hover:var(--shade-brand,var(--shade-red)); 
+		anchor-name:--button-error;
+	} 
+	
+	&.wait {
+		border-color: Highlight;
+		--bg:url(/source/assets/icons/person-24px.svg);
+		--col-fg:HighlightText;
+		--col-hover:var(--shade-brand,var(--shade-red)); 
+		anchor-name:--button-wait;
+	} 
+	
+	&.light {
+		--bg:url(/source/assets/icons/person-24px.svg);
+		--col-fg:var(--shade-dark);
+		--col-hover:var(--shade-white);
+		--hue:60;
+	} 
+	
+	&.dark {
+		--bg:url(/source/assets/icons/person-24px.svg);
+		--hue:20;
+		--col-fg:var(--shade-white);
+		--col-hover:var(--shade-dark);
+	}
+
 }

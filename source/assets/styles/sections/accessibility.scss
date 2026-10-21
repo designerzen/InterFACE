@@ -1,6 +1,94 @@
-#accessibility-panel{
-	grid-area:a11y;
-	width:100%;
-	max-width:min(100% - 2 * var(--pad), var(--viewport-max-width, 108%));
-    margin: 0 var(--pad);
+@use 'sass:list';
+
+:root {
+	--a11y-background: #111827;
+	--a11y-surface: #1f2937;
+	--a11y-text: #f3f4f6;
+	--a11y-accent: #a5c8ff;
+}
+
+$palettes: (
+	light: (#f5f7fb, #ffffff, #182235, #2448a0),
+	dark: (#111827, #1f2937, #f3f4f6, #a5c8ff),
+	contrast-dark: (#000000, #000000, #ffffff, #ffff00),
+	contrast-light: (#ffffff, #ffffff, #000000, #00008b),
+	sepia: (#f1e5ce, #fff4dd, #3e2d1c, #754000),
+	ocean: (#102b36, #193d49, #edfaff, #88e3ed),
+	monochrome: (#202020, #303030, #ffffff, #eeeeee)
+);
+
+@each $name, $colours in $palettes {
+	html[data-a11y-theme='#{$name}'] {
+		--a11y-background: #{list.nth($colours, 1)};
+		--a11y-surface: #{list.nth($colours, 2)};
+		--a11y-text: #{list.nth($colours, 3)};
+		--a11y-accent: #{list.nth($colours, 4)};
+		color-scheme: dark;
+		@if $name == light or $name == contrast-light or $name == sepia { color-scheme: light; }
+	}
+}
+
+html[data-a11y-theme]:not([data-a11y-theme='original']) {
+	body, #app, #onboarding, .control-panel, dialog, .a11y-content {
+		background: var(--a11y-background) !important;
+		color: var(--a11y-text) !important;
+	}
+	:is(h1, h2, h3, h4, h5, h6, p, label, legend, summary) {
+		color: var(--a11y-text) !important;
+		text-shadow: none !important;
+	}
+	a { color: var(--a11y-accent) !important; }
+	:is(button, .button, select, textarea, input:not([type='range']):not([type='checkbox']):not([type='radio']), summary) {
+		color: var(--a11y-text) !important;
+		background: var(--a11y-surface) !important;
+		border: 2px solid var(--a11y-accent) !important;
+		text-shadow: none !important;
+		box-shadow: none !important;
+	}
+	:is(button, .button, summary):hover,
+	:is(button, .button)[aria-pressed='true'],
+	:is(button, .button)[aria-selected='true'] {
+		color: var(--a11y-background) !important;
+		background: var(--a11y-accent) !important;
+	}
+	:is(button, input, select):disabled { opacity: .55; }
+	input { accent-color: var(--a11y-accent); }
+}
+
+// Layout only: appearance and close control come from the shared dialog styles.
+#accessibility-panel {
+	width: min(32rem, calc(100vw - 2 * var(--pad)));
+	max-height: calc(100dvh - 2 * var(--pad));
+	fieldset { display: grid; gap: var(--pad); min-width: 0; }
+	select { min-width: 0; max-width: 100%; }
+	.a11y-check { display: flex; align-items: center; gap: var(--pad); }
+}
+html[data-a11y-text-size='125'] { font-size: 125%; }
+html[data-a11y-text-size='150'] { font-size: 150%; }
+html[data-a11y-text-size='200'] { font-size: 200%; }
+html.a11y-readableFont :is(body, h1, h2, h3, h4, h5, h6, p, a, label, legend, button, input, select, textarea, summary) { font-family: Arial, Helvetica, sans-serif !important; }
+html.a11y-textSpacing :is(p, a, label, legend, button, select, summary) { letter-spacing: .08em !important; word-spacing: .12em !important; line-height: 1.6 !important; }
+html.a11y-largeTargets :is(button, .button, select, summary, input:not([type='checkbox']):not([type='radio']):not([type='range'])) { min-height: 48px !important; min-width: 48px !important; }
+html.a11y-largeTargets label:has(input[type='checkbox'], input[type='radio']) { min-height: 48px; }
+html.a11y-underlineLinks a { text-decoration: underline !important; text-underline-offset: .2em; }
+html.a11y-strongFocus :focus-visible { outline: 4px solid var(--a11y-accent, #ffdf00) !important; outline-offset: 4px !important; box-shadow: 0 0 0 8px #111 !important; }
+html.a11y-reduce-motion {
+	&, *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+	#procedural-background { display: none !important; }
+}
+
+@media (forced-colors: active) {
+	#accessibility-panel { border: 1px solid ButtonText; }
+}
+
+#accessibility-tab {
+	position: fixed;
+	top: env(safe-area-inset-top, 0px);
+	// right: max(12px, env(safe-area-inset-right));
+	left:50%;
+	z-index: 909;
+	transform: translateX(-50%);
+}
+#button-accessibility {
+	--bg: url(/source/assets/icons/settings-24px.svg);
 }

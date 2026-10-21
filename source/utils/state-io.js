@@ -1,13 +1,11 @@
-import {
-	gzip, zlib, AsyncGzip, zip, unzip, strFromU8,
-	Zip, AsyncZipDeflate, Unzip, AsyncUnzipInflate,
-	decompressSync,
-	compressSync,
-	strToU8
-} from 'fflate'
-
 import State from './state.js'
-import { isBase64 } from './base64.js'
+import {
+	ENCODED_QUERY_PARAM,
+	compressQueryString,
+	fromURLSafeBase64,
+	toURLSafeBase64,
+	uncompressQueryString
+} from './state-encoding.js'
 
 const DEFAULT_ZIP_OPTIONS = {
 	// amount to squish
@@ -43,6 +41,35 @@ export default class StateWithIO extends State{
 	
 	constructor(main){
 		super(main)
+
+		// Keep editing cheap and readable. Only compress when leaving the page;
+		// pagehide also works with the back/forward cache, unlike unload.
+		window.addEventListener('pagehide', () => {
+			if (!this.saveHistory || !this.url) return
+			try {
+				this.updateLocation(true, true)
+			} catch (error) {
+				// A browser may already have made this document inactive.
+				console.warn('Could not compress the URL before leaving', error)
+			}
+		})
+		window.addEventListener('pageshow', () => {
+			if (this.saveHistory && this.url) this.updateLocation(false, true)
+		})
+	}
+
+	loadFromLocation(defaultState=null, dispatchEvent=false){
+		const state = super.loadFromLocation(defaultState, dispatchEvent)
+		if (this.saveHistory) this.updateLocation(false, true)
+		return state
+	}
+
+	toURLSafeBase64(base64String){
+		return toURLSafeBase64(base64String)
+	}
+
+	fromURLSafeBase64(base64String){
+		return fromURLSafeBase64(base64String)
 	}
 
 	/**
@@ -51,17 +78,7 @@ export default class StateWithIO extends State{
 	 * @returns {String}
 	 */
 	uncompressString(compressed){
-		const isString = typeof compressed === "string"
-		
-		// check to see if the item is base 64!
-		compressed = !isString ? 
-			compressed : 
-			isBase64(compressed) ?
-				new Uint8Array(Buffer.from(compressed,'base64')) :
-				strToU8(zipped)
-			
-		const decompressed = decompressSync(compressed)
-		return strFromU8(decompressed)
+		return uncompressQueryString(compressed)
 	}
 
 	/**
@@ -75,6 +92,10 @@ export default class StateWithIO extends State{
 		return state
 	}
 
+	getEncodedSearchParams(compressed){
+		return new URLSearchParams(this.uncompressString(compressed))
+	}
+
 	/**
 	 * Zip a string and return it as a Uint8Array
 	 * @param {String} string 
@@ -82,17 +103,11 @@ export default class StateWithIO extends State{
 	 * @returns {String|Uint8Array} zip data
 	 */
 	compressString(string, zipOptions=DEFAULT_ZIP_OPTIONS){
-		// convert the string to a Uint8Array
-		const bufferArray = strToU8(string)
-
-		// The default compression method is gzip
-		// Increasing mem may increase performance at the cost of memory
-		const compressed = compressSync(bufferArray, {...DEFAULT_ZIP_OPTIONS, ...zipOptions} )
-		
-		return zipOptions.base64 ? 
-			Buffer.from(compressed).toString('base64') : 
-			// TODO: Convert to a simple string?
-			compressed
+		if (zipOptions.base64 === false)
+		{
+			throw new Error('StateWithIO only supports base64 encoded compressed query strings')
+		}
+		return compressQueryString(string, { ...DEFAULT_ZIP_OPTIONS, ...zipOptions })
 	}
 
 	/**
@@ -111,5 +126,13 @@ export default class StateWithIO extends State{
 	 */
 	createURLAsEncodedString( zipOptions=DEFAULT_ZIP_OPTIONS ){
 		return this.compressString( this.searchParamsAsString, zipOptions)
+	}
+
+	createEncodedURL(baseURL=window.location, zipOptions=DEFAULT_ZIP_OPTIONS){
+		const url = new URL(baseURL)
+		url.search = ''
+		url.searchParams.set(ENCODED_QUERY_PARAM, this.createEncodedString(zipOptions))
+		url.hash = this.getPreservedHash()
+		return url.toString()
 	}
 }

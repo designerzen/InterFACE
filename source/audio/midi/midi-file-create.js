@@ -27,6 +27,10 @@
 // http://grimmdude.com/MidiWriterJS/
 import MidiWriter from 'midi-writer-js'
 import MIDITrack from './midi-track.js'
+import { createMIDIFileFromEvents } from './session-midi.js'
+import { downloadBlob } from '../../dom/download.js'
+export { downloadBlob } from '../../dom/download.js'
+export { createMIDIFileFromEvents } from './session-midi.js'
 import { 
 	COMMAND_NOTE_ON, COMMAND_NOTE_OFF, COMMAND_PROGRAM_CHANGE,
 	COMMAND_CHANNEL_AFTER_TOUCH, COMMAND_CHANNEL_PRESSURE,	
@@ -55,7 +59,7 @@ export const createMIDIFileFromTrack = (midiTrack, bpm=120 ) => {
 		//	console.log("[MIDIFile] Adding MIDI Command", {command, index} )
 		if (command.type === "channel")
 		{
-			switch(command.type)
+			switch(command.subtype)
 			{
 				case COMMAND_NOTE_ON:
 					track.addEvent(
@@ -133,4 +137,11 @@ export const saveMIDIFile = (track, output) => {
 	const writer = new MidiWriter.Writer(track)
 	console.log(writer.dataUri())
 	//writer.saveMIDI(output)
+}
+
+
+export const downloadMIDIFile = (events, fileName='photosynth.mid', options) => {
+	const blob = new Blob([createMIDIFileFromEvents(events, options)], { type:'audio/midi' })
+	downloadBlob(blob,fileName)
+	return blob
 }

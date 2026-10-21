@@ -17,6 +17,46 @@
 		// @include button.button-with-icon-and-border();
 	}
 
+	#intro #pwa{
+		display:grid;
+		grid-template-columns:1fr;
+		gap:0;
+		width:100%;
+
+		&:has(> :is(.button-install, .button-upgrade):not([hidden])){
+			gap:var(--pad);
+
+			> :is(.button-install, .button-upgrade):not([hidden]){
+				border-radius:999px;
+				padding:calc(var(--pad) * 1);
+				font-size:125%;
+			}
+
+			@media screen and (min-width:840px){
+				grid-template-columns:1fr 1fr;
+				gap:0;
+
+				> .button-start{
+					border-start-end-radius:0;
+					border-end-end-radius:0;
+				}
+
+				> :is(.button-install, .button-upgrade):not([hidden]){
+					border-start-start-radius:0;
+					border-end-start-radius:0;
+					padding:calc(var(--pad) * 2);
+					font-size:150%;
+				}
+			}
+		}
+
+		> *{
+			min-width:0;
+			max-width:none;
+			width:100%;
+		}
+	}
+
 	.button-upgrade{
 		// --hue:#{$hue-blue};
 		anchor-name:--button-upgrade;

@@ -60,9 +60,28 @@ describe('held sample instrument notes', () => {
 		await instrument.noteOn(60, 0.8)
 		expect(sources).toHaveLength(1)
 
-		await instrument.noteOff(60, 0)
+		await instrument.retrigger(60, 0.8)
+		expect(sources).toHaveLength(2)
 		expect(sources[0].stop).toHaveBeenCalledTimes(1)
+		expect(sources[1].loop).toBe(true)
+		expect(instrument.activeNotes.has(60)).toBe(true)
+
+		await instrument.noteOff(60, 0)
+		expect(sources[1].stop).toHaveBeenCalledTimes(1)
 		expect(instrument.activeNotes.has(60)).toBe(false)
+	})
+
+	test('does not loop a one-shot sample', async () => {
+		const { context, sources } = createAudioContext()
+		const instrument = new SampleInstrument(context, { polyphony:0, playbackMode:'one-shot' })
+		await Promise.resolve()
+		instrument.audioBuffers.C4 = {}
+
+		await instrument.noteOn(60, 0.8)
+
+		expect(sources).toHaveLength(1)
+		expect(sources[0].loop).toBe(false)
+		expect(instrument.isOneShot).toBe(true)
 	})
 
 	test('stops every held source when the instrument is destroyed', async () => {

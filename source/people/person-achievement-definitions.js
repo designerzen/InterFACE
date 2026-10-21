@@ -80,6 +80,60 @@ export const REWARD_ACHIEVEMENTS = [
 		test: stats => stats.playerModeEntries >= 2
 	},
 	{
+		id: "activity:first-wink",
+		type: "activity",
+		title: "Wink Wink",
+		description: "Wink during a session",
+		message: "Secret signal received.",
+		score: 10,
+		test: stats => stats.activity?.winks >= 1
+	},
+	{
+		id: "activity:blinks-10",
+		type: "activity",
+		title: "Blink and You Miss It",
+		description: "Blink 10 times during a session",
+		message: "Ten tiny curtain calls.",
+		score: 20,
+		test: stats => stats.activity?.blinks >= 10
+	},
+	{
+		id: "activity:expression-changes-25",
+		type: "activity",
+		title: "Face Dancer",
+		description: "Make 25 significant expression changes",
+		message: "Your face has rhythm.",
+		score: 35,
+		test: stats => stats.activity?.expressionChanges >= 25
+	},
+	{
+		id: "activity:peak",
+		type: "activity",
+		title: "Maximum Motion",
+		description: "Reach maximum movement activity",
+		message: "The movement meter hit the ceiling.",
+		score: 25,
+		test: stats => stats.activity?.peakActivity >= 1
+	},
+	{
+		id: "activity:active-30-seconds",
+		type: "activity",
+		title: "Motion Machine",
+		description: "Stay actively moving for 30 seconds",
+		message: "Thirty seconds in constant motion.",
+		score: 45,
+		test: stats => stats.activity?.activeDuration >= 30_000
+	},
+	{
+		id: "activity:active-ratio",
+		type: "activity",
+		title: "Live Wire",
+		description: "Remain active for half of a one-minute session",
+		message: "You powered half the session with movement.",
+		score: 60,
+		test: stats => stats.activity?.sessionDuration >= 60_000 && stats.activity.activeRatio >= 0.5
+	},
+	{
 		id: "expressions:3",
 		type: "expression-count",
 		title: "Face Explorer",

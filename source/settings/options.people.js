@@ -1,7 +1,13 @@
-import { INSTRUMENT_TYPE_SOUNDFONT } from "../audio/instrument-list.js"
+import { INSTRUMENT_TYPE_COMPOSITE } from "../audio/instrument-list.js"
 import { TUNING_MODE_NAMES } from "../audio/tuning/scales.js"
 import { EMOJI_MOOD_ALL } from "../models/emoji.js"
 import { HARMONY_MODE_FREE_RANGE } from "../people/person.presets.js"
+import {
+	DEFAULT_HEAD_NOTE_RANGE_DEGREES,
+	DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
+	HEAD_NOTE_RANGE_INHERIT,
+	HEAD_VERTICAL_RANGE_INHERIT
+} from "../people/head-note-range.js"
 import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments.js"
 import { DEFAULT_COLOURS } from "./palette.js"
 
@@ -70,7 +76,9 @@ export const NOTE_PARTICLE_GRAPHICS_POPPING_BUBBLES = "popping-bubbles"
 export const NOTE_PARTICLE_GRAPHICS_BEES = "bees"
 export const NOTE_PARTICLE_GRAPHICS_DINOSAURS = "dinosaurs"
 export const NOTE_PARTICLE_GRAPHICS_FACE = "face"
+export const NOTE_PARTICLE_GRAPHICS_EMOJI = "emoji"
 export const NOTE_PARTICLE_GRAPHICS_NUMBERS = "numbers"
+export const NOTE_PARTICLE_GRAPHICS_NOTE_NAME = "note-name"
 
 export const NOTE_PARTICLE_GRAPHIC_OPTIONS = [
 	[NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC, "Music duration"],
@@ -85,7 +93,9 @@ export const NOTE_PARTICLE_GRAPHIC_OPTIONS = [
 	[NOTE_PARTICLE_GRAPHICS_BEES, "Bees"],
 	[NOTE_PARTICLE_GRAPHICS_DINOSAURS, "Dinosaurs"],
 	[NOTE_PARTICLE_GRAPHICS_FACE, "Current face"],
-	[NOTE_PARTICLE_GRAPHICS_NUMBERS, "Amplitude numbers"]
+	[NOTE_PARTICLE_GRAPHICS_EMOJI, "Current emoji"],
+	[NOTE_PARTICLE_GRAPHICS_NUMBERS, "Amplitude numbers"],
+	[NOTE_PARTICLE_GRAPHICS_NOTE_NAME, "Note and octave"]
 ]
 
 export const DEFAULT_NOTE_PARTICLE_OPTIONS = {
@@ -151,7 +161,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	...DEFAULT_NOTE_PARTICLE_OPTIONS,
 
 	// show notes on a stave rather than A4, B7 etc
-	musicTheory:false,
+	musicTheory:true,
 
 	// display active harmonies as chord labels instead of listing each note
 	showChordNames:false,
@@ -180,7 +190,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// left / right ear stereo panning
 	stereoPan:true,
 
-	// use eyebrows to control pitch bending
+	// Enable eyebrow expression (MIDI output type is chosen in MIDI settings).
 	pitchBend:false,
 	lpf:true,
 
@@ -191,6 +201,10 @@ export const DEFAULT_PERSON_OPTIONS = {
 	tuning:TUNING_MODE_NAMES[0],
 	octaveLow:2,
 	octaveHigh:6,
+	headNoteRangeDegrees:DEFAULT_HEAD_NOTE_RANGE_DEGREES,
+	headNoteRangeOverride:HEAD_NOTE_RANGE_INHERIT,
+	headVerticalRangeDegrees:DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
+	headVerticalRangeOverride:HEAD_VERTICAL_RANGE_INHERIT,
 	maximumAmplitude:0.6,
 	trim:1,
 
@@ -259,6 +273,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	drawMouth:false,
 	// kid mode turns eyes googly!
 	drawEyes:false,
+	eyeDesign:'round',
 
 	// extra controls
 	drawEyebrows:false,
@@ -318,7 +333,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// default person instument when a person is create
 	// defaultInstrument:INSTRUMENT_TYPE_SAMPLE,
 	// defaultInstrument:INSTRUMENT_TYPE_OSCILLATOR,
-	defaultInstrument:INSTRUMENT_TYPE_SOUNDFONT,
+	defaultInstrument:INSTRUMENT_TYPE_COMPOSITE,
 	// which instrument preset to load?
 	defaultPreset:0,
 

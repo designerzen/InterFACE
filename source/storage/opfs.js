@@ -1,5 +1,3 @@
-import OPFSWorker from 'worker:./opfs-worker.js'
-
 const now = () => performance.now()
 
 /**
@@ -27,7 +25,9 @@ export default class StorageOPFS {
 
 	constructor( options = {} ) {
 		this.defaultFile = options.fileName ?? 'notes.bin'
-		this.worker = new Worker(OPFSWorker, { type: 'module' })
+		this.worker = options.worker ?? new Worker(new URL('./opfs-worker.js', import.meta.url), { type: 'module' })
+		this.timeout = options.timeout ?? 30000
+		this.failure = null
 		this.pending = new Map()
 		this.messageId = 0
 		this.startTime = now()
@@ -39,13 +39,15 @@ export default class StorageOPFS {
 			const handler = this.pending.get(id)
 			if (!handler) return
 			this.pending.delete(id)
+			clearTimeout(handler.timer)
 			if (ok) handler.resolve(result)
 			else handler.reject(new Error(error))
 		})
 
 		this.worker.addEventListener('error', (event) => {
-			console.error('OPFS worker error:', event.message)
+			this.fail(new Error(event.message || 'Storage worker failed'))
 		})
+		this.worker.addEventListener('messageerror', () => this.fail(new Error('Storage worker message failed')))
 	}
 
 	/**
@@ -53,12 +55,25 @@ export default class StorageOPFS {
 	 * @param {string} type
 	 * @param {object} [payload]
 	 */
-	send(type, payload = {}) {
+	send(type, payload = {}, transfer = []) {
+		if (this.failure) return Promise.reject(this.failure)
 		const id = ++this.messageId
 		return new Promise((resolve, reject) => {
-			this.pending.set(id, { resolve, reject })
-			this.worker.postMessage({ id, type, payload })
+			const timer = setTimeout(() => this.fail(new Error(`Storage timed out: ${type}`)), this.timeout)
+			this.pending.set(id, { resolve, reject, timer })
+			try { this.worker.postMessage({ id, type, payload }, transfer) }
+			catch (error) { this.fail(error) }
 		})
+	}
+
+	fail(error) {
+		this.failure = error
+		for (const request of this.pending.values()) {
+			clearTimeout(request.timer)
+			request.reject(error)
+		}
+		this.pending.clear()
+		this.worker.terminate()
 	}
 
 	// --- file lifecycle -----------------------------------------------------
@@ -149,6 +164,16 @@ export default class StorageOPFS {
 		return this.send('writeNoteEvents', { name: this.openFile, events })
 	}
 
+	/** Append an already encoded binary batch to the open file. */
+	writeBytes(buffer, { name = this.openFile, append = true } = {}) {
+		return this.send('writeBytes', { name, buffer, append }, [buffer])
+	}
+
+	/** Read the complete binary contents of the open file. */
+	readBytes(name = this.openFile) {
+		return this.send('readBytes', { name })
+	}
+
 	/**
 	 * Read back every recorded note event from the open file.
 	 * @returns {Promise<Array<{time:number,status:string,note:number,velocity:number,channel:number}>>}
@@ -206,8 +231,7 @@ export default class StorageOPFS {
 
 	/** Tear down the worker. */
 	destroy() {
-		this.worker.terminate()
-		this.pending.clear()
+		this.fail(new Error('Storage closed'))
 		this.openFile = null
 		this.isRecording = false
 	}

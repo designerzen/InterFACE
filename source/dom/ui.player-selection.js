@@ -180,8 +180,9 @@ export const showPlayerSelector = (options, stateMachine, hooks = {}) => new Pro
 	
 
 	automation.addEventListener("change", event =>{ 
-		automationMode = !automationMode 
+		automationMode = automation.checked
 		body.classList.toggle("automated", automationMode)
+		setQuantityOfPlayers(players)
 	})
 	
 	// start.addEventListener("click", event => {

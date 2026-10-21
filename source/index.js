@@ -16,6 +16,9 @@ import { addToolTips, setToast } from './dom/tooltips.js'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse.js'
 import { updateCapabalitiesTable } from './dom/compatability.js'
 import { APPLICATION_EVENTS, createInterface } from './interface.js'
+import { startBackground } from './dom/start-background.js'
+import { observeVideoStarted } from './hardware/video-started.js'
+import { isReturningUser, updateSummaryText } from './dom/session-summary.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 
@@ -51,12 +54,18 @@ bodyClassList.toggle("interface", true)
 bodyClassList.toggle( "debug", debugMode )
 bodyClassList.add( LTD)
 
+const background = startBackground()
+const backgroundVideo = document.getElementById('webcam')
+const stopVideoObserver = backgroundVideo ? observeVideoStarted(backgroundVideo) : () => {}
+window.addEventListener('pagehide', stopVideoObserver, { once: true })
+
 let installWaitingUpdate = null
 
 const showUpgradeDialog = updateAction => {
 	if (updateAction) installWaitingUpdate = updateAction
 
 	const updateButton = document.getElementById("button-update")
+	const primaryUpgradeButton = document.getElementById("upgrade-pwa")
 	const updateDialog = document.getElementById("pwa-updates")
 	showChangelog(document.getElementById("changelog")).catch(error => {
 		console.warn('Unable to load the changelog', error)
@@ -71,21 +80,16 @@ const showUpgradeDialog = updateAction => {
 		}
 	}
 
-	if (updateDialog && !updateDialog.open) updateDialog.showModal()
-}
-
-// TODO: Check state to see if this is a fresh session or a return then update the front end accordingly	
-const updateSummaryText = (returning = false) => {
-	const summaries = document.querySelectorAll('p[aria-label="Summary"]')
-
-	if (!summaries || summaries.length < 2) {
-		console.info('No summary field p[aria-label="Summary"] present on DOM')
-		return
+	if (primaryUpgradeButton) {
+		primaryUpgradeButton.hidden = false
+		primaryUpgradeButton.disabled = !installWaitingUpdate
+		if (!primaryUpgradeButton.dataset.updateBound) {
+			primaryUpgradeButton.dataset.updateBound = 'true'
+			primaryUpgradeButton.addEventListener('click', () => installWaitingUpdate?.())
+		}
 	}
 
-	// Show the returning user message and update as neccessary :)
-	summaries[0].hidden = returning
-	summaries[1].hidden = !returning
+	if (updateDialog && !updateDialog.open) updateDialog.showModal()
 }
 
 /**
@@ -362,6 +366,7 @@ const checkPWAUpdates = () => {
 			body.classList.add("installable")
 			const installButtons = document.querySelectorAll(".button-install")
 			installButtons.forEach(installButton => {
+				installButton.classList.add('button-push', 'icon-right', 'text-always')
 				if (!installButton.dataset.installBound) {
 					installButton.dataset.installBound = 'true'
 					installButton.addEventListener("click", async () => {
@@ -370,8 +375,6 @@ const checkPWAUpdates = () => {
 					})
 				}
 
-				const installButtonLabel = document.querySelectorAll(`label[for="${installButton.id}"]`)
-				installButtonLabel.forEach(label => { label.hidden = false })
 				installButton.hidden = false
 			})
 		}
@@ -478,7 +481,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
 	// allow the version button to link to secret places
 	createVersionButton()
-	updateSummaryText()
+	updateSummaryText(isReturningUser())
 	addToolTips(document.querySelector("main"))
 
 	const table = document.getElementById("compatibility")
@@ -521,6 +524,9 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 // Hot Module Reloading...
 if (module.hot) {
 	module.hot.dispose(function (data) {
+		background.dispose()
+		stopVideoObserver()
+		window.removeEventListener('pagehide', stopVideoObserver)
 		// module is about to be replaced.
 		// You can save data that should be accessible to the new asset in `data`
 		data.updated = Date.now()

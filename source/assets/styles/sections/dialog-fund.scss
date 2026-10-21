@@ -1,4 +1,33 @@
 #fund{
+	width: min(52rem, calc(100vw - 2rem));
+	padding: clamp(1rem, 4vw, 2.5rem);
+
+	&::after { display: none; }
+
+	#fund-title { padding-inline-end: 2.5rem; }
+
+	.tabs {
+		--tabs-accent: var(--shade-orange);
+		--tabs-active-background: var(--shade-white);
+		--tabs-hover-background: var(--shade-white);
+	}
+
+	.tabs-list { flex-wrap: wrap; }
+	.tabs-panel { padding-block: 1rem; }
+
+	button.close {
+		inset: 0.5rem 0.5rem auto auto;
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+		min-height: 44px;
+		padding: 0;
+		opacity: 1;
+		z-index: 3;
+		background-position: center;
+		background-size: 24px;
+		&::before, &::after { display: none; }
+	}
 	.fund{
 		background: var(--shade-white);
 		border-radius:calc( 2 * var(--pad));

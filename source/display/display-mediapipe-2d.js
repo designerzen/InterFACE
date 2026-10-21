@@ -1,5 +1,5 @@
 import { drawFaceMesh, drawPoints } from "../visual/2d.js"
-import { drawEye } from "../visual/2d.eyes.js"
+import { drawEyes } from "../visual/2d.eyes.js"
 import { drawEyebrows } from '../visual/2d.eyebrows.js'
 import { drawLip } from "../visual/2d.mouth.js"
 import { drawBars } from "../visual/spectrograms.js"
@@ -221,14 +221,10 @@ export default class DisplayMediaPipe2D extends Display2D{
 	
 		// EYES ===================================================================
 		
-		// eyes have been closed for X -period of time
-		if (person.areEyesClosed)
-		{
-	
-
-		}else if (options.drawEyes && keypoints.leftEye.length > 0 && keypoints.leftPupil && keypoints.rightEye.length > 0 && keypoints.rightPupil){
+		if (options.drawEyes && keypoints.leftEye.length > 0 && keypoints.leftPupil && keypoints.rightEye.length > 0 && keypoints.rightPupil){
 
 			const eyeOptions = {
+				eyeDesign:options.eyeDesign,
 				// colourful part of the eye
 				iris:options.leftEyeIris, 
 				// size of the colourful part
@@ -258,10 +254,16 @@ export default class DisplayMediaPipe2D extends Display2D{
 			const rightPupilData = keypoints.rightPupil
 
 
-			drawEye( this.canvasContext, leftEyeData, leftPupilData,  person.isLeftEyeOpen, eyeDirection, eyeOptions)	
-			eyeOptions.iris = options.rightEyeIris
-			
-			drawEye( this.canvasContext, rightEyeData, rightPupilData,  person.isRightEyeOpen, eyeDirection, eyeOptions)
+			drawEyes(this.canvasContext, {
+				leftEye:leftEyeData,
+				leftPupil:leftPupilData,
+				rightEye:rightEyeData,
+				rightPupil:rightPupilData,
+				expression:prediction,
+				leftOpen:person.isLeftEyeOpen,
+				rightOpen:person.isRightEyeOpen,
+				eyeDirection
+			}, { ...eyeOptions, rightIris:options.rightEyeIris })
 
 		}
 

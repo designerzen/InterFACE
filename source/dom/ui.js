@@ -100,13 +100,16 @@ export const setupCameraForm = (cameras, callback) => {
  * @param {Object} stateMachine Configuration object
  */
 export const setupInterface = ( stateMachine ) => {
+	const getShareURL = () => typeof stateMachine.createEncodedURL === 'function'
+		? stateMachine.createEncodedURL()
+		: stateMachine.asURI
 
 	// test to see if sharing is possible (on Electron it doesnt work as expected)
 	const buttonShare = doc.getElementById("button-share")
 	const shareElement = doc.querySelector("share-menu")
-	shareElement.url = stateMachine.asURI
+	shareElement.url = getShareURL()
 	buttonShare.addEventListener('click', e => {
-		shareElement.setAttribute( "url", stateMachine.asURI )
+		shareElement.setAttribute( "url", getShareURL() )
 		//console.error("SHARING", {shareElement, url:shareElement.url  } )
 	}, false)
 

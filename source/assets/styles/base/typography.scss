@@ -168,7 +168,7 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 
 	h1,h3,h4, 
 	button, legend, label{
-		text-transform: uppercase;
+		text-transform: none;
 		line-height: calc( 1lh + 2px );
 		line-height: calc( 1cap + 2px );
 		// prevent orphans
@@ -308,7 +308,7 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 	}
 
 	caption{
-		text-transform: uppercase;
+		text-transform: none;
 		font-weight:700;
 	}
 }

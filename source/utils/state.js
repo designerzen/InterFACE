@@ -4,7 +4,8 @@
  */
 
 import { getDomainDefaults, getFactoryDefaults } from '../settings/options.js'
-import { addToHistory, getLocationSettings, getRefererHostname } from './location-handler.js'
+import { addToHistory, getLocationSettings, getRefererHostname, parseType } from './location-handler.js'
+import { mergeEncodedAndRawQueryParams } from './state-encoding.js'
 
 
 
@@ -373,6 +374,18 @@ export default class State {
 			this.setDefaults(defaultState)
 		}
 
+		const urlParams = new URLSearchParams(window.location.search)
+		if (urlParams.has('b') && typeof this.getEncodedSearchParams === 'function')
+		{
+			const locationState = mergeEncodedAndRawQueryParams(
+				defaultState ?? {},
+				urlParams,
+				compressed => this.getEncodedSearchParams(compressed),
+				parseType
+			)
+			return this.setState(locationState, dispatchEvent)
+		}
+
 		// now fetch the state from the URL
 		const locationState = getLocationSettings(defaultState)
 		
@@ -533,14 +546,17 @@ export default class State {
 	/**
 	 * Updates the URL with an encoded version of the existing state
 	 * @param {Boolean} encode 
+	 * @param {Boolean} replace Replace the current history entry
 	 */
-	updateLocation( encode=false ){
+	updateLocation( encode=false, replace=false ){
 		const url = new URL(window.location)
 		const options = {}
+		const historyMethod = replace ? 'replaceState' : 'pushState'
+		url.search = ''
 		
 		if (encode)
 		{
-			window.history.pushState( this.asObject, null, url.pathname + "?b=" + encodeLocation(url.search) + this.getPreservedHash() )
+			window.history[historyMethod]( this.asObject, '', this.createEncodedURL() )
 		}else{
 
 			this.state.forEach( (value,key) => {
@@ -548,7 +564,8 @@ export default class State {
 				url.searchParams.set(key, value)
 			})
 			url.hash = this.getPreservedHash()
-			window.history.pushState(options, null, url)
+			this.url = url
+			window.history[historyMethod](options, '', url)
 		}
 		// console.log("History", { options, url} , url.toString() )
 	}
@@ -632,7 +649,7 @@ export const createStateFromHost = (elementToAddClassTo, defaultOptions=null, St
 	state.loadFromLocation(stateOptions)
 
 	// updates the URL with the current state (true - encoded)
-	state.updateLocation()
+	state.updateLocation(false, true)
 
 	//state.setDefaults(defaultOptions)
 	// stateMachine.loadFromLocation(defaultOptions)

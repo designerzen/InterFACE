@@ -75,9 +75,14 @@ main.flag-flood{
 	display: none;
 }
 
+// Facial details sit above the 2D canvas and the 3D interface.
+#app-frame #stage > canvas.photosynth-face-features{
+	z-index: 4;
+}
+
 // Emoji overlay
-#photosynth-overlay{
-	z-index: 2;
+#app-frame #stage > #photosynth-overlay{
+	z-index: 5;
 	pointer-events: none;
 	background: transparent;
 }

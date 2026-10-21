@@ -45,7 +45,7 @@ const createCommands = document => {
 			setControlState(document, "button-percussion", true)
 			return focusControl(document, "select-percussion-preset", "percussion-settings")
 		} },
-		{ group: "Go to", label: "Open Volume controls", description: "Adjust volume or mute audio", keywords: ["sound", "audio"], run: () => focusControl(document, "volume-input-range", "folder-volume") },
+		{ group: "Go to", label: "Open Volume controls", description: "Adjust volume or mute audio", keywords: ["sound", "audio"], run: () => focusControl(document, "mixer-master-volume", "folder-volume") },
 		{ group: "Go to", label: "Open Tempo controls", description: "Adjust BPM, swing, or tap tempo", keywords: ["timing", "rhythm"], run: () => focusControl(document, "tempo-input-text", "folder-tempo") },
 		{ group: "Go to", label: "Open Recording controls", description: "Record audio or video", keywords: ["save", "capture"], run: () => focusControl(document, "button-record-audio", "folder-record") },
 		{ group: "Go to", label: "Open MIDI controls", description: "Connect or configure MIDI", keywords: ["device", "instrument"], run: () => focusControl(document, "toggle-midi", "folder-midi") },

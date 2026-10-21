@@ -83,7 +83,7 @@ export const createTriangle = (audioContext, output, random=Math.random) => {
 			const level = (options.partialLevels[index] ?? 0) * (1 + vary(options.levelVariation))
 			oscillator.frequency.setValueAtTime(Math.max(40, frequency * variedRatio), time)
 			const partialGain = partialGains[index].gain
-			const partialEndAt = time + length * Math.max(0.35, 0.72 - index * 0.08)
+			const partialEndAt = time + length * Math.max(0.45, 0.86 - index * 0.09)
 			partialGain.cancelScheduledValues(time)
 			partialGain.setValueAtTime(Math.max(ZERO, level), time)
 			partialGain.exponentialRampToValueAtTime(ZERO, partialEndAt)

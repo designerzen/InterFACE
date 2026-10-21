@@ -28,6 +28,15 @@ const progressBar = doc.querySelector('progress')
 let requestFrame 
 let currentMessage = ''
 let messageChangedAt = Date.now()
+let waitingMessage = ''
+
+export const setLoadWaitingMessage = (message = '') => {
+	waitingMessage = message
+	if (message) {
+		progressMessage.setAttribute('role', 'status')
+		progressMessage.textContent = message
+	}
+}
 
 const getLoaderMessage = (timeAsProgress) => {
 	return LOAD_MESSAGES[ Math.floor(timeAsProgress * (LOAD_MESSAGES.length-1)) ] || BE_PATIENT_MESSAGES[0]
@@ -40,6 +49,7 @@ export const setLoadProgress = (progress, message, complete=false) => {
 	const hasProgressed = loadMeter !== rounded
 	const RATE = 1
 	const now = Date.now()
+	const isReady = complete && progress >= 1
 
 	let text = ''
 
@@ -51,7 +61,10 @@ export const setLoadProgress = (progress, message, complete=false) => {
 	const timeElapsed = now - loadStartedAt
 	const timeAsProgress = timeElapsed / TOTAL_LOAD_DURATION
 
-	if (hasProgressed)
+	if (isReady)
+	{
+		loadMeter = rounded
+	}else if (hasProgressed)
 	{
 		// animate this...
 		loadMeter = loadMeter < rounded ? 
@@ -72,7 +85,7 @@ export const setLoadProgress = (progress, message, complete=false) => {
 	progressBar.parentNode.style.setProperty("--progress", progressAsPercent )
 	progressBar.setAttribute("value", progressAsPercent )
 
-	if (complete && !hasProgressed)
+	if (complete && (!hasProgressed || isReady))
 	{
 		progressBar.parentNode.setAttribute("data-loaded", true )
 	}else{
@@ -109,7 +122,7 @@ export const setLoadProgress = (progress, message, complete=false) => {
 
 	// console.log("loading", {timeSinceTextChanged, timeAsProgress, loadMeter, percentage, rounded, progress, message, text} )
 	
-	text += "<span class='load-percent'>" + (rounded === 50 ? '' : rounded + '%') + "</span>"
+	text = waitingMessage || text + "<span class='load-percent'>" + (rounded === 50 ? '' : rounded + '%') + "</span>"
 	
 	// text += BE_PATIENT_MESSAGES[loadMessageIndex++%(BE_PATIENT_MESSAGES.length-1)]	
 	
@@ -127,7 +140,7 @@ export const setLoadProgress = (progress, message, complete=false) => {
 
 
 
-	if (hasProgressed)
+	if (hasProgressed && !isReady)
 	{
 		requestFrame = requestAnimationFrame( ()=>{
 			setLoadProgress(progress, message, complete)

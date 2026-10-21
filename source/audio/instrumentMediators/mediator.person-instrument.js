@@ -41,7 +41,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 	// 	return
 	// }
 
-	const isChord = instrument.type === INSTRUMENT_TYPE_CHORD
+	const isChord = instrument.type === INSTRUMENT_TYPE_CHORD && instrument.playsChords !== false
 	switch(person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
@@ -85,9 +85,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 					instrument.chordOn( chordSequence, person.noteVelocity )		
 					
 //  console.error("mediator.person-instrument", isChord ? chordSequence : "monophonic" )
-				}
-
-				person.activeNotes.set( person.noteNumber, chordSequence )
+				}				person.activeNotes.set( person.noteNumber, chordSequence )
 				
 				return chordSequence
 
@@ -98,9 +96,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 				if (playAudio)
 				{
 					instrument.noteOn( person.noteNumber, person.noteVelocity )
-				}
-
-				person.activeNotes.set( person.noteNumber, [ person.noteNumber] )
+				}				person.activeNotes.set( person.noteNumber, [ person.noteNumber] )
 				return [person.noteNumber]
 			}
 			
@@ -125,9 +121,19 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 			
 				if (isChord)
 				{
-					instrument.chordOn(activity, person.noteVelocity)
+					if (instrument.chordRetrigger)
+					{
+						instrument.chordRetrigger(activity, person.noteVelocity)
+					}else{
+						instrument.chordOn(activity, person.noteVelocity)
+					}
 				}else{
-					instrument.noteOn(person.noteNumber, person.noteVelocity)
+					if (instrument.retrigger)
+					{
+						instrument.retrigger(person.noteNumber, person.noteVelocity)
+					}else{
+						instrument.noteOn(person.noteNumber, person.noteVelocity)
+					}
 				}
 
 			}else{
@@ -158,7 +164,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 			let activeNotes
 			if (currentlyActiveNotes)
 			{
-				activeNotes = currentlyActiveNotes.slice(0,-1)
+				activeNotes = currentlyActiveNotes.slice()
 				person.activeNotes.delete( person.noteNumber )
 			}else{
 				return []

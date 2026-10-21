@@ -91,3 +91,11 @@
 .emoji{
 	font-family: 'noto-emoji';
 }
+
+//
+ul.stacked{
+	li{
+		display: inline-block;
+		vertical-align: middle;
+	}
+}

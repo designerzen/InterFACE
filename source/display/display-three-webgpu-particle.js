@@ -34,7 +34,7 @@ import {
 import { WebGLRenderer, MeshBasicMaterial } from "three"
 
 // Math utilities
-import { ONE_DEGREE_IN_RADIANS } from "../maths/maths.js"
+import { createNoteCircleData } from "./note-circle.js"
 import { subdivideKeypoints } from "../models/avatar.js"
 import { applyWebGPUParticleMarch } from "./webgpu-particle-motion.js"
 
@@ -426,7 +426,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * @param {Number} activeCircleIndex - Index of active note circle (-1 for none)
 	 * @param {Boolean} flipX - Whether to flip the emoticon horizontally
 	 */
-	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false) {
+	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false, noteRangeDegrees = 90, activeNoteColour = '#fff') {
 
 		const emoticonKey = `${emoji}_${x}_${y}`
 		const emoticonSize = 54
@@ -437,13 +437,17 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 			emoticonGroup = {
 				particles: [],
 				meshes: [],
+				activeNoteMarker: null,
 				key: emoticonKey
 			}
 			this.emoticonMeshes.set(emoticonKey, emoticonGroup)
 		}
 
 		// Generate circular note pattern
-		const noteCircleData = this.getNoteCircleData(x, y, 90, emoticonSize, 12)
+		const noteCircleData = this.getNoteCircleData(x, y, noteRangeDegrees, emoticonSize, numberOfNotesInKey)
+		emoticonGroup.meshes.forEach((mesh, index) => {
+			mesh.visible = index < noteCircleData.length
+		})
 
 		// Update or create particle meshes for note circle
 		for (let i = 0; i < noteCircleData.length; i++) {
@@ -493,6 +497,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 			// Update mesh
 			const mesh = emoticonGroup.meshes[i]
+			mesh.visible = true
 			mesh.position.set(particle.currentX, particle.currentY, particle.currentZ)
 			mesh.scale.set(particle.size, particle.size, particle.size)
 
@@ -507,6 +512,30 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 				mesh.scale.x *= -1
 			}
 		}
+
+		if (!emoticonGroup.activeNoteMarker) {
+			const markerGeometry = new BufferGeometry()
+			markerGeometry.setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0]), 3))
+			const markerMaterial = new PointsMaterial({
+				color: activeNoteColour,
+				size: 4.5,
+				sizeAttenuation: false,
+				depthTest: false,
+				depthWrite: false
+			})
+			emoticonGroup.activeNoteMarker = new Points(markerGeometry, markerMaterial)
+			emoticonGroup.activeNoteMarker.renderOrder = 1
+			this.scene.add(emoticonGroup.activeNoteMarker)
+		}
+
+		const activeNotePoint = activeCircleIndex > -1 && noteCircleData.length ?
+			noteCircleData[Math.min(activeCircleIndex, noteCircleData.length - 1)] :
+			null
+		emoticonGroup.activeNoteMarker.visible = Boolean(activeNotePoint)
+		if (activeNotePoint) {
+			emoticonGroup.activeNoteMarker.position.set(activeNotePoint.x, activeNotePoint.y, 0.01)
+			emoticonGroup.activeNoteMarker.material.color.set(activeNoteColour)
+		}
 	}
 
 	/**
@@ -520,24 +549,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * @returns {Array} Array of {x, y} points
 	 */
 	getNoteCircleData(cx, cy, range = 90, radius = 70, numberOfPoints = 12) {
-
-		const halfRange = range / 2
-		const startAngleDegrees = 90 - halfRange
-		const endAngleDegrees = 90 + halfRange
-
-		const startAngleRadians = startAngleDegrees * ONE_DEGREE_IN_RADIANS
-		const endAngleRadians = endAngleDegrees * ONE_DEGREE_IN_RADIANS
-		const angleIncrement = (endAngleRadians - startAngleRadians) / (numberOfPoints - 1)
-
-		const data = []
-		for (let i = 0; i < numberOfPoints; i++) {
-			const currentAngle = startAngleRadians + (i * angleIncrement)
-			const pointX = cx + radius * Math.cos(currentAngle)
-			const pointY = cy - radius * Math.sin(currentAngle)
-			data.push({ x: pointX, y: pointY })
-		}
-
-		return data
+		return createNoteCircleData(cx, cy, range, radius, numberOfPoints)
 	}
 
 	/**
@@ -596,6 +608,10 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 			for (let mesh of emoticonGroup.meshes) {
 				if (mesh.geometry) mesh.geometry.dispose()
 				if (mesh.material) mesh.material.dispose()
+			}
+			if (emoticonGroup.activeNoteMarker) {
+				emoticonGroup.activeNoteMarker.geometry.dispose()
+				emoticonGroup.activeNoteMarker.material.dispose()
 			}
 		}
 		this.emoticonMeshes.clear()
