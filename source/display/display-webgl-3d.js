@@ -11,6 +11,7 @@ import { preload3dFont } from '../visual/3d.fonts.js'
 
 import { unloadModel } from '../models/avatars.js'
 import Avatar, { arrangeFaceData, createFaceGeometryFromData } from "../models/avatar.js"
+import { captureMirrorPerson, updateMirrorStage, disposeMirrorStage } from './mirror-stage.js'
 import { AVATAR_DATA } from '../models/avatar-data.js'
 import {
 	createWalls,
@@ -208,15 +209,22 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			}	
 
 			this.loadComplete("ready")
-		})	
+		}).catch(error => this.loadFailed(error))
 	}
 	
 	// This varies for each display
-	setAnimationLoop( callback ){
-		return this.renderer.setAnimationLoop(callback)
+	setAnimationLoop(callback, autoStart = false){
+		this.cancelAnimationLoop()
+		this.start = () => {
+			if (this.animationLoopRunning || !this.renderer) return
+			this.animationLoopRunning = true
+			this.renderer.setAnimationLoop(callback)
+		}
+		if (autoStart) this.start()
 	}
 	cancelAnimationLoop(){
-		this.renderer.setAnimationLoop(null)
+		this.animationLoopRunning = false
+		this.renderer?.setAnimationLoop(null)
 	}
 
 	/**
@@ -242,7 +250,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// adding some lights to the scene
 		const directionalLight = new DirectionalLight(0xFFFFFF, 1)
 		directionalLight.position.set(0, 1, 2)
-		// scene.add(directionalLight)
+		if (options.showAvatar) scene.add(directionalLight)
 	
 		if (options.fog)
 		{
@@ -281,7 +289,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		// we can swap this for the orthogonal camera
 		// for extra style points
 		const camera = new PerspectiveCamera(50, (this.width || this.canvas?.width || 1) / (this.height || this.canvas?.height || 1))
-		// camera.position.z = 3.5
+		camera.position.z = options.cameraDistance ?? 3.5
 		camera.lookAt( scene.position )
 		this.walls = createWalls({
 			Group,
@@ -313,7 +321,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		{
 			// const { faceMesh, faceGroup, geometry } = await this.loadAvatar(avatar.model)
 			// select the avatar you want to use
-			const avatarMeta = AVATAR_DATA.albert
+			const avatarMeta = AVATAR_DATA[options.avatarModel ?? 'human'] ?? AVATAR_DATA.human
 			// const avatarMeta = AVATAR_DATA.racoon
 			this.avatar = new Avatar( avatarMeta.name )
 			const { parent, faceMesh, faceGroup } = await this.avatar.loadModel( avatarMeta, 1 )
@@ -461,6 +469,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 	 * DESTROY this Display & free up memory
 	 */
 	async destroy(){
+		disposeMirrorStage(this)
 		
 		// stop future loops propogating
 		this.cancelAnimationLoop()
@@ -537,6 +546,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		this.available = false
 
 		console.info("WEBGL Display END", this ) 
+		await super.destroy()
 	}
 
 	async addFX(){
@@ -987,6 +997,14 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		}
 
 		const prediction = person.data
+		if (this.avatar?.scene?.userData.humanFace) {
+			captureMirrorPerson(this, person)
+			if (this.count % UPDATE_FACE_BUTTON_AFTER_FRAMES === 0) this.movePersonButton(person, prediction)
+			const hue = Math.abs(((colours?.h ?? person.hue ?? 0) % 360) / 360)
+			this.setParticleColorsFromHSL(hue, (colours?.s ?? 60) / 100, (colours?.l ?? 60) / 100)
+			return
+		}
+		this.avatarPrediction = prediction
 		// const landmarks = prediction.faceLandmarks
 		// const options = person.options
 		const hue = colours?.h ?? person.hue
@@ -1029,9 +1047,9 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 		if (this.avatar)
 		{
 			// rotate face mesh TODO : SMOOTH
-			const rx = -prediction.pitch * 0.5 + ( this.mouseY * VERTICAL_VIEW_CONE_ANGLE ) - 0.3
-			const ry = prediction.yaw + ( this.mouseX * VIEW_CONE_ANGLE )	
-			const rz = prediction.roll * VIEW_CONE_ANGLE_Z
+			const rx = -(prediction.pitch ?? 0) * 0.5 + ( this.mouseY * VERTICAL_VIEW_CONE_ANGLE ) - (this.avatar.scene.userData.humanFace ? 0 : 0.3)
+			const ry = (prediction.yaw ?? 0) + ( this.mouseX * VIEW_CONE_ANGLE )
+			const rz = (prediction.roll ?? 0) * VIEW_CONE_ANGLE_Z
 
 			this.avatar.rotateAll( rx, ry, rz )
 				
@@ -1066,7 +1084,7 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 			}
 					
 			const hasMaterial = this.faceMesh.material && !Array.isArray(this.faceMesh.material)
-			if ( hasMaterial )
+			if ( hasMaterial && !this.avatar.scene.userData.humanFace )
 			{
 				// if (person.singing)
 				if (person.instrumentLoading)
@@ -1084,9 +1102,10 @@ export default class DisplayWebGL3D extends AbstractDisplay{
 					// this.exposure = 0.4 // + this.count % 1.3
 					this.faceMesh.material.color.setHSL( hueNormalised, saturation, lightness )
 				}
-			}else{
+			}else if (!this.avatar.scene.userData.humanFace){
 				console.info("No material to recolour", hue)
 			}
+			if (!this.options.showParticles) alignAvatarToParticles(this, this.options)
 		}
 		
 		// rotate with inertia
@@ -1421,6 +1440,7 @@ console.log("particle", person.hsl, landmarks[0], landmarks[0].material )
 	 * LOOP
 	 */
 	render(){
+		updateMirrorStage(this)
 		// we want to face to look at the cursor
 
 		// particle cloud

@@ -175,6 +175,7 @@ export default class Display2D extends AbstractDisplay{
 	get type() {
 		return DISPLAY_CANVAS_2D
 	}
+	getParticleContext(){ return this.canvasContext }
 
 	get filterModel(){
 		return FILTER_LIBRARY[this.filterIndex]
@@ -225,7 +226,7 @@ export default class Display2D extends AbstractDisplay{
 			this.loadComplete("ready")
 		}).catch(error => {
 			console.error("ERROR loading display root data", error)
-			this.loadComplete("failed")
+			this.loadFailed(error)
 		})
 	}
 
@@ -251,6 +252,7 @@ export default class Display2D extends AbstractDisplay{
 	}
 
 	async destroy(){
+		await super.destroy()
 		if (stats)
 		{
 			this.removeStats()

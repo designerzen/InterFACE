@@ -8,7 +8,7 @@ import AbstractDisplay from './display-abstract.js'
 import { DISPLAY_WEB_GL_3D } from './display-types.js'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from '../settings/options.displays.js'
 import { MEDIAPIPE_FACE_MESH_CONNECTED_KEYPOINTS_PAIRS } from '../models/face-landmark-constants.js'
-import { subdivideKeypoints } from '../models/avatar.js'
+import { subdivideKeypoints } from '../models/keypoint-subdivision.js'
 import { getDisplayColourAlpha, getPredictionLandmarks } from './display-landmarks.js'
 
 const DEFAULT_OPTIONS_DISPLAY_WEBGL_3D = {
@@ -37,6 +37,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	vbo = null
 	ibo = null
 	lineCount = 0
+	vertexBufferSize = 0
 
 	// Uniform locations
 	uProjectionMatrix = null
@@ -138,6 +139,8 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		this.gl.attachShader(program, vs)
 		this.gl.attachShader(program, fs)
 		this.gl.linkProgram(program)
+		this.gl.deleteShader(vs)
+		this.gl.deleteShader(fs)
 		if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
 			throw new Error('Program link error: ' + this.gl.getProgramInfoLog(program))
 		}
@@ -195,7 +198,8 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		const offX = offsetX || 0
 		const offY = offsetY || 0
 
-		const transformedData = new Float32Array(numPoints * 3)
+		if (!this.transformedVertices || this.transformedVertices.length < numPoints * 3) this.transformedVertices = new Float32Array(numPoints * 3)
+		const transformedData = this.transformedVertices.subarray(0, numPoints * 3)
 		for (let i = 0; i < numPoints; i++) {
 			transformedData[i * 3] = data[i * 3] * scaleX + offX
 			transformedData[i * 3 + 1] = data[i * 3 + 1] * scaleY + offY
@@ -234,7 +238,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		this.gl.useProgram(this.program)
 		this.gl.bindVertexArray(this.vao)
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo)
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, transformedData, this.gl.DYNAMIC_DRAW)
+		this.uploadVertices(transformedData)
 
 		// Uniforms
 		const [r, g, b, a] = this.hexToRgba(colorHex)
@@ -258,7 +262,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		this.gl.useProgram(this.program)
 		this.gl.bindVertexArray(this.vao)
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo)
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, transformedData, this.gl.DYNAMIC_DRAW)
+		this.uploadVertices(transformedData)
 
 		// Re-bind IBO
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo)
@@ -274,7 +278,16 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	/**
 	 * Clear canvas
 	 */
+	uploadVertices(data){
+		if (this.vertexBufferSize < data.byteLength) {
+			this.vertexBufferSize = Math.max(data.byteLength, this.vertexBufferSize * 2, 1024)
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, this.vertexBufferSize, this.gl.DYNAMIC_DRAW)
+		}
+		this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, data)
+	}
+
 	clear() {
+		super.clear()
 		if (!this.gl) return
 		this.gl.clearColor(0, 0, 0, 0)
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
@@ -284,6 +297,8 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	 * Draw a person's landmarks
 	 */
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
+		const settings = { ...this.options, ...person.options, ...options }
+		if (settings.drawMask === false) return
 		const prediction = person.data
 		const landmarks = getPredictionLandmarks(prediction)
 		if (!prediction || landmarks.length === 0) return
@@ -316,10 +331,12 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 		const hex = this.hslToHex(hue, colours.s ?? 100, colours.l ?? 50, getDisplayColourAlpha(colours, options))
 
 		// Draw connections first (so they appear behind points)
-		this.drawFaceConnections(landmarkData, hex, 1, undefined, 0, 0)
+		if (settings.drawMesh || (!settings.drawNodes && settings.meshOnSing && person.singing)) {
+			this.drawFaceConnections(landmarkData, hex, 1, undefined, 0, 0)
+		}
 
 		// Draw points on top
-		this.drawLandmarks(pointData, hex, 1, undefined, 0, 0)
+		if (settings.drawNodes || !settings.drawMesh) this.drawLandmarks(pointData, hex, 1, undefined, 0, 0)
 	}
 
 	/**
@@ -376,14 +393,14 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	 * Draw bars (audio visualization) - not implemented for WebGL
 	 */
 	drawBars(dataArray, bufferLength) {
-		// To be implemented if needed
+		super.drawBars(dataArray, bufferLength)
 	}
 
 	/**
 	 * Draw visualiser - not implemented for WebGL
 	 */
-	drawVisualiser(dataArray, bufferLength, type) {
-		// To be implemented if needed
+	drawVisualiser(...args) {
+		super.drawVisualiser(...args)
 	}
 
 	/**
@@ -453,6 +470,7 @@ export default class DisplayWebGL3D extends AbstractDisplay {
 	async destroy() {
 		if (this.gl) {
 			this.gl.deleteBuffer(this.vbo)
+			this.gl.deleteBuffer(this.ibo)
 			this.gl.deleteVertexArray(this.vao)
 			this.gl.deleteProgram(this.program)
 			this.gl = null

@@ -1,9 +1,9 @@
 /**
  * Load in different displays to use as the front end.
- * 
+ *
  * There are differernt displays depending on which library is used
  * and which hardware is available.
- * 
+ *
  * The WebXR version has an extra holographic mode too
  */
 
@@ -13,6 +13,9 @@ import { DISPLAY_TYPES } from './display-types.js'
 const DEFAULT_DISPLAY_TYPE = DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
 
 const normalizeDisplayType = displayType => {
+	const value = DISPLAY_TYPES[displayType] ?? displayType
+	if (value === DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D) return DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
+	if (value === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL) return DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU
 	if (DISPLAY_TYPES[displayType])
 	{
 		return DISPLAY_TYPES[displayType]
@@ -20,35 +23,35 @@ const normalizeDisplayType = displayType => {
 	return displayType
 }
 
-const isDisplayRuntimeAvailable = displayType => {
+export const isDisplayRuntimeAvailable = (displayType, capabilities = {}) => {
 	switch(displayType)
 	{
 		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D:
 		case DISPLAY_TYPES.DISPLAY_BABYLON_3D:
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D:
 		case DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE:
-			return isWebGLAvailable()
-
-		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU:
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL:
-			return Boolean(navigator.gpu)
+			return capabilities.webGL ?? isWebGLAvailable()
+
+		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
+			return Boolean(globalThis.navigator?.gpu)
 
 		default:
-			return true
+			return [DISPLAY_TYPES.DISPLAY_CANVAS_2D, DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D,
+				DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D, DISPLAY_TYPES.DISPLAY_COMPOSITE].includes(displayType)
 	}
 }
 
 const isWebGLAvailable = () => {
-  const canvas = document.createElement('canvas')
-  try {
-    return !!(
-      window.WebGLRenderingContext && 
-      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-    )
-  } catch(e) {
-    return false
-  }
+		try {
+				const context = document.createElement('canvas').getContext('webgl2')
+				if (!context) return false
+				context.getExtension('WEBGL_lose_context')?.loseContext()
+				return true
+		} catch(e) {
+				return false
+		}
 }
 
 /**
@@ -124,8 +127,8 @@ const displayClassPromises = new Map()
 
 /**
  * Lazy load in a Display Class and its deps
- * @param {String} type 
- * @returns 
+ * @param {String} type
+ * @returns
  */
 export const loadDisplayClass = async( type ) => {
 	
@@ -146,15 +149,18 @@ export const loadDisplayClass = async( type ) => {
 	catch( error ){
 		console.error("Couldn't load Display Library", error)
 		displayClassPromises.delete(type)
+		throw error
 	}
 }
 
 /**
  * Changes displays
- * @param {String} displayType 
- * @returns 
+ * @param {String} displayType
+ * @returns
  */
 export const createDisplay = async (canvasElement, displayType, options={} ) => {
+	displayType = normalizeDisplayType(displayType)
+	if (!isDisplayRuntimeAvailable(displayType)) throw new Error(`Display unavailable: ${displayType}`)
 
 	// set the canvas to the size of the video / image
 	// display = new Display( webGLElement, inputElement.width, inputElement.height )
@@ -169,14 +175,19 @@ export const createDisplay = async (canvasElement, displayType, options={} ) => 
 		before ? {...options, lookingGlassWebXR:before } : options
 	)
 
-	await display.loading
+	try {
+		await display.loading
+	} catch (error) {
+		await display.destroy().catch(cleanupError => console.error('Display cleanup failed', cleanupError))
+		throw error
+	}
 	return display
 }
 
 /**
  * delete and re-create the canvas element
- * @param {String} displayType 
- * @returns 
+ * @param {String} displayType
+ * @returns
  */
 export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 	// as a context once set can only be one of 2d or webgl
@@ -224,16 +235,14 @@ export const restartCanvas = async( canvasElement, maxWidth=-1 ) => {
 
 /**
  * Get all available displays
- * @param {Boolean} hasHolographicDisplayConnected 
- * @returns 
+ * @param {Boolean} hasHolographicDisplayConnected
+ * @returns
  */
 export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => {
-	// Default app displays are always offered; unsupported hardware displays are
-	// filtered before startup if they are genuinely unavailable.
+	// Offer only supported renderers; retain compatibility IDs in the loader.
 	const availableDisplays = [
 		DISPLAY_TYPES.DISPLAY_COMPOSITE,
 		DISPLAY_TYPES.DISPLAY_CANVAS_2D,
-		DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D,
 		DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D,
 		DISPLAY_TYPES.DISPLAY_WEB_GL_3D,
 		DISPLAY_TYPES.DISPLAY_WEB_GPU_3D,
@@ -245,18 +254,25 @@ export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => 
 	if (hasHolographicDisplayConnected)
 	{
 		availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
-		navigator.gpu && availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU)
-		navigator.gpu && availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL)
+		availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU)
 	}
 
-	return availableDisplays
+	const capabilities = { webGL: isWebGLAvailable() }
+	return availableDisplays.filter(type => isDisplayRuntimeAvailable(type, capabilities))
 }
 
+export const getCompositeDisplayTypes = () => getAvailableDisplays().filter(type => type !== DISPLAY_TYPES.DISPLAY_COMPOSITE)
+
+export const getDefaultCompositeDisplays = () => [
+	isDisplayRuntimeAvailable(DISPLAY_TYPES.DISPLAY_BABYLON_3D) ? DISPLAY_TYPES.DISPLAY_BABYLON_3D : DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D,
+	DISPLAY_TYPES.DISPLAY_CANVAS_2D
+]
+
 /**
- * checks for certain devices to be connected 
+ * checks for certain devices to be connected
  * screen sizes and capabilities and return displays
  * that are available for this device
- * 
+ *
  * @returns {Object} - suggested and available
  */
 export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
@@ -272,7 +288,14 @@ export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DI
 		console.info("Holographic display not connected" , error)
 	}
 
-	const available = getAvailableDisplays(holographicDisplayQuantity > 0)
+	let available = getAvailableDisplays(holographicDisplayQuantity > 0)
+	if (available.includes(DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)) {
+		try {
+			if (!await navigator.gpu.requestAdapter()) available = available.filter(type => type !== DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
+		} catch {
+			available = available.filter(type => type !== DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
+		}
+	}
 	const shouldPreferLookingGlass = holographicDisplayQuantity > 0 &&
 		(!requestedDisplay || requestedDisplay === fallbackDisplay)
 	const canUseRequestedDisplay = available.includes(requestedDisplay) && isDisplayRuntimeAvailable(requestedDisplay)
@@ -298,8 +321,8 @@ export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DI
 /**
  * delete and re-create the canvas element with the new
  * custom display
- * @param {String} displayType 
- * @returns 
+ * @param {String} displayType
+ * @returns
  */
 export const changeDisplay = async(canvasElement, displayType, renderLoop, options={} ) => {
 	
@@ -341,9 +364,10 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 }
 
 /**
- * 
+ *
  */
 export default class DisplayManager{
+	switching = Promise.resolve()
 
 	#display
 	#canvas
@@ -373,7 +397,12 @@ export default class DisplayManager{
 	/**
 	 * Switch this canvas to this Display
 	 */
-	async switchTo( displayType, renderLoop, options={}){
+	switchTo(displayType, renderLoop, options = {}){
+		this.switching = this.switching.catch(() => {}).then(() => this.performSwitch(displayType, renderLoop, options))
+		return this.switching
+	}
+
+	async performSwitch( displayType, renderLoop, options={}){
 
 		// display type may be a string or an object
 		if (!this.#canvas)

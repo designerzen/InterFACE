@@ -66,6 +66,7 @@ const configureMaterial = (material, options) => {
 }
 
 export const configureGhostAvatar = (avatarParent, options = {}) => {
+	if (avatarParent?.userData.humanFace) return
 	avatarParent?.traverse?.(object => {
 		if (!object.material)
 		{
@@ -83,6 +84,11 @@ export const configureGhostAvatar = (avatarParent, options = {}) => {
 }
 
 export const attachAvatarToParticles = (display, avatarParent) => {
+	if (avatarParent?.userData.humanFace) {
+		if (!display?.scene) return false
+		if (avatarParent.parent !== display.scene) display.scene.add(avatarParent)
+		return true
+	}
 	if (!display?.particles || !avatarParent)
 	{
 		return false
@@ -125,6 +131,26 @@ const measureLocalObject = object => {
 export const alignAvatarToParticles = (display, options = {}) => {
 	const avatarParent = display?.avatar?.scene
 	const particles = display?.particles
+	if (avatarParent?.userData.humanFace) {
+		const points = display.avatarPrediction?.keypoints
+		if (!points?.length) return
+		// Fit original tracking landmarks, never marching particles or morph-expanded bounds.
+		let minY = Infinity, maxY = -Infinity
+		for (const point of points) if (Number.isFinite(point.y)) {
+			minY = Math.min(minY, point.y)
+			maxY = Math.max(maxY, point.y)
+		}
+		if (!Number.isFinite(minY) || maxY <= minY) return
+		const height = (maxY - minY) * (display.lastFaceZoom ?? 3.14) * (options.humanAvatarScaleMultiplier ?? 1)
+		const smoothing = options.avatarAlignmentSmoothing ?? DEFAULT_AVATAR_PARTICLE_ALIGNMENT.avatarAlignmentSmoothing
+		const position = particles ? particles.getWorldPosition(new Vector3()) : new Vector3()
+		position.y += options.avatarYOffset ?? 0
+		position.z += options.avatarZOffset ?? DEFAULT_AVATAR_PARTICLE_ALIGNMENT.avatarZOffset
+		if (avatarParent.parent) avatarParent.parent.worldToLocal(position)
+		avatarParent.scale.lerp(new Vector3(height, height, height), smoothing)
+		avatarParent.position.lerp(position, smoothing)
+		return
+	}
 	if (!avatarParent || !particles)
 	{
 		return

@@ -4,16 +4,13 @@ export const getPredictionLandmarks = prediction => {
 		return []
 	}
 
-	return prediction.keypoints ||
-		prediction.faceLandmarks ||
-		prediction.landmarks ||
-		prediction.allKeypoints ||
-		[]
+	return [prediction.faceLandmarks, prediction.keypoints, prediction.landmarks, prediction.allKeypoints]
+		.find(points => Array.isArray(points) && points.length > 0) ?? []
 }
 
 export const getDisplayColourAlpha = (colours = {}, options = {}) => {
-	const alpha = options.alpha ?? colours.a ?? options.opacity ?? 1
-	return Number.isFinite(alpha) ? alpha : 1
+	const alpha = (typeof options.alpha === 'number' ? options.alpha : undefined) ?? colours.a ?? options.opacity ?? 1
+	return Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 1
 }
 
 export const getHolographicDisplayOpacity = person => {

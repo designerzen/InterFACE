@@ -4,7 +4,8 @@
  * WebGPU-backed Three.js point-cloud display for Looking Glass Portrait.
  */
 
-import { LookingGlassWebXRPolyfill } from "@lookingglass/webxr/dist/bundle/webxr.js"
+import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr/dist/bundle/webxr.js"
+import { attachLookingGlassButtons } from './looking-glass-buttons.js'
 
 import {
 	AdditiveBlending,
@@ -12,6 +13,7 @@ import {
 	BufferGeometry,
 	Color,
 	DoubleSide,
+	DirectionalLight,
 	Float32BufferAttribute,
 	Group,
 	LineBasicMaterial,
@@ -32,6 +34,10 @@ import {
 } from "three/src/Three.WebGPU.js"
 
 import AbstractDisplay from "./display-abstract.js"
+import Avatar from '../models/avatar.js'
+import { AVATAR_DATA } from '../models/avatar-data.js'
+import { unloadModel } from '../models/avatars.js'
+import { captureMirrorPerson, updateMirrorStage, disposeMirrorStage } from './mirror-stage.js'
 import { DISPLAY_LOOKING_GLASS_WEBGPU } from "./display-types.js"
 import {
 	DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
@@ -87,10 +93,11 @@ const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS_WEBGPU = {
 	...DEFAULT_WALL_OPTIONS,
 	...createWallDisplayOptions(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT, {
 		wallAttachToCamera: false,
-		wallFrontZ: -1.35,
-		wallHeight: 8.4,
+		wallFrontZ: 1.5,
+		wallHeight: 2,
+		wallAspectRatio: .75,
 		wallDepthMultiplier: 4.8,
-		wallBackScale: 0.72
+		wallBackScale: 1
 	}),
 	...DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES,
 	webgpuParticlePhysics: true,
@@ -205,19 +212,22 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		})
 	}
 
-	setAnimationLoop(callback) {
-		return this.renderer?.setAnimationLoop(callback)
+	setAnimationLoop(callback, autoStart = false) {
+		this.cancelAnimationLoop()
+		this.start = () => {
+			if (this.animationLoopRunning || !this.renderer) return
+			this.animationLoopRunning = true
+			this.renderer.setAnimationLoop(callback)
+		}
+		if (autoStart) this.start()
 	}
 
 	cancelAnimationLoop() {
+		this.animationLoopRunning = false
 		this.renderer?.setAnimationLoop(null)
 	}
 
 	async create(keypointQuantity = KEYPOINT_QUANTITY * 3, options = {}) {
-		if (!navigator.gpu) {
-			throw new Error("WebGPU not supported in this browser")
-		}
-
 		if (options.lookingGlassWebXR) {
 			this.lookingGlassWebXR = typeof options.lookingGlassWebXR === "function"
 				? options.lookingGlassWebXR()
@@ -246,7 +256,17 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		})
 
 		const camera = new PerspectiveCamera(50, LOOKING_GLASS_PORTRAIT_WIDTH / LOOKING_GLASS_PORTRAIT_HEIGHT)
+		camera.position.z = 3.5
 		camera.lookAt(scene.position)
+		if (options.showAvatar) {
+			const headLight = new DirectionalLight(0xffffff, 1)
+			headLight.position.set(-1, 2, 3)
+			scene.add(headLight)
+			this.avatar = new Avatar('Neutral human head')
+			const { parent, faceMesh } = await this.avatar.loadModel(AVATAR_DATA.human)
+			this.faceMesh = faceMesh
+			scene.add(parent)
+		}
 		const walls = createWalls({
 			Group,
 			Mesh,
@@ -293,6 +313,8 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 
 		this.scene = scene
 		this.renderer = renderer
+		this.mirrorCalibration = LookingGlassConfig
+		this.portraitButtons = attachLookingGlassButtons(renderer, LookingGlassConfig, this.options.portraitButtons || {})
 		this.camera = camera
 		this.ambientLight = ambientLight
 		this.particles = particles
@@ -623,6 +645,13 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 		}
 
 		const prediction = person.data
+		if (this.avatar?.scene?.userData.humanFace) {
+			captureMirrorPerson(this, person)
+			this.faceWasDrawnThisFrame = true
+			const hue = Math.abs(((colours?.h ?? person.hue ?? 0) % 360) / 360)
+			this.particles.material.color.setHSL(hue, (colours?.s ?? 60) / 100, (colours?.l ?? 60) / 100)
+			return
+		}
 		if (!prediction || !getPredictionPoints(prediction).length) {
 			return
 		}
@@ -694,10 +723,11 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 
 		this.isRendering = true
 		try {
-			if (!this.faceWasDrawnThisFrame)
+			if (!this.avatar?.scene?.userData.humanFace && !this.faceWasDrawnThisFrame)
 			{
 				this.updateParticlePhysicsWithoutFace()
 			}
+			updateMirrorStage(this)
 			await this.renderer.renderAsync(this.scene, this.camera)
 			this.count = (this.count + 1) % 1024
 			super.render()
@@ -760,6 +790,12 @@ export default class DisplayLookingGlassWebGPU extends AbstractDisplay {
 	}
 
 	async destroy() {
+		disposeMirrorStage(this)
+		if (this.faceMesh) unloadModel(this.faceMesh)
+		await this.avatar?.dispose?.()
+		this.avatar = null
+		this.portraitButtons?.dispose()
+		this.portraitButtons = null
 		this.cancelAnimationLoop()
 
 		if (this.mouseMoveProxy) {

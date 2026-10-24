@@ -1,9 +1,6 @@
 /**
- * THREE.js WebGPU Particle Display with TSL (Three.js Shader Language)
- * Visualizes face landmarks as GPU-powered particles using WebGPU backend
- * 
- * Uses THREE.js with WebGPU renderer and TLSL shaders for efficient
- * particle rendering and animation on the GPU
+ * Three.js WebGL 2 particle display. The historical WebGPU ID is retained
+ * for saved URLs; Babylon provides the independent replacement renderer.
  */
 
 import AbstractDisplay from "./display-abstract.js"
@@ -29,13 +26,12 @@ import {
 	Mesh
 } from "three"
 
-// WebGPU support in three.js v0.183.2 is limited
-// Using standard WebGL renderer instead
+// This compatibility display deliberately uses WebGL 2.
 import { WebGLRenderer, MeshBasicMaterial } from "three"
 
 // Math utilities
 import { createNoteCircleData } from "./note-circle.js"
-import { subdivideKeypoints } from "../models/avatar.js"
+import { subdivideKeypoints } from "../models/keypoint-subdivision.js"
 import { applyWebGPUParticleMarch } from "./webgpu-particle-motion.js"
 
 const DEFAULT_OPTIONS_DISPLAY_THREE_WEBGPU = {
@@ -83,6 +79,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	// Emoticon particles
 	emoticonParticles = []
 	emoticonMeshes = new Map()
+	people = new Map()
 
 	// Event handlers
 	onWindowResizeHandler = null
@@ -111,15 +108,13 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 
 		const probeCanvas = document.createElement("canvas")
 		const canCreateWebGLContext = Boolean(
-			probeCanvas.getContext("webgl2") ||
-			probeCanvas.getContext("webgl") ||
-			probeCanvas.getContext("experimental-webgl")
+			probeCanvas.getContext("webgl2")
 		)
 		if (!WebGLRenderer || !canCreateWebGLContext) {
 			throw new Error("Three WebGPU Particle display requires WebGLRenderer and a WebGL-capable canvas")
 		}
 
-		// Create WebGL renderer (WebGPU not available in three.js v0.183.2 ESM)
+		// Create the WebGL 2 renderer.
 		this.renderer = new WebGLRenderer({
 			canvas: canvas,
 			antialias: true,
@@ -155,9 +150,6 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		const pointLight = new PointLight(0xffffff, 1)
 		pointLight.position.set(this.canvasWidth / 2, this.canvasHeight / 2, -this.canvasHeight / 2)
 		this.scene.add(pointLight)
-
-		// Create particle system
-		this.createParticleSystem(options.particleCount)
 
 		// Handle window resize with stored reference
 		this.onWindowResizeHandler = this.onWindowResize.bind(this)
@@ -214,7 +206,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		}
 
 		// Create material with TLSL shaders
-		this.particleMaterial = this.createTSLParticleMaterial()
+		this.particleMaterial = this.createParticleMaterial()
 
 		this.particleMesh = new Points(
 			this.particleGeometry,
@@ -229,7 +221,7 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * Uses THREE.js Node Materials with WGSL backend
 	 * @returns Material with TSL vertex and fragment shaders
 	 */
-	createTSLParticleMaterial() {
+	createParticleMaterial() {
 
 		const material = new PointsMaterial({
 			color: new Color(
@@ -249,7 +241,8 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * Clear the scene
 	 */
 	clear() {
-		// Scene is automatically cleared each frame
+		super.clear()
+		for (const state of this.people.values()) state.particleMesh.visible = false
 	}
 
 	/**
@@ -345,6 +338,8 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * Draw person with updated particle positions
 	 */
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
+		const settings = { ...this.options, ...person.options, ...options }
+		if (settings.drawMask === false) return
 
 		const prediction = person.data
 		const hue = colours?.h ?? person.hue
@@ -362,14 +357,31 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 			? subdivideKeypoints(landmarks, this.options.geometrySubdivisions)
 			: landmarks
 
+		const state = this.people.get(person)
+		if (state) Object.assign(this, state)
+		else this.createParticleSystem(pointLandmarks.length)
+		this.particleMesh.visible = true
 		this.updateParticlePositions(pointLandmarks)
 		this.updateParticleColours(person, hue, colours)
+		this.people.set(person, Object.fromEntries([
+			'particleMesh', 'particleGeometry', 'particleMaterial', 'instanceCount',
+			'positionBuffer', 'velocityBuffer', 'colourBuffer'
+		].map(key => [key, this[key]])))
+		this.people.get(person).seen = true
 	}
 
 	/**
 	 * Render the scene
 	 */
 	async render() {
+		for (const [person, state] of this.people) {
+			if (!state.seen) {
+				this.scene.remove(state.particleMesh)
+				state.particleGeometry.dispose()
+				state.particleMaterial.dispose()
+				this.people.delete(person)
+			} else state.seen = false
+		}
 		this.count++
 		this.elapsedTime += 0.016
 
@@ -383,14 +395,14 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 	 * Draw bars for audio visualization
 	 */
 	drawBars(dataArray, bufferLength) {
-		// To be implemented if needed
+		super.drawBars(dataArray, bufferLength)
 	}
 
 	/**
 	 * Draw visualiser
 	 */
-	drawVisualiser(dataArray, bufferLength, type) {
-		// To be implemented if needed
+	drawVisualiser(...args) {
+		super.drawVisualiser(...args)
 	}
 
 	/**
@@ -617,21 +629,11 @@ export default class DisplayThreeWebGPUParticle extends AbstractDisplay {
 		this.emoticonMeshes.clear()
 		this.emoticonParticles = []
 
-		// Dispose geometry
-		if (this.particleGeometry) {
-			this.particleGeometry.dispose()
+		for (const state of this.people.values()) {
+			state.particleGeometry.dispose()
+			state.particleMaterial.dispose()
 		}
-
-		// Dispose material
-		if (this.particleMaterial) {
-			this.particleMaterial.dispose()
-		}
-
-		// Dispose meshes
-		if (this.particleMesh) {
-			this.particleMesh.geometry.dispose()
-			this.particleMesh.material.dispose()
-		}
+		this.people.clear()
 
 		// Dispose renderer
 		if (this.renderer) {

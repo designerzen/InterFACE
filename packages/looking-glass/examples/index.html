@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Looking Glass renderer</title>
+<style>
+  body { font: 16px system-ui; margin: 2rem; color: #eee; background: #15151c; max-width: 50rem; }
+  label, button { display: block; margin: 1rem 0; }
+  pre { white-space: pre-wrap; }
+</style>
+<h1>Looking Glass renderer</h1>
+<p>Portrait buttons: Back/Forward decrease/increase the selected setting; Play/Pause cycles Depth, Focus distance, and Field of view. Focus the display window to receive media keys.</p>
+<p>Load your Portrait's calibration JSON, then open the display window and move it to the Portrait. Double-click the canvas for fullscreen. Use the display's native resolution and 100% scaling.</p>
+<label>Calibration JSON <input id="calibration" type="file" accept=".json,application/json"></label>
+<label>Backend <select id="backend"><option value="auto">Automatic</option><option value="webgpu">WebGPU required</option><option value="webgl2">WebGL2</option></select></label>
+<button id="open" disabled>Open display</button>
+<button id="stop" disabled>Stop</button>
+<pre id="status">Waiting for device calibration.</pre>
+<script type="importmap">IMPORT_MAP</script>
+<script type="module" src="/examples/demo.js"></script>
+</html>

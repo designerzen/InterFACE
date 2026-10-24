@@ -6,9 +6,10 @@
 import AbstractDisplay from './display-abstract.js'
 import { DISPLAY_WEB_GPU_3D } from './display-types.js'
 import { UPDATE_FACE_BUTTON_AFTER_FRAMES } from '../settings/options.displays.js'
-import { subdivideKeypoints } from '../models/avatar.js'
+import { subdivideKeypoints } from '../models/keypoint-subdivision.js'
 import { getDisplayColourAlpha, getPredictionLandmarks } from './display-landmarks.js'
 import { applyWebGPUParticleMarch } from './webgpu-particle-motion.js'
+import { WebGPUPaint } from './webgpu-paint.js'
 
 const DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D = {
 	debug: false,
@@ -42,6 +43,12 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	dpr = 1
 	pointData = null
 	lastColour = '#ffffff'
+	frameHasDrawn = false
+	destroyed = false
+	recovering = null
+	paint = null
+	frameStarted = false
+	effectsPainted = false
 
 	constructor(canvas, initialWidth = 1920, initialHeight = 1080, options = DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D) {
 		options = Object.assign({}, DEFAULT_OPTIONS_DISPLAY_WEBGPU_3D, options)
@@ -76,6 +83,15 @@ export default class DisplayWebGPU extends AbstractDisplay {
 
 		this.device = await adapter.requestDevice()
 		if (!this.device) throw new Error('Failed to create WebGPU device')
+		const device = this.device
+		device.lost.then(info => {
+			if (this.destroyed || this.device !== device || this.recovering) return
+			this.available = false
+			this.recovering = this.recoverDevice().catch(error => {
+				console.error('WebGPU recovery failed', info, error)
+				this.options.onError?.(error)
+			}).finally(() => { this.recovering = null })
+		})
 
 		this.createPipelines()
 		this.createSharedBuffers()
@@ -89,6 +105,43 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		})
 
 		this.available = true
+	}
+
+	async recoverDevice(){
+		this.disposePaint()
+		this.vertexBuffer?.destroy()
+		this.uniformBuffer?.destroy()
+		this.vertexBuffer = this.uniformBuffer = this.bindGroup = this.pipeline = null
+		this.vertexBufferSize = 0
+		await this.init()
+		if (this.destroyed) {
+			this.device?.destroy()
+			return
+		}
+		this.frameHasDrawn = false
+	}
+
+	getPaint(){
+		return this.paint ??= new WebGPUPaint(this.device, navigator.gpu.getPreferredCanvasFormat(), this.canvasWidth, this.canvasHeight)
+	}
+	disposePaint(){
+		this.paint?.destroy()
+		this.paint = null
+		this.frameStarted = this.effectsPainted = this.frameHasDrawn = false
+	}
+	beginFrame(){
+		if (!this.frameStarted) {
+			this.getPaint().clear()
+			this.frameStarted = true
+		}
+	}
+	paintEffects(){
+		if (this.effectsPainted) return
+		if (this.effectsCanvas) {
+			this.effectsCanvas.hidden = true
+			this.getPaint().paintCanvas(this.effectsCanvas)
+		}
+		this.effectsPainted = true
 	}
 
 	/**
@@ -237,10 +290,11 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Draw landmarks as soft points only.
 	 */
 	drawLandmarks(data, colorHex) {
-		if (!this.device || !this.pipeline || !this.uniformBuffer || !this.bindGroup) return
+		if (!this.available || this.recovering || !this.device || !this.pipeline || !this.uniformBuffer || !this.bindGroup) return
 
 		const numPoints = Math.floor(data.length / 2)
 		if (numPoints === 0) return
+		this.beginFrame()
 
 		const uniformData = new Float32Array([
 			this.canvasWidth,
@@ -256,13 +310,13 @@ export default class DisplayWebGPU extends AbstractDisplay {
 
 		// Begin render pass
 		const commandEncoder = this.device.createCommandEncoder()
-		const textureView = this.context.getCurrentTexture().createView()
+		const textureView = this.getPaint().view
 
 		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [{
 				view: textureView,
 				clearValue: { r: 0, g: 0, b: 0, a: 0 },
-				loadOp: 'clear',
+				loadOp: 'load',
 				storeOp: 'store'
 			}]
 		})
@@ -274,6 +328,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 
 		renderPass.end()
 		this.device.queue.submit([commandEncoder.finish()])
+		this.frameHasDrawn = true
 	}
 
 	ensureVertexBufferCapacity(requiredSize) {
@@ -295,28 +350,19 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Clear canvas
 	 */
 	clear() {
-		if (!this.device) return
-
-		const commandEncoder = this.device.createCommandEncoder()
-		const textureView = this.context.getCurrentTexture().createView()
-
-		const renderPass = commandEncoder.beginRenderPass({
-			colorAttachments: [{
-				view: textureView,
-				clearValue: { r: 0, g: 0, b: 0, a: 0 },
-				loadOp: 'clear',
-				storeOp: 'store'
-			}]
-		})
-
-		renderPass.end()
-		this.device.queue.submit([commandEncoder.finish()])
+		super.clear()
+		this.frameHasDrawn = false
+		this.frameStarted = this.effectsPainted = false
+		if (!this.available || this.recovering || !this.device) return
+		this.beginFrame()
 	}
 
 	/**
 	 * Draw a person's landmarks
 	 */
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
+		const settings = { ...this.options, ...person.options, ...options }
+		if (settings.drawMask === false) return
 		const prediction = person.data
 		const landmarks = getPredictionLandmarks(prediction)
 		if (!prediction || landmarks.length === 0) return
@@ -354,6 +400,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Handle window/canvas resize
 	 */
 	onResize(width, height) {
+		if (this.paint && (this.paint.width !== Math.floor(width) || this.paint.height !== Math.floor(height))) this.disposePaint()
 		if (this.device) {
 			this.canvas.width = Math.floor(width)
 			this.canvas.height = Math.floor(height)
@@ -364,6 +411,16 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Render
 	 */
 	render() {
+		if (!this.available || this.recovering || this.destroyed) return
+		this.beginFrame()
+		this.paintEffects()
+		if (this.faceFeatureOverlay) {
+			this.faceFeatureOverlay.hidden = true
+			this.getPaint().paintCanvas(this.faceFeatureOverlay)
+		}
+		this.getPaint().present(this.context)
+		this.frameStarted = this.effectsPainted = false
+		this.frameHasDrawn = false
 		this.count++
 		super.render()
 	}
@@ -372,14 +429,14 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Draw bars (audio visualization) - not implemented for WebGPU
 	 */
 	drawBars(dataArray, bufferLength) {
-		// To be implemented if needed
+		super.drawBars(dataArray, bufferLength)
 	}
 
 	/**
 	 * Draw visualiser - not implemented for WebGPU
 	 */
-	drawVisualiser(dataArray, bufferLength, type) {
-		// To be implemented if needed
+	drawVisualiser(...args) {
+		super.drawVisualiser(...args)
 	}
 
 	/**
@@ -436,7 +493,15 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Post-process
 	 */
 	postProcess(options) {
-		// To be implemented if needed
+		if (!this.available || this.recovering || this.destroyed) return false
+		const offsetX = Number.isFinite(options?.offsetX) ? options.offsetX : 0
+		const offsetY = Number.isFinite(options?.offsetY) ? options.offsetY : 0
+		this.getPaint().feedback(offsetX, offsetY)
+		this.frameStarted = this.frameHasDrawn = true
+		this.effectsPainted = false
+		// These transient 2D layers are now part of the GPU paint history.
+		super.clearFaceFeatures()
+		return true
 	}
 
 	/**
@@ -453,6 +518,10 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Cleanup and destroy
 	 */
 	async destroy() {
+		this.destroyed = true
+		this.available = false
+		await this.recovering
+		this.disposePaint()
 		this.vertexBuffer?.destroy()
 		this.vertexBuffer = null
 		this.vertexBufferSize = 0
@@ -460,8 +529,11 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		this.uniformBuffer = null
 		this.bindGroup = null
 		this.pipeline = null
+		this.context?.unconfigure()
 		this.context = null
+		const device = this.device
 		this.device = null
+		device?.destroy()
 
 		this.cancelAnimationLoop()
 		return super.destroy()

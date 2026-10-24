@@ -7,7 +7,7 @@ export const DEFAULT_WALL_OPTIONS = {
 	wallAttachToCamera: true,
 	wallCameraFrontDistance: 1.2,
 	wallCameraDepthMultiplier: 6.5,
-	wallBackScale: 0.62,
+	wallBackScale: 1,
 	wallBackPlane: false,
 	wallCenterX: 0,
 	wallCenterY: 0,
@@ -56,7 +56,7 @@ export const createWallDisplayOptions = (width, height, {
 	wallFrontZ = DEFAULT_WALL_OPTIONS.wallFrontZ,
 	...options
 } = {}) => {
-	const aspectRatio = height > 0 ? width / height : DEFAULT_WALL_OPTIONS.wallAspectRatio
+	const aspectRatio = options.wallAspectRatio ?? (height > 0 ? width / height : DEFAULT_WALL_OPTIONS.wallAspectRatio)
 	const wallWidth = wallHeight * aspectRatio
 	const wallDepth = Math.max(wallHeight, wallWidth) * wallDepthMultiplier
 	return {
@@ -75,7 +75,7 @@ const getWallDimensions = (camera, wallOptions) => {
 	{
 		const frontDistance = wallOptions.wallCameraFrontDistance
 		const aspect = camera.aspect || wallOptions.wallAspectRatio
-		const frontHeight = 2 * Math.tan((camera.fov * Math.PI / 180) * 0.5) * frontDistance
+		const frontHeight = 2 * Math.tan((camera.fov * Math.PI / 180) * 0.5) * frontDistance / (camera.zoom || 1)
 		const frontWidth = frontHeight * aspect
 		const depth = wallOptions.wallDepth ?? Math.max(frontWidth, frontHeight) * wallOptions.wallCameraDepthMultiplier
 		return {

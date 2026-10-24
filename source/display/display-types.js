@@ -25,3 +25,18 @@ export const DISPLAY_TYPES = {
 }
 
 export const DISPLAY_IDS = Object.values(DISPLAY_TYPES)
+
+// Stable IDs keep saved URLs working; captions describe the actual backend.
+export const DISPLAY_LABELS = {
+	[DISPLAY_COMPOSITE]: 'Composite — multiple displays',
+	[DISPLAY_CANVAS_2D]: 'Canvas 2D — visualisers and overlays',
+	[DISPLAY_MEDIA_VISION_2D]: 'Face 2D',
+	[DISPLAY_MEDIA_PIPE_2D]: 'Face 2D — legacy preset',
+	[DISPLAY_WEB_GL_3D]: 'WebGL 2 — face mesh',
+	[DISPLAY_WEB_GPU_3D]: 'WebGPU — face particles (experimental)',
+	[DISPLAY_BABYLON_3D]: 'Babylon — 3D face particles',
+	[DISPLAY_THREE_WEBGPU_PARTICLE]: 'Three — WebGL 2 particles',
+	[DISPLAY_LOOKING_GLASS_3D]: 'Looking Glass — Three WebGL 2',
+	[DISPLAY_LOOKING_GLASS_WEBGPU]: 'Looking Glass — modern renderer (WebGL 2)',
+	[DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: 'Looking Glass — legacy TSL preset (WebGL 2)'
+}

@@ -843,11 +843,12 @@ export default class DisplayOverlay2d {
 				activeCircle.radius = 4
 			}
 			this.drawWithShadow(() => {
-				drawCircles(this.canvasContext, data, 1.7, 0, '#fff')
-				if (activeCircle) {
-					drawCircle(this.canvasContext, activeCircle.x, activeCircle.y, 2.25, 0, activeNoteColour)
-				}
+				drawCircles(this.canvasContext, data.filter(circle => circle !== activeCircle), 1.7, 0, '#fff')
 			})
+			if (activeCircle) {
+				drawCircle(this.canvasContext, activeCircle.x, activeCircle.y, activeCircle.radius, 0, '#fff')
+				drawCircle(this.canvasContext, activeCircle.x, activeCircle.y, 2.25, 0, activeNoteColour)
+			}
 		}
 
 		const radius = size + DEFAULT_PADDING

@@ -1,0 +1,22 @@
+{
+  "name": "@photosynth/looking-glass",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "exports": {
+    ".": "./src/index.js",
+    "./detect": "./src/detect.js",
+    "./calibration": "./src/calibration.js",
+    "./particles": "./src/particles.js"
+  },
+  "files": ["src"],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:browser": "node test/browser.mjs",
+    "demo": "node tools/serve.mjs"
+  },
+  "peerDependencies": {
+    "three": ">=0.186.1 <0.187.0"
+  }
+}

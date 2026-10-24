@@ -1,4 +1,5 @@
 import { drawFaceFeatures } from '../visual/2d.face-features.js'
+import { drawBars, drawVisualiser } from '../visual/spectrograms.js'
 
 // We may want a maximim size
 // that then get's scaled up proportiaonatly
@@ -195,8 +196,8 @@ export default class AbstractDisplay{
 		{
 			// if we want to use the CSS size rather than implicit sizes...
 			this.onViewportResize = this.onViewportResize.bind(this) 
-			const resizeObserver = new ResizeObserver(this.onViewportResize)
-			resizeObserver.observe(canvas, {box: 'content-box'})	
+			this.resizeObserver = new ResizeObserver(this.onViewportResize)
+			this.resizeObserver.observe(canvas, {box: 'content-box'})
 		}
 	}
 
@@ -209,18 +210,38 @@ export default class AbstractDisplay{
 	 */
 	async destroy(){
 		// CLEAN UP
+		this.cancelAnimationLoop()
+		this.resizeObserver?.disconnect()
 		this.faceFeatureOverlay?.remove()
 		this.faceFeatureOverlay = null
 		this.faceFeatureContext = null
+		this.effectsCanvas?.remove()
+		this.effectsCanvas = this.effectsContext = null
 		AbstractDisplay.index--
 	}
 
 	clearFaceFeatures(){
 		this.faceFeatureContext?.clearRect(0, 0, this.faceFeatureOverlay.width, this.faceFeatureOverlay.height)
+		this.effectsContext?.clearRect(0, 0, this.width, this.height)
 	}
 
+	getEffectsContext(){
+		if (!this.effectsCanvas && this.canvas.parentNode) {
+			this.effectsCanvas = document.createElement('canvas')
+			this.effectsCanvas.className = 'canvas-full-size photosynth-display-effects'
+			this.effectsCanvas.setAttribute('aria-hidden', 'true')
+			this.effectsCanvas.style.pointerEvents = 'none'
+			this.effectsCanvas.width = this.width
+			this.effectsCanvas.height = this.height
+			this.canvas.before(this.effectsCanvas)
+			this.effectsContext = this.effectsCanvas.getContext('2d')
+		}
+		return this.effectsContext
+	}
+	getParticleContext(){ return this.getEffectsContext() }
+
 	/** Render facial details above renderers that own a WebGL/WebGPU canvas. */
-	drawFaceFeatures(person, colours){
+	drawFaceFeatures(person, colours, beatJustPlayed = false){
 		if (this.drawsFaceFeaturesOnCanvas || typeof document === 'undefined' || !this.canvas?.parentNode)
 		{
 			return false
@@ -243,7 +264,7 @@ export default class AbstractDisplay{
 			this.faceFeatureOverlay.width = this.canvas.width
 			this.faceFeatureOverlay.height = this.canvas.height
 		}
-		return drawFaceFeatures(this.faceFeatureContext, person, colours, this.options)
+		return drawFaceFeatures(this.faceFeatureContext, person, colours, this.options, beatJustPlayed)
 	}
 	
 	/**
@@ -272,21 +293,27 @@ export default class AbstractDisplay{
 	}
 
 	cancelAnimationLoop(){
+		this.animationLoopRunning = false
 		cancelAnimationFrame(this.loopId)
 	}
 	
 	// This varies for each display but here we create a neverending
 	// loop using requestFrame - be sure to overwrite
 	setAnimationLoop( callback, autoStart=false ){
+		this.cancelAnimationLoop()
 		const looper = ()=>{
 			callback()
-			this.loopId = requestAnimationFrame(looper)
+			if (this.animationLoopRunning) this.loopId = requestAnimationFrame(looper)
+		}
+		this.start = () => {
+			if (this.animationLoopRunning) return
+			this.animationLoopRunning = true
+			looper()
 		}
 		if (autoStart)
 		{
-			looper()
+			this.start()
 		}
-		this.start = looper
 	}
 
 	movePersonButton(person, prediction){
@@ -313,7 +340,7 @@ export default class AbstractDisplay{
 	/**
 	 * Empty the canvas and paint it transparent
 	 */
-	clear() { }
+	clear() { this.effectsContext?.clearRect(0, 0, this.width, this.height) }
 
 	/**
 	 * Draw a Person model to the screen
@@ -323,21 +350,34 @@ export default class AbstractDisplay{
 	/**
 	 * Draw a Person model to the screen
 	 */
-	drawElement( person, beatJustPlayed, colours ){}
+	drawElement(element, x = 0, y = 0, flip = false, width = this.width, height = this.height){
+		const context = this.getEffectsContext()
+		if (!context) return
+		context.save()
+		if (flip) { context.translate(width, 0); context.scale(-1, 1) }
+		context.drawImage(element, x, y, width, height)
+		context.restore()
+	}
 	
 	/**
 	 * VU Meter bars
 	 * @param {FFT} dataArray 
 	 * @param {Number} bufferLength 
 	 */
-	drawBars( dataArray, bufferLength ){}
+	drawBars(dataArray, bufferLength){
+		const context = this.getEffectsContext()
+		if (context) drawBars(context, dataArray, bufferLength)
+	}
 	
 	/**
 	 * VU Visuals feast!
 	 * @param {FFT} dataArray 
 	 * @param {Number} bufferLength 
 	 */
-	drawVisualiser( dataArray, bufferLength, type, timeData, notes ){}
+	drawVisualiser(dataArray, bufferLength, type, timeData, notes){
+		const context = this.getEffectsContext()
+		if (context) drawVisualiser(context, dataArray, bufferLength, type, timeData, notes)
+	}
 
 	drawInstrument(boundingBox, instrumentName, extra){}
 
@@ -502,6 +542,10 @@ export default class AbstractDisplay{
 		}
 		this.canvas.width = this.canvasWidth = width
 		this.canvas.height = this.canvasHeight = height
+		if (this.effectsCanvas) {
+			this.effectsCanvas.width = width
+			this.effectsCanvas.height = height
+		}
 		
 		this.onResize(width, height)
 		return true

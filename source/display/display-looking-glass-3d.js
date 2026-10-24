@@ -25,6 +25,7 @@
 import { LookingGlassWebXRPolyfill, LookingGlassConfig } from "@lookingglass/webxr/dist/bundle/webxr.js"
 
 import * as THREE from "three"
+import { attachLookingGlassButtons } from './looking-glass-buttons.js'
 
 // import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 // import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
@@ -62,7 +63,7 @@ const LOOKING_GLASS_PORTRAIT_WIDTH = 480
 const LOOKING_GLASS_PORTRAIT_HEIGHT = 720
 
 let openXRButton = null
-let connectHardwareButtons = false
+let connectHardwareButtons = true
 
 export const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS = {
 	...DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
@@ -70,10 +71,11 @@ export const DEFAULT_OPTIONS_DISPLAY_LOOKING_GLASS = {
 	...DEFAULT_WALL_OPTIONS,
 	...createWallDisplayOptions(LOOKING_GLASS_PORTRAIT_WIDTH, LOOKING_GLASS_PORTRAIT_HEIGHT, {
 		wallAttachToCamera: false,
-		wallFrontZ: -1.35,
-		wallHeight: 8.4,
+		wallFrontZ: 1.5,
+		wallHeight: 2,
+		wallAspectRatio: .75,
 		wallDepthMultiplier: 4.8,
-		wallBackScale: 0.72
+		wallBackScale: 1
 	}),
 	...DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES,
 	controls:"#shared-controls"
@@ -190,7 +192,8 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 	}
 
 	addSideButtonControls(){
-		// NB. Holo buttons dont do anything!
+		this.portraitButtons?.dispose()
+		this.portraitButtons = attachLookingGlassButtons(this.renderer, LookingGlassConfig, this.options.portraitButtons || {})
 		// HoloPlay.Buttons will emit events when the display's buttons are touched
 		// this.controls = new HoloPlayCore.Buttons()
 		// this.controls.addEventListener('buttonPressed', this.onLookingGlassControls)	
@@ -198,6 +201,8 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 	}
 
 	removeSideButtonControls(){
+		this.portraitButtons?.dispose()
+		this.portraitButtons = null
 		
 		// const Bridge = BridgeClient.getInstance()
 		// HoloPlay.Buttons will emit events when the display's buttons are touched
@@ -206,6 +211,7 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 	}
 
 	async create(keypointQuantity=478, options={}){
+		this.mirrorCalibration = LookingGlassConfig
 
 		await withLookingGlassXRCompatibility(() => super.create(keypointQuantity, options))
 
@@ -235,6 +241,7 @@ export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 	 * @returns 
 	 */
 	async destroy(){
+		this.removeSideButtonControls()
 		if (this.controls)
 		{
 			this.removeSideButtonControls()		
