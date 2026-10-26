@@ -25,6 +25,11 @@ export const DEFAULT_KICK_OPTIONS = {
 	// oscillator frequency. 1 is the explicitly configured pitch range.
 	pitchStartRatio:1,
 	pitchEndRatio:1,
+	// A short upper body leaves room for the longer sine thump.
+	bodyLengthRatio:0.42,
+	bodyGain:0.65,
+	bodySustain:0.2,
+	subGain:0.9,
 
 	// frequencies
 	triStart:110,

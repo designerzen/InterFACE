@@ -1,5 +1,6 @@
 import { ZERO } from '../audio-constants.js'
 import {createQueue, chokeGains} from '../synthesizers'
+import { getVelocityTone } from './percussion-envelope.js'
 
 // Clap presets live in their own file - re-export for backwards compat
 export {
@@ -86,10 +87,11 @@ export const createClap = ( audioContext, output ) => {
 		// Older presets used `6` as if BiquadFilter.gain controlled a high-pass.
 		// Preserve those presets with a musically useful cutoff instead.
 		const highpass = options.highpass > 20 ? options.highpass : DEFAULT_CLAP_OPTIONS.highpass
+		const brightness = getVelocityTone(options, 0.3)
 		highpassFilter.frequency.cancelScheduledValues(time)
-		highpassFilter.frequency.setValueAtTime(highpass, time)
+		highpassFilter.frequency.setValueAtTime(highpass * brightness, time)
 		bandpassFilter.frequency.cancelScheduledValues(time)
-		bandpassFilter.frequency.setValueAtTime(options.bandpass, time)
+		bandpassFilter.frequency.setValueAtTime(options.bandpass * brightness, time)
 		bandpassFilter.Q.cancelScheduledValues(time)
 		bandpassFilter.Q.setValueAtTime(options.bandpassQ, time)
 

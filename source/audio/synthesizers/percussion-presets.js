@@ -1,3 +1,5 @@
+import { DRUM_STYLES, STYLE_DRUM_GROOVES } from '../../timing/drum-styles.js'
+
 /**
  * Curated drum-kit presets.  These are deliberately combinations of the
  * existing kick, snare and hi-hat voices so a preset can be applied without
@@ -119,6 +121,47 @@ export const PERCUSSION_PRESETS = [
 	{ id:"hardstyle-impact", group:"Heavy", title:"Hardstyle Impact", kit:{kick:"Hardstyle Kick",snare:"Heavy Snare",hat:"Metallic Closed Hihat"}, seed:"hardstyle-impact", intent:{energy:0.98,density:0.76,tension:0.84,fillChance:0.3,rollChance:0.24,chaos:0.28}, phraseBars:4 }
 ]
 
+// Compact drum-kit adaptations: the names describe the rhythmic structure,
+// while the existing synthesis voices provide its available instrumental colour.
+PERCUSSION_PRESETS.push(
+	...[
+		['son-clave-3-2','Cuban','Son Clave 3–2',16],
+		['son-clave-2-3','Cuban','Son Clave 2–3',16],
+		['ewe-bell-12','Ghanaian','Ewe-inspired 12-pulse Bell',12],
+		['rachenitsa-7-8','Bulgarian','Rachenitsa-inspired 7/8 · 2+2+3',14],
+		['karsilama-9-8','Turkish','Karsilama-inspired 9/8 · 2+2+2+3',18],
+		['maqsum','Arabic','Maqsum-inspired 4/4',8],
+		['samai-thaqil','Arabic / Turkish','Sama‘i Thaqil-inspired 10/8',20],
+		['tintal-16','Hindustani','Tintal-inspired 16-beat Cycle',32],
+		['bulerias-12','Flamenco','Bulerías-inspired 12-count Compás',12],
+	].map(([id,group,title,stepsPerBar]) => ({id,group,title,groove:id,seed:id,stepsPerBar,phraseBars:4,
+		kit:{kick:'Vintage Acoustic Kick',snare:'Rim Shot Snare',hat:'Short Open Hihat',congaLow:'727-style Low Conga',congaHigh:'727-style Open High Conga',congaMute:'727-style Mute High Conga',claves:'Clave',agogoHigh:'727-style High Agogo'},
+		intent:{energy:0.5,density:0.5,tension:0.2,fillChance:0.04,rollChance:0.02,chaos:0.04}})),
+	...['crescendo','bridge','snare-roll','breakdown','drop'].map(name => ({
+		id:`performance-${name}`, group:'Performance', title:`Performance ${name.replaceAll('-', ' ')}`,
+		groove:`performance-${name}`, seed:`performance-${name}`, phraseBars:4, stepsPerBar:16,
+		kit:{kick:'Vintage Acoustic Kick',snare:'Acoustic Snare',hat:'Short Open Hihat'},
+		intent:{energy:0.65,density:0.5,tension:0.3,fillChance:0.1,rollChance:0.05,chaos:0.04},
+	})),
+)
+
+// Use the same lightweight voices for additional timing companions. Existing
+// named presets keep their IDs and kits so saved selections remain valid.
+for (const style of DRUM_STYLES) {
+	const existing = PERCUSSION_PRESETS.find(preset => preset.id === style.id)
+	if (existing) {
+		existing.description ??= style.description
+		continue
+	}
+	PERCUSSION_PRESETS.push({
+		...style, seed:style.id, phraseBars:4,
+		stepsPerBar:STYLE_DRUM_GROOVES[style.groove]?.stepsPerBar ??
+			PERCUSSION_PRESETS.find(preset => preset.groove === style.groove)?.stepsPerBar ?? 16,
+		kit:{kick:'Vintage Acoustic Kick',snare:'Acoustic Snare',hat:'Short Open Hihat',cowbell:false},
+		intent:{energy:0.5,density:0.5,tension:0.2,fillChance:0.04,rollChance:0.02,chaos:0.04},
+	})
+}
+
 // Sound-only machine kits. They deliberately live outside PERCUSSION_PRESETS,
 // so choosing one changes timbre without replacing the selected arrangement.
 export const PERCUSSION_MACHINE_PRESETS = [
@@ -157,6 +200,10 @@ for (const preset of ALL_PERCUSSION_PRESETS)
 	PERCUSSION_PRESETS_BY_VALUE.set(preset.title, preset)
 	PERCUSSION_PRESET_ALIASES.set(createPresetLookupKey(preset.id), preset)
 	PERCUSSION_PRESET_ALIASES.set(createPresetLookupKey(preset.title), preset)
+}
+
+for (const style of DRUM_STYLES) {
+	PERCUSSION_PRESET_ALIASES.set(createPresetLookupKey(style.title), PERCUSSION_PRESETS_BY_VALUE.get(style.id))
 }
 
 export const getPercussionPreset = value => {

@@ -1,3 +1,5 @@
+import { getVelocityTone } from './percussion-envelope.js'
+
 /**
  * Snare drum presets
  *
@@ -54,7 +56,7 @@ export const getSnareVoiceLevels = options => ({
 	noise:options.velocity * options.noiseLevel,
 	body:options.velocity * options.bodyLevel,
 	shell:options.velocity * options.shellLevel,
-	crack:options.velocity * options.crackLevel
+	crack:options.velocity * options.crackLevel * getVelocityTone(options) ** 2
 })
 
 const preset = (overrides) => Object.assign({}, DEFAULT_SNARE_OPTIONS, overrides)

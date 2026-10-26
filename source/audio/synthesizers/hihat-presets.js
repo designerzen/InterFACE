@@ -743,6 +743,7 @@ export const OPEN_HIHAT_DARK = open({
 })
 
 export const OPEN_HIHAT_CRASH = open({
+	cymbal:true,
 	name:"Crash-style Open Hihat",
 	velocity:1,
 	length:2.5,
@@ -766,6 +767,7 @@ export const OPEN_HIHAT_CRASH = open({
 })
 
 export const OPEN_HIHAT_CRASH_WARM = open({
+	cymbal:true,
 	name:"Warm Studio Crash",
 	velocity:0.92,
 	length:2.8,
@@ -789,6 +791,7 @@ export const OPEN_HIHAT_CRASH_WARM = open({
 })
 
 export const OPEN_HIHAT_CRASH_THIN = open({
+	cymbal:true,
 	name:"Thin Jazz Crash",
 	velocity:0.86,
 	length:1.9,
@@ -812,6 +815,7 @@ export const OPEN_HIHAT_CRASH_THIN = open({
 })
 
 export const OPEN_HIHAT_CRASH_DARK = open({
+	cymbal:true,
 	name:"Vintage Dark Crash",
 	velocity:0.9,
 	length:3.2,
@@ -835,6 +839,7 @@ export const OPEN_HIHAT_CRASH_DARK = open({
 })
 
 export const OPEN_HIHAT_CRASH_SUSPENDED = open({
+	cymbal:true,
 	name:"Suspended Cymbal Swell",
 	velocity:0.82,
 	length:3.6,
@@ -858,6 +863,7 @@ export const OPEN_HIHAT_CRASH_SUSPENDED = open({
 })
 
 export const OPEN_HIHAT_RIDE = open({
+	cymbal:true,
 	name:"Ride-style Open Hihat",
 	velocity:1.0,
 	length:1.0,
@@ -873,12 +879,14 @@ export const OPEN_HIHAT_RIDE = open({
 })
 
 export const OPEN_HIHAT_SPLASH = open({
+	cymbal:true,
 	name:"Splash Cymbal", velocity:1.05, length:0.72, fundamental:64,
 	attack:0.0002, decay:0.08, sustain:0.78, release:0.38,
 	highpass:7200, bandpass:11200, ratios:[2.1,3.3,4.8,6.2,8.1,10.4], type:"square",
 })
 
 export const OPEN_HIHAT_CHINA = open({
+	cymbal:true,
 	name:"China Cymbal", velocity:1.18, length:1.35, fundamental:43,
 	attack:0.0002, decay:0.13, sustain:0.82, release:0.7,
 	highpass:4300, bandpass:7600, ratios:[1.7,2.65,4.2,5.45,7.2,9.8], type:"square",

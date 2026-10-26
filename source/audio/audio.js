@@ -76,6 +76,7 @@ let distortion
 let lowPassFilter
 let saturator
 let reverb
+let recordableOutput
 let delay
 let dub
 let gain
@@ -106,7 +107,7 @@ export const getMasterMixdown = () => {
  * @returns Post FX node but before mixer
  */
 export const getRecordableOutputNode = () => {
-	return reverb.node
+	return recordableOutput
 }
 
 // // just does linear connects in sequence for easier protyping
@@ -282,7 +283,7 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, analys
 	// 			gainNode, reverb, 
 	// 				compressor.node, analyser], audioContext )
 
-	return chain( [
+	return recordableOutput = chain( [
 
 		// gain,
 
@@ -304,7 +305,8 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, analys
 		// 	0.25
 		// )
 		// ,
-		reverb,
+		// App reverb belongs to SoundFont voices. Engines with their own
+		// effects must reach the shared analyser/mixer without another reverb.
 
 		//await createDelay(audioContext)
 		//await createDub(audioContext)

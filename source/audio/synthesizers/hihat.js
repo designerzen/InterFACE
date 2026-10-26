@@ -80,31 +80,23 @@ export {
 } from './hihat-presets.js'
 
 import { DEFAULT_CLOSED_HIHAT } from './hihat-presets.js'
-import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
+import { getVelocityEnvelopeLevels, getVelocityTone } from './percussion-envelope.js'
+import { getPercussionNoiseBuffer } from './percussion-noise.js'
+import { createCymbal } from './cymbal.js'
 
 /**
  * 
  * Create an instance of the hi-hat instrument
  * @returns {Function} trigger start method
  */
-const noiseBuffers = new WeakMap()
 const MAX_NOISE_VOICES = 4
 
-const getNoiseBuffer = audioContext => {
-	let noiseBuffer = noiseBuffers.get(audioContext)
-	if (noiseBuffer) return noiseBuffer
-	noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * 4), audioContext.sampleRate)
-	const noiseData = noiseBuffer.getChannelData(0)
-	for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1
-	noiseBuffers.set(audioContext, noiseBuffer)
-	return noiseBuffer
-}
-
-export const createHihat = (audioContext, output ) => {
+const createLiveHihat = (audioContext, output) => {
 
 	let isRunning = false
 	const noiseVoices = []
     const gainNode = audioContext.createGain()
+	gainNode.gain.value = ZERO
     const {ratios, fundamental, bandpass, highpass, type} = DEFAULT_CLOSED_HIHAT
 
     const bandpassFilter = audioContext.createBiquadFilter()
@@ -164,6 +156,8 @@ export const createHihat = (audioContext, output ) => {
 	const hihat = ( options=DEFAULT_CLOSED_HIHAT )=>{
 
 		options = Object.assign({},DEFAULT_CLOSED_HIHAT,options)
+		const brightness = getVelocityTone(options)
+		const safeFrequency = value => Math.min(audioContext.sampleRate * 0.45, Math.max(20, value * brightness))
 
 		const requestedTime = Number(options.triggerAt)
 		const time = Number.isFinite(requestedTime) && requestedTime > 0
@@ -179,16 +173,16 @@ export const createHihat = (audioContext, output ) => {
 		}
 		
 		bandpassFilter.frequency.cancelScheduledValues(time)
-		bandpassFilter.frequency.setValueAtTime(options.bandpass, time)
+		bandpassFilter.frequency.setValueAtTime(safeFrequency(options.bandpass), time)
 		bandpassFilter.Q.cancelScheduledValues(time)
 		bandpassFilter.Q.setValueAtTime(options.bandpassQ, time)
 
 		// high pass filter
 		highpassFilter.frequency.cancelScheduledValues(time)
-		highpassFilter.frequency.setValueAtTime(options.highpass, time)
+		highpassFilter.frequency.setValueAtTime(safeFrequency(options.highpass), time)
 
 		// Remove the brittle top octave while retaining the metallic band.
-		const safeLowpass = Math.min(options.lowpass, audioContext.sampleRate * 0.45)
+		const safeLowpass = safeFrequency(options.lowpass)
 		lowpassFilter.frequency.cancelScheduledValues(time)
 		lowpassFilter.frequency.setValueAtTime(safeLowpass, time)
 	
@@ -221,10 +215,11 @@ export const createHihat = (audioContext, output ) => {
 			const noiseAttackEnd = time + options.noiseAttack
 			const noiseDecayEnd = Math.min(time + options.length - options.release, noiseAttackEnd + options.noiseDecay)
 
-			noise.buffer = getNoiseBuffer(audioContext)
-			noiseHighpass.frequency.setValueAtTime(options.noiseHighpass, time)
+			noise.buffer = getPercussionNoiseBuffer(audioContext)
+			noise.loop = true
+			noiseHighpass.frequency.setValueAtTime(safeFrequency(options.noiseHighpass), time)
 			noiseLowpass.frequency.setValueAtTime(
-				Math.min(options.noiseLowpass, audioContext.sampleRate * 0.45), time
+				safeFrequency(options.noiseLowpass), time
 			)
 			noiseGain.gain.cancelScheduledValues(time)
 			noiseGain.gain.setValueAtTime(ZERO, time)
@@ -233,7 +228,7 @@ export const createHihat = (audioContext, output ) => {
 			noiseGain.gain.linearRampToValueAtTime(ZERO, time + options.length)
 
 			noise.connect(noiseHighpass)
-			noise.start(time)
+			noise.start(time, Math.random() * 4)
 			noise.stop?.(time + options.length)
 			noise.onended = () => noise.disconnect?.()
 			noiseVoice.source = noise
@@ -253,6 +248,33 @@ export const createHihat = (audioContext, output ) => {
 	}
 	hihat.choke = (duration, chokeAt) => {
 		chokeGains(audioContext, [gainNode.gain, ...noiseVoices.map(voice => voice.gain.gain)], duration, chokeAt)
+	}
+	return hihat
+}
+
+// Cymbal-only instruments never allocate or run the six live hat oscillators.
+export const createHihat = (audioContext, output) => {
+	let liveHihat
+	const cymbal = createCymbal(audioContext, output)
+	const hihat = (hitOptions=DEFAULT_CLOSED_HIHAT) => {
+		const options = { ...DEFAULT_CLOSED_HIHAT, ...hitOptions }
+		if (options.cymbal) {
+			const result = cymbal(options)
+			if (result !== false) return result
+		}
+		liveHihat ??= createLiveHihat(audioContext, output)
+		return liveHihat(options)
+	}
+	hihat.prepare = options => {
+		if (options.cymbal) cymbal.prepare({ ...DEFAULT_CLOSED_HIHAT, ...options })
+	}
+	hihat.cancel = () => {
+		liveHihat?.cancel()
+		cymbal.cancel()
+	}
+	hihat.choke = (duration, chokeAt) => {
+		liveHihat?.choke(duration, chokeAt)
+		cymbal.choke(duration, chokeAt)
 	}
 	return hihat
 }

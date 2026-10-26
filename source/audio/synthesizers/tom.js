@@ -46,14 +46,16 @@ export {
 } from './tom-presets.js'
 
 import { DEFAULT_TOM_OPTIONS } from './tom-presets.js'
-import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
+import { getVelocityEnvelopeLevels, getVelocityTone } from './percussion-envelope.js'
 import { resolvePercussionPitchEnvelope, schedulePercussionPitchEnvelope } from './percussion-pitch-envelope.js'
+import { createPercussionDynamics } from './percussion-dynamics.js'
 
 /**
  * Kick me!
  * @returns {Function} trigger start method
  */
 export const createTom = (audioContext, output ) => {
+	const strike = createPercussionDynamics()
 
 	const triangleOscillator = audioContext.createOscillator()
 	const sineOscillator = audioContext.createOscillator()
@@ -71,6 +73,11 @@ export const createTom = (audioContext, output ) => {
 		const requestedTime = options.triggerAt > 0 ? options.triggerAt : audioContext.currentTime + ZERO
 		const time = Math.max(audioContext.currentTime, requestedTime)
 		const endAt = time + options.length
+		const dynamics = strike(options, time)
+		const bodyEndAt = time + options.length * dynamics.bodyDecay
+		const ringEndAt = time + options.length * dynamics.ringDecay
+		const bodyAttackAt = Math.min(bodyEndAt, time + options.attack)
+		const ringAttackAt = Math.min(ringEndAt, time + options.attack)
 		
 		// console.log("KICK", options )
 
@@ -99,11 +106,12 @@ export const createTom = (audioContext, output ) => {
 
 		// TRIANGLE
 		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
-		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
+		gainTriangle.gain.exponentialRampToValueAtTime(Math.max(ZERO, levels.peak * dynamics.ringGain), ringAttackAt)
+		gainTriangle.gain.exponentialRampToValueAtTime(Math.max(ZERO, levels.sustain * dynamics.ringGain), Math.min(ringEndAt, ringAttackAt + options.decay))
+		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, ringEndAt)
 
 		const pitch = resolvePercussionPitchEnvelope(options, time, endAt)
+		pitch.startRatio *= getVelocityTone(options, 0.2) * dynamics.pitchAttack
 		schedulePercussionPitchEnvelope(triangleOscillator.frequency, {
 			start:options.triStart,
 			end:options.triEnd,
@@ -111,9 +119,9 @@ export const createTom = (audioContext, output ) => {
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
-		gainSine.gain.exponentialRampToValueAtTime(levels.peak, time + options.attack)
-		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, time + options.attack + options.decay)
-		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
+		gainSine.gain.exponentialRampToValueAtTime(Math.max(ZERO, levels.peak * dynamics.bodyGain), bodyAttackAt)
+		gainSine.gain.exponentialRampToValueAtTime(Math.max(ZERO, levels.sustain * dynamics.bodyGain), Math.min(bodyEndAt, bodyAttackAt + options.decay))
+		gainSine.gain.exponentialRampToValueAtTime(ZERO, bodyEndAt)
 
 		schedulePercussionPitchEnvelope(sineOscillator.frequency, {
 			start:options.sineStart,
@@ -134,6 +142,7 @@ export const createTom = (audioContext, output ) => {
 	gainSine.connect(output)
 
 	tom.cancel = () => {
+		strike.reset()
 		const now = audioContext.currentTime
 		gainTriangle.gain.cancelScheduledValues(now)
 		gainTriangle.gain.setValueAtTime(ZERO, now)

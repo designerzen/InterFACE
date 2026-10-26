@@ -102,6 +102,7 @@ export const createDrumkit = ( audioContext, output, options={} ) => {
 		return tunedVoice
 	}
 	const wrapPresetVoice = (part, voice, preset) => {
+		voice.prepare?.(preset)
 		const midiVoice = wrapMIDIVoice(part, voice)
 		const presetVoice = (voiceOptions={}) => midiVoice({ ...preset, ...voiceOptions })
 		presetVoice.cancel = voice.cancel

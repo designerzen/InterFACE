@@ -67,8 +67,9 @@ export {
 } from './kick-presets.js'
 
 import { DEFAULT_KICK_OPTIONS } from './kick-presets.js'
-import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
+import { getVelocityEnvelopeLevels, getVelocityTone } from './percussion-envelope.js'
 import { resolvePercussionPitchEnvelope, schedulePercussionPitchEnvelope } from './percussion-pitch-envelope.js'
+import { createPercussionDynamics } from './percussion-dynamics.js'
 
 export const DEFAULT_KICK_VOICES = 8
 const VOICE_STEAL_RELEASE = 0.005
@@ -95,6 +96,7 @@ const getEnvelopeValueAtTime = (voice, time) => {
  * @returns {Function} trigger start method
  */
 export const createKick = (audioContext, output, poolOptions={}) => {
+	const strike = createPercussionDynamics()
 	const requestedVoices = Number(poolOptions.maxVoices ?? DEFAULT_KICK_VOICES)
 	const maxVoices = Number.isFinite(requestedVoices)
 		? Math.max(1, Math.floor(requestedVoices))
@@ -114,10 +116,12 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 			return
 		}
 		const stopAt = Math.min(voice.endAt, startAt + Math.max(fadeDuration, ZERO))
-		const level = getEnvelopeValueAtTime(voice, startAt)
-
-		voice.gains.forEach(gain => {
+		voice.envelopes.forEach(envelope => {
+			const { gain } = envelope
+			const level = getEnvelopeValueAtTime(envelope, startAt)
 			gain.cancelScheduledValues(startAt)
+			// Preserve the preceding ramp when its scheduled end is cancelled.
+			gain.exponentialRampToValueAtTime(Math.max(level, ZERO), startAt)
 			gain.setValueAtTime(Math.max(level, ZERO), startAt)
 			gain.exponentialRampToValueAtTime(ZERO, stopAt)
 		})
@@ -155,6 +159,7 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 			? Math.max(audioContext.currentTime, options.triggerAt)
 			: audioContext.currentTime + ZERO
 		const time = reserveVoice(requestedTime)
+		const dynamics = strike(options, time)
 		const length = clampPositive(options.length)
 		const endAt = time + length
 		const attackEndAt = time + Math.min(length, clampPositive(options.attack))
@@ -174,14 +179,25 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 
 		// set new envelopes
 		const levels = getVelocityEnvelopeLevels(options)
+		const bodyEndAt = time + Math.min(length, clampPositive(length * options.bodyLengthRatio * dynamics.bodyDecay))
+		const bodyAttackEndAt = Math.min(bodyEndAt, attackEndAt)
+		const bodyDecayEndAt = Math.min(bodyEndAt, bodyAttackEndAt + Math.max(ZERO, (bodyEndAt - bodyAttackEndAt) * 0.35))
+		const bodyLevels = {
+			peak:Math.max(ZERO, levels.peak * options.bodyGain * getVelocityTone(options) * dynamics.attackGain),
+			sustain:Math.max(ZERO, levels.sustain * options.bodyGain * options.bodySustain * dynamics.bodyGain),
+		}
+		const subLevels = {
+			peak:Math.max(ZERO, levels.peak * options.subGain),
+			sustain:Math.max(ZERO, levels.sustain * options.subGain),
+		}
 		const voice = {
 			startAt:time,
-			attackEndAt,
-			decayEndAt,
-			releaseStartAt,
 			endAt,
-			levels,
-			gains:[gainTriangle.gain, gainSine.gain],
+			envelopes:[
+				{ gain:gainTriangle.gain, startAt:time, attackEndAt:bodyAttackEndAt, decayEndAt:bodyDecayEndAt,
+					releaseStartAt:bodyDecayEndAt, endAt:bodyEndAt, levels:bodyLevels },
+				{ gain:gainSine.gain, startAt:time, attackEndAt, decayEndAt, releaseStartAt, endAt, levels:subLevels },
+			],
 			oscillators:[mainOscillator, subOscillator],
 			stopped:false,
 		}
@@ -189,12 +205,12 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 
 		// TRIANGLE
 		gainTriangle.gain.setValueAtTime(ZERO, time)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.peak, attackEndAt)
-		gainTriangle.gain.exponentialRampToValueAtTime(levels.sustain, decayEndAt)
-		gainTriangle.gain.setValueAtTime(levels.sustain, releaseStartAt)
-		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, endAt)
+		gainTriangle.gain.exponentialRampToValueAtTime(bodyLevels.peak, bodyAttackEndAt)
+		gainTriangle.gain.exponentialRampToValueAtTime(bodyLevels.sustain, bodyDecayEndAt)
+		gainTriangle.gain.exponentialRampToValueAtTime(ZERO, bodyEndAt)
 
 		const pitch = resolvePercussionPitchEnvelope(options, time, endAt)
+		pitch.startRatio *= getVelocityTone(options, 0.3) * dynamics.pitchAttack
 		schedulePercussionPitchEnvelope(mainOscillator.frequency, {
 			start:options.triStart,
 			end:options.triEnd,
@@ -202,9 +218,9 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 	
 		// SINE
 		gainSine.gain.setValueAtTime(ZERO, time)
-		gainSine.gain.exponentialRampToValueAtTime(levels.peak, attackEndAt)
-		gainSine.gain.exponentialRampToValueAtTime(levels.sustain, decayEndAt)
-		gainSine.gain.setValueAtTime(levels.sustain, releaseStartAt)
+		gainSine.gain.exponentialRampToValueAtTime(subLevels.peak, attackEndAt)
+		gainSine.gain.exponentialRampToValueAtTime(subLevels.sustain, decayEndAt)
+		gainSine.gain.setValueAtTime(subLevels.sustain, releaseStartAt)
 		gainSine.gain.exponentialRampToValueAtTime(ZERO, endAt)
 
 		schedulePercussionPitchEnvelope(subOscillator.frequency, {
@@ -216,9 +232,9 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 
 		mainOscillator.start(time)
 		subOscillator.start(time)
-		mainOscillator.stop(endAt)
+		mainOscillator.stop(bodyEndAt)
 		subOscillator.stop(endAt)
-		mainOscillator.onended = () => {
+		subOscillator.onended = () => {
 			removeVoice(voice)
 			mainOscillator.disconnect()
 			subOscillator.disconnect()
@@ -230,6 +246,7 @@ export const createKick = (audioContext, output, poolOptions={}) => {
 	}
 
 	kick.cancel = () => {
+		strike.reset()
 		for (const voice of [...activeVoices]) stopVoice(voice, audioContext.currentTime)
 	}
 	kick.choke = (duration=VOICE_STEAL_RELEASE, chokeAt=audioContext.currentTime) => {
