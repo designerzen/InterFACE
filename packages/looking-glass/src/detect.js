@@ -10,11 +10,11 @@ export function isPortraitDevice(device) {
 }
 
 // status distinguishes an unavailable service from a successful query returning zero.
-export function probeLookingGlassPortraits({ timeoutMs = 1500, signal, WebSocket: Socket = globalThis.WebSocket } = {}) {
+export function probeLookingGlassPortraits({ timeoutMs = 1500, signal, includeDevices = false, WebSocket: Socket = globalThis.WebSocket } = {}) {
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new RangeError('timeoutMs must be positive')
   return new Promise(resolve => {
     let socket, timer, finished = false
-    const finish = (status, count = 0) => {
+    const finish = (status, count = 0, devices = []) => {
       if (finished) return
       finished = true
       clearTimeout(timer)
@@ -25,7 +25,7 @@ export function probeLookingGlassPortraits({ timeoutMs = 1500, signal, WebSocket
         socket.onerror = () => {}
         try { socket.close() } catch {}
       }
-      resolve(Object.freeze({ count, status }))
+      resolve(Object.freeze(includeDevices ? { count, status, devices } : { count, status }))
     }
     const abort = () => finish('aborted')
     if (signal?.aborted) return finish('aborted')
@@ -47,7 +47,8 @@ export function probeLookingGlassPortraits({ timeoutMs = 1500, signal, WebSocket
         try {
           if (!(event.data instanceof ArrayBuffer) || event.data.byteLength < 4 ||
               new DataView(event.data).getUint32(0) !== 0x80000001) throw new Error('Invalid reply ID')
-          finish('connected', readInfoResponse(event.data).filter(isPortraitDevice).length)
+          const devices = readInfoResponse(event.data).filter(isPortraitDevice)
+          finish('connected', devices.length, devices)
         } catch { finish('unavailable') }
       }
       socket.onerror = socket.onclose = () => finish('unavailable')
@@ -57,4 +58,10 @@ export function probeLookingGlassPortraits({ timeoutMs = 1500, signal, WebSocket
 
 export async function getConnectedPortraitCount(options) {
   return (await probeLookingGlassPortraits(options)).count
+}
+
+export async function getConnectedPortraits(options = {}) {
+  const result = await probeLookingGlassPortraits({ ...options, includeDevices: true })
+  if (result.status !== 'connected') throw new Error(`Looking Glass device query ${result.status}`)
+  return result.devices
 }

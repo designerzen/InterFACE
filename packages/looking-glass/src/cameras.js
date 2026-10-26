@@ -7,10 +7,14 @@ export function createViewCameras(source, { views }, calibration, { focusDistanc
     throw new RangeError('Invalid focusDistance or depthiness')
   }
   const cameras = Array.from({ length: views }, () => new PerspectiveCamera())
+  let previous = ''
   return {
     cameras,
     update(coordinateSystem = source.coordinateSystem) {
       source.updateWorldMatrix(true, false)
+      const signature = [...source.matrixWorld.elements, source.near, source.far, source.zoom, source.fov,
+        source.filmOffset, source.view?.enabled, coordinateSystem].join(',')
+      if (signature === previous) return cameras
       if (![source.near, source.far, source.zoom, source.fov].every(Number.isFinite) ||
           source.near <= 0 || source.far <= source.near || source.zoom <= 0 || source.fov <= 0 || source.fov >= 180) {
         throw new RangeError('Camera requires valid clipping planes, field of view and zoom')
@@ -41,6 +45,7 @@ export function createViewCameras(source, { views }, calibration, { focusDistanc
         )
         camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
       }
+      previous = signature
       return cameras
     }
   }

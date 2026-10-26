@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { probeLookingGlassPortraits, getConnectedPortraitCount } from '../src/detect.js'
+import { probeLookingGlassPortraits, getConnectedPortraitCount, getConnectedPortraits } from '../src/detect.js'
 
 // Fixture encoder covers the response types used by HoloPlay info, including calibration floats.
 function encode(value) {
@@ -67,6 +67,16 @@ test('zero devices, malformed replies, missing service and cancellation are boun
   assert.equal((await pending).status, 'aborted')
   assert.ok(silent.instance.closed)
   assert.equal(await getConnectedPortraitCount({ WebSocket: null }), 0)
+})
+
+test('renderer setup can request Portrait calibration without loading a vendor SDK', async () => {
+  const connection = transport({ error: 0, devices: [{ calibration: { serial: 'LKG-P123', pitch: 45 } }] })
+  const devices = await getConnectedPortraits({ WebSocket: connection.Socket })
+  assert.equal(devices.length, 1)
+  assert.equal(devices[0].calibration.serial, 'LKG-P123')
+  assert.equal(devices[0].calibration.pitch, 45)
+  assert.ok(connection.instance.closed)
+  await assert.rejects(getConnectedPortraits({ WebSocket: null }), /unavailable/)
 })
 
 test('detection import graph contains no renderer, SDK or Three dependency', async () => {

@@ -8,7 +8,8 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
 let browser
 try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
-    args: ['--enable-unsafe-webgpu', ...(process.env.PLAYWRIGHT_SOFTWARE_GPU ? ['--use-angle=swiftshader', '--use-webgpu-adapter=swiftshader'] : [])] })
+    args: ['--enable-unsafe-webgpu', ...(process.env.PLAYWRIGHT_SOFTWARE_GPU ? ['--use-angle=swiftshader', '--use-webgpu-adapter=swiftshader'] : []),
+      ...JSON.parse(process.env.PLAYWRIGHT_GPU_ARGS ?? '[]')] })
   const page = await browser.newPage()
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
@@ -33,6 +34,8 @@ try {
         quilt: { width: 96, height: 128, columns: 2, rows: 2, views: 4 }
       })
       const renderer = display.renderer
+      // WebGPU texture readbacks retain 256-byte row alignment in this Three release.
+      const stride = backend === 'webgpu' ? 128 : 96
       const scene = new Scene()
       const camera = new PerspectiveCamera(30, .75, .1, 20)
       camera.position.z = 2
@@ -48,14 +51,14 @@ try {
       const scissor = renderer.getScissor(new Vector4()).toArray()
       const quiltPixels = await renderer.readRenderTargetPixelsAsync(display.target, 0, 0, 96, 128)
       const tileColours = [[24, 32], [72, 32], [24, 96], [72, 96]].map(([x, y]) =>
-        Array.from(quiltPixels.slice((y * 96 + x) * 4, (y * 96 + x) * 4 + 4)))
+        Array.from(quiltPixels.slice((y * stride + x) * 4, (y * stride + x) * 4 + 4)))
       // Compile and execute the same output shader into a readable GPU target.
       const output = new RenderTarget(96, 128, { type: UnsignedByteType })
       renderer.setRenderTarget(output)
       renderer.setScissorTest(false)
       display.interlacer.render(renderer)
       const outputPixels = await renderer.readRenderTargetPixelsAsync(output, 0, 0, 96, 128)
-      const outputColour = Array.from(outputPixels.slice((64 * 96 + 48) * 4, (64 * 96 + 48) * 4 + 4))
+      const outputColour = Array.from(outputPixels.slice((64 * stride + 48) * 4, (64 * stride + 48) * 4 + 4))
       renderer.setRenderTarget(null)
       // Distinct view colours detect reversed rows and incorrect subpixel view selection.
       const shades = [32, 80, 128, 224]
@@ -74,11 +77,37 @@ try {
       display.interlacer.render(renderer)
       const indexedPixels = await renderer.readRenderTargetPixelsAsync(output, 0, 0, 96, 128)
       const row = backend === 'webgl2' ? 64 : 63
-      const actualViews = Array.from(indexedPixels.slice((row * 96 + 48) * 4, (row * 96 + 48) * 4 + 3))
+      const actualViews = Array.from(indexedPixels.slice((row * stride + 48) * 4, (row * stride + 48) * 4 + 3))
       const expectedViews = [0, 1, 2].map(channel => shades[getViewIndex(48.5 / 96, 64.5 / 128, channel, display.calibration, 4)])
       renderer.setRenderTarget(null)
       indexedMaterial.dispose()
       output.dispose()
+      if (backend === 'webgpu') {
+        const { createGPUMirrorLifecycle } = await import('/photosynth/display/mirror-gpu.js')
+        renderer.backend.device.pushErrorScope('validation')
+        const gpuScene = new Scene()
+        const gpu = createGPUMirrorLifecycle({ renderer, scene: gpuScene, options: { particeSize: .08 },
+          particles: { material: { color: material.color } } }, 128)
+        gpu.targetsChanged()
+        gpu.tick(true, 0)
+        for (let frame = 0; frame < 240; frame++) {
+          gpu.tick(true, 1 / 60)
+          if (frame % 10 === 0) await new Promise(resolve => setTimeout(resolve, 10))
+        }
+        await renderer.backend.device.queue.onSubmittedWorkDone()
+        await new Promise(resolve => setTimeout(resolve, 120))
+        gpu.tick(true, 1 / 60)
+        await renderer.backend.device.queue.onSubmittedWorkDone()
+        await new Promise(resolve => setTimeout(resolve, 30))
+        if (gpu.mode !== 'settled') throw new Error(`GPU particles failed to settle: ${gpu.mode}`)
+        if ('positions' in gpu || 'velocities' in gpu) throw new Error('Particle state leaked CPU position/velocity arrays')
+        renderer.render(gpuScene, camera)
+        gpu.tick(false, 1 / 60)
+        if (gpu.mode !== 'falling') throw new Error('GPU death transition failed')
+        const error = await renderer.backend.device.popErrorScope()
+        if (error) throw new Error(error.message)
+        gpu.dispose()
+      }
       let failureRestored = false
       try { display.render(scene, camera, { update() { throw new Error('test update failure') } }) }
       catch { failureRestored = !display.rendering && scene.matrixWorldAutoUpdate }

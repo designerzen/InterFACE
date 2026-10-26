@@ -17,9 +17,11 @@ export function createServer() {
   return http.createServer(async (request, response) => {
     try {
       const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname)
+      if (pathname === '/favicon.ico') { response.writeHead(204).end(); return }
       const isThree = pathname.startsWith('/three/')
-      const base = isThree ? threeRoot : root
-      const relative = isThree ? pathname.slice(7) : pathname === '/' ? 'examples/index.html' : pathname.slice(1)
+      const isSource = pathname.startsWith('/photosynth/')
+      const base = isSource ? path.resolve(root, '../../source') : isThree ? threeRoot : root
+      const relative = isSource ? pathname.slice(12) : isThree ? pathname.slice(7) : pathname === '/' ? 'examples/index.html' : pathname.slice(1)
       const filename = path.resolve(base, relative)
       if (!filename.startsWith(path.resolve(base) + path.sep)) {
         response.writeHead(403).end()
