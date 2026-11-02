@@ -58,11 +58,14 @@ static/@mediapipe/**/*
 # !static/@mediapipe/tasks-vision/
 !static/@mediapipe/tasks-vision/wasm/**
 !static/@mediapipe/tasks-vision/wasm/
-
+test-results/
 static/assets/audio/*
 !static/assets/audio/acoustics/*
 !static/assets/audio/*.json
-!static/assets/audio/OpenGM24/
+/static/assets/audio/OpenGM24/
+/static/assets/audio/OpenGM24.json
+/static/assets/audio/OpenGM24.LICENSE.txt
+/static/zxing/
 !static/assets/audio/fx/
 !static/assets/audio/fx/meme/
 !static/assets/audio/fx/meme/*.mp3
