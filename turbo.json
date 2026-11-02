@@ -1,0 +1,61 @@
+{
+	"$schema": "https://turborepo.com/schema.json",
+	"tasks": {
+		"//#copy": {
+			"inputs": ["actions/copy.mjs"],
+			"outputs": [
+				"static/@mediapipe/face_mesh/**",
+				"static/@mediapipe/tasks-vision/**",
+				"static/@litertjs/**",
+				"static/zxing/**"
+			]
+		},
+		"//#zips": {
+			"inputs": ["actions/zips.mjs", "source/assets/audio/wave-tables/**/*.json"],
+			"outputs": ["source/assets/audio/wave-tables/*.zip"]
+		},
+		"//#streamdeck:build": {
+			"inputs": [
+				"actions/build-profile.mjs",
+				"source/settings/palette.js",
+				"source/assets/icons/*.svg"
+			],
+			"outputs": [
+				"static/PhotoSYNTH/**",
+				"static/PhotoSYNTH-Stream-Deck/**",
+				"static/PhotoSYNTH.streamDeckProfile",
+				"static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
+			]
+		},
+		"//#build:web:parcel": {
+			"dependsOn": ["//#copy", "//#zips", "//#streamdeck:build"],
+			"inputs": [
+				"source/**",
+				"static/**",
+				"!source/electron/**",
+				"!source/partykit/**",
+				"!source/assets/audio/wave-tables/*.zip",
+				"!static/@mediapipe/face_mesh/**",
+				"!static/@mediapipe/tasks-vision/*.*",
+				"!static/@litertjs/**",
+				"!static/zxing/**",
+				"!static/PhotoSYNTH/**",
+				"!static/PhotoSYNTH-Stream-Deck/**",
+				"!static/PhotoSYNTH.streamDeckProfile",
+				"!static/PhotoSYNTH-Stream-Deck.streamDeckProfile",
+				"actions/clean-web.mjs",
+				"actions/offline.mjs",
+				"actions/room-pages.mjs",
+				".parcelrc",
+				".pugrc.js",
+				".babelrc",
+				".browserslist",
+				".htmlnanorc",
+				".env*"
+			],
+			"env": ["NODE_ENV", "PHOTOSYNTH_*", "BROWSERSLIST_ENV", "BROWSERSLIST", "SOURCE_DATE_EPOCH"],
+			"passThroughEnv": ["NODE_OPTIONS"],
+			"outputs": ["releases/web/**"]
+		}
+	}
+}
