@@ -6,7 +6,7 @@ describe('named drum grooves', () => {
 			expect(lanes.kick.length).toBe(lanes.snare.length)
 			expect(lanes.kick.length).toBe(lanes.hat.length)
 			expect(lanes.kick.length).toBe(lanes.clap.length)
-			expect(lanes.kick.length).toBeGreaterThanOrEqual(16)
+			expect(lanes.kick.length).toBeGreaterThanOrEqual(lanes.stepsPerBar)
 			for (const velocity of [lanes.kick, lanes.snare, lanes.hat, lanes.clap].flat()) {
 				expect(velocity).toBeGreaterThanOrEqual(0)
 				expect(velocity).toBeLessThanOrEqual(255)

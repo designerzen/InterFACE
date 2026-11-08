@@ -6,6 +6,7 @@ import {
 	DRUM_GROOVES,
 	AUXILIARY_DRUM_LANES,
 } from './drum-patterns.js'
+import { compileDrumFeel, getDrumGrid } from './drum-feel.js'
 
 const CORE_LANES = [
 	'kick', 
@@ -13,6 +14,7 @@ const CORE_LANES = [
 	'hat', 
 	'clap' 
 ]
+const SOUND_LANES = new Set([...CORE_LANES, 'cowbell', ...AUXILIARY_DRUM_LANES])
 
 const DEFAULT_INTENT = {
 	energy: 0.5,
@@ -44,13 +46,13 @@ const wrap = (index, length) => ((index % length) + length) % length
 
 // Additional hits scheduled inside the current beat. Keeping these as offsets
 // avoids increasing the master clock rate and gives tuplets an exact grid.
-export const createDrumSubHits = ({ inFill, inRoll, stepInPhrase, bpm, intent, style='auto', random=Math.random }) => {
+export const createDrumSubHits = ({ inFill, inRoll, stepInPhrase, bpm, intent, stepDuration=60 / bpm, maxEvents=7, style='auto', random=Math.random }) => {
 	if ((!inFill && !inRoll) || !Number.isFinite(bpm) || bpm <= 0)
 	{
 		return []
 	}
 
-	const beat = 60 / bpm
+	const beat = stepDuration
 	const events = []
 	const add = (lane, division, positions, strength) => positions.forEach(position => {
 		const accent = position === positions.length - 1 ? 1 : 0.82 + random() * 0.12
@@ -84,7 +86,7 @@ export const createDrumSubHits = ({ inFill, inRoll, stepInPhrase, bpm, intent, s
 	// Equal-power density compensation prevents tuplets from becoming several
 	// times louder simply because more voices occur inside one beat.
 	const densityGain = Math.min(0.6, 1 / Math.sqrt(Math.max(1, events.length)))
-	return events
+	return events.slice(0, Math.max(0, maxEvents))
 		.map(event => ({
 			...event,
 			velocity:clampVelocity(event.velocity * densityGain),
@@ -201,9 +203,8 @@ const getTempoProfile = bpm => {
 	return TEMPO_PROFILES.veryFast
 }
 
-const createFill = (lane, stepInPhrase, phraseLength, tempoProfile, intent) => {
+const createFill = (lane, stepInPhrase, phraseLength, tempoProfile, intent, fillWindow=8) => {
 	const remaining = phraseLength - stepInPhrase
-	const fillWindow = tempoProfile.name === 'very-fast' ? 4 : 8
 	if (remaining > fillWindow)
 	{
 		return 0
@@ -227,14 +228,14 @@ const createFill = (lane, stepInPhrase, phraseLength, tempoProfile, intent) => {
 	}
 }
 
-const shouldKeepMutedHit = (lane, step, velocity, intent) => {
+const shouldKeepMutedHit = (lane, step, velocity, intent, stepsPerBeat=4) => {
 	if (velocity <= 0)
 	{
 		return false
 	}
 	if (lane === 'kick' && intent.muteKick)
 	{
-		return step % 4 === 0 && velocity > 220 && intent.energy > 0.65
+		return step % stepsPerBeat === 0 && velocity > 220 && intent.energy > 0.65
 	}
 	if ((lane === 'snare' || lane === 'clap') && (intent.muteSnare || intent.muteClap))
 	{
@@ -242,7 +243,7 @@ const shouldKeepMutedHit = (lane, step, velocity, intent) => {
 	}
 	if (lane === 'hat' && intent.muteHat)
 	{
-		return step % 8 === 0 && intent.tension > 0.65
+		return step % (stepsPerBeat * 2) === 0 && intent.tension > 0.65
 	}
 	return true
 }
@@ -250,6 +251,9 @@ const shouldKeepMutedHit = (lane, step, velocity, intent) => {
 export const createDrumArranger = (options={}) => {
 	const random = createRandom(options.seed)
 	const selectedGroove = typeof options.groove === 'string' ? DRUM_GROOVES[options.groove] : options.groove
+	const grid = getDrumGrid(selectedGroove, options)
+	const feel = compileDrumFeel(selectedGroove, grid)
+	const protectedLanes = new Set(selectedGroove?.protectedLanes ?? [])
 	const auxiliaryLanes = selectedGroove
 		? AUXILIARY_DRUM_LANES.filter(lane => Array.isArray(selectedGroove[lane]))
 		: []
@@ -270,9 +274,12 @@ export const createDrumArranger = (options={}) => {
 		step: -1,
 		bar: 0,
 		phraseBars: options.phraseBars ?? 8,
-		stepsPerBar: options.stepsPerBar ?? 4,
+		stepsPerBar: grid.stepsPerBar,
 		bpm: options.bpm ?? 0,
-		lastTriggerAt: 0,
+		lastTriggerAt: null,
+		tempoLocked:Number.isFinite(options.bpm) && options.bpm > 0,
+		needsPhrase:true,
+		subHitsRemaining:8,
 		intent: { ...DEFAULT_INTENT, ...(options.intent ?? {}) },
 		current: {},
 		recentFills: [],
@@ -292,7 +299,10 @@ export const createDrumArranger = (options={}) => {
 	}
 
 	const phraseLength = () => state.phraseBars * state.stepsPerBar
+	const stepDuration = (bpm=state.bpm) => 60 / (bpm > 0 ? bpm : 120) / grid.stepsPerBeat
+	const isStrong = step => feel.strong[wrap(step, state.stepsPerBar)] === 1
 	const currentTempoProfile = () => getTempoProfile(state.bpm)
+	const fillWindowFor = tempo => Math.min(state.stepsPerBar, Math.max(1, Math.round(grid.stepsPerBeat * (tempo.name === 'very-fast' ? 1 : 2))))
 
 	const selectCell = (lane, tempo) => {
 		const intent = state.intent
@@ -311,13 +321,15 @@ export const createDrumArranger = (options={}) => {
 	}
 
 	const choosePhrase = () => {
-		state.phrase++
+		state.phrase = Math.floor(state.step / phraseLength())
+		state.needsPhrase = false
+		beatSequenceCache.clear()
 		const tempo = currentTempoProfile()
 		activeLanes.forEach(lane => state.current[lane] = selectCell(lane, tempo))
 		const phraseDistance = state.phrase - state.lastFillPhrase
 		const phraseAccent = state.phrase % 4 === 3 ? 1.4 : state.phrase % 2 === 1 ? 1 : 0.55
-		const fillChance = clamp(0.08 * phraseAccent * tempo.fillChance + state.intent.fillChance * 0.18 + state.intent.tension * 0.08)
-		const rollChance = clamp(0.04 * tempo.rollChance + state.intent.rollChance * 0.12)
+		const fillChance = clamp(state.intent.fillChance * (0.2 + phraseAccent * 0.45 + state.intent.tension * 0.2) * tempo.fillChance)
+		const rollChance = clamp(state.intent.rollChance * (0.2 + state.intent.tension * 0.2) * tempo.rollChance)
 		const canFill = phraseDistance > 1
 
 		if (canFill && random() < fillChance)
@@ -331,6 +343,27 @@ export const createDrumArranger = (options={}) => {
 			state.rollUntilStep = state.step + phraseLength()
 			state.lastFillPhrase = state.phrase
 		}
+		// Move a weak hat into a ghost stroke; never add to the phrase's hit
+		// count or touch a protected timeline. Work is done once per phrase.
+		if (feel.ghost && state.current.hat && !protectedLanes.has('hat') && !protectedLanes.has('snare')) {
+			const hats = Array.from({length:phraseLength()}, (_, index) => state.current.hat.sequence[index % state.current.hat.length])
+			const snares = Array.from({length:phraseLength()}, (_, index) => state.current.snare.sequence[index % state.current.snare.length])
+			for (let bar=1; bar<state.phraseBars; bar++) {
+				if ((bar % 4 !== 3 && bar !== state.phraseBars - 1) || random() > state.intent.chaos + 0.15) continue
+				const first = bar * state.stepsPerBar
+				for (let local=1; local<state.stepsPerBar-1; local++) {
+					const index = wrap(first + local, hats.length)
+					const snareIndex = wrap(first + local, snares.length)
+					if (hats[index] > 0 && hats[index] < 170 && snares[snareIndex] === 0 && !isStrong(local)) {
+						hats[index] = 0
+						snares[snareIndex] = 42 + Math.floor(random() * 25)
+						break
+					}
+				}
+			}
+			state.current.hat = {...state.current.hat, sequence:hats, length:hats.length}
+			state.current.snare = {...state.current.snare, sequence:snares, length:snares.length}
+		}
 	}
 
 	const maybeEstimateTempo = triggerAt => {
@@ -338,12 +371,12 @@ export const createDrumArranger = (options={}) => {
 		{
 			return
 		}
-		if (state.lastTriggerAt > 0)
+		if (!state.tempoLocked && state.lastTriggerAt !== null)
 		{
 			const delta = triggerAt - state.lastTriggerAt
-			if (delta > 0.08 && delta < 3)
+			if (delta > 0.015 && delta < 3)
 			{
-				const bpm = 60 / delta
+				const bpm = 60 / (delta * grid.stepsPerBeat)
 				state.bpm = state.bpm > 0 ? state.bpm * 0.82 + bpm * 0.18 : bpm
 			}
 		}
@@ -353,47 +386,32 @@ export const createDrumArranger = (options={}) => {
 	const transformVelocity = (lane, velocity, stepInPhrase, tempo, phraseLengthValue) => {
 		const intent = state.intent
 		const cell = state.current[lane]
-		const phraseEndWindow = phraseLengthValue - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
+		const fillWindow = fillWindowFor(tempo)
+		const phraseEndWindow = phraseLengthValue - stepInPhrase <= fillWindow
 		const inFill = state.step < state.fillUntilStep && phraseEndWindow
 		const inRoll = state.step < state.rollUntilStep && phraseEndWindow
 
-		if (!shouldKeepMutedHit(lane, state.step, velocity, intent))
+		if (velocity <= 0 || !shouldKeepMutedHit(lane, state.step, velocity, intent, grid.stepsPerBeat))
 		{
 			return 0
 		}
 
 		let output = velocity
-		if (inFill)
+		if (inFill && !protectedLanes.has(lane))
 		{
-			output = Math.max(output, createFill(lane, stepInPhrase, phraseLengthValue, tempo, intent))
+			output = Math.max(output, createFill(lane, stepInPhrase, phraseLengthValue, tempo, intent, fillWindow))
 		}
-		if (inRoll && (lane === 'hat' || lane === 'snare'))
+		if (inRoll && !protectedLanes.has(lane) && (lane === 'hat' || lane === 'snare'))
 		{
 			const roll = drumRollSequence[wrap(stepInPhrase, drumRollSequence.length)] ?? 0
 			output = Math.max(output, roll * (lane === 'hat' ? 0.9 : 0.75))
 		}
 
-		const isStrongStep = state.step % 4 === 0
-		const ghostChance = tempo.name === 'very-fast' ? 0.02 : 0.04 + intent.chaos * 0.08
-		if (output <= 0 && !inFill && random() < ghostChance)
-		{
-			if (lane === 'hat' && cell.density < tempo.density + 0.25)
-			{
-				output = 35 + random() * 70
-			}
-			if ((lane === 'snare' || lane === 'clap') && !isStrongStep && intent.energy > 0.35)
-			{
-				output = 25 + random() * 55
-			}
-			if (lane === 'kick' && !isStrongStep && intent.energy > 0.75 && tempo.name !== 'very-fast')
-			{
-				output = 65 + random() * 75
-			}
-		}
+		const isStrongStep = isStrong(state.step)
 
 		if (output > 0)
 		{
-			const human = 0.9 + random() * 0.16
+			const human = 1 + (random() * 2 - 1) * feel.variation
 			const accent = isStrongStep ? 1.06 : 1
 			output = output * human * accent
 		}
@@ -422,7 +440,7 @@ export const createDrumArranger = (options={}) => {
 			(state.step - state.techniqueStartedAtStep) / Math.max(1, state.stepsPerBar - 1)
 		)
 		const scalePart = (lane, multiplier) => {
-			if (Number.isFinite(parts[lane]) && parts[lane] > 0)
+			if (SOUND_LANES.has(lane) && Number.isFinite(parts[lane]) && parts[lane] > 0)
 			{
 				parts[lane] = clampVelocity(parts[lane] * multiplier)
 			}
@@ -435,6 +453,7 @@ export const createDrumArranger = (options={}) => {
 		// Every groove follows the performer dynamically before a technique adds
 		// its own arrangement. Disabling Performance bypasses this entire layer.
 		scaleAll(0.5 + state.intent.energy * 0.5)
+		if (protectedLanes.size > 0) return parts
 
 		switch(technique)
 		{
@@ -473,7 +492,7 @@ export const createDrumArranger = (options={}) => {
 				const quarterBar = Math.max(1, Math.floor(state.stepsPerBar / 4))
 				for (const lane of Object.keys(parts))
 				{
-					if (!Number.isFinite(parts[lane])) continue
+					if (!SOUND_LANES.has(lane) || !Number.isFinite(parts[lane])) continue
 					const keep = lane === 'kick' ? stepInBar % halfBar === 0 :
 						(lane === 'snare' || lane === 'clap') ? stepInBar === quarterBar || stepInBar === quarterBar * 3 :
 						lane === 'hat' ? stepInBar % quarterBar === 0 : false
@@ -500,13 +519,14 @@ export const createDrumArranger = (options={}) => {
 		if (Number.isFinite(context.bpm) && context.bpm > 0)
 		{
 			state.bpm = context.bpm
+			state.tempoLocked = true
 		}
 		maybeEstimateTempo(context.triggerAt)
 
 		state.step++
 		const phraseLengthValue = phraseLength()
 		const stepInPhrase = wrap(state.step, phraseLengthValue)
-		if (stepInPhrase === 0 || activeLanes.some(lane => !state.current[lane]))
+		if (stepInPhrase === 0 || state.needsPhrase || activeLanes.some(lane => !state.current[lane]))
 		{
 			choosePhrase()
 		}
@@ -514,6 +534,14 @@ export const createDrumArranger = (options={}) => {
 
 		const tempo = currentTempoProfile()
 		const parts = {}
+		const stepInBar = wrap(state.step, state.stepsPerBar)
+		if (stepInBar === 0) state.subHitsRemaining = 8
+		parts.offsets = feel.offsets[stepInBar]
+		parts.laneDelays = feel.delays
+		parts.quarterDuration = 60 / (state.bpm > 0 ? state.bpm : 120)
+		const sixteenth = stepInBar / grid.stepsPerBeat * 4
+		parts.swingOffset = feel.swingable && Number.isInteger(sixteenth) && sixteenth % 2 === 1
+			? Math.min(0.45, Math.max(0, context.swing ?? 0)) * parts.quarterDuration / 4 : 0
 		for (const lane of activeLanes)
 		{
 			const cell = state.current[lane]
@@ -523,95 +551,73 @@ export const createDrumArranger = (options={}) => {
 
 		// Closed hats choke the shared voice; an occasional offbeat open hat is
 		// allowed to ring only until the following closed hit.
-		parts.hatOpen = parts.hat > 0 && state.step % 4 === 3 &&
+		parts.hatOpen = feel.openHats !== false && parts.hat > 0 && !isStrong(state.step) &&
 			random() < 0.12 + state.intent.tension * 0.28
 
 		// Cowbell is sparse phrase colour. It appears more as energy/tension rise,
 		// avoiding the relentless four-on-the-floor cowbell cliché.
 		const cowbellStep = state.step % 8 === 5 || state.step % 16 === 11
 		const cowbellChance = 0.025 + state.intent.energy * 0.08 + state.intent.tension * 0.1
-		parts.cowbell = cowbellStep && random() < cowbellChance
+		parts.cowbell = !selectedGroove && cowbellStep && random() < cowbellChance
 			? clampVelocity(90 + state.intent.energy * 105 + random() * 35)
 			: 0
 
-		// Phrase orchestration keeps the wider GM kit audible even when the
-		// selected groove only defines kick/snare/hat lanes. Explicit groove
-		// lanes always win; these accents fill only otherwise-silent voices.
-		if (options.percussionColours !== false)
+		// Restrict phrase colours to the selected style's vocabulary.
+		if (options.percussionColours !== false && feel.colours.length)
 		{
-			const stepInBar = wrap(state.step, state.stepsPerBar)
-			const barInPhrase = Math.floor(stepInPhrase / state.stepsPerBar)
-			const addColour = (lane, velocity) => {
-				if (!parts[lane] && !selectedGroove?.[lane]) parts[lane] = clampVelocity(velocity)
+			// A colour replaces an existing weak stroke on a phrase response bar.
+			// It never layers another voice onto the genre's canonical rhythm.
+			if (state.bar % 4 === 3 && parts.snare > 0 && !protectedLanes.has('snare') && stepInBar === Math.round(grid.stepsPerBeat * 3)) {
+				const colour = feel.colours[state.phrase % feel.colours.length]
+				if (!parts[colour] && !selectedGroove?.[colour]) {
+					parts[colour] = parts.snare
+					parts.snare = 0
+				}
 			}
-
-			if (stepInPhrase === 0)
-			{
-				addColour(state.phrase % 2 === 0 ? 'crash' : 'crash2', 150 + state.intent.energy * 70)
-			}
-
-			// A short ride passage in the latter half of alternate phrases makes
-			// the ride a recognisable arrangement change, rather than random fizz.
-			const ridePassage = state.phrase % 2 === 1 && barInPhrase >= Math.floor(state.phraseBars / 2)
-			if (ridePassage && stepInBar % 4 === 0)
-			{
-				addColour(state.phrase % 4 === 1 ? 'ride' : 'ride2', 76 + state.intent.energy * 48)
-			}
-			if (ridePassage && stepInBar === Math.max(1, state.stepsPerBar - 4))
-			{
-				addColour('rideBell', 92 + state.intent.tension * 55)
-			}
-
-			// Rotate dry backbeat colours so rimshots, claves and snaps appear in
-			// every normal session without all three cluttering the same bar.
-			const backbeat = stepInBar === Math.max(1, Math.floor(state.stepsPerBar / 4)) ||
-				stepInBar === Math.max(1, Math.floor(state.stepsPerBar * 3 / 4))
-			if (backbeat)
-			{
-				const dryColours = ['rimshot', 'claves', 'fingerSnap', 'snareElectric']
-				addColour(dryColours[wrap(state.bar, dryColours.length)], 82 + state.intent.energy * 58)
-			}
-
-			if (stepInBar === Math.max(1, Math.floor(state.stepsPerBar * 3 / 8)))
-			{
-				addColour('hatPedal', 58 + state.intent.density * 42)
-			}
-
-			// GM tom articulations form a compact phrase-end fill. The two novelty
-			// colours are deliberately much rarer than the time-keeping voices.
-			const stepsRemaining = phraseLengthValue - stepInPhrase
-			if (stepsRemaining === 3) addColour('tomFloorLow', 105 + state.intent.energy * 55)
-			if (stepsRemaining === 2) addColour('tomFloorHigh', 112 + state.intent.energy * 55)
-			if (stepsRemaining === 1) addColour('tomMidHigh', 120 + state.intent.energy * 60)
-			if (state.phrase % 4 === 3 && stepsRemaining === 2) addColour('vibraslap', 92)
-			if (state.phrase % 4 === 3 && stepsRemaining === 1) addColour('jingleBell', 84)
 		}
 
 		applyPerformanceTechnique(parts)
 
-		const phraseEndWindow = phraseLengthValue - stepInPhrase <= (tempo.name === 'very-fast' ? 4 : 8)
+		const phraseEndWindow = phraseLengthValue - stepInPhrase <= fillWindowFor(tempo)
 		const presetTiming = selectedGroove?.timing
 		const presetSubdivisionStep = presetTiming &&
 			wrap(state.step - (presetTiming.phase ?? 0), presetTiming.every ?? 4) === 0
+		const nextStep = (stepInBar + 1) % state.stepsPerBar
+		const nextSixteenth = nextStep / grid.stepsPerBeat * 4
+		const nextSwing = feel.swingable && Number.isInteger(nextSixteenth) && nextSixteenth % 2 === 1
+			? Math.min(0.45, Math.max(0, context.swing ?? 0)) * parts.quarterDuration / 4 : 0
+		const hatInterval = stepDuration() + nextSwing - parts.swingOffset
+			+ ((feel.offsets[nextStep].hat ?? 0) - (parts.offsets.hat ?? 0)) * parts.quarterDuration
+			+ ((feel.offsets[nextStep].pulse ?? 0) - (parts.offsets.pulse ?? 0)) * parts.quarterDuration
 		parts.events = state.rapidPercussion ? createDrumSubHits({
-			inFill:presetSubdivisionStep || (state.step < state.fillUntilStep && phraseEndWindow),
-			inRoll:state.step < state.rollUntilStep && phraseEndWindow,
+			inFill:presetSubdivisionStep || (!protectedLanes.size && state.step < state.fillUntilStep && phraseEndWindow),
+			inRoll:!protectedLanes.size && state.step < state.rollUntilStep && phraseEndWindow,
 			stepInPhrase,
 			bpm:state.bpm,
+			stepDuration:Math.max(stepDuration() * 0.2, hatInterval),
+			maxEvents:Math.min(2, state.subHitsRemaining),
 			intent:state.intent,
 			style:presetSubdivisionStep ? presetTiming.style : 'auto',
 			random
 		}) : []
+		state.subHitsRemaining -= parts.events.length
 
 		state.lastParts = parts
-		beatSequenceCache.clear()
+		// Cache the static bar and patch the previous/current live cells in place.
+		for (const [count, cached] of beatSequenceCache) {
+			const first = Math.floor(state.step / count) * count
+			if (cached.firstStep !== first) { beatSequenceCache.delete(count); continue }
+			const previous = state.step - 1 - first
+			if (previous >= 0) cached.sequence[previous] = cached.base[previous]
+			cached.sequence[state.step - first] = parts
+		}
 		return parts
 	}
 
 	const getBeatSequence = (count=state.stepsPerBar) => {
 		const beatCount = Math.max(1, Math.floor(count))
 		const cached = beatSequenceCache.get(beatCount)
-		if (cached) return cached
+		if (cached) return cached.sequence
 
 		const firstStep = Math.floor(Math.max(0, state.step) / beatCount) * beatCount
 		const sequence = Array.from({ length:beatCount }, (_, index) => {
@@ -619,11 +625,13 @@ export const createDrumArranger = (options={}) => {
 			const beat = Object.fromEntries(activeLanes.map(lane => {
 				const cell = state.current[lane]
 				const velocity = cell?.sequence?.[wrap(step, cell.length)] ?? 0
-				return [lane, shouldKeepMutedHit(lane, step, velocity, state.intent) ? velocity : 0]
+				return [lane, shouldKeepMutedHit(lane, step, velocity, state.intent, grid.stepsPerBeat) ? velocity : 0]
 			}))
-			return step === state.step ? { ...beat, ...state.lastParts } : beat
+			return beat
 		})
-		beatSequenceCache.set(beatCount, sequence)
+		const base = sequence.slice()
+		if (state.step >= firstStep && state.step < firstStep + beatCount) sequence[state.step - firstStep] = state.lastParts
+		beatSequenceCache.set(beatCount, {firstStep, sequence, base})
 		return sequence
 	}
 
@@ -631,6 +639,14 @@ export const createDrumArranger = (options={}) => {
 		next,
 		getStep: () => state.step,
 		getStepsPerBar: () => state.stepsPerBar,
+		getStepDuration:stepDuration,
+		getStepProgress: (audioTime, lastStepAt) => Math.min(1, Math.max(0, (audioTime - lastStepAt) / stepDuration())),
+		skipSteps: count => {
+			state.step += Math.max(0, Math.floor(count))
+			state.needsPhrase = true
+			state.lastParts = {}
+			beatSequenceCache.clear()
+		},
 		getActiveLanes: () => exposedActiveLanes,
 		getBeatSequence,
 		getBPM: () => state.bpm,
@@ -657,9 +673,12 @@ export const createDrumArranger = (options={}) => {
 			if (Number.isFinite(bpm) && bpm > 0)
 			{
 				state.bpm = bpm
+				state.tempoLocked = true
 			}
 		},
 		setMutedParts: (mutes={}) => {
+			if (state.intent.muteKick === !!mutes.kick && state.intent.muteSnare === !!mutes.snare &&
+				state.intent.muteHat === !!mutes.hat && state.intent.muteClap === !!mutes.clap) return
 			state.intent.muteKick = !!mutes.kick
 			state.intent.muteSnare = !!mutes.snare
 			state.intent.muteHat = !!mutes.hat
@@ -717,7 +736,6 @@ export const createDrumArranger = (options={}) => {
 				}
 			}
 			state.lastActivity = inputActivity
-			beatSequenceCache.clear()
 		},
 		setIntent: intent => {
 			state.intent = { ...state.intent, ...intent }

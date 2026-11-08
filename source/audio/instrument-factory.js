@@ -11,6 +11,9 @@ factory.loadInstrument(0)
 */
 
 import { fetchJSON } from "../utils/fetch.js"
+import VoiceEngineHost from './voice-engine-host.js'
+import EngineInstrument from './instruments/instrument.engine.js'
+import { createVoiceBackend } from './voice-engines.js'
 import { INSTRUMENT_TYPE_FM } from "./instrument-list.js"
 import { INSTRUMENT_TYPE_CHORD, INSTRUMENT_TYPE_COMPOSITE, INSTRUMENT_TYPE_DRUMKIT, INSTRUMENT_TYPE_DUAL_OSCILLATOR, INSTRUMENT_TYPE_KIT, INSTRUMENT_TYPE_MIDI, INSTRUMENT_TYPE_MONOTRON, INSTRUMENT_TYPE_MOOG, INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT, INSTRUMENT_TYPE_SPEECH, INSTRUMENT_TYPE_SYTHESIZER, INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, INSTRUMENT_TYPE_WAM, INSTRUMENT_TYPE_WAM2, INSTRUMENT_TYPE_WAVEGUIDE, INSTRUMENTS } from "./instrument-list.js"
 // import ChordInstrument from "./instruments/chord.instrument.js"
@@ -314,11 +317,26 @@ export default class InstrumentFactory{
 		return this.instrumentList.length
 	}
 
-	constructor(audioContext){
+	constructor(audioContext, options={}){
 		this.audioContext = audioContext
+		this.voiceEngineHost = new VoiceEngineHost(audioContext, {
+			engine:options.voiceEngine,
+			settings:options.voiceEngineSettings,
+			createBackend:id => createVoiceBackend(id, audioContext, options => this.createNativeCompositeInstrument(options), options.destination)
+		})
 	}
 
 	async createCompositeInstrument(options={}){
+		return this.createNativeCompositeInstrument(options)
+	}
+
+	async createVoiceInstrument(options={}){
+		const instrument = new EngineInstrument(this.audioContext, {...options, voiceEngineHost:this.voiceEngineHost})
+		await instrument.loaded
+		return instrument
+	}
+
+	async createNativeCompositeInstrument(options={}){
 		const composite = await createInstrumentFromData(this.audioContext, {
 			...options,
 			type:INSTRUMENT_TYPE_COMPOSITE

@@ -1,4 +1,5 @@
 import Instrument from "./instrument.js"
+import { getGeneralMIDIRepetitionRate } from "../general-midi-instruments.data.js"
 import {
 	GENERAL_MIDI_INSTRUMENT_LIST,
 	GENERAL_MIDI_INSTRUMENTS,
@@ -67,8 +68,10 @@ export default class CompositeInstrument extends Instrument{
 		return this.activeInstrument?.constructor?.name ?? null
 	}
 
+	getNoteRepeatDuration(note){ return this.activeInstrument?.getNoteRepeatDuration?.(note) }
+
 	get repetitionRate(){
-		return this.activeInstrument?.repetitionRate ?? super.repetitionRate
+		return getGeneralMIDIRepetitionRate(this.activePresetProgram, this.activeInstrument?.type === "sample")
 	}
 
 	get playbackMode(){

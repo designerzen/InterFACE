@@ -28,7 +28,7 @@ export const createAmplitude = async (
 	const setVolume = vol => {
 		if (fade)
 		{
-			fadeVolume()
+			fadeVolume(clamp(vol, 0, 1))
 		}else{
 			const clampedVolume = clamp(vol, 0, 1)	 
 			// gainNode.gain.value = clampedVolume
@@ -43,10 +43,11 @@ export const createAmplitude = async (
 		node:gainNode,
 		volume:value => {
 
-			if (value)
+			if (value !== undefined)
 			{
-				setVolume(value)
-				return value
+				const clampedVolume = clamp(Number(value), 0, 1)
+				setVolume(clampedVolume)
+				return clampedVolume
 			}
 
 			// if we lerp

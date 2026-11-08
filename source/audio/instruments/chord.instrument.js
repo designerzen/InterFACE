@@ -1,4 +1,5 @@
 import Instrument from "./instrument.js"
+import { MAX_CHORD_VOICE_COUNT } from "../../models/emoji-to-music.js"
 import { Arpeggio, ARPEGGIO_VARIATION, HARP_ARPEGGIO_VARIATION } from "../../timing/arpeggio.js"
 
 export const INSTRUMENT_TYPE_CHORD = "ChordInstrument"
@@ -26,11 +27,15 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	get name(){
-		return this.instruments.length > 1 ? this.instruments[0].name : INSTRUMENT_TYPE_CHORD
+		return this.instruments.length > 0 ? this.instruments[0].name : INSTRUMENT_TYPE_CHORD
 	}
 
 	get title(){
-		return this.instruments.length > 1 ? this.instruments[0].title : "Chord Instrument"
+		return this.instruments.length > 0 ? this.instruments[0].title : "Chord Instrument"
+	}
+
+	get instrumentName(){
+		return this.instruments?.[0]?.instrumentName
 	}
 
 	// DO NOT SPECIFY ANYTHING HERE IT BREAKS STUFF :(
@@ -192,16 +197,17 @@ export default class ChordInstrument extends Instrument{
 	 * @param {Number} noteNumber 
 	 * @param {Number} veolcity 
 	 */
-	async noteOff( noteNumber, velocity=0, instrumentIndex=0 ){
-		//const activeNote = this.activeNotes.get(noteNumber) 
-		const instrument = this.instruments[instrumentIndex % this.instruments.length]
-		
-		if (!instrument)
+	async noteOff( noteNumber, velocity=0, instrumentIndex ){
+		// A note number identifies the release. Chord order can change and the
+		// same note may be layered across several voices.
+		const instruments = instrumentIndex === undefined ? this.instruments :
+			[this.instruments[instrumentIndex % this.instruments.length]]
+		if (!instruments.length || instruments.some(instrument => !instrument))
 		{
 			throw Error("No instruments available to stop")
 		}
-		instrument.noteOff( noteNumber, velocity )
-		this.activeNotes.delete( noteNumber )
+		await Promise.all(instruments.map(instrument => instrument.noteOff(noteNumber, velocity)))
+		if (!this.instruments.some(instrument => instrument.activeNotes?.has(noteNumber))) this.activeNotes.delete(noteNumber)
 		this.active = this.activeNotes.size > 0
 		// console.log("noteOff", noteNumber, this.activeNotes, this )
 		return true
@@ -313,15 +319,13 @@ export default class ChordInstrument extends Instrument{
 			const chordQuantity = chordArray.length
 			// console.error( "ChordInstrument:chordOn", chordQuantity, chordArray )
 		
-			this.instruments.forEach( (instrument, index) => {
+			await Promise.all(this.instruments.map( (instrument, index) => {
 				const chord = chordArray[index%chordQuantity]
 				if (chord)
 				{
-					this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
-				}else{
-					this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
+					return this.noteOn( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
 				}
-			})
+			}))
 
 		}else{
 			return this.chordOnArpeggio(chordArray, velocity)
@@ -333,25 +337,8 @@ export default class ChordInstrument extends Instrument{
 	 * @param {Array<Chord>} chordArray 
 	 */
 	async chordOff( chordArray, velocity ){
-		// if (!this.arpeggio)
-		// {
-
-		// }else{
-			const chordQuantity = chordArray.length
-			// console.info(chordQuantity, "ChordInstrument:chordOff", chordArray )
-			this.instruments.forEach( (instrument, index) => {
-				if (index>chordQuantity){
-					return
-				}
-				const chord = chordArray[index%chordQuantity]
-				if (chord)
-				{
-					this.noteOff( chord.noteNumber, this.getChordVelocity(chord, velocity), index )
-				}else{
-					console.error("No chord found for index", index, chordArray )
-				}
-			})	
-		// }
+		const notes = new Map((chordArray ?? []).filter(Boolean).map(chord => [chord.noteNumber,chord]))
+		return Promise.all([...notes.values()].map(chord => this.noteOff(chord.noteNumber,this.getChordVelocity(chord,velocity))))
 	}
 
 	async allNotesOff(){
@@ -365,8 +352,9 @@ export default class ChordInstrument extends Instrument{
 			})
 			notesTurned.push(noteNumber)
 		})
+		// noteOff clears each note. Sweeping activeNotes again here would also stop
+		// a chord started while these releases were still being awaited.
 		await Promise.all(noteOffs)
-		super.allNotesOff()
 		// console.error("ChordInstrument:allNotesOff", this.activeNotes )
 		return notesTurned
 	}
@@ -436,7 +424,16 @@ export default class ChordInstrument extends Instrument{
 	}
 
 	/**
-	 * 
+	 * Reload the current preset in every voice
+	 * @param {Function} progressCallback Method to call once the instrument has loaded
+	 */
+	async reloadPreset(progressCallback){
+		await Promise.all(this.instruments.map(instrument => instrument.reloadPreset?.(progressCallback)))
+		return this
+	}
+
+	/**
+	 *
 	 * @returns {Array<String>} of Instrument Names
 	 */
 	async getPresets(){
@@ -553,7 +550,7 @@ export default class ChordInstrument extends Instrument{
 	 * the same type we can either provide a class
 	 * or a type here
 	 */
-	async setInstrument( classOrType, options={}, quantity = 3 ){
+	async setInstrument( classOrType, options={}, quantity = MAX_CHORD_VOICE_COUNT ){
 		
 		let instrumentInstance 
 		if (typeof classOrType === "string")

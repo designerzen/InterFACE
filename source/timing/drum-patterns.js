@@ -1,3 +1,6 @@
+import { getDrumGrid, lcm } from './drum-feel.js'
+import { STYLE_DRUM_GROOVES } from './drum-styles.js'
+
 export const drumRollSequence = Array.from(
 	{ length: 16 },
 	(_, i) => Math.round(i * 255 / 15)
@@ -32,13 +35,40 @@ export const createCompositeDrumGroove = grooves => {
 	if (!selected.length) return null
 	if (selected.length === 1) return selected[0]
 
-	const length = selected.reduce((combined, item) => leastCommonMultiple(combined, item.kick.length), 1)
+	// Legacy unannotated arrays retain their cycle semantics. Annotated musical
+	// grids are expanded onto a shared beat resolution before overlaying them.
+	const annotated = selected.some(item => item.stepsPerBar)
+	const grids = selected.map(item => getDrumGrid(item))
+	const resolution = annotated ? grids.reduce((value, grid) => lcm(value, Math.round(grid.stepsPerBeat * 2)), 2) / 2 : 1
+	const expanded = annotated ? selected.map((item, index) => {
+		const factor = resolution / grids[index].stepsPerBeat
+		const result = {}
+		for (const lane of COMPOSITE_DRUM_LANES) {
+			const sequence = item[lane]
+			if (!sequence) continue
+			result[lane] = Array(Math.round(sequence.length * factor)).fill(0)
+			sequence.forEach((velocity, step) => result[lane][Math.round(step * factor)] = velocity)
+		}
+		return result
+	}) : selected
+	const length = expanded.reduce((combined, item) => leastCommonMultiple(combined, item.kick.length), 1)
+	if (length > 8192) throw new RangeError('Combined drum cycle exceeds 8192 steps')
 	const composite = {}
 	for (const lane of COMPOSITE_DRUM_LANES) {
-		composite[lane] = Array.from({ length }, (_, step) => selected.reduce((velocity, item) => {
+		composite[lane] = Array.from({ length }, (_, step) => expanded.reduce((velocity, item) => {
 			const sequence = item[lane]
 			return sequence?.length ? Math.max(velocity, sequence[step % sequence.length]) : velocity
 		}, 0))
+	}
+	if (annotated) {
+		const first = selected[0]
+		composite.stepsPerBar = Math.round(grids[0].quarterBeats * resolution)
+		composite.meter = first.meter
+		composite.groups = first.groups
+		composite.feel = first.feel
+		composite.feelOptions = first.feelOptions
+		composite.protectedLanes = [...new Set(selected.flatMap(item => item.protectedLanes ?? []))]
+		if (first.timing) composite.timing = {...first.timing, every:Math.round(first.timing.every * resolution / grids[0].stepsPerBeat), phase:Math.round((first.timing.phase ?? 0) * resolution / grids[0].stepsPerBeat)}
 	}
 	return composite
 }
@@ -486,6 +516,110 @@ export const DRUM_GROOVES = {
 		),
 		timing:{ style:'triplet', every:8, phase:6 }
 	}
+}
+
+// These are compact drum-kit adaptations of specific rhythmic structures.
+// Sources: Smithsonian Folkways "Braiding Rhythms" (bell timelines/clave),
+// Andrew Carnie's folk-dance meter text (2+2+3 and 2+2+2+3), MaqamWorld
+// (iqa'at), Saarey Music (tintal), and Studio Flamenco (bulerias compas).
+const lane = (length, hits) => {
+	const sequence = Array(length).fill(0)
+	for (const [step, velocity] of hits) sequence[step] = velocity
+	return sequence
+}
+const worldGroove = (length, meter, groups, feel, lanes, protectedLanes=Object.keys(lanes)) => {
+	// All these adaptations fit the eighth-note grid; discard unused odd
+	// positions at load time to avoid advancing a needlessly dense clock grid.
+	const compact = Object.fromEntries(Object.entries(lanes).map(([part, sequence]) => [part, sequence.filter((_, step) => step % 2 === 0)]))
+	const steps = length / 2
+	return {...groove(compact.kick ?? Array(steps).fill(0), compact.snare ?? Array(steps).fill(0), compact.hat ?? Array(steps).fill(0)),
+		...compact, stepsPerBar:steps, meter, groups, feel, protectedLanes}
+}
+
+Object.assign(DRUM_GROOVES, {
+	'son-clave-3-2':worldGroove(32, [8,4], [4,4], 'cuban', {
+		kick:lane(32, [[0,165],[12,130],[16,155],[28,130]]),
+		claves:lane(32, [[0,190],[6,165],[12,180],[20,170],[24,185]]),
+		congaLow:lane(32, [[10,120],[14,150],[26,120],[30,150]]),
+	}),
+	'son-clave-2-3':worldGroove(32, [8,4], [4,4], 'cuban', {
+		kick:lane(32, [[0,165],[12,130],[16,155],[28,130]]),
+		claves:lane(32, [[4,170],[8,185],[16,190],[22,165],[28,180]]),
+		congaLow:lane(32, [[10,120],[14,150],[26,120],[30,150]]),
+	}),
+	'ewe-bell-12':worldGroove(24, [12,8], [3,3,3,3], 'westAfrican', {
+		kick:lane(24, [[0,150],[6,135],[12,145],[18,135]]),
+		agogoHigh:lane(24, [[0,185],[4,150],[8,165],[10,145],[14,175],[18,155],[22,165]]),
+		congaHigh:lane(24, [[0,130],[8,120],[16,125]]),
+	}),
+	'rachenitsa-7-8':worldGroove(28, [7,8], [2,2,3], 'asymmetric', {
+		kick:lane(28, [[0,220],[8,175],[16,200]]),
+		crossStick:lane(28, [[4,110],[12,115],[20,120],[24,105]]),
+		hat:lane(28, [[0,140],[4,85],[8,125],[12,85],[16,145],[20,95],[24,90]]),
+	}),
+	'karsilama-9-8':worldGroove(36, [9,8], [2,2,2,3], 'asymmetric', {
+		kick:lane(36, [[0,215],[8,170],[16,185],[24,205]]),
+		crossStick:lane(36, [[4,110],[12,115],[20,115],[28,125],[32,105]]),
+		hat:lane(36, [[0,140],[4,80],[8,120],[12,85],[16,125],[20,85],[24,145],[28,90],[32,85]]),
+	}),
+	'maqsum':worldGroove(16, [4,4], [1,1,1,1], 'asymmetric', {
+		congaLow:lane(16, [[0,210],[8,185]]),
+		congaMute:lane(16, [[2,160],[6,145],[12,170]]),
+	}),
+	'samai-thaqil':worldGroove(40, [10,8], [3,2,2,3], 'asymmetric', {
+		congaLow:lane(40, [[0,215],[20,170],[24,195]]),
+		congaMute:lane(40, [[12,160],[28,175]]),
+		crossStick:lane(40, [[8,65],[16,75],[32,70],[36,65]]),
+	}),
+	'tintal-16':worldGroove(64, [16,4], [4,4,4,4], 'tala', {
+		// Sam at 1, tali at 5 and 13, and a lighter khali section from beat 9.
+		congaLow:lane(64, [[0,220],[4,150],[8,165],[12,145],[16,190],[20,145],[24,160],[28,140],[48,195],[52,150],[56,165],[60,145]]),
+		congaMute:lane(64, [[2,125],[6,115],[10,130],[14,110],[18,130],[22,115],[26,125],[30,110],[32,115],[36,100],[40,115],[44,95],[50,130],[54,115],[58,130],[62,110]]),
+	}),
+	'bulerias-12':worldGroove(24, [12,8], [3,3,2,2,2], 'flamenco', {
+		// Cycle starts on count 12: accents 12, 3, 6, 8, 10.
+		clap:lane(24, [[0,205],[2,85],[4,90],[6,185],[8,85],[10,95],[12,200],[14,90],[16,185],[18,95],[20,200],[22,85]]),
+		kick:lane(24, [[0,150],[12,145],[20,140]]),
+	}),
+})
+
+Object.assign(DRUM_GROOVES, STYLE_DRUM_GROOVES)
+
+const feelFamilies = {
+	breaks:['amen','think','funky-drummer','apache-break','breakstep','impeach-president','hot-pants','ashleys-roachclip','motown','back-to-life','mardi-gras','levee-break','simple-song','handclapping-song','funky-mule','jungle-32-fill'],
+	garage:['uk-garage','garage-triplets'],
+	jazz:['jazz-swing','purdie-shuffle'],
+	reggae:['reggae'], brazilian:['samba','bossa-nova'], colombian:['cumbia'],
+	cuban:['salsa-mambo','son-montuno','cha-cha','rumba-guaguanco','727-latin-box'],
+	westAfrican:['afrobeat'],
+}
+for (const [feel, names] of Object.entries(feelFamilies)) {
+	for (const name of names) if (DRUM_GROOVES[name]) DRUM_GROOVES[name].feel = feel
+}
+for (const [name, item] of Object.entries(DRUM_GROOVES)) {
+	item.stepsPerBar ??= ['jazz-swing','purdie-shuffle'].includes(name) ? 24 : 16
+	item.meter ??= [4,4]
+	item.feel ??= 'straight'
+	item.protectedLanes ??= ['reggae','cuban','brazilian','colombian','westAfrican'].includes(item.feel)
+		? ['kick','snare', ...AUXILIARY_DRUM_LANES.filter(part => item[part])] : []
+}
+
+// Swing is encoded on a six-subdivision beat, never applied a second time.
+DRUM_GROOVES['jazz-swing'].hat = Array(24).fill(0)
+DRUM_GROOVES['jazz-swing'].ride = lane(24, [[0,195],[6,165],[10,105],[12,190],[18,170],[22,115]])
+DRUM_GROOVES['jazz-swing'].hatPedal = lane(24, [[6,95],[18,100]])
+DRUM_GROOVES['jazz-swing'].protectedLanes = ['kick','snare','hat','ride','hatPedal']
+DRUM_GROOVES['purdie-shuffle'].hat = lane(24, [[0,190],[4,100],[6,160],[10,95],[12,185],[16,100],[18,165],[22,105]])
+DRUM_GROOVES['purdie-shuffle'].snare = lane(24, [[2,50],[8,60],[12,245],[14,55],[20,65]])
+DRUM_GROOVES['purdie-shuffle'].protectedLanes = ['kick','snare','hat']
+
+// Two 2/4 surdo responses inside the four-quarter cycle.
+DRUM_GROOVES.samba.surdoOpen = lane(16, [[4,220],[12,230]])
+DRUM_GROOVES.samba.surdoMute = lane(16, [[0,140],[8,145]])
+for (const name of ['salsa-mambo','son-montuno']) {
+	const item = DRUM_GROOVES[name]
+	for (const part of COMPOSITE_DRUM_LANES) if (item[part]?.length === 16) item[part] = [...item[part], ...item[part]]
+	item.claves = lane(32, [[0,180],[6,155],[12,170],[20,160],[24,175]])
 }
 
 export const kickSequences = [

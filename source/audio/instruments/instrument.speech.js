@@ -21,7 +21,7 @@ export default class SpeechInstrument extends Instrument{
 	#title = "Speech Synthesis"
 
 	get repetitionRate(){
-		return super.repetitionRate || 48
+		return this.options?.repetitionRate != null && this.options.repetitionRate !== "template" ? super.repetitionRate : 0.5
 	}
 
 	constructor( audioContext, options={} ){

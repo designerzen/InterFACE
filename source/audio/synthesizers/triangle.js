@@ -2,24 +2,17 @@ import { ZERO } from '../audio-constants.js'
 import { chokeGains } from '../synthesizers'
 import { getVelocityEnvelopeLevels } from './percussion-envelope.js'
 import { DEFAULT_TRIANGLE_OPTIONS } from './triangle-presets.js'
+import { generateRoomImpulse } from '../effects/reverb-spaces.js'
 
 export * from './triangle-presets.js'
 
 const reverbImpulses = new WeakMap()
 
+// A very short, bright shimmer rather than a room
 const getTriangleReverbImpulse = audioContext => {
 	let impulse = reverbImpulses.get(audioContext)
 	if (impulse) return impulse
-	const duration = 0.24
-	const length = Math.ceil(audioContext.sampleRate * duration)
-	impulse = audioContext.createBuffer(2, length, audioContext.sampleRate)
-	for (let channel=0; channel<2; channel++) {
-		const data = impulse.getChannelData(channel)
-		for (let sample=0; sample<length; sample++) {
-			const decay = (1 - sample / length) ** 6.5
-			data[sample] = (Math.random() * 2 - 1) * decay
-		}
-	}
+	impulse = generateRoomImpulse(audioContext, { length:0.18, tone:0.6, preDelay:0 })
 	reverbImpulses.set(audioContext, impulse)
 	return impulse
 }

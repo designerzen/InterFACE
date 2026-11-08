@@ -1,0 +1,15 @@
+{
+    "identifier": "com.webaudiomodules.wam-examples.tinysynth",
+    "name": "TinySynth (no GUI)",
+    "vendor": "WebAudioModule",
+    "description": "TinySynth GM synthesizer without GUI",
+    "version": "1.0.0",
+    "apiVersion": "2.0.0",
+    "thumbnail": "screenshot.png",
+    "keywords": [],
+    "isInstrument": true,
+	"hasMidiInput":true,
+	"hasMidiOutput":true,
+	"hasAudioOutput":true,
+    "website": ""
+}

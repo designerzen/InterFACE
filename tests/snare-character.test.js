@@ -8,6 +8,7 @@ import {
 	getSnareVoiceLevels,
 } from '../source/audio/synthesizers/snare-presets.js'
 import { createSnare, createSnareSaturationCurve } from '../source/audio/synthesizers/snare.js'
+import { createHihat } from '../source/audio/synthesizers/hihat.js'
 
 const createAudioParam = () => ({
 	value:0,
@@ -31,7 +32,10 @@ const createAudioContext = () => {
 		shapers,
 		createOscillator:jest.fn(() => createNode({ frequency:createAudioParam(), start:jest.fn() })),
 		createBufferSource:jest.fn(() => createNode({ start:jest.fn() })),
-		createBuffer:jest.fn(() => ({ getChannelData:() => new Float32Array(4096) })),
+		createBuffer:jest.fn((channels, length) => {
+			const data = new Float32Array(length)
+			return { getChannelData:() => data }
+		}),
 		createGain:jest.fn(() => {
 			const node = createNode({ gain:createAudioParam() })
 			gains.push(node)
@@ -51,14 +55,15 @@ const createAudioContext = () => {
 }
 
 describe('snare character layers', () => {
-	test('provides body, shell, wire and crack layers proportional to velocity', () => {
+	test('keeps body and wires proportional while soft hits excite less crack', () => {
 		const quiet = getSnareVoiceLevels({ ...DEFAULT_SNARE_OPTIONS, velocity:0.2 })
 		const loud = getSnareVoiceLevels({ ...DEFAULT_SNARE_OPTIONS, velocity:0.8 })
 
-		for (const voice of ['noise', 'body', 'shell', 'crack']) {
+		for (const voice of ['noise', 'body', 'shell']) {
 			expect(quiet[voice]).toBeGreaterThan(0)
 			expect(loud[voice] / quiet[voice]).toBeCloseTo(4)
 		}
+		expect(quiet.crack / quiet.body).toBeLessThan(loud.crack / loud.body)
 		expect(DEFAULT_SNARE_OPTIONS.crackLength).toBeLessThan(DEFAULT_SNARE_OPTIONS.bodyLength)
 		expect(DEFAULT_SNARE_OPTIONS.bodyLength).toBeLessThan(DEFAULT_SNARE_OPTIONS.length)
 	})
@@ -118,5 +123,42 @@ describe('snare character layers', () => {
 		expect(context.gains[7].gain.setValueAtTime).toHaveBeenCalledWith(PRESET_DISTORTED_SNARE.crunchMix, expect.any(Number))
 		expect(context.gains[8].gain.setValueAtTime).toHaveBeenCalledWith(PRESET_DISTORTED_SNARE.outputGain, expect.any(Number))
 		expect(context.filters[0].frequency.setValueAtTime).toHaveBeenCalledWith(PRESET_DISTORTED_SNARE.crunchTone, expect.any(Number))
+	})
+
+	test('shares a four-second noise source across snares and live hats', () => {
+		const context = createAudioContext()
+		createSnare(context, createNode())
+		createSnare(context, createNode())
+		const hat = createHihat(context, createNode())
+		hat({ noiseGain:0.1, triggerAt:2.1 })
+		expect(context.createBuffer).toHaveBeenCalledTimes(1)
+		expect(context.createBuffer).toHaveBeenCalledWith(1, 48000 * 4, 48000)
+	})
+
+	test('uses short attacks and holds the existing gain during a scheduled roll', () => {
+		const context = createAudioContext()
+		const snare = createSnare(context, createNode())
+		snare({ velocity:1, triggerAt:2.1 })
+		snare({ velocity:0.4, triggerAt:2.12 })
+		const body = context.gains[0].gain
+		expect(body.setValueAtTime.mock.calls.at(-1)[0]).toBeGreaterThan(0)
+		expect(body.setValueAtTime.mock.calls.at(-1)[1]).toBe(2.12)
+		expect(body.linearRampToValueAtTime.mock.calls.at(-1)[1]).toBeCloseTo(2.1207)
+		snare.choke(0.006, 2.13)
+		expect(body.exponentialRampToValueAtTime.mock.calls.at(-1)[1]).toBeCloseTo(2.136)
+	})
+
+	test('applies strike dynamics and damping without allocating additional audio nodes or buffers', () => {
+		const context = createAudioContext()
+		const snare = createSnare(context, createNode())
+		for (let index=0; index<32; index++) {
+			snare({ velocity:0.2 + index / 40, strikePosition:index % 2, damping:0.3, triggerAt:2.1 + index * 0.03 })
+		}
+		expect(context.createOscillator).toHaveBeenCalledTimes(2)
+		expect(context.createBufferSource).toHaveBeenCalledTimes(1)
+		expect(context.createBuffer).toHaveBeenCalledTimes(1)
+		expect(context.gains).toHaveLength(9)
+		expect(context.filters).toHaveLength(4)
+		expect(context.shapers).toHaveLength(1)
 	})
 })

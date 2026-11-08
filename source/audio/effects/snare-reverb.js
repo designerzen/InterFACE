@@ -1,16 +1,13 @@
 import { clamp } from '../../maths/maths.js'
+import { generateRoomImpulse } from './reverb-spaces.js'
 
-const createImpulse = (audioContext, duration=1.35, decay=3.2) => {
-	const length = Math.ceil(audioContext.sampleRate * duration)
-	const impulse = audioContext.createBuffer(2, length, audioContext.sampleRate)
-	for (let channel=0; channel<2; channel++)
-	{
-		const data = impulse.getChannelData(channel)
-		for (let sample=0; sample<length; sample++)
-		{
-			const envelope = Math.pow(1 - sample / length, decay)
-			data[sample] = (Math.random() * 2 - 1) * envelope
-		}
+// A tight, slightly bright room; the pre-delay node below spaces it from the hit
+const impulses = new WeakMap()
+const createImpulse = audioContext => {
+	let impulse = impulses.get(audioContext)
+	if (!impulse) {
+		impulse = generateRoomImpulse(audioContext, { length:1.2, tone:0.2, preDelay:0 })
+		impulses.set(audioContext, impulse)
 	}
 	return impulse
 }

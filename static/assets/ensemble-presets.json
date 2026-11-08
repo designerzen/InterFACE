@@ -1,5 +1,5 @@
 {
-	"version": 1,
+	"version": 2,
 	"presets": [
 		{
 			"id": "four-choirs",
@@ -15,6 +15,10 @@
 			},
 			"percussion": {
 				"enabled": false
+			},
+			"reverb": {
+				"space": "church",
+				"mix": 0.3
 			},
 			"voicings": {
 				"1": [
@@ -51,6 +55,10 @@
 			},
 			"percussion": {
 				"enabled": false
+			},
+			"reverb": {
+				"space": "hall",
+				"mix": 0.22
 			},
 			"voicings": {
 				"1": [
@@ -103,6 +111,10 @@
 				},
 				"phraseBars": 8
 			},
+			"reverb": {
+				"space": "plate",
+				"mix": 0.15
+			},
 			"voicings": {
 				"1": [
 					"lead_2_sawtooth"
@@ -154,6 +166,10 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": {
+				"space": "large-hall",
+				"mix": 0.18
+			},
 			"voicings": {
 				"1": [
 					"trumpet"
@@ -190,6 +206,10 @@
 			"percussion": {
 				"enabled": false
 			},
+			"reverb": {
+				"space": "star",
+				"mix": 0.3
+			},
 			"voicings": {
 				"1": [
 					"pad_2_warm"
@@ -225,6 +245,10 @@
 			},
 			"percussion": {
 				"enabled": false
+			},
+			"reverb": {
+				"space": "large-hall",
+				"mix": 0.22
 			},
 			"voicings": {
 				"1": [
@@ -276,6 +300,10 @@
 					"hat": "Tight Closed Hihat"
 				},
 				"phraseBars": 4
+			},
+			"reverb": {
+				"space": "drum-room",
+				"mix": 0.12
 			},
 			"voicings": {
 				"1": [
@@ -329,6 +357,10 @@
 				},
 				"phraseBars": 8
 			},
+			"reverb": {
+				"space": "star",
+				"mix": 0.32
+			},
 			"voicings": {
 				"1": [
 					"pad_2_warm"
@@ -379,6 +411,10 @@
 					"hat": "Chattery Closed Hihat"
 				},
 				"phraseBars": 4
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.1
 			},
 			"voicings": {
 				"1": [
@@ -431,6 +467,10 @@
 				},
 				"phraseBars": 8
 			},
+			"reverb": {
+				"space": "small-room",
+				"mix": 0.1
+			},
 			"voicings": {
 				"1": [
 					"synth_bass_2"
@@ -482,6 +522,10 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": {
+				"space": "garage",
+				"mix": 0.12
+			},
 			"voicings": {
 				"1": [
 					"synth_bass_1"
@@ -531,6 +575,10 @@
 					"hat": "Glass Closed Hihat"
 				},
 				"phraseBars": 8
+			},
+			"reverb": {
+				"space": "star",
+				"mix": 0.25
 			},
 			"voicings": {
 				"1": [
@@ -583,6 +631,10 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.1
+			},
 			"voicings": {
 				"1": [
 					"electric_piano_1"
@@ -633,6 +685,10 @@
 					"hat": "Short Open Hihat"
 				},
 				"phraseBars": 4
+			},
+			"reverb": {
+				"space": "plate-dark",
+				"mix": 0.18
 			},
 			"voicings": {
 				"1": [
@@ -685,6 +741,10 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.14
+			},
 			"voicings": {
 				"1": [
 					"electric_piano_2"
@@ -736,6 +796,7 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": false,
 			"voicings": {
 				"1": [
 					"lead_1_square"
@@ -786,6 +847,10 @@
 					"hat": "House Closed Hihat"
 				},
 				"phraseBars": 4
+			},
+			"reverb": {
+				"space": "plate-bright",
+				"mix": 0.15
 			},
 			"voicings": {
 				"1": [
@@ -839,6 +904,10 @@
 				},
 				"phraseBars": 8
 			},
+			"reverb": {
+				"space": "star",
+				"mix": 0.35
+			},
 			"voicings": {
 				"1": [
 					"fx_8_scifi"
@@ -889,6 +958,10 @@
 					"hat": "Dark Open Hihat"
 				},
 				"phraseBars": 8
+			},
+			"reverb": {
+				"space": "church",
+				"mix": 0.3
 			},
 			"voicings": {
 				"1": [
@@ -941,6 +1014,10 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": {
+				"space": "plate",
+				"mix": 0.15
+			},
 			"voicings": {
 				"1": [
 					"clavinet"
@@ -992,6 +1069,10 @@
 				},
 				"phraseBars": 8
 			},
+			"reverb": {
+				"space": "garage",
+				"mix": 0.2
+			},
 			"voicings": {
 				"1": [
 					"lead_8_bass__lead"
@@ -1042,6 +1123,10 @@
 					"hat": "Tiny Closed Hihat"
 				},
 				"phraseBars": 4
+			},
+			"reverb": {
+				"space": "church",
+				"mix": 0.22
 			},
 			"voicings": {
 				"1": [
@@ -1095,6 +1180,10 @@
 				},
 				"phraseBars": 8
 			},
+			"reverb": {
+				"space": "cave",
+				"mix": 0.3
+			},
 			"voicings": {
 				"1": [
 					"blown_bottle"
@@ -1146,6 +1235,10 @@
 				},
 				"phraseBars": 4
 			},
+			"reverb": {
+				"space": "small-room",
+				"mix": 0.1
+			},
 			"voicings": {
 				"1": [
 					"xylophone"
@@ -1164,6 +1257,2264 @@
 					"whistle",
 					"woodblock",
 					"tinkle_bell"
+				]
+			}
+		},
+		{
+			"id": "genre-jazz",
+			"title": "Jazz Ensemble",
+			"style": "jazz",
+			"group": "Jazz",
+			"description": "Electric piano, upright bass and horns over triplet ride swing.",
+			"tempo": {
+				"bpm": 124,
+				"swing": 0,
+				"feel": "Triplet swing"
+			},
+			"harmony": {
+				"key": "Bb",
+				"scale": "DORIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "jazz",
+				"sound": "jazz-swing",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"electric_piano_2"
+				],
+				"2": [
+					"electric_piano_2",
+					"acoustic_bass"
+				],
+				"3": [
+					"electric_piano_2",
+					"acoustic_bass",
+					"tenor_sax"
+				],
+				"4": [
+					"electric_piano_2",
+					"acoustic_bass",
+					"tenor_sax",
+					"muted_trumpet"
+				]
+			}
+		},
+		{
+			"id": "genre-blues",
+			"title": "Blues Ensemble",
+			"style": "blues",
+			"group": "Blues",
+			"description": "Guitar and harmonica with a 12/8 shuffle; swing is already in the rhythm.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0,
+				"feel": "Shuffle"
+			},
+			"harmony": {
+				"key": "E",
+				"scale": "BLUES_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "blues",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					12,
+					8
+				]
+			},
+			"reverb": {
+				"space": "drum-room",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"electric_guitar_clean"
+				],
+				"2": [
+					"electric_guitar_clean",
+					"acoustic_bass"
+				],
+				"3": [
+					"electric_guitar_clean",
+					"acoustic_bass",
+					"honkytonk_piano"
+				],
+				"4": [
+					"electric_guitar_clean",
+					"acoustic_bass",
+					"honkytonk_piano",
+					"harmonica"
+				]
+			}
+		},
+		{
+			"id": "genre-classical-piano",
+			"title": "Classical piano Ensemble",
+			"style": "classical-piano",
+			"group": "Keyboard",
+			"description": "Piano-led chamber voices with an even, quiet broken-chord pulse.",
+			"tempo": {
+				"bpm": 108,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "classical-piano",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.2
+			},
+			"voicings": {
+				"1": [
+					"acoustic_grand_piano"
+				],
+				"2": [
+					"acoustic_grand_piano",
+					"contrabass"
+				],
+				"3": [
+					"acoustic_grand_piano",
+					"contrabass",
+					"violin"
+				],
+				"4": [
+					"acoustic_grand_piano",
+					"contrabass",
+					"violin",
+					"flute"
+				]
+			}
+		},
+		{
+			"id": "genre-baroque-counterpoint",
+			"title": "Baroque counterpoint Ensemble",
+			"style": "baroque-counterpoint",
+			"group": "Keyboard",
+			"description": "Harpsichord and chamber voices with a steady interlocking percussion companion.",
+			"tempo": {
+				"bpm": 104,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "baroque-counterpoint",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.18
+			},
+			"voicings": {
+				"1": [
+					"harpsichord"
+				],
+				"2": [
+					"harpsichord",
+					"cello"
+				],
+				"3": [
+					"harpsichord",
+					"cello",
+					"recorder"
+				],
+				"4": [
+					"harpsichord",
+					"cello",
+					"recorder",
+					"bassoon"
+				]
+			}
+		},
+		{
+			"id": "genre-romantic-piano",
+			"title": "Romantic piano Ensemble",
+			"style": "romantic-piano",
+			"group": "Keyboard",
+			"description": "Piano and warm strings over a soft 3/4 waltz with gentle phrase breathing.",
+			"tempo": {
+				"bpm": 84,
+				"swing": 0,
+				"feel": "Phrase breathing"
+			},
+			"harmony": {
+				"key": "Eb",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "romantic-piano",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					3,
+					4
+				]
+			},
+			"reverb": {
+				"space": "hall",
+				"mix": 0.2
+			},
+			"voicings": {
+				"1": [
+					"acoustic_grand_piano"
+				],
+				"2": [
+					"acoustic_grand_piano",
+					"cello"
+				],
+				"3": [
+					"acoustic_grand_piano",
+					"cello",
+					"string_ensemble_1"
+				],
+				"4": [
+					"acoustic_grand_piano",
+					"cello",
+					"string_ensemble_1",
+					"oboe"
+				]
+			}
+		},
+		{
+			"id": "genre-ragtime",
+			"title": "Ragtime Ensemble",
+			"style": "ragtime",
+			"group": "Keyboard",
+			"description": "Bright piano and small-band colours with 2/4 bass/chord alternation and syncopation.",
+			"tempo": {
+				"bpm": 112,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "ragtime",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					2,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"bright_acoustic_piano"
+				],
+				"2": [
+					"bright_acoustic_piano",
+					"acoustic_bass"
+				],
+				"3": [
+					"bright_acoustic_piano",
+					"acoustic_bass",
+					"clarinet"
+				],
+				"4": [
+					"bright_acoustic_piano",
+					"acoustic_bass",
+					"clarinet",
+					"trombone"
+				]
+			}
+		},
+		{
+			"id": "genre-funk",
+			"title": "Funk Ensemble",
+			"style": "funk",
+			"group": "Funk",
+			"description": "Clavinet, finger bass and guitar with sixteenth-note funk and snare ghosts.",
+			"tempo": {
+				"bpm": 104,
+				"swing": 0.08
+			},
+			"harmony": {
+				"key": "E",
+				"scale": "DORIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "funk",
+				"sound": "funky-drummer",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.1
+			},
+			"voicings": {
+				"1": [
+					"clavinet"
+				],
+				"2": [
+					"clavinet",
+					"electric_bass_finger"
+				],
+				"3": [
+					"clavinet",
+					"electric_bass_finger",
+					"electric_guitar_clean"
+				],
+				"4": [
+					"clavinet",
+					"electric_bass_finger",
+					"electric_guitar_clean",
+					"tenor_sax"
+				]
+			}
+		},
+		{
+			"id": "genre-reggae-dub",
+			"title": "Reggae/dub Ensemble",
+			"style": "reggae-dub",
+			"group": "Jamaican",
+			"description": "Organ, bass and guitar over a spacious one-drop rhythm.",
+			"tempo": {
+				"bpm": 76,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "reggae-dub",
+				"sound": "one-drop-reggae",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate-dark",
+				"mix": 0.22
+			},
+			"voicings": {
+				"1": [
+					"drawbar_organ"
+				],
+				"2": [
+					"drawbar_organ",
+					"electric_bass_finger"
+				],
+				"3": [
+					"drawbar_organ",
+					"electric_bass_finger",
+					"electric_guitar_clean"
+				],
+				"4": [
+					"drawbar_organ",
+					"electric_bass_finger",
+					"electric_guitar_clean",
+					"trumpet"
+				]
+			}
+		},
+		{
+			"id": "genre-disco-house",
+			"title": "Disco/house Ensemble",
+			"style": "disco-house",
+			"group": "Electronic",
+			"description": "Clavinet, synth bass and strings with four-on-the-floor drums and offbeat hats.",
+			"tempo": {
+				"bpm": 124,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "disco-house",
+				"sound": "roland-tr-909",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"clavinet"
+				],
+				"2": [
+					"clavinet",
+					"synth_bass_1"
+				],
+				"3": [
+					"clavinet",
+					"synth_bass_1",
+					"string_ensemble_1"
+				],
+				"4": [
+					"clavinet",
+					"synth_bass_1",
+					"string_ensemble_1",
+					"electric_piano_1"
+				]
+			}
+		},
+		{
+			"id": "genre-synth-pop",
+			"title": "Synth-pop Ensemble",
+			"style": "synth-pop",
+			"group": "Electronic",
+			"description": "Saw lead, synth bass and keys with a straight machine backbeat.",
+			"tempo": {
+				"bpm": 118,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "synth-pop",
+				"sound": "linndrum",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate",
+				"mix": 0.15
+			},
+			"voicings": {
+				"1": [
+					"lead_2_sawtooth"
+				],
+				"2": [
+					"lead_2_sawtooth",
+					"synth_bass_1"
+				],
+				"3": [
+					"lead_2_sawtooth",
+					"synth_bass_1",
+					"synth_strings_1"
+				],
+				"4": [
+					"lead_2_sawtooth",
+					"synth_bass_1",
+					"synth_strings_1",
+					"electric_piano_1"
+				]
+			}
+		},
+		{
+			"id": "genre-synthwave",
+			"title": "Synthwave Ensemble",
+			"style": "synthwave",
+			"group": "Electronic",
+			"description": "Retro lead, rounded synth bass and warm pads with a spacious electronic backbeat.",
+			"tempo": {
+				"bpm": 100,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "synthwave",
+				"sound": "simmons-sds-v",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate-bright",
+				"mix": 0.22
+			},
+			"voicings": {
+				"1": [
+					"lead_2_sawtooth"
+				],
+				"2": [
+					"lead_2_sawtooth",
+					"synth_bass_2"
+				],
+				"3": [
+					"lead_2_sawtooth",
+					"synth_bass_2",
+					"pad_2_warm"
+				],
+				"4": [
+					"lead_2_sawtooth",
+					"synth_bass_2",
+					"pad_2_warm",
+					"electric_piano_2"
+				]
+			}
+		},
+		{
+			"id": "genre-bossa-nova",
+			"title": "Bossa nova Ensemble",
+			"style": "bossa-nova",
+			"group": "Brazilian",
+			"description": "Nylon guitar, upright bass and flute with quiet syncopated Brazilian percussion.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "bossa-nova",
+				"sound": "bossa-nova",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"acoustic_guitar_nylon"
+				],
+				"2": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass"
+				],
+				"3": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass",
+					"electric_piano_1"
+				],
+				"4": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass",
+					"electric_piano_1",
+					"flute"
+				]
+			}
+		},
+		{
+			"id": "genre-drum-and-bass",
+			"title": "Drum & bass Ensemble",
+			"style": "drum-and-bass",
+			"group": "Breaks",
+			"description": "Chiff lead and sub-bass colours with a two-bar drum break at 172 BPM.",
+			"tempo": {
+				"bpm": 172,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "drum-and-bass",
+				"sound": "jungle-break",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "garage",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"lead_4_chiff"
+				],
+				"2": [
+					"lead_4_chiff",
+					"synth_bass_1"
+				],
+				"3": [
+					"lead_4_chiff",
+					"synth_bass_1",
+					"electric_piano_2"
+				],
+				"4": [
+					"lead_4_chiff",
+					"synth_bass_1",
+					"electric_piano_2",
+					"pad_2_warm"
+				]
+			}
+		},
+		{
+			"id": "genre-afrobeat",
+			"title": "Afrobeat Ensemble",
+			"style": "afrobeat",
+			"group": "West African",
+			"description": "Horns, finger bass and guitar with interlocking Afrobeat percussion.",
+			"tempo": {
+				"bpm": 112,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "DORIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "afrobeat",
+				"sound": "afrobeat",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"tenor_sax"
+				],
+				"2": [
+					"tenor_sax",
+					"electric_bass_finger"
+				],
+				"3": [
+					"tenor_sax",
+					"electric_bass_finger",
+					"electric_guitar_clean"
+				],
+				"4": [
+					"tenor_sax",
+					"electric_bass_finger",
+					"electric_guitar_clean",
+					"drawbar_organ"
+				]
+			}
+		},
+		{
+			"id": "genre-highlife",
+			"title": "Highlife Ensemble",
+			"style": "highlife",
+			"group": "Ghanaian",
+			"description": "Clean guitar and horns with offbeat timekeeping and a two-bar bell response.",
+			"tempo": {
+				"bpm": 116,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "highlife",
+				"sound": "727-latin-box",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"electric_guitar_clean"
+				],
+				"2": [
+					"electric_guitar_clean",
+					"electric_bass_finger"
+				],
+				"3": [
+					"electric_guitar_clean",
+					"electric_bass_finger",
+					"trumpet"
+				],
+				"4": [
+					"electric_guitar_clean",
+					"electric_bass_finger",
+					"trumpet",
+					"marimba"
+				]
+			}
+		},
+		{
+			"id": "genre-soukous",
+			"title": "Soukous Ensemble",
+			"style": "soukous",
+			"group": "Congolese",
+			"description": "Clean guitar-led band with a recurring cavacha-inspired hat figure.",
+			"tempo": {
+				"bpm": 128,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "soukous",
+				"sound": "727-latin-box",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"electric_guitar_clean"
+				],
+				"2": [
+					"electric_guitar_clean",
+					"electric_bass_pick"
+				],
+				"3": [
+					"electric_guitar_clean",
+					"electric_bass_pick",
+					"electric_guitar_muted"
+				],
+				"4": [
+					"electric_guitar_clean",
+					"electric_bass_pick",
+					"electric_guitar_muted",
+					"brass_section"
+				]
+			}
+		},
+		{
+			"id": "genre-mbalax",
+			"title": "Mbalax Ensemble",
+			"style": "mbalax",
+			"group": "Senegalese",
+			"description": "Guitar, bass and brass with sparse sabar-inspired low/high drum responses.",
+			"tempo": {
+				"bpm": 128,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "mbalax",
+				"sound": "727-latin-box",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"electric_guitar_clean"
+				],
+				"2": [
+					"electric_guitar_clean",
+					"electric_bass_finger"
+				],
+				"3": [
+					"electric_guitar_clean",
+					"electric_bass_finger",
+					"brass_section"
+				],
+				"4": [
+					"electric_guitar_clean",
+					"electric_bass_finger",
+					"brass_section",
+					"marimba"
+				]
+			}
+		},
+		{
+			"id": "genre-ethio-jazz",
+			"title": "Ethio-jazz Ensemble",
+			"style": "ethio-jazz",
+			"group": "Ethiopian",
+			"description": "Vibraphone, bass and saxophone with pentatonic colour and a 6/8 jazz companion.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "PENTATONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "ethio-jazz",
+				"sound": "jazz-swing",
+				"phraseBars": 4,
+				"meter": [
+					6,
+					8
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"vibraphone"
+				],
+				"2": [
+					"vibraphone",
+					"acoustic_bass"
+				],
+				"3": [
+					"vibraphone",
+					"acoustic_bass",
+					"tenor_sax"
+				],
+				"4": [
+					"vibraphone",
+					"acoustic_bass",
+					"tenor_sax",
+					"electric_piano_2"
+				]
+			}
+		},
+		{
+			"id": "genre-amapiano",
+			"title": "Amapiano Ensemble",
+			"style": "amapiano",
+			"group": "South African",
+			"description": "Electric piano and synth bass with soft house drums and low-tom log-drum-like accents.",
+			"tempo": {
+				"bpm": 112,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "amapiano",
+				"sound": "amapiano",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate-dark",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"electric_piano_1"
+				],
+				"2": [
+					"electric_piano_1",
+					"synth_bass_1"
+				],
+				"3": [
+					"electric_piano_1",
+					"synth_bass_1",
+					"marimba"
+				],
+				"4": [
+					"electric_piano_1",
+					"synth_bass_1",
+					"marimba",
+					"pad_2_warm"
+				]
+			}
+		},
+		{
+			"id": "genre-gnawa-inspired",
+			"title": "Gnawa-inspired Ensemble",
+			"style": "gnawa-inspired",
+			"group": "Moroccan",
+			"description": "Plucked-string and bass substitutes for guembri-like colours over a 12-pulse metallic ostinato.",
+			"tempo": {
+				"bpm": 156,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "PENTATONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "gnawa-inspired",
+				"sound": "maqsum",
+				"phraseBars": 4,
+				"meter": [
+					12,
+					8
+				]
+			},
+			"reverb": {
+				"space": "cave",
+				"mix": 0.16
+			},
+			"voicings": {
+				"1": [
+					"shamisen"
+				],
+				"2": [
+					"shamisen",
+					"acoustic_bass"
+				],
+				"3": [
+					"shamisen",
+					"acoustic_bass",
+					"flute"
+				],
+				"4": [
+					"shamisen",
+					"acoustic_bass",
+					"flute",
+					"voice_oohs"
+				]
+			}
+		},
+		{
+			"id": "genre-rai-inspired",
+			"title": "Raï-inspired Ensemble",
+			"style": "rai-inspired",
+			"group": "Algerian",
+			"description": "Accordion, bass and brass with a 4/4 low/high drum accompaniment.",
+			"tempo": {
+				"bpm": 110,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "HARMONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "rai-inspired",
+				"sound": "maqsum",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"accordion"
+				],
+				"2": [
+					"accordion",
+					"electric_bass_finger"
+				],
+				"3": [
+					"accordion",
+					"electric_bass_finger",
+					"trumpet"
+				],
+				"4": [
+					"accordion",
+					"electric_bass_finger",
+					"trumpet",
+					"electric_guitar_clean"
+				]
+			}
+		},
+		{
+			"id": "genre-arabic-maqam-inspired",
+			"title": "Arabic maqam-inspired Ensemble",
+			"style": "arabic-maqam-inspired",
+			"group": "Arabic",
+			"description": "Nylon guitar stands in for oud, with violin, wind and Maqsum; the scale is equal-tempered Phrygian.",
+			"tempo": {
+				"bpm": 100,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "PHRYGIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "arabic-maqam-inspired",
+				"sound": "maqsum",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "hall",
+				"mix": 0.18
+			},
+			"voicings": {
+				"1": [
+					"acoustic_guitar_nylon"
+				],
+				"2": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass"
+				],
+				"3": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass",
+					"violin"
+				],
+				"4": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass",
+					"violin",
+					"oboe"
+				]
+			}
+		},
+		{
+			"id": "genre-turkish-folk-inspired",
+			"title": "Turkish folk-inspired Ensemble",
+			"style": "turkish-folk-inspired",
+			"group": "Turkish",
+			"description": "Plucked-string and wind substitutes with Karsilama-inspired 9/8 grouped 2+2+2+3.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "PHRYGIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "turkish-folk-inspired",
+				"sound": "karsilama-9-8",
+				"phraseBars": 4,
+				"meter": [
+					9,
+					8
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.16
+			},
+			"voicings": {
+				"1": [
+					"sitar"
+				],
+				"2": [
+					"sitar",
+					"acoustic_bass"
+				],
+				"3": [
+					"sitar",
+					"acoustic_bass",
+					"violin"
+				],
+				"4": [
+					"sitar",
+					"acoustic_bass",
+					"violin",
+					"clarinet"
+				]
+			}
+		},
+		{
+			"id": "genre-persian-classical-inspired",
+			"title": "Persian classical-inspired Ensemble",
+			"style": "persian-classical-inspired",
+			"group": "Persian",
+			"description": "Dulcimer provides santur-like colour over a metered 6/8 reng-inspired companion; an equal-tempered approximation.",
+			"tempo": {
+				"bpm": 144,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "HARMONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "persian-classical-inspired",
+				"sound": "maqsum",
+				"phraseBars": 4,
+				"meter": [
+					6,
+					8
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.18
+			},
+			"voicings": {
+				"1": [
+					"dulcimer"
+				],
+				"2": [
+					"dulcimer",
+					"acoustic_bass"
+				],
+				"3": [
+					"dulcimer",
+					"acoustic_bass",
+					"violin"
+				],
+				"4": [
+					"dulcimer",
+					"acoustic_bass",
+					"violin",
+					"flute"
+				]
+			}
+		},
+		{
+			"id": "genre-indian-raga-inspired",
+			"title": "Indian raga-inspired Ensemble",
+			"style": "indian-raga-inspired",
+			"group": "Hindustani",
+			"description": "Sitar, flute and reed organ with a 16-beat Tintal companion and a fixed major-scale starting palette.",
+			"tempo": {
+				"bpm": 96,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "indian-raga-inspired",
+				"sound": "tintal-16",
+				"phraseBars": 4,
+				"meter": [
+					16,
+					4
+				]
+			},
+			"reverb": {
+				"space": "hall",
+				"mix": 0.18
+			},
+			"voicings": {
+				"1": [
+					"sitar"
+				],
+				"2": [
+					"sitar",
+					"acoustic_bass"
+				],
+				"3": [
+					"sitar",
+					"acoustic_bass",
+					"flute"
+				],
+				"4": [
+					"sitar",
+					"acoustic_bass",
+					"flute",
+					"reed_organ"
+				]
+			}
+		},
+		{
+			"id": "genre-qawwali-inspired",
+			"title": "Qawwali-inspired Ensemble",
+			"style": "qawwali-inspired",
+			"group": "South Asian",
+			"description": "Reed organ provides harmonium-like colour with choir, clapping and an eight-beat Kaharwa-inspired cycle.",
+			"tempo": {
+				"bpm": 108,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "qawwali-inspired",
+				"sound": "maqsum",
+				"phraseBars": 4,
+				"meter": [
+					8,
+					4
+				]
+			},
+			"reverb": {
+				"space": "hall",
+				"mix": 0.2
+			},
+			"voicings": {
+				"1": [
+					"reed_organ"
+				],
+				"2": [
+					"reed_organ",
+					"acoustic_bass"
+				],
+				"3": [
+					"reed_organ",
+					"acoustic_bass",
+					"choir_aahs"
+				],
+				"4": [
+					"reed_organ",
+					"acoustic_bass",
+					"choir_aahs",
+					"flute"
+				]
+			}
+		},
+		{
+			"id": "genre-gamelan-inspired",
+			"title": "Gamelan-inspired Ensemble",
+			"style": "gamelan-inspired",
+			"group": "Indonesian",
+			"description": "Vibraphone, marimba and bells approximate interlocking metal percussion; the pentatonic scale uses equal temperament.",
+			"tempo": {
+				"bpm": 104,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "PENTATONIC_MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "gamelan-inspired",
+				"sound": "727-latin-box",
+				"phraseBars": 4,
+				"meter": [
+					8,
+					4
+				]
+			},
+			"reverb": {
+				"space": "large-hall",
+				"mix": 0.22
+			},
+			"voicings": {
+				"1": [
+					"vibraphone"
+				],
+				"2": [
+					"vibraphone",
+					"acoustic_bass"
+				],
+				"3": [
+					"vibraphone",
+					"acoustic_bass",
+					"marimba"
+				],
+				"4": [
+					"vibraphone",
+					"acoustic_bass",
+					"marimba",
+					"tubular_bells"
+				]
+			}
+		},
+		{
+			"id": "genre-japanese-koto-inspired",
+			"title": "Japanese koto-inspired Ensemble",
+			"style": "japanese-koto-inspired",
+			"group": "Japanese",
+			"description": "Koto and shakuhachi with sparse duple percussion and room for ornament.",
+			"tempo": {
+				"bpm": 84,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "PENTATONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "japanese-koto-inspired",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.18
+			},
+			"voicings": {
+				"1": [
+					"koto"
+				],
+				"2": [
+					"koto",
+					"cello"
+				],
+				"3": [
+					"koto",
+					"cello",
+					"shakuhachi"
+				],
+				"4": [
+					"koto",
+					"cello",
+					"shakuhachi",
+					"shamisen"
+				]
+			}
+		},
+		{
+			"id": "genre-chinese-guzheng-inspired",
+			"title": "Chinese guzheng-inspired Ensemble",
+			"style": "chinese-guzheng-inspired",
+			"group": "Chinese",
+			"description": "The available koto voice stands in for guzheng, with flute, strings and a quiet measured accompaniment.",
+			"tempo": {
+				"bpm": 96,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "PENTATONIC_MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "chinese-guzheng-inspired",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.18
+			},
+			"voicings": {
+				"1": [
+					"koto"
+				],
+				"2": [
+					"koto",
+					"cello"
+				],
+				"3": [
+					"koto",
+					"cello",
+					"flute"
+				],
+				"4": [
+					"koto",
+					"cello",
+					"flute",
+					"string_ensemble_1"
+				]
+			}
+		},
+		{
+			"id": "genre-korean-folk-inspired",
+			"title": "Korean folk-inspired Ensemble",
+			"style": "korean-folk-inspired",
+			"group": "Korean",
+			"description": "Koto approximates gayageum colour, with winds and a Jungjungmori-inspired 12-pulse percussion cycle.",
+			"tempo": {
+				"bpm": 180,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "PENTATONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "korean-folk-inspired",
+				"sound": "maqsum",
+				"phraseBars": 4,
+				"meter": [
+					12,
+					8
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.16
+			},
+			"voicings": {
+				"1": [
+					"koto"
+				],
+				"2": [
+					"koto",
+					"cello"
+				],
+				"3": [
+					"koto",
+					"cello",
+					"oboe"
+				],
+				"4": [
+					"koto",
+					"cello",
+					"oboe",
+					"flute"
+				]
+			}
+		},
+		{
+			"id": "genre-irish-jig-inspired",
+			"title": "Irish jig-inspired Ensemble",
+			"style": "irish-jig-inspired",
+			"group": "Irish",
+			"description": "Fiddle, flute and accordion over 6/8 jig timing in two groups of three.",
+			"tempo": {
+				"bpm": 168,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "irish-jig-inspired",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					6,
+					8
+				]
+			},
+			"reverb": {
+				"space": "small-room",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"fiddle"
+				],
+				"2": [
+					"fiddle",
+					"acoustic_bass"
+				],
+				"3": [
+					"fiddle",
+					"acoustic_bass",
+					"flute"
+				],
+				"4": [
+					"fiddle",
+					"acoustic_bass",
+					"flute",
+					"accordion"
+				]
+			}
+		},
+		{
+			"id": "genre-flamenco-inspired",
+			"title": "Flamenco-inspired Ensemble",
+			"style": "flamenco-inspired",
+			"group": "Flamenco",
+			"description": "Nylon guitar over a Bulerias-inspired 12-count compas, accented on 12, 3, 6, 8 and 10.",
+			"tempo": {
+				"bpm": 126,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "E",
+				"scale": "PHRYGIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "flamenco-inspired",
+				"sound": "bulerias-12",
+				"phraseBars": 4,
+				"meter": [
+					12,
+					8
+				]
+			},
+			"reverb": {
+				"space": "small-room",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"acoustic_guitar_nylon"
+				],
+				"2": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass"
+				],
+				"3": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass",
+					"violin"
+				],
+				"4": [
+					"acoustic_guitar_nylon",
+					"acoustic_bass",
+					"violin",
+					"accordion"
+				]
+			}
+		},
+		{
+			"id": "genre-klezmer-inspired",
+			"title": "Klezmer-inspired Ensemble",
+			"style": "klezmer-inspired",
+			"group": "Klezmer",
+			"description": "Clarinet, accordion and fiddle with a freylekhs-inspired duple accompaniment.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "HARMONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "klezmer-inspired",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					2,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"clarinet"
+				],
+				"2": [
+					"clarinet",
+					"acoustic_bass"
+				],
+				"3": [
+					"clarinet",
+					"acoustic_bass",
+					"accordion"
+				],
+				"4": [
+					"clarinet",
+					"acoustic_bass",
+					"accordion",
+					"violin"
+				]
+			}
+		},
+		{
+			"id": "genre-balkan-dance-inspired",
+			"title": "Balkan dance-inspired Ensemble",
+			"style": "balkan-dance-inspired",
+			"group": "Bulgarian",
+			"description": "Accordion and clarinet over Rachenitsa-inspired 7/8 grouped 2+2+3.",
+			"tempo": {
+				"bpm": 140,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "HARMONIC_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "balkan-dance-inspired",
+				"sound": "rachenitsa-7-8",
+				"phraseBars": 4,
+				"meter": [
+					7,
+					8
+				]
+			},
+			"reverb": {
+				"space": "small-room",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"accordion"
+				],
+				"2": [
+					"accordion",
+					"acoustic_bass"
+				],
+				"3": [
+					"accordion",
+					"acoustic_bass",
+					"clarinet"
+				],
+				"4": [
+					"accordion",
+					"acoustic_bass",
+					"clarinet",
+					"fiddle"
+				]
+			}
+		},
+		{
+			"id": "genre-tango",
+			"title": "Tango Ensemble",
+			"style": "tango",
+			"group": "Argentine",
+			"description": "Accordion and strings with a habanera-derived 2/4 accompaniment.",
+			"tempo": {
+				"bpm": 120,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "D",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "tango",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					2,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.16
+			},
+			"voicings": {
+				"1": [
+					"accordion"
+				],
+				"2": [
+					"accordion",
+					"acoustic_bass"
+				],
+				"3": [
+					"accordion",
+					"acoustic_bass",
+					"violin"
+				],
+				"4": [
+					"accordion",
+					"acoustic_bass",
+					"violin",
+					"acoustic_grand_piano"
+				]
+			}
+		},
+		{
+			"id": "genre-argentine-tango",
+			"title": "Argentine tango Ensemble",
+			"style": "argentine-tango",
+			"group": "Argentine",
+			"description": "Accordion stands in for bandoneon, with piano and strings over a 3+3+2 rhythmic variant.",
+			"tempo": {
+				"bpm": 124,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "A",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "argentine-tango",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "salon",
+				"mix": 0.16
+			},
+			"voicings": {
+				"1": [
+					"accordion"
+				],
+				"2": [
+					"accordion",
+					"contrabass"
+				],
+				"3": [
+					"accordion",
+					"contrabass",
+					"acoustic_grand_piano"
+				],
+				"4": [
+					"accordion",
+					"contrabass",
+					"acoustic_grand_piano",
+					"violin"
+				]
+			}
+		},
+		{
+			"id": "genre-samba",
+			"title": "Samba Ensemble",
+			"style": "samba",
+			"group": "Brazilian",
+			"description": "Nylon guitar, bass and brass with alternating muted/open surdo responses.",
+			"tempo": {
+				"bpm": 112,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "samba",
+				"sound": "samba-batucada",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.1
+			},
+			"voicings": {
+				"1": [
+					"acoustic_guitar_nylon"
+				],
+				"2": [
+					"acoustic_guitar_nylon",
+					"electric_bass_finger"
+				],
+				"3": [
+					"acoustic_guitar_nylon",
+					"electric_bass_finger",
+					"trumpet"
+				],
+				"4": [
+					"acoustic_guitar_nylon",
+					"electric_bass_finger",
+					"trumpet",
+					"acoustic_grand_piano"
+				]
+			}
+		},
+		{
+			"id": "genre-salsa",
+			"title": "Salsa Ensemble",
+			"style": "salsa",
+			"group": "Cuban",
+			"description": "Piano, bass and brass with two-bar 3-2 son clave and tumbao accompaniment.",
+			"tempo": {
+				"bpm": 180,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "salsa",
+				"sound": "salsa-mambo-727",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"acoustic_grand_piano"
+				],
+				"2": [
+					"acoustic_grand_piano",
+					"electric_bass_finger"
+				],
+				"3": [
+					"acoustic_grand_piano",
+					"electric_bass_finger",
+					"trumpet"
+				],
+				"4": [
+					"acoustic_grand_piano",
+					"electric_bass_finger",
+					"trumpet",
+					"trombone"
+				]
+			}
+		},
+		{
+			"id": "genre-cumbia",
+			"title": "Cumbia Ensemble",
+			"style": "cumbia",
+			"group": "Colombian",
+			"description": "Accordion, bass and flute with offbeat hand drum and steady shaker.",
+			"tempo": {
+				"bpm": 96,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "cumbia",
+				"sound": "cumbia-percussion",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"accordion"
+				],
+				"2": [
+					"accordion",
+					"electric_bass_finger"
+				],
+				"3": [
+					"accordion",
+					"electric_bass_finger",
+					"flute"
+				],
+				"4": [
+					"accordion",
+					"electric_bass_finger",
+					"flute",
+					"acoustic_guitar_steel"
+				]
+			}
+		},
+		{
+			"id": "genre-merengue",
+			"title": "Merengue Ensemble",
+			"style": "merengue",
+			"group": "Dominican",
+			"description": "Accordion and saxophone with driving 2/4 scraper and hand-drum responses.",
+			"tempo": {
+				"bpm": 144,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "merengue",
+				"sound": "727-latin-box",
+				"phraseBars": 4,
+				"meter": [
+					2,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"accordion"
+				],
+				"2": [
+					"accordion",
+					"electric_bass_finger"
+				],
+				"3": [
+					"accordion",
+					"electric_bass_finger",
+					"alto_sax"
+				],
+				"4": [
+					"accordion",
+					"electric_bass_finger",
+					"alto_sax",
+					"trumpet"
+				]
+			}
+		},
+		{
+			"id": "genre-calypso",
+			"title": "Calypso Ensemble",
+			"style": "calypso",
+			"group": "Trinidadian",
+			"description": "Steel pan, bass and guitar with syncopated 2/4 percussion.",
+			"tempo": {
+				"bpm": 104,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "calypso",
+				"sound": "727-latin-box",
+				"phraseBars": 4,
+				"meter": [
+					2,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"steel_drums"
+				],
+				"2": [
+					"steel_drums",
+					"electric_bass_finger"
+				],
+				"3": [
+					"steel_drums",
+					"electric_bass_finger",
+					"acoustic_guitar_steel"
+				],
+				"4": [
+					"steel_drums",
+					"electric_bass_finger",
+					"acoustic_guitar_steel",
+					"trumpet"
+				]
+			}
+		},
+		{
+			"id": "genre-soca",
+			"title": "Soca Ensemble",
+			"style": "soca",
+			"group": "Trinidadian",
+			"description": "Steel pan, synth bass and brass with a driving kick and offbeat percussion.",
+			"tempo": {
+				"bpm": 132,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "Bb",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "soca",
+				"sound": "roland-tr-909",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate-bright",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"steel_drums"
+				],
+				"2": [
+					"steel_drums",
+					"synth_bass_1"
+				],
+				"3": [
+					"steel_drums",
+					"synth_bass_1",
+					"brass_section"
+				],
+				"4": [
+					"steel_drums",
+					"synth_bass_1",
+					"brass_section",
+					"electric_piano_1"
+				]
+			}
+		},
+		{
+			"id": "genre-bluegrass",
+			"title": "Bluegrass Ensemble",
+			"style": "bluegrass",
+			"group": "Bluegrass",
+			"description": "Banjo, upright bass, fiddle and guitar with a light 2/4 bass/chop companion.",
+			"tempo": {
+				"bpm": 112,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "G",
+				"scale": "MAJOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "bluegrass",
+				"sound": "brushes-and-dust",
+				"phraseBars": 4,
+				"meter": [
+					2,
+					4
+				]
+			},
+			"reverb": {
+				"space": "small-room",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"banjo"
+				],
+				"2": [
+					"banjo",
+					"acoustic_bass"
+				],
+				"3": [
+					"banjo",
+					"acoustic_bass",
+					"fiddle"
+				],
+				"4": [
+					"banjo",
+					"acoustic_bass",
+					"fiddle",
+					"acoustic_guitar_steel"
+				]
+			}
+		},
+		{
+			"id": "genre-rock",
+			"title": "Rock Ensemble",
+			"style": "rock",
+			"group": "Rock",
+			"description": "Guitar, pick bass and organ with straight eighths and a firm rock backbeat.",
+			"tempo": {
+				"bpm": 126,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "E",
+				"scale": "MIXOLYDIAN_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "rock",
+				"sound": "punk-rock",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "drum-room",
+				"mix": 0.12
+			},
+			"voicings": {
+				"1": [
+					"overdriven_guitar"
+				],
+				"2": [
+					"overdriven_guitar",
+					"electric_bass_pick"
+				],
+				"3": [
+					"overdriven_guitar",
+					"electric_bass_pick",
+					"drawbar_organ"
+				],
+				"4": [
+					"overdriven_guitar",
+					"electric_bass_pick",
+					"drawbar_organ",
+					"distortion_guitar"
+				]
+			}
+		},
+		{
+			"id": "genre-hip-hop",
+			"title": "Hip-hop Ensemble",
+			"style": "hip-hop",
+			"group": "Breaks",
+			"description": "Electric piano, bass and voice lead with boom-bap timing; hat swing and late snare are built into the pattern.",
+			"tempo": {
+				"bpm": 90,
+				"swing": 0,
+				"feel": "Swung hats"
+			},
+			"harmony": {
+				"key": "C",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "hip-hop",
+				"sound": "emu-sp-1200",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "studio",
+				"mix": 0.1
+			},
+			"voicings": {
+				"1": [
+					"electric_piano_1"
+				],
+				"2": [
+					"electric_piano_1",
+					"synth_bass_1"
+				],
+				"3": [
+					"electric_piano_1",
+					"synth_bass_1",
+					"lead_6_voice"
+				],
+				"4": [
+					"electric_piano_1",
+					"synth_bass_1",
+					"lead_6_voice",
+					"string_ensemble_1"
+				]
+			}
+		},
+		{
+			"id": "genre-trap",
+			"title": "Trap Ensemble",
+			"style": "trap",
+			"group": "Electronic",
+			"description": "Square lead, sub-bass colours and bells with a half-time backbeat and sixteenth-note hats.",
+			"tempo": {
+				"bpm": 140,
+				"swing": 0
+			},
+			"harmony": {
+				"key": "F",
+				"scale": "NATURAL_MINOR_SCALE"
+			},
+			"percussion": {
+				"enabled": true,
+				"pattern": "trap",
+				"sound": "roland-tr-808",
+				"phraseBars": 4,
+				"meter": [
+					4,
+					4
+				]
+			},
+			"reverb": {
+				"space": "plate-dark",
+				"mix": 0.14
+			},
+			"voicings": {
+				"1": [
+					"lead_1_square"
+				],
+				"2": [
+					"lead_1_square",
+					"synth_bass_1"
+				],
+				"3": [
+					"lead_1_square",
+					"synth_bass_1",
+					"pad_2_warm"
+				],
+				"4": [
+					"lead_1_square",
+					"synth_bass_1",
+					"pad_2_warm",
+					"tubular_bells"
 				]
 			}
 		}

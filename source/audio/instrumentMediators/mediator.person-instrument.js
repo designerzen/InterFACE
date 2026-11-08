@@ -42,7 +42,11 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 	// }
 
 	const isChord = instrument.type === INSTRUMENT_TYPE_CHORD && instrument.playsChords !== false
-	switch(person.state)
+	const expressionChanged = isChord && person.activeChordEmoticon !== undefined &&
+		person.activeChordEmoticon !== person.playingEmoticon
+	const refreshHeldChord = expressionChanged &&
+		(person.state === STATE_INSTRUMENT_SUSTAIN || person.state === STATE_INSTRUMENT_PITCH_BEND)
+	switch(refreshHeldChord ? STATE_INSTRUMENT_ATTACK : person.state)
 	{
 		case STATE_INSTRUMENT_ATTACK:
 			// person.emoticon
@@ -86,6 +90,7 @@ export const updateInstrumentWithPerson = ( instrument, person, playAudio=true, 
 					
 //  console.error("mediator.person-instrument", isChord ? chordSequence : "monophonic" )
 				}				person.activeNotes.set( person.noteNumber, chordSequence )
+				person.activeChordEmoticon = person.playingEmoticon
 				
 				return chordSequence
 

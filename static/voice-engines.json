@@ -1,0 +1,17 @@
+{
+  "yoshimi": {
+    "license": "GPL-2.0-or-later",
+    "commit": "c96fb0324f0cd44f9b2dc5ba80caaeb247c2826a",
+    "source": "https://github.com/petersalomonsen/yoshimi"
+  },
+  "tinySynth": {
+    "license": "MIT",
+    "commit": "2179e50cf7bbc1f038a6e423651d9915505621f8",
+    "source": "https://github.com/webaudiomodules/wam-examples"
+  },
+  "supersonic": {
+    "license": "AGPL-3.0-or-later",
+    "version": "0.81.0",
+    "source": "https://github.com/samaaron/supersonic"
+  }
+}

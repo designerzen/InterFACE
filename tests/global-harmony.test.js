@@ -112,7 +112,7 @@ describe('global key controls', () => {
 	})
 
 	test('describes selected keys and explains free range mode in feedback', () => {
-		expect(interfaceSource).toContain('Key selected: ${option.textContent} ${getSelectedKeyScaleLabel()}. All players will use this shared key.')
+		expect(interfaceSource).toContain('Key selected: ${optionLabel(option)} ${getSelectedKeyScaleLabel()}. All players will use this shared key.')
 		expect(interfaceSource).toContain('Free Range selected. Notes and chords are no longer restricted to one shared key: each played note can become its own chord root, so every player can move independently through the full chromatic range.')
 	})
 

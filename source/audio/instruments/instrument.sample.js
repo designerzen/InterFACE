@@ -49,6 +49,8 @@ export default class SampleInstrument extends Instrument{
 	// which samples are currently ongoing
 	activeSamples = new Map() // WeakMap?
 	activeNoteSamples = new Map()
+	sampleEnvelopes = new Map()
+	retiringNoteSamples = new Map()
 
 	get pitchOffset(){
 		return this.pitchBendValue
@@ -77,8 +79,7 @@ export default class SampleInstrument extends Instrument{
 	}
 
 	get repetitionRate(){
-		const configuredRate = super.repetitionRate
-		return configuredRate > 0 ? configuredRate : 12
+		return this.options?.repetitionRate != null && this.options.repetitionRate !== "template" ? super.repetitionRate : 4
 	}
 
     async create(){    
@@ -174,6 +175,33 @@ export default class SampleInstrument extends Instrument{
 		return this.audioBuffers[convertMIDINoteNumberToName(noteNumber)]
 	}
 
+	getNoteRepeatDuration(noteNumber){
+		const duration = this.getAudioBufferForNoteNumber(noteNumber)?.duration
+		return Number.isFinite(duration) && this.pitchBendValue > 0 ? Math.max(0, duration / this.pitchBendValue - 0.04) : null
+	}
+
+	startNoteSample(noteNumber, audioBuffer, triggerAt, fadeIn=0){
+		const envelope = this.context.createGain()
+		envelope.connect(this.gainNode)
+		envelope.gain.setValueAtTime(fadeIn > 0 ? 0 : 1, triggerAt)
+		if (fadeIn > 0) envelope.gain.linearRampToValueAtTime(1, triggerAt + fadeIn)
+		let track
+		track = playTrack(this.context, audioBuffer, 0, envelope,
+			{loop:false, playbackRate:this.pitchBendValue, triggerAt}, () => {
+				envelope.disconnect()
+				this.sampleEnvelopes.delete(track)
+				this.retiringNoteSamples.delete(track)
+				if (this.activeNoteSamples.get(noteNumber) === track)
+				{
+					this.activeNoteSamples.delete(noteNumber)
+					recordInstrumentRelease(this, noteNumber)
+				}
+			})
+		this.sampleEnvelopes.set(track, envelope)
+		this.activeNoteSamples.set(noteNumber, track)
+		return track
+	}
+
 	/**
 	 * Like note on but using names!
 	 * 
@@ -201,7 +229,7 @@ export default class SampleInstrument extends Instrument{
 		}
 
 		const audioBuffer = this.getAudioBufferForNoteNumber(noteNumber)
-		if (!audioBuffer) {
+		if (!audioBuffer || this.sampleEnvelopes.size >= MAX_TRACKS) {
 			this.activeNotes.delete(noteNumber)
 			this.active = this.activeNotes.size > 0
 			return false
@@ -210,86 +238,33 @@ export default class SampleInstrument extends Instrument{
 		{
 			this.active = true
 			this.volume = velocity
-			let track
-			track = playTrack(
-				this.context,
-				audioBuffer,
-				0,
-				this.gainNode,
-				{ loop:this.isContinuous, playbackRate:this.pitchBendValue, triggerAt },
-				() => {
-					if (this.activeNoteSamples.get(noteNumber) === track)
-					{
-						this.activeNoteSamples.delete(noteNumber)
-						recordInstrumentRelease(this,noteNumber)
-					}
-				},
-			)
-			this.activeNoteSamples.set(noteNumber, track)
+			this.startNoteSample(noteNumber, audioBuffer, Math.max(this.context.currentTime, triggerAt))
 		}
 
 		return started
 	}
 
-	/**
-	 * Start a fresh attack for a note which remains logically held. The old
-	 * source is stopped only after its replacement has started, leaving the
-	 * downstream reverb tail intact without accumulating looping sources.
-	 */
+	/** Start another attack while the previous recording finishes naturally. */
 	async retrigger(noteNumber, velocity=1){
-		if (!this.activeNotes.has(noteNumber))
-		{
-			return this.noteOn(noteNumber, velocity)
-		}
-
+		if (!this.activeNotes.has(noteNumber)) return this.noteOn(noteNumber, velocity)
 		const audioBuffer = this.getAudioBufferForNoteNumber(noteNumber)
-		if (!audioBuffer)
-		{
-			return false
-		}
+		if (!audioBuffer || this.sampleEnvelopes.size >= MAX_TRACKS) return false
 
 		const previousTrack = this.activeNoteSamples.get(noteNumber)
+		if (previousTrack) this.retiringNoteSamples.set(previousTrack, noteNumber)
 		this.volume = velocity
-		let track
-		track = playTrack(
-			this.context,
-			audioBuffer,
-			0,
-			this.gainNode,
-			{ loop:this.isContinuous, playbackRate:this.pitchBendValue, triggerAt:this.currentTime },
-			() => {
-				if (this.activeNoteSamples.get(noteNumber) === track)
-				{
-					this.activeNoteSamples.delete(noteNumber)
-					recordInstrumentRelease(this,noteNumber)
-				}
-			},
-		)
-		this.activeNoteSamples.set(noteNumber, track)
+		this.startNoteSample(noteNumber, audioBuffer, Math.max(this.context.currentTime, this.currentTime))
 		this.active = true
-
-		try
-		{
-			previousTrack?.stop?.(this.currentTime)
-		}catch (error)
-		{
-			// The previous source may already have ended during replacement.
-		}
 		return true
 	}
 
 	async noteOff(noteNumber, velocity=0){
+		// Samples contain their own release: releasing a key must not chop it off.
 		const track = this.activeNoteSamples.get(noteNumber)
+		if (track) this.retiringNoteSamples.set(track, noteNumber)
 		this.activeNoteSamples.delete(noteNumber)
-		try
-		{
-			track?.stop?.(this.currentTime)
-		}catch (error)
-		{
-			// An external cleanup may already have stopped this source.
-		}
 		const stopped = await super.noteOff(noteNumber, velocity)
-		this.active = this.activeNotes.size > 0 || this.activeNoteSamples.size > 0 || this.activeSamples.size > 0
+		this.active = this.activeNotes.size > 0 || this.sampleEnvelopes.size > 0 || this.activeSamples.size > 0
 		return stopped
 	}
 
@@ -298,6 +273,12 @@ export default class SampleInstrument extends Instrument{
 		const noteOffPromises = activeNoteNumbers.map(noteNumber => this.noteOff(noteNumber, 0))
 		// Stop any source whose bookkeeping outlived its active-note entry.
 		this.stopTrackedAudioSources(this.activeNoteSamples)
+		// Released recordings and repeated notes can still be sounding.
+		for (const source of this.retiringNoteSamples.keys())
+		{
+			try { source.stop(this.currentTime) } catch (error) { /* Source already ended. */ }
+		}
+		this.retiringNoteSamples.clear()
 		this.activeNotes.clear()
 		this.active = this.activeSamples.size > 0
 		await Promise.all(noteOffPromises)
@@ -315,7 +296,7 @@ export default class SampleInstrument extends Instrument{
 			sample.playbackRate.value = pitch
 		}
 		this.activeSamples.forEach(updatePlaybackRate)
-		this.activeNoteSamples.forEach(updatePlaybackRate)
+		this.sampleEnvelopes.forEach((_envelope, sample) => updatePlaybackRate(sample))
 		return await super.pitchBend(pitch)
 	}
 

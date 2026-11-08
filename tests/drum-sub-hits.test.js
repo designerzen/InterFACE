@@ -129,7 +129,7 @@ describe('drum fill subdivisions', () => {
 		expect(phrase.some(parts => parts.triangleOpen > 0)).toBe(true)
 	})
 
-	test('orchestrates recognisable GM colours across ordinary grooves', () => {
+	test('uses genre colours sparingly instead of adding unrelated GM instruments', () => {
 		const arranger = createDrumArranger({
 			groove:'amen', seed:'gm-colours', bpm:120, phraseBars:2, stepsPerBar:16,
 		})
@@ -141,11 +141,10 @@ describe('drum fill subdivisions', () => {
 			}
 		}
 
-		expect([...heard]).toEqual(expect.arrayContaining([
-			'crash', 'crash2', 'ride', 'ride2', 'rideBell',
-			'rimshot', 'claves', 'fingerSnap', 'snareElectric', 'hatPedal',
-			'tomFloorLow', 'tomFloorHigh', 'tomMidHigh', 'vibraslap', 'jingleBell',
-		]))
+		expect([...heard]).toEqual(expect.arrayContaining(['kick','snare','hat','snareElectric']))
+		expect(heard.has('vibraslap')).toBe(false)
+		expect(heard.has('jingleBell')).toBe(false)
+		expect(heard.has('claves')).toBe(false)
 	})
 
 	test('exposes a full bar of upcoming percussion for the beat display', () => {
@@ -164,6 +163,7 @@ describe('drum fill subdivisions', () => {
 		expect(beats.some(beat => beat.triangleMute > 0 || beat.triangleOpen > 0)).toBe(true)
 
 		arranger.next({ bpm:112 })
-		expect(arranger.getBeatSequence()).not.toBe(beats)
+		expect(arranger.getBeatSequence()).toBe(beats)
+		expect(beats[1]).toMatchObject({kick:0})
 	})
 })

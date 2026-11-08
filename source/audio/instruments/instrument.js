@@ -49,7 +49,9 @@ export default class Instrument{
 	nextInstrument = null
 
 	// observe this promise to see when the instance is ready
-	loaded = new Promise((resolve,reject)=>this.onAvailable(resolve,reject))
+	#resolveLoaded
+	#rejectLoaded
+	loaded = new Promise((resolve,reject)=>{ this.#resolveLoaded = resolve; this.#rejectLoaded = reject })
 	
 	
 	get title(){
@@ -102,12 +104,12 @@ export default class Instrument{
 	}
 
 	/**
-	 * Number of 24 PPQ clock ticks between held-note retriggers. Zero disables
+	 * Number of held-note retriggers per bar. Zero disables
 	 * repetition. Concrete instruments can derive this from their active preset.
 	 */
 	get repetitionRate(){
-		const value = Number(this.options?.repetitionRate ?? this.options?.noteRepeatTicks)
-		return Number.isInteger(value) && value > 0 ? value : 0
+		const value = Number(this.options?.repetitionRate)
+		return Number.isFinite(value) && value > 0 ? value : 0
 	}
 
 	get playbackMode(){
@@ -203,9 +205,10 @@ export default class Instrument{
 		this.create().then(()=>{
 			observeInstrument(this)
 			this.available = true
-			Promise.resolve(this.loaded)
-		}, error => {
+			this.#resolveLoaded(this)
+		}).catch(error => {
 			this.initialisationError = error
+			this.#rejectLoaded(error)
 		})
 	}
 	
@@ -268,10 +271,7 @@ export default class Instrument{
 	// TODO: 
 	async allSoundOff(){}
 	async allNotesOff(){
-		let i = 0
-		this.activeNotes.forEach( (velocity, noteNumber) => {	
-			this.noteOff( noteNumber, velocity, i++ )
-		})
+		await Promise.all([...this.activeNotes].map(([noteNumber,velocity],index) => this.noteOff(noteNumber,velocity,index)))
 	}
 
 	/**
@@ -427,18 +427,8 @@ export default class Instrument{
 	 * @param {Function} reject 
 	 * @param {Number} iteration 
 	 */
-	onAvailable(resolve, reject, iteration=0){
-		if (this.initialisationError)
-		{
-			reject(this.initialisationError)
-			return
-		}
-		if (!this.available)
-		{
-			requestAnimationFrame(()=>this.onAvailable(resolve, reject, iteration+1))
-		}else{
-			resolve && resolve(this)
-		}
+	onAvailable(resolve, reject){
+		return this.loaded.then(resolve,reject)
 	}
 
 	/**

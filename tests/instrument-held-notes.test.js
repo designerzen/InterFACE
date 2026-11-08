@@ -26,7 +26,8 @@ const createAudioContext = () => {
 		currentTime: 0,
 		state: 'running',
 		createGain: jest.fn(() => ({
-			gain: { value: 1 },
+			gain: { value: 1, setValueAtTime:jest.fn(), linearRampToValueAtTime:jest.fn(), cancelAndHoldAtTime:jest.fn(), cancelScheduledValues:jest.fn() },
+			connect:jest.fn(),
 			disconnect: jest.fn(),
 		})),
 		createBufferSource: jest.fn(() => {
@@ -45,7 +46,7 @@ const createAudioContext = () => {
 }
 
 describe('held sample instrument notes', () => {
-	test('loops a sample until its matching note release', async () => {
+	test('repeats a held sample without cutting off its previous recording', async () => {
 		const { context, sources } = createAudioContext()
 		const instrument = new SampleInstrument(context, { polyphony: 0 })
 		await Promise.resolve()
@@ -53,22 +54,54 @@ describe('held sample instrument notes', () => {
 
 		await instrument.noteOn(60, 0.8)
 		expect(sources).toHaveLength(1)
-		expect(sources[0].loop).toBe(true)
+		expect(sources[0].loop).toBe(false)
 		expect(sources[0].start).toHaveBeenCalledTimes(1)
 		expect(sources[0].stop).not.toHaveBeenCalled()
 
 		await instrument.noteOn(60, 0.8)
 		expect(sources).toHaveLength(1)
+		const previousEnvelope = instrument.sampleEnvelopes.get(sources[0])
 
 		await instrument.retrigger(60, 0.8)
 		expect(sources).toHaveLength(2)
-		expect(sources[0].stop).toHaveBeenCalledTimes(1)
-		expect(sources[1].loop).toBe(true)
+		expect(sources[0].stop).not.toHaveBeenCalled()
+		expect(sources[1].loop).toBe(false)
+		expect(previousEnvelope.gain.linearRampToValueAtTime).not.toHaveBeenCalled()
+
 		expect(instrument.activeNotes.has(60)).toBe(true)
 
 		await instrument.noteOff(60, 0)
-		expect(sources[1].stop).toHaveBeenCalledTimes(1)
+		expect(sources[1].stop).not.toHaveBeenCalled()
 		expect(instrument.activeNotes.has(60)).toBe(false)
+	})
+
+	test('lets repeated recordings finish after note-off and stops them on explicit cleanup', async () => {
+		const { context, sources } = createAudioContext()
+		const instrument = new SampleInstrument(context, {polyphony:0})
+		await Promise.resolve()
+		instrument.audioBuffers.C4 = {duration:0.5}
+		await instrument.noteOn(60, 0.8)
+		sources[0].stop.mockImplementation(() => {})
+		await instrument.retrigger(60, 0.8)
+		expect(instrument.retiringNoteSamples.size).toBe(1)
+		await instrument.noteOff(60)
+		expect(sources[0].stop).not.toHaveBeenCalled()
+		expect(sources[1].stop).not.toHaveBeenCalled()
+		expect(instrument.retiringNoteSamples.size).toBe(2)
+		await instrument.allNotesOff()
+		expect(sources[0].stop).toHaveBeenCalledWith(0)
+		expect(sources[1].stop).toHaveBeenCalledWith(0)
+		expect(instrument.retiringNoteSamples.size).toBe(0)
+	})
+
+	test('accounts for sample length and pitch bend when preventing gaps', async () => {
+		const {context} = createAudioContext()
+		const instrument = new SampleInstrument(context, {polyphony:0})
+		await Promise.resolve()
+		instrument.audioBuffers.C4 = {duration:1}
+		expect(instrument.getNoteRepeatDuration(60)).toBeCloseTo(0.96)
+		instrument.pitchBendValue = 2
+		expect(instrument.getNoteRepeatDuration(60)).toBeCloseTo(0.46)
 	})
 
 	test('does not loop a one-shot sample', async () => {
@@ -82,6 +115,39 @@ describe('held sample instrument notes', () => {
 		expect(sources).toHaveLength(1)
 		expect(sources[0].loop).toBe(false)
 		expect(instrument.isOneShot).toBe(true)
+	})
+
+	test.each([true, false])('keeps scheduled percussive attacks sharp with cancelAndHoldAtTime=%s', async supportsHold => {
+		const {context, sources} = createAudioContext()
+		const instrument = new SampleInstrument(context, {polyphony:0, playbackMode:'one-shot'})
+		await Promise.resolve()
+		instrument.audioBuffers.C4 = {}
+		await instrument.noteOn(60, 0.8)
+		const previousEnvelope = instrument.sampleEnvelopes.get(sources[0])
+		if (!supportsHold) previousEnvelope.gain.cancelAndHoldAtTime = undefined
+		instrument.scheduleAt(1)
+		await instrument.retrigger(60, 0.8)
+		expect(previousEnvelope.gain.cancelScheduledValues).not.toHaveBeenCalled()
+		expect(sources[0].stop).not.toHaveBeenCalled()
+		expect(instrument.sampleEnvelopes.get(sources[1]).gain.setValueAtTime).toHaveBeenCalledWith(1, 1)
+		expect(mockPlayTrack.mock.calls.at(-1)[4].triggerAt).toBe(1)
+	})
+
+	test('changing pitch preserves the released recording until it ends naturally', async () => {
+		const {context, sources} = createAudioContext()
+		const instrument = new SampleInstrument(context, {polyphony:0})
+		await instrument.loaded
+		instrument.audioBuffers.C4 = {duration:2}
+		instrument.audioBuffers.E4 = {duration:2}
+		await instrument.noteOn(60, 0.8)
+		await instrument.noteOff(60)
+		await instrument.noteOn(64, 0.8)
+		expect(sources).toHaveLength(2)
+		expect(sources[0].stop).not.toHaveBeenCalled()
+		sources[0].onended()
+		expect(instrument.sampleEnvelopes.size).toBe(1)
+		expect(instrument.retiringNoteSamples.size).toBe(0)
+		expect(instrument.activeNotes.has(64)).toBe(true)
 	})
 
 	test('stops every held source when the instrument is destroyed', async () => {

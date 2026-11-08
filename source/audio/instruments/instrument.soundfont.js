@@ -18,6 +18,7 @@ import {
 
 import SoundFont from "../sound-font.js"
 import { convertMIDINoteNumberToName } from "../tuning/notes"
+import { generateRoomImpulse } from "../effects/reverb-spaces.js"
 
 // these are the file names and locations of each instrument
 const GM_INSTRUMENT_NAMES = getGeneralMIDIInstrumentNames()
@@ -84,7 +85,14 @@ export default class SoundFontInstrument extends SampleInstrument{
 	}
 
 	get reverbSettings(){
+		if (this.engineReverb !== undefined) return this.engineReverb
 		return this.activePresetData?.reverb ?? false
+	}
+	setEngineReverb(settings, impulse=null){
+		this.engineReverb = settings.reverbMode === 'preset' ? undefined : settings.reverbMode === 'off' ? false :
+			{mix:settings.reverbMix,duration:settings.reverbLength ?? settings.reverbDuration,tone:settings.reverbTone,preDelay:settings.reverbPreDelay}
+		this.engineReverbImpulse = settings.reverbMode === 'custom' ? impulse : null
+		this.configurePresetEffects()
 	}
 
 	get lpfSettings(){
@@ -185,6 +193,8 @@ export default class SoundFontInstrument extends SampleInstrument{
 		if (this.reverbNode)
 		{
 			source.connect(this.reverbNode)
+			this.reverbInput = source
+			this.reverbConnected = true
 			this.reverbNode.connect(this.reverbGainNode)
 			this.reverbGainNode.connect(this.effectOutput)
 		}
@@ -201,20 +211,9 @@ export default class SoundFontInstrument extends SampleInstrument{
 		}
 	}
 
-	createReverbImpulse({ duration=1.5, decay=2 }={}){
+	createReverbImpulse({ duration=1.5, tone=0, preDelay=0.012 }={}){
 		if (!this.context?.createBuffer) return null
-		const sampleRate = this.context.sampleRate || 44100
-		const length = Math.max(1, Math.floor(sampleRate * duration))
-		const impulse = this.context.createBuffer(2, length, sampleRate)
-		for (let channel = 0; channel < impulse.numberOfChannels; channel++)
-		{
-			const samples = impulse.getChannelData(channel)
-			for (let index = 0; index < length; index++)
-			{
-				samples[index] = (Math.random() * 2 - 1) * Math.pow(1 - index / length, decay)
-			}
-		}
-		return impulse
+		return generateRoomImpulse(this.context, { length:duration, tone, preDelay })
 	}
 
 	configurePresetEffects(){
@@ -240,9 +239,21 @@ export default class SoundFontInstrument extends SampleInstrument{
 		const mix = reverb ? Math.max(0, Math.min(1, reverb.mix ?? 0.15)) : 0
 		this.setAudioParam(this.dryGainNode?.gain, 1 - mix)
 		this.setAudioParam(this.reverbGainNode?.gain, mix)
+		// An idle convolver with a buffer still convolves silence for every voice
+		if (this.reverbInput && this.reverbConnected !== mix > 0)
+		{
+			if (mix > 0) this.reverbInput.connect(this.reverbNode)
+			else this.reverbInput.disconnect(this.reverbNode)
+			this.reverbConnected = mix > 0
+		}
 		if (this.reverbNode && reverb)
 		{
-			const impulseKey = `${reverb.duration ?? 1.5}:${reverb.decay ?? 2}`
+			if (this.engineReverbImpulse) {
+				this.reverbNode.buffer = this.engineReverbImpulse
+				this.reverbImpulseKey = null
+				return
+			}
+			const impulseKey = `${reverb.duration ?? 1.5}:${reverb.tone ?? 0}:${reverb.preDelay ?? 0.012}`
 			if (this.reverbImpulseKey !== impulseKey)
 			{
 				this.reverbNode.buffer = this.createReverbImpulse(reverb)

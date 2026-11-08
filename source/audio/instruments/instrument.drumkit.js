@@ -6,6 +6,7 @@ import { recordPercussion } from '../../storage/session-percussion.js'
 import Instrument from './instrument.js'
 import { getKitSequence } from '../../timing/patterns.js'
 import { applyDrumSubHitEnvelope, createDrumArranger } from '../../timing/drum-arranger.js'
+import { getDrumPartTime } from '../../timing/drum-feel.js'
 import { AUXILIARY_DRUM_LANES } from '../../timing/drum-patterns.js'
 import { createKick, getRandomKickPreset, PRESETS_KICKS } from '../synthesizers/kick.js'
 import { createSnare, getRandomSnarePreset, PRESET_SNARES } from '../synthesizers/snare.js'
@@ -230,7 +231,9 @@ export default class DrumkitInstrument extends Instrument{
 		this.voiceOptions.cowbell = PRESET_COWBELLS[0]
 		const createPresetVoice = (part, createVoice, preset) => {
 			this.voiceOptions[part] = preset
-			const voice = wrapMIDIVoice(part, createVoice(this.context, this.gainNode))
+			const rawVoice = createVoice(this.context, this.gainNode)
+			rawVoice.prepare?.(preset)
+			const voice = wrapMIDIVoice(part, rawVoice)
 			const presetVoice = (options={}) => voice({ ...this.voiceOptions[part], ...options })
 			presetVoice.cancel = voice.cancel
 			presetVoice.choke = voice.choke
@@ -461,19 +464,20 @@ export default class DrumkitInstrument extends Instrument{
 	async noteOn( noteNumber, velocity=1, triggerAt ){
 
 		this.updatePerson({ noteNumber, noteVelocity: velocity })
+		triggerAt = Number.isFinite(triggerAt) ? Math.max(this.context.currentTime, triggerAt) : this.context.currentTime + 0.005
 		const parts = this.arranger.next({ triggerAt })
-		this.triggerPart(parts.kick, this.kick, triggerAt, this.kickOptions)
-		this.triggerPart(parts.snare, this.snare, triggerAt, this.snareOptions)
-		this.triggerHat(parts.hat, parts.hatOpen, triggerAt)
-		this.triggerPart(parts.clap, this.clap, triggerAt)
-		if (this.voiceOptions.cowbell) this.triggerPart(parts.cowbell, this.cowbell, triggerAt)
-		if (parts.triangleMute > 0) this.triangleOpen.choke(0.006, triggerAt)
-		if (parts.cuicaMute > 0) this.cuicaOpen.choke(0.006, triggerAt)
-		if (parts.surdoMute > 0) this.surdoOpen.choke(0.006, triggerAt)
-		for (const part of AUXILIARY_DRUM_LANES) this.triggerPart(parts[part], this[part], triggerAt)
+		this.triggerPart(parts.kick, this.kick, getDrumPartTime(parts, 'kick', triggerAt), this.kickOptions)
+		this.triggerPart(parts.snare, this.snare, getDrumPartTime(parts, 'snare', triggerAt), this.snareOptions)
+		this.triggerHat(parts.hat, parts.hatOpen, getDrumPartTime(parts, 'hat', triggerAt))
+		this.triggerPart(parts.clap, this.clap, getDrumPartTime(parts, 'clap', triggerAt))
+		if (this.voiceOptions.cowbell) this.triggerPart(parts.cowbell, this.cowbell, getDrumPartTime(parts, 'cowbell', triggerAt))
+		if (parts.triangleMute > 0) this.triangleOpen.choke(0.006, getDrumPartTime(parts, 'triangleMute', triggerAt))
+		if (parts.cuicaMute > 0) this.cuicaOpen.choke(0.006, getDrumPartTime(parts, 'cuicaMute', triggerAt))
+		if (parts.surdoMute > 0) this.surdoOpen.choke(0.006, getDrumPartTime(parts, 'surdoMute', triggerAt))
+		for (const part of AUXILIARY_DRUM_LANES) this.triggerPart(parts[part], this[part], getDrumPartTime(parts, part, triggerAt))
 		for (const event of parts.events ?? [])
 		{
-			const eventAt = triggerAt + event.offset
+			const eventAt = getDrumPartTime(parts, event.lane, triggerAt) + event.offset
 			if (event.lane === 'snare') this.triggerPart(event.velocity, this.snare, eventAt, applyDrumSubHitEnvelope(this.snareOptions, event))
 			if (event.lane === 'hat') {
 				const timbre = applyDrumSubHitEnvelope(this.hatClosedOptions, event)

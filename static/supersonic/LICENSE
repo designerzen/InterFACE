@@ -1,0 +1,44 @@
+SuperSonic
+Copyright (c) 2025-2026 Sam Aaron
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program (COPYING). If not, see <https://www.gnu.org/licenses/>.
+
+SuperSonic is scsynth running on clockwork. The licence above is that of the
+combined program. Each source file carries an SPDX-License-Identifier header
+giving the licence of that file, and some are more permissive than the whole.
+
+
+Components, under their own licences:
+
+  clockwork/                     AGPL-3.0-or-later OR a commercial licence,
+                                 (c) Sam Aaron. A git submodule; see
+                                 clockwork/LICENSE for its terms and its own
+                                 third-party components.
+
+  dsp/scsynth/synth/             scsynth, the SuperCollider audio engine,
+                                 (c) 2002 James McCartney and contributors.
+                                 GPL-2.0-or-later; used here under GPL-3.0.
+
+  dsp/scsynth/synth/plugins/sc3-plugins/
+                                 UGens from the sc3-plugins collection,
+                                 GPL-2.0-or-later. The mda plug-ins they
+                                 include are MIT or GPL, (c) Paul Kellett.
+
+  packages/supersonic-scsynth-synthdefs/
+                                 Compiled synthdefs from the Sonic Pi project,
+                                 MIT, (c) 2012-2025 Samuel Aaron and
+                                 contributors. See its LICENSE.
+
+  packages/supersonic-scsynth-samples/
+                                 CC0 1.0. Per-sample sources are listed in its
+                                 PROVENANCE.md.
