@@ -1,0 +1,8 @@
+label(for="backing-melody-player") Melody
+	select#backing-melody-player(aria-label="Choose a player for the backing melody, or None to turn it off" aria-describedby="backing-melody-status")
+		option(value="disabled" selected) None (disabled)
+		option(value="0") Follow Player 1
+		option(value="1") Follow Player 2
+		option(value="2") Follow Player 3
+		option(value="3") Follow Player 4
+	span#backing-melody-status.hide-text(role="status" aria-live="polite") Backing melody off.
