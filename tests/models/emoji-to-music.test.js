@@ -46,7 +46,7 @@ describe('getMusicalDetailsFromEmoji', () => {
         expect(getChordQualityForEmoji(EMOJIS.EMOJI_WAIL)).toBe('desolateMinorMajor13')
         expect(getChordQualityForEmoji(EMOJIS.EMOJI_ANXIOUS)).toBe('diminished7')
         expect(getMusicalDetailsFromEmoji(tonic, EMOJIS.EMOJI_WAIL).map(note => note.noteNumber))
-            .toEqual([60, 63, 67, 71, 74])
+            .toEqual([60, 63, 74, 77, 81])
     })
 
     it('keeps maintainable emotional alternatives without making a common smile denser', () => {
@@ -135,7 +135,7 @@ describe('getMusicalDetailsFromEmoji', () => {
         const triad = getChordFromIntervalsInKey(60, 'F', 'MAJOR_SCALE', candidateIntervals)
         const fiveVoiceChord = getChordFromIntervalsInKey(60, 'F', 'MAJOR_SCALE', candidateIntervals, 5)
 
-        expect(triad.map(note => note.noteNumber)).toEqual([60, 64, 67])
+        expect(triad.map(note => note.noteNumber)).toEqual([60, 64, 81])
         expect(fiveVoiceChord.map(note => note.noteNumber)).toEqual([60, 64, 67, 74, 81])
     })
 
@@ -151,6 +151,6 @@ describe('getMusicalDetailsFromEmoji', () => {
             keyScale:'MAJOR_SCALE'
         })
 
-        expect(chord.map(note => note.noteNumber)).toEqual([84, 88, 91, 95, 98])
+        expect(chord.map(note => note.noteNumber)).toEqual([84, 88, 91, 98, 105])
     })
 })

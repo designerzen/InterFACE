@@ -347,6 +347,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// is wider than tall?
 	const isMouthWide = mouthFunnel > jawOpeness
 	const remaining = Math.max( 0, mouthRatio - MIN_MOUTH_VALUE)
+	prediction.mouthVolumeRatio = remaining
 	// TODO: JawLeft and jawRight for FALSETTO
 	// prediction.mouthRatio = easeOutExpo(remaining)
 	prediction.mouthRatio = easeOutExpo( easeOutSine(remaining) ) 

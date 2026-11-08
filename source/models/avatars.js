@@ -27,7 +27,7 @@ export const createLoaderForModel = async (modelURI) => {
 			{
 				loaders.set( type, (await import('three/examples/jsm/loaders/ColladaLoader.js')).ColladaLoader )
 			}
-			return ( new loaders.get(type) )()
+			return new (loaders.get(type))()
 		// case "vrml":
 		// 	return new VRMLLoader()
 		case "bvh":
@@ -35,7 +35,7 @@ export const createLoaderForModel = async (modelURI) => {
 			{
 				loaders.set( type, (await import('three/examples/jsm/loaders/BVHLoader.js')).BVHLoader )
 			}
-			return ( new loaders.get(type) )()
+			return new (loaders.get(type))()
 
 		case "glb":
 		case "gltf":
@@ -43,7 +43,7 @@ export const createLoaderForModel = async (modelURI) => {
 			{
 				loaders.set( type, (await import('three/examples/jsm/loaders/GLTFLoader.js')).GLTFLoader )
 			}
-			return ( new loaders.get(type) )()
+			return new (loaders.get(type))()
 
 		case "vrm":
 			if (!loaders.has(type))
@@ -52,7 +52,7 @@ export const createLoaderForModel = async (modelURI) => {
 				loaders.set( type, plugin )
 			}
 
-			const loader = ( new loaders.get(type) )()
+			const loader = new (loaders.get(type))()
 			loader.crossOrigin = "anonymous"
 			loader.register(parser => new VRMLoaderPlugin(parser)) 
 			
@@ -63,14 +63,14 @@ export const createLoaderForModel = async (modelURI) => {
 			{
 				loaders.set( type, (await import('three/examples/jsm/loaders/FBXLoader.js')).FBXLoader )
 			}
-			return ( new loaders.get(type) )()
+			return new (loaders.get(type))()
 
 		case "obj":
 			if (!loaders.has(type))
 			{
 				loaders.set( type, (await import('three/examples/jsm/loaders/OBJLoader.js')).OBJLoader )
 			}
-			return ( new loaders.get(type) )()
+			return new (loaders.get(type))()
 	}
 }
 

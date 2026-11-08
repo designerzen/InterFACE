@@ -575,7 +575,7 @@ export const MEDIAPIPE_FACE_MESH_CONNECTED_KEYPOINTS_PAIRS = [
  *   ...
  * ]
  */
-const indexLabelPairs = Object.entries(exports.MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR)
+const indexLabelPairs = Object.entries(MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR)
     .map(function (_a) {
     var label = _a[0], indices = _a[1]
     return indices.map(function (index) { return [index, label]; })

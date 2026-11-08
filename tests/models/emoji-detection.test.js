@@ -138,6 +138,24 @@ describe('emoji detection methods', () => {
 		expect(detector.isMirrored).toBe(true)
 	})
 
+	test.each([
+		['plain wink', {}, EMOJIS.EMOJI_LEFT_WINK],
+		['kissing wink', { mouthPucker:1 }, EMOJIS.EMOJI_KISSING_WINK],
+		['tongue wink', { tongueOut:1 }, EMOJIS.EMOJI_TONGUE_WINK],
+	])('a smiling face can wink with either eye: %s', (name, expression, expectedEmoji) => {
+		const detector = new EmojiDetector()
+		const smile = prediction({ happiness:0.8, smileEvidence:0.8, mouthSmile:0.8 })
+		holdPrediction(detector, smile, 0, 200)
+		expect(holdPrediction(detector, { ...smile, ...expression, leftEyeClosed:true }, 240, 440)).toBe(expectedEmoji)
+		expect(detector.isMirrored).toBe(false)
+		expect(holdPrediction(detector, { ...smile, ...expression, rightEyeClosed:true }, 480, 680)).toBe(expectedEmoji)
+		expect(detector.isMirrored).toBe(true)
+		expect(holdPrediction(detector, { ...smile, ...expression, leftEyeClosed:true }, 720, 920)).toBe(expectedEmoji)
+		expect(detector.isMirrored).toBe(false)
+		expect(holdPrediction(detector, smile, 960, 1160)).toBe(EMOJIS.EMOJI_SMILING_GRIN)
+		expect(detector.isMirrored).toBe(false)
+	})
+
 	test('mouth opening without smile evidence is not classified as a smile', () => {
 		const emoji = recogniseEmojiFromFaceModelLogical(prediction({
 			mouthRatio:0.65,

@@ -53,7 +53,7 @@ import { HARMONY_MODE_GLOBAL_KEY } from '../people/person.presets.js'
 import * as EMOTICONS from './emoji.js'
 
 const DEFAULT_CHORD_VOICE_COUNT = 3
-const MAX_CHORD_VOICE_COUNT = 5
+export const MAX_CHORD_VOICE_COUNT = 5
 const normaliseVoiceCount = voiceCount => Math.min(
 	Math.max(Math.round(Number(voiceCount)) || DEFAULT_CHORD_VOICE_COUNT, 1),
 	MAX_CHORD_VOICE_COUNT
@@ -443,9 +443,13 @@ const getChordQualityForIntervals = intervals => {
 	return quality?.[0] ?? null
 }
 
-const getNoteNumbers = chord => (chord ?? [])
-	.map(note => typeof note === "number" ? note : note?.noteNumber)
-	.filter(Number.isFinite)
+// Keep the root and third, then the upper colour tones. Taking a prefix
+// turns sixths and sevenths back into the same plain major/minor triad.
+const prioritiseColourIntervals = (intervals, voiceCount) => intervals.length <= voiceCount || voiceCount <= 2 ? intervals : [
+	...intervals.slice(0, 2),
+	...intervals.slice(-(voiceCount - 2)),
+	...intervals.slice(2, intervals.length - (voiceCount - 2))
+]
 
 const getResolvedNotesForProfile = (tonic, profile, voiceCount=DEFAULT_CHORD_VOICE_COUNT, harmonyOptions={}) => {
 	const targetVoiceCount = normaliseVoiceCount(voiceCount)
@@ -461,7 +465,7 @@ const getResolvedNotesForProfile = (tonic, profile, voiceCount=DEFAULT_CHORD_VOI
 	}
 
 	const completionIntervals = [
-		...profile.candidateIntervals,
+		...prioritiseColourIntervals(profile.candidateIntervals, targetVoiceCount),
 		...CHROMATIC_MAJOR_TRIAD_INTERVALS,
 		12, 16, 19, 24
 	]
@@ -474,19 +478,6 @@ const getResolvedNotesForProfile = (tonic, profile, voiceCount=DEFAULT_CHORD_VOI
 		.filter(Boolean)
 }
 
-const getVoiceLeadingCost = (nextChord, previousChord) => {
-	const previousNotes = getNoteNumbers(previousChord)
-	if (!previousNotes.length)
-	{
-		return 0
-	}
-	const nextNotes = getNoteNumbers(nextChord)
-	const movement = nextNotes.reduce((cost, note) => {
-		return cost + Math.min(...previousNotes.map(previousNote => Math.abs(note - previousNote)))
-	}, 0)
-	return movement + Math.abs(nextNotes.length - previousNotes.length) * 2
-}
-
 export const getIntervalChoicesForEmoji = emoji => {
 	return getEmotionalProfileChoicesForEmoji(emoji).map(profile => profile.candidateIntervals)
 }
@@ -494,17 +485,9 @@ export const getIntervalChoicesForEmoji = emoji => {
 export const getEmotionalProfileChoicesForEmoji = emoji => EMOJI_INTERVAL_CHOICES.get(emoji) ?? []
 
 export const selectEmotionalProfileForEmoji = (tonic, emoji, previousChord=[], harmonyOptions={}) => {
-	const choices = getEmotionalProfileChoicesForEmoji(emoji)
-	const voiceCount = getVoiceCountForEmoji(emoji)
-	return choices.reduce((best, profile) => {
-		if (!best)
-		{
-			return profile
-		}
-		const profileChord = getResolvedNotesForProfile(tonic, profile, voiceCount, harmonyOptions)
-		const bestChord = getResolvedNotesForProfile(tonic, best, voiceCount, harmonyOptions)
-		return getVoiceLeadingCost(profileChord, previousChord) < getVoiceLeadingCost(bestChord, previousChord) ? profile : best
-	}, null)
+	// Expression defines the harmony. Minimising movement across alternative
+	// profiles can select the previous chord again as happiness increases.
+	return getEmotionalProfileChoicesForEmoji(emoji)[0] ?? null
 }
 
 export const selectIntervalsForEmoji = (tonic, emoji, previousChord=[], harmonyOptions={}) => {
@@ -551,7 +534,7 @@ export function getChordFromIntervalsInKey(tonic, key=0, scale="MAJOR_SCALE", in
 	const selectedNotes = []
 	const selectedNoteNumbers = new Set()
 
-	for (const interval of intervals)
+	for (const interval of prioritiseColourIntervals(intervals, targetVoiceCount))
 	{
 		const desiredNote = rootNote + interval
 		const desiredPitchClass = ((desiredNote % 12) + 12) % 12
@@ -565,7 +548,7 @@ export function getChordFromIntervalsInKey(tonic, key=0, scale="MAJOR_SCALE", in
 		selectedNoteNumbers.add(desiredNote)
 		if (selectedNotes.length === targetVoiceCount)
 		{
-			return selectedNotes
+			return selectedNotes.sort((a, b) => a.noteNumber - b.noteNumber)
 		}
 	}
 

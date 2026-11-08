@@ -10,7 +10,10 @@ import { Box3, Clock, Vector3, BufferGeometry, Float32BufferAttribute, MathUtils
 import { FaceLandmarker } from "@mediapipe/tasks-vision"
 import { calculateModelScale, createLoaderForModel, improveVRMPerformance, rescaleAndCenter } from "./avatars.js"
 import { Particle, ParticleTracer } from "../visual/3d.particles.js"
-import { BLENDSHAPE_IDS, swapEyeSide } from "./blendshapes.js"
+import { BLENDSHAPE_IDS } from "./blendshapes.js"
+import { subdivideKeypoints } from './keypoint-subdivision.js'
+import { prepareHumanHead, loadHumanHead, bindMorphTargets, applyMorphScore } from './human-head.js'
+export { subdivideKeypoints } from './keypoint-subdivision.js'
 
 // "LipsLowerClose" => 29}
 // {"LipsLowerDown" => 30}
@@ -114,37 +117,6 @@ export const arrangeFaceData = (keypointData, positions, scales, scaleFactor = 1
  * @param {number} subdivisions - how many times to subdivide (0 = disabled, 1 = double, 2 = 4x, etc)
  * @returns {Array} subdivided keypoints
  */
-export const subdivideKeypoints = (keypoints, subdivisions = 0) => {
-	if (!keypoints || subdivisions <= 0) {
-		return keypoints
-	}
-	
-	let current = keypoints
-	
-	for (let sub = 0; sub < subdivisions; sub++) {
-		const subdivided = []
-		
-		for (let i = 0; i < current.length; i++) {
-			subdivided.push(current[i])
-			
-			if (i < current.length - 1) {
-				const next = current[i + 1]
-				const interpolated = {
-					x: (current[i].x + next.x) * 0.5,
-					y: (current[i].y + next.y) * 0.5,
-				}
-				if (current[i].z !== undefined && next.z !== undefined) {
-					interpolated.z = (current[i].z + next.z) * 0.5
-				}
-				subdivided.push(interpolated)
-			}
-		}
-		
-		current = subdivided
-	}
-	
-	return current
-}
 
 /**
  * Subdivide face geometry by interpolating points between keypoints
@@ -272,6 +244,7 @@ export default class Avatar{
 	faceMeshSize
 
 	relationships = new Map()
+	morphBindings = new Map()
 
 	get isMorphable(){
 		return this.#hasBlendShapes
@@ -295,43 +268,20 @@ export default class Avatar{
 	 * @param {String} feature 
 	 * @param {Number} value 
 	 */
-	setFeature( feature, value, speed=0.5 ){
-		// need to swap eyes around...
-
-		feature = swapEyeSide( feature )
-
-		const blendShapeIndex = this.relationships.get(feature)
-		if (blendShapeIndex !== undefined && blendShapeIndex > -1)
-		{
-			this.#morphableMeshes.forEach( morphableMesh => {
-				morphableMesh.morphTargetInfluences[blendShapeIndex] = MathUtils.lerp(
-					morphableMesh.morphTargetInfluences[blendShapeIndex],
-					value,
-					speed
-				)
-			})
-			
-
-			// FIXME: 
-			// eyeBlink is inverted to eyeOpen :(
-			// 
-			// this blendshape or animation is not
-			// available in this 3d model
-			return feature
-		}
-
-		return null
+	setFeature(feature, value, speed = .5) {
+		if (!this.morphBindings.has(feature)) return null
+		applyMorphScore(this.morphBindings, feature, value, speed)
+		return feature
 	}
-
 	/**
 	 * Pass in the blendshapes prediction array
 	 * and it will update the weightings accordingly
 	 * 
 	 * @param {Array} blendShapePredictions 
 	 */
-	updateFromPrediction( blendShapePredictions ){
+	updateFromPrediction( blendShapePredictions, smoothing = .5 ){
 		return blendShapePredictions.map((blendShape,index) => {
-			return this.setFeature( blendShape.categoryName, blendShape.score )		
+			return this.setFeature( blendShape.categoryName, blendShape.score, smoothing )
 		})	
 	}
 
@@ -339,57 +289,18 @@ export default class Avatar{
 	 * 
 	 * @param {Array} morphableMeshes 
 	 */
-	setupMorphTargets(morphableMeshes){
-
-		const targets = morphableMeshes.map( morphableMesh => {
-
-			const morphShapes = morphableMesh.morphTargetDictionary
-			const morphKeys = Object.keys( morphShapes )
-
-			// FIXME: this needs to also convert to actual blendshape names
-			morphKeys.forEach( morphKey =>{
-				// loop through CORRECT keys first and see if there are exact matches...
-				const cleanedKey = cleanKey(morphKey)
-				if (BLENDSHAPE_IDS.includes(cleanedKey))
-				{
-					this.relationships.set( cleanedKey, morphShapes[morphKey] ) 
-									
-				}else{
-					// check for eyes and sneers which can compound...
-					const compounds = compoundKeys(morphKey)
-					if (compounds.length > 0){
-
-						// there are multiple keys
-						compounds.forEach(  key => this.relationships.set( key, morphShapes[morphKey] ) )
-
-					}else{
-						this.relationships.set( morphKey, morphShapes[morphKey] ) 	
-					}
-				}
-			})
-
-			BLENDSHAPE_IDS.forEach( id => {
-				if ( this.relationships.has(id) )
-				{
-					//this.relationships.set( id, morphShapes[id] ) 
-					console.info("Avatar "+this.name+" Blendhsape available", id)
-				}else{
-					console.error("Avatar "+this.name+" Blendhsape key missing", id)
-				}
-			})
-
-			console.error("Avatar:setupMorphTarget", {morphShapes, morphKeys, relationships:this.relationships})
-		
-			return morphKeys
-		})
-
+	setupMorphTargets(morphableMeshes) {
+		this.morphBindings = bindMorphTargets(morphableMeshes)
+		// Retain older FBX aliases while keeping indices local to their owning mesh.
+		for (const mesh of morphableMeshes) for (const [name, index] of Object.entries(mesh.morphTargetDictionary)) {
+			const alias = cleanKey(name)
+			if (!BLENDSHAPE_IDS.includes(alias)) continue
+			const bindings = this.morphBindings.get(alias) ?? []
+			if (!bindings.some(binding => binding.mesh === mesh && binding.index === index)) bindings.push({ mesh, index })
+			this.morphBindings.set(alias, bindings)
+		}
 		this.#morphableMeshes = morphableMeshes
-
-		// morphTargetInfluences
-		// morphTargetDictionary
-		console.error("Avatar:setupMorphTargets Morph Target Meshes", {morphableMeshes, targets})
 	}
-
 	/**
 	 * FIXME:
 	 * Sometimes Avatar models use Animations rather than 
@@ -482,7 +393,7 @@ export default class Avatar{
 	
 		// puts the model at 0,0,0
 		// rescales to a nomalized size
-		this.centraliseGeometry()
+		if (!avatarModel.humanFace) this.centraliseGeometry()
 
 		// Reposition and rotate
 		this.position( avatarModel )
@@ -580,130 +491,32 @@ export default class Avatar{
 	 * @param {Number} scale size
 	 * @returns 
 	 */
-	async loadModel( faceModel, scale=1 ){
-
-		// find animations buried
-		// animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name // Check if Idle animation exists otherwise use first animation
-
+	async loadModel(faceModel, scale = 1) {
 		this.#parent = new Object3D()
 		this.#opacity = faceModel.opacity ?? 1
-
-		const faceModelURI = faceModel.model
-		const loader = await createLoaderForModel(faceModelURI)
-
-		return new Promise((resolve,reject)=>{		
-
-			loader.load( faceModelURI, async ( faceGroup ) => {
-				
-				// Attributes added to the 2d geometry
-				let faceMesh = !faceGroup.scene ? faceGroup.children[0] : faceGroup.scene.children[0]
-				
-				// check to see if it a VRM file...
-				const vrm = faceGroup.userData.vrm
-				if (vrm)
-				{
-					faceMesh = vrm.scene
-					await improveVRMPerformance( faceGroup, vrm )
-				}
-
-			
-				// Get uniformly distributed random points in mesh
-				// 	- create array with cumulative sums of face areas
-				//  - pick random number from 0 to total area
-				//  - find corresponding place in area array by binary search
-				//	- get random point in face
-				// const randomPoints = GeometryUtils.randomPointsInGeometry( new THREE.SphereGeometry(1, 32, 32) )
-				// const randomPoints = GeometryUtils.randomPointsInGeometry( faceMesh )
-				//const randomBufferPoints = GeometryUtils.randomPointsInBufferGeometry( geometry, 3 )
-
-				// Try and determine the animation formats...
-				// check for animations!
-				const hasAnimations = faceMesh.animations.length > 0
-				if (hasAnimations)
-				{
-					this.setupAnimations()
-
-				}else{
-
-					let morphableMeshes
-
-					if (faceMesh.isMesh && faceMesh.morphTargetInfluences && faceMesh.morphTargetDictionary)
-					{
-						// root model has morph features
-						morphableMeshes = [ faceMesh ]
-					}else{
-						// let's traverse the tree through children...
-						morphableMeshes = []
-						faceMesh.traverse?.(mesh => {
-							if (mesh.isMesh && mesh.morphTargetInfluences && mesh.morphTargetDictionary)
-							{
-								morphableMeshes.push(mesh)
-							}
-						})
-					}
-					
-					// there are multiple objects in the mesh so we find the one
-					// that has morph blend shapes (if it exists)
-					const hasMorphableMeshes = morphableMeshes.length > 0
-					// is this modle animatable?
-					this.#hasBlendShapes = hasMorphableMeshes
-
-					if (hasMorphableMeshes)
-					{
-						//faceMesh = morphableMeshes[0]
-						this.setupMorphTargets(morphableMeshes)
-
-					}else{
-						console.error("Avatar:no Animations", {faceMesh, t:this})
-					}
-				}
-
-				// else{
-
-				// 	console.error("Avatar:no Animations layer or morphshapes", {faceMesh, t:this})
-				// }
-
-				
-				// Model from mesh model
-				// const faceGeom = convertMeshToSimplifiedGeometry(particlesGeometry, quantity)
-
-				// const tracerParticles = liveFaceGeometry.userData.particles 
-				// const positions = liveFaceGeometry.attributes.position.array 
-				
-				// const freeRadicals = 
-				// assign all particles  that arent original positions to be free radicasls
-				// tracerParticles.forEach( (tracerParticle,i)=>{
-				// 	if (i>KEYPOINT_QUANTITY)
-				// 	{
-				// 		tracerParticle.isFreeRadical = true
-				// 	}
-				// })
-				// console.info("geometries", geometry, {faceMesh, faceGroup, particlesGeometry, faceGeom, faceGeometry: liveFaceGeometry} )
-
-				// Calculate and store the scale for this model
-				this.modelScale = calculateModelScale( faceMesh, scale )
-				
-				// Create face with calculated scale
-				this.faceMeshSize = this.createFace( faceMesh, faceModel, scale )
-				// this.faceMeshSize = this.createFace( faceMesh, faceModel, this.modelScale )
-
-				console.info("Avatar: faceMesh", faceMesh )
-				console.info("Avatar: Face Model loaded", this,this.faceMeshSize , this.modelScale, { faceModelURI, faceGroup, faceMesh, vrm })
-
-				this.#parent.add( faceMesh )
-
-				// if (this.morphable)
-				// {
-				// 	console.info("MORPH geometries", { faceMesh } , this.faceMeshSize ) 
-				// }else{
-				// 	console.info("NOMORPH geometries", { faceMesh } , this.faceMeshSize ) 
-				// }
-				
-				resolve( { parent:this.#parent, faceMesh, faceGroup } )
-			} )
+		const faceGroup = faceModel.humanFace ? await loadHumanHead(faceModel.model) :
+			await (await createLoaderForModel(faceModel.model)).loadAsync(faceModel.model)
+		let faceMesh = faceGroup.scene ?? faceGroup
+		const vrm = faceGroup.userData?.vrm
+		if (vrm) {
+			faceMesh = vrm.scene
+			await improveVRMPerformance(faceGroup, vrm)
+		}
+		if (faceModel.humanFace) {
+			faceMesh = prepareHumanHead(faceMesh)
+			this.#parent.userData.humanFace = true
+		}
+		const morphableMeshes = []
+		faceMesh.traverse(mesh => {
+			if (mesh.isMesh && mesh.morphTargetInfluences?.length && mesh.morphTargetDictionary) morphableMeshes.push(mesh)
 		})
+		this.#hasBlendShapes = morphableMeshes.length > 0
+		this.setupMorphTargets(morphableMeshes)
+		this.modelScale = calculateModelScale(faceMesh, scale)
+		this.faceMeshSize = this.createFace(faceMesh, faceModel, scale)
+		this.#parent.add(faceMesh)
+		return { parent: this.#parent, faceMesh, faceGroup }
 	}
-
 	async dispose(){
 		return true
 	}

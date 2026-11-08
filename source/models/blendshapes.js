@@ -164,4 +164,5 @@ export const swapEyeSide = (feature) =>{
 		case "eyeSquintRight": return "eyeSquintLeft"
 		case "eyeWideRight": return "eyeWideLeft"
 	}
+	return feature
 }

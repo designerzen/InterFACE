@@ -3,6 +3,7 @@
 // import CYBORG_FACE from "url:../assets/actors/FaceCapLiveModeAvatar/FaceCapLiveModeAvatar.fbx"
 // import OLIVIER_WILDE from "url:../assets/actors/Olivia Wilde - 3D Model.fbx"
 import BRUNETTE from "url:../assets/actors/brunette.glb"
+import GENERIC_HEAD from 'url:../assets/actors/ict-facekit.glb'
 // import CYBORG_FACE from "url:../assets/actors/blender_sushi_virtual_journal_16th_april_2020.glb"
 // import CYBORG_FACE from "url:../assets/actors/cyborg.glb"
 
@@ -32,6 +33,10 @@ import RACOON_FACE_MESH from 'url:../assets/actors/raccoon_head.glb'
 
 
 export const AVATAR_DATA = {
+  human: {
+    name: 'ICT human head', model: GENERIC_HEAD, humanFace: true,
+    size: 1, opacity: 1, pos: { x: 0, y: 0, z: 0 }, rot: { x: 0, y: 0, z: 0 }
+  },
 
 	// this does *not* have blendshapes
 	brunette:{

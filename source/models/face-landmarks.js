@@ -33,6 +33,7 @@ let faceLandmarkerPromise
 // via worker... preferred but requires re-render
 let faceLandmarksWorker 
 let lastVideoTime = 0 
+let lastDetectionTime = -Infinity
 
 let previousPrediction = []
 
@@ -80,13 +81,11 @@ const predict = async (time, inputElement, detector, flipHorizontally=true ) => 
 	{
 		lastVideoTime = inputElement.currentTime
 
-		// MediaPipe needs strictly-monotonic timestamps. AudioTimer.now is too
-		// coarse (only ticks per audio render quantum, ~2.67ms), so two close
-		// calls return equal values. performance.now() is browser-guaranteed
-		// strictly-monotonic with sub-ms resolution and survives camera swaps.
-		// API takes ms; scale ×1000 to expose sub-ms precision in MP's internal µs.
-		const timestampUs = performance.now() * 1000
-		const results = detector.detectForVideo( inputElement, timestampUs )
+		// The public API takes milliseconds and converts to microseconds itself.
+		// Clocks may have reduced precision, so explicitly handle equal readings.
+		const timestampMs = Math.max(performance.now(), lastDetectionTime + 0.001)
+		lastDetectionTime = timestampMs
+		const results = detector.detectForVideo( inputElement, timestampMs )
 		const people = []
 
 		// console.warn("Prediction:RESULTS", results )

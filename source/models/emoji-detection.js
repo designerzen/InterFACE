@@ -604,7 +604,7 @@ const recogniseEmojiFromBlendshapeParameters = (prediction, options = {}) => {
 
 	if (finiteSignal(prediction.tongueOut) > TONGUE_OUT_THRESHOLD) {
 		return getFilteredEmoji(
-			eyesClosed ? EMOTICONS.EMOJI_TONGUE_SQUINT : prediction.leftEyeClosed ? EMOTICONS.EMOJI_TONGUE_WINK : EMOTICONS.EMOJI_TONGUE,
+			eyesClosed ? EMOTICONS.EMOJI_TONGUE_SQUINT : (prediction.leftEyeClosed || prediction.rightEyeClosed) ? EMOTICONS.EMOJI_TONGUE_WINK : EMOTICONS.EMOJI_TONGUE,
 			options
 		)
 	}
@@ -789,7 +789,7 @@ export class EmojiDetector {
 
 		// Expression-family hysteresis: a momentary dip may alter smile intensity,
 		// but cannot demote a held smile to neutral while smile evidence remains.
-		if (previousFamily === SMILE_FAMILY && currentFamily !== SMILE_FAMILY && smileEvidence >= HAPPINESS_SMILE_EXIT_THRESHOLD) {
+		if (previousFamily === SMILE_FAMILY && currentFamily === NEUTRAL_FAMILY && smileEvidence >= HAPPINESS_SMILE_EXIT_THRESHOLD) {
 			currentEmoji = this.previousEmoji
 			currentFamily = SMILE_FAMILY
 		} else if (previousFamily !== SMILE_FAMILY && currentFamily === SMILE_FAMILY && smileEvidence < HAPPINESS_SMILE_THRESHOLD) {
