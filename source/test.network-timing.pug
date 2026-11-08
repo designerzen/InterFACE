@@ -1,0 +1,54 @@
+doctype html
+html(lang="en")
+	head
+		meta(charset="UTF-8")
+		meta(name="viewport" content="width=device-width,initial-scale=1")
+		title PhotoSYNTH shared timing test
+		link(rel="stylesheet" href="./assets/styles/gadgets/tabs.scss")
+		style.
+			body { max-width: 720px; margin: 2rem auto; padding: 1rem; font: 16px system-ui; background: #171323; color: #faf8ff; }
+			fieldset { border: 1px solid #6b5d84; border-radius: 12px; padding: 1.5rem; margin: 1rem 0; }
+			label, input, output { display: block; margin: .5rem 0; }
+			input { max-width: 100%; box-sizing: border-box; }
+			button, input { font: inherit; padding: .6rem; }
+			a { color: #d4b9ff; overflow-wrap: anywhere; }
+			#timing-room-qr { width: 320px; max-width: 100%; }
+			#timing-room-qr svg { display: block; max-width: 100%; height: auto; }
+			textarea, video { max-width: 100%; }
+			[hidden] { display: none !important; }
+	body
+		h1 Play together · timing test
+		p Open this page on multiple machines to check shared audio timing without loading the camera model.
+		button#enable-audio(type="button") Enable audio and join
+		label(for="audible") Sound beat clicks
+		input#audible(type="checkbox" checked)
+		output#test-position Waiting for audio
+		include partials/tempo-panel.pug
+		script(type="module").
+			import { AudioTimer } from 'netronome'
+			import { setupNetworkTiming } from './dom/ui.network-timing.js'
+			const context = new AudioContext()
+			const clock = new AudioTimer(context)
+			const samples = []
+			const state = { set(key, value) { const url = new URL(location.href); url.searchParams.set(key, value); history.replaceState(null, '', url) } }
+			const timing = setupNetworkTiming(clock, state, transport => {
+				document.getElementById('tempo-input-text').value = transport.bpm
+				document.getElementById('tempo-swing-range').value = transport.swing
+				document.getElementById('tempo-swing-output').value = `${Math.round(transport.swing * 100)}%`
+			})
+			clock.setCallback(event => {
+				if (event.divisionsElapsed !== 0) return
+				const at = event.scheduledContextTimeSeconds ?? context.currentTime + .02
+				if (clock.networkTimingActive) samples.push({ position: clock.totalBarsElapsed, timestamp: performance.timeOrigin + clock.audioToPerformanceTimeMs(at), bpm: clock.BPM })
+				if (samples.length > 200) samples.shift()
+				document.getElementById('test-position').textContent = `Beat ${clock.totalBarsElapsed} · ${clock.BPM.toFixed(1)} BPM`
+				if (!document.getElementById('audible').checked) return
+				const tone = context.createOscillator(), gain = context.createGain()
+				gain.gain.setValueAtTime(.08, at); gain.gain.exponentialRampToValueAtTime(.001, at + .04)
+				tone.connect(gain).connect(context.destination); tone.start(at); tone.stop(at + .05)
+				tone.onended = () => { tone.disconnect(); gain.disconnect() }
+			})
+			document.getElementById('enable-audio').onclick = async () => { await context.resume(); await clock.startTimer(); await timing.autoJoin() }
+			document.getElementById('tempo-input-text').onchange = event => { timing.tempoClock.BPM = Number(event.target.value) }
+			document.getElementById('tempo-swing-range').oninput = event => { timing.tempoClock.swing = Number(event.target.value) }
+			window.timingTest = { clock, timing, samples, context }

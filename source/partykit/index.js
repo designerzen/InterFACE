@@ -3,7 +3,8 @@ export default class PartyServer {
  constructor(room) { this.room = room; this.leaderId = null }
  roster() { return { type: 'roster', leaderId: this.leaderId, peers: [...this.room.getConnections()].map(c => c.id) } }
  onConnect(connection, context) {
-  if (!this.leaderId && new URL(context.request.url).searchParams.get('host') === 'true') this.leaderId = connection.id
+  const host = new URL(context.request.url).searchParams.get('host')
+  if (!this.leaderId && ['true', 'auto'].includes(host)) this.leaderId = connection.id
   this.room.broadcast(JSON.stringify(this.roster()))
  }
  onClose(connection) {
