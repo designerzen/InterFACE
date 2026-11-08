@@ -1,0 +1,44 @@
+details#looking-glass-portrait(name="hardware" hidden)
+	summary.with-image
+		img.hardware-summary-photo.integration-icon(src="./assets/icons/looking-glass-logo.svg" width="96" height="96" alt="" aria-hidden="true")
+		span.integration-summary-copy
+			span.hardware-summary-name Looking Glass Portrait
+			small#looking-glass-connection Portrait connected
+	.details
+		p#looking-glass-preparation(role="status" aria-live="polite") Getting your Portrait ready…
+		p Show your scene on the Looking Glass Portrait while keeping the performance controls on your computer.
+		.integration-setup
+			.integration-instructions
+				h5 Move your scene to the Portrait
+				ol
+					li Keep the Portrait connected and start PhotoSYNTH.
+					li Press #[strong Open Looking Glass] in the controls. Allow the new window to open if your browser asks.
+					li In the Portrait window, press #[strong Enter fullscreen]. Keep the controls open on your computer to continue playing.
+			figure.looking-glass-guide
+				.looking-glass-guide-layout
+					.looking-glass-guide-device
+						svg(width="260" height="180" viewBox="0 0 260 180" aria-hidden="true" focusable="false")
+							rect.guide-device(x="15" y="12" width="230" height="140" rx="12")
+							rect.guide-screen(x="25" y="22" width="210" height="118" rx="5")
+							path.guide-device(d="M100 152v15h60v-15 M75 170h110")
+							g.guide-controls
+								path(d="M50 55h160 M50 80h160 M50 105h160")
+								circle(cx="75" cy="55" r="6")
+								circle(cx="164" cy="80" r="6")
+								circle(cx="104" cy="105" r="6")
+						span.looking-glass-guide-button OPEN LOOKING GLASS
+						strong Your computer
+						small Controls stay here
+					svg.looking-glass-guide-arrow(width="48" height="32" viewBox="0 0 48 32" aria-hidden="true" focusable="false")
+						path(d="M3 16h40 M30 3l13 13-13 13")
+					.looking-glass-guide-device
+						svg(width="260" height="180" viewBox="0 0 260 180" aria-hidden="true" focusable="false")
+							rect.guide-device(x="77" y="3" width="106" height="159" rx="12")
+							rect.guide-screen(x="85" y="11" width="90" height="141" rx="5")
+							path.guide-device(d="M99 162l-8 10h78l-8-10")
+							g.guide-face
+								ellipse(cx="130" cy="64" rx="22" ry="28")
+								path(d="M98 126c0-40 64-40 64 0")
+						strong Looking Glass Portrait
+						small Scene moves here
+				figcaption Press #[strong Enter fullscreen] in the Portrait window.

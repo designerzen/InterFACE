@@ -38,7 +38,7 @@ export const DEFAULT_OPTIONS_DISPLAY_COMPOSITE = {
 	// geometry subdivision for denser particles (0 = disabled, 1 = double density, 2 = 4x, etc)
 	geometrySubdivisions: 0,
 
-	showWalls: false,
+	showWalls: true,
 	adaptiveGeometrySubdivisions: true,
 	
 	minimumStableFrameRate: 54,
@@ -48,7 +48,10 @@ export const DEFAULT_OPTIONS_DISPLAY_COMPOSITE = {
 	adaptiveSubdivisionCooldown: 1500,
 
 	// 3d model!
-	showAvatar:false,
+	showAvatar:true,
+	avatarFadeSeconds:1.2,
+	mirrorGravity:7.2,
+	mirrorTrackingTimeout:1200,
 	avatarOpacity:0.38,
 	avatarScaleMultiplier:1.35,
 	avatarYOffset:0,

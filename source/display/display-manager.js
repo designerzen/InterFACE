@@ -12,10 +12,10 @@ import { DISPLAY_TYPES } from './display-types.js'
 
 const DEFAULT_DISPLAY_TYPE = DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
 
-const normalizeDisplayType = displayType => {
+export const normalizeDisplayType = displayType => {
 	const value = DISPLAY_TYPES[displayType] ?? displayType
 	if (value === DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D) return DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
-	if (value === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL) return DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU
+	if ([DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D, DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL].includes(value)) return DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU
 	if (DISPLAY_TYPES[displayType])
 	{
 		return DISPLAY_TYPES[displayType]
@@ -24,15 +24,17 @@ const normalizeDisplayType = displayType => {
 }
 
 export const isDisplayRuntimeAvailable = (displayType, capabilities = {}) => {
+	displayType = normalizeDisplayType(displayType)
 	switch(displayType)
 	{
 		case DISPLAY_TYPES.DISPLAY_WEB_GL_3D:
 		case DISPLAY_TYPES.DISPLAY_BABYLON_3D:
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D:
 		case DISPLAY_TYPES.DISPLAY_THREE_WEBGPU_PARTICLE:
+			return capabilities.webGL ?? isWebGLAvailable()
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU:
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL:
-			return capabilities.webGL ?? isWebGLAvailable()
+			return Boolean(globalThis.navigator?.gpu) || (capabilities.webGL ?? isWebGLAvailable())
 
 		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
 			return Boolean(globalThis.navigator?.gpu)
@@ -98,28 +100,9 @@ const displayClassLoaders = {
 		return {default:DisplayThreeWebGPUParticle}
 	},
 
-	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D]: async () => {
-		const { default:DisplayLookingGlass3D, requiredXRSetupForLookingGlass } = await import( './display-looking-glass-3d.js')
-		return {
-			default:DisplayLookingGlass3D,
-			before:requiredXRSetupForLookingGlass
-		}
-	},
-
 	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU]: async () => {
-		const { default:DisplayLookingGlassWebGPU, requiredXRSetupForLookingGlass } = await import('./display-looking-glass-webgpu.js')
-		return {
-			default:DisplayLookingGlassWebGPU,
-			before:requiredXRSetupForLookingGlass
-		}
-	},
-
-	[DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: async () => {
-		const { default:DisplayLookingGlassWebGPUTSL, requiredXRSetupForLookingGlassWebGPU } = await import('./display-looking-glass-3d-webgpu-tsl.js')
-		return {
-			default:DisplayLookingGlassWebGPUTSL,
-			before:requiredXRSetupForLookingGlassWebGPU
-		}
+		const { default:DisplayLookingGlassWebGPU } = await import('./display-looking-glass-webgpu.js')
+		return { default:DisplayLookingGlassWebGPU }
 	}
 }
 
@@ -131,7 +114,7 @@ const displayClassPromises = new Map()
  * @returns
  */
 export const loadDisplayClass = async( type ) => {
-	
+	type = normalizeDisplayType(type)
 	try{
 		const loader = displayClassLoaders[type]
 		if (!loader)
@@ -253,7 +236,6 @@ export const getAvailableDisplays = ( hasHolographicDisplayConnected=false ) => 
 	// hologrpahic displays are connected
 	if (hasHolographicDisplayConnected)
 	{
-		availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 		availableDisplays.push(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU)
 	}
 
@@ -275,15 +257,17 @@ export const getDefaultCompositeDisplays = () => [
  *
  * @returns {Object} - suggested and available
  */
-export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D ) => {
+export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D, discovery = {} ) => {
 	
 	const requestedDisplay = normalizeDisplayType(previousDisplay)
 	const fallbackDisplay = normalizeDisplayType(defaultDisplay) ?? DEFAULT_DISPLAY_TYPE
-	let holographicDisplayQuantity = 0
+	let holographicDisplayQuantity = discovery.holographicDisplayQuantity ?? 0
 	
 	try{
-		const {howManyHolographicDisplaysAreConnected } = await import( '../hardware/looking-glass-portrait.js' )
-		holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+		if (discovery.holographicDisplayQuantity === undefined) {
+			const {howManyHolographicDisplaysAreConnected } = await import( '../hardware/looking-glass-portrait.js' )
+			holographicDisplayQuantity = await howManyHolographicDisplaysAreConnected()
+		}
 	}catch(error){
 		console.info("Holographic display not connected" , error)
 	}
@@ -296,12 +280,11 @@ export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DI
 			available = available.filter(type => type !== DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
 		}
 	}
-	const shouldPreferLookingGlass = holographicDisplayQuantity > 0 &&
-		(!requestedDisplay || requestedDisplay === fallbackDisplay)
+	const shouldPreferLookingGlass = holographicDisplayQuantity > 0
 	const canUseRequestedDisplay = available.includes(requestedDisplay) && isDisplayRuntimeAvailable(requestedDisplay)
 	const canUseFallbackDisplay = available.includes(fallbackDisplay) && isDisplayRuntimeAvailable(fallbackDisplay)
-	const suggestedDisplay = shouldPreferLookingGlass && available.includes(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D) ?
-		DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D :
+	const suggestedDisplay = shouldPreferLookingGlass && available.includes(DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU) ?
+		DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU :
 		canUseRequestedDisplay ?
 		requestedDisplay :
 		canUseFallbackDisplay ?

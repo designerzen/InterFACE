@@ -274,6 +274,18 @@ export default class DisplayOverlay2d {
 		this.beatStaticLayer = null
 	}
 
+	// Displays that draw the emoticon in their own scene set this so it is not drawn twice
+	setSkipEmoticons(skip) {
+		this.skipEmoticons = Boolean(skip)
+	}
+
+	setSuspended(suspended) {
+		if (this.suspended === suspended) return
+		this.suspended = suspended
+		this.canvas.hidden = suspended
+		if (suspended) this.clear()
+	}
+
 	clear() {
 		this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height)
 		this.dirtyRects = []
@@ -290,6 +302,7 @@ export default class DisplayOverlay2d {
 	}
 
 	clearDirty() {
+		if (this.suspended) return
 		this.pendingClear = this.dirtyRects.length > 0
 		this.drewThisFrame = false
 		this.batchingFrame = true
@@ -297,6 +310,7 @@ export default class DisplayOverlay2d {
 	}
 
 	drawBeatProgress(progress=0, beats=16, options={}) {
+		if (this.suspended) return
 		const mode = options.mode ?? 'summary'
 		if (this.beatVizMode !== mode) {
 			this.beatRipples = []
@@ -731,6 +745,7 @@ export default class DisplayOverlay2d {
 	}
 
 	flushFrame(effectsContext = null) {
+		if (this.suspended) return
 		if (!this.batchingFrame) {
 			if (this.pendingClear && !this.drewThisFrame) {
 				this.clearPendingDirty()
@@ -827,6 +842,7 @@ export default class DisplayOverlay2d {
 	}
 
 	drawEmoticon(x, y, emoji, rotationZ = 0, rotationY = 0, rotationX = 0, activeCircleIndex = -1, numberOfNotesInKey = 12, flipX = false, noteRangeDegrees = 90, activeNoteColour = '#fff') {
+		if (this.skipEmoticons) return
 		if (this.queueFrameCommand(() => this.drawEmoticon(x, y, emoji, rotationZ, rotationY, rotationX, activeCircleIndex, numberOfNotesInKey, flipX, noteRangeDegrees, activeNoteColour))) {
 			return
 		}
@@ -861,6 +877,7 @@ export default class DisplayOverlay2d {
 	}
 
 	drawOctaveIndicator(x, y, octave, octaveLow, octaveHigh, height=54) {
+		if (this.skipEmoticons) return
 		if (this.queueFrameCommand(() => this.drawOctaveIndicator(x, y, octave, octaveLow, octaveHigh, height))) {
 			return
 		}
@@ -890,6 +907,7 @@ export default class DisplayOverlay2d {
 	}
 
 	queueFrameCommand(command) {
+		if (this.suspended) return true
 		if (!this.batchingFrame || this.renderingBatch) {
 			return false
 		}

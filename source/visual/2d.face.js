@@ -1,7 +1,7 @@
-import { LEFT_EYE_PATH, LEFT_IRIS_PATH, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from "../models/face-landmark-constants.js"
-import { subdivideKeypoints } from "../models/avatar.js"
-import { drawEyes } from "./2d.eyes.js"
-import { drawEyebrows } from './2d.eyebrows.js'
+import { subdivideKeypoints } from "../models/keypoint-subdivision.js"
+
+import { drawFaceFeatures } from './2d.face-features.js'
+import { getPredictionLandmarks } from '../display/display-landmarks.js'
 
 const faceOvalStyle = {
 	// The color that is used to draw the shape. Defaults to white.
@@ -45,11 +45,13 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 
 	// const isSelected = person.isSelected
 	const prediction = person.data
-	if (!prediction?.faceLandmarks || !drawingUtils)
+	if (!getPredictionLandmarks(prediction).length || !drawingUtils)
 	{
 		return
 	}
-	const landmarks = prediction.faceLandmarks
+	const raw = getPredictionLandmarks(prediction)
+ const normalized = raw.every(point => Math.abs(point.x) <= 1.5 && Math.abs(point.y) <= 1.5)
+ const landmarks = normalized ? raw : raw.map(point => ({ ...point, x: point.x / canvasContext.canvas.width, y: point.y / canvasContext.canvas.height, z: (point.z ?? 0) / canvasContext.canvas.width }))
 	const pointLandmarks = displayOptions.geometrySubdivisions > 0
 		? subdivideKeypoints(landmarks, displayOptions.geometrySubdivisions)
 		: landmarks
@@ -153,138 +155,5 @@ export const drawFace = ( canvasContext, person, beatJustPlayed, colours, drawin
 
 	// if this is mirrored using the option in the TF model...
 
-	// now overlay the mouth
-	if (options.drawMouth)
-	{	
-		/*
-		const mouthColours = {
-			h:color,
-			s:options.saturation, 
-			l:options.luminosity,
-			a:1
-		}
-
-		const mouthColoursClosed = {
-			h:color,
-			s:options.saturation, 
-			l:20,
-			a:1
-		}
-
-		const lipColours = {
-			h:90,
-			s:50, 
-			l:50,
-			a:1
-		}
-			*/
-
-		// console.info( "Person drawMouth",person, {options}, person.isMouthOpen, person.singing )
-		// This overlays the mouth and the eyes
-		if (person.isMouthOpen && person.singing)
-		{
-			// Inner
-			// drawLip( annotations.innerLip, lipColours, mouthColours )
-			drawingUtils.drawConnectors(
-				landmarks,
-				FaceLandmarker.FACE_LANDMARKS_LIPS,
-				{ 
-					color:options.mouth,
-					lineWidth: 3
-				}
-			)
-			
-		}else{
-
-			// Outer
-			// drawLip( annotations.outerLip, lipColours, mouthColoursClosed )
-			drawingUtils.drawConnectors(
-				landmarks,
-				FaceLandmarker.FACE_LANDMARKS_LIPS,
-				{ 
-					color:options.mouthClosed,
-					lineWidth: 1 
-				}
-			)
-			// mouth closed or not singing
-			// drawLip(prediction.annotations.lips, mouthColoursClosed, 1, 9)
-		}
-	}else{
-		// console.info( "Person SKIP drawMouth",person, {options}, person.isMouthOpen, person.singing )
-		
-	}
-
-	// draw silhoette if the user is 
-	// if you want it to flicker...
-	// interacting&& this.counter%2 === 0)
-
-	// EYES ===================================================================
-	
-	if (options.drawEyes){
-
-		const eyeOptions = {
-			eyeDesign:options.eyeDesign,
-			// colourful part of the eye
-			iris:options.leftEyeIris, 
-			// size of the colourful part
-			irisRadius:options.irisRadius,
-			// holes in the eyes
-			pupil:options.pupil, 
-			// size of the hole
-			pupilRadius:options.pupilRadius,
-			// big white bit of the eyed
-			sclera:'white',
-			// size of the white bit
-			scleraRadius:options.scleraRadius,
-			ratio:options.eyeRatio,
-			outline:false,
-
-			scaleX:canvasContext.canvas.width,
-			scaleY:canvasContext.canvas.height,
-		}
-
-		// EYES
-
-		const leftEyeData = LEFT_EYE_PATH.map( (connection,i) => landmarks[connection] )
-		// fetch group of keyframes that represent eyes...
-		// const leftEyeData =  landmarks.slice( FaceLandmarker.FACE_LANDMARKS_LEFT_EYE.start, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE.end )
-		// const leftPupilData = LEFT_IRIS_PATH.map( (connection,i) => landmarks[connection] )
-		const leftPupilData = landmarks[LEFT_IRIS_PATH[0]]
-		
-		// FIXME:
-		// const irisData = isLeft ? keypoints.leftIris : keypoints.rightIris
-		const rightEyeData = RIGHT_EYE_PATH.map( (connection,i) => landmarks[connection] )
-		
-		//const rightEyeData = landmarks.slice( FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE.start, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE.end )
-		// const rightPupilData = RIGHT_IRIS_PATH.map( (connection,i) => landmarks[connection] )
-		const rightPupilData = landmarks[RIGHT_IRIS_PATH[0]]
-		
-		// console.error( "FaceLandmarker", FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, {leftEyeData,leftPupilData})
-
-		// Draw the eyes over the face
-		const eyeDirection = prediction.eyeDirection
-	
-		drawEyes(canvasContext, {
-			leftEye:leftEyeData,
-			leftPupil:leftPupilData,
-			rightEye:rightEyeData,
-			rightPupil:rightPupilData,
-			expression:prediction,
-			leftOpen:person.isLeftEyeOpen,
-			rightOpen:person.isRightEyeOpen,
-			eyeDirection
-		}, { ...eyeOptions, rightIris:options.rightEyeIris })
-	}
-	
-	if (options.drawEyebrows){
-		const leftEyebrow = FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW.map(connection => landmarks[connection.start])
-		const rightEyebrow = FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW.map(connection => landmarks[connection.start])
-		drawEyebrows(canvasContext, leftEyebrow, true, { ...options, color })
-		drawEyebrows(canvasContext, rightEyebrow, false, { ...options, color })
-
-	}else{
-		// default fails
-	}
-
-	// Person drawn to screen
+	drawFaceFeatures(canvasContext, person, colours, displayOptions, beatJustPlayed)
 }

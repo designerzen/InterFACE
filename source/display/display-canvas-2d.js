@@ -29,6 +29,10 @@ const FILTER_LIBRARY = [
 		name:"source-over",
 		description:"This is the default setting and draws new shapes on top of the existing canvas content."
 	},
+	{
+		name:"screen",
+		description:"The pixels are inverted, multiplied, and inverted again. A lighter picture is the result (opposite of multiply)"
+	},
 	// {
 	// 	name:"source-in",
 	// 	description:"The new shape is drawn only where both the new shape and the destination canvas overlap. Everything else is made transparent."
@@ -71,71 +75,64 @@ const FILTER_LIBRARY = [
 		name:"xor",
 		description:"Shapes are made transparent where both overlap and drawn normal everywhere else."
 	},
-	// {
-	// 	name:"multiply",
-	// 	description:"The pixels of the top layer are multiplied with the corresponding pixel of the bottom layer. A darker picture is the result."
-	// },
+	{
+		name:"multiply",
+		description:"The pixels of the top layer are multiplied with the corresponding pixel of the bottom layer. A darker picture is the result."
+	},
 
-
-	// Useful as a BLOOM effect
-	// {
-	// 	name:"screen",
-	// 	description:"The pixels are inverted, multiplied, and inverted again. A lighter picture is the result (opposite of multiply)"
-	// },
-
-	// {
-	// 	name:"overlay",
-	// 	description:"A combination of multiply and screen. Dark parts on the base layer become darker, and light parts become lighter."
-	// },
-	// {
-	// 	name:"darken",
-	// 	description:"Retains the darkest pixels of both layers."
-	// },
+	{
+		name:"overlay",
+		description:"A combination of multiply and screen. Dark parts on the base layer become darker, and light parts become lighter."
+	},
+	{
+		name:"darken",
+		description:"Retains the darkest pixels of both layers."
+	},
 	{
 		name:"lighten",
 		description:"Retains the lightest pixels of both layers."
 	},
 
-	// {
-	// 	name:"color-dodge",
-	// 	description:"Divides the bottom layer by the inverted top layer."
-	// },
-	// {
-	// 	name:"color-burn",
-	// 	description:"Divides the inverted bottom layer by the top layer, and then inverts the result."
-	// },
+	{
+		name:"color-dodge",
+		description:"Divides the bottom layer by the inverted top layer."
+	},
+	{
+		name:"color-burn",
+		description:"Divides the inverted bottom layer by the top layer, and then inverts the result."
+	},
 
-	// {
-	// 	name:"hard-light",
-	// 	description:"A combination of multiply and screen like overlay, but with top and bottom layer swapped."
-	// },
-	// {
-	// 	name:"soft-light",
-	// 	description:"A softer version of hard-light. Pure black or white does not result in pure black or white."
-	// },
+	{
+		name:"hard-light",
+		description:"A combination of multiply and screen like overlay, but with top and bottom layer swapped."
+	},
+	{
+		name:"soft-light",
+		description:"A softer version of hard-light. Pure black or white does not result in pure black or white."
+	},
 
 	{
 		name:"difference",
 		description:"Subtracts the bottom layer from the top layer or the other way round to always get a positive value."
 	},
-	// {
-	// 	name:"exclusion",
-	// 	description:"Like difference, but with lower contrast."
-	// },
+	{
+		name:"exclusion",
+		description:"Like difference, but with lower contrast."
+	},
 
-	// {
-	// 	name:"hue",
-	// 	description:"Preserves the luma and chroma of the bottom layer, while adopting the hue of the top layer."
-	// },
-	// {
-	// 	name:"saturation",
-	// 	description:"Preserves the luma and hue of the bottom layer, while adopting the chroma of the top layer."
-	// },
+	{
+		name:"hue",
+		description:"Preserves the luma and chroma of the bottom layer, while adopting the hue of the top layer."
+	},
+	{
+		name:"saturation",
+		description:"Preserves the luma and hue of the bottom layer, while adopting the chroma of the top layer."
+	},
 	// could be good but expensive
-	// {
-	// 	name:"color",
-	// 	description:"Preserves the luma of the bottom layer, while adopting the hue and chroma of the top layer."
-	// },
+	{
+		name:"color",
+		description:"Preserves the luma of the bottom layer, while adopting the hue and chroma of the top layer."
+	},
 	{
 		name:"luminosity",
 		description:"Preserves the hue and chroma of the bottom layer, while adopting the luma of the top layer."
@@ -170,7 +167,7 @@ export default class Display2D extends AbstractDisplay{
 	canvas2DContext = null
 	emojiSprites = null
 
-	filterIndex = 0 % (FILTER_LIBRARY.length-1)
+	filterIndex = 0
 
 	get type() {
 		return DISPLAY_CANVAS_2D
@@ -203,7 +200,7 @@ export default class Display2D extends AbstractDisplay{
 
 	get nextFilterIndex()
 	{
-		return (this.filterIndex + 1) % (FILTER_LIBRARY.length-1)
+		return (this.filterIndex + 1) % FILTER_LIBRARY.length
 	}
 
 	constructor( canvas, initialWidth, initialHeight, options=DEFAULT_OPTIONS_DISPLAY_CANVAS )
@@ -371,8 +368,17 @@ export default class Display2D extends AbstractDisplay{
 	 * @param {Number} y - default to 0
 	 * @param {Boolean} flip - default to true
 	 */
-	drawElement( element, x=0, y=0, flip=true, width, height){	
-		drawElement( this.canvasContext, element, x, y, flip, width, height )
+	drawElement( element, x=0, y=0, flip=true, width, height, options={} ){
+		const context = this.canvasContext
+		if (!options.filter && !options.blendMode) return drawElement(context, element, x, y, flip, width, height)
+		context.save()
+		try {
+			// Blend only this layer; video and later face overlays keep their own state.
+			context.globalCompositeOperation = options.blendMode ?? this.filter
+			drawElement( context, element, x, y, flip, width, height )
+		} finally {
+			context.restore()
+		}
 	}
 
 	/**
@@ -560,9 +566,9 @@ export default class Display2D extends AbstractDisplay{
 		{
 			return false
 		}
-		if (options.filterIndex && options.filterIndex !== this.filterIndex)
+		if (Number.isInteger(options.filterIndex) && options.filterIndex !== this.filterIndex)
 		{
-			this.filterIndex = options.filterIndex % (FILTER_LIBRARY.length-1)
+			this.filterIndex = options.filterIndex % FILTER_LIBRARY.length
 		}
 		this.canvasContext.save()	
 		this.canvasContext.globalCompositeOperation = this.filter

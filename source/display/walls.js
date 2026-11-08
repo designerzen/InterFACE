@@ -31,6 +31,17 @@ export const DEFAULT_WALL_OPTIONS = {
 	wallOpeningGlowOpacity: 0
 }
 
+// Scroll a narrow emissive band along the existing wall UVs. Wall brightness,
+// opacity and geometry stay fixed, with no extra mesh or rendering pass.
+export const animateWallStripe = (walls, timing, now = performance.now()) => {
+	const stripe = walls?.userData.wallStripe
+	if (!stripe) return
+	const period = 60000 / timing?.bpm
+	const elapsed = now - timing?.at
+	if (!Number.isFinite(period) || period <= 0 || !Number.isFinite(elapsed) || elapsed < 0) return
+	stripe.texture.offset.y = 0.5 - (elapsed % period) / period
+}
+
 const makeWall = (THREE, geometry, material, position, rotation = {}) => {
 	const wall = new THREE.Mesh(geometry, material)
 	wall.position.set(position.x, position.y, position.z)
@@ -153,6 +164,21 @@ export const createWalls = (THREE, options = {}, camera = null) => {
 		opacity: wallOptions.wallGuideOpacity,
 		depthWrite: false
 	})
+	const stripeData = new Uint8Array(128 * 4)
+	for (let i = 0; i < 128; i++) {
+		const offset = ((i + 0.5) / 128 - 0.5) / 0.025
+		const brightness = Math.round(8 + 247 * Math.exp(-offset * offset))
+		stripeData.set([brightness, brightness, brightness, 255], i * 4)
+	}
+	const stripeTexture = new THREE.DataTexture(stripeData, 1, 128)
+	stripeTexture.wrapT = THREE.RepeatWrapping
+	stripeTexture.minFilter = stripeTexture.magFilter = THREE.LinearFilter
+	stripeTexture.offset.y = 0.5
+	stripeTexture.needsUpdate = true
+	planeMaterial.emissive?.setHex(wallOptions.wallSideLightColour)
+	planeMaterial.emissiveIntensity = 0.7
+	planeMaterial.emissiveMap = stripeTexture
+	group.userData.wallStripe = { texture: stripeTexture, plane: planeMaterial }
 
 	const halfWidth = width * 0.5
 	const halfHeight = height * 0.5
@@ -178,8 +204,31 @@ export const createWalls = (THREE, options = {}, camera = null) => {
 		makeQuadGeometry(THREE, [front.topLeft, front.topRight, back.topRight, back.topLeft]),
 		makeQuadGeometry(THREE, [front.bottomLeft, back.bottomLeft, back.bottomRight, front.bottomRight])
 	]
+	for (const geometry of wallGeometries) {
+		const positions = geometry.attributes.position
+		const uv = []
+		for (let i = 0; i < positions.count; i++) uv.push(0.5, (frontZ - positions.getZ(i)) / depth)
+		geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2))
+	}
 
-	wallGeometries.forEach(geometry => {
+	let batchedGeometry = null
+	if (wallOptions.wallBatchPlanes) {
+		batchedGeometry = new THREE.BufferGeometry()
+		const positions = new Float32Array(48)
+		const uv = new Float32Array(32)
+		const indices = []
+		wallGeometries.forEach((geometry, index) => {
+			positions.set(geometry.attributes.position.array, index * 12)
+			uv.set(geometry.attributes.uv.array, index * 8)
+			const vertex = index * 4
+			indices.push(vertex, vertex + 1, vertex + 2, vertex, vertex + 2, vertex + 3)
+		})
+		batchedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+		batchedGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2))
+		batchedGeometry.setIndex(indices)
+		batchedGeometry.computeVertexNormals?.()
+		group.add(new THREE.Mesh(batchedGeometry, planeMaterial))
+	} else wallGeometries.forEach(geometry => {
 		group.add(new THREE.Mesh(geometry, planeMaterial))
 	})
 
@@ -292,11 +341,13 @@ export const createWalls = (THREE, options = {}, camera = null) => {
 	group.add(new THREE.LineSegments(guideGeometry, guideMaterial))
 
 	group.userData.dispose = () => {
+		batchedGeometry?.dispose()
 		backGeometry?.dispose()
 		wallGeometries.forEach(geometry => geometry.dispose())
 		edgeGeometry.dispose()
 		guideGeometry.dispose()
 		planeMaterial.dispose()
+		stripeTexture.dispose()
 		edgeMaterial.dispose()
 		guideMaterial.dispose()
 		openingGlow?.userData?.geometry?.dispose?.()

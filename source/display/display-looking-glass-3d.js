@@ -158,6 +158,7 @@ export const requiredXRSetupForLookingGlass = () => {
 export default class DisplayLookingGlass3D extends DisplayWebGL3D{
 
 	name = DISPLAY_LOOKING_GLASS_3D
+	drawsSceneEmoticon = true
 
 	get type() {
 		return DISPLAY_LOOKING_GLASS_3D

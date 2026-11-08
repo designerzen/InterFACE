@@ -1,7 +1,8 @@
-import { LEFT_EYE_PATH, LEFT_IRIS_PATH, MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR, MESH_ANNOTATIONS, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from '../models/face-landmark-constants.js'
+import { getEyebrowStyle } from './eyebrow-styles.js'
+import { LEFT_EYE_PATH, LEFT_IRIS_PATH, MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from '../models/face-landmark-constants.js'
 import { drawEyebrows } from './2d.eyebrows.js'
 import { drawEyes } from './2d.eyes.js'
-import { drawLip } from './2d.mouth.js'
+import { drawLipOverlay } from './lip-styles.js'
 
 const toCanvasPoints = (points, canvas) => {
 	if (!Array.isArray(points) || points.length === 0)
@@ -22,9 +23,6 @@ const pointsFromLandmarks = (landmarks, indices) =>
 const getFeaturePoints = (prediction, person, canvas) => {
 	const annotations = prediction.annotations ?? {}
 	const landmarks = prediction.faceLandmarks ?? prediction.keypoints ?? []
-	const lips = person.isMouthOpen && person.singing ?
-		(annotations.innerLip ?? annotations.lips) :
-		(annotations.outerLip ?? annotations.lips)
 	return {
 		leftEyebrow: toCanvasPoints(annotations.leftEyebrow ?? annotations.leftEyebrowLower ?? pointsFromLandmarks(landmarks, MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR.leftEyebrow), canvas),
 		rightEyebrow: toCanvasPoints(annotations.rightEyebrow ?? annotations.rightEyebrowLower ?? pointsFromLandmarks(landmarks, MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR.rightEyebrow), canvas),
@@ -32,10 +30,6 @@ const getFeaturePoints = (prediction, person, canvas) => {
 		rightEye: toCanvasPoints(annotations.rightEye ?? annotations.rightEyeSocket ?? pointsFromLandmarks(landmarks, RIGHT_EYE_PATH), canvas),
 		leftPupil: toCanvasPoints([annotations.leftPupil ?? annotations.leftIris?.[0] ?? landmarks[LEFT_IRIS_PATH[0]]].filter(Boolean), canvas)[0],
 		rightPupil: toCanvasPoints([annotations.rightPupil ?? annotations.rightIris?.[0] ?? landmarks[RIGHT_IRIS_PATH[0]]].filter(Boolean), canvas)[0],
-		lips: toCanvasPoints(lips ?? [
-			...pointsFromLandmarks(landmarks, MESH_ANNOTATIONS.lipsUpperOuter),
-			...pointsFromLandmarks(landmarks, MESH_ANNOTATIONS.lipsLowerOuter).reverse()
-		], canvas)
 	}
 }
 
@@ -49,7 +43,7 @@ const getPupil = (pupil, eye) => {
 }
 
 /** Draw the optional facial features for predictions from either face model. */
-export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOptions = {}) => {
+export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOptions = {}, beatJustPlayed = false) => {
 	const prediction = person?.data
 	if (!canvasContext || !prediction)
 	{
@@ -57,14 +51,7 @@ export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOpt
 	}
 	const options = { ...displayOptions, ...person.options }
 	const features = getFeaturePoints(prediction, person, canvasContext.canvas)
-	const alpha = colours.a ?? 1
-
-	if (options.drawMouth && features.lips.length > 1)
-	{
-		drawLip(canvasContext, features.lips,
-			{ h:90, s:50, l:50, a:alpha * 0.5 },
-			{ h:person.hue ?? 0, s:options.saturation ?? 80, l:person.isMouthOpen ? options.luminosity ?? 50 : 20, a:alpha * (person.isMouthOpen ? 0.3 : 0.6) })
-	}
+	drawLipOverlay(canvasContext, person, options, colours, beatJustPlayed)
 
 	if (options.drawEyes)
 	{
@@ -92,10 +79,10 @@ export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOpt
 		}, { ...eyeOptions, rightIris:person.hsl ?? options.rightEyeIris ?? eyeOptions.iris })
 	}
 
-	if (options.drawEyebrows)
+	if (getEyebrowStyle(options) !== 'disabled')
 	{
-		drawEyebrows(canvasContext, features.leftEyebrow, true, { ...options, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
-		drawEyebrows(canvasContext, features.rightEyebrow, false, { ...options, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
+		drawEyebrows(canvasContext, features.leftEyebrow, true, { ...options, eyebrowStyle:getEyebrowStyle(options), eyebrowAmount:prediction.eyebrowsRaisedBy, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
+		drawEyebrows(canvasContext, features.rightEyebrow, false, { ...options, eyebrowStyle:getEyebrowStyle(options), eyebrowAmount:prediction.eyebrowsRaisedBy, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
 	}
 	return true
 }

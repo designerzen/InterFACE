@@ -37,6 +37,6 @@ export const DISPLAY_LABELS = {
 	[DISPLAY_BABYLON_3D]: 'Babylon — 3D face particles',
 	[DISPLAY_THREE_WEBGPU_PARTICLE]: 'Three — WebGL 2 particles',
 	[DISPLAY_LOOKING_GLASS_3D]: 'Looking Glass — Three WebGL 2',
-	[DISPLAY_LOOKING_GLASS_WEBGPU]: 'Looking Glass — modern renderer (WebGL 2)',
+	[DISPLAY_LOOKING_GLASS_WEBGPU]: 'Looking Glass Portrait',
 	[DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: 'Looking Glass — legacy TSL preset (WebGL 2)'
 }

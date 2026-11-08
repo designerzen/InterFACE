@@ -6,21 +6,24 @@ const CANVAS_SIZE = 192
 const CANVAS_HALF = CANVAS_SIZE * 0.5
 const SAMPLE_STEP = 3
 const ALPHA_THRESHOLD = 24
+const CRISP_CANVAS_SIZE = 768
 
 export const DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES = {
 	lookingGlassEmoticons: true,
+	lookingGlassEmoticonStyle: 'crisp',
 	lookingGlassEmoticonSize: 0.014,
 	lookingGlassEmoticonScale: 0.00425,
 	lookingGlassEmoticonYOffset: 0.26,
+	lookingGlassEmoticonScreenYOffset: 0.025,
 	lookingGlassEmoticonZOffset: 0.08,
 	lookingGlassEmoticonMaxParticles: 1500
 }
 
-const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 12, noteRangeDegrees = 90, activeNoteColour = '#fff') => {
+const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 12, noteRangeDegrees = 90, activeNoteColour = '#fff', resolution = CANVAS_SIZE) => {
 	const canvas = document.createElement("canvas")
-	canvas.width = CANVAS_SIZE
-	canvas.height = CANVAS_SIZE
-	const context = canvas.getContext("2d", { willReadFrequently: true })
+	canvas.width = resolution
+	canvas.height = resolution
+	const context = canvas.getContext("2d", { willReadFrequently: resolution === CANVAS_SIZE })
 	if (!context)
 	{
 		return null
@@ -30,7 +33,8 @@ const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 
 		console.warn("Could not load Looking Glass emoji particle font", error)
 	})
 
-	context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+	context.clearRect(0, 0, resolution, resolution)
+	context.scale(resolution / CANVAS_SIZE, resolution / CANVAS_SIZE)
 	context.save()
 	context.shadowColor = "rgba(0, 0, 0, 0.9)"
 	context.shadowBlur = 0
@@ -79,15 +83,16 @@ const drawEmoticonCanvas = (emoji, activeCircleIndex = -1, numberOfNotesInKey = 
 		}
 	}
 
-	return context.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE).data
+	return canvas
 }
 
 const createEmoticonGeometry = (THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, options) => {
-	const pixels = drawEmoticonCanvas(emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour)
-	if (!pixels)
+	const canvas = drawEmoticonCanvas(emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour)
+	if (!canvas)
 	{
 		return null
 	}
+	const pixels = canvas.getContext('2d').getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE).data
 
 	const positions = []
 	const colours = []
@@ -134,7 +139,34 @@ const createEmoticonGeometry = (THREE, emoji, activeCircleIndex, numberOfNotesIn
 	return geometry
 }
 
-const getParticleBounds = particles => {
+const createCrispEmoticon = (THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, options) => {
+	const canvas = drawEmoticonCanvas(emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, CRISP_CANVAS_SIZE)
+	if (!canvas) return null
+	const texture = new THREE.CanvasTexture(canvas)
+	texture.colorSpace = THREE.SRGBColorSpace
+	texture.magFilter = THREE.LinearFilter
+	texture.minFilter = THREE.LinearMipmapLinearFilter
+	const size = CANVAS_SIZE * (options.lookingGlassEmoticonScale ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonScale)
+	return new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshBasicMaterial({
+		map: texture,
+		transparent: true,
+		opacity: 1,
+		alphaTest: 0.01,
+		depthTest: false,
+		depthWrite: false,
+		toneMapped: false,
+		// The 2D mirroring transform can reverse the plane's winding.
+		side: THREE.DoubleSide
+	}))
+}
+
+const disposeEmoticonVisual = visual => {
+	visual?.material?.map?.dispose?.()
+	visual?.geometry?.dispose?.()
+	visual?.material?.dispose?.()
+}
+
+const getParticleBounds = (particles, yUp = false) => {
 	const positions = particles?.geometry?.attributes?.position?.array
 	if (!positions?.length)
 	{
@@ -172,8 +204,41 @@ const getParticleBounds = particles => {
 
 	return {
 		centerX: (minX + maxX) * 0.5,
-		topY: minY,
+		topY: yUp ? maxY : minY,
 		centerZ: (minZ + maxZ) * 0.5
+	}
+}
+
+export const clampEmoticonToCameraTop = (group, camera, THREE) => {
+	if (!camera) return
+	camera.updateWorldMatrix(true, false)
+	group.updateWorldMatrix(true, true)
+	const bounds = new THREE.Box3().setFromObject(group)
+	if (bounds.isEmpty()) return
+	// Include the radius of particle sprites, whose geometry only stores centres.
+	group.traverse(visual => {
+		if (visual.isPoints) bounds.expandByScalar((visual.material.size ?? 0) * 0.5)
+	})
+	const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).normalize()
+	let drop = 0
+	for (const x of [bounds.min.x, bounds.max.x]) {
+		for (const y of [bounds.min.y, bounds.max.y]) {
+			for (const z of [bounds.min.z, bounds.max.z]) {
+				const corner = new THREE.Vector3(x, y, z)
+				const projected = corner.clone().project(camera)
+				if (projected.y <= 0.98) continue
+				// Clamp in camera space so rotated heads and parent transforms cannot
+				// carry either the emoji or its head-angle arc above the viewport.
+				projected.y = 0.98
+				const target = projected.unproject(camera)
+				drop = Math.max(drop, corner.sub(target).dot(up))
+			}
+		}
+	}
+	if (drop > 0) {
+		const position = group.getWorldPosition(new THREE.Vector3()).addScaledVector(up, -drop)
+		group.position.copy(group.parent ? group.parent.worldToLocal(position) : position)
+		group.updateWorldMatrix(false, true)
 	}
 }
 
@@ -190,6 +255,7 @@ export const updateLookingGlassEmoticonParticles = (host, THREE, {
 } = {}) => {
 	if (!host?.particles || !host?.scene || !emoji || host.options?.lookingGlassEmoticons === false)
 	{
+		if (host?.lookingGlassEmoticonState) host.lookingGlassEmoticonState.group.visible = false
 		return
 	}
 
@@ -197,7 +263,10 @@ export const updateLookingGlassEmoticonParticles = (host, THREE, {
 	{
 		const group = new THREE.Group()
 		group.name = "looking-glass-emoticon-particles"
-		host.particles.add(group)
+		// GPU face particles replace/remove the CPU Points object. Keep world-space
+		// emoticons in the scene so they remain visible on either rendering backend.
+		const parent = host.nativeMirrorDisplay ? host.scene : host.particles
+		parent.add(group)
 		host.lookingGlassEmoticonState = {
 			group,
 			points: null,
@@ -206,48 +275,83 @@ export const updateLookingGlassEmoticonParticles = (host, THREE, {
 	}
 
 	const state = host.lookingGlassEmoticonState
-	const key = `${emoji}:${activeCircleIndex}:${numberOfNotesInKey}:${noteRangeDegrees}:${activeNoteColour}`
+	const style = host.options?.lookingGlassEmoticonStyle ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonStyle
+	const fontReady = document.fonts?.check?.(`900 72px ${EMOJI_FONT}`) ?? true
+	const key = `${style}:${fontReady}:${emoji}:${activeCircleIndex}:${numberOfNotesInKey}:${noteRangeDegrees}:${activeNoteColour}`
 	if (state.key !== key)
 	{
-		state.points?.geometry?.dispose?.()
-		state.points?.material?.dispose?.()
+		disposeEmoticonVisual(state.points)
 		if (state.points)
 		{
 			state.group.remove(state.points)
 		}
+		state.points = null
 
-		const geometry = createEmoticonGeometry(THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, host.options ?? {})
-		if (!geometry)
-		{
-			return
+		if (style === 'particles') {
+			const geometry = createEmoticonGeometry(THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, host.options ?? {})
+			if (!geometry) return
+			const material = new THREE.PointsMaterial({
+				size: host.options?.lookingGlassEmoticonSize ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonSize,
+				sizeAttenuation: true,
+				transparent: true,
+				opacity: 0.96,
+				depthTest: false,
+				depthWrite: false,
+				vertexColors: true
+			})
+			state.points = new THREE.Points(geometry, material)
+		} else {
+			state.points = createCrispEmoticon(THREE, emoji, activeCircleIndex, numberOfNotesInKey, noteRangeDegrees, activeNoteColour, host.options ?? {})
+			if (!state.points) return
 		}
-
-		const material = new THREE.PointsMaterial({
-			size: host.options?.lookingGlassEmoticonSize ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonSize,
-			sizeAttenuation: true,
-			transparent: true,
-			opacity: 0.96,
-			depthTest: false,
-			depthWrite: false,
-			vertexColors: true
-		})
-		state.points = new THREE.Points(geometry, material)
+		state.points.renderOrder = 30
 		state.group.add(state.points)
 		state.key = key
 	}
 
-	const bounds = getParticleBounds(host.particles)
+	const math = host.nativeMirrorDisplay ? host.mirrorMath : null
+	const bounds = math && Number.isFinite(math.minimum.y) && Number.isFinite(math.maximum.y)
+		? {
+			centerX: host.options?.mirrorCenterX ?? 0,
+			topY: (math.maximum.y - math.minimum.y) * (host.options?.mirrorFaceScale ?? 3.14) * 0.5 + (host.options?.mirrorCenterY ?? 0),
+			centerZ: host.options?.mirrorCenterZ ?? 0
+		}
+		: getParticleBounds(host.particles, host.nativeMirrorDisplay)
 	if (bounds)
 	{
+		const z = bounds.centerZ + (host.options?.lookingGlassEmoticonZOffset ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonZOffset)
+		// Convert a screen-height fraction to world units at the emoji's depth.
+		const viewHeight = host.camera?.isPerspectiveCamera
+			? 2 * Math.tan(host.camera.fov * Math.PI / 360) * Math.abs(host.camera.position.z - z) / (host.camera.zoom || 1)
+			: host.mirrorCalibration?.targetDiam ?? 2
+		const drop = host.nativeMirrorDisplay
+			? viewHeight * (host.options?.lookingGlassEmoticonScreenYOffset ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonScreenYOffset)
+			: 0
 		state.group.position.set(
 			bounds.centerX,
-			bounds.topY - (host.options?.lookingGlassEmoticonYOffset ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonYOffset),
-			bounds.centerZ + (host.options?.lookingGlassEmoticonZOffset ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonZOffset)
+			bounds.topY + (host.nativeMirrorDisplay ? 1 : -1) * (host.options?.lookingGlassEmoticonYOffset ?? DEFAULT_LOOKING_GLASS_EMOTICON_PARTICLES.lookingGlassEmoticonYOffset) - drop,
+			z
 		)
 	}
 
-	state.group.rotation.set(Math.PI + rotationX * 0.18, rotationY * 0.18, rotationZ + Math.PI * 0.5)
-	state.group.scale.x = flipX ? -1 : 1
+	if (host.nativeMirrorDisplay) {
+		// Canvas transform(0, rotationY, rotationX, 0) followed by rotate(rotationZ),
+		// converted from canvas Y-down to scene Y-up. X/Y are scale/skew inputs,
+		// not Euler angles; reproducing the affine transform avoids different poses.
+		const sin = Math.sin(rotationZ), cos = Math.cos(rotationZ), flip = flipX ? -1 : 1
+		state.points.matrixAutoUpdate = false
+		state.points.matrix.set(
+			rotationX * sin * flip, -rotationX * cos, 0, 0,
+			-rotationY * cos * flip, -rotationY * sin, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		)
+		state.points.matrixWorldNeedsUpdate = true
+	} else {
+		state.group.rotation.set(Math.PI + rotationX * 0.18, rotationY * 0.18, rotationZ + Math.PI * 0.5)
+		state.group.scale.x = flipX ? -1 : 1
+	}
+	clampEmoticonToCameraTop(state.group, host.camera, THREE)
 	state.group.visible = true
 }
 
@@ -258,8 +362,7 @@ export const disposeLookingGlassEmoticonParticles = host => {
 		return
 	}
 
-	state.points?.geometry?.dispose?.()
-	state.points?.material?.dispose?.()
+	disposeEmoticonVisual(state.points)
 	if (state.points)
 	{
 		state.group?.remove?.(state.points)

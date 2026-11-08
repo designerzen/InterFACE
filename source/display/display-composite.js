@@ -13,6 +13,8 @@ export default class DisplayComposite extends AbstractDisplay {
 	get type(){ return DISPLAY_COMPOSITE }
 	get firstDisplay(){ return this.displays[0] ?? null }
 	get lastDisplay(){ return this.displays.at(-1) ?? null }
+	get suppressMainOverlay(){ return this.displays.some(display => display.suppressMainOverlay) }
+	get drawsSceneEmoticon(){ return this.displays.some(display => display.drawsSceneEmoticon) }
 	get canvasContext(){ return this.outputContext ??= this.canvas.getContext('2d') }
 	getParticleContext(){ return this.particleContext }
 	get layout(){ return this.options.layout ?? 'layers' }
@@ -122,11 +124,13 @@ export default class DisplayComposite extends AbstractDisplay {
 		this.forward('clearFaceFeatures', [])
 	}
 	drawPerson(...args){ this.forward('drawPerson', args) }
+	setBeatTiming(...args){ this.forward('setBeatTiming', args) }
+	emitNoteParticles(...args){ this.forward('emitNoteParticles', args) }
 	drawFaceFeatures(...args){ this.forward('drawFaceFeatures', args) }
-	drawElement(element, x = 0, y = 0, flip = true, width = this.width, height = this.height){
+	drawElement(element, x = 0, y = 0, flip = true, width = this.width, height = this.height, options = {}){
 		this.viewports.forEach((viewport, index) => {
 			const sx = viewport.width / this.width, sy = viewport.height / this.height
-			this.displays[index].drawElement(element, x * sx, y * sy, flip, width * sx, height * sy)
+			this.displays[index].drawElement(element, x * sx, y * sy, flip, width * sx, height * sy, options)
 		})
 	}
 	drawBars(...args){ this.forward('drawBars', args) }
