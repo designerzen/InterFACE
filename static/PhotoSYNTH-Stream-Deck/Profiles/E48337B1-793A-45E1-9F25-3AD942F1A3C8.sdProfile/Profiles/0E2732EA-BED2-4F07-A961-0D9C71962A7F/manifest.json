@@ -1,0 +1,917 @@
+{
+	"Controllers": [
+		{
+			"Actions": {
+				"0,2": {
+					"ActionID": "0dd0528d-e743-461e-a985-4798e7ca9f15",
+					"LinkedTitle": true,
+					"Name": "Previous Page",
+					"Settings": {},
+					"State": 0,
+					"States": [
+						{}
+					],
+					"UUID": "com.elgato.streamdeck.page.previous"
+				},
+				"1,2": {
+					"ActionID": "24fe7daf-5955-41ff-ac1b-f8b48497ac43",
+					"LinkedTitle": true,
+					"Name": "Next Page",
+					"Settings": {},
+					"State": 0,
+					"States": [
+						{}
+					],
+					"UUID": "com.elgato.streamdeck.page.next"
+				},
+				"2,2": {
+					"ActionID": "52fd3d29-08a1-4ebb-a167-e4c87e13ad58",
+					"LinkedTitle": true,
+					"Name": "Page Indicator",
+					"Settings": {},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 20,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"OutlineThickness": 2,
+							"ShowTitle": true,
+							"TitleAlignment": "middle",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.page.indicator"
+				},
+				"0,0": {
+					"ActionID": "d8cc3e81-2f99-4bb6-a25a-2d726ba04f79",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 87,
+								"QTKeyCode": 87,
+								"VKeyCode": 87
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/DC1C26000175E9CC3C.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "W C♯3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"1,0": {
+					"ActionID": "1d501df1-802b-48c6-a1ba-cff43c125e53",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 69,
+								"QTKeyCode": 69,
+								"VKeyCode": 69
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/672138F337A3F8863F.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "E D3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"2,0": {
+					"ActionID": "5904c9b6-debc-49c8-a7b1-c06309643c22",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 82,
+								"QTKeyCode": 82,
+								"VKeyCode": 82
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/E5E51501CF9896AC18.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "R E♭3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"3,0": {
+					"ActionID": "53e834d8-c7e3-42dd-a335-d0d3e9b00e40",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 84,
+								"QTKeyCode": 84,
+								"VKeyCode": 84
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/BCC3CFB39A28284367.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "T E3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"4,0": {
+					"ActionID": "f9aca6ad-8721-4e36-a057-53aab9e73d3a",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 89,
+								"QTKeyCode": 89,
+								"VKeyCode": 89
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/1EEEED6B2076FCFEAA.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "Y F3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"0,1": {
+					"ActionID": "aae89020-cfd2-4ae5-a1bb-736b6edce6b7",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 85,
+								"QTKeyCode": 85,
+								"VKeyCode": 85
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/1F1E05AD26C2DA72DC.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "U F♯3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"1,1": {
+					"ActionID": "9b195c57-7675-4484-a96f-37a0d2376587",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 73,
+								"QTKeyCode": 73,
+								"VKeyCode": 73
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/289F61441E98F21D79.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "I G3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"2,1": {
+					"ActionID": "7bc8a364-a6e6-4f16-a25d-527e1ad5c2e1",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 79,
+								"QTKeyCode": 79,
+								"VKeyCode": 79
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/FFC96BD781B9D70B63.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "O A♭3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"3,1": {
+					"ActionID": "c443f101-7623-468b-aced-cc4bfde45e2e",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 80,
+								"QTKeyCode": 80,
+								"VKeyCode": 80
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/667EA06FD54BE332B0.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "P A3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"4,1": {
+					"ActionID": "d084fcdc-d266-4dd3-a341-844cda97f6bd",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 65,
+								"QTKeyCode": 65,
+								"VKeyCode": 65
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/8129A5068CFC46F2C4.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "A B♭3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"3,2": {
+					"ActionID": "4cce2465-b806-43af-ab95-6cd08d82e597",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 83,
+								"QTKeyCode": 83,
+								"VKeyCode": 83
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/0546E4808058D3BC3B.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "S B3",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				},
+				"4,2": {
+					"ActionID": "5fa8ba16-9e8b-4053-a50e-4117a8f60e7e",
+					"LinkedTitle": false,
+					"Name": "Hotkey",
+					"Plugin": {
+						"Name": "Activate a Key Command",
+						"UUID": "com.elgato.streamdeck.system.hotkey",
+						"Version": "1.0"
+					},
+					"Resources": null,
+					"Settings": {
+						"Coalesce": true,
+						"Hotkeys": [
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 68,
+								"QTKeyCode": 68,
+								"VKeyCode": 68
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							},
+							{
+								"KeyCmd": false,
+								"KeyCtrl": false,
+								"KeyModifiers": 0,
+								"KeyOption": false,
+								"KeyShift": false,
+								"NativeCode": 146,
+								"QTKeyCode": 33554431,
+								"VKeyCode": -1
+							}
+						]
+					},
+					"State": 0,
+					"States": [
+						{
+							"FontFamily": "Arial",
+							"FontSize": 9,
+							"FontStyle": "Bold",
+							"FontUnderline": false,
+							"Image": "Images/DF7708DFE050EF25C0.svg",
+							"OutlineThickness": 2,
+							"ShowTitle": false,
+							"Title": "D C4",
+							"TitleAlignment": "bottom",
+							"TitleColor": "#ffffff"
+						}
+					],
+					"UUID": "com.elgato.streamdeck.system.hotkey"
+				}
+			},
+			"Type": "Keypad"
+		}
+	],
+	"Icon": "",
+	"Name": "Musical Keyboard 2/4"
+}

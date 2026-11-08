@@ -1,0 +1,8 @@
+
+		<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+			<rect width="144" height="144" rx="18" fill="#11141b"/>
+			<rect x="5" y="5" width="134" height="134" rx="15" fill="#171c26" stroke="#6f7b8d" stroke-width="4"/>
+			<rect x="14" y="14" width="116" height="7" rx="3.5" fill="#6f7b8d"/>
+			<svg x="43" y="27" width="58" height="58" viewBox="0 0 24 24" fill="#6f7b8d"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg>
+			<text x="72" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Expert</text><text x="72" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">mode</text>
+		</svg>

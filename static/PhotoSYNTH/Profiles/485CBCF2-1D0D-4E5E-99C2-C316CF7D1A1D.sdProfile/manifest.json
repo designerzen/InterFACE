@@ -1,0 +1,26 @@
+{
+	"Device": {
+		"Model": "20GAT9901",
+		"UUID": "d8d6453a-1bf6-4a95-ab39-8ad70177a72c"
+	},
+	"Name": "PhotoSYNTH — Stream Deck XL",
+	"Pages": {
+		"Current": "00000000-0000-0000-0000-000000000000",
+		"Default": "d6b45f35-c5a8-4ed5-8108-75d626225e84",
+		"Pages": [
+			"db46784d-474f-4b3c-a1bb-9fb25d8cce13",
+			"6b19584d-66c6-4c13-9b25-56e168a99467",
+			"1133a94e-3f72-4a57-8a99-3ce0a705c727",
+			"08c330bc-f1ee-4043-a981-e7210f2cdfa7",
+			"aa71ed6e-daac-46ed-a65e-de44b67e7a36",
+			"3c75e439-aa36-4a31-a7ee-b2f512a54dcf",
+			"a13cd73e-914b-48af-aaa4-c5386e1353ad",
+			"61cd67f6-8288-4988-a53f-fa6db72a650e",
+			"d0221879-9ac9-4b62-a972-ff93d99aa834",
+			"e240319a-6595-4f77-ad31-289b43eec480",
+			"f567ff5d-503a-4acc-a86e-174796332dac",
+			"d777560a-8fc7-4e63-854b-712b324b8db4"
+		]
+	},
+	"Version": "3.0"
+}

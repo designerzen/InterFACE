@@ -1,0 +1,8 @@
+
+		<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+			<rect width="144" height="144" rx="18" fill="#11141b"/>
+			<rect x="5" y="5" width="134" height="134" rx="15" fill="#171c26" stroke="#2ca9d6" stroke-width="4"/>
+			<rect x="14" y="14" width="116" height="7" rx="3.5" fill="#2ca9d6"/>
+			<svg x="43" y="27" width="58" height="58" viewBox="0 0 24 24" fill="#2ca9d6"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9 3L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.17L15 3H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/><path d="M12 17l1.25-2.75L16 13l-2.75-1.25L12 9l-1.25 2.75L8 13l2.75 1.25z"/></svg>
+			<text x="72" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Video Frame</text><text x="72" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Copy</text>
+		</svg>

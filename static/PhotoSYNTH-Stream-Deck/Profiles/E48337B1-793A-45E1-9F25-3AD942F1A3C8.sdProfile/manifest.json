@@ -1,0 +1,42 @@
+{
+	"Device": {
+		"Model": "20GAA9902",
+		"UUID": "55ee4fd3-2f18-44f8-a9e2-b095c75f43c1"
+	},
+	"Name": "PhotoSYNTH — Stream Deck",
+	"Pages": {
+		"Current": "00000000-0000-0000-0000-000000000000",
+		"Default": "056c55eb-cfb8-4f79-a9f1-1d70addbb888",
+		"Pages": [
+			"49f161c4-8c67-4e03-ae59-bbdf31cd890a",
+			"dace8a9f-9ab2-491a-adf9-6d02c991c60b",
+			"81014197-24b7-4e4b-ae5b-cb58793915af",
+			"b4803469-33ca-4354-ac9c-f0ecbc2e0b81",
+			"09432f2e-04b1-449e-ac1b-cd239ab2bdc0",
+			"5d47449c-a6d6-4ef4-a308-0d4168bea50b",
+			"9652511a-4547-4309-ac64-0156be3f36b8",
+			"4583f5d5-6304-4e0d-adc3-8bd364f4643f",
+			"6f29e55f-1b06-4cbc-ae15-5ab6fa54f2a1",
+			"ef6b5760-f4d4-4553-af8c-971eda5a3a4e",
+			"0e2732ea-bed2-4f07-a961-0d9c71962a7f",
+			"c14c1f72-6771-44c1-a9d2-7ccc51e1eb49",
+			"d3ecb461-a766-4402-ae3d-01fabb677466",
+			"a273c969-89f3-41f0-a43f-b532e62ca6f6",
+			"8a1b81c9-347f-47a7-aef6-c3614bc48eff",
+			"07caa9d1-8186-47d0-a4dd-0b20a8098417",
+			"b9c7bcaa-5f03-43a3-ac38-a96b9c2fd91b",
+			"fb37b32c-64f2-4b75-a061-87420fe7e32a",
+			"429bd412-05c7-44e9-a3e7-68a7acaa3a71",
+			"bcc6e3c1-563f-4a55-a29b-50873ebbf456",
+			"60045267-4d55-4f4e-ac23-364e99968cd8",
+			"d843499b-1946-43ab-ac45-116ba4b1c916",
+			"ad308239-d0b6-4257-a5ff-63ba00b3731c",
+			"bac7651f-80fc-4489-a8dc-3c42011a9765",
+			"84d5b442-2db8-40a9-a417-d989329b9de6",
+			"5ecef5f4-b1a4-4c4c-ad3c-afa34dd287c2",
+			"290f6a37-677e-46af-acb9-efa21e522efc",
+			"8b9f2d84-18f3-4514-a628-253d29bb571d"
+		]
+	},
+	"Version": "3.0"
+}

@@ -175,7 +175,7 @@ const handlePrimaryCommand = (
 			activateControl('button-eyebrows', () => application.stateMachine?.toggle?.('eyebrows'))
 			return 'Eyebrow Overlays'
 		case 'KeyR':
-			activateControl('button-lips', () => application.stateMachine?.toggle?.('lips'))
+			cycleSelectControl('select-lips', () => application.stateMachine?.toggle?.('lips'))
 			return 'Lip Overlays'
 		case 'KeyS':
 			activateControl('button-subtitles', () => application.stateMachine?.toggle?.('text'))
@@ -191,7 +191,7 @@ const handlePrimaryCommand = (
 			return 'Automation'
 		case 'KeyW':
 			activateControl('button-toggle-advanced', () => application.stateMachine?.toggle?.('advancedMode'))
-			return 'Advanced Controls'
+			return 'Expert mode'
 		case 'KeyX':
 			shiftNumericOctave(-1)
 			return 'Number Octave Down'

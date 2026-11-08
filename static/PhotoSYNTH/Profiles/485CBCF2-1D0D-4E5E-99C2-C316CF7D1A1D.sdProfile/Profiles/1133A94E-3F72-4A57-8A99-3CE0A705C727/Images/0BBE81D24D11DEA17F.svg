@@ -1,0 +1,8 @@
+
+		<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+			<rect width="144" height="144" rx="18" fill="#11141b"/>
+			<rect x="5" y="5" width="134" height="134" rx="15" fill="#171c26" stroke="#6f7b8d" stroke-width="4"/>
+			<rect x="14" y="14" width="116" height="7" rx="3.5" fill="#6f7b8d"/>
+			<svg x="43" y="27" width="58" height="58" viewBox="0 0 24 24" fill="#6f7b8d"><path d="M0 0h24v24H0z" fill="none"/><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+			<text x="72" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Fullscreen</text>
+		</svg>

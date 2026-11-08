@@ -134,7 +134,7 @@ const common = {
 	speech: primary('KeyT', 'Speech', 'system', 'VOICE', 'voice_over_off_black_24dp.svg'),
 	hud: primary('KeyU', 'Input HUD', 'system', 'HUD', 'sensors_off-24px.svg'),
 	automation: primary('KeyV', 'Automation', 'system', 'AUTO', 'autorenew_black_24dp.svg'),
-	advanced: primary('KeyW', 'Advanced\nControls', 'system', 'ADV', 'equalizer.svg'),
+	advanced: primary('KeyW', 'Expert\nmode', 'system', 'EXP', 'equalizer.svg'),
 	octaveDown: primary('KeyX', 'Number Octave\nDown', 'mode', 'OCT−', 'down_arrow_black_24dp.svg'),
 	octaveUp: primary('KeyY', 'Number Octave\nUp', 'mode', 'OCT+', 'up_arrow_black_24dp.svg'),
 	reverb: primary('KeyZ', 'Random\nReverb', 'sound', 'REV', 'extension-24px.svg'),

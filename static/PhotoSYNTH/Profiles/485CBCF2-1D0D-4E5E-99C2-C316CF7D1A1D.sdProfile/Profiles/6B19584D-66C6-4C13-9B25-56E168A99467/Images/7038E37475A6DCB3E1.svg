@@ -1,0 +1,8 @@
+
+		<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+			<rect width="144" height="144" rx="18" fill="#11141b"/>
+			<rect x="5" y="5" width="134" height="134" rx="15" fill="#171c26" stroke="#ef3f75" stroke-width="4"/>
+			<rect x="14" y="14" width="116" height="7" rx="3.5" fill="#ef3f75"/>
+			<svg x="43" y="27" width="58" height="58" viewBox="0 0 24 24" fill="#ef3f75"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+			<text x="72" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Previous</text><text x="72" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Instrument</text>
+		</svg>

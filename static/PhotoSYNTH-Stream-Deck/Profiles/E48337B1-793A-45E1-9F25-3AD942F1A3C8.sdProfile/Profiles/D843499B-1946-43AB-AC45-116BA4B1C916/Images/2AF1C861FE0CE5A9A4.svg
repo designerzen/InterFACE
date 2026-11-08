@@ -1,0 +1,8 @@
+
+		<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+			<rect width="144" height="144" rx="18" fill="#11141b"/>
+			<rect x="5" y="5" width="134" height="134" rx="15" fill="#171c26" stroke="#8157e6" stroke-width="4"/>
+			<rect x="14" y="14" width="116" height="7" rx="3.5" fill="#8157e6"/>
+			<svg x="43" y="27" width="58" height="58" viewBox="0 0 24 24" fill="#8157e6"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/></svg>
+			<text x="72" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Samples</text>
+		</svg>
