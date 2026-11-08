@@ -1,0 +1,24 @@
+fieldset#mouth-dynamics-settings.mouth-dynamics-settings.control-settings
+	legend Mouth dynamics
+	p How opening your mouth turns into loudness for all players. Adjust while playing to find what works best.
+
+	label.control-settings-field(for="select-mouth-dynamics") Curve preset
+		select#select-mouth-dynamics(data-native-select aria-describedby="mouth-curve-help")
+
+	figure#mouth-curve-editor.mouth-curve-editor
+		figcaption.sr-only Loudness curve. Opening runs left to right, loudness bottom to top.
+	p#mouth-curve-help Drag a handle to reshape the curve. Click the graph to add a handle; double-click a handle or press Delete to remove it. Arrow keys move the focused handle. A flat start gives more room for quiet notes.
+	div.mouth-curve-actions
+		button#mouth-curve-reset(type="button") Reset curve
+	output#mouth-curve-status(role="status" aria-live="polite")
+
+	fieldset
+		legend Opening
+		label.control-settings-field(for="mouth-gate") Note gate
+			input#mouth-gate(type="range" min="0" max="40" step="1" value="6" aria-describedby="mouth-gate-help")
+			output#mouth-gate-output(for="mouth-gate") 6%
+		p#mouth-gate-help How far the mouth must open before a note starts. Lower values trigger notes sooner.
+		label.control-settings-field(for="lip-range") Opening range
+			input#lip-range(type="range" min="0" max="100" step="1" value="100" aria-describedby="lip-range-help")
+			output#lip-range-output(for="lip-range") Long
+		p#lip-range-help How much opening the whole curve covers. Short reaches full volume with less movement; long gives more room for quiet playing.

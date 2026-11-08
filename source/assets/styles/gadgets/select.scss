@@ -1,4 +1,27 @@
+// Single choice selects opt out of the customizable picker with data-native-select
+$rich-select: "select:not([multiple], [size], [data-native-select])";
+
 // Old IE shows weird arrow
+#settings label[for="select-composite-displays"] {
+	grid-column: 1 / -1;
+	min-width: min(22rem, 100%);
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	gap: .5rem;
+	&[hidden] { display: none; }
+	> select {
+		position: static;
+		appearance: auto;
+		opacity: 1;
+		width: 100%;
+		min-height: 9rem;
+		color: var(--shade-white);
+		background: var(--shade-dark);
+		order: 1;
+	}
+}
+
 ::-ms-expand {
 	display: none;
 }
@@ -12,7 +35,26 @@ select {
 	padding-right: 1em;
 }
   
-select:not(.select-content):not([multiple]):not([size]) {
+// Customizable selects draw their own ::picker-icon
+@supports not (appearance: base-select) {
+	// Some browsers keep rich option markup without being able to lay it out
+	.option-icon,
+	optgroup > legend {
+		display: none;
+	}
+
+	select hr {
+		padding: 0;
+		background: none;
+		box-shadow: none;
+	}
+
+	select:not([multiple]):not([size]) {
+		background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M4 0h6L7 4'/%3E%3C/svg%3E");
+	}
+}
+
+select[data-native-select]:not([multiple]):not([size]) {
 	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M4 0h6L7 4'/%3E%3C/svg%3E");
 }
 
@@ -20,7 +62,9 @@ select:not(.select-content):not([multiple]):not([size]) {
 // Progressive enhancement — only applies in supporting browsers
 @supports (appearance: base-select) {
 
-	label select.select-content {		
+	// Control panel tiles: the select is an invisible layer over the tile, which
+	// shows its own icon and caption. Elsewhere the select is its own visible button.
+	.controls label #{$rich-select} {
 		padding:0;
 		border:0;
 		position: absolute;
@@ -29,9 +73,20 @@ select:not(.select-content):not([multiple]):not([size]) {
 		color: transparent;
 		opacity: 0;
 		text-shadow: none;
-	}	
 
-	select.select-content {
+		&::picker-icon {
+			opacity: 0;
+		}
+
+		// Keep the full-tile trigger visually hidden when closed. Revealing
+		// only the open control allows its top-layer picker to remain visible
+		// without replacing or resizing the surrounding tile label.
+		&:open {
+			opacity: 1;
+		}
+	}
+
+	#{$rich-select} {
 		--gap: calc(var(--pad) * 0.5);
 		--select-surface-top: hsl(var(--hue-dark), 8%, 20%);
 		--select-surface-bottom: hsl(var(--hue-dark), 8%, 15%);
@@ -40,14 +95,14 @@ select:not(.select-content):not([multiple]):not([size]) {
 		--select-panel-bg: hsl(var(--hue-dark), 7%, 18%);
 		--select-option-hover: hsl(var(--hue-dark), 8%, 24%);
 
-		&,
-		&::picker(select) {
-			appearance: base-select;
-		}
+		// The picker needs its own rule: Parcel's minifier drops a selector
+		// list that mixes ::picker(select) with a plain selector
+		appearance: base-select;
+		font-family: inherit;
+		font-size: inherit;
+		color: inherit;
 
-		// Remove the old fallback arrow since base-select provides its own
-		padding-right: 0;
-		
+
 
 		// Select button styling
 		// border: 1px solid var(--shade-grey);
@@ -98,7 +153,6 @@ select:not(.select-content):not([multiple]):not([size]) {
 		&::picker-icon {
 			color: var(--shade-grey);
 			margin-inline-start: auto;
-			opacity: 0;
 			transition: rotate var(--duration);
 		}
 
@@ -106,15 +160,9 @@ select:not(.select-content):not([multiple]):not([size]) {
 			rotate: 180deg;
 		}
 
-		// Keep the full-tile trigger visually hidden when closed. Revealing
-		// only the open control allows its top-layer picker to remain visible
-		// without replacing or resizing the surrounding tile label.
-		&:open {
-			opacity: 1;
-		}
-
 		// Dropdown picker panel
 		&::picker(select) {
+			appearance: base-select;
 			border: 1px solid var(--shade-grey);
 			border-radius: var(--curve);
 			background:
@@ -124,6 +172,7 @@ select:not(.select-content):not([multiple]):not([size]) {
 					var(--select-panel-bg)
 				);
 			min-inline-size: max(anchor-size(width), 14rem);
+			font-size: clamp(0.95rem, 1vw + 0.7rem, 1.05rem);
 			max-block-size: min(24rem, 60vh);
 			padding: calc(var(--pad) * 0.35);
 			box-shadow:
@@ -146,6 +195,14 @@ select:not(.select-content):not([multiple]):not([size]) {
 		// Option groups
 		optgroup {
 			padding: 0;
+			margin: 0;
+			background: transparent;
+
+			& + optgroup {
+				margin-block-start: calc(var(--pad) * 0.35);
+				padding-block-start: calc(var(--pad) * 0.35);
+				border-block-start: 1px solid color-mix(in srgb, var(--shade-grey), transparent 50%);
+			}
 
 			legend {
 				display: flex;
@@ -153,14 +210,26 @@ select:not(.select-content):not([multiple]):not([size]) {
 				gap: var(--gap);
 				padding: calc(var(--pad) * 0.5) calc(var(--pad) * 1);
 				color: var(--shade-grey);
+				font-size: 0.8em;
+				letter-spacing: 0.05em;
 			}
+		}
+
+		hr {
+			display: block;
+			block-size: 0;
+			margin: calc(var(--pad) * 0.35) 0;
+			padding: 0;
+			border: 0;
+			background: none;
+			box-shadow: none;
+			border-block-start: 1px solid color-mix(in srgb, var(--shade-grey), transparent 50%);
 		}
 
 		button{
 			border:0;
 			background: none;
 			color:inherit;
-			opacity: 0;
 			outline:none;
 			border-radius: 0;
 			box-shadow: none;
@@ -205,7 +274,7 @@ select:not(.select-content):not([multiple]):not([size]) {
 
 		// Individual options
 		option {
-			--gap: calc(var(--pad) * 0.45);
+			--gap: 0.5em;
 			display: flex;
 			align-items: center;
 			gap: var(--gap);
@@ -213,6 +282,7 @@ select:not(.select-content):not([multiple]):not([size]) {
 			min-block-size: calc(var(--pad) * 2.4);
 			padding: calc(var(--pad) * 0.6) calc(var(--pad) * 0.8);
 			cursor: pointer;
+			background: transparent;
 			// reserve a left edge for the "currently selected" indicator
 			// so the layout doesn't shift when selection changes
 			border-inline-start: 3px solid transparent;
@@ -270,15 +340,30 @@ select:not(.select-content):not([multiple]):not([size]) {
 		// Icon inside options and group legends
 		.option-icon {
 			flex-shrink: 0;
-			width: 1.2em;
-			height: 1.2em;
+			width: 1.5em;
+			height: 1.5em;
 			object-fit: contain;
 			line-height: 1;
 			text-align: center;
+			> svg {
+				display: block;
+				position: static;
+				inset: auto;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				pointer-events: none;
+			}
 		}
 
 		img.option-icon {
 			vertical-align: middle;
+		}
+
+		.option-swatch {
+			border-radius: 50%;
+			background: var(--swatch);
+			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 		}
 
 		// Secondary detail text alongside the label
@@ -292,14 +377,14 @@ select:not(.select-content):not([multiple]):not([size]) {
 		}
 
 		// Rich content inside tempo options
-		.tempo-bpm {
+		&#select-tempo .option-label {
 			font-weight: 700;
 			font-size: 1.1em;
 			min-width: 2.5ch;
 			text-align: right;
 		}
 
-		.tempo-label {
+		&#select-tempo .option-detail {
 			font-size: 0.75em;
 			opacity: 0.6;
 			text-transform: none;
@@ -307,3 +392,6 @@ select:not(.select-content):not([multiple]):not([size]) {
 		}
 	}
 }
+
+// Use the shared control sizing and select trigger for Display.
+label[for="select-display"] > .settings-caption { grid-area: text; }

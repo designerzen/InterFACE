@@ -2,7 +2,7 @@ template#person-report-template
 	dialog.person-report-dialog
 		header
 			h2(data-report-title) Progress & data
-			button(type="button" data-report-close autofocus) Close
+			button.button-close(type="button" data-report-close autofocus aria-label="Close player report")
 		p(data-report-description) Current player session. Player mode time measures time in that mode; movement activity is a camera-based measure, not an assessment of wellbeing or benefit. Points and achievements may include earlier sessions in this app run.
 		p(data-report-summary)
 		p(data-report-time role="status")
@@ -29,7 +29,7 @@ dialog#midi-cc-dialog.midi-cc-dialog(aria-labelledby="midi-cc-dialog-title" aria
 	form(method="dialog")
 		header.midi-cc-dialog-header
 			h2#midi-cc-dialog-title MIDI CC controls
-			button(type="submit" value="close" autofocus aria-label="Close MIDI CC reference") Close ×
+			button.button-close(type="submit" value="close" autofocus aria-label="Close MIDI CC reference")
 		p#midi-cc-dialog-description PhotoSYNTH app assignments. Enable MIDI and two-way CC control, then send Control Change messages on app control channel #[strong#midi-cc-reference-channel 16]. Changes also send to connected outputs.
 		p.midi-cc-hint CC numbers and values are decimal (0–127). Switches: 0–63 off, 64–127 on. Faders: 0 = minimum, 127 = maximum. Selectors: options are evenly spaced from 0 to 127, in the order shown.
 		.midi-cc-table-scroll(tabindex="0" role="region" aria-label="MIDI CC assignments")
@@ -58,7 +58,7 @@ dialog#command-palette.command-palette(aria-labelledby="command-palette-title" a
 			|  Run
 			span: kbd Esc
 			|  Close
-		button.command-palette-close(type="submit" value="close" aria-label="Close command palette") ×
+		button.command-palette-close.button-close(type="submit" value="close" aria-label="Close command palette")
 
 dialog#keyboard-guide.keyboard-guide(aria-labelledby="keyboard-guide-title" aria-describedby="keyboard-guide-description")
 	form.keyboard-guide-shell(method="dialog")
@@ -84,13 +84,13 @@ dialog#keyboard-guide.keyboard-guide(aria-labelledby="keyboard-guide-title" aria
 				span Samples
 		section.keyboard-layout(aria-label="QWERTY keyboard shortcut map")
 			div#keyboard-guide-keys
-		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Close Keyboard
+		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
 
 dialog#help(aria-label="Help")
 	form(method="dialog")
 		include help-content.pug
 		small.version Version #{package.version}
-		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" aria-label="Close help")
+		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" aria-label="Close help")
 
 //- TODO: 
 	dialog#dialog-tempo 
@@ -101,7 +101,7 @@ dialog#help(aria-label="Help")
 dialog#dialog-share
 	form(method="dialog")
 		div#qr-code
-		button.close(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
+		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog" aria-label="Close dialog")
 
 //- TODO:
 dialog#fund(aria-labelledby="fund-title")
@@ -161,7 +161,7 @@ dialog#fund(aria-labelledby="fund-title")
 				include credits-content.pug
 				ul.links
 					li: a(href="credits.pug" target="_blank") Credits
-		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" aria-label="Close dialog")
+		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" aria-label="Close dialog")
 
 
 dialog#pwa-updates
@@ -195,7 +195,7 @@ dialog#errors(aria-labelledby="error-title" aria-describedby="error-message erro
 			button.button.button-push.text-always.camera-help(type="button")
 				span#error-secondary-label Camera help
 	
-		button.close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
+		button.close.button-close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
 
 
 dialog#select-midi
@@ -205,4 +205,4 @@ dialog#select-midi
 		div#select-midi-output
 			input.midi-output(type="checkbox" aria-label="Select MIDI Device to play")
 
-		button.close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Return 
+		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")

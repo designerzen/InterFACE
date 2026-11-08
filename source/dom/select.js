@@ -1,10 +1,8 @@
-const supportsBaseSelect = globalThis.CSS?.supports?.("appearance", "base-select") ?? false
-
 /**
- * Populate a <select> element with options, using the customizable 
- * select (appearance: base-select) when supported by the browser,
- * falling back to classic <option> elements otherwise.
- * 
+ * Populate a <select> element with options. Icons and details are only painted
+ * by the customizable select (appearance: base-select), other browsers show the
+ * text of the same options. Selects with data-native-select get text only.
+ *
  * @param {HTMLSelectElement|string} element - Select element or its ID
  * @param {Array} items - Flat array or grouped array of item objects
  * @returns {HTMLSelectElement} The populated select element
@@ -65,75 +63,90 @@ export const populateSelect = (element, items) => {
 	}
 
 	const isGrouped = items.length > 0 && items[0].group !== undefined
+	const isRich = !select.hasAttribute('data-native-select')
+	const createOption = isRich ? createRichOption : createPlainOption
 
-	if (supportsBaseSelect) {
+	// control panel tiles paint their own caption so never show the selected option
+	const existingButton = select.querySelector(':scope > button')
+	const showsSelected = isRich && !existingButton && !select.matches('.controls label select')
+	const button = showsSelected ? createSelectedContentButton() : existingButton
 
-		select.classList.add('select-content')
+	const fragment = document.createDocumentFragment()
+	if (button) {
+		fragment.appendChild(button)
+	}
 
-		// preserve any existing button or create one
-		let button = select.querySelector(':scope > button')
-		if (!button) {
-			button = document.createElement('button')
-			button.type = 'button'
-			const selectedcontent = document.createElement('selectedcontent')
-			button.appendChild(selectedcontent)
-			select.prepend(button)
-		}
-
-		// clear everything after the button
-		while (button.nextSibling) {
-			button.nextSibling.remove()
-		}
-
-		const fragment = document.createDocumentFragment()
-
-		if (isGrouped) {
-			for (const group of items) {
-				const optgroup = document.createElement('optgroup')
-				const legend = document.createElement('legend')
-				if (group.icon) {
-					legend.appendChild(createIcon(group.icon))
-				}
-				legend.appendChild(document.createTextNode(group.group))
-				optgroup.appendChild(legend)
-				for (const item of group.items) {
-					optgroup.appendChild(createRichOption(item))
-				}
-				fragment.appendChild(optgroup)
+	if (isGrouped) {
+		for (const group of items) {
+			const optgroup = document.createElement('optgroup')
+			optgroup.label = group.group
+			if (isRich) {
+				optgroup.appendChild(createLegend(group.group, group.icon))
 			}
-		} else {
-			for (const item of items) {
-				fragment.appendChild(createRichOption(item))
+			for (const item of group.items) {
+				optgroup.appendChild(createOption(item))
 			}
+			fragment.appendChild(optgroup)
 		}
-
-		select.appendChild(fragment)
-
 	} else {
-
-		// classic fallback — plain <option> elements
-		const fragment = document.createDocumentFragment()
-
-		if (isGrouped) {
-			for (const group of items) {
-				const optgroup = document.createElement('optgroup')
-				optgroup.label = group.group
-				for (const item of group.items) {
-					optgroup.appendChild(createPlainOption(item))
-				}
-				fragment.appendChild(optgroup)
-			}
-		} else {
-			for (const item of items) {
-				fragment.appendChild(createPlainOption(item))
-			}
+		for (const item of items) {
+			fragment.appendChild(createOption(item))
 		}
+	}
 
-		select.innerHTML = ''
-		select.appendChild(fragment)
+	select.replaceChildren(fragment)
+
+	return select
+}
+
+/**
+ * Build the rich content of options written in markup. Parcel's HTML parser
+ * strips any elements inside <option> and <optgroup>, so the markup carries
+ * data-icon, data-swatch and data-detail and the elements are made here.
+ *
+ * @param {HTMLSelectElement} select
+ * @returns {HTMLSelectElement}
+ */
+export const enhanceSelect = (select) => {
+	if (select.hasAttribute('data-native-select')) {
+		return select
+	}
+
+	for (const optgroup of select.querySelectorAll('optgroup[data-icon]')) {
+		if (!optgroup.querySelector(':scope > legend')) {
+			optgroup.prepend(createLegend(optgroup.label, optgroup.dataset.icon))
+		}
+	}
+
+	for (const option of select.querySelectorAll('option:is([data-icon], [data-swatch], [data-detail])')) {
+		if (option.querySelector('.option-label')) {
+			continue
+		}
+		const label = option.textContent.trim()
+		option.replaceChildren()
+		fillRichOption(option, { label, ...option.dataset })
 	}
 
 	return select
+}
+
+/**
+ * Enhance every select inside an element
+ * @param {ParentNode} [root]
+ */
+export const enhanceSelects = (root = document) => {
+	root.querySelectorAll('select').forEach(enhanceSelect)
+}
+
+/**
+ * Create the trigger that mirrors the selected option's markup
+ * @returns {HTMLButtonElement}
+ */
+const createSelectedContentButton = () => {
+	const button = document.createElement('button')
+	button.type = 'button'
+	button.appendChild(document.createElement('selectedcontent'))
+	return button
 }
 
 /**
@@ -166,19 +179,58 @@ const createIcon = (icon) => {
 }
 
 /**
+ * Create a round colour chip in place of an icon
+ * @param {string} colour - Any CSS background, gradients included
+ * @returns {HTMLSpanElement}
+ */
+const createSwatch = (colour) => {
+	const span = document.createElement('span')
+	span.className = 'option-icon option-swatch'
+	span.setAttribute('aria-hidden', 'true')
+	span.style.setProperty('--swatch', colour)
+	return span
+}
+
+/**
+ * Create the heading of an <optgroup>
+ * @param {string} text
+ * @param {string} [icon]
+ * @returns {HTMLLegendElement}
+ */
+const createLegend = (text, icon) => {
+	const legend = document.createElement('legend')
+	if (icon) {
+		legend.appendChild(createIcon(icon))
+	}
+	legend.appendChild(document.createTextNode(text))
+	return legend
+}
+
+/**
  * Create a rich <option> with structured content for customizable select.
  * Renders: [icon] [label] [detail]
  * @param {Object} item
  * @returns {HTMLOptionElement}
  */
-const createRichOption = ({ value, label, icon, detail, selected, disabled, className }) => {
+const createRichOption = ({ value, label, icon, swatch, detail, selected, disabled, className }) => {
 	const option = document.createElement('option')
 	option.value = value
 	if (selected) option.selected = true
 	if (disabled) option.disabled = true
 	if (className) option.className = className
+	return fillRichOption(option, { label, icon, swatch, detail })
+}
 
-	if (icon) {
+/**
+ * Fill an <option> with [icon] [label] [detail] markup
+ * @param {HTMLOptionElement} option
+ * @param {Object} content - label, plus optional icon, swatch colour and detail
+ * @returns {HTMLOptionElement}
+ */
+const fillRichOption = (option, { label, icon, swatch, detail }) => {
+	if (swatch) {
+		option.appendChild(createSwatch(swatch))
+	} else if (icon) {
 		option.appendChild(createIcon(icon))
 	}
 
@@ -188,6 +240,8 @@ const createRichOption = ({ value, label, icon, detail, selected, disabled, clas
 	option.appendChild(labelSpan)
 
 	if (detail) {
+		// keeps the words apart when a browser only shows the option's text
+		option.appendChild(document.createTextNode(' '))
 		const detailSpan = document.createElement('span')
 		detailSpan.className = 'option-detail'
 		detailSpan.textContent = detail
@@ -198,7 +252,7 @@ const createRichOption = ({ value, label, icon, detail, selected, disabled, clas
 }
 
 /**
- * Create a plain <option> for classic select fallback.
+ * Create a plain <option> for data-native-select elements.
  * Concatenates label + detail as text since classic options are text-only.
  * @param {Object} item
  * @returns {HTMLOptionElement}
@@ -237,12 +291,14 @@ export const connectReverbSelector = (callback) => connectSelect('select-impulse
 
 
 
-import {loadImpulseJSON, DIRS, REVERB_PATHS} from '../audio/effects/reverb'
+import {loadImpulseJSON, DIRS} from '../audio/effects/reverb'
+import {REVERB_SPACES, isReverbImpulseFile} from '../audio/effects/reverb-spaces.js'
 
-const path = './assets/audio/acoustics/'	
+const IMPULSE_GROUP_LABELS = { 'EMT140-Plate':'All plates (EMT 140)', 'Voxengo':'All rooms (Voxengo)' }
+const titleCase = text => text.replace(/[_-]+/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 
-// Connect the options comand to the JSON files
-export const connectReverbControls = (callback) => {
+// Curated spaces first, every usable impulse file after them
+export const connectReverbControls = (callback, {onPopulated}={}) => {
 
 	const ID = 'select-impulse'
 	const select = document.getElementById(ID)
@@ -250,31 +306,25 @@ export const connectReverbControls = (callback) => {
 	{
 		return null
 	}
-	const dirs = DIRS
 
-	const maapped = dirs.map( async (dir) => {
+	const curated = { group:'Spaces', items:REVERB_SPACES.map(space => ({ value:space.id, label:space.label })) }
+	const files = DIRS.map( async (dir) => {
 		try {
 			const json = await loadImpulseJSON(dir)
-			const items = json.map( item => {
-				item = item.trim()
+			const items = json.map( item => item.trim() ).filter(isReverbImpulseFile).map( item => {
 				const fileName = item.substring( item.lastIndexOf("/") + 1 )
-				const name = fileName.substring(0, fileName.lastIndexOf('.'))
-				return { value: item, label: name }
+				return { value: item, label: titleCase(fileName.substring(0, fileName.lastIndexOf('.'))) }
 			})
-			return { group: dir, items }
+			return { group: IMPULSE_GROUP_LABELS[dir] ?? dir, items }
 		} catch(error) {
 			console.error("Couldn't load reverb impulse json", error)
 			return null
 		}
 	})
 
-	Promise.all(maapped).then( groups => {
-		const validGroups = groups.filter(Boolean)
-		if (validGroups.length) {
-			populateSelect(select, validGroups)
-		} else {
-			console.error("Injecting impulse FAILED to ", ID)
-		}
+	Promise.all(files).then( groups => {
+		populateSelect(select, [curated, ...groups.filter(Boolean)])
+		onPopulated?.()
 	})
 
 	return connectSelect(select, option => callback && callback(option))

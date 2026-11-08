@@ -1,0 +1,60 @@
+// One close control for panels and dialogs; the cross needs no font or image.
+:is(button, a).button-close,
+:is(#control-panel, #midi-cc-dialog, #command-palette, #fund, dialog, .audio-player) :is(button, a).button-close {
+	--bg: none;
+	box-sizing: border-box;
+	position: relative;
+	inset: auto;
+	display: inline-flex;
+	flex: 0 0 44px;
+	align-self: start;
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+	min-height: 44px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid currentColor;
+	border-radius: .4rem;
+	background: var(--shade-dark, #181818);
+	color: var(--shade-white, white);
+	font-size: 0;
+	text-shadow: none;
+	box-shadow: none;
+	opacity: 1;
+	z-index: 5;
+	cursor: pointer;
+	pointer-events: auto;
+	animation: none;
+	&::before, &::after {
+		content: '';
+		display: block;
+		position: absolute;
+		inset: 50% auto auto 50%;
+		width: 22px;
+		height: 2px;
+		margin: 0;
+		padding: 0;
+		background: currentColor;
+		border: 0;
+		opacity: 1;
+		filter: none;
+		transform: translate(-50%, -50%) rotate(45deg);
+		pointer-events: none;
+	}
+	&::after { transform: translate(-50%, -50%) rotate(-45deg); }
+	&:hover { background: var(--shade-brand, #752575); }
+	&:focus-visible { outline: 3px solid var(--shade-yellow, #ffda62); outline-offset: 3px; }
+}
+
+:is(#midi-cc-dialog, #command-palette, #fund, dialog) :is(button, a).button-close {
+	position: absolute;
+	inset: .5rem .5rem auto auto;
+}
+:is(#errors, dialog).fatal .button-close { display: none; }
+dialog:has(.button-close)::after { display: none; }
+.button-close[hidden] { display: none !important; }
+#control-panel .folder-content > a.button-close {
+	position: absolute;
+	inset: .5rem .5rem auto auto;
+}

@@ -1,0 +1,228 @@
+// Control-panel grid and player-count layouts.
+#control-panel{
+	--panel-width:45%;
+	margin:0;
+	padding:0;
+	overflow: hidden;
+	position: absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom: 0;
+	z-index:808; // NOT top - we have help and about remember!
+
+	width:100%;
+	box-sizing: border-box;
+
+	// prevent the form takin focus
+	pointer-events: none;
+
+	// alternate grid layout
+	display: grid;
+
+	grid-template-areas:
+		"transport transport transport"
+		"sidebar-left . sidebar-right"
+		"settings-panel settings-panel settings-panel"
+		"control-panel control-panel control-panel"
+		;
+
+	grid-template-rows:
+		auto
+		1fr
+		auto
+		auto
+	;
+
+	transition: grid-template-columns 450ms ease-out;
+	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
+
+	* {
+		pointer-events: auto;
+	}
+
+	// special case
+	a.folder-link{
+		// width: 100%;
+		max-width: 100%;
+	}
+	/*
+	// we need media queries to complete
+	--ratio:calc( var(--width)/var(--height));
+	max-width:var(--width);
+	max-height:var(--height);
+*/
+
+	// &::before{
+	// 	display: block;
+	// 	content:'';
+	// 	// width:calc(var(--width) / var(--height) * 100%);
+	// 	// height:calc( 100% );
+	// 	width:100%;
+	// 	padding-bottom:calc(var(--width) / var(--height) * 100%);
+	// }
+}
+
+// Instrument and user option panels
+
+// left drag
+.person-a-panel,
+.person-c-panel{
+	grid-area: sidebar-left;
+}
+
+// Drag from the right
+.person-b-panel,
+.person-d-panel{
+	grid-area: sidebar-right;
+}
+
+
+.solo{
+	.person-b-panel,
+	.person-c-panel,
+	.person-d-panel{
+		// transform: translateX(0%);
+		display: none;
+	}
+}
+
+.duet{
+	.person-c-panel,
+	.person-d-panel{
+		// transform: translateX(0%);
+		display: none;
+	}
+}
+
+// this is the three player version
+// Body states
+// .solo{ }
+// .duet{ }
+.trio{
+
+	#control-panel{
+		grid-template-areas:
+			"transport transport transport"
+			"sidebar-left-player-a . sidebar-right"
+			"sidebar-left-player-c . sidebar-right"
+			"settings-panel settings-panel settings-panel"
+			"control-panel control-panel control-panel"
+			;
+
+		grid-template-rows:
+			auto
+			1fr
+			1fr
+			auto
+			auto
+		;
+
+}
+	// left drag
+	.person-a-panel{
+		grid-area: sidebar-left-player-a;
+	}
+	.person-c-panel{
+		grid-area: sidebar-left-player-c;
+	}
+	.person-d-panel{
+		// transform: translateX(0%);
+		display: none;
+	}
+}
+
+// Four Player Mode
+.quartet{
+
+	#control-panel{
+		grid-template-areas:
+			"transport transport transport"
+			"sidebar-left-player-a . sidebar-right-player-b"
+			"sidebar-left-player-c . sidebar-right-player-d"
+			"settings-panel settings-panel settings-panel"
+			"control-panel control-panel control-panel"
+			;
+
+		grid-template-rows:
+			auto
+			1fr
+			1fr
+			auto
+			auto
+		;
+	}
+
+	.person-a-panel{
+		grid-area: sidebar-left-player-a;
+	}
+	.person-b-panel{
+		grid-area: sidebar-right-player-b;
+	}
+	.person-c-panel{
+		grid-area: sidebar-left-player-c;
+	}
+	.person-d-panel{
+		grid-area: sidebar-right-player-d;
+	}
+}
+
+
+// Single side panel open on the left side upper
+.trio:has(.person-a-panel.expanded):not(:has(.person-c-panel.expanded)),
+.quartet:has(.person-a-panel.expanded):not(:has(.person-c-panel.expanded)){
+
+	.person-a-panel.expanded{
+		grid-row-start:  sidebar-left-player-a;
+		grid-row-end:  sidebar-left-player-c;
+	}
+
+	#person-c,
+	.person-c-panel.expanded{
+		z-index: 999;
+	}
+}
+
+// Single side panel open on the left side lower
+.trio:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ),
+.quartet:has(.person-c-panel.expanded):not( :has(.person-a-panel.expanded) ){
+
+	#person-a,
+	.person-a-panel{
+		z-index: 999;
+	}
+
+	.person-c-panel.expanded{
+		grid-row-start:  sidebar-left-player-a;
+		grid-row-end:  sidebar-left-player-c;
+	}
+}
+
+
+// Single side panel open on the right side upper
+.quartet:has(.person-b-panel.expanded):not(:has(.person-d-panel.expanded)){
+
+	.person-b-panel.expanded{
+		grid-row-start:  sidebar-right-player-b;
+		grid-row-end:  sidebar-right-player-d;
+	}
+
+	#person-d,
+	.person-d-panel{
+		z-index: 999;
+	}
+}
+
+// Single side panel open on the right side lower
+.quartet:has(.person-d-panel.expanded):not(:has(.person-b-panel.expanded)){
+
+	#person-b,
+	.person-b-panel.expanded{
+		z-index: 999;
+	}
+
+	.person-d-panel.expanded{
+		grid-row-start:  sidebar-right-player-b;
+		grid-row-end:  sidebar-right-player-d;
+	}
+}

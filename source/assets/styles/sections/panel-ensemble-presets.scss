@@ -9,6 +9,9 @@
 	top:0;
 	left:50%;
 	width:min( 100%, 66vw );
+	@media (width <= 40rem){
+		width:100%;
+	}
 	height:100%; //calc( 100% - var(--button-size) );
 	max-width:100vw;
 	// max-height:min( calc(100dvh - 120px), 100vh );
@@ -160,7 +163,7 @@
 		box-sizing:border-box;
 		display:grid;
 		grid-template-columns:2.5rem minmax(0, 1fr);
-		grid-template-rows:auto 1fr;
+		grid-template-rows:auto auto 1fr;
 		column-gap:var(--pad);
 		row-gap:calc(var(--pad) / 2);
 		padding:var(--pad);
@@ -182,6 +185,7 @@
 
 	strong,
 	small{
+		grid-column:2;
 		display:block;
 		overflow-wrap:anywhere;
 	}

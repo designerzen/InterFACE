@@ -1,67 +1,106 @@
-fieldset#transport.transport
+fieldset#transport.transport(hidden)
 
 	legend.sr-only Transport
 	a#network-timing-summary(href="#folder-tempo" hidden) Play together
 
 	div.transport-session-controls(aria-label="Recording and replay")
-		button#button-record-session(type="button" aria-pressed="false" aria-haspopup="dialog") Record
+		button#button-record-session(type="button" aria-pressed="false" aria-haspopup="dialog")
+			span.session-record-text
+				span#session-capture-status Record
+				time#session-recording-duration(datetime="PT0S" hidden) 00:00
 		div.transport-replay-controls(role="group" aria-label="Saved note replay")
-			button#session-rewind(type="button" disabled aria-label="Rewind replay 10 seconds" title="Rewind 10 seconds") Rewind
-			button#session-replay(type="button" disabled aria-pressed="false") Replay saved notes
-			button#session-forward(type="button" disabled aria-label="Fast forward replay 10 seconds" title="Forward 10 seconds") Forward
-		button#button-save-midi(type="button" hidden aria-haspopup="dialog") Export
-		span.transport-duration
-			span.sr-only Recording duration
-			time#session-recording-duration(datetime="PT0S" aria-label="Recording duration") 00:00
+			button#session-rewind(type="button" hidden aria-label="Rewind replay 10 seconds" title="Rewind 10 seconds") Rewind
+			button#session-replay(type="button" hidden aria-pressed="false") Replay saved notes
+			button#session-forward(type="button" hidden aria-label="Fast forward replay 10 seconds" title="Forward 10 seconds") Forward
+		button#button-save-midi(type="button" hidden aria-haspopup="dialog") Recordings
 	div#session-replay-progress(hidden)
-		button#session-replay-choose(type="button" aria-haspopup="dialog") Choose recording
-		label(for="session-replay-position") Replay position
+		button#session-replay-choose(type="button" aria-haspopup="dialog") Change replay
+		label.sr-only(for="session-replay-position") Replay position
 		input#session-replay-position(type="range" min="0" max="0" step="100" value="0")
 		output#session-replay-time 00:00 / 00:00
-	output#session-recording-status.sr-only(aria-live="polite") Initialising recording…
+	div#session-recording-error(role="alert" hidden)
+		output#session-recording-status(aria-live="polite") Initialising recording…
+		div.session-actions
+			button#session-error-manage(type="button") Manage recordings
+			button#session-error-retry(type="button") Record again
+		button#session-error-dismiss.button-close(type="button" aria-label="Dismiss recording error")
 
 	dialog#session-record-dialog.session-dialog(aria-labelledby="session-record-title")
-		h2#session-record-title Record a performance
+		header
+			h2#session-record-title Record a performance
+			button.button-close(type="button" data-session-close="session-record-dialog" aria-label="Close recording options")
 		p(data-session-error role="alert")
 		p MIDI notes are saved automatically. Choose what else to record.
-		label(for="session-record-audio") Audio
-			input#session-record-audio(type="checkbox" checked)
-		label(for="session-record-video") Video
-			input#session-record-video(type="checkbox")
-		label(for="session-auto-midi") Keep MIDI recording automatically
-			input#session-auto-midi(type="checkbox" checked)
-		button#session-record-confirm(type="button") Start recording
-		button(type="button" data-session-close="session-record-dialog") Cancel
+		div.session-options
+			label.session-option(for="session-record-audio")
+				input#session-record-audio(type="checkbox" checked)
+				span Audio
+			label.session-option(for="session-record-video")
+				input#session-record-video(type="checkbox")
+				span Video
+			label.session-option(for="session-auto-midi")
+				input#session-auto-midi(type="checkbox" checked)
+				span Keep MIDI recording automatically
+		footer.session-actions
+			button(type="button" data-session-close="session-record-dialog") Cancel
+			button#session-record-confirm.session-primary(type="button") Start recording
 
 	dialog#session-replay-dialog.session-dialog(aria-labelledby="session-replay-title")
-		h2#session-replay-title Replay saved notes
+		header
+			h2#session-replay-title Replay saved notes
+			button.button-close(type="button" data-session-close="session-replay-dialog" aria-label="Close replay")
 		p(data-session-error role="alert")
 		label(for="session-replay-library") Recording
 		select#session-replay-library
-		p Note preview uses a simple synthesizer, not the original instrument sounds.
-		button#session-replay-confirm(type="button") Replay notes
-		button(type="button" data-session-close="session-replay-dialog") Cancel
+		p.session-hint Note preview uses a simple synthesizer, not the original instrument sounds.
+		footer.session-actions
+			button(type="button" data-session-close="session-replay-dialog") Cancel
+			button#session-replay-confirm.session-primary(type="button") Replay notes
 
 	dialog#session-export-dialog.session-dialog(aria-labelledby="session-export-title")
-		h2#session-export-title Export recording
+		header
+			h2#session-export-title Recordings
+			button.button-close(type="button" data-session-close="session-export-dialog" aria-label="Close recordings")
+		div.session-storage
+			meter#session-storage-meter(min="0" max="1" value="0" hidden aria-labelledby="session-storage-status")
+			output#session-storage-status
 		p(data-session-error role="alert")
+		button#session-refresh(type="button" hidden) Try again
 		div#session-export-loading(role="status" hidden)
 			span.session-export-spinner(aria-hidden="true")
-			span Preparing export options…
+			span Loading recordings…
 		div#session-export-menu
-			label(for="session-library") Recording
-			select#session-library
-			label(for="session-export-type") Export type
-			select#session-export-type
-			label(for="session-export-take") Take
-			select#session-export-take
-			label(for="session-export-name") File name
-			input#session-export-name(type="text" value="photosynth" maxlength="120")
-			button#session-export-confirm(type="button") Export
-			button#session-refresh(type="button") Refresh recordings
-		button(type="button" data-session-close="session-export-dialog") Close
+			p#session-library-empty(hidden) No recordings yet. Record a performance to see it here.
+			div#session-library-picker
+				label(for="session-library") Recording
+				select#session-library
+				p#session-library-details.session-hint
+			div#session-active-warning.session-callout(hidden)
+				p This recording is still capturing. Stop recording before you delete it.
+				button#session-stop-all(type="button" hidden) Stop recording
+			section#session-export-section(aria-labelledby="session-export-heading")
+				h3#session-export-heading Export
+				label(for="session-export-type") Format
+				select#session-export-type
+				label(for="session-export-take") Take
+				select#session-export-take
+				label(for="session-export-name") File name
+				input#session-export-name(type="text" value="photosynth" maxlength="120")
+				footer.session-actions
+					button#session-export-confirm.session-primary(type="button") Export
+			section#session-delete-section(aria-labelledby="session-delete-heading")
+				h3#session-delete-heading Free up storage
+				p.session-hint Deleting removes recordings from this browser. Export anything you want to keep first.
+				footer.session-actions
+					button#session-delete.session-danger(type="button") Delete recording
+					button#session-delete-all.session-danger(type="button" hidden) Delete all inactive recordings
+				div#session-delete-confirmation.session-callout(hidden role="group" aria-labelledby="session-delete-description")
+					p#session-delete-description
+					footer.session-actions
+						button#session-delete-cancel(type="button") Keep
+						button#session-delete-confirm.session-danger(type="button") Permanently delete
 		div#session-media-library
-		output#session-storage-status
+		output#session-library-notice(role="status")
 
 	//- Existing countdown hooks remain separate from recording duration.
 	div(hidden)

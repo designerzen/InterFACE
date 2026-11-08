@@ -255,16 +255,16 @@ export const setupDraggableFeedback = feedbackElement => {
  * @param {HTMLElement} controls DOM element to search within
  * @param {String} query query selector for finding the elements to bind to
  */
-export const setupFeedbackControls = (feedbackElement, rate=35, clearAfter=0, split=false, popOver=true) => {
+export const setupFeedbackControls = (feedbackElement, rate=35, clearAfter=0, split=false, popOver=false) => {
 
 	if (singleton)
 	{
 		return singleton
 	}
 
-	// clearAfter=0, split=false, popOver=true
+	// Instructions stay below control panels in the normal stacking order.
 	const setFeedbackText = bindTextElement( feedbackElement, rate, clearAfter, split, popOver )
-	if (!supportsPopover)
+	if (!popOver || !supportsPopover)
 	{
 		feedbackElement.removeAttribute("popover")
 	}

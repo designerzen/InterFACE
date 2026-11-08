@@ -1,4 +1,5 @@
 import { loadEnsembleInstrumentPresets } from "../people/person.ensemble-presets.js"
+import { getGeneralMIDIInstrumentData } from "../audio/general-midi-instruments.data.js"
 
 const PANEL_SELECTOR = ".ensemble-preset-panel"
 const TOGGLE_SELECTOR = ".ensemble-preset-toggle"
@@ -63,15 +64,27 @@ const createPresetLineup = (preset, quantityOfPeople) => getPresetInstruments(pr
 	.map(instrument => instrument.replaceAll("_", " "))
 	.join(" / ")
 
+const createPresetSettings = preset => {
+	const {tempo, harmony, percussion} = preset
+	const scale = harmony?.scale?.replace(/_SCALE$/, "").replaceAll("_", " ").toLowerCase()
+	return [
+		Number.isFinite(tempo?.bpm) ? `${tempo.bpm} BPM` : null,
+		tempo?.feel ?? (Number.isFinite(tempo?.swing) ? `${Math.round(tempo.swing * 100)}% swing` : null),
+		harmony?.mode === "free-range" ? "Free range" : [harmony?.key, scale].filter(Boolean).join(" "),
+		percussion?.enabled && percussion.meter ? percussion.meter.join("/") : null,
+	].filter(Boolean).join(" · ")
+}
+
 const createPresetHTML = (preset, index, quantityOfPeople) => `
 	<li class="ensemble-preset">
-		<label for="ensemble-preset-${preset.id}" title="${escapeAttribute(preset.description ?? preset.title)}">
-			<span class="ensemble-preset-icon" aria-hidden="true">${PRESET_ICONS[preset.id] ?? "🎵"}</span>
-			<strong>${preset.title}</strong>
-			<small>${createPresetLineup(preset, quantityOfPeople)}</small>
+		<label for="ensemble-preset-${escapeAttribute(preset.id)}" title="${escapeAttribute(preset.description ?? preset.title)}">
+			<span class="ensemble-preset-icon" aria-hidden="true">${PRESET_ICONS[preset.style] ?? PRESET_ICONS[preset.id] ?? "🎵"}</span>
+			<strong>${escapeAttribute(preset.title)}</strong>
+			<small class="ensemble-preset-settings">${escapeAttribute(createPresetSettings(preset))}</small>
+			<small>${escapeAttribute(createPresetLineup(preset, quantityOfPeople))}</small>
 			<input
 				class="${PRESET_INPUT_CLASS}"
-				id="ensemble-preset-${preset.id}"
+				id="ensemble-preset-${escapeAttribute(preset.id)}"
 				name="ensemble-preset"
 				type="radio"
 				value="${index}"
@@ -104,15 +117,17 @@ const resolvePresetForPerson = async (person, requestedPreset) => {
 		return requestedPreset
 	}
 
-	const readablePreset = requestedPreset.replaceAll("_", " ")
+	const normalisePreset = value => String(value).toLowerCase().replace(/-mp3$/, "").replace(/[^a-z0-9]/g, "")
+	const instrument = getGeneralMIDIInstrumentData(requestedPreset)
+	const aliases = new Set([requestedPreset,instrument?.name,instrument?.title,instrument?.location].filter(Boolean).map(normalisePreset))
 	const readableIndex = availablePresets.findIndex(preset => {
-		return String(preset).toLowerCase() === readablePreset.toLowerCase()
+		return aliases.has(normalisePreset(preset))
 	})
 
 	return readableIndex > -1 ? availablePresets[readableIndex] : requestedPreset
 }
 
-const applyEnsemblePreset = async (people, preset, onApplied) => {
+const applyEnsemblePreset = async (people, preset) => {
 	const playablePeople = people.filter(person => person?.activeInstrument)
 	const results = playablePeople.map(async (person, index) => {
 		const requestedPreset = getPresetInstrument(preset, index, playablePeople.length)
@@ -120,8 +135,10 @@ const applyEnsemblePreset = async (people, preset, onApplied) => {
 		return person.loadPreset(resolvedPreset)
 	})
 
-	await Promise.allSettled(results)
-	onApplied?.(preset)
+	const settled = await Promise.allSettled(results)
+	const failures = settled.filter(result => result.status === "rejected")
+	if (failures.length) throw new AggregateError(failures.map(result => result.reason), `Could not load all instruments for ${preset.title}`)
+	return preset
 }
 
 const populateEnsemblePresetPanel = (controls, presets, quantityOfPeople=1) => {
@@ -300,6 +317,33 @@ export const setupEnsemblePresetPanel = async (people, optionsOrOnApplied) => {
 	populateEnsemblePresetPanel(controls, presets, people.length)
 	addVerticalDrawerInteractivity(panel, controls)
 
+	// Serialize instrument changes so a slow earlier load cannot overwrite the
+	// latest choice. Superseded pending choices need not load at all.
+	let pending = Promise.resolve()
+	let selection = 0
+	const selectPreset = (preset, context={}) => {
+		const revision = ++selection
+		const apply = async () => {
+			if (revision !== selection) return null
+			controls.setAttribute("aria-busy", "true")
+			try {
+				await options.applyOptions?.(preset, context)
+				await applyEnsemblePreset(people, preset)
+				if (revision === selection) {
+					options.onSelected?.(preset)
+					options.onApplied?.(preset)
+					for (const input of controls.querySelectorAll(`input.${PRESET_INPUT_CLASS}`)) {
+						input.checked = presets[Number(input.value)] === preset
+					}
+				}
+				return preset
+			} finally { controls.removeAttribute("aria-busy") }
+		}
+		const result = pending.then(apply)
+		pending = result.catch(() => {})
+		return result
+	}
+
 	controls.addEventListener("change", event => {
 		if (!event.target.matches(`input.${PRESET_INPUT_CLASS}`))
 		{
@@ -312,9 +356,7 @@ export const setupEnsemblePresetPanel = async (people, optionsOrOnApplied) => {
 			return
 		}
 
-		options.onSelected?.(preset)
-		options.applyOptions?.(preset)
-		applyEnsemblePreset(people, preset, options.onApplied).catch(error => {
+		selectPreset(preset).catch(error => {
 			console.error("Failed to apply ensemble preset", error)
 		})
 		setPanelState(panel, false)
@@ -326,15 +368,14 @@ export const setupEnsemblePresetPanel = async (people, optionsOrOnApplied) => {
 	return {
 		panel,
 		presets,
-		applyPresetById:(id) => {
+		// restore:true reloads a saved ensemble without overriding saved settings
+		applyPresetById:(id, context) => {
 			const preset = presets.find(item => item.id === id)
 			if (!preset)
 			{
 				return Promise.resolve(null)
 			}
-			options.onSelected?.(preset)
-			options.applyOptions?.(preset)
-			return applyEnsemblePreset(people, preset, options.onApplied)
+			return selectPreset(preset, context)
 		}
 	}
 }

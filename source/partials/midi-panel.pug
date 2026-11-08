@@ -3,7 +3,7 @@ header.midi-panel-header
 	label.midi-enable(for="toggle-midi") Enable MIDI
 		input#toggle-midi(type="checkbox" aria-label="Enable MIDI devices")
 	button#midi-cc-open(type="button" aria-haspopup="dialog" aria-controls="midi-cc-dialog") CC codes
-	button.midi-panel-close(type="button" data-midi-close aria-label="Close MIDI panel") Close ×
+	button.midi-panel-close.button-close(type="button" data-midi-close aria-label="Close MIDI panel")
 
 .midi-panel-scroll(tabindex="0" role="region" aria-label="MIDI connections and routing" aria-describedby="midi-scroll-status")
 	fieldset#midi-panel

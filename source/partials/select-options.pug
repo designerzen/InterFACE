@@ -1,0 +1,22 @@
+//- Rich content for customizable selects. Parcel's HTML parser strips any markup
+//- inside <option> and <optgroup>, so icons, swatches and details travel in data
+//- attributes and enhanceSelect() in source/dom/select.js builds them at runtime.
+//- Parcel writes attribute values back without escaping double quotes, so the
+//- markup inside them may only use single quotes
+-
+	const optionSvg = shapes => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${shapes}</svg>`.replaceAll('"', "'")
+	const optionPath = d => optionSvg(`<path d="${d}"/>`)
+	const offIcon = optionSvg('<circle cx="12" cy="12" r="9"/><path d="m5.5 5.5 13 13"/>')
+
+mixin rich-option(label, icon, detail)
+	option(data-icon=icon data-detail=detail)&attributes(attributes)= label
+
+mixin swatch-option(label, colour)
+	option(data-swatch=colour)&attributes(attributes)= label
+
+mixin eye-option(label, sclera, iris, offset=0)
+	+rich-option(label, optionSvg(`<circle cx="12" cy="12" r="${sclera}"/><circle cx="${12 + offset}" cy="${12 + offset}" r="${iris}" fill="currentColor" stroke="none"/>`))&attributes(attributes)
+
+mixin icon-group(label, path)
+	optgroup(label=label data-icon=optionPath(path))
+		block

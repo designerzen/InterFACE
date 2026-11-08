@@ -1,3 +1,6 @@
+import { EYEBROW_STYLES, getEyebrowStyle, eyebrowStyleIcon } from '../visual/eyebrow-styles.js'
+import { populateSelect } from './select.js'
+import { resolveLipSetting, normaliseMouthDynamicsOverride, normaliseLipRangeOverride, formatLipSetting, getMouthDynamicsPresetId, MOUTH_DYNAMICS_PRESETS, LIP_SENSITIVITY_INHERIT } from '../people/lip-sensitivity.js'
 import { WebMidi } from "webmidi"
 import { INSTRUMENT_TYPE_FM } from "../audio/instrument-list.js"
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
@@ -22,6 +25,8 @@ import {
 } from "../people/head-note-range.js"
 import { debounce } from "../utils/utils.js"
 import { openPersonReportDialog } from './person-report-dialog.js'
+
+import { getLipStyle, LIP_STYLE_OPTIONS } from '../visual/lip-styles.js'
 
 const INSTRUMENT_CLASS = "btn-select-instrument"
 const PERSON_OPTION_CLASS = "person-option-control"
@@ -97,15 +102,24 @@ const createRangeControl = (
 	id,
 	disabled=false,
 	min=MIN_HEAD_NOTE_RANGE_DEGREES,
-	max=MAX_HEAD_NOTE_RANGE_DEGREES
+	max=MAX_HEAD_NOTE_RANGE_DEGREES,
+	description=""
 ) => `
 	<div class="person-option person-option-range person-option-wide">
 		<label class="person-option-label" for="${id}">${label}</label>
 		<div class="person-option-range-row">
-			<input class="${PERSON_OPTION_CLASS}" data-person-option="${name}" id="${id}" type="range" min="${min}" max="${max}" step="1" value="${currentValue}" aria-describedby="${id}-output"${disabled ? " disabled" : ""} />
-			<output id="${id}-output" for="${id}">${currentValue}°</output>
+			<input class="${PERSON_OPTION_CLASS}" data-person-option="${name}" id="${id}" type="range" min="${min}" max="${max}" step="1" value="${currentValue}" aria-describedby="${id}-output${description ? ` ${id}-description` : ""}"${disabled ? " disabled" : ""} />
+			<output id="${id}-output" for="${id}">${name.startsWith("lip") ? formatLipSetting(name.replace("Override", ""), currentValue) : `${currentValue}°`}</output>
 		</div>
+		${description ? `<small id="${id}-description">${description}</small>` : ""}
 	</div>`
+
+// Players follow the global curve or pick their own preset.
+const MOUTH_DYNAMICS_OVERRIDE_OPTIONS = [[LIP_SENSITIVITY_INHERIT, "Use global curve"], ...MOUTH_DYNAMICS_PRESETS.map(({id, label}) => [id, label])]
+const getMouthDynamicsOverrideValue = options => {
+	const override = normaliseMouthDynamicsOverride(options.mouthDynamicsOverride)
+	return override === LIP_SENSITIVITY_INHERIT ? override : getMouthDynamicsPresetId(override)
+}
 
 const createSummaryContent = (label) => `<span class="instrument-summary-title">${label}</span>`
 
@@ -134,19 +148,24 @@ const createPersonOptionsHTML = (person) => {
 	return `<details class="person-options">
 		<summary>${createSummaryContent("Options")}</summary>
 		<div class="person-options-grid">
-			<button class="person-option-wide" type="button" data-person-report aria-haspopup="dialog">Progress &amp; data</button>
-			${createSelectControl("Instrument", "instrumentType", person.instrumentType, PERSON_INSTRUMENT_OPTIONS, "data-person-action", "person-option-wide")}
+			${person.activeInstrument?.instruments?.[0]?.host ?
+				createSelectControl("Patch", "voicePatch", person.activeInstrument.instruments[0].patch, person.voicePatchOptions ?? [], "data-person-action", "person-option-wide") :
+				createSelectControl("Instrument", "instrumentType", person.instrumentType, PERSON_INSTRUMENT_OPTIONS, "data-person-action", "person-option-wide")}
 			${person.instrumentType === INSTRUMENT_TYPE_FM ? `${createSelectControl("Preset bank", "fmBank", person.activeInstrument?.instruments?.[0]?.isGeneralMIDIBank === false ? "dx7" : "gm", [["gm", "General MIDI (128)"], ...(person.fmImportedPresets ? [["dx7", "Imported DX7"]] : [])], "data-person-action", "person-option-wide")}
 			<label class="person-option person-option-wide">
 				<span class="person-option-label">Load DX7 voice or bank</span>
 				<input class="${PERSON_OPTION_CLASS}" type="file" accept=".syx,.dx7" data-person-action="dx7File" />
 			</label><p class="person-option-wide" data-dx7-status role="status" aria-live="polite"></p>` : ''}
+			${person.activeInstrument?.instruments?.[0]?.host?.engine === 'fm' ? `<label class="person-option person-option-wide"><span class="person-option-label">Load DX7 patches</span><input class="${PERSON_OPTION_CLASS}" type="file" accept=".syx,.dx7" data-person-action="dx7File" /></label><p class="person-option-wide" data-dx7-status role="status" aria-live="polite"></p>` : ''}
 			${createSelectControl("Note sequence", "noteSequence", person.noteSequence, SEQUENCE_OPTIONS, "data-person-action", "person-option-wide")}
 			${createSelectControl("Play", "playMode", playMode, [["chord", "Chords"], ["arpeggio", "Arpeggio"], ["harp", "Harp"]], "data-person-action")}
 			${createSelectControl("Points", "showPointsOverride", normalisePointsOverride(options.showPointsOverride), [[POINTS_OVERRIDE_INHERIT, "Use global setting"], [POINTS_OVERRIDE_ON, "On"], [POINTS_OVERRIDE_OFF, "Off"]], "data-person-option", "person-option-wide")}
 			${createSelectControl("MIDI device", "midiDevice", midiDevice, createMIDIDeviceOptions(), "data-person-option", "person-option-wide")}
 			${createSelectControl("MIDI channel", "midiPort", midiPort, MIDI_PORT_OPTIONS, "data-person-option")}
 			${createSelectControl("Faces", "emojiMood", options.emojiMood ?? EMOJI_MOOD_ALL, EMOJI_MOOD_OPTIONS, "data-person-option")}
+			${createSelectControl("Mouth dynamics", "mouthDynamicsOverride", getMouthDynamicsOverrideValue(options), MOUTH_DYNAMICS_OVERRIDE_OPTIONS, "data-person-option", "person-option-wide")}
+			${createToggleControl("Override global lip opening range", "lipRangeOverrideEnabled", normaliseLipRangeOverride(options.lipRangeOverride) !== 'inherit')}
+			${createRangeControl("Lip opening range", "lipRangeOverride", resolveLipSetting(options, 'lipRange'), `${person.id}-lip-range`, normaliseLipRangeOverride(options.lipRangeOverride) === 'inherit', 0, 100, "Short — less movement for full volume. Long — more room for quiet playing.")}
 			${createSelectControl("Lower octave", "octaveLow", lowOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
 			${createSelectControl("Upper octave", "octaveHigh", highOctave, OCTAVE_OPTIONS, "data-person-option", "person-option-compact")}
 			${createToggleControl("Override global head range", "headNoteRangeOverrideEnabled", hasHeadNoteRangeOverride)}
@@ -155,12 +174,13 @@ const createPersonOptionsHTML = (person) => {
 			${createRangeControl("Vertical range", "headVerticalRangeOverride", headVerticalRange, headVerticalRangeId, !hasHeadVerticalRangeOverride)}
 			${createToggleControl("Mute", "muted", options.muted)}
 			${createToggleControl("Auto-repeat", "autoRepeat", options.autoRepeat)}
+			${createSelectControl("Repeats per bar", "repetitionRate", options.repetitionRate ?? "template", [["template", "Instrument default"], [0, "0 — One shot"], ...[1, 2, 4, 8, 12, 16, 24].map(rate => [rate, rate])], "data-person-option", "person-option-wide")}
 			${createToggleControl("Chord labels", "showChordNames", options.showChordNames)}
-			${createToggleControl("Eyebrow expression", "pitchBend", options.pitchBend)}
-			${createToggleControl("Show cartoon eyebrows", "drawEyebrows", options.drawEyebrows)}
+			${createSelectControl("Eyebrows", "eyebrowStyle", getEyebrowStyle(options), EYEBROW_STYLES.map(({value, label}) => [value, label]), "data-person-option", "person-option-eyebrows")}
+			${createToggleControl("Eyebrow MIDI expression", "pitchBend", options.pitchBend)}
 			${createToggleControl("Show face outline", "drawOutline", options.drawOutline)}
 			${createToggleControl("Show cartoon eyes", "drawEyes", options.drawEyes)}
-			${createToggleControl("Add lipstick", "drawMouth", options.drawMouth)}
+			${createSelectControl("Lips", "lipStyle", getLipStyle(options), LIP_STYLE_OPTIONS, "data-person-option")}
 			${createToggleControl("Draw nose", "drawNose", options.drawNose)}
 			${createToggleControl("Use eye direction to stereo pan", "stereoPan", options.stereoPan)}
 			${createSelectControl("Particles", "noteParticleGraphics", options.noteParticleGraphics ?? NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC, NOTE_PARTICLE_GRAPHIC_OPTIONS, "data-person-option", "person-option-wide")}
@@ -205,12 +225,25 @@ const createInstumentFamilyForForm =
  * @param {String} activeClassName 
  * @returns {Boolean}
  */
+const selectInstrumentFamily = (controls, selectedPreset) => {
+	const inputs = [...controls.querySelectorAll(`input.${INSTRUMENT_CLASS}`)]
+	const active = typeof selectedPreset === "number" ? inputs[selectedPreset] :
+		inputs.find(input => input.value === selectedPreset || input.id === selectedPreset)
+	inputs.forEach(input => { input.checked = input === active })
+	controls.querySelectorAll('details[data-instrument-family]').forEach(details => {
+		const selected = !!active && details.contains(active)
+		details.open = selected
+		details.classList.toggle('selected-instrument-family', selected)
+	})
+	return active
+}
+
 export const showPersonalControlPanel = (playerName, controls, instrumentName, activeClassName="expanded") => {
+	const active = selectInstrumentFamily(controls, instrumentName)
 	
-	if (instrumentName)
+	if (instrumentName !== undefined)
 	{
 		// find active input field and focus
-		const active = document.getElementById(instrumentName)
 		
 		if (active)
 		{
@@ -263,7 +296,7 @@ export const createInstrumentFormHTML = (instruments, packName="", personName=""
 	// add a title at the start...
 	// uiOptions.unshift("<legend>Select an instrument</legend>")
 
-	output += `<details open class="instrument-family-${family.toLowerCase()}">
+	output += `<details data-instrument-family="${escapeHTML(family)}" class="instrument-family-${family.toLowerCase()}">
 					${createInstrumentFamilySummary(family)}
 					<ul>`
 
@@ -291,16 +324,15 @@ export const createInstrumentFormHTML = (instruments, packName="", personName=""
 
 		instruments.forEach( (instrument, index) => {
 			
-			const form = createInstumentForForm( instrument.location, instrument.name, personName )
-			output += form
 			if (family !== instrument.family)
 			{
 				family = instrument.family ?? 'Family'
 				output += `</ul></details>`
-				output += `<details open id="${personName}-instrument-family-${family.toLowerCase()}">
+				output += `<details data-instrument-family="${escapeHTML(family)}" id="${personName}-instrument-family-${family.toLowerCase()}">
 							${createInstrumentFamilySummary(family, personName)}
 							<ul>`
 			}
+			output += createInstumentForForm( instrument.location, instrument.name, personName )
 		})	
 	}
 	
@@ -320,6 +352,10 @@ export const populateInstrumentPanel = async (controls, instrument, personOrName
 	const personName = person?.id ?? personOrName
 	// populate the sidebar
 	let presets = await instrument.getPresets()
+	const voice = instrument.instruments?.[0]
+	if (person && voice?.getPatches) {
+		person.voicePatchOptions = (await voice.getPatches()).map(patch => [patch.id, patch.title + (patch.approximate ? ' (approx.)' : '')])
+	}
 
 	if (!presets )
 	{
@@ -337,12 +373,21 @@ export const populateInstrumentPanel = async (controls, instrument, personOrName
 	const existing = controls.querySelector(`.person-controls`)
 	const instrumentMenuPanel = existing ? existing : document.createElement("div")
 	instrumentMenuPanel.classList.add("person-controls")
-	instrumentMenuPanel.innerHTML = (person ? `<h4 class="instrument-families"><input class="${PERSON_OPTION_CLASS} player-name-title" type="text" data-person-action="displayName" aria-label="Player ${person.playerNumber + 1} name" maxlength="60" autocomplete="off" spellcheck="false" placeholder="Player ${person.playerNumber + 1}" value="${escapeHTML(person.displayName || `Player ${person.playerNumber + 1}`)}" /></h4>` : createInstrumentFamilyTitle(instrument.name, escapeHTML(personName))) +
+	instrumentMenuPanel.innerHTML = (person ? `<h4 class="instrument-families player-header"><input class="${PERSON_OPTION_CLASS} player-name-title" type="text" data-person-action="displayName" aria-label="Player ${person.playerNumber + 1} name" maxlength="60" autocomplete="off" spellcheck="false" placeholder="Player ${person.playerNumber + 1}" value="${escapeHTML(person.displayName || `Player ${person.playerNumber + 1}`)}" /><button class="player-report-button" type="button" data-person-report aria-label="Progress &amp; data" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7" r="1" fill="currentColor" stroke="none" /></svg></button></h4>` : createInstrumentFamilyTitle(instrument.name, escapeHTML(personName))) +
 		createPersonOptionsHTML(person) +
 		createInstrumentFormHTML( presets, instrument.name, personName, false )
 	// instrumentMenuPanel.className = `${instrument.name} person-controls`
 	
 	controls.appendChild(instrumentMenuPanel)
+	const eyebrowSelect = instrumentMenuPanel.querySelector('[data-person-option="eyebrowStyle"]')
+	if (eyebrowSelect) {
+		eyebrowSelect.classList.add('eyebrow-select')
+		populateSelect(eyebrowSelect, EYEBROW_STYLES.map(style => ({
+			...style, icon:eyebrowStyleIcon(style.value), selected:style.value === getEyebrowStyle(person.options)
+		})))
+	}
+
+	selectInstrumentFamily(controls, instrument.activePresetIndex)
 	const reportButton = instrumentMenuPanel.querySelector('[data-person-report]')
 	if (reportButton) reportButton.addEventListener('click', () => openPersonReportDialog(person, reportButton))
 	return presets
@@ -382,7 +427,10 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, p
 			const output = controls.querySelector(`#${event.target.id}-output`)
 			if (output)
 			{
-				output.value = `${event.target.value}°`
+				const option = event.target.dataset.personOption
+				const label = option.startsWith('lip') ? formatLipSetting(option.replace('Override', ''), event.target.value) : `${event.target.value}°`
+				output.value = label
+				event.target.setAttribute('aria-valuetext', label)
 			}
 			onRangeInput(event)
 		}
@@ -443,6 +491,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 
 		if (isDrawerOpen)
 		{
+			selectInstrumentFamily(controls, person.activePresetIndex)
 			person.refreshInstrumentPanelIfDirty?.().catch(error => {
 				console.error("Failed to refresh instrument panel", error)
 			})
@@ -457,7 +506,7 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		// reset the drag state
 		if (open)
 		{
-			showPersonalControlPanel( playerName, controls, person.instrumentTitle )
+			showPersonalControlPanel( playerName, controls, person.activePresetIndex )
 		}else{
 			hidePersonalControlPanel( playerName, controls )
 		}

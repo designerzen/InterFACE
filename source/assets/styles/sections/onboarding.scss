@@ -642,6 +642,19 @@ label[for="toggle-automation-mode"]{
 	--col-stroke:var(--shade-white);
 	--col-top: var(--shade-active);
 	--col-bottom: var(--shade-active);
+
+	&::before{
+		transform: none;
+		transition: none;
+	}
+
+	&:is(:hover, :focus-visible, :has(:focus-visible)){
+		--col-top: var(--shade-white);
+		--col-bottom: var(--shade-white);
+		--col-hover: var(--shade-white);
+		color: var(--shade-dark);
+		text-shadow: none;
+	}
 	// --col-stroke:var(--shade-active);
 	// --col-top: var(--shade-blue);
 	// --col-bottom: var(--shade-blue);

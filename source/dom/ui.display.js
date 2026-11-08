@@ -27,6 +27,8 @@ export const createDisplayOptions = ( displays, selectedDisplay, compositeDispla
 		select.value = selectedDisplay
 	}
 
+	for (const option of select.options) option.classList.add('tertiary', 'type-visual', 'group-overlay')
+
 	// now unhide it
 	const displayMenu = document.querySelector('label[for="select-display"]')
 	if (displayMenu)
@@ -39,6 +41,7 @@ export const createDisplayOptions = ( displays, selectedDisplay, compositeDispla
 		populateSelect(children, getCompositeDisplayTypes().map(type => ({
 			value: type, label: DISPLAY_LABELS[type] ?? type, icon: DISPLAY_ICONS[type], selected: selected.includes(type)
 		})))
+		for (const option of children.options) option.classList.add('tertiary', 'type-visual', 'group-overlay')
 		children.closest('label').hidden = selectedDisplay !== DISPLAY_COMPOSITE
 	}
 	const layout = document.getElementById('select-composite-layout')

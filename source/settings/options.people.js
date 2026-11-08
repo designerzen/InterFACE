@@ -4,10 +4,12 @@ import { EMOJI_MOOD_ALL } from "../models/emoji.js"
 import { HARMONY_MODE_FREE_RANGE } from "../people/person.presets.js"
 import {
 	DEFAULT_HEAD_NOTE_RANGE_DEGREES,
+	DEFAULT_HEAD_VERTICAL_OFFSET_DEGREES,
 	DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
 	HEAD_NOTE_RANGE_INHERIT,
 	HEAD_VERTICAL_RANGE_INHERIT
 } from "../people/head-note-range.js"
+import { DEFAULT_MOUTH_DYNAMICS } from "../people/lip-sensitivity.js"
 import { INSTRUMENT_PACK_OPEN_SF } from "./options.instruments.js"
 import { DEFAULT_COLOURS } from "./palette.js"
 
@@ -177,6 +179,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// re-trigger a held note while the person continues singing
 	autoRepeat:true,
+	repetitionRate:"template",
 
 	// limit detected emoji faces before they drive music or UI
 	emojiMood:EMOJI_MOOD_ALL,
@@ -192,6 +195,13 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// Enable eyebrow expression (MIDI output type is chosen in MIDI settings).
 	pitchBend:false,
+	eyebrowStyle:'disabled',
+	// Audio routing for the selected eyebrow style.
+	eyebrowPitchBend:false,
+	eyebrowReverb:false,
+	eyebrowLowPass:false,
+	eyebrowDelay:false,
+	eyebrowCompression:false,
 	lpf:true,
 
 	// -1 means that the person index will be used to decide
@@ -202,11 +212,16 @@ export const DEFAULT_PERSON_OPTIONS = {
 	octaveLow:2,
 	octaveHigh:6,
 	headNoteRangeDegrees:DEFAULT_HEAD_NOTE_RANGE_DEGREES,
+	lipRange:100,
+	mouthDynamics:DEFAULT_MOUTH_DYNAMICS,
+	mouthDynamicsOverride:'inherit',
+	lipRangeOverride:'inherit',
 	headNoteRangeOverride:HEAD_NOTE_RANGE_INHERIT,
 	headVerticalRangeDegrees:DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
 	headVerticalRangeOverride:HEAD_VERTICAL_RANGE_INHERIT,
+	headVerticalOffsetDegrees:DEFAULT_HEAD_VERTICAL_OFFSET_DEGREES,
 	maximumAmplitude:0.6,
-	trim:1,
+	trim:4 * 2 / 3,
 
 	// musical for example F MAjorroot note
 	// F (C=0, CΓÖ»=1, D=2, DΓÖ»=3, E=4, F=5)
@@ -271,6 +286,7 @@ export const DEFAULT_PERSON_OPTIONS = {
 
 	// draw these parts over the mesh...
 	drawMouth:false,
+	lipStyle:'disabled',
 	// kid mode turns eyes googly!
 	drawEyes:false,
 	eyeDesign:'round',
@@ -301,8 +317,6 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// for how many pixels do you have to drag before it becomes a swipe?
 	mouseGestureDistance:40,
 
-	// if both eyes are closed for X ms do something...
-	eyeShutHolddDuration:2000, // ms
 
 	// how much feedback to apply to the feedback node
 	feedback:0.1,

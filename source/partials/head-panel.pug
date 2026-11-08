@@ -1,0 +1,62 @@
+fieldset#head-movement-settings.head-movement-settings.control-settings.app-inputs
+	legend Head movement
+	p How far every player moves their head to reach each note and octave. The faces show how much travel each setting asks for.
+
+	.head-lean
+		svg.head-preview.head-preview-lean(viewBox="0 0 120 100" aria-hidden="true" focusable="false")
+			line.head-preview-guide(x1="60" y1="96" x2="60" y2="6")
+			g.head-preview-head
+				ellipse.head-preview-skull(cx="60" cy="52" rx="26" ry="32")
+				g.head-preview-features
+					circle(cx="50" cy="46" r="3")
+					circle(cx="70" cy="46" r="3")
+					path(d="M51 64 Q60 70 69 64")
+		label.control-settings-field(for="head-note-range")
+			span Lean
+			input#head-note-range(type="range" min="20" max="120" step="1" value="90" list="head-note-range-ticks" aria-describedby="head-note-range-help")
+			output#head-note-range-output(for="head-note-range") 90°
+		p#head-note-range-help How far the head leans side to side to cross every note. Lower needs less movement.
+
+	.head-movement-mixer
+		fieldset.mixer-channel.head-channel
+			legend Nod
+			svg.head-preview.head-preview-nod(viewBox="0 0 100 100" aria-hidden="true" focusable="false")
+				ellipse.head-preview-skull(cx="50" cy="50" rx="26" ry="32")
+				g.head-preview-features
+					circle(cx="40" cy="44" r="3")
+					circle(cx="60" cy="44" r="3")
+					path(d="M41 62 Q50 68 59 62")
+			label(for="head-vertical-range") Octave travel
+			input#head-vertical-range.vertical(type="range" min="20" max="120" step="1" value="90" list="head-note-range-ticks" aria-describedby="head-vertical-range-help")
+			.volume-step-controls(aria-label="Nod range adjustment controls")
+				button.volume-step-button(type="button" data-head-target="head-vertical-range" data-head-step="-5" aria-label="Decrease nod range") −
+				button.volume-step-button(type="button" data-head-target="head-vertical-range" data-head-step="5" aria-label="Increase nod range") +
+			output#head-vertical-range-output(for="head-vertical-range") 90°
+			small#head-vertical-range-help.sr-only How far the head nods up and down to cross every octave. Lower needs less movement.
+
+		fieldset.mixer-channel.head-channel
+			legend Centre
+			svg.head-preview.head-preview-centre(viewBox="0 0 100 100" aria-hidden="true" focusable="false")
+				line.head-preview-guide(x1="6" y1="44" x2="94" y2="44")
+				ellipse.head-preview-skull(cx="50" cy="50" rx="26" ry="32")
+				g.head-preview-features
+					circle(cx="40" cy="44" r="3")
+					circle(cx="60" cy="44" r="3")
+					path(d="M41 62 Q50 68 59 62")
+			label(for="head-vertical-offset") Middle height
+			input#head-vertical-offset.vertical(type="range" min="-30" max="30" step="1" value="10" list="head-vertical-offset-ticks" aria-describedby="head-vertical-offset-help")
+			.volume-step-controls(aria-label="Neutral height adjustment controls")
+				button.volume-step-button(type="button" data-head-target="head-vertical-offset" data-head-step="-1" aria-label="Lower neutral height") −
+				button.volume-step-button(type="button" data-head-target="head-vertical-offset" data-head-step="1" aria-label="Raise neutral height") +
+			output#head-vertical-offset-output(for="head-vertical-offset") +10°
+			small#head-vertical-offset-help.sr-only The head height that plays the middle octave. Raise it so looking ahead plays lower octaves and the top octave needs a higher head.
+
+	datalist#head-note-range-ticks
+		option(value="20" label="20°")
+		option(value="60" label="60°")
+		option(value="90" label="90°")
+		option(value="120" label="120°")
+	datalist#head-vertical-offset-ticks
+		option(value="-30" label="-30°")
+		option(value="0" label="0°")
+		option(value="30" label="+30°")

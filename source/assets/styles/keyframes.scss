@@ -433,20 +433,20 @@
 // mask reveal
 @keyframes RevealViaCircle {
     0% {
-        clip-path: circle(0.1);
+        clip-path: circle(0% at 50% 50%);
     }
 
     100% {
-        clip-path: var(--circle-size, circle( 499 ));
+        clip-path: var(--circle-size, circle(75% at 50% 50%));
     }
 }
 
 @keyframes FromCircle {
     from {
-        clip-path: circle(190);
+        clip-path: circle(75% at 50% 50%);
     }
 	to{
-		clip-path: circle(0.1);
+		clip-path: circle(0% at 50% 50%);
 	}
 }
 
@@ -461,10 +461,10 @@
 @keyframes ToCircle {
 
 	from{
-		clip-path: circle(0.1);
+		clip-path: circle(0% at 50% 50%);
 	}   
 	to {
-        clip-path: circle(190);
+        clip-path: circle(75% at 50% 50%);
     }
 }
 

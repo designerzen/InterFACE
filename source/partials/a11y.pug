@@ -1,8 +1,29 @@
 button#accessibility-tab.tab-horizontal(type="button" aria-controls="accessibility-panel" aria-expanded="false" aria-haspopup="dialog") Accessibility
-dialog#accessibility-panel(aria-labelledby="a11y-title")
+dialog#accessibility-panel(aria-labelledby="a11y-title" aria-describedby="a11y-description")
 	form.a11y-content(method="dialog")
-		h4#a11y-title(tabindex="-1" autofocus) Display & accessibility
-		p Personalise the interface. Changes apply immediately and are saved on this device.
+		header.a11y-header
+			h2#a11y-title(tabindex="-1" autofocus) Display & accessibility
+			button.a11y-close(type="button" data-close-accessibility) Close
+		p#a11y-description Personalise the interface. Changes apply immediately and are saved on this device.
+		p.a11y-hint Use Tab to move between controls and Escape to close settings.
+		fieldset
+			legend Presets
+			label(for="a11y-preset") Apply a preset
+			select#a11y-preset
+				option(value="") Current preferences
+			details
+				summary Save and transfer preferences
+				.a11y-fields
+					label(for="a11y-preset-name") Preset name
+					input#a11y-preset-name(type="text" maxlength="60" autocomplete="off" placeholder="My preferences")
+					.a11y-actions
+						button(type="button" data-save-preset) Save preset
+						button(type="button" data-delete-preset disabled) Delete selected preset
+					.a11y-actions
+						button(type="button" data-export-accessibility) Export preferences
+						button(type="button" data-import-accessibility) Import preferences
+					input#a11y-import(type="file" accept=".json,application/json" hidden tabindex="-1" aria-label="Import accessibility preferences")
+					p.a11y-hint Export a JSON file to use your preferences and saved presets on another device. Imported preferences apply immediately.
 		fieldset
 			legend Colours
 			label(for="a11y-theme") Interface theme
@@ -16,7 +37,12 @@ dialog#accessibility-panel(aria-labelledby="a11y-title")
 				option(value="sepia") Warm — sepia
 				option(value="ocean") Cool — ocean
 				option(value="monochrome") Monochrome — graphite
-			p.a11y-hint Themes change interface colours; camera and performance visuals keep their original colours.
+				option(value="custom") Custom colours
+			p#a11y-colour-hint.a11y-hint Themes change interface colours; camera and performance visuals keep their original colours. Editing a colour selects Custom colours.
+			details
+				summary Custom colours
+				#a11y-colours.a11y-fields
+				p#a11y-contrast.a11y-hint(aria-live="polite" aria-atomic="true")
 		fieldset
 			legend Reading
 			label(for="a11y-text-size") Text size
@@ -24,6 +50,7 @@ dialog#accessibility-panel(aria-labelledby="a11y-title")
 				option(value="100") Standard — 100%
 				option(value="125") Larger — 125%
 				option(value="150") Large — 150%
+				option(value="175") Larger still — 175%
 				option(value="200") Extra large — 200%
 			label.a11y-check
 				input(type="checkbox" data-preference="readableFont")
@@ -31,6 +58,10 @@ dialog#accessibility-panel(aria-labelledby="a11y-title")
 			label.a11y-check
 				input(type="checkbox" data-preference="textSpacing")
 				span Increase text and line spacing
+			details
+				summary Font and spacing options
+				#a11y-typography.a11y-fields
+				p.a11y-hint Individual font and spacing choices take priority over the reading checkboxes.
 		fieldset
 			legend Interaction
 			label.a11y-check
@@ -42,12 +73,16 @@ dialog#accessibility-panel(aria-labelledby="a11y-title")
 			label.a11y-check
 				input(type="checkbox" data-preference="strongFocus")
 				span Extra visible keyboard focus
+			details
+				summary Focus, borders and links
+				#a11y-outlines.a11y-fields
 			label(for="a11y-motion") Interface motion
 			select#a11y-motion(data-preference="motion" aria-describedby="a11y-motion-hint")
 				option(value="system") Follow device preference
 				option(value="reduce") Reduce motion
 			p#a11y-motion-hint.a11y-hint Reduces interface animation and hides the animated wallpaper. Live camera and musical visualisations continue.
-		button(type="button" data-reset-accessibility) Reset accessibility preferences
-		p.a11y-hint(role="status" aria-live="polite")
-		button.close(type="submit" value="close" data-close-accessibility title="Close dialog" aria-label="Close accessibility settings") Close Accessibility
+		footer.a11y-actions
+			button(type="button" data-reset-accessibility) Reset accessibility preferences
+			button(type="button" data-close-accessibility) Done
+		p.a11y-hint(role="status" aria-live="polite" aria-atomic="true")
 

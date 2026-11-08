@@ -31,7 +31,7 @@ import { DEFAULT_PEOPLE_OPTIONS } from "../settings/options.people.js"
 const MAX_REASONABLE_FACE_JUMP = 0.18
 const MIN_REASONABLE_FACE_OVERLAP = 0.05
 const SINGLE_FACE_CONTINUITY_LIMIT = 0.42
-export const MAX_PERSON_TRIM = 4
+export const MAX_PERSON_TRIM = 5
 
 /**
  * This creates all people, selects one at a time
@@ -44,7 +44,7 @@ export class PersonManager extends EventTarget{
 	// nobody is selected by default
 	highlightedPersonIndex = -1
 	selectedPersonIndex = -1
-	trimLevel = 1
+	trimLevel = 4 * 2 / 3
 
 	get players(){
 		return this.people

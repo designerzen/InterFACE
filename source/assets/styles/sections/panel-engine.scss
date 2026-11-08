@@ -1,0 +1,185 @@
+html.beginner #control-panel #control-panel-engine { display: none; }
+html:has(#control-panel-engine:is(.open, .controls-list-folder-open, :focus-within)) #feedback { visibility: hidden; }
+html:has(#folder-engine:target) #feedback { visibility: hidden; }
+// A transformed settings drawer captures fixed descendants even at translate(0).
+// Release that containing block while the engine occupies the viewport.
+html:has(#control-panel-engine:is(.open, .controls-list-folder-open, :focus-within), #folder-engine:target) {
+	#settings { transform: none; animation: none; will-change: auto; z-index: 1300; }
+	#control-panel { z-index: 1300; }
+}
+#control-panel:has(.settings-folder:target, .folder-menu:is(.open, :focus-within) > .settings-folder) > #button-controls-list { display: none; }
+
+#control-panel .settings-folder {
+	animation: none;
+	transform: none;
+	box-sizing: border-box;
+	background: var(--shade-dark);
+	color: var(--shade-white);
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	inline-size: 100%;
+	max-inline-size: 100%;
+	height: 100dvh;
+	block-size: 100dvh;
+	max-block-size: 100dvh;
+	display: grid;
+	grid-template-rows: minmax(0, 1fr) auto;
+	padding: 0 0 calc(62px + env(safe-area-inset-bottom));
+	margin: 0;
+	overflow: hidden;
+	// Same chevron close bar as the other folders; the text stays for screen readers
+	> a.folder-return {
+		box-sizing: border-box;
+		display: block;
+		color: transparent;
+		font-size: 0;
+		background-color: var(--shade-dark);
+		background-image: var(--bg), linear-gradient(0deg, black, transparent);
+		background-size: 44px, 100%;
+		background-repeat: no-repeat;
+		background-position: center, center;
+		position: absolute;
+		inset: auto 0 0;
+		height: calc(62px + env(safe-area-inset-bottom));
+		border-top: 1px solid color-mix(in srgb, var(--shade-white) 20%, transparent);
+		z-index: 3;
+		&:focus-visible { outline: 3px solid var(--shade-yellow, #ffda62); outline-offset: -3px; }
+	}
+	&::after { display: none; }
+}
+
+#control-panel .settings-folder .control-settings {
+	--muted: color-mix(in srgb, var(--shade-white) 70%, transparent);
+	--rule: color-mix(in srgb, var(--shade-white) 20%, transparent);
+	box-sizing: border-box;
+	width: 100%;
+	max-block-size: 100%;
+	min-block-size: 0;
+	overflow: auto;
+	overscroll-behavior: contain;
+	display: block;
+	margin: 0;
+	padding: 1.5rem max(1rem, calc((100% - 40rem) / 2)) 2rem;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	min-width: 0;
+	text-align: left;
+	pointer-events: auto;
+	> *, fieldset > * { animation: none; pointer-events: auto; }
+	[hidden] { display: none !important; }
+
+	// Floated legends join the normal flow so they read as headings, not border labels
+	legend {
+		float: left;
+		width: 100%;
+		margin: 0 0 .75rem;
+		padding: 0;
+		text-align: left;
+		text-shadow: none;
+		font-size: 1rem;
+		font-weight: 700;
+		& + * { clear: both; }
+	}
+	> legend { font-size: 1.6rem; margin-bottom: .5rem; }
+
+	fieldset {
+		display: grid;
+		gap: 1rem;
+		min-width: 0;
+		margin: 1.5rem 0 0;
+		padding: 1.25rem 0 0;
+		border: 0;
+		border-top: 1px solid var(--rule);
+		border-radius: 0;
+		box-shadow: none;
+	}
+	#engine-reverb-custom, #engine-reverb-room, #engine-reverb-instruments { display: grid; gap: 1rem; min-width: 0; }
+
+	p { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; text-shadow: none; }
+	> p:first-of-type { margin-bottom: 1.25rem; }
+	> #voice-engine-status { margin-top: 1.5rem; }
+
+	:is(.engine-field, .engine-toggle, .control-settings-field, .control-settings-toggle, .control-settings-field > label, .control-settings-toggle > label) {
+		position: static;
+		box-sizing: border-box;
+		width: 100%;
+		height: auto;
+		min-height: 0;
+		min-width: 0;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		box-shadow: none;
+		color: inherit;
+		font-size: .95rem;
+		text-align: left;
+		text-shadow: none;
+		&::before, &::after { display: none; }
+	}
+	:is(.engine-field, .control-settings-field) {
+		display: grid;
+		grid-template-areas: "label output" "control control";
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: .5rem 1rem;
+		> select, > input { grid-area: control; }
+		> output { grid-area: output; color: var(--muted); font-variant-numeric: tabular-nums; }
+	}
+	:is(.engine-toggle, .control-settings-toggle) { display: flex; align-items: center; gap: .75rem; }
+
+	select, input {
+		position: static;
+		inset: auto;
+		opacity: 1;
+		order: 0;
+		width: 100%;
+		min-width: 0;
+		max-width: 100%;
+		margin: 0;
+		box-sizing: border-box;
+		justify-self: stretch;
+		z-index: auto;
+	}
+	// Settings panels can keep the app's own fader, switch and rich select with .app-inputs
+	&:not(.app-inputs) {
+		select {
+			appearance: auto;
+			min-height: 44px;
+			padding: .5rem .75rem;
+			border: 1px solid var(--rule);
+			border-radius: .4rem;
+			color: var(--shade-white);
+			background-color: var(--shade-dark);
+			text-align: left;
+			&::picker-icon { opacity: 1; }
+		}
+		input[type="checkbox"] { appearance: auto; width: 24px; height: 24px; flex: 0 0 auto; accent-color: var(--shade-green); }
+
+		// Plain slider: a thin track with a centred round thumb, no tile ticks
+		input[type="range"] {
+			appearance: none;
+			height: 44px;
+			min-height: 44px;
+			padding: 0;
+			border: 0;
+			background: none;
+			color: inherit;
+			cursor: pointer;
+			&::-webkit-slider-runnable-track { appearance: none; height: 4px; min-width: 0; border: 0; border-radius: 2px; background: var(--rule); }
+			&::-moz-range-track { height: 4px; min-width: 0; border: 0; border-radius: 2px; background: var(--rule); }
+			&::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; margin-top: -9px; border: 0; border-radius: 50%; background: var(--shade-white); box-shadow: none; }
+			&::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--shade-white); box-shadow: none; }
+			&:focus-visible { outline: 3px solid var(--shade-yellow, #ffda62); outline-offset: 2px; }
+		}
+	}
+	&.app-inputs {
+		:is(.control-settings-field, .control-settings-toggle) > label { display: block; cursor: pointer; }
+		// The switch draws its tick in an absolutely positioned ::before
+		input.toggle { position: relative; width: auto; min-width: 44px; flex: 0 0 auto; justify-self: start; }
+	}
+}
+
+#control-panel.controls-list-open .control-settings { max-block-size: none; }

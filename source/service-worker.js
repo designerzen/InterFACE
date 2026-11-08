@@ -1,4 +1,5 @@
 import { VERSION } from './version'
+import { getPathRoomId } from './network/room-url.js'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 import { clientsClaim, setCacheNameDetails } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
@@ -127,6 +128,11 @@ const pageStrategy = new NetworkFirst({
 	networkTimeoutSeconds: 3,
 	plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
 })
+
+registerRoute(
+	({ request, url }) => request.mode === 'navigate' && (getPathRoomId(url.pathname) || url.pathname === '/room/'),
+	async () => (await matchPrecache('room/index.html')) || Response.error(),
+)
 
 registerRoute(
 	({ request }) => request.mode === 'navigate',

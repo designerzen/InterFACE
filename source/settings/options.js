@@ -1,7 +1,6 @@
 
 import { DEFAULT_COLOURS } from './palette'
 import { easeInSine, easeOutSine , easeInCubic, easeOutCubic, linear, easeOutQuad, easeOutQuint, easeInQuad} from "../maths/easing"
-import { isProductionBuild } from '../utils/is-production'
 
 // sample string
 // import { INSTRUMENT_PACK_FATBOY, INSTRUMENT_PACK_FM, INSTRUMENT_PACK_MUSYNGKITE, INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
@@ -9,11 +8,24 @@ import { INSTRUMENT_PACK_OPEN_SF } from './options.instruments.js'
 import { TUNING_MODE_IONIAN, TUNING_MODE_NAMES } from '../audio/tuning/scales.js'
 import { INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT } from '../audio/instrument-list.js'
 import INSTRUMENTS_LIST_LOCATION from "raw:./instruments.json"
-import { DISPLAY_MEDIA_VISION_2D } from '../display/display-types.js'
+import { DISPLAY_WEB_GPU_3D } from '../display/display-types.js'
 import { HARMONY_MODE_FREE_RANGE } from '../people/person.presets.js'
+import { DEFAULT_MOUTH_DYNAMICS, DEFAULT_MOUTH_GATE } from '../people/lip-sensitivity.js'
 import { DEFAULT_HEAD_NOTE_RANGE_DEGREES, DEFAULT_HEAD_VERTICAL_RANGE_DEGREES } from '../people/head-note-range.js'
 
-const isDevelopmentMode = !isProductionBuild()
+const defaultEngineSettings = {
+	levelCalibrationVersion:1,
+	outputGainDb:0,
+	reverbMode:'preset',
+	reverbMix:0.15,
+	reverbSpace:'synthetic',
+	reverbLength:1.8,
+	reverbTone:0,
+	reverbPreDelay:0.012,
+	roomSpace:'large-hall',
+	roomMix:0.73,
+	reverbDisabledPrograms:[]
+}
 
 export const MAX_CANVAS_WIDTH = 1080
 
@@ -120,7 +132,9 @@ export const DEFAULT_TENSORFLOW_OPTIONS = {
 
 export const DEFAULT_OPTIONS = {
 
-	display:DISPLAY_MEDIA_VISION_2D,
+	display:DISPLAY_WEB_GPU_3D,
+	compositeDisplays:null,
+	compositeLayout:'layers',
 	// display:DISPLAY_LOOKING_GLASS_3D,
 
 	// do we show the tooltips overlaid on when hovering
@@ -129,20 +143,29 @@ export const DEFAULT_OPTIONS = {
 	// this allows us to show some extra options if set to true...
 	advancedMode:true,
 	// initially show the settings panel
-	showSettings:false,
+	showSettings:true,
 	// scale the stage to cover the viewport and crop away black bars
 	flood:false,
 	// overlaid screen keyboard
 	showPiano:false,
 	// Total head-roll angle used to travel from the first note to the last.
 	headNoteRangeDegrees:DEFAULT_HEAD_NOTE_RANGE_DEGREES,
+	lipRange:100,
+	mouthDynamics:DEFAULT_MOUTH_DYNAMICS,
+	mouthGate:DEFAULT_MOUTH_GATE,
 	// Total up/down head angle used to travel across the vertical control range.
 	headVerticalRangeDegrees:DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
+	// Head angle that maps to the middle octave; raised so the top octave needs a higher head.
+	headVerticalOffsetDegrees:8,
 
 	// play a constant beat
 	metronome:false,
 	// play music at same time
 	backingTrack:false,
+	backingMelody:false,
+	backingMelodyVolume:0.25,
+	backingMelodyPlayer:0,
+	backingMelodyModelURL:'',
 
 	// clear the canvas on every frame
 	// also doubles as a video hider
@@ -164,6 +187,7 @@ export const DEFAULT_OPTIONS = {
 	// optional face details, applied to every person by the global controls
 	eyebrows:false,
 	lips:false,
+	lipStyle:'disabled',
 	// synchronise the beats with metronome
 	quantise:true,
 	// show the person's texts above them
@@ -171,7 +195,7 @@ export const DEFAULT_OPTIONS = {
 	// show and track achievement points independently of the musical play style
 	showPoints:false,
 	// show the connected input devices HUD at the bottom of the screen
-	hud:true,
+	hud:false,
 	// show the separate overlay canvas used for text and other overlay-only drawings
 	showOverlay:true,
 	// audio visualiser is actually helpful to play
@@ -186,17 +210,21 @@ export const DEFAULT_OPTIONS = {
 
 	// we can split the face clouds into more dots
 	// TODO: if this is negative, that makes it dynamic 
-	divisions:0,
+	divisions:1,
+	lookingGlassDensityVersion:0,
+	headParticleMode:'surface',
+	headParticleGridSpacing:0.04,
+	lookingGlassSettings:'{}',
 	
 	// read out important instructions
 	// NB. OFF by default
 	speak:false,
 	
 	// show debug texts
-	debug:isDevelopmentMode,
+	debug:false,
 	
 	// show the statistics panel overlay!
-	stats:isDevelopmentMode,
+	stats:false,
 
 	// saved BPM that can be shared
 	bpm:90,
@@ -286,7 +314,7 @@ export const DEFAULT_OPTIONS = {
 	starSize:1,
 	
 	// hide menu if mouse outside of screen...
-	autoHide:!isDevelopmentMode,
+	autoHide:true,
 
 
 	keyboard:true,
@@ -320,9 +348,25 @@ export const DEFAULT_OPTIONS = {
 	inactiveAfter:3000,
 
 	// what theme to show on screen
-	theme:"theme-default",
+	theme:"theme-friendly",
 
 	instrumentPack:INSTRUMENT_PACK_OPEN_SF,
+	voiceEngine:'yoshimi',
+	voiceEngineSettings:JSON.stringify({
+		native:defaultEngineSettings,
+		fm:{...defaultEngineSettings,pitchBendRange:2},
+		yoshimi:{
+			...defaultEngineSettings,
+			outputGainDb:10.5,
+			reverbMode:'custom',
+			reverbMix:0.35,
+			reverbSpace:'./assets/audio/acoustics/EMT140-Plate/emt_140_bright_4.wav',
+			reverbLength:3.3,
+			reverbTone:0.7
+		},
+		wam2:{...defaultEngineSettings,quality:1},
+		supersonic:{...defaultEngineSettings,pitchBendRange:2}
+	}),
 
 	// musical key such as F sharp
 	key:0,
@@ -330,7 +374,8 @@ export const DEFAULT_OPTIONS = {
 	harmonyMode:HARMONY_MODE_FREE_RANGE,
 
 	// global mode that get's passed into person too
-	photoSensitive: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches || false
+	photoSensitive:false,
+	automationMode:false
 }
 
 // For kid friendly versions with big eyes, no scary overlays and 

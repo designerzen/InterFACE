@@ -47,7 +47,11 @@ const createCommands = document => {
 		} },
 		{ group: "Go to", label: "Open Volume controls", description: "Adjust volume or mute audio", keywords: ["sound", "audio"], run: () => focusControl(document, "mixer-master-volume", "folder-volume") },
 		{ group: "Go to", label: "Open Tempo controls", description: "Adjust BPM, swing, or tap tempo", keywords: ["timing", "rhythm"], run: () => focusControl(document, "tempo-input-text", "folder-tempo") },
-		{ group: "Go to", label: "Open Recording controls", description: "Record audio or video", keywords: ["save", "capture"], run: () => focusControl(document, "button-record-audio", "folder-record") },
+		{ group: "Go to", label: "Open Engine settings", description: "Choose the voice engine and its effects", keywords: ["sound", "reverb", "synth"], run: () => focusControl(document, "select-voice-engine", "folder-engine") },
+		{ group: "Go to", label: "Open Mouth dynamics", description: "Shape how mouth opening sets loudness", keywords: ["volume", "curve", "quiet", "lips", "gate"], run: () => focusControl(document, "select-mouth-dynamics", "folder-mouth") },
+		{ group: "Go to", label: "Open Head movement", description: "Set head lean and nod ranges and the neutral height", keywords: ["tracking", "octave", "angle", "tilt", "face"], run: () => focusControl(document, "head-note-range", "folder-head") },
+		// Recording controls are temporarily hidden until the panel is ready.
+		// { group: "Go to", label: "Open Recording controls", description: "Record audio or video", keywords: ["save", "capture"], run: () => focusControl(document, "button-record-audio", "folder-record") },
 		{ group: "Go to", label: "Open MIDI controls", description: "Connect or configure MIDI", keywords: ["device", "instrument"], run: () => focusControl(document, "toggle-midi", "folder-midi") },
 		{ group: "Go to", label: "Open Player instruments", description: "Choose instruments for each player", keywords: ["people", "sounds"], run: () => focusControl(document, "face-buttons", "control-panel") },
 	]

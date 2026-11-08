@@ -92,6 +92,9 @@
 @use "./assets/styles/sections/panel-record.scss";
 @use "./assets/styles/sections/panel-volume.scss";
 @use "./assets/styles/sections/panel-tempo.scss";
+@use "./assets/styles/sections/panel-engine.scss";
+@use "./assets/styles/sections/panel-mouth.scss";
+@use "./assets/styles/sections/panel-head.scss";
 
 
 // Themes that overide colour shemes and borders
@@ -106,6 +109,20 @@
 
 // global utils (at end to overwrite any other rules)
 @use "./assets/styles/utils.scss";
+@use "./assets/styles/gadgets/close-button.scss";
+
+// Temporarily hide unfinished accessibility and recording panels in every controls view.
+#accessibility-tab,
+#accessibility-panel,
+#button-accessibility,
+#transport,
+#control-panel-record,
+#record-panel,
+#controls-list-recording,
+.transport-session-controls,
+#session-replay-progress {
+	display: none !important;
+}
 
 // debug
 // @import url('https://cdn.jsdelivr.net/npm/checka11y-css@:version/checka11y.css');

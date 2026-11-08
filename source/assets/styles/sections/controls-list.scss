@@ -1,0 +1,313 @@
+@use "../gadgets/_button.scss" as button;
+@use "sass:list";
+
+#control-panel > :is(.controls-list-header, .controls-list-section, .controls-list-footer)[hidden] { display: none; }
+
+// Keep the dialog heading available to screen readers without taking up space.
+#control-panel.controls-list-open > .controls-list-header {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	clip-path: inset(50%);
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+// No layout or button overrides below apply to the compact view.
+html.controls-list-open { overflow: hidden; }
+#control-panel.controls-list-open {
+	position: fixed;
+	inset: 0;
+	z-index: 1200;
+	width: 100%;
+	height: 100dvh;
+	max-height: 100%;
+	margin: 0;
+	padding: 0 max(1rem, env(safe-area-inset-right)) calc(6rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+	overflow: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+	pointer-events: auto;
+	background: var(--shade-dark, #181818);
+	color: var(--shade-white, white);
+	display: grid;
+	grid-template-areas: none;
+	grid-template-columns: minmax(0, 52rem);
+	grid-template-rows: none;
+	grid-auto-rows: min-content;
+	justify-content: center;
+	align-content: start;
+	gap: .5rem;
+	transition: none;
+
+	> :not(#shared-controls, #settings, #percussion-settings, #transport, .controls-list-header, .controls-list-section, .controls-list-footer) { display: none; }
+	> #shared-controls, > #settings, > #percussion-settings, > #transport {
+		display: contents;
+		visibility: visible;
+		transform: none;
+	}
+	#shared-controls > .sr-only, #settings > .button-close,
+	#transport > legend, #network-timing-summary, #transport > .transport,
+	#shared-controls > label[for="button-settings"] { display: none; }
+	.controls > [hidden] { display: none !important; }
+
+	.controls-list-section {
+		display: contents;
+		visibility: visible;
+		h2 {
+			position: sticky;
+			top: 0;
+			align-self: start;
+			z-index: 1000;
+			visibility: visible;
+			margin: 1.5rem 0 .25rem;
+			padding-block: max(.5rem, env(safe-area-inset-top)) .5rem;
+			background: var(--shade-dark, #181818);
+			font-size: 1.2rem;
+			text-align: left;
+			border-block-end: 1px solid currentColor;
+		}
+	}
+	#controls-list-music > h2 { margin-block-start: .5rem; }
+
+	$sections: (
+		music: ('label[for="select-key"]', 'label[for="select-key-scale"]', '#control-panel-tempo', 'label[for="button-metronome"]', 'label[for="button-quantise"]', 'label[for="select-arp-rate"]', 'label[for="backing-melody-player"]'),
+		beats: ('label[for="button-percussion"]', 'label[for="select-percussion-preset"]', 'label[for="select-percussion-pattern"]', 'label[for="select-percussion-sound"]', '#button-randomise-percussion', 'label[for="button-rapid-percussion"]', 'label[for="button-performance-drums"]', '.snare-reverb-control', 'label[for="select-percussion-panning"]', 'label[for="select-beat-viz"]', 'label[for="button-midi-percussion"]'),
+		sound: ('#control-panel-volume', '#control-panel-engine', '#control-panel-midi'),
+		visuals: ('label[for="select-display"]', '#control-panel-looking-glass', 'label[for="select-composite-layout"]', 'label[for="select-composite-displays"]', 'label[for="button-flood"]', 'label[for="button-clear"]', 'label[for="button-sync-video"]', 'label[for="select-viz"]', 'label[for="button-disco"]', 'label[for="button-meshes"]', 'label[for="select-eyes"]', 'label[for="button-eyebrows"]', 'label[for="select-lips"]', 'label[for="select-subdivisions"]', 'label[for="select-palette"]', 'label[for="button-toggle-overlay"]', 'label[for="button-subtitles"]', 'label[for="button-hud"]', 'label[for="button-overlay"]'),
+		input: ('#camera', 'label[for="select-keyboard-mode"]', '#control-panel-mouth', '#control-panel-head', 'label[for="button-points"]', 'label[for="button-automate"]'),
+		recording: ('.transport-session-controls', '#session-replay-progress', '#session-recording-error', '#control-panel-record'),
+		application: ('#button-accessibility', 'label[for="button-speak"]', 'label[for="select-theme"]', '#button-help', '#button-command-palette', 'label[for="button-toggle-advanced"]', '#button-reset')
+	);
+	$row: 1;
+	@each $section, $selectors in $sections {
+		#controls-list-#{$section} > h2 { grid-row: $row; }
+		$row: $row + 1;
+		@each $selector in $selectors {
+			// CSS owns the identity in both states, including controls outside the viewport.
+			@if $selector != '.transport-session-controls' and $selector != '#session-replay-progress' {
+				@at-root html.controls-list-transition #control-panel #{$selector} {
+					view-transition-name: controls-list-control-#{$row};
+				}
+			}
+			#{$selector} {
+				grid-area: auto;
+				grid-column: 1;
+				grid-row: $row;
+				--controls-list-order: #{$row};
+				--controls-list-section: #{$section};
+				min-width: 0;
+				max-width: 100%;
+				width: 100%;
+				margin: 0;
+			}
+			$row: $row + 1;
+		}
+	}
+
+	// Additional icons for controls that only show them in list view.
+	$list-icons: (
+		'.snare-reverb-control': 'blur_on-24px',
+		'label[for="button-automate"]': 'smart_toy'
+	);
+	@each $selector, $icon in $list-icons {
+		#{$selector} { --bg: url('/source/assets/icons/#{$icon}.svg'); }
+	}
+
+	:where(#shared-controls, #settings, #percussion-settings) > :is(label, button),
+	.transport-session-controls button, #session-replay-progress > button,
+	.folder-link {
+		@include button.add-icon-text-row;
+		--pad: .75rem;
+		min-height: 56px;
+		font-size: 1rem;
+		justify-items: start;
+		&::after { margin-inline: 0; }
+	}
+	#shared-controls > #button-controls-list {
+		position: fixed;
+		inset: auto auto max(.5rem, env(safe-area-inset-bottom)) max(.5rem, env(safe-area-inset-left));
+		box-sizing: border-box;
+		width: max-content;
+		max-width: calc(100% - 152px);
+		height: 56px;
+		min-height: 56px;
+		max-height: 56px;
+		padding: .5rem .75rem;
+		grid-template-areas: "icon text";
+		grid-template-columns: var(--icon-size, 33px) auto;
+		grid-template-rows: 1fr;
+		row-gap: 0;
+		z-index: 7;
+	}
+	.keyboard-shortcut { position: absolute; inset-inline-end: .75rem; }
+	.controls > label { padding-inline-end: 3rem; }
+	.controls > label[data-controls-list-value] {
+		grid-template-columns: calc(var(--icon-visible, 1) * var(--icon-size, 33px) + var(--space, 0px)) minmax(0, 1fr) minmax(0, 43%);
+		> .controls-list-value {
+			grid-area: spacer;
+			justify-self: end;
+			max-width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			pointer-events: none;
+		}
+	}
+	label[for="select-theme"]:focus-within { position: relative; inset: auto; }
+	.transport-session-controls {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: .5rem;
+		button { width: 100%; min-width: 0; max-width: 100%; }
+	}
+	.transport-replay-controls {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: .5rem;
+		max-width: 100%;
+	}
+
+	// Keep the native controls and folder wrappers; only their presentation changes.
+	.folder-menu { position: relative; }
+	&.controls-list-panel-open {
+		overflow: hidden;
+		.controls-list-header { z-index: 12; }
+		.controls-list-section > h2 { visibility: hidden; }
+	}
+	.folder-link { box-sizing: border-box; height: auto; }
+	.folder-menu > .folder-content { display: none !important; }
+	.folder-menu.controls-list-folder-open > .folder-content {
+		display: grid !important;
+		position: fixed;
+		position-anchor: auto;
+		inset: 0;
+		z-index: 10;
+		width: 100%;
+		inline-size: 100%;
+		min-width: 0;
+		max-width: 100%;
+		max-inline-size: 100%;
+		height: 100dvh;
+		block-size: 100dvh;
+		max-block-size: 100dvh;
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: none;
+		grid-auto-rows: max-content;
+		align-content: start;
+		padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+		margin: 0;
+		box-sizing: border-box;
+		visibility: visible;
+		opacity: 1;
+		transform: none;
+		animation: none;
+		pointer-events: auto;
+		overflow: auto;
+		overscroll-behavior: contain;
+		> * { visibility: visible; }
+		&::after { display: none; }
+		> a[href="#control-panel"] { display: none; }
+		> a.folder-return {
+			display: block;
+			position: fixed;
+			inset: auto 0 0;
+			height: calc(62px + env(safe-area-inset-bottom));
+			z-index: 1100;
+		}
+	}
+	&.controls-list-panel-has-return .controls-list-folder-open > .folder-content {
+		padding-bottom: calc(78px + env(safe-area-inset-bottom));
+	}
+	.controls-list-folder-open > .settings-folder {
+		grid-template-rows: minmax(0, 1fr);
+		overflow: hidden;
+		> .control-settings { max-block-size: 100%; height: 100%; }
+	}
+	#tempo-tabs, #midi-panel, .midi-panel-scroll { max-block-size: none; max-width: 100%; min-width: 0; width: 100%; }
+	#tempo-regular-panel {
+		grid-template-areas: none;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		min-height: 0;
+		gap: .5rem;
+		> :not(legend, datalist) { grid-area: auto; grid-column: 1 / -1; }
+		> label {
+			position: static;
+			inset: auto;
+			padding: 0;
+			width: auto;
+			height: auto;
+			color: inherit;
+			font-size: 1rem;
+			&::before, &::after { display: none; }
+		}
+		#tempo-input-text { box-sizing: border-box; width: 100%; min-height: 44px; height: auto; padding: .5rem; font-size: 2rem; }
+		#tempo-increase-button, #tempo-decrease-button { grid-column: auto; }
+		#tempo-tap-button { margin-top: .5rem; }
+	}
+	#mixer-panel { block-size: 22rem; max-block-size: none; }
+
+	.controls-list-footer {
+		display: block;
+		position: fixed;
+		inset: auto 0 0;
+		height: calc(76px + env(safe-area-inset-bottom));
+		background: var(--shade-dark, #181818);
+		border-top: 1px solid currentColor;
+		z-index: 6;
+		pointer-events: none;
+	}
+	#shared-controls > #button-share, #shared-controls > label[for="button-fullscreen"] {
+		@include button.add-icon-hide-text;
+		position: fixed;
+		bottom: max(.5rem, env(safe-area-inset-bottom));
+		box-sizing: border-box;
+		width: 56px;
+		min-width: 56px;
+		max-width: 56px;
+		height: 56px;
+		min-height: 56px;
+		max-height: 56px;
+		padding: .5rem;
+		z-index: 7;
+		font-size: 0;
+		grid-template-areas: "icon";
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		justify-items: center;
+		&::after { margin: auto; }
+		kbd { display: none; }
+	}
+	label[for="button-fullscreen"] { right: max(.5rem, env(safe-area-inset-right)); }
+	#button-share { right: calc(max(.5rem, env(safe-area-inset-right)) + 64px); }
+	#shared-controls > #button-help { display: grid; }
+}
+
+// Avoid cross-fading a snapshot of the live camera/stage behind the controls.
+html.controls-list-transition #control-panel {
+	// Capture recording actions separately rather than stretching one large group.
+	$actions: ('#button-controls-list', '#button-share', 'label[for="button-fullscreen"]', '#button-record-session', '#session-rewind', '#session-replay', '#session-forward', '#button-save-midi', '#session-replay-choose');
+	@each $action in $actions {
+		#{$action} { view-transition-name: controls-list-action-#{list.index($actions, $action)}; }
+	}
+}
+html.controls-list-transition::view-transition-old(root) { display: none; }
+html.controls-list-transition::view-transition-new(root) { animation: none; }
+html.controls-list-transition::view-transition-group(*) {
+	animation-duration: 360ms;
+	animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+}
+html.controls-list-transition::view-transition-old(*),
+html.controls-list-transition::view-transition-new(*) {
+	// Keep icons and type at their natural size while the button's box changes size.
+	object-fit: none;
+	object-position: left center;
+}
+html.controls-list-transition::view-transition-old(*) { animation-duration: 120ms; }
+html.controls-list-transition::view-transition-new(*) { animation-duration: 180ms; }
+@media (prefers-reduced-motion: reduce) {
+	html.controls-list-transition::view-transition-group(*) { animation-duration: 0s; }
+}

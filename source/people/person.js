@@ -1,4 +1,10 @@
+import EyeInstrumentGesture from './eye-instrument-gesture.js'
+import { updateStereoPan } from './stereo-pan.js'
+import { getPersonInstrumentChoices, choosePersonInstrument } from './person-instrument-choices.js'
+import { eyebrowStyleOptions } from '../visual/eyebrow-styles.js'
+import PersonEyebrowEffects, { bendEyebrowInstrument } from '../audio/effects/person-eyebrows.js'
 import PersonDirections from './person-directions.js'
+import { getLipVolume, getLipCurvePosition, normaliseLipOptions, normaliseMouthDynamicsOverride, normaliseLipRangeOverride, resolveLipSetting, formatLipSetting, getMouthDynamicsPresetId, LIP_SENSITIVITY_INHERIT } from './lip-sensitivity.js'
 /**
  * each person in the app has their own instrument and face
  * and each has a unique input mechanism based on the options 
@@ -104,6 +110,8 @@ import { getNoteFeedbackColour, NOTE_FEEDBACK_MAX_OPACITY } from '../settings/pa
 
 // Models
 import { EmojiDetector } from '../models/emoji-detection.js'
+import { MAX_CHORD_VOICE_COUNT } from '../models/emoji-to-music.js'
+import { getVoicesPerPerson } from '../audio/voice-engine-options.js'
 import { EMOJI_CAT_KISSING, EMOJI_KISS, EMOJI_KISS_EYES_CLOSED, EMOJI_KISS_EYES_CLOSED_EYEBROWS_RAISED, EMOJI_KISSING_WINK, EMOJI_MASK, EMOJI_NEUTRAL, isKissingEmoji, normaliseEmojiMood } from '../models/emoji.js'
 
 import { createInstrumentFromData } from '../audio/instrument-factory.js'
@@ -131,11 +139,13 @@ import PersonEvent, {
 import PersonalProgress from './person-progress.js'
 import { getRecentAchievementLabel, PERSON_TEXT_CHANGE_INSTRUMENT, PERSON_TEXT_SWITCH_INSTRUMENT } from './person-text.js'
 import {
+	DEFAULT_HEAD_VERTICAL_RANGE_DEGREES,
 	getHeadNoteIndex,
 	HEAD_NOTE_RANGE_INHERIT,
 	HEAD_VERTICAL_RANGE_INHERIT,
 	normaliseHeadNoteRangeDegrees,
 	normaliseHeadNoteRangeOverride,
+	normaliseHeadVerticalOffsetDegrees,
 	normaliseHeadVerticalRangeDegrees,
 	normaliseHeadVerticalRangeOverride,
 	resolveHeadNoteRangeDegrees,
@@ -291,7 +301,9 @@ export default class Person extends EventTarget{
 	audioContext
 	offlineAudioContext
 	instrumentFactory
-	trimLevel = 1
+	// true once the chord voices exist and the first preset has finished loading
+	audioReady = false
+	trimLevel = 4 * 2 / 3
 	trimNode
 
 	get trim(){
@@ -304,7 +316,8 @@ export default class Person extends EventTarget{
 		{
 			return
 		}
-		this.trimLevel = clamp(trim, 0, 4)
+		this.trimLevel = clamp(trim, 0, 5)
+		if (this.options) this.options.trim = this.trimLevel
 		if (this.trimNode)
 		{
 			this.trimNode.gain.setValueAtTime(this.trimLevel, this.audioContext.currentTime)
@@ -439,6 +452,7 @@ export default class Person extends EventTarget{
 
 	leftEyeClosedAt = -1
 	rightEyeClosedAt = -1
+	eyeInstrumentGesture = new EyeInstrumentGesture()
 	eyesClosed = false
 
 	
@@ -563,6 +577,22 @@ export default class Person extends EventTarget{
 			this.options?.headVerticalRangeDegrees,
 			this.options?.headVerticalRangeOverride
 		)
+	}
+
+	// Spacing between the octave lines follows the head range that selects octaves;
+	// the floor stops the lines touching at the smallest ranges.
+	get octaveIndicatorScale(){
+		const range = this.inputModeData?.options?.octaveController === 'roll' ?
+			this.headNoteRangeDegrees :
+			this.headVerticalRangeDegrees
+		return clamp(range / DEFAULT_HEAD_VERTICAL_RANGE_DEGREES, 0.3, 4 / 3)
+	}
+
+	// A raised neutral height lifts the octave lines by the same share of the range,
+	// so level looks still line up with the octave they play. Only when nodding picks octaves.
+	get octaveIndicatorOffset(){
+		if (this.inputModeData?.options?.octaveController === 'roll') return 0
+		return normaliseHeadVerticalOffsetDegrees(this.options?.headVerticalOffsetDegrees) / DEFAULT_HEAD_VERTICAL_RANGE_DEGREES
 	}
 
 	get achievementPoints(){
@@ -784,7 +814,7 @@ export default class Person extends EventTarget{
 	 * @returns {Boolean} are samples loading
 	 */
 	get instrumentLoading(){
-		return this.activeInstrument ? this.activeInstrument.isLoading : true
+		return this.activeInstrument && this.audioReady ? this.activeInstrument.isLoading : true
 	}
 
 	/**
@@ -1009,7 +1039,25 @@ export default class Person extends EventTarget{
 		this.dispatchPersonEvent(EVENT_PERSON_OPTIONS_CHANGED, { person:this, options:{ inputMode:normalisedMode } })
 	}
 
+	updateEyebrowPitchBend(prediction = {}){
+		const extent = prediction?.eyebrowExtents
+		const amount = this.options.eyebrowPitchBend && Number.isFinite(extent) ? Math.max(-1, Math.min(1, extent - 1)) : 0
+		if (amount === 0 && !this.eyebrowBendInstrument) return
+		if (this.eyebrowBendInstrument && this.eyebrowBendInstrument !== this.activeInstrument) {
+			bendEyebrowInstrument(this.eyebrowBendInstrument, 0)
+		}
+		bendEyebrowInstrument(this.activeInstrument, amount)
+		this.eyebrowBendInstrument = amount === 0 ? null : this.activeInstrument
+	}
+
 	setOptions(options={}){
+		options = normaliseLipOptions(options)
+		if (Object.prototype.hasOwnProperty.call(options, 'eyebrowStyle')) {
+			options = { ...options, ...eyebrowStyleOptions(options.eyebrowStyle) }
+		}
+		if (Object.prototype.hasOwnProperty.call(options, 'lipStyle')) {
+			options = { ...options, drawMouth:options.lipStyle !== 'disabled' }
+		}
 		const pointsWereEnabled = this.pointsEnabled
 		const emojiMoodChanged = Object.prototype.hasOwnProperty.call(options, "emojiMood") && options.emojiMood !== this.options.emojiMood
 		if (Object.prototype.hasOwnProperty.call(options, "emojiMood"))
@@ -1036,6 +1084,10 @@ export default class Person extends EventTarget{
 		{
 			options = { ...options, headVerticalRangeOverride:normaliseHeadVerticalRangeOverride(options.headVerticalRangeOverride) }
 		}
+		if (Object.prototype.hasOwnProperty.call(options, "headVerticalOffsetDegrees"))
+		{
+			options = { ...options, headVerticalOffsetDegrees:normaliseHeadVerticalOffsetDegrees(options.headVerticalOffsetDegrees) }
+		}
 		const harmonyUnchanged = (
 			!Object.prototype.hasOwnProperty.call(options, "tonic") || options.tonic === this.options.tonic
 		) && (
@@ -1044,6 +1096,9 @@ export default class Person extends EventTarget{
 			!Object.prototype.hasOwnProperty.call(options, "harmonyMode") || options.harmonyMode === this.options.harmonyMode
 		)
 		this.options = { ...this.options, ...options }
+		this.eyebrowEffects?.update(this.data, this.options)
+		this.updateEyebrowPitchBend(this.data)
+		this.syncLipSensitivityControls()
 		if (
 			Object.prototype.hasOwnProperty.call(options, "headNoteRangeDegrees") ||
 			Object.prototype.hasOwnProperty.call(options, "headNoteRangeOverride") ||
@@ -1077,6 +1132,24 @@ export default class Person extends EventTarget{
 			configurePersonKey(this)
 		}
 		return this.options
+	}
+
+	syncLipSensitivityControls(){
+		const curveOverride = normaliseMouthDynamicsOverride(this.options.mouthDynamicsOverride)
+		const curveSelect = this.controls?.querySelector('[data-person-option="mouthDynamicsOverride"]')
+		if (curveSelect) curveSelect.value = curveOverride === LIP_SENSITIVITY_INHERIT ? LIP_SENSITIVITY_INHERIT : getMouthDynamicsPresetId(curveOverride)
+		const isOverridden = normaliseLipRangeOverride(this.options.lipRangeOverride) !== LIP_SENSITIVITY_INHERIT
+		const toggle = this.controls?.querySelector('[data-person-option="lipRangeOverrideEnabled"]')
+		const input = this.controls?.querySelector('[data-person-option="lipRangeOverride"]')
+		if (toggle) toggle.checked = isOverridden
+		if (input) {
+			input.disabled = !isOverridden
+			input.value = resolveLipSetting(this.options, 'lipRange')
+			const label = formatLipSetting('lipRange', input.value)
+			input.setAttribute('aria-valuetext', label)
+			const output = this.controls.querySelector(`#${input.id}-output`)
+			if (output) output.value = label
+		}
 	}
 
 	syncHeadNoteRangeControls(){
@@ -1120,8 +1193,8 @@ export default class Person extends EventTarget{
 		
 		super()
 
-		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options)
-		this.trim = this.options.trim ?? 1
+		this.options = Object.assign({  }, DEFAULT_PERSON_OPTIONS, options, Object.prototype.hasOwnProperty.call(options, 'eyebrowStyle') ? eyebrowStyleOptions(options.eyebrowStyle) : {})
+		this.trim = this.options.trim ?? (4 * 2 / 3)
 		this.debug = this.options.debug
 		this.playerNumber = parseInt(index)
 
@@ -1186,6 +1259,7 @@ export default class Person extends EventTarget{
 		this.button = this.personControls.querySelector(".face-button")
 		this.buttonChangeInstrument = this.personControls.querySelector(".instrument-button")
 		this.buttonChangeInputMode = this.personControls.querySelector(".emoji-button")
+		this.emojiControls = this.personControls.querySelector(".emoji-controls")
 		this.buttonToggleChordDisplay = this.personControls.querySelector(".note-button")
 		this.buttonChangeOperatingMode = this.personControls.querySelector(".mode-button")
 
@@ -1279,6 +1353,12 @@ export default class Person extends EventTarget{
 	 * start values
 	 */
 	reset(){
+		this.eyeInstrumentGesture.reset()
+		this.eyebrowEffects?.update({}, this.options)
+		if (this.eyebrowBendInstrument) {
+			bendEyebrowInstrument(this.eyebrowBendInstrument, 0)
+			this.eyebrowBendInstrument = null
+		}
 		this.isUserActive = true
 		this.isMouthOpen = false
 		this.isLeftEyeOpen = true
@@ -1366,6 +1446,7 @@ export default class Person extends EventTarget{
 	
 		// kill instrument and disconnect from graph
 		this.reset()
+		this.eyebrowEffects?.destroy()
 	}
 
 
@@ -1524,6 +1605,13 @@ export default class Person extends EventTarget{
 	 */
 	update(prediction, timeNow, forceRefresh=false){
 		const shouldTrackActivity = !!prediction && !forceRefresh
+		const eyeAction = this.eyeInstrumentGesture.update(
+			shouldTrackActivity ? prediction : null, this.now, this.getBarDuration?.(),
+			this.instrumentLoading || this.eyeInstrumentLoading
+		)
+		if (eyeAction) {
+			this.loadEyeGesturePreset(eyeAction).catch(error => console.error('Eye instrument change failed', error))
+		}
 		if (!prediction){
 			this.motion.invalidate()
 		}
@@ -1540,8 +1628,6 @@ export default class Person extends EventTarget{
 		}
 
 		const boundingBox = prediction.box
-		const currentTime = this.audioContext.currentTime
-		const nyquist = this.audioContext.sampleRate * 0.5
 
 		this.counter++
 		this.box = prediction.box
@@ -1594,70 +1680,11 @@ export default class Person extends EventTarget{
 
 		this.eyeDirection = prediction.eyeDirection
 
-		// stereo eye panning
-		if (this.options.stereoPan && this.stereoNode)
-		{
-			// -1 -> +1
-			this.stereoNode.pan.value = prediction[this.options.stereoController] * -1
-		}
+		updateStereoPan(this.stereoNode, prediction, this.options)
 
-		// pitch bend here should be updated to also represent 
-		if (this.options.pitchBend && this.pitchBendValue && this.activeInstrument)
-		{
-			//this.activeInstrument.pitchBend( this.pitchBendValue )
-		}
+		this.eyebrowEffects?.update(prediction, this.options)
+		this.updateEyebrowPitchBend(prediction)
 
-		// the other types of eyebrow filtering...
-		// mainly LPF
-		if (this.options.lpf)
-		{
-			const cutoffHz = Math.min( this.pitchBendValue * 20000, nyquist) // clamp to audible/Nyquist limits
-			this.filterNode.frequency.setValueAtTime(nyquist, currentTime)
-			this.filterNode.Q.setValueAtTime( this.pitchBendValue * 2, currentTime ) // resonance (typical 0.1–20)
-		}
-		
-
-		// TODO:
-		// when the left eyebrow is down and the right is up
-		// if (browDownLeft - browDownRight > 0.5){
-	
-		// 	o-O
-		// 	const isLeftEyebrowDownAndRightEyebrowUp = browDownLeft < browDownRight
-		// 	O-o
-		// 	const isRightEyebrowDownAndLeftEyebrowUp = browDownLeft > browDownRight
-	
-		// }else{
-		//}
-
-		// AUDIO MODIFIERS USING EXPRESSIONS
-		// eyebrows controls
-		if (this.options.drawEyebrows && this.delayNode)
-		{
-			// as low pass filter
-			// this.eyeBrowsNode.frequency.value = 1000 + prediction.leftEyebrowRaisedBy * 1000 // (1000, audioCtx.currentTime);
-			// this.eyeBrowsNode.gain.value = 2 + prediction.rightEyebrowRaisedBy * 20 //(25, audioCtx.currentTime);
-			// this.eyeBrowsNode.Q.value = prediction.eyebrowsRaisedBy * 5
-						
-			// this.eyeBrowNode.threshold.value = prediction.eyebrowsRaisedBy * -100
-
-
-			// this.eyeBrowNode.knee.value = prediction.eyebrowsRaisedBy * 40
-			// console.log( this.eyeBrowNode.gain.value, this.eyeBrowNode.frequency.value )
-
-			// As delay and feedback
-			this.feedbackNode.gain.value = clamp(prediction.eyebrowsRaisedBy, 0, 0.3)
-			this.delayNode.delayTime.value = clamp(prediction.leftEyebrowRaisedBy, 0, 0.3)
-			// console.info("Delay via prediction", {prediction, gain:this.feedbackNode.gain.value , time:this.delayNode.delayTime.value})
-		
-		}else if (this.delayNode){
-
-			// As delay and feedback that are static
-			this.feedbackNode.gain.value = 0.3 // (30% feedback)
-			this.delayNode.delayTime.value = 0.2 // (40% delay)
-			// console.info("Delay", prediction)
-		}
-
-		
 		// EVENTS DISPATCH ---------------------------------------
 
 		// check to see if mouse if down
@@ -1669,7 +1696,6 @@ export default class Person extends EventTarget{
 		// durations that things have been closed for
 		const rightEyeClosedFor = this.isRightEyeOpen ? -1 : prediction.time - this.rightEyeClosedAt
 		const leftEyeClosedFor = this.isLeftEyeOpen ? -1 : prediction.time - this.leftEyeClosedAt
-		const eyesClosedFor = this.instrumentLoading || this.isRightEyeOpen || this.isLeftEyeOpen ? -1 : Math.min(leftEyeClosedFor, rightEyeClosedFor)
 
 		// update any eye states
 		// FIXME: Smooth these out either here or directly in model
@@ -1703,35 +1729,7 @@ export default class Person extends EventTarget{
 			}
 		}
 		
-		// eyes have been closed for X -period of time
-		if (eyesClosedFor > this.options.eyeShutHolddDuration)
-		{
-			// both eyes are closed for X amount of time...
-			// console.log("EYES SHUT", {
-			// 	rightEyeClosedFor, 
-			// 	leftEyeClosedFor, 
-			// 	eyesClosedFor, 
-			// 	ro:this.isRightEyeOpen,
-			// 	lo:this.isLeftEyeOpen,
-			// 	time:prediction.time, 
-			// 	rca:this.rightEyeClosedAt, 
-			// 	lca:this.leftEyeClosedAt
-			// } )
-
-			// update to reset counter
-			this.leftEyeClosedAt = prediction.time
-			this.rightEyeClosedAt = prediction.time
-
-			this.eyesClosed = true
-
-			this.onEyesClosedForTimePeriod()
-			// console.info("closed eyes!", {leftEyeClosedFor, rightEyeClosedFor, eyesClosedFor })
-		// }else if(leftEyeClosedFor > -1 || rightEyeClosedFor > -1){
-			// console.info(prediction.time, "one closed eyes", this.isLeftEyeOpen, leftEyeClosedFor,this.isRightEyeOpen, rightEyeClosedFor, eyesClosedFor ) 
-		}else{
-			//console.info(prediction.time)
-			this.eyesClosed = false
-		}
+		this.eyesClosed = !this.isLeftEyeOpen && !this.isRightEyeOpen
 
 		// Emoji detection with smoothing
 		const emoticon = this.emojiDetector.detect(prediction, this.options)
@@ -1891,7 +1889,7 @@ export default class Person extends EventTarget{
 		{	
 			cancelAnimationFrame( this.frameId )		
 			this.frameId = requestAnimationFrame( ()=>{
-				this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};`)
+				this.personControls.setAttribute( "style", `--${this.id}-x:${x};--${this.id}-y:${y};--${this.id}-w:${width};--${this.id}-h:${height};--control-x:${(1-width)*x};--control-y:${(1-height)*y};--control-width:${Math.max(width, Number.EPSILON)};--control-height:${Math.max(height, Number.EPSILON)};`)
 				// this.personControls.cssText = `--${this.id}-x:${bottomRight[0]};--${this.id}-y:${topLeft[1]};--${this.id}-w:${boxWidth};--${this.id}-h:${boxHeight};`	
 			})	
 	}	}
@@ -2074,6 +2072,16 @@ export default class Person extends EventTarget{
 		}
 		switch(option)
 		{
+			case "eyebrowStyle":
+				this.setOptions({ eyebrowStyle:value })
+				return persistPanelOption({ eyebrowStyle:this.options.eyebrowStyle })
+			case "eyebrowPitchBend":
+			case "eyebrowReverb":
+			case "eyebrowLowPass":
+			case "eyebrowDelay":
+			case "eyebrowCompression":
+				this.setOptions({ [option]:value === true })
+				return persistPanelOption({ [option]:this.options[option] })
 			case "octaveLow": {
 				const octaveLow = Number.parseInt(value, 10)
 				if (!Number.isFinite(octaveLow))
@@ -2109,6 +2117,23 @@ export default class Person extends EventTarget{
 			case "autoRepeat":
 				this.setOptions({ autoRepeat:value })
 				return persistPanelOption({ autoRepeat:value })
+			case "repetitionRate": {
+				const repetitionRate = value === "template" ? "template" : Number(value)
+				if (repetitionRate !== "template" && (!Number.isFinite(repetitionRate) || repetitionRate < 0)) return this.options
+				this.setOptions({ repetitionRate })
+				return persistPanelOption({ repetitionRate })
+			}
+			case "lipRangeOverrideEnabled": {
+				const settings = { lipRangeOverride:value ? resolveLipSetting(this.options, 'lipRange') : LIP_SENSITIVITY_INHERIT }
+				this.setOptions(settings)
+				return persistPanelOption(settings)
+			}
+			case "mouthDynamicsOverride":
+			case "lipRangeOverride": {
+				const settings = normaliseLipOptions({ [option]:value })
+				this.setOptions(settings)
+				return persistPanelOption(settings)
+			}
 			case "showPointsOverride": {
 				const showPointsOverride = normalisePointsOverride(value)
 				this.setOptions({ showPointsOverride })
@@ -2158,6 +2183,15 @@ export default class Person extends EventTarget{
 		if (file.size > 1024*1024) throw Error('DX7 files must be smaller than 1 MB.')
 		const { parseDX7Presets } = await import('../audio/instruments/presets/dx7.js')
 		const presets = parseDX7Presets(await file.arrayBuffer())
+		if (this.activeInstrument?.instruments?.[0]?.host?.engine === 'fm') {
+			const voices = this.activeInstrument.instruments
+			voices.forEach(voice => { voice.options.fmImportedPresets = presets })
+			await Promise.all(voices.map(voice => voice.loadPatch('dx7:0')))
+			this.fmImportedPresets = presets
+			this.isInstrumentPanelDirty = true
+			await this.refreshInstrumentPanelIfDirty()
+			return presets.length
+		}
 		return this.applyFMPresetBank(presets, true)
 	}
 
@@ -2200,6 +2234,8 @@ export default class Person extends EventTarget{
 				return this.setFMPresetBank(value)
 			case "instrumentType":
 				return this.setInstrumentType(value)
+			case "voicePatch":
+				return Promise.all(this.activeInstrument.instruments.map(instrument => instrument.loadPatch(value)))
 			case "userMode":
 				configurePersonByOperatingMode(this, value)
 				return this.userMode
@@ -2300,16 +2336,29 @@ export default class Person extends EventTarget{
 		const emojiRotationZ = (roll * Math.PI * 0.28) - HALF_PI
 		// at the bottom of the text we draw the smiley
 		// draw emoticon but we move it up and down when it looks up and down too	
-		const emojiY = textY + offsetY
+		// Keep the full emoji, head-angle arc and octave lines inside every Display.
+		// These may overlap the face when there is no room above it.
+		const emojiY = Math.max(EMOJI_RADIUS + 8, textY + offsetY)
+		// Match the canvas emoji's visual centre (-15px), including its top clamp.
+		// Normalised stage coordinates keep the DOM controls aligned when resized.
+		if (this.emojiControls && display.width > 0 && display.height > 0)
+		{
+			const style = this.emojiControls.style
+			style.setProperty('--emoji-x', textX / display.width)
+			style.setProperty('--emoji-y', (emojiY - 15) / display.height)
+			style.setProperty('--emoji-width', (EMOJI_RADIUS + 96) / display.width)
+			style.setProperty('--emoji-height', EMOJI_RADIUS / display.height)
+		}
 		const particleOrigin = this.getMouthParticleOrigin(prediction, display, textX, emojiY)
 		display.drawEmoticon( textX, emojiY, this.emoticon, emojiRotationZ, emojiRotationY, emojiRotationX, this.noteIndex, this.quantityOfPlayableNotes, this.emojiDetector?.isMirrored ?? false, this.headNoteRangeDegrees, this.hsl )
+		const octaveIndicatorHeight = 54 * emojiRotationY
 		display.drawOctaveIndicator?.(
 			textX,
-			emojiY,
+			emojiY - octaveIndicatorHeight * (this.octaveIndicatorOffset ?? 0),
 			this.octave,
 			this.options.octaveLow ?? 2,
 			this.options.octaveHigh ?? 6,
-			54 * emojiRotationY
+			octaveIndicatorHeight * (this.octaveIndicatorScale ?? 1)
 		)
 		if (this.options.noteParticles)
 		{
@@ -2390,9 +2439,11 @@ export default class Person extends EventTarget{
 	 * show debug code in realtime
 	 * 
 	 * @param {Object} prediction 
-	 * @param {AbstractDisplay} display 
+	 * @param {AbstractDisplay} display
+	 * @param {Boolean} showBackground
+	 * @param {Boolean} showLabels - when false only the emoji is drawn
 	 */
-	drawText(prediction, display, showBackground=true ){
+	drawText(prediction, display, showBackground=true, showLabels=true ){
 		prediction = prediction ?? this.data
 		if (!prediction?.box || !display)
 		{
@@ -2450,6 +2501,12 @@ export default class Person extends EventTarget{
 		if (this.isMouseOver || !this.instrumentLoading)
 		{
 			this.drawEmojiText(display, textX, textY, pitch, yaw, prediction.roll, prediction, emojiOffsetY)
+		}
+
+		// Subtitles off hides the labels but keeps the emoji
+		if (!showLabels)
+		{
+			return
 		}
 
 		if ( this.isMouseOver ){
@@ -2804,7 +2861,9 @@ export default class Person extends EventTarget{
 
 		
 		// you want the scale to be from 0-1 but from 03-1
-		let newVolume = amp
+		// Shown as a live marker on the mouth dynamics graph.
+		this.mouthCurvePosition = getLipCurvePosition(lipPercentage, options, prediction.mouthVolumeRatio)
+		let newVolume = options.maximumAmplitude * getLipVolume(lipPercentage, options, prediction.mouthVolumeRatio) * Math.max(1 - this.percentageDead, 0)
 		let note = -1
 		
 		// cache existing 
@@ -3084,6 +3143,7 @@ export default class Person extends EventTarget{
 
 	getInstrumentPanelPresetKey(details = {}){
 		return [
+			this.activeInstrument?.instruments?.[0]?.host?.engine ?? '',
 			this.instrumentType,
 			this.activeInstrument?.name ?? "loading",
 			details.presetName ?? this.presetName ?? "",
@@ -3092,10 +3152,12 @@ export default class Person extends EventTarget{
 	}
 
 	get instrumentType(){
+		if (this.activeInstrument?.instruments?.[0]?.host) return INSTRUMENT_TYPE_COMPOSITE
 		return normalisePersonInstrumentType(this.options.defaultInstrument)
 	}
 
 	setInstrumentType(type){
+		if (this.activeInstrument?.instruments?.[0]?.host) return Promise.resolve(this.activeInstrument)
 		const instrumentType = normalisePersonInstrumentType(type)
 		const changeInstrument = async () => {
 			if (!this.activeInstrument?.setInstrument || instrumentType === this.instrumentType)
@@ -3114,7 +3176,7 @@ export default class Person extends EventTarget{
 				defaultInstrument:instrumentType,
 				defaultPreset:0
 			}
-			const polyphony = Math.max(1, this.activeInstrument.polyphony || 3)
+			const polyphony = Math.max(MAX_CHORD_VOICE_COUNT, this.activeInstrument.polyphony || 0)
 			const instruments = instrumentType === INSTRUMENT_TYPE_COMPOSITE ?
 				await Promise.all(Array.from({length:polyphony}, () => this.instrumentFactory.createCompositeInstrument(instrumentOptions))) :
 				null
@@ -3351,7 +3413,7 @@ export default class Person extends EventTarget{
 	 * other facial features can 
 	 * @param {AudioContext} audioContext 
 	 */
-	async setupAudio(audioContext, destinationNode, instrumentManager, offlineAudioContext=null, presetIndex=0 ){
+	async setupAudio(audioContext, destinationNode, instrumentManager, offlineAudioContext=null, presetIndex=0, players=1 ){
 
 		if (!audioContext)
 		{
@@ -3377,9 +3439,6 @@ export default class Person extends EventTarget{
 		this.gainNode = audioContext.createGain()
 		this.gainNode.gain.value = 0
 
-		// compute Nyquist and choose cutoff safely
-		const nyquist = audioContext.sampleRate * 0.5
-		
 		// this is where all this user's audio is routed
 		this.outputNode = this.gainNode
 
@@ -3414,16 +3473,6 @@ export default class Person extends EventTarget{
 			//console.log("stereoNode", this.stereoNode.pan.value )
 		}
 
-		if (this.options.lpf)
-		{
-			const cutoffHz = Math.min(20000, nyquist) // clamp to audible/Nyquist limits
-			this.filterNode = audioContext.createBiquadFilter()
-			this.filterNode.type = 'lowpass'
-			this.filterNode.frequency.setValueAtTime(nyquist, audioContext.currentTime)
-			this.filterNode.Q.setValueAtTime(1, audioContext.currentTime) // resonance (typical 0.1–20)
-			console.log("lpf",cutoffHz)
-		}
-
 		if (this.options.drawNose)
 		{
 			this.noseNode = audioContext.createDynamicsCompressor()
@@ -3435,46 +3484,10 @@ export default class Person extends EventTarget{
 			this.outputNode.connect(this.noseNode)
 			this.outputNode = this.noseNode
 		}
-		if (this.options.drawEyebrows)
-		{
-			//FIXME:
-			// this.eyeBrowsNode = audioContext.createBiquadFilter()
-			// // TODO: Set up as a high pass filter
-			// this.outputNode.connect(this.eyeBrowsNode)
-			// this.outputNode = this.eyeBrowsNode
-
-			// this.eyeBrowsNode = delayNode
-			// this.delayNode = delayNode
-			// this.feedbackNode = feedbackNode
-
-			// TODO: Set up as a high pass filter
-
-			// this.eyeBrowNode = audioContext.createDynamicsCompressor()
-			// this.eyeBrowNode.threshold.value = -100
-			// this.eyeBrowNode.knee.value = 40
-			// this.eyeBrowNode.ratio.value = 12
-			// this.eyeBrowNode.attack.value = 0
-			// this.eyeBrowNode.release.value = 0.25
-			// this.eyeBrowNode.connect(this.eyeBrowsNode)
-
-			// this.outputNode.connect(this.eyeBrowNode)
-			
-			// this.outputNode = this.eyeBrowNode
-			//this.stereoNode.pan.setValueAtTime(panControl.value, this.audioContext.currentTime);
-		}
-		
-		if (this.options.drawEyebrows)
-		{
-			// 
-			this.eyeBrowsNode = audioContext.createDynamicsCompressor()
-			// this.noseNode.threshold.value = -100
-			// this.noseNode.knee.value = 40
-			// this.noseNode.ratio.value = 12
-			// this.noseNode.attack.value = 0
-			// this.noseNode.release.value = 0.25
-			this.outputNode.connect(this.eyeBrowsNode)
-			this.outputNode = this.eyeBrowsNode
-		}
+		this.eyebrowEffects = new PersonEyebrowEffects(audioContext)
+		this.eyebrowEffects.update(this.data, this.options)
+		this.outputNode.connect(this.eyebrowEffects.input)
+		this.outputNode = this.eyebrowEffects.output
 
 		// Keep expression gain separate from user trim: expression is rewritten
 		// every prediction frame, while trim must remain stable.
@@ -3489,6 +3502,7 @@ export default class Person extends EventTarget{
 		
 		const defaultInstrumentOptions = {
 			...this.options,
+			voicePerson:this,
 			preload:false,
 			offlineAudioContext,
 			defaultPreset:presetIndex ?? this.options.defaultPreset ?? 0,
@@ -3499,9 +3513,7 @@ export default class Person extends EventTarget{
 		// Add as manny instruments as you like
 		//- instrumentFactory.loadInstrumentByName()
 		//- const rompler = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_SOUNDFONT )
-		const defaultInstruments = defaultInstrumentType === INSTRUMENT_TYPE_COMPOSITE ?
-			await Promise.all(Array.from({length:3}, () => instrumentFactory.createCompositeInstrument(defaultInstrumentOptions))) :
-			[await instrumentFactory.loadInstrumentByType(defaultInstrumentType, defaultInstrumentOptions, 0)]
+		const defaultInstruments = await Promise.all(Array.from({length:getVoicesPerPerson(players, MAX_CHORD_VOICE_COUNT)}, () => instrumentFactory.createVoiceInstrument(defaultInstrumentOptions)))
 		const defaultInstrument = defaultInstruments[0]
 		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
 		// const defaultInstrument = await instrumentFactory.loadInstrumentByType( this.options.defaultInstrument ?? INSTRUMENT_TYPE_OSCILLATOR, defaultInstrumentOptions, 0 )	
@@ -3526,17 +3538,18 @@ export default class Person extends EventTarget{
 		// this.setMainInstrument( this.addInstrument( defaultInstrument ))
 		
 		// load an instrument into the chordPlayer
-		if (defaultInstrumentType === INSTRUMENT_TYPE_COMPOSITE)
+		if (defaultInstruments[0]?.host || defaultInstrumentType === INSTRUMENT_TYPE_COMPOSITE)
 		{
 			await chordInstrument.setInstruments(defaultInstruments)
 		}else{
-			await chordInstrument.setInstrument(defaultInstrument)
+			await chordInstrument.setInstrument(defaultInstrument, {}, MAX_CHORD_VOICE_COUNT)
 		}
 		
 		// console.error("Person created with active instrument", this.activeInstrument, {defaultInstrument}, {options:this.options, defaultInstrumentOptions} )	
 
 		// load the default preset
 		const defaultPreset = await this.loadPreset( defaultInstrumentOptions.defaultPreset )
+		this.audioReady = true
 		return this.playerNumber
 	}
 
@@ -3886,12 +3899,20 @@ export default class Person extends EventTarget{
 		// console.error( "onRightEyeClose", {timeClosed} ) 
 	}
 
-	onEyesClosedForTimePeriod(){
-		// console.error( "onEyesClosedForTimePeriod" ) 
-		
-	
-		// Eyes closed for X amount of time...
-		// this.loadNextPreset( instrumentName => console.log("onEyesClosedForTimePeriod:instrumentName",instrumentName ) )
+	async loadEyeGesturePreset(action){
+		if (!this.activeInstrument || this.instrumentLoading || this.eyeInstrumentLoading) return
+		this.eyeInstrumentLoading = true
+		try {
+			const instrument = this.activeInstrument
+			const voice = instrument.instruments?.[0] ?? instrument
+			const presets = voice.isGeneralMIDIBank === false ? await instrument.getPresets() : null
+			const choices = presets ? presets.map((_, index) => index) : getPersonInstrumentChoices(this.playerNumber)
+			const index = choosePersonInstrument(choices, instrument.activePresetIndex, action)
+			if (index == null) return
+			await this.loadPreset(index, presets ? String(presets[index]?.title ?? presets[index]?.name ?? presets[index]) : getInstrumentTitle(index))
+		} finally {
+			this.eyeInstrumentLoading = false
+		}
 	}
 
 	// --- FORM --------------------------------------------------------------
@@ -3958,7 +3979,7 @@ export default class Person extends EventTarget{
 		if (!this.isFormShowing)
 		{
 			this.setupInstrumentPanelShell()
-			this.isFormShowing = showPersonalControlPanel( this.id, this.instrumentPanel, this.instrumentName )
+			this.isFormShowing = showPersonalControlPanel( this.id, this.instrumentPanel, this.activePresetIndex )
 			this.refreshInstrumentPanelIfDirty().catch(error => {
 				console.error("Failed to refresh instrument panel", error)
 			})
@@ -4012,7 +4033,10 @@ export default class Person extends EventTarget{
 			noteParticleGraphics:parts[4],
 			showPointsOverride:parts[5] === undefined ? undefined : normalisePointsOverride(parts[5]),
 			headNoteRangeOverride:parts[6] === undefined ? undefined : normaliseHeadNoteRangeOverride(parts[6]),
-			headVerticalRangeOverride:parts[7] === undefined ? undefined : normaliseHeadVerticalRangeOverride(parts[7])
+			headVerticalRangeOverride:parts[7] === undefined ? undefined : normaliseHeadVerticalRangeOverride(parts[7]),
+			// Older links stored a numeric lip response here; those read as inherit.
+			mouthDynamicsOverride:parts[8] === undefined ? undefined : normaliseMouthDynamicsOverride(parts[8]),
+			lipRangeOverride:parts[9] === undefined ? undefined : normaliseLipRangeOverride(parts[9])
 		}
 				
 		console.error( "parseDataExport", {data, parts, shape} )
@@ -4027,8 +4051,8 @@ export default class Person extends EventTarget{
 	 * @param {Number} userMode 
 	 * @returns 
 	 */
-	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined, showPointsOverride=undefined, headNoteRangeOverride=undefined, headVerticalRangeOverride=undefined ){
-		return Array.from(arguments).filter(e=>e!==undefined).join(EXPORT_DELIMITER)
+	static createDataExport( presetIndex, instrumentType=undefined, userMode=undefined, autoRepeat=undefined, noteParticleGraphics=undefined, showPointsOverride=undefined, headNoteRangeOverride=undefined, headVerticalRangeOverride=undefined, mouthDynamicsOverride=undefined, lipRangeOverride=undefined ){
+		return Array.from(arguments).map(value => value ?? '').join(EXPORT_DELIMITER)
 	}
 
 	static getQueryPrefixes(personOrIndex=0){
@@ -4052,7 +4076,9 @@ export default class Person extends EventTarget{
 			this.options.noteParticleGraphics,
 			this.options.showPointsOverride,
 			this.options.headNoteRangeOverride,
-			this.options.headVerticalRangeOverride
+			this.options.headVerticalRangeOverride,
+			this.options.mouthDynamicsOverride,
+			this.options.lipRangeOverride
 		)
 	}
 
@@ -4081,6 +4107,8 @@ export default class Person extends EventTarget{
 		{
 			options.headVerticalRangeOverride = normaliseHeadVerticalRangeOverride(data.headVerticalRangeOverride)
 		}
+		if (data.mouthDynamicsOverride !== undefined) options.mouthDynamicsOverride = normaliseMouthDynamicsOverride(data.mouthDynamicsOverride)
+		if (data.lipRangeOverride !== undefined) options.lipRangeOverride = normaliseLipRangeOverride(data.lipRangeOverride)
 		return options
 	}
 

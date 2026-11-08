@@ -4,6 +4,9 @@ import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_
 import { INSTRUMENT_TYPE_CHORD } from '../source/audio/instrument-list.js'
 import { EMOJI_FLUSHED, EMOJI_SMILING_SLIGHTLY, EMOJI_WAIL } from '../source/models/emoji.js'
 import { getPersonNoteRepeatTicks, isPersonNoteRepeatDue } from '../source/timing/person-note-repeat.js'
+import { GENERAL_MIDI_INSTRUMENT_DATA } from '../source/audio/general-midi-instruments.data.js'
+import EngineInstrument from '../source/audio/instruments/instrument.engine.js'
+import CompositeInstrument from '../source/audio/instruments/instrument.composite.js'
 
 const createSustainingPerson = (state = STATE_INSTRUMENT_SUSTAIN) => ({
 	state,
@@ -11,6 +14,78 @@ const createSustainingPerson = (state = STATE_INSTRUMENT_SUSTAIN) => ({
 	noteVelocity:0.8,
 	noteNumber:60,
 	activeNotes:new Map([[60, [{noteNumber:60}, {noteNumber:64}, {noteNumber:67}]]])
+})
+
+test.each([0, 1, 2, 4, 8, 12, 16, 24])('schedules %s retriggers per bar', repetitionRate => {
+	const person = {
+		activeInstrument:{ repetitionRate }, options:{ autoRepeat:true }, singing:true, noteVelocity:0.8
+	}
+	for (const ticksPerBar of [24, 96])
+	{
+		const pulses = Array.from({length:ticksPerBar}, (_, pulse) => pulse)
+		expect(pulses.filter(pulse => isPersonNoteRepeatDue(person, pulse, ticksPerBar))).toHaveLength(repetitionRate)
+	}
+})
+
+test('all GM templates produce the configured number of retriggers', () => {
+	for (const instrument of GENERAL_MIDI_INSTRUMENT_DATA)
+	{
+		const person = { activeInstrument:instrument, options:{autoRepeat:true}, singing:true, noteVelocity:0.8 }
+		expect(Array.from({length:96}, (_, pulse) => pulse).filter(pulse => isPersonNoteRepeatDue(person, pulse, 96))).toHaveLength(instrument.repetitionRate)
+	}
+})
+
+test('larger rates shorten intervals and zero overrides a repeating template', () => {
+	const person = {activeInstrument:{repetitionRate:4}, options:{repetitionRate:8}}
+	expect(getPersonNoteRepeatTicks(person, 96)).toBe(12)
+	person.options.repetitionRate = 16
+	expect(getPersonNoteRepeatTicks(person, 96)).toBe(6)
+	person.options.repetitionRate = 0
+	expect(getPersonNoteRepeatTicks(person, 96)).toBe(0)
+	person.options = {noteRepeatTicks:0}
+	expect(getPersonNoteRepeatTicks(person)).toBe(0)
+})
+
+test('engine templates follow program and renderer changes', () => {
+	const instrument = Object.create(EngineInstrument.prototype)
+	instrument.program = 40
+	instrument.host = {engine:'fm'}
+	expect(instrument.repetitionRate).toBe(0)
+	instrument.program = 0
+	expect(instrument.repetitionRate).toBe(4)
+	instrument.program = 40
+	instrument.host.backend = {repetitionRate:() => 8}
+	expect(instrument.repetitionRate).toBe(8)
+})
+
+test('composite strings repeat samples and hold synthesized voices inside a chord', () => {
+	const instrument = Object.create(CompositeInstrument.prototype)
+	instrument.type = 'composite'
+	instrument.activePresetProgram = 40
+	instrument.instruments = [{type:'sample'}]
+	const person = {activeInstrument:{type:INSTRUMENT_TYPE_CHORD, instruments:[instrument]}}
+	expect(getPersonNoteRepeatTicks(person, 96)).toBe(48)
+	instrument.instruments = [{type:'oscillator'}]
+	expect(getPersonNoteRepeatTicks(person, 96)).toBe(0)
+})
+
+test('short samples repeat before their recorded sound runs out, including chord tones', () => {
+	const instrument = {repetitionRate:2, getNoteRepeatDuration:note => note === 64 ? 0.26 : 0.96}
+	const person = {activeInstrument:instrument, options:{}, noteNumber:60, activeNotes:new Map([[60, [{noteNumber:60}, {noteNumber:64}]]])}
+	expect(getPersonNoteRepeatTicks(person, 24, 100)).toBe(2)
+	person.options.repetitionRate = 0
+	expect(getPersonNoteRepeatTicks(person, 24, 100)).toBe(0)
+})
+
+test('engine retriggers a held sample without releasing its logical note', async () => {
+	const instrument = Object.create(EngineInstrument.prototype)
+	instrument.available = true
+	instrument.activeNotes = new Map([[60, 0.8]])
+	instrument.host = {switching:false, backend:{retrigger:jest.fn(() => true), noteOff:jest.fn(), noteOn:jest.fn()}}
+	await instrument.retrigger(60, 0.8)
+	expect(instrument.host.backend.retrigger).toHaveBeenCalledWith(instrument, 60, 0.8)
+	expect(instrument.host.backend.noteOff).not.toHaveBeenCalled()
+	expect(instrument.activeNotes.has(60)).toBe(true)
 })
 
 test.each([
@@ -143,7 +218,7 @@ test('chord retrigger delegates to the playable voice without releasing the held
 
 test.each([
 	[EMOJI_FLUSHED, [60, 65, 67, 70]],
-	[EMOJI_WAIL, [60, 63, 67, 71, 74]]
+	[EMOJI_WAIL, [60, 63, 74, 77, 81]]
 ])('turns the detected facial expression %s into its emotional chord voicing', (playingEmoticon, expectedNotes) => {
 	const person = {
 		state:STATE_INSTRUMENT_ATTACK,
@@ -265,4 +340,17 @@ test('single-note play mode uses the chord instrument as a monophonic voice', ()
 	expect(output).toEqual([60])
 	expect(instrument.noteOn).toHaveBeenCalledWith(60, 0.8)
 	expect(instrument.chordOn).not.toHaveBeenCalled()
+})
+
+ test('engine chord releases use note-off envelopes instead of emergency panic', async () => {
+	const instrument = Object.create(EngineInstrument.prototype)
+	instrument.activeNotes = new Map([[60, 0.8], [64, 0.8]])
+	instrument.host = {switching:false, backend:{noteOff:jest.fn(), panic:jest.fn()}}
+	await instrument.allNotesOff()
+	expect(instrument.host.backend.noteOff).toHaveBeenCalledWith(instrument, 60)
+	expect(instrument.host.backend.noteOff).toHaveBeenCalledWith(instrument, 64)
+	expect(instrument.host.backend.panic).not.toHaveBeenCalled()
+	expect(instrument.activeNotes.size).toBe(0)
+	await instrument.allSoundOff()
+	expect(instrument.host.backend.panic).toHaveBeenCalledWith(instrument)
 })

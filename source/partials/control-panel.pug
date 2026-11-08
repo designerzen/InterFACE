@@ -1,10 +1,10 @@
 
+include select-options.pug
+
 //- In APP CONTROLS ------------------------------------------------------
 menu#control-panel
-	button#button-controls-list(type="button" aria-haspopup="dialog" aria-controls="control-panel" aria-expanded="false" hidden) All controls
 	header.controls-list-header(hidden)
 		h1#controls-list-title All controls
-		button#button-controls-list-close(type="button") Close
 	section.controls-list-section#controls-list-music(aria-labelledby="controls-list-music-title" hidden)
 		h2#controls-list-music-title Music and timing
 	section.controls-list-section#controls-list-beats(aria-labelledby="controls-list-beats-title" hidden)
@@ -144,9 +144,10 @@ menu#control-panel
 		//- TODO: Put into a dialog?
 		//- label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
 		//- 	select(aria-label="Select a different camera")#select-camera
+		button#button-controls-list(type="button" aria-haspopup="dialog" aria-controls="control-panel" aria-expanded="false" aria-label="View controls as a list" hidden)
+			span.controls-view-caption View: List
 		label(for="button-settings") <span class="hide-text"> Change and edit </span>Settings<span class="hide-text"> that modify behaviour and sound</span>
 			input(type="checkbox" aria-label="Show the settings panel")#button-settings
-		button#button-accessibility(type="button" aria-label="Accessibility settings" aria-controls="accessibility-panel" aria-expanded="false" aria-haspopup="dialog" hidden) Accessibility
 						
 
 		//- Record / Save / Load --------------------------------------------------------------
@@ -154,7 +155,7 @@ menu#control-panel
 			a.folder-link(href="#folder-record" aria-label="Show Recording options") <span class="hide-text">Show </span>Record<span class="hide-text">Optionss </span>
 			menu.folder-content#folder-record
 				include record-panel.pug
-				a(href="#control-panel") Return to the control menu
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
 
 		//- label(for="button-midi-menu" ) MIDI<span class="hide-text"> Menu</span>
 		//- 	input#button-midi-menu(type="checkbox" aria-label="Show MIDI Options")
@@ -218,71 +219,38 @@ menu#control-panel
 		//- Drop up / down list of tempos with typeable option too
 		//- Uses customizable <select> (appearance: base-select) with rich content
 		label(for="select-tempo", hidden) <span class="hide-text">Set </span>Tempo
-			select#select-tempo.select-content(aria-label="Choose a tempo from the list" name="select-tempo")
-				button(type="button")
-					selectedcontent
-				optgroup
-					legend Slow
-					option(value="45")
-						span.tempo-bpm 45
-						span.tempo-label BPM
-					option(value="60")
-						span.tempo-bpm 60
-						span.tempo-label BPM
-					option(value="75")
-						span.tempo-bpm 75
-						span.tempo-label BPM
-				optgroup
-					legend Medium
-					option(value="85")
-						span.tempo-bpm 85
-						span.tempo-label BPM
-					option(value="90")
-						span.tempo-bpm 90
-						span.tempo-label BPM
-					option(value="100")
-						span.tempo-bpm 100
-						span.tempo-label BPM
-					option(value="110")
-						span.tempo-bpm 110
-						span.tempo-label BPM
-					option(value="120", selected)
-						span.tempo-bpm 120
-						span.tempo-label BPM
-				optgroup
-					legend Fast
-					option(value="130")
-						span.tempo-bpm 130
-						span.tempo-label BPM
-					option(value="140")
-						span.tempo-bpm 140
-						span.tempo-label BPM
-					option(value="150")
-						span.tempo-bpm 150
-						span.tempo-label BPM
-				optgroup
-					legend Extreme
-					option(value="200")
-						span.tempo-bpm 200
-						span.tempo-label BPM
-					option(value="300")
-						span.tempo-bpm 300
-						span.tempo-label BPM
-					option(value="400")
-						span.tempo-bpm 400
-						span.tempo-label BPM
-					option(value="500")
-						span.tempo-bpm 500
-						span.tempo-label BPM
+			select#select-tempo(aria-label="Choose a tempo from the list" name="select-tempo")
+				optgroup(label="Slow")
+					option(value="45" data-detail="BPM") 45
+					option(value="60" data-detail="BPM") 60
+					option(value="75" data-detail="BPM") 75
+				optgroup(label="Medium")
+					option(value="85" data-detail="BPM") 85
+					option(value="90" data-detail="BPM") 90
+					option(value="100" data-detail="BPM") 100
+					option(value="110" data-detail="BPM") 110
+					option(value="120" data-detail="BPM" selected) 120
+				optgroup(label="Fast")
+					option(value="130" data-detail="BPM") 130
+					option(value="140" data-detail="BPM") 140
+					option(value="150" data-detail="BPM") 150
+				optgroup(label="Extreme")
+					option(value="200" data-detail="BPM") 200
+					option(value="300" data-detail="BPM") 300
+					option(value="400" data-detail="BPM") 400
+					option(value="500" data-detail="BPM") 500
 		#control-panel-tempo.folder-menu.bottom.horizontal.right
 			a.folder-link(href="#folder-tempo" aria-label="Show timing options") <span class="hide-text">Show </span>tempo<span class="hide-text"> options</span>
 			menu.folder-content#folder-tempo
 				include tempo-panel.pug
-				a(href="#control-panel") Return to the control menu
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
+
+		include looking-glass-panel.pug
 
 		label(for="select-key") <span class="hide-text">Choose </span>Key
 			select#select-key(aria-label="Select global musical tonic")
-				option(value="free-range") Free Range
+				option(value="free-range")&attributes({ 'data-detail': 'no shared key', 'data-icon': optionPath('M6 8a4 4 0 1 0 0 8c3.5 0 8.5-8 12-8a4 4 0 1 1 0 8c-3.5 0-8.5-8-12-8z') }) Free Range
+				hr
 				option(value="C") C
 				option(value="Db") Db / C#
 				option(value="D") D
@@ -298,38 +266,41 @@ menu#control-panel
 
 		label(for="select-key-scale") <span class="hide-text">Choose </span>Mode
 			select#select-key-scale(aria-label="Select global musical scale or mode")
-				optgroup(label="Common")
+				+icon-group("Common", "M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z")
 					option(value="CHROMATIC_SCALE") Chromatic
 					option(value="MAJOR_SCALE") Major / Ionian
 					option(value="NATURAL_MINOR_SCALE") Natural Minor / Aeolian
 					option(value="HARMONIC_MINOR_SCALE") Harmonic Minor
 					option(value="MELODIC_MINOR_SCALE") Melodic Minor
-				optgroup(label="Major Modes")
+				+icon-group("Major Modes", "M3 20h4v-5h4v-5h4V5h6")
 					option(value="DORIAN_SCALE") Dorian
 					option(value="PHRYGIAN_SCALE") Phrygian
 					option(value="LYDIAN_SCALE") Lydian
 					option(value="MIXOLYDIAN_SCALE") Mixolydian
 					option(value="LOCRIAN_SCALE") Locrian
-				optgroup(label="Pentatonic")
+				+icon-group("Pentatonic", "m12 3 9 7-3.5 11h-11L3 10z")
 					option(value="PENTATONIC_MAJOR_SCALE") Pentatonic Major
 					option(value="PENTATONIC_MINOR_SCALE") Pentatonic Minor
-				optgroup(label="Symmetric")
+				+icon-group("Symmetric", "M12 3v18M3 12h18M5.5 5.5l13 13M18.5 5.5l-13 13")
 					option(value="WHOLE_TONE_SCALE") Whole Tone
 					option(value="DIMINISHED_SCALE") Diminished
 					option(value="AUGMENTED_SCALE") Augmented
-				optgroup(label="Other")
+				+icon-group("Other", "M3 12c3-7 6-7 9 0s6 7 9 0")
 					option(value="BLUES_SCALE") Blues
 					option(value="FIFTHS_SCALE") Circle of Fifths
 
 
 		//- Volumes -------------------------------------------------------------------------------
+		include backing-melody-panel.pug
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
+
 		#control-panel-volume.folder-menu.inline.up
 			a.folder-link(href="#folder-volume" aria-label="Show volume or mixer controls")
 				span.volume-control-name Volume
 				span.mixer-control-name Mixer
 			menu.folder-content#folder-volume
 				include volume-panel.pug
-				a(href="#control-panel") Return to the control menu
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
 
 		//- put share and full screen at the end
 		button.hide-text#button-share( type="button" aria-label="Share this with your friends" onclick="document.getElementById('share-menu').share()" ) <span class="sr-only">Share</span>
@@ -396,12 +367,23 @@ menu#control-panel
 			input#button-midi-percussion(type="checkbox" aria-label="Send percussion to MIDI outputs")
 
 	//- Settings for all users --------------------------------------------------------------- 
-	menu#settings.controls
+	section#settings.controls(aria-labelledby="settings-title")
+		span#settings-title(hidden) Global settings and options
 
-		legend Global settings and options
+		#control-panel-engine.folder-menu.bottom.horizontal.right.primary.type-sound.group-engine(data-advanced-mode-only)
+			a.folder-link.primary.type-sound.group-engine(href="#folder-engine" aria-label="Show engine settings") Engine
+			menu.folder-content.settings-folder#folder-engine
+				include engine-panel.pug
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
+		#control-panel-mouth.folder-menu.bottom.horizontal.right.secondary.type-input.group-tracking
+			a.folder-link.secondary.type-input.group-tracking(href="#folder-mouth" aria-label="Show mouth dynamics settings") Mouth
+			menu.folder-content.settings-folder#folder-mouth
+				include mouth-panel.pug
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
+		button#button-accessibility.primary.type-application.group-accessibility(type="button" aria-label="Accessibility settings" aria-controls="accessibility-panel" aria-expanded="false" aria-haspopup="dialog" hidden) Accessibility
 
-		label(for="select-keyboard-mode") Keyboard Mode
-			select#select-keyboard-mode(name="keyboard-mode" required aria-describedby="keyboard-mode-help")
+		label.secondary.type-input.group-keyboard(for="select-keyboard-mode") Keyboard Mode
+			select#select-keyboard-mode(name="keyboard-mode" required aria-label="Choose whether the keyboard controls the app or plays notes, chords, drums or samples" aria-describedby="keyboard-mode-help")
 				option(value="operational") <kbd>F1</kbd> Operational
 				option(value="notes") <kbd>F2</kbd> Notes
 				option(value="notes-high") <kbd>F3</kbd> Notes +1 Octave
@@ -410,79 +392,53 @@ menu#control-panel
 				option(value="samples") <kbd>F6</kbd> Samples
 			small#keyboard-mode-help.sr-only F1–F6, Page Up and Page Down also change keyboard mode.
 
-		label(for="button-quantise") Quantise
+		label.secondary.type-music.group-timing(for="button-quantise") Quantise
 			input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
 
-		label(for="select-arp-rate") ARP Rate
+		label.tertiary.type-music.group-timing(for="select-arp-rate") ARP Rate
 			select#select-arp-rate(name="arp-rate" aria-label="Select the global arpeggio rate")
 				option(value="auto") Auto
 				option(value="slow") Slow
 				option(value="medium") Medium
 				option(value="fast") Fast
 
-		.head-note-range-control
-			label.button(for="button-head-note-range") Head angle
-				input#button-head-note-range(type="checkbox" aria-label="Show head note range control" aria-controls="head-note-range-fader")
-			.head-note-range-fader#head-note-range-fader
-				output#head-note-range-output(for="head-note-range") 90°
-				label(for="head-note-range")
-					span.sr-only Head note range in degrees
-					input#head-note-range.vertical(type="range" min="20" max="120" step="1" value="90" list="head-note-range-ticks" aria-describedby="head-note-range-output")
-					datalist#head-note-range-ticks
-						option(value="20" label="20°")
-						option(value="40" label="40°")
-						option(value="60" label="60°")
-						option(value="80" label="80°")
-						option(value="100" label="100°")
-						option(value="120" label="120°")
-
-		.head-vertical-range-control
-			label.button(for="button-head-vertical-range") Vertical angle
-				input#button-head-vertical-range(type="checkbox" aria-label="Show vertical head range control" aria-controls="head-vertical-range-fader")
-			.head-vertical-range-fader#head-vertical-range-fader
-				output#head-vertical-range-output(for="head-vertical-range") 90°
-				label(for="head-vertical-range")
-					span.sr-only Vertical head range in degrees
-					input#head-vertical-range.vertical(type="range" min="20" max="120" step="1" value="90" list="head-vertical-range-ticks" aria-describedby="head-vertical-range-output")
-					datalist#head-vertical-range-ticks
-						option(value="20" label="20°")
-						option(value="40" label="40°")
-						option(value="60" label="60°")
-						option(value="80" label="80°")
-						option(value="100" label="100°")
-						option(value="120" label="120°")
+		#control-panel-head.folder-menu.bottom.horizontal.right.secondary.type-input.group-tracking
+			a.folder-link.secondary.type-input.group-tracking(href="#folder-head" aria-label="Show head movement settings") Head
+			menu.folder-content.settings-folder#folder-head
+				include head-panel.pug
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
 
 		//- only appears when there are multiple cameras on the computer?
 		//- FIXME: TODO: add a refresh button to enumerate if a device was plugged in?
-		label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
+		label#camera.primary.type-input.group-camera(for="select-camera") <span class="hide-text">Select </span>Camera
 			select#select-camera(aria-label="Select a different camera")
 			//- Equipment Settings 
 			//- TODO: Put into a dialog?
 			//- 	label#camera(for="select-camera") <span class="hide-text">Select </span>Camera
 			//- 		select(aria-label="Select a different camera")#select-camera
 		
-		label(data-advanced-mode-only hidden for="button-automate") Automate<span class="hide-text"> in supervised mode</span>
+		label.secondary.type-input.group-automation(data-advanced-mode-only hidden for="button-automate") Automate<span class="hide-text"> in supervised mode</span>
 			input#button-automate(type="checkbox" aria-label="Automate the buttons and supervise the music")
 	
-		label(for="button-toggle-advanced") Advanced<span class="hide-text">  Controls to unlock more settings</span>
-			input#button-toggle-advanced(type="checkbox" aria-label="Show advanced settings and controls")
+		label.primary.type-application.group-settings(for="button-toggle-advanced") Expert mode
+			input#button-toggle-advanced(type="checkbox" aria-label="Expert mode")
 	
 		
-		label.keyboard-shortcut-control(for="button-clear") Clear<span class="hide-text"> Video</span>
+		label.keyboard-shortcut-control.secondary.type-visual.group-video(for="button-clear") Clear<span class="hide-text"> Video</span>
 			kbd.keyboard-shortcut(aria-hidden="true") C
 			input#button-clear(type="checkbox" aria-label="Clear visuals & video")
 	
-		label.keyboard-shortcut-control(for="button-sync-video") Synch<br>Video
+		label.keyboard-shortcut-control.tertiary.type-visual.group-video(for="button-sync-video") Synch<br>Video
 			kbd.keyboard-shortcut(aria-hidden="true") N
 			input#button-sync-video(type="checkbox" aria-label="Toggle whether to try to synch video to performance")
 
-		label(for="button-flood") Flood<span class="hide-text"> fill the screen</span>
+		label.secondary.type-visual.group-video(for="button-flood") Flood<span class="hide-text"> fill the screen</span>
 			input#button-flood(type="checkbox" aria-label="Scale the live video and overlays to fill the screen without black bars")
 
-		label(for="button-hud") HUD<span class="hide-text"> input device overlay</span>
+		label.secondary.type-visual.group-overlay(for="button-hud") HUD<span class="hide-text"> input device overlay</span>
 			input#button-hud(type="checkbox" aria-label="Toggle the input device HUD")
 
-		label(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
+		label.primary.type-visual.group-overlay(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
 			input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
 
 		//- label(for="button-pattern") Drum Pattern
@@ -491,61 +447,78 @@ menu#control-panel
 		//- label(for="button-transparent") Synch<span class="hide-text">ronise the movements (prevents judder)</span>
 		//- 	input#button-transparent(type="checkbox" aria-label="Synch video to movements")
 	
-		label(data-overlay-control for="button-meshes") Faces<span class="hide-text"> have overlays</span>
+		label.secondary.type-visual.group-overlay(data-overlay-control for="button-meshes") Faces<span class="hide-text"> have overlays</span>
 			input#button-meshes(type="checkbox" aria-label="Toggle Face overlays")
 	
-		label.keyboard-shortcut-control(data-overlay-control for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
+		label.keyboard-shortcut-control.secondary.type-visual.group-overlay(data-overlay-control for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
 			kbd.keyboard-shortcut(aria-hidden="true") T
 			input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
 
-		label(data-overlay-control for="button-toggle-overlay") Overlay<span class="hide-text"> canvas for text and symbols</span>
+		label.secondary.type-visual.group-overlay(data-overlay-control for="button-toggle-overlay") Text &amp; symbols
 			input#button-toggle-overlay(type="checkbox" aria-label="Toggle the overlay canvas for text and symbols")
 		
-		label(data-overlay-control for="button-eyebrows") Brows
+		label.tertiary.type-visual.group-overlay(data-overlay-control for="button-eyebrows") Brows
 			input#button-eyebrows(type="checkbox" aria-label="Toggle eyebrow overlays")
 
-		label(data-overlay-control for="button-lips") Lips
-			input#button-lips(type="checkbox" aria-label="Toggle lip overlays")
+		label.tertiary.type-visual.group-overlay(data-overlay-control for="select-lips") Lips
+			select#select-lips(aria-label="Select a lip overlay style")
+				option(value="disabled" selected)&attributes({ 'data-icon': offIcon }) Disabled (no lipstick)
+				hr
+				+swatch-option("Classic red", "hsl(350 85% 50%)")(value="red")
+				+swatch-option("Hot pink", "hsl(325 85% 55%)")(value="pink")
+				+swatch-option("Purple", "hsl(280 70% 50%)")(value="purple")
+				+swatch-option("Coral", "hsl(15 85% 60%)")(value="coral")
+				+swatch-option("Gold", "hsl(45 90% 55%)")(value="gold")
+				hr
+				+rich-option("Match the notes", optionPath("M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"))(value="music")
+				+rich-option("Music pulse", optionPath("M2 12h5l2-6 4 12 2-6h7"))(value="pulse")
+				+swatch-option("Rainbow flow", "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)")(value="rainbow")
+				+rich-option("Beat flash", optionPath("m13 2-8 12h6l-1 8 8-12h-6z"))(value="beat")
+				+swatch-option("Rainbow beat flash", "conic-gradient(red 0 60deg, yellow 0 120deg, lime 0 180deg, cyan 0 240deg, blue 0 300deg, magenta 0)")(value="beat-rainbow")
 
-		label(data-overlay-control for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> style</span>
+		label.tertiary.type-visual.group-overlay(data-overlay-control for="select-eyes") <span class="hide-text">Choose </span>Eyes<span class="hide-text"> style</span>
 			select#select-eyes(aria-label="Select an eye overlay style")
-				option(value="s:0,i:0,p:0,a:1") Disabled (no eyes)
-				option(value="s:0.2,i:0.1,p:0.05,a:1") Tiny Eyes
-				option(value="s:0.5,i:0.2,p:0.1,a:1") Small Eyes
-				option(value="s:1.2,i:1,p:0.4,a:1" data-default-eye-preset) Regular Eyes
-				option(value="s:4,i:3,p:2,a:0.8") Sidebottom
-				option(value="s:7,i:5,p:2,a:0.9") Googly Eyes
-				option(value="s:2,i:1.5,p:1.1,a:1" data-eye-design="star") Star Eyes
-				option(value="s:2.1,i:1.5,p:1,a:1" data-eye-design="heart") Heart Eyes
-				option(value="s:2,i:1.4,p:1,a:1" data-eye-design="diamond") Diamond Eyes
-				option(value="s:1.8,i:1.5,p:1.2,a:1" data-eye-design="cat") Cat Eyes
-				option(value="s:1,i:0,p:0,a:1" data-eye-design="sunglasses") Sunglasses
+				+rich-option("Disabled (no eyes)", offIcon)(value="s:0,i:0,p:0,a:1")
+				hr
+				+eye-option("Tiny Eyes", 3, 1)(value="s:0.2,i:0.1,p:0.05,a:1")
+				+eye-option("Small Eyes", 5.5, 2)(value="s:0.5,i:0.2,p:0.1,a:1")
+				+eye-option("Regular Eyes", 8, 3.5)(value="s:1.2,i:1,p:0.4,a:1" data-default-eye-preset)
+				+eye-option("Sidebottom", 9.5, 4, 3)(value="s:4,i:3,p:2,a:0.8")
+				+eye-option("Googly Eyes", 10, 5.5, -2)(value="s:7,i:5,p:2,a:0.9")
+				hr
+				+rich-option("Star Eyes", optionPath("m12 3 2.7 5.6 6.2.9-4.5 4.3 1.1 6.2-5.5-3-5.5 3 1.1-6.2-4.5-4.3 6.2-.9z"))(value="s:2,i:1.5,p:1.1,a:1" data-eye-design="star")
+				+rich-option("Heart Eyes", optionPath("M12 20.5S3.5 15 3.5 9A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8.5 2c0 6-8.5 11.5-8.5 11.5z"))(value="s:2.1,i:1.5,p:1,a:1" data-eye-design="heart")
+				+rich-option("Diamond Eyes", optionPath("m12 3 8 9-8 9-8-9z"))(value="s:2,i:1.4,p:1,a:1" data-eye-design="diamond")
+				+rich-option("Cat Eyes", optionSvg('<circle cx="12" cy="12" r="9"/><path d="M12 5c1.8 2.5 1.8 11.5 0 14-1.8-2.5-1.8-11.5 0-14z" fill="currentColor"/>'))(value="s:1.8,i:1.5,p:1.2,a:1" data-eye-design="cat")
+				+rich-option("Sunglasses", optionSvg('<path d="M1.5 9h21M11 11.5h2"/><rect x="3" y="9" width="8" height="6" rx="2" fill="currentColor"/><rect x="13" y="9" width="8" height="6" rx="2" fill="currentColor"/>'))(value="s:1,i:0,p:0,a:1" data-eye-design="sunglasses")
 	
-		label(data-advanced-mode-only data-overlay-control hidden, for="select-palette") <span class="hide-text">Choose </span>Colours
+		label.tertiary.type-visual.group-overlay(data-advanced-mode-only data-overlay-control hidden, for="select-palette") <span class="hide-text">Choose </span>Colours
 			select#select-palette(aria-label="Select different colours" name="select-palette")
 				option(value="s:80,l:80") Neon 
 				option(value="s:30,l:40") Pastel 
 				option(value="s:2,l:80") Monochrome (B&amp;W)
 				option(value="s:100,l:0") Dark
 			
-		//- We removed the other soound font options for now
-		label(data-advanced-mode-only hidden for="select-samples") <span class="hide-text">Choose </span>Sound<span class="hide-text"> Library</span>
-			select#select-samples(aria-label="Select a sound font to change sounds" name="select-samples")
-				//- option(value="FatBoy") FatBoy 
-				//- option(value="FluidR3_GM") Fluid
-				//- option(value="MusyngKite") Musyng Kite 
-				option(value="MusyngKite") OpenGM24
 
-	//- DISPLAY ---------------------------------------------------------------
-		label(for="select-display") <span class="hide-text">Choose </span>Display
+		//- DISPLAY ---------------------------------------------------------------
+		label.primary.type-visual.group-overlay(data-advanced-mode-only for="select-display")
+			span.settings-caption Display
 			select#select-display(name="select-display" aria-label="Select the display mode")
 				//- option.hidden(value="DISPLAY_COMPOSITE") DISPLAY_COMPOSITE
 				//- option(value="DISPLAY_CANVAS_2D") Regular 2D
 				//- option(value="DISPLAY_MEDIA_VISION_2D") Regular 2D+
 				//- option(value="DISPLAY_WEB_GL_3D") Regular 3D
 				//- option(value="DISPLAY_LOOKING_GLASS_3D" hidden) Looking Glass Portrait
+		label.secondary.type-visual.group-overlay(data-advanced-mode-only hidden for="select-composite-layout") Composite layout
+			select#select-composite-layout(aria-label="Choose the Composite layout")
+				option(value="layers") Layered
+				option(value="grid") Grid
+				option(value="row") Horizontal split
+				option(value="column") Vertical split
+		label.secondary.type-visual.group-overlay(data-advanced-mode-only hidden for="select-composite-displays") Composite displays
+			select#select-composite-displays(multiple size="5" data-native-select aria-label="Choose displays to show in Composite")
 
-		label(for="select-subdivisions") Subdivisions
+		label.tertiary.type-visual.group-overlay(for="select-subdivisions") Subdivisions
 			select#select-subdivisions(name="divisions" aria-label="Choose the number of face geometry subdivisions")
 				option(value="0") Off
 				option(value="1") 1 — 2× density
@@ -555,15 +528,12 @@ menu#control-panel
 
 		include theme-selector.pug
 	
-		label(data-advanced-mode-only for="select-impulse") <span class="hide-text">Select </span>Reverb
-			select#select-impulse(aria-label="Select a different reverb" name="select-impulse")
-				//- options are injected via javascript  
 				
-		label.keyboard-shortcut-control(for="button-speak") <span class="hide-text">Toggle </span>Speech
+		label.keyboard-shortcut-control.secondary.type-application.group-accessibility(for="button-speak") <span class="hide-text">Toggle </span>Speech
 			kbd.keyboard-shortcut(aria-hidden="true") L
 			input#button-speak(type="checkbox" aria-label="Read out instructions and help")
 	
-		button#button-reset(data-advanced-mode-only  type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
+		button#button-reset.tertiary.type-application.group-settings(data-advanced-mode-only  type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
 	
 		//- bit of a hack...
 		label.button-close(for="button-settings") Hide Settings

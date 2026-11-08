@@ -1,5 +1,6 @@
 @use "../gadgets/_button.scss";
 @use "../_ease.scss";
+@use "sass:color";
 
 // Hide icons when they are being concealed
 // unless they are focused then reshow them
@@ -313,6 +314,7 @@
 
 	--xa:50%;
 	--ya:0;
+	font-weight:800;
 	
 	cursor: auto;
 	pointer-events: auto;
@@ -367,11 +369,36 @@
 		z-index: 1;
 	}
 
+	.player-header{
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.player-report-button{
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 44px;
+		inline-size: 44px;
+		block-size: 44px;
+		min-inline-size: 44px;
+		padding: 0;
+		margin: 0;
+		background-image: none;
+
+		&::before,
+		&::after{
+			display: none;
+		}
+	}
+
 	.player-name-title{
 		all: unset;
 		box-sizing: border-box;
 		display: block;
 		inline-size: 100%;
+		flex: 1 1 auto;
 		min-inline-size: 0;
 		font: inherit;
 		color: inherit;
@@ -399,6 +426,8 @@
 
 	summary{
 		background-color:var(--shade-gray);
+		font-size:1.25rem;
+		font-weight:900;
 		color:var(--shade-dark, blue);
 		border-top:var(--border,1px) solid var(--shade-white);
 		
@@ -439,6 +468,15 @@
 
 		&::after{
 			content:'×';
+			font-size:1.5em;
+			line-height:1;
+			opacity:0;
+			flex-shrink:0;
+		}
+
+		&:hover::after,
+		&:focus-visible::after{
+			opacity:1;
 		}
 	}
 
@@ -458,7 +496,7 @@
 	}
 
 	.person-options summary{
-		font-size: 0.95rem;
+		font-size: 1.25rem;
 		line-height: 1.1;
 		letter-spacing: 0;
 	}
@@ -478,6 +516,7 @@
 		min-width: 0;
 		color: var(--shade-white, white);
 		line-height: 1.1;
+		font-weight:800;
 	}
 
 	.person-option-wide{
@@ -522,6 +561,37 @@
 		outline-offset: 2px;
 	}
 
+	// Keep the rich picker visible inside the compact per-person options panel.
+	@supports (appearance: base-select) {
+		.person-option select.eyebrow-select {
+			position: static;
+			inset: auto;
+			opacity: 1;
+			color: var(--shade-white, white);
+			padding: 0.35rem 0.65rem;
+			background: var(--control-bg);
+			&::picker-icon { opacity: 1; }
+			> button {
+				opacity: 1;
+				padding: 0;
+				min-block-size: 2rem;
+			}
+			selectedcontent {
+				justify-content: start;
+				padding: 0;
+			}
+			.option-icon {
+				display: inline-flex;
+				inline-size: 3.5rem;
+				color: var(--control-accent, currentColor);
+				flex-shrink: 0;
+			}
+			.option-icon svg { inline-size: 100%; block-size: 1.75rem; }
+			option { gap: 0.75rem; min-block-size: 2.75rem; }
+			option:checked { font-weight: 700; }
+		}
+	}
+
 	.person-option-range-row{
 		display:grid;
 		grid-template-columns:minmax(0, 1fr) minmax(4ch, max-content);
@@ -550,6 +620,71 @@
 		padding:0;
 	}
 	
+	@each $family, $colour in (
+		"Piano": #4477aa,
+		"Percussion": #ee7733,
+		"Organ": #aa66cc,
+		"Guitar": #228866,
+		"Bass": #336688,
+		"Strings": #cc6677,
+		"Ensemble": #882255,
+		"Brass": #ddaa33,
+		"Reed": #669933,
+		"Pipe": #44aaaa,
+		"Synth Lead": #cc44aa,
+		"Synth Pad": #7777cc,
+		"Synth Effects": #aa4499,
+		"Folk": #aa7744,
+		"Percussive": #cc5533,
+		"Sound Effects": #667788
+	){
+		[data-instrument-family="#{$family}"]{
+			--instrument-colour: #{$colour};
+			@if color.channel($colour, "lightness", $space: hsl) >= 45% {
+				--instrument-foreground: #171717;
+			} @else {
+				--instrument-foreground: #fff;
+			}
+		}
+	}
+
+	[data-instrument-family] > summary,
+	.instrument label{
+		border-left: 6px solid var(--instrument-colour, var(--shade-orange, #ee7733));
+		background-color: var(--shade-gray);
+		color: var(--shade-dark, #222);
+		font-weight: 800;
+	}
+
+	[data-instrument-family] > summary{
+		font-weight:900;
+	}
+
+	[data-instrument-family][open]{
+		background-color:var(--instrument-colour);
+
+		> summary,
+		.instrument label{
+			background-color:var(--instrument-colour);
+			color:var(--instrument-foreground);
+		}
+
+		.instrument label:is(:hover, :focus-within){
+			background-color:color-mix(in srgb, var(--instrument-colour) 85%, var(--instrument-foreground));
+		}
+	}
+
+	.person-options[open] > summary{
+		background-color:var(--control-accent);
+		color:var(--shade-dark, #222);
+	}
+
+	.instrument label:has(input:checked){
+		font-weight: 900;
+		text-decoration:underline;
+		text-underline-offset:0.2em;
+	}
+
 	// Each individual list item has an li.instrument
 	.instrument{
 		display:flex;
@@ -558,9 +693,8 @@
 		label{    
 			width: 100%;
 			display: block;
-			border:1px dotted var(--col-dark, black);
+			border-block:1px dotted var(--col-dark, black);
 			border-right:0;
-			border-left:0;
 			line-height: 1;
 			position: relative;
 

@@ -3,6 +3,16 @@
 	max-block-size: calc(100dvh - 1rem);
 }
 
+#folder-tempo .tabs-panel[hidden] { display: none; }
+
+#control-panel-tempo.tempo-dismissed:not(.controls-list-folder-open) #folder-tempo {
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	animation: none;
+	* { visibility: hidden; pointer-events: none; }
+}
+
 #tempo-tabs {
 	max-block-size: calc(100dvh - var(--height, 88px) - 2rem);
 	> .tabs-panel { min-height: 0; }
@@ -13,13 +23,15 @@
 	flex-direction: column;
 	gap: 0.75rem;
 	min-width: 0;
-	input { width: 100%; box-sizing: border-box; }
+	input, textarea { width: 100%; box-sizing: border-box; }
+	textarea { resize: vertical; min-height: 5rem; font: inherit; }
+	#timing-room-video { display: block; width: 100%; max-height: 240px; object-fit: contain; }
 	.timing-room-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 	button { min-height: 44px; }
 	#timing-room-share:not([hidden]) { display: grid; justify-items: start; gap: 0.75rem; }
 	#timing-room-link { overflow-wrap: anywhere; }
 	#timing-room-qr { background: white; max-width: 100%; padding: 8px; }
-	#timing-room-qr svg { display: block; width: 220px; max-width: 100%; height: auto; }
+	#timing-room-qr svg { display: block; width: 320px; max-width: 100%; height: auto; }
 }
 
 // #control-panel-tempo{
@@ -27,19 +39,158 @@
 // 	width:max-content;
 // }
 
-label[for="tempo-input-text"]{
+// Set Tempo ----------------------------------------------
+// Every control fills its grid cell; labels sit in the flow above
+// their sliders and BPM sits directly beneath the number.
+.form-tempo{
+	--tempo-gap:clamp(1rem, 2.5vw, 2rem);
+	box-sizing:border-box;
+	display:grid;
+	position:relative;
+	max-width:100%;
+	min-height:100%;
+	margin:0;
+	padding:var(--tempo-gap);
+	width:100%;
+	gap:var(--tempo-gap);
+	align-content:start;
+	grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+	grid-template-areas:
+		"input input"
+		"unit unit"
+		"up down"
+		"range-label swing-label"
+		"range swing"
+		"tap tap"
+		"feedback feedback"
+	;
+
+	// the tab already names this panel
+	> legend{
+		position:absolute;
+		width:1px;
+		height:1px;
+		overflow:hidden;
+		clip-path:inset(50%);
+		white-space:nowrap;
+	}
+
+	> label{
+		position:static;
+		inset:auto;
+		margin:0;
+		padding:0;
+		width:auto;
+		height:auto;
+		background:none;
+	}
+
+	> button{
+		--max-width-override:none;
+		justify-self:stretch;
+		align-self:stretch;
+		width:100%;
+		min-width:0;
+		max-height:none;
+		margin:0;
+	}
+}
+
+#tempo-input-text{
 	grid-area:input;
+	box-sizing:border-box;
+	width:100%;
+	min-width:0;
+	font-size:clamp(5rem, 18vw, 12rem);
+	line-height:1;
+	text-align:center;
+
+	&::-webkit-inner-spin-button, 
+	&::-webkit-outer-spin-button { 
+		-webkit-appearance: none; 
+		margin: 0; 
+	}
+}
+
+// visually "BPM" under the number, still the accessible label
+.form-tempo > label[for="tempo-input-text"]{
+	grid-area:unit;
+	justify-self:center;
+	margin-top:calc(-1 * var(--tempo-gap) / 2);
+	font-size:0;
 	color:transparent;
-	position:absolute;
-	top:50%;
-	right:calc( 20px + var(--pad) );
-	padding-bottom:0;
 	
 	&::after{
 		content:"BPM";
 		font-size:2rem;
-		display:inline-block;
+		letter-spacing:.2em;
 		color:var(--shade-white);
+	}
+}
+
+#tempo-increase-button{
+	--bg:url(/source/assets/icons/up_arrow_black_24dp.svg);
+	grid-area:up;
+}
+
+#tempo-decrease-button{
+	--bg:url(/source/assets/icons/down_arrow_black_24dp.svg);
+	grid-area:down;
+}
+
+#timing-feedback{
+	grid-area:feedback;
+	text-align:center;
+	&:empty{ display:none; }
+}
+
+#tempo-tap-button{
+	--icon-size: 44px;
+	--bg:url(/source/assets/icons/fingerprint-24px.svg);
+	grid-area:tap;
+}
+
+#tempo-input-range{
+	grid-area:range;
+	width:100%;
+}
+
+#tempo-swing-range{
+	grid-area:swing;
+	width:100%;
+}
+
+.form-tempo > label[for="tempo-input-range"]{
+	grid-area:range-label;
+}
+
+.form-tempo > label[for="tempo-swing-range"]{
+	grid-area:swing-label;
+}
+
+// shares the swing label row, pinned to its far end
+#tempo-swing-output{
+	grid-area:swing-label;
+	justify-self:end;
+	align-self:center;
+}
+
+@media screen and (min-width:720px) {
+	.form-tempo{
+		grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) minmax(12rem, 20rem);
+		grid-template-areas: 
+			"input input up"
+			"input input down"
+			"unit unit tap"
+			"range-label swing-label feedback"
+			"range swing feedback"
+		;
+	}
+
+	// gap above the sliders so they don't crowd the number
+	.form-tempo > label:is([for="tempo-input-range"], [for="tempo-swing-range"]),
+	#tempo-swing-output{
+		margin-top:var(--tempo-gap);
 	}
 }
 
@@ -56,79 +207,6 @@ label[for="tempo-input-text"]{
 	}
 }
 
-#timing-step,
-#tempo-input-text,
-#tempo-tap-button{
-	grid-column: 1 / -1;
-}
-
-
-#tempo-input-text{
-	font-size:1000%;
-	grid-area:input;
-
-	&::-webkit-inner-spin-button, 
-	&::-webkit-outer-spin-button { 
-		-webkit-appearance: none; 
-		margin: 0; 
-	}
-}
-
-#tempo-increase-button{
-	--bg:url(/source/assets/icons/up_arrow_black_24dp.svg);
-	grid-area:up;
-}
-
-#tempo-decrease-button{
-	--bg:url(/source/assets/icons/down_arrow_black_24dp.svg);
-	grid-area:down;
-}
-
-#timing-feedback{
-	grid-area:feedback;
-}
-
-// this is round button
-#tempo-tap-button{
-    --icon-size: 44px;
-	--bg:url(/source/assets/icons/fingerprint-24px.svg);
-	grid-area:tap;
-	margin-top: 2rem;
-}
-
-#tempo-input-range{
-	grid-area:range;
-	width:100%;
-}
-
-#tempo-swing-range{
-	grid-area:swing;
-	width:100%;
-}
-
-#tempo-swing-output{
-	grid-area:swing-output;
-}
-
-label[for="tempo-input-range"]{
-	grid-area:range;
-}
-
-label[for="tempo-swing-range"]{
-	grid-area:swing;
-}
-
-label[for="tempo-input-range"],
-label[for="tempo-swing-range"]{
-	top:100%;
-	padding: 0;
-	padding-top: var(--pad);
-	background: inherit;
-	z-index: 1;
-	height: fit-content;
-	width: fit-content;
-}
-
 .set-tempo{
 	box-sizing: border-box;
 	width: 100%;
@@ -136,39 +214,6 @@ label[for="tempo-swing-range"]{
 	flex-direction: column;
 }
 
-.form-tempo{
-	box-sizing:border-box;
-	display:grid;
-	gap:var(--pad, 10px);
-	max-width: 100%;
-	margin:0;
-	min-height:100%;
-	padding:var(--pad);
-	width:100%;
-	grid-template-columns: 1fr 1fr;
-	gap:var(--pad, 1rem);
-	grid-template-areas: 
-		"feedback swing-output"
-		"input input"
-		"up down"
-		"range swing"
-		"tap tap"
-	;
-}
-
-@media screen and (min-width:720px) {
-	.form-tempo{
-		grid-template-columns: repeat(3, 1fr) minmax( max-content, 1fr );
-		gap:var(--pad, 1rem);
-		grid-template-areas: 
-			"input input input up"
-			"input input input down"
-			"input input input feedback"
-			"input input input tap"
-			"range swing swing-output tap"
-		;
-	}
-}
 /*
 // ----------------------------------------
 

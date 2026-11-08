@@ -121,7 +121,7 @@ dialog.command-palette {
 		box-shadow: none;
 		transform: none;
 
-		&::before, &::after { display: none; }
+
 		span { font-weight: 750; }
 		small { font-size: 0.78rem; opacity: 0.72; }
 		&[aria-selected="true"] { color: var(--shade-white); background: var(--shade-brand); }
@@ -161,7 +161,7 @@ dialog.command-palette {
 		opacity: 1;
 		pointer-events: auto;
 
-		&::before, &::after { display: none; }
+
 	}
 }
 

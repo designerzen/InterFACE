@@ -117,7 +117,7 @@
 	overflow: visible;
 }
 .midi-device-channel{ display: grid; gap: .35rem; color: inherit; }
-.controls #folder-midi .midi-device-channel select:not(.select-content){
+.controls #folder-midi .midi-device-channel select{
 	display: block;
 	position: static;
 	inset: auto;
@@ -183,7 +183,7 @@ label[for="waiting-for-midi-devices"]{
 .midi-person-routing h4{ margin: 0; }
 .midi-person-route{ display: grid; grid-template-columns: minmax(5rem, .7fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .65rem; padding-block: .75rem; border-block-end: 1px solid #ffffff30; }
 .midi-person-route strong{ overflow-wrap: anywhere; }
-.controls #folder-midi .midi-person-route select:not(.select-content){ min-block-size: 2.75rem; font-size: .9rem; }
+.controls #folder-midi .midi-person-route select{ min-block-size: 2.75rem; font-size: .9rem; }
 @media(max-width: 36rem){
 	.midi-person-route{ grid-template-columns: minmax(0, 1fr); }
 	.midi-person-route > span{ display: none; }
@@ -300,14 +300,14 @@ label[for="waiting-for-midi-devices"]{
 .controls #folder-midi #midi-monitor-title{ position: static; background: none; font-size: .95rem; }
 .controls #folder-midi .midi-panel-footer{ display: flex; align-items: center; gap: .5rem; padding: .4rem .75rem; border-block-start: 1px solid #ffffff40; background: #211c2b; z-index: 3; }
 .controls #folder-midi #midi-scroll-status{ margin-inline-end: auto; font-size: .75rem; }
-.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button{
+.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button:not(.button-close){
  display: inline-flex; align-items: center; justify-content: center; position: static;
  min-width: 44px; min-height: 44px; width: auto; height: auto; margin: 0; padding: .4rem .65rem;
  border: 1px solid #ffffff70; border-radius: .4rem; color: #fff; background: #352c44;
  font: 600 .85rem/1.2 system-ui, sans-serif; text-shadow: none; letter-spacing: normal; box-shadow: none;
 }
-.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button::before,
-.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button::after{ display: none; }
+.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button:not(.button-close)::before,
+.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button:not(.button-close)::after{ display: none; }
 .controls #folder-midi button:disabled{ opacity: .45; }
 .controls #folder-midi :focus-visible{ outline: 2px solid #ffce86; outline-offset: 2px; }
 #control-panel-midi.midi-dismissed #folder-midi{ visibility: hidden; opacity: 0; pointer-events: none; animation: none; }
@@ -335,7 +335,7 @@ label[for="waiting-for-midi-devices"]{
 .controls #folder-midi button[data-midi-reset]::after{ display: none; }
 .controls #folder-midi button.midi-preset{ max-width: none; }
 .controls #folder-midi .midi-device-channel{ font-size: .8rem; }
-.controls #folder-midi .midi-device-channel select:not(.select-content){ order: 0; }
+.controls #folder-midi .midi-device-channel select{ order: 0; }
 
 // MIDI CC reference shares the routing panel's colours with a compact table.
 dialog#midi-cc-dialog{

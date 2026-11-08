@@ -28,7 +28,8 @@ export const convertHeadOrientationIntoNoteData = (prediction, options) => {
 			case 'pitch':
 				return normaliseHeadPitchForRange(
 					prediction,
-					resolveHeadVerticalRangeDegrees(options.headVerticalRangeDegrees, options.headVerticalRangeOverride)
+					resolveHeadVerticalRangeDegrees(options.headVerticalRangeDegrees, options.headVerticalRangeOverride),
+					options.headVerticalOffsetDegrees
 				)
 			default:
 				return prediction[controller]

@@ -16,7 +16,12 @@
 
 	box-sizing: border-box;
 	position: fixed;
+	// Keep instructions below panels; a popover would bypass this stacking order.
 	z-index: 303;
+	left: 0;
+	right: 0;
+	width: fit-content;
+	margin: 0 auto;
 
 	// need some space for the presets drawer
 	top:calc(2rem + var(--pad, 16px) * 2 );
@@ -44,7 +49,7 @@
 	color:var(--shade-dark, black);
 	background-color:var(--shade-white, white);
 
-	// border-width: 2px;
+	border: 2px solid;
 	border-radius: 3px;
 	border-color:var(--shade-orange, orange);
 	text-align: left;

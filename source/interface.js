@@ -1,3 +1,7 @@
+import { setupLookingGlassPanel } from './dom/ui.looking-glass.js'
+import { normaliseMouthGate } from './people/lip-sensitivity.js'
+import { setupMouthDynamicsInterface } from './dom/ui.mouth-dynamics.js'
+import { setupHeadMovementInterface } from './dom/ui.head-movement.js'
 import DirectionsSession from './models/directions-session.js'
 import {createDirectionsFeedback} from './dom/directions-feedback.js'
 // NB. Does *not* work with AudioWorklet
@@ -8,6 +12,7 @@ import {createDirectionsFeedback} from './dom/directions-feedback.js'
 import { setupFeedbackControls } from './dom/text.js'
 import { setupCommandPalette } from './dom/command-palette.js'
 import { setupControlsList } from './dom/controls-list.js'
+import { setupEngineInterface } from './dom/ui.engine.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
 	controlPanel,focusApp,
@@ -16,10 +21,13 @@ import {
 } from './dom/ui.js'
 
 import { showPlayerSelector } from './dom/ui.player-selection.js'
+import { prepareLookingGlassIntegration } from './dom/looking-glass-integration.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { createInputStatusOverlay } from './dom/ui.input-status.js'
 import { setupRecordings } from './dom/ui.recording.js'
-import { connectSelect, connectReverbControls, connectReverbSelector, populateSelect } from './dom/select.js'
+import { connectSelect, connectReverbControls, connectReverbSelector, enhanceSelects, populateSelect } from './dom/select.js'
+import { getReverbSpace } from './audio/effects/reverb-spaces.js'
+import { optionLabel } from './dom/option-label.js'
 import { setToggle, setPressureToggle } from './dom/toggle.js'
 import { setButton, setPressureButton } from './dom/button.js'
 import { appendPhotographElement } from './dom/photographs.js'
@@ -43,11 +51,12 @@ import { Quanitiser } from './visual/quantise.js'
 
 // SHARE
 import { createQRCode, createSVGQRCodeFromURL } from './utils/barcodes.js'
-import { convertOptionToObject, debounce } from './utils/utils.js'
+import { convertOptionToObject } from './utils/utils.js'
 
 // STATE
 import { EVENT_STATE_CHANGE, createStateFromHost, createStateOptionsFromHost, setElementCheckState } from './utils/state.js'
 import StateWithIO from './utils/state-io.js'
+import { createFrameStallMonitor } from './utils/frame-stall-monitor.js'
 
 // MODELS
 import { TAU, clamp } from "./maths/maths.js"
@@ -59,7 +68,7 @@ import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
 import { MAX_PERSON_TRIM, PersonManager } from './people/person-manager.js'
 import Person, { getRandomPresetForPerson } from './people/person.js'
-import { normaliseHeadNoteRangeDegrees, normaliseHeadVerticalRangeDegrees } from './people/head-note-range.js'
+import { normaliseHeadNoteRangeDegrees, normaliseHeadVerticalOffsetDegrees, normaliseHeadVerticalRangeDegrees } from './people/head-note-range.js'
 
  import { 
 	STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_SUSTAIN,
@@ -79,6 +88,7 @@ import { normaliseHeadNoteRangeDegrees, normaliseHeadVerticalRangeDegrees } from
 import { AudioTimer } from 'netronome'
 import { playNextPart, getKitSequence, getBeatTriggerTime } from './timing/patterns.js'
 import { applyDrumSubHitEnvelope, createDrumArranger } from './timing/drum-arranger.js'
+import { createDrumStepScheduler, getDrumPartTime } from './timing/drum-feel.js'
 import { DRUM_GROOVES, createCompositeDrumGroove } from './timing/drum-patterns.js'
 import {
 	getArpeggioRateLabel,
@@ -103,7 +113,6 @@ import { recordAudio } from './audio/record/record.audio.js'
 import { 
 	active, playing, 
 	setupAudio,stopAudio, getVolume, setVolume, getPercussionNode,
-	setReverb,
 	getMasterMixdown,
 	loadAudio,
 	playTrack
@@ -116,6 +125,7 @@ import { normaliseVisualiser, getVisualiserMode, VISUALISER_MODES } from './visu
 import { createVisualiserNotes } from './visual/visualiser-notes.js'
 import { createButterchurnVisualiser } from './visual/butterchurn-visualiser.js'
 import { observeSessionEvents } from './storage/session-events.js'
+import { setupBackingMelody } from './dom/ui.backing-melody.js'
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
@@ -126,6 +136,7 @@ import {
 	getPerformanceDrumStereoPan,
 } from './audio/performance-drum-stereo.js'
 import InstrumentFactory, { createInstrumentFromData } from './audio/instrument-factory.js'
+import { VOICE_ENGINE_AUDIO_LOCKED } from './audio/voice-engine-options.js'
 import InstrumentManager from './audio/instrument-manager.js'
 
 // TODO: Replace with instrumentFactory
@@ -344,6 +355,7 @@ export const createInterface = (
 
 	const doc = document	// using a reference allows truncation
 	const body = doc.documentElement
+	const lookingGlassStartup = prepareLookingGlassIntegration()
 
 	// fetch some elements from the DOM
 	const main = doc.querySelector("main")
@@ -419,6 +431,7 @@ export const createInterface = (
 	let instrumentManager 
 	let instrumentFactory 
 	let sessionUI
+	let backingMelody
 	const reportSessionRecordingError = error => {
 		console.error('Session recording error', error)
 		setFeedback(error?.message ?? 'Session recording failed', 0)
@@ -441,6 +454,7 @@ export const createInterface = (
 	})
 
 	// canvas / GL adapters for front end
+	let lookingGlassPanel
 	let display = null
 	let displayManager
 	let overlayDisplay = canvasOverlayElement ? new DisplayOverlay2d(canvasOverlayElement) : null
@@ -464,6 +478,7 @@ export const createInterface = (
 	// Store for gagdets, widgets and buttons
 	const toggles = {}
 	const selects = {}
+	let enginePanel
 	const buttons = {}
 
 	// SharedLocal cookie data includes time played for, return visits etc.
@@ -805,6 +820,9 @@ export const createInterface = (
 	let kit
 	let patterns
 	let drumArranger
+	const drumStepScheduler = createDrumStepScheduler()
+	let backingClockStart
+	let lastBackingStepAt = 0
 	let recorder
 	let percussionPanKit
 	let appliedPercussionStereoEnabled
@@ -855,6 +873,10 @@ export const createInterface = (
 	let isPredictionEngineBusy = false
 	let fetchPredictionFromEngine
 	let peoplePredictions
+	const frameStallMonitor = createFrameStallMonitor()
+	// Available after a long session without keeping a profiler recording open.
+	globalThis.photosynthFrameStalls = frameStallMonitor
+	document.addEventListener('visibilitychange', () => frameStallMonitor.reset())
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -1564,6 +1586,7 @@ export const createInterface = (
 	}
 
 	const resumeAudio = () => {
+		instrumentFactory?.voiceEngineHost.backend?.resume?.()
 		if (audioContext?.state === 'suspended')
 		{
 			return audioContext.resume()
@@ -1679,6 +1702,24 @@ export const createInterface = (
 
 		if (percussion)
 		{
+			const patternPreset = getPercussionPreset(percussion.pattern)
+			const soundPreset = getPercussionPreset(percussion.sound)
+			if (patternPreset?.groove)
+			{
+				stateMachine.set("percussionPattern", patternPreset.id, selects.percussionPattern)
+				if (selects.percussionPattern) selects.percussionPattern.value = patternPreset.id
+			}
+			if (soundPreset)
+			{
+				applyPercussionSoundPreset(soundPreset.id)
+				stateMachine.set("percussionSound", soundPreset.id, selects.percussionSound)
+				if (selects.percussionSound) selects.percussionSound.value = soundPreset.id
+			}
+			if (patternPreset || soundPreset)
+			{
+				stateMachine.set("drumkit", "", selects.drumkit)
+				if (selects.drumkit) selects.drumkit.value = ""
+			}
 			applyPercussionKitPreset(percussion.kit)
 			if (percussion.enabled === false)
 			{
@@ -1691,17 +1732,17 @@ export const createInterface = (
 				stateMachine.set("backingTrack", true, buttonPercussion)
 				setElementCheckState(buttonPercussion, true)
 			}
-			if (percussion.seed || percussion.intent || percussion.groove)
+			if (percussion.seed || percussion.intent || percussion.groove || patternPreset?.groove)
 			{
 				drumArranger = createDrumArranger({
-					seed:percussion.seed ?? preset.id,
-					groove:percussion.groove,
+					seed:percussion.seed ?? patternPreset?.seed ?? preset.id,
+					groove:percussion.groove ?? patternPreset?.groove,
 					bpm:clock?.BPM ?? stateMachine.get("bpm") ?? 0,
 					rapidPercussion:stateMachine.get("rapidPercussion") === true,
 					performanceControl:stateMachine.get("performanceDrums") !== false,
-					intent:percussion.intent ?? {},
-					phraseBars:percussion.phraseBars,
-					stepsPerBar:percussion.stepsPerBar
+					intent:percussion.intent ?? patternPreset?.intent ?? {},
+					phraseBars:percussion.phraseBars ?? patternPreset?.phraseBars,
+					stepsPerBar:percussion.stepsPerBar ?? patternPreset?.stepsPerBar
 				})
 			}
 			if (percussion.intent)
@@ -1807,6 +1848,7 @@ export const createInterface = (
 	const createPerson = (index, eyeColour, personIndex=0 ) => {
 			
 		const person = personManager.getPerson(index)
+		person.getBarDuration = () => clock?.timePerBar
 		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
 		const queryPersonOptions = Person.getQueryOptions(
 			stateMachine.asObject,
@@ -1879,7 +1921,10 @@ export const createInterface = (
 				performanceDrums:stateMachine.get('performanceDrums') !== false,
 				showPoints:stateMachine.get('showPoints') === true,
 				headNoteRangeDegrees:normaliseHeadNoteRangeDegrees(stateMachine.get('headNoteRangeDegrees')),
+				lipRange:stateMachine.get('lipRange'),
+				mouthDynamics:stateMachine.get('mouthDynamics'),
 				headVerticalRangeDegrees:normaliseHeadVerticalRangeDegrees(stateMachine.get('headVerticalRangeDegrees')),
+				headVerticalOffsetDegrees:normaliseHeadVerticalOffsetDegrees(stateMachine.get('headVerticalOffsetDegrees')),
 
 				stereoPan:stateMachine.get('stereo'),
 
@@ -1894,6 +1939,7 @@ export const createInterface = (
 				drawEyes:stateMachine.get('eyes'),
 				drawEyebrows:stateMachine.get('eyebrows'),
 				drawMouth:stateMachine.get('lips'),
+				lipStyle:stateMachine.get('lipStyle') === 'disabled' && stateMachine.get('lips') ? 'music' : stateMachine.get('lipStyle'),
 
 				recordData:stateMachine.get('recordData')				
 			},
@@ -1901,10 +1947,12 @@ export const createInterface = (
 			// overwrite these with any user set
 			savedOptions,
 			personData,
-			queryPersonOptions
+			queryPersonOptions,
+			{ lipRange:stateMachine.get('lipRange'), mouthDynamics:stateMachine.get('mouthDynamics'), mouthCutOff:normaliseMouthGate(stateMachine.get('mouthGate')) / 100, mouthSilence:normaliseMouthGate(stateMachine.get('mouthGate')) / 200 }
 		)
 		
-		person.setOptions(personOptions)
+		// The mixer owns voice trim; older per-player settings must not reset it.
+		person.setOptions({...personOptions,trim:personManager.trimLevel})
 		console.info("Person", person.storageKey, { personMeta, importedData, personData} )		
 	
 		// Events dispatched by Person :
@@ -1981,11 +2029,12 @@ export const createInterface = (
 			syncPersonQueryState()
 		})
 
+		const specifiedPreset = [queryPersonOptions.defaultPreset, personData.defaultPreset, savedOptions?.defaultPreset]
+			.find(value => (Number.isInteger(value) && value >= 0 && value < 128) || (typeof value === 'string' && value.trim() !== ''))
 		let preset
-		if (importedData && importedData.preset)
+		if (specifiedPreset !== undefined)
 		{
-			console.info("Importing person data", {personMeta, importedData}, {person} )
-			preset = importedData.preset
+			preset = specifiedPreset
 
 		}else if (midiPerformance){
 
@@ -2016,7 +2065,7 @@ export const createInterface = (
 		
 		// we need to wait for the instrument to be loaded before we can start
 		// await person.setupAudio(audioContext, offlineAudioContext, audioChain)
-		person.ready = person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset).then(async( playerIndex )=>{
+		person.ready = person.setupAudio(audioContext, audioChain, instrumentManager.clone(), offlineAudioContext, preset, stateMachine.get("players")).then(async( playerIndex )=>{
 			// FIXME: now append this person's options to the URL
 			// const personExportData = person.exportData()
 			
@@ -2147,7 +2196,7 @@ export const createInterface = (
 		{
 			person.lastNoteRepeatedTick = repeatTick
 		}
-		const shouldRepeatNote = !isFreshAttack && isPersonNoteRepeatDue(person, repeatTick)
+		const shouldRepeatNote = !isFreshAttack && isPersonNoteRepeatDue(person, repeatTick, clock?.totalDivisions, clock?.timeBetween)
 		if (person.options?.muted)
 		{
 			stopPersonAudio(person)
@@ -2241,6 +2290,12 @@ export const createInterface = (
 		if (shouldRepeatNote)
 		{
 			person.lastNoteRepeatedTick = repeatTick
+		}
+		if (person.singing && person.noteVelocity > 0 && (isFreshAttack || shouldRepeatNote) && !stateMachine.get('muted')) {
+			display?.emitNoteParticles?.(person, {
+				at: performance.now() + (Number.isFinite(scheduledTime) ? (scheduledTime - audioContext.currentTime) * 1000 : 0),
+				velocity: person.noteVelocity
+			})
 		}
 		// Send person created data to midi
 		if (audioOutput && audioOutput.length > 0)
@@ -2353,6 +2408,7 @@ export const createInterface = (
 	}
 
 	const stopAllPersonAudio = () => {
+		backingMelody?.stop()
 		const amountOfPeople = personManager.quantityOfPlayers
 		for ( let i=0; i<amountOfPeople; ++i )
 		{
@@ -2462,6 +2518,14 @@ export const createInterface = (
 	
 	// DISPLAYs ===============================================================
 
+	// Stored as JSON like voiceEngineSettings: an object would serialise as "[object Object]"
+	const getLookingGlassSettings = () => {
+		const stored = stateMachine.get('lookingGlassSettings')
+		if (stored && typeof stored === 'object') return stored
+		try { return JSON.parse(stored) ?? {} } catch { return {} }
+	}
+	const saveLookingGlassSettings = values => stateMachine.set('lookingGlassSettings', JSON.stringify({ ...getLookingGlassSettings(), ...values }))
+
 	/**
 	 * switch display to the specifed one and destroy any existing
 	 * ensuring to wipe the canvas ad recrate a new one if required
@@ -2476,9 +2540,50 @@ export const createInterface = (
 		const displayOptions = {
 			...DEFAULT_OPTIONS_DISPLAY_COMPOSITE,
 			autoStart:saveAndExclaim,
-			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0
+			geometrySubdivisions: stateMachine.get( "divisions" ) ?? 0,
+			lookingGlassSettings: getLookingGlassSettings(),
+			onLookingGlassSettingsChange: (values, { persist = true } = {}) => {
+				// Dragging previews only; saving adds a history entry
+				if (persist) saveLookingGlassSettings(values)
+				if ('headParticleMode' in values) stateMachine.set('headParticleMode', values.headParticleMode)
+				if ('headParticleGridSpacing' in values) stateMachine.set('headParticleGridSpacing', values.headParticleGridSpacing)
+				lookingGlassPanel?.sync()
+			},
+			headParticleMode: stateMachine.get('headParticleMode') ?? 'surface',
+			headParticleGridSpacing: stateMachine.get('headParticleGridSpacing') ?? .04,
+			onHeadParticleModeChange: mode => {
+				stateMachine.set('headParticleMode', mode)
+				const selector = document.getElementById('select-looking-glass-particles')
+				if (selector) selector.value = mode
+				const spacing = document.getElementById('select-looking-glass-grid-spacing')
+				if (spacing) spacing.closest('.control-settings-field').hidden = mode === 'surface'
+			},
+			displays: stateMachine.get('compositeDisplays') ?? undefined,
+			layout: stateMachine.get('compositeLayout') ?? 'layers',
+			onError: async error => {
+				if (displayManager.type !== displayType) return
+				console.error('Display failed; switching to Canvas 2D', error)
+				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop)
+			}
 		}
 		const newDisplay = await displayManager.switchTo(displayType, predictionLoop, displayOptions)
+		// Apply the denser Portrait preset once, including installations that saved
+		// the previous level. Later manual changes to the selector remain available.
+		if (newDisplay.nativeMirrorDisplay && (stateMachine.get('lookingGlassDensityVersion') ?? 0) < 1) {
+			const subdivisions = Math.max(3, newDisplay.options.geometrySubdivisions ?? 0)
+			newDisplay.setGeometrySubdivisions(subdivisions)
+			saveLookingGlassSettings({ geometrySubdivisions: subdivisions })
+			stateMachine.set('lookingGlassDensityVersion', 1)
+		}
+		const displaySelect = document.getElementById('select-display')
+		if (displaySelect) displaySelect.value = newDisplay.type
+		lookingGlassPanel?.sync(newDisplay)
+		const sharedDensity = document.getElementById('select-subdivisions')
+		if (sharedDensity) sharedDensity.closest('label').hidden = Boolean(newDisplay.nativeMirrorDisplay)
+		const layers = document.getElementById('select-composite-displays')
+		if (layers) layers.closest('label').hidden = displayType !== DISPLAY_TYPES.DISPLAY_COMPOSITE
+		const layout = document.getElementById('select-composite-layout')
+		if (layout) layout.closest('label').hidden = displayType !== DISPLAY_TYPES.DISPLAY_COMPOSITE
 		main.classList.toggle("flag-transparent", Boolean(newDisplay.transparentCanvas))
 		syncDisplayToMedia(inputElement)
 
@@ -2815,7 +2920,11 @@ export const createInterface = (
 	
 		let tickerTape = ''
 		const discoMode = stateMachine.get("disco")
-		const showOverlayCanvas = stateMachine.get("showOverlay") !== false
+		const visualiserMode = stateMachine.get("spectrogram") ? getVisualiserMode(stateMachine.get("visualiser")) : null
+		const blendVideo = visualiserMode?.renderer === 'butterchurn'
+		const showOverlayCanvas = stateMachine.get("showOverlay") !== false && !display?.suppressMainOverlay
+		overlayDisplay?.setSuspended(!showOverlayCanvas)
+		overlayDisplay?.setSkipEmoticons(display?.drawsSceneEmoticon)
 
 		// no display so nothing visual to update!
 		// so we can have a black mirror mode
@@ -2825,7 +2934,13 @@ export const createInterface = (
 				overlayDisplay?.clearDirty()
 			}
 				
-			if (discoMode)
+			if (blendVideo) {
+				// Canvas blending needs the video pixels in the same canvas, even when
+				// the normal video presentation is a separate DOM layer.
+				display.clearFaceFeatures?.()
+				display.clear()
+				display.drawElement(inputElement, 0, 0, true, display.width, display.height)
+			} else if (discoMode)
 			{	
 				// FUNKY DISCO MODE...
 				// switch effect type?
@@ -2872,11 +2987,11 @@ export const createInterface = (
 			
 			if (stateMachine.get("spectrogram"))
 			{
-				const mode = getVisualiserMode(stateMachine.get("visualiser"))
+				const mode = visualiserMode
 				const audioFrame = sampleVisualiserAudio(analyser, mode, !!recorder)
-				if (mode.id === 'butterchurn') {
-					const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height)
-					if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height)
+				if (mode.renderer === 'butterchurn') {
+					const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mode.preset)
+					if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mode.blendMode })
 				} else {
 					butterchurnVisualiser.stop()
 					display.drawVisualiser(audioFrame.frequency, audioFrame.length, mode.id, audioFrame.time, visualiserNotes.update())
@@ -2978,13 +3093,11 @@ export const createInterface = (
 						const colours = person.setColours( prediction, false, hasBeatJustPlayed)
 					// TODO: Add highlighted and selected variants
 						display.drawPerson( person, hasBeatJustPlayed, colours )
-						display.drawFaceFeatures?.(person, colours)
+						display.drawFaceFeatures?.(person, colours, hasBeatJustPlayed)
 	
-						if (stateMachine.get("text"))
-						{
-							const textDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
-							textDisplay && person.drawText( prediction, textDisplay ) 
-						}
+						// emoji always draws, Subtitles only toggles the labels
+						const textDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
+						textDisplay && person.drawText( prediction, textDisplay, true, stateMachine.get("text") )
 					}
 	
 					// then whenever you fancy it,
@@ -3050,13 +3163,10 @@ export const createInterface = (
 					{
 						const colours = person.setColours(cachedPrediction, false, hasBeatJustPlayed)
 						display.drawPerson( person, hasBeatJustPlayed, colours )
-						display.drawFaceFeatures?.(person, colours)
+						display.drawFaceFeatures?.(person, colours, hasBeatJustPlayed)
 
-						if (stateMachine.get("text"))
-						{
-							const textDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
-							textDisplay && person.drawText( cachedPrediction, textDisplay )
-						}
+						const textDisplay = showOverlayCanvas ? (overlayDisplay ?? display) : null
+						textDisplay && person.drawText( cachedPrediction, textDisplay, true, stateMachine.get("text") )
 					}
 					//console.info(index, "KILLING for time" + person.name, person.deadForDuration * 0.001 )
 				}
@@ -3170,8 +3280,8 @@ export const createInterface = (
 			const verticalBars = (overlayDisplay?.height ?? 0) >= baseBeatCount * 3 * 5 + 40 ? 3 : 2
 			const beatCount = beatVizMode === 'vertical' ? baseBeatCount * verticalBars : baseBeatCount
 			const arrangerStep = Math.max(0, drumArranger?.getStep?.() ?? 0)
-			const halfBeatProgress = ((clock.beatProgress % 0.5) + 0.5) % 0.5 * 2
-			const beatProgress = ((arrangerStep % beatCount) + halfBeatProgress) / beatCount
+			const stepProgress = drumArranger?.getStepProgress(audioContext.currentTime, lastBackingStepAt) ?? 0
+			const beatProgress = ((arrangerStep % beatCount) + stepProgress) / beatCount
 			overlayDisplay?.drawBeatProgress(beatProgress, drumArranger?.getBeatSequence?.(beatCount) ?? beatCount, {
 				mode:beatVizMode,
 				lanes:drumArranger?.getActiveLanes?.()
@@ -3180,7 +3290,7 @@ export const createInterface = (
 
 		if (showOverlayCanvas)
 		{
-			overlayDisplay?.flushFrame(display?.canvas2DContext ?? null)
+			overlayDisplay?.flushFrame(display?.getParticleContext?.() ?? display?.canvas2DContext ?? null)
 		}
 
 		// Present after the particles have joined the faces and audio visualiser
@@ -3202,6 +3312,7 @@ export const createInterface = (
 	 */
 	const USER_HOGGING_SYSTEM_LIMIT = stateMachine.get("restartAfter") ?? 10_000
 	const predictionLoop = async ()=>{
+		frameStallMonitor.beginFrame(inputElement.currentTime)
 
 		const quantityOfActivePlayersPreviously = quantityOfActivePlayers
 
@@ -3209,11 +3320,16 @@ export const createInterface = (
 		{
 			// console.info("Display:Loop-RENDER")
 			isPredictionEngineBusy = true
+			const inferenceStartedAt = performance.now()
 			//peoplePredictions = await fetchPredictionFromEngine()
 			fetchPredictionFromEngine( clock.now ).then(updatedPrediction=>{
-				isPredictionEngineBusy = false
 			 	peoplePredictions = updatedPrediction
+			}).catch(error => {
+				console.error('Face prediction failed', error)
+			}).finally(() => {
+				isPredictionEngineBusy = false
 			})
+			frameStallMonitor.phase('inference', performance.now() - inferenceStartedAt)
 			// isPredictionEngineBusy = false
 			//usePredictions(peoplePredictions)
 			
@@ -3225,7 +3341,9 @@ export const createInterface = (
 		
 		if (peoplePredictions)
 		{
+			const renderStartedAt = performance.now()
 			usePredictions(peoplePredictions)
+			frameStallMonitor.phase('render', performance.now() - renderStartedAt)
 		
 			// first check to see if we have new people or people have left...
 			if (quantityOfActivePlayers !== peoplePredictions.length )
@@ -3360,10 +3478,16 @@ export const createInterface = (
 		}
 
 		const isQuarterNote = clock.isQuarterNote
+		if (isQuarterNote) display?.setBeatTiming?.({
+			bpm: clock.BPM,
+			at: performance.now() + (Number.isFinite(scheduledContextTimeSeconds)
+				? (scheduledContextTimeSeconds - audioContext.currentTime) * 1000 : 0)
+		})
 		if(isQuarterNote)sessionUI?.pulse()
 		const isHalfNote = clock.isHalfNote
 		const isBar = clock.isAtStart
 		const isMuted = stateMachine.get("muted")
+		backingMelody?.tick({isBar,at:scheduledContextTimeSeconds,bpm:clock.BPM})
 
 		// const isBarStart = divisionsElapsed===0
 		// TODO: The timer is a good place to determine if the computer
@@ -3476,7 +3600,7 @@ export const createInterface = (
 				}
 
 				const repeatPulse = clock.totalBarsElapsed * clock.totalDivisions + divisionsElapsed
-				const mouthRepeatDue = isPersonNoteRepeatDue(person, repeatPulse)
+				const mouthRepeatDue = isPersonNoteRepeatDue(person, repeatPulse, clock.totalDivisions, clock.timeBetween)
 				let measure = arp ? arpeggioTiming.shouldTrigger || mouthRepeatDue : isQuarterNote || mouthRepeatDue
 
 				// console.info("quantise:person", person, "measure", measure, "arp", arp )
@@ -3538,24 +3662,26 @@ export const createInterface = (
 		// a swing of one will offset every second beat
 		//const swing = 1
 		// isQuarterNote
-		if ( !isMuted && stateMachine.get("backingTrack") && isHalfNote)
+		if ( !isMuted && stateMachine.get("backingTrack"))
 		{
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
-			const slower = Math.floor( clock.BPM * 0.0005 ) + 1
-			if ( divisionsElapsed % slower === 0 )
+			if (backingClockStart !== clock.startTime) {
+				drumStepScheduler.reset()
+				backingClockStart = clock.startTime
+			}
+			const lookahead = networkTiming?.room.active ? 0.03 :
+				getBeatTriggerTime(audioContext, clock, scheduledContextTimeSeconds) - scheduledContextTimeSeconds
+			const drumTimes = drumStepScheduler.advance({arranger:drumArranger, tickAt:scheduledContextTimeSeconds,
+				bpm:clock.BPM, now:audioContext.currentTime, lookahead})
+			for (const triggerAt of drumTimes)
 			{
 				//console.log(slower,barsElapsed, clock.BPM * 0.001,  divisionsElapsed % slower )
 				// Anchor scheduling on the metronome tick's true audio-clock
 				// time (so beats stay locked to the clock grid) and add a
 				// small safety lookahead to keep us out of the past.
-				const triggerAt = getBeatTriggerTime(
-					audioContext,
-					clock,
-					scheduledContextTimeSeconds,
-					networkTiming?.room.active ? 0 : undefined
-				)
+				lastBackingStepAt = triggerAt
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
 				syncDrumMutedParts(eyeControlledTimbres)
 				const drumPerformer = personManager.getPerson(0)
@@ -3563,50 +3689,52 @@ export const createInterface = (
 					noteVelocity:drumPerformer?.noteVelocity,
 					pitchBend:Number.isFinite(drumPerformer?.pitchBendValue) ? drumPerformer.pitchBendValue - 1 : 0
 				}, triggerAt)
-				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM }) ?? {}
+				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM, swing:clock.swing }) ?? {}
+				const partTime = part => getDrumPartTime(parts, part, triggerAt)
 				const panningPositions = getCurrentPercussionPanPositions()
 				if (parts.kick > 0) {
 					const velocity = parts.kick / 255
-					notifyBackingDrumPart('kick', velocity, triggerAt)
-					triggerDrumVoice(kit.kick, eyeControlledTimbres.kick, velocity, triggerAt)
+					notifyBackingDrumPart('kick', velocity, partTime('kick'))
+					triggerDrumVoice(kit.kick, eyeControlledTimbres.kick, velocity, partTime('kick'))
 				}
 				if (parts.snare > 0) {
 					const velocity = parts.snare / 255
-					setPercussionPartPan('snare', panningPositions, triggerAt)
-					notifyBackingDrumPart('snare', velocity, triggerAt)
-					triggerDrumVoice(kit.snare, eyeControlledTimbres.snare, velocity, triggerAt)
+					setPercussionPartPan('snare', panningPositions, partTime('snare'))
+					notifyBackingDrumPart('snare', velocity, partTime('snare'))
+					triggerDrumVoice(kit.snare, eyeControlledTimbres.snare, velocity, partTime('snare'))
 				}
 				if (parts.hat > 0) {
 					const hat = parts.hatOpen ? openHatTimbreOptions : closedHatTimbreOptions
 					const velocity = parts.hat / 255
-					setPercussionPartPan('hat', panningPositions, triggerAt)
-					notifyBackingDrumPart('hat', velocity, triggerAt, 'backingTrack', Boolean(parts.hatOpen))
-					triggerDrumVoice(kit.hat, hat, velocity, triggerAt)
+					setPercussionPartPan('hat', panningPositions, partTime('hat'))
+					notifyBackingDrumPart('hat', velocity, partTime('hat'), 'backingTrack', Boolean(parts.hatOpen))
+					triggerDrumVoice(kit.hat, hat, velocity, partTime('hat'))
 				}
 				if (parts.clap > 0) {
 					const velocity = parts.clap / 255
-					notifyBackingDrumPart('clap', velocity, triggerAt)
-					triggerDrumVoice(kit.clap, undefined, velocity, triggerAt)
+					notifyBackingDrumPart('clap', velocity, partTime('clap'))
+					triggerDrumVoice(kit.clap, undefined, velocity, partTime('clap'))
 				}
 				if (parts.cowbell > 0 && cowbellTimbreOptions) {
 					const velocity = parts.cowbell / 255
-					notifyBackingDrumPart('cowbell', velocity, triggerAt)
-					triggerDrumVoice(kit.cowbell, cowbellTimbreOptions, velocity, triggerAt)
+					notifyBackingDrumPart('cowbell', velocity, partTime('cowbell'))
+					triggerDrumVoice(kit.cowbell, cowbellTimbreOptions, velocity, partTime('cowbell'))
 				}
 				for (const part in parts) {
 					if (primaryBackingDrumParts.has(part)) continue
 					const partVelocity = parts[part]
 					if (!(partVelocity > 0) || !kit[part]) continue
-					if (part === 'triangleMute') kit.triangleOpen.choke(0.006, triggerAt)
-					if (part === 'cuicaMute') kit.cuicaOpen.choke(0.006, triggerAt)
-					if (part === 'surdoMute') kit.surdoOpen.choke(0.006, triggerAt)
+					const laneAt = partTime(part)
+					if (part === 'triangleMute') kit.triangleOpen.choke(0.006, laneAt)
+					if (part === 'cuicaMute') kit.cuicaOpen.choke(0.006, laneAt)
+					if (part === 'surdoMute') kit.surdoOpen.choke(0.006, laneAt)
 					const velocity = partVelocity / 255
-					setPercussionPartPan(part, panningPositions, triggerAt)
-					notifyBackingDrumPart(part, velocity, triggerAt)
-					triggerDrumVoice(kit[part], getAuxiliaryPercussionTimbre(part), velocity, triggerAt)
+					setPercussionPartPan(part, panningPositions, laneAt)
+					notifyBackingDrumPart(part, velocity, laneAt)
+					triggerDrumVoice(kit[part], getAuxiliaryPercussionTimbre(part), velocity, laneAt)
 				}
 				for (const event of parts.events ?? []) {
-					const eventAt = triggerAt + event.offset
+					const eventAt = partTime(event.lane) + event.offset
 					const velocity = event.velocity / 255
 					if (event.lane === 'snare') {
 						const timbre = applyDrumSubHitEnvelope(eyeControlledTimbres.snare, event, backingSnareSubHitTimbre)
@@ -3624,6 +3752,8 @@ export const createInterface = (
 			}
 			//console.error("backing|", {kick, snare, hat })
 			// todo: also MIDI beats on channel 16?
+		}else{
+			drumStepScheduler.reset()
 		}
 
 		// if (playing)
@@ -3745,11 +3875,14 @@ export const createInterface = (
 			stateMachine.get('display') ?? DISPLAY_TYPES.DISPLAY_CANVAS_2D
 		)
 		try{
-			const {suggested, available} = await getDisplaysInformation( displayManager.type )
+			const portrait = await lookingGlassStartup.ready
+			const {suggested, available} = await getDisplaysInformation(displayManager.type, undefined, {
+				holographicDisplayQuantity: portrait.rendererReady ? portrait.count : 0
+			})
 			
 			progressCallback(loadIndex++/loadTotal, "Display Initisalising")
 			
-			const t = createDisplayOptions(available, suggested)
+			const t = createDisplayOptions(available, suggested, stateMachine.get('compositeDisplays'), stateMachine.get('compositeLayout') ?? 'layers')
 			
 			if (suggested === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D)
 			{
@@ -3931,8 +4064,11 @@ export const createInterface = (
 				stateMachine.set('bpm', transport.bpm)
 				stateMachine.set('swing', transport.swing)
 				syncTempoControls()
-				if (!transport.playing) personManager.people.forEach(person => stopPersonAudio(person))
-			})
+				if (!transport.playing) {
+					backingMelody?.stop()
+					personManager.people.forEach(person => stopPersonAudio(person))
+				}
+			}, inputStatusOverlay)
 			tempoUI = setupTempoInterface(networkTiming?.tempoClock ?? clock, null, null, timerChanged =>{
 				saveTimingState()
 			}, visible => {
@@ -3957,9 +4093,6 @@ export const createInterface = (
 		try{
 			const AUDIO_OPTIONS = {
 
-				// quantity of reverb
-				reverb:1,
-			
 				// frequency analyser pulse smoothing (for cool visual effects!)
 				// how quick it drops < 0.85 looks cool
 				smoothingTimeConstant:0.45,
@@ -4077,7 +4210,8 @@ export const createInterface = (
 		sampleOutput = audioContext.createGain()
 		sampleOutput.gain.value = Math.min(1, Math.max(0, sampleVolume))
 		sampleOutput.connect(getMasterMixdown())
-		const personTrim = personManager.setTrim(Number.isFinite(storedTrim) ? storedTrim : 1)
+		backingMelody = setupBackingMelody({context:audioContext,destination:getMasterMixdown(),stateMachine,personManager})
+		const personTrim = personManager.setTrim(Number.isFinite(storedTrim) ? storedTrim : (4 * 2 / 3))
 		setVolume( volume )
 
 		const {	
@@ -4127,7 +4261,35 @@ export const createInterface = (
 		// MUSICAL INSTRUMENTS --------------------------------------------------------------------------------
 		// create our musical instrument factory
 		try{
-			instrumentFactory = new InstrumentFactory(audioContext)
+			instrumentFactory = new InstrumentFactory(audioContext, {voiceEngine:stateMachine.get('voiceEngine'), voiceEngineSettings:stateMachine.get('voiceEngineSettings'), destination:audioChain})
+			try { await instrumentFactory.voiceEngineHost.ensure() } catch(error) {
+				const savedEngine = instrumentFactory.voiceEngineHost.engine
+				const host = instrumentFactory.voiceEngineHost
+				console.warn('Saved voice engine could not start; restoring Native.', error)
+				await host.select('native')
+				if (error.code === VOICE_ENGINE_AUDIO_LOCKED)
+				{
+					// Play on Native for now and keep the choice: a gesture unlocks audio.
+					const restoreSavedEngine = () => {
+						document.removeEventListener('pointerdown', restoreSavedEngine, true)
+						document.removeEventListener('keydown', restoreSavedEngine, true)
+						host.select(savedEngine).then(() => {
+							if (selects.voiceEngine) selects.voiceEngine.value = host.engine
+							enginePanel?.refresh()
+						}).catch(restoreError => console.warn('Saved voice engine could not start.', restoreError))
+					}
+					document.addEventListener('pointerdown', restoreSavedEngine, true)
+					document.addEventListener('keydown', restoreSavedEngine, true)
+				}else{
+					stateMachine.set('voiceEngine', 'native')
+					setFeedback(`The saved voice engine could not start: ${error.message}. Native restored.`, 0)
+				}
+			}
+			if (selects.voiceEngine) {
+				selects.voiceEngine.value = instrumentFactory.voiceEngineHost.engine
+				selects.voiceEngine.disabled = false
+			}
+			enginePanel?.refresh()
 			instrumentManager = new InstrumentManager(audioContext, instrumentFactory)
 			// and load in the instrument list
 			await instrumentFactory.loadList(instrumentListURIorObject)
@@ -4375,6 +4537,9 @@ export const createInterface = (
 	 * @param {Function} progressCallback 
 	 */
 	const setupInterfaceUI = (settings, progressCallback) => {
+		// icons and details in the markup's options are built here
+		enhanceSelects()
+
 		const syncAdvancedModeClass = advancedMode => {
 			document.documentElement.classList.toggle("beginner", !advancedMode)
 		}
@@ -4404,69 +4569,19 @@ export const createInterface = (
 			setFeedback(`Points ${status ? 'enabled' : 'disabled'}`, 0, 'points')
 		}, stateMachine.get('showPoints'))
 
-		const headNoteRangeInput = document.getElementById('head-note-range')
-		const headNoteRangeOutput = document.getElementById('head-note-range-output')
-		if (headNoteRangeInput)
-		{
-			const previewHeadNoteRange = value => {
-				const headNoteRangeDegrees = normaliseHeadNoteRangeDegrees(value)
-				headNoteRangeInput.value = headNoteRangeDegrees
-				if (headNoteRangeOutput)
-				{
-					headNoteRangeOutput.value = `${headNoteRangeDegrees}°`
-				}
-				return headNoteRangeDegrees
-			}
-			const applyHeadNoteRange = value => {
-				const headNoteRangeDegrees = normaliseHeadNoteRangeDegrees(value)
-				stateMachine.set('headNoteRangeDegrees', headNoteRangeDegrees)
-				personManager.setPlayerOption('headNoteRangeDegrees', headNoteRangeDegrees)
-			}
-			const setHeadNoteRange = debounce(applyHeadNoteRange, 150)
-			const initialHeadNoteRange = previewHeadNoteRange(stateMachine.get('headNoteRangeDegrees'))
-			applyHeadNoteRange(initialHeadNoteRange)
-			headNoteRangeInput.addEventListener('input', event => {
-				previewHeadNoteRange(event.target.value)
-				setHeadNoteRange(event.target.value)
-			})
-			headNoteRangeInput.addEventListener('change', event => {
-				const degrees = previewHeadNoteRange(event.target.value)
-				setHeadNoteRange(degrees)
-				setFeedback(`Head note range set to ${degrees} degrees`, 0)
-			})
-		}
+		setupMouthDynamicsInterface({
+			get:key => stateMachine.get(key),
+			set:(key, value) => stateMachine.set(key, value),
+			apply:(key, value) => personManager.setPlayerOption(key, value),
+			getOpening:() => personManager.people.find(person => person.singing)?.mouthCurvePosition ?? null
+		})
 
-		const headVerticalRangeInput = document.getElementById('head-vertical-range')
-		const headVerticalRangeOutput = document.getElementById('head-vertical-range-output')
-		if (headVerticalRangeInput)
-		{
-			const previewHeadVerticalRange = value => {
-				const headVerticalRangeDegrees = normaliseHeadVerticalRangeDegrees(value)
-				headVerticalRangeInput.value = headVerticalRangeDegrees
-				if (headVerticalRangeOutput)
-				{
-					headVerticalRangeOutput.value = `${headVerticalRangeDegrees}°`
-				}
-				return headVerticalRangeDegrees
-			}
-			const applyHeadVerticalRange = value => {
-				const headVerticalRangeDegrees = normaliseHeadVerticalRangeDegrees(value)
-				stateMachine.set('headVerticalRangeDegrees', headVerticalRangeDegrees)
-				personManager.setPlayerOption('headVerticalRangeDegrees', headVerticalRangeDegrees)
-			}
-			const setHeadVerticalRange = debounce(applyHeadVerticalRange, 150)
-			const initialHeadVerticalRange = previewHeadVerticalRange(stateMachine.get('headVerticalRangeDegrees'))
-			applyHeadVerticalRange(initialHeadVerticalRange)
-			headVerticalRangeInput.addEventListener('input', event => {
-				previewHeadVerticalRange(event.target.value)
-				setHeadVerticalRange(event.target.value)
-			})
-			headVerticalRangeInput.addEventListener('change', event => {
-				const degrees = previewHeadVerticalRange(event.target.value)
-				setHeadVerticalRange(degrees)
-				setFeedback(`Vertical head range set to ${degrees} degrees`, 0)
-			})
-		}
+		setupHeadMovementInterface({
+			get:key => stateMachine.get(key),
+			set:(key, value) => stateMachine.set(key, value),
+			apply:(key, value) => personManager.setPlayerOption(key, value),
+			onFeedback:message => setFeedback(message, 0)
+		})
 		
 		// #button-settings
 		toggles.settings = setToggle( "button-settings", status =>{ 
@@ -4561,7 +4676,7 @@ export const createInterface = (
 		selects.beatViz = connectSelect('select-beat-viz', option => {
 			const mode = beatVizModes.has(option.value) ? option.value : 'summary'
 			stateMachine.set('beatViz', mode, selects.beatViz)
-			setFeedback(`Percussion display changed to ${option.textContent}`, 0, 'beats')
+			setFeedback(`Percussion display changed to ${optionLabel(option)}`, 0, 'beats')
 		})
 		if (selects.beatViz) selects.beatViz.value = selectedBeatViz
 
@@ -4576,7 +4691,7 @@ export const createInterface = (
 				: DEFAULT_PERCUSSION_PANNING_PRESET
 			stateMachine.set('percussionPanning', presetId, selects.percussionPanning)
 			applyPercussionPanning()
-			setFeedback(`Percussion panning changed to ${option.textContent}`, 0, 'beats')
+			setFeedback(`Percussion panning changed to ${optionLabel(option)}`, 0, 'beats')
 		})
 		if (selects.percussionPanning)
 		{
@@ -4612,7 +4727,7 @@ export const createInterface = (
 			{ value:"off", label:"Off" },
 		])
 		const syncVisualiserSelect = () => {
-			if (!stateMachine.get('spectrogram') || stateMachine.get('visualiser') !== 'butterchurn') butterchurnVisualiser.stop()
+			if (!stateMachine.get('spectrogram') || getVisualiserMode(stateMachine.get('visualiser')).renderer !== 'butterchurn') butterchurnVisualiser.stop()
 			if (toggles.spectrogram) toggles.spectrogram.checked = !!stateMachine.get("spectrogram")
 			if (visualiserSelect) visualiserSelect.value = stateMachine.get("spectrogram")
 				? normaliseVisualiser(stateMachine.get("visualiser")) : "off"
@@ -4708,11 +4823,6 @@ export const createInterface = (
 			personManager.setPlayerOption("drawEyebrows", flag )
 		}, stateMachine.get( 'eyebrows') )
 
-		toggles.lips = setToggle( "button-lips", status => {
-			const flag = stateMachine.toggle( 'lips' )
-			personManager.setPlayerOption("drawMouth", flag )
-		}, stateMachine.get( 'lips') )
-
 		// show / hide the text
 		toggles.text = setToggle( "button-subtitles", status => {
 			stateMachine.toggle( 'text' )
@@ -4739,7 +4849,7 @@ export const createInterface = (
 		toggles.advancedMode = setToggle( "button-toggle-advanced", status =>{
 			const advancedMode = stateMachine.toggle( 'advancedMode' ) 
 			syncAdvancedModeClass( advancedMode )
-			setFeedback( status ? 'Advanced' : 'Basic', 0 )
+			setFeedback( status ? 'Expert mode enabled' : 'Expert mode disabled', 0 )
 			loadInstructionSet().catch( error => console.error("Failed to switch instruction mode", error) )
 			loadDirectionSet().catch( error => console.error("Failed to switch direction mode", error) )
 		})
@@ -4850,8 +4960,24 @@ export const createInterface = (
 
 			if (announce)
 			{
-				setFeedback(drawEyes ? `${option.textContent} selected` : 'Eye overlays disabled', 0)
+				setFeedback(drawEyes ? `${optionLabel(option)} selected` : 'Eye overlays disabled', 0)
 			}
+		}
+
+		const applyLipPreset = (option, announce=false) => {
+			const lipStyle = option.value
+			const drawMouth = lipStyle !== 'disabled'
+			stateMachine.set('lipStyle', lipStyle)
+			stateMachine.set('lips', drawMouth)
+			personManager.setPlayerOptions({ lipStyle, drawMouth })
+			if (announce) setFeedback(drawMouth ? `${optionLabel(option)} lips selected` : 'Lip overlays disabled', 0)
+		}
+		selects.lips = connectSelect('select-lips', option => applyLipPreset(option, true))
+		if (selects.lips) {
+			const savedLipStyle = stateMachine.get('lipStyle')
+			const initialLipStyle = savedLipStyle && savedLipStyle !== 'disabled' ? savedLipStyle : stateMachine.get('lips') ? 'music' : 'disabled'
+			selects.lips.value = initialLipStyle
+			applyLipPreset(selects.lips.selectedOptions[0] ?? selects.lips.options[0])
 		}
 
 		selects.eyes = connectSelect('select-eyes', option => applyEyePreset(option, true))
@@ -4864,6 +4990,36 @@ export const createInterface = (
 			applyEyePreset(initialEyeOption)
 		}
 
+		selects.voiceEngine = connectSelect('select-voice-engine', async option => {
+			const select = selects.voiceEngine
+			if (select.disabled || !instrumentFactory || instrumentFactory.voiceEngineHost.switching) return
+			const requestedEngine = option.value
+			const status = document.getElementById('voice-engine-status')
+			select.disabled = true
+			enginePanel?.setSwitching(true)
+			status.textContent = 'Loading voice engine for all players…'
+			try {
+				await Promise.allSettled(personManager.people.map(person => person.ready))
+				await instrumentFactory.voiceEngineHost.select(requestedEngine)
+				stateMachine.set('voiceEngine', instrumentFactory.voiceEngineHost.engine, select)
+				await Promise.all(personManager.people.map(person => person.setupInstrumnentForm({presetName:person.presetName, presetTitle:person.presetTitle})))
+				status.textContent = `${optionLabel(option)} applies to all players. Percussion is unchanged.`
+			}catch(error){
+				select.value = instrumentFactory.voiceEngineHost.engine
+				status.textContent = `Could not change engine: ${error.message}`
+				setFeedback(status.textContent, 0)
+			}finally{ select.disabled = false; enginePanel?.setSwitching(false) }
+		})
+		if (selects.voiceEngine) {
+			selects.voiceEngine.value = instrumentFactory?.voiceEngineHost.engine ?? stateMachine.get('voiceEngine') ?? 'native'
+			selects.voiceEngine.disabled = !instrumentFactory
+		}
+		enginePanel = setupEngineInterface({
+			getHost:() => instrumentFactory?.voiceEngineHost,
+			getEngine:() => stateMachine.get('voiceEngine'),
+			onChanged:settings => stateMachine.set('voiceEngineSettings',JSON.stringify(settings))
+		})
+
 		// set the master sound font
 		selects.samples = connectSelect( 'select-samples', async (option) => {
 			const instrumentPack = option.value
@@ -4873,8 +5029,8 @@ export const createInterface = (
 			//console.log("Loaded sounds",{instrumentPack, instrument}, personManager.getPerson(0).options.instrumentPack )
 		} )
 
-		const getSelectedKeyScaleLabel = () => selects.keyScale?.options[selects.keyScale.selectedIndex]?.textContent || stateMachine.get('keyScale')
-		const getSelectedKeyLabel = () => selects.key?.options[selects.key.selectedIndex]?.textContent || normaliseKeyName(stateMachine.get('key'))
+		const getSelectedKeyScaleLabel = () => optionLabel(selects.keyScale?.options[selects.keyScale.selectedIndex]) || stateMachine.get('keyScale')
+		const getSelectedKeyLabel = () => optionLabel(selects.key?.options[selects.key.selectedIndex]) || normaliseKeyName(stateMachine.get('key'))
 
 		selects.key = connectSelect( 'select-key', option => {
 			if (option.value === "free-range")
@@ -4886,7 +5042,7 @@ export const createInterface = (
 
 			stateMachine.set( 'harmonyMode', "global-key" )
 			stateMachine.set( 'key', option.value, selects.key )
-			setFeedback( `Key selected: ${option.textContent} ${getSelectedKeyScaleLabel()}. All players will use this shared key.`, 0 )
+			setFeedback( `Key selected: ${optionLabel(option)} ${getSelectedKeyScaleLabel()}. All players will use this shared key.`, 0 )
 		} )
 		selects.key.value = stateMachine.get('harmonyMode') === "free-range" ?
 			"free-range" :
@@ -4896,11 +5052,11 @@ export const createInterface = (
 			stateMachine.set( 'keyScale', option.value, selects.keyScale )
 			if (stateMachine.get('harmonyMode') === "free-range")
 			{
-				setFeedback( `Mode set to ${option.textContent}`, 0 )
+				setFeedback( `Mode set to ${optionLabel(option)}`, 0 )
 				return
 			}
 			stateMachine.set( 'harmonyMode', "global-key" )
-			setFeedback( `Key selected: ${getSelectedKeyLabel()} ${option.textContent}. All players will use this shared key.`, 0 )
+			setFeedback( `Key selected: ${getSelectedKeyLabel()} ${optionLabel(option)}. All players will use this shared key.`, 0 )
 		} )
 		selects.keyScale.value = stateMachine.get('keyScale')
 		updateKeyScaleControlVisibility()
@@ -4916,16 +5072,9 @@ export const createInterface = (
 		})
 
 		// connect the reverb selector to the reverb chooser
-		selects.reverbs = connectReverbControls( async (option) => {
-			if (option && option.value)
-			{
-				const url = option.value
-				const reverb = await setReverb(url)
-				setFeedback('Reverb loaded', 0 , 'reverb')
-				//console.log(option.value, {url, reverb, option})
-			}else{
-				console.error(option, option.previousSibling )
-			}
+		// a new space starts from its natural decay length
+		selects.reverbs = connectReverbControls(option => enginePanel.change({reverbSpace:option.value, reverbLength:getReverbSpace(option.value).length}), {
+			onPopulated:() => enginePanel.refresh()
 		})
 		
 		
@@ -4933,7 +5082,7 @@ export const createInterface = (
 			const subdivisions = Number(option.value)
 			display?.setGeometrySubdivisions(subdivisions)
 			stateMachine.set('divisions', subdivisions)
-			setFeedback(`Subdivisions: ${option.textContent}`, 0)
+			setFeedback(`Subdivisions: ${optionLabel(option)}`, 0)
 		})
 		if (selects.subdivisions)
 		{
@@ -4958,13 +5107,33 @@ export const createInterface = (
 					display = newDisplay
 				}catch(error){
 					console.error("Display Issue! Could not initiate display", error)
+					display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop)
+					setFeedback('Display could not start. Canvas 2D selected.', 0, 'display')
 				}
 				
 			}else{
 				console.error("Display request ignored", option, option.previousSibling )
 			}
 		})
-		
+		const compositeSelect = document.getElementById('select-composite-displays')
+		lookingGlassPanel = setupLookingGlassPanel({ getDisplay: () => display })
+		connectSelect('select-composite-layout', option => {
+			stateMachine.set('compositeLayout', option.value)
+			if (displayManager.type === DISPLAY_TYPES.DISPLAY_COMPOSITE) display?.setLayout(option.value)
+		})
+		compositeSelect?.addEventListener('change', async () => {
+			const types = Array.from(compositeSelect.selectedOptions, option => option.value)
+			stateMachine.set('compositeDisplays', types)
+			if (displayManager.type !== DISPLAY_TYPES.DISPLAY_COMPOSITE) return
+			try {
+				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_COMPOSITE, predictionLoop)
+			} catch (error) {
+				console.error('Composite could not start', error)
+				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop)
+				setFeedback('Composite could not start. Canvas 2D selected.', 0, 'display')
+			}
+		})
+
 		// Track mouse coords on canvas for use with mouse cursor thingy
 		watchMouseCoords( document.getElementById('control-panel'), coords =>{
 			//console.log("Canvas Mouse",coords)
@@ -5018,7 +5187,7 @@ export const createInterface = (
 		setupMIDICC({ stateMachine })
 		setupCommandPalette()
 		setupControlsList()
-		sessionUI = setupSessionRecordingUI(sessionController, reportSessionRecordingError)
+		sessionUI = setupSessionRecordingUI(sessionController, reportSessionRecordingError, doc, inputStatusOverlay)
 
 		// UI:THEME -------------------------------------------------------
 		
@@ -5192,10 +5361,39 @@ export const createInterface = (
 
 		// Show the video while each player's instrument loads. Presets still
 		// need the instruments to be ready before they can be applied.
-		await Promise.all(peopleLoading)
+		// One Person's failure is already reported and must not stop the others.
+		await Promise.allSettled(peopleLoading)
 
+		// Live camera capture lets audio start without a click. Failing that,
+		// the first gesture does it: face-only players may never press anything.
+		resumeAudio()
+		if (audioContext?.state !== 'running')
+		{
+			const unlockAudio = () => {
+				document.removeEventListener('pointerdown', unlockAudio, true)
+				document.removeEventListener('keydown', unlockAudio, true)
+				resumeAudio()
+			}
+			document.addEventListener('pointerdown', unlockAudio, true)
+			document.addEventListener('keydown', unlockAudio, true)
+		}
+
+		// Ensembles name the shared room every player sends to; false leaves it dry
+		const applyEnsembleRoom = async ({ reverb }={}) => {
+			if (reverb === undefined) return
+			await enginePanel?.change(reverb ? { roomSpace:reverb.space, roomMix:reverb.mix } : { roomMix:0 })
+		}
+		// Restoring at startup keeps manual changes made since the ensemble was
+		// picked: tempo, key, percussion choices and the room are saved settings
+		// (the saved pattern and sound are reloaded below), so only the unsaved
+		// drum kit comes from the preset
+		const restorableEnsembleOptions = ({ id, percussion }) => ({ id, percussion:percussion?.kit && { kit:percussion.kit } })
 		const ensemblePresetAPI = await setupEnsemblePresetPanel(personManager.people, {
-			applyOptions:applyEnsemblePresetOptions,
+			applyOptions:async (preset, { restore }={}) => {
+				if (restore) return applyEnsemblePresetOptions(restorableEnsembleOptions(preset))
+				applyEnsemblePresetOptions(preset)
+				await applyEnsembleRoom(preset)
+			},
 			onSelected:preset => {
 				stateMachine.set("ensemblePreset", preset.id)
 			},
@@ -5207,7 +5405,7 @@ export const createInterface = (
 			const selectedPresetId = stateMachine.get("ensemblePreset") ?? "default"
 			if (selectedPresetId !== "default")
 			{
-				await ensemblePresetAPI.applyPresetById(selectedPresetId)
+				await ensemblePresetAPI.applyPresetById(selectedPresetId, { restore:true })
 			}
 		}
 
@@ -5469,6 +5667,7 @@ export const createInterface = (
 	 * @returns 
 	 */
 	const showPlayerSelectionScreen = async ( showHelpTextAfter=60000 ) => {
+		await lookingGlassStartup.discovery
 
 		let timeOut 
 		let picadeSerialPairing = null
@@ -5677,6 +5876,10 @@ export const createInterface = (
 		// Exit & save all cookies!
 		window.addEventListener("beforeunload", stopMIDIForWindowUnload)
 		window.addEventListener("pagehide", stopMIDIForWindowUnload)
+		window.addEventListener('pagehide', event => {
+			if (event.persisted) backingMelody?.stop()
+			else backingMelody?.destroy()
+		})
 		window.onbeforeunload = quit
 
 		// document.addEventListener( "contextmenu", (e) => {

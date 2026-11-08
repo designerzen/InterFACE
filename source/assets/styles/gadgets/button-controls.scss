@@ -158,18 +158,6 @@ button#button-quartet{
 	// height:calc( 100% * var(--person-b-h,0) / var(--height,480) );
 }
 
-// prevent the width of the face button falling off right hand side of the screen
-#person-a,
-#person-b{
-	--total:calc( var(--left) + var(--breadth));
-	// distance in pixels remaining on the right
-	--over:calc( 100vw - var(--total)) ;
-	// ignore if positive...
-	--overflow:min( var(--over), 0px );
-	left:var(--left);
-	width:calc( var(--breadth) + var(--overflow) );
-}
-
 #person-c{
 	width:calc( 100% * var(--person-c-w,0));
 	height:calc( 100% * var(--person-c-h,0));

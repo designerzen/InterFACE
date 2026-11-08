@@ -68,7 +68,7 @@
 	// list of items 
 	:where(ol[role="list"]) {
 		list-style: numeric;
-		list-style-position: outside;
+		list-style-position: inside;
 	}
 	:where(ul[role="list"]) {
 		list-style:circle;

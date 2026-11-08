@@ -1,4 +1,5 @@
 import { setToggle } from './toggle.js'
+import { faderToGain, gainToFader } from '../audio/volume-curve.js'
 
 export const setupVolumeInterface = (
 	currentVolume=1,
@@ -11,7 +12,7 @@ export const setupVolumeInterface = (
 		currentPercussionVolume=null,
 		currentTrimVolume=null,
 		currentSampleVolume=null,
-		trimVolumeScale=4,
+		trimVolumeScale=5,
 		onMuteChanged=null
 	} = {}
 ) => {
@@ -22,6 +23,44 @@ export const setupVolumeInterface = (
 	let altPressed = false
 
 	const icon = document.querySelector('a.folder-link[href="#folder-volume"]').parentNode
+	const volumeLink = icon.querySelector('.folder-link')
+	const volumePanel = document.getElementById('folder-volume')
+	const volumeReturn = volumePanel?.querySelector(':scope > .folder-return')
+	const controlsPanel = document.getElementById('control-panel')
+	// Focus alone cannot hold a drawer open when a touch or a press on its
+	// fieldset moves focus away from the launcher. Latch it before that happens.
+	const openVolumePanel = () => {
+		if (!controlsPanel?.classList.contains('controls-list-open'))
+		{
+			icon.classList.add('open')
+		}
+	}
+	const closeVolumePanel = () => {
+		icon.classList.remove('open')
+		if (controlsPanel?.classList.contains('controls-list-open')) return
+		if (window.location.hash === '#folder-volume')
+		{
+			const url = new URL(window.location.href)
+			url.hash = ''
+			window.history.replaceState(window.history.state, '', url)
+		}
+		// Leaving focus inside the drawer would immediately reopen :focus-within.
+		if (icon.contains(document.activeElement)) document.activeElement.blur()
+		const focusTarget = document.getElementById('button-settings') ?? document.getElementById('button-controls-list')
+		focusTarget?.focus({ preventScroll:true })
+	}
+	const handlePanelKeyDown = event => {
+		if (event.key !== 'Escape' || controlsPanel?.classList.contains('controls-list-open')) return
+		if (!icon.classList.contains('open') && window.location.hash !== '#folder-volume' && !icon.contains(document.activeElement)) return
+		event.preventDefault()
+		event.stopPropagation()
+		closeVolumePanel()
+	}
+	volumeLink.addEventListener('pointerdown', openVolumePanel)
+	volumeLink.addEventListener('click', openVolumePanel)
+	volumePanel?.addEventListener('pointerdown', openVolumePanel, true)
+	volumeReturn?.addEventListener('click', closeVolumePanel)
+	window.addEventListener('keydown', handlePanelKeyDown)
 	const muteButton = document.getElementById("button-mute")
 	const output = document.getElementById("mixer-master-output")
 	const sliderVolume = document.getElementById("mixer-master-volume")
@@ -52,8 +91,6 @@ export const setupVolumeInterface = (
 	const stepButtons = Array.from(document.querySelectorAll(".volume-step-button[data-volume-target][data-volume-direction]"))
 	
 
-	let originalClassNames = icon.className
-
 	const updateMixerModeButton = () => {
 		if (!mixerModeButton)
 		{
@@ -77,26 +114,33 @@ export const setupVolumeInterface = (
 		if (volume > 0.5)
 		{
 			return "hi"
-		}else if(volume > 0.3){
+		}else if(volume > 0){
 			return "low"
 		}
 		return "mute"
 	}
 
-	const setVolumeIcon = volume => {
-		icon.className = originalClassNames + " " + determineVolumeIcon(volume)
+	const setVolumeIcon = (volume = currentVolume) => {
+		// The icon shares its container with the drawer's open and list-view state.
+		const activeIcon = determineVolumeIcon(muted ? 0 : volume)
+		for (const name of ["hi", "low", "mute"])
+		{
+			icon.classList.toggle(name, name === activeIcon)
+		}
 	}
 
 	const setVisualVolumeLevel = (volume, setSlider=true)=>{
-		setVolumeIcon(volume)
+		currentVolume = volume ?? currentVolume ?? 1
+		setVolumeIcon()
 		if (setSlider){
-			sliderVolume.value = volume ?? currentVolume ?? 1
+			sliderVolume.value = gainToFader(currentVolume)
 		}
 	}
 	
 	const setMeter = volume => {
 		const volumeString = Math.round( 100 * volume ) + "%"
 		output.innerText = volumeString
+		sliderVolume.setAttribute('aria-valuetext', volumeString)
 		return volumeString
 	}
 
@@ -129,17 +173,18 @@ export const setupVolumeInterface = (
 		}
 	}
 
-	const updateMixerControl = (mode, volume) => {
+	const updateMixerControl = (mode, volume, setSlider=true) => {
 		const control = mixerControls[mode]
 		if (!control?.input || volume == null)
 		{
 			return
 		}
-		control.input.value = volume
+		if (setSlider) control.input.value = gainToFader(volume)
 		if (control.output)
 		{
 			const displayedVolume = mode === "trim" ? volume * trimVolumeScale : volume
 			control.output.innerText = Math.round(100 * displayedVolume) + "%"
+			control.input.setAttribute('aria-valuetext', control.output.innerText)
 		}
 	}
 
@@ -175,6 +220,7 @@ export const setupVolumeInterface = (
 
 	const toggleMute = (mute) =>{
 		mute = mute ?? !muted
+		muted = mute
 		if (mute)
 		{
 			setVolumeIcon(0)
@@ -189,7 +235,6 @@ export const setupVolumeInterface = (
 				control.input.disabled = mute
 			}
 		})
-		muted = mute
 		rangeInputs.forEach(updateStepButtons)
 	}
 
@@ -220,18 +265,22 @@ export const setupVolumeInterface = (
 		{
 			return
 		}
-		setVisualVolumeLevel(volume)
+		// Modifier keys preview other channels in the shared fader only.
+		sliderVolume.value = gainToFader(volume)
+		setVolumeIcon()
 		setMeter(mode === "trim" ? volume * trimVolumeScale : volume)
 	}
 
 	const handleVolumeChange = e => {
 
-		const volume = sliderVolume.value
+		const volume = faderToGain(sliderVolume.value)
 		const mode = getVolumeMode(e)
 		const volumeString = setMeter(mode === "trim" ? volume * trimVolumeScale : volume)
-		setVisualVolumeLevel( volume, false )
 		setModeVolume(mode, volume)
-		updateMixerControl(mode, volume)
+		setVolumeIcon()
+		// Preserve the native fader value: converting gain back to a fader can
+		// land just below a step boundary and make the next + press repeat it.
+		updateMixerControl(mode, volume, mode !== 'master')
 		updateStepButtons(sliderVolume)
 		console.log(
 			`slider changed ${mode} volume`,
@@ -246,13 +295,13 @@ export const setupVolumeInterface = (
 	}
 
 	const handleMixerChange = mode => event => {
-		const volume = event.currentTarget.value
+		const volume = faderToGain(event.currentTarget.value)
 		setModeVolume(mode, volume)
-		updateMixerControl(mode, volume)
+		updateMixerControl(mode, volume, false)
 		updateStepButtons(event.currentTarget)
 		if (mode === "master")
 		{
-			setVisualVolumeLevel(volume)
+			setVisualVolumeLevel(volume, false)
 			setMeter(volume)
 		}
 		requestAnimationFrame(() => {
@@ -327,6 +376,11 @@ export const setupVolumeInterface = (
 		setVisualVolumeLevel,
 		toggleMute,
 		destroy: () => {
+			volumeLink.removeEventListener('pointerdown', openVolumePanel)
+			volumeLink.removeEventListener('click', openVolumePanel)
+			volumePanel?.removeEventListener('pointerdown', openVolumePanel, true)
+			volumeReturn?.removeEventListener('click', closeVolumePanel)
+			window.removeEventListener('keydown', handlePanelKeyDown)
 			window.removeEventListener("keydown", handleKeyDown)
 			window.removeEventListener("keyup", handleKeyUp)
 			window.removeEventListener("blur", handleKeyUp)

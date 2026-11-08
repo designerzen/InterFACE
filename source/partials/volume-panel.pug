@@ -3,9 +3,6 @@ fieldset#mixer-panel.volume-mixer
 		span.volume-control-name Volume
 		span.mixer-control-name Mixer
 
-	button#button-volume-mixer-mode.volume-mixer-mode-button(type="button" aria-label="Expand to full mixer" aria-controls="mixer-panel" aria-expanded="false")
-		span(aria-hidden="true")
-
 	fieldset.mixer-channel.mixer-channel-master
 		legend Master
 		label(for="mixer-master-volume") Master
@@ -24,6 +21,15 @@ fieldset#mixer-panel.volume-mixer
 			button.volume-step-button(type="button" data-volume-target="mixer-percussion-volume" data-volume-direction="increase" aria-label="Increase percussion volume") +
 		output#mixer-percussion-output(for="mixer-percussion-volume") 0%
 
+	fieldset.mixer-channel.mixer-channel-melody
+		legend Melody
+		label(for="backing-melody-volume") Harmonies
+		input#backing-melody-volume.vertical(type="range" min="0" max="1" step="0.01" value="0.25" list="volume-input-ticks" name="melody-volume")
+		.volume-step-controls(aria-label="Harmonies volume adjustment controls")
+			button.volume-step-button(type="button" data-volume-target="backing-melody-volume" data-volume-direction="decrease" aria-label="Decrease harmonies volume") −
+			button.volume-step-button(type="button" data-volume-target="backing-melody-volume" data-volume-direction="increase" aria-label="Increase harmonies volume") +
+		output#backing-melody-volume-output(for="backing-melody-volume") 25%
+
 	fieldset.mixer-channel.mixer-channel-sample
 		legend SFX
 		label(for="mixer-sample-volume") Samples
@@ -36,11 +42,11 @@ fieldset#mixer-panel.volume-mixer
 	fieldset.mixer-channel.mixer-channel-trim
 		legend Person Trim
 		label(for="mixer-trim-volume") Person Trim
-		input#mixer-trim-volume.vertical(type="range" min="0" max="1" step="0.01" list="volume-input-ticks" name="person-trim-volume")
+		input#mixer-trim-volume.vertical(type="range" min="0" max="1" step="0.01" value="0.91" list="volume-input-ticks" name="person-trim-volume")
 		.volume-step-controls(aria-label="Person trim volume adjustment controls")
 			button.volume-step-button(type="button" data-volume-target="mixer-trim-volume" data-volume-direction="decrease" aria-label="Decrease person trim volume") −
 			button.volume-step-button(type="button" data-volume-target="mixer-trim-volume" data-volume-direction="increase" aria-label="Increase person trim volume") +
-		output#mixer-trim-output(for="mixer-trim-volume") 0%
+		output#mixer-trim-output(for="mixer-trim-volume") 267%
 
 	datalist#volume-input-ticks
 		option(value="0", label="0")
@@ -51,9 +57,12 @@ fieldset#mixer-panel.volume-mixer
 		option(value="0.5", label="0.5")
 		option(value="0.6", label="0.6")
 		option(value="0.7", label="0.7")
-		option(value="0.8", label="0.8")
+		option(value="0.91", label="0.8")
 		option(value="0.9", label="0.9")
 		option(value="1", label="1")
 
-label.volume-mute-control(for="button-mute") Mute
-	input#button-mute(type="checkbox" role="switch" aria-label="Toggle mute")
+.volume-panel-actions
+	label.volume-mute-control(for="button-mute") Mute
+		input#button-mute(type="checkbox" role="switch" aria-label="Toggle mute")
+	button#button-volume-mixer-mode.volume-mixer-mode-button(type="button" aria-label="Expand to full mixer" aria-controls="mixer-panel" aria-expanded="false")
+		span(aria-hidden="true")

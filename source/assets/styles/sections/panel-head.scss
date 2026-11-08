@@ -1,0 +1,104 @@
+html:has(#control-panel-head:is(.open, .controls-list-folder-open, :focus-within)) #feedback { visibility: hidden; }
+html:has(#folder-head:target) #feedback { visibility: hidden; }
+// Same as the engine drawer: a transformed parent would capture the fixed panel.
+html:has(#control-panel-head:is(.open, .controls-list-folder-open, :focus-within), #folder-head:target) {
+	#settings { transform: none; animation: none; will-change: auto; z-index: 1300; }
+	#control-panel { z-index: 1300; }
+}
+#control-panel-head.head-dismissed:not(.controls-list-folder-open) #folder-head {
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	animation: none;
+	* { visibility: hidden; pointer-events: none; }
+}
+
+// Animated faces: --swing rocks between -1 and 1, --lift rises from 0 to 1,
+// and each slider scales how far the face travels.
+@property --swing { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --lift { syntax: '<number>'; inherits: false; initial-value: 0; }
+@keyframes HeadPreviewSwing { from { --swing: -1; } to { --swing: 1; } }
+@keyframes HeadPreviewLift { 0%, 20% { --lift: 0; } 60%, 100% { --lift: 1; } }
+
+#head-movement-settings {
+	.head-preview {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+		pointer-events: none;
+	}
+	.head-preview-skull { fill: color-mix(in srgb, var(--shade-white) 8%, transparent); stroke: var(--shade-white); stroke-width: 2.5; }
+	.head-preview-features {
+		fill: var(--shade-white);
+		path { fill: none; stroke: var(--shade-white); stroke-width: 2.5; stroke-linecap: round; }
+	}
+	.head-preview-guide { stroke: var(--shade-green); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .8; }
+
+	// Lean: the whole head tips from the neck by half the range each way
+	.head-preview-lean {
+		max-inline-size: 12rem;
+		margin: 0 auto 1rem;
+		.head-preview-head {
+			transform-box: view-box;
+			transform-origin: 60px 84px;
+			rotate: calc(var(--swing) * var(--head-note-range, 90) * .5deg);
+			animation: HeadPreviewSwing 1.6s ease-in-out infinite alternate;
+		}
+	}
+	// Nod: the features slide up and down as the face tips
+	.head-preview-nod .head-preview-features {
+		translate: 0 calc(var(--swing) * var(--head-vertical-range, 90) * .12px);
+		animation: HeadPreviewSwing 1.6s ease-in-out infinite alternate;
+	}
+	// Centre: the guide marks the middle octave and the face lifts from level to meet it
+	.head-preview-centre {
+		.head-preview-guide { translate: 0 calc(var(--head-vertical-offset, 10) * -.4px); }
+		.head-preview-features {
+			translate: 0 calc(var(--lift) * var(--head-vertical-offset, 10) * -.4px);
+			animation: HeadPreviewLift 2.4s ease-in-out infinite alternate;
+		}
+	}
+
+	.head-movement-mixer {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin-block-start: 1.5rem;
+		padding-block-start: 1.25rem;
+		border-top: 1px solid var(--rule);
+	}
+}
+
+// Channel strips borrow the mixer layout, with the face above the fader
+#control-panel #head-movement-settings .head-channel {
+	grid-template-areas:
+		"legend"
+		"preview"
+		"fader"
+		"controls"
+		"label"
+		"output";
+	grid-template-rows: auto auto minmax(160px, 1fr) auto auto auto;
+	justify-items: center;
+	gap: .5rem;
+	margin: 0;
+	padding: .5rem;
+	border: 0;
+	> legend { grid-area: legend; margin: 0; text-align: center; font-size: 1.1rem; }
+	> .head-preview { grid-area: preview; max-inline-size: 7rem; }
+	> label { grid-area: label; color: var(--muted); font-size: .85rem; font-weight: 400; text-align: center; }
+	> output { grid-area: output; color: inherit; font-weight: 900; font-variant-numeric: tabular-nums; }
+	> input[type="range"].vertical {
+		grid-area: fader;
+		justify-self: center;
+		inline-size: 100%;
+		max-inline-size: 5rem;
+		block-size: 100%;
+		min-block-size: 160px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#head-movement-settings :is(.head-preview-head, .head-preview-features) { animation: none; --swing: 1; --lift: 1; }
+}

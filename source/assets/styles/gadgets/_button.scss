@@ -1192,77 +1192,65 @@
 			@extend %button-icon;
 		}
 
-		// this acts as a new background
-		&:focus::before,
-		&:before{
-			--hue:var(--hue-red);
-				
-			// brighter towards the bottom
-			--col-inner-top:hsla( var(--hue), var(--saturation, 50%), 35%, 100% );
-			--col-inner-bottom:hsla( var(--hue), var(--saturation, 50%), 45%, 100% );
+		// Keep the resting label readable against the dark bevelled surface.
+		color: var(--shade-white, white);
+		text-shadow: none;
+		background-size: 0, auto, auto, auto;
 
-			// Padding : brighter towards the top
-			--col-pad-top:hsla( var(--hue), var(--saturation, 50%), 45%, 100%);
-			--col-pad-bottom:hsla( var(--hue), var(--saturation, 50%), 35%, 100%);
-				
-			// BEVEL :brighter towards the bottom
-			--col-back-top:hsla( var(--hue), var(--saturation, 50%), 35%, 40% );
-			--col-back-bottom:hsla( var(--hue), var(--saturation, 50%), 55%, 10% );
+		// Original PWA second surface (2579bdb3): restore all three gradients
+		// together, rather than recolouring only the content-box.
+		&::before{
+			content: "";
+			--hue: #{palette.$hue-green};
+			// --darken shifts every stop together so :active is the same surface, only darker
+			--col-inner-top: hsla(var(--hue), var(--saturation, 50%), calc(35% - var(--darken, 0%)), 100%);
+			--col-inner-bottom: hsla(var(--hue), var(--saturation, 50%), calc(45% - var(--darken, 0%)), 100%);
+			--col-pad-top: hsla(var(--hue), var(--saturation, 50%), calc(45% - var(--darken, 0%)), 100%);
+			--col-pad-bottom: hsla(var(--hue), var(--saturation, 50%), calc(35% - var(--darken, 0%)), 100%);
+			--col-back-top: hsla(var(--hue), var(--saturation, 50%), calc(35% - var(--darken, 0%)), 40%);
+			--col-back-bottom: hsla(var(--hue), var(--saturation, 50%), calc(55% - var(--darken, 0%)), 10%);
 
-			//grid-area: 1 / 1 / -1 / -1;
-			// height: 100%;
-			// width: 100%;
-			
-			//outline:4px solid yellow;
-			// min-width: calc( var(--icon-size) / 4 );
-			// or
-			--inset:calc( -1 * (var(--bevel) + var(--line) * 0 ) );
-			// background-color: var(--shade-red);
-			
-			// linear-gradient(#bfbfbf, #fff) content-box, 
-			// linear-gradient(#fff, #979797) padding-box, 
-			// linear-gradient(#969696, #fbfbfb) border-box;
-			// background-image: 
-			// 	linear-gradient( hsla( var(--hue), 80%, 50%, 50% ), hsla( var(--hue),80%, 99%, 50% )), 
-			// 	linear-gradient( hsla( var(--hue), 80%, 99%, 50% ), hsla( var(--hue), 80%, 50%, 50% ) ), 
-			// 	linear-gradient( hsla( var(--hue), 80%, 50%, 100% ), hsla( var(--hue), 80%, 50%, 100% ) );
-			
-			// background-origin:
-			// 	content-box, 
-			// 	padding-box, 
-			// 	border-box;
-		
-			// background-clip: 
-			// 	content-box, 
-			// 	padding-box, 
-			// 	border-box;
-			//opacity:0.48;
 			background: inherit;
-			
-			background-image: 
-				var(--bg, ""),
-				linear-gradient( var(--col-inner-top), var(--col-inner-bottom)), 
-				linear-gradient( var(--col-pad-top), var(--col-pad-bottom) ), 
-				linear-gradient( var(--col-back-top), var(--col-back-bottom) );
-
-			// background-size: 
-			// 	calc( var(--icon-visible,1) * var(--icon-size) ),
-			// 	100%,
-			// 	100%,
-			// 	100%;
-
+			background-image:
+				none,
+				linear-gradient(var(--col-inner-top), var(--col-inner-bottom)),
+				linear-gradient(var(--col-pad-top), var(--col-pad-bottom)),
+				linear-gradient(var(--col-back-top), var(--col-back-bottom));
 			border: inherit;
 			border-radius: inherit;
-
-			box-shadow: inherit;
 			padding: inherit;
-
+			box-sizing: border-box;
 			position: absolute;
-			top:var(--inset);
-			left:var(--inset);
-			right:var(--inset);
-			bottom:var(--inset);
+			inset: calc(-1 * var(--bevel));
 			z-index: -1;
+			pointer-events: none;
+			clip-path: circle(0% at 50% 50%);
+			transition: clip-path 250ms ease-out;
+		}
+
+		&:is(:target, :active, :hover, :focus-visible, :has(:focus-visible)){
+			color: var(--shade-dark, black);
+			text-shadow: none;
+
+			&::before{
+				clip-path: circle(100% at 50% 50%);
+			}
+
+			&::after{
+				opacity: 1;
+				filter: none;
+			}
+		}
+
+		&:active::before{
+			--darken: 12%;
+		}
+
+		@media (prefers-reduced-motion: reduce){
+			&, &::before, &::after{
+				animation: none;
+				transition: none;
+			}
 		}
 	}
 		

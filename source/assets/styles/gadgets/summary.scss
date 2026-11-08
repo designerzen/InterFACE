@@ -1,0 +1,35 @@
+summary.with-image{
+	grid-template-areas:"prefix photo summary marker space";
+	grid-template-columns:auto clamp(4.5rem, 18vw, 9rem) minmax(0, auto) auto 1fr;
+	align-items:center;
+	
+	gap:var(
+	 --gap, var(--pad)
+	);
+
+	&::before{
+		content:"=";
+		grid-area: prefix;
+	}
+	
+	&::after{
+		display: block;
+		content:"... Learn More";
+		text-decoration: underline;
+	}
+	
+	img, figure{
+		grid-area:photo;
+		display:block;
+		box-sizing:border-box;
+		width:100%;
+		padding:var(--pad);
+		border-radius:calc(var(--curve, 1rem) * 0.5);
+		object-fit:contain;
+	}
+
+	.hardware-summary-name{
+		grid-area:summary;
+		font-weight:700;
+	}
+}

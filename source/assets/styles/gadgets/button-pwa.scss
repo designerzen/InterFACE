@@ -18,42 +18,78 @@
 	}
 
 	#intro #pwa{
-		display:grid;
-		grid-template-columns:1fr;
-		gap:0;
+		container: pwa / inline-size;
+		display:block;
+		min-width:0;
 		width:100%;
 
-		&:has(> :is(.button-install, .button-upgrade):not([hidden])){
-			gap:var(--pad);
-
-			> :is(.button-install, .button-upgrade):not([hidden]){
-				border-radius:999px;
-				padding:calc(var(--pad) * 1);
-				font-size:125%;
-			}
-
-			@media screen and (min-width:840px){
-				grid-template-columns:1fr 1fr;
-				gap:0;
-
-				> .button-start{
-					border-start-end-radius:0;
-					border-end-end-radius:0;
-				}
-
-				> :is(.button-install, .button-upgrade):not([hidden]){
-					border-start-start-radius:0;
-					border-end-start-radius:0;
-					padding:calc(var(--pad) * 2);
-					font-size:150%;
-				}
-			}
+		.pwa-actions{
+			display:grid;
+			grid-template-columns:minmax(0, 1fr);
+			gap:clamp(0.5rem, 2cqi, 1rem);
 		}
 
-		> *{
+		.pwa-actions > .button-push{
+			--icon-size:clamp(1.5rem, 6cqi, 2.75rem);
+			--bevel:clamp(0.25rem, 1cqi, 0.625rem);
+			--space:0px;
 			min-width:0;
 			max-width:none;
 			width:100%;
+			min-height:clamp(4.5rem, 14cqi, 7rem);
+			max-height:none;
+			padding:clamp(0.75rem, 3cqi, 1.5rem);
+			font-size:clamp(1rem, 3.5cqi, 1.75rem);
+			border-radius:999px;
+			grid-template-areas:"icon text";
+			grid-template-columns:var(--icon-size) minmax(0, 1fr);
+			grid-template-rows:auto;
+			gap:clamp(0.5rem, 1.5cqi, 1rem);
+			justify-content:stretch;
+			text-align:center;
+
+			&.icon-right{
+				grid-template-areas:"text icon";
+				grid-template-columns:minmax(0, 1fr) var(--icon-size);
+			}
+
+			// The grid icon supplies both the image and its shadow.
+			&, &::before{
+				background-size:0, auto, auto, auto;
+			}
+
+			&::after{
+				opacity:1;
+			}
+
+			&[hidden]{
+				display:none;
+			}
+		}
+
+		.pwa-label{
+			grid-area:text;
+			min-width:0;
+			overflow-wrap:anywhere;
+			hyphens:none;
+		}
+	}
+
+	// Join only two visible actions, once their actual container has room.
+	@container pwa (min-width:40rem){
+		#intro #pwa .pwa-actions:has(> :is(.button-install, .button-upgrade):not([hidden])):has(> [hidden]){
+			grid-template-columns:repeat(2, minmax(0, 1fr));
+			gap:0;
+
+			> .button-start{
+				border-start-end-radius:0;
+				border-end-end-radius:0;
+			}
+
+			> :is(.button-install, .button-upgrade){
+				border-start-start-radius:0;
+				border-end-start-radius:0;
+			}
 		}
 	}
 

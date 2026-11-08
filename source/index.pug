@@ -41,6 +41,9 @@ block header
 		| This will grant musical superpowers to anybody nearby.
 		| Your head movements, facial expressions and mouth shape will control aspects of sound to help you make beautiful music.  
 		| Press the screen or hold your eyes closed to change instruments, or select one by name from the side panels.<br>
+		| Play together online: 
+		a(href="/room/shared") Join the shared room
+		| .<br>
 		small Improving human-machine relationships. Made with love by <a class="link-designerzen link-secret" href="https://designerzen.com" rel="noopener noreferrer" target="_blank">designer<wbr>zen</a>. 
 		
 	p.warning 
@@ -58,9 +61,13 @@ block header
 
 
 	nav#pwa
-		a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})") Play Online!
-		button#install-pwa.button-push.button-install.icon-right.text-always(hidden type="button" title="Install this application to your homescreen") Install
-		button#upgrade-pwa.button-push.button-upgrade.icon-right.text-always(hidden type="button" title="Upgrade to the latest version v.#{package.version}") Upgrade
+		.pwa-actions
+			a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})")
+				span.pwa-label Play Online!
+			button#install-pwa.button-push.button-install.icon-right.text-always(hidden type="button" title="Install this application to your homescreen")
+				span.pwa-label Install
+			button#upgrade-pwa.button-push.button-upgrade.icon-right.text-always(hidden type="button" title="Upgrade to the latest version v.#{package.version}")
+				span.pwa-label Upgrade
 
 	details#requirements-test
 		summary Requirements
@@ -99,6 +106,11 @@ block header
 			tr.capability-gpu
 				th(scope="row") Graphics Processing Unit <abbr title="Graphics Processing Unit">GPU</abbr>
 					small Powerful computer prefered, desktop or gaming machines wrk best
+				td.result.checking Checking...
+
+			tr.capability-view-transitions
+				th(scope="row") View transitions
+					small Optional animation between control layouts
 				td.result.checking Checking...
 
 			tr.capability-browser

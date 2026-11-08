@@ -1,3 +1,4 @@
+import { gainToFader } from '../source/audio/volume-curve.js'
 import { setupVolumeInterface } from '../source/dom/ui.volume.js'
 
 describe('volume slider', () => {
@@ -34,58 +35,58 @@ describe('volume slider', () => {
 			onTrimVolumeChanged,
 			onSampleVolumeChanged,
 			currentPercussionVolume:0.2,
-			currentTrimVolume:0.25,
+			currentTrimVolume:0.8,
 			currentSampleVolume:0.2,
-			trimVolumeScale:4
+			trimVolumeScale:5
 		})
 		const slider = document.getElementById('mixer-master-volume')
 
-		slider.value = '0.6'
+		slider.value = gainToFader(0.6)
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift' }))
-		slider.value = '0.15'
+		slider.value = gainToFader(0.15)
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		await new Promise(resolve => requestAnimationFrame(resolve))
 
 		expect(onVolumeChanged).toHaveBeenCalledTimes(1)
-		expect(onVolumeChanged).toHaveBeenCalledWith('0.6')
+		expect(onVolumeChanged).toHaveBeenCalledWith(expect.closeTo(0.6, 12))
 		expect(onPercussionVolumeChanged).toHaveBeenCalledTimes(1)
-		expect(onPercussionVolumeChanged).toHaveBeenCalledWith('0.15')
+		expect(onPercussionVolumeChanged).toHaveBeenCalledWith(expect.closeTo(0.15, 12))
 
 		window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift' }))
-		expect(slider.value).toBe('0.6')
+		expect(Number(slider.value)).toBeCloseTo(gainToFader(0.6), 12)
 		expect(document.getElementById('mixer-master-output').innerText).toBe('60%')
 
 		slider.focus()
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control' }))
-		expect(slider.value).toBe('0.25')
-		expect(document.getElementById('mixer-master-output').innerText).toBe('100%')
-		slider.value = '1'
+		expect(Number(slider.value)).toBeCloseTo(gainToFader(0.8), 12)
+		expect(document.getElementById('mixer-master-output').innerText).toBe('400%')
+		slider.value = gainToFader(1)
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		await new Promise(resolve => requestAnimationFrame(resolve))
 
 		expect(onTrimVolumeChanged).toHaveBeenCalledTimes(1)
-		expect(onTrimVolumeChanged).toHaveBeenCalledWith('1')
-		expect(document.getElementById('mixer-master-output').innerText).toBe('400%')
+		expect(onTrimVolumeChanged).toHaveBeenCalledWith(expect.closeTo(1, 12))
+		expect(document.getElementById('mixer-master-output').innerText).toBe('500%')
 		expect(onVolumeChanged).toHaveBeenCalledTimes(1)
 		window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Control' }))
-		expect(slider.value).toBe('0.6')
+		expect(Number(slider.value)).toBeCloseTo(gainToFader(0.6), 12)
 
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }))
-		expect(slider.value).toBe('0.2')
-		slider.value = '0.3'
+		expect(Number(slider.value)).toBeCloseTo(gainToFader(0.2), 12)
+		slider.value = gainToFader(0.3)
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		await new Promise(resolve => requestAnimationFrame(resolve))
-		expect(onSampleVolumeChanged).toHaveBeenCalledWith('0.3')
+		expect(onSampleVolumeChanged).toHaveBeenCalledWith(expect.closeTo(0.3, 12))
 		window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }))
-		expect(slider.value).toBe('0.6')
+		expect(Number(slider.value)).toBeCloseTo(gainToFader(0.6), 12)
 		expect(document.getElementById('mixer-master-output').innerText).toBe('60%')
-		slider.value = '0.4'
+		slider.value = gainToFader(0.4)
 		slider.dispatchEvent(new Event('input', { bubbles: true }))
 		await new Promise(resolve => requestAnimationFrame(resolve))
 
 		expect(onVolumeChanged).toHaveBeenCalledTimes(2)
-		expect(onVolumeChanged).toHaveBeenLastCalledWith('0.4')
+		expect(onVolumeChanged).toHaveBeenLastCalledWith(expect.closeTo(0.4, 12))
 		controls.destroy()
 	})
 
@@ -118,13 +119,13 @@ describe('volume slider', () => {
 		]
 		changes.forEach(([mode, value]) => {
 			const input = document.getElementById(`mixer-${mode}-volume`)
-			input.value = value
+			input.value = gainToFader(Number(value))
 			input.dispatchEvent(new Event('input', { bubbles:true }))
 		})
 		await new Promise(resolve => requestAnimationFrame(resolve))
 
-		changes.forEach(([, value, callback]) => expect(callback).toHaveBeenCalledWith(value))
-		expect(document.getElementById('mixer-master-volume').value).toBe('0.7')
+		changes.forEach(([, value, callback]) => expect(callback).toHaveBeenCalledWith(expect.closeTo(Number(value), 12)))
+		expect(Number(document.getElementById('mixer-master-volume').value)).toBeCloseTo(gainToFader(0.7), 12)
 		expect(document.getElementById('mixer-master-output').innerText).toBe('70%')
 		expect(document.getElementById('mixer-trim-output').innerText).toBe('200%')
 

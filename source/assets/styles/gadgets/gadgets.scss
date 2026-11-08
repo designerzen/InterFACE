@@ -304,10 +304,14 @@ a[href="#fund"]{
 
 // The small player-selection progress indicator overlays the logo.
 // Match its visible states; at 0.5 and 1 the progress indicator is transparent.
-html.player-selection:not(.loaded):has(#load-progress:not([data-loaded="true"]) progress:not([value="0.5"]):not([value="1"])) a[href="#fund"]::after{
-	content: '';
-	opacity: 0;
-	animation: none;
+html.player-selection:not(.loaded):has(#load-progress:not([data-loaded="true"]) progress:not([value="0.5"]):not([value="1"])) a[href="#fund"]{
+	background-image: none;
+
+	&::after{
+		content: '';
+		opacity: 0;
+		animation: none;
+	}
 }
 
 // show / hide tag at top right	

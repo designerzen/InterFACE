@@ -26,7 +26,7 @@
 
 		button(type="button")#tempo-increase-button.button-bpm-up.keyboard-shortcut-control Tempo Increase
 			kbd.keyboard-shortcut(aria-hidden="true") →
-		button(type="button")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrese
+		button(type="button")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrease
 			kbd.keyboard-shortcut(aria-hidden="true") ←
 
 		button(type="button")#tempo-tap-button.button-bpm-tap.round.keyboard-shortcut-control Tap Tempo
@@ -36,25 +36,37 @@
 
 	fieldset#network-timing.form-network-timing.tabs-panel(role="tabpanel" aria-labelledby="tempo-sync-tab" hidden)
 		legend Play together
-		p Share one tempo with other machines in the room.
-		label(for="timing-room-server") Room server
-		input#timing-room-server(type="text" placeholder="room-server.example.com" autocomplete="off" spellcheck="false")
+		p Share tempo and swing directly with nearby machines on the same network.
 		label(for="timing-room-id") Room code
 		input#timing-room-id(type="text" minlength="6" maxlength="80" autocomplete="off" spellcheck="false")
 		div.timing-room-actions
 			button#timing-room-host(type="button") Host a room
-			button#timing-room-join(type="button") Join room
+			button#timing-room-invite(type="button" disabled) Invite another guest
 			button#timing-room-leave(type="button" disabled) Leave room
+		label(for="timing-room-pairing") Invitation or response link
+		textarea#timing-room-pairing(rows="3" autocomplete="off" spellcheck="false" placeholder="Paste the host’s invitation, or a guest’s response")
+		div.timing-room-actions
+			button#timing-room-join(type="button") Import link
+			button#timing-room-scan(type="button") Scan QR code
+		label(for="timing-room-image") Or read a QR image
+		input#timing-room-image(type="file" accept="image/*")
+		div#timing-room-scanner(hidden)
+			video#timing-room-video(autoplay playsinline muted aria-label="QR scanner camera")
+			button#timing-room-stop-scan(type="button") Stop scanning
 		output#timing-room-status(role="status" aria-live="polite") Playing on my own
+		p#timing-room-error(role="alert" hidden)
 		ul#timing-room-peers(aria-label="Connected machines")
 		div.timing-room-actions
 			button#timing-room-start(type="button" disabled) Start together
 			button#timing-room-pause(type="button" disabled) Pause together
 		p The host controls tempo and swing. Changes take effect together at the next shared boundary.
+		p Each guest needs their own invitation. Return the response to the host to finish joining. Keep the host’s page open; refreshing requires pairing again. Guest Wi-Fi isolation can prevent connections.
 		div#timing-room-share(hidden)
-			div#timing-room-qr(role="img" aria-label="Scan to join this room")
-			a#timing-room-link
-			button#timing-room-copy(type="button") Copy room link
+			p#timing-room-share-help
+			div#timing-room-qr(role="img" aria-label="Pairing QR code")
+			p#timing-room-qr-warning(role="status")
+			a#timing-room-link(target="_blank" rel="noopener")
+			button#timing-room-copy(type="button") Copy pairing link
 
 fieldset(hidden).form-tempo-synch
 	label(for="tempo-clock-select") Synch Clock To

@@ -22,9 +22,16 @@
 		anchor-name: --select-arp-rate;
 	}
 
+	#shared-controls > #button-controls-list {
+		order: -2;
+		grid-area: 1 / 1;
+		--bg: url(/source/assets/icons/view_list-24px.svg);
+		> .controls-view-caption { grid-area: text; }
+		&[aria-expanded="true"] { --bg: url(/source/assets/icons/grid_on-24px.svg); }
+	}
 	label[for="button-settings"]{
 		order:-1;
-		grid-area:1/1;
+		grid-area:1/2;
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-blue);
 		--bg:url(/source/assets/icons/settings-24px.svg);
@@ -96,97 +103,16 @@
 	.mute a.folder-link[href="#folder-volume"]{
 		
 		--bg:url(/source/assets/icons/volume_off-24px.svg);
-		--bg:url(/source/assets/icons/volume_mute-24px.svg);
 	}
 
-	.lo a.folder-link[href="#folder-volume"]{
-		--bg:url(/source/assets/icons/volume_off-24px.svg);
+	.low a.folder-link[href="#folder-volume"]{
 		--bg:url(/source/assets/icons/volume_down-24px.svg);
 	}
 
-	.high a.folder-link[href="#folder-volume"]{
-		--bg:url(/source/assets/icons/volume_off-24px.svg);
-		--bg:url(/source/assets/icons/volume_mute-24px.svg);
-		--bg:url(/source/assets/icons/volume_down-24px.svg);
+	.hi a.folder-link[href="#folder-volume"]{
 		--bg:url(/source/assets/icons/volume_up-24px.svg);
 	}
 
-	html:not(.beginner) #control-panel-volume a.folder-link[href="#folder-volume"]{
-		--bg:url(/source/assets/icons/equalizer.svg);
-	}
-
-	.head-note-range-control,
-	.head-vertical-range-control{
-		position:relative;
-		overflow:visible;
-		padding:0;
-
-		> label.button{
-			--col-select:var(--shade-green);
-			--col-hover:var(--shade-blue);
-			--bg:url(/source/assets/icons/swap_horiz.svg);
-			box-sizing:border-box;
-			width:100%;
-			min-width:44px;
-			height:100%;
-			min-height:44px;
-		}
-
-		.head-note-range-fader,
-		.head-vertical-range-fader{
-			box-sizing:border-box;
-			position:absolute;
-			inset-inline-start:50%;
-			inset-block-end:calc(100% + 0.5rem);
-			z-index:20;
-			transform:translateX(-50%);
-			width:5.5rem;
-			max-width:min(5.5rem, 90vw);
-			height:min(16rem, 45vh);
-			padding:0.75rem 0.5rem;
-			display:none;
-			grid-template-rows:auto minmax(0, 1fr);
-			justify-items:center;
-			gap:car(--gap, 0.5rem);
-			border:2px solid currentColor;
-			border-radius:0.5rem;
-			background:var(--col-bottom, #222);
-			box-shadow:0 0.5rem 1.5rem rgb(0 0 0 / 45%);
-			accent-color:var(--shade-green);
-
-			label{
-				box-sizing:border-box;
-				width:100%;
-				height:100%;
-				min-height:0;
-				display:flex;
-				place-content:center;
-				overflow:hidden;
-			}
-
-			label > input[type="range"].vertical{
-				box-sizing:border-box;
-				width:100%;
-				max-width:100%;
-				height:100%;
-				min-height:8rem;
-			}
-
-			output{
-				font-weight:900;
-				font-variant-numeric:tabular-nums;
-			}
-		}
-
-		&:has(#button-head-note-range:checked) .head-note-range-fader,
-		&:has(#button-head-vertical-range:checked) .head-vertical-range-fader{
-			display:grid;
-		}
-	}
-
-	.head-vertical-range-control > label.button{
-		--bg:url(/source/assets/icons/swap_vert.svg);
-	}
 
 	label[for="button-flood"]{
 		--bg:url(/source/assets/icons/settings_overscan_black_24dp.svg);
@@ -259,11 +185,11 @@
 		anchor-name: --button-eyebrows;
 	}
 
-	label[for="button-lips"]{
+	label[for="select-lips"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-blue);
 		--bg:url(/source/assets/icons/mood.svg);
-		anchor-name: --button-lips;
+		anchor-name: --select-lips;
 	}
 
 	// 
@@ -532,6 +458,34 @@
 		// }
 	}
 
+	a.folder-link[href="#folder-mouth"]{
+		--col-hover:var(--shade-blue);
+		--col-select:var(--shade-yellow);
+		--bg:url(/source/assets/icons/show_chart.svg);
+		anchor-name: --folder-mouth;
+	}
+
+	a.folder-link[href="#folder-head"]{
+		--col-hover:var(--shade-blue);
+		--col-select:var(--shade-green);
+		--bg:url(/source/assets/icons/face.svg);
+		anchor-name: --folder-head;
+	}
+
+	a.folder-link[href="#folder-engine"]{
+		--col-hover:var(--shade-green);
+		--col-select:var(--shade-orange);
+		--bg:url(/source/assets/icons/audiotrack-24px.svg);
+		anchor-name: --folder-engine;
+	}
+
+	label[for="backing-melody-player"]{
+		--col-hover:var(--shade-green);
+		--col-select:var(--shade-orange);
+		--bg:url(/source/assets/icons/music_note-24px.svg);
+		anchor-name: --backing-melody-player;
+	}
+
 	label[for="select-theme"]{
 		--col-hover:var(--shade-green);	
 		--col-select:var(--shade-blue);
@@ -658,7 +612,7 @@
 
 
 	label[for="button-record-video"]{
-		--bg:url(/source/assets/icons/speed-24px.svg);
+		--bg:url(/source/assets/icons/videocam-24px.svg);
 		--col-hover:var(--shade-blue);
 		--col-select:var(--shade-yellow);
 		anchor-name: --button-record-video;
@@ -690,6 +644,7 @@
 	}
 
 	button#button-record{
+		--bg:url(/source/assets/icons/repeat_on.svg);
 		//color:$col-red;
 		&.recording{
 
@@ -766,3 +721,31 @@
 		anchor-name: --button-vr;
 	}
 // }
+
+// Settings states describe the current value, including disabled overlays.
+#settings {
+	label[for="select-subdivisions"] {
+		--bg: url(/source/assets/icons/subdivisions-24px.svg);
+		&:has(option[value="0"]:checked) { --bg: url(/source/assets/icons/subdivisions_off-24px.svg); }
+	}
+	label[for="button-eyebrows"] {
+		--bg: url(/source/assets/icons/gesture_off-24px.svg);
+		&:has(input:checked), &.checked { --bg: url(/source/assets/icons/gesture.svg); }
+	}
+	label[for="select-eyes"]:has(option[value^="s:0,i:0"]:checked) { --bg: url(/source/assets/icons/adjust_off-24px.svg); }
+	label[for="select-lips"]:has(option[value="disabled"]:checked) { --bg: url(/source/assets/icons/mood_off-24px.svg); }
+	label[for="button-toggle-overlay"] {
+		--bg: url(/source/assets/icons/texture_off-24px.svg);
+		&:has(input:checked), &.checked { --bg: url(/source/assets/icons/texture-24px.svg); }
+	}
+	label[for="button-toggle-advanced"] {
+		--bg: url(/source/assets/icons/equalizer_off-24px.svg);
+		&:has(input:checked), &.checked { --bg: url(/source/assets/icons/equalizer.svg); }
+	}
+	label[for="button-flood"] {
+		--bg: url(/source/assets/icons/settings_overscan_off-24px.svg);
+		&:has(input:checked), &.checked { --bg: url(/source/assets/icons/settings_overscan_black_24dp.svg); }
+	}
+	label[for="select-composite-layout"] { --bg: url(/source/assets/icons/grid_on-24px.svg); }
+	label[for="select-composite-displays"] { --bg: url(/source/assets/icons/gradient-24px.svg); }
+}

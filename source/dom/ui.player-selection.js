@@ -93,7 +93,7 @@ export const showPlayerSelector = (options, stateMachine, hooks = {}) => new Pro
 		body.classList.remove(...playerQuantities)
 		body.classList.add( numberOfPlayersAsString(amount) )
 		const addendumText = automationMode ? " with automation" : ""
-		const advancedModeText = advancedMode ? "an advanced mode" : "a simple mode"
+		const advancedModeText = advancedMode ? "an expert mode" : "a simple mode"
 		switch(amount)
 		{	
 			case 2:

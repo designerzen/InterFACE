@@ -19,6 +19,7 @@ import { APPLICATION_EVENTS, createInterface } from './interface.js'
 import { startBackground } from './dom/start-background.js'
 import { observeVideoStarted } from './hardware/video-started.js'
 import { isReturningUser, updateSummaryText } from './dom/session-summary.js'
+import { prepareLookingGlassIntegration } from './dom/looking-glass-integration.js'
 
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 
@@ -53,6 +54,9 @@ bodyClassList.toggle("loading", true)
 bodyClassList.toggle("interface", true)
 bodyClassList.toggle( "debug", debugMode )
 bodyClassList.add( LTD)
+
+// Discover optional display hardware before onboarding, then preload only if found.
+prepareLookingGlassIntegration()
 
 const background = startBackground()
 const backgroundVideo = document.getElementById('webcam')
@@ -470,6 +474,9 @@ navigation.onnavigate = (event) => {
 		return
 	}
 	event.intercept({
+		// Settings are saved with pushState; the default focus reset would
+		// pull focus off the slider or select being adjusted on every change
+		focusReset: 'manual',
 		async handler() {
 			// The URL updates automatically!
 			await loadNewContent()

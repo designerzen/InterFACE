@@ -29,6 +29,14 @@ export const hasWebGPUCapability = () => !!navigator.gpu
 
 export const isPopoverSupported = () => HTMLElement.prototype.hasOwnProperty("popover")
 
+export const hasViewTransitionCapability = (document = globalThis.document) => {
+	const css = document?.defaultView?.CSS ?? globalThis.CSS
+	return typeof document?.startViewTransition === 'function' &&
+		typeof css?.supports === 'function' &&
+		css.supports('view-transition-name', 'control-view') &&
+		css.supports('selector(::view-transition-group(control-view))')
+}
+
 export const hasBluetoothCapability = () => 'bluetooth' in navigator
 
 /**
@@ -85,6 +93,7 @@ export default class Capabilities {
 	electron = undefined
 	node = undefined
 	popover = undefined
+	viewTransitions = undefined
 
 	webGL = undefined
 	webGPU = undefined
@@ -110,6 +119,7 @@ export default class Capabilities {
 		this.virtualMIDIAvailable = isElectron() && isNode()
 
 		this.popover = isPopoverSupported()
+		this.viewTransitions = hasViewTransitionCapability()
 
 		this.bluetooth = hasBluetoothCapability()
 		

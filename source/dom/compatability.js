@@ -1,4 +1,4 @@
-import { fetchPermissions, PERMISSION_GRANTED, PERMISSION_PROMPT, PERMISSION_UNAVAILABLE } from "../capabilities"
+import { fetchPermissions, hasViewTransitionCapability, PERMISSION_GRANTED, PERMISSION_PROMPT, PERMISSION_UNAVAILABLE } from "../capabilities"
 import { filterVideoCameras } from "../hardware/camera"
 
 /**
@@ -13,6 +13,15 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 	const NOT_AVAILABLE = "not-available"
 	const AVAILABLE = "available"
 	const UNKNOWN = "unknown"
+	const transitionResult = table.querySelector('.capability-view-transitions td.result')
+	if (transitionResult) {
+		const supported = capabilities.viewTransitions ?? hasViewTransitionCapability()
+		const reduced = document.documentElement.classList.contains('a11y-reduce-motion') || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+		transitionResult.textContent = !supported ? 'Unavailable — views switch instantly' : reduced ? 'Supported — reduced motion enabled' : 'Available'
+		transitionResult.classList.remove(CHECKING)
+		transitionResult.classList.toggle(AVAILABLE, supported)
+		transitionResult.classList.toggle(NOT_AVAILABLE, !supported)
+	}
 
 	const updateTable = (permissions, cameras) => {
 		

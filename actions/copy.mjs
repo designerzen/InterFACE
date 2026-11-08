@@ -9,7 +9,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, lstatSync, copyFileSync } from 'node:fs'
 import * as path from 'path'
 
-const copyFolderSync = (from, to, preserveWasm = false) => {
+const copyFolderSync = (from, to) => {
 
 	if (existsSync(to))
 	{ 
@@ -20,8 +20,6 @@ const copyFolderSync = (from, to, preserveWasm = false) => {
 	}
 
 	readdirSync(from).forEach(element => {
-		// This runtime is checked into static/ separately from the npm package.
-		if (preserveWasm && element === 'wasm') return
 		if (lstatSync(path.join(from, element)).isFile()) {
 
 			// FILES!
@@ -55,12 +53,15 @@ copyFolderSync('./node_modules/@mediapipe/face_mesh/', './static/@mediapipe/face
 // POSE IS 26MB! Larger than the cloudflare limit of 25MB!
 // copyFolderSync('./node_modules/@mediapipe/pose/', './static/@mediapipe/pose/') 
 
-copyFolderSync('./node_modules/@mediapipe/tasks-vision/', './static/@mediapipe/tasks-vision/', true)
+copyFolderSync('./node_modules/@mediapipe/tasks-vision/', './static/@mediapipe/tasks-vision/')
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 // copyFolderSync('./node_modules/@mediapipe/', './static/@mediapipe/', true ) 
 
 // WebGPU tasks
 copyFolderSync('./node_modules/@litertjs/core/wasm/', './static/@litertjs/'  ) 
+
+// Keep QR scanning local, including when the app is installed offline.
+copyFolderSync('./node_modules/zxing-wasm/dist/reader/', './static/zxing/')
 
 // handled by static-copy-plugin
 // copyFolderSync('./static/', './dist/') 

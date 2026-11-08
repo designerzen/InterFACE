@@ -89,6 +89,10 @@
 		margin-bottom:var(--pad);
 	}
 
+	:where(ol){
+		list-style-position: inside;
+	}
+
 	// List item gaps
 	:where(ol,ul)[role=list] li + li{
 		margin-top:calc( var(--pad) / 2 );
@@ -256,7 +260,7 @@
 			text-transform:initial;
 			text-align: left;
 			color: var(--shade-white,white);
-			background: black !important;
+			background: black;
 			
 			// border-radius: 2px;
 			transition: 95ms all ease-in;
@@ -274,30 +278,6 @@
 		// safari allows styling of options!
 		&:not(:disabled) option {
 			
-		}
-	}
-
-	// Chrome now supports CUSTOM select
-	// with all kinds of inner styles
-	@supports (appearance: base-select){
-		select{
-			appearance: base-select;
-			font-family: inherit;
-			font-size: inherit;
-			color: inherit;
-				
-			button{
-				color: inherit;
-				background: inherit;
-			}
-		}
-
-		::picker(select){
-
-		}
-		
-		option{
-		
 		}
 	}
 

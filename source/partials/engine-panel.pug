@@ -1,0 +1,81 @@
+fieldset#engine-settings.engine-settings.control-settings
+	legend Engine
+	p One voice engine plays all players. Percussion has its own engine.
+	label.engine-field(for="select-voice-engine") Voice engine
+		select#select-voice-engine(name="voiceEngine" aria-label="Voice engine for all players" aria-describedby="voice-engine-status")
+			option(value="native") Native (Composite)
+			option(value="fm") FM (DX7)
+			option(value="yoshimi") Yoshimi (WAM)
+			option(value="wam2") TinySynth (WAM2)
+			option(value="supersonic") SuperSonic (SuperCollider)
+
+	fieldset(data-engine-settings="native fm supersonic yoshimi wam2")
+		legend Loudness
+		label.engine-field(for="engine-output-gain") Output gain
+			input#engine-output-gain(type="range" min="-18" max="18" step="0.5" data-engine-setting="outputGainDb")
+			output(for="engine-output-gain") 0 dB
+		p Engine levels are balanced by default. This extra gain is saved separately for each engine and applies to all players. Lower it if chords distort.
+	fieldset(data-engine-settings="native")
+		legend SoundFont
+		label.engine-field(for="select-samples") Sound library
+			select#select-samples(aria-label="Select a sound font to change sounds" name="select-samples")
+				option(value="OpenGM24") OpenGM24
+	fieldset#engine-app-reverb(data-engine-settings="native fm supersonic yoshimi wam2")
+		legend App reverb
+		label.engine-field(for="engine-reverb-mode") Reverb mode
+			select#engine-reverb-mode(data-engine-setting="reverbMode")
+				option(value="preset") Use instrument preset
+				option(value="off") Off
+				option(value="custom") Custom
+		div#engine-reverb-custom(hidden)
+			label.engine-field(for="select-impulse") Space
+				select#select-impulse(data-native-select aria-label="Reverb space" name="select-impulse")
+					option(value="synthetic") Synthetic room
+			label.engine-field(for="engine-reverb-mix") Mix
+				input#engine-reverb-mix(type="range" min="0" max="1" step="0.01" data-engine-setting="reverbMix")
+				output(for="engine-reverb-mix") 15%
+			label.engine-field(for="engine-reverb-length") Decay
+				input#engine-reverb-length(type="range" min="0.2" max="6" step="0.1" data-engine-setting="reverbLength")
+				output(for="engine-reverb-length") 1.8 s
+			label.engine-field(for="engine-reverb-tone") Tone
+				input#engine-reverb-tone(type="range" min="-1" max="1" step="0.05" data-engine-setting="reverbTone")
+				output(for="engine-reverb-tone") Neutral
+			label.engine-field(for="engine-reverb-predelay") Pre-delay
+				input#engine-reverb-predelay(type="range" min="0" max="0.1" step="0.002" data-engine-setting="reverbPreDelay")
+				output(for="engine-reverb-predelay") 12 ms
+			p#engine-reverb-space-help Choosing a space resets Decay to its natural length. Recorded spaces can be shortened but not lengthened.
+		div#engine-reverb-room
+			label.engine-field(for="engine-room-space") Shared room
+				select#engine-room-space(data-engine-setting="roomSpace" aria-describedby="engine-room-help")
+			label.engine-field(for="engine-room-mix") Room level
+				input#engine-room-mix(type="range" min="0" max="1" step="0.01" data-engine-setting="roomMix" aria-describedby="engine-room-help")
+				output(for="engine-room-mix") Off
+			p#engine-room-help Every player also sends to this room, on top of their instrument reverb. Ensembles can choose it.
+		div#engine-reverb-instruments
+			label.engine-field(for="engine-reverb-instrument") Instrument
+				select#engine-reverb-instrument
+			label.engine-toggle(for="engine-reverb-instrument-enabled")
+				input#engine-reverb-instrument-enabled(type="checkbox")
+				span Enable app reverb for this instrument
+		p#engine-reverb-help App reverb follows mouth expression so its tail continues after the sound stops.
+	fieldset(data-engine-settings="fm" hidden)
+		legend FM (DX7)
+		label.engine-field(for="engine-fm-bend") Pitch-bend range (semitones)
+			input#engine-fm-bend(type="range" min="0" max="24" step="1" data-engine-setting="pitchBendRange")
+			output(for="engine-fm-bend") 2
+		p Choose GM patches or import DX7 patches in each player’s instrument panel.
+	fieldset(data-engine-settings="supersonic" hidden)
+		legend SuperSonic
+		label.engine-field(for="engine-supersonic-bend") Pitch-bend range (semitones)
+			input#engine-supersonic-bend(type="range" min="0" max="24" step="1" data-engine-setting="pitchBendRange")
+			output(for="engine-supersonic-bend") 2
+	fieldset(data-engine-settings="wam2" hidden)
+		legend TinySynth (WAM2)
+		label.engine-field(for="engine-wam2-quality") Sound quality
+			select#engine-wam2-quality(data-engine-setting="quality")
+				option(value="1") High
+				option(value="0") Light
+	fieldset(data-engine-settings="yoshimi" hidden)
+		legend Yoshimi (WAM)
+		p Yoshimi keeps its patch effects. A subtle app reverb adds a tail after mouth expression, shared by all players. Choose patches in each player’s instrument panel.
+	p#voice-engine-status(role="status" aria-live="polite") Applies to all players. Percussion uses its own engine.

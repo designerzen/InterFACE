@@ -1,0 +1,51 @@
+html:has(#control-panel-mouth:is(.open, .controls-list-folder-open, :focus-within)) #feedback { visibility: hidden; }
+html:has(#folder-mouth:target) #feedback { visibility: hidden; }
+// Same as the engine drawer: a transformed parent would capture the fixed panel.
+html:has(#control-panel-mouth:is(.open, .controls-list-folder-open, :focus-within), #folder-mouth:target) {
+	#settings { transform: none; animation: none; will-change: auto; z-index: 1300; }
+	#control-panel { z-index: 1300; }
+}
+#control-panel-mouth.mouth-dismissed:not(.controls-list-folder-open) #folder-mouth {
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	animation: none;
+	* { visibility: hidden; pointer-events: none; }
+}
+
+#mouth-dynamics-settings {
+	.mouth-curve-editor {
+		margin: 1rem 0 .5rem;
+		padding: 0;
+	}
+	.mouth-curve {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 320 / 200;
+		border: 1px solid var(--rule);
+		border-radius: .5rem;
+		background: color-mix(in srgb, var(--shade-white) 4%, transparent);
+		touch-action: none;
+		user-select: none;
+		cursor: crosshair;
+	}
+	.mouth-curve-grid line { stroke: var(--rule); stroke-width: 1; }
+	.mouth-curve-labels text { fill: var(--muted); font-size: 10px; }
+	.mouth-curve-area { fill: color-mix(in srgb, var(--shade-yellow, #ffda62) 18%, transparent); }
+	.mouth-curve-line { fill: none; stroke: var(--shade-yellow, #ffda62); stroke-width: 2.5; stroke-linejoin: round; }
+	.mouth-curve-marker { fill: var(--shade-green); pointer-events: none; }
+	.mouth-curve-handle {
+		fill: var(--shade-dark);
+		stroke: var(--shade-white);
+		stroke-width: 2.5;
+		cursor: grab;
+		&:hover, &:focus-visible { fill: var(--shade-yellow, #ffda62); outline: none; }
+		&:focus-visible { stroke-width: 4; }
+		&:active { cursor: grabbing; }
+		&.fixed { fill: var(--shade-white); stroke: none; cursor: default; pointer-events: none; }
+	}
+	.mouth-curve-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+	.mouth-curve-actions button { min-height: 44px; }
+	#mouth-curve-status { display: block; min-height: 1.5em; color: var(--muted); font-size: .9rem; }
+}

@@ -70,18 +70,21 @@ await writeFile(
 // JS strings. Walk those references so linked demo/test pages are not installed.
 const allOutputFiles = await listFiles(outputRoot)
 const outputByUrl = new Map(allOutputFiles.map(path => [toOutputUrl(path), path]))
-const installUrls = new Set(['index.html', 'app.html', 'manifest.webmanifest', 'offline-audio.json'])
+const installUrls = new Set(['index.html', 'app.html', 'room/index.html', 'manifest.webmanifest', 'offline-audio.json'])
 const pendingUrls = [...installUrls]
 const runtimeDirectoryPrefixes = [
+	'magenta/',
 	'@mediapipe/tasks-vision/wasm/',
 	'@litertjs/',
+	'zxing/',
 ]
 
 // These loaders construct the selected WASM filename at runtime, so Parcel
 // cannot expose the files as normal graph edges.
 for (const url of outputByUrl.keys()) {
 	if (!runtimeDirectoryPrefixes.some(prefix => url.startsWith(prefix))) continue
-	if (!/\.(?:js|wasm)$/i.test(url)) continue
+	// Magenta checkpoints include JSON manifests and extensionless weight shards.
+	if (!url.startsWith('magenta/checkpoints/') && !/\.(?:js|wasm)$/i.test(url)) continue
 	installUrls.add(url)
 	pendingUrls.push(url)
 }

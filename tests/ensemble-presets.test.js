@@ -1,4 +1,9 @@
 const { presets } = require('../static/assets/ensemble-presets.json')
+const instruments = require('../source/audio/general-midi-instruments.json')
+const { DRUM_STYLES } = require('../source/timing/drum-styles.js')
+const { DRUM_GROOVES } = require('../source/timing/drum-patterns.js')
+const { getPercussionPreset } = require('../source/audio/synthesizers/percussion-presets.js')
+const { SCALE_INTERVAL_LIBRARY } = require('../source/audio/tuning/intervals.js')
 
 const LEADS = Object.freeze({
 	'four-choirs':'choir_aahs',
@@ -39,8 +44,8 @@ const BASS_INSTRUMENTS = new Set([
 ])
 
 describe('ensemble presets', () => {
-	test('assign the lead first and the bass second before supporting instruments', () => {
-		for (const preset of presets)
+	test('original ensembles retain their lead and bass assignments', () => {
+		for (const preset of presets.filter(preset => LEADS[preset.id]))
 		{
 			for (const [quantity, instruments] of Object.entries(preset.voicings))
 			{
@@ -61,5 +66,39 @@ describe('ensemble presets', () => {
 				}
 			}
 		}
+	})
+
+	test('adds one complete ensemble for every requested timing style', () => {
+		const genres=presets.filter(preset=>preset.style)
+		expect(genres.map(preset=>preset.style)).toEqual(DRUM_STYLES.map(style=>style.id))
+		expect(genres).toHaveLength(46)
+		expect(presets).toHaveLength(70)
+		expect(new Set(presets.map(preset=>preset.id)).size).toBe(presets.length)
+	})
+
+	test.each(presets.filter(preset=>preset.style).map(preset=>[preset.title,preset]))('%s has usable instruments, harmony and its matching timing', (_,preset) => {
+		const available=new Set(instruments.map(instrument=>instrument.location.replace(/-mp3$/,'')))
+		for(const count of [1,2,3,4]) {
+			const voices=preset.voicings[count]
+			expect(voices).toHaveLength(count)
+			expect(voices).toEqual(preset.voicings[4].slice(0,count))
+			for(const voice of voices)expect(available.has(voice)).toBe(true)
+			if(count>1)expect(BASS_INSTRUMENTS.has(voices[1])).toBe(true)
+		}
+		expect(preset.tempo.bpm).toBeGreaterThanOrEqual(40)
+		expect(preset.tempo.bpm).toBeLessThanOrEqual(240)
+		expect(preset.tempo.swing).toBeGreaterThanOrEqual(0)
+		expect(preset.tempo.swing).toBeLessThanOrEqual(0.45)
+		expect(preset.harmony.key).toMatch(/^[A-G](?:b|#)?$/)
+		expect(SCALE_INTERVAL_LIBRARY[preset.harmony.scale]).toBeDefined()
+		const pattern=getPercussionPreset(preset.percussion.pattern)
+		expect(pattern.groove).toBe(DRUM_STYLES.find(style=>style.id===preset.style).groove)
+		expect(preset.percussion.meter).toEqual(DRUM_GROOVES[pattern.groove].meter)
+		expect(getPercussionPreset(preset.percussion.sound)?.kit).toBeDefined()
+		expect(preset.percussion.enabled).toBe(true)
+	})
+
+	test.each(['jazz','blues','irish-jig-inspired','gnawa-inspired','korean-folk-inspired','hip-hop'])('%s avoids adding clock swing over the encoded groove feel', style => {
+		expect(presets.find(preset=>preset.style===style).tempo.swing).toBe(0)
 	})
 })

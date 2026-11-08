@@ -5,6 +5,20 @@
 	--a11y-surface: #1f2937;
 	--a11y-text: #f3f4f6;
 	--a11y-accent: #a5c8ff;
+	--a11y-focus: var(--a11y-accent);
+	--a11y-button-background: var(--a11y-surface);
+	--a11y-button-text: var(--a11y-text);
+	--a11y-button-border: var(--a11y-accent);
+	--a11y-menu-background: var(--a11y-surface);
+	--a11y-menu-text: var(--a11y-text);
+	--a11y-menu-border: var(--a11y-accent);
+	--a11y-label-background: var(--a11y-background);
+	--a11y-label-text: var(--a11y-text);
+	--a11y-popup-background: var(--a11y-background);
+	--a11y-popup-text: var(--a11y-text);
+	--a11y-popup-border: var(--a11y-accent);
+	--a11y-slider-track: var(--a11y-surface);
+	--a11y-slider-thumb: var(--a11y-accent);
 }
 
 $palettes: (
@@ -41,7 +55,8 @@ html[data-a11y-theme]:not([data-a11y-theme='original']) {
 	:is(button, .button, select, textarea, input:not([type='range']):not([type='checkbox']):not([type='radio']), summary) {
 		color: var(--a11y-text) !important;
 		background: var(--a11y-surface) !important;
-		border: 2px solid var(--a11y-accent) !important;
+		border: var(--a11y-border-size, 2px) solid var(--a11y-accent) !important;
+		border-radius: var(--a11y-corner-radius, .4rem) !important;
 		text-shadow: none !important;
 		box-shadow: none !important;
 	}
@@ -53,32 +68,137 @@ html[data-a11y-theme]:not([data-a11y-theme='original']) {
 	}
 	:is(button, input, select):disabled { opacity: .55; }
 	input { accent-color: var(--a11y-accent); }
+	:is(button, .button) {
+		background: var(--a11y-button-background) !important;
+		color: var(--a11y-button-text) !important;
+		border-color: var(--a11y-button-border) !important;
+	}
+	:is(select, textarea, input:not([type='range']):not([type='checkbox']):not([type='radio'])) {
+		background: var(--a11y-menu-background) !important;
+		color: var(--a11y-menu-text) !important;
+		border-color: var(--a11y-menu-border) !important;
+	}
+	dialog, .a11y-content {
+		background: var(--a11y-popup-background) !important;
+		color: var(--a11y-popup-text) !important;
+	}
+	dialog {
+		border: var(--a11y-border-size, 2px) solid var(--a11y-popup-border) !important;
+		:is(h1, h2, h3, h4, p, legend, summary) { color: var(--a11y-popup-text) !important; }
+	}
+	label { background: var(--a11y-label-background) !important; color: var(--a11y-label-text) !important; }
+	input[type='range'] {
+		accent-color: var(--a11y-slider-thumb);
+		&::-webkit-slider-runnable-track { background: var(--a11y-slider-track) !important; }
+		&::-webkit-slider-thumb { background: var(--a11y-slider-thumb) !important; border: 2px solid var(--a11y-slider-thumb) !important; }
+		&::-moz-range-track { background: var(--a11y-slider-track) !important; }
+		&::-moz-range-thumb { background: var(--a11y-slider-thumb) !important; }
+	}
+	:is(button, .button, summary):hover,
+	:is(button, .button)[aria-pressed='true'],
+	:is(button, .button)[aria-selected='true'] {
+		color: var(--a11y-background) !important;
+		background: var(--a11y-accent) !important;
+	}
 }
 
-// Layout only: appearance and close control come from the shared dialog styles.
 #accessibility-panel {
-	width: min(32rem, calc(100vw - 2 * var(--pad)));
-	max-height: calc(100dvh - 2 * var(--pad));
-	fieldset { display: grid; gap: var(--pad); min-width: 0; }
-	select { min-width: 0; max-width: 100%; }
-	.a11y-check { display: flex; align-items: center; gap: var(--pad); }
+	box-sizing: border-box;
+	width: min(42rem, calc(100% - 1rem));
+	max-width: calc(100% - 1rem);
+	max-height: calc(100dvh - 1rem);
+	padding: clamp(.75rem, 3vw, 1.5rem);
+	margin: auto;
+	overflow: auto;
+	overflow-wrap: anywhere;
+	color: #182235;
+	background: #f5f7fb;
+	color-scheme: light;
+	font-family: Arial, Helvetica, sans-serif;
+	&, * { animation: none !important; transition: none !important; }
+	// Shared dialogs use a decorative close overlay; this dialog has real buttons.
+	&::after { display: none; }
+	&::backdrop { background: rgb(0 0 0 / .55); pointer-events: auto; }
+	*, *::before, *::after { box-sizing: border-box; }
+	.a11y-content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; width: 100%; min-width: 0; user-select: text; }
+	.a11y-header { display: flex; flex-wrap: wrap; align-items: start; gap: .75rem; justify-content: space-between; }
+	h2 { display: block; visibility: visible; opacity: 1; flex: 1 1 12rem; width: auto; font-size: 1.5rem; line-height: 1.3; margin: 0; min-width: 0; }
+	:is(h2, p, label, legend, summary, button, input, select) { font-family: inherit; font-weight: normal; }
+	:is(p, label, legend, summary, output, button, input, select) { font-size: 1rem; line-height: 1.5; text-shadow: none; }
+	:is(h2, p, label, legend, summary, output) { text-align: left; }
+	p { margin: 0; }
+	fieldset { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; min-width: 0; margin: 0; padding: .75rem; border: 1px solid currentColor; border-radius: .4rem; }
+	legend { max-width: 100%; padding-inline: .35rem; font-weight: bold; white-space: normal; }
+	label { margin: 0; }
+	:is(select, input) { box-sizing: border-box; min-width: 0; max-width: 100%; }
+	select, input[type='text'] { width: 100%; min-height: 44px; padding: .4rem; color: #182235; background: white; border: 1px solid currentColor; }
+	button { --icon-visible: 0; min-width: 0; max-width: 100%; min-height: 44px; max-height: none; padding: .5rem .75rem; white-space: normal; height: auto; color: white; background: #182235; border: 2px solid currentColor; border-radius: .4rem; }
+	.a11y-close { flex: 0 0 auto; width: auto; }
+	button:disabled { opacity: .6; }
+	.a11y-hint { font-size: .9rem; line-height: 1.6; }
+	.a11y-check { display: flex; align-items: center; gap: .75rem; min-height: 44px; cursor: pointer; }
+	.a11y-check span { min-width: 0; }
+	input[type='checkbox'] { appearance: auto; position: static; opacity: 1; margin: 0; padding: 0; flex: 0 0 1.5rem; width: 1.5rem; height: 1.5rem; }
+	summary {
+		display: block;
+		position: relative;
+		cursor: pointer;
+		min-height: 44px;
+		padding: .5rem 1.5rem .5rem .25rem;
+		&::before { display: none; }
+		&::after { position: absolute; top: .5rem; right: .25rem; }
+	}
+	.a11y-fields, .a11y-field { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; min-width: 0; }
+	.a11y-fields { padding-top: .5rem; }
+	.a11y-colour { display: grid; grid-template-columns: minmax(0, 1fr) 3rem; align-items: center; gap: .25rem .75rem; }
+	.a11y-colour output { grid-column: 1 / -1; font-family: monospace; }
+	input[type='color'] { width: 3rem; min-height: 44px; padding: .15rem; }
+	.a11y-actions { display: flex; gap: .5rem; flex-wrap: wrap; min-width: 0; }
+	[hidden] { display: none !important; }
 }
 html[data-a11y-text-size='125'] { font-size: 125%; }
 html[data-a11y-text-size='150'] { font-size: 150%; }
+html[data-a11y-text-size='175'] { font-size: 175%; }
 html[data-a11y-text-size='200'] { font-size: 200%; }
 html.a11y-readableFont :is(body, h1, h2, h3, h4, h5, h6, p, a, label, legend, button, input, select, textarea, summary) { font-family: Arial, Helvetica, sans-serif !important; }
-html.a11y-textSpacing :is(p, a, label, legend, button, select, summary) { letter-spacing: .08em !important; word-spacing: .12em !important; line-height: 1.6 !important; }
+html.a11y-textSpacing :is(p, a, label, legend, button, input, textarea, select, summary, output) { letter-spacing: .12em !important; word-spacing: .16em !important; line-height: 1.6 !important; }
+html.a11y-textSpacing p { margin-bottom: 2em !important; }
 html.a11y-largeTargets :is(button, .button, select, summary, input:not([type='checkbox']):not([type='radio']):not([type='range'])) { min-height: 48px !important; min-width: 48px !important; }
-html.a11y-largeTargets label:has(input[type='checkbox'], input[type='radio']) { min-height: 48px; }
-html.a11y-underlineLinks a { text-decoration: underline !important; text-underline-offset: .2em; }
-html.a11y-strongFocus :focus-visible { outline: 4px solid var(--a11y-accent, #ffdf00) !important; outline-offset: 4px !important; box-shadow: 0 0 0 8px #111 !important; }
+html.a11y-largeTargets label:has(input[type='checkbox'], input[type='radio']) { display: flex; align-items: center; min-height: 48px; }
+html.a11y-underlineLinks a { text-decoration-line: underline !important; text-decoration-style: var(--a11y-underline-style, solid) !important; text-underline-offset: var(--a11y-underline-offset, .2em); }
+html[data-a11y-bordersize] :is(button, .button, select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='range']), summary) { border-style: solid !important; border-width: var(--a11y-border-size) !important; }
+html[data-a11y-cornerradius] :is(button, .button, select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='range']), summary) { border-radius: var(--a11y-corner-radius) !important; }
+html[data-a11y-underlinestyle] a { text-decoration-style: var(--a11y-underline-style) !important; }
+html[data-a11y-underlineoffset] a { text-underline-offset: var(--a11y-underline-offset) !important; }
+html[data-a11y-theme] :focus-visible { outline: var(--a11y-focus-size, 3px) var(--a11y-focus-style, solid) var(--a11y-focus) !important; outline-offset: 3px !important; box-shadow: 0 0 0 2px #111, 0 0 0 4px white !important; }
+html.a11y-strongFocus :focus-visible { outline-width: max(4px, var(--a11y-focus-size, 3px)) !important; outline-offset: 4px !important; box-shadow: 0 0 0 3px #111, 0 0 0 8px white !important; }
+
+// Explicit typography choices take priority over the simple reading switches.
+$typography: (fontfamily: font-family, fontweight: font-weight, fontstyle: font-style, fontvariant: font-variant, texttransform: text-transform, letterspacing: letter-spacing, wordspacing: word-spacing, linespacing: line-height);
+@each $key, $property in $typography {
+	html[data-a11y-#{$key}][data-a11y-theme] :is(body, h1, h2, h3, h4, h5, h6, p, a, label, legend, button, input, textarea, select, summary, output) {
+		#{$property}: var(--a11y-#{if($key == linespacing, 'line-spacing', $property)}) !important;
+	}
+}
 html.a11y-reduce-motion {
 	&, *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 	#procedural-background { display: none !important; }
 }
 
 @media (forced-colors: active) {
-	#accessibility-panel { border: 1px solid ButtonText; }
+	#accessibility-panel { border: 2px solid CanvasText !important; }
+	html[data-a11y-theme] :focus-visible { outline-color: Highlight !important; box-shadow: none !important; }
+}
+
+.a11y-skip-link {
+	position: fixed;
+	inset: .5rem auto auto .5rem;
+	z-index: 3000;
+	padding: .75rem 1rem;
+	background: #fff !important;
+	color: #111 !important;
+	transform: translateY(-200%);
+	&:focus { transform: none; }
 }
 
 #accessibility-tab {

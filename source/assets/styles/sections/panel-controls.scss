@@ -146,7 +146,7 @@
 		}
 		
 		// stretch them out 
-		select:not(.select-content), input{
+		select, input{
 			pointer-events: auto;
 			cursor:pointer;
 			border:0;
@@ -161,9 +161,11 @@
 			// left:0;
 			// z-index:1;
 			order:-1;
-			appearance:none;
 			opacity:0;
 			overflow: hidden;
+		}
+		input{
+			appearance:none;
 		}
 
 		// Indicator

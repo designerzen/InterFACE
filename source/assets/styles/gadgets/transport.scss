@@ -1,3 +1,4 @@
+@use "./_button.scss";
 
 #transport{
 	grid-area:transport;
@@ -9,6 +10,7 @@
 	z-index:  909;
 	background: var(--shade-dark, black);
 	display: flex;
+	flex-direction:column;
 	align-items:stretch;
 	justify-content:stretch;
 	min-height: 44px;
@@ -102,58 +104,275 @@ label[for="timing-elapsed"]{
 	margin:0 var(--pad);
 }
 
-.transport-session-controls,
+// RECORDING BAR -----------------------------------------------------
+// Uses the shared button look (gradient, border and --bg icon) at a
+// compact icon + text size, rather than the large instrument tiles.
+
+.transport-session-controls{
+	display:flex;
+	flex-wrap:wrap;
+	align-items:center;
+	gap:.5rem;
+	min-width:0;
+	padding:.5rem;
+	color:var(--shade-white, white);
+}
 .transport-replay-controls{
 	display:flex;
+	align-items:center;
+	gap:.25rem;
 	min-width:0;
-	gap:1px;
+	&:not(:has(> :not([hidden]))){display:none}
 }
-.transport-session-controls{flex-wrap:wrap}
 
-.transport [hidden]{display:none !important}
-.transport .session-dialog:not([open]){display:none}
-
-#session-media-library, #session-storage-status, #session-recording-status{
-	flex-basis:100%;
-	overflow-wrap:anywhere;
-}
-#session-media-library video, #session-media-library audio{
-	display:block;
+#transport :is(.transport-session-controls, #session-replay-progress, #session-recording-error, .session-dialog) button:not(.button-close){
+	@include button.add-icon-text-row;
+	--pad:.5rem;
+	--icon-size:22px;
+	--space:0px;
+	flex:0 1 auto;
+	width:auto;
 	max-width:100%;
+	height:auto;
+	min-height:44px;
+	max-height:none;
+	margin:0;
+	padding:.5rem .85rem .5rem .5rem;
+	font-size:1rem;
+	white-space:nowrap;
+	// icon then label, without the trailing spacer column
+	grid-template-columns:var(--icon-size) auto;
+	grid-template-areas:"icon text";
+	gap:0 .5rem;
+	// sit the background icon exactly under the ::after icon, which is
+	// centred in its cell and nudged by translate(--shadow-offset-y)
+	background-position:
+		left calc(1px * var(--shadow-offset-y, 0)) center,
+		0 0,
+		0 0;
+	&:focus-visible{outline:3px solid var(--shade-orange, orange);outline-offset:2px}
+	&:disabled{opacity:.55;cursor:progress}
 }
-#session-library{ max-width:100%; min-width:0; }
+
+// Seek buttons only need their icon; the label stays for assistive tech.
+// Same single icon cell as the other buttons, so both icon layers line up.
+#transport .transport-replay-controls button:is(#session-rewind, #session-forward){
+	width:44px;
+	min-width:44px;
+	padding-inline:calc((44px - var(--icon-size)) / 2);
+	font-size:0;
+	color:transparent;
+	grid-template-columns:var(--icon-size);
+	grid-template-areas:"icon";
+	gap:0;
+}
+
+// Colour carries meaning: red records/deletes, orange confirms.
+#transport :is(#button-record-session, .session-danger, #session-stop-all){--hue:var(--hue-red);--l:34%}
+#transport .session-primary{--hue:var(--hue-orange);--l:36%}
+
+#button-record-session,
+#session-record-confirm{--bg:url(/source/assets/icons/adjust-24px.svg)}
+#button-record-session[aria-pressed="true"]{--bg:url(/source/assets/icons/stop_circle.svg)}
+#session-rewind{--bg:url(/source/assets/icons/fast_rewind_black_24dp.svg)}
+#session-replay,
+#session-replay-confirm{--bg:url(/source/assets/icons/play_arrow_black_24dp.svg)}
+#session-replay[aria-pressed="true"]{--bg:url(/source/assets/icons/pause_black_24dp.svg)}
+#session-forward{--bg:url(/source/assets/icons/fast_forward_black_24dp.svg)}
+#button-save-midi{--bg:url(/source/assets/icons/audio_file.svg)}
+#session-export-confirm{--bg:url(/source/assets/icons/download_for_offline_black_24dp.svg)}
+#session-replay-choose{--bg:url(/source/assets/icons/view_list-24px.svg)}
+#session-refresh,
+#session-error-retry{--bg:url(/source/assets/icons/autorenew_black_24dp.svg)}
+#session-error-manage{--bg:url(/source/assets/icons/audio_file.svg)}
+:is(#session-delete, #session-delete-all, #session-delete-confirm){--bg:url(/source/assets/icons/delete.svg)}
+#session-stop-all{--bg:url(/source/assets/icons/stop_circle.svg)}
+.session-dialog button[data-session-close]:not(.button-close){--bg:url(/source/assets/icons/close-24px.svg)}
 
 #button-record-session[aria-pressed="true"]{
 	animation:session-record-pulse var(--record-beat-duration, 500ms) ease-out infinite;
 }
-
 @keyframes session-record-pulse{
 	0%{box-shadow:0 0 0 0 rgba(220,40,55,.65);filter:brightness(1.3)}
 	75%,100%{box-shadow:0 0 0 .6rem transparent;filter:brightness(1)}
 }
-@media(prefers-reduced-motion:reduce){
-	#button-record-session[aria-pressed="true"]{animation:none}
+
+// The toggle carries its own state: "Record", then "Recording 01:05".
+#button-record-session .session-record-text{grid-area:text;display:inline-flex;align-items:baseline;gap:.5em}
+#session-recording-duration{font-variant-numeric:tabular-nums;opacity:.85}
+
+// The library button sits at the far end of the bar.
+#transport .transport-session-controls > button#button-save-midi{margin-inline-start:auto}
+
+#session-replay-progress{
+	display:flex;
+	align-items:center;
+	gap:.5rem;
+	flex-wrap:wrap;
+	padding:0 .5rem .5rem;
+	font-size:.9rem;
+	color:var(--shade-white, white);
 }
-.transport-duration{align-self:center;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:5ch}
-#session-replay-progress{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-#session-replay-position{flex:1;min-width:8rem}
+#session-replay-position{flex:1 1 8rem;min-width:0}
 #session-replay-time{font-variant-numeric:tabular-nums}
-.session-dialog{
-	// These dialogs use explicit Close/Cancel buttons, not the shared close overlay.
-	&::after{display:none;pointer-events:none}
+
+#transport #session-recording-error{
+	display:grid;
+	grid-template-columns:auto 1fr auto;
+	grid-template-areas:"icon text close" "icon actions close";
+	gap:.5rem .75rem;
+	margin:0 .5rem .5rem;
+	padding:.75rem;
+	border:1px solid hsl(var(--hue-orange) 60% 55%);
+	border-radius:var(--button-curve, 6px);
+	background:hsl(var(--hue-orange) 40% 14%);
+	color:var(--shade-white, white);
+	line-height:1.4;
+	&::before{
+		content:'';
+		grid-area:icon;
+		width:24px;
+		height:24px;
+		background:url(/source/assets/icons/warning_amber.svg) center/contain no-repeat;
+		filter:invert(1);
+	}
+	#session-recording-status{grid-area:text}
+	.session-actions{grid-area:actions;margin:0;justify-content:flex-start}
+	.button-close{grid-area:close}
+}
+
+// DIALOGS ----------------------------------------------------------
+// Same structure as the other app dialogs: header with title and the
+// shared cross, content, then a right-aligned row of actions.
+
+#transport .session-dialog{
+	box-sizing:border-box;
 	width:min(32rem, calc(100vw - 2rem));
-	max-height:85dvh;
+	max-width:calc(100vw - 2rem);
+	max-height:calc(100dvh - 2rem);
 	overflow:auto;
-	label{display:block;margin-block:.75rem .25rem}
-	select,input[type="text"]{box-sizing:border-box;width:100%;min-width:0}
-	[data-session-error]{color:#c22}
+	padding:1.25rem;
+	line-height:1.45;
+	pointer-events:auto;
+	&::after{display:none}
+	&::backdrop{background:#000a;pointer-events:auto}
+	> *, section > *{min-width:0;max-width:100%;overflow-wrap:anywhere}
+
+	header{
+		display:flex;
+		align-items:center;
+		justify-content:space-between;
+		gap:1rem;
+		margin-block-end:.75rem;
+	}
+	h2{margin:0;font-size:1.4rem;line-height:1.2}
+	h3{margin:0 0 .5rem;font-size:1rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75}
+	p{margin-block:.5rem}
+	section{
+		margin-block-start:1rem;
+		padding-block-start:1rem;
+		border-top:1px solid #fff2;
+	}
+
+	label:not(.session-option){
+		display:block;
+		margin:.75rem 0 .3rem;
+		padding:0;
+		font-weight:700;
+	}
+	select, input[type="text"]{
+		box-sizing:border-box;
+		width:100%;
+		min-width:0;
+		min-height:44px;
+		padding:.5rem .75rem;
+		font:inherit;
+		text-align:start;
+		// match the light dialog surface rather than the dark panel fields
+		color:inherit;
+		background:#fff9;
+		border:1px solid #0005;
+		border-radius:var(--button-curve, 6px);
+		box-shadow:none;
+		&:focus-visible{outline:3px solid var(--shade-orange, orange);outline-offset:1px}
+	}
+	[data-session-error]{color:hsl(var(--hue-red) 80% 75%)}
 	[data-session-error]:empty{display:none}
 }
 
-#session-export-loading{display:flex;align-items:center;justify-content:center;gap:.75rem;min-height:12rem}
+#transport .session-options{display:grid;gap:.25rem;margin-block:.75rem}
+#transport .session-option{
+	display:flex;
+	align-items:center;
+	gap:.75rem;
+	min-height:44px;
+	padding:0 .5rem;
+	border-radius:var(--button-curve, 6px);
+	cursor:pointer;
+	&:hover{background:#fff1}
+	// native checkbox: the panel toggles hide theirs behind a styled label
+	input{appearance:auto;flex:none;width:1.25rem;height:1.25rem;margin:0;accent-color:var(--shade-orange, orange)}
+}
+
+#transport .session-actions{
+	display:flex;
+	flex-wrap:wrap;
+	justify-content:flex-end;
+	gap:.5rem;
+	margin-block-start:1rem;
+}
+#transport .session-hint{font-size:.9rem;opacity:.75}
+
+#transport .session-storage{
+	display:grid;
+	gap:.35rem;
+	font-size:.9rem;
+	meter{width:100%;height:.5rem}
+}
+
+#transport .session-callout{
+	margin-block:.75rem;
+	padding:.75rem;
+	border:1px solid hsl(var(--hue-red) 55% 50%);
+	border-radius:var(--button-curve, 6px);
+	background:hsl(var(--hue-red) 70% 50% / .1);
+	color:inherit;
+	p{margin-block-start:0}
+	.session-actions{margin-block-start:.5rem}
+}
+#transport #session-active-warning{
+	display:flex;
+	flex-wrap:wrap;
+	align-items:center;
+	justify-content:space-between;
+	gap:.5rem;
+	p{margin:0}
+}
+
+#session-media-library{font-size:.9rem;opacity:.75}
+#session-media-library:empty, #session-library-notice:empty{display:none}
+#session-media-library video, #session-media-library audio{display:block;max-width:100%}
+
+#session-export-loading{display:flex;align-items:center;justify-content:center;gap:.75rem;min-height:8rem}
 .session-export-spinner{
-	width:1.5rem;height:1.5rem;border:3px solid currentColor;border-right-color:transparent;
-	border-radius:50%;animation:session-export-spin .8s linear infinite;
+	width:1.5rem;
+	height:1.5rem;
+	border:3px solid currentColor;
+	border-right-color:transparent;
+	border-radius:50%;
+	animation:session-export-spin .8s linear infinite;
 }
 @keyframes session-export-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.session-export-spinner{animation:none}}
+
+.transport [hidden]{display:none !important}
+.transport .session-dialog:not([open]){display:none}
+
+@media(max-width:480px){
+	#transport .transport-session-controls button:not(#session-rewind, #session-forward){flex:1 1 auto}
+	#transport .session-actions > button{flex:1 1 auto}
+	#transport #session-replay-position{order:3;flex-basis:100%}
+	#transport #session-replay-time{margin-inline-start:auto}
+}
+@media(prefers-reduced-motion:reduce){
+	#button-record-session[aria-pressed="true"], .session-export-spinner{animation:none}
+}

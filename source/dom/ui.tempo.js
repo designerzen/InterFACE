@@ -29,6 +29,8 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	const closeTempoUI = toggleUI?.querySelector('a[href="#control-panel"]')
 	const setTempoUIOpen = (open, notify=true) => {
 		tempoMenu?.classList.toggle("open", open)
+		tempoMenu?.classList.toggle("tempo-dismissed", !open)
+		openTempoUI?.setAttribute('aria-expanded', String(open))
 		if (notify)
 		{
 			onUIToggleVisibility?.(open)
@@ -47,8 +49,23 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	toggleUI?.addEventListener("pointerdown", () => {
 		setTempoUIOpen(true, false)
 	}, true)
-	closeTempoUI?.addEventListener("click", () => {
+	const close = () => {
 		setTempoUIOpen(false)
+		if (window.location.hash === '#folder-tempo')
+		{
+			window.history.replaceState(null, '', window.location.pathname + window.location.search)
+		}
+		if (!document.getElementById('control-panel')?.classList.contains('controls-list-open'))
+		{
+			openTempoUI?.focus({ preventScroll: true })
+		}
+	}
+	closeTempoUI?.addEventListener("click", close)
+	toggleUI?.addEventListener('keydown', event => {
+		if (event.key !== 'Escape') return
+		event.preventDefault()
+		event.stopPropagation()
+		close()
 	})
 	window.addEventListener("hashchange", () => {
 		if (isOpen())
