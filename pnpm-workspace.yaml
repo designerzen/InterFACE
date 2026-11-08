@@ -42,12 +42,12 @@ minimumReleaseAgeExclude:
   - audio-decode@3.11.2 || 3.12.0
   - postcss@8.5.17 || 8.5.19 || 8.5.22 || 8.5.23 || 8.5.32
   - svgo@4.0.2
-  - '@babylonjs/core@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0'
-  - '@babylonjs/gui-editor@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0'
-  - '@babylonjs/inspector@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0'
-  - '@babylonjs/loaders@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0'
-  - '@babylonjs/materials@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0'
-  - electron@43.2.0 || 43.4.0 || 45.0.0
+  - '@babylonjs/core@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0 || 9.34.0'
+  - '@babylonjs/gui-editor@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0 || 9.34.0'
+  - '@babylonjs/inspector@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0 || 9.34.0'
+  - '@babylonjs/loaders@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0 || 9.34.0'
+  - '@babylonjs/materials@9.17.1 || 9.18.0 || 9.21.1 || 9.22.0 || 9.29.0 || 9.31.2 || 9.32.0 || 9.32.1 || 9.33.0 || 9.34.0'
+  - electron@43.2.0 || 43.4.0 || 45.0.0 || 45.2.2 || 45.2.3
   - knip@6.28.0 || 6.29.0 || 6.32.1 || 6.32.2 || 6.39.0
   - '@electron/packager@20.0.4 || 20.3.0'
   - sass@1.101.6 || 1.101.7 || 1.102.0 || 1.103.0 || 1.106.0 || 1.106.1 || 1.107.0
@@ -81,15 +81,15 @@ minimumReleaseAgeExclude:
   - postcss-double-position-gradients@7.0.3
   - postcss-lab-function@8.0.8 || 8.0.14
   - postcss-preset-env@11.4.0 || 11.5.5
-  - '@biomejs/biome@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-darwin-arm64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-darwin-x64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-linux-arm64-musl@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-linux-arm64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-linux-x64-musl@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-linux-x64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-win32-arm64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
-  - '@biomejs/cli-win32-x64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4'
+  - '@biomejs/biome@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-darwin-arm64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-darwin-x64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-linux-arm64-musl@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-linux-arm64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-linux-x64-musl@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-linux-x64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-win32-arm64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-win32-x64@2.5.9 || 2.5.15 || 2.6.2 || 2.6.4 || 2.6.5'
   - '@grame/faustwasm@0.16.8 || 0.19.2 || 0.20.0'
   - three@0.186.1
   - '@csstools/cascade-layer-name-parser@3.0.2'
@@ -117,8 +117,8 @@ minimumReleaseAgeExclude:
   - postcss-custom-properties@15.0.3
   - postcss-custom-selectors@9.0.3
   - turbo@2.11.6 || 2.11.10
-  - '@biomejs/cli-android-arm64@2.6.2 || 2.6.4'
-  - '@biomejs/cli-android-x64@2.6.2 || 2.6.4'
+  - '@biomejs/cli-android-arm64@2.6.2 || 2.6.4 || 2.6.5'
+  - '@biomejs/cli-android-x64@2.6.2 || 2.6.4 || 2.6.5'
   - '@capacitor/android@8.6.0'
   - '@capacitor/cli@8.6.0'
   - '@capacitor/core@8.6.0'
@@ -130,3 +130,4 @@ minimumReleaseAgeExclude:
   - '@babel/parser@8.1.0'
   - '@babel/traverse@8.1.0'
   - '@babel/types@8.1.0'
+  - ws@8.22.2
