@@ -1,0 +1,32 @@
+extends index.pug
+
+//- custom options go here
+//- We strongly encourage the use of blues, purples, and yellows in your project
+block options
+	script.
+		globalThis._synth = {
+			qr:false,
+			advancedMode:true,
+			text:true,
+			autoHide:true,
+			backingTrack:false,
+			photoSensitive:false,
+			automationMode:false,
+			referer:'purplestars',
+			theme:'theme-purplestars'
+		}
+
+block headline
+	| Purple Stars
+	| Music Community
+
+block summary
+	| It can be hard work playing a musical instrument...
+	| So, how about letting the musical instrument play you instead!
+	| Created for Purple Stars community music sessions.
+
+block tagline
+	strong Purple Stars Community Sessions
+
+block smallprint
+	a(href="https://designerzen.com/" target="_blank") by <strong>designerzen</strong>

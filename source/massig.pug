@@ -1,0 +1,29 @@
+extends index.pug
+
+block options
+	script.
+		globalThis._synth = {
+			advancedMode:true,
+			text:true,
+			autoHide:true,
+			backingTrack:false,
+			photoSensitive:false,
+			automationMode:true,
+			referer:'massig',
+			theme:'theme-massig'
+		}
+
+block headline
+	| MASSIG
+	| Music Accessibility Standards
+
+block summary
+	| It can be hard work playing a musical instrument...
+	| So, how about letting the musical instrument play you instead!
+	| Supported by the MIDI Association Standards Special Interest Group.
+
+block tagline
+	strong Accessible Music Technology
+
+block smallprint
+	a(href="https://designerzen.com/" target="_blank") by <strong>designerzen</strong>

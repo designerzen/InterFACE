@@ -1,0 +1,29 @@
+{
+	"basic": {
+		"default": [
+			"Welcome to MASSIG!",
+			"This is a PhotoSYNTH...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"Smile or open your mouth to begin!",
+			"Pose like your favourite emoji for new sounds",
+			"Tilt, twist and bend your neck to change notes",
+			"Invite friends to build the music together"
+		],
+		"blocks": []
+	},
+	"advanced": {
+		"default": [
+			"Welcome to MASSIG!",
+			"The MIDI Association Standards Special Interest Group",
+			"supports accessible and inclusive music technology.",
+			"This is a PhotoSYNTH...",
+			"A SMILE POWERED SYNTHESIZER =D",
+			"Use expressions and movement to create music",
+			"Smile or open your mouth to begin!",
+			"Pose like your favourite emoji for new sounds",
+			"Tilt, twist and bend your neck to change notes",
+			"Invite friends to build the music together"
+		],
+		"blocks": []
+	}
+}

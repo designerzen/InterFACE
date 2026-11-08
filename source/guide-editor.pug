@@ -1,0 +1,139 @@
+extends _base.pug
+
+block title
+	+title('Guide editor')
+
+block tagline
+	| Create your own instructions and directions
+
+block nav
+	a(href="./index.pug") Play PhotoSYNTH
+	a(href="./help.pug") Help
+
+block styles
+	link(rel="stylesheet", href="./assets/styles/sections/guide-editor.scss")
+
+block main
+	main#guide-editor
+		header
+			h3 Guide editor
+			p Build a guide one step at a time. Instructions explain how to play; directions invite players to try an expression.
+		p#editor-status(role="status" aria-live="polite") Loading your draft…
+		noscript This editor needs JavaScript to save and edit your guide.
+		form#guide-form(hidden)
+			nav.editor-actions(aria-label="Editor steps")
+				each label, index in ['1. Start', '2. Instructions', '3. Directions', '4. Review & save']
+					button(type="button" data-step=index)= label
+			section(data-panel="0" aria-labelledby="start-heading")
+				h4#start-heading(tabindex="-1") 1. Start your guide
+				label(for="guide-name") Guide name
+				input#guide-name(type="text" maxlength="100" required)
+				p Your working draft is saved automatically in this browser. Download a backup to keep it elsewhere.
+				div.editor-actions
+					button#new-guide(type="button") Start a blank guide
+					button#load-example(type="button") Start from the PhotoSYNTH guide
+					button#undo-replace(type="button" disabled) Undo last replacement
+				h5 Existing instructions and directions
+				p Choose a file to open it in the editor. Only that part of your draft is replaced. Use Undo last replacement to restore it.
+				div.editor-catalog
+					each kind in ['instructions', 'directions']
+						details(open)
+							summary= kind === 'instructions' ? 'Instructions' : 'Directions (call and response)'
+							ul
+								each guide in (typeof guideFiles === 'undefined' ? [] : guideFiles).filter(guide => guide.kind === kind)
+									li
+										span #{guide.file} (#{guide.language})
+										button(type="button" data-guide-file=guide.url data-guide-kind=guide.kind data-guide-label=guide.file aria-label=`Edit ${guide.file} (${guide.language})`) Edit
+				label(for="import-guide") Open a saved guide, instructions file, or directions file (JSON)
+				input#import-guide(type="file" accept=".json,application/json")
+				p Importing an instructions or directions file replaces only that part of your working draft.
+			section(data-panel="1" aria-labelledby="instructions-heading" hidden)
+				h4#instructions-heading(tabindex="-1") 2. Write the instructions
+				p Use one short message per line. These messages appear as players make music.
+				label(for="quick-start") Welcome messages (one per line, shared by both modes)
+				textarea#quick-start(rows="4")
+			section(data-panel="2" aria-labelledby="directions-heading" hidden)
+				h4#directions-heading(tabindex="-1") 3. Create the directions
+				p Add invitations in the order players should discover them. Each direction needs an expression to recognise.
+				label(for="completion-message") Message when all directions are complete
+				textarea#completion-message(rows="2")
+			div#mode-editor(hidden)
+				label(for="guide-mode") Interface mode
+				select#guide-mode
+					option(value="basic") Basic
+					option(value="advanced") Expert mode
+				button#copy-mode(type="button") Copy this mode to the other mode
+				p Basic mode and expert mode can have different guides. Copy a mode when you want them to match.
+				label(for="guide-stage") Stage
+				select#guide-stage
+				div.editor-actions
+					button#add-stage(type="button") Add a timed stage
+					button#remove-stage(type="button") Remove this stage
+				p Default messages run outside timed stages. Times are seconds from the start of the guide. If stages overlap, the first matching stage runs.
+				div#stage-timing.editor-grid(hidden)
+					label Start (seconds)
+						input#stage-from(type="number" min="0" step="1")
+					label Duration (seconds)
+						input#stage-duration(type="number" min="1" step="1")
+				div#instruction-fields
+					label(for="instruction-lines") Instructions for this stage (one per line)
+					textarea#instruction-lines(rows="10")
+				div#direction-fields(hidden)
+					div#direction-list
+					button#add-direction(type="button") Add a direction
+			section(data-panel="3" aria-labelledby="review-heading" hidden)
+				h4#review-heading(tabindex="-1") 4. Review and save
+				div#guide-preview
+				div#guide-errors(role="alert")
+				p Save and use applies this guide to PhotoSYNTH in this browser, including event pages. Reopen or reload the player to load updates.
+				div.editor-actions
+					button#use-guide(type="button") Save and use this guide
+					a#play-guide(href="./index.pug" hidden) Open PhotoSYNTH
+					button#restore-guide(type="button") Use built-in guides again
+				div.editor-actions
+					button(type="button" data-export="project") Download editable guide
+					button(type="button" data-export="instructions") Download instructions.json
+					button(type="button" data-export="directions") Download directions.json
+			div.editor-actions
+				button#previous-step(type="button") Back
+				button#next-step(type="button") Next: instructions
+		template#direction-template
+			fieldset.editor-direction
+				legend Direction
+				label Invitation title
+					input(type="text" data-field="title")
+				label Message to show the player
+					textarea(rows="2" data-field="message")
+				label Choose an expression
+					select(data-expression)
+						option(value="") Keep current expressions / customise below
+						option(value="🙂 😊 😀 😃 😄 😆 😁") Smile
+						option(value="😉") Wink
+						option(value="😯 😮 😲 😦 😧") Surprise
+						option(value="😗 😘 😙 😚") Blow a kiss
+						option(value="😛 😜 😝") Show your tongue
+						option(value="😐") Relax your face
+				label Recognised expressions (separate emojis with spaces)
+					input(type="text" data-field="emoji" aria-describedby="expression-help")
+				p#expression-help Example: 🙂 😊 😀 for a smile, 😉 for a wink, 😮 for surprise.
+				details
+					summary Hints, rewards and other options
+					label Hint
+						textarea(rows="2" data-field="hint")
+					label Encouragement
+						textarea(rows="2" data-field="encouragement")
+					label Congratulations
+						textarea(rows="2" data-field="congratulation")
+					label Try again message
+						textarea(rows="2" data-field="retryMessage")
+					label Points
+						input(type="number" min="0" step="1" data-field="points")
+					label Direction ID (keep this the same to preserve progress)
+						input(type="text" data-field="id")
+				div.editor-actions
+					button(type="button" data-action="up") Move up
+					button(type="button" data-action="down") Move down
+					button(type="button" data-action="remove") Remove direction
+
+block scripts
+	script(type="module" src="./dom/guide-editor.js")

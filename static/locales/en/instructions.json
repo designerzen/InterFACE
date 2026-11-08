@@ -1,0 +1,63 @@
+{
+	"basic": {
+		"default": [
+			"Welcome to your expression orchestra: little invitations, surprising sounds, and discoveries of your own.",
+			"Follow the current direction and answer with an expression. Listen for congratulations as you make each discovery.",
+			"A successful response earns challenge points and a congratulations message.",
+			"Each action only needs to be discovered once per player in this challenge.",
+			"If another player still needs an action, it returns in a later round. Your completed action stays complete.",
+			"Try a comfortable movement and give the camera a moment to recognise it.",
+			"Take your time. Unfinished invitations return after the other directions have had a turn.",
+			"Each player explores at their own pace. You can keep playing while others try an invitation.",
+			"You can keep making music throughout. The points celebrate discoveries; this is not a race.",
+			"Your mouth opening shapes the volume. Head movement explores notes and octaves.",
+			"Different expressions can give the music a different character. Listen for what changes.",
+			"DRUM PERFORMANCE MODE",
+			"Turn on Beats to start the backing drums.",
+			"Open Drum Pattern and choose the Performance group.",
+			"Try Crescendo Build, Bridge Break, Snare Roll Build, Breakdown & Return, or Drop & Impact.",
+			"Turn on Performance to let your playing shape the drums.",
+			"Play more intensely or open your mouth wider to make the drums hit harder.",
+			"Use pitch bend or expressive movement to increase tension and encourage fills and rolls.",
+			"Turn Performance off when you want the selected pattern to keep its programmed dynamics."
+		],
+		"blocks": []
+	},
+	"advanced": {
+		"default": [
+			"Welcome to your expression orchestra: little invitations, surprising sounds, and discoveries of your own.",
+			"Follow the current direction and answer with an expression. Listen for congratulations as you make each discovery.",
+			"A successful response earns challenge points and a congratulations message.",
+			"Each action only needs to be discovered once per player in this challenge.",
+			"If another player still needs an action, it returns in a later round. Your completed action stays complete.",
+			"Try a comfortable movement and give the camera a moment to recognise it.",
+			"Take your time. Unfinished invitations return after the other directions have had a turn.",
+			"Each player explores at their own pace. You can keep playing while others try an invitation.",
+			"You can keep making music throughout. The points celebrate discoveries; this is not a race.",
+			"Your mouth opening shapes the volume. Head movement explores notes and octaves.",
+			"Different expressions can give the music a different character. Listen for what changes.",
+			"DRUM PERFORMANCE MODE",
+			"Turn on Beats to start the backing drums.",
+			"Open Drum Pattern and choose the Performance group.",
+			"Try Crescendo Build, Bridge Break, Snare Roll Build, Breakdown & Return, or Drop & Impact.",
+			"Turn on Performance to let the primary performer's intensity and pitch bend shape the drums.",
+			"Play more intensely or open your mouth wider to make performance patterns hit harder.",
+			"Use pitch bend or expressive movement to raise tension and encourage fills and rolls.",
+			"Rapid Hits adds extra subdivisions where a pattern supports them.",
+			"Turn Performance off to keep the selected pattern's programmed dynamics.",
+			"Choose another Drum Pattern at any time to move into a build, bridge, breakdown, roll, or drop.",
+			"Scan the QR code at the top right to continue your session on another device."
+		],
+		"blocks": []
+	},
+	"quickStart": [
+		"Hello! A little orchestra is waiting to meet you.",
+		"Come into the camera view when you are ready. Find a comfortable position.",
+		"We offer an invitation; you answer with an expression. That is our call and response.",
+		"Each player collects their own discoveries and challenge points.",
+		"Once you have done it, it stays complete. We only bring that invitation back for players still exploring it.",
+		"There is room to experiment. If an invitation takes longer, we will come back to it in a later round.",
+		"No perfect faces required. Take part in whatever way feels comfortable.",
+		"If the camera cannot find you, a little more light on your face may help."
+	]
+}

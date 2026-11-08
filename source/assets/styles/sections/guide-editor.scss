@@ -1,0 +1,56 @@
+// Layout only: typography, palette, buttons and form controls come from index.scss.
+#guide-editor {
+	box-sizing: border-box;
+	min-width: 0;
+	width: min(100%, 70rem);
+	padding: var(--pad, 1rem);
+	gap: 1rem;
+	align-items: stretch;
+	[hidden] { display: none !important; }
+	form, section, #mode-editor, #direction-list, .editor-direction {
+		display: grid;
+		gap: 1rem;
+		min-width: 0;
+	}
+	section, #mode-editor { padding-block: 1rem; }
+	.editor-actions, .editor-grid {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: .75rem;
+	}
+	label { display: grid; gap: .4rem; }
+	input, textarea, select {
+		box-sizing: border-box;
+		max-width: 100%;
+		min-width: 0;
+		width: 100%;
+		font: inherit;
+		font-size: 1rem;
+		padding: .75rem;
+		color: var(--shade-dark, #222);
+		background: var(--shade-white, #fff);
+		border: 1px solid currentColor;
+		border-radius: var(--curve, .3rem);
+		text-transform: none;
+	}
+	textarea { resize: vertical; }
+	.editor-direction { padding: 1rem; border: 1px solid currentColor; }
+	.editor-catalog {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+		gap: 1rem;
+		ul { padding-inline-start: 1.25rem; }
+		li { margin-block: .5rem; overflow-wrap: anywhere; }
+		li button { margin-inline-start: .5rem; }
+	}
+	.editor-direction legend { text-align: left; }
+	details > label { margin-block: .75rem; }
+	button { min-height: 2.75rem; }
+	button[aria-current="step"] { outline: 3px solid currentColor; outline-offset: 2px; }
+	button:disabled { opacity: .5; }
+	#editor-status { min-height: 1.5em; }
+	#guide-preview { overflow-wrap: anywhere; }
+	#guide-preview article { margin-block: 1rem; }
+	#guide-preview ol, #guide-errors ul { padding-inline-start: 1.5rem; }
+}

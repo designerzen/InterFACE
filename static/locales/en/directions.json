@@ -1,0 +1,287 @@
+{
+	"complete": {
+		"icon": "complete",
+		"message": "What a cast of characters! You have explored every invitation in this set. The music is yours from here."
+	},
+	"basic": {
+		"default": [
+			{
+				"id": "first-spark",
+				"title": "The first spark",
+				"message": "Give our little orchestra a smile. Even a quiet one can open the show!",
+				"hint": "Let the corners of your mouth lift comfortably and hold for a moment. There is no need for a huge grin.",
+				"encouragement": "Every orchestra starts somewhere. Your expression is enough to get us going.",
+				"congratulation": "There it is — your first spark! The orchestra has found its sunshine.",
+				"points": 10,
+				"retryMessage": "We can save the first spark for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"🙂",
+						"😊",
+						"😀",
+						"😃",
+						"😄",
+						"😆",
+						"😁"
+					]
+				}
+			},
+			{
+				"id": "plot-twist",
+				"title": "The plot twist",
+				"message": "The orchestra has found a tiny dragon in the piano. Give us your surprised face!",
+				"hint": "Try opening your mouth into a comfortable O. Relax your smile; raised eyebrows are optional.",
+				"encouragement": "A little theatre, a little wonder. There is room for your version of surprised.",
+				"congratulation": "What a plot twist! Your surprise has a starring role.",
+				"points": 12,
+				"retryMessage": "We can save the plot twist for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😯",
+						"😮",
+						"😲",
+						"😦",
+						"😧"
+					]
+				}
+			},
+			{
+				"id": "comet-post",
+				"title": "Comet post",
+				"message": "Send a kiss into the musical universe. Somewhere, a very small comet is waiting for its post.",
+				"hint": "Gently bring your lips forward as though blowing a kiss. You do not need to make a sound.",
+				"encouragement": "Take your time with this delivery. We have plenty of universe left.",
+				"congratulation": "Special delivery! Your comet kiss has arrived in a shower of imaginary stardust.",
+				"points": 12,
+				"retryMessage": "We can save comet post for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😗",
+						"😘",
+						"😙",
+						"😚"
+					]
+				}
+			},
+			{
+				"id": "secret-signal",
+				"title": "The secret signal",
+				"message": "The drummer has a secret. Can you answer with a wink?",
+				"hint": "If comfortable, close either eye briefly while keeping the other open. You can let this invitation pass and try it when it returns.",
+				"encouragement": "Either eye can send the signal. This is a secret handshake for faces.",
+				"congratulation": "Signal received! You and the drummer are officially in on the secret.",
+				"points": 15,
+				"retryMessage": "We can save the secret signal for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😉"
+					]
+				}
+			},
+			{
+				"id": "mischief-maker",
+				"title": "A little mischief",
+				"message": "A very serious conductor has entered the room. Stick out your tongue and add a little mischief!",
+				"hint": "Try gently showing your tongue, with your eyes open or closed. No need to stretch or strain.",
+				"encouragement": "Serious musical qualifications: none. A willingness to be a little silly: welcome.",
+				"congratulation": "Excellent mischief! The conductor has misplaced their serious face.",
+				"points": 15,
+				"retryMessage": "We can save a little mischief for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😛",
+						"😜",
+						"😝"
+					]
+				}
+			},
+			{
+				"id": "quiet-island",
+				"title": "The quiet island",
+				"message": "Our orchestra has reached a quiet island. Let your face settle into a calm, neutral expression.",
+				"hint": "Let your mouth and eyebrows rest comfortably, with your eyes open. Nothing needs to be forced.",
+				"encouragement": "A quiet moment belongs in the music too. You do not have to perform at full volume.",
+				"congratulation": "A lovely moment of calm. You have made room for the next musical adventure.",
+				"points": 10,
+				"retryMessage": "We can save the quiet island for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😐"
+					]
+				}
+			}
+		],
+		"blocks": []
+	},
+	"advanced": {
+		"default": [
+			{
+				"id": "first-spark",
+				"title": "The first spark",
+				"message": "Give our little orchestra a smile. Even a quiet one can open the show!",
+				"hint": "Let the corners of your mouth lift comfortably and hold for a moment. There is no need for a huge grin.",
+				"encouragement": "Every orchestra starts somewhere. Your expression is enough to get us going.",
+				"congratulation": "There it is — your first spark! The orchestra has found its sunshine.",
+				"points": 10,
+				"retryMessage": "We can save the first spark for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"🙂",
+						"😊",
+						"😀",
+						"😃",
+						"😄",
+						"😆",
+						"😁"
+					]
+				}
+			},
+			{
+				"id": "plot-twist",
+				"title": "The plot twist",
+				"message": "The orchestra has found a tiny dragon in the piano. Give us your surprised face!",
+				"hint": "Try opening your mouth into a comfortable O. Relax your smile; raised eyebrows are optional.",
+				"encouragement": "A little theatre, a little wonder. There is room for your version of surprised.",
+				"congratulation": "What a plot twist! Your surprise has a starring role.",
+				"points": 12,
+				"retryMessage": "We can save the plot twist for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😯",
+						"😮",
+						"😲",
+						"😦",
+						"😧"
+					]
+				}
+			},
+			{
+				"id": "comet-post",
+				"title": "Comet post",
+				"message": "Send a kiss into the musical universe. Somewhere, a very small comet is waiting for its post.",
+				"hint": "Gently bring your lips forward as though blowing a kiss. You do not need to make a sound.",
+				"encouragement": "Take your time with this delivery. We have plenty of universe left.",
+				"congratulation": "Special delivery! Your comet kiss has arrived in a shower of imaginary stardust.",
+				"points": 12,
+				"retryMessage": "We can save comet post for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😗",
+						"😘",
+						"😙",
+						"😚"
+					]
+				}
+			},
+			{
+				"id": "secret-signal",
+				"title": "The secret signal",
+				"message": "The drummer has a secret. Can you answer with a wink?",
+				"hint": "If comfortable, close either eye briefly while keeping the other open. You can let this invitation pass and try it when it returns.",
+				"encouragement": "Either eye can send the signal. This is a secret handshake for faces.",
+				"congratulation": "Signal received! You and the drummer are officially in on the secret.",
+				"points": 15,
+				"retryMessage": "We can save the secret signal for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😉"
+					]
+				}
+			},
+			{
+				"id": "mischief-maker",
+				"title": "A little mischief",
+				"message": "A very serious conductor has entered the room. Stick out your tongue and add a little mischief!",
+				"hint": "Try gently showing your tongue, with your eyes open or closed. No need to stretch or strain.",
+				"encouragement": "Serious musical qualifications: none. A willingness to be a little silly: welcome.",
+				"congratulation": "Excellent mischief! The conductor has misplaced their serious face.",
+				"points": 15,
+				"retryMessage": "We can save a little mischief for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😛",
+						"😜",
+						"😝"
+					]
+				}
+			},
+			{
+				"id": "quiet-island",
+				"title": "The quiet island",
+				"message": "Our orchestra has reached a quiet island. Let your face settle into a calm, neutral expression.",
+				"hint": "Let your mouth and eyebrows rest comfortably, with your eyes open. Nothing needs to be forced.",
+				"encouragement": "A quiet moment belongs in the music too. You do not have to perform at full volume.",
+				"congratulation": "A lovely moment of calm. You have made room for the next musical adventure.",
+				"points": 10,
+				"retryMessage": "We can save the quiet island for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😐"
+					]
+				}
+			},
+			{
+				"id": "curious-detective",
+				"title": "The curious detective",
+				"message": "Who put a trumpet in the biscuit tin? Try raising one eyebrow, like a curious detective.",
+				"hint": "Try lifting just one eyebrow while keeping your mouth relaxed. This is a tricky one; take your time, or try it again in a later round.",
+				"encouragement": "Curiosity is a musical skill. A perfect detective face is entirely optional.",
+				"congratulation": "Case opened! That eyebrow has questions, and the biscuit tin has explaining to do.",
+				"points": 18,
+				"retryMessage": "We can save the curious detective for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"🤨"
+					]
+				}
+			},
+			{
+				"id": "front-row-wonder",
+				"title": "Front-row wonder",
+				"message": "The curtain rises on something unexpected. Lift both eyebrows for a wide-eyed moment of wonder.",
+				"hint": "Try raising both eyebrows with your eyes open and your mouth comfortably closed.",
+				"encouragement": "You are in the front row of your own little show. Take a moment to look astonished.",
+				"congratulation": "Curtain up! Your look of wonder deserves its own spotlight.",
+				"points": 18,
+				"retryMessage": "We can save front-row wonder for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😳"
+					]
+				}
+			},
+			{
+				"id": "crooked-cadence",
+				"title": "The crooked cadence",
+				"message": "One corner of the tune has wandered off. Try a lopsided smile to bring it home.",
+				"hint": "Try lifting one corner of your mouth more than the other. Keep the movement comfortable; a small sideways smile is the idea.",
+				"encouragement": "A little asymmetry gives this tune its character. There is no need to make both sides match.",
+				"congratulation": "Delightfully lopsided! Your tune has found a character all of its own.",
+				"points": 18,
+				"retryMessage": "We can save the crooked cadence for later. Your other discoveries still count; let us try another invitation.",
+				"expects": {
+					"type": "expression",
+					"emoji": [
+						"😏",
+						"🫤"
+					]
+				}
+			}
+		],
+		"blocks": []
+	}
+}
