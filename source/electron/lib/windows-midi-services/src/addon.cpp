@@ -4,14 +4,16 @@
 #include <unordered_map>
 #include <vector>
 
+#include <windows.h>
+#include <winternl.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
-#include <winrt/Microsoft.Windows.Devices.Midi2.h>
-#include <winmidi/init/Microsoft.Windows.Devices.Midi2.Initialization.hpp>
+#include <winrt/Windows.Devices.Midi2.h>
+#include <winrt/Windows.Devices.Midi2.Enumeration.h>
 
-namespace midi = winrt::Microsoft::Windows::Devices::Midi2;
+namespace midi = winrt::Windows::Devices::Midi2;
+namespace enumeration = midi::Enumeration;
 namespace foundation = winrt::Windows::Foundation;
-namespace init = Microsoft::Windows::Devices::Midi2::Initialization;
 
 struct MessagePayload {
     std::string endpointId;
@@ -36,18 +38,33 @@ public:
         if (m_started) throw Napi::Error::New(info.Env(), "Windows MIDI Services is already running");
         if (info.Length() != 1 || !info[0].IsObject()) throw Napi::TypeError::New(info.Env(), "Callbacks object required");
 
+        // RtlGetVersion reports the real build even without an OS compatibility manifest.
+        using RtlGetVersionFunction = LONG(WINAPI*)(PRTL_OSVERSIONINFOW);
+        auto getVersion = reinterpret_cast<RtlGetVersionFunction>(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion"));
+        RTL_OSVERSIONINFOW version{};
+        version.dwOSVersionInfoSize = sizeof(version);
+        if (!getVersion || getVersion(&version) != 0 || version.dwBuildNumber < 26200)
+            throw Napi::Error::New(info.Env(), "Windows.Devices.Midi2 requires Windows 11 25H2 or later");
+
+        // Resolve the system API before allocating callbacks, so missing APIs and
+        // Legacy API mode can fall back to Web MIDI without retaining Node handles.
+        try {
+            winrt::init_apartment(winrt::apartment_type::multi_threaded);
+            if (!midi::MidiApi::EnsureServiceAvailable())
+                throw Napi::Error::New(info.Env(), "Windows MIDI Service is disabled or unavailable");
+            m_session = midi::MidiSession::Create(L"PhotoSYNTH");
+            if (!m_session) throw Napi::Error::New(info.Env(), "Unable to create Windows MIDI session");
+            m_watcher = enumeration::MidiEndpointDeviceWatcher::Create(enumeration::MidiEndpointDeviceInformationFilters::AllStandardEndpoints);
+            if (!m_watcher) throw Napi::Error::New(info.Env(), "Unable to create Windows MIDI endpoint watcher");
+        } catch (winrt::hresult_error const& error) {
+            m_session = nullptr;
+            throw Napi::Error::New(info.Env(), "Windows.Devices.Midi2 unavailable: " + winrt::to_string(error.message()));
+        }
+
         auto callbacks = info[0].As<Napi::Object>();
         m_messageCallback = Napi::ThreadSafeFunction::New(info.Env(), callbacks.Get("onMessage").As<Napi::Function>(), "Windows MIDI message", 0, 1);
         m_portsCallback = Napi::ThreadSafeFunction::New(info.Env(), callbacks.Get("onPortsChanged").As<Napi::Function>(), "Windows MIDI ports", 0, 1);
 
-        winrt::init_apartment(winrt::apartment_type::multi_threaded);
-        if (!m_initializer.InitializeSdkRuntime()) throw Napi::Error::New(info.Env(), "Windows MIDI Services SDK Runtime is not installed or could not initialize");
-        if (!m_initializer.EnsureServiceAvailable()) throw Napi::Error::New(info.Env(), "Windows MIDI Service is disabled or unavailable");
-
-        m_session = midi::MidiSession::Create(L"PhotoSYNTH");
-        auto filters = midi::MidiEndpointDeviceInformationFilters::StandardNativeMidi1ByteFormat |
-            midi::MidiEndpointDeviceInformationFilters::StandardNativeUniversalMidiPacketFormat;
-        m_watcher = midi::MidiEndpointDeviceWatcher::Create(filters);
         m_addedToken = m_watcher.Added({ this, &MidiHost::OnAdded });
         m_removedToken = m_watcher.Removed({ this, &MidiHost::OnRemoved });
         m_updatedToken = m_watcher.Updated({ this, &MidiHost::OnUpdated });
@@ -97,7 +114,6 @@ public:
         if (m_session) m_session.Close();
         m_session = nullptr;
         m_watcher = nullptr;
-        m_initializer.ShutdownSdkRuntime();
         m_messageCallback.Release();
         m_portsCallback.Release();
         m_ports.clear();
@@ -108,9 +124,8 @@ private:
     struct ConnectionEntry { midi::MidiEndpointConnection connection{ nullptr }; winrt::event_token messageToken{}; };
     std::mutex m_mutex;
     bool m_started{ false };
-    init::MidiDesktopAppSdkInitializer m_initializer{};
     midi::MidiSession m_session{ nullptr };
-    midi::MidiEndpointDeviceWatcher m_watcher{ nullptr };
+    enumeration::MidiEndpointDeviceWatcher m_watcher{ nullptr };
     winrt::event_token m_addedToken{}, m_removedToken{}, m_updatedToken{};
     Napi::ThreadSafeFunction m_messageCallback, m_portsCallback;
     std::unordered_map<std::string, PortPayload> m_ports;
@@ -140,18 +155,23 @@ private:
         return connection;
     }
 
-    void OnAdded(midi::MidiEndpointDeviceWatcher const&, midi::MidiEndpointDeviceInformationAddedEventArgs const& args) {
+    void OnAdded(enumeration::MidiEndpointDeviceWatcher const&, enumeration::MidiEndpointDeviceInformationAddedEventArgs const& args) {
         auto device = args.AddedDevice();
         const auto id = winrt::to_string(device.EndpointDeviceId());
         { std::scoped_lock lock(m_mutex); m_ports[id] = { id, winrt::to_string(device.Name()) }; }
         NotifyPortsChanged();
     }
-    void OnRemoved(midi::MidiEndpointDeviceWatcher const&, midi::MidiEndpointDeviceInformationRemovedEventArgs const& args) {
-        const auto id = winrt::to_string(args.EndpointDeviceId());
+    void OnRemoved(enumeration::MidiEndpointDeviceWatcher const&, enumeration::MidiEndpointDeviceInformationRemovedEventArgs const& args) {
+        const auto id = winrt::to_string(args.RemovedDevice().EndpointDeviceId());
         { std::scoped_lock lock(m_mutex); m_ports.erase(id); m_connections.erase(id); }
         NotifyPortsChanged();
     }
-    void OnUpdated(midi::MidiEndpointDeviceWatcher const&, midi::MidiEndpointDeviceInformationUpdatedEventArgs const&) { NotifyPortsChanged(); }
+    void OnUpdated(enumeration::MidiEndpointDeviceWatcher const&, enumeration::MidiEndpointDeviceInformationUpdatedEventArgs const& args) {
+        auto device = args.UpdatedDevice();
+        const auto id = winrt::to_string(device.EndpointDeviceId());
+        { std::scoped_lock lock(m_mutex); m_ports[id] = { id, winrt::to_string(device.Name()) }; }
+        NotifyPortsChanged();
+    }
 
     Napi::Array PortsToJS(Napi::Env env) {
         auto result = Napi::Array::New(env, m_ports.size());

@@ -6,8 +6,8 @@ const { spawnSync } = require('node:child_process')
 
 const packageRoot = path.resolve(__dirname, '..')
 const requiredHeaders = [
-	'winrt/Microsoft.Windows.Devices.Midi2.h',
-	'winmidi/init/Microsoft.Windows.Devices.Midi2.Initialization.hpp',
+	'winrt/Windows.Devices.Midi2.h',
+	'winrt/Windows.Devices.Midi2.Enumeration.h',
 ]
 
 if (process.platform !== 'win32') process.exit(0)
