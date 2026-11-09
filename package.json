@@ -140,7 +140,7 @@
 		"build:wam": "parcel build --no-content-hash --public-url ./ source/wam.pug --target web",
 		"build:index": "parcel build --public-url ./ source/index.pug --target web",
 		"build:release": "parcel build --target electron-main --target electron-renderer --target web",
-		"build:web": "turbo run build:web:parcel",
+		"build:web": "turbo run build:web:parcel --log-order=stream --output-logs=full",
 		"build:web:parcel": "node actions/clean-web.mjs && cross-env PARCEL_WORKERS=1 parcel build --public-url ./ --target web --target service-worker && node actions/room-pages.mjs && node actions/offline.mjs",
 		"=ELECTRON=": "------------------------------------",
 		"electron:rebuild": "electron-rebuild -f",
