@@ -34,8 +34,11 @@ export function redirectRoomPage() {
 
 const routeScript = action => `<script>(()=>{const getPathRoomId=${getPathRoomId.toString()};const validRoomId=${validRoomId.toString()};(${action.toString()})()})()</script>`
 const injectHead = (html, contents) => {
-	if (!/<head(?:\s[^>]*)?>/i.test(html)) throw new Error('Expected a complete HTML page with a head element')
-	return html.replace(/<head(?:\s[^>]*)?>/i, match => match + contents)
+	if (/<head(?:\s[^>]*)?>/i.test(html)) return html.replace(/<head(?:\s[^>]*)?>/i, match => match + contents)
+	// HTML optimizers may omit the optional head tags. Restore its opening tag
+	// before the first asset; the existing body tag closes it implicitly.
+	if (/<html(?:\s[^>]*)?>/i.test(html)) return html.replace(/<html(?:\s[^>]*)?>/i, match => `${match}<head>${contents}`)
+	throw new Error('Expected a complete HTML page with a head or html element')
 }
 
 export const createRoomPages = (index, notFound) => ({

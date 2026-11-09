@@ -23,6 +23,21 @@ test('main app links use room paths while standalone pages retain query links', 
 const pages = createRoomPages('<!doctype html><html><head><script type="module" src="./app.js"></script></head><body>Instrument</body></html>', '<html><head></head><body>Page not found</body></html>')
 const runBootstrap = dom => dom.window.eval(dom.window.document.querySelector('script:not([type])').textContent)
 
+test('room pages support optimized HTML with omitted head tags', () => {
+	const html = '<!doctype html><html lang=en><script type="module" src="./app.js"></script><meta charset=utf-8><body>Instrument</body></html>'
+	const optimized = createRoomPages(html, html)
+	const dom = new JSDOM(optimized.room, { url: 'https://interface.place/room/shared' })
+	const head = dom.window.document.head
+	assert.equal(head.firstElementChild.tagName, 'BASE')
+	assert.equal(head.querySelector('script[type=module]').src, 'https://interface.place/app.js')
+	assert.ok(head.querySelector('meta[charset]'))
+	assert.equal(dom.window.document.body.textContent, 'Instrument')
+	dom.window.close()
+	const fallback = new JSDOM(optimized.notFound)
+	assert.ok(fallback.window.document.head.firstElementChild.textContent.includes('redirectRoomPage'))
+	fallback.window.close()
+})
+
 test('copied index restores the named path before modules load and resolves assets at the root', () => {
 	const dom = new JSDOM(pages.room, { url: 'https://interface.place/room/?room=another-room&syncServer=signal.example#folder-tempo', runScripts: 'outside-only' })
 	runBootstrap(dom)
