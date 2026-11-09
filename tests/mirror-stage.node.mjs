@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import { MirrorLifecycle } from '../source/display/mirror-lifecycle.js'
-import { captureMirrorPerson, updateMirrorStage, updateMirrorFrame } from '../source/display/mirror-stage.js'
+import { captureMirrorPerson, updateMirrorStage, updateMirrorFrame, disposeMirrorStage } from '../source/display/mirror-stage.js'
 import { createWalls, disposeWalls } from '../source/display/walls.js'
 
 test('a stripe travels along the walls with tempo while wall brightness stays steady', () => {
@@ -142,37 +142,51 @@ test('stage keeps avatar centred, particles visible through it and honours expli
   assert.ok(face.material.opacity > .3)
   assert.equal(face.material.transparent, true)
   assert.equal(face.material.depthWrite, false)
+  const depth = face.children.find(child => child.userData.humanHeadDepthPass)
+  assert.ok(depth.visible)
+  assert.equal(depth.geometry, face.geometry)
+  assert.equal(depth.material.colorWrite, false)
+  assert.equal(depth.material.depthWrite, true)
+  assert.ok(depth.renderOrder < face.renderOrder)
+  assert.equal(particles.material.depthTest, false)
   assert.ok(particles.renderOrder > face.renderOrder)
   assert.equal(particles.frustumCulled, false)
   assert.deepEqual(head.position.toArray(), [0, 0, 0])
   host.options.headParticleMode = 'opaque-shell'
   updateMirrorStage(host, 5980)
-  assert.equal(face.material.depthWrite, true)
-  assert.equal(face.material.polygonOffset, true)
+  assert.equal(face.material.depthWrite, false)
+  assert.equal(particles.material.depthTest, true)
   person.alive = false; person.dead = true
   updateMirrorStage(host, 6000)
   assert.equal(host.mirrorLifecycle.mode, 'falling')
   assert.equal(face.material.depthWrite, false, 'falling particles must not be masked')
+  assert.equal(particles.material.depthTest, false)
   assert.ok(host.mirrorLifecycle.velocities[4] < 0, 'the lower landmark falls first')
+  disposeMirrorStage(host)
+  assert.equal(depth.parent, null)
+  assert.equal(face.geometry.attributes.position.count, 4, 'shared geometry survives depth-pass cleanup')
 })
 
 test('contour and hybrid variants select their own head transparency and restore normal opacity', () => {
   const geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(3), 3))
   const material = new THREE.MeshBasicMaterial()
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial())
   let requestedOpacity
   const host = { nativeMirrorDisplay: true, scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera(),
     particles: new THREE.Points(geometry, new THREE.PointsMaterial()),
     options: { showWalls: false, headOpacity: .025 }, mirrorMaterials: [material],
-    mirrorLifecycle: { gpu: true, scales: { length: 1 }, mode: 'settled', opacity: 0,
+    mirrorLifecycle: { gpu: true, sprite, scales: { length: 1 }, mode: 'settled', opacity: 0,
       tick(_alive, _delta, options) { requestedOpacity = options.opacity; this.opacity = options.opacity } } }
-  for (const [mode, opacity] of [['hybrid', .12], ['contours', 0], ['even-surface', .025]]) {
+  for (const [mode, opacity] of [['hybrid', .12], ['contours', 0], ['opaque-shell', .025], ['even-surface', .025]]) {
     host.options.headParticleMode = mode
     updateMirrorStage(host, 1000)
     assert.equal(requestedOpacity, opacity)
     assert.equal(material.opacity, opacity)
     assert.equal(material.depthWrite, false)
+    assert.equal(sprite.material.depthTest, mode === 'opaque-shell')
+    assert.equal(host.particles.material.depthTest, mode === 'opaque-shell')
   }
-  geometry.dispose(); material.dispose(); host.particles.material.dispose()
+  geometry.dispose(); material.dispose(); sprite.material.dispose(); host.particles.material.dispose()
 })
 
 test('calibrated aperture follows Looking Glass controls and refreshes after a resize', () => {

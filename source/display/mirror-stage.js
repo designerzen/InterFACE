@@ -4,8 +4,11 @@ import { MirrorLifecycle } from './mirror-lifecycle.js'
 import { createWalls, disposeWalls, animateWallStripe } from './walls.js'
 import { fitHumanHeadToLandmarks } from './fit-human-head.js'
 import { subdivideKeypoints } from '../models/keypoint-subdivision.js'
+import { createHumanHeadDepthPass } from './human-head-depth-pass.js'
 
 export function disposeMirrorStage(host) {
+  host.mirrorDepthPass?.dispose()
+  host.mirrorDepthPass = null
   host.mirrorLifecycle?.dispose?.()
   host.mirrorLifecycle = null
   host.mirrorMaterials = null
@@ -75,7 +78,7 @@ export function updateMirrorStage(host, now = performance.now()) {
     host.mirrorLastTime = now
     host.mirrorMaterials = []
     host.avatar?.scene.traverse((mesh) => {
-      if (!mesh.isMesh) return
+      if (!mesh.isMesh || mesh.userData.humanHeadDepthPass) return
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
       for (const material of materials) {
         material.transparent = true
@@ -87,6 +90,7 @@ export function updateMirrorStage(host, now = performance.now()) {
       }
       mesh.renderOrder = 10
     })
+    if (host.avatar && !host.mirrorDepthPass) host.mirrorDepthPass = createHumanHeadDepthPass(host.avatar.scene)
     host.particles.renderOrder = 20
     host.particles.frustumCulled = false
     host.particles.material.depthWrite = false
@@ -225,13 +229,18 @@ export function updateMirrorStage(host, now = performance.now()) {
   }
   host.particles.visible = !state.gpu && state.mode !== 'empty'
   host.particles.material.opacity = 1
+  const maskParticles = options.headParticleMode === 'opaque-shell' && state.mode === 'settled' && state.opacity > 0
+  host.mirrorDepthPass?.update(state.opacity > 0)
+  // The depth prepass hides overlapping head surfaces. Only opaque-shell mode
+  // should also hide particles behind that surface, on either particle backend.
+  host.particles.material.depthTest = maskParticles
+  if (state.sprite) state.sprite.material.depthTest = maskParticles
   for (const material of host.mirrorMaterials) {
     material.opacity = state.opacity
-    // Use the existing head draw as a depth mask, per quilt view. Keep it off
-    // during arrival/fall so it cannot cut through the transition particles.
-    material.depthWrite = options.headParticleMode === 'opaque-shell' && state.mode === 'settled' && state.opacity > 0
-    material.polygonOffset = material.depthWrite
-    material.polygonOffsetFactor = material.depthWrite ? 2 : 0
-    material.polygonOffsetUnits = material.depthWrite ? 2 : 0
+    // Depth comes from the prepass; colour must never change the resolved mask.
+    material.depthWrite = false
+    material.polygonOffset = false
+    material.polygonOffsetFactor = 0
+    material.polygonOffsetUnits = 0
   }
 }
