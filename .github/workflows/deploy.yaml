@@ -31,7 +31,6 @@ jobs:
               name: Install pnpm
               with:
                 run_install: false
-                version: 11.21.0
 
             # Install node js
             - name: Install Node.js 24
