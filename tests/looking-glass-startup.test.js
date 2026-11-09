@@ -8,7 +8,7 @@ beforeEach(() => {
   document.body.innerHTML = `<details id="integration-hardware">${renderFile('source/partials/looking-glass-integration.pug')}</details>`
 })
 
-test.each([1, 2])('reveals %i Portraits before onboarding and loads support after discovery', async count => {
+test.each([1, 2])('reports %i Portraits without opening the guide and loads support after discovery', async count => {
   let resolveProbe, resolveRenderer
   const probe = jest.fn(() => new Promise(resolve => { resolveProbe = resolve }))
   const loadRenderer = jest.fn(() => new Promise(resolve => { resolveRenderer = resolve }))
@@ -16,11 +16,11 @@ test.each([1, 2])('reveals %i Portraits before onboarding and loads support afte
   await Promise.resolve()
   expect(probe).toHaveBeenCalledWith({ includeDevices: true })
   expect(loadRenderer).not.toHaveBeenCalled()
-  expect(document.getElementById('looking-glass-portrait').hidden).toBe(true)
+  expect(document.getElementById('looking-glass-portrait').hidden).toBe(false)
   resolveProbe({ status: 'connected', count, devices: [] })
   await startup.discovery
-  expect(document.getElementById('integration-hardware').open).toBe(true)
-  expect(document.getElementById('looking-glass-portrait').open).toBe(true)
+  expect(document.getElementById('integration-hardware').open).toBe(false)
+  expect(document.getElementById('looking-glass-portrait').open).toBe(false)
   expect(document.getElementById('looking-glass-portrait').hidden).toBe(false)
   expect(document.getElementById('looking-glass-connection').textContent).toContain('connected')
   expect(document.getElementById('looking-glass-preparation').textContent).toContain('Getting your Portrait ready')
@@ -34,12 +34,14 @@ test.each([1, 2])('reveals %i Portraits before onboarding and loads support afte
   expect(document.getElementById('looking-glass-preparation').textContent).toContain('is ready')
 })
 
-test.each(['connected', 'unavailable'])('does not preload or show the integration with no devices (%s)', async status => {
+test.each(['connected', 'unavailable'])('keeps the guide listed but does not preload with no devices (%s)', async status => {
   const loadRenderer = jest.fn()
   const startup = createLookingGlassStartup({ probe: async () => ({ status, count: 0, devices: [] }), loadRenderer })
   expect(await startup.ready).toMatchObject({ count: 0, rendererReady: false })
   expect(loadRenderer).not.toHaveBeenCalled()
-  expect(document.getElementById('looking-glass-portrait').hidden).toBe(true)
+  expect(document.getElementById('looking-glass-portrait').hidden).toBe(false)
+  expect(document.getElementById('looking-glass-portrait').open).toBe(false)
+  expect(document.getElementById('looking-glass-connection').textContent).toContain('holographic display')
   expect(document.getElementById('integration-hardware').open).toBe(false)
 })
 
@@ -58,7 +60,7 @@ test('renderer import failure preserves setup instructions and allows normal sta
       loadRenderer: async () => { throw new Error('Download failed') }
     })
     expect(await startup.ready).toMatchObject({ count: 1, rendererReady: false })
-    expect(document.getElementById('looking-glass-portrait').open).toBe(true)
+    expect(document.getElementById('looking-glass-portrait').open).toBe(false)
     expect(document.getElementById('looking-glass-preparation').textContent).toContain('continue with the standard display')
   } finally { warning.mockRestore() }
 })

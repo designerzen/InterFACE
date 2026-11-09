@@ -151,7 +151,24 @@
 	h5{ margin: 1.25rem 0 .65rem; font-size: 1em; line-height: 1.4; }
 	ol{ padding-inline-start: 1.5em; }
 	li + li{ margin-top: .65em; }
-	.details > a.button{ display: inline-flex; max-width: 100%; box-sizing: border-box; white-space: normal; margin: .5rem .5rem 0 0; }
+	.integration-actions{
+		display: flex;
+		flex-wrap: wrap;
+		gap: .75rem;
+		margin-top: 1rem;
+		a.button{ display: inline-flex; max-width: 100%; box-sizing: border-box; white-space: normal; margin: 0; }
+	}
+
+	// Closed guides sit side by side as cards; an open guide spans the full row to give its instructions room.
+	.integration-list{
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+		gap: .75rem;
+		align-items: start;
+		margin-top: var(--pad);
+		> details[name]{ margin: 0; }
+		> details[name][open]{ grid-column: 1 / -1; }
+	}
 	grid-area: hardware;
 	min-width: 0;
 
@@ -210,25 +227,27 @@
 
 		> summary.with-image{
 			grid-template-areas: "photo summary marker";
-			grid-template-columns: 6rem minmax(0, 1fr) 1.5rem;
-			padding: .85rem 1rem;
-			min-height: 6rem;
+			grid-template-columns: 4rem minmax(0, 1fr) 1.5rem;
+			padding: .75rem 1rem;
+			min-height: 5.5rem;
 		}
 
 		.hardware-summary-photo{
 			grid-area: photo;
-			width: 6rem;
-			height: 6rem;
+			width: 4rem;
+			height: 4rem;
+			aspect-ratio: 1;
 			margin: 0;
-			object-fit: contain;
+			// Photos fill a square tile so every thumbnail shares one shape whatever the source ratio.
+			object-fit: cover;
 			box-sizing: border-box;
-			padding: .4rem;
+			padding: 0;
 			border-radius: .65rem;
-			background: #fff;
+			background: color-mix(in srgb, var(--shade-orange) 14%, #fff);
 			filter: none;
 		}
 
-		.integration-icon{ padding: 1.25rem; }
+		.integration-icon{ padding: 1rem; object-fit: contain; }
 
 		.hardware-summary-name{
 			grid-area: summary;
@@ -243,7 +262,7 @@
 			display: grid;
 			gap: .2rem;
 			.hardware-summary-name{ grid-area: auto; }
-			small{ font-size: .8em; font-weight: 400; }
+			small{ font-size: .85em; font-weight: 400; line-height: 1.35; opacity: .85; }
 		}
 
 		&[open] > summary{
@@ -259,13 +278,13 @@
 		// Keep the content usable inside the site's mixed-content section.
 		&.mixed-content{ padding: var(--pad); }
 		details[name] > summary.with-image{
-			grid-template-columns: 3.5rem minmax(0, 1fr) 1rem;
+			grid-template-columns: 3.25rem minmax(0, 1fr) 1rem;
 			min-height: 4.5rem;
-			gap: .65rem;
-			padding-right: .65rem;
+			gap: .75rem;
+			padding: .65rem .75rem;
 		}
-		details[name] .hardware-summary-photo{ width: 3.5rem; height: 3.5rem; }
-		details[name] .integration-icon{ padding: .7rem; }
+		details[name] .hardware-summary-photo{ width: 3.25rem; height: 3.25rem; }
+		details[name] .integration-icon{ padding: .75rem; }
 		details[name] > .details{ padding: 1rem; }
 	}
 }
@@ -394,20 +413,20 @@
 	.picade-plasma-feedback{
 		max-width: 52rem;
 		padding: 0.75rem 1rem;
-		border: 1px solid rgba(255, 255, 255, 0.38);
+		border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 		border-radius: calc(var(--curve, 1rem) * 0.5);
-		background: rgba(0, 0, 0, 0.18);
+		background: color-mix(in srgb, currentColor 5%, transparent);
 	}
 
 	.picade-plasma-feedback[data-state="cancelled"],
 	.picade-plasma-feedback[data-state="error"]{
-		border-color: #fff0a6;
-		background: rgba(72, 26, 0, 0.48);
+		border-color: #b45309;
+		background: #fff4d6;
 	}
 
 	.picade-plasma-feedback[data-state="success"]{
-		border-color: #b9ffd0;
-		background: rgba(0, 54, 30, 0.4);
+		border-color: #15803d;
+		background: #e6f7ec;
 	}
 
 	.picade-plasma-actions{
@@ -415,6 +434,7 @@
 		flex-wrap: wrap;
 		gap: var(--pad, 1rem);
 		align-items: stretch;
+		margin-top: 1rem;
 	}
 
 	#picade-plasma-test-btn{

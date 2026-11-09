@@ -125,177 +125,215 @@ block main
 	
 		details#integration-software.accordion
 			summary
-				h4 Software Integration
-				p You can control your DAW or record the output audio or MIDI.
-				
-			details(name="software")#ableton
-				summary.with-image
-					img.hardware-summary-photo.integration-icon(src="./assets/icons/piano-24px.svg" width="96" height="96" alt="" aria-hidden="true")
-					span.integration-summary-copy
-						span.hardware-summary-name Ableton Live
-						small Record audio & MIDI in your DAW
-				.details
-					p Send PhotoSYNTH's notes to #[a(href="https://www.ableton.com/" rel="noopener noreferrer" target="_blank") Ableton Live] over Web MIDI to play Live's instruments and record editable MIDI clips.
-					ol
-						li
-							| Create a virtual MIDI port on the same computer. On macOS, open Audio MIDI Setup → Show MIDI Studio, double-click IAC Driver and enable Device is online. On Windows, install and open 
-							a(href="https://www.tobias-erichsen.de/software/loopmidi.html" rel="noopener noreferrer" target="_blank") loopMIDI
-							| , then use + to create a port and keep loopMIDI running.
-						li Open PhotoSYNTH in a browser with Web MIDI support, such as Chrome. In MIDI routing, switch on Enable MIDI and allow the browser's MIDI permission request. Expand Fine-tune devices and channels and set each person's Output device to the virtual port. If the port is missing, reload PhotoSYNTH after creating it.
-						li In Live, open Settings (Preferences in older versions) → Link, Tempo & MIDI. Under MIDI Ports, enable Track for the virtual port's input. Enable Remote too if you want to map MIDI CC messages to Live's controls.
-						li Create a MIDI track and load an instrument. Set MIDI From to the virtual port and choose All Channels, or a person's assigned channel to record them separately. Set Monitor to Auto and arm the track.
-						li Play PhotoSYNTH and check that Live receives notes. Click an empty Session clip slot's record button, or start Arrangement recording, to record your performance.
-					p
-						| Follow 
-						a(href="https://help.ableton.com/hc/en-us/articles/209774225-Setting-up-a-virtual-MIDI-bus" rel="noopener noreferrer" target="_blank") Ableton's virtual MIDI bus setup guide
-						|  (also linked in the PhotoSYNTH FAQ) for the connection used by Web MIDI, and see 
-						a(href="https://help.ableton.com/hc/en-us/articles/209774205-Live-s-MIDI-Settings" rel="noopener noreferrer" target="_blank") Live's MIDI settings guide
-						|  for port configuration.
-					h5 Record the PhotoSYNTH audio
-					p To record PhotoSYNTH's audio, route your browser audio through an audio interface's loopback inputs or a virtual audio device. Select that device in Live's Audio settings, create an audio track, set Audio From to Ext. In and select the routed input channels. Set Monitor to Off to avoid a feedback loop, arm the track and record. MIDI ports carry notes and controls; capturing browser audio requires this separate audio connection.
-			
-			details(name="software")#opendaw
-				summary.with-image
-					img.hardware-summary-photo.integration-icon(src="./assets/icons/music_video.svg" width="96" height="96" alt="" aria-hidden="true")
-					span.integration-summary-copy
-						span.hardware-summary-name OpenDAW
-						small Make music in an open source workstation
-				.details
-					p Use #[a(href="https://opendaw.studio/" rel="noopener noreferrer" target="_blank") OpenDAW] to arrange and develop music made with PhotoSYNTH.
-					h5 Continue a recorded performance
-					ol
-						li Record a performance in PhotoSYNTH, then open Recordings and select the session you want to use.
-						li Under Export, choose DAWproject notes (.dawproject), enter a file name and press Export. This option appears for sessions containing recorded notes.
-						li Open OpenDAW and import the downloaded .dawproject file. Assign instruments to the imported note tracks, then play the project and check the sounds before arranging.
-					p The note export transfers your performance for editing; choose instruments in OpenDAW to shape its sound. For the original PhotoSYNTH sound, export an audio take from Recordings instead.
-					p See #[a(href="https://opendaw.studio/manuals/project-management" target="_blank" rel="noopener noreferrer") OpenDAW’s project management guide] for project exchange and saving.
+				h4 Software · Use your DAW & apps
+				p Play software instruments, control your DAW and record PhotoSYNTH's MIDI or audio.
+
+			.details
+				p PhotoSYNTH sends notes and controls over Web MIDI, so music software on the same computer can play along, record and arrange your performance. Use a browser with Web MIDI support, such as Chrome or Edge.
+				.integration-list
+					details(name="software")#ableton
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/music_note.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Ableton Live
+								small Record audio & MIDI in your DAW
+						.details
+							p Send PhotoSYNTH's notes to #[a(href="https://www.ableton.com/" rel="noopener noreferrer" target="_blank") Ableton Live] over Web MIDI to play Live's instruments and record editable MIDI clips.
+							ol
+								li
+									| Create a virtual MIDI port on the same computer. On macOS, open Audio MIDI Setup → Show MIDI Studio, double-click IAC Driver and enable Device is online. On Windows, install and open 
+									a(href="https://www.tobias-erichsen.de/software/loopmidi.html" rel="noopener noreferrer" target="_blank") loopMIDI
+									| , then use + to create a port and keep loopMIDI running.
+								li Open PhotoSYNTH in a browser with Web MIDI support, such as Chrome. In MIDI routing, switch on Enable MIDI and allow the browser's MIDI permission request. Expand Fine-tune devices and channels and set each person's Output device to the virtual port. If the port is missing, reload PhotoSYNTH after creating it.
+								li In Live, open Settings (Preferences in older versions) → Link, Tempo & MIDI. Under MIDI Ports, enable Track for the virtual port's input. Enable Remote too if you want to map MIDI CC messages to Live's controls.
+								li Create a MIDI track and load an instrument. Set MIDI From to the virtual port and choose All Channels, or a person's assigned channel to record them separately. Set Monitor to Auto and arm the track.
+								li Play PhotoSYNTH and check that Live receives notes. Click an empty Session clip slot's record button, or start Arrangement recording, to record your performance.
+							p
+								| Follow 
+								a(href="https://help.ableton.com/hc/en-us/articles/209774225-Setting-up-a-virtual-MIDI-bus" rel="noopener noreferrer" target="_blank") Ableton's virtual MIDI bus setup guide
+								|  (also linked in the PhotoSYNTH FAQ) for the connection used by Web MIDI, and see 
+								a(href="https://help.ableton.com/hc/en-us/articles/209774205-Live-s-MIDI-Settings" rel="noopener noreferrer" target="_blank") Live's MIDI settings guide
+								|  for port configuration.
+							h5 Record the PhotoSYNTH audio
+							p To record PhotoSYNTH's audio, route your browser audio through an audio interface's loopback inputs or a virtual audio device. Select that device in Live's Audio settings, create an audio track, set Audio From to Ext. In and select the routed input channels. Set Monitor to Off to avoid a feedback loop, arm the track and record. MIDI ports carry notes and controls; capturing browser audio requires this separate audio connection.
 					
+					details(name="software")#opendaw
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/music_video.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name OpenDAW
+								small Make music in an open source workstation
+						.details
+							p Use #[a(href="https://opendaw.studio/" rel="noopener noreferrer" target="_blank") OpenDAW] to arrange and develop music made with PhotoSYNTH.
+							h5 Continue a recorded performance
+							ol
+								li Record a performance in PhotoSYNTH, then open Recordings and select the session you want to use.
+								li Under Export, choose DAWproject notes (.dawproject), enter a file name and press Export. This option appears for sessions containing recorded notes.
+								li Open OpenDAW and import the downloaded .dawproject file. Assign instruments to the imported note tracks, then play the project and check the sounds before arranging.
+							p The note export transfers your performance for editing; choose instruments in OpenDAW to shape its sound. For the original PhotoSYNTH sound, export an audio take from Recordings instead.
+							p See #[a(href="https://opendaw.studio/manuals/project-management" target="_blank" rel="noopener noreferrer") OpenDAW’s project management guide] for project exchange and saving.
+
+					details(name="software")#other-daws
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/equalizer.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Other DAWs & MIDI apps
+								small Logic, GarageBand, FL Studio, Reaper, Bitwig & more
+						.details
+							p Any app that accepts MIDI input can play its instruments from PhotoSYNTH, record your notes and respond to PhotoSYNTH's controls.
+							h5 Connect & record MIDI
+							ol
+								li Create a virtual MIDI port: on macOS enable the IAC Driver in Audio MIDI Setup → Show MIDI Studio; on Windows create a port in #[a(href="https://www.tobias-erichsen.de/software/loopmidi.html" rel="noopener noreferrer" target="_blank") loopMIDI] and keep it running.
+								li In PhotoSYNTH, open MIDI routing, switch on Enable MIDI and allow access. Use Quick setup, or expand Fine-tune devices and channels, to send each person to the virtual port.
+								li In your app's MIDI settings, enable the virtual port as an input.
+								li Create an instrument or MIDI track, set its input to the virtual port (all channels, or one person's channel), arm it and press record.
+							h5 Control your app
+							p PhotoSYNTH sends its control changes as MIDI CC on the App control channel (16 by default). Use your app's MIDI learn to map them, or open CC codes in MIDI routing to see each code. Keep two-way CC control enabled to let your app move PhotoSYNTH's controls too.
+							p Avoid sending your app's MIDI output back into the same virtual port, as this can create a feedback loop. To record PhotoSYNTH's sound rather than notes, route browser audio through a loopback or virtual audio device into an audio track.
 
 		details#integration-hardware.accordion
 			summary
 				h4 Hardware · Use external gear
-				p Synchronise with your external gear, musical devices and hardware.
-				
+				p Play with MIDI instruments, game controllers, accessible switches and displays.
+
 			.details
-				p Connect compatible MIDI instruments to send notes and controls to PhotoSYNTH, or send your performance to an external sound module. Available devices depend on your browser and operating system.
-				p For MIDI gear, connect the device before starting, enable MIDI in MIDI routing and allow access when prompted. Expand Fine-tune devices and channels to choose each person’s input, output and channel. Use the guides below for other controllers and displays.
+				p Connect compatible devices to play notes and control PhotoSYNTH, or send your performance to external instruments. Available devices depend on your browser and operating system.
+				.integration-list
+					include partials/looking-glass-integration.pug
 
-				include partials/looking-glass-integration.pug
-		
-				details(name="hardware")#gamepads
-					summary.with-image
-						img.hardware-summary-photo.integration-icon(src="./assets/icons/gamepad_black_24dp.svg" width="96" height="96" alt="" aria-hidden="true")
-						span.integration-summary-copy
-							span.hardware-summary-name Gamepads
-							small Play notes, beats & chords with a controller
-					.details
-						p Use a compatible gamepad to play beats, instruments and chords, control visual effects, and adjust performance controls.
-						h5 Connect & play
-						ol
-							li Pair your controller over Bluetooth or connect it by USB before playing.
-							li Start PhotoSYNTH, then press a controller button so the browser can detect it.
-							li Try the buttons and sticks to explore the available performance controls. Mappings depend on the controller.
-						p If nothing responds, check that your device recognises the controller, return focus to PhotoSYNTH and press a button again.
+					details(name="hardware")#midi-instruments
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/piano-24px.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name MIDI Keyboards & Sound Modules
+								small Play PhotoSYNTH from MIDI gear, or send notes out
+						.details
+							p Play PhotoSYNTH from a MIDI keyboard or controller, or send each person's notes to a synthesiser, drum machine or sound module.
+							h5 Connect your MIDI gear
+							ol
+								li Connect your device by USB, or through a MIDI interface for 5-pin DIN gear, before starting PhotoSYNTH.
+								li Open MIDI routing, switch on Enable MIDI and allow the browser's MIDI permission request. Connected devices appear under Connected MIDI devices.
+								li Choose a Quick setup, or expand Fine-tune devices and channels to set each person's input, output and MIDI channel.
+								li Play your keyboard to hear PhotoSYNTH, or perform in PhotoSYNTH and check that your sound module receives notes on the matching channel.
+							h5 Two-way control
+							p Hardware knobs and faders can change PhotoSYNTH's controls over MIDI CC on the App control channel (16 by default). Open CC codes in MIDI routing for the full list, and use Send current controls to update your gear to PhotoSYNTH's settings.
+							p If a device is missing, reconnect it and reload PhotoSYNTH. Web MIDI needs a supporting browser such as Chrome or Edge.
+			
+					details(name="hardware")#gamepads
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/gamepad_black_24dp.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Gamepads
+								small Play notes, beats & chords with a controller
+						.details
+							p Use a compatible gamepad to play beats, instruments and chords, control visual effects, and adjust performance controls.
+							h5 Connect & play
+							ol
+								li Pair your controller over Bluetooth or connect it by USB before playing.
+								li Start PhotoSYNTH, then press a controller button so the browser can detect it.
+								li Try the buttons and sticks to explore the available performance controls. Mappings depend on the controller.
+							p If nothing responds, check that your device recognises the controller, return focus to PhotoSYNTH and press a button again.
 
-				details(name="hardware")#qwerty-keyboards
-					summary.with-image
-						img.hardware-summary-photo.integration-icon(src="./assets/icons/keyboard.svg" width="96" height="96" alt="" aria-hidden="true")
-						span.integration-summary-copy
-							span.hardware-summary-name QWERTY Keyboards
-							small Play & control PhotoSYNTH with your keyboard
-					.details
-						p Turn your computer keyboard into a musical controller to play notes, chords, percussion and samples, or use operational shortcuts to control PhotoSYNTH.
-						h5 Choose how to play
-						p Choose a Keyboard Mode in the controls, or use F1–F6 to switch between Operational, Notes, Notes +1 Octave, Chords, Percussion and Samples. Page Up and Page Down also change keyboard mode.
-						p In a performance mode, use the number and letter rows to play. Return focus to PhotoSYNTH after using another app, and leave text fields before playing. On keyboards that use function keys for brightness or volume, hold Fn with F1–F6, or select the mode on screen.
+					details(name="hardware")#qwerty-keyboards
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/keyboard.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name QWERTY Keyboards
+								small Play & control PhotoSYNTH with your keyboard
+						.details
+							p Turn your computer keyboard into a musical controller to play notes, chords, percussion and samples, or use operational shortcuts to control PhotoSYNTH.
+							h5 Choose how to play
+							p Choose a Keyboard Mode in the controls, or use F1–F6 to switch between Operational, Notes, Notes +1 Octave, Chords, Percussion and Samples. Page Up and Page Down also change keyboard mode.
+							p In a performance mode, use the number and letter rows to play. Return focus to PhotoSYNTH after using another app, and leave text fields before playing. On keyboards that use function keys for brightness or volume, hold Fn with F1–F6, or select the mode on screen.
 
-				details(name="hardware")#stream-deck
-					summary.with-image
-						img.hardware-summary-photo(src="./assets/hardware/stream-deck-xl.jpg" width="2814" height="1984" loading="lazy" decoding="async" alt="" aria-hidden="true")
-						span.integration-summary-copy
-							span.hardware-summary-name Stream Deck (& XL)
-							small Dedicated buttons for notes, chords, drums & samples
-					.details
-						p Turn your #[a(href="https://www.elgato.com/us/en/p/stream-deck-xl" rel="noopener noreferrer" target="_blank") Stream Deck] into a PhotoSYNTH control surface to control instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
-						h5 Set up your Stream Deck
-						ol
-							li Connect your Stream Deck and open the Stream Deck desktop application.
-							li Download the profile matching your device below, then open the downloaded file to import it.
-							li Select the PhotoSYNTH profile in Stream Deck. Start PhotoSYNTH and keep its window focused so the profile’s keyboard shortcuts reach the instrument.
-							li Use the profile’s performance pages to switch between notes, chords, percussion and samples.
-						a.button.button-push.button-download.text-always(
-							href="../static/PhotoSYNTH.streamDeckProfile"
-							download="PhotoSYNTH.streamDeckProfile"
-						) Download XL profile — 32 keys
-						a.button.button-push.button-download.text-always(
-							href="../static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
-							download="PhotoSYNTH-Stream-Deck.streamDeckProfile"
-						) Download standard profile — 15 keys
-		
-				details(name="hardware")#cosmo-dots
-					summary.with-image
-						img.hardware-summary-photo(src="./assets/hardware/cosmo-dot.jpg" width="1000" height="800" loading="lazy" decoding="async" alt="" aria-hidden="true")
-						span.integration-summary-copy
-							span.hardware-summary-name Cosmo Dots
-							small Accessible wireless buttons for musical performance
-					.details
-						p Use your #[a(href="https://www.explorecosmo.com/cosmo-dot/" rel="noopener noreferrer" target="_blank") Cosmo Dots] with PhotoSYNTH to play all notes, perform chords and drums, and trigger samples and sound effects.
-						h5 Connect & assign your Dots
-						ol
-							li Connect your Dots to your device using their keyboard configuration.
-							li Assign each Dot a unique number key from 1–9 in your Cosmo setup.
-							li Start PhotoSYNTH, select a Keyboard Mode and keep the PhotoSYNTH window focused. Press each Dot to check its assigned sound.
-						p Choose a Keyboard Mode in the controls to change what your Dots play: Notes (F2), Notes +1 Octave (F3), Chords (F4), Percussion (F5) or Samples (F6). In Notes modes, use Shift + Page Up or Shift + Page Down to move the number-key notes up or down an octave.
-						figure.cosmo-note-guide
-							ol.cosmo-note-dots(aria-label="Example Cosmo Dot number, pitch, and color guide in the default Notes mode")
-								li.cosmo-note-dot(style="--note-hue: 353; --note-saturation: 78%; --note-lightness: 54%" title="C")
-									span.cosmo-note-number 1
-									span.cosmo-note-name C
-								li.cosmo-note-dot(style="--note-hue: 20; --note-saturation: 81%; --note-lightness: 62%" title="D")
-									span.cosmo-note-number 2
-									span.cosmo-note-name D
-								li.cosmo-note-dot(style="--note-hue: 54; --note-saturation: 83%; --note-lightness: 68%" title="E")
-									span.cosmo-note-number 3
-									span.cosmo-note-name E
-								li.cosmo-note-dot(style="--note-hue: 69; --note-saturation: 54%; --note-lightness: 65%" title="F")
-									span.cosmo-note-number 4
-									span.cosmo-note-name F
-								li.cosmo-note-dot(style="--note-hue: 177; --note-saturation: 67%; --note-lightness: 41%" title="G")
-									span.cosmo-note-number 5
-									span.cosmo-note-name G
-								li.cosmo-note-dot(style="--note-hue: 256; --note-saturation: 39%; --note-lightness: 46%" title="A")
-									span.cosmo-note-number 6
-									span.cosmo-note-name A
-								li.cosmo-note-dot(style="--note-hue: 325; --note-saturation: 90%; --note-lightness: 65%" title="B")
-									span.cosmo-note-number 7
-									span.cosmo-note-name B
-								li.cosmo-note-dot(style="--note-hue: 353; --note-saturation: 78%; --note-lightness: 54%" title="C")
-									span.cosmo-note-number 8
-									span.cosmo-note-name C
-								li.cosmo-note-dot(style="--note-hue: 20; --note-saturation: 81%; --note-lightness: 62%" title="D")
-									span.cosmo-note-number 9
-									span.cosmo-note-name D
-							figcaption Example: the default Notes mode maps numbers 1–9 to C3, D3, E3, F3, G3, A3, B3, C4 and D4. These labels show one note layout; your Dots can also play chords, drums and samples in the other modes. The pitch names identify the colors without relying on color alone.
-		
-				details(name="hardware")#picade-plasma-lights
-					summary.with-image
-						img.hardware-summary-photo(src="./assets/hardware/picade-max-controller.jpg" width="480" height="480" loading="lazy" decoding="async" alt="" aria-hidden="true")
-						span.integration-summary-copy
-							span.hardware-summary-name Picade Max Input Plasma Lights
-							small Test button lights & configure their physical order
-					.details
-						p Connect your #[a(href="https://shop.pimoroni.com/products/picade-max-usb-controller" rel="noopener noreferrer" target="_blank") Picade Max controller] to test the Plasma button lights, or configure their physical order without connecting.
-						h5 Set up the lights
-						ol
-							li Connect the Picade Max Input controller by USB.
-							li Choose Connect & Test Lights below and select the controller when prompted.
-							li Open Configure Plasma Lights to match the light order to your physical button layout. You can configure the order before connecting the controller.
-						p#picade-plasma-status.picade-plasma-feedback(role="status" aria-live="polite") Connect your Picade-Max Input controller with Plasma lights then use the configurator to set the button / light layout.
-						.picade-plasma-actions
-							button#picade-plasma-test-btn.button-push.text-always(type="button") Connect & Test Lights
-							a#picade-plasma-config-btn.picade-plasma-config-link(href="./test.picade-plasma.pug")
-								img(src="./assets/icons/build.svg" alt="" aria-hidden="true")
-								| Configure Plasma Lights
+					details(name="hardware")#stream-deck
+						summary.with-image
+							img.hardware-summary-photo(src="./assets/hardware/stream-deck-xl.jpg" width="2814" height="1984" loading="lazy" decoding="async" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Stream Deck (& XL)
+								small Dedicated buttons for notes, chords, drums & samples
+						.details
+							p Turn your #[a(href="https://www.elgato.com/us/en/p/stream-deck-xl" rel="noopener noreferrer" target="_blank") Stream Deck] into a PhotoSYNTH control surface to control instruments, visuals, drums and samples. Dedicated pages switch between note, chord, percussion and sample performance modes.
+							h5 Set up your Stream Deck
+							ol
+								li Connect your Stream Deck and open the Stream Deck desktop application.
+								li Download the profile matching your device below, then open the downloaded file to import it.
+								li Select the PhotoSYNTH profile in Stream Deck. Start PhotoSYNTH and keep its window focused so the profile’s keyboard shortcuts reach the instrument.
+								li Use the profile’s performance pages to switch between notes, chords, percussion and samples.
+							.integration-actions
+								a.button.button-push.button-download.text-always(
+									href="../static/PhotoSYNTH.streamDeckProfile"
+									download="PhotoSYNTH.streamDeckProfile"
+								) Download XL profile — 32 keys
+								a.button.button-push.button-download.text-always(
+									href="../static/PhotoSYNTH-Stream-Deck.streamDeckProfile"
+									download="PhotoSYNTH-Stream-Deck.streamDeckProfile"
+								) Download standard profile — 15 keys
+			
+					details(name="hardware")#cosmo-dots
+						summary.with-image
+							img.hardware-summary-photo(src="./assets/hardware/cosmo-dot.jpg" width="1000" height="800" loading="lazy" decoding="async" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Cosmo Dots
+								small Accessible wireless buttons for musical performance
+						.details
+							p Use your #[a(href="https://www.explorecosmo.com/cosmo-dot/" rel="noopener noreferrer" target="_blank") Cosmo Dots] with PhotoSYNTH to play all notes, perform chords and drums, and trigger samples and sound effects.
+							h5 Connect & assign your Dots
+							ol
+								li Connect your Dots to your device using their keyboard configuration.
+								li Assign each Dot a unique number key from 1–9 in your Cosmo setup.
+								li Start PhotoSYNTH, select a Keyboard Mode and keep the PhotoSYNTH window focused. Press each Dot to check its assigned sound.
+							p Choose a Keyboard Mode in the controls to change what your Dots play: Notes (F2), Notes +1 Octave (F3), Chords (F4), Percussion (F5) or Samples (F6). In Notes modes, use Shift + Page Up or Shift + Page Down to move the number-key notes up or down an octave.
+							figure.cosmo-note-guide
+								ol.cosmo-note-dots(aria-label="Example Cosmo Dot number, pitch, and color guide in the default Notes mode")
+									li.cosmo-note-dot(style="--note-hue: 353; --note-saturation: 78%; --note-lightness: 54%" title="C")
+										span.cosmo-note-number 1
+										span.cosmo-note-name C
+									li.cosmo-note-dot(style="--note-hue: 20; --note-saturation: 81%; --note-lightness: 62%" title="D")
+										span.cosmo-note-number 2
+										span.cosmo-note-name D
+									li.cosmo-note-dot(style="--note-hue: 54; --note-saturation: 83%; --note-lightness: 68%" title="E")
+										span.cosmo-note-number 3
+										span.cosmo-note-name E
+									li.cosmo-note-dot(style="--note-hue: 69; --note-saturation: 54%; --note-lightness: 65%" title="F")
+										span.cosmo-note-number 4
+										span.cosmo-note-name F
+									li.cosmo-note-dot(style="--note-hue: 177; --note-saturation: 67%; --note-lightness: 41%" title="G")
+										span.cosmo-note-number 5
+										span.cosmo-note-name G
+									li.cosmo-note-dot(style="--note-hue: 256; --note-saturation: 39%; --note-lightness: 46%" title="A")
+										span.cosmo-note-number 6
+										span.cosmo-note-name A
+									li.cosmo-note-dot(style="--note-hue: 325; --note-saturation: 90%; --note-lightness: 65%" title="B")
+										span.cosmo-note-number 7
+										span.cosmo-note-name B
+									li.cosmo-note-dot(style="--note-hue: 353; --note-saturation: 78%; --note-lightness: 54%" title="C")
+										span.cosmo-note-number 8
+										span.cosmo-note-name C
+									li.cosmo-note-dot(style="--note-hue: 20; --note-saturation: 81%; --note-lightness: 62%" title="D")
+										span.cosmo-note-number 9
+										span.cosmo-note-name D
+								figcaption Example: the default Notes mode maps numbers 1–9 to C3, D3, E3, F3, G3, A3, B3, C4 and D4. These labels show one note layout; your Dots can also play chords, drums and samples in the other modes. The pitch names identify the colors without relying on color alone.
+			
+					details(name="hardware")#picade-plasma-lights
+						summary.with-image
+							img.hardware-summary-photo(src="./assets/hardware/picade-max-controller.jpg" width="480" height="480" loading="lazy" decoding="async" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Picade Max Input Plasma Lights
+								small Test button lights & configure their physical order
+						.details
+							p Connect your #[a(href="https://shop.pimoroni.com/products/picade-max-usb-controller" rel="noopener noreferrer" target="_blank") Picade Max controller] to test the Plasma button lights, or configure their physical order without connecting.
+							h5 Set up the lights
+							ol
+								li Connect the Picade Max Input controller by USB.
+								li Choose Connect & Test Lights below and select the controller when prompted.
+								li Open Configure Plasma Lights to match the light order to your physical button layout. You can configure the order before connecting the controller.
+							p#picade-plasma-status.picade-plasma-feedback(role="status" aria-live="polite") Connect your Picade-Max Input controller with Plasma lights then use the configurator to set the button / light layout.
+							.picade-plasma-actions
+								button#picade-plasma-test-btn.button-push.text-always(type="button") Connect & Test Lights
+								a#picade-plasma-config-btn.picade-plasma-config-link(href="./test.picade-plasma.pug")
+									img(src="./assets/icons/build.svg" alt="" aria-hidden="true")
+									| Configure Plasma Lights
 	
 	section#supported-by.connections
 		block supported

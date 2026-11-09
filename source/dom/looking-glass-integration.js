@@ -10,20 +10,14 @@ export function createLookingGlassStartup({
   probe = probeLookingGlassPortraits,
   loadRenderer = loadPortraitRenderer
 } = {}) {
-  const item = doc?.getElementById('looking-glass-portrait')
   const status = doc?.getElementById('looking-glass-connection')
   const preparation = doc?.getElementById('looking-glass-preparation')
   const discovery = Promise.resolve()
     .then(() => probe({ includeDevices: true }))
     .catch(() => ({ status: 'unavailable', count: 0, devices: [] }))
     .then(result => {
-      if (item) {
-        item.hidden = result.count === 0
-        item.open = result.count > 0
-      }
+      // The guide always stays listed and closed; detection only updates its status text.
       if (result.count > 0) {
-        const hardware = doc?.getElementById('integration-hardware')
-        if (hardware) hardware.open = true
         if (status) status.textContent = result.count === 1 ? 'Portrait connected' : `${result.count} Portrait displays connected`
         if (preparation) preparation.textContent = 'Getting your Portrait ready…'
       }
