@@ -21,7 +21,9 @@ html:has(#control-panel-head:is(.open, .controls-list-folder-open, :focus-within
 @keyframes HeadPreviewLift { 0%, 20% { --lift: 0; } 60%, 100% { --lift: 1; } }
 
 #head-movement-settings {
+	// base.scss fixes every aria-hidden svg in place, so put these back in the flow
 	.head-preview {
+		position: static;
 		display: block;
 		width: 100%;
 		height: auto;
@@ -35,10 +37,16 @@ html:has(#control-panel-head:is(.open, .controls-list-folder-open, :focus-within
 	}
 	.head-preview-guide { stroke: var(--shade-green); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .8; }
 
-	// Lean: the whole head tips from the neck by half the range each way
+	// Lean: the face sits beside its slider, with the help text underneath
+	.head-lean {
+		display: grid;
+		grid-template-columns: 7rem minmax(0, 1fr);
+		align-items: center;
+		gap: .5rem 1.5rem;
+		> p { grid-column: 1 / -1; }
+	}
+	// The whole head tips from the neck by half the range each way
 	.head-preview-lean {
-		max-inline-size: 12rem;
-		margin: 0 auto 1rem;
 		.head-preview-head {
 			transform-box: view-box;
 			transform-origin: 60px 84px;
@@ -89,13 +97,14 @@ html:has(#control-panel-head:is(.open, .controls-list-folder-open, :focus-within
 	> .head-preview { grid-area: preview; max-inline-size: 7rem; }
 	> label { grid-area: label; color: var(--muted); font-size: .85rem; font-weight: 400; text-align: center; }
 	> output { grid-area: output; color: inherit; font-weight: 900; font-variant-numeric: tabular-nums; }
+	// Physical sizes: a vertical writing mode swaps the logical axes
 	> input[type="range"].vertical {
 		grid-area: fader;
 		justify-self: center;
-		inline-size: 100%;
-		max-inline-size: 5rem;
-		block-size: 100%;
-		min-block-size: 160px;
+		width: 100%;
+		max-width: 5rem;
+		height: 100%;
+		min-height: 160px;
 	}
 }
 
