@@ -180,9 +180,13 @@ menu#control-panel
 		//button#button-donk( aria-label="Put a donk on it" ) Add Donk
 		//button#button-cowbell( aria-label="More cowbell!" ) Add Cowbell
 
-		label.keyboard-shortcut-control(for="button-disco") MTV Mode
+		label.keyboard-shortcut-control(for="select-mtv") MTV
 			kbd.keyboard-shortcut(aria-hidden="true") D
-			input#button-disco(type="checkbox" aria-label="activate Psychedlic visual style")
+			select#select-mtv(aria-label="Choose MTV video effect")
+				option(value="off" selected) Off
+				option(value="disco") Classic MTV
+		span(hidden)
+			input#button-disco(type="checkbox" aria-label="Toggle MTV video effects")
 		
 		label.keyboard-shortcut-control(for="select-viz") Viz
 			kbd.keyboard-shortcut(aria-hidden="true") Y

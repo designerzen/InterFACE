@@ -121,7 +121,8 @@ import {
 	setupAnalyser,
 	sampleVisualiserAudio
 } from './audio/audio-visual.js'
-import { normaliseVisualiser, getVisualiserMode, VISUALISER_MODES } from './visual/visualiser-modes.js'
+import { getVisualiserMode, getMTVMode } from './visual/visualiser-modes.js'
+import { setupVisualEffectsMenus } from './dom/ui.visual-effects.js'
 import { createVisualiserNotes } from './visual/visualiser-notes.js'
 import { createButterchurnVisualiser } from './visual/butterchurn-visualiser.js'
 import { observeSessionEvents } from './storage/session-events.js'
@@ -2921,7 +2922,8 @@ export const createInterface = (
 		let tickerTape = ''
 		const discoMode = stateMachine.get("disco")
 		const visualiserMode = stateMachine.get("spectrogram") ? getVisualiserMode(stateMachine.get("visualiser")) : null
-		const blendVideo = visualiserMode?.renderer === 'butterchurn'
+		const mtvMode = getMTVMode(discoMode, stateMachine.get('mtvEffect'))
+		const blendVideo = !!mtvMode
 		const showOverlayCanvas = stateMachine.get("showOverlay") !== false && !display?.suppressMainOverlay
 		overlayDisplay?.setSuspended(!showOverlayCanvas)
 		overlayDisplay?.setSkipEmoticons(display?.drawsSceneEmoticon)
@@ -2985,17 +2987,14 @@ export const createInterface = (
 				}
 			}	
 			
-			if (stateMachine.get("spectrogram"))
+			if (mtvMode) {
+				const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mtvMode.preset)
+				if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mtvMode.blendMode, opacity:mtvMode.opacity })
+			}
+			if (visualiserMode)
 			{
-				const mode = visualiserMode
-				const audioFrame = sampleVisualiserAudio(analyser, mode, !!recorder)
-				if (mode.renderer === 'butterchurn') {
-					const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mode.preset)
-					if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mode.blendMode })
-				} else {
-					butterchurnVisualiser.stop()
-					display.drawVisualiser(audioFrame.frequency, audioFrame.length, mode.id, audioFrame.time, visualiserNotes.update())
-				}
+				const audioFrame = sampleVisualiserAudio(analyser, visualiserMode, !!recorder)
+				display.drawVisualiser(audioFrame.frequency, audioFrame.length, visualiserMode.id, audioFrame.time, visualiserNotes.update())
 				if (recorder && waveforms.length < 3600) waveforms.push(audioFrame.frequency.slice())
 			}
 		}
@@ -4722,25 +4721,12 @@ export const createInterface = (
 			setFeedback("Spectrogram " + (status ? 'enabled' : 'disabled'), 0  )
 		}, stateMachine.get( 'spectrogram') )
 
-		const visualiserSelect = populateSelect("select-viz", [
-			...VISUALISER_MODES.map(mode => ({ value:mode.id, label:mode.label })),
-			{ value:"off", label:"Off" },
-		])
-		const syncVisualiserSelect = () => {
-			if (!stateMachine.get('spectrogram') || getVisualiserMode(stateMachine.get('visualiser')).renderer !== 'butterchurn') butterchurnVisualiser.stop()
-			if (toggles.spectrogram) toggles.spectrogram.checked = !!stateMachine.get("spectrogram")
-			if (visualiserSelect) visualiserSelect.value = stateMachine.get("spectrogram")
-				? normaliseVisualiser(stateMachine.get("visualiser")) : "off"
-		}
-		visualiserSelect?.addEventListener("change", () => {
-			const enabled = visualiserSelect.value !== "off"
-			if (enabled) stateMachine.set("visualiser", normaliseVisualiser(visualiserSelect.value))
-			stateMachine.set("spectrogram", enabled)
+		setupVisualEffectsMenus({
+			state:stateMachine,
+			setDiscoMode,
+			stopButterchurn:() => butterchurnVisualiser.stop(),
+			spectrogramToggle:toggles.spectrogram
 		})
-		stateMachine.addEventListener(key => {
-			if (key === "spectrogram" || key === "visualiser") syncVisualiserSelect()
-		})
-		syncVisualiserSelect()
 
 		toggles.speak = setToggle( "button-speak", status =>{
 			kit.cowbell()
@@ -4772,35 +4758,8 @@ export const createInterface = (
 
 		// toggle mute is owned by the volume interface
 
-		// FIXME: This does not work after refresh
-		// let discoPreviousState
-		// MTV : Special disco mode!
-		toggles.disco = setToggle( "button-disco", status =>{ 
-			setDiscoMode(status, false )
-			/*stateMachine.set( 'masks', status )
-			if (status)
-			{
-				// ENABLE disco mode
-				// stateMachine.set( 'clear', false )
-				ui.clear = false
-				
-				// save previous state to go back to later...
-				discoPreviousState = fetchPlayerOptions(['drawMask','drawNodes','drawMesh','meshOnSing'])
-				
-				//console.log(ui.masks,"MTV save old state", discoPreviousState)
-	a			// setPlayerOption("drawMesh", ui.masks)
-				setPlayerOptions( {drawMask:true, drawNodes:false, drawMesh:false, meshOnSing:true})
-				
-			}else{
-				// stateMachine.set( 'clear', true )
-				ui.clear = true
-				// setPlayerOption("drawNodes", ui.masks)
-				//setPlayerOptions( {drawNodes:true, drawMesh:false})
-				setPlayerOptions( discoPreviousState )
-				//console.log(ui.masks,"MTV load old state", discoPreviousState)
-				discoPreviousState = null
-			}*/
-		}, stateMachine.get( 'disco') )
+		// Preserve the keyboard, MIDI and Stream Deck toggle alongside the MTV menu.
+		toggles.disco = setToggle("button-disco", status => setDiscoMode(status, false), stateMachine.get('disco'))
 
 		// Overlays ----
 		

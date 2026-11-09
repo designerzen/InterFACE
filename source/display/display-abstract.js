@@ -350,10 +350,12 @@ export default class AbstractDisplay{
 	/**
 	 * Draw a Person model to the screen
 	 */
-	drawElement(element, x = 0, y = 0, flip = false, width = this.width, height = this.height){
+	drawElement(element, x = 0, y = 0, flip = false, width = this.width, height = this.height, options = {}){
 		const context = this.getEffectsContext()
 		if (!context) return
 		context.save()
+		if (options.blendMode) context.globalCompositeOperation = options.blendMode
+		if (options.opacity !== undefined) context.globalAlpha = Math.max(0, Math.min(1, options.opacity))
 		if (flip) { context.translate(width, 0); context.scale(-1, 1) }
 		context.drawImage(element, x, y, width, height)
 		context.restore()

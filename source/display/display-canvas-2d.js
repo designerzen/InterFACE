@@ -370,11 +370,12 @@ export default class Display2D extends AbstractDisplay{
 	 */
 	drawElement( element, x=0, y=0, flip=true, width, height, options={} ){
 		const context = this.canvasContext
-		if (!options.filter && !options.blendMode) return drawElement(context, element, x, y, flip, width, height)
+		if (!options.filter && !options.blendMode && options.opacity === undefined) return drawElement(context, element, x, y, flip, width, height)
 		context.save()
 		try {
 			// Blend only this layer; video and later face overlays keep their own state.
 			context.globalCompositeOperation = options.blendMode ?? this.filter
+			if (options.opacity !== undefined) context.globalAlpha = Math.max(0, Math.min(1, options.opacity))
 			drawElement( context, element, x, y, flip, width, height )
 		} finally {
 			context.restore()

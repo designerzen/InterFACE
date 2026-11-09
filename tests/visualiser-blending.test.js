@@ -12,8 +12,9 @@ const display = () => {
 	const stack = []
 	const context = {
 		globalCompositeOperation:'source-over',
-		save(){ stack.push(this.globalCompositeOperation) },
-		restore(){ this.globalCompositeOperation = stack.pop() },
+		globalAlpha:1,
+		save(){ stack.push([this.globalCompositeOperation, this.globalAlpha]) },
+		restore(){ [this.globalCompositeOperation, this.globalAlpha] = stack.pop() },
 		drawImage:jest.fn(function(){ return this.globalCompositeOperation })
 	}
 	instance.canvas2DContext = context
@@ -53,9 +54,15 @@ test('named Butterchurn options select their own blend regardless of the canvas 
 	for (const mode of presets) {
 		expect(normaliseVisualiser(mode.id)).toBe(mode.id)
 		expect(mode.frequency || mode.time).toBeFalsy()
-		instance.drawElement({}, 0, 0, false, 800, 400, { blendMode:mode.blendMode })
+		expect(mode.opacity).toBe(0.25)
+		instance.canvasContext.drawImage.mockImplementation(function(){
+			expect(this.globalAlpha).toBe(0.25)
+			return this.globalCompositeOperation
+		})
+		instance.drawElement({}, 0, 0, false, 800, 400, { blendMode:mode.blendMode, opacity:mode.opacity })
 		expect(instance.canvasContext.drawImage.mock.results.at(-1).value).toBe(mode.blendMode)
 		expect(instance.canvasContext.globalCompositeOperation).toBe('source-over')
+		expect(instance.canvasContext.globalAlpha).toBe(1)
 	}
 })
 
