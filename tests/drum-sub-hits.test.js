@@ -80,7 +80,7 @@ describe('drum fill subdivisions', () => {
 		const updatedIntent = arranger.getIntent()
 
 		expect(updatedIntent.energy).toBeCloseTo(0.8)
-		expect(updatedIntent.density).toBeCloseTo(0.77)
+		expect(updatedIntent.density).toBeCloseTo(0.5)
 		expect(updatedIntent.tension).toBeCloseTo(0.25)
 	})
 

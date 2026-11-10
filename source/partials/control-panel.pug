@@ -374,6 +374,17 @@ menu#control-panel
 	section#settings.controls(aria-labelledby="settings-title")
 		span#settings-title(hidden) Global settings and options
 
+		#control-panel-mtv.folder-menu.bottom.horizontal.right.secondary.type-visual.group-overlay
+			a.folder-link.secondary.type-visual.group-overlay(href="#folder-mtv" aria-label="Show MTV settings") MTV settings
+			menu.folder-content.settings-folder#folder-mtv
+				fieldset.control-settings
+					legend MTV
+					label.control-settings-field(for="mtv-strength") Effect strength
+						input#mtv-strength(type="range" min="0" max="100" step="1" value="50" aria-describedby="mtv-strength-help")
+						output#mtv-strength-value(for="mtv-strength") 50%
+					p#mtv-strength-help How strongly Butterchurn effects blend over the video. Classic MTV is unaffected.
+				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
+
 		#control-panel-engine.folder-menu.bottom.horizontal.right.primary.type-sound.group-engine(data-advanced-mode-only)
 			a.folder-link.primary.type-sound.group-engine(href="#folder-engine" aria-label="Show engine settings") Engine
 			menu.folder-content.settings-folder#folder-engine
@@ -386,15 +397,19 @@ menu#control-panel
 				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
 		button#button-accessibility.primary.type-application.group-accessibility(type="button" aria-label="Accessibility settings" aria-controls="accessibility-panel" aria-expanded="false" aria-haspopup="dialog" hidden) Accessibility
 
-		label.secondary.type-input.group-keyboard(for="select-keyboard-mode") Keyboard Mode
+		label.secondary.type-input.group-keyboard.keyboard-shortcut-control(for="select-keyboard-mode") Keyboard Mode
+			kbd.keyboard-shortcut(aria-hidden="true") F1–F6
 			select#select-keyboard-mode(name="keyboard-mode" required aria-label="Choose whether the keyboard controls the app or plays notes, chords, drums or samples" aria-describedby="keyboard-mode-help")
-				option(value="operational") <kbd>F1</kbd> Operational
-				option(value="notes") <kbd>F2</kbd> Notes
-				option(value="notes-high") <kbd>F3</kbd> Notes +1 Octave
-				option(value="chords") <kbd>F4</kbd> Chords
-				option(value="percussion") <kbd>F5</kbd> Percussion
-				option(value="samples") <kbd>F6</kbd> Samples
+				option(value="operational") F1 · App shortcuts
+				option(value="notes") F2 · Notes
+				option(value="notes-high") F3 · Notes +1 Octave
+				option(value="chords") F4 · Chords
+				option(value="percussion") F5 · Percussion
+				option(value="samples") F6 · Samples
 			small#keyboard-mode-help.sr-only F1–F6, Page Up and Page Down also change keyboard mode.
+
+		button#button-keyboard-guide.secondary.type-input.group-keyboard.keyboard-shortcut-control(type="button" aria-controls="keyboard-guide" aria-haspopup="dialog" aria-keyshortcuts="Space") Keyboard guide
+			kbd.keyboard-shortcut(aria-hidden="true") Space
 
 		label.secondary.type-music.group-timing(for="button-quantise") Quantise
 			input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise

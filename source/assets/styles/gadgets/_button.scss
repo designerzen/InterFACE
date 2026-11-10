@@ -1202,13 +1202,13 @@
 		&::before{
 			content: "";
 			--hue: #{palette.$hue-green};
-			// --darken shifts every stop together so :active is the same surface, only darker
-			--col-inner-top: hsla(var(--hue), var(--saturation, 50%), calc(35% - var(--darken, 0%)), 100%);
-			--col-inner-bottom: hsla(var(--hue), var(--saturation, 50%), calc(45% - var(--darken, 0%)), 100%);
-			--col-pad-top: hsla(var(--hue), var(--saturation, 50%), calc(45% - var(--darken, 0%)), 100%);
-			--col-pad-bottom: hsla(var(--hue), var(--saturation, 50%), calc(35% - var(--darken, 0%)), 100%);
-			--col-back-top: hsla(var(--hue), var(--saturation, 50%), calc(35% - var(--darken, 0%)), 40%);
-			--col-back-bottom: hsla(var(--hue), var(--saturation, 50%), calc(55% - var(--darken, 0%)), 10%);
+			// --lighten shifts every stop together so :active is the same surface, only brighter
+			--col-inner-top: hsla(var(--hue), var(--saturation, 50%), calc(35% + var(--lighten, 0%)), 100%);
+			--col-inner-bottom: hsla(var(--hue), var(--saturation, 50%), calc(45% + var(--lighten, 0%)), 100%);
+			--col-pad-top: hsla(var(--hue), var(--saturation, 50%), calc(45% + var(--lighten, 0%)), 100%);
+			--col-pad-bottom: hsla(var(--hue), var(--saturation, 50%), calc(35% + var(--lighten, 0%)), 100%);
+			--col-back-top: hsla(var(--hue), var(--saturation, 50%), calc(35% + var(--lighten, 0%)), 40%);
+			--col-back-bottom: hsla(var(--hue), var(--saturation, 50%), calc(55% + var(--lighten, 0%)), 10%);
 
 			background: inherit;
 			background-image:
@@ -1242,8 +1242,15 @@
 			}
 		}
 
-		&:active::before{
-			--darken: 12%;
+		// button-style swaps hues on press (host orange, ::before blue) -
+		// pin both so pressing only brightens the visible surface
+		&:active{
+			--hue: var(--hue-brand, 90);
+
+			&::before{
+				--hue: #{palette.$hue-green};
+				--lighten: 12%;
+			}
 		}
 
 		@media (prefers-reduced-motion: reduce){

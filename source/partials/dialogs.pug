@@ -63,28 +63,45 @@ dialog#command-palette.command-palette(aria-labelledby="command-palette-title" a
 dialog#keyboard-guide.keyboard-guide(aria-labelledby="keyboard-guide-title" aria-describedby="keyboard-guide-description")
 	form.keyboard-guide-shell(method="dialog")
 		header.keyboard-guide-header
-			h4#keyboard-guide-title Keyboard
-			p.keyboard-guide-current(role="status" aria-live="polite")
-		p#keyboard-guide-description.sr-only Select a sound mode, then press any key shown below to perform its labelled action.
-		div.keyboard-mode-heading
-			span Sound mode
-			small PgUp / PgDn change mode · Number keys always play Cosmo sounds
+			h4#keyboard-guide-title Play with your computer keyboard
+			p.keyboard-guide-current
+		p.keyboard-guide-instruction Choose what the keys do, then press a key or click a tile. Hold a sound tile to sustain it.
 		nav.keyboard-mode-picker(aria-label="Keyboard modes")
-			button(type="button" data-keyboard-mode="0")
-				span Operational
-			button(type="button" data-keyboard-mode="1")
+			button(type="button" data-keyboard-mode="0" aria-keyshortcuts="F1")
+				span App shortcuts
+				kbd F1
+			button(type="button" data-keyboard-mode="1" aria-keyshortcuts="F2")
 				span Notes
-			button(type="button" data-keyboard-mode="2")
-				span Notes +1
-			button(type="button" data-keyboard-mode="3")
+				kbd F2
+			button(type="button" data-keyboard-mode="2" aria-keyshortcuts="F3")
+				span Notes +1 octave
+				kbd F3
+			button(type="button" data-keyboard-mode="3" aria-keyshortcuts="F4")
 				span Chords
-			button(type="button" data-keyboard-mode="4")
+				kbd F4
+			button(type="button" data-keyboard-mode="4" aria-keyshortcuts="F5")
 				span Percussion
-			button(type="button" data-keyboard-mode="5")
+				kbd F5
+			button(type="button" data-keyboard-mode="5" aria-keyshortcuts="F6")
 				span Samples
-		section.keyboard-layout(aria-label="QWERTY keyboard shortcut map")
+				kbd F6
+		p#keyboard-guide-description
+		div.keyboard-guide-tools
+			button(type="button" data-keyboard-shift aria-pressed="false")
+				kbd Shift
+				span Alternate layer
+			p.keyboard-guide-feedback(role="status" aria-live="polite" aria-atomic="true")
+		section.keyboard-layout(aria-label="Computer keyboard: physical keys and their assigned actions")
 			div#keyboard-guide-keys
-		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
+		footer.keyboard-guide-footer
+			span: kbd PgUp / PgDn
+			|  Change mode
+			span: kbd Space
+			|  Toggle this guide
+			span: kbd Esc
+			|  Close
+			span App shortcuts: <kbd>Enter</kbd> Swap instruments
+		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close keyboard guide (Esc)" aria-label="Close keyboard guide" aria-keyshortcuts="Escape")
 
 dialog#help(aria-label="Help")
 	form(method="dialog")

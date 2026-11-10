@@ -1,5 +1,5 @@
 import { populateSelect } from './select.js'
-import { AUDIO_VISUALISER_MODES, MTV_MODES, getVisualiserMode, normaliseVisualiser } from '../visual/visualiser-modes.js'
+import { AUDIO_VISUALISER_MODES, MTV_MODES, getVisualiserMode, normaliseVisualiser, normaliseMTVStrength } from '../visual/visualiser-modes.js'
 
 export const setupVisualEffectsMenus = ({ state, setDiscoMode, stopButterchurn, spectrogramToggle, document = globalThis.document }) => {
 	// Move previously saved Butterchurn choices out of the audio visualiser setting.
@@ -18,6 +18,19 @@ export const setupVisualEffectsMenus = ({ state, setDiscoMode, stopButterchurn, 
 		{ value:'disco', label:'Classic MTV' },
 		...MTV_MODES.map(mode => ({ value:mode.id, label:mode.label }))
 	])
+	const strength = document.getElementById('mtv-strength')
+	const strengthValue = document.getElementById('mtv-strength-value')
+	const syncStrength = () => {
+		const percent = Math.round(normaliseMTVStrength(state.get('mtvStrength')) * 100)
+		if (strength) {
+			strength.value = String(percent)
+			strength.setAttribute('aria-valuetext', `${percent}%`)
+		}
+		if (strengthValue) strengthValue.value = `${percent}%`
+	}
+	strength?.addEventListener('input', () => {
+		state.set('mtvStrength', normaliseMTVStrength(Number(strength.value) / 100))
+	})
 	const sync = () => {
 		if (spectrogramToggle) spectrogramToggle.checked = !!state.get('spectrogram')
 		if (audio) audio.value = state.get('spectrogram') ? normaliseVisualiser(state.get('visualiser')) : 'off'
@@ -43,7 +56,9 @@ export const setupVisualEffectsMenus = ({ state, setDiscoMode, stopButterchurn, 
 	})
 	state.addEventListener(key => {
 		if (['spectrogram', 'visualiser', 'disco', 'mtvEffect'].includes(key)) sync()
+		if (key === 'mtvStrength') syncStrength()
 	})
 	sync()
-	return { audio, mtv }
+	syncStrength()
+	return { audio, mtv, strength }
 }

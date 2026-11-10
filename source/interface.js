@@ -62,7 +62,7 @@ import { createFrameStallMonitor } from './utils/frame-stall-monitor.js'
 import { TAU, clamp } from "./maths/maths.js"
 import { DEFAULT_TENSORFLOW_OPTIONS, MAX_CANVAS_WIDTH, getDomainDefaults } from './settings/options.js'
 import { DEFAULT_OPTIONS_DISPLAY_COMPOSITE } from './display/display-options.js'
-import { DEFAULT_PEOPLE_OPTIONS, DEFAULT_PERSON_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
+import { DEFAULT_PEOPLE_OPTIONS, NAMES, EYE_COLOURS, IDENTIFIERS } from './settings/options.people.js'
 import { loadMLModels } from './models/load-models.js'
 import { setFaceLandmarkerOptions } from './models/face-landmarks.js'
 
@@ -121,7 +121,7 @@ import {
 	setupAnalyser,
 	sampleVisualiserAudio
 } from './audio/audio-visual.js'
-import { getVisualiserMode, getMTVMode } from './visual/visualiser-modes.js'
+import { getVisualiserMode, getMTVMode, normaliseMTVStrength } from './visual/visualiser-modes.js'
 import { setupVisualEffectsMenus } from './dom/ui.visual-effects.js'
 import { createVisualiserNotes } from './visual/visualiser-notes.js'
 import { createButterchurnVisualiser } from './visual/butterchurn-visualiser.js'
@@ -723,6 +723,20 @@ export const createInterface = (
 		}
 	}
 
+	// The share menu and QR code reuse each settled URL rather than
+	// encoding the state again on every change
+	stateMachine.addLocationListener( async href => {
+		const shareElement = doc.querySelector("share-menu")
+		if (shareElement)
+		{
+			shareElement.url = href
+		}
+		if (stateMachine.get("qr") && shareCodeElement)
+		{
+			await createQRCodeFromURL( href )
+		}
+	})
+
 	//State.getInstance().addEventListener( event => {
 	stateMachine.addEventListener( async (key,value) => {
 		if (key === "showOverlay")
@@ -730,17 +744,6 @@ export const createInterface = (
 			syncOverlayCanvasVisibility()
 		}
 		
-		if (stateMachine.get("qr") && shareCodeElement)
-		{
-			const svg = await createQRCodeFromURL( getShareableStateURL() )
-			// console.info("QR State updated", {svg, state:stateMachine.serialised} ) 
-		}
-		const shareElement = doc.querySelector("share-menu")
-		if (shareElement)
-		{
-			// Both URL formats are valid landing links; avoid compressing every edit.
-			shareElement.url = stateMachine.asURI
-		}
 		if (["key", "keyScale", "harmonyMode"].includes(key))
 		{
 			if (key === "harmonyMode")
@@ -1857,32 +1860,15 @@ export const createInterface = (
 		)
 
 		const syncPersonQueryState = () => {
-			const compactData = person.exportData()
-			stateMachine.state.set(person.storageKey, compactData)
-			stateMachine.searchParams.set(person.storageKey, compactData)
-
+			// replace every key this person owns, including legacy prefixes
+			// and aliases from older links, with the compact record and
+			// the options that differ from this person's defaults
+			const prefixes = Person.getQueryPrefixes(person).flatMap(prefix => [`${prefix}-`, `${prefix}.`])
 			const exportedQueryOptions = person.exportJSONData()
-			Object.keys(DEFAULT_PERSON_OPTIONS).forEach(optionKey => {
-				Person.getQueryPrefixes(person).forEach(prefix => {
-					stateMachine.state.delete(`${prefix}-${optionKey}`)
-					stateMachine.searchParams.delete(`${prefix}-${optionKey}`)
-					stateMachine.state.delete(`${prefix}.${optionKey}`)
-					stateMachine.searchParams.delete(`${prefix}.${optionKey}`)
-				})
-			})
-			;["instrument", "preset", "particles"].forEach(aliasKey => {
-				Person.getQueryPrefixes(person).forEach(prefix => {
-					stateMachine.state.delete(`${prefix}-${aliasKey}`)
-					stateMachine.searchParams.delete(`${prefix}-${aliasKey}`)
-					stateMachine.state.delete(`${prefix}.${aliasKey}`)
-					stateMachine.searchParams.delete(`${prefix}.${aliasKey}`)
-				})
-			})
-			Object.entries(exportedQueryOptions).forEach(([key, value]) => {
-				stateMachine.state.set(key, value)
-				stateMachine.searchParams.set(key, value)
-			})
-			stateMachine.updateLocation()
+			stateMachine.replaceGroup(
+				key => prefixes.some(prefix => key.startsWith(prefix)),
+				{ [person.storageKey]:person.exportData(), ...exportedQueryOptions }
+			)
 		}
 
 		// state can contain more data than simple the options!
@@ -2989,7 +2975,7 @@ export const createInterface = (
 			
 			if (mtvMode) {
 				const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mtvMode.preset)
-				if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mtvMode.blendMode, opacity:mtvMode.opacity })
+				if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mtvMode.blendMode, opacity:normaliseMTVStrength(stateMachine.get('mtvStrength')) })
 			}
 			if (visualiserMode)
 			{

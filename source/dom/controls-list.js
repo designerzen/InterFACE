@@ -225,9 +225,9 @@ export const setupControlsList = (document = globalThis.document) => {
 	}, true)
 	panel.addEventListener('keydown', event => {
 		if (!open || event.target.closest('dialog[open]')) return
-		event.stopPropagation()
-		if (event.key === 'Escape') { event.preventDefault(); activeFolder ? closeFolder() : change(false) }
+		if (event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); activeFolder ? closeFolder() : change(false) }
 		if (event.key === 'Tab') {
+			event.stopPropagation()
 			const items = focusables()
 			if (!items.length) return
 			event.preventDefault()

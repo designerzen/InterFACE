@@ -62,6 +62,14 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	}
 	closeTempoUI?.addEventListener("click", close)
 	toggleUI?.addEventListener('keydown', event => {
+		const shortcut = { ArrowRight: 'tempo-increase-button', ArrowLeft: 'tempo-decrease-button', x: 'tempo-tap-button' }[event.key.toLowerCase() === 'x' ? 'x' : event.key]
+		const editing = event.target.closest?.('input, select, textarea, [contenteditable]')
+		if (shortcut && !editing && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+			event.preventDefault()
+			event.stopPropagation()
+			if (!event.repeat || shortcut !== 'tempo-tap-button') document.getElementById(shortcut)?.click()
+			return
+		}
 		if (event.key !== 'Escape') return
 		event.preventDefault()
 		event.stopPropagation()
@@ -185,6 +193,7 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	// inputTempoIncrease.onmousedown = increaseTempo
 	addMouseRepeaterEvents(inputTempoIncrease)
 	inputTempoIncrease.addEventListener(MOUSE_REPEATING, increaseTempo)
+	inputTempoIncrease.addEventListener('click', event => { if (event.detail === 0) increaseTempo(event) })
 
 
 	const inputTempoDecrease = document.getElementById('tempo-decrease-button')
@@ -198,10 +207,11 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	// inputTempoDecrease.onmousedown = decreaseTempo
 	addMouseRepeaterEvents(inputTempoDecrease)
 	inputTempoDecrease.addEventListener(MOUSE_REPEATING, decreaseTempo)
+	inputTempoDecrease.addEventListener('click', event => { if (event.detail === 0) decreaseTempo(event) })
 
 
 	const inputTempoTap = document.getElementById('tempo-tap-button')
-	inputTempoTap.onmousedown = e => {
+	inputTempoTap.onclick = e => {
 		const estimatedTempo = estimateTempoFromTap()
 		if (estimatedTempo)
 		{

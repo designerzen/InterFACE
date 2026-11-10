@@ -24,12 +24,12 @@
 			option(value="1", label="100%")
 		output(for="tempo-swing-range")#tempo-swing-output 0%
 
-		button(type="button")#tempo-increase-button.button-bpm-up.keyboard-shortcut-control Tempo Increase
+		button(type="button" aria-keyshortcuts="ArrowRight" title="Increase tempo (Right arrow while the Tempo panel is focused)")#tempo-increase-button.button-bpm-up.keyboard-shortcut-control Tempo Increase
 			kbd.keyboard-shortcut(aria-hidden="true") →
-		button(type="button")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrease
+		button(type="button" aria-keyshortcuts="ArrowLeft" title="Decrease tempo (Left arrow while the Tempo panel is focused)")#tempo-decrease-button.button-bpm-down.keyboard-shortcut-control Tempo Decrease
 			kbd.keyboard-shortcut(aria-hidden="true") ←
 
-		button(type="button")#tempo-tap-button.button-bpm-tap.round.keyboard-shortcut-control Tap Tempo
+		button(type="button" aria-keyshortcuts="x" title="Tap tempo (X while the Tempo panel is focused)")#tempo-tap-button.button-bpm-tap.round.keyboard-shortcut-control Tap Tempo
 			kbd.keyboard-shortcut(aria-hidden="true") X
 
 		output#timing-feedback

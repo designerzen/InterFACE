@@ -1009,9 +1009,8 @@ html:has(#control-panel-looking-glass:is(.open, .controls-list-folder-open, :foc
 			transform:translateY(150%);
 		}
 
-		// #control-panel,
-		.recordings,
-		.controls{
+		#control-panel,
+		.recordings{
 			//visibility: hidden;
 			transition:opacity var(--ease-s) linear;
 			transition-delay: var(--ease-s);
@@ -1031,6 +1030,11 @@ html:has(#control-panel-looking-glass:is(.open, .controls-list-folder-open, :foc
 			}
 		}
 
+		#control-panel{
+			transition: opacity var(--ease-s) linear var(--ease-s),
+				grid-template-columns 450ms ease-out;
+		}
+
 		main:focus-visible,
 		main:focus-within,
 		main:focus,
@@ -1043,7 +1047,7 @@ html:has(#control-panel-looking-glass:is(.open, .controls-list-folder-open, :foc
 				transition-delay:0;
 			}
 
-			 .controls,
+			 #control-panel,
 			 .recordings{
 				opacity:1;	
 				transition-duration: var(--ease-q);
@@ -1054,6 +1058,10 @@ html:has(#control-panel-looking-glass:is(.open, .controls-list-folder-open, :foc
 
 				//visibility: visible;
 				//animation: Fade var(--ease-q) linear 0s both;
+			}
+
+			#control-panel{
+				transition-duration: var(--ease-q), 450ms;
 			}
 		}
 	}

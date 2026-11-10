@@ -12,7 +12,7 @@
 	"start_url": "./index.html",
 	"short_name": "PhotoSYNTH",
 	"theme_color": "#8d3525",
-	"description": "Smile Powered Synthesizer",
+	"description": "Turn your face and body movements into music. Play a smile-powered synthesizer, explore colourful visual effects, and make music solo or with friends.",
 	"orientation": "any",
 	"background_color": "#e4dede",
 	"scope":"/",
@@ -113,15 +113,36 @@
 		{
 			"src": "assets/screenshots/screen1.png",
 			"sizes": "640x480",
-			"type": "image/png"
+			"type": "image/png",
+			"label": "A face rendered as colourful particles with musical notes across the screen"
 		},  {
 			"src": "assets/screenshots/screen2.png",
-			"sizes": "1680x1050",
-			"type": "image/png"
+			"sizes": "640x480",
+			"type": "image/png",
+			"label": "Face tracking with flowing rainbow trails and musical notes"
 		},  {
 			"src": "assets/screenshots/screen3.png",
-			"sizes": "2456x1171",
-			"type": "image/png"
+			"sizes": "640x480",
+			"type": "image/png",
+			"label": "A glowing green face with layered motion trails and musical notes"
+		}, {
+			"src": "assets/screenshots/screen1.png",
+			"sizes": "640x480",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "A face rendered as colourful particles with musical notes across the screen"
+		}, {
+			"src": "assets/screenshots/screen2.png",
+			"sizes": "640x480",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Face tracking with flowing rainbow trails and musical notes"
+		}, {
+			"src": "assets/screenshots/screen3.png",
+			"sizes": "640x480",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "A glowing green face with layered motion trails and musical notes"
 		}
 	],
 

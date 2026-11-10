@@ -54,9 +54,9 @@ test('named Butterchurn options select their own blend regardless of the canvas 
 	for (const mode of presets) {
 		expect(normaliseVisualiser(mode.id)).toBe(mode.id)
 		expect(mode.frequency || mode.time).toBeFalsy()
-		expect(mode.opacity).toBe(0.25)
+		expect(mode.opacity).toBe(0.5)
 		instance.canvasContext.drawImage.mockImplementation(function(){
-			expect(this.globalAlpha).toBe(0.25)
+			expect(this.globalAlpha).toBe(0.5)
 			return this.globalCompositeOperation
 		})
 		instance.drawElement({}, 0, 0, false, 800, 400, { blendMode:mode.blendMode, opacity:mode.opacity })

@@ -1,3 +1,5 @@
+import { OPERATIONAL_SHORTCUTS } from '../hardware/keyboard/keyboard-shortcuts.js'
+
 const CONTROL_ACTIONS = [
 	["Beats", "button-percussion", ["percussion", "drums", "backing track"]],
 	["Quantise", "button-quantise", ["timing", "rhythm"]],
@@ -60,6 +62,7 @@ const createCommands = document => {
 		for (const [verb, checked] of [["Turn on", true], ["Turn off", false]]) {
 			commands.push({
 				group: "Actions",
+				controlId: id,
 				label: `${verb} ${label}`,
 				description: `${checked ? "Enable" : "Disable"} ${label.toLocaleLowerCase()}`,
 				keywords,
@@ -84,6 +87,7 @@ export const setupCommandPalette = (document = globalThis.document) => {
 	if (!dialog || !launcher || !input || !results || dialog.dataset.ready) return null
 
 	dialog.dataset.ready = "true"
+	launcher.setAttribute("aria-keyshortcuts", "Control+k Meta+k")
 	const shortcutLabel = launcher.querySelector("kbd")
 	if (shortcutLabel && /mac|iphone|ipad/i.test(globalThis.navigator?.platform || "")) shortcutLabel.textContent = "⌘ K"
 	const commands = createCommands(document)
@@ -138,6 +142,12 @@ export const setupCommandPalette = (document = globalThis.document) => {
 			const description = document.createElement("small")
 			description.textContent = command.description
 			option.append(label, description)
+			const shortcut = OPERATIONAL_SHORTCUTS.find(item => item.controlId === command.controlId)
+			if (shortcut) {
+				const hint = document.createElement('kbd')
+				hint.textContent = `${shortcut.display} · F1 mode (toggle)`
+				option.append(hint)
+			}
 			option.addEventListener("pointermove", () => selectActive(index))
 			option.addEventListener("click", () => runCommand(command))
 			results.append(option)
@@ -158,6 +168,7 @@ export const setupCommandPalette = (document = globalThis.document) => {
 	document.addEventListener("keydown", event => {
 		if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === "k") {
 			event.preventDefault()
+			event.stopPropagation()
 			dialog.open ? dialog.close() : open()
 		}
 	})

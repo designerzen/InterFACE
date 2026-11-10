@@ -41,3 +41,79 @@ describe('state encoding', () => {
 		expect(merged.b).toBeUndefined()
 	})
 })
+
+describe('versioned state links', () => {
+	const {
+		STATE_BASELINE_V1
+	} = require('../source/utils/state-baseline.v1.js')
+	const {
+		createStateDelta,
+		decodeState,
+		encodeState,
+		parseQueryValue,
+		serialiseStateValue
+	} = require('../source/utils/state-encoding.js')
+
+	// Links from released builds must always decode the same way.
+	// Never change these: add new ones when the format changes.
+	const GOLDEN_V1 = {
+		'1.AzVdDY0MQB1AIA10SjFw7iclDdiCA7KB7Q7UMShDlEZHXmp-HgA': {
+			...STATE_BASELINE_V1,
+			theme:'theme-neon',
+			bpm:120,
+			'p-1':'12,soundfont,-1',
+			'p-1-inputMode':1
+		}
+	}
+
+	test('only encodes values that differ from the baseline, in key order', () => {
+		const delta = createStateDelta(Object.entries({
+			...STATE_BASELINE_V1,
+			theme:'theme-neon',
+			bpm:120,
+			'p-1-hue':10
+		}))
+		expect(delta).toBe('bpm=120&p-1-hue=10&theme=theme-neon')
+		expect(createStateDelta(Object.entries(STATE_BASELINE_V1))).toBe('')
+	})
+
+	test('round trips state and restores the baseline for omitted values', () => {
+		const encoded = encodeState(Object.entries({ theme:'theme-neon', bpm:120, drumkit:'808', masks:false, 'p-1':'12,soundfont,-1', 'p-1-inputMode':1 }))
+		expect(encoded).toMatch(/^1\.[A-Za-z0-9_-]+$/)
+		expect(decodeState(encoded)).toEqual({
+			...STATE_BASELINE_V1,
+			theme:'theme-neon',
+			bpm:120,
+			drumkit:'808',
+			masks:false,
+			'p-1':'12,soundfont,-1',
+			'p-1-inputMode':1
+		})
+	})
+
+	test('trims floating point noise', () => {
+		expect(serialiseStateValue(0.1 + 0.2)).toBe('0.3')
+		expect(serialiseStateValue(120)).toBe('120')
+		expect(parseQueryValue('12,soundfont')).toBe('12,soundfont')
+		expect(parseQueryValue('-0.5')).toBe(-0.5)
+		expect(parseQueryValue('yes')).toBe(true)
+	})
+
+	test('is much shorter than the readable query', () => {
+		const state = { ...STATE_BASELINE_V1, players:4, theme:'theme-neon', bpm:128, masks:false, voiceEngine:'fm' }
+		for (let player = 1; player <= 4; player++) {
+			state[`p-${player}`] = `${player * 3},soundfont,-1,true,amplitude-music,inherit,,,,`
+			state[`p-${player}-noteSequence`] = 'circle-of-fifths'
+			state[`p-${player}-octaveLow`] = 3
+		}
+		const readable = new URLSearchParams(Object.entries(state).map(([key, value]) => [key, String(value)])).toString()
+		const encoded = encodeState(Object.entries(state))
+		expect(encoded.length).toBeLessThan(readable.length / 10)
+	})
+
+	test('decodes golden links from released builds', () => {
+		for (const [link, expected] of Object.entries(GOLDEN_V1)) {
+			expect(decodeState(link)).toEqual(expected)
+		}
+	})
+})

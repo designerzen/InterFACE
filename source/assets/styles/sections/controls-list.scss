@@ -77,8 +77,8 @@ html.controls-list-open { overflow: hidden; }
 		music: ('label[for="select-key"]', 'label[for="select-key-scale"]', '#control-panel-tempo', 'label[for="button-metronome"]', 'label[for="button-quantise"]', 'label[for="select-arp-rate"]', 'label[for="backing-melody-player"]'),
 		beats: ('label[for="button-percussion"]', 'label[for="select-percussion-preset"]', 'label[for="select-percussion-pattern"]', 'label[for="select-percussion-sound"]', '#button-randomise-percussion', 'label[for="button-rapid-percussion"]', 'label[for="button-performance-drums"]', '.snare-reverb-control', 'label[for="select-percussion-panning"]', 'label[for="select-beat-viz"]', 'label[for="button-midi-percussion"]'),
 		sound: ('#control-panel-volume', '#control-panel-engine', '#control-panel-midi'),
-		visuals: ('label[for="select-display"]', '#control-panel-looking-glass', 'label[for="select-composite-layout"]', 'label[for="select-composite-displays"]', 'label[for="button-flood"]', 'label[for="button-clear"]', 'label[for="button-sync-video"]', 'label[for="select-viz"]', 'label[for="select-mtv"]', 'label[for="button-meshes"]', 'label[for="select-eyes"]', 'label[for="button-eyebrows"]', 'label[for="select-lips"]', 'label[for="select-subdivisions"]', 'label[for="select-palette"]', 'label[for="button-toggle-overlay"]', 'label[for="button-subtitles"]', 'label[for="button-hud"]', 'label[for="button-overlay"]'),
-		input: ('#camera', 'label[for="select-keyboard-mode"]', '#control-panel-mouth', '#control-panel-head', 'label[for="button-points"]', 'label[for="button-automate"]'),
+		visuals: ('label[for="select-display"]', '#control-panel-looking-glass', 'label[for="select-composite-layout"]', 'label[for="select-composite-displays"]', 'label[for="button-flood"]', 'label[for="button-clear"]', 'label[for="button-sync-video"]', 'label[for="select-viz"]', 'label[for="select-mtv"]', '#control-panel-mtv', 'label[for="button-meshes"]', 'label[for="select-eyes"]', 'label[for="button-eyebrows"]', 'label[for="select-lips"]', 'label[for="select-subdivisions"]', 'label[for="select-palette"]', 'label[for="button-toggle-overlay"]', 'label[for="button-subtitles"]', 'label[for="button-hud"]', 'label[for="button-overlay"]'),
+		input: ('#camera', 'label[for="select-keyboard-mode"]', '#button-keyboard-guide', '#control-panel-mouth', '#control-panel-head', 'label[for="button-points"]', 'label[for="button-automate"]'),
 		recording: ('.transport-session-controls', '#session-replay-progress', '#session-recording-error', '#control-panel-record'),
 		application: ('#button-accessibility', 'label[for="button-speak"]', 'label[for="select-theme"]', '#button-help', '#button-command-palette', 'label[for="button-toggle-advanced"]', '#button-reset')
 	);
@@ -143,7 +143,7 @@ html.controls-list-open { overflow: hidden; }
 		row-gap: 0;
 		z-index: 7;
 	}
-	.keyboard-shortcut { position: absolute; inset-inline-end: .75rem; }
+	.keyboard-shortcut { position: relative; inset-inline-end: auto; }
 	.controls > label { padding-inline-end: 3rem; }
 	.controls > label[data-controls-list-value] {
 		grid-template-columns: calc(var(--icon-visible, 1) * var(--icon-size, 33px) + var(--space, 0px)) minmax(0, 1fr) minmax(0, 43%);
@@ -310,4 +310,11 @@ html.controls-list-transition::view-transition-old(*) { animation-duration: 120m
 html.controls-list-transition::view-transition-new(*) { animation-duration: 180ms; }
 @media (prefers-reduced-motion: reduce) {
 	html.controls-list-transition::view-transition-group(*) { animation-duration: 0s; }
+}
+
+#control-panel.controls-list-open .keyboard-shortcut-control {
+	grid-template-areas: "icon text spacer shortcut";
+	grid-template-columns: calc(var(--icon-visible, 1) * var(--icon-size, 33px) + var(--space, 0px)) minmax(0, 1fr) minmax(0, auto) max-content;
+	column-gap: .5rem;
+	> kbd.keyboard-shortcut { grid-area: shortcut; position: static; }
 }

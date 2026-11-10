@@ -4,8 +4,8 @@
  */
 
 import { getDomainDefaults, getFactoryDefaults } from '../settings/options.js'
-import { addToHistory, getLocationSettings, getRefererHostname, parseType } from './location-handler.js'
-import { mergeEncodedAndRawQueryParams } from './state-encoding.js'
+import { addToHistory, getLocationSettings, getRefererHostname } from './location-handler.js'
+import { decodeLocationState, URL_LENGTH_BUDGET } from './state-encoding.js'
 
 
 
@@ -245,6 +245,17 @@ export default class State {
 	// how many times has the state changed?
 	stateChangeCount = 0
 
+	// wait for a burst of changes (eg. a slider drag) to settle
+	// before writing a single history entry
+	locationUpdateDelay = 200
+	locationTimer = null
+	pendingHistoryPush = false
+
+	// callbacks that receive the latest URL after each write
+	locationListeners
+
+	hasWarnedAboutURLLength = false
+
 	set elementForClasses( element ){
 		this.element = element
 		this.originalClassList = element.className
@@ -271,7 +282,7 @@ export default class State {
 	}
 
 	get asURI(){
-		return this.url.href
+		return this.createLocationURL()
 	}
 
 	/**
@@ -304,6 +315,7 @@ export default class State {
 
 		this.state = new Map()
 		this.callbacks = new Set()
+		this.locationListeners = new Set()
 		if (main)
 		{
 			this.elementForClasses = main
@@ -316,6 +328,8 @@ export default class State {
 		// with the same state as before
 
 		window.addEventListener("popstate", (event) => {
+			// the restored entry already has its own URL
+			this.cancelLocationUpdate()
 			if (event.state)
 			{
 				this.stateChangeCount++
@@ -374,22 +388,8 @@ export default class State {
 			this.setDefaults(defaultState)
 		}
 
-		const urlParams = new URLSearchParams(window.location.search)
-		if (urlParams.has('b') && typeof this.getEncodedSearchParams === 'function')
-		{
-			const locationState = mergeEncodedAndRawQueryParams(
-				defaultState ?? {},
-				urlParams,
-				compressed => this.getEncodedSearchParams(compressed),
-				parseType
-			)
-			return this.setState(locationState, dispatchEvent)
-		}
-
-		// now fetch the state from the URL
-		const locationState = getLocationSettings(defaultState)
-		
-		// this may have come as a single encoded uri so we check
+		// encoded (?s= or legacy ?b=) and readable params are all merged
+		const locationState = decodeLocationState(defaultState ?? {}, new URLSearchParams(window.location.search))
 		return this.setState( locationState, dispatchEvent )
 	}
 
@@ -432,16 +432,37 @@ export default class State {
 
 		if (this.saveHistory)
 		{
-			const title = ""
 			this.searchParams.set(key, value)
-			this.url.hash = this.getPreservedHash()
-			// window.history.replaceState( this.asObject, title, this.url )
-			window.history.pushState( this.asObject, title, this.url )
+			this.scheduleLocationUpdate()
 		}
 		
 		if (dispatchEvent)
 		{
 			this.dispatchEvent(key, value)
+		}
+	}
+
+	/**
+	 * Swap a group of keys (eg. all of one player's options) for new values
+	 * without dispatching events, then schedule a single URL update
+	 * @param {Function} isInGroup (key) => Boolean for keys to remove
+	 * @param {Object} entries key value pairs to set
+	 */
+	replaceGroup( isInGroup, entries ){
+		for (const key of [...this.state.keys()])
+		{
+			if (!isInGroup(key)) continue
+			this.state.delete(key)
+			this.url?.searchParams.delete(key)
+		}
+		for (const [key, value] of Object.entries(entries))
+		{
+			this.state.set(key, value)
+			this.url?.searchParams.set(key, value)
+		}
+		if (this.saveHistory)
+		{
+			this.scheduleLocationUpdate()
 		}
 	}
 
@@ -544,30 +565,85 @@ export default class State {
 	}
 
 	/**
-	 * Updates the URL with an encoded version of the existing state
-	 * @param {Boolean} encode 
-	 * @param {Boolean} replace Replace the current history entry
+	 * Build the URL for the current state, keeping any open #folder- panel
+	 * @returns {String}
 	 */
-	updateLocation( encode=false, replace=false ){
-		const url = new URL(window.location)
-		const options = {}
-		const historyMethod = replace ? 'replaceState' : 'pushState'
+	createLocationURL(){
+		const url = new URL(this.url ?? window.location.href)
 		url.search = ''
-		
-		if (encode)
-		{
-			window.history[historyMethod]( this.asObject, '', this.createEncodedURL() )
-		}else{
+		this.state.forEach( (value,key) => {
+			url.searchParams.set(key, value)
+		})
+		url.hash = this.getPreservedHash()
+		return url.toString()
+	}
 
-			this.state.forEach( (value,key) => {
-				options[key] = value
-				url.searchParams.set(key, value)
-			})
-			url.hash = this.getPreservedHash()
-			this.url = url
-			window.history[historyMethod](options, '', url)
+	/**
+	 * Write the URL once the current burst of changes settles
+	 * @param {Boolean} replace Replace the current history entry instead of adding one
+	 */
+	scheduleLocationUpdate( replace=false ){
+		this.pendingHistoryPush ||= !replace
+		clearTimeout(this.locationTimer)
+		this.locationTimer = setTimeout(() => this.flushLocation(), this.locationUpdateDelay)
+	}
+
+	cancelLocationUpdate(){
+		clearTimeout(this.locationTimer)
+		this.locationTimer = null
+		this.pendingHistoryPush = false
+	}
+
+	/**
+	 * Write any scheduled URL update now (eg. before leaving the page)
+	 * @returns {Boolean} true if there was an update waiting
+	 */
+	flushLocation(){
+		if (this.locationTimer === null)
+		{
+			return false
 		}
-		// console.log("History", { options, url} , url.toString() )
+		this.updateLocation(!this.pendingHistoryPush)
+		return true
+	}
+
+	/**
+	 * Every URL write goes through here
+	 * @param {Boolean} replace Replace the current history entry
+	 * @returns {String} the new URL
+	 */
+	updateLocation( replace=false ){
+		this.cancelLocationUpdate()
+		const href = this.createLocationURL()
+
+		if (href.length > URL_LENGTH_BUDGET)
+		{
+			if (!this.hasWarnedAboutURLLength) console.warn(`Settings link is ${href.length} characters, which some apps may cut off`)
+			this.hasWarnedAboutURLLength = true
+		}else{
+			this.hasWarnedAboutURLLength = false
+		}
+
+		if (this.saveHistory && this.url)
+		{
+			// never add a history entry that would not change anything
+			const historyMethod = replace || href === window.location.href ? 'replaceState' : 'pushState'
+			window.history[historyMethod]( this.asObject, '', href )
+		}
+
+		this.locationListeners.forEach( callback => callback(href) )
+		return href
+	}
+
+	/**
+	 * @param {Function} callback receives the URL after each write
+	 */
+	addLocationListener( callback ){
+		this.locationListeners.add(callback)
+	}
+
+	removeLocationListener( callback ){
+		this.locationListeners.delete(callback)
 	}
 
 	/**
@@ -648,8 +724,8 @@ export const createStateFromHost = (elementToAddClassTo, defaultOptions=null, St
 	//state.setDefaults(defaultOptions)
 	state.loadFromLocation(stateOptions)
 
-	// updates the URL with the current state (true - encoded)
-	state.updateLocation(false, true)
+	// write the loaded state to the URL without adding a history entry
+	state.updateLocation(true)
 
 	//state.setDefaults(defaultOptions)
 	// stateMachine.loadFromLocation(defaultOptions)

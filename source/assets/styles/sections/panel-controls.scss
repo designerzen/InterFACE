@@ -186,6 +186,7 @@
 		}
 
 		&:has( input:checked ),
+		&:has( select#select-lips option:checked:not([value="disabled"]) ),
 		&.checked{
 			// background-color: var(--col-select);
 			
@@ -343,7 +344,7 @@
 		}
 
 		> .folder-menu{
-			flex: 0 1 auto;
+			flex: 1 1 44px;
 		}
 	}
 }

@@ -149,7 +149,7 @@ describe('keyboard performance modes', () => {
 		expect(application.kit.cowbell).not.toHaveBeenCalled()
 		expect(application.setInputStatus).toHaveBeenCalledWith(
 			'keyboard',
-			expect.objectContaining({ detail: expect.stringContaining('Operational') }),
+			expect.objectContaining({ detail: expect.stringContaining('App shortcuts') }),
 		)
 	})
 
@@ -168,7 +168,7 @@ describe('keyboard performance modes', () => {
 		const dialog = document.getElementById('keyboard-guide')
 		const key = dialog.querySelector('[data-code="KeyW"]')
 		expect(dialog.open).toBe(true)
-		expect(dialog.querySelectorAll('.keyboard-row')).toHaveLength(7)
+		expect(dialog.querySelectorAll('.keyboard-row')).toHaveLength(4)
 		expect(dialog.querySelector('[data-code="Digit1"] .keyboard-key-action').textContent).toBe('Applause')
 		expect(key.querySelector('.keyboard-key-action').textContent).toBe('Brows')
 		expect(key.classList.contains('is-pressed')).toBe(true)

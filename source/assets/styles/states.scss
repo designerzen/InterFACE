@@ -290,11 +290,11 @@ main:not(.flag-overlays){
 		cursor: none !important; 
 	}
 
-	.instrument-panel:not(:hover):not(:focus-within):not(:focus-visible),
-	.ensemble-preset-panel:not(:hover):not(:focus-within):not(:focus-visible),
-	.controls:not(:hover):not(:focus-within):not(:focus-visible) {
+	#control-panel:not(:hover):not(:focus-within):not(:focus-visible) {
 		visibility: hidden;
 		opacity:0;
+		// Panel-open rules can explicitly reveal descendants.
+		* { visibility: hidden; }
 	}
 	
 	// .controls > *{

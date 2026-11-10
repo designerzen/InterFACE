@@ -1,7 +1,9 @@
 import State from './state.js'
 import {
-	ENCODED_QUERY_PARAM,
+	STATE_QUERY_PARAM,
 	compressQueryString,
+	compressStateDelta,
+	createStateDelta,
 	fromURLSafeBase64,
 	toURLSafeBase64,
 	uncompressQueryString
@@ -27,40 +29,29 @@ export default class StateWithIO extends State{
 		return StateWithIO.instance
 	}
 
-	// get asEncodedURI(){
-	// 	const url = new URL(window.location)
-	// 	this.state.forEach( (value,key) => {
-	// 		url.searchParams.set(key, value)
-	// 	})
-	// 	return url.pathname + "?b=" + encodeLocation(url.search)
-	// }
-
-	// get encoded(){
-	// 	return encodeLocation(this.serialised)
-	// }
+	// the last delta and its compressed form, so that sharing, QR codes
+	// and unchanged history writes never compress the same state twice
+	encodedDelta = null
+	encodedString = null
 	
 	constructor(main){
 		super(main)
 
-		// Keep editing cheap and readable. Only compress when leaving the page;
-		// pagehide also works with the back/forward cache, unlike unload.
+		// pagehide also works with the back/forward cache, unlike unload
 		window.addEventListener('pagehide', () => {
-			if (!this.saveHistory || !this.url) return
 			try {
-				this.updateLocation(true, true)
+				this.flushLocation()
 			} catch (error) {
 				// A browser may already have made this document inactive.
-				console.warn('Could not compress the URL before leaving', error)
+				console.warn('Could not update the URL before leaving', error)
 			}
-		})
-		window.addEventListener('pageshow', () => {
-			if (this.saveHistory && this.url) this.updateLocation(false, true)
 		})
 	}
 
 	loadFromLocation(defaultState=null, dispatchEvent=false){
 		const state = super.loadFromLocation(defaultState, dispatchEvent)
-		if (this.saveHistory) this.updateLocation(false, true)
+		// rewrite readable and legacy links in the compact form
+		if (this.saveHistory) this.updateLocation(true)
 		return state
 	}
 
@@ -73,7 +64,7 @@ export default class StateWithIO extends State{
 	}
 
 	/**
-	 * Convert to String any zip compressed data
+	 * Convert to String any legacy zip compressed data
 	 * @param {String|Array|Uint8Array} compressed 
 	 * @returns {String}
 	 */
@@ -82,25 +73,10 @@ export default class StateWithIO extends State{
 	}
 
 	/**
-	 * Pass in a parameter string
-	 * @param {String|Uint8Array} compressed 
-	 * @returns {Object}
-	 */
-	loadFromEncodedString(compressed){
-		const state = this.uncompressString(compressed)
-		this.searchParams = new URLSearchParams(state)
-		return state
-	}
-
-	getEncodedSearchParams(compressed){
-		return new URLSearchParams(this.uncompressString(compressed))
-	}
-
-	/**
-	 * Zip a string and return it as a Uint8Array
+	 * Zip a string as a legacy url safe base64 string
 	 * @param {String} string 
 	 * @param {Object} zipOptions 
-	 * @returns {String|Uint8Array} zip data
+	 * @returns {String} zip data
 	 */
 	compressString(string, zipOptions=DEFAULT_ZIP_OPTIONS){
 		if (zipOptions.base64 === false)
@@ -111,28 +87,28 @@ export default class StateWithIO extends State{
 	}
 
 	/**
-	 * Export the current state as an encoded string
-	 * @param {Object} zipOptions 
-	 * @returns {String|Uint8Array}
+	 * Export the current state as a versioned link value
+	 * @returns {String}
 	 */
-	createEncodedString( zipOptions=DEFAULT_ZIP_OPTIONS ){
-		return this.compressString( this.searchParamsAsString, zipOptions)
+	createEncodedString(){
+		const delta = createStateDelta(this.state)
+		if (delta !== this.encodedDelta)
+		{
+			this.encodedString = compressStateDelta(delta)
+			this.encodedDelta = delta
+		}
+		return this.encodedString
 	}
 
-	/**
-	 * 
-	 * @param {Object} zipOptions 
-	 * @returns {String} 
-	 */
-	createURLAsEncodedString( zipOptions=DEFAULT_ZIP_OPTIONS ){
-		return this.compressString( this.searchParamsAsString, zipOptions)
-	}
-
-	createEncodedURL(baseURL=window.location, zipOptions=DEFAULT_ZIP_OPTIONS){
+	createEncodedURL(baseURL=this.url ?? window.location.href){
 		const url = new URL(baseURL)
 		url.search = ''
-		url.searchParams.set(ENCODED_QUERY_PARAM, this.createEncodedString(zipOptions))
+		url.searchParams.set(STATE_QUERY_PARAM, this.createEncodedString())
 		url.hash = this.getPreservedHash()
 		return url.toString()
+	}
+
+	createLocationURL(){
+		return this.createEncodedURL()
 	}
 }

@@ -176,6 +176,7 @@ export const DEFAULT_OPTIONS = {
 	// start in MTV disco mode
 	disco:false,
 	mtvEffect:'disco',
+	mtvStrength:0.5,
 
 	// AR mode (without this - just video stream or blank)
 	overlays:true,

@@ -1,0 +1,18 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> PhotoSYNTH@0.46.17 build:web
+> parcel build --public-url ./ --target web
+
+Building...
+≡ƒÜ¿ Build failed.
+
+@parcel/transformer-css: Unexpected end of input
+
+
+  S:\Synch\Work\Code\PhotoSYNTH\source\404.pug:114:57
+    113 | }
+  > 114 | type() {
+  >     |      ^
+    115 |   --i:;
+    116 | }

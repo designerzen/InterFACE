@@ -1,0 +1,129 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> PhotoSYNTH@0.46.17 build
+> npm run assets && npm run build:web
+
+npm warn Unknown env config "msvs-version". This will stop working in the next major version of npm.
+npm warn Unknown env config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> PhotoSYNTH@0.46.17 assets
+> npm run copy && npm run zips
+
+npm warn Unknown env config "msvs-version". This will stop working in the next major version of npm.
+npm warn Unknown env config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> PhotoSYNTH@0.46.17 copy
+> node actions/copy.mjs
+
+Copying Folder directly ./node_modules/@mediapipe/face_mesh/ to ./static/@mediapipe/face_mesh/
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh.binarypb
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh.js
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_packed_assets.data
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_packed_assets_loader.js
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_simd_wasm_bin.data
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_simd_wasm_bin.js
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_simd_wasm_bin.wasm
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_wasm_bin.js
+Skipped  ./node_modules/@mediapipe/face_mesh/ face_mesh_solution_wasm_bin.wasm
+Skipped  ./node_modules/@mediapipe/face_mesh/ index.d.ts
+Skipped  ./node_modules/@mediapipe/face_mesh/ package.json
+Skipped  ./node_modules/@mediapipe/face_mesh/ README.md
+Copying Folder directly ./node_modules/@mediapipe/tasks-vision/ to ./static/@mediapipe/tasks-vision/
+Skipped  ./node_modules/@mediapipe/tasks-vision/ package.json
+Skipped  ./node_modules/@mediapipe/tasks-vision/ README.md
+Skipped  ./node_modules/@mediapipe/tasks-vision/ vision.d.ts
+Skipped  ./node_modules/@mediapipe/tasks-vision/ vision_bundle.cjs
+Skipped  ./node_modules/@mediapipe/tasks-vision/ vision_bundle.cjs.map
+Skipped  ./node_modules/@mediapipe/tasks-vision/ vision_bundle.mjs
+Skipped  ./node_modules/@mediapipe/tasks-vision/ vision_bundle.mjs.map
+Copying Folder directly node_modules\@mediapipe\tasks-vision\wasm to static\@mediapipe\tasks-vision\wasm
+Skipped  node_modules\@mediapipe\tasks-vision\wasm vision_wasm_internal.js
+Skipped  node_modules\@mediapipe\tasks-vision\wasm vision_wasm_internal.wasm
+Skipped  node_modules\@mediapipe\tasks-vision\wasm vision_wasm_nosimd_internal.js
+Skipped  node_modules\@mediapipe\tasks-vision\wasm vision_wasm_nosimd_internal.wasm
+Copying Folder directly ./node_modules/@litertjs/core/wasm/ to ./static/@litertjs/
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_compat_internal.js
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_compat_internal.wasm
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_internal.js
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_internal.wasm
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_jspi_internal.js
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_jspi_internal.wasm
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_threaded_internal.js
+Skipped  ./node_modules/@litertjs/core/wasm/ litert_wasm_threaded_internal.wasm
+npm warn Unknown env config "msvs-version". This will stop working in the next major version of npm.
+npm warn Unknown env config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> PhotoSYNTH@0.46.17 zips
+> node actions/zips.mjs
+
+Scanning directory: S:\Synch\Work\Code\PhotoSYNTH\source\assets\audio\wave-tables
+Processing directory: general-midi
+  Zipping 131 JSON files into general-midi.zip...
+  Successfully created S:\Synch\Work\Code\PhotoSYNTH\source\assets\audio\wave-tables\general-midi.zip
+Finished processing all directories.
+npm warn Unknown env config "msvs-version". This will stop working in the next major version of npm.
+npm warn Unknown env config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm.
+
+> PhotoSYNTH@0.46.17 build:web
+> parcel build --public-url ./ --target web
+
+Building...
+≡ƒÜ¿ Build failed.
+
+
+@parcel/transformer-pug: 
+S:\Synch\Work\Code\PhotoSYNTH\source\404.pug:216:2
+    214| 				}
+    215| 			}
+  > 216| 	}
+----------^
+    217| 
+    218| 	/*    
+    219| 		.poster-bg:hover,  
+
+unexpected text "}
+
+	/"
+
+  Error: 
+  S:\Synch\Work\Code\PhotoSYNTH\source\404.pug:216:2
+      214| 				}
+      215| 			}
+    > 216| 	}
+  ----------^
+      217| 
+      218| 	/*    
+      219| 		.poster-bg:hover,  
+  
+  unexpected text "}
+  
+  	/"
+      at makeError 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-error\lib\index.js:34:15)
+      at Lexer.error 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-lexer\index.js:62:15)
+      at Lexer.fail 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-lexer\index.js:1629:10)
+      at Lexer.advance 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-lexer\index.js:1694:12)
+      at Lexer.callLexerFunction 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-lexer\index.js:1647:23)
+      at Lexer.getTokens 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-lexer\index.js:1706:12)
+      at lex 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-lexer\index.js:12:42)
+      at Object.lex 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug\lib\index.js:104:9)
+      at load.loadString [as string] 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug-load\index.js:53:24)
+      at compileBody 
+  (S:\Synch\Work\Code\PhotoSYNTH\node_modules\pug\lib\index.js:82:18)

@@ -135,7 +135,8 @@
 		}
 	}
 
-	label[for="select-mtv"]{
+	label[for="select-mtv"],
+	a.folder-link[href="#folder-mtv"]{
 		--col-select:var(--shade-green);
 		--col-hover:var(--shade-blue);
 		--bg:url(/source/assets/icons/blur_on-24px.svg);
@@ -256,6 +257,11 @@
 		--col-hover:var(--shade-green);
 		--bg:url(/source/assets/icons/keyboard.svg);
 		anchor-name: --select-keyboard-mode;
+	}
+
+	#button-keyboard-guide{
+		--bg:url(/source/assets/icons/keyboard.svg);
+		min-width: min-content;
 	}
 
 	// choose display

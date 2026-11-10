@@ -6,6 +6,7 @@ import * as MIDICommands from '../source/audio/midi/midi-commands.js'
 const createDrumkitState = () => {
 	const drumkit = Object.create(DrumkitInstrument.prototype)
 	drumkit.voiceOptions = {}
+	drumkit.activeNotes = new Map()
 	drumkit.aftertouchByNote = new Map()
 	drumkit.aftertouchPressure = 0
 	drumkit.pitchBendValue = 0
@@ -18,6 +19,18 @@ const createDrumkitState = () => {
 }
 
 describe('drumkit MIDI performance controls', () => {
+	test('held polyphonic pressure requests one fill until all pressed notes release', async () => {
+		const drumkit = createDrumkitState()
+		drumkit.aftertouch(60,127)
+		drumkit.aftertouch(61,120)
+		drumkit.aftertouch(60,80)
+		drumkit.aftertouch(60,127)
+		expect(drumkit.arranger.requestFill).toHaveBeenCalledTimes(1)
+		await drumkit.noteOff(60)
+		await drumkit.noteOff(61)
+		drumkit.aftertouch(60,127)
+		expect(drumkit.arranger.requestFill).toHaveBeenCalledTimes(2)
+	})
 	test('normalizes Web MIDI and raw 14-bit pitch bend to a two-semitone range', () => {
 		expect(drumPitchBendToRatio(0)).toBe(1)
 		expect(drumPitchBendToRatio(8192)).toBe(1)

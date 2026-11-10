@@ -84,7 +84,10 @@ describe('Person instrument selector', () => {
 			activeInstrument:{ type:'ChordInstrument', activePresetIndex:2 }
 		}, 'p-1')
 
-		expect(exported['p-1-instrument']).toBe(INSTRUMENT_TYPE_OSCILLATOR)
-		expect(exported['p-1-preset']).toBe(2)
+		// the compact p-1 record carries the instrument and preset
+		expect(exported['p-1-instrument']).toBeUndefined()
+		expect(exported['p-1-defaultInstrument']).toBeUndefined()
+		const personSource = readFileSync('source/people/person.js', 'utf8')
+		expect(personSource).toMatch(/exportData\(\)\{\s*return Person\.createDataExport\(\s*this\.activeInstrument\?\.activePresetIndex \?\? -1,\s*this\.instrumentType,/)
 	})
 })

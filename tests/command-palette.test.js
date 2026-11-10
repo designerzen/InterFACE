@@ -48,6 +48,7 @@ describe('command palette', () => {
 		expect(document.getElementById('command-palette-results').textContent).toContain('Open Settings')
 		expect(document.getElementById('command-palette-results').textContent).toContain('Turn on Beats')
 		expect(document.getElementById('command-palette-results').textContent).toContain('Turn off Beats')
+		expect(document.getElementById('command-palette-results').textContent).toContain('B · F1 mode (toggle)')
 	})
 
 	test('filters commands and runs the selected control through its native click', () => {

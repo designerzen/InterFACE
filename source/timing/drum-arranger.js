@@ -284,6 +284,8 @@ export const createDrumArranger = (options={}) => {
 		current: {},
 		recentFills: [],
 		fillUntilStep: -1,
+		fillAmount: 1,
+		pendingFillAmount: 0,
 		rollUntilStep: -1,
 		lastFillPhrase: -8,
 		phrase: -1,
@@ -303,6 +305,7 @@ export const createDrumArranger = (options={}) => {
 	const isStrong = step => feel.strong[wrap(step, state.stepsPerBar)] === 1
 	const currentTempoProfile = () => getTempoProfile(state.bpm)
 	const fillWindowFor = tempo => Math.min(state.stepsPerBar, Math.max(1, Math.round(grid.stepsPerBeat * (tempo.name === 'very-fast' ? 1 : 2))))
+	const activeFillWindowFor = tempo => Math.max(1, Math.ceil(fillWindowFor(tempo) * state.fillAmount))
 
 	const selectCell = (lane, tempo) => {
 		const intent = state.intent
@@ -332,13 +335,14 @@ export const createDrumArranger = (options={}) => {
 		const rollChance = clamp(state.intent.rollChance * (0.2 + state.intent.tension * 0.2) * tempo.rollChance)
 		const canFill = phraseDistance > 1
 
-		if (canFill && random() < fillChance)
+		if (!state.pendingFillAmount && canFill && random() < fillChance)
 		{
+			state.fillAmount = 1
 			state.fillUntilStep = state.step + phraseLength()
 			state.lastFillPhrase = state.phrase
 			state.recentFills.push(state.phrase)
 			state.recentFills = state.recentFills.slice(-8)
-		}else if (canFill && random() < rollChance)
+		}else if (!state.pendingFillAmount && canFill && random() < rollChance)
 		{
 			state.rollUntilStep = state.step + phraseLength()
 			state.lastFillPhrase = state.phrase
@@ -386,10 +390,9 @@ export const createDrumArranger = (options={}) => {
 	const transformVelocity = (lane, velocity, stepInPhrase, tempo, phraseLengthValue) => {
 		const intent = state.intent
 		const cell = state.current[lane]
-		const fillWindow = fillWindowFor(tempo)
-		const phraseEndWindow = phraseLengthValue - stepInPhrase <= fillWindow
-		const inFill = state.step < state.fillUntilStep && phraseEndWindow
-		const inRoll = state.step < state.rollUntilStep && phraseEndWindow
+		const fillWindow = activeFillWindowFor(tempo)
+		const inFill = state.step < state.fillUntilStep && phraseLengthValue - stepInPhrase <= fillWindow
+		const inRoll = state.step < state.rollUntilStep && phraseLengthValue - stepInPhrase <= fillWindowFor(tempo)
 
 		if (velocity <= 0 || !shouldKeepMutedHit(lane, state.step, velocity, intent, grid.stepsPerBeat))
 		{
@@ -399,7 +402,7 @@ export const createDrumArranger = (options={}) => {
 		let output = velocity
 		if (inFill && !protectedLanes.has(lane))
 		{
-			output = Math.max(output, createFill(lane, stepInPhrase, phraseLengthValue, tempo, intent, fillWindow))
+			output = Math.max(output, createFill(lane, stepInPhrase, phraseLengthValue, tempo, intent, fillWindow) * state.fillAmount)
 		}
 		if (inRoll && !protectedLanes.has(lane) && (lane === 'hat' || lane === 'snare'))
 		{
@@ -533,6 +536,14 @@ export const createDrumArranger = (options={}) => {
 		state.bar = Math.floor(state.step / state.stepsPerBar)
 
 		const tempo = currentTempoProfile()
+		// Consume a gesture once, in the final part of the phrase. Repeated
+		// updates cannot move the ending or spill the fill into another phrase.
+		if (state.pendingFillAmount > 0 && phraseLengthValue - stepInPhrase <= Math.max(1, Math.ceil(fillWindowFor(tempo) * state.pendingFillAmount))) {
+			state.fillAmount = state.pendingFillAmount
+			state.pendingFillAmount = 0
+			state.fillUntilStep = state.step + phraseLengthValue - stepInPhrase
+			state.lastFillPhrase = state.phrase
+		}
 		const parts = {}
 		const stepInBar = wrap(state.step, state.stepsPerBar)
 		if (stepInBar === 0) state.subHitsRemaining = 8
@@ -589,17 +600,23 @@ export const createDrumArranger = (options={}) => {
 		const hatInterval = stepDuration() + nextSwing - parts.swingOffset
 			+ ((feel.offsets[nextStep].hat ?? 0) - (parts.offsets.hat ?? 0)) * parts.quarterDuration
 			+ ((feel.offsets[nextStep].pulse ?? 0) - (parts.offsets.pulse ?? 0)) * parts.quarterDuration
+		const inFill = !protectedLanes.size && state.step < state.fillUntilStep &&
+			phraseLengthValue - stepInPhrase <= activeFillWindowFor(tempo)
+		const eventStrength = inFill && !presetSubdivisionStep ? state.fillAmount : 1
 		parts.events = state.rapidPercussion ? createDrumSubHits({
-			inFill:presetSubdivisionStep || (!protectedLanes.size && state.step < state.fillUntilStep && phraseEndWindow),
+			inFill:presetSubdivisionStep || inFill,
 			inRoll:!protectedLanes.size && state.step < state.rollUntilStep && phraseEndWindow,
 			stepInPhrase,
 			bpm:state.bpm,
 			stepDuration:Math.max(stepDuration() * 0.2, hatInterval),
-			maxEvents:Math.min(2, state.subHitsRemaining),
+			maxEvents:Math.min(Math.ceil(2 * eventStrength), state.subHitsRemaining),
 			intent:state.intent,
 			style:presetSubdivisionStep ? presetTiming.style : 'auto',
 			random
 		}) : []
+		if (eventStrength < 1) {
+			for (const event of parts.events) event.velocity = clampVelocity(event.velocity * eventStrength)
+		}
 		state.subHitsRemaining -= parts.events.length
 
 		state.lastParts = parts
@@ -705,13 +722,13 @@ export const createDrumArranger = (options={}) => {
 			state.activityReserve += (reserveTarget - state.activityReserve) * (1 - Math.exp(-elapsed / reserveSeconds))
 			const tension = clamp(Math.abs(person.pitchBend ?? person.bend ?? 0))
 			const previousActivity = state.intent.energy
+			const targetDensity = clamp(0.25 + inputActivity * 0.65)
+			const densitySeconds = targetDensity > state.intent.density ? 2 : 4
 			state.intent = {
 				...state.intent,
 				energy: clamp(activity),
-				density: clamp(0.25 + activity * 0.65),
-				tension,
-				fillChance: clamp(0.15 + activity * 0.6),
-				rollChance: clamp(0.08 + activity * 0.45)
+				density: state.intent.density + (targetDensity - state.intent.density) * (1 - Math.exp(-elapsed / densitySeconds)),
+				tension
 			}
 
 			if (state.performancePreset === 'auto')
@@ -742,9 +759,13 @@ export const createDrumArranger = (options={}) => {
 			beatSequenceCache.clear()
 		},
 		requestFill: (amount=1) => {
-			if (amount > 0)
+			const remaining = phraseLength() - wrap(state.step, phraseLength())
+			const playingFill = state.step < state.fillUntilStep && remaining <= activeFillWindowFor(currentTempoProfile())
+			if (Number.isFinite(amount) && amount > 0 && !playingFill)
 			{
-				state.fillUntilStep = state.step + phraseLength()
+				state.pendingFillAmount = Math.max(state.pendingFillAmount, clamp(amount))
+				state.fillUntilStep = -1
+				state.rollUntilStep = -1
 			}
 		}
 	}

@@ -4136,15 +4136,7 @@ export default class Person extends EventTarget{
 	 * @returns {String}
 	 */
 	exportJSONData(prefix='', asURL=false){
-		const prefixes = prefix.length > 0 ?
-			[prefix.endsWith('-') ? prefix.slice(0, -1) : prefix] :
-			Person.getQueryPrefixes(this)
-		const data = exportPersonQueryOptions(this, prefixes[0])
-		if (prefixes.length > 1)
-		{
-			Object.assign(data, ...prefixes.slice(1).map(personPrefix => exportPersonQueryOptions(this, personPrefix)))
-		}
-
+		const data = exportPersonQueryOptions(this, prefix)
 		return asURL ? new URLSearchParams(data)  : data
 	}
 

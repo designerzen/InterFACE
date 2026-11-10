@@ -5,6 +5,8 @@
 // import DrumkitInstrument, { OPTIONS_DRUMKIT } from "../instruments/instrument.drumkit.js"
 import { STATE_INSTRUMENT_SILENT } from "../../people/person-states.js"
 
+const fillGestures = new WeakSet()
+
 /**
  * 
  * @param {Instrument} drumkit 
@@ -23,6 +25,7 @@ export const updtateDrumkitWithPerson = ( drumkit, person, playAudio=true ) => {
 		personData.mouthRatio ?? 0,
 		person.noteVelocity ?? 0
 	)
+	const fillExpression = Math.max(personData.happiness ?? 0, personData.mouthRatio ?? 0)
 
 	drumkit.updatePerson?.({
 		...personData,
@@ -40,9 +43,11 @@ export const updtateDrumkitWithPerson = ( drumkit, person, playAudio=true ) => {
 		clap: expression < 0.12
 	})
 
-	if (playAudio && expression > 0.7)
+	if (!playAudio || isSilent || fillExpression < 0.55) fillGestures.delete(drumkit)
+	if (playAudio && !isSilent && fillExpression > 0.7 && !fillGestures.has(drumkit))
 	{
-		drumkit.requestFill?.(expression)
+		fillGestures.add(drumkit)
+		drumkit.requestFill?.(fillExpression)
 	}
 
 	return []

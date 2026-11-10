@@ -30,6 +30,7 @@ const descriptions = {
 	'button-sync-video': { on: 'Video timing is synchronised with the performance where possible.', off: 'Video timing is not synchronised with the performance.' },
 	'select-viz': { on: 'Sound-reactive visuals are shown. Choose their pattern.', off: 'Sound-reactive visuals are turned off.', isEnabled: control => control.value !== 'off' },
 	'select-mtv': { on: 'A music-reactive effect blends gently over the video. Choose its style.', off: 'MTV video effects are turned off.', isEnabled: control => control.value !== 'off' },
+	'mtv-strength': 'Adjust the strength of Butterchurn MTV effects over the video, from 0% to 100%. Classic MTV is unaffected.',
 	'button-disco': { on: 'Psychedelic visual effects are enabled.', off: 'Psychedelic visual effects are disabled.' },
 	'button-meshes': { on: 'Face overlays are shown on tracked faces.', off: 'Face overlays are hidden.' },
 	'select-eyes': { on: 'Eye overlays are enabled. Choose their style.', off: 'Eye overlays are disabled. Choose a style to show them.', isEnabled: control => !!control.value && !/^s:0(?:,|$)/.test(control.value) },

@@ -175,6 +175,7 @@ export default class DrumkitInstrument extends Instrument{
 	hatOpenOptions = PRESET_HIHATS_OPEN[0]
 	voiceOptions = {}
 	aftertouchPressure = 0
+	aftertouchFillLatched = false
 	aftertouchByNote = new Map()
 	pitchBendValue = 0
 	pitchBendRatio = 1
@@ -498,6 +499,7 @@ export default class DrumkitInstrument extends Instrument{
 	async noteOff(noteNumber, velocity=0){
 		this.aftertouchByNote.delete(noteNumber)
 		this.aftertouchPressure = Math.max(0, ...this.aftertouchByNote.values())
+		if (this.aftertouchPressure < 0.65) this.aftertouchFillLatched = false
 		return super.noteOff(noteNumber)
 	}
 
@@ -523,7 +525,11 @@ export default class DrumkitInstrument extends Instrument{
 			pressure:this.aftertouchPressure,
 			pitchBend:this.pitchBendValue,
 		})
-		if (normalizedPressure > 0.82) this.requestFill(normalizedPressure)
+		if (this.aftertouchPressure < 0.65) this.aftertouchFillLatched = false
+		if (this.aftertouchPressure > 0.82 && !this.aftertouchFillLatched) {
+			this.aftertouchFillLatched = true
+			this.requestFill(this.aftertouchPressure)
+		}
 		return super.aftertouch(noteNumber, pressure)
 	}
 	

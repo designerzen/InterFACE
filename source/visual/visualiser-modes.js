@@ -26,12 +26,17 @@ export const VISUALISER_MODES = Object.freeze([
 	{ id:'butterchurn-luminosity', label:'Moonlight Etching', renderer:'butterchurn', blendMode:'luminosity', preset:"Geiss - Spiral Artifact" },
 	{ id:'notes-horizontal', label:'Notes → Horizontal' },
 	{ id:'notes-vertical', label:'Notes ↑ Vertical' },
-].map(mode => Object.freeze({ fftSize:2048, ...(mode.renderer === 'butterchurn' ? { opacity:0.25 } : {}), ...mode })))
+].map(mode => Object.freeze({ fftSize:2048, ...(mode.renderer === 'butterchurn' ? { opacity:0.5 } : {}), ...mode })))
 
 export const AUDIO_VISUALISER_MODES = Object.freeze(VISUALISER_MODES.filter(mode => mode.renderer !== 'butterchurn'))
 export const MTV_MODES = Object.freeze(VISUALISER_MODES.filter(mode => mode.renderer === 'butterchurn'))
 
 export const getMTVMode = (enabled, type) => enabled ? MTV_MODES.find(mode => mode.id === type) ?? null : null
+
+export const normaliseMTVStrength = value => {
+	const strength = value === null || value === undefined || value === '' ? 0.5 : Number(value)
+	return Number.isFinite(strength) ? Math.max(0, Math.min(1, strength)) : 0.5
+}
 
 const modes = new Map(VISUALISER_MODES.map(mode => [mode.id, mode]))
 export const getVisualiserMode = type => modes.get(type) ?? VISUALISER_MODES[0]

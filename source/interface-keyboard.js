@@ -1,8 +1,10 @@
+import { OPERATIONAL_SHORTCUTS } from './hardware/keyboard/keyboard-shortcuts.js'
 import { toggleVisibility } from "./dom/ui"
 import { createSampleBankPlayer } from './audio/sample-bank-player.js'
 import { createStreamDeckKeyboardHandler } from './hardware/streamdeck/streamdeck.js'
 import {
 	getKeyboardChordAssignment,
+	getNoteName,
 	getKeyboardNoteAssignment,
 	getKeyboardPercussionAssignment,
 	getKeyboardPerformanceKey,
@@ -28,7 +30,7 @@ const MODIFIER_KEYS = new Set(['Alt', 'AltGraph', 'Control', 'Meta', 'Shift'])
 const KEYBOARD_MODES = Object.freeze([
 	{
 		key: KEYBOARD_MODE_OPERATIONAL,
-		label: 'Operational',
+		label: 'App shortcuts',
 		type: KEYBOARD_TYPE_OPERATIONAL,
 	},
 	{
@@ -119,42 +121,9 @@ const getKeyboardModeFeedback = mode =>
 	`Keyboard mode: ${mode.label}`
 
 const KEYBOARD_STATUS_ID = 'keyboard'
-const OPERATIONAL_SHORTCUTS = Object.freeze([
-	{ key: 'a', display: 'A', controlId: 'button-automate', label: 'Automate' },
-	{ key: 'b', display: 'B', controlId: 'button-percussion', label: 'Beats' },
-	{ key: 'c', display: 'C', controlId: 'button-clear', label: 'Clear' },
-	{ key: 'd', display: 'D', controlId: 'button-disco', label: 'Disco' },
-	{ key: 'e', display: 'E', controlId: 'select-eyes', label: 'Eyes' },
-	{ key: 'f', display: 'F', controlId: 'button-fullscreen', label: 'Fullscreen' },
-	{ key: 'g', display: 'G', controlId: 'button-performance-drums', label: 'Performance drums' },
-	{ key: 'h', display: 'H', controlId: 'button-hud', label: 'HUD' },
-	{ key: 'i', display: 'I', controlId: 'select-lips', label: 'Lips' },
-	{ key: 'j', display: 'J', controlId: 'button-midi-percussion', label: 'MIDI percussion' },
-	{ key: 'k', display: 'K', controlId: 'button-toggle-overlay', label: 'Overlay canvas' },
-	{ key: 'l', display: 'L', controlId: 'button-speak', label: 'Speech' },
-	{ key: 'm', display: 'M', controlId: 'button-metronome', label: 'Metronome' },
-	{ key: 'n', display: 'N', controlId: 'button-sync-video', label: 'Sync video' },
-	{ key: 'o', display: 'O', controlId: 'button-overlay', label: 'AR overlay' },
-	{ key: 'p', display: 'P', controlId: 'button-points', label: 'Points' },
-	{ key: 'q', display: 'Q', controlId: 'button-quantise', label: 'Quantise' },
-	{ key: 'r', display: 'R', controlId: 'button-record-audio', label: 'Record audio' },
-	{ key: 's', display: 'S', controlId: 'button-settings', label: 'Settings' },
-	{ key: 't', display: 'T', controlId: 'button-subtitles', label: 'Subtitles' },
-	{ key: 'u', display: 'U', controlId: 'button-rapid-percussion', label: 'Rapid hits' },
-	{ key: 'v', display: 'V', controlId: 'button-record-video', label: 'Record video' },
-	{ key: 'w', display: 'W', controlId: 'button-eyebrows', label: 'Brows' },
-	{ key: 'x', display: 'X', controlId: 'button-meshes', label: 'Faces' },
-	{ key: 'y', display: 'Y', controlId: 'select-viz', label: 'Audio visualisation' },
-	{ key: 'z', display: 'Z', controlId: 'button-flood', label: 'Flood' },
-	{ key: 'shift+a', display: 'Shift A', controlId: 'button-toggle-advanced', label: 'Expert mode' },
-	{ key: 'shift+i', display: 'Shift I', controlId: 'toggle-midi', label: 'MIDI' },
-	{ key: 'shift+m', display: 'Shift M', controlId: 'button-mute', label: 'Mute' },
-	{ key: 'shift+t', display: 'Shift T', controlId: 'tempo-midi-synch', label: 'MIDI sync' },
-])
-
 const getOperationalShortcutKey = event => {
 	const key = event.key?.toLowerCase?.()
-	if (!key || key.length !== 1 || !/[a-z]/u.test(key)) return ''
+	if (!key || (key !== 'enter' && (key.length !== 1 || !/[a-z]/u.test(key)))) return ''
 	return event.shiftKey ? `shift+${key}` : key
 }
 
@@ -167,39 +136,39 @@ const installOperationalShortcutHints = () => {
 	OPERATIONAL_SHORTCUTS.forEach(shortcut => {
 		const control = document.getElementById(shortcut.controlId)
 		if (!control) return
-		const label = document.querySelector(`label[for="${shortcut.controlId}"]`) ?? control.closest('label')
+		const label = document.querySelector(`label[for="${shortcut.hintControlId ?? shortcut.controlId}"]`) ?? control.closest('label')
 		const host = label ?? control
 		host.classList.add('keyboard-shortcut-control')
 		let hint = Array.from(host.children).find(element => element.matches?.('kbd.keyboard-shortcut'))
 		if (!hint) {
 			hint = document.createElement('kbd')
 			hint.className = 'keyboard-shortcut'
-			if (control.parentElement === host) {
-				host.insertBefore(hint, control)
-			}else{
-				host.prepend(hint)
-			}
+			host.append(hint)
 		}
-		hint.textContent = shortcut.display
+		hint.textContent = shortcut.display.replace('Shift ', 'Shift + ')
+		hint.title = `${shortcut.label}: ${hint.textContent} in App shortcuts mode (F1)`
 		hint.setAttribute('aria-hidden', 'true')
 		control.dataset.keyboardShortcut = shortcut.display
+		control.setAttribute('aria-keyshortcuts', shortcut.display.replace(' ', '+'))
+		control.setAttribute('aria-description', 'Keyboard shortcut available in App shortcuts mode (F1).')
+		control.title = `${shortcut.label} · ${hint.textContent} (App shortcuts mode, F1)`
+		host.title = control.title
+	})
+	document.querySelectorAll('dialog .button-close, [data-midi-close]').forEach(control => {
+		control.classList.add('keyboard-shortcut-control')
+		control.setAttribute('aria-keyshortcuts', 'Escape')
+		control.title = `${control.getAttribute('aria-label') || 'Close'} (Esc)`
+		if (!control.querySelector('kbd.keyboard-shortcut')) {
+			const hint = document.createElement('kbd')
+			hint.className = 'keyboard-shortcut'
+			hint.textContent = 'Esc'
+			hint.setAttribute('aria-hidden', 'true')
+			control.append(hint)
+		}
 	})
 }
 
 const KEYBOARD_GUIDE_ROWS = Object.freeze([
-	Object.freeze([
-		Object.freeze({ code: 'Escape', key: 'Escape', label: 'Esc' }),
-		Object.freeze({ code: 'PageUp', key: 'PageUp', label: 'PgUp' }),
-		Object.freeze({ code: 'PageDown', key: 'PageDown', label: 'PgDn' }),
-	]),
-	Object.freeze([
-		Object.freeze({ code: 'F1', key: 'F1', label: 'F1' }),
-		Object.freeze({ code: 'F2', key: 'F2', label: 'F2' }),
-		Object.freeze({ code: 'F3', key: 'F3', label: 'F3' }),
-		Object.freeze({ code: 'F4', key: 'F4', label: 'F4' }),
-		Object.freeze({ code: 'F5', key: 'F5', label: 'F5' }),
-		Object.freeze({ code: 'F6', key: 'F6', label: 'F6' }),
-	]),
 	Object.freeze('1234567890'.split('').map(key => Object.freeze({
 		code: `Digit${key}`,
 		key,
@@ -220,15 +189,12 @@ const KEYBOARD_GUIDE_ROWS = Object.freeze([
 		key,
 		label: key.toUpperCase(),
 	}))),
-	Object.freeze([
-		Object.freeze({ code: 'Space', key: ' ', label: 'Space' }),
-	]),
 ])
 
 const isTextInputElement = element => {
 	if (!element?.matches?.('input')) return false
 	const type = (element.type || 'text').toLowerCase()
-	return 'text number search email password url tel'.includes(type)
+	return 'text number search email password url tel range'.split(' ').includes(type)
 }
 
 const isEditableKeyboardEvent = event => {
@@ -276,7 +242,7 @@ const updateKeyboardStatus = (application, state, lastKey = '', active = false) 
 		active,
 		ttl: active ? 1200 : undefined,
 	})
-	state.keyboardGuide?.render(mode, state)
+	state.keyboardGuide?.render(mode, detail)
 }
 
 const clearHeldKeyboardNotes = heldKeyboardNotes => {
@@ -888,8 +854,8 @@ const getGuideAction = (definition, mode, state) => {
 	if (definition.code === 'Escape') return 'Close'
 	if (definition.code === 'PageUp') return 'Previous mode'
 	if (definition.code === 'PageDown') return 'Next mode'
-	if (definition.code === 'Space') return 'Show keyboard'
-	if (definition.code === 'F1') return 'Operational'
+	if (definition.code === 'Space') return 'Toggle keyboard guide'
+	if (definition.code === 'F1') return 'App shortcuts'
 	if (definition.code === 'F2') return 'Notes'
 	if (definition.code === 'F3') return 'Notes +1 Oct'
 	if (definition.code === 'F4') return 'Chords'
@@ -900,14 +866,17 @@ const getGuideAction = (definition, mode, state) => {
 	if (!performanceKey) return ''
 	if (mode.type === KEYBOARD_TYPE_NOTES) {
 		return getKeyboardNoteAssignment(
-			{ ...performanceKey, index: performanceKey.index - 10 },
+			getKeyboardNote(definition),
 			(mode.octaveOffset ?? 0) + state.numericOctaveOffset,
 		)?.noteName ?? ''
 	}
-	if (mode.type === KEYBOARD_TYPE_CHORDS) return getKeyboardChordAssignment(performanceKey)?.label ?? ''
+	if (mode.type === KEYBOARD_TYPE_CHORDS) {
+		const label = getKeyboardChordAssignment(performanceKey)?.label
+		return label ? (label.endsWith('m') ? `${label.slice(0, -1)} minor` : `${label} major`) : ''
+	}
 	if (mode.type === KEYBOARD_TYPE_PERCUSSION) {
 		const drumKey = { ...performanceKey, index: performanceKey.row === 'numbers' ? performanceKey.index : performanceKey.index - 10 }
-		const drum = getKeyboardPercussionAssignment(drumKey)
+		const drum = getKeyboardPercussionAssignment(drumKey, state.guideShift)
 		return drum?.label ?? ''
 	}
 	if (mode.type === KEYBOARD_TYPE_OPERATIONAL) {
@@ -917,7 +886,7 @@ const getGuideAction = (definition, mode, state) => {
 		}
 		const regular = OPERATIONAL_SHORTCUTS.find(shortcut => shortcut.key === definition.key)
 		const shifted = OPERATIONAL_SHORTCUTS.find(shortcut => shortcut.key === `shift+${definition.key}`)
-		return [regular?.label, shifted ? `⇧ ${shifted.label}` : ''].filter(Boolean).join(' / ')
+		return (state.guideShift ? shifted?.label : regular?.label) ?? ''
 	}
 	if (mode.type === KEYBOARD_TYPE_SAMPLES) {
 		const sampleIndex = performanceKey.row === 'numbers' ? performanceKey.index : performanceKey.index - 10
@@ -928,26 +897,35 @@ const getGuideAction = (definition, mode, state) => {
 	return ''
 }
 
+const GUIDE_DESCRIPTIONS = {
+	operational: 'Control the app with letter keys. Number keys play sound effects. Press F1 to use these shortcuts elsewhere in the app.',
+	notes: 'Play individual notes with number and letter keys. Hold a key to sustain it. Shift + Page Up / Page Down changes the octave.',
+	'notes-high': 'Play individual notes one octave higher. Hold a key to sustain it. Shift + Page Up / Page Down changes the octave.',
+	chords: 'Each key plays a chord in C major. Try Q → W → E → R: C → G → Am → F. Hold a key to sustain it.',
+	percussion: 'Play drums and percussion. Hold Shift, or select the Shift layer below, for the expanded kit.',
+	samples: 'Trigger sound effects and samples with number and letter keys. Each tile names the sound it plays.',
+}
+
 const createKeyboardGuide = (state, selectMode) => {
 	const dialog = document.getElementById('keyboard-guide')
 	const mount = document.getElementById('keyboard-guide-keys')
 	if (!dialog || !mount) {
-		return {
-			render: () => null,
-			show: () => false,
-			press: () => null,
-			release: () => null,
-			close: () => false,
-			isOpen: () => false,
-		}
+		return { render: () => null, show: () => false, press: () => null, release: () => null, close: () => false, isOpen: () => false }
 	}
-
 	const keyViews = new Map()
+	const releasePointers = []
 	const normaliseCode = event => event.code?.replace(/^Numpad([0-9])$/, 'Digit$1') ?? ''
-	KEYBOARD_GUIDE_ROWS.forEach(rowDefinitions => {
+	const dispatch = (type, definition, shifted = state.guideShift) => window.dispatchEvent(new KeyboardEvent(type, {
+		key: shifted ? definition.key.toUpperCase() : definition.key,
+		code: definition.code, shiftKey: shifted, bubbles: true, cancelable: true,
+	}))
+	mount.replaceChildren()
+	KEYBOARD_GUIDE_ROWS.forEach((definitions, index) => {
 		const row = document.createElement('div')
 		row.className = 'keyboard-row'
-		rowDefinitions.forEach(definition => {
+		row.setAttribute('role', 'group')
+		row.setAttribute('aria-label', ['Number row', 'Upper letter row', 'Home row', 'Lower letter row'][index])
+		definitions.forEach(definition => {
 			const button = document.createElement('button')
 			button.type = 'button'
 			button.className = 'keyboard-key'
@@ -957,36 +935,79 @@ const createKeyboardGuide = (state, selectMode) => {
 			const action = document.createElement('span')
 			action.className = 'keyboard-key-action'
 			button.append(keyLabel, action)
-			button.addEventListener('click', () => {
-				for (const type of ['keydown', 'keyup']) {
-					window.dispatchEvent(new KeyboardEvent(type, {
-						key: definition.key,
-						code: definition.code,
-						bubbles: true,
-						cancelable: true,
-					}))
-				}
+			let pointerHeld = false
+			let pointerShift = false
+			const releasePointer = () => {
+				if (!pointerHeld) return
+				pointerHeld = false
+				dispatch('keyup', definition, pointerShift)
+			}
+			button.addEventListener('pointerdown', event => {
+				if (event.button !== 0 || button.disabled || pointerHeld) return
+				event.preventDefault()
+				pointerHeld = true
+				pointerShift = state.guideShift
+				dispatch('keydown', definition, pointerShift)
+				button.setPointerCapture?.(event.pointerId)
+			})
+			releasePointers.push(releasePointer)
+			button.addEventListener('pointerup', releasePointer)
+			button.addEventListener('pointercancel', releasePointer)
+			button.addEventListener('lostpointercapture', releasePointer)
+			button.addEventListener('click', event => {
+				// Native keyboard activation and assistive technology generate detail=0.
+				if (event.detail !== 0) return
+				dispatch('keydown', definition)
+				dispatch('keyup', definition)
 			})
 			keyViews.set(definition.code, { button, action, definition })
-			row.appendChild(button)
+			row.append(button)
 		})
-		mount.appendChild(row)
+		mount.append(row)
 	})
-
+	const activateOnPress = (button, activate) => {
+		button.addEventListener('pointerdown', event => {
+			if (event.button !== 0 || button.disabled) return
+			event.preventDefault()
+			activate()
+		})
+		button.addEventListener('click', event => {
+			if (event.detail === 0) activate()
+		})
+	}
 	dialog.querySelectorAll('[data-keyboard-mode]').forEach(button => {
-		button.addEventListener('click', () => selectMode(Number.parseInt(button.dataset.keyboardMode, 10)))
+		activateOnPress(button, () => selectMode(Number.parseInt(button.dataset.keyboardMode, 10)))
 	})
-
-	const render = mode => {
+	const shiftButton = dialog.querySelector('[data-keyboard-shift]')
+	if (shiftButton) activateOnPress(shiftButton, () => {
+		state.guideShift = !state.guideShift
+		render(KEYBOARD_MODES[state.keyboardModeIndex])
+	})
+	const render = (mode, detail) => {
 		dialog.querySelector('.keyboard-guide-current').textContent = `${mode.label} mode`
+		const description = dialog.querySelector('#keyboard-guide-description')
+		if (description) description.textContent = GUIDE_DESCRIPTIONS[mode.key]
+		const feedback = dialog.querySelector('.keyboard-guide-feedback')
+		if (feedback && detail) feedback.textContent = detail
+		if (shiftButton) {
+			shiftButton.hidden = !['operational', 'percussion'].includes(mode.key)
+			shiftButton.setAttribute('aria-pressed', String(Boolean(state.guideShift)))
+		}
 		dialog.querySelectorAll('[data-keyboard-mode]').forEach(button => {
-			button.setAttribute('aria-pressed', String(Number.parseInt(button.dataset.keyboardMode, 10) === state.keyboardModeIndex))
+			const selected = Number.parseInt(button.dataset.keyboardMode, 10) === state.keyboardModeIndex
+			button.setAttribute('aria-pressed', String(selected))
 		})
 		keyViews.forEach(view => {
 			const action = getGuideAction(view.definition, mode, state)
-			view.action.textContent = action
+			view.action.textContent = action || 'Unassigned'
 			view.button.classList.toggle('is-unmapped', !action)
-			view.button.setAttribute('aria-label', `${view.definition.label}: ${action || 'No action'}`)
+			view.button.disabled = !action
+			view.button.title = `${view.definition.label}: ${action || 'No action'}`
+			view.button.setAttribute('aria-label', `${state.guideShift ? 'Shift + ' : ''}${view.definition.label}: ${action || 'No action'}`)
+			view.button.setAttribute('aria-keyshortcuts', `${state.guideShift ? 'Shift+' : ''}${view.definition.label}`)
+			const chord = mode.type === KEYBOARD_TYPE_CHORDS ? getKeyboardChordAssignment(getKeyboardPerformanceKey(view.definition)) : null
+			if (chord) view.button.dataset.chordFamily = chord.family
+			else delete view.button.dataset.chordFamily
 		})
 	}
 	const show = () => {
@@ -1000,12 +1021,14 @@ const createKeyboardGuide = (state, selectMode) => {
 		else dialog.removeAttribute('open')
 		return true
 	}
-
+	const reset = () => {
+		releasePointers.forEach(release => release())
+		keyViews.forEach(view => view.button.classList.remove('is-pressed'))
+	}
+	dialog.addEventListener('close', reset)
+	document.getElementById('button-keyboard-guide')?.addEventListener('click', show)
 	return {
-		render,
-		show,
-		close,
-		isOpen: () => dialog.open,
+		render, show, close, reset, isOpen: () => dialog.open,
 		press: event => keyViews.get(normaliseCode(event))?.button.classList.add('is-pressed'),
 		release: event => keyViews.get(normaliseCode(event))?.button.classList.remove('is-pressed'),
 	}
@@ -1023,11 +1046,14 @@ export const addKeyboardEvents = application => {
 		heldKeyboardPercussion: new Map(),
 		numericOctaveOffset: 0,
 		guideKey: null,
+		guideShift: false,
 	}
 	const heldHintKeys = new Set()
 	installOperationalShortcutHints()
 	const keyboardModeSelect = document.getElementById('select-keyboard-mode')
 	if (keyboardModeSelect) {
+		keyboardModeSelect.setAttribute('aria-keyshortcuts', 'F1 F2 F3 F4 F5 F6 PageUp PageDown')
+		keyboardModeSelect.title = 'Keyboard mode · F1–F6 or Page Up / Page Down'
 		keyboardModeSelect.value = KEYBOARD_MODES[state.keyboardModeIndex].key
 		keyboardModeSelect.addEventListener('input', () => {
 			const modeIndex = KEYBOARD_MODES.findIndex(mode => mode.key === keyboardModeSelect.value)
@@ -1132,11 +1158,17 @@ export const addKeyboardEvents = application => {
 		if (hintKey) heldHintKeys.add(hintKey)
 		document.documentElement.classList.toggle('keyboard-input-active', heldHintKeys.size > 0)
 
+		const modal = event.target?.closest?.('dialog[open]')
+		if (modal && modal.id !== 'keyboard-guide') return
 		state.keyboardGuide.press(event)
 		if (streamDeckKeyboard.handleKeyDown(event)) {
 			event.preventDefault()
 			return
 		}
+
+		const focusedControl = event.target?.closest?.('button, a, input, summary')
+		if (focusedControl && [' ', 'Enter'].includes(event.key)) return
+		if (event.metaKey || event.ctrlKey || event.altKey) return
 
 		if (isEditableKeyboardEvent(event)) {
 			state.numberSequence = ''
@@ -1144,10 +1176,22 @@ export const addKeyboardEvents = application => {
 		}
 		// Modifiers select alternate controls (including volume channels), but are
 		// not commands by themselves and must never open the modal keyboard guide.
-		if (MODIFIER_KEYS.has(event.key)) return
+		if (MODIFIER_KEYS.has(event.key)) {
+			if (event.key === 'Shift') {
+				state.guideShift = true
+				updateKeyboardStatus(application, state)
+			}
+			return
+		}
 		if (event.key === 'Escape' && state.keyboardGuide.close()) {
 			state.guideKey = null
 			event.preventDefault()
+			return
+		}
+
+		if (event.code === 'Space' || event.key === ' ') {
+			event.preventDefault()
+			if (!event.repeat) state.keyboardGuide.isOpen() ? state.keyboardGuide.close() : state.keyboardGuide.show()
 			return
 		}
 
@@ -1189,7 +1233,7 @@ export const addKeyboardEvents = application => {
 			updateKeyboardStatus(
 				application,
 				state,
-				chord?.label ?? '',
+				chord ? `${chord.label} · ${chord.noteNumbers.map(getNoteName).join('–')}` : '',
 				state.heldKeyboardNotes.size > 0,
 			)
 			return
@@ -1252,6 +1296,10 @@ export const addKeyboardEvents = application => {
 		document.documentElement.classList.toggle('keyboard-input-active', heldHintKeys.size > 0)
 
 		state.keyboardGuide.release(event)
+		if (event.key === 'Shift') {
+			state.guideShift = false
+			updateKeyboardStatus(application, state)
+		}
 		if (state.guideKey && state.guideKey === (event.code || event.key)) {
 			state.keyboardGuide.close()
 			state.guideKey = null
@@ -1333,6 +1381,8 @@ export const addKeyboardEvents = application => {
 	})
 
 	window.addEventListener('blur', () => {
+		state.guideShift = false
+		state.keyboardGuide.reset?.()
 		heldHintKeys.clear()
 		document.documentElement.classList.remove('keyboard-input-active')
 		streamDeckKeyboard.reset()
