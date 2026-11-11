@@ -1991,6 +1991,7 @@ export default class Person extends EventTarget{
 
 	toggleChordDisplayMode(){
 		this.options.showChordNames = !this.options.showChordNames
+		this.dispatchPersonEvent(EVENT_PERSON_OPTIONS_CHANGED, { person:this, options:{ showChordNames:this.options.showChordNames } })
 		return this.options.showChordNames
 	}
 

@@ -1847,14 +1847,14 @@ export const createInterface = (
 	 * Instantiate a Person Class and connect it up accordingly
 	 * @param {Number} index Player's index
 	 * @param {String} eyeColour Player's eye colour
-	 * @param {?Number} personIndex -  Player number
 	 * @returns {Person} Person fully wired
 	 */
-	const createPerson = (index, eyeColour, personIndex=0 ) => {
+	const createPerson = (index, eyeColour) => {
 			
 		const person = personManager.getPerson(index)
 		person.getBarDuration = () => clock?.timePerBar
-		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[personIndex]
+		// each player has their own hue and octave range
+		const defaultOptions = DEFAULT_PEOPLE_OPTIONS[person.personIndex] ?? DEFAULT_PEOPLE_OPTIONS[0]
 		const queryPersonOptions = Person.getQueryOptions(
 			stateMachine.asObject,
 			Person.getQueryPrefixes(person)
