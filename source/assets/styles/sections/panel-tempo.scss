@@ -41,7 +41,7 @@
 
 // Set Tempo ----------------------------------------------
 // Every control fills its grid cell; labels sit in the flow above
-// their sliders and BPM sits directly beneath the number.
+// their sliders and BPM sits beneath the right edge of the number.
 .form-tempo{
 	--tempo-gap:clamp(1rem, 2.5vw, 2rem);
 	box-sizing:border-box;
@@ -103,7 +103,7 @@
 	min-width:0;
 	font-size:clamp(5rem, 18vw, 12rem);
 	line-height:1;
-	text-align:center;
+	text-align:right;
 
 	&::-webkit-inner-spin-button, 
 	&::-webkit-outer-spin-button { 
@@ -112,10 +112,10 @@
 	}
 }
 
-// visually "BPM" under the number, still the accessible label
+// visually "BPM" right aligned under the number, still the accessible label
 .form-tempo > label[for="tempo-input-text"]{
 	grid-area:unit;
-	justify-self:center;
+	justify-self:end;
 	margin-top:calc(-1 * var(--tempo-gap) / 2);
 	font-size:0;
 	color:transparent;
